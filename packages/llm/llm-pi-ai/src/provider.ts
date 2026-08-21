@@ -22,6 +22,7 @@
 import { createProvider } from '@earendil-works/pi-ai'
 import type { Api, ApiKeyAuth, Model, Provider, ProviderStreams } from '@earendil-works/pi-ai'
 import { anthropicMessagesApi } from '@earendil-works/pi-ai/api/anthropic-messages.lazy'
+import { azureOpenAICompletionsApi } from '@earendil-works/pi-ai/api/azure-openai-completions.lazy'
 import { openAICompletionsApi } from '@earendil-works/pi-ai/api/openai-completions.lazy'
 import { openAIResponsesApi } from '@earendil-works/pi-ai/api/openai-responses.lazy'
 import { catalogProvider } from './catalog.ts'
@@ -36,18 +37,22 @@ import { catalogProvider } from './catalog.ts'
  * actually reaches for today, each completely describable with a key, an
  * endpoint, and headers. Bedrock signs with SigV4 over AWS credentials and a
  * region, Vertex needs a project, a location, and application-default
- * credentials, Azure needs provider environment plus an api-version, and Codex
- * authenticates through OAuth — none of which this configuration shape can
- * express, so offering them would hand back a provider that cannot
- * authenticate. The remainder are absent for want of a consumer rather than a
- * blocker: each is one line here once a deployment needs it. Catalog routes
- * still reach every protocol through their own provider; only an explicit
- * override is refused.
+ * credentials, and Codex authenticates through OAuth — none of which this
+ * configuration shape can express, so offering them would hand back a
+ * provider that cannot authenticate. `azure-openai-completions` is the one
+ * exception this build patches in locally (see the pi-ai patch file): it
+ * still needs an `AZURE_OPENAI_API_VERSION` environment variable, which is
+ * process-wide rather than per-route, because the wire protocol otherwise
+ * fits — a deployment-path endpoint and bearer headers. The remainder are
+ * absent for want of a consumer rather than a blocker: each is one line here
+ * once a deployment needs it. Catalog routes still reach every protocol
+ * through their own provider; only an explicit override is refused.
  */
 const PROTOCOLS: Readonly<Record<string, () => ProviderStreams>> = {
   'openai-completions': openAICompletionsApi,
   'openai-responses': openAIResponsesApi,
   'anthropic-messages': anthropicMessagesApi,
+  'azure-openai-completions': azureOpenAICompletionsApi,
 }
 
 /**

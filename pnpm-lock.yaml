@@ -9,6 +9,7 @@ overrides:
   '@bosch/schemastery': link:vendor/schemastery
 
 patchedDependencies:
+  '@earendil-works/pi-ai@0.82.1': 1fbcde43a40aad09a2849be88b5ca0616783c0288010ec448a897a3febe52b27
   node-pty@1.2.0-beta.15: c9896e5bf6a305e53d92065b524aafebe9cd5a0a3f84a54940e8e21326addda5
 
 importers:
@@ -5533,7 +5534,7 @@ importers:
         version: link:../../../vendor/schemastery
       '@earendil-works/pi-ai':
         specifier: ^0.82.1
-        version: 0.82.1(@modelcontextprotocol/sdk@1.29.0(zod@4.4.3))(ws@8.21.0)(zod@4.4.3)
+        version: 0.82.1(patch_hash=1fbcde43a40aad09a2849be88b5ca0616783c0288010ec448a897a3febe52b27)(@modelcontextprotocol/sdk@1.29.0(zod@4.4.3))(ws@8.21.0)(zod@4.4.3)
     devDependencies:
       '@bosch/bh-attachment':
         specifier: workspace:^
@@ -15333,7 +15334,7 @@ snapshots:
     transitivePeerDependencies:
       - '@algolia/client-search'
 
-  '@earendil-works/pi-ai@0.82.1(@modelcontextprotocol/sdk@1.29.0(zod@4.4.3))(ws@8.21.0)(zod@4.4.3)':
+  '@earendil-works/pi-ai@0.82.1(patch_hash=1fbcde43a40aad09a2849be88b5ca0616783c0288010ec448a897a3febe52b27)(@modelcontextprotocol/sdk@1.29.0(zod@4.4.3))(ws@8.21.0)(zod@4.4.3)':
     dependencies:
       '@anthropic-ai/sdk': 0.91.1(zod@4.4.3)
       '@aws-sdk/client-bedrock-runtime': 3.1048.0

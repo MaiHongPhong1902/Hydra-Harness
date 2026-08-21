@@ -70,6 +70,40 @@ Configure credentials, the model catalog, and deployment-specific transport sett
               off:
               high: high
               max: ultra
+      # Azure OpenAI deployments behind a gateway that authenticates with
+      # `Authorization: Bearer` rather than Azure's own `api-key` header (set
+      # AZURE_OPENAI_API_VERSION separately; it is process-wide, not per-route).
+      # Model id = the gateway's deployment name, sent as both the URL segment
+      # and the request body's `model` field.
+      bosch-farm:
+        displayName: Bosch Model Farm
+        apiKeyEnv: BMF_API_KEY
+        api: azure-openai-completions
+        baseURL: https://aoai-farm.bosch-temp.com/api/openai
+        models:
+          - id: gpt-5-2025-08-07
+            name: GPT-5
+            contextWindow: 400000
+            maxTokens: 128000
+          - id: gpt-5-mini-2025-08-07
+            name: GPT-5 mini
+            contextWindow: 400000
+            maxTokens: 128000
+      # A gateway path that already speaks plain OpenAI Chat Completions once
+      # the deployment name is baked into baseURL, rather than into the URL at
+      # request time: no api-version, so the unmodified `openai-completions`
+      # protocol reaches it. One route per model, since baseURL is per-route.
+      # The model id is this gateway's expected request-body `model` value,
+      # which may differ from the URL's bare deployment segment (baked above).
+      bosch-farm-gemini-2.5-flash:
+        displayName: Gemini 2.5 Flash (Bosch Model Farm)
+        apiKeyEnv: BMF_API_KEY
+        api: openai-completions
+        baseURL: https://aoai-farm.bosch-temp.com/api/openai/deployments/gemini-2.5-flash
+        models:
+          - id: google/gemini-2.5-flash
+            contextWindow: 1048576
+            maxTokens: 65536
 ```
 
 The dict shape makes duplicate routes unrepresentable, and the pre-release array shape (with per-profile `provider` fields) fails load with migration directions. `providers` may also be empty or omitted entirely: the adapter then mounts **dormant** — zero routes, no extra catalog entries — and registers routes the moment the `llm-pi-ai:` settings section supplies profiles, dropping them again when it empties. Dormant or not, the plugin declares every installed catalog provider in the configurable-provider directory (`ctx.llm.listConfigurableProviders()`, settings path `providers.<provider>`), joined with every route the current profiles declare, so configuration surfaces can offer the full catalog before any route exists and can still address a hand-declared one. Each entry carries `declared`: whether pi-ai ships nothing under that key. It follows the installed catalog, never the settings document, because narrowing a shipped provider's models stores a profile too and that route is still one pi-ai knows — only the adapter can tell the two apart, which is why the directory answers rather than leaving a surface to infer it. Which adapters exist is composition; which providers run can be entirely the user's settings document. Registration with `ctx.llm` is atomic: a collision with any provider route already owned by another adapter fails plugin loading without registering the remaining routes. Model ids are not lifecycle config; a model the route does not configure fails before any provider request with `LlmError('UNKNOWN_MODEL')`.
@@ -104,7 +138,9 @@ Resolution still fails loud, naming the offending route and model, when a route 
 
 `baseURL` sets the endpoint of every model on the route, so private proxies such as `https://proxy.example.com:8443` remain supported; a catalog route that omits it keeps each catalog model's own endpoint. Naming `api` on a catalog route repoints the whole route at that protocol, which is how a deployment moves a provider between, say, Responses and Chat Completions.
 
-`supportedProtocols()` is deliberately narrower than pi-ai's full streaming API set: it holds only the protocols a profile can *completely* describe with a key, an endpoint, and headers. Bedrock signs with SigV4 over AWS credentials and a region, Vertex needs a project, a location, and application-default credentials, Azure needs provider environment plus an api-version, and Codex authenticates through OAuth — offering those would hand back a route that cannot authenticate. Catalog routes still reach them through their own provider; only an explicit override is refused.
+`supportedProtocols()` is deliberately narrower than pi-ai's full streaming API set: it holds only the protocols a profile can *completely* describe with a key, an endpoint, and headers. Bedrock signs with SigV4 over AWS credentials and a region, Vertex needs a project, a location, and application-default credentials, and Codex authenticates through OAuth — offering those would hand back a route that cannot authenticate. Catalog routes still reach them through their own provider; only an explicit override is refused.
+
+`azure-openai-completions` is the one Azure-shaped exception: it reaches a locally patched pi-ai build (see `patches/@earendil-works__pi-ai@0.82.1.patch`) that sends `Authorization: Bearer` and a deployment-path endpoint instead of pi-ai's own `api-key`-header Azure Responses implementation. It still needs an api-version, which is process-wide rather than per-route: set the `AZURE_OPENAI_API_VERSION` environment variable to the value the gateway expects. A route naming this protocol sends each model's `id` as both the URL's deployment segment and the request body's `model` field, so the model id must equal the gateway's deployment name.
 
 ## Dynamic configuration (settings + credentials)
 
