@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-06-17-ts-build-config.zh.md)
-
 > Root project topology uses a solution root over two aggregate programs; see the [solution-root note](2026-07-22-tsconfig-solution-root-two-aggregates.md). The [API Remotes build note](2026-08-08-api-remotes-generated-contract-build.md) defines the current command order in which the Host generates Remote contracts before the Client compiles. The tsc-first ownership decided here is unchanged.
 
 ## Problem
@@ -47,9 +45,9 @@ The command orchestration shape is:
 ```sh
 pnpm run build:
 tsc -b tsconfig.host.json
-tsdown --env.DSH_BUILD_FACE host
+tsdown --env.BH_BUILD_FACE host
 tsc -b tsconfig.client.json
-tsdown --env.DSH_BUILD_FACE client
+tsdown --env.BH_BUILD_FACE client
 pnpm run build:web
 
 pnpm run verify-node-next-types:
@@ -63,7 +61,7 @@ pnpm run clean:
 tsx scripts/clean.ts
 ```
 
-The source-mode demos run through their declared TypeScript launchers and the root paths map. The `dsh` TUI chain uses Node's native transform plus its app-owned paths loader, the Web demo builds its required artifacts before entering that same CLI source chain, and the other source demos continue to use tsx.
+The source-mode demos run through their declared TypeScript launchers and the root paths map. The `bh` TUI chain uses Node's native transform plus its app-owned paths loader, the Web demo builds its required artifacts before entering that same CLI source chain, and the other source demos continue to use tsx.
 
 ## Alternatives considered
 
@@ -76,7 +74,7 @@ The source-mode demos run through their declared TypeScript launchers and the ro
 
 Build responsibilities are clearer:
 
-- Each ordinary module under `packages/<group>/<pkg>` and `vendor/*` has one local tsconfig for build, typecheck, and tools that run source directly, such as the `dsh` source loader, `tsx`, and `vitest`. `api/remotes` is the sole exception: generated-contract ordering requires one solution and two mutually exclusive emitting projects.
+- Each ordinary module under `packages/<group>/<pkg>` and `vendor/*` has one local tsconfig for build, typecheck, and tools that run source directly, such as the `bh` source loader, `tsx`, and `vitest`. `api/remotes` is the sole exception: generated-contract ordering requires one solution and two mutually exclusive emitting projects.
 - The `build` command runs the Host and Client Project Reference graphs in order. In each phase, `tsc -b` owns the publishable per-module `.js` and `.d.ts` output, while the bundler owns only the published runtime bundles.
     - `lib/types/*.d.ts` is the publish declaration output; `.d.ts.map` remains only as a local compilation artifact.
     - `lib/types/*.d.ts` uses explicit `.ts` relative specifiers, which TypeScript's NodeNext/Node16 resolver maps to sibling `.d.ts` files.

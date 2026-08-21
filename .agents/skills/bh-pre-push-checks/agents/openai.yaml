@@ -1,0 +1,4 @@
+interface:
+  display_name: "BH Pre-Push Checks"
+  short_description: "Run the relevant Bosch Harness checks before push"
+  default_prompt: "Use $bh-pre-push-checks before pushing this Bosch Harness branch."

@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-20-doc-site-raw-markdown-twins.zh.md)
-
 ## Problem
 
 The documentation site serves rendered HTML only, so an agent reading the docs has to scrape VitePress markup or fall back to the repository, where links and image references follow source layout rather than public routes. Claude's platform documentation set the convention this feature adopts: append `.md` to any page URL for the page as raw Markdown, with a root `llms.txt` as the agent-facing index. [The site projection](2026-07-13-documentation-site-projection.md) rewrites every page's links for the public site already, so the gap was serving that projection as plain Markdown.

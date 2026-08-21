@@ -1,7 +1,5 @@
 # Post-mortem 0002: Filesystem snapshot tools were permanently disabled
 
-English | [中文](0002-js-expression-disabled-filesystem-tools.zh.md)
-
 Status: resolved
 
 ## Executive summary
@@ -38,7 +36,7 @@ The snapshot framework treated any deterministic transcript as valid behavior. H
 - Filesystem scenarios boot `fs.cordis.yml`, an explicit fixed full-access overlay with a paired replay config and its own request-header class.
 - [`AGENTS.md`](../../AGENTS.md) and the [Cordis primer](../cordis-primer.md#loader-configuration) state that `!!js` is valid only under plugin `config` and conditional composition uses overlays.
 - `verify-cordis-config` parses repository Cordis YAML and rejects expression nodes in Loader entry metadata, including include patches and inserted entries.
-- `dsh-acp-snapshot` rejects structured `UNKNOWN_TOOL` results in fresh runs and committed session fixtures before they can be committed as expected outputs.
+- `bh-acp-snapshot` rejects structured `UNKNOWN_TOOL` results in fresh runs and committed session fixtures before they can be committed as expected outputs.
 
 ## Lessons
 

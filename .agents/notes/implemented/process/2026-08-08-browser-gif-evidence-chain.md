@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-08-browser-gif-evidence-chain.zh.md)
-
 ## Problem
 
 A browser-demo storyboard can contain individually truthful screenshots without proving one truthful execution. Reusing global application state can admit old settings or sessions, capture automation can accidentally combine frames from separate model runs, and a chat transcript can show a successful fallback without exposing the tool rejection that caused it. Fuzzy accessible-name matching can also accept prompt echoes or descendant text instead of the intended result.
@@ -12,7 +10,7 @@ Headless production recording has two further boundaries. A product default may 
 
 ## Decision
 
-The [`record-browser-gif`](../../../skills/record-browser-gif/SKILL.md) workflow treats one storyboard as one evidence chain pinned to an exact pull-request head. Before building, it requires a clean worktree and records that commit SHA. Each run uses fresh `DSH_HOME`, `DSH_AGENTS_HOME`, workspace, session, and isolated browser state, and every published frame comes from the same server and model-backed scenario run. When a fresh browser context is unavailable, the exact origin's cookies and site storage are cleared before navigation. Existing user browser state is used only when requested or required, is stated next to the GIF, and does not substantiate fresh client state. A failed capture run is discarded and repeated from fresh roots rather than combined with another run.
+The [`record-browser-gif`](../../../skills/record-browser-gif/SKILL.md) workflow treats one storyboard as one evidence chain pinned to an exact pull-request head. Before building, it requires a clean worktree and records that commit SHA. Each run uses fresh `BH_HOME`, `BH_AGENTS_HOME`, workspace, session, and isolated browser state, and every published frame comes from the same server and model-backed scenario run. When a fresh browser context is unavailable, the exact origin's cookies and site storage are cleared before navigation. Existing user browser state is used only when requested or required, is stated next to the GIF, and does not substantiate fresh client state. A failed capture run is discarded and repeated from fresh roots rather than combined with another run.
 
 Browser automation waits for unique, exact semantic states. When the claim concerns a tool call, rejection, or recovery, the storyboard includes a detail or trajectory frame that identifies the tool, shows its status or stable error code, and shows the downstream result. The final encoded GIF remains the verification subject; when a viewer cannot animate it, representative frames are decoded from that GIF instead of treating source screenshots as equivalent evidence.
 

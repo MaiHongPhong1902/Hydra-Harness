@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-07-default-model-follows-the-picker.zh.md)
-
 ## Problem
 
 A session model picker and a deployment default are two layers of the same preference. If the picker affects only its addressed session, the next blank session can select a different model with no user-facing way to align the default. If the default lives inside a Host gateway, direct Agent entry points cannot share it without depending on Host or duplicating state.

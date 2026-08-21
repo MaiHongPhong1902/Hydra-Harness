@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-07-web-inline-file-mentions.zh.md)
-
 > Scope: guiding final responses to name primary output files as inline code, then linking those tokens to files the turn changed. Not in scope: recognizing paths in plain prose, linking files absent from successful mutation locations, and mentions in streaming or mid-turn messages.
 
 ## Problem
@@ -24,7 +22,7 @@ The produced-files row lists a turn's output, but the closing message usually al
 - **Linking suffix matches (`out/index.html` mentioned as `index.html` in a subdirectory listing)** — deferred; exact path and unique basename cover the observed closing-message shapes, and a wider matcher can loosen later without breaking the seam.
 - **Resolving in ui-primitives against a passed path list** — puts matching policy in the generic renderer, where other consumers would inherit it unasked. The resolver contract keeps policy with the owner.
 - **Threading the vocabulary through the turn-tail chain** — the chain is a render dispatch below the message; mentions decorate markdown inside it, which only data reaching MarkdownText can do. The optional service is that data path, and its absence is the off state.
-- **Registering the guidance in dsh-web-app** — makes the app bundle describe a feature-specific rendering syntax and allows the renderer and its prompt to drift or be composed independently. The feature package's existing Node half gives one cordis.yml row joint ownership.
+- **Registering the guidance in bh-web-app** — makes the app bundle describe a feature-specific rendering syntax and allows the renderer and its prompt to drift or be composed independently. The feature package's existing Node half gives one cordis.yml row joint ownership.
 - **Adding a post-turn model step to identify the output** — adds latency and another generation even though the final response already has the necessary file-tool history. One static prompt paragraph stays in the reusable prefix and asks the existing final generation to emit the accepted spelling.
 
 ## Consequences

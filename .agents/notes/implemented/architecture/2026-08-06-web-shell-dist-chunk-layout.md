@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-06-web-shell-dist-chunk-layout.zh.md)
-
 ## Problem
 
 The apps/web shell previously built into a single ~1.2 MB (minified) index chunk, roughly 80% of it vendor bytes — KaTeX, the boot grammars and the shiki engine, react-dom, the markdown pipeline — fused with all the workspace shell code (about one fifth). Any one-line shell change rehashed the whole chunk, forcing returning clients to redownload everything; `dist/assets/` was a flat single-level spread of 100-plus files (the main chunk, 23 lazy-loaded grammar chunks, 59 KaTeX font faces, and sourcemaps intermixed), impossible to navigate.
@@ -31,7 +29,7 @@ All cross-directory references (index's dynamic imports into `langs/`, same-dire
 
 ## Alternatives considered
 
-- **Serving react and the other vendors from a CDN**: dsh web targets local/intranet hosts (often without internet access), so a CDN is simply unavailable; react is the platform seed external of every plugin bundle (the shell is its sole supplier), and switching to the CDN global-variable form would touch three places — the platform manifest, the seed, and the module table; the caching benefit is already delivered by the vendor split.
+- **Serving react and the other vendors from a CDN**: bh web targets local/intranet hosts (often without internet access), so a CDN is simply unavailable; react is the platform seed external of every plugin bundle (the shell is its sole supplier), and switching to the CDN global-variable form would touch three places — the platform manifest, the seed, and the module table; the caching benefit is already delivered by the vendor split.
 - **An inverse catch-all rule (everything in node_modules except the react family goes to vendor)**: membership cannot be read off the configuration, and small pieces like anser/clsx get misassigned to vendor; superseded by the positive exact-package-name list.
 - **Regex family matching**: hard to read; exact package names plus rollup's automatic coloring of transitive dependencies make pattern matching unnecessary.
 - **Identifying grammar chunks by facadeModuleId**: the facade-less shared chunks of embedded grammars would go undetected and fall back to the root directory; the `moduleIds` membership criterion covers both shapes.

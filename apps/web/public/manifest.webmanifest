@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "DeepSeek Harness",
-  "short_name": "DSH",
+  "name": "Bosch Harness",
+  "short_name": "BH",
   "start_url": "/",
   "scope": "/",
   "display": "fullscreen",

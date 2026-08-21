@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-10-fork-children-stay-one-shot.zh.md)
-
 ## Problem
 
 Fork's only difference from spawn is that the child Session is seeded with the parent's completed-turn prefix ([subagent-fork-in-process](../../../../packages/subagent/subagent-fork-in-process/README.md)). That seed costs real tokens — the inherited history is re-sent in every child request — and its one concrete payoff is provider-side prefix reuse: under the same provider and model, a child request whose leading bytes are identical to the parent's re-prefills none of the shared span. Anything a child scope adds *ahead* of the inherited history spends that payoff, because reuse stops at the first differing byte.
@@ -20,7 +18,7 @@ One-shot children — foreground and background alike — are created through `S
 
 ### The restriction is composition, not code
 
-`ForkInProcessProvider.prepareContinuable` stays implemented and `ctx.subagents.startContinuable()` still accepts `fork`; only the shipped `cordis.yml` rows changed. `tool-subagent` knows both the provider's `inheritsParentContext` and its own `backgroundMode` at mount, so a load-time rejection of the pair was available and is deliberately not added: the pair is not wrong in general. It is wrong only while a child-scope delta precedes inherited history, and the package that creates that delta — [`dsh-tool-subagent-report`](../../../../packages/subagent/tool-subagent-report/README.md) — is separately installable and, by its own design, invisible to `tool-subagent`. A deployment that omits the report package can run continuable forked children with the prefix intact. Encoding one roster's consequence as a delegation-tool invariant would make the tool assert something it cannot observe.
+`ForkInProcessProvider.prepareContinuable` stays implemented and `ctx.subagents.startContinuable()` still accepts `fork`; only the shipped `cordis.yml` rows changed. `tool-subagent` knows both the provider's `inheritsParentContext` and its own `backgroundMode` at mount, so a load-time rejection of the pair was available and is deliberately not added: the pair is not wrong in general. It is wrong only while a child-scope delta precedes inherited history, and the package that creates that delta — [`bh-tool-subagent-report`](../../../../packages/subagent/tool-subagent-report/README.md) — is separately installable and, by its own design, invisible to `tool-subagent`. A deployment that omits the report package can run continuable forked children with the prefix intact. Encoding one roster's consequence as a delegation-tool invariant would make the tool assert something it cannot observe.
 
 The reintroduction condition is recorded as a `TODO(fork-continuable-prefix-reuse)` marker on `prepareContinuable` itself, the one method the shipped compositions do not call, and tracked as issue #2124: continuable fork reopens when a child's system prompt and tool schemas can match its parent's byte for byte.
 

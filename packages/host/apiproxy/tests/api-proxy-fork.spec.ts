@@ -1,19 +1,19 @@
 /** Session-fork boundaries, lineage, and inherited model routing. */
 
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@deepseek-ai/cordis'
-import AgentRegistry, { agentEvents } from '@deepseek-ai/dsh-agent'
-import type { Agent, AgentHandle, CreateAgentOptions } from '@deepseek-ai/dsh-agent'
-import { createUserMessage, ReasoningEffortId } from '@deepseek-ai/dsh-llm'
-import type { LlmCallConfig } from '@deepseek-ai/dsh-llm'
-import SessionStore from '@deepseek-ai/dsh-session'
-import type { Session, SessionEvent, SessionHeader, SessionId } from '@deepseek-ai/dsh-session'
-import SystemPrompt from '@deepseek-ai/dsh-system-prompt'
-import UserQuestionService from '@deepseek-ai/dsh-user-questions'
-import type { Workspace } from '@deepseek-ai/dsh-workspace'
-import type { RpcRequest } from '@deepseek-ai/dsh-host-apiproxy/api/rpc'
-import { RpcId } from '@deepseek-ai/dsh-host-apiproxy/api/rpc'
-import { createApiProxy } from '@deepseek-ai/dsh-host-apiproxy'
+import { Context } from '@bosch/cordis'
+import AgentRegistry, { agentEvents } from '@bosch/bh-agent'
+import type { Agent, AgentHandle, CreateAgentOptions } from '@bosch/bh-agent'
+import { createUserMessage, ReasoningEffortId } from '@bosch/bh-llm'
+import type { LlmCallConfig } from '@bosch/bh-llm'
+import SessionStore from '@bosch/bh-session'
+import type { Session, SessionEvent, SessionHeader, SessionId } from '@bosch/bh-session'
+import SystemPrompt from '@bosch/bh-system-prompt'
+import UserQuestionService from '@bosch/bh-user-questions'
+import type { Workspace } from '@bosch/bh-workspace'
+import type { RpcRequest } from '@bosch/bh-host-apiproxy/api/rpc'
+import { RpcId } from '@bosch/bh-host-apiproxy/api/rpc'
+import { createApiProxy } from '@bosch/bh-host-apiproxy'
 
 const sid = (id: string): SessionId => id as SessionId
 

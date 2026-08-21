@@ -1,11 +1,11 @@
 /**
- * Shared wire protocol for the DeepSeek Harness SDK runtime: the
+ * Shared wire protocol for the Bosch Harness SDK runtime: the
  * newline-delimited JSON-RPC stdio transport plus the named request, result,
  * and notification types both wire ends speak. The runtime server plugin
- * (`@deepseek-ai/dsh-sdk-jsonrpc-server`) serves this protocol; SDK clients
- * (`@deepseek-ai/dsh-sdk-client`, the Python SDK) drive it.
+ * (`@bosch/bh-sdk-jsonrpc-server`) serves this protocol; SDK clients
+ * (`@bosch/bh-sdk-client`, the Python SDK) drive it.
  *
- * @module @deepseek-ai/dsh-sdk-protocol
+ * @module @bosch/bh-sdk-protocol
  */
 
 export { JsonRpcLineTransport, JsonRpcResponseError } from './transport.ts'

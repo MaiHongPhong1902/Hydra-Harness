@@ -1,6 +1,4 @@
-# dsh-scope
-
-English | [中文](README.zh.md)
+# bh-scope
 
 Scoped registration primitive. `createScope(ctx, key)` creates a tagged Cordis context whose backing fiber owns every registration made through it. `scopeOf(ctx)` reads the tag, and `scopeTarget(base, key)` routes scoped events to listeners with the same key while leaving unscoped listeners global. Keys form an optional parent chain (`bindScopeParent`): registration views inherit DOWN it — a child scope sees its ancestors' layers, nearest shadowing farthest — and event admission extends UP it — a listener tagged with an ancestor receives a descendant key's events, never the reverse. The agent loop creates one scope per live agent and an agent preset's standing mount is a parent scope over its agents, but the mechanism is key-agnostic so lower-level packages can use it without depending on either.
 
@@ -20,7 +18,7 @@ Scoped registration primitive. `createScope(ctx, key)` creates a tagged Cordis c
 - `NamedEntries<V>` Insertion-ordered named storage with caller-owned duplicate diagnostics, lookup, and live iteration within one nonempty table generation; draining the table detaches existing iterators from later insertions, and `insert()` returns an idempotent exact-entry undo.
 - `AnonymousEntries<V>` Insertion-ordered anonymous storage whose unique internal keys keep equal values as independent registrations; it uses the same drained-generation iterator boundary, and `append()` returns an idempotent exact-entry undo.
 
-The optional `@deepseek-ai/dsh-scope/invariant` companion owns that runtime assertion. It uses the generated `scoped-events.generated.ts` resolver map to require a carrier for every declared scoped event and, when the payload exposes its routing subject, require identity with the carrier key. The Program-backed generator derives the map from event declarations and real `scopeTarget(base, key)` calls.
+The optional `@bosch/bh-scope/invariant` companion owns that runtime assertion. It uses the generated `scoped-events.generated.ts` resolver map to require a carrier for every declared scoped event and, when the payload exposes its routing subject, require identity with the carrier key. The Program-backed generator derives the map from event declarations and real `scopeTarget(base, key)` calls.
 
 ## Design contract
 

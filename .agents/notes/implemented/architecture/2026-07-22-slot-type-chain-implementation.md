@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-07-22-slot-type-chain-implementation.zh.md)
-
 > Scope: the definitive slot-system design for the web client — how UI plugins compose the page, where render authority lives, how component props are typed, and where business live-data goes. The [web client architecture RFC](2026-07-19-gui-web-client-architecture.md) owns the surrounding context (loading chain, object layer, services) and defers its slot sections here.
 
 ## Problem
@@ -67,7 +65,7 @@ The framework owns exactly one subscription machine: the snapshot store engine (
 export function createChatStore() {
   return defineStore({
     init: () => ({ selection: null as SelectionTarget | null, draft: '' }),
-    persist: 'dsh.conversation.chat',
+    persist: 'bh.conversation.chat',
     actions: {
       select:    (d, t: SelectionTarget) => { d.selection = t },
       clearDraft:(d) => { d.draft = '' },

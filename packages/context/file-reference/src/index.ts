@@ -1,12 +1,12 @@
 /**
  * File-reference discovery seam shared by host-backed user interfaces.
  *
- * @module @deepseek-ai/dsh-file-reference
+ * @module @bosch/bh-file-reference
  */
 
-import type { Context } from '@deepseek-ai/cordis'
-import type { Agent } from '@deepseek-ai/dsh-agent'
-import { Remote, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
+import type { Context } from '@bosch/cordis'
+import type { Agent } from '@bosch/bh-agent'
+import { Remote, TypertRemoteService } from '@bosch/bh-typert-protocol'
 
 import type { FileReferenceCandidate } from './types.ts'
 
@@ -17,7 +17,7 @@ export type { FileReferenceCandidate } from './types.ts'
 /** Model guidance for path-only references selected by a user interface. */
 export const FILE_REFERENCE_PROMPT = 'Paths prefixed with @ are files explicitly referenced by the user. Use the read tool when their contents are needed; do not claim to have inspected a file before reading it.'
 
-declare module '@deepseek-ai/cordis' {
+declare module '@bosch/cordis' {
   interface Context {
     fileReferences: FileReferenceService
   }

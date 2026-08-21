@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-07-31-claimed-pre-step-inbox-lifecycle.zh.md)
-
 ## Problem
 
 The loop previously split one step boundary across prompt preparation, prompt admission, and a serial step hook. Claimed input could be retained or discarded by an admission result, and live queue events carried shapes that duplicated durable inbox state. Plugins had to choose whether to mutate the inbox, rewrite a submitted batch, or append directly to session history, while observers could not rely on one exact ordering.

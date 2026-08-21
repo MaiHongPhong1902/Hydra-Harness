@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-18-sqlite-physical-chunk-row-compression.zh.md)
-
 ## Problem
 
 The scalar [`session-persistence-sqlite`](../../../../packages/session/session-persistence-sqlite/README.md) layout stores one physical row per logical `SessionEvent`. Provider streams produce token-sized `assistant/chunk` events with repeated turn, step, block, type, and envelope fields, so transaction batching reduces commits without reducing row count or repeated JSON payload. The logical stream cannot be coalesced because chunk boundaries, sequence numbers, timestamps, replay, partial output, UI fidelity, and `sourceEventSeqs` remain observable.
@@ -12,7 +10,7 @@ A physical row that represents several events affects append contiguity, crash r
 
 ## Decision
 
-`@deepseek-ai/dsh-session-persistence-sqlite` uses the packed schema-17 implementation. It is the only SQLite persistence package and provider; the predecessor scalar layout and the temporary versioned sibling are not retained. SQLite remains an opt-in switch, while shipped default compositions continue to use JSONL. Both backends implement the same `SessionPersistence` service through `PersistenceCoordinator`, so physical packing changes neither live event delivery nor the logical session API.
+`@bosch/bh-session-persistence-sqlite` uses the packed schema-17 implementation. It is the only SQLite persistence package and provider; the predecessor scalar layout and the temporary versioned sibling are not retained. SQLite remains an opt-in switch, while shipped default compositions continue to use JSONL. Both backends implement the same `SessionPersistence` service through `PersistenceCoordinator`, so physical packing changes neither live event delivery nor the logical session API.
 
 Schema 17 keeps ordinary ROWID tables and the composite `events(session_id, seq)` primary-key index. Scalar rows represent one logical event. Packed rows use the storage tags `text-chunks`, `reasoning-chunks`, and `tool-call-chunks`; the SQL `seq` and `time` columns hold the first logical member, and `data` holds the packed payload. Packed rows set `ignorable=0` as a physical discriminator and leave `source_event_seqs` and `surface_op` as `NULL`; scalar rows use `ignorable=1` only for logical ignorable events and `NULL` otherwise. A future ignorable logical event may therefore reuse a storage-tag name without being decoded as a packed row. The tags are storage vocabulary, not `SessionEventMap` members.
 

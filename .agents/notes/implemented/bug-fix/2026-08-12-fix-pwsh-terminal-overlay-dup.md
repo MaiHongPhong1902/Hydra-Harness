@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-12-fix-pwsh-terminal-overlay-dup.zh.md)
-
 ## Problem
 
 `apps/web/tests/pwsh-terminal.e2e.ts` fails on every platform with `TypeError: duplicate loader entry id: tool-pwsh`, thrown from `vendor/loader/src/config/group.ts:64` while applying the web composition. The failing seed lane boots the full shipped bundle plus a test overlay, so the E2E never reaches its rendering assertion and every `check:ci:snapshot`/`test:web` run reports a red web test even though the feature under test is unrelated to the change under review.
@@ -13,9 +11,9 @@ The web E2E scaffold applies an `extraOverlayPath` after the shipped Web surface
 ```yaml
 - insert:
     - id: pwsh-local
-      name: '@deepseek-ai/dsh-pwsh-local'
+      name: '@bosch/bh-pwsh-local'
     - id: tool-pwsh
-      name: '@deepseek-ai/dsh-tool-pwsh'
+      name: '@bosch/bh-tool-pwsh'
 ```
 
 `insert` is correct only while `tool-pwsh` is absent from the composition. The id exists because `86b6979bdc` (refactor(bundle): fold the Windows shell platform layer into the base rows) moved both shell stacks into the base bundle with inverted platform gates — `packages/bundle/base/cordis.patch.yml` declares `tool-pwsh` with `disabled: !!js process.platform !== 'win32'`, so the row is present in the composition on every platform. Later, `42fc7c5ffb` (refactor(preset): gate tool-pwsh by platform alongside tool-bash) added a web-app patch row that disables `tool-pwsh` for surfaces that use presets; a patch row cannot introduce an id, so it is not the source of the collision. The overlay's `insert` delivers a second row with the same id in the same loader group, and the loader rejects the pair at boot.
@@ -26,7 +24,7 @@ Replace the overlay's `insert` of `tool-pwsh` with a top-level id-targeted overr
 
 ```yaml
 - id: tool-pwsh
-  name: '@deepseek-ai/dsh-tool-pwsh'
+  name: '@bosch/bh-tool-pwsh'
   disabled: false
 ```
 

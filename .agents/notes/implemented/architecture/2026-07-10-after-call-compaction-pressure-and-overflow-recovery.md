@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-07-10-after-call-compaction-pressure-and-overflow-recovery.zh.md)
-
 ## Problem
 
 `agent/pre-step` runs before final request routing and before assistant output, tool results, buffered context, and steering exist. Even with the assembled prompt and session prefix, its pressure view is provisional because `agent/request` can still change routing or call configuration and tool schemas are not frozen with those inputs. Adding fields cannot make pre-call state describe a completed call and couples the generic extension point to compaction.
@@ -18,7 +16,7 @@ Successful calls are not the only pressure signal. A provider can reject a reque
 
 Compact-basic wraps `agent/pre-step` before each proposed request. At a continuation boundary the preceding assistant output, every dispatched or synthetic tool result, post-tool context, and steering are already durable, so pressure policy sees the complete successful-call state without splitting an assistant tool call from its result. At the initial boundary a headerless session has no completed routed request and produces no pressure work. Compact-basic contains operational failures, warns, and delegates without rejecting the proposed step.
 
-`dsh-compaction-basic` reads the exact latest routed model from the durable request header only to establish that a completed route exists, then asks the singleton `ctx.tokenMeter` to measure the canonical logged envelope and current surface. It does not fall back to `AgentOptions.model` for automatic pressure. A headerless session has no completed routed request to assess and produces no work; any durable non-empty model name uses the same estimator. Operational measurement or summarization failures warn and continue from the latest durable surface: full history before any replacement, or the pruned surface if pruning already landed.
+`bh-compaction-basic` reads the exact latest routed model from the durable request header only to establish that a completed route exists, then asks the singleton `ctx.tokenMeter` to measure the canonical logged envelope and current surface. It does not fall back to `AgentOptions.model` for automatic pressure. A headerless session has no completed routed request to assess and produces no work; any durable non-empty model name uses the same estimator. Operational measurement or summarization failures warn and continue from the latest durable surface: full history before any replacement, or the pruned surface if pruning already landed.
 
 ### Request recovery is limited to the final model boundary
 

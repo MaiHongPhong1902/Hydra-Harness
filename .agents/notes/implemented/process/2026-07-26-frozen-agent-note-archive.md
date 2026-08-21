@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-07-26-frozen-agent-note-archive.zh.md)
-
 ## Problem
 
 Implemented Agent Notes are maintained as current decision records, so every path, symbol, default, translation, code fence, package reference, and outbound link in the active corpus remains an obligation. That cost is justified when the rationale can guide future work, but not for closed UI details, minor fixes, superseded implementation mechanics, or process history whose current authority lives elsewhere. Deleting every low-value implemented record would erase useful historical evidence, while retaining every rejected proposal preserves ideas that are neither plausible nor instructive. The corpus needs a retention boundary that distinguishes active guidance from frozen history without turning archival into another maintenance tier.
@@ -20,7 +18,7 @@ After archival, the triplet is permanently frozen and is historical context rath
 
 [`verify-archived-agent-notes`](../../../../scripts/verify-archived-agent-notes.ts) owns the frozen boundary. It accepts only the closed set of Agent Note kinds, requires a complete triplet with implemented status and matching valid archive dates, verifies the sidecar against both current Git blob hashes, and seals every artifact by path and SHA-256 content hash in an append-only manifest. Its `--write` mode first proves every existing seal unchanged and then appends only newly archived artifacts. Pull-request CI supplies the trusted base SHA and checks out complete history before running the verifier, so a reused runner's shallow checkout cannot omit the baseline manifest. The ordinary Agent Note format, translation-pairing, wrapping, Markdown-link, package-path, Mermaid, documentation-TypeScript, and type-equivalence gates exclude archive sources; their evolving standards cannot create pressure to edit history.
 
-The [`dsh-archive-agent-notes`](../../../skills/dsh-archive-agent-notes/SKILL.md) workflow owns classification. It requires a semantic note-by-note audit, uses code and current documentation to identify present authority, treats word count only as triage, carries calibrated keep/archive/delete examples, and reports genuinely borderline outcomes for review.
+The [`bh-archive-agent-notes`](../../../skills/bh-archive-agent-notes/SKILL.md) workflow owns classification. It requires a semantic note-by-note audit, uses code and current documentation to identify present authority, treats word count only as triage, carries calibrated keep/archive/delete examples, and reports genuinely borderline outcomes for review.
 
 Supersession is checked while a new Agent Note is being written, not deferred to a later corpus cleanup. The author compares the new note with active notes covering the same decision, mechanism, or rejected alternative and classifies every full or partial supersession. Qualifying implemented triplets are archived in the same pull request; partial supersessions and independently useful rationale remain active and cross-linked, while proposed and rejected matches follow their own lifecycle rules.
 

@@ -1,7 +1,5 @@
 # fs/ - filesystem capability family
 
-English | [中文](README.zh.md)
-
 The filesystem stack: a provider contract (execution-world paths, bounded text IO, and atomic mutation with an optional version guard), a local implementation, a policy gate plugin (observed-state + read-before-edit + version-guarded write/edit), the model-facing file tools + executor, and the ripgrep-backed discovery tools. All **product** packages.
 
 | Package | Role | ctx key |

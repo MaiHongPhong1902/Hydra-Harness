@@ -13,18 +13,18 @@
  * The General-settings row separately writes the default preset for fresh
  * sessions and eligible confirmed blank reuse through the host Settings API.
  */
-import type { ConnectionHandle } from '@deepseek-ai/dsh-api-remotes/client'
+import type { ConnectionHandle } from '@bosch/bh-api-remotes/client'
 // Type-only: pulls the locale plugin's Context merge (ctx.locale).
-import type {} from '@deepseek-ai/dsh-client-locale/client'
+import type {} from '@bosch/bh-client-locale/client'
 // Type-only: the settings slot types (this package registers a General row).
-import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
+import type {} from '@bosch/bh-client-ui-settings/client'
 // Type-only: pulls the ctx.remote merge and the forwarded-event key face
 // (the settings invalidation rides the allowlist) into this program.
-import type {} from '@deepseek-ai/dsh-api-remotes/client'
-import type { ClientContext, SessionFace } from '@deepseek-ai/dsh-client-runtime/client'
-import type { CommandUiContract, SelectOption } from '@deepseek-ai/dsh-client-ui-commands/client'
-import type { ClientSessionContext } from '@deepseek-ai/dsh-client-ui-input-trigger/client'
-import type { PermissionSelect } from '@deepseek-ai/dsh-permission-presets/client'
+import type {} from '@bosch/bh-api-remotes/client'
+import type { ClientContext, SessionFace } from '@bosch/bh-client-runtime/client'
+import type { CommandUiContract, SelectOption } from '@bosch/bh-client-ui-commands/client'
+import type { ClientSessionContext } from '@bosch/bh-client-ui-input-trigger/client'
+import type { PermissionSelect } from '@bosch/bh-permission-presets/client'
 import { PermissionRow } from './PermissionRow.tsx'
 import type { PermissionRowInjected } from './PermissionRow.tsx'
 import {

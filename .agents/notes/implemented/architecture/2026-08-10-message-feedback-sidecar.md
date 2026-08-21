@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-10-message-feedback-sidecar.zh.md)
-
 ## Problem
 
 The existing `/feedback` command records an immutable Session-level `feedback/record` event. That event can release a pending telemetry prefix under `FEEDBACK_ONLY`, so it is the wrong authority for an editable positive/negative rating and optional note attached to one assistant message. Message feedback needs independent update and delete semantics without entering the canonical Session log, changing a projection, reaching model context, or implicitly consenting to telemetry.
@@ -12,7 +10,7 @@ A sidecar keyed only by `SessionId` can outlive the log lifecycle it describes w
 
 ## Decision
 
-`@deepseek-ai/dsh-message-feedback` owns the `ctx.messageFeedback` service and stores message feedback as one storage-domain sidecar row per Session. The sidecar is neither Session-log content nor a Session projection. It emits no `feedback/record` event and performs no telemetry handoff; the command-feedback and message-feedback contracts remain independent.
+`@bosch/bh-message-feedback` owns the `ctx.messageFeedback` service and stores message feedback as one storage-domain sidecar row per Session. The sidecar is neither Session-log content nor a Session projection. It emits no `feedback/record` event and performs no telemetry handoff; the command-feedback and message-feedback contracts remain independent.
 
 Every usable row is bound to the inspected Session header identity `{createdAt, cwd}`, not merely its `SessionId`. A lifecycle mismatch is treated as absence: `list` returns no items, and `put` may replace the stale row with one bound to the current identity. An id reused with a different header identity therefore cannot inherit stale feedback. A fork receives its own Session identity and no sidecar copy: even when the fork seed contains the same assistant messages, feedback remains attached to the Session in which the human recorded it.
 

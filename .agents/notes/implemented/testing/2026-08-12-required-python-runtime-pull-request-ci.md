@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-12-required-python-runtime-pull-request-ci.zh.md)
-
 ## Problem
 
 Ordinary pull-request CI runs the complete Python SDK pytest suite against fake runtime peers, while Node snapshots exercise different clients and expected outputs. The real Python client, packaged JSON-RPC executable, executable-specific snapshot, release-shaped wheels, and clean installation meet only in the optional single-executable or Python release workflows. A runtime event change or closure change can therefore merge with a stale Python projection or broken wheel path and fail only when someone later builds a Python release candidate.

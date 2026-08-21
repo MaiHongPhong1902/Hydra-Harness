@@ -2,15 +2,13 @@
 
 Status: implemented
 
-English | [中文](2026-08-10-default-presets-single-editor.zh.md)
-
 ## Problem
 
 The `standard`, `code`, and `cordis` presets exposed both the `read`/`write`/`edit` filesystem tools and `str_replace_editor`. The two interfaces overlap for ordinary file inspection and editing, so every request carried an additional tool schema without adding a distinct default capability. The `minimal` preset has a different composition contract: its exact two-tool roster intentionally includes `str_replace_editor` beside persistent `bash`.
 
 ## Decision
 
-The `standard`, `code`, and `cordis` preset configurations mount `dsh-tool-fs` and `dsh-tool-fs-search`, but do not mount `dsh-tool-str-replace-editor`. Code Mode therefore omits `str_replace_editor` from both its registry and generated SDK. The `minimal` preset continues to mount `dsh-tool-str-replace-editor`, and deployments or user-authored presets may still mount the plugin explicitly.
+The `standard`, `code`, and `cordis` preset configurations mount `bh-tool-fs` and `bh-tool-fs-search`, but do not mount `bh-tool-str-replace-editor`. Code Mode therefore omits `str_replace_editor` from both its registry and generated SDK. The `minimal` preset continues to mount `bh-tool-str-replace-editor`, and deployments or user-authored presets may still mount the plugin explicitly.
 
 This decision narrows the preset roster rather than removing the tool package or its Python runtime support. The earlier [shared-roster decision](../feature/2026-07-31-even-out-shipped-tool-rosters.md) continues to own why surface-neutral tools live in preset composition; this note owns the editor exception.
 

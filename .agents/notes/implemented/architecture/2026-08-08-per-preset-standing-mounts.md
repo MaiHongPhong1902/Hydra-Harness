@@ -2,15 +2,13 @@
 
 Status: implemented
 
-English | [中文](2026-08-08-per-preset-standing-mounts.zh.md)
-
 ## Problem
 
 Per-session preset mounts made the model-facing registry surface per-agent while three independent host readers still assumed it was static: cold `session.history` found no presenters (every card silently degraded to the generic renderer — indistinguishable from "tool has no presenter"), the projections block dropped preset-registered keys (clients treat an omitted key as capability absence and CLEAR the row), and the Typert gateway resolved `goals` on the host root (`service-unavailable`). Patching each reader individually traded one silent degradation for another: resuming to reach presenters flipped the projections fold from detached to live and wiped the token counts instead.
 
 ## Decision
 
-A preset is one composition per PROCESS, not one per session. The roster mounts it once under a synthetic standing scope; each agent joins by binding its scope key to the mount's (`bindScopeParent(agentKey, standingKey)`). Two `dsh-scope` mechanisms carry everything: registration views walk the parent chain (`agent → preset → global`, nearest shadowing farthest), and scoped dispatch admits listeners tagged with an ancestor of the carrier key — upward only, so a sibling preset's listeners stay deaf.
+A preset is one composition per PROCESS, not one per session. The roster mounts it once under a synthetic standing scope; each agent joins by binding its scope key to the mount's (`bindScopeParent(agentKey, standingKey)`). Two `bh-scope` mechanisms carry everything: registration views walk the parent chain (`agent → preset → global`, nearest shadowing farthest), and scoped dispatch admits listeners tagged with an ancestor of the carrier key — upward only, so a sibling preset's listeners stay deaf.
 
 ## Consequences
 

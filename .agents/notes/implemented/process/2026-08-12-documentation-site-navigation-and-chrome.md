@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-12-documentation-site-navigation-and-chrome.zh.md)
-
 ## Problem
 
 The reference sidebar rendered its 43 subsystem pages first, ahead of every other group: `sectionOrder` in the VitePress config listed no position for the subsystem groups, nor for the group holding the Python SDK page, so `indexOf` returned `-1` and sorted them ahead of the ordered sections. Clicking the `参考` navigation item landed on the architecture page whose own sidebar entry was link 44 of 62, 1549px down a 2478px sidebar — outside the viewport. Four subsystem pages carried `order` values already taken by other pages in the same section, resolved only by `Array.prototype.sort` stability and the order the manifest's arrays happened to be concatenated.

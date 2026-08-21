@@ -1,18 +1,18 @@
 /**
  * Replay-safe, model-free tool-result pruning service.
  *
- * @module @deepseek-ai/dsh-compaction-tool-result-pruner
+ * @module @bosch/bh-compaction-tool-result-pruner
  */
 
-import { Context, Service } from '@deepseek-ai/cordis'
-import z from '@deepseek-ai/schemastery'
-import { freezeMessage } from '@deepseek-ai/dsh-llm'
-import type { ContentBlock } from '@deepseek-ai/dsh-llm'
-import type { Session, SessionEvent, ToolResultMessage } from '@deepseek-ai/dsh-session'
+import { Context, Service } from '@bosch/cordis'
+import z from '@bosch/schemastery'
+import { freezeMessage } from '@bosch/bh-llm'
+import type { ContentBlock } from '@bosch/bh-llm'
+import type { Session, SessionEvent, ToolResultMessage } from '@bosch/bh-session'
 // Type-only: the `compaction/*` SessionEventMap merges (the shadow-price event).
-import type {} from '@deepseek-ai/dsh-compaction'
+import type {} from '@bosch/bh-compaction'
 // Type-only: the `ctx.tokenMeter` Context merge for the declared injection.
-import type {} from '@deepseek-ai/dsh-token-meter'
+import type {} from '@bosch/bh-token-meter'
 import { codePointLength, DEFAULTS, PRUNE_MARKER, resolveConfig } from './config.ts'
 import type {
   PrunedEntry,
@@ -29,7 +29,7 @@ export type {
   ToolResultPruneConfig,
 } from './types.ts'
 
-declare module '@deepseek-ai/cordis' {
+declare module '@bosch/cordis' {
   interface Context {
     toolResultPruner: ToolResultPruner
   }

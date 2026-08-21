@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-09-conversational-schedule-delivery.zh.md)
-
 ## Problem
 
 Schedule already delivers a due reminder by queuing a normal Agent follow-up. A second durable Web receipt represented the same occurrence through a Schedule projection, a persistence-success event, Host history and live sidecars, client same-sequence upgrades, a generic event-view slot, and a dedicated renderer. That path spread one feature's confirmation UI across Session, persistence, Host, client runtime, conversation UI, and an extra package.
@@ -16,7 +14,7 @@ A due reminder waits for the Agent's idle maintenance phase and calls `followup(
 
 `schedule/change` remains the only durable Schedule state. Its dispatch operation records that the follow-up was synchronously queued, which prevents ordinary restart replay after the dispatch is durable. Dispatch does not claim model success, user acknowledgement, or an external notification. The narrow crash interval between enqueue and durable dispatch remains at-least-once.
 
-Schedule exposes no presentation projection, Host sidecar, browser event node, keyed event slot, or client renderer. Session persistence retains its shared `flush()` contract and has no Schedule-driven success event. The opt-in Web overlay loads only `@deepseek-ai/dsh-schedule`.
+Schedule exposes no presentation projection, Host sidecar, browser event node, keyed event slot, or client renderer. Session persistence retains its shared `flush()` contract and has no Schedule-driven success event. The opt-in Web overlay loads only `@bosch/bh-schedule`.
 
 ## Alternatives considered
 

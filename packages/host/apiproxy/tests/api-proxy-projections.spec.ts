@@ -8,22 +8,22 @@
  */
 
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@deepseek-ai/cordis'
+import { Context } from '@bosch/cordis'
 import { z } from 'zod'
-import AgentRegistry, { Inbox } from '@deepseek-ai/dsh-agent'
-import { AttachmentStore } from '@deepseek-ai/dsh-attachment'
-import type { Agent } from '@deepseek-ai/dsh-agent'
-import { createUserMessage } from '@deepseek-ai/dsh-llm'
-import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
-import type { Session } from '@deepseek-ai/dsh-session'
-import SessionProjectionRegistry from '@deepseek-ai/dsh-session-projection'
-import type { ProjectionDefinition } from '@deepseek-ai/dsh-session-projection'
-import UserQuestionService from '@deepseek-ai/dsh-user-questions'
-import type { MuxFrame, RpcRequest } from '@deepseek-ai/dsh-host-apiproxy/api'
-import { RpcId } from '@deepseek-ai/dsh-host-apiproxy/api/rpc'
-import { createApiProxy } from '@deepseek-ai/dsh-host-apiproxy'
+import AgentRegistry, { Inbox } from '@bosch/bh-agent'
+import { AttachmentStore } from '@bosch/bh-attachment'
+import type { Agent } from '@bosch/bh-agent'
+import { createUserMessage } from '@bosch/bh-llm'
+import SessionStore, { SessionId } from '@bosch/bh-session'
+import type { Session } from '@bosch/bh-session'
+import SessionProjectionRegistry from '@bosch/bh-session-projection'
+import type { ProjectionDefinition } from '@bosch/bh-session-projection'
+import UserQuestionService from '@bosch/bh-user-questions'
+import type { MuxFrame, RpcRequest } from '@bosch/bh-host-apiproxy/api'
+import { RpcId } from '@bosch/bh-host-apiproxy/api/rpc'
+import { createApiProxy } from '@bosch/bh-host-apiproxy'
 
-declare module '@deepseek-ai/dsh-session-projection/types' {
+declare module '@bosch/bh-session-projection/types' {
   interface SessionProjectionStateMap {
     'test/last-user': LastUserState
     'test/internal-count': number

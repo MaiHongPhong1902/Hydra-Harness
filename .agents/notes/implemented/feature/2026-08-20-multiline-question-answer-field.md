@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-20-multiline-question-answer-field.zh.md)
-
 ## Problem
 
 `ask_user_question` offers a free-text answer beside the model's own options. On a question that carried options, that answer was a single-line `<input>`: a long sentence scrolled sideways inside one 24px line, Shift+Enter did nothing, and an answer with structure — two requirements, a short list, a paragraph — could not be typed at all. The optionless question already used a textarea, but a fixed 64–140px box that neither followed the draft nor opened wider.
@@ -42,4 +40,4 @@ Component tests pin the round trip: both shapes render a textarea, the mirror fo
 
 An answer can now carry the structure the question asks for, and the field the user sees behaves like the chat composer above it. The cost is a second element per field and the standing obligation to keep mirror and textarea metrics identical, which the JSDoc at `AnswerField` states and the e2e growth assertion detects.
 
-The [single-select highlight item](https://github.com/deepseek-harness/deepseek-harness/issues/1687) of the same issue is untouched: focusing the custom field still leaves the previously chosen option visually selected until the first character lands.
+The [single-select highlight item](https://github.com/bosch-harness/bosch-harness/issues/1687) of the same issue is untouched: focusing the custom field still leaves the previously chosen option visually selected until the first character lands.

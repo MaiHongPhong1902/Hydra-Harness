@@ -1,17 +1,17 @@
-import { createUserMessage } from '@deepseek-ai/dsh-llm'
+import { createUserMessage } from '@bosch/bh-llm'
 /**
  * Keyless real-Loader-path smoke for the combined SQLite session-query service.
  *
- * @module @deepseek-ai/dsh-session-query-sqlite/tests/load-path
+ * @module @bosch/bh-session-query-sqlite/tests/load-path
  */
 
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@deepseek-ai/cordis'
-import Loader from '@deepseek-ai/cordis-plugin-loader'
-import { SESSION_FORMAT_VERSION, SessionId } from '@deepseek-ai/dsh-session'
-import SessionStore from '@deepseek-ai/dsh-session'
-import SqliteSessionPersistence from '@deepseek-ai/dsh-session-persistence-sqlite'
-import SqliteSessionQueryEngine, * as queryModule from '@deepseek-ai/dsh-session-query-sqlite'
+import { Context } from '@bosch/cordis'
+import Loader from '@bosch/cordis-plugin-loader'
+import { SESSION_FORMAT_VERSION, SessionId } from '@bosch/bh-session'
+import SessionStore from '@bosch/bh-session'
+import SqliteSessionPersistence from '@bosch/bh-session-persistence-sqlite'
+import SqliteSessionQueryEngine, * as queryModule from '@bosch/bh-session-query-sqlite'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -25,12 +25,12 @@ afterEach(async () => {
 })
 
 async function temporaryPath(name: string): Promise<string> {
-  const directory = await mkdtemp(join(tmpdir(), 'dsh-session-search-loader-'))
+  const directory = await mkdtemp(join(tmpdir(), 'bh-session-search-loader-'))
   temporaryDirectories.push(directory)
   return join(directory, name)
 }
 
-describe('dsh-session-query-sqlite real Loader path', () => {
+describe('bh-session-query-sqlite real Loader path', () => {
   it('unwraps, mounts, and searches the real persistence backend', async () => {
     const persistencePath = await temporaryPath('canonical.db')
     const searchPath = await temporaryPath('derived.db')

@@ -1,9 +1,9 @@
 {
-  "organization": "deepseek-harness",
-  "repository": "deepseek-harness",
+  "organization": "bosch-harness",
+  "repository": "bosch-harness",
   "projectNumber": 1,
-  "projectTitle": "DSH Issue Management",
-  "lifecycleActor": "dsh-issue-management",
+  "projectTitle": "BH Issue Management",
+  "lifecycleActor": "bh-issue-management",
   "priorityField": "Priority",
   "allowUnassignedOwner": true,
   "statuses": [

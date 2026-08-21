@@ -1,15 +1,15 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@deepseek-ai/cordis'
+import { Context } from '@bosch/cordis'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import LlmRuntime, { LlmAdapter } from '@deepseek-ai/dsh-llm'
-import { credentialRef } from '@deepseek-ai/dsh-credentials'
-import { LocalCredentialProvider } from '@deepseek-ai/dsh-credentials-local'
-import { settingsNamespace } from '@deepseek-ai/dsh-settings'
-import { FileSettingsProvider } from '@deepseek-ai/dsh-settings-file'
-import * as LlmPiAi from '@deepseek-ai/dsh-llm-pi-ai'
-import AuthorizationService from '@deepseek-ai/dsh-authorization'
+import LlmRuntime, { LlmAdapter } from '@bosch/bh-llm'
+import { credentialRef } from '@bosch/bh-credentials'
+import { LocalCredentialProvider } from '@bosch/bh-credentials-local'
+import { settingsNamespace } from '@bosch/bh-settings'
+import { FileSettingsProvider } from '@bosch/bh-settings-file'
+import * as LlmPiAi from '@bosch/bh-llm-pi-ai'
+import AuthorizationService from '@bosch/bh-authorization'
 import { assemble } from './assemble.ts'
 import { closeMockServers, mockServer, textEvents } from './mock-server.ts'
 
@@ -32,7 +32,7 @@ afterEach(async () => {
 })
 
 async function home(): Promise<string> {
-  const dir = await mkdtemp(join(tmpdir(), 'dsh-pi-dynamic-'))
+  const dir = await mkdtemp(join(tmpdir(), 'bh-pi-dynamic-'))
   cleanups.push(() => rm(dir, { recursive: true, force: true }))
   return dir
 }

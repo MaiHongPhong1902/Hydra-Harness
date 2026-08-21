@@ -5,15 +5,15 @@
  * never provider selection or network access.
  */
 
-import type { Context } from '@deepseek-ai/cordis'
-import { defineTool } from '@deepseek-ai/dsh-tools'
-import type { GenericCallView, JsonValue, ToolResult, WebSearchResultView, WebSource } from '@deepseek-ai/dsh-tools'
-import type { WebSearchResult, WebSearchSource } from '@deepseek-ai/dsh-web'
-import type {} from '@deepseek-ai/dsh-system-prompt'
+import type { Context } from '@bosch/cordis'
+import { defineTool } from '@bosch/bh-tools'
+import type { GenericCallView, JsonValue, ToolResult, WebSearchResultView, WebSource } from '@bosch/bh-tools'
+import type { WebSearchResult, WebSearchSource } from '@bosch/bh-web'
+import type {} from '@bosch/bh-system-prompt'
 
 /**
  * Default upper bound on returned sources (the `searchMaxResults` config).
- * Owned by the consumer (not the provider or model), mirroring `dsh-tool-fs`'s
+ * Owned by the consumer (not the provider or model), mirroring `bh-tool-fs`'s
  * `READ_LIMIT`. The model just asks a question; the product controls how much
  * context returns. The default `8` aligns with OpenCode's Exa default.
  */
@@ -302,7 +302,7 @@ function mergeSearchResults(
  *   request's `maxResults`.
  * @param maxQueries - the deployment's query cap enforced before provider calls.
  * @param timeoutMs - the cooperative tool-call budget (ms) attached as the tool's
- *   `ToolDefinition.timeoutMs` for `@deepseek-ai/dsh-tool-call-timeout-policy` to enforce.
+ *   `ToolDefinition.timeoutMs` for `@bosch/bh-tool-call-timeout-policy` to enforce.
  * @param fetchEnabled - whether the same composition exposes `web_fetch`, which
  *   controls whether search guidance may recommend that follow-up tool.
  */

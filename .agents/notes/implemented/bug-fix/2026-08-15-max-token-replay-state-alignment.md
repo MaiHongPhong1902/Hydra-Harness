@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-15-max-token-replay-state-alignment.zh.md)
-
 ## Problem
 
 pi-ai recorded one opaque replay blob per response, projected from the provider's native message, while `BlockAssembler.blocks()` separately dropped tool calls from a `max-tokens` response because a truncated call is unsafe to execute. The durable assistant message therefore stored transformed content next to metadata describing the untransformed native block list. The next request failed during history reconstruction with `INVALID_REPLAY_STATE: block count does not match assistant content`, and because the mismatch was already on disk, every later request on that session failed the same way — the session was permanently stuck. The root cause is structural: two representations of one response were snapshotted at different pipeline points, with their index alignment enforced only by a read-time hard error.
@@ -18,7 +16,7 @@ Two changes, one per side of the durable boundary.
 
 ## Verification
 
-Assembler unit tests prove pruning, misalignment discard, and pass-through for untransformed and per-block-free envelopes. pi-ai unit tests prove the version-2 envelope round-trip and that every formerly-throwing invalid-state case now degrades to foreign conversion with the diagnostic. An agent-loop regression drives a truncated text-plus-tool-call response through persistence and shows the follow-up request carrying the pruned envelope. Keyless real-composition tests boot `dsh-llm-pi-ai` through the Loader and prove a native continuation without `tool_calls` after truncation, and a successful continuation over a legacy flat-state message whose block count no longer matches. The authored keyless snapshot scenario `max-tokens-continue` pins the assembled application's durable log — truncated turn, pruned envelope on the stored message, continued turn — through the real ACP subprocess path.
+Assembler unit tests prove pruning, misalignment discard, and pass-through for untransformed and per-block-free envelopes. pi-ai unit tests prove the version-2 envelope round-trip and that every formerly-throwing invalid-state case now degrades to foreign conversion with the diagnostic. An agent-loop regression drives a truncated text-plus-tool-call response through persistence and shows the follow-up request carrying the pruned envelope. Keyless real-composition tests boot `bh-llm-pi-ai` through the Loader and prove a native continuation without `tool_calls` after truncation, and a successful continuation over a legacy flat-state message whose block count no longer matches. The authored keyless snapshot scenario `max-tokens-continue` pins the assembled application's durable log — truncated turn, pruned envelope on the stored message, continued turn — through the real ACP subprocess path.
 
 ## Alternatives considered
 

@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-11-minimal-profiles-bare-two-tool-runtime.zh.md)
-
 ## Problem
 
 The Web `minimal` preset and standalone JSON-RPC minimal composition exposed persistent `bash` and `str_replace_editor`, but their supporting services did not match the intended training runtime. Both mounted context compaction, while the Web preset inherited the host's sandboxed filesystem and the JSON-RPC composition mounted `fs-sandbox` plus filesystem policy. A long session could therefore replace history, and the editor advertised and enforced a filesystem policy that the bare local reference runtime does not have.
@@ -12,11 +10,11 @@ The two launch paths also have different configuration owners. Web mounts a per-
 
 ## Decision
 
-Both shipped minimal profiles expose exactly persistent `bash` and `str_replace_editor`, mount no context-compaction provider, suppress every `dsh-system-prompt` runtime-context contribution for fresh sessions, and run the editor against `@deepseek-ai/dsh-fs-local`. The Web preset isolates `ctx.fs` inside the agent entry and mounts `fs-local` beside the editor, so other Web agents retain the host filesystem provider. Its persona remains the fixed complete prompt owned by the earlier [minimal-preset composition decision](../bug-fix/2026-08-10-minimal-preset-owns-rl-composition.md) and applies runtime-context suppression only to that agent scope. The standalone spine forwards the same setting to its process-owned system-prompt service. Sandbox and approval services remain mounted and enforce their policies; only their model-facing dynamic context is absent.
+Both shipped minimal profiles expose exactly persistent `bash` and `str_replace_editor`, mount no context-compaction provider, suppress every `bh-system-prompt` runtime-context contribution for fresh sessions, and run the editor against `@bosch/bh-fs-local`. The Web preset isolates `ctx.fs` inside the agent entry and mounts `fs-local` beside the editor, so other Web agents retain the host filesystem provider. Its persona remains the fixed complete prompt owned by the earlier [minimal-preset composition decision](../bug-fix/2026-08-10-minimal-preset-owns-rl-composition.md) and applies runtime-context suppression only to that agent scope. The standalone spine forwards the same setting to its process-owned system-prompt service. Sandbox and approval services remain mounted and enforce their policies; only their model-facing dynamic context is absent.
 
-The standalone [`minimal.cordis.yml`](../../../../examples/jsonrpc-agent/minimal.cordis.yml) remains a complete JSON-RPC process composition. It mounts `dsh-sdk-jsonrpc-server`, the local PTY and subprocess services required by persistent Bash, `fs-local`, the two tool consumers, and uncompressed JSONL persistence. It does not mount `token-meter`, `compaction-basic`, `fs-sandbox`, or `fs-observation-policy`. Persistent Bash still consumes the deployment's danger-full-access sandbox policy; the editor is not confined by that policy.
+The standalone [`minimal.cordis.yml`](../../../../examples/jsonrpc-agent/minimal.cordis.yml) remains a complete JSON-RPC process composition. It mounts `bh-sdk-jsonrpc-server`, the local PTY and subprocess services required by persistent Bash, `fs-local`, the two tool consumers, and uncompressed JSONL persistence. It does not mount `token-meter`, `compaction-basic`, `fs-sandbox`, or `fs-observation-policy`. Persistent Bash still consumes the deployment's danger-full-access sandbox policy; the editor is not confined by that policy.
 
-`DSH_SYSTEM_PROMPT` selects the standalone persona. `DSH_MODEL` names the DeepSeek provider catalog entry, and `DSH_CONTEXT_WINDOW` supplies that entry's capacity. Because the SDK client owns the JSON-RPC `initialize` request, [`minimal.py`](../../../../examples/jsonrpc-agent/minimal.py) also uses `DSH_MODEL` as its default `model` argument; an explicit `--model` remains authoritative. Endpoint and credential variables stay owned by the DeepSeek adapter's existing environment-resolution path.
+`BH_SYSTEM_PROMPT` selects the standalone persona. `BH_MODEL` names the DeepSeek provider catalog entry, and `BH_CONTEXT_WINDOW` supplies that entry's capacity. Because the SDK client owns the JSON-RPC `initialize` request, [`minimal.py`](../../../../examples/jsonrpc-agent/minimal.py) also uses `BH_MODEL` as its default `model` argument; an explicit `--model` remains authoritative. Endpoint and credential variables stay owned by the DeepSeek adapter's existing environment-resolution path.
 
 ## Verification
 
@@ -32,7 +30,7 @@ The SDK replay boots the real JSON-RPC agent process through the SDK client, inj
 
 **Use one Cordis leaf for Web and Python SDK startup.** Rejected because a Web preset contributes agent-scoped services to an existing multi-session host, while the Python SDK must launch a complete process containing the JSON-RPC server and its process-wide dependencies.
 
-**Read `DSH_MODEL` only inside Cordis.** Rejected because Cordis configures the provider catalog but does not own the SDK client's JSON-RPC `initialize` request. The launcher must pass the same model to the client request for the environment value to select the routed model.
+**Read `BH_MODEL` only inside Cordis.** Rejected because Cordis configures the provider catalog but does not own the SDK client's JSON-RPC `initialize` request. The launcher must pass the same model to the client request for the environment value to select the routed model.
 
 ## Consequences
 

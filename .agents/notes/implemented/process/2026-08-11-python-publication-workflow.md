@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-11-python-publication-workflow.zh.md)
-
 ## Problem
 
 The Python SDK comprises one platform-independent client wheel and three native runtime wheels that must carry one version and become installable as a set. Public PyPI uploads expose package metadata and files immediately, cannot replace an uploaded filename, and create a temporarily unusable SDK if its exact runtime dependency has not arrived. The private repository needs to exercise the complete native build and validation sequence without publishing any artifact externally.

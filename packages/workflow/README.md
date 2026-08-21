@@ -1,7 +1,5 @@
 # workflow/ — dynamic-workflow capability family
 
-English | [中文](README.zh.md)
-
 This family runs model-authored orchestration workflows over subagents and exposes general and fixed-policy tools to the model.
 
 | Package | Role | ctx key |

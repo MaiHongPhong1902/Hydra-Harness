@@ -2,15 +2,13 @@
 
 Status: implemented
 
-English | [中文](2026-08-20-explicit-web-index-paths.zh.md)
-
 ## Problem
 
 An unconditional SPA fallback makes every unmatched GET or HEAD request look successful. A broken ordinary link and a missing JavaScript, stylesheet, source map, or manifest then receive the HTML shell with status 200, so browsers, caches, and monitoring cannot distinguish a valid page entry from an absent resource.
 
 ## Decision
 
-`dsh-host-frontend-static` renders `index.html` only when the normalized target is the dist root or the configured index path. The current Web client has no History API pathname routes; query strings do not change pathname matching, and URL fragments never reach the server. Existing files are served normally, while `ENOENT`, `EISDIR`, and `ENOTDIR` reads produce an empty 404 response with no content type. Other filesystem failures are rethrown to the webserver's request-failure handling instead of being mislabeled as absence.
+`bh-host-frontend-static` renders `index.html` only when the normalized target is the dist root or the configured index path. The current Web client has no History API pathname routes; query strings do not change pathname matching, and URL fragments never reach the server. Existing files are served normally, while `ENOENT`, `EISDIR`, and `ENOTDIR` reads produce an empty 404 response with no content type. Other filesystem failures are rethrown to the webserver's request-failure handling instead of being mislabeled as absence.
 
 GET and HEAD use the same status and content type for index entries, files, and misses. Named routes still match before the fallback, traversal outside the dist root remains 403, and non-GET/HEAD requests reaching the fallback remain 405.
 

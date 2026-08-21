@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-06-11-dev-invariants-over-deep-readonly.zh.md)
-
 ## Problem
 
 The session log needs two different protections: immutable ownership of each stored fact, and checks for relationships among facts across time and service contracts. Conflating them in an optional development plugin would leave production history vulnerable; trying to express both through TypeScript readonly types would not create a runtime boundary or describe relational rules.
@@ -32,7 +30,7 @@ This guarantee belongs in `Session`, not in an optional listener, because every 
 
 ### Package-owned invariant companions check relationships
 
-`dsh-invariants` registers the configurable `ctx.invariants` service and contains no product checks. Every package publishes a `./invariant` ownership companion; `dsh-session`, `dsh-agent`, `dsh-scope`, and `dsh-agent-loop` currently add the rules that require trace state or observation of another seam: monotonic sequence numbers, turn and step nesting, tool-call/result pairing, legal agent-status transitions, subject-correct scoped dispatch, and equality between a loop-built request and the request reconstructed from its session-log prefix. Global enablement and package-name regex filters belong to the service ([package-owned invariant service](2026-07-19-package-owned-invariant-service.md)).
+`bh-invariants` registers the configurable `ctx.invariants` service and contains no product checks. Every package publishes a `./invariant` ownership companion; `bh-session`, `bh-agent`, `bh-scope`, and `bh-agent-loop` currently add the rules that require trace state or observation of another seam: monotonic sequence numbers, turn and step nesting, tool-call/result pairing, legal agent-status transitions, subject-correct scoped dispatch, and equality between a loop-built request and the request reconstructed from its session-log prefix. Global enablement and package-name regex filters belong to the service ([package-owned invariant service](2026-07-19-package-owned-invariant-service.md)).
 
 When the session companion attaches to an existing or seeded session, it replays the immutable log to rebuild trace state. The service gives each contribution a disposable child fiber, so hot reload is safe in the middle of a turn without giving diagnostics ownership of session storage.
 
@@ -56,5 +54,5 @@ Detaching `deriveMessages()` would protect the most common request path but leav
 - `session.events` exposes stable immutable snapshots instead of the private growing array.
 - Request-side mutation cannot reach stored history through derived messages.
 - Development builds can enable relational assertions without changing storage behavior, and disposing or filtering a companion does not weaken log immutability.
-- `dsh-invariants` configures global enablement plus package allow/block regex lists; each check remains owned and tested by its product package.
+- `bh-invariants` configures global enablement plus package allow/block regex lists; each check remains owned and tested by its product package.
 - The runtime boundary carries a recursive snapshot-and-freeze cost once per accepted event; later readers and cached projections reuse the owned immutable records.

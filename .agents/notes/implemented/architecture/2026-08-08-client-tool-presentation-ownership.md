@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-08-client-tool-presentation-ownership.zh.md)
-
 ## Problem
 
 Client Runtime already paired Tool call/result events by `callId` and could recover root/subcall topology from Code Dispatch events, but the Chat view also owned Tool placement in the conversation flow, recursive call-tree composition, Tool-name dispatch, the Generic fallback, card models, and first-party Tool renderers. `ui-conversation` therefore had to interpret every business Tool name; moving individual React components did not change that ownership, and removing atomic renderers left subcalls without a presentation owner.
@@ -12,7 +10,7 @@ Tool presentation needed an independent owner without adding a second registry b
 
 ## Decision
 
-Tool is a first-class Client UI presentation concept. `@deepseek-ai/dsh-client-ui-tool` owns root/subcall composition, atomic renderer dispatch by wire Tool name, the Generic fallback, card models, and details output. Business plugins register only their atomic Tool renderers and do not modify conversation or Session.
+Tool is a first-class Client UI presentation concept. `@bosch/bh-client-ui-tool` owns root/subcall composition, atomic renderer dispatch by wire Tool name, the Generic fallback, card models, and details output. Business plugins register only their atomic Tool renderers and do not modify conversation or Session.
 
 Conversation data assembly follows the later [Conversation business-node decision](2026-08-09-client-conversation-node-assembly.md). The `ui-conversation` Tool Definition pairs root call/result Session Events, folds Code Dispatch edges into recursive `ToolCallBlock.subCalls`, and emits one stable `tool-call` Chat Node. This data responsibility handles only official Tool identity and topology; it does not interpret presentation for concrete Tool names.
 

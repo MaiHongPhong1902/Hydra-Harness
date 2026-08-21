@@ -1,25 +1,25 @@
 /**
  * Profile discovery, initialization, and patch-layer composition for the
- * `dsh --profile` launcher family.
+ * `bh --profile` launcher family.
  *
- * A profile is a directory under `$DSH_HOME/profiles/<name>` holding a
+ * A profile is a directory under `$BH_HOME/profiles/<name>` holding a
  * `package.json` (out-of-tree plugin dependencies plus the profile manifest
- * `dsh.profile` with its ordered `bundles` list) and a `cordis.patch.yml`
+ * `bh.profile` with its ordered `bundles` list) and a `cordis.patch.yml`
  * (the user's own patch layer, applied after every bundle layer). Bundles are
  * npm packages whose manifest declares
- * `"dsh": { "bundle": { "patch": "./cordis.patch.yml" } }`; the tree is
- * composed by applying each bundle's patch list in `dsh.profile.bundles` order over
+ * `"bh": { "bundle": { "patch": "./cordis.patch.yml" } }`; the tree is
+ * composed by applying each bundle's patch list in `bh.profile.bundles` order over
  * an empty entry list, then the profile's own patches, then any launcher
  * layers (`--patch` files and flag-derived patches).
  *
  * Module resolution is two-anchor by construction: a bundle name resolves
- * first from the dsh installation (the launcher's own package), then from the
+ * first from the bh installation (the launcher's own package), then from the
  * profile directory. The Loader's `baseUrl` is the profile directory, whose
  * `node_modules` pnpm manages for out-of-tree plugins, while the maintained
- * flat fallback directory `$DSH_HOME/profiles/node_modules` (one symlink per
+ * flat fallback directory `$BH_HOME/profiles/node_modules` (one symlink per
  * package the installation's app and bundles depend on) makes every in-box
  * plugin Node-resolvable from any profile through the ordinary parent-walk.
- * @module @deepseek-ai/dsh-app-boot/profile
+ * @module @bosch/bh-app-boot/profile
  */
 
 import { createRequire } from 'node:module'
@@ -27,9 +27,9 @@ import {
   existsSync, lstatSync, mkdirSync, readFileSync, readlinkSync, symlinkSync, unlinkSync, writeFileSync,
 } from 'node:fs'
 import { basename, dirname, join } from 'node:path'
-import type { EntryOptions } from '@deepseek-ai/cordis-plugin-loader'
-import { applyEntryPatches, type PatchOptions } from '@deepseek-ai/cordis-plugin-include'
-import { resolveDshHome } from '@deepseek-ai/dsh-home-paths'
+import type { EntryOptions } from '@bosch/cordis-plugin-loader'
+import { applyEntryPatches, type PatchOptions } from '@bosch/cordis-plugin-include'
+import { resolveBhHome } from '@bosch/bh-home-paths'
 import { loadOverlayPatches } from './index.ts'
 
 /** Directory under the Harness home holding every profile. */
@@ -38,27 +38,27 @@ export const PROFILES_DIR = 'profiles'
 /** The user patch layer inside a profile directory (hot-reloaded on long-lived surfaces). */
 export const PROFILE_PATCH_FILENAME = 'cordis.patch.yml'
 
-/** The bundle half of the `dsh` manifest section: what a bundle package exports. */
-export interface DshBundleManifest {
+/** The bundle half of the `bh` manifest section: what a bundle package exports. */
+export interface BhBundleManifest {
   /** The patch layer this bundle exports, relative to its package root. */
   patch: string
 }
 
-/** The profile half of the `dsh` manifest section: what a profile directory composes. */
-export interface DshProfileManifest {
+/** The profile half of the `bh` manifest section: what a profile directory composes. */
+export interface BhProfileManifest {
   /** Ordered bundle layer list (package names). */
   bundles?: string[]
 }
 
 /**
- * The profile-launcher slice of the `dsh`-owned package.json section. A
+ * The profile-launcher slice of the `bh`-owned package.json section. A
  * manifest may declare both roles; other consumers own additional keys.
  */
-export interface DshManifestSection {
+export interface BhManifestSection {
   /** Bundle metadata consumed by the profile launcher. */
-  bundle?: DshBundleManifest
+  bundle?: BhBundleManifest
   /** Profile metadata consumed by the profile launcher. */
-  profile?: DshProfileManifest
+  profile?: BhProfileManifest
 }
 
 /** The slice of package.json both profiles and bundles use. */
@@ -66,12 +66,12 @@ export interface ProfileManifest {
   name?: string
   dependencies?: Record<string, string>
   peerDependencies?: Record<string, string>
-  dsh?: DshManifestSection
+  bh?: BhManifestSection
 }
 
 /** One resolved bundle layer of a profile. */
 export interface ProfileLayer {
-  /** The bundle's package name, as listed in `dsh.profile.bundles`. */
+  /** The bundle's package name, as listed in `bh.profile.bundles`. */
   packageName: string
   /** Absolute directory of the resolved bundle package. */
   packageDir: string
@@ -87,7 +87,7 @@ export interface Profile {
   name: string
   /** Absolute profile directory. */
   dir: string
-  /** Bundle layers in `dsh.profile.bundles` order. */
+  /** Bundle layers in `bh.profile.bundles` order. */
   layers: ProfileLayer[]
   /** Absolute path of the profile's own patch file. */
   patchPath: string
@@ -97,34 +97,34 @@ export interface Profile {
 
 /**
  * Resolve a profile's directory under the Harness home.
- * @param name - the profile name (`dsh --profile <name>`).
- * @param home - the Harness home; defaults to {@link resolveDshHome}.
+ * @param name - the profile name (`bh --profile <name>`).
+ * @param home - the Harness home; defaults to {@link resolveBhHome}.
  * @returns the absolute profile directory (which may not exist yet).
  */
-export function resolveProfileDir(name: string, home: string = resolveDshHome()): string {
+export function resolveProfileDir(name: string, home: string = resolveBhHome()): string {
   if (name === '' || name.includes('/') || name.includes('\\') || name === '.' || name === '..'
     // The launcher-maintained flat module fallback lives at this sibling path.
     || name === 'node_modules') {
-    throw new Error(`dsh: invalid profile name ${JSON.stringify(name)}`)
+    throw new Error(`bh: invalid profile name ${JSON.stringify(name)}`)
   }
   return join(home, PROFILES_DIR, name)
 }
 
 /** The shipped profile templates auto-initialized on first use, by name. */
 export const PROFILE_TEMPLATES: Record<string, readonly string[]> = {
-  web: ['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app'],
-  headless: ['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-headless'],
+  web: ['@bosch/bh-base', '@bosch/bh-web-app'],
+  headless: ['@bosch/bh-base', '@bosch/bh-headless'],
 }
 
 /** Installation-owned bundle tuples normalized to the shipped template. */
 const INSTALLATION_OWNED_PROFILE_TUPLES: Record<string, readonly string[]> = {
-  headless: ['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app', '@deepseek-ai/dsh-headless'],
+  headless: ['@bosch/bh-base', '@bosch/bh-web-app', '@bosch/bh-headless'],
 }
 
-/** The bundle list a `dsh plugin` init uses for a name with no shipped template. */
-export const DEFAULT_PROFILE_BUNDLES: readonly string[] = ['@deepseek-ai/dsh-base']
+/** The bundle list a `bh plugin` init uses for a name with no shipped template. */
+export const DEFAULT_PROFILE_BUNDLES: readonly string[] = ['@bosch/bh-base']
 
-const PROFILE_PATCH_TEMPLATE = `# Your patch layer for this dsh profile, applied after every bundle layer:
+const PROFILE_PATCH_TEMPLATE = `# Your patch layer for this bh profile, applied after every bundle layer:
 # a top-level YAML array of loader patch entries (id-targeted config
 # overrides, disables, and insert lists; \`!!js\` expressions allowed).
 []
@@ -147,17 +147,17 @@ autoInstallPeers: false
  * pnpm settings out-of-tree plugins need. Existing files are never touched,
  * so re-running is a no-op on an initialized profile.
  * @param dir - the profile directory from {@link resolveProfileDir}.
- * @param bundles - the initial `dsh.profile.bundles` layer list.
+ * @param bundles - the initial `bh.profile.bundles` layer list.
  */
 export function initProfile(dir: string, bundles: readonly string[]): void {
   mkdirSync(dir, { recursive: true })
   const manifestPath = join(dir, 'package.json')
   if (!existsSync(manifestPath)) {
     const manifest: ProfileManifest & { private: boolean } = {
-      name: `dsh-profile-${basename(dir)}`,
+      name: `bh-profile-${basename(dir)}`,
       private: true,
       dependencies: {},
-      dsh: { profile: { bundles: [...bundles] } },
+      bh: { profile: { bundles: [...bundles] } },
     }
     writeFileSync(manifestPath, JSON.stringify(manifest, undefined, 2) + '\n')
   }
@@ -179,7 +179,7 @@ function ensureSymlink(link: string, target: string): void {
   }
   if (stat !== undefined) {
     if (!stat.isSymbolicLink()) {
-      throw new Error(`dsh: ${link} exists and is not a symlink; remove it so dsh can manage the installation fallback`)
+      throw new Error(`bh: ${link} exists and is not a symlink; remove it so bh can manage the installation fallback`)
     }
     if (readlinkSync(link) === target) return
     // unlink deletes the reparse point itself on Windows too; rmSync treats a
@@ -202,25 +202,25 @@ function ensureSymlink(link: string, target: string): void {
 }
 
 /**
- * Maintain the flat module fallback `$DSH_HOME/profiles/node_modules`: one
- * symlink per package in the dsh app's resolvable dependency CLOSURE (BFS
+ * Maintain the flat module fallback `$BH_HOME/profiles/node_modules`: one
+ * symlink per package in the bh app's resolvable dependency CLOSURE (BFS
  * over `dependencies` from the app manifest), each resolved from its own
  * real location. Node's parent-directory walk from any profile finds this
  * directory after the profile's own `node_modules`, so every in-box plugin
  * resolves without pnpm ever managing it — the exact "bundles come from the
  * installation" contract. The closure (not just direct dependencies) is
  * required for out-of-tree plugins: their peer dependencies name Service
- * Definition packages (`dsh-compaction`, `dsh-invariants`, ...) that the app
+ * Definition packages (`bh-compaction`, `bh-invariants`, ...) that the app
  * reaches only through its Service Provider packages. Symlinked packages
  * resolve their own dependencies from their real directories (Node's default
  * symlink-following), so each package needs only its one flat link.
  * Idempotent: correct links are kept and moved installations are
  * re-pointed; a stale link to a vanished package stays until its name is
  * reused (dangling links are invisible to resolution).
- * @param installAnchor - absolute path of the dsh app's package.json.
- * @param home - the Harness home; defaults to {@link resolveDshHome}.
+ * @param installAnchor - absolute path of the bh app's package.json.
+ * @param home - the Harness home; defaults to {@link resolveBhHome}.
  */
-export function healProfilesModuleFallback(installAnchor: string, home: string = resolveDshHome()): void {
+export function healProfilesModuleFallback(installAnchor: string, home: string = resolveBhHome()): void {
   const profilesDir = join(home, PROFILES_DIR)
   const modulesDir = join(profilesDir, 'node_modules')
   mkdirSync(modulesDir, { recursive: true })
@@ -232,8 +232,8 @@ export function healProfilesModuleFallback(installAnchor: string, home: string =
   // map itself (first resolution wins, matching Node's own nearest-wins).
   const queue: { anchor: string; manifest: ProfileManifest }[] = [{ anchor: installAnchor, manifest: appManifest }]
   for (let next = queue.shift(); next !== undefined; next = queue.shift()) {
-    // Peer dependencies participate: Service Definition packages (dsh-subprocess,
-    // dsh-compaction, ...) are peers of their implementations, never plain
+    // Peer dependencies participate: Service Definition packages (bh-subprocess,
+    // bh-compaction, ...) are peers of their implementations, never plain
     // dependencies, yet out-of-tree plugins import them directly.
     /* v8 ignore next -- a real app manifest always declares dependencies */
     for (const dep of [...Object.keys(next.manifest.dependencies ?? {}), ...Object.keys(next.manifest.peerDependencies ?? {})]) {
@@ -297,14 +297,14 @@ function sameBundles(left: readonly string[], right: readonly string[]): boolean
 function normalizeShippedProfile(name: string, dir: string, manifest: ProfileManifest): ProfileManifest {
   const installationOwned = INSTALLATION_OWNED_PROFILE_TUPLES[name]
   const current = PROFILE_TEMPLATES[name]
-  const bundles = manifest.dsh?.profile?.bundles
+  const bundles = manifest.bh?.profile?.bundles
   if (installationOwned === undefined || current === undefined || bundles === undefined
     || !sameBundles(bundles, installationOwned)) return manifest
   const normalized: ProfileManifest = {
     ...manifest,
-    dsh: {
-      ...manifest.dsh,
-      profile: { ...manifest.dsh?.profile, bundles: [...current] },
+    bh: {
+      ...manifest.bh,
+      profile: { ...manifest.bh?.profile, bundles: [...current] },
     },
   }
   writeProfileManifest(dir, normalized)
@@ -332,12 +332,12 @@ function packageDirFromAnchor(anchor: string, packageName: string): string | und
 /**
  * Resolve one bundle package's directory: installation anchor first, then the
  * profile directory. The installation-first order is the contract that
- * `@deepseek-ai/dsh-base` (and every other in-box bundle) always comes from
- * the same installation as the running dsh, never from a profile-local copy.
+ * `@bosch/bh-base` (and every other in-box bundle) always comes from
+ * the same installation as the running bh, never from a profile-local copy.
  * Resolution does not require the package to export `./package.json`.
  * @param binName - the diagnostic prefix on the thrown error.
- * @param packageName - the bundle's package name from `dsh.profile.bundles`.
- * @param installAnchor - absolute path of a file inside the dsh app package (its package.json).
+ * @param packageName - the bundle's package name from `bh.profile.bundles`.
+ * @param installAnchor - absolute path of a file inside the bh app package (its package.json).
  * @param profileDir - the profile directory (second anchor).
  * @returns the bundle package's absolute directory.
  */
@@ -349,27 +349,27 @@ export function resolveBundleDir(
     if (dir !== undefined) return dir
   }
   throw new Error(
-    `${binName}: cannot resolve profile bundle ${JSON.stringify(packageName)} from the dsh installation or ${profileDir}; `
-    + `run 'dsh plugin --profile ${basename(profileDir)} install' if its dependency is not installed`,
+    `${binName}: cannot resolve profile bundle ${JSON.stringify(packageName)} from the bh installation or ${profileDir}; `
+    + `run 'bh plugin --profile ${basename(profileDir)} install' if its dependency is not installed`,
   )
 }
 
 /**
- * Load a profile: resolve every `dsh.profile.bundles` entry to its patch
+ * Load a profile: resolve every `bh.profile.bundles` entry to its patch
  * layer and parse the profile's own patch file. A listed bundle without a
- * `dsh.bundle` manifest fails loud — naming a bundle-less package as a layer
+ * `bh.bundle` manifest fails loud — naming a bundle-less package as a layer
  * is a misconfiguration, not "no patches".
  * @param binName - the diagnostic prefix on thrown errors.
  * @param name - the profile name.
- * @param installAnchor - absolute path of the dsh app's package.json (first resolution anchor).
- * @param home - the Harness home; defaults to {@link resolveDshHome}.
+ * @param installAnchor - absolute path of the bh app's package.json (first resolution anchor).
+ * @param home - the Harness home; defaults to {@link resolveBhHome}.
  * @param options - `userLayer: false` skips reading `cordis.patch.yml`, so a
  * bundles-only consumer (`--dump-default-config`, a recovery diagnostic)
  * cannot fail on a broken user layer.
  * @returns the loaded profile (empty `patches` when the user layer is skipped).
  */
 export function loadProfile(
-  binName: string, name: string, installAnchor: string, home: string = resolveDshHome(),
+  binName: string, name: string, installAnchor: string, home: string = resolveBhHome(),
   options: { userLayer?: boolean } = {},
 ): Profile {
   const dir = resolveProfileDir(name, home)
@@ -377,20 +377,20 @@ export function loadProfile(
     const template = PROFILE_TEMPLATES[name]
     if (template === undefined) {
       throw new Error(
-        `${binName}: profile ${JSON.stringify(name)} does not exist; create it with 'dsh plugin --profile ${name} add <package>'`,
+        `${binName}: profile ${JSON.stringify(name)} does not exist; create it with 'bh plugin --profile ${name} add <package>'`,
       )
     }
     initProfile(dir, template)
   }
   const manifest = normalizeShippedProfile(name, dir, readProfileManifest(binName, dir))
-  // A hand-written profile manifest may omit the dsh section entirely.
-  const bundles = manifest.dsh?.profile?.bundles ?? []
+  // A hand-written profile manifest may omit the bh section entirely.
+  const bundles = manifest.bh?.profile?.bundles ?? []
   const layers = bundles.map((packageName): ProfileLayer => {
     const packageDir = resolveBundleDir(binName, packageName, installAnchor, dir)
     const bundleManifest = JSON.parse(readFileSync(join(packageDir, 'package.json'), 'utf8')) as ProfileManifest
-    const declared = bundleManifest.dsh?.bundle?.patch
+    const declared = bundleManifest.bh?.bundle?.patch
     if (declared === undefined) {
-      throw new Error(`${binName}: profile bundle ${JSON.stringify(packageName)} declares no dsh.bundle in its package.json`)
+      throw new Error(`${binName}: profile bundle ${JSON.stringify(packageName)} declares no bh.bundle in its package.json`)
     }
     const patchPath = join(packageDir, declared)
     return { packageName, packageDir, patchPath, patches: loadOverlayPatches(binName, patchPath) }

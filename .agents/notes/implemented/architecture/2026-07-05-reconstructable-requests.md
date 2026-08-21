@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-07-05-reconstructable-requests.zh.md)
-
 ## Problem
 
 The request pipeline did not guarantee prefix stability for provider caching, and the session log could not reconstruct what the model saw. It omitted model, system prompt, and tool schemas while allowing per-call request rewrites. Cache behavior and replay equivalence therefore depended on whichever plugins happened to be loaded.
@@ -28,7 +26,7 @@ Each proposed step first claims its inbox batch and runs `agent/pre-step`. Rejec
 
 **The open step is the reconstruction boundary.** Its entered `user/message` batch and any newly written `request/header` precede request dispatch. Injection after the atomic claim joins a later request, while a listener that must affect this request returns messages through `agent/pre-step`. Header reconstruction selects the step's `request/header`, or carries the prior snapshot when no new header is written.
 
-**Enforcement.** The `dsh-agent-loop/invariant` companion registers with `ctx.invariants` and, when selected, independently rebuilds each loop request through a fresh `Session`, so the live cache cannot vouch for itself, then compares messages and folded header fields at `llm/stream`. The loop records the exact frozen request through `markAgentLoopRequest()` in `dsh-llm`; the process-local identity lets the companion and other request observers recognize conversation work, while direct one-shots remain excluded regardless of their frozen shape or session id. Correctness depends on sequence-bounded reconstruction rather than listener order. A with-key e2e requires positive cache-read tokens after the first request; per-step usage is the production signal, and a header change or compaction appears as a cache-read drop on the next step.
+**Enforcement.** The `bh-agent-loop/invariant` companion registers with `ctx.invariants` and, when selected, independently rebuilds each loop request through a fresh `Session`, so the live cache cannot vouch for itself, then compares messages and folded header fields at `llm/stream`. The loop records the exact frozen request through `markAgentLoopRequest()` in `bh-llm`; the process-local identity lets the companion and other request observers recognize conversation work, while direct one-shots remain excluded regardless of their frozen shape or session id. Correctness depends on sequence-bounded reconstruction rather than listener order. A with-key e2e requires positive cache-read tokens after the first request; per-step usage is the production signal, and a header change or compaction appears as a cache-read drop on the next step.
 
 ### The MiniCode shape: adopted, with the event log as the source
 

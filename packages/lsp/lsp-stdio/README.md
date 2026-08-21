@@ -1,6 +1,4 @@
-# @deepseek-ai/dsh-lsp-stdio
-
-English | [中文](README.zh.md)
+# @bosch/bh-lsp-stdio
 
 A **generic stdio language-server backend** for `ctx.lsp`. One plugin instance accepts a named server table and registers one isolated provider per entry. It reads through `ctx.fs` and launches through `ctx.subprocess`, so the server and source always inhabit the mounted execution world. This is a generic host, not a language-server catalog or installer — deployments configure commands and mappings explicitly; presets belong in `cordis.yml` overlays.
 
@@ -24,7 +22,7 @@ The `servers` record key is the stable provider id reserved on `ctx.lsp`; each v
 |---|---|---|
 | `command` | (required) | Executable to spawn — absolute, or resolved on the child PATH at load. Launch uses no shell. |
 | `args` | `[]` | Arguments passed to the executable. |
-| `env` | `{}` | Extra env merged on top of the credential-scrubbed ambient env (vars matching `KEY`/`PASSWORD`/`SECRET`/`TOKEN` are not forwarded); an explicit `DSH_*` entry merges after the seam's scrub of ambient ones. |
+| `env` | `{}` | Extra env merged on top of the credential-scrubbed ambient env (vars matching `KEY`/`PASSWORD`/`SECRET`/`TOKEN` are not forwarded); an explicit `BH_*` entry merges after the seam's scrub of ambient ones. |
 | `extensionToLanguage` | (required) | Lowercase leading-dot extension → LSP language id (e.g. `{ '.ts': 'typescript' }`). |
 | `initializationOptions` | `null` | Static `initialize` options forwarded to the server. |
 | `configuration` | `null` | Static answer to every `workspace/configuration` item. |
@@ -46,11 +44,11 @@ The provider trusts its configured server and claims no sandbox confinement. It 
 
 ## Model Experience
 
-Indirectly, through `dsh-tool-lsp`, which surfaces this provider's normalized results; this host contributes no prompt or schema itself.
+Indirectly, through `bh-tool-lsp`, which surfaces this provider's normalized results; this host contributes no prompt or schema itself.
 
 #### KV Cache effect
 
-No direct invalidation; `dsh-tool-lsp` owns request-prefix changes.
+No direct invalidation; `bh-tool-lsp` owns request-prefix changes.
 
 ## Known Limitations and Deferred Work
 

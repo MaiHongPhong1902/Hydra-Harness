@@ -4,7 +4,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import clsx from 'clsx'
-import type { WorkspaceId } from '@deepseek-ai/dsh-client-runtime/client'
+import type { WorkspaceId } from '@bosch/bh-client-runtime/client'
 import type { ConversationSlotProps, InputZone } from '../contract/slots.ts'
 import { HeroGlow, HeroShell, WorkspaceChip, workspaceLabel } from './EmptyHero.tsx'
 import css from './ConversationRoot.module.css'
@@ -32,7 +32,7 @@ export function ConversationRoot({
   const [pendingWorkspaceId, setPendingWorkspaceId] = useState<WorkspaceId | undefined>()
   const pickerAnchor = useRef<HTMLButtonElement>(null)
 
-  // Publishes the seat's live height as --dsh-composer-height on the scroll
+  // Publishes the seat's live height as --bh-composer-height on the scroll
   // body so floating controls (ChatView back-to-bottom) clear the composer as
   // it grows. Callback ref, not an effect; stable identity prevents observer
   // churn while the first blank session fills the resident body outlet.
@@ -43,7 +43,7 @@ export function ConversationRoot({
     const scroller = seat?.parentElement ?? null
     if (seat === null || scroller === null) return
     seatObserver.current = new ResizeObserver(() => {
-      scroller.style.setProperty('--dsh-composer-height', `${seat.offsetHeight}px`)
+      scroller.style.setProperty('--bh-composer-height', `${seat.offsetHeight}px`)
     })
     seatObserver.current.observe(seat)
   }, [])

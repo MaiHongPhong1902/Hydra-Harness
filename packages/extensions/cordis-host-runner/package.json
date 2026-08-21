@@ -1,5 +1,5 @@
 {
-  "name": "@deepseek-ai/dsh-cordis-host-runner",
+  "name": "@bosch/bh-cordis-host-runner",
   "description": "Dynamic package definition registry, host-half sandbox lifecycle, and invoke handler table for model-mounted dual-half packages",
   "version": "0.1.1-rc.1",
   "publishConfig": {
@@ -7,7 +7,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
+    "url": "git+https://github.com/bosch/bosch-harness.git",
     "directory": "packages/extensions/cordis-host-runner"
   },
   "type": "module",
@@ -49,30 +49,30 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@deepseek-ai/schemastery": "workspace:^",
+    "@bosch/schemastery": "workspace:^",
     "zod": "^4.4.3"
   },
   "peerDependencies": {
-    "@deepseek-ai/cordis": "workspace:^",
-    "@deepseek-ai/dsh-agent": "workspace:^",
-    "@deepseek-ai/dsh-brand": "workspace:^",
-    "@deepseek-ai/dsh-invariants": "workspace:^",
-    "@deepseek-ai/dsh-llm": "workspace:^",
-    "@deepseek-ai/dsh-scope": "workspace:^",
-    "@deepseek-ai/dsh-session": "workspace:^",
-    "@deepseek-ai/dsh-tools": "workspace:^",
-    "@deepseek-ai/dsh-typert-protocol": "workspace:^"
+    "@bosch/cordis": "workspace:^",
+    "@bosch/bh-agent": "workspace:^",
+    "@bosch/bh-brand": "workspace:^",
+    "@bosch/bh-invariants": "workspace:^",
+    "@bosch/bh-llm": "workspace:^",
+    "@bosch/bh-scope": "workspace:^",
+    "@bosch/bh-session": "workspace:^",
+    "@bosch/bh-tools": "workspace:^",
+    "@bosch/bh-typert-protocol": "workspace:^"
   },
   "devDependencies": {
-    "@deepseek-ai/cordis": "workspace:^",
-    "@deepseek-ai/cordis-plugin-timer": "workspace:^",
-    "@deepseek-ai/dsh-agent": "workspace:^",
-    "@deepseek-ai/dsh-brand": "workspace:^",
-    "@deepseek-ai/dsh-invariants": "workspace:^",
-    "@deepseek-ai/dsh-llm": "workspace:^",
-    "@deepseek-ai/dsh-scope": "workspace:^",
-    "@deepseek-ai/dsh-session": "workspace:^",
-    "@deepseek-ai/dsh-tools": "workspace:^",
-    "@deepseek-ai/dsh-typert-protocol": "workspace:^"
+    "@bosch/cordis": "workspace:^",
+    "@bosch/cordis-plugin-timer": "workspace:^",
+    "@bosch/bh-agent": "workspace:^",
+    "@bosch/bh-brand": "workspace:^",
+    "@bosch/bh-invariants": "workspace:^",
+    "@bosch/bh-llm": "workspace:^",
+    "@bosch/bh-scope": "workspace:^",
+    "@bosch/bh-session": "workspace:^",
+    "@bosch/bh-tools": "workspace:^",
+    "@bosch/bh-typert-protocol": "workspace:^"
   }
 }

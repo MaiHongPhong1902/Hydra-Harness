@@ -1,6 +1,4 @@
-# @deepseek-ai/dsh-client-ui-tool
-
-English | [中文](README.zh.md)
+# @bosch/bh-client-ui-tool
 
 Client Tool presentation plugin. `ui-conversation` dispatches each ordered `tool-call` Conversation Node through the matching key of `conversation.chat.node`; this package renders its root and Code Dispatch children, then dispatches every atomic call through the keyed `tool.call.toolview` slot. Unregistered Tool names use the generic card.
 

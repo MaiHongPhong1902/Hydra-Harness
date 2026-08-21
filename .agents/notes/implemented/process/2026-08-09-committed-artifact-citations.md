@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-09-committed-artifact-citations.zh.md)
-
 ## Problem
 
 Large design and review sessions leave working shorthand — decision ordinals, audit item codes, plan section numbers, task and stack ordinals, reviewer rulings — that reads naturally while the session transcript is open and resolves to nothing after it closes. A repo-wide audit found the pattern concentrated in `packages/client`: bare `(decision 12/16/19/20/21)` citations of which only decision 21 had a committed owner, `(audit C2/S1/S3/S7)` codes with no audit document anywhere, `design §4.7` / `web2 §0` / `plan §1.4` references to uncommitted drafts, plan-phase labels (`T2/T5/T9`, `P-I`, `W5`), stack positions ("a later PR in this stack") in durable JSDoc, and "ruling" / "design ledger" vocabulary. The same families appeared in tests, CSS comments, generator templates, CI comments, and Agent Notes ("this PR/branch/review round" vantage, review-choreography attributions, stale "deferred to a later PR" claims whose targets had since shipped). The [documentation standard](../../../../docs/AGENTS.md) already banned the change-history half (previously/now, PR and commit references) but stated no counterpart rule for citations, so unresolvable ordinals kept landing.
@@ -18,7 +16,7 @@ Durable prose — comments, JSDoc, docs, notes, test comments and titles — cit
 - Implemented notes state shipped reality: a "deferred to a later PR" claim whose target shipped names the shipped note instead.
 - Recorded fixtures, snapshots, and archived notes are exempt: recorded model output and sealed history keep their original voice. Inside a note's change-story sections, a historical stage name ("the first cut shipped X") is current-state-safe; indexical stamps ("this cut") stay banned everywhere.
 
-One repo-wide purge applied these rules across the prose surfaces, including the generator-owned templates (`scripts/gen-doc-graphs.ts`, `scripts/gen-tool-catalog.ts`, the typert generator's page notice) with regeneration, the type-equiv source JSDoc with page re-pastes, and the bilingual counterparts with pair re-records. The [dsh-trim-cot-leakage skill](../../../skills/dsh-trim-cot-leakage/SKILL.md) operationalizes these rules: the audit taxonomy, the committed recall batteries, and few-shot examples for deciding what to keep or delete.
+One repo-wide purge applied these rules across the prose surfaces, including the generator-owned templates (`scripts/gen-doc-graphs.ts`, `scripts/gen-tool-catalog.ts`, the typert generator's page notice) with regeneration, the type-equiv source JSDoc with page re-pastes, and the bilingual counterparts with pair re-records. The [bh-trim-cot-leakage skill](../../../skills/bh-trim-cot-leakage/SKILL.md) operationalizes these rules: the audit taxonomy, the committed recall batteries, and few-shot examples for deciding what to keep or delete.
 
 ## Alternatives considered
 

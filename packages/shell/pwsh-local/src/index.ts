@@ -10,22 +10,22 @@
  * shell-quoting layer to escape (the `bash -c` string domain has no
  * equivalent here). Native Win32 paths (`C:\...`) pass through unchanged.
  *
- * @module @deepseek-ai/dsh-pwsh-local
+ * @module @bosch/bh-pwsh-local
  */
 
-/* jscpd:ignore-start -- this executor mirrors dsh-bash-local call-for-call by
+/* jscpd:ignore-start -- this executor mirrors bh-bash-local call-for-call by
    design (see this package's README), so the two import the same seam surface */
-import { Context } from '@deepseek-ai/cordis'
-import z from '@deepseek-ai/schemastery'
-import { SHELL_SETTINGS_NAMESPACE, ShellExecutor } from '@deepseek-ai/dsh-shell'
-import type { ShellExecRequest, ShellExecSpec, ShellProcess, ShellProcessRead, ShellRunResult, CollectedOutput } from '@deepseek-ai/dsh-shell'
-import type { SubprocessCollect, SubprocessHandle, SubprocessOutputReader, SubprocessSpawnSpec } from '@deepseek-ai/dsh-subprocess'
-import { installSettingsSection } from '@deepseek-ai/dsh-settings'
-import { clampTimeout, deadline, MAX_TIMER_DELAY_MS, timeoutOf } from '@deepseek-ai/dsh-timeout'
+import { Context } from '@bosch/cordis'
+import z from '@bosch/schemastery'
+import { SHELL_SETTINGS_NAMESPACE, ShellExecutor } from '@bosch/bh-shell'
+import type { ShellExecRequest, ShellExecSpec, ShellProcess, ShellProcessRead, ShellRunResult, CollectedOutput } from '@bosch/bh-shell'
+import type { SubprocessCollect, SubprocessHandle, SubprocessOutputReader, SubprocessSpawnSpec } from '@bosch/bh-subprocess'
+import { installSettingsSection } from '@bosch/bh-settings'
+import { clampTimeout, deadline, MAX_TIMER_DELAY_MS, timeoutOf } from '@bosch/bh-timeout'
 /* jscpd:ignore-end */
 import { resolvePwshPath } from './resolve.ts'
 
-/* jscpd:ignore-start -- deliberate call-for-call mirror of dsh-bash-local (Agent Note: pwsh-tool-and-executor). */
+/* jscpd:ignore-start -- deliberate call-for-call mirror of bh-bash-local (Agent Note: pwsh-tool-and-executor). */
 /**
  * Model-friendly environment overrides for PowerShell: disable colors and
  * pagers that would garble tool output. `TERM=dumb` is a POSIX concept and is
@@ -203,7 +203,7 @@ export class PwshLocalExecutor extends ShellExecutor {
       ...request.signal ? { signal: request.signal } : {},
       ...request.stdin !== undefined ? { stdin: request.stdin } : {},
       ...request.env !== undefined ? { env: request.env } : {},
-      ...request.dshEnv !== undefined ? { dshEnv: request.dshEnv } : {},
+      ...request.bhEnv !== undefined ? { bhEnv: request.bhEnv } : {},
       sandboxPolicy: request.sandboxPolicy,
     }
   }
@@ -211,8 +211,8 @@ export class PwshLocalExecutor extends ShellExecutor {
   /**
    * The pwsh invocation argv for one resolved spec — the argv-level seam a
    * confining subclass wraps through `ctx.sandbox.confine` (the pwsh twin of
-   * `dsh-bash-local`'s `runArgv`/`startArgv` hooks; see
-   * `@deepseek-ai/dsh-pwsh-sandbox`).
+   * `bh-bash-local`'s `runArgv`/`startArgv` hooks; see
+   * `@bosch/bh-pwsh-sandbox`).
    */
   protected argv(spec: ShellExecSpec): string[] {
     return [this.pwshPath, '-NoLogo', '-NoProfile', '-NonInteractive', '-Command', `${ENCODING_PREAMBLE}${spec.command}`]
@@ -237,7 +237,7 @@ export class PwshLocalExecutor extends ShellExecutor {
       },
       graceMs: this.config.graceMs,
       signal,
-      env: { ...ENV_OVERRIDES, ...spec.env, ...spec.dshEnv },
+      env: { ...ENV_OVERRIDES, ...spec.env, ...spec.bhEnv },
     }
   }
 
@@ -349,8 +349,8 @@ export class PwshLocalExecutor extends ShellExecutor {
   /**
    * Settlement hook for subclasses that attach execution facts to a process.
    * The base implementation is intentionally empty. Mirrored from
-   * `dsh-bash-local` (whose sandboxing subclass consumes the same hook); the
-   * pwsh-confining consumer is `@deepseek-ai/dsh-pwsh-sandbox`.
+   * `bh-bash-local` (whose sandboxing subclass consumes the same hook); the
+   * pwsh-confining consumer is `@bosch/bh-pwsh-sandbox`.
    * @param _proc - the settled process handle.
    * @param _stderr - the process's retained stderr tail used by subclasses for settlement classification.
    * @param _spawnFailed - whether the spawn rejected before any process existed.

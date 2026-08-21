@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-02-native-github-stacks-and-optional-rebases.zh.md)
-
 ## Problem
 
 A dependent PR chain represented only by base branches has no official stack identity. Landing it requires manually merging one PR at a time, preserving intermediate branches, retargeting every child, and reconstructing whether the chain survived. GitHub's native stacked-PR feature instead carries the order, applies trunk rules and CI to every layer, and owns bottom-up merges and retargeting.
@@ -22,7 +20,7 @@ Relevant checks normally run before publication. `gh stack sync` is the explicit
 
 ## Verification
 
-The [stack landing skill](../../../skills/dsh-merging-stacked-prs/SKILL.md) verifies native support, same-repository branches, live authors, official membership and order, merge range, and final merged state. The [stack review guide](../../../../docs/cookbook/responding-to-pr-review-on-a-stack.md) keeps fixes on their introducing layer and covers both propagation histories. The [pre-push workflow](../../../skills/dsh-pre-push-checks/SKILL.md) owns lease protection and immediate post-sync evidence.
+The [stack landing skill](../../../skills/bh-merging-stacked-prs/SKILL.md) verifies native support, same-repository branches, live authors, official membership and order, merge range, and final merged state. The [stack review guide](../../../../docs/cookbook/responding-to-pr-review-on-a-stack.md) keeps fixes on their introducing layer and covers both propagation histories. The [pre-push workflow](../../../skills/bh-pre-push-checks/SKILL.md) owns lease protection and immediate post-sync evidence.
 
 ## Alternatives considered
 

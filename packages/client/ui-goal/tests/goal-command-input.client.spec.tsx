@@ -4,13 +4,13 @@ import { afterEach, describe, expect, it } from 'vitest'
 import type {
   ChatConversationViewNode, ChatSnapshot, ConversationEventInput,
   ConversationNodeDefinition, ConversationViewDefinition,
-} from '@deepseek-ai/dsh-client-runtime/client'
-import { ConversationNodeAssembler } from '@deepseek-ai/dsh-client-runtime/client'
-import { makeTranslate } from '@deepseek-ai/dsh-client-test-runtime'
-import { zh as commonZh } from '@deepseek-ai/dsh-client-locale/src/locales/zh.ts'
-import type { SessionEvent } from '@deepseek-ai/dsh-session/types'
-import { commandDefinition } from '@deepseek-ai/dsh-client-ui-conversation/src/client/conversation-nodes/command.ts'
-import { chatViewDefinition } from '@deepseek-ai/dsh-client-ui-conversation/src/client/conversation-nodes/chat-snapshot-builder.ts'
+} from '@bosch/bh-client-runtime/client'
+import { ConversationNodeAssembler } from '@bosch/bh-client-runtime/client'
+import { makeTranslate } from '@bosch/bh-client-test-runtime'
+import { zh as commonZh } from '@bosch/bh-client-locale/src/locales/zh.ts'
+import type { SessionEvent } from '@bosch/bh-session/types'
+import { commandDefinition } from '@bosch/bh-client-ui-conversation/src/client/conversation-nodes/command.ts'
+import { chatViewDefinition } from '@bosch/bh-client-ui-conversation/src/client/conversation-nodes/chat-snapshot-builder.ts'
 import { GoalCommandInputView } from '../src/client/GoalCommandInputView.tsx'
 import {
   goalCommandInputDefinition, goalCommandText,

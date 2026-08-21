@@ -1,4 +1,4 @@
-/** Content-block structure helpers. @module @deepseek-ai/dsh-llm/content */
+/** Content-block structure helpers. @module @bosch/bh-llm/content */
 
 import type { ContentBlock } from './types.ts'
 import type { Message } from './message.ts'

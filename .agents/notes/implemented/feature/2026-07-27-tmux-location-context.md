@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-07-27-tmux-location-context.zh.md)
-
 ## Problem
 
 An agent running inside tmux has no way to tell the model where it is: which session, window, and pane the process occupies, and how the window is laid out. A user directing several panes wants the model to orient itself to its own location so instructions like "the pane below" or "this window" resolve. The location must reach the model as durable, reconstructable context, not a system-prompt value rewritten in place, and must cost nothing when the location has not changed.
@@ -12,7 +10,7 @@ tmux exposes this without a daemon: `$TMUX_PANE` names the process's pane, and `
 
 ## Decision
 
-`@deepseek-ai/dsh-tmux-context` is an opt-in function plugin in `packages/context/tmux-context/`, alongside the other bounded request-context enrichments that define neither a tool nor a service. The shipped TUI mounts it because terminal-multiplexer context is specific to that surface; `dsh-agent-spine-demo` and the Web/headless surfaces stay silent.
+`@bosch/bh-tmux-context` is an opt-in function plugin in `packages/context/tmux-context/`, alongside the other bounded request-context enrichments that define neither a tool nor a service. The shipped TUI mounts it because terminal-multiplexer context is specific to that surface; `bh-agent-spine-demo` and the Web/headless surfaces stay silent.
 
 **Pull on the first step of each turn, not a tmux push.** The plugin prepends an `agent/pre-step` listener and acts only when `step === 1`. A pull model needs no background process, no hook installation in the user's tmux, and no teardown; it re-reads current state each turn so a moved, renamed, or re-laid-out pane is picked up naturally. Gating on the first step makes the reading per-turn: a location is stable within a turn, and re-querying every step would add cost without new information. A pane moved mid-turn is reflected on the next turn, which is the accepted tradeoff for the simpler design.
 

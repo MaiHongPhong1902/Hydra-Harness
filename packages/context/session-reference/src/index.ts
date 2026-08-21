@@ -2,17 +2,17 @@
  * Cross-session snapshot preparation. Hosts adapt mentions into structured
  * references; this service owns exact reads, projection, budgets, and durable context.
  *
- * @module @deepseek-ai/dsh-session-reference
+ * @module @bosch/bh-session-reference
  */
 
-import { Context } from '@deepseek-ai/cordis'
-import z from '@deepseek-ai/schemastery'
-import type { Agent, PreStepDecision } from '@deepseek-ai/dsh-agent'
-import { Remote, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
-import { createUserMessage, freezeMessage } from '@deepseek-ai/dsh-llm'
-import type { ContentBlock, UserMessage } from '@deepseek-ai/dsh-llm'
-import type { SessionId } from '@deepseek-ai/dsh-session'
-import type { SessionSurfaceSnapshot, SessionTitleObservationResult } from '@deepseek-ai/dsh-session-query'
+import { Context } from '@bosch/cordis'
+import z from '@bosch/schemastery'
+import type { Agent, PreStepDecision } from '@bosch/bh-agent'
+import { Remote, TypertRemoteService } from '@bosch/bh-typert-protocol'
+import { createUserMessage, freezeMessage } from '@bosch/bh-llm'
+import type { ContentBlock, UserMessage } from '@bosch/bh-llm'
+import type { SessionId } from '@bosch/bh-session'
+import type { SessionSurfaceSnapshot, SessionTitleObservationResult } from '@bosch/bh-session-query'
 import {
   DEFAULT_CANDIDATE_LIMIT,
   DEFAULT_MAX_REFERENCE_BYTES,
@@ -55,7 +55,7 @@ user explicitly repeats them.
 `
 const PROMPT_SUFFIX = '\n</referenced-sessions>'
 
-declare module '@deepseek-ai/cordis' {
+declare module '@bosch/cordis' {
   interface Context {
     sessionReferenceResolver: SessionReferenceResolver
   }

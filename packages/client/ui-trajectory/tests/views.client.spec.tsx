@@ -7,34 +7,34 @@
  * event ledger with its timing overview, and fiber disposal removes the tab.
  * Timeline projection and inclusive focus edge cases ride along.
  */
-import { Context } from '@deepseek-ai/cordis'
+import { Context } from '@bosch/cordis'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { createElement, type ComponentProps, type FC, type ReactNode } from 'react'
-import { bindSnapshotSelector } from '@deepseek-ai/dsh-client-test-runtime'
-import { resolveSlotLabel } from '@deepseek-ai/dsh-client-ui-slots'
+import { bindSnapshotSelector } from '@bosch/bh-client-test-runtime'
+import { resolveSlotLabel } from '@bosch/bh-client-ui-slots'
 import {
   ConversationEventRegistry, ConversationViewRegistry, createSnapshotStore,
   EMPTY_CHAT_SNAPSHOT,
-} from '@deepseek-ai/dsh-client-runtime/client'
-import { SlotRegistry } from '@deepseek-ai/dsh-client-runtime/client'
+} from '@bosch/bh-client-runtime/client'
+import { SlotRegistry } from '@bosch/bh-client-runtime/client'
 import type {
   ConversationSnapshot, RequestView,
   SessionId, SessionListState, SnapshotStore, WorkspaceListState,
-} from '@deepseek-ai/dsh-client-runtime/client'
-import type { ConvViewProps, ViewTab } from '@deepseek-ai/dsh-client-ui-conversation/client'
+} from '@bosch/bh-client-runtime/client'
+import type { ConvViewProps, ViewTab } from '@bosch/bh-client-ui-conversation/client'
 import {
   ConversationSession, ConversationSessionHeader,
   type ConversationSessionHeaderProps, type ConversationSessionProps,
-} from '@deepseek-ai/dsh-client-ui-conversation/src/client/skeleton/ConversationSession.tsx'
-import { createChatStore } from '@deepseek-ai/dsh-client-ui-conversation/src/client/stores.ts'
-import { zh as conversationZh } from '@deepseek-ai/dsh-client-ui-conversation/src/client/locales.ts'
-import { apply as localeApply, inject as localeInject } from '@deepseek-ai/dsh-client-locale/client'
-import { stubSettingsScope } from '@deepseek-ai/dsh-client-test-runtime'
-import type { LocaleKeysOf } from '@deepseek-ai/dsh-client-ui-slots'
+} from '@bosch/bh-client-ui-conversation/src/client/skeleton/ConversationSession.tsx'
+import { createChatStore } from '@bosch/bh-client-ui-conversation/src/client/stores.ts'
+import { zh as conversationZh } from '@bosch/bh-client-ui-conversation/src/client/locales.ts'
+import { apply as localeApply, inject as localeInject } from '@bosch/bh-client-locale/client'
+import { stubSettingsScope } from '@bosch/bh-client-test-runtime'
+import type { LocaleKeysOf } from '@bosch/bh-client-ui-slots'
 import { zh, type TrajectoryKey } from '../src/client/locales.ts'
-import { apply, inject } from '@deepseek-ai/dsh-client-ui-trajectory/client'
-import { apply as nodeApply } from '@deepseek-ai/dsh-client-ui-trajectory'
+import { apply, inject } from '@bosch/bh-client-ui-trajectory/client'
+import { apply as nodeApply } from '@bosch/bh-client-ui-trajectory'
 import type { TrajectoryTurnModel } from '../src/client/layout.ts'
 import { TrajectoryTimeline } from '../src/client/TrajectoryTimeline.tsx'
 import {
@@ -335,8 +335,8 @@ describe('plugin registration', () => {
     expect(second.hooks.duration).toBe(first.hooks.duration)
     first.setActualDuration(true)
     expect(second.hooks.duration.getSnapshot()).toBe(true)
-    expect(localStorage.getItem('dsh.trajectory.duration')).toBe('true')
-    expect(localStorage.getItem(`dsh.trajectory.duration.${SID}`)).toBeNull()
+    expect(localStorage.getItem('bh.trajectory.duration')).toBe('true')
+    expect(localStorage.getItem(`bh.trajectory.duration.${SID}`)).toBeNull()
   })
 
   it('reports whether loading older history changed the Trajectory snapshot', async () => {
@@ -1152,7 +1152,7 @@ describe('TrajectoryView state', () => {
 
     expect(duration.getAttribute('aria-pressed')).toBe('false')
     fireEvent.click(duration)
-    expect(localStorage.getItem('dsh.trajectory.duration')).toBe('true')
+    expect(localStorage.getItem('bh.trajectory.duration')).toBe('true')
     first.unmount()
 
     const restoredDuration = createTrajectoryDurationStore()

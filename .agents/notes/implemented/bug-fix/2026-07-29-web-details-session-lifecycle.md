@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-07-29-web-details-session-lifecycle.zh.md)
-
 ## Problem
 
 The details entry is Session-scoped, but its preferred grid width is root-scoped. Selecting a different Session replaced the details content without closing that root preference, so the new owner inherited stale viewing geometry. Hero and other unselected states render no Session-scoped details; they need a derived zero track without becoming false owners in the comparison.

@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-07-21-log-backed-session-titles.zh.md)
-
 ## Problem
 
 A session needs a short human-facing title before an editor, terminal, or query consumer can present it usefully. The cheapest implementation can derive one from the first prompt, while higher-quality implementations may call a model over the first prompt or the whole conversation. Those strategies have different latency, cost, routing, and retry behavior, but every consumer needs one durable source of truth.
@@ -12,7 +10,7 @@ Session identity metadata is immutable, and the event log is the replay and fork
 
 ## Decision
 
-The [`session-title` capability family](../../../../packages/session/README.md) owns title state and generation policy. `@deepseek-ai/dsh-session-title` provides `ctx.sessionTitle`, a deterministic first-prompt fallback, and a registry for at most one optional asynchronous provider. `@deepseek-ai/dsh-session-title-llm` owns the common auxiliary-model request policy; separate first-prompt and all-prompts plugins choose input cadence. The shared agent spine mounts only the fallback service. The Web host mounts that service plus the first-prompt model provider with explicit overridable limits, so a fresh Web session gains an immediate fallback and then a non-blocking model summary. Other compositions choose either model provider explicitly.
+The [`session-title` capability family](../../../../packages/session/README.md) owns title state and generation policy. `@bosch/bh-session-title` provides `ctx.sessionTitle`, a deterministic first-prompt fallback, and a registry for at most one optional asynchronous provider. `@bosch/bh-session-title-llm` owns the common auxiliary-model request policy; separate first-prompt and all-prompts plugins choose input cadence. The shared agent spine mounts only the fallback service. The Web host mounts that service plus the first-prompt model provider with explicit overridable limits, so a fresh Web session gains an immediate fallback and then a non-blocking model summary. Other compositions choose either model provider explicitly.
 
 ### Event ownership and folding
 

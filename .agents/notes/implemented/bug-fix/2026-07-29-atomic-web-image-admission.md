@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-07-29-atomic-web-image-admission.zh.md)
-
 ## Problem
 
 Image prompt admission and `session.selectModel` each read session modality state across asynchronous model and attachment lookups. Without one ordering boundary, an image prompt could validate an image-capable target while a concurrent selection installed a text-only target, or selection could miss a prompt after inbox dequeue but before its durable message event. Scanning the immutable event log avoided the second race but permanently blocked a text-only selection even after compaction removed the image from current model history.

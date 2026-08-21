@@ -16,9 +16,9 @@ const CONFIG_GLOB = 'packages/*/*/tsdown.config.ts'
 const PLATFORM_SOURCE = 'packages/client/web/src/platform.ts'
 const PARSER_PRELOAD_SOURCE = 'packages/client/modules/src/index.ts'
 const STATIC_PRESET_SOURCE = 'packages/client/tsdown.client.ts'
-const CORDIS = '@deepseek-ai/cordis'
-const DSH_PREFIX = '@deepseek-ai/dsh-'
-const CLIENT_WEB = '@deepseek-ai/dsh-client-web'
+const CORDIS = '@bosch/cordis'
+const BH_PREFIX = '@bosch/bh-'
+const CLIENT_WEB = '@bosch/bh-client-web'
 
 /** One workspace package's browser-module declaration. */
 export interface ClientDeclaration {
@@ -26,7 +26,7 @@ export interface ClientDeclaration {
   readonly name: string
   /** Repository-relative package manifest. */
   readonly manifest: string
-  /** Whether the manifest declares a dynamic dsh.client row. */
+  /** Whether the manifest declares a dynamic bh.client row. */
   readonly dynamic: boolean
   /** Exact module-table specifiers requested by the row. */
   readonly external: readonly string[]
@@ -152,7 +152,7 @@ function collectSourceFilePackageUses(sourceFile: ts.SourceFile, runtimeOnly: bo
 /**
  * Read browser-module declarations from workspace manifests.
  * @param root - Absolute repository root.
- * @returns Declarations and malformed dsh.client fields.
+ * @returns Declarations and malformed bh.client fields.
  */
 export function readClientDeclarations(root: string): ClientDeclarations {
   const malformed: string[] = []
@@ -208,8 +208,8 @@ export function fixClientPackageManifests(root: string, facts: ClientPackageFact
   const baseline = new Set([...facts.platformModules, ...facts.preloadedExternals])
   for (const declaration of facts.declarations.filter(entry => entry.dynamic)) {
     const target = document(declaration.manifest)
-    const dsh = isRecord(target.manifest.dsh) ? target.manifest.dsh : undefined
-    const client = isRecord(dsh?.client) ? dsh.client : undefined
+    const bh = isRecord(target.manifest.bh) ? target.manifest.bh : undefined
+    const client = isRecord(bh?.client) ? bh.client : undefined
     if (client === undefined) continue
     target.changed = normalizeClientArray(client, 'inject', () => false) || target.changed
     target.changed = normalizeClientArray(
@@ -254,7 +254,7 @@ export function fixClientPackageManifests(root: string, facts: ClientPackageFact
         if (range === undefined) continue
         if (staticInputs.has(name)) {
           target.changed = ensureDevOnly(target.manifest, name, range) || target.changed
-        } else if (section(target.manifest, 'dependencies')[name] !== undefined && isInternalDsh(name)) {
+        } else if (section(target.manifest, 'dependencies')[name] !== undefined && isInternalBh(name)) {
           target.changed = ensurePeerDev(target.manifest, name, range) || target.changed
         }
       }
@@ -356,7 +356,7 @@ function preferredRange(
     const range = section(manifest, field)[name]
     if (range !== undefined) return range
   }
-  if (isInternalDsh(name)) return 'workspace:^'
+  if (isInternalBh(name)) return 'workspace:^'
   const candidates = inferred.get(name)
   return candidates?.size === 1 ? [...candidates][0] : undefined
 }
@@ -398,13 +398,13 @@ function collectModeViolations(facts: ClientPackageFacts): string[] {
   for (const pkg of facts.packages) {
     if (pkg.dynamic && pkg.staticLinked) {
       violations.push(
-        pkg.manifest + ': ' + pkg.name + ' declares dsh.client and uses the staticLinked preset;'
+        pkg.manifest + ': ' + pkg.name + ' declares bh.client and uses the staticLinked preset;'
         + ' a client package must be dynamic or statically linked, not both',
       )
     } else if (!pkg.dynamic && !pkg.staticLinked) {
       violations.push(
         pkg.manifest + ': ' + pkg.name + ' has no supported client package mode;'
-        + ' declare dsh.client or use the staticLinked preset',
+        + ' declare bh.client or use the staticLinked preset',
       )
     }
   }
@@ -424,7 +424,7 @@ function collectModeViolations(facts: ClientPackageFacts): string[] {
     if (rowPackageOf(specifier, rows) === undefined) {
       violations.push(
         PLATFORM_SOURCE + ': parser-preloaded external ' + JSON.stringify(specifier)
-        + ' has no dynamic dsh.client row',
+        + ' has no dynamic bh.client row',
       )
     }
     if (!facts.parserPreloadIds.includes(stripClientSuffix(specifier))) {
@@ -480,7 +480,7 @@ function collectDependencyViolations(facts: ClientPackageFacts): string[] {
         && peerRange === devRange) continue
       violations.push(
         pkg.manifest + ': ' + name + ' (' + describeOrigins(rule.origins) + ')'
-        + ' is a peer-installed DSH relationship; declare it in peerDependencies and devDependencies'
+        + ' is a peer-installed BH relationship; declare it in peerDependencies and devDependencies'
         + ' with matching ranges, not dependencies; found ' + describeSections(actual)
         + describeRangeMismatch(peerRange, devRange),
       )
@@ -505,10 +505,10 @@ function collectDependencyViolations(facts: ClientPackageFacts): string[] {
             pkg.manifest + ': dynamic package declares static input ' + name + ' in ' + section + ';'
             + ' move it to devDependencies or delete the stale declaration',
           )
-        } else if (section === 'dependencies' && isInternalDsh(name)) {
+        } else if (section === 'dependencies' && isInternalBh(name)) {
           violations.push(
             pkg.manifest + ': dynamic package declares ' + name + ' in dependencies;'
-            + ' dynamic DSH relationships are peer plus dev, and static client inputs are dev-only',
+            + ' dynamic BH relationships are peer plus dev, and static client inputs are dev-only',
           )
         }
       }
@@ -524,7 +524,7 @@ function expectedSections(pkg: ClientPackage, staticInputs: ReadonlySet<string>)
   if (!pkg.dynamic) {
     if (pkg.name === CLIENT_WEB) return expected
     for (const [name, locations] of Object.entries(pkg.runtimeSourceUses)) {
-      if (name === pkg.name || name === CORDIS || isInternalDsh(name)) continue
+      if (name === pkg.name || name === CORDIS || isInternalBh(name)) continue
       expected.set(name, { kind: 'dependency', origins: new Set(locations) })
     }
     return expected
@@ -532,7 +532,7 @@ function expectedSections(pkg: ClientPackage, staticInputs: ReadonlySet<string>)
 
   const add = (name: string, origin: string): void => {
     if (name === pkg.name) return
-    const kind = staticInputs.has(name) ? 'dev' : isInternalDsh(name) ? 'peer-dev' : undefined
+    const kind = staticInputs.has(name) ? 'dev' : isInternalBh(name) ? 'peer-dev' : undefined
     if (kind === undefined) return
     const current = expected.get(name)
     if (current !== undefined) current.origins.add(origin)
@@ -541,7 +541,7 @@ function expectedSections(pkg: ClientPackage, staticInputs: ReadonlySet<string>)
   for (const [name, locations] of Object.entries(pkg.sourceUses)) {
     for (const location of locations) add(name, location)
   }
-  for (const name of pkg.inject) add(name, 'dsh.client.inject')
+  for (const name of pkg.inject) add(name, 'bh.client.inject')
   return expected
 }
 
@@ -562,9 +562,9 @@ function collectModuleViolations(facts: ClientPackageFacts): string[] {
     for (const field of ['external', 'inject'] as const) {
       const seen = new Set<string>()
       for (const value of pkg[field]) {
-        if (value === '') violations.push(pkg.manifest + ': dsh.client.' + field + ' contains an empty value')
+        if (value === '') violations.push(pkg.manifest + ': bh.client.' + field + ' contains an empty value')
         else if (seen.has(value)) {
-          violations.push(pkg.manifest + ': dsh.client.' + field + ' lists ' + JSON.stringify(value) + ' twice')
+          violations.push(pkg.manifest + ': bh.client.' + field + ' lists ' + JSON.stringify(value) + ' twice')
         }
         seen.add(value)
       }
@@ -574,23 +574,23 @@ function collectModuleViolations(facts: ClientPackageFacts): string[] {
       if (specifier === '') continue
       if (baseline.has(specifier)) {
         violations.push(
-          pkg.manifest + ': dsh.client.external repeats baseline module ' + JSON.stringify(specifier)
+          pkg.manifest + ': bh.client.external repeats baseline module ' + JSON.stringify(specifier)
           + '; remove the explicit declaration',
         )
         continue
       }
       const supplier = rowPackageOf(specifier, rows)
       if (supplier === pkg.name) {
-        violations.push(pkg.manifest + ': dsh.client.external names its own row ' + JSON.stringify(specifier))
+        violations.push(pkg.manifest + ': bh.client.external names its own row ' + JSON.stringify(specifier))
       } else if (supplier !== undefined) {
         edges.push({ from: pkg.name, to: supplier, specifier })
       } else {
         const owner = stripClientSuffix(specifier)
         violations.push(
-          pkg.manifest + ': dsh.client.external ' + JSON.stringify(specifier) + ' has no supplier;'
+          pkg.manifest + ': bh.client.external ' + JSON.stringify(specifier) + ' has no supplier;'
           + (byName.has(owner)
             ? ' workspace package ' + owner
-              + ' declares no dynamic dsh.client row and the shell does not seed this specifier'
+              + ' declares no dynamic bh.client row and the shell does not seed this specifier'
             : ' no dynamic row or PLATFORM_MODULES entry answers it'),
         )
       }
@@ -652,12 +652,12 @@ function formatCycle(
   const entry = cycle[0]
   const chain = cycle.map(edge => edge.from + ' --(' + edge.specifier + ')-->').join(' ')
   const manifest = entry === undefined ? 'packages/client' : byName.get(entry.from)?.manifest ?? entry.from
-  return manifest + ': synchronous dsh.client.external cycle: ' + chain + ' ' + (entry?.from ?? '')
+  return manifest + ': synchronous bh.client.external cycle: ' + chain + ' ' + (entry?.from ?? '')
 }
 
 interface Manifest {
   name?: unknown
-  dsh?: unknown
+  bh?: unknown
   dependencies?: Record<string, string>
   peerDependencies?: Record<string, string>
   devDependencies?: Record<string, string>
@@ -670,13 +670,13 @@ function readDeclaration(
 ): ClientDeclaration | undefined {
   const manifest = JSON.parse(readFileSync(resolve(root, manifestPath), 'utf8')) as Manifest
   if (typeof manifest.name !== 'string') return undefined
-  const dsh = isRecord(manifest.dsh) ? manifest.dsh : undefined
-  const rawClient = dsh?.client
+  const bh = isRecord(manifest.bh) ? manifest.bh : undefined
+  const rawClient = bh?.client
   if (rawClient === undefined) {
     return { name: manifest.name, manifest: manifestPath, dynamic: false, external: [], inject: [] }
   }
   if (!isRecord(rawClient)) {
-    malformed.push(manifestPath + ': ' + manifest.name + ' dsh.client must be an object')
+    malformed.push(manifestPath + ': ' + manifest.name + ' bh.client must be an object')
     return { name: manifest.name, manifest: manifestPath, dynamic: false, external: [], inject: [] }
   }
   return {
@@ -697,7 +697,7 @@ function stringArray(
 ): readonly string[] {
   if (value === undefined) return []
   if (!Array.isArray(value) || value.some(entry => typeof entry !== 'string')) {
-    malformed.push(manifestPath + ': ' + packageName + ' dsh.client.' + field + ' must be a string array')
+    malformed.push(manifestPath + ': ' + packageName + ' bh.client.' + field + ' must be a string array')
     return []
   }
   return value as string[]
@@ -715,7 +715,7 @@ async function readStaticLinkedRoster(root: string): Promise<Set<string>> {
     const loaded = await import(pathToFileURL(resolve(root, configPath)).href) as { default?: unknown }
     if (typeof loaded.default !== 'function') continue
     const configs = (loaded.default as (input: { env: Record<string, string> }) => unknown)({
-      env: { DSH_BUILD_FACE: 'client' },
+      env: { BH_BUILD_FACE: 'client' },
     })
     if (!Array.isArray(configs) || !predicate(configs)) continue
     const manifest = JSON.parse(
@@ -865,8 +865,8 @@ function describeOrigins(origins: ReadonlySet<string>): string {
   return rest.length === 0 ? first + ', ' + second : first + ', ' + second + ', and ' + String(rest.length) + ' more'
 }
 
-function isInternalDsh(name: string): boolean {
-  return name === CORDIS || name.startsWith(DSH_PREFIX)
+function isInternalBh(name: string): boolean {
+  return name === CORDIS || name.startsWith(BH_PREFIX)
 }
 
 function isBareSpecifier(specifier: string): boolean {

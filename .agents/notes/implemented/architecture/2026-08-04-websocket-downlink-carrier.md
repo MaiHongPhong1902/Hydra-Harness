@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-04-websocket-downlink-carrier.zh.md)
-
 ## Problem
 
 The browser Web GUI has long used two SSE responses for `events.mux` and `events.host`. HTTP/1.1 browsers typically allow only about six concurrent connections per origin; each page permanently occupying two makes same-origin tabs, plugin resources, and ordinary RPCs contend for connection slots, and reaching the limit causes requests to queue rather than merely slowing them down. The RPC protocol itself is channel-independent: a constraint of the browser's physical carrier must not leak into the session/runtime object layer.
@@ -16,7 +14,7 @@ WebSocket carries only the host→browser downlink. All client→host unary call
 
 ## Upgrade and lifecycle boundaries
 
-`dsh-host-webserver` provides an exact upgrade-route registration point alongside ordinary routes, dispatches Node upgrade sockets by pathname only, contains raw-socket errors, and waits for surviving upgraded connections to close during server teardown; it knows nothing about Harness frames or WebSocket messages. `dsh-client-connection` owns the WebSocket handshake, frame output, and stream cancellation, and reuses the `/api` Host/Origin trust fence before upgrade. An untrusted authority or cross-origin Origin is rejected before `ctx.apiProxy.events.*` starts.
+`bh-host-webserver` provides an exact upgrade-route registration point alongside ordinary routes, dispatches Node upgrade sockets by pathname only, contains raw-socket errors, and waits for surviving upgraded connections to close during server teardown; it knows nothing about Harness frames or WebSocket messages. `bh-client-connection` owns the WebSocket handshake, frame output, and stream cancellation, and reuses the `/api` Host/Origin trust fence before upgrade. An untrusted authority or cross-origin Origin is rejected before `ctx.apiProxy.events.*` starts.
 
 A browser abort or socket close cancels the corresponding host stream; plugin teardown also waits for that source iterator's cleanup. If a host stream throws midway, the carrier sends one existing `stream/error` frame and then closes the socket; the client treats that frame as connection loss rather than delivering it to a business sink. Each WebSocket reports open independently, and the existing readiness handshake still waits until mux and host are both open and the `host.describe` HTTP call has succeeded before publishing connected.
 

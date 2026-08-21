@@ -1,13 +1,13 @@
 {
-  "name": "@deepseek-ai/dsh-bash-sandbox",
-  "description": "Sandbox-consuming implementation of the DeepSeek Harness bash executor seam (confines every command via ctx.sandbox, reports denial/enforcement result facts)",
+  "name": "@bosch/bh-bash-sandbox",
+  "description": "Sandbox-consuming implementation of the Bosch Harness bash executor seam (confines every command via ctx.sandbox, reports denial/enforcement result facts)",
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
+    "url": "git+https://github.com/bosch/bosch-harness.git",
     "directory": "packages/shell/bash-sandbox"
   },
   "type": "module",
@@ -32,22 +32,22 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@deepseek-ai/dsh-shell": "workspace:^",
-    "@deepseek-ai/dsh-bash-local": "workspace:^",
-    "@deepseek-ai/dsh-invariants": "workspace:^",
-    "@deepseek-ai/dsh-sandbox": "workspace:^",
-    "@deepseek-ai/dsh-sandbox-policy": "workspace:^",
-    "@deepseek-ai/cordis": "workspace:^"
+    "@bosch/bh-shell": "workspace:^",
+    "@bosch/bh-bash-local": "workspace:^",
+    "@bosch/bh-invariants": "workspace:^",
+    "@bosch/bh-sandbox": "workspace:^",
+    "@bosch/bh-sandbox-policy": "workspace:^",
+    "@bosch/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@deepseek-ai/dsh-shell": "workspace:^",
-    "@deepseek-ai/dsh-bash-local": "workspace:^",
-    "@deepseek-ai/dsh-invariants": "workspace:^",
-    "@deepseek-ai/dsh-subprocess-local": "workspace:^",
-    "@deepseek-ai/dsh-sandbox": "workspace:^",
-    "@deepseek-ai/dsh-sandbox-local": "workspace:^",
-    "@deepseek-ai/dsh-sandbox-policy": "workspace:^",
-    "@deepseek-ai/cordis": "workspace:^",
-    "@deepseek-ai/node-addon-landlock-run": "workspace:^"
+    "@bosch/bh-shell": "workspace:^",
+    "@bosch/bh-bash-local": "workspace:^",
+    "@bosch/bh-invariants": "workspace:^",
+    "@bosch/bh-subprocess-local": "workspace:^",
+    "@bosch/bh-sandbox": "workspace:^",
+    "@bosch/bh-sandbox-local": "workspace:^",
+    "@bosch/bh-sandbox-policy": "workspace:^",
+    "@bosch/cordis": "workspace:^",
+    "@bosch/node-addon-landlock-run": "workspace:^"
   }
 }

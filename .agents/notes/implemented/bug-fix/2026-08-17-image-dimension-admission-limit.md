@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-17-image-dimension-admission-limit.zh.md)
-
 ## Problem
 
 `read_image` durably committed an image and appended its block to session history before any dimension check beyond byte count and total pixels. Deployed model routes reject a request with HTTP 400 when it carries many images and any of them has a side above 2000px. An admitted image rides every later request of its session, so one oversized read poisoned the durable history: the next model request failed, and so did every retry, permanently killing the session. The same gap applied to every other image producer (host uploads, MCP tool images) because admission had no per-side bound at all.

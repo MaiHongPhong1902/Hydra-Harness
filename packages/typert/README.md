@@ -1,7 +1,5 @@
 # Typert
 
-English | [中文](README.zh.md)
-
 Typert separates source analysis, runtime storage, and Loader discovery.
 
 | Package | Role | Cordis key |

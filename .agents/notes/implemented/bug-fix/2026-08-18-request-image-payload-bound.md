@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-18-request-image-payload-bound.zh.md)
-
 ## Problem
 
 Every image in session history is base64-inlined into every model request by the pi-ai adapter, so a long session's request body grows monotonically with each admitted image. Gateways cap request-body size; once the accumulated payload crossed such a cap the request was rejected with 413 (`Failed to buffer the request body: length limit exceeded`), and because nothing bounds or trims the assembled request, every retry resent the same oversized body. The session was permanently unusable, and the failure text matched no `classifyPiAiError` rule, so it surfaced as the generic `PI_AI_ERROR`. Admission bounds (per image, per message) cannot prevent this: each image is individually admissible, and the sum still grows without bound. Two screenshots were enough to trigger it in production.

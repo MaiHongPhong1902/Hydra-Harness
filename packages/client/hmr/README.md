@@ -1,6 +1,4 @@
-# @deepseek-ai/dsh-client-hmr
-
-English | [中文](README.zh.md)
+# @bosch/bh-client-hmr
 
 Hot reload for script-loaded client plugins. The web bundle mounts the row unconditionally; without a rebuild watcher (`pnpm run dev:web`) rewriting client bundles, the poll observes no changes and the chain stays idle.
 

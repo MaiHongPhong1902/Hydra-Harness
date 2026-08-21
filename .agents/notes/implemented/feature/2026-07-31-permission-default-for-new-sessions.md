@@ -2,15 +2,13 @@
 
 Status: implemented
 
-English | [中文](2026-07-31-permission-default-for-new-sessions.zh.md)
-
 ## Problem
 
-The Web General-settings page displayed Permission as a disabled skeleton even though `dsh-permission-presets` already owned the preset table and current-session switch path. The Settings seam could persist a plugin-owned value, but the Web settings API exposed only configurable LLM-provider namespaces. More importantly, treating a user preference as a live global permission would make an existing session's execution policy change outside its durable log.
+The Web General-settings page displayed Permission as a disabled skeleton even though `bh-permission-presets` already owned the preset table and current-session switch path. The Settings seam could persist a plugin-owned value, but the Web settings API exposed only configurable LLM-provider namespaces. More importantly, treating a user preference as a live global permission would make an existing session's execution policy change outside its durable log.
 
 ## Decision
 
-`dsh-permission-presets` owns a `permission` Settings namespace with one `defaultPreset` field. Its base value is `Config.defaultPreset`, or the preset matching the composed sandbox and approval defaults when the config omits it. The schema derives its enum from the configured preset table, so Settings validates stored values and the Web client discovers the deployment's actual choices without duplicating them.
+`bh-permission-presets` owns a `permission` Settings namespace with one `defaultPreset` field. Its base value is `Config.defaultPreset`, or the preset matching the composed sandbox and approval defaults when the config omits it. The schema derives its enum from the configured preset table, so Settings validates stored values and the Web client discovers the deployment's actual choices without duplicating them.
 
 The service reads the current Settings value synchronously at `session/created`. A genuinely fresh session receives three explicit events: `permission/preset`, `sandbox/mode`, and `approval/policy`; the preset fact records that the selection came from the default. Those facts pin the permission selected at creation, so a later Settings change does not change started conversations. When Web later confirms a Workspace blank for New Session reuse, the host explicitly adopts that live or cold session and advances it only if its latest selection remains default-origin and effective; this refinement is recorded in [blank permission default refresh](../bug-fix/2026-08-17-blank-permission-default-refresh.md). An ordinary seeded or partially initialized session preserves its effective knobs and receives only missing facts; it never adopts the latest user default merely by resuming. `Session` marks even an explicitly empty constructor seed with `session/end-seed`, so an empty persisted log cannot be mistaken for a fresh session.
 

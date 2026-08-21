@@ -1,6 +1,4 @@
-# @deepseek-ai/dsh-experimental-tool-agent-team
-
-English | [中文](README.zh.md)
+# @bosch/bh-experimental-tool-agent-team
 
 Scoped model-facing adapter for [`ctx.agentTeams`](../agent-team/README.md). It installs the Agent Teams policy and collaboration tools in each implicit Lead and durable teammate scope. Scoped Team definitions shadow same-named legacy global continuable-subagent controls, so a composition that mounts both must disable the legacy definitions.
 
@@ -8,7 +6,7 @@ Scoped model-facing adapter for [`ctx.agentTeams`](../agent-team/README.md). It 
 
 ```yaml
 - id: tool-agent-team
-  name: '@deepseek-ai/dsh-experimental-tool-agent-team'
+  name: '@bosch/bh-experimental-tool-agent-team'
   config:
     freshProvider: spawn
     forkProvider: fork
@@ -18,7 +16,7 @@ Scoped model-facing adapter for [`ctx.agentTeams`](../agent-team/README.md). It 
 
 ## Tools and authority
 
-The generated [tool catalog](../../../docs/tool-catalog.md#deepseek-aidsh-experimental-tool-agent-team) owns exact schemas. The adapter supplies teammate creation; quiet and waking peer delivery; roster listing, waiting, and Lead-only interruption; and task create/list/get/compare-and-set update operations.
+The generated [tool catalog](../../../docs/tool-catalog.md#boschbh-experimental-tool-agent-team) owns exact schemas. The adapter supplies teammate creation; quiet and waking peer delivery; roster listing, waiting, and Lead-only interruption; and task create/list/get/compare-and-set update operations.
 
 Every tool requires the exact calling `Agent`. `spawn_teammate` and `interrupt_agent` enforce Lead authority inside `ctx.agentTeams`, not only in their descriptions. All members can communicate with any peer and use the task board. Task mutations retain the domain's owner/Lead and revision checks.
 

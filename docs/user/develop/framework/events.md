@@ -1,7 +1,5 @@
 # Event system
 
-English | [中文](events.zh.md)
-
 Events are the core communication mechanism between Cordis plugins. Harness uses them extensively for loosely coupled extension points.
 
 ## Basic use
@@ -85,9 +83,9 @@ A waterfall listener **must call `next()`**. Omitting it short-circuits the pipe
 Harness uses TypeScript declaration merging for type-safe events:
 
 ```ts
-import '@deepseek-ai/cordis'
+import '@bosch/cordis'
 
-declare module '@deepseek-ai/cordis' {
+declare module '@bosch/cordis' {
   interface Events {
     'my-plugin/ready': (payload: { id: string }) => void
     'my-plugin/check': (input: string) => boolean | undefined
@@ -121,8 +119,8 @@ export function apply(ctx: Context) {
 This plugin logs tool calls and results:
 
 ```ts
-import type { Context } from '@deepseek-ai/cordis'
-import '@deepseek-ai/dsh-tools'
+import type { Context } from '@bosch/cordis'
+import '@bosch/bh-tools'
 
 export const name = 'tool-logger'
 

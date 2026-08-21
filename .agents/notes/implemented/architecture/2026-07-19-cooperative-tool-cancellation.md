@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-07-19-cooperative-tool-cancellation.zh.md)
-
 ## Problem
 
 Every typed tool invocation needs a caller-owned cancellation signal. An optional `ToolExecutionInput.signal` lets direct callers omit ownership, makes `exec.signal` optional in every tool body, and encourages registry fallbacks that cannot represent the caller's actual lifetime.
@@ -28,7 +26,7 @@ An around-dispatch wrapper may replace `exec.signal` for its delegated lifetime 
 
 ### Cancellation codes record whether dispatch occurred
 
-`dsh-tools` exports `TOOL_ABORTED = 'ABORTED'` and `TOOL_ABORTED_BEFORE_DISPATCH = 'ABORTED_BEFORE_DISPATCH'`. The registry records body invocation immediately before calling `ToolDefinition.execute()`.
+`bh-tools` exports `TOOL_ABORTED = 'ABORTED'` and `TOOL_ABORTED_BEFORE_DISPATCH = 'ABORTED_BEFORE_DISPATCH'`. The registry records body invocation immediately before calling `ToolDefinition.execute()`.
 
 `ABORTED_BEFORE_DISPATCH` carries `{ name: 'AbortError' }` and model text `Error: tool call aborted before dispatch`. It applies whenever cancellation prevents body invocation, including pre-aborted entry, cancellation during pre-policy or approval, an aborted wrapper signal, a wrapper success overtaken by caller cancellation before delegation, and agent-loop siblings skipped after turn cancellation.
 

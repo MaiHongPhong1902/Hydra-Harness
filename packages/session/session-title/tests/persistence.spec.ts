@@ -1,13 +1,13 @@
-import { createUserMessage } from '@deepseek-ai/dsh-llm'
+import { createUserMessage } from '@bosch/bh-llm'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@deepseek-ai/cordis'
+import { Context } from '@bosch/cordis'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
-import JsonlSessionPersistence from '@deepseek-ai/dsh-session-persistence-jsonl'
-import SqliteSessionPersistence from '@deepseek-ai/dsh-session-persistence-sqlite'
-import SessionTitleService, { foldSessionTitle } from '@deepseek-ai/dsh-session-title'
+import SessionStore, { SessionId } from '@bosch/bh-session'
+import JsonlSessionPersistence from '@bosch/bh-session-persistence-jsonl'
+import SqliteSessionPersistence from '@bosch/bh-session-persistence-sqlite'
+import SessionTitleService, { foldSessionTitle } from '@bosch/bh-session-title'
 
 const CONFIG = {
   fallbackMaxWords: 5,
@@ -52,7 +52,7 @@ async function expectPersistedTitle(ctx: Context, id: ReturnType<typeof SessionI
 
 describe('session title persistence round trips', () => {
   it('round-trips through a remounted JSONL backend', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'dsh-title-jsonl-'))
+    const root = await mkdtemp(join(tmpdir(), 'bh-title-jsonl-'))
     roots.push(root)
     const id = SessionId('title-jsonl')
     const writer = new Context()
@@ -70,7 +70,7 @@ describe('session title persistence round trips', () => {
   })
 
   it('round-trips through a remounted SQLite backend', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'dsh-title-sqlite-'))
+    const root = await mkdtemp(join(tmpdir(), 'bh-title-sqlite-'))
     roots.push(root)
     const path = join(root, 'sessions.db')
     const id = SessionId('title-sqlite')

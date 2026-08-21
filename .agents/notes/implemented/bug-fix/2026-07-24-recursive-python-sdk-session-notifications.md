@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-07-24-recursive-python-sdk-session-notifications.zh.md)
-
 ## Problem
 
 The Python SDK filtered turn notifications by comparing each payload directly with the root session id. This admitted a direct child's lifecycle because its parent id named the root, but rejected a grandchild's lifecycle and every descendant `session.event`. The JSON-RPC server still emitted those notifications, so they accumulated on the low-level global queue while high-level consumers lost nested trajectory relationships and completion states.

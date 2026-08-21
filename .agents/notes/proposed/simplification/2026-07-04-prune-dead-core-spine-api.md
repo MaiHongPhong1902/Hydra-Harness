@@ -2,8 +2,6 @@
 
 Status: proposed
 
-English | [中文](2026-07-04-prune-dead-core-spine-api.zh.md)
-
 ## Problem
 
 Several package-root exports, result fields, and convenience methods have no production consumer. They survive because tests import internals through public entry points or because a type anticipated a caller that never arrived. Each item is small in isolation, but together they enlarge the SDK contract, generated catalogs, documentation, and regression matrix without enabling a shipped path.
@@ -34,12 +32,12 @@ The production corpus is `packages/*/*/src`, example sources/config, and runtime
 
 ### Grouped helper-export inventory
 
-- `dsh-llm-deepseek`: `httpErrorCode`, `serializeMessages`, `serializeRequest`, `DONE`, `parseSse`, `mapFinishReason`, `mapUsage`, and `translate`; `dsh-llm-pi-ai`: `buildModel`, `mapStopReason`, `mapUsage`, `toPiContext`, and `toStreamChunks`.
-- `dsh-bash-local`: `DEFAULT_GRACE_MS`, `ENV_OVERRIDES`, `killGroup`, `OutputCollector`, and `runBash`; `dsh-bash-sandbox`: `shellQuote`, `classifyDenial`, and `classifyRunnerFailure`; `dsh-sandbox-local`: `bwrapProfileArgs`, `landlockProfileArgs`, and `seatbeltProfileArgs`. The public mutable test-injection fields and their types are outside this proposal.
-- `dsh-fs-local`: `applyLiteralEdit`, `listDirectory`, `probe`, `readForEdit`, `readTextForDiff`, `readWholeText`, `resolveLocalTarget`, `restoreLineEndings`, `streamWholeText`, and `writeFileAtomic`.
-- `dsh-web-fetch-http`: `classifyContentType`, `decoderForCharset`, `isSameOrigin`, `parseCharset`, and `validateFetchUrl`; `dsh-web-search-exa`: `mapExaResponse` and `mapExaResult`; `dsh-web-search-deepseek`: `citationSnippets` and `mapAnthropicResponse`; `dsh-web-search-perplexity`: `mapPerplexityResponse` and `mapPerplexityResult`.
-- `dsh-tool-fs`: `READ_LIMIT`, `STREAM_MIN_SIZE`, `READ_MAX_BYTES`, `READ_MAX_LINE_LENGTH`, `DIFF_CONTEXT`, `applyReadTool`, `parseReadArgs`, `applyWriteTool`, `formatWriteOutput`, `parseWriteArgs`, `applyEditTool`, `formatEditOutput`, `parseEditArgs`, `buildWindow`, `formatReadOutput`, `computeHunkDiffs`, and `diffsFromMeta`.
-- `dsh-tool-web`: `WEB_SEARCH_MAX_RESULTS`, `applyWebSearchTool`, `formatSearchOutput`, `parseSearchArgs`, `presentSearchCall`, `applyWebFetchTool`, `formatFetchOutput`, `parseFetchArgs`, `presentFetchCall`, `renderBody`, and `htmlToMarkdown`; `dsh-tool-call-timeout-policy`: `toolTimeoutResult`; `dsh-compaction-basic`: `resolveConfig`; `dsh-tool-bash`: `renderResult`.
+- `bh-llm-deepseek`: `httpErrorCode`, `serializeMessages`, `serializeRequest`, `DONE`, `parseSse`, `mapFinishReason`, `mapUsage`, and `translate`; `bh-llm-pi-ai`: `buildModel`, `mapStopReason`, `mapUsage`, `toPiContext`, and `toStreamChunks`.
+- `bh-bash-local`: `DEFAULT_GRACE_MS`, `ENV_OVERRIDES`, `killGroup`, `OutputCollector`, and `runBash`; `bh-bash-sandbox`: `shellQuote`, `classifyDenial`, and `classifyRunnerFailure`; `bh-sandbox-local`: `bwrapProfileArgs`, `landlockProfileArgs`, and `seatbeltProfileArgs`. The public mutable test-injection fields and their types are outside this proposal.
+- `bh-fs-local`: `applyLiteralEdit`, `listDirectory`, `probe`, `readForEdit`, `readTextForDiff`, `readWholeText`, `resolveLocalTarget`, `restoreLineEndings`, `streamWholeText`, and `writeFileAtomic`.
+- `bh-web-fetch-http`: `classifyContentType`, `decoderForCharset`, `isSameOrigin`, `parseCharset`, and `validateFetchUrl`; `bh-web-search-exa`: `mapExaResponse` and `mapExaResult`; `bh-web-search-deepseek`: `citationSnippets` and `mapAnthropicResponse`; `bh-web-search-perplexity`: `mapPerplexityResponse` and `mapPerplexityResult`.
+- `bh-tool-fs`: `READ_LIMIT`, `STREAM_MIN_SIZE`, `READ_MAX_BYTES`, `READ_MAX_LINE_LENGTH`, `DIFF_CONTEXT`, `applyReadTool`, `parseReadArgs`, `applyWriteTool`, `formatWriteOutput`, `parseWriteArgs`, `applyEditTool`, `formatEditOutput`, `parseEditArgs`, `buildWindow`, `formatReadOutput`, `computeHunkDiffs`, and `diffsFromMeta`.
+- `bh-tool-web`: `WEB_SEARCH_MAX_RESULTS`, `applyWebSearchTool`, `formatSearchOutput`, `parseSearchArgs`, `presentSearchCall`, `applyWebFetchTool`, `formatFetchOutput`, `parseFetchArgs`, `presentFetchCall`, `renderBody`, and `htmlToMarkdown`; `bh-tool-call-timeout-policy`: `toolTimeoutResult`; `bh-compaction-basic`: `resolveConfig`; `bh-tool-bash`: `renderResult`.
 
 ## Proposal
 

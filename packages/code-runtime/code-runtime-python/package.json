@@ -1,13 +1,13 @@
 {
-  "name": "@deepseek-ai/dsh-code-runtime-python",
-  "description": "CPython subprocess implementation of the DeepSeek Harness code-execution seam",
+  "name": "@bosch/bh-code-runtime-python",
+  "description": "CPython subprocess implementation of the Bosch Harness code-execution seam",
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
+    "url": "git+https://github.com/bosch/bosch-harness.git",
     "directory": "packages/code-runtime/code-runtime-python"
   },
   "type": "module",
@@ -32,11 +32,11 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@deepseek-ai/dsh-invariants": "workspace:^",
-    "@deepseek-ai/cordis": "workspace:^"
+    "@bosch/bh-invariants": "workspace:^",
+    "@bosch/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@deepseek-ai/dsh-invariants": "workspace:^",
-    "@deepseek-ai/cordis": "workspace:^"
+    "@bosch/bh-invariants": "workspace:^",
+    "@bosch/cordis": "workspace:^"
   }
 }

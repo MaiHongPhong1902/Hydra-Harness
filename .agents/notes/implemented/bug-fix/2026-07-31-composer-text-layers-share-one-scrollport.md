@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-07-31-composer-text-layers-share-one-scrollport.zh.md)
-
 ## Problem
 
 The composer paints its text in two stacked layers ([InputBar](../../../../packages/client/ui-conversation/src/client/skeleton/InputBar.tsx)): the `<textarea>` owns the value, the selection, and the caret but renders its own glyphs `color: transparent`, and every visible character is painted by the `[data-input-backdrop]` div beneath it, which also carries the claim-token highlight, the chips, and the ghost hint. That split is what makes chips and highlights possible at all — a textarea cannot style a range of its own text. The draft box is capped at 14 lines, so past the cap something has to scroll.

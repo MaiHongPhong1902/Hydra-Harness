@@ -17,7 +17,7 @@ import {
 describe('verify-cordis-config metadata expressions', () => {
   it('accepts a disabled !!js expression', () => {
     const problems = metadataExpressionErrors(
-      { id: 'tool-bash', name: '@deepseek-ai/dsh-tool-bash', disabled: { __jsExpr: "process.platform === 'win32'" } },
+      { id: 'tool-bash', name: '@bosch/bh-tool-bash', disabled: { __jsExpr: "process.platform === 'win32'" } },
       '[0]',
     )
     expect(problems).toEqual([])
@@ -47,18 +47,18 @@ describe('verify-cordis-config metadata expressions', () => {
 
 describe('workspace Bundle discovery and product dependency closures', () => {
   it('discovers a Bundle outside packages/bundle from its manifest declaration', () => {
-    const fixture = mkdtempSync(join(tmpdir(), 'dsh-bundle-discovery-'))
+    const fixture = mkdtempSync(join(tmpdir(), 'bh-bundle-discovery-'))
     try {
       const bundleDir = join(fixture, 'packages/subagent/example')
       const plainDir = join(fixture, 'packages/bundle/plain')
       mkdirSync(bundleDir, { recursive: true })
       mkdirSync(plainDir, { recursive: true })
       writeFileSync(join(bundleDir, 'package.json'), JSON.stringify({
-        name: '@deepseek-ai/dsh-subagent-example',
-        dsh: { bundle: { patch: './cordis.patch.yml' } },
+        name: '@bosch/bh-subagent-example',
+        bh: { bundle: { patch: './cordis.patch.yml' } },
       }))
       writeFileSync(join(plainDir, 'package.json'), JSON.stringify({
-        name: '@deepseek-ai/dsh-plain',
+        name: '@bosch/bh-plain',
       }))
 
       expect(bundleManifestPaths(fixture)).toEqual([
@@ -73,16 +73,16 @@ describe('workspace Bundle discovery and product dependency closures', () => {
     const manifestPath = 'packages/subagent/example/package.json'
     const file = 'packages/subagent/example/cordis.patch.yml'
     const manifest = {
-      name: '@deepseek-ai/dsh-subagent-example',
+      name: '@bosch/bh-subagent-example',
       dependencies: {},
     }
-    const self = { file, name: '@deepseek-ai/dsh-subagent-example' }
+    const self = { file, name: '@bosch/bh-subagent-example' }
     expect(bundlePluginDependencyErrors(manifestPath, manifest, [self])).toEqual([])
     expect(bundlePluginDependencyErrors(manifestPath, manifest, [
       self,
-      { file, name: '@deepseek-ai/dsh-missing-plugin' },
+      { file, name: '@bosch/bh-missing-plugin' },
     ])).toEqual([
-      `${file}: @deepseek-ai/dsh-missing-plugin must be declared in ${manifestPath} dependencies`,
+      `${file}: @bosch/bh-missing-plugin must be declared in ${manifestPath} dependencies`,
     ])
   })
 })

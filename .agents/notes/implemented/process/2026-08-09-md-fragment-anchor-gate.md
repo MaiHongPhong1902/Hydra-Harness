@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-09-md-fragment-anchor-gate.zh.md)
-
 ## Problem
 
 `verify-md-links` proved a relative link's target file exists but never looked at the `#fragment`, and the documentation standard compensated with a manual rule: grep anchors yourself before renaming a heading. A corpus sweep found 15 links whose fragments named no anchor in their target — three distinct decay modes: a heading reworded after the link was written (`#security-and-authority-are-explicit-non-goals` vs the note's current `Security and authority are non-goals`), a contract relocated to a different owning document (`tool-fs` linking the seam README for the no-timeout rule that now lives in the group README), and zh pair sides linking English slugs their Chinese headings never produce (`#deferred-work` against `## 推迟工作`). None of these fail any gate, and each silently strands the reader at the top of the target page.
@@ -14,7 +12,7 @@ English | [中文](2026-08-09-md-fragment-anchor-gate.zh.md)
 
 The slug function differs from `gen-cordis-catalog`'s region-anchor slugger (which drops underscores): the generator's headings are always reachable through its explicit `<a id>` anchors, so the two need not share one rule. Chinese pair sides follow the existing repository convention (`docs/glossary.zh.md`, `docs/cordis-primer.zh.md`): keep the English fragment in the link and place an explicit `<a id>` before the Chinese heading, so both language sides expose identical anchors.
 
-The 15 broken fragments are fixed in the same change: stale slugs retargeted to the current headings, the relocated no-timeout contract now linked at its owning group README, and four zh documents given explicit anchors. `docs/AGENTS.md` and the `dsh-doc-standards` skill no longer prescribe the manual anchor grep for Markdown links; it survives only for anchors cited from TypeScript strings whose output never reaches gate-scanned Markdown (today's three all render into scanned pages, so the gate covers them through the committed output).
+The 15 broken fragments are fixed in the same change: stale slugs retargeted to the current headings, the relocated no-timeout contract now linked at its owning group README, and four zh documents given explicit anchors. `docs/AGENTS.md` and the `bh-doc-standards` skill no longer prescribe the manual anchor grep for Markdown links; it survives only for anchors cited from TypeScript strings whose output never reaches gate-scanned Markdown (today's three all render into scanned pages, so the gate covers them through the committed output).
 
 ## Verification
 

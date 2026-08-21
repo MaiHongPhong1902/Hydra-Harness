@@ -1,34 +1,34 @@
-# Unattended coding-agent deployment for the bundled dsh-jsonrpc-agent runtime.
+# Unattended coding-agent deployment for the bundled bh-jsonrpc-agent runtime.
 # stdout is reserved for JSON-RPC; do not add a console logger or terminal UI.
 
 - id: sdk-jsonrpc-server
-  name: '@deepseek-ai/dsh-sdk-jsonrpc-server'
+  name: '@bosch/bh-sdk-jsonrpc-server'
   config:
-    maxTokensAsSuccess: !!js "process.env.DSH_MAX_TOKENS_AS_SUCCESS === undefined ? true : JSON.parse(process.env.DSH_MAX_TOKENS_AS_SUCCESS)"
+    maxTokensAsSuccess: !!js "process.env.BH_MAX_TOKENS_AS_SUCCESS === undefined ? true : JSON.parse(process.env.BH_MAX_TOKENS_AS_SUCCESS)"
 
 # The DeepSeek adapter. Shipped default: full thinking at max effort on every
 # request; exact-model resolution materializes request defaults before logging.
 # The model arrives per session over JSON-RPC, so it is not pinned here.
 - id: llm-deepseek
-  name: '@deepseek-ai/dsh-llm-deepseek'
+  name: '@bosch/bh-llm-deepseek'
   config:
     thinking: enabled
     reasoningEffort: max
 
 # Managed child-process groups for the bash executor (spawn/kill/output plumbing).
 - id: subprocess
-  name: '@deepseek-ai/dsh-subprocess-local'
+  name: '@bosch/bh-subprocess-local'
 
 - id: bash
-  name: '@deepseek-ai/dsh-bash-local'
+  name: '@bosch/bh-bash-local'
   config:
-    cwd: !!js process.env.DSH_CWD ?? process.cwd()
+    cwd: !!js process.env.BH_CWD ?? process.cwd()
     timeoutMs: 60000
 
 - id: agent-spine
-  name: '@deepseek-ai/dsh-agent-spine-demo'
+  name: '@bosch/bh-agent-spine-demo'
   config:
-    persona: !!js process.env.DSH_SYSTEM_PROMPT ?? 'You are a coding agent.'
+    persona: !!js process.env.BH_SYSTEM_PROMPT ?? 'You are a coding agent.'
     workspaceContext: false
     skills:
       enabled: false
@@ -37,51 +37,51 @@
     toolJobs: false
 
 - id: sessions
-  name: '@deepseek-ai/dsh-session-persistence-jsonl'
+  name: '@bosch/bh-session-persistence-jsonl'
   config:
-    root: !!js process.env.DSH_SESSION_ROOT ?? './.sessions'
+    root: !!js process.env.BH_SESSION_ROOT ?? './.sessions'
     # Snapshot runs read the raw JSONL back; production keeps zstd frames.
-    compression: !!js "process.env.DSH_SNAPSHOT === undefined ? 'zstd' : 'none'"
+    compression: !!js "process.env.BH_SNAPSHOT === undefined ? 'zstd' : 'none'"
 
 - id: session-checkpoints
-  name: '@deepseek-ai/dsh-session-checkpoint-policy'
+  name: '@bosch/bh-session-checkpoint-policy'
 
 - id: subagent
-  name: '@deepseek-ai/dsh-subagent'
+  name: '@bosch/bh-subagent'
 
 - id: subagent-spawn-in-process
-  name: '@deepseek-ai/dsh-subagent-spawn-in-process'
+  name: '@bosch/bh-subagent-spawn-in-process'
   config:
     providerName: spawn
 
 - id: tool-subagent
-  name: '@deepseek-ai/dsh-tool-subagent'
+  name: '@bosch/bh-tool-subagent'
   config:
     provider: spawn
     toolName: subagent
     enableRunInBackground: false
 
 - id: tool-todo
-  name: '@deepseek-ai/dsh-tool-todo'
+  name: '@bosch/bh-tool-todo'
   config:
     allowParallelInProgress: true
 
 - id: fs-local
-  name: '@deepseek-ai/dsh-fs-local'
+  name: '@bosch/bh-fs-local'
   config:
-    cwd: !!js process.env.DSH_CWD ?? process.cwd()
+    cwd: !!js process.env.BH_CWD ?? process.cwd()
 
 - id: fs-observation-policy
-  name: '@deepseek-ai/dsh-fs-observation-policy'
+  name: '@bosch/bh-fs-observation-policy'
 
 - id: tool-fs
-  name: '@deepseek-ai/dsh-tool-fs'
+  name: '@bosch/bh-tool-fs'
 
 - id: token-meter
-  name: '@deepseek-ai/dsh-token-meter'
+  name: '@bosch/bh-token-meter'
 
 - id: compaction-basic
-  name: '@deepseek-ai/dsh-compaction-basic'
+  name: '@bosch/bh-compaction-basic'
   config:
     thresholdRatio: 0.8
     retainRatio: 0.16

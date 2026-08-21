@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-06-20-collapse-trace-only-session-events.zh.md)
-
 ## Problem
 
 The session event vocabulary includes first-class events that are not part of replayable conversation history and have little or no production consumption. `usage` is already present as a model stream chunk before the loop also appends a separate `usage` event. `error` duplicates the `turn/end { kind: 'error', message, code }` reason for loop failures; ACP settlement reads the turn-end reason, while message and UI projections skip the standalone `error` event.
@@ -35,6 +33,6 @@ A consumer can no longer filter the canonical log for standalone `usage` or step
 
 ## Implementation note
 
-**Format version.** This changes persisted events, but the pre-release session format remains pinned at `0` and rejects any other version without migration. `dsh-session` owns the constant used by writers and load validation. Monotonic format versions begin at the first release.
+**Format version.** This changes persisted events, but the pre-release session format remains pinned at `0` and rejects any other version without migration. `bh-session` owns the constant used by writers and load validation. Monotonic format versions begin at the first release.
 
 Usage is now observed on `assistant/message.usage`; an operational error's step on `turn/end.reason` for `kind: 'error'`. `agent/error` + logging are unchanged for live diagnostics.

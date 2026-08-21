@@ -2,15 +2,13 @@
 
 Status: implemented
 
-English | [中文](2026-07-24-model-facing-session-query-tools.zh.md)
-
 ## Problem
 
 The unified `ctx.sessionQuery` service exposes exact reads, filters, relationship traces, and full-text search over live-preferred session logs, but models cannot use that service directly. Giving a model the provider request types would also expose unstable pagination cursors, trusted corpus scope, storage-shaped time values, and result records that are more convenient for programmatic consumers than for reasoning. Large traces and event payloads introduce a separate output-size concern, but solving that concern inside this consumer would duplicate the harness-wide spill mechanism and make session-query tools disagree with other tools.
 
 ## Decision
 
-`@deepseek-ai/dsh-tool-session-query` is the model-facing consumer of `ctx.sessionQuery`. It registers five narrow read-only tools: `session_search`, `session_event_search`, `session_trace`, `session_event_trace`, and `session_event_read`. The package imports the interface rather than the SQLite implementation, owns model argument validation and readable text rendering, and contributes one concise prompt section that teaches the prior-history search and search-to-trace/read workflow.
+`@bosch/bh-tool-session-query` is the model-facing consumer of `ctx.sessionQuery`. It registers five narrow read-only tools: `session_search`, `session_event_search`, `session_trace`, `session_event_trace`, and `session_event_read`. The package imports the interface rather than the SQLite implementation, owns model argument validation and readable text rendering, and contributes one concise prompt section that teaches the prior-history search and search-to-trace/read workflow.
 
 The package entrypoint is only the public composition root for configuration, prompt registration, and tool registration. Its internal modules follow the execution boundary: `input.ts` owns model schemas, normalization, and filter construction; `service-boundary.ts` contains provider calls and model-safe error translation; `workspace-access.ts` owns caller identity, workspace authorization, title access, and lineage projection; `operations.ts` orchestrates the five service workflows; and `presentation.ts` renders tool results and call cards. This keeps policy in its owning layer without changing the package contract.
 

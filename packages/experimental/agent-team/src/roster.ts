@@ -1,12 +1,12 @@
 /** Team membership, continuable-child provisioning, and roster-owned teardown. */
 
 import { randomUUID } from 'node:crypto'
-import type { Context } from '@deepseek-ai/cordis'
-import type { Agent } from '@deepseek-ai/dsh-agent'
-import type { MessageId } from '@deepseek-ai/dsh-llm'
-import { SessionId } from '@deepseek-ai/dsh-session'
-import { foldSubagentDescriptor } from '@deepseek-ai/dsh-subagent'
-import type { ContinuableStart } from '@deepseek-ai/dsh-subagent'
+import type { Context } from '@bosch/cordis'
+import type { Agent } from '@bosch/bh-agent'
+import type { MessageId } from '@bosch/bh-llm'
+import { SessionId } from '@bosch/bh-session'
+import { foldSubagentDescriptor } from '@bosch/bh-subagent'
+import type { ContinuableStart } from '@bosch/bh-subagent'
 import { errorMessage, TeamError } from './error.ts'
 import type { TeamFoldState } from './fold.ts'
 import type { TeamJournal } from './journal.ts'

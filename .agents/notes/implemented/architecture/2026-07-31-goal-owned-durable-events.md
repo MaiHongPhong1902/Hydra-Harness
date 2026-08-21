@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-07-31-goal-owned-durable-events.zh.md)
-
 ## Problem
 
 Goal state and inbox state have different lifecycles. A goal mutation must survive restart and fork whether or not any related model context is admitted, while an inbox message may be edited, claimed, rejected, or discarded as part of step scheduling. Encoding a goal mutation inside a round-zero inbox message made queue placement the domain commit point and required replay to reconcile insertion, admission, message identity, source metadata, and rendered content.
@@ -12,9 +10,9 @@ The goal domain needs durable state, but it does not need ownership of pending m
 
 ## Decision
 
-`@deepseek-ai/dsh-goal` owns a durable `goal/change` session event. Each event carries the complete post-mutation goal snapshot or a revisioned clear tombstone. `GoalService` appends that event synchronously, then emits `goal/changed`; strict replay and the `goal` session projection fold only `goal/change` for lifecycle state.
+`@bosch/bh-goal` owns a durable `goal/change` session event. Each event carries the complete post-mutation goal snapshot or a revisioned clear tombstone. `GoalService` appends that event synchronously, then emits `goal/changed`; strict replay and the `goal` session projection fold only `goal/change` for lifecycle state.
 
-`GoalMessageSource` identifies only positive admitted continuation rounds. A matching `user/message` advances `roundsStarted`; ordinary user messages and inbox splice events do not change goal state. The goal package never inserts, claims, removes, or inspects inbox messages. `@deepseek-ai/dsh-goal-round-driver` remains responsible for queuing and tracking its own continuation prompts through the public inbox lifecycle.
+`GoalMessageSource` identifies only positive admitted continuation rounds. A matching `user/message` advances `roundsStarted`; ordinary user messages and inbox splice events do not change goal state. The goal package never inserts, claims, removes, or inspects inbox messages. `@bosch/bh-goal-round-driver` remains responsible for queuing and tracking its own continuation prompts through the public inbox lifecycle.
 
 Activation remains process-local. The service associates the synchronously appended event sequence with the requested activation while its cache observes the event; replayed or externally appended changes default to disarmed. The session log remains the only durable authority.
 

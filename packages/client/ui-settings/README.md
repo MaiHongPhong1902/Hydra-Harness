@@ -1,6 +1,4 @@
-# @deepseek-ai/dsh-client-ui-settings
-
-English | [中文](README.zh.md)
+# @bosch/bh-client-ui-settings
 
 The settings domain's base layer, with no presentation of its own. It provides `ctx.settingsScope`, the Host transport every preference row binds its durable namespace section through; `ctx.settingsSchema`, the synchronous schema-rehydration, validation, and immutable path-editing service used by settings plugins; and the settings slot types registrants fill: `settings.trigger` / `settings.header` / `settings.close` (chrome content), `settings.action` (ordered content-header actions), `settings.section` (one page per feature), `settings.plugins.tab` (feature-owned pages inside the Plugins section), and `settings.onboarding` (ordered feature-owned pages). It depends on no `ui-*` presentation package, so any feature that owns a preference can reach it; the settings SHELL — the `sidebar.settings` occupant, its navigation, and the chrome — lives in ui-settings-general, because a shell dependency on ui-sidebar would close a reference graph cycle through ui-layout and ui-theme. The shell's own contract types live beside the shell for the same reason.
 

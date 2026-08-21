@@ -1,7 +1,5 @@
 # spill/ — tool-output spill capability family
 
-English | [中文](README.zh.md)
-
 This family persists oversized tool output and replaces the inline result with a bounded preview and retrieval locator.
 
 | Package | Role | ctx key |

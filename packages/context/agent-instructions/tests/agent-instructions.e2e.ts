@@ -1,22 +1,22 @@
-import { createUserMessage } from '@deepseek-ai/dsh-llm'
+import { createUserMessage } from '@bosch/bh-llm'
 import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@deepseek-ai/cordis'
-import LlmRuntime from '@deepseek-ai/dsh-llm'
-import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
-import SystemPrompt from '@deepseek-ai/dsh-system-prompt'
-import ToolRuntime from '@deepseek-ai/dsh-tools'
-import AgentRegistry from '@deepseek-ai/dsh-agent'
-import type { Agent } from '@deepseek-ai/dsh-agent'
-import AgentLoop from '@deepseek-ai/dsh-agent-loop'
-import * as LlmDeepSeek from '@deepseek-ai/dsh-llm-deepseek'
-import * as WorkspaceContext from '@deepseek-ai/dsh-agent-instructions'
+import { Context } from '@bosch/cordis'
+import LlmRuntime from '@bosch/bh-llm'
+import SessionStore, { SessionId } from '@bosch/bh-session'
+import SystemPrompt from '@bosch/bh-system-prompt'
+import ToolRuntime from '@bosch/bh-tools'
+import AgentRegistry from '@bosch/bh-agent'
+import type { Agent } from '@bosch/bh-agent'
+import AgentLoop from '@bosch/bh-agent-loop'
+import * as LlmDeepSeek from '@bosch/bh-llm-deepseek'
+import * as WorkspaceContext from '@bosch/bh-agent-instructions'
 import { candidateScopeKey } from '../src/render.ts'
-import LocalFileSystem from '@deepseek-ai/dsh-fs-local'
-import * as ToolFs from '@deepseek-ai/dsh-tool-fs'
-import type { SessionEvent } from '@deepseek-ai/dsh-session'
+import LocalFileSystem from '@bosch/bh-fs-local'
+import * as ToolFs from '@bosch/bh-tool-fs'
+import type { SessionEvent } from '@bosch/bh-session'
 
 const PROBE = 'banana-271828'
 const NESTED_PROBE = 'papaya-314159'
@@ -33,7 +33,7 @@ afterEach(async () => {
 })
 
 async function harness(): Promise<{ ctx: Context; agent: Agent }> {
-  workdir = await mkdtemp(join(tmpdir(), 'dsh-workspace-context-e2e-'))
+  workdir = await mkdtemp(join(tmpdir(), 'bh-workspace-context-e2e-'))
   await mkdir(join(workdir, '.git'), { recursive: true })
   await writeFile(join(workdir, 'AGENTS.md'), `If the user asks for the workspace context handshake, reply with exactly this string and nothing else: ${PROBE}.\n`)
   ctx = new Context()

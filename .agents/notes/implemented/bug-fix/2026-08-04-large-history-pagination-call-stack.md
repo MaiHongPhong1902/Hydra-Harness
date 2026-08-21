@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-04-large-history-pagination-call-stack.zh.md)
-
 ## Problem
 
 A finalized assistant message can reference hundreds of thousands of streamed chunks through `sourceEventSeqs`. History pagination found the message group's first event with `Math.min(event.seq, ...sourceEventSeqs)`, so a valid session could exceed the JavaScript engine's function-argument limit and make `session.history` fail with HTTP 500.

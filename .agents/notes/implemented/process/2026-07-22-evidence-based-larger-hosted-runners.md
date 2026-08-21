@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-07-22-evidence-based-larger-hosted-runners.zh.md)
-
 ## Problem
 
 The shard-heavy CI topology met its latency targets by spreading primary Node work across 40 Linux jobs and Windows work across nine jobs. Most gates were shorter than checkout, runner setup, cache restore, and dependency installation, so repeated setup waves created both cost and latency variance. One hosted run finished its slowest Linux job in 49 seconds yet took 231 seconds for a Windows lint shard whose checkout, cache restore, and install alone consumed 158 seconds.
@@ -52,7 +50,7 @@ The process-bound coverage project contains exactly five suite files. Thirty-two
 
 The self-hosted serial Linux and Windows standby references and the disabled `serial-macos` job exist. Pull requests use the enterprise required path plus standard-hosted compatibility jobs, while other larger-runner sizes run only by manual dispatch.
 
-The self-hosted serial Linux reference runs on the in-house self-hosted pool (`vm-backup` label: a 64-core VM with six always-on systemd-managed runner instances) on every `master` push. It is a hot-standby drill, not a required check: each run re-proves that the persistent VM can execute the complete unsharded aggregate. The actual switch is pre-wired: the three required Linux jobs resolve their pool through the writer-manageable `DSH_CI_FAILOVER_LINUX` repository variable, so an outage response is setting one variable and re-running — no merge, which would be deadlocked behind the failing checks themselves ([runbook](2026-07-26-ci-failover-runbook.md)). The standby lane is push-triggered, so it always executes the base branch's workflow definition. Under failover, however, `pull_request` jobs do reach these runners with the PR merge ref's own workflow definition — the trust boundary is repository membership (the repository is private with forking disabled, and the selectors exclude Dependabot), as the [failover runbook](2026-07-26-ci-failover-runbook.md) records.
+The self-hosted serial Linux reference runs on the in-house self-hosted pool (`vm-backup` label: a 64-core VM with six always-on systemd-managed runner instances) on every `master` push. It is a hot-standby drill, not a required check: each run re-proves that the persistent VM can execute the complete unsharded aggregate. The actual switch is pre-wired: the three required Linux jobs resolve their pool through the writer-manageable `BH_CI_FAILOVER_LINUX` repository variable, so an outage response is setting one variable and re-running — no merge, which would be deadlocked behind the failing checks themselves ([runbook](2026-07-26-ci-failover-runbook.md)). The standby lane is push-triggered, so it always executes the base branch's workflow definition. Under failover, however, `pull_request` jobs do reach these runners with the PR merge ref's own workflow definition — the trust boundary is repository membership (the repository is private with forking disabled, and the selectors exclude Dependabot), as the [failover runbook](2026-07-26-ci-failover-runbook.md) records.
 
 ## Alternatives considered
 

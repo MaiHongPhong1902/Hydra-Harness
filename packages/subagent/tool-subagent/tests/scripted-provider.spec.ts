@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@deepseek-ai/cordis'
-import { type Agent } from '@deepseek-ai/dsh-agent'
-import SubagentRuntime, { type SubagentStartRequest } from '@deepseek-ai/dsh-subagent'
-import { SessionId } from '@deepseek-ai/dsh-session'
+import { Context } from '@bosch/cordis'
+import { type Agent } from '@bosch/bh-agent'
+import SubagentRuntime, { type SubagentStartRequest } from '@bosch/bh-subagent'
+import { SessionId } from '@bosch/bh-session'
 import * as scripted from './scripted-provider.ts'
 
 /** A minimal parent; the scripted provider only reads its id. */

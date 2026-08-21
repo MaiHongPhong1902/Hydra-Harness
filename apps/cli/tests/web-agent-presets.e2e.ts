@@ -3,27 +3,27 @@ import { mkdir, mkdtemp, readFile, stat, symlink, writeFile } from 'node:fs/prom
 import { tmpdir } from 'node:os'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { Context } from '@deepseek-ai/cordis'
-import { boot, healProfilesModuleFallback, loadOverlayPatches, loadProfile } from '@deepseek-ai/dsh-app-boot'
-import { provideCmdline } from '@deepseek-ai/dsh-cmdline'
-import { SessionId } from '@deepseek-ai/dsh-session'
-import type { Agent } from '@deepseek-ai/dsh-agent'
-import type { PatchOptions } from '@deepseek-ai/cordis-plugin-include'
+import { Context } from '@bosch/cordis'
+import { boot, healProfilesModuleFallback, loadOverlayPatches, loadProfile } from '@bosch/bh-app-boot'
+import { provideCmdline } from '@bosch/bh-cmdline'
+import { SessionId } from '@bosch/bh-session'
+import type { Agent } from '@bosch/bh-agent'
+import type { PatchOptions } from '@bosch/cordis-plugin-include'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
-import { settingsNamespace } from '@deepseek-ai/dsh-settings'
-import { resolveSessionPreset, SETTINGS_NAMESPACE } from '@deepseek-ai/dsh-agent-presets'
-import { applyChildComposition, childSessionMeta } from '@deepseek-ai/dsh-subagent'
-import { CallId } from '@deepseek-ai/dsh-llm'
-import type {} from '@deepseek-ai/dsh-compaction-basic'
-import type {} from '@deepseek-ai/dsh-skill'
-import type {} from '@deepseek-ai/dsh-tools'
+import { settingsNamespace } from '@bosch/bh-settings'
+import { resolveSessionPreset, SETTINGS_NAMESPACE } from '@bosch/bh-agent-presets'
+import { applyChildComposition, childSessionMeta } from '@bosch/bh-subagent'
+import { CallId } from '@bosch/bh-llm'
+import type {} from '@bosch/bh-compaction-basic'
+import type {} from '@bosch/bh-skill'
+import type {} from '@bosch/bh-tools'
 // Type-only: resolves `ctx.get('sessionProjections')` and `ctx.get('tokenMeter')`.
-import type {} from '@deepseek-ai/dsh-session-projection'
-import type {} from '@deepseek-ai/dsh-token-meter'
+import type {} from '@bosch/bh-session-projection'
+import type {} from '@bosch/bh-token-meter'
 
 const CONFIG_DIR = fileURLToPath(new URL('../config/', import.meta.url))
 const REPO_ROOT = fileURLToPath(new URL('../../..', import.meta.url))
-/** The shipped Web surface: the dsh-base and dsh-web-app bundle patches over an empty preset root. */
+/** The shipped Web surface: the bh-base and bh-web-app bundle patches over an empty preset root. */
 const BASE_PATCH = join(REPO_ROOT, 'packages/bundle/base/cordis.patch.yml')
 const WEB_PATCH = join(REPO_ROOT, 'packages/bundle/web-app/cordis.patch.yml')
 const CODEX_PACKAGE_DIR = join(REPO_ROOT, 'packages/subagent/subagent-codex')
@@ -53,14 +53,14 @@ async function bootWeb(
 ): Promise<Context> {
   const storageRoot = join(dirname(settingsFile), 'storages')
   const overrides: PatchOptions[] = [
-    // The settings row defaults to `$DSH_HOME/settings.yaml`. Left alone it
+    // The settings row defaults to `$BH_HOME/settings.yaml`. Left alone it
     // reads the developer's own document — and since the default preset is a
     // setting, a stored `agent-presets.default` would decide this file's
     // outcome. Point it at a temp file for the same reason the roster below
     // names only the shipped root.
     { id: 'settings', config: { path: settingsFile, watch: false } },
-    // storage-json's root is anchored to the real $DSH_HOME. Unpinned, this
-    // file writes the developer's own `~/.dsh/storages/` — and then reads it
+    // storage-json's root is anchored to the real $BH_HOME. Unpinned, this
+    // file writes the developer's own `~/.bh/storages/` — and then reads it
     // back on the next run, so a stored document from any other build decides
     // this test's boot. Same reason the settings row above is pinned.
     { id: 'storage-json', config: { root: storageRoot } },
@@ -92,11 +92,11 @@ async function bootWeb(
     // supplies `directoryPicker` without one.
     { id: 'directory-picker', disabled: true },
     { insert: [
-      { id: 'directory-picker-browse', name: '@deepseek-ai/dsh-host-directory-picker-browse' },
-      { id: 'ui-directory-picker-browse', name: '@deepseek-ai/dsh-client-ui-directory-picker-browse' },
+      { id: 'directory-picker-browse', name: '@bosch/bh-host-directory-picker-browse' },
+      { id: 'ui-directory-picker-browse', name: '@bosch/bh-client-ui-directory-picker-browse' },
     ] },
     // The roster AppCLIEntry would patch in; only the shipped root, so a
-    // developer's own `~/.dsh/.preset` cannot change this test's outcome.
+    // developer's own `~/.bh/.preset` cannot change this test's outcome.
     // `default` here is the COMPOSITION default — the base layer the settings
     // document overrides.
     {
@@ -117,7 +117,7 @@ async function bootWeb(
   healProfilesModuleFallback(INSTALL_ANCHOR, home)
   const profileDir = join(home, 'profiles', 'spec')
   await mkdir(profileDir, { recursive: true })
-  // Product Bundles are installed into the Profile, not the dsh app. Model
+  // Product Bundles are installed into the Profile, not the bh app. Model
   // pnpm's package link for only the selected products; their own production
   // dependencies resolve from the linked workspace packages, while shared
   // peers still resolve through the installation fallback above.
@@ -128,21 +128,21 @@ async function bootWeb(
     await symlink(packageDir, link, 'junction')
   }
   let bundlePatches: PatchOptions[] = [
-    ...loadOverlayPatches('dsh-test', BASE_PATCH),
-    ...loadOverlayPatches('dsh-test', WEB_PATCH),
+    ...loadOverlayPatches('bh-test', BASE_PATCH),
+    ...loadOverlayPatches('bh-test', WEB_PATCH),
   ]
   if (profileBundles !== undefined) {
     await writeFile(join(profileDir, 'package.json'), JSON.stringify({
       private: true,
       dependencies: Object.fromEntries(profileBundles.map(name => [name, 'workspace:*'])),
-      dsh: { profile: { bundles: profileBundles } },
+      bh: { profile: { bundles: profileBundles } },
     }, null, 2) + '\n')
-    const profile = loadProfile('dsh-test', 'spec', INSTALL_ANCHOR, home, { userLayer: false })
+    const profile = loadProfile('bh-test', 'spec', INSTALL_ANCHOR, home, { userLayer: false })
     bundlePatches = profile.layers.flatMap(layer => layer.patches)
   }
   const rootConfig = join(profileDir, 'cordis.yml')
   await writeFile(rootConfig, '[]\n')
-  return await boot('dsh-test', rootConfig, [...bundlePatches, ...overrides], (bootCtx) => {
+  return await boot('bh-test', rootConfig, [...bundlePatches, ...overrides], (bootCtx) => {
     provideCmdline(bootCtx, { args: [], exit: () => {} })
   })
 }
@@ -174,7 +174,7 @@ function enablePresetTool(composition: string, id: string): string {
 
 let ctx: Context
 beforeAll(async () => {
-  const settingsFile = join(await mkdtemp(join(tmpdir(), 'dsh-web-presets-')), 'settings.yaml')
+  const settingsFile = join(await mkdtemp(join(tmpdir(), 'bh-web-presets-')), 'settings.yaml')
   await writeFile(settingsFile, '{}\n')
   ctx = await bootWeb(settingsFile)
 }, 120_000)
@@ -372,9 +372,9 @@ describe('the shipped Web composition', () => {
   })
 
   it('merges the global skill layer into a preset agent\'s catalog, keeping local discovery preset-side', async () => {
-    const proj = await mkdtemp(join(tmpdir(), 'dsh-preset-skill-proj-'))
-    await mkdir(join(proj, '.dsh', 'skills', 'project-proof'), { recursive: true })
-    await writeFile(join(proj, '.dsh', 'skills', 'project-proof', 'SKILL.md'), [
+    const proj = await mkdtemp(join(tmpdir(), 'bh-preset-skill-proj-'))
+    await mkdir(join(proj, '.bh', 'skills', 'project-proof'), { recursive: true })
+    await writeFile(join(proj, '.bh', 'skills', 'project-proof', 'SKILL.md'), [
       '---',
       'name: project-proof',
       'description: Proves the preset layer discovers project skills beside global ones.',
@@ -385,7 +385,7 @@ describe('the shipped Web composition', () => {
     ].join('\n'))
 
     const handle = await ctx.agents.create({
-      // Unique per run: the composition persists into the ambient DSH home,
+      // Unique per run: the composition persists into the ambient BH home,
       // and a fixed id would collide with a log an earlier run left there.
       sessionId: SessionId(`preset-skills-standard-${randomUUID()}`),
       setup: agentCtx => ctx.agentPresets.mount(agentCtx, 'standard').then(() => undefined),
@@ -393,24 +393,24 @@ describe('the shipped Web composition', () => {
     try {
       // The host (global) view carries the deployment-level provider alone:
       // local discovery moved behind the presets with `skill-filesystem`.
-      expect((await ctx.skills.list({ cwd: proj })).map(skill => skill.name)).toEqual(['dsh-badge'])
+      expect((await ctx.skills.list({ cwd: proj })).map(skill => skill.name)).toEqual(['bh-badge'])
 
       // The standard agent's view merges the global layer with its preset's
       // own local discovery over the session cwd.
       const scoped = (await ctx.skills.list({ cwd: proj, scope: handle.agent })).map(skill => skill.name)
-      expect(scoped).toContain('dsh-badge')
+      expect(scoped).toContain('bh-badge')
       expect(scoped).toContain('project-proof')
 
       // The preset's own loader tool resolves the global-layer skill.
       const loaded = await ctx.tools.execute({
         callId: CallId('preset-skills-load'),
         name: 'skill',
-        arguments: { name: 'dsh-badge' },
+        arguments: { name: 'bh-badge' },
         signal: new AbortController().signal,
         agent: handle.agent,
       })
       expect(loaded.isError).toBe(false)
-      expect(JSON.stringify(loaded.content)).toContain('powered by dsh')
+      expect(JSON.stringify(loaded.content)).toContain('powered by bh')
     } finally {
       await handle.dispose()
     }
@@ -425,7 +425,7 @@ describe('the shipped Web composition', () => {
       // Layer visibility is the registry's; whether an agent can USE skills
       // stays the preset's choice — minimal mounts no `tool-skill`, so its
       // tool table has no loader even though the global layer is readable.
-      expect((await ctx.skills.list({ scope: handle.agent })).map(skill => skill.name)).toContain('dsh-badge')
+      expect((await ctx.skills.list({ scope: handle.agent })).map(skill => skill.name)).toContain('bh-badge')
       expect(toolNames(ctx, handle.agent)).toEqual(['bash', 'str_replace_editor'])
     } finally {
       await handle.dispose()
@@ -462,7 +462,7 @@ describe('product Bundle and user-preset intersection', () => {
   type PresetId = typeof presetIds[number]
 
   async function bootProducts(installed: readonly Product[]): Promise<Context> {
-    const root = await mkdtemp(join(tmpdir(), 'dsh-product-presets-'))
+    const root = await mkdtemp(join(tmpdir(), 'bh-product-presets-'))
     const userRoot = join(root, 'presets')
     const settingsFile = join(root, 'settings.yaml')
     const standard = await readFile(join(CONFIG_DIR, 'agent-presets', 'standard', 'agent.cordis.yml'), 'utf8')
@@ -484,8 +484,8 @@ describe('product Bundle and user-preset intersection', () => {
     )
     const packageName = (product: Product): string => (
       product === 'codex'
-        ? '@deepseek-ai/dsh-subagent-codex'
-        : '@deepseek-ai/dsh-subagent-claude-code'
+        ? '@bosch/bh-subagent-codex'
+        : '@bosch/bh-subagent-claude-code'
     )
     return await bootWeb(settingsFile, [
       {
@@ -500,8 +500,8 @@ describe('product Bundle and user-preset intersection', () => {
         },
       },
     ], installed.map(packageDir), [
-      '@deepseek-ai/dsh-base',
-      '@deepseek-ai/dsh-web-app',
+      '@bosch/bh-base',
+      '@bosch/bh-web-app',
       ...installed.map(packageName),
     ])
   }
@@ -713,22 +713,22 @@ describe('a launcher that configures no writable root', () => {
   // The claim this default exists for, asserted through the real shipped
   // bundles rather than a hand-built context: `apps/cli` patches in only the
   // system root, and a person's own presets are found anyway because the
-  // roster derives `<dshHome>/.agent-presets` itself. `$DSH_HOME` is pointed
+  // roster derives `<bhHome>/.agent-presets` itself. `$BH_HOME` is pointed
   // at a temp home BEFORE boot — the derived root is resolved when the plugin
   // is constructed, and an unpinned run would read the developer's own.
   let derivedCtx: Context
   let previousHome: string | undefined
 
   beforeAll(async () => {
-    const home = await mkdtemp(join(tmpdir(), 'dsh-preset-derived-'))
-    previousHome = process.env.DSH_HOME
-    process.env.DSH_HOME = home
+    const home = await mkdtemp(join(tmpdir(), 'bh-preset-derived-'))
+    previousHome = process.env.BH_HOME
+    process.env.BH_HOME = home
     await mkdir(join(home, '.agent-presets', 'derived-mine'), { recursive: true })
     await writeFile(
       join(home, '.agent-presets', 'derived-mine', 'agent.cordis.yml'),
-      '- id: tool-todo\n  name: \'@deepseek-ai/dsh-tool-todo\'\n  config:\n    allowParallelInProgress: true\n',
+      '- id: tool-todo\n  name: \'@bosch/bh-tool-todo\'\n  config:\n    allowParallelInProgress: true\n',
     )
-    const settingsFile = join(await mkdtemp(join(tmpdir(), 'dsh-preset-derived-settings-')), 'settings.yaml')
+    const settingsFile = join(await mkdtemp(join(tmpdir(), 'bh-preset-derived-settings-')), 'settings.yaml')
     await writeFile(settingsFile, '{}\n')
     // Only the shipped root, exactly what `composeProfile` supplies; the
     // writable one is the roster's own default rather than this patch's job.
@@ -743,8 +743,8 @@ describe('a launcher that configures no writable root', () => {
   }, 120_000)
 
   afterAll(async () => {
-    if (previousHome === undefined) delete process.env.DSH_HOME
-    else process.env.DSH_HOME = previousHome
+    if (previousHome === undefined) delete process.env.BH_HOME
+    else process.env.BH_HOME = previousHome
     await derivedCtx.fiber.dispose()
   })
 
@@ -774,8 +774,8 @@ describe('authoring a preset on the shipped composition', () => {
   let userRoot: string
 
   beforeAll(async () => {
-    userRoot = join(await mkdtemp(join(tmpdir(), 'dsh-preset-authoring-')), 'profiles')
-    const settingsFile = join(await mkdtemp(join(tmpdir(), 'dsh-preset-authoring-settings-')), 'settings.yaml')
+    userRoot = join(await mkdtemp(join(tmpdir(), 'bh-preset-authoring-')), 'profiles')
+    const settingsFile = join(await mkdtemp(join(tmpdir(), 'bh-preset-authoring-settings-')), 'settings.yaml')
     await writeFile(settingsFile, '{}\n')
     authorCtx = await bootWeb(settingsFile, [{
       id: 'agent-presets',

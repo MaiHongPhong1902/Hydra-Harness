@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-13-safari-textarea-soft-wrap-reflow.zh.md)
-
 ## Problem
 
 The composer keeps the caret and selection in a transparent native textarea while the backdrop paints visible glyphs and the hidden mirror determines the full draft height. The [single-scrollport decision](2026-07-31-composer-text-layers-share-one-scrollport.md) therefore depends on the textarea owning no scrollable overflow: after every draft commit, its `scrollHeight` and `clientHeight` are equal and its `scrollTop` is zero.

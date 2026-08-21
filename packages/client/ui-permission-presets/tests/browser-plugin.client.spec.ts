@@ -8,14 +8,14 @@
  * disposal removes the contribution (HMR safety). The same plugin registers
  * its Settings row and invalidates that row on host settings changes.
  */
-import { Context } from '@deepseek-ai/cordis'
+import { Context } from '@bosch/cordis'
 import { describe, expect, it } from 'vitest'
-import { SlotRegistry, type SessionId } from '@deepseek-ai/dsh-client-runtime/client'
-import { LocaleRuntime } from '@deepseek-ai/dsh-client-locale/client'
-import { TestRemote } from '@deepseek-ai/dsh-client-test-runtime'
-import { apply as settingsApply, inject as settingsInject } from '@deepseek-ai/dsh-client-ui-settings/client'
-import type { CommandDecoration } from '@deepseek-ai/dsh-client-ui-commands/client'
-import type { PermissionSelect } from '@deepseek-ai/dsh-permission-presets/client'
+import { SlotRegistry, type SessionId } from '@bosch/bh-client-runtime/client'
+import { LocaleRuntime } from '@bosch/bh-client-locale/client'
+import { TestRemote } from '@bosch/bh-client-test-runtime'
+import { apply as settingsApply, inject as settingsInject } from '@bosch/bh-client-ui-settings/client'
+import type { CommandDecoration } from '@bosch/bh-client-ui-commands/client'
+import type { PermissionSelect } from '@bosch/bh-permission-presets/client'
 import {
   PermissionRow, type PermissionRowInjected,
 } from '../src/client/PermissionRow.tsx'

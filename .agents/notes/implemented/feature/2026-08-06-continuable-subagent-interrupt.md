@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-06-continuable-subagent-interrupt.zh.md)
-
 ## Problem
 
 A running continuable subagent could not be stopped without destroying it. The continuation manager cancels child Agents only inside whole-Activation teardown (settlement, drain, scoped drain), `send_message`/`subagent.prompt` only add work, and the Web composer's Stop button was deliberately limited to ordinary sessions. A human watching a continuable child burn tokens on a wrong path had no lever short of killing the parent tree, and when the direct parent Agent was offline the child was entirely untouchable even though its Activation stayed live. One-shot runs have holder-owned disposal and task-kill; continuable children had no analogous current-turn control.
@@ -41,7 +39,7 @@ The address-only RPC exposes one bit of live residency: an absent target is acce
 
 The Web surface keeps Send and Stop as independent actions for a running continuable child: the client `Session.cancel()` routes Stop through `subagent.interrupt` (one-shot addresses stay uncancellable, ordinary sessions keep their existing primary Send/Stop toggle through `session.cancel`), while Send continues to queue follow-ups. A running parent-offline continuable child keeps the default composer with input and Send disabled but Stop reachable, returning to the read-only takeover once it stops ([Web subagent conversations](2026-07-27-web-subagent-conversations.md) owns the surrounding catalog and composer contract).
 
-The model-facing `interrupt_agent(agent_id)` tool in `dsh-tool-subagent-control` passes `exec.agent` as the `ancestor` authority and adds none of its own: the core primitive verifies live registry identity and recorded lineage, so the tool can name a direct child or a deeper descendant with the same generic `agent_id` parameter — deliberately not `subagent_id`, which would imply direct children only. Discovery rides `list_agents({ scope: 'descendants' })` over the new `SubagentRuntime.listDescendants()` one-trace pre-order walk with verified `parentId`/`depth` per entry ([durable catalog note](2026-07-22-durable-subagent-catalog-and-list-agents.md) owns the listing contract); discovery is a hint, never authority. `send_message` keeps its exact-direct-parent authority — only interrupt is ancestor-wide.
+The model-facing `interrupt_agent(agent_id)` tool in `bh-tool-subagent-control` passes `exec.agent` as the `ancestor` authority and adds none of its own: the core primitive verifies live registry identity and recorded lineage, so the tool can name a direct child or a deeper descendant with the same generic `agent_id` parameter — deliberately not `subagent_id`, which would imply direct children only. Discovery rides `list_agents({ scope: 'descendants' })` over the new `SubagentRuntime.listDescendants()` one-trace pre-order walk with verified `parentId`/`depth` per entry ([durable catalog note](2026-07-22-durable-subagent-catalog-and-list-agents.md) owns the listing contract); discovery is a hint, never authority. `send_message` keeps its exact-direct-parent authority — only interrupt is ancestor-wide.
 
 ## Testing
 

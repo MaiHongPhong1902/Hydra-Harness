@@ -3,16 +3,16 @@
  * with logged model context without vetoing or rewriting calls. Configuration
  * and chain semantics live in the package README; rationale lives in the
  * repeat-tool-reminder Agent Note.
- * @module @deepseek-ai/dsh-repeat-tool-reminder
+ * @module @bosch/bh-repeat-tool-reminder
  */
 
-import type { Context } from '@deepseek-ai/cordis'
-import z from '@deepseek-ai/schemastery'
-import type { Agent, PreStepDecision } from '@deepseek-ai/dsh-agent'
-import { createUserMessage } from '@deepseek-ai/dsh-llm'
-import type { MessageSource } from '@deepseek-ai/dsh-llm'
-import type { UserMessage } from '@deepseek-ai/dsh-session'
-import type { PostToolDecision, ToolExecution } from '@deepseek-ai/dsh-tools'
+import type { Context } from '@bosch/cordis'
+import z from '@bosch/schemastery'
+import type { Agent, PreStepDecision } from '@bosch/bh-agent'
+import { createUserMessage } from '@bosch/bh-llm'
+import type { MessageSource } from '@bosch/bh-llm'
+import type { UserMessage } from '@bosch/bh-session'
+import type { PostToolDecision, ToolExecution } from '@bosch/bh-tools'
 
 export const name = 'repeat-tool-reminder'
 

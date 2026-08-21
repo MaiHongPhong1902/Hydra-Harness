@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-06-19-acp-snapshot-tests.zh.md)
-
 ## Problem
 
 Unit tests do not exercise the complete assembled-agent subprocess or its ACP automation wire, while real-API tests are nondeterministic and key-gated. Loader wiring, backend behavior, and protocol output can therefore regress despite green unit coverage, as the [default-export postmortem](../../../../docs/postmortem/0001-acp-default-export-drops-inject.md) demonstrated.
@@ -63,7 +61,7 @@ Tool determinism comes from a generated cwd, scrubbed environment, fresh non-log
 
 ### The replay plugin is its own package
 
-`@deepseek-ai/dsh-llm-replay` is a support package rather than example-local glue. It replaces the real adapter by short-circuiting `llm/stream` with streams reconstructed from JSONL, and its package placement keeps the replay logic under normal coverage gates.
+`@bosch/bh-llm-replay` is a support package rather than example-local glue. It replaces the real adapter by short-circuiting `llm/stream` with streams reconstructed from JSONL, and its package placement keeps the replay logic under normal coverage gates.
 
 ### Two subcommands, replay in the default gate
 

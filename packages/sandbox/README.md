@@ -1,7 +1,5 @@
 # sandbox/ — process-sandbox capability family
 
-English | [中文](README.zh.md)
-
 This family applies per-session confinement policy to process execution. It covers same-world subprocesses; isolated environments replace complete capability implementations instead of registering here.
 
 | Package | Role | ctx key |

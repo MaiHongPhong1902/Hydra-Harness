@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-11-quickstart-documentation-home.zh.md)
-
 ## Problem
 
 A separate documentation landing page duplicates product positioning and feature summaries owned by the product landing page. Those parallel claims require synchronization and review without helping readers reach technical instructions.

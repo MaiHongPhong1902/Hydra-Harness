@@ -1,6 +1,6 @@
 /**
  * Named backend registry of the storage hub.
- * @module @deepseek-ai/dsh-storage/src/registry
+ * @module @bosch/bh-storage/src/registry
  */
 
 import type { StorageBackend } from './backend.ts'

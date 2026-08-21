@@ -1,0 +1,40 @@
+# The CHILD runtime for the SDK subagent composition test: a complete
+# stdio JSON-RPC harness whose scripted model echoes its process cwd. The
+# parent's subagent-sdk backend spawns this composition per run; stdout is
+# reserved for JSON-RPC frames.
+- id: sdk-jsonrpc-server
+  name: '@bosch/bh-sdk-jsonrpc-server'
+
+- id: child-mock-llm
+  name: './child-mock-llm.ts'
+
+- id: agent-core
+  name: '@bosch/bh-agent-spine-demo'
+  config:
+    persona: 'Echo where you run.'
+    workspaceContext: false
+    skills:
+      enabled: false
+    toolBash:
+      enableRunInBackground: false
+    toolJobs: false
+
+# The child persists its own session log beside the parent's (distinct root),
+# so the driving e2e can inspect both transcripts after the run.
+- id: sessions
+  name: '@bosch/bh-session-persistence-jsonl'
+  config:
+    root: !!js process.env.BH_SESSION_ROOT ?? './.child-sessions'
+    compression: none
+
+- id: session-checkpoints
+  name: '@bosch/bh-session-checkpoint-policy'
+
+# bash-local executes through the subprocess seam.
+- id: subprocess
+  name: '@bosch/bh-subprocess-local'
+
+- id: bash
+  name: '@bosch/bh-bash-local'
+  config:
+    cwd: !!js process.env.BH_CWD ?? process.cwd()

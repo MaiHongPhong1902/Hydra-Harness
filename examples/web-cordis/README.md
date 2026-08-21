@@ -1,8 +1,6 @@
 # web-cordis
 
-English | [中文](README.zh.md)
-
-Self-referential demonstration of [`@deepseek-ai/dsh-tool-cordis`](../../packages/extensions/tool-cordis/README.md). The agent can inspect its current Cordis process and mount or unmount model-authored plugins in memory. Temporary plugins disappear when they are unmounted or the process exits and may affect other sessions in the same process.
+Self-referential demonstration of [`@bosch/bh-tool-cordis`](../../packages/extensions/tool-cordis/README.md). The agent can inspect its current Cordis process and mount or unmount model-authored plugins in memory. Temporary plugins disappear when they are unmounted or the process exits and may affect other sessions in the same process.
 
 ## Run it
 

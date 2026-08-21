@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-02-goal-round-wrapup-message.zh.md)
-
 ## Problem
 
 An autonomous goal round that reported `update_goal` `complete` or `blocked` concluded the physical turn at the tool result, so the model never spoke after the call. Sessions ended on a bare `update_goal` card, and internal testers read that as the agent stopping mid-sentence: the model's pre-call text routinely announces a report ("goal achieved, marking complete:") that never arrives, because the standard tool-use expectation is one more assistant message after a tool result and neither the goal-round prompt nor the tool description said the call was terminal. The hard stop came from the [goal-tool decision](../feature/2026-07-19-model-facing-goal-tools.md), whose turn-stop clause this note supersedes.
@@ -14,7 +12,7 @@ A goal-round `complete` or `blocked` success no longer calls `concludeTurn()`. I
 
 The instruction wording was selected by A/B sampling on `deepseek-v4-pro` with a reconstructed goal-round transcript: a structured instruction (outcome, verification, artifacts, next steps) consistently beat a minimal "summarize" one on completeness; adding a session-grounding clause shifted unsupported detail from asserted fact to hedged suggestion; and the no-instruction control produced high-variance closings, including confidently fabricated file-level detail.
 
-Scripting the keyless proof required one snapshot-harness addition: `dsh-llm-replay` resolves `{{fromRequest:<regex>}}` placeholders in scripted entries against the live request, because a static sidecar cannot know the randomly minted goal id the model must echo into `update_goal`.
+Scripting the keyless proof required one snapshot-harness addition: `bh-llm-replay` resolves `{{fromRequest:<regex>}}` placeholders in scripted entries against the live request, because a static sidecar cannot know the randomly minted goal id the model must echo into `update_goal`.
 
 ## Verification
 

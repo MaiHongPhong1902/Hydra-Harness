@@ -1,6 +1,4 @@
-# @deepseek-ai/dsh-settings
-
-English | [中文](README.zh.md)
+# @bosch/bh-settings
 
 User-settings Service Definition (`ctx.settings`). One provider holds a raw document of per-namespace sections; plugins register a namespace schema and read a resolved value layered as schema defaults, then the registrant's composition `base` (its cordis.yml entry-config subset), then the user document section. Without a mounted provider nothing changes for consumers: they keep resolving entry config alone, so every composition works with or without settings.
 

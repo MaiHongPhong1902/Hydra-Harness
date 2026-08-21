@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-07-06-tool-result-retention-library.zh.md)
-
 ## Problem
 
 Several model-facing tools already bound the amount of context they return, but each one owns a different local mechanism and vocabulary: bash keeps a tail plus spill files, web search caps source lists, web fetch caps body content, and `glob` / `grep` discovery needs an inline first page while keeping exact omission metadata for the full result set. A single `truncate(text)` helper cannot cover those cases: item tools need item counts and grouping outside the primitive, while text tools need byte budgets and UTF-8-safe head/tail cuts.
@@ -12,7 +10,7 @@ The shared abstraction the tools need is **retention**, not generic collection. 
 
 ## Decision
 
-`@deepseek-ai/dsh-output-retention` lives under `packages/util/` (peer to `dsh-brand` and `dsh-timeout`) and owns bounded model-facing output. It is a library of pure classes and functions, **not** a Cordis service or plugin: it takes no `ctx`, registers nothing, holds no cross-call state, and emits no events. Tool packages import it directly when they need bounded output.
+`@bosch/bh-output-retention` lives under `packages/util/` (peer to `bh-brand` and `bh-timeout`) and owns bounded model-facing output. It is a library of pure classes and functions, **not** a Cordis service or plugin: it takes no `ctx`, registers nothing, holds no cross-call state, and emits no events. Tool packages import it directly when they need bounded output.
 
 The library has two independent retainers:
 
@@ -136,7 +134,7 @@ The formatter hook is deliberately small: a tool turns a `RetentionNotice` into 
 
 ## Consequences
 
-**What shipped.** `@deepseek-ai/dsh-output-retention` exports `ItemRetainer`, `TextRetainer`, the result types (`RetainedItems`, `RetainedText`), the strategy types (`ItemRetentionStrategy`, `TextRetentionStrategy`), `Omitted`, `PushDecision`, `RetentionNotice`, and the neutral notice helpers `describeOmitted` / `formatRetentionNotice` — with no dependency on Cordis or any tool package. Unit tests cover item-head retention with exact omission counts, text-head retention, text-tail retention, head-tail byte retention, zero budgets, UTF-8 boundary handling (2-, 3-, and 4-byte codepoints and invalid lead bytes at each cut), and unknown omission wording.
+**What shipped.** `@bosch/bh-output-retention` exports `ItemRetainer`, `TextRetainer`, the result types (`RetainedItems`, `RetainedText`), the strategy types (`ItemRetentionStrategy`, `TextRetentionStrategy`), `Omitted`, `PushDecision`, `RetentionNotice`, and the neutral notice helpers `describeOmitted` / `formatRetentionNotice` — with no dependency on Cordis or any tool package. Unit tests cover item-head retention with exact omission counts, text-head retention, text-tail retention, head-tail byte retention, zero budgets, UTF-8 boundary handling (2-, 3-, and 4-byte codepoints and invalid lead bytes at each cut), and unknown omission wording.
 
 **What is documented but not yet migrated.** `glob`, `grep`, `bash`, `web_fetch`, and `web_search` have their mappings documented in the [package README](../../../../packages/util/output-retention/README.md), but not every tool has been migrated onto the library in this change; migration is deliberately separate follow-up work. `read` is documented as intentionally out of scope: its `read-render` line-window contract (`offset`/`limit`, `totalLines`, offset-range errors, per-line preview truncation, a byte cap over the selected window) is not generic retention, and one `Omitted` count cannot represent both sides of a line window.
 

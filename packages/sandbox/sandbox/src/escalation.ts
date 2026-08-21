@@ -1,6 +1,6 @@
 /**
  * The escalation vocabulary and choreography shared by every sandbox-enforcing
- * tool family (`@deepseek-ai/dsh-tool-bash`, `@deepseek-ai/dsh-tool-fs`): the
+ * tool family (`@bosch/bh-tool-bash`, `@bosch/bh-tool-fs`): the
  * strictly-wider ladder, the argument-pairing validation, the model-facing
  * denial/hint markers, and {@link approveEscalation} — the ordered fail-closed
  * sequence that resolves a `sandbox_permissions` request through a
@@ -13,10 +13,10 @@
  * hands the closure down, so this package never depends on the approval or
  * agent packages.
  *
- * @module dsh-sandbox/escalation
+ * @module bh-sandbox/escalation
  */
 
-import { assertNever } from '@deepseek-ai/dsh-llm'
+import { assertNever } from '@bosch/bh-llm'
 import type { SandboxMode } from './index.ts'
 
 /**

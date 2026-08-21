@@ -1,6 +1,4 @@
-# @deepseek-ai/dsh-goal
-
-English | [中文](README.zh.md)
+# @bosch/bh-goal
 
 Event-sourced same-session goal state. The service retains one current completion objective in an agent's existing session while keeping permission to continue as process-local activation. The [goal-domain Agent Note](../../../.agents/notes/implemented/feature/2026-07-19-persisted-same-session-goal-domain.md) owns the design rationale; the [goal type catalog](../../../docs/subsystems/goal.md) records the literal data shapes.
 
@@ -8,7 +6,7 @@ Event-sourced same-session goal state. The service retains one current completio
 
 ```yaml
 - id: goal
-  name: '@deepseek-ai/dsh-goal'
+  name: '@bosch/bh-goal'
   config:
     defaultMaxGoalRounds: 256
 ```
@@ -31,7 +29,7 @@ The separately published `./invariant` companion maintains an independent fold o
 
 ## Extension points
 
-Policy plugins call the service verbs and react to the scoped `goal/changed` event. A continuation consumer admits rounds as `user/message` events with `GoalMessageSource`; ordinary human turns never increment `roundsStarted`. Consumers use the `Agent` interface and events rather than importing `dsh-agent-loop`.
+Policy plugins call the service verbs and react to the scoped `goal/changed` event. A continuation consumer admits rounds as `user/message` events with `GoalMessageSource`; ordinary human turns never increment `roundsStarted`. Consumers use the `Agent` interface and events rather than importing `bh-agent-loop`.
 
 ## Model Experience
 

@@ -1,8 +1,6 @@
-# @deepseek-ai/dsh-fs-e2b
+# @bosch/bh-fs-e2b
 
-English | [中文](README.zh.md)
-
-E2B implementation of the [`@deepseek-ai/dsh-fs`](../../fs/fs/README.md) provider contract. It has no config: load [`@deepseek-ai/dsh-e2b`](../e2b/README.md) first, then this service in place of `dsh-fs-local`. The provider uses the owner's remote cwd and SDK handle, so file tools observe the same world as E2B-backed Bash processes.
+E2B implementation of the [`@bosch/bh-fs`](../../fs/fs/README.md) provider contract. It has no config: load [`@bosch/bh-e2b`](../e2b/README.md) first, then this service in place of `bh-fs-local`. The provider uses the owner's remote cwd and SDK handle, so file tools observe the same world as E2B-backed Bash processes.
 
 ## Behavior
 
@@ -17,7 +15,7 @@ The provider does not copy, mount, or reconcile the host workspace. Giving it a 
 
 ## Model Experience
 
-Indirectly, through [`dsh-tool-fs`](../../fs/tool-fs/README.md), which renders remote UTF-8 content, directory results, mutation acknowledgements, and provider errors while E2B identity and transport remain internal.
+Indirectly, through [`bh-tool-fs`](../../fs/tool-fs/README.md), which renders remote UTF-8 content, directory results, mutation acknowledgements, and provider errors while E2B identity and transport remain internal.
 
 #### KV Cache effect
 

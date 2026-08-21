@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-19-direct-deepseek-vision-input.zh.md)
-
 ## Problem
 
 DeepSeek vision deployments use the chat-completions image protocol, but the direct `deepseek-official` adapter declares every catalog and pass-through model text-only and rejects every `ImageBlock`. The durable attachment path therefore works only through configurable pi-ai routes, and a deployment cannot pass user uploads or image-bearing tool results through the direct provider.

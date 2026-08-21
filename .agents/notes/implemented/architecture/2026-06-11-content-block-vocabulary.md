@@ -1,8 +1,6 @@
-# Agent Note: Provider-neutral content-block vocabulary owned by dsh-llm
+# Agent Note: Provider-neutral content-block vocabulary owned by bh-llm
 
 Status: implemented
-
-English | [中文](2026-06-11-content-block-vocabulary.zh.md)
 
 ## Problem
 

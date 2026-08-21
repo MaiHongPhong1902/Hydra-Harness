@@ -3,11 +3,11 @@
  * the one-shot background path uses Jobs; continuable children have no Task,
  * no per-message result, and no Task cancellation.
  *
- * @module @deepseek-ai/dsh-subagent/run-settlement
+ * @module @bosch/bh-subagent/run-settlement
  */
 
-import type { ContentBlock } from '@deepseek-ai/dsh-llm'
-import type { JobOutcome } from '@deepseek-ai/dsh-jobs'
+import type { ContentBlock } from '@bosch/bh-llm'
+import type { JobOutcome } from '@bosch/bh-jobs'
 import type { SubagentResult, SubagentRun } from './types.ts'
 
 /** Flatten a child's final output blocks to the task's final text. */

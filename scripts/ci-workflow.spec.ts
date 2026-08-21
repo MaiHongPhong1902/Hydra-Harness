@@ -76,15 +76,15 @@ describe('CI workflow', () => {
     // windows-native: non-blocking native job with failover, runs windows-complete.
     // Its pool is resolved by the Windows-specific switch.
     expect(typeof windowsNative['runs-on']).toBe('string')
-    expect(windowsNative['runs-on']).toContain('DSH_CI_FAILOVER_WINDOWS')
-    expect(windowsNative['runs-on']).not.toContain('DSH_CI_FAILOVER_LINUX')
+    expect(windowsNative['runs-on']).toContain('BH_CI_FAILOVER_WINDOWS')
+    expect(windowsNative['runs-on']).not.toContain('BH_CI_FAILOVER_LINUX')
     expect(windowsNative['runs-on']).toContain('self-hosted')
-    expect(windowsNative['runs-on']).toContain('dsh-win-ci')
-    expect(windowsNative['runs-on']).toContain('dsh-windows-2025-16core')
+    expect(windowsNative['runs-on']).toContain('bh-win-ci')
+    expect(windowsNative['runs-on']).toContain('bh-windows-2025-16core')
     expect(windowsNative.name).toBe('windows node 24 / native complete')
     expect(windowsNative.if).toBe("github.event_name == 'pull_request'")
     expect(windowsNative.env).toMatchObject({
-      DSH_COVERAGE_TEST_TIMEOUT_MS: '30000',
+      BH_COVERAGE_TEST_TIMEOUT_MS: '30000',
     })
     const nativeSteps = windowsNative.steps as unknown[]
     const nativeCommandSteps = nativeSteps.filter((step): step is Record<string, unknown> & { run: string } => (
@@ -98,7 +98,7 @@ describe('CI workflow', () => {
 
     // serial-windows: master-only standby, self-hosted, non-blocking, lives in ci-master.
     expect(serialWindows.if).toBe("github.event_name == 'push' && github.ref == 'refs/heads/master'")
-    expect(serialWindows['runs-on']).toEqual(['self-hosted', 'dsh-win-ci', 'windows'])
+    expect(serialWindows['runs-on']).toEqual(['self-hosted', 'bh-win-ci', 'windows'])
     expect(serialWindows.name).toBe('serial / windows (self-hosted standby)')
 
     // Aggregate: Wine `windows` required, native `windows-native` excluded.
@@ -107,16 +107,16 @@ describe('CI workflow', () => {
     expect(aggregate.needs).not.toContain('serial-windows')
 
     // Linux failover is a separate switch: the three required Linux workers
-    // and the verdict job resolve their pool through DSH_CI_FAILOVER_LINUX,
+    // and the verdict job resolve their pool through BH_CI_FAILOVER_LINUX,
     // never the Windows switch.
     for (const [jobName, job] of [['node-24', node24], ['node-24-coverage', node24Coverage], ['node-24-consumers', node24Consumers]] as const) {
       expect(typeof job['runs-on']).toBe('string')
-      expect(job['runs-on'], `${jobName} runs-on must use the Linux failover switch`).toContain('DSH_CI_FAILOVER_LINUX')
-      expect(job['runs-on'], `${jobName} runs-on must not use the Windows failover switch`).not.toContain('DSH_CI_FAILOVER_WINDOWS')
+      expect(job['runs-on'], `${jobName} runs-on must use the Linux failover switch`).toContain('BH_CI_FAILOVER_LINUX')
+      expect(job['runs-on'], `${jobName} runs-on must not use the Windows failover switch`).not.toContain('BH_CI_FAILOVER_WINDOWS')
       expect(job['runs-on']).toContain('vm-backup')
     }
-    expect(aggregate['runs-on']).toContain('DSH_CI_FAILOVER_LINUX')
-    expect(aggregate['runs-on']).not.toContain('DSH_CI_FAILOVER_WINDOWS')
+    expect(aggregate['runs-on']).toContain('BH_CI_FAILOVER_LINUX')
+    expect(aggregate['runs-on']).not.toContain('BH_CI_FAILOVER_WINDOWS')
     expect(aggregate['runs-on']).toContain('vm-backup')
   })
 
@@ -268,8 +268,8 @@ describe('E2B e2e workflow', () => {
     expect(e2b).toMatchObject({
       env: {
         E2B_API_KEY: '${{ secrets.E2B_API_KEY_EXTERNAL }}',
-        DSH_E2E_MAX_WORKERS: '1',
-        DSH_EXAMPLE_MODE: 'lib',
+        BH_E2E_MAX_WORKERS: '1',
+        BH_EXAMPLE_MODE: 'lib',
       },
     })
     expect(e2b?.run).toContain('packages/e2b/e2b/tests/composition.e2e.ts')
@@ -307,8 +307,8 @@ describe('Python release workflows', () => {
     })
     expect(pythonCompat.strategy).toMatchObject({ matrix: { python: ['3.10', '3.14'] } })
     const pythonCompatSteps = JSON.stringify(pythonCompat.steps)
-    expect(pythonCompatSteps).toContain('dist/deepseek_harness_sdk-$VERSION-py3-none-any.whl')
-    expect(pythonCompatSteps).toContain('dist/deepseek_harness_runtime_bin-$VERSION-py3-none-manylinux_2_28_x86_64.whl')
+    expect(pythonCompatSteps).toContain('dist/bosch_harness_sdk-$VERSION-py3-none-any.whl')
+    expect(pythonCompatSteps).toContain('dist/bosch_harness_runtime_bin-$VERSION-py3-none-manylinux_2_28_x86_64.whl')
     expect(pythonCompatSteps).not.toContain('--find-links')
     const validateSteps = JSON.stringify(validate.steps)
     const authorize = validate.steps.filter(isRecord).find(step => step.name === 'Authorize publication request')
@@ -401,7 +401,7 @@ describe('Python release workflows', () => {
     expect(JSON.stringify(macosCheck)).toContain('scripts/check-macos-deployment-target.py')
     expect(JSON.stringify(macosCheck)).toContain('$EXE-spawn-helper')
     expect(manylinuxSmoke).toMatchObject({ if: "runner.os == 'Linux'" })
-    expect(JSON.stringify(manylinuxSmoke)).toContain('-e DSH_TELEMETRY_DISABLED')
+    expect(JSON.stringify(manylinuxSmoke)).toContain('-e BH_TELEMETRY_DISABLED')
   })
 
   it('uses the shared macOS deployment-target check in GitLab', () => {
@@ -482,7 +482,7 @@ describe('npm release workflows', () => {
 })
 
 describe('Documentation site publication', () => {
-  it('keeps Pages deployment dispatch-only from a dsh-v* tag', () => {
+  it('keeps Pages deployment dispatch-only from a bh-v* tag', () => {
     const workflow = loadWorkflow('.github/workflows/docs-pages.yml')
     const build = workflowJob(workflow, 'build')
     const deploy = workflowJob(workflow, 'deploy')
@@ -494,7 +494,7 @@ describe('Documentation site publication', () => {
     // publication must never appear as a PR check.
     expect(Object.keys(workflow.on)).toEqual(['workflow_dispatch'])
 
-    // RELEASE_PUBLISH makes release:verify reject every ref that is not a dsh-v*
+    // RELEASE_PUBLISH makes release:verify reject every ref that is not a bh-v*
     // tag naming this tree's version, so the site and the npm sequence share one
     // definition of a released version.
     const steps = build.steps.filter(isRecord)
@@ -504,7 +504,7 @@ describe('Documentation site publication', () => {
     )
     expect(verify).toMatchObject({
       env: { RELEASE_PUBLISH: 'true' },
-      run: 'pnpm run release:verify --family dsh',
+      run: 'pnpm run release:verify --family bh',
     })
     // Complete history: the release scripts read tags.
     expect(checkout).toMatchObject({ with: { 'fetch-depth': 0 } })
@@ -518,24 +518,6 @@ describe('Documentation site publication', () => {
 
     // The environment owns the deployment tag policy and the required reviewers.
     expect(deploy.environment).toMatchObject({ name: 'github-pages' })
-  })
-})
-
-describe('Git hooks', () => {
-  it('leaves frozen Agent Note sidecars to the archive verifier', () => {
-    const lefthook = loadWorkflow('lefthook.yml')
-
-    for (const hookName of ['pre-commit', 'pre-merge-commit']) {
-      const hook = lefthook[hookName]
-      if (!isRecord(hook) || !Array.isArray(hook.jobs)) {
-        throw new TypeError(`lefthook must define ${hookName} jobs`)
-      }
-      const pairing: unknown = hook.jobs.find(
-        (job: unknown) => isRecord(job) && job.name === 'translation pairing (staged records)',
-      )
-
-      expect(pairing).toMatchObject({ exclude: ['.agents/notes/archived/**'] })
-    }
   })
 })
 

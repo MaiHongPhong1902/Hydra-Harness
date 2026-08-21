@@ -1,9 +1,9 @@
 /** Current-surface projection and byte-bounded rendering. */
 
-import { isCompactCheckpointSource } from '@deepseek-ai/dsh-compaction'
-import type { SessionSurfaceSnapshot } from '@deepseek-ai/dsh-session-query'
-import { assertNever } from '@deepseek-ai/dsh-llm'
-import { TextRetainer } from '@deepseek-ai/dsh-output-retention'
+import { isCompactCheckpointSource } from '@bosch/bh-compaction'
+import type { SessionSurfaceSnapshot } from '@bosch/bh-session-query'
+import { assertNever } from '@bosch/bh-llm'
+import { TextRetainer } from '@bosch/bh-output-retention'
 import { stringifyTagSafeJson } from './serialization.ts'
 import type { ReferencedConversationItem } from './types.ts'
 

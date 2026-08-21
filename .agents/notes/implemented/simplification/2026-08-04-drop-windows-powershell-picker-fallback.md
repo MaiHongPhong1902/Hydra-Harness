@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-04-drop-windows-powershell-picker-fallback.zh.md)
-
 ## Problem
 
 The win32 branch of the native directory picker kept a two-tier PowerShell fallback under the koffi `IFileOpenDialog` child process: `pwsh.exe` first, then `powershell.exe` (Windows PowerShell 5.1), both running the same WinForms script with a `SetProcessDPIAware` opt-in. The chain existed to keep a working chooser when the koffi tier was "unavailable", but every trigger it plausibly protected was a failure of our own packaging or deployment, not of the operating system:
@@ -16,7 +14,7 @@ The chain also cost real complexity: two spawn tiers running one identical scrip
 
 ## Decision
 
-The win32 tier is exactly the koffi `IFileOpenDialog` child process; any failure surfaces as-is with no fallback. The PowerShell chain — the `pwsh` → Windows PowerShell 5.1 cascade, the DPI-corrected WinForms script, the `AggregateError` aggregation — is deleted, and `pickNativeDirectory`'s win32 branch is a single call. `dsh-native-command` remains a dependency for the POSIX tiers.
+The win32 tier is exactly the koffi `IFileOpenDialog` child process; any failure surfaces as-is with no fallback. The PowerShell chain — the `pwsh` → Windows PowerShell 5.1 cascade, the DPI-corrected WinForms script, the `AggregateError` aggregation — is deleted, and `pickNativeDirectory`'s win32 branch is a single call. `bh-native-command` remains a dependency for the POSIX tiers.
 
 The fallback criterion the rest of the package already followed now applies uniformly: a fallback tier exists only for tools the OS/desktop environment provides and may omit (`zenity` → `kdialog` on Linux, which the boot-time probe also samples); tools our own package ships (`koffi`) fail loud. macOS `osascript` stays fallback-free as before.
 

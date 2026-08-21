@@ -1,12 +1,12 @@
 /**
  * Harness request-history conversion into pi-ai's Context vocabulary.
  *
- * @module dsh-llm-pi-ai/context
+ * @module bh-llm-pi-ai/context
  */
 
-import { CallId, contentHasImage, LlmError, offloadRequestImages } from '@deepseek-ai/dsh-llm'
-import type { ContentBlock, GenerateOptions, Message } from '@deepseek-ai/dsh-llm'
-import type { AttachmentStore } from '@deepseek-ai/dsh-attachment'
+import { CallId, contentHasImage, LlmError, offloadRequestImages } from '@bosch/bh-llm'
+import type { ContentBlock, GenerateOptions, Message } from '@bosch/bh-llm'
+import type { AttachmentStore } from '@bosch/bh-attachment'
 import type { Context as PiContext, ImageContent, Message as PiMessage, TextContent, Tool as PiTool } from '@earendil-works/pi-ai'
 import { toPiAssistant } from './replay.ts'
 

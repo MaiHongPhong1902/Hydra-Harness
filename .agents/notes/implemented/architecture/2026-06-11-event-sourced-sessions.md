@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-06-11-event-sourced-sessions.zh.md)
-
 ## Problem
 
 The MVP requires strict event-based tracing with fully replayable sessions (严格的基于事件的trace、logging系统，session完全可回放).
@@ -23,6 +21,6 @@ Ordering contract: the loop claims inbox messages before `agent/pre-step`, opens
 ## Consequences
 
 - Replay, trace, and telemetry are structurally guaranteed, not bolted on.
-- Persistence stays a plugin concern; the in-memory store ships in dsh-session.
+- Persistence stays a plugin concern; the in-memory store ships in bh-session.
 - The event vocabulary is merge-extensible (plugins add e.g. compaction events); [session persistence](2026-06-14-session-persistence.md) froze its shape once the log became durable.
-- Derivation cost grows with log length — compaction (dsh-compaction) is the intended mitigation, not log mutation.
+- Derivation cost grows with log length — compaction (bh-compaction) is the intended mitigation, not log mutation.

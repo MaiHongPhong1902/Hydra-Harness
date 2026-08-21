@@ -1,6 +1,4 @@
-# @deepseek-ai/dsh-command-goal
-
-English | [中文](README.zh.md)
+# @bosch/bh-command-goal
 
 Human-facing `/goal` control over [`ctx.goals`](../goal/README.md). The plugin registers one global command through [`ctx.commands`](../../interaction/commands/README.md), so every composed command adapter discovers and executes it without a model turn. The [human goal-command Agent Note](../../../.agents/notes/implemented/feature/2026-07-19-human-goal-command.md) owns the UX and composition decisions.
 
@@ -19,7 +17,7 @@ Control words are case-insensitive only when they occupy the complete input. Eve
 
 The command declares `input.images`, so composer image attachments may accompany an invocation. Attachments only accompany an objective: on a successful create or edit the producer submits one user followup carrying the admitted image blocks plus the fixed text `Reference images for the goal objective.`, so later goal rounds read them from ordinary session history without the goal domain storing attachment state. Every other sub-command, and any refused create or edit, returns a direct error and submits nothing, so the dispatching composer keeps the images.
 
-Expected domain rejections become stable direct command errors without exposing branded ids or revisions. Unexpected implementation failures still reject dispatch so adapters can report them as command failures. Generic command text and output remain live UI state; `dsh-goal` persists every accepted mutation through its own durable `goal/change` event.
+Expected domain rejections become stable direct command errors without exposing branded ids or revisions. Unexpected implementation failures still reject dispatch so adapters can report them as command failures. Generic command text and output remain live UI state; `bh-goal` persists every accepted mutation through its own durable `goal/change` event.
 
 ## Composition
 
@@ -27,14 +25,14 @@ The producer injects `commands` and `goals`. A custom app mounts their owners pl
 
 ```yaml
 - id: commands
-  name: '@deepseek-ai/dsh-commands'
+  name: '@bosch/bh-commands'
 - id: goal
-  name: '@deepseek-ai/dsh-goal'
+  name: '@bosch/bh-goal'
 - id: command-goal
-  name: '@deepseek-ai/dsh-command-goal'
+  name: '@bosch/bh-command-goal'
 ```
 
-The shipped `dsh` base enables the persisted-goal stack and this command; the Web client provides its interactive adapter. The ACP automation app enables the domain and model tools without a command adapter; `goals: false` removes that stack. The UI-less `agent-spine-demo` requires an explicit `goals: {}` so headless one-shot callers do not silently change from one physical turn to a multi-round operation.
+The shipped `bh` base enables the persisted-goal stack and this command; the Web client provides its interactive adapter. The ACP automation app enables the domain and model tools without a command adapter; `goals: false` removes that stack. The UI-less `agent-spine-demo` requires an explicit `goals: {}` so headless one-shot callers do not silently change from one physical turn to a multi-round operation.
 
 ## Model Experience
 

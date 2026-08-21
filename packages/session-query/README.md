@@ -1,7 +1,5 @@
 # session-query/ — session retrieval capability family
 
-English | [中文](README.zh.md)
-
 This family provides authorized retrieval over live and durable session logs, independently of compaction.
 
 | Package | Role | ctx key |

@@ -2,15 +2,13 @@
 
 Status: implemented
 
-English | [中文](2026-07-31-workspace-write-surface-default.zh.md)
-
 ## Problem
 
 The shipped terminal and browser surfaces exposed the same coding tools under different unconfined compositions. Web mounted the sandbox and permission services but selected `danger-full-access`; the TUI mounted the unrestricted local bash and filesystem providers directly. A fresh coding session could therefore mutate any path its same-UID process could reach before the user deliberately chose that authority.
 
 ## Decision
 
-[`base.cordis.yml`](../../../../packages/bundle/base/cordis.patch.yml) owns one sandbox and permission stack for every shipped TUI, Web, and browser-backed headless session: `dsh-sandbox-local`, `dsh-sandbox-policy`, `dsh-bash-sandbox`, `dsh-fs-sandbox`, `dsh-user-approval`, and `dsh-permission-presets`. The composition fallback is the `workspace-write` preset, which bundles `workspace-write` file effects with the `ask` approval policy. `DSH_PERMISSION_MODE` remains an explicit process override; a stored `permission.defaultPreset` remains the user preference for later sessions and outranks the fallback through the Settings seam.
+[`base.cordis.yml`](../../../../packages/bundle/base/cordis.patch.yml) owns one sandbox and permission stack for every shipped TUI, Web, and browser-backed headless session: `bh-sandbox-local`, `bh-sandbox-policy`, `bh-bash-sandbox`, `bh-fs-sandbox`, `bh-user-approval`, and `bh-permission-presets`. The composition fallback is the `workspace-write` preset, which bundles `workspace-write` file effects with the `ask` approval policy. `BH_PERMISSION_MODE` remains an explicit process override; a stored `permission.defaultPreset` remains the user preference for later sessions and outranks the fallback through the Settings seam.
 
 A genuinely fresh session pins `permission/preset: workspace-write`, `sandbox/mode: workspace-write`, and `approval/policy: ask` before execution. Changing the General-settings default affects fresh sessions, while started and ordinary resumed sessions retain their logged permission. A later Web New Session action may advance a default-origin Workspace blank after confirming and adopting that exact reuse target, as recorded in [blank permission default refresh](../bug-fix/2026-08-17-blank-permission-default-refresh.md). The browser keeps its Access picker, answerable approval cards, and risk confirmation for Full access. The TUI gains the existing `/permission` command because the shared Permission service activates its command child there.
 

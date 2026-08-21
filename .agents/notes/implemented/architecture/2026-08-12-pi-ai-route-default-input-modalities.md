@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-12-pi-ai-route-default-input-modalities.zh.md)
-
 ## Problem
 
 Nothing in `settings.yaml` could describe a hand-declared pi-ai model as accepting images, and the adapter assumed text-only for every model the installed pi-ai catalog does not describe. Every model a deployment adds through the web UI's "add a custom provider" card is such a model, so an OpenAI-compatible gateway serving a vision model reported `inputModalities: ['text']` no matter what it actually served.
@@ -50,4 +48,4 @@ A model that declares images its endpoint does not serve is not caught locally �
 
 `config.spec.ts` holds the schema boundary: an unknown modality refused at both levels, the empty route list accepted by the schema and refused by the namespace validator that the settings seam actually runs, and the `[]` materialization for an absent array that the inheritance rule depends on.
 
-No keyless snapshot lane exercises a pi-ai route: the snapshot examples drive `dsh-llm-replay`, which declares modalities directly in its configuration, and a pi-ai route needs a live endpoint whose port a static `cordis.yml` cannot name. The admission points this change feeds are already covered there through that provider (`examples/acp-agent/image.cordis.snapshot.yml` and `image-text-route.cordis.snapshot.yml`) and are unaffected — what changed is what one adapter reports, not how a gate reads it.
+No keyless snapshot lane exercises a pi-ai route: the snapshot examples drive `bh-llm-replay`, which declares modalities directly in its configuration, and a pi-ai route needs a live endpoint whose port a static `cordis.yml` cannot name. The admission points this change feeds are already covered there through that provider (`examples/acp-agent/image.cordis.snapshot.yml` and `image-text-route.cordis.snapshot.yml`) and are unaffected — what changed is what one adapter reports, not how a gate reads it.

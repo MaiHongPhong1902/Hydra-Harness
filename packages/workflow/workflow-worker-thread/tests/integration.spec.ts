@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@deepseek-ai/cordis'
-import { SessionId } from '@deepseek-ai/dsh-session'
-import AgentLoop from '@deepseek-ai/dsh-agent-loop'
-import { mountAgentLoopTestDependencies } from '@deepseek-ai/dsh-agent-loop-testkit'
-import InvariantRegistry from '@deepseek-ai/dsh-invariants'
-import * as SessionInvariant from '@deepseek-ai/dsh-session/invariant'
-import * as AgentInvariant from '@deepseek-ai/dsh-agent/invariant'
-import * as AgentLoopInvariant from '@deepseek-ai/dsh-agent-loop/invariant'
-import SubagentRuntime from '@deepseek-ai/dsh-subagent'
-import * as spawn from '@deepseek-ai/dsh-subagent-spawn-in-process'
-import { STRUCTURED_OUTPUT_TOOL } from '@deepseek-ai/dsh-subagent-in-process-driver'
+import { Context } from '@bosch/cordis'
+import { SessionId } from '@bosch/bh-session'
+import AgentLoop from '@bosch/bh-agent-loop'
+import { mountAgentLoopTestDependencies } from '@bosch/bh-agent-loop-testkit'
+import InvariantRegistry from '@bosch/bh-invariants'
+import * as SessionInvariant from '@bosch/bh-session/invariant'
+import * as AgentInvariant from '@bosch/bh-agent/invariant'
+import * as AgentLoopInvariant from '@bosch/bh-agent-loop/invariant'
+import SubagentRuntime from '@bosch/bh-subagent'
+import * as spawn from '@bosch/bh-subagent-spawn-in-process'
+import { STRUCTURED_OUTPUT_TOOL } from '@bosch/bh-subagent-in-process-driver'
 import { MockAdapter, textResponse, toolCallResponse } from '../../../core/agent-loop/tests/mock-adapter.ts'
 import WorkerThreadWorkflowEngine from '../src/index.ts'
 
@@ -44,7 +44,7 @@ async function setup(script: Script) {
   return { ctx, parent, adapter }
 }
 
-describe('dsh-workflow-worker-thread over the real in-process stack', () => {
+describe('bh-workflow-worker-thread over the real in-process stack', () => {
   it('runs a two-stage workflow: a plain child, then a schema child through the structured runtime', async () => {
     const { ctx, parent } = await setup([
       textResponse('the file list is a.ts'),

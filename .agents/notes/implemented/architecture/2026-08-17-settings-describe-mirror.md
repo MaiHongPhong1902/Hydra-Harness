@@ -2,15 +2,13 @@
 
 Status: implemented
 
-English | [中文](2026-08-17-settings-describe-mirror.zh.md)
-
 ## Problem
 
 A cold web boot issued `settings.describe` fifteen times inside ~200ms, and the count grew by two with every client plugin that owned a preference. Two mechanisms stacked: `SettingsScopeBinder.bind()` started a full-document read per bound scope (six scopes in the product composition, plus the plugin-directory tab, the welcome gate, and the models onboarding join), and `onConnected` emits `connection/reset` on the FIRST connection too, so every one of those readers immediately re-read the answer it had fetched milliseconds earlier. Each reader also carried its own invalidation subscriptions and its own `refreshIfLoaded`-style guard, and fifteen independent reads could in principle land on fifteen different document revisions.
 
 ## Decision
 
-**One reader, many derivations.** `dsh-client-ui-settings` owns `SettingsDescribeMirror`, the single `settings.describe` reader in the browser: one snapshot store holding the whole answer, refreshed by the owning plugin's two subscriptions (`settings/document-updated`, `connection/reset`). Concurrent `load()` calls fold into the in-flight read plus at most one rerun. The in-flight slot owns a run before its loading publication can synchronously reenter `load()`, then clears inside the run's own try/finally in the same synchronous segment that observes the rerun flag; a `.finally()` on the returned promise would run one microtask later and let a refresh landing in that gap mark a rerun nobody reads.
+**One reader, many derivations.** `bh-client-ui-settings` owns `SettingsDescribeMirror`, the single `settings.describe` reader in the browser: one snapshot store holding the whole answer, refreshed by the owning plugin's two subscriptions (`settings/document-updated`, `connection/reset`). Concurrent `load()` calls fold into the in-flight read plus at most one rerun. The in-flight slot owns a run before its loading publication can synchronously reenter `load()`, then clears inside the run's own try/finally in the same synchronous segment that observes the rerun flag; a `.finally()` on the returned promise would run one microtask later and let a refresh landing in that gap mark a rerun nobody reads.
 
 `bind()` still returns the unchanged `SettingsScope<T>` face, but the controller is now a selector over the mirror: no read path of its own, the same decode rules, and the write queue kept. A committed write folds its answered view back into the mirror (`acceptView`), so sibling scopes see the new revision with no re-read; the fold invalidates any older in-flight answer, and a write before the first held document reruns that read instead of publishing a partial document. A failed latest write triggers one mirror recovery read. Cross-namespace surfaces — the plugin-directory tab, the permission row (its dynamic enum lives in the namespace schema, which scopes deliberately do not carry), the models join, the agent-preset row's writability, and `hasDocument` — consume `ctx.settingsScope.describe()`, the shared read/fold face (`getSnapshot`/`subscribe`/`ensure`/`acceptView`).
 

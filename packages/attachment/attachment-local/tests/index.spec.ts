@@ -1,4 +1,4 @@
-import { Context } from '@deepseek-ai/cordis'
+import { Context } from '@bosch/cordis'
 import { existsSync } from 'node:fs'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -27,9 +27,9 @@ describe('local attachment service', () => {
   })
 
   it('saves and reads through the service boundary', async () => {
-    const dshHome = await mkdtemp(join(tmpdir(), 'dsh-attachment-service-'))
+    const bhHome = await mkdtemp(join(tmpdir(), 'bh-attachment-service-'))
     try {
-      const service = new LocalAttachmentStore(new Context(), { dshHome })
+      const service = new LocalAttachmentStore(new Context(), { bhHome })
       const data = Uint8Array.from(Buffer.from(
         'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
         'base64',
@@ -37,27 +37,27 @@ describe('local attachment service', () => {
       const ref = await service.saveImage({ data, mediaType: 'image/png' })
       await expect(service.readImage(ref)).resolves.toEqual({ ref, data })
     } finally {
-      await rm(dshHome, { recursive: true, force: true })
+      await rm(bhHome, { recursive: true, force: true })
     }
   })
 
   it('validates without persisting: a rejected image leaves no storage root behind', async () => {
-    const dshHome = await mkdtemp(join(tmpdir(), 'dsh-attachment-validate-'))
+    const bhHome = await mkdtemp(join(tmpdir(), 'bh-attachment-validate-'))
     try {
-      const service = new LocalAttachmentStore(new Context(), { dshHome })
+      const service = new LocalAttachmentStore(new Context(), { bhHome })
       await expect(service.validateImage({ data: Uint8Array.of(1, 2, 3), mediaType: 'image/png' }))
         .rejects.toThrow(/Unsupported or malformed image data/)
       const valid = Uint8Array.from(Buffer.from(
         'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
         'base64',
       ))
-      const limited = new LocalAttachmentStore(new Context(), { dshHome, maxImageBytes: 1 })
+      const limited = new LocalAttachmentStore(new Context(), { bhHome, maxImageBytes: 1 })
       await expect(limited.validateImage({ data: valid, mediaType: 'image/png' }))
         .rejects.toMatchObject({ code: 'IMAGE_TOO_LARGE' })
       await expect(service.validateImage({ data: valid, mediaType: 'image/png' })).resolves.toBeUndefined()
       expect(existsSync(service.root)).toBe(false)
     } finally {
-      await rm(dshHome, { recursive: true, force: true })
+      await rm(bhHome, { recursive: true, force: true })
     }
   })
 })

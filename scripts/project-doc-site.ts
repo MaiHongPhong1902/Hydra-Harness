@@ -16,14 +16,14 @@ import { fromMarkdown } from 'mdast-util-from-markdown'
 import { gfmFromMarkdown } from 'mdast-util-gfm'
 import { gfm } from 'micromark-extension-gfm'
 import type { Nodes } from 'mdast'
-import { docsPages, localeCollections, orderedPages, type DocsLocale, type DocsPage } from '../website/docs.ts'
+import { collections, docsPages, orderedPages, type DocsPage } from '../website/docs.ts'
 import {
   isExternalOrAbsoluteMarkdownUrl,
   markdownDestination,
   splitMarkdownUrlTarget,
 } from './markdown.ts'
 
-const REPOSITORY_URL = 'https://github.com/deepseek-ai/deepseek-harness'
+const REPOSITORY_URL = 'https://github.com/bosch/bosch-harness'
 const root = resolve(import.meta.dirname, '..')
 const generatedRoot = resolve(root, 'website/.generated')
 
@@ -47,7 +47,6 @@ type RewritableNode = Extract<Nodes, { type: 'link' | 'image' | 'definition' }>
 
 /** Inputs for rewriting one canonical Markdown page. */
 export interface RewriteMarkdownOptions {
-  locale: DocsLocale
   sourcePath: string
   route: string
   pages: DocsPage[]
@@ -87,25 +86,15 @@ function routeTarget(fromRoute: string, toRoute: string, suffix: string): string
   return `${target.startsWith('.') ? target : `./${target}`}${suffix}`
 }
 
-function sourceMap(pages: DocsPage[]): Map<string, Map<DocsLocale, DocsPage>> {
-  const map = new Map<string, Map<DocsLocale, DocsPage>>()
+function sourceMap(pages: DocsPage[]): Map<string, DocsPage> {
+  const map = new Map<string, DocsPage>()
   for (const page of pages) {
     for (const source of [page.source, ...(page.sourceAliases ?? [])]) {
-      const localized = map.get(source) ?? new Map<DocsLocale, DocsPage>()
-      if (localized.has(page.locale)) {
-        throw new Error(`project-doc-site: duplicate source or alias ${JSON.stringify(source)} for locale ${JSON.stringify(page.locale)}.`)
-      }
-      localized.set(page.locale, page)
-      map.set(source, localized)
+      if (map.has(source)) throw new Error(`project-doc-site: duplicate source or alias ${JSON.stringify(source)}.`)
+      map.set(source, page)
     }
   }
   return map
-}
-
-function counterpartSource(source: string): string {
-  return source.endsWith('.zh.md')
-    ? source.replace(/\.zh\.md$/, '.md')
-    : source.replace(/\.md$/, '.zh.md')
 }
 
 function resolveRepositoryTarget(sourceAbs: string, rawPath: string, repoRoot: string): { absPath: string; line?: number } {
@@ -140,7 +129,7 @@ function githubTarget(
   image: boolean,
 ): string {
   const path = repoPath(absPath, repoRoot)
-  if (image) return `https://raw.githubusercontent.com/deepseek-ai/deepseek-harness/${repositoryRef}/${path}${suffix}`
+  if (image) return `https://raw.githubusercontent.com/bosch/bosch-harness/${repositoryRef}/${path}${suffix}`
   const kind = lstatSync(absPath).isDirectory() ? 'tree' : 'blob'
   const lineSuffix = line === undefined ? suffix : `#L${line}`
   return `${REPOSITORY_URL}/${kind}/${repositoryRef}/${path}${lineSuffix}`
@@ -164,12 +153,7 @@ export function rewriteMarkdown(source: string, options: RewriteMarkdownOptions)
     const { path, suffix } = splitMarkdownUrlTarget(node.url)
     if (path === '') return
     const { absPath, line } = resolveRepositoryTarget(sourceAbs, path, options.repoRoot)
-    const targetPath = repoPath(absPath, options.repoRoot)
-    const isLanguageSwitcher = targetPath === counterpartSource(options.sourcePath)
-    const targetLocale: DocsLocale = isLanguageSwitcher
-      ? options.locale === 'root' ? 'en' : 'root'
-      : options.locale
-    const page = published.get(targetPath)?.get(targetLocale)
+    const page = published.get(repoPath(absPath, options.repoRoot))
     const nextUrl = page !== undefined
       ? routeTarget(options.route, page.route, suffix)
       : node.type === 'image' && options.placeImage !== undefined
@@ -217,30 +201,20 @@ export function addProjectionFrontmatter(markdown: string, page: Pick<DocsPage, 
   return `---\n${fields}\n---\n\n${markdown}`
 }
 
-/** The switcher line a canonical page carries so its GitHub reader can reach the other language. */
-const LANGUAGE_SWITCHER = /^(?:English \| \[中文\]\([^)]*\)|\[English\]\([^)]*\) \| 中文)$/
-
 /** The repository badge a canonical page carries for its GitHub reader. */
 const REPOSITORY_BADGE = /^\[!\[[^\]]*\]\(https:\/\/img\.shields\.io\/[^)]*\)\]\([^)]*\)$/
 
 /**
  * Drop the lines that address a canonical page's GitHub reader.
  *
- * The site carries a locale switcher in its navigation bar and links the
- * repository from every page, so projecting these lines would repeat both — the
- * switcher as the first element under each heading.
+ * The site links the repository from every page, so projecting the badge would
+ * repeat it.
  *
  * @param markdown Rewritten canonical Markdown content.
- * @returns The content without the switcher line or the repository badge.
+ * @returns The content without the repository badge.
  */
 function withoutRepositoryChrome(markdown: string): string {
   const lines = markdown.split('\n')
-  const switcher = lines.findIndex(line => LANGUAGE_SWITCHER.test(line))
-  // Only the switcher introducing the page qualifies; further down the same
-  // text is prose or a sample rather than the page's own header.
-  if (switcher !== -1 && switcher < 8) {
-    lines.splice(switcher, lines[switcher + 1] === '' ? 2 : 1)
-  }
   const badge = lines.findLastIndex(line => REPOSITORY_BADGE.test(line))
   if (badge !== -1) {
     lines.splice(lines[badge - 1] === '' ? badge - 1 : badge, lines[badge - 1] === '' ? 2 : 1)
@@ -253,17 +227,17 @@ function withoutRepositoryChrome(markdown: string): string {
  *
  * @param markdown Rewritten canonical Markdown content.
  * @param page Publication manifest entry for the content.
- * @returns Full Markdown for ordinary pages or frontmatter-only Markdown for a locale home page.
+ * @returns Full Markdown for ordinary pages or frontmatter-only Markdown for the home page.
  */
 export function projectedPageContent(markdown: string, page: DocsPage): string {
   if (page.sidebar !== null) return withoutRepositoryChrome(markdown)
   if (!markdown.startsWith('---\n')) {
-    throw new Error(`project-doc-site: locale home source ${JSON.stringify(page.source)} must start with YAML frontmatter.`)
+    throw new Error(`project-doc-site: home source ${JSON.stringify(page.source)} must start with YAML frontmatter.`)
   }
   const closingDelimiter = '\n---\n'
   const closing = markdown.indexOf(closingDelimiter, 4)
   if (closing === -1) {
-    throw new Error(`project-doc-site: locale home source ${JSON.stringify(page.source)} has unclosed YAML frontmatter.`)
+    throw new Error(`project-doc-site: home source ${JSON.stringify(page.source)} has unclosed YAML frontmatter.`)
   }
   return markdown.slice(0, closing + closingDelimiter.length)
 }
@@ -295,7 +269,6 @@ function referencedImages(): string[] {
     if (!existsSync(sourceAbs)) continue
     rewriteMarkdown(readFileSync(sourceAbs, 'utf8'), {
       sourcePath: page.source,
-      locale: page.locale,
       route: page.route,
       pages: docsPages,
       repoRoot: root,
@@ -387,7 +360,6 @@ function projectPagesInto(
     const markdown = readFileSync(sourceAbs, 'utf8')
     const projected = rewriteMarkdown(markdown, {
       sourcePath: page.source,
-      locale: page.locale,
       route: page.route,
       pages: context.pages,
       repoRoot: context.repoRoot,
@@ -400,9 +372,8 @@ function projectPagesInto(
             + ' which is not a regular file inside the repository.',
           )
         }
-        // Beside the page that references it, under its own basename: each
-        // locale's route tree gets its own copy, so one relative URL is correct
-        // from both.
+        // Beside the page that references it, under its own basename, so the
+        // relative URL stays correct however deep the route tree the page sits in.
         const name = basename(real)
         const target = resolve(dirname(output), name)
         claim(target, real)
@@ -443,9 +414,9 @@ function withoutFrontmatter(markdown: string, source: string): string {
 /**
  * The raw-Markdown twin of one published page.
  *
- * Frontmatter is VitePress rendering configuration and is dropped. A locale
- * home page therefore keeps its body here, while the rendered site truncates
- * it to the frontmatter redirect.
+ * Frontmatter is VitePress rendering configuration and is dropped. The home
+ * page therefore keeps its body here, while the rendered site truncates it to
+ * the frontmatter redirect.
  *
  * @param markdown Rewritten canonical Markdown content.
  * @param source Repository-relative page source, named by frontmatter failures.
@@ -520,7 +491,6 @@ export function rawMarkdownRoute(route: string, context: ProjectionContext = def
   const markdown = readFileSync(resolve(context.repoRoot, page.source), 'utf8')
   return rawMarkdownPageContent(rewriteMarkdown(markdown, {
     sourcePath: page.source,
-    locale: page.locale,
     route: page.route,
     pages: context.pages,
     repoRoot: context.repoRoot,
@@ -539,21 +509,15 @@ export interface LlmsTxtSite {
   description: string
 }
 
-/** Locale groups llms.txt lists, in the order the site's navigation presents them. */
-const llmsTxtLocales: readonly { heading: string; locale: DocsLocale }[] = [
-  { heading: '简体中文', locale: 'root' },
-  { heading: 'English', locale: 'en' },
-]
-
 /**
  * The llms.txt index of every published page's raw-Markdown twin.
  *
  * Links are site-absolute so an agent resolves them against the host it
- * fetched llms.txt from; locale home pages stay out because this file is the
+ * fetched llms.txt from; the home page stays out because this file is the
  * agent-facing entry point itself.
  *
  * @param site Site identity and base path.
- * @returns llms.txt content listing both locale trees.
+ * @returns llms.txt content listing every published page.
  */
 export function llmsTxt(site: LlmsTxtSite): string {
   const lines = [
@@ -561,14 +525,12 @@ export function llmsTxt(site: LlmsTxtSite): string {
     '',
     `> ${site.description}`,
     '',
-    '页面 URL 去掉末尾斜杠再加 `.md` 即为该页原始 Markdown(根路径用 `/index.md`);下方列表是各页精确地址。Drop any trailing slash and append `.md` to a page URL for its raw Markdown (the site root is `/index.md`); the list below carries the exact addresses.',
+    'Drop any trailing slash and append `.md` to a page URL for its raw Markdown (the site root is `/index.md`); the list below carries the exact addresses.',
+    '',
   ]
-  for (const { heading, locale } of llmsTxtLocales) {
-    lines.push('', `## ${heading}`, '')
-    for (const collection of localeCollections[locale]) {
-      for (const page of orderedPages(locale, collection)) {
-        lines.push(`- [${page.label}](${site.base}${page.route}): ${page.section}`)
-      }
+  for (const collection of collections) {
+    for (const page of orderedPages(collection)) {
+      lines.push(`- [${page.label}](${site.base}${page.route}): ${page.section}`)
     }
   }
   return `${lines.join('\n')}\n`

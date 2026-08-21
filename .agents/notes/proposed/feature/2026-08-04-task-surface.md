@@ -2,8 +2,6 @@
 
 Status: proposed
 
-English | [中文](2026-08-04-task-surface.zh.md)
-
 ## Problem
 
 Some tasks are awkward to finish through alternating prose messages. Comparing several options, reordering a plan, reviewing a table, or filling a small set of related fields all work better as one structured interaction. Today an agent can describe such an interaction, but it cannot ask the Web client to render one without adding a permanent product component or generating executable Client Plugin code.
@@ -83,17 +81,17 @@ Limits are schema-backed configuration on the Task Surface service. The initial 
 
 The tool definition omits `isConcurrencySafe`. Under the existing tool-registry contract, omission classifies every call as an exclusive ordering barrier; no new `ToolDefinition` field is introduced. The tool is composed only in Web profiles that mount both the Host service and Web renderer. Version 1 supports `native` and `both` tool modes; a `code`-only profile does not advertise it because Code Mode dispatch is nested and cannot carry its presentation metadata to the outer result.
 
-The browser-safe domain package imports the type-only `Branded` primitive from `@deepseek-ai/dsh-brand` and owns all three Task Surface IDs. The canonical value is execution-local under the [canonical tool output contract](../../implemented/architecture/2026-07-20-canonical-tool-output-contract.md). Replay therefore uses `output.presentationMeta(args, value)` to persist this tagged payload with `tool/result.meta`:
+The browser-safe domain package imports the type-only `Branded` primitive from `@bosch/bh-brand` and owns all three Task Surface IDs. The canonical value is execution-local under the [canonical tool output contract](../../implemented/architecture/2026-07-20-canonical-tool-output-contract.md). Replay therefore uses `output.presentationMeta(args, value)` to persist this tagged payload with `tool/result.meta`:
 
 ```ts
-import type { Branded } from '@deepseek-ai/dsh-brand'
+import type { Branded } from '@bosch/bh-brand'
 
 type TaskSurfaceId = Branded<'TaskSurfaceId'>
 type TaskSurfaceSubmissionId = Branded<'TaskSurfaceSubmissionId'>
 type TaskSurfaceDismissalId = Branded<'TaskSurfaceDismissalId'>
 
 interface TaskSurfacePresentationMeta {
-  kind: 'dsh/task-surface'
+  kind: 'bh/task-surface'
   version: 1
   surfaceId: TaskSurfaceId
   model: TaskSurfaceModelV1

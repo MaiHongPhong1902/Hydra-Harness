@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-07-workspace-picker-composer-entry.zh.md)
-
 ## Problem
 
 The [session-scope decision](../architecture/2026-07-25-web-client-session-scope-and-provide-channel.md) keeps one resident composer before a Workspace exists, but its textarea was disabled and only the smaller Workspace chip could open the picker. The largest and most familiar starting affordance therefore rejected the user's first click even though a recovery action was available on the same surface.

@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-10-web-remove-steering-interjection-caption.zh.md)
-
 ## Problem
 
 The [context-source and steer marks decision](../feature/2026-08-04-web-context-source-and-steer-marks.md) captioned every durable and pending steering bubble with `插话` / `Interjection` so the transcript could say which right-aligned bubble interrupted a running turn. The caption repeats what the flow already shows: a steering bubble sits mid-turn, between the assistant content it interrupted, while a turn-opening prompt sits at a turn boundary. A permanent line of tertiary text above every steer bubble buys no reading a position-aware reader does not already have, and it is the only chrome any user-style bubble carries, so it also breaks the otherwise uniform right-aligned rhythm.

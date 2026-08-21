@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-20-composer-edit-range-from-selection.zh.md)
-
 ## Problem
 
 The input machine keeps its reference occurrences aligned by reconciling them against one edit range: entries before the range shift, entries after it hold, and an entry the range intersects loses its structured identity and stays behind as ordinary draft text. That last rule is the deliberate meaning of editing inside a reference.

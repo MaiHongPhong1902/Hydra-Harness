@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@deepseek-ai/dsh-sandbox`.
- * @module @deepseek-ai/dsh-sandbox/invariant
+ * Package-owned invariant companion for `@bosch/bh-sandbox`.
+ * @module @bosch/bh-sandbox/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@deepseek-ai/cordis'
-import type { InvariantInstaller } from '@deepseek-ai/dsh-invariants'
+import type { Context } from '@bosch/cordis'
+import type { InvariantInstaller } from '@bosch/bh-invariants'
 
-const PACKAGE_NAME = '@deepseek-ai/dsh-sandbox'
+const PACKAGE_NAME = '@bosch/bh-sandbox'
 
 /** Cordis companion plugin name. */
 export const name = 'sandbox-invariant'

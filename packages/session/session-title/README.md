@@ -1,6 +1,4 @@
-# @deepseek-ai/dsh-session-title
-
-English | [中文](README.zh.md)
+# @bosch/bh-session-title
 
 Log-backed session titles with an immediate deterministic fallback and one optional asynchronous provider. Every accepted revision is a log-only `session/title` event; `foldSessionTitle()` and `ctx.sessionTitle.get()` select the latest event and return its event seq and timestamp.
 

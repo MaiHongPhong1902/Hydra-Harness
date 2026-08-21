@@ -1,6 +1,4 @@
-# dsh-output-retention
-
-English | [中文](README.zh.md)
+# bh-output-retention
 
 A dependency-light **retention** library: bounded model-facing output for tools that must cap how much context they return. A caller feeds items or text chunks into a bounded object, then gets the retained content plus exact omission metadata.
 
@@ -14,11 +12,11 @@ It is a **library, not a service or plugin**: no `ctx`, registers nothing, emits
 import {
   ItemRetainer, TextRetainer,
   describeOmitted, formatRetentionNotice,
-} from '@deepseek-ai/dsh-output-retention'
+} from '@bosch/bh-output-retention'
 import type {
   Omitted, PushDecision, RetainedItems, RetainedText,
   ItemRetentionStrategy, TextRetentionStrategy, RetentionNotice,
-} from '@deepseek-ai/dsh-output-retention'
+} from '@bosch/bh-output-retention'
 ```
 
 | Export | Role |
@@ -35,7 +33,7 @@ import type {
 The two retainers are separate names, not one generic collector, because they differ in **resource model**.
 
 - **`ItemRetainer` bounds ordered logical units.** A search tool can collect a full result set for spill-file recovery while retaining only the first `maxItems` for the model-facing preview. The omission count is exact because the caller keeps feeding every observed item.
-- **`TextRetainer` bounds byte-oriented text.** `head`, `tail`, and `headTail` preserve UTF-8 boundaries at `finish()`; `headTail` is the shape `dsh-spill-policy` uses to build a bounded preview around a spill-file notice.
+- **`TextRetainer` bounds byte-oriented text.** `head`, `tail`, and `headTail` preserve UTF-8 boundaries at `finish()`; `headTail` is the shape `bh-spill-policy` uses to build a bounded preview around a spill-file notice.
 
 ## `truncated` is a budget fact, never "incomplete"
 

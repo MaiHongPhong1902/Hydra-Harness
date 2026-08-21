@@ -1,6 +1,4 @@
-# @deepseek-ai/dsh-client-ui-permission-presets
-
-English | [中文](README.zh.md)
+# @bosch/bh-client-ui-permission-presets
 
 Permission browser surfaces for two different lifetimes. The General-settings row reads the explicitly exposed `permission` Settings descriptor, derives its options from the host's dynamic `defaultPreset` enum, and writes one `settings.mutate` path operation with the descriptor revision. Its observable rides the slot system's `hooks` compartment, so the renderer owns React hook binding; a push invalidation refetches the descriptor. The value applies to fresh sessions; when Web later confirms an existing Workspace blank as the New Session reuse target, the host refreshes a still-default-derived permission after adopting that exact live or cold session. Choosing the full-access preset requires an explicit risk acknowledgement before the row writes it.
 

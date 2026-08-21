@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-07-26-dependencies-over-hand-rolling.zh.md)
-
 ## Problem
 
 The harness hand-rolls a lot of infrastructure that mature external packages already provide. Some of that is deliberate — vendored Cordis ([vendoring decision](2026-06-11-vendor-cordis-as-source.md)), the [twin LLM adapters](../architecture/2026-06-13-twin-llm-adapters.md), schemastery as the config-schema standard — but much of it accreted from an unstated "avoid new dependencies" reflex: the repo-wide external dependency list stayed tiny while packages grew their own SSE parsers, protocol framers, retry loops, and glob matchers. Nothing in `AGENTS.md` actually stated a dependency policy, so agents inferred one from the existing pattern, and the inferred rule ("don't add deps") is stricter than anyone decided. That is the "Not Invented Here" fallacy operating by default: every hand-rolled clone of a well-maintained library is code we test, document, review, and debug ourselves, with none of the ecosystem's accumulated edge-case fixes.
@@ -31,6 +29,6 @@ Dependency-swap proposals are recorded as `proposed/simplification` Agent Notes 
 
 ## Consequences
 
-- Agents and contributors surveying for simplifications now treat "replace hand-rolled X with package Y" as in-scope output; [dsh-find-simplifications](../../../skills/dsh-find-simplifications/SKILL.md) carries the corresponding guidance.
+- Agents and contributors surveying for simplifications now treat "replace hand-rolled X with package Y" as in-scope output; [bh-find-simplifications](../../../skills/bh-find-simplifications/SKILL.md) carries the corresponding guidance.
 - The dependency list will grow, and with it the supply-chain surface; the mitigations live in the [supply-chain proposal](../../proposed/process/2026-06-11-supply-chain-and-vendor-drift.md), which this policy makes more urgent.
 - Root `AGENTS.md` carries the one-line rule; this note owns the rationale and the bar.

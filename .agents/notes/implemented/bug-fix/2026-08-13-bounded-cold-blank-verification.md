@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-13-bounded-cold-blank-verification.zh.md)
-
 ## Problem
 
 The Web session tree hides blank Sessions and reuses the selected blank entry as New Session. Attached Sessions can derive blankness from their in-memory event log, but `session.list` normally avoids loading every cold log. Treating every materialized cold Session as non-blank exposes empty Sessions left by older versions. Treating a projection-cache `blank: true` as current can instead hide a real conversation after the log advances and the fail-soft cache remains stale.
@@ -12,7 +10,7 @@ The same cold list used the JSONL artifact mtime for `updatedAt`. Opening a Sess
 
 ## Decision
 
-`dsh-host-apiproxy` registers `sessionListMetadata`, a projection containing `blank` and `lastPromptAt`. The attached summary folds the same functions directly over the live log. `blank` changes only from true to false on `turn/start`; `lastPromptAt` changes only on a `user/message` whose source kind is `user`.
+`bh-host-apiproxy` registers `sessionListMetadata`, a projection containing `blank` and `lastPromptAt`. The attached summary folds the same functions directly over the live log. `blank` changes only from true to false on `turn/start`; `lastPromptAt` changes only on a `user/message` whose source kind is `user`.
 
 A cold summary trusts cached `blank: false`, because a checkpoint prefix containing `turn/start` remains non-blank. Cached `blank: true` and a cache miss do not prove the current log is blank. When persistence exposes a physical artifact through `locate()` and its observed size is at most the `coldBlankProbeMaxBytes` eligibility threshold (default 1 KiB per Session), the gateway calls `readFrom(id, 0)` and folds exact list metadata from the stored prefix. Files above the threshold, backends without a location, vanished artifacts, and failed reads all produce `blank: false`, keeping the Session visible.
 

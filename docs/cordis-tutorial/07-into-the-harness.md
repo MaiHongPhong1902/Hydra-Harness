@@ -1,7 +1,5 @@
 # 7. Into the harness
 
-English | [中文](07-into-the-harness.zh.md)
-
 This chapter registers a model-callable tool with the harness's `tools` service, executes it through the harness tool pipeline, and observes the result event. It remains keyless and does not call a model.
 
 ## A tool plugin
@@ -9,9 +7,9 @@ This chapter registers a model-callable tool with the harness's `tools` service,
 Create `greet-tool.ts` in `tmp/cordis-tutorial`:
 
 ```ts
-import type { Context } from '@deepseek-ai/cordis'
-import { defineTool } from '@deepseek-ai/dsh-tools'
-import { CallId } from '@deepseek-ai/dsh-llm'
+import type { Context } from '@bosch/cordis'
+import { defineTool } from '@bosch/bh-tools'
+import { CallId } from '@bosch/bh-llm'
 
 export const name = 'greet-tool'
 export const inject = ['tools']
@@ -53,8 +51,8 @@ Every pattern here is from the earlier chapters: `inject: ['tools']` ([chapter 3
 Create `tool-logger.ts` — a separate plugin that watches every tool call in the app through the harness's `tools/result` event:
 
 ```ts
-import type { Context } from '@deepseek-ai/cordis'
-import type {} from '@deepseek-ai/dsh-tools'
+import type { Context } from '@bosch/cordis'
+import type {} from '@bosch/bh-tools'
 
 export const name = 'tool-logger'
 export const inject = ['tools']
@@ -69,18 +67,18 @@ export function apply(ctx: Context) {
 }
 ```
 
-The `import type {} from '@deepseek-ai/dsh-tools'` line pulls in the package's declaration merges so `'tools/result'` and its payload are typed — the same move as chapter 4's `stats.ts` import, at package scale.
+The `import type {} from '@bosch/bh-tools'` line pulls in the package's declaration merges so `'tools/result'` and its payload are typed — the same move as chapter 4's `stats.ts` import, at package scale.
 
 ## Compose and run
 
 ```yaml
-- name: '@deepseek-ai/dsh-system-prompt'
-- name: '@deepseek-ai/dsh-tools'
+- name: '@bosch/bh-system-prompt'
+- name: '@bosch/bh-tools'
 - name: './tool-logger.ts'
 - name: './greet-tool.ts'
 ```
 
-`@deepseek-ai/dsh-tools` injects the `systemPrompt` service because tools contribute schemas to the system prompt, so the composition lists its provider too. Without it, the tools plugin remains PENDING as described in [chapter 6](06-composition-and-hmr.md).
+`@bosch/bh-tools` injects the `systemPrompt` service because tools contribute schemas to the system prompt, so the composition lists its provider too. Without it, the tools plugin remains PENDING as described in [chapter 6](06-composition-and-hmr.md).
 
 ```sh
 node --import tsx ../../vendor/cordis/bin.js
@@ -104,4 +102,4 @@ Where to go next:
 - The generated `cordis-surface` regions on the [subsystem pages](../subsystems/core.md) — everything you can inject and listen to, each on its owning page.
 - [Architecture](../architecture.md) — the system map these plugins live in.
 
-[![](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)
+[![](https://img.shields.io/badge/powered_by-bh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/bosch/bosch-harness)

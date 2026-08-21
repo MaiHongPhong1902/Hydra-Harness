@@ -1,7 +1,7 @@
 /** The Remote face delegates to the provider's discovery contract unchanged. */
-import { Context } from '@deepseek-ai/cordis'
+import { Context } from '@bosch/cordis'
 import { describe, expect, it, vi } from 'vitest'
-import type { Agent } from '@deepseek-ai/dsh-agent'
+import type { Agent } from '@bosch/bh-agent'
 import { FileReferenceService } from '../src/index.ts'
 import type { FileReferenceCandidate } from '../src/types.ts'
 

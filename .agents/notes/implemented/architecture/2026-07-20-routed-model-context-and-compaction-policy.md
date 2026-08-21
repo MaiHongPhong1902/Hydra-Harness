@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-07-20-routed-model-context-and-compaction-policy.zh.md)
-
 ## Problem
 
 Compaction cannot safely apply one global context window when a process routes requests to models with different capacities. The same model id can also exist under multiple providers, and an adapter may accept dynamic ids absent from its advisory catalog. A wrong capacity either compacts too late and triggers avoidable overflow or compacts too early and discards useful context.
@@ -20,7 +18,7 @@ The hand-rolled DeepSeek adapter accepts optional `contextWindow` on each config
 
 ### Token measurement remains model-agnostic
 
-`dsh-token-meter` has no configuration and no model profiles. It owns one fixed replay fold and returns absolute estimated token pressure plus positional surface prices. Removing global capacity keeps measurement reusable when compaction-basic is absent and prevents replay accounting from becoming another model registry.
+`bh-token-meter` has no configuration and no model profiles. It owns one fixed replay fold and returns absolute estimated token pressure plus positional surface prices. Removing global capacity keeps measurement reusable when compaction-basic is absent and prevents replay accounting from becoming another model registry.
 
 ### Compact-basic resolves a target spec
 

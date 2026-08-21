@@ -2,22 +2,22 @@
 # discovery inside the scenario's temporary cwd. The app config patch replaces
 # the whole base config, so the base fields are restated verbatim.
 - id: base
-  name: '@deepseek-ai/cordis-plugin-include'
+  name: '@bosch/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - id: acp-agent
-        name: '@deepseek-ai/dsh-acp-demo'
+        name: '@bosch/bh-acp-demo'
         config:
           provider: deepseek-official
           model: deepseek-v4-pro
-          persistenceRoot: !!js process.env.DSH_SNAPSHOT_SESSIONS_ROOT ?? './.sessions'
-          persistenceCompression: !!js "process.env.DSH_SNAPSHOT === undefined ? 'zstd' : 'none'"
+          persistenceRoot: !!js process.env.BH_SNAPSHOT_SESSIONS_ROOT ?? './.sessions'
+          persistenceCompression: !!js "process.env.BH_SNAPSHOT === undefined ? 'zstd' : 'none'"
           workspaceContext:
             maxBytes: 65536
-            dshHome: !!js process.cwd() + '/.dsh'
+            bhHome: !!js process.cwd() + '/.bh'
             projectRootMarkers:
-              - .dsh-project
+              - .bh-project
           persona: |
             You are a coding assistant powered by the {{model}} model. Your working directory is {{cwd}}.
 

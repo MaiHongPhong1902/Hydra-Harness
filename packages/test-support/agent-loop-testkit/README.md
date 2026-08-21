@@ -1,15 +1,13 @@
-# `@deepseek-ai/dsh-agent-loop-testkit`
-
-English | [中文](README.zh.md)
+# `@bosch/bh-agent-loop-testkit`
 
 Shared prerequisite mounting for tests that exercise the concrete `AgentLoop`. `mountAgentLoopTestDependencies(ctx, options?)` installs the LLM, session, system-prompt, tool, and agent services in dependency order, then returns before the loop is mounted.
 
 The caller registers adapters and optional plugins, mounts `AgentLoop` with the configuration under test, and disposes its own Context. System-prompt and tool-registry configuration can be forwarded through `options`; the helper does not provide test defaults beyond those owned by the services. A plugin-load failure rejects the helper call, while services activated earlier in the sequence remain owned by the caller's Context.
 
 ```ts
-import { Context } from '@deepseek-ai/cordis'
-import AgentLoop from '@deepseek-ai/dsh-agent-loop'
-import { mountAgentLoopTestDependencies } from '@deepseek-ai/dsh-agent-loop-testkit'
+import { Context } from '@bosch/cordis'
+import AgentLoop from '@bosch/bh-agent-loop'
+import { mountAgentLoopTestDependencies } from '@bosch/bh-agent-loop-testkit'
 
 const ctx = new Context()
 

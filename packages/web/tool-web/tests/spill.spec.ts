@@ -1,6 +1,6 @@
 /**
  * Showcase integration: the real `web_fetch` tool + the real spill stack
- * (`dsh-spill-local` backend + `dsh-spill-policy`), exercised through
+ * (`bh-spill-local` backend + `bh-spill-policy`), exercised through
  * `ctx.tools.execute()`. Proves the Agent Note's default local-backend path — a large
  * formatted fetch result is automatically retained and spilled with NO
  * tool-specific spill code, and the model-facing text changes ONLY by the
@@ -13,19 +13,19 @@ import { AddressInfo } from 'node:net'
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { Context } from '@deepseek-ai/cordis'
-import { CallId } from '@deepseek-ai/dsh-llm'
-import { SessionId } from '@deepseek-ai/dsh-session'
-import SystemPrompt from '@deepseek-ai/dsh-system-prompt'
-import ToolRuntime from '@deepseek-ai/dsh-tools'
-import type { ToolExecution } from '@deepseek-ai/dsh-tools'
+import { Context } from '@bosch/cordis'
+import { CallId } from '@bosch/bh-llm'
+import { SessionId } from '@bosch/bh-session'
+import SystemPrompt from '@bosch/bh-system-prompt'
+import ToolRuntime from '@bosch/bh-tools'
+import type { ToolExecution } from '@bosch/bh-tools'
 
 const testToolSignal = new AbortController().signal
-import WebRuntime from '@deepseek-ai/dsh-web'
-import * as WebFetchLocal from '@deepseek-ai/dsh-web-fetch-http'
-import LocalSpillStore from '@deepseek-ai/dsh-spill-local'
-import * as SpillPolicy from '@deepseek-ai/dsh-spill-policy'
-import * as ToolWeb from '@deepseek-ai/dsh-tool-web'
+import WebRuntime from '@bosch/bh-web'
+import * as WebFetchLocal from '@bosch/bh-web-fetch-http'
+import LocalSpillStore from '@bosch/bh-spill-local'
+import * as SpillPolicy from '@bosch/bh-spill-policy'
+import * as ToolWeb from '@bosch/bh-tool-web'
 
 type Handler = (req: IncomingMessage, res: ServerResponse) => void
 
@@ -43,7 +43,7 @@ beforeEach(async () => {
   server = createServer((req, res) => { handler(req, res) })
   await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve))
   base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`
-  spillRoot = mkdtempSync(join(tmpdir(), 'dsh-spill-web-'))
+  spillRoot = mkdtempSync(join(tmpdir(), 'bh-spill-web-'))
 
   ctx = new Context()
   await ctx.plugin(SystemPrompt)

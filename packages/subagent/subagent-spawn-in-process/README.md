@@ -1,6 +1,4 @@
-# @deepseek-ai/dsh-subagent-spawn-in-process
-
-English | [中文](README.zh.md)
+# @bosch/bh-subagent-spawn-in-process
 
 The spawn provider creates a fresh child `Agent` in the current process. The child has its own session, sees no parent conversation history, and reuses the host's agent factory and LLM/tool services.
 
@@ -40,7 +38,7 @@ Independent of the parent request cache. Child history grows append-only, while 
 
 #### What the model sees
 
-Through `dsh-tool-subagent`, the parent receives only the child's final output or stop-reason error.
+Through `bh-tool-subagent`, the parent receives only the child's final output or stop-reason error.
 
 #### Token effect
 

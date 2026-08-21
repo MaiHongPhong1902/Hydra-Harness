@@ -1,7 +1,5 @@
 # Build a tool
 
-English | [中文](tool.zh.md)
-
 This tutorial adds a `greet` tool to the Web UI. Complete [Your first plugin](./index.md) first and keep its `scratch-plugin` directory.
 
 ## Create the tool plugin
@@ -9,8 +7,8 @@ This tutorial adds a `greet` tool to the Web UI. Complete [Your first plugin](./
 Replace `scratch-plugin/src/my-plugin.ts` with:
 
 ```ts
-import type { Context } from '@deepseek-ai/cordis'
-import { defineTool } from '@deepseek-ai/dsh-tools'
+import type { Context } from '@bosch/cordis'
+import { defineTool } from '@bosch/bh-tools'
 
 export const name = 'greet-tool'
 export const inject = ['tools']
@@ -40,7 +38,7 @@ export function apply(ctx: Context) {
 Restart the development command if it is not running:
 
 ```sh
-pnpm dsh web --patch ./scratch-plugin/cordis.yml
+pnpm bh web --patch ./scratch-plugin/cordis.yml
 ```
 
 Open `http://127.0.0.1:3080` and ask: `Use the greet tool to greet Ada.` The model can call `greet` and receives `Hello, Ada!` as the tool result.

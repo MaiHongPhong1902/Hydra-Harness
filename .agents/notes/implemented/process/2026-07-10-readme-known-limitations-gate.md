@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-07-10-readme-known-limitations-gate.zh.md)
-
 ## Problem
 
 The [documentation standard](../../../../docs/AGENTS.md) assigns limitations to package READMEs. Without a shared shape, an omitted section cannot distinguish an audited absence from forgotten documentation, and variant headings prevent a repository-wide search.
@@ -14,7 +12,7 @@ Every package manifest under `packages/<group>/<pkg>/package.json` has a sibling
 
 A package with nothing to declare is listed in `NO_LIMITATIONS` and omits the section. Adding a limitation requires removing the entry; renames and removals fail because every entry must name a scanned package.
 
-The gate checks presence, shape, and the allowlist. Review under the documentation and [prose](../../../skills/dsh-prose-standard/SKILL.md) standards owns coverage and accuracy. The standing rule lives in [packages/AGENTS.md](../../../../packages/AGENTS.md).
+The gate checks presence, shape, and the allowlist. Review under the documentation and [prose](../../../skills/bh-prose-standard/SKILL.md) standards owns coverage and accuracy. The standing rule lives in [packages/AGENTS.md](../../../../packages/AGENTS.md).
 
 ## Alternatives considered
 

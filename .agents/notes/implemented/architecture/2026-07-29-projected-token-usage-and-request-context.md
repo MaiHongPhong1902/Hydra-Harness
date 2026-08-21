@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-07-29-projected-token-usage-and-request-context.zh.md)
-
 ## Problem
 
 The Web stats line derived token totals from the currently loaded conversation nodes. That window is paged, so scrolling changed the totals, and compaction replaces visible content without preserving the billing behind it. Durable provider billing needs a source that survives both.
@@ -12,7 +10,7 @@ Context occupancy needs a numerator and a denominator that no existing surface c
 
 ## Decision
 
-Both values are ordinary durable session-projection state. `@deepseek-ai/dsh-token-meter` registers two units when `ctx.sessionProjections` is present.
+Both values are ordinary durable session-projection state. `@bosch/bh-token-meter` registers two units when `ctx.sessionProjections` is present.
 
 `tokenUsage` folds the complete durable log into uncached input, output, cache-read, and cache-write buckets. An `assistant/chunk` usage sample survives a later failed request; an `assistant/message` usage value for the same `(turn, step)` replaces the earlier sample instead of double-counting it. Reasoning stays an output subdivision. Compaction and surface replacement do not erase earlier billing.
 

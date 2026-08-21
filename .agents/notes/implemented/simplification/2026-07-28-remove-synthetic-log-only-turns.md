@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-07-28-remove-synthetic-log-only-turns.zh.md)
-
 ## Problem
 
 The session store exposed `appendOutOfBand()` so a plugin could publish a late log-only event while no agent turn was running. The method wrapped that event in `turn/start` and `turn/end`, then flushed it. This preserved the old rule that every durable event had to live inside a turn, but it made one identifier mean both a model-loop execution and a persistence-only update.

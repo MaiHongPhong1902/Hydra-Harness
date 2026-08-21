@@ -1,15 +1,15 @@
-import { createUserMessage } from '@deepseek-ai/dsh-llm'
+import { createUserMessage } from '@bosch/bh-llm'
 import { describe, expect, it } from 'vitest'
-import { Context } from '@deepseek-ai/cordis'
+import { Context } from '@bosch/cordis'
 import {
   GoalId,
   type GoalSnapshotChangeMeta,
   type GoalView,
-} from '@deepseek-ai/dsh-goal'
-import * as GoalSessionInvariant from '@deepseek-ai/dsh-goal-round-driver/invariant'
-import { renderGoalRoundPrompt } from '@deepseek-ai/dsh-goal-round-driver'
-import InvariantRegistry, { InvariantError } from '@deepseek-ai/dsh-invariants'
-import SessionStore, { SessionId, type Session } from '@deepseek-ai/dsh-session'
+} from '@bosch/bh-goal'
+import * as GoalSessionInvariant from '@bosch/bh-goal-round-driver/invariant'
+import { renderGoalRoundPrompt } from '@bosch/bh-goal-round-driver'
+import InvariantRegistry, { InvariantError } from '@bosch/bh-invariants'
+import SessionStore, { SessionId, type Session } from '@bosch/bh-session'
 
 const change: GoalSnapshotChangeMeta = {
   kind: 'goal/change',
@@ -95,7 +95,7 @@ describe('goal-round-driver prompt invariants', () => {
       appendRound(session, 2, [{ type: 'text', text: 'counterfeit continuation' }])
     }).toThrow(expect.objectContaining<Partial<InvariantError>>({
       code: 'INVARIANT',
-      packageName: '@deepseek-ai/dsh-goal-round-driver',
+      packageName: '@bosch/bh-goal-round-driver',
     }))
   })
 
@@ -110,7 +110,7 @@ describe('goal-round-driver prompt invariants', () => {
         source,
       }), { surfaceOp: 'append' })
     }).toThrow(expect.objectContaining<Partial<InvariantError>>({
-      packageName: '@deepseek-ai/dsh-goal-round-driver',
+      packageName: '@bosch/bh-goal-round-driver',
     }))
   })
 
@@ -122,7 +122,7 @@ describe('goal-round-driver prompt invariants', () => {
 
     await expect(ctx.plugin(GoalSessionInvariant)).rejects.toMatchObject({
       code: 'INVARIANT',
-      packageName: '@deepseek-ai/dsh-goal-round-driver',
+      packageName: '@bosch/bh-goal-round-driver',
     })
   })
 })

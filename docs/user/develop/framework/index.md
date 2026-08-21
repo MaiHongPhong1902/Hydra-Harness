@@ -1,7 +1,5 @@
 # Plugins and lifecycle
 
-English | [中文](index.zh.md)
-
 This page describes the Cordis plugin model and lifecycle state machine.
 
 ## Fiber state machine
@@ -80,7 +78,7 @@ export function apply(ctx: Context) {
 To stop a plugin instance early:
 
 ```ts
-import type { Context } from '@deepseek-ai/cordis'
+import type { Context } from '@bosch/cordis'
 
 declare const ctx: Context
 declare function myPlugin(ctx: Context): void
@@ -98,7 +96,7 @@ await fiber.dispose()
 
 ## Hot replacement (HMR)
 
-With `@deepseek-ai/cordis-plugin-hmr` loaded from `cordis.yml`, editing a plugin source file triggers:
+With `@bosch/cordis-plugin-hmr` loaded from `cordis.yml`, editing a plugin source file triggers:
 
 1. Unload the old plugin and clean up its registrations.
 2. Load the new code.

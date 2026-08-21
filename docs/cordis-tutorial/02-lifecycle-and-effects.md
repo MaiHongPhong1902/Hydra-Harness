@@ -1,7 +1,5 @@
 # 2. Lifecycle and effects
 
-English | [中文](02-lifecycle-and-effects.zh.md)
-
 A Cordis plugin can be unloaded by a config edit, hot reload, explicit disposal, or loss of a required service. Registrations made through Cordis APIs are effects and are undone when their owning plugin unloads; resources managed outside those APIs must be wrapped in `ctx.effect()`.
 
 ## Effects
@@ -11,7 +9,7 @@ For a resource Cordis does not already manage — a timer, a connection, a watch
 Create `lifecycle.ts` in `tmp/cordis-tutorial`:
 
 ```ts
-import type { Context } from '@deepseek-ai/cordis'
+import type { Context } from '@bosch/cordis'
 
 export const name = 'lifecycle-demo'
 
@@ -95,4 +93,4 @@ One ordering caveat: disposers start in reverse registration order, but multiple
 
 Next: [Services](03-services.md) — how plugins share capabilities.
 
-[![](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)
+[![](https://img.shields.io/badge/powered_by-bh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/bosch/bosch-harness)

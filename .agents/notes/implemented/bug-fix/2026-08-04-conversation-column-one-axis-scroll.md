@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-04-conversation-column-one-axis-scroll.zh.md)
-
 ## Problem
 
 Narrowing the center column — by the window or by the sidebar drag — put a horizontal scrollbar under the whole conversation column on the hero. The bleeding element is the hero's decorative backdrop ellipse: `.heroGlow` is sized `1051/776` of the hero box so its blur scales in userSpace with the input card, which means it reaches past the column whenever the column is narrower than the glow.

@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-06-subagent-list-identity-projection.zh.md)
-
 ## Problem
 
 Before the rewrite, `SubagentRuntime.listChildren` ran two full-log materializations — `listEvents` plus `readEvent` — on every listing for each direct child with `header.origin === 'subagent'`, each materialization accompanied by a full-log structuredClone, all to fold two fields, mode and label, out of the descriptor event. The descriptor's position in the log is not fixed — the fork prefix is arbitrarily long, and zstd-compressed frames carry no seq index — so there is no shortcut to locating it; this path had no cache whatsoever, and its cost amplifies with transcript length × child count × listing frequency. It also dragged session-query in as a hard dependency of listing: in a deployment without a query backend, `list_agents` rejects wholesale with `SUBAGENT_CONTROL_SESSION_QUERY_UNAVAILABLE`, even though enumeration needs nothing but header facts.
@@ -39,7 +37,7 @@ export type SubagentIdentityProjection =
   | { mode: 'one-shot'; label?: string; seq: number }
   | { mode: 'continuable'; label: string; seq: number }
 
-declare module '@deepseek-ai/dsh-session-projection/types' {
+declare module '@bosch/bh-session-projection/types' {
   interface SessionProjectionMap {
     subagent: SubagentIdentityProjection | null
   }
@@ -137,7 +135,7 @@ Consuming surfaces: diagnostic handling across wire, tool, and GUI **stays entir
 | Area | Files | Change |
 | --- | --- | --- |
 | subagent | projection.ts, projection-types.ts, index.ts | New `subagent` unit and its registration |
-| subagent | list-children.ts and its types | Rewritten as subagent-owned enumeration plus the projection-ladder four-state mapping; the session-query dependency, per-child event reads, and in-place classification machinery deleted; error code `SUBAGENT_CONTROL_SESSION_QUERY_UNAVAILABLE` replaced by `SUBAGENT_CONTROL_PROJECTIONS_UNAVAILABLE`; new optional dependency dsh-session-projection-cache (pure read acceleration, skipped when absent) |
+| subagent | list-children.ts and its types | Rewritten as subagent-owned enumeration plus the projection-ladder four-state mapping; the session-query dependency, per-child event reads, and in-place classification machinery deleted; error code `SUBAGENT_CONTROL_SESSION_QUERY_UNAVAILABLE` replaced by `SUBAGENT_CONTROL_PROJECTIONS_UNAVAILABLE`; new optional dependency bh-session-projection-cache (pure read acceleration, skipped when absent) |
 | host/apiproxy | api-proxy.ts | `hasSubagentDescriptor` deleted; the owner check looks only at `header.origin`; `subagents.history` shares `session.history`'s source — live from in-memory events and the registry's watermark snapshot, cold from `inspectServable` reading persistence directly with a detached fold, no query service, the SESSION_QUERY_* error arms retired with it |
 | tool | tool-subagent-control/list-agents.ts | Load requirement narrowed (`sessionQuery` dropped from inject); model-visible schema, description, and rendering unchanged |
 | wire/client | api/subagents.ts, runtime sessions/service.ts, GUI | Types, row shape, and diagnostic handling **unchanged**; api/subagents.ts only reworded the `history` JSDoc to the dual arm |

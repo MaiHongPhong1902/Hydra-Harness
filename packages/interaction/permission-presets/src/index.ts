@@ -7,24 +7,24 @@
  * `permissions` session projection; the write side ships as the
  * `/permission` command — both optional children over the same service.
  *
- * @module dsh-permission-presets
+ * @module bh-permission-presets
  */
 
-import { Context, Service } from '@deepseek-ai/cordis'
-import z from '@deepseek-ai/schemastery'
+import { Context, Service } from '@bosch/cordis'
+import z from '@bosch/schemastery'
 import { z as zod } from 'zod'
-import type { Session, SessionEvent } from '@deepseek-ai/dsh-session'
-import type { SandboxMode } from '@deepseek-ai/dsh-sandbox'
-import { SANDBOX_MODES, effectiveSandboxMode, setSandboxMode } from '@deepseek-ai/dsh-sandbox-policy'
+import type { Session, SessionEvent } from '@bosch/bh-session'
+import type { SandboxMode } from '@bosch/bh-sandbox'
+import { SANDBOX_MODES, effectiveSandboxMode, setSandboxMode } from '@bosch/bh-sandbox-policy'
 // Side-effect type import: declaration-merges `ctx.shell` (the capability fact
 // `sandboxMode` this service reads), without a value dependency on the seam.
-import type {} from '@deepseek-ai/dsh-shell'
-import type { ApprovalPolicy } from '@deepseek-ai/dsh-user-approval'
-import { APPROVAL_POLICIES, effectiveApprovalPolicy, setApprovalPolicy } from '@deepseek-ai/dsh-user-approval'
-import { installSettingsSection, settingsNamespace } from '@deepseek-ai/dsh-settings'
+import type {} from '@bosch/bh-shell'
+import type { ApprovalPolicy } from '@bosch/bh-user-approval'
+import { APPROVAL_POLICIES, effectiveApprovalPolicy, setApprovalPolicy } from '@bosch/bh-user-approval'
+import { installSettingsSection, settingsNamespace } from '@bosch/bh-settings'
 // Type-only: resolves ctx.sessionProjections / ctx.commands for the optional children.
-import type {} from '@deepseek-ai/dsh-session-projection'
-import type {} from '@deepseek-ai/dsh-commands'
+import type {} from '@bosch/bh-session-projection'
+import type {} from '@bosch/bh-commands'
 import type { PermissionSelect, PresetOption } from './types.ts'
 
 // The `permissions` projection-key declaration lives in src/types.ts (its one
@@ -33,13 +33,13 @@ import type { PermissionSelect, PresetOption } from './types.ts'
 // consuming the declarations still receive the SessionProjectionMap merge.
 export type * from './types.ts'
 
-declare module '@deepseek-ai/cordis' {
+declare module '@bosch/cordis' {
   interface Context {
     permissionPresets: PermissionPresetService
   }
 }
 
-declare module '@deepseek-ai/dsh-session/types' {
+declare module '@bosch/bh-session/types' {
   interface SessionEventMap {
     /**
      * Records the selected preset and whether it came from the session
@@ -103,7 +103,7 @@ export interface KnobState {
   approval: ApprovalPolicy | null
 }
 
-declare module '@deepseek-ai/dsh-session-projection/types' {
+declare module '@bosch/bh-session-projection/types' {
   interface SessionProjectionStateMap {
     permissions: KnobState
   }

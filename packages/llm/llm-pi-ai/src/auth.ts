@@ -5,20 +5,20 @@
  * name nothing from this library, so another adapter family can arrive with a
  * different auth model and share the same two seams.
  *
- * @module dsh-llm-pi-ai/auth
+ * @module bh-llm-pi-ai/auth
  */
 
 import { homedir } from 'node:os'
 import { access } from 'node:fs/promises'
 import { resolve as resolvePath } from 'node:path'
 import type { AuthContext, Credential, CredentialInfo, CredentialStore } from '@earendil-works/pi-ai'
-import type { Context } from '@deepseek-ai/cordis'
+import type { Context } from '@bosch/cordis'
 import {
   credentialKey, credentialKeyId, credentialKeyScope, credentialRef, isCredentialKeySegment, isCredentialRefName,
-} from '@deepseek-ai/dsh-credentials'
-import type { CredentialKey, CredentialProvider, CredentialRecord } from '@deepseek-ai/dsh-credentials'
-import { launchEnvironmentOf } from '@deepseek-ai/dsh-launch-environment'
-import { LlmError } from '@deepseek-ai/dsh-llm'
+} from '@bosch/bh-credentials'
+import type { CredentialKey, CredentialProvider, CredentialRecord } from '@bosch/bh-credentials'
+import { launchEnvironmentOf } from '@bosch/bh-launch-environment'
+import { LlmError } from '@bosch/bh-llm'
 
 /**
  * The record scope every credential this adapter family stores is written
@@ -90,7 +90,7 @@ function writableStore(ctx: Context): CredentialProvider {
   if (credentials === undefined) {
     throw new LlmError(
       'llm-pi-ai: this composition mounts no credentials service, so there is nowhere to store the'
-      + ' credential a sign-in produces; mount one (dsh-credentials-local) to sign in',
+      + ' credential a sign-in produces; mount one (bh-credentials-local) to sign in',
       'NO_CREDENTIAL_STORE',
     )
   }

@@ -95,11 +95,11 @@ async function main(args: string[]): Promise<number> {
   const mode = parseMode(args[0])
   const gates = gatesForMode(mode)
   const concurrencyDefault = defaultConcurrency(mode, gates.length)
-  const concurrencyOverride = process.env.DSH_GATE_CONCURRENCY
-  const maxConcurrency = concurrencyFromEnv('DSH_GATE_CONCURRENCY', concurrencyDefault.workers)
+  const concurrencyOverride = process.env.BH_GATE_CONCURRENCY
+  const maxConcurrency = concurrencyFromEnv('BH_GATE_CONCURRENCY', concurrencyDefault.workers)
   const concurrencySource = concurrencyOverride === undefined || concurrencyOverride === ''
     ? concurrencyDefault.source
-    : '$DSH_GATE_CONCURRENCY'
+    : '$BH_GATE_CONCURRENCY'
   const startedAt = performance.now()
   console.log(`run-gates: ${mode} running ${gates.length} gate(s) with ${maxConcurrency} worker(s) from ${concurrencySource}.`)
 
@@ -246,7 +246,7 @@ export function gatesForMode(selected: Mode): Gate[] {
         ...hygieneLeafGates({ artifactNeeds: ['build'] }),
         ...docSyncLeafGates({
           docTypecheckNeeds: ['build'],
-          docTypecheckEnv: { DSH_DOC_TYPECHECK_USE_BUILD_OUTPUT: '1' },
+          docTypecheckEnv: { BH_DOC_TYPECHECK_USE_BUILD_OUTPUT: '1' },
           docTypecheckScript: 'doc-typecheck:contracts-ready',
         }),
         pnpmScript('module-graph', 'verify-module-graph', { label: 'module graph' }),
@@ -267,7 +267,7 @@ function ciSharedStaticGates(): Gate[] {
   return [
     pnpmScript('runtime-closure', 'verify-runtime-closure', { label: 'runtime closure' }),
     pnpmScript('constraints', 'constraints'),
-    pnpmScript('dsh-package-licenses', 'verify-dsh-package-licenses', { label: 'DSH package licenses' }),
+    pnpmScript('bh-package-licenses', 'verify-bh-package-licenses', { label: 'BH package licenses' }),
     pnpmScript('package-invariants', 'verify-package-invariants', { label: 'package invariants' }),
     pnpmScript('cordis-config', 'verify-cordis-config', { label: 'Cordis config' }),
     pnpmScript('optional-dependency-imports', 'verify-optional-dependency-imports', {
@@ -309,7 +309,7 @@ function ciPrimaryGates(): Gate[] {
 }
 
 function nodeCompatGates(): Gate[] {
-  const typecheck = flagEnabled('DSH_NODE_COMPAT_SKIP_TYPECHECK')
+  const typecheck = flagEnabled('BH_NODE_COMPAT_SKIP_TYPECHECK')
     ? []
     : [pnpmScript('typecheck', 'typecheck')]
   if (runningNodeMajor() !== 22) {
@@ -340,11 +340,11 @@ function nodeCompatSmokeGates(options: { cliSmoke?: boolean } = {}): Gate[] {
       'run',
       'packages/session/session-persistence-jsonl/tests/zstd.compat.spec.ts',
     ], { label: 'JSONL Zstandard smoke' }),
-    pnpmExec('dsh-source-launch-smoke', [
+    pnpmExec('bh-source-launch-smoke', [
       'vitest',
       'run',
       'apps/cli/tests/source-launch.compat.spec.ts',
-    ], { label: 'dsh source-launch smoke' }),
+    ], { label: 'bh source-launch smoke' }),
     pnpmExec('vitest-jsdom-smoke', [
       'vitest',
       'run',
@@ -359,7 +359,7 @@ function nodeCompatSmokeGates(options: { cliSmoke?: boolean } = {}): Gate[] {
         'apps/cli/tests/lazy-search-startup.compat.spec.ts',
       ], {
         label: 'CLI lazy-search startup smoke',
-        env: { DSH_REQUIRE_BUILT_CLI_SMOKE: '1' },
+        env: { BH_REQUIRE_BUILT_CLI_SMOKE: '1' },
         needs: ['build:web'],
       }),
     )
@@ -385,7 +385,7 @@ function ciStaticGates(options: { ownsBuild: boolean }): Gate[] {
       ...options.ownsBuild
         ? {
           docTypecheckNeeds: ['build'],
-          docTypecheckEnv: { DSH_DOC_TYPECHECK_USE_BUILD_OUTPUT: '1' },
+          docTypecheckEnv: { BH_DOC_TYPECHECK_USE_BUILD_OUTPUT: '1' },
           docTypecheckScript: 'doc-typecheck:contracts-ready',
         }
         : {},
@@ -428,7 +428,7 @@ function ciConsumerGates(): Gate[] {
     webSnapshotGate(validatedBuild),
     pnpmScript('doc-typecheck', 'doc-typecheck:contracts-ready', {
       needs: validatedBuild,
-      env: { DSH_DOC_TYPECHECK_USE_BUILD_OUTPUT: '1' },
+      env: { BH_DOC_TYPECHECK_USE_BUILD_OUTPUT: '1' },
     }),
     pnpmScript('node-next-types', 'verify-node-next-types', {
       label: 'node-next types',
@@ -439,24 +439,24 @@ function ciConsumerGates(): Gate[] {
 }
 
 function webSnapshotGate(needs: string[]): Gate {
-  const workerRaw = process.env.DSH_WEB_SNAPSHOT_WORKERS
+  const workerRaw = process.env.BH_WEB_SNAPSHOT_WORKERS
   if (workerRaw !== undefined && workerRaw !== '') {
     const workers = Number.parseInt(workerRaw, 10)
     if (!Number.isSafeInteger(workers) || workers < 2 || String(workers) !== workerRaw) {
-      throw new Error(`run-gates: DSH_WEB_SNAPSHOT_WORKERS must be an integer greater than 1, got ${JSON.stringify(workerRaw)}.`)
+      throw new Error(`run-gates: BH_WEB_SNAPSHOT_WORKERS must be an integer greater than 1, got ${JSON.stringify(workerRaw)}.`)
     }
     return pnpmScript('web-snapshot', 'test:web:ci', {
       label: 'web browser snapshot',
-      displayCommand: `DSH_SNAPSHOT=replay DSH_WEB_SNAPSHOT_WORKERS=${workers} pnpm run test:web:ci`,
-      env: { DSH_SNAPSHOT: 'replay' },
+      displayCommand: `BH_SNAPSHOT=replay BH_WEB_SNAPSHOT_WORKERS=${workers} pnpm run test:web:ci`,
+      env: { BH_SNAPSHOT: 'replay' },
       needs,
       streamOutput: true,
     })
   }
   return pnpmScript('web-snapshot', 'test:web:built', {
     label: 'web browser snapshot',
-    displayCommand: 'DSH_SNAPSHOT=replay pnpm run test:web:built',
-    env: { DSH_SNAPSHOT: 'replay' },
+    displayCommand: 'BH_SNAPSHOT=replay pnpm run test:web:built',
+    env: { BH_SNAPSHOT: 'replay' },
     needs,
   })
 }
@@ -510,12 +510,12 @@ function typertContractsGate(): Gate {
 }
 
 function lintGate(options: { needs?: string[] } = {}): Gate {
-  const raw = process.env.DSH_OXLINT_THREADS
+  const raw = process.env.BH_OXLINT_THREADS
   const script = 'lint:contracts-ready'
   return pnpmScript('lint', script, {
     ...raw === undefined || raw === ''
       ? {}
-      : { displayCommand: `DSH_OXLINT_THREADS=${raw} pnpm run ${script}` },
+      : { displayCommand: `BH_OXLINT_THREADS=${raw} pnpm run ${script}` },
     ...options.needs === undefined ? {} : { needs: options.needs },
   })
 }
@@ -525,19 +525,19 @@ function lintGate(options: { needs?: string[] } = {}): Gate {
 // under v8 instrumentation while contributing nothing the thresholds need
 // (membership rules in scripts/coverage-exempt.ts).
 //
-// DSH_COVERAGE_MAX_WORKERS is the ordinary lane's worker budget, so the two
+// BH_COVERAGE_MAX_WORKERS is the ordinary lane's worker budget, so the two
 // parallel gates split it instead of each claiming it whole. When
-// DSH_COVERAGE_PARTITIONS is set, its single-worker processes replace the
+// BH_COVERAGE_PARTITIONS is set, its single-worker processes replace the
 // instrumented share while this budget still sizes the exempt gate. The exempt
 // gate's wall clock is dominated by its longest single file, so it takes the
 // small share. A budget of 1 gives each gate 1 worker; lanes that need a strict
-// total of one (the serial reference jobs) also set DSH_GATE_CONCURRENCY=1,
+// total of one (the serial reference jobs) also set BH_GATE_CONCURRENCY=1,
 // which keeps the gates from overlapping at all.
-// DSH_COVERAGE_TEST_TIMEOUT_MS raises Vitest's per-test and expect.poll
+// BH_COVERAGE_TEST_TIMEOUT_MS raises Vitest's per-test and expect.poll
 // defaults together for instrumented lanes whose scheduling overhead exceeds
 // those defaults. Explicit fixture timeouts remain authoritative.
 function coverageWorkerArgs(): { instrumented: string[]; exempt: string[] } {
-  const [flag] = positiveIntArg('DSH_COVERAGE_MAX_WORKERS', '--maxWorkers')
+  const [flag] = positiveIntArg('BH_COVERAGE_MAX_WORKERS', '--maxWorkers')
   if (flag === undefined) return { instrumented: [], exempt: [] }
   const total = Number.parseInt(flag.split('=')[1] ?? '', 10)
   const exempt = Math.max(1, Math.floor(total / 3))
@@ -588,7 +588,7 @@ function coverageGates(): Gate[] {
 // Callers wait either on `build` or on a validation gate that transitively owns that build.
 function snapshotGate(needs: string[] = ['build']): Gate {
   return pnpmScript('snapshot', 'test:snapshot', {
-    env: { DSH_EXAMPLE_MODE: 'lib' },
+    env: { BH_EXAMPLE_MODE: 'lib' },
     needs,
   })
 }
@@ -624,7 +624,7 @@ function hygieneLeafGates(options: { artifactNeeds?: string[] } = {}): Gate[] {
     pnpmScript('knip', 'knip'),
     pnpmScript('publint', 'publint', artifactOptions),
     pnpmScript('constraints', 'constraints'),
-    pnpmScript('dsh-package-licenses', 'verify-dsh-package-licenses', { label: 'DSH package licenses' }),
+    pnpmScript('bh-package-licenses', 'verify-bh-package-licenses', { label: 'BH package licenses' }),
     pnpmScript('package-invariants', 'verify-package-invariants', { label: 'package invariants' }),
     builtPackageInvariantsGate(options.artifactNeeds),
     pnpmScript('node-next-types', 'verify-node-next-types', {
@@ -660,7 +660,6 @@ function docSyncLeafGates(options: {
     pnpmScript('cordis-catalog', 'verify-cordis-catalog', { label: 'cordis catalog' }),
     pnpmScript('mermaid', 'verify-mermaid'),
     pnpmScript('scoped-events', 'verify-scoped-events', { label: 'scoped events' }),
-    pnpmScript('translation-pairing', 'verify-translation-pairing', { label: 'translation pairing' }),
     pnpmScript('markdown-wrap', 'verify-md-wrap', { label: 'markdown wrap' }),
     pnpmScript('client-catalog', 'verify-client-catalog', { label: 'client catalog' }),
     pnpmScript('export-jsdoc', 'verify-export-jsdoc', { label: 'export jsdoc' }),
@@ -676,7 +675,6 @@ function docSyncLeafGates(options: {
     pnpmScript('agent-note-format', 'verify-agent-note-format', { label: 'agent note format' }),
     pnpmScript('archived-agent-notes', 'verify-archived-agent-notes', { label: 'archived agent notes' }),
     pnpmScript('skill-invocation-metadata', 'verify-skill-invocation-metadata', { label: 'skill invocation metadata' }),
-    pnpmScript('translation-prompt', 'verify-translation-prompt', { label: 'translation prompt' }),
     pnpmScript('doc-budgets', 'verify-doc-budgets', { label: 'doc budgets' }),
     pnpmExec('docs-site-projection', ['vitest', 'run', 'scripts/project-doc-site.spec.ts', 'scripts/verify-doc-site-fragments.spec.ts'], {
       label: 'documentation site checks',
@@ -708,7 +706,7 @@ function builtBinSmokeGate(needs: string[] = ['build']): Gate {
   ], {
     label: 'built-bin smoke',
     needs,
-    env: { DSH_EXAMPLE_MODE: 'lib' },
+    env: { BH_EXAMPLE_MODE: 'lib' },
   })
 }
 
@@ -923,7 +921,7 @@ export function formatGateResultReason(result: GateResult): string {
 }
 
 function printResult(result: GateResult): void {
-  const verbose = process.env.DSH_GATE_VERBOSE === '1'
+  const verbose = process.env.BH_GATE_VERBOSE === '1'
   const seconds = (result.durationMs / 1000).toFixed(2)
   if (result.status === 'passed' && !verbose) {
     console.log(`run-gates: PASS ${result.gate.label} (${seconds}s)`)

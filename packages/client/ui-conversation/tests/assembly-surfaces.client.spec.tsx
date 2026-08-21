@@ -3,11 +3,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, waitFor, within } from '@testing-library/react'
 import { useState } from 'react'
-import { LocaleRuntime } from '@deepseek-ai/dsh-client-locale/client'
-import type { ISession, SessionId } from '@deepseek-ai/dsh-client-runtime/client'
-import type { PropsRenderSlots } from '@deepseek-ai/dsh-client-ui-slots'
-import { SlotTestRuntime, usePinnedBrowserLanguages, stubSettingsScope } from '@deepseek-ai/dsh-client-test-runtime'
-import { apply, inject, type EmptyWorkspaceOwnerProps } from '@deepseek-ai/dsh-client-ui-conversation/client'
+import { LocaleRuntime } from '@bosch/bh-client-locale/client'
+import type { ISession, SessionId } from '@bosch/bh-client-runtime/client'
+import type { PropsRenderSlots } from '@bosch/bh-client-ui-slots'
+import { SlotTestRuntime, usePinnedBrowserLanguages, stubSettingsScope } from '@bosch/bh-client-test-runtime'
+import { apply, inject, type EmptyWorkspaceOwnerProps } from '@bosch/bh-client-ui-conversation/client'
 
 usePinnedBrowserLanguages('zh-CN')
 

@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@deepseek-ai/dsh-tmux-context`.
- * @module @deepseek-ai/dsh-tmux-context/invariant
+ * Package-owned invariant companion for `@bosch/bh-tmux-context`.
+ * @module @bosch/bh-tmux-context/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@deepseek-ai/cordis'
-import type { InvariantInstaller } from '@deepseek-ai/dsh-invariants'
+import type { Context } from '@bosch/cordis'
+import type { InvariantInstaller } from '@bosch/bh-invariants'
 
-const PACKAGE_NAME = '@deepseek-ai/dsh-tmux-context'
+const PACKAGE_NAME = '@bosch/bh-tmux-context'
 
 /** Cordis companion plugin name. */
 export const name = 'tmux-context-invariant'

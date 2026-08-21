@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-20-composer-reference-decoration-keys.zh.md)
-
 ## Problem
 
 The composer backdrop renders the draft as an array of segments: plain strings, a leading claim-token mark, one element per structured reference, and one mark per plain-text reference range. React reconciles that array by key.

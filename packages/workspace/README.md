@@ -1,7 +1,5 @@
 # workspace/ — workspace entity family
 
-English | [中文](README.zh.md)
-
 This family owns persistent workspaces: user directories with titles and ordered session membership.
 
 | Package | Role | ctx key |

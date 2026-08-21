@@ -1,7 +1,5 @@
 # credentials/ — credentials and authorization
 
-English | [中文](README.zh.md)
-
 The credential capability family separates reference resolution from its provider, and separates both from obtaining a credential that has to be asked for:
 
 | Package | Role | ctx key |

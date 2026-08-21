@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-07-29-oxlint-linter.zh.md)
-
 ## Problem
 
 The repository needs type-aware TypeScript correctness rules, consistent formatting, and file-local duplicate-logic checks across its owned source. ESLint supplied those checks through a JavaScript parser, a project service, and multiple plugins, but a clean lint run spent about one minute on the local migration baseline and required an 8 GiB Node heap, CI result caches, and separately tuned ESLint concurrency.
@@ -18,7 +16,7 @@ The root [`.oxlintrc.json`](../../../../.oxlintrc.json) is the authoritative typ
 
 Oxlint's JavaScript-plugin compatibility layer runs `@stylistic/eslint-plugin` and `eslint-plugin-sonarjs` so the existing formatting and file-local duplicate-logic rules remain enforced. The compatibility layer reports `@stylistic` violations and executes their safe fixes; `max-len` remains validation-only. Owned-source suppressions use `oxlint-*` directives and the `typescript/*` namespace, and unused directives remain warnings; vendored sources keep their upstream directives because Oxlint excludes `vendor/**`.
 
-CI does not restore or save a lint-result cache. `DSH_OXLINT_THREADS` makes the shared runner pass the same bound to Oxlint's `--threads` option and the type-aware backend's `GOMAXPROCS` environment variable; ordinary local runs use both defaults. Pre-commit runs project-free Oxlint validation and safe fixes with one bounded retry, accepts selections containing only ignored files, and re-stages the result through lefthook. Public `lint` and CI retain the complete type-aware rules after preparing generated declarations.
+CI does not restore or save a lint-result cache. `BH_OXLINT_THREADS` makes the shared runner pass the same bound to Oxlint's `--threads` option and the type-aware backend's `GOMAXPROCS` environment variable; ordinary local runs use both defaults. Pre-commit runs project-free Oxlint validation and safe fixes with one bounded retry, accepts selections containing only ignored files, and re-stages the result through lefthook. Public `lint` and CI retain the complete type-aware rules after preparing generated declarations.
 
 ## Verification
 

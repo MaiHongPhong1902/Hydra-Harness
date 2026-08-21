@@ -8,17 +8,17 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@deepseek-ai/cordis'
-import SessionStore from '@deepseek-ai/dsh-session'
-import AgentRegistry from '@deepseek-ai/dsh-agent'
-import type { Agent, AgentHandle, CreateAgentOptions } from '@deepseek-ai/dsh-agent'
-import { createUserMessage } from '@deepseek-ai/dsh-llm'
-import SessionTitleService from '@deepseek-ai/dsh-session-title'
-import UserQuestionService from '@deepseek-ai/dsh-user-questions'
-import type { Session, SessionId } from '@deepseek-ai/dsh-session'
-import type { RpcRequest } from '@deepseek-ai/dsh-host-apiproxy/api/rpc'
-import { RpcId } from '@deepseek-ai/dsh-host-apiproxy/api/rpc'
-import { createApiProxy } from '@deepseek-ai/dsh-host-apiproxy'
+import { Context } from '@bosch/cordis'
+import SessionStore from '@bosch/bh-session'
+import AgentRegistry from '@bosch/bh-agent'
+import type { Agent, AgentHandle, CreateAgentOptions } from '@bosch/bh-agent'
+import { createUserMessage } from '@bosch/bh-llm'
+import SessionTitleService from '@bosch/bh-session-title'
+import UserQuestionService from '@bosch/bh-user-questions'
+import type { Session, SessionId } from '@bosch/bh-session'
+import type { RpcRequest } from '@bosch/bh-host-apiproxy/api/rpc'
+import { RpcId } from '@bosch/bh-host-apiproxy/api/rpc'
+import { createApiProxy } from '@bosch/bh-host-apiproxy'
 
 const sid = (id: string): SessionId => id as SessionId
 

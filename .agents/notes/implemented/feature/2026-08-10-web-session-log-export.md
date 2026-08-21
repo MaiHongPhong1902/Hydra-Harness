@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-10-web-session-log-export.zh.md)
-
 ## Problem
 
 The Trajectory view had no way to hand a debugging artifact to a human: the raw session log lived on disk and in the host, the client history face served folded projections (not raw entries), and a session with subagents spans many independent session logs. A bug report needs the complete raw log of the whole tree, in a shape that survives being emailed around.
@@ -24,7 +22,7 @@ The Trajectory view had no way to hand a debugging artifact to a human: the raw 
 
 ## Consequences
 
-- Export fidelity: immediately before reading each live root or descendant, the exporter crosses the authoritative `SessionStore.flush` durability barrier; every exported file is byte-identical to that resulting durable artifact. A live session may append again after its read, so the archive is a per-session read-boundary snapshot rather than one atomic tree snapshot. The archive name is `dsh-session-<sanitized-id>.zip` and archive paths sanitize ids before they can shape entries.
+- Export fidelity: immediately before reading each live root or descendant, the exporter crosses the authoritative `SessionStore.flush` durability barrier; every exported file is byte-identical to that resulting durable artifact. A live session may append again after its read, so the archive is a per-session read-boundary snapshot rather than one atomic tree snapshot. The archive name is `bh-session-<sanitized-id>.zip` and archive paths sanitize ids before they can shape entries.
 - `supportsRawArtifacts` explicitly separates backend capability from session absence: unsupported backends such as SQLite report `false` and the concrete `readRaw` default rejects, while the JSONL override reports `true`, owns physical decoding, and reserves `undefined` for an absent artifact. `ApiProxy.downloads.sessionLog` adds one host-only member to the contract plus a host-side query schema and a GET branch in the fetch handler — no RPC map row, envelope schema, or client `IApiClient` surface.
 - Fixture mode (no host) answers 404 for the export, which the browser reports as a failed download; the navigation-panes golden snapshot includes the 导出 button.
 - Deferred: transcript.md and a report/feedback bundle remain future work; the byte-faithful, manifest-free shape keeps the v2 bundle extension cheap.

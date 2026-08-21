@@ -2,15 +2,13 @@
 
 Status: implemented
 
-English | [中文](2026-07-19-windows-atomic-write-dacl-preservation.zh.md)
-
 ## Problem
 
 Atomic writes protect POSIX staging directories with `0o700` and temp files with `0o600`, but Windows mode bits expose only a synthetic read-only view of the actual DACL. Creating staging under the target's parent and relying on inheritance is sufficient for a new file, but not for replacing an existing file whose explicit or protected DACL is narrower than its parent: content is written under the broader parent DACL, and rename carries that staging descriptor onto the replacement.
 
 ## Decision
 
-`dsh-fs-local` reads an existing target's DACL with `GetFileSecurityW`, applies it to the empty temp file with inheritance protected before writing content, and publishes the closed temp with `ReplaceFileW`. The protected staging descriptor prevents the temp directory's inherited entries from broadening access; `ReplaceFileW` preserves the original target access policy and other replacement metadata. Its ACL merge may reserialize auto-inheritance state or duplicate equivalent ACEs, so self-relative descriptor buffers are not a stable equality contract. New Windows files have no prior descriptor to preserve and continue to inherit the destination directory's DACL; their staging directory therefore lives beside the target. POSIX keeps the owner-only staging modes and preserves an existing target mode.
+`bh-fs-local` reads an existing target's DACL with `GetFileSecurityW`, applies it to the empty temp file with inheritance protected before writing content, and publishes the closed temp with `ReplaceFileW`. The protected staging descriptor prevents the temp directory's inherited entries from broadening access; `ReplaceFileW` preserves the original target access policy and other replacement metadata. Its ACL merge may reserialize auto-inheritance state or duplicate equivalent ACEs, so self-relative descriptor buffers are not a stable equality contract. New Windows files have no prior descriptor to preserve and continue to inherit the destination directory's DACL; their staging directory therefore lives beside the target. POSIX keeps the owner-only staging modes and preserves an existing target mode.
 
 Native Windows coverage protects a target DACL, inspects the written staging file, and compares the final replacement's ordered, de-duplicated ACE policy. Host-independent binding tests cover Win32 error translation and every native call boundary. Mode-bit assertions remain POSIX-only; new-file DACL inheritance is an operating-system contract rather than a machine-specific account allowlist.
 

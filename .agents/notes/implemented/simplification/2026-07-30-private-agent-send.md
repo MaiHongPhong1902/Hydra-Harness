@@ -2,15 +2,13 @@
 
 Status: implemented
 
-English | [中文](2026-07-30-private-agent-send.zh.md)
-
 ## Problem
 
 The public `Agent.send()` method exposed the concrete loop's routing matrix even though production callers use only the semantic `followup()`, `steer()`, and `inject()` operations. Its fourth combination, `next-turn` with `wakeup: false`, had no consumer beyond tests. Keeping that latent capability public also required alternate `Agent` implementations and test fakes to accept implementation-level routing policy.
 
 ## Decision
 
-`Agent` exposes `followup()`, `steer()`, and `inject()` as its complete delivery contract. `ReactLoopAgent` keeps a private `send()` helper that shares routing mechanics among those methods, while `SendTarget` and `SendOptions` are no longer exported from `dsh-agent`.
+`Agent` exposes `followup()`, `steer()`, and `inject()` as its complete delivery contract. `ReactLoopAgent` keeps a private `send()` helper that shares routing mechanics among those methods, while `SendTarget` and `SendOptions` are no longer exported from `bh-agent`.
 
 The public interface cannot queue a turn without waking the driver. A follow-up always requests execution, steering requests the nearest step, and injection supplies model-facing context without requesting execution. This partially supersedes the public-surface portion of the [unified delivery decision](../architecture/2026-07-22-unified-send-and-coalesced-user-messages.md) while retaining its internal routing and unified `user/message` representation.
 

@@ -15,12 +15,12 @@ import {
 import { clientBundle } from '../packages/client/tsdown.client.ts'
 
 const root = resolve(import.meta.dirname, '..')
-const PROBE_NAME = 'DSH_CLIENT_BUILD_TEST'
+const PROBE_NAME = 'BH_CLIENT_BUILD_TEST'
 const COMMIT_HASH = '0123456789abcdef0123456789abcdef01234567'
 const PROBE_KEY = `process.env.${PROBE_NAME}`
 const originalProbe = process.env[PROBE_NAME]
 const roots: string[] = []
-const dshBuildWorkflows = [
+const bhBuildWorkflows = [
   'build-exe-for-python-sdk.yml',
   'ci.yml',
   'e2b-e2e.yml',
@@ -43,7 +43,7 @@ function write(path: string, content: string): void {
 }
 
 function buildFixture(environment: Record<string, string>): string {
-  const fixtureRoot = mkdtempSync(join(tmpdir(), 'dsh-client-build-'))
+  const fixtureRoot = mkdtempSync(join(tmpdir(), 'bh-client-build-'))
   roots.push(fixtureRoot)
   write(join(fixtureRoot, 'apps/web/dist/index.html'), '<main></main>')
   write(join(fixtureRoot, 'packages/client/example/lib/client.js'), 'module.exports = {}\n')
@@ -54,77 +54,77 @@ function buildFixture(environment: Record<string, string>): string {
 describe('client build environment', () => {
   it('requires an exact public environment for a named artifact profile', () => {
     const expected = {
-      DSH_CLIENT_BUILD_PROFILE: 'official',
-      DSH_CLIENT_COMMIT_HASH: COMMIT_HASH.slice(0, 7),
-      DSH_CLIENT_TITLE: 'DeepSeek Harness',
+      BH_CLIENT_BUILD_PROFILE: 'official',
+      BH_CLIENT_COMMIT_HASH: COMMIT_HASH.slice(0, 7),
+      BH_CLIENT_TITLE: 'Bosch Harness',
     } as const
 
     expect(() => { assertClientBuildEnvironment({ PATH: '/bin', ...expected }, expected) }).not.toThrow()
-    expect(() => { assertClientBuildEnvironment({}, expected) }).toThrow(/DSH_CLIENT_TITLE/)
-    expect(() => { assertClientBuildEnvironment({ DSH_CLIENT_TITLE: 'Other' }, expected) }).toThrow(/DSH_CLIENT_TITLE/)
+    expect(() => { assertClientBuildEnvironment({}, expected) }).toThrow(/BH_CLIENT_TITLE/)
+    expect(() => { assertClientBuildEnvironment({ BH_CLIENT_TITLE: 'Other' }, expected) }).toThrow(/BH_CLIENT_TITLE/)
     expect(() => {
-      assertClientBuildEnvironment({ ...expected, DSH_CLIENT_UNDECLARED: 'value' }, expected)
-    }).toThrow(/DSH_CLIENT_UNDECLARED/)
+      assertClientBuildEnvironment({ ...expected, BH_CLIENT_UNDECLARED: 'value' }, expected)
+    }).toThrow(/BH_CLIENT_UNDECLARED/)
   })
 
   it('inherits public values by default and isolates an explicit official profile', () => {
     const parent = {
       PATH: '/bin',
-      DSH_BUILD_CLIENT_PROFILE: 'official',
-      DSH_CLIENT_BUILD_PROFILE: 'local',
-      DSH_CLIENT_COMMIT_HASH: COMMIT_HASH.slice(0, 7),
-      DSH_CLIENT_TITLE: 'Local title',
-      DSH_CLIENT_EXTRA: 'local-extra',
+      BH_BUILD_CLIENT_PROFILE: 'official',
+      BH_CLIENT_BUILD_PROFILE: 'local',
+      BH_CLIENT_COMMIT_HASH: COMMIT_HASH.slice(0, 7),
+      BH_CLIENT_TITLE: 'Local title',
+      BH_CLIENT_EXTRA: 'local-extra',
     }
 
-    expect(resolveClientBuildEnvironment({ DSH_CLIENT_TITLE: 'Local title' })).toEqual({
-      DSH_CLIENT_TITLE: 'Local title',
+    expect(resolveClientBuildEnvironment({ BH_CLIENT_TITLE: 'Local title' })).toEqual({
+      BH_CLIENT_TITLE: 'Local title',
     })
     expect(resolveClientBuildEnvironment(parent)).toEqual({
-      DSH_CLIENT_BUILD_PROFILE: 'official',
-      DSH_CLIENT_COMMIT_HASH: COMMIT_HASH.slice(0, 7),
-      DSH_CLIENT_TITLE: 'DeepSeek Harness',
+      BH_CLIENT_BUILD_PROFILE: 'official',
+      BH_CLIENT_COMMIT_HASH: COMMIT_HASH.slice(0, 7),
+      BH_CLIENT_TITLE: 'Bosch Harness',
     })
     expect(() => {
-      resolveClientBuildEnvironment({ DSH_BUILD_CLIENT_PROFILE: 'official' })
-    }).toThrow(/DSH_CLIENT_COMMIT_HASH/)
+      resolveClientBuildEnvironment({ BH_BUILD_CLIENT_PROFILE: 'official' })
+    }).toThrow(/BH_CLIENT_COMMIT_HASH/)
     expect(() => { resolveClientBuildEnvironment({}, 'unknown') }).toThrow(/unknown client build profile/)
     expect(clientBuildProcessEnvironment(parent, {
-      DSH_CLIENT_BUILD_PROFILE: 'official',
-      DSH_CLIENT_COMMIT_HASH: COMMIT_HASH.slice(0, 7),
-      DSH_CLIENT_TITLE: 'DeepSeek Harness',
+      BH_CLIENT_BUILD_PROFILE: 'official',
+      BH_CLIENT_COMMIT_HASH: COMMIT_HASH.slice(0, 7),
+      BH_CLIENT_TITLE: 'Bosch Harness',
     })).toEqual({
       PATH: '/bin',
-      DSH_CLIENT_BUILD_PROFILE: 'official',
-      DSH_CLIENT_COMMIT_HASH: COMMIT_HASH.slice(0, 7),
-      DSH_CLIENT_TITLE: 'DeepSeek Harness',
+      BH_CLIENT_BUILD_PROFILE: 'official',
+      BH_CLIENT_COMMIT_HASH: COMMIT_HASH.slice(0, 7),
+      BH_CLIENT_TITLE: 'Bosch Harness',
     })
-    expect(repositoryCommitHash('/unused', { DSH_CLIENT_COMMIT_HASH: COMMIT_HASH })).toBe(COMMIT_HASH.slice(0, 7))
+    expect(repositoryCommitHash('/unused', { BH_CLIENT_COMMIT_HASH: COMMIT_HASH })).toBe(COMMIT_HASH.slice(0, 7))
   })
 
   it('defines only public client values over a non-enumerable fallback', () => {
     expect(clientBuildEnvironmentDefines({
       PATH: '/bin',
-      DSH_TEST_API_KEY: 'secret',
-      DSH_CLIENT_VARIANT: 'quoted "value"',
-      DSH_CLIENT_EMPTY: '',
-      DSH_CLIENT_UNSET: undefined,
+      BH_TEST_API_KEY: 'secret',
+      BH_CLIENT_VARIANT: 'quoted "value"',
+      BH_CLIENT_EMPTY: '',
+      BH_CLIENT_UNSET: undefined,
     })).toEqual({
       'process.env': '{}',
-      'process.env.DSH_CLIENT_EMPTY': '""',
-      'process.env.DSH_CLIENT_VARIANT': '"quoted \\"value\\""',
+      'process.env.BH_CLIENT_EMPTY': '""',
+      'process.env.BH_CLIENT_VARIANT': '"quoted \\"value\\""',
     })
   })
 
   it('feeds the same build-process value to dynamic tsdown bundles and the Vite shell', async () => {
     process.env[PROBE_NAME] = 'shared-value'
 
-    const configs = clientBundle('@deepseek-ai/dsh-client-ui-sidebar', [
+    const configs = clientBundle('@bosch/bh-client-ui-sidebar', [
       'lib/types/index.js',
       'lib/types/invariant.js',
-    ])({ env: { DSH_BUILD_FACE: 'client' } })
+    ])({ env: { BH_BUILD_FACE: 'client' } })
     if (!Array.isArray(configs)) throw new TypeError('client bundle config must be an array')
-    const dynamic = configs.find(config => config.name === '@deepseek-ai/dsh-client-ui-sidebar/client')
+    const dynamic = configs.find(config => config.name === '@bosch/bh-client-ui-sidebar/client')
     expect(dynamic?.define).toMatchObject({
       'process.env': '{}',
       [PROBE_KEY]: '"shared-value"',
@@ -148,15 +148,15 @@ describe('client build environment', () => {
 
   it('binds the recorded environment to a complete set of client artifacts', () => {
     const officialEnvironment = {
-      DSH_CLIENT_BUILD_PROFILE: 'official',
-      DSH_CLIENT_COMMIT_HASH: COMMIT_HASH.slice(0, 7),
-      DSH_CLIENT_TITLE: 'DeepSeek Harness',
+      BH_CLIENT_BUILD_PROFILE: 'official',
+      BH_CLIENT_COMMIT_HASH: COMMIT_HASH.slice(0, 7),
+      BH_CLIENT_TITLE: 'Bosch Harness',
     }
     const official = buildFixture(officialEnvironment)
     const defaultBuild = buildFixture({})
 
     expect(readClientBuildRecord(official, officialEnvironment).environment).toEqual(officialEnvironment)
-    expect(() => { readClientBuildRecord(defaultBuild, officialEnvironment) }).toThrow(/DSH_CLIENT_/)
+    expect(() => { readClientBuildRecord(defaultBuild, officialEnvironment) }).toThrow(/BH_CLIENT_/)
     expect(() => { readClientBuildRecord(join(defaultBuild, 'missing')) }).toThrow(/record.*missing/)
 
     write(join(official, 'apps/web/dist/index.html'), '<main>changed</main>')
@@ -164,13 +164,13 @@ describe('client build environment', () => {
   })
 
   it('keeps public client values out of workflow-wide environments', () => {
-    for (const name of dshBuildWorkflows) {
+    for (const name of bhBuildWorkflows) {
       const path = `.github/workflows/${name}`
       const document: unknown = yaml.load(readFileSync(resolve(root, path), 'utf8'))
       if (typeof document !== 'object' || document === null || Array.isArray(document)) {
         throw new TypeError(`${path} must contain a workflow object`)
       }
-      expect(JSON.stringify(document), path).not.toContain('DSH_CLIENT_')
+      expect(JSON.stringify(document), path).not.toContain('BH_CLIENT_')
     }
   })
 })

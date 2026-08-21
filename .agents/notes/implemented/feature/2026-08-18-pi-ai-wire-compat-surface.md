@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-18-pi-ai-wire-compat-surface.zh.md)
-
 ## Problem
 
 pi-ai shapes every request from the provider id and the baseURL — which role carries the system prompt, which field caps output, whether `store` and `stream_options` go out, whether tool definitions carry `strict`. For an endpoint its detection does not recognize, the answer is "this is OpenAI itself": `detectCompat` returns `supportsDeveloperRole: true`, `maxTokensField: "max_completion_tokens"`, `supportsStore: true`. A hand-declared route is by construction an endpoint pi-ai does not ship, so every such route received OpenAI's own request shape.
@@ -48,5 +46,5 @@ An external edit to the settings file is the one path that cannot report: the pr
 - A pi-ai upgrade that adds a compat field fails the build until someone classifies it, which is how `chatTemplateKwargs` and the `chat-template` formats stopped being a standing exception.
 - Unknown compat keys join every other configuration error's failure model. The improvement over the previous silent drop is bounded by the settings seam: an external file edit still keeps its last good value and warns, so the operator's signal is a restart rather than the write.
 - **Deferred, not closed:** a route that repoints `api` and configures no compat at all keeps the installed entry's `compat` through the model literal's `...base` spread, in the *other* protocol's shape. Fields several compat types share (`supportsLongCacheRetention`, `sendSessionAffinityHeaders`) therefore cross protocols. It predates this surface — the early return it rides existed before — and is left for its own change.
-- **Deferred, not closed:** `publish()` reports a rejected stored section only through `ctx.logger.warn`, with no user-visible channel. It affects every settings namespace and is owned by `dsh-settings`.
+- **Deferred, not closed:** `publish()` reports a rejected stored section only through `ctx.logger.warn`, with no user-visible channel. It affects every settings namespace and is owned by `bh-settings`.
 - [[2026-08-08-pi-ai-per-model-reasoning-declarations]] is partially superseded: its compat-scope statements are restated here, while its `reasoningEfforts` shape, the alternatives that shape beat, and `modelOverrides` remain the current authority.

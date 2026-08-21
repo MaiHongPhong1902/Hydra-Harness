@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-15-product-subagent-noninteractive-permissions.zh.md)
-
 ## Problem
 
 The [Claude Code and Codex product providers](2026-08-04-claude-code-and-codex-subagent-backends.md) run without a human interface. Native permission prompts, user dialogs, or MCP elicitation therefore cannot wait for a person, but relying on either product's ambient default can still select an interactive mode. A deployment also needs to choose broader native modes without giving the parent model or one tool call a way to raise its own authority.
@@ -57,9 +55,9 @@ The foreground consumer presents the stop-reason headline, then the optional dia
 | Profile permission choice | Each product Provider Config | Invalid, interactive, or unknown values fail during configuration. |
 | Permission and sandbox semantics | Claude Code Agent SDK or Codex app-server | Each Provider passes one native mode and does not mirror product policy. |
 | Interaction decisions and safe diagnostic | One product run | Concurrent runs keep independent mode, protocol, and diagnostic state. |
-| Diagnostic type and byte limit | `dsh-subagent` | Consumers receive a bounded optional field separate from assistant output. |
-| Foreground and Job presentation | `dsh-tool-subagent` and the generic Job runtime | Scheduling choice does not change the underlying failure fact. |
-| Process cancellation and quiescence | Product Provider and `dsh-subprocess` | Result settlement still precedes idempotent whole-tree disposal. |
+| Diagnostic type and byte limit | `bh-subagent` | Consumers receive a bounded optional field separate from assistant output. |
+| Foreground and Job presentation | `bh-tool-subagent` and the generic Job runtime | Scheduling choice does not change the underlying failure fact. |
+| Process cancellation and quiescence | Product Provider and `bh-subprocess` | Result settlement still precedes idempotent whole-tree disposal. |
 
 ## Verification
 

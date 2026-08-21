@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-06-20-remove-agent-boundary-mirror-events.zh.md)
-
 ## Problem
 
 The loop records the canonical transcript in `SessionEvent` and also emitted a parallel set of live `agent/*` boundary mirror events: `agent/turn-start`, `agent/turn-end`, `agent/step-start`, and `agent/step-end`. The mirrors made consumers choose between two sources of truth for the SAME durable fact. ACP already chose the session log for prompt settlement and committed output because it is the one durable, replayable record; consuming a live mirror would require reconciling its timing with the boundary already stored in that log. The stdio UI was the only production consumer that still rendered turn boundaries from the mirror events; it already rendered tool calls and results from `session/event`.
@@ -14,9 +12,9 @@ This duplication is not free. Every lifecycle change had to update the session e
 
 Make `session/event` the single live boundary/transcript stream. Consumers that render turns, tool calls, tool results, assistant messages, and durable boundaries subscribe to `session/event` and derive their UI from the same event vocabulary persistence uses.
 
-The four durable-boundary mirrors — `agent/turn-start`, `agent/turn-end`, `agent/step-start`, `agent/step-end` — are removed from the agent event taxonomy. A UI that wants the agent handle at a boundary retains the live target object from `agent/created`/`agent/disposed` and compares its session directly; `dsh-ui-stdio` uses this to label the app-owned agent's `[main turn N]` header while other sessions render their durable id. The canonical record remains the event-sourced session log.
+The four durable-boundary mirrors — `agent/turn-start`, `agent/turn-end`, `agent/step-start`, `agent/step-end` — are removed from the agent event taxonomy. A UI that wants the agent handle at a boundary retains the live target object from `agent/created`/`agent/disposed` and compares its session directly; `bh-ui-stdio` uses this to label the app-owned agent's `[main turn N]` header while other sessions render their durable id. The canonical record remains the event-sourced session log.
 
-The step mirrors (which had no consumer at all) were removed first, in [the event-domain-semantics Agent Note](../architecture/2026-06-30-event-domain-semantics.md); that Agent Note KEPT the turn mirrors on the stated justification that the stdio UI needed the `Agent` handle at the turn boundary. This decision finishes the job: `dsh-ui-stdio` is a disposable test REPL whose rendering can change freely, so "ui-stdio needs it" is not a reason to keep a mirror — it reads `session/event` and retains only its live target object.
+The step mirrors (which had no consumer at all) were removed first, in [the event-domain-semantics Agent Note](../architecture/2026-06-30-event-domain-semantics.md); that Agent Note KEPT the turn mirrors on the stated justification that the stdio UI needed the `Agent` handle at the turn boundary. This decision finishes the job: `bh-ui-stdio` is a disposable test REPL whose rendering can change freely, so "ui-stdio needs it" is not a reason to keep a mirror — it reads `session/event` and retains only its live target object.
 
 ## Scope: what is and isn't removed
 
@@ -31,7 +29,7 @@ RETAINED — NOT durable-boundary mirrors, so out of scope for this decision:
 ## Alternatives considered
 
 - **Bundling `agent/steering` into the removal** — the original proposal's shape; narrowed out as scope creep: it mirrors the durable `steering/message` control record, not a boundary, and was removed by [its own later decision](../../archived/simplification/2026-07-04-remove-agent-steering-mirror.md) (as was `agent/stream-chunk`, by [the stream-chunk-mirror Agent Note](../../archived/simplification/2026-07-02-remove-stream-chunk-mirror.md)).
-- **Keeping the turn mirrors for the stdio UI** — [the event-domain-semantics Agent Note](../architecture/2026-06-30-event-domain-semantics.md)'s original stance; rejected here because `dsh-ui-stdio` is a disposable test REPL, not a load-bearing consumer, and it renders boundaries from `session/event` plus its live target object instead.
+- **Keeping the turn mirrors for the stdio UI** — [the event-domain-semantics Agent Note](../architecture/2026-06-30-event-domain-semantics.md)'s original stance; rejected here because `bh-ui-stdio` is a disposable test REPL, not a load-bearing consumer, and it renders boundaries from `session/event` plus its live target object instead.
 
 ## Consequences
 

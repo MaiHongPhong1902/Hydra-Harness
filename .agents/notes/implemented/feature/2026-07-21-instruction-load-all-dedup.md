@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-07-21-instruction-load-all-dedup.zh.md)
-
 ## Problem
 
 The [agent-instructions plugin](2026-06-24-workspace-context.md) resolved one winning file per candidate list per directory: the first existing name in `instructionFileCandidates` won the base slot, and the [local overlay](2026-07-21-local-instruction-overlay.md) added one more winner. But `AGENTS.md` and `CLAUDE.md` routinely coexist in the same directory. In most repositories one is a symlink to the other, so they carry identical content; in repositories mid-migration they are two distinct real files that have drifted apart. First-wins silently dropped the non-winning committed file, so a directory that legitimately carried two distinct instruction files only ever surfaced one — and which one depended on candidate order, not on content. The request was to read both and deduplicate only when they are effectively the same file.
@@ -34,4 +32,4 @@ Dedup is enforced during reconciliation, not only at baseline composition. Each 
 
 ## Consequences
 
-A directory with two distinct real instruction files now surfaces both; a directory whose second file merely mirrors the first still renders once, and the ubiquitous symlink case is unchanged. The visible behavior difference is confined to transition repositories that carry two distinct real files. The scope-key shape changed from a tier sentinel to a per-candidate key and `previousPath` disappeared from the durable change metadata; `dsh-session` keeps no compatibility promise for older sessions, so both are free changes. The version cache row grew a `trimmedDigest` field, and reconciliation now compares trimmed content per directory, so an unchanged file can be removed by a sibling's convergence — a transition the [state model](2026-06-24-workspace-context.md) previously could not produce.
+A directory with two distinct real instruction files now surfaces both; a directory whose second file merely mirrors the first still renders once, and the ubiquitous symlink case is unchanged. The visible behavior difference is confined to transition repositories that carry two distinct real files. The scope-key shape changed from a tier sentinel to a per-candidate key and `previousPath` disappeared from the durable change metadata; `bh-session` keeps no compatibility promise for older sessions, so both are free changes. The version cache row grew a `trimmedDigest` field, and reconciliation now compares trimmed content per directory, so an unchanged file can be removed by a sibling's convergence — a transition the [state model](2026-06-24-workspace-context.md) previously could not produce.

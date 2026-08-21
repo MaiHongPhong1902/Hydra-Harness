@@ -1,17 +1,17 @@
 # Keyless replay keeps the LSP composition intact and replaces only the model adapter.
 - id: base
-  name: '@deepseek-ai/cordis-plugin-include'
+  name: '@bosch/cordis-plugin-include'
   config:
     path: ../cordis.yml
     patches:
       - id: llm-deepseek
-        name: '@deepseek-ai/dsh-llm-deepseek'
+        name: '@bosch/bh-llm-deepseek'
         disabled: true
       - insert:
           - id: lsp
-            name: '@deepseek-ai/dsh-lsp'
+            name: '@bosch/bh-lsp'
           - id: lsp-stdio
-            name: '@deepseek-ai/dsh-lsp-stdio'
+            name: '@bosch/bh-lsp-stdio'
             config:
               servers:
                 fixture:
@@ -20,10 +20,10 @@
                   extensionToLanguage:
                     '.ts': typescript
           - id: timeout-policy
-            name: '@deepseek-ai/dsh-tool-call-timeout-policy'
+            name: '@bosch/bh-tool-call-timeout-policy'
           - id: tool-lsp
-            name: '@deepseek-ai/dsh-tool-lsp'
+            name: '@bosch/bh-tool-lsp'
             config:
               maxLocations: 1
           - id: llm-replay
-            name: '@deepseek-ai/dsh-llm-replay'
+            name: '@bosch/bh-llm-replay'

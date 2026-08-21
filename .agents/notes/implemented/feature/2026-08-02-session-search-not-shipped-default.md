@@ -2,15 +2,13 @@
 
 Status: implemented
 
-English | [中文](2026-08-02-session-search-not-shipped-default.zh.md)
-
 ## Problem
 
 The [shipped-roster decision](2026-07-31-even-out-shipped-tool-rosters.md) made `tool-session-query` a default row of the shared [`cordis.patch.yml`](../../../../packages/bundle/base/cordis.patch.yml), so the shipped TUI and Web surfaces put the five session-search tools (`session_search`, `session_event_search`, `session_trace`, `session_event_trace`, `session_event_read`) in front of the model. That contradicted the [model-facing session-query-tools decision](2026-07-24-model-facing-session-query-tools.md), whose opt-in stance the package README recorded as "shipped host compositions do not mount it by default". The default also shipped a prompt section teaching a prior-work search workflow that no user had asked for.
 
 ## Decision
 
-The shipped TUI, Web, and headless surfaces do not mount `@deepseek-ai/dsh-tool-session-query`, and no shipped agent preset carries it. The consumer stays opt-in exactly as the model-facing-session-query-tools note describes: the ACP example's [`session-query.cordis.yml`](../../../../examples/acp-agent/session-query.cordis.yml) and its snapshot counterpart remain the mounted reference, and a custom composition can mount the package with the timeout and spill policies.
+The shipped TUI, Web, and headless surfaces do not mount `@bosch/bh-tool-session-query`, and no shipped agent preset carries it. The consumer stays opt-in exactly as the model-facing-session-query-tools note describes: the ACP example's [`session-query.cordis.yml`](../../../../examples/acp-agent/session-query.cordis.yml) and its snapshot counterpart remain the mounted reference, and a custom composition can mount the package with the timeout and spill policies.
 
 The `ctx.sessionQuery` service itself stays mounted. `session-query-sqlite` remains a base row — the TUI's `session-reference` consumes it for `/resume` — with its full-text index off by default (`openAt: never`; the [content-search opt-in decision](../architecture/2026-08-13-session-content-search-opt-in.md)), and the Web overlay keeps its in-memory values for deployments that enable content search. Only the model-facing consumer is removed.
 

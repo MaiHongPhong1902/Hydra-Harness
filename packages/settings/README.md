@@ -1,7 +1,5 @@
 # settings/ — user-settings capability family
 
-English | [中文](README.zh.md)
-
 This family resolves user-editable configuration through registered namespaces and swappable storage providers.
 
 | Package | Role | ctx key |

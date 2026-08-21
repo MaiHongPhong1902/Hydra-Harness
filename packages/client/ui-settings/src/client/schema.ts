@@ -1,7 +1,7 @@
 /** Synchronous schema introspection and immutable settings-draft edits. */
-import { Service } from '@deepseek-ai/cordis'
-import type { Context } from '@deepseek-ai/cordis'
-import Schema from '@deepseek-ai/schemastery'
+import { Service } from '@bosch/cordis'
+import type { Context } from '@bosch/cordis'
+import Schema from '@bosch/schemastery'
 
 /** Live schemastery node used for settings introspection and validation. */
 export type SchemaNode = Schema
@@ -150,7 +150,7 @@ export class SettingsSchemaService extends Service {
   }
 }
 
-declare module '@deepseek-ai/cordis' {
+declare module '@bosch/cordis' {
   interface Context {
     /** Settings-owned synchronous schema and immutable path operations. */
     settingsSchema: SettingsSchemaService

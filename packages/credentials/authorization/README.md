@@ -1,6 +1,4 @@
-# dsh-authorization
-
-English | [中文](README.zh.md)
+# bh-authorization
 
 Authorization Service Definition (`ctx.authorization`). Some credentials cannot be configured, only obtained: getting one means a conversation with a human — open this page, paste that code, pick an account. This seam owns that conversation and the lifecycle around it, and never the protocol.
 
@@ -13,9 +11,9 @@ Authorization Service Definition (`ctx.authorization`). Some credentials cannot 
 ## Surface
 
 ```ts
-import type { Context } from '@deepseek-ai/cordis'
-import { AuthorizationDeclinedError, type AuthorizationSession } from '@deepseek-ai/dsh-authorization'
-import { credentialKey } from '@deepseek-ai/dsh-credentials'
+import type { Context } from '@bosch/cordis'
+import { AuthorizationDeclinedError, type AuthorizationSession } from '@bosch/bh-authorization'
+import { credentialKey } from '@bosch/bh-credentials'
 
 declare const ctx: Context
 declare const exchange: (signal: AbortSignal) => Promise<void>

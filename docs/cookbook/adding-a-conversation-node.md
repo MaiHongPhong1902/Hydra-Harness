@@ -1,7 +1,5 @@
 # Add a Web Client conversation node
 
-English | [中文](adding-a-conversation-node.zh.md)
-
 This tutorial adds one business-owned row to the Web Client Chat view. The finished plugin correlates a durable Session event family into one Context, incrementally builds business State, publishes typed Step data, and renders a keyed Chat Node without scanning the Session window or other rendered nodes. It assumes the Host already records the events and the client plugin is composed into the Web bundle; external Host-side UIs and additional view targets such as Trajectory are outside this tutorial.
 
 The [Conversation Node assembly decision](../../.agents/notes/implemented/architecture/2026-08-09-client-conversation-node-assembly.md) owns the rationale and complete engine model. This guide covers the implementation path.
@@ -28,12 +26,12 @@ The example keeps the producer declarations and client contribution in one block
 
 ```ts ignore-check
 import { createElement } from 'react'
-import type { Branded } from '@deepseek-ai/dsh-brand'
+import type { Branded } from '@bosch/bh-brand'
 import type {
   ClientContext, ConversationLocation, ConversationNodeContext,
   ConversationNodeDefinition,
-} from '@deepseek-ai/dsh-client-runtime/client'
-import type { ChatNodeViewProps } from '@deepseek-ai/dsh-client-ui-conversation/client'
+} from '@bosch/bh-client-runtime/client'
+import type { ChatNodeViewProps } from '@bosch/bh-client-ui-conversation/client'
 
 type ReviewId = Branded<'ReviewId'>
 
@@ -58,7 +56,7 @@ interface ReviewEndData {
   readonly summary: string
 }
 
-declare module '@deepseek-ai/dsh-session/types' {
+declare module '@bosch/bh-session/types' {
   interface SessionEventMap {
     /**
      * Opens one durable review job.
@@ -88,13 +86,13 @@ interface ReviewChatData {
   readonly summary?: string
 }
 
-declare module '@deepseek-ai/dsh-client-ui-conversation/client' {
+declare module '@bosch/bh-client-ui-conversation/client' {
   interface ChatNodeDataMap {
     'review-job': ReviewChatData
   }
 }
 
-declare module '@deepseek-ai/dsh-client-runtime/client' {
+declare module '@bosch/bh-client-runtime/client' {
   interface ConversationStepDataMap {
     'review-job': ReviewChatData
   }

@@ -2,8 +2,6 @@
 
 Status: rejected — landstrip is not battle-tested (a days-old single-maintainer project, ~48 GitHub stars at rejection); a security-invariant dependency must have proven adoption, so the win32 rung keeps the in-house-launcher plan
 
-English | [中文](2026-07-26-evaluate-landstrip-for-windows-sandbox-rung.zh.md)
-
 ## Problem
 
 The [sandbox decision](../../implemented/feature/2026-07-06-sandbox.md) leaves `PLATFORM_CHAINS.win32` empty and plans to fill it with "a confinement runner from the AppContainer/restricted-token family, shipped from its own repository on the `node-addon-landlock-run` template" — an estimated ~1,500-line new repo (the landlock-run subtree is ~1,460 lines of C/TS/scripts/tests plus docs and CI) authored and maintained in-house.

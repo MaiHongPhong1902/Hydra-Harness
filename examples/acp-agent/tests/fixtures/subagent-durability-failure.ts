@@ -1,5 +1,5 @@
-import type { Context } from '@deepseek-ai/cordis'
-import { SessionId } from '@deepseek-ai/dsh-session'
+import type { Context } from '@bosch/cordis'
+import { SessionId } from '@bosch/bh-session'
 
 export const name = 'subagent-durability-failure'
 export const inject = ['agents', 'sessionPersistence', 'subagents']
@@ -18,7 +18,7 @@ export const inject = ['agents', 'sessionPersistence', 'subagents']
  *  - The child's final continuation turn fails its durability checkpoint with a
  *    fixed message, so the scenario proves child-first disposal survives a failed
  *    last flush.
- *  - Under `DSH_SUBAGENT_PUBLISHED_FAILURE`, a one-shot child's first
+ *  - Under `BH_SUBAGENT_PUBLISHED_FAILURE`, a one-shot child's first
  *    follow-up fails after publication, so its model prompt never runs; its
  *    published handle then also fails disposal, so the parent observes both
  *    independent failures.
@@ -33,7 +33,7 @@ export function apply(ctx: Context): void {
   const followupsAccepted = Promise.withResolvers<undefined>()
   const parentTurnClosed = Promise.withResolvers<undefined>()
   let parentClosed = false
-  const publishedFailure = process.env.DSH_SUBAGENT_PUBLISHED_FAILURE === '1'
+  const publishedFailure = process.env.BH_SUBAGENT_PUBLISHED_FAILURE === '1'
   const persistence = ctx.sessionPersistence
   const load = persistence.load.bind(persistence)
   const agents = ctx.agents

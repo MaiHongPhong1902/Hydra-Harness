@@ -8,101 +8,101 @@ The ACP demo exposes fresh baseline-prompt agent sessions to programmatic client
 ```mermaid
 flowchart LR
   cfg["examples/acp-agent<br/>cordis.yml"]
-  plugin_acp_llm_deepseek["llm-deepseek<br/>@deepseek-ai/dsh-llm-deepseek"]
+  plugin_acp_llm_deepseek["llm-deepseek<br/>@bosch/bh-llm-deepseek"]
   cfg --> plugin_acp_llm_deepseek
-  plugin_acp_sandbox["sandbox<br/>@deepseek-ai/dsh-sandbox-local"]
+  plugin_acp_sandbox["sandbox<br/>@bosch/bh-sandbox-local"]
   cfg --> plugin_acp_sandbox
-  plugin_acp_sandbox_policy["sandbox-policy<br/>@deepseek-ai/dsh-sandbox-policy"]
+  plugin_acp_sandbox_policy["sandbox-policy<br/>@bosch/bh-sandbox-policy"]
   cfg --> plugin_acp_sandbox_policy
-  plugin_acp_subprocess["subprocess<br/>@deepseek-ai/dsh-subprocess-local"]
+  plugin_acp_subprocess["subprocess<br/>@bosch/bh-subprocess-local"]
   cfg --> plugin_acp_subprocess
-  plugin_acp_bash["bash<br/>@deepseek-ai/dsh-bash-sandbox"]
+  plugin_acp_bash["bash<br/>@bosch/bh-bash-sandbox"]
   cfg --> plugin_acp_bash
-  plugin_acp_approval["approval<br/>@deepseek-ai/dsh-user-approval"]
+  plugin_acp_approval["approval<br/>@bosch/bh-user-approval"]
   cfg --> plugin_acp_approval
-  plugin_acp_acp_agent["acp-agent<br/>@deepseek-ai/dsh-acp-demo"]
+  plugin_acp_acp_agent["acp-agent<br/>@bosch/bh-acp-demo"]
   cfg --> plugin_acp_acp_agent
-  plugin_acp_acp_agent --> bundle_agent_core["@deepseek-ai/dsh-agent-spine-demo"]
-  plugin_acp_acp_agent --> bundle_jsonl["@deepseek-ai/dsh-session-persistence-jsonl"]
-  plugin_acp_acp_agent --> entrypoint_acp["@deepseek-ai/dsh-acp<br/>automation-only JSON-RPC stdio<br/>fresh sessions created by client"]
+  plugin_acp_acp_agent --> bundle_agent_core["@bosch/bh-agent-spine-demo"]
+  plugin_acp_acp_agent --> bundle_jsonl["@bosch/bh-session-persistence-jsonl"]
+  plugin_acp_acp_agent --> entrypoint_acp["@bosch/bh-acp<br/>automation-only JSON-RPC stdio<br/>fresh sessions created by client"]
   bundle_agent_core --> spine_llm["ctx.llm"]
   bundle_agent_core --> spine_sessions["ctx.sessions"]
   bundle_agent_core --> spine_tools["ctx.tools + tool-bash"]
   bundle_agent_core --> spine_loop["ctx.agents + ctx.agentLoop"]
-  plugin_acp_token_meter["token-meter<br/>@deepseek-ai/dsh-token-meter"]
+  plugin_acp_token_meter["token-meter<br/>@bosch/bh-token-meter"]
   cfg --> plugin_acp_token_meter
-  plugin_acp_compaction_basic["compaction-basic<br/>@deepseek-ai/dsh-compaction-basic"]
+  plugin_acp_compaction_basic["compaction-basic<br/>@bosch/bh-compaction-basic"]
   cfg --> plugin_acp_compaction_basic
-  plugin_acp_session_projection["session-projection<br/>@deepseek-ai/dsh-session-projection"]
+  plugin_acp_session_projection["session-projection<br/>@bosch/bh-session-projection"]
   cfg --> plugin_acp_session_projection
-  plugin_acp_subagent["subagent<br/>@deepseek-ai/dsh-subagent"]
+  plugin_acp_subagent["subagent<br/>@bosch/bh-subagent"]
   cfg --> plugin_acp_subagent
-  plugin_acp_subagent_spawn_in_process["subagent-spawn-in-process<br/>@deepseek-ai/dsh-subagent-spawn-in-process"]
+  plugin_acp_subagent_spawn_in_process["subagent-spawn-in-process<br/>@bosch/bh-subagent-spawn-in-process"]
   cfg --> plugin_acp_subagent_spawn_in_process
-  plugin_acp_subagent_fork_in_process["subagent-fork-in-process<br/>@deepseek-ai/dsh-subagent-fork-in-process"]
+  plugin_acp_subagent_fork_in_process["subagent-fork-in-process<br/>@bosch/bh-subagent-fork-in-process"]
   cfg --> plugin_acp_subagent_fork_in_process
-  plugin_acp_tool_subagent_control["tool-subagent-control<br/>@deepseek-ai/dsh-tool-subagent-control"]
+  plugin_acp_tool_subagent_control["tool-subagent-control<br/>@bosch/bh-tool-subagent-control"]
   cfg --> plugin_acp_tool_subagent_control
-  plugin_acp_tool_subagent_list_agents["tool-subagent-list-agents<br/>@deepseek-ai/dsh-tool-subagent-control/list-agents"]
+  plugin_acp_tool_subagent_list_agents["tool-subagent-list-agents<br/>@bosch/bh-tool-subagent-control/list-agents"]
   cfg --> plugin_acp_tool_subagent_list_agents
-  plugin_acp_tool_subagent_report["tool-subagent-report<br/>@deepseek-ai/dsh-tool-subagent-report"]
+  plugin_acp_tool_subagent_report["tool-subagent-report<br/>@bosch/bh-tool-subagent-report"]
   cfg --> plugin_acp_tool_subagent_report
-  plugin_acp_tool_subagent["tool-subagent<br/>@deepseek-ai/dsh-tool-subagent"]
+  plugin_acp_tool_subagent["tool-subagent<br/>@bosch/bh-tool-subagent"]
   cfg --> plugin_acp_tool_subagent
-  plugin_acp_tool_subagent_fork["tool-subagent-fork<br/>@deepseek-ai/dsh-tool-subagent"]
+  plugin_acp_tool_subagent_fork["tool-subagent-fork<br/>@bosch/bh-tool-subagent"]
   cfg --> plugin_acp_tool_subagent_fork
-  plugin_acp_workflow_worker_thread["workflow-worker-thread<br/>@deepseek-ai/dsh-workflow-worker-thread"]
+  plugin_acp_workflow_worker_thread["workflow-worker-thread<br/>@bosch/bh-workflow-worker-thread"]
   cfg --> plugin_acp_workflow_worker_thread
-  plugin_acp_tool_workflow["tool-workflow<br/>@deepseek-ai/dsh-tool-workflow"]
+  plugin_acp_tool_workflow["tool-workflow<br/>@bosch/bh-tool-workflow"]
   cfg --> plugin_acp_tool_workflow
-  plugin_acp_tool_ralph["tool-ralph<br/>@deepseek-ai/dsh-tool-ralph"]
+  plugin_acp_tool_ralph["tool-ralph<br/>@bosch/bh-tool-ralph"]
   cfg --> plugin_acp_tool_ralph
-  plugin_acp_tool_todo["tool-todo<br/>@deepseek-ai/dsh-tool-todo"]
+  plugin_acp_tool_todo["tool-todo<br/>@bosch/bh-tool-todo"]
   cfg --> plugin_acp_tool_todo
-  plugin_acp_repeat_tool_reminder["repeat-tool-reminder<br/>@deepseek-ai/dsh-repeat-tool-reminder"]
+  plugin_acp_repeat_tool_reminder["repeat-tool-reminder<br/>@bosch/bh-repeat-tool-reminder"]
   cfg --> plugin_acp_repeat_tool_reminder
-  plugin_acp_fs_sandbox["fs-sandbox<br/>@deepseek-ai/dsh-fs-sandbox"]
+  plugin_acp_fs_sandbox["fs-sandbox<br/>@bosch/bh-fs-sandbox"]
   cfg --> plugin_acp_fs_sandbox
-  plugin_acp_fs_observation_policy["fs-observation-policy<br/>@deepseek-ai/dsh-fs-observation-policy"]
+  plugin_acp_fs_observation_policy["fs-observation-policy<br/>@bosch/bh-fs-observation-policy"]
   cfg --> plugin_acp_fs_observation_policy
-  plugin_acp_tool_fs["tool-fs<br/>@deepseek-ai/dsh-tool-fs"]
+  plugin_acp_tool_fs["tool-fs<br/>@bosch/bh-tool-fs"]
   cfg --> plugin_acp_tool_fs
-  plugin_acp_hooks_claude_code["hooks-claude-code<br/>@deepseek-ai/dsh-hooks-claude-code"]
+  plugin_acp_hooks_claude_code["hooks-claude-code<br/>@bosch/bh-hooks-claude-code"]
   cfg --> plugin_acp_hooks_claude_code
-  plugin_acp_hooks_codex["hooks-codex<br/>@deepseek-ai/dsh-hooks-codex"]
+  plugin_acp_hooks_codex["hooks-codex<br/>@bosch/bh-hooks-codex"]
   cfg --> plugin_acp_hooks_codex
 ```
 
 | Plugin id | Package / module |
 | --- | --- |
-| `llm-deepseek` | `@deepseek-ai/dsh-llm-deepseek` |
-| `sandbox` | `@deepseek-ai/dsh-sandbox-local` |
-| `sandbox-policy` | `@deepseek-ai/dsh-sandbox-policy` |
-| `subprocess` | `@deepseek-ai/dsh-subprocess-local` |
-| `bash` | `@deepseek-ai/dsh-bash-sandbox` |
-| `approval` | `@deepseek-ai/dsh-user-approval` |
-| `acp-agent` | `@deepseek-ai/dsh-acp-demo` |
-| `token-meter` | `@deepseek-ai/dsh-token-meter` |
-| `compaction-basic` | `@deepseek-ai/dsh-compaction-basic` |
-| `session-projection` | `@deepseek-ai/dsh-session-projection` |
-| `subagent` | `@deepseek-ai/dsh-subagent` |
-| `subagent-spawn-in-process` | `@deepseek-ai/dsh-subagent-spawn-in-process` |
-| `subagent-fork-in-process` | `@deepseek-ai/dsh-subagent-fork-in-process` |
-| `tool-subagent-control` | `@deepseek-ai/dsh-tool-subagent-control` |
-| `tool-subagent-list-agents` | `@deepseek-ai/dsh-tool-subagent-control/list-agents` |
-| `tool-subagent-report` | `@deepseek-ai/dsh-tool-subagent-report` |
-| `tool-subagent` | `@deepseek-ai/dsh-tool-subagent` |
-| `tool-subagent-fork` | `@deepseek-ai/dsh-tool-subagent` |
-| `workflow-worker-thread` | `@deepseek-ai/dsh-workflow-worker-thread` |
-| `tool-workflow` | `@deepseek-ai/dsh-tool-workflow` |
-| `tool-ralph` | `@deepseek-ai/dsh-tool-ralph` |
-| `tool-todo` | `@deepseek-ai/dsh-tool-todo` |
-| `repeat-tool-reminder` | `@deepseek-ai/dsh-repeat-tool-reminder` |
-| `fs-sandbox` | `@deepseek-ai/dsh-fs-sandbox` |
-| `fs-observation-policy` | `@deepseek-ai/dsh-fs-observation-policy` |
-| `tool-fs` | `@deepseek-ai/dsh-tool-fs` |
-| `hooks-claude-code` | `@deepseek-ai/dsh-hooks-claude-code` |
-| `hooks-codex` | `@deepseek-ai/dsh-hooks-codex` |
+| `llm-deepseek` | `@bosch/bh-llm-deepseek` |
+| `sandbox` | `@bosch/bh-sandbox-local` |
+| `sandbox-policy` | `@bosch/bh-sandbox-policy` |
+| `subprocess` | `@bosch/bh-subprocess-local` |
+| `bash` | `@bosch/bh-bash-sandbox` |
+| `approval` | `@bosch/bh-user-approval` |
+| `acp-agent` | `@bosch/bh-acp-demo` |
+| `token-meter` | `@bosch/bh-token-meter` |
+| `compaction-basic` | `@bosch/bh-compaction-basic` |
+| `session-projection` | `@bosch/bh-session-projection` |
+| `subagent` | `@bosch/bh-subagent` |
+| `subagent-spawn-in-process` | `@bosch/bh-subagent-spawn-in-process` |
+| `subagent-fork-in-process` | `@bosch/bh-subagent-fork-in-process` |
+| `tool-subagent-control` | `@bosch/bh-tool-subagent-control` |
+| `tool-subagent-list-agents` | `@bosch/bh-tool-subagent-control/list-agents` |
+| `tool-subagent-report` | `@bosch/bh-tool-subagent-report` |
+| `tool-subagent` | `@bosch/bh-tool-subagent` |
+| `tool-subagent-fork` | `@bosch/bh-tool-subagent` |
+| `workflow-worker-thread` | `@bosch/bh-workflow-worker-thread` |
+| `tool-workflow` | `@bosch/bh-tool-workflow` |
+| `tool-ralph` | `@bosch/bh-tool-ralph` |
+| `tool-todo` | `@bosch/bh-tool-todo` |
+| `repeat-tool-reminder` | `@bosch/bh-repeat-tool-reminder` |
+| `fs-sandbox` | `@bosch/bh-fs-sandbox` |
+| `fs-observation-policy` | `@bosch/bh-fs-observation-policy` |
+| `tool-fs` | `@bosch/bh-tool-fs` |
+| `hooks-claude-code` | `@bosch/bh-hooks-claude-code` |
+| `hooks-codex` | `@bosch/bh-hooks-codex` |
 
 Source config: [`examples/acp-agent/cordis.yml`](cordis.yml).
 

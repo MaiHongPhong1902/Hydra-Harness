@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@deepseek-ai/cordis'
+import { Context } from '@bosch/cordis'
 import WorkflowEngineDefault, {
   isFatalWorkflowError,
   WorkflowError,
@@ -22,7 +22,7 @@ class StubEngine extends WorkflowEngine {
 
 const INFO: WorkflowRunInfo = { id: WorkflowRunId('run-1'), meta: { name: 'w', description: 'd' } }
 
-describe('dsh-workflow (interface)', () => {
+describe('bh-workflow (interface)', () => {
   it('WorkflowRunId brands a string (identity at runtime)', () => {
     expect(WorkflowRunId('abc')).toBe('abc')
   })

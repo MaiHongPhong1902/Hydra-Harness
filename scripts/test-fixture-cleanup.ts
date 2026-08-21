@@ -1,9 +1,8 @@
 /**
- * Junction-safe fixture cleanup for Windows. Test fixtures junction the REAL
- * `scripts/`, `node_modules`, and tsx package directories so installer probes
- * resolve through them; Windows recursive deletion — both Node's `rmSync` and
- * Git's `worktree remove` — follows MOUNT_POINT junctions into their targets
- * and would delete the repository's own directories. POSIX `unlink`/`rm`
+ * Junction-safe fixture cleanup for Windows. Test fixtures link real
+ * repository directories into themselves; Windows recursive deletion — both
+ * Node's `rmSync` and Git's `worktree remove` — follows MOUNT_POINT junctions
+ * into their targets and would delete those directories. POSIX `unlink`/`rm`
  * already remove symlinks without following them, so the walk is a no-op
  * there.
  */

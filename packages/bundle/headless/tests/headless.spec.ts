@@ -1,13 +1,13 @@
 /** Direct one-shot Agent driving, durable aggregation, flushing, and exit mapping. */
 
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@deepseek-ai/cordis'
-import AgentRegistry, { Inbox } from '@deepseek-ai/dsh-agent'
-import type { Agent, AgentHandle, CreateAgentOptions } from '@deepseek-ai/dsh-agent'
-import AgentDefaultModelConfig from '@deepseek-ai/dsh-agent-default-model'
-import { createAssistantMessage } from '@deepseek-ai/dsh-llm'
-import SessionStore from '@deepseek-ai/dsh-session'
-import type { Session, UserMessage } from '@deepseek-ai/dsh-session'
+import { Context } from '@bosch/cordis'
+import AgentRegistry, { Inbox } from '@bosch/bh-agent'
+import type { Agent, AgentHandle, CreateAgentOptions } from '@bosch/bh-agent'
+import AgentDefaultModelConfig from '@bosch/bh-agent-default-model'
+import { createAssistantMessage } from '@bosch/bh-llm'
+import SessionStore from '@bosch/bh-session'
+import type { Session, UserMessage } from '@bosch/bh-session'
 import { apply, Config, internals } from '../src/index.ts'
 
 const originalInternals = { ...internals }
@@ -167,7 +167,7 @@ describe('headless runner', () => {
     expect(await test.run()).toMatchObject({
       code: 1,
       out: '\n',
-      err: 'dsh: SERVER: provider unavailable\n',
+      err: 'bh: SERVER: provider unavailable\n',
     })
     await test.ctx.fiber.dispose()
   })
@@ -191,7 +191,7 @@ describe('headless runner', () => {
     ctx.provide('agents', { create: () => Promise.reject(new Error('factory exploded')) } as never)
     apply(ctx, { task: 't' })
     expect(await exited).toBe(1)
-    expect(err).toBe('dsh: factory exploded\n')
+    expect(err).toBe('bh: factory exploded\n')
     await ctx.fiber.dispose()
   })
 
@@ -213,7 +213,7 @@ describe('headless runner', () => {
     ctx.provide('agents', { create: () => rejected } as never)
     apply(ctx, { task: 't' })
     expect(await exited).toBe(1)
-    expect(err).toBe('dsh: factory exploded\n')
+    expect(err).toBe('bh: factory exploded\n')
     await ctx.fiber.dispose()
   })
 

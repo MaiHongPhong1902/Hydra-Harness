@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-08-api-remotes-generated-contract-build.zh.md)
-
 ## Problem
 
 Typert must generate `/remote` declarations and runtime contributions from the Host's `@Remote` methods before the Client's `api-remotes/src/client/index.ts` can typecheck and bundle those contributions. If the root build hands both the Host and Client Project Reference graphs to tsc together, the Client compiles before the generated artifacts exist. Adding a separate contracts preprocessing step would instead compile the generator again outside the normal Host graph and let stale artifacts hide incorrect dependencies.
@@ -16,9 +14,9 @@ The root build completes Host tsc and Host tsdown first, with Host tsdown runnin
 
 ~~~text
 tsc -b tsconfig.host.json
-tsdown --env.DSH_BUILD_FACE host
+tsdown --env.BH_BUILD_FACE host
 tsc -b tsconfig.client.json
-tsdown --env.DSH_BUILD_FACE client
+tsdown --env.BH_BUILD_FACE client
 Vite Web build
 ~~~
 
@@ -53,11 +51,11 @@ This exception follows from the real generated-contract ordering and is not a te
 
 Host tsdown enables `typertPlugin({ mode: 'workspace', faces: ['host'] })` in the normal root config. The generator uses only `tsconfig.host.json` as its program seed and produces both `typert.host.*` and the `typert.remote-client.*` projection of Host contracts; Client tsdown neither starts Typert nor analyzes the Client aggregate.
 
-The Typert analyzer distinguishes compiler faces from runtime faces. Direct Project References in the aggregate determine which compiler face analyzes a project; only a split project explicitly referenced through `tsconfig.host.json` or `tsconfig.client.json` is restricted to that corresponding face. Runtime models follow package subpath contributions instead, so an ordinary single-project `dshClient` package may contribute both Host and Client runtime models. Consequently, Host analysis of `api-remotes` does not also register its Client entry, while an ordinary dual-entry package does not lose its Host model.
+The Typert analyzer distinguishes compiler faces from runtime faces. Direct Project References in the aggregate determine which compiler face analyzes a project; only a split project explicitly referenced through `tsconfig.host.json` or `tsconfig.client.json` is restricted to that corresponding face. Runtime models follow package subpath contributions instead, so an ordinary single-project `bhClient` package may contribute both Host and Client runtime models. Consequently, Host analysis of `api-remotes` does not also register its Client entry, while an ordinary dual-entry package does not lose its Host model.
 
-Both the Host and Client tsdown passes receive the same complete workspace of `vendor/*`, `packages/*/*`, and `apps/cli`. The root config does not scan `lib/types/client/index.js`, maintain a package classification table, or use a tsdown filter; package-local configs return entries for the current phase according to `DSH_BUILD_FACE`.
+Both the Host and Client tsdown passes receive the same complete workspace of `vendor/*`, `packages/*/*`, and `apps/cli`. The root config does not scan `lib/types/client/index.js`, maintain a package classification table, or use a tsdown filter; package-local configs return entries for the current phase according to `BH_BUILD_FACE`.
 
-An ordinary Client plugin returns an empty config during the Host pass and produces both its Node loader entry and browser bundle during the Client pass. The `clientBundle(..., { hostPhase: true })` used by `api-remotes` is the only phase exception: the Host pass produces its Host entry, and the Client pass produces only its browser bundle. Package-local tsdown without `DSH_BUILD_FACE` still returns that package's normal entries together for local single-package development.
+An ordinary Client plugin returns an empty config during the Host pass and produces both its Node loader entry and browser bundle during the Client pass. The `clientBundle(..., { hostPhase: true })` used by `api-remotes` is the only phase exception: the Host pass produces its Host entry, and the Client pass produces only its browser bundle. Package-local tsdown without `BH_BUILD_FACE` still returns that package's normal entries together for local single-package development.
 
 ## Alternatives considered
 

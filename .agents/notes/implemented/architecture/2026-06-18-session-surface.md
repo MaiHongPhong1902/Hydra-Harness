@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-06-18-session-surface.zh.md)
-
 ## Problem
 
 The event log is authoritative, but history manipulation had no durable shared mechanism. Without one, plugins such as compaction would rewrite derived requests through order-sensitive listeners without recording which events each replacement used. Every new history manipulation would also require changes to `deriveMessages()`.
@@ -68,6 +66,6 @@ Every surface-eligible event must carry `surfaceOp` or it would disappear from d
 - **`packages/session/session-persistence-jsonl`**: No changes required.
 - **`packages/session/session-persistence`**: Abstract interface unchanged.
 
-The surface is the foundation history manipulation ships on — dsh-compaction's compaction rides it. A compaction or tool-result-pruner plugin appends one of the existing message-producing event types (a `user/message` carrying the summary, say) with `surfaceOp: { op: 'replace', start, end }` and `sourceEventSeqs` covering the shadowed entries — the new event takes the range's place on the surface while the plugin's own trace events (e.g. `compaction/start`, `compaction/end`) stay off it. Replay preserves the decision deterministically.
+The surface is the foundation history manipulation ships on — bh-compaction's compaction rides it. A compaction or tool-result-pruner plugin appends one of the existing message-producing event types (a `user/message` carrying the summary, say) with `surfaceOp: { op: 'replace', start, end }` and `sourceEventSeqs` covering the shadowed entries — the new event takes the range's place on the surface while the plugin's own trace events (e.g. `compaction/start`, `compaction/end`) stay off it. Replay preserves the decision deterministically.
 
 A `tool/result` replacement may rewrite exactly one current `tool/result` and must preserve every data field except `content`. Session acceptance enforces this rule together with positional range and cited source-event validation, independent of optional diagnostic plugins.

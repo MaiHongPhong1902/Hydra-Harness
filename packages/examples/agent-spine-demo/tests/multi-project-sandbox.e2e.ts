@@ -3,19 +3,19 @@ import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promis
 import { homedir } from 'node:os'
 import { basename, join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { Context } from '@deepseek-ai/cordis'
-import { SandboxBashExecutor } from '@deepseek-ai/dsh-bash-sandbox'
-import LocalSubprocessRuntime from '@deepseek-ai/dsh-subprocess-local'
-import * as FsPolicy from '@deepseek-ai/dsh-fs-observation-policy'
-import SandboxedFileSystem from '@deepseek-ai/dsh-fs-sandbox'
-import { CallId } from '@deepseek-ai/dsh-llm'
-import { LocalSandboxProvider } from '@deepseek-ai/dsh-sandbox-local'
-import { bwrapProfileArgs, seatbeltProfileArgs } from '@deepseek-ai/dsh-sandbox-local/src/profiles.ts'
-import SandboxPolicyService from '@deepseek-ai/dsh-sandbox-policy'
-import { SessionId } from '@deepseek-ai/dsh-session'
-import * as ToolFs from '@deepseek-ai/dsh-tool-fs'
-import type { ToolResult } from '@deepseek-ai/dsh-tools'
-import { launcherPath } from '@deepseek-ai/node-addon-landlock-run'
+import { Context } from '@bosch/cordis'
+import { SandboxBashExecutor } from '@bosch/bh-bash-sandbox'
+import LocalSubprocessRuntime from '@bosch/bh-subprocess-local'
+import * as FsPolicy from '@bosch/bh-fs-observation-policy'
+import SandboxedFileSystem from '@bosch/bh-fs-sandbox'
+import { CallId } from '@bosch/bh-llm'
+import { LocalSandboxProvider } from '@bosch/bh-sandbox-local'
+import { bwrapProfileArgs, seatbeltProfileArgs } from '@bosch/bh-sandbox-local/src/profiles.ts'
+import SandboxPolicyService from '@bosch/bh-sandbox-policy'
+import { SessionId } from '@bosch/bh-session'
+import * as ToolFs from '@bosch/bh-tool-fs'
+import type { ToolResult } from '@bosch/bh-tools'
+import { launcherPath } from '@bosch/node-addon-landlock-run'
 import * as agentSpine from '../src/index.ts'
 
 const bwrapUsable = spawnSync('bwrap', [...bwrapProfileArgs({ mode: 'read-only', workspaceRoot: '/' }), '--', 'true'], { timeout: 5_000, stdio: 'ignore' }).status === 0
@@ -30,7 +30,7 @@ let projectB: string
 const tempDirs: string[] = []
 
 async function projectDir(label: string): Promise<string> {
-  const dir = await mkdtemp(join(homedir(), `dsh-${label}-`))
+  const dir = await mkdtemp(join(homedir(), `bh-${label}-`))
   tempDirs.push(dir)
   return dir
 }

@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-07-27-dependabot-version-updates.zh.md)
-
 ## Problem
 
 Maintained registry and GitHub Actions dependencies need a regular update path. Adopting every release immediately increases exposure to compromised releases and early regressions, while leaving updates entirely manual lets dependency drift accumulate. Vendored Cordis sources cannot be treated like registry dependencies, and workspaces sharing one lockfile must be updated through the same package tree.

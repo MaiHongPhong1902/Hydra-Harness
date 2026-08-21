@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-10-creator-guidance-introduce-cue.zh.md)
-
 ## Problem
 
 Authoring a preset happens inside a Creator-mode session, but the settings section gave no path into that fact. The creator entry sat outside the roster groups, the custom group vanished entirely while it had no member, and clicking the entry dropped the user onto the new-session screen with nothing marking what had changed: the staged preset chip rendered exactly as if the user had picked it by hand. Users reported not understanding that the flow had moved, or that the session they were about to start was the place where the preset gets built (#2184).

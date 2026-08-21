@@ -2,11 +2,11 @@
  * Vocabulary for the filesystem Service Definition (`ctx.fs`): the opaque target/version
  * identities, the metadata `stat` returns, the write-intent and outcome shapes, the
  * literal-edit request/outcome, and the typed error taxonomy.
- * @module @deepseek-ai/dsh-fs/types
+ * @module @bosch/bh-fs/types
  */
 
-import { HarnessError } from '@deepseek-ai/dsh-llm'
-import type { Branded } from '@deepseek-ai/dsh-brand'
+import { HarnessError } from '@bosch/bh-llm'
+import type { Branded } from '@bosch/bh-brand'
 
 /**
  * Opaque key for stale guards and target lookup. The local backend uses a
@@ -189,7 +189,7 @@ export type FsErrorCode =
 
 /**
  * Typed filesystem error. Extends {@link HarnessError} so it carries a stable
- * {@link FsErrorCode} and chains `cause`. `dsh-fs` owns this vocabulary so
+ * {@link FsErrorCode} and chains `cause`. `bh-fs` owns this vocabulary so
  * backends and the policy layer raise the same codes instead of each inventing
  * message strings.
  */

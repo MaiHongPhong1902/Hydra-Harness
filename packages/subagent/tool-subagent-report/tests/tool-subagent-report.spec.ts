@@ -2,19 +2,19 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { Context } from '@deepseek-ai/cordis'
-import type { Agent } from '@deepseek-ai/dsh-agent'
-import { assembleContextFor } from '@deepseek-ai/dsh-agent'
-import AgentLoop from '@deepseek-ai/dsh-agent-loop'
-import { mountAgentLoopTestDependencies } from '@deepseek-ai/dsh-agent-loop-testkit'
-import { CallId, LlmAdapter, createUserMessage } from '@deepseek-ai/dsh-llm'
-import type { GenerateOptions, StreamChunk } from '@deepseek-ai/dsh-llm'
-import { SessionId } from '@deepseek-ai/dsh-session'
-import type { SessionEvent } from '@deepseek-ai/dsh-session'
-import JsonlSessionPersistence from '@deepseek-ai/dsh-session-persistence-jsonl'
-import SubagentRuntime from '@deepseek-ai/dsh-subagent'
-import * as SubagentSpawn from '@deepseek-ai/dsh-subagent-spawn-in-process'
-import * as control from '@deepseek-ai/dsh-tool-subagent-control'
+import { Context } from '@bosch/cordis'
+import type { Agent } from '@bosch/bh-agent'
+import { assembleContextFor } from '@bosch/bh-agent'
+import AgentLoop from '@bosch/bh-agent-loop'
+import { mountAgentLoopTestDependencies } from '@bosch/bh-agent-loop-testkit'
+import { CallId, LlmAdapter, createUserMessage } from '@bosch/bh-llm'
+import type { GenerateOptions, StreamChunk } from '@bosch/bh-llm'
+import { SessionId } from '@bosch/bh-session'
+import type { SessionEvent } from '@bosch/bh-session'
+import JsonlSessionPersistence from '@bosch/bh-session-persistence-jsonl'
+import SubagentRuntime from '@bosch/bh-subagent'
+import * as SubagentSpawn from '@bosch/bh-subagent-spawn-in-process'
+import * as control from '@bosch/bh-tool-subagent-control'
 import { textResponse } from '../../../core/agent-loop/tests/mock-adapter.ts'
 import * as tool from '../src/index.ts'
 
@@ -65,7 +65,7 @@ afterEach(async () => {
 async function setup(options: { load?: boolean; config?: tool.Config } = {}) {
   const ctx = new Context()
   await mountAgentLoopTestDependencies(ctx)
-  const root = mkdtempSync(join(tmpdir(), 'dsh-tool-subagent-report-'))
+  const root = mkdtempSync(join(tmpdir(), 'bh-tool-subagent-report-'))
   await ctx.plugin(JsonlSessionPersistence, { root })
   await ctx.plugin(AgentLoop, { agents: [] })
   await ctx.plugin(SubagentRuntime)
@@ -159,7 +159,7 @@ async function sectionNames(ctx: Context, agent: Agent): Promise<string[]> {
   return assembly.sections.map(section => section.name)
 }
 
-describe('dsh-tool-subagent-report', () => {
+describe('bh-tool-subagent-report', () => {
   it('registers report only in continuable child scopes', async () => {
     const { ctx, parent } = await setup()
     expect(ctx.tools.schemas().map(schema => schema.name)).not.toContain('report')
@@ -587,7 +587,7 @@ function userTexts(events: readonly SessionEvent[]): string[] {
     : [])
 }
 
-describe('dsh-tool-subagent-report result independence', () => {
+describe('bh-tool-subagent-report result independence', () => {
   it('does not report a final assistant answer automatically or create Jobs', async () => {
     const { ctx, parent, adapter } = await setup()
     const { started } = await startChild(ctx, parent)

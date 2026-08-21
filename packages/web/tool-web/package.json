@@ -1,13 +1,13 @@
 {
-  "name": "@deepseek-ai/dsh-tool-web",
-  "description": "Model-facing web tools (web_search, web_fetch) over the DeepSeek Harness web capability seam (ctx.web)",
+  "name": "@bosch/bh-tool-web",
+  "description": "Model-facing web tools (web_search, web_fetch) over the Bosch Harness web capability seam (ctx.web)",
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
+    "url": "git+https://github.com/bosch/bosch-harness.git",
     "directory": "packages/web/tool-web"
   },
   "type": "module",
@@ -32,32 +32,32 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@deepseek-ai/dsh-invariants": "workspace:^",
-    "@deepseek-ai/dsh-llm": "workspace:^",
-    "@deepseek-ai/dsh-system-prompt": "workspace:^",
-    "@deepseek-ai/dsh-tools": "workspace:^",
-    "@deepseek-ai/dsh-web": "workspace:^",
-    "@deepseek-ai/cordis": "workspace:^"
+    "@bosch/bh-invariants": "workspace:^",
+    "@bosch/bh-llm": "workspace:^",
+    "@bosch/bh-system-prompt": "workspace:^",
+    "@bosch/bh-tools": "workspace:^",
+    "@bosch/bh-web": "workspace:^",
+    "@bosch/cordis": "workspace:^"
   },
   "dependencies": {
     "@joplin/turndown-plugin-gfm": "^1.0.67",
-    "@deepseek-ai/schemastery": "workspace:^",
+    "@bosch/schemastery": "workspace:^",
     "turndown": "^7.2.4"
   },
   "devDependencies": {
-    "@deepseek-ai/dsh-agent": "workspace:^",
+    "@bosch/bh-agent": "workspace:^",
     "@types/turndown": "^5.0.6",
-    "@deepseek-ai/dsh-invariants": "workspace:^",
-    "@deepseek-ai/dsh-llm": "workspace:^",
-    "@deepseek-ai/dsh-session": "workspace:^",
-    "@deepseek-ai/dsh-spill-local": "workspace:^",
-    "@deepseek-ai/dsh-spill-policy": "workspace:^",
-    "@deepseek-ai/dsh-system-prompt": "workspace:^",
-    "@deepseek-ai/dsh-tool-call-timeout-policy": "workspace:^",
-    "@deepseek-ai/dsh-tools": "workspace:^",
-    "@deepseek-ai/dsh-web": "workspace:^",
-    "@deepseek-ai/dsh-web-fetch-http": "workspace:^",
-    "@deepseek-ai/dsh-web-search-exa": "workspace:^",
-    "@deepseek-ai/cordis": "workspace:^"
+    "@bosch/bh-invariants": "workspace:^",
+    "@bosch/bh-llm": "workspace:^",
+    "@bosch/bh-session": "workspace:^",
+    "@bosch/bh-spill-local": "workspace:^",
+    "@bosch/bh-spill-policy": "workspace:^",
+    "@bosch/bh-system-prompt": "workspace:^",
+    "@bosch/bh-tool-call-timeout-policy": "workspace:^",
+    "@bosch/bh-tools": "workspace:^",
+    "@bosch/bh-web": "workspace:^",
+    "@bosch/bh-web-fetch-http": "workspace:^",
+    "@bosch/bh-web-search-exa": "workspace:^",
+    "@bosch/cordis": "workspace:^"
   }
 }

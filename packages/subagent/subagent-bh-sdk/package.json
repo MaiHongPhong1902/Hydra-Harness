@@ -1,0 +1,60 @@
+{
+  "name": "@bosch/bh-subagent-bh-sdk",
+  "description": "Out-of-process SDK subagent backend: drives a child Bosch Harness runtime subprocess over stdio JSON-RPC through the TypeScript SDK client",
+  "version": "0.1.1-rc.1",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bosch/bosch-harness.git",
+    "directory": "packages/subagent/subagent-bh-sdk"
+  },
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./invariant": {
+      "types": "./lib/types/invariant.d.ts",
+      "default": "./lib/invariant.js"
+    },
+    "./src/*": "./src/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/invariant.js",
+    "lib/types/**/*.d.ts"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "@bosch/bh-agent": "workspace:^",
+    "@bosch/bh-invariants": "workspace:^",
+    "@bosch/bh-llm": "workspace:^",
+    "@bosch/bh-sdk-client": "workspace:^",
+    "@bosch/bh-session": "workspace:^",
+    "@bosch/bh-subagent": "workspace:^",
+    "@bosch/bh-subprocess": "workspace:^",
+    "@bosch/cordis": "workspace:^"
+  },
+  "dependencies": {
+    "@bosch/schemastery": "workspace:^"
+  },
+  "devDependencies": {
+    "@bosch/cordis-plugin-loader": "workspace:^",
+    "@bosch/bh-agent": "workspace:^",
+    "@bosch/bh-invariants": "workspace:^",
+    "@bosch/bh-llm": "workspace:^",
+    "@bosch/bh-loader-smoke": "workspace:^",
+    "@bosch/bh-sdk-client": "workspace:^",
+    "@bosch/bh-sdk-protocol": "workspace:^",
+    "@bosch/bh-session": "workspace:^",
+    "@bosch/bh-subagent": "workspace:^",
+    "@bosch/bh-subprocess": "workspace:^",
+    "@bosch/cordis": "workspace:^"
+  }
+}

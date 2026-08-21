@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-07-30-client-locale-full-rollout.zh.md)
-
 ## Problem
 
 After the typed locale standard seat landed (`locale:` on register → framework-injected typed `t`), only four early adopters rode it; every other client package still shipped hardcoded, mixed-language literals. Migrating the rest required mechanisms and boundary decisions the early adopters never touched: how registration-time text (nav rows, view-tab labels) refreshes on a language switch; how the zero-cordis ui-primitives atoms receive copy; and which strings deliberately stay untranslated — an unrecorded boundary invites a future agent to "complete" the localization.
@@ -25,7 +23,7 @@ After the typed locale standard seat landed (`locale:` on register → framework
 
 **Derivation layers stay pure; localization happens at render.** ui-workspace's `relativeTime` returns structured `{unit, n}` composed with dictionary templates by the renderer; blank sessions and the Ungrouped bucket keep their stored titles, with the renderer substituting localized copy off the `blank` flag / absent `workspaceId`; **blank rows are excluded from search entirely** (a bilingual display title cannot match a single-language query stably). Dates use no Intl: format templates live in the dictionaries (message clock `clock.md`/`clock.ymd`, workspace hover `date.ymd`) and the formatters take `t` as a parameter, staying pure.
 
-**Test and e2e doctrine**: `makeTranslate(...dicts)` (dsh-client-test-runtime) mirrors the service lookup chain (first-dict-wins, key fallback, `{name}` interpolation); component specs stub the `t` seat with it, typed against real props seats. Web e2e uniformly opens through `newEnglishPage` (an `en-US` browser) and the built-boot snapshot pins the same navigator language—goldens are immune to localization migrations; the settings language-switch scenario bypasses the helper and opens a `zh-CN` browser, since the provisional locale follows `navigator` before an explicit Host preference arrives ([browser-derived initial locale](../feature/2026-07-31-browser-derived-initial-locale.md)).
+**Test and e2e doctrine**: `makeTranslate(...dicts)` (bh-client-test-runtime) mirrors the service lookup chain (first-dict-wins, key fallback, `{name}` interpolation); component specs stub the `t` seat with it, typed against real props seats. Web e2e uniformly opens through `newEnglishPage` (an `en-US` browser) and the built-boot snapshot pins the same navigator language—goldens are immune to localization migrations; the settings language-switch scenario bypasses the helper and opens a `zh-CN` browser, since the provisional locale follows `navigator` before an explicit Host preference arrives ([browser-derived initial locale](../feature/2026-07-31-browser-derived-initial-locale.md)).
 
 The "apply layer subscribes to `locale/change` and re-registers for fresh labels" mechanism in the [settings/locale/theme layering note](../../proposed/architecture/2026-07-25-client-settings-locale-theme.md) is superseded by this decision (thunk + revision lifecycle).
 

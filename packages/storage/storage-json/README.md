@@ -1,6 +1,4 @@
-# @deepseek-ai/dsh-storage-json
-
-English | [中文](README.zh.md)
+# @bosch/bh-storage-json
 
 JSON backend for the [storage hub](../storage/README.md): one human-readable `<unit>.json` file per unit under a configured root, registered as backend `json`. Design: [domain KV storage Agent Note](../../../.agents/notes/proposed/architecture/2026-07-24-domain-kv-storage-and-workspace.md).
 

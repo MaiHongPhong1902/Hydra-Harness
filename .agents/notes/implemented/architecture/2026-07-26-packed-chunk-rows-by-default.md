@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-07-26-packed-chunk-rows-by-default.zh.md)
-
 ## Problem
 
 Provider streams produce many token-sized `assistant/chunk` delta events whose repeated JSON envelopes can outweigh their payloads. The session log must retain each chunk as a distinct logical event: live `session/event` delivery, sequence numbers, `sourceEventSeqs`, replay, cancellation evidence, and UI streaming all depend on those boundaries.
@@ -12,13 +10,13 @@ The JSONL storage seam can reduce that envelope cost without changing the logica
 
 ## Decision
 
-`dsh-session-persistence-jsonl` resolves an omitted `packChunks` to `true`. The ACP demo wrapper exposes the same default, and every composition that omits the field inherits packed writes. `packChunks: false` remains an explicit write-side diagnostic mode that stores one event per line.
+`bh-session-persistence-jsonl` resolves an omitted `packChunks` to `true`. The ACP demo wrapper exposes the same default, and every composition that omits the field inherits packed writes. `packChunks: false` remains an explicit write-side diagnostic mode that stores one event per line.
 
 Reading is unconditional and layout-blind. Packed, unpacked, and mixed files load into the same contiguous `SessionEvent[]`, so the default does not require a session-format version change or an on-disk runtime migration. The option controls newly appended batches only; it never selects a reader mode.
 
 ### Logical events and physical rows
 
-Packing stays at the `dsh-session` storage seam through `packChunkRuns()` and `decodeStorageRecord()`. The encoder recognizes exact delta-event shapes, preserves unrecognized events verbatim, and packs only runs of at least three. A packed row is storage vocabulary, not a `SessionEventMap` member: it never enters `Session.events` or fires `session/event`.
+Packing stays at the `bh-session` storage seam through `packChunkRuns()` and `decodeStorageRecord()`. The encoder recognizes exact delta-event shapes, preserves unrecognized events verbatim, and packs only runs of at least three. A packed row is storage vocabulary, not a `SessionEventMap` member: it never enters `Session.events` or fires `session/event`.
 
 The JSONL backend packs each durable append batch. Raw `compression: 'none'` and default Zstandard framing carry the same logical storage records; selecting raw mode for reviewable fixtures does not disable packing. Repository replay readers and normalizers decode the shared row format instead of maintaining snapshot-specific codecs.
 

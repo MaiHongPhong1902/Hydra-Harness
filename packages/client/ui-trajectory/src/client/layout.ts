@@ -12,7 +12,7 @@ import type {
   RequestView,
   ToolCallBlock,
   ToolResultNode,
-} from '@deepseek-ai/dsh-client-runtime/client'
+} from '@bosch/bh-client-runtime/client'
 import type {
   TrajectoryCellProps,
   TrajectorySourceBlock,

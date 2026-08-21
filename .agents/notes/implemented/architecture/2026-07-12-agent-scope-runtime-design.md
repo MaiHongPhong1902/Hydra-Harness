@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-07-12-agent-scope-runtime-design.zh.md)
-
 ## Problem
 
 The [agent-scope contract](2026-07-08-agent-scope-contexts.md) is simple for contributors: register through `agent.ctx`, resolve one global-plus-agent view, publish only after setup, and retain the scope until work stops. The runtime must preserve that contract across a cooperative plugin framework, asynchronous creation, reentrant listeners, durable session commits, and worker or process failure.
@@ -324,7 +322,7 @@ TypeScript cannot govern JavaScript casts, direct Cordis dispatch, process messa
 
 ### Runtime invariants cover cross-service facts
 
-The `dsh-scope/invariant` companion verifies, when selected, that every declared scoped event uses a marked carrier and that event families exposing a subject use the matching key. The separate `dsh-session/invariant` contribution stages trace validation before append commit and advances after the same event commits; both register through `ctx.invariants`.
+The `bh-scope/invariant` companion verifies, when selected, that every declared scoped event uses a marked carrier and that event families exposing a subject use the matching key. The separate `bh-session/invariant` contribution stages trace validation before append commit and advances after the same event commits; both register through `ctx.invariants`.
 
 The plugin does not police trusted setup by scanning registries or reject prompt assembly objects fabricated through casts. Those checks would turn composition contracts into speculative runtime machinery without protecting a real external boundary.
 

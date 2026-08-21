@@ -2,8 +2,6 @@
 
 Status: implemented
 
-English | [中文](2026-08-11-preset-card-description-clamp.zh.md)
-
 ## Problem
 
 A preset publishes its own `description`, of any length, and the settings section renders the roster as a card grid. The description had a `min-height` and no upper bound, while the grid sizes rows with `grid-auto-rows: 1fr` — which makes every implicit row the same height, not just the row holding the tall card. One long description therefore set the height of the whole roster: with a 250-character description in the custom group, all four cards measured 421px and the short-description cards filled with blank space.

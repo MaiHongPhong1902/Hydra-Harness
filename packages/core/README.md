@@ -1,7 +1,5 @@
 # core/ — product API spine
 
-English | [中文](README.zh.md)
-
 The session log, system-prompt assembly, tool registry, agent vocabulary, deployment-default model selection, and concrete loop that form the harness's default control spine. These are **product** packages — the stable surface plugins and consumers build against.
 
 | Package | Role | ctx key |

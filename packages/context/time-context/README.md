@@ -1,6 +1,4 @@
-# @deepseek-ai/dsh-time-context
-
-English | [中文](README.zh.md)
+# @bosch/bh-time-context
 
 Opt-in durable context with the current zoned time, the browser zone attached to the open request, and elapsed time sampled during model-request preparation. Default compositions leave it disabled; the Schedule Web overlay mounts it so the model can interpret otherwise-unqualified dates and times in the user's browser zone. Decision record: [the durable time-context Agent Note](../../../.agents/notes/implemented/feature/2026-07-16-durable-per-step-time-context.md).
 
@@ -8,7 +6,7 @@ Opt-in durable context with the current zoned time, the browser zone attached to
 
 ```yaml
 - id: time-context
-  name: '@deepseek-ai/dsh-time-context'
+  name: '@bosch/bh-time-context'
   config:
     timeZone: Asia/Shanghai  # optional fallback when the request has no unique browser zone
     refreshIntervalMs: 60000 # optional; omit or set to 0 for every eligible attempt
