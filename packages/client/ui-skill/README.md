@@ -18,7 +18,7 @@ The browser plugin also registers the `skill` wire name in `ui-tool`'s keyed `to
 
 #### What the model sees
 
-The user's message reaches the model verbatim, `/name` literal included. The host's pre-step boundary (`bh-tool-skill`) then appends the canonical `<skill_content>` block — the same `renderSkillContent` output the `skill` tool returns — as injected instructions context at the end of that step's injections, closest to the model's answer. Loading is deterministic: the model receives the full body without being asked to call the `skill` tool, and the catalog tells it not to re-load an inline-injected skill.
+The user's message reaches the model verbatim, `/name` literal included. The host's pre-step boundary (`bh-tool-skill`) then appends the canonical `<skill_content>` block — the same `renderSkillContent` output the `skill` tool returns — as injected instructions context at the end of that step's injections, closest to the model's answer. Loading is deterministic: the model receives the full body without being asked to call the `skill` tool, whose schema tells it not to reload an inline block.
 
 #### Token effect
 

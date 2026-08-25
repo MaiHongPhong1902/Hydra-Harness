@@ -207,6 +207,8 @@ export interface LlmModelDiscoveryRequest {
   baseURL?: string
   /** Wire protocol the endpoint speaks, when the draft names one. */
   api?: string
+  /** Optional HTTP(S) network proxy used for this interrogation. */
+  proxy?: string
   /** Credential for this interrogation alone; the harness never stores it. */
   apiKey?: string
   /** Caller cancellation; implementations must settle promptly after it aborts. */

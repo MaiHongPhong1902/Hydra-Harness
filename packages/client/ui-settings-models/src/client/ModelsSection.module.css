@@ -1,6 +1,5 @@
 /* Models settings section, in the settings-panel design language: 14/22 body,
- * 12/18 caption, capsule controls (h36 r18; h28 r14 where a row is dense),
- * 32px fields, and `border-l2` hairlines — the vocabulary GeneralSection and
+ * 12/18 caption, restrained controls, 32px fields, and `border-l2` hairlines — the vocabulary GeneralSection and
  * the Button/Input primitives already use.
  *
  * Every color resolves through a `--dsw-alias-*` token. Bare `--border` /
@@ -59,7 +58,7 @@
    card it expands into reads as the nested object. */
 .rowCard {
   border: 1px solid var(--dsw-alias-border-l2);
-  border-radius: 12px;
+  border-radius: var(--dsw-radius-panel);
   padding: 12px 14px;
   display: flex;
   flex-direction: column;
@@ -138,11 +137,16 @@
   height: 36px;
   padding: 0 14px;
   border: none;
-  border-radius: 18px;
+  border-radius: var(--dsw-radius-control);
   font: inherit;
   font-size: 14px;
   line-height: 22px;
   cursor: pointer;
+  transition:
+    background var(--ds-transition-duration-fast) var(--ds-ease-in-out),
+    border-color var(--ds-transition-duration-fast) var(--ds-ease-in-out),
+    color var(--ds-transition-duration-fast) var(--ds-ease-in-out),
+    box-shadow var(--ds-transition-duration-fast) var(--ds-ease-in-out);
 }
 
 .primaryButton {
@@ -178,7 +182,7 @@
   height: 36px;
   padding: 0 14px;
   border: none;
-  border-radius: 18px;
+  border-radius: var(--dsw-radius-control);
   background: transparent;
   color: var(--dsw-alias-state-error-primary);
   font: inherit;
@@ -191,12 +195,12 @@
   background: var(--dsw-alias-interactive-bg-hover-danger);
 }
 
-/* Provider-row controls take the dense capsule (Button `.sm`). */
+/* Provider-row controls take the dense control treatment. */
 .rowActions .secondaryButton,
 .rowActions .dangerButton {
   height: 28px;
   padding: 0 10px;
-  border-radius: 14px;
+  border-radius: var(--dsw-radius-control);
   font-size: 12px;
   line-height: 18px;
 }
@@ -220,13 +224,13 @@
 .iconButton:focus-visible,
 .customizedSummary:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px var(--dsw-alias-border-l3);
+  box-shadow: 0 0 0 2px var(--dsw-alias-focus-ring);
 }
 
 /* Editing surface: a filled module on the panel, matching the settings
    selector fill rather than adding another outline inside the row. */
 .editor {
-  border-radius: 12px;
+  border-radius: var(--dsw-radius-panel);
   background: var(--dsw-alias-bg-module-platform);
   padding: 14px 16px;
   display: flex;
@@ -276,7 +280,7 @@
   height: 28px;
   padding: 0 10px;
   border: none;
-  border-radius: 14px;
+  border-radius: var(--dsw-radius-control);
   background: transparent;
   color: var(--dsw-alias-label-tertiary);
   font: inherit;
@@ -328,12 +332,12 @@
   gap: 6px;
   height: 44px;
   border: 1px dashed var(--dsw-alias-border-l3);
-  border-radius: 12px;
+  border-radius: var(--dsw-radius-panel);
 }
 
 .addCard,
 .setupCard {
-  border-radius: 12px;
+  border-radius: var(--dsw-radius-panel);
   background: var(--dsw-alias-bg-module-platform);
   padding: 14px 16px;
   display: flex;
@@ -456,7 +460,7 @@
 
 .modelEntry {
   border: 1px solid var(--dsw-alias-border-l2);
-  border-radius: 8px;
+  border-radius: var(--dsw-radius-control);
   padding: 6px;
 }
 
@@ -521,7 +525,7 @@
 .modelEmpty {
   padding: 12px;
   border: 1px dashed var(--dsw-alias-border-l3);
-  border-radius: 8px;
+  border-radius: var(--dsw-radius-panel);
   text-align: center;
 }
 
@@ -534,7 +538,7 @@
   height: 28px;
   padding: 0 10px;
   border: 1px solid var(--dsw-alias-border-l2);
-  border-radius: 14px;
+  border-radius: var(--dsw-radius-control);
   background: transparent;
   color: var(--dsw-alias-label-primary);
   font: inherit;
@@ -553,7 +557,7 @@
   height: 32px;
   padding: 0 10px;
   border: 1px solid var(--dsw-alias-border-l2);
-  border-radius: 8px;
+  border-radius: var(--dsw-radius-control);
   font: inherit;
   font-size: 14px;
   line-height: 22px;
@@ -571,6 +575,7 @@ select.input {
 .input:focus {
   outline: none;
   border-color: var(--dsw-alias-brand-primary);
+  box-shadow: 0 0 0 2px var(--dsw-alias-focus-ring);
 }
 
 .input::placeholder {

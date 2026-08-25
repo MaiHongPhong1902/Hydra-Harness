@@ -3,9 +3,11 @@
 .card {
   list-style: none;
   border: 1px solid var(--dsw-alias-border-l2);
-  border-radius: 12px;
+  border-radius: var(--dsw-radius-panel);
   background: var(--dsw-alias-bg-layer-3);
-  transition: border-color .16s, background .16s;
+  transition:
+    border-color var(--ds-transition-duration-fast) var(--ds-ease-in-out),
+    background var(--ds-transition-duration-fast) var(--ds-ease-in-out);
 }
 
 .card:hover {
@@ -31,12 +33,12 @@
   align-items: center;
   gap: 12px;
   padding: 14px 16px;
-  border-radius: 12px;
+  border-radius: var(--dsw-radius-panel);
 }
 
 .header:focus-visible {
-  outline: 2px solid var(--dsw-alias-brand-primary);
-  outline-offset: -2px;
+  outline: none;
+  box-shadow: 0 0 0 2px var(--dsw-alias-focus-ring);
 }
 
 /* Name over description: the description is what tells two plugins apart, so
@@ -65,7 +67,7 @@
 .chevron {
   flex: none;
   color: var(--dsw-alias-label-tertiary);
-  transition: transform .16s;
+  transition: transform var(--ds-transition-duration-fast) var(--ds-ease-in-out);
 }
 
 .chevronOpen {
@@ -120,12 +122,17 @@
 .save {
   appearance: none;
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: var(--dsw-radius-control);
   padding: 5px 14px;
   font: inherit;
   font-size: 13px;
   line-height: 1.5;
   cursor: pointer;
+  transition:
+    background var(--ds-transition-duration-fast) var(--ds-ease-in-out),
+    border-color var(--ds-transition-duration-fast) var(--ds-ease-in-out),
+    color var(--ds-transition-duration-fast) var(--ds-ease-in-out),
+    box-shadow var(--ds-transition-duration-fast) var(--ds-ease-in-out);
 }
 
 .discard {
@@ -152,6 +159,6 @@
 
 .discard:focus-visible,
 .save:focus-visible {
-  outline: 2px solid var(--dsw-alias-brand-primary);
-  outline-offset: 1px;
+  outline: none;
+  box-shadow: 0 0 0 2px var(--dsw-alias-focus-ring);
 }

@@ -1,0 +1,15 @@
+# browser/ — embedded browser family
+
+This family gives the harness a browser of its own: one Electron window per agent, opened on that agent's first browser action and closed with it. The model perceives the page as a numbered text DOM (`[12]<button>Save</button>`) and acts by index — no screenshots, no vision model — through the upstream [PageAgent](https://github.com/alibaba/page-agent) engine (Core, LLM loop, and PageController) bundled into the view's preload. BH, not the target webpage, owns the visible control surface.
+
+| Package | Role | ctx key |
+|---|---|---|
+| [`browser-electron/`](browser-electron/README.md) | Owns the Electron process, the window, and the NDJSON control channel | `ctx.browsers` |
+| [`tool-browser/`](tool-browser/README.md) | Exposes browser navigation/actions plus explicit upstream PageAgent controls | registers on `ctx.tools` |
+| [`obsidian-website-knowledge/`](obsidian-website-knowledge/README.md) | Writes observed target-domain Browser facts into an Obsidian Markdown graph | registers on `ctx.tools` |
+
+The split is the same consumer/seam one as `web/`: everything the model sees — schemas, the DOM-format prompt section, the output cap, the card titles — is decided in `tool-browser`, and nothing there knows the browser is Electron. Unlike `web/` there is no provider registry, because a single-purpose plugin stays one package until a second backend actually exists.
+
+`electron` is an optional dependency. Without it the seam still loads and every call fails with `BROWSER_UNAVAILABLE`, so a deployment that cannot carry a ~200 MB binary — the single-exe build, for one — keeps the rest of the harness intact.
+
+**The browser profile carries real SSO cookies.** It persists across sessions by design, which also means a prompt-injected page can steer the agent into acting as the signed-in user. The generic browser follows Chromium navigation; a domain workflow such as WorkON must apply its own model-tool guard before a URL-bearing browser action. The residual exposure is in [browser-electron's security section](browser-electron/README.md#security).

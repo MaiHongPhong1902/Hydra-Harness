@@ -1,13 +1,13 @@
 /**
- * Durable session skill catalog and model-facing `skill` loader tool.
+ * Bounded model-facing skill search and exact skill loading.
  *
  * @module @bosch/bh-tool-skill
  */
 
-import { createHash } from 'node:crypto'
+import { Buffer } from 'node:buffer'
 import type { Context } from '@bosch/cordis'
 import z from '@bosch/schemastery'
-import type { Agent, PreStepDecision } from '@bosch/bh-agent'
+import type { PreStepDecision } from '@bosch/bh-agent'
 import { defineTool } from '@bosch/bh-tools'
 import { createUserMessage } from '@bosch/bh-llm'
 import type { UserMessage } from '@bosch/bh-session'
@@ -24,65 +24,55 @@ import {
 export const name = 'tool-skill'
 export const inject = ['agents', 'tools', 'skills']
 
-const DEFAULT_CATALOG_DESCRIPTION_MAX_LENGTH = 500
-/**
- * Durable provider and item records for one published session skill catalog. The catalog is a
- * `catalog`-form context, so it records the entries it published beside the
- * model-facing prose: a consumer presenting the list must not re-parse the
- * `<available_skills>` block, whose framing exists for the model.
- */
-export interface SkillCatalogSource {
-  readonly kind: 'skill-catalog'
-  readonly form: 'catalog'
-  /** Marks a replacement catalog rather than this session's first publication. */
-  readonly update?: true
-  /** Exactly the entries this message published, in catalog order. */
-  readonly entries: readonly { readonly name: string; readonly description: string }[]
+const DEFAULT_SEARCH_MAX_RESULTS = 5
+const DEFAULT_SEARCH_DESCRIPTION_MAX_LENGTH = 500
+const DEFAULT_SEARCH_MAX_RESULT_BYTES = 8_192
+
+interface SkillSearchMatch {
+  readonly name: string
+  readonly description: string
+  readonly whenToUse?: string
 }
 
-declare module '@bosch/bh-llm' {
-  interface MessageSourceMap {
-    'skill-catalog': SkillCatalogSource
-  }
+interface SkillSearchResult {
+  readonly complete: boolean
+  readonly truncated: boolean
+  readonly matches: SkillSearchMatch[]
 }
 
-/** Durable entry list mirroring the rendered catalog lines, for non-model consumers. */
-function catalogSourceEntries(
-  skills: SkillSummary[],
-  descriptionMaxLength: number,
-): SkillCatalogSource['entries'] {
-  return skills.map(skill => ({
-    name: skill.name,
-    description: catalogDescription(skill.description, descriptionMaxLength),
-  }))
-}
-
-/** Model-facing skill catalog configuration. */
+/** Model-facing skill search configuration. */
 export interface Config {
-  /** Maximum normalized description length rendered in the session catalog; minimum 3. */
-  catalogDescriptionMaxLength?: number
+  /** Maximum candidates returned by one search; minimum 1. */
+  searchMaxResults?: number
+  /** Maximum normalized description or routing-hint length per candidate; minimum 3. */
+  searchDescriptionMaxLength?: number
+  /** Maximum UTF-8 bytes in one rendered search result. */
+  searchMaxResultBytes?: number
 }
 
-/** Validate and default the model-facing skill catalog configuration. */
+/** Validate and default the model-facing skill search configuration. */
 export const Config: z<Config> = z.object({
-  catalogDescriptionMaxLength: z.number().default(DEFAULT_CATALOG_DESCRIPTION_MAX_LENGTH),
+  searchMaxResults: z.number().default(DEFAULT_SEARCH_MAX_RESULTS),
+  searchDescriptionMaxLength: z.number().default(DEFAULT_SEARCH_DESCRIPTION_MAX_LENGTH),
+  searchMaxResultBytes: z.number().default(DEFAULT_SEARCH_MAX_RESULT_BYTES),
 })
 
 /**
- * Register the model-facing skill loader and its visibility-matched
- * durable session catalog. The catalog is emitted only when the calling agent
- * resolves this plugin's exact tool registration; a restriction or scoped
- * same-name shadow therefore removes both the schema and its call guidance.
+ * Register bounded model-facing search, exact loading, and direct user invocation.
  */
 export function apply(ctx: Context, config: Config = {}): void {
-  const catalogDescriptionMaxLength = config.catalogDescriptionMaxLength ?? DEFAULT_CATALOG_DESCRIPTION_MAX_LENGTH
-  assertPositiveInteger('catalogDescriptionMaxLength', catalogDescriptionMaxLength, 3)
+  const searchMaxResults = config.searchMaxResults ?? DEFAULT_SEARCH_MAX_RESULTS
+  const searchDescriptionMaxLength = config.searchDescriptionMaxLength ?? DEFAULT_SEARCH_DESCRIPTION_MAX_LENGTH
+  const searchMaxResultBytes = config.searchMaxResultBytes ?? DEFAULT_SEARCH_MAX_RESULT_BYTES
+  assertPositiveInteger('searchMaxResults', searchMaxResults)
+  assertPositiveInteger('searchDescriptionMaxLength', searchDescriptionMaxLength, 3)
+  assertPositiveInteger('searchMaxResultBytes', searchMaxResultBytes, minimumSearchResultBytes())
 
   const skillTool = defineTool({
     name: 'skill',
-    description: 'Load the full instructions for an available skill. Call this with the exact skill name from the session skill catalog before acting on a task that names or clearly matches that skill.',
+    description: 'Load the full instructions for exactly one skill. Use only an exact name returned by `skill_search` for the current task or explicitly named by the user; do not guess names or reload an inline <skill_content> block.',
     parameters: {
-      name: { type: 'string', required: true, description: 'The exact skill name from the available skills list.' },
+      name: { type: 'string', required: true, description: 'The exact skill name returned by `skill_search` or explicitly named by the user.' },
     },
     output: {
       schema: {
@@ -160,20 +150,67 @@ export function apply(ctx: Context, config: Config = {}): void {
   })
   ctx.tools.register(skillTool)
 
-  // User-explicit skill invocation: a claimed user message whose first line
-  // starts with `/<name>` naming a user-invocable skill is a deterministic
-  // load gesture. The rendered body enters this step as injected
-  // instructions context appended after every other injection — background
-  // first (workspace rules, runtime policy, the catalog), the material the
-  // model must act on last, closest to its answer. Registration order makes
-  // that placement deterministic: this listener registers before the catalog
-  // listener, so the waterfall hands it the catalog-bearing list to extend.
+  const skillSearchTool = defineTool({
+    name: 'skill_search',
+    description: 'Find a bounded shortlist of skills for a substantive user task before loading one. Search with concise task keywords; do not call this for greetings, thanks, acknowledgements, casual chat, meta questions, or vague requests. An empty result means load no skill.',
+    parameters: {
+      query: { type: 'string', required: true, description: 'Concise keywords describing the user task, not a greeting or conversational filler.' },
+    },
+    output: {
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          complete: { type: 'boolean', required: true },
+          truncated: { type: 'boolean', required: true },
+          matches: {
+            type: 'array',
+            required: true,
+            items: {
+              type: 'object',
+              additionalProperties: false,
+              properties: {
+                name: { type: 'string', required: true },
+                description: { type: 'string', required: true },
+                whenToUse: { type: 'string' },
+              },
+            },
+          },
+        },
+      },
+      render: (_args, value) => [{ type: 'text', text: renderSkillSearchResult(value) }],
+    },
+    async execute(args, exec) {
+      const snapshot = await ctx.skills.snapshot({
+        cwd: exec.agent?.session.header.cwd,
+        signal: exec.signal,
+        scope: exec.agent,
+      })
+      exec.signal.throwIfAborted()
+      return boundedSearchResult(
+        rankSkills(snapshot.skills.filter(isModelInvocable), args.query),
+        snapshot.complete,
+        searchMaxResults,
+        searchDescriptionMaxLength,
+        searchMaxResultBytes,
+      )
+    },
+    presentCall(args) {
+      return { card: 'generic', title: 'Search skills', kind: 'read', rawInput: args.query }
+    },
+  })
+  ctx.tools.register(skillSearchTool)
+
+  // User-explicit skill invocation: a claimed user message containing
+  // `/<name>` naming a user-invocable skill is a deterministic load gesture.
+  // The rendered body enters this step as instructions context after every
+  // other injection, closest to the model's answer.
   // Only `source.kind === 'user'` messages are scanned — external text
   // cannot forge the gesture — and a token naming no user-invocable skill
   // stays ordinary prose (the command registry is a different closed
   // namespace, resolved client-side before a line ever becomes a prompt).
   // This is the only entry point for `disable-model-invocation` skills; the
-  // catalog and the `skill` tool below never see them.
+  // model-facing search and loader never expose them.
   ctx.on('agent/pre-step', async (
     { agent, messages, signal },
     next,
@@ -202,193 +239,144 @@ export function apply(ctx: Context, config: Config = {}): void {
     if (injections.length === 0) return decision
     return { kind: 'enter', messages: [...decision.messages, ...injections] }
   })
+}
 
-  // Register after the tool so reverse teardown removes guidance first. Exact definition
-  // identity prevents a scoped shadow merely named `skill` from inheriting this catalog.
-  //
-  // The comparison is against the definition this plugin registered, not against
-  // a lookup of its own name: `register()` files into the CALLING context's
-  // scope, so a plugin mounted inside an agent preset registers for that agent
-  // alone and an unscoped lookup correctly finds nothing.
-  ctx.on('agent/pre-step', async (
-    { agent, signal },
-    next,
-  ): Promise<PreStepDecision> => {
-    const decision = await next()
-    if (decision.kind === 'reject') return decision
-    signal.throwIfAborted()
-    const toolVisible = ctx.tools.get(skillTool.name, agent) === skillTool
-    const snapshot = toolVisible
-      ? await ctx.skills.snapshot({ cwd: agent.session.header.cwd, signal, scope: agent })
-      : { skills: [], complete: true }
-    signal.throwIfAborted()
-    if (!snapshot.complete) return decision
-    const skills = snapshot.skills.filter(isModelInvocable)
-    const entries = catalogSourceEntries(skills, catalogDescriptionMaxLength)
-    const digest = digestCatalogEntries(entries)
-    const history = catalogHistory(agent)
-    const existing = catalogMessage(decision.messages)
-    if (history.visibleDigest === digest) {
-      return existing === undefined
-        ? decision
-        : { kind: 'enter', messages: decision.messages.filter(message => message.id !== existing.message.id) }
-    }
-    if (existing !== undefined && digestCatalogEntries(existing.entries) === digest) return decision
-    if (!history.published && skills.length === 0) {
-      return existing === undefined
-        ? decision
-        : { kind: 'enter', messages: decision.messages.filter(message => message.id !== existing.message.id) }
-    }
-    const catalog = history.published
-      ? renderCatalogUpdate(entries)
-      : renderCatalogMessage(entries)
+interface RankedSkill {
+  readonly skill: SkillSummary
+  readonly exactName: boolean
+  readonly matchedTerms: number
+  readonly nameMatches: number
+  readonly whenToUseMatches: number
+  readonly descriptionMatches: number
+}
+
+const ROUTING_TERM = /[\p{L}\p{N}]+/gu
+
+/**
+ * Rank model-invocable skill summaries against task keywords without loading any body.
+ * @param skills - candidate summaries visible to the calling agent.
+ * @param query - concise model-authored task keywords.
+ * @returns matching summaries in deterministic relevance order.
+ */
+function rankSkills(skills: readonly SkillSummary[], query: string): SkillSummary[] {
+  const queryPhrase = routingPhrase(query)
+  const queryTerms = new Set(queryPhrase.split(' ').filter(Boolean))
+  if (queryTerms.size === 0) return []
+
+  // ponytail: lexical metadata ranking stays local; add semantic retrieval only after measured routing misses.
+  const ranked: RankedSkill[] = []
+  for (const skill of skills) {
+    const namePhrase = routingPhrase(skill.name)
+    const nameTerms = new Set(namePhrase.split(' ').filter(Boolean))
+    const descriptionTerms = routingTerms(skill.description)
+    const whenToUseTerms = routingTerms(skill.whenToUse ?? '')
+    const allTerms = new Set([...nameTerms, ...descriptionTerms, ...whenToUseTerms])
+    const matchedTerms = countMatches(queryTerms, allTerms)
+    const exactName = ` ${queryPhrase} `.includes(` ${namePhrase} `)
+    if (!exactName && matchedTerms === 0) continue
+    ranked.push({
+      skill,
+      exactName,
+      matchedTerms,
+      nameMatches: countMatches(queryTerms, nameTerms),
+      whenToUseMatches: countMatches(queryTerms, whenToUseTerms),
+      descriptionMatches: countMatches(queryTerms, descriptionTerms),
+    })
+  }
+  ranked.sort((left, right) => Number(right.exactName) - Number(left.exactName)
+    || right.matchedTerms - left.matchedTerms
+    || right.nameMatches - left.nameMatches
+    || right.whenToUseMatches - left.whenToUseMatches
+    || right.descriptionMatches - left.descriptionMatches
+    || compareText(left.skill.name, right.skill.name))
+  return ranked.map(entry => entry.skill)
+}
+
+function boundedSearchResult(
+  ranked: readonly SkillSummary[],
+  complete: boolean,
+  maxResults: number,
+  descriptionMaxLength: number,
+  maxResultBytes: number,
+): SkillSearchResult {
+  const candidates = ranked.slice(0, maxResults).map((skill) => {
+    const whenToUse = skill.whenToUse === undefined
+      ? undefined
+      : boundSearchText(skill.whenToUse, descriptionMaxLength)
     return {
-      kind: 'enter',
-      messages: existing === undefined
-        ? [...decision.messages, catalog]
-        : decision.messages.map(message => message.id === existing.message.id ? catalog : message),
+      name: skill.name,
+      description: boundSearchText(skill.description, descriptionMaxLength),
+      ...whenToUse === undefined || whenToUse === '' ? {} : { whenToUse },
     }
   })
-}
-
-function renderCatalogMessage(entries: SkillCatalogSource['entries']): UserMessage {
-  return createUserMessage({
-    content: [{
-      type: 'text',
-      text: [
-        '<system-reminder>',
-        'A skill is a reusable set of task-specific instructions. The following skills are available in this session:',
-        '',
-        '<available_skills>',
-        ...renderCatalogEntries(entries),
-        '</available_skills>',
-        '',
-        "If the user names a skill, or the task clearly matches a skill's description, call the `skill` tool with the exact skill name before taking task actions. Load all applicable skills, then follow their full instructions. This catalog contains summaries only; do not infer or follow a skill's instructions until it has been loaded.",
-        'A user may also invoke a skill directly; its <skill_content> block then appears in this conversation. Follow it, and do not call the `skill` tool again for that skill.',
-        '</system-reminder>',
-      ].join('\n'),
-    }],
-    source: {
-      kind: 'skill-catalog',
-      form: 'catalog',
-      entries,
-    },
-  })
-}
-
-function renderCatalogUpdate(entries: SkillCatalogSource['entries']): UserMessage {
-  const availability = entries.length === 0
-    ? [
-      'No skills are currently available through the `skill` tool. Do not use names from earlier skill catalogs.',
-      'A user may still invoke a skill directly; its <skill_content> block then appears in this conversation. Follow it, and do not call the `skill` tool for it.',
-    ]
-    : [
-      'Use only names in this replacement catalog. If the user names a listed skill, or the task clearly matches its description, call the `skill` tool with the exact name before acting.',
-      'A user may also invoke a skill directly; its <skill_content> block then appears in this conversation. Follow it, and do not call the `skill` tool again for that skill.',
-    ]
-  return createUserMessage({
-    content: [{
-      type: 'text',
-      text: [
-        '<system-reminder>',
-        'The available skill catalog changed. This complete catalog replaces every earlier available-skills list in this session:',
-        '',
-        '<available_skills>',
-        ...renderCatalogEntries(entries),
-        '</available_skills>',
-        '',
-        ...availability,
-        '</system-reminder>',
-      ].join('\n'),
-    }],
-    source: {
-      kind: 'skill-catalog',
-      form: 'catalog',
-      update: true,
-      entries,
-    },
-  })
-}
-
-/**
- * Model-facing catalog lines, projected from the same entries the source records.
- * The pseudo-XML escaping belongs to this frame, not to the published fact, so it
- * is applied here and never stored. Names are `isSkillName`-validated and carry
- * no escapable character.
- */
-function renderCatalogEntries(entries: SkillCatalogSource['entries']): string[] {
-  return entries.map(entry => `- \`${entry.name}\`: ${escapeText(entry.description)}`)
-}
-
-/**
- * Catalog identity over the durable entry list rather than the rendered prose.
- * The entries are what changes; the surrounding `<system-reminder>` framing is
- * written for the model and must not decide whether a republish is needed.
- */
-function digestCatalogEntries(entries: SkillCatalogSource['entries']): string {
-  // JSON per entry rather than a separator character: every separator is itself
-  // a legal description character, so only quoting makes the boundary exact.
-  const canonical = entries.map(entry => JSON.stringify([entry.name, entry.description])).join('\n')
-  return createHash('sha256')
-    .update(canonical)
-    .digest('hex')
-}
-
-/**
- * Entries of one durable catalog message, or undefined when the record is not a
- * usable catalog.
- *
- * `agent.session.events` may be a resumed, forked, or externally written seed,
- * and seed validation only guarantees a source object with a non-empty `kind`;
- * no per-kind field is checked there. An unreadable record is therefore treated
- * as "not this plugin's catalog" — the posture the replaced content digest had —
- * rather than throwing inside the step listener, which would fail every
- * subsequent turn of that session.
- */
-function readCatalogEntries(source: unknown): SkillCatalogSource['entries'] | undefined {
-  const entries = (source as { entries?: unknown }).entries
-  if (!Array.isArray(entries)) return undefined
-  const readable: { name: string; description: string }[] = []
-  for (const entry of entries as readonly unknown[]) {
-    if (typeof entry !== 'object' || entry === null) return undefined
-    const { name, description } = entry as { name?: unknown; description?: unknown }
-    if (typeof name !== 'string' || name === '' || typeof description !== 'string') return undefined
-    readable.push({ name, description })
+  const matches: SkillSearchMatch[] = []
+  for (const candidate of candidates) {
+    const nextMatches = [...matches, candidate]
+    const next: SkillSearchResult = {
+      complete,
+      truncated: nextMatches.length < ranked.length,
+      matches: nextMatches,
+    }
+    if (resultBytes(next) > maxResultBytes) break
+    matches.push(candidate)
   }
-  return readable
-}
-
-function catalogHistory(agent: Agent): { visibleDigest?: string; published: boolean } {
-  const visible = new Set(agent.session.surface.nodes)
-  const events = agent.session.events
-  let published = false
-  for (let index = events.length - 1; index >= 0; index -= 1) {
-    // The loop bounds prove the read-only event view contains this index.
-    // oxlint-disable-next-line typescript/no-non-null-assertion
-    const event = events[index]!
-    if (event.type !== 'user/message' || event.data.source.kind !== 'skill-catalog') continue
-    const entries = readCatalogEntries(event.data.source)
-    if (entries === undefined) continue
-    const digest = digestCatalogEntries(entries)
-    published = true
-    if (visible.has(event.seq)) return { visibleDigest: digest, published }
+  return {
+    complete,
+    truncated: matches.length < ranked.length,
+    matches,
   }
-  return { published }
 }
 
-function catalogMessage(
-  messages: readonly UserMessage[],
-): { message: UserMessage; entries: SkillCatalogSource['entries'] } | undefined {
-  for (const message of messages) {
-    if (message.source.kind !== 'skill-catalog') continue
-    const entries = readCatalogEntries(message.source)
-    if (entries !== undefined) return { message, entries }
+function renderSkillSearchResult(result: SkillSearchResult): string {
+  const candidates = result.matches.length === 0
+    ? ['(none)']
+    : result.matches.flatMap(match => [
+      `- \`${match.name}\`: ${escapeText(match.description)}`,
+      ...match.whenToUse === undefined ? [] : [`  Use when: ${escapeText(match.whenToUse)}`],
+    ])
+  return [
+    `<skill_candidates complete="${result.complete}" truncated="${result.truncated}">`,
+    ...candidates,
+    '</skill_candidates>',
+    ...result.complete ? [] : ['Discovery was incomplete; an empty result does not prove that no matching skill exists.'],
+    'Choose zero or one candidate. Call `skill` only for the best match; load another only when the task clearly requires an independent skill.',
+  ].join('\n')
+}
+
+function minimumSearchResultBytes(): number {
+  return Math.max(...[true, false].flatMap(complete => [true, false].map(truncated => resultBytes({
+    complete,
+    truncated,
+    matches: [],
+  }))))
+}
+
+function resultBytes(result: SkillSearchResult): number {
+  return Buffer.byteLength(renderSkillSearchResult(result), 'utf8')
+}
+
+function routingPhrase(value: string): string {
+  return (value.normalize('NFKD').replaceAll(/\p{M}/gu, '').toLowerCase().match(ROUTING_TERM) ?? []).join(' ')
+}
+
+function routingTerms(value: string): ReadonlySet<string> {
+  return new Set(routingPhrase(value).split(' ').filter(Boolean))
+}
+
+function countMatches(left: ReadonlySet<string>, right: ReadonlySet<string>): number {
+  let count = 0
+  for (const value of left) {
+    if (right.has(value)) count += 1
   }
-  return undefined
+  return count
 }
 
-/** Normalized, length-bounded description exactly as the catalog publishes it (unescaped). */
-function catalogDescription(value: string, maxLength: number): string {
+function compareText(left: string, right: string): number {
+  return left < right ? -1 : left > right ? 1 : 0
+}
+
+/** Normalize and length-bound one model-visible summary field. */
+function boundSearchText(value: string, maxLength: number): string {
   const normalized = value.replaceAll(/\s+/g, ' ').trim()
   return normalized.length <= maxLength ? normalized : `${normalized.slice(0, maxLength - 3)}...`
 }

@@ -50,7 +50,7 @@
   padding-left: 4px;
   margin-bottom: 4px;
   box-sizing: border-box;
-  border-radius: 12px;
+  border-radius: var(--dsw-radius-control);
   overflow: hidden;
   color: var(--dsw-alias-label-tertiary);
 }
@@ -161,7 +161,7 @@
   margin-inline: -2px;
   padding: 0 4px 0 0;
   border: 1px solid var(--dsw-alias-border-l2);
-  border-radius: 10px;
+  border-radius: var(--dsw-radius-control);
   background: transparent;
   color: var(--dsw-alias-label-caption);
 }

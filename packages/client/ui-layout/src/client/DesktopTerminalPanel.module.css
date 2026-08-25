@@ -1,0 +1,65 @@
+.panel {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: 34px minmax(0, 1fr);
+  overflow: hidden;
+  background: var(--dsw-alias-bg-base);
+}
+
+.panel[data-embedded] {
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.header {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--dsw-alias-border-l1);
+  background: var(--dsw-specific-sidebar-fill);
+}
+
+.title {
+  flex: 1;
+  color: var(--dsw-alias-label-primary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status {
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 11px;
+}
+
+.status[data-running] {
+  color: var(--dsw-alias-state-success-primary);
+}
+
+.restart {
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 6px;
+  color: var(--dsw-alias-label-primary);
+  background: var(--dsw-alias-button-floating-fill);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.terminal {
+  min-width: 0;
+  min-height: 0;
+  padding: 8px 10px;
+  overflow: hidden;
+}
+
+.terminal :global(.xterm) {
+  height: 100%;
+}
+
+.terminal :global(.xterm-viewport) {
+  scrollbar-color: var(--dsw-alias-scrollbar-bg-l1) transparent;
+}

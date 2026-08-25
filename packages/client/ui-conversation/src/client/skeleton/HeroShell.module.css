@@ -1,4 +1,4 @@
-/* NEW SESSION hero (figma Input_Bottom 75:8208): fish + title, workspace chip
+/* NEW SESSION hero (figma Input_Bottom 75:8208): WorkON mark + title, workspace chip
    above the shared InputBar card. The input itself is InputBar — only stack
    geometry and the chip live here. */
 
@@ -23,7 +23,7 @@
   overflow: visible;
 }
 
-/* figma 34:10411: fish + title, gap 10, centered; 26/32 wt500. The preview
+/* figma 34:10411: WorkON mark + title, gap 10, centered; 26/32 wt500. The preview
    badge is a product addition outside that source: a mono superscript pill
    riding the title's top-right. */
 .headline {
@@ -70,9 +70,8 @@
   justify-content: center;
 }
 
-/* Keep the hero mark in the same primary ink as its headline. */
+/* The WorkON mark keeps its supplied blue; this class owns its motion. */
 .fish {
-  color: var(--dsw-alias-label-primary);
   transform-origin: 50% 60%;
 }
 

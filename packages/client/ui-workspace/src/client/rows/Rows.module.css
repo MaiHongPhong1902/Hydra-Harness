@@ -8,11 +8,12 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  border-radius: 8px;
+  border-radius: var(--dsw-radius-control);
   padding: 0 8px;
   cursor: pointer;
   user-select: none;
   color: var(--dsw-alias-label-primary);
+  transition: background-color var(--ds-transition-duration-fast) var(--ds-ease-in-out);
 }
 
 .projectRow:hover,
@@ -21,7 +22,12 @@
 }
 
 .sessionRow.selected {
-  background: var(--dsw-alias-interactive-bg-hover);
+  background: var(--dsw-specific-sidebar-nav-item-active);
+  box-shadow: inset 2px 0 0 var(--dsw-specific-sidebar-nav-item-active-accent);
+}
+
+.sessionRow.selected .title {
+  font-weight: 500;
 }
 
 .searchResultRow {

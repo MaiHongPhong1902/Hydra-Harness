@@ -782,6 +782,7 @@ describe('config unary surface', () => {
       settingsNs: 'llm-pi-ai',
       baseURL: 'https://gateway.acme.example/v1',
       api: 'openai-completions',
+      proxy: 'http://127.0.0.1:3128',
       apiKey: 'probe-key',
     })
     expect(discovered.result).toEqual({ ok: true, value: { models: [{ id: 'acme-large', contextWindow: 65536 }] } })
@@ -801,6 +802,7 @@ describe('config unary surface', () => {
       settingsNs: 'llm-pi-ai',
       baseURL: 'https://gateway.acme.example/v1',
       api: 'openai-completions',
+      proxy: 'http://127.0.0.1:3128',
       apiKey: 'probe-key',
     })
   })

@@ -1,19 +1,23 @@
 body {
-  --dsw-linear-gradient-think: linear-gradient(180deg, #fff 20.19%, rgba(255, 255, 255, 0) 100%);
-  --dsw-linear-think-select: linear-gradient(180deg, #f5f6f7 20.19%, rgba(245, 246, 247, 0) 100%);
+  --dsw-linear-gradient-think: linear-gradient(180deg, var(--dsw-alias-bg-base) 20.19%, transparent 100%);
+  --dsw-linear-think-select: linear-gradient(180deg, var(--dsw-alias-bg-module-platform) 20.19%, transparent 100%);
   /* 阴影 */
-  --dsw-shadow-lv1: 0 2px 4px 0 rgba(0, 0, 0, 0.05);
-  --dsw-shadow-lv1-blur: 0 4px 12px 0 rgba(0, 0, 0, 0.02);
-  --dsw-shadow-lv2: 0 4px 12px 0 rgba(0, 0, 0, 0.02), 0 2px 8px 0 rgba(0, 0, 0, 0.04);
+  --dsw-shadow-lv1: 0 1px 2px rgba(32, 32, 30, 0.03);
+  --dsw-shadow-lv1-blur: 0 4px 12px rgba(32, 32, 30, 0.03);
+  --dsw-shadow-lv2: 0 1px 2px rgba(32, 32, 30, 0.03), 0 6px 20px rgba(32, 32, 30, 0.04);
   --dsw-shadow-lv3:
-    0 0 1px 0 rgba(0, 0, 0, 0.2), 0 0 4px 0 rgba(0, 0, 0, 0.02), 0 12px 32px 0 rgba(0, 0, 0, 0.08);
+    0 1px 2px rgba(32, 32, 30, 0.06), 0 16px 40px rgba(32, 32, 30, 0.12);
   /* blur filter */
   --dsw-mask-blur: blur(2px);
 }
 
 body[data-ds-dark-theme] {
-  --dsw-linear-gradient-think: linear-gradient(180deg, #151517 20.19%, rgba(21, 21, 23, 0) 100%);
-  --dsw-linear-think-select: linear-gradient(180deg, #232325 20.19%, rgba(35, 35, 37, 0) 100%);
+  --dsw-linear-gradient-think: linear-gradient(180deg, var(--dsw-alias-bg-base) 20.19%, transparent 100%);
+  --dsw-linear-think-select: linear-gradient(180deg, var(--dsw-alias-bg-module-platform) 20.19%, transparent 100%);
+  --dsw-shadow-lv1: 0 1px 2px rgba(0, 0, 0, 0.16);
+  --dsw-shadow-lv1-blur: 0 4px 12px rgba(0, 0, 0, 0.18);
+  --dsw-shadow-lv2: 0 1px 2px rgba(0, 0, 0, 0.2), 0 8px 24px rgba(0, 0, 0, 0.24);
+  --dsw-shadow-lv3: 0 1px 2px rgba(0, 0, 0, 0.34), 0 18px 44px rgba(0, 0, 0, 0.42);
 }
 
 /* ---------- 字体 ---------- */

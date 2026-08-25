@@ -20,7 +20,7 @@
   max-height: min(60vh, 520px);
   padding: 0 0 10px;
   border: 1px solid var(--dsw-alias-border-l2-darkmode-thin);
-  border-radius: 20px;
+  border-radius: var(--dsw-radius-composer);
   background: var(--dsw-specific-input-major);
   box-shadow: var(--dsw-shadow-lv2);
   color: var(--dsw-alias-label-primary);
@@ -177,12 +177,14 @@
   flex-shrink: 0;
   padding: 8px 12px 8px 8px;
   border: 1px solid transparent;
-  border-radius: 12px;
+  border-radius: var(--dsw-radius-panel);
   background: transparent;
   color: inherit;
   text-align: left;
   cursor: pointer;
-  transition: background-color 120ms ease, border-color 120ms ease;
+  transition:
+    background-color var(--ds-transition-duration-fast) var(--ds-ease-in-out),
+    border-color var(--ds-transition-duration-fast) var(--ds-ease-in-out);
 }
 
 .option:hover:not(:disabled),
@@ -238,7 +240,9 @@
   height: 14px;
   border: 1px solid var(--dsw-alias-border-l4);
   border-radius: 4px;
-  transition: background-color 120ms ease, border-color 120ms ease;
+  transition:
+    background-color var(--ds-transition-duration-fast) var(--ds-ease-in-out),
+    border-color var(--ds-transition-duration-fast) var(--ds-ease-in-out);
 }
 
 .checkbox > svg {
@@ -306,8 +310,10 @@
   flex-shrink: 0;
   padding: 8px 12px 8px 8px;
   border: 1px solid transparent;
-  border-radius: 12px;
-  transition: background-color 120ms ease, border-color 120ms ease;
+  border-radius: var(--dsw-radius-panel);
+  transition:
+    background-color var(--ds-transition-duration-fast) var(--ds-ease-in-out),
+    border-color var(--ds-transition-duration-fast) var(--ds-ease-in-out);
 }
 
 .customRow:hover,
@@ -389,13 +395,14 @@
   flex-shrink: 0;
   margin: 0 12px;
   border: 1px solid var(--dsw-alias-border-l2);
-  border-radius: 10px;
+  border-radius: var(--dsw-radius-control);
   background: var(--dsw-alias-bg-module-platform);
   --bh-answer-field-padding: 8px 12px;
 }
 
 .customBlock:focus-within {
   border-color: var(--dsw-alias-state-business-primary);
+  box-shadow: 0 0 0 2px var(--dsw-alias-focus-ring);
 }
 
 .footer {
@@ -419,7 +426,7 @@
 
 @media (max-width: 720px) {
   .card {
-    border-radius: 16px;
+    border-radius: var(--dsw-radius-composer);
   }
 
   .header {

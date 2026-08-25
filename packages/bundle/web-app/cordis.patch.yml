@@ -345,8 +345,8 @@
 # `skill-filesystem` registers into that preset's layer, and each agent reads the
 # merged catalog its scope chain selects. Only the per-agent rows move behind
 # presets: the base host `skill-filesystem` row is disabled here (presets own local
-# discovery), and `tool-skill` is what a preset mounts to give its agent the
-# catalog and loader at all.
+# discovery), and `tool-skill` is what a preset mounts to give its agent bounded
+# search and exact loading at all.
 
 - id: skill-filesystem
   disabled: true

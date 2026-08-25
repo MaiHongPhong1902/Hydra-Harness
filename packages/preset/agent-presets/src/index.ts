@@ -168,7 +168,7 @@ export class AgentPresets extends Service {
       if (this.composedPreset(agent.ctx) !== undefined) return
       ctx.logger.warn(
         `agent "${agent.id}" was published without joining an agent preset; `
-        + 'its tools, prompt sections, and skill catalog resolve against the empty global layer '
+        + 'its tools, prompt sections, and skill registry view resolve against the empty global layer '
         + '(join through AgentPresets.mount() or composeFrom() in the agent factory setup)',
       )
     })

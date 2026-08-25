@@ -1,6 +1,6 @@
 # Skills
 
-The [skill capability family](../../packages/skill) includes the Service Definition ([bh-skill](../../packages/skill/skill), `ctx.skills`), the local Service Provider ([bh-skill-filesystem](../../packages/skill/skill-filesystem)), the optional packaged badge provider ([bh-skill-badge](../../packages/skill/skill-badge)), and the Consumer ([bh-tool-skill](../../packages/skill/tool-skill)). The registry merges provider catalogs across its host and per-scope layers; providers contribute local or packaged skills; the Consumer owns the initial and replacement catalogs plus the model-facing `skill` tool. Skills are optional instructions, not session events, so their vocabulary lives here rather than in [core.md](core.md).
+The [skill capability family](../../packages/skill) includes the Service Definition ([bh-skill](../../packages/skill/skill), `ctx.skills`), the local Service Provider ([bh-skill-filesystem](../../packages/skill/skill-filesystem)), the optional packaged badge provider ([bh-skill-badge](../../packages/skill/skill-badge)), and the Consumer ([bh-tool-skill](../../packages/skill/tool-skill)). The registry merges provider catalogs across its host and per-scope layers; providers contribute local or packaged skills; the Consumer owns bounded model-facing search, exact loading, and direct user invocation. Skills are optional instructions, not session events, so their vocabulary lives here rather than in [core.md](core.md).
 
 Source: [`packages/skill/skill/src/index.ts`](../../packages/skill/skill/src/index.ts), [`packages/skill/skill-filesystem/src/index.ts`](../../packages/skill/skill-filesystem/src/index.ts), [`packages/skill/skill-badge/src/index.ts`](../../packages/skill/skill-badge/src/index.ts), and [`packages/skill/tool-skill/src/index.ts`](../../packages/skill/tool-skill/src/index.ts).
 
@@ -89,12 +89,12 @@ type SkillSource = 'project-bh' | 'project-agents' | 'runtime' | 'user-bh' | 'us
 
 ## Summaries, candidates, and complete definitions
 
-`SkillSummary` is the registry's invocation-neutral summary shape. Consumers choose which entries and fields to render; the model session catalog uses only model-invocable `name` and `description`, never the body or absolute file path. `SkillInvocationPolicy` normalizes the two independent invocation controls into positive booleans, and every resolved summary, candidate, and definition carries it without turning arbitrary frontmatter into the domain model.
+`SkillSummary` is the registry's invocation-neutral summary shape. Consumers choose which entries and fields to render; model search uses model-invocable `name`, `description`, and optional `whenToUse`, never the body or absolute file path. `SkillInvocationPolicy` normalizes the two independent invocation controls into positive booleans, and every resolved summary, candidate, and definition carries it without turning arbitrary frontmatter into the domain model.
 
 ```ts type-equiv
 /** Invocation controls shared by skill discovery consumers. */
 interface SkillInvocationPolicy {
-  /** Whether model-facing catalogs and loaders include this skill. */
+  /** Whether model-facing search and exact loading include this skill. */
   readonly modelInvocable: boolean
   /** Whether human-facing command catalogs and loaders include this skill. */
   readonly userInvocable: boolean
@@ -214,7 +214,7 @@ interface SkillViewOptions extends SkillLookupOptions {
 }
 ```
 
-The registry owns only its discovery-cache bound. The local provider owns filesystem roots (`bhHome`, `agentsHome`, `customSkillDirs`, and optional `bundledSkillDir`/`BH_BUNDLED_SKILL_DIR`) plus watcher enablement, polling, stability, symlink, and project-capacity controls. The consumer owns its catalog description bound. Exact defaults and validation are in the generated [config catalog](../config-catalog.md).
+The registry owns only its discovery-cache bound. The local provider owns filesystem roots (`bhHome`, `agentsHome`, `customSkillDirs`, and optional `bundledSkillDir`/`BH_BUNDLED_SKILL_DIR`) plus watcher enablement, polling, stability, symlink, and project-capacity controls. The consumer owns search result count, field-length, and rendered-byte bounds. Exact defaults and validation are in the generated [config catalog](../config-catalog.md).
 
 ```ts type-equiv
 /** Skill registry configuration. */
@@ -224,13 +224,13 @@ interface Config {
 }
 ```
 
-## Session catalog and tool contract
+## Bounded search and tool contract
 
-`bh-tool-skill` injects the initial durable user-role `<system-reminder>` at the first `agent/pre-step` of a live session that observes a non-empty complete view. The catalog contains sorted skill `name` and normalized, XML-escaped `description` only; it omits bodies, paths, sources, providers, and routing hints. Discovery forwards the step's abort signal through `SkillLookupOptions`. `catalogDescriptionMaxLength` is the consumer config for the description bound, with default `500` and integer minimum `3`.
+`bh-tool-skill` does not inject a skill roster at session or step boundaries. The model first decides whether a substantive task warrants `skill_search({ query })`; its schema explicitly excludes greetings, thanks, acknowledgements, casual chat, meta questions, and vague requests. Search snapshots the registry for the calling agent cwd and scope, forwards cancellation, filters with `isModelInvocable`, and ranks lexical matches across `name`, `description`, and `whenToUse` without loading any body. Exact whole-name phrases rank first, followed by matched query terms and deterministic name ordering.
 
-Before each later model step, the consumer applies exact tool visibility and digests the exact rendered entries between the `<available_skills>` tags from a complete snapshot. It derives the comparison baseline from the same entries in the newest recognizable visible catalog message sourced by the plugin. A changed digest appends a durable full replacement through `agent.inject()`; deleting every skill appends an explicit empty replacement. Incomplete snapshots preserve the last-good model view. If compaction hides every historical catalog message, the next complete snapshot re-establishes the current catalog; an empty view with no prior catalog emits nothing. These catalog messages are session history, not World State.
+One search returns at most `searchMaxResults` candidates (default `5`), normalizes and caps each description or routing hint at `searchDescriptionMaxLength` characters (default `500`, integer minimum `3`), and caps the complete rendered result at `searchMaxResultBytes` UTF-8 bytes (default `8192`). `truncated` reports candidates omitted by count or byte limits. `complete: false` preserves the registry's partial-discovery meaning, so an empty incomplete result does not assert that no matching skill exists. A complete empty result directs the model to load no skill; a non-empty result directs it to choose zero or one candidate and load another only for an independent need. Model-visible search output is therefore bounded independently of registry size; the host still scans the available metadata lexically.
 
-The model-facing `skill({ name })` tool validates the kebab-case name, finds the summary in the invocation-neutral catalog, rejects it before loading unless `isModelInvocable` permits access, then rereads the complete definition for the calling agent cwd and rechecks the policy before returning content. It reports an unresolved skill as unknown or no longer available and returns a tool result containing `<skill_content name="...">`, `<skill_resources>`, and `<skill_instructions>`. `resourceBase` resolves explicitly referenced scripts, references, and assets only as needed; the loaded result does not enumerate a skill directory. Body-only edits therefore change later tool calls without producing catalog messages or rewriting earlier tool results.
+The model-facing `skill({ name })` tool accepts an exact name returned by search or explicitly named by the user. It validates the kebab-case name, finds the summary in the invocation-neutral registry, rejects it before loading unless `isModelInvocable` permits access, then rereads the complete definition for the calling agent cwd and rechecks the policy before returning content. It reports an unresolved skill as unknown or no longer available and returns a tool result containing `<skill_content name="...">`, `<skill_resources>`, and `<skill_instructions>`. `resourceBase` resolves explicitly referenced scripts, references, and assets only as needed; the loaded result does not enumerate a skill directory. Body-only edits therefore change later exact loads without rewriting earlier tool results.
 
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 

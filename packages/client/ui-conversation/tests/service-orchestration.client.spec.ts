@@ -103,6 +103,33 @@ describe('ConversationController', () => {
     await b.runtime.dispose()
   })
 
+  it('sends browser annotations as text files and clears them after acceptance', async () => {
+    const b = await bench()
+    const attachment = b.root.createDraftBrowserAnnotation({
+      kind: 'browser-element',
+      url: 'https://example.test/page',
+      title: 'Example',
+      preview: '<button id="save">Save</button>',
+      index: 7,
+    })
+    expect(attachment.file.type).toBe('text/plain')
+    expect(attachment.file.name).toBe('browser-annotation.html.txt')
+    expect(b.shell.addBrowserAnnotations([attachment.id])).toBe(true)
+    b.shell.updateBrowserAnnotationComment(attachment.id, 'Click this control')
+
+    b.shell.submit()
+    await vi.waitFor(() => { expect(b.prompt).toHaveBeenCalledOnce() })
+    expect(b.prompt).toHaveBeenCalledWith([
+      {
+        type: 'text',
+        text: expect.stringContaining('Comment: Click this control'),
+      },
+    ], 'queue', expect.any(AbortSignal))
+    await vi.waitFor(() => { expect(b.shell.snapshot.browserAnnotationIds).toBeUndefined() })
+    expect(b.root.draftBrowserAnnotations([attachment.id])).toEqual([])
+    await b.runtime.dispose()
+  })
+
   it('validates every MIME type before allocating previews', async () => {
     const b = await bench()
     const created = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:preview')

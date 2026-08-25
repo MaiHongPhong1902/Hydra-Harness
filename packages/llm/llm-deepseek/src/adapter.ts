@@ -9,6 +9,7 @@
  */
 
 import { attributionHeaders, contentHasImage, CONTEXT_WINDOW_EXCEEDED_CODE, isContextWindowExceededError, isQuotaExceededError, LlmAdapter, LlmError, ProviderRequestId, QUOTA_EXCEEDED_CODE, ReasoningEffortId } from '@bosch/bh-llm'
+import { fetchWithHttpProxy } from '@bosch/bh-llm/proxy'
 import type {
   GenerateOptions,
   LlmModelInfo,
@@ -53,6 +54,8 @@ export interface DeepSeekCatalogModel {
 export interface DeepSeekConnectionOptions {
   /** Endpoint base; `/chat/completions` is appended. */
   baseURL: string
+  /** Optional HTTP(S) network proxy used for this request. */
+  proxy?: string
   /**
    * Credential reference of this same resolution, resolved per request.
    * Travelling with the endpoint is the point: a request can never pair one
@@ -338,12 +341,12 @@ export class DeepSeekAdapter extends LlmAdapter {
     // outweighs its additional runtime dependencies.
     let response: Response
     try {
-      response = await fetch(`${connection.baseURL}/chat/completions`, {
+      response = await fetchWithHttpProxy(`${connection.baseURL}/chat/completions`, {
         method: 'POST',
         headers,
         body: payload,
         signal,
-      })
+      }, connection.proxy)
     } catch (error: unknown) {
       // The outer stream distinguishes caller cancellation and watchdog expiry.
       if (signal.aborted) throw error

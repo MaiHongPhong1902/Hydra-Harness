@@ -1,0 +1,66 @@
+{
+  "name": "@bosch/bh-browser-electron",
+  "description": "Embedded browser seam for the Bosch Harness — an owner-scoped Electron child process running the upstream PageAgent engine behind BH controls",
+  "version": "0.1.1-rc.1",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bosch/bosch-harness.git",
+    "directory": "packages/browser/browser-electron"
+  },
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./invariant": {
+      "types": "./lib/types/invariant.d.ts",
+      "default": "./lib/invariant.js"
+    },
+    "./src/*": "./src/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/invariant.js",
+    "electron-app/main.cjs",
+    "electron-app/chrome.html",
+    "electron-app/chrome-preload.cjs",
+    "electron-app/preload.cjs",
+    "lib/types/**/*.d.ts"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "build:preload": "vite build -c vite.preload.config.js"
+  },
+  "peerDependencies": {
+    "@bosch/bh-agent": "workspace:^",
+    "@bosch/bh-home-paths": "workspace:^",
+    "@bosch/bh-invariants": "workspace:^",
+    "@bosch/cordis": "workspace:^",
+    "@bosch/schemastery": "workspace:^",
+    "electron": "^43.4.1"
+  },
+  "peerDependenciesMeta": {
+    "electron": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@bosch/bh-agent": "workspace:^",
+    "@bosch/bh-home-paths": "workspace:^",
+    "@bosch/bh-invariants": "workspace:^",
+    "@bosch/bh-llm": "workspace:^",
+    "@bosch/cordis": "workspace:^",
+    "@bosch/schemastery": "workspace:^",
+    "electron": "^43.4.1",
+    "@page-agent/core": "workspace:^",
+    "@page-agent/page-controller": "workspace:^",
+    "vite": "^6.0.0"
+  }
+}

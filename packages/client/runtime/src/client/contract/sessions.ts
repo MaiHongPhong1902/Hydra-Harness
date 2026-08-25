@@ -11,7 +11,7 @@ import type { Context } from '@bosch/cordis'
 import type {
   RpcResult, SessionId, SubagentAddress,
 } from '@bosch/bh-api-remotes/client'
-import type { HostObservable, SessionMaybeProvideInfo } from '@bosch/bh-client-ui-slots'
+import type { HostObservable, SessionMaybeProvideInfo, SessionProvideInfo } from '@bosch/bh-client-ui-slots'
 import type { AgentContext } from '../agents/scope.ts'
 import type { SessionSearchResultItem } from '../sessions/manager.ts'
 import type {
@@ -28,12 +28,21 @@ export interface ISessions {
   readonly list: ObservableSnapshot<SessionListState>
   /** Atomic current-session provide projection (the renderer host's `sessions.provideInfo` feed). */
   readonly currentProvideInfo: HostObservable<SessionMaybeProvideInfo>
+  /** Resolve one session's render bundle without selecting it as current. */
+  provideInfo(id: string): SessionProvideInfo | undefined
   /**
    * The `session.search` result bound the wire schema fixes, exposed to
    * presentation as injected data. Not per-connection state: every transport
    * (fixture included) reports the same number.
    */
   readonly searchResultLimit: number
+  /** Create or adopt a session without selecting it as current. */
+  create(opts?: {
+    workspaceId?: import('@bosch/bh-api-remotes/client').WorkspaceId
+    cwd?: string
+    sessionId?: SessionId
+    reuseWorkspaceBlank?: true
+  }): Promise<SessionId>
   /**
    * Select a session as current.
    * @param id - session id (must exist in the list; unknown ids fail loud).

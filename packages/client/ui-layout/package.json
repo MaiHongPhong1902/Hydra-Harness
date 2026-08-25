@@ -43,6 +43,11 @@
     "watch": "tsdown --watch"
   },
   "license": "MIT",
+  "dependencies": {
+    "@bosch/bh-client-ui-primitives": "workspace:^",
+    "@xterm/addon-fit": "^0.11.0",
+    "@xterm/xterm": "^6.0.0"
+  },
   "peerDependencies": {
     "@bosch/bh-client-runtime": "workspace:^",
     "@bosch/bh-client-ui-theme": "workspace:^",

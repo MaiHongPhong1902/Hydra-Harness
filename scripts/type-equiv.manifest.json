@@ -1351,6 +1351,26 @@
       "source": "packages/subagent/subagent/src/types.ts"
     },
     {
+      "doc": "docs/subsystems/browser.md",
+      "symbol": "BrowserState",
+      "source": "packages/browser/browser-electron/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/browser.md",
+      "symbol": "BrowserAction",
+      "source": "packages/browser/browser-electron/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/browser.md",
+      "symbol": "BrowserOutcome",
+      "source": "packages/browser/browser-electron/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/browser.md",
+      "symbol": "BrowserErrorCode",
+      "source": "packages/browser/browser-electron/src/types.ts"
+    },
+    {
       "doc": "docs/subsystems/web.md",
       "symbol": "WebSearchRequest",
       "source": "packages/web/web/src/types.ts"

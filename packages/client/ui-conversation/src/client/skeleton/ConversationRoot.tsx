@@ -14,7 +14,7 @@ export type ConversationRootProps = ConversationSlotProps
 
 export function ConversationRoot({
   sessionId, useSession, useSessions, useWorkspaces, useInput, useComposerBlock,
-  renderSlot, renderSlotChain, selectWorkspace, t,
+  renderSlot, renderSlotChain, selectWorkspace, secondary = false, t,
 }: ConversationRootProps) {
   const openState = useSession(s => s.openState)
   const composerPhase = useSession(s => s.composerPhase)
@@ -102,11 +102,12 @@ export function ConversationRoot({
       <WorkspaceChip
         buttonRef={pickerAnchor}
         label={chipTitle}
-        menuOpen={pickerOpen}
-        onClick={() => { setPickerOpen(open => !open) }}
+        menuOpen={!secondary && pickerOpen}
+        disabled={secondary}
+        {...(!secondary && { onClick: () => { setPickerOpen(open => !open) } })}
         t={t}
       />
-      {renderSlot('conversation.hero.workspace', {
+      {!secondary && renderSlot('conversation.hero.workspace', {
         open: pickerOpen,
         anchorRef: pickerAnchor,
         selectedId: pendingWorkspaceId ?? sessionWorkspace?.workspaceId,
@@ -185,7 +186,7 @@ export function ConversationRoot({
 
   return (
     <div className={css.root} data-phase={phase}>
-      {renderSlot('conversation.session.header', {})}
+      {!secondary && renderSlot('conversation.session.header', {})}
       <div className={css.scrollBody} data-conversation-scroll="">
         {renderSlot('conversation.session', {})}
         {composerSeat}

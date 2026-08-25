@@ -24,7 +24,7 @@
 
 /* Rail geometry (figma rail spec): 36x36 control boxes centered in the 56px
    rail (10px side padding), 12px vertical rhythm, 18px from the rail top to
-   the whale's box (24px to the 24-wide whale glyph itself). */
+   the WorkON mark's box (24px to the 24-wide glyph itself). */
 .root.collapsed {
   padding: 18px 10px 6px;
 }
@@ -141,6 +141,10 @@
   justify-content: center;
 }
 
+.brandMark:has(> [data-slot="sidebar.brand.mark"]:empty) {
+  display: none;
+}
+
 .brandName {
   display: inline-flex;
   align-items: center;
@@ -159,6 +163,10 @@
   white-space: nowrap;
 }
 
+.localBrandLogo {
+  flex: none;
+}
+
 .iconButton {
   flex: none;
   display: inline-flex;
@@ -167,11 +175,12 @@
   width: 28px;
   height: 28px;
   border: none;
-  border-radius: 50%;
+  border-radius: var(--dsw-radius-control);
   padding: 0;
   background: transparent;
   cursor: pointer;
   color: var(--dsw-alias-label-secondary);
+  transition: background-color var(--ds-transition-duration-fast) var(--ds-ease-in-out);
 }
 
 .iconButton:hover {
@@ -183,7 +192,7 @@
   height: 36px;
 }
 
-/* Rail logo swap: collapsed, the toggle rests as the whale mark (brand ink,
+/* Rail logo swap: collapsed, the toggle rests as the WorkON mark (brand ink,
    no hover circle) and hovering reveals the panel icon — the expand
    affordance (figma sidebar-hover flow). Expanded it is a plain panel icon. */
 .collapsed .toggle .panelIcon {
@@ -236,19 +245,24 @@
   padding: 8px 16px;
   margin: 0 2px 8px;
   box-sizing: border-box;
-  border: 1px solid var(--dsw-alias-border-l2);
-  border-radius: 12px;
+  border: 1px solid var(--dsw-alias-border-l1);
+  border-radius: var(--dsw-radius-control);
   background: var(--dsw-alias-button-elevated-fill);
+  box-shadow: var(--dsw-shadow-lv1);
   color: var(--dsw-alias-label-primary);
   font-size: 14px;
   font-weight: 500;
   line-height: 22px;
   cursor: pointer;
   overflow: hidden;
+  transition:
+    background-color var(--ds-transition-duration-fast) var(--ds-ease-in-out),
+    box-shadow var(--ds-transition-duration-fast) var(--ds-ease-in-out);
 }
 
 .newSession:hover {
   background: var(--dsw-alias-button-floating-hover);
+  box-shadow: var(--dsw-shadow-lv1-blur);
 }
 
 .collapsed .newSession {

@@ -75,17 +75,21 @@
   height: 34px;
   padding: 0 12px;
   border: 1px solid var(--dsw-alias-border-l2);
-  border-radius: 8px;
+  border-radius: var(--dsw-radius-control);
   background: var(--dsw-alias-bg-layer-3);
   font: inherit;
   font-size: 13px;
   line-height: 1.5;
   color: var(--dsw-alias-label-primary);
+  transition:
+    border-color var(--ds-transition-duration-fast) var(--ds-ease-in-out),
+    box-shadow var(--ds-transition-duration-fast) var(--ds-ease-in-out);
 }
 
 .input:focus-visible {
   outline: none;
   border-color: var(--dsw-alias-brand-primary);
+  box-shadow: 0 0 0 2px var(--dsw-alias-focus-ring);
 }
 
 .input:disabled {

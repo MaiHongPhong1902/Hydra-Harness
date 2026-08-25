@@ -103,9 +103,8 @@ describe('SidebarRoot shell', () => {
         options?.fallback ?? null) as SidebarRootComponentProps['renderSlot']}
     />)
 
-    expect(screen.getByText('BH Local Build')).toBeTruthy()
+    expect(container.querySelector('svg[viewBox="0 0 952 172"]')).not.toBeNull()
     expect(screen.getByText('0123456')).toBeTruthy()
-    expect(container.querySelector('svg')).not.toBeNull()
   })
 
   it('hands the region its wide flag and clamps expandSidebar to the collapsed state', () => {

@@ -277,7 +277,7 @@ export interface SkillConfig {
   registry?: SkillRegistryConfig
   /** Local filesystem skill provider settings. */
   filesystem?: SkillFileSystem.Config
-  /** Model-facing skill catalog and tool settings. */
+  /** Model-facing bounded search and exact loader settings. */
   tool?: toolSkill.Config
 }
 
@@ -388,6 +388,40 @@ export type Config = LocalConfig
 Depends on: [`LocalConfig`](#boschbh-bash-local)
 
 Source: [`packages/shell/bash-sandbox/src/index.ts:35`](../packages/shell/bash-sandbox/src/index.ts)
+
+<a id="boschbh-browser-electron"></a>
+
+## `@bosch/bh-browser-electron`
+
+```ts config-catalog
+/** Embedded browser configuration. */
+export interface Config {
+  /** Chromium profile directory; the default keeps SSO under the harness home. */
+  userDataDir?: string
+  /** Optional initial HTTP(S) page for each newly created browser window. */
+  homeUrl?: string
+  /** Promote session cookies into the persistent Chromium cookie store. */
+  persistSessionCookies?: boolean
+  /** Window width in pixels. */
+  width?: number
+  /** Window height in pixels. */
+  height?: number
+  /** Show the window. Headed by default: the user watches what the agent does. */
+  show?: boolean
+  /** How long one Electron start may take. */
+  startupTimeoutMs?: number
+  /** How long one action may take. */
+  actionTimeoutMs?: number
+  /** How long navigation/state reads wait for usable SPA content. */
+  readinessTimeoutMs?: number
+  /** Allow the experimental isolated-world JavaScript action. */
+  experimentalScriptExecution?: boolean
+  /** Explicit Electron binary; omitted resolves the optional `electron` package. */
+  electronPath?: string
+}
+```
+
+Source: [`packages/browser/browser-electron/src/index.ts:33`](../packages/browser/browser-electron/src/index.ts)
 
 <a id="boschbh-client-connection"></a>
 
@@ -920,6 +954,8 @@ export interface Config {
   apiKeyEnv?: string
   /** Endpoint base; falls back to $DEEPSEEK_BASE_URL from a trusted environment layer, then the public API. */
   baseURL?: string
+  /** Optional HTTP(S) network proxy used for this provider's requests; blank keeps them direct. */
+  proxy?: string
   /** Deployment thinking policy; `disabled` limits every conversation request to `off`. */
   thinking?: 'enabled' | 'disabled'
   /** Default thinking effort (default `high`); `off` disables thinking per request. */
@@ -957,7 +993,7 @@ export interface DeepSeekCatalogModel {
 
 Depends on: [`ModelModality`](../packages/llm/llm/src/index.ts) · [`RetryPolicyConfig`](../packages/llm/llm/src/index.ts)
 
-Source: [`packages/llm/llm-deepseek/src/index.ts:72`](../packages/llm/llm-deepseek/src/index.ts)
+Source: [`packages/llm/llm-deepseek/src/index.ts:73`](../packages/llm/llm-deepseek/src/index.ts)
 
 <a id="boschbh-llm-pi-ai"></a>
 
@@ -990,6 +1026,8 @@ export interface PiAiProviderProfile {
   api?: string
   /** Endpoint for this route's models; defaults to the installed catalog's endpoint. */
   baseURL?: string
+  /** Optional HTTP(S) network proxy used for requests to this route; blank keeps them direct. */
+  proxy?: string
   /**
    * This route's model catalog. Omission serves the installed catalog for the
    * route unchanged; an explicit list replaces it, each entry defaulting its
@@ -1207,7 +1245,7 @@ export type PiAiThinkingFormat = NonNullable<OpenAICompletionsCompat['thinkingFo
 
 Depends on: `Api` (`@earendil-works/pi-ai`) · `CacheRetention` (`@earendil-works/pi-ai`) · `Model` (`@earendil-works/pi-ai`) · `ModelThinkingLevel` (`@earendil-works/pi-ai`) · `OpenAICompletionsCompat` (`@earendil-works/pi-ai`) · [`RetryPolicyConfig`](../packages/llm/llm/src/index.ts) · `ThinkingBudgets` (`@earendil-works/pi-ai`) · `Transport` (`@earendil-works/pi-ai`)
 
-Source: [`packages/llm/llm-pi-ai/src/config.ts:201`](../packages/llm/llm-pi-ai/src/config.ts)
+Source: [`packages/llm/llm-pi-ai/src/config.ts:204`](../packages/llm/llm-pi-ai/src/config.ts)
 
 <a id="boschbh-llm-replay"></a>
 
@@ -1420,6 +1458,24 @@ export interface Config {
 ```
 
 Source: [`packages/feedback/message-feedback/src/index.ts:49`](../packages/feedback/message-feedback/src/index.ts)
+
+<a id="boschbh-obsidian-website-knowledge"></a>
+
+## `@bosch/bh-obsidian-website-knowledge`
+
+Requires: `tools` · `systemPrompt`
+
+```ts config-catalog
+/** Host composition settings; user settings retain only the target hostname. */
+export interface Config {
+  /** Initial target hostname, superseded by the user settings section when present. */
+  targetDomain?: string
+  /** Local Obsidian MCP endpoint; the user settings document never stores this. */
+  mcpUrl?: string
+}
+```
+
+Source: [`packages/browser/obsidian-website-knowledge/src/index.ts:103`](../packages/browser/obsidian-website-knowledge/src/index.ts)
 
 <a id="boschbh-permission-presets"></a>
 
@@ -2185,6 +2241,59 @@ export type PermissionPolicy = 'allow' | 'reject'
 
 Source: [`packages/subagent/subagent-acp/src/index.ts:27`](../packages/subagent/subagent-acp/src/index.ts)
 
+<a id="boschbh-subagent-bh-sdk"></a>
+
+## `@bosch/bh-subagent-bh-sdk`
+
+Requires: `subagents`
+
+```ts config-catalog
+/** Config: how to spawn and drive the child SDK runtime process. */
+export interface Config {
+  /** Provider name on `ctx.subagents` (default `bh-sdk`). */
+  providerName: string
+  /** The executable to spawn for each run (the child runtime bin or packaged exe). */
+  command: string
+  /** Arguments passed to {@link command} (typically the child's `cordis.yml` path). */
+  args: string[]
+  /**
+   * Working directory override for the child process and its SDK session
+   * workspace. Must be non-empty; a relative path resolves against the
+   * harness launch directory at load, and the result must be an existing
+   * directory. When omitted, each child inherits its delegating parent
+   * session's cwd — and starting one from a parent session that has no cwd
+   * fails.
+   */
+  cwd?: string
+  /** Provider route the child runtime initializes with (default `deepseek-official`). */
+  provider: string
+  /** Model the child runtime initializes with (default `deepseek-v4-flash`). */
+  model: string
+  /** Optional per-request output-token cap for the child runtime. */
+  maxTokens?: number
+  /**
+   * Extra environment variables for the child process — e.g. the child
+   * runtime's own `DEEPSEEK_API_KEY`, or `BH_CORDIS_CONFIG` naming its
+   * config. Forwarded on top of a credential-scrubbed copy of the parent
+   * env, so an explicit key here reaches the child while ambient secrets do
+   * not leak implicitly.
+   */
+  env: Record<string, string>
+  /** Bound (ms) on the protocol `shutdown` exchange during dispose. */
+  shutdownTimeoutMs?: number
+  /**
+   * Grace period (ms) for the child's EOF-driven quiesce on dispose — its
+   * window to flush persistence and tear down its own nested subprocesses
+   * before the parent escalates to a signal.
+   */
+  disposeEofGraceMs?: number
+  /** Termination confirmation window (ms), including forced exit on every platform. */
+  disposeGraceMs?: number
+}
+```
+
+Source: [`packages/subagent/subagent-bh-sdk/src/index.ts:29`](../packages/subagent/subagent-bh-sdk/src/index.ts)
+
 <a id="boschbh-subagent-claude-code"></a>
 
 ## `@bosch/bh-subagent-claude-code`
@@ -2248,59 +2357,6 @@ export type CodexPermissionMode =
 ```
 
 Source: [`packages/subagent/subagent-codex/src/index.ts:36`](../packages/subagent/subagent-codex/src/index.ts)
-
-<a id="boschbh-subagent-bh-sdk"></a>
-
-## `@bosch/bh-subagent-bh-sdk`
-
-Requires: `subagents`
-
-```ts config-catalog
-/** Config: how to spawn and drive the child SDK runtime process. */
-export interface Config {
-  /** Provider name on `ctx.subagents` (default `bh-sdk`). */
-  providerName: string
-  /** The executable to spawn for each run (the child runtime bin or packaged exe). */
-  command: string
-  /** Arguments passed to {@link command} (typically the child's `cordis.yml` path). */
-  args: string[]
-  /**
-   * Working directory override for the child process and its SDK session
-   * workspace. Must be non-empty; a relative path resolves against the
-   * harness launch directory at load, and the result must be an existing
-   * directory. When omitted, each child inherits its delegating parent
-   * session's cwd — and starting one from a parent session that has no cwd
-   * fails.
-   */
-  cwd?: string
-  /** Provider route the child runtime initializes with (default `deepseek-official`). */
-  provider: string
-  /** Model the child runtime initializes with (default `deepseek-v4-flash`). */
-  model: string
-  /** Optional per-request output-token cap for the child runtime. */
-  maxTokens?: number
-  /**
-   * Extra environment variables for the child process — e.g. the child
-   * runtime's own `DEEPSEEK_API_KEY`, or `BH_CORDIS_CONFIG` naming its
-   * config. Forwarded on top of a credential-scrubbed copy of the parent
-   * env, so an explicit key here reaches the child while ambient secrets do
-   * not leak implicitly.
-   */
-  env: Record<string, string>
-  /** Bound (ms) on the protocol `shutdown` exchange during dispose. */
-  shutdownTimeoutMs?: number
-  /**
-   * Grace period (ms) for the child's EOF-driven quiesce on dispose — its
-   * window to flush persistence and tear down its own nested subprocesses
-   * before the parent escalates to a signal.
-   */
-  disposeEofGraceMs?: number
-  /** Termination confirmation window (ms), including forced exit on every platform. */
-  disposeGraceMs?: number
-}
-```
-
-Source: [`packages/subagent/subagent-bh-sdk/src/index.ts:29`](../packages/subagent/subagent-bh-sdk/src/index.ts)
 
 <a id="boschbh-subagent-fork-in-process"></a>
 
@@ -2509,6 +2565,24 @@ export interface Config {
 ```
 
 Source: [`packages/shell/tool-bash-persistent/src/index.ts:432`](../packages/shell/tool-bash-persistent/src/index.ts)
+
+<a id="boschbh-tool-browser"></a>
+
+## `@bosch/bh-tool-browser`
+
+Requires: `browsers` · `tools` · `systemPrompt`
+
+```ts config-catalog
+/** Model-facing browser tool configuration. */
+export interface Config {
+  /** Cap on the element-list characters one call returns. Defaults to 16000. */
+  maxStateChars?: number
+  /** Cooperative tool-call budget (ms) per browser action. Defaults to 60000. */
+  timeoutMs?: number
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts:34`](../packages/browser/tool-browser/src/index.ts)
 
 <a id="boschbh-tool-fs"></a>
 
@@ -2722,14 +2796,18 @@ Source: [`packages/session-query/tool-session-query/src/index.ts:29`](../package
 Requires: `agents` · `tools` · `skills`
 
 ```ts config-catalog
-/** Model-facing skill catalog configuration. */
+/** Model-facing skill search configuration. */
 export interface Config {
-  /** Maximum normalized description length rendered in the session catalog; minimum 3. */
-  catalogDescriptionMaxLength?: number
+  /** Maximum candidates returned by one search; minimum 1. */
+  searchMaxResults?: number
+  /** Maximum normalized description or routing-hint length per candidate; minimum 3. */
+  searchDescriptionMaxLength?: number
+  /** Maximum UTF-8 bytes in one rendered search result. */
+  searchMaxResultBytes?: number
 }
 ```
 
-Source: [`packages/skill/tool-skill/src/index.ts:61`](../packages/skill/tool-skill/src/index.ts)
+Source: [`packages/skill/tool-skill/src/index.ts:44`](../packages/skill/tool-skill/src/index.ts)
 
 <a id="boschbh-tool-str-replace-editor"></a>
 

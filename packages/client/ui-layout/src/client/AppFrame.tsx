@@ -11,17 +11,28 @@
  * zero self-made hooks.
  */
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
+import type { SessionId } from '@bosch/bh-client-runtime/client'
 import type { PropsRenderSlots, PropsRuntime, PropsStore } from '@bosch/bh-client-ui-slots'
 import { computeColumns, SIDEBAR_AUTO_COLLAPSE, SIDEBAR_DEFAULT } from './columns.ts'
 import type { createLayoutStore } from './stores.ts'
+import { DesktopBrowserPanel, DesktopPanelControls } from './DesktopBrowserPanel.tsx'
+import { DesktopTerminalPanel } from './DesktopTerminalPanel.tsx'
 import css from './AppFrame.module.css'
+
+const DESKTOP_BROWSER_MIN = 420
+const DESKTOP_TERMINAL_MIN = 240
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value))
+}
 
 /** Full composed props: runtime share + child-slot render share + store share. */
 export type AppFrameProps =
   & PropsRuntime<'root'>
   & PropsRenderSlots<'sidebar' | 'conversation' | 'details' | 'shell.overlay'>
   & PropsStore<ReturnType<typeof createLayoutStore>>
+  & { createSideSession: () => Promise<SessionId> }
 
 /** Center column grid item (session-body building block). */
 function CenterColumn(props: { children?: ReactNode }) {
@@ -34,61 +45,95 @@ function DetailsColumn(props: { children?: ReactNode }) {
 }
 
 /**
- * One drag handle: pointer capture, rAF-throttled dx reports against the drag-start origin.
+ * One drag handle: pointer capture, rAF-throttled delta reports against the drag-start origin.
  * `side` keys the hover-reveal CSS to the owning column.
  */
-function DragHandle(props: { side: 'sidebar' | 'details'; left: number; onStart: () => void; onDrag: (dx: number) => void; onEnd: () => void }) {
+function DragHandle(props: {
+  side: 'sidebar' | 'details' | 'browser' | 'terminal'
+  axis?: 'x' | 'y'
+  left?: number
+  label?: string
+  min?: number
+  max?: number
+  value?: number
+  onStart: () => void
+  onDrag: (delta: number) => void
+  onEnd?: () => void
+  onStep?: (delta: number) => void
+}) {
   const [dragging, setDragging] = useState(false)
   const origin = useRef(0)
   const latest = useRef(0)
   const frame = useRef<number | null>(null)
-  const callbacks = useRef({ onStart: props.onStart, onDrag: props.onDrag, onEnd: props.onEnd })
-  callbacks.current = { onStart: props.onStart, onDrag: props.onDrag, onEnd: props.onEnd }
+  const axis = props.axis ?? 'x'
+  const desktop = props.side === 'browser' || props.side === 'terminal'
+  const callbacks = useRef({ onStart: props.onStart, onDrag: props.onDrag, onEnd: props.onEnd, onStep: props.onStep })
+  callbacks.current = { onStart: props.onStart, onDrag: props.onDrag, onEnd: props.onEnd, onStep: props.onStep }
+  const position = useCallback((event: React.PointerEvent<HTMLDivElement>) => axis === 'x' ? event.clientX : event.clientY, [axis])
 
   const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     e.preventDefault()
     e.currentTarget.setPointerCapture(e.pointerId)
-    origin.current = e.clientX
-    latest.current = e.clientX
+    origin.current = position(e)
+    latest.current = position(e)
     callbacks.current.onStart()
     setDragging(true)
-  }, [])
+  }, [position])
   const onPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     if (!e.currentTarget.hasPointerCapture(e.pointerId)) return
-    latest.current = e.clientX
+    latest.current = position(e)
     frame.current ??= requestAnimationFrame(() => {
       frame.current = null
       callbacks.current.onDrag(latest.current - origin.current)
     })
-  }, [])
+  }, [position])
   const onPointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     if (!e.currentTarget.hasPointerCapture(e.pointerId)) return
     e.currentTarget.releasePointerCapture(e.pointerId)
     if (frame.current !== null) { cancelAnimationFrame(frame.current); frame.current = null }
     callbacks.current.onDrag(latest.current - origin.current)
     setDragging(false)
-    callbacks.current.onEnd()
+    callbacks.current.onEnd?.()
   }, [])
+  const onKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
+    const step = event.shiftKey ? 32 : 8
+    const direction = axis === 'x'
+      ? event.key === 'ArrowLeft' ? 1 : event.key === 'ArrowRight' ? -1 : 0
+      : event.key === 'ArrowUp' ? 1 : event.key === 'ArrowDown' ? -1 : 0
+    if (direction === 0 || callbacks.current.onStep === undefined) return
+    event.preventDefault()
+    callbacks.current.onStep(direction * step)
+  }, [axis])
 
   return (
     <div
-      className={css.handle}
-      style={{ left: props.left }}
+      className={desktop ? css.desktopResizeHandle : css.handle}
+      style={props.left === undefined ? undefined : { left: props.left }}
       data-side={props.side}
       data-dragging={dragging || undefined}
+      role={desktop ? 'separator' : undefined}
+      aria-label={props.label}
+      aria-orientation={desktop ? axis === 'x' ? 'vertical' : 'horizontal' : undefined}
+      aria-valuemin={props.min}
+      aria-valuemax={props.max}
+      aria-valuenow={props.value}
+      tabIndex={desktop ? 0 : undefined}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
+      onKeyDown={onKeyDown}
     />
   )
 }
 
-/** The three-column frame (see module doc). */
+/** The three-column frame; its desktop-only right panel starts closed (see module doc). */
 export function AppFrame({
   useStore,
   useSessions,
   actions,
   renderSlot,
+  SessionProvider,
+  createSideSession,
 }: AppFrameProps) {
   const panels = useStore(s => s)
   const detailsSession = useSessions((s) => {
@@ -97,6 +142,34 @@ export function AppFrame({
   })
   const frameRef = useRef<HTMLDivElement | null>(null)
   const [viewport, setViewport] = useState(() => window.innerWidth)
+  const [desktopViewport, setDesktopViewport] = useState(() => ({
+    height: window.innerHeight,
+    width: window.innerWidth,
+  }))
+  const browserMax = Math.max(DESKTOP_BROWSER_MIN, Math.floor(desktopViewport.width * 2 / 3))
+  const terminalMax = Math.max(DESKTOP_TERMINAL_MIN, Math.floor(desktopViewport.height / 2))
+  const [browserOpen, setBrowserOpen] = useState(false)
+  const [terminalOpen, setTerminalOpen] = useState(false)
+  const [browserExpanded, setBrowserExpanded] = useState(false)
+  const [panelChooserOpen, setPanelChooserOpen] = useState(false)
+  const [browserWidth, setBrowserWidth] = useState(() =>
+    clamp(Math.round(window.innerWidth * 0.42), DESKTOP_BROWSER_MIN, browserMax))
+  const [terminalHeight, setTerminalHeight] = useState(() =>
+    clamp(Math.round(window.innerHeight * 0.36), DESKTOP_TERMINAL_MIN, terminalMax))
+
+  useEffect(() => {
+    if (window.bhDesktop === undefined) return
+    const onResize = () => {
+      setDesktopViewport({ height: window.innerHeight, width: window.innerWidth })
+    }
+    window.addEventListener('resize', onResize)
+    return () => { window.removeEventListener('resize', onResize) }
+  }, [])
+
+  useEffect(() => {
+    setBrowserWidth(width => clamp(width, DESKTOP_BROWSER_MIN, browserMax))
+    setTerminalHeight(height => clamp(height, DESKTOP_TERMINAL_MIN, terminalMax))
+  }, [browserMax, terminalMax])
 
   const lastSession = useRef(detailsSession)
   useLayoutEffect(() => {
@@ -148,6 +221,8 @@ export function AppFrame({
   // it stays frozen for the whole gesture so dx deltas do not compound.
   const sidebarBase = useRef(0)
   const detailsBase = useRef(0)
+  const browserBase = useRef(0)
+  const terminalBase = useRef(0)
   // Track-level transitions pause for the whole gesture: eased tracks would
   // detach the column edge from the pointer (AppFrame.module.css).
   const [dragging, setDragging] = useState(false)
@@ -160,8 +235,16 @@ export function AppFrame({
   const onDetailsDrag = useCallback((dx: number) => {
     actions.setDetails(detailsBase.current - dx)
   }, [actions])
+  const onBrowserStart = useCallback(() => { browserBase.current = browserWidth }, [browserWidth])
+  const onTerminalStart = useCallback(() => { terminalBase.current = terminalHeight }, [terminalHeight])
+  const onBrowserDrag = useCallback((dx: number) => {
+    setBrowserWidth(clamp(browserBase.current - dx, DESKTOP_BROWSER_MIN, browserMax))
+  }, [browserMax])
+  const onTerminalDrag = useCallback((dy: number) => {
+    setTerminalHeight(clamp(terminalBase.current - dy, DESKTOP_TERMINAL_MIN, terminalMax))
+  }, [terminalMax])
 
-  return (
+  const frame = (
     <div
       ref={frameRef}
       className={css.frame}
@@ -196,6 +279,85 @@ export function AppFrame({
       {/* The collapsed rail is fixed-width: no resize handle while closed. */}
       {!sidebarCollapsed && <DragHandle side="sidebar" left={cols.sidebar} onStart={onSidebarStart} onDrag={onSidebarDrag} onEnd={onDragEnd} />}
       {cols.details > 0 && <DragHandle side="details" left={viewport - cols.details} onStart={onDetailsStart} onDrag={onDetailsDrag} onEnd={onDragEnd} />}
+    </div>
+  )
+  if (window.bhDesktop === undefined) return frame
+  const toggleBrowser = () => {
+    if (browserOpen) {
+      setBrowserExpanded(false)
+      setPanelChooserOpen(false)
+    }
+    setBrowserOpen(!browserOpen)
+  }
+  const toggleExpanded = () => {
+    if (!browserOpen) setBrowserOpen(true)
+    setPanelChooserOpen(false)
+    setBrowserExpanded(!browserExpanded)
+  }
+
+  return (
+    <div
+      className={css.desktopShell}
+      style={{
+        '--desktop-browser-width': `${browserWidth}px`,
+        '--desktop-terminal-height': `${terminalHeight}px`,
+      } as CSSProperties}
+      data-browser-open={browserOpen || undefined}
+      data-terminal-open={terminalOpen || undefined}
+      data-browser-expanded={browserExpanded || undefined}
+    >
+      <div className={css.desktopApp}>{frame}</div>
+      <DesktopBrowserPanel
+        open={browserOpen}
+        chooserOpen={panelChooserOpen}
+        createSideSession={createSideSession}
+        renderSideChat={sessionId => (
+          <SessionProvider sessionId={sessionId}>
+            {() => renderSlot('conversation', { secondary: true })}
+          </SessionProvider>
+        )}
+        onCloseChooser={() => { setPanelChooserOpen(false) }}
+        onToggleChooser={() => { setPanelChooserOpen(open => !open) }}
+        onOpen={() => { setBrowserOpen(true) }}
+      />
+      <DesktopTerminalPanel open={terminalOpen && !browserExpanded} />
+      {browserOpen && !browserExpanded && (
+        <DragHandle
+          side="browser"
+          label="Resize right panel"
+          min={DESKTOP_BROWSER_MIN}
+          max={browserMax}
+          value={browserWidth}
+          onStart={onBrowserStart}
+          onDrag={onBrowserDrag}
+          onStep={(delta) => {
+            setBrowserWidth(width => clamp(width + delta, DESKTOP_BROWSER_MIN, browserMax))
+          }}
+        />
+      )}
+      {terminalOpen && !browserExpanded && (
+        <DragHandle
+          side="terminal"
+          axis="y"
+          label="Resize Terminal panel"
+          min={DESKTOP_TERMINAL_MIN}
+          max={terminalMax}
+          value={terminalHeight}
+          onStart={onTerminalStart}
+          onDrag={onTerminalDrag}
+          onStep={(delta) => {
+            setTerminalHeight(height => clamp(height + delta, DESKTOP_TERMINAL_MIN, terminalMax))
+          }}
+        />
+      )}
+      <DesktopPanelControls
+        browserOpen={browserOpen}
+        terminalOpen={terminalOpen}
+        browserExpanded={browserExpanded}
+        onToggleBrowser={toggleBrowser}
+        onToggleTerminal={() => { setTerminalOpen(open => !open) }}
+        onToggleExpanded={toggleExpanded}
+      />
     </div>
   )
 }

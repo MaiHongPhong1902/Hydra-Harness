@@ -141,7 +141,8 @@ class StreamingRenderer {
  * Render untrusted assistant-authored Markdown as semantic React elements.
  * @param props - Markdown source text preserved by the session projection;
  * `streaming` renders fences and TeX plain (highlighting and KaTeX land on
- * the finalize swap) and parses incrementally across chunks; `codeLabels`
+ * the finalize swap) and parses incrementally across chunks; attribute-free
+ * `<br>` tags render as line breaks while all other raw HTML stays literal; `codeLabels`
  * forwards localized copy-button labels to fence CodeBlocks — pass a
  * reference-stable object (memoized per locale revision), because a new
  * identity discards the streaming render cache mid-message. `fileMentions`

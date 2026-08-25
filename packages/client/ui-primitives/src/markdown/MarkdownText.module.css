@@ -177,6 +177,32 @@
   overscroll-behavior-x: contain;
 }
 
+.tableToolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 6px;
+}
+
+.tableCopyButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 6px;
+  border: none;
+  border-radius: 28px;
+  color: var(--dsw-alias-label-secondary);
+  background: transparent;
+  cursor: pointer;
+}
+
+.tableCopyButton:hover,
+.tableCopyButton:focus-visible {
+  color: var(--dsw-alias-label-primary);
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
 /* Wide tables reveal their horizontal bar on hover (or keyboard focus)
    instead of keeping it painted. Chromium never repaints state-conditioned
    scrollbar STYLES (neither hover-conditioned `::-webkit-scrollbar*` rules

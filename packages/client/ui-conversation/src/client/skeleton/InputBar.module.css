@@ -53,7 +53,7 @@
      the input border is one notch weaker than buttons) — exactly the
      l2-darkmode-thin pair. Fill: the input surface token (elevated in dark). */
   border: 1px solid var(--dsw-alias-border-l2-darkmode-thin);
-  border-radius: 22px;
+  border-radius: var(--dsw-radius-composer);
   background: var(--dsw-specific-input-major);
   box-shadow: var(--dsw-shadow-lv2);
   font-size: 16px;
@@ -65,6 +65,14 @@
      (see ui-theme styles/scrollbar.css for the rebinding contract). */
   --bh-scrollbar-thumb: var(--dsw-alias-scrollbar-bg-l2);
   --bh-scrollbar-thumb-hover: var(--dsw-alias-scrollbar-hover-l2);
+  transition:
+    border-color var(--ds-transition-duration-fast) var(--ds-ease-in-out),
+    box-shadow var(--ds-transition-duration-fast) var(--ds-ease-in-out);
+}
+
+.card:focus-within {
+  border-color: var(--dsw-alias-brand-primary);
+  box-shadow: var(--dsw-shadow-lv2), 0 0 0 3px var(--dsw-alias-focus-ring);
 }
 
 /* No-workspace trigger state: dashed l4 stroke marks the card as a pick-a-
@@ -82,11 +90,11 @@
   content: '';
   position: absolute;
   inset: -1px;
-  border-radius: 22px;
+  border-radius: var(--dsw-radius-composer);
   background: var(--dsw-alias-border-l4);
   transition: background-color 100ms ease;
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='none' rx='22' ry='22' stroke='black' stroke-width='2' stroke-dasharray='4 4'/%3E%3C/svg%3E");
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='none' rx='22' ry='22' stroke='black' stroke-width='2' stroke-dasharray='4 4'/%3E%3C/svg%3E");
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='none' rx='16' ry='16' stroke='black' stroke-width='2' stroke-dasharray='4 4'/%3E%3C/svg%3E");
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='none' rx='16' ry='16' stroke='black' stroke-width='2' stroke-dasharray='4 4'/%3E%3C/svg%3E");
   pointer-events: none;
 }
 
@@ -368,8 +376,8 @@
   cursor: default;
 }
 
-/* Primary send (figma IconButton 34:10465): 34px circle, #3964FE light /
-   #679EFE dark — the info-fill pair (500→400), NOT button-primary (ink);
+/* Primary send (figma IconButton 34:10465): 34px circle using the shared
+   WorkON info-fill pair, NOT button-primary (ink);
    white glyph; empty text = 0.4 opacity. */
 .primary {
   display: grid;
@@ -380,11 +388,14 @@
   border: none;
   border-radius: 999px;
   background: var(--dsw-alias-button-info-fill);
+  box-shadow: var(--dsw-shadow-lv1);
   /* Static white, not the foreground token: the arrow stays white on the blue
      fill in both themes (design 34:10465). */
   color: #fff;
   cursor: pointer;
-  transition: background-color 100ms ease;
+  transition:
+    background-color var(--ds-transition-duration-fast) var(--ds-ease-in-out),
+    box-shadow var(--ds-transition-duration-fast) var(--ds-ease-in-out);
   /* Opts out of the row's 2px downward shift (.row top pad): the send circle
      keeps its original seat while the smaller chips sit lower. Transform, not
      margin, so flex centering math is untouched. */
@@ -393,6 +404,7 @@
 
 .primary:hover:not(:disabled) {
   background: var(--dsw-alias-button-info-hover);
+  box-shadow: var(--dsw-shadow-lv1-blur);
 }
 
 .primary:disabled {

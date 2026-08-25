@@ -14,6 +14,7 @@ The package root exposes the Cordis plugin contract and `DeepSeekAdapter`; wire 
   config:
     apiKeyEnv: DEEPSEEK_API_KEY  # default; resolved per request via ctx.credentials, then the environment
     baseURL: https://api.deepseek.com # optional; $DEEPSEEK_BASE_URL then the public API when omitted
+    proxy: http://127.0.0.1:3128 # optional HTTP(S) forwarding proxy for this route only
     thinking: enabled        # optional; provider default is enabled
     reasoningEffort: high    # optional; off | low | high | max — omitted ⇒ high
     maxTokens: 256000        # optional positive per-request output cap; this is the default
@@ -37,6 +38,8 @@ The package root exposes the Cordis plugin contract and `DeepSeekAdapter`; wire 
         contextWindow: 512000
 ```
 
+`proxy` is an optional `http:` or `https:` forwarding proxy. An absent or blank value connects directly to the endpoint. It carries only this provider route's outbound requests and does not alter another provider or the process environment.
+
 The plugin registers the single provider route `deepseek-official` together with its resolved `retryPolicy`; omission resolves to normal mode with five retries. A request selects it with `provider: deepseek-official`; its `model` is passed through as the wire `model` string, so changing DeepSeek models does not require lifecycle-time registration. Omitting `models` advertises `deepseek-v4-flash`, `deepseek-v4-pro`, and the image-capable `deepseek-v4-flash-vision-exp`, each with a 1,000,000-token context window; an explicit list replaces those defaults, while `models: []` advertises none. Catalog entries are exposed through `ctx.llm.listModels('deepseek-official')` for clients such as ACP editors and the Web selector, but remain advisory: unlisted model ids still pass through unchanged. An omitted entry name defaults to its id, and omitted `inputModalities` means `text` only.
 
 An image-capable catalog entry may declare `inputModalities: [text, image]`. The adapter resolves user and tool-result `ImageBlock` references through `ctx.attachments`, verifies the stored bytes, and sends transient `data:<media-type>;base64,...` `image_url` parts without changing the durable session message. Text-only and unlisted models reject image input before credential, attachment, or network I/O. System and assistant history remain image-free; tool-result images follow their string-only `tool` messages in a separate `user` message.
@@ -55,7 +58,7 @@ The same exact-model result exposes ordered `off`, `low`, `high`, and `max` effo
 
 ## Dynamic configuration (settings + credentials)
 
-Connection facts are not frozen at load. `resolveAdapterOptions` is the one explicit resolve step from raw config to validated facts, and the adapter re-reads them through a thunk **once per operation**: base URL, catalog, request defaults, image bound, and idle budget all take effect on the next request, while an in-flight stream keeps the facts it started with. Three optional seams feed that thunk:
+Connection facts are not frozen at load. `resolveAdapterOptions` is the one explicit resolve step from raw config to validated facts, and the adapter re-reads them through a thunk **once per operation**: base URL, proxy, catalog, request defaults, image bound, and idle budget all take effect on the next request, while an in-flight stream keeps the facts it started with. Three optional seams feed that thunk:
 
 - **`ctx.settings`** — the plugin registers the `llm-deepseek` namespace with this same `Config` schema and its `cordis.yml` entry as the composition `base`, so a `llm-deepseek:` section in the user settings document overrides any field without a restart. Without a mounted settings service the entry config alone drives the adapter, unchanged. A live settings snapshot that passes the schema but fails a beyond-schema bound (a duplicate catalog id, a broken thinking/effort pair) keeps the last good facts and logs the failure; the entry config itself still fails plugin load.
 - **`ctx.credentials`** — the API key resolves per stream call, from the *same* resolved snapshot that supplies the endpoint. Configuration carries only `apiKeyEnv`, never a literal key: the reference resolves through the credential seam, and without a mounted seam through the trusted environment layers. Because credential facts travel with the connection facts, a settings snapshot the resolver rejects contributes neither its endpoint nor its key: the whole previous generation keeps serving. Every resolved key is format-checked before use, so a value no HTTP header can carry is refused with `LlmError('INVALID_CREDENTIAL')` naming the failing entry point — never any part of the key — instead of surfacing as an opaque `fetch` `TypeError`. A request with no key anywhere fails with `MISSING_CREDENTIAL` naming every configuration entry point, while the route stays registered and the catalog stays browsable — first-run onboarding is "browse models, store the key, prompt again", with no restart between.
@@ -118,6 +121,5 @@ Loop-retained response blocks append to the next request and preserve its earlie
 
 - **A settings `models` list replaces the composition list wholesale** — settings-layer merging is per-field, and arrays are one field; per-entry catalog merging would need a keyed shape.
 - **`tool_choice` is not mapped** — not part of the core vocabulary (MVP cut, shared with the pi-ai twin).
-- **Requests use raw `fetch`, not `@cordisjs/plugin-http`** — no shared proxy/interception configuration; adoption is deferred until a second adapter wants it (`TODO(http)`).
 - **Plugin-added content block types are skipped** — core text and supported image blocks are serialized, and empty tool output crosses the wire as the literal `(no output)`.
 - **Images are input-only durable attachments** — direct external URLs, the Files API, and assistant image output are not supported.

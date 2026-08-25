@@ -281,7 +281,7 @@ describe('Hero chrome', () => {
   it('renders the English preview badge through the hero locale seat', () => {
     const renderSlot = vi.fn<HeroShellProps['renderSlot']>(() => null)
     const view = render(<HeroShell t={makeTranslate(en, commonEn)} renderSlot={renderSlot} />)
-    expect(view.getByText('Into the Unknown')).toBeTruthy()
+    expect(view.getByText('Good to see you')).toBeTruthy()
     expect(view.getByText('Preview')).toBeTruthy()
     expect(renderSlot).toHaveBeenCalledOnce()
     expect(renderSlot.mock.calls[0]?.[0]).toBe('conversation.hero.brand.mark')

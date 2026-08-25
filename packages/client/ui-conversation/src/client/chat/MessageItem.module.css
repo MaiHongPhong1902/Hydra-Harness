@@ -20,9 +20,10 @@
   /* 525px cap inside the 736 column; percentage keeps narrow windows sane. */
   max-width: 100%;
   background: var(--dsw-specific-bubble);
-  border-radius: 22px;
+  border: 1px solid var(--dsw-alias-border-l1);
+  border-radius: var(--dsw-radius-panel);
   /* 44px single-line bubble: 24 line + 10 vertical padding each side. */
-  padding: 10px 16px;
+  padding: 12px 16px;
   font-size: 16px;
   line-height: 24px;
   color: var(--dsw-alias-label-primary);

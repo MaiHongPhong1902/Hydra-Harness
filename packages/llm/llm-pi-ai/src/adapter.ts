@@ -45,6 +45,7 @@ import {
   LlmError,
   ReasoningEffortId,
 } from '@bosch/bh-llm'
+import { withHttpProxy } from '@bosch/bh-llm/proxy'
 import type {
   GenerateOptions,
   LlmModelInfo,
@@ -120,6 +121,11 @@ function profileOptions(
     ...profile.thinkingBudgets === undefined ? {} : { thinkingBudgets: profile.thinkingBudgets },
     ...profile.cacheRetention === undefined ? {} : { cacheRetention: profile.cacheRetention },
     ...profile.transport === undefined ? {} : { transport: profile.transport },
+    ...profile.proxy === undefined ? {} : {
+      // Bedrock and Codex read proxy environment from their request options;
+      // SDKs using fetch are scoped by withHttpProxy() below.
+      env: { HTTP_PROXY: profile.proxy, HTTPS_PROXY: profile.proxy },
+    },
     ...profile.timeoutMs === undefined ? {} : { timeoutMs: profile.timeoutMs },
     ...profile.websocketConnectTimeoutMs === undefined ? {} : { websocketConnectTimeoutMs: profile.websocketConnectTimeoutMs },
     // The agent recovery layer owns visible attempts; one adapter call is one SDK attempt.
@@ -342,7 +348,10 @@ export class PiAiAdapter extends LlmAdapter {
       const context = attachments === undefined
         ? toPiContext(options, undefined, onReplayDegrade)
         : await toPiContext(options, attachments, onReplayDegrade, profile.maxRequestImageBytes)
-      const events = snapshot.models.streamSimple(model, context, {
+      // pi-ai starts its lazy setup synchronously here. Keep that setup in the
+      // route context so an SDK that captures fetch during client creation
+      // inherits this profile's proxy for the whole request.
+      const events = withHttpProxy(profile.proxy, () => snapshot.models.streamSimple(model, context, {
         ...profileOptions(profile, reasoning, apiKey),
         ...options.temperature === undefined ? {} : { temperature: options.temperature },
         ...options.maxTokens === undefined ? {} : { maxTokens: options.maxTokens },
@@ -351,7 +360,7 @@ export class PiAiAdapter extends LlmAdapter {
         // Profile headers are deployment-owned; attribution names are
         // Harness-owned and therefore win collisions.
         headers: requestHeaders(profile.headers),
-      })
+      }))
       const iterator = toStreamChunks(events, model.contextWindow)[Symbol.asyncIterator]()
       let exhausted = false
       try {

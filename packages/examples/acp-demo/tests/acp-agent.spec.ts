@@ -1,14 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { randomUUID } from 'node:crypto'
 import { mkdtemp } from 'node:fs/promises'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { Context } from '@bosch/cordis'
 import Loader from '@bosch/cordis-plugin-loader'
-import { agentEvents } from '@bosch/bh-agent'
 import { TOOL_ORDER_REST } from '@bosch/bh-system-prompt'
-import type { Message } from '@bosch/bh-llm'
-import { SessionId } from '@bosch/bh-session'
+import { CallId } from '@bosch/bh-llm'
 import * as acpAgent from '../src/index.ts'
 
 /**
@@ -36,27 +33,12 @@ async function mount(config: acpAgent.Config, withBash = false): Promise<Context
   return ctx
 }
 
-async function isolatedSkillsConfig(catalogDescriptionMaxLength?: number): Promise<NonNullable<acpAgent.Config['skills']>> {
+async function isolatedSkillsConfig(searchDescriptionMaxLength?: number): Promise<NonNullable<acpAgent.Config['skills']>> {
   const home = await mkdtemp(join(tmpdir(), 'bh-acp-demo-skills-'))
   return {
     filesystem: { bhHome: join(home, '.bh'), agentsHome: join(home, '.agents') },
-    ...catalogDescriptionMaxLength !== undefined ? { tool: { catalogDescriptionMaxLength } } : {},
+    ...searchDescriptionMaxLength !== undefined ? { tool: { searchDescriptionMaxLength } } : {},
   }
-}
-
-async function composePrefix(ctx: Context): Promise<Message[]> {
-  const agent = ctx.agentLoop.create(SessionId(`acp-demo-prefix-${randomUUID()}`), {}, { cwd: '/tmp' })
-  const signal = new AbortController().signal
-  const decision = await agentEvents(ctx, agent).waterfall(
-    'agent/pre-step', { messages: [], turn: 1, step: 1, signal },
-    () => Promise.resolve({ kind: 'enter', messages: [] }),
-  )
-  if (decision.kind === 'enter') {
-    for (const message of decision.messages) {
-      agent.session.append('user/message', message, { surfaceOp: 'append' })
-    }
-  }
-  return agent.session.deriveMessages()
 }
 
 async function withIsolatedSkillHomes<T>(run: () => Promise<T>): Promise<T> {
@@ -165,7 +147,13 @@ describe('bh-acp-demo composition', () => {
     const skills = await isolatedSkillsConfig(6)
     const ctx = await mount({ provider: 'mock', model: 'mock', persona: 'hi', bhHome: skills.filesystem!.bhHome!, skills, workspaceContext: false })
     ctx.skills.register({ name: 'acp-skill', description: 'ACP skill', source: 'runtime', content: 'body' })
-    expect(JSON.stringify(await composePrefix(ctx))).toContain('- `acp-skill`: ACP...')
+    const result = await ctx.tools.execute({
+      signal: new AbortController().signal,
+      callId: CallId('acp-skill-search'),
+      name: 'skill_search',
+      arguments: { query: 'ACP skill' },
+    })
+    expect(JSON.stringify(result.content)).toContain('- `acp-skill`: ACP...')
     await ctx.fiber.dispose()
   })
 
@@ -256,6 +244,7 @@ describe('bh-acp-demo composition', () => {
       'job_list',
       'job_output',
       'skill',
+      'skill_search',
       'update_goal',
     ])
     await ctx.fiber.dispose()

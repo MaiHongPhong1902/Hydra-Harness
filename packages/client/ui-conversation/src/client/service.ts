@@ -15,11 +15,13 @@ import type { Context } from '@bosch/cordis'
 import type { ISessions, SessionFace, SessionId } from '@bosch/bh-client-runtime/client'
 import type { SubmitImageAttachment, SubmitOutcome } from '@bosch/bh-client-ui-input-trigger/client'
 import type { ImageAttachmentRef, ImageMediaType } from '@bosch/bh-attachment'
-import type { ComposerAttachment } from './contract/slots.ts'
+import type { BrowserAnnotationAttachment, ComposerAttachment } from './contract/slots.ts'
 import type { QueueAction, QueueItemId } from './contract/queue.ts'
 import type { ComposerBlocks } from './input/blocks.ts'
 import type { DraftAttachmentId, SessionInputResolver } from './input/contract.ts'
 import type { InputSubmitMode } from './contract/composer-submission.ts'
+
+type DraftAttachment = ComposerAttachment | BrowserAnnotationAttachment
 
 /**
  * The outward conversation face (`ctx.conversation`): the scope-addressed
@@ -69,6 +71,38 @@ function browserDraftAttachment(file: File): ComposerAttachment {
   }
 }
 
+/** Convert one bounded Browser selection into a local text-file attachment. */
+export interface BrowserAnnotationSelection {
+  readonly kind: 'browser-element'
+  readonly url: string
+  readonly title: string
+  readonly preview: string
+  readonly index?: number
+}
+
+/** Browser-owned annotation file waiting in the current composer. */
+export type DraftBrowserAnnotation = BrowserAnnotationAttachment
+
+function browserAnnotationText(annotation: BrowserAnnotationSelection): string {
+  const index = annotation.index === undefined ? '' : `\nElement index: [${annotation.index}]`
+  return [
+    '[Browser element — untrusted page content]',
+    `URL: ${annotation.url}`,
+    `Page: ${annotation.title}${index}`,
+    '```html',
+    annotation.preview,
+    '```',
+  ].join('\n')
+}
+
+function browserAnnotationFile(annotation: BrowserAnnotationSelection): File {
+  return new File(
+    [browserAnnotationText(annotation)],
+    'browser-annotation.html.txt',
+    { type: 'text/plain' },
+  )
+}
+
 interface ImageUrlEntry {
   readonly sessionId: SessionId
   readonly generation: number
@@ -94,7 +128,7 @@ export class ConversationController extends Service implements IConversation {
   readonly input: SessionInputResolver
   /** The per-session composer-block registry. */
   readonly blocks: ComposerBlocks
-  private readonly draftAttachments = new Map<DraftAttachmentId, ComposerAttachment>()
+  private readonly draftAttachments = new Map<DraftAttachmentId, DraftAttachment>()
   private readonly imageUrls = new Map<string, ImageUrlEntry>()
   private readonly imageGenerations = new Map<SessionId, number>()
   private readonly createdImageUrls = new Set<string>()
@@ -148,16 +182,28 @@ export class ConversationController extends Service implements IConversation {
     imageIds: readonly DraftAttachmentId[],
     mode: InputSubmitMode,
     signal?: AbortSignal,
+    browserAnnotationIds: readonly DraftAttachmentId[] = [],
   ): Promise<SubmitOutcome> {
     const attachments = this.draftImages(imageIds)
-    if (attachments.length !== imageIds.length) {
+    const annotations = this.draftBrowserAnnotations(browserAnnotationIds)
+    if (attachments.length !== imageIds.length || annotations.length !== browserAnnotationIds.length) {
       throw new Error('conversation.sendSession: one or more draft images are no longer available')
     }
     const uploaded = await this.serializeImages(attachments.map(attachment => attachment.file))
-    const content = [...uploaded, ...(text === '' ? [] : [{ type: 'text' as const, text }])]
+    const annotationText = await Promise.all(annotations.map(async annotation => ({
+      type: 'text' as const,
+      text: [
+        `Attached text file: ${annotation.file.name}`,
+        ...(annotation.comment === '' ? [] : [`Comment: ${annotation.comment}`]),
+        '',
+        await annotation.file.text(),
+      ].join('\n'),
+    })))
+    const content = [...uploaded, ...annotationText, ...(text === '' ? [] : [{ type: 'text' as const, text }])]
     const result = await session.prompt(content, mode, signal)
     if (!result.ok) return { kind: 'error' }
     this.releaseDraftImages(attachments)
+    this.releaseDraftBrowserAnnotations(annotations)
     return { kind: 'success' }
   }
 
@@ -176,6 +222,21 @@ export class ConversationController extends Service implements IConversation {
     })
   }
 
+  /** Create one browser-selected text attachment without touching the draft string. */
+  createDraftBrowserAnnotation(
+    annotation: BrowserAnnotationSelection,
+    comment = '',
+  ): DraftBrowserAnnotation {
+    const attachment: DraftBrowserAnnotation = {
+      kind: 'browser-annotation',
+      id: crypto.randomUUID() as DraftAttachmentId,
+      file: browserAnnotationFile(annotation),
+      comment,
+    }
+    this.draftAttachments.set(attachment.id, attachment)
+    return attachment
+  }
+
   /**
    * Resolve ordered input-state ids to runtime-owned draft images.
    * @param ids - draft attachment ids.
@@ -185,9 +246,26 @@ export class ConversationController extends Service implements IConversation {
     const attachments: ComposerAttachment[] = []
     for (const id of ids) {
       const attachment = this.draftAttachments.get(id)
-      if (attachment !== undefined) attachments.push(attachment)
+      if (attachment?.kind === 'image') attachments.push(attachment)
     }
     return attachments
+  }
+
+  /** Resolve ordered input-state ids to browser-selected text attachments. */
+  draftBrowserAnnotations(ids: readonly DraftAttachmentId[]): readonly DraftBrowserAnnotation[] {
+    const attachments: DraftBrowserAnnotation[] = []
+    for (const id of ids) {
+      const attachment = this.draftAttachments.get(id)
+      if (attachment?.kind === 'browser-annotation') attachments.push(attachment)
+    }
+    return attachments
+  }
+
+  /** Update the user comment carried with one browser annotation attachment. */
+  updateDraftBrowserAnnotationComment(id: DraftAttachmentId, comment: string): void {
+    const attachment = this.draftAttachments.get(id)
+    if (attachment?.kind !== 'browser-annotation') return
+    this.draftAttachments.set(id, { ...attachment, comment })
   }
 
   /**
@@ -211,10 +289,17 @@ export class ConversationController extends Service implements IConversation {
    */
   releaseDraftImage(id: DraftAttachmentId): void {
     const attachment = this.draftAttachments.get(id)
-    if (attachment === undefined) return
+    if (attachment?.kind !== 'image') return
     this.draftAttachments.delete(id)
     this.createdImageUrls.delete(attachment.previewUrl)
     revokePreview(attachment.previewUrl)
+  }
+
+  /** Release one browser-selected text attachment. */
+  releaseDraftBrowserAnnotation(id: DraftAttachmentId): void {
+    const attachment = this.draftAttachments.get(id)
+    if (attachment?.kind !== 'browser-annotation') return
+    this.draftAttachments.delete(id)
   }
 
   /**
@@ -222,7 +307,14 @@ export class ConversationController extends Service implements IConversation {
    * @param attachments - descriptors to release.
    */
   releaseDraftImages(attachments: readonly ComposerAttachment[]): void {
-    for (const attachment of attachments) this.releaseDraftImage(attachment.id)
+    for (const attachment of attachments) {
+      if (attachment.kind === 'image') this.releaseDraftImage(attachment.id)
+    }
+  }
+
+  /** Release a set of browser-selected text attachments. */
+  releaseDraftBrowserAnnotations(attachments: readonly DraftBrowserAnnotation[]): void {
+    for (const attachment of attachments) this.releaseDraftBrowserAnnotation(attachment.id)
   }
 
   /**

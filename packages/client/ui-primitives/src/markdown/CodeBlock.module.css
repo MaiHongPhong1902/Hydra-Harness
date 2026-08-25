@@ -3,7 +3,7 @@
 
 .block {
   --dsl-code-block-banner-background-color: var(--dsw-alias-markdown-code-block-banner);
-  --dsl-code-block-border-radius: 12px;
+  --dsl-code-block-border-radius: var(--dsw-radius-panel);
   --dsl-code-block-banner-font: var(--dsw-font-xs-13);
   --dsl-code-block-content-font: var(--dsw-font-markdown-code-block);
 
@@ -11,6 +11,7 @@
   margin: 16px 0;
   color: var(--dsw-alias-label-primary);
   background: var(--dsw-alias-markdown-code-block);
+  border: 1px solid var(--dsw-alias-border-l1);
   border-radius: var(--dsl-code-block-border-radius);
 }
 
@@ -29,6 +30,7 @@
 
 .banner {
   background: var(--dsl-code-block-banner-background-color);
+  border-bottom: 1px solid var(--dsw-alias-border-l1);
   padding: 9px 14px;
   display: flex;
   justify-content: space-between;

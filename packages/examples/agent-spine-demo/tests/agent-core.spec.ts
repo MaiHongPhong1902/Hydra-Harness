@@ -6,7 +6,7 @@ import { Context } from '@bosch/cordis'
 import Loader from '@bosch/cordis-plugin-loader'
 import { renderPrompt, TOOL_ORDER_REST } from '@bosch/bh-system-prompt'
 import * as agentCore from '../src/index.ts'
-import { agentEvents, type Agent } from '@bosch/bh-agent'
+import type { Agent } from '@bosch/bh-agent'
 import { SessionId } from '@bosch/bh-session'
 import LocalBashExecutor from '@bosch/bh-bash-local'
 import LocalFileSystem from '@bosch/bh-fs-local'
@@ -35,21 +35,6 @@ declare module '@bosch/bh-jobs' {
   interface JobKindMap {
     probe: 'probe'
   }
-}
-
-async function composePrefix(ctx: Context, cwd: string): Promise<Message[]> {
-  const agent = ctx.agentLoop.create(SessionId('agent-spine-prefix'), {}, { cwd })
-  const signal = new AbortController().signal
-  const decision = await agentEvents(ctx, agent).waterfall(
-    'agent/pre-step', { messages: [], turn: 1, step: 1, signal },
-    () => Promise.resolve({ kind: 'enter', messages: [] }),
-  )
-  if (decision.kind === 'enter') {
-    for (const message of decision.messages) {
-      agent.session.append('user/message', message, { surfaceOp: 'append' })
-    }
-  }
-  return agent.session.deriveMessages()
 }
 
 /**
@@ -265,6 +250,7 @@ describe('bh-agent-spine-demo bundle', () => {
 
     expect(ctx.skills).toBeDefined()
     expect(ctx.tools.schemas().map(tool => tool.name)).toContain('skill')
+    expect(ctx.tools.schemas().map(tool => tool.name)).toContain('skill_search')
     expect(await ctx.skills.list()).toEqual([])
 
     await ctx.fiber.dispose()
@@ -430,15 +416,21 @@ describe('bh-agent-spine-demo bundle', () => {
           agentsHome: join(agentsHome, '.agents'),
           customSkillDirs: [custom],
         },
-        tool: { catalogDescriptionMaxLength: 6 },
+        tool: { searchDescriptionMaxLength: 6 },
       },
     })
     expect((await ctx.skills.list()).map(skill => skill.name)).toEqual(['custom-skill'])
-    expect(JSON.stringify(await composePrefix(ctx, '/tmp'))).toContain('- `custom-skill`: Cus...')
+    const search = await ctx.tools.execute({
+      signal: testToolSignal,
+      callId: CallId('custom-skill-search'),
+      name: 'skill_search',
+      arguments: { query: 'custom skill' },
+    })
+    expect(JSON.stringify(search.content)).toContain('- `custom-skill`: Cus...')
     await ctx.fiber.dispose()
   })
 
-  it('snapshots a created project skill through catalog refresh and progressive loading', { timeout: 15_000 }, async () => {
+  it('snapshots a created project skill through search and progressive loading', { timeout: 15_000 }, async () => {
     const root = await mkdtemp(join(tmpdir(), 'bh-agent-spine-demo-skill-refresh-'))
     const home = await mkdtemp(join(tmpdir(), 'bh-agent-spine-demo-skill-refresh-home-'))
     try {
@@ -454,6 +446,7 @@ describe('bh-agent-spine-demo bundle', () => {
           file_path: skillPath,
           content: skillSource,
         }),
+        toolCallResponse('search-skill', 'skill_search', { query: 'hot added skill' }),
         toolCallResponse('load-skill', 'skill', { name: 'hot-skill' }),
         textResponse('SKILL_REFRESH_OK'),
       ])
@@ -493,29 +486,22 @@ describe('bh-agent-spine-demo bundle', () => {
       }))
       await waitForIdle(ctx, handle.agent)
 
-      expect(adapter.requests).toHaveLength(4)
+      expect(adapter.requests).toHaveLength(5)
       expect(adapter.requests.slice(0, 2).map(request => request.messages.map(messageText).join('\n')))
         .toEqual([
           expect.not.stringContaining('hot-skill'),
           expect.not.stringContaining('hot-skill'),
         ])
-      const catalogRequest = adapter.requests[2]?.messages.map(messageText).join('\n')
-      expect(catalogRequest).toContain('The following skills are available in this session:')
-      expect(catalogRequest).toContain('- `hot-skill`: Hot-added skill')
-      const loadedRequest = JSON.stringify(adapter.requests[3]?.messages)
+      const searchRequest = JSON.stringify(adapter.requests[3]?.messages)
+      expect(searchRequest).toContain('<skill_candidates complete=\\\"true\\\" truncated=\\\"false\\\">')
+      expect(searchRequest).toContain('- `hot-skill`: Hot-added skill')
+      const loadedRequest = JSON.stringify(adapter.requests[4]?.messages)
       expect(loadedRequest).toContain('<skill_instructions>')
       expect(loadedRequest).toContain('Use the freshly loaded body.')
 
       const transcript = handle.agent.session.events.flatMap<Record<string, unknown>>((event) => {
-        if (event.type === 'user/message' && event.data.source.kind === 'skill-catalog') {
-          return [{
-            type: event.type,
-            source: event.data.source,
-            text: event.data.content.map(block => block.type === 'text' ? block.text : '').join('\n'),
-          }]
-        }
         if (event.type === 'tool/result'
-          && ['write-skill', 'load-skill'].includes(event.data.message.source.callId)) {
+          && ['write-skill', 'search-skill', 'load-skill'].includes(event.data.message.source.callId)) {
           const result = event.data.message.content[0]
           return [{
             type: event.type,
@@ -541,27 +527,13 @@ describe('bh-agent-spine-demo bundle', () => {
             "type": "tool/result",
           },
           {
-            "source": {
-              "entries": [
-                {
-                  "description": "Hot-added skill",
-                  "name": "hot-skill",
-                },
-              ],
-              "form": "catalog",
-              "kind": "skill-catalog",
-            },
-            "text": "<system-reminder>
-        A skill is a reusable set of task-specific instructions. The following skills are available in this session:
-
-        <available_skills>
+            "callId": "search-skill",
+            "isError": false,
+            "text": "<skill_candidates complete=\"true\" truncated=\"false\">
         - \`hot-skill\`: Hot-added skill
-        </available_skills>
-
-        If the user names a skill, or the task clearly matches a skill's description, call the \`skill\` tool with the exact skill name before taking task actions. Load all applicable skills, then follow their full instructions. This catalog contains summaries only; do not infer or follow a skill's instructions until it has been loaded.
-        A user may also invoke a skill directly; its <skill_content> block then appears in this conversation. Follow it, and do not call the \`skill\` tool again for that skill.
-        </system-reminder>",
-            "type": "user/message",
+        </skill_candidates>
+        Choose zero or one candidate. Call \`skill\` only for the best match; load another only when the task clearly requires an independent skill.",
+            "type": "tool/result",
           },
           {
             "callId": "load-skill",
@@ -624,7 +596,7 @@ describe('bh-agent-spine-demo bundle', () => {
     }).toThrow('agent-spine-demo: bhHome and skills.filesystem.bhHome must resolve to the same directory')
   })
 
-  it('delivers workspace instructions ahead of the first-step skill catalog', async () => {
+  it('does not inject skill summaries into the first model request', async () => {
     const root = await mkdtemp(join(tmpdir(), 'bh-agent-spine-demo-prefix-order-'))
     try {
       await mkdir(join(root, '.git'), { recursive: true })
@@ -652,12 +624,11 @@ describe('bh-agent-spine-demo bundle', () => {
       const workspaceIndex = adapter.requests[0]!.messages.findIndex(
         message => messageText(message).includes('workspace rule before skills'),
       )
-      const catalogIndex = adapter.requests[0]!.messages.findIndex(
+      const skillIndex = adapter.requests[0]!.messages.findIndex(
         message => messageText(message).includes('prefix-order-skill'),
       )
       expect(workspaceIndex).toBeGreaterThanOrEqual(0)
-      expect(catalogIndex).toBeGreaterThanOrEqual(0)
-      expect(workspaceIndex).toBeLessThan(catalogIndex)
+      expect(skillIndex).toBe(-1)
       await handle.dispose()
       await ctx.fiber.dispose()
     } finally {
@@ -794,7 +765,15 @@ describe('bh-agent-spine-demo bundle', () => {
       })
     }
     const assembly = await ctx.get('systemPrompt')!.assemble()
-    expect(assembly.tools.map(tool => tool.name)).toEqual(['zulu', 'alpha', 'job_kill', 'job_list', 'job_output', 'skill'])
+    expect(assembly.tools.map(tool => tool.name)).toEqual([
+      'zulu',
+      'alpha',
+      'job_kill',
+      'job_list',
+      'job_output',
+      'skill',
+      'skill_search',
+    ])
     await ctx.fiber.dispose()
   })
 

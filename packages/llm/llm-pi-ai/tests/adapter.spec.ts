@@ -1,4 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createServer } from 'node:http'
+import type { Server } from 'node:http'
+import { connect as connectSocket } from 'node:net'
 import { Context } from '@bosch/cordis'
 import { AttachmentId, AttachmentStore } from '@bosch/bh-attachment'
 import type {
@@ -17,9 +20,36 @@ import { memoryAuth } from './auth-double.ts'
 import { assemble } from './assemble.ts'
 import { closeMockServers, mockServer, textEvents } from './mock-server.ts'
 
+const proxyServers: Server[] = []
+
+async function forwardingProxy(): Promise<{ url: string; requests: string[] }> {
+  const requests: string[] = []
+  const server = createServer((_request, response) => {
+    response.writeHead(501).end()
+  })
+  server.on('connect', (request, socket, head) => {
+    const target = new URL(`http://${request.url ?? ''}`)
+    requests.push(request.url ?? '')
+    const upstream = connectSocket(Number(target.port || '80'), target.hostname, () => {
+      socket.write('HTTP/1.1 200 Connection Established\r\n\r\n')
+      if (head.length > 0) upstream.write(head)
+      socket.pipe(upstream)
+      upstream.pipe(socket)
+    })
+    upstream.on('error', () => { socket.destroy() })
+    socket.on('error', () => { upstream.destroy() })
+  })
+  proxyServers.push(server)
+  await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve))
+  const address = server.address()
+  if (address === null || typeof address === 'string') throw new Error('no proxy port')
+  return { url: `http://127.0.0.1:${address.port}`, requests }
+}
+
 afterEach(async () => {
   vi.unstubAllEnvs()
   await closeMockServers()
+  await Promise.all(proxyServers.splice(0).map(server => new Promise<void>(resolve => server.close(() => resolve()))))
 })
 
 const IMAGE_REF: ImageAttachmentRef = {
@@ -73,6 +103,49 @@ describe('PiAiAdapter provider routing', () => {
     expect(result.finish).toEqual({ kind: 'stop' })
     expect(result.usage).toEqual({ inputTokens: 3, outputTokens: 1 })
     expect(server.paths).toEqual(['/chat/completions'])
+  })
+
+  it('routes a configured provider through its own proxy', async () => {
+    const server = await mockServer([{ events: textEvents }])
+    const proxy = await forwardingProxy()
+    const ctx = await harness(server.url, { proxy: proxy.url })
+
+    const result = await assemble(ctx, { model: 'deepseek-v4-flash', messages: [] })
+
+    expect(result.finish).toEqual({ kind: 'stop' })
+    expect(result.message.content).toEqual([{ type: 'text', text: 'hello' }])
+    expect(proxy.requests).toEqual([new URL(server.url).host])
+    expect(server.paths).toEqual(['/chat/completions'])
+  })
+
+  it('keeps a blank proxy direct', async () => {
+    const server = await mockServer([{ events: textEvents }])
+    expect(resolveProfiles({ deepseek: { proxy: '   ' } }).get('deepseek')?.proxy).toBeUndefined()
+    const ctx = await harness(server.url, { proxy: '   ' })
+
+    const result = await assemble(ctx, { model: 'deepseek-v4-flash', messages: [] })
+
+    expect(result.finish).toEqual({ kind: 'stop' })
+    expect(server.paths).toEqual(['/chat/completions'])
+  })
+
+  it('keeps simultaneous routes on their own proxies', async () => {
+    const firstServer = await mockServer([{ events: textEvents }])
+    const secondServer = await mockServer([{ events: textEvents }])
+    const firstProxy = await forwardingProxy()
+    const secondProxy = await forwardingProxy()
+    const [first, second] = await Promise.all([
+      harness(firstServer.url, { proxy: firstProxy.url }),
+      harness(secondServer.url, { proxy: secondProxy.url }),
+    ])
+
+    await Promise.all([
+      assemble(first, { model: 'deepseek-v4-flash', messages: [] }),
+      assemble(second, { model: 'deepseek-v4-flash', messages: [] }),
+    ])
+
+    expect(firstProxy.requests).toEqual([new URL(firstServer.url).host])
+    expect(secondProxy.requests).toEqual([new URL(secondServer.url).host])
   })
 
   it('merges profile headers with Harness attribution winning', async () => {

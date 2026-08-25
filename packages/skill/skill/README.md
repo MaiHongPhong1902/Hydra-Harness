@@ -59,15 +59,15 @@ Definitions remain progressively loaded. `get()` asks the winning provider for t
 
 ## Consumer boundary
 
-The registry does not render model guidance or register model-facing tools. [`@bosch/bh-tool-skill`](../tool-skill) consumes `ctx.skills` to provide durable session catalogs and the `skill` tool, so providers remain independent of model-facing behavior.
+The registry does not render model guidance or register model-facing tools. [`@bosch/bh-tool-skill`](../tool-skill) consumes `ctx.skills` to provide bounded `skill_search`, exact `skill` loading, and direct user invocation, so providers remain independent of model-facing behavior.
 
 ## Model Experience
 
-Indirectly, through `bh-tool-skill`, which renders provider summaries into durable initial or replacement catalog messages and loaded instructions into retained tool results.
+Indirectly, through `bh-tool-skill`, which renders a bounded on-demand metadata shortlist and selected instructions into retained tool results.
 
 #### KV Cache effect
 
-No direct prompt effect. The named consumer owns the durable initial catalog and append-only replacements after invalidation.
+No direct prompt effect. The named consumer adds no automatic roster; only explicit search, exact loading, or a direct user gesture appends model-visible content.
 
 ## Known Limitations and Deferred Work
 

@@ -58,6 +58,7 @@ const releaseMemberDirectory = /^(?:packages\/(?!experimental\/)[^/]+\/[^/]+|app
 const localArtifactDirs = new Set(['node_modules'])
 const appPackageFiles: Readonly<Record<string, readonly string[]>> = {
   '@bosch/bh': ['lib/*.js', 'config'],
+  '@bosch/bh-desktop': ['main.cjs', 'preload.cjs'],
   // The Web build emits sourcemaps for browser debugging; publishing them is
   // what the payload policy forbids, so the bundle ships without them.
   '@bosch/bh-web-frontend': ['dist', '!dist/**/*.map'],
@@ -151,6 +152,14 @@ const packageFileExtras: Readonly<Record<string, readonly string[]>> = {
   '@bosch/bh-client-ui-theme': ['lib/styles'],
   // The CPython side ships as source .py files, published as-is rather than built.
   '@bosch/bh-code-runtime-python': ['py/**/*.py'],
+  // The Electron half runs in Electron, not Node: its main process, native
+  // chrome, and committed preload bundle ship as-is rather than through tsdown.
+  '@bosch/bh-browser-electron': [
+    'electron-app/main.cjs',
+    'electron-app/chrome.html',
+    'electron-app/chrome-preload.cjs',
+    'electron-app/preload.cjs',
+  ],
   // The Python runtime uses a distinct closed-resolution bin; the public CLI
   // keeps config-owned bare-package resolution through lib/bin.js.
   '@bosch/bh-sdk-jsonrpc-demo': ['lib/packaged-bin.js'],

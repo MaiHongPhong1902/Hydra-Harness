@@ -64,7 +64,7 @@ const install: InvariantInstaller = (ctx, fail) => {
       && agent !== undefined && presets.composedPreset(agent.ctx) === undefined) {
       fail(
         `agent "${agent.id}" addressed a model without joining any agent preset while a roster is `
-        + 'composed; its tools, prompt sections, and skill catalog resolve against the empty global layer',
+        + 'composed; its tools, prompt sections, and skill registry view resolve against the empty global layer',
       )
     }
     return next()

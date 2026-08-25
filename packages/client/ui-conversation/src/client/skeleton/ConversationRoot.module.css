@@ -19,7 +19,7 @@
      the input card clears the bare clearance, so the input card stays exactly
      content + 32px at every width. Declared on the root because the
      transcript and the composer seat are sibling subtrees. */
-  --bh-chat-content-width: 748px;
+  --bh-chat-content-width: 800px;
   --bh-composer-card-max-width: calc(var(--bh-chat-content-width) + 32px);
   --bh-composer-side-clearance: 16px;
   --bh-composer-dock-inset: 8px;
@@ -28,7 +28,7 @@
 .header {
   position: relative;
   flex: none;
-  padding: 12px 28px 0 20px;
+  padding: 16px 32px 0 24px;
   border-bottom: 1px solid transparent;
 }
 
@@ -40,7 +40,7 @@
   left: 0;
   z-index: 0;
   height: 1px;
-  background: var(--dsw-alias-border-l2);
+  background: var(--dsw-alias-border-l1);
   pointer-events: none;
 }
 

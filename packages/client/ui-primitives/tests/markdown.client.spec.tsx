@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { JsonBlock, MarkdownText, MessageText } from '@bosch/bh-client-ui-primitives'
 import { cjkFriendlyStrong } from '../src/markdown/cjkFriendlyStrong.ts'
 import { mathCompatibility } from '../src/markdown/mathCompatibility.ts'
@@ -62,7 +62,8 @@ describe('MarkdownText', () => {
     // The ts fence routed through the shared CodeBlock: shiki token spans + banner.
     expect(container.querySelector('pre.shiki')).not.toBeNull()
     expect(screen.getByText('ts')).toBeTruthy()
-    expect(screen.getByRole('button', { name: '复制' })).toBeTruthy()
+    expect(screen.getAllByRole('button', { name: '复制' })).toHaveLength(2)
+    expect(screen.getAllByRole('button', { name: '复制' })[0]?.textContent).toBe('')
     expect(container.querySelector('br')).not.toBeNull()
     expect(screen.getByRole('link', { name: 'safe' }).getAttribute('target')).toBe('_blank')
     expect(screen.getByRole('link', { name: 'https://deepseek.com' })).toBeTruthy()
@@ -236,6 +237,42 @@ describe('MarkdownText', () => {
   it('forwards localized labels to fenced code blocks', () => {
     render(<MarkdownText text={'```ts\nconst answer = 42\n```'} codeLabels={{ copyLabel: 'Copy code', copiedLabel: 'Copied' }} />)
     expect(screen.getByRole('button', { name: 'Copy code' })).toBeTruthy()
+  })
+
+  it('copies every Markdown table as TSV', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    })
+    render(<MarkdownText text={'| Name | Steps |\n| --- | --- |\n| alpha | 1. First<br>2. Second |'} codeLabels={{ copyLabel: 'Copy table', copiedLabel: 'Copied' }} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Copy table' }))
+    expect(writeText).toHaveBeenCalledWith('Name\tSteps\nalpha\t"1. First\n2. Second"')
+    await act(async () => {
+      await Promise.resolve()
+    })
+    expect(screen.getByRole('button', { name: 'Copied' })).toBeTruthy()
+  })
+
+  it('renders attribute-free table breaks without enabling arbitrary raw HTML', () => {
+    const source = [
+      '| Steps |',
+      '| --- |',
+      '| 1. First<br>2. Second<br />3. Third |',
+      '',
+      '<span onclick="boom()">literal</span>',
+    ].join('\n')
+
+    for (const streaming of [false, true]) {
+      const { container, unmount } = render(<MarkdownText text={source} streaming={streaming} />)
+      const steps = container.querySelector('td')
+      expect(steps?.querySelectorAll('br')).toHaveLength(2)
+      expect(steps?.textContent).toBe('1. First\n2. Second\n3. Third')
+      expect(container.querySelector('span')).toBeNull()
+      expect(container.textContent).toContain('<span onclick="boom()">literal</span>')
+      unmount()
+    }
   })
 
   it('renders absolute HTTP(S) images with bounded presentation', () => {

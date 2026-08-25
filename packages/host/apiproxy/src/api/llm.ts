@@ -57,7 +57,7 @@ export interface LlmApi {
    * names the route being edited when there is one — an adapter that already
    * describes that route answers from its own registry, with better metadata
    * and no network call, and needs no endpoint. A route it does not describe is
-   * asked over the wire, which is what `baseURL`, `api`, and `apiKey` are for.
+   * asked over the wire, which is what `baseURL`, `api`, `proxy`, and `apiKey` are for.
    *
    * Nothing is written — the reply is candidates, and only a later
    * `settings.mutate` decides what a route serves. `apiKey` is accepted here
@@ -70,6 +70,7 @@ export interface LlmApi {
       provider?: string
       baseURL?: string
       api?: string
+      proxy?: string
       apiKey?: string
     }>,
     signal?: AbortSignal,

@@ -1,5 +1,5 @@
 /* Plan-review takeover: the waiting-approval card language (amber strip on a
-   floating capsule, right-aligned actions) applied to a reviewed plan. Kept as
+   floating composer surface, right-aligned actions) applied to a reviewed plan. Kept as
    its own module rather than shared with ui-conversation's ApprovalPanel: the
    two takeovers agree on tokens and geometry, not on content — this one's body
    is scrollable markdown, that one's is a headline plus a command line. Warn
@@ -25,7 +25,7 @@
      strip and the decision row stay reachable on a long plan. */
   max-height: min(60vh, 520px);
   border: 1px solid var(--dsw-alias-state-warn-secondary);
-  border-radius: 20px;
+  border-radius: var(--dsw-radius-composer);
   background: var(--dsw-specific-input-major);
   box-shadow: var(--dsw-shadow-lv2);
   color: var(--dsw-alias-label-primary);
@@ -109,7 +109,7 @@
 
 @media (max-width: 720px) {
   .card {
-    border-radius: 16px;
+    border-radius: var(--dsw-radius-composer);
   }
 
   .body {

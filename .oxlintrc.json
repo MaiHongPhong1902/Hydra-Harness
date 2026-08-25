@@ -23,6 +23,7 @@
     "packages/typert/generator/tests/fixtures/type-model/**", // tsgolint rejects this fixture's preserved project shapes before rules run.
     "website/.generated/**",
     "vendor/**", // Vendored source keeps upstream style and idioms.
+    "packages/*/*/third-party/**", // Source copied into one package keeps upstream style too; see THIRD_PARTY_NOTICES.md.
     "native/**", // The imported landlock-run subtree has its own gates; see native/README.md.
     "**/*.js",
     "**/*.mjs",

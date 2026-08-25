@@ -77,7 +77,8 @@
   width: 800px;
   height: min(800px, calc(100vh - 48px));
   max-width: calc(100vw - 48px);
-  border-radius: 24px;
+  border: 1px solid var(--dsw-alias-border-l1);
+  border-radius: var(--dsw-radius-dialog);
   overflow: hidden;
   background: var(--dsw-alias-bg-layer-2);
   box-shadow: var(--dsw-shadow-lv3);
@@ -100,6 +101,8 @@
   width: 188px;
   padding: 22px 12px 0;
   box-sizing: border-box;
+  border-right: 1px solid var(--dsw-alias-border-l1);
+  background: var(--dsw-specific-sidebar-fill);
 }
 
 /* Title row (figma 501:29959): 16/500 lh24, 12px side padding. */
@@ -128,7 +131,7 @@
   padding: 9px 16px 9px 12px;
   box-sizing: border-box;
   border: none;
-  border-radius: 12px;
+  border-radius: var(--dsw-radius-control);
   background: transparent;
   cursor: pointer;
   font-family: inherit;
@@ -197,7 +200,7 @@
   height: 28px;
   padding: 0;
   border: none;
-  border-radius: 28px;
+  border-radius: var(--dsw-radius-control);
   background: transparent;
   cursor: pointer;
   color: var(--dsw-alias-label-primary);

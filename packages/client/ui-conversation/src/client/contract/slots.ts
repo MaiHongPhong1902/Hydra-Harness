@@ -30,16 +30,30 @@ export interface ComposerAttachment {
   previewUrl: string
 }
 
+/** Browser-selected text context that is queued beside the composer draft. */
+export interface BrowserAnnotationAttachment {
+  kind: 'browser-annotation'
+  id: DraftAttachmentId
+  file: File
+  comment: string
+}
+
 /** Input state handed to the optional attachment presentation plugin. */
 export interface ComposerAttachmentsOwnerProps {
   /** Browser-owned draft images in input order. */
   attachments: readonly ComposerAttachment[]
+  /** Browser-selected text files waiting beside the composer draft. */
+  browserAnnotations?: readonly BrowserAnnotationAttachment[]
   /** Whether a document-level file drop may add images now. */
   canAcceptDrop: boolean
   /** Add one dropped batch through the composer's validation path. */
   onAddImages: (files: readonly File[]) => void
   /** Remove one draft image through the conversation service. */
   onRemoveImage: (id: DraftAttachmentId) => void
+  /** Remove one browser-selected text file from the draft. */
+  onRemoveBrowserAnnotation?: (id: DraftAttachmentId) => void
+  /** Update the user comment attached to one browser-selected text file. */
+  onUpdateBrowserAnnotationComment?: (id: DraftAttachmentId, comment: string) => void
   /** Display-ready limits for the drop invitation. */
   dropLimits?: { readonly count: number; readonly size: string } | undefined
 }
@@ -559,6 +573,12 @@ export interface ComposerBarInjected {
   removeImage: ((id: DraftAttachmentId) => void) | undefined
   /** Resolve ordered input ids to browser-owned draft images. */
   draftImages: ((ids: readonly DraftAttachmentId[]) => readonly ComposerAttachment[]) | undefined
+  /** Resolve ordered input ids to browser-selected text-file attachments. */
+  draftBrowserAnnotations?: ((ids: readonly DraftAttachmentId[]) => readonly BrowserAnnotationAttachment[]) | undefined
+  /** Release one browser-selected text-file attachment. */
+  removeBrowserAnnotation?: ((id: DraftAttachmentId) => void) | undefined
+  /** Update the comment carried with one browser-selected text-file attachment. */
+  updateBrowserAnnotationComment?: ((id: DraftAttachmentId, comment: string) => void) | undefined
   /** Resolve one keyboard submission gesture against the current running state and persisted preference. */
   resolveSubmitMode: (
     running: boolean,

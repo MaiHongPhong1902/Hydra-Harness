@@ -311,6 +311,8 @@ export type UseSession<Snap extends object = object> = SnapshotSelectorHook<Snap
 
 /** Props of the standard-kit SessionProvider seat (render-prop form). */
 export interface SessionAreaProps {
+  /** Resolve a specific session without changing the application's current selection. */
+  sessionId?: SessionIdOf | undefined
   /** No-session body (also covers a current id whose session cannot be resolved). */
   empty?: (() => ReactNode) | undefined
   /** Session body; the framework remounts it per session (key=sessionId). */

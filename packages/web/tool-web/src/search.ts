@@ -234,9 +234,14 @@ async function runSearchQueries(
   queries: string[],
   maxResults: number,
   signal: AbortSignal,
+  modelProvider: string | undefined,
 ): Promise<WebSearchResult> {
   if (queries.length === 1) {
-    return ctx.web.search({ query: queries[0] as string, maxResults }, signal)
+    return ctx.web.search({
+      query: queries[0] as string,
+      maxResults,
+      ...modelProvider === undefined ? {} : { modelProvider },
+    }, signal)
   }
   const controller = new AbortController()
   const batchSignal = AbortSignal.any([signal, controller.signal])
@@ -244,7 +249,11 @@ async function runSearchQueries(
   const results: WebSearchResult[] = []
   const searches = queries.map(async (query, index) => {
     try {
-      results[index] = await ctx.web.search({ query, maxResults }, batchSignal)
+      results[index] = await ctx.web.search({
+        query,
+        maxResults,
+        ...modelProvider === undefined ? {} : { modelProvider },
+      }, batchSignal)
     } catch (error) {
       if (firstFailure === undefined) firstFailure = { error }
       controller.abort(error)
@@ -363,7 +372,8 @@ export function applyWebSearchTool(
     isConcurrencySafe: () => true,
     async execute(args, exec) {
       const queries = parseSearchArgs(args, maxQueries)
-      const result = await runSearchQueries(ctx, queries, maxResults, exec.signal)
+      const modelProvider = exec.agent?.session.requestHeader()?.config.provider ?? exec.agent?.options.provider
+      const result = await runSearchQueries(ctx, queries, maxResults, exec.signal, modelProvider)
       return {
         ...result.content !== undefined ? { content: result.content } : {},
         sources: result.sources.map(projectSource),

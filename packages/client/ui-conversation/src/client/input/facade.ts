@@ -50,6 +50,7 @@ export interface SessionInputDeps {
     imageIds: readonly DraftAttachmentId[],
     mode: InputSubmitMode,
     signal: AbortSignal,
+    browserAnnotationIds?: readonly DraftAttachmentId[],
   ): Promise<SubmitOutcome>
   /** Command-plane image plumbing (the hub owns the conversation face and the copy). */
   commandImages: {
@@ -59,6 +60,14 @@ export interface SessionInputDeps {
     release(ids: readonly DraftAttachmentId[]): void
     /** Localized composer notice for a claimed command that does not accept images. */
     unsupportedNotice(token: string): string
+  }
+  /** Optional notice for commands that cannot consume browser text files. */
+  commandAttachments?: {
+    unsupportedNotice(token: string): string
+  }
+  /** Optional owner-side mutation for browser annotation comments. */
+  browserAnnotations?: {
+    updateComment(id: DraftAttachmentId, comment: string): void
   }
 }
 
@@ -91,6 +100,10 @@ export class SessionInputShell implements SessionInput {
     addImages: ids => this.addImages(ids),
     removeImage: (id) => { this.removeImage(id) },
     pruneImages: (ids) => { this.pruneImages(ids) },
+    addBrowserAnnotations: ids => this.addBrowserAnnotations(ids),
+    removeBrowserAnnotation: (id) => { this.removeBrowserAnnotation(id) },
+    pruneBrowserAnnotations: (ids) => { this.pruneBrowserAnnotations(ids) },
+    updateBrowserAnnotationComment: (id, comment) => { this.updateBrowserAnnotationComment(id, comment) },
     submit: () => { this.submit('queue') },
   }
 
@@ -100,6 +113,8 @@ export class SessionInputShell implements SessionInput {
   private noticeSeq = 0
   private lastMirroredDraft = ''
   private imageIds: readonly DraftAttachmentId[] = []
+  private browserAnnotationIds: readonly DraftAttachmentId[] = []
+  private readonly browserAnnotationComments = new Map<DraftAttachmentId, string>()
   /** One image-only send at a time: Enter during the Host round-trip is a no-op. */
   private imageSendInFlight = false
   private disposed = false
@@ -157,15 +172,64 @@ export class SessionInputShell implements SessionInput {
     this.publish()
   }
 
+  /** Append browser-selected text ids unless an admission transaction is locked. */
+  addBrowserAnnotations(ids: readonly DraftAttachmentId[]): boolean {
+    if (this.snapshot.phase === 'adjudicating' || this.snapshot.phase === 'submitting') return false
+    if (ids.length === 0) return true
+    this.browserAnnotationIds = [...this.browserAnnotationIds, ...ids]
+    for (const id of ids) if (!this.browserAnnotationComments.has(id)) this.browserAnnotationComments.set(id, '')
+    this.publish()
+    return true
+  }
+
+  /** Remove one browser-selected text id from this draft. */
+  removeBrowserAnnotation(id: DraftAttachmentId): void {
+    if (this.snapshot.phase === 'adjudicating' || this.snapshot.phase === 'submitting') return
+    const next = this.browserAnnotationIds.filter(candidate => candidate !== id)
+    if (next.length === this.browserAnnotationIds.length) return
+    this.browserAnnotationIds = next
+    this.browserAnnotationComments.delete(id)
+    this.publish()
+  }
+
+  /** Keep only browser-selected text ids whose local objects still exist. */
+  pruneBrowserAnnotations(available: readonly DraftAttachmentId[]): void {
+    const keep = new Set(available)
+    const next = this.browserAnnotationIds.filter(id => keep.has(id))
+    if (next.length === this.browserAnnotationIds.length) return
+    this.browserAnnotationIds = next
+    for (const id of this.browserAnnotationComments.keys()) {
+      if (!keep.has(id)) this.browserAnnotationComments.delete(id)
+    }
+    this.publish()
+  }
+
+  /** Update one browser annotation comment and notify the owner/UI. */
+  updateBrowserAnnotationComment(id: DraftAttachmentId, comment: string): void {
+    if (this.snapshot.phase === 'adjudicating' || this.snapshot.phase === 'submitting') return
+    if (!this.browserAnnotationIds.includes(id)) return
+    const bounded = comment.slice(0, 4000)
+    if (this.browserAnnotationComments.get(id) === bounded) return
+    this.browserAnnotationComments.set(id, bounded)
+    this.deps.browserAnnotations?.updateComment(id, bounded)
+    this.publish()
+  }
+
   /**
    * Clear the draft as a successful-send commit: no undo unit is recorded and
    * the undo history is cut, so Ctrl/Cmd-Z cannot resurrect sent content
    * (the command path gets the same discipline from submit-settled success).
    * @param imageIds - admitted image ids to remove from this draft.
    */
-  commitSend(imageIds: readonly DraftAttachmentId[]): void {
+  commitSend(
+    imageIds: readonly DraftAttachmentId[],
+    browserAnnotationIds: readonly DraftAttachmentId[] = [],
+  ): void {
     const submitted = new Set(imageIds)
     this.imageIds = this.imageIds.filter(id => !submitted.has(id))
+    const submittedAnnotations = new Set(browserAnnotationIds)
+    this.browserAnnotationIds = this.browserAnnotationIds.filter(id => !submittedAnnotations.has(id))
+    for (const id of submittedAnnotations) this.browserAnnotationComments.delete(id)
     this.run(this.core.dispatch({ type: 'send-committed' }))
   }
 
@@ -207,14 +271,20 @@ export class SessionInputShell implements SessionInput {
    * dismisses and the menu tracks frozen.
    */
   submit(mode: InputSubmitMode = 'queue'): void {
-    if (this.snapshot.draft.trim() === '' && this.imageIds.length > 0) {
+    const hasBrowserAttachments = this.imageIds.length > 0 || this.browserAnnotationIds.length > 0
+    if (this.snapshot.draft.trim() === '' && hasBrowserAttachments) {
       if (this.snapshot.phase === 'plain' && !this.imageSendInFlight) {
         const imageIds = [...this.imageIds]
+        const browserAnnotationIds = [...this.browserAnnotationIds]
         this.imageSendInFlight = true
-        void this.deps.defaultSink('', imageIds, mode, new AbortController().signal).then((outcome) => {
+        const signal = new AbortController().signal
+        const pending = browserAnnotationIds.length === 0
+          ? this.deps.defaultSink('', imageIds, mode, signal)
+          : this.deps.defaultSink('', imageIds, mode, signal, browserAnnotationIds)
+        void pending.then((outcome) => {
           this.imageSendInFlight = false
           if (this.disposed) return
-          if (outcome.kind === 'success') this.commitSend(imageIds)
+          if (outcome.kind === 'success') this.commitSend(imageIds, browserAnnotationIds)
           else if (outcome.text !== undefined) this.notify('error', outcome.text)
         }, (error: unknown) => {
           this.imageSendInFlight = false
@@ -228,6 +298,11 @@ export class SessionInputShell implements SessionInput {
     // Enter-time adjudication applies the same policy for unclaimed lines
     // inside the command source itself.
     const before = this.snapshot
+    if (before.phase === 'claimed' && this.browserAnnotationIds.length > 0) {
+      this.notify('error', this.deps.commandAttachments?.unsupportedNotice(before.claim?.token ?? before.draft)
+        ?? 'Browser text attachments are only supported for regular messages.')
+      return
+    }
     if (before.phase === 'claimed' && this.imageIds.length > 0 && before.claim?.images !== true) {
       this.notify('error', this.deps.commandImages.unsupportedNotice(before.claim?.token ?? before.draft))
       return
@@ -455,9 +530,19 @@ export class SessionInputShell implements SessionInput {
    */
   private sinkSerialized(attempt: SubmitAttempt, draft: string, mode: InputSubmitMode): void {
     const imageIds = [...this.imageIds]
+    const browserAnnotationIds = [...this.browserAnnotationIds]
     const occurrences = this.core.state.occurrences
     if (occurrences.length === 0) {
-      this.settleSubmit(attempt, this.deps.defaultSink(draft.trim(), imageIds, mode, attempt.signal), imageIds)
+      const signal = attempt.signal
+      const pending = browserAnnotationIds.length === 0
+        ? this.deps.defaultSink(draft.trim(), imageIds, mode, signal)
+        : this.deps.defaultSink(draft.trim(), imageIds, mode, signal, browserAnnotationIds)
+      this.settleSubmit(
+        attempt,
+        pending,
+        imageIds,
+        browserAnnotationIds,
+      )
       return
     }
     const inputTriggers = this.deps.inputTriggers?.()
@@ -481,7 +566,11 @@ export class SessionInputShell implements SessionInput {
           cursor = part.offset + part.length
         }
         out += draft.slice(cursor)
-        this.settleSubmit(attempt, this.deps.defaultSink(out.trim(), imageIds, mode, attempt.signal), imageIds)
+        const signal = attempt.signal
+        const pending = browserAnnotationIds.length === 0
+          ? this.deps.defaultSink(out.trim(), imageIds, mode, signal)
+          : this.deps.defaultSink(out.trim(), imageIds, mode, signal, browserAnnotationIds)
+        this.settleSubmit(attempt, pending, imageIds, browserAnnotationIds)
       },
       (error: unknown) => {
         controller.abort()
@@ -497,6 +586,7 @@ export class SessionInputShell implements SessionInput {
     attempt: SubmitAttempt,
     pending: Promise<SubmitOutcome>,
     imageIds: readonly DraftAttachmentId[] = [],
+    browserAnnotationIds: readonly DraftAttachmentId[] = [],
   ): void {
     pending.then(
       (outcome) => {
@@ -504,6 +594,11 @@ export class SessionInputShell implements SessionInput {
         if (outcome.kind === 'success' && imageIds.length > 0) {
           const submitted = new Set(imageIds)
           this.imageIds = this.imageIds.filter(id => !submitted.has(id))
+        }
+        if (outcome.kind === 'success' && browserAnnotationIds.length > 0) {
+          const submitted = new Set(browserAnnotationIds)
+          this.browserAnnotationIds = this.browserAnnotationIds.filter(id => !submitted.has(id))
+          for (const id of submitted) this.browserAnnotationComments.delete(id)
         }
         this.run(this.core.dispatch({
           type: 'submit-settled',
@@ -532,7 +627,9 @@ export class SessionInputShell implements SessionInput {
       this.run(this.core.dispatch({ type: 'adjudicated', attempt, outcome: undefined }))
       return
     }
-    inputTriggers.adjudicate(draft.trim(), attempt.signal, { images: this.imageIds.length }).then(
+    inputTriggers.adjudicate(draft.trim(), attempt.signal, {
+      images: this.imageIds.length + this.browserAnnotationIds.length,
+    }).then(
       (outcome: PickOutcome) => {
         if (this.dead(attempt)) return
         this.run(this.core.dispatch({ type: 'adjudicated', attempt, outcome }))
@@ -553,6 +650,16 @@ export class SessionInputShell implements SessionInput {
    * for correction.
    */
   private beginSubmit(attempt: SubmitAttempt, claim: CommandClaim, args: string): void {
+    if (this.browserAnnotationIds.length > 0) {
+      this.run(this.core.dispatch({
+        type: 'submit-settled',
+        attempt,
+        ok: false,
+        message: this.deps.commandAttachments?.unsupportedNotice(claim.token)
+          ?? 'Browser text attachments are only supported for regular messages.',
+      }))
+      return
+    }
     const imageIds = claim.images === true ? [...this.imageIds] : []
     Promise.resolve()
       .then(async () => {
@@ -590,7 +697,14 @@ export class SessionInputShell implements SessionInput {
 
   private compose(): InputState {
     const core = this.core.state
-    return { ...core, imageIds: this.imageIds, queue: this.deps.queue?.getSnapshot() ?? EMPTY_QUEUE }
+    const browserAnnotationComments = Object.fromEntries(this.browserAnnotationComments)
+    return {
+      ...core,
+      imageIds: this.imageIds,
+      ...(this.browserAnnotationIds.length > 0 ? { browserAnnotationIds: this.browserAnnotationIds } : {}),
+      ...(Object.keys(browserAnnotationComments).length > 0 ? { browserAnnotationComments } : {}),
+      queue: this.deps.queue?.getSnapshot() ?? EMPTY_QUEUE,
+    }
   }
 
   private publish(): void {

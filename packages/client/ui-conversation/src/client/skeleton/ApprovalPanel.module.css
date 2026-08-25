@@ -1,5 +1,5 @@
 /* Composer-takeover approval panel (draft approval.png): the same floating
-   capsule footprint as the InputBar card, with an amber header band, the
+   composer footprint as the InputBar card, with an amber header band, the
    justification headline, a muted command line, and right-aligned actions.
    Warn semantics ride the alias state tokens; no hardcoded colors. */
 
@@ -18,7 +18,7 @@
   width: 100%;
   max-width: var(--bh-chat-content-width);
   border: 1px solid var(--dsw-alias-state-warn-secondary);
-  border-radius: 20px;
+  border-radius: var(--dsw-radius-composer);
   background: var(--dsw-specific-input-major);
   box-shadow: var(--dsw-shadow-lv2);
   /* Elevated surface in dark, same as the menus: `.body` inside scrolls once
@@ -87,7 +87,7 @@
    had inside the body: 14px above (the flex gap of 6 plus the row's 8px top
    margin, neither of which reaches it out here) and the body's former 14px
    bottom pad below, so the resting card is unchanged. Buttons are the shared
-   outline/primary capsules (Button atom, matching QuestionComposer's footer);
+   outline/primary controls (Button atom, matching QuestionComposer's footer);
    only the reject's danger hover is local. */
 .actionRow {
   display: flex;

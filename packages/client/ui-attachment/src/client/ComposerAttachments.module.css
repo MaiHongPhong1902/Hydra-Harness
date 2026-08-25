@@ -2,3 +2,97 @@
   min-width: 0;
   padding: 4px 12px 0;
 }
+
+.annotationRail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+  padding: 4px 12px 0;
+}
+
+.annotationCard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-width: min(280px, 100%);
+  max-width: 100%;
+  padding: 7px 8px;
+  border: 1px solid var(--dsw-alias-border-l2-darkmode-thin);
+  border-radius: 12px;
+  background: var(--dsw-alias-interactive-bg-hover);
+  color: var(--dsw-alias-label-primary);
+}
+
+.annotationIcon {
+  display: grid;
+  place-items: center;
+  color: var(--dsw-alias-brand-primary);
+}
+
+.annotationMeta {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.annotationName {
+  overflow: hidden;
+  color: var(--dsw-alias-label-primary);
+  font-size: 12px;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.annotationComment {
+  min-width: 0;
+  width: 100%;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--dsw-alias-label-secondary);
+  font: inherit;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.annotationComment::placeholder {
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.annotationComment:focus-visible {
+  outline: 2px solid var(--dsw-alias-focus-ring);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+.annotationRemove {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--dsw-alias-label-secondary);
+  cursor: pointer;
+}
+
+.annotationRemove:hover:not(:disabled) {
+  background: var(--dsw-alias-interactive-bg-hover-solid);
+  color: var(--dsw-alias-label-primary);
+}
+
+.annotationRemove:focus-visible {
+  outline: 2px solid var(--dsw-alias-focus-ring);
+  outline-offset: 1px;
+}
+
+.annotationRemove:disabled {
+  cursor: default;
+  opacity: 0.5;
+}

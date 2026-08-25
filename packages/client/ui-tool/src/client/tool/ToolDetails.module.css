@@ -19,7 +19,8 @@
 .code {
   margin: 0;
   padding: 16px;
-  border-radius: 12px;
+  border: 1px solid var(--dsw-alias-border-l1);
+  border-radius: var(--dsw-radius-panel);
   background: var(--dsw-alias-markdown-code-block);
   font-family: var(--ds-font-family-code);
   font-size: 13px;

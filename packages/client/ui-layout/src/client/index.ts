@@ -98,14 +98,16 @@ export interface SidebarOwnerProps {
   width: number
 }
 
-/** Conversation owner share: business state and actions belong to the registrant. */
-export interface ConvOwnerProps {}
+/** Conversation owner share: secondary occurrences suppress global navigation chrome. */
+export interface ConvOwnerProps {
+  secondary?: boolean | undefined
+}
 
 /** Details owner share: empty — sessionId arrives as a framework-standard prop. */
 export interface DetailsOwnerProps {}
 
 /** Required services (cordis fiber inject — the loader passes all module exports as an object plugin). */
-export const inject = ['slots', 'theme']
+export const inject = ['slots', 'theme', 'sessions', 'workspaces']
 
 /**
  * Client plugin body: provide ctx.layout, then one register() call — AppFrame
@@ -132,7 +134,23 @@ export function apply(ctx: ClientContext): void {
       // conversation business actions belong to their registrants.
       inject: (actions: PanelActions) => {
         layout.attachPanels(actions)
-        return {}
+        return {
+          createSideSession: async () => {
+            const sessions = ctx.sessions.list.getSnapshot()
+            const workspaces = ctx.workspaces.list.getSnapshot()
+            const current = sessions.current === undefined ? undefined : sessions.byId[sessions.current]
+            const currentWorkspace = current === undefined
+              ? undefined
+              : workspaces.items.find(item => item.sessionIds.includes(current.id))
+            if (currentWorkspace !== undefined) {
+              return await ctx.sessions.create({ workspaceId: currentWorkspace.workspaceId })
+            }
+            if (current?.cwd !== undefined) return await ctx.sessions.create({ cwd: current.cwd })
+            const recent = workspaces.items.find(item => item.workspaceId === workspaces.recentWorkspaceId)
+            if (recent !== undefined) return await ctx.sessions.create({ workspaceId: recent.workspaceId })
+            throw new Error('Open a workspace before creating a side chat.')
+          },
+        }
       },
     }, AppFrame)
     return () => {

@@ -30,9 +30,12 @@ interface ConversationAttachmentFace {
     imageIds: readonly DraftAttachmentId[],
     mode: InputSubmitMode,
     signal?: AbortSignal,
+    browserAnnotationIds?: readonly DraftAttachmentId[],
   ): Promise<SubmitOutcome>
   serializeDraftImages(imageIds: readonly DraftAttachmentId[]): Promise<readonly SubmitImageAttachment[]>
   releaseDraftImage(id: DraftAttachmentId): void
+  releaseDraftBrowserAnnotation(id: DraftAttachmentId): void
+  updateDraftBrowserAnnotationComment(id: DraftAttachmentId, comment: string): void
 }
 
 /** Session-addressed input facade registry (SessionInputResolver face + composer-layer extras). */
@@ -77,7 +80,8 @@ export class InputHub implements SessionInputResolver {
       inputTriggers: () => this.controller(actx),
       popup: () => this.popup(actx),
       queue: queueReadFaceOf(session),
-      defaultSink: (text, imageIds, mode, signal) => this.sink(session, text, imageIds, mode, signal),
+      defaultSink: (text, imageIds, mode, signal, browserAnnotationIds) =>
+        this.sink(session, text, imageIds, mode, signal, browserAnnotationIds),
       steerQueue: () => { void this.steerQueue(session, shell) },
       commandImages: {
         serialize: ids => this.conversation().serializeDraftImages(ids),
@@ -92,6 +96,17 @@ export class InputHub implements SessionInputResolver {
         unsupportedNotice: token => this.t('command.imagesUnsupported', {
           command: token.trim().replace(/^\//u, ''),
         }),
+      },
+      commandAttachments: {
+        unsupportedNotice: token => `${this.t('command.imagesUnsupported', {
+          command: token.trim().replace(/^\//u, ''),
+        })} Browser text attachments require a regular message.`,
+      },
+      browserAnnotations: {
+        updateComment: (id, comment) => {
+          const conversation = this.rootCtx.get('conversation') as ConversationAttachmentFace | undefined
+          conversation?.updateDraftBrowserAnnotationComment(id, comment)
+        },
       },
     })
     this.shells.set(id, shell)
@@ -111,10 +126,12 @@ export class InputHub implements SessionInputResolver {
       return () => {
         for (const off of offs) off()
         const drafts = shell.snapshot.imageIds
+        const annotations = shell.snapshot.browserAnnotationIds ?? []
         shell.dispose()
         this.shells.delete(id)
         const conversation = this.rootCtx.get('conversation') as ConversationAttachmentFace | undefined
         for (const imageId of drafts) conversation?.releaseDraftImage(imageId)
+        for (const id of annotations) conversation?.releaseDraftBrowserAnnotation(id)
       }
     }, 'conversation.input: session shell')
     return shell
@@ -168,9 +185,14 @@ export class InputHub implements SessionInputResolver {
     imageIds: readonly DraftAttachmentId[],
     mode: InputSubmitMode,
     signal: AbortSignal,
+    browserAnnotationIds: readonly DraftAttachmentId[] = [],
   ): Promise<SubmitOutcome> {
-    if (text === '' && imageIds.length === 0) return Promise.resolve({ kind: 'success' })
-    return this.conversation().sendSession(session, text, imageIds, mode, signal)
+    if (text === '' && imageIds.length === 0 && browserAnnotationIds.length === 0) {
+      return Promise.resolve({ kind: 'success' })
+    }
+    return browserAnnotationIds.length === 0
+      ? this.conversation().sendSession(session, text, imageIds, mode, signal)
+      : this.conversation().sendSession(session, text, imageIds, mode, signal, browserAnnotationIds)
   }
 
   /**

@@ -55,6 +55,7 @@ function makeHost(bodies: { root: (rp: (key: string, owner: object) => React.Rea
     sessions: {
       list: observable<unknown>({ ids: [] }),
       provideInfo: provide,
+      provideInfoOf: id => infos.get(id),
     },
     workspaces: { list: observable<unknown>({ items: [] }) },
   }
@@ -162,6 +163,36 @@ describe('SessionProvider', () => {
     act(() => { h.current.set('s2') })
     expect(seen.at(-1)!['read']).toBe('s2')
     expect(seen.at(-1)!['sessionId']).toBe('s2')
+  })
+
+  it('binds an explicit session without following the global current session', () => {
+    const seen: Record<string, unknown>[] = []
+    const h = makeHost({
+      root: renderSlot => (
+        <SessionProvider sessionId="s2">
+          {id => <><span data-testid="target">{id}</span>{renderSlot('k.session', {})}</>}
+        </SessionProvider>
+      ),
+    })
+    h.addSession('s1')
+    h.addSession('s2')
+    h.addSession('s3')
+    h.current.set('s1')
+    h.registerSession({
+      component: (props: { useSession?: <S>(sel: (s: { sid: string }) => S) => S; sessionId?: string }) => {
+        seen.push({ sessionId: props.sessionId, read: props.useSession!(s => s.sid) })
+        return null
+      },
+      options: {},
+    })
+
+    const view = render(<>{createSlotRenderer().renderRoot(h.host, {})}</>)
+    expect(view.getByTestId('target').textContent).toBe('s2')
+    expect(seen.at(-1)).toEqual({ sessionId: 's2', read: 's2' })
+
+    act(() => { h.current.set('s3') })
+    expect(view.getByTestId('target').textContent).toBe('s2')
+    expect(seen.at(-1)).toEqual({ sessionId: 's2', read: 's2' })
   })
 
   it('republishes a mounted session entry when its provide bundle changes under the same id', () => {

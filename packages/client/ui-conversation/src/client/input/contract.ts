@@ -39,6 +39,14 @@ export interface SessionInput extends InputTarget {
   removeImage(id: DraftAttachmentId): void
   /** Drop ids whose browser-owned objects no longer exist. */
   pruneImages(ids: readonly DraftAttachmentId[]): void
+  /** Append browser-selected text attachments without changing the draft. */
+  addBrowserAnnotations?(ids: readonly DraftAttachmentId[]): boolean
+  /** Remove one browser-selected text attachment; busy phases refuse. */
+  removeBrowserAnnotation?(id: DraftAttachmentId): void
+  /** Drop browser-selected text ids whose objects no longer exist. */
+  pruneBrowserAnnotations?(ids: readonly DraftAttachmentId[]): void
+  /** Update the optional user comment carried by one browser annotation. */
+  updateBrowserAnnotationComment?(id: DraftAttachmentId, comment: string): void
   /**
    * THE complexity sink: enter adjudication, submit transaction, and the default sink live inside.
    * @param mode - delivery intent retained through asynchronous adjudication and serialization.
@@ -79,6 +87,14 @@ export interface InputActions {
   removeImage(id: DraftAttachmentId): void
   /** Drop ids whose browser-owned objects no longer exist. */
   pruneImages(ids: readonly DraftAttachmentId[]): void
+  /** Append browser-selected text attachments without changing the draft. */
+  addBrowserAnnotations?(ids: readonly DraftAttachmentId[]): boolean
+  /** Remove one browser-selected text attachment. */
+  removeBrowserAnnotation?(id: DraftAttachmentId): void
+  /** Drop browser-selected text ids whose objects no longer exist. */
+  pruneBrowserAnnotations?(ids: readonly DraftAttachmentId[]): void
+  /** Update the optional user comment carried by one browser annotation. */
+  updateBrowserAnnotationComment?(id: DraftAttachmentId, comment: string): void
   /** Enter submission (adjudication / claim transaction / default sink inside). */
   submit(): void
 }
@@ -214,6 +230,10 @@ export interface InputState {
   readonly draft: string
   /** Ordered runtime-only image ids; bytes and URLs stay in ConversationController. */
   readonly imageIds: readonly DraftAttachmentId[]
+  /** Ordered runtime-only browser text-file ids; bytes stay in ConversationController. */
+  readonly browserAnnotationIds?: readonly DraftAttachmentId[]
+  /** Runtime-only comments keyed by browser annotation id. */
+  readonly browserAnnotationComments?: Readonly<Record<string, string>>
   /** Monotonic draft revision (span CAS compares against this). */
   readonly draftRev: number
   readonly phase: 'plain' | 'adjudicating' | 'claimed' | 'submitting'

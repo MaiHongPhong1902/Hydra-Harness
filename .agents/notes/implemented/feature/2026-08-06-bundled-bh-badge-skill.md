@@ -8,7 +8,7 @@ The [Cordis tutorial](../../../../docs/cordis-tutorial/index.md) uses an officia
 
 ## Decision
 
-`@bosch/bh-skill-badge` is a native Cordis plugin that registers one immutable bundled provider on `ctx.skills`. The provider owns the `bh-badge` summary, instruction body, and PNG resource base; `bh-tool-skill` remains the sole owner of model-facing catalog and loader rendering.
+`@bosch/bh-skill-badge` is a native Cordis plugin that registers one immutable bundled provider on `ctx.skills`. The provider owns the `bh-badge` summary, instruction body, and PNG resource base; `bh-tool-skill` remains the sole owner of bounded model-facing search and exact loader rendering.
 
 The shipped CLI composition declares `skill-badge` as disabled. Enabling that existing row is the explicit opt-in; disabled installations advertise no badge skill and gain no model-visible content.
 
@@ -20,4 +20,4 @@ The provider uses the bundled rank after project, custom, and user filesystem so
 
 ## Consequences
 
-The badge instructions and source PNG are versioned with BH and resolve through a packaged directory resource base. The provider has no configuration surface. Package tests pin provider lifecycle and the official PNG bytes, while a keyless assembled-application snapshot pins the enabled catalog and loaded skill body.
+The badge instructions and source PNG are versioned with BH and resolve through a packaged directory resource base. The provider has no configuration surface. Package tests pin provider lifecycle and the official PNG bytes, while a keyless assembled-application snapshot pins enabled search and exact loading.

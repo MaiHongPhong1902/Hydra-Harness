@@ -78,8 +78,8 @@
 # The skill REGISTRY lives in the host composition and is layered per scope:
 # these rows register into THIS preset's layer of it, so they need no realm.
 # `skill-filesystem` contributes local-root discovery for agents on this preset, and
-# `tool-skill` gives them the catalog and loader; the merged catalog also
-# carries whatever the deployment registered globally (repository plugins).
+# `tool-skill` gives them bounded search and exact loading; the merged registry
+# also carries whatever the deployment registered globally (repository plugins).
 - id: skill-filesystem
   name: '@bosch/bh-skill-filesystem'
 
@@ -250,3 +250,10 @@
   config:
     fetch: false
     searchTimeoutMs: 60000
+
+# The browser seam stays in the host composition; only the model-facing tools
+# are per-session, so a window is opened and closed with the agent that owns it.
+- id: tool-browser
+  name: '@bosch/bh-tool-browser'
+  config:
+    maxStateChars: 16000

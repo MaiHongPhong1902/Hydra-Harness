@@ -3,7 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render } from '@testing-library/react'
 import type {
-  ComposerAttachment, ComposerAttachmentsOwnerProps, ComposerAttachmentsProps,
+  BrowserAnnotationAttachment, ComposerAttachment, ComposerAttachmentsOwnerProps, ComposerAttachmentsProps,
 } from '@bosch/bh-client-ui-conversation/client'
 import { ComposerAttachments } from '../src/client/ComposerAttachments.tsx'
 
@@ -26,6 +26,9 @@ const t = ((key: string, params?: Readonly<Record<string, unknown>>): string => 
     'image.original': '原图',
     'image.preview': '原图预览',
     'image.closePreview': '关闭原图预览',
+    'browserAnnotation.pending': '待发送网页标注',
+    'browserAnnotation.comment': '添加评论',
+    'browserAnnotation.remove': '移除网页标注 {name}',
     'image.openOriginal': '查看原图',
     'image.scrollLeft': '向左滚动图片',
     'image.scrollRight': '向右滚动图片',
@@ -40,6 +43,10 @@ const t = ((key: string, params?: Readonly<Record<string, unknown>>): string => 
     const count = params?.count
     const size = params?.size
     return `最多 ${typeof count === 'number' ? String(count) : ''} 张，每张 ${typeof size === 'string' ? size : ''}`
+  }
+  if (key === 'browserAnnotation.remove') {
+    const name = params?.name
+    return `移除网页标注 ${typeof name === 'string' ? name : ''}`
   }
   return messages[key] ?? key
 }) as ComposerAttachmentsProps['t']
@@ -62,6 +69,15 @@ function props(overrides: Partial<ComposerAttachmentsOwnerProps> = {}): Composer
     t,
     ...overrides,
   } as unknown as ComposerAttachmentsProps
+}
+
+function annotation(id: string, name = 'browser-annotation.html.txt', comment = ''): BrowserAnnotationAttachment {
+  return {
+    kind: 'browser-annotation',
+    id: id as BrowserAnnotationAttachment['id'],
+    file: new File(['<button>Continue</button>'], name, { type: 'text/plain' }),
+    comment,
+  }
 }
 
 describe('ComposerAttachments', () => {
@@ -156,5 +172,24 @@ describe('ComposerAttachments', () => {
     expect(view.getByAltText('待发送图片')).toBeTruthy()
     fireEvent.click(view.getByTitle('查看原图'))
     expect(view.getByAltText('原图')).toBeTruthy()
+  })
+
+  it('renders browser annotations as text-file cards with per-file comments', () => {
+    const item = annotation('annotation-1')
+    const onComment = vi.fn()
+    const onRemove = vi.fn()
+    const view = render(<ComposerAttachments {...props({
+      browserAnnotations: [item],
+      onUpdateBrowserAnnotationComment: onComment,
+      onRemoveBrowserAnnotation: onRemove,
+    })} />)
+
+    expect(view.getByRole('group', { name: '待发送网页标注' })).toBeTruthy()
+    const comment = view.getByRole('textbox', { name: '添加评论: browser-annotation.html.txt' })
+    expect(comment.getAttribute('placeholder')).toBe('添加评论')
+    fireEvent.change(comment, { target: { value: 'click this button' } })
+    expect(onComment).toHaveBeenCalledWith(item.id, 'click this button')
+    fireEvent.click(view.getByRole('button', { name: '移除网页标注 browser-annotation.html.txt' }))
+    expect(onRemove).toHaveBeenCalledWith(item.id)
   })
 })

@@ -445,6 +445,21 @@ describe('ChatView', () => {
       ])
   })
 
+  it('groups adjacent tool nodes behind one activity collapse', () => {
+    const h = makeHarness({
+      nodes: [toolResult(3, 'read-1', 'read'), toolResult(4, 'bash-1', 'bash')],
+    })
+    const view = render(<h.ChatView {...h.props} />)
+    const group = view.container.querySelector('[data-chat-activity-group="read-commands"]')
+    expect(group).not.toBeNull()
+    const toggle = view.getByRole('button', { name: '读取文件并运行命令' })
+    expect(toggle.getAttribute('aria-expanded')).toBe('true')
+    expect(view.getByTestId('tool-seat-read-1')).toBeTruthy()
+    fireEvent.click(toggle)
+    expect(toggle.getAttribute('aria-expanded')).toBe('false')
+    expect(group?.querySelector('[data-activity-children]')?.hasAttribute('data-collapsed')).toBe(true)
+  })
+
   it('renders Host-pending steering at the flow tail and hands off to the durable node', () => {
     const writeText = vi.fn().mockResolvedValue(undefined)
     Object.defineProperty(navigator, 'clipboard', {
@@ -626,6 +641,33 @@ describe('ChatView', () => {
     const branchButtons = view.getAllByRole('button', { name: '在新对话中分支' })
     expect(branchButtons).toHaveLength(2)
     expect(branchButtons.map(button => button.getAttribute('aria-disabled'))).toEqual([null, null])
+  })
+
+  it('assistant footer copy writes the complete Markdown output', () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    })
+    const markdown = [
+      '## Import Applications',
+      '',
+      '| ID | Steps |',
+      '| --- | --- |',
+      '| TC_001 | 1. Open page<br>2. Import file |',
+      '',
+      'Historical UAT status: Passed.',
+    ].join('\n')
+    const h = makeHarness({
+      nodes: [user(1, 'show tests'), assistant(2, markdown)],
+      turnEnds: new Map([[1, 2]]),
+    })
+    const view = render(<h.ChatView {...h.props} />)
+    const footer = view.container.querySelector('[data-turn-tail="1"]') as HTMLElement
+
+    fireEvent.click(within(footer).getByRole('button', { name: '复制' }))
+    expect(writeText).toHaveBeenCalledOnce()
+    expect(writeText).toHaveBeenCalledWith(markdown)
   })
 
   it('withholds assistant IconActions while the turn is still running', () => {

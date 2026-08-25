@@ -8,7 +8,7 @@ const tsconfigPath = fileURLToPath(new URL('../../../tsconfig.json', import.meta
 const badgeAssetsPath = fileURLToPath(new URL('../../../packages/skill/skill-badge/assets/', import.meta.url))
 
 describe('bh badge assembled snapshot', () => {
-  it('advertises and loads the opt-in bundled skill through the shipped app', async () => {
+  it('searches and loads the opt-in bundled skill through the shipped app', async () => {
     const disabled = await runLoaderSmoke({
       label: 'disabled bh badge skill snapshot',
       tempDirPrefix: 'headless-snapshot-bh-badge-disabled-',
@@ -16,6 +16,7 @@ describe('bh badge assembled snapshot', () => {
       libBinScript: binScript,
       configPath: defaultConfigPath,
       tsconfigPath,
+      processTimeoutMs: 75_000,
     })
     const enabled = await runLoaderSmoke({
       label: 'bh badge skill snapshot',
@@ -24,17 +25,17 @@ describe('bh badge assembled snapshot', () => {
       libBinScript: binScript,
       configPath,
       tsconfigPath,
+      processTimeoutMs: 75_000,
     })
     const disabledSnapshot = JSON.parse(disabled.stdout) as unknown
     const enabledSnapshot = JSON.parse(
-      enabled.stdout.replaceAll(badgeAssetsPath, '{{badgeAssetsPath}}'),
+      enabled.stdout.replaceAll(JSON.stringify(badgeAssetsPath).slice(1, -1), '{{badgeAssetsPath}}'),
     ) as unknown
 
     expect(disabled.stderr).toBe('')
     expect(enabled.stderr).toBe('')
     expect(disabledSnapshot).toMatchInlineSnapshot(`
       {
-        "catalog": null,
         "result": {
           "content": [
             {
@@ -47,26 +48,28 @@ describe('bh badge assembled snapshot', () => {
           },
           "isError": true,
         },
+        "search": {
+          "content": [
+            {
+              "text": "<skill_candidates complete="true" truncated="false">
+      (none)
+      </skill_candidates>
+      Choose zero or one candidate. Call \`skill\` only for the best match; load another only when the task clearly requires an independent skill.",
+              "type": "text",
+            },
+          ],
+          "isError": false,
+          "value": {
+            "complete": true,
+            "matches": [],
+            "truncated": false,
+          },
+        },
         "summary": null,
       }
     `)
     expect(enabledSnapshot).toMatchInlineSnapshot(`
       {
-        "catalog": [
-          {
-            "text": "<system-reminder>
-      A skill is a reusable set of task-specific instructions. The following skills are available in this session:
-
-      <available_skills>
-      - \`bh-badge\`: Add the official “powered by bh” badge to documents, pull requests, merge requests, and other content produced with Bosch Harness. Use whenever creating a pull request or merge request. Also use when the user asks for a bh badge, powered-by-bh attribution, or a reusable bh badge asset or snippet.
-      </available_skills>
-
-      If the user names a skill, or the task clearly matches a skill's description, call the \`skill\` tool with the exact skill name before taking task actions. Load all applicable skills, then follow their full instructions. This catalog contains summaries only; do not infer or follow a skill's instructions until it has been loaded.
-      A user may also invoke a skill directly; its <skill_content> block then appears in this conversation. Follow it, and do not call the \`skill\` tool again for that skill.
-      </system-reminder>",
-            "type": "text",
-          },
-        ],
         "result": {
           "content": [
             {
@@ -156,6 +159,28 @@ describe('bh badge assembled snapshot', () => {
             },
           },
         },
+        "search": {
+          "content": [
+            {
+              "text": "<skill_candidates complete="true" truncated="false">
+      - \`bh-badge\`: Add the official “powered by bh” badge to documents, pull requests, merge requests, and other content produced with Bosch Harness. Use whenever creating a pull request or merge request. Also use when the user asks for a bh badge, powered-by-bh attribution, or a reusable bh badge asset or snippet.
+      </skill_candidates>
+      Choose zero or one candidate. Call \`skill\` only for the best match; load another only when the task clearly requires an independent skill.",
+              "type": "text",
+            },
+          ],
+          "isError": false,
+          "value": {
+            "complete": true,
+            "matches": [
+              {
+                "description": "Add the official “powered by bh” badge to documents, pull requests, merge requests, and other content produced with Bosch Harness. Use whenever creating a pull request or merge request. Also use when the user asks for a bh badge, powered-by-bh attribution, or a reusable bh badge asset or snippet.",
+                "name": "bh-badge",
+              },
+            ],
+            "truncated": false,
+          },
+        },
         "summary": {
           "description": "Add the official “powered by bh” badge to documents, pull requests, merge requests, and other content produced with Bosch Harness. Use whenever creating a pull request or merge request. Also use when the user asks for a bh badge, powered-by-bh attribution, or a reusable bh badge asset or snippet.",
           "invocation": {
@@ -172,5 +197,5 @@ describe('bh badge assembled snapshot', () => {
         },
       }
     `)
-  }, LOADER_SMOKE_TEST_TIMEOUT_MS * 2)
+  }, LOADER_SMOKE_TEST_TIMEOUT_MS * 4)
 })

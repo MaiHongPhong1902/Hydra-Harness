@@ -58,6 +58,7 @@
     "@bosch/bh-token-meter": "workspace:^",
     "@bosch/bh-tool-ask-user": "workspace:^",
     "@bosch/bh-tool-bash": "workspace:^",
+    "@bosch/bh-tool-browser": "workspace:^",
     "@bosch/bh-tool-bash-persistent": "workspace:^",
     "@bosch/bh-tool-pwsh-persistent": "workspace:^",
     "@bosch/bh-tool-cordis": "workspace:^",
@@ -82,6 +83,9 @@
     "@bosch/cordis": "workspace:^",
     "js-yaml": "^4.2.0",
     "node-addon-require-builtin": "^0.1.4"
+  },
+  "optionalDependencies": {
+    "electron": "^43.4.1"
   },
   "devDependencies": {
     "@bosch/bh-agent": "workspace:^",

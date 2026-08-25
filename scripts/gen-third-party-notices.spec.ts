@@ -231,10 +231,10 @@ describe('collectPythonDependencies', () => {
   it('excludes normalized local project names without exempting a third-party prefix', () => {
     const pyprojects = [
       '[project]\nname = "bosch-harness-runtime-bin"\ndependencies = ["pydantic"]\n',
-      '[project]\nname = "bosch-harness-sdk"\ndependencies = ["DeepSeek.Harness_Runtime-Bin", "deepseek-unrelated"]\n',
+      '[project]\nname = "bosch-harness-sdk"\ndependencies = ["Bosch.Harness_Runtime-Bin", "bosch-unrelated"]\n',
     ]
     expect(() => collectPythonDependencies(pyprojects)).toThrow(
-      'python dependency deepseek-unrelated is missing from PYTHON_METADATA',
+      'python dependency bosch-unrelated is missing from PYTHON_METADATA',
     )
   })
 })

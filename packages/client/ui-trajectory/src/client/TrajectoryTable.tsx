@@ -5,6 +5,9 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import {
   IconChevronRightOutline14,
+  IconCloseOutline16,
+  IconFullscreenOutline16,
+  IconPanelLeftOutline16,
   IconSettingsOutline16,
   IconSparkle16,
   IconUserOutline16,
@@ -34,6 +37,8 @@ const HISTORY_LOAD_ROW_HEIGHT_PX = 30
 const VIRTUALIZATION_THRESHOLD = 100
 const VIRTUAL_OVERSCAN_ROWS = 12
 const VIRTUAL_INITIAL_VIEWPORT_HEIGHT_PX = 600
+
+type DetailsPlacement = 'right' | 'bottom' | 'expanded'
 
 const KIND_LABEL: Record<TrajectoryCellKind, string> = {
   system: 'SYSTEM',
@@ -1717,6 +1722,7 @@ export function TrajectoryTable({
   const [selectedRequest, setSelectedRequest] = useState<SelectedRequest | null>(null)
   const [activeTab, setActiveTab] = useState<DetailTab>('overview')
   const [thinkingExpanded, setThinkingExpanded] = useState(false)
+  const [detailsPlacement, setDetailsPlacement] = useState<DetailsPlacement>('right')
   const [detailsWidth, setDetailsWidth] = useState<number | null>(null)
   const [toolRequestOffset, setToolRequestOffset] = useState<number | null>(null)
   const detailsResizeDrag = useRef<DetailsResizeDrag | null>(null)
@@ -2193,7 +2199,12 @@ export function TrajectoryTable({
   const historyRowOffset = hasOlderRecords ? 1 : 0
 
   return (
-    <div ref={rootRef} className={css.split} style={splitStyle}>
+    <div
+      ref={rootRef}
+      className={css.split}
+      data-details-placement={detailsPlacement}
+      style={splitStyle}
+    >
       <div
         ref={tablePaneRef}
         className={css.tablePane}
@@ -2533,7 +2544,9 @@ export function TrajectoryTable({
         <aside
           className={css.details}
           aria-label="Event details"
-          style={detailsWidth === null ? undefined : { width: detailsWidth }}
+          style={detailsPlacement === 'right' && detailsWidth !== null
+            ? { width: detailsWidth }
+            : undefined}
         >
           <div
             className={css.detailsResizeHandle}
@@ -2660,14 +2673,48 @@ export function TrajectoryTable({
                     </>
                   )}
             </div>
-            <button
-              type="button"
-              className={css.close}
-              aria-label="Close details"
-              onClick={clearInspectorSelection}
-            >
-              <span aria-hidden="true">×</span>
-            </button>
+            <div className={css.detailsActions}>
+              <div className={css.layoutControls} role="group" aria-label="Event details layout">
+                <button
+                  type="button"
+                  className={css.layoutButton}
+                  aria-label="Expand event details"
+                  aria-pressed={detailsPlacement === 'expanded'}
+                  data-active={detailsPlacement === 'expanded' || undefined}
+                  onClick={() => { setDetailsPlacement('expanded') }}
+                >
+                  <IconFullscreenOutline16 />
+                </button>
+                <button
+                  type="button"
+                  className={css.layoutButton}
+                  aria-label="Dock event details at bottom"
+                  aria-pressed={detailsPlacement === 'bottom'}
+                  data-active={detailsPlacement === 'bottom' || undefined}
+                  onClick={() => { setDetailsPlacement('bottom') }}
+                >
+                  <IconPanelLeftOutline16 className={css.bottomPanelIcon} />
+                </button>
+                <button
+                  type="button"
+                  className={css.layoutButton}
+                  aria-label="Dock event details at right"
+                  aria-pressed={detailsPlacement === 'right'}
+                  data-active={detailsPlacement === 'right' || undefined}
+                  onClick={() => { setDetailsPlacement('right') }}
+                >
+                  <IconPanelLeftOutline16 className={css.rightPanelIcon} />
+                </button>
+              </div>
+              <button
+                type="button"
+                className={css.close}
+                aria-label="Close details"
+                onClick={clearInspectorSelection}
+              >
+                <IconCloseOutline16 size={14} />
+              </button>
+            </div>
           </div>
           <div className={css.detailTabs} role="tablist" aria-label="Event details">
             {selectedTabs.map(tab => (

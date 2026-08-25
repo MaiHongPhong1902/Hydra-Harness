@@ -1,5 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mkdtempSync, rmSync } from 'node:fs'
+import { createServer } from 'node:http'
+import type { Server } from 'node:http'
+import { connect as connectSocket } from 'node:net'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Context } from '@bosch/cordis'
@@ -23,6 +26,32 @@ import { assemble } from './assemble.ts'
 import { closeMockServers, mockServer, textEvents } from './mock-server.ts'
 import type { Behavior } from './mock-server.ts'
 
+const proxyServers: Server[] = []
+
+async function forwardingProxy(): Promise<{ url: string; requests: string[] }> {
+  const requests: string[] = []
+  const server = createServer((_request, response) => {
+    response.writeHead(501).end()
+  })
+  server.on('connect', (request, socket, head) => {
+    const target = new URL(`http://${request.url ?? ''}`)
+    requests.push(request.url ?? '')
+    const upstream = connectSocket(Number(target.port || '80'), target.hostname, () => {
+      socket.write('HTTP/1.1 200 Connection Established\r\n\r\n')
+      if (head.length > 0) upstream.write(head)
+      socket.pipe(upstream)
+      upstream.pipe(socket)
+    })
+    upstream.on('error', () => { socket.destroy() })
+    socket.on('error', () => { upstream.destroy() })
+  })
+  proxyServers.push(server)
+  await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve))
+  const address = server.address()
+  if (address === null || typeof address === 'string') throw new Error('no proxy port')
+  return { url: `http://127.0.0.1:${address.port}`, requests }
+}
+
 const TEST_USER_ID = '00000000-0000-4000-8000-000000000001' as AnonymousUserId
 let testHome: string
 
@@ -33,6 +62,7 @@ beforeEach(() => {
 
 afterEach(async () => {
   await closeMockServers()
+  await Promise.all(proxyServers.splice(0).map(server => new Promise<void>(resolve => server.close(() => resolve()))))
   vi.unstubAllEnvs()
   vi.useRealTimers()
   rmSync(testHome, { recursive: true, force: true })
@@ -106,6 +136,27 @@ describe('DeepSeekAdapter against a mock server', () => {
     expect(server.headers[0]).not.toHaveProperty('x-openrouter-title')
     expect(server.headers[0]).not.toHaveProperty('x-openrouter-categories')
     expect(server.headers[0]).not.toHaveProperty('x-bosch-harness-compact')
+  })
+
+  it('routes official DeepSeek traffic through its configured proxy', async () => {
+    const server = await mockServer([{ kind: 'sse', events: textEvents }])
+    const proxy = await forwardingProxy()
+    const adapter = adapterOf({ baseURL: server.url, proxy: proxy.url })
+
+    await drain(adapter.stream({
+      provider: 'deepseek-official',
+      model: 'deepseek-v4-flash',
+      messages: [],
+    }))
+
+    expect(proxy.requests).toEqual([new URL(server.url).host])
+    expect(server.requests).toHaveLength(1)
+  })
+
+  it('normalizes HTTP proxy configuration and rejects unsupported schemes', () => {
+    expect(resolveAdapterOptions({ proxy: ' http://127.0.0.1:3128 ' }).proxy).toBe('http://127.0.0.1:3128')
+    expect(resolveAdapterOptions({ proxy: '   ' }).proxy).toBeUndefined()
+    expect(() => resolveAdapterOptions({ proxy: 'socks5://127.0.0.1:1080' })).toThrow('must use http or https')
   })
 
   it('sends a durable image as a base64 data URL for the vision model', async () => {

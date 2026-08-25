@@ -589,7 +589,7 @@ export class SessionRuntime implements ISessions {
    * no staging, no window side effects (StrictMode double-invokes and
    * concurrent discarded passes must stay free).
    */
-  private provideInfo(id: string): SessionProvideInfo | undefined {
+  provideInfo(id: string): SessionProvideInfo | undefined {
     return this.resolve(id as SessionId)?.provideInfo
   }
 

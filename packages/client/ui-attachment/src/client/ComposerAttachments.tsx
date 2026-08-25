@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type {
   ComposerAttachment, ComposerAttachmentsProps,
 } from '@bosch/bh-client-ui-conversation/client'
+import { IconCloseOutline16, IconPaperclipOutline16 } from '@bosch/bh-client-ui-primitives'
 import { AttachmentRail } from '../AttachmentRail.tsx'
 import type { AttachmentRailItem } from '../AttachmentRail.tsx'
 import { DropOverlay } from '../DropOverlay.tsx'
@@ -16,7 +17,8 @@ interface ComposerRailItem extends AttachmentRailItem {
 
 /** Draft-image rail, document drop target, and original-image preview slot entry. */
 export function ComposerAttachments({
-  attachments, canAcceptDrop, onAddImages, onRemoveImage, dropLimits, t,
+  attachments, browserAnnotations = [], canAcceptDrop, onAddImages, onRemoveImage,
+  onRemoveBrowserAnnotation, onUpdateBrowserAnnotationComment, dropLimits, t,
 }: ComposerAttachmentsProps) {
   const [preview, setPreview] = useState<ComposerAttachment | null>(null)
   const [dragActive, setDragActive] = useState(false)
@@ -93,6 +95,43 @@ export function ComposerAttachments({
           disabled={!canAcceptDrop}
           labels={dropOverlayLabels(t, canAcceptDrop, dropLimits)}
         />
+      )}
+      {browserAnnotations.length > 0 && (
+        <div className={css.annotationRail} role="group" aria-label={t('browserAnnotation.pending')}>
+          {browserAnnotations.map((annotation) => {
+            const name = annotation.file.name || t('browserAnnotation.pending')
+            return (
+              <div key={annotation.id} className={css.annotationCard}>
+                <span className={css.annotationIcon} aria-hidden="true">
+                  <IconPaperclipOutline16 size={16} />
+                </span>
+                <div className={css.annotationMeta}>
+                  <span className={css.annotationName} title={name}>{name}</span>
+                  <input
+                    className={css.annotationComment}
+                    type="text"
+                    value={annotation.comment}
+                    placeholder={t('browserAnnotation.comment')}
+                    aria-label={`${t('browserAnnotation.comment')}: ${name}`}
+                    readOnly={onUpdateBrowserAnnotationComment === undefined}
+                    onChange={(event) => {
+                      onUpdateBrowserAnnotationComment?.(annotation.id, event.target.value)
+                    }}
+                  />
+                </div>
+                <button
+                  type="button"
+                  className={css.annotationRemove}
+                  aria-label={t('browserAnnotation.remove', { name })}
+                  disabled={onRemoveBrowserAnnotation === undefined}
+                  onClick={() => { onRemoveBrowserAnnotation?.(annotation.id) }}
+                >
+                  <IconCloseOutline16 size={14} />
+                </button>
+              </div>
+            )
+          })}
+        </div>
       )}
       {railItems.length > 0 && (
         <div className={css.rail}>

@@ -45,6 +45,8 @@
     "@bosch/bh-agent-default-model": "workspace:^",
     "@bosch/bh-agent-loop": "workspace:^",
     "@bosch/bh-attachment-local": "workspace:^",
+    "@bosch/bh-browser-electron": "workspace:^",
+    "@bosch/bh-obsidian-website-knowledge": "workspace:^",
     "@bosch/bh-shell-env": "workspace:^",
     "@bosch/bh-bash-sandbox": "workspace:^",
     "@bosch/bh-command-compact": "workspace:^",

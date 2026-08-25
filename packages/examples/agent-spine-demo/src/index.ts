@@ -54,7 +54,7 @@ export interface SkillConfig {
   registry?: SkillRegistryConfig
   /** Local filesystem skill provider settings. */
   filesystem?: SkillFileSystem.Config
-  /** Model-facing skill catalog and tool settings. */
+  /** Model-facing bounded search and exact loader settings. */
   tool?: toolSkill.Config
 }
 
@@ -254,8 +254,8 @@ export function apply(ctx: Context, config: Config): void {
   if (config.workspaceContext !== false) {
     ctx.plugin(workspaceContext, config.workspaceContext)
   }
-  // Both plugins prepend session-prefix messages. Registration order is the
-  // rendered order, so workspace instructions must precede the skill catalog.
+  // Mount workspace context first; a direct /name skill invocation appends
+  // its loaded instructions after the other step injections.
   if (skillsEnabled) ctx.plugin(toolSkill, config.skills?.tool ?? {})
   if (config.toolJobs !== false) ctx.plugin(toolJobs, config.toolJobs ?? {})
   ctx.plugin(AgentLoop, {

@@ -113,6 +113,22 @@ describe('WebRuntime execution resolution', () => {
     await expect(web.search({ query: 'q' })).resolves.toMatchObject({ content: 'perplexity' })
   })
 
+  it('does not fall back to a configured provider when the model provider has no matching adapter', async () => {
+    const { web } = await mountWeb({ searchProvider: 'deepseek-official' })
+    web.registerSearchProvider(makeSearchProvider('deepseek-official', available, () => Promise.resolve(searchResult('deepseek'))))
+
+    await expect(web.search({ query: 'q', modelProvider: 'bosch' }))
+      .rejects.toThrow(expect.objectContaining({ code: 'WEB_MODEL_PROVIDER_SEARCH_UNSUPPORTED' }))
+  })
+
+  it('uses the search adapter whose id matches the model provider', async () => {
+    const { web } = await mountWeb({ searchProvider: 'deepseek-official' })
+    web.registerSearchProvider(makeSearchProvider('deepseek-official', available, () => Promise.resolve(searchResult('deepseek'))))
+    web.registerSearchProvider(makeSearchProvider('bosch', available, () => Promise.resolve(searchResult('bosch'))))
+
+    await expect(web.search({ query: 'q', modelProvider: 'bosch' })).resolves.toMatchObject({ content: 'bosch' })
+  })
+
   it('ignores unusable providers when auto-selecting', async () => {
     const { web } = await mountWeb()
     web.registerSearchProvider(makeSearchProvider('exa', available, () => Promise.resolve(searchResult('exa'))))

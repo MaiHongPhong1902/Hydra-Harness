@@ -31,7 +31,7 @@ This table connects model-visible tool names to the plugin package and service s
 | `@bosch/bh-schedule` | `schedule_create`, `schedule_delete`, `schedule_list` | `ctx.tools`, `ctx.sessions`, `Session persistence`, `a future live root Agent` | `tool/call`, `schedule/change create or delete`, `tool/result` | - | Registered only inside live root Agent scopes created after the opt-in Schedule plugin loads. Version 1 accepts after_seconds, explicit absolute at, and bounded fixed-rate every_seconds, and discloses session-local delivery; management reads and mutations require the shared Session persistence barrier. |
 | `@bosch/bh-tool-lsp` | `lsp` | `ctx.tools`, `ctx.lsp`, `ctx.systemPrompt` | `tool/call`, `tool/result` | - | The lsp tool keeps provider selection and language-server subprocesses behind ctx.lsp, so its model-visible schema stays stable across providers. Requires a registered provider (e.g. `@bosch/bh-lsp-stdio`) at runtime; without one, a query returns the structured `LSP_UNAVAILABLE` error rather than changing the schema. |
 | `@bosch/bh-tool-ralph` | `ralph` | `ctx.tools`, `ctx.workflowEngine`, `ctx.subagents`, `ctx.systemPrompt`, `a calling Agent (exec.agent parents every fresh round)` | `tool/call`, `tool/result`, `workflow and child session events during execution` | - | A fixed foreground workflow starts one fresh structured child per round; the model selects only the immutable objective and an optional round cap. |
-| `@bosch/bh-tool-skill` | `skill` | `ctx.tools`, `ctx.agents`, `ctx.skills` | `tool/call`, `tool/result`, `user/message replacement catalogs via agent.inject()` | - | - |
+| `@bosch/bh-tool-skill` | `skill`, `skill_search` | `ctx.tools`, `ctx.agents`, `ctx.skills` | `tool/call`, `tool/result`, `user/message direct /name instructions via agent/pre-step` | - | - |
 | `@bosch/bh-tool-session-query` | `session_event_read`, `session_event_search`, `session_event_trace`, `session_search`, `session_trace` | `ctx.tools`, `ctx.systemPrompt`, `ctx.sessionQuery`, `a calling Agent for workspace authority` | `tool/call`, `tool/result` | - | The five read-only tools hide provider cursors and authorize every result from the immutable calling agent session. The package is opt-in; compositions that need enforced deadlines or bounded inline output also mount the generic timeout or spill policies. |
 | `@bosch/bh-tool-subagent` | `subagent` | `ctx.tools`, `ctx.subagents`, `ctx.systemPrompt` | `tool/call`, `tool/result`, `child session events through the chosen provider` | `subagent`, `subagent_fork` | The registered tool name is the load-time `toolName` config (default `subagent`); the schema above is that default. The shipped compositions load this package once per subagent backend, so the model additionally sees `subagent_fork` bound to the fork backend. Each instance's description, `run_in_background` parameter, and system-prompt policy follow its own `backgroundMode` and `enableRunInBackground`, so the two shipped schemas are not identical: `subagent` is `continuable` and defaults omitted calls to background with automatic settlement delivery, while `subagent_fork` stays `one-shot` and defaults them to foreground — see `packages/bundle/base/cordis.patch.yml` and `examples/acp-agent/cordis.yml`. |
 | `@bosch/bh-tool-subagent-control` | `interrupt_agent`, `list_agents`, `send_message` | `ctx.tools`, `ctx.subagents`, `ctx.agents and ctx.sessionProjections (list_agents only)` | `tool/call`, `tool/result`, `child session events through ctx.subagents` | - | The globally named control tools over continuable background subagents: provider-bound `tool-subagent` instances register distinct delegation tools, while this package registers `send_message` and `interrupt_agent` once, plus `list_agents` from its separately loaded `/list-agents` plugin (whose catalog rows use the sessionProjections and live Agent registries). |
@@ -41,6 +41,7 @@ This table connects model-visible tool names to the plugin package and service s
 | `@bosch/bh-tool-todo` | `todo_write` | `ctx.tools`, `owning Agent session` | `tool/call`, `todo/write`, `tool/result` | - | todo_write is session-owned state; UIs render the latest todo/write event as a checklist. `allowParallelInProgress` is required with no default, so the catalog states its choice: `true`, whose description invites several `in_progress` items. A deployment choosing `false` receives the same tool with a description asking for exactly one active task. |
 | `@bosch/bh-tool-workflow` | `workflow` | `ctx.tools`, `ctx.workflowEngine`, `ctx.systemPrompt`, `a calling Agent (exec.agent parents the script children)` | `tool/call`, `tool/result` | - | - |
 | `@bosch/bh-tool-web` | `web_fetch`, `web_search` | `ctx.tools`, `ctx.web`, `ctx.systemPrompt` | `tool/call`, `tool/result` | - | web_search and web_fetch keep provider selection behind ctx.web so model-visible schemas stay stable across backend swaps. |
+| `@bosch/bh-tool-browser` | `browser_back`, `browser_click`, `browser_close_tab`, `browser_navigate`, `browser_open_tab`, `browser_page_agent_run`, `browser_page_agent_status`, `browser_page_agent_stop`, `browser_press`, `browser_scroll`, `browser_scroll_horizontally`, `browser_select_option`, `browser_state`, `browser_switch_tab`, `browser_type`, `browser_upload_file`, `browser_wait` | `ctx.tools`, `ctx.browsers`, `ctx.systemPrompt`, `a calling Agent (the window is owned per agent)` | `tool/call`, `tool/result` | - | The embedded browser window opens on the first browser_* call of an agent and closes with it. Without the optional electron package the tools still register and every call fails with BROWSER_UNAVAILABLE. |
 
 <a id="boschbh-tool-ask-user"></a>
 
@@ -1243,7 +1244,7 @@ A fixed foreground workflow starts one fresh structured child per round; the mod
 
 ### `skill`
 
-Load the full instructions for an available skill. Call this with the exact skill name from the session skill catalog before acting on a task that names or clearly matches that skill.
+Load the full instructions for exactly one skill. Use only an exact name returned by `skill_search` for the current task or explicitly named by the user; do not guess names or reload an inline <skill_content> block.
 
 ```json
 {
@@ -1251,11 +1252,32 @@ Load the full instructions for an available skill. Call this with the exact skil
   "properties": {
     "name": {
       "type": "string",
-      "description": "The exact skill name from the available skills list."
+      "description": "The exact skill name returned by `skill_search` or explicitly named by the user."
     }
   },
   "required": [
     "name"
+  ]
+}
+```
+
+Source: [`packages/skill/tool-skill/src/index.ts`](../packages/skill/tool-skill/src/index.ts)
+
+### `skill_search`
+
+Find a bounded shortlist of skills for a substantive user task before loading one. Search with concise task keywords; do not call this for greetings, thanks, acknowledgements, casual chat, meta questions, or vague requests. An empty result means load no skill.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "query": {
+      "type": "string",
+      "description": "Concise keywords describing the user task, not a greeting or conversational filler."
+    }
+  },
+  "required": [
+    "query"
   ]
 }
 ```
@@ -2219,3 +2241,427 @@ Search the web for current information. Provide 1–4 queries in the required qu
 Source: [`packages/web/tool-web/src/index.ts`](../packages/web/tool-web/src/index.ts)
 
 web_search and web_fetch keep provider selection behind ctx.web so model-visible schemas stay stable across backend swaps.
+
+<a id="boschbh-tool-browser"></a>
+
+## `@bosch/bh-tool-browser`
+
+### `browser_back`
+
+Go back to the previous page in this window. Reports a failure when there is nothing to go back to.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  }
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_click`
+
+Click the element at the given index of the most recent element list. Indexes are reassigned after every action, so use one from the latest result.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "index": {
+      "type": "integer",
+      "description": "Element index from the latest browser result."
+    },
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  },
+  "required": [
+    "index"
+  ]
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_close_tab`
+
+Close a controlled tab by id. The agent cannot close the last tab or the browser window.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "tab_id": {
+      "type": "integer",
+      "description": "Tab id from the latest browser result."
+    }
+  },
+  "required": [
+    "tab_id"
+  ]
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_navigate`
+
+Open a URL in the embedded browser and return the page as a numbered element list. Starts the browser window if it is not running yet.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "url": {
+      "type": "string",
+      "description": "Absolute URL to open."
+    },
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  },
+  "required": [
+    "url"
+  ]
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_open_tab`
+
+Open and select a new controlled browser tab, optionally at an absolute HTTP(S) URL. Every browser result lists all tab ids.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "url": {
+      "type": "string",
+      "description": "Optional absolute HTTP(S) URL; omitted opens a blank tab."
+    }
+  }
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_page_agent_run`
+
+Start the real upstream PageAgent ReAct engine under BH control. It uses this BH agent’s selected provider and model through a private host bridge; it never receives an API key or renders UI in the webpage. Poll browser_page_agent_status or stop it explicitly.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "description": "Concrete browser task for PageAgent to perform."
+    },
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  },
+  "required": [
+    "task"
+  ]
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_page_agent_status`
+
+Read the status and latest result of the upstream PageAgent task running in the controlled page.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  }
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_page_agent_stop`
+
+Stop the active upstream PageAgent task in the controlled page.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  }
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_press`
+
+Send one key to whatever the page has focused — Enter to submit a form, Tab to move on, Escape to dismiss.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Key name, such as Enter, Tab, Escape, or Backspace."
+    },
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  },
+  "required": [
+    "key"
+  ]
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_scroll`
+
+Scroll the page, or a scrollable element, to bring more of it into the element list. Only the visible viewport is ever listed.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "down": {
+      "type": "boolean",
+      "description": "True scrolls towards the end of the page, false towards the start."
+    },
+    "num_pages": {
+      "type": "number",
+      "description": "Viewport heights to scroll. Defaults to 1, and is ignored when pixels is given."
+    },
+    "pixels": {
+      "type": "number",
+      "description": "Exact distance to scroll, instead of whole viewports."
+    },
+    "index": {
+      "type": "integer",
+      "description": "Scroll this element instead of the page."
+    },
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  },
+  "required": [
+    "down"
+  ]
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_scroll_horizontally`
+
+Scroll the page, or one scrollable element, horizontally and return the newly visible indexed controls.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "right": {
+      "type": "boolean",
+      "description": "True scrolls right, false scrolls left."
+    },
+    "pixels": {
+      "type": "number",
+      "description": "Positive horizontal distance in pixels."
+    },
+    "index": {
+      "type": "integer",
+      "description": "Scroll this element instead of the page."
+    },
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  },
+  "required": [
+    "right",
+    "pixels"
+  ]
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_select_option`
+
+Choose an option of the dropdown at the given index by its visible label.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "index": {
+      "type": "integer",
+      "description": "Element index of the dropdown."
+    },
+    "text": {
+      "type": "string",
+      "description": "Visible label of the option to choose."
+    },
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  },
+  "required": [
+    "index",
+    "text"
+  ]
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_state`
+
+Re-read the current page of the embedded browser, with a bounded readiness wait for SPA or SSO transitions. Every other browser tool already returns fresh state.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  }
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_switch_tab`
+
+Select a controlled tab by an id from the latest browser result, then return its fresh page state.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "tab_id": {
+      "type": "integer",
+      "description": "Tab id from the latest browser result."
+    }
+  },
+  "required": [
+    "tab_id"
+  ]
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_type`
+
+Type text into the input or textarea at the given index. Replaces whatever the field held; it does not append.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "index": {
+      "type": "integer",
+      "description": "Element index from the latest browser result."
+    },
+    "text": {
+      "type": "string",
+      "description": "Text to put in the field."
+    },
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  },
+  "required": [
+    "index",
+    "text"
+  ]
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_upload_file`
+
+Upload one existing readable local file through the HTML file input at the given index of the most recent element list. The user must have written the exact absolute path in the current turn, and the current page must use http(s). This selects the file only; submit separately.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "index": {
+      "type": "integer",
+      "description": "Element index of the observed HTML file input."
+    },
+    "path": {
+      "type": "string",
+      "description": "Absolute path of the local test artifact to upload."
+    },
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  },
+  "required": [
+    "index",
+    "path"
+  ]
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_wait`
+
+Wait up to 1–10 seconds for delayed page data, animation, or navigation, then return a fresh settled page state. Use it instead of repeatedly polling browser_state.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "seconds": {
+      "type": "integer",
+      "description": "Whole seconds to wait, from 1 through 10."
+    },
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  },
+  "required": [
+    "seconds"
+  ]
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+The embedded browser window opens on the first browser_* call of an agent and closes with it. Without the optional electron package the tools still register and every call fails with BROWSER_UNAVAILABLE.

@@ -4,11 +4,28 @@
 .root {
   display: flex;
   flex-direction: column;
+  border-radius: var(--dsw-radius-panel);
+  transition: background-color var(--ds-transition-duration-fast) var(--ds-ease-in-out);
 }
 
 .row {
   position: relative; /* sweep-glare overlay anchor */
   overflow: hidden;
+  box-sizing: border-box;
+  padding: 0 4px;
+  border-radius: var(--dsw-radius-control);
+  transition: background-color var(--ds-transition-duration-fast) var(--ds-ease-in-out);
+}
+
+.root:hover .row,
+.root:focus-within .row {
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+.root:has([data-open]) {
+  padding: 4px 6px;
+  border: 1px solid var(--dsw-alias-border-l1);
+  background: var(--dsw-alias-bg-layer-1);
 }
 
 /* Running sweep (deepsuite ShimmerText pattern): a fixed-width glare band —
@@ -21,20 +38,21 @@
   top: 0;
   bottom: 0;
   left: 0;
-  width: 300px;
+  width: 42%;
   background: linear-gradient(
     90deg,
     transparent 0%,
     color-mix(in srgb, var(--dsw-alias-bg-base) 60%, transparent) 55%,
     transparent 100%
   );
-  animation: bh-tool-row-sweep 2.6s ease-out infinite;
+  animation: bh-tool-row-sweep 2.6s var(--ds-ease-in-out) infinite;
   pointer-events: none;
+  transform: translateX(-125%);
 }
 
 @keyframes bh-tool-row-sweep {
-  0% { left: -300px; }
-  90%, 100% { left: 100%; }
+  0% { transform: translateX(-125%); }
+  90%, 100% { transform: translateX(350%); }
 }
 
 .leading {
@@ -188,7 +206,7 @@
   flex-direction: column;
   margin: 4px 0 4px 4px;
   border: 1px solid var(--dsw-alias-border-l1);
-  border-radius: 12px;
+  border-radius: var(--dsw-radius-panel);
   background: var(--dsw-alias-markdown-code-block);
   font: var(--dsw-font-markdown-code-block-small);
 }
@@ -292,7 +310,7 @@
   --dsl-terminal-font: var(--dsw-font-markdown-code-block-small);
   --dsl-terminal-line-height: 18px;
   --dsl-terminal-output-max-height: 224px;
-  border: 1px solid var(--dsw-alias-border-l1);
+  border-color: var(--dsw-alias-border-l1);
 }
 
 /* Visually hidden run-state label for assistive technology: the StateDot and
@@ -305,4 +323,13 @@
   overflow: hidden;
   clip: rect(0 0 0 0);
   white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root,
+  .row,
+  .root[data-state='running'] .row::after {
+    transition: none;
+    animation: none;
+  }
 }

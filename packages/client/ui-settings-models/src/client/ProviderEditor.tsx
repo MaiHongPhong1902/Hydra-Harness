@@ -230,12 +230,14 @@ export function ProviderEditor(props: ProviderEditorProps): ReactNode {
   // an edited-but-unsaved endpoint, and a key typed but not yet stored.
   const probeApi = stringAt(draft, 'api') ?? stringAt(fallback, 'api')
   const probeBaseURL = stringAt(draft, 'baseURL') ?? stringAt(fallback, 'baseURL')
+  const probeProxy = stringAt(draft, 'proxy') ?? stringAt(fallback, 'proxy')
   const probe = {
     settingsNs: namespace.ns,
     // Naming the route lets an adapter that already describes it answer from
     // its own registry — better metadata, no network call, no endpoint needed.
     provider: props.provider,
     ...probeBaseURL === undefined ? {} : { baseURL: probeBaseURL },
+    ...probeProxy === undefined ? {} : { proxy: probeProxy },
     ...probeApi === undefined ? {} : { api: probeApi },
     ...keyValue.length === 0 ? {} : { apiKey: keyValue },
   }
@@ -430,6 +432,20 @@ export function ProviderEditor(props: ProviderEditorProps): ReactNode {
                 disabled={disabled}
                 onChange={(event) => {
                   setField('baseURL', event.target.value === '' ? undefined : event.target.value)
+                }}
+              />
+            </div>
+            <div className={styles['field']}>
+              <span className={styles['fieldLabel']}>{t('proxy')}</span>
+              <input
+                className={styles['input']}
+                type="text"
+                value={stringAt(draft, 'proxy') ?? ''}
+                placeholder={t('proxyPlaceholder')}
+                aria-label={t('proxy')}
+                disabled={disabled}
+                onChange={(event) => {
+                  setField('proxy', event.target.value === '' ? undefined : event.target.value)
                 }}
               />
             </div>

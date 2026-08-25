@@ -25,7 +25,7 @@
   --bh-scrollbar-thumb: var(--dsw-alias-scrollbar-bg-l2);
   --bh-scrollbar-thumb-hover: var(--dsw-alias-scrollbar-hover-l2);
   border: 1px solid var(--dsw-alias-border-inverted);
-  border-radius: 12px;
+  border-radius: var(--dsw-radius-panel);
   background: var(--dsw-specific-menu);
   box-shadow: var(--dsw-shadow-lv3);
   outline: none;
@@ -43,7 +43,7 @@
   align-items: center;
   gap: 8px;
   padding: 6px 8px;
-  border-radius: 8px;
+  border-radius: var(--dsw-radius-control);
   cursor: pointer;
   font-size: 13px;
   color: var(--dsw-alias-label-primary);
@@ -85,11 +85,19 @@
   margin: 2px 2px 4px;
   padding: 6px 8px;
   border: 1px solid var(--dsw-alias-border-inverted);
-  border-radius: 8px;
+  border-radius: var(--dsw-radius-control);
   background: transparent;
   font-size: 13px;
   color: var(--dsw-alias-label-primary);
   outline: none;
+  transition:
+    border-color var(--ds-transition-duration-fast) var(--ds-ease-in-out),
+    box-shadow var(--ds-transition-duration-fast) var(--ds-ease-in-out);
+}
+
+.search:focus-visible {
+  border-color: var(--dsw-alias-brand-primary);
+  box-shadow: 0 0 0 2px var(--dsw-alias-focus-ring);
 }
 
 .error {
@@ -110,7 +118,7 @@
 .retry {
   padding: 2px 8px;
   border: 1px solid var(--dsw-alias-border-inverted);
-  border-radius: 6px;
+  border-radius: var(--dsw-radius-control);
   background: transparent;
   font-size: 12px;
   color: var(--dsw-alias-label-primary);

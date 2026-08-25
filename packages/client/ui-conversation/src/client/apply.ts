@@ -40,6 +40,22 @@ import { registerConversationNodes } from './conversation-nodes/register.ts'
 import { registerChatNodeRenderers } from './chat/register-node-renderers.ts'
 import { CONVERSATION_SETTINGS_NAMESPACE, type ConversationSettings } from '../submission-settings.ts'
 
+interface BrowserAnnotation {
+  readonly kind: 'browser-element'
+  readonly url: string
+  readonly title: string
+  readonly preview: string
+  readonly index?: number
+}
+
+interface DesktopAnnotationBridge {
+  bhDesktop?: {
+    browser?: {
+      onAnnotation?: (listener: (annotation: BrowserAnnotation) => void) => () => void
+    }
+  }
+}
+
 declare module '@bosch/bh-client-ui-slots' {
   interface LocaleNamespaceMap {
     /** The conversation skeleton, chat flow, commands, details, and docks copy. */
@@ -70,6 +86,7 @@ const ABSENT_LEXICON = {
   getSnapshot: () => EMPTY_LEXICON,
   subscribe: () => () => {},
 }
+
 const ABSENT_MENU_LAUNCHER = {
   getSnapshot: (): string | null => null,
   subscribe: () => () => {},
@@ -168,6 +185,21 @@ export function apply(ctx: Context): void {
   // The per-session input machine registry (SessionInputResolver face; published as
   // ctx.conversation.input by the service below sharing this one instance).
   const inputHub = new InputHub(ctx, t)
+
+  const onBrowserAnnotation = (globalThis as typeof globalThis & DesktopAnnotationBridge)
+    .bhDesktop?.browser?.onAnnotation
+  if (onBrowserAnnotation !== undefined) {
+    ctx.effect(() => onBrowserAnnotation((annotation) => {
+      const sessionId = sessions.list.getSnapshot().current
+      if (sessionId === undefined) return
+      const shell = inputHub.shell(sessionId)
+      const conversation = concreteConversation(ctx)
+      const attachment = conversation.createDraftBrowserAnnotation(annotation)
+      if (!shell.addBrowserAnnotations([attachment.id])) {
+        conversation.releaseDraftBrowserAnnotation(attachment.id)
+      }
+    }), 'ui-conversation: desktop browser annotation')
+  }
 
   // The composer-block registry: a plugin that knows a session cannot send —
   // ui-model-selection, when no adapter serves the session's route — raises a block
@@ -295,6 +327,9 @@ export function apply(ctx: Context): void {
           addImages: undefined,
           removeImage: undefined,
           draftImages: undefined,
+          draftBrowserAnnotations: undefined,
+          removeBrowserAnnotation: undefined,
+          updateBrowserAnnotationComment: undefined,
           resolveSubmitMode: (running, gesture, steeringAvailable) =>
             submissionPolicy.resolve(running, gesture, steeringAvailable),
           toggleCommandMenu: undefined,
@@ -329,6 +364,14 @@ export function apply(ctx: Context): void {
           shell.removeImage(id)
         },
         draftImages: ids => conversation.draftImages(ids),
+        draftBrowserAnnotations: ids => conversation.draftBrowserAnnotations(ids),
+        removeBrowserAnnotation: (id) => {
+          conversation.releaseDraftBrowserAnnotation(id)
+          shell.removeBrowserAnnotation(id)
+        },
+        updateBrowserAnnotationComment: (id, comment) => {
+          shell.updateBrowserAnnotationComment(id, comment)
+        },
         resolveSubmitMode: (running, gesture, steeringAvailable) =>
           submissionPolicy.resolve(running, gesture, steeringAvailable),
         toggleCommandMenu: inputTriggers === undefined

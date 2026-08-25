@@ -10,7 +10,7 @@ Bosch Harness uses the same primitive so project-specific review, plugin-authori
 
 ## Decision
 
-`@bosch/bh-skill` is the pure provider registry (`ctx.skills`), `@bosch/bh-skill-filesystem` is the shipped local filesystem provider, and `@bosch/bh-tool-skill` owns the durable session catalog and model-facing loader tool. `bh-agent-spine-demo` loads the registry, local provider, and consumer by default so TUI, headless, and ACP apps get the same behavior while embedded or remote providers contribute skills without changing the registry or consumer. Its `skills` config forwards `registry`, `local`, and `tool` branches to those owners.
+`@bosch/bh-skill` is the pure provider registry (`ctx.skills`), `@bosch/bh-skill-filesystem` is the shipped local filesystem provider, and `@bosch/bh-tool-skill` owns bounded model-facing search, exact body loading, and direct user invocation. `bh-agent-spine-demo` loads the registry, local provider, and consumer by default so TUI, headless, and ACP apps get the same behavior while embedded or remote providers contribute skills without changing the registry or consumer. Its `skills` config forwards `registry`, `filesystem`, and `tool` branches to those owners.
 
 Dedicated packaged providers can contribute immutable skills without filesystem discovery. The shipped CLI declares `@bosch/bh-skill-badge` disabled by default; enabling its composition row contributes the official badge instructions through the same registry and consumer ([decision](2026-08-06-bundled-bh-badge-skill.md)).
 
@@ -22,7 +22,7 @@ Each skill is either `<name>/SKILL.md` or `<name>.md` with YAML frontmatter. `na
 
 Local skill filesystem I/O goes through `ctx.fs` when a filesystem service is loaded: project-root lookup probes `.git` with `resolve` and `stat`, root discovery uses `listDir`, and skill reads use `readText`. The Node filesystem remains a fallback for minimal contexts that mount `bh-skill-filesystem` without the fs seam. Missing roots, unreadable or malformed skill files, and transient provider `list()` failures degrade to warn-and-skip so one bad source does not make every agent request fail; malformed candidates still fail fast because they are provider contract violations.
 
-`bh-tool-skill` injects one durable user-role `<system-reminder>` catalog as a sourced `user/message` at the session's first `agent/pre-step`, and only when that agent's tool view resolves this plugin's exact `skill` registration. The catalog contains sorted skill name and description only; it excludes bodies, paths, sources, providers, and routing hints. Descriptions are whitespace-normalized, XML-escaped, and capped by `catalogDescriptionMaxLength`, whose default is `500` and minimum is `3`. Full skill bodies are never included in the catalog. (The catalog originally rode the request-only [session-prefix extension point](../../archived/feature/2026-07-07-session-prefix.md), archived; the [unified sourced-message decision](../architecture/2026-07-22-unified-send-and-coalesced-user-messages.md) moved it into durable history.)
+`bh-tool-skill` injects no automatic roster. Its `skill_search({ query })` tool filters model-invocable metadata and returns a bounded lexical shortlist across name, description, and `whenToUse` without loading bodies; the model then chooses zero or one exact skill to load. Defaults cap search at five candidates, 500 characters per description or routing hint, and 8192 rendered UTF-8 bytes. The [bounded skill routing decision](../architecture/2026-08-25-bounded-skill-routing.md) supersedes the earlier durable full-catalog publication while retaining historical catalog replay compatibility.
 
 The registry's `list()` returns every winning summary, while model and user consumers apply the invocation predicates owned by the [independent invocation-policy decision](2026-07-28-skill-invocation-policy.md). The `skill({ name })` tool loads one model-invocable skill for the current agent cwd and returns a tool result containing `<skill_content name="...">`, `<skill_resources>`, and `<skill_instructions>`. `resourceBase` supplies a directory, URL, or opaque provider-managed base for explicitly referenced scripts, references, and assets; resources load only as needed, without directory enumeration. An unresolved name reports that the skill is unknown or no longer available; invalid names and skills with `invocation.modelInvocable: false` retain distinct tool errors. The tool result is the model-visible disclosure path.
 
@@ -36,7 +36,7 @@ The data structures and catalog/tool contract are documented in [skills.md](../.
 
 **Put local filesystem scanning directly inside `ctx.skills`.** Rejected because coding agents, web agents, and future plugin ecosystems need different skill sources. A provider registry mirrors the subagent seam: the registry owns conflict resolution and consumers, while implementations own loading.
 
-**Use a system-prompt section.** Rejected because the rendered system prompt is a single string, while the catalog is a user-role `<system-reminder>` message. The [request-only session-prefix extension point](../../archived/feature/2026-07-07-session-prefix.md) (archived) was the original mechanism; after the unified sourced-message decision removed it, the catalog became a durable sourced injection with the same message shape.
+**Use a system-prompt section or durable full-roster message.** Rejected because either form makes every request pay for summaries proportional to registry size. Historical durable catalog records remain replayable, but current discovery is an explicit bounded tool result.
 
 **Materialize built-in BH authoring skills under `~/.bh/skills/.system`.** Rejected because bundled skills do not write user home on startup, and embedded or remote providers supply configured skills.
 
@@ -46,10 +46,10 @@ The data structures and catalog/tool contract are documented in [skills.md](../.
 
 ## Consequences
 
-The agent-core spine includes one catalog contributor, one local provider, and one model-facing tool. Skill discovery is cwd-sensitive, so callers that create agents with different session cwd values can observe different project skill overrides by design.
+The agent-core spine includes one registry, one local provider, and two model-facing tools for bounded search and exact loading. Skill discovery is cwd-sensitive, so callers that create agents with different session cwd values can observe different project skill overrides by design.
 
-The catalog is deterministic for a fixed root set and runtime registration revision. The local provider watches configured roots and invalidates completed catalogs after relevant disk changes; runtime registration and provider disposal also invalidate them.
+Search ranking is deterministic for a fixed query, root set, and runtime registration revision. The local provider watches configured roots and invalidates completed registry snapshots after relevant disk changes; runtime registration and provider disposal also invalidate them.
 
 ## Deferred
 
-Forked skill contexts (`context: fork`), parameter declarations and hints (`arguments` and `argument-hint`), and per-skill tool constraints (`allowed-tools` and `disallowed-tools`) are outside the shipped contract. The registry, local provider, and model-facing tool do not parse, advertise, or enforce these fields. Direct user invocation shipped as a TUI affordance over the shared invocation policy and trusted `get()` primitive; see [the archived TUI skill slash command](../../archived/feature/2026-07-21-tui-skill-slash-command.md).
+Forked skill contexts (`context: fork`), parameter declarations and hints (`arguments` and `argument-hint`), and per-skill tool constraints (`allowed-tools` and `disallowed-tools`) are outside the shipped contract. The registry, local provider, and model-facing tools do not parse, advertise, or enforce these fields. Direct user invocation now uses the shared host pre-step gesture boundary; see [user-explicit skill invocation](2026-08-08-user-explicit-skill-invocation.md).

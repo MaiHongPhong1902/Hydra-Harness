@@ -130,10 +130,15 @@ interface ToolArgsMap {
     /** The message to deliver to the subagent. */
     message: string;
   } & Record<string, JsonValue>;
-  /** Load the full instructions for an available skill. Call this with the exact skill name from the session skill catalog before acting on a task that names or clearly matches that skill. */
+  /** Load the full instructions for exactly one skill. Use only an exact name returned by `skill_search` for the current task or explicitly named by the user; do not guess names or reload an inline <skill_content> block. */
   skill: {
-    /** The exact skill name from the available skills list. */
+    /** The exact skill name returned by `skill_search` or explicitly named by the user. */
     name: string;
+  } & Record<string, JsonValue>;
+  /** Find a bounded shortlist of skills for a substantive user task before loading one. Search with concise task keywords; do not call this for greetings, thanks, acknowledgements, casual chat, meta questions, or vague requests. An empty result means load no skill. */
+  skill_search: {
+    /** Concise keywords describing the user task, not a greeting or conversational filler. */
+    query: string;
   } & Record<string, JsonValue>;
   /** Delegate a self-contained task to a subagent (a separate agent that works in its own context) to offload focused, independent work — research, a scoped implementation, an analysis — so it does not consume this conversation's context. The subagent returns its result, not its intermediate steps. Give it a complete, standalone prompt: it does not see this conversation. This tool runs in the background by default, immediately returns a durable subagent id, and keeps the child conversation available for later turns. When that run settles, the runtime sends the parent a notice containing its outcome and any final assistant message; `send_message` starts a later turn in the same child conversation. Set `run_in_background: false` only when your next action depends on receiving the result. */
   subagent: {
@@ -364,6 +369,15 @@ interface ToolOutputMap {
       description: string;
     };
     content: string;
+  };
+  skill_search: {
+    complete: boolean;
+    truncated: boolean;
+    matches: {
+      name: string;
+      description: string;
+      whenToUse?: string;
+    }[];
   };
   subagent: {
     kind: "background";

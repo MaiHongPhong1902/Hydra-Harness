@@ -16,7 +16,7 @@ export type {} from './conversation-nodes/turn-tail.ts'
 
 export { apply, inject } from './apply.ts'
 export { ConversationController } from './service.ts'
-export type { IConversation } from './service.ts'
+export type { BrowserAnnotationSelection, DraftBrowserAnnotation, IConversation } from './service.ts'
 export type { DraftAttachmentId } from './input/contract.ts'
 
 export type {
@@ -30,7 +30,8 @@ export type {
 export type {
   ChatFileMentions, ChatNodeOwnerProps, ChatNodeViewProps,
   ChatStore, ChatViewInjected, ChatViewSlotProps, CommandRowOwnerProps, CommandRowProps, ComposerBarInjected,
-  ComposerAttachment, ComposerAttachmentsOwnerProps, ComposerAttachmentsProps, ComposerChainProps, ConversationInjected,
+  BrowserAnnotationAttachment, ComposerAttachment, ComposerAttachmentsOwnerProps, ComposerAttachmentsProps,
+  ComposerChainProps, ConversationInjected,
   ConversationHeaderLineageOwnerProps, ConversationSessionHeaderInjected, ConversationSessionInjected,
   ConversationSlotProps, ConvViewOwnerProps,
   ConvViewProps, DetailsInjected, DetailsSlotProps, DetailsToolOwnerProps, EmptyWorkspaceOwnerProps, HeroBrandMarkOwnerProps,

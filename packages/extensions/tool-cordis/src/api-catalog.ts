@@ -496,6 +496,30 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'browsers',
+    summary: 'One Electron window per agent, started lazily and closed with its owner.',
+    description: 'One Electron window per agent, started lazily and closed with its owner.',
+    methods: [
+      {
+        signature: 'spawnChild?: (command: string, args: string[]) => BrowserChildProcess',
+        description: 'Test seam standing in for the real Electron spawn.',
+        parameters: [],
+      },
+      {
+        signature: 'async perform(owner: Agent, action: BrowserAction): Promise<BrowserOutcome>',
+        description: 'Do one thing to an owner\'s page and report the page afterwards.\n\nThe trailing state read is not a convenience: PageController indexes elements while building the tree, so the snapshot both answers the caller and leaves the next action addressable. Explicit targets are ordered per tab and may overlap across tabs; implicit and lifecycle actions are barriers.',
+        parameters: [{ name: 'owner', description: 'agent whose window this is; its first call starts one.' }, { name: 'action', description: 'what to do, in page-agent\'s own vocabulary.' }],
+        returns: 'the action\'s report, omitted for a plain state read, plus the state.',
+      },
+      {
+        signature: 'async close(owner: Agent): Promise<boolean>',
+        description: 'Close one owner\'s window now, if it has one.',
+        parameters: [{ name: 'owner', description: 'agent whose window to close.' }],
+        returns: 'true when a window was open and is now closed.',
+      },
+    ],
+  },
+  {
     key: 'clientModules',
     summary: 'The web plugin table service: incremental `bh.client` scan + wire composition + bundle route + index injection rows.',
     description: 'The web plugin table service: incremental `bh.client` scan + wire composition + bundle route + index injection rows. Construction runs the activation scan synchronously — a malformed declaration or missing bundle among the already-loaded entries aggregates into one loud throw (FAILED fiber; the boot activation audit reports it).',
@@ -2221,7 +2245,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
   {
     key: 'web',
     summary: 'The web access service.',
-    description: 'The web access service. Registered as `ctx.web` (one instance per context).\n\nSelection semantics (resolved at execution time, never order-dependent):\n\n- A configured id that is registered and `available()` → that provider.\n- A configured id not registered → `WEB_PROVIDER_CONFIGURED_MISSING`.\n- A configured id registered but unavailable → `WEB_PROVIDER_CONFIGURED_UNAVAILABLE`.\n- No id configured, exactly one registered usable provider → that provider.\n- No id configured, multiple usable providers → `WEB_PROVIDER_AMBIGUOUS`.\n- No id configured, no usable provider → `WEB_PROVIDER_UNAVAILABLE`.',
+    description: 'The web access service. Registered as `ctx.web` (one instance per context).\n\nSelection semantics (resolved at execution time, never order-dependent):\n\n- A request model-provider id that is registered and `available()` → that provider.\n- A request model-provider id that is absent/unavailable → a model-provider error; never a configured fallback.\n- A configured id that is registered and `available()` → that provider.\n- A configured id not registered → `WEB_PROVIDER_CONFIGURED_MISSING`.\n- A configured id registered but unavailable → `WEB_PROVIDER_CONFIGURED_UNAVAILABLE`.\n- No id configured, exactly one registered usable provider → that provider.\n- No id configured, multiple usable providers → `WEB_PROVIDER_AMBIGUOUS`.\n- No id configured, no usable provider → `WEB_PROVIDER_UNAVAILABLE`.',
     methods: [
       {
         signature: 'registerSearchProvider(provider: WebSearchProvider): () => void',
@@ -2841,6 +2865,10 @@ export const EVENT_API: readonly EventApiEntry[] = [
 /** Shapes of every exported type the Service and Event signatures reference (transitively), sorted by name. */
 export const TYPE_API: readonly TypeApiEntry[] = [
   {
+    name: 'ActionResult',
+    declaration: 'export interface ActionResult {\n    success: boolean;\n    message: string;\n}',
+  },
+  {
     name: 'AdapterRegistrationHandle',
     declaration: 'export interface AdapterRegistrationHandle {\n    (): void;\n    replace(providers: string[]): void;\n}',
   },
@@ -3013,8 +3041,36 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface BashEnvVariableInfo extends BashEnvVariable {\n    contributor: string;\n    key: BhEnvironmentKey;\n}',
   },
   {
+    name: 'BhEnvironment',
+    declaration: 'export type BhEnvironment = Readonly<Record<BhEnvironmentKey, string>>;',
+  },
+  {
+    name: 'BhEnvironmentKey',
+    declaration: 'export type BhEnvironmentKey = `${typeof BH_ENV_PREFIX}${string}`;',
+  },
+  {
     name: 'Branded',
     declaration: 'export type Branded<B extends string> = string & {\n    readonly [BRAND]: B;\n};',
+  },
+  {
+    name: 'BrowserAction',
+    declaration: 'export type BrowserAction = (({\n    method: \'get_browser_state\';\n} | {\n    method: \'navigate\';\n    url: string;\n} | {\n    method: \'back\';\n} | {\n    method: \'press\';\n    key: string;\n} | {\n    method: \'click_element\';\n    index: number;\n} | {\n    method: \'upload_file\';\n    index: number;\n    filePath: string;\n} | {\n    method: \'input_text\';\n    index: number;\n    text: string;\n} | {\n    method: \'select_option\';\n    index: number;\n    text: string;\n} | {\n    method: \'scroll\';\n    down: boolean;\n    numPages: number;\n    pixels?: number;\n    index?: number;\n} | {\n    method: \'scroll_horizontally\';\n    right: boolean;\n    pixels: number;\n    index?: number;\n} | {\n    method: \'wait\';\n    seconds: number;\n} | {\n    method: \'execute_javascript\';\n    script: string;\n} | {\n    method: \'page_agent_run\';\n    task: string;\n} | {\n    method: \'page_agent_status\';\n} | {\n    method: \'page_agent_stop\';\n}) & {\n    tabId?: number;\n}) | {\n    method: \'open_new_tab\';\n    url?: string;\n} | {\n    method: \'switch_to_tab\';\n    tabId: number;\n} | {\n    method: \'close_tab\';\n    tabId: number;\n};',
+  },
+  {
+    name: 'BrowserChildProcess',
+    declaration: 'export interface BrowserChildProcess {\n    readonly stdin: Writable;\n    readonly stdout: Readable;\n    readonly stderr: Readable;\n    once(event: \'exit\' | \'error\', listener: (payload?: unknown) => void): unknown;\n    kill(): unknown;\n}',
+  },
+  {
+    name: 'BrowserOutcome',
+    declaration: 'export interface BrowserOutcome {\n    action?: ActionResult;\n    state: BrowserState;\n}',
+  },
+  {
+    name: 'BrowserState',
+    declaration: 'export interface BrowserState {\n    url: string;\n    title: string;\n    header: string;\n    content: string;\n    footer: string;\n    tabs: BrowserTabState[];\n    tabId: number;\n    activeTabId: number;\n    settled: boolean;\n    capturedAt: string;\n}',
+  },
+  {
+    name: 'BrowserTabState',
+    declaration: 'export type BrowserTabState = {\n    id: number;\n    url: string;\n    title: string;\n    status: \'loading\' | \'complete\';\n    active: boolean;\n};',
   },
   {
     name: 'CancelOptions',
@@ -3299,14 +3355,6 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'DownloadsApi',
     declaration: 'export interface DownloadsApi {\n    sessionLog(request: {\n        sessionId: SessionId;\n        includeDescendants?: boolean;\n    }, signal: AbortSignal): Promise<Response>;\n}',
-  },
-  {
-    name: 'BhEnvironment',
-    declaration: 'export type BhEnvironment = Readonly<Record<BhEnvironmentKey, string>>;',
-  },
-  {
-    name: 'BhEnvironmentKey',
-    declaration: 'export type BhEnvironmentKey = `${typeof BH_ENV_PREFIX}${string}`;',
   },
   {
     name: 'DynamicCordisPackage',
@@ -3614,7 +3662,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'LlmModelDiscoveryRequest',
-    declaration: 'export interface LlmModelDiscoveryRequest {\n    provider?: string;\n    baseURL?: string;\n    api?: string;\n    apiKey?: string;\n    signal?: AbortSignal;\n}',
+    declaration: 'export interface LlmModelDiscoveryRequest {\n    provider?: string;\n    baseURL?: string;\n    api?: string;\n    proxy?: string;\n    apiKey?: string;\n    signal?: AbortSignal;\n}',
   },
   {
     name: 'LlmModelInfo',
@@ -4966,7 +5014,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'WebSearchRequest',
-    declaration: 'export interface WebSearchRequest {\n    readonly query: string;\n    readonly maxResults?: number;\n}',
+    declaration: 'export interface WebSearchRequest {\n    readonly query: string;\n    readonly modelProvider?: string;\n    readonly maxResults?: number;\n}',
   },
   {
     name: 'WebSearchResult',

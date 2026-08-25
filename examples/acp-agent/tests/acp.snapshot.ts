@@ -72,6 +72,7 @@ const SUBAGENT_CONTINUABLE_INHERITANCE_CONFIG = fileURLToPath(
 )
 const LSP_CONFIG = fileURLToPath(new URL('./lsp.cordis.yml', import.meta.url))
 const WEB_CONFIG = fileURLToPath(new URL('../web.cordis.yml', import.meta.url))
+const BROWSER_CONFIG = fileURLToPath(new URL('../browser.cordis.yml', import.meta.url))
 const FS_SEARCH_CONFIG = fileURLToPath(new URL('./fs-search.cordis.yml', import.meta.url))
 const PARTIAL_LANDLOCK_CONFIG = fileURLToPath(new URL('../partial-landlock.cordis.yml', import.meta.url))
 const PWSH_CONFIG = fileURLToPath(new URL('./pwsh.cordis.yml', import.meta.url))
@@ -354,6 +355,19 @@ const SCENARIOS: Scenario[] = [
   // turndown conversion. The fetched URL (fixed port) is part of the recorded
   // transcript; replay re-executes the real fetch against the same fixture.
   { name: 'web-fetch', hasModelTurn: true, recorded: true, pinsHeader: true, headerClass: 'web', configPath: WEB_CONFIG },
+  // The embedded browser's whole default model-visible surface: every `browser_*`
+  // schema, the DOM-format prompt section, and the text a page action renders
+  // into. Authored rather than recorded — the overlay scripts the Electron
+  // child (a real window needs a 200 MB binary, a display, and reports
+  // host-dependent viewport metrics), so every layer below the process is real.
+  {
+    name: 'browser-tool-turn',
+    hasModelTurn: true,
+    recorded: false,
+    pinsHeader: true,
+    headerClass: 'browser',
+    configPath: BROWSER_CONFIG,
+  },
   {
     name: 'workspace-edit',
     hasModelTurn: true,

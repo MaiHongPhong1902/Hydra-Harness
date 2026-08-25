@@ -5,7 +5,7 @@
    because folding a source line destroys the indentation a diff is read by. */
 
 .block {
-  --dsl-diff-radius: 12px;
+  --dsl-diff-radius: var(--dsw-radius-panel);
   --dsl-diff-line-height: 22px;
 
   position: relative;
@@ -13,6 +13,7 @@
   color: var(--dsw-alias-label-primary);
   background: var(--dsw-alias-markdown-code-block);
   border-radius: var(--dsl-diff-radius);
+  border: 1px solid var(--dsw-alias-border-l1);
 }
 
 /* The copy control floats in the top-right corner over the body, so the card

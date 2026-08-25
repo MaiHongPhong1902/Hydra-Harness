@@ -1,0 +1,85 @@
+/* Aggregate activity disclosure: the same 24px chrome as ToolRow/Think. */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-radius: var(--dsw-radius-panel);
+}
+
+.root[data-open] {
+  padding-bottom: 4px;
+}
+
+.row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  height: 24px;
+  box-sizing: border-box;
+  padding: 0;
+  border: none;
+  border-radius: var(--dsw-radius-control);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.row:hover {
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+.row:focus-visible {
+  outline: 2px solid var(--dsw-alias-state-business-primary);
+  outline-offset: 2px;
+}
+
+.leading {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  margin-right: 6px;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--dsw-alias-label-secondary);
+  font-size: 14px;
+  line-height: 24px;
+  font-weight: 400;
+}
+
+.chevron {
+  flex: none;
+  margin-left: 6px;
+  color: var(--dsw-alias-label-secondary);
+  transition: transform var(--ds-transition-duration-fast) var(--ds-ease-in-out);
+}
+
+.row[aria-expanded='false'] .chevron {
+  transform: rotate(-90deg);
+}
+
+.children {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  margin: 2px 0 0 22px;
+  padding-left: 8px;
+  border-left: 1px solid var(--dsw-alias-border-l1);
+}
+
+.children[data-collapsed] {
+  display: none;
+}

@@ -1,6 +1,13 @@
 packages:
   - vendor/*
   - packages/*/*
+  # PageAgent stays an upstream-pinned submodule because the Electron preload
+  # bundles its real runtime rather than maintaining a local lookalike.
+  - packages/browser/browser-electron/third-party/page-agent/packages/core
+  - packages/browser/browser-electron/third-party/page-agent/packages/llms
+  - packages/browser/browser-electron/third-party/page-agent/packages/page-agent
+  - packages/browser/browser-electron/third-party/page-agent/packages/page-controller
+  - packages/browser/browser-electron/third-party/page-agent/packages/ui
   # The Landlock launcher is developed with its harness consumers but keeps
   # its native build and publication scripts under native/landlock-run.
   - native/landlock-run
@@ -50,6 +57,10 @@ allowBuilds:
   node-addon-require-builtin: false
   # JSONL durability calls MoveFileExW with write-through publication on Windows.
   koffi: true
+  # The embedded browser's runtime IS the binary this postinstall downloads.
+  # Optional: an install that skips it leaves `browser_*` unregistered and the
+  # rest of the harness intact.
+  electron: true
   # The Python runtime deploy includes the reviewed workspace postinstall that
   # restores the executable bit on node-pty's macOS spawn helper.
   '@bosch/bh-subprocess-local@file:packages/subprocess/subprocess-local': true

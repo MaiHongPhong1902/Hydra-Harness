@@ -14,6 +14,7 @@
 import type { Context } from '@bosch/cordis'
 import z from '@bosch/schemastery'
 import { assertUsableApiKey, LlmError, resolveRetryPolicy, RetryPolicySchema } from '@bosch/bh-llm'
+import { normalizeHttpProxy } from '@bosch/bh-llm/proxy'
 import type { ModelModality, RetryPolicyConfig } from '@bosch/bh-llm'
 import { credentialRef } from '@bosch/bh-credentials'
 import { launchEnvironmentOf, type LaunchEnvironmentSnapshot } from '@bosch/bh-launch-environment'
@@ -74,6 +75,8 @@ export interface Config {
   apiKeyEnv?: string
   /** Endpoint base; falls back to $DEEPSEEK_BASE_URL from a trusted environment layer, then the public API. */
   baseURL?: string
+  /** Optional HTTP(S) network proxy used for this provider's requests; blank keeps them direct. */
+  proxy?: string
   /** Deployment thinking policy; `disabled` limits every conversation request to `off`. */
   thinking?: 'enabled' | 'disabled'
   /** Default thinking effort (default `high`); `off` disables thinking per request. */
@@ -104,6 +107,7 @@ const catalogModel: z<DeepSeekCatalogModel> = z.object({
 export const Config: z<Config> = z.object({
   apiKeyEnv: z.string().role('credential-ref').default(DEFAULT_API_KEY_ENV),
   baseURL: z.string(),
+  proxy: z.string(),
   thinking: z.union(['enabled', 'disabled']),
   reasoningEffort: z.union(['off', 'low', 'high', 'max']),
   maxTokens: z.number().step(1).min(1).max(Number.MAX_SAFE_INTEGER).default(DEFAULT_MAX_TOKENS),
@@ -211,11 +215,13 @@ export function resolveAdapterOptions(config: Config, environment?: LaunchEnviro
   if (!Number.isSafeInteger(maxRequestImageBytes) || maxRequestImageBytes <= 0) {
     throw new Error('llm-deepseek: maxRequestImageBytes must be a positive safe integer')
   }
+  const proxy = normalizeHttpProxy(config.proxy, 'llm-deepseek proxy')
   return {
     apiKeyEnv: credentialRef(config.apiKeyEnv ?? DEFAULT_API_KEY_ENV),
     baseURL: config.baseURL
       ?? environment?.get(BASE_URL_ENV)?.value
       ?? PUBLIC_BASE_URL,
+    ...proxy === undefined ? {} : { proxy },
     defaults: {
       thinking: config.thinking,
       reasoningEffort: config.reasoningEffort,

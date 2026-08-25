@@ -117,3 +117,138 @@
 .overlayLayer > * {
   pointer-events: auto;
 }
+
+/* Electron-only outer frame. The Web build never renders this wrapper. */
+.desktopShell {
+  position: relative;
+  display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--dsw-alias-bg-base);
+}
+
+.desktopShell > [data-desktop-panel][hidden] {
+  display: none;
+}
+
+.desktopShell[data-browser-open] {
+  grid-template-columns: minmax(0, 1fr) var(--desktop-browser-width, clamp(420px, 42vw, 720px));
+}
+
+.desktopShell[data-terminal-open] {
+  grid-template-rows: minmax(0, 1fr) var(--desktop-terminal-height, clamp(240px, 36vh, 440px));
+}
+
+.desktopShell > [data-desktop-panel='browser'] {
+  grid-column: 2;
+  grid-row: 1 / -1;
+  border-left: 1px solid var(--dsw-alias-border-l2);
+}
+
+.desktopShell > [data-desktop-panel='terminal'] {
+  grid-column: 1;
+  grid-row: 2;
+  border-top: 1px solid var(--dsw-alias-border-l2);
+}
+
+.desktopShell[data-browser-expanded] {
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+}
+
+.desktopShell[data-browser-expanded] > .desktopApp,
+.desktopShell[data-browser-expanded] > [data-desktop-panel='terminal'] {
+  visibility: hidden;
+}
+
+.desktopShell[data-browser-expanded] > [data-desktop-panel='browser'] {
+  grid-area: 1 / 1;
+  border-left: 0;
+  z-index: 30;
+}
+
+.desktopApp {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.desktopApp > .frame {
+  width: 100%;
+}
+
+/* Keep both hit strips fully on the renderer side of the seams: native
+   WebContentsViews paint above renderer content and would consume overlap. */
+.desktopResizeHandle {
+  position: relative;
+  z-index: 35;
+  align-self: stretch;
+  justify-self: stretch;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  touch-action: none;
+}
+
+.desktopResizeHandle[data-side='browser'] {
+  grid-column: 1;
+  grid-row: 1 / -1;
+  width: 8px;
+  justify-self: end;
+  cursor: col-resize;
+}
+
+.desktopResizeHandle[data-side='terminal'] {
+  grid-column: 1;
+  grid-row: 1;
+  height: 8px;
+  align-self: end;
+  cursor: row-resize;
+}
+
+.desktopResizeHandle::after {
+  content: '';
+  position: absolute;
+  box-sizing: border-box;
+  border: 1px solid var(--dsw-alias-border-l2-darkmode-thin);
+  border-radius: 10px;
+  background: var(--dsw-alias-button-floating-fill);
+  opacity: 0;
+  transition:
+    opacity var(--ds-transition-duration-slow) var(--ds-ease-in-out),
+    background var(--ds-transition-duration-slow) var(--ds-ease-in-out);
+}
+
+.desktopResizeHandle[data-side='browser']::after {
+  top: 50%;
+  right: 0;
+  width: 12px;
+  height: 32px;
+  transform: translateY(-50%);
+}
+
+.desktopResizeHandle[data-side='terminal']::after {
+  bottom: 0;
+  left: 50%;
+  width: 32px;
+  height: 12px;
+  transform: translateX(-50%);
+}
+
+.desktopResizeHandle:hover::after,
+.desktopResizeHandle:focus-visible::after,
+.desktopResizeHandle[data-dragging='true']::after {
+  opacity: 1;
+  background: var(--dsw-alias-button-floating-hover);
+  border-color: var(--dsw-alias-border-l3);
+}
+
+.desktopResizeHandle:focus-visible::after {
+  box-shadow: 0 0 0 2px var(--dsw-alias-focus-ring);
+}

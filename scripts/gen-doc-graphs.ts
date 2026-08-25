@@ -80,6 +80,7 @@ const GROUP_ORDER = [
   'tasks',
   'workflow',
   'web',
+  'browser',
   'spill',
   'todo',
   'plan',
@@ -339,7 +340,7 @@ const SERVICE_ROLES: ServiceRole[] = [
     mode: 'seam',
     implementations: ['skill-badge', 'skill-filesystem'],
     consumers: ['tool-skill'],
-    note: 'Merges provider skill catalogs; tool-skill renders the session-prefix catalog and loads complete skill bodies.',
+    note: 'Merges provider skill catalogs; tool-skill exposes bounded metadata search and exact body loading.',
   },
   {
     key: 'agents',
@@ -512,6 +513,14 @@ const SERVICE_ROLES: ServiceRole[] = [
     implementations: ['web-search-exa', 'web-search-perplexity', 'web-search-deepseek', 'web-fetch-http'],
     consumers: ['tool-web'],
     note: 'Search and fetch providers register into one ctx.web seam; tool-web owns the stable model-facing names.',
+  },
+  {
+    key: 'browsers',
+    pkg: 'browser-electron',
+    title: 'Embedded browser sessions',
+    mode: 'seam',
+    consumers: ['tool-browser'],
+    note: 'One Electron window per agent, started on its first action and closed with it; the page is perceived as a numbered text DOM and driven by index. There is no provider registry: the seam and its only implementation are the same package.',
   },
   {
     key: 'spillStore',

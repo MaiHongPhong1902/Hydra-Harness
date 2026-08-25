@@ -29,11 +29,20 @@ const invocation = parseBhArgs(process.argv.slice(2), readVersion())
 switch (invocation.mode) {
   case 'profile': {
     const { runProfile } = await import('./profile-boot.ts')
-    await runProfile({
+    const running = await runProfile({
       environment: loadLayeredEnv('bh'),
       profile: invocation.profile,
       patchFiles: invocation.patches,
       args: invocation.args,
+    })
+    const parentPort = (process as NodeJS.Process & {
+      parentPort?: { on(event: 'message', listener: (event: unknown) => void): void }
+    }).parentPort
+    parentPort?.on('message', (event) => {
+      const message = typeof event === 'object' && event !== null && 'data' in event ? event.data : event
+      if (typeof message === 'object' && message !== null && 'type' in message && message.type === 'shutdown') {
+        running.shutdown.interrupt(0)
+      }
     })
     break
   }

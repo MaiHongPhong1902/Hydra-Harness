@@ -14,15 +14,63 @@
 // lifecycle updates replace only their own row without remounting it.
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import type { ConversationTimelineSnapshot } from '@bosch/bh-client-runtime/client'
+import type { ChatConversationViewNode, ConversationTimelineSnapshot, ToolCallBlock } from '@bosch/bh-client-runtime/client'
 import { Button, IconChevronDownOutline14, Modal } from '@bosch/bh-client-ui-primitives'
 import type { ChatViewSlotProps, RenderMessageImages } from '../contract/slots.ts'
+import { ActivityGroup, activityKindForTools, type ActivityKind } from './ActivityGroup.tsx'
 import { PendingSteeringBubble } from './MessageItem.tsx'
 import { ChatNodeSeat } from './ChatNodeSeat.tsx'
 import { formatRunDuration } from './message-chrome.ts'
 import css from './ChatView.module.css'
 
 const FOLLOW_THRESHOLD = 24
+
+type FlowEntry =
+  | { readonly kind: 'node'; readonly nodeKey: string }
+  | { readonly kind: 'activity'; readonly nodeKeys: readonly string[]; readonly activityKind: ActivityKind }
+
+function toolName(node: ChatConversationViewNode): string {
+  const root = (node.data as { readonly root: ToolCallBlock }).root
+  return 'kind' in root ? root.call?.name ?? '' : root.name
+}
+
+/** Group only adjacent root tool nodes; other chat nodes remain hard boundaries. */
+function groupedFlow(
+  order: readonly string[],
+  nodeStore: { get: (key: string) => ChatConversationViewNode | undefined },
+): readonly FlowEntry[] {
+  const entries: FlowEntry[] = []
+  for (let index = 0; index < order.length; index += 1) {
+    const nodeKey = order[index]
+    if (nodeKey === undefined) continue
+    const node = nodeStore.get(nodeKey)
+    if (node?.kind !== 'tool-call') {
+      entries.push({ kind: 'node', nodeKey })
+      continue
+    }
+    const nodeKeys = [nodeKey]
+    const names = [toolName(node)]
+    let next = index + 1
+    while (next < order.length) {
+      const candidateKey = order[next]
+      const candidate = candidateKey === undefined ? undefined : nodeStore.get(candidateKey)
+      if (candidateKey === undefined || candidate?.kind !== 'tool-call') break
+      nodeKeys.push(candidateKey)
+      names.push(toolName(candidate))
+      next += 1
+    }
+    const activityKind = activityKindForTools(names)
+    // A lone image still needs the screenshot-style header; a lone ordinary
+    // tool keeps the existing single-row chrome and avoids double disclosure.
+    if (nodeKeys.length > 1 || activityKind === 'image') {
+      entries.push({ kind: 'activity', nodeKeys, activityKind })
+    } else {
+      entries.push({ kind: 'node', nodeKey })
+    }
+    index = next - 1
+  }
+  return entries
+}
 
 /** Active column host when present; otherwise the view-local scroller. */
 function scrollerOf(from: HTMLElement): HTMLElement {
@@ -161,6 +209,10 @@ export function ChatView({
 }: ChatViewSlotProps) {
   const order = useSession(s => s.chat.order)
   const nodeStore = useSession(s => s.chat.nodes)
+  // The node store is stable while individual tool nodes are filled in-place.
+  // Recompute the small flow list on each render so late tool results can join
+  // their activity group instead of leaving the initial ungrouped snapshot.
+  const flow = groupedFlow(order, nodeStore)
   const timeline = useSession(s => s.chat.timeline)
   const inbox = useSession(s => s.queue)
   // Workspace root off the session list row: path summaries display relative to it.
@@ -429,10 +481,10 @@ export function ChatView({
               </button>
             </div>
           )}
-          {order.map(nodeKey => (
+          {flow.map(entry => entry.kind === 'node' ? (
             <ChatNodeSeat
-              key={nodeKey}
-              nodeKey={nodeKey}
+              key={entry.nodeKey}
+              nodeKey={entry.nodeKey}
               useSession={useSession}
               selectedCallId={selectedCallId}
               cwd={cwd}
@@ -444,6 +496,29 @@ export function ChatView({
               renderSlot={renderSlot}
               t={t}
             />
+          ) : (
+            <ActivityGroup
+              key={`activity:${entry.nodeKeys[0] ?? 'empty'}`}
+              kind={entry.activityKind}
+              t={t}
+            >
+              {entry.nodeKeys.map(nodeKey => (
+                <ChatNodeSeat
+                  key={nodeKey}
+                  nodeKey={nodeKey}
+                  useSession={useSession}
+                  selectedCallId={selectedCallId}
+                  cwd={cwd}
+                  openFile={requestOpenFile}
+                  inspectCall={inspectCall}
+                  forkAt={forkAt}
+                  renderMessageImages={renderMessageImages}
+                  fileMentions={fileMentions}
+                  renderSlot={renderSlot}
+                  t={t}
+                />
+              ))}
+            </ActivityGroup>
           ))}
           {/* No pending placeholders: questions (ui-user-questions) and approvals
               (ApprovalPanel) both take over the composer, so a flow card would

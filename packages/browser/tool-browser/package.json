@@ -1,0 +1,54 @@
+{
+  "name": "@bosch/bh-tool-browser",
+  "description": "Model-facing browser_* tools (navigate, read, click, type, upload, select, scroll, press, back) over the Bosch Harness embedded-browser seam (ctx.browsers)",
+  "version": "0.1.1-rc.1",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bosch/bosch-harness.git",
+    "directory": "packages/browser/tool-browser"
+  },
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./invariant": {
+      "types": "./lib/types/invariant.d.ts",
+      "default": "./lib/invariant.js"
+    },
+    "./src/*": "./src/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/invariant.js",
+    "lib/types/**/*.d.ts"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "@bosch/bh-agent": "workspace:^",
+    "@bosch/bh-browser-electron": "workspace:^",
+    "@bosch/bh-invariants": "workspace:^",
+    "@bosch/bh-system-prompt": "workspace:^",
+    "@bosch/bh-tools": "workspace:^",
+    "@bosch/cordis": "workspace:^",
+    "@bosch/schemastery": "workspace:^"
+  },
+  "devDependencies": {
+    "@bosch/bh-agent": "workspace:^",
+    "@bosch/bh-browser-electron": "workspace:^",
+    "@bosch/bh-invariants": "workspace:^",
+    "@bosch/bh-llm": "workspace:^",
+    "@bosch/bh-session": "workspace:^",
+    "@bosch/bh-system-prompt": "workspace:^",
+    "@bosch/bh-tools": "workspace:^",
+    "@bosch/cordis": "workspace:^",
+    "@bosch/schemastery": "workspace:^"
+  }
+}

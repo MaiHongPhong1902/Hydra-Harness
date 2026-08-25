@@ -1,4 +1,4 @@
-// Hero chrome for the blank-draft phase of ConversationRoot: fish headline,
+// Hero chrome for the blank-draft phase of ConversationRoot: WorkON-mark headline,
 // glow backdrop, and the workspace row. Pure presentation — the resident
 // composer is NOT rendered here (it keeps its own stable tree position in
 // ConversationRoot so the textarea survives the hero → composer flip); CSS
@@ -38,10 +38,11 @@ export function workspaceLabel(cwd: string): string {
  * @param props.onClick - menu toggle.
  * @returns the chip button element.
  */
-export function WorkspaceChip({ buttonRef, label, menuOpen = false, onClick, t }: {
+export function WorkspaceChip({ buttonRef, label, menuOpen = false, disabled = false, onClick, t }: {
   buttonRef?: RefObject<HTMLButtonElement>
   label?: string | undefined
   menuOpen?: boolean
+  disabled?: boolean
   onClick?: () => void
   t: HeroTranslate
 }) {
@@ -53,6 +54,7 @@ export function WorkspaceChip({ buttonRef, label, menuOpen = false, onClick, t }
       aria-label={t('hero.chooseWorkspace')}
       aria-haspopup="menu"
       aria-expanded={menuOpen}
+      disabled={disabled}
       onClick={onClick}
     >
       {label === undefined
@@ -92,7 +94,7 @@ export function HeroGlow({ className }: { className?: string | undefined }) {
         </filter>
       </defs>
       <g filter={`url(#${glowFilterId})`}>
-        <ellipse cx="525.5" cy="234" rx="425.5" ry="134" fill="#6187D8" fillOpacity="0.08" />
+        <ellipse cx="525.5" cy="234" rx="425.5" ry="134" fill="#0096E8" fillOpacity="0.08" />
       </g>
     </svg>
   )
@@ -119,7 +121,7 @@ export function HeroShell({ t, renderSlot, children }: HeroShellProps) {
     <div className={css.root}>
       <div className={css.stack}>
         <div className={css.headline}>
-          {/* figma 34:10412: fish 34×25 leading the headline, gap 10. */}
+          {/* WorkON mark 34×34 leading the headline, gap 10. */}
           <span className={css.fishHitbox}>
             {renderSlot('conversation.hero.brand.mark', { size: 34, className: css.fish }, {
               fallback: <FishLogo size={34} className={css.fish} />,

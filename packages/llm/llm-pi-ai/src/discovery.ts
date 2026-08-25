@@ -23,6 +23,7 @@
  */
 
 import { INVALID_CREDENTIAL_CODE, LlmError, normalizeApiKey } from '@bosch/bh-llm'
+import { fetchWithHttpProxy } from '@bosch/bh-llm/proxy'
 import type { LlmDiscoveredModel, LlmModelDiscoveryRequest } from '@bosch/bh-llm'
 import { attributionHeaders } from '@bosch/bh-llm'
 import { catalogModels } from './catalog.ts'
@@ -241,7 +242,7 @@ export async function discoverModels(
   const apiKey = supplied === undefined ? undefined : usableProbeKey(supplied)
   let response: Response
   try {
-    response = await fetch(url, {
+    response = await fetchWithHttpProxy(url, {
       method: 'GET',
       headers: {
         accept: 'application/json',
@@ -249,7 +250,7 @@ export async function discoverModels(
         ...attributionHeaders(),
       },
       ...request.signal === undefined ? {} : { signal: request.signal },
-    })
+    }, request.proxy)
   } catch (error: unknown) {
     if (request.signal?.aborted) {
       throw new LlmError('model discovery aborted by caller', 'ABORTED', { cause: error })

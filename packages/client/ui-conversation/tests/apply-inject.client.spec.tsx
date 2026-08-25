@@ -19,6 +19,7 @@ import { SlotTestRuntime, usePinnedBrowserLanguages, stubSettingsScope } from '@
 import type { SessionBehaviorOverrides } from '@bosch/bh-client-test-runtime'
 import { LocaleRuntime } from '@bosch/bh-client-locale/client'
 import type { ISession, SessionId } from '@bosch/bh-client-runtime/client'
+import type { DraftAttachmentId } from '@bosch/bh-client-ui-conversation/client'
 import { apply, inject } from '@bosch/bh-client-ui-conversation/client'
 import type {
   ChatViewInjected, ComposerBarInjected, ConversationInjected, ConversationSessionHeaderInjected,
@@ -31,6 +32,14 @@ import type { createChatStore } from '../src/client/stores.ts'
 usePinnedBrowserLanguages('zh-CN')
 
 const ROOT = 'root-1' as SessionId
+
+type BrowserAnnotation = {
+  kind: 'browser-element'
+  url: string
+  title: string
+  preview: string
+  index?: number
+}
 
 type ChatInstance = ReturnType<ReturnType<typeof createChatStore>['create']>
 type ChatActions = ChatInstance['actions']
@@ -45,7 +54,26 @@ function sessionFakeFor() {
   } satisfies SessionBehaviorOverrides
 }
 
-async function bench() {
+async function bench(withBrowserAnnotation = false) {
+  const desktop = globalThis as typeof globalThis & {
+    bhDesktop?: {
+      browser?: {
+        onAnnotation?: (listener: (annotation: BrowserAnnotation) => void) => () => void
+      }
+    }
+  }
+  delete desktop.bhDesktop
+  let browserAnnotation: ((annotation: BrowserAnnotation) => void) | undefined
+  if (withBrowserAnnotation) {
+    desktop.bhDesktop = {
+      browser: {
+        onAnnotation: (listener) => {
+          browserAnnotation = listener
+          return () => { browserAnnotation = undefined }
+        },
+      },
+    }
+  }
   const runtime = await SlotTestRuntime.create()
   runtime.provide('connection', { api: { settings: {} }, isLoopback: false })
   // The plugin injects both; these specs exercise no settings path.
@@ -112,7 +140,7 @@ async function bench() {
   const inputApi = (id: SessionId) => {
     const info = runtime.sessions.provideInfo(id)!
     const state = info.hooks['input'] as {
-      getSnapshot: () => { draft: string }
+      getSnapshot: () => { draft: string; browserAnnotationIds?: readonly DraftAttachmentId[] }
       subscribe: (fn: () => void) => () => void
     }
     const actions = info.props['inputActions'] as {
@@ -125,6 +153,7 @@ async function bench() {
     runtime, feature, slots: runtime.slots, entryOf,
     conversationApi, conversationHeaderApi, residentApi, composerApi, chatViewApi, inputApi,
     sessionFake, layoutFake,
+    emitBrowserAnnotation: (annotation: BrowserAnnotation) => { browserAnnotation?.(annotation) },
   }
 }
 
@@ -195,6 +224,50 @@ describe('conversation slot inject API', () => {
     await new Promise(r => setTimeout(r, 0))
     expect(b.sessionFake.cancel).toHaveBeenCalledTimes(1)
     await b.runtime.dispose()
+  })
+
+  it('queues Browser annotations as text-file attachments with per-file comments', async () => {
+    const b = await bench(true)
+    const { state } = b.inputApi(ROOT)
+    const composer = b.composerApi(ROOT)
+    b.emitBrowserAnnotation({
+      kind: 'browser-element',
+      url: 'https://example.test/page',
+      title: 'Example',
+      index: 12,
+      preview: '<button id="save">Save</button>',
+    })
+    expect(state.getSnapshot().draft).toBe('')
+    const firstId = state.getSnapshot().browserAnnotationIds?.[0]
+    expect(firstId).toBeDefined()
+    const first = composer.draftBrowserAnnotations?.([firstId!])[0]
+    expect(first?.file.name).toBe('browser-annotation.html.txt')
+    expect(await first?.file.text()).toContain('Element index: [12]')
+    composer.updateBrowserAnnotationComment?.(firstId!, 'Use this save button')
+    expect(composer.draftBrowserAnnotations?.([firstId!])[0]?.comment).toBe('Use this save button')
+    expect(b.sessionFake.prompt).not.toHaveBeenCalled()
+
+    b.emitBrowserAnnotation({
+      kind: 'browser-element',
+      url: 'https://example.test/other',
+      title: 'Other',
+      preview: '<main>Other</main>',
+    })
+    expect(state.getSnapshot().browserAnnotationIds).toHaveLength(2)
+    const ids = state.getSnapshot().browserAnnotationIds!
+    const secondId = ids[1]
+    expect(secondId).toBeDefined()
+    expect(await composer.draftBrowserAnnotations?.([secondId!])[0]?.file.text()).toContain('https://example.test/other')
+    state.getSnapshot().browserAnnotationIds!.forEach(id => composer.updateBrowserAnnotationComment?.(id, id === firstId ? 'Use this save button' : 'Inspect this region'))
+    b.inputApi(ROOT).actions.submit()
+    await vi.waitFor(() => expect(b.sessionFake.prompt).toHaveBeenCalledTimes(1))
+    const payload = b.sessionFake.prompt.mock.calls[0]?.[0]
+    expect(payload).toHaveLength(2)
+    expect(payload?.[0]).toMatchObject({ type: 'text', text: expect.stringContaining('Use this save button') })
+    expect(payload?.[1]).toMatchObject({ type: 'text', text: expect.stringContaining('Inspect this region') })
+    expect(state.getSnapshot().browserAnnotationIds).toBeUndefined()
+    await b.runtime.dispose()
+    delete (globalThis as typeof globalThis & { bhDesktop?: unknown }).bhDesktop
   })
 
   it('inject fails loud when the session resolves no binding or the scope lacks the service', async () => {

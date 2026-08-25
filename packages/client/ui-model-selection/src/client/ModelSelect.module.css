@@ -18,8 +18,7 @@
   height: 28px;
   padding: 0 4px 0 8px;
   border: none;
-  /* Rounded chip chrome, matching the sibling permission trigger. */
-  border-radius: 24px;
+  border-radius: var(--dsw-radius-control);
   outline: none;
   background: transparent;
   color: var(--dsw-alias-label-secondary);
@@ -27,6 +26,9 @@
   line-height: 20px;
   font-weight: 500;
   cursor: pointer;
+  transition:
+    background var(--ds-transition-duration-fast) var(--ds-ease-in-out),
+    color var(--ds-transition-duration-fast) var(--ds-ease-in-out);
 }
 
 .trigger:hover:not(:disabled) {
@@ -34,7 +36,7 @@
 }
 
 .trigger:focus-visible {
-  box-shadow: 0 0 0 2px var(--dsw-alias-border-l3);
+  box-shadow: 0 0 0 2px var(--dsw-alias-focus-ring);
 }
 
 .trigger:disabled {
@@ -58,7 +60,7 @@
 .chevron {
   flex: 0 0 auto;
   color: var(--dsw-alias-label-caption);
-  transition: transform 120ms ease;
+  transition: transform var(--ds-transition-duration-fast) var(--ds-ease-in-out);
 }
 
 .chevronOpen {
@@ -83,7 +85,7 @@
   /* Surface tokens match the Menu primitive card (ui-primitives
    * Menu.module.css) so every dropdown reads as the same material. */
   border: 1px solid var(--dsw-alias-border-inverted);
-  border-radius: 12px;
+  border-radius: var(--dsw-radius-panel);
   background: var(--dsw-specific-menu);
   box-shadow: var(--dsw-shadow-lv3);
   color: var(--dsw-alias-label-primary);
@@ -166,7 +168,7 @@
   min-height: 38px;
   padding: 6px 8px;
   border: none;
-  border-radius: 10px;
+  border-radius: var(--dsw-radius-control);
   outline: none;
   background: transparent;
   color: inherit;
@@ -236,7 +238,7 @@
   height: 40px;
   padding: 0 10px;
   border: none;
-  border-radius: 10px;
+  border-radius: var(--dsw-radius-control);
   background: transparent;
   color: var(--dsw-alias-label-primary);
   font-size: 14px;

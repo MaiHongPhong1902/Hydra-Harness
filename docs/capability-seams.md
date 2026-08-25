@@ -175,6 +175,9 @@ flowchart LR
   pkg_web_search_perplexity["web-search-perplexity"]
   pkg_web_search_deepseek["web-search-deepseek"]
   pkg_web_fetch_http["web-fetch-http"]
+  pkg_browser_electron["browser-electron"]
+  svc_browsers["ctx.browsers<br/>Embedded browser sessions"]
+  pkg_tool_browser["tool-browser"]
   pkg_spill["spill"]
   svc_spillStore["ctx.spillStore<br/>Spill storage seam"]
   pkg_spill_local["spill-local"]
@@ -215,6 +218,7 @@ flowchart LR
   pkg_authorization --> svc_authorization
   pkg_bash_local --> svc_shell
   pkg_bash_sandbox --> svc_shell
+  pkg_browser_electron --> svc_browsers
   pkg_code_runtime --> svc_codeRuntime
   pkg_code_runtime_worker --> svc_codeRuntime
   pkg_commands --> svc_commands
@@ -282,9 +286,9 @@ flowchart LR
   pkg_storage_sqlite --> svc_storage
   pkg_subagent --> svc_subagents
   pkg_subagent_acp --> svc_subagents
+  pkg_subagent_bh_sdk --> svc_subagents
   pkg_subagent_claude_code --> svc_subagents
   pkg_subagent_codex --> svc_subagents
-  pkg_subagent_bh_sdk --> svc_subagents
   pkg_subagent_fork_in_process --> svc_subagents
   pkg_subagent_spawn_in_process --> svc_subagents
   pkg_subprocess --> svc_subprocess
@@ -319,6 +323,7 @@ flowchart LR
   svc_attachments --> pkg_host_runtime
   svc_attachments --> pkg_llm_pi_ai
   svc_authorization --> pkg_llm_pi_ai
+  svc_browsers --> pkg_tool_browser
   svc_clientModules --> pkg_hmr
   svc_codeRuntime --> pkg_tools
   svc_compaction --> pkg_compaction_basic
@@ -454,7 +459,7 @@ flowchart LR
 | `ctx.commands` | `core` | [`commands`](../packages/interaction/commands) | - | - | - | Plugins register direct human commands without sending invocations to the model. |
 | `ctx.sessionProjections` | `core` | [`session-projection`](../packages/session/session-projection) | - | [`tool-todo`](../packages/todo/tool-todo), [`session-title`](../packages/session/session-title), [`host-apiproxy`](../packages/host/apiproxy) | - | Domains register state-driven fold units; the eager drive keeps per-session watermark states and api-proxy serves baselines and pushes changed values. |
 | `ctx.sessionProjectionCache` | `core` | [`session-projection-cache`](../packages/session/session-projection-cache) | - | [`host-apiproxy`](../packages/host/apiproxy) | - | Durably checkpoints projection unit states per session (throttled + turn/end/detach mandatory points) and serves the cold-read ladder: cache row + persistence tail replay, so listings never load full logs. |
-| `ctx.skills` | `seam` | [`skill`](../packages/skill/skill) | [`skill-badge`](../packages/skill/skill-badge), [`skill-filesystem`](../packages/skill/skill-filesystem) | [`tool-skill`](../packages/skill/tool-skill) | - | Merges provider skill catalogs; tool-skill renders the session-prefix catalog and loads complete skill bodies. |
+| `ctx.skills` | `seam` | [`skill`](../packages/skill/skill) | [`skill-badge`](../packages/skill/skill-badge), [`skill-filesystem`](../packages/skill/skill-filesystem) | [`tool-skill`](../packages/skill/tool-skill) | - | Merges provider skill catalogs; tool-skill exposes bounded metadata search and exact body loading. |
 | `ctx.agents` | `core` | [`agent`](../packages/core/agent) | - | [`agent-loop`](../packages/core/agent-loop), [`acp`](../packages/acp/acp), `subagent-inprocess` | - | Owns live Agent handles, the create/resume factory seam, and process-local initiator propagation. |
 | `ctx.agentDefaultModel` | `core` | [`agent-default-model`](../packages/core/agent-default-model) | - | [`headless`](../packages/bundle/headless), [`host-apiproxy`](../packages/host/apiproxy) | - | Layers the default ModelSelection through settings so direct and Host-backed Agent entry points share one state owner. |
 | `ctx.agentLoop` | `bundle` | [`agent-loop`](../packages/core/agent-loop) | - | [`agent-spine-demo`](../packages/examples/agent-spine-demo) | - | The one concrete loop plugin; extension packages depend on bh-agent events and services, not on this package. |
@@ -475,6 +480,7 @@ flowchart LR
 | `ctx.agentTeams` | `core` | `agent-team` | - | `tool-agent-team` | - | Owns the implicit-root roster, durable peer mailbox, shared task DAG, and continuable-child lifecycle; tool-agent-team contributes the scoped model policy and controls. |
 | `ctx.jobs` | `seam` | [`jobs`](../packages/jobs/jobs) | [`jobs-local`](../packages/jobs/jobs-local) | [`tool-bash`](../packages/shell/tool-bash), [`tool-terminal`](../packages/terminal/tool-terminal), [`tool-subagent`](../packages/subagent/tool-subagent), [`tool-jobs`](../packages/jobs/tool-jobs) | - | Producers (background bash, PTY sends, and subagent delegations) register running work; tool-jobs is the model-facing controller that reads, lists, and kills it; jobs-local is the process-local registry. |
 | `ctx.web` | `seam` | [`web`](../packages/web/web) | [`web-search-exa`](../packages/web/web-search-exa), [`web-search-perplexity`](../packages/web/web-search-perplexity), [`web-search-deepseek`](../packages/web/web-search-deepseek), [`web-fetch-http`](../packages/web/web-fetch-http) | [`tool-web`](../packages/web/tool-web) | - | Search and fetch providers register into one ctx.web seam; tool-web owns the stable model-facing names. |
+| `ctx.browsers` | `seam` | [`browser-electron`](../packages/browser/browser-electron) | - | [`tool-browser`](../packages/browser/tool-browser) | - | One Electron window per agent, started on its first action and closed with it; the page is perceived as a numbered text DOM and driven by index. There is no provider registry: the seam and its only implementation are the same package. |
 | `ctx.spillStore` | `seam` | [`spill`](../packages/spill/spill) | [`spill-local`](../packages/spill/spill-local) | [`spill-policy`](../packages/spill/spill-policy) | - | The backend saves oversized tool text and returns a model-facing locator plus retrieval hint; spill-policy is the tools/post-execute consumer that decides when to spill. |
 | `ctx.directoryPicker` | `seam` | `directory-picker` | `directory-picker-native`, `directory-picker-browse` | `apiproxy` | - | Discriminated interaction capability: the native backend opens one OS chooser on the host display, the browse backend serves listing/creation primitives for the in-app browser; dual-face backends fill ui-workspace directory-flow slots from their browser halves (no wire advertisement). |
 | `ctx.webServer` | `core` | `webserver` | - | `connection`, `modules`, `hmr` | - | Plain node:http carrier: named-route registry, index transform taps, and the static dist fallback; web-transport plugins register their own routes. |

@@ -46,7 +46,7 @@ export type SkillResourceBase =
 
 /** Invocation controls shared by skill discovery consumers. */
 export interface SkillInvocationPolicy {
-  /** Whether model-facing catalogs and loaders include this skill. */
+  /** Whether model-facing search and exact loading include this skill. */
   readonly modelInvocable: boolean
   /** Whether human-facing command catalogs and loaders include this skill. */
   readonly userInvocable: boolean

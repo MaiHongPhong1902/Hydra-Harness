@@ -412,6 +412,7 @@ export class SlotRegistry extends Service {
       sessions: {
         list: sessions.list,
         provideInfo: sessions.currentProvideInfo,
+        provideInfoOf: id => sessions.provideInfo(id),
       },
       workspaces: { list: workspaces.list },
       get locale() { return service._locale },

@@ -63,6 +63,8 @@ import * as ToolTeam from '@bosch/bh-experimental-tool-agent-team'
 import * as ToolTodo from '@bosch/bh-tool-todo'
 import * as ToolSubagent from '@bosch/bh-tool-subagent'
 import * as ToolWeb from '@bosch/bh-tool-web'
+import BrowserSessionService from '@bosch/bh-browser-electron'
+import * as ToolBrowser from '@bosch/bh-tool-browser'
 import VmWorkflowEngine from '@bosch/bh-workflow-worker-thread'
 import * as ToolRalph from '@bosch/bh-tool-ralph'
 import * as ToolWorkflow from '@bosch/bh-tool-workflow'
@@ -427,7 +429,7 @@ const TOOL_PACKAGES: ToolPackage[] = [
     dir: 'tool-skill',
     source: 'packages/skill/tool-skill/src/index.ts',
     requires: ['ctx.tools', 'ctx.agents', 'ctx.skills'],
-    writes: ['tool/call', 'tool/result', 'user/message replacement catalogs via agent.inject()'],
+    writes: ['tool/call', 'tool/result', 'user/message direct /name instructions via agent/pre-step'],
     async mount(ctx) {
       await ctx.plugin(AgentRegistry)
       await ctx.plugin(SkillRegistry)
@@ -605,6 +607,21 @@ const TOOL_PACKAGES: ToolPackage[] = [
     },
     note:
       'web_search and web_fetch keep provider selection behind ctx.web so model-visible schemas stay stable across backend swaps.',
+  },
+  {
+    pkg: '@bosch/bh-tool-browser',
+    dir: 'tool-browser',
+    source: 'packages/browser/tool-browser/src/index.ts',
+    requires: ['ctx.tools', 'ctx.browsers', 'ctx.systemPrompt', 'a calling Agent (the window is owned per agent)'],
+    writes: ['tool/call', 'tool/result'],
+    async mount(ctx) {
+      // The seam starts no window until an action asks for one, so mounting it
+      // here harvests the schemas without needing an Electron binary.
+      await ctx.plugin(BrowserSessionService)
+      await ctx.plugin(ToolBrowser)
+    },
+    note:
+      'The embedded browser window opens on the first browser_* call of an agent and closes with it. Without the optional electron package the tools still register and every call fails with BROWSER_UNAVAILABLE.',
   },
 ]
 

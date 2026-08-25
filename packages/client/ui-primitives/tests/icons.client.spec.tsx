@@ -55,15 +55,16 @@ describe('ic_ds_ icon set', () => {
 })
 
 describe('FishLogo', () => {
-  it('renders the fish path in currentColor at the native ratio', () => {
+  it('renders the supplied WorkON mark at the requested square size', () => {
     const { container } = render(<primitives.FishLogo />)
     const svg = container.querySelector('svg')!
     expect(svg.getAttribute('width')).toBe('24')
-    expect(Number(svg.getAttribute('height'))).toBeCloseTo(17.66, 1)
-    expect(svg.getAttribute('viewBox')).toBe('0 0 23.16 17.04')
-    expect(container.querySelectorAll('path')).toHaveLength(1)
-    expect(container.innerHTML).toContain('currentColor')
-    expect(container.innerHTML).not.toContain('M0 0L23.16')
+    expect(svg.getAttribute('height')).toBe('24')
+    expect(svg.getAttribute('viewBox')).toBe('0 0 166 166')
+    const paths = [...container.querySelectorAll('path')]
+    expect(paths).toHaveLength(3)
+    expect(paths.map(path => path.getAttribute('fill'))).toEqual(['#0096E8', '#006EAD', '#006EAD'])
+    expect(paths[0]?.getAttribute('stroke')).toBe('#0096E8')
   })
 })
 
@@ -73,9 +74,11 @@ describe('BrandWordmark', () => {
     const svg = view.container.querySelector('svg')!
     expect(svg.getAttribute('width')).toBe('182')
     expect(svg.getAttribute('viewBox')).toBe('0 0 182 24')
+    expect(view.container.querySelector('svg[viewBox="0 0 166 166"]')).not.toBeNull()
 
     view.rerender(<primitives.BrandWordmark includeMark={false} />)
     expect(svg.getAttribute('width')).toBe('156')
     expect(svg.getAttribute('viewBox')).toBe('26 0 156 24')
+    expect(view.container.querySelector('svg[viewBox="0 0 166 166"]')).toBeNull()
   })
 })

@@ -25,6 +25,14 @@ The Cordis framework and its foundation libraries are source-vendored into this 
 | `@bosch/cordis-plugin-hmr` | `@cordisjs/plugin-hmr` | [github.com/bosch-harness/cordis](https://github.com/bosch-harness/cordis) | MIT |
 | `@bosch/cordis-plugin-logger-console` | `@cordisjs/plugin-logger-console` | [github.com/bosch-harness/cordis](https://github.com/bosch-harness/cordis) | MIT |
 
+## Vendored source in packages (`third-party/`)
+
+Source kept as an upstream-pinned git submodule rather than republished under the `@bosch` scope, because it must be bundled into the sandboxed preload. Each directory preserves its upstream `LICENSE`; its gitlink records the exact upstream commit.
+
+| Directory | Upstream name | Upstream | License | Role |
+| --- | --- | --- | --- | --- |
+| [`packages/browser/browser-electron/third-party/page-agent`](packages/browser/browser-electron/third-party/page-agent) | `page-agent` | [github.com/alibaba/page-agent](https://github.com/alibaba/page-agent) | MIT | Complete PageAgent runtime (Core ReAct loop, LLM client, PageController, Panel, and simulator mask) bundled into the Electron preload. The DOM-extraction implementation derives from [browser-use](https://github.com/browser-use/browser-use) (MIT, Gregor Zunic), whose attribution rides along. |
+
 ## Runtime npm dependencies
 
 External packages that a workspace package resolves at runtime. The tier covers every plugin a user can mount from `cordis.yml` — not only what the `bh` CLI, Web UI, and Python SDK runtime load by default.
@@ -51,12 +59,17 @@ External packages that a workspace package resolves at runtime. The tier covers 
 | [`@tanstack/react-virtual`](https://github.com/TanStack/virtual) | MIT |
 | [`@types/mdast`](https://github.com/DefinitelyTyped/DefinitelyTyped) | MIT |
 | [`@vscode/ripgrep`](https://github.com/microsoft/vscode-ripgrep) | MIT |
+| [`@xterm/addon-fit`](https://github.com/xtermjs/xterm.js/tree/master/addons/addon-fit) | MIT |
+| [`@xterm/xterm`](https://github.com/xtermjs/xterm.js) | MIT |
+| [`ai-motion`](https://github.com/gaomeng1900/ai-motion) | MIT |
 | [`anser`](https://github.com/IonicaBizau/anser) | MIT |
+| [`chalk`](https://github.com/chalk/chalk) | MIT |
 | [`chokidar`](https://github.com/paulmillr/chokidar) | MIT |
 | [`clsx`](https://github.com/lukeed/clsx) | MIT |
 | [`commander`](https://github.com/tj/commander.js) | MIT |
 | [`diff`](https://github.com/kpdecker/jsdiff) | BSD-3-Clause |
 | [`e2b`](https://github.com/e2b-dev/e2b) | MIT |
+| [`electron`](https://github.com/electron/electron) | MIT |
 | [`eventsource-parser`](https://github.com/rexxars/eventsource-parser) | MIT |
 | [`fflate`](https://github.com/101arrowz/fflate) | MIT |
 | [`immer`](https://github.com/immerjs/immer) | MIT |
@@ -87,6 +100,7 @@ External packages that a workspace package resolves at runtime. The tier covers 
 | [`tsx`](https://github.com/privatenumber/tsx) | MIT |
 | [`turndown`](https://github.com/mixmark-io/turndown) | MIT |
 | [`typescript`](https://github.com/microsoft/TypeScript) | Apache-2.0 |
+| [`undici`](https://github.com/nodejs/undici) | MIT |
 | [`use-sync-external-store`](https://github.com/facebook/react) | MIT |
 | [`ws`](https://github.com/websockets/ws) | MIT |
 | [`yaml`](https://github.com/eemeli/yaml) | ISC |

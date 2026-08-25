@@ -29,7 +29,7 @@
   padding: 0 0 24px;
   overflow: hidden;
   border: 1px solid var(--dsw-alias-border-inverted);
-  border-radius: 24px;
+  border-radius: var(--dsw-radius-dialog);
   background: var(--dsw-alias-bg-layer-2);
   box-shadow: var(--dsw-shadow-lv3);
 }
@@ -66,7 +66,7 @@
   width: 28px;
   height: 28px;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--dsw-radius-control);
   background: transparent;
   cursor: pointer;
   color: var(--dsw-alias-label-secondary);

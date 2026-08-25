@@ -50,6 +50,7 @@ const EXPECTED_TOOLS = [
   'read_image',
   'send_message',
   'skill',
+  'skill_search',
   'subagent',
   'subagent_fork',
   'todo_write',

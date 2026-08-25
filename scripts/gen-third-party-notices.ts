@@ -384,6 +384,62 @@ export function tierExternalDeps(manifests: Map<string, Manifest>, names: Set<st
   return tiers
 }
 
+/**
+ * A source tree copied into a package's own `third-party/`, rather than into
+ * `vendor/`. These are not npm packages and have no manifest to read, so the
+ * disclosure metadata is stated here and {@link assertPackageVendoredComplete}
+ * proves the list covers every such tree on disk.
+ */
+interface PackageVendored {
+  /** Repo-relative directory holding the copy. */
+  dir: string
+  /** The name the source carries upstream. */
+  upstreamName: string
+  /** Upstream project URL. */
+  upstream: string
+  /** SPDX license of the copied tree. */
+  license: string
+  /** Why it is here, and any attribution riding along with it. */
+  role: string
+}
+
+const PACKAGE_VENDORED: PackageVendored[] = [
+  {
+    dir: 'packages/browser/browser-electron/third-party/page-agent',
+    upstreamName: 'page-agent',
+    upstream: 'https://github.com/alibaba/page-agent',
+    license: 'MIT',
+    role: 'Complete PageAgent runtime (Core ReAct loop, LLM client, PageController, Panel, and simulator mask) bundled into the Electron preload. The DOM-extraction implementation derives from [browser-use](https://github.com/browser-use/browser-use) (MIT, Gregor Zunic), whose attribution rides along.',
+  },
+]
+
+/**
+ * Assert every source tree under a package's `third-party/` is disclosed above.
+ * The tree, not the list, is the set that must be disclosed, so a new copy
+ * fails the generator until it is declared.
+ * Exported for a direct negative test; `scanRoot` may point at a fixture tree.
+ */
+export function assertPackageVendoredComplete(
+  declared: PackageVendored[] = PACKAGE_VENDORED,
+  scanRoot: string = root,
+): void {
+  const listed = new Set(declared.map(entry => entry.dir))
+  const missing = globSync('packages/*/*/third-party/*/', { cwd: scanRoot })
+    .map(path => path.replaceAll('\\', '/').replace(/\/$/, ''))
+    .filter(dir => !listed.has(dir))
+  if (missing.length > 0) {
+    throw new Error(
+      `gen-third-party-notices: vendored source tree(s) ${missing.join(', ')} are not disclosed. `
+      + 'Add each to PACKAGE_VENDORED in scripts/gen-third-party-notices.ts.',
+    )
+  }
+  for (const entry of declared) {
+    if (!existsSync(resolve(scanRoot, entry.dir, 'LICENSE'))) {
+      throw new Error(`gen-third-party-notices: ${entry.dir} has no LICENSE file beside its source.`)
+    }
+  }
+}
+
 /** A vendored package row parsed out of the `vendor/README.md` manifest table. */
 export interface VendoredRow {
   npmName: string
@@ -666,6 +722,7 @@ export function render(): string {
   const runtimeDeps = npm.filter(dep => dep.runtime)
   const devDeps = npm.filter(dep => !dep.runtime)
   const vendored = collectVendored()
+  assertPackageVendoredComplete()
   const python = collectPython()
   const patched = collectPatched()
   const claudeDistribution = runtimeDeps.some(
@@ -703,6 +760,14 @@ The Cordis framework and its foundation libraries are source-vendored into this 
 | Package | Upstream name | Upstream | License |
 | --- | --- | --- | --- |
 ${vendored.map(row => `| \`${row.npmName}\` | \`${row.upstreamName}\` | [${row.upstream.replace('https://', '')}](${row.upstream}) | MIT |`).join('\n')}
+
+## Vendored source in packages (\`third-party/\`)
+
+Source kept as an upstream-pinned git submodule rather than republished under the \`@bosch\` scope, because it must be bundled into the sandboxed preload. Each directory preserves its upstream \`LICENSE\`; its gitlink records the exact upstream commit.
+
+| Directory | Upstream name | Upstream | License | Role |
+| --- | --- | --- | --- | --- |
+${PACKAGE_VENDORED.map(entry => `| [\`${entry.dir}\`](${entry.dir}) | \`${entry.upstreamName}\` | [${entry.upstream.replace('https://', '')}](${entry.upstream}) | ${entry.license} | ${entry.role} |`).join('\n')}
 
 ## Runtime npm dependencies
 

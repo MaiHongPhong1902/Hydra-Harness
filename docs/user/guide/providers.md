@@ -26,6 +26,19 @@ The Provider ID is permanent because requests, saved sessions, model defaults, a
 
 Under **Model catalog**, choose **Fetch available models** to query the base URL and credential currently shown in the form. Selecting candidates updates the draft; the provider is not stored until you save. Catalog providers use their installed catalog without a network request.
 
+### Route traffic through an HTTP(S) proxy
+
+Open **Customized settings** and set **Proxy** when a provider must reach its endpoint through a forwarding proxy. Leave it blank to connect directly to the endpoint. This field is available on catalog and custom providers, accepts `http:` or `https:` URLs, and affects only that provider route. It also applies to **Fetch available models** when the form calls an endpoint.
+
+```yaml
+llm-pi-ai:
+  providers:
+    my-gateway:
+      proxy: http://127.0.0.1:3128
+```
+
+For the built-in DeepSeek route, set `proxy` under `llm-deepseek` instead. The setting is route-scoped, so it does not redirect another provider or change the application-wide proxy environment.
+
 ### Image input
 
 A model you enter by hand is treated as text-only until it says otherwise, because nothing can ask an endpoint which modalities it accepts. Attaching an image to such a model is refused before it is sent, naming the model.

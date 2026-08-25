@@ -2,7 +2,7 @@
 
 Local filesystem provider for the `ctx.skills` registry.
 
-This package implements one skill source. It scans local project, custom, and user skill roots, parses `SKILL.md` or flat Markdown skill files, and registers the provider on `ctx.skills`. The registry remains in `@bosch/bh-skill`; the durable session catalogs and model-facing loader tool remain in `@bosch/bh-tool-skill`.
+This package implements one skill source. It scans local project, custom, and user skill roots, parses `SKILL.md` or flat Markdown skill files, and registers the provider on `ctx.skills`. The registry remains in `@bosch/bh-skill`; bounded model-facing search and exact loading remain in `@bosch/bh-tool-skill`.
 
 ## Plugin
 
@@ -38,7 +38,7 @@ Default roots are resolved in this provider's rank order:
 
 The project root is the nearest ancestor containing `.git`; without one, the current cwd is used. The user BH root skips its `.system` child so system-owned directories are not treated as normal user skills. `includeDefaultRoots: false` omits the project and user rows and the `$BH_BUNDLED_SKILL_DIR` environment default while retaining explicitly configured custom and bundled roots, allowing several uniquely named isolated providers to see only their own roots. This provider supplies project and user skills; another provider may supply built-in system skills.
 
-When `ctx.fs` is available, discovery lists roots through `ctx.fs.listDir`, reads skill files through `ctx.fs.readText`, and probes `.git` through the filesystem service. Full skill loads forward the lookup abort signal to filesystem metadata and content reads. Without a filesystem service, the provider falls back to abortable Node filesystem I/O so minimal local contexts can still load skills. Confirmed missing paths are valid empty state, malformed or non-text entries warn and skip, and unexpected discovery/read failures make the registry snapshot incomplete rather than replacing a last-good model catalog with a misleading deletion.
+When `ctx.fs` is available, discovery lists roots through `ctx.fs.listDir`, reads skill files through `ctx.fs.readText`, and probes `.git` through the filesystem service. Full skill loads forward the lookup abort signal to filesystem metadata and content reads. Without a filesystem service, the provider falls back to abortable Node filesystem I/O so minimal local contexts can still load skills. Confirmed missing paths are valid empty state, malformed or non-text entries warn and skip, and unexpected discovery/read failures make the registry snapshot incomplete rather than asserting a misleading deletion.
 
 ## Catalog Change Detection
 
@@ -46,28 +46,28 @@ Existing skill roots are watched with Chokidar. Before opening a native watcher,
 
 A root that does not exist is followed from the nearest existing ancestor one missing path segment at a time. The next segment is probed with `fs.watchFile`; once `.agents`, `skills`, or the configured root appears, observation advances until Chokidar can attach to the real root. Root deletion reverses this process, so deleting and recreating an entire skills directory remains observable. Project-scoped watchers are bounded by `watchMaxProjects`; revisiting an evicted project reattaches observation during discovery.
 
-The first-party filesystem `write` and `edit` tools also synchronously invalidate the provider through `fs/observed` when their target could affect a watched skill entry. This fast path makes the next model step observe its own filesystem mutation without waiting for the host watcher. External IDE, Git, shell, and process changes rely on Chokidar or the missing-path probe. Existing-root watchers remain persistent until effect teardown so Chokidar owns asynchronous native error events; startup/runtime watcher failures are logged and retried. Discovery still scans readable roots and returns their candidates for direct loading, but marks the observation incomplete so it is not cached or published as an authoritative model catalog. Effect teardown closes every watcher and contains late callbacks.
+The first-party filesystem `write` and `edit` tools also synchronously invalidate the provider through `fs/observed` when their target could affect a watched skill entry. This fast path makes the next discovery observe its own filesystem mutation without waiting for the host watcher. External IDE, Git, shell, and process changes rely on Chokidar or the missing-path probe. Existing-root watchers remain persistent until effect teardown so Chokidar owns asynchronous native error events; startup/runtime watcher failures are logged and retried. Discovery still scans readable roots and returns their candidates for direct loading, but marks the observation incomplete so it is not cached or treated as authoritative absence. Effect teardown closes every watcher and contains late callbacks.
 
 ## Skill Format
 
 Skills can be single-level directory bundles (`<name>/SKILL.md`) or flat Markdown files (`<name>.md`). Nested `**/SKILL.md` discovery is deliberately excluded. Frontmatter is parsed as an open YAML object with the `yaml` package; this provider interprets required `name` and `description`, plus optional `whenToUse`, `metadata`, `disable-model-invocation`, and `user-invocable`. Names must be kebab-case.
 
-The two invocation fields accept YAML booleans and the case-insensitive forms `true`/`false`, `yes`/`no`, `on`/`off`, and `1`/`0`. `disable-model-invocation: true` excludes the skill from model-facing catalogs and loaders; `user-invocable: false` excludes it from human-facing commands. Each omitted field defaults to permitting its surface, and the provider always emits both positive internal policy values, including when both keys are absent. A rejected camel-case spelling or a non-boolean invocation value drops the entire skill from discovery with a warning instead of discarding only that field or falling back to a permissive default. Invocation policy fails closed because ignoring invalid data could expose a skill on a disabled surface; wrong-typed optional `whenToUse` and `metadata` values are omitted because neither currently grants invocation.
+The two invocation fields accept YAML booleans and the case-insensitive forms `true`/`false`, `yes`/`no`, `on`/`off`, and `1`/`0`. `disable-model-invocation: true` excludes the skill from model-facing search and loading; `user-invocable: false` excludes it from human-facing commands. Each omitted field defaults to permitting its surface, and the provider always emits both positive internal policy values, including when both keys are absent. A rejected camel-case spelling or a non-boolean invocation value drops the entire skill from discovery with a warning instead of discarding only that field or falling back to a permissive default. Invocation policy fails closed because ignoring invalid data could expose a skill on a disabled surface; wrong-typed optional `whenToUse` and `metadata` values are omitted because neither currently grants invocation.
 
-The catalog and body have separate lifecycles. Discovery parses frontmatter to produce the summary. Every `skill(name)` load rereads and reparses the current file, so body edits need no hash, revision, cache invalidation, or proactive model notification. A frontmatter rename between discovery and loading rejects the stale name and invalidates the provider; the next catalog observation publishes the new name.
+Metadata and body have separate lifecycles. Discovery parses frontmatter to produce the summary. Every `skill(name)` load rereads and reparses the current file, so body edits need no hash, revision, cache invalidation, or proactive model notification. A frontmatter rename between discovery and loading rejects the stale name and invalidates the provider; the next discovery exposes the new name.
 
 ## Model Experience
 
-Indirectly, through `bh-tool-skill`, which renders this provider's invocable names and capped descriptions into the initial or replacement catalog and a selected current instruction body plus resource-base guidance into retained tool history while paths, provider ranks, and disabled skills remain hidden.
+Indirectly, through `bh-tool-skill`, which returns bounded matching metadata on demand and a selected current instruction body plus resource-base guidance in retained tool history while paths, provider ranks, and disabled skills remain hidden.
 
 #### KV Cache effect
 
-Watcher invalidation can cause the named consumer to append a replacement catalog to the existing request history. Body-only edits leave the catalog digest unchanged.
+Watcher invalidation changes later searches and exact loads but appends nothing proactively. Body-only edits affect only later exact loads.
 
 ## Known Limitations and Deferred Work
 
 - **Discovery is one level deep** — only `<root>/<name>/SKILL.md` and `<root>/<name>.md` are recognized; nested skill trees and package manifests are ignored.
 - **Project scope is the nearest `.git` ancestor** — workspaces without that marker fall back to the supplied cwd, with no alternate project-root marker or monorepo subproject selection.
-- **Malformed entries disappear with a warning** — the model catalog receives no per-skill diagnostic and cannot distinguish an absent skill from an invalid one; unexpected I/O failures preserve the last-good catalog instead.
+- **Malformed entries disappear with a warning** — model search receives no per-skill diagnostic and cannot distinguish an absent skill from an invalid one; unexpected I/O failures mark the search observation incomplete.
 - **Missing-root observation polls one path segment** — roots absent at startup use `fs.watchFile` at `watchPollIntervalMs` until Chokidar can attach, trading bounded detection latency for reliable creation detection across IDE, Git, and shell workflows.
 - **No body revision protocol** — a loaded body is ordinary retained tool history; later file edits affect later calls but neither rewrite old results nor announce that the body changed.

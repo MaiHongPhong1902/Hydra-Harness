@@ -116,12 +116,11 @@
 }
 
 .colorTools {
-  /* The design platform ships no purple static token; violet-400 literal. */
-  --meter-tint: rgb(167, 139, 250);
+  --meter-tint: var(--dsw-static-flow-accent-hover);
 }
 
 .colorMessages {
-  --meter-tint: var(--dsw-static-blue-450);
+  --meter-tint: var(--dsw-static-flow-accent);
 }
 
 .rows {

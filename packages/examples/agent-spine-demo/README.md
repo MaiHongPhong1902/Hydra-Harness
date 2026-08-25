@@ -31,7 +31,7 @@ Read this package for the whole plugin tree and its composition order.
                                   package-owned relational checks
 @bosch/bh-tool-bash        the model-facing bash schema (unless toolBash=false)
 @bosch/bh-agent-instructions  AGENTS.md/CLAUDE.md workspace context loader
-@bosch/bh-tool-skill       session-prefix skill catalog + model-facing loader schema
+@bosch/bh-tool-skill       bounded skill search + exact model-facing loader schemas
 @bosch/bh-tool-jobs       job_output/job_list/job_kill schemas + completion notices
 @bosch/bh-agent-loop       THE concrete loop (gets the forwarded `agents`)
                                   (bh-system-prompt gets the forwarded `persona`)
@@ -44,7 +44,7 @@ The spine is everything COMMON to every entry point. The swappable and entry-poi
 - **the LLM adapter** — the bundle ships the abstract `llm` service; the leaf registers a concrete adapter on `ctx.llm` (`llm-deepseek`, `llm-pi-ai`, `llm-replay`).
 - **model-backed session-title providers** — the bundle mounts the fallback service with overridable example limits (5 words, 40 fallback bytes, 80 accepted-title bytes); a leaf may opt into exactly one first-prompt or all-messages LLM provider.
 - **the bash executor** — the bundle ships `tool-bash` (the consumer schema); the leaf provides `ctx.shell` (`bash-local` or a sandboxed impl).
-- **non-local skill providers** — the bundle ships the skill registry, the local filesystem provider, and the `skill` tool; deployments can add other providers such as embedded or remote catalogs as siblings.
+- **non-local skill providers** — the bundle ships the skill registry, local filesystem provider, and `skill_search`/`skill` tools; deployments can add embedded or remote providers as siblings.
 - **entry point + per-app infrastructure** — headless, ACP, and JSON-RPC app packages own transport, stdout, and reload choices. `timer` stays in the spine because it is common and stdout-silent.
 
 This applies the [Service Definition / Service Provider / Consumer separation](../../../.agents/notes/implemented/architecture/2026-06-13-capability-seams.md) at the composition level: the bundle owns the shared spine, the leaf owns the backends, the app package owns the entry point.

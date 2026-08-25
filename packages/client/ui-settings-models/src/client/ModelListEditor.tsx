@@ -56,6 +56,8 @@ export interface ProbeTarget {
   provider?: string
   /** Endpoint as the form currently shows it. */
   baseURL?: string
+  /** Optional HTTP(S) network proxy for endpoint interrogation. */
+  proxy?: string
   /** Wire protocol the form names, when it names one. */
   api?: string
   /** Key typed into the form and not yet stored, when there is one. */
@@ -235,6 +237,7 @@ export function ModelListEditor(props: ModelListEditorProps): ReactNode {
         settingsNs: probe.settingsNs,
         ...probe.provider === undefined ? {} : { provider: probe.provider },
         ...probe.baseURL === undefined || probe.baseURL.length === 0 ? {} : { baseURL: probe.baseURL },
+        ...probe.proxy === undefined || probe.proxy.length === 0 ? {} : { proxy: probe.proxy },
         ...probe.api === undefined ? {} : { api: probe.api },
         ...probe.apiKey === undefined ? {} : { apiKey: probe.apiKey },
       })

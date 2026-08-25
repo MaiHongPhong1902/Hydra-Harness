@@ -78,6 +78,7 @@ export type InputBarProps = ComposerBarProps
 
 export function InputBar({
   useSession, useInput, inputActions, keyboard, addImages, removeImage, draftImages,
+  draftBrowserAnnotations, removeBrowserAnnotation, updateBrowserAnnotationComment,
   resolveSubmitMode, toggleCommandMenu, stop, command, t,
   renderSlot, useNotices, useLexicon, useMenuLauncher,
   useProjection, sessionId, variant, disabled: inert = false, blocked,
@@ -105,7 +106,14 @@ export function InputBar({
     () => input === undefined || draftImages === undefined ? [] : draftImages(input.imageIds),
     [draftImages, input?.imageIds],
   )
-  const empty = draft.trim() === '' && attachments.length === 0
+  const browserAnnotations = useMemo(
+    () => input === undefined || draftBrowserAnnotations === undefined || input.browserAnnotationIds === undefined
+      ? []
+      : draftBrowserAnnotations(input.browserAnnotationIds),
+    [draftBrowserAnnotations, input?.browserAnnotationIds],
+  )
+  const browserAnnotationCount = input?.browserAnnotationIds?.length ?? browserAnnotations.length
+  const empty = draft.trim() === '' && attachments.length === 0 && browserAnnotationCount === 0
   // Transient error banner (machine notices, image-intake rejections, and
   // prompt failures): the seq keys the Toast so an identical repeated message
   // restarts the hold-then-fade cycle instead of reusing the faded one.
@@ -188,6 +196,12 @@ export function InputBar({
       inputActions.pruneImages(attachments.map(attachment => attachment.id))
     }
   }, [attachments, input?.imageIds, inputActions])
+  useEffect(() => {
+    if (input === undefined || inputActions === undefined || draftBrowserAnnotations === undefined) return
+    const available = browserAnnotations.map(annotation => annotation.id)
+    const requested = input.browserAnnotationIds ?? []
+    if (available.length !== requested.length) inputActions.pruneBrowserAnnotations?.(available)
+  }, [browserAnnotations, draftBrowserAnnotations, input?.browserAnnotationIds, inputActions])
 
   // A native Safari edit that shortens the draft may leave the previous
   // soft-wrap layout behind after the mirror shrinks. The native-change signal
@@ -709,9 +723,14 @@ export function InputBar({
         {accessory !== undefined && <div className={css.accessory}>{accessory}</div>}
         {renderSlot('conversation.input.attachments', {
           attachments,
+          browserAnnotations,
           canAcceptDrop,
           onAddImages: intakeImages,
           onRemoveImage: (id) => { removeImage?.(id) },
+          onRemoveBrowserAnnotation: (id) => { removeBrowserAnnotation?.(id) },
+          onUpdateBrowserAnnotationComment: (id, comment) => {
+            updateBrowserAnnotationComment?.(id, comment)
+          },
           dropLimits: imageLimits === undefined ? undefined : {
             count: imageLimits.maxImagesPerMessage,
             size: imageSizeText(imageLimits.maxImageBytes),

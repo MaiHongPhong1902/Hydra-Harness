@@ -267,17 +267,33 @@
     },
     {
       "name": "skill",
-      "description": "Load the full instructions for an available skill. Call this with the exact skill name from the session skill catalog before acting on a task that names or clearly matches that skill.",
+      "description": "Load the full instructions for exactly one skill. Use only an exact name returned by `skill_search` for the current task or explicitly named by the user; do not guess names or reload an inline <skill_content> block.",
       "parameters": {
         "type": "object",
         "properties": {
           "name": {
             "type": "string",
-            "description": "The exact skill name from the available skills list."
+            "description": "The exact skill name returned by `skill_search` or explicitly named by the user."
           }
         },
         "required": [
           "name"
+        ]
+      }
+    },
+    {
+      "name": "skill_search",
+      "description": "Find a bounded shortlist of skills for a substantive user task before loading one. Search with concise task keywords; do not call this for greetings, thanks, acknowledgements, casual chat, meta questions, or vague requests. An empty result means load no skill.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Concise keywords describing the user task, not a greeting or conversational filler."
+          }
+        },
+        "required": [
+          "query"
         ]
       }
     },

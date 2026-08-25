@@ -185,9 +185,25 @@ export class TestSessions implements ISessions {
   /** Calls observed on the service-level face, newest last. */
   readonly calls: {
     method: 'open' | 'openSubagent' | 'setSubagentCatalogOpen' | 'refreshSubagents'
-      | 'clear' | 'search' | 'fork'
+      | 'clear' | 'search' | 'fork' | 'create'
     args: unknown[]
   }[] = []
+
+  async create(opts: {
+    workspaceId?: import('@bosch/bh-api-remotes/client').WorkspaceId
+    cwd?: string
+    sessionId?: SessionId
+    reuseWorkspaceBlank?: true
+  } = {}): Promise<SessionId> {
+    const id = opts.sessionId ?? (`test-created-${this.records.size + 1}` as SessionId)
+    this.calls.push({ method: 'create', args: [opts] })
+    if (this.records.has(id)) return id
+    return await this.add({
+      id,
+      summary: { blank: true, ...(opts.cwd === undefined ? {} : { cwd: opts.cwd }) },
+      snapshot: { blank: true, composerPhase: 'blank' },
+    }, { current: false })
+  }
 
   /** The wire schema's `session.search` result bound (production parity). */
   readonly searchResultLimit = SESSION_SEARCH_RESULT_LIMIT

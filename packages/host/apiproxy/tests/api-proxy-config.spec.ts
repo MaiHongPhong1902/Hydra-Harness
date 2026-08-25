@@ -710,7 +710,7 @@ describe('llm.discoverModels', () => {
     const ctx = await harness()
     const seen: unknown[] = []
     ctx.llm.registerModelDiscovery('llm-pi-ai', (probe) => {
-      seen.push({ baseURL: probe.baseURL, api: probe.api, apiKey: probe.apiKey })
+      seen.push({ baseURL: probe.baseURL, api: probe.api, proxy: probe.proxy, apiKey: probe.apiKey })
       return Promise.resolve([
         { id: 'acme-large', name: 'Acme Large', contextWindow: 65_536, maxTokens: 4096 },
         { id: 'acme-small' },
@@ -722,6 +722,7 @@ describe('llm.discoverModels', () => {
       settingsNs: 'llm-pi-ai',
       baseURL: 'https://gateway.acme.example/v1',
       api: 'openai-completions',
+      proxy: 'http://127.0.0.1:3128',
       apiKey: 'probe-key',
     })))
 
@@ -732,6 +733,7 @@ describe('llm.discoverModels', () => {
     expect(seen).toEqual([{
       baseURL: 'https://gateway.acme.example/v1',
       api: 'openai-completions',
+      proxy: 'http://127.0.0.1:3128',
       apiKey: 'probe-key',
     }])
     // Interrogating a draft is a read: no namespace gained a section, and no
@@ -787,6 +789,7 @@ describe('llm.discoverModels', () => {
     const error = expectErr(await api.llm.discoverModels(request({
       settingsNs: 'llm-pi-ai',
       baseURL: 'https://gateway.acme.example/v1',
+      proxy: 'http://127.0.0.1:3128',
       apiKey: 'wrong',
     })))
 
@@ -794,6 +797,7 @@ describe('llm.discoverModels', () => {
     expect(error.message).toContain('answered 401; check the API key')
     expect(error.details).toEqual({ settingsNs: 'llm-pi-ai', baseURL: 'https://gateway.acme.example/v1' })
     expect(JSON.stringify(error)).not.toContain('wrong')
+    expect(JSON.stringify(error)).not.toContain('3128')
   })
 
   it('reports a namespace no adapter family serves', async () => {

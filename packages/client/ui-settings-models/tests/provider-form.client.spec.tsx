@@ -28,6 +28,7 @@ const PiAiConfig = Schema.object({
     displayName: Schema.string(),
     api: Schema.union(PROTOCOLS),
     baseURL: Schema.string(),
+    proxy: Schema.string(),
     models: Schema.array(Schema.object({
       id: Schema.string().required(),
       name: Schema.string(),
@@ -435,6 +436,7 @@ describe('endpoint interrogation', () => {
 
     fireEvent.change(screen.getByLabelText(en.keyInput), { target: { value: 'typed-not-saved' } })
     fireEvent.change(screen.getByLabelText(en.baseUrl), { target: { value: 'https://edited.example/v1' } })
+    fireEvent.change(screen.getByLabelText(en.proxy), { target: { value: 'http://127.0.0.1:3128' } })
     fireEvent.click(screen.getByText(en.fetchModels))
 
     await waitFor(() => { expect(discover).toHaveBeenCalled() })
@@ -444,8 +446,22 @@ describe('endpoint interrogation', () => {
       // from its own registry rather than the endpoint.
       provider: 'openai',
       baseURL: 'https://edited.example/v1',
+      proxy: 'http://127.0.0.1:3128',
       apiKey: 'typed-not-saved',
     })
+  })
+
+  it('stores a proxy on a configured provider', async () => {
+    const { mutate } = await mountSection()
+    openEditor('openai')
+
+    fireEvent.change(screen.getByLabelText(en.proxy), { target: { value: 'http://127.0.0.1:3128' } })
+    fireEvent.click(screen.getByText(en.apply))
+
+    await waitFor(() => { expect(mutate).toHaveBeenCalled() })
+    expect(firstMutate(mutate).ops).toEqual([
+      { op: 'set', path: ['providers', 'openai', 'proxy'], value: 'http://127.0.0.1:3128' },
+    ])
   })
 
   it('carries the protocol the profile already names', async () => {
@@ -548,6 +564,7 @@ describe('endpoint interrogation', () => {
     expect(buttonNamed(en.fetchModels).title).toBe(en.fetchNeedsBaseUrl)
 
     fireEvent.change(screen.getByLabelText(en.baseUrl), { target: { value: 'https://acme.test/v1' } })
+    fireEvent.change(screen.getByLabelText(en.proxy), { target: { value: 'http://127.0.0.1:3128' } })
     expect(buttonNamed(en.fetchModels).disabled).toBe(false)
     fireEvent.click(screen.getByText(en.fetchModels))
 
@@ -555,6 +572,7 @@ describe('endpoint interrogation', () => {
     expect(firstProbe(scripted.discover)).toEqual({
       settingsNs: 'llm-pi-ai',
       baseURL: 'https://acme.test/v1',
+      proxy: 'http://127.0.0.1:3128',
       api: 'openai-completions',
     })
   })
@@ -707,6 +725,7 @@ describe('hand-declared providers', () => {
     fireEvent.change(screen.getByLabelText(en.customRoute), { target: { value: 'acme-gateway' } })
     fireEvent.change(screen.getByLabelText(en.customDisplayName), { target: { value: 'Acme Gateway' } })
     fireEvent.change(screen.getByLabelText(en.baseUrl), { target: { value: 'https://gateway.acme.example/v1' } })
+    fireEvent.change(screen.getByLabelText(en.proxy), { target: { value: 'http://127.0.0.1:3128' } })
     fireEvent.change(screen.getByLabelText(en.keyInput), { target: { value: 'gw-key' } })
     fireEvent.click(screen.getByRole('button', { name: en.addModel }))
     fireEvent.change(screen.getByLabelText(`${en.modelId} 1`), { target: { value: 'acme-large' } })
@@ -725,6 +744,7 @@ describe('hand-declared providers', () => {
           apiKeyEnv: 'ACME_GATEWAY_API_KEY',
           api: 'openai-completions',
           baseURL: 'https://gateway.acme.example/v1',
+          proxy: 'http://127.0.0.1:3128',
           models: [{ id: 'acme-large', contextWindow: 65_536 }],
         },
       }],
@@ -746,7 +766,7 @@ describe('hand-declared providers', () => {
 
     mountCard()
     fireEvent.change(screen.getByLabelText(en.customRoute), { target: { value: 'acme' } })
-    expect(fields()).toEqual([en.customRoute, en.customDisplayName, en.baseUrl, en.customApi, en.keyInput])
+    expect(fields()).toEqual([en.customRoute, en.customDisplayName, en.baseUrl, en.proxy, en.customApi, en.keyInput])
     cleanup()
 
     // A shipped route's models each carry their own protocol, so its editor
@@ -754,7 +774,7 @@ describe('hand-declared providers', () => {
     await mountSection({ providers: { openai: { apiKeyEnv: 'OPENAI_API_KEY' } } })
     openEditor('openai')
     fireEvent.click(screen.getByText(en.customized))
-    expect(fields()).toEqual([en.keyInput, en.baseUrl])
+    expect(fields()).toEqual([en.keyInput, en.baseUrl, en.proxy])
     cleanup()
 
     // A hand-declared route named its own protocol at creation, so editing it
@@ -764,7 +784,7 @@ describe('hand-declared providers', () => {
       declaredRoutes: ['acme-gateway'],
     })
     openEditor('acme-gateway')
-    expect(fields()).toEqual([en.keyInput, en.customDisplayName, en.baseUrl, en.customApi])
+    expect(fields()).toEqual([en.keyInput, en.customDisplayName, en.baseUrl, en.proxy, en.customApi])
   })
 
   it('renames a declared route and falls back to its id when the name is cleared', async () => {

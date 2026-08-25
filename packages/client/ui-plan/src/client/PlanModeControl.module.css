@@ -1,4 +1,4 @@
-/* Active plan status follows Figma's warn-state pill. */
+/* Active plan status uses the warn-state control treatment. */
 
 .wrap {
   display: inline-flex;
@@ -13,7 +13,7 @@
   min-width: 34px;
   padding: 2px 8px;
   border: none;
-  border-radius: 999px;
+  border-radius: var(--dsw-radius-control);
   background: var(--dsw-alias-state-warn-tertiary);
   color: var(--dsw-alias-state-warn-label);
   font-size: 13px;
@@ -27,7 +27,7 @@
 }
 
 .chip:focus-visible {
-  outline: 2px solid var(--dsw-alias-state-warn-label);
+  outline: 2px solid var(--dsw-alias-focus-ring);
   outline-offset: 2px;
 }
 

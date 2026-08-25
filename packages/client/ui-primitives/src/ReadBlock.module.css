@@ -5,7 +5,7 @@
    reading. */
 
 .block {
-  --dsl-read-radius: 12px;
+  --dsl-read-radius: var(--dsw-radius-panel);
   --dsl-read-line-height: 22px;
   /* Fixed-width gutter column for the line numbers, so the content edge stays
      put down the whole window regardless of how wide the numbers grow. */
@@ -16,6 +16,7 @@
   color: var(--dsw-alias-label-primary);
   background: var(--dsw-alias-markdown-code-block);
   border-radius: var(--dsl-read-radius);
+  border: 1px solid var(--dsw-alias-border-l1);
 }
 
 .banner {
@@ -25,6 +26,7 @@
   gap: 12px;
   padding: 9px 14px;
   background: var(--dsw-alias-markdown-code-block-banner);
+  border-bottom: 1px solid var(--dsw-alias-border-l1);
   border-top-left-radius: var(--dsl-read-radius);
   border-top-right-radius: var(--dsl-read-radius);
 }

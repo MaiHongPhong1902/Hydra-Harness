@@ -518,6 +518,37 @@ describe('tool-web execution through the real registry', () => {
     await fiber.dispose()
   })
 
+  it('routes web_search by the active model provider instead of the configured fallback', async () => {
+    let deepseekCalls = 0
+    const deepseek: WebSearchProvider = {
+      id: 'deepseek-official',
+      available: () => available,
+      search: () => { deepseekCalls += 1; return Promise.resolve({ sources: [], truncated: false }) },
+    }
+    const bosch: WebSearchProvider = {
+      id: 'bosch',
+      available: () => available,
+      search: () => Promise.resolve({ content: 'bosch', sources: [], truncated: false }),
+    }
+    const { ctx, fiber } = await mountTools({ webConfig: { searchProvider: 'deepseek-official' }, search: deepseek })
+    ctx.web.registerSearchProvider(bosch)
+    const agent = {
+      options: { provider: 'deepseek-official' },
+      session: { requestHeader: () => ({ config: { provider: 'bosch' } }) },
+    }
+    const out = await ctx.tools.execute({
+      signal: testToolSignal,
+      callId: CallId('provider-routed-search'),
+      name: 'web_search',
+      arguments: { queries: ['q'] },
+      agent: agent as never,
+    })
+
+    expect(out.value).toEqual({ content: 'bosch', sources: [], truncated: false })
+    expect(deepseekCalls).toBe(0)
+    await fiber.dispose()
+  })
+
   it('executes web_search with multiple queries concurrently and merges results', async () => {
     const seen: string[] = []
     let releaseFirst: (() => void) | undefined

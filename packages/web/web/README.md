@@ -26,10 +26,12 @@ Providers register **capabilities**, not tools. `bh-tool-web` is the only owner 
 
 ## Selection
 
-Selection never depends on registration, config, or HMR order. A capability has an explicit provider id (config `searchProvider`/`fetchProvider`, or env `$BH_WEB_SEARCH_PROVIDER`/`$BH_WEB_FETCH_PROVIDER` feeding the same fields), or auto-selects when exactly one usable provider is registered. `search()`/`fetch()` resolve the provider at execution time:
+Selection never depends on registration, config, or HMR order. A model-facing search carries its active `modelProvider`; `search()` then uses only an adapter with the same id, and never falls back to a configured or unrelated provider. Calls without that model context retain the explicit provider-id (config `searchProvider`/`fetchProvider`, or env `$BH_WEB_SEARCH_PROVIDER`/`$BH_WEB_FETCH_PROVIDER` feeding the same fields) or single-provider selection used by non-agent callers. `search()`/`fetch()` resolve at execution time:
 
 | Situation | Execution |
 |---|---|
+| `search()` carries `modelProvider` with a registered usable adapter of the same id | runs that adapter only |
+| `search()` carries `modelProvider` without a matching/usable adapter | `WEB_MODEL_PROVIDER_SEARCH_UNSUPPORTED` / `WEB_MODEL_PROVIDER_SEARCH_UNAVAILABLE`; no fallback |
 | configured id registered and `available()` | runs that provider |
 | configured id not registered | `WEB_PROVIDER_CONFIGURED_MISSING` |
 | configured id registered but unavailable | `WEB_PROVIDER_CONFIGURED_UNAVAILABLE` |
@@ -41,7 +43,7 @@ The failure branches throw `WebError`, whose structured code (plus message detai
 
 ## Vocabulary
 
-`WebSearchRequest` (`query`, `maxResults?`) → `WebSearchResult` (`content?`, `sources[]`, `truncated`); each `WebSearchSource` has a required `url` and optional `title`/`snippet`/`publishedAt` (Perplexity citations may be URL-only). `WebFetchRequest` (`url`) → `WebFetchResult` (final `url`, `statusCode`, `body`, `truncated`); cancellation is a direct optional `AbortSignal` argument to `search()`/`fetch()`. `WebFetchBody` is a CLOSED discriminated union (`html` | `text`) owned here — consumers `switch` to exhaustiveness so a new kind breaks their compilation until handled. See `src/types.ts` for the full contracts and the `WebError` code taxonomy.
+`WebSearchRequest` (`query`, `modelProvider?`, `maxResults?`) → `WebSearchResult` (`content?`, `sources[]`, `truncated`); each `WebSearchSource` has a required `url` and optional `title`/`snippet`/`publishedAt` (Perplexity citations may be URL-only). `WebFetchRequest` (`url`) → `WebFetchResult` (final `url`, `statusCode`, `body`, `truncated`); cancellation is a direct optional `AbortSignal` argument to `search()`/`fetch()`. `WebFetchBody` is a CLOSED discriminated union (`html` | `text`) owned here — consumers `switch` to exhaustiveness so a new kind breaks their compilation until handled. See `src/types.ts` for the full contracts and the `WebError` code taxonomy.
 
 ## Model Experience
 

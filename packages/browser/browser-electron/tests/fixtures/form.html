@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Harness browser fixture</title>
+  </head>
+  <body>
+    <h1>Order form</h1>
+    <form id="order">
+      <label for="who">Requester</label>
+      <input id="who" name="who" type="text" />
+
+      <label for="size">Size</label>
+      <select id="size" name="size">
+        <option value="s">Small</option>
+        <option value="m">Medium</option>
+        <option value="l">Large</option>
+      </select>
+
+      <label for="artifact">Test artifact</label>
+      <input id="artifact" name="artifact" type="file" />
+
+      <button type="button" id="submit">Place order</button>
+    </form>
+    <p id="result"></p>
+    <p id="upload-result"></p>
+    <a id="continue" href="next.html">Continue</a>
+    <script>
+      document.getElementById('submit').addEventListener('click', () => {
+        const who = document.getElementById('who').value
+        const size = document.getElementById('size').value
+        document.getElementById('result').textContent = `Ordered ${size} for ${who}`
+      })
+      document.getElementById('artifact').addEventListener('change', event => {
+        document.getElementById('upload-result').textContent = `Selected ${event.target.files[0]?.name}`
+      })
+    </script>
+  </body>
+</html>

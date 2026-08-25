@@ -11,7 +11,7 @@
  * resizes are driven through the ResizeObserver stub.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { act, cleanup, render } from '@testing-library/react'
+import { act, cleanup, fireEvent, render } from '@testing-library/react'
 import { useSyncExternalStore } from 'react'
 import { AppFrame } from '@bosch/bh-client-ui-layout/src/client/AppFrame.tsx'
 import type { AppFrameProps } from '@bosch/bh-client-ui-layout/src/client/AppFrame.tsx'
@@ -25,14 +25,19 @@ import type {
 const selectedSession = { current: 's-test' as SessionId | undefined }
 const selectedSessionBlank = { current: false }
 const baselinesReady = { current: true }
+const providedSessions: SessionId[] = []
 
 // Render-prop contract stub fed through the standard seat prop (the renderer
 // injects the real one in production): session mode runs children(id), empty
 // mode runs the empty branch — the frame must work against exactly this
 // shape. Typed as the seat's own component type so the branded sessionId
 // parameter stays contract-checked.
-const SessionProviderStub: AppFrameProps['SessionProvider'] = ({ children, empty }) =>
-  selectedSession.current === undefined ? <>{empty?.() ?? null}</> : <>{children(selectedSession.current)}</>
+const SessionProviderStub: AppFrameProps['SessionProvider'] = ({ children, empty, sessionId }) => {
+  const resolved = sessionId ?? selectedSession.current
+  if (resolved === undefined) return <>{empty?.() ?? null}</>
+  providedSessions.push(resolved)
+  return <>{children(resolved)}</>
+}
 
 
 /** Observer stub: captures the callback so tests can fire resizes manually. */
@@ -55,6 +60,7 @@ function hookOf<T>(inst: { subscribe: (fn: () => void) => () => void; getSnapsho
 function mountFrame() {
   window.innerWidth = frameWidth // first-render viewport source before the observer fires
   const instance = createLayoutStore().create()
+  const createSideSession = vi.fn(async () => 's-side' as SessionId)
   const slotCalls: { key: string; props: unknown }[] = []
   const renderSlot = ((key: string, owner: object) => {
     slotCalls.push({ key, props: owner })
@@ -88,11 +94,12 @@ function mountFrame() {
       useSessions={useSessions}
       useWorkspaces={((sel: (s: WorkspaceListState) => unknown) => sel(workspaceState)) as never}
       SessionProvider={SessionProviderStub}
+      createSideSession={createSideSession}
     />
   )
   const utils = render(element())
   const frame = utils.container.firstElementChild as HTMLElement
-  return { instance, frame, slotCalls, rerenderFrame: () => { utils.rerender(element()) }, ...utils }
+  return { instance, frame, slotCalls, createSideSession, rerenderFrame: () => { utils.rerender(element()) }, ...utils }
 }
 
 function tracks(frame: HTMLElement): number[] {
@@ -110,11 +117,22 @@ function drag(handle: Element, fromX: number, toX: number): void {
   act(() => { handle.dispatchEvent(up) })
 }
 
+function dragY(handle: Element, fromY: number, toY: number): void {
+  const down = new PointerEvent('pointerdown', { pointerId: 1, clientY: fromY, bubbles: true })
+  const move = new PointerEvent('pointermove', { pointerId: 1, clientY: toY, bubbles: true })
+  const up = new PointerEvent('pointerup', { pointerId: 1, clientY: toY, bubbles: true })
+  act(() => { handle.dispatchEvent(down) })
+  act(() => { handle.dispatchEvent(move); vi.advanceTimersByTime(20) })
+  act(() => { handle.dispatchEvent(up) })
+}
+
 beforeEach(() => {
   frameWidth = 1920
+  window.innerHeight = 1080
   selectedSession.current = 's-test' as SessionId
   selectedSessionBlank.current = false
   baselinesReady.current = true
+  providedSessions.length = 0
   vi.useFakeTimers()
   vi.stubGlobal('ResizeObserver', ResizeObserverStub)
   vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => setTimeout(() => { cb(0) }, 16) as unknown as number)
@@ -132,11 +150,119 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup()
+  delete window.bhDesktop
   vi.useRealTimers()
   vi.unstubAllGlobals()
 })
 
 describe('AppFrame', () => {
+  it('starts with the right panel closed, then keeps its tabs and Terminals independent', async () => {
+    frameWidth = 1400
+    window.innerHeight = 900
+    let shortcut: ((value: 'files' | 'side-chat' | 'browser' | 'terminal') => void) | undefined
+    window.bhDesktop = {
+      browser: { setBounds: vi.fn() },
+      panels: {
+        onShortcut: (listener) => {
+          shortcut = listener
+          return () => { shortcut = undefined }
+        },
+      },
+    }
+    const view = mountFrame()
+    const shell = view.container.firstElementChild as HTMLElement
+    expect(shell.hasAttribute('data-browser-open')).toBe(false)
+    expect(shell.hasAttribute('data-terminal-open')).toBe(false)
+    expect(view.getByLabelText('Right panel').hasAttribute('hidden')).toBe(true)
+    expect(view.getByLabelText('Toggle right panel').getAttribute('aria-pressed')).toBe('false')
+
+    act(() => { shortcut?.('browser') })
+    expect(shell.hasAttribute('data-browser-open')).toBe(true)
+    expect(view.getByLabelText('Right panel').hasAttribute('hidden')).toBe(false)
+    expect(view.getByRole('tab', { name: 'Browser' }).getAttribute('aria-selected')).toBe('true')
+
+    fireEvent.click(view.getByLabelText('Toggle bottom terminal'))
+    expect(shell.hasAttribute('data-browser-open')).toBe(true)
+    expect(shell.hasAttribute('data-terminal-open')).toBe(true)
+    expect(view.getByLabelText('Terminal').hasAttribute('hidden')).toBe(false)
+
+    act(() => { shortcut?.('terminal') })
+    expect(view.getByRole('tab', { name: 'Terminal' }).getAttribute('aria-selected')).toBe('true')
+    expect(view.getByLabelText('Right terminal').hasAttribute('hidden')).toBe(false)
+    expect(view.getByLabelText('Terminal').hasAttribute('hidden')).toBe(false)
+
+    const browserHandle = view.getByRole('separator', { name: 'Resize right panel' })
+    const terminalHandle = view.getByRole('separator', { name: 'Resize Terminal panel' })
+    drag(browserHandle, 800, 0)
+    dragY(terminalHandle, 600, 0)
+    expect(browserHandle.getAttribute('aria-valuenow')).toBe('933')
+    expect(terminalHandle.getAttribute('aria-valuenow')).toBe('450')
+    drag(browserHandle, 0, 1000)
+    dragY(terminalHandle, 0, 500)
+    expect(browserHandle.getAttribute('aria-valuenow')).toBe('420')
+    expect(terminalHandle.getAttribute('aria-valuenow')).toBe('240')
+    fireEvent.keyDown(browserHandle, { key: 'ArrowLeft' })
+    fireEvent.keyDown(terminalHandle, { key: 'ArrowUp', shiftKey: true })
+    expect(browserHandle.getAttribute('aria-valuenow')).toBe('428')
+    expect(terminalHandle.getAttribute('aria-valuenow')).toBe('272')
+
+    fireEvent.click(view.getByRole('button', { name: 'Choose panel' }))
+    expect(view.getByRole('dialog', { name: 'Choose panel' })).toBeTruthy()
+    fireEvent.click(view.getByRole('button', { name: 'Side chat' }))
+    await vi.advanceTimersByTimeAsync(0)
+    expect(view.createSideSession).toHaveBeenCalledOnce()
+    expect(providedSessions).toContain('s-side')
+    expect(view.getByRole('tab', { name: 'Side chat' }).getAttribute('aria-selected')).toBe('true')
+    expect(view.slotCalls.some(call => call.key === 'conversation' && JSON.stringify(call.props) === '{"secondary":true}')).toBe(true)
+    fireEvent.click(view.getByRole('tab', { name: 'Terminal' }))
+
+    const toggleRight = view.getByLabelText('Toggle right panel')
+    fireEvent.click(toggleRight)
+    expect(view.getByLabelText('Right panel').hasAttribute('hidden')).toBe(true)
+    expect(view.getByLabelText('Terminal').hasAttribute('hidden')).toBe(false)
+    fireEvent.click(toggleRight)
+    expect(view.getByLabelText('Right terminal').hasAttribute('hidden')).toBe(false)
+
+    fireEvent.click(view.getByLabelText('Expand right panel'))
+    expect(shell.hasAttribute('data-browser-expanded')).toBe(true)
+    expect(view.getByLabelText('Toggle bottom terminal').getAttribute('aria-pressed')).toBe('true')
+    expect(view.getByLabelText('Terminal').hasAttribute('hidden')).toBe(true)
+    expect(view.getByLabelText('Right terminal').hasAttribute('hidden')).toBe(false)
+    fireEvent.click(view.getByLabelText('Expand right panel'))
+    expect(shell.hasAttribute('data-browser-expanded')).toBe(false)
+    expect(view.getByLabelText('Terminal').hasAttribute('hidden')).toBe(false)
+    expect(view.getByRole('separator', { name: 'Resize right panel' }).getAttribute('aria-valuenow')).toBe('428')
+    expect(view.getByRole('separator', { name: 'Resize Terminal panel' }).getAttribute('aria-valuenow')).toBe('272')
+  })
+
+  it('recomputes desktop panel limits from the whole app viewport', () => {
+    frameWidth = 1500
+    window.innerHeight = 1000
+    window.bhDesktop = { browser: { setBounds: vi.fn() } }
+    const view = mountFrame()
+    fireEvent.click(view.getByLabelText('Toggle right panel'))
+    const browserHandle = view.getByRole('separator', { name: 'Resize right panel' })
+    fireEvent.click(view.getByLabelText('Toggle bottom terminal'))
+    const terminalHandle = view.getByRole('separator', { name: 'Resize Terminal panel' })
+
+    expect(browserHandle.getAttribute('aria-valuemax')).toBe('1000')
+    expect(terminalHandle.getAttribute('aria-valuemax')).toBe('500')
+    drag(browserHandle, 1000, 0)
+    dragY(terminalHandle, 700, 0)
+    expect(browserHandle.getAttribute('aria-valuenow')).toBe('1000')
+    expect(terminalHandle.getAttribute('aria-valuenow')).toBe('500')
+
+    act(() => {
+      window.innerWidth = 1000
+      window.innerHeight = 700
+      window.dispatchEvent(new Event('resize'))
+    })
+    expect(browserHandle.getAttribute('aria-valuemax')).toBe('666')
+    expect(terminalHandle.getAttribute('aria-valuemax')).toBe('350')
+    expect(browserHandle.getAttribute('aria-valuenow')).toBe('666')
+    expect(terminalHandle.getAttribute('aria-valuenow')).toBe('350')
+  })
+
   it('renders three tracks from store state', () => {
     const { frame } = mountFrame()
     expect(tracks(frame)).toEqual([280, 0])

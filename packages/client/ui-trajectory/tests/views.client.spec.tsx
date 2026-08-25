@@ -398,10 +398,26 @@ describe('tab switching in ConversationRoot', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'Trajectory' }))
 
     fireEvent.keyDown(screen.getByRole('row', { name: /TOOL/ }), { key: 'Enter' })
-    expect(screen.getByRole('complementary', { name: 'Event details' })).toBeTruthy()
+    const details = screen.getByRole('complementary', { name: 'Event details' })
+    const split = details.parentElement
+    expect(split?.getAttribute('data-details-placement')).toBe('right')
+    expect(screen.getByRole('button', { name: 'Dock event details at right' }).getAttribute('aria-pressed')).toBe('true')
     expect(screen.getByText('Turn 1 · Step 1')).toBeTruthy()
     expect(screen.getByText('Completed')).toBeTruthy()
     expect(screen.getByRole('tab', { name: 'Result' })).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Dock event details at bottom' }))
+    expect(split?.getAttribute('data-details-placement')).toBe('bottom')
+    expect(screen.getByRole('button', { name: 'Dock event details at bottom' }).getAttribute('aria-pressed')).toBe('true')
+    expect(screen.getByRole('complementary', { name: 'Event details' })).toBe(details)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Expand event details' }))
+    expect(split?.getAttribute('data-details-placement')).toBe('expanded')
+    expect(screen.getByRole('button', { name: 'Expand event details' }).getAttribute('aria-pressed')).toBe('true')
+    expect(screen.getByRole('complementary', { name: 'Event details' })).toBe(details)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Dock event details at right' }))
+    expect(split?.getAttribute('data-details-placement')).toBe('right')
 
     fireEvent.click(screen.getByRole('button', { name: 'Close details' }))
     expect(screen.queryByRole('complementary', { name: 'Event details' })).toBeNull()

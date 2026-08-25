@@ -6,8 +6,8 @@
  *
  * Untrusted-output policy (unchanged from the replaced pipeline): link and
  * image destinations pass a protocol allowlist, images additionally require
- * absolute HTTP(S), raw HTML renders as literal text (no HTML enters the
- * DOM), and KaTeX runs without trusted commands. Fragment-anchor URLs fail
+ * absolute HTTP(S), raw HTML renders as literal text except attribute-free
+ * `<br>` line breaks, and KaTeX runs without trusted commands. Fragment-anchor URLs fail
  * the allowlist, so footnote references and back-references render as plain
  * text rather than in-page links.
  *
@@ -16,13 +16,16 @@
  * may add node types this renderer has no mapping for.
  */
 
-import { Fragment, createElement } from 'react'
+import { Fragment, createElement, useCallback, useRef, useState } from 'react'
 import type { Key, ReactNode } from 'react'
 import clsx from 'clsx'
 import type * as Md from 'mdast'
 import type {} from 'mdast-util-math'
 import { normalizeUri } from 'micromark-util-sanitize-uri'
+import { Tooltip } from '../Tooltip.tsx'
 import { CodeBlock } from './CodeBlock.tsx'
+import { writeClipboard } from '../clipboard.ts'
+import { IconCheckOutline16, IconCopyOutline16 } from '../icons/index.tsx'
 import { renderTexToReact } from './katex.tsx'
 import type { PositionedBlock } from './incremental.ts'
 import css from './MarkdownText.module.css'
@@ -265,8 +268,11 @@ function renderNode(node: Md.RootContent, key: Key, context: MarkdownRenderConte
       return <code key={key}>{value}</code>
     }
     case 'html':
-      // No HTML parser enters the pipeline: raw HTML stays literal text.
-      return node.value
+      // Keep arbitrary raw HTML inert; only the attribute-free break needed
+      // for multiline GFM table cells maps to a real element.
+      return /^<br\s*\/?>$/i.test(node.value)
+        ? <Fragment key={key}><br />{'\n'}</Fragment>
+        : node.value
     case 'code':
       return renderCode(node, key, context)
     case 'math':
@@ -407,16 +413,71 @@ function renderTable(node: Md.Table, key: Key, context: MarkdownRenderContext): 
   // column and wrap instead (deepsuite chat TableWrapper parity).
   const wide = columns >= 4 && context.inBlockquote !== true
   return (
+    <MarkdownTable
+      key={key}
+      headRow={headRow}
+      bodyRows={bodyRows}
+      align={align}
+      wide={wide}
+      context={context}
+    />
+  )
+}
+
+function tableCellTsv(cell: HTMLTableCellElement): string {
+  const value = (cell.textContent ?? '').replace(/\r\n?/g, '\n').trim()
+  return /["\t\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value
+}
+
+function MarkdownTable({
+  headRow, bodyRows, align, wide, context,
+}: {
+  headRow: Md.TableRow | undefined
+  bodyRows: readonly Md.TableRow[]
+  align: readonly Md.AlignType[] | null
+  wide: boolean
+  context: MarkdownRenderContext
+}): ReactNode {
+  const tableRef = useRef<HTMLTableElement>(null)
+  const [copied, setCopied] = useState(false)
+  const copyLabel = context.codeLabels?.copyLabel ?? '复制'
+  const copiedLabel = context.codeLabels?.copiedLabel ?? '复制成功'
+  const onCopy = useCallback(() => {
+    if (copied) return
+    const table = tableRef.current
+    if (table === null) return
+    const tsv = [...table.rows].map(row => (
+      [...row.cells].map(tableCellTsv).join('\t')
+    )).join('\n')
+    void writeClipboard(tsv).then((ok) => {
+      if (!ok) return
+      setCopied(true)
+      window.setTimeout(() => { setCopied(false) }, 1000)
+    })
+  }, [copied])
+
+  return (
     // Wide tables rest with overflow-x hidden (the hover-revealed bar in
     // MarkdownText.module.css), which drops Chromium's implicit scroller
     // focusability — the explicit tabindex keeps them keyboard-reachable,
     // and :focus-visible restores scrolling.
     <div
-      key={key}
       className={clsx(css.tableScroll, wide ? 'md-table-wide' : css.tableFill)}
       tabIndex={wide ? 0 : undefined}
     >
-      <table>
+      <div className={css.tableToolbar}>
+        <Tooltip label={copied ? copiedLabel : copyLabel} side="bottom">
+          <button
+            type="button"
+            className={css.tableCopyButton}
+            aria-label={copied ? copiedLabel : copyLabel}
+            onClick={onCopy}
+          >
+            {copied ? <IconCheckOutline16 /> : <IconCopyOutline16 />}
+          </button>
+        </Tooltip>
+      </div>
+      <table ref={tableRef}>
         {headRow !== undefined && <thead>{renderTableRow(headRow, 'th', align, 0, context)}</thead>}
         {bodyRows.length > 0 && (
           <tbody>

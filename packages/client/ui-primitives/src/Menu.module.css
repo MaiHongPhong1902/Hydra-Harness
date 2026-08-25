@@ -14,7 +14,7 @@
   flex-direction: column;
   gap: 0;
   border: 1px solid var(--dsw-alias-border-inverted);
-  border-radius: 12px;
+  border-radius: var(--dsw-radius-panel);
   background: var(--dsw-specific-menu);
   box-shadow: var(--dsw-shadow-lv3);
   /* Elevated surface: the scrollbar thumb takes the l2 elevation tokens. The
@@ -102,7 +102,7 @@
   min-height: 40px;
   padding: 8px 10px;
   border: none;
-  border-radius: 10px;
+  border-radius: var(--dsw-radius-control);
   background: transparent;
   cursor: pointer;
   font-size: 14px;

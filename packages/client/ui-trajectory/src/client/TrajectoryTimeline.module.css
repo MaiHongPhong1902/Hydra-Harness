@@ -98,7 +98,7 @@
 }
 
 .earlierHistory:focus-visible {
-  box-shadow: inset 0 0 0 1px var(--dsw-alias-border-l2);
+  box-shadow: inset 0 0 0 2px var(--dsw-alias-focus-ring);
 }
 
 .empty {
@@ -111,8 +111,8 @@
 }
 
 .track:focus-visible {
-  outline: 1px solid var(--dsw-alias-state-business-primary);
-  outline-offset: -1px;
+  outline: 2px solid var(--dsw-alias-focus-ring);
+  outline-offset: -2px;
 }
 
 .lanes {
@@ -132,13 +132,6 @@
   left: var(--trajectory-domain-left);
   width: var(--trajectory-domain-width);
   pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .lanes[data-animate-viewport='true'],
-  .turnBoundaries[data-animate-viewport='true'] {
-    transition: left 180ms ease-out;
-  }
 }
 
 .turnBoundary {
@@ -182,11 +175,7 @@
 }
 
 .span[data-timeline-span='message'] {
-  --trajectory-assistant-decoding-color: color-mix(
-    in srgb,
-    var(--dsw-alias-brand-primary-new-colorprimary-new-color) 60%,
-    var(--dsw-alias-state-error-secondary)
-  );
+  --trajectory-assistant-decoding-color: var(--dsw-alias-brand-primary-new-colorprimary-new-color);
   --trajectory-assistant-ttft-color: color-mix(
     in srgb,
     var(--trajectory-assistant-decoding-color) 54%,

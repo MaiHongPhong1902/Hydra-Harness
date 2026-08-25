@@ -27,10 +27,10 @@ exports[`sidebar shell snapshots > renders the collapsed rail after the crossfad
           >
             <svg
               aria-hidden="true"
-              data-content="965fe321"
+              data-content="57c94ed8"
               fill="none"
-              height="17.6580310880829"
-              viewBox="0 0 23.16 17.04"
+              height="24"
+              viewBox="0 0 166 166"
               width="24"
             />
           </div>
@@ -119,16 +119,7 @@ exports[`sidebar shell snapshots > renders the expanded column (wordmark, capsul
             <div
               data-slot="sidebar.brand.mark"
               style="display: contents;"
-            >
-              <svg
-                aria-hidden="true"
-                data-content="965fe321"
-                fill="none"
-                height="17.6580310880829"
-                viewBox="0 0 23.16 17.04"
-                width="24"
-              />
-            </div>
+            />
           </span>
           <span
             class="brandName"
@@ -137,11 +128,15 @@ exports[`sidebar shell snapshots > renders the expanded column (wordmark, capsul
               data-slot="sidebar.brand.name"
               style="display: contents;"
             >
-              <span
-                class="fallbackBrandName"
-              >
-                BH Local Build
-              </span>
+              <svg
+                aria-hidden="true"
+                class="localBrandLogo"
+                data-content="6b75681b"
+                fill="none"
+                height="44"
+                viewBox="0 0 952 172"
+                width="144"
+              />
               <span
                 class="buildRevision"
               >
@@ -245,16 +240,7 @@ exports[`sidebar shell snapshots > renders the expanded column in the default lo
             <div
               data-slot="sidebar.brand.mark"
               style="display: contents;"
-            >
-              <svg
-                aria-hidden="true"
-                data-content="965fe321"
-                fill="none"
-                height="17.6580310880829"
-                viewBox="0 0 23.16 17.04"
-                width="24"
-              />
-            </div>
+            />
           </span>
           <span
             class="brandName"
@@ -263,11 +249,15 @@ exports[`sidebar shell snapshots > renders the expanded column in the default lo
               data-slot="sidebar.brand.name"
               style="display: contents;"
             >
-              <span
-                class="fallbackBrandName"
-              >
-                BH Local Build
-              </span>
+              <svg
+                aria-hidden="true"
+                class="localBrandLogo"
+                data-content="6b75681b"
+                fill="none"
+                height="44"
+                viewBox="0 0 952 172"
+                width="144"
+              />
               <span
                 class="buildRevision"
               >

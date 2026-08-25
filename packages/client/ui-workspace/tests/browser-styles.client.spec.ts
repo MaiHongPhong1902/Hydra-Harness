@@ -105,7 +105,9 @@ describe('WorkspaceBrowser.module.css list', () => {
     expect(rowDeclarations('.flatSessionRowWithoutStatus .title')?.get('margin-left')).toBe('0')
     expect(rowDeclarations('.searchResultRow')?.get('min-height')).toBe('48px')
     expect(rowDeclarations('.sessionRow.selected')?.get('background'))
-      .toBe('var(--dsw-alias-interactive-bg-hover)')
+      .toBe('var(--dsw-specific-sidebar-nav-item-active)')
+    expect(rowDeclarations('.sessionRow.selected')?.get('box-shadow'))
+      .toBe('inset 2px 0 0 var(--dsw-specific-sidebar-nav-item-active-accent)')
   })
 
   it('pins both rail controls to the shared left anchor during the column slide', () => {

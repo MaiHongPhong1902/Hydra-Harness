@@ -9,12 +9,13 @@
 // their branch action is enabled only when the node is also the completed
 // turn's transcript tail. Think / tool-head-only nodes stay chrome-free.
 
-import { Fragment, memo, useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import type { ReactNode } from 'react'
 import type { AssistantBlock } from '@bosch/bh-client-runtime/client'
 import { JsonBlock, MarkdownText } from '@bosch/bh-client-ui-primitives'
 import type { MarkdownFileMentions } from '@bosch/bh-client-ui-primitives'
 import type { ChatNodeOwnerProps, ChatViewSlotProps } from '../contract/slots.ts'
+import { ActivityGroup } from './ActivityGroup.tsx'
 import { ReasoningRow } from './ReasoningRow.tsx'
 import css from './AssistantMarkdown.module.css'
 
@@ -80,12 +81,12 @@ export const AssistantMarkdown = memo(function AssistantMarkdown({
           i += 1
         }
         rendered.push(
-          <Fragment key={start}>
+          <ActivityGroup key={start} kind="image" t={t}>
             {renderMessageImages({
               images: group.map(({ attachment }) => ({ attachment })),
               align: 'start',
             })}
-          </Fragment>,
+          </ActivityGroup>,
         )
         break
       }

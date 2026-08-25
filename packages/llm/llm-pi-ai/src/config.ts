@@ -20,6 +20,7 @@ import { credentialRef } from '@bosch/bh-credentials'
 import type { CredentialRef } from '@bosch/bh-credentials'
 import { MAX_TIMER_DELAY_MS } from '@bosch/bh-timeout'
 import { resolveRetryPolicy, RetryPolicySchema } from '@bosch/bh-llm'
+import { normalizeHttpProxy } from '@bosch/bh-llm/proxy'
 import type { ResolvedRetryPolicy, RetryPolicyConfig } from '@bosch/bh-llm'
 import {
   CACHE_CONTROL_FORMATS,
@@ -94,6 +95,8 @@ export interface PiAiProviderProfile {
   api?: string
   /** Endpoint for this route's models; defaults to the installed catalog's endpoint. */
   baseURL?: string
+  /** Optional HTTP(S) network proxy used for requests to this route; blank keeps them direct. */
+  proxy?: string
   /**
    * This route's model catalog. Omission serves the installed catalog for the
    * route unchanged; an explicit list replaces it, each entry defaulting its
@@ -297,6 +300,7 @@ const profile = z.object({
   displayName: z.string(),
   api: z.union(supportedProtocols()),
   baseURL: z.string(),
+  proxy: z.string(),
   models: z.array(modelProfile),
   modelOverrides: z.dict(modelOverride),
   compat: compatProfile,
@@ -376,6 +380,7 @@ export function resolveProfiles(
     if (source.baseURL !== undefined && source.baseURL.length === 0) {
       throw new Error(`llm-pi-ai: provider "${provider}" has an empty baseURL`)
     }
+    const proxy = normalizeHttpProxy(source.proxy, `llm-pi-ai: provider "${provider}" proxy`)
     if (source.displayName !== undefined && source.displayName.length === 0) {
       throw new Error(`llm-pi-ai: provider "${provider}" has an empty displayName`)
     }
@@ -415,11 +420,12 @@ export function resolveProfiles(
       defaultContextWindow: source.defaultContextWindow ?? DEFAULT_CONTEXT_WINDOW,
       defaultMaxTokens: source.defaultMaxTokens ?? DEFAULT_MAX_TOKENS,
     })
-    const { apiKeyEnv, retryPolicy, models: _models, displayName: _displayName, ...rest } = source
+    const { apiKeyEnv, retryPolicy, models: _models, displayName: _displayName, proxy: _proxy, ...rest } = source
     resolved.set(provider, {
       ...rest,
       provider,
       displayName,
+      ...proxy === undefined ? {} : { proxy },
       ...apiKeyEnv === undefined ? {} : { apiKeyEnv: credentialRef(apiKeyEnv) },
       streamIdleTimeoutMs,
       maxRequestImageBytes,
