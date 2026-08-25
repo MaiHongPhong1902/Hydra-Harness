@@ -13,22 +13,26 @@ afterEach(cleanup)
 type Snapshot = Awaited<ReturnType<PluginInventorySettingsTabInjected['list']>>
 const t = ((key: PluginInventoryLocaleKey): string => en[key]) as PluginInventorySettingsTabProps['t']
 
-function props(list: PluginInventorySettingsTabInjected['list']): PluginInventorySettingsTabProps {
+function props(
+  list: PluginInventorySettingsTabInjected['list'],
+  setEnabled: PluginInventorySettingsTabInjected['setEnabled'] = vi.fn(),
+): PluginInventorySettingsTabProps {
   return {
     t,
     list,
+    setEnabled,
   } as PluginInventorySettingsTabProps
 }
 
 const SNAPSHOT = {
   entries: [
-    { entryId: '8a1b2c3d', moduleName: '@bosch/cordis-plugin-hmr', enabled: true, fiberPhase: 'active' },
-    { entryId: 'pending', moduleName: 'cordis:pending-name', enabled: true, fiberPhase: 'pending' },
-    { entryId: 'loading', moduleName: '@fixture/loading-name', enabled: true, fiberPhase: 'loading' },
-    { entryId: 'failed', moduleName: '@fixture/failed-name', enabled: true, fiberPhase: 'failed' },
-    { entryId: 'unloading', moduleName: '@fixture/unloading-name', enabled: true, fiberPhase: 'unloading' },
-    { entryId: 'unobserved', moduleName: '@fixture/unobserved-name', enabled: true, fiberPhase: null },
-    { entryId: 'disabled-entry', moduleName: '@bosch/bh-host-directory-picker-native', enabled: false, fiberPhase: null },
+    { entryId: '8a1b2c3d', moduleName: '@bosch/cordis-plugin-hmr', enabled: true, toggleable: false, fiberPhase: 'active' },
+    { entryId: 'pending', moduleName: 'cordis:pending-name', enabled: true, toggleable: true, fiberPhase: 'pending' },
+    { entryId: 'loading', moduleName: '@fixture/loading-name', enabled: true, toggleable: true, fiberPhase: 'loading' },
+    { entryId: 'failed', moduleName: '@fixture/failed-name', enabled: true, toggleable: true, fiberPhase: 'failed' },
+    { entryId: 'unloading', moduleName: '@fixture/unloading-name', enabled: true, toggleable: true, fiberPhase: 'unloading' },
+    { entryId: 'unobserved', moduleName: '@fixture/unobserved-name', enabled: true, toggleable: true, fiberPhase: null },
+    { entryId: 'disabled-entry', moduleName: '@bosch/bh-host-directory-picker-native', enabled: false, toggleable: true, fiberPhase: null },
   ],
 } as unknown as Snapshot
 
@@ -64,6 +68,7 @@ describe('PluginInventorySettingsTab', () => {
     expect(view.container.querySelector('[data-loader-entry]')?.textContent).toBe('8a1b2c3d')
     expect(screen.getByText(en.configuration)).toBeTruthy()
     expect(screen.getByText(en.cordis)).toBeTruthy()
+    expect(screen.getByText(en.requiredPlugin)).toBeTruthy()
     fireEvent.click(active)
     expect(view.container.querySelector('[data-loader-entry]')).toBeNull()
 
@@ -76,6 +81,26 @@ describe('PluginInventorySettingsTab', () => {
     expect(screen.getAllByText(en.disabledTag)).toHaveLength(2)
     expect(screen.queryByText(en.cordis)).toBeNull()
     expect(screen.queryByText(en.unobserved)).toBeNull()
+  })
+
+  it('persists a plugin toggle and renders the returned snapshot', async () => {
+    const enabledSnapshot = {
+      entries: SNAPSHOT.entries.map(entry => entry.entryId === 'disabled-entry'
+        ? { ...entry, enabled: true, fiberPhase: 'active' as const }
+        : entry),
+    } as Snapshot
+    const setEnabled = vi.fn<PluginInventorySettingsTabInjected['setEnabled']>()
+      .mockResolvedValue(enabledSnapshot)
+    render(<PluginInventorySettingsTab {...props(async () => SNAPSHOT, setEnabled)} />)
+
+    const row = await screen.findByRole('button', { name: 'directory-picker-native, Disabled' })
+    fireEvent.click(row)
+    fireEvent.click(screen.getByRole('button', { name: en.enablePlugin }))
+    await waitFor(() => {
+      expect(setEnabled).toHaveBeenCalledWith('disabled-entry', true)
+    })
+    expect(screen.getByRole('button', { name: 'directory-picker-native, Mounted, Enabled' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: en.disablePlugin })).toBeTruthy()
   })
 
   it('filters by module name or Loader entry id', async () => {

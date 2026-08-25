@@ -1,41 +1,50 @@
 /**
- * Markdown graph rendering for observed browser pages. The Browser tool's text
- * DOM is evidence, not a selector API: this module records only its visible
- * controls and observed transitions. The local adapter below exists only for
- * isolated graph tests; the plugin uses Obsidian MCP storage.
+ * Obsidian knowledge graph retrieval plus rendering for observed browser
+ * pages. The local adapter exists only for isolated tests; production uses
+ * Obsidian MCP storage.
  */
 
 import { createHash } from 'node:crypto'
 import { mkdir, readdir, readFile, realpath, stat } from 'node:fs/promises'
-import { basename, dirname, isAbsolute, join, parse, relative, resolve, sep } from 'node:path'
+import { basename, dirname, isAbsolute, join, parse, posix, relative, resolve, sep } from 'node:path'
 import { withFileLock, writeFileAtomic } from '@bosch/bh-atomic-write'
 import type { BrowserToolValue } from '@bosch/bh-tool-browser'
 
+/** Existing vault folder retained as the contained graph root. */
 export const GRAPH_ROOT = 'BH Website Knowledge'
+/** Extensionless identity note that binds MCP operations to the intended vault. */
 export const OBSIDIAN_MCP_VAULT_MARKER_PATH = `${GRAPH_ROOT}/BH MCP Vault Identity`
+/** Maximum exact paths accepted by one complete-note read. */
 export const MAX_READ_NOTES = 32
+/** Maximum UTF-8 bytes returned by one complete-note read. */
 export const MAX_READ_BYTES = 64 * 1024
+/** Maximum ranked contextual matches returned by recall. */
+export const MAX_RECALL_MATCHES = 6
+/** Maximum path-only wikilink neighbors returned by recall. */
+export const MAX_RELATED_NOTES = 32
+const MAX_RECALL_SEEDS = 3
+const MAX_RECALL_EXCERPT = 320
 const ACTIONS_START = '<!-- bh-actions:start -->'
 const ACTIONS_END = '<!-- bh-actions:end -->'
 
-/** Optional user settings that activate one Obsidian website graph. */
-export interface WebsiteKnowledgeSettings {
+/** Optional user settings for Browser-to-Obsidian capture. */
+export interface ObsidianKnowledgeSettings {
   /** Exact hostname whose browser observations may enter the vault. */
   targetDomain?: string
 }
 
 /** Validated settings required for a graph write or read. */
-export interface ResolvedWebsiteKnowledgeSettings {
+export interface ResolvedObsidianKnowledgeSettings {
   readonly targetDomain: string
 }
 
 /** Local filesystem settings used only by the local graph test adapter. */
-export interface LocalWebsiteKnowledgeSettings extends ResolvedWebsiteKnowledgeSettings {
+export interface LocalObsidianKnowledgeSettings extends ResolvedObsidianKnowledgeSettings {
   readonly vaultPath: string
 }
 
 /** Storage owned by one configured Obsidian vault. */
-export interface WebsiteKnowledgeStorage {
+export interface ObsidianKnowledgeStorage {
   /** Read an extensionless logical note path, returning empty text when absent. */
   read(path: string): Promise<string>
   /** Write one extensionless logical note path. */
@@ -82,6 +91,19 @@ export interface KnowledgeNote {
   readonly markdown: string
 }
 
+/** One explicit Obsidian wikilink discovered from a ranked seed note. */
+export interface KnowledgeRelation {
+  readonly path: string
+  readonly title: string
+  readonly sourcePath: string
+}
+
+/** Token-bounded search context plus exact graph neighbors available for batch reading. */
+export interface KnowledgeRecall {
+  readonly matches: readonly KnowledgeSearchResult[]
+  readonly related: readonly KnowledgeRelation[]
+}
+
 /**
  * Return the exact HTTP(S) hostname, or undefined for any other URL.
  * @param url - Candidate URL to classify.
@@ -106,16 +128,16 @@ export function hostnameOf(url: string): string | undefined {
 export function normalizeTargetDomain(value: string): string {
   const input = value.trim().toLowerCase()
   if (input.length === 0 || /[/:?#@]/.test(input)) {
-    throw new Error('obsidian-website-knowledge: targetDomain must be one hostname without a scheme, port, or path')
+    throw new Error('obsidian-knowledge: targetDomain must be one hostname without a scheme, port, or path')
   }
   let hostname: string
   try {
     hostname = new URL(`https://${input}`).hostname.toLowerCase()
   } catch {
-    throw new Error('obsidian-website-knowledge: targetDomain must be a valid hostname')
+    throw new Error('obsidian-knowledge: targetDomain must be a valid hostname')
   }
   if (hostname !== input) {
-    throw new Error('obsidian-website-knowledge: targetDomain must be a canonical hostname')
+    throw new Error('obsidian-knowledge: targetDomain must be a canonical hostname')
   }
   return hostname
 }
@@ -125,7 +147,7 @@ export function normalizeTargetDomain(value: string): string {
  * @param settings - Unresolved configuration from the composition and user settings layers.
  * @returns Validated settings, or undefined when the feature is inactive.
  */
-export function resolveSettings(settings: WebsiteKnowledgeSettings): ResolvedWebsiteKnowledgeSettings | undefined {
+export function resolveSettings(settings: ObsidianKnowledgeSettings): ResolvedObsidianKnowledgeSettings | undefined {
   const targetDomain = settings.targetDomain?.trim()
   if (targetDomain === undefined) return undefined
   return { targetDomain: normalizeTargetDomain(targetDomain) }
@@ -157,13 +179,18 @@ function noteLink(path: string, label?: string): string {
   return `[[${path}${label === undefined || label.length === 0 ? '' : `|${text(label, 120)}`}]]`
 }
 
+/**
+ * Normalize one focused recall query into distinct searchable terms.
+ * @param query - User intent or knowledge phrase to recall.
+ * @returns Lowercase terms in first-occurrence order.
+ */
 export function searchTerms(query: string): string[] {
   const normalized = query.trim().toLowerCase()
   if (normalized.length < 2 || normalized.length > 160) {
-    throw new Error('website knowledge search query must contain 2 to 160 characters')
+    throw new Error('Obsidian knowledge query must contain 2 to 160 characters')
   }
   const terms = [...new Set(normalized.split(/[^\p{L}\p{N}_-]+/u).filter(term => term.length > 1))]
-  if (terms.length === 0) throw new Error('website knowledge search query must contain a searchable term')
+  if (terms.length === 0) throw new Error('Obsidian knowledge query must contain a searchable term')
   return terms
 }
 
@@ -174,7 +201,7 @@ export function searchTerms(query: string): string[] {
  */
 export function validateKnowledgeNotePaths(paths: readonly string[]): string[] {
   if (paths.length === 0 || paths.length > MAX_READ_NOTES) {
-    throw new Error(`website knowledge note read requires 1 to ${MAX_READ_NOTES} paths`)
+    throw new Error(`Obsidian knowledge note read requires 1 to ${MAX_READ_NOTES} paths`)
   }
   return [...new Set(paths.map((path) => {
     const value = path.trim()
@@ -187,7 +214,7 @@ export function validateKnowledgeNotePaths(paths: readonly string[]): string[] {
       || segments.length < 2
       || segments[0] !== GRAPH_ROOT
       || segments.some(segment => segment.length === 0 || segment === '.' || segment === '..')) {
-      throw new Error(`invalid website knowledge note path: ${path}`)
+      throw new Error(`invalid Obsidian knowledge note path: ${path}`)
     }
     return value
   }))]
@@ -200,18 +227,69 @@ export function validateKnowledgeNotePaths(paths: readonly string[]): string[] {
 export function assertKnowledgeNoteBytes(notes: readonly KnowledgeNote[]): void {
   const bytes = notes.reduce((total, note) => total + Buffer.byteLength(note.markdown, 'utf8'), 0)
   if (bytes > MAX_READ_BYTES) {
-    throw new Error(`website knowledge note batch exceeds ${MAX_READ_BYTES} bytes; split the batch`)
+    throw new Error(`Obsidian knowledge note batch exceeds ${MAX_READ_BYTES} bytes; split the batch`)
   }
 }
 
 function excerpt(markdown: string, terms: readonly string[]): string {
   const compact = markdown.replace(/\s+/g, ' ').trim()
   const lowercase = compact.toLowerCase()
-  const startAt = Math.max(0, Math.min(...terms.map((term) => {
+  const firstMatch = Math.min(...terms.map((term) => {
     const index = lowercase.indexOf(term)
     return index === -1 ? Number.POSITIVE_INFINITY : index
-  })) - 180)
-  return `${startAt > 0 ? '…' : ''}${compact.slice(startAt, startAt + 600)}${startAt + 600 < compact.length ? '…' : ''}`
+  }))
+  const startAt = Number.isFinite(firstMatch) ? Math.max(0, firstMatch - 180) : 0
+  return `${startAt > 0 ? '…' : ''}${compact.slice(startAt, startAt + MAX_RECALL_EXCERPT)}${startAt + MAX_RECALL_EXCERPT < compact.length ? '…' : ''}`
+}
+
+function knowledgeLinkPath(source: KnowledgeNote, target: string): string | undefined {
+  const [rawTarget = ''] = target.split('#', 1)
+  const clean = rawTarget.trim().replace(/\.md$/i, '')
+  if (clean.length === 0 || clean.startsWith('/')) return undefined
+  let path: string
+  if (clean.startsWith(`${GRAPH_ROOT}/`)) {
+    path = clean
+  } else if (clean.startsWith('./') || clean.startsWith('../')) {
+    path = posix.normalize(posix.join(posix.dirname(source.path), clean))
+  } else if (!clean.includes('/')) {
+    path = posix.join(posix.dirname(source.path), clean)
+  } else {
+    const collectionNote = /^type:\s+(?:uat-feature|uat-test-case)\s*$/m.test(source.markdown)
+    const base = collectionNote ? posix.dirname(posix.dirname(source.path)) : posix.dirname(source.path)
+    path = posix.join(base, clean)
+  }
+  try {
+    return validateKnowledgeNotePaths([path])[0]
+  } catch {
+    return undefined
+  }
+}
+
+/**
+ * Follow explicit wikilinks without returning linked note bodies.
+ * @param notes - Complete ranked seed notes whose links may be expanded.
+ * @param exclude - Exact paths already represented by recall matches.
+ * @returns Deduplicated one-hop neighbors in authored order.
+ */
+export function relatedKnowledgeNotes(
+  notes: readonly KnowledgeNote[],
+  exclude: readonly string[] = [],
+): KnowledgeRelation[] {
+  const related: KnowledgeRelation[] = []
+  const seen = new Set([...notes.map(note => note.path), ...exclude])
+  for (const note of notes) {
+    for (const match of note.markdown.matchAll(/\[\[([^\]\n]+)\]\]/g)) {
+      const body = match[1]
+      if (body === undefined) continue
+      const [target = '', alias] = body.split('|', 2)
+      const path = knowledgeLinkPath(note, target)
+      if (path === undefined || path === OBSIDIAN_MCP_VAULT_MARKER_PATH || seen.has(path)) continue
+      seen.add(path)
+      related.push({ path, title: alias?.trim() || posix.basename(path), sourcePath: note.path })
+      if (related.length === MAX_RELATED_NOTES) return related
+    }
+  }
+  return related
 }
 
 function searchRank(markdown: string, terms: readonly string[]): { termScore: number; titleScore: number; evidenceScore: number } {
@@ -272,7 +350,7 @@ export function controlsFrom(value: BrowserToolValue, pageId: string): ControlRe
 }
 
 /** Local filesystem adapter retained for isolated graph tests. */
-class LocalVaultStorage implements WebsiteKnowledgeStorage {
+class LocalVaultStorage implements ObsidianKnowledgeStorage {
   constructor(private readonly vaultPath: string) {}
 
   async read(path: string): Promise<string> {
@@ -331,19 +409,19 @@ class LocalVaultStorage implements WebsiteKnowledgeStorage {
         target = await realpath(this.absolutePath(path))
       } catch (error) {
         if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-          throw new Error(`website knowledge note not found: ${path}`)
+          throw new Error(`Obsidian knowledge note not found: ${path}`)
         }
         throw error
       }
       const fromRoot = relative(root, target)
       if (fromRoot === '..' || fromRoot.startsWith(`..${sep}`) || isAbsolute(fromRoot)) {
-        throw new Error(`website knowledge note is outside ${GRAPH_ROOT}: ${path}`)
+        throw new Error(`Obsidian knowledge note is outside ${GRAPH_ROOT}: ${path}`)
       }
       const info = await stat(target)
-      if (!info.isFile()) throw new Error(`website knowledge note is not a file: ${path}`)
+      if (!info.isFile()) throw new Error(`Obsidian knowledge note is not a file: ${path}`)
       totalBytes += info.size
       if (totalBytes > MAX_READ_BYTES) {
-        throw new Error(`website knowledge note batch exceeds ${MAX_READ_BYTES} bytes; split the batch`)
+        throw new Error(`Obsidian knowledge note batch exceeds ${MAX_READ_BYTES} bytes; split the batch`)
       }
       notes.push({ path, markdown: await readFile(target, 'utf8') })
       assertKnowledgeNoteBytes(notes)
@@ -378,27 +456,31 @@ class LocalVaultStorage implements WebsiteKnowledgeStorage {
   }
 }
 
-/** Create a local graph only for isolated graph tests. */
-export function createLocalObsidianWebsiteGraph(settings: LocalWebsiteKnowledgeSettings): ObsidianWebsiteGraph {
+/**
+ * Create a local graph only for isolated graph tests.
+ * @param settings - Contained fixture vault and Browser hostname settings.
+ * @returns A graph backed by the local test-only storage adapter.
+ */
+export function createLocalObsidianKnowledgeGraph(settings: LocalObsidianKnowledgeSettings): ObsidianKnowledgeGraph {
   const vaultPath = settings.vaultPath.trim()
   if (!isAbsolute(vaultPath) || resolve(vaultPath) === parse(resolve(vaultPath)).root) {
-    throw new Error('obsidian-website-knowledge: vaultPath must be an absolute non-root directory')
+    throw new Error('obsidian-knowledge: vaultPath must be an absolute non-root directory')
   }
-  return new ObsidianWebsiteGraph(
+  return new ObsidianKnowledgeGraph(
     { targetDomain: normalizeTargetDomain(settings.targetDomain) },
     new LocalVaultStorage(resolve(vaultPath)),
   )
 }
 
 /** One Obsidian graph backed by the configured storage provider. */
-export class ObsidianWebsiteGraph {
-  private readonly logicalRoot: string
+export class ObsidianKnowledgeGraph {
+  private readonly logicalRoot: string | undefined
 
   constructor(
-    readonly settings: ResolvedWebsiteKnowledgeSettings,
-    private readonly storage: WebsiteKnowledgeStorage,
+    readonly settings: ResolvedObsidianKnowledgeSettings | undefined,
+    private readonly storage: ObsidianKnowledgeStorage,
   ) {
-    this.logicalRoot = `${GRAPH_ROOT}/${settings.targetDomain}`
+    this.logicalRoot = settings === undefined ? undefined : `${GRAPH_ROOT}/${settings.targetDomain}`
   }
 
   /**
@@ -433,7 +515,7 @@ export class ObsidianWebsiteGraph {
     operation: string,
     arguments_: unknown,
     page: PageRecord,
-    action: BrowserToolValue['action'] = undefined,
+    action?: BrowserToolValue['action'],
   ): Promise<void> {
     await this.writePage(page)
     await Promise.all(page.controls.map(async control => this.writeControl(page, control)))
@@ -515,12 +597,23 @@ export class ObsidianWebsiteGraph {
   }
 
   /**
-   * Search Markdown notes below the vault-owned knowledge root.
+   * Recall concise matches and explicit graph neighbors below the knowledge root.
    * @param query - Focused feature, control, or test-case terms.
-   * @returns At most eight ranked note excerpts.
+   * @returns At most six excerpts and 32 linked exact paths.
    */
-  async search(query: string): Promise<KnowledgeSearchResult[]> {
-    return this.storage.search(query)
+  async recall(query: string): Promise<KnowledgeRecall> {
+    const terms = searchTerms(query)
+    const matches = (await this.storage.search(query)).slice(0, MAX_RECALL_MATCHES)
+    const seedPaths = matches.slice(0, MAX_RECALL_SEEDS).map(match => match.path)
+    const seeds = seedPaths.length === 0 ? [] : await this.storage.readNotes(seedPaths)
+    const seedByPath = new Map(seeds.map(note => [note.path, note]))
+    return {
+      matches: matches.map((match) => {
+        const seed = seedByPath.get(match.path)
+        return { ...match, excerpt: seed === undefined ? match.excerpt : excerpt(seed.markdown, terms) }
+      }),
+      related: relatedKnowledgeNotes(seeds, matches.map(match => match.path)),
+    }
   }
 
   /**
@@ -584,7 +677,7 @@ export class ObsidianWebsiteGraph {
         '---',
         'type: website-page',
         `url: ${yaml(page.url)}`,
-        `domain: ${yaml(this.settings.targetDomain)}`,
+        `domain: ${yaml(this.requireWebsiteSettings().targetDomain)}`,
         `observed_at: ${yaml(new Date().toISOString())}`,
         `controls_complete: ${!page.truncated}`,
         '---',
@@ -645,14 +738,25 @@ export class ObsidianWebsiteGraph {
   }
 
   private pagePath(id: string): string {
-    return `${this.logicalRoot}/pages/${id}`
+    return `${this.requireWebsiteRoot()}/pages/${id}`
   }
 
   private controlPath(id: string): string {
-    return `${this.logicalRoot}/controls/${id}`
+    return `${this.requireWebsiteRoot()}/controls/${id}`
   }
 
   private actionPath(id: string): string {
-    return `${this.logicalRoot}/actions/${id}`
+    return `${this.requireWebsiteRoot()}/actions/${id}`
+  }
+
+  private requireWebsiteSettings(): ResolvedObsidianKnowledgeSettings {
+    if (this.settings === undefined) throw new Error('Obsidian browser knowledge requires configured targetDomain')
+    return this.settings
+  }
+
+  private requireWebsiteRoot(): string {
+    const root = this.logicalRoot
+    if (root === undefined) throw new Error('Obsidian browser knowledge requires configured targetDomain')
+    return root
   }
 }

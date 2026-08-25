@@ -883,6 +883,22 @@ export interface Config {
 
 Source: [`packages/host/frontend-static/src/index.ts:28`](../packages/host/frontend-static/src/index.ts)
 
+<a id="boschbh-host-plugin-inventory"></a>
+
+## `@bosch/bh-host-plugin-inventory`
+
+Requires: `loader`
+
+```ts config-catalog
+/** Plugin ids whose removal would strand the in-app control path. */
+export interface Config {
+  /** Direct root entry ids that must stay enabled to preserve the control path. */
+  protectedEntryIds?: string[]
+}
+```
+
+Source: [`packages/host/plugin-inventory/src/index.ts:54`](../packages/host/plugin-inventory/src/index.ts)
+
 <a id="boschbh-host-webserver"></a>
 
 ## `@bosch/bh-host-webserver`
@@ -1459,14 +1475,14 @@ export interface Config {
 
 Source: [`packages/feedback/message-feedback/src/index.ts:49`](../packages/feedback/message-feedback/src/index.ts)
 
-<a id="boschbh-obsidian-website-knowledge"></a>
+<a id="boschbh-obsidian-knowledge"></a>
 
-## `@bosch/bh-obsidian-website-knowledge`
+## `@bosch/bh-obsidian-knowledge`
 
 Requires: `tools` · `systemPrompt`
 
 ```ts config-catalog
-/** Host composition settings; user settings retain only the target hostname. */
+/** Host composition settings; targetDomain activates optional Browser capture. */
 export interface Config {
   /** Initial target hostname, superseded by the user settings section when present. */
   targetDomain?: string
@@ -1475,7 +1491,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/browser/obsidian-website-knowledge/src/index.ts:103`](../packages/browser/obsidian-website-knowledge/src/index.ts)
+Source: [`packages/browser/obsidian-knowledge/src/index.ts:102`](../packages/browser/obsidian-knowledge/src/index.ts)
 
 <a id="boschbh-permission-presets"></a>
 
@@ -3317,7 +3333,6 @@ These load from a `cordis.yml` entry with no `config:` block; they declare no co
 - `@bosch/bh-goal-round-driver` — requires `agents` · `goals` · `sessions` ([`packages/goal/goal-round-driver/src/index.ts`](../packages/goal/goal-round-driver/src/index.ts))
 - `@bosch/bh-host-directory-picker-auto` — requires `webServer` · `loader` ([`packages/host/directory-picker-auto/src/index.ts`](../packages/host/directory-picker-auto/src/index.ts))
 - `@bosch/bh-host-directory-picker-native` ([`packages/host/directory-picker-native/src/index.ts`](../packages/host/directory-picker-native/src/index.ts))
-- `@bosch/bh-host-plugin-inventory` — requires `loader` ([`packages/host/plugin-inventory/src/index.ts`](../packages/host/plugin-inventory/src/index.ts))
 - `@bosch/bh-llm` ([`packages/llm/llm/src/index.ts`](../packages/llm/llm/src/index.ts))
 - `@bosch/bh-lsp` ([`packages/lsp/lsp/src/index.ts`](../packages/lsp/lsp/src/index.ts))
 - `@bosch/bh-schedule` — requires `agents` · `sessions` · `tools` · `sessionPersistence` ([`packages/schedule/schedule/src/index.ts`](../packages/schedule/schedule/src/index.ts))

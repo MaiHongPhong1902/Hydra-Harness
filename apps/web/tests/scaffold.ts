@@ -900,6 +900,9 @@ function normalizeAria(snapshot: string, workspaceCwd: string): string {
     .split(workspaceCwd).join('{{cwd}}')
     .split(base).join('{{workspace}}')
     .replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, '{{uuid}}')
+    // The root Include entry receives a random eight-hex id; expanded plugin
+    // details expose that prefix before the stable configured row id.
+    .replace(/\b[0-9a-f]{8}:(?=[a-z0-9_-]+\b)/gi, '{{entry-root}}:')
     // The optional space in `\d+m ?\d+s` covers both minute spellings: the
     // stats line's compact `2m42s` and the message-chrome template's `2m 42s`.
     .replace(

@@ -1,16 +1,16 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-obsidian-website-knowledge`.
- * @module @bosch/bh-obsidian-website-knowledge/invariant
+ * Package-owned invariant companion for `@bosch/bh-obsidian-knowledge`.
+ * @module @bosch/bh-obsidian-knowledge/invariant
  */
 
 /* jscpd:ignore-start */
 import type { Context } from '@bosch/cordis'
 import type { InvariantInstaller } from '@bosch/bh-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-obsidian-website-knowledge'
+const PACKAGE_NAME = '@bosch/bh-obsidian-knowledge'
 
 /** Cordis companion plugin name. */
-export const name = 'obsidian-website-knowledge-invariant'
+export const name = 'obsidian-knowledge-invariant'
 /** Service required before the companion can reserve package ownership. */
 export const inject = ['invariants']
 

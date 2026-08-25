@@ -156,8 +156,8 @@ flowchart LR
   cfg --> plugin_bh_base_tool_web
   plugin_bh_base_browser_electron["browser-electron<br/>@bosch/bh-browser-electron"]
   cfg --> plugin_bh_base_browser_electron
-  plugin_bh_base_obsidian_website_knowledge["obsidian-website-knowledge<br/>@bosch/bh-obsidian-website-knowledge"]
-  cfg --> plugin_bh_base_obsidian_website_knowledge
+  plugin_bh_base_obsidian_knowledge["obsidian-knowledge<br/>@bosch/bh-obsidian-knowledge"]
+  cfg --> plugin_bh_base_obsidian_knowledge
   plugin_bh_base_tools["tools<br/>@bosch/bh-tools"]
   cfg --> plugin_bh_base_tools
   plugin_bh_base_system_prompt["system-prompt<br/>@bosch/bh-system-prompt"]
@@ -246,7 +246,7 @@ flowchart LR
 | `web-search-deepseek` | `@bosch/bh-web-search-deepseek` |
 | `tool-web` | `@bosch/bh-tool-web` |
 | `browser-electron` | `@bosch/bh-browser-electron` |
-| `obsidian-website-knowledge` | `@bosch/bh-obsidian-website-knowledge` |
+| `obsidian-knowledge` | `@bosch/bh-obsidian-knowledge` |
 | `tools` | `@bosch/bh-tools` |
 | `system-prompt` | `@bosch/bh-system-prompt` |
 | `agent-loop` | `@bosch/bh-agent-loop` |

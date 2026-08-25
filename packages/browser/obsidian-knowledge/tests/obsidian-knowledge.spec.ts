@@ -14,13 +14,15 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js'
 import { z } from 'zod'
-import * as ObsidianWebsiteKnowledge from '../src/index.ts'
+import * as ObsidianKnowledge from '../src/index.ts'
 import {
-  createLocalObsidianWebsiteGraph,
+  createLocalObsidianKnowledgeGraph,
   matchesTargetDomain,
   normalizeTargetDomain,
+  ObsidianKnowledgeGraph,
   resolveSettings,
 } from '../src/graph.ts'
+import type { ObsidianKnowledgeStorage } from '../src/graph.ts'
 
 const roots: string[] = []
 const fixtureServers: FixtureMcp[] = []
@@ -148,14 +150,22 @@ async function startFixtureMcp(vaultPath: string): Promise<FixtureMcp> {
   const fixture = {
     url: `http://127.0.0.1:${address.port}/mcp/`,
     close: () => closePromise ??= new Promise<void>((resolveClose, rejectClose) => {
-      httpServer.close(error => error === undefined ? resolveClose() : rejectClose(error))
+      httpServer.close((error) => {
+        if (error === undefined) resolveClose()
+        else rejectClose(error)
+      })
     }),
   }
   fixtureServers.push(fixture)
   return fixture
 }
 
-async function pluginHarness(vaultPath: string, value: BrowserToolValue, approval?: ApprovalOutcome) {
+async function pluginHarness(
+  vaultPath: string,
+  value: BrowserToolValue,
+  approval?: ApprovalOutcome,
+  targetDomain: string | null = 'shop.test',
+) {
   const mcp = await startFixtureMcp(vaultPath)
   const ctx = new Context()
   ctx.provide('credentials', {
@@ -169,7 +179,9 @@ async function pluginHarness(vaultPath: string, value: BrowserToolValue, approva
     approvalState.value = approval
     ctx.on('approval/request', () => Promise.resolve(approvalState.value ?? 'cancelled'))
   }
-  await ctx.plugin(ObsidianWebsiteKnowledge, { targetDomain: 'shop.test', mcpUrl: mcp.url })
+  await ctx.plugin(ObsidianKnowledge, targetDomain === null
+    ? { mcpUrl: mcp.url }
+    : { targetDomain, mcpUrl: mcp.url })
   ctx.tools.register(defineTool({
     name: 'browser_state',
     description: 'fixture browser state',
@@ -259,7 +271,7 @@ function firstText(result: ToolExecutionResult): string {
   return content?.type === 'text' ? content.text : ''
 }
 
-describe('Obsidian website knowledge graph', () => {
+describe('Obsidian knowledge graph', () => {
   it('uses an exact hostname gate', () => {
     expect(normalizeTargetDomain('SHOP.test')).toBe('shop.test')
     expect(matchesTargetDomain('https://shop.test/orders', 'shop.test')).toBe(true)
@@ -269,10 +281,60 @@ describe('Obsidian website knowledge graph', () => {
     expect(resolveSettings({ targetDomain: 'shop.test' })).toEqual({ targetDomain: 'shop.test' })
   })
 
+  it('recalls and reads graph memory without website configuration', async () => {
+    const vaultPath = await mkdtemp(join(tmpdir(), 'bh-obsidian-knowledge-generic-'))
+    roots.push(vaultPath)
+    const notePath = 'BH Website Knowledge/Team Decisions/release-policy'
+    await mkdir(join(vaultPath, 'BH Website Knowledge', 'Team Decisions'), { recursive: true })
+    await writeFile(join(vaultPath, 'BH Website Knowledge', 'BH MCP Vault Identity.md'), FIXTURE_MARKER_MARKDOWN)
+    await writeFile(join(vaultPath, `${notePath}.md`), '# Release policy\n\nDeploy only after smoke tests pass.\n')
+    const target = await pluginHarness(vaultPath, initial, undefined, null)
+
+    const recall = await target.call('obsidian_knowledge_recall', { query: 'release policy' })
+    expect(recall.isError).toBe(false)
+    expect(firstText(recall)).toContain(notePath)
+    const read = await target.call('obsidian_knowledge_read', { paths: [notePath] })
+    expect(read.isError).toBe(false)
+    expect(firstText(read)).toContain('Deploy only after smoke tests pass.')
+    expect((await target.call('obsidian_knowledge_read_browser')).isError).toBe(true)
+    const prompt = (await target.ctx.systemPrompt.assemble()).sections
+      .find(section => section.name === 'memory:obsidian-knowledge')?.text
+    expect(prompt).toContain('Use obsidian_knowledge_recall once per distinct intent')
+    expect(prompt).not.toContain('current Browser evidence on shop.test')
+    await target.dispose()
+  })
+
+  it('recalls every testcase linked by one feature without returning their bodies', async () => {
+    const featurePath = 'BH Website Knowledge/WorkON UAT June 2026/Features/clear-filters'
+    const relatedPaths = Array.from(
+      { length: 15 },
+      (_, index) => `BH Website Knowledge/WorkON UAT June 2026/Test Cases/TC-${String(index + 1).padStart(4, '0')}`,
+    )
+    const feature = {
+      path: featurePath,
+      markdown: `---\ntype: uat-feature\n---\n\n# Clear filters\n\n${relatedPaths.map((path, index) => `- [[Test Cases/${path.split('/').at(-1)}|Case ${index + 1}]]`).join('\n')}`,
+    }
+    const storage: ObsidianKnowledgeStorage = {
+      read: async () => '',
+      write: async () => {},
+      update: async () => {},
+      search: async () => [{ path: featurePath, title: 'Clear filters', excerpt: 'raw MCP excerpt' }],
+      readNotes: async () => [feature],
+    }
+    const recall = await new ObsidianKnowledgeGraph(undefined, storage).recall('clear filters')
+
+    expect(recall.matches[0]?.excerpt).toContain('# Clear filters')
+    expect(recall.matches[0]?.excerpt.length).toBeLessThanOrEqual(322)
+    expect(recall.related.map(relation => relation.path)).toEqual(relatedPaths)
+    expect(recall.related.every(relation => relation.sourcePath === featurePath)).toBe(true)
+    const fallbackRecall = await new ObsidianKnowledgeGraph(undefined, storage).recall('semantic alias')
+    expect(fallbackRecall.matches[0]?.excerpt).toContain('# Clear filters')
+  })
+
   it('writes page, control, and observed browser transition notes without storing typed values', async () => {
     const vaultPath = await mkdtemp(join(tmpdir(), 'bh-obsidian-knowledge-'))
     roots.push(vaultPath)
-    const graph = createLocalObsidianWebsiteGraph({ targetDomain: 'shop.test', vaultPath })
+    const graph = createLocalObsidianKnowledgeGraph({ targetDomain: 'shop.test', vaultPath })
     const before = graph.page(initial)
     await graph.record(undefined, 'browser_state', {}, before)
     const after = graph.page({
@@ -309,17 +371,17 @@ describe('Obsidian website knowledge graph', () => {
     const approved = join(root, 'Approved Knowledge')
     await mkdir(approved, { recursive: true })
     await writeFile(join(approved, 'workon-backoffice-entrypoint.md'), '# WorkOnBackoffice browser entrypoint\n\n- URL: https://shop.test/workon\n- Provenance: user-approved\n')
-    const graph = createLocalObsidianWebsiteGraph({ targetDomain: 'shop.test', vaultPath })
+    const graph = createLocalObsidianKnowledgeGraph({ targetDomain: 'shop.test', vaultPath })
 
-    await expect(graph.search('application search')).resolves.toMatchObject([
+    await expect(graph.recall('application search')).resolves.toMatchObject({ matches: [
       { path: 'BH Website Knowledge/WorkON UAT June 2026/Test Cases/TC-0001', title: 'TC_001 — Verify application search' },
       { path: 'BH Website Knowledge/WorkON UAT June 2026/Features/application-search', title: 'Application search' },
       { path: 'BH Website Knowledge/WorkON UAT June 2026/00 Index', title: 'UAT index' },
-    ])
-    await expect(graph.search('WorkOnBackoffice browser entrypoint')).resolves.toMatchObject([
+    ] })
+    await expect(graph.recall('WorkOnBackoffice browser entrypoint')).resolves.toMatchObject({ matches: [
       { path: 'BH Website Knowledge/WorkON UAT June 2026/Approved Knowledge/workon-backoffice-entrypoint', title: 'WorkOnBackoffice browser entrypoint' },
-    ])
-    await expect(graph.search('fixture identity marker')).resolves.toEqual([])
+    ] })
+    await expect(graph.recall('fixture identity marker')).resolves.toEqual({ matches: [], related: [] })
     const notes = await graph.readNotes([
       'BH Website Knowledge/WorkON UAT June 2026/Features/application-search',
       'BH Website Knowledge/WorkON UAT June 2026/Test Cases/TC-0001',
@@ -331,7 +393,7 @@ describe('Obsidian website knowledge graph', () => {
     ])
     expect(notes[0]?.markdown).toContain('Feature candidate.')
     expect(notes[1]?.markdown).toContain('- Preconditions: User is signed in')
-    await expect(graph.readNotes(['BH Website Knowledge/../secret'])).rejects.toThrow(/invalid website knowledge note path/)
+    await expect(graph.readNotes(['BH Website Knowledge/../secret'])).rejects.toThrow(/invalid Obsidian knowledge note path/)
     await expect(graph.readNotes(['BH Website Knowledge/WorkON UAT June 2026/Test Cases/missing'])).rejects.toThrow(/note not found/)
 
     const outside = join(vaultPath, 'Outside Knowledge')
@@ -355,13 +417,13 @@ describe('Obsidian website knowledge graph', () => {
     expect(blockedRootBeforeKnowledge.isError).toBe(true)
     expect(firstText(blockedRootBeforeKnowledge)).toContain('Read the complete testcase knowledge note')
     expect((await target.call('browser_open_tab', { url: 'https://shop.test/' })).isError).toBe(true)
-    const persisted = await target.call('website_knowledge_read_notes', { paths: [persistedPath] })
+    const persisted = await target.call('obsidian_knowledge_read', { paths: [persistedPath] })
     expect(persisted.isError).toBe(false)
     expect(firstText(persisted)).toContain('Expected result: visible')
     expect(firstText(persisted)).toContain('WorkOnPortal: https://shop.test/WorkOnPortal/')
     expect(firstText(persisted)).toContain('WorkOnBackoffice: https://shop.test/WorkOnBackoffice/')
     expect(firstText(persisted)).not.toContain('https://shop.test/WorkOnNext/')
-    expect((await target.call('website_knowledge_read')).isError).toBe(true)
+    expect((await target.call('obsidian_knowledge_read_browser')).isError).toBe(true)
     const blockedRoot = await target.call('browser_navigate', { url: 'https://shop.test/' })
     expect(blockedRoot.isError).toBe(true)
     expect(firstText(blockedRoot)).toContain('WorkOnPortal -> https://shop.test/WorkOnPortal/')
@@ -369,10 +431,10 @@ describe('Obsidian website knowledge graph', () => {
     expect((await target.call('browser_open_tab', { url: 'https://shop.test/WorkOnPortal/' })).isError).toBe(false)
     expect((await target.call('browser_navigate', { url: 'https://shop.test/orders' })).isError).toBe(false)
     expect((await target.call('browser_state')).isError).toBe(false)
-    const read = await target.call('website_knowledge_read')
+    const read = await target.call('obsidian_knowledge_read_browser')
     expect(read.isError).toBe(false)
     expect(firstText(read)).toContain('Knowledge graph for https://shop.test/orders')
-    const saved = await target.call('website_knowledge_save_approved', {
+    const saved = await target.call('obsidian_knowledge_save_approved', {
       approval: 'approved-by-user',
       title: 'Orders coverage',
       content: 'User-approved regression coverage.',
@@ -384,14 +446,14 @@ describe('Obsidian website knowledge graph', () => {
     const action = await readFile(join(actionDirectory, actionName!), 'utf8')
     expect(action).toContain('success: true')
     expect(action).toContain('message: "navigate succeeded"')
-    const search = await target.call('website_knowledge_search', { query: 'orders' })
+    const search = await target.call('obsidian_knowledge_recall', { query: 'orders' })
     expect(search.isError).toBe(false)
     expect(firstText(search)).toContain('via obsidian-mcp')
     await target.dispose()
 
     const offDomain = await pluginHarness(vaultPath, { ...initial, url: 'https://other.test/orders' })
     expect((await offDomain.call('browser_state')).isError).toBe(false)
-    const rejected = await offDomain.call('website_knowledge_read')
+    const rejected = await offDomain.call('obsidian_knowledge_read_browser')
     expect(rejected.isError).toBe(true)
     expect(firstText(rejected)).toContain('browse the configured website')
     await offDomain.dispose()
@@ -404,7 +466,7 @@ describe('Obsidian website knowledge graph', () => {
     const first = 'https://shop.test/tab-one/start'
     const second = 'https://shop.test/tab-two/start'
     const last = 'https://shop.test/tab-one/end'
-    const graph = createLocalObsidianWebsiteGraph({ targetDomain: 'shop.test', vaultPath })
+    const graph = createLocalObsidianKnowledgeGraph({ targetDomain: 'shop.test', vaultPath })
     const firstPage = graph.page({ ...initial, url: first })
     const secondPage = graph.page({ ...initial, url: second })
     const lastPage = graph.page({ ...initial, url: last })
@@ -412,7 +474,7 @@ describe('Obsidian website knowledge graph', () => {
     expect((await target.call('browser_navigate', { url: first, tab_id: 1 })).isError).toBe(false)
     expect((await target.call('browser_navigate', { url: second, tab_id: 2 })).isError).toBe(false)
     expect((await target.call('browser_navigate', { url: last, tab_id: 1 })).isError).toBe(false)
-    expect((await target.call('website_knowledge_save_approved', {
+    expect((await target.call('obsidian_knowledge_save_approved', {
       approval: 'approved-by-user',
       title: 'Per-tab browser evidence',
       content: 'Keep browser transitions attached to their source tab.',
@@ -437,7 +499,7 @@ describe('Obsidian website knowledge graph', () => {
     const target = await pluginHarness(vaultPath, initial)
 
     await target.beginTurn(1, 'verify TC-0001 on the live UI')
-    expect((await target.call('website_knowledge_read_notes', { paths: [persistedPath] })).isError).toBe(false)
+    expect((await target.call('obsidian_knowledge_read', { paths: [persistedPath] })).isError).toBe(false)
     await target.stopTurn(1)
     expect(target.steered).toHaveLength(1)
     expect(target.steered[0]).toContain('call browser_navigate')
@@ -445,13 +507,13 @@ describe('Obsidian website knowledge graph', () => {
     expect(target.steered).toHaveLength(1)
 
     await target.beginTurn(2, 'show TC-0001 source fields')
-    expect((await target.call('website_knowledge_read_notes', { paths: [persistedPath] })).isError).toBe(false)
+    expect((await target.call('obsidian_knowledge_read', { paths: [persistedPath] })).isError).toBe(false)
     expect((await target.call('browser_navigate', { url: 'https://other.test/' })).isError).toBe(false)
     await target.stopTurn(2)
     expect(target.steered).toHaveLength(1)
 
     await target.beginTurn(3, 'kiểm chứng TC-0001')
-    expect((await target.call('website_knowledge_read_notes', { paths: [persistedPath] })).isError).toBe(false)
+    expect((await target.call('obsidian_knowledge_read', { paths: [persistedPath] })).isError).toBe(false)
     const wrongDomain = await target.call('browser_navigate', { url: 'http://127.0.0.1:3080/' })
     expect(wrongDomain.isError).toBe(true)
     expect(firstText(wrongDomain)).toContain('cannot navigate outside the configured target domain shop.test')
@@ -467,7 +529,7 @@ describe('Obsidian website knowledge graph', () => {
     roots.push(vaultPath)
     const target = await pluginHarness(vaultPath, initial, 'rejected')
     expect((await target.call('browser_state')).isError).toBe(false)
-    const saved = await target.call('website_knowledge_save_approved', {
+    const saved = await target.call('obsidian_knowledge_save_approved', {
       approval: 'approved-by-user',
       title: 'Rejected proposal',
       content: 'Must not be written.',
@@ -489,7 +551,7 @@ describe('Obsidian website knowledge graph', () => {
     await target.beginTurn(2)
     expect((await target.call('browser_navigate', { url: 'https://shop.test/approved' })).isError).toBe(false)
 
-    const saved = await target.call('website_knowledge_save_approved', {
+    const saved = await target.call('obsidian_knowledge_save_approved', {
       approval: 'approved-by-user',
       title: 'Approved Browser evidence',
       content: 'Persist only the evidence cited by this proposal.',
@@ -512,7 +574,7 @@ describe('Obsidian website knowledge graph', () => {
     await stale.beginTurn(1)
     expect((await stale.call('browser_navigate', { url: 'https://shop.test/stale' })).isError).toBe(false)
     await stale.beginTurn(3)
-    expect((await stale.call('website_knowledge_save_approved', {
+    expect((await stale.call('obsidian_knowledge_save_approved', {
       approval: 'approved-by-user',
       title: 'Proposal without current Browser evidence',
       content: 'Save the approved proposal only.',
@@ -533,9 +595,9 @@ describe('Obsidian website knowledge graph', () => {
       content: 'Persist after explicit approval.',
       evidence: 'Live Browser: https://shop.test/retry',
     } as const
-    expect((await retry.call('website_knowledge_save_approved', proposal)).isError).toBe(true)
+    expect((await retry.call('obsidian_knowledge_save_approved', proposal)).isError).toBe(true)
     retry.setApproval('allowed-once')
-    expect((await retry.call('website_knowledge_save_approved', proposal)).isError).toBe(false)
+    expect((await retry.call('obsidian_knowledge_save_approved', proposal)).isError).toBe(false)
     await expect(access(join(retryVaultPath, 'BH Website Knowledge', 'shop.test', 'pages'))).resolves.toBeUndefined()
     await retry.dispose()
   })
@@ -545,25 +607,23 @@ describe('Obsidian website knowledge graph', () => {
     roots.push(vaultPath)
     const target = await pluginHarness(vaultPath, initial)
     const section = (await target.ctx.systemPrompt.assemble()).sections
-      .find(item => item.name === 'browser:obsidian-website-knowledge')
-    expect(section?.text).toContain('once per distinct term with exactly {"query":"term"}')
-    expect(section?.text).toContain('call website_knowledge_read_notes with the exact candidate paths')
-    expect(section?.text).toContain('Search excerpts locate notes only')
-    expect(section?.text).toContain('do not repeat paraphrased searches or use glob, grep')
-    expect(section?.text).toContain('A coverage decision requires a matching complete individual UAT test-case note')
-    expect(section?.text).toContain('A direct browser-operation request (open, sign in, navigate, click, search, or create) is not a coverage lookup')
-    expect(section?.text).toContain('call browser_* before reporting a live result')
-    expect(section?.text).toContain('report Blocked rather than invent or alter it')
-    expect(section?.text).toContain('The configured targetDomain is shop.test')
-    expect(section?.text).toContain('search website knowledge for the required role plus "browser entrypoint"')
-    expect(section?.text).toContain('website_knowledge_read_notes emits same-domain application-root navigation candidates')
-    expect(section?.text).toContain('select the emitted navigation candidate whose application matches')
-    expect(section?.text).toContain('Never navigate to the bare configured domain https://shop.test/')
-    expect(section?.text).toContain('ask the user for an entrypoint URL')
-    expect(section?.text).toContain('Navigation URLs remain ephemeral')
+      .find(item => item.name === 'memory:obsidian-knowledge')
+    expect(section?.text).toContain('Use obsidian_knowledge_recall once per distinct intent')
+    expect(section?.text).toContain('call obsidian_knowledge_read once with up to 32 paths')
+    expect(section?.text).toContain('excerpt or graph edge locates evidence')
+    expect(section?.text).toContain('glob, grep, or filesystem tools')
+    expect(section?.text).toContain('Coverage requires a complete individual UAT case')
+    expect(section?.text).toContain('Direct open, sign-in, navigation, click, search, or create requests')
+    expect(section?.text).toContain('requires browser_* before a live verdict')
+    expect(section?.text).toContain('Block on conflicting identity')
+    expect(section?.text).toContain('current Browser evidence on shop.test')
+    expect(section?.text).toContain('recall the required role plus "browser entrypoint"')
+    expect(section?.text).toContain('matching application candidate emitted by obsidian_knowledge_read')
+    expect(section?.text).toContain('Never navigate to bare https://shop.test/')
+    expect(section?.text).toContain('request an entrypoint URL')
+    expect(section?.text).toContain('Browser observations remain staged')
     expect(section?.text).toContain('list every live Browser result URL that belongs to that proposal')
-    expect(section?.text).toContain('report Blocked and name the missing or conflicting application identity')
-    expect(section?.text).toContain('report Unresolved instead of inferring, inventing, or falling back to filesystem discovery')
+    expect(section?.text).toContain('report Unresolved instead of inferring')
     await target.dispose()
   })
 })

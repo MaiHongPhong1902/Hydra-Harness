@@ -404,7 +404,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
     const [firstTitle, secondTitle] = await Promise.all([
       child.call('execute_javascript', { tabId: state.tabId, script: 'return document.title' }),
       child.call('execute_javascript', { tabId: opened.tabId, script: 'return document.title' }),
-    ]) as ActionResult[]
+    ]) as [ActionResult, ActionResult]
     expect(firstTitle.message).toContain('Ready SPA')
     expect(secondTitle.message).toContain('Harness browser fixture')
 

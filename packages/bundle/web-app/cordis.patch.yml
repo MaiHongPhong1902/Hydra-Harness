@@ -96,9 +96,35 @@
     - id: directory-picker
       name: '@bosch/bh-host-directory-picker-auto'
 
-    # Read-only projection of current Loader entries for trusted client RPCs.
+    # Loader inventory and profile-persisted enablement controls. The protected
+    # rows keep the active Settings/RPC path available so every switch is reversible.
     - id: plugin-inventory
       name: '@bosch/bh-host-plugin-inventory'
+      config:
+        protectedEntryIds:
+          - typert
+          - typert-loader
+          - typert-gateway
+          - plugin-inventory
+          - api-gateway
+          - cordis-host-runner
+          - web-startup
+          - webserver
+          - web-runtime
+          - modules
+          - connection
+          - api-remotes
+          - client-runtime
+          - cordis-client-runner
+          - ui-theme
+          - locale
+          - ui-layout
+          - ui-renderer
+          - ui-sidebar
+          - ui-settings
+          - ui-settings-general
+          - ui-settings-plugins
+          - ui-settings-plugin-inventory
 
     # The API gateway: the transport-agnostic dispatch face every client shape
     # shares. The base layer's agent-default-model service owns the default model.

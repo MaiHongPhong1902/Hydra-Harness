@@ -16,7 +16,9 @@ describe('ActivityGroup', () => {
   it('folds tool families into the screenshot labels', () => {
     expect(activityKindForTool('bash')).toBe('commands')
     expect(activityKindForTool('read_image')).toBe('image')
-    expect(activityKindForTool('website_knowledge_search')).toBe('read')
+    expect(activityKindForTool('obsidian_knowledge_recall')).toBe('read')
+    expect(activityKindForTool('obsidian_knowledge_read')).toBe('read')
+    expect(activityKindForTool('obsidian_knowledge_save_approved')).toBe('commands')
     expect(activityKindForTool('browser_click')).toBe('commands')
     expect(activityKindForTools(['read', 'bash'])).toBe('read-commands')
     expect(activityKindForTools(['read', 'grep'])).toBe('read')

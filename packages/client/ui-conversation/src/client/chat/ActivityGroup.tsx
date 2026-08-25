@@ -15,7 +15,8 @@ export function activityKindForTool(toolName: string): Exclude<ActivityKind, 're
   if (name === 'read_image' || name === 'view_image' || name.includes('image')) return 'image'
   if (name === 'bash' || name === 'pwsh' || name === 'run_code' || name === 'skill' || name.startsWith('browser_')) return 'commands'
   if (name === 'read' || name === 'grep' || name === 'glob' || name.startsWith('read_')
-    || name.includes('search') || name.includes('fetch')) return 'read'
+    || name.includes('search') || name.includes('fetch')
+    || name === 'obsidian_knowledge_recall' || name.startsWith('obsidian_knowledge_read')) return 'read'
   if (name === 'write' || name === 'edit' || name.startsWith('write_') || name.startsWith('edit_')) return 'write'
   // Unknown tool names are still executable activity; keep the header useful
   // when a persisted result no longer carries its original call metadata.

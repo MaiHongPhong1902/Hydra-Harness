@@ -1,9 +1,7 @@
 /**
- * Domain-gated Obsidian graph projection for facts observed through BH's
- * embedded browser. It never crosses the configured hostname or invents a
- * deep route: successful `browser_*` results become approval-gated Obsidian
- * MCP graph nodes.
- * @module @bosch/bh-obsidian-website-knowledge
+ * Obsidian graph memory with bounded contextual recall and optional
+ * domain-gated Browser evidence capture.
+ * @module @bosch/bh-obsidian-knowledge
  */
 
 import type { Context } from '@bosch/cordis'
@@ -19,14 +17,14 @@ import type {} from '@bosch/bh-tools'
 import type { BrowserToolValue } from '@bosch/bh-tool-browser'
 import {
   matchesTargetDomain,
-  ObsidianWebsiteGraph,
+  ObsidianKnowledgeGraph,
   resolveSettings,
   searchTerms,
   type KnowledgeNote,
+  type KnowledgeRecall,
   type PageRecord,
-  type KnowledgeSearchResult,
-  type WebsiteKnowledgeStorage,
-  type WebsiteKnowledgeSettings,
+  type ObsidianKnowledgeStorage,
+  type ObsidianKnowledgeSettings,
 } from './graph.ts'
 import {
   createObsidianMcpStorage,
@@ -35,33 +33,35 @@ import {
 } from './mcp.ts'
 
 export {
-  createLocalObsidianWebsiteGraph,
+  createLocalObsidianKnowledgeGraph,
   controlsFrom,
   hostnameOf,
   matchesTargetDomain,
   normalizeTargetDomain,
-  ObsidianWebsiteGraph,
+  ObsidianKnowledgeGraph,
   resolveSettings,
 } from './graph.ts'
 export type {
   ControlRecord,
   KnowledgeNote,
   KnowledgeSearchResult,
-  LocalWebsiteKnowledgeSettings,
+  KnowledgeRecall,
+  KnowledgeRelation,
+  LocalObsidianKnowledgeSettings,
+  ObsidianKnowledgeSettings,
+  ObsidianKnowledgeStorage,
   PageRecord,
-  ResolvedWebsiteKnowledgeSettings,
-  WebsiteKnowledgeStorage,
-  WebsiteKnowledgeSettings,
+  ResolvedObsidianKnowledgeSettings,
 } from './graph.ts'
 
 /** Cordis plugin name used by loader diagnostics. */
-export const name = 'obsidian-website-knowledge'
+export const name = 'obsidian-knowledge'
 
 /** This plugin observes browser tools and contributes graph-read and approval-gated knowledge tools. */
 export const inject = ['tools', 'systemPrompt']
 
 /** User-settings namespace. */
-export const OBSIDIAN_WEBSITE_KNOWLEDGE_SETTINGS_NAMESPACE = settingsNamespace('obsidian-website-knowledge')
+export const OBSIDIAN_KNOWLEDGE_SETTINGS_NAMESPACE = settingsNamespace('obsidian-knowledge')
 
 const DEFAULT_OBSIDIAN_MCP_URL = 'http://127.0.0.1:27123/mcp/'
 const OBSIDIAN_MCP_API_KEY = credentialRef('OBSIDIAN_API_KEY')
@@ -77,7 +77,6 @@ const LIVE_VERIFICATION_REQUESTS = [
 ] as const
 const MAX_NAVIGATION_CANDIDATES = 16
 const PROPOSAL_EVIDENCE_PROMPT = 'In an approved proposal evidence field, list every live Browser result URL that belongs to that proposal. The host attaches only those exact current-turn results, or previous-turn results when approval is the next user turn.'
-const OPERATIONAL_BROWSER_PROMPT = 'A direct browser-operation request (open, sign in, navigate, click, search, or create) is not a coverage lookup: take the next safe browser action from the current state before reading UAT. On a fresh window, call browser_state once to load and inspect the configured browser home; do not ask the user to choose a role merely to initialize it. Follow observed navigation links and form-opening actions without another confirmation. Stop only at password/MFA, a failed action, missing required data, or an irreversible submit the user did not authorize.'
 
 interface NavigationCandidate {
   readonly application: string
@@ -99,7 +98,7 @@ interface PendingProposal {
   readonly observations: readonly BrowserObservation[]
 }
 
-/** Host composition settings; user settings retain only the target hostname. */
+/** Host composition settings; targetDomain activates optional Browser capture. */
 export interface Config {
   /** Initial target hostname, superseded by the user settings section when present. */
   targetDomain?: string
@@ -107,8 +106,8 @@ export interface Config {
   mcpUrl?: string
 }
 
-/** Per-user fields persisted under the website-knowledge settings namespace. */
-type UserSettings = WebsiteKnowledgeSettings
+/** Per-user fields persisted under the Obsidian knowledge settings namespace. */
+type UserSettings = ObsidianKnowledgeSettings
 
 export const Config: z<Config> = z.object({
   targetDomain: z.string(),
@@ -117,7 +116,8 @@ export const Config: z<Config> = z.object({
 
 const UserSettings: z<UserSettings> = z.object({ targetDomain: z.string() })
 
-const PROMPT = (targetDomain: string) => `For website test design, use website_knowledge_search to locate imported UAT and approved knowledge, then call website_knowledge_read_notes with the exact candidate paths before using source fields. These tools use the live Obsidian MCP index and exact note reader; do not call raw Obsidian MCP tools. Search excerpts locate notes only: text absent from an excerpt is not a blank source cell. Search once per distinct term with exactly {"query":"term"}; after exact paths are known, do not repeat paraphrased searches or use glob, grep, or filesystem search to discover the vault. Read up to 32 exact paths per batch and split only when that limit requires it. If Obsidian MCP or a required complete note is unavailable, report Unresolved instead of inferring, inventing, or falling back to filesystem discovery. website_knowledge_read_notes emits same-domain application-root navigation candidates for literal WorkOn application identifiers found in complete notes; these are navigation hypotheses, not UI evidence. website_knowledge_read is only for staged or persisted evidence for the current configured-domain Browser page. Use browser_* only for the configured website; do not call generic web_search or web_fetch. A coverage decision requires a matching complete individual UAT test-case note with the same context, action, and expected result; an index or feature note only identifies candidates. A historical UAT result is not current UI evidence, and no Browser capture cannot prove that UI is unchanged. The configured targetDomain is ${targetDomain}. Resolve the Browser start URL without asking the user for an entrypoint URL. First, when the current conversation contains an exact literal HTTP(S) URL whose hostname matches this targetDomain, pass it unchanged to browser_navigate on the next tool step. Otherwise search website knowledge for the required role plus "browser entrypoint", read the exact approved note, and navigate to its literal same-domain URL. If no approved entrypoint exists, select the emitted navigation candidate whose application matches the required role and complete test-case context, then pass its URL unchanged to browser_navigate on the next tool step. Accept that candidate only when live Browser output establishes the expected application or role. Never navigate to the bare configured domain https://${targetDomain}/, construct another URL, ask the user for an entrypoint URL, guess a feature or deep route, or treat a database, API, SQL, attachment, or evidence-source URL as a UI entrypoint. If no candidate matches or multiple candidates remain plausible, report Blocked and name the missing or conflicting application identity. If live navigation cannot reach the required feature, report Blocked with the Browser URL and observed evidence instead of requesting a link. Navigation URLs remain ephemeral and Browser observations remain staged evidence until website_knowledge_save_approved is called after the user explicitly approves the exact proposed knowledge. When the user asks to verify, validate, check, test, run, or execute a case, call browser_* before reporting a live result, even when imported UAT coverage exists; do not ask a second approval for Browser inspection. If the case lacks test data, a safe cleanup path, or internally consistent steps and expected result, report Blocked rather than invent or alter it. A missing search result or viewport element is not proof that a feature is absent; report Unresolved instead.`
+const MEMORY_PROMPT = 'Use obsidian_knowledge_recall once per distinct intent. It returns short ranked context plus exact related paths from Obsidian wikilinks; choose the needed paths, then call obsidian_knowledge_read once with up to 32 paths before relying on source fields. An excerpt or graph edge locates evidence but does not prove a blank field or absent feature. Do not call raw Obsidian MCP tools or search the vault through glob, grep, or filesystem tools. If MCP or a required complete note is unavailable, report Unresolved instead of inferring. Coverage requires a complete individual UAT case with matching context, action, and expected result; feature and index notes only identify candidates.'
+const BROWSER_PROMPT = (targetDomain: string) => `Use obsidian_knowledge_read_browser only for current Browser evidence on ${targetDomain}; historical notes cannot prove the current UI. Direct open, sign-in, navigation, click, search, or create requests start with the next safe browser_* action, using browser_state once on a fresh window. For an entrypoint, prefer an exact same-domain URL already in the conversation; otherwise recall the required role plus "browser entrypoint", read that note, then use its literal URL or a matching application candidate emitted by obsidian_knowledge_read. Never navigate to bare https://${targetDomain}/, construct a deep route, request an entrypoint URL, or treat API, SQL, attachment, or evidence URLs as UI routes. Block on conflicting identity, missing test data, unsafe cleanup, password/MFA, failed action, or an unauthorized irreversible submit. A verify, validate, check, test, run, or execute request requires browser_* before a live verdict. Browser observations remain staged until obsidian_knowledge_save_approved receives explicit approval.`
 
 function navigationCandidates(notes: readonly KnowledgeNote[], targetDomain: string): NavigationCandidate[] {
   const candidates: NavigationCandidate[] = []
@@ -230,7 +230,7 @@ class BrowserKnowledgeRecorder {
     try {
       config = resolveSettings(this.settings())
     } catch (error) {
-      this.ctx.logger.warn(`obsidian-website-knowledge: settings are inactive: ${error instanceof Error ? error.message : String(error)}`)
+      this.ctx.logger.warn(`obsidian-knowledge: settings are inactive: ${error instanceof Error ? error.message : String(error)}`)
       return
     }
     if (config === undefined || !matchesTargetDomain(value.url, config.targetDomain)) {
@@ -258,13 +258,13 @@ class BrowserKnowledgeRecorder {
   }
 
   async read(agent: Agent | undefined): Promise<{ url: string; markdown: string }> {
-    if (agent === undefined) throw new Error('website knowledge requires an initiating browser agent')
+    if (agent === undefined) throw new Error('Obsidian browser knowledge requires an initiating browser agent')
     const tabId = this.latestTabs.get(agent)
     const page = tabId === undefined ? undefined : this.pages.get(agent)?.get(tabId)
     if (page === undefined) throw new Error('browse the configured website before reading its knowledge graph')
     const config = resolveSettings(this.settings())
     if (config === undefined || !matchesTargetDomain(page.url, config.targetDomain)) {
-      throw new Error('website knowledge is inactive outside the configured target domain')
+      throw new Error('Obsidian browser knowledge is inactive outside the configured target domain')
     }
     const graph = graphFor(this.ctx, this.settings, this.mcpUrl)
     return { url: page.url, markdown: await graph.read(page) || graph.describe(page) }
@@ -294,7 +294,7 @@ class BrowserKnowledgeRecorder {
     const proposal = this.proposals.get(token)
     if (proposal === undefined || proposal.observations.length === 0) return
     const config = resolveSettings(this.settings())
-    if (config === undefined) throw new Error('website knowledge requires configured targetDomain')
+    if (config === undefined) throw new Error('Obsidian browser knowledge requires configured targetDomain')
     const graph = graphFor(this.ctx, this.settings, this.mcpUrl)
     for (const observation of proposal.observations) {
       await graph.record(
@@ -320,11 +320,10 @@ function requireObsidianMcp<Value>(value: Value | undefined): Value {
   return value
 }
 
-function graphFor(ctx: Context, settings: () => UserSettings, mcpUrl: string): ObsidianWebsiteGraph {
+function graphFor(ctx: Context, settings: () => UserSettings, mcpUrl: string): ObsidianKnowledgeGraph {
   const config = resolveSettings(settings())
-  if (config === undefined) throw new Error('website knowledge requires configured targetDomain')
   const mcp = createObsidianMcpStorage(mcpOptions(ctx, mcpUrl))
-  const storage: WebsiteKnowledgeStorage = {
+  const storage: ObsidianKnowledgeStorage = {
     read: async path => (await mcp.readNote(path))?.markdown ?? '',
     write: async (path, markdown) => {
       requireObsidianMcp(await mcp.writeNote({ path, markdown }))
@@ -336,7 +335,7 @@ function graphFor(ctx: Context, settings: () => UserSettings, mcpUrl: string): O
     search: async query => requireObsidianMcp(await mcp.search(query)),
     readNotes: async paths => requireObsidianMcp(await mcp.readNotes(paths)),
   }
-  return new ObsidianWebsiteGraph(config, storage)
+  return new ObsidianKnowledgeGraph(config, storage)
 }
 
 function mcpOptions(ctx: Context, mcpUrl: string): ObsidianMcpOptions {
@@ -359,7 +358,7 @@ export function apply(ctx: Context, config: Config = {}): void {
   const verificationTurns = new WeakMap<Agent, number>()
   const browserAttemptTurns = new WeakMap<Agent, number>()
   const browserReminderTurns = new WeakMap<Agent, number>()
-  installSettingsSection(ctx, OBSIDIAN_WEBSITE_KNOWLEDGE_SETTINGS_NAMESPACE, UserSettings, base, {
+  installSettingsSection(ctx, OBSIDIAN_KNOWLEDGE_SETTINGS_NAMESPACE, UserSettings, base, {
     setSource: (source) => { current = source },
     onChange: () => { recorder.reset() },
     validate: (value) => { resolveSettings(value) },
@@ -379,7 +378,7 @@ export function apply(ctx: Context, config: Config = {}): void {
     return next()
   })
   ctx.on('tools/pre-execute', (exec, next) => {
-    if (exec.name === 'website_knowledge_save_approved') {
+    if (exec.name === 'obsidian_knowledge_save_approved') {
       const arguments_ = exec.arguments as { evidence?: unknown }
       recorder.stageProposal(exec, typeof arguments_.evidence === 'string' ? arguments_.evidence : '')
       return Promise.resolve({
@@ -425,7 +424,7 @@ export function apply(ctx: Context, config: Config = {}): void {
     return next()
   })
   ctx.on('tools/result', (exec, result) => {
-    if (exec.name === 'website_knowledge_save_approved') recorder.discardProposal(exec.token)
+    if (exec.name === 'obsidian_knowledge_save_approved') recorder.discardProposal(exec.token)
     const value = browserResult(exec, result)
     if (value !== undefined) {
       recorder.observe(exec, value)
@@ -458,15 +457,17 @@ export function apply(ctx: Context, config: Config = {}): void {
     }))
   })
   ctx.systemPrompt.section({
-    name: 'browser:obsidian-website-knowledge',
+    name: 'memory:obsidian-knowledge',
     order: 116,
     text: () => {
       const settings = resolveSettings(current())
-      return settings === undefined ? '' : `${OPERATIONAL_BROWSER_PROMPT} ${PROMPT(settings.targetDomain)} ${PROPOSAL_EVIDENCE_PROMPT}`
+      return settings === undefined
+        ? `${MEMORY_PROMPT} ${PROPOSAL_EVIDENCE_PROMPT}`
+        : `${MEMORY_PROMPT} ${BROWSER_PROMPT(settings.targetDomain)} ${PROPOSAL_EVIDENCE_PROMPT}`
     },
   })
   ctx.tools.register(defineTool({
-    name: 'website_knowledge_read',
+    name: 'obsidian_knowledge_read_browser',
     description: 'Read staged Browser evidence or the persisted Obsidian graph note for the current configured-domain browser page. Browse that page first.',
     parameters: {},
     output: {
@@ -484,11 +485,11 @@ export function apply(ctx: Context, config: Config = {}): void {
       }],
     },
     execute: async (_args, exec) => recorder.read(exec.agent),
-    presentCall: () => ({ card: 'generic', title: 'Read website knowledge', kind: 'execute' as const }),
+    presentCall: () => ({ card: 'generic', title: 'Read Browser knowledge', kind: 'execute' as const }),
   }))
   ctx.tools.register(defineTool({
-    name: 'website_knowledge_search',
-    description: 'Locate imported UAT cases and website graph notes in the configured Obsidian vault. Returns bounded excerpts and exact paths; use website_knowledge_read_notes before relying on source fields. Call once per term with exactly {"query":"term"}. An empty result is not proof that a feature is absent.',
+    name: 'obsidian_knowledge_recall',
+    description: 'Recall concise Obsidian context and exact related paths by following wikilinks from the strongest matches. Call once per intent, then batch the needed paths through obsidian_knowledge_read. An empty result is not proof that a feature is absent.',
     parameters: {
       query: { type: 'string', required: true, description: 'Focused feature, UI, or test-case terms (2 to 160 characters).' },
     },
@@ -499,7 +500,7 @@ export function apply(ctx: Context, config: Config = {}): void {
         properties: {
           query: { type: 'string', required: true },
           backend: { type: 'string', required: true, enum: ['obsidian-mcp'] },
-          results: {
+          matches: {
             type: 'array',
             required: true,
             items: {
@@ -512,30 +513,45 @@ export function apply(ctx: Context, config: Config = {}): void {
               },
             },
           },
+          related: {
+            type: 'array',
+            required: true,
+            items: {
+              type: 'object',
+              additionalProperties: false,
+              properties: {
+                path: { type: 'string', required: true },
+                title: { type: 'string', required: true },
+                sourcePath: { type: 'string', required: true },
+              },
+            },
+          },
         },
       },
-      render: (_args, value: { query: string; backend: 'obsidian-mcp'; results: readonly KnowledgeSearchResult[] }) => [{
+      render: (_args, value: { query: string; backend: 'obsidian-mcp' } & KnowledgeRecall) => [{
         type: 'text' as const,
-        text: value.results.length === 0
-          ? `No website knowledge matched via ${value.backend}: ${value.query}`
-          : `Website knowledge matches via ${value.backend} for ${value.query}:\n\n${value.results.map(result => `- ${result.path}: ${result.excerpt}`).join('\n')}`,
+        text: value.matches.length === 0
+          ? `No Obsidian knowledge matched via ${value.backend}: ${value.query}`
+          : `Obsidian knowledge recall via ${value.backend} for ${value.query}:\n\nMatches:\n${value.matches.map(result => `- ${result.path}: ${result.excerpt}`).join('\n')}\n\nRelated exact paths:\n${value.related.length === 0 ? '- None' : value.related.map(relation => `- ${relation.path} (from ${relation.sourcePath})`).join('\n')}`,
       }],
     },
     execute: async (args) => {
       searchTerms(args.query)
+      const recall = await graphFor(ctx, current, mcpUrl).recall(args.query)
       return {
         query: args.query,
         backend: 'obsidian-mcp' as const,
-        results: await graphFor(ctx, current, mcpUrl).search(args.query),
+        matches: [...recall.matches],
+        related: [...recall.related],
       }
     },
-    presentCall: args => ({ card: 'generic', title: `Search website knowledge: ${args.query}`, kind: 'read' as const }),
+    presentCall: args => ({ card: 'generic', title: `Recall Obsidian knowledge: ${args.query}`, kind: 'read' as const }),
   }))
   ctx.tools.register(defineTool({
-    name: 'website_knowledge_read_notes',
-    description: 'Read complete persisted Obsidian notes by exact extensionless paths returned from website_knowledge_search. Also returns bounded same-domain application-root candidates copied from literal WorkOn identifiers. Use one batch of 1 to 32 paths; the whole call fails rather than returning partial or truncated evidence.',
+    name: 'obsidian_knowledge_read',
+    description: 'Read 1 to 32 complete Obsidian notes by exact extensionless paths returned from recall. With targetDomain configured, complete notes also yield bounded application-root Browser candidates. The whole batch fails rather than returning partial or truncated evidence.',
     parameters: {
-      paths: { type: 'array', required: true, items: { type: 'string' }, description: 'Exact paths returned by website_knowledge_search, without .md extensions.' },
+      paths: { type: 'array', required: true, items: { type: 'string' }, description: 'Exact paths returned by obsidian_knowledge_recall, without .md extensions.' },
     },
     output: {
       schema: {
@@ -572,14 +588,13 @@ export function apply(ctx: Context, config: Config = {}): void {
       },
       render: (_args, value: { backend: 'obsidian-mcp'; notes: readonly KnowledgeNote[]; navigationCandidates: readonly NavigationCandidate[] }) => [{
         type: 'text' as const,
-        text: `Website knowledge notes via ${value.backend}:\n\n${value.notes.map(note => `Website knowledge note: ${note.path}\n\n${note.markdown}`).join('\n\n---\n\n')}\n\nBrowser navigation candidates from complete notes:\n${value.navigationCandidates.length === 0 ? '- None' : value.navigationCandidates.map(candidate => `- ${candidate.application}: ${candidate.url} (source: ${candidate.sourcePath})`).join('\n')}`,
+        text: `Obsidian knowledge notes via ${value.backend}:\n\n${value.notes.map(note => `Obsidian knowledge note: ${note.path}\n\n${note.markdown}`).join('\n\n---\n\n')}\n\nBrowser navigation candidates from complete notes:\n${value.navigationCandidates.length === 0 ? '- None' : value.navigationCandidates.map(candidate => `- ${candidate.application}: ${candidate.url} (source: ${candidate.sourcePath})`).join('\n')}`,
       }],
     },
     execute: async (args, exec) => {
       const completeNotes = await graphFor(ctx, current, mcpUrl).readNotes(args.paths)
       const settings = resolveSettings(current())
-      if (settings === undefined) throw new Error('website knowledge requires configured targetDomain')
-      const candidates = navigationCandidates(completeNotes, settings.targetDomain)
+      const candidates = settings === undefined ? [] : navigationCandidates(completeNotes, settings.targetDomain)
       if (exec.agent !== undefined) candidatesByAgent.set(exec.agent, candidates)
       return {
         backend: 'obsidian-mcp' as const,
@@ -587,10 +602,10 @@ export function apply(ctx: Context, config: Config = {}): void {
         navigationCandidates: candidates,
       }
     },
-    presentCall: args => ({ card: 'generic', title: `Read ${args.paths.length} website knowledge note${args.paths.length === 1 ? '' : 's'}`, kind: 'read' as const }),
+    presentCall: args => ({ card: 'generic', title: `Read ${args.paths.length} Obsidian note${args.paths.length === 1 ? '' : 's'}`, kind: 'read' as const }),
   }))
   ctx.tools.register(defineTool({
-    name: 'website_knowledge_save_approved',
+    name: 'obsidian_knowledge_save_approved',
     description: 'Save approved test knowledge to the configured Obsidian vault. Call only after the user explicitly approves the exact proposal; approval must be the literal approved-by-user.',
     parameters: {
       approval: { type: 'string', required: true, const: 'approved-by-user', description: 'Literal confirmation after explicit user approval.' },
@@ -604,7 +619,7 @@ export function apply(ctx: Context, config: Config = {}): void {
         additionalProperties: false,
         properties: { path: { type: 'string', required: true } },
       },
-      render: (_args, value: { path: string }) => [{ type: 'text' as const, text: `Saved approved website knowledge: ${value.path}` }],
+      render: (_args, value: { path: string }) => [{ type: 'text' as const, text: `Saved approved Obsidian knowledge: ${value.path}` }],
     },
     execute: async (args, exec) => {
       const graph = graphFor(ctx, current, mcpUrl)

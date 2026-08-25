@@ -20,6 +20,11 @@ export const zh = {
   active: '已挂载',
   failed: '挂载失败',
   unloading: '卸载中',
+  enablePlugin: '启用插件',
+  disablePlugin: '停用插件',
+  saving: '正在保存…',
+  toggleError: '暂时无法更改插件状态。',
+  requiredPlugin: '此插件用于保持设置页面可用。',
 } satisfies Record<string, string>
 
 /** Plugin inventory locale key union. */
@@ -45,4 +50,9 @@ export const en = {
   active: 'Mounted',
   failed: 'Mount failed',
   unloading: 'Unloading',
+  enablePlugin: 'Enable plugin',
+  disablePlugin: 'Disable plugin',
+  saving: 'Saving…',
+  toggleError: 'The plugin state could not be changed.',
+  requiredPlugin: 'This plugin keeps Settings available.',
 } satisfies Record<PluginInventoryLocaleKey, string>

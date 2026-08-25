@@ -1,4 +1,4 @@
-/** Narrow graph storage adapter for Obsidian Local REST API's built-in MCP server. */
+/** Narrow graph-memory adapter for Obsidian Local REST API's built-in MCP server. */
 
 import { basename } from 'node:path'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
@@ -8,6 +8,7 @@ import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js'
 import {
   assertKnowledgeNoteBytes,
   GRAPH_ROOT,
+  MAX_RECALL_MATCHES,
   OBSIDIAN_MCP_VAULT_MARKER_PATH,
   searchTerms,
   validateKnowledgeNotePaths,
@@ -46,6 +47,7 @@ const UNAVAILABLE_CODES = new Set([
   'ETIMEDOUT',
   'UND_ERR_CONNECT_TIMEOUT',
 ])
+const REQUEST_TIMEOUT_CODE: number = ErrorCode.RequestTimeout
 const MCP_NOTE_NOT_FOUND = Symbol('mcp-note-not-found')
 
 /**
@@ -58,7 +60,7 @@ export function normalizeObsidianMcpUrl(value: string): string {
   try {
     url = new URL(value)
   } catch {
-    throw new Error('obsidian-website-knowledge: mcpUrl must be an absolute HTTP(S) URL')
+    throw new Error('obsidian-knowledge: mcpUrl must be an absolute HTTP(S) URL')
   }
   if ((url.protocol !== 'http:' && url.protocol !== 'https:')
     || url.hostname !== '127.0.0.1'
@@ -67,7 +69,7 @@ export function normalizeObsidianMcpUrl(value: string): string {
     || url.search.length > 0
     || url.hash.length > 0
     || url.pathname !== '/mcp/') {
-    throw new Error('obsidian-website-knowledge: mcpUrl must be a loopback http(s)://127.0.0.1:<port>/mcp/ endpoint')
+    throw new Error('obsidian-knowledge: mcpUrl must be a loopback http(s)://127.0.0.1:<port>/mcp/ endpoint')
   }
   return url.toString()
 }
@@ -77,7 +79,7 @@ type ConnectedResult<Value> = Value | undefined
 function isTransportUnavailable(error: unknown, seen = new Set<unknown>()): boolean {
   if (seen.has(error)) return false
   seen.add(error)
-  if (error instanceof McpError && error.code === ErrorCode.RequestTimeout) return true
+  if (error instanceof McpError && error.code === REQUEST_TIMEOUT_CODE) return true
   if (error instanceof AggregateError) return error.errors.some(item => isTransportUnavailable(item, seen))
   if (error === null || typeof error !== 'object') return false
   const record = error as Record<string, unknown>
@@ -92,7 +94,7 @@ async function withClient<Value>(
 ): Promise<ConnectedResult<Value>> {
   const apiKey = await options.resolveApiKey()
   if (apiKey === undefined || apiKey.length === 0) return undefined
-  const client = new Client({ name: 'bh-obsidian-website-knowledge', version: '0.1.0' }, { capabilities: {} })
+  const client = new Client({ name: 'bh-obsidian-knowledge', version: '0.1.0' }, { capabilities: {} })
   const transport = new StreamableHTTPClientTransport(new URL(options.url), {
     requestInit: { headers: { Authorization: `Bearer ${apiKey}` } },
   })
@@ -114,7 +116,7 @@ async function withClient<Value>(
 
 function logicalNotePath(path: string): string {
   const [logicalPath] = validateKnowledgeNotePaths([path])
-  if (logicalPath === undefined) throw new Error(`invalid website knowledge note path: ${path}`)
+  if (logicalPath === undefined) throw new Error(`invalid Obsidian knowledge note path: ${path}`)
   return logicalPath
 }
 
@@ -196,7 +198,7 @@ function validateWritableMcpNote(note: KnowledgeNote): KnowledgeNote {
   if (path === OBSIDIAN_MCP_VAULT_MARKER_PATH) {
     throw new Error('Obsidian MCP refuses to overwrite the vault identity marker')
   }
-  if (typeof note.markdown !== 'string') throw new Error(`invalid website knowledge note content for ${path}`)
+  if (typeof note.markdown !== 'string') throw new Error(`invalid Obsidian knowledge note content for ${path}`)
   const validated = { path, markdown: note.markdown }
   assertKnowledgeNoteBytes([validated])
   return validated
@@ -233,7 +235,7 @@ function toolJson(result: unknown, toolName: string): unknown {
   if (!Array.isArray(content) || content.length !== 1) {
     throw new Error(`Obsidian MCP ${toolName} returned an invalid content batch`)
   }
-  const block = content[0]
+  const block: unknown = content[0]
   if (block === null || typeof block !== 'object'
     || (block as Record<string, unknown>)['type'] !== 'text'
     || typeof (block as Record<string, unknown>)['text'] !== 'string') {
@@ -249,11 +251,12 @@ function toolJson(result: unknown, toolName: string): unknown {
 function searchExcerpt(value: unknown): string {
   let compact: string
   try {
-    compact = JSON.stringify(value)?.replace(/\s+/g, ' ').trim() ?? ''
+    const serialized: unknown = JSON.stringify(value)
+    compact = typeof serialized === 'string' ? serialized.replace(/\s+/g, ' ').trim() : ''
   } catch {
     compact = ''
   }
-  return compact.slice(0, 600)
+  return compact.slice(0, 240)
 }
 
 function logicalSearchPath(filename: string): string | undefined {
@@ -281,7 +284,7 @@ export function searchObsidianMcp(
   return withVerifiedMcpVault(options, async (client) => {
     const terms = searchTerms(query)
     const payload = toolJson(await client.callTool(
-      { name: 'search_simple', arguments: { query, contextLength: 300 } },
+      { name: 'search_simple', arguments: { query, contextLength: 180 } },
       undefined,
       { timeout: options.timeoutMs },
     ), 'search_simple')
@@ -318,10 +321,10 @@ export function searchObsidianMcp(
     return results
       .sort((left, right) => right.phraseScore - left.phraseScore
         || right.termScore - left.termScore
-        || right.evidenceScore - left.evidenceScore
         || right.titleScore - left.titleScore
+        || right.evidenceScore - left.evidenceScore
         || left.path.localeCompare(right.path))
-      .slice(0, 8)
+      .slice(0, MAX_RECALL_MATCHES)
       .map(({
         phraseScore: _phraseScore, termScore: _termScore, titleScore: _titleScore,
         evidenceScore: _evidenceScore, ...result

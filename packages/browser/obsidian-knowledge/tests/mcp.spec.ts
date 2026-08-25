@@ -105,7 +105,7 @@ describe('Obsidian MCP read backend', () => {
       })
     })
     const listening = Promise.withResolvers<undefined>()
-    httpServer.listen(0, '127.0.0.1', () => listening.resolve(undefined))
+    httpServer.listen(0, '127.0.0.1', () => { listening.resolve(undefined) })
     await listening.promise
     const address = httpServer.address()
     if (address === null || typeof address === 'string') throw new Error('expected a TCP address')
@@ -170,7 +170,7 @@ describe('Obsidian MCP read backend', () => {
 
   it('reranks the complete Obsidian hit set and keeps individual test cases', async () => {
     const results = await searchObsidianMcp(options(), 'Import Applications')
-    expect(results).toHaveLength(8)
+    expect(results).toHaveLength(6)
     expect(results?.[0]?.path).toBe('BH Website Knowledge/Imported/Test Cases/TC-9999')
   })
 

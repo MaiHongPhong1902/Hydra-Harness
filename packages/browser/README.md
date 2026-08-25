@@ -6,7 +6,7 @@ This family gives the harness a browser of its own: one Electron window per agen
 |---|---|---|
 | [`browser-electron/`](browser-electron/README.md) | Owns the Electron process, the window, and the NDJSON control channel | `ctx.browsers` |
 | [`tool-browser/`](tool-browser/README.md) | Exposes browser navigation/actions plus explicit upstream PageAgent controls | registers on `ctx.tools` |
-| [`obsidian-website-knowledge/`](obsidian-website-knowledge/README.md) | Writes observed target-domain Browser facts into an Obsidian Markdown graph | registers on `ctx.tools` |
+| [`obsidian-knowledge/`](obsidian-knowledge/README.md) | Recalls graph-linked Obsidian memory and optionally records approved Browser facts | registers on `ctx.tools` |
 
 The split is the same consumer/seam one as `web/`: everything the model sees — schemas, the DOM-format prompt section, the output cap, the card titles — is decided in `tool-browser`, and nothing there knows the browser is Electron. Unlike `web/` there is no provider registry, because a single-purpose plugin stays one package until a second backend actually exists.
 

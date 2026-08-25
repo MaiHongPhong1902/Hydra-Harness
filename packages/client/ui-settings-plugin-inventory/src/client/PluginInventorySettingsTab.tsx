@@ -12,6 +12,8 @@ import css from './PluginInventorySettingsTab.module.css'
 export interface PluginInventorySettingsTabInjected {
   /** Read a current Host inventory snapshot. */
   list: () => Promise<PluginInventorySnapshot>
+  /** Persist one entry's desired enablement and return the updated snapshot. */
+  setEnabled: (entryId: PluginInventoryEntry['entryId'], enabled: boolean) => Promise<PluginInventorySnapshot>
 }
 
 type PluginInventoryEntry = PluginInventorySnapshot['entries'][number]
@@ -60,13 +62,15 @@ function matches(entry: PluginInventoryEntry, normalizedQuery: string): boolean 
     .some(value => value.toLocaleLowerCase().includes(normalizedQuery))
 }
 
-/** Render the read-only current Loader inventory. */
-export function PluginInventorySettingsTab({ list, t }: PluginInventorySettingsTabProps): ReactNode {
+/** Render the current Loader inventory and its safe in-app controls. */
+export function PluginInventorySettingsTab({ list, setEnabled, t }: PluginInventorySettingsTabProps): ReactNode {
   const catalogId = useId()
   const [request, setRequest] = useState(0)
   const [query, setQuery] = useState('')
   const [expanded, setExpanded] = useState<PluginInventoryEntry['entryId'] | null>(null)
   const [state, setState] = useState<ViewState>({ status: 'loading' })
+  const [mutating, setMutating] = useState<PluginInventoryEntry['entryId'] | null>(null)
+  const [mutationFailed, setMutationFailed] = useState(false)
 
   useEffect(() => {
     let current = true
@@ -96,6 +100,15 @@ export function PluginInventorySettingsTab({ list, t }: PluginInventorySettingsT
     setRequest(value => value + 1)
   }
 
+  const toggle = (entry: PluginInventoryEntry): void => {
+    setMutating(entry.entryId)
+    setMutationFailed(false)
+    void setEnabled(entry.entryId, !entry.enabled).then(
+      (snapshot) => { setState({ status: 'ready', snapshot }) },
+      () => { setMutationFailed(true) },
+    ).finally(() => { setMutating(null) })
+  }
+
   return (
     <div className={css.section} aria-busy={state.status === 'loading'}>
       {state.status === 'loading' ? <p className={css.status}>{t('loading')}</p> : null}
@@ -122,6 +135,7 @@ export function PluginInventorySettingsTab({ list, t }: PluginInventorySettingsT
             <h3>{t('catalog')}</h3>
             <span data-plugin-count={filteredEntries.length}>{filteredEntries.length}</span>
           </div>
+          {mutationFailed ? <p className={css.mutationFailure} role="alert">{t('toggleError')}</p> : null}
           {state.snapshot.entries.length === 0 ? <p className={css.status}>{t('empty')}</p> : null}
           {state.snapshot.entries.length > 0 && filteredEntries.length === 0
             ? <p className={css.status}>{t('emptySearch')}</p>
@@ -183,6 +197,19 @@ export function PluginInventorySettingsTab({ list, t }: PluginInventorySettingsT
                             </div>
                           ) : null}
                         </dl>
+                        {entry.toggleable ? (
+                          <button
+                            className={css.toggle}
+                            type="button"
+                            disabled={mutating !== null}
+                            data-plugin-toggle
+                            onClick={() => { toggle(entry) }}
+                          >
+                            {mutating === entry.entryId
+                              ? t('saving')
+                              : t(entry.enabled ? 'disablePlugin' : 'enablePlugin')}
+                          </button>
+                        ) : <p className={css.required}>{t('requiredPlugin')}</p>}
                       </div>
                     ) : null}
                   </li>

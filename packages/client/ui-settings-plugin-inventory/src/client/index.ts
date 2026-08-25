@@ -1,4 +1,4 @@
-/** Read-only Host plugin inventory registered into Web Settings. */
+/** Host plugin inventory and enablement controls registered into Web Settings. */
 
 import type {} from '@bosch/bh-client-locale/client'
 import type { ClientContext } from '@bosch/bh-client-runtime/client'
@@ -11,7 +11,7 @@ export type { PluginInventoryLocaleKey } from './locales.ts'
 
 declare module '@bosch/bh-client-ui-slots' {
   interface LocaleNamespaceMap {
-    /** Read-only Host plugin inventory copy. */
+    /** Host plugin inventory copy and mutation labels. */
     'settings.pluginInventory': PluginInventoryLocaleKey
   }
 }
@@ -34,7 +34,14 @@ export function apply(ctx: ClientContext): void {
     }
     return result.value
   }
-  const injected = (): PluginInventorySettingsTabInjected => ({ list })
+  const setEnabled: PluginInventorySettingsTabInjected['setEnabled'] = async (entryId, enabled) => {
+    const result = await ctx.remote.pluginInventory.setEnabled({ entryId, enabled })
+    if (!result.ok) {
+      throw new Error(`pluginInventory.setEnabled failed: ${result.error.code}: ${result.error.message}`)
+    }
+    return result.value
+  }
+  const injected = (): PluginInventorySettingsTabInjected => ({ list, setEnabled })
 
   ctx.slots.inject('settings.plugins.tab', () => ctx.slots.register({
     name: 'settings.plugins.tab',

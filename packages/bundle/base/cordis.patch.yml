@@ -420,10 +420,10 @@
     - id: browser-electron
       name: '@bosch/bh-browser-electron'
 
-    # Writes Browser-observed facts through Obsidian MCP only after its domain
-    # setting is configured and the user approves the exact proposal.
-    - id: obsidian-website-knowledge
-      name: '@bosch/bh-obsidian-website-knowledge'
+    # Recalls graph-linked Obsidian knowledge through MCP. Optional domain
+    # settings add approval-gated Browser evidence capture.
+    - id: obsidian-knowledge
+      name: '@bosch/bh-obsidian-knowledge'
 
     # ── rows every mode mounts, whose values each overlay may state ──────────────
 

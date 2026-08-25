@@ -256,6 +256,41 @@
   line-height: 17px;
 }
 
+.toggle {
+  margin-top: 10px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 6px;
+  padding: 5px 10px;
+  background: var(--dsw-alias-bg-layer-1);
+  color: var(--dsw-alias-label-primary);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.toggle:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.toggle:focus-visible {
+  outline: 2px solid var(--dsw-alias-state-business-primary);
+  outline-offset: 2px;
+}
+
+.required,
+.mutationFailure {
+  margin: 10px 0 0;
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 11px;
+  line-height: 17px;
+}
+
+.mutationFailure {
+  margin: 0 2px;
+  color: var(--dsw-alias-state-error-primary);
+}
+
 .visuallyHidden {
   position: absolute;
   width: 1px;

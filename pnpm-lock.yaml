@@ -1118,7 +1118,7 @@ importers:
 
   packages/browser/browser-electron/third-party/page-agent/packages/ui: {}
 
-  packages/browser/obsidian-website-knowledge:
+  packages/browser/obsidian-knowledge:
     dependencies:
       '@bosch/schemastery':
         specifier: link:../../../vendor/schemastery
@@ -1269,9 +1269,9 @@ importers:
       '@bosch/bh-llm-retry':
         specifier: workspace:^
         version: link:../../llm/llm-retry
-      '@bosch/bh-obsidian-website-knowledge':
+      '@bosch/bh-obsidian-knowledge':
         specifier: workspace:^
-        version: link:../../browser/obsidian-website-knowledge
+        version: link:../../browser/obsidian-knowledge
       '@bosch/bh-permission-presets':
         specifier: workspace:^
         version: link:../../interaction/permission-presets
@@ -5396,10 +5396,19 @@ importers:
 
   packages/host/plugin-inventory:
     dependencies:
+      '@bosch/schemastery':
+        specifier: link:../../../vendor/schemastery
+        version: link:../../../vendor/schemastery
+      js-yaml:
+        specifier: ^4.2.0
+        version: 4.2.0
       zod:
         specifier: ^4.4.3
         version: 4.4.3
     devDependencies:
+      '@bosch/bh-atomic-write':
+        specifier: workspace:^
+        version: link:../../util/atomic-write
       '@bosch/bh-brand':
         specifier: workspace:^
         version: link:../../util/brand
@@ -5412,9 +5421,15 @@ importers:
       '@bosch/cordis':
         specifier: workspace:^
         version: link:../../../vendor/cordis
+      '@bosch/cordis-plugin-include':
+        specifier: workspace:^
+        version: link:../../../vendor/include
       '@bosch/cordis-plugin-loader':
         specifier: workspace:^
         version: link:../../../vendor/loader
+      '@types/js-yaml':
+        specifier: ^4.0.9
+        version: 4.0.9
 
   packages/host/webserver:
     dependencies:

@@ -1,0 +1,12 @@
+- listitem:
+  - button "session-stats, 已挂载, 已启用" [expanded]:
+    - strong: session-stats
+    - img "已挂载"
+    - text: 已启用
+    - img
+  - code: {{entry-root}}:session-stats
+  - term: 配置状态
+  - definition: 已启用
+  - term: Cordis 状态
+  - definition: 已挂载
+  - button "停用插件"

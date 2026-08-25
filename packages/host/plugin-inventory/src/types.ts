@@ -19,7 +19,15 @@ export interface PluginInventoryEntry {
   readonly moduleName: string
   /** Effective Loader enablement, including disabled ancestor groups. */
   readonly enabled: boolean
+  /** Whether this app can persistently change the entry's enablement. */
+  readonly toggleable: boolean
   readonly fiberPhase: PluginFiberPhase
+}
+
+/** Requested persistent enablement for one Loader entry. */
+export interface PluginEnablementRequest {
+  readonly entryId: PluginEntryId
+  readonly enabled: boolean
 }
 
 /** Point-in-time inventory returned by the plugin inventory Remote. */
