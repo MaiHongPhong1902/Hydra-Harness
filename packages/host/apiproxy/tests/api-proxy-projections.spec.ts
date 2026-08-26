@@ -274,10 +274,11 @@ describe('session.list projections column', () => {
     } as never)
     ctx.provide('sessionProjectionCache', {
       // The carrier hands the listed header through as the identity witness.
-      cachedSnapshot: (meta: { id: unknown; createdAt: number }) =>
-        (meta.id === coldId && meta.createdAt === 5
+      listSnapshot: (meta: { id: unknown; createdAt: number }) => Promise.resolve(
+        meta.id === coldId && meta.createdAt === 5
           ? { asOfSeq: 7, values: { 'test/last-user': { text: 'cached' } } }
-          : undefined),
+          : undefined,
+      ),
     } as never)
     const response = await api(ctx).sessions.list(request({}))
     if (!response.result.ok) throw new Error('unreachable')

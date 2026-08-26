@@ -796,20 +796,30 @@ function projectionsFor(ctx: Context, session: Session): SessionProjectionsBlock
 }
 
 /**
- * The projection baseline of one session.list row, fail-soft: attached
- * sessions cut the registry's live watermark cache; cold sessions view the
- * persisted projection cache's identity-checked stored rows (zero log loads
- * either way — the listing use case the cache exists for). The block shape
- * (values + asOfSeq) matches the history tail's, so a client seeds its
- * value store under the same higher-seq-wins rule. Any failure — and an
- * empty value set — yields an absent block: a listing without projections
- * is degraded, never broken.
+ * The projection baseline of one attached session.list row, fail-soft. The
+ * block shape (values + asOfSeq) matches the history tail's, so a client
+ * seeds its value store under the same higher-seq-wins rule. Any failure —
+ * and an empty value set — yields an absent block: a listing without
+ * projections is degraded, never broken.
  */
-function listProjectionsFor(ctx: Context, meta: SessionHeader, session: Session | undefined): SessionProjectionsBlock | undefined {
+function attachedListProjectionsFor(ctx: Context, meta: SessionHeader, session: Session): SessionProjectionsBlock | undefined {
   try {
-    const block = session !== undefined
-      ? ctx.get('sessionProjections')?.snapshot(session)
-      : ctx.get('sessionProjectionCache')?.cachedSnapshot(meta)
+    const block = ctx.get('sessionProjections')?.snapshot(session)
+    return block !== undefined && Object.keys(block.values).length > 0 ? block : undefined
+  } catch (error) {
+    ctx.logger.warn(`session.list: projection column for "${meta.id}" failed (serving the row without it): ${String(error)}`)
+    return undefined
+  }
+}
+
+/** Serve a cold list row from a complete checkpoint or one fail-soft cache backfill. */
+async function coldListProjectionsFor(
+  ctx: Context,
+  meta: SessionHeader,
+  signal?: AbortSignal,
+): Promise<SessionProjectionsBlock | undefined> {
+  try {
+    const block = await ctx.get('sessionProjectionCache')?.listSnapshot(meta, signal)
     return block !== undefined && Object.keys(block.values).length > 0 ? block : undefined
   } catch (error) {
     ctx.logger.warn(`session.list: projection column for "${meta.id}" failed (serving the row without it): ${String(error)}`)
@@ -1677,7 +1687,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
     signal?.throwIfAborted()
     const summarizeAttached = (session: Session): SessionSummary => {
       const agent = ctx.agents.get(session.id)
-      const projections = listProjectionsFor(ctx, session.header, session)
+      const projections = attachedListProjectionsFor(ctx, session.header, session)
       return {
         ...summarize(session, agent?.status === 'running'),
         ...projections === undefined ? {} : { projections },
@@ -1698,7 +1708,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
           batch.map(async (meta) => {
             // Projection hints remain optional. Blank verification may read
             // this Session's artifact only when it passes the configured size check.
-            const projections = listProjectionsFor(ctx, meta, undefined)
+            const projections = await coldListProjectionsFor(ctx, meta, signal)
             const summary = await summarizeCold(
               ctx,
               persistence,

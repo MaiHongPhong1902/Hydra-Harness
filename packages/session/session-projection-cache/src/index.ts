@@ -130,6 +130,24 @@ export class SessionProjectionCache extends Service {
   }
 
   /**
+   * Serve one session-list projection block, backfilling client-visible units
+   * that are absent, version-mismatched, or invalid in the stored checkpoint.
+   * A complete checkpoint stays on the synchronous zero-log path; an
+   * incomplete one uses {@link coldSnapshot} and writes the refreshed rows
+   * back before returning. Host-only missing rows do not trigger a list read.
+   * @param meta - listed session header and cache-identity witness.
+   * @param signal - optional cancellation for a required persistence read.
+   * @returns the current client projection cut, or `undefined` when no client-visible unit is registered and no related cache row exists.
+   */
+  async listSnapshot(meta: SessionHeader, signal?: AbortSignal): Promise<ProjectionSnapshot | undefined> {
+    const record = this.recordFor(meta.id, identityOf(meta))
+    if (this.ctx.sessionProjections.checkpointHasCurrentViews(record?.rows ?? {})) {
+      return record === undefined ? undefined : this.cachedSnapshot(meta)
+    }
+    return this.coldSnapshot(meta.id, signal)
+  }
+
+  /**
    * Durably checkpoint one live session NOW (both mandatory points call
    * this; tests and carriers may too). The registry cut is snapshotted at
    * this boundary (states are live references), then the whole record is

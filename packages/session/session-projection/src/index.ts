@@ -396,6 +396,30 @@ export class SessionProjectionRegistry extends Service {
   }
 
   /**
+   * Whether every registered client-visible unit has a usable checkpoint row.
+   * Host-only units do not affect client listing reads. A row is usable only
+   * when its version, persisted state, and rendered client value pass the
+   * current unit definitions.
+   * @param checkpoint - persisted rows for one session (possibly stale or incomplete).
+   * @returns `true` when {@link viewCheckpoint} can serve every current client value.
+   */
+  checkpointHasCurrentViews(checkpoint: ProjectionCheckpoint): boolean {
+    for (const registration of this.registrations.values()) {
+      const def = registration.def
+      if (def.wire === undefined) continue
+      const row = checkpoint[def.key]
+      if (row === undefined || row.ver !== def.stateVersion) return false
+      try {
+        const state = def.stateSchema.parse(row.val)
+        def.wire.viewSchema.parse(def.wire.view(state))
+      } catch {
+        return false
+      }
+    }
+    return true
+  }
+
+  /**
    * Cold read: fold every persisted unit over a stored log suffix, seeding
    * each from its checkpoint row when usable — the one read recipe (cached
    * state + forward tail replay + `view`) applied without a live `Session`.

@@ -28,6 +28,8 @@ Both `Config` fields are required (no defaults): flush cadence is a deployment c
 
 The zero-I/O rung: client values viewed straight from the identity-matching stored record (version- and state-schema-matching keys only), returned as a `{asOfSeq, values}` cut — `asOfSeq` is the lowest served-row watermark, so a client seeding its per-session value store under higher-seq-wins can never let a stale list block overwrite a newer push frame. Host-only rows are never returned. `undefined` when no usable client row exists (unknown id, unrelated lifecycle, or no usable rows); the api-proxy list carrier turns that into an absent column.
 
+`listSnapshot(meta, signal?)` keeps that zero-I/O path when every registered client-visible unit has a valid current-version row. A missing, version-mismatched, or invalid client row runs `coldSnapshot`, writes the complete refreshed checkpoint back, and returns the folded values; missing host-only rows do not trigger listing I/O. The first list after adding or versioning a client projection may therefore read each cold Session's full log once, while later lists return to the cached path.
+
 ## Cold read (`coldSnapshot(id, signal?)`)
 
 The read ladder, zero full-log load on the happy path: cached rows → `sessionProjections.restoreFloor` (anchored one event below the lowest usable watermark) → persistence `readFrom(id, floor)` → `sessionProjections.restore` → fail-soft write-back of the refreshed rows. The anchor makes a shrunk log (crash-repair truncation) provable: an overreaching row triggers exactly one full re-read from seq 0 instead of serving a ghost value. No registered units serve `{asOfSeq: -1, values: {}}` without touching persistence; a session with no persisted log rejects with the seam's `not found`.

@@ -22,9 +22,11 @@ declare module '@bosch/bh-session-projection/types' {
   interface SessionProjectionStateMap {
     'cache-test/marks': MarksState
     'cache-test/marks2': Map<string, string>
+    'cache-test/mark-count': number
   }
   interface SessionProjectionMap {
     'cache-test/marks': { marks: string[] }
+    'cache-test/mark-count': number
   }
 }
 
@@ -50,6 +52,15 @@ const marksUnit = (stateVersion = 1) => ({
   },
   stateVersion,
 }) satisfies ProjectionDefinition<'cache-test/marks', MarksState>
+
+const markCountUnit = () => ({
+  key: 'cache-test/mark-count',
+  stateSchema: z.number().int().nonnegative(),
+  init: () => 0,
+  apply: (state, event) => event.type === 'cache-test/mark' ? state + 1 : state,
+  wire: { viewSchema: z.number().int().nonnegative(), view: state => state },
+  stateVersion: 1,
+}) satisfies ProjectionDefinition<'cache-test/mark-count', number>
 
 /** A persistence double serving readFrom over a fixed per-id stored log (headers stamp createdAt 0). */
 function fakePersistence(logs: Map<string, SessionEvent[]>) {
@@ -265,6 +276,26 @@ describe('SessionProjectionCache cold read', () => {
     // Write-back: the stored row advanced to the served cut.
     expect(storedRows(samePool, id)?.['cache-test/marks'])
       .toEqual({ ver: 1, seq: 3, val: { marks: ['a', 'b'] } })
+  })
+
+  it('backfills a newly registered client view once for session listings', async () => {
+    const pool = new MemoryMediaPool()
+    const logs = new Map([['listing-backfill', storedLog([['a'], ['a', 'b']])]])
+    seedRow(pool, 'listing-backfill', { ver: 1, seq: 3, val: { marks: ['a', 'b'] } })
+    const { ctx, cache, persistence, pool: samePool } = await harness({ pool, logs })
+    ctx.sessionProjections.register(markCountUnit())
+    const id = SessionId('listing-backfill')
+
+    const first = await cache.listSnapshot(headerOf(id))
+    expect(first?.values['cache-test/marks']).toEqual({ marks: ['a', 'b'] })
+    expect(first?.values['cache-test/mark-count']).toBe(2)
+    expect(persistence.readFrom).toHaveBeenCalledOnce()
+    expect(persistence.readFrom).toHaveBeenCalledWith(id, 0, undefined)
+    expect(storedRows(samePool, id)?.['cache-test/mark-count'])
+      .toEqual({ ver: 1, seq: 3, val: 2 })
+
+    await cache.listSnapshot(headerOf(id))
+    expect(persistence.readFrom).toHaveBeenCalledOnce()
   })
 
   it('discards a version-mismatched row and refolds the full log', async () => {

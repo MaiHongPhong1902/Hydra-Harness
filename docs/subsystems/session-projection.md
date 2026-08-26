@@ -128,6 +128,18 @@ The persisted projection cache service. Opens the `session_projcache` domain at 
 cachedSnapshot(meta: SessionHeader): ProjectionSnapshot | undefined
 
 /**
+ * Serve one session-list projection block, backfilling client-visible units
+ * that are absent, version-mismatched, or invalid in the stored checkpoint.
+ * A complete checkpoint stays on the synchronous zero-log path; an
+ * incomplete one uses {@link coldSnapshot} and writes the refreshed rows
+ * back before returning. Host-only missing rows do not trigger a list read.
+ * @param meta - listed session header and cache-identity witness.
+ * @param signal - optional cancellation for a required persistence read.
+ * @returns the current client projection cut, or `undefined` when no client-visible unit is registered and no related cache row exists.
+ */
+async listSnapshot(meta: SessionHeader, signal?: AbortSignal): Promise<ProjectionSnapshot | undefined>
+
+/**
  * Durably checkpoint one live session NOW (both mandatory points call
  * this; tests and carriers may too). The registry cut is snapshotted at
  * this boundary (states are live references), then the whole record is
@@ -253,6 +265,16 @@ restoreFloor(checkpoint: ProjectionCheckpoint): number | undefined
  * @returns whole values per key with a usable row; empty when none.
  */
 viewCheckpoint(checkpoint: ProjectionCheckpoint): Partial<SessionProjectionMap>
+
+/**
+ * Whether every registered client-visible unit has a usable checkpoint row.
+ * Host-only units do not affect client listing reads. A row is usable only
+ * when its version, persisted state, and rendered client value pass the
+ * current unit definitions.
+ * @param checkpoint - persisted rows for one session (possibly stale or incomplete).
+ * @returns `true` when {@link viewCheckpoint} can serve every current client value.
+ */
+checkpointHasCurrentViews(checkpoint: ProjectionCheckpoint): boolean
 
 /**
  * Cold read: fold every persisted unit over a stored log suffix, seeding

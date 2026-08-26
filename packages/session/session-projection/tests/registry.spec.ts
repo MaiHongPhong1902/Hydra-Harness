@@ -343,6 +343,24 @@ describe('SessionProjectionRegistry drive', () => {
     expect(ctx.sessionProjections.viewCheckpoint({})).toEqual({})
   })
 
+  it('detects whether every current client view has a usable checkpoint row', async () => {
+    const { ctx } = await harness()
+    expect(ctx.sessionProjections.checkpointHasCurrentViews({})).toBe(true)
+    ctx.sessionProjections.register(marksUnit())
+    ctx.sessionProjections.register(countUnit())
+
+    expect(ctx.sessionProjections.checkpointHasCurrentViews({})).toBe(false)
+    expect(ctx.sessionProjections.checkpointHasCurrentViews({
+      'test/marks': { ver: 1, seq: 4, val: { marks: ['stored'] } },
+    })).toBe(true)
+    expect(ctx.sessionProjections.checkpointHasCurrentViews({
+      'test/marks': { ver: 2, seq: 4, val: { marks: ['stored'] } },
+    })).toBe(false)
+    expect(ctx.sessionProjections.checkpointHasCurrentViews({
+      'test/marks': { ver: 1, seq: 4, val: { marks: 'invalid' } },
+    })).toBe(false)
+  })
+
   it('viewCheckpoint and restore exclude host-only state while retaining its checkpoint', async () => {
     const { ctx } = await harness()
     ctx.sessionProjections.register(marksUnit())

@@ -1282,6 +1282,12 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'the cut (`asOfSeq` = lowest served-row watermark), or `undefined` when no usable row exists for this lifecycle.',
       },
       {
+        signature: 'async listSnapshot(meta: SessionHeader, signal?: AbortSignal): Promise<ProjectionSnapshot | undefined>',
+        description: 'Serve one session-list projection block, backfilling client-visible units that are absent, version-mismatched, or invalid in the stored checkpoint. A complete checkpoint stays on the synchronous zero-log path; an incomplete one uses coldSnapshot and writes the refreshed rows back before returning. Host-only missing rows do not trigger a list read.',
+        parameters: [{ name: 'meta', description: 'listed session header and cache-identity witness.' }, { name: 'signal', description: 'optional cancellation for a required persistence read.' }],
+        returns: 'the current client projection cut, or `undefined` when no client-visible unit is registered and no related cache row exists.',
+      },
+      {
         signature: 'async write(session: Session): Promise<void>',
         description: 'Durably checkpoint one live session NOW (both mandatory points call this; tests and carriers may too). The registry cut is snapshotted at this boundary (states are live references), then the whole record is replaced. NOT fail-soft — callers on the fail-soft paths contain it.',
         parameters: [{ name: 'session', description: 'the live session to checkpoint.' }],
@@ -1347,6 +1353,12 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'View a checkpoint\'s rows without any log read: for every registered client-visible unit whose row\'s `ver` matches, serve the schema-validated `view` of the schema-validated stored state; mismatched, malformed, or absent rows leave their key absent (a cold or listing consumer treats it as not-yet-available and a fuller read path refolds it). The zero-I/O rung of the read ladder — values are as stale as their rows, never wrong.',
         parameters: [{ name: 'checkpoint', description: 'persisted rows for one session (possibly stale or empty).' }],
         returns: 'whole values per key with a usable row; empty when none.',
+      },
+      {
+        signature: 'checkpointHasCurrentViews(checkpoint: ProjectionCheckpoint): boolean',
+        description: 'Whether every registered client-visible unit has a usable checkpoint row. Host-only units do not affect client listing reads. A row is usable only when its version, persisted state, and rendered client value pass the current unit definitions.',
+        parameters: [{ name: 'checkpoint', description: 'persisted rows for one session (possibly stale or incomplete).' }],
+        returns: '`true` when {@link viewCheckpoint} can serve every current client value.',
       },
       {
         signature: 'restore( checkpoint: ProjectionCheckpoint, events: readonly SessionEvent[], baseSeq: number, ): { snapshot: ProjectionSnapshot; checkpoint: ProjectionCheckpoint }',
