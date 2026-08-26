@@ -115,8 +115,8 @@ const SHIPPED_PRESET_DIR = join(REPO_ROOT, 'apps/cli/config/agent-presets')
 // contextWindow keeps that pressure path provably inert for small fixtures.
 const REPLAY_PROVIDERS = [{
   id: 'deepseek-official',
-  name: 'DeepSeek',
-  models: [{ id: 'deepseek-v4-flash', name: 'DeepSeek-V4-Flash', contextWindow: 128_000 }],
+  name: 'BHAgent',
+  models: [{ id: 'deepseek-v4-flash', name: 'BHAgent-V4-Flash', contextWindow: 128_000 }],
 }]
 
 /**

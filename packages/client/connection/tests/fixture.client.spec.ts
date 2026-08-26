@@ -185,7 +185,7 @@ describe('createFixtureApi', () => {
     const sessionId = sid('fx-alpha')
     const catalog = await api.sessions.models(req({ sessionId }))
     if (!catalog.result.ok) throw new Error('models failed')
-    expect(catalog.result.value.groups.map(group => group.name)).toEqual(['DeepSeek', 'OpenAI'])
+    expect(catalog.result.value.groups.map(group => group.name)).toEqual(['BHAgent', 'OpenAI'])
     expect(catalog.result.value.groups[0]?.models.map(model => model.id))
       .toEqual(['deepseek-v4-flash', 'deepseek-v4-pro'])
 

@@ -777,10 +777,10 @@ describe('plugin registration and config', () => {
     const fiber = await ctx.plugin(LlmDeepSeek, {
       baseURL: server.url,
     })
-    expect(ctx.llm.listProviders()).toEqual([{ id: 'deepseek-official', name: 'DeepSeek' }])
+    expect(ctx.llm.listProviders()).toEqual([{ id: 'deepseek-official', name: 'BHAgent' }])
     expect(ctx.llm.listConfigurableProviders()).toEqual([{
       provider: 'deepseek-official',
-      displayName: 'DeepSeek',
+      displayName: 'BHAgent',
       settingsNs: 'llm-deepseek',
       settingsPath: [],
     }])
@@ -812,17 +812,17 @@ describe('plugin registration and config', () => {
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
     await ctx.plugin(LlmDeepSeek, { baseURL: 'http://127.0.0.1:1' })
-    expect(ctx.llm.listProviders()).toEqual([{ id: 'deepseek-official', name: 'DeepSeek' }])
+    expect(ctx.llm.listProviders()).toEqual([{ id: 'deepseek-official', name: 'BHAgent' }])
     await expect(ctx.llm.listModels('deepseek-official')).resolves.toEqual([
-      { provider: 'deepseek-official', id: 'deepseek-v4-flash', name: 'DeepSeek-V4-Flash', inputModalities: ['text'] },
-      { provider: 'deepseek-official', id: 'deepseek-v4-pro', name: 'DeepSeek-V4-Pro', inputModalities: ['text'] },
-      { provider: 'deepseek-official', id: 'deepseek-v4-flash-vision-exp', name: 'DeepSeek-V4-Flash-Vision-Exp', inputModalities: ['text', 'image'] },
+      { provider: 'deepseek-official', id: 'deepseek-v4-flash', name: 'BHAgent-V4-Flash', inputModalities: ['text'] },
+      { provider: 'deepseek-official', id: 'deepseek-v4-pro', name: 'BHAgent-V4-Pro', inputModalities: ['text'] },
+      { provider: 'deepseek-official', id: 'deepseek-v4-flash-vision-exp', name: 'BHAgent-V4-Flash-Vision-Exp', inputModalities: ['text', 'image'] },
     ])
     await expect(ctx.llm.resolveModelInfo('deepseek-official', 'deepseek-v4-flash'))
       .resolves.toMatchObject({
         provider: 'deepseek-official',
         id: 'deepseek-v4-flash',
-        name: 'DeepSeek-V4-Flash',
+        name: 'BHAgent-V4-Flash',
         context: { contextWindow: 1_000_000 },
         defaultMaxTokens: 256_000,
         reasoning: {
@@ -839,7 +839,7 @@ describe('plugin registration and config', () => {
       .resolves.toMatchObject({
         provider: 'deepseek-official',
         id: 'deepseek-v4-flash-vision-exp',
-        name: 'DeepSeek-V4-Flash-Vision-Exp',
+        name: 'BHAgent-V4-Flash-Vision-Exp',
         inputModalities: ['text', 'image'],
         context: { contextWindow: 1_000_000 },
         defaultMaxTokens: 256_000,
@@ -921,9 +921,9 @@ describe('plugin registration and config', () => {
     await ctx.plugin(LlmRuntime)
     LlmDeepSeek.apply(ctx, { baseURL: 'http://127.0.0.1:1' })
     await expect(ctx.llm.listModels('deepseek-official')).resolves.toEqual([
-      { provider: 'deepseek-official', id: 'deepseek-v4-flash', name: 'DeepSeek-V4-Flash', inputModalities: ['text'] },
-      { provider: 'deepseek-official', id: 'deepseek-v4-pro', name: 'DeepSeek-V4-Pro', inputModalities: ['text'] },
-      { provider: 'deepseek-official', id: 'deepseek-v4-flash-vision-exp', name: 'DeepSeek-V4-Flash-Vision-Exp', inputModalities: ['text', 'image'] },
+      { provider: 'deepseek-official', id: 'deepseek-v4-flash', name: 'BHAgent-V4-Flash', inputModalities: ['text'] },
+      { provider: 'deepseek-official', id: 'deepseek-v4-pro', name: 'BHAgent-V4-Pro', inputModalities: ['text'] },
+      { provider: 'deepseek-official', id: 'deepseek-v4-flash-vision-exp', name: 'BHAgent-V4-Flash-Vision-Exp', inputModalities: ['text', 'image'] },
     ])
   })
 
@@ -1129,7 +1129,7 @@ describe('plugin registration and config', () => {
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
     await ctx.plugin(LlmDeepSeek, {})
-    expect(ctx.llm.listProviders()).toEqual([{ id: 'deepseek-official', name: 'DeepSeek' }])
+    expect(ctx.llm.listProviders()).toEqual([{ id: 'deepseek-official', name: 'BHAgent' }])
   })
 
   it('loads keyless, keeps the catalog browsable, and fails the request actionably', async () => {
@@ -1139,7 +1139,7 @@ describe('plugin registration and config', () => {
     await ctx.plugin(LlmDeepSeek, { baseURL: 'http://127.0.0.1:1' })
     // First-boot onboarding: the route registers so models stay discoverable;
     // only the request itself needs a key.
-    expect(ctx.llm.listProviders()).toEqual([{ id: 'deepseek-official', name: 'DeepSeek' }])
+    expect(ctx.llm.listProviders()).toEqual([{ id: 'deepseek-official', name: 'BHAgent' }])
     await expect(ctx.llm.listModels('deepseek-official')).resolves.toHaveLength(3)
     const first = await assemble(ctx, { model: 'deepseek-v4-flash', messages: [] })
     expect(first.finish).toMatchObject({ kind: 'error', failure: { code: 'MISSING_CREDENTIAL' } })
@@ -1220,7 +1220,7 @@ describe('plugin registration and config', () => {
     await ctx.plugin(LlmRuntime)
     // Registration succeeds; no call is made (would hit api.deepseek.com).
     await ctx.plugin(LlmDeepSeek, {})
-    expect(ctx.llm.listProviders()).toEqual([{ id: 'deepseek-official', name: 'DeepSeek' }])
+    expect(ctx.llm.listProviders()).toEqual([{ id: 'deepseek-official', name: 'BHAgent' }])
   })
 
   it('adapter is constructible directly for embedding over the shared resolver', async () => {

@@ -29,9 +29,9 @@ The package root exposes the Cordis plugin contract and `DeepSeekAdapter`; wire 
     defaultContextWindow: 1000000 # optional positive-integer fallback; this is the default
     models:                  # optional; defaults to V4 Flash, V4 Pro, and V4 Flash Vision Exp
       - id: deepseek-v4-flash
-        name: DeepSeek-V4-Flash
+        name: BHAgent-V4-Flash
       - id: deepseek-v4-flash-vision-exp
-        name: DeepSeek-V4-Flash-Vision-Exp
+        name: BHAgent-V4-Flash-Vision-Exp
         inputModalities: [text, image]
       - id: private-reasoner
         description: Company-hosted reasoning model

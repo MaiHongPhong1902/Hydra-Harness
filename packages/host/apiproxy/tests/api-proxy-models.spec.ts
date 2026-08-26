@@ -88,7 +88,7 @@ async function harness(logged?: {
   await ctx.plugin(LlmRuntime)
   await ctx.plugin(UserQuestionService)
   await ctx.plugin(AgentRegistry)
-  ctx.llm.registerAdapter(['deepseek-official'], new CatalogAdapter('DeepSeek', [
+  ctx.llm.registerAdapter(['deepseek-official'], new CatalogAdapter('BHAgent', [
     { provider: 'deepseek-official', id: 'deepseek-chat', name: 'DeepSeek Chat' },
     { provider: 'deepseek-official', id: 'deepseek-reasoner', name: 'DeepSeek Reasoner', description: 'Reasoning model' },
   ], REASONING))
@@ -292,7 +292,7 @@ describe('Web session model selection', () => {
     })
     expect(catalog.groups).toEqual([{
       id: 'deepseek-official',
-      name: 'DeepSeek',
+      name: 'BHAgent',
       models: [
         { id: 'deepseek-chat', name: 'DeepSeek Chat', reasoning: REASONING },
         {

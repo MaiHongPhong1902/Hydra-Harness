@@ -2,10 +2,12 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Context, type Plugin } from '@bosch/cordis'
 import Loader from '@bosch/cordis-plugin-loader'
 import Include from '@bosch/cordis-plugin-include'
+import { settingsNamespace } from '@bosch/bh-settings'
+import FileSettingsProvider from '@bosch/bh-settings-file'
 import { remoteMethods } from '@bosch/bh-typert-protocol'
 import PluginInventoryGateway from '../src/index.ts'
 import type { PluginEntryId } from '../src/types.ts'
@@ -30,7 +32,10 @@ async function harness(): Promise<{
 }> {
   const ctx = new Context()
   contexts.push(ctx)
+  const dir = await mkdtemp(join(tmpdir(), 'bh-plugin-inventory-settings-'))
+  tempDirs.push(dir)
   await ctx.plugin(Loader)
+  await ctx.plugin(FileSettingsProvider, { path: join(dir, 'settings.yaml'), watch: false })
   ctx.loader.builtins.active = activePlugin
   ctx.loader.builtins.pending = pendingPlugin
   await ctx.plugin(PluginInventoryGateway)
@@ -100,31 +105,37 @@ describe('PluginInventoryGateway', () => {
     expect(inventory.list().entries.some(entry => entry.entryId === pendingId)).toBe(false)
   })
 
-  it('toggles profile entries live and persists only an app-owned patch block', async () => {
+  it('toggles profile entries live and persists the shared plugins setting', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'bh-plugin-inventory-'))
     tempDirs.push(dir)
     const configPath = join(dir, 'cordis.yml')
-    const patchPath = join(dir, 'cordis.patch.yml')
+    const settingsPath = join(dir, 'settings.yaml')
     await writeFile(configPath, [
       '- id: protected',
-      '  name: cordis:active',
+      '  name: cordis:protected',
       '- id: mutable',
       '  name: cordis:active',
+      '- id: inventory',
+      '  name: cordis:inventory',
+      '  config:',
+      '    protectedEntryIds: [protected, inventory]',
       '',
     ].join('\n'))
-    await writeFile(patchPath, '# keep this user comment\n[]\n')
+    await writeFile(settingsPath, '# keep this user comment\n{}\n')
 
     const ctx = new Context()
     contexts.push(ctx)
     await ctx.plugin(Loader)
+    await ctx.plugin(FileSettingsProvider, { path: settingsPath, watch: false })
     ctx.loader.builtins.include = Include
     ctx.loader.builtins.active = activePlugin
+    ctx.loader.builtins.inventory = PluginInventoryGateway
+    ctx.loader.builtins.protected = activePlugin
     const includeId = await ctx.loader.create({
       name: 'cordis:include',
       config: { path: pathToFileURL(configPath).href },
     })
     await ctx.loader.await()
-    await ctx.plugin(PluginInventoryGateway, { protectedEntryIds: ['protected'] })
     const inventory = ctx.get('pluginInventory') as PluginInventoryGateway
     const snapshot = inventory.list()
     const mutableId = `${includeId}:mutable`
@@ -139,20 +150,16 @@ describe('PluginInventoryGateway', () => {
       enabled: false,
       fiberPhase: null,
     })
-    expect(await readFile(patchPath, 'utf8')).toBe([
-      '# keep this user comment',
-      '# BEGIN BH plugin switches',
-      '- id: "mutable"',
-      '  disabled: true',
-      '# END BH plugin switches',
-      '',
-    ].join('\n'))
+    const disabledSettings = await readFile(settingsPath, 'utf8')
+    expect(disabledSettings).toContain('# keep this user comment')
+    expect(disabledSettings).toContain('plugins:')
+    expect(ctx.settings.get(settingsNamespace('plugins'))).toEqual({ enabled: { 'cordis:active': false } })
 
     await inventory.setEnabled({ entryId: mutable.entryId, enabled: true })
-    const persisted = await readFile(patchPath, 'utf8')
+    const persisted = await readFile(settingsPath, 'utf8')
     expect(persisted).toContain('# keep this user comment')
-    expect(persisted.match(/- id: "mutable"/g)).toHaveLength(1)
-    expect(persisted).toContain('  disabled: false')
+    expect(persisted.match(/cordis:active/g)).toHaveLength(1)
+    expect(ctx.settings.get(settingsNamespace('plugins'))).toEqual({ enabled: { 'cordis:active': true } })
     await expect(inventory.setEnabled({
       entryId: protectedEntry.entryId,
       enabled: false,
@@ -161,5 +168,55 @@ describe('PluginInventoryGateway', () => {
       entryId: `${includeId}:missing` as PluginEntryId,
       enabled: false,
     })).rejects.toThrow(`cannot resolve entry ${includeId}:missing`)
+  })
+
+  it('deduplicates a module and hands its shared setting to the configured entry', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'bh-plugin-inventory-duplicate-'))
+    tempDirs.push(dir)
+    const configPath = join(dir, 'cordis.yml')
+    const settingsPath = join(dir, 'settings.yaml')
+    await writeFile(configPath, [
+      '- id: disabled',
+      '  name: cordis:active',
+      '  disabled: true',
+      '',
+    ].join('\n'))
+    await writeFile(settingsPath, '{}\n')
+
+    const ctx = new Context()
+    contexts.push(ctx)
+    await ctx.plugin(Loader)
+    await ctx.plugin(FileSettingsProvider, { path: settingsPath, watch: false })
+    ctx.loader.builtins.include = Include
+    ctx.loader.builtins.active = activePlugin
+    const includeId = await ctx.loader.create({
+      name: 'cordis:include',
+      config: { path: pathToFileURL(configPath).href },
+    })
+    const duplicateId = await ctx.loader.create({ name: 'cordis:active' })
+    await ctx.loader.await()
+    await ctx.plugin(PluginInventoryGateway)
+    const inventory = ctx.get('pluginInventory') as PluginInventoryGateway
+    const entryId = `${includeId}:disabled` as PluginEntryId
+
+    expect(inventory.list().entries.filter(entry => entry.moduleName === 'cordis:active')).toEqual([expect.objectContaining({
+      entryId,
+      enabled: false,
+      toggleable: true,
+    })])
+
+    await inventory.setEnabled({ entryId, enabled: true })
+    expect(ctx.loader.resolve(entryId).disabled).toBe(false)
+    expect(ctx.loader.resolve(duplicateId).disabled).toBe(true)
+    expect(ctx.settings.get(settingsNamespace('plugins'))).toEqual({ enabled: { 'cordis:active': true } })
+
+    await inventory.setEnabled({ entryId, enabled: false })
+    expect(ctx.loader.resolve(entryId).disabled).toBe(true)
+    expect(ctx.loader.resolve(duplicateId).disabled).toBe(true)
+    expect(ctx.settings.get(settingsNamespace('plugins'))).toEqual({ enabled: { 'cordis:active': false } })
+
+    await ctx.settings.update(settingsNamespace('plugins'), { enabled: { 'cordis:active': true } })
+    await vi.waitFor(() => { expect(ctx.loader.resolve(entryId).disabled).toBe(false) })
+    expect(ctx.loader.resolve(duplicateId).disabled).toBe(true)
   })
 })

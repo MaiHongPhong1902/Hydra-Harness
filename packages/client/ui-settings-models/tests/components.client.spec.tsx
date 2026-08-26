@@ -25,7 +25,7 @@ afterEach(cleanup)
 const t: ModelsSectionInjected['t'] = key => en[key]
 const OPENAI_TARGET = { provider: 'openai', displayName: 'openai' }
 const openaiCopy = (template: string): string => providerCopy(template, OPENAI_TARGET)
-const DEEPSEEK_TARGET = { provider: 'deepseek-official', displayName: 'DeepSeek' }
+const DEEPSEEK_TARGET = { provider: 'deepseek-official', displayName: 'BHAgent' }
 const deepSeekCopy = (template: string): string => providerCopy(template, DEEPSEEK_TARGET)
 
 /** Open one row's capacity disclosure (1-based, as the labels read). */
@@ -152,7 +152,7 @@ function scriptedFace(overrides: {
     llm: {
       providers: vi.fn(() => Promise.resolve(ok({
         providers: [
-          { provider: 'deepseek-official', displayName: 'DeepSeek', settingsNs: 'llm-deepseek', settingsPath: [], active: true },
+          { provider: 'deepseek-official', displayName: 'BHAgent', settingsNs: 'llm-deepseek', settingsPath: [], active: true },
           { provider: 'openai', displayName: 'openai', settingsNs: 'llm-pi-ai', settingsPath: ['providers', 'openai'], active: true },
           { provider: 'anthropic', displayName: 'anthropic', settingsNs: 'llm-pi-ai', settingsPath: ['providers', 'anthropic'], active: false },
           { provider: 'zombie', displayName: 'zombie', settingsNs: 'llm-pi-ai', settingsPath: ['providers', 'zombie'], active: false },
@@ -240,7 +240,7 @@ describe('ModelsSection', () => {
     await mountFirstRun()
     // Nothing is reachable yet, and DeepSeek has no configured credential and
     // no stored apiKey → setup card.
-    expect(screen.getByText('DeepSeek')).toBeTruthy()
+    expect(screen.getByText('BHAgent')).toBeTruthy()
     expect(screen.getByLabelText(en.keyInput)).toBeTruthy()
     expect(screen.getByText('openai')).toBeTruthy()
     expect(screen.queryByText('Active')).toBeNull()
@@ -258,7 +258,7 @@ describe('ModelsSection', () => {
     expect(configured.className).toContain('credentialDotConfigured')
     expect(configured.closest('li')?.textContent).toContain('openai')
     const missing = screen.getByRole('img', { name: en.credentialMissing })
-    expect(missing.closest('li')?.textContent).toContain('DeepSeek')
+    expect(missing.closest('li')?.textContent).toContain('BHAgent')
     // The card is still one click away.
     fireEvent.click(screen.getByRole('button', { name: deepSeekCopy(en.editProvider) }))
     expect(screen.getByLabelText(en.keyInput)).toBeTruthy()
@@ -331,9 +331,9 @@ describe('ModelsSection', () => {
   })
 
   it('uses one stable provider identity in action copy', () => {
-    const target = { provider: 'deepseek-official', displayName: 'DeepSeek' }
-    expect(providerTargetLabel(target)).toBe('DeepSeek (deepseek-official)')
-    expect(providerCopy(en.deleteTitle, target)).toBe('Delete DeepSeek (deepseek-official)?')
+    const target = { provider: 'deepseek-official', displayName: 'BHAgent' }
+    expect(providerTargetLabel(target)).toBe('BHAgent (deepseek-official)')
+    expect(providerCopy(en.deleteTitle, target)).toBe('Delete BHAgent (deepseek-official)?')
     expect(providerTargetLabel(OPENAI_TARGET)).toBe('openai')
   })
 
@@ -357,7 +357,7 @@ describe('ModelsSection', () => {
     // mirror, so the reload shows as a directory read rather than a describe.
     await waitFor(() => { expect(face.llm.providers.mock.calls.length).toBeGreaterThan(1) })
     expect((await screen.findByRole('status')).textContent).toBe(
-      providerCopy(en.savedProvider, { provider: 'deepseek-official', displayName: 'DeepSeek' }),
+      providerCopy(en.savedProvider, { provider: 'deepseek-official', displayName: 'BHAgent' }),
     )
     fireEvent.click(screen.getByText(en.add))
     expect(screen.queryByRole('status')).toBeNull()
@@ -374,7 +374,7 @@ describe('ModelsSection', () => {
 
     render(<ProviderEditor
       provider="deepseek-official"
-      displayName="DeepSeek"
+      displayName="BHAgent"
       hideTitle
       namespace={wireNamespaces()[0]!}
       schema={settingsSchema}
@@ -628,7 +628,7 @@ describe('ModelsSection', () => {
     const { ProviderEditor } = await import('../src/client/ProviderEditor.tsx')
     render(<ProviderEditor
       provider="deepseek-official"
-      displayName="DeepSeek"
+      displayName="BHAgent"
       namespace={overridden}
       schema={settingsSchema}
       settingsPath={[]}
@@ -858,7 +858,7 @@ describe('ModelsSection', () => {
     const { ProviderEditor } = await import('../src/client/ProviderEditor.tsx')
     render(<ProviderEditor
       provider="deepseek-official"
-      displayName="DeepSeek"
+      displayName="BHAgent"
       namespace={bare}
       schema={settingsSchema}
       settingsPath={[]}
@@ -1237,7 +1237,7 @@ describe('ModelsSection', () => {
     // …and DeepSeek collapsed to an ordinary row carrying the missing-key dot.
     expect(screen.getAllByLabelText(en.keyInput)).toHaveLength(1)
     expect(screen.getAllByRole('img', { name: en.credentialMissing })
-      .some(dot => dot.closest('li')?.textContent?.includes('DeepSeek') === true)).toBe(true)
+      .some(dot => dot.closest('li')?.textContent?.includes('BHAgent') === true)).toBe(true)
     // Its card reopens through Edit, which closes the add card as any row does.
     fireEvent.click(screen.getByRole('button', { name: deepSeekCopy(en.editProvider) }))
     expect(screen.getAllByLabelText(en.keyInput)).toHaveLength(1)
@@ -1254,7 +1254,7 @@ describe('ModelsSection', () => {
       schema={settingsSchema}
       t={t}
     />)
-    await screen.findByText('DeepSeek')
+    await screen.findByText('BHAgent')
   })
 
   it('removes by unsetting the profile path, never by rebuilding the section', async () => {

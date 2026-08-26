@@ -17,6 +17,15 @@ export interface TokenUsageProjection {
   cacheWriteTokens: number
 }
 
+/** Provider-reported usage attributed to one exact model route. */
+export interface ModelTokenUsageProjectionEntry extends TokenUsageProjection {
+  provider: string
+  model: string
+}
+
+/** Durable cumulative provider usage grouped by model for a complete session log. */
+export type ModelTokenUsageProjection = readonly ModelTokenUsageProjectionEntry[]
+
 /**
  * Approximate context occupancy for a status display.
  *
@@ -69,6 +78,8 @@ declare module '@bosch/bh-session-projection/types' {
   interface SessionProjectionMap {
     /** Provider-reported usage accumulated across the complete durable log. */
     tokenUsage: TokenUsageProjection
+    /** The same durable usage attributed to the request route that produced it. */
+    modelTokenUsage: ModelTokenUsageProjection
     /** Newest request pressure paired with the newest known route capacity. */
     contextPressure: ContextPressureProjection
     /** Heuristic system/tools/message composition of the next request. */

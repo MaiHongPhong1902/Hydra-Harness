@@ -360,6 +360,8 @@ describe('web e2e: markdown tables fill the column, wide ones break out and scro
     await sweep()
     await settleAt(1680)
     const wide = page.locator('[class*="tableScroll"]', { hasText: WIDE_MARKER })
+    const copyButton = wide.locator('[class*="tableCopyButton"]')
+    const copyLeftBefore = await copyButton.evaluate(element => element.getBoundingClientRect().left)
     // Chromium makes scrollable containers keyboard-focusable by default;
     // arrow keys then scroll the focused wrapper.
     await wide.focus()
@@ -367,6 +369,8 @@ describe('web e2e: markdown tables fill the column, wide ones break out and scro
     await page.keyboard.press('ArrowRight')
     await expect.poll(() => wide.evaluate(element => element.scrollLeft), { timeout: 5_000 })
       .toBeGreaterThan(0)
+    const copyLeftAfter = await copyButton.evaluate(element => element.getBoundingClientRect().left)
+    expect(Math.abs(copyLeftAfter - copyLeftBefore)).toBeLessThan(1)
     expect(tripwire.pageErrors).toEqual([])
   }, 120_000)
 

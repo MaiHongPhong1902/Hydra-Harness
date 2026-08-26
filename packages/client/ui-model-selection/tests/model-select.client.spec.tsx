@@ -35,7 +35,7 @@ function state(overrides: Partial<ModelDirectoryState> = {}): ModelDirectoryStat
     routable: true,
     groups: [{
       id: 'deepseek-official',
-      name: 'DeepSeek',
+      name: 'BHAgent',
       models: [{ id: 'deepseek-v4-flash', name: 'DeepSeek-V4-Flash', reasoning }],
     }],
     failures: [],
@@ -138,7 +138,7 @@ describe('ModelSelect reasoning effort', () => {
   it('announces a rejected selection as a transient toast and keeps the in-menu strip for loads', async () => {
     const groups = [{
       id: 'deepseek-official',
-      name: 'DeepSeek',
+      name: 'BHAgent',
       models: [
         { id: 'deepseek-v4-flash', name: 'DeepSeek-V4-Flash', reasoning },
         { id: 'deepseek-v4-pro', name: 'DeepSeek-V4-Pro' },

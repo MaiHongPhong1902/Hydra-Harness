@@ -7,6 +7,9 @@
     - button "Models":
       - img
       - text: Models
+    - button "Usage":
+      - img
+      - text: Usage
     - button "Plugins":
       - img
       - text: Plugins

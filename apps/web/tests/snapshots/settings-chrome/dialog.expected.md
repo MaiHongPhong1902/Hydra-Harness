@@ -7,6 +7,9 @@
     - button "模型":
       - img
       - text: 模型
+    - button "用量":
+      - img
+      - text: 用量
     - button "插件":
       - img
       - text: 插件

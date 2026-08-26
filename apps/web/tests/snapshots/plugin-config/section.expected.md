@@ -34,5 +34,5 @@
           - img
       - listitem:
         - 'button "展开设置: 网页搜索"':
-          - text: 网页搜索 DeepSeek 搜索提供方。
+          - text: 网页搜索 BHAgent 搜索提供方。
           - img

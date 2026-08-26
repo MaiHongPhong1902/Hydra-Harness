@@ -14,7 +14,7 @@ function fail<T>(message: string): RpcResponse<T> {
 }
 
 const DIRECTORY = [
-  { provider: 'deepseek-official', displayName: 'DeepSeek', settingsNs: 'llm-deepseek', settingsPath: [], active: true },
+  { provider: 'deepseek-official', displayName: 'BHAgent', settingsNs: 'llm-deepseek', settingsPath: [], active: true },
   { provider: 'openai', displayName: 'openai', settingsNs: 'llm-pi-ai', settingsPath: ['providers', 'openai'], active: true },
   { provider: 'anthropic', displayName: 'anthropic', settingsNs: 'llm-pi-ai', settingsPath: ['providers', 'anthropic'], active: false },
   { provider: 'ghost', displayName: 'Ghost', settingsNs: '', settingsPath: [], active: true },

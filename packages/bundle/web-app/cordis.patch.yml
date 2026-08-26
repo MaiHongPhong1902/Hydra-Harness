@@ -96,12 +96,13 @@
     - id: directory-picker
       name: '@bosch/bh-host-directory-picker-auto'
 
-    # Loader inventory and profile-persisted enablement controls. The protected
+    # Loader inventory and shared-settings enablement controls. The protected
     # rows keep the active Settings/RPC path available so every switch is reversible.
     - id: plugin-inventory
       name: '@bosch/bh-host-plugin-inventory'
       config:
         protectedEntryIds:
+          - settings
           - typert
           - typert-loader
           - typert-gateway

@@ -177,7 +177,7 @@ export class DeepSeekAdapter extends LlmAdapter {
   }
 
   override providerInfo(provider: string): LlmProviderInfo {
-    return { id: provider, name: 'DeepSeek' }
+    return { id: provider, name: 'BHAgent' }
   }
 
   override providerRetryPolicy(_provider: string): ResolvedRetryPolicy {

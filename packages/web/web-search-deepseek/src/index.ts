@@ -123,7 +123,7 @@ function resolveOptions(ctx: Context, config: Config): DeepSeekSearchProviderOpt
   }
 }
 
-/** Register the DeepSeek search provider with `ctx.web`. */
+/** Register the BHAgent search provider with `ctx.web`. */
 export function apply(ctx: Context, config: Config): void {
   let current: () => Config = () => config
   installSettingsSection(ctx, WEB_SEARCH_DEEPSEEK_SETTINGS_NAMESPACE, Config, config, {

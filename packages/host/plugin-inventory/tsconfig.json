@@ -30,7 +30,7 @@
       "path": "../../runtime-diagnostics/invariants"
     },
     {
-      "path": "../../util/atomic-write"
+      "path": "../../settings/settings"
     }
   ]
 }

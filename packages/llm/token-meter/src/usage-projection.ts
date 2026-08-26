@@ -6,7 +6,9 @@ import { z } from 'zod'
 import type { TokenUsage } from '@bosch/bh-llm'
 import type { SessionEvent } from '@bosch/bh-session'
 import type { ProjectionDefinition } from '@bosch/bh-session-projection'
-import type { ContextPressureProjection, TokenUsageProjection } from './projection.ts'
+import type {
+  ContextPressureProjection, ModelTokenUsageProjection, TokenUsageProjection,
+} from './projection.ts'
 import { foldSurfaceProjection } from './surface-projection.ts'
 
 const zeroBuckets = (): TokenUsageProjection => ({
@@ -47,6 +49,20 @@ const projectionSchema = z.object({
   cacheWriteTokens: z.number().int().nonnegative(),
 }).strict()
 
+const routeSchema = z.object({
+  provider: z.string().min(1),
+  model: z.string().min(1),
+}).strict()
+
+const modelUsageSchema = routeSchema.extend({
+  uncachedInputTokens: z.number().int().nonnegative(),
+  outputTokens: z.number().int().nonnegative(),
+  cacheReadTokens: z.number().int().nonnegative(),
+  cacheWriteTokens: z.number().int().nonnegative(),
+}).strict()
+
+const modelUsageProjectionSchema: z.ZodType<ModelTokenUsageProjection> = z.array(modelUsageSchema)
+
 /**
  * The token-usage unit's state schema — the one definition of the state
  * shape; the state type is inferred from it.
@@ -61,6 +77,19 @@ const tokenUsageStateSchema = z.object({
 }).strict()
 
 type TokenUsageState = z.infer<typeof tokenUsageStateSchema>
+
+const modelTokenUsageStateSchema = z.object({
+  route: routeSchema.nullable(),
+  totals: z.record(z.string(), modelUsageSchema),
+  last: z.object({
+    turn: z.number().int().nonnegative(),
+    step: z.number().int().nonnegative(),
+    routeKey: z.string(),
+    buckets: projectionSchema,
+  }).nullable(),
+}).strict()
+
+type ModelTokenUsageState = z.infer<typeof modelTokenUsageStateSchema>
 
 const pressureSchema: z.ZodType<ContextPressureProjection> = z.object({
   pressureTokens: z.number().int().nonnegative().optional(),
@@ -77,16 +106,21 @@ const pressureFrom = (usage: TokenUsage): number =>
   usage.inputTokens + (usage.cacheReadTokens ?? 0) + (usage.cacheWriteTokens ?? 0)
 
 /** The usage a chunk or finalized message reports for its step, if any. */
-const usageOf = (event: SessionEvent): TokenUsage | undefined =>
+const usageSampleOf = (
+  event: SessionEvent,
+): { turn: number; step: number; usage: TokenUsage } | undefined =>
   event.type === 'assistant/chunk' && event.data.chunk.type === 'usage'
-    ? event.data.chunk.usage
-    : event.type === 'assistant/message'
-      ? event.data.usage
+    ? { turn: event.data.turn, step: event.data.step, usage: event.data.chunk.usage }
+    : event.type === 'assistant/message' && event.data.usage !== undefined
+      ? { turn: event.data.turn, step: event.data.step, usage: event.data.usage }
       : undefined
+
+const usageOf = (event: SessionEvent): TokenUsage | undefined => usageSampleOf(event)?.usage
 
 declare module '@bosch/bh-session-projection/types' {
   interface SessionProjectionStateMap {
     tokenUsage: TokenUsageState
+    modelTokenUsage: ModelTokenUsageState
     contextPressure: ContextPressureState
   }
 }
@@ -122,17 +156,9 @@ export const tokenUsageProjectionDefinition = {
   stateSchema: tokenUsageStateSchema,
   init: () => ({ totals: zeroBuckets(), last: null }),
   apply: (state, event) => {
-    let turn: number
-    let step: number
-    let usage: TokenUsage
-    if (event.type === 'assistant/chunk' && event.data.chunk.type === 'usage') {
-      ;({ turn, step } = event.data)
-      usage = event.data.chunk.usage
-    } else if (event.type === 'assistant/message' && event.data.usage !== undefined) {
-      ;({ turn, step, usage } = event.data)
-    } else {
-      return state
-    }
+    const sample = usageSampleOf(event)
+    if (sample === undefined) return state
+    const { turn, step, usage } = sample
 
     const buckets = bucketsFrom(usage)
     const previous = state.last !== null
@@ -149,6 +175,63 @@ export const tokenUsageProjectionDefinition = {
   },
   wire: { viewSchema: projectionSchema, view: state => state.totals },
 } satisfies ProjectionDefinition<'tokenUsage', TokenUsageState>
+
+const routeKey = (route: { provider: string; model: string }): string =>
+  JSON.stringify([route.provider, route.model])
+
+const hasTokens = (usage: TokenUsageProjection): boolean =>
+  usage.uncachedInputTokens + usage.outputTokens + usage.cacheReadTokens + usage.cacheWriteTokens > 0
+
+/** Provider usage grouped by the exact request route active for each sample. */
+export const modelTokenUsageProjectionDefinition = {
+  key: 'modelTokenUsage',
+  stateVersion: 1,
+  stateSchema: modelTokenUsageStateSchema,
+  init: () => ({ route: null, totals: {}, last: null }),
+  apply: (state, event) => {
+    if (event.type === 'request/header') {
+      const { provider, model } = event.data.header.config
+      if (state.route?.provider === provider && state.route.model === model) return state
+      return { ...state, route: { provider, model } }
+    }
+
+    const sample = usageSampleOf(event)
+    if (sample === undefined || state.route === null) return state
+    const { turn, step, usage } = sample
+    const buckets = bucketsFrom(usage)
+    const key = routeKey(state.route)
+    const previous = state.last !== null
+      && state.last.turn === turn
+      && state.last.step === step
+      ? state.last
+      : undefined
+    if (previous?.routeKey === key && bucketsEqual(previous.buckets, buckets)) return state
+
+    const totals = { ...state.totals }
+    if (previous !== undefined) {
+      const previousTotal = totals[previous.routeKey]
+      if (previousTotal !== undefined) {
+        const reduced = addReplacing(previousTotal, previous.buckets, zeroBuckets())
+        totals[previous.routeKey] = { ...previousTotal, ...reduced }
+      }
+    }
+    const current = totals[key] ?? { ...state.route, ...zeroBuckets() }
+    const next = addReplacing(current, undefined, buckets)
+    totals[key] = { ...current, ...next }
+
+    return {
+      ...state,
+      totals,
+      last: { turn, step, routeKey: key, buckets },
+    }
+  },
+  wire: {
+    viewSchema: modelUsageProjectionSchema,
+    view: state => Object.values(state.totals)
+      .filter(hasTokens)
+      .sort((a, b) => a.provider.localeCompare(b.provider) || a.model.localeCompare(b.model)),
+  },
+} satisfies ProjectionDefinition<'modelTokenUsage', ModelTokenUsageState>
 
 /**
  * Token-meter's context-occupancy projection unit.

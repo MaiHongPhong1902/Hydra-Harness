@@ -55,6 +55,8 @@ export const INSTALL_ANCHOR = fileURLToPath(new URL('../package.json', import.me
 
 /** The session-telemetry row id the BH_TELEMETRY_DISABLED switch targets. */
 const TELEMETRY_ROW_ID = 'session-telemetry-otel'
+/** Module reused for config-only HMR instead of creating a duplicate row. */
+const HMR_MODULE = '@bosch/cordis-plugin-hmr'
 
 /** The empty root entry list every profile tree patches over. */
 const PROFILE_ROOT_CONFIG = `# bh profile root — an empty entry list. The tree is composed as patches:
@@ -152,6 +154,14 @@ function composeProfile(
     if (typeof row.id === 'string') rows.set(row.id, row)
   }
   const composedOverlays = [...overlays]
+  const hmrRow = [...rows.values()].find(row => row.name === HMR_MODULE)
+  if (hmrRow?.disabled === true && typeof hmrRow.id === 'string') {
+    composedOverlays.push({
+      id: hmrRow.id,
+      disabled: false,
+      config: { ...(hmrRow.config as Record<string, unknown> | undefined), root: [] },
+    })
+  }
   // The SHIPPED root is the part of the roster only this app can resolve: it
   // sits beside this app's own config, in both the source and built layouts.
   // The writable root the roster appends is `bh-agent-presets`' own, so a
@@ -269,13 +279,9 @@ export async function runProfile(options: RunProfileOptions): Promise<{ ctx: Con
     && ctx.fiber.state === FiberState.ACTIVE
     && ctx.get('loader') !== undefined) {
     try {
-      // Config-only HMR for the live profile patch layer: the web bundle
-      // disables the shared module-reload `hmr` row (its reload lifecycle is
-      // untested), so when the composition leaves no HMR service, mount a
-      // watch-only instance with no module roots — cordis.patch.yml edits stay
-      // live on every long-lived surface. A silent skip would break the
-      // documented hot-reload contract. HMR injects the timer service, which a
-      // bare custom profile may not mount either.
+      // Config-only HMR for the live profile patch layer: composeProfile turns
+      // a configured disabled HMR row into watch-only mode. A profile with no
+      // HMR row still needs one fallback, as may its bare composition's timer.
       if (ctx.get('hmr') === undefined) {
         if (ctx.get('timer') === undefined) {
           await ctx.loader.create({ name: '@bosch/cordis-plugin-timer' })

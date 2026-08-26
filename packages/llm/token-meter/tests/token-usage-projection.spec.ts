@@ -6,7 +6,9 @@ import SessionStore from '@bosch/bh-session'
 import type { Session } from '@bosch/bh-session'
 import SessionProjectionRegistry from '@bosch/bh-session-projection'
 import TokenMeter from '@bosch/bh-token-meter'
-import type { ContextPressureProjection, TokenUsageProjection } from '@bosch/bh-token-meter/client'
+import type {
+  ContextPressureProjection, ModelTokenUsageProjection, TokenUsageProjection,
+} from '@bosch/bh-token-meter/client'
 import { CompactionId } from '@bosch/bh-compaction'
 import type {} from '../src/usage-projection.ts'
 
@@ -70,6 +72,16 @@ const projected = (ctx: Context, session: Session): TokenUsageProjection => {
   const value = ctx.sessionProjections.snapshot(session).values.tokenUsage
   if (value === undefined) throw new Error('tokenUsage projection is not registered')
   return value
+}
+
+const projectedByModel = (ctx: Context, session: Session): ModelTokenUsageProjection => {
+  const value = ctx.sessionProjections.snapshot(session).values.modelTokenUsage
+  if (value === undefined) throw new Error('modelTokenUsage projection is not registered')
+  return value
+}
+
+function recordRoute(session: Session, provider: string, model: string, reason: 'initial' | 'change'): void {
+  session.append('request/header', { header: { config: { provider, model } }, reason })
 }
 
 /**
@@ -242,6 +254,52 @@ describe('tokenUsage session projection', () => {
       cacheReadTokens: 5,
       cacheWriteTokens: 0,
     })
+  })
+})
+
+describe('modelTokenUsage session projection', () => {
+  it('attributes replacement samples and later steps to their exact model', async () => {
+    const { ctx, session } = await harness()
+    startStep(session, 1, 1)
+    recordRoute(session, 'bosch', 'model-a', 'initial')
+    const first = usageChunk(session, {
+      inputTokens: 10,
+      outputTokens: 2,
+      cacheReadTokens: 3,
+    }, 1, 1)
+    finalUsage(session, {
+      inputTokens: 12,
+      outputTokens: 4,
+      cacheReadTokens: 5,
+      cacheWriteTokens: 1,
+    }, 1, 1, [first])
+
+    startStep(session, 2, 1)
+    usageChunk(session, { inputTokens: 3, outputTokens: 2 }, 2, 1)
+    session.append('step/end', { turn: 2, step: 1 })
+
+    startStep(session, 3, 1)
+    recordRoute(session, 'bosch', 'model-b', 'change')
+    usageChunk(session, { inputTokens: 20, outputTokens: 6 }, 3, 1)
+
+    expect(projectedByModel(ctx, session)).toEqual([
+      {
+        provider: 'bosch',
+        model: 'model-a',
+        uncachedInputTokens: 15,
+        outputTokens: 6,
+        cacheReadTokens: 5,
+        cacheWriteTokens: 1,
+      },
+      {
+        provider: 'bosch',
+        model: 'model-b',
+        uncachedInputTokens: 20,
+        outputTokens: 6,
+        cacheReadTokens: 0,
+        cacheWriteTokens: 0,
+      },
+    ])
   })
 })
 

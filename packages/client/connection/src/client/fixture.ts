@@ -305,17 +305,17 @@ function fixtureModelGroups(): ModelProviderGroup[] {
   return [
     {
       id: 'deepseek-official',
-      name: 'DeepSeek',
+      name: 'BHAgent',
       models: [
         {
           id: 'deepseek-v4-flash',
-          name: 'DeepSeek-V4-Flash',
+          name: 'BHAgent-V4-Flash',
           description: '快速响应',
           reasoning: DEEPSEEK_REASONING,
         },
         {
           id: 'deepseek-v4-pro',
-          name: 'DeepSeek-V4-Pro',
+          name: 'BHAgent-V4-Pro',
           description: '复杂任务',
           reasoning: DEEPSEEK_REASONING,
         },
@@ -3040,7 +3040,7 @@ function createFixtureWorld(options: FixtureOptions): FixtureWorld {
     llm: {
       providers: request => ok(request, {
         providers: [
-          { provider: 'deepseek-official', displayName: 'DeepSeek', settingsNs: 'llm-deepseek', settingsPath: [], active: true },
+          { provider: 'deepseek-official', displayName: 'BHAgent', settingsNs: 'llm-deepseek', settingsPath: [], active: true },
           { provider: 'openai', displayName: 'openai', settingsNs: 'llm-pi-ai', settingsPath: ['providers', 'openai'], active: true, declared: false },
           { provider: 'anthropic', displayName: 'anthropic', settingsNs: 'llm-pi-ai', settingsPath: ['providers', 'anthropic'], active: false, declared: false },
           // One hand-declared route, so a surface reading this fixture meets

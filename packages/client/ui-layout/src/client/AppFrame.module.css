@@ -131,6 +131,11 @@
   background: var(--dsw-alias-bg-base);
 }
 
+/* Keep the closed-panel controls clear of the conversation header utilities. */
+.desktopShell:not([data-browser-open]) :global([data-slot='conversation.session.header']) > header {
+  padding-right: 102px;
+}
+
 .desktopShell > [data-desktop-panel][hidden] {
   display: none;
 }

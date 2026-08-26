@@ -53,6 +53,17 @@ describe('web e2e: settings modal and General preferences', () => {
     await scaffold?.close()
   })
 
+  it('opens the Usage settings section before any model calls', async () => {
+    onTestFailed(() => saveFailureShot(page, 'web-e2e-settings-usage'))
+    await page.getByRole('button', { name: '设置', exact: true }).click()
+    const dialog = page.getByRole('dialog', { name: '设置' })
+    await dialog.getByRole('button', { name: '用量' }).click()
+    await dialog.getByRole('heading', { name: '用量', exact: true }).waitFor({ timeout: 10_000 })
+    await dialog.getByText('暂无 token 用量。', { exact: true }).waitFor({ timeout: 10_000 })
+    await page.keyboard.press('Escape')
+    expect(tripwire.pageErrors).toEqual([])
+  }, 30_000)
+
   it('opens the settings dialog, switches sections, and closes by every path', async () => {
     onTestFailed(() => saveFailureShot(page, 'web-e2e-settings-shell'))
     const trigger = page.getByRole('button', { name: '设置', exact: true })

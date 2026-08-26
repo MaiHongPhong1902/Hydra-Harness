@@ -178,6 +178,8 @@
 }
 
 .tableToolbar {
+  position: sticky;
+  left: 0;
   display: flex;
   justify-content: flex-end;
   margin-bottom: 6px;
