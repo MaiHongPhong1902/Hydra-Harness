@@ -8,7 +8,7 @@ Source: [`packages/browser/browser-electron/src/types.ts`](../../packages/browse
 
 Unlike [web.md](web.md), this seam has exactly one implementation and names it in the package: `bh-browser-electron` both defines `ctx.browsers` and owns the Electron process behind it. A single-purpose plugin stays one package until a second backend actually exists; splitting the definition out now would be an interface with one implementation.
 
-The modality is text, not pixels. `PageController` turns a targeted live DOM into a numbered element list (`[12]<button>Save</button>`) and acts by index, so no screenshot and no vision model is involved anywhere in the loop. The native chrome and the model share one controlled-tab inventory and a functional omnibox.
+The page-control modality is text, not pixels. `PageController` turns a targeted live DOM into a numbered element list (`[12]<button>Save</button>`) and acts by index, so the control loop uses neither screenshots nor a vision model. A user-created Browser annotation is a separate composer path that may attach a bounded screenshot of a selected element or viewport region. The native chrome and the model share one controlled-tab inventory and a functional omnibox.
 
 ## Page state
 
@@ -90,6 +90,18 @@ Every `perform` ends with a state read for the same explicit target, or for the 
 
 An action the page rejects is not an error. `{success: false, message}` is a fact the caller can act on — a missing index, a `select` with no such option — and only the transport and the process lifecycle throw.
 
+## Settings and profile management
+
+The durable `browser-electron` namespace covers agent control; separate public-web and loopback URL destinations; annotation screenshots; download location and prompting; navigation, download, upload, and model-history decisions; and Full CDP opt-in. Agent control defaults on, both URL classes default to BHAgent, annotation screenshots default to include, Full CDP defaults off, and every `allow | ask | block` policy defaults to `ask`.
+
+`BrowserSessionService` checks `controlEnabled` at the shared action seam and pushes native-relevant setting changes to every active Electron controller. Turning control off stops detached PageAgent loops and makes their racing model requests fail with `BROWSER_DISABLED`. Upload always requires a user-literal, absolute, readable regular file; `block` rejects and `ask` delegates to `ctx.approval` with the exact file, HTTP(S) origin, tab, input index, tool-call id, and cancellation signal. Model history search has its own `allow | ask | block` policy and returns at most 20 ledger matches only after any `allowed-once` approval. Every policy denial reports `BROWSER_POLICY_DENIED`.
+
+The desktop intercepts trusted-renderer HTTP(S) links and routes non-loopback and loopback URLs independently to a controlled BHAgent tab or the system browser; the BHAgent route still passes navigation policy. Quick annotate emits bounded element metadata. Interactive Annotate emits that metadata for a click or short drag, or bounded viewport-rectangle metadata for a dragged region. The annotation setting includes, asks for, or omits the corresponding bounded PNG that the conversation queues beside the text context.
+
+Full CDP is available only below the deployment's organization ceiling and after a disabled-by-default user opt-in with native risk confirmation. Even then, every raw command or event read needs a fresh approval bound to its tab, origin, and operation, and Electron rejects cross-target domains and stale targets. Disabling either gate removes the model-facing CDP tools.
+
+The Electron owner persists `browser-management.json` beside the Chromium profile. It bounds navigation history at 1,000 entries, the download ledger at 500 entries, and exact canonical HTTP(S)-origin site overrides at 500 entries; each override stores top-level navigation `access` and camera/microphone `media` as `allow` or `block`, without overriding download/upload policy or filtering subresources. Removing a history or download entry changes only its app-owned ledger, never an open tab's navigation history or a downloaded file. Clearing browser data runs Chromium's data clear, clears open-tab navigation history, and empties the history and download ledgers while retaining durable Browser settings, site overrides, and downloaded files. Desktop Settings exposes password-free login metadata and allowlisted contact fields only when Electron secure storage and the current preload management methods are available; saved passwords never return to the renderer. Older preloads and unavailable or failed secure storage keep both managers disabled and fail closed.
+
 ## Errors
 
 `BrowserError` carries a stable code so a caller can route on the failure without parsing prose.
@@ -107,21 +119,27 @@ type BrowserErrorCode =
   | 'BROWSER_TIMEOUT'
   /** The service is tearing down and will not start new work. */
   | 'BROWSER_DISPOSING'
+  /** User settings currently disable agent control of the embedded browser. */
+  | 'BROWSER_DISABLED'
+  /** One Browser permission setting denied this action. */
+  | 'BROWSER_POLICY_DENIED'
 ```
 
-`BROWSER_UNAVAILABLE` is the ordinary case on a host without the optional `electron` package: the plugin still loads and the tools still register, so nothing else in the harness changes shape. `BROWSER_LAUNCH_FAILED` carries the child's stderr tail, because a GUI-less host fails at exactly this point and the reason is in that output.
+`BROWSER_UNAVAILABLE` is the ordinary case on a host without the optional `electron` package: the plugin still loads and the tools still register, so nothing else in the harness changes shape. `BROWSER_LAUNCH_FAILED` carries the child's stderr tail, because a GUI-less host fails at exactly this point and the reason is in that output. `BROWSER_POLICY_DENIED` identifies an upload, sensitive-history search, or Full CDP operation that settings, organization policy, missing approval support, or a non-`allowed-once` decision denied.
 
 ## The transport
 
-The parent talks to the child in NDJSON over stdin/stdout — one JSON object per line, `{id, method, args}` out and `{id, ok, result|error}` back. There is no port to ask for, no `EADDRINUSE`, no `/api` trust fence to cross, and the channel dies with the process. The cost is that the Electron main process may never write to stdout: that stream *is* the channel, so every diagnostic goes to stderr.
+In standalone use, `BrowserSessionService` talks to the Electron child in NDJSON over stdin/stdout — one JSON object per line, `{id, method, args}` out and `{id, ok, result|error}` back. There is no port to ask for, no `EADDRINUSE`, and the channel dies with the process; stdout is the protocol, so diagnostics go to stderr. The desktop app instead hosts the same browser controller inside its Electron main process, routes renderer requests through narrow preload methods and validated IPC handlers, and calls the controller directly rather than starting a second browser child.
 
 ## Security
 
 The controlled view runs with `contextIsolation: true`, `sandbox: true`, `nodeIntegration: false`, and the preload never calls `contextBridge` — `ipcRenderer` never leaves module scope, so a hostile document has no handle on the control channel. The window is headed by default: the user watches what the agent does.
 
-The browser follows Chromium navigation: `browser_navigate` opens any absolute `http:` or `https:` URL without origin approval, and page redirects and links are not filtered by the harness. A `window.open()` page is adopted into a controlled tab and appears in the next Browser state.
+Every new top-level destination is policy-checked: direct tool/tab loads, the omnibox, and the configured home page check before `loadURL`; popups check before adoption; and Chromium's `will-navigate` and `will-redirect` events cover page links and redirects. An exact-origin site block takes precedence over same-origin access and vetoes Back, Forward, and Reload; otherwise same-origin HTTP(S) navigation proceeds automatically, non-HTTP(S) navigation is blocked, and each other destination uses its exact-origin `access` override or the default navigation policy. Native `ask` offers Allow once, Always allow, and Block; remembered allow/block choices are persisted for that canonical origin. Existing history entries do not reapply the default policy.
 
-**The profile carries real SSO cookies** and persists across sessions by design, so a prompt-injected page can steer the agent into acting as the signed-in user on any site that profile is authenticated to. This is the same class of exposure as the deferred SSRF protection on `web_fetch`. Do not enable the embedded browser where an untrusted page can be reached with a profile authenticated to sensitive internal systems.
+Downloads are approved or blocked before Chromium writes them, receive a unique destination under the configured or system Downloads directory, and may open a native save dialog. Only camera and microphone media permission can be granted, by exact-origin override or native prompt; blocking media never grants site access and reloads every matching controlled document or frame before the update returns. Every other permission, device-permission, and display-capture request fails closed.
+
+**The profile carries real SSO cookies** and persists across sessions by design, so a prompt-injected page can act as the signed-in user on any reachable site that profile is authenticated to. Navigation approval reduces accidental cross-origin movement but does not make an allowed or remembered origin trustworthy. This is the same class of exposure as the deferred SSRF protection on `web_fetch`; do not enable the embedded browser where untrusted content can share a profile authenticated to sensitive internal systems.
 
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
@@ -147,9 +165,39 @@ One Electron window per agent, started lazily and closed with its owner.
  * tab and may overlap across tabs; implicit and lifecycle actions are barriers.
  * @param owner - agent whose window this is; its first call starts one.
  * @param action - what to do, in page-agent's own vocabulary.
+ * @param execution - tool-call identity and cancellation for an interactive upload approval.
  * @returns the action's report, omitted for a plain state read, plus the state.
  */
-async perform(owner: Agent, action: BrowserAction): Promise<BrowserOutcome>
+async perform( owner: Agent, action: BrowserAction, execution: BrowserExecutionContext = {}, ): Promise<BrowserOutcome>
+
+/**
+ * Search only the bounded app-owned history after applying the model-access policy.
+ * @param owner - agent whose browser profile owns the history ledger.
+ * @param query - case-insensitive title/URL text, from 1 to 256 characters.
+ * @param execution - tool-call identity and cancellation for approval.
+ * @returns matching title, URL, and visit-time metadata.
+ */
+async searchHistory( owner: Agent, query: string, execution: BrowserExecutionContext = {}, ): Promise<BrowserHistorySearchEntry[]>
+
+/**
+ * Send one approved, bounded CDP command to the exact controlled tab.
+ * @param owner - agent whose controlled browser owns the target tab.
+ * @param method - CDP method name.
+ * @param params - JSON parameters for the method.
+ * @param tabId - optional positive controlled-tab id; omission uses the selected tab.
+ * @param execution - tool-call identity and cancellation for approval.
+ * @returns the bounded method name and JSON result.
+ */
+async sendCdpCommand( owner: Agent, method: string, params: unknown, tabId: number | undefined, execution: BrowserExecutionContext = {}, ): Promise<BrowserCdpCommandResult>
+
+/**
+ * Read a bounded cursor page of events captured from an approved controlled tab.
+ * @param owner - agent whose controlled browser owns the target tab.
+ * @param options - cursor, page-size, method filter, and optional tab id.
+ * @param execution - tool-call identity and cancellation for approval.
+ * @returns the bounded events and the next cursor value.
+ */
+async readCdpEvents( owner: Agent, options: { afterSequence?: number; limit?: number; method?: string; tabId?: number }, execution: BrowserExecutionContext = {}, ): Promise<BrowserCdpEventPage>
 
 /**
  * Close one owner's window now, if it has one.
@@ -160,6 +208,28 @@ async close(owner: Agent): Promise<boolean>
 ```
 
 Types: [Agent](core.md)
+
+Source: [`packages/browser/browser-electron/src/index.ts`](../../packages/browser/browser-electron/src/index.ts)
+
+<a id="browser-events"></a>
+
+### `browser/*` events
+
+<a id="browserfull-cdp-access--emit"></a>
+
+#### `browser/full-cdp-access` — emit
+
+The effective Full CDP gate changed after a user setting or deployment policy update; listeners may refresh model-facing CDP tool registration.
+
+```ts cordis-catalog
+/**
+ * The effective Full CDP gate changed after a user setting or deployment
+ * policy update; listeners may refresh model-facing CDP tool registration.
+ * @mode emit
+ * @param enabled - whether the organization ceiling and user opt-in both allow CDP.
+ */
+'browser/full-cdp-access'(enabled: boolean): void
+```
 
 Source: [`packages/browser/browser-electron/src/index.ts`](../../packages/browser/browser-electron/src/index.ts)
 <!-- END GENERATED cordis-surface -->

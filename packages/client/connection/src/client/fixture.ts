@@ -85,7 +85,7 @@ const MARKDOWN_FIXTURE = [
   '```',
 ].join('\n')
 
-const USER_MARKDOWN_LITERAL = '用户字面量：# 不渲染 `code` [link](https://example.com)'
+const USER_MARKDOWN_LITERAL = 'User literal: # not rendered `code` [link](https://example.com)'
 
 /**
  * SGR wrapper for the terminal output sample below: authoring the escapes as
@@ -310,13 +310,13 @@ function fixtureModelGroups(): ModelProviderGroup[] {
         {
           id: 'deepseek-v4-flash',
           name: 'BHAgent-V4-Flash',
-          description: '快速响应',
+          description: 'Fast responses',
           reasoning: DEEPSEEK_REASONING,
         },
         {
           id: 'deepseek-v4-pro',
           name: 'BHAgent-V4-Pro',
-          description: '复杂任务',
+          description: 'Complex tasks',
           reasoning: DEEPSEEK_REASONING,
         },
       ],
@@ -383,23 +383,23 @@ function buildAlphaLog(): SessionEvent[] {
     push({ type: 'turn/start', data: { turn } })
     const userSeq = push({
       type: 'user/message', surfaceOp: 'append',
-      data: userMessage(text(turn === 59 ? USER_MARKDOWN_LITERAL : `问题 ${turn}：fixture 历史消息，用于翻页与渲染验收。`)),
+      data: userMessage(text(turn === 59 ? USER_MARKDOWN_LITERAL : `Question ${turn}: fixture history message, used for pagination and render verification.`)),
     })
     if (turn === 0) {
       push({
         type: 'session/title',
-        data: { title: 'Fixture 历史会话', messageSeqs: [userSeq], source: { kind: 'fallback' } },
+        data: { title: 'Fixture history session', messageSeqs: [userSeq], source: { kind: 'fallback' } },
       })
     }
     if (turn % 9 === 4) {
-      push({ type: 'user/message', surfaceOp: 'append', data: userMessage(text(`[fixture] 上下文注入（turn ${turn}）`), { kind: 'plugin', plugin: 'fixture' }) })
+      push({ type: 'user/message', surfaceOp: 'append', data: userMessage(text(`[fixture] context injection (turn ${turn})`), { kind: 'plugin', plugin: 'fixture' }) })
     }
     push({ type: 'step/start', data: { turn, step: 0 } })
     const withTool = turn % 5 === 2
     const withReasoning = turn % 3 === 1
     const blocks: ContentBlock[] = []
-    if (withReasoning) blocks.push({ type: 'reasoning', text: `思考过程 ${turn}：这是一段可折叠的 reasoning 内容。` })
-    blocks.push({ type: 'text', text: turn === 59 ? MARKDOWN_FIXTURE : `回答 ${turn}：这是 fixture 生成的历史回复正文。` })
+    if (withReasoning) blocks.push({ type: 'reasoning', text: `Reasoning ${turn}: this is a collapsible block of reasoning content.` })
+    blocks.push({ type: 'text', text: turn === 59 ? MARKDOWN_FIXTURE : `Answer ${turn}: this is fixture-generated historical reply body text.` })
     if (withTool) {
       const callId = `fx-call-${turn}`
       blocks.push({ type: 'tool-call', id: callId, name: 'echo', arguments: `{"text":"turn ${turn}"}` } as ContentBlock)
@@ -408,7 +408,7 @@ function buildAlphaLog(): SessionEvent[] {
       push({ type: 'tool/result', surfaceOp: 'append', data: { turn, step: 0, message: toolResultMessage(callId, text(`ECHO: TURN ${turn}`), turn % 25 === 12) } })
       push({ type: 'step/end', data: { turn, step: 0 } })
       push({ type: 'step/start', data: { turn, step: 1 } })
-      push({ type: 'assistant/message', surfaceOp: 'append', data: { turn, step: 1, message: assistantMessage(text(`工具结果已消化（turn ${turn}）。`)) } })
+      push({ type: 'assistant/message', surfaceOp: 'append', data: { turn, step: 1, message: assistantMessage(text(`Tool result processed (turn ${turn}).`)) } })
       push({ type: 'step/end', data: { turn, step: 1 } })
     } else {
       push({ type: 'assistant/message', surfaceOp: 'append', data: { turn, step: 0, message: assistantMessage(blocks) } })
@@ -422,7 +422,7 @@ function buildAlphaLog(): SessionEvent[] {
   const toolTurn = (turn: number, name: string, args: string, resultText: string): void => {
     const callId = `fx-call-${turn}`
     push({ type: 'turn/start', data: { turn } })
-    push({ type: 'user/message', surfaceOp: 'append', data: userMessage(text(`问题 ${turn}：${name} 样本。`)) })
+    push({ type: 'user/message', surfaceOp: 'append', data: userMessage(text(`Question ${turn}: ${name} sample.`)) })
     push({ type: 'step/start', data: { turn, step: 0 } })
     push({
       type: 'assistant/message', surfaceOp: 'append',
@@ -437,15 +437,15 @@ function buildAlphaLog(): SessionEvent[] {
   // command-line prompt (and that the card still marks the call exactly once).
   toolTurn(60, 'fx-bash', '{"command":"ls -la\\necho done","cwd":"/tmp/fixture"}', 'total 2\ndrwxr-xr-x fixture\n-rw-r--r-- demo.txt')
   toolTurn(61, 'fx-write', '{"path":"notes/demo.txt","content":"hello fixture\\n"}', 'wrote notes/demo.txt')
-  toolTurn(62, 'edit', '{"file_path":"notes/demo.txt","old_string":"hello","new_string":"hello fixture"}', '已编辑')
-  toolTurn(63, 'write', '{"file_path":"notes/new-demo.txt","content":"hello fixture\\n"}', '已写入')
+  toolTurn(62, 'edit', '{"file_path":"notes/demo.txt","old_string":"hello","new_string":"hello fixture"}', 'edited notes/demo.txt')
+  toolTurn(63, 'write', '{"file_path":"notes/new-demo.txt","content":"hello fixture\\n"}', 'wrote notes/new-demo.txt')
   // Turn 64: a multi-hunk edit — two scattered replacements in one file. Named
   // `edit` so it lands on the keyed FileMutationRow (the resident diff card the
   // single-hunk turn 62 also uses), and file_path `src/config.ts` is the marker
   // the presenter reads to emit the two-hunk sample: the card draws one path
   // header, the first hunk, a `⋯` gap, then the second (the same-file
   // second-hunk arm turns 62/63 cannot reach).
-  toolTurn(64, 'edit', '{"file_path":"src/config.ts","old_string":"const timeout = 30","new_string":"const timeout = 60"}', '已编辑')
+  toolTurn(64, 'edit', '{"file_path":"src/config.ts","old_string":"const timeout = 30","new_string":"const timeout = 60"}', 'edited src/config.ts')
   // Turn 65: one run_code turn with three logged sub-dispatches — the Code
   // Mode acceptance surface (parent code row + nested native-identical rows,
   // including an isError sub-call and a bash sub-call that must hit the same
@@ -459,7 +459,7 @@ function buildAlphaLog(): SessionEvent[] {
       + 'return { listing, demo }'
     const args = JSON.stringify({ code: program, description: 'Read the notes files and summarize' })
     push({ type: 'turn/start', data: { turn } })
-    push({ type: 'user/message', surfaceOp: 'append', data: userMessage(text(`问题 ${turn}：run_code 样本。`)) })
+    push({ type: 'user/message', surfaceOp: 'append', data: userMessage(text(`Question ${turn}: run_code sample.`)) })
     push({ type: 'step/start', data: { turn, step: 0 } })
     push({
       type: 'assistant/message', surfaceOp: 'append',
@@ -494,10 +494,10 @@ function buildAlphaLog(): SessionEvent[] {
   // in_progress: this fixture chooses the parallel policy, so both surfaces
   // must render a parallel plan rather than the first active item alone.
   const fixtureTodos = [
-    { content: '梳理需求', status: 'completed' },
-    { content: '实现 fixture 样本', status: 'in_progress' },
-    { content: '跑后台构建', status: 'in_progress' },
-    { content: '浏览器验收', status: 'pending' },
+    { content: 'Clarify requirements', status: 'completed' },
+    { content: 'Implement fixture sample', status: 'in_progress' },
+    { content: 'Run background build', status: 'in_progress' },
+    { content: 'Browser verification', status: 'pending' },
   ]
   // Turn 66: the terminal sample turn 60's two clean prompt rows cannot cover —
   // ANSI SGR coloring, output past the terminal card's height cap, a nested cwd
@@ -553,12 +553,12 @@ function buildAlphaLog(): SessionEvent[] {
   // instead of ending silently. Ordered before the todo turn for the same
   // standing-plan reason the bash turn is.
   push({ type: 'turn/start', data: { turn: 72 } })
-  push({ type: 'user/message', surfaceOp: 'append', data: userMessage(text('问题 72：请完整列出全部一百条条目。')) })
+  push({ type: 'user/message', surfaceOp: 'append', data: userMessage(text('Question 72: please list all one hundred items in full.')) })
   push({ type: 'step/start', data: { turn: 72, step: 0 } })
   push({
     type: 'assistant/message',
     surfaceOp: 'append',
-    data: { turn: 72, step: 0, message: assistantMessage(text('条目 1：第一条。条目 2：第二条。条目 3：这一条写到一半被')) },
+    data: { turn: 72, step: 0, message: assistantMessage(text('Item 1: the first item. Item 2: the second item. Item 3: this one trails off mid-sen')) },
   })
   push({ type: 'step/end', data: { turn: 72, step: 0 } })
   push({ type: 'turn/end', data: { turn: 72, reason: { kind: 'max-tokens' } } })
@@ -569,7 +569,7 @@ function buildAlphaLog(): SessionEvent[] {
   push({
     type: 'user/message',
     surfaceOp: 'append',
-    data: userMessage([{ type: 'image', attachment: FIXTURE_IMAGE_REF }, ...text('历史用户图片')]),
+    data: userMessage([{ type: 'image', attachment: FIXTURE_IMAGE_REF }, ...text('Historical user image')]),
   })
   push({ type: 'step/start', data: { turn: 73, step: 0 } })
   push({
@@ -579,7 +579,7 @@ function buildAlphaLog(): SessionEvent[] {
       turn: 73,
       step: 0,
       message: assistantMessage(
-        [...text('结构化模型图片：'), { type: 'image', attachment: FIXTURE_IMAGE_REF }],
+        [...text('Structured model image:'), { type: 'image', attachment: FIXTURE_IMAGE_REF }],
         'fx-vision',
       ),
     },
@@ -617,7 +617,7 @@ function presentCall(name: string, argsRaw: string): ToolCallView | undefined {
     // render-site fallback row, `bash` on the keyed BashRow registration.
     case 'fx-bash':
     case 'bash':
-      return { card: 'terminal', title: str(args.command), cwd: str(args.cwd, '/tmp/fixture'), description: 'fixture 终端样本' }
+      return { card: 'terminal', title: str(args.command), cwd: str(args.cwd, '/tmp/fixture'), description: 'fixture terminal sample' }
     case 'fx-write':
       return {
         card: 'diff', title: `Write ${str(args.path)}`,
@@ -1624,33 +1624,33 @@ function createFixtureWorld(options: FixtureOptions): FixtureWorld {
   const fixtureQuestions: Extract<MuxFrame, { type: 'question/requested' }>['questions'] = [
     {
       id: 'harness-profile',
-      header: '偏好',
-      question: '你现在更想招哪类 Agent/Harness 候选人？',
+      header: 'Preference',
+      question: 'Which kind of Agent/Harness candidate are you looking to hire right now?',
       options: [
-        { label: '工程落地型 (Recommended)', description: '更看重能直接做 runtime、tool executor、sandbox、trace 和线上问题排查。' },
-        { label: '研究潜力型', description: '更看重 Agent 理解、训练评测思路和长期成长空间。' },
-        { label: '均衡型', description: '同时要求工程能力和 Agent 认知，但可能筛选门槛更高。' },
+        { label: 'Engineering-execution focused (Recommended)', description: 'Prioritizes hands-on ability with runtime, tool executor, sandbox, trace, and production troubleshooting.' },
+        { label: 'Research-potential focused', description: 'Prioritizes Agent understanding, training/eval thinking, and long-term growth potential.' },
+        { label: 'Balanced', description: 'Requires both engineering skill and Agent understanding, though the bar may be higher.' },
       ],
     },
     {
       id: 'work-mode',
-      header: '方式',
-      question: '你希望候选人优先展示哪种工作方式？',
+      header: 'Approach',
+      question: 'Which working style would you like the candidate to demonstrate first?',
       options: [
-        { label: '先做小型原型 (Recommended)', description: '用可运行结果尽快验证关键假设。' },
-        { label: '先写完整设计', description: '先收敛边界、协议和风险，再开始实现。' },
+        { label: 'Build a small prototype first (Recommended)', description: 'Validate key assumptions as quickly as possible with a working result.' },
+        { label: 'Write a full design first', description: 'Nail down scope, protocol, and risk before starting implementation.' },
       ],
     },
     {
       id: 'signals',
-      header: '信号',
-      question: '哪些面试信号最重要？',
-      detail: '按当前招聘目标选择；跳过则视为不设偏好。',
+      header: 'Signal',
+      question: 'Which interview signals matter most?',
+      detail: 'Choose based on the current hiring goal; skipping means no preference.',
       multiSelect: true,
       options: [
-        { label: '系统设计' },
-        { label: '代码质量' },
-        { label: 'Agent 产品判断' },
+        { label: 'System design' },
+        { label: 'Code quality' },
+        { label: 'Agent product judgment' },
       ],
     },
   ]
@@ -1750,8 +1750,8 @@ function createFixtureWorld(options: FixtureOptions): FixtureWorld {
       return {
         ok: true,
         value: [
-          { name: 'compact', description: 'fixture：压缩当前会话上下文' },
-          { name: 'echo', description: 'fixture：回显参数', input: { hint: 'text to echo' } },
+          { name: 'compact', description: 'fixture: compress the current session context' },
+          { name: 'echo', description: 'fixture: echo the argument', input: { hint: 'text to echo' } },
           { name: 'goal', description: 'set or view the goal for a long-running task', input: { hint: '<objective>', images: true } },
           { name: 'permission', description: 'Switch the permission preset (sandbox mode + approval policy)', input: { hint: '<preset>' } },
           { name: 'plan', description: 'Enter or leave plan mode', input: { hint: '[off|message]', images: true } },
@@ -1833,7 +1833,7 @@ function createFixtureWorld(options: FixtureOptions): FixtureWorld {
       }
       const running = summaryOf(id)?.running === true
       const outcomes: Record<string, string> = {
-        compact: 'fixture：已压缩（假动作）',
+        compact: 'fixture: compacted (fake action)',
         echo: args.trim(),
         plan: args.trim() === 'off'
           ? (running ? 'Leaving plan mode (applies from the next step).' : 'Plan mode off.')
@@ -2114,7 +2114,7 @@ function createFixtureWorld(options: FixtureOptions): FixtureWorld {
         for (let index = state.emitted; index < end; index++) {
           const chunkText = index === chunkCount - 1
             ? `\n${marker}`
-            : index % 64 === 63 ? '推理\n' : '推理'
+            : index % 64 === 63 ? 'think\n' : 'think'
           append(sessionId, {
             type: 'assistant/chunk',
             data: { turn, step: 0, chunk: { type: 'reasoning-delta', index: 0, text: chunkText } },
@@ -2142,10 +2142,10 @@ function createFixtureWorld(options: FixtureOptions): FixtureWorld {
       retryScenarios.set(sessionId, { turn, stepStarted: true })
       setRunning(sessionId, true)
       append(sessionId, { type: 'turn/start', data: { turn } })
-      append(sessionId, { type: 'user/message', surfaceOp: 'append', data: { content: text('请重试这个请求'), source: { kind: 'user' } } })
+      append(sessionId, { type: 'user/message', surfaceOp: 'append', data: { content: text('Please retry this request'), source: { kind: 'user' } } })
       append(sessionId, { type: 'step/start', data: { turn, step: 1 } })
       append(sessionId, { type: 'assistant/chunk', data: { turn, step: 1, chunk: { type: 'block-start', index: 0, blockType: 'text' } } })
-      append(sessionId, { type: 'assistant/chunk', data: { turn, step: 1, chunk: { type: 'text-delta', index: 0, text: '应撤回的半截回复' } } })
+      append(sessionId, { type: 'assistant/chunk', data: { turn, step: 1, chunk: { type: 'text-delta', index: 0, text: 'Half-finished reply that should be retracted' } } })
     },
     /** Record one retry decision; the next attempt remains in the same step. */
     scheduleModelRetry(id: string, retry = 1, delayMs = 450): void {
@@ -2154,10 +2154,10 @@ function createFixtureWorld(options: FixtureOptions): FixtureWorld {
       if (scenario === undefined) throw new Error(`fixture: no model retry scenario for ${id}`)
       if (!scenario.stepStarted) {
         append(sessionId, { type: 'assistant/chunk', data: { turn: scenario.turn, step: 1, chunk: { type: 'block-start', index: 0, blockType: 'text' } } })
-        append(sessionId, { type: 'assistant/chunk', data: { turn: scenario.turn, step: 1, chunk: { type: 'text-delta', index: 0, text: `第 ${String(retry)} 次应撤回的回复` } } })
+        append(sessionId, { type: 'assistant/chunk', data: { turn: scenario.turn, step: 1, chunk: { type: 'text-delta', index: 0, text: `Retry ${String(retry)} reply that should be retracted` } } })
         scenario.stepStarted = true
       }
-      const failure = { code: 'TRANSPORT', message: '连接被重置' }
+      const failure = { code: 'TRANSPORT', message: 'Connection reset' }
       append(sessionId, {
         type: 'llm/retry',
         data: {
@@ -2173,7 +2173,7 @@ function createFixtureWorld(options: FixtureOptions): FixtureWorld {
       const sessionId = sid(id)
       const scenario = retryScenarios.get(sessionId)
       if (scenario === undefined) throw new Error(`fixture: no model retry scenario for ${id}`)
-      const failure = { code: 'TRANSPORT', message: '连接被重置' }
+      const failure = { code: 'TRANSPORT', message: 'Connection reset' }
       append(sessionId, {
         type: 'llm/retry',
         data: {
@@ -2205,7 +2205,7 @@ function createFixtureWorld(options: FixtureOptions): FixtureWorld {
         data: {
           turn: scenario.turn,
           step: 1,
-          message: assistantMessage(text('重试后的完整回复')),
+          message: assistantMessage(text('Complete reply after retry')),
         },
       })
       append(sessionId, { type: 'step/end', data: { turn: scenario.turn, step: 1 } })
@@ -2242,7 +2242,7 @@ function createFixtureWorld(options: FixtureOptions): FixtureWorld {
         data: {
           turn,
           step,
-          message: assistantMessage(text(aborted ? `${done}（已中断）` : done)),
+          message: assistantMessage(text(aborted ? `${done} (interrupted)` : done)),
           usage: fixtureUsage(turn, step),
         },
       })
@@ -2557,10 +2557,10 @@ function createFixtureWorld(options: FixtureOptions): FixtureWorld {
             : userText === 'report model'
               ? (() => {
                 const selection = modelSelections.get(id)
-                return `当前模型：${selection?.provider ?? 'unknown'}/${selection?.model ?? 'unknown'}`
-                  + (selection?.reasoningEffort === undefined ? '' : ` · 推理等级：${selection.reasoningEffort}`)
+                return `Current model: ${selection?.provider ?? 'unknown'}/${selection?.model ?? 'unknown'}`
+                  + (selection?.reasoningEffort === undefined ? '' : ` · Reasoning level: ${selection.reasoningEffort}`)
               })()
-              : `回声：${userText}。这是 fixture 的流式回复，用于验证打字机增长与定稿切换。`,
+              : `Echo: ${userText}. This is the fixture's streamed reply, used to verify typewriter growth and finalize switching.`,
         )
         return ok(request, { accepted: true as const })
       },
@@ -2877,8 +2877,8 @@ function createFixtureWorld(options: FixtureOptions): FixtureWorld {
         if (missing !== undefined) return missing
         return ok(request, {
           skills: [
-            { name: 'fixture-demo', description: 'fixture 技能样本', whenToUse: '仅供 UI 目录渲染验收', modelInvocable: true },
-            { name: 'fixture-user-only', description: 'fixture 仅用户技能样本', modelInvocable: false },
+            { name: 'fixture-demo', description: 'fixture skill sample', whenToUse: 'UI catalog render verification only', modelInvocable: true },
+            { name: 'fixture-user-only', description: 'fixture user-only skill sample', modelInvocable: false },
           ],
         })
       },
@@ -2946,7 +2946,7 @@ function createFixtureWorld(options: FixtureOptions): FixtureWorld {
             payload: {
               type: 'approval/requested', sessionId: sid('fx-alpha'),
               approvalId: pendingApprovalId,
-              toolName: 'dangerous_tool', reason: 'fixture 常驻审批（可答：批准/拒绝后消失）',
+              toolName: 'dangerous_tool', reason: 'fixture standing approval (answerable: disappears after approve/reject)',
             },
           })
         }

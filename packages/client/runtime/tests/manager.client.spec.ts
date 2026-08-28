@@ -319,8 +319,8 @@ describe('host frame routing', () => {
     expect(session.getSnapshot().running).toBe(true)
     expect(manager.getListSnapshot().items[0]?.running).toBe(true)
 
-    manager.handleHostEnvelope({ rpcId: 'h4' as never, payload: { type: 'host/agent-error', sessionId: S1, message: '炸了' } })
-    expect(session.getSnapshot().lastAgentError).toBe('炸了')
+    manager.handleHostEnvelope({ rpcId: 'h4' as never, payload: { type: 'host/agent-error', sessionId: S1, message: 'blew up' } })
+    expect(session.getSnapshot().lastAgentError).toBe('blew up')
 
     manager.handleHostEnvelope({ rpcId: 'h5' as never, payload: { type: 'host/session-removed', sessionId: S1 } })
     expect(manager.getListSnapshot().items).toHaveLength(0)
@@ -839,7 +839,7 @@ describe('remaining branches', () => {
     expect(session.getSnapshot().pending).toMatchObject([{ kind: 'question' }])
     // status flip for an unknown session only touches summaries (no crash).
     manager.handleHostEnvelope({ rpcId: 'h9' as never, payload: { type: 'host/session-status', sessionId: S2, running: true } })
-    manager.handleHostEnvelope({ rpcId: 'ha' as never, payload: { type: 'host/agent-error', sessionId: S2, message: '无实例' } })
+    manager.handleHostEnvelope({ rpcId: 'ha' as never, payload: { type: 'host/agent-error', sessionId: S2, message: 'no instance' } })
   })
 
   it('keeps list-entry identity for unchanged rows across an unrelated list change', async () => {

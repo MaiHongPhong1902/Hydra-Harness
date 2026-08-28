@@ -21,6 +21,9 @@
       "path": "../browser-electron"
     },
     {
+      "path": "../../attachment/attachment"
+    },
+    {
       "path": "../../core/agent"
     },
     {

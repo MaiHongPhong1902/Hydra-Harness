@@ -5,6 +5,10 @@ import { PassThrough } from 'node:stream'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { Context } from '@bosch/cordis'
+import { AttachmentId, AttachmentStore } from '@bosch/bh-attachment'
+import type {
+  ImageAttachmentLimits, ImageAttachmentRef, SaveImageAttachment, StoredImageAttachment,
+} from '@bosch/bh-attachment'
 import { CallId, createUserMessage } from '@bosch/bh-llm'
 import type { ContentBlock } from '@bosch/bh-llm'
 import { Session, SessionId } from '@bosch/bh-session'
@@ -12,10 +16,41 @@ import AgentRegistry, { Inbox } from '@bosch/bh-agent'
 import type { Agent } from '@bosch/bh-agent'
 import SystemPrompt from '@bosch/bh-system-prompt'
 import ToolRuntime from '@bosch/bh-tools'
-import BrowserSessionService from '@bosch/bh-browser-electron'
+import { SettingsProvider } from '@bosch/bh-settings'
+import type { SettingsNamespace } from '@bosch/bh-settings'
+import BrowserSessionService, { BROWSER_SETTINGS_NAMESPACE } from '@bosch/bh-browser-electron'
 import type { BrowserChildProcess } from '@bosch/bh-browser-electron'
 import * as ToolBrowser from '@bosch/bh-tool-browser'
 import { BROWSER_PROMPT_NAME, BROWSER_PROMPT_TEXT } from '@bosch/bh-tool-browser'
+
+function cdpEventPage(args: Record<string, unknown>) {
+  const retained = [
+    {
+      sequence: 11,
+      method: 'Runtime.consoleAPICalled',
+      params: { type: 'log' },
+      receivedAt: '2026-08-26T00:00:01.000Z',
+    },
+    {
+      sequence: 12,
+      method: 'Network.responseReceived',
+      params: { requestId: 'shop-request' },
+      receivedAt: '2026-08-26T00:00:02.000Z',
+    },
+  ]
+  const afterSequence = typeof args.afterSequence === 'number' ? args.afterSequence : 0
+  const limit = typeof args.limit === 'number' ? args.limit : 100
+  const events = []
+  let nextSequence = afterSequence
+  for (const event of retained) {
+    if (event.sequence <= afterSequence) continue
+    nextSequence = event.sequence
+    if (args.method !== undefined && event.method !== args.method) continue
+    events.push(event)
+    if (events.length === limit) return { events, nextSequence }
+  }
+  return { events, nextSequence: Math.max(nextSequence, 12) }
+}
 
 /**
  * The Electron child the seam would have spawned, answering the way the real
@@ -45,7 +80,29 @@ class ScriptedChild extends EventEmitter implements BrowserChildProcess {
           settled: true,
           capturedAt: '2026-08-24T00:00:00.000Z',
         }
-        : { success: true, message: `did ${method}` }
+        : method === 'browser_screenshot'
+          ? {
+            mediaType: 'image/png',
+            data: PNG_1X1.toString('base64'),
+            bytes: PNG_1X1.length,
+            width: 1,
+            height: 1,
+            tabId: 1,
+            url: 'https://shop.test/order',
+            title: 'Order',
+            capturedAt: '2026-08-27T00:00:00.000Z',
+          }
+          : method === 'get_upload_target'
+            ? { origin: 'https://shop.test', tabId: typeof args.tabId === 'number' ? args.tabId : 1 }
+            : method === 'search_browser_history'
+              ? [{ url: 'https://shop.test/history', title: 'Saved order', visitedAt: '2026-08-26T00:00:00.000Z' }]
+              : method === 'get_cdp_target'
+                ? { origin: 'https://shop.test', tabId: typeof args.tabId === 'number' ? args.tabId : 1 }
+                : method === 'cdp_command'
+                  ? { echo: args.params }
+                  : method === 'cdp_read_events'
+                    ? cdpEventPage(args)
+                    : { success: true, message: `did ${method}` }
       this.stdout.write(`${JSON.stringify({ id, ok: true, result })}\n`)
     })
     queueMicrotask(() => this.stdout.write(`${JSON.stringify({ event: 'ready' })}\n`))
@@ -58,12 +115,72 @@ class ScriptedChild extends EventEmitter implements BrowserChildProcess {
 
 const PAGE = '[0]<input id=who/>\n[1]<button id=submit>Order</button>'
 const UPLOAD_FIXTURE = fileURLToPath(new URL('../../browser-electron/tests/fixtures/form.html', import.meta.url))
+const PNG_1X1 = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC', 'base64')
 
-async function harness(config: ToolBrowser.Config = {}, browserConfig: { experimentalScriptExecution?: boolean } = {}) {
+class TestAttachmentStore extends AttachmentStore {
+  readonly saved: SaveImageAttachment[] = []
+  readonly imageLimits: ImageAttachmentLimits = Object.freeze({
+    maxImageBytes: 3_500_000,
+    maxImagesPerMessage: 1,
+    maxMessageImageBytes: 3_500_000,
+    maxImagePixels: 4_000_000,
+    maxImageDimension: 2_000,
+    mediaTypes: Object.freeze(['image/png'] as const),
+  })
+
+  validateImage(_input: SaveImageAttachment): Promise<void> {
+    return Promise.resolve()
+  }
+
+  saveImage(input: SaveImageAttachment): Promise<ImageAttachmentRef> {
+    this.saved.push(input)
+    return Promise.resolve({
+      attachmentId: AttachmentId('sha256:browser-screenshot'),
+      mediaType: input.mediaType,
+      bytes: input.data.length,
+      width: 1,
+      height: 1,
+      ...input.name === undefined ? {} : { name: input.name },
+    })
+  }
+
+  readImage(_ref: ImageAttachmentRef): Promise<StoredImageAttachment> {
+    throw new Error('unreachable in tool-browser tests')
+  }
+}
+
+class MemorySettings extends SettingsProvider {
+  private stored: Record<string, unknown> = {}
+  get writable(): boolean { return true }
+  protected load(): Promise<Record<string, unknown>> { return Promise.resolve(structuredClone(this.stored)) }
+  protected persist(ns: SettingsNamespace, section: Record<string, unknown>): Promise<void> {
+    this.stored = { ...this.stored, [ns]: structuredClone(section) }
+    return Promise.resolve()
+  }
+}
+
+async function harness(
+  config: ToolBrowser.Config = {},
+  browserConfig: { experimentalScriptExecution?: boolean; allowFullCdpAccess?: boolean } = {},
+  options: { attachments?: boolean; imageInput?: boolean } = {},
+) {
   const ctx = new Context()
   await ctx.plugin(AgentRegistry)
   await ctx.plugin(SystemPrompt)
   await ctx.plugin(ToolRuntime)
+  await ctx.plugin(MemorySettings)
+  ctx.reflect.provide('approval', {
+    request: () => Promise.resolve('allowed-once'),
+  })
+  ctx.reflect.provide('llm', {
+    resolveModelInfo: () => Promise.resolve({
+      provider: 'visual',
+      id: 'vision-model',
+      name: 'Vision model',
+      inputModalities: options.imageInput === false ? ['text'] : ['text', 'image'],
+    }),
+  })
+  if (options.attachments !== false) await ctx.plugin(TestAttachmentStore)
   await ctx.plugin(BrowserSessionService, { electronPath: '/fake/electron', show: false, ...browserConfig })
   const children: ScriptedChild[] = []
   ctx.browsers.spawnChild = () => {
@@ -79,7 +196,7 @@ async function harness(config: ToolBrowser.Config = {}, browserConfig: { experim
   const scope = ctx.plugin(() => {})
   const agent: Agent = {
     id,
-    options: {},
+    options: { provider: 'visual', model: 'vision-model' },
     session,
     inbox: new Inbox(session, { inserted: () => {}, discarded: () => {}, claimed: () => {} }),
     status: 'idle',
@@ -123,15 +240,20 @@ describe('tool-browser registration', () => {
     const { ctx } = await harness()
     expect(ctx.tools.schemas().map(tool => tool.name).filter(name => name.startsWith('browser_')).sort())
       .toEqual([
-        'browser_back', 'browser_click', 'browser_close_tab', 'browser_navigate',
+        'browser_back', 'browser_click', 'browser_close_tab', 'browser_history_search', 'browser_navigate',
         'browser_open_tab', 'browser_page_agent_run', 'browser_page_agent_status', 'browser_page_agent_stop',
-        'browser_press', 'browser_scroll', 'browser_scroll_horizontally',
+        'browser_press', 'browser_screenshot', 'browser_scroll', 'browser_scroll_horizontally',
         'browser_select_option', 'browser_state', 'browser_switch_tab', 'browser_type',
         'browser_upload_file', 'browser_wait',
       ])
     const assembly = await ctx.systemPrompt.assemble()
     const section = assembly.sections.find(entry => entry.name === BROWSER_PROMPT_NAME)
     expect(section?.text).toBe(BROWSER_PROMPT_TEXT)
+  })
+
+  it('registers screenshot only while a durable attachment store is mounted', async () => {
+    const { ctx } = await harness({}, {}, { attachments: false })
+    expect(ctx.tools.get('browser_screenshot')).toBeUndefined()
   })
 
   it('refuses a non-positive character cap or timeout', () => {
@@ -149,6 +271,47 @@ describe('tool-browser registration', () => {
       method: 'execute_javascript',
       args: { script: 'return document.title' },
     })
+  })
+
+  it('adds and removes both elevated CDP tools with the effective setting', async () => {
+    const { ctx, call, children } = await harness()
+    expect(ctx.tools.get('browser_cdp_command')).toBeUndefined()
+    expect(ctx.tools.get('browser_cdp_read_events')).toBeUndefined()
+
+    await ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, { fullCdpAccess: true })
+    expect(ctx.tools.get('browser_cdp_command')).toBeDefined()
+    expect(ctx.tools.get('browser_cdp_read_events')).toBeDefined()
+    const result = await call('browser_cdp_command', {
+      method: 'Runtime.evaluate',
+      params: { expression: '1 + 1' },
+      tab_id: 2,
+    })
+    expect(result.isError).toBe(false)
+    expect(text(result.content)).toBe('Runtime.evaluate\n{\n  "echo": {\n    "expression": "1 + 1"\n  }\n}')
+    expect(children[0]?.requests).toEqual([
+      { method: 'get_cdp_target', args: { tabId: 2 } },
+      {
+        method: 'cdp_command',
+        args: {
+          method: 'Runtime.evaluate',
+          params: { expression: '1 + 1' },
+          expectedOrigin: 'https://shop.test',
+          tabId: 2,
+        },
+      },
+    ])
+
+    await ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, { fullCdpAccess: false })
+    expect(ctx.tools.get('browser_cdp_command')).toBeUndefined()
+    expect(ctx.tools.get('browser_cdp_read_events')).toBeUndefined()
+  })
+
+  it('keeps both elevated CDP tools hidden under the organization ceiling', async () => {
+    const { ctx } = await harness({}, { allowFullCdpAccess: false })
+    await expect(ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, { fullCdpAccess: true }))
+      .rejects.toThrow('organization policy disables full CDP access')
+    expect(ctx.tools.get('browser_cdp_command')).toBeUndefined()
+    expect(ctx.tools.get('browser_cdp_read_events')).toBeUndefined()
   })
 
   it('allows only explicit page targets to join parallel tool groups', async () => {
@@ -185,6 +348,82 @@ describe('browser tool calls', () => {
     expect(text(result.content).startsWith('Open tabs:')).toBe(true)
   })
 
+  it('captures the selected viewport, persists it, and returns no raw base64', async () => {
+    const { ctx, children, call } = await harness()
+    const result = await call('browser_screenshot', {})
+
+    expect(result.isError).toBe(false)
+    expect(children[0]?.requests).toEqual([{ method: 'browser_screenshot', args: {} }])
+    expect((ctx.attachments as TestAttachmentStore).saved[0]).toMatchObject({
+      mediaType: 'image/png',
+      name: 'browser-tab-1.png',
+    })
+    expect(Buffer.from((ctx.attachments as TestAttachmentStore).saved[0]?.data ?? [])).toEqual(PNG_1X1)
+    expect(text(result.content)).toContain('Browser screenshot of tab [1] — Order')
+    expect(result.content[1]).toMatchObject({
+      type: 'image',
+      attachment: {
+        attachmentId: 'sha256:browser-screenshot',
+        mediaType: 'image/png',
+        bytes: PNG_1X1.length,
+        width: 1,
+        height: 1,
+      },
+    })
+    expect(JSON.stringify(result)).not.toContain(PNG_1X1.toString('base64'))
+  })
+
+  it('refuses a screenshot before capture when the current model is text-only', async () => {
+    const { children, call } = await harness({}, {}, { imageInput: false })
+    const result = await call('browser_screenshot', {})
+    expect(result.isError).toBe(true)
+    expect(text(result.content)).toContain('does not declare image input')
+    expect(children).toHaveLength(0)
+  })
+
+  it('searches Browser history and renders its bounded rows', async () => {
+    const { children, call } = await harness()
+    const result = await call('browser_history_search', { query: ' order ' })
+
+    expect(result.isError).toBe(false)
+    expect(text(result.content)).toBe(
+      '- Saved order — https://shop.test/history (2026-08-26T00:00:00.000Z)',
+    )
+    expect(children[0]?.requests).toEqual([{
+      method: 'search_browser_history',
+      args: { query: 'order', limit: 20 },
+    }])
+  })
+
+  it('forwards a CDP event cursor, filter, limit, and tab then renders the page cursor', async () => {
+    const { ctx, children, call } = await harness()
+    await ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, { fullCdpAccess: true })
+    const result = await call('browser_cdp_read_events', {
+      after_sequence: 10,
+      limit: 1,
+      method: 'Network.responseReceived',
+      tab_id: 2,
+    })
+
+    expect(result.isError).toBe(false)
+    expect(text(result.content)).toBe(
+      '[12] Network.responseReceived\n{"requestId":"shop-request"}\nCursor: 12',
+    )
+    expect(children[0]?.requests).toEqual([
+      { method: 'get_cdp_target', args: { tabId: 2 } },
+      {
+        method: 'cdp_read_events',
+        args: {
+          afterSequence: 10,
+          limit: 1,
+          method: 'Network.responseReceived',
+          expectedOrigin: 'https://shop.test',
+          tabId: 2,
+        },
+      },
+    ])
+  })
+
   it('clicks the index it was given', async () => {
     const { children, call } = await harness()
     await call('browser_click', { index: 1 })
@@ -218,7 +457,16 @@ describe('browser tool calls', () => {
     await call('browser_close_tab', { tab_id: 2 })
     expect(children[0]?.requests.filter(request => request.method !== 'get_browser_state')).toEqual([
       { method: 'input_text', args: { index: 1, text: 'hello' } },
-      { method: 'upload_file', args: { index: 3, filePath: realpathSync(UPLOAD_FIXTURE) } },
+      { method: 'get_upload_target', args: {} },
+      {
+        method: 'upload_file',
+        args: {
+          index: 3,
+          filePath: realpathSync(UPLOAD_FIXTURE),
+          expectedOrigin: 'https://shop.test',
+          tabId: 1,
+        },
+      },
       { method: 'select_option', args: { index: 2, text: 'Express' } },
       { method: 'scroll', args: { down: true, numPages: 1 } },
       { method: 'scroll', args: { down: false, numPages: 3, pixels: 200, index: 4 } },
@@ -330,6 +578,8 @@ describe('browser call presentation', () => {
     expect(present('browser_wait', { seconds: 3 })).toEqual({ card: 'generic', title: 'Wait 3s for browser page', kind: 'execute' })
     expect(present('browser_press', { key: 'Tab' })).toEqual({ card: 'generic', title: 'Press Tab', kind: 'execute' })
     expect(present('browser_back', {})).toEqual({ card: 'generic', title: 'Go back', kind: 'execute' })
+    expect(present('browser_history_search', { query: 'orders' }))
+      .toEqual({ card: 'generic', title: 'Search Browser history', kind: 'execute', rawInput: 'orders' })
     expect(present('browser_open_tab', { url: 'https://shop.test/help' })).toEqual({ card: 'generic', title: 'Open tab https://shop.test/help', kind: 'execute', rawInput: 'https://shop.test/help' })
     expect(present('browser_switch_tab', { tab_id: 2 })).toEqual({ card: 'generic', title: 'Switch to tab [2]', kind: 'execute' })
     expect(present('browser_close_tab', { tab_id: 2 })).toEqual({ card: 'generic', title: 'Close tab [2]', kind: 'execute' })

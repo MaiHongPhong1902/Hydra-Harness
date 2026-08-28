@@ -22,31 +22,30 @@ afterEach(() => {
 
 const t = ((key: string, params?: Readonly<Record<string, unknown>>): string => {
   const messages: Record<string, string> = {
-    'image.pending': '待发送图片',
-    'image.original': '原图',
-    'image.preview': '原图预览',
-    'image.closePreview': '关闭原图预览',
-    'browserAnnotation.pending': '待发送网页标注',
-    'browserAnnotation.comment': '添加评论',
-    'browserAnnotation.remove': '移除网页标注 {name}',
-    'image.openOriginal': '查看原图',
-    'image.scrollLeft': '向左滚动图片',
-    'image.scrollRight': '向右滚动图片',
-    'image.dropBlocked': '当前无法添加图片',
-    'image.dropTitle': '图片拖动到此处即可添加',
+    'image.pending': 'Pending images',
+    'image.original': 'Original image',
+    'image.preview': 'Original image preview',
+    'image.closePreview': 'Close original image preview',
+    'browserAnnotation.pending': 'Pending browser annotations',
+    'browserAnnotation.comment': 'Add a comment…',
+    'image.openOriginal': 'View original',
+    'image.scrollLeft': 'Scroll images left',
+    'image.scrollRight': 'Scroll images right',
+    'image.dropBlocked': 'Images cannot be added right now',
+    'image.dropTitle': 'Drag images here to add them',
   }
   if (key === 'image.remove') {
     const name = params?.name
-    return `移除图片 ${typeof name === 'string' ? name : ''}`
+    return `Remove image ${typeof name === 'string' ? name : ''}`
   }
   if (key === 'image.dropDesc') {
     const count = params?.count
     const size = params?.size
-    return `最多 ${typeof count === 'number' ? String(count) : ''} 张，每张 ${typeof size === 'string' ? size : ''}`
+    return `Up to ${typeof count === 'number' ? String(count) : ''} images, ${typeof size === 'string' ? size : ''} each`
   }
   if (key === 'browserAnnotation.remove') {
     const name = params?.name
-    return `移除网页标注 ${typeof name === 'string' ? name : ''}`
+    return `Remove browser annotation ${typeof name === 'string' ? name : ''}`
   }
   return messages[key] ?? key
 }) as ComposerAttachmentsProps['t']
@@ -98,8 +97,8 @@ describe('ComposerAttachments', () => {
     const image = attachment('dropped').file
     const dataTransfer = { types: ['Files'], files: [image], dropEffect: 'none' }
     expect(fireEvent.dragEnter(document.body, { dataTransfer })).toBe(false)
-    expect(view.getByRole('status').textContent).toContain('图片拖动到此处即可添加')
-    expect(view.getByRole('status').textContent).toContain('最多 20 张，每张 5MB')
+    expect(view.getByRole('status').textContent).toContain('Drag images here to add them')
+    expect(view.getByRole('status').textContent).toContain('Up to 20 images, 5MB each')
     expect(fireEvent.dragOver(document.body, { dataTransfer })).toBe(false)
     expect(dataTransfer.dropEffect).toBe('copy')
     expect(fireEvent.drop(document.body, { dataTransfer })).toBe(false)
@@ -139,7 +138,7 @@ describe('ComposerAttachments', () => {
     const image = attachment('blocked').file
     const dataTransfer = { types: ['Files'], files: [image], dropEffect: 'copy' }
     fireEvent.dragEnter(document.body, { dataTransfer })
-    expect(view.getByRole('status').textContent).toBe('当前无法添加图片')
+    expect(view.getByRole('status').textContent).toBe('Images cannot be added right now')
     fireEvent.dragOver(document.body, { dataTransfer })
     expect(dataTransfer.dropEffect).toBe('none')
     fireEvent.drop(document.body, { dataTransfer })
@@ -153,25 +152,25 @@ describe('ComposerAttachments', () => {
     const initial = props({ attachments: [image], onRemoveImage })
     const view = render(<ComposerAttachments {...initial} />)
 
-    fireEvent.click(view.getByRole('button', { name: '移除图片 pixel.png' }))
+    fireEvent.click(view.getByRole('button', { name: 'Remove image pixel.png' }))
     expect(onRemoveImage).toHaveBeenCalledWith(image.id)
-    fireEvent.click(view.getByTitle('查看原图'))
-    expect(view.getByRole('dialog', { name: '原图预览' })).toBeTruthy()
+    fireEvent.click(view.getByTitle('View original'))
+    expect(view.getByRole('dialog', { name: 'Original image preview' })).toBeTruthy()
     view.rerender(<ComposerAttachments {...props({ attachments: [], onRemoveImage })} />)
-    expect(view.queryByRole('dialog', { name: '原图预览' })).toBeNull()
+    expect(view.queryByRole('dialog', { name: 'Original image preview' })).toBeNull()
 
     view.rerender(<ComposerAttachments {...initial} />)
-    fireEvent.click(view.getByTitle('查看原图'))
+    fireEvent.click(view.getByTitle('View original'))
     fireEvent.keyDown(window, { key: 'Escape' })
-    expect(view.queryByRole('dialog', { name: '原图预览' })).toBeNull()
+    expect(view.queryByRole('dialog', { name: 'Original image preview' })).toBeNull()
   })
 
   it('labels an unnamed attachment and its original-image preview', () => {
     const image = attachment('unnamed', '')
     const view = render(<ComposerAttachments {...props({ attachments: [image] })} />)
-    expect(view.getByAltText('待发送图片')).toBeTruthy()
-    fireEvent.click(view.getByTitle('查看原图'))
-    expect(view.getByAltText('原图')).toBeTruthy()
+    expect(view.getByAltText('Pending images')).toBeTruthy()
+    fireEvent.click(view.getByTitle('View original'))
+    expect(view.getByAltText('Original image')).toBeTruthy()
   })
 
   it('renders browser annotations as text-file cards with per-file comments', () => {
@@ -184,12 +183,12 @@ describe('ComposerAttachments', () => {
       onRemoveBrowserAnnotation: onRemove,
     })} />)
 
-    expect(view.getByRole('group', { name: '待发送网页标注' })).toBeTruthy()
-    const comment = view.getByRole('textbox', { name: '添加评论: browser-annotation.html.txt' })
-    expect(comment.getAttribute('placeholder')).toBe('添加评论')
+    expect(view.getByRole('group', { name: 'Pending browser annotations' })).toBeTruthy()
+    const comment = view.getByRole('textbox', { name: 'Add a comment…: browser-annotation.html.txt' })
+    expect(comment.getAttribute('placeholder')).toBe('Add a comment…')
     fireEvent.change(comment, { target: { value: 'click this button' } })
     expect(onComment).toHaveBeenCalledWith(item.id, 'click this button')
-    fireEvent.click(view.getByRole('button', { name: '移除网页标注 browser-annotation.html.txt' }))
+    fireEvent.click(view.getByRole('button', { name: 'Remove browser annotation browser-annotation.html.txt' }))
     expect(onRemove).toHaveBeenCalledWith(item.id)
   })
 })

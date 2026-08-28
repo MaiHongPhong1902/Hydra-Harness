@@ -36,8 +36,7 @@
       ]
     },
     "description": {
-      "en": "Hot Module Replacement",
-      "zh": "模块热替换"
+      "en": "Hot Module Replacement"
     }
   },
   "peerDependencies": {

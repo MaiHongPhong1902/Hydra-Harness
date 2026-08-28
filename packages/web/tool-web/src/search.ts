@@ -234,13 +234,11 @@ async function runSearchQueries(
   queries: string[],
   maxResults: number,
   signal: AbortSignal,
-  modelProvider: string | undefined,
 ): Promise<WebSearchResult> {
   if (queries.length === 1) {
     return ctx.web.search({
       query: queries[0] as string,
       maxResults,
-      ...modelProvider === undefined ? {} : { modelProvider },
     }, signal)
   }
   const controller = new AbortController()
@@ -252,7 +250,6 @@ async function runSearchQueries(
       results[index] = await ctx.web.search({
         query,
         maxResults,
-        ...modelProvider === undefined ? {} : { modelProvider },
       }, batchSignal)
     } catch (error) {
       if (firstFailure === undefined) firstFailure = { error }
@@ -372,8 +369,7 @@ export function applyWebSearchTool(
     isConcurrencySafe: () => true,
     async execute(args, exec) {
       const queries = parseSearchArgs(args, maxQueries)
-      const modelProvider = exec.agent?.session.requestHeader()?.config.provider ?? exec.agent?.options.provider
-      const result = await runSearchQueries(ctx, queries, maxResults, exec.signal, modelProvider)
+      const result = await runSearchQueries(ctx, queries, maxResults, exec.signal)
       return {
         ...result.content !== undefined ? { content: result.content } : {},
         sources: result.sources.map(projectSource),

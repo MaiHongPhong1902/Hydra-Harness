@@ -96,8 +96,8 @@
     - id: directory-picker
       name: '@bosch/bh-host-directory-picker-auto'
 
-    # Loader inventory and shared-settings enablement controls. The protected
-    # rows keep the active Settings/RPC path available so every switch is reversible.
+    # Loader inventory and shared-settings enablement controls. Protected rows
+    # keep the Settings/RPC path and built-in Browser capabilities available.
     - id: plugin-inventory
       name: '@bosch/bh-host-plugin-inventory'
       config:
@@ -126,6 +126,35 @@
           - ui-settings-general
           - ui-settings-plugins
           - ui-settings-plugin-inventory
+          - web
+          - web-search-deepseek
+          - browser-electron
+        # These disabled root rows are placeholders for agent-preset entries.
+        # Toggling the root copy would move an agent-owned plugin onto the Host.
+        compositionEntryIds:
+          - tool-bash
+          - tool-pwsh
+          - tool-jobs
+          - tool-fs
+          - tool-fs-search
+          - tool-str-replace-editor
+          - skill-filesystem
+          - tool-skill
+          - tool-goal
+          - plan-mode
+          - compaction-basic
+          - command-compact
+          - tool-result-pruner
+          - tool-subagent-control
+          - tool-subagent-list-agents
+          - tool-subagent
+          - tool-subagent-fork
+          - workflow-worker-thread
+          - tool-workflow
+          - tool-ralph
+          - agent-instructions
+          - tool-todo
+          - tool-web
 
     # The API gateway: the transport-agnostic dispatch face every client shape
     # shares. The base layer's agent-default-model service owns the default model.

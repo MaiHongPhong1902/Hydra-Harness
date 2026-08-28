@@ -2,9 +2,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render } from '@testing-library/react'
 import { makeTranslate } from '@bosch/bh-client-test-runtime'
-import { zh as commonZh } from '@bosch/bh-client-locale/src/locales/zh.ts'
+import { en as commonEn } from '@bosch/bh-client-locale/src/locales/en.ts'
 import { AssistantMarkdown, type AssistantMarkdownProps } from '../src/client/chat/AssistantMarkdown.tsx'
-import { zh } from '../src/client/locales.ts'
+import { en } from '../src/client/locales.ts'
 
 let nextAnimationFrameId = 1
 let animationFrames = new Map<number, FrameRequestCallback>()
@@ -36,7 +36,7 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-const t = makeTranslate(zh, commonZh)
+const t = makeTranslate(en, commonEn)
 const renderMessageImages: AssistantMarkdownProps['renderMessageImages'] = () => null
 
 describe('ReasoningRow', () => {
@@ -49,7 +49,7 @@ describe('ReasoningRow', () => {
         renderMessageImages={renderMessageImages}
       />,
     )
-    expect(view.getByText('运行中')).toBeTruthy()
+    expect(view.getByText('Running')).toBeTruthy()
     const summary = view.getByText('Newest reasoning tokens')
     Object.defineProperties(summary, {
       scrollWidth: { configurable: true, value: 300 },
@@ -81,7 +81,7 @@ describe('ReasoningRow', () => {
     )
     flushAnimationFrames(3)
     expect(view.getByText('Inspect the session')).toBeTruthy()
-    expect(view.queryByText('运行中')).toBeNull()
+    expect(view.queryByText('Running')).toBeNull()
     expect(summary.scrollLeft).toBe(0)
     expect(summary.hasAttribute('data-follow-end')).toBe(false)
   })

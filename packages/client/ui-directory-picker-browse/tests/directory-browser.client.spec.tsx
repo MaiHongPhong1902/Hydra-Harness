@@ -1332,13 +1332,13 @@ describe('DirectoryBrowser', () => {
     // Create dialog: same guard.
     fireEvent.click(screen.getByRole('button', { name: 'browser.newFolder' }))
     const nameInput = screen.getByLabelText('browser.folderName')
-    fireEvent.change(nameInput, { target: { value: '新建' } })
+    fireEvent.change(nameInput, { target: { value: 'New Folder' } })
     fireEvent.compositionStart(nameInput)
     fireEvent.keyDown(nameInput, { key: 'Enter' })
     expect(b.createDirectory).not.toHaveBeenCalled()
     fireEvent.compositionEnd(nameInput)
     fireEvent.keyDown(nameInput, { key: 'Enter' })
-    await waitFor(() => { expect(b.createDirectory).toHaveBeenCalledWith(DOCS, '新建') })
+    await waitFor(() => { expect(b.createDirectory).toHaveBeenCalledWith(DOCS, 'New Folder') })
   })
 
   it('surfaces a two-pane navigation failure as an alert below the columns', async () => {

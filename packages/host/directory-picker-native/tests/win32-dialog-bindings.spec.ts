@@ -46,7 +46,7 @@ function comWorld(overrides: Partial<ComWorld> = {}): ComWorld {
   return {
     coInitHr: 0, coCreateHr: 0, showHr: 0, getResultHr: 0, getDisplayNameHr: 0,
     hasThreadDpi: true, supportedDpiContexts: [-4], enumThrows: false,
-    path: 'C:\\选中\\directory',
+    path: 'C:\\selected\\directory',
     titles: [], options: [], dpiContexts: [], freed: [], released: [], posted: [],
     registered: 0, unregistered: 0, uninitialized: 0,
     ...overrides,
@@ -127,25 +127,22 @@ function installFakeKoffi(world: ComWorld): void {
       proto: (declaration: string) => ({ declaration }),
       pointer: (type: unknown) => type,
       sizeof: (type: string) => { void type; return FAKE_POINTER_SIZE },
-      view: (value: unknown, len: number): ArrayBuffer => {
-        const bytes = Buffer.alloc(len)
-        bytes.write((value as FakePtr).text as string, 'utf16le')
-        return bytes.buffer
-      },
       register: (fn: (hwnd: unknown, lparam: unknown) => number) => { world.registered += 1; return { fn } },
       unregister: () => { world.unregistered += 1 },
-      decode: (value: unknown, offsetOrType: unknown): unknown => {
-        if (offsetOrType === 'str16') return (value as FakePtr).text
-        if (typeof offsetOrType === 'number') {
-          // Vtable slot read: offsets must be multiples of the fake width.
-          if (offsetOrType % FAKE_POINTER_SIZE !== 0) throw new Error(`vtable offset ${offsetOrType} is not pointer-aligned`)
-          const owner = (value as { owner: FakePtr }).owner
-          return { call: (args: unknown[]) => dispatch(owner, offsetOrType / FAKE_POINTER_SIZE, args) }
-        }
-        // decode(x, 'void *'): out-buffer read or vtable read.
-        if (outBuffers.has(value)) return outBuffers.get(value)
-        return { owner: value as FakePtr }
-      },
+      decode: Object.assign(
+        (value: unknown, offsetOrType: unknown): unknown => {
+          if (typeof offsetOrType === 'number') {
+            // Vtable slot read: offsets must be multiples of the fake width.
+            if (offsetOrType % FAKE_POINTER_SIZE !== 0) throw new Error(`vtable offset ${offsetOrType} is not pointer-aligned`)
+            const owner = (value as { owner: FakePtr }).owner
+            return { call: (args: unknown[]) => dispatch(owner, offsetOrType / FAKE_POINTER_SIZE, args) }
+          }
+          // decode(x, 'void *'): out-buffer read or vtable read.
+          if (outBuffers.has(value)) return outBuffers.get(value)
+          return { owner: value as FakePtr }
+        },
+        { string16: (value: unknown): string => (value as FakePtr).text as string },
+      ),
       call: (fn: { call: (args: unknown[]) => number }, _proto: unknown, _self: unknown, ...args: unknown[]) => fn.call(args),
     },
   }))
@@ -170,9 +167,9 @@ describe('loadWin32DialogBindings over the fake COM world', () => {
     const bindings = await loadWin32DialogBindings()
     const showing = vi.fn()
 
-    expect(runFolderDialog(bindings, '选择工作区目录', showing)).toBe('C:\\选中\\directory')
+    expect(runFolderDialog(bindings, 'Select workspace directory', showing)).toBe('C:\\selected\\directory')
     expect(world.dpiContexts).toEqual([-4])
-    expect(world.titles).toEqual(['选择工作区目录'])
+    expect(world.titles).toEqual(['Select workspace directory'])
     expect(world.options).toHaveLength(1)
     expect(showing).toHaveBeenCalledWith(31337)
     expect(world.freed).toHaveLength(1)
@@ -194,7 +191,7 @@ describe('loadWin32DialogBindings over the fake COM world', () => {
     const world = comWorld({ supportedDpiContexts: [-3] })
     installFakeKoffi(world)
     const bindings = await (await loadBindingsModule()).loadWin32DialogBindings()
-    expect(runFolderDialog(bindings, 'Pick', vi.fn())).toBe('C:\\选中\\directory')
+    expect(runFolderDialog(bindings, 'Pick', vi.fn())).toBe('C:\\selected\\directory')
     expect(world.dpiContexts).toEqual([-4, -3])
   })
 
@@ -203,7 +200,7 @@ describe('loadWin32DialogBindings over the fake COM world', () => {
     const rejecting = comWorld({ supportedDpiContexts: [] })
     installFakeKoffi(rejecting)
     let bindings = await (await loadBindingsModule()).loadWin32DialogBindings()
-    expect(runFolderDialog(bindings, 'Pick', vi.fn())).toBe('C:\\选中\\directory')
+    expect(runFolderDialog(bindings, 'Pick', vi.fn())).toBe('C:\\selected\\directory')
     expect(rejecting.dpiContexts).toEqual([-4, -3, -2])
 
     vi.doUnmock('koffi')
@@ -211,7 +208,7 @@ describe('loadWin32DialogBindings over the fake COM world', () => {
     const preThreadDpi = comWorld({ hasThreadDpi: false })
     installFakeKoffi(preThreadDpi)
     bindings = await (await loadBindingsModule()).loadWin32DialogBindings()
-    expect(runFolderDialog(bindings, 'Pick', vi.fn())).toBe('C:\\选中\\directory')
+    expect(runFolderDialog(bindings, 'Pick', vi.fn())).toBe('C:\\selected\\directory')
     expect(preThreadDpi.dpiContexts).toEqual([])
   })
 
@@ -268,18 +265,20 @@ describe('the worker entry over a mocked process boundary', () => {
   const originalSend = process.send?.bind(process)
   const originalTitle = process.env.BH_DIALOG_TITLE
 
-  const installBoundary = (): { posted: { kind: string; message?: string }[] } => {
+  const installBoundary = (): { posted: { kind: string; message?: string }[]; callbacks: unknown[] } => {
     const posted: { kind: string; message?: string }[] = []
+    const callbacks: unknown[] = []
     process.env.BH_DIALOG_TITLE = 'Pick'
     // Never invoke the post callback: it runs the worker's disconnect(), and
     // this process is IPC-connected under the forks pool — severing vitest's
     // own channel would kill the test worker. The real close lifecycle
     // belongs to built-worker.e2e.ts.
-    ;(process as { send?: unknown }).send = (message: { kind: string }) => {
+    ;(process as { send?: unknown }).send = (message: { kind: string }, callback?: unknown) => {
       posted.push(message)
+      callbacks.push(callback)
       return true
     }
-    return { posted }
+    return { posted, callbacks }
   }
 
   afterEach(() => {
@@ -292,7 +291,7 @@ describe('the worker entry over a mocked process boundary', () => {
   })
 
   it('posts showing then done for a completed conversation', async () => {
-    const { posted } = installBoundary()
+    const { posted, callbacks } = installBoundary()
     vi.doMock('../src/win32-dialog-bindings.ts', () => ({
       loadWin32DialogBindings: async () => ({
         setThreadDpiAwareness: () => undefined,
@@ -313,6 +312,7 @@ describe('the worker entry over a mocked process boundary', () => {
       { kind: 'showing', threadId: 11 },
       { kind: 'done', path: 'C:\\from-worker' },
     ])
+    expect(callbacks).toEqual([undefined, expect.any(Function)])
   })
 
   it('posts the failure message when the native surface cannot load', async () => {

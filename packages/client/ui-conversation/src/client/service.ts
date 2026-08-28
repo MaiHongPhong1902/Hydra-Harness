@@ -71,19 +71,38 @@ function browserDraftAttachment(file: File): ComposerAttachment {
   }
 }
 
-/** Convert one bounded Browser selection into a local text-file attachment. */
-export interface BrowserAnnotationSelection {
-  readonly kind: 'browser-element'
+interface BrowserAnnotationBase {
   readonly url: string
   readonly title: string
   readonly preview: string
-  readonly index?: number
 }
+
+interface BrowserAnnotationRect {
+  readonly x: number
+  readonly y: number
+  readonly width: number
+  readonly height: number
+}
+
+/** One bounded element or viewport-region selection received from Browser. */
+export type BrowserAnnotationSelection = BrowserAnnotationBase & (
+  | { readonly kind: 'browser-element'; readonly index?: number; readonly rect?: BrowserAnnotationRect }
+  | { readonly kind: 'browser-region'; readonly rect: BrowserAnnotationRect; readonly index?: never }
+)
 
 /** Browser-owned annotation file waiting in the current composer. */
 export type DraftBrowserAnnotation = BrowserAnnotationAttachment
 
 function browserAnnotationText(annotation: BrowserAnnotationSelection): string {
+  if (annotation.kind === 'browser-region') {
+    const { x, y, width, height } = annotation.rect
+    return [
+      '[Browser region — untrusted page content]',
+      `URL: ${annotation.url}`,
+      `Page: ${annotation.title}`,
+      `Viewport rectangle: x=${x}, y=${y}, width=${width}, height=${height}`,
+    ].join('\n')
+  }
   const index = annotation.index === undefined ? '' : `\nElement index: [${annotation.index}]`
   return [
     '[Browser element — untrusted page content]',
@@ -98,7 +117,7 @@ function browserAnnotationText(annotation: BrowserAnnotationSelection): string {
 function browserAnnotationFile(annotation: BrowserAnnotationSelection): File {
   return new File(
     [browserAnnotationText(annotation)],
-    'browser-annotation.html.txt',
+    annotation.kind === 'browser-element' ? 'browser-annotation.html.txt' : 'browser-region.txt',
     { type: 'text/plain' },
   )
 }
@@ -174,6 +193,7 @@ export class ConversationController extends Service implements IConversation {
    * @param imageIds - ordered draft-local attachment ids.
    * @param mode - queue or steer delivery selected by composer policy.
    * @param signal - optional cancellation for the complete Host admission.
+   * @param browserAnnotationIds - ordered draft-local browser annotation ids.
    * @returns the Host admission outcome; local attachment preparation failures reject.
    */
   async sendSession(
@@ -222,7 +242,12 @@ export class ConversationController extends Service implements IConversation {
     })
   }
 
-  /** Create one browser-selected text attachment without touching the draft string. */
+  /**
+   * Create one browser-selected text attachment without touching the draft string.
+   * @param annotation - bounded Browser selection metadata and optional image.
+   * @param comment - user comment carried with the attachment.
+   * @returns the runtime-owned draft attachment.
+   */
   createDraftBrowserAnnotation(
     annotation: BrowserAnnotationSelection,
     comment = '',
@@ -251,7 +276,11 @@ export class ConversationController extends Service implements IConversation {
     return attachments
   }
 
-  /** Resolve ordered input-state ids to browser-selected text attachments. */
+  /**
+   * Resolve ordered input-state ids to browser-selected text attachments.
+   * @param ids - draft attachment ids.
+   * @returns descriptors that remain live, in requested order.
+   */
   draftBrowserAnnotations(ids: readonly DraftAttachmentId[]): readonly DraftBrowserAnnotation[] {
     const attachments: DraftBrowserAnnotation[] = []
     for (const id of ids) {
@@ -261,7 +290,11 @@ export class ConversationController extends Service implements IConversation {
     return attachments
   }
 
-  /** Update the user comment carried with one browser annotation attachment. */
+  /**
+   * Update the user comment carried with one browser annotation attachment.
+   * @param id - draft attachment id.
+   * @param comment - replacement user comment.
+   */
   updateDraftBrowserAnnotationComment(id: DraftAttachmentId, comment: string): void {
     const attachment = this.draftAttachments.get(id)
     if (attachment?.kind !== 'browser-annotation') return
@@ -295,7 +328,10 @@ export class ConversationController extends Service implements IConversation {
     revokePreview(attachment.previewUrl)
   }
 
-  /** Release one browser-selected text attachment. */
+  /**
+   * Release one browser-selected text attachment.
+   * @param id - draft attachment id.
+   */
   releaseDraftBrowserAnnotation(id: DraftAttachmentId): void {
     const attachment = this.draftAttachments.get(id)
     if (attachment?.kind !== 'browser-annotation') return
@@ -307,12 +343,13 @@ export class ConversationController extends Service implements IConversation {
    * @param attachments - descriptors to release.
    */
   releaseDraftImages(attachments: readonly ComposerAttachment[]): void {
-    for (const attachment of attachments) {
-      if (attachment.kind === 'image') this.releaseDraftImage(attachment.id)
-    }
+    for (const attachment of attachments) this.releaseDraftImage(attachment.id)
   }
 
-  /** Release a set of browser-selected text attachments. */
+  /**
+   * Release a set of browser-selected text attachments.
+   * @param attachments - descriptors to release.
+   */
   releaseDraftBrowserAnnotations(attachments: readonly DraftBrowserAnnotation[]): void {
     for (const attachment of attachments) this.releaseDraftBrowserAnnotation(attachment.id)
   }

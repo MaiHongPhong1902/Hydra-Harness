@@ -7,7 +7,7 @@ const { readFile, readdir, realpath, stat } = require('node:fs/promises')
 const { isAbsolute, join, relative, resolve, sep } = require('node:path')
 const { createInterface } = require('node:readline')
 const { setTimeout: delay } = require('node:timers/promises')
-const { app, BrowserWindow, ipcMain, utilityProcess } = require('electron')
+const { app, BrowserWindow, dialog, ipcMain, utilityProcess } = require('electron')
 const nodePty = require('node-pty')
 
 const CLI_ENTRY = join(require.resolve('@bosch/bh/package.json'), '..', 'lib', 'bin.js')
@@ -29,7 +29,8 @@ let browserBounds = { x: 0, y: 0, width: 0, height: 0, visible: false }
 const terminals = new Map()
 
 function panelShortcut(input) {
-  if (!input.control || input.meta || input.shift) return undefined
+  if (!input.control || input.meta) return undefined
+  if (input.shift) return !input.alt && input.key.toLowerCase() === 'b' ? 'browser' : undefined
   if (input.alt) return input.key.toLowerCase() === 's' ? 'side-chat' : undefined
   if (input.key.toLowerCase() === 'p') return 'files'
   if (input.key.toLowerCase() === 't') return 'browser'
@@ -72,6 +73,15 @@ async function handleBrowserMessage(message) {
       return
     }
     browserConnection = message.connectionId
+    const settings = typeof message.settings === 'object' && message.settings !== null ? message.settings : {}
+    try {
+      await browser.command('configure_browser', settings)
+    } catch (error) {
+      postBrowser(message.connectionId, 'bh-browser-error', { error: String(error) })
+      postBrowser(message.connectionId, 'bh-browser-close')
+      browserConnection = undefined
+      return
+    }
     const homeUrl = typeof message.settings === 'object' && message.settings !== null
       && 'homeUrl' in message.settings && typeof message.settings.homeUrl === 'string'
       ? message.settings.homeUrl
@@ -112,9 +122,30 @@ function createWindow() {
       nodeIntegration: false,
     },
   })
-  window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
+  window.webContents.setWindowOpenHandler(({ url }) => {
+    void routeAppUrl(url)
+    return { action: 'deny' }
+  })
+  window.webContents.on('will-navigate', (event, url) => {
+    const current = window.webContents.getURL()
+    if (current === '' || current === 'about:blank') return
+    try {
+      if (new URL(current).origin === new URL(url).origin) return
+    } catch {}
+    event.preventDefault()
+    void routeAppUrl(url)
+  })
   window.on('page-title-updated', event => { event.preventDefault() })
   return window
+}
+
+async function routeAppUrl(url) {
+  if (shuttingDown !== undefined || browser === undefined) return
+  try {
+    await browser.command('route_user_url', { url })
+  } catch (error) {
+    process.stderr.write(`desktop: URL routing failed: ${String(error)}\n`)
+  }
 }
 
 function installBrowserController(window) {
@@ -136,6 +167,9 @@ function installBrowserController(window) {
     },
     onAnnotation(annotation) {
       if (!window.isDestroyed()) window.webContents.send('bh-desktop:browser-annotation', annotation)
+    },
+    openBrowser() {
+      if (!window.isDestroyed()) window.webContents.send('bh-desktop:panel-shortcut', 'browser')
     },
     register(controller) { registered.resolve(controller) },
   }
@@ -304,6 +338,10 @@ async function readWorkspaceFile(target) {
 }
 
 function installRendererIpc() {
+  const browserOperation = async (event, method, args = {}) => {
+    if (shuttingDown !== undefined || !validSender(event)) throw new Error('browser management is unavailable')
+    return await browser.command(method, args)
+  }
   ipcMain.on('bh-desktop:browser-bounds', (event, value) => {
     if (shuttingDown !== undefined || !validSender(event) || typeof value !== 'object' || value === null) return
     const [windowWidth, windowHeight] = mainWindow.getContentSize()
@@ -320,6 +358,56 @@ function installRendererIpc() {
     }
     browser.setBounds(browserBounds)
   })
+  ipcMain.handle('bh-desktop:browser-configure', (event, value) =>
+    browserOperation(event, 'configure_browser', value))
+  ipcMain.handle('bh-desktop:browser-confirm-full-cdp', async (event) => {
+    if (shuttingDown !== undefined || !validSender(event)) return false
+    const choice = await dialog.showMessageBox(mainWindow, {
+      type: 'warning',
+      title: 'Enable full CDP access?',
+      message: 'Full Chrome DevTools Protocol access has elevated risk.',
+      detail: 'It can inspect and control sensitive browser internals. Every CDP command will still require separate approval.',
+      buttons: ['Enable', 'Cancel'],
+      defaultId: 1,
+      cancelId: 1,
+      noLink: true,
+    })
+    return choice.response === 0
+  })
+  ipcMain.handle('bh-desktop:browser-clear-data', event =>
+    browserOperation(event, 'clear_browser_data'))
+  ipcMain.handle('bh-desktop:browser-open-url', (event, value) =>
+    browserOperation(event, 'route_user_url', value))
+  ipcMain.handle('bh-desktop:browser-history', event =>
+    browserOperation(event, 'browser_history'))
+  ipcMain.handle('bh-desktop:browser-remove-history', (event, value) =>
+    browserOperation(event, 'remove_browser_history', value))
+  ipcMain.handle('bh-desktop:browser-downloads', event =>
+    browserOperation(event, 'browser_downloads'))
+  ipcMain.handle('bh-desktop:browser-remove-download', (event, value) =>
+    browserOperation(event, 'remove_browser_download', value))
+  ipcMain.handle('bh-desktop:browser-sites', event =>
+    browserOperation(event, 'browser_sites'))
+  ipcMain.handle('bh-desktop:browser-set-site', (event, value) =>
+    browserOperation(event, 'set_browser_site', value))
+  ipcMain.handle('bh-desktop:browser-remove-site', (event, value) =>
+    browserOperation(event, 'remove_browser_site', value))
+  ipcMain.handle('bh-desktop:browser-autofill-status', event =>
+    browserOperation(event, 'autofill_status'))
+  ipcMain.handle('bh-desktop:browser-autofill-list-logins', event =>
+    browserOperation(event, 'autofill_list_logins'))
+  ipcMain.handle('bh-desktop:browser-autofill-save-login', (event, value) =>
+    browserOperation(event, 'autofill_save_login', value))
+  ipcMain.handle('bh-desktop:browser-autofill-remove-login', (event, value) =>
+    browserOperation(event, 'autofill_remove_login', value))
+  ipcMain.handle('bh-desktop:browser-autofill-list-contacts', event =>
+    browserOperation(event, 'autofill_list_contacts'))
+  ipcMain.handle('bh-desktop:browser-autofill-get-contact', (event, value) =>
+    browserOperation(event, 'autofill_get_contact', value))
+  ipcMain.handle('bh-desktop:browser-autofill-save-contact', (event, value) =>
+    browserOperation(event, 'autofill_save_contact', value))
+  ipcMain.handle('bh-desktop:browser-autofill-remove-contact', (event, value) =>
+    browserOperation(event, 'autofill_remove_contact', value))
   ipcMain.handle('bh-desktop:terminal-start', async (event, value) => {
     if (shuttingDown !== undefined || !validSender(event)) throw new Error('terminal is unavailable')
     const id = terminalId(value?.terminalId)
@@ -434,6 +522,7 @@ async function smoke() {
   if (mainWindow.getTitle() !== 'WorkON') throw new Error(`unexpected desktop title: ${mainWindow.getTitle()}`)
   if (panelShortcut({ control: true, alt: false, meta: false, shift: false, key: 'p' }) !== 'files'
     || panelShortcut({ control: true, alt: true, meta: false, shift: false, key: 's' }) !== 'side-chat'
+    || panelShortcut({ control: true, alt: false, meta: false, shift: true, key: 'b' }) !== 'browser'
     || panelShortcut({ control: true, alt: false, meta: false, shift: false, key: 't' }) !== 'browser'
     || panelShortcut({ control: true, alt: false, meta: false, shift: false, key: '`' }) !== 'terminal') {
     throw new Error('desktop panel shortcut mapping is invalid')
@@ -463,7 +552,7 @@ async function smoke() {
   if (JSON.stringify(chooser) !== JSON.stringify([
     { text: 'FilesCtrl+P', disabled: false, shortcut: 'Control+P' },
     { text: 'Side chatCtrl+Alt+S', disabled: false, shortcut: 'Control+Alt+S' },
-    { text: 'BrowserCtrl+T', disabled: false, shortcut: 'Control+T' },
+    { text: 'BrowserCtrl+Shift+B', disabled: false, shortcut: 'Control+Shift+B' },
     { text: 'TerminalCtrl+`', disabled: false, shortcut: 'Control+Backquote' },
   ])) {
     throw new Error(`panel chooser contract is invalid: ${JSON.stringify(chooser)}`)

@@ -42,7 +42,7 @@ interface SearchBlockCommon {
   /**
    * Whether the tool capped the inline result: the shape carries only the
    * retained results, not every result the search found. The banner summary
-   * folds the pre-cap `total` in (`显示 X / 共 N …`) so the card never presents a
+   * folds the pre-cap `total` in (`Showing X / Y total`) so the card never presents a
    * capped result as complete.
    */
   truncated: boolean
@@ -111,10 +111,10 @@ function shownCount(props: SearchBlockProps): number {
 }
 
 /**
- * The banner summary. When the search was capped it reads `显示 X / 共 N …` so
+ * The banner summary. When the search was capped it reads `Showing X / Y total` so
  * the retained count and the pre-cap total sit in one clause (mirroring the read
- * card's `显示 X / Y 行`); when it was not capped it is a plain count of what the
- * card holds. The unit — `处匹配 · K 个文件` for grep, `个路径` for glob — trails
+ * card's `Showing X / Y lines`); when it was not capped it is a plain count of what the
+ * card holds. The unit — `matches · K files` for grep, `paths` for glob — trails
  * the count either way.
  * @param props - the card's props.
  * @param shown - the retained result count from {@link shownCount}.
@@ -123,10 +123,10 @@ function shownCount(props: SearchBlockProps): number {
  * @returns the summary text.
  */
 function summaryText(props: SearchBlockProps, shown: number, truncated: boolean, total: number): string {
-  const count = truncated ? `显示 ${shown} / 共 ${total}` : `${shown}`
+  const count = truncated ? `Showing ${shown} / ${total} total` : `${shown}`
   return props.kind === 'paths'
-    ? `${count} 个路径`
-    : `${count} 处匹配 · ${props.files.length} 个文件`
+    ? `${count} paths`
+    : `${count} matches · ${props.files.length} files`
 }
 
 /**
@@ -242,12 +242,12 @@ export function SearchBlock(props: SearchBlockProps) {
         <span className={css.summary}>{summaryText(props, shown, truncated, total)}</span>
         {!empty && (
           <button type="button" className={css.copyButton} onClick={onCopy}>
-            {copied ? '复制成功' : '复制'}
+            {copied ? 'Copied' : 'Copy'}
           </button>
         )}
       </div>
       {empty
-        ? <div className={css.empty}>无结果</div>
+        ? <div className={css.empty}>No results</div>
         : (
           <div className={css.body}>
             {head.map(row => (
@@ -258,10 +258,10 @@ export function SearchBlock(props: SearchBlockProps) {
                 type="button"
                 className={css.expand}
                 aria-expanded={expanded}
-                aria-label={expanded ? '收起结果' : `展开其余 ${hidden} 行结果`}
+                aria-label={expanded ? 'Collapse results' : `Show ${hidden} more rows`}
                 onClick={onToggle}
               >
-                {expanded ? '收起' : `… 其余 ${hidden} 行`}
+                {expanded ? 'Collapse' : `… ${hidden} more rows`}
               </button>
             )}
             {tailHeader !== undefined && (

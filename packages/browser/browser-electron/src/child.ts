@@ -71,6 +71,24 @@ export interface LaunchOptions {
   readonly readinessTimeoutMs: number
   /** Whether experimental isolated-world JavaScript is allowed by the host. */
   readonly experimentalScriptExecution: boolean
+  /** Organization ceiling for the elevated-risk full CDP setting. */
+  readonly fullCdpAccessAllowed?: boolean | undefined
+  /** User opt-in for full CDP access. */
+  readonly fullCdpAccess?: boolean | undefined
+  /** Destination for user-opened public HTTP(S) URLs. */
+  readonly webDestination?: 'bhagent' | 'system' | undefined
+  /** Destination for user-opened loopback HTTP(S) URLs. */
+  readonly localDestination?: 'bhagent' | 'system' | undefined
+  /** Screenshot behavior for browser annotations. */
+  readonly annotationScreenshots?: 'include' | 'ask' | 'never' | undefined
+  /** Directory used for downloads; an empty value keeps Electron's default. */
+  readonly downloadDirectory?: string | undefined
+  /** Whether Chromium asks for a path for every download. */
+  readonly askWhereToSave?: boolean | undefined
+  /** Default decision before navigating to a website without an override. */
+  readonly navigationPolicy?: 'allow' | 'ask' | 'block' | undefined
+  /** Default decision before a website download starts. */
+  readonly downloadPolicy?: 'allow' | 'ask' | 'block' | undefined
   /** Explicit Electron binary; omitted resolves the `electron` package. */
   readonly electronPath?: string | undefined
   /** Test seam standing in for the real Electron spawn. */
@@ -201,6 +219,15 @@ export async function launchBrowser(options: LaunchOptions): Promise<BrowserChil
     show: options.show,
     readinessTimeoutMs: options.readinessTimeoutMs,
     experimentalScriptExecution: options.experimentalScriptExecution,
+    ...options.fullCdpAccessAllowed === undefined ? {} : { fullCdpAccessAllowed: options.fullCdpAccessAllowed },
+    ...options.fullCdpAccess === undefined ? {} : { fullCdpAccess: options.fullCdpAccess },
+    ...options.webDestination === undefined ? {} : { webDestination: options.webDestination },
+    ...options.localDestination === undefined ? {} : { localDestination: options.localDestination },
+    ...options.annotationScreenshots === undefined ? {} : { annotationScreenshots: options.annotationScreenshots },
+    ...options.downloadDirectory === undefined ? {} : { downloadDirectory: options.downloadDirectory },
+    ...options.askWhereToSave === undefined ? {} : { askWhereToSave: options.askWhereToSave },
+    ...options.navigationPolicy === undefined ? {} : { navigationPolicy: options.navigationPolicy },
+    ...options.downloadPolicy === undefined ? {} : { downloadPolicy: options.downloadPolicy },
   }
   const bridge = process.env.BH_DESKTOP_BROWSER_BRIDGE === 'parent-port' ? desktopParentPort() : undefined
   if (process.env.BH_DESKTOP_BROWSER_BRIDGE === 'parent-port' && bridge === undefined) {

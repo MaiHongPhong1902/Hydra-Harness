@@ -112,7 +112,7 @@ export interface AssistantMessageNode {
   requestConfig?: AssistantRequestConfig
   /** Timing derived from the recorded step/chunk/message event sequence. */
   timing?: AssistantTiming
-  /** Prefix of an aborted turn, rendered with a 已停止 marker. A durable
+  /** Prefix of an aborted turn, rendered with a "Stopped" marker. A durable
    *  finalized prefix uses its event seq; a chunk-only fallback uses a fractional
    *  seq derived from the closing boundary to keep it ordered inside the flow. */
   interrupted?: true
@@ -358,7 +358,7 @@ export type OpenState = 'cold' | 'loading' | 'open' | 'error'
  */
 export type ComposerPhase = 'blank' | 'engaging' | 'active'
 
-/** Send/stop failure surfaced in the input error strip; op picks the user-facing copy (发送失败 vs 停止失败). */
+/** Send/stop failure surfaced in the input error strip; op picks the user-facing copy (send failed vs stop failed). */
 export interface PromptError {
   op: 'send' | 'stop'
   error: RpcError

@@ -472,13 +472,13 @@ describe('create', () => {
     expect(b.api.callsOf('session.create')).toEqual([{ cwd: '/w', sessionId: 'fresh' }])
     b.api.onCreate = () => Promise.resolve({
       rpcId: 'e' as never,
-      result: { ok: false as const, error: { code: 'internal' as const, message: '爆了', details: {} } },
+      result: { ok: false as const, error: { code: 'internal' as const, message: 'blew up', details: {} } },
     } as never)
     const failure = await b.svc.create({ sessionId: sid('candidate') }).catch((error: unknown) => error)
     expect(failure).toBeInstanceOf(SessionCreateError)
     expect(failure).toMatchObject({
       requestedSessionId: 'candidate',
-      rpcError: { code: 'internal', message: '爆了' },
+      rpcError: { code: 'internal', message: 'blew up' },
     })
   })
 
@@ -524,8 +524,8 @@ describe('fork', () => {
   it.each([
     ['Roadmap', 'Roadmap (1)'],
     ['Roadmap (1)', 'Roadmap (2)'],
-    ['计划（1）', '计划（2）'],
-    ['计划 （9）', '计划 （10）'],
+    ['Plan（1）', 'Plan（2）'],
+    ['Plan （9）', 'Plan （10）'],
   ])('increments the durable title %j after the child is published', async (sourceTitle, childTitle) => {
     const b = bench()
     b.svc.handleMuxEnvelope({

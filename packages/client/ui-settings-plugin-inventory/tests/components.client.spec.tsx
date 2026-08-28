@@ -68,7 +68,7 @@ describe('PluginInventorySettingsTab', () => {
     expect(view.container.querySelector('[data-loader-entry]')?.textContent).toBe('8a1b2c3d')
     expect(screen.getByText(en.configuration)).toBeTruthy()
     expect(screen.getByText(en.cordis)).toBeTruthy()
-    expect(screen.getByText(en.requiredPlugin)).toBeTruthy()
+    expect(screen.getByText('This built-in plugin cannot be disabled.')).toBeTruthy()
     fireEvent.click(active)
     expect(view.container.querySelector('[data-loader-entry]')).toBeNull()
 

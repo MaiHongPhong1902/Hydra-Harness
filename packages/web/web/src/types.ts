@@ -16,12 +16,6 @@ import { HarnessError } from '@bosch/bh-llm'
 export interface WebSearchRequest {
   readonly query: string
   /**
-   * Model-provider route that owns this search. When present, the runtime
-   * selects only a search adapter with the same id; it never falls back to a
-   * differently configured provider.
-   */
-  readonly modelProvider?: string
-  /**
    * Upper bound on returned sources; the seam truncates to it. Omitted = no
    * bound. `bh-tool-web` always sets it. A provider whose API supports a
    * result-count control (Exa's `numResults`) should apply it at the request

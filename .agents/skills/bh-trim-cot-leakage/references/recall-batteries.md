@@ -32,5 +32,5 @@ Judged and kept during the purge; expect them again:
 - **`§N` with a committed owner** — external standards (RFC 9110 §10.1.5) and committed docs that own their §-numbering stay citable by section.
 - **Contrastive "actually" and noun "wait"** — ordinary English, not hedging; no committed line probes them, so they surface only when you extend the battery with broader hedging patterns.
 - **"Today" in generated timestamps and CLI output samples** — recorded output keeps its voice.
-- **本版本 in zh prose** — a legitimate rendering of "this release" in versioned-artifact contexts; the banned indexical is 本版 as a bare stamp mirroring "this cut".
+- **"This release" in prose** — a legitimate rendering in versioned-artifact contexts; the banned indexical is the same phrase used as a bare stamp mirroring "this cut".
 - **Alternatives-considered sections** — "rejected" inside an Agent Note's genre slot is the sanctioned home, not review choreography.

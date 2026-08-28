@@ -19,7 +19,7 @@ import type {
 import type { InputNotice } from './input/contract.ts'
 import { createChatStore } from './stores.ts'
 import { ConversationController, UnsupportedImageMediaTypeError } from './service.ts'
-import type { IConversation } from './service.ts'
+import type { BrowserAnnotationSelection, IConversation } from './service.ts'
 import { ComposerBlockRegistry } from './input/blocks.ts'
 import type { ComposerBlock } from './input/blocks.ts'
 import { InputHub } from './input/hub.ts'
@@ -36,17 +36,16 @@ import { queueDockEntry } from './queue/QueueDock.tsx'
 import { ConversationRoot } from './skeleton/ConversationRoot.tsx'
 import { ConversationSession, ConversationSessionHeader } from './skeleton/ConversationSession.tsx'
 import { DetailsPanel } from './skeleton/DetailsPanel.tsx'
-import { en, NS, zh, type ConversationKey } from './locales.ts'
+import { en, NS, type ConversationKey } from './locales.ts'
 import { registerConversationNodes } from './conversation-nodes/register.ts'
 import { registerChatNodeRenderers } from './chat/register-node-renderers.ts'
 import { CONVERSATION_SETTINGS_NAMESPACE, type ConversationSettings } from '../submission-settings.ts'
 
-interface BrowserAnnotation {
-  readonly kind: 'browser-element'
-  readonly url: string
-  readonly title: string
-  readonly preview: string
-  readonly index?: number
+type BrowserAnnotation = BrowserAnnotationSelection & {
+  readonly screenshot?: {
+    readonly mediaType: string
+    readonly data: string
+  }
 }
 
 interface DesktopAnnotationBridge {
@@ -54,6 +53,20 @@ interface DesktopAnnotationBridge {
     browser?: {
       onAnnotation?: (listener: (annotation: BrowserAnnotation) => void) => () => void
     }
+  }
+}
+
+function annotationScreenshotFile(screenshot: BrowserAnnotation['screenshot']): File | undefined {
+  if (screenshot === undefined || screenshot.mediaType !== 'image/png'
+    || screenshot.data.length === 0 || screenshot.data.length > 4_700_000) return undefined
+  try {
+    const decoded = atob(screenshot.data)
+    if (decoded.length === 0 || decoded.length > 3_500_000) return undefined
+    const bytes = Uint8Array.from(decoded, character => character.charCodeAt(0))
+    if (bytes[0] !== 0x89 || bytes[1] !== 0x50 || bytes[2] !== 0x4e || bytes[3] !== 0x47) return undefined
+    return new File([bytes], 'browser-annotation.png', { type: 'image/png' })
+  } catch {
+    return undefined
   }
 }
 
@@ -139,7 +152,7 @@ export function apply(ctx: Context): void {
   registerConversationNodes(ctx)
   registerChatNodeRenderers(ctx)
 
-  ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'ui-conversation: dictionaries')
+  ctx.effect(() => ctx.locale.register(NS, { en }), 'ui-conversation: dictionaries')
 
   // Registration-time text (the view tab label) reads through the bound
   // translate as a thunk, so it follows the active locale without
@@ -203,8 +216,14 @@ export function apply(ctx: Context): void {
       const shell = inputHub.shell(sessionId)
       const conversation = concreteConversation(ctx)
       const attachment = conversation.createDraftBrowserAnnotation(annotation)
-      if (!shell.addBrowserAnnotations([attachment.id])) {
+      const screenshot = annotationScreenshotFile(annotation.screenshot)
+      const images = screenshot === undefined ? [] : conversation.createDraftImages([screenshot])
+      const imageIds = images.map(image => image.id)
+      if (!shell.addBrowserAnnotations([attachment.id]) || !shell.addImages(imageIds)) {
         conversation.releaseDraftBrowserAnnotation(attachment.id)
+        conversation.releaseDraftImages(images)
+        shell.removeBrowserAnnotation(attachment.id)
+        for (const id of imageIds) shell.removeImage(id)
       }
     }), 'ui-conversation: desktop browser annotation')
   }

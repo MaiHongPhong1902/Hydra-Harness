@@ -52,6 +52,12 @@ declare module '@bosch/bh-client-ui-slots' {
      */
     'settings.section': { kind: 'list'; scope: 'root'; owner: SettingsSectionOwnerProps }
     /**
+     * Feature-owned rows inside the desktop Browser settings page. The page
+     * only stacks contributions; each item owns its copy, state, and writes.
+     * Declared at runtime only when the desktop browser is available.
+     */
+    'settings.browser.item': { kind: 'list'; scope: 'root'; owner: SettingsBrowserItemOwnerProps }
+    /**
      * One page inside the Plugins settings section. The section owner renders
      * localized entry labels as tabs and mounts each contribution inside its
      * corresponding tab panel. Options: `id` (tab key), `order` (tab order),
@@ -88,6 +94,13 @@ declare module '@bosch/bh-client-ui-slots' {
     'settings.general.item': { kind: 'list'; scope: 'root'; owner: SettingsGeneralItemOwnerProps }
   }
 }
+
+/** Owner share of a Browser settings item (the page supplies nothing). */
+export interface SettingsBrowserItemOwnerProps {
+  /** Marker field: item owner props are intentionally empty. */
+  children?: never
+}
+
 /** Owner share of a General preference row (the section supplies nothing). */
 export interface SettingsGeneralItemOwnerProps {
   /** Marker field: item owner props are intentionally empty. */

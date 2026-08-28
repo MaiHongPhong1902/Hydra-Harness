@@ -29,7 +29,7 @@ const ACTIONS_END = '<!-- bh-actions:end -->'
 
 /** Optional user settings for Browser-to-Obsidian capture. */
 export interface ObsidianKnowledgeSettings {
-  /** Exact hostname whose browser observations may enter the vault. */
+  /** Exact hostname or HTTP(S) origin whose browser observations may enter the vault. */
   targetDomain?: string
 }
 
@@ -121,22 +121,31 @@ export function hostnameOf(url: string): string | undefined {
 }
 
 /**
- * Normalize a configured hostname and reject origins, paths, ports, and credentials.
- * @param value - User-supplied hostname configuration.
+ * Normalize a configured hostname or HTTP(S) origin and reject broader URLs.
+ * @param value - User-supplied hostname or origin configuration.
  * @returns The lowercase canonical hostname.
  */
 export function normalizeTargetDomain(value: string): string {
   const input = value.trim().toLowerCase()
-  if (input.length === 0 || /[/:?#@]/.test(input)) {
-    throw new Error('obsidian-knowledge: targetDomain must be one hostname without a scheme, port, or path')
-  }
-  let hostname: string
+  const isOrigin = /^https?:\/\//.test(input)
+  let parsed: URL
   try {
-    hostname = new URL(`https://${input}`).hostname.toLowerCase()
+    parsed = new URL(isOrigin ? input : `https://${input}`)
   } catch {
-    throw new Error('obsidian-knowledge: targetDomain must be a valid hostname')
+    throw new Error('obsidian-knowledge: targetDomain must be a valid hostname or HTTP(S) origin')
   }
-  if (hostname !== input) {
+  const authority = isOrigin ? input.slice(input.indexOf('//') + 2).split(/[/?#]/, 1)[0] ?? '' : input
+  if (parsed.username !== ''
+    || parsed.password !== ''
+    || parsed.port !== ''
+    || parsed.pathname !== '/'
+    || parsed.search !== ''
+    || parsed.hash !== ''
+    || /[/:?#@*]/.test(authority)) {
+    throw new Error('obsidian-knowledge: targetDomain must be one hostname or HTTP(S) origin without credentials, port, path, query, fragment, or wildcard')
+  }
+  const hostname = parsed.hostname.toLowerCase()
+  if (hostname !== authority) {
     throw new Error('obsidian-knowledge: targetDomain must be a canonical hostname')
   }
   return hostname

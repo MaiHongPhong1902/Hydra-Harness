@@ -106,9 +106,9 @@ describe('input-machine: plain × enter', () => {
 
   it('a non-whitespace prefix before "/" is not leading — default sink', () => {
     const m = new InputMachine()
-    m.dispatch({ type: 'draft-changed', draft: '第一行\n/goal x' })
+    m.dispatch({ type: 'draft-changed', draft: 'first line\n/goal x' })
     expect(effectAt(m.dispatch({ type: 'enter', mode: 'queue' }), 0, 'default-sink'))
-      .toMatchObject({ draft: '第一行\n/goal x', mode: 'queue' })
+      .toMatchObject({ draft: 'first line\n/goal x', mode: 'queue' })
   })
 })
 

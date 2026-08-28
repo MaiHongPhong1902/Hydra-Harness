@@ -4,7 +4,7 @@ Status: implemented
 
 ## Problem
 
-The MVP requires strict event-based tracing with fully replayable sessions (严格的基于事件的trace、logging系统，session完全可回放).
+The MVP requires strict event-based tracing with fully replayable sessions (a strict, event-based trace/logging system, with sessions fully replayable).
 
 ## Decision
 

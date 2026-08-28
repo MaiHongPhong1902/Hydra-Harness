@@ -33,8 +33,10 @@
   "license": "MIT",
   "peerDependencies": {
     "@bosch/bh-agent": "workspace:^",
+    "@bosch/bh-attachment": "workspace:^",
     "@bosch/bh-browser-electron": "workspace:^",
     "@bosch/bh-invariants": "workspace:^",
+    "@bosch/bh-llm": "workspace:^",
     "@bosch/bh-system-prompt": "workspace:^",
     "@bosch/bh-tools": "workspace:^",
     "@bosch/cordis": "workspace:^",
@@ -42,6 +44,7 @@
   },
   "devDependencies": {
     "@bosch/bh-agent": "workspace:^",
+    "@bosch/bh-attachment": "workspace:^",
     "@bosch/bh-browser-electron": "workspace:^",
     "@bosch/bh-invariants": "workspace:^",
     "@bosch/bh-llm": "workspace:^",

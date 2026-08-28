@@ -7,7 +7,7 @@ import type {
 } from '@bosch/bh-client-runtime/client'
 import { ConversationNodeAssembler } from '@bosch/bh-client-runtime/client'
 import { makeTranslate } from '@bosch/bh-client-test-runtime'
-import { zh as commonZh } from '@bosch/bh-client-locale/src/locales/zh.ts'
+import { en as commonEn } from '@bosch/bh-client-locale/src/locales/en.ts'
 import type { SessionEvent } from '@bosch/bh-session/types'
 import { commandDefinition } from '@bosch/bh-client-ui-conversation/src/client/conversation-nodes/command.ts'
 import { chatViewDefinition } from '@bosch/bh-client-ui-conversation/src/client/conversation-nodes/chat-snapshot-builder.ts'
@@ -15,7 +15,7 @@ import { GoalCommandInputView } from '../src/client/GoalCommandInputView.tsx'
 import {
   goalCommandInputDefinition, goalCommandText,
 } from '../src/client/goal-command-input.ts'
-import { zh } from '../src/client/locales.ts'
+import { en } from '../src/client/locales.ts'
 
 afterEach(cleanup)
 
@@ -117,7 +117,7 @@ describe('goal command input projection', () => {
   })
 
   it('renders the user-style command bubble without ordinary message actions', () => {
-    const t = makeTranslate(zh, commonZh)
+    const t = makeTranslate(en, commonEn)
     const props = {
       node: {
         key: 'goal-command-input:one',
@@ -126,7 +126,7 @@ describe('goal command input projection', () => {
       t,
     } as unknown as Parameters<typeof GoalCommandInputView>[0]
     const view = render(<GoalCommandInputView {...props} />)
-    const bubble = view.getByRole('group', { name: '命令输入' })
+    const bubble = view.getByRole('group', { name: en['commandInput.aria'] })
 
     expect(bubble.textContent).toBe('/goal ship it')
     expect(within(bubble).queryByRole('button')).toBeNull()

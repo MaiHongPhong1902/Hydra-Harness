@@ -5,7 +5,7 @@
 // upstream PageAgent engine (Core and PageController) in the isolated world of
 // every document the controlled view loads. BH owns all user-visible controls;
 // the upstream Panel is deliberately not instantiated. Its simulator mask is
-// visual feedback only and appears while BH performs an indexed DOM action. Its
+// visual feedback only and remains visible throughout the controlled page. Its
 // LLM fetches cross the private IPC boundary and are routed by BH to the model
 // the owning agent already selected; no provider credential reaches the webpage.
 //
@@ -22,6 +22,7 @@ import { PageAgentCore } from '@page-agent/core'
 import { PageController } from '@page-agent/page-controller'
 import maskCss from '../third-party/page-agent/packages/page-controller/src/mask/SimulatorMask.module.css?inline'
 import cursorCss from '../third-party/page-agent/packages/page-controller/src/mask/cursor.module.css?inline'
+const cursorImage = 'data:image/png;base64,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'
 
 const annotationCss = `
 #bh-browser-annotation-overlay {
@@ -57,12 +58,33 @@ const annotationCss = `
 }
 `
 
+const cursorOverrideCss = `
+#page-agent-runtime_simulator-mask { cursor: default; }
+#page-agent-runtime_simulator-mask [class*="cursor_"] {
+  width: 1px;
+  height: 1px;
+}
+#page-agent-runtime_simulator-mask [class*="cursorFilling"] {
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  transform: translate(-29px, -15px);
+  background: url(${cursorImage}) center / contain no-repeat;
+}
+#page-agent-runtime_simulator-mask [class*="cursorBorder"] { display: none; }
+#page-agent-runtime_simulator-mask [class*="cursorRipple"] {
+  width: 64px;
+  height: 64px;
+  margin: -32px;
+}
+`
+
 let cancelActiveAnnotation
 
 /** A constructed stylesheet works when the page's CSP blocks inline style tags. */
 function installMaskStyles() {
   const stylesheet = new CSSStyleSheet()
-  stylesheet.replaceSync(`${maskCss}\n${cursorCss}\n${annotationCss}`)
+  stylesheet.replaceSync(`${maskCss}\n${cursorCss}\n${cursorOverrideCss}\n${annotationCss}`)
   document.adoptedStyleSheets = [...document.adoptedStyleSheets, stylesheet]
 }
 
@@ -110,11 +132,17 @@ async function describeElement(controller, selected) {
     .map(([name, value]) => ` ${name}="${escapeHtml(value)}"`)
     .join('')
   const text = clippedText(element instanceof HTMLElement ? element.innerText : element.textContent, 240)
+  const bounds = element.getBoundingClientRect()
+  const x = Math.max(0, Math.floor(bounds.left))
+  const y = Math.max(0, Math.floor(bounds.top))
+  const width = Math.max(0, Math.ceil(Math.min(innerWidth, bounds.right) - x))
+  const height = Math.max(0, Math.ceil(Math.min(innerHeight, bounds.bottom) - y))
   return {
     kind: 'browser-element',
     url: annotationUrl(),
     title: clippedText(document.title, 160),
     ...(index === undefined ? {} : { index }),
+    ...(width === 0 || height === 0 ? {} : { rect: { x, y, width, height } }),
     preview: clippedText(text
       ? `<${tag}${attributes}>${escapeHtml(text)}</${tag}>`
       : `<${tag}${attributes} />`, 1_024),
@@ -130,7 +158,7 @@ function elementAt(overlay, x, y) {
   return element instanceof Element ? element : undefined
 }
 
-/** Enter a one-shot element picker; Escape, navigation, or a tab switch cancels it. */
+/** Enter a one-shot element-or-region picker; Escape and page changes cancel it. */
 function pickElement(controller) {
   cancelActiveAnnotation?.()
   return new Promise((resolve) => {
@@ -140,10 +168,11 @@ function pickElement(controller) {
     overlay.id = 'bh-browser-annotation-overlay'
     highlight.id = 'bh-browser-annotation-highlight'
     tip.id = 'bh-browser-annotation-tip'
-    tip.textContent = 'Select an element · Esc to cancel'
+    tip.textContent = 'Click an element or drag an area · Esc to cancel'
     for (const node of [overlay, highlight, tip]) node.dataset.pageAgentIgnore = 'true'
 
     let current
+    let dragStart
     const pointTo = (x, y) => {
       current = elementAt(overlay, x, y)
       if (current === undefined) {
@@ -156,6 +185,21 @@ function pickElement(controller) {
       highlight.style.top = `${rect.top}px`
       highlight.style.width = `${rect.width}px`
       highlight.style.height = `${rect.height}px`
+    }
+    const regionTo = (x, y) => {
+      const endX = Math.max(0, Math.min(innerWidth, x))
+      const endY = Math.max(0, Math.min(innerHeight, y))
+      const left = Math.floor(Math.min(dragStart.x, endX))
+      const top = Math.floor(Math.min(dragStart.y, endY))
+      const right = Math.ceil(Math.max(dragStart.x, endX))
+      const bottom = Math.ceil(Math.max(dragStart.y, endY))
+      const rect = { x: left, y: top, width: Math.max(1, right - left), height: Math.max(1, bottom - top) }
+      highlight.hidden = false
+      highlight.style.left = `${rect.x}px`
+      highlight.style.top = `${rect.y}px`
+      highlight.style.width = `${rect.width}px`
+      highlight.style.height = `${rect.height}px`
+      return rect
     }
     const finish = (result) => {
       if (cancelActiveAnnotation !== finish) return
@@ -173,7 +217,50 @@ function pickElement(controller) {
       finish(undefined)
     }
     cancelActiveAnnotation = finish
-    overlay.addEventListener('pointermove', event => { pointTo(event.clientX, event.clientY) })
+    overlay.addEventListener('pointerdown', (event) => {
+      if (!event.isPrimary || event.button !== 0) return
+      event.preventDefault()
+      event.stopPropagation()
+      dragStart = {
+        x: Math.max(0, Math.min(innerWidth, event.clientX)),
+        y: Math.max(0, Math.min(innerHeight, event.clientY)),
+        pointerId: event.pointerId,
+      }
+      try {
+        overlay.setPointerCapture(event.pointerId)
+      } catch {
+        // Synthetic picker events need no pointer capture.
+      }
+      regionTo(event.clientX, event.clientY)
+    })
+    overlay.addEventListener('pointermove', (event) => {
+      if (dragStart === undefined) pointTo(event.clientX, event.clientY)
+      else regionTo(event.clientX, event.clientY)
+    })
+    overlay.addEventListener('pointerup', (event) => {
+      if (dragStart === undefined || event.pointerId !== dragStart.pointerId) return
+      event.preventDefault()
+      event.stopPropagation()
+      const start = dragStart
+      const rect = regionTo(event.clientX, event.clientY)
+      dragStart = undefined
+      if (Math.hypot(event.clientX - start.x, event.clientY - start.y) >= 4) {
+        finish({
+          kind: 'browser-region',
+          url: annotationUrl(),
+          title: clippedText(document.title, 160),
+          rect,
+          preview: `Selected viewport region (${rect.x}, ${rect.y}) ${rect.width}×${rect.height}.`,
+        })
+        return
+      }
+      const selected = elementAt(overlay, event.clientX, event.clientY)
+      if (selected === undefined) finish(undefined)
+      else void describeElement(controller, selected).then(finish, () => { finish(undefined) })
+    })
+    overlay.addEventListener('pointercancel', (event) => {
+      if (dragStart !== undefined && event.pointerId === dragStart.pointerId) finish(undefined)
+    })
     overlay.addEventListener('click', (event) => {
       event.preventDefault()
       event.stopPropagation()
@@ -217,17 +304,136 @@ async function withVisualMask(controller, action) {
   }
 }
 
+function currentHttpOrigin() {
+  return location.protocol === 'http:' || location.protocol === 'https:' ? location.origin : undefined
+}
+
+function autocompleteTokens(control) {
+  return (control.getAttribute('autocomplete') ?? '').toLowerCase().trim().split(/\s+/u).filter(Boolean)
+}
+
+function formScope(x, y) {
+  const target = elementAt(undefined, Number(x), Number(y))
+  return target?.closest('form') ?? document
+}
+
+function usableControl(control) {
+  if (!control.isConnected || control.disabled) return false
+  if (control instanceof HTMLInputElement) {
+    return !control.readOnly && !['button', 'checkbox', 'file', 'hidden', 'image', 'radio', 'reset', 'submit'].includes(control.type)
+  }
+  return control instanceof HTMLSelectElement || (control instanceof HTMLTextAreaElement && !control.readOnly)
+}
+
+/** Set a native form value and emit only the browser events expected by page frameworks. */
+function setAutofillValue(control, value) {
+  if (!usableControl(control) || typeof value !== 'string') return false
+  let next = value
+  if (control instanceof HTMLSelectElement) {
+    const option = [...control.options].find(candidate => candidate.value.toLowerCase() === value.toLowerCase())
+    if (option === undefined) return false
+    next = option.value
+  }
+  const prototype = control instanceof HTMLInputElement
+    ? HTMLInputElement.prototype
+    : control instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLSelectElement.prototype
+  const setter = Object.getOwnPropertyDescriptor(prototype, 'value')?.set
+  if (setter === undefined) return false
+  setter.call(control, next)
+  control.dispatchEvent(new Event('input', { bubbles: true, composed: true }))
+  control.dispatchEvent(new Event('change', { bubbles: true, composed: true }))
+  return true
+}
+
+function fillLogin(args) {
+  if (typeof args.expectedOrigin !== 'string' || args.expectedOrigin !== currentHttpOrigin()
+    || typeof args.username !== 'string' || typeof args.password !== 'string') {
+    throw new Error('autofill login target is invalid')
+  }
+  const scope = formScope(args.x, args.y)
+  const inputs = [...scope.querySelectorAll('input')].filter(usableControl)
+  const password = inputs.find(input => autocompleteTokens(input).includes('current-password'))
+    ?? inputs.find(input => input.type === 'password' && !autocompleteTokens(input).includes('new-password'))
+  const username = inputs.find(input => autocompleteTokens(input).includes('username'))
+    ?? inputs.find(input => input.type === 'email')
+    ?? inputs.find(input => ['text', 'search', 'url'].includes(input.type) && input !== password)
+  const usernameFilled = username === undefined ? false : setAutofillValue(username, args.username)
+  const passwordFilled = password === undefined ? false : setAutofillValue(password, args.password)
+  return { success: usernameFilled || passwordFilled }
+}
+
+const CONTACT_FIELDS = new Map([
+  ['name', 'name'],
+  ['given-name', 'givenName'],
+  ['additional-name', 'additionalName'],
+  ['family-name', 'familyName'],
+  ['organization', 'organization'],
+  ['email', 'email'],
+  ['tel', 'tel'],
+  ['address-line1', 'addressLine1'],
+  ['address-line2', 'addressLine2'],
+  ['address-level2', 'city'],
+  ['address-level1', 'region'],
+  ['postal-code', 'postalCode'],
+  ['country', 'countryCode'],
+])
+
+function contactValue(fields, token) {
+  if (token === 'street-address') {
+    const lines = [fields.addressLine1, fields.addressLine2].filter(value => typeof value === 'string')
+    return lines.length === 0 ? undefined : lines.join('\n')
+  }
+  const field = CONTACT_FIELDS.get(token)
+  return field === undefined ? undefined : fields[field]
+}
+
+function fillContact(args) {
+  if (typeof args.expectedOrigin !== 'string' || args.expectedOrigin !== currentHttpOrigin()
+    || typeof args.fields !== 'object' || args.fields === null || Array.isArray(args.fields)) {
+    throw new Error('autofill contact target is invalid')
+  }
+  const scope = formScope(args.x, args.y)
+  let filled = false
+  for (const control of scope.querySelectorAll('input[autocomplete], select[autocomplete], textarea[autocomplete]')) {
+    if (!usableControl(control)) continue
+    const token = autocompleteTokens(control).findLast(candidate => CONTACT_FIELDS.has(candidate) || candidate === 'street-address')
+    const value = token === undefined ? undefined : contactValue(args.fields, token)
+    if (typeof value === 'string') filled = setAutofillValue(control, value) || filled
+  }
+  return { success: filled }
+}
+
+/** Remove a serialized password value without mutating the page-owned DOM. */
+function maskPasswordValues(controller, content) {
+  let masked = content
+  for (const node of controller.selectorMap.values()) {
+    const input = node.ref
+    if (!(input instanceof HTMLInputElement) || input.type !== 'password') continue
+    const value = input.getAttribute('value')
+    if (value === null) continue
+    const serialized = value.length > 20 ? `${value.slice(0, 20)}...` : value
+    masked = masked.replaceAll(`value=${serialized}`, 'value=[redacted]')
+  }
+  return masked
+}
+
 // Electron evaluates a preload before navigation creates <body>. Wait for a
 // document before constructing PageController. The engine runs privately; the
 // BH tool surface is the sole control plane.
 const pageAgentReady = new Promise((resolve, reject) => {
-  const initialize = () => {
+  const initialize = async () => {
     try {
       installMaskStyles()
       // `model` and `baseURL` satisfy PageAgent's public constructor contract
       // only. bhModelFetch ignores both and the host resolves the real selected
       // BH route.
-      const pageController = new PageController({ enableMask: true })
+      const pageController = new PageController({ enableMask: true, persistentMask: true })
+      await pageController.showMask()
+      const getBrowserState = pageController.getBrowserState.bind(pageController)
+      pageController.getBrowserState = async () => {
+        const state = await getBrowserState()
+        return { ...state, content: maskPasswordValues(pageController, state.content) }
+      }
       const pageAgent = new PageAgentCore({
         model: 'bh-selected-model',
         baseURL: 'http://bh.local',
@@ -263,8 +469,10 @@ async function dispatch(action, args) {
       return await controller.getCurrentUrl()
     case 'get_last_update_time':
       return await controller.getLastUpdateTime()
-    case 'update_tree':
-      return { content: await controller.updateTree() }
+    case 'update_tree': {
+      const content = await controller.updateTree()
+      return { content: maskPasswordValues(controller, content) }
+    }
     case 'clean_up_highlights':
       await controller.cleanUpHighlights()
       return { success: true, message: 'Cleaned up PageController highlights.' }
@@ -283,6 +491,10 @@ async function dispatch(action, args) {
       return await withVisualMask(controller, () => controller.inputText(args.index, args.text))
     case 'select_option':
       return await withVisualMask(controller, () => controller.selectOption(args.index, args.text))
+    case 'autofill_login':
+      return fillLogin(args)
+    case 'autofill_contact':
+      return fillContact(args)
     case 'scroll':
       return await controller.scroll(args)
     case 'scroll_horizontally':

@@ -33,7 +33,9 @@
     "client": {
       "inject": [
         "@bosch/bh-client-runtime",
-        "@bosch/bh-client-ui-theme"
+        "@bosch/bh-client-ui-theme",
+        "@bosch/bh-client-ui-settings",
+        "@bosch/bh-client-locale"
       ],
       "platform": "web"
     }
@@ -50,6 +52,8 @@
   },
   "peerDependencies": {
     "@bosch/bh-client-runtime": "workspace:^",
+    "@bosch/bh-client-locale": "workspace:^",
+    "@bosch/bh-client-ui-settings": "workspace:^",
     "@bosch/bh-client-ui-theme": "workspace:^",
     "@bosch/bh-invariants": "workspace:^",
     "@bosch/cordis": "workspace:^"
@@ -57,7 +61,9 @@
   "devDependencies": {
     "@bosch/bh-client-locale": "workspace:^",
     "@bosch/bh-client-runtime": "workspace:^",
+    "@bosch/bh-client-test-runtime": "workspace:^",
     "@bosch/bh-client-ui-slots": "workspace:^",
+    "@bosch/bh-client-ui-settings": "workspace:^",
     "@bosch/bh-client-ui-theme": "workspace:^",
     "@bosch/bh-invariants": "workspace:^",
     "@types/react": "~18.3.1",

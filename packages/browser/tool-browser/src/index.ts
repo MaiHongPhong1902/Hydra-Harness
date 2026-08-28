@@ -5,11 +5,16 @@
  * @module @bosch/bh-tool-browser
  */
 
+import { Buffer } from 'node:buffer'
 import type { Context } from '@bosch/cordis'
 import z from '@bosch/schemastery'
 import type { Agent } from '@bosch/bh-agent'
-import type { BrowserAction } from '@bosch/bh-browser-electron'
+import { AttachmentId } from '@bosch/bh-attachment'
+import type {
+  BrowserAction, BrowserCdpCommandResult, BrowserCdpEventPage, BrowserHistorySearchEntry, BrowserScreenshot,
+} from '@bosch/bh-browser-electron'
 import type {} from '@bosch/bh-browser-electron'
+import type { ContentBlock } from '@bosch/bh-llm'
 import { defineTool } from '@bosch/bh-tools'
 import type { ToolExecution } from '@bosch/bh-tools'
 import type {} from '@bosch/bh-system-prompt'
@@ -87,6 +92,121 @@ const OUTPUT_SCHEMA = {
   },
 } as const
 
+const HISTORY_OUTPUT = {
+  schema: {
+    type: 'array',
+    items: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        url: { type: 'string', required: true },
+        title: { type: 'string', required: true },
+        visitedAt: { type: 'string', required: true },
+      },
+    },
+  } as const,
+  render: (_args: unknown, value: BrowserHistorySearchEntry[]) => [{
+    type: 'text' as const,
+    text: value.length === 0
+      ? 'No matching Browser history entries.'
+      : value.map(entry => `- ${entry.title || entry.url} — ${entry.url} (${entry.visitedAt})`).join('\n'),
+  }],
+}
+
+const CDP_OUTPUT = {
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      method: { type: 'string', required: true },
+      result: { type: 'object', required: true, additionalProperties: true },
+    },
+  } as const,
+  render: (_args: unknown, value: BrowserCdpCommandResult) => [{
+    type: 'text' as const,
+    text: `${value.method}\n${JSON.stringify(value.result, undefined, 2)}`,
+  }],
+}
+
+const CDP_EVENTS_OUTPUT = {
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      events: {
+        type: 'array',
+        required: true,
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {
+            sequence: { type: 'integer', required: true },
+            method: { type: 'string', required: true },
+            params: { type: 'object', required: true, additionalProperties: true },
+            receivedAt: { type: 'string', required: true },
+          },
+        },
+      },
+      nextSequence: { type: 'integer', required: true },
+    },
+  } as const,
+  render: (_args: unknown, value: BrowserCdpEventPage) => [{
+    type: 'text' as const,
+    text: value.events.length === 0
+      ? `No matching CDP events. Cursor: ${value.nextSequence}`
+      : `${value.events.map(event => `[${event.sequence}] ${event.method}\n${JSON.stringify(event.params)}`).join('\n')}\nCursor: ${value.nextSequence}`,
+  }],
+}
+
+/** Durable value retained for a model-facing Browser screenshot result. */
+export interface BrowserScreenshotValue extends Pick<BrowserScreenshot, 'tabId' | 'url' | 'title' | 'capturedAt'> {
+  image: {
+    attachmentId: string
+    mediaType: 'image/png'
+    bytes: number
+    width: number
+    height: number
+    name?: string
+  }
+}
+
+function screenshotContent(value: BrowserScreenshotValue): ContentBlock[] {
+  return [
+    {
+      type: 'text',
+      text: `Browser screenshot of tab [${value.tabId}] — ${value.title || value.url}\n${value.url}\n${value.image.width}x${value.image.height} px, ${value.image.bytes} bytes`,
+    },
+    { type: 'image', attachment: { ...value.image, attachmentId: AttachmentId(value.image.attachmentId) } },
+  ]
+}
+
+const SCREENSHOT_OUTPUT = {
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      tabId: { type: 'integer', required: true },
+      url: { type: 'string', required: true },
+      title: { type: 'string', required: true },
+      capturedAt: { type: 'string', required: true },
+      image: {
+        type: 'object',
+        additionalProperties: false,
+        required: true,
+        properties: {
+          attachmentId: { type: 'string', required: true },
+          mediaType: { type: 'string', enum: ['image/png'], required: true },
+          bytes: { type: 'integer', required: true },
+          width: { type: 'integer', required: true },
+          height: { type: 'integer', required: true },
+          name: { type: 'string' },
+        },
+      },
+    },
+  } as const,
+  render: (_args: unknown, value: BrowserScreenshotValue) => screenshotContent(value),
+}
+
 /** The page belongs to the calling agent, so there is nothing to do without one. */
 function requireAgent(agent: Agent | undefined): Agent {
   if (agent === undefined) throw new Error('browser tools require an initiating agent')
@@ -119,6 +239,68 @@ function targetsTab(args: TargetTabArgs): boolean {
   return args.tab_id !== undefined
 }
 
+/** Refuse before capture when the current route cannot carry an image result. */
+async function assertScreenshotRoute(ctx: Context, exec: ToolExecution): Promise<void> {
+  const routed = exec.agent?.session.requestHeader()?.config
+  const provider = routed?.provider ?? exec.agent?.options.provider
+  const model = routed?.model ?? exec.agent?.options.model
+  const llm = ctx.get('llm')
+  if (provider === undefined || model === undefined || llm === undefined) {
+    throw new Error('cannot take a browser screenshot: the current model route could not be resolved')
+  }
+  const active = await llm.resolveModelInfo(provider, model, exec.signal)
+  if (active.inputModalities === undefined || !active.inputModalities.includes('image')) {
+    throw new Error(`cannot take a browser screenshot: model "${model}" does not declare image input; switch to an image-capable model`)
+  }
+}
+
+/** Register the attachment-backed visual read while a durable store is mounted. */
+function applyScreenshotTool(ctx: Context, timeoutMs: number): void {
+  ctx.tools.register(defineTool({
+    name: 'browser_screenshot',
+    description: 'Capture the visible viewport of the currently selected controlled HTTP(S) page and return it as an image. It cannot target a background tab or browser chrome.',
+    parameters: {},
+    output: SCREENSHOT_OUTPUT,
+    timeoutMs,
+    async execute(_args, exec): Promise<BrowserScreenshotValue> {
+      const owner = requireAgent(exec.agent)
+      const attachments = ctx.get('attachments')
+      if (attachments === undefined) throw new Error('cannot take a browser screenshot: no attachment service is mounted')
+      if (!attachments.imageLimits.mediaTypes.includes('image/png')) {
+        throw new Error('cannot take a browser screenshot: PNG images are not accepted by this deployment')
+      }
+      await assertScreenshotRoute(ctx, exec)
+      exec.signal.throwIfAborted()
+      const screenshot = await ctx.browsers.takeScreenshot(owner)
+      exec.signal.throwIfAborted()
+      const [image] = await attachments.saveImages([{
+        data: Buffer.from(screenshot.data, 'base64'),
+        mediaType: 'image/png',
+        name: `browser-tab-${screenshot.tabId}.png`,
+      }])
+      if (image === undefined) throw new Error('cannot take a browser screenshot: attachment store returned no image')
+      if (image.mediaType !== 'image/png') {
+        throw new Error('cannot take a browser screenshot: attachment store returned a non-PNG image')
+      }
+      return {
+        tabId: screenshot.tabId,
+        url: screenshot.url,
+        title: screenshot.title,
+        capturedAt: screenshot.capturedAt,
+        image: {
+          attachmentId: image.attachmentId,
+          mediaType: image.mediaType,
+          bytes: image.bytes,
+          width: image.width,
+          height: image.height,
+          ...image.name === undefined ? {} : { name: image.name },
+        },
+      }
+    },
+    presentCall: () => presentBrowserCall('Capture selected browser viewport'),
+  }))
+}
+
 /** Register the `browser_*` tools and the DOM-format prompt section. */
 export function apply(ctx: Context, config: Config = {}): void {
   const maxStateChars = config.maxStateChars ?? DEFAULT_MAX_STATE_CHARS
@@ -131,7 +313,10 @@ export function apply(ctx: Context, config: Config = {}): void {
   }
 
   const run = async (exec: ToolExecution, action: BrowserAction): Promise<BrowserToolValue> =>
-    toValue(await ctx.browsers.perform(requireAgent(exec.agent), action), maxStateChars)
+    toValue(await ctx.browsers.perform(requireAgent(exec.agent), action, {
+      callId: exec.callId,
+      signal: exec.signal,
+    }), maxStateChars)
 
   const output = {
     schema: OUTPUT_SCHEMA,
@@ -144,6 +329,8 @@ export function apply(ctx: Context, config: Config = {}): void {
     order: BROWSER_PROMPT_ORDER,
     text: BROWSER_PROMPT_TEXT,
   })
+
+  ctx.inject(['attachments'], screenshotCtx => applyScreenshotTool(screenshotCtx, timeoutMs))
 
   ctx.tools.register(defineTool({
     name: 'browser_navigate',
@@ -336,6 +523,25 @@ export function apply(ctx: Context, config: Config = {}): void {
   }))
 
   ctx.tools.register(defineTool({
+    name: 'browser_history_search',
+    description: 'Search the built-in Browser profile history after applying the user\'s sensitive-history access policy. Returns at most 20 matching pages; use browser_navigate to reopen one.',
+    parameters: {
+      query: { type: 'string', required: true, description: 'Case-insensitive title or URL text, from 1 to 256 characters.' },
+    },
+    output: HISTORY_OUTPUT,
+    timeoutMs,
+    execute: async (args: { query: string }, exec) => {
+      const query = args.query.trim()
+      if (query.length === 0 || query.length > 256) throw new Error('query must contain 1 to 256 characters')
+      return await ctx.browsers.searchHistory(requireAgent(exec.agent), query, {
+        callId: exec.callId,
+        signal: exec.signal,
+      })
+    },
+    presentCall: (args: { query: string }) => presentBrowserCall('Search Browser history', args.query),
+  }))
+
+  ctx.tools.register(defineTool({
     name: 'browser_open_tab',
     description: 'Open and select a new controlled browser tab, optionally at an absolute HTTP(S) URL. Every browser result lists all tab ids.',
     parameters: {
@@ -436,4 +642,67 @@ export function apply(ctx: Context, config: Config = {}): void {
       presentCall: (args: { script: string }) => presentBrowserCall('Execute browser JavaScript', args.script),
     }))
   }
+
+
+  let disposeCdp: (() => void) | undefined
+  const syncCdpTool = (enabled = ctx.browsers.fullCdpAccess): void => {
+    if (!enabled) {
+      disposeCdp?.()
+      disposeCdp = undefined
+      return
+    }
+    if (disposeCdp !== undefined) return
+    const disposeCommand = ctx.tools.register(defineTool({
+      name: 'browser_cdp_command',
+      description: 'Elevated risk: send one raw Chrome DevTools Protocol command to the selected controlled Browser tab. Every command requires explicit approval; cross-target Browser/Target domains are unavailable.',
+      parameters: {
+        method: { type: 'string', required: true, description: 'CDP method in Domain.command form, such as Runtime.evaluate.' },
+        params: { type: 'object', additionalProperties: true, description: 'Optional JSON object of CDP command parameters.' },
+        tab_id: TAB_ID_PARAMETER,
+      },
+      output: CDP_OUTPUT,
+      timeoutMs,
+      execute: async (args: { method: string; params?: Record<string, unknown>; tab_id?: number }, exec) =>
+        await ctx.browsers.sendCdpCommand(
+          requireAgent(exec.agent),
+          args.method,
+          args.params ?? {},
+          args.tab_id,
+          { callId: exec.callId, signal: exec.signal },
+        ),
+      isConcurrencySafe: targetsTab,
+      presentCall: (args: { method: string }) => presentBrowserCall(`Run CDP ${args.method}`),
+    }))
+    const disposeEvents = ctx.tools.register(defineTool({
+      name: 'browser_cdp_read_events',
+      description: 'Elevated risk: read a bounded cursor page of Chrome DevTools Protocol events captured from the selected controlled Browser tab. Every read requires explicit approval.',
+      parameters: {
+        after_sequence: { type: 'integer', description: 'Return events after this sequence. Defaults to 0.' },
+        limit: { type: 'integer', description: 'Maximum events, from 1 to 100. Defaults to 100.' },
+        method: { type: 'string', description: 'Optional exact CDP event method, such as Network.responseReceived.' },
+        tab_id: TAB_ID_PARAMETER,
+      },
+      output: CDP_EVENTS_OUTPUT,
+      timeoutMs,
+      execute: async (args: {
+        after_sequence?: number
+        limit?: number
+        method?: string
+        tab_id?: number
+      }, exec) => await ctx.browsers.readCdpEvents(requireAgent(exec.agent), {
+        ...args.after_sequence === undefined ? {} : { afterSequence: args.after_sequence },
+        ...args.limit === undefined ? {} : { limit: args.limit },
+        ...args.method === undefined ? {} : { method: args.method },
+        ...args.tab_id === undefined ? {} : { tabId: args.tab_id },
+      }, { callId: exec.callId, signal: exec.signal }),
+      isConcurrencySafe: targetsTab,
+      presentCall: () => presentBrowserCall('Read Browser CDP events'),
+    }))
+    disposeCdp = () => {
+      disposeEvents()
+      disposeCommand()
+    }
+  }
+  syncCdpTool()
+  ctx.on('browser/full-cdp-access', syncCdpTool)
 }

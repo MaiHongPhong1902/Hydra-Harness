@@ -146,8 +146,6 @@ The web access service. Registered as `ctx.web` (one instance per context).
 
 Selection semantics (resolved at execution time, never order-dependent):
 
-- A request model-provider id that is registered and `available()` → that provider.
-- A request model-provider id that is absent/unavailable → a model-provider error; never a configured fallback.
 - A configured id that is registered and `available()` → that provider.
 - A configured id not registered → `WEB_PROVIDER_CONFIGURED_MISSING`.
 - A configured id registered but unavailable → `WEB_PROVIDER_CONFIGURED_UNAVAILABLE`.

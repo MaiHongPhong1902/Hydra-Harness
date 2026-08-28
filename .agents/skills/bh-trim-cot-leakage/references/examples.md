@@ -170,7 +170,7 @@ Replace the hedge with the actual bound and the failure behavior when it is exce
 
 ## Authoring-language slips
 
-**Leaked:** "The renderer runs on the client 端; see the 设计稿 for spacing. ---- 私有 ----"
+**Leaked:** "The renderer runs on the client Seite; see the Entwurf for spacing. ---- privat ----"
 
 **Fixed:** "The renderer runs on the client side; spacing follows the Figma frame `widget-badges`."
 

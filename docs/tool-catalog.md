@@ -41,7 +41,7 @@ This table connects model-visible tool names to the plugin package and service s
 | `@bosch/bh-tool-todo` | `todo_write` | `ctx.tools`, `owning Agent session` | `tool/call`, `todo/write`, `tool/result` | - | todo_write is session-owned state; UIs render the latest todo/write event as a checklist. `allowParallelInProgress` is required with no default, so the catalog states its choice: `true`, whose description invites several `in_progress` items. A deployment choosing `false` receives the same tool with a description asking for exactly one active task. |
 | `@bosch/bh-tool-workflow` | `workflow` | `ctx.tools`, `ctx.workflowEngine`, `ctx.systemPrompt`, `a calling Agent (exec.agent parents the script children)` | `tool/call`, `tool/result` | - | - |
 | `@bosch/bh-tool-web` | `web_fetch`, `web_search` | `ctx.tools`, `ctx.web`, `ctx.systemPrompt` | `tool/call`, `tool/result` | - | web_search and web_fetch keep provider selection behind ctx.web so model-visible schemas stay stable across backend swaps. |
-| `@bosch/bh-tool-browser` | `browser_back`, `browser_click`, `browser_close_tab`, `browser_navigate`, `browser_open_tab`, `browser_page_agent_run`, `browser_page_agent_status`, `browser_page_agent_stop`, `browser_press`, `browser_scroll`, `browser_scroll_horizontally`, `browser_select_option`, `browser_state`, `browser_switch_tab`, `browser_type`, `browser_upload_file`, `browser_wait` | `ctx.tools`, `ctx.browsers`, `ctx.systemPrompt`, `a calling Agent (the window is owned per agent)` | `tool/call`, `tool/result` | - | The embedded browser window opens on the first browser_* call of an agent and closes with it. Without the optional electron package the tools still register and every call fails with BROWSER_UNAVAILABLE. |
+| `@bosch/bh-tool-browser` | `browser_back`, `browser_click`, `browser_close_tab`, `browser_history_search`, `browser_navigate`, `browser_open_tab`, `browser_page_agent_run`, `browser_page_agent_status`, `browser_page_agent_stop`, `browser_press`, `browser_scroll`, `browser_scroll_horizontally`, `browser_select_option`, `browser_state`, `browser_switch_tab`, `browser_type`, `browser_upload_file`, `browser_wait` | `ctx.tools`, `ctx.browsers`, `ctx.systemPrompt`, `a calling Agent (the window is owned per agent)` | `tool/call`, `tool/result` | - | The embedded browser window opens on the first browser_* call of an agent and closes with it. Without the optional electron package the tools still register and every call fails with BROWSER_UNAVAILABLE. |
 
 <a id="boschbh-tool-ask-user"></a>
 
@@ -49,7 +49,7 @@ This table connects model-visible tool names to the plugin package and service s
 
 ### `ask_user_question`
 
-Ask the user a concise question when you need confirmation, a choice, or missing information before proceeding. Send one or more questions, each with a stable id that will be echoed in the answer.
+Ask the user a concise question when you need confirmation, a user-owned choice, or missing information before proceeding. When the request clearly implies an available tool or execution path, inspect the context, choose it yourself, and proceed; do not ask the user to choose between tools or implementation options. Send one or more questions, each with a stable id that will be echoed in the answer.
 
 ```json
 {
@@ -2304,6 +2304,27 @@ Close a controlled tab by id. The agent cannot close the last tab or the browser
   },
   "required": [
     "tab_id"
+  ]
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_history_search`
+
+Search the built-in Browser profile history after applying the user's sensitive-history access policy. Returns at most 20 matching pages; use browser_navigate to reopen one.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "query": {
+      "type": "string",
+      "description": "Case-insensitive title or URL text, from 1 to 256 characters."
+    }
+  },
+  "required": [
+    "query"
   ]
 }
 ```

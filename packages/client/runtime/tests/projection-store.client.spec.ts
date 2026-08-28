@@ -105,7 +105,7 @@ describe('Session tail-page seeding', () => {
     const api = new FakeApiClient()
     const session = new Session(SID, api, fakeRemote())
     api.onHistory = () => Promise.resolve(ok({
-      events: entries(plainTurn(0, 0, '问', '答')) as never[], hasMore: false,
+      events: entries(plainTurn(0, 0, 'ask', 'answer')) as never[], hasMore: false,
       projections: { asOfSeq: 5, values: { 'test/marks': { marks: ['from-baseline'] } } },
     } as never))
     await session.open()

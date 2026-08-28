@@ -138,23 +138,24 @@ export function isUserInvocable(skill: Pick<SkillSummary, 'invocation'>): boolea
 }
 
 /**
- * Durable source for the context message a user-explicit skill invocation
- * injects: the user's own words ride a plain user message, and the rendered
- * skill body follows as injected `instructions`-form context carrying this
- * source, so transcript consumers present the injection from metadata
+ * Durable source for a context message that injects one skill body. The
+ * rendered body follows the user's task as `instructions`-form context carrying
+ * this source, so transcript consumers present the skill name from metadata
  * instead of re-parsing the model-facing text.
  */
 export interface SkillInvocationSource {
   readonly kind: 'skill-invocation'
-  /** Invoked skill name, validated user-invocable at the injecting boundary. */
+  /** Invoked skill name, validated against the initiating route's policy. */
   readonly name: string
+  /** Whether the host selected the skill or honored a direct gesture; absent on older records. */
+  readonly trigger?: 'automatic' | 'user'
   /** Injected skill bodies are instructions for the model to follow. */
   readonly form: 'instructions'
 }
 
 declare module '@bosch/bh-llm' {
   interface MessageSourceMap {
-    /** A user-explicit skill invocation injected by the host. */
+    /** A skill invocation injected by the host. */
     'skill-invocation': SkillInvocationSource
   }
 }

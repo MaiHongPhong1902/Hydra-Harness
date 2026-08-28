@@ -22,9 +22,9 @@ async function presetDir(content?: string): Promise<string> {
 
 describe('reading display metadata', () => {
   it('reads a name and a description', async () => {
-    const dir = await presetDir('name: 标准模式\ndescription: 完整的编码 agent。\n')
+    const dir = await presetDir('name: Standard preset\ndescription: A complete coding agent.\n')
 
-    expect(await readPresetMetadata(dir)).toEqual({ name: '标准模式', description: '完整的编码 agent。' })
+    expect(await readPresetMetadata(dir)).toEqual({ name: 'Standard preset', description: 'A complete coding agent.' })
   })
 
   it('treats an absent file as no metadata', async () => {
@@ -62,15 +62,15 @@ describe('reading display metadata', () => {
   })
 
   it('trims surrounding whitespace', async () => {
-    const dir = await presetDir('name: "  极简模式  "\n')
+    const dir = await presetDir('name: "  Minimal preset  "\n')
 
-    expect(await readPresetMetadata(dir)).toEqual({ name: '极简模式' })
+    expect(await readPresetMetadata(dir)).toEqual({ name: 'Minimal preset' })
   })
 
   it('reads a declared order', async () => {
-    const dir = await presetDir('name: 标准模式\norder: 1\n')
+    const dir = await presetDir('name: Standard preset\norder: 1\n')
 
-    expect(await readPresetMetadata(dir)).toEqual({ name: '标准模式', order: 1 })
+    expect(await readPresetMetadata(dir)).toEqual({ name: 'Standard preset', order: 1 })
   })
 
   it('ignores an order that is not a finite number', async () => {
@@ -89,20 +89,20 @@ describe('reading display metadata', () => {
 
 describe('rendering display metadata', () => {
   it('round-trips through a read', async () => {
-    const rendered = renderPresetMetadata({ name: '创造模式', description: '可以改自己的组装。' })
+    const rendered = renderPresetMetadata({ name: 'Creative preset', description: 'Can modify its own composition.' })
     const dir = await presetDir(rendered)
 
-    expect(await readPresetMetadata(dir)).toEqual({ name: '创造模式', description: '可以改自己的组装。' })
+    expect(await readPresetMetadata(dir)).toEqual({ name: 'Creative preset', description: 'Can modify its own composition.' })
   })
 
   it('stores a declared order', () => {
-    expect(renderPresetMetadata({ name: '标准模式', order: 1 })).toBe('name: 标准模式\norder: 1\n')
+    expect(renderPresetMetadata({ name: 'Standard preset', order: 1 })).toBe('name: Standard preset\norder: 1\n')
   })
 
   it('omits an absent field rather than writing it blank', () => {
-    expect(renderPresetMetadata({ name: '极简模式' })).toBe('name: 极简模式\n')
+    expect(renderPresetMetadata({ name: 'Minimal preset' })).toBe('name: Minimal preset\n')
     // Description without a name is legal too: the picker falls back to the id.
-    expect(renderPresetMetadata({ description: '只做检索。' })).toBe('description: 只做检索。\n')
+    expect(renderPresetMetadata({ description: 'Retrieval only.' })).toBe('description: Retrieval only.\n')
   })
 
   it('renders nothing when there is nothing to store', () => {

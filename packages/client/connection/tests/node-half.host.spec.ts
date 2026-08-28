@@ -337,6 +337,70 @@ describe('connection node half', () => {
     await fiber.dispose()
   })
 
+  it('pins intercepted plugin inventory management to loopback', async () => {
+    const ctx = new Context()
+    const routes: WebRoute[] = []
+    ctx.provide('webServer', fakeHttpServer(routes, []) as WebServer)
+    const fiber = ctx.plugin({ inject: [...inject], apply }, { trustedHosts: ['harness.example'] })
+    await fiber.await()
+    const connection = ctx.get('connection') as HostConnectionHandle
+    const calls: string[] = []
+    const remove = connection.rpc.intercept(
+      '/api',
+      () => true,
+      async (endpoint) => {
+        calls.push(endpoint)
+        return { ok: true, value: null }
+      },
+      { authority: 'trusted-host' },
+    )
+    const route = routes.find(candidate => candidate.path === API_PATH)!
+    const requestFor = (method: string): ClientRequest => ({
+      type: 'client-request',
+      rpcId: RpcId('rpc-plugin-inventory'),
+      method,
+      payload: {},
+    })
+
+    for (const endpoint of [
+      'pluginInventory/list',
+      'pluginInventory/setEnabled',
+      'pluginInventory/listMarketplaces',
+      'pluginInventory/addMarketplace',
+      'pluginInventory/installMarketplacePlugin',
+    ]) {
+      const denied = fakeResponse()
+      await route.handler(
+        fakePost({ host: 'harness.example' }, `${API_PATH}/${endpoint}`, requestFor(endpoint)),
+        denied.response,
+      )
+      expect([endpoint, denied.state.status, denied.state.body]).toEqual([endpoint, 403, 'forbidden'])
+    }
+    expect(calls).toEqual([])
+
+    const loopback = fakeResponse()
+    await route.handler(
+      fakePost(
+        { host: '127.0.0.1:3080' },
+        `${API_PATH}/pluginInventory/list`,
+        requestFor('pluginInventory/list'),
+      ),
+      loopback.response,
+    )
+    expect(loopback.state.status).toBe(200)
+
+    const ordinary = fakeResponse()
+    await route.handler(
+      fakePost({ host: 'harness.example' }, `${API_PATH}/goals/create`, requestFor('goals/create')),
+      ordinary.response,
+    )
+    expect(ordinary.state.status).toBe(200)
+    expect(calls).toEqual(['pluginInventory/list', 'goals/create'])
+
+    await remove()
+    await fiber.dispose()
+  })
+
   it('applies the configured trust fence and JSON envelope checks to generic channels', async () => {
     const ctx = new Context()
     const routes: WebRoute[] = []

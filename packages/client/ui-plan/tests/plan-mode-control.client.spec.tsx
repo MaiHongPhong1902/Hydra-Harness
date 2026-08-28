@@ -12,13 +12,13 @@ import { bindSnapshotSelector } from '@bosch/bh-client-test-runtime'
 import type { PlanProjection } from '@bosch/bh-plan-mode/client'
 import { PlanChip, type PlanChipProps } from '../src/client/PlanModeControl.tsx'
 import { makeTranslate } from '@bosch/bh-client-test-runtime'
-import { zh as commonZh } from '@bosch/bh-client-locale/src/locales/zh.ts'
-import { zh } from '../src/client/locales.ts'
+import { en as commonEn } from '@bosch/bh-client-locale/src/locales/en.ts'
+import { en } from '../src/client/locales.ts'
 
 afterEach(cleanup)
 
-// The framework-injected t seat, stubbed over the zh dictionaries (the default locale).
-const t: PlanChipProps['t'] = makeTranslate(zh, commonZh)
+// The framework-injected t seat, stubbed over the en dictionaries (the default locale).
+const t: PlanChipProps['t'] = makeTranslate(en, commonEn)
 
 function setup(
   plan: PlanProjection | undefined,
@@ -33,7 +33,7 @@ function setup(
   return { store, exitPlanMode, view }
 }
 
-const chip = () => screen.getByRole('button', { name: 'plan mode 已开启，按下关闭' })
+const chip = () => screen.getByRole('button', { name: 'Plan mode on, press to turn off' })
 
 describe('PlanChip', () => {
   it('renders nothing for an absent capability or a default-mode target', () => {
@@ -66,7 +66,7 @@ describe('PlanChip', () => {
     resolve(null)
     store.set({ value: { active: true, pending: true } })
     await waitFor(() => {
-      expect(screen.queryByRole('button', { name: 'plan mode 已开启，按下关闭' })).toBeNull()
+      expect(screen.queryByRole('button', { name: 'Plan mode on, press to turn off' })).toBeNull()
     })
   })
 

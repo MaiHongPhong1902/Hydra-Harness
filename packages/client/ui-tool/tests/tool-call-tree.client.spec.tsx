@@ -5,14 +5,14 @@ import { cleanup, render } from '@testing-library/react'
 import type { HostDescription } from '@bosch/bh-client-connection/client'
 import type { ConversationSnapshot, ToolResultNode } from '@bosch/bh-client-runtime/client'
 import { makeTranslate } from '@bosch/bh-client-test-runtime'
-import { zh as commonZh } from '@bosch/bh-client-locale/src/locales/zh.ts'
+import { en as commonEn } from '@bosch/bh-client-locale/src/locales/en.ts'
 import type { ToolTreeProps } from '../src/client/contract/slots.ts'
 import { ToolCallTree } from '../src/client/tool/ToolCallTree.tsx'
-import { zh } from '@bosch/bh-client-ui-conversation/src/client/locales.ts'
+import { en } from '@bosch/bh-client-ui-conversation/src/client/locales.ts'
 
 afterEach(cleanup)
 
-const t: ToolTreeProps['t'] = makeTranslate(zh, commonZh)
+const t: ToolTreeProps['t'] = makeTranslate(en, commonEn)
 
 const root = (callId: string, call: ToolResultNode['call']): ToolResultNode => ({
   kind: 'tool-result', seq: 3, time: 3_000, callId, call, callTime: 2_000,

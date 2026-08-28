@@ -11,7 +11,12 @@ import sessionReferencesRemote from '@bosch/bh-session-reference/remote'
 import type { TypertClientRemote } from '@bosch/bh-typert-protocol'
 
 export type { TypertClientRemote as ClientRemote } from '@bosch/bh-typert-protocol'
-export type { PluginInventorySnapshot } from '@bosch/bh-host-plugin-inventory/types'
+export type {
+  MarketplacePluginId,
+  MarketplacePluginInstallResult,
+  PluginInventorySnapshot,
+  PluginMarketplaceSnapshot,
+} from '@bosch/bh-host-plugin-inventory/types'
 export type {} from '@bosch/bh-commands/remote'
 export type {} from '@bosch/bh-file-reference/remote'
 export type {} from '@bosch/bh-goal/remote'

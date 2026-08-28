@@ -262,7 +262,7 @@ describe('subagent gateway', () => {
 
   it('routes human content through the exact live parent with rpc attribution', async () => {
     const { api, parent, followup } = bench()
-    const content = [{ type: 'text' as const, text: '继续' }]
+    const content = [{ type: 'text' as const, text: 'continue' }]
     const signal = new AbortController().signal
     const response = await api.subagents.prompt(request({
       parentSessionId: PARENT, childSessionId: CHILD, mode: 'continuable', content,

@@ -21,6 +21,8 @@ Ranking is deterministic, dependency-free lexical metadata matching: an exact wh
 
 Historical `skill-catalog` messages remain valid durable records and the Web transcript retains its generic catalog-form rendering for replay. The current producer emits no new `skill-catalog` message.
 
+The later [confident automatic routing decision](../bug-fix/2026-08-28-confident-automatic-skill-routing.md) permits one host-selected body only for a complete, unique, strong metadata match. Search remains the fallback and no roster is restored.
+
 This supersedes new catalog publication in the [skill-system decision](../feature/2026-07-05-skill-system.md) and the model-facing portion of [skill catalog hot refresh](../feature/2026-07-27-skill-catalog-hot-refresh.md). Registry snapshots, invalidation, filesystem watching, user-facing slash menus, and exact body refresh remain unchanged.
 
 ## Alternatives considered
@@ -37,6 +39,6 @@ This supersedes new catalog publication in the [skill-system decision](../featur
 
 ## Consequences
 
-Model-visible discovery has fixed schema cost and bounded per-search result cost rather than a roster proportional to registry size. A substantive skill-eligible task usually takes one extra tool round before exact loading; ordinary conversation takes none. Lexical matching can miss semantic synonyms or cross-language phrasing, so metadata authors need concrete routing terms and semantic retrieval remains a measured upgrade path. Loaded bodies remain uncapped and retain their existing history cost because this decision bounds discovery, not provider-owned instructions.
+Model-visible discovery has fixed schema cost and bounded per-search result cost rather than a roster proportional to registry size. A strong unambiguous task can load before the first model request under the later automatic-routing decision; other skill-eligible tasks take an extra search round and ordinary conversation takes none. Lexical matching can miss semantic synonyms or cross-language phrasing, so metadata authors need concrete routing terms and semantic retrieval remains a measured upgrade path. Loaded bodies remain uncapped and retain their existing history cost because this decision bounds discovery, not provider-owned instructions.
 
-Unit coverage pins a one-hundred-skill registry to the configured count cap, the total UTF-8 byte cap, deterministic ranking, incomplete discovery, scoped visibility, policy filtering, and zero body loads during search. Agent-spine integration creates a skill at runtime, finds it through search, and loads only its body. The real Loader badge snapshot proves an enabled bundled provider is searchable and loadable while the disabled composition returns no candidate.
+Unit coverage pins a one-hundred-skill registry to the configured count cap, the total UTF-8 byte cap, deterministic ranking, incomplete discovery, scoped visibility, policy filtering, and zero body loads during search. Agent-spine integration covers both explicit search/loading and confident pre-request injection. The real Loader badge snapshot proves an enabled bundled provider is searchable and loadable while the disabled composition returns no candidate.

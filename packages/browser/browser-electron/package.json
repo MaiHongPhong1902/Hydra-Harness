@@ -28,6 +28,7 @@
   "files": [
     "lib/index.js",
     "lib/invariant.js",
+    "electron-app/autofill-vault.cjs",
     "electron-app/main.cjs",
     "electron-app/chrome.html",
     "electron-app/chrome-preload.cjs",
@@ -42,6 +43,8 @@
     "@bosch/bh-agent": "workspace:^",
     "@bosch/bh-home-paths": "workspace:^",
     "@bosch/bh-invariants": "workspace:^",
+    "@bosch/bh-settings": "workspace:^",
+    "@bosch/bh-user-approval": "workspace:^",
     "@bosch/cordis": "workspace:^",
     "@bosch/schemastery": "workspace:^",
     "electron": "^43.4.1"
@@ -55,6 +58,8 @@
     "@bosch/bh-agent": "workspace:^",
     "@bosch/bh-home-paths": "workspace:^",
     "@bosch/bh-invariants": "workspace:^",
+    "@bosch/bh-settings": "workspace:^",
+    "@bosch/bh-user-approval": "workspace:^",
     "@bosch/bh-llm": "workspace:^",
     "@bosch/cordis": "workspace:^",
     "@bosch/schemastery": "workspace:^",

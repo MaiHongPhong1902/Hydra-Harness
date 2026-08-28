@@ -71,8 +71,8 @@ An **absolute** filesystem path keeps its own location. The mount converts it to
 A preset may publish display text in an optional `preset.yml` beside its composition:
 
 ```yaml
-name: 极简模式
-description: 仅提供持久 bash 与 str_replace_editor 的双工具编码 Agent。
+name: Minimal Mode
+description: Two-tool coding Agent with only persistent bash and str_replace_editor.
 ```
 
 It carries display text ONLY. `id` is the directory name and `trust` comes from the root the preset was discovered under, so neither is writable here — otherwise a locally authored preset could name itself into the shipped set. It is a separate file because the composition is a top-level list of plugin rows: YAML cannot carry sibling keys beside it, and a fake metadata row would hand the Loader something to load.

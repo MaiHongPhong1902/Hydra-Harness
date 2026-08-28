@@ -413,6 +413,6 @@ describe('ConnectionBanner', () => {
     const { container, rerender } = render(<ConnectionBanner reconnecting={false} />)
     expect(container.firstChild).toBeNull()
     rerender(<ConnectionBanner reconnecting />)
-    expect(container.textContent).toContain('重连')
+    expect(container.textContent).toContain('reconnecting')
   })
 })

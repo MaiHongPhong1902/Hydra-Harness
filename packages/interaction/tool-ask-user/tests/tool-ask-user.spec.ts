@@ -50,6 +50,7 @@ describe('ask_user_question tool', () => {
 
     expect(schema).toMatchObject({
       name: 'ask_user_question',
+      description: expect.stringContaining('choose it yourself'),
       parameters: {
         type: 'object',
         properties: {

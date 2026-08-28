@@ -1,6 +1,6 @@
 # @bosch/bh-tool-ask-user
 
-Model-facing `ask_user_question` tool over `ctx.userQuestions`. It lets the model ask the human a concise question when it needs confirmation, a choice, or missing information before continuing.
+Model-facing `ask_user_question` tool over `ctx.userQuestions`. It lets the model ask the human a concise question when it needs confirmation, a user-owned choice, or missing information before continuing. When the request clearly implies an available tool or execution path, the model should choose it itself instead of asking the user to choose between tools or implementation options.
 
 ## Tool
 

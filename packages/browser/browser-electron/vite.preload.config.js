@@ -25,6 +25,7 @@ export default defineConfig({
     enforce: 'post',
     generateBundle(_options, bundle) {
       for (const [fileName, output] of Object.entries(bundle)) {
+        if (output.type === 'chunk') output.code = output.code.replace(/[ \t]+$/gmu, '')
         // The only required CSS is imported with `?inline` by preload.entry.js.
         // Its regular PageController import still emits this unusable duplicate.
         if (output.type === 'asset' && fileName.endsWith('.css')) delete bundle[fileName]

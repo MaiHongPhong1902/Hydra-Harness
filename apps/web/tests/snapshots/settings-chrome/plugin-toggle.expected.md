@@ -1,12 +1,12 @@
 - listitem:
-  - button "session-stats, 已挂载, 已启用" [expanded]:
+  - button "session-stats, Mounted, Enabled" [expanded]:
     - strong: session-stats
-    - img "已挂载"
-    - text: 已启用
+    - img "Mounted"
+    - text: Enabled
     - img
   - code: {{entry-root}}:session-stats
-  - term: 配置状态
-  - definition: 已启用
-  - term: Cordis 状态
-  - definition: 已挂载
-  - button "停用插件"
+  - term: Configuration
+  - definition: Enabled
+  - term: Cordis status
+  - definition: Mounted
+  - button "Disable plugin"

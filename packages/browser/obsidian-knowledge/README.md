@@ -18,7 +18,9 @@ obsidian-knowledge:
   targetDomain: workon.example.internal
 ```
 
-`targetDomain` accepts one hostname without protocol, port, path, wildcard, or implicit subdomain matching. The settings document intentionally contains no vault path, MCP URL, or token.
+`targetDomain` accepts one hostname or HTTP(S) origin and normalizes it to the exact hostname used for Browser matching. Ports, credentials, paths, queries, fragments, wildcards, and implicit subdomain matching remain rejected. The settings document intentionally contains no vault path, MCP URL, or token.
+
+The Web app exposes `targetDomain` and the write-only `OBSIDIAN_API_KEY` credential under **Settings → Plugins → MCP**. The credential stays outside the settings document, and the MCP endpoint remains deployment configuration.
 
 Enable the Local REST API community plugin and its built-in MCP server in the intended vault. Create the unique marker `BH Website Knowledge/BH MCP Vault Identity.md`; BH reads it before each operation so a different open vault fails closed. BH connects on demand to `http://127.0.0.1:27123/mcp/`, uses a five-second timeout, and resolves the bearer token from BH credential reference `OBSIDIAN_API_KEY`.
 

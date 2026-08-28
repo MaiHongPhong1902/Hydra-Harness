@@ -430,6 +430,82 @@ describe('bh-agent-spine-demo bundle', () => {
     await ctx.fiber.dispose()
   })
 
+  it('injects one strong filesystem skill match before the first bundled model request', async () => {
+    const custom = await mkdtemp(join(tmpdir(), 'bh-agent-spine-demo-automatic-skill-'))
+    await writeFile(join(custom, 'workon-uat-test-design.md'), [
+      '---',
+      'name: workon-uat-test-design',
+      'description: Ground WorkON testcase lookup and test design in Obsidian knowledge.',
+      'whenToUse: Use for WorkON testcase lookup, test design, or live validation.',
+      '---',
+      '',
+      'Use obsidian_knowledge_recall before WorkON testing.',
+      '',
+    ].join('\n'))
+    const adapter = new MockAdapter([textResponse('ok')])
+    const ctx = await mount({
+      workspaceContext: false,
+      skills: { filesystem: { customSkillDirs: [custom] } },
+    })
+    try {
+      ctx.llm.registerAdapter(['mock'], adapter)
+      const handle = await ctx.agents.create({
+        sessionId: SessionId('automatic-skill-session'),
+        meta: { cwd: custom },
+        agentOptions: { provider: 'mock', model: 'mock' },
+      })
+
+      handle.agent.followup(createUserMessage({
+        content: [{ type: 'text', text: 'test tính năng search request trên workon' }],
+        source: { kind: 'user' },
+      }))
+      await waitForIdle(ctx, handle.agent)
+
+      expect(adapter.requests).toHaveLength(1)
+      expect(adapter.requests[0]?.messages.map(message => ({
+        role: message.role,
+        source: message.source,
+        text: messageText(message).replaceAll(custom, '{{skill-root}}').replaceAll(sep, '/'),
+      }))).toMatchInlineSnapshot(`
+        [
+          {
+            "role": "user",
+            "source": {
+              "kind": "user",
+            },
+            "text": "test tính năng search request trên workon",
+          },
+          {
+            "role": "user",
+            "source": {
+              "form": "instructions",
+              "kind": "skill-invocation",
+              "name": "workon-uat-test-design",
+              "trigger": "automatic",
+            },
+            "text": "<skill_content name=\"workon-uat-test-design\">
+        <skill_resources>
+        Base directory for this skill: {{skill-root}}
+        Resolve relative paths mentioned by this skill against the base directory before using them. Load referenced resources only as needed.
+        </skill_resources>
+
+        <skill_instructions>
+        Use obsidian_knowledge_recall before WorkON testing.
+        </skill_instructions>
+        </skill_content>",
+          },
+        ]
+      `)
+      expect(handle.agent.session.events.some(event => event.type === 'user/message'
+        && event.data.source.kind === 'skill-invocation'
+        && event.data.source.name === 'workon-uat-test-design')).toBe(true)
+      await handle.dispose()
+    } finally {
+      await ctx.fiber.dispose()
+      await rm(custom, { recursive: true, force: true })
+    }
+  })
+
   it('snapshots a created project skill through search and progressive loading', { timeout: 15_000 }, async () => {
     const root = await mkdtemp(join(tmpdir(), 'bh-agent-spine-demo-skill-refresh-'))
     const home = await mkdtemp(join(tmpdir(), 'bh-agent-spine-demo-skill-refresh-home-'))

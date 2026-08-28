@@ -186,7 +186,7 @@ describe('open', () => {
 
   it('installs the tail page: cold → loading → open with window and nodes in place', async () => {
     const { api, session } = makeSession()
-    const page = plainTurn(10, 3, '问', '答')
+    const page = plainTurn(10, 3, 'ask', 'answer')
     api.onHistory = () => histResponse(page, true)
     expect(session.getSnapshot().openState).toBe('cold')
     const opening = session.open()
@@ -233,9 +233,9 @@ describe('open', () => {
     api.onHistory = () => gate.promise
     const opening = session.open()
     // Three live frames land mid-open; seq 15 overlaps the page tail (page covers 10..15).
-    const page = plainTurn(10, 0, '早', '安')
+    const page = plainTurn(10, 0, 'morning', 'calm')
     session.handleMuxEnvelope('r1' as never, { type: 'session/event', sessionId: SID, event: ev.turnStart(15, 1) })
-    session.handleMuxEnvelope('r2' as never, { type: 'session/event', sessionId: SID, event: ev.user(16, '插进来的') })
+    session.handleMuxEnvelope('r2' as never, { type: 'session/event', sessionId: SID, event: ev.user(16, 'interjected') })
     gate.resolve(ok({
       events: entries(page) as never[],
       hasMore: false,
@@ -260,7 +260,7 @@ describe('live event path', () => {
   it('drops replayed frames at or below the window tail', async () => {
     const { session } = await opened()
     const before = session.getSnapshot()
-    session.handleMuxEnvelope('r' as never, { type: 'session/event', sessionId: SID, event: ev.user(3, '重放') })
+    session.handleMuxEnvelope('r' as never, { type: 'session/event', sessionId: SID, event: ev.user(3, 'replay') })
     await Promise.resolve()
     expect(session.getSnapshot().nodes).toEqual(before.nodes)
   })
@@ -311,16 +311,16 @@ describe('live event path', () => {
     }
 
     feed(ev.chunkStart(6, 1))
-    feed(ev.chunkText(7, 1, '累'))
-    feed(ev.chunkText(8, 1, '计'))
+    feed(ev.chunkText(7, 1, 'tally'))
+    feed(ev.chunkText(8, 1, ' up'))
     expect(published).toEqual([])
     expect(frames).toHaveLength(1)
 
     frames.shift()!(0)
     expect(published).toEqual([[0, 1, 2, 3, 4, 5, 6, 7, 8]])
 
-    feed(ev.chunkText(9, 1, '完成'))
-    feed(ev.assistant(10, 1, '累计完成'))
+    feed(ev.chunkText(9, 1, ' done'))
+    feed(ev.assistant(10, 1, 'all done'))
     await Promise.resolve()
     expect(published).toEqual([
       [0, 1, 2, 3, 4, 5, 6, 7, 8],
@@ -376,8 +376,8 @@ describe('live event path', () => {
 
 describe('paging', () => {
   it('prepends an older page and keeps seq continuity', async () => {
-    const older = plainTurn(0, 0, '旧问', '旧答')
-    const newer = plainTurn(6, 1, '新问', '新答')
+    const older = plainTurn(0, 0, 'old ask', 'old answer')
+    const newer = plainTurn(6, 1, 'new ask', 'new answer')
     const { api, session } = makeSession()
     api.onHistory = payload => payload.beforeSeq === undefined
       ? histResponse(newer, true)
@@ -393,9 +393,9 @@ describe('paging', () => {
   it('installs a page without interpreting business replacement metadata', async () => {
     const { api, session } = makeSession()
     api.onHistory = () => histResponse([
-      ev.compactSummary(80, '窗外范围的摘要', 3, 40),
+      ev.compactSummary(80, 'out-of-window range summary', 3, 40),
       ev.compactCheckpoint(81, 80, 3, 40),
-      ev.user(82, '压缩后的新问题'),
+      ev.user(82, 'new question after compaction'),
     ], true)
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     try {
@@ -412,8 +412,8 @@ describe('paging', () => {
   it('drops a discontinuous older page fail-soft (window unchanged, hasMore cleared)', async () => {
     const { api, session } = makeSession()
     api.onHistory = payload => payload.beforeSeq === undefined
-      ? histResponse(plainTurn(10, 1, '新', '页'), true)
-      : histResponse(plainTurn(0, 0, '断', '层'), true) // tail seq 5, but baseSeq is 10 → hole
+      ? histResponse(plainTurn(10, 1, 'new', 'page'), true)
+      : histResponse(plainTurn(0, 0, 'break', 'layer'), true) // tail seq 5, but baseSeq is 10 → hole
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     try {
       await session.open()
@@ -453,7 +453,7 @@ describe('prompt and cancel errors', () => {
       parentAvailable: true,
     })
     await session.open()
-    const prompted = await session.prompt([{ type: 'text', text: '继续' }], 'queue')
+    const prompted = await session.prompt([{ type: 'text', text: 'continue' }], 'queue')
     const cancelled = await session.cancel()
 
     expect(prompted).toEqual({ ok: true, value: { accepted: true } })
@@ -464,7 +464,7 @@ describe('prompt and cancel errors', () => {
     expect(api.callsOf('subagent.prompt')).toEqual([
       {
         parentSessionId: PARENT, childSessionId: SID, mode: 'continuable',
-        content: [{ type: 'text', text: '继续' }],
+        content: [{ type: 'text', text: 'continue' }],
         clientTimeZone: new Intl.DateTimeFormat().resolvedOptions().timeZone,
       },
     ])
@@ -505,7 +505,7 @@ describe('prompt and cancel errors', () => {
       address: { parentSessionId: PARENT, childSessionId: SID, mode: 'one-shot' },
     })
     await session.open()
-    const prompted = await session.prompt([{ type: 'text', text: '继续' }], 'queue')
+    const prompted = await session.prompt([{ type: 'text', text: 'continue' }], 'queue')
     const cancelled = await session.cancel()
 
     expect(prompted).toMatchObject({ ok: false, error: { code: 'subagent-not-resumable' } })
@@ -525,7 +525,7 @@ describe('prompt and cancel errors', () => {
     // flow reads the phase on the session area's first frame to keep the
     // guidance hero from flashing back in.
     expect(session.getSnapshot().composerPhase).toBe('blank')
-    const inFlight = session.prompt([{ type: 'text', text: '要发的' }], 'queue')
+    const inFlight = session.prompt([{ type: 'text', text: 'to send' }], 'queue')
     expect(session.getSnapshot().composerPhase).toBe('engaging')
     const result = await inFlight
     expect(result.ok).toBe(true)
@@ -534,7 +534,7 @@ describe('prompt and cancel errors', () => {
     expect(api.callsOf('session.prompt')).toMatchObject([{
       sessionId: SID,
       mode: 'queue',
-      content: [{ type: 'text', text: '要发的' }],
+      content: [{ type: 'text', text: 'to send' }],
       clientTimeZone: new Intl.DateTimeFormat().resolvedOptions().timeZone,
     }])
     // First content lands (running turn): engaging → active.
@@ -546,7 +546,7 @@ describe('prompt and cancel errors', () => {
     const { api, session } = makeSession()
     session.handleBlank(true)
     api.onPrompt = () => Promise.resolve(err({ code: 'agent-busy', message: 'busy', details: { reason: 'x' } }))
-    const result = await session.prompt([{ type: 'text', text: '失败的' }], 'queue')
+    const result = await session.prompt([{ type: 'text', text: 'failing' }], 'queue')
     expect(result.ok).toBe(false)
     expect(session.getSnapshot().promptError).toMatchObject({ op: 'send', error: { code: 'agent-busy' } })
     // Failed first prompt: composer + error strip is the retry surface —
@@ -581,15 +581,15 @@ describe('prompt and cancel errors', () => {
 describe('rename', () => {
   it('settles the title projection cell from the unary response (higher-seq-wins vs the push frame)', async () => {
     const { api, session } = makeSession()
-    api.onRename = () => Promise.resolve(ok({ title: '正名', seq: 7 }))
-    const result = await session.rename('  正名  ')
-    expect(result).toMatchObject({ ok: true, value: { title: '正名', seq: 7 } })
-    expect(api.callsOf('session.rename')).toMatchObject([{ sessionId: SID, title: '  正名  ' }])
-    expect(session.projections.faceOf('title').getSnapshot()).toBe('正名')
+    api.onRename = () => Promise.resolve(ok({ title: 'Renamed', seq: 7 }))
+    const result = await session.rename('  Renamed  ')
+    expect(result).toMatchObject({ ok: true, value: { title: 'Renamed', seq: 7 } })
+    expect(api.callsOf('session.rename')).toMatchObject([{ sessionId: SID, title: '  Renamed  ' }])
+    expect(session.projections.faceOf('title').getSnapshot()).toBe('Renamed')
     // A stale lower-seq apply (the push-frame path routes into this same
     // store) must not roll the settled value back.
-    session.projections.apply('title', '旧名', 3)
-    expect(session.projections.faceOf('title').getSnapshot()).toBe('正名')
+    session.projections.apply('title', 'Old Name', 3)
+    expect(session.projections.faceOf('title').getSnapshot()).toBe('Renamed')
   })
 
   it('returns the business error untouched and folds a transport throw to internal', async () => {
@@ -746,9 +746,9 @@ describe('remaining branches', () => {
   it('approval frame with callId/reason keeps the optional fields; duplicate resolved is a no-op', () => {
     const { session } = makeSession()
     session.handleMuxEnvelope('ra' as never, {
-      type: 'approval/requested', sessionId: SID, approvalId: 'ap2' as never, toolName: 'rm', callId: 'c1' as never, reason: '危险',
+      type: 'approval/requested', sessionId: SID, approvalId: 'ap2' as never, toolName: 'rm', callId: 'c1' as never, reason: 'danger',
     })
-    expect(session.getSnapshot().pending[0]).toMatchObject({ kind: 'approval', payload: { callId: 'c1', reason: '危险' } })
+    expect(session.getSnapshot().pending[0]).toMatchObject({ kind: 'approval', payload: { callId: 'c1', reason: 'danger' } })
     session.handleMuxEnvelope('rx' as never, { type: 'approval/resolved', sessionId: SID, approvalId: 'ap2' as never, outcome: 'approved' as never })
     session.handleMuxEnvelope('rx2' as never, { type: 'approval/resolved', sessionId: SID, approvalId: 'ap2' as never, outcome: 'approved' as never })
     session.handleMuxEnvelope('ry2' as never, { type: 'question/resolved', sessionId: SID, questionRpcId: 'never-was' as never, outcome: 'cancelled' })
@@ -767,11 +767,11 @@ describe('remaining branches', () => {
 
   it('drops live events while cold/error (no window upkeep)', async () => {
     const { api, session } = makeSession()
-    session.handleMuxEnvelope('r' as never, { type: 'session/event', sessionId: SID, event: ev.user(0, '冷态帧') })
+    session.handleMuxEnvelope('r' as never, { type: 'session/event', sessionId: SID, event: ev.user(0, 'cold frame') })
     expect(session.getSnapshot().nodes).toEqual([])
     api.onHistory = () => Promise.resolve(err({ code: 'internal', message: 'x', details: {} }))
     await session.open()
-    session.handleMuxEnvelope('r' as never, { type: 'session/event', sessionId: SID, event: ev.user(0, '错态帧') })
+    session.handleMuxEnvelope('r' as never, { type: 'session/event', sessionId: SID, event: ev.user(0, 'error frame') })
     expect(session.getSnapshot().nodes).toEqual([])
   })
 
@@ -787,8 +787,8 @@ describe('remaining branches', () => {
     }
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     try {
-      session.handleMuxEnvelope('r1' as never, { type: 'session/event', sessionId: SID, event: ev.user(9, '洞一') })
-      session.handleMuxEnvelope('r2' as never, { type: 'session/event', sessionId: SID, event: ev.user(10, '洞二') }) // stitching: detours, no second repair
+      session.handleMuxEnvelope('r1' as never, { type: 'session/event', sessionId: SID, event: ev.user(9, 'hole one') })
+      session.handleMuxEnvelope('r2' as never, { type: 'session/event', sessionId: SID, event: ev.user(10, 'hole two') }) // stitching: detours, no second repair
       expect(repairs).toBe(1)
       gate.reject(new Error('repair wire down'))
       await vi.waitFor(() => { expect(errorSpy).toHaveBeenCalled() })
@@ -816,10 +816,10 @@ describe('remaining branches', () => {
     const stale = deferred<Awaited<ReturnType<FakeApiClient['onHistory']>>>()
     api.onHistory = () => stale.promise
     const opening = session.open()
-    api.onHistory = () => histResponse(plainTurn(6, 1, '新', '代'))
+    api.onHistory = () => histResponse(plainTurn(6, 1, 'new', 'gen'))
     const resynced = session.resync()
     stale.resolve(ok({
-      events: entries(plainTurn(0, 0, '旧', '代')) as never[],
+      events: entries(plainTurn(0, 0, 'old', 'gen')) as never[],
       hasMore: false,
       modelSelection: { provider: 'deepseek-official', model: 'stale' },
     })) // success, but its generation is gone
@@ -856,11 +856,11 @@ describe('remaining branches', () => {
     await session.open()
     const repairPull = deferred<Awaited<ReturnType<FakeApiClient['onHistory']>>>()
     api.onHistory = () => repairPull.promise
-    session.handleMuxEnvelope('r' as never, { type: 'session/event', sessionId: SID, event: ev.user(9, '洞') }) // starts repairGap
+    session.handleMuxEnvelope('r' as never, { type: 'session/event', sessionId: SID, event: ev.user(9, 'hole') }) // starts repairGap
     api.onHistory = () => histResponse(plainTurn(6, 1, 'c', 'd'))
     const resynced = session.resync() // bumps the generation
     repairPull.resolve(ok({
-      events: entries(plainTurn(0, 0, '旧', '页')) as never[],
+      events: entries(plainTurn(0, 0, 'old', 'page')) as never[],
       hasMore: false,
       modelSelection: { provider: 'deepseek-official', model: 'stale' },
     })) // repair result: stale, dropped
@@ -884,12 +884,12 @@ describe('remaining branches', () => {
 
   it('carries history-entry and mux-frame views into the business-neutral Event input', async () => {
     const { api, session } = makeSession()
-    const callView = { for: 'call', view: { card: 'generic', title: '历史卡' } }
+    const callView = { for: 'call', view: { card: 'generic', title: 'history card' } }
     api.onHistory = () => Promise.resolve(ok({
       events: [
         ...entries(plainTurn(0, 0, 'a', 'b')),
         { event: ev.toolCall(6, 1, 'h1', 'bash', '{}'), view: callView },
-        { event: ev.toolResult(7, 1, 'h1', 'done'), view: { for: 'result', view: { card: 'generic', title: '历史果' } } },
+        { event: ev.toolResult(7, 1, 'h1', 'done'), view: { for: 'result', view: { card: 'generic', title: 'history result' } } },
       ] as never[],
       hasMore: false,
       modelSelection: { provider: 'deepseek-official', model: 'deepseek-v4-flash' },
@@ -897,21 +897,21 @@ describe('remaining branches', () => {
     await session.open()
     expect(chatEvents(session.getSnapshot()).slice(-2).map(item => item.view)).toEqual([
       callView,
-      { for: 'result', view: { card: 'generic', title: '历史果' } },
+      { for: 'result', view: { card: 'generic', title: 'history result' } },
     ])
     session.handleMuxEnvelope('rv1' as never, {
       type: 'session/event', sessionId: SID, event: ev.toolCall(8, 2, 'l1', 'write', '{}'),
-      view: { for: 'call', view: { card: 'generic', title: '直播卡' } },
+      view: { for: 'call', view: { card: 'generic', title: 'live card' } },
     } as never)
     expect(chatEvents(session.getSnapshot()).at(-1)?.view).toEqual({
-      for: 'call', view: { card: 'generic', title: '直播卡' },
+      for: 'call', view: { card: 'generic', title: 'live card' },
     })
     session.handleMuxEnvelope('rv2' as never, {
       type: 'session/event', sessionId: SID, event: ev.toolResult(9, 2, 'l1', 'ok'),
-      view: { for: 'result', view: { card: 'generic', title: '直播果' } },
+      view: { for: 'result', view: { card: 'generic', title: 'live result' } },
     } as never)
     expect(chatEvents(session.getSnapshot()).at(-1)?.view).toEqual({
-      for: 'result', view: { card: 'generic', title: '直播果' },
+      for: 'result', view: { card: 'generic', title: 'live result' },
     })
   })
 })
@@ -955,7 +955,7 @@ describe('resync', () => {
     const stale = deferred<Awaited<ReturnType<FakeApiClient['onHistory']>>>()
     api.onHistory = () => stale.promise
     const firstOpen = session.open()
-    api.onHistory = () => histResponse(plainTurn(6, 1, '新', '代'))
+    api.onHistory = () => histResponse(plainTurn(6, 1, 'new', 'gen'))
     const resynced = session.resync()
     stale.reject(new Error('dead connection')) // the doomed pre-disconnect request fails late
     await firstOpen
@@ -970,14 +970,14 @@ describe('resync', () => {
 describe('reference stability (the memo contract)', () => {
   it('keeps unchanged node references across an append and swaps the snapshot object', async () => {
     const { api, session } = makeSession()
-    api.onHistory = () => histResponse(plainTurn(0, 0, '稳', '定'))
+    api.onHistory = () => histResponse(plainTurn(0, 0, 'steady', 'settled'))
     await session.open()
     const before = session.getSnapshot()
     const firstKey = before.chat.order[0]!
     const secondKey = before.chat.order[1]!
     const first = before.chat.nodes.get(firstKey)
     const second = before.chat.nodes.get(secondKey)
-    session.handleMuxEnvelope('r' as never, { type: 'session/event', sessionId: SID, event: ev.user(6, '追加') })
+    session.handleMuxEnvelope('r' as never, { type: 'session/event', sessionId: SID, event: ev.user(6, 'append') })
     const after = session.getSnapshot()
     expect(after).not.toBe(before) // top-level swap on change
     expect(after.chat.nodes.get(firstKey)).toBe(first)
@@ -989,7 +989,7 @@ describe('reference stability (the memo contract)', () => {
 
   it('keeps unrelated Session arrays and settled Chat Nodes stable across Event updates', async () => {
     const { api, session } = makeSession()
-    api.onHistory = () => histResponse(plainTurn(0, 0, '底', '座'))
+    api.onHistory = () => histResponse(plainTurn(0, 0, 'bottom', 'base'))
     await session.open()
     const feed = (event: SessionEvent) => { session.handleMuxEnvelope('r' as never, { type: 'session/event', sessionId: SID, event }) }
     feed(ev.turnStart(6, 1))
@@ -1000,7 +1000,7 @@ describe('reference stability (the memo contract)', () => {
     const settledKey = before.chat.order[0]!
     const settledNode = before.chat.nodes.get(settledKey)
     feed(ev.chunkStart(9, 1))
-    feed(ev.chunkText(10, 1, '与工具无关的流式'))
+    feed(ev.chunkText(10, 1, 'stream unrelated to tools'))
     const after = session.getSnapshot()
     expect(after).not.toBe(before)
     expect(after.runningCalls).toBe(before.runningCalls)
@@ -1010,7 +1010,7 @@ describe('reference stability (the memo contract)', () => {
     const resolved = session.getSnapshot()
     expect(resolved.pending).toBe(after.pending)
     expect(resolved.chat.nodes.get(settledKey)).toBe(settledNode)
-    feed(ev.assistant(12, 1, '完成'))
+    feed(ev.assistant(12, 1, 'done'))
     expect(session.getSnapshot()).not.toBe(resolved)
   })
 })

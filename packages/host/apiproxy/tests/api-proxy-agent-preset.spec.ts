@@ -485,7 +485,7 @@ describe('authoring over the wire', () => {
     const { api } = await harness(['standard'])
 
     const response = await api.agentPresets.copy(
-      request({ from: 'standard', agentPreset: 'mine', name: '我的模式' }))
+      request({ from: 'standard', agentPreset: 'mine', name: 'My preset' }))
 
     expect(response.result.ok).toBe(true)
     if (!response.result.ok) throw new Error('unreachable')

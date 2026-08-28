@@ -291,6 +291,122 @@
   color: var(--dsw-alias-state-error-primary);
 }
 
+.marketplaceToolbar,
+.marketplaceHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.marketplaceWarning,
+.marketplaceRestart {
+  margin: 0;
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.marketplaceRestart {
+  border: 1px solid color-mix(in srgb, var(--dsw-alias-state-success-primary) 30%, transparent);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: color-mix(in srgb, var(--dsw-alias-state-success-primary) 8%, transparent);
+  color: var(--dsw-alias-state-success-primary);
+}
+
+.marketplaceForm,
+.marketplaces,
+.marketplace,
+.marketplacePlugin {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.marketplaceForm {
+  gap: 8px;
+}
+
+.marketplaceForm label {
+  color: var(--dsw-alias-label-secondary);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.marketplaceForm input {
+  height: 34px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 6px;
+  padding: 0 10px;
+  outline: none;
+  background: var(--dsw-alias-bg-layer-1);
+  color: var(--dsw-alias-label-primary);
+  font: inherit;
+}
+
+.marketplaceForm input:focus-visible {
+  border-color: var(--dsw-alias-state-business-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--dsw-alias-state-business-primary) 18%, transparent);
+}
+
+.marketplace {
+  border-top: 1px solid var(--dsw-alias-border-l2);
+  padding-top: 12px;
+}
+
+.marketplaceHeader {
+  align-items: baseline;
+}
+
+.marketplaceHeader code {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.marketplaceHeader h3,
+.marketplacePlugin p {
+  margin: 0;
+}
+
+.marketplaceHeader h3 {
+  font-size: 14px;
+}
+
+.marketplaceHeader code,
+.marketplacePlugin code {
+  overflow-wrap: anywhere;
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 11px;
+}
+
+.marketplacePlugin {
+  align-items: flex-start;
+  padding: 12px 14px;
+}
+
+.marketplacePlugin strong {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.marketplacePlugin p {
+  color: var(--dsw-alias-label-secondary);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.installed {
+  color: var(--dsw-alias-state-success-primary);
+  font-size: 12px;
+}
+
+.marketplacePlugin > button {
+  align-self: flex-start;
+}
+
 .visuallyHidden {
   position: absolute;
   width: 1px;

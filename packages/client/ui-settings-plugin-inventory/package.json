@@ -33,6 +33,7 @@
     "client": {
       "inject": [
         "@bosch/bh-api-remotes",
+        "@bosch/bh-client-connection",
         "@bosch/bh-client-runtime",
         "@bosch/bh-client-ui-settings",
         "@bosch/bh-client-locale"
@@ -47,6 +48,7 @@
   "license": "MIT",
   "peerDependencies": {
     "@bosch/bh-api-remotes": "workspace:^",
+    "@bosch/bh-client-connection": "workspace:^",
     "@bosch/bh-client-locale": "workspace:^",
     "@bosch/bh-client-runtime": "workspace:^",
     "@bosch/bh-client-ui-settings": "workspace:^",
@@ -55,6 +57,7 @@
   },
   "devDependencies": {
     "@bosch/bh-api-remotes": "workspace:^",
+    "@bosch/bh-client-connection": "workspace:^",
     "@bosch/bh-client-locale": "workspace:^",
     "@bosch/bh-client-runtime": "workspace:^",
     "@bosch/bh-client-test-runtime": "workspace:^",

@@ -18,9 +18,9 @@ import type {
 import type { ToolResultView } from '@bosch/bh-api-remotes/client'
 import type { SelectionTarget } from '@bosch/bh-client-ui-conversation/client'
 import { makeTranslate } from '@bosch/bh-client-test-runtime'
-import { zh as commonZh } from '@bosch/bh-client-locale/src/locales/zh.ts'
+import { en as commonEn } from '@bosch/bh-client-locale/src/locales/en.ts'
 import { CHAT_SEARCH_MAX_LINES, searchCardModel } from '../src/client/tool/models/search-card-model.ts'
-import { zh } from '@bosch/bh-client-ui-conversation/src/client/locales.ts'
+import { en } from '@bosch/bh-client-ui-conversation/src/client/locales.ts'
 import { createChatStore } from '@bosch/bh-client-ui-conversation/src/client/stores.ts'
 import { GenericToolCard, type GenericToolCardProps } from '../src/client/tool/toolviews/GenericToolCard.tsx'
 import { DetailsPanel } from '@bosch/bh-client-ui-conversation/src/client/skeleton/DetailsPanel.tsx'
@@ -33,7 +33,7 @@ type SearchRowProps = Parameters<typeof SearchRow>[0]
 afterEach(cleanup)
 
 /** Conversation-locale translate stub for the render sites' `t` seat. */
-const t: GenericToolCardProps['t'] = makeTranslate(zh, commonZh)
+const t: GenericToolCardProps['t'] = makeTranslate(en, commonEn)
 
 /** The rendered search card's kind attribute, so a render site cannot silently drop it. */
 function searchKindOf(container: HTMLElement): string | null {
@@ -255,7 +255,7 @@ describe('SearchRow keyed card', () => {
     expect(searchRows(view.container)).toContain('12: const foo = 1')
     expect(searchKindOf(view.container)).toBe('matches')
     // The card's copy control lives inside the expanded body.
-    expect(view.getByText('复制')).toBeTruthy()
+    expect(view.getByText('Copy')).toBeTruthy()
   })
 
   it('expands to the glob path card', () => {
@@ -457,7 +457,7 @@ describe('DetailsPanel Output section (search)', () => {
       nodes: [settledGrep({ callView: null, resultView: null })],
     }), grepTarget)
     expect(searchKindOf(view.container)).toBeNull()
-    const output = view.getByText('输出').closest('section')
+    const output = view.getByText('Output').closest('section')
     expect(output?.querySelector('pre')?.textContent).toContain('const foo = 1')
   })
 })

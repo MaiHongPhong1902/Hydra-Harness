@@ -72,7 +72,11 @@ function renderConfigurable(namespaces: string[], cards: Record<string, string> 
     useConfigurablePlugins: bindSnapshotSelector(store),
     renderSlot: (_name: string, _owner: object, opts?: { entryKey?: string }) => {
       const card = opts?.entryKey === undefined ? undefined : cards[opts.entryKey]
-      return card === undefined ? null : <li>{card}</li>
+      return card === undefined ? null : (
+        <div data-slot="settings.plugin.item">
+          <div role="listitem">{card}</div>
+        </div>
+      )
     },
   } as unknown as ConfigurablePluginsTabProps
   render(<ConfigurablePluginsTab {...props} />)

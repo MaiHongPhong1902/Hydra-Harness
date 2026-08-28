@@ -136,7 +136,7 @@ function fakeApi(
 
 function seed(): Map<string, FakePreset> {
   return new Map<string, FakePreset>([
-    ['standard', { trust: 'system', content: '- id: tool-bash\n', name: '标准模式' }],
+    ['standard', { trust: 'system', content: '- id: tool-bash\n', name: 'Standard Mode' }],
     ['mine', { trust: 'user', content: '- id: tool-read\n' }],
   ])
 }
@@ -170,7 +170,7 @@ describe('loading the roster', () => {
     expect(state.authorable).toBe(true)
     expect(state.hasDocument).toBe(false)
     expect(state.rows.map((row: PresetRow) => row.id)).toEqual(['standard', 'mine'])
-    expect(state.rows[0]).toMatchObject({ trust: 'system', isDefault: true, name: '标准模式' })
+    expect(state.rows[0]).toMatchObject({ trust: 'system', isDefault: true, name: 'Standard Mode' })
   })
 
   it('reports an empty roster as unavailable, not as an error', async () => {
@@ -218,7 +218,7 @@ describe('the read-only viewer', () => {
     await controller.view('standard')
 
     expect(controller.store.getSnapshot().view).toEqual({
-      id: 'standard', title: '标准模式', content: '- id: tool-bash\n',
+      id: 'standard', title: 'Standard Mode', content: '- id: tool-bash\n',
     })
   })
 
@@ -270,7 +270,7 @@ describe('the copy dialog', () => {
     controller.beginCopy('standard')
 
     expect(copyOf(controller)).toMatchObject({
-      from: 'standard', fromTitle: '标准模式', id: '', name: '', saving: false,
+      from: 'standard', fromTitle: 'Standard Mode', id: '', name: '', saving: false,
     })
   })
 
@@ -326,7 +326,7 @@ describe('the copy blocker', () => {
     { id: 'mine', trust: 'user', isDefault: false },
   ]
   const draft = (id: string): CopyDraft =>
-    ({ from: 'standard', fromTitle: '标准模式', id, name: '', saving: false, error: null })
+    ({ from: 'standard', fromTitle: 'Standard Mode', id, name: '', saving: false, error: null })
 
   it('requires an id, a containable shape, and a free name', () => {
     expect(draftBlocker(draft(''), rows)).toBe('idRequired')
@@ -343,7 +343,7 @@ describe('submitting a copy', () => {
     await controller.load()
     controller.beginCopy('standard')
     controller.setCopyId('my-copy')
-    controller.setCopyName('我的模式')
+    controller.setCopyName('My Mode')
 
     await controller.confirmCopy()
 
@@ -352,7 +352,7 @@ describe('submitting a copy', () => {
     expect(state.rows.map(row => row.id)).toContain('my-copy')
     expect(rosterChanges()).toBe(1)
     expect(calls.find(call => call.method === 'copy')?.payload)
-      .toEqual({ from: 'standard', agentPreset: 'my-copy', name: '我的模式' })
+      .toEqual({ from: 'standard', agentPreset: 'my-copy', name: 'My Mode' })
     // A preset is its files from here on, so landing in them completes the
     // copy rather than following it.
     expect(calls.find(call => call.method === 'openDocument')?.payload)

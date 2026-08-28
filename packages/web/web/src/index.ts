@@ -63,8 +63,6 @@ export interface WebRuntimeConfig {
  * The web access service. Registered as `ctx.web` (one instance per context).
  *
  * Selection semantics (resolved at execution time, never order-dependent):
- * - A request model-provider id that is registered and `available()` → that provider.
- * - A request model-provider id that is absent/unavailable → a model-provider error; never a configured fallback.
  * - A configured id that is registered and `available()` → that provider.
  * - A configured id not registered → `WEB_PROVIDER_CONFIGURED_MISSING`.
  * - A configured id registered but unavailable →
@@ -140,12 +138,10 @@ export class WebRuntime extends Service {
    * @returns the provider's results, capped to `request.maxResults`.
    */
   async search(request: WebSearchRequest, signal?: AbortSignal): Promise<WebSearchResult> {
-    const provider = request.modelProvider === undefined
-      ? resolveProvider({
-        providers: this.searchProviders,
-        ...this.searchProviderId !== undefined ? { configuredId: this.searchProviderId } : {},
-      })
-      : resolveModelSearchProvider(this.searchProviders, request.modelProvider)
+    const provider = resolveProvider({
+      providers: this.searchProviders,
+      ...this.searchProviderId !== undefined ? { configuredId: this.searchProviderId } : {},
+    })
     const result = await provider.search(request, signal)
     return capSources(result, request.maxResults)
   }
@@ -195,27 +191,6 @@ function resolveProvider<P extends ResolvableProvider>(selection: Selection<P>):
     throw new WebError(`multiple usable web providers are registered (${ids}); configure one explicitly`, 'WEB_PROVIDER_AMBIGUOUS')
   }
   return single
-}
-
-/** Resolve a model-owned search adapter without crossing to another provider. */
-function resolveModelSearchProvider(
-  providers: ReadonlyMap<string, WebSearchProvider>,
-  modelProvider: string,
-): WebSearchProvider {
-  const provider = providers.get(modelProvider)
-  if (provider === undefined) {
-    throw new WebError(
-      `model provider "${modelProvider}" has no compatible web search adapter; no other provider will be used`,
-      'WEB_MODEL_PROVIDER_SEARCH_UNSUPPORTED',
-    )
-  }
-  if (!provider.available()) {
-    throw new WebError(
-      `model provider "${modelProvider}" has a web search adapter but it is unavailable`,
-      'WEB_MODEL_PROVIDER_SEARCH_UNAVAILABLE',
-    )
-  }
-  return provider
 }
 
 /** Enforce `maxResults` on a search result: truncate `sources[]` and flag it. */

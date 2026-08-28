@@ -12,10 +12,6 @@ import type {
   ConfigurablePluginsTabFace, PluginsSettingsSectionInjected,
 } from '@bosch/bh-client-ui-settings-plugins/client'
 
-// These specs assert the shipped Chinese copy. The lane has no jsdom `window`,
-// so browser-language detection never runs and a fresh LocaleRuntime opens on
-// FALLBACK_LOCALE (en); bench stages zh explicitly on the locale instead.
-
 /**
  * @param served - namespaces the Host describes; omitted answers a failed read,
  * which is what most of these specs want (no card has anything to render).
@@ -24,7 +20,6 @@ async function bench(served?: string[]) {
   const ctx = new Context()
   await ctx.plugin(SlotRegistry).await()
   const locale = new LocaleRuntime(ctx)
-  locale.setLocale('zh')
   ctx.provide('locale', locale)
   const describeCredentials = vi.fn(() => Promise.resolve({ rpcId: 'c', result: { ok: false, error: {} } }))
   const describeSettings = vi.fn(() => Promise.resolve(served === undefined
@@ -78,11 +73,13 @@ describe('ui-settings-plugins apply', () => {
     const section = slots.entries('settings.section')[0]!
     expect(section.options).toMatchObject({ id: 'plugins', order: 15 })
     // The nav label is a locale-following thunk; owners resolve it at read time.
-    expect(resolveSlotLabel(section.options.label)).toBe('插件')
+    expect(resolveSlotLabel(section.options.label)).toBe('Plugins')
     expect(slots.spec('settings.plugins.tab')).toMatchObject({ kind: 'list', scope: 'root' })
-    const tab = slots.entries('settings.plugins.tab')[0]!
-    expect(tab.options).toMatchObject({ id: 'configurable', order: 0 })
-    expect(resolveSlotLabel(tab.options.label)).toBe('插件配置')
+    const tabs = slots.entries('settings.plugins.tab')
+    expect(tabs[0]?.options).toMatchObject({ id: 'configurable', order: 0 })
+    expect(resolveSlotLabel(tabs[0]!.options.label)).toBe('Plugin configuration')
+    expect(tabs[1]?.options).toMatchObject({ id: 'mcp', order: 5 })
+    expect(resolveSlotLabel(tabs[1]!.options.label)).toBe('MCP')
     expect(slots.spec('settings.plugin.item')).toMatchObject({ kind: 'keyed', scope: 'root' })
   })
 
@@ -96,16 +93,18 @@ describe('ui-settings-plugins apply', () => {
     const sectionFace = (section.inject as unknown as () => PluginsSettingsSectionInjected)()
     const initialTabs = sectionFace.hooks.tabs.getSnapshot()
     expect(initialTabs).toEqual([
-      { id: 'configurable', order: 0, label: '插件配置' },
+      { id: 'configurable', order: 0, label: 'Plugin configuration' },
+      { id: 'mcp', order: 5, label: 'MCP' },
     ])
     expect(sectionFace.hooks.tabs.getSnapshot()).toBe(initialTabs)
 
     const listener = vi.fn()
     const unsubscribe = sectionFace.hooks.tabs.subscribe(listener)
-    slots.register({ name: 'settings.plugins.tab', id: 'plain' } as never, () => null)
+    slots.register({ name: 'settings.plugins.tab', id: 'plain', order: 30 } as never, () => null)
     expect(sectionFace.hooks.tabs.getSnapshot()).toEqual([
-      { id: 'configurable', order: 0, label: '插件配置' },
-      { id: 'plain', order: 0, label: '' },
+      { id: 'configurable', order: 0, label: 'Plugin configuration' },
+      { id: 'mcp', order: 5, label: 'MCP' },
+      { id: 'plain', order: 30, label: '' },
     ])
     unsubscribe()
 
@@ -181,6 +180,18 @@ describe('ui-settings-plugins apply', () => {
     // A key written on another surface changes no settings section, so this
     // event is the only thing that reaches the card.
     ctx.remote.$dispatch('credentials/reference-updated', ['DEEPSEEK_API_KEY'])
+
+    await vi.waitFor(() => { expect(describeCredentials).toHaveBeenCalledTimes(1) })
+  })
+
+  it('re-reads the Obsidian credential from the MCP tab', async () => {
+    const { ctx, slots, describeCredentials } = await bench()
+    declareRoot(slots)
+    await ctx.plugin({ inject: [...inject], apply }).await()
+    await vi.waitFor(() => { expect(describeCredentials).toHaveBeenCalled() })
+    describeCredentials.mockClear()
+
+    ctx.remote.$dispatch('credentials/reference-updated', ['OBSIDIAN_API_KEY'])
 
     await vi.waitFor(() => { expect(describeCredentials).toHaveBeenCalledTimes(1) })
   })

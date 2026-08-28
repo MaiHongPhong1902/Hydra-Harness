@@ -44,7 +44,7 @@ The spine is everything COMMON to every entry point. The swappable and entry-poi
 - **the LLM adapter** — the bundle ships the abstract `llm` service; the leaf registers a concrete adapter on `ctx.llm` (`llm-deepseek`, `llm-pi-ai`, `llm-replay`).
 - **model-backed session-title providers** — the bundle mounts the fallback service with overridable example limits (5 words, 40 fallback bytes, 80 accepted-title bytes); a leaf may opt into exactly one first-prompt or all-messages LLM provider.
 - **the bash executor** — the bundle ships `tool-bash` (the consumer schema); the leaf provides `ctx.shell` (`bash-local` or a sandboxed impl).
-- **non-local skill providers** — the bundle ships the skill registry, local filesystem provider, and `skill_search`/`skill` tools; deployments can add embedded or remote providers as siblings.
+- **non-local skill providers** — the bundle ships the skill registry, local filesystem provider, confident pre-request selection, and `skill_search`/`skill` tools; deployments can add embedded or remote providers as siblings.
 - **entry point + per-app infrastructure** — headless, ACP, and JSON-RPC app packages own transport, stdout, and reload choices. `timer` stays in the spine because it is common and stdout-silent.
 
 This applies the [Service Definition / Service Provider / Consumer separation](../../../.agents/notes/implemented/architecture/2026-06-13-capability-seams.md) at the composition level: the bundle owns the shared spine, the leaf owns the backends, the app package owns the entry point.

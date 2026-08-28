@@ -1,5 +1,5 @@
 /**
- * Bounded model-facing skill search and exact skill loading.
+ * Bounded skill routing, model-facing search, and exact loading.
  *
  * @module @bosch/bh-tool-skill
  */
@@ -58,7 +58,7 @@ export const Config: z<Config> = z.object({
 })
 
 /**
- * Register bounded model-facing search, exact loading, and direct user invocation.
+ * Register bounded automatic routing, model-facing search, exact loading, and direct user invocation.
  */
 export function apply(ctx: Context, config: Config = {}): void {
   const searchMaxResults = config.searchMaxResults ?? DEFAULT_SEARCH_MAX_RESULTS
@@ -188,7 +188,7 @@ export function apply(ctx: Context, config: Config = {}): void {
       })
       exec.signal.throwIfAborted()
       return boundedSearchResult(
-        rankSkills(snapshot.skills.filter(isModelInvocable), args.query),
+        rankSkills(snapshot.skills.filter(isModelInvocable), args.query).map(entry => entry.skill),
         snapshot.complete,
         searchMaxResults,
         searchDescriptionMaxLength,
@@ -201,8 +201,8 @@ export function apply(ctx: Context, config: Config = {}): void {
   })
   ctx.tools.register(skillSearchTool)
 
-  // User-explicit skill invocation: a claimed user message containing
-  // `/<name>` naming a user-invocable skill is a deterministic load gesture.
+  // Skill invocation: an explicit `/<name>` gesture takes precedence; otherwise
+  // a complete registry snapshot may contribute one unambiguous strong match.
   // The rendered body enters this step as instructions context after every
   // other injection, closest to the model's answer.
   // Only `source.kind === 'user'` messages are scanned — external text
@@ -218,10 +218,34 @@ export function apply(ctx: Context, config: Config = {}): void {
     const decision = await next()
     if (decision.kind === 'reject') return decision
     const names = invokedSkillNames(messages)
-    if (names.length === 0) return decision
+    const task = directUserText(messages)
+    if (names.length === 0 && task === '') return decision
     signal.throwIfAborted()
     const lookup = { cwd: agent.session.header.cwd, signal, scope: agent }
     const injections: UserMessage[] = []
+    if (names.length === 0) {
+      try {
+        const snapshot = await ctx.skills.snapshot(lookup)
+        signal.throwIfAborted()
+        if (!snapshot.complete) return decision
+        const selected = automaticallySelectedSkill(rankSkills(snapshot.skills.filter(isModelInvocable), task))
+        if (selected === undefined) return decision
+        const skill = await ctx.skills.get(selected.name, lookup)
+        signal.throwIfAborted()
+        if (skill === undefined || !isModelInvocable(skill)) return decision
+        const source: SkillInvocationSource = {
+          kind: 'skill-invocation', name: skill.name, trigger: 'automatic', form: 'instructions',
+        }
+        injections.push(createUserMessage({
+          content: [{ type: 'text', text: renderSkillContent(skill) }],
+          source,
+        }))
+      } catch (error) {
+        signal.throwIfAborted()
+        ctx.logger.warn(`tool-skill: automatic routing failed: ${String(error)}`)
+        return decision
+      }
+    }
     for (const name of names) {
       const skill = await ctx.skills.get(name, lookup)
       signal.throwIfAborted()
@@ -230,7 +254,7 @@ export function apply(ctx: Context, config: Config = {}): void {
       // on the loaded definition — the single lookup that produces what is
       // actually injected.
       if (skill === undefined || !isUserInvocable(skill)) continue
-      const source: SkillInvocationSource = { kind: 'skill-invocation', name, form: 'instructions' }
+      const source: SkillInvocationSource = { kind: 'skill-invocation', name, trigger: 'user', form: 'instructions' }
       injections.push(createUserMessage({
         content: [{ type: 'text', text: renderSkillContent(skill) }],
         source,
@@ -246,6 +270,8 @@ interface RankedSkill {
   readonly exactName: boolean
   readonly matchedTerms: number
   readonly nameMatches: number
+  readonly nameTermCount: number
+  readonly leadingNameMatch: boolean
   readonly whenToUseMatches: number
   readonly descriptionMatches: number
 }
@@ -255,10 +281,10 @@ const ROUTING_TERM = /[\p{L}\p{N}]+/gu
 /**
  * Rank model-invocable skill summaries against task keywords without loading any body.
  * @param skills - candidate summaries visible to the calling agent.
- * @param query - concise model-authored task keywords.
- * @returns matching summaries in deterministic relevance order.
+ * @param query - task text or concise model-authored keywords.
+ * @returns matching summaries and scores in deterministic relevance order.
  */
-function rankSkills(skills: readonly SkillSummary[], query: string): SkillSummary[] {
+function rankSkills(skills: readonly SkillSummary[], query: string): RankedSkill[] {
   const queryPhrase = routingPhrase(query)
   const queryTerms = new Set(queryPhrase.split(' ').filter(Boolean))
   if (queryTerms.size === 0) return []
@@ -267,7 +293,8 @@ function rankSkills(skills: readonly SkillSummary[], query: string): SkillSummar
   const ranked: RankedSkill[] = []
   for (const skill of skills) {
     const namePhrase = routingPhrase(skill.name)
-    const nameTerms = new Set(namePhrase.split(' ').filter(Boolean))
+    const nameTermList = namePhrase.split(' ')
+    const nameTerms = new Set(nameTermList)
     const descriptionTerms = routingTerms(skill.description)
     const whenToUseTerms = routingTerms(skill.whenToUse ?? '')
     const allTerms = new Set([...nameTerms, ...descriptionTerms, ...whenToUseTerms])
@@ -279,6 +306,8 @@ function rankSkills(skills: readonly SkillSummary[], query: string): SkillSummar
       exactName,
       matchedTerms,
       nameMatches: countMatches(queryTerms, nameTerms),
+      nameTermCount: nameTerms.size,
+      leadingNameMatch: queryTerms.has(nameTermList[0] as string),
       whenToUseMatches: countMatches(queryTerms, whenToUseTerms),
       descriptionMatches: countMatches(queryTerms, descriptionTerms),
     })
@@ -289,7 +318,26 @@ function rankSkills(skills: readonly SkillSummary[], query: string): SkillSummar
     || right.whenToUseMatches - left.whenToUseMatches
     || right.descriptionMatches - left.descriptionMatches
     || compareText(left.skill.name, right.skill.name))
-  return ranked.map(entry => entry.skill)
+  return ranked
+}
+
+function automaticallySelectedSkill(ranked: readonly RankedSkill[]): SkillSummary | undefined {
+  const best = ranked.find(isStrongAutomaticMatch)
+  if (best === undefined) return undefined
+  const next = ranked.slice(ranked.indexOf(best) + 1).find(isStrongAutomaticMatch)
+  if (next !== undefined
+    && next.exactName === best.exactName
+    && next.matchedTerms === best.matchedTerms
+    && next.nameMatches === best.nameMatches
+    && next.whenToUseMatches === best.whenToUseMatches
+    && next.descriptionMatches === best.descriptionMatches) return undefined
+  return best.skill
+}
+
+function isStrongAutomaticMatch(candidate: RankedSkill): boolean {
+  return candidate.exactName
+    ? candidate.nameTermCount >= 2
+    : candidate.matchedTerms >= 2 && candidate.nameMatches >= 2 && candidate.leadingNameMatch
 }
 
 function boundedSearchResult(
@@ -371,8 +419,14 @@ function countMatches(left: ReadonlySet<string>, right: ReadonlySet<string>): nu
   return count
 }
 
+function directUserText(messages: readonly UserMessage[]): string {
+  return messages.flatMap(message => (message.source as { kind?: unknown }).kind === 'user'
+    ? message.content.flatMap(block => block.type === 'text' ? [block.text] : [])
+    : []).join('\n').trim()
+}
+
 function compareText(left: string, right: string): number {
-  return left < right ? -1 : left > right ? 1 : 0
+  return Number(left > right) - Number(left < right)
 }
 
 /** Normalize and length-bound one model-visible summary field. */

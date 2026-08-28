@@ -21,7 +21,7 @@ Three smaller decisions ride along:
 - `Tooltip` gains an optional `maxWidth`. Its default half-viewport cap renders a description as a slab wider than the settings dialog it belongs to, spilling across the application behind it.
 - `Tooltip` also flips a `top` or `bottom` bubble to the other side when the viewport has no room for it, which its horizontal-only clamp previously left unhandled. Custom presets sit at the bottom of the roster and carry the longest descriptions, so the common case put a tall bubble under an anchor low on the page. The flip only moves into a side that genuinely fits, so an anchor with room on neither side keeps the requested placement rather than oscillating; sliding the bubble vertically instead would cover the text being read.
 
-A roster row that failed its shape check is badged `Failed to load` (`加载失败`) rather than `Broken` (`已损坏`). Discovery sets `broken` when the composition file is missing, unreadable, or malformed — most often a file the user just edited or deleted — so a damage claim overstates what was observed, and the verbatim reason under the badge already names the file and the fix.
+A roster row that failed its shape check is badged `Failed to load` (`Load failed`) rather than `Broken` (`Damaged`). Discovery sets `broken` when the composition file is missing, unreadable, or malformed — most often a file the user just edited or deleted — so a damage claim overstates what was observed, and the verbatim reason under the badge already names the file and the fix.
 
 ## Alternatives considered
 

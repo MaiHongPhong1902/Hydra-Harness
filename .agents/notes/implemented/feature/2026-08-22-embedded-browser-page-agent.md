@@ -22,7 +22,7 @@ Two packages under a new `browser/` family, and a vendored perception core.
 
 `@bosch/bh-tool-browser` owns everything the model sees: eight `browser_*` schemas, the DOM-format prompt section, the character cap, the card titles, the origin approval. Nothing in it knows the browser is Electron.
 
-The page is perceived and driven by [page-agent](https://github.com/alibaba/page-agent)'s `PageController`, vendored verbatim at `packages/browser/browser-electron/third-party/page-controller/` and bundled into the view's preload. It turns the live DOM into a numbered element list — `[12]<button>Save</button>` — and acts by index. Its own header says it is "designed to be independent of LLM", and that is exactly the half taken: page-agent's ReAct core, its `AgentOutput` shape, and its `done` action are all left behind, because the loop is the harness's.
+The page is perceived and driven by [page-agent](https://github.com/alibaba/page-agent)'s `PageController`, vendored verbatim at `packages/browser/browser-electron/third-party/page-agent/packages/page-controller/` and bundled into the view's preload. It turns the live DOM into a numbered element list — `[12]<button>Save</button>` — and acts by index. Its own header says it is "designed to be independent of LLM", and that is exactly the half taken: page-agent's ReAct core, its `AgentOutput` shape, and its `done` action are all left behind, because the loop is the harness's.
 
 ### The extension, ported
 

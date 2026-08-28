@@ -30,6 +30,8 @@ cd bosch-harness
 pnpm install
 pnpm run build
 pnpm bh web
+# for desktop:
+pnpm run desktop
 ```
 
 `pnpm run build` prepares the repository artifacts. `pnpm bh web` uses those built artifacts without rebuilding.

@@ -198,7 +198,7 @@ describe('goal tool registration and presentation', () => {
 describe('goal tool execution authority', () => {
   it('lets a root model infer create intent from its accepted human turn', async () => {
     const { ctx, root } = await harness()
-    openTurn(root, { kind: 'user' }, '请持续工作直到这个功能完成')
+    openTurn(root, { kind: 'user' }, 'please keep working until this feature is complete')
     const result = await execute(ctx, 'create_goal', {
       objective: 'Finish the feature', max_goal_rounds: 9,
     }, root.agent)
@@ -269,7 +269,7 @@ describe('goal tool execution authority', () => {
     ctx.agents.register(fork.agent)
     expect(ctx.goals.get(fork.agent)).toMatchObject({ id: created.id, activation: 'disarmed' })
 
-    openTurn(fork, { kind: 'user' }, '继续这个目标')
+    openTurn(fork, { kind: 'user' }, 'continue this goal')
     const resumed = await execute(ctx, 'update_goal', {
       goal_id: created.id, revision: created.revision, action: 'resume',
     }, fork.agent)
@@ -406,7 +406,7 @@ describe('goal tool state transitions', () => {
     closeTurn(root, turn)
     agentEvents(ctx, root.agent).emit('agent/session-start', { source: 'resume' })
     expect(ctx.goals.get(root.agent)?.activation).toBe('disarmed')
-    turn = openTurn(root, { kind: 'user' }, '继续')
+    turn = openTurn(root, { kind: 'user' }, 'continue')
     const resumed = await execute(ctx, 'update_goal', {
       goal_id: created.id, revision: created.revision, action: 'resume',
     }, root.agent)

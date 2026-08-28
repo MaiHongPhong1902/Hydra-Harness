@@ -30,13 +30,13 @@ export function ConfigurablePluginsTab(props: ConfigurablePluginsTabProps) {
   const { loaded, namespaces } = props.useConfigurablePlugins(snapshot => snapshot)
   if (namespaces.length > 0) {
     return (
-      <ul className={css.cards}>
+      <div className={css.cards} role="list">
         {namespaces.map(ns => (
           // One dispatch per namespace, so the list identity is the namespace
           // rather than a position that shifts as cards arrive.
           <Fragment key={ns}>{renderSlot('settings.plugin.item', {}, { entryKey: ns })}</Fragment>
         ))}
-      </ul>
+      </div>
     )
   }
   return loaded ? <p className={css.empty}>{t('empty')}</p> : null

@@ -1,6 +1,6 @@
 /**
  * ui-skill browser half: source and keyed toolview registration +
- * locale dictionaries + source duplicate-name proof +
+ * locale dictionary + source duplicate-name proof +
  * fiber-teardown removal (HMR safety) against the real InputTriggerService, then
  * the source behavior contract driven directly on the captured source with
  * real ClientSessionContext projections — sessionId addressing, the
@@ -21,6 +21,7 @@ import { InputTriggerService } from '@bosch/bh-client-ui-input-trigger/client'
 import { TestRemote } from '@bosch/bh-client-test-runtime'
 import type { ClientSessionContext, InputTriggerSource } from '@bosch/bh-client-ui-input-trigger/client'
 import { apply, inject } from '../src/client/index.ts'
+import { en } from '../src/client/locales.ts'
 import { SkillRow as SkillToolRow } from '../src/client/SkillRow.tsx'
 
 type SkillRow = { name: string; description: string; whenToUse?: string; modelInvocable?: boolean }
@@ -56,8 +57,8 @@ function providePresentation(ctx: Context): PresentationCapture {
       capture.dictionaries.push({ namespace, dictionaries })
       return () => { capture.localeDisposed = true }
     },
-    // Minimal bound-translate fake: zh dictionary lookup, key passthrough on miss.
-    bind: () => (key: string) => key === 'menu.userOnly' ? '仅用户' : key,
+    // Minimal bound-translate fake: English dictionary lookup, key passthrough on miss.
+    bind: () => (key: string) => key === 'menu.userOnly' ? en['menu.userOnly'] : key,
   })
   return capture
 }
@@ -110,7 +111,7 @@ describe('apply', () => {
     expect(inject).toEqual(['inputTriggers', 'connection', 'sessions', 'slots', 'locale', 'remote'])
   })
 
-  it('registers the dedicated skill row and its locale dictionaries', async () => {
+  it('registers the dedicated skill row and its locale dictionary', async () => {
     const ctx = new Context()
     ctx.provide('inputTriggers', { registerSource: () => () => {} })
     ctx.provide('connection', { api: { skills: { list: listOk(CATALOG) } } })
@@ -123,22 +124,7 @@ describe('apply', () => {
     expect(entry?.locale).toBe('skill')
     expect(entry?.component).toBe(SkillToolRow)
     expect(presentation.dictionaries).toEqual([{
-      namespace: 'skill', dictionaries: {
-        zh: {
-          'row.running': '正在加载 skill',
-          'row.failed': 'skill 加载失败',
-          'row.stopped': 'skill 加载已中止',
-          'row.instructions': '说明',
-          'menu.userOnly': '仅用户',
-        },
-        en: {
-          'row.running': 'Loading skill',
-          'row.failed': 'Skill load failed',
-          'row.stopped': 'Skill load stopped',
-          'row.instructions': 'Instructions',
-          'menu.userOnly': 'user-only',
-        },
-      },
+      namespace: 'skill', dictionaries: { en },
     }])
   })
 
@@ -376,7 +362,7 @@ describe('user-only marking', () => {
     const candidates = await source.candidates(proj('s1'), req(''))
     expect(candidates).toEqual([
       { name: 'shared-skill', description: 'both surfaces' },
-      { name: 'user-only-skill', description: '仅用户 · user surface only' },
+      { name: 'user-only-skill', description: 'user-only · user surface only' },
     ])
   })
 })

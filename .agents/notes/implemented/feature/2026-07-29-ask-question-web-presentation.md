@@ -6,7 +6,7 @@ Status: implemented
 
 The Web GUI could already collect answers through the `QuestionComposer` composer takeover, but the transcript around it was wrong on three counts. A pending question rendered twice: once as the composer takeover and once as the read-only `PendingCard` placeholder that predates the takeover. A settled `ask_user_question` call rendered as the generic "Tool call" row dumping raw args JSON, so the two composer verdicts — the user dismissing the whole set (`ASK_CANCELLED`) and a turn interrupt landing while the question was pending (`ASK_ABORTED`) — both read as anonymous red-dot failures. And the composer's own chrome copy (pager, buttons, placeholders, validation feedback) was hardcoded Chinese while the surrounding client is bilingual through `bh-client-locale`.
 
-Separately, the composer visuals had drifted from the current design: an expand-to-open custom answer entry, no multi-select affordance beyond a trailing check, header-mounted paging, and a `（可多选）` title-suffix convention parsed out of model text.
+Separately, the composer visuals had drifted from the current design: an expand-to-open custom answer entry, no multi-select affordance beyond a trailing check, header-mounted paging, and a `(multi-select)` title-suffix convention parsed out of model text.
 
 ## Decision
 
@@ -28,7 +28,7 @@ Two adjacent fixes ride along. All generic toolview leading icons (and the hover
 
 **Translate the row verdicts now.** Deferred by explicit product decision: the row's `waiting`/`answered`/`cancelled`/`interrupted` strings stay English for this change; the composer chrome i18n landed because its Chinese-only copy was already wrong for the en locale.
 
-**Keep the title-suffix multi-select convention.** Rejected: `multi_select` is structured request metadata and the checkbox affordance now carries the signal, so parsing `（可多选）` out of model text was a fragile duplicate channel.
+**Keep the title-suffix multi-select convention.** Rejected: `multi_select` is structured request metadata and the checkbox affordance now carries the signal, so parsing `(multi-select)` out of model text was a fragile duplicate channel.
 
 ## Consequences
 

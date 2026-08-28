@@ -39,7 +39,7 @@ The registry is host+per-scope layered over [`@bosch/bh-scope`](../../core/scope
 
 ### Shared model-facing rendering
 
-`renderSkillContent(skill)` renders one loaded skill as the canonical `<skill_content>` block (escaped `name` attribute, resource hints, verbatim body). It is the single truth for both loading paths: `bh-tool-skill` returns it as the `skill` tool result and injects it at the user-explicit gesture boundary, so the model sees one shape regardless of who initiated the load. `escapeText` is exported beside it for consumers embedding prose in the same markup frame. The package also declares the `skill-invocation` `MessageSource` kind ({ name, form: 'instructions' }) that user-explicit injection stamps on its messages — transcript consumers present the invocation from this metadata instead of re-parsing the body.
+`renderSkillContent(skill)` renders one loaded skill as the canonical `<skill_content>` block (escaped `name` attribute, resource hints, verbatim body). It is the single truth for every loading path: `bh-tool-skill` returns it as the `skill` tool result and uses it for automatic and user-explicit injections, so the model sees one shape regardless of who initiated the load. `escapeText` is exported beside it for consumers embedding prose in the same markup frame. The package also declares the `skill-invocation` `MessageSource` kind ({ name, trigger?: 'automatic' | 'user', form: 'instructions' }) that host injection stamps on its messages — current producers always set `trigger`, while older durable records without it remain readable.
 
 `isModelInvocable(skill)` and `isUserInvocable(skill)` read the matching positive field directly. `ctx.skills.get()` remains the trusted, policy-neutral loading primitive, so every user- or model-facing consumer must enforce the predicate that matches its surface before exposing or loading a skill.
 
@@ -59,15 +59,15 @@ Definitions remain progressively loaded. `get()` asks the winning provider for t
 
 ## Consumer boundary
 
-The registry does not render model guidance or register model-facing tools. [`@bosch/bh-tool-skill`](../tool-skill) consumes `ctx.skills` to provide bounded `skill_search`, exact `skill` loading, and direct user invocation, so providers remain independent of model-facing behavior.
+The registry does not render model guidance or register model-facing tools. [`@bosch/bh-tool-skill`](../tool-skill) consumes `ctx.skills` to provide bounded automatic routing, `skill_search`, exact `skill` loading, and direct user invocation, so providers remain independent of model-facing behavior.
 
 ## Model Experience
 
-Indirectly, through `bh-tool-skill`, which renders a bounded on-demand metadata shortlist and selected instructions into retained tool results.
+Indirectly, through `bh-tool-skill`, which renders an automatically selected strong match or a bounded on-demand metadata shortlist and selected instructions.
 
 #### KV Cache effect
 
-No direct prompt effect. The named consumer adds no automatic roster; only explicit search, exact loading, or a direct user gesture appends model-visible content.
+No direct prompt effect. The named consumer adds no automatic roster; only a strong automatic match, explicit search, exact loading, or a direct user gesture appends model-visible content.
 
 ## Known Limitations and Deferred Work
 

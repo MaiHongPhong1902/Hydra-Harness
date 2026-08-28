@@ -192,7 +192,10 @@ export class SessionInputShell implements SessionInput {
     this.publish()
   }
 
-  /** Keep only browser-selected text ids whose local objects still exist. */
+  /**
+   * Keep only browser-selected text ids whose local objects still exist.
+   * @param available - live registry ids.
+   */
   pruneBrowserAnnotations(available: readonly DraftAttachmentId[]): void {
     const keep = new Set(available)
     const next = this.browserAnnotationIds.filter(id => keep.has(id))
@@ -220,6 +223,7 @@ export class SessionInputShell implements SessionInput {
    * the undo history is cut, so Ctrl/Cmd-Z cannot resurrect sent content
    * (the command path gets the same discipline from submit-settled success).
    * @param imageIds - admitted image ids to remove from this draft.
+   * @param browserAnnotationIds - admitted browser annotation ids to remove.
    */
   commitSend(
     imageIds: readonly DraftAttachmentId[],

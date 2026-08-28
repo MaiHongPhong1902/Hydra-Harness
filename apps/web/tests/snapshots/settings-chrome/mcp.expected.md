@@ -1,0 +1,6 @@
+- tabpanel "MCP":
+  - list:
+    - listitem:
+      - 'button "Show settings: Obsidian MCP"':
+        - text: Obsidian MCP Knowledge access through the local Obsidian MCP server at 127.0.0.1:27123.
+        - img

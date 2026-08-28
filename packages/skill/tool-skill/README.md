@@ -1,8 +1,8 @@
 # @bosch/bh-tool-skill
 
-Bounded model-facing skill discovery, exact instruction loading, and deterministic user invocation.
+Bounded automatic skill routing, model-facing discovery, exact instruction loading, and deterministic user invocation.
 
-Requires `ctx.agents`, `ctx.tools`, and `ctx.skills` (`inject: ['agents', 'tools', 'skills']`). The plugin does not inject a session-wide skill catalog or load any skill body automatically.
+Requires `ctx.agents`, `ctx.tools`, and `ctx.skills` (`inject: ['agents', 'tools', 'skills']`). The plugin does not inject a session-wide skill catalog. It may inject one strongly matched skill body for a direct user task.
 
 ## Tool: `skill_search`
 
@@ -26,6 +26,12 @@ Choose zero or one candidate. Call `skill` only for the best match; load another
 
 An empty complete search renders `(none)` and means no skill should be loaded. This two-step contract keeps model-visible discovery cost bounded even when the registry contains many skills.
 
+## Automatic invocation
+
+Before an accepted step reaches the model, direct-user text is ranked with the same lexical metadata scores as `skill_search`. The host loads exactly one skill only when the registry snapshot is complete and the best model-invocable candidate is unambiguous before lexical name tie-breaking. An exact whole name is strong only when the skill name has multiple terms. Other matches require at least two distinct name terms including the leading name term. Greetings, generic test requests, description-only matches, ties, and non-user text load nothing; `skill_search` remains the fallback.
+
+An explicit `/name` gesture suppresses automatic routing for that step. Automatic discovery and loading fail open on stale, invalid, incomplete, or failing providers, while cancellation still stops the step. A successful injection uses durable `skill-invocation` source metadata with `trigger: 'automatic'`; direct gestures use `trigger: 'user'`.
+
 ## Tool: `skill`
 
 | Arg | Type | Notes |
@@ -38,7 +44,7 @@ Resource guidance resolves only paths or URLs explicitly referenced by the instr
 
 ## User-explicit invocation
 
-A whitespace-bounded `/name` token in a claimed direct-user message deterministically loads a user-invocable skill and appends its full `<skill_content>` rendering after the other injections for that step. Tokens from non-user sources cannot forge the gesture; unknown or user-disabled names stay ordinary prose. This is the model-independent path for `disable-model-invocation` skills and does not call `skill_search` or `skill`.
+A whitespace-bounded `/name` token in a claimed direct-user message deterministically loads a user-invocable skill and appends its full `<skill_content>` rendering after the other injections for that step. Tokens from non-user sources cannot forge the gesture; unknown or user-disabled names stay ordinary prose. This is the model-independent path for `disable-model-invocation` skills, takes precedence over automatic routing, and does not call `skill_search` or `skill`.
 
 ## Model Experience
 
@@ -100,7 +106,7 @@ Append-only after the reusable request prefix.
 
 ## Known Limitations and Deferred Work
 
-- Search is lexical metadata matching, not semantic retrieval. Add a semantic index only after measured routing misses justify its dependency and operational cost.
+- Automatic routing and search use lexical metadata matching, not semantic retrieval. Add a semantic index only after measured routing misses justify its dependency and operational cost.
 - Loaded instruction bodies have no size cap; a provider can return a body that consumes substantial next-step context.
 - Resources are guidance, not attachments; the tools neither enumerate nor fetch referenced files.
 - Loading is one-shot text; there is no partial, streaming, or cached-content handle.

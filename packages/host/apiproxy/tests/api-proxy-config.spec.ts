@@ -371,7 +371,7 @@ describe('settings domain', () => {
       preference: z.union(['light', 'dark', 'system']).default('system'),
     }))
     ctx.settings.register(settingsNamespace('locale'), z.object({
-      preference: z.union(['zh', 'en']).required(false),
+      preference: z.union(['en']).required(false),
     }))
     ctx.settings.register(settingsNamespace('ui-conversation'), z.object({
       busyEnter: z.union(['queue', 'steer']).default('queue'),

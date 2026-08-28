@@ -84,11 +84,11 @@ The two existing applications preserve the division: the Web application mounts 
 The sections from here down are the protocol body carried by the front layer (`bh-host-apiproxy`). The wire has exactly four message kinds (the four quadrants) — the Web carriage in the right column is only an example; swapping the carrier (in-process/IPC) leaves the quadrants unchanged:
 
 ```
-                 client 发起                      server 发起
+                 client-initiated                server-initiated
   request   ① ClientRequest                 ③ ServerRequest
-            （POST /api/<method> body）      （WebSocket message：session 事件、审批/问答 requested）
+            (POST /api/<method> body)      (WebSocket message: session events, approval/question requested)
   response  ② ServerResponse                ④ ClientResponse
-            （该 POST 的 HTTP 应答体）        （POST /api/respond body，回填 ③ 的 rpcId）
+            (that POST's HTTP response body)        (POST /api/respond body, backfilling ③'s rpcId)
 ```
 
 ### Wire full forms: a four-member named discriminated union (`api/rpc.ts`)
@@ -124,10 +124,10 @@ Method parameter/return structures **live only in the interface method signature
 
 ```ts ignore-check
 export interface RpcMethodMap {
-  'session.list': SessionsApi['list']        // map key 即 wire 路径段
-  // …其余方法同形登记，全集见 api/rpc-map.ts
+  'session.list': SessionsApi['list']        // map key IS the wire path segment
+  // …the remaining methods are registered the same way; see the full set in api/rpc-map.ts
 }
-// 派生泛型（穿透窄形取业务类型；实际声明带 K extends keyof RpcMethodMap 约束）
+// Derived generics (reach through the narrow form to the business type; the actual declaration carries a K extends keyof RpcMethodMap constraint)
 export type RequestPayload<K> = Parameters<RpcMethodMap[K]>[0]['payload']
 export type ResponseValue<K> =
   Awaited<ReturnType<RpcMethodMap[K]>> extends RpcResponse<infer T> ? T : never

@@ -16,7 +16,7 @@ import type {
 import { formatFileMention } from '@bosch/bh-file-reference/grammar'
 import type { FileReferenceCandidate } from '@bosch/bh-file-reference/types'
 import type { SessionReferenceMentionCandidate } from '@bosch/bh-session-reference/types'
-import { en, NS, zh, type ReferenceKey } from './locales.ts'
+import { en, NS, type ReferenceKey } from './locales.ts'
 
 /** Required services: the trigger registry, the Remote namespaces, and the copy. */
 export const inject = [
@@ -28,7 +28,7 @@ export const inject = [
  * @param ctx - client root context.
  */
 export function apply(ctx: ClientContext): void {
-  ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'ui-reference: dictionaries')
+  ctx.effect(() => ctx.locale.register(NS, { en }), 'ui-reference: dictionaries')
   const t = ctx.locale.bind(NS)
   const source: InputTriggerSource = {
     trigger: '@',

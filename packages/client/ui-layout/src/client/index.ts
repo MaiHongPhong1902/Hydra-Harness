@@ -5,15 +5,59 @@
  * layout store (panel geometry), and wires the panel-action service face.
  * ctx.layout is the cross-plugin panel-action contract; navigation state lives
  * with the runtime sessions service. A second effect seats the theme
- * presenter, which projects ctx.theme snapshots onto document.body.
+ * presenter, which projects ctx.theme snapshots onto document.body. The same
+ * desktop feature owner contributes Browser settings when its preload exists.
  */
 import type { ClientContext } from '@bosch/bh-client-runtime/client'
 import type {} from '@bosch/bh-client-ui-theme/client'
+import type {} from '@bosch/bh-client-ui-settings/client'
+import type {} from '@bosch/bh-client-locale/client'
 import type { PanelActions } from './service.ts'
 import { AppFrame } from './AppFrame.tsx'
+import { BrowserSection, BROWSER_SETTINGS_NAMESPACE } from './BrowserSection.tsx'
+import type { BrowserSectionInjected, BrowserSettings } from './BrowserSection.tsx'
+import { en as browserEn } from './browser-locales.ts'
+import type { BrowserKey } from './browser-locales.ts'
+import type { DesktopBrowserApi } from './DesktopBrowserPanel.tsx'
 import { createLayoutStore } from './stores.ts'
 import { LayoutController } from './service.ts'
 import { ThemePresenter } from './theme-presenter.ts'
+
+type BrowserManagementApi = DesktopBrowserApi & Required<Pick<
+  DesktopBrowserApi,
+  'configure' | 'clearData' | 'history' | 'removeHistory' | 'downloads'
+  | 'removeDownload' | 'sites' | 'setSite' | 'removeSite'
+>>
+
+type AutofillManagementApi = DesktopBrowserApi & Required<Pick<
+  DesktopBrowserApi,
+  'autofillStatus' | 'autofillListLogins' | 'autofillSaveLogin' | 'autofillRemoveLogin'
+  | 'autofillListContacts' | 'autofillGetContact' | 'autofillSaveContact' | 'autofillRemoveContact'
+>>
+
+function hasBrowserManagement(browser: DesktopBrowserApi | undefined): browser is BrowserManagementApi {
+  return browser !== undefined
+    && typeof browser.configure === 'function'
+    && typeof browser.clearData === 'function'
+    && typeof browser.history === 'function'
+    && typeof browser.removeHistory === 'function'
+    && typeof browser.downloads === 'function'
+    && typeof browser.removeDownload === 'function'
+    && typeof browser.sites === 'function'
+    && typeof browser.setSite === 'function'
+    && typeof browser.removeSite === 'function'
+}
+
+function hasAutofillManagement(browser: DesktopBrowserApi): browser is AutofillManagementApi {
+  return typeof browser.autofillStatus === 'function'
+    && typeof browser.autofillListLogins === 'function'
+    && typeof browser.autofillSaveLogin === 'function'
+    && typeof browser.autofillRemoveLogin === 'function'
+    && typeof browser.autofillListContacts === 'function'
+    && typeof browser.autofillGetContact === 'function'
+    && typeof browser.autofillSaveContact === 'function'
+    && typeof browser.autofillRemoveContact === 'function'
+}
 
 // Contract exports only (export-convergence rule: cross-package consumers
 // keep a symbol exported; test-only/package-internal symbols live off /src).
@@ -31,6 +75,11 @@ declare module '@bosch/cordis' {
 }
 
 declare module '@bosch/bh-client-ui-slots' {
+  interface LocaleNamespaceMap {
+    /** Desktop Browser settings copy. */
+    'settings.browser': BrowserKey
+  }
+
   interface SlotMap {
     // The 'root' entry itself is the runtime's built-in slot (declared
     // there); these four are the frame's children, declared by the same
@@ -107,7 +156,7 @@ export interface ConvOwnerProps {
 export interface DetailsOwnerProps {}
 
 /** Required services (cordis fiber inject — the loader passes all module exports as an object plugin). */
-export const inject = ['slots', 'theme', 'sessions', 'workspaces']
+export const inject = ['slots', 'theme', 'sessions', 'workspaces', 'locale', 'settingsScope']
 
 /**
  * Client plugin body: provide ctx.layout, then one register() call — AppFrame
@@ -116,6 +165,52 @@ export const inject = ['slots', 'theme', 'sessions', 'workspaces']
  * @param ctx - client root context.
  */
 export function apply(ctx: ClientContext): void {
+  const desktop = globalThis as typeof globalThis & { bhDesktop?: { browser?: DesktopBrowserApi } }
+  const browser = desktop.bhDesktop?.browser
+  if (hasBrowserManagement(browser)) {
+    const autofill = hasAutofillManagement(browser) ? browser : undefined
+    const openUrl = browser.openUrl
+    const autofillUnavailable = () => Promise.reject(new Error('secure autofill storage is unavailable'))
+    ctx.effect(
+      () => ctx.locale.register('settings.browser', { en: browserEn }),
+      'ui-layout: Browser settings dictionaries',
+    )
+    const t = ctx.locale.bind('settings.browser')
+    const scope = ctx.settingsScope.bind<BrowserSettings>({ namespace: BROWSER_SETTINGS_NAMESPACE })
+    const injected = (): BrowserSectionInjected => ({
+      setSetting: (key, value) => scope.set(key, value),
+      configureNative: settings => browser.configure(settings),
+      pickDownloadDirectory: () => ctx.workspaces.pickDirectory(),
+      clearData: () => browser.clearData(),
+      ...(openUrl === undefined ? {} : { openUrl: (url: string) => openUrl(url) }),
+      history: () => browser.history(),
+      removeHistory: id => browser.removeHistory(id),
+      downloads: () => browser.downloads(),
+      removeDownload: id => browser.removeDownload(id),
+      sites: () => browser.sites(),
+      setSite: site => browser.setSite(site),
+      removeSite: origin => browser.removeSite(origin),
+      autofillStatus: () => autofill?.autofillStatus() ?? Promise.resolve({ available: false }),
+      logins: () => autofill?.autofillListLogins() ?? autofillUnavailable(),
+      saveLogin: login => autofill?.autofillSaveLogin(login) ?? autofillUnavailable(),
+      removeLogin: id => autofill?.autofillRemoveLogin(id) ?? autofillUnavailable(),
+      contacts: () => autofill?.autofillListContacts() ?? autofillUnavailable(),
+      getContact: id => autofill?.autofillGetContact(id) ?? autofillUnavailable(),
+      saveContact: contact => autofill?.autofillSaveContact(contact) ?? autofillUnavailable(),
+      removeContact: id => autofill?.autofillRemoveContact(id) ?? autofillUnavailable(),
+      hooks: { snapshot: scope },
+    })
+    ctx.slots.inject('settings.section', () => ctx.slots.register({
+      name: 'settings.section',
+      id: 'browser',
+      order: 5,
+      label: () => t('browser.nav'),
+      locale: 'settings.browser',
+      inject: injected,
+      children: { 'settings.browser.item': { kind: 'list', scope: 'root' } },
+    }, BrowserSection))
+  }
+
   const layout = new LayoutController()
   ctx.effect(() => {
     const disposeService = ctx.reflect.provide('layout', layout)

@@ -1,7 +1,6 @@
 /* Plugin card: a header that names the plugin, disclosing its controls in place. */
 
 .card {
-  list-style: none;
   border: 1px solid var(--dsw-alias-border-l2);
   border-radius: var(--dsw-radius-panel);
   background: var(--dsw-alias-bg-layer-3);

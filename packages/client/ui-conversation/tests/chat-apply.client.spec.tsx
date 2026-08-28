@@ -12,9 +12,9 @@ import { LocaleRuntime } from '@bosch/bh-client-locale/client'
 import type { SessionId } from '@bosch/bh-client-runtime/client'
 import { apply, inject } from '@bosch/bh-client-ui-conversation/client'
 
-// The service reads its initial locale from the browser; these specs assert
-// the shipped Chinese copy, so they state the browser they assume.
-usePinnedBrowserLanguages('zh-CN')
+// The service reads its initial locale from the browser, so these specs state
+// the browser language they assume.
+usePinnedBrowserLanguages('en-US')
 
 const ROOT = 'root-1' as SessionId
 const CHILD = 'child-1' as SessionId
@@ -62,8 +62,8 @@ describe('apply wiring', () => {
     const b = await bench()
     const entries = b.slots.entries('conversation.view')
     expect(entries.map(e => e.options.id)).toEqual(['chat'])
-    // Label is a locale thunk resolving through the zh dictionary.
-    expect(resolveSlotLabel(entries[0]?.options.label)).toBe('对话')
+    // Label is a locale thunk resolving through the English dictionary.
+    expect(resolveSlotLabel(entries[0]?.options.label)).toBe('Chat')
     expect(entries[0]?.options.order).toBe(0)
     // Declaring is claiming: the chat entry's registration put the hole on
     // the ledger with the contract's kind/scope.
@@ -100,7 +100,7 @@ describe('apply wiring', () => {
     expect(b.slots.entries('settings.general.item').map(entry => entry.options.id)).toEqual(['composer-enter'])
     const usage = b.slots.entries('settings.section')
     expect(usage.map(entry => entry.options.id)).toEqual(['usage'])
-    expect(resolveSlotLabel(usage[0]?.options.label)).toBe('用量')
+    expect(resolveSlotLabel(usage[0]?.options.label)).toBe('Usage')
     await b.runtime.dispose()
   })
 

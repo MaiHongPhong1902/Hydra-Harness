@@ -5,6 +5,7 @@
  */
 
 import type { InjectFace, PropsLocale, PropsRuntime } from '@bosch/bh-client-ui-slots'
+import type {} from '@bosch/bh-client-ui-settings/client'
 import { SecretField, ValueField } from './fields.tsx'
 import { PluginCard } from './PluginCard.tsx'
 import type { WebSearchCardFace } from './web-search-card-controller.ts'
@@ -12,7 +13,7 @@ import type {} from './slot-contract.ts'
 
 /** Props the renderer binds for the web-search card. */
 export type WebSearchCardProps =
-  PropsRuntime<'settings.plugin.item'>
+  PropsRuntime<'settings.plugin.item' | 'settings.browser.item'>
   & PropsLocale<'settings.plugins'>
   & InjectFace<WebSearchCardFace>
 

@@ -440,8 +440,8 @@ function MarkdownTable({
 }): ReactNode {
   const tableRef = useRef<HTMLTableElement>(null)
   const [copied, setCopied] = useState(false)
-  const copyLabel = context.codeLabels?.copyLabel ?? '复制'
-  const copiedLabel = context.codeLabels?.copiedLabel ?? '复制成功'
+  const copyLabel = context.codeLabels?.copyLabel ?? 'Copy'
+  const copiedLabel = context.codeLabels?.copiedLabel ?? 'Copied'
   const onCopy = useCallback(() => {
     if (copied) return
     const table = tableRef.current

@@ -16,6 +16,7 @@
       .controls { height: 40px; display: flex; align-items: center; gap: 8px; padding: 6px 10px; }
       .controls button { width: 28px; height: 28px; border: 0; border-radius: 50%; background: transparent; color: inherit; font-size: 18px; cursor: pointer; }
       .controls button:disabled { color: #9aa0a6; cursor: default; }
+      .controls button[aria-pressed="true"] { color: #fff; background: #1a73e8; }
       .controls button:not(:disabled):hover { background: #dfe3e7; }
       form { flex: 1; }
       input { width: 100%; height: 28px; border: 1px solid #c4c7c5; border-radius: 14px; padding: 0 12px; outline: none; font: inherit; }
@@ -28,7 +29,8 @@
       <button id="back" type="button" aria-label="Back" title="Back">←</button>
       <button id="forward" type="button" aria-label="Forward" title="Forward">→</button>
       <button id="reload" type="button" aria-label="Reload" title="Reload">↻</button>
-      <form id="omnibox-form"><input id="omnibox" aria-label="Search or enter address" autocomplete="off" placeholder="Search or enter address" spellcheck="false" /></form>
+      <form id="omnibox-form"><input id="omnibox" aria-label="Search or enter address" autocomplete="off" list="omnibox-history" placeholder="Search or enter address" spellcheck="false" /><datalist id="omnibox-history"></datalist></form>
+      <button id="annotate" type="button" aria-label="Annotate page" title="Select an element or drag a region" disabled>⌖</button>
     </div>
   </body>
 </html>

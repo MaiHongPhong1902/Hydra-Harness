@@ -4,7 +4,7 @@ Status: implemented
 
 ## Problem
 
-Agent presets compose an agent's tools per session, but not the FORM those tools reach the model in. Code Mode — one `run_code` tool plus a generated TypeScript SDK, replacing a call sequence with one program — was a deployment-wide `mode` field on the host's `bh-tools` row. A deployment either ran every session in Code Mode or none, so the obvious product shape ("代码模式" beside 标准/极简/创造 in the preset picker) had nothing to hang on.
+Agent presets compose an agent's tools per session, but not the FORM those tools reach the model in. Code Mode — one `run_code` tool plus a generated TypeScript SDK, replacing a call sequence with one program — was a deployment-wide `mode` field on the host's `bh-tools` row. A deployment either ran every session in Code Mode or none, so the obvious product shape ("Code Mode" beside Standard/Minimal/Creative in the preset picker) had nothing to hang on.
 
 The naive reading of "move tools down to the agent plane" does not work. `ctx.tools` has host-plane consumers that cannot follow it: `bh-agent-loop` reads the registry's private scheduler seam, `bh-apiproxy` reads its presenters to render tool cards, and every tool plugin registers into it. By the stack's own rule — a service moves into a preset only when ALL of its consumers move with it — the registry stays where it is.
 
@@ -41,4 +41,4 @@ Two sessions in one process can now present differently, so "which tools does th
 
 `ctx.tools.schemas(agent)` remains the agent's CAPABILITY catalog and is unchanged by presentation — only the assembly's tools collapse. Tests asserting what the model receives must read the assembly; `web-agent-presets.spec.ts` asserts both sides of that distinction for the shipped `code` preset.
 
-The shipped roster is four presets (标准/代码/极简/创造), so any golden listing them moves. A deployment that composes no code runtime can compose no code-mode preset; the shipped Web overlay carries one, the base composition does not.
+The shipped roster is four presets (Standard/Code/Minimal/Creative), so any golden listing them moves. A deployment that composes no code runtime can compose no code-mode preset; the shipped Web overlay carries one, the base composition does not.

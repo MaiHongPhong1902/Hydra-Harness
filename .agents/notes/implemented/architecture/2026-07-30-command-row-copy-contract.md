@@ -10,7 +10,7 @@ The web command row renders `title · summary` from one logged [command lifecycl
 
 The row's two halves have disjoint jobs, and each side is written to its own half alone.
 
-The row title is the bare command name — no `/`, no arguments. The `/` belongs to the composer's input grammar, not to a settled record, and the argument is not the row's to report: the summary already says what the command did. `GenericCommandCard` keeps the `命令` fallback for a cross-window node whose `command/run` page fell out of the client's window.
+The row title is the bare command name — no `/`, no arguments. The `/` belongs to the composer's input grammar, not to a settled record, and the argument is not the row's to report: the summary already says what the command did. `GenericCommandCard` keeps the `Command` fallback for a cross-window node whose `command/run` page fell out of the client's window.
 
 A command handler's settlement `text` therefore never labels its value with the command's own name, because the surface that renders it has already said it. `/permission` returns `preset workspace-write`, bare `current preset workspace-write (available: …)`, and for a bad argument `unknown preset "bogus" (available: …)`. Read as a row this is `permission · preset workspace-write`; read as a standalone line — the TUI appends the same text as a notice — it still states which preset now applies.
 
@@ -30,4 +30,4 @@ The log is unchanged: `command/run` keeps the structured `name`/`args` split, so
 
 ## Consequences
 
-Every command row gets shorter, and the rule scales: a new command's author writes its outcome without knowing which surface renders it, and no surface has to de-duplicate. The cost is that the dispatched arguments leave the collapsed row — while a command is still executing the row shows only its name and `执行中…` — and that the no-caption rule is a convention the reviewer enforces, not a gate. The `/permission` texts are pinned by the permission package's command tests, and the assembled row copy by the [seeded-history](../../../../apps/web/tests/snapshots/seeded-history/command-row.expected.md) web golden, which reaches a real settled command row keylessly because `/permission` runs entirely on the host.
+Every command row gets shorter, and the rule scales: a new command's author writes its outcome without knowing which surface renders it, and no surface has to de-duplicate. The cost is that the dispatched arguments leave the collapsed row — while a command is still executing the row shows only its name and `Running…` — and that the no-caption rule is a convention the reviewer enforces, not a gate. The `/permission` texts are pinned by the permission package's command tests, and the assembled row copy by the [seeded-history](../../../../apps/web/tests/snapshots/seeded-history/command-row.expected.md) web golden, which reaches a real settled command row keylessly because `/permission` runs entirely on the host.

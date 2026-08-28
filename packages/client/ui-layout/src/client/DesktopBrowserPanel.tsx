@@ -22,8 +22,143 @@ interface DesktopBrowserBounds {
   visible: boolean
 }
 
+/** User policy applied by the native browser controller. */
+export type BrowserPolicy = 'allow' | 'ask' | 'block'
+
+/** Where a user-opened URL leaves the desktop application. */
+export type BrowserDestination = 'bhagent' | 'system'
+
+/** Whether a browser annotation carries a bounded element screenshot. */
+export type BrowserAnnotationScreenshots = 'include' | 'ask' | 'never'
+
+/** Settings the desktop controller can enforce without the Host action gate. */
+export interface BrowserNativeSettings {
+  webDestination: BrowserDestination
+  localDestination: BrowserDestination
+  annotationScreenshots: BrowserAnnotationScreenshots
+  downloadDirectory: string
+  askWhereToSave: boolean
+  navigationPolicy: BrowserPolicy
+  downloadPolicy: BrowserPolicy
+  uploadPolicy: BrowserPolicy
+  fullCdpAccess: boolean
+}
+
+/** Effective native capabilities returned after Browser settings are applied. */
+export interface BrowserNativeCapabilities {
+  fullCdpAccessAllowed: boolean
+}
+
+/** One navigation record returned by the desktop browser. */
+export interface BrowserHistoryEntry {
+  id: string
+  url: string
+  title: string
+  visitedAt: string
+}
+
+/** One download record returned by the desktop browser. */
+export interface BrowserDownloadEntry {
+  id: string
+  url: string
+  filename: string
+  path: string
+  state: string
+  startedAt: string
+  endedAt?: string | undefined
+}
+
+/** One browser-owned permission override, keyed by its canonical origin. */
+export interface BrowserSitePermission {
+  origin: string
+  access: 'allow' | 'block'
+  media: 'allow' | 'block'
+}
+
+/** Whether encrypted desktop autofill storage is usable. */
+export interface BrowserAutofillStatus {
+  available: boolean
+  reason?: string | undefined
+}
+
+/** Password-free metadata shown by the login manager. */
+export interface BrowserLoginMetadata {
+  id: string
+  origin: string
+  username: string
+  createdAt: string
+  updatedAt: string
+}
+
+/** Login mutation accepted by the encrypted vault. */
+export interface BrowserLoginInput {
+  id?: string | undefined
+  origin: string
+  username: string
+  /** Required for new records; omitted on edit to preserve the current secret. */
+  password?: string | undefined
+}
+
+/** Exact contact field allowlist accepted by the encrypted vault. */
+export interface BrowserContactFields {
+  name?: string | undefined
+  givenName?: string | undefined
+  additionalName?: string | undefined
+  familyName?: string | undefined
+  organization?: string | undefined
+  email?: string | undefined
+  tel?: string | undefined
+  addressLine1?: string | undefined
+  addressLine2?: string | undefined
+  city?: string | undefined
+  region?: string | undefined
+  postalCode?: string | undefined
+  countryCode?: string | undefined
+}
+
+/** Metadata returned when contacts are listed. */
+export interface BrowserContactMetadata {
+  id: string
+  label: string
+  createdAt: string
+  updatedAt: string
+}
+
+/** One contact returned only to the built-in management UI. */
+export interface BrowserContact extends BrowserContactMetadata {
+  fields: BrowserContactFields
+}
+
+/** Contact mutation accepted by the encrypted vault. */
+export interface BrowserContactInput {
+  id?: string | undefined
+  label: string
+  fields: BrowserContactFields
+}
+
 export interface DesktopBrowserApi {
   setBounds(bounds: DesktopBrowserBounds): void
+  /** Optional only so layout-only tests and an older preload can expose bounds without claiming management support. */
+  configure?(settings: BrowserNativeSettings): Promise<BrowserNativeCapabilities>
+  /** Show the native risk confirmation required before enabling Full CDP. */
+  confirmFullCdpAccess?(): Promise<boolean>
+  clearData?(): Promise<void>
+  openUrl?(url: string): Promise<void>
+  history?(): Promise<BrowserHistoryEntry[]>
+  removeHistory?(id: string): Promise<void>
+  downloads?(): Promise<BrowserDownloadEntry[]>
+  removeDownload?(id: string): Promise<void>
+  sites?(): Promise<BrowserSitePermission[]>
+  setSite?(site: BrowserSitePermission): Promise<void>
+  removeSite?(origin: string): Promise<void>
+  autofillStatus?(): Promise<BrowserAutofillStatus>
+  autofillListLogins?(): Promise<BrowserLoginMetadata[]>
+  autofillSaveLogin?(login: BrowserLoginInput): Promise<BrowserLoginMetadata>
+  autofillRemoveLogin?(id: string): Promise<boolean>
+  autofillListContacts?(): Promise<BrowserContactMetadata[]>
+  autofillGetContact?(id: string): Promise<BrowserContact | null>
+  autofillSaveContact?(contact: BrowserContactInput): Promise<BrowserContactMetadata>
+  autofillRemoveContact?(id: string): Promise<boolean>
 }
 
 export type DesktopTerminalEvent =
@@ -112,7 +247,7 @@ function PanelChooser(props: {
       <div className={css.chooserList}>
         {row('files', 'Files', <IconFolderOpenOutline16 size={14} />, 'Control+P', 'Ctrl+P')}
         {row('side-chat', 'Side chat', <IconNewChatOutline16 size={14} />, 'Control+Alt+S', 'Ctrl+Alt+S')}
-        {row('browser', 'Browser', <IconGlobeOutline14 />, 'Control+T', 'Ctrl+T')}
+        {row('browser', 'Browser', <IconGlobeOutline14 />, 'Control+Shift+B', 'Ctrl+Shift+B')}
         {row('terminal', 'Terminal', <IconApiOutline14 />, 'Control+Backquote', 'Ctrl+`')}
         {props.error !== undefined && <div className={css.chooserError}>{props.error}</div>}
       </div>

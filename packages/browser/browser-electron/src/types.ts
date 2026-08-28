@@ -43,10 +43,64 @@ export interface BrowserState {
   capturedAt: string
 }
 
+/** Transient PNG of the selected controlled page's visible viewport. */
+export interface BrowserScreenshot {
+  /** Declared image type; Electron always encodes PNG. */
+  mediaType: 'image/png'
+  /** Canonical base64 PNG, consumed before a model-facing result is persisted. */
+  data: string
+  /** Exact encoded PNG byte length. */
+  bytes: number
+  /** Captured image width after bounding. */
+  width: number
+  /** Captured image height after bounding. */
+  height: number
+  /** Selected tab captured by Electron. */
+  tabId: number
+  /** HTTP(S) page address captured by Electron. */
+  url: string
+  /** Document title at capture completion. */
+  title: string
+  /** Host timestamp for evidence ordering. */
+  capturedAt: string
+}
+
 /** Outcome of one action, as PageController reports it. */
 export interface ActionResult {
   success: boolean
   message: string
+}
+
+/** One bounded history-search result exposed to an approved model call. */
+export interface BrowserHistorySearchEntry {
+  url: string
+  title: string
+  visitedAt: string
+}
+
+/** JSON value accepted in bounded CDP parameters and results. */
+export type BrowserJsonValue = null | boolean | number | string | BrowserJsonValue[] | {
+  [key: string]: BrowserJsonValue
+}
+
+/** One bounded raw CDP command result. */
+export interface BrowserCdpCommandResult {
+  method: string
+  result: Record<string, BrowserJsonValue>
+}
+
+/** One bounded CDP event retained for cursor-based reads. */
+export interface BrowserCdpEvent {
+  sequence: number
+  method: string
+  params: Record<string, BrowserJsonValue>
+  receivedAt: string
+}
+
+/** Cursor page over the current tab's bounded CDP event ring. */
+export interface BrowserCdpEventPage {
+  events: BrowserCdpEvent[]
+  nextSequence: number
 }
 
 /**
@@ -95,6 +149,10 @@ export type BrowserErrorCode =
   | 'BROWSER_TIMEOUT'
   /** The service is tearing down and will not start new work. */
   | 'BROWSER_DISPOSING'
+  /** User settings currently disable agent control of the embedded browser. */
+  | 'BROWSER_DISABLED'
+  /** One Browser permission setting denied this action. */
+  | 'BROWSER_POLICY_DENIED'
 
 /** Error carrying a stable {@link BrowserErrorCode}. */
 export class BrowserError extends Error {

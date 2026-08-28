@@ -274,11 +274,15 @@ function firstText(result: ToolExecutionResult): string {
 describe('Obsidian knowledge graph', () => {
   it('uses an exact hostname gate', () => {
     expect(normalizeTargetDomain('SHOP.test')).toBe('shop.test')
+    expect(normalizeTargetDomain('https://apps-t-p4-outsystems.de.bosch.com')).toBe('apps-t-p4-outsystems.de.bosch.com')
+    expect(normalizeTargetDomain('apps-t-p4-outsystems.de.bosch.com')).toBe('apps-t-p4-outsystems.de.bosch.com')
     expect(matchesTargetDomain('https://shop.test/orders', 'shop.test')).toBe(true)
     expect(matchesTargetDomain('https://admin.shop.test/orders', 'shop.test')).toBe(false)
     expect(matchesTargetDomain('https://shop.test.evil.example/orders', 'shop.test')).toBe(false)
-    expect(() => normalizeTargetDomain('https://shop.test')).toThrow(/hostname/)
+    expect(() => normalizeTargetDomain('https://shop.test/orders')).toThrow(/path/)
     expect(resolveSettings({ targetDomain: 'shop.test' })).toEqual({ targetDomain: 'shop.test' })
+    expect(resolveSettings({ targetDomain: 'https://apps-t-p4-outsystems.de.bosch.com' }))
+      .toEqual({ targetDomain: 'apps-t-p4-outsystems.de.bosch.com' })
   })
 
   it('recalls and reads graph memory without website configuration', async () => {

@@ -5,6 +5,25 @@ const { contextBridge, ipcRenderer } = require('electron')
 contextBridge.exposeInMainWorld('bhDesktop', {
   browser: {
     setBounds: bounds => { ipcRenderer.send('bh-desktop:browser-bounds', bounds) },
+    configure: settings => ipcRenderer.invoke('bh-desktop:browser-configure', settings),
+    confirmFullCdpAccess: () => ipcRenderer.invoke('bh-desktop:browser-confirm-full-cdp'),
+    clearData: () => ipcRenderer.invoke('bh-desktop:browser-clear-data'),
+    openUrl: url => ipcRenderer.invoke('bh-desktop:browser-open-url', { url }),
+    history: () => ipcRenderer.invoke('bh-desktop:browser-history'),
+    removeHistory: id => ipcRenderer.invoke('bh-desktop:browser-remove-history', { id }),
+    downloads: () => ipcRenderer.invoke('bh-desktop:browser-downloads'),
+    removeDownload: id => ipcRenderer.invoke('bh-desktop:browser-remove-download', { id }),
+    sites: () => ipcRenderer.invoke('bh-desktop:browser-sites'),
+    setSite: value => ipcRenderer.invoke('bh-desktop:browser-set-site', value),
+    removeSite: origin => ipcRenderer.invoke('bh-desktop:browser-remove-site', { origin }),
+    autofillStatus: () => ipcRenderer.invoke('bh-desktop:browser-autofill-status'),
+    autofillListLogins: () => ipcRenderer.invoke('bh-desktop:browser-autofill-list-logins'),
+    autofillSaveLogin: value => ipcRenderer.invoke('bh-desktop:browser-autofill-save-login', value),
+    autofillRemoveLogin: id => ipcRenderer.invoke('bh-desktop:browser-autofill-remove-login', { id }),
+    autofillListContacts: () => ipcRenderer.invoke('bh-desktop:browser-autofill-list-contacts'),
+    autofillGetContact: id => ipcRenderer.invoke('bh-desktop:browser-autofill-get-contact', { id }),
+    autofillSaveContact: value => ipcRenderer.invoke('bh-desktop:browser-autofill-save-contact', value),
+    autofillRemoveContact: id => ipcRenderer.invoke('bh-desktop:browser-autofill-remove-contact', { id }),
     onAnnotation(listener) {
       const handler = (_event, annotation) => { listener(annotation) }
       ipcRenderer.on('bh-desktop:browser-annotation', handler)

@@ -30,13 +30,13 @@ const ROW_READY: AgentPresetSettingsState = {
   currentValue: 'standard',
   // `mine` deliberately names itself nothing: the row must fall back to the
   // id for a preset whose author wrote no metadata.
-  options: [{ id: 'standard', trust: 'system', name: '标准模式' }, { id: 'mine', trust: 'user' }],
+  options: [{ id: 'standard', trust: 'system', name: 'Standard Mode' }, { id: 'mine', trust: 'user' }],
 }
 
 const SEAT_READY: AgentPresetSeatState = {
   current: 'standard',
   options: [
-    { id: 'standard', trust: 'system', name: '标准模式', description: '完整的编码 agent。' },
+    { id: 'standard', trust: 'system', name: 'Standard Mode', description: 'A complete coding agent.' },
     { id: 'mine', trust: 'user' },
   ],
   busy: false,
@@ -114,10 +114,10 @@ describe('the General-settings row', () => {
     renderRow({
       currentValue: 'mine',
       options: [
-        { id: 'standard', trust: 'system', name: '标准模式' },
+        { id: 'standard', trust: 'system', name: 'Standard Mode' },
         { id: 'bare', trust: 'system' },
         { id: 'mine', trust: 'user' },
-        { id: 'ours', trust: 'user', name: '团队模式' },
+        { id: 'ours', trust: 'user', name: 'Team Mode' },
       ],
     })
 
@@ -127,7 +127,7 @@ describe('the General-settings row', () => {
     fireEvent.click(screen.getByRole('button'))
 
     // A locally authored preset is marked whether or not it named itself.
-    expect(screen.getByText(`团队模式 · ${en.userTrust}`)).toBeTruthy()
+    expect(screen.getByText(`Team Mode · ${en.userTrust}`)).toBeTruthy()
     expect(screen.getByText(`mine · ${en.userTrust}`)).toBeTruthy()
     // A shipped preset with no metadata is listed by id and carries no mark.
     expect(screen.getByText('bare')).toBeTruthy()

@@ -3,10 +3,9 @@
  * tabs include configurable Host plugin cards and read-only inventory.
  *
  * The section declares `settings.plugins.tab`; its own `configurable` tab then
- * declares `settings.plugin.item` and renders whatever cards were registered
- * into it. The three cards this package ships are the host-plane sections the
- * deployment already exposes; each binds its namespace through the client
- * settings scope, which keeps them unaware of one another and of other tabs.
+ * declares `settings.plugin.item` and renders the generic Host plugin cards.
+ * Web search contributes to the desktop Browser page when present and falls
+ * back to plugin configuration in a Web-only deployment.
  */
 
 import type { ConnectionHandle } from '@bosch/bh-client-connection/client'
@@ -23,14 +22,16 @@ import type {} from '@bosch/bh-api-remotes/client'
 import { AgentLoopCard } from './AgentLoopCard.tsx'
 import { BashCard } from './BashCard.tsx'
 import { ConfigurablePluginsTab } from './ConfigurablePluginsTab.tsx'
+import { McpSettingsTab } from './McpSettingsTab.tsx'
 import { PluginsSettingsSection } from './PluginsSettingsSection.tsx'
 import type { PluginsSettingsSectionInjected, PluginsSettingsTabEntry } from './PluginsSettingsSection.tsx'
 import { WebSearchCard } from './WebSearchCard.tsx'
 import { AGENT_LOOP_NS, AgentLoopCardController } from './agent-loop-card-controller.ts'
 import { SHELL_NS, BashCardController } from './bash-card-controller.ts'
 import { ConfigurablePluginsTabController } from './tab-store.ts'
+import { MCP_SETTINGS_NS, McpSettingsController } from './mcp-settings-controller.ts'
 import { WEB_SEARCH_NS, WebSearchCardController } from './web-search-card-controller.ts'
-import { en, zh } from './locales.ts'
+import { en } from './locales.ts'
 
 export type { PluginsSettingsSectionInjected, PluginsSettingsSectionProps } from './PluginsSettingsSection.tsx'
 export type { ConfigurablePluginsTabProps } from './ConfigurablePluginsTab.tsx'
@@ -56,19 +57,24 @@ export const inject = ['slots', 'locale', 'connection', 'remote', 'settingsScope
  * @param ctx - the browser plugin context.
  */
 export function apply(ctx: ClientContext): void {
+  const desktop = globalThis as typeof globalThis & { bhDesktop?: { browser?: unknown } }
   const { api } = ctx.get('connection') as ConnectionHandle
   const t = ctx.locale.bind(NS)
-  ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'ui-settings-plugins: section dictionaries')
+  ctx.effect(() => ctx.locale.register(NS, { en }), 'ui-settings-plugins: section dictionaries')
 
   const bash = new BashCardController(ctx.settingsScope.bind({ namespace: SHELL_NS }))
   const agentLoop = new AgentLoopCardController(ctx.settingsScope.bind({ namespace: AGENT_LOOP_NS }))
   const webSearch = new WebSearchCardController(ctx.settingsScope.bind({ namespace: WEB_SEARCH_NS }), api)
+  const mcp = new McpSettingsController(ctx.settingsScope.bind({ namespace: MCP_SETTINGS_NS }), api)
 
   // The credential a card reports is not part of any settings section, so its
   // scope publishes nothing when one is written. This is the only signal that
   // a key written on another surface reached the Host.
   ctx.effect(
-    () => ctx.remote.$on('credentials/reference-updated', (ref) => { webSearch.refreshCredential(ref) }),
+    () => ctx.remote.$on('credentials/reference-updated', (ref) => {
+      webSearch.refreshCredential(ref)
+      mcp.refreshCredential(ref)
+    }),
     'ui-settings-plugins: credential invalidations',
   )
 
@@ -132,7 +138,7 @@ export function apply(ctx: ClientContext): void {
   }, PluginsSettingsSection))
 
   // The existing configuration page is one ordinary tab. It keeps ownership
-  // of the card slot and the three shipped card contributions below.
+  // of the generic card slot and the two generic contributions below.
   ctx.slots.inject('settings.plugins.tab', () => ctx.slots.register({
     name: 'settings.plugins.tab',
     id: 'configurable',
@@ -142,6 +148,15 @@ export function apply(ctx: ClientContext): void {
     inject: () => configurable.inject(),
     children: { 'settings.plugin.item': { kind: 'keyed', scope: 'root' } },
   }, ConfigurablePluginsTab))
+
+  ctx.slots.inject('settings.plugins.tab', () => ctx.slots.register({
+    name: 'settings.plugins.tab',
+    id: 'mcp',
+    order: 5,
+    label: () => t('mcpTab'),
+    locale: NS,
+    inject: () => mcp.inject(),
+  }, McpSettingsTab))
 
   ctx.slots.inject('settings.plugin.item', function* () {
     yield ctx.slots.register({
@@ -156,11 +171,21 @@ export function apply(ctx: ClientContext): void {
       locale: NS,
       inject: () => agentLoop.inject(),
     }, AgentLoopCard)
-    yield ctx.slots.register({
+  })
+
+  if (desktop.bhDesktop?.browser === undefined) {
+    ctx.slots.inject('settings.plugin.item', () => ctx.slots.register({
       name: 'settings.plugin.item',
       key: WEB_SEARCH_NS,
       locale: NS,
       inject: () => webSearch.inject(),
-    }, WebSearchCard)
-  })
+    }, WebSearchCard))
+  } else {
+    ctx.slots.inject('settings.browser.item', () => ctx.slots.register({
+      name: 'settings.browser.item',
+      id: WEB_SEARCH_NS,
+      locale: NS,
+      inject: () => webSearch.inject(),
+    }, WebSearchCard))
+  }
 }

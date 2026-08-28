@@ -53,6 +53,9 @@ describe('PluginInventoryGateway', () => {
     expect(remoteMethods(inventory)).toEqual([
       { method: 'list', invocation: { kind: 'direct' } },
       { method: 'setEnabled', invocation: { kind: 'direct' } },
+      { method: 'listMarketplaces', invocation: { kind: 'direct' } },
+      { method: 'addMarketplace', invocation: { kind: 'direct' } },
+      { method: 'installMarketplacePlugin', invocation: { kind: 'direct' } },
     ])
   })
 
@@ -113,6 +116,7 @@ describe('PluginInventoryGateway', () => {
     await writeFile(configPath, [
       '- id: protected',
       '  name: cordis:protected',
+      '  disabled: true',
       '- id: mutable',
       '  name: cordis:active',
       '- id: inventory',
@@ -144,6 +148,8 @@ describe('PluginInventoryGateway', () => {
     const protectedEntry = snapshot.entries.find(entry => entry.entryId === protectedId)!
     expect(mutable.toggleable).toBe(true)
     expect(protectedEntry.toggleable).toBe(false)
+    expect(protectedEntry.enabled).toBe(true)
+    expect(protectedEntry.fiberPhase).toBe('active')
 
     await inventory.setEnabled({ entryId: mutable.entryId, enabled: false })
     expect(inventory.list().entries.find(entry => entry.entryId === mutable.entryId)).toMatchObject({
@@ -168,6 +174,50 @@ describe('PluginInventoryGateway', () => {
       entryId: `${includeId}:missing` as PluginEntryId,
       enabled: false,
     })).rejects.toThrow(`cannot resolve entry ${includeId}:missing`)
+  })
+
+  it('ignores persisted switches for entries owned by another composition plane', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'bh-plugin-inventory-composition-'))
+    tempDirs.push(dir)
+    const configPath = join(dir, 'cordis.yml')
+    const settingsPath = join(dir, 'settings.yaml')
+    await writeFile(configPath, [
+      '- id: preset-only',
+      '  name: cordis:pending',
+      '  disabled: true',
+      '- id: inventory',
+      '  name: cordis:inventory',
+      '  config:',
+      '    protectedEntryIds: [inventory]',
+      '    compositionEntryIds: [preset-only]',
+      '',
+    ].join('\n'))
+    await writeFile(settingsPath, [
+      'plugins:',
+      '  enabled:',
+      '    cordis:pending: true',
+      '',
+    ].join('\n'))
+
+    const ctx = new Context()
+    contexts.push(ctx)
+    await ctx.plugin(Loader)
+    await ctx.plugin(FileSettingsProvider, { path: settingsPath, watch: false })
+    ctx.loader.builtins.include = Include
+    ctx.loader.builtins.inventory = PluginInventoryGateway
+    ctx.loader.builtins.pending = pendingPlugin
+    const includeId = await ctx.loader.create({
+      name: 'cordis:include',
+      config: { path: pathToFileURL(configPath).href },
+    })
+    await ctx.loader.await()
+    const inventory = ctx.get('pluginInventory') as PluginInventoryGateway
+    const presetOnlyId = `${includeId}:preset-only` as PluginEntryId
+
+    expect(ctx.loader.resolve(presetOnlyId).disabled).toBe(true)
+    expect(inventory.list().entries.some(entry => entry.moduleName === 'cordis:pending')).toBe(false)
+    await expect(inventory.setEnabled({ entryId: presetOnlyId, enabled: true }))
+      .rejects.toThrow('cannot be toggled in-app')
   })
 
   it('deduplicates a module and hands its shared setting to the configured entry', async () => {

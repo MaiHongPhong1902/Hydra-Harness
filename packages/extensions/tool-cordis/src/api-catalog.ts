@@ -506,10 +506,28 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         parameters: [],
       },
       {
-        signature: 'async perform(owner: Agent, action: BrowserAction): Promise<BrowserOutcome>',
+        signature: 'async perform( owner: Agent, action: BrowserAction, execution: BrowserExecutionContext = {}, ): Promise<BrowserOutcome>',
         description: 'Do one thing to an owner\'s page and report the page afterwards.\n\nThe trailing state read is not a convenience: PageController indexes elements while building the tree, so the snapshot both answers the caller and leaves the next action addressable. Explicit targets are ordered per tab and may overlap across tabs; implicit and lifecycle actions are barriers.',
-        parameters: [{ name: 'owner', description: 'agent whose window this is; its first call starts one.' }, { name: 'action', description: 'what to do, in page-agent\'s own vocabulary.' }],
+        parameters: [{ name: 'owner', description: 'agent whose window this is; its first call starts one.' }, { name: 'action', description: 'what to do, in page-agent\'s own vocabulary.' }, { name: 'execution', description: 'tool-call identity and cancellation for an interactive upload approval.' }],
         returns: 'the action\'s report, omitted for a plain state read, plus the state.',
+      },
+      {
+        signature: 'async searchHistory( owner: Agent, query: string, execution: BrowserExecutionContext = {}, ): Promise<BrowserHistorySearchEntry[]>',
+        description: 'Search only the bounded app-owned history after applying the model-access policy.',
+        parameters: [{ name: 'owner', description: 'agent whose browser profile owns the history ledger.' }, { name: 'query', description: 'case-insensitive title/URL text, from 1 to 256 characters.' }, { name: 'execution', description: 'tool-call identity and cancellation for approval.' }],
+        returns: 'matching title, URL, and visit-time metadata.',
+      },
+      {
+        signature: 'async sendCdpCommand( owner: Agent, method: string, params: unknown, tabId: number | undefined, execution: BrowserExecutionContext = {}, ): Promise<BrowserCdpCommandResult>',
+        description: 'Send one approved, bounded CDP command to the exact controlled tab.',
+        parameters: [{ name: 'owner', description: 'agent whose controlled browser owns the target tab.' }, { name: 'method', description: 'CDP method name.' }, { name: 'params', description: 'JSON parameters for the method.' }, { name: 'tabId', description: 'optional positive controlled-tab id; omission uses the selected tab.' }, { name: 'execution', description: 'tool-call identity and cancellation for approval.' }],
+        returns: 'the bounded method name and JSON result.',
+      },
+      {
+        signature: 'async readCdpEvents( owner: Agent, options: { afterSequence?: number; limit?: number; method?: string; tabId?: number }, execution: BrowserExecutionContext = {}, ): Promise<BrowserCdpEventPage>',
+        description: 'Read a bounded cursor page of events captured from an approved controlled tab.',
+        parameters: [{ name: 'owner', description: 'agent whose controlled browser owns the target tab.' }, { name: 'options', description: 'cursor, page-size, method filter, and optional tab id.' }, { name: 'execution', description: 'tool-call identity and cancellation for approval.' }],
+        returns: 'the bounded events and the next cursor value.',
       },
       {
         signature: 'async close(owner: Agent): Promise<boolean>',
@@ -2257,7 +2275,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
   {
     key: 'web',
     summary: 'The web access service.',
-    description: 'The web access service. Registered as `ctx.web` (one instance per context).\n\nSelection semantics (resolved at execution time, never order-dependent):\n\n- A request model-provider id that is registered and `available()` → that provider.\n- A request model-provider id that is absent/unavailable → a model-provider error; never a configured fallback.\n- A configured id that is registered and `available()` → that provider.\n- A configured id not registered → `WEB_PROVIDER_CONFIGURED_MISSING`.\n- A configured id registered but unavailable → `WEB_PROVIDER_CONFIGURED_UNAVAILABLE`.\n- No id configured, exactly one registered usable provider → that provider.\n- No id configured, multiple usable providers → `WEB_PROVIDER_AMBIGUOUS`.\n- No id configured, no usable provider → `WEB_PROVIDER_UNAVAILABLE`.',
+    description: 'The web access service. Registered as `ctx.web` (one instance per context).\n\nSelection semantics (resolved at execution time, never order-dependent):\n\n- A configured id that is registered and `available()` → that provider.\n- A configured id not registered → `WEB_PROVIDER_CONFIGURED_MISSING`.\n- A configured id registered but unavailable → `WEB_PROVIDER_CONFIGURED_UNAVAILABLE`.\n- No id configured, exactly one registered usable provider → that provider.\n- No id configured, multiple usable providers → `WEB_PROVIDER_AMBIGUOUS`.\n- No id configured, no usable provider → `WEB_PROVIDER_UNAVAILABLE`.',
     methods: [
       {
         signature: 'registerSearchProvider(provider: WebSearchProvider): () => void',
@@ -2527,6 +2545,14 @@ export const EVENT_API: readonly EventApiEntry[] = [
     summary: 'One authorization attempt has finished and released its key.',
     description: 'One authorization attempt has finished and released its key. Fires for every terminal outcome, failures included, so a surface watching a key it did not start (a second browser tab) learns the attempt is over.',
     parameters: [{ name: 'key', description: 'the credential record the finished attempt was authorizing.' }, { name: 'settlement', description: 'how it ended, including the `failed` case its caller sees as a thrown error.' }],
+  },
+  {
+    name: 'browser/full-cdp-access',
+    mode: 'emit',
+    signature: '\'browser/full-cdp-access\'(enabled: boolean): void',
+    summary: 'The effective Full CDP gate changed after a user setting or deployment policy update; listeners may refresh model-facing CDP tool registration.',
+    description: 'The effective Full CDP gate changed after a user setting or deployment policy update; listeners may refresh model-facing CDP tool registration.',
+    parameters: [{ name: 'enabled', description: 'whether the organization ceiling and user opt-in both allow CDP.' }],
   },
   {
     name: 'commands/change',
@@ -3069,8 +3095,32 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type BrowserAction = (({\n    method: \'get_browser_state\';\n} | {\n    method: \'navigate\';\n    url: string;\n} | {\n    method: \'back\';\n} | {\n    method: \'press\';\n    key: string;\n} | {\n    method: \'click_element\';\n    index: number;\n} | {\n    method: \'upload_file\';\n    index: number;\n    filePath: string;\n} | {\n    method: \'input_text\';\n    index: number;\n    text: string;\n} | {\n    method: \'select_option\';\n    index: number;\n    text: string;\n} | {\n    method: \'scroll\';\n    down: boolean;\n    numPages: number;\n    pixels?: number;\n    index?: number;\n} | {\n    method: \'scroll_horizontally\';\n    right: boolean;\n    pixels: number;\n    index?: number;\n} | {\n    method: \'wait\';\n    seconds: number;\n} | {\n    method: \'execute_javascript\';\n    script: string;\n} | {\n    method: \'page_agent_run\';\n    task: string;\n} | {\n    method: \'page_agent_status\';\n} | {\n    method: \'page_agent_stop\';\n}) & {\n    tabId?: number;\n}) | {\n    method: \'open_new_tab\';\n    url?: string;\n} | {\n    method: \'switch_to_tab\';\n    tabId: number;\n} | {\n    method: \'close_tab\';\n    tabId: number;\n};',
   },
   {
+    name: 'BrowserCdpCommandResult',
+    declaration: 'export interface BrowserCdpCommandResult {\n    method: string;\n    result: Record<string, BrowserJsonValue>;\n}',
+  },
+  {
+    name: 'BrowserCdpEvent',
+    declaration: 'export interface BrowserCdpEvent {\n    sequence: number;\n    method: string;\n    params: Record<string, BrowserJsonValue>;\n    receivedAt: string;\n}',
+  },
+  {
+    name: 'BrowserCdpEventPage',
+    declaration: 'export interface BrowserCdpEventPage {\n    events: BrowserCdpEvent[];\n    nextSequence: number;\n}',
+  },
+  {
     name: 'BrowserChildProcess',
     declaration: 'export interface BrowserChildProcess {\n    readonly stdin: Writable;\n    readonly stdout: Readable;\n    readonly stderr: Readable;\n    once(event: \'exit\' | \'error\', listener: (payload?: unknown) => void): unknown;\n    kill(): unknown;\n}',
+  },
+  {
+    name: 'BrowserExecutionContext',
+    declaration: 'export type BrowserExecutionContext = Pick<ApprovalRequest, \'callId\' | \'signal\'>;',
+  },
+  {
+    name: 'BrowserHistorySearchEntry',
+    declaration: 'export interface BrowserHistorySearchEntry {\n    url: string;\n    title: string;\n    visitedAt: string;\n}',
+  },
+  {
+    name: 'BrowserJsonValue',
+    declaration: 'export type BrowserJsonValue = null | boolean | number | string | BrowserJsonValue[] | {\n    [key: string]: BrowserJsonValue;\n};',
   },
   {
     name: 'BrowserOutcome',
@@ -5026,7 +5076,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'WebSearchRequest',
-    declaration: 'export interface WebSearchRequest {\n    readonly query: string;\n    readonly modelProvider?: string;\n    readonly maxResults?: number;\n}',
+    declaration: 'export interface WebSearchRequest {\n    readonly query: string;\n    readonly maxResults?: number;\n}',
   },
   {
     name: 'WebSearchResult',

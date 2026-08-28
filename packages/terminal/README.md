@@ -1,6 +1,6 @@
 # terminal/ — persistent PTY capability family
 
-`PTY` stands for **Pseudo-Terminal**（伪终端）. This capability provides persistent, owner-scoped terminal sessions for workflows that require state across tool calls or interactive stdin. PTY complements the one-shot bash and filesystem tools; it does not replace their stronger per-operation contracts.
+`PTY` stands for **Pseudo-Terminal**. This capability provides persistent, owner-scoped terminal sessions for workflows that require state across tool calls or interactive stdin. PTY complements the one-shot bash and filesystem tools; it does not replace their stronger per-operation contracts.
 
 | Package | Role | ctx key |
 |---|---|---|

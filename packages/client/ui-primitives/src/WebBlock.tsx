@@ -164,13 +164,13 @@ function WebSearchBlock({ answer, sources, truncated, className }: WebSearchBloc
         <div className={css.answer}><MarkdownText text={answer} /></div>
       )}
       {empty ? (
-        <div className={css.empty}>未找到结果</div>
+        <div className={css.empty}>No results found</div>
       ) : (
         <ol className={css.sources}>
           {sources.map((source, index) => <SourceItem key={index} source={source} ordinal={index + 1} />)}
         </ol>
       )}
-      {truncated && <div className={css.truncated}>来源列表已截断</div>}
+      {truncated && <div className={css.truncated}>Source list truncated</div>}
     </div>
   )
 }
@@ -186,7 +186,7 @@ function WebFetchBlock({ url, statusCode, truncated, className }: WebFetchBlockP
       <SafeLink url={url} label={url} className={css.fetchUrl} />
       <div className={css.fetchMeta}>
         <span className={css.status}>HTTP {statusCode}</span>
-        {truncated && <span className={css.truncated}>内容已截断</span>}
+        {truncated && <span className={css.truncated}>Content truncated</span>}
       </div>
     </div>
   )

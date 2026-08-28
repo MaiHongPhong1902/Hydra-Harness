@@ -28,15 +28,15 @@ import { DetailsPanel } from '@bosch/bh-client-ui-conversation/src/client/skelet
 import { WebRow, webToolview } from '../src/client/tool/toolviews/web-row.tsx'
 import { renderToolDetails, SessionProviderStub, toolChatSnapshot } from './tool-details-render.client.tsx'
 import { makeTranslate } from '@bosch/bh-client-test-runtime'
-import { zh as commonZh } from '@bosch/bh-client-locale/src/locales/zh.ts'
-import { zh } from '@bosch/bh-client-ui-conversation/src/client/locales.ts'
+import { en as commonEn } from '@bosch/bh-client-locale/src/locales/en.ts'
+import { en } from '@bosch/bh-client-ui-conversation/src/client/locales.ts'
 
 afterEach(cleanup)
 
 const SID = 's1' as SessionId
 
 /** Locale seat for the card render sites (GenericToolCard, DetailsPanel), as the sibling suites build it. */
-const t = makeTranslate(zh, commonZh)
+const t = makeTranslate(en, commonEn)
 
 const SEARCH_ARGS = '{"query":"bosch harness"}'
 const FETCH_ARGS = '{"url":"https://example.com/page"}'
@@ -272,7 +272,7 @@ describe('DetailsPanel web Output section', () => {
     expect(view.getByText('HTTP 200')).toBeTruthy()
     // The card is a summary (URL + status only); the panel is the single-call
     // reading surface, so the fetched body still renders below the card.
-    const output = view.getByText('输出').closest('section')
+    const output = view.getByText('Output').closest('section')
     expect(output?.querySelector('pre')?.textContent).toContain('fetch body')
   })
 
@@ -281,7 +281,7 @@ describe('DetailsPanel web Output section', () => {
       nodes: [settledSearch({ callView: null, resultView: null })],
     }), { turnSeq: 10, callId: 'c1', toolName: 'web_search' })
     expect(view.container.querySelector('[data-web]')).toBeNull()
-    const output = view.getByText('输出').closest('section')
+    const output = view.getByText('Output').closest('section')
     expect(output?.querySelector('pre')?.textContent).toContain('search text')
   })
 })

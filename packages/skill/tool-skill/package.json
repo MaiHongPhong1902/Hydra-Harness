@@ -1,6 +1,6 @@
 {
   "name": "@bosch/bh-tool-skill",
-  "description": "Bounded model-facing skill search and exact loading for Bosch Harness",
+  "description": "Bounded automatic skill routing, model-facing search, and exact loading for Bosch Harness",
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"

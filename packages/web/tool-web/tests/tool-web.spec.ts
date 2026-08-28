@@ -518,17 +518,24 @@ describe('tool-web execution through the real registry', () => {
     await fiber.dispose()
   })
 
-  it('routes web_search by the active model provider instead of the configured fallback', async () => {
+  it('uses the configured search provider independently of the active model provider', async () => {
     let deepseekCalls = 0
+    let boschCalls = 0
     const deepseek: WebSearchProvider = {
       id: 'deepseek-official',
       available: () => available,
-      search: () => { deepseekCalls += 1; return Promise.resolve({ sources: [], truncated: false }) },
+      search: () => {
+        deepseekCalls += 1
+        return Promise.resolve({ content: 'deepseek', sources: [], truncated: false })
+      },
     }
     const bosch: WebSearchProvider = {
       id: 'bosch',
       available: () => available,
-      search: () => Promise.resolve({ content: 'bosch', sources: [], truncated: false }),
+      search: () => {
+        boschCalls += 1
+        return Promise.resolve({ content: 'bosch', sources: [], truncated: false })
+      },
     }
     const { ctx, fiber } = await mountTools({ webConfig: { searchProvider: 'deepseek-official' }, search: deepseek })
     ctx.web.registerSearchProvider(bosch)
@@ -544,8 +551,9 @@ describe('tool-web execution through the real registry', () => {
       agent: agent as never,
     })
 
-    expect(out.value).toEqual({ content: 'bosch', sources: [], truncated: false })
-    expect(deepseekCalls).toBe(0)
+    expect(out.value).toEqual({ content: 'deepseek', sources: [], truncated: false })
+    expect(deepseekCalls).toBe(1)
+    expect(boschCalls).toBe(0)
     await fiber.dispose()
   })
 

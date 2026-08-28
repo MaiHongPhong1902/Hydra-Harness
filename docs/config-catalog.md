@@ -416,12 +416,14 @@ export interface Config {
   readinessTimeoutMs?: number
   /** Allow the experimental isolated-world JavaScript action. */
   experimentalScriptExecution?: boolean
+  /** Organization ceiling for the elevated-risk full CDP setting. */
+  allowFullCdpAccess?: boolean
   /** Explicit Electron binary; omitted resolves the optional `electron` package. */
   electronPath?: string
 }
 ```
 
-Source: [`packages/browser/browser-electron/src/index.ts:33`](../packages/browser/browser-electron/src/index.ts)
+Source: [`packages/browser/browser-electron/src/index.ts:124`](../packages/browser/browser-electron/src/index.ts)
 
 <a id="boschbh-client-connection"></a>
 
@@ -887,17 +889,17 @@ Source: [`packages/host/frontend-static/src/index.ts:28`](../packages/host/front
 
 ## `@bosch/bh-host-plugin-inventory`
 
-Requires: `loader`
+Requires: `loader` · `settings`
 
 ```ts config-catalog
-/** Plugin ids whose removal would strand the in-app control path. */
+/** Plugin ids that the assembled product requires to remain enabled. */
 export interface Config {
-  /** Direct root entry ids that must stay enabled to preserve the control path. */
+  /** Direct root entry ids that cannot be disabled in-app. */
   protectedEntryIds?: string[]
 }
 ```
 
-Source: [`packages/host/plugin-inventory/src/index.ts:54`](../packages/host/plugin-inventory/src/index.ts)
+Source: [`packages/host/plugin-inventory/src/index.ts:58`](../packages/host/plugin-inventory/src/index.ts)
 
 <a id="boschbh-host-webserver"></a>
 
@@ -2598,7 +2600,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/browser/tool-browser/src/index.ts:34`](../packages/browser/tool-browser/src/index.ts)
+Source: [`packages/browser/tool-browser/src/index.ts:36`](../packages/browser/tool-browser/src/index.ts)
 
 <a id="boschbh-tool-fs"></a>
 

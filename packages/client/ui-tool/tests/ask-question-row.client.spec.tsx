@@ -11,10 +11,10 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { ToolResultNode } from '@bosch/bh-client-runtime/client'
 import { makeTranslate } from '@bosch/bh-client-test-runtime'
-import { zh as commonZh } from '@bosch/bh-client-locale/src/locales/zh.ts'
+import { en as commonEn } from '@bosch/bh-client-locale/src/locales/en.ts'
 // Export discipline: packages/client/AGENTS.md.
 import { AskQuestionRow, askQuestionToolview } from '../src/client/tool/toolviews/ask-question-row.tsx'
-import { zh } from '@bosch/bh-client-ui-conversation/src/client/locales.ts'
+import { en } from '@bosch/bh-client-ui-conversation/src/client/locales.ts'
 
 afterEach(cleanup)
 
@@ -31,7 +31,7 @@ const runningCall = (argsRaw: string) =>
   ({ callId: 'c1', name: 'ask_user_question', argsRaw, turn: 1, step: 1, time: 1_000, callView: null, subCalls: [] })
 
 // Standard locale seat stub mirroring the real ns → common → key chain.
-const t = makeTranslate(zh, commonZh)
+const t = makeTranslate(en, commonEn)
 
 function rowProps(block: unknown): Parameters<typeof AskQuestionRow>[0] {
   return {
@@ -47,8 +47,8 @@ const answers = (entries: unknown[]): string => JSON.stringify({ answers: entrie
 describe('AskQuestionRow', () => {
   it('running call reads waiting (args-independent: the composer takeover shows the questions)', () => {
     const view = render(<AskQuestionRow {...rowProps(runningCall(ARGS))} />)
-    expect(screen.getByText('提问')).toBeTruthy()
-    expect(screen.getByText('等待回答')).toBeTruthy()
+    expect(screen.getByText('Ask question')).toBeTruthy()
+    expect(screen.getByText('waiting')).toBeTruthy()
     expect(view.container.querySelector('[data-state="running"]')).not.toBeNull()
   })
 
@@ -58,7 +58,7 @@ describe('AskQuestionRow', () => {
       { id: 'b', selected: [], custom: 'freeform' },
       { id: 'c', selected: ['y', 'z'], custom: '' },
     ])))} />)
-    expect(screen.getByText('3/3 已回答')).toBeTruthy()
+    expect(screen.getByText('3/3 answered')).toBeTruthy()
   })
 
   it('skipped questions (no selection, no custom) stay out of the answered count', () => {
@@ -67,7 +67,7 @@ describe('AskQuestionRow', () => {
       { id: 'b', selected: [], custom: '' },
       { id: 'c' },
     ])))} />)
-    expect(screen.getByText('1/3 已回答')).toBeTruthy()
+    expect(screen.getByText('1/3 answered')).toBeTruthy()
     expect(view.container.querySelector('[data-state="ok"]')).not.toBeNull()
   })
 
@@ -87,7 +87,7 @@ describe('AskQuestionRow', () => {
     // ASK_CANCELLED: the apiproxy ask_user_question handler's cancel error.
     const view = render(<AskQuestionRow {...rowProps(resultNode(ARGS, null,
       { isError: true, error: { name: 'UserQuestionError', code: 'ASK_CANCELLED' } }))} />)
-    expect(screen.getByText('已取消')).toBeTruthy()
+    expect(screen.getByText('cancelled')).toBeTruthy()
     expect(view.container.querySelector('[data-state="error"]')).not.toBeNull()
   })
 
@@ -95,7 +95,7 @@ describe('AskQuestionRow', () => {
     // ASK_ABORTED: the apiproxy ask handler's turn-abort settlement.
     const view = render(<AskQuestionRow {...rowProps(resultNode(ARGS, null,
       { isError: true, error: { name: 'UserQuestionError', code: 'ASK_ABORTED' } }))} />)
-    expect(screen.getByText('已中断')).toBeTruthy()
+    expect(screen.getByText('interrupted')).toBeTruthy()
     expect(view.container.querySelector('[data-state="stopped"]')).not.toBeNull()
   })
 
@@ -103,7 +103,7 @@ describe('AskQuestionRow', () => {
     const view = render(<AskQuestionRow {...rowProps(resultNode(ARGS, null,
       { isError: true, error: { name: 'Interrupted', code: 'interrupted' } }))} />)
     expect(view.container.querySelector('[data-state="stopped"]')).not.toBeNull()
-    expect(screen.queryByText('已取消')).toBeNull()
+    expect(screen.queryByText('cancelled')).toBeNull()
     expect(screen.getByText(`ask_user_question · ${ARGS}`)).toBeTruthy()
   })
 

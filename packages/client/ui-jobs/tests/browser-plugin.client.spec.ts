@@ -13,7 +13,7 @@ import { apply as applyLocale, inject as localeInject } from '@bosch/bh-client-l
 import { apply, inject } from '../src/client/index.ts'
 import { apply as applyNode } from '../src/index.ts'
 import * as JobInvariant from '../src/invariant.ts'
-import { en, NS, zh } from '../src/client/locales.ts'
+import { en, NS } from '../src/client/locales.ts'
 
 /** Slot ledger reader: entry ids currently registered in the header list. */
 function headerEntryIds(ctx: Context): (string | undefined)[] {
@@ -39,10 +39,10 @@ async function bench(): Promise<{ ctx: Context; fiber: ReturnType<Context['plugi
   ctx.provide('remote', { $on: () => () => {} } as never)
   ctx.provide('settingsScope', { bind: () => stubSettingsScope().scope } as never)
   await ctx.plugin({ inject: localeInject, apply: applyLocale }).await()
-  // These specs assert the shipped Chinese copy. There is no jsdom `window` in
+  // These specs assert the shipped English copy. There is no jsdom `window` in
   // this lane, so browser-language detection never runs and the locale comes
   // from FALLBACK_LOCALE (en): state the asserted locale explicitly.
-  ctx.locale.setLocale('zh')
+  ctx.locale.setLocale('en')
   const fiber = ctx.plugin({ inject: [...inject], apply })
   await fiber.await()
   return { ctx, fiber }
@@ -60,20 +60,14 @@ describe('ui-job browser half', () => {
     expect(headerEntryIds(ctx)).not.toContain('job-list')
   })
 
-  it('registers both dictionaries under its own namespace and releases them with the fiber', async () => {
+  it('registers its dictionary under its own namespace and releases it with the fiber', async () => {
     const { ctx, fiber } = await bench()
     const translate = ctx.locale.bind(NS)
-    expect(translate('list.aria')).toBe(zh['list.aria'])
-    ctx.locale.setLocale('en')
     expect(translate('list.aria')).toBe(en['list.aria'])
 
     // Withdrawn dictionaries leave the key unresolved rather than translated.
     await fiber.dispose()
     expect(translate('list.aria')).not.toBe(en['list.aria'])
-  })
-
-  it('keeps the English dictionary key-identical to the Chinese source of truth', () => {
-    expect(Object.keys(en).sort()).toEqual(Object.keys(zh).sort())
   })
 })
 

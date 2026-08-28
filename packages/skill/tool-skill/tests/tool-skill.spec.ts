@@ -4,7 +4,7 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { Context } from '@bosch/cordis'
-import { createUserMessage, CallId } from '@bosch/bh-llm'
+import { createToolResultMessage, createUserMessage, CallId } from '@bosch/bh-llm'
 import { createScope, type Scope } from '@bosch/bh-scope'
 import { Session, SessionId, type UserMessage } from '@bosch/bh-session'
 import SystemPrompt from '@bosch/bh-system-prompt'
@@ -194,6 +194,12 @@ describe('bh-tool-skill', () => {
       content: 'When body.',
     })
     ctx.skills.register({
+      name: 'zero-tie',
+      description: 'Orchard banana workflow',
+      source: 'runtime',
+      content: 'Zero body.',
+    })
+    ctx.skills.register({
       name: 'hidden-greeting',
       description: 'Greeting hello hi',
       invocation: { modelInvocable: false, userInvocable: true },
@@ -219,15 +225,23 @@ describe('bh-tool-skill', () => {
       name: 'skill_search',
       arguments: { query: 'name hit' },
     })
+    const empty = await ctx.tools.execute({
+      signal: testToolSignal,
+      callId: CallId('search-empty'),
+      name: 'skill_search',
+      arguments: { query: '---' },
+    })
 
-    if (greeting.isError || metadata.isError || exactName.isError) throw new Error('expected skill search success')
+    if (greeting.isError || metadata.isError || exactName.isError || empty.isError) throw new Error('expected skill search success')
     expect(greeting.value).toEqual({ complete: true, truncated: false, matches: [] })
+    expect(empty.value).toEqual({ complete: true, truncated: false, matches: [] })
     expect(metadata.value).toEqual({
       complete: true,
       truncated: false,
       matches: [
         { name: 'when-hit', description: 'Different summary', whenToUse: 'Orchard banana mango operations' },
         { name: 'description-hit', description: 'Orchard banana workflow' },
+        { name: 'zero-tie', description: 'Orchard banana workflow' },
       ],
     })
     expect(exactName.value).toEqual({
@@ -315,7 +329,7 @@ describe('bh-tool-skill', () => {
     })
     ctx.skills.register({
       name: 'huge-skill',
-      description: '界'.repeat(500),
+      description: '界'.repeat(501),
       source: 'runtime',
       content: 'Huge body.',
     })
@@ -534,6 +548,182 @@ describe('bh-tool-skill', () => {
   })
 })
 
+describe('automatic invocation injection', () => {
+  function user(text: string): UserMessage {
+    return createUserMessage({ content: [{ type: 'text', text }], source: { kind: 'user' } })
+  }
+
+  function skillInjections(decision: PreStepDecision): UserMessage[] {
+    return decision.kind === 'enter'
+      ? decision.messages.filter(message => (message.source as { kind?: string }).kind === 'skill-invocation')
+      : []
+  }
+
+  async function automaticHarness(): Promise<{ ctx: Context; agent: Agent }> {
+    const home = await tempDir('automatic-invocation')
+    const ctx = await setup(home)
+    ctx.skills.register({
+      name: 'workon-uat-test-design',
+      description: 'Ground WorkON testcase lookup and test design in Obsidian knowledge.',
+      whenToUse: 'Use for WorkON testcase lookup, test design, or live validation.',
+      source: 'runtime',
+      content: 'Use obsidian_knowledge_recall before designing WorkON tests.',
+    })
+    ctx.skills.register({
+      name: 'shared-skill',
+      description: 'Explicit shared instructions',
+      source: 'runtime',
+      content: 'Shared instructions.',
+    })
+    ctx.skills.register({
+      name: 'test',
+      description: 'Generic test instructions',
+      source: 'runtime',
+      content: 'Generic test body.',
+    })
+    return { ctx, agent: agentForCwd(home) }
+  }
+
+  it('loads the unique strong WorkON match directly from Vietnamese user text', async () => {
+    const { ctx, agent } = await automaticHarness()
+    const decision = await proposeStep(ctx, agent, [user('test tính năng search request trên workon')])
+    const injections = skillInjections(decision)
+
+    expect(injections).toHaveLength(1)
+    expect(injections[0]?.source).toEqual({
+      kind: 'skill-invocation',
+      name: 'workon-uat-test-design',
+      trigger: 'automatic',
+      form: 'instructions',
+    })
+    const block = injections[0]?.content[0]
+    if (block?.type !== 'text') throw new Error('expected text skill injection')
+    expect(block.text).toContain('obsidian_knowledge_recall')
+
+    const exact = await proposeStep(ctx, agent, [user('use workon-uat-test-design')])
+    expect(skillInjections(exact)).toHaveLength(1)
+  })
+
+  it('does not route greetings, weak or description-only matches, ties, or non-user text', async () => {
+    const { ctx, agent } = await automaticHarness()
+    ctx.skills.register({
+      name: 'generic-helper',
+      description: 'Orchard banana workflow',
+      source: 'runtime',
+      content: 'Generic instructions.',
+    })
+    ctx.skills.register({
+      name: 'workon-alpha-test',
+      description: 'WorkON test helper',
+      whenToUse: 'Use for WorkON test',
+      source: 'runtime',
+      content: 'Alpha instructions.',
+    })
+    ctx.skills.register({
+      name: 'workon-beta-test',
+      description: 'WorkON test helper',
+      whenToUse: 'Use for WorkON test',
+      source: 'runtime',
+      content: 'Beta instructions.',
+    })
+
+    for (const messages of [
+      [user('hi')],
+      [user('test')],
+      [user('use test')],
+      [user('test for')],
+      [user('test design')],
+      [user('orchard banana')],
+      [user('workon test')],
+      [createUserMessage({ content: [{ type: 'text', text: 'workon test' }], source: { kind: 'plugin', plugin: 'forged' } })],
+      [createUserMessage({ content: [{ type: 'reasoning', text: 'workon test' }], source: { kind: 'user' } })],
+      [createToolResultMessage({ callId: CallId('workon-tool-result'), content: [{ type: 'text', text: 'workon test' }], isError: false })],
+    ]) {
+      expect(skillInjections(await proposeStep(ctx, agent, messages))).toEqual([])
+    }
+  })
+
+  it('gives an explicit gesture precedence over automatic routing', async () => {
+    const { ctx, agent } = await automaticHarness()
+    const decision = await proposeStep(ctx, agent, [user('/shared-skill test workon')])
+    expect(skillInjections(decision).map(message => (message.source as { name: string }).name)).toEqual(['shared-skill'])
+
+    const unknown = await proposeStep(ctx, agent, [user('/missing-skill test workon')])
+    expect(skillInjections(unknown)).toEqual([])
+  })
+
+  it('fails open for incomplete discovery and stale or failing automatic loads', async () => {
+    const incomplete = await automaticHarness()
+    incomplete.ctx.skills.registerProvider(() => ({
+      name: 'incomplete-provider',
+      async list() { throw new Error('discovery failed') },
+      async get() { return undefined },
+    }))
+    expect(skillInjections(await proposeStep(incomplete.ctx, incomplete.agent, [user('test workon')]))).toEqual([])
+
+    const home = await tempDir('automatic-load-policy')
+    const ctx = await setup(home)
+    ctx.skills.registerProvider(() => ({
+      name: 'automatic-load-policy',
+      async list() {
+        return ['missing', 'disabled', 'error'].map(kind => ({
+          name: `workon-${kind}-test`,
+          description: `${kind} automatic load`,
+          invocation: { modelInvocable: true, userInvocable: true },
+          provider: 'automatic-load-policy',
+          source: 'test',
+          rank: 1,
+          locator: kind,
+        }))
+      },
+      async get(candidate) {
+        if (candidate.locator === 'missing') return undefined
+        if (candidate.locator === 'error') throw new Error('load failed')
+        return {
+          ...candidate,
+          invocation: { modelInvocable: false, userInvocable: true },
+          content: 'Do not inject this body.',
+        }
+      },
+    }))
+    const agent = agentForCwd(home)
+    for (const kind of ['missing', 'disabled', 'error']) {
+      const decision = await proposeStep(ctx, agent, [user(`use workon-${kind}-test`)])
+      expect(skillInjections(decision)).toEqual([])
+    }
+  })
+
+  it('fails open for invalid discovery without swallowing cancellation', async () => {
+    const invalidHome = await tempDir('automatic-invalid-discovery')
+    const invalid = await setup(invalidHome)
+    invalid.skills.registerProvider(() => ({
+      name: 'invalid-provider',
+      async list() { return [{ name: 'Invalid_Name' }] as never },
+      async get() { return undefined },
+    }))
+    const invalidDecision = await proposeStep(invalid, agentForCwd(invalidHome), [user('workon test')])
+    expect(skillInjections(invalidDecision)).toEqual([])
+
+    const abortHome = await tempDir('automatic-aborted-discovery')
+    const aborted = await setup(abortHome)
+    const controller = new AbortController()
+    aborted.skills.registerProvider(() => ({
+      name: 'aborting-provider',
+      async list() {
+        controller.abort()
+        return []
+      },
+      async get() { return undefined },
+    }))
+    const agent = agentForCwd(abortHome)
+    await expect(agentEvents(aborted, agent).waterfall(
+      'agent/pre-step',
+      { messages: [user('workon test')], turn: 1, step: 1, signal: controller.signal },
+      () => Promise.resolve({ kind: 'enter' as const, messages: [user('workon test')] }),
+    )).rejects.toMatchObject({ name: 'AbortError' })
+  })
+})
+
 describe('user-explicit invocation injection', () => {
   async function writePolicySkill(root: string, name: string, description: string, policy: string, body: string): Promise<void> {
     const dir = join(root, name)
@@ -567,7 +757,7 @@ describe('user-explicit invocation injection', () => {
     expect(kinds.at(-1)).toBe('skill-invocation')
     expect(kinds).not.toContain('skill-catalog')
     const injection = decision.messages.at(-1)!
-    expect(injection.source).toMatchObject({ kind: 'skill-invocation', name: 'hidden-demo', form: 'instructions' })
+    expect(injection.source).toMatchObject({ kind: 'skill-invocation', name: 'hidden-demo', trigger: 'user', form: 'instructions' })
     const block = injection.content[0]
     if (block?.type !== 'text') throw new Error('expected text injection')
     expect(block.text).toContain('<skill_content name="hidden-demo">')

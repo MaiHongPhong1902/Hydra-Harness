@@ -7,13 +7,13 @@ import { Context } from '@bosch/cordis'
 import { boot, healProfilesModuleFallback, loadOverlayPatches, loadProfile } from '@bosch/bh-app-boot'
 import { provideCmdline } from '@bosch/bh-cmdline'
 import { SessionId } from '@bosch/bh-session'
-import type { Agent } from '@bosch/bh-agent'
+import { agentEvents, type Agent } from '@bosch/bh-agent'
 import type { PatchOptions } from '@bosch/cordis-plugin-include'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { settingsNamespace } from '@bosch/bh-settings'
 import { resolveSessionPreset, SETTINGS_NAMESPACE } from '@bosch/bh-agent-presets'
 import { applyChildComposition, childSessionMeta } from '@bosch/bh-subagent'
-import { CallId } from '@bosch/bh-llm'
+import { CallId, createUserMessage } from '@bosch/bh-llm'
 import type {} from '@bosch/bh-compaction-basic'
 import type {} from '@bosch/bh-skill'
 import type {} from '@bosch/bh-tools'
@@ -383,11 +383,23 @@ describe('the shipped Web composition', () => {
       'Project proof body.',
       '',
     ].join('\n'))
+    await mkdir(join(proj, '.bh', 'skills', 'workon-uat-test-design'), { recursive: true })
+    await writeFile(join(proj, '.bh', 'skills', 'workon-uat-test-design', 'SKILL.md'), [
+      '---',
+      'name: workon-uat-test-design',
+      'description: Ground WorkON testcase lookup and test design in Obsidian knowledge.',
+      'whenToUse: Use for WorkON testcase lookup, test design, or live validation.',
+      '---',
+      '',
+      'Use obsidian_knowledge_recall before WorkON testing.',
+      '',
+    ].join('\n'))
 
     const handle = await ctx.agents.create({
       // Unique per run: the composition persists into the ambient BH home,
       // and a fixed id would collide with a log an earlier run left there.
       sessionId: SessionId(`preset-skills-standard-${randomUUID()}`),
+      meta: { cwd: proj },
       setup: agentCtx => ctx.agentPresets.mount(agentCtx, 'standard').then(() => undefined),
     })
     try {
@@ -411,6 +423,23 @@ describe('the shipped Web composition', () => {
       })
       expect(loaded.isError).toBe(false)
       expect(JSON.stringify(loaded.content)).toContain('powered by bh')
+
+      const request = createUserMessage({
+        content: [{ type: 'text', text: 'test tính năng search request trên workon' }],
+        source: { kind: 'user' },
+      })
+      const signal = new AbortController().signal
+      const decision = await agentEvents(ctx, handle.agent).waterfall(
+        'agent/pre-step',
+        { messages: [request], turn: 1, step: 1, signal },
+        () => Promise.resolve({ kind: 'enter' as const, messages: [request] }),
+      )
+      if (decision.kind !== 'enter') throw new Error('standard preset rejected the skill-routing step')
+      const injection = decision.messages.find(message => message.source.kind === 'skill-invocation')
+      expect(injection?.source).toEqual({
+        kind: 'skill-invocation', name: 'workon-uat-test-design', trigger: 'automatic', form: 'instructions',
+      })
+      expect(JSON.stringify(injection?.content)).toContain('obsidian_knowledge_recall')
     } finally {
       await handle.dispose()
     }

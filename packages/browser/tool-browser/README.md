@@ -1,12 +1,12 @@
 # @bosch/bh-tool-browser
 
-The model-facing half of the embedded browser: standard `browser_*` tools over controlled tabs, explicit controls for the full upstream PageAgent runtime, and the one prompt section that teaches the model to read a text DOM. The user also has a native tab strip and omnibox; the window, the page, and the process live behind `ctx.browsers` in [@bosch/bh-browser-electron](../browser-electron/README.md).
+The model-facing half of the embedded browser: standard `browser_*` tools over controlled tabs, a selected-viewport screenshot, policy-gated history search, opt-in Full CDP controls, explicit controls for the full upstream PageAgent runtime, and the one browser prompt section. The user also has a native tab strip and omnibox; the window, the page, and the process live behind `ctx.browsers` in [@bosch/bh-browser-electron](../browser-electron/README.md).
 
 The split is the usual consumer/seam one. Everything the model can see — schema wording, the DOM-format guidance, the character cap, the card titles — is decided here; nothing here knows that the browser is Electron.
 
 ## What one call returns
 
-Every tool answers with the same object, and the model reads it as one text block: what the action did, the controlled tab list, the snapshot tab, then the page it left behind. The structured value uses `tabId` for that snapshot and its valid element indices, `activeTabId` for the tab selected in the visible chrome, plus `settled` and `capturedAt`; an exhausted readiness wait is transient evidence, not a UI verdict.
+Every DOM/action tool answers with the same object, and the model reads it as one text block: what the action did, the controlled tab list, the snapshot tab, then the page it left behind. The structured value uses `tabId` for that snapshot and its valid element indices, `activeTabId` for the tab selected in the visible chrome, plus `settled` and `capturedAt`; an exhausted readiness wait is transient evidence, not a UI verdict.
 
 ```
 did navigate
@@ -28,6 +28,8 @@ There is no separate "read the page" step after an action. `PageController` assi
 
 An action the page rejects — a missing index, a `select` that has no such option — comes back as `{success: false, message}` rendered into that same text block, not as a tool error. It is a fact the model can act on, and raising it as an error would only cost a retry.
 
+`browser_screenshot` is the one different result. It has no arguments and exists only while durable attachments are mounted. After confirming the current model route accepts image input, it captures the selected HTTP(S) tab's visible viewport, commits the bounded PNG through `ctx.attachments`, and returns attachment metadata plus an image block. Raw base64 never enters tool or session output. Switch tabs first when another tab is intended; screenshots cannot target a background tab, Browser chrome, a crop, or a full page and supply no action coordinates.
+
 ## Config
 
 | key | default | effect |
@@ -41,11 +43,17 @@ Only `content` is cut. The header and footer are short, fixed-shape, and are the
 
 ## Navigation
 
-`browser_navigate` accepts an absolute `http:` or `https:` URL and opens it directly. It does not request origin approval.
+`browser_navigate` accepts an absolute `http:` or `https:` URL. The Browser owner applies an exact-origin site override or the default navigation policy before a new top-level destination opens.
 
-The controlled window follows normal Chromium page navigation, including cross-origin redirects. A `window.open()` page is adopted into a controlled tab; use `browser_switch_tab` with the returned id. See [the seam's security section](../browser-electron/README.md#security) for the persistent-profile risk.
+The same policy covers direct loads, links, cross-origin redirects, the omnibox, the configured home page, and `window.open()`. An allowed popup is adopted into a controlled tab; use `browser_switch_tab` with the returned id. Back, Forward, and Reload do not ask again for existing history entries, but a remembered exact-origin block still vetoes them. See [the seam's security section](../browser-electron/README.md#security) for the persistent-profile risk.
 
-Every page-local tool accepts optional `tab_id`. Omission uses the selected tab and stays exclusive; an explicit id keeps the action and trailing snapshot bound to that tab. The scheduler may overlap calls for different explicit tabs, while the seam preserves call order within each tab. `browser_open_tab`, `browser_switch_tab`, and `browser_close_tab` remain window-wide lifecycle barriers.
+Every page-local DOM tool accepts optional `tab_id`. Omission uses the selected tab and stays exclusive; an explicit id keeps the action and trailing snapshot bound to that tab. The scheduler may overlap calls for different explicit tabs, while the seam preserves call order within each tab. `browser_open_tab`, `browser_switch_tab`, `browser_close_tab`, and argument-free `browser_screenshot` remain window-wide lifecycle barriers.
+
+## Sensitive history and Full CDP
+
+`browser_history_search` returns at most 20 case-insensitive title/URL matches from the app-owned Browser ledger. The Browser owner applies the separate history-access policy first: `allow` proceeds, `block` denies, and `ask` requires an `allowed-once` approval bound to the exact query and tool call. This model path is separate from the user's history manager in Settings.
+
+`browser_cdp_command` and `browser_cdp_read_events` exist only while both the deployment ceiling and the user's Full CDP opt-in are enabled. Every call still requires a fresh approval bound to the selected controlled tab, its HTTP(S) origin, and the requested command or event read; cross-target domains are unavailable and values are bounded. Turning the effective setting off removes both schemas again.
 
 ## Model Experience
 
@@ -58,7 +66,7 @@ One section, `tool:browser`, at order 115 — after the terminal guidance and be
 ##### Browser DOM guidance
 
 ```markdown
-The browser tools drive one embedded browser window. It opens on your first browser call and closes when the session ends; there is nothing to open or close yourself. You perceive the page as text, never as an image.
+The browser tools drive one embedded browser window. It opens on your first browser call and closes when the session ends; there is nothing to open or close yourself. Normal results represent the page as text; `browser_screenshot` explicitly returns the selected tab's visible viewport when visual evidence is needed.
 
 Every browser result includes the controlled tab list, the snapshot tab, then a header with the current URL and scroll position, the list of interactive elements, and a footer saying whether content continues below. `tabId` identifies the snapshot and valid indices; `activeTabId` identifies the visibly selected tab. A result with `settled: false` is transient evidence; use `browser_wait` once before deciding that a UI control is absent.
 
@@ -93,11 +101,11 @@ Prefix-stable while the package is loaded and the section text is unchanged. Loa
 
 #### What the model sees
 
-The generated [`browser_*` schemas](../../../docs/tool-catalog.md#boschbh-tool-browser): navigation, state, wait, indexed DOM actions, tab actions, and `browser_page_agent_run`/`status`/`stop`. PageAgent uses the invoking BH agent's selected model through a private host bridge; no API key or PageAgent UI is sent to a page. The optional experimental JavaScript schema is present only when the host enables it. `maxStateChars` and `timeoutMs` are deployment settings, not model arguments.
+The generated [`browser_*` schemas](../../../docs/tool-catalog.md#boschbh-tool-browser): navigation, state, wait, indexed DOM actions, tab actions, selected-viewport screenshot, sensitive-history search, and `browser_page_agent_run`/`status`/`stop`. PageAgent uses the invoking BH agent's selected model through a private host bridge; no API key or PageAgent UI is sent to a page. Screenshot appears only while durable attachments are mounted; experimental JavaScript appears only when its host gate is enabled, while the two Full CDP schemas appear only during the effective organization-and-user opt-in. `maxStateChars` and `timeoutMs` are deployment settings, not model arguments.
 
 #### Token effect
 
-Fixed schema cost per request for the browser and PageAgent controls; experimental JavaScript adds one only when the host explicitly enables it.
+Fixed schema cost per request for the browser, history, and PageAgent controls; experimental JavaScript adds one only when the host explicitly enables it, and effective Full CDP adds two more.
 
 #### KV Cache effect
 
@@ -121,7 +129,7 @@ Append-only; each result follows the reusable request prefix and does not invali
 
 #### What the model sees
 
-`Error: <message>` carrying the seam's own text — `BROWSER_UNAVAILABLE` when no `electron` is installed, `BROWSER_LAUNCH_FAILED` with the child's stderr tail, `BROWSER_GONE` after the user closed the window or the renderer died, `BROWSER_TIMEOUT`, `BROWSER_DISPOSING`. These are transport and lifecycle failures only; a page that refused the action is a result, not an error.
+`Error: <message>` carrying the seam's own text — `BROWSER_UNAVAILABLE` when no `electron` is installed, `BROWSER_LAUNCH_FAILED` with the child's stderr tail, `BROWSER_GONE` after the user closed the window or the renderer died, `BROWSER_TIMEOUT`, `BROWSER_DISPOSING`, `BROWSER_DISABLED` when user settings disable agent control, and `BROWSER_POLICY_DENIED` when upload, sensitive-history, or Full CDP settings or approval deny an operation. The first five are transport and lifecycle failures; the last two are user-control failures. A page that refused an action is a result, not an error.
 
 #### Token effect
 
@@ -149,7 +157,7 @@ Append-only; the error follows the reusable request prefix and does not invalida
 
 - **No `browser_forward` tool.** The native chrome has a Forward control; model flows can use the observed tab and `browser_back` but not Forward.
 - **Experimental JavaScript is host-gated.** It is absent by default, runs in the isolated document world when enabled, and cannot access page-world globals.
-- **No screenshot.** The text DOM is the whole modality. `capturePage()` into `ctx.attachments.saveImage()` is a small addition, deferred until a page proves the text insufficient.
+- **No screenshot-based control.** `browser_screenshot` observes the selected viewport only; it cannot target a crop or full page and accepts no visual coordinates. The text DOM remains the action modality.
 - **File upload requires the real input.** It supports an observed HTML `<input type="file">`; a proxy button or hidden chooser control is not addressable.
 - **The cap cuts, it does not summarise.** A page over `maxStateChars` loses its tail with only a notice; there is no ranking of which elements matter. `browser_scroll` is the recovery, and it costs the model a round trip per screen.
 - **Presenters are pure over arguments** because they re-run during session-log replay, where no browser exists. That is why a pending call shows `Click [12]` rather than the element's label: the label lives in a process the replay does not have.

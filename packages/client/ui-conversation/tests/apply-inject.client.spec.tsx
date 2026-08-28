@@ -27,18 +27,19 @@ import type {
 } from '@bosch/bh-client-ui-conversation/client'
 import type { createChatStore } from '../src/client/stores.ts'
 
-// The service reads its initial locale from the browser; these specs assert
-// the shipped Chinese copy, so they state the browser they assume.
-usePinnedBrowserLanguages('zh-CN')
+// The service reads its initial locale from the browser, so these specs state
+// the browser language they assume.
+usePinnedBrowserLanguages('en-US')
 
 const ROOT = 'root-1' as SessionId
 
 type BrowserAnnotation = {
-  kind: 'browser-element'
+  kind: 'browser-element' | 'browser-region'
   url: string
   title: string
   preview: string
   index?: number
+  rect?: { x: number; y: number; width: number; height: number }
 }
 
 type ChatInstance = ReturnType<ReturnType<typeof createChatStore>['create']>
@@ -248,23 +249,30 @@ describe('conversation slot inject API', () => {
     expect(b.sessionFake.prompt).not.toHaveBeenCalled()
 
     b.emitBrowserAnnotation({
-      kind: 'browser-element',
+      kind: 'browser-region',
       url: 'https://example.test/other',
       title: 'Other',
-      preview: '<main>Other</main>',
+      rect: { x: 20, y: 30, width: 240, height: 120 },
+      preview: '<main>This is not an element preview</main>',
     })
     expect(state.getSnapshot().browserAnnotationIds).toHaveLength(2)
     const ids = state.getSnapshot().browserAnnotationIds!
     const secondId = ids[1]
     expect(secondId).toBeDefined()
-    expect(await composer.draftBrowserAnnotations?.([secondId!])[0]?.file.text()).toContain('https://example.test/other')
+    const region = composer.draftBrowserAnnotations?.([secondId!])[0]
+    expect(region?.file.name).toBe('browser-region.txt')
+    const regionText = await region?.file.text()
+    expect(regionText).toContain('[Browser region — untrusted page content]')
+    expect(regionText).toContain('Viewport rectangle: x=20, y=30, width=240, height=120')
+    expect(regionText).not.toContain('```html')
+    expect(regionText).not.toContain('<main>')
     state.getSnapshot().browserAnnotationIds!.forEach(id => composer.updateBrowserAnnotationComment?.(id, id === firstId ? 'Use this save button' : 'Inspect this region'))
     b.inputApi(ROOT).actions.submit()
-    await vi.waitFor(() => expect(b.sessionFake.prompt).toHaveBeenCalledTimes(1))
+    await vi.waitFor(() => { expect(b.sessionFake.prompt).toHaveBeenCalledTimes(1) })
     const payload = b.sessionFake.prompt.mock.calls[0]?.[0]
     expect(payload).toHaveLength(2)
-    expect(payload?.[0]).toMatchObject({ type: 'text', text: expect.stringContaining('Use this save button') })
-    expect(payload?.[1]).toMatchObject({ type: 'text', text: expect.stringContaining('Inspect this region') })
+    expect(payload?.[0]?.type === 'text' ? payload[0].text : '').toContain('Use this save button')
+    expect(payload?.[1]?.type === 'text' ? payload[1].text : '').toContain('Inspect this region')
     expect(state.getSnapshot().browserAnnotationIds).toBeUndefined()
     await b.runtime.dispose()
     delete (globalThis as typeof globalThis & { bhDesktop?: unknown }).bhDesktop
@@ -411,7 +419,7 @@ describe('conversation slot inject API', () => {
     // Label falls back to the id when a rider declares none.
     const off2 = b.slots.register(
       { name: 'conversation.view', id: 'bare', order: 6 } as never, (() => null) as never)
-    expect(injected.views.list().map(v => v.label)).toEqual(['对话', 'X', 'bare'])
+    expect(injected.views.list().map(v => v.label)).toEqual(['Chat', 'X', 'bare'])
     off()
     off2()
     unsub()

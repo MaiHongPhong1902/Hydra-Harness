@@ -168,7 +168,7 @@ export function DiffBlock({ diffs, maxLines = DEFAULT_DIFF_MAX_LINES, className 
   return (
     <div className={clsx(css.block, className)} data-diff="">
       <button type="button" className={css.copyButton} onClick={onCopy}>
-        {copied ? '复制成功' : '复制'}
+        {copied ? 'Copied' : 'Copy'}
       </button>
       <div className={css.body}>
         {head.map((row, index) => (
@@ -179,10 +179,10 @@ export function DiffBlock({ diffs, maxLines = DEFAULT_DIFF_MAX_LINES, className 
             type="button"
             className={css.expand}
             aria-expanded={expanded}
-            aria-label={expanded ? '收起差异' : `展开其余 ${hidden} 行差异`}
+            aria-label={expanded ? 'Collapse diff' : `Expand the remaining ${hidden} diff lines`}
             onClick={onToggle}
           >
-            {expanded ? '收起' : `… 其余 ${hidden} 行`}
+            {expanded ? 'Collapse' : `… ${hidden} more lines`}
           </button>
         )}
         {tail.map((row, index) => (

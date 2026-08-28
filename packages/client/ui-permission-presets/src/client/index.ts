@@ -28,7 +28,7 @@ import type { PermissionSelect } from '@bosch/bh-permission-presets/client'
 import { PermissionRow } from './PermissionRow.tsx'
 import type { PermissionRowInjected } from './PermissionRow.tsx'
 import {
-  accessEn, accessZh, en, zh,
+  accessEn, en,
 } from './locales.ts'
 import {
   displayPermissionPreset, FULL_ACCESS_PRESET,
@@ -84,37 +84,22 @@ export function apply(ctx: ClientContext): void {
   // This optional bundle and ui-conversation can load independently, so each
   // owns the same safety copy under its own locale namespace.
   /* jscpd:ignore-start */
-  ctx.effect(() => {
-    const disposers = [
-      ctx.locale.register(ACCESS_NS, 'zh', {
-        'preset.readOnly': accessZh['preset.readOnly'],
-        'preset.workspaceWrite': accessZh['preset.workspaceWrite'],
-        'preset.fullAccess': accessZh['preset.fullAccess'],
-        'confirm.title': accessZh['confirm.title'],
-        'confirm.description': accessZh['confirm.description'],
-        'confirm.acknowledge': accessZh['confirm.acknowledge'],
-        'confirm.cancel': accessZh['confirm.cancel'],
-        'confirm.enable': accessZh['confirm.enable'],
-      }),
-      ctx.locale.register(ACCESS_NS, 'en', {
-        'preset.readOnly': accessEn['preset.readOnly'],
-        'preset.workspaceWrite': accessEn['preset.workspaceWrite'],
-        'preset.fullAccess': accessEn['preset.fullAccess'],
-        'confirm.title': accessEn['confirm.title'],
-        'confirm.description': accessEn['confirm.description'],
-        'confirm.acknowledge': accessEn['confirm.acknowledge'],
-        'confirm.cancel': accessEn['confirm.cancel'],
-        'confirm.enable': accessEn['confirm.enable'],
-      }),
-    ]
-    return () => { for (const dispose of disposers) dispose() }
-  }, 'ui-permission: Full access confirmation dictionaries')
+  ctx.effect(() => ctx.locale.register(ACCESS_NS, 'en', {
+    'preset.readOnly': accessEn['preset.readOnly'],
+    'preset.workspaceWrite': accessEn['preset.workspaceWrite'],
+    'preset.fullAccess': accessEn['preset.fullAccess'],
+    'confirm.title': accessEn['confirm.title'],
+    'confirm.description': accessEn['confirm.description'],
+    'confirm.acknowledge': accessEn['confirm.acknowledge'],
+    'confirm.cancel': accessEn['confirm.cancel'],
+    'confirm.enable': accessEn['confirm.enable'],
+  }), 'ui-permission: Full access confirmation dictionary')
   /* jscpd:ignore-end */
   const t = ctx.locale.bind(ACCESS_NS)
   const sessionFor = (session: ClientSessionContext): SessionFace | undefined =>
     sessions.binding(session.sessionId)?.session
 
-  ctx.effect(() => ctx.locale.register('settings.permission', { zh, en }), 'ui-permission: settings row dictionaries')
+  ctx.effect(() => ctx.locale.register('settings.permission', { en }), 'ui-permission: settings row dictionaries')
 
   const connection = ctx.get('connection') as ConnectionHandle
   // The row follows the shared describe mirror, whose owning plugin already

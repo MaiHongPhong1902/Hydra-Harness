@@ -20,7 +20,7 @@ For every suspect passage ask: **could a reader at HEAD, with no access to any s
 5. **Reviewer-addressed justification** — "the cast is safe — it simply…", "this is correct because…". A comment arguing its own correctness addresses a reviewer, not a maintainer. State the invariant that makes the code safe, or delete the comment if the code shows it.
 6. **Restatement and derivation transcripts** — control-flow narration ("first we X, then we Y"), test walkthroughs, proofs of obvious branches. Delete; keep only a non-obvious contract or invariant.
 7. **Hedges and planning residue** — "probably fine for now", "should be enough", deferrals with no marker. Promote to `TODO`/`FIXME` or restate as the actual bound; delete the hedge.
-8. **Authoring-language slips** — untranslated working-language fragments (端, 设计稿, `---- 私有 ----` separators) in prose whose language is otherwise English, or the reverse in a zh counterpart. Translate or delete.
+8. **Authoring-language slips** — untranslated working-language fragments (Seite, Entwurf, `---- privat ----` separators) in prose whose language is otherwise English, or the reverse in a non-English counterpart. Translate or delete.
 
 ## What is not leakage
 

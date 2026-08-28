@@ -517,7 +517,7 @@ describe('built-in conversation node Definitions', () => {
     const value = assembler([
       at(1, 'user/message', {
         ...textMessage('skill-context', 'follow these instructions'),
-        source: { kind: 'skill-invocation', name: 'demo-skill', form: 'instructions' },
+        source: { kind: 'skill-invocation', name: 'demo-skill', trigger: 'automatic', form: 'instructions' },
       }, { surfaceOp: 'append' }),
     ])
 

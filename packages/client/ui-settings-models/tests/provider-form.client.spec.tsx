@@ -801,12 +801,12 @@ describe('hand-declared providers', () => {
     // The route id, not the stored name: it is what the route will be called
     // the moment the field is cleared.
     expect(name.placeholder).toBe('acme-gateway')
-    fireEvent.change(name, { target: { value: 'Acme 网关' } })
+    fireEvent.change(name, { target: { value: 'Acme Router' } })
     fireEvent.click(screen.getByText(en.apply))
 
     await waitFor(() => { expect(mutate).toHaveBeenCalledTimes(1) })
     expect(firstMutate(mutate).ops)
-      .toEqual([{ op: 'set', path: ['providers', 'acme-gateway', 'displayName'], value: 'Acme 网关' }])
+      .toEqual([{ op: 'set', path: ['providers', 'acme-gateway', 'displayName'], value: 'Acme Router' }])
   })
 
   it('offers the composition name as what a cleared field falls back to', async () => {
@@ -839,7 +839,7 @@ describe('hand-declared providers', () => {
     face.llm.providers = vi.fn(() => Promise.resolve(ok({
       providers: [{
         provider: 'acme-gateway',
-        displayName: 'Acme 网关',
+        displayName: 'Acme Router',
         settingsNs: 'llm-pi-ai',
         settingsPath: ['providers', 'acme-gateway'],
         active: true,
@@ -848,13 +848,13 @@ describe('hand-declared providers', () => {
     })))
     openEditor('acme-gateway')
 
-    fireEvent.change(screen.getByLabelText(en.customDisplayName), { target: { value: 'Acme 网关' } })
+    fireEvent.change(screen.getByLabelText(en.customDisplayName), { target: { value: 'Acme Router' } })
     fireEvent.click(screen.getByText(en.apply))
 
     const notice = await screen.findByRole('status')
     expect(notice.textContent).toBe(providerCopy(en.savedProvider, {
       provider: 'acme-gateway',
-      displayName: 'Acme 网关',
+      displayName: 'Acme Router',
     }))
   })
 

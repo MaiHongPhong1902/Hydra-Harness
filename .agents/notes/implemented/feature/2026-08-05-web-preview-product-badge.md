@@ -8,7 +8,7 @@ The Web empty state does not identify the product as a preview. Users can enter 
 
 ## Decision
 
-The empty hero always renders a localized `Preview` / `预览版` badge beneath the headline. It has no configuration switch: preview status is one product identity shared by every deployment, not a deployment-varying tunable.
+The empty hero always renders a localized `Preview` / `Preview` badge beneath the headline. It has no configuration switch: preview status is one product identity shared by every deployment, not a deployment-varying tunable.
 
 The badge keeps the business-tertiary background so both themes retain the product-blue context, and uses the theme's primary label token for text. That pairing gives ordinary 12px text sufficient contrast in both light and dark themes; the business-primary foreground is reserved for larger or non-text accents because it does not reach the required contrast on this background.
 

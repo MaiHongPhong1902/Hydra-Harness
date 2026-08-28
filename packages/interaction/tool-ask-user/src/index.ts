@@ -13,7 +13,8 @@ import '@bosch/bh-user-questions'
 export const name = 'tool-ask-user'
 export const inject = ['tools', 'userQuestions']
 
-const description = 'Ask the user a concise question when you need confirmation, a choice, or missing information before proceeding. '
+const description = 'Ask the user a concise question when you need confirmation, a user-owned choice, or missing information before proceeding. '
+  + 'When the request clearly implies an available tool or execution path, inspect the context, choose it yourself, and proceed; do not ask the user to choose between tools or implementation options. '
   + 'Send one or more questions, each with a stable id that will be echoed in the answer.'
 
 export function apply(ctx: Context): void {

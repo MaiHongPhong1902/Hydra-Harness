@@ -13,7 +13,7 @@ import { WelcomeNotice } from '../src/client/WelcomeNotice.tsx'
 import type { WelcomeNoticeProps } from '../src/client/WelcomeNotice.tsx'
 import { decodeWelcomeSection, WelcomeNoticeStore } from '../src/client/welcome-store.ts'
 import type { WelcomeSection } from '../src/client/welcome-store.ts'
-import { en, zh } from '../src/client/locales.ts'
+import { en } from '../src/client/locales.ts'
 import {
   WELCOME_NOTICE_ACK_FIELD, WELCOME_NOTICE_COPY, WELCOME_NOTICE_SETTINGS_NAMESPACE,
   WELCOME_NOTICE_VERSION,
@@ -80,32 +80,31 @@ function mount(
     useWorkspaces: unusedHook,
     controller,
     useWelcome: bindSnapshotSelector(controller.store),
-    t: key => zh[key],
+    t: key => en[key],
   }
   return { ...render(<WelcomeNotice {...props} />), complete, controller, mirror, mutate, appRoot }
 }
 
 describe('WelcomeNotice', () => {
-  it('uses the exact owner copy in both GUI locales', () => {
+  it('uses the exact owner copy', () => {
     expect(WELCOME_NOTICE_COPY.en).toEqual({
       title: 'Internal Testing Notice',
       body: "Bosch Harness 0.1 remains in testing for Harness developers. Many areas need further improvement, and we welcome feedback from the developer community. Bosch Harness's core plugins and foundational APIs will continue to evolve rapidly over the coming months.\n\nWe look forward to exploring the limits of intelligence with developers around the world, building on open-source, open, reusable, and composable infrastructure. We welcome Harness developers everywhere to join the BH plugin ecosystem.",
       continueLabel: 'Continue',
     })
     expect(en.welcomeBody).toBe(WELCOME_NOTICE_COPY.en.body)
-    expect(zh.welcomeBody).toBe(WELCOME_NOTICE_COPY.zh.body)
   })
 
   it('renders one blocking modal action and focuses the title', async () => {
     const h = mount()
-    const dialog = await screen.findByRole('dialog', { name: WELCOME_NOTICE_COPY.zh.title })
-    for (const paragraph of WELCOME_NOTICE_COPY.zh.body.split('\n\n')) {
+    const dialog = await screen.findByRole('dialog', { name: WELCOME_NOTICE_COPY.en.title })
+    for (const paragraph of WELCOME_NOTICE_COPY.en.body.split('\n\n')) {
       expect(screen.getByText(paragraph, { exact: true })).toBeTruthy()
     }
     expect(dialog.querySelectorAll('p')).toHaveLength(2)
     expect(dialog.querySelectorAll('button')).toHaveLength(1)
-    expect(screen.getByRole('button', { name: WELCOME_NOTICE_COPY.zh.continueLabel })).toBeTruthy()
-    expect(document.activeElement).toBe(screen.getByRole('heading', { name: WELCOME_NOTICE_COPY.zh.title }))
+    expect(screen.getByRole('button', { name: WELCOME_NOTICE_COPY.en.continueLabel })).toBeTruthy()
+    expect(document.activeElement).toBe(screen.getByRole('heading', { name: WELCOME_NOTICE_COPY.en.title }))
     expect(h.appRoot.inert).toBe(true)
 
     fireEvent.keyDown(document, { key: 'Escape' })
@@ -117,7 +116,7 @@ describe('WelcomeNotice', () => {
   it('completes only after the acknowledgement write commits', async () => {
     const h = mount()
     await screen.findByRole('dialog')
-    fireEvent.click(screen.getByRole('button', { name: WELCOME_NOTICE_COPY.zh.continueLabel }))
+    fireEvent.click(screen.getByRole('button', { name: WELCOME_NOTICE_COPY.en.continueLabel }))
     await act(async () => { await Promise.resolve() })
     expect(h.mutate).toHaveBeenCalledOnce()
     expect(h.complete).toHaveBeenCalledOnce()
@@ -138,7 +137,7 @@ describe('WelcomeNotice', () => {
     const write = new Promise<unknown>((resolve) => { resolveWrite = resolve })
     const h = mount(undefined, () => write)
     await screen.findByRole('dialog')
-    const action = screen.getByRole<HTMLButtonElement>('button', { name: WELCOME_NOTICE_COPY.zh.continueLabel })
+    const action = screen.getByRole<HTMLButtonElement>('button', { name: WELCOME_NOTICE_COPY.en.continueLabel })
     fireEvent.click(action)
     expect(action.disabled).toBe(true)
     resolveWrite({
@@ -152,7 +151,7 @@ describe('WelcomeNotice', () => {
         },
       },
     })
-    expect((await screen.findByRole('alert')).textContent).toBe(zh.welcomeError)
+    expect((await screen.findByRole('alert')).textContent).toBe(en.welcomeError)
     expect(h.complete).not.toHaveBeenCalled()
   })
 })

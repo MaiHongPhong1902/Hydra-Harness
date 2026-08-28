@@ -10,9 +10,10 @@ import { apply as applyConversation, inject as injectConversation } from '@bosch
 import { apply as applyTool, inject as injectTool } from '../src/client/apply.ts'
 import { toolChatSnapshot } from './tool-details-render.client.tsx'
 
-// The service reads its initial locale from the browser; these specs assert
-// the shipped Chinese copy, so they state the browser they assume.
-usePinnedBrowserLanguages('zh-CN')
+// The service reads its initial locale from the browser; English is the only
+// shipped locale, so an unsupported browser language here still falls back
+// to the shipped English copy these specs assert.
+usePinnedBrowserLanguages('fr-FR')
 
 const SID = 's1' as SessionId
 
@@ -32,9 +33,9 @@ beforeEach(() => {
   vi.stubGlobal('ResizeObserver', ResizeObserverStub)
 })
 const TODOS: TodoItem[] = [
-  { content: '梳理需求', status: 'completed' },
-  { content: '实现 fixture 样本', status: 'in_progress' },
-  { content: '浏览器验收', status: 'pending' },
+  { content: 'Sort out requirements', status: 'completed' },
+  { content: 'Implement the fixture sample', status: 'in_progress' },
+  { content: 'Browser acceptance', status: 'pending' },
 ]
 
 const todoResult = (seq: number): ToolResultNode => ({
@@ -105,13 +106,13 @@ describe('todo_write assembly (product registrations, no outlet twins)', () => {
     // Keyed toolview registration took the row (summary derived from args).
     const row = view.container.querySelector('[data-tool="todo_write"]')
     expect(row).not.toBeNull()
-    expect(row!.textContent).toContain('1/3 已完成 · 实现 fixture 样本')
+    expect(row!.textContent).toContain('1/3 completed · Implement the fixture sample')
 
     // The plan strip sits in the input dock, fed by the projection
     // (default-collapsed: the header summary shows; rows appear on expand).
     const panel = view.container.querySelector('[data-testid="todo-panel"]')
     expect(panel).not.toBeNull()
-    expect(panel!.textContent).toContain('1 已完成\u2002·\u20021 进行中\u2002·\u20021 待处理')
+    expect(panel!.textContent).toContain('1 completed · 1 in progress · 1 pending')
     fireEvent.click(panel!.querySelector('button')!)
     expect([...panel!.querySelectorAll('li')].map(li => li.getAttribute('data-status')))
       .toEqual(['completed', 'in_progress', 'pending'])

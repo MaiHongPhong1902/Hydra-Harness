@@ -1,0 +1,49 @@
+# Agent Note: Built-in desktop browser and web search settings
+
+Status: implemented
+
+## Problem
+
+The desktop app exposed its controlled browser and Web Search as generic plugins but gave the user no single Settings page for recognizing and governing the built-in browser capability.
+
+## Decision
+
+The desktop Settings navigation includes a Browser page using the supplied browser-window glyph. The desktop-browser owner `ui-layout` registers the page and its locale namespace only while the preload exposes the complete Browser management API; `ui-settings-general` remains the ownerless Settings shell and selects the Browser nav glyph by section id. The page persists durable `browser-electron` controls for agent access; public-web and loopback URL destinations; annotation screenshots; download location and prompting; navigation, download, upload, and model-history policies; and Full CDP opt-in. Agent control defaults on, both URL classes default to BHAgent, screenshots default to include, Full CDP defaults off, and every closed `allow | ask | block` policy defaults to `ask`. The client configures the native controller only from a ready authoritative Host snapshot; `BrowserSessionService` remains the authority for Host-side control, upload, history, and elevated-CDP decisions.
+
+`BrowserSessionService.perform()` checks `controlEnabled` at the shared action seam and rejects new work with `BROWSER_DISABLED` while it is off. Turning it off stops detached PageAgent loops in every open tab, and the private model bridge independently rejects a later request from a racing loop. Native setting changes are also pushed to every active Electron controller. Upload always validates the exact user-literal, absolute path, and readable regular file first; `block` rejects before starting a browser, while `ask` binds `ctx.approval` to the exact file, current HTTP(S) origin, tab, input index, tool-call id, and cancellation signal. Electron rechecks the same tab and origin before and after resolving the indexed HTML file input; a blocked or unapproved upload fails with `BROWSER_POLICY_DENIED`. Model-facing history search applies its separate policy before acquiring or starting Electron and returns at most 20 title/URL matches; an `ask` decision similarly requires `allowed-once` approval bound to the query and tool call.
+
+The Electron controller policy-checks every new top-level destination: direct tool/tab loads, the omnibox, and the configured home page before `loadURL`; popups before adoption; and page links or redirects at `will-navigate` and `will-redirect`. Exact-origin site blocks override same-origin access and veto Back, Forward, and Reload, while existing history does not reapply the default navigation policy. Other same-origin HTTP(S) navigation proceeds, non-HTTP(S) navigation fails closed, and `ask` offers Allow once, Always allow, and Block for the exact canonical origin. The desktop also intercepts trusted-renderer HTTP(S) links: non-loopback URLs use the web destination, loopback URLs use the local destination, and each opens either in the system browser or a new controlled BHAgent tab after the applicable navigation check. Downloads are decided before disk, use a unique destination under the configured or system Downloads directory, and optionally open a native save dialog. Only camera and microphone media requests can be allowed; blocking media leaves navigation access fail-closed and reloads every matching document or frame before the update returns. Every other permission, device-permission, and display-capture request fails closed.
+
+Quick annotate and interactive Annotate send bounded URL, title, element-index, and HTML-preview text for an element click or short drag, or bounded viewport-rectangle text for a dragged region, into the active composer. The annotation setting includes a bounded PNG for the selected element or region, asks through a native prompt, or keeps the annotation text-only; the conversation validates an included PNG and queues it as an ordinary image beside the text annotation. Capture failure and stale tab/origin state fail safely without turning screenshots into browser-tool state.
+
+Full CDP remains unavailable unless both the deployment's `allowFullCdpAccess` ceiling and the user's disabled-by-default opt-in allow it. The desktop requires a native elevated-risk confirmation before persisting an enable, and `tool-browser` registers the raw command and bounded event-read tools only while the effective gate is on. Every use still requires a fresh `allowed-once` approval bound to the exact tab, HTTP(S) origin, and operation; Electron rechecks that target, blocks cross-target domains, and bounds protocol inputs and outputs.
+
+The page reaches this controller only through narrow preload and validated desktop IPC methods. Its managers search and remove navigation-history or download-ledger rows and add, edit, or remove exact-origin access/media overrides stored in `browser-management.json`, bounded to 1,000 history rows, 500 download rows, and 500 sites. Site overrides govern top-level navigation and camera/microphone only, not download/upload policy or subresources. Clearing data requires explicit risk acknowledgement, clears Chromium data, open-tab navigation history, and the history/download ledgers, and retains settings, site overrides, and downloaded files. Removing a history/download row changes only that ledger.
+
+The Browser page declares `settings.browser.item`; the existing `web-search-deepseek` disclosure card contributes there on Desktop and retains its Web-only fallback under Plugin configuration. Its established settings and credential paths continue to own the endpoint, native-search budget, and key. `web_search` delegates to the provider selected by `ctx.web`, independently of the current LLM provider, so the built-in search provider remains usable for BH model routes. The Web app protects the `web`, `web-search-deepseek`, and `browser-electron` host rows from in-app plugin disablement; model-facing browser and web tools remain scoped by agent presets.
+
+The page is registered only when the desktop preload exposes `bhDesktop.browser`. URL destinations, annotation screenshots, model-history access, Full CDP, Password Manager, and Contact Info are Host/native-backed controls. The two managers enable only when the current preload exposes their management methods and Electron reports secure storage available; otherwise they remain disabled and all vault operations fail closed. Passwords never cross the renderer boundary.
+
+## Alternatives considered
+
+**Render Browser settings in every Web client.** Rejected because a normal Web client has no embedded desktop browser, so the page would advertise an unavailable capability.
+
+**Persist Browser controls in client-only state.** Rejected because URL routing, annotation capture, history access, and Full CDP must govern the native controller or Host tool seam and survive through the authoritative settings store.
+
+**Guard each `browser_*` tool separately.** Rejected because every current browser consumer already reaches `BrowserSessionService.perform()`; one guard there also covers direct and future consumers.
+
+**Leave navigation and downloads to unrestricted Chromium defaults.** Rejected because the user-visible Browser policy values must be enforced before a cross-origin transition or file write, not merely displayed in Settings.
+
+**Store site overrides as arbitrary client settings.** Rejected because the Electron owner can canonicalize exact HTTP(S) origins, bound profile state, and enforce access/media choices at Chromium's permission boundaries.
+
+**Merge browser and search packages into one package.** Rejected because their execution and security responsibilities differ; the built-in composition, Settings page, and provider policy are the shared product control points.
+
+**Add a provider selector with one shipped option.** Rejected because the existing card already configures the only shipped search provider; a selector becomes useful only when the product ships another durable provider configuration.
+
+## Consequences
+
+Users can disable future BHAgent browser actions; choose desktop link destinations and annotation screenshot behavior; configure navigation, history, download, upload, and elevated-CDP boundaries; manage Browser-owned records and exact-origin overrides; and configure Web Search from one desktop page. Durable choices survive restarts; detached autonomous tasks stop when control is disabled, while one ordinary action already executing may finish. Browser and Web Search stay present as built-in Host capabilities, while preset composition and effective settings still decide whether an agent receives their model-facing tools.
+
+Durable settings and remembered site overrides intentionally survive a browsing-data clear, downloaded files remain on disk, and ledger-row removal does not change open-tab history or delete files. Autofill records remain encrypted with Electron secure storage; unavailable or legacy preload capabilities keep the managers disabled without weakening the fail-closed boundary.
+
+Focused browser tests cover the durable settings, live controller configuration, control/upload/history/CDP denials and approvals, PageAgent teardown, text annotation, and real-Electron management operations. Client tests cover desktop-only registration, authoritative persistence and controller ordering, managers, Browser control rows, Full CDP confirmation, Web Search placement, localization, and the distinct navigation glyph. Web tests cover provider selection independently of the active model and the assembled protected-plugin inventory. The browser lifecycle and tab ownership remain defined by [Embedded browser chrome](2026-08-22-embedded-browser-chrome.md) and [Active controlled browser tabs](2026-08-22-active-controlled-browser-tabs.md).

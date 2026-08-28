@@ -213,7 +213,7 @@ exports[`sidebar shell snapshots > renders the expanded column (wordmark, capsul
 </div>
 `;
 
-exports[`sidebar shell snapshots > renders the expanded column in the default locale (zh, no setLocale) 1`] = `
+exports[`sidebar shell snapshots > renders the expanded column in the default locale (en, no setLocale) 1`] = `
 <div
   data-slot="sidebar"
   style="display: contents;"
@@ -226,7 +226,7 @@ exports[`sidebar shell snapshots > renders the expanded column in the default lo
       class="logoRow"
     >
       <button
-        aria-label="新建会话"
+        aria-label="New session"
         class="brand wide"
         type="button"
       >
@@ -268,7 +268,7 @@ exports[`sidebar shell snapshots > renders the expanded column in the default lo
         </span>
       </button>
       <button
-        aria-label="收起侧边栏"
+        aria-label="Collapse sidebar"
         class="iconButton toggle"
         type="button"
       >
@@ -284,7 +284,7 @@ exports[`sidebar shell snapshots > renders the expanded column in the default lo
       </button>
     </div>
     <button
-      aria-label="新建会话"
+      aria-label="New session"
       class="newSession"
       type="button"
     >
@@ -299,7 +299,7 @@ exports[`sidebar shell snapshots > renders the expanded column in the default lo
       <span
         class="newSessionLabel wide"
       >
-        新会话
+        New Session
       </span>
     </button>
     <div

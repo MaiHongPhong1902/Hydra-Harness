@@ -15,7 +15,7 @@ async function bench() {
   ctx.provide('locale', {
     register: () => () => {},
     bind: () => (key: string) => key,
-    getSnapshot: () => ({ active: 'zh', locales: [], revision: 0 }),
+    getSnapshot: () => ({ active: 'en', locales: [], revision: 0 }),
     subscribe: () => () => {},
   } as never)
   ctx.provide('connection', {

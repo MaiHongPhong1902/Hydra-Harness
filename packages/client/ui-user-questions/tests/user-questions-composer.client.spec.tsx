@@ -10,9 +10,8 @@ import { RpcId } from '@bosch/bh-client-connection/client'
 import type { SnapshotSelectorHook } from '@bosch/bh-client-ui-slots'
 import { PendingQuestion, type QuestionComposerProps } from '../src/client/contract/slots.ts'
 import { QuestionComposer, parseRecommendedLabel } from '../src/client/QuestionComposer.tsx'
-import { en, zh } from '../src/client/locales.ts'
+import { en } from '../src/client/locales.ts'
 import { en as commonEn } from '@bosch/bh-client-locale/src/locales/en.ts'
-import { zh as commonZh } from '@bosch/bh-client-locale/src/locales/zh.ts'
 
 afterEach(cleanup)
 
@@ -35,24 +34,24 @@ const kit = {
   useInput: (() => { throw new Error('unused') }) as never,
   inputActions: { setDraft: () => { throw new Error('unused') }, submit: () => { throw new Error('unused') } } as never,
   // The seat's key domain is question ∪ common.
-  t: seatOver(zh, commonZh),
+  t: seatOver(en, commonEn),
 }
 
 const QUESTIONS = [
   {
-    id: 'profile', header: '偏好', question: '选择候选人类型',
-    detail: '按当前空缺岗位的优先级选择。',
+    id: 'profile', header: 'Preference', question: 'Choose the candidate type',
+    detail: "Choose based on the current opening's priority.",
     options: [
-      { label: '工程落地型 (Recommended)', description: '优先工程交付。' },
-      { label: '研究潜力型', description: '优先研究能力。' },
+      { label: 'Engineering-execution type (Recommended)', description: 'Prioritizes engineering delivery.' },
+      { label: 'Research-potential type', description: 'Prioritizes research ability.' },
     ],
   },
   {
-    id: 'detail', question: '补充你的要求',
+    id: 'detail', question: 'Add any additional requirements',
   },
   {
-    id: 'signals', question: '选择重要信号（可多选）', multiSelect: true,
-    options: [{ label: '系统设计' }, { label: '代码质量' }, { label: '产品判断' }],
+    id: 'signals', question: 'Choose the signals that matter (multi-select)', multiSelect: true,
+    options: [{ label: 'System design' }, { label: 'Code quality' }, { label: 'Product judgment' }],
   },
 ]
 
@@ -76,49 +75,49 @@ describe('QuestionComposer', () => {
     const { carrier, respond } = wait()
     render(<QuestionComposer matched={carrier} interactions={[carrier]} {...kit} />)
 
-    expect(screen.getByText('偏好')).toBeTruthy()
+    expect(screen.getByText('Preference')).toBeTruthy()
     expect(screen.getByText('1 / 3')).toBeTruthy()
-    expect(screen.getByText('推荐')).toBeTruthy()
-    expect(screen.getByText('工程落地型')).toBeTruthy()
-    const detail = screen.getByText('按当前空缺岗位的优先级选择。')
+    expect(screen.getByText('Recommended')).toBeTruthy()
+    expect(screen.getByText('Engineering-execution type')).toBeTruthy()
+    const detail = screen.getByText("Choose based on the current opening's priority.")
     const scrollRegion = detail.closest('[data-question-scroll]')
     expect(scrollRegion).toBeTruthy()
-    expect(scrollRegion?.contains(screen.getByRole('radio', { name: /工程落地型/ }))).toBe(true)
-    expect(scrollRegion?.contains(screen.getByText('下一题').closest('button'))).toBe(false)
-    fireEvent.keyDown(screen.getByRole('radio', { name: /工程落地型/ }), { key: 'Enter' })
+    expect(scrollRegion?.contains(screen.getByRole('radio', { name: /Engineering-execution type/ }))).toBe(true)
+    expect(scrollRegion?.contains(screen.getByText('Next').closest('button'))).toBe(false)
+    fireEvent.keyDown(screen.getByRole('radio', { name: /Engineering-execution type/ }), { key: 'Enter' })
     expect(respond).not.toHaveBeenCalled()
-    fireEvent.click(screen.getByRole('radio', { name: /工程落地型/ }))
+    fireEvent.click(screen.getByRole('radio', { name: /Engineering-execution type/ }))
 
     expect(screen.getByText('2 / 3')).toBeTruthy()
     // detail is per-question: the second question carries none.
-    expect(screen.queryByText('按当前空缺岗位的优先级选择。')).toBeNull()
-    expect(screen.queryByRole('button', { name: '填写答案' })).toBeNull()
-    const custom = screen.getByPlaceholderText('输入你的答案')
-    fireEvent.change(custom, { target: { value: '要能独立排查线上问题' } })
+    expect(screen.queryByText("Choose based on the current opening's priority.")).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Fill in answer' })).toBeNull()
+    const custom = screen.getByPlaceholderText('Type your answer')
+    fireEvent.change(custom, { target: { value: 'Able to independently troubleshoot production issues' } })
     fireEvent.keyDown(custom, { key: 'Enter' })
 
     expect(screen.getByText('3 / 3')).toBeTruthy()
     // The model's question text renders verbatim — no marker filtering.
-    expect(screen.getByText('选择重要信号（可多选）')).toBeTruthy()
-    fireEvent.click(screen.getByRole('checkbox', { name: '系统设计' }))
-    fireEvent.click(screen.getByRole('checkbox', { name: '系统设计' }))
-    fireEvent.click(screen.getByRole('checkbox', { name: '系统设计' }))
-    fireEvent.click(screen.getByRole('checkbox', { name: '代码质量' }))
-    const multiCustom = screen.getByPlaceholderText('输入你的答案')
-    fireEvent.change(multiCustom, { target: { value: '沟通能力' } })
-    fireEvent.click(screen.getByRole('checkbox', { name: '产品判断' }))
-    expect(screen.getByRole('checkbox', { name: '系统设计' }).getAttribute('aria-checked')).toBe('true')
-    expect(screen.getByRole('checkbox', { name: '代码质量' }).getAttribute('aria-checked')).toBe('true')
-    expect((multiCustom as HTMLInputElement).value).toBe('沟通能力')
+    expect(screen.getByText('Choose the signals that matter (multi-select)')).toBeTruthy()
+    fireEvent.click(screen.getByRole('checkbox', { name: 'System design' }))
+    fireEvent.click(screen.getByRole('checkbox', { name: 'System design' }))
+    fireEvent.click(screen.getByRole('checkbox', { name: 'System design' }))
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Code quality' }))
+    const multiCustom = screen.getByPlaceholderText('Type your answer')
+    fireEvent.change(multiCustom, { target: { value: 'communication skills' } })
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Product judgment' }))
+    expect(screen.getByRole('checkbox', { name: 'System design' }).getAttribute('aria-checked')).toBe('true')
+    expect(screen.getByRole('checkbox', { name: 'Code quality' }).getAttribute('aria-checked')).toBe('true')
+    expect((multiCustom as HTMLInputElement).value).toBe('communication skills')
     fireEvent.keyDown(multiCustom, { key: 'Enter' })
 
     // The domain face encoded the whole batch into one carrier envelope.
     expect(respond).toHaveBeenCalledWith(answeredEnvelope('question-1', [
-      { id: 'profile', selected: ['工程落地型 (Recommended)'] },
-      { id: 'detail', selected: [], custom: '要能独立排查线上问题' },
-      { id: 'signals', selected: ['系统设计', '代码质量', '产品判断'], custom: '沟通能力' },
+      { id: 'profile', selected: ['Engineering-execution type (Recommended)'] },
+      { id: 'detail', selected: [], custom: 'Able to independently troubleshoot production issues' },
+      { id: 'signals', selected: ['System design', 'Code quality', 'Product judgment'], custom: 'communication skills' },
     ]))
-    expect(screen.getByRole<HTMLButtonElement>('button', { name: '正在提交…' }).disabled).toBe(true)
+    expect(screen.getByRole<HTMLButtonElement>('button', { name: 'Submitting…' }).disabled).toBe(true)
   })
 
   it('renders plan detail through the shared assistant Markdown primitive', () => {
@@ -129,17 +128,17 @@ describe('QuestionComposer', () => {
       {
         questions: [{
           id: 'plan',
-          question: '批准这个计划吗？',
-          detail: '# 实施计划\n\n- **先验证**现状\n- 修改 `QuestionComposer`',
-          options: [{ label: '批准' }],
+          question: 'Approve this plan?',
+          detail: '# Implementation Plan\n\n- **First verify** the current state\n- Modify `QuestionComposer`',
+          options: [{ label: 'Approve' }],
         }],
       },
       vi.fn(),
     )
     const view = render(<QuestionComposer matched={carrier} interactions={[carrier]} {...kit} />)
 
-    expect(screen.getByRole('heading', { level: 1, name: '实施计划' })).toBeTruthy()
-    expect(view.container.querySelector('strong')?.textContent).toBe('先验证')
+    expect(screen.getByRole('heading', { level: 1, name: 'Implementation Plan' })).toBeTruthy()
+    expect(view.container.querySelector('strong')?.textContent).toBe('First verify')
     expect(view.container.querySelector('code')?.textContent).toBe('QuestionComposer')
     expect(view.container.querySelectorAll('li')).toHaveLength(2)
   })
@@ -148,15 +147,15 @@ describe('QuestionComposer', () => {
     const { carrier, respond } = wait()
     render(<QuestionComposer matched={carrier} interactions={[carrier]} {...kit} />)
 
-    expect((screen.getByText('下一题').closest('button') as HTMLButtonElement).disabled).toBe(true)
-    fireEvent.click(screen.getByRole('radio', { name: '研究潜力型' }))
+    expect((screen.getByText('Next').closest('button') as HTMLButtonElement).disabled).toBe(true)
+    fireEvent.click(screen.getByRole('radio', { name: 'Research-potential type' }))
     expect(screen.getByText('2 / 3')).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: '跳过本题' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Skip this question' }))
     expect(screen.getByText('3 / 3')).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: '跳过本题' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Skip this question' }))
 
     expect(respond).toHaveBeenCalledWith(answeredEnvelope('question-1', [
-      { id: 'profile', selected: ['研究潜力型'] },
+      { id: 'profile', selected: ['Research-potential type'] },
       { id: 'detail', selected: [] },
       { id: 'signals', selected: [] },
     ]))
@@ -166,9 +165,9 @@ describe('QuestionComposer', () => {
     const { carrier, respond } = wait()
     render(<QuestionComposer matched={carrier} interactions={[carrier]} {...kit} />)
 
-    fireEvent.click(screen.getByRole('radio', { name: '研究潜力型' }))
-    const custom = screen.getByPlaceholderText('输入你的答案')
-    fireEvent.change(custom, { target: { value: '中文输入' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Research-potential type' }))
+    const custom = screen.getByPlaceholderText('Type your answer')
+    fireEvent.change(custom, { target: { value: 'composed text' } })
 
     fireEvent.keyDown(custom, { key: 'Enter', isComposing: true })
     expect(screen.getByText('2 / 3')).toBeTruthy()
@@ -186,20 +185,20 @@ describe('QuestionComposer', () => {
     const { carrier, respond } = wait()
     render(<QuestionComposer matched={carrier} interactions={[carrier]} {...kit} />)
 
-    expect(screen.getByPlaceholderText('输入你的答案')).toBeTruthy()
-    fireEvent.click(screen.getByRole('radio', { name: '工程落地型' }))
-    const emptyCustom = screen.getByPlaceholderText('输入你的答案')
+    expect(screen.getByPlaceholderText('Type your answer')).toBeTruthy()
+    fireEvent.click(screen.getByRole('radio', { name: 'Engineering-execution type' }))
+    const emptyCustom = screen.getByPlaceholderText('Type your answer')
     fireEvent.keyDown(emptyCustom, { key: 'Enter', shiftKey: true })
     expect(screen.getByText('2 / 3')).toBeTruthy()
     fireEvent.keyDown(emptyCustom, { key: 'Enter' })
-    expect(screen.getByText('请选择一个选项或填写自定义答案。')).toBeTruthy()
+    expect(screen.getByText('Please select an option or enter a custom answer.')).toBeTruthy()
 
-    fireEvent.click(screen.getByLabelText('下一题'))
-    fireEvent.click(screen.getByRole('checkbox', { name: '产品判断' }))
-    fireEvent.click(screen.getByRole('button', { name: '提交' }))
-    expect(screen.getByText('请先完成这道问题。')).toBeTruthy()
+    fireEvent.click(screen.getByLabelText('Next question'))
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Product judgment' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Submit' }))
+    expect(screen.getByText('Please complete this question first.')).toBeTruthy()
     expect(screen.getByText('2 / 3')).toBeTruthy()
-    fireEvent.click(screen.getByLabelText('上一题'))
+    fireEvent.click(screen.getByLabelText('Previous question'))
     expect(screen.getByText('1 / 3')).toBeTruthy()
     expect(respond).not.toHaveBeenCalled()
   })
@@ -210,10 +209,10 @@ describe('QuestionComposer', () => {
 
     // Both question shapes answer into a textarea, so the engine soft-wraps a
     // long answer and Shift+Enter breaks the line natively.
-    const inline = screen.getByPlaceholderText('输入你的答案')
+    const inline = screen.getByPlaceholderText('Type your answer')
     expect(inline.tagName).toBe('TEXTAREA')
 
-    const multiline = '第一行\n第二行'
+    const multiline = 'First line\nSecond line'
     fireEvent.change(inline, { target: { value: multiline } })
     // The hidden height ruler carries the draft plus the trailing newline the
     // textarea's own last line needs, so the box is as tall as the answer.
@@ -223,7 +222,7 @@ describe('QuestionComposer', () => {
     expect(screen.getByText('1 / 3')).toBeTruthy()
 
     fireEvent.keyDown(inline, { key: 'Enter' })
-    const optionless = screen.getByPlaceholderText('输入你的答案')
+    const optionless = screen.getByPlaceholderText('Type your answer')
     expect(optionless.tagName).toBe('TEXTAREA')
     fireEvent.change(optionless, { target: { value: multiline } })
     expect(optionless.previousElementSibling?.textContent).toBe(`${multiline}\n`)
@@ -231,67 +230,67 @@ describe('QuestionComposer', () => {
     expect(screen.getByText('2 / 3')).toBeTruthy()
 
     fireEvent.keyDown(optionless, { key: 'Enter' })
-    fireEvent.click(screen.getByRole('checkbox', { name: '系统设计' }))
-    fireEvent.click(screen.getByRole('button', { name: '提交' }))
+    fireEvent.click(screen.getByRole('checkbox', { name: 'System design' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Submit' }))
     // Line breaks reach the model verbatim: nothing along the way flattens them.
     expect(respond).toHaveBeenCalledWith(answeredEnvelope('question-1', [
       { id: 'profile', selected: [], custom: multiline },
       { id: 'detail', selected: [], custom: multiline },
-      { id: 'signals', selected: ['系统设计'] },
+      { id: 'signals', selected: ['System design'] },
     ]))
   })
 
   it('surfaces cancellation failures: rejected receipt text and raw transport reasons', async () => {
     const respond = vi.fn()
       .mockResolvedValueOnce({ accepted: false, reason: 'bad-response' })
-      .mockRejectedValueOnce(new Error('第二次取消失败'))
+      .mockRejectedValueOnce(new Error('second cancellation failed'))
     const { carrier } = wait('question-1', respond)
     render(<QuestionComposer matched={carrier} interactions={[carrier]} {...kit} />)
 
     // Receipt rejection surfaces through the domain face's thrown message.
-    fireEvent.click(screen.getByRole('button', { name: '放弃整组问题' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Dismiss all questions' }))
     expect(await screen.findByText('question cancellation rejected: bad-response')).toBeTruthy()
-    expect(screen.getByRole<HTMLButtonElement>('button', { name: '跳过本题' }).disabled).toBe(false)
+    expect(screen.getByRole<HTMLButtonElement>('button', { name: 'Skip this question' }).disabled).toBe(false)
 
-    fireEvent.click(screen.getByRole('button', { name: '放弃整组问题' }))
-    expect(await screen.findByText('第二次取消失败')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Dismiss all questions' }))
+    expect(await screen.findByText('second cancellation failed')).toBeTruthy()
   })
 
   it('surfaces transport rejection and resets local drafts for a different request', async () => {
     const respond = vi.fn()
-      .mockRejectedValueOnce(new Error('网络中断'))
-      .mockRejectedValueOnce('字符串错误')
+      .mockRejectedValueOnce(new Error('network interruption'))
+      .mockRejectedValueOnce('string error')
     const first = wait('first', respond)
     const view = render(<QuestionComposer matched={first.carrier} interactions={[first.carrier]} {...kit} />)
 
-    fireEvent.click(screen.getByRole('radio', { name: /研究潜力型/ }))
+    fireEvent.click(screen.getByRole('radio', { name: /Research-potential type/ }))
     expect(screen.getByText('2 / 3')).toBeTruthy()
     const second = wait('second', respond)
     view.rerender(<QuestionComposer matched={second.carrier} interactions={[second.carrier]} {...kit} />)
-    expect(screen.getByRole('radio', { name: /研究潜力型/ }).getAttribute('aria-checked')).toBe('false')
+    expect(screen.getByRole('radio', { name: /Research-potential type/ }).getAttribute('aria-checked')).toBe('false')
 
-    fireEvent.click(screen.getByRole('radio', { name: /工程落地型/ }))
-    const custom = screen.getByPlaceholderText('输入你的答案')
+    fireEvent.click(screen.getByRole('radio', { name: /Engineering-execution type/ }))
+    const custom = screen.getByPlaceholderText('Type your answer')
     fireEvent.change(custom, { target: { value: 'x' } })
     fireEvent.keyDown(custom, { key: 'Enter' })
-    fireEvent.click(screen.getByRole('checkbox', { name: '系统设计' }))
-    fireEvent.click(screen.getByRole('button', { name: '提交' }))
+    fireEvent.click(screen.getByRole('checkbox', { name: 'System design' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Submit' }))
     expect(respond).toHaveBeenNthCalledWith(1, answeredEnvelope('second', [
-      { id: 'profile', selected: ['工程落地型 (Recommended)'] },
+      { id: 'profile', selected: ['Engineering-execution type (Recommended)'] },
       { id: 'detail', selected: [], custom: 'x' },
-      { id: 'signals', selected: ['系统设计'] },
+      { id: 'signals', selected: ['System design'] },
     ]))
-    expect(await screen.findByText('网络中断')).toBeTruthy()
-    expect(screen.getByRole<HTMLButtonElement>('button', { name: '提交' }).disabled).toBe(false)
+    expect(await screen.findByText('network interruption')).toBeTruthy()
+    expect(screen.getByRole<HTMLButtonElement>('button', { name: 'Submit' }).disabled).toBe(false)
 
-    fireEvent.click(screen.getByRole('button', { name: '提交' }))
-    expect(await screen.findByText('字符串错误')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Submit' }))
+    expect(await screen.findByText('string error')).toBeTruthy()
   })
 
   it('renders chrome copy through the English dictionary', () => {
     const respond = vi.fn(() => Promise.resolve<RpcReceipt>({ accepted: true }))
     const carrier = new PendingWait(
-      'question', RpcId('solo'), SID, { questions: [{ id: 'detail', question: '补充你的要求' }] }, respond)
+      'question', RpcId('solo'), SID, { questions: [{ id: 'detail', question: 'Add any additional requirements' }] }, respond)
     render(<QuestionComposer matched={carrier} interactions={[carrier]} {...kit} t={seatOver(en, commonEn)} />)
     expect(screen.getByLabelText('Dismiss all questions')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Skip this question' })).toBeTruthy()
@@ -301,7 +300,7 @@ describe('QuestionComposer', () => {
   it('same-key carrier replacement (baseline replay) keeps drafts', () => {
     const first = wait('same-id')
     const view = render(<QuestionComposer matched={first.carrier} interactions={[first.carrier]} {...kit} />)
-    fireEvent.click(screen.getByRole('radio', { name: /研究潜力型/ }))
+    fireEvent.click(screen.getByRole('radio', { name: /Research-potential type/ }))
     expect(screen.getByText('2 / 3')).toBeTruthy()
     // Replay mints a NEW carrier for the same request; same key = no remount.
     const replayed = wait('same-id')
@@ -350,36 +349,36 @@ describe('PendingQuestion domain face', () => {
     // Expanded: the option list is visible.
     expect(screen.getByRole('radiogroup')).toBeTruthy()
     // Collapse: options leave the tree; the title and minimize toggle stay.
-    fireEvent.click(screen.getByLabelText(zh['nav.minimize']))
+    fireEvent.click(screen.getByLabelText(en['nav.minimize']))
     expect(screen.queryByRole('radiogroup')).toBeNull()
-    expect(screen.getByText('选择候选人类型')).toBeTruthy()
+    expect(screen.getByText('Choose the candidate type')).toBeTruthy()
     // Expand: the options return (the toggle label flips while collapsed).
-    fireEvent.click(screen.getByLabelText(zh['nav.maximize']))
+    fireEvent.click(screen.getByLabelText(en['nav.maximize']))
     expect(screen.getByRole('radiogroup')).toBeTruthy()
     // Expanded again: the toggle reports expanded and the option list is back.
-    expect(screen.getByLabelText(zh['nav.minimize']).getAttribute('aria-expanded')).toBe('true')
+    expect(screen.getByLabelText(en['nav.minimize']).getAttribute('aria-expanded')).toBe('true')
   })
 
   it('keeps the collapse toggle out of the cancel path and preserves drafts across collapse', () => {
     const { carrier, respond } = wait()
     render(<QuestionComposer matched={carrier} interactions={[carrier]} {...kit} />)
-    fireEvent.click(screen.getByRole('radio', { name: /工程落地型/ }))
+    fireEvent.click(screen.getByRole('radio', { name: /Engineering-execution type/ }))
     // Single-select auto-advances to the second question; collapse and expand
     // must not lose either the picked option or the current position.
-    fireEvent.click(screen.getByLabelText(zh['nav.minimize']))
-    fireEvent.click(screen.getByLabelText(zh['nav.maximize']))
-    const custom = screen.getByPlaceholderText(zh['custom.placeholder'])
-    fireEvent.change(custom, { target: { value: '要能独立排查线上问题' } })
+    fireEvent.click(screen.getByLabelText(en['nav.minimize']))
+    fireEvent.click(screen.getByLabelText(en['nav.maximize']))
+    const custom = screen.getByPlaceholderText(en['custom.placeholder'])
+    fireEvent.change(custom, { target: { value: 'Able to independently troubleshoot production issues' } })
     // Re-expanding must not steal focus back into the textarea: it was
     // autofocused on first presentation, so focus stays on the expand toggle.
     expect(document.activeElement).not.toBe(custom)
-    fireEvent.click(screen.getByLabelText('下一题'))
-    fireEvent.click(screen.getByRole('checkbox', { name: '系统设计' }))
-    fireEvent.click(screen.getByRole('button', { name: '提交' }))
+    fireEvent.click(screen.getByLabelText('Next question'))
+    fireEvent.click(screen.getByRole('checkbox', { name: 'System design' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Submit' }))
     expect(respond).toHaveBeenCalledWith(answeredEnvelope('question-1', [
-      { id: 'profile', selected: ['工程落地型 (Recommended)'] },
-      { id: 'detail', custom: '要能独立排查线上问题', selected: [] },
-      { id: 'signals', selected: ['系统设计'] },
+      { id: 'profile', selected: ['Engineering-execution type (Recommended)'] },
+      { id: 'detail', custom: 'Able to independently troubleshoot production issues', selected: [] },
+      { id: 'signals', selected: ['System design'] },
     ]))
   })
 })

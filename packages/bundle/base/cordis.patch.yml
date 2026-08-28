@@ -393,10 +393,9 @@
         thresholds: [3, 5, 8]
         argumentsPreviewChars: 500
 
-    # Every mode enables the stable model-facing web_search tool. Each call uses
-    # only the adapter whose id matches the active model provider; it never falls
-    # back to another provider. The DeepSeek adapter remains available for
-    # deepseek-official sessions, while other model routes need their own adapter.
+    # Every mode enables the stable model-facing web_search tool. Search provider
+    # selection is independent of the active LLM route; this single shipped
+    # DeepSeek provider auto-selects unless a deployment configures another id.
     # Fetch stays disabled and no fetch provider is mounted: that provider defers
     # SSRF protection and the model would choose the request target.
     - id: web

@@ -152,10 +152,10 @@ Descriptors exist only in the local registry on each side. The wire carries only
 ## Typert runtime registry
 
 ```text
-ctx.typert.local     当前进程自己的 Host 或 Client reflection
-ctx.typert.remotes   消费端显式 mount 的对端 Remote contribution
-ctx.typert.lookups   wire ID 到 Host 对象的 provider 与组合策略
-ctx.typert.contexts  Host Context resolver 与 Client Context binder
+ctx.typert.local     the current process's own Host or Client reflection
+ctx.typert.remotes   the peer Remote contribution explicitly mounted by the consumer
+ctx.typert.lookups   provider and composition policy from wire ID to Host object
+ctx.typert.contexts  Host Context resolver and Client Context binder
 ```
 
 Every registration returns a disposer owned by the caller's Cordis fiber. Client contribution mounting registers the descriptor set and concrete methods as one owned operation. The Host Gateway caches only the set of SRC-owned endpoint names and discards it whenever the Cordis Service set changes; it retains no descriptor, Service, or provider. Invocation resolves all live objects from current state, so removing a strict definition, Service, or provider makes the corresponding call unavailable without leaving a stale live object.
@@ -192,13 +192,13 @@ The Host and Client still use only two independent TypeScript Programs, but Type
 ```text
 Host Program
 ├─ typert.host.js / typert.host.d.ts
-│  Host 自身的 Service、Event、Object、schema 和 inbound Gateway 信息
+│  the Host's own Service, Event, Object, schema, and inbound Gateway information
 └─ typert.remote-client.js / typert.remote-client.d.ts / typert.remote-client.d.ts.map
-   Host Remote 对任意消费环境的 wire 投影
+   Host Remote's wire projection for any consumer environment
 
 Client Program
 └─ typert.client.js / typert.client.d.ts
-   Client 自身的 Service、Event、Object 和 schema 信息
+   the Client's own Service, Event, Object, and schema information
 ```
 
 `remote-client` is the Host Program's second emitter, not a third Program or the Client's local face. It contains no Host Cordis merge, Service class, Context class, or implementation code, and it does not enter the Host-local reflection registry.
@@ -207,10 +207,10 @@ The Host lib build performs strict Host analysis and emits both the Host-local a
 
 ```text
 Host lib build
-→ 生成 typert.host.{js,d.ts}
-→ 生成各业务包 lib/typert.remote-client.{js,d.ts,d.ts.map}
-→ 完成 Client lib 和 typert.client 产物
-→ Vite 构建 Web
+→ Generate typert.host.{js,d.ts}
+→ Generate each business package's lib/typert.remote-client.{js,d.ts,d.ts.map}
+→ Complete the Client lib and typert.client artifacts
+→ Vite builds the Web
 ```
 
 The existing top-level `build` still runs `build:lib` before `build:web`, but `build:lib` must complete the Host and Remote artifacts before starting Client TypeScript compilation. A clean build must not depend on stale `.d.ts` files from an earlier build.
@@ -293,8 +293,8 @@ The Agent Scope supplies its own `SessionId` automatically. A `@Remote` method w
 Typert in a consumer environment maintains both local information and Remote information imported from other environments, but stores them in separate registries:
 
 ```text
-Typert.local    当前环境自己的反射模型
-Typert.remotes  已导入的 Remote contribution
+Typert.local    the current environment's own reflection model
+Typert.remotes  imported Remote contribution
 ```
 
 `@bosch/bh-api-remotes/client` centrally loads the required Remote contributions:
@@ -321,9 +321,9 @@ root ctx.remote.goals.create(agentId, request)
   → ctx.connection.rpc.call('/api', 'goals/create', { args })
 
 agentCtx.remote.goals.create(request)
-  → remote.goals accessor 捕获 agent Context
-  → agent binder 从 caller Context 取得 agentId
-  → 用 agentId 补入同一 direct descriptor 的 lookup 参数
+  → the remote.goals accessor captures the agent Context
+  → the agent binder obtains agentId from the caller Context
+  → fills the same direct descriptor's lookup parameter with agentId
   → ctx.connection.rpc.call('/api', 'goals/create', { args })
 ```
 
@@ -369,14 +369,14 @@ A `@RemoteScope('agent')` call first asks the Agent Context provider to resolve 
 
 ```text
 ctx.typertGateway.invoke({ namespace, method, args, signal })
-→ 查找本地 InvocationDescriptor 与 live receiver
-→ 按参数 descriptor 读取具名 wire 字段
-→ codec 解码普通值或 lookup ID
-→ lookup provider 把 ID 解析为活对象
-→ direct 使用原 Service；context 先解析 scoped Context 和 Service
-→ cancellation descriptor 存在时把 signal 追加到业务参数末尾
+→ look up the local InvocationDescriptor and live receiver
+→ read the named wire field per the parameter descriptor
+→ codec decodes an ordinary value or lookup ID
+→ the lookup provider resolves the ID to a live object
+→ direct uses the original Service; context first resolves the scoped Context and Service
+→ when a cancellation descriptor exists, append the signal to the end of the business parameters
 → Reflect.apply(receiver[implementation ?? method], receiver, orderedArgs)
-→ result codec 编码业务结果
+→ result codec encodes the business result
 ```
 
 `ctx.typertGateway.invoke()` is the carrier-independent Host entry point. It neither creates an rpcId, RPC envelope, nor HTTP response. It returns only the encoded result or raises a Gateway error that the Connection RPC adapter maps for transport.
@@ -422,18 +422,18 @@ The complete path is:
 
 ```text
 ctx.remote.goals.create(sessionId, request, signal?)
-→ Client InvocationDescriptor 编码 { args: { agentId, request } }
-→ Client 合并 caller signal 与 contribution mount lifetime
+→ Client InvocationDescriptor encodes { args: { agentId, request } }
+→ Client merges the caller signal with the contribution mount lifetime
 → ctx.connection.rpc.call('/api', 'goals/create', { args }, signal)
-→ Connection 创建 rpcId 和既有 client-request envelope
-→ 当前 carrier 发送 POST /api/goals/create
-→ Connection Host half 执行共享 trust，再由 bridge 创建标准 Request
-→ 复合 FetchHandler 判断 endpoint ownership 并选择目标 FetchHandler
-→ Typert interceptor 调用 ctx.typertGateway.invoke(..., request.signal)
-→ Host InvocationDescriptor 解码、lookup、receiver 解析并把 signal 注入 Reflect.apply
-→ result codec 编码
-→ Connection 写入既有 RPC result 并回送相同 rpcId
-→ Client result codec 验证并返回 CreateGoalResult
+→ Connection creates the rpcId and the existing client-request envelope
+→ the current carrier sends POST /api/goals/create
+→ Connection Host half applies shared trust, then the bridge creates a standard Request
+→ the composite FetchHandler determines endpoint ownership and selects the target FetchHandler
+→ Typert interceptor calls ctx.typertGateway.invoke(..., request.signal)
+→ Host InvocationDescriptor decodes, looks up, resolves the receiver, and injects the signal into Reflect.apply
+→ result codec encodes
+→ Connection writes the existing RPC result and returns the same rpcId
+→ Client result codec validates and returns CreateGoalResult
 ```
 
 Remote does not define a second-layer `{ ok, value/error }` response. Successful values and Gateway errors use the existing RPC response's `result` directly. The adapter converts ordinary Gateway and business-invocation failures to the existing `RpcError` envelope with `code: 'internal'`; an existing RPC error carried by a resolver in `TypertLookupFailure` is returned unchanged, preserving stable error codes for cold-resume failures and ownership fences. The Gateway's structured error category remains available only in-process, while the message carries the diagnostic across Connection.

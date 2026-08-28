@@ -53,6 +53,7 @@
     "zod": "^4.4.3"
   },
   "peerDependencies": {
+    "@bosch/bh-app-boot": "workspace:^",
     "@bosch/bh-settings": "workspace:^",
     "@bosch/cordis-plugin-loader": "workspace:^",
     "@bosch/cordis-plugin-include": "workspace:^",
@@ -62,6 +63,7 @@
     "@bosch/cordis": "workspace:^"
   },
   "devDependencies": {
+    "@bosch/bh-app-boot": "workspace:^",
     "@bosch/bh-settings": "workspace:^",
     "@bosch/bh-settings-file": "workspace:^",
     "@bosch/cordis-plugin-loader": "workspace:^",

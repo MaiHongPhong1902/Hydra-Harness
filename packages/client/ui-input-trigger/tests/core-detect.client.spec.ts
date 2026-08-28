@@ -67,7 +67,7 @@ describe('detectTrigger position', () => {
   })
 
   it('treats a token after non-whitespace text as inline', () => {
-    expect(atEnd('第一行\n/goal')).toMatchObject({ position: 'inline' })
+    expect(atEnd('line1\n/goal')).toMatchObject({ position: 'inline' })
     expect(atEnd('a /goal')).toMatchObject({ position: 'inline' })
   })
 })

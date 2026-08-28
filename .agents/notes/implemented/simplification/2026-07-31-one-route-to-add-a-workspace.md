@@ -10,7 +10,7 @@ Removing the weaker entry leaves the sidebar header with exactly one action, whi
 
 ## Decision
 
-Adding a Workspace has one route: pick a host directory through the composed directory flow, new or existing. `menu.addWorkspace` ("添加工作区…" / "Add workspace…") is the entry; the create-by-name dialog and its `create.*` / `menu.createWorkspace` / `workspace.new` strings are gone. The label names the outcome, not the mechanism, because it is now the only door to that outcome — a user looking for "新建" must find it.
+Adding a Workspace has one route: pick a host directory through the composed directory flow, new or existing. `menu.addWorkspace` ("Add workspace…" / "Add workspace…") is the entry; the create-by-name dialog and its `create.*` / `menu.createWorkspace` / `workspace.new` strings are gone. The label names the outcome, not the mechanism, because it is now the only door to that outcome — a user looking for "New" must find it.
 
 **A menu exists to disambiguate between targets.** When the only entry left is the add action — the add-only sidebar surface, or the hero with an empty list — the anchor gesture *is* that action: the flow opens directly and no popover renders. A one-row popover costs a click and offers nothing to choose between. The rule is one predicate (`addIsTheOnlyEntry`) covering both surfaces rather than a per-surface special case.
 
@@ -35,7 +35,7 @@ The direct-open path carries the busy rule the menu entry states: while a pick i
 
 ## Alternatives considered
 
-**Keep `Open local folder…` as the label.** Rejected: after the merge the entry both opens and creates, and naming it after the mechanism hides the creation half from exactly the users whose entry we removed. The counter-argument — "本地" usefully disambiguates the browser's machine from the harness's — is answered one step later by the dialog's own title and breadcrumbs.
+**Keep `Open local folder…` as the label.** Rejected: after the merge the entry both opens and creates, and naming it after the mechanism hides the creation half from exactly the users whose entry we removed. The counter-argument — "local" usefully disambiguates the browser's machine from the harness's — is answered one step later by the dialog's own title and breadcrumbs.
 
 **Keep the two-entry menu and make `Create a new workspace` open the same flow.** Rejected: two labels for one action is the confusion this change removes, not a smaller version of it.
 

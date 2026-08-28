@@ -4,13 +4,13 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { makeTranslate } from '@bosch/bh-client-test-runtime'
-import { zh as commonZh } from '@bosch/bh-client-locale/src/locales/zh.ts'
+import { en as commonEn } from '@bosch/bh-client-locale/src/locales/en.ts'
 import { ActivityGroup, activityKindForTool, activityKindForTools } from '../src/client/chat/ActivityGroup.tsx'
 import { en } from '../src/client/locales.ts'
 
 afterEach(cleanup)
 
-const t = makeTranslate(en, commonZh)
+const t = makeTranslate(en, commonEn)
 
 describe('ActivityGroup', () => {
   it('folds tool families into the screenshot labels', () => {

@@ -3,10 +3,10 @@
  * `<html lang>` tracks the active locale.
  *
  * The served markup declares one language, but the resolved locale may differ
- * (browser detection, or a stored Host preference adopted after activation),
- * and it changes again whenever the user switches. Assistive technology and
- * browser features read this attribute, so a stale value misreports the
- * document language rather than merely looking untidy.
+ * (a stored Host preference adopted after activation), and it changes again
+ * whenever the user switches. Assistive technology and browser features read
+ * this attribute, so a stale value misreports the document language rather
+ * than merely looking untidy.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Context } from '@bosch/cordis'
@@ -52,11 +52,11 @@ const langOf = (): string => document.documentElement.lang
 
 describe('document language', () => {
   beforeEach(() => {
-    // The served markup declares the product default; the plugin must not
-    // depend on that value already being correct.
-    document.documentElement.lang = 'en'
-    Object.defineProperty(navigator, 'languages', { value: ['zh-CN'], configurable: true })
-    Object.defineProperty(navigator, 'language', { value: 'zh-CN', configurable: true })
+    // The served markup declares a placeholder; the plugin must not depend
+    // on that value already being correct.
+    document.documentElement.lang = 'x-served'
+    Object.defineProperty(navigator, 'languages', { value: ['fr-FR'], configurable: true })
+    Object.defineProperty(navigator, 'language', { value: 'fr-FR', configurable: true })
   })
 
   afterEach(() => {
@@ -68,25 +68,14 @@ describe('document language', () => {
   })
 
   it('states the resolved locale at activation, not the value the markup shipped', async () => {
-    // A Chinese browser resolves zh even though the markup said en.
+    // A browser naming no shipped language resolves en even though the
+    // markup shipped a different placeholder.
     const { locale } = await bench()
-    expect(locale.getLocale().active).toBe('zh')
-    expect(langOf()).toBe('zh-CN')
-  })
-
-  it('follows a locale switch in both directions with BCP 47 tags', async () => {
-    const { locale } = await bench()
-    expect(langOf()).toBe('zh-CN')
-    locale.setLocale('en')
-    // `en` needs no region; `zh` names its script variant, which bare `zh`
-    // leaves ambiguous for pronunciation and font selection.
+    expect(locale.getLocale().active).toBe('en')
     expect(langOf()).toBe('en')
-    locale.setLocale('zh')
-    expect(langOf()).toBe('zh-CN')
   })
 
   it('follows an explicit Host preference that overrides browser detection', async () => {
-    // Stored preference wins over the zh browser pinned above.
     const { locale } = await bench('en')
     await vi.waitFor(() => { expect(locale.getLocale().active).toBe('en') })
     await vi.waitFor(() => { expect(langOf()).toBe('en') })
