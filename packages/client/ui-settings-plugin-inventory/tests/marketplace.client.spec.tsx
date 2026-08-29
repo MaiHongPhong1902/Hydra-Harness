@@ -11,13 +11,15 @@ import { en, type PluginInventoryLocaleKey } from '../src/client/locales.ts'
 
 afterEach(cleanup)
 
-const SOURCE = 'https://plugins.example/marketplace.json'
+const SOURCE = 'https://github.com/example/plugins.git'
 const PLUGIN_ID = 'example-plugin' as MarketplacePluginId
 const EMPTY: PluginMarketplaceSnapshot = { marketplaces: [] }
 const READY: PluginMarketplaceSnapshot = {
   marketplaces: [{
     status: 'ready',
     source: SOURCE,
+    gitRef: 'main',
+    sparsePaths: ['plugins/codex'],
     name: 'Example marketplace',
     plugins: [{
       id: PLUGIN_ID,
@@ -33,6 +35,8 @@ const INSTALLED: PluginMarketplaceSnapshot = {
   marketplaces: [{
     status: 'ready',
     source: SOURCE,
+    gitRef: 'main',
+    sparsePaths: ['plugins/codex'],
     name: 'Example marketplace',
     plugins: [{
       id: PLUGIN_ID,
@@ -62,7 +66,7 @@ function props(overrides: Partial<MarketplaceSettingsTabInjected> = {}): Marketp
 }
 
 describe('MarketplaceSettingsTab', () => {
-  it('adds a marketplace URL and renders the validated catalog', async () => {
+  it('adds a Git marketplace source and renders the validated catalog', async () => {
     const addMarketplace = vi.fn<MarketplaceSettingsTabInjected['addMarketplace']>()
       .mockRejectedValueOnce(new Error('private catalog detail'))
       .mockResolvedValue(READY)
@@ -74,13 +78,23 @@ describe('MarketplaceSettingsTab', () => {
     fireEvent.change(within(dialog).getByRole('textbox', { name: en.marketplaceSource }), {
       target: { value: `  ${SOURCE}  ` },
     })
+    fireEvent.change(within(dialog).getByRole('textbox', { name: en.marketplaceGitRef }), {
+      target: { value: '  main  ' },
+    })
+    fireEvent.change(within(dialog).getByRole('textbox', { name: en.marketplaceSparsePaths }), {
+      target: { value: ' plugins/codex \n\nplugins/shared ' },
+    })
     fireEvent.click(within(dialog).getByRole('button', { name: en.marketplaceSave }))
 
     expect((await within(dialog).findByRole('alert')).textContent).toBe(en.marketplaceMutationError)
     expect(screen.queryByText('private catalog detail')).toBeNull()
     fireEvent.click(within(dialog).getByRole('button', { name: en.marketplaceSave }))
     await waitFor(() => { expect(addMarketplace).toHaveBeenCalledTimes(2) })
-    expect(addMarketplace).toHaveBeenLastCalledWith(SOURCE)
+    expect(addMarketplace).toHaveBeenLastCalledWith({
+      source: SOURCE,
+      gitRef: 'main',
+      sparsePaths: ['plugins/codex', 'plugins/shared'],
+    })
     expect(await screen.findByRole('heading', { name: 'Example marketplace' })).toBeTruthy()
     expect(screen.getByText('@example/bh-plugin@1.2.3')).toBeTruthy()
   })
@@ -97,7 +111,7 @@ describe('MarketplaceSettingsTab', () => {
     await screen.findByText('@example/bh-plugin@1.2.3')
     fireEvent.click(screen.getByRole('button', { name: en.marketplaceInstall }))
     let dialog = screen.getByRole('dialog', { name: en.marketplaceConfirmTitle })
-    expect(within(dialog).getByText(`Install @example/bh-plugin@1.2.3 from ${SOURCE}. The plugin will run on the host after restart.`)).toBeTruthy()
+    expect(within(dialog).getByText(`Install @example/bh-plugin@1.2.3 from ${SOURCE} @ main. The plugin will run on the host after restart.`)).toBeTruthy()
     let confirm = within(dialog).getByRole<HTMLButtonElement>('button', { name: en.marketplaceInstall })
     expect(confirm.disabled).toBe(true)
     fireEvent.click(within(dialog).getByRole('checkbox', { name: en.marketplaceAcknowledge }))

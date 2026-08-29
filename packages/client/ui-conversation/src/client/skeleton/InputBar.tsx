@@ -271,6 +271,8 @@ export function InputBar({
   useEffect(() => {
     const el = inputRef.current
     if (locked || el === null) return
+    const active = document.activeElement
+    if (active !== el && (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement)) return
     el.focus({ preventScroll: true })
     revealSelectionFocus(el)
   }, [locked, sessionId])

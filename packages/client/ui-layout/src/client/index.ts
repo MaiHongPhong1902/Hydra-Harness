@@ -169,7 +169,9 @@ export function apply(ctx: ClientContext): void {
   const browser = desktop.bhDesktop?.browser
   if (hasBrowserManagement(browser)) {
     const autofill = hasAutofillManagement(browser) ? browser : undefined
-    const openUrl = browser.openUrl
+    const openUrl = browser.openUrl === undefined ? undefined : async (url: string) => {
+      await browser.openUrl?.(url)
+    }
     const autofillUnavailable = () => Promise.reject(new Error('secure autofill storage is unavailable'))
     ctx.effect(
       () => ctx.locale.register('settings.browser', { en: browserEn }),
@@ -181,7 +183,7 @@ export function apply(ctx: ClientContext): void {
       setSetting: (key, value) => scope.set(key, value),
       configureNative: settings => browser.configure(settings),
       pickDownloadDirectory: () => ctx.workspaces.pickDirectory(),
-      clearData: () => browser.clearData(),
+      clearData: scope => browser.clearData(scope),
       ...(openUrl === undefined ? {} : { openUrl: (url: string) => openUrl(url) }),
       history: () => browser.history(),
       removeHistory: id => browser.removeHistory(id),

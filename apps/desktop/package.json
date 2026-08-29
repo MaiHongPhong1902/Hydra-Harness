@@ -22,9 +22,11 @@
   },
   "dependencies": {
     "@bosch/bh": "workspace:^",
+    "@bosch/bh-atomic-write": "workspace:^",
     "@bosch/bh-browser-electron": "workspace:^",
     "@bosch/bh-subprocess": "workspace:^",
-    "node-pty": "1.2.0-beta.15"
+    "node-pty": "1.2.0-beta.15",
+    "prettier": "^3.9.5"
   },
   "optionalDependencies": {
     "electron": "^43.4.1"

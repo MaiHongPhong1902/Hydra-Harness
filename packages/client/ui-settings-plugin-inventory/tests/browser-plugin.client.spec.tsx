@@ -118,29 +118,34 @@ describe('ui-settings-plugin-inventory browser plugin', () => {
     )()
     await expect(marketplaceInjected.listMarketplaces()).resolves.toEqual(EMPTY_MARKETPLACES)
     expect(b.listMarketplaces).toHaveBeenCalledOnce()
-    await expect(marketplaceInjected.addMarketplace('https://example.test/marketplace.json'))
+    const marketplaceRequest = {
+      source: 'https://github.com/example/plugins.git',
+      gitRef: 'main',
+      sparsePaths: ['plugins/codex'],
+    }
+    await expect(marketplaceInjected.addMarketplace(marketplaceRequest))
       .resolves.toEqual(EMPTY_MARKETPLACES)
-    expect(b.addMarketplace).toHaveBeenCalledWith({ source: 'https://example.test/marketplace.json' })
+    expect(b.addMarketplace).toHaveBeenCalledWith(marketplaceRequest)
     await expect(marketplaceInjected.installMarketplacePlugin(
-      'https://example.test/marketplace.json',
+      marketplaceRequest.source,
       'example-plugin' as never,
     )).resolves.toEqual(EMPTY_INSTALL)
     expect(b.installMarketplacePlugin).toHaveBeenCalledWith({
-      source: 'https://example.test/marketplace.json',
+      source: marketplaceRequest.source,
       pluginId: 'example-plugin',
     })
     b.listMarketplaces.mockResolvedValueOnce({ ok: false, error: { code: 'REMOTE_ERROR', message: 'unavailable' } })
     await expect(marketplaceInjected.listMarketplaces())
       .rejects.toThrow('pluginInventory.listMarketplaces failed: REMOTE_ERROR: unavailable')
     b.addMarketplace.mockResolvedValueOnce({ ok: false, error: { code: 'REMOTE_ERROR', message: 'unavailable' } })
-    await expect(marketplaceInjected.addMarketplace('https://example.test/marketplace.json'))
+    await expect(marketplaceInjected.addMarketplace(marketplaceRequest))
       .rejects.toThrow('pluginInventory.addMarketplace failed: REMOTE_ERROR: unavailable')
     b.installMarketplacePlugin.mockResolvedValueOnce({
       ok: false,
       error: { code: 'REMOTE_ERROR', message: 'unavailable' },
     })
     await expect(marketplaceInjected.installMarketplacePlugin(
-      'https://example.test/marketplace.json',
+      marketplaceRequest.source,
       'example-plugin' as never,
     )).rejects.toThrow('pluginInventory.installMarketplacePlugin failed: REMOTE_ERROR: unavailable')
     await b.ctx.fiber.dispose()

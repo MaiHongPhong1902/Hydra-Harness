@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import type {
+  AddPluginMarketplaceRequest,
   MarketplacePluginId,
   MarketplacePluginInstallResult,
   PluginMarketplaceSnapshot,
@@ -18,8 +19,8 @@ import css from './PluginInventorySettingsTab.module.css'
 export interface MarketplaceSettingsTabInjected {
   /** Read every configured marketplace. */
   listMarketplaces: () => Promise<PluginMarketplaceSnapshot>
-  /** Validate and persist one marketplace document URL. */
-  addMarketplace: (source: string) => Promise<PluginMarketplaceSnapshot>
+  /** Validate and persist one Git-backed or local marketplace root. */
+  addMarketplace: (request: AddPluginMarketplaceRequest) => Promise<PluginMarketplaceSnapshot>
   /** Install one Host-resolved exact package into the active profile. */
   installMarketplacePlugin: (
     source: string,
@@ -44,7 +45,14 @@ type ViewState =
 
 interface PendingInstall {
   readonly source: string
+  readonly sourceLabel: string
   readonly plugin: MarketplacePlugin
+}
+
+function marketplaceSourceLabel(marketplace: Marketplace): string {
+  return marketplace.gitRef === undefined
+    ? marketplace.source
+    : `${marketplace.source} @ ${marketplace.gitRef}`
 }
 
 /** Add marketplace catalogs and install their validated profile bundles. */
@@ -58,6 +66,8 @@ export function MarketplaceSettingsTab({
   const [state, setState] = useState<ViewState>({ status: 'loading' })
   const [addOpen, setAddOpen] = useState(false)
   const [source, setSource] = useState('')
+  const [gitRef, setGitRef] = useState('')
+  const [sparsePaths, setSparsePaths] = useState('')
   const [adding, setAdding] = useState(false)
   const [pendingInstall, setPendingInstall] = useState<PendingInstall>()
   const [acknowledged, setAcknowledged] = useState(false)
@@ -83,6 +93,8 @@ export function MarketplaceSettingsTab({
     if (adding) return
     setAddOpen(false)
     setSource('')
+    setGitRef('')
+    setSparsePaths('')
     setMutationFailed(false)
   }
 
@@ -90,22 +102,33 @@ export function MarketplaceSettingsTab({
     event.preventDefault()
     const normalizedSource = source.trim()
     if (normalizedSource.length === 0) return
+    const request: AddPluginMarketplaceRequest = {
+      source: normalizedSource,
+      ...(gitRef.trim() === '' ? {} : { gitRef: gitRef.trim() }),
+      sparsePaths: sparsePaths.split(/\r?\n/u).map(path => path.trim()).filter(path => path !== ''),
+    }
     setAdding(true)
     setMutationFailed(false)
-    void addMarketplace(normalizedSource).then(
+    void addMarketplace(request).then(
       (snapshot) => {
         setState({ status: 'ready', snapshot })
         setSource('')
+        setGitRef('')
+        setSparsePaths('')
         setAddOpen(false)
       },
       () => { setMutationFailed(true) },
     ).finally(() => { setAdding(false) })
   }
 
-  const requestInstall = (marketplaceSource: string, plugin: MarketplacePlugin): void => {
+  const requestInstall = (marketplace: Marketplace, plugin: MarketplacePlugin): void => {
     setMutationFailed(false)
     setAcknowledged(false)
-    setPendingInstall({ source: marketplaceSource, plugin })
+    setPendingInstall({
+      source: marketplace.source,
+      sourceLabel: marketplaceSourceLabel(marketplace),
+      plugin,
+    })
   }
 
   const closeInstall = (): void => {
@@ -179,7 +202,7 @@ export function MarketplaceSettingsTab({
                   <>
                     <div className={css.marketplaceHeader}>
                       <h3>{marketplace.name}</h3>
-                      <code title={marketplace.source}>{marketplace.source}</code>
+                      <code title={marketplaceSourceLabel(marketplace)}>{marketplaceSourceLabel(marketplace)}</code>
                     </div>
                     {marketplace.plugins.length === 0
                       ? <p className={css.status}>{t('marketplaceNoPlugins')}</p>
@@ -200,7 +223,7 @@ export function MarketplaceSettingsTab({
                                         variant="outline"
                                         size="sm"
                                         disabled={busy}
-                                        onClick={() => { requestInstall(marketplace.source, plugin) }}
+                                        onClick={() => { requestInstall(marketplace, plugin) }}
                                       >
                                         {installing === key ? t('marketplaceInstalling') : t('marketplaceInstall')}
                                       </Button>
@@ -214,7 +237,7 @@ export function MarketplaceSettingsTab({
                   </>
                 ) : (
                   <div className={css.marketplaceHeader}>
-                    <code title={marketplace.source}>{marketplace.source}</code>
+                    <code title={marketplaceSourceLabel(marketplace)}>{marketplaceSourceLabel(marketplace)}</code>
                     <p className={css.status}>{t('marketplaceUnavailable')}</p>
                   </div>
                 )}
@@ -250,13 +273,31 @@ export function MarketplaceSettingsTab({
           <label htmlFor="marketplace-source">{t('marketplaceSource')}</label>
           <Input
             id="marketplace-source"
-            type="url"
+            type="text"
             required
             autoFocus
             value={source}
-            placeholder="https://example.com/marketplace.json"
+            placeholder="openai/plugins or git@github.com:org/repo.git"
             disabled={adding}
             onChange={(event) => { setSource(event.currentTarget.value) }}
+          />
+          <label htmlFor="marketplace-git-ref">{t('marketplaceGitRef')}</label>
+          <Input
+            id="marketplace-git-ref"
+            type="text"
+            value={gitRef}
+            placeholder="main"
+            disabled={adding}
+            onChange={(event) => { setGitRef(event.currentTarget.value) }}
+          />
+          <label htmlFor="marketplace-sparse-paths">{t('marketplaceSparsePaths')}</label>
+          <textarea
+            id="marketplace-sparse-paths"
+            rows={4}
+            value={sparsePaths}
+            placeholder="plugins/codex"
+            disabled={adding}
+            onChange={(event) => { setSparsePaths(event.currentTarget.value) }}
           />
           {mutationFailed ? (
             <p className={css.mutationFailure} role="alert">{t('marketplaceMutationError')}</p>
@@ -269,7 +310,7 @@ export function MarketplaceSettingsTab({
         title={t('marketplaceConfirmTitle')}
         description={t('marketplaceConfirmDescription', {
           package: pendingSpec,
-          source: pendingInstall?.source ?? '',
+          source: pendingInstall?.sourceLabel ?? '',
         })}
         acknowledgeLabel={t('marketplaceAcknowledge')}
         cancelLabel={t('marketplaceCancel')}

@@ -1032,6 +1032,18 @@ describe('running and lock semantics', () => {
     expect(measured!.offset).toBe(textarea.value.length - 1)
   })
 
+  it('a session switch preserves focus in another text field', () => {
+    const { view, props } = bench()
+    const other = document.createElement('input')
+    document.body.appendChild(other)
+    onTestFinished(() => { other.remove() })
+    other.focus()
+
+    act(() => { view.rerender(<InputBar {...props} sessionId={'s2' as SessionId} />) })
+
+    expect(document.activeElement).toBe(other)
+  })
+
   it('a persisted draft adopted after mount gets its caret revealed too', () => {
     // ConversationSession seeds the stored draft in its own mount effect, which
     // runs after this component's: the first reveal measures an empty mirror,

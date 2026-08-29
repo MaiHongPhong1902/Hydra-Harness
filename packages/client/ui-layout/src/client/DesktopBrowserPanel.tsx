@@ -1,7 +1,7 @@
 /** Desktop-only tab host for Browser, Files, Side chat, and Terminal surfaces. */
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import type { SessionId } from '@bosch/bh-client-runtime/client'
+import type { SessionId, WorkspaceId } from '@bosch/bh-client-runtime/client'
 import {
   IconApiOutline14,
   IconCloseOutline16,
@@ -24,6 +24,9 @@ interface DesktopBrowserBounds {
 
 /** User policy applied by the native browser controller. */
 export type BrowserPolicy = 'allow' | 'ask' | 'block'
+
+/** Portion of the in-app browser data that Settings can clear. */
+export type BrowserClearDataScope = 'all' | 'history' | 'site-data' | 'cache' | 'downloads'
 
 /** Where a user-opened URL leaves the desktop application. */
 export type BrowserDestination = 'bhagent' | 'system'
@@ -142,7 +145,7 @@ export interface DesktopBrowserApi {
   configure?(settings: BrowserNativeSettings): Promise<BrowserNativeCapabilities>
   /** Show the native risk confirmation required before enabling Full CDP. */
   confirmFullCdpAccess?(): Promise<boolean>
-  clearData?(): Promise<void>
+  clearData?(scope: BrowserClearDataScope): Promise<void>
   openUrl?(url: string): Promise<void>
   history?(): Promise<BrowserHistoryEntry[]>
   removeHistory?(id: string): Promise<void>
@@ -313,6 +316,7 @@ export function DesktopPanelControls(props: {
 export function DesktopBrowserPanel(props: {
   open: boolean
   chooserOpen: boolean
+  workspaceId?: WorkspaceId | undefined
   createSideSession: () => Promise<SessionId>
   renderSideChat: (sessionId: SessionId) => ReactNode
   onCloseChooser: () => void
@@ -327,11 +331,22 @@ export function DesktopBrowserPanel(props: {
   const [activeId, setActiveId] = useState(INITIAL_TAB.id)
   const [creating, setCreating] = useState(false)
   const [chooserError, setChooserError] = useState<string>()
+  const [filesFocus, setFilesFocus] = useState(0)
+  const [filesDirty, setFilesDirty] = useState(false)
+  const [filesSaving, setFilesSaving] = useState(false)
+  const [filesWorkspaceId, setFilesWorkspaceId] = useState(props.workspaceId)
   const activeTab = tabs.find(tab => tab.id === activeId)
+
+  useEffect(() => {
+    if (filesWorkspaceId === props.workspaceId || filesSaving) return
+    if (filesDirty && !window.confirm('Discard unsaved file changes and switch Workspace?')) return
+    setFilesWorkspaceId(props.workspaceId)
+  }, [filesDirty, filesSaving, filesWorkspaceId, props.workspaceId])
 
   const selectPanel = useCallback((kind: RightPanelKind) => {
     onOpen()
     setChooserError(undefined)
+    if (kind === 'files') setFilesFocus(current => current + 1)
     if (kind === 'side-chat') {
       setCreating(true)
       void createSideSession().then((sessionId) => {
@@ -369,6 +384,7 @@ export function DesktopBrowserPanel(props: {
   }), [selectPanel])
 
   const closeTab = (id: string) => {
+    if (id === 'files' && filesDirty && !window.confirm('Discard unsaved file changes?')) return
     setTabs((current) => {
       const index = current.findIndex(tab => tab.id === id)
       if (index < 0) return current
@@ -449,7 +465,13 @@ export function DesktopBrowserPanel(props: {
                 {tab.kind === 'terminal' && <IconApiOutline14 size={13} />}
                 <span>{tab.label}</span>
               </button>
-              <button type="button" className={css.tabClose} aria-label={`Close ${tab.label}`} onClick={() => { closeTab(tab.id) }}>
+              <button
+                type="button"
+                className={css.tabClose}
+                aria-label={`Close ${tab.label}`}
+                disabled={tab.kind === 'files' && filesSaving}
+                onClick={() => { closeTab(tab.id) }}
+              >
                 <IconCloseOutline16 size={12} />
               </button>
             </div>
@@ -469,7 +491,16 @@ export function DesktopBrowserPanel(props: {
         {tabs.map(tab => (
           <div className={css.surface} hidden={tab.id !== activeId} data-panel-kind={tab.kind} key={tab.id}>
             {tab.kind === 'browser' && <div ref={viewportRef} className={css.viewport} aria-label="Browser page" />}
-            {tab.kind === 'files' && <DesktopFilesPanel />}
+            {tab.kind === 'files' && (
+              <DesktopFilesPanel
+                key={filesWorkspaceId ?? 'no-workspace'}
+                workspaceId={filesWorkspaceId}
+                active={props.open && !props.chooserOpen && tab.id === activeId}
+                focusSearch={filesFocus}
+                onDirtyChange={setFilesDirty}
+                onSavingChange={setFilesSaving}
+              />
+            )}
             {tab.kind === 'side-chat' && tab.sessionId !== undefined && (
               <div className={css.sideChat}>{props.renderSideChat(tab.sessionId)}</div>
             )}

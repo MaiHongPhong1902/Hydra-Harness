@@ -2,8 +2,10 @@
 
 const { once } = require('node:events')
 const { spawn } = require('node:child_process')
+const { randomUUID } = require('node:crypto')
 const { existsSync } = require('node:fs')
-const { readFile, readdir, realpath, stat } = require('node:fs/promises')
+const { glob, mkdir, mkdtemp, open, readFile, readdir, realpath, rm, stat, symlink, writeFile } = require('node:fs/promises')
+const { tmpdir } = require('node:os')
 const { isAbsolute, join, relative, resolve, sep } = require('node:path')
 const { createInterface } = require('node:readline')
 const { setTimeout: delay } = require('node:timers/promises')
@@ -14,22 +16,26 @@ const CLI_ENTRY = join(require.resolve('@bosch/bh/package.json'), '..', 'lib', '
 const BROWSER_ENTRY = join(require.resolve('@bosch/bh-browser-electron/package.json'), '..', 'electron-app', 'main.cjs')
 const SMOKE = process.argv.includes('--smoke')
 const HOST_READY_TIMEOUT_MS = 90_000
+const HOST_REQUEST_TIMEOUT_MS = 15_000
 const HOST_SHUTDOWN_TIMEOUT_MS = 7_000
+const MAX_EDITABLE_FILE_BYTES = 1_000_000
 const HOST_URL = /^bh web: (http:\/\/127\.0\.0\.1:\d+)$/u
-const DESKTOP_WORKSPACE_ROOT = resolve(process.env.BH_DESKTOP_WORKSPACE_ROOT ?? join(__dirname, '..', '..'))
 
 app.setName('WorkON')
 app.setPath('userData', join(process.env.BH_HOME || join(app.getPath('home'), '.bh'), 'desktop-electron'))
 
 let mainWindow
 let host
+let hostBaseUrl
+let smokeWorkspace
 let browser
 let browserConnection
 let browserBounds = { x: 0, y: 0, width: 0, height: 0, visible: false }
 const terminals = new Map()
+const fileSaveTails = new Map()
 
 function panelShortcut(input) {
-  if (!input.control || input.meta) return undefined
+  if (input.type !== 'keyDown' || !input.control || input.meta) return undefined
   if (input.shift) return !input.alt && input.key.toLowerCase() === 'b' ? 'browser' : undefined
   if (input.alt) return input.key.toLowerCase() === 's' ? 'side-chat' : undefined
   if (input.key.toLowerCase() === 'p') return 'files'
@@ -305,12 +311,44 @@ async function stopTerminal(id) {
   }
 }
 
-async function confinedPath(target = DESKTOP_WORKSPACE_ROOT) {
-  if (typeof target !== 'string') {
+async function hostRequest(method, payload = {}) {
+  if (hostBaseUrl === undefined) throw new Error('Host is unavailable')
+  const rpcId = randomUUID()
+  const response = await fetch(new URL(`/api/${method}`, hostBaseUrl), {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ type: 'client-request', rpcId, method, payload }),
+    signal: AbortSignal.timeout(HOST_REQUEST_TIMEOUT_MS),
+  })
+  if (!response.ok) throw new Error(`${method} failed: HTTP ${response.status}`)
+  const message = await response.json()
+  const result = message?.result
+  if (message?.rpcId !== rpcId || typeof result?.ok !== 'boolean') {
+    throw new Error(`${method} returned an invalid response`)
+  }
+  if (!result.ok) throw new Error(`${method} failed: ${result.error?.message ?? 'unknown error'}`)
+  return result.value
+}
+
+async function registeredWorkspaceRoot(workspaceId) {
+  if (typeof workspaceId !== 'string' || workspaceId === '') throw new Error('workspace is unavailable')
+  const value = await hostRequest('workspace.list')
+  if (!Array.isArray(value?.items)) throw new Error('workspace.list returned an invalid response')
+  const workspace = value.items.find(item => item?.workspaceId === workspaceId)
+  if (typeof workspace?.path !== 'string') throw new Error('workspace is not registered')
+  const root = await realpath(workspace.path)
+  if (!(await stat(root)).isDirectory()) throw new Error('workspace path is invalid')
+  return root
+}
+
+async function confinedPath(root, target = root) {
+  if (typeof root !== 'string' || !isAbsolute(root)
+    || typeof target !== 'string' || !isAbsolute(target)) {
     throw new Error('workspace path is invalid')
   }
-  const base = await realpath(DESKTOP_WORKSPACE_ROOT)
-  const candidate = await realpath(resolve(target))
+  const base = await realpath(root)
+  if (!(await stat(base)).isDirectory()) throw new Error('workspace path is invalid')
+  const candidate = await realpath(target)
   const inside = relative(base, candidate)
   if (inside === '..' || inside.startsWith(`..${sep}`) || isAbsolute(inside)) {
     throw new Error('path is outside the workspace')
@@ -318,8 +356,8 @@ async function confinedPath(target = DESKTOP_WORKSPACE_ROOT) {
   return candidate
 }
 
-async function listFiles(target) {
-  const path = await confinedPath(target)
+async function listFiles(root, target = root) {
+  const path = await confinedPath(root, target)
   const entries = await readdir(path, { withFileTypes: true })
   return entries
     .filter(entry => !entry.isSymbolicLink())
@@ -327,14 +365,158 @@ async function listFiles(target) {
     .sort((left, right) => Number(right.directory) - Number(left.directory) || left.name.localeCompare(right.name))
 }
 
-async function readWorkspaceFile(target) {
-  const path = await confinedPath(target)
-  const metadata = await stat(path)
-  if (!metadata.isFile()) throw new Error('path is not a file')
-  if (metadata.size > 1_000_000) throw new Error('file is larger than 1 MB')
-  const bytes = await readFile(path)
-  if (bytes.includes(0)) throw new Error('binary files are not previewed')
-  return { path, content: new TextDecoder('utf-8', { fatal: true }).decode(bytes) }
+async function searchFiles(root, query) {
+  if (typeof query !== 'string' || query.length > 256) throw new Error('file search is invalid')
+  const needle = query.trim().toLocaleLowerCase().replaceAll('\\', '/')
+  if (needle === '') return []
+  const base = await confinedPath(root)
+  const matches = []
+  // ponytail: substring search stops at 200 hits; add an index only if large workspaces need ranked results.
+  for await (const entry of glob('**/*', {
+    cwd: base,
+    exclude: entry => entry.isSymbolicLink() || entry.name === '.git' || entry.name === 'node_modules',
+    withFileTypes: true,
+  })) {
+    if (!entry.isFile()) continue
+    const candidate = join(entry.parentPath, entry.name)
+    const name = relative(base, candidate).split(sep).join('/')
+    if (!name.toLocaleLowerCase().includes(needle)) continue
+    let path
+    try { path = await confinedPath(base, candidate) } catch { continue }
+    matches.push({ name, path, directory: false })
+    if (matches.length === 200) break
+  }
+  return matches.sort((left, right) => left.name.localeCompare(right.name))
+}
+
+function fileVersion(metadata) {
+  return `${metadata.dev}:${metadata.ino}:${metadata.size}:${metadata.mtimeNs}:${metadata.ctimeNs}`
+}
+
+function normalizeNewlines(content) {
+  return content.replaceAll('\r\n', '\n').replaceAll('\r', '\n')
+}
+
+function lineEndingOf(content) {
+  let crlf = 0
+  let lf = 0
+  for (let index = 0; index < content.length; index += 1) {
+    if (content[index] !== '\n') continue
+    if (content[index - 1] === '\r') crlf += 1
+    else lf += 1
+  }
+  return crlf > lf ? 'CRLF' : 'LF'
+}
+
+async function readWorkspaceText(root, target) {
+  const path = await confinedPath(root, target)
+  const handle = await open(path, 'r')
+  try {
+    const before = await handle.stat({ bigint: true })
+    if (!before.isFile()) throw new Error('path is not a file')
+    if (before.size > BigInt(MAX_EDITABLE_FILE_BYTES)) throw new Error('file is larger than 1 MB')
+    const capacity = Math.max(1, Number(before.size) + 1)
+    const buffer = Buffer.allocUnsafe(capacity)
+    let length = 0
+    while (length < capacity) {
+      const chunk = await handle.read(buffer, length, capacity - length, null)
+      if (chunk.bytesRead === 0) break
+      length += chunk.bytesRead
+    }
+    const after = await handle.stat({ bigint: true })
+    if (fileVersion(before) !== fileVersion(after)) throw new Error('file changed while it was being read')
+    if (length > MAX_EDITABLE_FILE_BYTES) throw new Error('file is larger than 1 MB')
+    const bytes = buffer.subarray(0, length)
+    if (bytes.includes(0)) throw new Error('binary files are not editable')
+    const bom = bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf
+    const decoded = new TextDecoder('utf-8', { fatal: true }).decode(bom ? bytes.subarray(3) : bytes)
+    return {
+      path,
+      content: normalizeNewlines(decoded),
+      version: fileVersion(after),
+      mode: Number(after.mode & 0o777n),
+      lineEnding: lineEndingOf(decoded),
+      bom,
+    }
+  } finally {
+    await handle.close()
+  }
+}
+
+async function readWorkspaceFile(root, target) {
+  const { path, content, version } = await readWorkspaceText(root, target)
+  return { path, content, version }
+}
+
+function validateEntryName(name) {
+  if (typeof name !== 'string' || name === '' || name !== name.trim()
+    || name === '.' || name === '..' || /[\\/:*?"<>|\0]/u.test(name)) {
+    throw new Error('file name is invalid')
+  }
+}
+
+async function createWorkspaceEntry(root, parentTarget, name, kind) {
+  validateEntryName(name)
+  if (kind !== 'file' && kind !== 'directory') throw new Error('file kind is invalid')
+  const parent = await confinedPath(root, parentTarget)
+  if (!(await stat(parent)).isDirectory()) throw new Error('parent path is not a directory')
+  const target = join(parent, name)
+  if (kind === 'directory') {
+    await mkdir(target)
+  } else {
+    const handle = await open(target, 'wx')
+    await handle.close()
+  }
+  const path = await confinedPath(root, target)
+  return { name, path, directory: kind === 'directory' }
+}
+
+async function serializeFileSave(path, operation) {
+  const previous = fileSaveTails.get(path) ?? Promise.resolve()
+  const current = previous.catch(() => {}).then(operation)
+  fileSaveTails.set(path, current)
+  try {
+    return await current
+  } finally {
+    if (fileSaveTails.get(path) === current) fileSaveTails.delete(path)
+  }
+}
+
+async function saveWorkspaceFile(root, target, content, expectedVersion) {
+  if (typeof content !== 'string' || content.includes('\0')
+    || Buffer.byteLength(content, 'utf8') > MAX_EDITABLE_FILE_BYTES
+    || typeof expectedVersion !== 'string' || expectedVersion === '' || expectedVersion.length > 256) {
+    throw new Error('file save is invalid')
+  }
+  const path = await confinedPath(root, target)
+  return await serializeFileSave(path, async () => {
+    const current = await readWorkspaceText(root, path)
+    if (current.version !== expectedVersion) throw new Error('file changed since it was opened')
+    const normalized = normalizeNewlines(content)
+    const body = current.lineEnding === 'CRLF' ? normalized.replaceAll('\n', '\r\n') : normalized
+    const output = current.bom ? `\ufeff${body}` : body
+    if (Buffer.byteLength(output, 'utf8') > MAX_EDITABLE_FILE_BYTES) throw new Error('file is larger than 1 MB')
+    const { writeFileAtomic } = await import('@bosch/bh-atomic-write')
+    const publicationPath = await confinedPath(root, current.path)
+    await writeFileAtomic(publicationPath, output, { mode: current.mode })
+    const saved = await readWorkspaceText(root, publicationPath)
+    if (saved.content !== normalized) throw new Error('file changed immediately after it was saved')
+    return { path: saved.path, version: saved.version }
+  })
+}
+
+async function formatWorkspaceFile(root, target, content) {
+  if (typeof content !== 'string' || content.includes('\0')
+    || Buffer.byteLength(content, 'utf8') > MAX_EDITABLE_FILE_BYTES) {
+    throw new Error('file format is invalid')
+  }
+  const { path } = await readWorkspaceText(root, target)
+  const { format } = await import('prettier')
+  const formatted = normalizeNewlines(await format(content, { filepath: path }))
+  if (formatted.includes('\0') || Buffer.byteLength(formatted, 'utf8') > MAX_EDITABLE_FILE_BYTES) {
+    throw new Error('formatted file is larger than 1 MB')
+  }
+  return formatted
 }
 
 function installRendererIpc() {
@@ -374,8 +556,8 @@ function installRendererIpc() {
     })
     return choice.response === 0
   })
-  ipcMain.handle('bh-desktop:browser-clear-data', event =>
-    browserOperation(event, 'clear_browser_data'))
+  ipcMain.handle('bh-desktop:browser-clear-data', (event, value) =>
+    browserOperation(event, 'clear_browser_data', value))
   ipcMain.handle('bh-desktop:browser-open-url', (event, value) =>
     browserOperation(event, 'route_user_url', value))
   ipcMain.handle('bh-desktop:browser-history', event =>
@@ -434,17 +616,47 @@ function installRendererIpc() {
     if (id === undefined || size === undefined) return
     try { terminals.get(id)?.instance.resize(size.cols, size.rows) } catch {}
   })
-  ipcMain.handle('bh-desktop:files-root', async (event) => {
+  ipcMain.handle('bh-desktop:files-root', async (event, value) => {
     if (shuttingDown !== undefined || !validSender(event)) throw new Error('files are unavailable')
-    return await realpath(DESKTOP_WORKSPACE_ROOT)
+    return await registeredWorkspaceRoot(value?.workspaceId)
   })
   ipcMain.handle('bh-desktop:files-list', async (event, value) => {
     if (shuttingDown !== undefined || !validSender(event)) throw new Error('files are unavailable')
-    return await listFiles(value?.path)
+    return await listFiles(await registeredWorkspaceRoot(value?.workspaceId), value?.path)
+  })
+  ipcMain.handle('bh-desktop:files-search', async (event, value) => {
+    if (shuttingDown !== undefined || !validSender(event)) throw new Error('files are unavailable')
+    return await searchFiles(await registeredWorkspaceRoot(value?.workspaceId), value?.query)
   })
   ipcMain.handle('bh-desktop:files-read', async (event, value) => {
     if (shuttingDown !== undefined || !validSender(event)) throw new Error('files are unavailable')
-    return await readWorkspaceFile(value?.path)
+    return await readWorkspaceFile(await registeredWorkspaceRoot(value?.workspaceId), value?.path)
+  })
+  ipcMain.handle('bh-desktop:files-create', async (event, value) => {
+    if (shuttingDown !== undefined || !validSender(event)) throw new Error('files are unavailable')
+    return await createWorkspaceEntry(
+      await registeredWorkspaceRoot(value?.workspaceId),
+      value?.parentPath,
+      value?.name,
+      value?.kind,
+    )
+  })
+  ipcMain.handle('bh-desktop:files-save', async (event, value) => {
+    if (shuttingDown !== undefined || !validSender(event)) throw new Error('files are unavailable')
+    return await saveWorkspaceFile(
+      await registeredWorkspaceRoot(value?.workspaceId),
+      value?.path,
+      value?.content,
+      value?.expectedVersion,
+    )
+  })
+  ipcMain.handle('bh-desktop:files-format', async (event, value) => {
+    if (shuttingDown !== undefined || !validSender(event)) throw new Error('files are unavailable')
+    return await formatWorkspaceFile(
+      await registeredWorkspaceRoot(value?.workspaceId),
+      value?.path,
+      value?.content,
+    )
   })
 }
 
@@ -513,27 +725,58 @@ async function waitForRenderer(label, expression) {
   throw new Error(`${label} renderer check failed`)
 }
 
+async function prepareSmokeWorkspace() {
+  const root = await mkdtemp(join(tmpdir(), 'bh-desktop-smoke-'))
+  smokeWorkspace = { root }
+  const outside = await mkdtemp(join(tmpdir(), 'bh-desktop-smoke-outside-'))
+  smokeWorkspace = { root, outside }
+  await writeFile(join(root, 'package.json'), '{"name":"bh-desktop-smoke"}\n')
+  await writeFile(join(root, 'bom-crlf.txt'), '\ufeffone\r\ntwo\r\n')
+  await writeFile(join(outside, 'outside-only.txt'), 'must not be searchable\n')
+  await symlink(outside, join(root, 'linked-outside'), process.platform === 'win32' ? 'junction' : 'dir')
+  const value = await hostRequest('workspace.create', { path: root })
+  const workspaceId = value?.workspace?.workspaceId
+  if (typeof workspaceId !== 'string') throw new Error('desktop smoke Workspace is unavailable')
+  if (value?.created !== true) throw new Error('desktop smoke Workspace already exists')
+  smokeWorkspace = { root: await realpath(root), outside: await realpath(outside), workspaceId }
+}
+
+async function cleanupSmokeWorkspace() {
+  const workspace = smokeWorkspace
+  smokeWorkspace = undefined
+  if (workspace === undefined) return
+  let cleanupError
+  if (workspace.workspaceId !== undefined) {
+    try { await hostRequest('workspace.delete', { workspaceId: workspace.workspaceId }) } catch (error) { cleanupError = error }
+  }
+  for (const directory of [workspace.root, workspace.outside]) {
+    if (directory === undefined) continue
+    const parent = resolve(tmpdir())
+    const target = resolve(directory)
+    const inside = relative(parent, target)
+    if (inside.includes(sep) || !inside.startsWith('bh-desktop-smoke-')) {
+      throw new Error(`refusing to remove unexpected smoke path: ${target}`)
+    }
+    await rm(target, { recursive: true, force: true })
+  }
+  if (cleanupError !== undefined) throw cleanupError
+}
+
 async function smoke() {
+  if (typeof smokeWorkspace?.workspaceId !== 'string') throw new Error('desktop smoke Workspace is unavailable')
   const panelStartsClosed = await mainWindow.webContents.executeJavaScript(`(() => {
     const panel = document.querySelector('[aria-label="Right panel"]')
     return panel instanceof HTMLElement && panel.hidden
   })()`)
   if (!panelStartsClosed) throw new Error('desktop browser panel opens by default')
   if (mainWindow.getTitle() !== 'WorkON') throw new Error(`unexpected desktop title: ${mainWindow.getTitle()}`)
-  if (panelShortcut({ control: true, alt: false, meta: false, shift: false, key: 'p' }) !== 'files'
-    || panelShortcut({ control: true, alt: true, meta: false, shift: false, key: 's' }) !== 'side-chat'
-    || panelShortcut({ control: true, alt: false, meta: false, shift: true, key: 'b' }) !== 'browser'
-    || panelShortcut({ control: true, alt: false, meta: false, shift: false, key: 't' }) !== 'browser'
-    || panelShortcut({ control: true, alt: false, meta: false, shift: false, key: '`' }) !== 'terminal') {
+  if (panelShortcut({ type: 'keyDown', control: true, alt: false, meta: false, shift: false, key: 'p' }) !== 'files'
+    || panelShortcut({ type: 'keyUp', control: true, alt: false, meta: false, shift: false, key: 'p' }) !== undefined
+    || panelShortcut({ type: 'keyDown', control: true, alt: true, meta: false, shift: false, key: 's' }) !== 'side-chat'
+    || panelShortcut({ type: 'keyDown', control: true, alt: false, meta: false, shift: true, key: 'b' }) !== 'browser'
+    || panelShortcut({ type: 'keyDown', control: true, alt: false, meta: false, shift: false, key: 't' }) !== 'browser'
+    || panelShortcut({ type: 'keyDown', control: true, alt: false, meta: false, shift: false, key: '`' }) !== 'terminal') {
     throw new Error('desktop panel shortcut mapping is invalid')
-  }
-  const rootFiles = await listFiles(DESKTOP_WORKSPACE_ROOT)
-  if (rootFiles.length === 0) throw new Error('desktop workspace tree is empty')
-  try {
-    await readWorkspaceFile(resolve(DESKTOP_WORKSPACE_ROOT, '..'))
-    throw new Error('desktop Files bridge escaped its workspace root')
-  } catch (error) {
-    if (!String(error).includes('outside the workspace')) throw error
   }
   await selectControl('Toggle right panel')
   const right = await waitForBounds('right', bounds => bounds.x > 0 && bounds.width < mainWindow.getContentBounds().width)
@@ -557,9 +800,95 @@ async function smoke() {
   ])) {
     throw new Error(`panel chooser contract is invalid: ${JSON.stringify(chooser)}`)
   }
-  await selectControl('Files')
+  mainWindow.webContents.sendInputEvent({ type: 'keyDown', keyCode: 'P', modifiers: ['control'] })
+  mainWindow.webContents.sendInputEvent({ type: 'keyUp', keyCode: 'P', modifiers: ['control'] })
   await waitForHiddenBrowser('Files panel')
   await waitForRenderer('workspace Files panel', `document.querySelector('[data-panel-kind="files"]:not([hidden]) [aria-label="Workspace files"] [role="treeitem"]')`)
+  await waitForRenderer('workspace Files filter focus', `document.activeElement?.getAttribute('aria-label') === 'Filter workspace files'`)
+  const files = await mainWindow.webContents.executeJavaScript(`(async () => {
+    const workspaceId = ${JSON.stringify(smokeWorkspace.workspaceId)}
+    const api = window.bhDesktop?.files
+    if (api === undefined) return undefined
+    const rejected = promise => promise.then(() => false, () => true)
+    const root = document.querySelector('[data-panel-kind="files"]:not([hidden]) [data-files-root]')?.getAttribute('data-files-root')
+    const results = await api.search('package.json', workspaceId)
+    const match = results?.find(entry => entry.name === 'package.json')
+    const preview = match === undefined ? undefined : await api?.read(match.path, workspaceId)
+    const linked = await api.search('outside-only', workspaceId)
+    const unscopedRejected = await rejected(api.root())
+    const escaped = await api.read(${JSON.stringify(resolve(smokeWorkspace.root, '..'))}, workspaceId)
+      .then(() => false, error => String(error).includes('outside the workspace'))
+    const directory = await api.create(root, 'src', 'directory', workspaceId)
+    const created = await api.create(directory.path, 'sample.json', 'file', workspaceId)
+    const opened = await api.read(created.path, workspaceId)
+    const formatted = await api.format(created.path, '{"b":2,"a":1}', workspaceId)
+    await api.save(created.path, formatted, opened.version, workspaceId)
+    const formattedRead = await api.read(created.path, workspaceId)
+    const duplicateRejected = await rejected(api.create(directory.path, 'sample.json', 'file', workspaceId))
+    const invalidNameRejected = await rejected(api.create(root, '../escaped.txt', 'file', workspaceId))
+    const outsideParentRejected = await rejected(api.create(
+      ${JSON.stringify(smokeWorkspace.outside)}, 'escaped.txt', 'file', workspaceId,
+    ))
+    const symlinkParentRejected = await rejected(api.create(
+      ${JSON.stringify(join(smokeWorkspace.root, 'linked-outside'))}, 'escaped.txt', 'file', workspaceId,
+    ))
+    const races = await Promise.allSettled([
+      api.save(created.path, 'first\\n', formattedRead.version, workspaceId),
+      api.save(created.path, 'second\\n', formattedRead.version, workspaceId),
+    ])
+    const afterRace = await api.read(created.path, workspaceId)
+    const staleRejected = await rejected(api.save(created.path, 'stale\\n', formattedRead.version, workspaceId))
+    const nulRejected = await rejected(api.save(created.path, 'bad\\0content', afterRace.version, workspaceId))
+    const oversizedRejected = await rejected(api.save(created.path, 'é'.repeat(500_001), afterRace.version, workspaceId))
+    const afterFailure = await api.read(created.path, workspaceId)
+    const bomPath = ${JSON.stringify(join(smokeWorkspace.root, 'bom-crlf.txt'))}
+    const bom = await api.read(bomPath, workspaceId)
+    await api.save(bomPath, bom.content + 'three\\n', bom.version, workspaceId)
+    return {
+      root,
+      preview: preview?.content,
+      previewVersion: preview?.version,
+      linked: linked.length,
+      unscopedRejected,
+      escaped,
+      created: created.path,
+      formatted: formattedRead.content,
+      duplicateRejected,
+      invalidNameRejected,
+      outsideParentRejected,
+      symlinkParentRejected,
+      raceWinners: races.filter(result => result.status === 'fulfilled').length,
+      raceContent: afterRace.content,
+      staleRejected,
+      nulRejected,
+      oversizedRejected,
+      afterFailure: afterFailure.content,
+    }
+  })()`)
+  if (files?.root !== smokeWorkspace.root
+    || !String(files?.preview).includes('bh-desktop-smoke')
+    || typeof files?.previewVersion !== 'string'
+    || files?.linked !== 0
+    || files?.unscopedRejected !== true
+    || files?.escaped !== true
+    || files?.created !== join(smokeWorkspace.root, 'src', 'sample.json')
+    || !String(files?.formatted).includes('"b": 2')
+    || files?.duplicateRejected !== true
+    || files?.invalidNameRejected !== true
+    || files?.outsideParentRejected !== true
+    || files?.symlinkParentRejected !== true
+    || files?.raceWinners !== 1
+    || !['first\n', 'second\n'].includes(files?.raceContent)
+    || files?.staleRejected !== true
+    || files?.nulRejected !== true
+    || files?.oversizedRejected !== true
+    || files?.afterFailure !== files?.raceContent) {
+    throw new Error(`desktop Files Workspace contract is invalid: ${JSON.stringify(files)}`)
+  }
+  const bomCrlf = await readFile(join(smokeWorkspace.root, 'bom-crlf.txt'))
+  if (!bomCrlf.equals(Buffer.from('\ufeffone\r\ntwo\r\nthree\r\n'))) {
+    throw new Error(`desktop Files changed BOM or CRLF bytes: ${JSON.stringify([...bomCrlf])}`)
+  }
   await selectControl('Choose panel')
   await selectControl('Terminal')
   await waitForHiddenBrowser('right Terminal')
@@ -646,6 +975,7 @@ async function smoke() {
     event: 'desktop-smoke',
     ok: true,
     windows: 1,
+    files: { root: files.root, shortcut: 'Ctrl+P', search: true, preview: true, confined: true },
     terminal: { rightMarker, bottomMarker, simultaneous: true, isolated: true },
     bounds: { right, simultaneous, expanded, restored },
   })}\n`)
@@ -656,6 +986,10 @@ async function shutdown() {
   shuttingDown = (async () => {
     try { await Promise.all([...terminals.keys()].map(stopTerminal)) } catch (error) { process.stderr.write(`${String(error)}\n`) }
     try { await browser?.dispose() } catch (error) { process.stderr.write(`${String(error)}\n`) }
+    try { await cleanupSmokeWorkspace() } catch (error) {
+      process.stderr.write(`desktop: smoke Workspace cleanup failed: ${String(error)}\n`)
+      if (SMOKE) process.exitCode = 1
+    }
     if (host !== undefined && !hostExited) {
       const exited = once(host, 'exit')
       host.postMessage({ type: 'shutdown' })
@@ -677,8 +1011,9 @@ app.whenReady().then(async () => {
     mainWindow = createWindow()
     browser = await installBrowserController(mainWindow)
     installRendererIpc()
-    const url = await startHost()
-    await mainWindow.loadURL(url)
+    hostBaseUrl = await startHost()
+    if (SMOKE) await prepareSmokeWorkspace()
+    await mainWindow.loadURL(hostBaseUrl)
     if (!SMOKE) mainWindow.show()
     mainWindow.on('close', event => {
       if (shuttingDown === undefined) {

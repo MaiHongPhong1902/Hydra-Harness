@@ -7,7 +7,7 @@ contextBridge.exposeInMainWorld('bhDesktop', {
     setBounds: bounds => { ipcRenderer.send('bh-desktop:browser-bounds', bounds) },
     configure: settings => ipcRenderer.invoke('bh-desktop:browser-configure', settings),
     confirmFullCdpAccess: () => ipcRenderer.invoke('bh-desktop:browser-confirm-full-cdp'),
-    clearData: () => ipcRenderer.invoke('bh-desktop:browser-clear-data'),
+    clearData: scope => ipcRenderer.invoke('bh-desktop:browser-clear-data', { scope }),
     openUrl: url => ipcRenderer.invoke('bh-desktop:browser-open-url', { url }),
     history: () => ipcRenderer.invoke('bh-desktop:browser-history'),
     removeHistory: id => ipcRenderer.invoke('bh-desktop:browser-remove-history', { id }),
@@ -44,9 +44,16 @@ contextBridge.exposeInMainWorld('bhDesktop', {
     },
   },
   files: {
-    root: () => ipcRenderer.invoke('bh-desktop:files-root'),
-    list: path => ipcRenderer.invoke('bh-desktop:files-list', { path }),
-    read: path => ipcRenderer.invoke('bh-desktop:files-read', { path }),
+    root: workspaceId => ipcRenderer.invoke('bh-desktop:files-root', { workspaceId }),
+    list: (path, workspaceId) => ipcRenderer.invoke('bh-desktop:files-list', { path, workspaceId }),
+    search: (query, workspaceId) => ipcRenderer.invoke('bh-desktop:files-search', { query, workspaceId }),
+    read: (path, workspaceId) => ipcRenderer.invoke('bh-desktop:files-read', { path, workspaceId }),
+    create: (parentPath, name, kind, workspaceId) =>
+      ipcRenderer.invoke('bh-desktop:files-create', { parentPath, name, kind, workspaceId }),
+    save: (path, content, expectedVersion, workspaceId) =>
+      ipcRenderer.invoke('bh-desktop:files-save', { path, content, expectedVersion, workspaceId }),
+    format: (path, content, workspaceId) =>
+      ipcRenderer.invoke('bh-desktop:files-format', { path, content, workspaceId }),
   },
   panels: {
     onShortcut: listener => {

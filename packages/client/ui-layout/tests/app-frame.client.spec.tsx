@@ -18,7 +18,7 @@ import type { AppFrameProps } from '@bosch/bh-client-ui-layout/src/client/AppFra
 import { SIDEBAR_COLLAPSED } from '@bosch/bh-client-ui-layout/src/client/columns.ts'
 import { createLayoutStore } from '@bosch/bh-client-ui-layout/src/client/stores.ts'
 import type {
-  SessionId, SessionListState, WorkspaceListState,
+  SessionId, SessionListState, WorkspaceId, WorkspaceListState,
 } from '@bosch/bh-client-runtime/client'
 
 // Session selection controls for the SessionProvider and useSessions stubs.
@@ -57,7 +57,7 @@ function hookOf<T>(inst: { subscribe: (fn: () => void) => () => void; getSnapsho
   return function useSelector<S>(sel: (s: T) => S): S { return sel(useSyncExternalStore(inst.subscribe, inst.getSnapshot)) }
 }
 
-function mountFrame() {
+function mountFrame(workspaceOverrides: Partial<WorkspaceListState> = {}) {
   window.innerWidth = frameWidth // first-render viewport source before the observer fires
   const instance = createLayoutStore().create()
   const createSideSession = vi.fn(async () => 's-side' as SessionId)
@@ -85,6 +85,7 @@ function mountFrame() {
   const workspaceState: WorkspaceListState = {
     items: [], archivedSessionIds: [], state: 'idle', phase: 'ready', error: null,
     baselinesReady: baselinesReady.current, recentWorkspaceId: undefined,
+    ...workspaceOverrides,
   }
   const element = () => (
     <AppFrame
@@ -156,6 +157,47 @@ afterEach(() => {
 })
 
 describe('AppFrame', () => {
+  it('opens Ctrl+P Files against the current registered workspace', async () => {
+    const workspaceId = 'workspace-test' as WorkspaceId
+    const rootPath = 'C:\\workspace'
+    let shortcut: ((value: 'files' | 'side-chat' | 'browser' | 'terminal') => void) | undefined
+    const files = {
+      root: vi.fn(async () => rootPath),
+      list: vi.fn(async () => []),
+      search: vi.fn(async () => []),
+      read: vi.fn(async (path: string) => ({ path, content: '', version: 'v1' })),
+      create: vi.fn(),
+      save: vi.fn(),
+      format: vi.fn(),
+    }
+    window.bhDesktop = {
+      browser: { setBounds: vi.fn() },
+      files,
+      panels: {
+        onShortcut: (listener) => {
+          shortcut = listener
+          return () => { shortcut = undefined }
+        },
+      },
+    }
+    const view = mountFrame({
+      items: [{
+        workspaceId,
+        path: rootPath,
+        title: 'Workspace',
+        sessionIds: ['s-test' as SessionId],
+        createdAt: '2026-08-28T00:00:00.000Z',
+        updatedAt: '2026-08-28T00:00:00.000Z',
+      }],
+      recentWorkspaceId: workspaceId,
+    })
+
+    await act(async () => { shortcut?.('files'); await Promise.resolve() })
+
+    expect(view.getByRole('tab', { name: 'Files' }).getAttribute('aria-selected')).toBe('true')
+    expect(files.root).toHaveBeenCalledWith(workspaceId)
+  })
+
   it('starts with the right panel closed, then keeps its tabs and Terminals independent', async () => {
     frameWidth = 1400
     window.innerHeight = 900

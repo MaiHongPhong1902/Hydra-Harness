@@ -130,16 +130,21 @@ function DragHandle(props: {
 export function AppFrame({
   useStore,
   useSessions,
+  useWorkspaces,
   actions,
   renderSlot,
   SessionProvider,
   createSideSession,
 }: AppFrameProps) {
   const panels = useStore(s => s)
+  const currentSessionId = useSessions(s => s.current)
   const detailsSession = useSessions((s) => {
     const current = s.current
     return current !== undefined && s.byId[current]?.blank === false ? current : undefined
   })
+  const workspaceId = useWorkspaces(state => currentSessionId === undefined
+    ? state.recentWorkspaceId
+    : state.items.find(workspace => workspace.sessionIds.includes(currentSessionId))?.workspaceId)
   const frameRef = useRef<HTMLDivElement | null>(null)
   const [viewport, setViewport] = useState(() => window.innerWidth)
   const [desktopViewport, setDesktopViewport] = useState(() => ({
@@ -310,6 +315,7 @@ export function AppFrame({
       <DesktopBrowserPanel
         open={browserOpen}
         chooserOpen={panelChooserOpen}
+        workspaceId={workspaceId}
         createSideSession={createSideSession}
         renderSideChat={sessionId => (
           <SessionProvider sessionId={sessionId}>

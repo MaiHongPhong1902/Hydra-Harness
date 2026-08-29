@@ -47,6 +47,8 @@ const MAX_SITE_ENTRIES = 500
 const DECISIONS = new Set(['allow', 'ask', 'block'])
 const DESTINATIONS = new Set(['bhagent', 'system'])
 const ANNOTATION_SCREENSHOTS = new Set(['include', 'ask', 'never'])
+const CLEAR_DATA_SCOPES = new Set(['all', 'history', 'site-data', 'cache', 'downloads'])
+const SITE_DATA_TYPES = ['cookies', 'backgroundFetch', 'fileSystems', 'indexedDB', 'localStorage', 'serviceWorkers', 'webSQL']
 const MAX_HISTORY_SEARCH_RESULTS = 20
 const MAX_SCREENSHOT_BYTES = 3_500_000
 const MAX_SCREENSHOT_EDGE = 2_000
@@ -126,6 +128,17 @@ function validDestination(value) {
 
 function validAnnotationScreenshots(value) {
   return ANNOTATION_SCREENSHOTS.has(value) ? value : undefined
+}
+
+function clearDataScope(value) {
+  if (value !== undefined && (typeof value !== 'object' || value === null || Array.isArray(value))) {
+    throw new Error('clear data scope must be an object')
+  }
+  const scope = value?.scope ?? 'all'
+  if (!CLEAR_DATA_SCOPES.has(scope)) {
+    throw new Error('clear data scope must be all, history, site-data, cache, or downloads')
+  }
+  return scope
 }
 
 function historyEntry(value) {
@@ -1327,14 +1340,21 @@ async function handle(method, args) {
     return { success: true, ...configureBrowserSettings(args) }
   }
   if (method === 'clear_browser_data') {
-    for (const tab of tabs.values()) detachTabDebugger(tab, true)
-    await Promise.all([...sessionCookieWrites])
-    await browserSession.clearData()
-    for (const tab of tabs.values()) tab.view.webContents.navigationHistory.clear()
-    profileStore.history = []
-    profileStore.downloads = []
-    await persistProfileStore()
-    return { success: true }
+    const scope = clearDataScope(args)
+    if (scope === 'all') for (const tab of tabs.values()) detachTabDebugger(tab, true)
+    if (scope === 'all' || scope === 'site-data') await Promise.all([...sessionCookieWrites])
+    await profileStoreWrite
+    if (scope === 'all') await browserSession.clearData()
+    else if (scope === 'site-data') await browserSession.clearData({ dataTypes: SITE_DATA_TYPES })
+    else if (scope === 'cache') await browserSession.clearData({ dataTypes: ['cache'] })
+    else if (scope === 'downloads') await browserSession.clearData({ dataTypes: ['downloads'] })
+    if (scope === 'all' || scope === 'history') {
+      for (const tab of tabs.values()) tab.view.webContents.navigationHistory.clear()
+      profileStore.history = []
+    }
+    if (scope === 'all' || scope === 'downloads') profileStore.downloads = []
+    if (scope === 'all' || scope === 'history' || scope === 'downloads') await persistProfileStore()
+    return { success: true, scope }
   }
   if (method === 'browser_history') return profileStore.history.map(entry => ({ ...entry }))
   if (method === 'search_browser_history') return searchHistory(args)

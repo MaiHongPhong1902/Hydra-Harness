@@ -9,9 +9,10 @@ type ExecFileMock = (
   options: {
     cwd: string
     encoding: string
-    maxBuffer: number
-    windowsHide: boolean
     env?: NodeJS.ProcessEnv
+    maxBuffer: number
+    timeout?: number
+    windowsHide: boolean
   },
   callback: ExecFileCallback,
 ) => void
@@ -20,7 +21,7 @@ const { execFileMock } = vi.hoisted(() => ({ execFileMock: vi.fn<ExecFileMock>()
 
 vi.mock('node:child_process', () => ({ execFile: execFileMock }))
 
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -33,7 +34,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import PluginInventoryGateway from '../src/index.ts'
 import type { MarketplacePluginId, PluginMarketplaceSnapshot } from '../src/types.ts'
 
-const SOURCE = 'https://plugins.example/marketplace.json'
+const GIT_SOURCE = 'openai/plugins'
+const NORMALIZED_GIT_SOURCE = 'https://github.com/openai/plugins.git'
 const PACKAGE = '@example/bh-plugin'
 const contexts: Context[] = []
 const tempDirs: string[] = []
@@ -52,7 +54,6 @@ afterEach(async () => {
   } else {
     Object.defineProperty(process.versions, 'electron', originalElectron)
   }
-  vi.unstubAllGlobals()
   vi.unstubAllEnvs()
 })
 
@@ -69,8 +70,14 @@ function marketplace(version = '1.2.3', packageName = PACKAGE) {
   }
 }
 
+async function writeMarketplace(path: string, version = '1.2.3', packageName = PACKAGE): Promise<void> {
+  await writeFile(path, JSON.stringify(marketplace(version, packageName)))
+}
+
 async function managedHarness(): Promise<{
   inventory: PluginInventoryGateway
+  marketplaceDir: string
+  marketplacePath: string
   profileDir: string
   manifestPath: string
   ctx: Context
@@ -88,6 +95,10 @@ async function managedHarness(): Promise<{
   }, undefined, 2) + '\n')
   const configPath = join(profileDir, 'cordis.patch.yml')
   await writeFile(configPath, '[]\n')
+  const marketplaceDir = join(home, 'local-marketplace')
+  await mkdir(marketplaceDir)
+  const marketplacePath = join(marketplaceDir, 'marketplace.json')
+  await writeMarketplace(marketplacePath)
 
   const ctx = new Context()
   contexts.push(ctx)
@@ -102,18 +113,48 @@ async function managedHarness(): Promise<{
   await ctx.plugin(PluginInventoryGateway)
   return {
     inventory: ctx.get('pluginInventory') as PluginInventoryGateway,
+    marketplaceDir,
+    marketplacePath,
     profileDir,
     manifestPath,
     ctx,
   }
 }
 
-function stubMarketplace(document: () => unknown = marketplace): ReturnType<typeof vi.fn> {
-  const request = vi.fn(async () => new Response(JSON.stringify(document()), {
-    headers: { 'content-type': 'application/json' },
-  }))
-  vi.stubGlobal('fetch', request)
-  return request
+function stubGitMarketplace(
+  document: () => unknown = marketplace,
+  onCloneActivity?: (delta: 1 | -1) => void,
+): void {
+  execFileMock.mockImplementation((command, args, _options, callback) => {
+    if (command !== 'git') {
+      callback(new Error(`unexpected command ${command}`), '', '')
+      return
+    }
+    if (args.includes('clone')) {
+      const checkout = args.at(-1)
+      if (checkout === undefined) throw new Error('clone target missing')
+      onCloneActivity?.(1)
+      void mkdir(checkout, { recursive: true })
+        .then(() => writeFile(join(checkout, 'marketplace.json'), JSON.stringify(document())))
+        .then(
+          () => {
+            onCloneActivity?.(-1)
+            callback(null, '', '')
+          },
+          (error: unknown) => {
+            onCloneActivity?.(-1)
+            callback(error as Error, '', '')
+          },
+        )
+      return
+    }
+    const ref = args.at(-1) ?? ''
+    if (args.includes('check-ref-format') && (ref.includes('~') || ref.includes('..'))) {
+      callback(new Error('invalid ref'), '', '')
+      return
+    }
+    callback(null, '', '')
+  })
 }
 
 async function writeInstalledManifest(path: string, version: string, bundle: boolean): Promise<void> {
@@ -132,18 +173,36 @@ function firstPluginId(snapshot: PluginMarketplaceSnapshot): MarketplacePluginId
   return first.plugins[0].id
 }
 
-describe('plugin marketplace Host flow', () => {
-  it('validates and persists one catalog without accepting remote plain HTTP', async () => {
-    const { ctx, inventory } = await managedHarness()
-    const fetchMock = stubMarketplace()
+async function addLocalMarketplace(
+  inventory: PluginInventoryGateway,
+  marketplaceDir: string,
+): Promise<{ source: string; pluginId: MarketplacePluginId }> {
+  const snapshot = await inventory.addMarketplace({ source: marketplaceDir })
+  const source = snapshot.marketplaces[0]?.source
+  if (source === undefined) throw new Error('fixture source is missing')
+  return { source, pluginId: firstPluginId(snapshot) }
+}
 
-    const snapshot = await inventory.addMarketplace({ source: SOURCE })
+describe('plugin marketplace Host flow', () => {
+  it('normalizes a Git source and applies its ref and sparse checkout paths', async () => {
+    const { ctx, inventory } = await managedHarness()
+    vi.stubEnv('MARKETPLACE_TOKEN', 'not-for-git')
+    vi.stubEnv('MARKETPLACE_VISIBLE', 'preserved')
+    stubGitMarketplace()
+
+    const snapshot = await inventory.addMarketplace({
+      source: GIT_SOURCE,
+      gitRef: ' main ',
+      sparsePaths: ['plugins/z', ' plugins/a ', 'plugins/a'],
+    })
     expect(snapshot.marketplaces).toEqual([{
       status: 'ready',
-      source: SOURCE,
+      source: NORMALIZED_GIT_SOURCE,
+      gitRef: 'main',
+      sparsePaths: ['plugins/a', 'plugins/z'],
       name: 'Example marketplace',
       plugins: [{
-        id: expect.stringMatching(/^[0-9a-f]{64}$/u),
+        id: expect.stringMatching(/^[0-9a-f]{64}$/u) as unknown,
         name: 'Example plugin',
         description: 'Adds one example capability.',
         packageName: PACKAGE,
@@ -151,69 +210,159 @@ describe('plugin marketplace Host flow', () => {
         installed: false,
       }],
     }])
-    expect(ctx.settings.get(settingsNamespace('plugin-marketplaces'))).toEqual({ sources: [SOURCE] })
-    await inventory.addMarketplace({ source: SOURCE })
-    expect(ctx.settings.get(settingsNamespace('plugin-marketplaces'))).toEqual({ sources: [SOURCE] })
-    expect(fetchMock).toHaveBeenCalledWith(SOURCE, expect.objectContaining({
-      redirect: 'error',
-      signal: expect.any(AbortSignal),
-    }))
+    expect(ctx.settings.get(settingsNamespace('plugin-marketplaces'))).toEqual({
+      sources: [{
+        source: NORMALIZED_GIT_SOURCE,
+        gitRef: 'main',
+        sparsePaths: ['plugins/a', 'plugins/z'],
+      }],
+    })
 
-    await expect(inventory.addMarketplace({ source: 'http://plugins.example/marketplace.json' }))
-      .rejects.toThrow('must use HTTPS or loopback HTTP')
+    const cloneCall = execFileMock.mock.calls.find(call => call[1].includes('clone'))
+    expect(cloneCall?.[0]).toBe('git')
+    expect(cloneCall?.[1]).toEqual([
+      '-c', 'protocol.ext.allow=never',
+      '-c', 'protocol.file.allow=never',
+      'clone', '--depth', '1', '--filter=blob:none', '--sparse', '--no-checkout', '--',
+      NORMALIZED_GIT_SOURCE,
+      expect.any(String),
+    ])
+    expect(cloneCall?.[2]).toMatchObject({ timeout: 30_000, windowsHide: true })
+    expect(cloneCall?.[2].env).toEqual(expect.objectContaining({
+      GCM_INTERACTIVE: 'Never',
+      GIT_TERMINAL_PROMPT: '0',
+      MARKETPLACE_VISIBLE: 'preserved',
+    }))
+    expect(cloneCall?.[2].env).not.toHaveProperty('MARKETPLACE_TOKEN')
+    expect(execFileMock.mock.calls.some(call => call[1].includes('fetch') && call[1].at(-1) === 'main')).toBe(true)
+    expect(execFileMock.mock.calls.some(call => call[1].slice(-7).join('\0') === [
+      'sparse-checkout', 'set', '--cone', '--sparse-index', '--', 'plugins/a', 'plugins/z',
+    ].join('\0'))).toBe(true)
+    expect(execFileMock.mock.calls.slice(0, 5).map((call) => {
+      if (call[1].includes('check-ref-format')) return 'check-ref-format'
+      if (call[1].includes('clone')) return 'clone'
+      if (call[1].includes('fetch')) return 'fetch'
+      if (call[1].includes('sparse-checkout')) return 'sparse-checkout'
+      if (call[1].includes('checkout')) return 'checkout'
+      return 'unexpected'
+    })).toEqual(['check-ref-format', 'clone', 'fetch', 'sparse-checkout', 'checkout'])
+
+    execFileMock.mockClear()
+    await inventory.addMarketplace({ source: NORMALIZED_GIT_SOURCE })
+    expect(execFileMock.mock.calls.find(call => call[1].includes('clone'))?.[1]).toEqual([
+      '-c', 'protocol.ext.allow=never',
+      '-c', 'protocol.file.allow=never',
+      'clone', '--depth', '1', '--filter=blob:none', '--sparse', '--',
+      NORMALIZED_GIT_SOURCE,
+      expect.any(String),
+    ])
+    expect(ctx.settings.get(settingsNamespace('plugin-marketplaces'))).toEqual({
+      sources: [{ source: NORMALIZED_GIT_SOURCE, gitRef: '', sparsePaths: [] }],
+    })
   })
 
-  it('stops reading a chunked catalog as soon as it crosses the byte limit', async () => {
-    const { inventory } = await managedHarness()
-    const cancel = vi.fn(async () => {})
-    const releaseLock = vi.fn()
-    const read = vi.fn(async () => ({ done: false as const, value: new Uint8Array(1024 * 1024 + 1) }))
-    const text = vi.fn(async () => { throw new Error('unbounded response read') })
-    vi.stubGlobal('fetch', vi.fn(async () => ({
-      ok: true,
-      status: 200,
-      headers: new Headers(),
-      body: { getReader: () => ({ read, cancel, releaseLock }) },
-      text,
-    } as unknown as Response)))
+  it('accepts a local root and rejects Git-only or unsafe source fields', async () => {
+    const { inventory, marketplaceDir } = await managedHarness()
+    stubGitMarketplace()
+    const snapshot = await inventory.addMarketplace({ source: marketplaceDir })
+    expect(snapshot.marketplaces[0]).toMatchObject({
+      status: 'ready',
+      source: marketplaceDir,
+      sparsePaths: [],
+    })
+    expect(execFileMock).not.toHaveBeenCalled()
 
-    await expect(inventory.addMarketplace({ source: SOURCE })).rejects.toThrow('exceeds 1048576 bytes')
-    expect(read).toHaveBeenCalledOnce()
-    expect(cancel).toHaveBeenCalledOnce()
-    expect(releaseLock).toHaveBeenCalledOnce()
-    expect(text).not.toHaveBeenCalled()
+    await expect(inventory.addMarketplace({ source: marketplaceDir, gitRef: 'main' }))
+      .rejects.toThrow('Git ref and sparse paths require a Git source')
+    await expect(inventory.addMarketplace({ source: 'http://plugins.example/repo.git' }))
+      .rejects.toThrow('must use HTTPS or SSH')
+    await expect(inventory.addMarketplace({ source: GIT_SOURCE, sparsePaths: ['../outside'] }))
+      .rejects.toThrow('must be repository-relative')
+    await expect(inventory.addMarketplace({
+      source: GIT_SOURCE,
+      sparsePaths: ['a'.repeat(513)],
+    })).rejects.toThrow('at most 512 characters')
+    await expect(inventory.addMarketplace({ source: GIT_SOURCE, gitRef: '--upload-pack=evil' }))
+      .rejects.toThrow('Git ref is invalid')
+    await expect(inventory.addMarketplace({ source: GIT_SOURCE, gitRef: 'main~1' }))
+      .rejects.toThrow('Git ref is invalid')
+  })
+
+  it('prefers GitHub shorthand over a colliding relative folder', async () => {
+    const { inventory } = await managedHarness()
+    const collisionRoot = await mkdtemp(join(tmpdir(), 'bh-marketplace-collision-'))
+    tempDirs.push(collisionRoot)
+    await mkdir(join(collisionRoot, 'openai', 'plugins'), { recursive: true })
+    stubGitMarketplace()
+    const previousCwd = process.cwd()
+    process.chdir(collisionRoot)
+    try {
+      const snapshot = await inventory.addMarketplace({ source: GIT_SOURCE })
+      expect(snapshot.marketplaces[0]?.source).toBe(NORMALIZED_GIT_SOURCE)
+      expect(execFileMock.mock.calls.some(call => call[1].includes('clone'))).toBe(true)
+    } finally {
+      process.chdir(previousCwd)
+    }
+  })
+
+  it('loads persisted Git marketplaces one at a time', async () => {
+    const { inventory } = await managedHarness()
+    let activeClones = 0
+    let peakClones = 0
+    stubGitMarketplace(marketplace, (delta) => {
+      activeClones += delta
+      peakClones = Math.max(peakClones, activeClones)
+    })
+
+    await inventory.addMarketplace({ source: 'example/one' })
+    await inventory.addMarketplace({ source: 'example/two' })
+
+    expect(peakClones).toBe(1)
+  })
+
+  it('rejects a local catalog that exceeds the byte limit before parsing it', async () => {
+    const { inventory, marketplaceDir, marketplacePath } = await managedHarness()
+    await writeFile(marketplacePath, Buffer.alloc(1024 * 1024 + 1))
+
+    await expect(inventory.addMarketplace({ source: marketplaceDir }))
+      .rejects.toThrow('exceeds 1048576 bytes')
+  })
+
+  it.skipIf(process.platform === 'win32')('rejects a link-shaped marketplace document', async () => {
+    const { inventory, marketplaceDir, marketplacePath } = await managedHarness()
+    const outside = join(marketplaceDir, '..', 'outside-marketplace.json')
+    await writeMarketplace(outside)
+    await rm(marketplacePath)
+    await symlink(outside, marketplacePath, 'file')
+
+    await expect(inventory.addMarketplace({ source: marketplaceDir })).rejects.toThrow('is not a file')
   })
 
   it('accepts only exact SemVer versions and valid npm package names', async () => {
-    const { ctx, inventory } = await managedHarness()
-    stubMarketplace(() => marketplace('1.2.3-alpha.01'))
+    const { ctx, inventory, marketplaceDir, marketplacePath } = await managedHarness()
+    await writeMarketplace(marketplacePath, '1.2.3-alpha.01')
 
-    await expect(inventory.addMarketplace({ source: SOURCE })).rejects.toThrow()
+    await expect(inventory.addMarketplace({ source: marketplaceDir })).rejects.toThrow()
     for (const packageName of ['node_modules', 'favicon.ico']) {
-      stubMarketplace(() => marketplace('1.2.3', packageName))
-      await expect(inventory.addMarketplace({ source: SOURCE })).rejects.toThrow()
+      await writeMarketplace(marketplacePath, '1.2.3', packageName)
+      await expect(inventory.addMarketplace({ source: marketplaceDir })).rejects.toThrow()
     }
     expect(ctx.settings.get(settingsNamespace('plugin-marketplaces'))).toEqual({ sources: [] })
   })
 
   it('installs the Host-resolved exact version without offering an update', async () => {
-    const { inventory, manifestPath, profileDir } = await managedHarness()
-    let version = '1.2.3'
-    stubMarketplace(() => marketplace(version))
-    const pluginId = firstPluginId(await inventory.addMarketplace({ source: SOURCE }))
+    const { inventory, marketplaceDir, marketplacePath, manifestPath, profileDir } = await managedHarness()
+    const { source, pluginId } = await addLocalMarketplace(inventory, marketplaceDir)
     execFileMock.mockImplementation((_command, args, _options, callback) => {
       const packageSpec = args.at(-1) ?? ''
       const requestedVersion = packageSpec.slice(packageSpec.lastIndexOf('@') + 1)
       void writeInstalledManifest(manifestPath, requestedVersion, true).then(
         () => { callback(null, '', '') },
-        (error) => { callback(error as Error, '', '') },
+        (error: unknown) => { callback(error as Error, '', '') },
       )
     })
 
-    const installed = await inventory.installMarketplacePlugin({
-      source: SOURCE,
-      pluginId,
-    })
+    const installed = await inventory.installMarketplacePlugin({ source, pluginId })
     expect(installed.restartRequired).toBe(true)
     expect(installed.snapshot.marketplaces[0]).toMatchObject({
       status: 'ready',
@@ -229,21 +378,17 @@ describe('plugin marketplace Host flow', () => {
     expect(options).toMatchObject({ cwd: profileDir, encoding: 'utf8', windowsHide: true })
     expect(options).not.toHaveProperty('shell')
 
-    expect((await inventory.installMarketplacePlugin({
-      source: SOURCE,
-      pluginId,
-    })).restartRequired).toBe(false)
+    expect((await inventory.installMarketplacePlugin({ source, pluginId })).restartRequired).toBe(false)
     expect(execFileMock).toHaveBeenCalledOnce()
 
-    version = '2.0.0'
+    await writeMarketplace(marketplacePath, '2.0.0')
     const updatedCatalog = await inventory.listMarketplaces()
     expect(updatedCatalog).toMatchObject({
       marketplaces: [{ status: 'ready', plugins: [{ installed: true, version: '2.0.0' }] }],
     })
-    await expect(inventory.installMarketplacePlugin({ source: SOURCE, pluginId }))
-      .rejects.toThrow('has no plugin')
+    await expect(inventory.installMarketplacePlugin({ source, pluginId })).rejects.toThrow('has no plugin')
     expect((await inventory.installMarketplacePlugin({
-      source: SOURCE,
+      source,
       pluginId: firstPluginId(updatedCatalog),
     })).restartRequired).toBe(false)
     expect(execFileMock).toHaveBeenCalledOnce()
@@ -277,9 +422,8 @@ describe('plugin marketplace Host flow', () => {
     execArgv,
     expectedPrefix,
   }) => {
-    const { inventory, manifestPath } = await managedHarness()
-    stubMarketplace()
-    const pluginId = firstPluginId(await inventory.addMarketplace({ source: SOURCE }))
+    const { inventory, marketplaceDir, manifestPath } = await managedHarness()
+    const { source, pluginId } = await addLocalMarketplace(inventory, marketplaceDir)
     process.argv[1] = cliEntry
     process.execArgv.splice(0, process.execArgv.length, ...execArgv)
     if (electron) {
@@ -292,11 +436,11 @@ describe('plugin marketplace Host flow', () => {
     execFileMock.mockImplementation((_command, _args, _options, callback) => {
       void writeInstalledManifest(manifestPath, '1.2.3', true).then(
         () => { callback(null, '', '') },
-        (error) => { callback(error as Error, '', '') },
+        (error: unknown) => { callback(error as Error, '', '') },
       )
     })
 
-    await inventory.installMarketplacePlugin({ source: SOURCE, pluginId })
+    await inventory.installMarketplacePlugin({ source, pluginId })
 
     const [command, args, options] = execFileMock.mock.calls[0]!
     expect(command).toBe(process.execPath)
@@ -317,9 +461,8 @@ describe('plugin marketplace Host flow', () => {
   })
 
   it('restores the profile manifest when a catalog package is not a bundle', async () => {
-    const { inventory, manifestPath, profileDir } = await managedHarness()
-    stubMarketplace()
-    const pluginId = firstPluginId(await inventory.addMarketplace({ source: SOURCE }))
+    const { inventory, marketplaceDir, manifestPath, profileDir } = await managedHarness()
+    const { source, pluginId } = await addLocalMarketplace(inventory, marketplaceDir)
     const before = await readFile(manifestPath, 'utf8')
     const lockfilePath = join(profileDir, 'pnpm-lock.yaml')
     execFileMock
@@ -329,20 +472,18 @@ describe('plugin marketplace Host flow', () => {
           writeFile(lockfilePath, 'mutated by add\n'),
         ]).then(
           () => { callback(null, '', '') },
-          (error) => { callback(error as Error, '', '') },
+          (error: unknown) => { callback(error as Error, '', '') },
         )
       })
       .mockImplementationOnce((_command, _args, _options, callback) => {
         void writeFile(lockfilePath, 'created by rollback install\n').then(
           () => { callback(null, '', '') },
-          (error) => { callback(error as Error, '', '') },
+          (error: unknown) => { callback(error as Error, '', '') },
         )
       })
 
-    await expect(inventory.installMarketplacePlugin({
-      source: SOURCE,
-      pluginId,
-    })).rejects.toThrow('declares no installable bh bundle')
+    await expect(inventory.installMarketplacePlugin({ source, pluginId }))
+      .rejects.toThrow('declares no installable bh bundle')
     expect(await readFile(manifestPath, 'utf8')).toBe(before)
     await expect(readFile(lockfilePath, 'utf8')).rejects.toMatchObject({ code: 'ENOENT' })
     expect(execFileMock.mock.calls[1]?.[1]).toEqual([
@@ -353,9 +494,8 @@ describe('plugin marketplace Host flow', () => {
   })
 
   it('reconciles a failed add even when only its lockfile changed', async () => {
-    const { inventory, manifestPath, profileDir } = await managedHarness()
-    stubMarketplace()
-    const pluginId = firstPluginId(await inventory.addMarketplace({ source: SOURCE }))
+    const { inventory, marketplaceDir, manifestPath, profileDir } = await managedHarness()
+    const { source, pluginId } = await addLocalMarketplace(inventory, marketplaceDir)
     const beforeManifest = await readFile(manifestPath, 'utf8')
     const lockfilePath = join(profileDir, 'pnpm-lock.yaml')
     const beforeLockfile = 'lockfileVersion: 9.0\n'
@@ -364,17 +504,17 @@ describe('plugin marketplace Host flow', () => {
       .mockImplementationOnce((_command, _args, _options, callback) => {
         void writeFile(lockfilePath, 'partially changed\n').then(
           () => { callback(new Error('pnpm failed'), '', 'network unavailable\n') },
-          (error) => { callback(error as Error, '', '') },
+          (error: unknown) => { callback(error as Error, '', '') },
         )
       })
       .mockImplementationOnce((_command, _args, _options, callback) => {
         void writeFile(lockfilePath, 'changed by rollback install\n').then(
           () => { callback(null, '', '') },
-          (error) => { callback(error as Error, '', '') },
+          (error: unknown) => { callback(error as Error, '', '') },
         )
       })
 
-    await expect(inventory.installMarketplacePlugin({ source: SOURCE, pluginId }))
+    await expect(inventory.installMarketplacePlugin({ source, pluginId }))
       .rejects.toThrow(`failed to install ${PACKAGE}@1.2.3: network unavailable`)
     expect(await readFile(manifestPath, 'utf8')).toBe(beforeManifest)
     expect(await readFile(lockfilePath, 'utf8')).toBe(beforeLockfile)

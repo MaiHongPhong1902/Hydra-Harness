@@ -38,12 +38,14 @@ export interface PluginInventorySnapshot {
   readonly entries: readonly PluginInventoryEntry[]
 }
 
-/** Persist one HTTPS or loopback marketplace document URL. */
+/** Persist one Git-backed or local marketplace root. */
 export interface AddPluginMarketplaceRequest {
   readonly source: string
+  readonly gitRef?: string
+  readonly sparsePaths?: readonly string[]
 }
 
-/** Install one catalog entry after the Host resolves its package and exact version. */
+/** Install one catalog entry from a Host-projected persisted source. */
 export interface InstallMarketplacePluginRequest {
   readonly source: string
   readonly pluginId: MarketplacePluginId
@@ -59,18 +61,24 @@ export interface MarketplacePluginView {
   readonly installed: boolean
 }
 
-/** One persisted marketplace and its latest Host-side fetch result. */
-export type PluginMarketplaceView =
+/** Host-normalized source fields shared by every marketplace state. */
+export interface PluginMarketplaceSourceView {
+  readonly source: string
+  readonly gitRef?: string
+  readonly sparsePaths: readonly string[]
+}
+
+/** One persisted marketplace and its latest Host-side load result. */
+export type PluginMarketplaceView = PluginMarketplaceSourceView & (
   | {
     readonly status: 'ready'
-    readonly source: string
     readonly name: string
     readonly plugins: readonly MarketplacePluginView[]
   }
   | {
     readonly status: 'unavailable'
-    readonly source: string
   }
+)
 
 /** Point-in-time marketplace catalog returned by the plugin inventory Remote. */
 export interface PluginMarketplaceSnapshot {

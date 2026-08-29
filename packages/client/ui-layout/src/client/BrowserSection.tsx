@@ -9,7 +9,7 @@ import type { SettingsScopeSnapshot } from '@bosch/bh-client-runtime/client'
 import type { BrowserKey } from './browser-locales.ts'
 import type {
   BrowserAnnotationScreenshots, BrowserAutofillStatus, BrowserContact, BrowserContactFields,
-  BrowserContactInput, BrowserContactMetadata, BrowserDestination, BrowserDownloadEntry,
+  BrowserClearDataScope, BrowserContactInput, BrowserContactMetadata, BrowserDestination, BrowserDownloadEntry,
   BrowserHistoryEntry, BrowserLoginInput, BrowserLoginMetadata, BrowserNativeCapabilities,
   BrowserNativeSettings, BrowserPolicy, BrowserSitePermission,
 } from './DesktopBrowserPanel.tsx'
@@ -34,7 +34,7 @@ export interface BrowserSectionInjected {
   configureNative(settings: BrowserNativeSettings): Promise<BrowserNativeCapabilities>
   /** Ask the local Host for a download directory. */
   pickDownloadDirectory(): Promise<string | null>
-  clearData(): Promise<void>
+  clearData(scope: BrowserClearDataScope): Promise<void>
   openUrl?(url: string): Promise<void>
   history(): Promise<BrowserHistoryEntry[]>
   removeHistory(id: string): Promise<void>
@@ -305,6 +305,7 @@ export function BrowserSection({
   const [manager, setManager] = useState<'history' | 'downloads' | 'sites' | 'logins' | 'contacts' | undefined>()
   const [clearOpen, setClearOpen] = useState(false)
   const [clearAcknowledged, setClearAcknowledged] = useState(false)
+  const [clearScope, setClearScope] = useState<BrowserClearDataScope>('all')
   const [historyQuery, setHistoryQuery] = useState('')
   const [downloadQuery, setDownloadQuery] = useState('')
   const [historyState, setHistoryState] = useState<CollectionState<BrowserHistoryEntry>>({
@@ -352,6 +353,14 @@ export function BrowserSection({
     { value: 'ask', label: t('browser.askEachTime') },
     { value: 'never', label: t('browser.neverInclude') },
   ], [t])
+  const clearScopeChoices = useMemo<readonly Choice<BrowserClearDataScope>[]>(() => [
+    { value: 'all', label: t('browser.clearAllData') },
+    { value: 'history', label: t('browser.clearHistoryOnly') },
+    { value: 'site-data', label: t('browser.clearSiteDataOnly') },
+    { value: 'cache', label: t('browser.clearCacheOnly') },
+    { value: 'downloads', label: t('browser.clearDownloadsOnly') },
+  ], [t])
+  const selectedClearScope = clearScopeChoices.find(choice => choice.value === clearScope)?.label ?? clearScope
 
   const loadHistory = useCallback(async () => {
     setHistoryState(current => ({ status: 'loading', entries: current.entries }))
@@ -487,9 +496,13 @@ export function BrowserSection({
     setPending('clearData')
     setError(undefined)
     try {
-      await clearData()
-      setHistoryState({ status: 'ready', entries: [] })
-      setDownloadState({ status: 'ready', entries: [] })
+      await clearData(clearScope)
+      if (clearScope === 'all' || clearScope === 'history') {
+        setHistoryState({ status: 'ready', entries: [] })
+      }
+      if (clearScope === 'all' || clearScope === 'downloads') {
+        setDownloadState({ status: 'ready', entries: [] })
+      }
       setClearOpen(false)
       setClearAcknowledged(false)
     } catch (reason) {
@@ -497,7 +510,7 @@ export function BrowserSection({
     } finally {
       setPending(undefined)
     }
-  }, [clearData])
+  }, [clearData, clearScope])
 
   const deleteHistory = useCallback(async (id: string) => {
     setPending(`history:${id}`)
@@ -751,6 +764,17 @@ export function BrowserSection({
             />
           )}
         </Row>
+        <Row title={t('browser.clearScope')} description={t('browser.clearScopeDescription')} disabled={unavailable}>
+          {a11y => (
+            <SelectControl
+              value={clearScope}
+              choices={clearScopeChoices}
+              disabled={unavailable || busy}
+              onChange={setClearScope}
+              a11y={a11y}
+            />
+          )}
+        </Row>
         <Row title={t('browser.browsingData')} description={t('browser.browsingDataDescription')} disabled={unavailable}>
           {a11y => (
             <Action
@@ -972,7 +996,7 @@ export function BrowserSection({
       <RiskConfirmation
         open={clearOpen}
         title={t('browser.clearTitle')}
-        description={t('browser.clearWarning')}
+        description={`${t('browser.clearWarning')} ${t('browser.clearSelection')}: ${selectedClearScope}.`}
         acknowledgeLabel={t('browser.clearAcknowledge')}
         cancelLabel={t('browser.cancel')}
         confirmLabel={t('browser.clearData')}

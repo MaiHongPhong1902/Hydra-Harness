@@ -649,6 +649,54 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
     expect(await child.call('browser_downloads', {})).toEqual([])
   }, 60_000)
 
+  it('clears only the requested history or download scope', async () => {
+    const scopedProfile = mkdtempSync(join(tmpdir(), 'bh-browser-clear-scope-'))
+    let scoped: BrowserChild | undefined
+    try {
+      writeFileSync(join(scopedProfile, 'browser-management.json'), JSON.stringify({
+        version: 1,
+        history: [{
+          id: 'history-1',
+          url: fixture,
+          title: 'Fixture history',
+          visitedAt: '2026-08-27T00:00:00.000Z',
+        }],
+        downloads: [{
+          id: 'download-1',
+          url: fixture,
+          filename: 'fixture.txt',
+          path: join(scopedProfile, 'fixture.txt'),
+          state: 'completed',
+          startedAt: '2026-08-27T00:00:00.000Z',
+        }],
+        sites: {},
+      }))
+      scoped = await launchBrowser({
+        userDataDir: scopedProfile,
+        width: 1024,
+        height: 768,
+        show: false,
+        startupTimeoutMs: 60_000,
+        actionTimeoutMs: 30_000,
+        readinessTimeoutMs: 10_000,
+        experimentalScriptExecution: false,
+      })
+
+      await scoped.call('clear_browser_data', { scope: 'history' })
+      expect(await scoped.call('browser_history', {})).toEqual([])
+      expect(await scoped.call('browser_downloads', {})).toHaveLength(1)
+
+      await scoped.call('clear_browser_data', { scope: 'downloads' })
+      expect(await scoped.call('browser_history', {})).toEqual([])
+      expect(await scoped.call('browser_downloads', {})).toEqual([])
+      await expect(scoped.call('clear_browser_data', { scope: 'unknown' })).rejects
+        .toThrow('clear data scope must be all, history, site-data, cache, or downloads')
+    } finally {
+      await scoped?.close()
+      rmSync(scopedProfile, { recursive: true, force: true, maxRetries: 30, retryDelay: 100 })
+    }
+  }, 60_000)
+
   it('keeps site overrides bounded while allowing updates at the limit', async () => {
     const boundedProfile = mkdtempSync(join(tmpdir(), 'bh-browser-sites-'))
     let bounded: BrowserChild | undefined

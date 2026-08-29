@@ -411,8 +411,21 @@ describe('BrowserSection', () => {
     fireEvent.click(within(dialog).getByRole('checkbox', { name: en['browser.clearAcknowledge'] }))
     expect(confirm.disabled).toBe(false)
     fireEvent.click(confirm)
-    await waitFor(() => { expect(native.clearData).toHaveBeenCalledOnce() })
+    await waitFor(() => { expect(native.clearData).toHaveBeenCalledWith('all') })
     await waitFor(() => { expect(screen.queryByRole('dialog', { name: en['browser.clearTitle'] })).toBeNull() })
+  })
+
+  it('clears only the selected browser data scope', async () => {
+    const { native } = mount()
+    fireEvent.change(screen.getByRole('combobox', { name: en['browser.clearScope'] }), {
+      target: { value: 'history' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Browsing data Clear browsing data' }))
+    const dialog = screen.getByRole('dialog', { name: en['browser.clearTitle'] })
+    expect(within(dialog).getByText(/Selected: Browsing history only\./u)).toBeTruthy()
+    fireEvent.click(within(dialog).getByRole('checkbox', { name: en['browser.clearAcknowledge'] }))
+    fireEvent.click(within(dialog).getByRole('button', { name: en['browser.clearData'] }))
+    await waitFor(() => { expect(native.clearData).toHaveBeenCalledWith('history') })
   })
 
   it('searches, reopens, and removes browser history and download history', async () => {
@@ -607,7 +620,7 @@ describe('Browser settings registration', () => {
     expect(browser.configure).toHaveBeenCalledWith(NATIVE_SETTINGS)
     await expect(injected.pickDownloadDirectory()).resolves.toBe('C:\\Picked')
     expect(desktop.pickDirectory).toHaveBeenCalledOnce()
-    await injected.clearData()
+    await injected.clearData('all')
     await injected.openUrl?.(HISTORY.url)
     await injected.history()
     await injected.removeHistory(HISTORY.id)
@@ -624,7 +637,7 @@ describe('Browser settings registration', () => {
     await injected.getContact(CONTACT.id)
     await injected.saveContact({ label: CONTACT.label, fields: CONTACT.fields })
     await injected.removeContact(CONTACT.id)
-    expect(browser.clearData).toHaveBeenCalledOnce()
+    expect(browser.clearData).toHaveBeenCalledWith('all')
     expect(browser.openUrl).toHaveBeenCalledWith(HISTORY.url)
     expect(browser.history).toHaveBeenCalledOnce()
     expect(browser.removeHistory).toHaveBeenCalledWith(HISTORY.id)
@@ -661,7 +674,7 @@ describe('Browser settings registration', () => {
     await desktop.ctx.plugin({ inject: [...inject], apply }).await()
     declareSettings(desktop.slots)
     const injected = (desktop.slots.entries('settings.section')[0]!.inject as unknown as () => BrowserSectionInjected)()
-    expect(injected.openUrl).toBeUndefined()
+    expect(typeof injected.openUrl).toBe('undefined')
     await expect(injected.autofillStatus()).resolves.toEqual({ available: false })
     await expect(injected.logins()).rejects.toThrow('secure autofill storage is unavailable')
   })

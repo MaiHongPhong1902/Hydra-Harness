@@ -1,10 +1,8 @@
-// Web e2e scenario: the configurable tab in Plugins settings — the cards a
-// deployment's exposed host-plane namespaces produce, one field edited through the real
-// wire down to `$BH_HOME/settings.yaml`, and the override badge and reset
-// that layering produces. Zero model calls: everything is client state plus
-// the settings document on a blank frame, so there is no fixture and a stray
-// stream would fail loud on the open llm seam.
-import { readFile } from 'node:fs/promises'
+// Web e2e scenario: Plugins settings — configurable Host namespaces, one field
+// edited through the real wire, and one local marketplace persisted through
+// its composed Remote. Zero model calls: everything is client state plus the
+// settings document on a blank frame, so a stray stream fails loud.
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
@@ -24,10 +22,23 @@ describe('web e2e: plugin configuration section', () => {
   let scaffold: WebScaffold
   let browser: Browser
   let page: Page
+  let marketplaceRoot: string
   let tripwire: ReturnType<typeof watchConsole>
 
   beforeAll(async () => {
     scaffold = await launchWebScaffold({})
+    marketplaceRoot = join(scaffold.harnessHome, 'marketplace-fixture')
+    await mkdir(marketplaceRoot)
+    await writeFile(join(marketplaceRoot, 'marketplace.json'), JSON.stringify({
+      name: 'Fixture marketplace',
+      plugins: [{
+        id: 'fixture-plugin',
+        name: 'Fixture plugin',
+        description: 'Exercises the composed marketplace add flow.',
+        package: '@example/bh-plugin',
+        version: '1.2.3',
+      }],
+    }))
     browser = await chromium.launch()
     page = await browser.newPage({ viewport: { width: 1680, height: 1000 }, locale: 'en-US' })
     tripwire = watchConsole(page)
@@ -167,6 +178,28 @@ describe('web e2e: plugin configuration section', () => {
       .toBe(false)
     expect(await timeout.inputValue()).toBe('60000')
     expect(await dialog.getByText('Overridden').count()).toBe(0)
+    expect(tripwire.pageErrors).toEqual([])
+  }, 60_000)
+
+  it('adds a local marketplace through the composed Remote', async () => {
+    onTestFailed(() => saveFailureShot(page, 'web-e2e-plugin-marketplace-add'))
+    const dialog = await openPlugins()
+    const marketplaceTab = dialog.getByRole('tab', { name: 'Marketplace', exact: true })
+    await marketplaceTab.click()
+    await expect.poll(() => marketplaceTab.getAttribute('aria-selected'), { timeout: 5_000 }).toBe('true')
+
+    await dialog.getByRole('button', { name: 'Add marketplace', exact: true }).click()
+    const addDialog = page.getByRole('dialog', { name: 'Add plugin marketplace', exact: true })
+    await addDialog.waitFor({ timeout: 5_000 })
+    await addDialog.getByLabel('Source', { exact: true }).fill(marketplaceRoot)
+    expect(await addDialog.getByLabel('Git ref', { exact: true }).count()).toBe(1)
+    expect(await addDialog.getByLabel('Sparse paths', { exact: true }).count()).toBe(1)
+    await addDialog.getByRole('button', { name: 'Add marketplace', exact: true }).click()
+
+    await dialog.getByRole('heading', { name: 'Fixture marketplace', exact: true }).waitFor({ timeout: 10_000 })
+    expect(await dialog.getByText('@example/bh-plugin@1.2.3', { exact: true }).count()).toBe(1)
+    await expect.poll(async () => (await settingsDocument()).includes('plugin-marketplaces'), { timeout: 10_000 })
+      .toBe(true)
     expect(tripwire.pageErrors).toEqual([])
   }, 60_000)
 

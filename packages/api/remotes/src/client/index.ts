@@ -12,6 +12,7 @@ import type { TypertClientRemote } from '@bosch/bh-typert-protocol'
 
 export type { TypertClientRemote as ClientRemote } from '@bosch/bh-typert-protocol'
 export type {
+  AddPluginMarketplaceRequest,
   MarketplacePluginId,
   MarketplacePluginInstallResult,
   PluginInventorySnapshot,

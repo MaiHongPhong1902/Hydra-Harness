@@ -2,7 +2,8 @@
 
 import { execFile } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { readFile, rm, writeFile } from 'node:fs/promises'
+import { lstat, mkdtemp, readFile, realpath, rm, stat, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import { basename, dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Service, type Context, type FiberState } from '@bosch/cordis'
@@ -68,7 +69,10 @@ const PLUGIN_SETTINGS_NAMESPACE = settingsNamespace('plugins')
 const MARKETPLACE_SETTINGS_NAMESPACE = settingsNamespace('plugin-marketplaces')
 const HMR_MODULE = '@bosch/cordis-plugin-hmr'
 const MAX_MARKETPLACE_BYTES = 1024 * 1024
-const MARKETPLACE_FETCH_TIMEOUT_MS = 10_000
+const MARKETPLACE_GIT_TIMEOUT_MS = 30_000
+const MAX_MARKETPLACE_SPARSE_PATHS = 20
+const MAX_MARKETPLACE_SPARSE_PATH_LENGTH = 512
+const GITHUB_SHORTHAND_PATTERN = /^([A-Za-z0-9][A-Za-z0-9._-]*)\/([A-Za-z0-9][A-Za-z0-9._-]*)$/u
 const PACKAGE_NAME_PATTERN = /^(?:@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*$/u
 const EXACT_VERSION_PATTERN =
   // eslint-disable-next-line @stylistic/max-len -- Keep the SemVer grammar contiguous.
@@ -108,76 +112,216 @@ const PluginSettingsSchema: z<PluginSettings> = z.object({
   enabled: z.dict(z.boolean()).default({}),
 })
 
-interface MarketplaceSettings {
-  sources: string[]
+interface MarketplaceSource {
+  source: string
+  gitRef: string
+  sparsePaths: string[]
 }
 
+interface MarketplaceSettings {
+  sources: MarketplaceSource[]
+}
+
+const MarketplaceSourceSchema: z<MarketplaceSource> = z.object({
+  source: z.string(),
+  gitRef: z.string().default(''),
+  sparsePaths: z.array(z.string()).max(MAX_MARKETPLACE_SPARSE_PATHS).default([]),
+})
+
 const MarketplaceSettingsSchema: z<MarketplaceSettings> = z.object({
-  sources: z.array(z.string()).max(20).default([]),
+  sources: z.array(MarketplaceSourceSchema).max(20).default([]),
 })
 
 interface LoadedMarketplace {
-  source: string
+  source: MarketplaceSource
   document: MarketplaceDocument
 }
 
-/** Accept public HTTPS catalogs plus loopback HTTP for local development. */
-function normalizeMarketplaceSource(source: string): string {
-  if (source.length > 2048) throw new Error('pluginInventory: marketplace URL is too long')
+interface NormalizedMarketplaceSource extends MarketplaceSource {
+  kind: 'git' | 'local'
+}
+
+function missingPath(error: unknown): boolean {
+  return error instanceof Error
+    && 'code' in error
+    && (error.code === 'ENOENT' || error.code === 'ENOTDIR')
+}
+
+function normalizeGitRef(value: string | undefined): string | undefined {
+  const gitRef = value?.trim()
+  if (gitRef === undefined || gitRef === '') return undefined
+  if (gitRef.length > 255
+    || gitRef.startsWith('-')
+    || /[\u0000-\u0020\u007F]/u.test(gitRef)) {
+    throw new Error('pluginInventory: Git ref is invalid')
+  }
+  return gitRef
+}
+
+function normalizeSparsePaths(values: readonly string[] | undefined): string[] {
+  if ((values?.length ?? 0) > MAX_MARKETPLACE_SPARSE_PATHS) {
+    throw new Error(`pluginInventory: at most ${String(MAX_MARKETPLACE_SPARSE_PATHS)} sparse paths are allowed`)
+  }
+  const paths = (values ?? []).map((value) => {
+    const path = value.trim().replaceAll('\\', '/').replace(/\/+$/u, '')
+    if (path.length > MAX_MARKETPLACE_SPARSE_PATH_LENGTH) {
+      throw new Error(`pluginInventory: sparse paths may contain at most ${String(MAX_MARKETPLACE_SPARSE_PATH_LENGTH)} characters`)
+    }
+    const segments = path.split('/')
+    if (path === ''
+      || path.startsWith('/')
+      || path.startsWith('-')
+      || /^[A-Za-z]:\//u.test(path)
+      || segments.some(segment => segment === '' || segment === '.' || segment === '..')) {
+      throw new Error(`pluginInventory: sparse path ${JSON.stringify(value)} must be repository-relative`)
+    }
+    return path
+  })
+  return [...new Set(paths)].sort()
+}
+
+function normalizeGitSource(source: string): string {
+  const shorthand = GITHUB_SHORTHAND_PATTERN.exec(source)
+  if (shorthand !== null) {
+    const owner = shorthand[1] ?? ''
+    const repository = (shorthand[2] ?? '').replace(/\.git$/u, '')
+    return `https://github.com/${owner}/${repository}.git`
+  }
+  if (/^[A-Za-z0-9._-]+@[A-Za-z0-9.-]+:[A-Za-z0-9._~/-]+$/u.test(source)) return source
   let url: URL
   try {
     url = new URL(source)
   } catch (cause) {
-    throw new Error('pluginInventory: marketplace source must be an absolute URL', { cause })
+    throw new Error('pluginInventory: source must be a GitHub repo, Git URL, or existing local folder', { cause })
   }
-  const loopback = url.hostname === 'localhost'
-    || url.hostname === '[::1]'
-    || /^127(?:\.\d{1,3}){3}$/u.test(url.hostname)
-  if (url.protocol !== 'https:' && !(url.protocol === 'http:' && loopback)) {
-    throw new Error('pluginInventory: marketplace source must use HTTPS or loopback HTTP')
+  if (url.protocol !== 'https:' && url.protocol !== 'ssh:') {
+    throw new Error('pluginInventory: remote marketplace source must use HTTPS or SSH')
   }
-  if (url.username !== '' || url.password !== '' || url.hash !== '') {
-    throw new Error('pluginInventory: marketplace source cannot contain credentials or a fragment')
+  if (url.password !== '' || url.hash !== '' || url.search !== ''
+    || (url.protocol === 'https:' && url.username !== '')) {
+    throw new Error('pluginInventory: marketplace source cannot contain credentials, a query, or a fragment')
   }
   return url.href
 }
 
-/** Fetch and validate one bounded marketplace document at the Host boundary. */
-async function loadMarketplace(source: string): Promise<LoadedMarketplace> {
-  const normalized = normalizeMarketplaceSource(source)
-  const response = await fetch(normalized, {
-    headers: { accept: 'application/json' },
-    redirect: 'error',
-    signal: AbortSignal.timeout(MARKETPLACE_FETCH_TIMEOUT_MS),
-  })
-  if (!response.ok) {
-    throw new Error(`pluginInventory: marketplace ${normalized} returned HTTP ${String(response.status)}`)
+async function normalizeMarketplaceSource(
+  request: AddPluginMarketplaceRequest | MarketplaceSource,
+): Promise<NormalizedMarketplaceSource> {
+  const source = request.source.trim()
+  if (source === '' || source.length > 2048 || /[\u0000-\u001F\u007F]/u.test(source)) {
+    throw new Error('pluginInventory: marketplace source is invalid')
   }
-  const declaredLength = Number(response.headers.get('content-length'))
-  if (Number.isFinite(declaredLength) && declaredLength > MAX_MARKETPLACE_BYTES) {
-    throw new Error(`pluginInventory: marketplace ${normalized} exceeds ${String(MAX_MARKETPLACE_BYTES)} bytes`)
-  }
-  const reader = response.body?.getReader()
-  const chunks: Uint8Array[] = []
-  let total = 0
-  if (reader !== undefined) {
-    try {
-      while (true) {
-        const chunk = await reader.read()
-        if (chunk.done) break
-        total += chunk.value.byteLength
-        if (total > MAX_MARKETPLACE_BYTES) {
-          await reader.cancel().catch(() => undefined)
-          throw new Error(`pluginInventory: marketplace ${normalized} exceeds ${String(MAX_MARKETPLACE_BYTES)} bytes`)
-        }
-        chunks.push(chunk.value)
+  const gitRef = normalizeGitRef(request.gitRef)
+  const sparsePaths = normalizeSparsePaths(request.sparsePaths)
+  const localPath = resolve(source)
+  try {
+    if (!GITHUB_SHORTHAND_PATTERN.test(source) && (await stat(localPath)).isDirectory()) {
+      if (gitRef !== undefined || sparsePaths.length > 0) {
+        throw new Error('pluginInventory: Git ref and sparse paths require a Git source')
       }
-    } finally {
-      reader.releaseLock()
+      return { kind: 'local', source: await realpath(localPath), gitRef: '', sparsePaths: [] }
     }
+  } catch (error) {
+    if (!missingPath(error)) throw error
   }
-  const body = Buffer.concat(chunks, total).toString('utf8')
-  return { source: normalized, document: MarketplaceDocumentSchema.parse(JSON.parse(body) as unknown) }
+  return {
+    kind: 'git',
+    source: normalizeGitSource(source),
+    gitRef: gitRef ?? '',
+    sparsePaths,
+  }
+}
+
+function marketplaceGitEnv(): NodeJS.ProcessEnv {
+  const env: NodeJS.ProcessEnv = {}
+  for (const [name, value] of Object.entries(process.env)) {
+    if (!/(?:KEY|SECRET|TOKEN|PASSWORD)/iu.test(name)) env[name] = value
+  }
+  env.GCM_INTERACTIVE = 'Never'
+  env.GIT_TERMINAL_PROMPT = '0'
+  return env
+}
+
+function runGit(cwd: string, args: readonly string[]): Promise<void> {
+  return new Promise((resolvePromise, reject) => {
+    execFile('git', [
+      '-c', 'protocol.ext.allow=never',
+      '-c', 'protocol.file.allow=never',
+      ...args,
+    ], {
+      cwd,
+      encoding: 'utf8',
+      env: marketplaceGitEnv(),
+      maxBuffer: MAX_MARKETPLACE_BYTES,
+      timeout: MARKETPLACE_GIT_TIMEOUT_MS,
+      windowsHide: true,
+    }, (error, _stdout, stderr) => {
+      if (error === null) {
+        resolvePromise()
+        return
+      }
+      const detail = stderr.trim().split(/\r?\n/u)[0]
+      reject(new Error(
+        `pluginInventory: failed to load Git marketplace${detail === undefined || detail === '' ? '' : `: ${detail}`}`,
+        { cause: error },
+      ))
+    })
+  })
+}
+
+async function readMarketplaceDocument(root: string): Promise<MarketplaceDocument> {
+  const filename = join(root, 'marketplace.json')
+  const metadata = await lstat(filename)
+  if (!metadata.isFile()) throw new Error(`pluginInventory: ${filename} is not a file`)
+  if (metadata.size > MAX_MARKETPLACE_BYTES) {
+    throw new Error(`pluginInventory: marketplace exceeds ${String(MAX_MARKETPLACE_BYTES)} bytes`)
+  }
+  const body = await readFile(filename)
+  if (body.byteLength > MAX_MARKETPLACE_BYTES) {
+    throw new Error(`pluginInventory: marketplace exceeds ${String(MAX_MARKETPLACE_BYTES)} bytes`)
+  }
+  return MarketplaceDocumentSchema.parse(JSON.parse(body.toString('utf8')) as unknown)
+}
+
+/** Load and validate one marketplace root without retaining an executable checkout. */
+async function loadMarketplace(request: AddPluginMarketplaceRequest | MarketplaceSource): Promise<LoadedMarketplace> {
+  const normalized = await normalizeMarketplaceSource(request)
+  const { kind, ...source } = normalized
+  if (kind === 'local') {
+    return { source, document: await readMarketplaceDocument(source.source) }
+  }
+
+  // ponytail: temporary shallow clones avoid cache invalidation; add snapshots if list latency becomes material.
+  const tempRoot = await mkdtemp(join(tmpdir(), 'bh-marketplace-'))
+  const checkout = join(tempRoot, 'repository')
+  try {
+    if (source.gitRef !== '') {
+      try {
+        await runGit(tempRoot, ['check-ref-format', '--allow-onelevel', source.gitRef])
+      } catch (cause) {
+        throw new Error('pluginInventory: Git ref is invalid', { cause })
+      }
+    }
+    const cloneArgs = ['clone', '--depth', '1', '--filter=blob:none', '--sparse']
+    if (source.gitRef !== '') cloneArgs.push('--no-checkout')
+    cloneArgs.push('--', source.source, checkout)
+    await runGit(tempRoot, cloneArgs)
+    if (source.gitRef !== '') {
+      await runGit(tempRoot, ['-C', checkout, 'fetch', '--depth', '1', 'origin', source.gitRef])
+    }
+    if (source.sparsePaths.length > 0) {
+      await runGit(tempRoot, [
+        '-C', checkout, 'sparse-checkout', 'set', '--cone', '--sparse-index', '--',
+        ...source.sparsePaths,
+      ])
+    }
+    if (source.gitRef !== '') {
+      await runGit(tempRoot, ['-C', checkout, 'checkout', '--detach', 'FETCH_HEAD'])
+    }
+    return { source, document: await readMarketplaceDocument(checkout) }
+  } finally {
+    await rm(tempRoot, { recursive: true, force: true })
+  }
 }
 
 /** Invoke this process's existing `bh plugin` command without a shell. */
@@ -319,7 +463,13 @@ export class PluginInventoryGateway extends TypertRemoteService {
     const sources = this.marketplaceSettings.get().sources
     if (sources.length === 0) return { marketplaces: [] }
     const installed = this.installedBundles(this.profileDir())
-    const marketplaces = await Promise.all(sources.map(async (source): Promise<PluginMarketplaceView> => {
+    const marketplaces: PluginMarketplaceView[] = []
+    for (const source of sources) {
+      const sourceView = {
+        source: source.source,
+        ...(source.gitRef === '' ? {} : { gitRef: source.gitRef }),
+        sparsePaths: source.sparsePaths,
+      }
       try {
         const loaded = await loadMarketplace(source)
         const plugins: MarketplacePluginView[] = loaded.document.plugins.map(plugin => ({
@@ -330,11 +480,11 @@ export class PluginInventoryGateway extends TypertRemoteService {
           version: plugin.version,
           installed: installed.has(plugin.package),
         }))
-        return { status: 'ready', source: loaded.source, name: loaded.document.name, plugins }
+        marketplaces.push({ status: 'ready', ...sourceView, name: loaded.document.name, plugins })
       } catch {
-        return { status: 'unavailable', source }
+        marketplaces.push({ status: 'unavailable', ...sourceView })
       }
-    }))
+    }
     return { marketplaces }
   }
 
@@ -514,7 +664,7 @@ export class PluginInventoryGateway extends TypertRemoteService {
   }
 
   /**
-   * Fetch every persisted marketplace and report validated metadata only.
+   * Load every persisted marketplace and report validated metadata only.
    * @returns Catalogs in persisted order; an unavailable source stays visible without details.
    */
   @Remote('listMarketplaces')
@@ -523,19 +673,22 @@ export class PluginInventoryGateway extends TypertRemoteService {
   }
 
   /**
-   * Validate one catalog before persisting its normalized URL.
-   * @param request - marketplace document URL.
+   * Validate one marketplace root before persisting its normalized source descriptor.
+   * Re-adding a source replaces its Git ref and sparse checkout paths.
+   * @param request - Git-backed or local marketplace root.
    * @returns The refreshed persisted marketplace list.
    */
   @Remote('addMarketplace')
   addMarketplace(request: AddPluginMarketplaceRequest): Promise<PluginMarketplaceSnapshot> {
     return this.enqueue(async () => {
-      const loaded = await loadMarketplace(request.source)
+      const loaded = await loadMarketplace(request)
       this.profileDir()
       const sources = this.marketplaceSettings.get().sources
-      if (!sources.includes(loaded.source)) {
-        await this.marketplaceSettings.update({ sources: [...sources, loaded.source] })
-      }
+      const existing = sources.findIndex(source => source.source === loaded.source.source)
+      const next = existing === -1
+        ? [...sources, loaded.source]
+        : sources.map((source, index) => index === existing ? loaded.source : source)
+      await this.marketplaceSettings.update({ sources: next })
       return this.marketplaceSnapshot()
     })
   }
@@ -549,13 +702,12 @@ export class PluginInventoryGateway extends TypertRemoteService {
   @Remote('installMarketplacePlugin')
   installMarketplacePlugin(request: InstallMarketplacePluginRequest): Promise<MarketplacePluginInstallResult> {
     return this.enqueue(async () => {
-      const source = normalizeMarketplaceSource(request.source)
-      const persisted = this.marketplaceSettings.get().sources.includes(source)
-      if (!persisted) throw new Error(`pluginInventory: marketplace ${source} is not configured`)
+      const source = this.marketplaceSettings.get().sources.find(candidate => candidate.source === request.source)
+      if (source === undefined) throw new Error(`pluginInventory: marketplace ${request.source} is not configured`)
       const loaded = await loadMarketplace(source)
       const plugin = loaded.document.plugins.find(candidate => marketplacePluginId(candidate) === request.pluginId)
       if (plugin === undefined) {
-        throw new Error(`pluginInventory: marketplace ${source} has no plugin ${request.pluginId}`)
+        throw new Error(`pluginInventory: marketplace ${request.source} has no plugin ${request.pluginId}`)
       }
       const profileDir = this.profileDir()
       if (this.installedBundles(profileDir).has(plugin.package)) {

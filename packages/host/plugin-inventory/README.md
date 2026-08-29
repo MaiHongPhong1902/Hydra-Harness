@@ -8,7 +8,9 @@ The service is Remote-only and deliberately declares no same-process Cordis `Con
 
 ## Marketplace contract
 
-Marketplace sources are stored in the shared `plugin-marketplaces.sources` setting. `addMarketplace` accepts HTTPS document URLs and loopback HTTP URLs for local development, rejects credentials, fragments, redirects, and documents over 1 MiB, and times out after 10 seconds. At most 20 sources and 500 entries per document are accepted. A document has this strict shape:
+Marketplace sources are stored in the shared `plugin-marketplaces.sources` setting as a normalized source, optional Git ref, and repository-relative sparse checkout paths. `addMarketplace` accepts GitHub `owner/repo` shorthand, HTTPS or SSH Git URLs, and existing local folders. Remote URLs reject embedded passwords, HTTPS usernames, queries, fragments, and protocols other than HTTPS or SSH; Git refs reject option-like or control-character input, and sparse paths are limited to 512 characters and cannot be absolute or traverse parents. Re-adding the same normalized source replaces its ref and sparse paths.
+
+Each source root contains a regular `marketplace.json` file. Git sources are shallow-cloned one at a time into a private temporary directory for validation and every later read; the default sparse checkout contains only root files, optional paths extend it in cone mode, optional refs are fetched and checked out detached, and the checkout is removed after parsing. Git runs without a shell, disables `ext` and `file` transports, receives no environment variables whose names contain `KEY`, `SECRET`, `TOKEN`, or `PASSWORD`, and has a 30-second limit per command. Local folders are read directly without following a link-shaped marketplace document. Marketplace files and Git output are bounded to 1 MiB. At most 20 sources and 500 entries per document are accepted. A document has this strict shape:
 
 ```json
 {
@@ -25,7 +27,7 @@ Marketplace sources are stored in the shared `plugin-marketplaces.sources` setti
 }
 ```
 
-Only npm registry package names with an exact SemVer version are installable. The Host refetches the persisted source at confirmation time and resolves an opaque id bound to the reviewed catalog id, package, and version. It then invokes the current source, built, or Electron-hosted `bh plugin` CLI with `add --save-exact --ignore-scripts`. A dependency must declare a BH bundle and join the active profile; otherwise the package manifest and lockfile are restored and the prior install is reconciled. A successful new install requires a BH restart before the bundle loads. Package-name membership is the V1 installed state, so an already installed package is not updated when a catalog advertises another version.
+Only npm registry package names with an exact SemVer version are installable. The Host reloads the persisted source descriptor at confirmation time and resolves an opaque id bound to the reviewed catalog id, package, and version. It then invokes the current source, built, or Electron-hosted `bh plugin` CLI with `add --save-exact --ignore-scripts`. A dependency must declare a BH bundle and join the active profile; otherwise the package manifest and lockfile are restored and the prior install is reconciled. A successful new install requires a BH restart before the bundle loads. Package-name membership is the V1 installed state, so an already installed package is not updated when a catalog advertises another version.
 
 ## Model Experience
 
@@ -39,5 +41,6 @@ None; this package never assembles model input.
 
 - **Point-in-time state only** — the result contains no durable failure history or subscription; a missing root Fiber is reported as `null`, regardless of why no live root exists.
 - **Configured switches only** — dynamically created modules without a configured profile entry and configured protected modules remain visible but cannot be changed in-app; composition-owned rows are omitted and remain controlled by their owning agent preset.
-- **Install-only marketplace V1** — sources cannot be removed in-app, and installed plugins cannot be removed or updated. Catalog signing, authenticated catalogs, Git/path package specs, and lifecycle scripts are unsupported.
+- **Fresh temporary Git reads** — listing a Git marketplace performs a shallow clone instead of retaining a checkout; add persistent snapshots only if measured Settings latency justifies cache invalidation and upgrade semantics.
+- **Install-only marketplace V1** — sources cannot be removed in-app, and installed plugins cannot be removed or updated. Catalog signing, non-registry package specs, and lifecycle scripts are unsupported.
 - **Restart activation** — installation changes the persisted profile only; it does not hot-load the new bundle into the current process.

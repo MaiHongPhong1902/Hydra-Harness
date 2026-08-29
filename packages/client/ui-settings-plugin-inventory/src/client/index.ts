@@ -64,8 +64,8 @@ export function apply(ctx: ClientContext): void {
       }
       return result.value
     }
-    const addMarketplace: MarketplaceSettingsTabInjected['addMarketplace'] = async (source) => {
-      const result = await ctx.remote.pluginInventory.addMarketplace({ source })
+    const addMarketplace: MarketplaceSettingsTabInjected['addMarketplace'] = async (request) => {
+      const result = await ctx.remote.pluginInventory.addMarketplace(request)
       if (!result.ok) {
         throw new Error(`pluginInventory.addMarketplace failed: ${result.error.code}: ${result.error.message}`)
       }

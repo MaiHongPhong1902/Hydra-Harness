@@ -334,18 +334,22 @@
   line-height: 18px;
 }
 
-.marketplaceForm input {
-  height: 34px;
+.marketplaceForm textarea {
   border: 1px solid var(--dsw-alias-border-l2);
   border-radius: 6px;
-  padding: 0 10px;
   outline: none;
   background: var(--dsw-alias-bg-layer-1);
   color: var(--dsw-alias-label-primary);
   font: inherit;
 }
 
-.marketplaceForm input:focus-visible {
+.marketplaceForm textarea {
+  min-height: 88px;
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+.marketplaceForm textarea:focus-visible {
   border-color: var(--dsw-alias-state-business-primary);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--dsw-alias-state-business-primary) 18%, transparent);
 }
