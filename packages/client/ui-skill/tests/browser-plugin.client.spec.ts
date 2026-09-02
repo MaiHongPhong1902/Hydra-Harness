@@ -268,6 +268,18 @@ describe('catalog cache', () => {
     expect(payloads[2]).toEqual({ sessionId: 's1' })
   })
 
+  it('skills/change clears every cached session', async () => {
+    const { list, payloads } = countingList()
+    const { ctx, source } = await bench(list)
+    await source.candidates(proj('s1'), req(''))
+    await source.candidates(proj('s2'), req(''))
+    expect(payloads).toHaveLength(2)
+    ctx.remote.$dispatch('skills/change', [])
+    await source.candidates(proj('s1'), req(''))
+    await source.candidates(proj('s2'), req(''))
+    expect(payloads).toHaveLength(4)
+  })
+
   it('connection/reset clears every cached session', async () => {
     const { list, payloads } = countingList()
     const { ctx, source } = await bench(list)

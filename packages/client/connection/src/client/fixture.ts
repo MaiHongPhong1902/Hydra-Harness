@@ -3019,6 +3019,19 @@ function createFixtureWorld(options: FixtureOptions): FixtureWorld {
         message: 'fixture: no settings namespaces are registered',
         details: { ns: request.payload.ns },
       }),
+      // Empty-document read, mirroring `describe`; the SHA-256 digest of the
+      // empty string is a fixed, well-known constant.
+      readInstructions: request => ok(request, {
+        content: '',
+        revision: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+      }),
+      writeInstructions: request => err(request, {
+        code: 'instructions-rejected',
+        message: 'fixture: the minimal readiness settings descriptor is read-only',
+        details: {},
+      }),
+      listMemories: request => ok(request, { entries: [] }),
+      removeMemory: request => ok(request, { removed: false }),
     },
     credentials: {
       describe: request => ok(request, {
@@ -3221,6 +3234,10 @@ export class FixtureApiClient extends AbstractApiClient {
       case 'settings.update': return this.api.settings.update(request)
       case 'settings.replace': return this.api.settings.replace(request)
       case 'settings.mutate': return this.api.settings.mutate(request)
+      case 'settings.readInstructions': return this.api.settings.readInstructions(request)
+      case 'settings.writeInstructions': return this.api.settings.writeInstructions(request)
+      case 'settings.listMemories': return this.api.settings.listMemories(request)
+      case 'settings.removeMemory': return this.api.settings.removeMemory(request)
       case 'credentials.describe': return this.api.credentials.describe(request)
       case 'credentials.set': return this.api.credentials.set(request)
       case 'credentials.unset': return this.api.credentials.unset(request)

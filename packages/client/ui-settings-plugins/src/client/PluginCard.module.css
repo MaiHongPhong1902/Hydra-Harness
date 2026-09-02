@@ -19,8 +19,14 @@
   border-color: var(--dsw-alias-label-dimmed);
 }
 
+.headerRow {
+  display: flex;
+  align-items: center;
+}
+
 .header {
-  width: 100%;
+  min-width: 0;
+  flex: 1;
   appearance: none;
   border: 0;
   background: none;
@@ -33,6 +39,11 @@
   gap: 12px;
   padding: 14px 16px;
   border-radius: var(--dsw-radius-panel);
+}
+
+.action {
+  flex: none;
+  margin-right: 16px;
 }
 
 .header:focus-visible {

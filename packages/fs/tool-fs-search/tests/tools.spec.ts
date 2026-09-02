@@ -737,10 +737,15 @@ describe('glob results', () => {
     expect(text(result)).toBe(`${join('src', 'a.ts')}\n/elsewhere/b.ts\nrel/c.ts`)
   })
 
-  it('validates arguments (blank pattern, blank path)', async () => {
-    const { ctx } = await setup()
+  it('validates a blank pattern and normalizes a blank path to the workspace default', async () => {
+    const { ctx, subprocess } = await setup()
     expect(text(await call(ctx, 'glob', { pattern: '  ' }))).toContain('pattern must be a non-empty string')
-    expect(text(await call(ctx, 'glob', { pattern: '*', path: ' ' }))).toContain('path must be a non-empty string')
+    subprocess.handler = () => runResult('', { exitCode: 1 })
+    const omitted = await call(ctx, 'glob', { pattern: '*' })
+    const blank = await call(ctx, 'glob', { pattern: '*', path: ' ' })
+    expect(blank.isError).toBe(false)
+    expect(blank.value).toEqual(omitted.value)
+    expect(subprocess.spawns[1]?.argv).toEqual(subprocess.spawns[0]?.argv)
   })
 
   it('threads a valid path through to the spawn as the plain search root element', async () => {
@@ -1054,13 +1059,18 @@ describe('grep results', () => {
     expect(text(result)).toBe('Found 1 of 2 matches\n\na.ts\nLine 1: one\n\n(The complete result could not be saved; narrow pattern, path, or include to see more.)')
   })
 
-  it('validates arguments (empty pattern, blank path, bad include)', async () => {
-    const { ctx } = await setup()
+  it('validates an empty pattern and bad include, and normalizes a blank path to the workspace default', async () => {
+    const { ctx, subprocess } = await setup()
     expect(text(await call(ctx, 'grep', { pattern: '' }))).toContain('pattern must be a non-empty string')
-    expect(text(await call(ctx, 'grep', { pattern: 'x', path: '  ' }))).toContain('path must be a non-empty string')
     expect(text(await call(ctx, 'grep', { pattern: 'x', include: '  ' }))).toContain('include must be a non-empty glob')
     expect(text(await call(ctx, 'grep', { pattern: 'x', include: '!*.ts' }))).toContain('negated patterns')
     expect(text(await call(ctx, 'grep', { pattern: 'x', include: '*.ts,*.js' }))).toContain('comma-separated list')
+    subprocess.handler = () => runResult('', { exitCode: 1 })
+    const omitted = await call(ctx, 'grep', { pattern: 'x' })
+    const blank = await call(ctx, 'grep', { pattern: 'x', path: '  ' })
+    expect(blank.isError).toBe(false)
+    expect(blank.value).toEqual(omitted.value)
+    expect(subprocess.spawns[1]?.argv).toEqual(subprocess.spawns[0]?.argv)
   })
 
   it('accepts a whitespace-only pattern (a legitimate regex) and brace alternation in include', async () => {

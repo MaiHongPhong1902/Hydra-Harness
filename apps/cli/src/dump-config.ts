@@ -14,7 +14,9 @@ import {
   renderConfigDump,
   type ConfigDumpLayer,
 } from '@bosch/bh-app-boot'
-import { homePatchPath, prepareProfile, PROFILE_ROOT_FILENAME } from './profile-boot.ts'
+import {
+  homePatchPath, prepareProfile, profileEnablementPatches, PROFILE_ROOT_FILENAME,
+} from './profile-boot.ts'
 
 const NAME = 'bh'
 
@@ -41,6 +43,10 @@ export function runDumpConfig(profile: string, defaultOnly: boolean, patches: re
     const homePatches = loadOptionalPatches(NAME, homePatchFile)
     if (homePatches !== undefined) {
       layers.push({ label: homePatchFile, patches: homePatches })
+    }
+    const enablementPatches = profileEnablementPatches(loaded.pluginEnablement)
+    if (enablementPatches.length > 0) {
+      layers.push({ label: `${join(loaded.dir, 'package.json')}#bh.profile.pluginEnablement`, patches: enablementPatches })
     }
     for (const file of patches) {
       const absolute = resolve(file)

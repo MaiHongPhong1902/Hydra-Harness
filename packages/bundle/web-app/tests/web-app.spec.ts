@@ -14,6 +14,7 @@ import { PassThrough } from 'node:stream'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Context } from '@bosch/cordis'
 import { createLaunchEnvironmentSnapshot, BH_LAUNCH_ENVIRONMENT_KEY } from '@bosch/bh-launch-environment'
+import { createUserMessage } from '@bosch/bh-llm'
 import SystemPrompt from '@bosch/bh-system-prompt'
 import type { WebServer } from '@bosch/bh-host-webserver'
 import { apply, Config, internals } from '../src/index.ts'
@@ -95,6 +96,29 @@ interface BashContribution {
 }
 
 describe('web-app runtime glue', () => {
+  it('builds an evidence-first contract only for a direct agent-improvement request', () => {
+    const direct = createUserMessage({
+      content: [{ type: 'text', text: 'Tôi muốn cải thiện agent' }],
+      source: { kind: 'user' },
+    })
+    expect(internals.agentImprovementContract([direct], 1)).toMatchObject({
+      source: { kind: 'plugin', plugin: 'web-app', form: 'instructions' },
+      content: [{ type: 'text', text: expect.stringContaining('inspect exactly that one with one read-only tool call') }],
+    })
+    expect(internals.agentImprovementContract([direct], 1)?.content[0]).toMatchObject({
+      text: expect.stringContaining('no directly relevant observable decision failure'),
+    })
+    expect(internals.agentImprovementContract([direct], 1)?.content[0]).toMatchObject({
+      text: expect.stringContaining('do not scan or open arbitrary workspace files'),
+    })
+    const ordinary = createUserMessage({
+      content: [{ type: 'text', text: 'Read the README' }],
+      source: { kind: 'user' },
+    })
+    expect(internals.agentImprovementContract([ordinary], 1)).toBeUndefined()
+    expect(internals.agentImprovementContract([ordinary], 2)).toBeUndefined()
+  })
+
   it('mounts dist serving, prompt section, bash variables, and publishes the URL with the LAN snapshot', async () => {
     stageDist()
     const ctx = new Context()
@@ -139,6 +163,12 @@ describe('web-app runtime glue', () => {
     expect(assembly.sections.find(entry => entry.name === 'harness:source')?.text).toContain('Bosch Harness implementation checkout')
     const section = assembly.sections.find(entry => entry.name === 'app:web-surface')
     expect(section?.text).toContain('http://127.0.0.1:4567')
+    expect(section?.text).toContain('Classify the user message before planning')
+    expect(section?.text).toContain('reply with one short natural conversational sentence and stop')
+    expect(section?.text).toContain('Treat a stated goal as a task even when high-level')
+    expect(section?.text).toContain('never a generic action, task, or tool menu')
+    expect(section?.text).toContain('An unbounded but inspectable goal is not a blocker')
+    expect(section?.text).toContain('do not ask the user to choose a broad category')
     // The single update contract: the receiver is always on; no-refresh
     // reloads additionally need the rebuild watcher.
     expect(section?.text).toContain('pnpm run dev:web')

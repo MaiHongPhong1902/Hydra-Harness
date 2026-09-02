@@ -4,6 +4,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { bindSnapshotSelector, stubSettingsScope, type StubSettingsScope } from '@bosch/bh-client-test-runtime'
 import { createSnapshotStore } from '@bosch/bh-client-runtime/client'
+import type { PluginInventorySnapshot } from '@bosch/bh-api-remotes/client'
 import { McpSettingsTab, type McpSettingsTabProps } from '../src/client/McpSettingsTab.tsx'
 import {
   MCP_API_KEY_REF,
@@ -53,7 +54,11 @@ function credentialApi(configured = false) {
   return { api: { credentials: { describe, set } } as never, describe, set }
 }
 
-function renderTab(state: Partial<McpSettingsState> = {}) {
+function renderTab(
+  state: Partial<McpSettingsState> = {},
+  importedMcp?: McpSettingsTabProps['importedMcp'],
+  nativeMcp?: McpSettingsTabProps['nativeMcp'],
+) {
   const store = createSnapshotStore<McpSettingsState>({
     ...settled,
     targetDomain: field(),
@@ -67,6 +72,8 @@ function renderTab(state: Partial<McpSettingsState> = {}) {
     ...actions,
     t,
     useMcpSettings: bindSnapshotSelector(store),
+    ...(importedMcp === undefined ? {} : { importedMcp }),
+    ...(nativeMcp === undefined ? {} : { nativeMcp }),
   } as unknown as McpSettingsTabProps} />)
   return actions
 }
@@ -167,5 +174,46 @@ describe('McpSettingsTab', () => {
     expect(screen.getByLabelText(en.mcpApiKey)).toHaveProperty('disabled', true)
     expect(screen.getByLabelText(en.mcpTargetDomain)).toHaveProperty('disabled', true)
     expect(screen.getByText(en.mcpApiKeyUnset)).toBeTruthy()
+  })
+
+  it('lists and switches imported plugin MCP servers in the MCP tab', async () => {
+    const snapshot = {
+      plugins: [{
+        identity: 'ponytail@local', name: 'Ponytail', version: '4.9.0', enabled: true,
+        mcpServers: [{ name: 'ponytail-mcp', enabled: true, startupState: 'started' }],
+      }],
+    } as never
+    const setEnabled = vi.fn(async () => snapshot)
+    renderTab({}, { list: vi.fn(async () => snapshot), setEnabled })
+
+    expect(await screen.findByText('ponytail-mcp')).toBeTruthy()
+    fireEvent.click(screen.getByRole('switch', { name: `${en.disable} ponytail-mcp` }))
+    await vi.waitFor(() => { expect(setEnabled).toHaveBeenCalledWith('ponytail@local', 'ponytail-mcp', false) })
+  })
+
+  it('switches the native Obsidian MCP plugin and keeps a disabled plugin enableable', async () => {
+    const enabled: PluginInventorySnapshot = {
+      entries: [{
+        entryId: 'obsidian-knowledge' as never, moduleName: '@bosch/bh-obsidian-knowledge',
+        enabled: true, toggleable: true, fiberPhase: 'active',
+      }],
+    }
+    const disable = vi.fn(async () => ({
+      entries: [{ ...enabled.entries[0], enabled: false, fiberPhase: null }],
+    } as never))
+    renderTab({}, undefined, { list: vi.fn(async () => enabled), setEnabled: disable })
+
+    fireEvent.click(screen.getByText(en.mcpTitle))
+    fireEvent.click(await screen.findByRole('switch', { name: `${en.disable} ${en.mcpTitle}` }))
+    await vi.waitFor(() => { expect(disable).toHaveBeenCalledWith('obsidian-knowledge', false) })
+
+    const enable = vi.fn(async () => enabled)
+    cleanup()
+    renderTab({ available: false }, undefined, {
+      list: vi.fn(async () => ({ entries: [{ ...enabled.entries[0], enabled: false, fiberPhase: null }] } as never)),
+      setEnabled: enable,
+    })
+    fireEvent.click(await screen.findByRole('switch', { name: `${en.enable} ${en.mcpTitle}` }))
+    await vi.waitFor(() => { expect(enable).toHaveBeenCalledWith('obsidian-knowledge', true) })
   })
 })

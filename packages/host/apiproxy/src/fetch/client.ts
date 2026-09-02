@@ -55,7 +55,8 @@ import {
 } from '../api/goals.schema.ts'
 import {
   settingsDescribeValueSchema, settingsMutateValueSchema, settingsOpenDocumentValueSchema,
-  settingsReplaceValueSchema, settingsUpdateValueSchema,
+  settingsListMemoriesValueSchema, settingsReadInstructionsValueSchema, settingsRemoveMemoryValueSchema,
+  settingsReplaceValueSchema, settingsUpdateValueSchema, settingsWriteInstructionsValueSchema,
 } from '../api/settings.schema.ts'
 import {
   credentialsDescribeValueSchema, credentialsSetValueSchema, credentialsUnsetValueSchema,
@@ -150,6 +151,10 @@ export interface IApiClient {
     update(payload: RequestPayload<'settings.update'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'settings.update'>>>
     replace(payload: RequestPayload<'settings.replace'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'settings.replace'>>>
     mutate(payload: RequestPayload<'settings.mutate'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'settings.mutate'>>>
+    readInstructions(payload: RequestPayload<'settings.readInstructions'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'settings.readInstructions'>>>
+    writeInstructions(payload: RequestPayload<'settings.writeInstructions'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'settings.writeInstructions'>>>
+    listMemories(payload: RequestPayload<'settings.listMemories'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'settings.listMemories'>>>
+    removeMemory(payload: RequestPayload<'settings.removeMemory'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'settings.removeMemory'>>>
   }
   credentials: {
     describe(payload: RequestPayload<'credentials.describe'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'credentials.describe'>>>
@@ -216,6 +221,10 @@ const UNARY_VALUE_SCHEMAS: { [K in keyof RpcMethodMap]: z.ZodType<Wire<ResponseV
   'settings.update': settingsUpdateValueSchema,
   'settings.replace': settingsReplaceValueSchema,
   'settings.mutate': settingsMutateValueSchema,
+  'settings.readInstructions': settingsReadInstructionsValueSchema,
+  'settings.writeInstructions': settingsWriteInstructionsValueSchema,
+  'settings.listMemories': settingsListMemoriesValueSchema,
+  'settings.removeMemory': settingsRemoveMemoryValueSchema,
   'credentials.describe': credentialsDescribeValueSchema,
   'credentials.set': credentialsSetValueSchema,
   'credentials.unset': credentialsUnsetValueSchema,
@@ -486,6 +495,10 @@ export abstract class AbstractApiClient implements IApiClient {
     update: (payload, signal) => this.callUnary('settings.update', payload, signal),
     replace: (payload, signal) => this.callUnary('settings.replace', payload, signal),
     mutate: (payload, signal) => this.callUnary('settings.mutate', payload, signal),
+    readInstructions: (payload, signal) => this.callUnary('settings.readInstructions', payload, signal),
+    writeInstructions: (payload, signal) => this.callUnary('settings.writeInstructions', payload, signal),
+    listMemories: (payload, signal) => this.callUnary('settings.listMemories', payload, signal),
+    removeMemory: (payload, signal) => this.callUnary('settings.removeMemory', payload, signal),
   }
 
   readonly credentials: IApiClient['credentials'] = {

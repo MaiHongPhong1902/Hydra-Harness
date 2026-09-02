@@ -935,6 +935,9 @@ importers:
       '@bosch/bh-settings':
         specifier: workspace:^
         version: link:../../settings/settings
+      '@bosch/bh-skill':
+        specifier: workspace:^
+        version: link:../../skill/skill
       '@bosch/bh-typert-registry':
         specifier: workspace:^
         version: link:../../typert/registry
@@ -1269,6 +1272,12 @@ importers:
       '@bosch/bh-goal-round-driver':
         specifier: workspace:^
         version: link:../../goal/goal-round-driver
+      '@bosch/bh-hook-protocol':
+        specifier: workspace:^
+        version: link:../../hooks/hook-protocol
+      '@bosch/bh-hooks-codex':
+        specifier: workspace:^
+        version: link:../../hooks/hooks-codex
       '@bosch/bh-jobs-local':
         specifier: workspace:^
         version: link:../../jobs/jobs-local
@@ -1284,15 +1293,24 @@ importers:
       '@bosch/bh-llm-retry':
         specifier: workspace:^
         version: link:../../llm/llm-retry
+      '@bosch/bh-mcp-client':
+        specifier: workspace:^
+        version: link:../../mcp/mcp-client
       '@bosch/bh-obsidian-knowledge':
         specifier: workspace:^
         version: link:../../browser/obsidian-knowledge
       '@bosch/bh-permission-presets':
         specifier: workspace:^
         version: link:../../interaction/permission-presets
+      '@bosch/bh-personalization':
+        specifier: workspace:^
+        version: link:../../context/personalization
       '@bosch/bh-plan-mode':
         specifier: workspace:^
         version: link:../../plan/plan-mode
+      '@bosch/bh-plugin-runtime':
+        specifier: workspace:^
+        version: link:../../host/plugin-runtime
       '@bosch/bh-pwsh-sandbox':
         specifier: workspace:^
         version: link:../../shell/pwsh-sandbox
@@ -1583,6 +1601,9 @@ importers:
       '@bosch/bh-client-ui-settings-models':
         specifier: workspace:^
         version: link:../../client/ui-settings-models
+      '@bosch/bh-client-ui-settings-personalization':
+        specifier: workspace:^
+        version: link:../../client/ui-settings-personalization
       '@bosch/bh-client-ui-settings-plugin-inventory':
         specifier: workspace:^
         version: link:../../client/ui-settings-plugin-inventory
@@ -1701,9 +1722,18 @@ importers:
         specifier: ^11.0.0
         version: 11.0.0
     devDependencies:
+      '@bosch/bh-agent':
+        specifier: workspace:^
+        version: link:../../core/agent
       '@bosch/bh-invariants':
         specifier: workspace:^
         version: link:../../runtime-diagnostics/invariants
+      '@bosch/bh-llm':
+        specifier: workspace:^
+        version: link:../../llm/llm
+      '@bosch/bh-session':
+        specifier: workspace:^
+        version: link:../../core/session
       '@bosch/bh-shell-env':
         specifier: workspace:^
         version: link:../../shell/shell-env
@@ -2905,6 +2935,45 @@ importers:
         specifier: ^18.2.0
         version: 18.3.1
 
+  packages/client/ui-settings-personalization:
+    devDependencies:
+      '@bosch/bh-api-remotes':
+        specifier: workspace:^
+        version: link:../../api/remotes
+      '@bosch/bh-client-connection':
+        specifier: workspace:^
+        version: link:../connection
+      '@bosch/bh-client-locale':
+        specifier: workspace:^
+        version: link:../locale
+      '@bosch/bh-client-runtime':
+        specifier: workspace:^
+        version: link:../runtime
+      '@bosch/bh-client-test-runtime':
+        specifier: workspace:^
+        version: link:../../test-support/client-runtime
+      '@bosch/bh-client-ui-settings':
+        specifier: workspace:^
+        version: link:../ui-settings
+      '@bosch/bh-client-ui-slots':
+        specifier: workspace:^
+        version: link:../ui-slots
+      '@bosch/bh-invariants':
+        specifier: workspace:^
+        version: link:../../runtime-diagnostics/invariants
+      '@bosch/cordis':
+        specifier: workspace:^
+        version: link:../../../vendor/cordis
+      '@bosch/schemastery':
+        specifier: link:../../../vendor/schemastery
+        version: link:../../../vendor/schemastery
+      '@types/react':
+        specifier: ~18.3.1
+        version: 18.3.31
+      react:
+        specifier: ^18.2.0
+        version: 18.3.1
+
   packages/client/ui-settings-plugin-inventory:
     devDependencies:
       '@bosch/bh-api-remotes':
@@ -3736,6 +3805,55 @@ importers:
       '@bosch/cordis':
         specifier: workspace:^
         version: link:../../../vendor/cordis
+
+  packages/context/personalization:
+    dependencies:
+      '@bosch/bh-atomic-write':
+        specifier: workspace:^
+        version: link:../../util/atomic-write
+      '@bosch/bh-commands':
+        specifier: workspace:^
+        version: link:../../interaction/commands
+      '@bosch/bh-home-paths':
+        specifier: workspace:^
+        version: link:../../util/home-paths
+      '@bosch/bh-llm':
+        specifier: workspace:^
+        version: link:../../llm/llm
+      '@bosch/schemastery':
+        specifier: link:../../../vendor/schemastery
+        version: link:../../../vendor/schemastery
+    devDependencies:
+      '@bosch/bh-agent':
+        specifier: workspace:^
+        version: link:../../core/agent
+      '@bosch/bh-agent-loop':
+        specifier: workspace:^
+        version: link:../../core/agent-loop
+      '@bosch/bh-invariants':
+        specifier: workspace:^
+        version: link:../../runtime-diagnostics/invariants
+      '@bosch/bh-llm-deepseek':
+        specifier: workspace:^
+        version: link:../../llm/llm-deepseek
+      '@bosch/bh-session':
+        specifier: workspace:^
+        version: link:../../core/session
+      '@bosch/bh-settings':
+        specifier: workspace:^
+        version: link:../../settings/settings
+      '@bosch/bh-settings-file':
+        specifier: workspace:^
+        version: link:../../settings/settings-file
+      '@bosch/bh-system-prompt':
+        specifier: workspace:^
+        version: link:../../core/system-prompt
+      '@bosch/cordis':
+        specifier: workspace:^
+        version: link:../../../vendor/cordis
+      '@bosch/cordis-plugin-loader':
+        specifier: workspace:^
+        version: link:../../../vendor/loader
 
   packages/context/session-reference:
     dependencies:
@@ -5212,9 +5330,15 @@ importers:
       '@bosch/bh-agent-default-model':
         specifier: workspace:^
         version: link:../../core/agent-default-model
+      '@bosch/bh-agent-instructions':
+        specifier: workspace:^
+        version: link:../../context/agent-instructions
       '@bosch/bh-api-remotes':
         specifier: workspace:^
         version: link:../../api/remotes
+      '@bosch/bh-atomic-write':
+        specifier: workspace:^
+        version: link:../../util/atomic-write
       '@bosch/bh-attachment':
         specifier: workspace:^
         version: link:../../attachment/attachment
@@ -5230,6 +5354,9 @@ importers:
       '@bosch/bh-goal':
         specifier: workspace:^
         version: link:../../goal/goal
+      '@bosch/bh-home-paths':
+        specifier: workspace:^
+        version: link:../../util/home-paths
       '@bosch/bh-host-directory-picker':
         specifier: workspace:^
         version: link:../directory-picker
@@ -5430,12 +5557,18 @@ importers:
       '@bosch/bh-app-boot':
         specifier: workspace:^
         version: link:../../boot/app-boot
+      '@bosch/bh-atomic-write':
+        specifier: workspace:^
+        version: link:../../util/atomic-write
       '@bosch/bh-brand':
         specifier: workspace:^
         version: link:../../util/brand
       '@bosch/bh-invariants':
         specifier: workspace:^
         version: link:../../runtime-diagnostics/invariants
+      '@bosch/bh-plugin-runtime':
+        specifier: workspace:^
+        version: link:../plugin-runtime
       '@bosch/bh-settings':
         specifier: workspace:^
         version: link:../../settings/settings
@@ -5454,6 +5587,49 @@ importers:
       '@bosch/cordis-plugin-loader':
         specifier: workspace:^
         version: link:../../../vendor/loader
+
+  packages/host/plugin-runtime:
+    dependencies:
+      smol-toml:
+        specifier: ^1.7.1
+        version: 1.7.1
+    devDependencies:
+      '@bosch/bh-atomic-write':
+        specifier: workspace:^
+        version: link:../../util/atomic-write
+      '@bosch/bh-commands':
+        specifier: workspace:^
+        version: link:../../interaction/commands
+      '@bosch/bh-home-paths':
+        specifier: workspace:^
+        version: link:../../util/home-paths
+      '@bosch/bh-hook-protocol':
+        specifier: workspace:^
+        version: link:../../hooks/hook-protocol
+      '@bosch/bh-hooks-codex':
+        specifier: workspace:^
+        version: link:../../hooks/hooks-codex
+      '@bosch/bh-invariants':
+        specifier: workspace:^
+        version: link:../../runtime-diagnostics/invariants
+      '@bosch/bh-llm':
+        specifier: workspace:^
+        version: link:../../llm/llm
+      '@bosch/bh-mcp-client':
+        specifier: workspace:^
+        version: link:../../mcp/mcp-client
+      '@bosch/bh-skill':
+        specifier: workspace:^
+        version: link:../../skill/skill
+      '@bosch/bh-system-prompt':
+        specifier: workspace:^
+        version: link:../../core/system-prompt
+      '@bosch/bh-tools':
+        specifier: workspace:^
+        version: link:../../core/tools
+      '@bosch/cordis':
+        specifier: workspace:^
+        version: link:../../../vendor/cordis
 
   packages/host/webserver:
     dependencies:
@@ -9440,6 +9616,9 @@ importers:
       vitepress-plugin-mermaid:
         specifier: ^2.0.17
         version: 2.0.17(mermaid@11.16.0)(vitepress@1.6.4(@algolia/client-search@5.55.2)(@types/node@25.9.3)(@types/react@18.3.31)(lightningcss@1.32.0)(postcss@8.5.15)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(search-insights@2.17.3)(typescript@6.0.3))
+      vue:
+        specifier: 3.5.39
+        version: 3.5.39(typescript@6.0.3)
 
 packages:
 
@@ -14375,10 +14554,6 @@ packages:
     resolution: {integrity: sha512-bzyZ1e88w9O1iNJbKnOlvYTrWPDl46O1bG0D3XInv+9tkPrxrN8jUUTiFlDkkmKWgn1M6CfIA13SuGqOa9Korw==}
     engines: {node: '>=14'}
 
-  smol-toml@1.6.1:
-    resolution: {integrity: sha512-dWUG8F5sIIARXih1DTaQAX4SsiTXhInKf1buxdY9DIg4ZYPZK5nGM1VRIYmEbDbsHt7USo99xSLFu5Q1IqTmsg==}
-    engines: {node: '>= 18'}
-
   smol-toml@1.7.1:
     resolution: {integrity: sha512-PPlsspAZ4jbMBu5DMFhfUGDQLu/vrL4SyBROVS37x8ynnVmFIs1VPBz1Co8Xks3TvpIaZXmU85y4DrQ+UyVFoQ==}
     engines: {node: '>= 18'}
@@ -18785,7 +18960,7 @@ snapshots:
       oxc-parser: 0.133.0
       oxc-resolver: 11.20.0
       picomatch: 4.0.4
-      smol-toml: 1.6.1
+      smol-toml: 1.7.1
       strip-json-comments: 5.0.3
       tinyglobby: 0.2.17
       unbash: 3.0.0
@@ -20037,8 +20212,6 @@ snapshots:
   siginfo@2.0.0: {}
 
   signal-exit@4.1.0: {}
-
-  smol-toml@1.6.1: {}
 
   smol-toml@1.7.1: {}
 

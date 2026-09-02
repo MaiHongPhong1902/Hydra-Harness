@@ -69,6 +69,19 @@ export interface RpcErrorDetailsMap {
    * first. The details carry both revisions so a client can re-read and retry.
    */
   'settings-conflict': { ns: string; expected: number; actual: number }
+  /**
+   * A personalization custom-instructions write was refused: oversized
+   * content (over 65,536 raw UTF-8 bytes) or a storage failure; the message
+   * names the cause.
+   */
+  'instructions-rejected': {}
+  /**
+   * A personalization custom-instructions write carried an `expectedRevision`
+   * that no longer matches the file's current SHA-256 content hash: another
+   * writer landed first. The details carry both digests so a client can
+   * re-read and retry.
+   */
+  'instructions-conflict': { expected: string; actual: string }
   /** A credential write was refused (read-only shadowing layer or storage failure); the message is the seam's own text. */
   'credential-rejected': { ref: string }
   /**

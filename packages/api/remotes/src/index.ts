@@ -13,6 +13,7 @@ import type {} from '@bosch/bh-credentials/types'
 import type {} from '@bosch/bh-llm/types'
 import type {} from '@bosch/bh-agent-presets/types'
 import type {} from '@bosch/bh-settings/types'
+import type {} from '@bosch/bh-skill/types'
 
 export {
   ApiRemoteSessionNotFound,

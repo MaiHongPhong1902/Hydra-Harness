@@ -48,7 +48,7 @@ function parsePositiveInteger(value: number, name: string): number {
 }
 
 /**
- * Validate value constraints the schema DSL can't express. `maxLimit` is the deployment's line cap.
+ * Keep a defense-in-depth check after schema validation. `maxLimit` is the deployment's line cap.
  * @param args - the schema-validated raw tool arguments; `offset`/`limit` must be positive integers when given.
  * @param maxLimit - the configured line cap: both the default `limit` and the largest one accepted.
  * @returns the validated input with `offset` defaulted to 1 and `limit` to `maxLimit`.
@@ -70,7 +70,7 @@ export function applyReadTool(ctx: Context, caps: ReadToolCaps): void {
   ctx.systemPrompt.section({
     name: 'tool:read',
     order: 100,
-    text: 'Use the read tool — not shell commands like cat — to inspect text files. Results include line numbers. Use offset and limit to continue reading large files.',
+    text: 'Use the read tool — not shell commands like cat — to inspect text files. Results include line numbers. Use offset and limit to continue reading large files. For exact line counts, use the returned total. For exact occurrence counts, enumerate every occurrence in complete returned evidence; never infer a count from a partial or skimmed read. For ordered evidence such as logs, determine first or last from the smallest or largest sequence or position across all relevant events; do not skip interaction tools.',
   })
 
   ctx.tools.register(defineTool({
@@ -78,8 +78,8 @@ export function applyReadTool(ctx: Context, caps: ReadToolCaps): void {
     description: 'Read a UTF-8 text file and return line-numbered content.',
     parameters: {
       file_path: { type: 'string', required: true, description: 'Path to read, resolved by the filesystem backend.' },
-      offset: { type: 'number', description: '1-based first line to return. Defaults to 1.' },
-      limit: { type: 'number', description: `Maximum number of lines to return. Defaults to ${caps.limit}.` },
+      offset: { type: 'integer', minimum: 1, description: '1-based first line to return. Defaults to 1.' },
+      limit: { type: 'integer', minimum: 1, maximum: caps.limit, description: `Maximum number of lines to return. Defaults to ${caps.limit}; values above ${caps.limit} are rejected.` },
     },
     output: {
       schema: {

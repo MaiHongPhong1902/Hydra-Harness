@@ -171,6 +171,7 @@ describe('connection node half', () => {
     for (const method of [
       'host.pickDirectory', 'host.openPath',
       'settings.describe', 'settings.openDocument', 'settings.update', 'settings.replace', 'settings.mutate',
+      'settings.readInstructions', 'settings.writeInstructions', 'settings.listMemories', 'settings.removeMemory',
       'credentials.describe', 'credentials.set', 'credentials.unset',
       'llm.discoverModels',
       // A composition names the plugins a session runs: reading one is
@@ -367,7 +368,16 @@ describe('connection node half', () => {
       'pluginInventory/setEnabled',
       'pluginInventory/listMarketplaces',
       'pluginInventory/addMarketplace',
-      'pluginInventory/installMarketplacePlugin',
+      'pluginInventory/removeMarketplace',
+      'pluginInventory/listImportedPlugins',
+      'pluginInventory/importPlugin',
+      'pluginInventory/infoPlugin',
+      'pluginInventory/enablePlugin',
+      'pluginInventory/disablePlugin',
+      'pluginInventory/setPluginMcpServerEnabled',
+      'pluginInventory/trustPlugin',
+      'pluginInventory/untrustPlugin',
+      'pluginInventory/removePlugin',
     ]) {
       const denied = fakeResponse()
       await route.handler(
@@ -529,6 +539,7 @@ describe('connection node half over a real HTTP server', () => {
       // configuration, and credentials.describe probes arbitrary env-var names.
       for (const method of [
         'settings.describe', 'settings.openDocument', 'settings.update', 'settings.replace', 'settings.mutate',
+        'settings.readInstructions', 'settings.writeInstructions', 'settings.listMemories', 'settings.removeMemory',
         'credentials.describe', 'credentials.set', 'credentials.unset',
         'host.pickDirectory', 'host.openPath',
         // Carries a draft credential and turns the host into a fetcher for a

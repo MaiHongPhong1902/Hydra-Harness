@@ -32,6 +32,8 @@ export interface NumberValueSchemaSpec extends ValueSchemaAnnotations {
   type: 'number'
   enum?: readonly number[]
   const?: number
+  minimum?: number
+  maximum?: number
 }
 
 /** Integer schema with type-correct literal constraints. */
@@ -39,6 +41,8 @@ export interface IntegerValueSchemaSpec extends ValueSchemaAnnotations {
   type: 'integer'
   enum?: readonly number[]
   const?: number
+  minimum?: number
+  maximum?: number
 }
 
 /** Boolean value schema with type-correct literal constraints. */
@@ -398,7 +402,7 @@ function runSchemaCompiler(initial: CompileTask): void {
       case 'integer':
       case 'boolean':
       case 'null':
-        assertAuthorKeys(input, path, [...authorKeys, 'type', 'enum', 'const'])
+        assertAuthorKeys(input, path, [...authorKeys, 'type', 'enum', 'const', ...((inputType === 'number' || inputType === 'integer') ? ['minimum', 'maximum'] : [])])
         node.type = inputType
         copyAnnotations(input, node)
         if (Object.hasOwn(input, 'enum')) {
@@ -406,6 +410,8 @@ function runSchemaCompiler(initial: CompileTask): void {
           node.enum = Array.from(input.enum, entry => entry as JsonSchemaScalar)
         }
         if (Object.hasOwn(input, 'const')) node.const = input.const as JsonSchemaScalar
+        if (Object.hasOwn(input, 'minimum')) node.minimum = input.minimum as number
+        if (Object.hasOwn(input, 'maximum')) node.maximum = input.maximum as number
         break
       default:
         authorError(`${path}.type must be string/number/integer/boolean/null/array/object/json, or use oneOf`)

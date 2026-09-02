@@ -11,6 +11,7 @@ The host side of the bh web GUI: the API gateway every client shape shares, and 
 | [`directory-picker-native/`](directory-picker-native/README.md) | Native directory-picker backend and browser interaction | registers `ctx.directoryPicker` |
 | [`directory-picker-browse/`](directory-picker-browse/README.md) | In-app directory-browser backend and interaction | registers `ctx.directoryPicker` |
 | [`directory-picker-auto/`](directory-picker-auto/README.md) | Host-adaptive picker composition | mounts a backend |
+| [`plugin-runtime/`](plugin-runtime/README.md) | Immutable OpenAI/Codex bundle store and lifecycle runtime | `ctx.importedPlugins` |
 | [`plugin-inventory/`](plugin-inventory/README.md) | Read-only projection of current Loader entries | Remote `pluginInventory/list` |
 
 `apiproxy` remains transport-independent; [`client/connection`](../client/connection/README.md) supplies the browser/HTTP carrier. Picker implementations replace one another behind the shared seam.

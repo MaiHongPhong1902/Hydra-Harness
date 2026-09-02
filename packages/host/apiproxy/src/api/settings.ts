@@ -49,6 +49,29 @@ export type SettingsPathOpView =
   | { op: 'set'; path: string[]; value: unknown }
   | { op: 'unset'; path: string[] }
 
+/**
+ * The personalization custom-instructions document (`$BH_HOME/AGENTS.md`,
+ * the same fixed user-global file `@bosch/bh-agent-instructions` discovers).
+ */
+export interface InstructionsDocumentView {
+  /** Raw file content; the empty string when the file does not exist yet. */
+  content: string
+  /**
+   * SHA-256 hex digest of the raw UTF-8 bytes this view reflects. Send it
+   * back as `expectedRevision` on a write so a stale editor is refused
+   * rather than silently overwriting a concurrent change.
+   */
+  revision: string
+}
+
+/** One private local-memory entry surfaced only to the loopback settings page. */
+export interface MemoryEntryView {
+  id: string
+  text: string
+  createdAt: number
+  updatedAt: number
+}
+
 /** Settings-domain unary methods (the map keys settings.* of RpcMethodMap). */
 export interface SettingsApi {
   /**
@@ -103,4 +126,29 @@ export interface SettingsApi {
   mutate(
     request: RpcRequest<{ ns: string; ops: SettingsPathOpView[]; expectedRevision?: number }>,
   ): Promise<RpcResponse<SettingsNamespaceView>>
+
+  /**
+   * Read the personalization custom-instructions document. This method is
+   * loopback-only. Absent file content reads as the empty string, never a
+   * missing-service error — there is no provider to be absent.
+   */
+  readInstructions(request: RpcRequest<{}>): Promise<RpcResponse<InstructionsDocumentView>>
+
+  /**
+   * Replace the personalization custom-instructions document wholesale, under
+   * a cross-process write lock. `expectedRevision`, when carried, must match
+   * the file's current content hash or the write is refused as
+   * `instructions-conflict`; omit it to write unconditionally. Content over
+   * 65,536 raw UTF-8 bytes is refused as `instructions-rejected`. This method
+   * is loopback-only.
+   */
+  writeInstructions(
+    request: RpcRequest<{ content: string; expectedRevision?: string }>,
+  ): Promise<RpcResponse<InstructionsDocumentView>>
+
+  /** List memories held in the local BH-home memory file. */
+  listMemories(request: RpcRequest<{}>): Promise<RpcResponse<{ entries: MemoryEntryView[] }>>
+
+  /** Delete one memory by its opaque local id. */
+  removeMemory(request: RpcRequest<{ id: string }>): Promise<RpcResponse<{ removed: boolean }>>
 }

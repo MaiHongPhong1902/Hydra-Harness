@@ -259,6 +259,9 @@
     - id: ui-settings-models
       name: '@bosch/bh-client-ui-settings-models'
 
+    - id: ui-settings-personalization
+      name: '@bosch/bh-client-ui-settings-personalization'
+
     - id: ui-settings-plugin-inventory
       name: '@bosch/bh-client-ui-settings-plugin-inventory'
 

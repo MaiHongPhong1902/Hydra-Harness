@@ -84,6 +84,13 @@ export function resolveTelemetryPatch(disabledEnv: string | undefined, hasRow: b
   return { id: TELEMETRY_ROW_ID, disabled: true }
 }
 
+/** Convert boot-only root switches into Loader patches before the profile tree mounts. */
+export function profileEnablementPatches(enablement: Readonly<Record<string, boolean>>): PatchOptions[] {
+  return Object.entries(enablement)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([id, enabled]) => ({ id, disabled: !enabled }))
+}
+
 /**
  * Load a resolved profile for `name`: heal the shared module fallback, then
  * (re)write the empty root config. The root is always rewritten: the whole
@@ -111,6 +118,8 @@ interface ComposedProfile {
   bundlePatches: PatchOptions[]
   /** The home-level user layer (`$BH_HOME/cordis.patch.yml`), applied after the profile's own. */
   homePatches: PatchOptions[]
+  /** Boot-only root switches, frozen so a manifest write waits for the next start. */
+  pluginEnablementPatches: PatchOptions[]
   /** Layers above the user layers on a live reload: `--patch` overlays and the telemetry switch. */
   overlays: PatchOptions[]
   /**
@@ -126,6 +135,7 @@ function allPatches(composed: ComposedProfile): PatchOptions[] {
     ...composed.bundlePatches,
     ...composed.profile.patches,
     ...composed.homePatches,
+    ...composed.pluginEnablementPatches,
     ...composed.overlays,
   ]
 }
@@ -147,10 +157,13 @@ function composeProfile(
 ): ComposedProfile {
   const profile = prepareProfile(name)
   const homePatches = loadOptionalPatches(NAME, homePatchPath()) ?? []
+  const pluginEnablementPatches = profileEnablementPatches(profile.pluginEnablement)
   const overlays = patchFiles.flatMap(file => loadOverlayPatches(NAME, resolve(file)))
   const bundlePatches = profile.layers.flatMap(layer => layer.patches)
   const rows = new Map<string, EntryOptions>()
-  for (const row of composeEntries([bundlePatches, profile.patches, homePatches, overlays])) {
+  for (const row of composeEntries([
+    bundlePatches, profile.patches, homePatches, pluginEnablementPatches, overlays,
+  ])) {
     if (typeof row.id === 'string') rows.set(row.id, row)
   }
   const composedOverlays = [...overlays]
@@ -177,7 +190,9 @@ function composeProfile(
   }
   const telemetryPatch = resolveTelemetryPatch(process.env.BH_TELEMETRY_DISABLED, rows.has(TELEMETRY_ROW_ID))
   if (telemetryPatch !== undefined) composedOverlays.push(telemetryPatch)
-  return { profile, bundlePatches, homePatches, overlays: composedOverlays, rows }
+  return {
+    profile, bundlePatches, homePatches, pluginEnablementPatches, overlays: composedOverlays, rows,
+  }
 }
 
 /** Options for {@link runProfile}. */
@@ -251,6 +266,7 @@ export async function runProfile(options: RunProfileOptions): Promise<{ ctx: Con
     ...composed.bundlePatches,
     ...loadOptionalPatches(NAME, composed.profile.patchPath) ?? [],
     ...loadOptionalPatches(NAME, homePatchPath()) ?? [],
+    ...composed.pluginEnablementPatches,
     ...composed.overlays,
   ])
   // Cloned for the same insert-aliasing reason as composeLive: the boot

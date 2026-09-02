@@ -37,7 +37,7 @@ export type {
   InstructionFile,
   LoadedInstructionFile,
 } from './files.ts'
-export { renderWorkspaceContext } from './render.ts'
+export { renderWorkspaceContext, USER_GLOBAL_FILE } from './render.ts'
 export type { RenderedWorkspaceContext, TruncatedInstruction } from './render.ts'
 
 function visibleBaselineSource(

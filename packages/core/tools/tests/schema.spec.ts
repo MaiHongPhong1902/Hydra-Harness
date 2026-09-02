@@ -14,8 +14,8 @@ describe('the unified author schema DSL', () => {
   it('compiles every value root and the author-only json node', () => {
     expect(valueSchemaSpecToJsonSchema({ type: 'string', enum: ['a', 'b'], const: 'a' }))
       .toEqual({ type: 'string', enum: ['a', 'b'], const: 'a' })
-    expect(valueSchemaSpecToJsonSchema({ type: 'number' })).toEqual({ type: 'number' })
-    expect(valueSchemaSpecToJsonSchema({ type: 'integer' })).toEqual({ type: 'integer' })
+    expect(valueSchemaSpecToJsonSchema({ type: 'number', minimum: -1.5, maximum: 1.5 })).toEqual({ type: 'number', minimum: -1.5, maximum: 1.5 })
+    expect(valueSchemaSpecToJsonSchema({ type: 'integer', minimum: 1, maximum: 2 })).toEqual({ type: 'integer', minimum: 1, maximum: 2 })
     expect(valueSchemaSpecToJsonSchema({ type: 'boolean' })).toEqual({ type: 'boolean' })
     expect(valueSchemaSpecToJsonSchema({ type: 'null' })).toEqual({ type: 'null' })
     expect(valueSchemaSpecToJsonSchema({ type: 'array', items: { type: 'json' } }))

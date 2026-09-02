@@ -4,9 +4,9 @@ The model-facing controller for `ctx.jobs`: three kind-independent tools, comple
 
 ## Tools
 
-- `job_output(job_id, wait?, timeout_ms?)` reads without blocking by default. Stream jobs return only the next delta; final-output jobs return their result after settlement. Every response ends with `[status: ...]`. `wait: true` waits up to the configured cap and leaves a still-running job alive on timeout.
+- `job_output(job_id, wait?, timeout_ms?)` reads a background job id without blocking by default; never pass a continuable subagent id. Stream jobs return only the next delta; final-output jobs return their result after settlement. Every response ends with `[status: ...]`. `wait: true` waits up to the configured cap and leaves a still-running job alive on timeout.
 - `job_list()` returns caller-visible jobs as `<id> [<kind>] <status> — <label>`.
-- `job_kill(job_id, reason?)` requests cancellation immediately and forwards the logged reason. Terminal jobs return a non-consuming snapshot.
+- `job_kill(job_id, reason?)` requests cancellation for a background job id immediately and forwards the logged reason; never pass a continuable subagent id. Terminal jobs return a non-consuming snapshot.
 
 All three use generic UI cards: `read` for output and list, `execute` for kill.
 
@@ -46,7 +46,7 @@ Every request in this plugin's registration scope contains this guidance. Agent-
 ##### Background-job guidance
 
 ```markdown
-Track every background job id you start. You are notified in-session when a job finishes — do not busy-poll or sleep on one; keep working on independent steps and do not duplicate a running job's work. Before giving a final answer, collect every still-relevant job with job_output (set wait: true only when you are genuinely blocked on it), and job_kill jobs that stopped mattering.
+Track every background job id you start. Only an id explicitly returned as a background job id is valid for job_output or job_kill; a continuable subagent id is not a job id and must not be passed to either tool. You are notified in-session when a job finishes — do not busy-poll or sleep on one; keep working on independent steps and do not duplicate a running job's work. Before giving a final answer, collect every still-relevant job with job_output (set wait: true only when you are genuinely blocked on it), and job_kill jobs that stopped mattering.
 ```
 
 #### Token effect
@@ -61,7 +61,7 @@ Prefix-stable while the plugin scope and guidance text are unchanged. Activation
 
 #### What the model sees
 
-The generated [`job_output`, `job_list`, and `job_kill` schemas](../../../docs/tool-catalog.md#boschbh-tool-jobs) while this tool set is visible.
+The generated [`job_output`, `job_list`, and `job_kill` schemas](../../../docs/tool-catalog.md#boschbh-tool-jobs) while this tool set is visible. `job_output` and `job_kill` accept only background job ids, never continuable subagent ids.
 
 #### Token effect
 

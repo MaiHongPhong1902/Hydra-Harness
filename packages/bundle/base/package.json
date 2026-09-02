@@ -61,13 +61,17 @@
     "@bosch/bh-fs-sandbox": "workspace:^",
     "@bosch/bh-goal": "workspace:^",
     "@bosch/bh-goal-round-driver": "workspace:^",
+    "@bosch/bh-hook-protocol": "workspace:^",
+    "@bosch/bh-hooks-codex": "workspace:^",
     "@bosch/bh-api-gateway": "workspace:^",
     "@bosch/bh-llm": "workspace:^",
     "@bosch/bh-llm-deepseek": "workspace:^",
     "@bosch/bh-llm-pi-ai": "workspace:^",
     "@bosch/bh-llm-retry": "workspace:^",
+    "@bosch/bh-mcp-client": "workspace:^",
     "@bosch/bh-permission-presets": "workspace:^",
     "@bosch/bh-plan-mode": "workspace:^",
+    "@bosch/bh-plugin-runtime": "workspace:^",
     "@bosch/bh-pwsh-sandbox": "workspace:^",
     "@bosch/bh-repeat-tool-reminder": "workspace:^",
     "@bosch/bh-sandbox-local": "workspace:^",
@@ -117,7 +121,8 @@
     "@bosch/bh-web": "workspace:^",
     "@bosch/bh-web-search-deepseek": "workspace:^",
     "@bosch/bh-workflow-worker-thread": "workspace:^",
-    "@bosch/bh-agent-instructions": "workspace:^"
+    "@bosch/bh-agent-instructions": "workspace:^",
+    "@bosch/bh-personalization": "workspace:^"
   },
   "peerDependencies": {
     "@bosch/bh-invariants": "workspace:^",

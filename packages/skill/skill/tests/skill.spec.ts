@@ -160,6 +160,48 @@ describe('SkillRegistry registry', () => {
     expect((await ctx.skills.list()).map(skill => skill.name)).toEqual(['same-rank-skill', 'shadowed'])
   })
 
+  it('exposes a unique alias without letting it shadow a canonical skill', async () => {
+    const ctx = new Context()
+    await ctx.plugin(SkillRegistry)
+    const dispose = registerProvider(ctx, new MemoryProvider([{
+      ...memorySkill('plugin-documents', 'Imported documents', 1, 'Imported body.'), aliases: ['documents'],
+    }]))
+
+    expect((await ctx.skills.list()).map(skill => skill.name)).toEqual(['documents', 'plugin-documents'])
+    await expect(ctx.skills.get('documents')).resolves.toMatchObject({ name: 'documents', content: 'Imported body.' })
+
+    const disposeCanonical = ctx.skills.register({
+      name: 'documents', description: 'Native documents', source: 'runtime', content: 'Native body.',
+    })
+    expect((await ctx.skills.list()).map(skill => skill.name)).toEqual(['documents', 'plugin-documents'])
+    await expect(ctx.skills.get('documents')).resolves.toMatchObject({ content: 'Native body.' })
+    disposeCanonical()
+    await expect(ctx.skills.get('documents')).resolves.toMatchObject({ name: 'documents', content: 'Imported body.' })
+
+    dispose()
+    expect(await ctx.skills.get('documents')).toBeUndefined()
+  })
+
+  it('suppresses an alias claimed by two resolved candidates', async () => {
+    const ctx = new Context()
+    await ctx.plugin(SkillRegistry)
+    registerProvider(ctx, new MemoryProvider([{
+      ...memorySkill('plugin-documents-a', 'Imported documents A', 1), aliases: ['documents'],
+    }]))
+    registerProvider(ctx, {
+      name: 'second',
+      async list() {
+        return [{ ...memorySkill('plugin-documents-b', 'Imported documents B', 1), provider: 'second', aliases: ['documents'] }]
+      },
+      async get(candidate) {
+        return { ...candidate, content: (candidate.locator as { content: string }).content }
+      },
+    })
+
+    expect((await ctx.skills.list()).map(skill => skill.name)).toEqual(['plugin-documents-a', 'plugin-documents-b'])
+    expect(await ctx.skills.get('documents')).toBeUndefined()
+  })
+
   it('returns an invocation-neutral catalog and resolves model and user policy independently', async () => {
     const ctx = new Context()
     await ctx.plugin(SkillRegistry)

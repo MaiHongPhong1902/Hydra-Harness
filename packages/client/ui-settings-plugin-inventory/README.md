@@ -1,21 +1,15 @@
 # @bosch/bh-client-ui-settings-plugin-inventory
 
-The plugin-management tabs for Web Settings. The browser plugin always registers the localized **Plugin list** contribution with id `all`. On a loopback page it also registers **Marketplace** with id `marketplace`; non-loopback clients do not receive the installation surface. The Plugins section owns the navigation entry and tab chrome. Registration performs no Remote read, and selecting a tab mounts it and lazily reads its Host-owned snapshot through [`api-remotes`](../../api/remotes/README.md).
+The local Web Settings contribution for OpenAI/Codex plugin bundles. It registers **Plugins**, **Skills**, **Marketplace**, and **Hooks** tabs in the existing Plugins section. Remote clients only receive the Plugins tab with an unavailable message; local controls are loopback-only.
 
-The tab renders a searchable two-column catalog of compact disclosure cards. Each collapsed card uses the short module name as its title and a small effective-enablement tag; enabled entries also show a colored root-fiber status dot. Expanding one card reveals its Loader-tree entry id, effective configuration, Cordis status, and an Enable or Disable button when the Host marks the entry toggleable. A protected built-in entry explains that it cannot be disabled instead of offering a switch. Mutations remain disabled while one request is pending, replace the visible snapshot only with the Host response, and expose a localized generic error without transport details. The registration uses `ctx.slots.inject()`, so it follows late tab declaration, redeclaration, locale changes, and teardown without importing the section owner.
+**Plugins** lists native BH deployment plugins with their enablement controls; protected infrastructure has a visibly disabled switch and cannot be changed. **Marketplace** adds, validates, lists, and removes OpenAI/Codex marketplace sources, imports a selected marketplace plugin into the BH home, and lists, enables, disables, or removes imported bundles. **Skills** lists imported skills. **Hooks** lists imported hook declarations and owns their trust/revoke action. The existing **MCP** tab, contributed by `ui-settings-plugins`, owns imported MCP server enablement and leaves tool approval in the runtime policy.
 
-The Marketplace tab adds a GitHub repository, Git URL, SSH source, or local folder in a modal with optional Git ref and newline-separated sparse checkout paths. It keeps unavailable sources visible and renders the Host-validated package name and exact version for each entry. Install opens a risk confirmation naming the normalized source, selected ref, and package spec. Success replaces the catalog with the returned snapshot and shows a restart-required notice; installed package names display as **Installed** instead of offering an update. The Host remains authoritative for source/path/schema validation, package resolution, installation, and rollback.
+Marketplace sources accept GitHub shorthand, HTTPS/SSH Git URLs, or local roots. The Host accepts `.agents/plugins/marketplace.json` and root `marketplace.json`. The Settings contribution reads snapshots lazily and only replaces its displayed state with Host operation results.
 
 ## Model Experience
 
-None, as this package only visualizes a Host-owned deployment snapshot in browser Settings and registers nothing model-facing.
+None, as this package only visualizes Host-owned plugin state and registers no model-facing input.
 
 #### KV Cache effect
 
 None; this package neither assembles nor sends a provider request.
-
-## Known Limitations and Deferred Work
-
-- **One snapshot per Settings mount, retry, or mutation** — neither tab subscribes to Loader or marketplace changes or automatically refetches after reconnect; switching tabs preserves the current snapshot, while reopening Settings obtains a new one.
-- **Install-only marketplace V1** — the UI does not remove sources, remove or update installed plugins, accept non-registry package specs, or hot-load a newly installed bundle.
-- **No catalog search yet** — search applies to the Plugin list; marketplace entries are grouped by their configured source without a separate filter.

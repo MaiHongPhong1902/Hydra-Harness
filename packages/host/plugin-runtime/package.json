@@ -1,0 +1,69 @@
+{
+  "name": "@bosch/bh-plugin-runtime",
+  "description": "Shared immutable OpenAI/Codex-compatible imported plugin runtime for the Bosch Harness",
+  "version": "0.1.1-rc.1",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bosch/bosch-harness.git",
+    "directory": "packages/host/plugin-runtime"
+  },
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./invariant": {
+      "types": "./lib/types/invariant.d.ts",
+      "default": "./lib/invariant.js"
+    },
+    "./types": {
+      "types": "./lib/types/types.d.ts",
+      "default": "./lib/types/types.js"
+    },
+    "./src/*": "./src/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/invariant.js",
+    "lib/types/**/*.js",
+    "lib/types/**/*.d.ts"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "@bosch/bh-atomic-write": "workspace:^",
+    "@bosch/bh-commands": "workspace:^",
+    "@bosch/bh-hook-protocol": "workspace:^",
+    "@bosch/bh-hooks-codex": "workspace:^",
+    "@bosch/bh-home-paths": "workspace:^",
+    "@bosch/bh-invariants": "workspace:^",
+    "@bosch/bh-llm": "workspace:^",
+    "@bosch/bh-mcp-client": "workspace:^",
+    "@bosch/bh-skill": "workspace:^",
+    "@bosch/bh-tools": "workspace:^",
+    "@bosch/cordis": "workspace:^"
+  },
+  "dependencies": {
+    "smol-toml": "^1.7.1"
+  },
+  "devDependencies": {
+    "@bosch/bh-atomic-write": "workspace:^",
+    "@bosch/bh-commands": "workspace:^",
+    "@bosch/bh-hook-protocol": "workspace:^",
+    "@bosch/bh-hooks-codex": "workspace:^",
+    "@bosch/bh-home-paths": "workspace:^",
+    "@bosch/bh-invariants": "workspace:^",
+    "@bosch/bh-llm": "workspace:^",
+    "@bosch/bh-mcp-client": "workspace:^",
+    "@bosch/bh-skill": "workspace:^",
+    "@bosch/bh-system-prompt": "workspace:^",
+    "@bosch/bh-tools": "workspace:^",
+    "@bosch/cordis": "workspace:^"
+  }
+}

@@ -6,7 +6,10 @@
 import { z } from 'zod'
 import type { RequestPayload, ResponseValue } from './rpc-map.ts'
 import type { Wire } from './rpc.schema.ts'
-import type { SettingsNamespaceView, SettingsPathOpView, SettingsSecretView } from './settings.ts'
+import type { InstructionsDocumentView, MemoryEntryView, SettingsNamespaceView, SettingsPathOpView, SettingsSecretView } from './settings.ts'
+
+/** A SHA-256 hex digest (lowercase, 64 characters), as used by InstructionsDocumentView.revision. */
+const sha256HexSchema = z.string().regex(/^[0-9a-f]{64}$/)
 
 /** One redacted secret slot. */
 export const settingsSecretViewSchema = z.object({
@@ -79,3 +82,37 @@ export const settingsMutateValueSchema = settingsNamespaceViewSchema satisfies z
 
 /** settings.replace response value. */
 export const settingsReplaceValueSchema = settingsNamespaceViewSchema satisfies z.ZodType<Wire<ResponseValue<'settings.replace'>>>
+
+/** InstructionsDocumentView of settings.readInstructions and settings.writeInstructions. */
+export const instructionsDocumentViewSchema = z.object({
+  content: z.string(),
+  revision: sha256HexSchema,
+}) satisfies z.ZodType<Wire<InstructionsDocumentView>>
+
+/** settings.readInstructions request payload. */
+export const settingsReadInstructionsRequestSchema = z.object({}) satisfies z.ZodType<Wire<RequestPayload<'settings.readInstructions'>>>
+
+/** settings.readInstructions response value. */
+export const settingsReadInstructionsValueSchema = instructionsDocumentViewSchema satisfies z.ZodType<Wire<ResponseValue<'settings.readInstructions'>>>
+
+/** settings.writeInstructions request payload. */
+export const settingsWriteInstructionsRequestSchema = z.object({
+  content: z.string(),
+  expectedRevision: sha256HexSchema.optional(),
+}) satisfies z.ZodType<Wire<RequestPayload<'settings.writeInstructions'>>>
+
+/** settings.writeInstructions response value. */
+export const settingsWriteInstructionsValueSchema = instructionsDocumentViewSchema satisfies z.ZodType<Wire<ResponseValue<'settings.writeInstructions'>>>
+
+/** One persisted memory entry. */
+export const memoryEntryViewSchema = z.object({
+  id: z.uuid(), text: z.string(), createdAt: z.number().int().nonnegative(), updatedAt: z.number().int().nonnegative(),
+}) satisfies z.ZodType<Wire<MemoryEntryView>>
+/** settings.listMemories request payload. */
+export const settingsListMemoriesRequestSchema = z.object({}) satisfies z.ZodType<Wire<RequestPayload<'settings.listMemories'>>>
+/** settings.listMemories response value. */
+export const settingsListMemoriesValueSchema = z.object({ entries: z.array(memoryEntryViewSchema) }) satisfies z.ZodType<Wire<ResponseValue<'settings.listMemories'>>>
+/** settings.removeMemory request payload. */
+export const settingsRemoveMemoryRequestSchema = z.object({ id: z.uuid() }) satisfies z.ZodType<Wire<RequestPayload<'settings.removeMemory'>>>
+/** settings.removeMemory response value. */
+export const settingsRemoveMemoryValueSchema = z.object({ removed: z.boolean() }) satisfies z.ZodType<Wire<ResponseValue<'settings.removeMemory'>>>

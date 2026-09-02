@@ -1,6 +1,6 @@
 # Extensions
 
-The extensions subsystem lets an agent define versioned Cordis packages, run their host and browser halves, and query approved runtime metadata before writing code. Package lifecycle and sandbox behavior belong to the [`packages/extensions`](../../packages/extensions/README.md) package group.
+The extensions subsystem lets an agent define versioned Cordis packages, run their host and browser halves, and query approved runtime metadata before writing code. It also owns the shared [`ctx.importedPlugins`](../../packages/host/plugin-runtime/README.md) service, which stages and lifecycle-manages immutable OpenAI/Codex plugin bundles for every BH profile. Package lifecycle and sandbox behavior belong to the [`packages/extensions`](../../packages/extensions/README.md) package group.
 
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
@@ -253,6 +253,97 @@ inspectPackage( agent: Agent, pluginId: CordisDynamicPluginId, packageId: Cordis
 Types: [Agent](core.md)
 
 Source: [`packages/extensions/cordis-host-runner/src/index.ts`](../../packages/extensions/cordis-host-runner/src/index.ts)
+
+<a id="ctximportedplugins--importedpluginruntime"></a>
+
+### `ctx.importedPlugins` — `ImportedPluginRuntime`
+
+Shared `bh-base` service for every imported bundle, not a Web-only facility.
+
+```ts cordis-catalog
+/**
+ * Return every imported plugin's current source-qualified runtime view.
+ * @returns Current installed-plugin projection.
+ */
+async list(): Promise<ImportedPluginSnapshot>
+
+/**
+ * Return one installed plugin view.
+ * @param identityOrName - Source-qualified identity or an unambiguous plugin name.
+ * @returns Current installed-plugin projection.
+ */
+async info(identityOrName: string): Promise<ImportedPluginEntry>
+
+/**
+ * Stage one local, Git, or marketplace source.
+ * @param source - Source to import.
+ * @returns Refreshed installed-plugin projection.
+ */
+import(source: PluginImportSource): Promise<ImportedPluginSnapshot>
+
+/**
+ * Enable and load one plugin.
+ * @param identityOrName - Plugin identity or unambiguous name.
+ * @returns Refreshed installed-plugin projection.
+ */
+enable(identityOrName: string): Promise<ImportedPluginSnapshot>
+
+/**
+ * Disable and unload one plugin.
+ * @param identityOrName - Plugin identity or unambiguous name.
+ * @returns Refreshed installed-plugin projection.
+ */
+disable(identityOrName: string): Promise<ImportedPluginSnapshot>
+
+/**
+ * Trust one plugin's current hook definition.
+ * @param identityOrName - Plugin identity or unambiguous name.
+ * @returns Refreshed installed-plugin projection.
+ */
+trustHooks(identityOrName: string): Promise<ImportedPluginSnapshot>
+
+/**
+ * Revoke one plugin's hook trust.
+ * @param identityOrName - Plugin identity or unambiguous name.
+ * @returns Refreshed installed-plugin projection.
+ */
+untrustHooks(identityOrName: string): Promise<ImportedPluginSnapshot>
+
+/**
+ * Unload and remove one plugin with its owned store paths.
+ * @param identityOrName - Plugin identity or unambiguous name.
+ * @returns Refreshed installed-plugin projection.
+ */
+remove(identityOrName: string): Promise<ImportedPluginSnapshot>
+
+/**
+ * Set one plugin MCP server's lifecycle state.
+ * @param identityOrName - Owning plugin identity or unambiguous name.
+ * @param server - Manifest MCP server name.
+ * @param enabled - Desired server state.
+ * @returns Refreshed installed-plugin projection.
+ */
+async setMcpServerEnabled(identityOrName: string, server: string, enabled: boolean): Promise<ImportedPluginSnapshot>
+
+/**
+ * Set one MCP tool's approval mode.
+ * @param identityOrName - Owning plugin identity or unambiguous name.
+ * @param server - Manifest MCP server name.
+ * @param tool - Raw MCP tool name.
+ * @param approval - Independent per-tool approval mode.
+ * @returns Refreshed installed-plugin projection.
+ */
+async setMcpToolApproval( identityOrName: string, server: string, tool: string, approval: 'ask' | 'allow' | 'deny', ): Promise<ImportedPluginSnapshot>
+
+/**
+ * Unload every live component owned by one plugin.
+ * @param identity - Installed plugin identity.
+ * @returns After skills, hooks, and MCP fibers quiesce.
+ */
+async unload(identity: string): Promise<void>
+```
+
+Source: [`packages/host/plugin-runtime/src/index.ts`](../../packages/host/plugin-runtime/src/index.ts)
 
 <a id="cordis-events"></a>
 

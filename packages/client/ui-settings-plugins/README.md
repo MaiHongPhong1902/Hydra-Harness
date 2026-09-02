@@ -8,7 +8,7 @@ The configurable tab reads which settings namespaces the Host serves and dispatc
 
 The cards this package ships cover the shell executor (`bash`), the agent loop's tool-call parallelism (`agent-loop`), and the BHAgent search provider (`web-search-deepseek`). The search card contributes to `settings.browser.item` in Desktop; a Web-only deployment keeps it in Plugin configuration because it has no Browser page.
 
-The MCP tab configures the shipped `obsidian-knowledge` plugin. It writes the optional Browser target hostname through that plugin's settings namespace and writes `OBSIDIAN_API_KEY` through the credentials domain, so the stored key never rides a browser response. The local MCP endpoint remains the plugin-owned loopback default.
+The MCP tab enables or disables the shipped `obsidian-knowledge` plugin locally, and configures its optional Browser target hostname through that plugin's settings namespace. It writes `OBSIDIAN_API_KEY` through the credentials domain, so the stored key never rides a browser response. The local MCP endpoint remains the plugin-owned loopback default.
 
 ## Extension point
 

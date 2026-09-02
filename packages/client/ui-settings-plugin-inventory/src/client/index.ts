@@ -5,10 +5,20 @@ import type { ClientContext } from '@bosch/bh-client-runtime/client'
 import type { ConnectionHandle } from '@bosch/bh-client-connection/client'
 import type {} from '@bosch/bh-client-ui-settings/client'
 import { MarketplaceSettingsTab, type MarketplaceSettingsTabInjected } from './MarketplaceSettingsTab.tsx'
-import { PluginInventorySettingsTab, type PluginInventorySettingsTabInjected } from './PluginInventorySettingsTab.tsx'
+import { ImportedPluginCapabilitiesTab, type ImportedPluginCapabilitiesTabInjected } from './ImportedPluginCapabilitiesTab.tsx'
+import {
+  PluginInventorySettingsTab,
+  type ImportedPluginControls,
+  type NativePluginControls,
+} from './PluginInventorySettingsTab.tsx'
 import { en, type PluginInventoryLocaleKey } from './locales.ts'
 
-export type { PluginInventorySettingsTabInjected, PluginInventorySettingsTabProps } from './PluginInventorySettingsTab.tsx'
+export type {
+  ImportedPluginControls,
+  NativePluginControls,
+  PluginInventorySettingsTabProps,
+} from './PluginInventorySettingsTab.tsx'
+export type { ImportedPluginCapabilitiesTabInjected, ImportedPluginCapabilitiesTabProps } from './ImportedPluginCapabilitiesTab.tsx'
 export type { MarketplaceSettingsTabInjected, MarketplaceSettingsTabProps } from './MarketplaceSettingsTab.tsx'
 export type { PluginInventoryLocaleKey } from './locales.ts'
 
@@ -25,38 +35,24 @@ export const NS = 'settings.pluginInventory'
 /** Services required by the Settings registration and generated Remote face. */
 export const inject = ['slots', 'locale', 'connection', 'remote', 'remote.pluginInventory']
 
-/** Contribute the lazy inventory tab to the Plugins settings section. */
+/** Contribute the lazy plugin and marketplace tabs to the Plugins settings section. */
 export function apply(ctx: ClientContext): void {
   ctx.effect(() => ctx.locale.register(NS, { en }), 'ui-settings-plugin-inventory: dictionaries')
 
   const t = ctx.locale.bind(NS)
   const connection = ctx.get('connection') as ConnectionHandle
-  const list: PluginInventorySettingsTabInjected['list'] = async () => {
-    const result = await ctx.remote.pluginInventory.list()
-    if (!result.ok) {
-      throw new Error(`pluginInventory.list failed: ${result.error.code}: ${result.error.message}`)
-    }
-    return result.value
-  }
-  const setEnabled: PluginInventorySettingsTabInjected['setEnabled'] = async (entryId, enabled) => {
-    const result = await ctx.remote.pluginInventory.setEnabled({ entryId, enabled })
-    if (!result.ok) {
-      throw new Error(`pluginInventory.setEnabled failed: ${result.error.code}: ${result.error.message}`)
-    }
-    return result.value
-  }
-  const injected = (): PluginInventorySettingsTabInjected => ({ list, setEnabled })
-
-  ctx.slots.inject('settings.plugins.tab', () => ctx.slots.register({
-    name: 'settings.plugins.tab',
-    id: 'all',
-    order: 10,
-    label: () => t('tab'),
-    locale: NS,
-    inject: injected,
-  }, PluginInventorySettingsTab))
-
+  let nativePlugins: NativePluginControls | undefined
   if (connection.isLoopback) {
+    const listPlugins: NativePluginControls['list'] = async () => {
+      const result = await ctx.remote.pluginInventory.list()
+      if (!result.ok) throw new Error(`pluginInventory.list failed: ${result.error.code}: ${result.error.message}`)
+      return result.value
+    }
+    const setPluginEnabled: NativePluginControls['setEnabled'] = async (entryId, enabled) => {
+      const result = await ctx.remote.pluginInventory.setEnabled({ entryId, enabled })
+      if (!result.ok) throw new Error(`pluginInventory.setEnabled failed: ${result.error.code}: ${result.error.message}`)
+      return result.value
+    }
     const listMarketplaces: MarketplaceSettingsTabInjected['listMarketplaces'] = async () => {
       const result = await ctx.remote.pluginInventory.listMarketplaces()
       if (!result.ok) {
@@ -71,22 +67,59 @@ export function apply(ctx: ClientContext): void {
       }
       return result.value
     }
-    const installMarketplacePlugin: MarketplaceSettingsTabInjected['installMarketplacePlugin'] = async (
-      source,
-      pluginId,
-    ) => {
-      const result = await ctx.remote.pluginInventory.installMarketplacePlugin({ source, pluginId })
-      if (!result.ok) {
-        throw new Error(
-          `pluginInventory.installMarketplacePlugin failed: ${result.error.code}: ${result.error.message}`,
-        )
-      }
+    const removeMarketplace: MarketplaceSettingsTabInjected['removeMarketplace'] = async (source) => {
+      const result = await ctx.remote.pluginInventory.removeMarketplace(source)
+      if (!result.ok) throw new Error(`pluginInventory.removeMarketplace failed: ${result.error.code}: ${result.error.message}`)
       return result.value
+    }
+    const listImportedPlugins: ImportedPluginControls['list'] = async () => {
+      const result = await ctx.remote.pluginInventory.listImportedPlugins()
+      if (!result.ok) throw new Error(`pluginInventory.listImportedPlugins failed: ${result.error.code}: ${result.error.message}`)
+      return result.value
+    }
+    const importPlugin: ImportedPluginControls['import'] = async (source) => {
+      const result = await ctx.remote.pluginInventory.importPlugin(source)
+      if (!result.ok) throw new Error(`pluginInventory.importPlugin failed: ${result.error.code}: ${result.error.message}`)
+      return result.value
+    }
+    const enablePlugin: ImportedPluginControls['enable'] = async (identity) => {
+      const result = await ctx.remote.pluginInventory.enablePlugin(identity)
+      if (!result.ok) throw new Error(`pluginInventory.enablePlugin failed: ${result.error.code}: ${result.error.message}`)
+      return result.value
+    }
+    const disablePlugin: ImportedPluginControls['disable'] = async (identity) => {
+      const result = await ctx.remote.pluginInventory.disablePlugin(identity)
+      if (!result.ok) throw new Error(`pluginInventory.disablePlugin failed: ${result.error.code}: ${result.error.message}`)
+      return result.value
+    }
+    const trustPlugin: NonNullable<ImportedPluginCapabilitiesTabInjected['trust']> = async (identity) => {
+      const result = await ctx.remote.pluginInventory.trustPlugin(identity)
+      if (!result.ok) throw new Error(`pluginInventory.trustPlugin failed: ${result.error.code}: ${result.error.message}`)
+      return result.value
+    }
+    const untrustPlugin: NonNullable<ImportedPluginCapabilitiesTabInjected['untrust']> = async (identity) => {
+      const result = await ctx.remote.pluginInventory.untrustPlugin(identity)
+      if (!result.ok) throw new Error(`pluginInventory.untrustPlugin failed: ${result.error.code}: ${result.error.message}`)
+      return result.value
+    }
+    const removePlugin: ImportedPluginControls['remove'] = async (identity) => {
+      const result = await ctx.remote.pluginInventory.removePlugin(identity)
+      if (!result.ok) throw new Error(`pluginInventory.removePlugin failed: ${result.error.code}: ${result.error.message}`)
+      return result.value
+    }
+    nativePlugins = { list: listPlugins, setEnabled: setPluginEnabled }
+    const importedPlugins: ImportedPluginControls = {
+      list: listImportedPlugins,
+      import: importPlugin,
+      enable: enablePlugin,
+      disable: disablePlugin,
+      remove: removePlugin,
     }
     const marketplaceInjected = (): MarketplaceSettingsTabInjected => ({
       addMarketplace,
-      installMarketplacePlugin,
+      importedPlugins,
       listMarketplaces,
+      removeMarketplace,
     })
     ctx.slots.inject('settings.plugins.tab', () => ctx.slots.register({
       name: 'settings.plugins.tab',
@@ -96,5 +129,41 @@ export function apply(ctx: ClientContext): void {
       locale: NS,
       inject: marketplaceInjected,
     }, MarketplaceSettingsTab))
+    const capabilitiesInjected = (capability: ImportedPluginCapabilitiesTabInjected['capability']): ImportedPluginCapabilitiesTabInjected => ({
+      capability,
+      list: listImportedPlugins,
+      trust: trustPlugin,
+      untrust: untrustPlugin,
+    })
+    ctx.slots.inject('settings.plugins.tab', function* () {
+      yield ctx.slots.register({
+        name: 'settings.plugins.tab',
+        id: 'skills',
+        order: 15,
+        label: () => t('skillsTab'),
+        locale: NS,
+        inject: () => capabilitiesInjected('skills'),
+      }, ImportedPluginCapabilitiesTab)
+      yield ctx.slots.register({
+        name: 'settings.plugins.tab',
+        id: 'hooks',
+        order: 25,
+        label: () => t('hooksTab'),
+        locale: NS,
+        inject: () => capabilitiesInjected('hooks'),
+      }, ImportedPluginCapabilitiesTab)
+    })
   }
+
+  const injected = () => ({
+    ...(nativePlugins === undefined ? {} : { nativePlugins }),
+  })
+  ctx.slots.inject('settings.plugins.tab', () => ctx.slots.register({
+    name: 'settings.plugins.tab',
+    id: 'all',
+    order: 10,
+    label: () => t('tab'),
+    locale: NS,
+    inject: injected,
+  }, PluginInventorySettingsTab))
 }

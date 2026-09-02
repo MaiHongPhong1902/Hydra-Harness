@@ -10,7 +10,7 @@ A blanket statement that the checkout is not the working directory would also be
 
 ## Decision
 
-The section identifies the path as the “Bosch Harness implementation checkout.” It says that the checkout location and current working directory are separate values that may differ, forbids inferring the working directory from the checkout path, directs the model to use `pwd`, and limits the checkout's purpose to inspecting or extending BH itself.
+The section identifies the path as the “Bosch Harness implementation checkout.” It says that the checkout location and current working directory are separate values that may differ, forbids inferring the working directory from the checkout path, directs the model to use `pwd` only when a concrete task needs that fact, and limits the checkout's purpose to a user request to inspect or extend BH itself. The [intent-first tool-selection decision](2026-08-31-intent-first-tool-selection.md) makes the conditional wording part of the wider conversational boundary.
 
 The path derivation, global `harness:source` ownership, and `-99` ordering remain unchanged. Describing the values as conceptually separate rather than always unequal keeps the instruction accurate in both ordinary project sessions and `bh meta`.
 

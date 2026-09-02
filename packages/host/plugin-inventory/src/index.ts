@@ -1,26 +1,27 @@
 /** Runtime plugin inventory plus shared user-setting enablement controls. */
 
 import { execFile } from 'node:child_process'
-import { createHash } from 'node:crypto'
-import { lstat, mkdtemp, readFile, realpath, rm, stat, writeFile } from 'node:fs/promises'
+import { lstat, mkdtemp, readFile, realpath, rm, stat } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { basename, dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Service, type Context, type FiberState } from '@bosch/cordis'
 import type { Entry } from '@bosch/cordis-plugin-loader'
 import type { Include } from '@bosch/cordis-plugin-include'
-import { readProfileManifest, resolveProfileDir } from '@bosch/bh-app-boot'
+import { profilePluginEnablement, readProfileManifest, resolveProfileDir } from '@bosch/bh-app-boot'
+import { withFileLock, writeFileAtomic } from '@bosch/bh-atomic-write'
 import { settingsNamespace, type SettingsScope } from '@bosch/bh-settings'
 import { TypertRemoteService, Remote } from '@bosch/bh-typert-protocol'
+import type {
+  ImportedPluginEntry, ImportedPluginRuntime, ImportedPluginSnapshot, PluginImportSource,
+} from '@bosch/bh-plugin-runtime'
 import z from '@bosch/schemastery'
 import { z as zod } from 'zod'
 import type {
   AddPluginMarketplaceRequest,
-  InstallMarketplacePluginRequest,
-  MarketplacePluginId,
-  MarketplacePluginInstallResult,
-  MarketplacePluginView,
+  ImportedPluginMcpServerEnablementRequest,
   PluginEnablementRequest,
+  PluginEnablementResult,
   PluginEntryId,
   PluginFiberPhase,
   PluginInventoryEntry,
@@ -34,15 +35,6 @@ export type * from './types.ts'
 /** Brand an existing Loader-tree entry id at the owning boundary. */
 function pluginEntryId(value: string): PluginEntryId {
   return value as PluginEntryId
-}
-
-/** Bind the browser-visible id to the exact package the user reviewed. */
-function marketplacePluginId(plugin: { id: string; package: string; version: string }): MarketplacePluginId {
-  return createHash('sha256')
-    .update(plugin.id).update('\0')
-    .update(plugin.package).update('\0')
-    .update(plugin.version)
-    .digest('hex') as MarketplacePluginId
 }
 
 /** Runtime mirror: FiberState is a cross-package const enum. */
@@ -73,34 +65,9 @@ const MARKETPLACE_GIT_TIMEOUT_MS = 30_000
 const MAX_MARKETPLACE_SPARSE_PATHS = 20
 const MAX_MARKETPLACE_SPARSE_PATH_LENGTH = 512
 const GITHUB_SHORTHAND_PATTERN = /^([A-Za-z0-9][A-Za-z0-9._-]*)\/([A-Za-z0-9][A-Za-z0-9._-]*)$/u
-const PACKAGE_NAME_PATTERN = /^(?:@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*$/u
-const EXACT_VERSION_PATTERN =
-  // eslint-disable-next-line @stylistic/max-len -- Keep the SemVer grammar contiguous.
-  /^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*))*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/u
-
 const MarketplaceDocumentSchema = zod.object({
-  name: zod.string().trim().min(1).max(80),
-  plugins: zod.array(zod.object({
-    id: zod.string().trim().min(1).max(80).regex(/^[A-Za-z0-9][A-Za-z0-9._-]*$/u),
-    name: zod.string().trim().min(1).max(100),
-    description: zod.string().trim().min(1).max(500),
-    package: zod.string().trim().max(214).regex(PACKAGE_NAME_PATTERN)
-      .refine(name => name !== 'node_modules' && name !== 'favicon.ico'),
-    version: zod.string().trim().regex(EXACT_VERSION_PATTERN),
-  }).strict()).max(500),
-}).strict().superRefine((marketplace, refinement) => {
-  const ids = new Set<string>()
-  marketplace.plugins.forEach((plugin, index) => {
-    if (ids.has(plugin.id)) {
-      refinement.addIssue({
-        code: 'custom',
-        message: `duplicate plugin id ${JSON.stringify(plugin.id)}`,
-        path: ['plugins', index, 'id'],
-      })
-    }
-    ids.add(plugin.id)
-  })
-})
+  plugins: zod.array(zod.record(zod.string(), zod.unknown())).max(500),
+}).passthrough()
 
 type MarketplaceDocument = zod.infer<typeof MarketplaceDocumentSchema>
 
@@ -270,17 +237,25 @@ function runGit(cwd: string, args: readonly string[]): Promise<void> {
 }
 
 async function readMarketplaceDocument(root: string): Promise<MarketplaceDocument> {
-  const filename = join(root, 'marketplace.json')
-  const metadata = await lstat(filename)
-  if (!metadata.isFile()) throw new Error(`pluginInventory: ${filename} is not a file`)
-  if (metadata.size > MAX_MARKETPLACE_BYTES) {
-    throw new Error(`pluginInventory: marketplace exceeds ${String(MAX_MARKETPLACE_BYTES)} bytes`)
+  for (const relativePath of ['.agents/plugins/marketplace.json', 'marketplace.json']) {
+    const filename = join(root, relativePath)
+    try {
+      const metadata = await lstat(filename)
+      if (!metadata.isFile()) continue
+      if (metadata.size > MAX_MARKETPLACE_BYTES) {
+        throw new Error(`pluginInventory: marketplace exceeds ${String(MAX_MARKETPLACE_BYTES)} bytes`)
+      }
+      const body = await readFile(filename)
+      if (body.byteLength > MAX_MARKETPLACE_BYTES) {
+        throw new Error(`pluginInventory: marketplace exceeds ${String(MAX_MARKETPLACE_BYTES)} bytes`)
+      }
+      return MarketplaceDocumentSchema.parse(JSON.parse(body.toString('utf8')) as unknown)
+    } catch (error) {
+      if (missingPath(error)) continue
+      throw error
+    }
   }
-  const body = await readFile(filename)
-  if (body.byteLength > MAX_MARKETPLACE_BYTES) {
-    throw new Error(`pluginInventory: marketplace exceeds ${String(MAX_MARKETPLACE_BYTES)} bytes`)
-  }
-  return MarketplaceDocumentSchema.parse(JSON.parse(body.toString('utf8')) as unknown)
+  throw new Error('pluginInventory: OpenAI/Codex marketplace.json is missing')
 }
 
 /** Load and validate one marketplace root without retaining an executable checkout. */
@@ -302,7 +277,8 @@ async function loadMarketplace(request: AddPluginMarketplaceRequest | Marketplac
         throw new Error('pluginInventory: Git ref is invalid', { cause })
       }
     }
-    const cloneArgs = ['clone', '--depth', '1', '--filter=blob:none', '--sparse']
+    const cloneArgs = ['clone', '--depth', '1', '--filter=blob:none']
+    if (source.sparsePaths.length > 0) cloneArgs.push('--sparse')
     if (source.gitRef !== '') cloneArgs.push('--no-checkout')
     cloneArgs.push('--', source.source, checkout)
     await runGit(tempRoot, cloneArgs)
@@ -312,7 +288,7 @@ async function loadMarketplace(request: AddPluginMarketplaceRequest | Marketplac
     if (source.sparsePaths.length > 0) {
       await runGit(tempRoot, [
         '-C', checkout, 'sparse-checkout', 'set', '--cone', '--sparse-index', '--',
-        ...source.sparsePaths,
+        '.agents/plugins', ...source.sparsePaths,
       ])
     }
     if (source.gitRef !== '') {
@@ -324,57 +300,9 @@ async function loadMarketplace(request: AddPluginMarketplaceRequest | Marketplac
   }
 }
 
-/** Invoke this process's existing `bh plugin` command without a shell. */
-function runProfilePlugin(
-  profileDir: string,
-  pluginArgs: readonly string[],
-  failure: string,
-): Promise<void> {
-  const cliEntry = process.argv[1]
-  if (cliEntry === undefined) throw new Error('pluginInventory: current bh CLI entry is unavailable')
-  const sourceArgs: string[] = []
-  if (cliEntry.endsWith('.ts')) {
-    for (let index = 0; index < process.execArgv.length; index += 1) {
-      const argument = process.execArgv[index] as string
-      if (argument.startsWith('--import=')) sourceArgs.push(argument)
-      if (argument === '--import' && process.execArgv[index + 1] !== undefined) {
-        sourceArgs.push(argument, process.execArgv[index + 1] as string)
-        index += 1
-      }
-    }
-  }
-  const args = [
-    ...sourceArgs,
-    cliEntry,
-    'plugin', '--profile', basename(profileDir),
-    ...pluginArgs,
-  ]
-  return new Promise((resolvePromise, reject) => {
-    execFile(process.execPath, args, {
-      cwd: profileDir,
-      encoding: 'utf8',
-      maxBuffer: MAX_MARKETPLACE_BYTES,
-      windowsHide: true,
-      ...(process.versions.electron === undefined
-        ? {}
-        : { env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' } }),
-    }, (error, _stdout, stderr) => {
-      if (error === null) {
-        resolvePromise()
-        return
-      }
-      const detail = stderr.trim().split(/\r?\n/u)[0]
-      reject(new Error(
-        `pluginInventory: ${failure}${detail === undefined || detail === '' ? '' : `: ${detail}`}`,
-        { cause: error },
-      ))
-    })
-  })
-}
-
-/** Plugin ids that the assembled product requires to remain enabled. */
+/** Plugin ids whose desired state applies only when the profile starts again. */
 export interface Config {
-  /** Direct root entry ids that cannot be disabled in-app. */
+  /** Direct root entry ids protected from live unload. */
   protectedEntryIds?: string[]
   /** Entry ids owned by another composition plane and omitted from this inventory. */
   compositionEntryIds?: string[]
@@ -401,6 +329,7 @@ export class PluginInventoryGateway extends TypertRemoteService {
   private readonly defaultEnabled = new Map<string, boolean>()
   private readonly originalConfigs = new Map<string, unknown>()
   private readonly appliedSettings = new Set<string>()
+  private restartEnablement: Record<string, boolean> = {}
   private mutationTail: Promise<unknown> = Promise.resolve()
 
   constructor(ctx: Context, config: Config = {}) {
@@ -419,10 +348,10 @@ export class PluginInventoryGateway extends TypertRemoteService {
       this.defaultEnabled.set(entry.options.name, !entry.disabled && !this.isHmrWatchOnly(entry))
       this.originalConfigs.set(entry.options.name, structuredClone(entry.options.config))
     }
-    for (const entry of representatives.values()) {
-      if (entry.disabled && this.protectedEntryIds.has(entry.options.id)) {
-        await this.updateModule(entry, true)
-      }
+    if ([...representatives.values()].some(entry => this.isRestartOnly(entry))) {
+      this.restartEnablement = profilePluginEnablement(
+        readProfileManifest('pluginInventory', this.profileDir()),
+      )
     }
     await this.applySettings(this.settings.get().enabled)
     this.ctx.effect(
@@ -439,30 +368,10 @@ export class PluginInventoryGateway extends TypertRemoteService {
         && typeof tree.filename === 'string')
   }
 
-  /** Resolve the active root Include back to the profile directory the CLI owns. */
-  private profileDir(): string {
-    const filename = this.rootInclude()?.filename
-    if (typeof filename !== 'string') throw new Error('pluginInventory: active profile root is unavailable')
-    const path = filename.startsWith('file:') ? fileURLToPath(filename) : filename
-    const actual = resolve(dirname(path))
-    const expected = resolve(resolveProfileDir(basename(actual)))
-    if (actual !== expected) {
-      throw new Error(`pluginInventory: active root ${path} is not a managed bh profile`)
-    }
-    return expected
-  }
-
-  /** Bundle names already active in the persisted profile stack. */
-  private installedBundles(profileDir: string): ReadonlySet<string> {
-    const manifest = readProfileManifest('pluginInventory', profileDir)
-    return new Set(manifest.bh?.profile?.bundles ?? [])
-  }
-
-  /** Project persisted sources without letting one unavailable catalog hide the others. */
+  /** Project persisted OpenAI/Codex marketplace sources without exposing their entries here. */
   private async marketplaceSnapshot(): Promise<PluginMarketplaceSnapshot> {
     const sources = this.marketplaceSettings.get().sources
     if (sources.length === 0) return { marketplaces: [] }
-    const installed = this.installedBundles(this.profileDir())
     const marketplaces: PluginMarketplaceView[] = []
     for (const source of sources) {
       const sourceView = {
@@ -471,16 +380,8 @@ export class PluginInventoryGateway extends TypertRemoteService {
         sparsePaths: source.sparsePaths,
       }
       try {
-        const loaded = await loadMarketplace(source)
-        const plugins: MarketplacePluginView[] = loaded.document.plugins.map(plugin => ({
-          id: marketplacePluginId(plugin),
-          name: plugin.name,
-          description: plugin.description,
-          packageName: plugin.package,
-          version: plugin.version,
-          installed: installed.has(plugin.package),
-        }))
-        marketplaces.push({ status: 'ready', ...sourceView, name: loaded.document.name, plugins })
+        await loadMarketplace(source)
+        marketplaces.push({ status: 'ready', ...sourceView })
       } catch {
         marketplaces.push({ status: 'unavailable', ...sourceView })
       }
@@ -514,18 +415,74 @@ export class PluginInventoryGateway extends TypertRemoteService {
     return entries
   }
 
+  /** Whether changing this root entry must wait for the next profile boot. */
+  private isRestartOnly(entry: Entry): boolean {
+    return this.protectedEntryIds.has(entry.options.id)
+  }
+
   private isToggleable(entry: Entry, rootInclude = this.rootInclude()): boolean {
     return rootInclude !== undefined
       && entry.parent.tree === rootInclude
-      && !this.moduleEntries(entry.options.name)
-        .some(candidate => this.protectedEntryIds.has(candidate.options.id))
   }
 
   private enabled(entry: Entry): boolean {
-    if (!this.isToggleable(entry)) return !entry.disabled
+    if (this.isRestartOnly(entry) || !this.isToggleable(entry)) return !entry.disabled
     return this.settings.get().enabled[entry.options.name]
       ?? this.defaultEnabled.get(entry.options.name)
       ?? !entry.disabled
+  }
+
+  /** Desired state used by the switch; restart-only entries retain the live Loader state until reboot. */
+  private desiredEnabled(entry: Entry): boolean {
+    return this.isRestartOnly(entry)
+      ? this.restartEnablement[entry.options.id] ?? !entry.disabled
+      : this.enabled(entry)
+  }
+
+  /** Whether the currently loaded entry still differs from its persisted desired state. */
+  private restartRequired(entry: Entry): boolean {
+    const pending = this.restartEnablement[entry.options.id]
+    return this.isRestartOnly(entry) && pending !== undefined && pending !== !entry.disabled
+  }
+
+  /** Resolve the active root Include to the profile directory the launcher owns. */
+  private profileDir(): string {
+    const filename = this.rootInclude()?.filename
+    if (typeof filename !== 'string') throw new Error('pluginInventory: active profile root is unavailable')
+    const path = filename.startsWith('file:') ? fileURLToPath(filename) : filename
+    const actual = resolve(dirname(path))
+    const expected = resolve(resolveProfileDir(basename(actual)))
+    if (actual !== expected) {
+      throw new Error(`pluginInventory: active root ${path} is not a managed bh profile`)
+    }
+    return expected
+  }
+
+  /** Persist one restart-only root switch without changing the live Loader tree. */
+  private async setRestartEnabled(entry: Entry, enabled: boolean): Promise<void> {
+    const profileDir = this.profileDir()
+    const manifestPath = join(profileDir, 'package.json')
+    await withFileLock(manifestPath, async () => {
+      // Re-read while holding the cross-process lock so a concurrent profile
+      // edit cannot be replaced by a stale manifest snapshot.
+      const manifest = readProfileManifest('pluginInventory', profileDir)
+      const pluginEnablement = {
+        ...profilePluginEnablement(manifest),
+        [entry.options.id]: enabled,
+      }
+      const next = {
+        ...manifest,
+        bh: {
+          ...manifest.bh,
+          profile: {
+            ...manifest.bh?.profile,
+            pluginEnablement,
+          },
+        },
+      }
+      await writeFileAtomic(manifestPath, `${JSON.stringify(next, undefined, 2)}\n`, { mode: 0o600 })
+      this.restartEnablement = pluginEnablement
+    })
   }
 
   private isHmrWatchOnly(entry: Entry): boolean {
@@ -590,7 +547,7 @@ export class PluginInventoryGateway extends TypertRemoteService {
     for (const moduleName of modules) {
       const entry = representatives.get(moduleName)
       if (entry === undefined) continue
-      if (!this.isToggleable(entry, rootInclude)) continue
+      if (!this.isToggleable(entry, rootInclude) || this.isRestartOnly(entry)) continue
       const desired = enabled[moduleName]
         ?? this.defaultEnabled.get(moduleName)
         ?? !entry.disabled
@@ -616,6 +573,8 @@ export class PluginInventoryGateway extends TypertRemoteService {
     const rootInclude = this.rootInclude()
     for (const entry of this.representatives(rootInclude).values()) {
       const enabled = this.enabled(entry)
+      const restartRequired = this.restartRequired(entry)
+      const pendingEnabled = restartRequired ? this.restartEnablement[entry.options.id] : undefined
       const active = enabled
         ? this.moduleEntries(entry.options.name).find(candidate => !candidate.disabled && candidate.fiber !== undefined)
         : undefined
@@ -624,6 +583,8 @@ export class PluginInventoryGateway extends TypertRemoteService {
         entryId: pluginEntryId(entry.id),
         moduleName: entry.options.name,
         enabled,
+        ...pendingEnabled === undefined ? {} : { pendingEnabled },
+        restartRequired,
         toggleable: this.isToggleable(entry, rootInclude),
         fiberPhase: fiber === undefined ? null : FIBER_PHASE[fiber.state],
       })
@@ -632,13 +593,13 @@ export class PluginInventoryGateway extends TypertRemoteService {
   }
 
   /**
-   * Apply one module-wide live state, then persist it in the shared settings
-   * document. A failed settings write rolls the Loader entries back.
+   * Persist a restart-only root state without live unload, or apply one normal
+   * module-wide live state and persist it in the shared settings document.
    * @param request - target entry and desired enablement.
-   * @returns A fresh inventory snapshot after the mutation.
+   * @returns The fresh snapshot and whether this mutation needs a restart.
    */
   @Remote('setEnabled')
-  setEnabled(request: PluginEnablementRequest): Promise<PluginInventorySnapshot> {
+  setEnabled(request: PluginEnablementRequest): Promise<PluginEnablementResult> {
     return this.enqueue(async () => {
       const resolved = this.ctx.loader.resolve(request.entryId)
       const rootInclude = this.rootInclude()
@@ -646,7 +607,14 @@ export class PluginInventoryGateway extends TypertRemoteService {
       if (entry === undefined || !this.isToggleable(entry, rootInclude)) {
         throw new Error(`pluginInventory: entry ${request.entryId} cannot be toggled in-app`)
       }
-      if (request.enabled === this.enabled(entry)) return this.list()
+      if (request.enabled === this.desiredEnabled(entry)) {
+        return { snapshot: this.list(), restartRequired: this.restartRequired(entry) }
+      }
+
+      if (this.isRestartOnly(entry)) {
+        await this.setRestartEnabled(entry, request.enabled)
+        return { snapshot: this.list(), restartRequired: this.restartRequired(entry) }
+      }
 
       const states = await this.updateModule(entry, request.enabled)
       try {
@@ -659,30 +627,21 @@ export class PluginInventoryGateway extends TypertRemoteService {
         }
         throw error
       }
-      return this.list()
+      return { snapshot: this.list(), restartRequired: false }
     })
   }
 
-  /**
-   * Load every persisted marketplace and report validated metadata only.
-   * @returns Catalogs in persisted order; an unavailable source stays visible without details.
-   */
+  /** @returns OpenAI/Codex marketplace sources in persisted order. */
   @Remote('listMarketplaces')
   listMarketplaces(): Promise<PluginMarketplaceSnapshot> {
     return this.marketplaceSnapshot()
   }
 
-  /**
-   * Validate one marketplace root before persisting its normalized source descriptor.
-   * Re-adding a source replaces its Git ref and sparse checkout paths.
-   * @param request - Git-backed or local marketplace root.
-   * @returns The refreshed persisted marketplace list.
-   */
+  /** @returns The refreshed OpenAI/Codex marketplace source list. */
   @Remote('addMarketplace')
   addMarketplace(request: AddPluginMarketplaceRequest): Promise<PluginMarketplaceSnapshot> {
     return this.enqueue(async () => {
       const loaded = await loadMarketplace(request)
-      this.profileDir()
       const sources = this.marketplaceSettings.get().sources
       const existing = sources.findIndex(source => source.source === loaded.source.source)
       const next = existing === -1
@@ -693,67 +652,110 @@ export class PluginInventoryGateway extends TypertRemoteService {
     })
   }
 
-  /**
-   * Re-resolve one persisted catalog entry, then install its exact registry package through `bh plugin`.
-   * Package lifecycle scripts stay disabled; the new bundle joins the running profile after restart.
-   * @param request - persisted marketplace source and marketplace-local plugin id.
-   * @returns Refreshed catalogs and whether this call changed the profile stack.
-   */
-  @Remote('installMarketplacePlugin')
-  installMarketplacePlugin(request: InstallMarketplacePluginRequest): Promise<MarketplacePluginInstallResult> {
+  /** Remove one persisted OpenAI/Codex marketplace source. */
+  @Remote('removeMarketplace')
+  removeMarketplace(source: string): Promise<PluginMarketplaceSnapshot> {
     return this.enqueue(async () => {
-      const source = this.marketplaceSettings.get().sources.find(candidate => candidate.source === request.source)
-      if (source === undefined) throw new Error(`pluginInventory: marketplace ${request.source} is not configured`)
-      const loaded = await loadMarketplace(source)
-      const plugin = loaded.document.plugins.find(candidate => marketplacePluginId(candidate) === request.pluginId)
-      if (plugin === undefined) {
-        throw new Error(`pluginInventory: marketplace ${request.source} has no plugin ${request.pluginId}`)
+      const next = this.marketplaceSettings.get().sources.filter(candidate => candidate.source !== source)
+      if (next.length === this.marketplaceSettings.get().sources.length) {
+        throw new Error(`pluginInventory: marketplace ${source} is not configured`)
       }
-      const profileDir = this.profileDir()
-      if (this.installedBundles(profileDir).has(plugin.package)) {
-        return { snapshot: await this.marketplaceSnapshot(), restartRequired: false }
-      }
-      const manifestPath = join(profileDir, 'package.json')
-      const before = await readFile(manifestPath, 'utf8')
-      const lockfilePath = join(profileDir, 'pnpm-lock.yaml')
-      const beforeLockfile = await readFile(lockfilePath).catch((error: unknown) => {
-        if (error instanceof Error && 'code' in error && error.code === 'ENOENT') return undefined
-        throw error
-      })
-      const restoreLockfile = (): Promise<void> => beforeLockfile === undefined
-        ? rm(lockfilePath, { force: true })
-        : writeFile(lockfilePath, beforeLockfile)
-      const packageSpec = `${plugin.package}@${plugin.version}`
-      try {
-        await runProfilePlugin(
-          profileDir,
-          ['add', '--save-exact', '--ignore-scripts', packageSpec],
-          `failed to install ${packageSpec}`,
-        )
-        if (!this.installedBundles(profileDir).has(plugin.package)) {
-          throw new Error(`pluginInventory: ${packageSpec} declares no installable bh bundle`)
-        }
-      } catch (error) {
-        try {
-          await writeFile(manifestPath, before)
-          await restoreLockfile()
-          try {
-            await runProfilePlugin(
-              profileDir,
-              ['install', '--ignore-scripts'],
-              `failed to roll back ${packageSpec}`,
-            )
-          } finally {
-            await writeFile(manifestPath, before)
-            await restoreLockfile()
-          }
-        } catch (rollbackError) {
-          throw new AggregateError([error, rollbackError], `pluginInventory: failed to install and roll back ${packageSpec}`)
-        }
-        throw error
-      }
-      return { snapshot: await this.marketplaceSnapshot(), restartRequired: true }
+      await this.marketplaceSettings.update({ sources: next })
+      return await this.marketplaceSnapshot()
     })
+  }
+
+  /**
+   * List source-qualified imported OpenAI/Codex plugin bundles.
+   * @returns Current imported-plugin projection.
+   */
+  @Remote('listImportedPlugins')
+  listImportedPlugins(): Promise<ImportedPluginSnapshot> {
+    return this.importedPlugins().list()
+  }
+
+  /**
+   * Stage a direct local/Git source or marketplace bundle through the shared runtime.
+   * @param source - Plugin source to import.
+   * @returns Current imported-plugin projection.
+   */
+  @Remote('importPlugin')
+  importPlugin(source: PluginImportSource): Promise<ImportedPluginSnapshot> {
+    return this.importedPlugins().import(source)
+  }
+
+  /**
+   * Read one imported bundle by source-qualified identity or an unambiguous name.
+   * @param identityOrName - Source-qualified identity or unambiguous plugin name.
+   * @returns Current plugin projection.
+   */
+  @Remote('infoPlugin')
+  infoPlugin(identityOrName: string): Promise<ImportedPluginEntry> {
+    return this.importedPlugins().info(identityOrName)
+  }
+
+  /**
+   * Enable and load one imported bundle without changing native BH package state.
+   * @param identityOrName - Source-qualified identity or unambiguous plugin name.
+   * @returns Current imported-plugin projection.
+   */
+  @Remote('enablePlugin')
+  enablePlugin(identityOrName: string): Promise<ImportedPluginSnapshot> {
+    return this.importedPlugins().enable(identityOrName)
+  }
+
+  /**
+   * Disable and deterministically unload one imported bundle.
+   * @param identityOrName - Source-qualified identity or unambiguous plugin name.
+   * @returns Current imported-plugin projection.
+   */
+  @Remote('disablePlugin')
+  disablePlugin(identityOrName: string): Promise<ImportedPluginSnapshot> {
+    return this.importedPlugins().disable(identityOrName)
+  }
+
+  /** Change one imported plugin MCP server without changing hook trust. */
+  @Remote('setPluginMcpServerEnabled')
+  setPluginMcpServerEnabled(
+    request: ImportedPluginMcpServerEnablementRequest,
+  ): Promise<ImportedPluginSnapshot> {
+    return this.importedPlugins().setMcpServerEnabled(request.identity, request.server, request.enabled)
+  }
+
+  /**
+   * Trust only the current hook definitions; MCP/tool approval remains independent.
+   * @param identityOrName - Source-qualified identity or unambiguous plugin name.
+   * @returns Current imported-plugin projection.
+   */
+  @Remote('trustPlugin')
+  trustPlugin(identityOrName: string): Promise<ImportedPluginSnapshot> {
+    return this.importedPlugins().trustHooks(identityOrName)
+  }
+
+  /**
+   * Revoke hook trust without disabling other plugin components.
+   * @param identityOrName - Source-qualified identity or unambiguous plugin name.
+   * @returns Current imported-plugin projection.
+   */
+  @Remote('untrustPlugin')
+  untrustPlugin(identityOrName: string): Promise<ImportedPluginSnapshot> {
+    return this.importedPlugins().untrustHooks(identityOrName)
+  }
+
+  /**
+   * Remove one imported bundle and its writable plugin data.
+   * @param identityOrName - Source-qualified identity or unambiguous plugin name.
+   * @returns Current imported-plugin projection.
+   */
+  @Remote('removePlugin')
+  removePlugin(identityOrName: string): Promise<ImportedPluginSnapshot> {
+    return this.importedPlugins().remove(identityOrName)
+  }
+
+  private importedPlugins(): ImportedPluginRuntime {
+    const runtime = this.ctx.get('importedPlugins') as ImportedPluginRuntime | undefined
+    if (runtime === undefined) throw new Error('pluginInventory: imported plugin runtime is unavailable')
+    return runtime
   }
 }
 

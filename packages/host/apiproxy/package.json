@@ -45,6 +45,8 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "@bosch/bh-agent-instructions": "workspace:^",
+    "@bosch/bh-atomic-write": "workspace:^",
     "@bosch/bh-attachment": "workspace:^",
     "@bosch/bh-agent": "workspace:^",
     "@bosch/bh-agent-default-model": "workspace:^",
@@ -52,6 +54,7 @@
     "@bosch/bh-brand": "workspace:^",
     "@bosch/bh-commands": "workspace:^",
     "@bosch/bh-credentials": "workspace:^",
+    "@bosch/bh-home-paths": "workspace:^",
     "@bosch/bh-goal": "workspace:^",
     "@bosch/bh-host-directory-picker": "workspace:^",
     "@bosch/bh-llm": "workspace:^",

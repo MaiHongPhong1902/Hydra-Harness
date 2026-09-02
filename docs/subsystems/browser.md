@@ -171,6 +171,14 @@ One Electron window per agent, started lazily and closed with its owner.
 async perform( owner: Agent, action: BrowserAction, execution: BrowserExecutionContext = {}, ): Promise<BrowserOutcome>
 
 /**
+ * Capture the selected controlled page's visible viewport as a bounded PNG.
+ * The base64 is transient: callers must consume it before persisting output.
+ * @param owner - agent whose selected controlled tab is captured.
+ * @returns the bounded screenshot payload.
+ */
+async takeScreenshot(owner: Agent): Promise<BrowserScreenshot>
+
+/**
  * Search only the bounded app-owned history after applying the model-access policy.
  * @param owner - agent whose browser profile owns the history ledger.
  * @param query - case-insensitive title/URL text, from 1 to 256 characters.

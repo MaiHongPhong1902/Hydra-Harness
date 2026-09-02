@@ -55,7 +55,16 @@ describe('PluginInventoryGateway', () => {
       { method: 'setEnabled', invocation: { kind: 'direct' } },
       { method: 'listMarketplaces', invocation: { kind: 'direct' } },
       { method: 'addMarketplace', invocation: { kind: 'direct' } },
-      { method: 'installMarketplacePlugin', invocation: { kind: 'direct' } },
+      { method: 'removeMarketplace', invocation: { kind: 'direct' } },
+      { method: 'listImportedPlugins', invocation: { kind: 'direct' } },
+      { method: 'importPlugin', invocation: { kind: 'direct' } },
+      { method: 'infoPlugin', invocation: { kind: 'direct' } },
+      { method: 'enablePlugin', invocation: { kind: 'direct' } },
+      { method: 'disablePlugin', invocation: { kind: 'direct' } },
+      { method: 'setPluginMcpServerEnabled', invocation: { kind: 'direct' } },
+      { method: 'trustPlugin', invocation: { kind: 'direct' } },
+      { method: 'untrustPlugin', invocation: { kind: 'direct' } },
+      { method: 'removePlugin', invocation: { kind: 'direct' } },
     ])
   })
 

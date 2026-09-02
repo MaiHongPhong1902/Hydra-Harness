@@ -263,7 +263,7 @@ export function apply(ctx: Context, config: Config): void {
   ctx.systemPrompt.section({
     name: 'tool:jobs',
     order: 106,
-    text: 'Track every background job id you start. You are notified in-session when a job finishes — do not busy-poll or sleep on one; keep working on independent steps and do not duplicate a running job\'s work. Before giving a final answer, collect every still-relevant job with job_output (set wait: true only when you are genuinely blocked on it), and job_kill jobs that stopped mattering.',
+    text: 'Track every background job id you start. Only an id explicitly returned as a background job id is valid for job_output or job_kill; a continuable subagent id is not a job id and must not be passed to either tool. You are notified in-session when a job finishes — do not busy-poll or sleep on one; keep working on independent steps and do not duplicate a running job\'s work. Before giving a final answer, collect every still-relevant job with job_output (set wait: true only when you are genuinely blocked on it), and job_kill jobs that stopped mattering.',
   })
 
   // Use the exact lifecycle owner; reusable ids could resolve to a replacement.
@@ -301,13 +301,13 @@ export function apply(ctx: Context, config: Config): void {
 
   ctx.tools.register(defineTool({
     name: 'job_output',
-    description: 'Read a background job. Stream jobs return only output since the previous read; '
+    description: 'Read a background job by its job id, not a continuable subagent id. Stream jobs return only output since the previous read; '
       + 'final-output jobs return their result after settlement. Every response ends with '
       + '`[status: ...]`. Reads are non-blocking unless `wait: true`, which waits up to the configured cap.',
     // A timed-out wait returns job state rather than a TOOL_TIMEOUT error, so
     // this tool owns its deadline instead of using ToolDefinition.timeoutMs.
     parameters: {
-      job_id: { type: 'string', required: true, description: 'Job id returned by the tool that started the background work.' },
+      job_id: { type: 'string', required: true, description: 'Background job id returned by the tool that started the work; do not pass a continuable subagent id.' },
       wait: { type: 'boolean', description: 'Block until the job reaches a terminal status or the timeout expires. A timed-out wait returns [status: running] and leaves the job alive.' },
       timeout_ms: { type: 'number', description: 'Max wait in milliseconds (only meaningful with wait: true). Defaults to the configured wait timeout; capped by the configured maximum.' },
     },
@@ -361,9 +361,9 @@ export function apply(ctx: Context, config: Config): void {
 
   ctx.tools.register(defineTool({
     name: 'job_kill',
-    description: 'Request cancellation of a running background job by job id. Returns immediately; the job settles as killed once its work actually stops.',
+    description: 'Request cancellation of a running background job by its job id, not a continuable subagent id. Returns immediately; the job settles as killed once its work actually stops.',
     parameters: {
-      job_id: { type: 'string', required: true, description: 'Job id returned by the tool that started the background work.' },
+      job_id: { type: 'string', required: true, description: 'Background job id returned by the tool that started the work; do not pass a continuable subagent id.' },
       reason: { type: 'string', description: 'Optional short reason, recorded in the log and forwarded to the job.' },
     },
     finalizeContent: finalizeTaskContent,

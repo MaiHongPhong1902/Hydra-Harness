@@ -816,6 +816,8 @@ export interface Config {
   defaultTimeoutMs?: number
   /** Character cap for the `hook/result` event's persisted stderr summary. */
   stderrSummaryMaxChars?: number
+  /** Extra trusted environment values supplied by a host-managed plugin runtime. */
+  env?: Record<string, string>
 }
 ```
 
@@ -896,10 +898,12 @@ Requires: `loader` · `settings`
 export interface Config {
   /** Direct root entry ids that cannot be disabled in-app. */
   protectedEntryIds?: string[]
+  /** Entry ids owned by another composition plane and omitted from this inventory. */
+  compositionEntryIds?: string[]
 }
 ```
 
-Source: [`packages/host/plugin-inventory/src/index.ts:58`](../packages/host/plugin-inventory/src/index.ts)
+Source: [`packages/host/plugin-inventory/src/index.ts:379`](../packages/host/plugin-inventory/src/index.ts)
 
 <a id="boschbh-host-webserver"></a>
 
@@ -1575,6 +1579,22 @@ export interface PlanModeConfig {
 
 Source: [`packages/plan/plan-mode/src/index.ts:70`](../packages/plan/plan-mode/src/index.ts)
 
+<a id="boschbh-plugin-runtime"></a>
+
+## `@bosch/bh-plugin-runtime`
+
+Requires: `skills` · `commands` · `tools`
+
+```ts config-catalog
+/** Runtime configuration for the imported-plugin service. */
+export interface Config {
+  /** Override the resolved BH home directory. */
+  bhHome?: string
+}
+```
+
+Source: [`packages/host/plugin-runtime/src/index.ts:39`](../packages/host/plugin-runtime/src/index.ts)
+
 <a id="boschbh-pwsh-local"></a>
 
 ## `@bosch/bh-pwsh-local`
@@ -2044,7 +2064,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/skill/skill/src/index.ts:279`](../packages/skill/skill/src/index.ts)
+Source: [`packages/skill/skill/src/index.ts:280`](../packages/skill/skill/src/index.ts)
 
 <a id="boschbh-skill-filesystem"></a>
 
@@ -2600,7 +2620,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/browser/tool-browser/src/index.ts:36`](../packages/browser/tool-browser/src/index.ts)
+Source: [`packages/browser/tool-browser/src/index.ts:39`](../packages/browser/tool-browser/src/index.ts)
 
 <a id="boschbh-tool-fs"></a>
 
@@ -3147,7 +3167,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/bundle/web-app/src/index.ts:42`](../packages/bundle/web-app/src/index.ts)
+Source: [`packages/bundle/web-app/src/index.ts:45`](../packages/bundle/web-app/src/index.ts)
 
 <a id="boschbh-web-fetch-http"></a>
 
@@ -3314,6 +3334,7 @@ These load from a `cordis.yml` entry with no `config:` block; they declare no co
 - `@bosch/bh-client-ui-settings` ([`packages/client/ui-settings/src/index.ts`](../packages/client/ui-settings/src/index.ts))
 - `@bosch/bh-client-ui-settings-general` ([`packages/client/ui-settings-general/src/index.ts`](../packages/client/ui-settings-general/src/index.ts))
 - `@bosch/bh-client-ui-settings-models` ([`packages/client/ui-settings-models/src/index.ts`](../packages/client/ui-settings-models/src/index.ts))
+- `@bosch/bh-client-ui-settings-personalization` ([`packages/client/ui-settings-personalization/src/index.ts`](../packages/client/ui-settings-personalization/src/index.ts))
 - `@bosch/bh-client-ui-settings-plugin-inventory` ([`packages/client/ui-settings-plugin-inventory/src/index.ts`](../packages/client/ui-settings-plugin-inventory/src/index.ts))
 - `@bosch/bh-client-ui-settings-plugins` ([`packages/client/ui-settings-plugins/src/index.ts`](../packages/client/ui-settings-plugins/src/index.ts))
 - `@bosch/bh-client-ui-sidebar` ([`packages/client/ui-sidebar/src/index.ts`](../packages/client/ui-sidebar/src/index.ts))
@@ -3337,6 +3358,7 @@ These load from a `cordis.yml` entry with no `config:` block; they declare no co
 - `@bosch/bh-host-directory-picker-native` ([`packages/host/directory-picker-native/src/index.ts`](../packages/host/directory-picker-native/src/index.ts))
 - `@bosch/bh-llm` ([`packages/llm/llm/src/index.ts`](../packages/llm/llm/src/index.ts))
 - `@bosch/bh-lsp` ([`packages/lsp/lsp/src/index.ts`](../packages/lsp/lsp/src/index.ts))
+- `@bosch/bh-personalization` — requires `systemPrompt` ([`packages/context/personalization/src/index.ts`](../packages/context/personalization/src/index.ts))
 - `@bosch/bh-schedule` — requires `agents` · `sessions` · `tools` · `sessionPersistence` ([`packages/schedule/schedule/src/index.ts`](../packages/schedule/schedule/src/index.ts))
 - `@bosch/bh-session` ([`packages/core/session/src/index.ts`](../packages/core/session/src/index.ts))
 - `@bosch/bh-session-checkpoint-policy` — requires `llm` · `sessionPersistence` · `sessions` · `tools` ([`packages/session/session-checkpoint-policy/src/index.ts`](../packages/session/session-checkpoint-policy/src/index.ts))

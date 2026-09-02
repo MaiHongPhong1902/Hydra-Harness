@@ -498,6 +498,30 @@ Source: [`packages/llm/llm-retry/src/types.ts:9`](../packages/llm/llm-retry/src/
 
 Source: [`packages/llm/llm-retry/src/types.ts:11`](../packages/llm/llm-retry/src/types.ts)
 
+### `memory/*`
+
+<a id="memoryaccepted--log-only"></a>
+
+#### `memory/accepted` — log-only
+
+```ts persistence-catalog
+/** Explicit user acceptance of one memory entry. */
+'memory/accepted': { id: string }
+```
+
+Source: [`packages/context/personalization/src/session.ts:58`](../packages/context/personalization/src/session.ts)
+
+<a id="memorypolicy--log-only"></a>
+
+#### `memory/policy` — log-only
+
+```ts persistence-catalog
+/** Effective per-chat memory permissions; the last event wins. */
+'memory/policy': MemoryPolicy
+```
+
+Source: [`packages/context/personalization/src/session.ts:56`](../packages/context/personalization/src/session.ts)
+
 ### `permission/*`
 
 <a id="permissionpreset--log-only"></a>
@@ -518,6 +542,25 @@ Source: [`packages/llm/llm-retry/src/types.ts:11`](../packages/llm/llm-retry/src
 ```
 
 Source: [`packages/interaction/permission-presets/src/index.ts:53`](../packages/interaction/permission-presets/src/index.ts)
+
+### `personalization/*`
+
+<a id="personalizationpersonality--log-only"></a>
+
+#### `personalization/personality` — log-only
+
+```ts persistence-catalog
+/**
+ * The session's personality preference took effect, newest selection
+ * winning. Log-only provenance: recorded once, the first time an agent
+ * starts this session under a non-default preference, so a resumed or
+ * forked session rebuilds the personality its history was produced
+ * under instead of the current global preference.
+ */
+'personalization/personality': { personality: Personality }
+```
+
+Source: [`packages/context/personalization/src/session.ts:54`](../packages/context/personalization/src/session.ts)
 
 ### `plan/*`
 

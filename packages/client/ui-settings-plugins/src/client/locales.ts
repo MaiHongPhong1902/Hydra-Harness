@@ -12,6 +12,7 @@ export type PluginsSettingsLocaleKey =
   | 'webSearchApiKey' | 'webSearchApiKeyHint' | 'webSearchApiKeySet' | 'webSearchApiKeyUnset'
   | 'webSearchBaseUrl' | 'webSearchBaseUrlHint' | 'webSearchMaxUses' | 'webSearchMaxUsesHint'
   | 'mcpTitle' | 'mcpDescription' | 'mcpUnavailable'
+  | 'mcpLoading' | 'mcpEnabled' | 'mcpToggleFailed' | 'importedMcpTitle' | 'importedMcpEmpty' | 'enable' | 'disable' | 'disabled'
   | 'mcpApiKey' | 'mcpApiKeyHint' | 'mcpApiKeySet' | 'mcpApiKeyUnset'
   | 'mcpTargetDomain' | 'mcpTargetDomainHint' | 'mcpInvalidDomain'
 
@@ -21,7 +22,7 @@ export const en: Record<PluginsSettingsLocaleKey, string> = {
   title: 'Plugins',
   intro: 'Configure and inspect the plugins installed in this deployment.',
   tabs: 'Plugin views',
-  configurableTab: 'Plugin configuration',
+  configurableTab: 'Configuration',
   mcpTab: 'MCP',
   empty: 'This deployment exposes no plugin settings.',
   overridden: 'Overridden',
@@ -58,6 +59,14 @@ export const en: Record<PluginsSettingsLocaleKey, string> = {
   mcpTitle: 'Obsidian MCP',
   mcpDescription: 'Knowledge access through the local Obsidian MCP server at 127.0.0.1:27123.',
   mcpUnavailable: 'The Obsidian MCP plugin is disabled or unavailable.',
+  mcpLoading: 'Reading MCP servers…',
+  mcpEnabled: 'Enabled',
+  mcpToggleFailed: 'The MCP plugin state could not be changed.',
+  importedMcpTitle: 'Imported OpenAI/Codex MCP servers',
+  importedMcpEmpty: 'No imported plugins provide MCP servers.',
+  enable: 'Enable',
+  disable: 'Disable',
+  disabled: 'Disabled',
   mcpApiKey: 'API key',
   mcpApiKeyHint: 'Stored outside the settings file. Leave blank to keep the current key.',
   mcpApiKeySet: 'A key is configured.',

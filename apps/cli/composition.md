@@ -82,6 +82,8 @@ flowchart LR
   cfg --> plugin_bh_base_tool_fs_search
   plugin_bh_base_agent_instructions["agent-instructions<br/>@bosch/bh-agent-instructions"]
   cfg --> plugin_bh_base_agent_instructions
+  plugin_bh_base_personalization["personalization<br/>@bosch/bh-personalization"]
+  cfg --> plugin_bh_base_personalization
   plugin_bh_base_skill["skill<br/>@bosch/bh-skill"]
   cfg --> plugin_bh_base_skill
   plugin_bh_base_skill_filesystem["skill-filesystem<br/>@bosch/bh-skill-filesystem"]
@@ -92,6 +94,8 @@ flowchart LR
   cfg --> plugin_bh_base_tool_skill
   plugin_bh_base_commands["commands<br/>@bosch/bh-commands"]
   cfg --> plugin_bh_base_commands
+  plugin_bh_base_plugin_runtime["plugin-runtime<br/>@bosch/bh-plugin-runtime"]
+  cfg --> plugin_bh_base_plugin_runtime
   plugin_bh_base_command_feedback["command-feedback<br/>@bosch/bh-command-feedback"]
   cfg --> plugin_bh_base_command_feedback
   plugin_bh_base_goal["goal<br/>@bosch/bh-goal"]
@@ -209,11 +213,13 @@ flowchart LR
 | `tool-fs` | `@bosch/bh-tool-fs` |
 | `tool-fs-search` | `@bosch/bh-tool-fs-search` |
 | `agent-instructions` | `@bosch/bh-agent-instructions` |
+| `personalization` | `@bosch/bh-personalization` |
 | `skill` | `@bosch/bh-skill` |
 | `skill-filesystem` | `@bosch/bh-skill-filesystem` |
 | `skill-badge` | `@bosch/bh-skill-badge` |
 | `tool-skill` | `@bosch/bh-tool-skill` |
 | `commands` | `@bosch/bh-commands` |
+| `plugin-runtime` | `@bosch/bh-plugin-runtime` |
 | `command-feedback` | `@bosch/bh-command-feedback` |
 | `goal` | `@bosch/bh-goal` |
 | `goal-round-driver` | `@bosch/bh-goal-round-driver` |

@@ -21,6 +21,9 @@
       "path": "../../boot/app-boot"
     },
     {
+      "path": "../../core/agent"
+    },
+    {
       "path": "../../boot/cmdline"
     },
     {
@@ -31,6 +34,12 @@
     },
     {
       "path": "../../util/launch-environment"
+    },
+    {
+      "path": "../../llm/llm"
+    },
+    {
+      "path": "../../core/session"
     },
     {
       "path": "../../core/system-prompt"

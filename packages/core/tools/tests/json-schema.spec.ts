@@ -49,8 +49,8 @@ describe('the enforced raw JSON Schema subset', () => {
   it('accepts every JSON root and every supported node', () => {
     for (const schema of [
       { type: 'string' },
-      { type: 'number' },
-      { type: 'integer' },
+      { type: 'number', minimum: -1.5, maximum: 1.5 },
+      { type: 'integer', minimum: 1, maximum: 2 },
       { type: 'boolean' },
       { type: 'null' },
       { type: 'array', items: { type: 'string' } },
@@ -116,7 +116,7 @@ describe('the enforced raw JSON Schema subset', () => {
   })
 
   it('rejects unknown and misplaced keywords without accepted-then-ignored behavior', () => {
-    for (const keyword of ['anyOf', 'allOf', 'not', 'pattern', 'minimum', 'maxLength', '$ref']) {
+    for (const keyword of ['anyOf', 'allOf', 'not', 'pattern', 'maxLength', '$ref']) {
       expect(violationsOf({ type: 'object', [keyword]: [] })[0]).toContain(`schema.${keyword} is not a supported keyword`)
     }
     expect(violationsOf({ type: 'object', items: {} }))
@@ -127,7 +127,9 @@ describe('the enforced raw JSON Schema subset', () => {
       .toEqual(['schema.enum is not supported on type "object"'])
     expect(violationsOf({ type: 'array', const: null }))
       .toEqual(['schema.const is not supported on type "array"'])
-    expect(violationsOf({ properties: {}, required: [], additionalProperties: true, items: {}, enum: [], const: null }))
+    expect(violationsOf({
+      properties: {}, required: [], additionalProperties: true, items: {}, enum: [], const: null, minimum: 0, maximum: 1,
+    }))
       .toEqual([
         'schema.properties requires type or oneOf',
         'schema.required requires type or oneOf',
@@ -135,7 +137,23 @@ describe('the enforced raw JSON Schema subset', () => {
         'schema.items requires type or oneOf',
         'schema.enum requires type or oneOf',
         'schema.const requires type or oneOf',
+        'schema.minimum requires type or oneOf',
+        'schema.maximum requires type or oneOf',
       ])
+  })
+
+  it('accepts finite numeric bounds only on numbers and integers', () => {
+    for (const schema of [
+      { type: 'number', minimum: -1.5, maximum: 1.5 },
+      { type: 'integer', minimum: 1, maximum: 2 },
+    ]) expect(() => { assertSupportedJsonSchema(schema) }, JSON.stringify(schema)).not.toThrow()
+
+    expect(violationsOf({ type: 'string', minimum: 1 }))
+      .toEqual(['schema.minimum is not supported on type "string"'])
+    expect(violationsOf({ type: 'number', minimum: Number.NaN }))
+      .toEqual(['schema.minimum must be a finite JSON number'])
+    expect(violationsOf({ oneOf: [{ type: 'number' }, { type: 'null' }], maximum: 1 }))
+      .toEqual(['schema.maximum is not supported beside oneOf'])
   })
 
   it('reports every independent schema violation', () => {
@@ -316,6 +334,13 @@ describe('validateJsonSchemaValue', () => {
     expect(validateJsonSchemaValue(schema, 'a')).toEqual([])
     expect(validateJsonSchemaValue(schema, 'c')).toEqual(['"value" must be one of ["a","b"]'])
     expect(validateJsonSchemaValue(schema, 'b')).toEqual(['"value" must be "a"'])
+  })
+
+  it('enforces inclusive numeric bounds', () => {
+    const schema = asserted({ type: 'integer', minimum: 1, maximum: 2 })
+    expect(validateJsonSchemaValue(schema, 1)).toEqual([])
+    expect(validateJsonSchemaValue(schema, 0)).toEqual(['"value" must be greater than or equal to 1'])
+    expect(validateJsonSchemaValue(schema, 3)).toEqual(['"value" must be less than or equal to 2'])
   })
 
   it('validates object requiredness, nested values, and raw open defaults', () => {

@@ -13,8 +13,8 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import clsx from 'clsx'
 import {
-  IconAgentPresetOutline16, IconBrowserOutline16, IconCloseOutline16, IconDataOutline16,
-  IconPersonalizationOutline16, IconSettingsOutline16,
+  IconAgentPresetOutline16, IconBrowserOutline16, IconCloseOutline16, IconCordisPluginOutline14,
+  IconDataOutline16, IconPersonalizationOutline16, IconSettingsOutline16,
 } from '@bosch/bh-client-ui-primitives'
 import type { SettingsRootComponentProps, SettingsSectionRow } from './shell-contract.ts'
 import css from './SettingsRoot.module.css'
@@ -37,7 +37,8 @@ function navIcon(id: string) {
     )
   }
   if (id === 'agent-presets') return <IconAgentPresetOutline16 className={css.navIcon} size={16} />
-  if (id === 'plugins') return <IconPersonalizationOutline16 className={css.navIcon} size={16} />
+  if (id === 'personalization') return <IconPersonalizationOutline16 className={css.navIcon} size={16} />
+  if (id === 'plugins') return <IconCordisPluginOutline14 className={css.navIcon} size={16} />
   return <IconSettingsOutline16 className={css.navIcon} size={16} />
 }
 

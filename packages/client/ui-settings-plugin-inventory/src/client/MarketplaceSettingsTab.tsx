@@ -1,8 +1,6 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import type {
   AddPluginMarketplaceRequest,
-  MarketplacePluginId,
-  MarketplacePluginInstallResult,
   PluginMarketplaceSnapshot,
 } from '@bosch/bh-api-remotes/client'
 import {
@@ -10,22 +8,21 @@ import {
   IconPlusOutline16,
   Input,
   Modal,
-  RiskConfirmation,
 } from '@bosch/bh-client-ui-primitives'
 import type { InjectFace, PropsLocale, PropsRuntime } from '@bosch/bh-client-ui-slots'
+import { ImportedPluginCatalog, type ImportedPluginControls } from './PluginInventorySettingsTab.tsx'
 import css from './PluginInventorySettingsTab.module.css'
 
 /** Registration-side Remote face used by the marketplace tab. */
 export interface MarketplaceSettingsTabInjected {
+  /** Manage installed OpenAI/Codex bundles from the same Marketplace surface. */
+  importedPlugins: ImportedPluginControls
   /** Read every configured marketplace. */
   listMarketplaces: () => Promise<PluginMarketplaceSnapshot>
   /** Validate and persist one Git-backed or local marketplace root. */
   addMarketplace: (request: AddPluginMarketplaceRequest) => Promise<PluginMarketplaceSnapshot>
-  /** Install one Host-resolved exact package into the active profile. */
-  installMarketplacePlugin: (
-    source: string,
-    pluginId: MarketplacePluginId,
-  ) => Promise<MarketplacePluginInstallResult>
+  /** Remove one configured marketplace source. */
+  removeMarketplace: (source: string) => Promise<PluginMarketplaceSnapshot>
 }
 
 /** Full component props assembled by the Settings slot renderer. */
@@ -35,19 +32,13 @@ export type MarketplaceSettingsTabProps =
   & InjectFace<MarketplaceSettingsTabInjected>
 
 type Marketplace = PluginMarketplaceSnapshot['marketplaces'][number]
-type ReadyMarketplace = Extract<Marketplace, { status: 'ready' }>
-type MarketplacePlugin = ReadyMarketplace['plugins'][number]
 
 type ViewState =
   | { readonly status: 'loading' }
   | { readonly status: 'error' }
   | { readonly status: 'ready'; readonly snapshot: PluginMarketplaceSnapshot }
 
-interface PendingInstall {
-  readonly source: string
-  readonly sourceLabel: string
-  readonly plugin: MarketplacePlugin
-}
+type MutationFailure = 'add' | 'import' | 'missing-catalog'
 
 function marketplaceSourceLabel(marketplace: Marketplace): string {
   return marketplace.gitRef === undefined
@@ -55,11 +46,18 @@ function marketplaceSourceLabel(marketplace: Marketplace): string {
     : `${marketplace.source} @ ${marketplace.gitRef}`
 }
 
-/** Add marketplace catalogs and install their validated profile bundles. */
+function isMissingMarketplaceCatalog(error: unknown): boolean {
+  return error instanceof Error
+    && /\b(?:ENOENT|ENOTDIR)\b/iu.test(error.message)
+    && /\bmarketplace\.json\b/iu.test(error.message)
+}
+
+/** Add and inspect configured marketplace sources. */
 export function MarketplaceSettingsTab({
   addMarketplace,
-  installMarketplacePlugin,
+  importedPlugins,
   listMarketplaces,
+  removeMarketplace,
   t,
 }: MarketplaceSettingsTabProps): ReactNode {
   const [request, setRequest] = useState(0)
@@ -68,12 +66,11 @@ export function MarketplaceSettingsTab({
   const [source, setSource] = useState('')
   const [gitRef, setGitRef] = useState('')
   const [sparsePaths, setSparsePaths] = useState('')
+  const [pluginName, setPluginName] = useState('')
+  const [importRevision, setImportRevision] = useState(0)
   const [adding, setAdding] = useState(false)
-  const [pendingInstall, setPendingInstall] = useState<PendingInstall>()
-  const [acknowledged, setAcknowledged] = useState(false)
-  const [installing, setInstalling] = useState<string>()
-  const [mutationFailed, setMutationFailed] = useState(false)
-  const [restartRequired, setRestartRequired] = useState(false)
+  const [removing, setRemoving] = useState<string>()
+  const [mutationFailure, setMutationFailure] = useState<MutationFailure>()
 
   useEffect(() => {
     let current = true
@@ -95,73 +92,52 @@ export function MarketplaceSettingsTab({
     setSource('')
     setGitRef('')
     setSparsePaths('')
-    setMutationFailed(false)
+    setPluginName('')
+    setMutationFailure(undefined)
   }
 
   const add = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault()
     const normalizedSource = source.trim()
     if (normalizedSource.length === 0) return
+    const normalizedGitRef = gitRef.trim()
+    const normalizedPluginName = pluginName.trim()
     const request: AddPluginMarketplaceRequest = {
       source: normalizedSource,
-      ...(gitRef.trim() === '' ? {} : { gitRef: gitRef.trim() }),
+      ...(normalizedGitRef === '' ? {} : { gitRef: normalizedGitRef }),
       sparsePaths: sparsePaths.split(/\r?\n/u).map(path => path.trim()).filter(path => path !== ''),
     }
     setAdding(true)
-    setMutationFailed(false)
+    setMutationFailure(undefined)
     void addMarketplace(request).then(
-      (snapshot) => {
+      async (snapshot) => {
         setState({ status: 'ready', snapshot })
+        await importedPlugins.import({
+          source: normalizedSource,
+          ...(normalizedGitRef === '' ? {} : { ref: normalizedGitRef }),
+          ...(normalizedPluginName === '' ? {} : { plugin: normalizedPluginName }),
+        })
+        setImportRevision(value => value + 1)
         setSource('')
         setGitRef('')
         setSparsePaths('')
+        setPluginName('')
         setAddOpen(false)
       },
-      () => { setMutationFailed(true) },
-    ).finally(() => { setAdding(false) })
+      (error: unknown) => { setMutationFailure(isMissingMarketplaceCatalog(error) ? 'missing-catalog' : 'add') },
+    ).catch(() => { setMutationFailure('import') }).finally(() => { setAdding(false) })
   }
 
-  const requestInstall = (marketplace: Marketplace, plugin: MarketplacePlugin): void => {
-    setMutationFailed(false)
-    setAcknowledged(false)
-    setPendingInstall({
-      source: marketplace.source,
-      sourceLabel: marketplaceSourceLabel(marketplace),
-      plugin,
-    })
-  }
+  const busy = adding || removing !== undefined
 
-  const closeInstall = (): void => {
-    if (installing !== undefined) return
-    setPendingInstall(undefined)
-    setAcknowledged(false)
+  const remove = (marketplace: Marketplace): void => {
+    setRemoving(marketplace.source)
+    setMutationFailure(undefined)
+    void removeMarketplace(marketplace.source).then(
+      (snapshot) => { setState({ status: 'ready', snapshot }) },
+      () => { setMutationFailure('add') },
+    ).finally(() => { setRemoving(undefined) })
   }
-
-  const install = (): void => {
-    if (pendingInstall === undefined) return
-    const { source: marketplaceSource, plugin } = pendingInstall
-    const key = `${marketplaceSource}\0${plugin.id}`
-    setInstalling(key)
-    setMutationFailed(false)
-    void installMarketplacePlugin(marketplaceSource, plugin.id).then(
-      (result) => {
-        setState({ status: 'ready', snapshot: result.snapshot })
-        setRestartRequired(current => current || result.restartRequired)
-        setPendingInstall(undefined)
-        setAcknowledged(false)
-      },
-      () => {
-        setPendingInstall(undefined)
-        setAcknowledged(false)
-        setMutationFailed(true)
-      },
-    ).finally(() => { setInstalling(undefined) })
-  }
-
-  const busy = adding || installing !== undefined
-  const pendingSpec = pendingInstall === undefined
-    ? ''
-    : `${pendingInstall.plugin.packageName}@${pendingInstall.plugin.version}`
 
   return (
     <div className={css.section} aria-busy={state.status === 'loading' || busy}>
@@ -174,6 +150,10 @@ export function MarketplaceSettingsTab({
       ) : null}
       {state.status === 'ready' ? (
         <div className={css.catalog}>
+          <div className={css.catalogHeading}>
+            <h3>{t('marketplaceTab')}</h3>
+            <span>{state.snapshot.marketplaces.length}</span>
+          </div>
           <div className={css.marketplaceToolbar}>
             <p className={css.marketplaceWarning}>{t('marketplaceTrust')}</p>
             <Button
@@ -181,17 +161,11 @@ export function MarketplaceSettingsTab({
               size="sm"
               icon={<IconPlusOutline16 aria-hidden="true" />}
               disabled={busy}
-              onClick={() => { setMutationFailed(false); setAddOpen(true) }}
+              onClick={() => { setMutationFailure(undefined); setAddOpen(true) }}
             >
               {t('marketplaceAdd')}
             </Button>
           </div>
-          {mutationFailed && !addOpen && pendingInstall === undefined ? (
-            <p className={css.mutationFailure} role="alert">{t('marketplaceMutationError')}</p>
-          ) : null}
-          {restartRequired ? (
-            <p className={css.marketplaceRestart} role="status">{t('marketplaceRestart')}</p>
-          ) : null}
           {state.snapshot.marketplaces.length === 0
             ? <p className={css.status}>{t('marketplaceEmpty')}</p>
             : null}
@@ -199,53 +173,31 @@ export function MarketplaceSettingsTab({
             {state.snapshot.marketplaces.map(marketplace => (
               <section className={css.marketplace} key={marketplace.source}>
                 {marketplace.status === 'ready' ? (
-                  <>
-                    <div className={css.marketplaceHeader}>
-                      <h3>{marketplace.name}</h3>
-                      <code title={marketplaceSourceLabel(marketplace)}>{marketplaceSourceLabel(marketplace)}</code>
-                    </div>
-                    {marketplace.plugins.length === 0
-                      ? <p className={css.status}>{t('marketplaceNoPlugins')}</p>
-                      : (
-                        <ul className={css.cards}>
-                          {marketplace.plugins.map((plugin) => {
-                            const key = `${marketplace.source}\0${plugin.id}`
-                            return (
-                              <li className={css.card} key={key} data-marketplace-plugin={plugin.id}>
-                                <div className={css.marketplacePlugin}>
-                                  <strong>{plugin.name}</strong>
-                                  <p>{plugin.description}</p>
-                                  <code>{plugin.packageName}@{plugin.version}</code>
-                                  {plugin.installed
-                                    ? <span className={css.installed}>{t('marketplaceInstalled')}</span>
-                                    : (
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        disabled={busy}
-                                        onClick={() => { requestInstall(marketplace, plugin) }}
-                                      >
-                                        {installing === key ? t('marketplaceInstalling') : t('marketplaceInstall')}
-                                      </Button>
-                                    )}
-                                </div>
-                              </li>
-                            )
-                          })}
-                        </ul>
-                      )}
-                  </>
+                  <div className={css.marketplaceHeader}>
+                    <code title={marketplaceSourceLabel(marketplace)}>{marketplaceSourceLabel(marketplace)}</code>
+                    <p className={css.status}>{t('marketplaceSourceReady')}</p>
+                  </div>
                 ) : (
                   <div className={css.marketplaceHeader}>
                     <code title={marketplaceSourceLabel(marketplace)}>{marketplaceSourceLabel(marketplace)}</code>
                     <p className={css.status}>{t('marketplaceUnavailable')}</p>
                   </div>
                 )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={removing === marketplace.source}
+                  onClick={() => { remove(marketplace) }}
+                >
+                  {t('marketplaceRemove')}
+                </Button>
               </section>
             ))}
           </div>
         </div>
       ) : null}
+
+      <ImportedPluginCatalog key={importRevision} importedPlugins={importedPlugins} t={t} />
 
       <Modal
         open={addOpen}
@@ -299,28 +251,24 @@ export function MarketplaceSettingsTab({
             disabled={adding}
             onChange={(event) => { setSparsePaths(event.currentTarget.value) }}
           />
-          {mutationFailed ? (
+          <label htmlFor="marketplace-plugin-name">{t('marketplacePluginName')}</label>
+          <Input
+            id="marketplace-plugin-name"
+            type="text"
+            value={pluginName}
+            placeholder="ponytail"
+            disabled={adding}
+            onChange={(event) => { setPluginName(event.currentTarget.value) }}
+          />
+          {mutationFailure === 'missing-catalog' ? (
+            <p className={css.mutationFailure} role="alert">{t('marketplaceAddError')}</p>
+          ) : mutationFailure === 'import' ? (
+            <p className={css.mutationFailure} role="alert">{t('marketplaceImportError')}</p>
+          ) : mutationFailure === 'add' ? (
             <p className={css.mutationFailure} role="alert">{t('marketplaceMutationError')}</p>
           ) : null}
         </form>
       </Modal>
-
-      <RiskConfirmation
-        open={pendingInstall !== undefined}
-        title={t('marketplaceConfirmTitle')}
-        description={t('marketplaceConfirmDescription', {
-          package: pendingSpec,
-          source: pendingInstall?.sourceLabel ?? '',
-        })}
-        acknowledgeLabel={t('marketplaceAcknowledge')}
-        cancelLabel={t('marketplaceCancel')}
-        confirmLabel={installing === undefined ? t('marketplaceInstall') : t('marketplaceInstalling')}
-        acknowledged={acknowledged}
-        disabled={installing !== undefined}
-        onAcknowledgedChange={setAcknowledged}
-        onCancel={closeInstall}
-        onConfirm={install}
-      />
     </div>
   )
 }

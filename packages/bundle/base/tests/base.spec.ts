@@ -37,8 +37,10 @@ describe('bh-base bundle', () => {
     })
     expect(rows.filter(row => row.id === 'subagent-codex')).toHaveLength(0)
     expect(rows.filter(row => row.id === 'subagent-claude-code')).toHaveLength(0)
+    expect(rows.find(row => row.id === 'plugin-runtime')).toMatchObject({ name: '@bosch/bh-plugin-runtime' })
     expect(manifest.dependencies).not.toHaveProperty('@bosch/bh-subagent-codex')
     expect(manifest.dependencies).not.toHaveProperty('@bosch/bh-subagent-claude-code')
+    expect(manifest.dependencies?.['@bosch/bh-plugin-runtime']).toBe('workspace:^')
   })
 
   it('gates each shell stack by platform with a symmetric disabled expression', () => {

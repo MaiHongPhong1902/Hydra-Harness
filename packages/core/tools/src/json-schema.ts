@@ -3,7 +3,8 @@
  * types, subagents, and workflows. The subset accepts any JSON root, an
  * annotation-only schema for unconstrained JSON, one scalar `type`, object
  * `properties`/`required`/boolean `additionalProperties`, array `items`,
- * type-correct scalar `enum`/`const`, and exact-one `oneOf`.
+ * type-correct scalar `enum`/`const`, inclusive numeric bounds, and exact-one
+ * `oneOf`.
  *
  * Unsupported or misplaced keywords reject rather than being accepted without
  * enforcement. Consumers that require an object root apply
@@ -45,6 +46,10 @@ export interface JsonSchemaNode {
   enum?: JsonSchemaScalar[]
   /** The single allowed value for a scalar node. */
   const?: JsonSchemaScalar
+  /** Inclusive numeric lower bound (`number`/`integer` only). */
+  minimum?: number
+  /** Inclusive numeric upper bound (`number`/`integer` only). */
+  maximum?: number
   /** Annotation, ignored for validation. */
   description?: string
   /** Annotation, ignored for validation. */
@@ -82,6 +87,8 @@ const CONSTRAINT_KEYWORDS = new Set([
   'items',
   'enum',
   'const',
+  'minimum',
+  'maximum',
 ])
 const ANNOTATION_KEYWORDS = new Set(['description', 'title', 'default', 'examples'])
 const SCHEMA_TYPES: readonly JsonSchemaType[] = ['object', 'array', 'string', 'number', 'integer', 'boolean', 'null']
@@ -197,7 +204,7 @@ type SchemaWalkTask =
   | { kind: 'object-tail'; node: Record<string, unknown>; path: string; properties: unknown }
 
 /** Keywords that are invalid beside `oneOf`. */
-const ONE_OF_SIBLING_KEYWORDS = ['properties', 'required', 'additionalProperties', 'items', 'enum', 'const'] as const
+const ONE_OF_SIBLING_KEYWORDS = ['properties', 'required', 'additionalProperties', 'items', 'enum', 'const', 'minimum', 'maximum'] as const
 
 /** Validate object-only fields after its property schemas have been visited. */
 function checkObjectSchemaTail(
@@ -264,7 +271,7 @@ function checkSchemaNode(root: unknown, rootPath: string, violations: string[], 
         }
         continue
       }
-      violations.push(`${path}.${key} is not a supported keyword (subset: type/oneOf/properties/required/additionalProperties/items/enum/const + annotations)`)
+      violations.push(`${path}.${key} is not a supported keyword (subset: type/oneOf/properties/required/additionalProperties/items/enum/const/minimum/maximum + annotations)`)
     }
     if (Object.hasOwn(node, 'description') && typeof node.description !== 'string') {
       violations.push(`${path}.description must be a string`)
@@ -314,6 +321,8 @@ function checkSchemaNode(root: unknown, rootPath: string, violations: string[], 
       items: ['array'],
       enum: ['string', 'number', 'integer', 'boolean', 'null'],
       const: ['string', 'number', 'integer', 'boolean', 'null'],
+      minimum: ['number', 'integer'],
+      maximum: ['number', 'integer'],
     }
     for (const [key, types] of Object.entries(allowedFor)) {
       if (Object.hasOwn(node, key) && !types.includes(schemaType)) {
@@ -366,6 +375,12 @@ function checkSchemaNode(root: unknown, rootPath: string, violations: string[], 
           } else if (enumValid && !allowed.includes(declaredConst)) {
             violations.push(`${path}.const must be one of ${path}.enum when both are declared`)
           }
+        }
+        if ((schemaType === 'number' || schemaType === 'integer') && Object.hasOwn(node, 'minimum') && !isJsonNumber(node.minimum)) {
+          violations.push(`${path}.minimum must be a finite JSON number`)
+        }
+        if ((schemaType === 'number' || schemaType === 'integer') && Object.hasOwn(node, 'maximum') && !isJsonNumber(node.maximum)) {
+          violations.push(`${path}.maximum must be a finite JSON number`)
         }
         break
       }
@@ -479,6 +494,14 @@ function checkScalarValue(node: JsonSchemaNode, value: unknown, path: string): s
   }
   if (Object.hasOwn(node, 'const') && value !== node.const) {
     return [`"${diagnosticPath(path)}" must be ${JSON.stringify(node.const)}`]
+  }
+  const minimum = Object.hasOwn(node, 'minimum') ? node.minimum : undefined
+  if (typeof value === 'number' && minimum !== undefined && value < minimum) {
+    return [`"${diagnosticPath(path)}" must be greater than or equal to ${minimum}`]
+  }
+  const maximum = Object.hasOwn(node, 'maximum') ? node.maximum : undefined
+  if (typeof value === 'number' && maximum !== undefined && value > maximum) {
+    return [`"${diagnosticPath(path)}" must be less than or equal to ${maximum}`]
   }
   return []
 }

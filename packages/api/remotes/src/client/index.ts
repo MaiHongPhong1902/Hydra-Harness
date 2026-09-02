@@ -13,8 +13,10 @@ import type { TypertClientRemote } from '@bosch/bh-typert-protocol'
 export type { TypertClientRemote as ClientRemote } from '@bosch/bh-typert-protocol'
 export type {
   AddPluginMarketplaceRequest,
-  MarketplacePluginId,
-  MarketplacePluginInstallResult,
+  ImportedPluginEntry,
+  ImportedPluginMcpServerEnablementRequest,
+  ImportedPluginSnapshot,
+  PluginImportSource,
   PluginInventorySnapshot,
   PluginMarketplaceSnapshot,
 } from '@bosch/bh-host-plugin-inventory/types'
@@ -36,6 +38,7 @@ export type {} from '@bosch/bh-credentials/types'
 export type {} from '@bosch/bh-llm/types'
 export type {} from '@bosch/bh-agent-presets/types'
 export type {} from '@bosch/bh-settings/types'
+export type {} from '@bosch/bh-skill/types'
 
 /**
  * The carrier's Client-facing types, re-exported so a business package names one

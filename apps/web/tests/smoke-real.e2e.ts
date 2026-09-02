@@ -195,7 +195,7 @@ describe('bh web keyless CLI smoke', () => {
 
     interface NativeProviderRequest {
       messages?: { role?: string; content?: string }[]
-      tools?: { function?: { name?: string } }[]
+      tools?: { function?: { name?: string; description?: string } }[]
     }
     let resolveProviderRequests!: (requests: NativeProviderRequest[]) => void
     const requests: NativeProviderRequest[] = []
@@ -246,7 +246,7 @@ describe('bh web keyless CLI smoke', () => {
       await rpc<{ accepted: true }>(baseUrl, 'session.prompt', {
         sessionId: created.sessionId,
         mode: 'queue',
-        content: [{ type: 'text', text: 'go' }],
+        content: [{ type: 'text', text: 'Tôi muốn cải thiện agent' }],
       })
       const capturedRequests = await Promise.race([
         providerRequests,
@@ -260,6 +260,8 @@ describe('bh web keyless CLI smoke', () => {
       }
       const workspaceMessage = captured.messages?.find(message =>
         message.role === 'user' && message.content?.includes('web-workspace-context-probe'))
+      const improvementContract = captured.messages?.find(message =>
+        message.role === 'user' && message.content?.includes('Immediate task contract:'))
       const systemMessage = captured.messages?.find(message => message.role === 'system')
       const expectedWebSection = readFileSync(WEB_SURFACE_PROMPT, 'utf8').trimEnd()
         .replace('{{webUrl}}', baseUrl)
@@ -277,6 +279,7 @@ describe('bh web keyless CLI smoke', () => {
           "role": "user",
         }
       `)
+      expect(improvementContract?.content).toContain('do not scan or open arbitrary workspace files')
       expect(captured.tools?.map(tool => tool.function?.name)
         .filter(name => name === 'web_search' || name === 'web_fetch'))
         .toMatchInlineSnapshot(`
@@ -284,6 +287,8 @@ describe('bh web keyless CLI smoke', () => {
             "web_search",
           ]
         `)
+      expect(captured.tools?.find(tool => tool.function?.name === 'ask_user_question')?.function?.description)
+        .toContain('Do not use this for greetings, acknowledgements, casual chat, vague requests, or generic action, task, or tool menus.')
     } finally {
       const closed = child.exitCode === null
         ? new Promise<void>((resolveClose) => { child.once('close', () => { resolveClose() }) })

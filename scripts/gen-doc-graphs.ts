@@ -191,6 +191,14 @@ const SERVICE_ROLES: ServiceRole[] = [
     note: 'Configuration carries references to secrets; providers own the values. Consumers resolve per operation, so a rotated credential reaches the very next request; the web gateway exposes value-free views and write-only storage.',
   },
   {
+    key: 'localMemories',
+    pkg: 'personalization',
+    title: 'Local memory store',
+    mode: 'core',
+    consumers: ['apiproxy'],
+    note: 'Owns explicit local memory entries and serves the Host list/remove projection; prompt recall stays in the personalization plugin.',
+  },
+  {
     key: 'authorization',
     pkg: 'authorization',
     title: 'Authorization flow registry',
@@ -589,6 +597,14 @@ const SERVICE_ROLES: ServiceRole[] = [
     mode: 'core',
     consumers: ['tool-cordis'],
     note: 'Owns the in-memory definition registry, the vm sandbox for host halves, and the request-run round trip; browser pages reach the same service over the wire through its remote namespace.',
+  },
+  {
+    key: 'importedPlugins',
+    pkg: 'plugin-runtime',
+    title: 'Imported plugin lifecycle',
+    mode: 'core',
+    consumers: ['plugin-inventory'],
+    note: 'Stages immutable OpenAI/Codex bundles and owns their enablement, hook review, skills, MCP process, tool, and teardown lifecycle; plugin-inventory exposes the Host projection.',
   },
   {
     key: 'cordisInspect',

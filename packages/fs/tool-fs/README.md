@@ -20,7 +20,7 @@ All keys are optional; the defaults are the shipped read caps.
 
 | Key | Default | Meaning |
 |---|---|---|
-| `readLimit` | `2000` | Default and maximum lines returned by one `read` call (the tool schema advertises it as the `limit` default). |
+| `readLimit` | `2000` | Default and maximum lines returned by one `read` call (the tool schema advertises it as the `limit` default and inclusive maximum). |
 | `readMaxLineLength` | `2000` | Characters kept per line before truncation (the suffix names the cap). |
 | `readMaxBytes` | `51200` | Byte cap on one `read` call's selected lines; overflow ends the window with a "capped" footer. |
 | `readStreamMinSize` | `10485760` | Files at or above this size (or with unknown size) stream instead of loading whole into memory. |
@@ -70,7 +70,7 @@ Every request in this plugin's registration scope receives the independently reg
 ##### Read guidance
 
 ```markdown
-Use the read tool — not shell commands like cat — to inspect text files. Results include line numbers. Use offset and limit to continue reading large files.
+Use the read tool — not shell commands like cat — to inspect text files. Results include line numbers. Use offset and limit to continue reading large files. For exact line counts, use the returned total. For exact occurrence counts, enumerate every occurrence in complete returned evidence; never infer a count from a partial or skimmed read. For ordered evidence such as logs, determine first or last from the smallest or largest sequence or position across all relevant events; do not skip interaction tools.
 ```
 
 ##### Write guidance

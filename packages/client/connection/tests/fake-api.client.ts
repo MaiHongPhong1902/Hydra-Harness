@@ -211,6 +211,10 @@ export class FakeApiClient implements IApiClient {
     update: payload => this.record('settings.update', payload, Promise.resolve(ok({ ns: 'fake', schema: {}, value: {}, applies: 'live' as const, secrets: [], revision: 0 }))),
     replace: payload => this.record('settings.replace', payload, Promise.resolve(ok({ ns: 'fake', schema: {}, value: {}, applies: 'live' as const, secrets: [], revision: 0 }))),
     mutate: payload => this.record('settings.mutate', payload, Promise.resolve(ok({ ns: 'fake', schema: {}, value: {}, applies: 'live' as const, secrets: [], revision: 0 }))),
+    readInstructions: payload => this.record('settings.readInstructions', payload, Promise.resolve(ok({ content: '', revision: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855' }))),
+    writeInstructions: payload => this.record('settings.writeInstructions', payload, Promise.resolve(ok({ content: '', revision: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855' }))),
+    listMemories: payload => this.record('settings.listMemories', payload, Promise.resolve(ok({ entries: [] }))),
+    removeMemory: payload => this.record('settings.removeMemory', payload, Promise.resolve(ok({ removed: false }))),
   }
 
   readonly credentials: IApiClient['credentials'] = {

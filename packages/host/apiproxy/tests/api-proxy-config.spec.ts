@@ -5,7 +5,10 @@
  * invalidation frames (settings/credentials/models changed).
  */
 
-import { describe, expect, it, vi } from 'vitest'
+import { mkdtemp, readFile, stat } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Context } from '@bosch/cordis'
 import z from '@bosch/schemastery'
 import AgentRegistry from '@bosch/bh-agent'
@@ -811,5 +814,107 @@ describe('llm.discoverModels', () => {
 
     expect(error.code).toBe('model-discovery-failed')
     expect(error.message).toContain('no model discovery is registered')
+  })
+})
+
+describe('settings.readInstructions / settings.writeInstructions', () => {
+  const EMPTY_SHA256 = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
+  let home: string
+  let previousHome: string | undefined
+
+  // $BH_HOME is repointed per test because the RPC resolves it per call, not
+  // once at plugin construction, so the environment must name the temporary
+  // home for the whole test body. The home itself does not exist yet, so the
+  // first write's `mkdir` actually exercises the 0700 dirMode.
+  beforeEach(async () => {
+    home = join(await mkdtemp(join(tmpdir(), 'bh-instructions-home-')), 'home')
+    previousHome = process.env.BH_HOME
+    process.env.BH_HOME = home
+  })
+
+  afterEach(() => {
+    if (previousHome === undefined) delete process.env.BH_HOME
+    else process.env.BH_HOME = previousHome
+  })
+
+  it('reads an empty document before any file exists, then round-trips a write', async () => {
+    const ctx = await harness()
+    const api = createApiProxy(ctx, DEFAULTS)
+
+    const empty = expectOk(await api.settings.readInstructions(request({})))
+    expect(empty).toEqual({ content: '', revision: EMPTY_SHA256 })
+
+    const written = expectOk(await api.settings.writeInstructions(request({ content: 'Be concise.' })))
+    expect(written.content).toBe('Be concise.')
+    expect(written.revision).not.toBe(EMPTY_SHA256)
+
+    const reRead = expectOk(await api.settings.readInstructions(request({})))
+    expect(reRead).toEqual(written)
+    expect(await readFile(join(home, 'AGENTS.md'), 'utf8')).toBe('Be concise.')
+  })
+
+  it('refuses a stale expectedRevision as instructions-conflict carrying both digests, leaving the file untouched', async () => {
+    const ctx = await harness()
+    const api = createApiProxy(ctx, DEFAULTS)
+    const first = expectOk(await api.settings.writeInstructions(request({ content: 'v1' })))
+
+    const error = expectErr(await api.settings.writeInstructions(request({
+      content: 'v2', expectedRevision: EMPTY_SHA256,
+    })))
+
+    expect(error.code).toBe('instructions-conflict')
+    expect(error.details).toEqual({ expected: EMPTY_SHA256, actual: first.revision })
+    expect(await readFile(join(home, 'AGENTS.md'), 'utf8')).toBe('v1')
+  })
+
+  it('accepts a write whose expectedRevision matches the current content hash', async () => {
+    const ctx = await harness()
+    const api = createApiProxy(ctx, DEFAULTS)
+    const first = expectOk(await api.settings.writeInstructions(request({ content: 'v1' })))
+
+    const second = expectOk(await api.settings.writeInstructions(request({
+      content: 'v2', expectedRevision: first.revision,
+    })))
+
+    expect(second.content).toBe('v2')
+  })
+
+  it('refuses content over the 65,536-byte UTF-8 limit as instructions-rejected, writing nothing', async () => {
+    const ctx = await harness()
+    const api = createApiProxy(ctx, DEFAULTS)
+
+    const error = expectErr(await api.settings.writeInstructions(request({ content: 'x'.repeat(65_537) })))
+
+    expect(error.code).toBe('instructions-rejected')
+    expect(expectOk(await api.settings.readInstructions(request({})))).toEqual({ content: '', revision: EMPTY_SHA256 })
+  })
+
+  it('stores the document at $BH_HOME/AGENTS.md with an owner-only file and parent directory', async () => {
+    const ctx = await harness()
+    const api = createApiProxy(ctx, DEFAULTS)
+
+    await api.settings.writeInstructions(request({ content: 'secret rules' }))
+
+    if (process.platform !== 'win32') {
+      expect((await stat(join(home, 'AGENTS.md'))).mode & 0o777).toBe(0o600)
+      expect((await stat(home)).mode & 0o777).toBe(0o700)
+    }
+  })
+})
+
+describe('settings.listMemories / settings.removeMemory', () => {
+  it('manages the local-memory service without exposing a host path', async () => {
+    const ctx = await harness()
+    const entry = { id: '00000000-0000-4000-8000-000000000001', text: 'Prefer Vietnamese answers', createdAt: 1, updatedAt: 1 }
+    const removed: string[] = []
+    ctx.provide('localMemories', {
+      list: async () => [entry],
+      remove: async (id: string) => { removed.push(id); return id === entry.id },
+    } as never)
+    const api = createApiProxy(ctx, DEFAULTS)
+
+    expect(expectOk(await api.settings.listMemories(request({})))).toEqual({ entries: [entry] })
+    expect(expectOk(await api.settings.removeMemory(request({ id: entry.id })))).toEqual({ removed: true })
+    expect(removed).toEqual([entry.id])
   })
 })

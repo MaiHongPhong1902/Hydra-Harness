@@ -35,6 +35,8 @@ export interface PluginCardProps {
   onSave: () => void
   /** Drop every staged edit. */
   onDiscard: () => void
+  /** Optional immediate control kept visible while the settings body is collapsed. */
+  action?: ReactNode
   /** The plugin's controls. */
   children: ReactNode
 }
@@ -52,20 +54,23 @@ export function PluginCard(props: PluginCardProps) {
   const blocked = !state.dirty || state.invalid || state.saving
   return (
     <div role="listitem" className={clsx(css.card, open && css.cardOpen)}>
-      <button
-        type="button"
-        className={css.header}
-        aria-expanded={open}
-        aria-label={`${props.t(open ? 'collapse' : 'expand')}: ${title}`}
-        onClick={() => { setOpen(!open) }}
-      >
-        <span className={css.headText}>
-          <span className={css.name}>{title}</span>
-          <span className={css.description}>{props.t(props.descriptionKey)}</span>
-        </span>
-        {state.dirty ? <span className={css.pending}>{props.t('unsaved')}</span> : null}
-        <IconChevronDownOutline14 className={clsx(css.chevron, open && css.chevronOpen)} />
-      </button>
+      <div className={css.headerRow}>
+        <button
+          type="button"
+          className={css.header}
+          aria-expanded={open}
+          aria-label={`${props.t(open ? 'collapse' : 'expand')}: ${title}`}
+          onClick={() => { setOpen(!open) }}
+        >
+          <span className={css.headText}>
+            <span className={css.name}>{title}</span>
+            <span className={css.description}>{props.t(props.descriptionKey)}</span>
+          </span>
+          {state.dirty ? <span className={css.pending}>{props.t('unsaved')}</span> : null}
+          <IconChevronDownOutline14 className={clsx(css.chevron, open && css.chevronOpen)} />
+        </button>
+        {props.action === undefined ? null : <div className={css.action}>{props.action}</div>}
+      </div>
       {open
         ? (
           <div className={css.body}>

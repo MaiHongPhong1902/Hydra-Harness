@@ -26,6 +26,7 @@
   gap: 22px;
   border-bottom: 1px solid var(--dsw-alias-border-l2);
   margin-top: 2px;
+  overflow-x: auto;
 }
 
 .tab {
@@ -38,6 +39,8 @@
   font-size: 13px;
   line-height: 20px;
   cursor: pointer;
+  flex: none;
+  white-space: nowrap;
 }
 
 .tab:hover,
@@ -82,4 +85,47 @@
   margin: 0;
   font-size: 13px;
   color: var(--dsw-alias-label-tertiary);
+}
+
+.importedMcp {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 8px;
+}
+
+.importedMcp h3,
+.importedMcpRow strong,
+.importedMcpRow code {
+  margin: 0;
+}
+
+.importedMcpRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.importedMcpRow div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.importedMcpRow code,
+.importedMcpRow span {
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 12px;
+}
+
+.switchControl {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 12px;
 }

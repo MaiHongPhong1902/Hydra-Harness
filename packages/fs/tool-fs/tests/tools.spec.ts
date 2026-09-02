@@ -170,6 +170,8 @@ describe('registration', () => {
     const { ctx } = await setup()
     const prompt = renderPrompt(await ctx.systemPrompt.assemble())
     expect(prompt).toContain('Use the read tool')
+    expect(prompt).toContain('For exact line counts, use the returned total')
+    expect(prompt).toContain('do not skip interaction tools')
     expect(prompt).toContain('Use the write tool')
     expect(prompt).toContain('Use the edit tool')
   })
@@ -237,19 +239,19 @@ describe('read tool', () => {
     const { ctx } = await setup()
     const result = await call(ctx, 'read', { file_path: 'a.txt', offset: 0 })
     expect(result.isError).toBe(true)
-    expect(text(result)).toContain('offset must be a positive integer')
+    expect(text(result)).toContain('offset" must be greater than or equal to 1')
   })
 
   it('rejects a fractional offset and a zero/negative limit', async () => {
     const { ctx } = await setup()
-    for (const args of [
-      { file_path: 'a.txt', offset: 1.5 },
-      { file_path: 'a.txt', limit: 0 },
-      { file_path: 'a.txt', limit: -3 },
+    for (const [args, message] of [
+      [{ file_path: 'a.txt', offset: 1.5 }, 'offset" must be an integer'],
+      [{ file_path: 'a.txt', limit: 0 }, 'limit" must be greater than or equal to 1'],
+      [{ file_path: 'a.txt', limit: -3 }, 'limit" must be greater than or equal to 1'],
     ]) {
       const result = await call(ctx, 'read', args)
       expect(result.isError, JSON.stringify(args)).toBe(true)
-      expect(text(result)).toMatch(/must be a positive integer/)
+      expect(text(result)).toContain(message)
     }
   })
 
@@ -708,7 +710,14 @@ describe('read caps are plugin config', () => {
     expect(overCap.isError).toBe(true)
     expect(text(overCap)).toContain('less than or equal to 2')
     const readSchema = ctx.tools.schemas().find(s => s.name === 'read')
-    expect(JSON.stringify(readSchema)).toContain('Defaults to 2.')
+    expect(readSchema).toMatchObject({
+      parameters: {
+        properties: {
+          offset: { type: 'integer', minimum: 1 },
+          limit: { type: 'integer', minimum: 1, maximum: 2, description: 'Maximum number of lines to return. Defaults to 2; values above 2 are rejected.' },
+        },
+      },
+    })
   })
 
   it('a configured readMaxLineLength truncates lines at the configured length', async () => {

@@ -512,6 +512,12 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'the action\'s report, omitted for a plain state read, plus the state.',
       },
       {
+        signature: 'async takeScreenshot(owner: Agent): Promise<BrowserScreenshot>',
+        description: 'Capture the selected controlled page\'s visible viewport as a bounded PNG. The base64 is transient: callers must consume it before persisting output.',
+        parameters: [{ name: 'owner', description: 'agent whose selected controlled tab is captured.' }],
+        returns: 'the bounded screenshot payload.',
+      },
+      {
         signature: 'async searchHistory( owner: Agent, query: string, execution: BrowserExecutionContext = {}, ): Promise<BrowserHistorySearchEntry[]>',
         description: 'Search only the bounded app-owned history after applying the model-access policy.',
         parameters: [{ name: 'owner', description: 'agent whose browser profile owns the history ledger.' }, { name: 'query', description: 'case-insensitive title/URL text, from 1 to 256 characters.' }, { name: 'execution', description: 'tool-call identity and cancellation for approval.' }],
@@ -917,6 +923,94 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'importedPlugins',
+    summary: 'Shared `bh-base` service for every imported bundle, not a Web-only facility.',
+    description: 'Shared `bh-base` service for every imported bundle, not a Web-only facility.',
+    methods: [
+      {
+        signature: 'readonly registry: PluginRegistry',
+        description: 'Read-only facade over durable imported-plugin records.',
+        parameters: [],
+      },
+      {
+        signature: 'readonly trust: PluginTrustStore',
+        description: 'Hook-definition trust record manager.',
+        parameters: [],
+      },
+      {
+        signature: 'readonly lifecycle: PluginLifecycleManager',
+        description: 'Enablement and teardown facade.',
+        parameters: [],
+      },
+      {
+        signature: 'async list(): Promise<ImportedPluginSnapshot>',
+        description: 'Return every imported plugin\'s current source-qualified runtime view.',
+        parameters: [],
+        returns: 'Current installed-plugin projection.',
+      },
+      {
+        signature: 'async info(identityOrName: string): Promise<ImportedPluginEntry>',
+        description: 'Return one installed plugin view.',
+        parameters: [{ name: 'identityOrName', description: 'Source-qualified identity or an unambiguous plugin name.' }],
+        returns: 'Current installed-plugin projection.',
+      },
+      {
+        signature: 'import(source: PluginImportSource): Promise<ImportedPluginSnapshot>',
+        description: 'Stage one local, Git, or marketplace source.',
+        parameters: [{ name: 'source', description: 'Source to import.' }],
+        returns: 'Refreshed installed-plugin projection.',
+      },
+      {
+        signature: 'enable(identityOrName: string): Promise<ImportedPluginSnapshot>',
+        description: 'Enable and load one plugin.',
+        parameters: [{ name: 'identityOrName', description: 'Plugin identity or unambiguous name.' }],
+        returns: 'Refreshed installed-plugin projection.',
+      },
+      {
+        signature: 'disable(identityOrName: string): Promise<ImportedPluginSnapshot>',
+        description: 'Disable and unload one plugin.',
+        parameters: [{ name: 'identityOrName', description: 'Plugin identity or unambiguous name.' }],
+        returns: 'Refreshed installed-plugin projection.',
+      },
+      {
+        signature: 'trustHooks(identityOrName: string): Promise<ImportedPluginSnapshot>',
+        description: 'Trust one plugin\'s current hook definition.',
+        parameters: [{ name: 'identityOrName', description: 'Plugin identity or unambiguous name.' }],
+        returns: 'Refreshed installed-plugin projection.',
+      },
+      {
+        signature: 'untrustHooks(identityOrName: string): Promise<ImportedPluginSnapshot>',
+        description: 'Revoke one plugin\'s hook trust.',
+        parameters: [{ name: 'identityOrName', description: 'Plugin identity or unambiguous name.' }],
+        returns: 'Refreshed installed-plugin projection.',
+      },
+      {
+        signature: 'remove(identityOrName: string): Promise<ImportedPluginSnapshot>',
+        description: 'Unload and remove one plugin with its owned store paths.',
+        parameters: [{ name: 'identityOrName', description: 'Plugin identity or unambiguous name.' }],
+        returns: 'Refreshed installed-plugin projection.',
+      },
+      {
+        signature: 'async setMcpServerEnabled(identityOrName: string, server: string, enabled: boolean): Promise<ImportedPluginSnapshot>',
+        description: 'Set one plugin MCP server\'s lifecycle state.',
+        parameters: [{ name: 'identityOrName', description: 'Owning plugin identity or unambiguous name.' }, { name: 'server', description: 'Manifest MCP server name.' }, { name: 'enabled', description: 'Desired server state.' }],
+        returns: 'Refreshed installed-plugin projection.',
+      },
+      {
+        signature: 'async setMcpToolApproval( identityOrName: string, server: string, tool: string, approval: \'ask\' | \'allow\' | \'deny\', ): Promise<ImportedPluginSnapshot>',
+        description: 'Set one MCP tool\'s approval mode.',
+        parameters: [{ name: 'identityOrName', description: 'Owning plugin identity or unambiguous name.' }, { name: 'server', description: 'Manifest MCP server name.' }, { name: 'tool', description: 'Raw MCP tool name.' }, { name: 'approval', description: 'Independent per-tool approval mode.' }],
+        returns: 'Refreshed installed-plugin projection.',
+      },
+      {
+        signature: 'async unload(identity: string): Promise<void>',
+        description: 'Unload every live component owned by one plugin.',
+        parameters: [{ name: 'identity', description: 'Installed plugin identity.' }],
+        returns: 'After skills, hooks, and MCP fibers quiesce.',
+      },
+    ],
+  },
+  {
     key: 'invariants',
     summary: 'Package-owned invariant registry with global and regex-based selection.',
     description: 'Package-owned invariant registry with global and regex-based selection.',
@@ -1066,6 +1160,31 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Stream one model call as raw chunks (token-level deltas). Replay state is retained only when the same adapter instance owns its historical provider and the target provider. Final adapter selection remains fixed through asynchronous exact-model resolution and dispatch. Adapter selection, dispatch, and iteration failures become terminal `error` or `aborted` finish chunks; middleware, nested-call, cleanup, and consumer failures remain thrown.',
         parameters: [{ name: 'options', description: 'the full request; `options.provider` selects the adapter.' }],
         returns: 'the chunk stream, possibly wrapped by `llm/stream` listeners.',
+      },
+    ],
+  },
+  {
+    key: 'localMemories',
+    summary: 'JSON-backed local memory store, private to one BH home.',
+    description: 'JSON-backed local memory store, private to one BH home.',
+    methods: [
+      {
+        signature: 'async list(): Promise<MemoryEntry[]>',
+        description: 'Read memory entries newest first.',
+        parameters: [],
+        returns: 'memory entries ordered by most recent update.',
+      },
+      {
+        signature: 'async add(text: string): Promise<MemoryEntry>',
+        description: 'Append one already-redacted explicit memory.',
+        parameters: [{ name: 'text', description: 'memory text to redact and store.' }],
+        returns: 'the newly stored memory entry.',
+      },
+      {
+        signature: 'async remove(id: string): Promise<boolean>',
+        description: 'Delete one memory id; returns whether an entry was removed.',
+        parameters: [{ name: 'id', description: 'identifier of the memory to delete.' }],
+        returns: 'whether an entry was removed.',
       },
     ],
   },
@@ -3127,6 +3246,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface BrowserOutcome {\n    action?: ActionResult;\n    state: BrowserState;\n}',
   },
   {
+    name: 'BrowserScreenshot',
+    declaration: 'export interface BrowserScreenshot {\n    mediaType: \'image/png\';\n    data: string;\n    bytes: number;\n    width: number;\n    height: number;\n    tabId: number;\n    url: string;\n    title: string;\n    capturedAt: string;\n}',
+  },
+  {
     name: 'BrowserState',
     declaration: 'export interface BrowserState {\n    url: string;\n    title: string;\n    header: string;\n    content: string;\n    footer: string;\n    tabs: BrowserTabState[];\n    tabId: number;\n    activeTabId: number;\n    settled: boolean;\n    capturedAt: string;\n}',
   },
@@ -3555,6 +3678,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface GrantRecord {\n    readonly kind: \'grant\';\n    readonly payload: unknown;\n}',
   },
   {
+    name: 'HookTrustState',
+    declaration: 'export type HookTrustState = \'not-applicable\' | \'pending\' | \'trusted\';',
+  },
+  {
     name: 'ImageAttachmentLimits',
     declaration: 'export interface ImageAttachmentLimits {\n    maxImageBytes: number;\n    maxImagesPerMessage: number;\n    maxMessageImageBytes: number;\n    maxImagePixels: number;\n    maxImageDimension: number;\n    mediaTypes: readonly ImageMediaType[];\n}',
   },
@@ -3569,6 +3696,38 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'ImageMediaType',
     declaration: 'export type ImageMediaType = \'image/png\' | \'image/jpeg\' | \'image/webp\' | \'image/gif\';',
+  },
+  {
+    name: 'ImportedMcpServerSnapshot',
+    declaration: 'export interface ImportedMcpServerSnapshot {\n    readonly name: string;\n    readonly enabled: boolean;\n    readonly startupState: \'not-started\' | \'starting\' | \'started\' | \'failed\';\n    readonly authenticationState: \'not-applicable\' | \'unknown\';\n    readonly defaultToolsApprovalMode: \'ask\' | \'allow\' | \'deny\';\n    readonly toolApproval: Readonly<Record<string, \'ask\' | \'allow\' | \'deny\'>>;\n    readonly tools: readonly string[];\n}',
+  },
+  {
+    name: 'ImportedPluginEntry',
+    declaration: 'export interface ImportedPluginEntry {\n    readonly identity: ImportedPluginIdentity;\n    readonly name: string;\n    readonly version: string;\n    readonly source: ImportedPluginSource;\n    readonly pluginRoot: string;\n    readonly dataPath: string;\n    readonly enabled: boolean;\n    readonly lifecycle: ImportedPluginLifecycle;\n    readonly hookTrustState: HookTrustState;\n    readonly hookDefinitionDigest?: string;\n    readonly skills: readonly string[];\n    readonly mcpServers: readonly ImportedMcpServerSnapshot[];\n    readonly hooks: readonly string[];\n    readonly appMappings?: readonly string[];\n    readonly installationStatus: \'installed\';\n}',
+  },
+  {
+    name: 'ImportedPluginIdentity',
+    declaration: 'export type ImportedPluginIdentity = string & {\n    readonly [importedPluginIdentityBrand]: true;\n};',
+  },
+  {
+    name: 'ImportedPluginLifecycle',
+    declaration: 'export type ImportedPluginLifecycle = \'installed\' | \'disabled\' | \'enabled\' | \'loaded\';',
+  },
+  {
+    name: 'ImportedPluginRuntime',
+    declaration: 'export class ImportedPluginRuntime extends Service {\n    static inject;\n    readonly registry: PluginRegistry;\n    readonly trust: PluginTrustStore;\n    readonly lifecycle: PluginLifecycleManager;\n    constructor(ctx: Context, config: Config = {});\n    async list(): Promise<ImportedPluginSnapshot>;\n    async info(identityOrName: string): Promise<ImportedPluginEntry>;\n    import(source: PluginImportSource): Promise<ImportedPluginSnapshot>;\n    enable(identityOrName: string): Promise<ImportedPluginSnapshot>;\n    disable(identityOrName: string): Promise<ImportedPluginSnapshot>;\n    trustHooks(identityOrName: string): Promise<ImportedPluginSnapshot>;\n    untrustHooks(identityOrName: string): Promise<ImportedPluginSnapshot>;\n    remove(identityOrName: string): Promise<ImportedPluginSnapshot>;\n    async setMcpServerEnabled(identityOrName: string, server: string, enabled: boolean): Promise<ImportedPluginSnapshot>;\n    async setMcpToolApproval(identityOrName: string, server: string, tool: string, approval: \'ask\' | \'allow\' | \'deny\'): Promise<ImportedPluginSnapshot>;\n    async unload(identity: string): Promise<void>;\n}',
+  },
+  {
+    name: 'ImportedPluginSnapshot',
+    declaration: 'export interface ImportedPluginSnapshot {\n    readonly plugins: readonly ImportedPluginEntry[];\n}',
+  },
+  {
+    name: 'ImportedPluginSource',
+    declaration: 'export interface ImportedPluginSource {\n    readonly kind: \'local\' | \'git\' | \'marketplace-local\' | \'marketplace-git\';\n    readonly source: string;\n    readonly sourceId: string;\n    readonly ref?: string;\n    readonly path?: string;\n    readonly marketplace?: string;\n}',
+  },
+  {
+    name: 'ImportPluginRequest',
+    declaration: 'export interface ImportPluginRequest {\n    readonly source: string;\n    readonly plugin?: string;\n    readonly ref?: string;\n    readonly path?: string;\n}',
   },
   {
     name: 'Inbox',
@@ -3660,7 +3819,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'JsonSchemaNode',
-    declaration: 'export interface JsonSchemaNode {\n    type?: JsonSchemaType;\n    oneOf?: JsonSchemaNode[];\n    properties?: Record<string, JsonSchemaNode>;\n    required?: string[];\n    additionalProperties?: boolean;\n    items?: JsonSchemaNode;\n    enum?: JsonSchemaScalar[];\n    const?: JsonSchemaScalar;\n    description?: string;\n    title?: string;\n    default?: JsonValue;\n    examples?: JsonValue;\n}',
+    declaration: 'export interface JsonSchemaNode {\n    type?: JsonSchemaType;\n    oneOf?: JsonSchemaNode[];\n    properties?: Record<string, JsonSchemaNode>;\n    required?: string[];\n    additionalProperties?: boolean;\n    items?: JsonSchemaNode;\n    enum?: JsonSchemaScalar[];\n    const?: JsonSchemaScalar;\n    minimum?: number;\n    maximum?: number;\n    description?: string;\n    title?: string;\n    default?: JsonValue;\n    examples?: JsonValue;\n}',
   },
   {
     name: 'JsonSchemaScalar',
@@ -3795,6 +3954,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface ManualCompactAgentContext extends CompactionAgentContext {\n    runMaintenance<T>(task: (signal: AbortSignal) => Promise<T>): Promise<T>;\n}',
   },
   {
+    name: 'MemoryEntry',
+    declaration: 'export interface MemoryEntry {\n    id: string;\n    text: string;\n    createdAt: number;\n    updatedAt: number;\n}',
+  },
+  {
     name: 'Message',
     declaration: 'export interface Message {\n    readonly id: MessageId;\n    readonly role: \'system\' | \'user\' | \'assistant\';\n    readonly content: ContentBlock[];\n    readonly source: MessageSource;\n}',
   },
@@ -3909,6 +4072,26 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'PermissionSelect',
     declaration: 'export interface PermissionSelect {\n    options: PresetOption[];\n    currentValue: string;\n}',
+  },
+  {
+    name: 'PluginImportSource',
+    declaration: 'export type PluginImportSource = string | ImportPluginRequest;',
+  },
+  {
+    name: 'PluginLifecycleManager',
+    declaration: 'export class PluginLifecycleManager {\n    constructor(private readonly runtime: ImportedPluginRuntime);\n    enable(identity: string): Promise<ImportedPluginSnapshot>;\n    disable(identity: string): Promise<ImportedPluginSnapshot>;\n    unload(identity: string): Promise<void>;\n}',
+  },
+  {
+    name: 'PluginRegistry',
+    declaration: 'export class PluginRegistry {\n    constructor(private readonly store: PluginStore);\n    list(): Promise<ReadonlyMap<string, StoredPlugin>>;\n    get(identity: string): Promise<StoredPlugin | undefined>;\n}',
+  },
+  {
+    name: 'PluginStore',
+    declaration: 'export class PluginStore {\n    readonly cacheRoot: string;\n    readonly dataRoot: string;\n    readonly registryPath: string;\n    constructor(readonly home = resolveBhHome());\n    async list(): Promise<ReadonlyMap<string, StoredPlugin>>;\n    async get(identity: string): Promise<StoredPlugin | undefined>;\n    async install(source: PluginImportSource): Promise<string>;\n    async update(identity: string, mutation: (entry: StoredPlugin) => void): Promise<void>;\n    async remove(identity: string): Promise<StoredPlugin | undefined>;\n    bundlePath(entry: StoredPlugin): string;\n    dataPath(entry: StoredPlugin): string;\n    async load(entry: StoredPlugin, identity: string): Promise<LoadedPlugin>;\n}',
+  },
+  {
+    name: 'PluginTrustStore',
+    declaration: 'export class PluginTrustStore {\n    constructor(private readonly store: PluginStore);\n    async trust(identity: string, definitionDigest: string): Promise<void>;\n    async untrust(identity: string): Promise<void>;\n}',
   },
   {
     name: 'PostToolDecision',

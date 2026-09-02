@@ -1114,8 +1114,9 @@ describe('bh-tool-subagent continuable background mode', () => {
     const { ctx, parent } = await continuableSetup()
     const schema = ctx.tools.schemas().find(s => s.name === 'subagent')!
     // Continuable delegation has no Task, so the schema promises no collection.
-    expect(schema.description).not.toContain('job_output')
-    expect(schema.description).not.toContain('job_kill')
+    expect(schema.description).toContain('not a background job id')
+    expect(schema.description).toContain('job_output')
+    expect(schema.description).toContain('job_kill')
     expect(schema.description).toContain('send_message')
     expect(schema.description).toContain('runs in the background by default')
     expect(schema.description).not.toContain('never poll or wait on it')
@@ -1123,9 +1124,12 @@ describe('bh-tool-subagent continuable background mode', () => {
       properties: Record<string, { description?: string }>
     }).properties
     expect(properties.run_in_background?.description).toContain('Defaults to true')
+    expect(properties.run_in_background?.description).toContain('not a background job id')
     const assembly = await ctx.systemPrompt.assemble(assembleContextFor(parent))
     const guidance = assembly.sections.find(section => section.name === 'tool:subagent')
     expect(guidance?.text).toContain('Use subagent in the background by default')
+    expect(guidance?.text).toContain('not a background job id')
+    expect(guidance?.text).toContain('wait for the runtime notice rather than starting a duplicate delegation')
     expect(guidance?.text).toContain('runtime sends you a notice containing its outcome')
 
     const started = await callSubagent(
@@ -1134,7 +1138,9 @@ describe('bh-tool-subagent continuable background mode', () => {
       { agent: parent },
     )
     expect(started.isError).toBe(false)
-    const match = /^started subagent (\S+)$/.exec(text(started))
+    expect(text(started)).toContain('not a background job')
+    expect(text(started)).toContain('do not call job_output or job_kill')
+    const match = /^started continuable subagent (\S+);/.exec(text(started))
     expect(match).not.toBeNull()
     const [, childId] = match!
     // No Task was created for the continuable child.

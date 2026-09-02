@@ -64,7 +64,10 @@ export class McpSettingsController {
     void this.readCredential()
   }
 
-  /** Re-read the badge when another surface changes the Obsidian key. */
+  /**
+   * Re-read the badge when another surface changes the Obsidian key.
+   * @param ref - credential reference that changed.
+   */
   refreshCredential(ref: string): void {
     if (ref === MCP_API_KEY_REF) void this.readCredential()
   }

@@ -190,7 +190,9 @@ function userAuthorizedUpload(owner: Agent, filePath: string): boolean {
 }
 
 const MAX_HISTORY_SEARCH_RESULTS = 20
+/** Maximum accepted PNG payload size. */
 export const MAX_BROWSER_SCREENSHOT_BYTES = 3_500_000
+/** Maximum accepted PNG image edge length. */
 export const MAX_BROWSER_SCREENSHOT_EDGE = 2_000
 const MAX_BROWSER_SCREENSHOT_BASE64_CHARS = Math.ceil(MAX_BROWSER_SCREENSHOT_BYTES / 3) * 4
 const MAX_CDP_PARAMS_BYTES = 64 * 1_024
@@ -527,6 +529,7 @@ export class BrowserSessionService extends Service {
    * Capture the selected controlled page's visible viewport as a bounded PNG.
    * The base64 is transient: callers must consume it before persisting output.
    * @param owner - agent whose selected controlled tab is captured.
+   * @returns the bounded screenshot payload.
    */
   async takeScreenshot(owner: Agent): Promise<BrowserScreenshot> {
     return this.serialized(owner, undefined, async () => {

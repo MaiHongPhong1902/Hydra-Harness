@@ -259,6 +259,18 @@ function fakeApi(overrides: Partial<{ muxFrames: MuxFrame[]; hostFrames: HostFra
       async mutate(request) {
         return { rpcId: request.rpcId, result: { ok: false, error: { code: 'settings-rejected', message: 'stub', details: { ns: request.payload.ns } } } }
       },
+      async readInstructions(request) {
+        return { rpcId: request.rpcId, result: { ok: true, value: { content: '', revision: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855' } } }
+      },
+      async writeInstructions(request) {
+        return { rpcId: request.rpcId, result: { ok: false, error: { code: 'instructions-rejected', message: 'stub', details: {} } } }
+      },
+      async listMemories(request) {
+        return { rpcId: request.rpcId, result: { ok: true, value: { entries: [] } } }
+      },
+      async removeMemory(request) {
+        return { rpcId: request.rpcId, result: { ok: true, value: { removed: false } } }
+      },
     },
     credentials: {
       async describe(request) {

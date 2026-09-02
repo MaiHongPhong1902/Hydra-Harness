@@ -34,6 +34,7 @@ export {
   healProfilesModuleFallback,
   initProfile,
   loadProfile,
+  profilePluginEnablement,
   PROFILE_PATCH_FILENAME,
   PROFILE_TEMPLATES,
   PROFILES_DIR,
@@ -824,6 +825,6 @@ export function addHarnessSourceSection(ctx: Context, sourceRoot: string): (() =
   return systemPrompt.section({
     name: HARNESS_SOURCE_SECTION,
     order: -99,
-    text: `The Bosch Harness implementation checkout is at ${sourceRoot}. The checkout location and current working directory are separate values and may differ; never infer the working directory from this path. Use pwd to determine the current working directory. Use this checkout only to inspect or extend BH itself.`,
+    text: `The Bosch Harness implementation checkout is at ${sourceRoot}. The checkout location and current working directory are separate values and may differ; never infer the working directory from this path. Use pwd only when the user's concrete task requires the current working directory. Use this checkout only when the user asks to inspect or extend BH itself.`,
   })
 }

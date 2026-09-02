@@ -2,17 +2,18 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, render, screen, within } from '@testing-library/react'
 import { bindSnapshotSelector, makeTranslate } from '@bosch/bh-client-test-runtime'
-import { createSnapshotStore, type SessionListState } from '@bosch/bh-client-runtime/client'
-import { SessionId } from '@bosch/bh-session'
+import { createSnapshotStore, type SessionId, type SessionListState } from '@bosch/bh-client-runtime/client'
 import { UsageSection } from '../src/client/settings/UsageSection.tsx'
 import { en } from '../src/client/locales.ts'
 
 afterEach(cleanup)
 
+const sid = (id: string): SessionId => id as SessionId
+
 describe('UsageSection', () => {
   it('sums input and output across sessions and keeps models separate', () => {
-    const a = SessionId('usage-a')
-    const b = SessionId('usage-b')
+    const a = sid('usage-a')
+    const b = sid('usage-b')
     const list = createSnapshotStore<SessionListState>({
       ids: [a, b],
       byId: {

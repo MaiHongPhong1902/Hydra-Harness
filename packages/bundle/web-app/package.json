@@ -67,6 +67,7 @@
     "@bosch/bh-client-ui-layout": "workspace:^",
     "@bosch/bh-client-ui-model-selection": "workspace:^",
     "@bosch/bh-client-ui-settings-models": "workspace:^",
+    "@bosch/bh-client-ui-settings-personalization": "workspace:^",
     "@bosch/bh-client-ui-settings-plugin-inventory": "workspace:^",
     "@bosch/bh-client-ui-permission-presets": "workspace:^",
     "@bosch/bh-client-ui-plan": "workspace:^",
@@ -115,16 +116,22 @@
     "open": "^11.0.0"
   },
   "peerDependencies": {
+    "@bosch/bh-agent": "workspace:^",
     "@bosch/cordis-plugin-loader": "workspace:^",
     "@bosch/bh-shell-env": "workspace:^",
     "@bosch/bh-invariants": "workspace:^",
+    "@bosch/bh-llm": "workspace:^",
+    "@bosch/bh-session": "workspace:^",
     "@bosch/bh-system-prompt": "workspace:^",
     "@bosch/cordis": "workspace:^"
   },
   "devDependencies": {
+    "@bosch/bh-agent": "workspace:^",
     "@bosch/cordis-plugin-loader": "workspace:^",
     "@bosch/bh-shell-env": "workspace:^",
     "@bosch/bh-invariants": "workspace:^",
+    "@bosch/bh-llm": "workspace:^",
+    "@bosch/bh-session": "workspace:^",
     "@bosch/bh-system-prompt": "workspace:^",
     "@bosch/cordis": "workspace:^"
   }

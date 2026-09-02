@@ -3,12 +3,15 @@
  * narrow RpcRequest<P> and echoes request.rpcId on the RpcResponse<T>.
  */
 
-import { randomUUID } from 'node:crypto'
-import { mkdir, stat } from 'node:fs/promises'
+import { createHash, randomUUID } from 'node:crypto'
+import { mkdir, readFile, stat } from 'node:fs/promises'
 import { homedir } from 'node:os'
-import { dirname } from 'node:path'
+import { dirname, join } from 'node:path'
 import { z as zod } from 'zod'
 import type { Context } from '@bosch/cordis'
+import { USER_GLOBAL_FILE } from '@bosch/bh-agent-instructions'
+import { withFileLock, writeFileAtomic } from '@bosch/bh-atomic-write'
+import { resolveBhHome } from '@bosch/bh-home-paths'
 import { installModelSelection } from '@bosch/bh-agent'
 import type { Agent, ModelSelection, ModelSelectionRef, AgentOptions, AgentStatus } from '@bosch/bh-agent'
 import type {} from '@bosch/bh-agent-presets/types'
@@ -41,7 +44,7 @@ import type { PresetBearingSession } from '@bosch/bh-agent-presets'
 import type {} from '@bosch/bh-tools'
 import type {
   ApiProxy, ConfigurableProviderView, CredentialView, GoalRef, HistoryEntry, HostFrame,
-  ModelCatalogFailure, ModelProviderGroup,
+  InstructionsDocumentView, MemoryEntryView, ModelCatalogFailure, ModelProviderGroup,
   ModelReasoning, MuxFrame, PromptContentPart, QuestionResponsePayload, SessionListMetadata, SessionProjectionsBlock, SessionSearchItem,
   QueuedInboxItem, SessionSummary, SettingsNamespaceView, SubagentAddress, JobView, ToolEventView,
   WorkspaceId, WorkspaceView,
@@ -78,7 +81,7 @@ import type {} from '@bosch/bh-commands'
 // merges `ctx.dynamicCordisRunner`, and a dependency on that package would
 // rebuild the api-remotes cycle this direction exists to avoid.
 import type {} from '@bosch/bh-cordis-host-runner/types'
-import type {} from '@bosch/bh-skill'
+import type {} from '@bosch/bh-skill/types'
 // The settings/credentials seams: brand guards run at this wire boundary; the
 // service reads stay optional (`ctx.get`) so a composition without either
 // provider still serves every other domain.
@@ -1955,6 +1958,92 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
     return ok(request, namespaceView(descriptor))
   }
 
+  /** Byte cap on the personalization custom-instructions document (raw UTF-8 bytes). */
+  const INSTRUCTIONS_MAX_BYTES = 65_536
+
+  /** Absolute path of the personalization custom-instructions document. */
+  function instructionsPath(): string {
+    return join(resolveBhHome(), USER_GLOBAL_FILE)
+  }
+
+  /** Read the custom-instructions document and its SHA-256 content-hash revision. */
+  async function readInstructionsDocument(): Promise<InstructionsDocumentView> {
+    let raw: Buffer
+    try {
+      raw = await readFile(instructionsPath())
+    } catch (error: unknown) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error
+      raw = Buffer.alloc(0)
+    }
+    return { content: raw.toString('utf8'), revision: createHash('sha256').update(raw).digest('hex') }
+  }
+
+  /**
+   * Replace the custom-instructions document under the cross-process writer
+   * lock: re-reads the current content hash inside the lock so a
+   * read-modify-write cycle can never resurrect a state another writer just
+   * replaced, refuses a stale `expectedRevision` as `instructions-conflict`,
+   * and refuses oversized content as `instructions-rejected`.
+   */
+  async function writeInstructionsDocument(
+    request: RpcRequest<unknown>,
+    content: string,
+    expectedRevision: string | undefined,
+  ): Promise<RpcResponse<InstructionsDocumentView>> {
+    const bytes = Buffer.from(content, 'utf8')
+    if (bytes.byteLength > INSTRUCTIONS_MAX_BYTES) {
+      return err(request, {
+        code: 'instructions-rejected',
+        message: `custom instructions exceed the ${String(INSTRUCTIONS_MAX_BYTES)}-byte limit (${String(bytes.byteLength)} bytes)`,
+        details: {},
+      })
+    }
+    const path = instructionsPath()
+    try {
+      // withFileLock creates its `.lock` sibling with exclusive create, which
+      // needs the parent directory to already exist.
+      await mkdir(dirname(path), { recursive: true, mode: 0o700 })
+      return await withFileLock(path, async () => {
+        const current = await readInstructionsDocument()
+        if (expectedRevision !== undefined && expectedRevision !== current.revision) {
+          return err(request, {
+            code: 'instructions-conflict',
+            message: 'custom instructions changed since they were read',
+            details: { expected: expectedRevision, actual: current.revision },
+          })
+        }
+        await writeFileAtomic(path, content, { mode: 0o600, dirMode: 0o700 })
+        return ok(request, { content, revision: createHash('sha256').update(bytes).digest('hex') })
+      })
+    } catch (error: unknown) {
+      return err(request, {
+        code: 'instructions-rejected',
+        message: error instanceof Error ? error.message : String(error),
+        details: {},
+      })
+    }
+  }
+
+  async function listLocalMemories(request: RpcRequest<unknown>): Promise<RpcResponse<{ entries: MemoryEntryView[] }>> {
+    const memories = ctx.get('localMemories') as { list(): Promise<MemoryEntryView[]> } | undefined
+    if (memories === undefined) return err(request, { code: 'internal', message: 'local memory store is unavailable', details: {} })
+    try {
+      return ok(request, { entries: await memories.list() })
+    } catch (error: unknown) {
+      return err(request, { code: 'internal', message: `memory listing failed: ${error instanceof Error ? error.message : String(error)}`, details: {} })
+    }
+  }
+
+  async function removeLocalMemory(request: RpcRequest<{ id: string }>): Promise<RpcResponse<{ removed: boolean }>> {
+    const memories = ctx.get('localMemories') as { remove(id: string): Promise<boolean> } | undefined
+    if (memories === undefined) return err(request, { code: 'internal', message: 'local memory store is unavailable', details: {} })
+    try {
+      return ok(request, { removed: await memories.remove(request.payload.id) })
+    } catch (error: unknown) {
+      return err(request, { code: 'internal', message: `memory removal failed: ${error instanceof Error ? error.message : String(error)}`, details: {} })
+    }
+  }
+
   return {
     sessions: {
       // Attached sessions summarize from memory; persisted-but-unattached (cold)
@@ -3253,6 +3342,10 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
       update: request => settingsWrite(request, request.payload.ns, 'update', request.payload.patch, request.payload.expectedRevision),
       replace: request => settingsWrite(request, request.payload.ns, 'replace', request.payload.section, request.payload.expectedRevision),
       mutate: request => settingsWrite(request, request.payload.ns, 'mutate', request.payload.ops, request.payload.expectedRevision),
+      readInstructions: request => readInstructionsDocument().then(view => ok(request, view)),
+      writeInstructions: request => writeInstructionsDocument(request, request.payload.content, request.payload.expectedRevision),
+      listMemories: request => listLocalMemories(request),
+      removeMemory: request => removeLocalMemory(request),
     },
 
     credentials: {

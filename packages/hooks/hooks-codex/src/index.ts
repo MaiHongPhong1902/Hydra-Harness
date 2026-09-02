@@ -55,6 +55,8 @@ export interface Config {
   defaultTimeoutMs?: number
   /** Character cap for the `hook/result` event's persisted stderr summary. */
   stderrSummaryMaxChars?: number
+  /** Extra trusted environment values supplied by a host-managed plugin runtime. */
+  env?: Record<string, string>
 }
 
 export const Config: z<Config> = z.object({
@@ -62,6 +64,7 @@ export const Config: z<Config> = z.object({
   model: z.string().default(''),
   defaultTimeoutMs: z.number().default(DEFAULT_HOOK_TIMEOUT_MS),
   stderrSummaryMaxChars: z.number().default(DEFAULT_STDERR_SUMMARY_MAX_CHARS),
+  env: z.dict(String).default({}),
 })
 
 let handlerCounter = 0
@@ -97,6 +100,8 @@ export function apply(ctx: Context, config: Config): void {
   }
 
   const model = config.model ?? ''
+  const lifecycle = new AbortController()
+  ctx.effect(() => () => lifecycle.abort(new Error('hooks-codex unloaded')), 'hooks-codex lifecycle')
 
   // SessionStart is the one emit-shaped (detached) point Codex has: track its
   // run chains so disposal aborts a still-running hook process and drains the
@@ -142,8 +147,9 @@ export function apply(ctx: Context, config: Config): void {
           payload,
           defaultTimeoutMs,
           ...workdir !== undefined ? { cwd: workdir } : {},
-          signal: opts.signal,
+          signal: AbortSignal.any([opts.signal, lifecycle.signal]),
           trailingNewline: false, // Codex writes stdin without a trailing newline.
+          ...config.env === undefined ? {} : { env: config.env },
           // Discard a `hookSpecificOutput` block naming a different event.
           expectedEventName: point,
         }, () => performance.now())

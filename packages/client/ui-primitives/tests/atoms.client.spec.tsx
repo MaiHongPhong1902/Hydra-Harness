@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Button, ConnectionBanner, Input, Menu, Modal, Pill } from '@bosch/bh-client-ui-primitives'
+import { Button, ConnectionBanner, Input, Menu, Modal, Pill, Switch } from '@bosch/bh-client-ui-primitives'
 import { POINTER_GRACE_MS } from '../src/pointer-grace.ts'
 
 afterEach(cleanup)
@@ -26,6 +26,17 @@ describe('Button', () => {
   it('outline variant renders a bordered cancel-style button', () => {
     render(<Button variant="outline">Cancel</Button>)
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeDefined()
+  })
+})
+
+describe('Switch', () => {
+  it('exposes its checked state and forwards the toggle click', () => {
+    const onClick = vi.fn()
+    render(<Switch checked aria-label="Feature" onClick={onClick} />)
+    const control = screen.getByRole('switch', { name: 'Feature' })
+    expect(control.getAttribute('aria-checked')).toBe('true')
+    fireEvent.click(control)
+    expect(onClick).toHaveBeenCalledOnce()
   })
 })
 

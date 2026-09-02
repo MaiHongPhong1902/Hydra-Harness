@@ -16,6 +16,7 @@ import { NamedEntries, ScopedLayers, scopeChainOf, scopeOf } from '@bosch/bh-sco
 import type { ScopeKey, ScopeLayer } from '@bosch/bh-scope'
 import z from '@bosch/schemastery'
 import type Schema from '@bosch/schemastery'
+export type {} from './types.ts'
 
 const SKILL_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 const DEFAULT_COLLECT_CACHE_ENTRIES = 128
@@ -72,6 +73,8 @@ export interface SkillSummary {
 
 /** Provider catalog entry used by the registry to merge and later load skills. */
 export interface SkillCandidate extends SkillSummary {
+  /** Additional kebab-case names the registry exposes only when no resolved catalog collision exists. */
+  readonly aliases?: readonly string[]
   /** Lower ranks win duplicate skill names before provider registration order is considered. */
   readonly rank: number
   /** Opaque provider-owned handle passed back to `provider.get()`. */
@@ -286,17 +289,6 @@ declare module '@bosch/cordis' {
   interface Context {
     skills: SkillRegistry
   }
-
-  interface Events {
-    /**
-     * A skill provider, runtime contribution, or provider-backed catalog may
-     * have changed. This is an unfiltered invalidation notification; consumers
-     * refetch the catalog for their own lookup options. Listener failures are
-     * contained and cannot veto the registry mutation.
-     * @mode emit
-     */
-    'skills/change'(): void
-  }
 }
 
 interface IndexedCandidate {
@@ -483,8 +475,8 @@ export class SkillRegistry extends Service {
   async snapshot(options: SkillViewOptions = {}): Promise<SkillCatalogSnapshot> {
     const collected = await this.collect(options)
     return {
-      skills: [...collected.entries.values()]
-        .map(entry => toSummary(entry.candidate))
+      skills: [...collected.entries]
+        .map(([name, entry]) => ({ ...toSummary(entry.candidate), name }))
         .sort(compareSkillSummary),
       complete: collected.cacheable,
     }
@@ -515,7 +507,7 @@ export class SkillRegistry extends Service {
       this.invalidateEntry(match)
       return undefined
     }
-    return definition
+    return name === definition.name ? definition : { ...definition, name }
   }
 
   private async collect(options: SkillViewOptions): Promise<CollectResult> {
@@ -563,7 +555,7 @@ export class SkillRegistry extends Service {
       if (!collected.cacheable) cacheable = false
       for (const entry of collected.entries) merged.set(entry.candidate.name, entry)
     }
-    return { entries: merged, cacheable }
+    return { entries: addUnambiguousAliases(merged), cacheable }
   }
 
   private async collectLayer(layer: SkillLayer, options: SkillLookupOptions): Promise<LayerCollectResult> {
@@ -661,6 +653,22 @@ export class SkillRegistry extends Service {
   }
 }
 
+function addUnambiguousAliases(canonical: Map<string, IndexedCandidate>): Map<string, IndexedCandidate> {
+  const claims = new Map<string, IndexedCandidate[]>()
+  for (const entry of canonical.values()) {
+    for (const alias of new Set(entry.candidate.aliases ?? [])) {
+      if (canonical.has(alias)) continue
+      const claimants = claims.get(alias)
+      if (claimants === undefined) claims.set(alias, [entry])
+      else claimants.push(entry)
+    }
+  }
+  for (const [alias, [claimant, ...rest]] of claims) {
+    if (claimant !== undefined && rest.length === 0) canonical.set(alias, claimant)
+  }
+  return canonical
+}
+
 function normalizeProviderObservation(output: unknown, providerName: string): SkillProviderObservation {
   if (Array.isArray(output)) {
     return { candidates: output as readonly SkillCandidate[], complete: true }
@@ -737,6 +745,19 @@ function validateCandidate(candidate: SkillCandidate, providerName: string): voi
   }
   if (candidate.path !== undefined && typeof candidate.path !== 'string') {
     throw new TypeError(`skill provider "${providerName}" returned skill "${candidate.name}" with a non-string path`)
+  }
+  if (candidate.aliases !== undefined) {
+    if (!Array.isArray(candidate.aliases)) {
+      throw new TypeError(`skill provider "${providerName}" returned skill "${candidate.name}" with non-array aliases`)
+    }
+    for (const alias of candidate.aliases) {
+      if (typeof alias !== 'string') {
+        throw new TypeError(`skill provider "${providerName}" returned skill "${candidate.name}" with a non-string alias`)
+      }
+      if (!SKILL_NAME.test(alias)) {
+        throw new Error(`skill provider "${providerName}" returned skill "${candidate.name}" with invalid alias "${alias}"`)
+      }
+    }
   }
 }
 

@@ -241,6 +241,36 @@ All implement the same abstract `SessionPersistence` (locate/create/append/prepa
 
 Generated from source by `scripts/gen-cordis-catalog.ts` (verified fresh by `pnpm run verify-cordis-catalog` in doc-sync; regenerate with `pnpm run gen-cordis-catalog`) — the language sides differ only in locale-specific paired document paths. Signature blocks use a `ts cordis-catalog` fence and keep the original source JSDoc; dispatch modes are defined in the [primer](../cordis-primer.md#dispatch-modes), and the framework-inherited `ctx` API lives in [cordis-api/inherited.md](../cordis-api/inherited.md).
 
+<a id="ctxlocalmemories--localmemorystore"></a>
+
+### `ctx.localMemories` — `LocalMemoryStore`
+
+JSON-backed local memory store, private to one BH home.
+
+```ts cordis-catalog
+/**
+ * Read memory entries newest first.
+ * @returns memory entries ordered by most recent update.
+ */
+async list(): Promise<MemoryEntry[]>
+
+/**
+ * Append one already-redacted explicit memory.
+ * @param text - memory text to redact and store.
+ * @returns the newly stored memory entry.
+ */
+async add(text: string): Promise<MemoryEntry>
+
+/**
+ * Delete one memory id; returns whether an entry was removed.
+ * @param id - identifier of the memory to delete.
+ * @returns whether an entry was removed.
+ */
+async remove(id: string): Promise<boolean>
+```
+
+Source: [`packages/context/personalization/src/memories.ts`](../../packages/context/personalization/src/memories.ts)
+
 <a id="ctxsessionpersistence--sessionpersistence-abstract-seam"></a>
 
 ### `ctx.sessionPersistence` — `SessionPersistence` (abstract seam)

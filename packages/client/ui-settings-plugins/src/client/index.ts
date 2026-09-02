@@ -22,7 +22,7 @@ import type {} from '@bosch/bh-api-remotes/client'
 import { AgentLoopCard } from './AgentLoopCard.tsx'
 import { BashCard } from './BashCard.tsx'
 import { ConfigurablePluginsTab } from './ConfigurablePluginsTab.tsx'
-import { McpSettingsTab } from './McpSettingsTab.tsx'
+import { McpSettingsTab, type ImportedMcpSettingsFace, type NativeMcpSettingsFace } from './McpSettingsTab.tsx'
 import { PluginsSettingsSection } from './PluginsSettingsSection.tsx'
 import type { PluginsSettingsSectionInjected, PluginsSettingsTabEntry } from './PluginsSettingsSection.tsx'
 import { WebSearchCard } from './WebSearchCard.tsx'
@@ -50,7 +50,7 @@ export type { WebSearchCardFace, WebSearchCardState } from './web-search-card-co
 const NS = 'settings.plugins'
 
 /** Required services (cordis fiber inject). */
-export const inject = ['slots', 'locale', 'connection', 'remote', 'settingsScope']
+export const inject = ['slots', 'locale', 'connection', 'remote', 'remote.pluginInventory', 'settingsScope']
 
 /**
  * Mount the plugin configuration section and the cards this package ships.
@@ -58,7 +58,8 @@ export const inject = ['slots', 'locale', 'connection', 'remote', 'settingsScope
  */
 export function apply(ctx: ClientContext): void {
   const desktop = globalThis as typeof globalThis & { bhDesktop?: { browser?: unknown } }
-  const { api } = ctx.get('connection') as ConnectionHandle
+  const connection = ctx.get('connection') as ConnectionHandle
+  const { api } = connection
   const t = ctx.locale.bind(NS)
   ctx.effect(() => ctx.locale.register(NS, { en }), 'ui-settings-plugins: section dictionaries')
 
@@ -66,6 +67,30 @@ export function apply(ctx: ClientContext): void {
   const agentLoop = new AgentLoopCardController(ctx.settingsScope.bind({ namespace: AGENT_LOOP_NS }))
   const webSearch = new WebSearchCardController(ctx.settingsScope.bind({ namespace: WEB_SEARCH_NS }), api)
   const mcp = new McpSettingsController(ctx.settingsScope.bind({ namespace: MCP_SETTINGS_NS }), api)
+  const importedMcp: ImportedMcpSettingsFace['importedMcp'] = connection.isLoopback ? {
+    list: async () => {
+      const result = await ctx.remote.pluginInventory.listImportedPlugins()
+      if (!result.ok) throw new Error(`pluginInventory.listImportedPlugins failed: ${result.error.code}: ${result.error.message}`)
+      return result.value
+    },
+    setEnabled: async (identity, server, enabled) => {
+      const result = await ctx.remote.pluginInventory.setPluginMcpServerEnabled({ identity, server, enabled })
+      if (!result.ok) throw new Error(`pluginInventory.setPluginMcpServerEnabled failed: ${result.error.code}: ${result.error.message}`)
+      return result.value
+    },
+  } : undefined
+  const nativeMcp: NativeMcpSettingsFace['nativeMcp'] = connection.isLoopback ? {
+    list: async () => {
+      const result = await ctx.remote.pluginInventory.list()
+      if (!result.ok) throw new Error(`pluginInventory.list failed: ${result.error.code}: ${result.error.message}`)
+      return result.value
+    },
+    setEnabled: async (entryId, enabled) => {
+      const result = await ctx.remote.pluginInventory.setEnabled({ entryId, enabled })
+      if (!result.ok) throw new Error(`pluginInventory.setEnabled failed: ${result.error.code}: ${result.error.message}`)
+      return result.value
+    },
+  } : undefined
 
   // The credential a card reports is not part of any settings section, so its
   // scope publishes nothing when one is written. This is the only signal that
@@ -155,7 +180,11 @@ export function apply(ctx: ClientContext): void {
     order: 5,
     label: () => t('mcpTab'),
     locale: NS,
-    inject: () => mcp.inject(),
+    inject: () => ({
+      ...mcp.inject(),
+      ...(importedMcp === undefined ? {} : { importedMcp }),
+      ...(nativeMcp === undefined ? {} : { nativeMcp }),
+    }),
   }, McpSettingsTab))
 
   ctx.slots.inject('settings.plugin.item', function* () {

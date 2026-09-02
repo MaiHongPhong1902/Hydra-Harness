@@ -49,7 +49,7 @@ This table connects model-visible tool names to the plugin package and service s
 
 ### `ask_user_question`
 
-Ask the user a concise question when you need confirmation, a user-owned choice, or missing information before proceeding. When the request clearly implies an available tool or execution path, inspect the context, choose it yourself, and proceed; do not ask the user to choose between tools or implementation options. Send one or more questions, each with a stable id that will be echoed in the answer.
+Ask the user a concise question only when confirmation, a genuine user-owned choice, or a material fact unavailable through normal inspection blocks a concrete task. Do not use this for greetings, acknowledgements, casual chat, vague requests, or generic action, task, or tool menus. When the request clearly implies an available tool or execution path, inspect the context, choose it yourself, and proceed; do not ask the user to choose between tools or implementation options. Send one or more questions, each with a stable id that will be echoed in the answer.
 
 ```json
 {
@@ -678,12 +678,15 @@ Read a UTF-8 text file and return line-numbered content.
       "description": "Path to read, resolved by the filesystem backend."
     },
     "offset": {
-      "type": "number",
-      "description": "1-based first line to return. Defaults to 1."
+      "type": "integer",
+      "description": "1-based first line to return. Defaults to 1.",
+      "minimum": 1
     },
     "limit": {
-      "type": "number",
-      "description": "Maximum number of lines to return. Defaults to 2000."
+      "type": "integer",
+      "description": "Maximum number of lines to return. Defaults to 2000; values above 2000 are rejected.",
+      "minimum": 1,
+      "maximum": 2000
     }
   },
   "required": [
@@ -1663,7 +1666,7 @@ Registered per continuable in-process child rather than globally, so this schema
 
 ### `job_kill`
 
-Request cancellation of a running background job by job id. Returns immediately; the job settles as killed once its work actually stops.
+Request cancellation of a running background job by its job id, not a continuable subagent id. Returns immediately; the job settles as killed once its work actually stops.
 
 ```json
 {
@@ -1671,7 +1674,7 @@ Request cancellation of a running background job by job id. Returns immediately;
   "properties": {
     "job_id": {
       "type": "string",
-      "description": "Job id returned by the tool that started the background work."
+      "description": "Background job id returned by the tool that started the work; do not pass a continuable subagent id."
     },
     "reason": {
       "type": "string",
@@ -1701,7 +1704,7 @@ Source: [`packages/jobs/tool-jobs/src/index.ts`](../packages/jobs/tool-jobs/src/
 
 ### `job_output`
 
-Read a background job. Stream jobs return only output since the previous read; final-output jobs return their result after settlement. Every response ends with `[status: ...]`. Reads are non-blocking unless `wait: true`, which waits up to the configured cap.
+Read a background job by its job id, not a continuable subagent id. Stream jobs return only output since the previous read; final-output jobs return their result after settlement. Every response ends with `[status: ...]`. Reads are non-blocking unless `wait: true`, which waits up to the configured cap.
 
 ```json
 {
@@ -1709,7 +1712,7 @@ Read a background job. Stream jobs return only output since the previous read; f
   "properties": {
     "job_id": {
       "type": "string",
-      "description": "Job id returned by the tool that started the background work."
+      "description": "Background job id returned by the tool that started the work; do not pass a continuable subagent id."
     },
     "wait": {
       "type": "boolean",

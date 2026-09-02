@@ -113,6 +113,10 @@ const PRIVILEGED_METHODS = new Set([
   'settings.update',
   'settings.replace',
   'settings.mutate',
+  'settings.readInstructions',
+  'settings.writeInstructions',
+  'settings.listMemories',
+  'settings.removeMemory',
   'credentials.describe',
   'credentials.set',
   'credentials.unset',
@@ -121,7 +125,16 @@ const PRIVILEGED_METHODS = new Set([
   'pluginInventory/setEnabled',
   'pluginInventory/listMarketplaces',
   'pluginInventory/addMarketplace',
-  'pluginInventory/installMarketplacePlugin',
+  'pluginInventory/removeMarketplace',
+  'pluginInventory/listImportedPlugins',
+  'pluginInventory/importPlugin',
+  'pluginInventory/infoPlugin',
+  'pluginInventory/enablePlugin',
+  'pluginInventory/disablePlugin',
+  'pluginInventory/setPluginMcpServerEnabled',
+  'pluginInventory/trustPlugin',
+  'pluginInventory/untrustPlugin',
+  'pluginInventory/removePlugin',
 ])
 
 /**

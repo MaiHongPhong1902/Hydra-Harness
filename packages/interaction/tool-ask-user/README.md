@@ -25,7 +25,7 @@ This is the Consumer package for the user-questions seam. It does not render UI 
 
 #### What the model sees
 
-The model sees the generated [`ask_user_question` schema](../../../docs/tool-catalog.md#boschbh-tool-ask-user), including question ids, prompts, headings, options, and multi-select flags.
+The model sees the generated [`ask_user_question` schema](../../../docs/tool-catalog.md#boschbh-tool-ask-user), including question ids, prompts, headings, options, and multi-select flags. It reserves the tool for a concrete task blocked by confirmation, a user-owned choice, or a fact normal inspection cannot establish; greetings, casual chat, vague requests, and generic action/tool menus are excluded.
 
 #### Token effect
 

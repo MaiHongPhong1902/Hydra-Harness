@@ -58,7 +58,8 @@ import {
 } from '../api/goals.schema.ts'
 import {
   settingsDescribeRequestSchema, settingsMutateRequestSchema, settingsOpenDocumentRequestSchema,
-  settingsReplaceRequestSchema, settingsUpdateRequestSchema,
+  settingsListMemoriesRequestSchema, settingsReadInstructionsRequestSchema, settingsRemoveMemoryRequestSchema,
+  settingsReplaceRequestSchema, settingsUpdateRequestSchema, settingsWriteInstructionsRequestSchema,
 } from '../api/settings.schema.ts'
 import {
   credentialsDescribeRequestSchema, credentialsSetRequestSchema, credentialsUnsetRequestSchema,
@@ -134,6 +135,10 @@ const UNARY_ROUTES: UnaryRoutes = {
   'settings.update': { schema: settingsUpdateRequestSchema, invoke: (api, r) => api.settings.update(r) },
   'settings.replace': { schema: settingsReplaceRequestSchema, invoke: (api, r) => api.settings.replace(r) },
   'settings.mutate': { schema: settingsMutateRequestSchema, invoke: (api, r) => api.settings.mutate(r) },
+  'settings.readInstructions': { schema: settingsReadInstructionsRequestSchema, invoke: (api, r) => api.settings.readInstructions(r) },
+  'settings.writeInstructions': { schema: settingsWriteInstructionsRequestSchema, invoke: (api, r) => api.settings.writeInstructions(r) },
+  'settings.listMemories': { schema: settingsListMemoriesRequestSchema, invoke: (api, r) => api.settings.listMemories(r) },
+  'settings.removeMemory': { schema: settingsRemoveMemoryRequestSchema, invoke: (api, r) => api.settings.removeMemory(r) },
   'credentials.describe': { schema: credentialsDescribeRequestSchema, invoke: (api, r) => api.credentials.describe(r) },
   'credentials.set': { schema: credentialsSetRequestSchema, invoke: (api, r) => api.credentials.set(r) },
   'credentials.unset': { schema: credentialsUnsetRequestSchema, invoke: (api, r) => api.credentials.unset(r) },

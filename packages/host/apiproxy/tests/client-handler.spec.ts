@@ -114,6 +114,10 @@ function scriptedApi(overrides: {
       update: err,
       replace: err,
       mutate: err,
+      readInstructions: r => ok(r, { content: '', revision: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855' }),
+      writeInstructions: err,
+      listMemories: r => ok(r, { entries: [] }),
+      removeMemory: r => ok(r, { removed: false }),
       ...overrides.settings,
     },
     credentials: {
@@ -743,6 +747,10 @@ describe('config unary surface', () => {
         update: record('settings.update', r => ok(r, view)),
         replace: record('settings.replace', r => ok(r, view)),
         mutate: record('settings.mutate', r => ok(r, view)),
+        readInstructions: record('settings.readInstructions', r => ok(r, { content: 'hello', revision: 'a'.repeat(64) })),
+        writeInstructions: record('settings.writeInstructions', r => ok(r, { content: 'hello v2', revision: 'b'.repeat(64) })),
+        listMemories: record('settings.listMemories', r => ok(r, { entries: [] })),
+        removeMemory: record('settings.removeMemory', r => ok(r, { removed: true })),
       },
       credentials: {
         describe: record('credentials.describe', r => ok(r, { credentials: { OPENAI_API_KEY: { configured: true, source: 'file', writable: true } } })),
@@ -786,11 +794,18 @@ describe('config unary surface', () => {
       apiKey: 'probe-key',
     })
     expect(discovered.result).toEqual({ ok: true, value: { models: [{ id: 'acme-large', contextWindow: 65536 }] } })
+    const instructionsRead = await c.settings.readInstructions({})
+    expect(instructionsRead.result).toEqual({ ok: true, value: { content: 'hello', revision: 'a'.repeat(64) } })
+    const instructionsWritten = await c.settings.writeInstructions({ content: 'hello v2', expectedRevision: 'a'.repeat(64) })
+    expect(instructionsWritten.result).toEqual({ ok: true, value: { content: 'hello v2', revision: 'b'.repeat(64) } })
+    expect((await c.settings.listMemories({})).result).toEqual({ ok: true, value: { entries: [] } })
+    expect((await c.settings.removeMemory({ id: '00000000-0000-4000-8000-000000000001' })).result).toEqual({ ok: true, value: { removed: true } })
 
     expect(seen.map(call => call.method)).toEqual([
       'settings.describe', 'settings.openDocument', 'settings.update', 'settings.replace', 'settings.mutate',
       'credentials.describe', 'credentials.set', 'credentials.unset',
       'llm.providers', 'llm.models', 'llm.discoverModels',
+      'settings.readInstructions', 'settings.writeInstructions', 'settings.listMemories', 'settings.removeMemory',
     ])
     expect(seen[2]?.payload).toEqual({ ns: 'llm-deepseek', patch: { baseURL: 'https://next' } })
     expect(seen[4]?.payload)

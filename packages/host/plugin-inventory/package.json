@@ -53,16 +53,19 @@
     "zod": "^4.4.3"
   },
   "peerDependencies": {
+    "@bosch/bh-atomic-write": "workspace:^",
     "@bosch/bh-app-boot": "workspace:^",
     "@bosch/bh-settings": "workspace:^",
     "@bosch/cordis-plugin-loader": "workspace:^",
     "@bosch/cordis-plugin-include": "workspace:^",
     "@bosch/bh-brand": "workspace:^",
     "@bosch/bh-invariants": "workspace:^",
+    "@bosch/bh-plugin-runtime": "workspace:^",
     "@bosch/bh-typert-protocol": "workspace:^",
     "@bosch/cordis": "workspace:^"
   },
   "devDependencies": {
+    "@bosch/bh-atomic-write": "workspace:^",
     "@bosch/bh-app-boot": "workspace:^",
     "@bosch/bh-settings": "workspace:^",
     "@bosch/bh-settings-file": "workspace:^",
@@ -70,6 +73,7 @@
     "@bosch/cordis-plugin-include": "workspace:^",
     "@bosch/bh-brand": "workspace:^",
     "@bosch/bh-invariants": "workspace:^",
+    "@bosch/bh-plugin-runtime": "workspace:^",
     "@bosch/bh-typert-protocol": "workspace:^",
     "@bosch/cordis": "workspace:^"
   }

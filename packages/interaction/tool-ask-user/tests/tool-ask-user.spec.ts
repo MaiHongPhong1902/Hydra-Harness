@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Context } from '@bosch/cordis'
 import { CallId } from '@bosch/bh-llm'
 import AgentRegistry, { type Agent } from '@bosch/bh-agent'
@@ -35,11 +35,18 @@ async function setup() {
   return ctx
 }
 
-function stubAgent(id: string, delegationDepth = 0): Agent {
+function stubAgent(id: string, delegationDepth = 0, userText?: string): Agent {
   const agentId = id as Agent['id']
   return {
     id: agentId,
-    session: { id: agentId, header: { delegationDepth } },
+    session: {
+      id: agentId,
+      header: { delegationDepth },
+      events: userText === undefined ? [] : [{
+        type: 'user/message',
+        data: { source: { kind: 'user' }, content: [{ type: 'text', text: userText }] },
+      }],
+    },
   } as unknown as Agent
 }
 
@@ -59,6 +66,8 @@ describe('ask_user_question tool', () => {
         required: ['questions'],
       },
     })
+    expect(schema?.description).toContain('Do not use this for greetings')
+    expect(schema?.description).toContain('generic action, task, or tool menus')
     const parameters = schema?.parameters as unknown as OptionSchemaShape
     expect(parameters.properties.questions.items.properties).toMatchObject({
       id: { type: 'string' },
@@ -142,6 +151,62 @@ describe('ask_user_question tool', () => {
       { label: 'pnpm (Recommended)' },
       { label: 'npm' },
     ])
+  })
+
+  it('rejects a generic improvement-category menu before it reaches the user', async () => {
+    const ctx = await setup()
+    const ask = vi.fn()
+    ctx.userQuestions.registerProvider({ ask })
+
+    const result = await ctx.tools.execute({
+      signal: testToolSignal,
+      callId: CallId('ask-generic-improvement-menu'),
+      name: 'ask_user_question',
+      agent: stubAgent('improve-agent', 0, 'Tôi muốn cải thiện agent'),
+      arguments: {
+        questions: [{
+          id: 'focus',
+          question: 'Which area should I focus on?',
+          options: [
+            { label: 'Performance' },
+            { label: 'Features' },
+            { label: 'Reliability' },
+            { label: 'Safety' },
+          ],
+        }],
+      },
+    })
+
+    expect(result).toMatchObject({
+      isError: true,
+      content: [{ type: 'text', text: expect.stringContaining('generic improvement-category menu') }],
+    })
+    expect(ask).not.toHaveBeenCalled()
+  })
+
+  it('rejects a broad improvement menu embedded in question text', async () => {
+    const ctx = await setup()
+    const ask = vi.fn()
+    ctx.userQuestions.registerProvider({ ask })
+
+    const result = await ctx.tools.execute({
+      signal: testToolSignal,
+      callId: CallId('ask-embedded-improvement-menu'),
+      name: 'ask_user_question',
+      agent: stubAgent('improve-agent-embedded', 0, 'Tôi muốn cải thiện agent'),
+      arguments: {
+        questions: [{
+          id: 'focus',
+          question: 'Bạn muốn chọn Hiệu suất, Độ tin cậy, An toàn hay UX?',
+        }],
+      },
+    })
+
+    expect(result).toMatchObject({
+      isError: true,
+      content: [{ type: 'text', text: expect.stringContaining('generic improvement-category menu') }],
+    })
+    expect(ask).not.toHaveBeenCalled()
   })
 
   it('projects custom answers and multi-select choices', async () => {

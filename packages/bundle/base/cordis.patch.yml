@@ -234,6 +234,11 @@
       config:
         maxBytes: 65536
 
+    # Personality preference: settings-backed tone selector for the system
+    # prompt, logged to each session as durable prompt provenance.
+    - id: personalization
+      name: '@bosch/bh-personalization'
+
     - id: skill
       name: '@bosch/bh-skill'
 
@@ -249,6 +254,11 @@
 
     - id: commands
       name: '@bosch/bh-commands'
+
+    # Imported OpenAI/Codex plugin bundles are shared by every profile. The
+    # runtime owns immutable bundles, per-plugin data, and reversible loading.
+    - id: plugin-runtime
+      name: '@bosch/bh-plugin-runtime'
 
     - id: command-feedback
       name: '@bosch/bh-command-feedback'

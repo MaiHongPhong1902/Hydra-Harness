@@ -41,6 +41,21 @@ async function bench(served?: string[]) {
   // forwarded Host events reach it through the same `$dispatch` handoff the
   // connection sink makes.
   new TestRemote(ctx)
+  const inventory = { entries: [] }
+  const imported = { plugins: [] }
+  const listInventory = vi.fn(async () => ({ ok: true as const, value: inventory }))
+  const setInventoryEnabled = vi.fn(async () => ({ ok: true as const, value: inventory }))
+  const listImported = vi.fn(async () => ({ ok: true as const, value: imported }))
+  const setImportedEnabled = vi.fn(async () => ({ ok: true as const, value: imported }))
+  const pluginInventory = {
+    list: listInventory,
+    setEnabled: setInventoryEnabled,
+    listImportedPlugins: listImported,
+    setPluginMcpServerEnabled: setImportedEnabled,
+  }
+  ctx.provide('remote.pluginInventory', pluginInventory as never)
+  const remote = ctx.get('remote') as unknown as { pluginInventory?: typeof pluginInventory }
+  remote.pluginInventory = pluginInventory
   ctx.provide('connection', {
     isLoopback: true,
     api: {
@@ -49,7 +64,10 @@ async function bench(served?: string[]) {
     },
   } as never)
   await ctx.plugin({ inject: [...settingsInject], apply: settingsApply }).await()
-  return { ctx, slots: ctx.get('slots') as SlotRegistry, describeCredentials, describeSettings }
+  return {
+    ctx, slots: ctx.get('slots') as SlotRegistry, describeCredentials, describeSettings,
+    listInventory, setInventoryEnabled,
+  }
 }
 
 function declareRoot(slots: SlotRegistry): () => void {
@@ -61,7 +79,7 @@ function declareRoot(slots: SlotRegistry): () => void {
 
 describe('ui-settings-plugins apply', () => {
   it('declares the services it uses', () => {
-    expect(inject).toEqual(['slots', 'locale', 'connection', 'remote', 'settingsScope'])
+    expect(inject).toEqual(['slots', 'locale', 'connection', 'remote', 'remote.pluginInventory', 'settingsScope'])
   })
 
   it('registers one Plugins section and declares the tab and card slots', async () => {
@@ -77,7 +95,7 @@ describe('ui-settings-plugins apply', () => {
     expect(slots.spec('settings.plugins.tab')).toMatchObject({ kind: 'list', scope: 'root' })
     const tabs = slots.entries('settings.plugins.tab')
     expect(tabs[0]?.options).toMatchObject({ id: 'configurable', order: 0 })
-    expect(resolveSlotLabel(tabs[0]!.options.label)).toBe('Plugin configuration')
+    expect(resolveSlotLabel(tabs[0]!.options.label)).toBe('Configuration')
     expect(tabs[1]?.options).toMatchObject({ id: 'mcp', order: 5 })
     expect(resolveSlotLabel(tabs[1]!.options.label)).toBe('MCP')
     expect(slots.spec('settings.plugin.item')).toMatchObject({ kind: 'keyed', scope: 'root' })
@@ -85,7 +103,7 @@ describe('ui-settings-plugins apply', () => {
 
 
   it('injects a live tab projection, the card directory, and one business face per card', async () => {
-    const { ctx, slots } = await bench()
+    const { ctx, slots, listInventory, setInventoryEnabled } = await bench()
     declareRoot(slots)
     await ctx.plugin({ inject: [...inject], apply }).await()
 
@@ -93,16 +111,26 @@ describe('ui-settings-plugins apply', () => {
     const sectionFace = (section.inject as unknown as () => PluginsSettingsSectionInjected)()
     const initialTabs = sectionFace.hooks.tabs.getSnapshot()
     expect(initialTabs).toEqual([
-      { id: 'configurable', order: 0, label: 'Plugin configuration' },
+      { id: 'configurable', order: 0, label: 'Configuration' },
       { id: 'mcp', order: 5, label: 'MCP' },
     ])
     expect(sectionFace.hooks.tabs.getSnapshot()).toBe(initialTabs)
+
+    const mcp = slots.entries('settings.plugins.tab').find(entry => entry.options.id === 'mcp')!
+    const mcpFace = (mcp.inject as unknown as () => {
+      nativeMcp?: { list: () => Promise<unknown>; setEnabled: (entryId: never, enabled: boolean) => Promise<unknown> }
+    })()
+    if (mcpFace.nativeMcp === undefined) throw new Error('expected local native MCP controls')
+    await expect(mcpFace.nativeMcp.list()).resolves.toEqual({ entries: [] })
+    await expect(mcpFace.nativeMcp.setEnabled('obsidian-knowledge' as never, false)).resolves.toEqual({ entries: [] })
+    expect(listInventory).toHaveBeenCalledOnce()
+    expect(setInventoryEnabled).toHaveBeenCalledWith({ entryId: 'obsidian-knowledge', enabled: false })
 
     const listener = vi.fn()
     const unsubscribe = sectionFace.hooks.tabs.subscribe(listener)
     slots.register({ name: 'settings.plugins.tab', id: 'plain', order: 30 } as never, () => null)
     expect(sectionFace.hooks.tabs.getSnapshot()).toEqual([
-      { id: 'configurable', order: 0, label: 'Plugin configuration' },
+      { id: 'configurable', order: 0, label: 'Configuration' },
       { id: 'mcp', order: 5, label: 'MCP' },
       { id: 'plain', order: 30, label: '' },
     ])

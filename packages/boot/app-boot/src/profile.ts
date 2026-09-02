@@ -48,6 +48,8 @@ export interface BhBundleManifest {
 export interface BhProfileManifest {
   /** Ordered bundle layer list (package names). */
   bundles?: string[]
+  /** Per-root-entry desired enablement applied before the profile tree mounts. */
+  pluginEnablement?: Record<string, boolean>
 }
 
 /**
@@ -93,6 +95,8 @@ export interface Profile {
   patchPath: string
   /** The profile's own patches; empty when the file is absent. */
   patches: PatchOptions[]
+  /** Per-root-entry desired enablement frozen for this boot. */
+  pluginEnablement: Readonly<Record<string, boolean>>
 }
 
 /**
@@ -285,6 +289,23 @@ export function writeProfileManifest(dir: string, manifest: ProfileManifest): vo
   writeFileSync(join(dir, 'package.json'), JSON.stringify(manifest, undefined, 2) + '\n')
 }
 
+/**
+ * Read the profile's boot-only root-entry switches, rejecting malformed values
+ * before a launcher turns them into Loader patches.
+ */
+export function profilePluginEnablement(manifest: ProfileManifest): Record<string, boolean> {
+  const value = manifest.bh?.profile?.pluginEnablement
+  if (value === undefined) return {}
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    throw new TypeError('bh: bh.profile.pluginEnablement must be a map of entry ids to booleans')
+  }
+  const entries = Object.entries(value)
+  if (entries.some(([, enabled]) => typeof enabled !== 'boolean')) {
+    throw new TypeError('bh: bh.profile.pluginEnablement values must be booleans')
+  }
+  return Object.fromEntries(entries) as Record<string, boolean>
+}
+
 /** Return whether two bundle lists have the same values in the same order. */
 function sameBundles(left: readonly string[], right: readonly string[]): boolean {
   return left.length === right.length && left.every((value, index) => value === right[index])
@@ -399,7 +420,7 @@ export function loadProfile(
   const patches = options.userLayer !== false && existsSync(patchPath)
     ? loadOverlayPatches(binName, patchPath)
     : []
-  return { name, dir, layers, patchPath, patches }
+  return { name, dir, layers, patchPath, patches, pluginEnablement: profilePluginEnablement(manifest) }
 }
 
 /**

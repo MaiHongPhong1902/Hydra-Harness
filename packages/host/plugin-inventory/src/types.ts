@@ -1,10 +1,8 @@
 import type { Branded } from '@bosch/bh-brand'
+export type { ImportedPluginEntry, ImportedPluginSnapshot, PluginImportSource } from '@bosch/bh-plugin-runtime/types'
 
 /** Stable Loader-tree identity of one configured plugin entry. */
 export type PluginEntryId = Branded<'PluginEntryId'>
-
-/** Marketplace-local identity of one installable plugin. */
-export type MarketplacePluginId = Branded<'MarketplacePluginId'>
 
 /** Lifecycle state of an entry's root Fiber, or null when it has no live root Fiber. */
 export type PluginFiberPhase =
@@ -22,6 +20,10 @@ export interface PluginInventoryEntry {
   readonly moduleName: string
   /** Effective Loader enablement, including disabled ancestor groups. */
   readonly enabled: boolean
+  /** Desired root-entry enablement waiting for the next profile start. */
+  readonly pendingEnabled?: boolean
+  /** Whether the persisted desired state differs from the live Loader state. */
+  readonly restartRequired: boolean
   /** Whether this app can persistently change the entry's enablement. */
   readonly toggleable: boolean
   readonly fiberPhase: PluginFiberPhase
@@ -38,27 +40,18 @@ export interface PluginInventorySnapshot {
   readonly entries: readonly PluginInventoryEntry[]
 }
 
+/** Result of changing one native plugin's desired state. */
+export interface PluginEnablementResult {
+  readonly snapshot: PluginInventorySnapshot
+  /** Whether this specific mutation waits for the next profile start. */
+  readonly restartRequired: boolean
+}
+
 /** Persist one Git-backed or local marketplace root. */
 export interface AddPluginMarketplaceRequest {
   readonly source: string
   readonly gitRef?: string
   readonly sparsePaths?: readonly string[]
-}
-
-/** Install one catalog entry from a Host-projected persisted source. */
-export interface InstallMarketplacePluginRequest {
-  readonly source: string
-  readonly pluginId: MarketplacePluginId
-}
-
-/** One validated marketplace plugin projected to trusted browser clients. */
-export interface MarketplacePluginView {
-  readonly id: MarketplacePluginId
-  readonly name: string
-  readonly description: string
-  readonly packageName: string
-  readonly version: string
-  readonly installed: boolean
 }
 
 /** Host-normalized source fields shared by every marketplace state. */
@@ -72,8 +65,6 @@ export interface PluginMarketplaceSourceView {
 export type PluginMarketplaceView = PluginMarketplaceSourceView & (
   | {
     readonly status: 'ready'
-    readonly name: string
-    readonly plugins: readonly MarketplacePluginView[]
   }
   | {
     readonly status: 'unavailable'
@@ -85,8 +76,9 @@ export interface PluginMarketplaceSnapshot {
   readonly marketplaces: readonly PluginMarketplaceView[]
 }
 
-/** Marketplace installation result; a newly added bundle joins the profile after restart. */
-export interface MarketplacePluginInstallResult {
-  readonly snapshot: PluginMarketplaceSnapshot
-  readonly restartRequired: boolean
+/** Enable or disable one imported plugin MCP server. */
+export interface ImportedPluginMcpServerEnablementRequest {
+  readonly identity: string
+  readonly server: string
+  readonly enabled: boolean
 }

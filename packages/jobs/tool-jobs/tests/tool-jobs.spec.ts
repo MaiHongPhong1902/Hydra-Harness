@@ -174,6 +174,18 @@ describe('tool-jobs setup', () => {
     expect(ctx.tools.get('job_output')).toBeDefined()
     expect(() => ctx.jobs.start(producer().spec)).not.toThrow()
   })
+
+  it('distinguishes background job ids from continuable subagent ids in model guidance', async () => {
+    const { ctx } = await setup()
+    const guidance = (await ctx.systemPrompt.assemble()).sections.find(section => section.name === 'tool:jobs')
+    expect(guidance?.text).toContain('Only an id explicitly returned as a background job id is valid')
+    expect(guidance?.text).toContain('a continuable subagent id is not a job id')
+
+    const output = ctx.tools.schemas().find(schema => schema.name === 'job_output')
+    const kill = ctx.tools.schemas().find(schema => schema.name === 'job_kill')
+    expect(output?.description).toContain('not a continuable subagent id')
+    expect(kill?.description).toContain('not a continuable subagent id')
+  })
 })
 
 describe('job_output', () => {

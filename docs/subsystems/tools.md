@@ -95,7 +95,7 @@ interface ToolDefinition extends ToolSchema {
 
 ## The unified JSON-value schema DSL
 
-Plugin authors use one vocabulary for typed parameters and typed output values. `ValueSchemaSpec` supports `string`, `number`, `integer`, `boolean`, `null`, `array`, `object`, author-only `json`, and exact-one `oneOf`; scalar `enum` and `const` values must match their node type. An explicit object node always declares `additionalProperties: true | false`. Parameter definitions remain an implicit open object property map, with `required: true` attached to each required property.
+Plugin authors use one vocabulary for typed parameters and typed output values. `ValueSchemaSpec` supports `string`, `number`, `integer`, `boolean`, `null`, `array`, `object`, author-only `json`, and exact-one `oneOf`; scalar `enum` and `const` values must match their node type, while `number` and `integer` accept finite inclusive `minimum` and `maximum` bounds. An explicit object node always declares `additionalProperties: true | false`. Parameter definitions remain an implicit open object property map, with `required: true` attached to each required property.
 
 Source: [`packages/core/tools/src/schema.ts`](../../packages/core/tools/src/schema.ts)
 
@@ -438,6 +438,10 @@ interface JsonSchemaNode {
   enum?: JsonSchemaScalar[]
   /** The single allowed value for a scalar node. */
   const?: JsonSchemaScalar
+  /** Inclusive numeric lower bound (`number`/`integer` only). */
+  minimum?: number
+  /** Inclusive numeric upper bound (`number`/`integer` only). */
+  maximum?: number
   /** Annotation, ignored for validation. */
   description?: string
   /** Annotation, ignored for validation. */

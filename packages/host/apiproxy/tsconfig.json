@@ -103,6 +103,15 @@
     },
     {
       "path": "../../util/native-command"
+    },
+    {
+      "path": "../../context/agent-instructions"
+    },
+    {
+      "path": "../../util/atomic-write"
+    },
+    {
+      "path": "../../util/home-paths"
     }
   ]
 }

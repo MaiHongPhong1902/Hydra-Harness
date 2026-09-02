@@ -17,9 +17,12 @@ import { networkInterfaces } from 'node:os'
 import { fileURLToPath } from 'node:url'
 import type { Context } from '@bosch/cordis'
 import z from '@bosch/schemastery'
+import type { PreStepDecision } from '@bosch/bh-agent'
 import { addHarnessSourceSection } from '@bosch/bh-app-boot'
 import * as FrontendStatic from '@bosch/bh-host-frontend-static'
 import { launchEnvironmentOf } from '@bosch/bh-launch-environment'
+import { createUserMessage } from '@bosch/bh-llm'
+import type { UserMessage } from '@bosch/bh-session'
 import { scrubbedParentEnv } from '@bosch/bh-subprocess'
 import type {} from '@bosch/cordis-plugin-loader'
 import type {} from '@bosch/bh-host-webserver'
@@ -78,6 +81,24 @@ const BH_WEB_URL = 'BH_WEB_URL' as const
 const LOOPBACK_HOST = '127.0.0.1'
 /** The webserver schema's all-interfaces bind literal. */
 const ALL_INTERFACES_HOST = '0.0.0.0'
+
+// oxlint-disable-next-line @stylistic/max-len
+const AGENT_IMPROVEMENT_REQUEST = /(?:\b(?:improv(?:e|ing|ement)|enhanc(?:e|ing|ement)|optimi[sz](?:e|ing|ation))\b.*\bagent\b|\bagent\b.*\b(?:improv(?:e|ing|ement)|enhanc(?:e|ing|ement)|optimi[sz](?:e|ing|ation))\b|(?:cải thiện|nâng cấp|tối ưu).*agent\b|\bagent\b.*(?:cải thiện|nâng cấp|tối ưu))/iu
+
+const AGENT_IMPROVEMENT_CONTRACT = 'Immediate task contract: this direct request is to improve agent behavior. If the user message or current context names a directly relevant session or workspace artifact, inspect exactly that one with one read-only tool call. Otherwise, do not scan or open arbitrary workspace files merely to satisfy this contract: say no directly relevant artifact is available, name the one concrete evidence needed for one narrow next check, and stop. If that inspection finds no directly relevant observable decision failure, say so in at most two concise sentences, name the one concrete evidence needed next, and stop. Do not call goal tools or exit_plan_mode, write a broad improvement plan, generic recommendations, or an approval question.'
+
+function isDirectAgentImprovementRequest(messages: readonly UserMessage[]): boolean {
+  return messages.some(message => message.source.kind === 'user'
+    && message.content.some(block => block.type === 'text' && AGENT_IMPROVEMENT_REQUEST.test(block.text)))
+}
+
+function agentImprovementContract(messages: readonly UserMessage[], step: number): UserMessage | undefined {
+  if (step !== 1 || !isDirectAgentImprovementRequest(messages)) return
+  return createUserMessage({
+    content: [{ type: 'text', text: AGENT_IMPROVEMENT_CONTRACT }],
+    source: { kind: 'plugin', plugin: name, form: 'instructions' },
+  })
+}
 
 /** Whether this process was launched through SSH, including a forwarded-port session. */
 function launchedThroughSsh(ctx: Context): boolean {
@@ -145,6 +166,9 @@ function webSurfacePrompt(webUrl: string): string {
     + 'Every other change — the apps/web shell and plain packages — requires rebuilding the affected Web artifacts and verifying this existing URL after a page refresh. '
   return `You are interacting with the user through the Bosch Harness Web GUI at ${webUrl}. `
     + 'When the user refers to "this page", "this GUI", or "this app" without naming another target, they mean this GUI. '
+    + 'Classify the user message before planning. If it is only a greeting, acknowledgement, or casual chat, reply with one short natural conversational sentence and stop; do not ask a question, propose work, mention the GUI, workspace, tools, policy, permissions, or options, or take any action. '
+    + 'Treat a stated goal as a task even when high-level: take the smallest safe useful step. Ask only when a material fact normal inspection cannot establish blocks that step; then ask one short natural question for that fact, never a generic action, task, or tool menu. '
+    + 'An unbounded but inspectable goal is not a blocker: when asked to improve an agent, inspect one directly relevant session or workspace evidence item for one observable decision failure; do not scan arbitrary workspace fixtures merely to find evidence. If none is directly relevant, state the one narrow evidence item needed next and stop; do not ask the user to choose a broad category such as performance, reliability, safety, or UX unless they explicitly asked for that choice. '
     + 'The browser provides no implicit DOM, route, or screenshot context. '
     + updateContract
     + 'Starting another server does not update this GUI. '
@@ -215,7 +239,8 @@ async function openBrowser(url: string): Promise<void> {
 export const internals: {
   resolveDistIndex: () => string
   openBrowser: (url: string) => Promise<void>
-} = { resolveDistIndex, openBrowser }
+  agentImprovementContract: (messages: readonly UserMessage[], step: number) => UserMessage | undefined
+} = { resolveDistIndex, openBrowser, agentImprovementContract }
 
 /**
  * Mount the Web runtime: dist serving, surface prompt, the bash runtime
@@ -232,6 +257,15 @@ export function apply(ctx: Context, config: Config): void {
   ctx.provide(WEB_RUNTIME_SERVICE, runtime)
   ctx.plugin(FrontendStatic, { distIndex: internals.resolveDistIndex() })
   if (config.surfaceContext) {
+    ctx.on('agent/pre-step', async ({ messages, step }, next): Promise<PreStepDecision> => {
+      const decision = await next()
+      const contract = agentImprovementContract(messages, step)
+      if (decision.kind === 'reject' || contract === undefined) return decision
+      return {
+        kind: 'enter',
+        messages: [...decision.messages, contract],
+      }
+    })
     ctx.inject(['systemPrompt'], (promptCtx) => {
       addHarnessSourceSection(promptCtx, SOURCE_ROOT)
       promptCtx.systemPrompt.section({
