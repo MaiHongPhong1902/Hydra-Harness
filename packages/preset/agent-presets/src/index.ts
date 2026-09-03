@@ -23,8 +23,11 @@
 
 import { stat } from 'node:fs/promises'
 import { Context, Service } from '@bosch/cordis'
+import { entryListSchema, type PatchOptions } from '@bosch/cordis-plugin-include'
+import type { EntryOptions } from '@bosch/cordis-plugin-loader'
 import z from '@bosch/schemastery'
 import { bindScopeParent, createScope, scopeOf, type Scope, type ScopeKey, type ScopeParentBinding } from '@bosch/bh-scope'
+import { load } from 'js-yaml'
 // Type-only: resolves the `agent/created` lifecycle event this service watches.
 import type {} from '@bosch/bh-agent'
 import { settingsNamespace, type SettingsScope, type default as SettingsService } from '@bosch/bh-settings'
@@ -43,12 +46,71 @@ export const SETTINGS_NAMESPACE = 'agent-presets'
 export interface AgentPresetSettings {
   /** Preset mounted when a session names none. */
   default?: string
+  /** Per-preset leaf states applied when a new standing composition mounts. */
+  pluginEnablement: Record<string, Record<string, boolean>>
 }
 
 /** Runtime schema for the user-writable slice. */
 export const AgentPresetSettingsSchema: z<AgentPresetSettings> = z.object({
   default: z.string(),
+  pluginEnablement: z.dict(z.dict(z.boolean()).default({})).default({}),
 })
+
+/** One persistently switchable leaf in an agent-preset composition. */
+export interface AgentPresetPluginEntry {
+  /** Stable id qualified by its preset, so identical leaf ids never collide. */
+  readonly entryId: string
+  /** Preset whose next standing composition will receive this state. */
+  readonly presetId: string
+  /** Raw composition-row id targeted by the Include patch. */
+  readonly rowId: string
+  /** Exact module specifier declared by the composition row. */
+  readonly moduleName: string
+  /** Desired state inherited by the next session on this preset. */
+  readonly enabled: boolean
+}
+
+const PRESET_PLUGIN_ENTRY_PREFIX = 'agent-preset:'
+
+function presetPluginEntryId(presetId: string, rowId: string): string {
+  return `${PRESET_PLUGIN_ENTRY_PREFIX}${presetId}:${rowId}`
+}
+
+function collectPresetPluginEntries(
+  rows: readonly EntryOptions[],
+  presetId: string,
+  enablement: Readonly<Record<string, boolean>>,
+  entries: AgentPresetPluginEntry[],
+): void {
+  for (const row of rows) {
+    if (row.group === true && Array.isArray(row.config)) {
+      collectPresetPluginEntries(row.config, presetId, enablement, entries)
+      continue
+    }
+    if (typeof row.id !== 'string') continue
+    entries.push({
+      entryId: presetPluginEntryId(presetId, row.id),
+      presetId,
+      rowId: row.id,
+      moduleName: row.name,
+      enabled: enablement[row.id] ?? (row.disabled !== true),
+    })
+  }
+}
+
+function changedPresetEnablementIds(
+  next: Readonly<Record<string, Record<string, boolean>>>,
+  previous: Readonly<Record<string, Record<string, boolean>>>,
+): string[] {
+  const changed: string[] = []
+  for (const presetId of new Set([...Object.keys(next), ...Object.keys(previous)])) {
+    const current = next[presetId] ?? {}
+    const prior = previous[presetId] ?? {}
+    const ids = new Set([...Object.keys(current), ...Object.keys(prior)])
+    if ([...ids].some(id => current[id] !== prior[id])) changed.push(presetId)
+  }
+  return changed
+}
 
 export { COMPOSITION_FILE, discoverPresets, scanRoot } from './discovery.ts'
 export {
@@ -139,15 +201,24 @@ export class AgentPresets extends Service {
     // here is derived. `defaultId` reads through on every call, so both of its
     // hooks would be no-ops and the source thunk would restate this field.
     ctx.inject(['settings'], (settingsCtx) => {
-      this.settings = settingsCtx.settings.register(
+      const settings = settingsCtx.settings.register(
         settingsNamespace(SETTINGS_NAMESPACE),
         AgentPresetSettingsSchema,
         { base: { default: config.default } },
       )
+      this.settings = settings
       this.settingsService = settingsCtx.settings
-      settingsCtx.effect(() => () => {
-        this.settings = undefined
-        this.settingsService = undefined
+      settingsCtx.effect(() => {
+        const stop = settings.watch((next, previous) => {
+          for (const presetId of changedPresetEnablementIds(next.pluginEnablement, previous.pluginEnablement)) {
+            this.standing.delete(presetId)
+          }
+        })
+        return () => {
+          stop()
+          if (this.settings === settings) this.settings = undefined
+          this.settingsService = undefined
+        }
       }, 'agentPresets.settings()')
     })
 
@@ -363,6 +434,43 @@ export class AgentPresets extends Service {
   }
 
   /**
+   * List the explicit leaf rows every preset can switch for future sessions.
+   * @returns every leaf with its persisted desired state.
+   */
+  async listPluginEntries(): Promise<AgentPresetPluginEntry[]> {
+    const entries: AgentPresetPluginEntry[] = []
+    const enablement = this.settings?.get().pluginEnablement ?? {}
+    for (const preset of await this.list()) {
+      if (preset.broken !== undefined) continue
+      try {
+        const rows = load(await readComposition(preset), { schema: entryListSchema })
+        if (!Array.isArray(rows)) continue
+        collectPresetPluginEntries(rows, preset.id, enablement[preset.id] ?? {}, entries)
+      } catch {
+        // Discovery reports a concurrently broken composition on its next scan.
+      }
+    }
+    return entries
+  }
+
+  /**
+   * Persist one preset leaf state and let only later sessions mount a new generation.
+   * @param entryId - preset-qualified leaf entry id.
+   * @param enabled - desired state for later sessions.
+   */
+  async setPluginEnabled(entryId: string, enabled: boolean): Promise<void> {
+    const entry = (await this.listPluginEntries()).find(candidate => candidate.entryId === entryId)
+    if (entry === undefined) throw new Error(`agent-presets: plugin entry ${entryId} was not found`)
+    if (entry.enabled === enabled) return
+    const settings = this.settings
+    if (settings === undefined) throw new Error('agent-presets: plugin settings are unavailable')
+    await settings.update({ pluginEnablement: { [entry.presetId]: { [entry.rowId]: enabled } } })
+    // Existing sessions retain their joined standing mount. A later mount gets
+    // fresh Include patches from the committed settings value.
+    this.standing.delete(entry.presetId)
+  }
+
+  /**
    * Create a locally authored preset by copying an existing one whole.
    *
    * Copy is the only authoring write. Composition text never crosses this
@@ -521,7 +629,7 @@ export class AgentPresets extends Service {
         if (stamp === undefined) {
           throw new PresetMountError(preset.id, `composition file is unreadable: ${preset.path}`)
         }
-        await mountPreset(scope.ctx, preset)
+        await mountPreset(scope.ctx, preset, this.enablementPatches(preset.id))
         return { key, scope, stamp }
       } catch (error) {
         this.standing.delete(preset.id)
@@ -531,6 +639,12 @@ export class AgentPresets extends Service {
     })()
     this.standing.set(preset.id, created)
     return created
+  }
+
+  /** Include patches that override only persisted leaf states for one preset. */
+  private enablementPatches(presetId: string): PatchOptions[] {
+    return Object.entries(this.settings?.get().pluginEnablement[presetId] ?? {})
+      .map(([id, enabled]) => ({ id, disabled: !enabled }))
   }
 }
 

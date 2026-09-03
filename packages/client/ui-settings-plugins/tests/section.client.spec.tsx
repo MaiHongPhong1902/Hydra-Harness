@@ -132,6 +132,24 @@ describe('PluginsSettingsSection', () => {
     expect(screen.getByText(en.intro)).toBeTruthy()
   })
 
+  it('passes its one shared search query to every rendered tab', () => {
+    const rows: readonly PluginsSettingsTabEntry[] = [{ id: 'all', order: 10, label: 'Plugin list' }]
+    const seen: string[] = []
+    const props = {
+      t,
+      useTabs: (selector: (value: readonly PluginsSettingsTabEntry[]) => unknown) => selector(rows),
+      renderSlot: (_name: string, owner: { query: string }, options: { only?: string }) => {
+        seen.push(owner.query)
+        return <span>{options.only}</span>
+      },
+    } as unknown as PluginsSettingsSectionProps
+    render(<PluginsSettingsSection {...props} />)
+
+    fireEvent.change(screen.getByRole('searchbox', { name: en.search }), { target: { value: 'ponytail' } })
+
+    expect(seen.at(-1)).toBe('ponytail')
+  })
+
   it('moves focus and selection with standard horizontal tab keys', () => {
     renderSection([
       { id: 'configurable', order: 0, label: en.configurableTab },

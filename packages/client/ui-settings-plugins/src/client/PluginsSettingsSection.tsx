@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import type {
   HostObservable, InjectFace, PropsLocale, PropsRenderSlots, PropsRuntime,
 } from '@bosch/bh-client-ui-slots'
+import { Input } from '@bosch/bh-client-ui-primitives'
 import type { PluginsSettingsLocaleKey } from './locales.ts'
 import css from './PluginsSettingsSection.module.css'
 
@@ -32,9 +33,11 @@ export type PluginsSettingsSectionProps =
 /** Render one Plugins page whose contents arrive from feature-owned tabs. */
 export function PluginsSettingsSection({ t, renderSlot, useTabs }: PluginsSettingsSectionProps) {
   const tabsId = useId()
+  const searchId = useId()
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([])
   const rows = useTabs(value => value)
   const [activeId, setActiveId] = useState<string>()
+  const [query, setQuery] = useState('')
   const [visitedIds, setVisitedIds] = useState<ReadonlySet<string>>(() => new Set())
   const active = rows.find(row => row.id === activeId)?.id ?? rows[0]?.id
 
@@ -55,6 +58,16 @@ export function PluginsSettingsSection({ t, renderSlot, useTabs }: PluginsSettin
       <p className={css.intro}>{t('intro')}</p>
       {rows.length === 0 ? <p className={css.empty}>{t('empty')}</p> : (
         <>
+          <label className={css.search} htmlFor={searchId}>
+            <span className={css.visuallyHidden}>{t('search')}</span>
+            <Input
+              id={searchId}
+              type="search"
+              value={query}
+              placeholder={t('search')}
+              onChange={(event) => { setQuery(event.currentTarget.value) }}
+            />
+          </label>
           <div className={css.tabs} role="tablist" aria-label={t('tabs')}>
             {rows.map((row, index) => {
               const selected = row.id === active
@@ -105,7 +118,7 @@ export function PluginsSettingsSection({ t, renderSlot, useTabs }: PluginsSettin
                   aria-labelledby={`${tabsId}-tab-${row.id}`}
                   hidden={!selected}
                 >
-                  {renderSlot('settings.plugins.tab', {}, { only: row.id })}
+                  {renderSlot('settings.plugins.tab', { query }, { only: row.id })}
                 </div>
               )
             })}

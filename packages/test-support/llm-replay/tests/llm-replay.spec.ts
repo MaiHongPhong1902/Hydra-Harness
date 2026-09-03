@@ -606,7 +606,7 @@ describe('installLlmReplay (through the real LlmRuntime)', () => {
       providers: [
         {
           id: 'deepseek',
-          name: 'BHAgent',
+          name: 'DeepSeek',
           retryPolicy: {
             mode: 'normal',
             maxRetries: 2,
@@ -629,7 +629,7 @@ describe('installLlmReplay (through the real LlmRuntime)', () => {
     })
 
     expect(ctx.llm.listProviders()).toEqual([
-      { id: 'deepseek', name: 'BHAgent' },
+      { id: 'deepseek', name: 'DeepSeek' },
       { id: 'empty', name: 'empty' },
     ])
     await expect(ctx.llm.listModels('deepseek')).resolves.toEqual([

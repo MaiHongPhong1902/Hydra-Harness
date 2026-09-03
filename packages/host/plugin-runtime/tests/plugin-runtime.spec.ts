@@ -185,20 +185,19 @@ describe('PluginStore', () => {
     await expect(new PluginStore(await temp('home')).install(linked)).rejects.toThrow(/symbolic links|junction/u)
   })
 
-  it('keeps duplicate names isolated by synthetic direct-import sources and changes hook digests', async () => {
+  it('rejects a duplicate name from another source until the installed plugin is removed', async () => {
     const left = await temp('left')
     const right = await temp('right')
     const home = await temp('home')
-    await plugin(left, '1.0.0', { hooks: { UserPromptSubmit: [] } })
-    await plugin(right, '1.0.0', { hooks: { Stop: [] } })
+    await plugin(left)
+    await plugin(right)
     const store = new PluginStore(home)
     const leftId = await store.install(left)
-    const rightId = await store.install(right)
-    expect(leftId).not.toBe(rightId)
-    const before = await new PluginManifestLoader().load(left, leftId)
-    await plugin(left, '1.0.1', { hooks: { Stop: [{ hooks: [{ command: 'echo changed' }] }] } })
-    const after = await new PluginManifestLoader().load(left, leftId)
-    expect(after.hookDigest).not.toBe(before.hookDigest)
+    await expect(store.install(right)).rejects.toThrow('already installed from another source')
+    expect([...(await store.list()).keys()]).toEqual([leftId])
+
+    await store.remove(leftId)
+    expect(await store.install(right)).not.toBe(leftId)
   })
 
   it('removes enabled plugin skills and re-requires hook trust after an upgrade', async () => {

@@ -58,6 +58,7 @@ function renderTab(
   state: Partial<McpSettingsState> = {},
   importedMcp?: McpSettingsTabProps['importedMcp'],
   nativeMcp?: McpSettingsTabProps['nativeMcp'],
+  query = '',
 ) {
   const store = createSnapshotStore<McpSettingsState>({
     ...settled,
@@ -71,6 +72,7 @@ function renderTab(
   render(<McpSettingsTab {...{
     ...actions,
     t,
+    query,
     useMcpSettings: bindSnapshotSelector(store),
     ...(importedMcp === undefined ? {} : { importedMcp }),
     ...(nativeMcp === undefined ? {} : { nativeMcp }),
@@ -191,26 +193,49 @@ describe('McpSettingsTab', () => {
     await vi.waitFor(() => { expect(setEnabled).toHaveBeenCalledWith('ponytail@local', 'ponytail-mcp', false) })
   })
 
-  it('switches the native Obsidian MCP plugin and keeps a disabled plugin enableable', async () => {
-    const enabled: PluginInventorySnapshot = {
-      entries: [{
-        entryId: 'obsidian-knowledge' as never, moduleName: '@bosch/bh-obsidian-knowledge',
-        enabled: true, toggleable: true, fiberPhase: 'active',
+  it('filters imported MCP server rows by the shared search query', async () => {
+    const snapshot = {
+      plugins: [{
+        identity: 'ponytail@local', name: 'Ponytail', version: '4.9.0', enabled: true,
+        mcpServers: [{ name: 'ponytail-mcp', enabled: true, startupState: 'started' }],
       }],
+    } as never
+    renderTab({}, { list: vi.fn(async () => snapshot), setEnabled: vi.fn() }, undefined, 'no-match')
+
+    expect(await screen.findByText(en.importedMcpEmpty)).toBeTruthy()
+    expect(screen.queryByText('ponytail-mcp')).toBeNull()
+  })
+
+  it('hides the unavailable native MCP fallback section when the query does not match it', async () => {
+    const entry: PluginInventorySnapshot['entries'][number] = {
+      entryId: 'obsidian-knowledge' as never, moduleName: '@bosch/bh-obsidian-knowledge',
+      enabled: false, restartRequired: false, toggleable: true, fiberPhase: null,
     }
+    renderTab({ available: false }, undefined, { list: vi.fn(async () => ({ entries: [entry] })), setEnabled: vi.fn() }, 'no-match')
+
+    await vi.waitFor(() => { expect(screen.queryByText(en.mcpUnavailable)).toBeNull() })
+  })
+
+  it('switches the native Obsidian MCP plugin and keeps a disabled plugin enableable', async () => {
+    const entry: PluginInventorySnapshot['entries'][number] = {
+      entryId: 'obsidian-knowledge' as never, moduleName: '@bosch/bh-obsidian-knowledge',
+      enabled: true, restartRequired: false, toggleable: true, fiberPhase: 'active',
+    }
+    const enabled: PluginInventorySnapshot = { entries: [entry] }
     const disable = vi.fn(async () => ({
-      entries: [{ ...enabled.entries[0], enabled: false, fiberPhase: null }],
-    } as never))
+      snapshot: { entries: [{ ...entry, enabled: false, fiberPhase: null }] },
+      restartRequired: false,
+    }))
     renderTab({}, undefined, { list: vi.fn(async () => enabled), setEnabled: disable })
 
     fireEvent.click(screen.getByText(en.mcpTitle))
     fireEvent.click(await screen.findByRole('switch', { name: `${en.disable} ${en.mcpTitle}` }))
     await vi.waitFor(() => { expect(disable).toHaveBeenCalledWith('obsidian-knowledge', false) })
 
-    const enable = vi.fn(async () => enabled)
+    const enable = vi.fn(async () => ({ snapshot: enabled, restartRequired: false }))
     cleanup()
     renderTab({ available: false }, undefined, {
-      list: vi.fn(async () => ({ entries: [{ ...enabled.entries[0], enabled: false, fiberPhase: null }] } as never)),
+      list: vi.fn(async () => ({ entries: [{ ...entry, enabled: false, fiberPhase: null }] })),
       setEnabled: enable,
     })
     fireEvent.click(await screen.findByRole('switch', { name: `${en.enable} ${en.mcpTitle}` }))

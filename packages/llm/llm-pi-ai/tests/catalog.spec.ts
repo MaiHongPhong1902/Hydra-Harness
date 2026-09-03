@@ -1121,7 +1121,7 @@ describe('configurable-provider directory', () => {
     const ctx = await bootWithSettings(dir, {})
     // Another adapter family owns this route id, exactly as llm-deepseek does.
     ctx.llm.registerConfigurableProviders([
-      { provider: 'deepseek-official', displayName: 'BHAgent', settingsNs: 'llm-deepseek', settingsPath: [] },
+      { provider: 'deepseek-official', displayName: 'DeepSeek', settingsNs: 'llm-deepseek', settingsPath: [] },
     ])
     const before = ctx.llm.listConfigurableProviders().length
     expect(before).toBeGreaterThan(30)

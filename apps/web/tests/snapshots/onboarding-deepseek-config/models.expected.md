@@ -22,10 +22,10 @@
   - paragraph: Enter your API keys to use models from the following providers.
   - list:
     - listitem:
-      - text: BHAgent
+      - text: DeepSeek
       - img "API key configured"
-      - button "Edit BHAgent (deepseek-official)": Edit
-      - text: BHAgent deepseek-official API key
+      - button "Edit DeepSeek (deepseek-official)": Edit
+      - text: DeepSeek deepseek-official API key
       - textbox "API key":
         - /placeholder: Configured — enter a new value to replace
       - group:
@@ -43,7 +43,7 @@
             - text: deepseek-v4-pro
           - textbox "Display name 1":
             - /placeholder: Display name
-            - text: BHAgent-V4-Pro
+            - text: DeepSeek-V4-Pro
           - button "Capacities 1":
             - img
           - button "Delete model 1":
@@ -53,7 +53,7 @@
             - text: deepseek-v4-flash-vision-exp
           - textbox "Display name 2":
             - /placeholder: Display name
-            - text: BHAgent-V4-Flash-Vision-Exp
+            - text: DeepSeek-V4-Flash-Vision-Exp
           - button "Capacities 2":
             - img
           - button "Delete model 2":

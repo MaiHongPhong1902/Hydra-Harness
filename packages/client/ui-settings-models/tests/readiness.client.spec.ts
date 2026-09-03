@@ -10,7 +10,7 @@ function row(overrides: Partial<ProviderRow> = {}): ProviderRow {
   return {
     entry: {
       provider: 'deepseek-official',
-      displayName: 'BHAgent',
+      displayName: 'DeepSeek',
       settingsNs: 'llm-deepseek',
       settingsPath: [],
       active: true,

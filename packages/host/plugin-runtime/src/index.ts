@@ -218,9 +218,14 @@ export class PluginStore {
           if (staged.manifest.name !== preliminary.manifest.name || staged.manifest.version !== preliminary.manifest.version) {
             throw new Error('plugin runtime: plugin manifest changed while staging')
           }
+          const registry = await this.readRegistry()
+          const duplicate = Object.entries(registry.plugins)
+            .find(([candidateIdentity, candidate]) => candidateIdentity !== identity && candidate.name === staged.manifest.name)
+          if (duplicate !== undefined) {
+            throw new Error(`plugin runtime: ${staged.manifest.name} is already installed from another source as ${duplicate[0]}; remove it before importing this source`)
+          }
           await mkdir(stageParent, { recursive: true, mode: 0o700 })
           if (!await exists(target)) await rename(stage, target)
-          const registry = await this.readRegistry()
           const previous = registry.plugins[identity]
           registry.plugins[identity] = {
             name: staged.manifest.name,

@@ -17,6 +17,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Context } from '@bosch/cordis'
 import Loader from '@bosch/cordis-plugin-loader'
 import FileSettingsProvider from '@bosch/bh-settings-file'
+import type { ImportedPluginEntry, ImportedPluginIdentity, ImportedPluginRuntime } from '@bosch/bh-plugin-runtime'
 import PluginInventoryGateway from '../src/index.ts'
 
 const contexts: Context[] = []
@@ -46,7 +47,7 @@ function stubGitMarketplace(): void {
   })
 }
 
-async function harness(): Promise<PluginInventoryGateway> {
+async function harness(): Promise<{ ctx: Context; inventory: PluginInventoryGateway }> {
   const root = await mkdtemp(join(tmpdir(), 'bh-openai-marketplace-'))
   directories.push(root)
   const ctx = new Context()
@@ -54,7 +55,40 @@ async function harness(): Promise<PluginInventoryGateway> {
   await ctx.plugin(Loader)
   await ctx.plugin(FileSettingsProvider, { path: join(root, 'settings.yaml'), watch: false })
   await ctx.plugin(PluginInventoryGateway)
-  return ctx.get('pluginInventory') as PluginInventoryGateway
+  return { ctx, inventory: ctx.get('pluginInventory') as PluginInventoryGateway }
+}
+
+/** Minimal fake `importedPlugins` service: enough for cascade to enable/disable/remove by identity. */
+function fakeImportedPluginsRuntime(marketplace: string) {
+  const plugins = new Map<string, ImportedPluginEntry>([
+    ['demo-plugin@fixture', {
+      identity: 'demo-plugin@fixture' as ImportedPluginIdentity,
+      name: 'demo-plugin',
+      version: '1.0.0',
+      source: { kind: 'marketplace-local', source: marketplace, sourceId: 'fixture', marketplace },
+      pluginRoot: '/fixture',
+      dataPath: '/fixture-data',
+      enabled: false,
+      lifecycle: 'disabled',
+      hookTrustState: 'not-applicable',
+      skills: [],
+      mcpServers: [],
+      hooks: [],
+      installationStatus: 'installed',
+    }],
+  ])
+  const snapshot = (): { plugins: ImportedPluginEntry[] } => ({ plugins: [...plugins.values()] })
+  const setLifecycle = (identity: string, enabled: boolean): { plugins: ImportedPluginEntry[] } => {
+    const entry = plugins.get(identity)
+    if (entry !== undefined) plugins.set(identity, { ...entry, enabled, lifecycle: enabled ? 'enabled' : 'disabled' })
+    return snapshot()
+  }
+  return {
+    list: vi.fn(async () => snapshot()),
+    enable: vi.fn(async (identity: string) => setLifecycle(identity, true)),
+    disable: vi.fn(async (identity: string) => setLifecycle(identity, false)),
+    remove: vi.fn(async (identity: string) => { plugins.delete(identity); return snapshot() }),
+  }
 }
 
 describe('OpenAI/Codex marketplace sources', () => {
@@ -63,7 +97,7 @@ describe('OpenAI/Codex marketplace sources', () => {
     { sparsePaths: ['plugins/codex'], sparseClone: true },
   ])('keeps the catalog readable with sparse clone $sparseClone', async ({ sparsePaths, sparseClone }) => {
     stubGitMarketplace()
-    const inventory = await harness()
+    const { inventory } = await harness()
 
     await inventory.addMarketplace({ source: 'example/plugins', sparsePaths })
 
@@ -83,18 +117,67 @@ describe('OpenAI/Codex marketplace sources', () => {
       name: 'OpenAI-compatible catalog',
       plugins: [{ name: 'ponytail', source: './ponytail' }],
     }))
-    const inventory = await harness()
+    const { inventory } = await harness()
 
     const added = await inventory.addMarketplace({ source: root })
-    expect(added).toEqual({ marketplaces: [{ status: 'ready', source: root, sparsePaths: [] }] })
+    expect(added).toEqual({ marketplaces: [{ status: 'ready', source: root, sparsePaths: [], enabled: true }] })
     await expect(inventory.removeMarketplace(root)).resolves.toEqual({ marketplaces: [] })
   })
 
   it('requires a Codex marketplace document before it persists a source', async () => {
     const root = await mkdtemp(join(tmpdir(), 'bh-openai-marketplace-empty-'))
     directories.push(root)
-    const inventory = await harness()
+    const { inventory } = await harness()
 
     await expect(inventory.addMarketplace({ source: root })).rejects.toThrow('OpenAI/Codex marketplace.json is missing')
+  })
+})
+
+describe('marketplace slot cascade', () => {
+  async function harnessWithSource(): Promise<{
+    inventory: PluginInventoryGateway
+    root: string
+    runtime: ReturnType<typeof fakeImportedPluginsRuntime>
+  }> {
+    const root = await mkdtemp(join(tmpdir(), 'bh-openai-marketplace-cascade-'))
+    directories.push(root)
+    await mkdir(join(root, '.agents', 'plugins'), { recursive: true })
+    await writeFile(join(root, '.agents', 'plugins', 'marketplace.json'), '{"plugins":[]}')
+    const { ctx, inventory } = await harness()
+    const runtime = fakeImportedPluginsRuntime(root)
+    ctx.provide('importedPlugins', runtime as unknown as ImportedPluginRuntime)
+    await inventory.addMarketplace({ source: root })
+    return { inventory, root, runtime }
+  }
+
+  it('cascades enable and disable to plugins imported from the marketplace', async () => {
+    const { inventory, root, runtime } = await harnessWithSource()
+
+    const enabled = await inventory.setMarketplaceEnabled({ source: root, enabled: true })
+    expect(runtime.enable).toHaveBeenCalledWith('demo-plugin@fixture')
+    expect(enabled.marketplaces[0]).toMatchObject({ enabled: true })
+
+    await inventory.setMarketplaceEnabled({ source: root, enabled: false })
+    expect(runtime.disable).toHaveBeenCalledWith('demo-plugin@fixture')
+  })
+
+  it('uninstalls plugins imported from a marketplace when it is removed', async () => {
+    const { inventory, root, runtime } = await harnessWithSource()
+
+    await inventory.removeMarketplace(root)
+    expect(runtime.remove).toHaveBeenCalledWith('demo-plugin@fixture')
+    expect((await runtime.list()).plugins).toHaveLength(0)
+  })
+
+  it('skips the cascade when no imported-plugin runtime is mounted', async () => {
+    const { inventory } = await harness()
+    const root = await mkdtemp(join(tmpdir(), 'bh-openai-marketplace-no-runtime-'))
+    directories.push(root)
+    await mkdir(join(root, '.agents', 'plugins'), { recursive: true })
+    await writeFile(join(root, '.agents', 'plugins', 'marketplace.json'), '{"plugins":[]}')
+    await inventory.addMarketplace({ source: root })
+
+    await expect(inventory.setMarketplaceEnabled({ source: root, enabled: false })).resolves.toBeDefined()
+    await expect(inventory.removeMarketplace(root)).resolves.toEqual({ marketplaces: [] })
   })
 })

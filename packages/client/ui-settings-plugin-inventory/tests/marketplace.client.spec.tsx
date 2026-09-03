@@ -20,6 +20,7 @@ const READY: PluginMarketplaceSnapshot = {
     source: SOURCE,
     gitRef: 'main',
     sparsePaths: ['plugins/codex'],
+    enabled: true,
   }],
 }
 const IMPORTED = {
@@ -45,7 +46,9 @@ const t = ((key: PluginInventoryLocaleKey, values?: Readonly<Record<string, stri
   return text
 }) as MarketplaceSettingsTabProps['t']
 
-function props(overrides: Partial<MarketplaceSettingsTabInjected> = {}): MarketplaceSettingsTabProps {
+function props(
+  overrides: Partial<MarketplaceSettingsTabInjected> & { query?: string } = {},
+): MarketplaceSettingsTabProps {
   const importedPlugins: ImportedPluginControls = {
     list: vi.fn(async () => IMPORTED),
     import: vi.fn(async () => IMPORTED),
@@ -59,6 +62,8 @@ function props(overrides: Partial<MarketplaceSettingsTabInjected> = {}): Marketp
     listMarketplaces: vi.fn(async () => EMPTY),
     addMarketplace: vi.fn(async () => EMPTY),
     removeMarketplace: vi.fn(async () => EMPTY),
+    setMarketplaceEnabled: vi.fn(async () => EMPTY),
+    query: '',
     ...overrides,
   } as MarketplaceSettingsTabProps
 }
@@ -70,7 +75,6 @@ describe('MarketplaceSettingsTab', () => {
       .mockRejectedValueOnce(new Error("pluginInventory.addMarketplace failed: internal: ENOENT: no such file or directory, lstat 'C:\\private\\marketplace.json'"))
       .mockResolvedValue(READY)
     const importedPlugins = props().importedPlugins
-    vi.mocked(importedPlugins.list).mockResolvedValueOnce({ plugins: [] })
     render(<MarketplaceSettingsTab {...props({ addMarketplace, importedPlugins })} />)
 
     await screen.findByText(en.marketplaceEmpty)
@@ -104,13 +108,13 @@ describe('MarketplaceSettingsTab', () => {
       gitRef: 'main',
       sparsePaths: ['plugins/codex', 'plugins/shared'],
     })
-    expect(importedPlugins.import).toHaveBeenCalledWith({
-      source: SOURCE,
-      ref: 'main',
-      plugin: 'example-plugin',
+    await waitFor(() => {
+      expect(importedPlugins.import).toHaveBeenCalledWith({
+        source: SOURCE,
+        ref: 'main',
+        plugin: 'example-plugin',
+      })
     })
-    await waitFor(() => { expect(importedPlugins.list).toHaveBeenCalledTimes(2) })
-    expect(await screen.findByText('Ponytail')).toBeTruthy()
     expect(await screen.findByText(`${SOURCE} @ main`)).toBeTruthy()
     expect(screen.getByText(en.marketplaceSourceReady)).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Install' })).toBeNull()
@@ -137,15 +141,39 @@ describe('MarketplaceSettingsTab', () => {
     expect(screen.getByRole('dialog', { name: en.marketplaceAddTitle })).toBeTruthy()
   })
 
-  it('manages imported OpenAI/Codex plugins without a duplicate import form', async () => {
+  it('does not render the imported-plugin catalog; that list lives in the Plugins tab', async () => {
     const importedPlugins = props().importedPlugins
     render(<MarketplaceSettingsTab {...props({ importedPlugins })} />)
 
-    expect(await screen.findByText('Ponytail')).toBeTruthy()
-    expect(screen.queryByRole('textbox')).toBeNull()
-    fireEvent.click(screen.getByRole('switch', { name: `${en.importedPluginEnable} Ponytail` }))
-    await waitFor(() => { expect(importedPlugins.enable).toHaveBeenCalledWith('ponytail@local') })
-    fireEvent.click(screen.getByRole('button', { name: en.importedPluginRemove }))
-    await waitFor(() => { expect(importedPlugins.remove).toHaveBeenCalledWith('ponytail@local') })
+    await screen.findByText(en.marketplaceEmpty)
+    expect(importedPlugins.list).not.toHaveBeenCalled()
+    expect(screen.queryByText('Ponytail')).toBeNull()
+    expect(screen.queryByRole('heading', { name: en.importedPlugins })).toBeNull()
+  })
+
+  it('labels each marketplace section with its owner and filters by the shared query', async () => {
+    const listMarketplaces = vi.fn(async () => READY)
+    const { rerender } = render(<MarketplaceSettingsTab {...props({ listMarketplaces })} />)
+
+    expect(await screen.findByText('example')).toBeTruthy()
+    expect(screen.getByText(`${SOURCE} @ main`)).toBeTruthy()
+
+    rerender(<MarketplaceSettingsTab {...props({ listMarketplaces, query: 'no-match' })} />)
+    await waitFor(() => { expect(screen.queryByText(`${SOURCE} @ main`)).toBeNull() })
+    expect(screen.getByText(en.emptySearch)).toBeTruthy()
+  })
+
+  it('toggles a marketplace slot through setMarketplaceEnabled', async () => {
+    const setMarketplaceEnabled = vi.fn(async () => EMPTY)
+    render(<MarketplaceSettingsTab {...props({
+      listMarketplaces: vi.fn(async () => READY),
+      setMarketplaceEnabled,
+    })} />)
+
+    const toggle = await screen.findByRole('switch', { name: `${en.marketplaceDisable} ${SOURCE} @ main` })
+    fireEvent.click(toggle)
+    await waitFor(() => {
+      expect(setMarketplaceEnabled).toHaveBeenCalledWith({ source: SOURCE, enabled: false })
+    })
   })
 })

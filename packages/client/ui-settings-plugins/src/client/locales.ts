@@ -2,7 +2,7 @@
 
 /** Locale keys these surfaces render. */
 export type PluginsSettingsLocaleKey =
-  | 'nav' | 'title' | 'intro' | 'tabs' | 'configurableTab' | 'mcpTab' | 'empty'
+  | 'nav' | 'title' | 'intro' | 'tabs' | 'search' | 'configurableTab' | 'mcpTab' | 'empty'
   | 'overridden' | 'reset' | 'readOnly' | 'expand' | 'collapse'
   | 'save' | 'saving' | 'discard' | 'unsaved' | 'saveFailed' | 'invalidNumber'
   | 'bashTitle' | 'bashDescription' | 'bashTimeoutMs' | 'bashTimeoutMsHint'
@@ -22,6 +22,7 @@ export const en: Record<PluginsSettingsLocaleKey, string> = {
   title: 'Plugins',
   intro: 'Configure and inspect the plugins installed in this deployment.',
   tabs: 'Plugin views',
+  search: 'Search plugins, skills, hooks, marketplaces, and MCP servers',
   configurableTab: 'Configuration',
   mcpTab: 'MCP',
   empty: 'This deployment exposes no plugin settings.',
@@ -47,7 +48,7 @@ export const en: Record<PluginsSettingsLocaleKey, string> = {
   agentLoopMaxParallel: 'Parallel tool calls',
   agentLoopMaxParallelHint: 'Upper bound on parallel-safe calls running at once within one step.',
   webSearchTitle: 'Web search',
-  webSearchDescription: 'BHAgent search provider.',
+  webSearchDescription: 'DeepSeek search provider.',
   webSearchApiKey: 'API key',
   webSearchApiKeyHint: 'Stored outside the settings file. Leave blank to keep the current key.',
   webSearchApiKeySet: 'A key is configured.',

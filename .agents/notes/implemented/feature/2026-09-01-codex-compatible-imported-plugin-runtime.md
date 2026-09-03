@@ -8,7 +8,7 @@ BH's marketplace installed native package bundles into a profile, while OpenAI/C
 
 ## Decision
 
-`@bosch/bh-plugin-runtime` is mounted by `bh-base` and exposes `ctx.importedPlugins` to every profile. It accepts local, Git, and OpenAI/Codex marketplace sources; direct imports create source records instead of bypassing the registry. Each plugin has the source-qualified identity `<plugin-name>@<source-id>`, an immutable versioned cache path, and a separate persistent data path.
+`@bosch/bh-plugin-runtime` is mounted by `bh-base` and exposes `ctx.importedPlugins` to every profile. It accepts local, Git, and OpenAI/Codex marketplace sources; direct imports create source records instead of bypassing the registry. Each plugin has the source-qualified identity `<plugin-name>@<source-id>`, an immutable versioned cache path, and a separate persistent data path. [Unique imported plugin names](../simplification/2026-09-03-unique-imported-plugin-names.md) later prevents concurrent installed records with the same manifest name while retaining source-qualified identity for same-source upgrades and owned paths.
 
 The runtime validates the plugin manifest and every declared bundle path before and after staging, rejects links and escapes, and retains installed versions. It loads skills, root `commands/*.toml` declarations, and MCP servers only for enabled plugins. A uniquely claimed imported skill receives its standard frontmatter name as an alias, while canonical and competing names keep precedence. Command prompts enqueue logged plugin-sourced follow-ups, not synthetic slash gestures; `{{args}}` and `$ARGUMENTS` receive trimmed command input. It injects plugin root/data environment variables into trusted hook processes, and destroys owned skill registrations, command registrations, hook fibers, MCP fibers, and MCP tools on disable or removal. `.app.json` remains parsed metadata, never executable input.
 
@@ -20,10 +20,10 @@ Plugin enablement, hook-digest trust, MCP-server enablement, MCP authentication 
 
 **Use plugin enablement as the trust decision.** Rejected because skill discovery and MCP availability do not authorize hook execution or individual MCP tool calls.
 
-**Use an unqualified plugin name as the registry key.** Rejected because identical plugin names from independent Git, local, or marketplace sources must coexist and retain their own upgrades and data.
+**Use an unqualified plugin name as the registry key.** Rejected because source qualification still gives same-source upgrades and owned paths a stable identity; installed-name uniqueness is enforced separately.
 
 ## Consequences
 
-Every BH profile can load an unmodified OpenAI/Codex plugin while preserving native BH marketplace behavior. A plugin upgrade retains prior bundle versions and requires hook re-review only when the hook definition changes. The runtime fixture suite covers staged immutable versions, path and link rejection, marketplace forms, MCP map forms and working directories, duplicate names, hook re-trust, skill/command disposal, command collisions and interpolation, and failed MCP startup teardown; Host inventory, Marketplace UI, and loopback Remote-fence checks cover the integrated controls.
+Every BH profile can load an unmodified OpenAI/Codex plugin while preserving native BH marketplace behavior. A plugin upgrade retains prior bundle versions and requires hook re-review only when the hook definition changes. The runtime fixture suite covers staged immutable versions, path and link rejection, marketplace forms, MCP map forms and working directories, duplicate-name rejection and removal, hook re-trust, skill/command disposal, command collisions and interpolation, and failed MCP startup teardown; Host inventory, Marketplace UI, and loopback Remote-fence checks cover the integrated controls.
 
 The runtime intentionally does not execute arbitrary bundle code or install package dependencies. It reaches local behavior only through declared MCP processes and reviewed hook definitions. Rollback selection, per-hook review UI, and remote MCP authentication flows remain outside this first lifecycle owner.

@@ -467,6 +467,19 @@ composedPreset(agentCtx: Context): string | undefined
 async read(id: string): Promise<string>
 
 /**
+ * List the explicit leaf rows every preset can switch for future sessions.
+ * @returns every leaf with its persisted desired state.
+ */
+async listPluginEntries(): Promise<AgentPresetPluginEntry[]>
+
+/**
+ * Persist one preset leaf state and let only later sessions mount a new generation.
+ * @param entryId - preset-qualified leaf entry id.
+ * @param enabled - desired state for later sessions.
+ */
+async setPluginEnabled(entryId: string, enabled: boolean): Promise<void>
+
+/**
  * Create a locally authored preset by copying an existing one whole.
  *
  * Copy is the only authoring write. Composition text never crosses this

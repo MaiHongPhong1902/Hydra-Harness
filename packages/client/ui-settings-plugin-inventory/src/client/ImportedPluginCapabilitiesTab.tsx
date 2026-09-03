@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import type { ImportedPluginSnapshot } from '@bosch/bh-api-remotes/client'
 import { Button } from '@bosch/bh-client-ui-primitives'
 import type { InjectFace, PropsLocale, PropsRuntime } from '@bosch/bh-client-ui-slots'
+import { groupByOwner, matchesQuery } from './marketplace-owner.ts'
 import css from './PluginInventorySettingsTab.module.css'
 
 /** Imported capability groups with separate settings ownership. */
@@ -27,7 +28,9 @@ type ViewState =
   | { readonly status: 'ready'; readonly snapshot: ImportedPluginSnapshot }
 
 /** Render skills or hooks away from their owning plugin bundle card. */
-export function ImportedPluginCapabilitiesTab({ capability, list, trust, untrust, t }: ImportedPluginCapabilitiesTabProps): ReactNode {
+export function ImportedPluginCapabilitiesTab(
+  { capability, list, query, trust, untrust, t }: ImportedPluginCapabilitiesTabProps,
+): ReactNode {
   const [request, setRequest] = useState(0)
   const [state, setState] = useState<ViewState>({ status: 'loading' })
   const [mutating, setMutating] = useState<string>()
@@ -54,35 +57,46 @@ export function ImportedPluginCapabilitiesTab({ capability, list, trust, untrust
   const rows = state.status === 'ready'
     ? state.snapshot.plugins.filter(plugin => capability === 'skills' ? plugin.skills.length > 0 : plugin.hooks.length > 0)
     : []
+  const normalizedQuery = query.trim().toLocaleLowerCase()
+  const matching = rows.filter(plugin => matchesQuery(
+    [plugin.name, plugin.identity, ...(capability === 'skills' ? plugin.skills : plugin.hooks)],
+    normalizedQuery,
+  ))
+  const groups = groupByOwner(matching, plugin => plugin.source.marketplace ?? plugin.source.source)
+  const total = groups.reduce((sum, group) => sum + group.items.length, 0)
 
   return (
     <div className={css.section} aria-busy={state.status === 'loading' || mutating !== undefined}>
-      <div className={css.catalogHeading}><h3>{title}</h3>{state.status === 'ready' ? <span>{rows.length}</span> : null}</div>
+      <div className={css.catalogHeading}><h3>{title}</h3>{state.status === 'ready' ? <span>{total}</span> : null}</div>
       {state.status === 'loading' ? <p className={css.status}>{t('loading')}</p> : null}
       {state.status === 'error' ? <div className={css.failure}><p role="alert">{t('importedPluginLoadError')}</p><button type="button" onClick={() => { setRequest(value => value + 1) }}>{t('retry')}</button></div> : null}
       {state.status === 'ready' && rows.length === 0 ? <p className={css.status}>{capability === 'skills' ? t('importedPluginNoSkills') : t('importedPluginNoHooks')}</p> : null}
-      {state.status === 'ready' && rows.length > 0 ? (
-        <ul className={`${css.cards} ${css.importedCards}`}>
-          {rows.map(plugin => (
-            <li className={css.card} key={plugin.identity}>
-              <div className={css.importedPlugin}>
-                <div className={css.importedPluginHeader}>
-                  <strong>{plugin.name}</strong>
-                  {capability === 'hooks' ? <span className={css.configTag} data-enabled={plugin.hookTrustState === 'trusted'}>{plugin.hookTrustState === 'pending' ? t('importedPluginPendingTrust') : t('importedPluginTrusted')}</span> : null}
+      {state.status === 'ready' && rows.length > 0 && total === 0 ? <p className={css.status}>{t('emptySearch')}</p> : null}
+      {groups.map(group => (
+        <section className={css.marketplaceGroup} key={group.owner} aria-label={group.owner}>
+          <h4 className={css.marketplaceGroupHeading}>{group.owner}</h4>
+          <ul className={`${css.cards} ${css.importedCards}`}>
+            {group.items.map(plugin => (
+              <li className={css.card} key={plugin.identity}>
+                <div className={css.importedPlugin}>
+                  <div className={css.importedPluginHeader}>
+                    <strong>{plugin.name}</strong>
+                    {capability === 'hooks' ? <span className={css.configTag} data-enabled={plugin.hookTrustState === 'trusted'}>{plugin.hookTrustState === 'pending' ? t('importedPluginPendingTrust') : t('importedPluginTrusted')}</span> : null}
+                  </div>
+                  <code>{plugin.identity}</code>
+                  {capability === 'skills' ? <ul>{plugin.skills.map(skill => <li key={skill}>{skill}</li>)}</ul> : (
+                    <>
+                      <ul>{plugin.hooks.map(hook => <li key={hook}>{hook}</li>)}</ul>
+                      {plugin.hookTrustState === 'pending' && trust !== undefined ? <Button variant="outline" size="sm" disabled={mutating === plugin.identity} onClick={() => { mutate(plugin.identity, trust) }}>{t('importedPluginTrust')}</Button> : null}
+                      {plugin.hookTrustState === 'trusted' && untrust !== undefined ? <Button variant="outline" size="sm" disabled={mutating === plugin.identity} onClick={() => { mutate(plugin.identity, untrust) }}>{t('importedPluginUntrust')}</Button> : null}
+                    </>
+                  )}
                 </div>
-                <code>{plugin.identity}</code>
-                {capability === 'skills' ? <ul>{plugin.skills.map(skill => <li key={skill}>{skill}</li>)}</ul> : (
-                  <>
-                    <ul>{plugin.hooks.map(hook => <li key={hook}>{hook}</li>)}</ul>
-                    {plugin.hookTrustState === 'pending' && trust !== undefined ? <Button variant="outline" size="sm" disabled={mutating === plugin.identity} onClick={() => { mutate(plugin.identity, trust) }}>{t('importedPluginTrust')}</Button> : null}
-                    {plugin.hookTrustState === 'trusted' && untrust !== undefined ? <Button variant="outline" size="sm" disabled={mutating === plugin.identity} onClick={() => { mutate(plugin.identity, untrust) }}>{t('importedPluginUntrust')}</Button> : null}
-                  </>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
-      ) : null}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
     </div>
   )
 }

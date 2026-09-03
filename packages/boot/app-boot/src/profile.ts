@@ -292,6 +292,8 @@ export function writeProfileManifest(dir: string, manifest: ProfileManifest): vo
 /**
  * Read the profile's boot-only root-entry switches, rejecting malformed values
  * before a launcher turns them into Loader patches.
+ * @param manifest - profile manifest containing optional switch values.
+ * @returns validated entry-id-to-enabled map.
  */
 export function profilePluginEnablement(manifest: ProfileManifest): Record<string, boolean> {
   const value = manifest.bh?.profile?.pluginEnablement

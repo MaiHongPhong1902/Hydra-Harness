@@ -36,5 +36,5 @@
           - img
       - listitem:
         - 'button "Show settings: Web search"':
-          - text: Web search BHAgent search provider.
+          - text: Web search DeepSeek search provider.
           - img

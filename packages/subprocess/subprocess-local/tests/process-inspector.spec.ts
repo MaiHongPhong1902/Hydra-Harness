@@ -23,6 +23,7 @@ function syscall(number: number, ...args: number[]): string {
 function fakeInternals() {
   const files = new Map<string, string>()
   const dirs = new Map<string, string[]>()
+  const links = new Map<string, string>()
   const memories = new Map<string, Buffer>()
   const fds = new Map<number, string>()
   const kills: Array<[number, NodeJS.Signals]> = []
@@ -37,6 +38,11 @@ function fakeInternals() {
     },
     readDir(path) {
       const value = dirs.get(path)
+      if (value === undefined) throw new Error(`missing ${path}`)
+      return value
+    },
+    readLink(path) {
+      const value = links.get(path)
       if (value === undefined) throw new Error(`missing ${path}`)
       return value
     },
@@ -61,7 +67,7 @@ function fakeInternals() {
     kill(pid, signal) { kills.push([pid, signal]) },
   }
   return {
-    internals, files, dirs, memories, kills,
+    internals, files, dirs, links, memories, kills,
     setPs(value: string) { ps = value },
     setTpgid(value: string) { tpgid = value },
   }
@@ -132,29 +138,48 @@ describe('Linux process inspector', () => {
     fake.files.set('/proc/101/stat', stat(101, 77, 100, 77, '2'))
     fake.dirs.set('/proc/100/task', ['100'])
     fake.dirs.set('/proc/101/task', ['101', '102'])
+    fake.links.set('/proc/100/fd/0', '/dev/pts/1')
+    fake.links.set('/proc/101/fd/0', '/dev/pts/1')
     const inspector = createProcessInspector('linux', 'x64', fake.internals)
 
     fake.files.set('/proc/100/task/100/syscall', 'running')
     fake.files.set('/proc/101/task/101/syscall', '-1 0x0')
     fake.files.set('/proc/101/task/102/syscall', syscall(0, 0))
-    expect(inspector.isStdinWaiting(77)).toBe(true)
+    expect(inspector.isStdinWaiting(77, 100)).toBe(true)
 
     fake.files.set('/proc/101/task/102/syscall', syscall(270, 1, 0x10))
     const fdSet = Buffer.alloc(0x11)
     fdSet[0x10] = 1
     fake.memories.set('/proc/101/mem', fdSet)
-    expect(inspector.isStdinWaiting(77)).toBe(true)
+    expect(inspector.isStdinWaiting(77, 100)).toBe(true)
 
     const poll = Buffer.alloc(8)
     poll.writeInt32LE(0, 0)
     poll.writeInt16LE(1, 4)
     fake.files.set('/proc/101/task/102/syscall', syscall(7, 0x20, 1))
     fake.memories.set('/proc/101/mem', Buffer.concat([Buffer.alloc(0x20), poll]))
-    expect(inspector.isStdinWaiting(77)).toBe(true)
+    expect(inspector.isStdinWaiting(77, 100)).toBe(true)
 
     fake.files.set('/proc/101/task/102/syscall', syscall(232, 5, 0, 1))
     fake.files.set('/proc/101/fdinfo/5', 'pos: 0\ntfd: 0 events: 19\n')
-    expect(inspector.isStdinWaiting(77)).toBe(true)
+    expect(inspector.isStdinWaiting(77, 100)).toBe(true)
+  })
+
+  it('rejects pipeline reads whose fd 0 is not the terminal input', () => {
+    const fake = fakeInternals()
+    fake.dirs.set('/proc', ['100'])
+    fake.files.set('/proc/100/stat', stat(100, 77, 100, 77, '1'))
+    fake.dirs.set('/proc/100/task', ['100'])
+    fake.files.set('/proc/100/task/100/syscall', syscall(0, 0))
+    fake.links.set('/proc/99/fd/0', '/dev/pts/1')
+    fake.links.set('/proc/100/fd/0', 'pipe:[123]')
+    const inspector = createProcessInspector('linux', 'x64', fake.internals)
+
+    expect(inspector.isStdinWaiting(77, 99)).toBe(false)
+    fake.links.delete('/proc/100/fd/0')
+    expect(inspector.isStdinWaiting(77, 99)).toBe(false)
+    fake.links.set('/proc/100/fd/0', '/dev/pts/1')
+    expect(inspector.isStdinWaiting(77, 99)).toBe(true)
   })
 
   it('fails closed on unsupported, malformed, unreadable, or non-stdin waits', () => {
@@ -162,30 +187,31 @@ describe('Linux process inspector', () => {
     fake.dirs.set('/proc', ['100'])
     fake.files.set('/proc/100/stat', stat(100, 77, 100, 77, '1'))
     fake.dirs.set('/proc/100/task', ['100'])
+    fake.links.set('/proc/100/fd/0', '/dev/pts/1')
     fake.files.set('/proc/100/task/100/syscall', syscall(0, 2))
-    expect(createProcessInspector('linux', 'mips', fake.internals).isStdinWaiting(77)).toBe(false)
-    expect(createProcessInspector('linux', 'x64', fake.internals).isStdinWaiting(77)).toBe(false)
+    expect(createProcessInspector('linux', 'mips', fake.internals).isStdinWaiting(77, 100)).toBe(false)
+    expect(createProcessInspector('linux', 'x64', fake.internals).isStdinWaiting(77, 100)).toBe(false)
 
     fake.files.set('/proc/100/task/100/syscall', syscall(270, 1, 0))
-    expect(createProcessInspector('linux', 'x64', fake.internals).isStdinWaiting(77)).toBe(false)
+    expect(createProcessInspector('linux', 'x64', fake.internals).isStdinWaiting(77, 100)).toBe(false)
     fake.files.set('/proc/100/task/100/syscall', syscall(7, 0, 0))
-    expect(createProcessInspector('linux', 'x64', fake.internals).isStdinWaiting(77)).toBe(false)
+    expect(createProcessInspector('linux', 'x64', fake.internals).isStdinWaiting(77, 100)).toBe(false)
     fake.files.set('/proc/100/task/100/syscall', syscall(7, 0, 1))
-    expect(createProcessInspector('linux', 'x64', fake.internals).isStdinWaiting(77)).toBe(false)
+    expect(createProcessInspector('linux', 'x64', fake.internals).isStdinWaiting(77, 100)).toBe(false)
     fake.files.set('/proc/100/task/100/syscall', syscall(7, 0x20, 1))
-    expect(createProcessInspector('linux', 'x64', fake.internals).isStdinWaiting(77)).toBe(false)
+    expect(createProcessInspector('linux', 'x64', fake.internals).isStdinWaiting(77, 100)).toBe(false)
     fake.files.set('/proc/100/task/100/syscall', syscall(232, 9, 0, 1))
-    expect(createProcessInspector('linux', 'x64', fake.internals).isStdinWaiting(77)).toBe(false)
+    expect(createProcessInspector('linux', 'x64', fake.internals).isStdinWaiting(77, 100)).toBe(false)
     fake.files.set('/proc/100/task/100/syscall', syscall(999))
-    expect(createProcessInspector('linux', 'x64', fake.internals).isStdinWaiting(77)).toBe(false)
+    expect(createProcessInspector('linux', 'x64', fake.internals).isStdinWaiting(77, 100)).toBe(false)
 
     fake.files.set('/proc/100/task/100/syscall', 'not-a-number 0x0')
-    expect(createProcessInspector('linux', 'x64', fake.internals).isStdinWaiting(77)).toBe(false)
+    expect(createProcessInspector('linux', 'x64', fake.internals).isStdinWaiting(77, 100)).toBe(false)
     fake.dirs.delete('/proc/100/task')
-    expect(createProcessInspector('linux', 'x64', fake.internals).isStdinWaiting(77)).toBe(false)
+    expect(createProcessInspector('linux', 'x64', fake.internals).isStdinWaiting(77, 100)).toBe(false)
     fake.dirs.set('/proc', ['100', '200'])
     fake.files.set('/proc/200/stat', stat(200, 88, 200, 88, '2'))
-    expect(createProcessInspector('linux', 'x64', fake.internals).isStdinWaiting(77)).toBe(false)
+    expect(createProcessInspector('linux', 'x64', fake.internals).isStdinWaiting(77, 100)).toBe(false)
   })
 
   it('contains unreadable syscall, memory, and fdinfo boundaries', () => {
@@ -194,19 +220,21 @@ describe('Linux process inspector', () => {
     fake.files.set('/proc/100/stat', stat(100, 77, 100, 77, '1'))
     fake.dirs.set('/proc/100/task', ['100'])
     const inspector = createProcessInspector('linux', 'x64', fake.internals)
-    expect(inspector.isStdinWaiting(77)).toBe(false)
+    expect(inspector.isStdinWaiting(77, 100)).toBe(false)
+    fake.links.set('/proc/100/fd/0', '/dev/pts/1')
+    expect(inspector.isStdinWaiting(77, 100)).toBe(false)
 
     fake.files.set('/proc/100/task/100/syscall', syscall(270, 1, 0x10))
-    expect(inspector.isStdinWaiting(77)).toBe(false)
+    expect(inspector.isStdinWaiting(77, 100)).toBe(false)
     fake.files.set('/proc/100/task/100/syscall', syscall(232, 5, 0, 1))
-    expect(inspector.isStdinWaiting(77)).toBe(false)
+    expect(inspector.isStdinWaiting(77, 100)).toBe(false)
 
     const noStdinPoll = Buffer.alloc(0x28)
     noStdinPoll.writeInt32LE(2, 0x20)
     noStdinPoll.writeInt16LE(1, 0x24)
     fake.memories.set('/proc/100/mem', noStdinPoll)
     fake.files.set('/proc/100/task/100/syscall', syscall(7, 0x20, 1))
-    expect(inspector.isStdinWaiting(77)).toBe(false)
+    expect(inspector.isStdinWaiting(77, 100)).toBe(false)
   })
 })
 
@@ -217,7 +245,7 @@ describe('macOS process inspector', () => {
     fake.setPs(' 10 1 Mon Jul 21 10:00:00 2026\n 11 10 Mon Jul 21 10:00:01 2026\n 12 11 Mon Jul 21 10:00:02 2026\n 13 99 Mon Jul 21 10:00:03 2026\nmalformed\n')
     const inspector = createProcessInspector('darwin', 'arm64', fake.internals)
     expect(inspector.foregroundPgid(10)).toBe(55)
-    expect(inspector.isStdinWaiting(55)).toBe(false)
+    expect(inspector.isStdinWaiting(55, 10)).toBe(false)
     expect(inspector.processTree(10)).toEqual([
       { pid: 12, started: 'Mon Jul 21 10:00:02 2026' },
       { pid: 11, started: 'Mon Jul 21 10:00:01 2026' },

@@ -28,6 +28,7 @@ import type {
   PluginInventorySnapshot,
   PluginMarketplaceSnapshot,
   PluginMarketplaceView,
+  SetPluginMarketplaceEnablementRequest,
 } from './types.ts'
 
 export type * from './types.ts'
@@ -60,6 +61,7 @@ const FIBER_PHASE = {
 const PLUGIN_SETTINGS_NAMESPACE = settingsNamespace('plugins')
 const MARKETPLACE_SETTINGS_NAMESPACE = settingsNamespace('plugin-marketplaces')
 const HMR_MODULE = '@bosch/cordis-plugin-hmr'
+const AGENT_PRESET_ENTRY_PREFIX = 'agent-preset:'
 const MAX_MARKETPLACE_BYTES = 1024 * 1024
 const MARKETPLACE_GIT_TIMEOUT_MS = 30_000
 const MAX_MARKETPLACE_SPARSE_PATHS = 20
@@ -83,6 +85,7 @@ interface MarketplaceSource {
   source: string
   gitRef: string
   sparsePaths: string[]
+  enabled: boolean
 }
 
 interface MarketplaceSettings {
@@ -93,6 +96,7 @@ const MarketplaceSourceSchema: z<MarketplaceSource> = z.object({
   source: z.string(),
   gitRef: z.string().default(''),
   sparsePaths: z.array(z.string()).max(MAX_MARKETPLACE_SPARSE_PATHS).default([]),
+  enabled: z.boolean().default(true),
 })
 
 const MarketplaceSettingsSchema: z<MarketplaceSettings> = z.object({
@@ -186,7 +190,7 @@ async function normalizeMarketplaceSource(
       if (gitRef !== undefined || sparsePaths.length > 0) {
         throw new Error('pluginInventory: Git ref and sparse paths require a Git source')
       }
-      return { kind: 'local', source: await realpath(localPath), gitRef: '', sparsePaths: [] }
+      return { kind: 'local', source: await realpath(localPath), gitRef: '', sparsePaths: [], enabled: true }
     }
   } catch (error) {
     if (!missingPath(error)) throw error
@@ -196,6 +200,7 @@ async function normalizeMarketplaceSource(
     source: normalizeGitSource(source),
     gitRef: gitRef ?? '',
     sparsePaths,
+    enabled: true,
   }
 }
 
@@ -314,6 +319,17 @@ interface EntryState {
   config: unknown
 }
 
+/** Optional preset service shape; inventory must also run without a roster. */
+interface AgentPresetPluginControls {
+  listPluginEntries(): Promise<readonly {
+    entryId: string
+    presetId: string
+    moduleName: string
+    enabled: boolean
+  }[]>
+  setPluginEnabled(entryId: string, enabled: boolean): Promise<void>
+}
+
 /** Remote-only service exposing the Loader's current non-group entry state. */
 export class PluginInventoryGateway extends TypertRemoteService {
   static inject = ['loader', 'settings']
@@ -378,6 +394,7 @@ export class PluginInventoryGateway extends TypertRemoteService {
         source: source.source,
         ...(source.gitRef === '' ? {} : { gitRef: source.gitRef }),
         sparsePaths: source.sparsePaths,
+        enabled: source.enabled,
       }
       try {
         await loadMarketplace(source)
@@ -562,13 +579,12 @@ export class PluginInventoryGateway extends TypertRemoteService {
   }
 
   /**
-   * Read the Loader directly on every call. Cordis's internal plugin/status
-   * events already maintain Entry.fiber and Fiber.state, so a second cache
-   * would only add another lifecycle truth to keep synchronized.
-   * @returns Current non-group Loader entries in Loader order.
+   * Read the Loader and optional preset roster directly on every call. Cordis's
+   * internal plugin/status events already maintain Entry.fiber and Fiber state,
+   * so a second Host cache would only add another lifecycle truth to synchronize.
+   * @returns Current Host entries followed by preset-owned leaf entries.
    */
-  @Remote('list')
-  list(): PluginInventorySnapshot {
+  private hostEntries(): PluginInventoryEntry[] {
     const entries: PluginInventoryEntry[] = []
     const rootInclude = this.rootInclude()
     for (const entry of this.representatives(rootInclude).values()) {
@@ -589,7 +605,31 @@ export class PluginInventoryGateway extends TypertRemoteService {
         fiberPhase: fiber === undefined ? null : FIBER_PHASE[fiber.state],
       })
     }
-    return { entries }
+    return entries
+  }
+
+  private async presetEntries(): Promise<PluginInventoryEntry[]> {
+    const presets = this.agentPresets()
+    if (presets === undefined) return []
+    return (await presets.listPluginEntries()).map(entry => ({
+      entryId: pluginEntryId(entry.entryId),
+      moduleName: entry.moduleName,
+      enabled: entry.enabled,
+      presetId: entry.presetId,
+      newSessionsOnly: true,
+      restartRequired: false,
+      toggleable: true,
+      fiberPhase: null,
+    }))
+  }
+
+  /**
+   * List Host entries and the optional preset-owned leaf entries.
+   * @returns the current inventory projection.
+   */
+  @Remote('list')
+  async list(): Promise<PluginInventorySnapshot> {
+    return { entries: [...this.hostEntries(), ...(await this.presetEntries())] }
   }
 
   /**
@@ -601,6 +641,21 @@ export class PluginInventoryGateway extends TypertRemoteService {
   @Remote('setEnabled')
   setEnabled(request: PluginEnablementRequest): Promise<PluginEnablementResult> {
     return this.enqueue(async () => {
+      if (request.entryId.startsWith(AGENT_PRESET_ENTRY_PREFIX)) {
+        const presets = this.agentPresets()
+        if (presets === undefined) {
+          throw new Error('pluginInventory: agent preset controls are unavailable')
+        }
+        const entry = (await presets.listPluginEntries())
+          .find(candidate => candidate.entryId === request.entryId)
+        if (entry === undefined) {
+          throw new Error(`pluginInventory: preset entry ${request.entryId} cannot be toggled in-app`)
+        }
+        if (entry.enabled !== request.enabled) {
+          await presets.setPluginEnabled(entry.entryId, request.enabled)
+        }
+        return { snapshot: await this.list(), restartRequired: false }
+      }
       const resolved = this.ctx.loader.resolve(request.entryId)
       const rootInclude = this.rootInclude()
       const entry = this.representatives(rootInclude).get(resolved.options.name)
@@ -608,12 +663,12 @@ export class PluginInventoryGateway extends TypertRemoteService {
         throw new Error(`pluginInventory: entry ${request.entryId} cannot be toggled in-app`)
       }
       if (request.enabled === this.desiredEnabled(entry)) {
-        return { snapshot: this.list(), restartRequired: this.restartRequired(entry) }
+        return { snapshot: await this.list(), restartRequired: this.restartRequired(entry) }
       }
 
       if (this.isRestartOnly(entry)) {
         await this.setRestartEnabled(entry, request.enabled)
-        return { snapshot: this.list(), restartRequired: this.restartRequired(entry) }
+        return { snapshot: await this.list(), restartRequired: this.restartRequired(entry) }
       }
 
       const states = await this.updateModule(entry, request.enabled)
@@ -627,7 +682,7 @@ export class PluginInventoryGateway extends TypertRemoteService {
         }
         throw error
       }
-      return { snapshot: this.list(), restartRequired: false }
+      return { snapshot: await this.list(), restartRequired: false }
     })
   }
 
@@ -644,25 +699,71 @@ export class PluginInventoryGateway extends TypertRemoteService {
       const loaded = await loadMarketplace(request)
       const sources = this.marketplaceSettings.get().sources
       const existing = sources.findIndex(source => source.source === loaded.source.source)
+      const entry = { ...loaded.source, enabled: sources[existing]?.enabled ?? true }
       const next = existing === -1
-        ? [...sources, loaded.source]
-        : sources.map((source, index) => index === existing ? loaded.source : source)
+        ? [...sources, entry]
+        : sources.map((source, index) => index === existing ? entry : source)
       await this.marketplaceSettings.update({ sources: next })
       return this.marketplaceSnapshot()
     })
   }
 
-  /** Remove one persisted OpenAI/Codex marketplace source. */
+  /** Enable or disable one marketplace slot, cascading to its imported plugins. */
+  @Remote('setMarketplaceEnabled')
+  setMarketplaceEnabled(request: SetPluginMarketplaceEnablementRequest): Promise<PluginMarketplaceSnapshot> {
+    return this.enqueue(async () => {
+      const sources = this.marketplaceSettings.get().sources
+      const index = sources.findIndex(candidate => candidate.source === request.source)
+      if (index === -1) throw new Error(`pluginInventory: marketplace ${request.source} is not configured`)
+      const next = sources.map((candidate, position) => position === index
+        ? { ...candidate, enabled: request.enabled }
+        : candidate)
+      await this.marketplaceSettings.update({ sources: next })
+      await this.cascadeMarketplacePlugins(
+        request.source,
+        (runtime, identity) => request.enabled ? runtime.enable(identity) : runtime.disable(identity),
+      )
+      return this.marketplaceSnapshot()
+    })
+  }
+
+  /** Remove one persisted OpenAI/Codex marketplace source and uninstall its imported plugins. */
   @Remote('removeMarketplace')
   removeMarketplace(source: string): Promise<PluginMarketplaceSnapshot> {
     return this.enqueue(async () => {
-      const next = this.marketplaceSettings.get().sources.filter(candidate => candidate.source !== source)
-      if (next.length === this.marketplaceSettings.get().sources.length) {
+      if (!this.marketplaceSettings.get().sources.some(candidate => candidate.source === source)) {
         throw new Error(`pluginInventory: marketplace ${source} is not configured`)
       }
+      await this.cascadeMarketplacePlugins(source, (runtime, identity) => runtime.remove(identity))
+      const next = this.marketplaceSettings.get().sources.filter(candidate => candidate.source !== source)
       await this.marketplaceSettings.update({ sources: next })
       return await this.marketplaceSnapshot()
     })
+  }
+
+  /**
+   * Apply one lifecycle action to every plugin imported from this marketplace root.
+   * A no-op when the imported-plugin runtime is not part of this composition.
+   */
+  private async cascadeMarketplacePlugins(
+    marketplace: string,
+    action: (runtime: ImportedPluginRuntime, identity: string) => Promise<ImportedPluginSnapshot>,
+  ): Promise<void> {
+    const runtime = this.ctx.get('importedPlugins')
+    if (runtime === undefined) return
+    const plugins = (await runtime.list()).plugins.filter(plugin => plugin.source.marketplace === marketplace)
+    const failures: unknown[] = []
+    for (const plugin of plugins) {
+      try {
+        await action(runtime, plugin.identity)
+      } catch (error) {
+        failures.push(error)
+      }
+    }
+    if (failures.length === 1) throw failures[0]
+    if (failures.length > 1) {
+      throw new AggregateError(failures, `pluginInventory: failed to update plugins for marketplace ${marketplace}`)
+    }
   }
 
   /**
@@ -756,6 +857,11 @@ export class PluginInventoryGateway extends TypertRemoteService {
     const runtime = this.ctx.get('importedPlugins') as ImportedPluginRuntime | undefined
     if (runtime === undefined) throw new Error('pluginInventory: imported plugin runtime is unavailable')
     return runtime
+  }
+
+  /** Agent-preset ownership is optional in headless and non-roster compositions. */
+  private agentPresets(): AgentPresetPluginControls | undefined {
+    return this.ctx.get('agentPresets') as AgentPresetPluginControls | undefined
   }
 }
 

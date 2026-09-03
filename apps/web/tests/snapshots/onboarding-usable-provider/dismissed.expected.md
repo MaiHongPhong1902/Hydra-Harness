@@ -22,9 +22,9 @@
   - paragraph: Enter your API keys to use models from the following providers.
   - list:
     - listitem:
-      - text: BHAgent
+      - text: DeepSeek
       - img "API key missing"
-      - button "Edit BHAgent (deepseek-official)": Edit
+      - button "Edit DeepSeek (deepseek-official)": Edit
   - text: Provider
   - combobox "Provider":
     - option "amazon-bedrock"

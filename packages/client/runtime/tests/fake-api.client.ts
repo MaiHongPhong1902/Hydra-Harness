@@ -90,7 +90,7 @@ export class FakeApiClient implements IApiClient {
     routable: true,
     groups: [{
       id: 'deepseek-official',
-      name: 'BHAgent',
+      name: 'DeepSeek',
       models: [{ id: 'deepseek-v4-flash', name: 'DeepSeek V4 Flash' }],
     }],
     failures: [],

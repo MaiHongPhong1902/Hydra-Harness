@@ -64,6 +64,9 @@ declare module '@bosch/bh-client-ui-slots' {
      * and `label` (registrant-localized tab text). Declared at runtime by the
      * feature that owns the Plugins section; the type lives here so inventory
      * and configuration plugins collaborate without depending on one another.
+     * The section also owns the one shared search box for the whole Plugins
+     * surface (Plugins, Skills, Hooks, Marketplaces, MCP); each tab receives
+     * its current text as `query` and filters its own rows against it.
      */
     'settings.plugins.tab': { kind: 'list'; scope: 'root'; owner: SettingsPluginsTabOwnerProps }
     /**
@@ -107,10 +110,10 @@ export interface SettingsGeneralItemOwnerProps {
   children?: never
 }
 
-/** Owner share of a Plugins tab (the section supplies nothing). */
+/** Owner share of a Plugins tab: the section's one shared search box. */
 export interface SettingsPluginsTabOwnerProps {
-  /** Marker field: tab owner props are intentionally empty. */
-  children?: never
+  /** Current text of the section-level search box; empty string matches everything. */
+  query: string
 }
 
 /** Owner share of the trigger content seat: the sidebar column state. */

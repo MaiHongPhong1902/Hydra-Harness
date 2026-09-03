@@ -217,7 +217,7 @@ describe('sessions domain schemas', () => {
       routable: true,
       groups: [{
         id: 'deepseek-official',
-        name: 'BHAgent',
+        name: 'DeepSeek',
         models: [{
           id: 'deepseek-v4-flash',
           name: 'DeepSeek V4 Flash',
@@ -257,7 +257,7 @@ describe('sessions domain schemas', () => {
       current: { provider: 'deepseek-official', model: 'm' },
       groups: [{
         id: 'deepseek-official',
-        name: 'BHAgent',
+        name: 'DeepSeek',
         models: [{ id: 'm', name: 'M', reasoning: { efforts: [] } }],
       }],
       failures: [],

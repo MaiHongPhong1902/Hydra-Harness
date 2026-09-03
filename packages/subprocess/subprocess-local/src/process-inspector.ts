@@ -1,6 +1,6 @@
 /** Platform process-table inspection for terminal readiness, signals, and teardown. */
 
-import { closeSync, openSync, readFileSync, readdirSync, readSync } from 'node:fs'
+import { closeSync, openSync, readFileSync, readdirSync, readlinkSync, readSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import type { SubprocessTerminalSignal } from '@bosch/bh-subprocess'
 import { createWindowsProcessInspector } from './windows-inspector.ts'
@@ -14,7 +14,13 @@ export interface ProcessIdentity {
 /** Injectable OS process operations used by one local PTY session. */
 export interface ProcessInspector {
   foregroundPgid(shellPid: number): number | undefined
-  isStdinWaiting(pgid: number): boolean
+  /**
+   * Report whether the foreground group waits on the terminal shell's stdin.
+   * @param pgid - foreground process-group identifier.
+   * @param shellPid - persistent terminal shell process identifier.
+   * @returns whether a group member is blocked reading the shell's terminal input.
+   */
+  isStdinWaiting(pgid: number, shellPid: number): boolean
   /** Return the root and its current transitive descendants, children first. */
   processTree(rootPid: number): ProcessIdentity[]
   /** Return current members of one POSIX process session when the platform exposes them. */
@@ -29,6 +35,7 @@ export interface ProcessInspector {
 export interface ProcessInspectorInternals {
   readFile(path: string): string
   readDir(path: string): string[]
+  readLink(path: string): string
   open(path: string): number
   read(fd: number, buffer: Buffer, length: number, position: number): number
   close(fd: number): void
@@ -40,6 +47,7 @@ export interface ProcessInspectorInternals {
 const DEFAULT_INTERNALS: ProcessInspectorInternals = {
   readFile: path => readFileSync(path, 'utf8'),
   readDir: path => readdirSync(path),
+  readLink: path => readlinkSync(path, 'utf8'),
   open: path => openSync(path, 'r'),
   read: (fd, buffer, length, position) => readSync(fd, buffer, 0, length, position),
   close: closeSync,
@@ -84,6 +92,14 @@ function readLinuxStat(internals: ProcessInspectorInternals, pid: number): ProcS
   try {
     return parseProcStat(internals.readFile(`/proc/${pid}/stat`))
   } catch (_unreadableProcEntry) {
+    return undefined
+  }
+}
+
+function readLinuxStdinTarget(internals: ProcessInspectorInternals, pid: number): string | undefined {
+  try {
+    return internals.readLink(`/proc/${pid}/fd/0`)
+  } catch (_unreadableStdinTarget) {
     return undefined
   }
 }
@@ -231,7 +247,7 @@ abstract class PosixProcessInspector implements ProcessInspector {
   constructor(protected readonly internals: ProcessInspectorInternals) {}
 
   abstract foregroundPgid(shellPid: number): number | undefined
-  abstract isStdinWaiting(pgid: number): boolean
+  abstract isStdinWaiting(pgid: number, shellPid: number): boolean
   abstract processTree(rootPid: number): ProcessIdentity[]
   abstract processSession(sessionId: number): ProcessIdentity[]
   abstract isAlive(identity: ProcessIdentity): boolean
@@ -284,14 +300,21 @@ class LinuxProcessInspector extends PosixProcessInspector {
     return tpgid !== undefined && tpgid > 0 ? tpgid : undefined
   }
 
-  isStdinWaiting(pgid: number): boolean {
+  isStdinWaiting(pgid: number, shellPid: number): boolean {
     const table = SYSCALLS[this.arch]
     if (table === undefined) return false
+    // A group member reading its own pipe (a shell pipeline stage) is not
+    // waiting for terminal input: only a read against the same stdin the
+    // persistent shell owns is evidence the operation wants the user.
+    const terminalStdinTarget = readLinuxStdinTarget(this.internals, shellPid)
+    if (terminalStdinTarget === undefined) return false
     for (const pid of numericEntries(this.internals, '/proc')) {
       if (readLinuxStat(this.internals, pid)?.pgrp !== pgid) continue
       for (const tid of numericEntries(this.internals, `/proc/${pid}/task`)) {
         const syscall = readSyscall(this.internals, pid, tid)
-        if (syscall !== undefined && syscallWaitsOnStdin(this.internals, pid, syscall, table)) return true
+        if (syscall !== undefined
+          && syscallWaitsOnStdin(this.internals, pid, syscall, table)
+          && readLinuxStdinTarget(this.internals, pid) === terminalStdinTarget) return true
       }
     }
     return false
@@ -339,7 +362,7 @@ class MacProcessInspector extends PosixProcessInspector {
     }
   }
 
-  isStdinWaiting(_pgid: number): boolean {
+  isStdinWaiting(_pgid: number, _shellPid: number): boolean {
     return false
   }
 

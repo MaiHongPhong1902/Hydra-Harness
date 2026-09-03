@@ -85,7 +85,7 @@ describe('web e2e: plugin configuration section', () => {
     const dialog = await openPlugins()
 
     // Every card the shipped web composition exposes: the shell executor, the
-    // agent loop, and the BHAgent search provider.
+    // agent loop, and the DeepSeek search provider.
     await dialog.getByText('Shell', { exact: true }).waitFor({ timeout: 10_000 })
     expect(await dialog.getByText('Agent loop', { exact: true }).count()).toBe(1)
     expect(await dialog.getByText('Web search', { exact: true }).count()).toBe(1)

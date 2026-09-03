@@ -176,6 +176,17 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         throws: ['when no configured root supplies that id.'],
       },
       {
+        signature: 'async listPluginEntries(): Promise<AgentPresetPluginEntry[]>',
+        description: 'List the explicit leaf rows every preset can switch for future sessions.',
+        parameters: [],
+        returns: 'every leaf with its persisted desired state.',
+      },
+      {
+        signature: 'async setPluginEnabled(entryId: string, enabled: boolean): Promise<void>',
+        description: 'Persist one preset leaf state and let only later sessions mount a new generation.',
+        parameters: [{ name: 'entryId', description: 'preset-qualified leaf entry id.' }, { name: 'enabled', description: 'desired state for later sessions.' }],
+      },
+      {
         signature: 'async copy(from: string, id: string, name?: string): Promise<void>',
         description: 'Create a locally authored preset by copying an existing one whole.\n\nCopy is the only authoring write. Composition text never crosses this seam: the source is named by id and its directory is copied as it stands, so the copy is exactly as loadable as its source and authoring grants no capability the roster did not already carry. The copy is NOT mounted to validate — a source that mounts today yields a copy that mounts today.',
         parameters: [{ name: 'from', description: 'the preset the copy starts from; shipped presets are the primary source, so any trust is accepted.' }, { name: 'id', description: 'the new preset\'s id, which becomes its directory name.' }, { name: 'name', description: 'display name for the copy; absent falls back to the id.' }],
@@ -3052,6 +3063,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'AgentPreset',
     declaration: 'export interface AgentPreset {\n    readonly id: string;\n    readonly trust: PresetTrust;\n    readonly path: string;\n    readonly name?: string;\n    readonly description?: string;\n    readonly order?: number;\n    readonly broken?: string;\n}',
+  },
+  {
+    name: 'AgentPresetPluginEntry',
+    declaration: 'export interface AgentPresetPluginEntry {\n    readonly entryId: string;\n    readonly presetId: string;\n    readonly rowId: string;\n    readonly moduleName: string;\n    readonly enabled: boolean;\n}',
   },
   {
     name: 'AgentSetup',

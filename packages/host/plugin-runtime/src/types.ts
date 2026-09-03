@@ -5,7 +5,7 @@ declare const importedPluginIdentityBrand: unique symbol
 /** Source-qualified identity: `<plugin-name>@<source-id>`. */
 export type ImportedPluginIdentity = string & { readonly [importedPluginIdentityBrand]: true }
 
-/** Source descriptor retained for duplicate-name handling and future upgrades. */
+/** Source descriptor retained for stable upgrades and source-owned paths. */
 export interface ImportedPluginSource {
   readonly kind: 'local' | 'git' | 'marketplace-local' | 'marketplace-git'
   readonly source: string

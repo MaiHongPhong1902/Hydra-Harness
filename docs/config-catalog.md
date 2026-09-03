@@ -894,16 +894,16 @@ Source: [`packages/host/frontend-static/src/index.ts:28`](../packages/host/front
 Requires: `loader` · `settings`
 
 ```ts config-catalog
-/** Plugin ids that the assembled product requires to remain enabled. */
+/** Plugin ids whose desired state applies only when the profile starts again. */
 export interface Config {
-  /** Direct root entry ids that cannot be disabled in-app. */
+  /** Direct root entry ids protected from live unload. */
   protectedEntryIds?: string[]
   /** Entry ids owned by another composition plane and omitted from this inventory. */
   compositionEntryIds?: string[]
 }
 ```
 
-Source: [`packages/host/plugin-inventory/src/index.ts:379`](../packages/host/plugin-inventory/src/index.ts)
+Source: [`packages/host/plugin-inventory/src/index.ts:309`](../packages/host/plugin-inventory/src/index.ts)
 
 <a id="boschbh-host-webserver"></a>
 

@@ -93,7 +93,7 @@ function harness(options: {
             ? []
             : [{
               provider: 'deepseek-official',
-              displayName: 'BHAgent',
+              displayName: 'DeepSeek',
               settingsNs: options.providerSettingsNs ?? 'llm-deepseek',
               settingsPath: [],
               active: options.providerActive ?? true,

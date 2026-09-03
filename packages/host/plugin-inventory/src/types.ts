@@ -20,6 +20,10 @@ export interface PluginInventoryEntry {
   readonly moduleName: string
   /** Effective Loader enablement, including disabled ancestor groups. */
   readonly enabled: boolean
+  /** Agent preset that owns this entry, when it is not a Host entry. */
+  readonly presetId?: string
+  /** Whether a changed preset entry affects only sessions created afterwards. */
+  readonly newSessionsOnly?: boolean
   /** Desired root-entry enablement waiting for the next profile start. */
   readonly pendingEnabled?: boolean
   /** Whether the persisted desired state differs from the live Loader state. */
@@ -59,6 +63,14 @@ export interface PluginMarketplaceSourceView {
   readonly source: string
   readonly gitRef?: string
   readonly sparsePaths: readonly string[]
+  /** Marketplace slot state; disabling or removing it cascades to its imported plugins. */
+  readonly enabled: boolean
+}
+
+/** Toggle one marketplace slot; disabling cascades to disable its imported plugins. */
+export interface SetPluginMarketplaceEnablementRequest {
+  readonly source: string
+  readonly enabled: boolean
 }
 
 /** One persisted marketplace and its latest Host-side load result. */

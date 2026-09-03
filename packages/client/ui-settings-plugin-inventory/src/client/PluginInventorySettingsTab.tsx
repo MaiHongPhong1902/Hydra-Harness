@@ -2,13 +2,15 @@ import { useEffect, useId, useMemo, useState, type ReactNode } from 'react'
 import type {
   ImportedPluginSnapshot, PluginEnablementResult, PluginImportSource, PluginInventorySnapshot,
 } from '@bosch/bh-api-remotes/client'
-import { Button, Input, Switch } from '@bosch/bh-client-ui-primitives'
+import { Button, Switch } from '@bosch/bh-client-ui-primitives'
 import type { InjectFace, PropsLocale, PropsRuntime } from '@bosch/bh-client-ui-slots'
+import { groupByOwner, matchesQuery } from './marketplace-owner.ts'
 import type { PluginInventoryLocaleKey } from './locales.ts'
 import css from './PluginInventorySettingsTab.module.css'
 
 type PluginInventoryEntry = PluginInventorySnapshot['entries'][number]
 type PluginFiberPhase = PluginInventoryEntry['fiberPhase']
+type ImportedPluginEntry = ImportedPluginSnapshot['plugins'][number]
 
 /** Local controls for the deployment's configured plugin entries. */
 export interface NativePluginControls {
@@ -33,6 +35,8 @@ export interface ImportedPluginControls {
 export interface PluginInventorySettingsTabInjected {
   /** Native inventory controls are available only in the local desktop app. */
   nativePlugins?: NativePluginControls
+  /** Imported OpenAI/Codex bundle controls; also available only in the local desktop app. */
+  importedPlugins?: ImportedPluginControls
 }
 
 /** Full component props assembled by the Settings slot renderer. */
@@ -74,17 +78,18 @@ function moduleShortName(moduleName: string): string {
     .replace(/^bh-(?:host-|client-)?/, '')
 }
 
-/** Whether an inventory row matches the local catalog query. */
-function matches(entry: PluginInventoryEntry, normalizedQuery: string): boolean {
-  return normalizedQuery.length === 0 || [entry.moduleName, entry.entryId]
-    .some(value => value.toLocaleLowerCase().includes(normalizedQuery))
-}
-
 /** Render the deployment's plugin inventory and its safe in-app controls. */
-function NativePluginCatalog({ nativePlugins, t }: Pick<PluginInventorySettingsTabProps, 'nativePlugins' | 't'>): ReactNode {
-  const searchId = useId()
+function NativePluginCatalog({
+  nativePlugins,
+  onRestartRequiredChange,
+  query,
+  t,
+}: Pick<PluginInventorySettingsTabProps, 'nativePlugins' | 't'> & {
+  onRestartRequiredChange: (required: boolean) => void
+  query: string
+}): ReactNode {
+  const headingId = useId()
   const [request, setRequest] = useState(0)
-  const [query, setQuery] = useState('')
   const [state, setState] = useState<NativeViewState>(
     nativePlugins === undefined ? { status: 'unavailable' } : { status: 'loading' },
   )
@@ -94,22 +99,39 @@ function NativePluginCatalog({ nativePlugins, t }: Pick<PluginInventorySettingsT
   useEffect(() => {
     if (nativePlugins === undefined) {
       setState({ status: 'unavailable' })
+      onRestartRequiredChange(false)
       return undefined
     }
     let current = true
     setState({ status: 'loading' })
+    onRestartRequiredChange(false)
     void Promise.resolve().then(() => nativePlugins.list()).then(
-      (snapshot) => { if (current) setState({ status: 'ready', snapshot }) },
+      (snapshot) => {
+        if (current) {
+          setState({ status: 'ready', snapshot })
+          onRestartRequiredChange(snapshot.entries.some(entry => entry.restartRequired))
+        }
+      },
       () => { if (current) setState({ status: 'error' }) },
     )
     return () => { current = false }
-  }, [nativePlugins, request])
+  }, [nativePlugins, onRestartRequiredChange, request])
 
   const normalizedQuery = query.trim().toLocaleLowerCase()
-  const entries = useMemo(
-    () => state.status === 'ready'
-      ? state.snapshot.entries.filter(entry => matches(entry, normalizedQuery))
-      : [],
+  const groups = useMemo(
+    () => {
+      const grouped = new Map<string, PluginInventoryEntry[]>()
+      if (state.status !== 'ready') return []
+      const matching = state.snapshot.entries.filter(
+        candidate => matchesQuery([candidate.moduleName, candidate.entryId], normalizedQuery),
+      )
+      for (const entry of matching) {
+        const entries = grouped.get(entry.moduleName) ?? []
+        entries.push(entry)
+        grouped.set(entry.moduleName, entries)
+      }
+      return [...grouped.values()]
+    },
     [normalizedQuery, state],
   )
   const retry = (): void => { setRequest(value => value + 1) }
@@ -119,7 +141,10 @@ function NativePluginCatalog({ nativePlugins, t }: Pick<PluginInventorySettingsT
     setMutationFailed(false)
     const enabled = entry.pendingEnabled ?? entry.enabled
     void nativePlugins.setEnabled(entry.entryId, !enabled).then(
-      ({ snapshot }) => { setState({ status: 'ready', snapshot }) },
+      ({ snapshot }) => {
+        setState({ status: 'ready', snapshot })
+        onRestartRequiredChange(snapshot.entries.some(candidate => candidate.restartRequired))
+      },
       () => { setMutationFailed(true) },
     ).finally(() => { setMutating(null) })
   }
@@ -127,15 +152,11 @@ function NativePluginCatalog({ nativePlugins, t }: Pick<PluginInventorySettingsT
   if (state.status === 'unavailable') return <p className={css.status}>{t('pluginUnavailable')}</p>
 
   return (
-    <section className={css.catalog} aria-labelledby={`${searchId}-title`} aria-busy={state.status === 'loading' || mutating !== null}>
+    <section className={css.catalog} aria-labelledby={`${headingId}-title`} aria-busy={state.status === 'loading' || mutating !== null}>
       <div className={css.catalogHeading}>
-        <h3 id={`${searchId}-title`}>{t('catalog')}</h3>
-        {state.status === 'ready' ? <span data-plugin-count={entries.length}>{entries.length}</span> : null}
+        <h3 id={`${headingId}-title`}>{t('catalog')}</h3>
+        {state.status === 'ready' ? <span data-plugin-count={groups.length}>{groups.length}</span> : null}
       </div>
-      <label className={css.search} htmlFor={searchId}>
-        <span className={css.visuallyHidden}>{t('search')}</span>
-        <Input id={searchId} type="search" value={query} placeholder={t('search')} onChange={(event) => { setQuery(event.currentTarget.value) }} />
-      </label>
       {state.status === 'loading' ? <p className={css.status}>{t('loading')}</p> : null}
       {state.status === 'error' ? (
         <div className={css.failure}>
@@ -145,32 +166,68 @@ function NativePluginCatalog({ nativePlugins, t }: Pick<PluginInventorySettingsT
       ) : null}
       {mutationFailed ? <p className={css.mutationFailure} role="alert">{t('toggleError')}</p> : null}
       {state.status === 'ready' && state.snapshot.entries.length === 0 ? <p className={css.status}>{t('empty')}</p> : null}
-      {state.status === 'ready' && state.snapshot.entries.length > 0 && entries.length === 0 ? <p className={css.status}>{t('emptySearch')}</p> : null}
-      {entries.length > 0 ? (
+      {state.status === 'ready' && state.snapshot.entries.length > 0 && groups.length === 0 ? <p className={css.status}>{t('emptySearch')}</p> : null}
+      {groups.length > 0 ? (
         <ul className={css.cards}>
-          {entries.map((entry) => {
-            const status = phaseLabel(entry.fiberPhase, t)
-            const title = moduleShortName(entry.moduleName)
-            const enabled = entry.pendingEnabled ?? entry.enabled
+          {groups.map((group) => {
+            const first = group[0]
+            if (first === undefined) return null
+            const title = moduleShortName(first.moduleName)
+            const grouped = group.length > 1
+            const controls = (entry: PluginInventoryEntry): ReactNode => {
+              const enabled = entry.pendingEnabled ?? entry.enabled
+              const presetPrefix = entry.presetId === undefined ? '' : `agent-preset:${entry.presetId}:`
+              const instance = entry.presetId === undefined
+                ? title
+                : `${title} (${entry.presetId}: ${entry.entryId.replace(presetPrefix, '')})`
+              return (
+                <label className={css.switchControl}>
+                  <span>{mutating === entry.entryId ? t('saving') : enabled ? t('enabledTag') : t('disabledTag')}</span>
+                  <Switch
+                    checked={enabled}
+                    disabled={mutating !== null || !entry.toggleable}
+                    aria-label={`${t(enabled ? 'disablePlugin' : 'enablePlugin')} ${instance}`}
+                    onClick={() => { toggle(entry) }}
+                  />
+                </label>
+              )
+            }
+            const details = (entry: PluginInventoryEntry): ReactNode => (
+              <>
+                {entry.presetId === undefined ? null : <span className={css.nativeStatus}>{t('preset')}: {entry.presetId}</span>}
+                {entry.newSessionsOnly ? <p className={css.status}>{t('newSessionsOnly')}</p> : null}
+                {entry.enabled && !entry.newSessionsOnly ? <span className={css.nativeStatus}>{t('cordis')}: {phaseLabel(entry.fiberPhase, t)}</span> : null}
+                {entry.restartRequired ? <p className={css.status}>{t('restartRequired')}</p> : null}
+                {!entry.toggleable ? <p className={css.status}>{t('requiredPlugin')}</p> : null}
+              </>
+            )
             return (
-              <li className={css.card} key={entry.entryId} data-plugin-entry={entry.entryId}>
+              <li
+                className={css.card}
+                key={first.moduleName}
+                data-plugin-entry={grouped ? undefined : first.entryId}
+                data-plugin-module={first.moduleName}
+                data-restart-required={group.some(entry => entry.restartRequired) ? 'true' : undefined}
+              >
                 <div className={css.nativePlugin}>
                   <div className={css.importedPluginHeader}>
-                    <strong title={entry.moduleName}>{title}</strong>
-                    <label className={css.switchControl}>
-                      <span>{mutating === entry.entryId ? t('saving') : enabled ? t('enabledTag') : t('disabledTag')}</span>
-                      <Switch
-                        checked={enabled}
-                        disabled={mutating !== null || !entry.toggleable}
-                        aria-label={`${t(enabled ? 'disablePlugin' : 'enablePlugin')} ${title}`}
-                        onClick={() => { toggle(entry) }}
-                      />
-                    </label>
+                    <strong title={first.moduleName}>{title}</strong>
+                    {grouped ? null : controls(first)}
                   </div>
-                  <code>{entry.moduleName}</code>
-                  {entry.enabled ? <span className={css.nativeStatus}>{t('cordis')}: {status}</span> : null}
-                  {entry.restartRequired ? <p className={css.status}>{t('restartRequired')}</p> : null}
-                  {!entry.toggleable ? <p className={css.status}>{t('requiredPlugin')}</p> : null}
+                  <code>{first.moduleName}</code>
+                  {grouped ? (
+                    <ul className={css.nativeInstances}>
+                      {group.map(entry => (
+                        <li className={css.nativeInstance} key={entry.entryId} data-plugin-entry={entry.entryId}>
+                          <div className={css.nativeInstanceHeader}>
+                            <code>{entry.entryId.replace(`agent-preset:${entry.presetId ?? ''}:`, '')}</code>
+                            {controls(entry)}
+                          </div>
+                          {details(entry)}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : details(first)}
                 </div>
               </li>
             )
@@ -182,7 +239,9 @@ function NativePluginCatalog({ nativePlugins, t }: Pick<PluginInventorySettingsT
 }
 
 /** Render OpenAI/Codex bundle lifecycle controls without duplicating capability settings. */
-export function ImportedPluginCatalog({ importedPlugins, t }: { importedPlugins: ImportedPluginControls; t: PluginInventorySettingsTabProps['t'] }): ReactNode {
+export function ImportedPluginCatalog(
+  { importedPlugins, query, t }: { importedPlugins: ImportedPluginControls; query: string; t: PluginInventorySettingsTabProps['t'] },
+): ReactNode {
   const sourceId = useId()
   const [request, setRequest] = useState(0)
   const [state, setState] = useState<ImportedViewState>({ status: 'loading' })
@@ -199,6 +258,18 @@ export function ImportedPluginCatalog({ importedPlugins, t }: { importedPlugins:
     return () => { current = false }
   }, [importedPlugins, request])
 
+  const normalizedQuery = query.trim().toLocaleLowerCase()
+  const groups = useMemo(
+    () => {
+      if (state.status !== 'ready') return []
+      const matching = state.snapshot.plugins.filter(plugin => matchesQuery([plugin.name, plugin.identity], normalizedQuery))
+      return groupByOwner(matching, plugin => plugin.source.marketplace ?? plugin.source.source)
+        .map(group => ({ ...group, items: [...group.items].sort((a, b) => a.name.localeCompare(b.name)) }))
+    },
+    [normalizedQuery, state],
+  )
+  const total = groups.reduce((sum, group) => sum + group.items.length, 0)
+
   const retry = (): void => { setRequest(value => value + 1) }
   const mutate = (identity: string, action: (value: string) => Promise<ImportedPluginSnapshot>): void => {
     setMutating(identity)
@@ -213,7 +284,7 @@ export function ImportedPluginCatalog({ importedPlugins, t }: { importedPlugins:
     <section className={css.imported} aria-labelledby={`${sourceId}-title`}>
       <div className={css.catalogHeading}>
         <h3 id={`${sourceId}-title`}>{t('importedPlugins')}</h3>
-        {state.status === 'ready' ? <span>{state.snapshot.plugins.length}</span> : null}
+        {state.status === 'ready' ? <span>{total}</span> : null}
       </div>
       {state.status === 'loading' ? <p className={css.status}>{t('loading')}</p> : null}
       {state.status === 'error' ? (
@@ -224,40 +295,51 @@ export function ImportedPluginCatalog({ importedPlugins, t }: { importedPlugins:
       ) : null}
       {mutationFailed ? <p className={css.mutationFailure} role="alert">{t('importedPluginMutationError')}</p> : null}
       {state.status === 'ready' && state.snapshot.plugins.length === 0 ? <p className={css.status}>{t('importedPluginEmpty')}</p> : null}
-      {state.status === 'ready' && state.snapshot.plugins.length > 0 ? (
-        <ul className={`${css.cards} ${css.importedCards}`}>
-          {[...state.snapshot.plugins].sort((a, b) => a.name.localeCompare(b.name)).map(plugin => (
-            <li className={css.card} key={plugin.identity} data-imported-plugin={plugin.identity}>
-              <div className={css.importedPlugin}>
-                <div className={css.importedPluginHeader}>
-                  <strong>{plugin.name}</strong>
-                  <label className={css.switchControl}>
-                    <span>{mutating === plugin.identity ? t('saving') : plugin.enabled ? t('enabledTag') : t('disabledTag')}</span>
-                    <Switch
-                      checked={plugin.enabled}
-                      disabled={mutating === plugin.identity}
-                      aria-label={`${t(plugin.enabled ? 'importedPluginDisable' : 'importedPluginEnable')} ${plugin.name}`}
-                      onClick={() => { mutate(plugin.identity, plugin.enabled ? importedPlugins.disable : importedPlugins.enable) }}
-                    />
-                  </label>
+      {state.status === 'ready' && state.snapshot.plugins.length > 0 && total === 0 ? <p className={css.status}>{t('emptySearch')}</p> : null}
+      {groups.map(group => (
+        <section className={css.marketplaceGroup} key={group.owner} aria-label={group.owner}>
+          <h4 className={css.marketplaceGroupHeading}>{group.owner}</h4>
+          <ul className={`${css.cards} ${css.importedCards}`}>
+            {group.items.map((plugin: ImportedPluginEntry) => (
+              <li className={css.card} key={plugin.identity} data-imported-plugin={plugin.identity}>
+                <div className={css.importedPlugin}>
+                  <div className={css.importedPluginHeader}>
+                    <strong>{plugin.name}</strong>
+                    <label className={css.switchControl}>
+                      <span>{mutating === plugin.identity ? t('saving') : plugin.enabled ? t('enabledTag') : t('disabledTag')}</span>
+                      <Switch
+                        checked={plugin.enabled}
+                        disabled={mutating === plugin.identity}
+                        aria-label={`${t(plugin.enabled ? 'importedPluginDisable' : 'importedPluginEnable')} ${plugin.name}`}
+                        onClick={() => { mutate(plugin.identity, plugin.enabled ? importedPlugins.disable : importedPlugins.enable) }}
+                      />
+                    </label>
+                  </div>
+                  <code>{plugin.identity} · {plugin.version} · {plugin.source.kind}</code>
+                  <div className={css.importedPluginActions}>
+                    <Button variant="outline" size="sm" disabled={mutating === plugin.identity} onClick={() => { mutate(plugin.identity, importedPlugins.remove) }}>
+                      {t('importedPluginRemove')}
+                    </Button>
+                  </div>
                 </div>
-                <code>{plugin.identity} · {plugin.version} · {plugin.source.kind}</code>
-                <div className={css.importedPluginActions}>
-                  <Button variant="outline" size="sm" disabled={mutating === plugin.identity} onClick={() => { mutate(plugin.identity, importedPlugins.remove) }}>
-                    {t('importedPluginRemove')}
-                  </Button>
-                </div>
-              </div>
-            </li>
-          ))}
-        </ul>
-      ) : null}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
     </section>
   )
 }
 
-/** Render native BH plugins without mixing in imported OpenAI/Codex bundles. */
-export function PluginInventorySettingsTab({ nativePlugins, t }: PluginInventorySettingsTabProps): ReactNode {
+/** Render native BH plugins together with imported OpenAI/Codex bundles: everything the agent can use. */
+export function PluginInventorySettingsTab({ nativePlugins, importedPlugins, query, t }: PluginInventorySettingsTabProps): ReactNode {
+  const [restartRequired, setRestartRequired] = useState(false)
   if (nativePlugins === undefined) return <p className={css.status}>{t('pluginUnavailable')}</p>
-  return <div className={css.section}><NativePluginCatalog nativePlugins={nativePlugins} t={t} /></div>
+  return (
+    <div className={css.section}>
+      <NativePluginCatalog nativePlugins={nativePlugins} onRestartRequiredChange={setRestartRequired} query={query} t={t} />
+      {importedPlugins === undefined ? null : <ImportedPluginCatalog importedPlugins={importedPlugins} query={query} t={t} />}
+      {restartRequired ? <div className={css.restartFooter} role="status">{t('restartFooter')}</div> : null}
+    </div>
+  )
 }

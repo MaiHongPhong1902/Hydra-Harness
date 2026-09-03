@@ -15,6 +15,7 @@ import {
   loadProfile,
   PROFILE_PATCH_FILENAME,
   PROFILE_TEMPLATES,
+  profilePluginEnablement,
   readProfileManifest,
   resolveBundleDir,
   resolveProfileDir,
@@ -80,6 +81,15 @@ describe('manifest round-trip', () => {
     writeFileSync(join(dir, 'package.json'), '[]')
     expect(() => readProfileManifest('t', dir)).toThrow('must hold a JSON object')
     expect(() => readProfileManifest('t', join(dir, 'nope'))).toThrow('failed to read profile manifest')
+  })
+
+  it('reads boot-only plugin switches only when every value is boolean', () => {
+    expect(profilePluginEnablement({
+      bh: { profile: { pluginEnablement: { 'typert-loader': false, telemetry: true } } },
+    })).toEqual({ 'typert-loader': false, telemetry: true })
+    expect(() => profilePluginEnablement({
+      bh: { profile: { pluginEnablement: { 'typert-loader': 'false' } } },
+    } as never)).toThrow('values must be booleans')
   })
 })
 

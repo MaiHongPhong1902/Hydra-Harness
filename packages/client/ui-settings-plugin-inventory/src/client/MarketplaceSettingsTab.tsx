@@ -2,27 +2,32 @@ import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import type {
   AddPluginMarketplaceRequest,
   PluginMarketplaceSnapshot,
+  SetPluginMarketplaceEnablementRequest,
 } from '@bosch/bh-api-remotes/client'
 import {
   Button,
   IconPlusOutline16,
   Input,
   Modal,
+  Switch,
 } from '@bosch/bh-client-ui-primitives'
 import type { InjectFace, PropsLocale, PropsRuntime } from '@bosch/bh-client-ui-slots'
-import { ImportedPluginCatalog, type ImportedPluginControls } from './PluginInventorySettingsTab.tsx'
+import { marketplaceOwnerLabel, matchesQuery } from './marketplace-owner.ts'
+import type { ImportedPluginControls } from './PluginInventorySettingsTab.tsx'
 import css from './PluginInventorySettingsTab.module.css'
 
 /** Registration-side Remote face used by the marketplace tab. */
 export interface MarketplaceSettingsTabInjected {
-  /** Manage installed OpenAI/Codex bundles from the same Marketplace surface. */
+  /** Only used to stage the just-added source's plugin; the installed list lives in the Plugins tab. */
   importedPlugins: ImportedPluginControls
   /** Read every configured marketplace. */
   listMarketplaces: () => Promise<PluginMarketplaceSnapshot>
   /** Validate and persist one Git-backed or local marketplace root. */
   addMarketplace: (request: AddPluginMarketplaceRequest) => Promise<PluginMarketplaceSnapshot>
-  /** Remove one configured marketplace source. */
+  /** Remove one configured marketplace source and uninstall its imported plugins. */
   removeMarketplace: (source: string) => Promise<PluginMarketplaceSnapshot>
+  /** Enable or disable one marketplace slot; cascades to its imported plugins. */
+  setMarketplaceEnabled: (request: SetPluginMarketplaceEnablementRequest) => Promise<PluginMarketplaceSnapshot>
 }
 
 /** Full component props assembled by the Settings slot renderer. */
@@ -57,7 +62,9 @@ export function MarketplaceSettingsTab({
   addMarketplace,
   importedPlugins,
   listMarketplaces,
+  query,
   removeMarketplace,
+  setMarketplaceEnabled,
   t,
 }: MarketplaceSettingsTabProps): ReactNode {
   const [request, setRequest] = useState(0)
@@ -67,9 +74,9 @@ export function MarketplaceSettingsTab({
   const [gitRef, setGitRef] = useState('')
   const [sparsePaths, setSparsePaths] = useState('')
   const [pluginName, setPluginName] = useState('')
-  const [importRevision, setImportRevision] = useState(0)
   const [adding, setAdding] = useState(false)
   const [removing, setRemoving] = useState<string>()
+  const [toggling, setToggling] = useState<string>()
   const [mutationFailure, setMutationFailure] = useState<MutationFailure>()
 
   useEffect(() => {
@@ -117,7 +124,6 @@ export function MarketplaceSettingsTab({
           ...(normalizedGitRef === '' ? {} : { ref: normalizedGitRef }),
           ...(normalizedPluginName === '' ? {} : { plugin: normalizedPluginName }),
         })
-        setImportRevision(value => value + 1)
         setSource('')
         setGitRef('')
         setSparsePaths('')
@@ -128,7 +134,14 @@ export function MarketplaceSettingsTab({
     ).catch(() => { setMutationFailure('import') }).finally(() => { setAdding(false) })
   }
 
-  const busy = adding || removing !== undefined
+  const busy = adding || removing !== undefined || toggling !== undefined
+  const normalizedQuery = query.trim().toLocaleLowerCase()
+  const visibleMarketplaces = state.status === 'ready'
+    ? state.snapshot.marketplaces.filter(marketplace => matchesQuery(
+      [marketplace.source, marketplaceOwnerLabel(marketplace.source)],
+      normalizedQuery,
+    ))
+    : []
 
   const remove = (marketplace: Marketplace): void => {
     setRemoving(marketplace.source)
@@ -137,6 +150,15 @@ export function MarketplaceSettingsTab({
       (snapshot) => { setState({ status: 'ready', snapshot }) },
       () => { setMutationFailure('add') },
     ).finally(() => { setRemoving(undefined) })
+  }
+
+  const toggle = (marketplace: Marketplace): void => {
+    setToggling(marketplace.source)
+    setMutationFailure(undefined)
+    void setMarketplaceEnabled({ source: marketplace.source, enabled: !marketplace.enabled }).then(
+      (snapshot) => { setState({ status: 'ready', snapshot }) },
+      () => { setMutationFailure('add') },
+    ).finally(() => { setToggling(undefined) })
   }
 
   return (
@@ -152,7 +174,7 @@ export function MarketplaceSettingsTab({
         <div className={css.catalog}>
           <div className={css.catalogHeading}>
             <h3>{t('marketplaceTab')}</h3>
-            <span>{state.snapshot.marketplaces.length}</span>
+            <span>{visibleMarketplaces.length}</span>
           </div>
           <div className={css.marketplaceToolbar}>
             <p className={css.marketplaceWarning}>{t('marketplaceTrust')}</p>
@@ -169,9 +191,13 @@ export function MarketplaceSettingsTab({
           {state.snapshot.marketplaces.length === 0
             ? <p className={css.status}>{t('marketplaceEmpty')}</p>
             : null}
+          {state.snapshot.marketplaces.length > 0 && visibleMarketplaces.length === 0
+            ? <p className={css.status}>{t('emptySearch')}</p>
+            : null}
           <div className={css.marketplaces}>
-            {state.snapshot.marketplaces.map(marketplace => (
+            {visibleMarketplaces.map(marketplace => (
               <section className={css.marketplace} key={marketplace.source}>
+                <h4 className={css.marketplaceGroupHeading}>{marketplaceOwnerLabel(marketplace.source)}</h4>
                 {marketplace.status === 'ready' ? (
                   <div className={css.marketplaceHeader}>
                     <code title={marketplaceSourceLabel(marketplace)}>{marketplaceSourceLabel(marketplace)}</code>
@@ -183,10 +209,22 @@ export function MarketplaceSettingsTab({
                     <p className={css.status}>{t('marketplaceUnavailable')}</p>
                   </div>
                 )}
+                <label className={css.switchControl}>
+                  <span>{toggling === marketplace.source
+                    ? t('saving')
+                    : t(marketplace.enabled ? 'enabledTag' : 'disabledTag')}</span>
+                  <Switch
+                    checked={marketplace.enabled}
+                    disabled={busy}
+                    aria-label={`${t(marketplace.enabled ? 'marketplaceDisable' : 'marketplaceEnable')} ${marketplaceSourceLabel(marketplace)}`}
+                    onClick={() => { toggle(marketplace) }}
+                  />
+                </label>
                 <Button
                   variant="outline"
                   size="sm"
-                  disabled={removing === marketplace.source}
+                  disabled={busy}
+                  title={t('marketplaceRemoveWarning')}
                   onClick={() => { remove(marketplace) }}
                 >
                   {t('marketplaceRemove')}
@@ -196,8 +234,6 @@ export function MarketplaceSettingsTab({
           </div>
         </div>
       ) : null}
-
-      <ImportedPluginCatalog key={importRevision} importedPlugins={importedPlugins} t={t} />
 
       <Modal
         open={addOpen}

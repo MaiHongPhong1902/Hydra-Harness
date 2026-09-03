@@ -96,7 +96,7 @@ export const en = {
   welcomeContinue: WELCOME_NOTICE_COPY.en.continueLabel,
   welcomeError: 'The acknowledgement could not be saved. Please try again.',
   onboardingTitle: 'Add an API key to get started',
-  onboardingDescription: 'Configure BHAgent to start building.',
+  onboardingDescription: 'Configure DeepSeek to start building.',
   onboardingLater: 'Configure later',
   onboardingSave: 'Save and continue',
   onboardingSaving: 'Saving…',

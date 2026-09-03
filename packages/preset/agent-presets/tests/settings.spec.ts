@@ -106,6 +106,37 @@ describe('the default preset as a user setting', () => {
     }
   })
 
+  it('applies a preset leaf switch only to sessions created afterwards', async () => {
+    const { ctx } = await harness()
+    const running = await ctx.agents.create({
+      sessionId: SessionId('settings-plugin-running'),
+      setup: async (agentCtx: Context) => void await ctx.agentPresets.mount(agentCtx),
+    })
+    try {
+      const alpha = (await ctx.agentPresets.listPluginEntries())
+        .find(entry => entry.presetId === 'standard' && entry.rowId === 'alpha')
+      expect(alpha).toMatchObject({ enabled: true })
+
+      await ctx.agentPresets.setPluginEnabled(alpha!.entryId, false)
+      expect(ctx.settings.get(NS)).toMatchObject({
+        pluginEnablement: { standard: { alpha: false } },
+      })
+      expect(toolNames(ctx, running.agent)).toEqual(['alpha'])
+
+      const later = await ctx.agents.create({
+        sessionId: SessionId('settings-plugin-later'),
+        setup: async (agentCtx: Context) => void await ctx.agentPresets.mount(agentCtx),
+      })
+      try {
+        expect(toolNames(ctx, later.agent)).toEqual([])
+      } finally {
+        await later.dispose()
+      }
+    } finally {
+      await running.dispose()
+    }
+  })
+
   it('re-inherits the composition default when the user setting is cleared', async () => {
     const { ctx } = await harness()
     await ctx.settings.update(NS, { default: 'minimal' })

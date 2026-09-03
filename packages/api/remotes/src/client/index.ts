@@ -17,8 +17,10 @@ export type {
   ImportedPluginMcpServerEnablementRequest,
   ImportedPluginSnapshot,
   PluginImportSource,
+  PluginEnablementResult,
   PluginInventorySnapshot,
   PluginMarketplaceSnapshot,
+  SetPluginMarketplaceEnablementRequest,
 } from '@bosch/bh-host-plugin-inventory/types'
 export type {} from '@bosch/bh-commands/remote'
 export type {} from '@bosch/bh-file-reference/remote'

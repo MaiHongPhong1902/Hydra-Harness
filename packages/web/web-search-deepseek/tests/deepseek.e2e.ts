@@ -15,7 +15,7 @@ const searchProvider = (options: DeepSeekSearchProviderOptions): DeepSeekSearchP
   new DeepSeekSearchProvider(() => options)
 
 /**
- * Disabled real-API probe for the BHAgent search provider. The live endpoint
+ * Disabled real-API probe for the DeepSeek search provider. The live endpoint
  * can complete without structured source blocks, so this is not a reliable
  * merge signal. Its body remains because mocks cannot confirm the wire shape.
  */

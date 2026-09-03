@@ -77,13 +77,14 @@ describe('ui-settings-plugin-inventory browser plugin', () => {
     if (plugins.nativePlugins === undefined) throw new Error('expected local native plugin controls')
     await expect(plugins.nativePlugins.list()).resolves.toEqual(EMPTY_NATIVE)
     expect(b.list).toHaveBeenCalledOnce()
+    if (plugins.importedPlugins === undefined) throw new Error('expected local imported plugin controls')
+    await expect(plugins.importedPlugins.list()).resolves.toEqual(EMPTY_IMPORTED)
+    expect(b.listImportedPlugins).toHaveBeenCalledOnce()
 
     const marketplaceInjected = marketplace?.inject as unknown as () => MarketplaceSettingsTabInjected
     const marketplaceControls = marketplaceInjected()
     await expect(marketplaceControls.importedPlugins.import('https://github.com/example/plugin.git')).resolves.toEqual(EMPTY_IMPORTED)
     expect(b.importPlugin).toHaveBeenCalledWith('https://github.com/example/plugin.git')
-    await expect(marketplaceControls.importedPlugins.enable('example@local')).resolves.toEqual(EMPTY_IMPORTED)
-    expect(b.enablePlugin).toHaveBeenCalledWith('example@local')
     await expect(marketplaceControls.removeMarketplace('https://github.com/example/plugins.git')).resolves.toEqual(EMPTY_MARKETPLACES)
     expect(b.removeMarketplace).toHaveBeenCalledWith('https://github.com/example/plugins.git')
     await b.ctx.fiber.dispose()

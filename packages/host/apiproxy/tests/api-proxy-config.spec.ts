@@ -223,7 +223,7 @@ async function harness(options?: {
   // onboarding allowlists are the proxy's complete settings surface.
   if (options?.configurableProviders !== false) {
     ctx.llm.registerConfigurableProviders([
-      { provider: 'deepseek-official', displayName: 'BHAgent', settingsNs: 'llm-deepseek', settingsPath: [] },
+      { provider: 'deepseek-official', displayName: 'DeepSeek', settingsNs: 'llm-deepseek', settingsPath: [] },
     ])
   }
   // Host-stream opener reads the committed-workspace baseline; the stub
@@ -657,10 +657,10 @@ describe('llm domain', () => {
   it('merges the configurable directory with live routes and appends undeclared ones', async () => {
     const ctx = await harness({ configurableProviders: false })
     ctx.llm.registerConfigurableProviders([
-      { provider: 'deepseek-official', displayName: 'BHAgent', settingsNs: 'llm-deepseek', settingsPath: [] },
+      { provider: 'deepseek-official', displayName: 'DeepSeek', settingsNs: 'llm-deepseek', settingsPath: [] },
       { provider: 'openai', displayName: 'openai', settingsNs: 'llm-pi-ai', settingsPath: ['providers', 'openai'] },
     ])
-    ctx.llm.registerAdapter(['deepseek-official'], new CatalogAdapter('BHAgent', ['deepseek-v4-flash']))
+    ctx.llm.registerAdapter(['deepseek-official'], new CatalogAdapter('DeepSeek', ['deepseek-v4-flash']))
     ctx.llm.registerAdapter(['undeclared'], new CatalogAdapter('Undeclared', ['u-1']))
     // Only one namespace can answer an interrogation, so the flag follows the
     // entry's namespace rather than being assumed for every row.
@@ -668,7 +668,7 @@ describe('llm domain', () => {
     const api = createApiProxy(ctx, DEFAULTS)
     const value = expectOk(await api.llm.providers(request({})))
     expect(value.providers).toEqual([
-      { provider: 'deepseek-official', displayName: 'BHAgent', settingsNs: 'llm-deepseek', settingsPath: [], active: true },
+      { provider: 'deepseek-official', displayName: 'DeepSeek', settingsNs: 'llm-deepseek', settingsPath: [], active: true },
       { provider: 'openai', displayName: 'openai', settingsNs: 'llm-pi-ai', settingsPath: ['providers', 'openai'], active: false },
       // An undeclared live route has no settings address, so nothing can be
       // interrogated on its behalf either.
@@ -678,13 +678,13 @@ describe('llm domain', () => {
 
   it('serves the host-scoped catalog with per-provider failures contained', async () => {
     const ctx = await harness()
-    ctx.llm.registerAdapter(['deepseek-official'], new CatalogAdapter('BHAgent', ['deepseek-v4-flash', 'deepseek-v4-pro']))
+    ctx.llm.registerAdapter(['deepseek-official'], new CatalogAdapter('DeepSeek', ['deepseek-v4-flash', 'deepseek-v4-pro']))
     ctx.llm.registerAdapter(['broken'], new BrokenCatalogAdapter('Broken', []))
     const api = createApiProxy(ctx, DEFAULTS)
     const value = expectOk(await api.llm.models(request({})))
     expect(value.groups).toEqual([{
       id: 'deepseek-official',
-      name: 'BHAgent',
+      name: 'DeepSeek',
       models: [
         { id: 'deepseek-v4-flash', name: 'deepseek-v4-flash' },
         { id: 'deepseek-v4-pro', name: 'deepseek-v4-pro' },
@@ -697,7 +697,7 @@ describe('llm domain', () => {
     const ctx = await harness()
     const api = createApiProxy(ctx, DEFAULTS)
     const frames = await collectHost(api, ['host/remote-event'], 2, async () => {
-      const dispose = ctx.llm.registerAdapter(['deepseek-official'], new CatalogAdapter('BHAgent', []))
+      const dispose = ctx.llm.registerAdapter(['deepseek-official'], new CatalogAdapter('DeepSeek', []))
       dispose()
       return Promise.resolve()
     })

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { resolveTelemetryPatch } from '../src/profile-boot.ts'
+import { profileEnablementPatches, resolveTelemetryPatch } from '../src/profile-boot.ts'
 
 describe('resolveTelemetryPatch', () => {
   it('preserves the configured telemetry mode when the hard-disable switch is unset or empty', () => {
@@ -18,5 +18,12 @@ describe('resolveTelemetryPatch', () => {
     // privacy switch has nothing to disable and generates no patch.
     expect(resolveTelemetryPatch('1', false)).toBeUndefined()
     expect(resolveTelemetryPatch(undefined, false)).toBeUndefined()
+  })
+
+  it('turns persisted root switches into deterministic boot patches', () => {
+    expect(profileEnablementPatches({ zeta: true, alpha: false })).toEqual([
+      { id: 'alpha', disabled: true },
+      { id: 'zeta', disabled: false },
+    ])
   })
 })

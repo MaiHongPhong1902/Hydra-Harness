@@ -77,6 +77,9 @@ export function McpSettingsTab(props: McpSettingsTabProps) {
     ).finally(() => { setImportedMutating(undefined) })
   }
 
+  const normalizedQuery = props.query.trim().toLocaleLowerCase()
+  const matchesQuery = (haystack: readonly string[]): boolean => normalizedQuery.length === 0
+    || haystack.some(value => value.toLocaleLowerCase().includes(normalizedQuery))
   const nativeEntry = native?.entries.find(entry => entry.moduleName === OBSIDIAN_MCP_MODULE)
   const setNativeEnabled = (enabled: boolean): void => {
     if (props.nativeMcp === undefined || nativeEntry === undefined) return
@@ -99,10 +102,13 @@ export function McpSettingsTab(props: McpSettingsTabProps) {
     </label>
   )
 
+  const importedRows = imported?.plugins.flatMap(plugin => plugin.mcpServers.map(server => ({ plugin, server })))
+    .filter(({ plugin, server }) => matchesQuery([server.name, plugin.name, plugin.identity])) ?? []
+
   if (!state.available && props.importedMcp === undefined && props.nativeMcp === undefined) return <p className={css.empty}>{t('mcpUnavailable')}</p>
   return (
     <div className={css.cards} role="list">
-      {state.available ? <PluginCard
+      {state.available && matchesQuery([t('mcpTitle')]) ? <PluginCard
         t={t}
         titleKey="mcpTitle"
         descriptionKey="mcpDescription"
@@ -136,7 +142,7 @@ export function McpSettingsTab(props: McpSettingsTabProps) {
         {nativeFailed ? <p className={css.empty} role="alert">{t('mcpToggleFailed')}</p> : null}
       </PluginCard> : null}
       {!state.available && native === undefined && props.nativeMcp !== undefined ? <p className={css.empty}>{t('mcpLoading')}</p> : null}
-      {!state.available && nativeControl !== null ? (
+      {!state.available && nativeControl !== null && matchesQuery([t('mcpTitle'), nativeEntry?.moduleName ?? '']) ? (
         <section className={css.importedMcp} aria-labelledby="native-mcp-title">
           <h3 id="native-mcp-title">{t('mcpTitle')}</h3>
           <p className={css.empty}>{t('mcpUnavailable')}</p>
@@ -151,9 +157,9 @@ export function McpSettingsTab(props: McpSettingsTabProps) {
         <section className={css.importedMcp} aria-labelledby="imported-mcp-title">
           <h3 id="imported-mcp-title">{t('importedMcpTitle')}</h3>
           {imported === undefined ? <p className={css.empty}>{t('mcpLoading')}</p> : null}
-          {imported !== undefined && imported.plugins.every(plugin => plugin.mcpServers.length === 0) ? <p className={css.empty}>{t('importedMcpEmpty')}</p> : null}
+          {imported !== undefined && importedRows.length === 0 ? <p className={css.empty}>{t('importedMcpEmpty')}</p> : null}
           {importedFailed ? <p className={css.empty} role="alert">{t('mcpToggleFailed')}</p> : null}
-          {imported?.plugins.flatMap(plugin => plugin.mcpServers.map(server => ({ plugin, server }))).map(({ plugin, server }) => (
+          {importedRows.map(({ plugin, server }) => (
             <div className={css.importedMcpRow} key={`${plugin.identity}:${server.name}`}>
               <div><strong>{server.name}</strong><code>{plugin.name} · {plugin.identity}</code></div>
               <label className={css.switchControl}>

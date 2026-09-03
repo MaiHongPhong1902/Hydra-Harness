@@ -42,8 +42,8 @@
 - button "Commands":
   - img
 - 'button "Access mode, current: Workspace Write"': Workspace Write
-- button "Select model, current BHAgent-V4-Flash":
-  - text: BHAgent-V4-Flash
+- button "Select model, current DeepSeek-V4-Flash":
+  - text: DeepSeek-V4-Flash
   - img
 - button "3% of context used"
 - button "Send message" [disabled]

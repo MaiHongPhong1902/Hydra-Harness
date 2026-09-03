@@ -42,6 +42,7 @@ export function apply(ctx: ClientContext): void {
   const t = ctx.locale.bind(NS)
   const connection = ctx.get('connection') as ConnectionHandle
   let nativePlugins: NativePluginControls | undefined
+  let importedPluginsControls: ImportedPluginControls | undefined
   if (connection.isLoopback) {
     const listPlugins: NativePluginControls['list'] = async () => {
       const result = await ctx.remote.pluginInventory.list()
@@ -70,6 +71,13 @@ export function apply(ctx: ClientContext): void {
     const removeMarketplace: MarketplaceSettingsTabInjected['removeMarketplace'] = async (source) => {
       const result = await ctx.remote.pluginInventory.removeMarketplace(source)
       if (!result.ok) throw new Error(`pluginInventory.removeMarketplace failed: ${result.error.code}: ${result.error.message}`)
+      return result.value
+    }
+    const setMarketplaceEnabled: MarketplaceSettingsTabInjected['setMarketplaceEnabled'] = async (request) => {
+      const result = await ctx.remote.pluginInventory.setMarketplaceEnabled(request)
+      if (!result.ok) {
+        throw new Error(`pluginInventory.setMarketplaceEnabled failed: ${result.error.code}: ${result.error.message}`)
+      }
       return result.value
     }
     const listImportedPlugins: ImportedPluginControls['list'] = async () => {
@@ -115,11 +123,13 @@ export function apply(ctx: ClientContext): void {
       disable: disablePlugin,
       remove: removePlugin,
     }
+    importedPluginsControls = importedPlugins
     const marketplaceInjected = (): MarketplaceSettingsTabInjected => ({
       addMarketplace,
       importedPlugins,
       listMarketplaces,
       removeMarketplace,
+      setMarketplaceEnabled,
     })
     ctx.slots.inject('settings.plugins.tab', () => ctx.slots.register({
       name: 'settings.plugins.tab',
@@ -157,6 +167,7 @@ export function apply(ctx: ClientContext): void {
 
   const injected = () => ({
     ...(nativePlugins === undefined ? {} : { nativePlugins }),
+    ...(importedPluginsControls === undefined ? {} : { importedPlugins: importedPluginsControls }),
   })
   ctx.slots.inject('settings.plugins.tab', () => ctx.slots.register({
     name: 'settings.plugins.tab',
