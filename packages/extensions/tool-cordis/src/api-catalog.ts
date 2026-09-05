@@ -3820,7 +3820,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ImportedPluginEntry',
-    declaration: 'export interface ImportedPluginEntry {\n    readonly identity: ImportedPluginIdentity;\n    readonly name: string;\n    readonly version: string;\n    readonly source: ImportedPluginSource;\n    readonly pluginRoot: string;\n    readonly dataPath: string;\n    readonly enabled: boolean;\n    readonly lifecycle: ImportedPluginLifecycle;\n    readonly hookTrustState: HookTrustState;\n    readonly hookDefinitionDigest?: string;\n    readonly skills: readonly string[];\n    readonly mcpServers: readonly ImportedMcpServerSnapshot[];\n    readonly hooks: readonly string[];\n    readonly appMappings?: readonly string[];\n    readonly installationStatus: \'installed\';\n}',
+    declaration: 'export interface ImportedPluginEntry {\n    readonly identity: ImportedPluginIdentity;\n    readonly name: string;\n    readonly version: string;\n    readonly source: ImportedPluginSource;\n    readonly pluginRoot: string;\n    readonly dataPath: string;\n    readonly enabled: boolean;\n    readonly initialEnabled?: boolean;\n    readonly lifecycle: ImportedPluginLifecycle;\n    readonly hookTrustState: HookTrustState;\n    readonly hookDefinitionDigest?: string;\n    readonly skills: readonly string[];\n    readonly mcpServers: readonly ImportedMcpServerSnapshot[];\n    readonly hooks: readonly string[];\n    readonly appMappings?: readonly string[];\n    readonly installationStatus: \'installed\';\n}',
   },
   {
     name: 'ImportedPluginIdentity',

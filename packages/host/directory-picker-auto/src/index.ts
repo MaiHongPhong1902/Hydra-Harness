@@ -84,7 +84,8 @@ export async function apply(ctx: Context): Promise<void> {
     }
     try {
       for (const name of [BACKEND_PACKAGES[backend], SURFACE_PACKAGES[backend]]) {
-        ids.push(await ctx.loader.create({ name }))
+        const options = { name, pluginGroup: 'directory-picker' }
+        ids.push(await ctx.loader.create(options))
       }
     } catch (cause) {
       // Setup owns the entries it created until it returns the disposer: leaving

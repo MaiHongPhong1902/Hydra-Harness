@@ -58,6 +58,8 @@ export interface ImportedPluginEntry {
   readonly pluginRoot: string
   readonly dataPath: string
   readonly enabled: boolean
+  /** Enablement at runtime startup; bundles installed afterwards start disabled. */
+  readonly initialEnabled?: boolean
   readonly lifecycle: ImportedPluginLifecycle
   readonly hookTrustState: HookTrustState
   readonly hookDefinitionDigest?: string

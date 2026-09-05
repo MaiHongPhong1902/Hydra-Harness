@@ -910,16 +910,14 @@ Source: [`packages/host/frontend-static/src/index.ts:28`](../packages/host/front
 Requires: `loader` · `settings`
 
 ```ts config-catalog
-/** Plugin ids whose desired state applies only when the profile starts again. */
+/** Inventory exclusions for entries owned by another composition plane. */
 export interface Config {
-  /** Direct root entry ids protected from live unload. */
-  protectedEntryIds?: string[]
   /** Entry ids owned by another composition plane and omitted from this inventory. */
   compositionEntryIds?: string[]
 }
 ```
 
-Source: [`packages/host/plugin-inventory/src/index.ts:315`](../packages/host/plugin-inventory/src/index.ts)
+Source: [`packages/host/plugin-inventory/src/index.ts:324`](../packages/host/plugin-inventory/src/index.ts)
 
 <a id="boschbh-host-webserver"></a>
 

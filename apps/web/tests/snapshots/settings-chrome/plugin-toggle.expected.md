@@ -1,12 +1,6 @@
 - listitem:
-  - button "session-stats, Mounted, Enabled" [expanded]:
-    - strong: session-stats
-    - img "Mounted"
-    - text: Enabled
-    - img
-  - code: {{entry-root}}:session-stats
-  - term: Configuration
-  - definition: Enabled
-  - term: Cordis status
-  - definition: Mounted
-  - button "Disable plugin"
+  - strong: session-stats
+  - text: Enabled
+  - switch "Disable plugin session-stats" [checked]
+  - code: "@bosch/bh-session-stats"
+  - text: "Cordis status: Mounted"

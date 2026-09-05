@@ -14,7 +14,9 @@ import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
 import { join } from 'node:path'
+import { load as parseYaml } from 'js-yaml'
 import { SessionId } from '@bosch/bh-session'
+import type PluginInventoryGateway from '@bosch/bh-host-plugin-inventory'
 import {
   acknowledgeReloadConnectionLoss, assertFixtureInventory, captureStableAria, compareOrRefreshGolden,
   launchWebScaffold, watchConsole, webSnapshotMode, type WebScaffold,
@@ -123,18 +125,19 @@ describe('web e2e: settings modal and General preferences', () => {
       scaffold.workspaceCwd,
     )
     await compareOrRefreshGolden(MCP_EXPECTED, mcpSnapshot, MODE)
-    await dialog.getByRole('tab', { name: 'Plugin list', exact: true }).click()
-    const pluginRow = dialog.locator(PLUGIN_ROW_SELECTOR)
+    await dialog.getByRole('tab', { name: 'Plugins', exact: true }).click()
+    const inventoryPanel = dialog.getByRole('tabpanel', { name: 'Plugins', exact: true })
+    const pluginRow = inventoryPanel.locator(PLUGIN_ROW_SELECTOR)
     await pluginRow.waitFor({ timeout: 10_000 })
-    const expectedPluginCount = [...scaffold.ctx.loader.entries()]
-      .filter(entry => !entry.options.group)
-      .length
+    const inventory = scaffold.ctx.get('pluginInventory') as PluginInventoryGateway
+    const { entries } = await inventory.list()
+    const expectedPluginCount = new Set(entries.map(entry => entry.moduleName)).size
     expect(await dialog.getByRole('searchbox', { name: 'Search plugins' }).count()).toBe(1)
-    expect(await dialog.locator('[data-plugin-entry]').count()).toBe(expectedPluginCount)
-    expect(await dialog.locator('[data-plugin-count]').getAttribute('data-plugin-count'))
+    expect(await inventoryPanel.locator('[data-plugin-entry]').count()).toBe(entries.length)
+    expect(await inventoryPanel.locator('[data-plugin-count]').getAttribute('data-plugin-count'))
       .toBe(String(expectedPluginCount))
     expect(await dialog.getByRole('button', { name: 'Plugins', exact: true }).getAttribute('aria-current')).toBe('true')
-    expect(await dialog.getByRole('tab', { name: 'Plugin list', exact: true }).getAttribute('aria-selected')).toBe('true')
+    expect(await dialog.getByRole('tab', { name: 'Plugins', exact: true }).getAttribute('aria-selected')).toBe('true')
     expect(await dialog.getByRole('button', { name: 'Models' }).getAttribute('aria-current')).toBeNull()
     const pluginsSnapshot = await captureStableAria(
       page,
@@ -142,22 +145,54 @@ describe('web e2e: settings modal and General preferences', () => {
       scaffold.workspaceCwd,
     )
     await compareOrRefreshGolden(PLUGINS_EXPECTED, pluginsSnapshot, MODE)
-    const toggleRow = dialog.locator(PLUGIN_TOGGLE_ROW_SELECTOR)
-    await toggleRow.getByRole('button').first().click()
-    await toggleRow.getByRole('button', { name: 'Disable plugin' }).waitFor()
+    const toggleRow = inventoryPanel.locator(PLUGIN_TOGGLE_ROW_SELECTOR)
+    await toggleRow.getByRole('switch', { name: 'Disable plugin session-stats', exact: true }).waitFor()
     const toggleSnapshot = await captureStableAria(
       page,
       PLUGIN_TOGGLE_ROW_SELECTOR,
       scaffold.workspaceCwd,
     )
     await compareOrRefreshGolden(PLUGIN_TOGGLE_EXPECTED, toggleSnapshot, MODE)
-    await toggleRow.getByRole('button', { name: 'Disable plugin' }).click()
-    await toggleRow.getByRole('button', { name: 'Enable plugin' }).waitFor()
-    const profilePatch = join(scaffold.harnessHome, 'profiles', 'scaffold', 'cordis.patch.yml')
-    await expect.poll(async () => readFile(profilePatch, 'utf8')).toContain('disabled: true')
-    await toggleRow.getByRole('button', { name: 'Enable plugin' }).click()
-    await toggleRow.getByRole('button', { name: 'Disable plugin' }).waitFor()
-    await expect.poll(async () => readFile(profilePatch, 'utf8')).toContain('disabled: false')
+    await toggleRow.getByRole('switch', { name: 'Disable plugin session-stats', exact: true }).click()
+    await toggleRow.getByRole('switch', { name: 'Enable plugin session-stats', exact: true }).waitFor()
+    expect((await inventory.list()).entries.find(entry => entry.moduleName === '@bosch/bh-session-stats')?.enabled).toBe(true)
+    await toggleRow.getByText('Unsaved change', { exact: true }).waitFor()
+    await compareOrRefreshGolden(join(SNAPSHOT_DIR, 'plugin-draft.expected.md'),
+      await captureStableAria(page, PLUGIN_TOGGLE_ROW_SELECTOR, scaffold.workspaceCwd), MODE)
+    await inventoryPanel.getByRole('button', { name: 'Save plugin settings', exact: true }).click()
+    await expect.poll(async () => (await inventory.list()).entries
+      .find(entry => entry.moduleName === '@bosch/bh-session-stats' && entry.presetId === undefined)?.enabled).toBe(false)
+    const settingsPath = join(scaffold.harnessHome, 'settings.yaml')
+    expect(parseYaml(await readFile(settingsPath, 'utf8'))).toMatchObject({
+      plugins: { enabled: { '@bosch/bh-session-stats': false } },
+    })
+    await expect.poll(() => toggleRow.getByText('Unsaved change', { exact: true }).count()).toBe(0)
+    await toggleRow.getByText('Changed since app start', { exact: true }).waitFor()
+    await compareOrRefreshGolden(join(SNAPSHOT_DIR, 'plugin-saved.expected.md'),
+      await captureStableAria(page, PLUGIN_TOGGLE_ROW_SELECTOR, scaffold.workspaceCwd), MODE)
+    await page.keyboard.press('Escape')
+    await trigger.click()
+    await dialog.getByRole('button', { name: 'Plugins', exact: true }).click()
+    await dialog.getByRole('tab', { name: 'Plugins', exact: true }).click()
+    await toggleRow.getByText('Changed since app start', { exact: true }).waitFor()
+    await toggleRow.getByRole('switch', { name: 'Enable plugin session-stats', exact: true }).click()
+    await toggleRow.getByRole('switch', { name: 'Disable plugin session-stats', exact: true }).waitFor()
+    await inventoryPanel.getByRole('button', { name: 'Save plugin settings', exact: true }).click()
+    await expect.poll(async () => (await inventory.list()).entries
+      .find(entry => entry.moduleName === '@bosch/bh-session-stats' && entry.presetId === undefined)?.enabled).toBe(true)
+    expect(parseYaml(await readFile(settingsPath, 'utf8'))).toMatchObject({
+      plugins: { enabled: { '@bosch/bh-session-stats': true } },
+    })
+    await pluginRow.getByRole('switch', { name: 'Disable plugin ui-settings', exact: true }).click()
+    await inventoryPanel.getByRole('button', { name: 'Save plugin settings', exact: true }).click()
+    await expect.poll(async () => (await inventory.list()).entries.find(entry => entry.moduleName === '@bosch/bh-client-ui-settings')?.restartRequired).toBe(true)
+    expect((await inventory.list()).entries.find(entry => entry.moduleName === '@bosch/bh-client-ui-settings')?.enabled).toBe(true)
+    await pluginRow.getByText('This change will apply after restart.', { exact: true }).waitFor()
+    await compareOrRefreshGolden(join(SNAPSHOT_DIR, 'plugin-core-pending.expected.md'),
+      await captureStableAria(page, PLUGIN_ROW_SELECTOR, scaffold.workspaceCwd), MODE)
+    await pluginRow.getByRole('switch', { name: 'Enable plugin ui-settings', exact: true }).click()
+    await inventoryPanel.getByRole('button', { name: 'Save plugin settings', exact: true }).click()
+    await expect.poll(async () => (await inventory.list()).entries.find(entry => entry.moduleName === '@bosch/bh-client-ui-settings')?.restartRequired).toBe(false)
     // Close path 1: Escape.
     await page.keyboard.press('Escape')
     await expect.poll(() => page.getByRole('dialog', { name: 'Settings' }).count(), { timeout: 5_000 }).toBe(0)
@@ -499,6 +534,9 @@ describe('web e2e: settings modal and General preferences', () => {
       'dialog.expected.md',
       'mcp.expected.md',
       'plugin-toggle.expected.md',
+      'plugin-draft.expected.md',
+      'plugin-saved.expected.md',
+      'plugin-core-pending.expected.md',
       'plugins.expected.md',
     ])
   })

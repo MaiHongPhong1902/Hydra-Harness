@@ -15,6 +15,16 @@ import {
 } from './verify-cordis-config.ts'
 
 describe('verify-cordis-config metadata expressions', () => {
+  it('validates plugin lifecycle metadata and rejects the snake_case spelling', () => {
+    for (const pluginType of [undefined, 'core', 'normal']) {
+      expect(metadataExpressionErrors({ pluginType, pluginGroup: 'settings-ui' }, '[0]')).toEqual([])
+    }
+    expect(metadataExpressionErrors({ plugin_type: 'core', pluginType: 'critical', pluginGroup: '' }, '[0]')).toEqual([
+      '[0].pluginType: must be core or normal',
+      '[0].pluginGroup: must be a non-empty string',
+      '[0].plugin_type: use pluginType',
+    ])
+  })
   it('accepts a disabled !!js expression', () => {
     const problems = metadataExpressionErrors(
       { id: 'tool-bash', name: '@bosch/bh-tool-bash', disabled: { __jsExpr: "process.platform === 'win32'" } },

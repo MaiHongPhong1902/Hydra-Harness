@@ -3,7 +3,8 @@ import type {
   ImportedPluginSnapshot, PluginEnablementResult, PluginImportSource, PluginInventorySnapshot,
 } from '@bosch/bh-api-remotes/client'
 import { Button, Switch } from '@bosch/bh-client-ui-primitives'
-import type { InjectFace, PropsLocale, PropsRuntime } from '@bosch/bh-client-ui-slots'
+import type { HostObservable, InjectFace, PropsLocale, PropsRuntime } from '@bosch/bh-client-ui-slots'
+import type { InventoryDraftState } from './inventory-controller.ts'
 import { groupByOwner, matchesQuery } from './marketplace-owner.ts'
 import type { PluginInventoryLocaleKey } from './locales.ts'
 import css from './PluginInventorySettingsTab.module.css'
@@ -33,6 +34,11 @@ export interface ImportedPluginControls {
 
 /** Registration-side Remote face used by the Plugins tab. */
 export interface PluginInventorySettingsTabInjected {
+  hooks: { pluginDrafts: HostObservable<InventoryDraftState> }
+  /** Commit all native and imported enablement drafts. */
+  savePlugins: () => Promise<void>
+  /** Restore the last saved states without resetting the startup comparison. */
+  discardPluginChanges: () => void
   /** Native inventory controls are available only in the local desktop app. */
   nativePlugins?: NativePluginControls
   /** Imported OpenAI/Codex bundle controls; also available only in the local desktop app. */
@@ -84,9 +90,11 @@ function NativePluginCatalog({
   onRestartRequiredChange,
   query,
   t,
+  drafts,
 }: Pick<PluginInventorySettingsTabProps, 'nativePlugins' | 't'> & {
   onRestartRequiredChange: (required: boolean) => void
   query: string
+  drafts: InventoryDraftState
 }): ReactNode {
   const headingId = useId()
   const [request, setRequest] = useState(0)
@@ -115,7 +123,7 @@ function NativePluginCatalog({
       () => { if (current) setState({ status: 'error' }) },
     )
     return () => { current = false }
-  }, [nativePlugins, onRestartRequiredChange, request])
+  }, [nativePlugins, onRestartRequiredChange, request, drafts.revision])
 
   const normalizedQuery = query.trim().toLocaleLowerCase()
   const groups = useMemo(
@@ -123,7 +131,7 @@ function NativePluginCatalog({
       const grouped = new Map<string, PluginInventoryEntry[]>()
       if (state.status !== 'ready') return []
       const matching = state.snapshot.entries.filter(
-        candidate => matchesQuery([candidate.moduleName, candidate.entryId], normalizedQuery),
+        candidate => matchesQuery([candidate.moduleName, candidate.entryId, ...(candidate.relatedModules ?? [])], normalizedQuery),
       )
       for (const entry of matching) {
         const entries = grouped.get(entry.moduleName) ?? []
@@ -175,6 +183,7 @@ function NativePluginCatalog({
             const title = moduleShortName(first.moduleName)
             const grouped = group.length > 1
             const controls = (entry: PluginInventoryEntry): ReactNode => {
+              if (!entry.toggleable) return <span className={css.nativeStatus}>{t(entry.enabled ? 'enabledTag' : 'disabledTag')}</span>
               const enabled = entry.pendingEnabled ?? entry.enabled
               const presetPrefix = entry.presetId === undefined ? '' : `agent-preset:${entry.presetId}:`
               const instance = entry.presetId === undefined
@@ -185,7 +194,7 @@ function NativePluginCatalog({
                   <span>{mutating === entry.entryId ? t('saving') : enabled ? t('enabledTag') : t('disabledTag')}</span>
                   <Switch
                     checked={enabled}
-                    disabled={mutating !== null || !entry.toggleable}
+                    disabled={drafts.saving || mutating !== null}
                     aria-label={`${t(enabled ? 'disablePlugin' : 'enablePlugin')} ${instance}`}
                     onClick={() => { toggle(entry) }}
                   />
@@ -196,6 +205,10 @@ function NativePluginCatalog({
               <>
                 {entry.presetId === undefined ? null : <span className={css.nativeStatus}>{t('preset')}: {entry.presetId}</span>}
                 {entry.newSessionsOnly ? <p className={css.status}>{t('newSessionsOnly')}</p> : null}
+                {entry.pluginType === 'core' ? <p className={css.coreWarning}>{t('corePlugin')}</p> : null}
+                {entry.mixedEnabled ? <p className={css.status}>{t('mixedEnabled')}</p> : null}
+                {drafts.dirtyNative.includes(entry.entryId) ? <p className={css.status}>{t('unsaved')}</p> : null}
+                {drafts.changedNative.includes(entry.entryId) ? <p className={css.status}>{t('changedSinceStart')}</p> : null}
                 {entry.enabled && !entry.newSessionsOnly ? <span className={css.nativeStatus}>{t('cordis')}: {phaseLabel(entry.fiberPhase, t)}</span> : null}
                 {entry.restartRequired ? <p className={css.status}>{t('restartRequired')}</p> : null}
                 {!entry.toggleable ? <p className={css.status}>{t('requiredPlugin')}</p> : null}
@@ -208,6 +221,7 @@ function NativePluginCatalog({
                 data-plugin-entry={grouped ? undefined : first.entryId}
                 data-plugin-module={first.moduleName}
                 data-restart-required={group.some(entry => entry.restartRequired) ? 'true' : undefined}
+                data-plugin-changed={group.some(entry => drafts.changedNative.includes(entry.entryId)) ? 'true' : undefined}
               >
                 <div className={css.nativePlugin}>
                   <div className={css.importedPluginHeader}>
@@ -215,6 +229,11 @@ function NativePluginCatalog({
                     {grouped ? null : controls(first)}
                   </div>
                   <code>{first.moduleName}</code>
+                  {first.relatedModules?.length ? (
+                    <details><summary>{t('relatedPlugins')} ({first.relatedModules.length})</summary>
+                      <ul>{first.relatedModules.map(moduleName => <li key={moduleName}><code>{moduleName}</code></li>)}</ul>
+                    </details>
+                  ) : null}
                   {grouped ? (
                     <ul className={css.nativeInstances}>
                       {group.map(entry => (
@@ -239,8 +258,8 @@ function NativePluginCatalog({
 }
 
 /** Render OpenAI/Codex bundle lifecycle controls without duplicating capability settings. */
-export function ImportedPluginCatalog(
-  { importedPlugins, query, t }: { importedPlugins: ImportedPluginControls; query: string; t: PluginInventorySettingsTabProps['t'] },
+function ImportedPluginCatalog(
+  { importedPlugins, query, t, drafts }: { importedPlugins: ImportedPluginControls; query: string; t: PluginInventorySettingsTabProps['t']; drafts: InventoryDraftState },
 ): ReactNode {
   const sourceId = useId()
   const [request, setRequest] = useState(0)
@@ -256,7 +275,7 @@ export function ImportedPluginCatalog(
       () => { if (current) setState({ status: 'error' }) },
     )
     return () => { current = false }
-  }, [importedPlugins, request])
+  }, [importedPlugins, request, drafts.revision])
 
   const normalizedQuery = query.trim().toLocaleLowerCase()
   const groups = useMemo(
@@ -301,7 +320,7 @@ export function ImportedPluginCatalog(
           <h4 className={css.marketplaceGroupHeading}>{group.owner}</h4>
           <ul className={`${css.cards} ${css.importedCards}`}>
             {group.items.map((plugin: ImportedPluginEntry) => (
-              <li className={css.card} key={plugin.identity} data-imported-plugin={plugin.identity}>
+              <li className={css.card} key={plugin.identity} data-imported-plugin={plugin.identity} data-plugin-changed={drafts.changedImported.includes(plugin.identity) ? 'true' : undefined}>
                 <div className={css.importedPlugin}>
                   <div className={css.importedPluginHeader}>
                     <strong>{plugin.name}</strong>
@@ -309,15 +328,17 @@ export function ImportedPluginCatalog(
                       <span>{mutating === plugin.identity ? t('saving') : plugin.enabled ? t('enabledTag') : t('disabledTag')}</span>
                       <Switch
                         checked={plugin.enabled}
-                        disabled={mutating === plugin.identity}
+                        disabled={drafts.saving || mutating === plugin.identity}
                         aria-label={`${t(plugin.enabled ? 'importedPluginDisable' : 'importedPluginEnable')} ${plugin.name}`}
                         onClick={() => { mutate(plugin.identity, plugin.enabled ? importedPlugins.disable : importedPlugins.enable) }}
                       />
                     </label>
                   </div>
                   <code>{plugin.identity} · {plugin.version} · {plugin.source.kind}</code>
+                  {drafts.dirtyImported.includes(plugin.identity) ? <p className={css.status}>{t('unsaved')}</p> : null}
+                  {drafts.changedImported.includes(plugin.identity) ? <p className={css.status}>{t('changedSinceStart')}</p> : null}
                   <div className={css.importedPluginActions}>
-                    <Button variant="outline" size="sm" disabled={mutating === plugin.identity} onClick={() => { mutate(plugin.identity, importedPlugins.remove) }}>
+                    <Button variant="outline" size="sm" disabled={drafts.saving || mutating === plugin.identity} onClick={() => { mutate(plugin.identity, importedPlugins.remove) }}>
                       {t('importedPluginRemove')}
                     </Button>
                   </div>
@@ -332,14 +353,30 @@ export function ImportedPluginCatalog(
 }
 
 /** Render native BH plugins together with imported OpenAI/Codex bundles: everything the agent can use. */
-export function PluginInventorySettingsTab({ nativePlugins, importedPlugins, query, t }: PluginInventorySettingsTabProps): ReactNode {
+export function PluginInventorySettingsTab(
+  { nativePlugins, importedPlugins, query, t, usePluginDrafts, savePlugins, discardPluginChanges }: PluginInventorySettingsTabProps,
+): ReactNode {
   const [restartRequired, setRestartRequired] = useState(false)
+  const drafts = usePluginDrafts(value => value)
+  const dirty = drafts.dirtyNative.length + drafts.dirtyImported.length
   if (nativePlugins === undefined) return <p className={css.status}>{t('pluginUnavailable')}</p>
   return (
     <div className={css.section}>
-      <NativePluginCatalog nativePlugins={nativePlugins} onRestartRequiredChange={setRestartRequired} query={query} t={t} />
-      {importedPlugins === undefined ? null : <ImportedPluginCatalog importedPlugins={importedPlugins} query={query} t={t} />}
-      {restartRequired ? <div className={css.restartFooter} role="status">{t('restartFooter')}</div> : null}
+      <NativePluginCatalog
+        nativePlugins={nativePlugins} onRestartRequiredChange={setRestartRequired} query={query} t={t} drafts={drafts}
+      />
+      {importedPlugins === undefined ? null : (
+        <ImportedPluginCatalog importedPlugins={importedPlugins} query={query} t={t} drafts={drafts} />
+      )}
+      <div className={css.saveFooter}>
+        {drafts.error === null ? null : <p className={css.mutationFailure} role="alert">{t('saveError')} {drafts.error}</p>}
+        {restartRequired ? <p className={css.coreWarning} role="status">{t('restartFooter')}</p> : null}
+        <div className={css.saveActions}>
+          <span>{dirty > 0 ? `${dirty} ${t('pendingChanges')}` : t('allSaved')}</span>
+          <Button variant="outline" size="sm" disabled={drafts.saving || dirty === 0} onClick={discardPluginChanges}>{t('discard')}</Button>
+          <Button size="sm" disabled={drafts.saving || dirty === 0} onClick={() => { void savePlugins() }}>{t(drafts.saving ? 'saving' : 'saveAll')}</Button>
+        </div>
+      </div>
     </div>
   )
 }

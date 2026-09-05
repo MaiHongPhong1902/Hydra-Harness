@@ -12,6 +12,7 @@ import {
   type NativePluginControls,
 } from './PluginInventorySettingsTab.tsx'
 import { en, type PluginInventoryLocaleKey } from './locales.ts'
+import { PluginInventoryController } from './inventory-controller.ts'
 
 export type {
   ImportedPluginControls,
@@ -165,9 +166,14 @@ export function apply(ctx: ClientContext): void {
     })
   }
 
+  const inventory = new PluginInventoryController(nativePlugins, importedPluginsControls)
+  ctx.effect(() => () => { inventory.dispose() }, 'ui-settings-plugin-inventory: drafts')
   const injected = () => ({
-    ...(nativePlugins === undefined ? {} : { nativePlugins }),
-    ...(importedPluginsControls === undefined ? {} : { importedPlugins: importedPluginsControls }),
+    hooks: { pluginDrafts: inventory.store },
+    savePlugins: () => inventory.save(),
+    discardPluginChanges: () => { inventory.discard() },
+    ...(inventory.nativePlugins === undefined ? {} : { nativePlugins: inventory.nativePlugins }),
+    ...(inventory.importedPlugins === undefined ? {} : { importedPlugins: inventory.importedPlugins }),
   })
   ctx.slots.inject('settings.plugins.tab', () => ctx.slots.register({
     name: 'settings.plugins.tab',

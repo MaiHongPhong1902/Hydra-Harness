@@ -39,6 +39,15 @@ import type {
 
 export type * from './types.ts'
 
+declare module '@bosch/cordis-plugin-loader' {
+  interface EntryOptions {
+    /** Core plugins change only on restart; omitted means normal. */
+    pluginType?: 'core' | 'normal'
+    /** Entries that implement one feature and share one Settings switch. */
+    pluginGroup?: string
+  }
+}
+
 /** Brand an existing Loader-tree entry id at the owning boundary. */
 function pluginEntryId(value: string): PluginEntryId {
   return value as PluginEntryId
@@ -311,10 +320,8 @@ async function loadMarketplace(request: AddPluginMarketplaceRequest | Marketplac
   }
 }
 
-/** Plugin ids whose desired state applies only when the profile starts again. */
+/** Inventory exclusions for entries owned by another composition plane. */
 export interface Config {
-  /** Direct root entry ids protected from live unload. */
-  protectedEntryIds?: string[]
   /** Entry ids owned by another composition plane and omitted from this inventory. */
   compositionEntryIds?: string[]
 }
@@ -340,15 +347,14 @@ interface AgentPresetPluginControls {
 export class PluginInventoryGateway extends TypertRemoteService {
   static inject = ['loader', 'settings']
   static Config: z<Config> = z.object({
-    protectedEntryIds: z.array(z.string()).default([]),
     compositionEntryIds: z.array(z.string()).default([]),
   })
 
-  private readonly protectedEntryIds: ReadonlySet<string>
   private readonly compositionEntryIds: ReadonlySet<string>
   private readonly settings: SettingsScope<PluginSettings>
   private readonly marketplaceSettings: SettingsScope<MarketplaceSettings>
   private readonly defaultEnabled = new Map<string, boolean>()
+  private readonly initialEnabled = new Map<string, boolean>()
   private readonly originalConfigs = new Map<string, unknown>()
   private readonly appliedSettings = new Set<string>()
   private restartEnablement: Record<string, boolean> = {}
@@ -356,7 +362,6 @@ export class PluginInventoryGateway extends TypertRemoteService {
 
   constructor(ctx: Context, config: Config = {}) {
     super(ctx, 'pluginInventory')
-    this.protectedEntryIds = new Set(config.protectedEntryIds)
     this.compositionEntryIds = new Set(config.compositionEntryIds)
     this.settings = ctx.settings.register(PLUGIN_SETTINGS_NAMESPACE, PluginSettingsSchema)
     this.marketplaceSettings = ctx.settings.register(MARKETPLACE_SETTINGS_NAMESPACE, MarketplaceSettingsSchema)
@@ -376,6 +381,7 @@ export class PluginInventoryGateway extends TypertRemoteService {
       )
     }
     await this.applySettings(this.settings.get().enabled)
+    for (const entry of representatives.values()) this.initialEnabled.set(entry.id, this.enabled(entry))
     this.ctx.effect(
       () => this.settings.watch(next => this.enqueue(() => this.applySettings(next.enabled))),
       'pluginInventory.settingsWatch',
@@ -427,11 +433,16 @@ export class PluginInventoryGateway extends TypertRemoteService {
     const entries = new Map<string, Entry>()
     for (const entry of this.ctx.loader.entries()) {
       if (entry.options.group || this.compositionEntryIds.has(entry.options.id)) continue
+      this.isRestartOnly(entry)
+      const group: unknown = entry.options.pluginGroup
+      if (group !== undefined && (typeof group !== 'string' || group.trim() === '')) {
+        throw new Error(`pluginInventory: ${entry.id}.pluginGroup must be a non-empty string`)
+      }
+      if ('plugin_type' in entry.options) throw new Error(`pluginInventory: ${entry.id}.plugin_type: use pluginType`)
       const current = entries.get(entry.options.name)
       if (current === undefined
         || (entry.parent.tree === rootInclude && current.parent.tree !== rootInclude)
-        || (this.protectedEntryIds.has(entry.options.id)
-          && !this.protectedEntryIds.has(current.options.id))) {
+        || (this.isRestartOnly(entry) && !this.isRestartOnly(current))) {
         entries.set(entry.options.name, entry)
       }
     }
@@ -440,7 +451,13 @@ export class PluginInventoryGateway extends TypertRemoteService {
 
   /** Whether changing this root entry must wait for the next profile boot. */
   private isRestartOnly(entry: Entry): boolean {
-    return this.protectedEntryIds.has(entry.options.id)
+    const value: unknown = entry.options.pluginType
+    if (value !== undefined && value !== 'core' && value !== 'normal') {
+      throw new Error(`pluginInventory: ${entry.id}.pluginType must be core or normal`)
+    }
+    return value === 'core' || (entry.options.pluginGroup !== undefined
+      && [...this.ctx.loader.entries()].some(candidate => candidate.options.pluginGroup === entry.options.pluginGroup
+        && candidate.options.pluginType === 'core'))
   }
 
   private isToggleable(entry: Entry, rootInclude = this.rootInclude()): boolean {
@@ -482,7 +499,7 @@ export class PluginInventoryGateway extends TypertRemoteService {
   }
 
   /** Persist one restart-only root switch without changing the live Loader tree. */
-  private async setRestartEnabled(entry: Entry, enabled: boolean): Promise<void> {
+  private async setRestartEnabled(entries: readonly Entry[], enabled: boolean): Promise<void> {
     const profileDir = this.profileDir()
     const manifestPath = join(profileDir, 'package.json')
     await withFileLock(manifestPath, async () => {
@@ -491,7 +508,7 @@ export class PluginInventoryGateway extends TypertRemoteService {
       const manifest = readProfileManifest('pluginInventory', profileDir)
       const pluginEnablement = {
         ...profilePluginEnablement(manifest),
-        [entry.options.id]: enabled,
+        ...Object.fromEntries(entries.map(entry => [entry.options.id, enabled])),
       }
       const next = {
         ...manifest,
@@ -593,10 +610,15 @@ export class PluginInventoryGateway extends TypertRemoteService {
   private hostEntries(): PluginInventoryEntry[] {
     const entries: PluginInventoryEntry[] = []
     const rootInclude = this.rootInclude()
-    for (const entry of this.representatives(rootInclude).values()) {
-      const enabled = this.enabled(entry)
-      const restartRequired = this.restartRequired(entry)
-      const pendingEnabled = restartRequired ? this.restartEnablement[entry.options.id] : undefined
+    for (const group of this.inventoryGroups(rootInclude)) {
+      const entry = group[0] as Entry
+      const members = group.filter(candidate => this.isToggleable(candidate, rootInclude))
+      const controlled = members.length > 0 ? members : group
+      const initialStates = controlled.map(candidate => this.initialEnabled.get(candidate.id) ?? this.enabled(candidate))
+      const desiredStates = controlled.map(candidate => this.desiredEnabled(candidate))
+      const enabled = controlled.every(candidate => this.enabled(candidate))
+      const restartRequired = controlled.some(candidate => this.restartRequired(candidate))
+      const pendingEnabled = restartRequired ? controlled.every(candidate => this.desiredEnabled(candidate)) : undefined
       const active = enabled
         ? this.moduleEntries(entry.options.name).find(candidate => !candidate.disabled && candidate.fiber !== undefined)
         : undefined
@@ -604,6 +626,11 @@ export class PluginInventoryGateway extends TypertRemoteService {
       entries.push({
         entryId: pluginEntryId(entry.id),
         moduleName: entry.options.name,
+        pluginType: group.some(candidate => this.isRestartOnly(candidate)) ? 'core' : 'normal',
+        initialEnabled: initialStates.every(Boolean) ? true : initialStates.some(Boolean) ? null : false,
+        changedSinceStart: controlled.some((candidate, index) => this.desiredEnabled(candidate) !== initialStates[index]),
+        ...(desiredStates.some(Boolean) && !desiredStates.every(Boolean) ? { mixedEnabled: true } : {}),
+        ...(group.length > 1 ? { relatedModules: group.slice(1).map(candidate => candidate.options.name) } : {}),
         enabled,
         ...pendingEnabled === undefined ? {} : { pendingEnabled },
         restartRequired,
@@ -623,6 +650,7 @@ export class PluginInventoryGateway extends TypertRemoteService {
       enabled: entry.enabled,
       presetId: entry.presetId,
       newSessionsOnly: true,
+      initialEnabled: this.initialEnabled.get(entry.entryId) ?? entry.enabled,
       restartRequired: false,
       toggleable: true,
       fiberPhase: null,
@@ -635,7 +663,24 @@ export class PluginInventoryGateway extends TypertRemoteService {
    */
   @Remote('list')
   async list(): Promise<PluginInventorySnapshot> {
-    return { entries: [...this.hostEntries(), ...(await this.presetEntries())] }
+    const entries = [...this.hostEntries(), ...(await this.presetEntries())]
+    for (const entry of entries) {
+      if (!this.initialEnabled.has(entry.entryId)) this.initialEnabled.set(entry.entryId, entry.enabled)
+    }
+    return { entries }
+  }
+
+  /** Group only explicitly related entries, preferring a persistently editable owner. */
+  private inventoryGroups(rootInclude: Include | undefined): Entry[][] {
+    const groups = new Map<string, Entry[]>()
+    for (const entry of this.representatives(rootInclude).values()) {
+      const key = entry.options.pluginGroup === undefined ? `module:${entry.options.name}` : `group:${entry.options.pluginGroup}`
+      const group = groups.get(key) ?? []
+      if (this.isToggleable(entry, rootInclude) && group[0] !== undefined && !this.isToggleable(group[0], rootInclude)) group.unshift(entry)
+      else group.push(entry)
+      groups.set(key, group)
+    }
+    return [...groups.values()]
   }
 
   /**
@@ -657,6 +702,7 @@ export class PluginInventoryGateway extends TypertRemoteService {
         if (entry === undefined) {
           throw new Error(`pluginInventory: preset entry ${request.entryId} cannot be toggled in-app`)
         }
+        if (!this.initialEnabled.has(entry.entryId)) this.initialEnabled.set(entry.entryId, entry.enabled)
         if (entry.enabled !== request.enabled) {
           await presets.setPluginEnabled(entry.entryId, request.enabled)
         }
@@ -664,22 +710,26 @@ export class PluginInventoryGateway extends TypertRemoteService {
       }
       const resolved = this.ctx.loader.resolve(request.entryId)
       const rootInclude = this.rootInclude()
-      const entry = this.representatives(rootInclude).get(resolved.options.name)
+      const group = this.inventoryGroups(rootInclude)
+        .find(candidates => candidates.some(candidate => candidate.options.name === resolved.options.name)) ?? []
+      const entry = group[0]
       if (entry === undefined || !this.isToggleable(entry, rootInclude)) {
         throw new Error(`pluginInventory: entry ${request.entryId} cannot be toggled in-app`)
       }
-      if (request.enabled === this.desiredEnabled(entry)) {
-        return { snapshot: await this.list(), restartRequired: this.restartRequired(entry) }
+      const members = group.filter(candidate => this.isToggleable(candidate, rootInclude))
+      if (members.every(candidate => request.enabled === this.desiredEnabled(candidate))) {
+        return { snapshot: await this.list(), restartRequired: members.some(candidate => this.restartRequired(candidate)) }
       }
 
-      if (this.isRestartOnly(entry)) {
-        await this.setRestartEnabled(entry, request.enabled)
-        return { snapshot: await this.list(), restartRequired: this.restartRequired(entry) }
+      if (group.some(candidate => this.isRestartOnly(candidate))) {
+        await this.setRestartEnabled(members, request.enabled)
+        return { snapshot: await this.list(), restartRequired: members.some(candidate => this.restartRequired(candidate)) }
       }
 
-      const states = await this.updateModule(entry, request.enabled)
+      const states: EntryState[] = []
       try {
-        await this.settings.update({ enabled: { [entry.options.name]: request.enabled } })
+        for (const member of members) states.push(...await this.updateModule(member, request.enabled))
+        await this.settings.update({ enabled: Object.fromEntries(members.map(member => [member.options.name, request.enabled])) })
       } catch (error) {
         try {
           await this.restore(states)

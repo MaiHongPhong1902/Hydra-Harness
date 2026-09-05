@@ -4,6 +4,8 @@ The **adaptive chooser** of the [directory-picker seam](../directory-picker/READ
 
 Resolution is one pure boot-time sample (`resolveDirectoryPickerBackend`), exported for reuse. `native` requires every signal that the operator can see the host display and the native backend can serve it: a loopback-only bind (read from the injected `webServer`; an all-interfaces bind admits remote browsers no OS chooser can reach), no SSH launch (`SSH_CONNECTION`/`SSH_TTY` unset or blank — under SSH port-forwarding the chooser would open on the unattended server), and a servable display session — assumed on darwin/win32; on linux `DISPLAY`/`WAYLAND_DISPLAY` plus a zenity or kdialog binary on `PATH` (the probe is one more boot-time fact); never on any other platform, since the native backend drives exactly darwin/win32/linux. Anything ambiguous resolves to `browse`, which works everywhere. The sample happens exactly once per boot so the mounted capability stays stable for the service lifetime, as the seam requires. Pinning an interaction is not a config field here — compose the `-native` or `-browse` row directly instead of this one, the seam's documented swap point; mounting the chooser **and** a backend row together fails loud (duplicate `directoryPicker` service, duplicate client flow in the `single` holes).
 
+The selected backend and browser surface declare `pluginGroup: directory-picker`, sharing the chooser's Settings control and lifecycle.
+
 ## Model Experience
 
 None, as the chooser only composes the GUI host's directory selection; nothing here reaches a model request.

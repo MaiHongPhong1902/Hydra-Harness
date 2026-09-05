@@ -1,9 +1,11 @@
 // @vitest-environment jsdom
+import { useState, useSyncExternalStore } from 'react'
+import { PluginInventoryController } from '../src/client/inventory-controller.ts'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ImportedPluginCapabilitiesTab, type ImportedPluginCapabilitiesTabProps } from '../src/client/ImportedPluginCapabilitiesTab.tsx'
 import {
-  PluginInventorySettingsTab,
+  PluginInventorySettingsTab as InventoryTab,
   type ImportedPluginControls,
   type NativePluginControls,
   type PluginInventorySettingsTabProps,
@@ -53,28 +55,41 @@ const NATIVE_SNAPSHOT = {
 } as const
 
 function nativeControls(): NativePluginControls {
+  let snapshot: Awaited<ReturnType<NativePluginControls['list']>> = NATIVE_SNAPSHOT
   return {
-    list: vi.fn(async () => NATIVE_SNAPSHOT),
-    setEnabled: vi.fn(async () => ({
-      snapshot: {
-        entries: [
-          { ...NATIVE_SNAPSHOT.entries[0], enabled: true, fiberPhase: 'active' as const },
-          NATIVE_SNAPSHOT.entries[1],
-        ],
-      },
-      restartRequired: false,
-    })),
+    list: vi.fn(async () => snapshot),
+    setEnabled: vi.fn<NativePluginControls['setEnabled']>(async (id, enabled) => {
+      snapshot = { entries: snapshot.entries.map(entry => entry.entryId === id ? { ...entry, enabled, fiberPhase: enabled ? 'active' : null } : entry) }
+      return { snapshot, restartRequired: false }
+    }),
   }
 }
 
 function importedControls(): ImportedPluginControls {
+  let snapshot: Awaited<ReturnType<ImportedPluginControls['list']>> = SNAPSHOT
   return {
-    list: vi.fn(async () => SNAPSHOT),
-    import: vi.fn(async () => SNAPSHOT),
-    enable: vi.fn(async () => SNAPSHOT),
-    disable: vi.fn(async () => SNAPSHOT),
-    remove: vi.fn(async () => ({ plugins: [] })),
+    list: vi.fn(async () => snapshot),
+    import: vi.fn(async () => snapshot),
+    enable: vi.fn(async () => { snapshot = { plugins: snapshot.plugins.map(plugin => ({ ...plugin, enabled: true })) }; return snapshot }),
+    disable: vi.fn(async () => {
+      snapshot = { plugins: snapshot.plugins.map(plugin => ({ ...plugin, enabled: false })) }
+      return snapshot
+    }),
+    remove: vi.fn(async () => { snapshot = { plugins: [] }; return snapshot }),
   }
+}
+
+function PluginInventorySettingsTab(props: PluginInventorySettingsTabProps) {
+  const [controller] = useState(() => new PluginInventoryController(props.nativePlugins, props.importedPlugins))
+  return <InventoryTab {...props}
+    {...controller.nativePlugins === undefined ? {} : { nativePlugins: controller.nativePlugins }}
+    {...controller.importedPlugins === undefined ? {} : { importedPlugins: controller.importedPlugins }}
+    usePluginDrafts={selector => selector(useSyncExternalStore(
+      listener => controller.store.subscribe(listener), () => controller.store.getSnapshot(),
+    ))}
+    savePlugins={() => controller.save()}
+    discardPluginChanges={() => { controller.discard() }}
+  />
 }
 
 describe('PluginInventorySettingsTab', () => {
@@ -87,11 +102,12 @@ describe('PluginInventorySettingsTab', () => {
     expect(await screen.findByRole('heading', { name: en.catalog })).toBeTruthy()
     expect(screen.getByText('browser-electron')).toBeTruthy()
     fireEvent.click(screen.getByRole('switch', { name: `${en.enablePlugin} browser-electron` }))
+    expect(native.setEnabled).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: en.saveAll }))
     await waitFor(() => { expect(native.setEnabled).toHaveBeenCalledWith('browser', true) })
     rerender(<PluginInventorySettingsTab {...({ t, nativePlugins: native, query: 'settings' } as PluginInventorySettingsTabProps)} />)
-    const protectedSwitch = await screen.findByRole('switch', { name: `${en.disablePlugin} settings` })
-    expect(protectedSwitch.hasAttribute('disabled')).toBe(true)
-    fireEvent.click(protectedSwitch)
+    await screen.findByText(en.requiredPlugin)
+    expect(screen.queryByRole('switch', { name: `${en.disablePlugin} settings` })).toBeNull()
     expect(native.setEnabled).toHaveBeenCalledOnce()
     expect(screen.queryByText('Toolkit')).toBeNull()
     expect(screen.queryByRole('heading', { name: en.importedPlugins })).toBeNull()
@@ -101,6 +117,7 @@ describe('PluginInventorySettingsTab', () => {
     const core = {
       entryId: 'typert-loader' as never,
       moduleName: '@bosch/bh-typert-loader',
+      pluginType: 'core' as const,
       enabled: true,
       restartRequired: false,
       toggleable: true,
@@ -116,18 +133,21 @@ describe('PluginInventorySettingsTab', () => {
       toggleable: true,
       fiberPhase: null,
     }
+    let snapshot: Awaited<ReturnType<NativePluginControls['list']>> = { entries: [core, preset] }
     const native: NativePluginControls = {
-      list: vi.fn(async () => ({ entries: [core, preset] })),
-      setEnabled: vi.fn(async () => ({
-        snapshot: { entries: [{ ...core, pendingEnabled: false, restartRequired: true }, preset] },
-        restartRequired: true,
-      })),
+      list: vi.fn(async () => snapshot),
+      setEnabled: vi.fn(async () => {
+        snapshot = { entries: [{ ...core, pendingEnabled: false, restartRequired: true }, preset] }
+        return { snapshot, restartRequired: true }
+      }),
     }
     render(<PluginInventorySettingsTab {...({ t, nativePlugins: native, query: '' } as PluginInventorySettingsTabProps)} />)
 
     expect(await screen.findByText(`${en.preset}: standard`)).toBeTruthy()
     expect(screen.getByText(en.newSessionsOnly)).toBeTruthy()
     fireEvent.click(screen.getByRole('switch', { name: `${en.disablePlugin} typert-loader` }))
+    expect(native.setEnabled).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: en.saveAll }))
     await waitFor(() => { expect(native.setEnabled).toHaveBeenCalledWith('typert-loader', false) })
     expect(await screen.findByText(en.restartRequired)).toBeTruthy()
     expect(screen.getByText('typert-loader').closest('[data-restart-required]')?.getAttribute('data-restart-required')).toBe('true')
@@ -168,6 +188,7 @@ describe('PluginInventorySettingsTab', () => {
     expect(container.querySelectorAll('[data-plugin-entry]')).toHaveLength(2)
     expect(container.querySelector('[data-plugin-count]')?.getAttribute('data-plugin-count')).toBe('1')
     fireEvent.click(screen.getByRole('switch', { name: `${en.enablePlugin} tool-subagent (standard: tool-subagent-fork)` }))
+    fireEvent.click(screen.getByRole('button', { name: en.saveAll }))
     await waitFor(() => {
       expect(native.setEnabled).toHaveBeenCalledWith('agent-preset:standard:tool-subagent-fork', true)
     })
@@ -180,6 +201,8 @@ describe('PluginInventorySettingsTab', () => {
 
     expect(await screen.findByText('Toolkit')).toBeTruthy()
     fireEvent.click(screen.getByRole('switch', { name: `${en.importedPluginEnable} Toolkit` }))
+    expect(imported.enable).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: en.saveAll }))
     await waitFor(() => { expect(imported.enable).toHaveBeenCalledWith('toolkit@local') })
     fireEvent.click(screen.getByRole('button', { name: en.importedPluginRemove }))
     await waitFor(() => { expect(imported.remove).toHaveBeenCalledWith('toolkit@local') })

@@ -229,6 +229,7 @@
       "@bosch/bh-client-ui-theme": ["./packages/client/ui-theme/src"],
       "@bosch/bh-client-ui-settings": ["./packages/client/ui-settings/src"],
       "@bosch/bh-client-ui-settings-general": ["./packages/client/ui-settings-general/src"],
+      "@bosch/bh-client-ui-settings-personalization": ["./packages/client/ui-settings-personalization/src"],
       "@bosch/bh-client-ui-settings-models": ["./packages/client/ui-settings-models/src"],
       "@bosch/bh-client-ui-settings-plugin-inventory": ["./packages/client/ui-settings-plugin-inventory/src"],
       "@bosch/bh-client-locale": ["./packages/client/locale/src"],

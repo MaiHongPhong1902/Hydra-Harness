@@ -26,6 +26,16 @@ export interface PluginInventoryEntry {
   readonly entryId: PluginEntryId
   /** Exact module specifier imported by the Loader entry. */
   readonly moduleName: string
+  /** Core entries are saved for the next app start; omitted means normal. */
+  readonly pluginType?: 'core' | 'normal'
+  /** Modules with the same declared function, controlled by this entry. */
+  readonly relatedModules?: readonly string[]
+  /** Members currently have different desired states; either toggle value changes the group. */
+  readonly mixedEnabled?: boolean
+  /** Enablement at Host start; null means grouped entries started with different states. */
+  readonly initialEnabled?: boolean | null
+  /** Whether any saved member differs from its enablement at Host start. */
+  readonly changedSinceStart?: boolean
   /** Effective Loader enablement, including disabled ancestor groups. */
   readonly enabled: boolean
   /** Agent preset that owns this entry, when it is not a Host entry. */

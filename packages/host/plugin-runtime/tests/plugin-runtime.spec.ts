@@ -223,6 +223,20 @@ describe('PluginStore', () => {
     expect((await plugins.import(source)).plugins[0]!.hookTrustState).toBe('pending')
   })
 
+  it('keeps initial enablement until the imported-plugin runtime restarts', async () => {
+    const home = await temp('baseline-home')
+    const source = await temp('baseline-source')
+    await plugin(source)
+    const first = await runtime(home)
+    const identity = (await first.plugins.import(source)).plugins[0]!.identity
+    expect((await first.plugins.enable(identity)).plugins[0]).toMatchObject({ enabled: true, initialEnabled: false })
+    await first.ctx.fiber.dispose()
+    const second = await runtime(home)
+    expect((await second.plugins.list()).plugins[0]).toMatchObject({ enabled: true, initialEnabled: true })
+    expect((await second.plugins.disable(identity)).plugins[0]).toMatchObject({ enabled: false, initialEnabled: true })
+    await second.ctx.fiber.dispose()
+  })
+
   it('loads an installed plugin after its local source is removed', async () => {
     const home = await temp('independent-home')
     const source = await temp('independent-source')

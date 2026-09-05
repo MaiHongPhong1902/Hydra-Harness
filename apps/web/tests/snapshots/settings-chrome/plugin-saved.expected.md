@@ -1,0 +1,6 @@
+- listitem:
+  - strong: session-stats
+  - text: Disabled
+  - switch "Enable plugin session-stats"
+  - code: "@bosch/bh-session-stats"
+  - paragraph: Changed since app start

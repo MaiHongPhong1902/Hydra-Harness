@@ -1,8 +1,10 @@
 - listitem:
   - strong: ui-settings
-  - text: Enabled
-  - switch "Disable plugin ui-settings" [checked]
+  - text: Disabled
+  - switch "Enable plugin ui-settings"
   - code: "@bosch/bh-client-ui-settings"
   - group: Included plugins (5)
   - paragraph: Core plugin — changes require an app restart and may affect app availability.
+  - paragraph: Changed since app start
   - text: "Cordis status: Mounted"
+  - paragraph: This change will apply after restart.

@@ -10,6 +10,8 @@ Hooks default to `hooks/hooks.json`; a manifest `hooks` value overrides it and m
 
 The `/plugin` command manages these imported bundles (`list`, `import`, `install`, `marketplace add|list|remove`, `info`, `enable`, `disable`, `trust`, `untrust`, and `remove`). `/plugin marketplace add <source>` persists an OpenAI/Codex catalog through `pluginInventory` when that Host service is composed, and otherwise imports the source directly. `/plugin install <plugin>@<marketplace>` stages that catalog entry and enables it; `<marketplace>` may be a GitHub shorthand, Git URL, folder, or the repository name of a persisted source (`toolkit@toolkit` after adding `example-labs/toolkit`). The native `bh plugin` CLI continues to manage BH package bundles. The Web Marketplace tab exposes the same source, version, lifecycle, skill, MCP, hook, app, and data projections through the Host inventory Remote.
 
+Imported bundle views include `initialEnabled`, captured from persisted state when the runtime starts; bundles installed during this run start disabled. Settings uses it to retain change highlights until restart.
+
 ## Model Experience
 
 ### Imported plugin skills

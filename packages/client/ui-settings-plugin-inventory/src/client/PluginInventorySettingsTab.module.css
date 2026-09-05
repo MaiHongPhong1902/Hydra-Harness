@@ -99,7 +99,8 @@
   background: var(--dsw-alias-bg-layer-3);
 }
 
-.card[data-restart-required='true'] {
+.card[data-restart-required='true'],
+.card[data-plugin-changed='true'] {
   border-color: var(--dsw-alias-state-warn-primary);
   background: color-mix(in srgb, var(--dsw-alias-state-warn-tertiary) 70%, var(--dsw-alias-bg-layer-3));
 }
@@ -203,17 +204,35 @@
   font-size: 12px;
 }
 
-.restartFooter {
+.saveFooter {
   position: sticky;
   bottom: 0;
   z-index: 1;
-  border: 1px solid var(--dsw-alias-state-warn-primary);
+  border: 1px solid var(--dsw-alias-border-l2);
   border-radius: 8px;
   padding: 10px 14px;
-  background: var(--dsw-alias-state-warn-tertiary);
-  color: var(--dsw-alias-state-warn-label);
+  background: var(--dsw-alias-bg-layer-1);
+  color: var(--dsw-alias-label-primary);
   font-size: 13px;
   font-weight: 500;
+}
+
+.saveActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.saveActions > span {
+  margin-right: auto;
+}
+
+.coreWarning {
+  margin: 0 0 8px;
+  color: var(--dsw-alias-state-warn-label);
+  font-size: 12px;
 }
 
 .marketplaceForm label {

@@ -46,6 +46,14 @@ async function harness(): Promise<{
 }
 
 describe('PluginInventoryGateway', () => {
+  it('rejects invalid lifecycle declarations before exposing plugin controls', async () => {
+    for (const metadata of [{ pluginType: 'critical' }, { pluginGroup: '' }, { plugin_type: 'core' }]) {
+      const { ctx, inventory } = await harness()
+      const options = { name: 'cordis:active', ...metadata }
+      await ctx.loader.create(options as Parameters<typeof ctx.loader.create>[0])
+      await expect(inventory.list()).rejects.toThrow(/pluginType|pluginGroup|plugin_type/)
+    }
+  })
   it('publishes list and enablement methods under the pluginInventory namespace', async () => {
     const { inventory } = await harness()
     expect(inventory.typertRemote).toMatchObject({
@@ -95,6 +103,9 @@ describe('PluginInventoryGateway', () => {
       {
         entryId: activeId,
         moduleName: 'cordis:active',
+        pluginType: 'normal',
+        initialEnabled: true,
+        changedSinceStart: false,
         enabled: true,
         restartRequired: false,
         toggleable: false,
@@ -103,6 +114,9 @@ describe('PluginInventoryGateway', () => {
       {
         entryId: pendingId,
         moduleName: 'cordis:pending',
+        pluginType: 'normal',
+        initialEnabled: true,
+        changedSinceStart: false,
         enabled: true,
         restartRequired: false,
         toggleable: false,
@@ -111,6 +125,9 @@ describe('PluginInventoryGateway', () => {
       {
         entryId: disabledId,
         moduleName: 'cordis:not-installed',
+        pluginType: 'normal',
+        initialEnabled: false,
+        changedSinceStart: false,
         enabled: false,
         restartRequired: false,
         toggleable: false,
@@ -122,6 +139,9 @@ describe('PluginInventoryGateway', () => {
     expect((await inventory.list()).entries.find(entry => entry.entryId === activeId)).toEqual({
       entryId: activeId,
       moduleName: 'cordis:active',
+      pluginType: 'normal',
+      initialEnabled: true,
+      changedSinceStart: true,
       enabled: false,
       restartRequired: false,
       toggleable: false,
@@ -144,12 +164,20 @@ describe('PluginInventoryGateway', () => {
     await writeFile(configPath, [
       '- id: protected',
       '  name: cordis:protected',
+      '  pluginType: core',
+      '  pluginGroup: platform',
+      '- id: companion',
+      '  name: cordis:companion',
+      '  pluginGroup: platform',
       '- id: mutable',
       '  name: cordis:active',
+      '  pluginGroup: normal-pair',
+      '- id: normal-peer',
+      '  name: cordis:normal-peer',
+      '  pluginGroup: normal-pair',
       '- id: inventory',
       '  name: cordis:inventory',
-      '  config:',
-      '    protectedEntryIds: [protected, inventory]',
+      '  pluginType: core',
       '',
     ].join('\n'))
     await writeFile(join(profileDir, 'package.json'), JSON.stringify({ name: 'test', bh: { profile: {} } }))
@@ -163,6 +191,8 @@ describe('PluginInventoryGateway', () => {
     ctx.loader.builtins.active = activePlugin
     ctx.loader.builtins.inventory = PluginInventoryGateway
     ctx.loader.builtins.protected = activePlugin
+    ctx.loader.builtins.companion = activePlugin
+    ctx.loader.builtins['normal-peer'] = activePlugin
     const includeId = await ctx.loader.create({
       name: 'cordis:include',
       config: { path: pathToFileURL(configPath).href },
@@ -177,19 +207,23 @@ describe('PluginInventoryGateway', () => {
     expect(mutable.toggleable).toBe(true)
     expect(protectedEntry.toggleable).toBe(true)
     expect(protectedEntry.enabled).toBe(true)
+    expect(protectedEntry.relatedModules).toEqual(['cordis:companion'])
+    expect(snapshot.entries.some(entry => entry.moduleName === 'cordis:companion')).toBe(false)
     expect(protectedEntry.restartRequired).toBe(false)
     expect(protectedEntry.fiberPhase).toBe('active')
 
     const coreChanged = await inventory.setEnabled({ entryId: protectedEntry.entryId, enabled: false })
     expect(coreChanged.restartRequired).toBe(true)
+    expect(coreChanged.snapshot.entries.find(entry => entry.entryId === protectedId)?.changedSinceStart).toBe(true)
     expect(ctx.loader.resolve(protectedId).disabled).toBe(false)
+    expect(ctx.loader.resolve(`${includeId}:companion`).disabled).toBe(false)
     expect((await inventory.list()).entries.find(entry => entry.entryId === protectedEntry.entryId)).toMatchObject({
       enabled: true,
       pendingEnabled: false,
       restartRequired: true,
     })
     expect(JSON.parse(await readFile(join(profileDir, 'package.json'), 'utf8'))).toMatchObject({
-      bh: { profile: { pluginEnablement: { protected: false } } },
+      bh: { profile: { pluginEnablement: { protected: false, companion: false } } },
     })
 
     await inventory.setEnabled({ entryId: mutable.entryId, enabled: false })
@@ -200,15 +234,23 @@ describe('PluginInventoryGateway', () => {
     const disabledSettings = await readFile(settingsPath, 'utf8')
     expect(disabledSettings).toContain('# keep this user comment')
     expect(disabledSettings).toContain('plugins:')
-    expect(ctx.settings.get(settingsNamespace('plugins'))).toEqual({ enabled: { 'cordis:active': false } })
+    expect(ctx.settings.get(settingsNamespace('plugins'))).toMatchObject({ enabled: { 'cordis:active': false } })
 
     await inventory.setEnabled({ entryId: mutable.entryId, enabled: true })
     const persisted = await readFile(settingsPath, 'utf8')
     expect(persisted).toContain('# keep this user comment')
     expect(persisted.match(/cordis:active/g)).toHaveLength(1)
-    expect(ctx.settings.get(settingsNamespace('plugins'))).toEqual({ enabled: { 'cordis:active': true } })
+    expect(ctx.settings.get(settingsNamespace('plugins'))).toMatchObject({ enabled: { 'cordis:active': true } })
+    const peer = ctx.loader.resolve(`${includeId}:normal-peer`)
+    expect(peer.disabled).toBe(false)
+    vi.spyOn(peer, 'update').mockRejectedValueOnce(new Error('unload failed'))
+    await expect(inventory.setEnabled({ entryId: mutable.entryId, enabled: false })).rejects.toThrow('unload failed')
+    expect(peer.disabled).toBe(false)
+    expect(ctx.loader.resolve(mutableId).disabled).toBe(false)
+    expect(ctx.settings.get(settingsNamespace('plugins'))).toEqual({ enabled: { 'cordis:active': true, 'cordis:normal-peer': true } })
     const coreRestored = await inventory.setEnabled({ entryId: protectedEntry.entryId, enabled: true })
     expect(coreRestored.restartRequired).toBe(false)
+    expect(coreRestored.snapshot.entries.find(entry => entry.entryId === protectedId)?.changedSinceStart).toBe(false)
     expect(JSON.parse(await readFile(join(profileDir, 'package.json'), 'utf8'))).toMatchObject({
       bh: { profile: { pluginEnablement: { protected: true } } },
     })
@@ -333,12 +375,12 @@ describe('PluginInventoryGateway', () => {
     await inventory.setEnabled({ entryId, enabled: true })
     expect(ctx.loader.resolve(entryId).disabled).toBe(false)
     expect(ctx.loader.resolve(duplicateId).disabled).toBe(true)
-    expect(ctx.settings.get(settingsNamespace('plugins'))).toEqual({ enabled: { 'cordis:active': true } })
+    expect(ctx.settings.get(settingsNamespace('plugins'))).toMatchObject({ enabled: { 'cordis:active': true } })
 
     await inventory.setEnabled({ entryId, enabled: false })
     expect(ctx.loader.resolve(entryId).disabled).toBe(true)
     expect(ctx.loader.resolve(duplicateId).disabled).toBe(true)
-    expect(ctx.settings.get(settingsNamespace('plugins'))).toEqual({ enabled: { 'cordis:active': false } })
+    expect(ctx.settings.get(settingsNamespace('plugins'))).toMatchObject({ enabled: { 'cordis:active': false } })
 
     await ctx.settings.update(settingsNamespace('plugins'), { enabled: { 'cordis:active': true } })
     await vi.waitFor(() => { expect(ctx.loader.resolve(entryId).disabled).toBe(false) })

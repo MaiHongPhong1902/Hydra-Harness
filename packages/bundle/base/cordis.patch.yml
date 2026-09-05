@@ -15,6 +15,7 @@
 - insert:
     - id: timer
       name: '@bosch/cordis-plugin-timer'
+      pluginType: core
 
     - id: hmr
       name: '@bosch/cordis-plugin-hmr'
@@ -23,21 +24,27 @@
 
     - id: llm
       name: '@bosch/bh-llm'
+      pluginType: core
 
     - id: session
       name: '@bosch/bh-session'
+      pluginType: core
 
     - id: typert
       name: '@bosch/bh-typert-registry'
+      pluginType: core
 
     - id: typert-loader
       name: '@bosch/bh-typert-loader'
+      pluginType: core
 
     - id: typert-gateway
       name: '@bosch/bh-api-gateway'
+      pluginType: core
 
     - id: session-title
       name: '@bosch/bh-session-title'
+      pluginType: core
       config:
         fallbackMaxWords: 5
         fallbackMaxBytes: 40
@@ -57,17 +64,20 @@
 
     - id: agent
       name: '@bosch/bh-agent'
+      pluginType: core
 
     # The transport-independent default for Agents created by entry points.
     # Settings may supply a saved selection; consumers read it at creation time.
     - id: agent-default-model
       name: '@bosch/bh-agent-default-model'
+      pluginType: core
       config:
         provider: deepseek-official
         model: deepseek-v4-flash
 
     - id: jobs
       name: '@bosch/bh-jobs-local'
+      pluginType: core
 
     - id: llm-retry
       name: '@bosch/bh-llm-retry'
@@ -77,6 +87,7 @@
     # below without a restart, and is what the web Models page writes.
     - id: settings
       name: '@bosch/bh-settings-file'
+      pluginType: core
 
     # Credential sources: inherited environment over the managed
     # `$BH_HOME/.credentials.yaml`, with project and user `.env` fallbacks.
@@ -84,6 +95,7 @@
     # managed document, which is never materialized into the process environment.
     - id: credentials
       name: '@bosch/bh-credentials-local'
+      pluginType: core
 
     # The pi-ai multi-provider twin, mounted dormant: zero routes (and no extra
     # models in the picker) until a `llm-pi-ai:` settings section supplies provider
@@ -94,9 +106,11 @@
     # document.
     - id: llm-pi-ai
       name: '@bosch/bh-llm-pi-ai'
+      pluginType: core
 
     - id: session-persistence-jsonl
       name: '@bosch/bh-session-persistence-jsonl'
+      pluginType: core
       config:
         root: !!js bhHomePath('sessions')
 
@@ -125,6 +139,7 @@
     # loud without it; web layers reuse this same mount for list rows.
     - id: session-projection
       name: '@bosch/bh-session-projection'
+      pluginType: core
 
     # Session telemetry is mounted but disabled by default. BH_TELEMETRY_MODE
     # explicitly opts into FULL or FEEDBACK_ONLY reporting; uploading mirrors
@@ -162,36 +177,43 @@
 
     - id: subprocess
       name: '@bosch/bh-subprocess-local'
+      pluginType: core
 
     # Every shipped CLI mode starts with the same file-effect boundary.
     # The environment remains an explicit deployment override; otherwise fresh
     # sessions pin workspace-write + ask through the permission service below.
     - id: sandbox
       name: '@bosch/bh-sandbox-local'
+      pluginType: core
 
     - id: sandbox-policy
       name: '@bosch/bh-sandbox-policy'
+      pluginType: core
       config:
         mode: !!js process.env.BH_PERMISSION_MODE ?? 'workspace-write'
         workspaceRoot: !!js process.cwd()
 
     - id: bash-sandbox
       name: '@bosch/bh-bash-sandbox'
+      pluginType: core
       disabled: !!js process.platform === 'win32'
       config:
         timeoutMs: 60000
 
     - id: pwsh-sandbox
       name: '@bosch/bh-pwsh-sandbox'
+      pluginType: core
       disabled: !!js process.platform !== 'win32'
 
     - id: approval
       name: '@bosch/bh-user-approval'
+      pluginType: core
       config:
         policy: !!js "(process.env.BH_PERMISSION_MODE ?? 'workspace-write') === 'danger-full-access' ? 'never' : 'ask'"
 
     - id: permission
       name: '@bosch/bh-permission-presets'
+      pluginType: core
       config:
         presets:
           read-only:
@@ -206,6 +228,7 @@
 
     - id: shell-env
       name: '@bosch/bh-shell-env'
+      pluginType: core
 
     - id: tool-bash
       name: '@bosch/bh-tool-bash'
@@ -220,6 +243,7 @@
 
     - id: fs-observation-policy
       name: '@bosch/bh-fs-observation-policy'
+      pluginType: core
 
     - id: tool-fs
       name: '@bosch/bh-tool-fs'
@@ -241,6 +265,7 @@
 
     - id: skill
       name: '@bosch/bh-skill'
+      pluginType: core
 
     - id: skill-filesystem
       name: '@bosch/bh-skill-filesystem'
@@ -254,11 +279,13 @@
 
     - id: commands
       name: '@bosch/bh-commands'
+      pluginType: core
 
     # Imported OpenAI/Codex plugin bundles are shared by every profile. The
     # runtime owns immutable bundles, per-plugin data, and reversible loading.
     - id: plugin-runtime
       name: '@bosch/bh-plugin-runtime'
+      pluginType: core
 
     # The user's own MCP servers and hooks, stored in `$BH_HOME/settings.yaml`
     # rather than composed here: each registry mounts what its settings section
@@ -267,15 +294,18 @@
     # added by hand-editing the document takes effect without one.
     - id: mcp-registry
       name: '@bosch/bh-mcp-registry'
+      pluginType: core
 
     - id: hooks-registry
       name: '@bosch/bh-hooks-registry'
+      pluginType: core
 
     - id: command-feedback
       name: '@bosch/bh-command-feedback'
 
     - id: goal
       name: '@bosch/bh-goal'
+      pluginType: core
 
     - id: goal-round-driver
       name: '@bosch/bh-goal-round-driver'
@@ -301,6 +331,7 @@
 
     - id: token-meter
       name: '@bosch/bh-token-meter'
+      pluginType: core
 
     - id: compaction-basic
       name: '@bosch/bh-compaction-basic'
@@ -312,14 +343,17 @@
 
     - id: subagent
       name: '@bosch/bh-subagent'
+      pluginType: core
 
     - id: subagent-spawn-in-process
       name: '@bosch/bh-subagent-spawn-in-process'
+      pluginType: core
       config:
         providerName: spawn
 
     - id: subagent-fork-in-process
       name: '@bosch/bh-subagent-fork-in-process'
+      pluginType: core
       config:
         providerName: fork
 
@@ -366,15 +400,18 @@
 
     - id: spill-local
       name: '@bosch/bh-spill-local'
+      pluginType: core
 
     - id: spill-policy
       name: '@bosch/bh-spill-policy'
+      pluginType: core
       config:
         maxInlineBytes: 50000
 
     # Durability checkpoints before each model request and top-level dispatch.
     - id: session-checkpoint-policy
       name: '@bosch/bh-session-checkpoint-policy'
+      pluginType: core
 
     # Compacts oversized tool results before the broader conversation compactor
     # runs, preserving the model-visible result within the configured budget.
@@ -421,9 +458,11 @@
     # SSRF protection and the model would choose the request target.
     - id: web
       name: '@bosch/bh-web'
+      pluginType: core
 
     - id: web-search-deepseek
       name: '@bosch/bh-web-search-deepseek'
+      pluginType: core
 
     - id: tool-web
       name: '@bosch/bh-tool-web'
@@ -439,6 +478,7 @@
     # carries the prompt-injection exposure the package README documents.
     - id: browser-electron
       name: '@bosch/bh-browser-electron'
+      pluginType: core
 
     # Recalls graph-linked Obsidian knowledge through MCP. Optional domain
     # settings add approval-gated Browser evidence capture.
@@ -451,11 +491,13 @@
     # keeps the schema default (native).
     - id: tools
       name: '@bosch/bh-tools'
+      pluginType: core
 
     # The deployment persona is a deployment choice; plan-mode and tool plugins own
     # their own prompt sections.
     - id: system-prompt
       name: '@bosch/bh-system-prompt'
+      pluginType: core
       config:
         persona: ''
 
@@ -463,6 +505,7 @@
     # agents, while Web creates sessions on client request.
     - id: agent-loop
       name: '@bosch/bh-agent-loop'
+      pluginType: core
       config:
         agents: []
 
@@ -470,6 +513,7 @@
     # overlay can pin another workspace.
     - id: fs-sandbox
       name: '@bosch/bh-fs-sandbox'
+      pluginType: core
 
     # The native DeepSeek adapter. No key or endpoint is inlined: both resolve per
     # request from the `llm-deepseek:` settings section over this entry, with the
@@ -477,3 +521,4 @@
     # choice.
     - id: llm-deepseek
       name: '@bosch/bh-llm-deepseek'
+      pluginType: core

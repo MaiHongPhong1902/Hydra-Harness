@@ -37,7 +37,7 @@ const appOverlayFiles = new Set([
   'examples/web-schedule/cordis.yml',
   ...globSync('examples/mcp-memory/*.cordis.yml', { cwd: root }),
 ])
-const metadataFields = ['id', 'name', 'group', 'inject', 'intercept', 'isolate'] as const
+const metadataFields = ['id', 'name', 'group', 'inject', 'intercept', 'isolate', 'pluginType', 'pluginGroup'] as const
 
 /** The adaptive directory-picker chooser package (mounts a backend row at boot). */
 const CHOOSER_PACKAGE = '@bosch/bh-host-directory-picker-auto'
@@ -452,6 +452,13 @@ function validateMetadata(entry: Record<string, unknown>, file: string, path: st
  */
 export function metadataExpressionErrors(entry: Record<string, unknown>, path: string): string[] {
   const problems: string[] = []
+  if (entry.pluginType !== undefined && entry.pluginType !== 'core' && entry.pluginType !== 'normal') {
+    problems.push(`${path}.pluginType: must be core or normal`)
+  }
+  if (entry.pluginGroup !== undefined && (typeof entry.pluginGroup !== 'string' || entry.pluginGroup.trim() === '')) {
+    problems.push(`${path}.pluginGroup: must be a non-empty string`)
+  }
+  if ('plugin_type' in entry) problems.push(`${path}.plugin_type: use pluginType`)
   for (const field of metadataFields) {
     if (!(field in entry)) continue
     const expressionPaths: string[] = []

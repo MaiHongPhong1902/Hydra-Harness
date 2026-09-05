@@ -434,6 +434,7 @@ export class ImportedPluginRuntime extends Service {
   /** Enablement and teardown facade. */
   readonly lifecycle: PluginLifecycleManager
   private readonly live = new Map<string, RuntimeComponent>()
+  private readonly initialEnabled = new Map<string, boolean>()
   private readonly startup = new Map<string, Map<string, ImportedMcpServerSnapshot['startupState']>>()
   private mutationTail: Promise<unknown> = Promise.resolve()
 
@@ -456,6 +457,7 @@ export class ImportedPluginRuntime extends Service {
     })
     const entries = await this.store.list()
     for (const [identity, entry] of entries) {
+      this.initialEnabled.set(identity, entry.enabled)
       if (entry.enabled) await this.load(identity, entry)
     }
   }
@@ -783,6 +785,7 @@ export class ImportedPluginRuntime extends Service {
       pluginRoot: loaded.root,
       dataPath: this.store.dataPath(entry),
       enabled: entry.enabled,
+      initialEnabled: this.initialEnabled.get(identity) ?? false,
       lifecycle: this.live.has(identity) ? 'loaded' : entry.enabled ? 'enabled' : 'disabled',
       hookTrustState,
       ...loaded.hookDigest === undefined ? {} : { hookDefinitionDigest: loaded.hookDigest },
