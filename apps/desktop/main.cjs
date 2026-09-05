@@ -371,7 +371,7 @@ async function searchFiles(root, query) {
   if (needle === '') return []
   const base = await confinedPath(root)
   const matches = []
-  // ponytail: substring search stops at 200 hits; add an index only if large workspaces need ranked results.
+  // Substring search stops at 200 hits; add an index only if large workspaces need ranked results.
   for await (const entry of glob('**/*', {
     cwd: base,
     exclude: entry => entry.isSymbolicLink() || entry.name === '.git' || entry.name === 'node_modules',

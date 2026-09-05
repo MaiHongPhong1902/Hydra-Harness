@@ -1,5 +1,13 @@
 import type { Branded } from '@bosch/bh-brand'
 export type { ImportedPluginEntry, ImportedPluginSnapshot, PluginImportSource } from '@bosch/bh-plugin-runtime/types'
+export type {
+  McpServerDefinitionRequest, McpServerEnablementRequest, McpServerSnapshot,
+  McpServerStatus, McpServerTransport, McpServerView,
+} from '@bosch/bh-mcp-registry/types'
+export type {
+  HookDialect, HookRecordDefinitionRequest, HookRecordEnablementRequest, HookRecordSnapshot,
+  HookRecordStatus, HookRecordView, HookSourceKind,
+} from '@bosch/bh-hooks-registry/types'
 
 /** Stable Loader-tree identity of one configured plugin entry. */
 export type PluginEntryId = Branded<'PluginEntryId'>

@@ -16,12 +16,10 @@ describe('spawnDialogWorker', () => {
     try {
       spawnDialogWorker({ title: 'Select Workspace Directory' })
       expect(spawnMock).toHaveBeenCalledOnce()
-      const [, , options] = spawnMock.mock.calls[0] as unknown as [string, string[], { env?: NodeJS.ProcessEnv }]
-      expect(options).toMatchObject({
-        env: expect.objectContaining({
-          BH_DIALOG_TITLE: 'Select Workspace Directory',
-          ELECTRON_RUN_AS_NODE: '1',
-        }),
+      const [, , options] = spawnMock.mock.calls[0] as unknown as [string, string[], { env: Record<string, string | undefined> }]
+      expect(options.env).toMatchObject({
+        BH_DIALOG_TITLE: 'Select Workspace Directory',
+        ELECTRON_RUN_AS_NODE: '1',
       })
     } finally {
       if (originalElectron === undefined) Reflect.deleteProperty(process.versions, 'electron')

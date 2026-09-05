@@ -49,6 +49,7 @@ function state(overrides: Partial<ModelsSettingsState> = {}): ModelsSettingsStat
     writable: true,
     rows: [row()],
     namespaces: new Map(),
+    officialDeepSeekDeclined: false,
     ...overrides,
   }
 }
@@ -126,5 +127,16 @@ describe('onboardingReadiness', () => {
       kind: 'unavailable',
       reason: 'settings-read-only',
     })
+  })
+
+  it('skips the DeepSeek prompt after the user dismissed that official row', () => {
+    expect(onboardingReadiness(state({ officialDeepSeekDeclined: true }))).toEqual({
+      kind: 'unavailable',
+      reason: 'provider-declined',
+    })
+    expect(onboardingReadiness(state({
+      officialDeepSeekDeclined: true,
+      rows: [row(), otherRow()],
+    }))).toEqual({ kind: 'provider-ready' })
   })
 })

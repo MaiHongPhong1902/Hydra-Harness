@@ -98,6 +98,8 @@ describe('ui-settings-plugins apply', () => {
     expect(resolveSlotLabel(tabs[0]!.options.label)).toBe('Configuration')
     expect(tabs[1]?.options).toMatchObject({ id: 'mcp', order: 5 })
     expect(resolveSlotLabel(tabs[1]!.options.label)).toBe('MCP')
+    expect(tabs[2]?.options).toMatchObject({ id: 'user-hooks', order: 7 })
+    expect(resolveSlotLabel(tabs[2]!.options.label)).toBe('Your hooks')
     expect(slots.spec('settings.plugin.item')).toMatchObject({ kind: 'keyed', scope: 'root' })
   })
 
@@ -113,6 +115,7 @@ describe('ui-settings-plugins apply', () => {
     expect(initialTabs).toEqual([
       { id: 'configurable', order: 0, label: 'Configuration' },
       { id: 'mcp', order: 5, label: 'MCP' },
+      { id: 'user-hooks', order: 7, label: 'Your hooks' },
     ])
     expect(sectionFace.hooks.tabs.getSnapshot()).toBe(initialTabs)
 
@@ -132,6 +135,7 @@ describe('ui-settings-plugins apply', () => {
     expect(sectionFace.hooks.tabs.getSnapshot()).toEqual([
       { id: 'configurable', order: 0, label: 'Configuration' },
       { id: 'mcp', order: 5, label: 'MCP' },
+      { id: 'user-hooks', order: 7, label: 'Your hooks' },
       { id: 'plain', order: 30, label: '' },
     ])
     unsubscribe()

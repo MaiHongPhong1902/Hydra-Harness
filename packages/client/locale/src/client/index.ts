@@ -207,6 +207,10 @@ export class LocaleRuntime {
   setLocale(id: string): void {
     const match = this.snapshot.locales.find(l => l.id === id)
     if (match === undefined) throw new Error(`locale "${id}" is not registered`)
+    /* oxlint-disable-next-line typescript/no-unnecessary-condition --
+     * One locale ships today, so the literal types collapse this comparison;
+     * the guard is load-bearing for the multi-locale registry this class
+     * implements (republishing an unchanged locale would churn subscribers). */
     if (this.snapshot.active !== match.id) this.publish(match.id, true)
     void this.host?.set(LOCALE_PREFERENCE_FIELD, match.id)
   }
@@ -220,6 +224,10 @@ export class LocaleRuntime {
     const section = host.getSnapshot().value
     if (section === undefined) return
     const target = section.preference ?? this.provisional
+    /* oxlint-disable-next-line typescript/no-unnecessary-condition --
+     * `preference` rides the durable settings document and may name any
+     * locale a shipped build registers; the literal types collapse while one
+     * locale ships, but the churn guard must stay for the multi-locale case. */
     if (this.snapshot.active === target) return
     this.publish(target, true)
   }

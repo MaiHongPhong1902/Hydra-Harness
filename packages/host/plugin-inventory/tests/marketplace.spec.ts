@@ -115,7 +115,7 @@ describe('OpenAI/Codex marketplace sources', () => {
     await mkdir(join(root, '.agents', 'plugins'), { recursive: true })
     await writeFile(join(root, '.agents', 'plugins', 'marketplace.json'), JSON.stringify({
       name: 'OpenAI-compatible catalog',
-      plugins: [{ name: 'ponytail', source: './ponytail' }],
+      plugins: [{ name: 'toolkit', source: './toolkit' }],
     }))
     const { inventory } = await harness()
 

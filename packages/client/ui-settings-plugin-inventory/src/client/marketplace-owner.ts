@@ -8,7 +8,7 @@ export interface OwnerGroup<T> {
 
 /**
  * Derive a marketplace's default group name: the path segment right after its
- * domain (`https://github.com/DietrichGebert/ponytail` -> `DietrichGebert`).
+ * domain (`https://github.com/example-labs/toolkit` -> `example-labs`).
  * Falls back to the GitHub-shorthand or scp-style Git owner, and finally to
  * the source's own last path segment for a local marketplace root, which has
  * no owner.
@@ -29,7 +29,7 @@ export function marketplaceOwnerLabel(source: string): string {
   if (scp?.[1] !== undefined) return scp[1]
   const shorthand = /^([\w.-]+)\/[\w.-]+$/u.exec(source)
   if (shorthand?.[1] !== undefined) return shorthand[1]
-  // ponytail: local marketplace roots have no owner; label by folder name instead.
+  // Local marketplace roots have no owner; label by folder name instead.
   const segments = source.split(/[/\\]/u).filter(part => part.length > 0)
   return segments.at(-1) ?? source
 }

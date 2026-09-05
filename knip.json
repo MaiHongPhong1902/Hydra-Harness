@@ -589,6 +589,18 @@
         "@modelcontextprotocol/server-filesystem"
       ]
     },
+    "packages/mcp/mcp-registry": {
+      "entry": [
+        "tests/**/*.spec.ts"
+      ],
+      "project": [
+        "src/**/*.ts",
+        "tests/**/*.ts"
+      ],
+      "ignoreDependencies": [
+        "@modelcontextprotocol/sdk"
+      ]
+    },
     "packages/client/web": {
       "project": [
         "src/**/*.ts",

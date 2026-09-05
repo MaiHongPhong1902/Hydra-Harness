@@ -135,11 +135,13 @@ interface SkillCatalogSnapshot {
 }
 ```
 
-`SkillCandidate` is the provider-to-registry shape. `locator` is opaque provider state; the registry only stores it and gives it back to the winning provider's `get()`.
+`SkillCandidate` is the provider-to-registry shape. `locator` is opaque provider state; the registry only stores it and gives it back to the winning provider's `get()`. Optional `aliases` are exposed only when exactly one resolved candidate claims the alias and no canonical skill already has that name.
 
 ```ts type-equiv
 /** Provider catalog entry used by the registry to merge and later load skills. */
 interface SkillCandidate extends SkillSummary {
+  /** Additional kebab-case names the registry exposes only when no resolved catalog collision exists. */
+  readonly aliases?: readonly string[]
   /** Lower ranks win duplicate skill names before provider registration order is considered. */
   readonly rank: number
   /** Opaque provider-owned handle passed back to `provider.get()`. */
@@ -325,5 +327,5 @@ A skill provider, runtime contribution, or provider-backed catalog may have chan
 'skills/change'(): void
 ```
 
-Source: [`packages/skill/skill/src/index.ts`](../../packages/skill/skill/src/index.ts)
+Source: [`packages/skill/skill/src/types.ts`](../../packages/skill/skill/src/types.ts)
 <!-- END GENERATED cordis-surface -->

@@ -143,3 +143,139 @@
   color: var(--dsw-alias-label-tertiary);
   font-size: 12px;
 }
+
+/* The user's own MCP server and hook records: one card per registry. */
+
+.userMcp,
+.userHooks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 8px;
+}
+
+.userMcpHeading,
+.userHooksHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.userMcpHeading h3,
+.userHooksHeading h3 {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.userMcpRow,
+.userHooksRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 10px;
+  border-top: 1px solid var(--dsw-alias-border-l2);
+  padding-top: 10px;
+}
+
+.userMcpIdentity,
+.userHooksIdentity {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.userMcpIdentity code,
+.userHooksIdentity code {
+  overflow-wrap: anywhere;
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 12px;
+}
+
+.userMcpStatus,
+.userHooksStatus {
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.userMcpDetail,
+.userHooksDetail {
+  color: var(--dsw-alias-state-error-primary);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.userMcpActions,
+.userHooksActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.userMcpFailure,
+.userHooksFailure {
+  display: flex;
+  gap: 10px;
+  color: var(--dsw-alias-state-error-primary);
+  font-size: 13px;
+}
+
+.userMcpFailure p,
+.userHooksFailure p {
+  margin: 0;
+}
+
+.userMcpFailure button,
+.userHooksFailure button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.userMcpForm,
+.userHooksForm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.userMcpForm label,
+.userHooksForm label {
+  color: var(--dsw-alias-label-secondary);
+  font-size: 12px;
+}
+
+.userMcpForm textarea,
+.userHooksForm textarea,
+.userMcpForm select,
+.userHooksForm select {
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: var(--dsw-alias-bg-layer-1);
+  color: var(--dsw-alias-label-primary);
+  font: inherit;
+}
+
+.userMcpForm textarea,
+.userHooksForm textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
+.saveFailed {
+  margin: 0;
+  color: var(--dsw-alias-state-error-primary);
+  font-size: 12px;
+}

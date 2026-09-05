@@ -1,6 +1,6 @@
 # Extensions
 
-The extensions subsystem lets an agent define versioned Cordis packages, run their host and browser halves, and query approved runtime metadata before writing code. It also owns the shared [`ctx.importedPlugins`](../../packages/host/plugin-runtime/README.md) service, which stages and lifecycle-manages immutable OpenAI/Codex plugin bundles for every BH profile. Package lifecycle and sandbox behavior belong to the [`packages/extensions`](../../packages/extensions/README.md) package group.
+The extensions subsystem lets an agent define versioned Cordis packages, run their host and browser halves, and query approved runtime metadata before writing code. It also owns the shared [`ctx.importedPlugins`](../../packages/host/plugin-runtime/README.md) service, which stages and lifecycle-manages immutable OpenAI/Codex plugin bundles for every BH profile, plus the two user-declared record registries that extend the agent from settings rather than from a bundle: [`ctx.mcpServers`](../../packages/mcp/mcp-registry/README.md) mounts each enabled MCP server record as an `mcp-client` fiber, and [`ctx.hookRecords`](../../packages/hooks/hooks-registry/README.md) mounts each enabled hook record on its Claude Code or Codex bridge. Package lifecycle and sandbox behavior belong to the [`packages/extensions`](../../packages/extensions/README.md) package group.
 
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
@@ -254,6 +254,46 @@ Types: [Agent](core.md)
 
 Source: [`packages/extensions/cordis-host-runner/src/index.ts`](../../packages/extensions/cordis-host-runner/src/index.ts)
 
+<a id="ctxhookrecords--hookrecordregistry"></a>
+
+### `ctx.hookRecords` — `HookRecordRegistry`
+
+Settings-backed hook records with their live bridge mounts. Reconciliation is idempotent and runs on one serialized chain, so a document commit from any source — this service's own write, another process, or a hand edit — converges the mounted set on the stored one.
+
+```ts cordis-catalog
+/**
+ * Project every stored record with its live state.
+ * @returns the current record projection, in stored order.
+ */
+list(): HookRecordSnapshot
+
+/**
+ * Store one complete definition, replacing any record of the same name, then
+ * converge the mounted set. A definition this registry could not mount is
+ * refused before anything persists.
+ * @param request - complete record definition.
+ * @returns the refreshed projection.
+ */
+define(request: HookRecordDefinitionRequest): Promise<HookRecordSnapshot>
+
+/**
+ * Change one stored record's desired state.
+ * @param request - target record and desired state.
+ * @returns the refreshed projection.
+ */
+setEnabled(request: HookRecordEnablementRequest): Promise<HookRecordSnapshot>
+
+/**
+ * Remove one stored record, unmount it, and delete any document this registry
+ * materialized for it.
+ * @param name - stored record name.
+ * @returns the refreshed projection.
+ */
+remove(name: string): Promise<HookRecordSnapshot>
+```
+
+Source: [`packages/hooks/hooks-registry/src/index.ts`](../../packages/hooks/hooks-registry/src/index.ts)
+
 <a id="ctximportedplugins--importedpluginruntime"></a>
 
 ### `ctx.importedPlugins` — `ImportedPluginRuntime`
@@ -344,6 +384,45 @@ async unload(identity: string): Promise<void>
 ```
 
 Source: [`packages/host/plugin-runtime/src/index.ts`](../../packages/host/plugin-runtime/src/index.ts)
+
+<a id="ctxmcpservers--mcpserverregistry"></a>
+
+### `ctx.mcpServers` — `McpServerRegistry`
+
+Settings-backed MCP server records with their live `mcp-client` mounts. Reconciliation is idempotent and runs on one serialized chain, so a document commit from any source — this service's own write, another process, or a hand edit — converges the mounted set on the stored one.
+
+```ts cordis-catalog
+/**
+ * Project every stored record with its live state.
+ * @returns the current record projection, in stored order.
+ */
+list(): McpServerSnapshot
+
+/**
+ * Store one complete definition, replacing any record of the same name, then
+ * converge the mounted set. A definition this registry could not mount is
+ * refused before anything persists.
+ * @param request - complete server definition.
+ * @returns the refreshed projection.
+ */
+define(request: McpServerDefinitionRequest): Promise<McpServerSnapshot>
+
+/**
+ * Change one stored record's desired state.
+ * @param request - target record and desired state.
+ * @returns the refreshed projection.
+ */
+setEnabled(request: McpServerEnablementRequest): Promise<McpServerSnapshot>
+
+/**
+ * Remove one stored record and unmount it.
+ * @param name - stored record name.
+ * @returns the refreshed projection.
+ */
+remove(name: string): Promise<McpServerSnapshot>
+```
+
+Source: [`packages/mcp/mcp-registry/src/index.ts`](../../packages/mcp/mcp-registry/src/index.ts)
 
 <a id="cordis-events"></a>
 
@@ -450,4 +529,52 @@ A pending Client activation request left the answerable state.
 ```
 
 Source: [`packages/extensions/cordis-host-runner/src/types.ts`](../../packages/extensions/cordis-host-runner/src/types.ts)
+
+<a id="hooks-registry-events"></a>
+
+### `hooks-registry/*` events
+
+<a id="hooks-registryreconciled--emit"></a>
+
+#### `hooks-registry/reconciled` — emit
+
+The mounted bridge set now matches the stored records. Emitted after each reconciliation settles — including the one at startup and the ones a document change triggers — so an observer never reads the projection between a committed record change and the mount that follows it.
+
+```ts cordis-catalog
+/**
+ * The mounted bridge set now matches the stored records. Emitted after each
+ * reconciliation settles — including the one at startup and the ones a
+ * document change triggers — so an observer never reads the projection
+ * between a committed record change and the mount that follows it.
+ * @param snapshot - the projection as of this reconciliation.
+ * @mode emit
+ */
+'hooks-registry/reconciled'(snapshot: HookRecordSnapshot): void
+```
+
+Source: [`packages/hooks/hooks-registry/src/types.ts`](../../packages/hooks/hooks-registry/src/types.ts)
+
+<a id="mcp-servers-events"></a>
+
+### `mcp-servers/*` events
+
+<a id="mcp-serversreconciled--emit"></a>
+
+#### `mcp-servers/reconciled` — emit
+
+The mounted server set now matches the stored records. Emitted after each reconciliation settles — including the one at startup and the ones a document change triggers — so an observer never reads the projection between a committed record change and the mount that follows it.
+
+```ts cordis-catalog
+/**
+ * The mounted server set now matches the stored records. Emitted after each
+ * reconciliation settles — including the one at startup and the ones a
+ * document change triggers — so an observer never reads the projection
+ * between a committed record change and the mount that follows it.
+ * @param snapshot - the projection as of this reconciliation.
+ * @mode emit
+ */
+'mcp-servers/reconciled'(snapshot: McpServerSnapshot): void
+```
+
+Source: [`packages/mcp/mcp-registry/src/types.ts`](../../packages/mcp/mcp-registry/src/types.ts)
 <!-- END GENERATED cordis-surface -->

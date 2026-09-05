@@ -18,14 +18,14 @@ One predicate answers what both surfaces actually need. `providerUsable(row)` is
 
 `needsSetup(row, anyUsable)` takes the same fact, so the setup card is the first-run posture alone. With another provider reachable, DeepSeek is an ordinary row carrying the missing-key dot, one Edit click from the same card.
 
-Each card kind now owns its own close handler. `closeSetup` records the provider in a component-local `dismissedSetup` set and touches nothing else; `closeEditor` keeps clearing the three states its cards own. Both route the post-save reload through one `announceSaved` helper. Dismissal is viewing state, like the open editor and the add card: a reload restores the first-run posture for a user still in it.
+Each card kind now owns its own close handler. `closeSetup` records the provider in a component-local `dismissedSetup` set and touches nothing else; `closeEditor` keeps clearing the three states its cards own. Both route the post-save reload through one persist helper. Cancelling the setup card is viewing state, like the open editor and the add card: a reload restores the first-run posture for a user still in it. A later [official DeepSeek dismissal](../feature/2026-09-04-official-deepseek-dismissible.md) records a durable hide only on Delete, not on that session-local Cancel.
 
 ## Alternatives considered
 
 - **Deriving readiness from the model catalog (`llm.models`) instead of the join.** It answers "can the user talk to something" most directly, but it costs a per-provider listing round trip on a surface that already holds the join, and a provider whose listing fails transiently would re-open onboarding.
 - **Requiring `row.configured` in `providerUsable`.** It reads as the stricter check, and would exclude exactly the routes a deployment mounts through `cordis.yml` without a configurable-provider declaration — live routes serving models that this page cannot configure. Registration, not configurability, is what makes a provider usable.
 - **Only adding the dismissal, leaving the card auto-opening.** It fixes the Cancel button and nothing else: a user with a working provider would still be handed the DeepSeek form on every visit to Models, which is the same misreading in a quieter form.
-- **Persisting the dismissal to settings.** A durable "do not ask about DeepSeek" flag is a second fact about first-run state that can disagree with the join. The credential itself already ends the posture permanently, and every other card on this page is session-local.
+- **Persisting the dismissal to settings.** Rejected for setup-card Cancel and onboarding Configure later: those complete or collapse only the current pass, and a durable flag would disagree with a user who still has the row. The later [official DeepSeek dismissal](../feature/2026-09-04-official-deepseek-dismissible.md) stores `deepseekOfficialDeclined` only when the user deletes that row, which is a different gesture.
 
 ## Consequences
 

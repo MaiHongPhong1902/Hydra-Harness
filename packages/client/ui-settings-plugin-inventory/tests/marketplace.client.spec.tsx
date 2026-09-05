@@ -25,16 +25,16 @@ const READY: PluginMarketplaceSnapshot = {
 }
 const IMPORTED = {
   plugins: [{
-    identity: 'ponytail@local' as never,
-    name: 'Ponytail',
+    identity: 'toolkit@local' as never,
+    name: 'Toolkit',
     version: '4.9.0',
-    source: { kind: 'local' as const, source: 'C:\\plugins\\ponytail', sourceId: 'local' },
-    pluginRoot: 'C:\\plugins\\ponytail',
-    dataPath: 'C:\\data\\ponytail',
+    source: { kind: 'local' as const, source: 'C:\\plugins\\toolkit', sourceId: 'local' },
+    pluginRoot: 'C:\\plugins\\toolkit',
+    dataPath: 'C:\\data\\toolkit',
     enabled: false,
     lifecycle: 'installed' as const,
     hookTrustState: 'pending' as const,
-    skills: ['ponytail'],
+    skills: ['toolkit'],
     mcpServers: [],
     hooks: [],
     installationStatus: 'installed' as const,
@@ -120,9 +120,37 @@ describe('MarketplaceSettingsTab', () => {
     expect(screen.queryByRole('button', { name: 'Install' })).toBeNull()
   })
 
-  it('keeps the add dialog open when importing the marketplace plugin fails', async () => {
+  it('keeps the add dialog open when importing the named plugin fails, and does not re-add the saved source', async () => {
     const importedPlugins = props().importedPlugins
     vi.mocked(importedPlugins.import).mockRejectedValue(new Error('ambiguous marketplace'))
+    const addMarketplace = vi.fn(async () => READY)
+    render(<MarketplaceSettingsTab {...props({ addMarketplace, importedPlugins })} />)
+
+    await screen.findByText(en.marketplaceEmpty)
+    fireEvent.click(screen.getByRole('button', { name: en.marketplaceAdd }))
+    const dialog = screen.getByRole('dialog', { name: en.marketplaceAddTitle })
+    fireEvent.change(within(dialog).getByRole('textbox', { name: en.marketplaceSource }), {
+      target: { value: SOURCE },
+    })
+    fireEvent.change(within(dialog).getByRole('textbox', { name: en.marketplacePluginName }), {
+      target: { value: 'example-plugin' },
+    })
+    fireEvent.click(within(dialog).getByRole('button', { name: en.marketplaceSave }))
+
+    expect((await within(dialog).findByRole('alert')).textContent).toBe(en.marketplaceImportError)
+    expect(importedPlugins.import).toHaveBeenCalledWith({ source: SOURCE, plugin: 'example-plugin' })
+    expect(screen.getByRole('dialog', { name: en.marketplaceAddTitle })).toBeTruthy()
+    // The source reached the Host; the row is already listed behind the dialog.
+    expect(screen.getByText(`${SOURCE} @ main`)).toBeTruthy()
+
+    // Retrying imports again rather than adding a record the Host already holds.
+    fireEvent.click(within(dialog).getByRole('button', { name: en.marketplaceSave }))
+    await waitFor(() => { expect(importedPlugins.import).toHaveBeenCalledTimes(2) })
+    expect(addMarketplace).toHaveBeenCalledTimes(1)
+  })
+
+  it('adds the source alone when no plugin is named', async () => {
+    const importedPlugins = props().importedPlugins
     render(<MarketplaceSettingsTab {...props({
       addMarketplace: vi.fn(async () => READY),
       importedPlugins,
@@ -136,9 +164,9 @@ describe('MarketplaceSettingsTab', () => {
     })
     fireEvent.click(within(dialog).getByRole('button', { name: en.marketplaceSave }))
 
-    expect((await within(dialog).findByRole('alert')).textContent).toBe(en.marketplaceImportError)
-    expect(importedPlugins.import).toHaveBeenCalledWith({ source: SOURCE })
-    expect(screen.getByRole('dialog', { name: en.marketplaceAddTitle })).toBeTruthy()
+    expect(await screen.findByText(`${SOURCE} @ main`)).toBeTruthy()
+    expect(importedPlugins.import).not.toHaveBeenCalled()
+    expect(screen.queryByRole('dialog', { name: en.marketplaceAddTitle })).toBeNull()
   })
 
   it('does not render the imported-plugin catalog; that list lives in the Plugins tab', async () => {
@@ -147,7 +175,7 @@ describe('MarketplaceSettingsTab', () => {
 
     await screen.findByText(en.marketplaceEmpty)
     expect(importedPlugins.list).not.toHaveBeenCalled()
-    expect(screen.queryByText('Ponytail')).toBeNull()
+    expect(screen.queryByText('Toolkit')).toBeNull()
     expect(screen.queryByRole('heading', { name: en.importedPlugins })).toBeNull()
   })
 

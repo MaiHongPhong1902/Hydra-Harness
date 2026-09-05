@@ -1,6 +1,7 @@
 /** Settings page for durable provider-reported token usage by model. */
+import { useEffect } from 'react'
 import type { SessionListState } from '@bosch/bh-client-runtime/client'
-import type { PropsLocale, PropsRuntime } from '@bosch/bh-client-ui-slots'
+import type { InjectFace, PropsLocale, PropsRuntime } from '@bosch/bh-client-ui-slots'
 import type {} from '@bosch/bh-token-meter/client'
 import css from './UsageSection.module.css'
 
@@ -9,6 +10,12 @@ export interface UsageRow {
   model: string
   inputTokens: number
   outputTokens: number
+}
+
+/** Registration-side face: pull a fresh session.list when the page opens. */
+export interface UsageSectionInjected {
+  /** Refresh the session list so cold rows carry the latest modelTokenUsage cut. */
+  refresh: () => Promise<void>
 }
 
 /** Sum each session's durable model buckets without assigning usage to its latest model. */
@@ -33,17 +40,34 @@ export function collectModelUsage(list: Pick<SessionListState, 'ids' | 'byId'>):
       || a.model.localeCompare(b.model) || a.provider.localeCompare(b.provider))
 }
 
-export type UsageSectionProps = PropsRuntime<'settings.section'> & PropsLocale<'conversation'>
+/** Whether two usage tables carry the same provider/model totals in the same order. */
+export function usageRowsEqual(left: readonly UsageRow[], right: readonly UsageRow[]): boolean {
+  return left.length === right.length
+    && left.every((row, i) => {
+      const other = right[i]
+      return other !== undefined && row.provider === other.provider && row.model === other.model
+        && row.inputTokens === other.inputTokens && row.outputTokens === other.outputTokens
+    })
+}
+
+export type UsageSectionProps =
+  PropsRuntime<'settings.section'>
+  & PropsLocale<'conversation'>
+  & InjectFace<UsageSectionInjected>
 
 /** Render exact token counts grouped across every listed session. */
-export function UsageSection({ useSessions, t }: UsageSectionProps) {
-  const list = useSessions(state => state)
-  const rows = collectModelUsage(list)
+export function UsageSection({ useSessions, refresh, t }: UsageSectionProps) {
+  // Cold list rows only advance on session.list; open pulls the latest cut so
+  // Usage matches host checkpoints. Live modelTokenUsage frames still update
+  // the list store while this page stays mounted.
+  useEffect(() => { void refresh() }, [refresh])
+  const phase = useSessions(state => state.phase)
+  const rows = useSessions(state => collectModelUsage(state), usageRowsEqual)
   return (
     <section className={css.section} aria-labelledby="settings-usage-title">
       <h2 id="settings-usage-title" className={css.title}>{t('settings.usage.title')}</h2>
       <p className={css.description}>{t('settings.usage.description')}</p>
-      {list.phase === 'pending'
+      {phase === 'pending'
         ? <p className={css.empty}>{t('settings.usage.loading')}</p>
         : rows.length === 0
           ? <p className={css.empty}>{t('settings.usage.empty')}</p>

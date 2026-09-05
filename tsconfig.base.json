@@ -86,6 +86,8 @@
       "@bosch/bh-credentials/types": ["./packages/credentials/credentials/src/types.ts"],
       "@bosch/bh-authorization/types": ["./packages/credentials/authorization/src/types.ts"],
       "@bosch/bh-settings/types": ["./packages/settings/settings/src/types.ts"],
+      "@bosch/bh-mcp-registry/types": ["./packages/mcp/mcp-registry/src/types.ts"],
+      "@bosch/bh-hooks-registry/types": ["./packages/hooks/hooks-registry/src/types.ts"],
       "@bosch/bh-api-remotes/types": ["./packages/api/remotes/src/types.ts"],
       "@bosch/bh-api-remotes/invariant": ["./packages/api/remotes/src/invariant.ts"],
       "@bosch/bh-compaction/checkpoint": ["./packages/compaction/compaction/src/checkpoint.ts"],

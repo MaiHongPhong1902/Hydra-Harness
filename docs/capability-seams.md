@@ -208,6 +208,10 @@ flowchart LR
   pkg_plugin_runtime["plugin-runtime"]
   svc_importedPlugins["ctx.importedPlugins<br/>Imported plugin lifecycle"]
   pkg_plugin_inventory["plugin-inventory"]
+  pkg_mcp_registry["mcp-registry"]
+  svc_mcpServers["ctx.mcpServers<br/>User-declared MCP server records"]
+  pkg_hooks_registry["hooks-registry"]
+  svc_hookRecords["ctx.hookRecords<br/>User-declared hook records"]
   svc_cordisInspect["ctx.cordisInspect<br/>Dynamic Cordis inspect registry"]
   pkg_acp --> svc_approval
   pkg_agent --> svc_agents
@@ -245,6 +249,7 @@ flowchart LR
   pkg_fs_local --> svc_fs
   pkg_fs_sandbox --> svc_fs
   pkg_goal --> svc_goals
+  pkg_hooks_registry --> svc_hookRecords
   pkg_invariants --> svc_invariants
   pkg_jobs --> svc_jobs
   pkg_jobs_local --> svc_jobs
@@ -254,6 +259,7 @@ flowchart LR
   pkg_llm_replay --> svc_llm
   pkg_lsp --> svc_lsp
   pkg_lsp_local --> svc_lsp
+  pkg_mcp_registry --> svc_mcpServers
   pkg_message_feedback --> svc_messageFeedback
   pkg_modules --> svc_clientModules
   pkg_permission_presets --> svc_permissionPresets
@@ -343,6 +349,7 @@ flowchart LR
   svc_e2b --> pkg_fs_e2b
   svc_e2b --> pkg_subprocess_e2b
   svc_fs --> pkg_tool_fs
+  svc_hookRecords --> pkg_plugin_inventory
   svc_importedPlugins --> pkg_plugin_inventory
   svc_invariants --> pkg_agent
   svc_invariants --> pkg_agent_loop
@@ -356,6 +363,7 @@ flowchart LR
   svc_llm --> pkg_compaction_basic
   svc_localMemories --> pkg_apiproxy
   svc_lsp --> pkg_tool_lsp
+  svc_mcpServers --> pkg_plugin_inventory
   svc_sandbox --> pkg_bash_sandbox
   svc_sandbox --> pkg_terminal_bash
   svc_sandboxPolicy --> pkg_bash_sandbox
@@ -500,6 +508,8 @@ flowchart LR
 | `ctx.apiProxy` | `core` | `apiproxy` | - | `connection` | - | The transport-agnostic host gateway face: it dispatches browser API calls, and each open host stream subscribes to the events it forwards rather than being pushed to through a broadcast verb. |
 | `ctx.dynamicCordisRunner` | `core` | [`cordis-host-runner`](../packages/extensions/cordis-host-runner) | - | [`tool-cordis`](../packages/extensions/tool-cordis) | - | Owns the in-memory definition registry, the vm sandbox for host halves, and the request-run round trip; browser pages reach the same service over the wire through its remote namespace. |
 | `ctx.importedPlugins` | `core` | [`plugin-runtime`](../packages/host/plugin-runtime) | - | `plugin-inventory` | - | Stages immutable OpenAI/Codex bundles and owns their enablement, hook review, skills, MCP process, tool, and teardown lifecycle; plugin-inventory exposes the Host projection. |
+| `ctx.mcpServers` | `core` | [`mcp-registry`](../packages/mcp/mcp-registry) | - | `plugin-inventory` | - | Owns the `mcp-servers` settings records and converges each enabled one onto an mcp-client fiber; plugin-inventory exposes the Host projection. |
+| `ctx.hookRecords` | `core` | [`hooks-registry`](../packages/hooks/hooks-registry) | - | `plugin-inventory` | - | Owns the `hooks` settings records and converges each enabled one onto its dialect bridge fiber; plugin-inventory exposes the Host projection. |
 | `ctx.cordisInspect` | `core` | [`cordis-host-runner`](../packages/extensions/cordis-host-runner) | - | [`tool-cordis`](../packages/extensions/tool-cordis) | - | Registers host inspect providers, mirrors the client provider manifest, and routes client queries through the dynamic Cordis transport. |
 
 Maintenance mode: hybrid: services are discovered from Cordis declarations; interface/implementation/consumer roles are classified in `scripts/gen-doc-graphs.ts` with a completeness guard.

@@ -28,6 +28,7 @@ import { InputBar } from './skeleton/InputBar.tsx'
 import { EnterBehaviorRow } from './settings/EnterBehaviorRow.tsx'
 import type { EnterBehaviorRowInjected } from './settings/EnterBehaviorRow.tsx'
 import { UsageSection } from './settings/UsageSection.tsx'
+import type { UsageSectionInjected } from './settings/UsageSection.tsx'
 import { ChatView } from './chat/ChatView.tsx'
 import { StatsLine } from './chat/StatsLine.tsx'
 import { ApprovalPanel } from './skeleton/ApprovalPanel.tsx'
@@ -181,6 +182,9 @@ export function apply(ctx: Context): void {
     order: 12,
     label: () => t('settings.usage.nav'),
     locale: NS,
+    inject: (): UsageSectionInjected => ({
+      refresh: () => sessions.refresh(),
+    }),
   }, UsageSection))
 
   // Chat semantic reader positions by session, surviving view switches and

@@ -62,7 +62,9 @@ beforeEach(() => {
 
 afterEach(async () => {
   await closeMockServers()
-  await Promise.all(proxyServers.splice(0).map(server => new Promise<void>(resolve => server.close(() => resolve()))))
+  await Promise.all(proxyServers.splice(0).map(server => new Promise<void>((resolve) => {
+    server.close(() => { resolve() })
+  })))
   vi.unstubAllEnvs()
   vi.useRealTimers()
   rmSync(testHome, { recursive: true, force: true })

@@ -296,7 +296,9 @@ export function writeProfileManifest(dir: string, manifest: ProfileManifest): vo
  * @returns validated entry-id-to-enabled map.
  */
 export function profilePluginEnablement(manifest: ProfileManifest): Record<string, boolean> {
-  const value = manifest.bh?.profile?.pluginEnablement
+  // pluginEnablement crosses the durable file boundary, where the declared
+  // Record<string, boolean> cannot be trusted: validate the runtime shape.
+  const value: unknown = manifest.bh?.profile?.pluginEnablement
   if (value === undefined) return {}
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {
     throw new TypeError('bh: bh.profile.pluginEnablement must be a map of entry ids to booleans')
@@ -305,7 +307,7 @@ export function profilePluginEnablement(manifest: ProfileManifest): Record<strin
   if (entries.some(([, enabled]) => typeof enabled !== 'boolean')) {
     throw new TypeError('bh: bh.profile.pluginEnablement values must be booleans')
   }
-  return Object.fromEntries(entries) as Record<string, boolean>
+  return Object.fromEntries(entries)
 }
 
 /** Return whether two bundle lists have the same values in the same order. */

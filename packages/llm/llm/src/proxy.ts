@@ -4,7 +4,7 @@ import { AsyncLocalStorage } from 'node:async_hooks'
 import { fetch as undiciFetch, ProxyAgent } from 'undici'
 
 const proxyContext = new AsyncLocalStorage<string | undefined>()
-// ponytail: provider routes are user-owned and few; add bounded eviction when profile churn becomes measurable.
+// Provider routes are user-owned and few; add bounded eviction when profile churn becomes measurable.
 const agents = new Map<string, ProxyAgent>()
 let nativeFetch: typeof fetch | undefined
 

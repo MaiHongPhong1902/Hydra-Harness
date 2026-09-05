@@ -82,7 +82,7 @@ const PERSONALITY_PROMPT: Record<Personality, string> = {
  * and seed each session's durable preferences on its first start.
  * @param ctx - Host plugin context.
  */
-export async function apply(ctx: Context): Promise<void> {
+export function apply(ctx: Context): void {
   let current: () => PersonalizationSettings = () => ({ personality: DEFAULT_PERSONALITY })
   installSettingsSection(ctx, PERSONALIZATION_NAMESPACE, PersonalizationSettingsSchema, { personality: DEFAULT_PERSONALITY }, {
     setSource: (source) => { current = source },

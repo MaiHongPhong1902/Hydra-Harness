@@ -418,7 +418,7 @@ export function DesktopFilesPanel(props: {
             ? 'Loading…'
             : undefined
   const language = document === undefined ? undefined : editorLanguage(document.path)
-  // ponytail: keep large-file editing responsive; move Shiki to a worker if large-file highlighting becomes necessary.
+  // Keep large-file editing responsive; move Shiki to a worker if large-file highlighting becomes necessary.
   const highlightedDraft = document !== undefined && deferredDraft === document.draft
     && document.draft.length <= HIGHLIGHT_MAX_CHARS
     ? deferredDraft

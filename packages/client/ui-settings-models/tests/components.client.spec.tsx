@@ -7,6 +7,7 @@ import { bindSnapshotSelector } from '@bosch/bh-client-test-runtime'
 import type { RpcResponse, SettingsNamespaceView } from '@bosch/bh-api-remotes/client'
 import {
   ModelsSection, needsSetup, providerCopy, providerTargetLabel, removeProviderProfile,
+  revealOfficialDeepSeek,
 } from '../src/client/ModelsSection.tsx'
 import type { ModelsSectionInjected, ModelsSectionProps } from '../src/client/ModelsSection.tsx'
 import { pathOps } from '../src/client/ProviderEditor.tsx'
@@ -18,6 +19,10 @@ import { SettingsDescribeMirror } from '@bosch/bh-client-ui-settings/src/client/
 import { deriveKeyRef, ModelsSettingsStore } from '../src/client/store.ts'
 import type { ProviderRow } from '../src/client/store.ts'
 import { en } from '../src/client/locales.ts'
+import {
+  OFFICIAL_DEEPSEEK_DECLINED_FIELD, OFFICIAL_DEEPSEEK_PROVIDER,
+  WELCOME_NOTICE_SETTINGS_NAMESPACE,
+} from '../src/onboarding-copy.ts'
 import { settingsSchema } from './settings-schema.client.ts'
 
 afterEach(cleanup)
@@ -125,6 +130,19 @@ function wireNamespaces(): SettingsNamespaceView[] {
   ]
 }
 
+function onboardingNamespace(declined = false): SettingsNamespaceView {
+  const value = declined ? { [OFFICIAL_DEEPSEEK_DECLINED_FIELD]: true } : {}
+  return {
+    ns: WELCOME_NOTICE_SETTINGS_NAMESPACE,
+    schema: {},
+    value,
+    user: declined ? value : {},
+    applies: 'live',
+    secrets: [],
+    revision: 0,
+  }
+}
+
 let nextRpc = 0
 function ok<T>(value: T): RpcResponse<T> {
   return { rpcId: `r-${nextRpc++}` as never, result: { ok: true, value } }
@@ -137,17 +155,18 @@ function fail<T>(message: string, code = 'settings-rejected'): RpcResponse<T> {
 }
 
 function scriptedFace(overrides: {
-  update?: ReturnType<typeof vi.fn>
-  replace?: ReturnType<typeof vi.fn>
-  mutate?: ReturnType<typeof vi.fn>
-  set?: ReturnType<typeof vi.fn>
-  unset?: ReturnType<typeof vi.fn>
+  update?: ReturnType<typeof vi.fn<(payload: unknown) => Promise<unknown>>>
+  replace?: ReturnType<typeof vi.fn<(payload: unknown) => Promise<unknown>>>
+  mutate?: ReturnType<typeof vi.fn<(payload: { ns: string; ops: unknown[] }) => Promise<unknown>>>
+  set?: ReturnType<typeof vi.fn<(payload: unknown) => Promise<unknown>>>
+  unset?: ReturnType<typeof vi.fn<(payload: unknown) => Promise<unknown>>>
 } = {}) {
-  const update = overrides.update ?? vi.fn(() => Promise.resolve(ok(wireNamespaces()[2])))
-  const replace = overrides.replace ?? vi.fn(() => Promise.resolve(ok(wireNamespaces()[2])))
-  const mutate = overrides.mutate ?? vi.fn(() => Promise.resolve(ok(wireNamespaces()[2])))
-  const set = overrides.set ?? vi.fn(() => Promise.resolve(ok({})))
-  const unset = overrides.unset ?? vi.fn(() => Promise.resolve(ok({})))
+  type Mutate = (payload: { ns: string; ops: unknown[] }) => Promise<unknown>
+  const update = overrides.update ?? vi.fn<(payload: unknown) => Promise<unknown>>(() => Promise.resolve(ok(wireNamespaces()[2])))
+  const replace = overrides.replace ?? vi.fn<(payload: unknown) => Promise<unknown>>(() => Promise.resolve(ok(wireNamespaces()[2])))
+  const mutate = overrides.mutate ?? vi.fn<Mutate>(() => Promise.resolve(ok(wireNamespaces()[2])))
+  const set = overrides.set ?? vi.fn<(payload: unknown) => Promise<unknown>>(() => Promise.resolve(ok({})))
+  const unset = overrides.unset ?? vi.fn<(payload: unknown) => Promise<unknown>>(() => Promise.resolve(ok({})))
   const face = {
     llm: {
       providers: vi.fn(() => Promise.resolve(ok({
@@ -312,7 +331,7 @@ describe('ModelsSection', () => {
     const row = (credential: ProviderRow['credential']): ProviderRow => ({
       entry,
       configured: true,
-      removable: false,
+      removable: true,
       apiKeyEnv: 'X',
       credential,
     })
@@ -1351,6 +1370,116 @@ describe('ModelsSection', () => {
       { settingsNs: 'llm-pi-ai', settingsPath: ['providers', 'openai'] },
     )
     expect(failure).toBe('connection lost')
+  })
+
+  it('hides official DeepSeek with a durable flag instead of unsetting the composition section', async () => {
+    const { face, mutate, replace, unset, controller } = await mountSection()
+    const failure = await removeProviderProfile(
+      face as unknown as Parameters<typeof removeProviderProfile>[0],
+      controller,
+      {
+        provider: OFFICIAL_DEEPSEEK_PROVIDER,
+        settingsNs: 'llm-deepseek',
+        settingsPath: [],
+        credentialRef: 'DEEPSEEK_API_KEY',
+      },
+    )
+    expect(failure).toBeUndefined()
+    expect(unset).toHaveBeenCalledWith({ ref: 'DEEPSEEK_API_KEY' })
+    expect(mutate.mock.calls[0]?.[0]).toEqual({
+      ns: WELCOME_NOTICE_SETTINGS_NAMESPACE,
+      ops: [{ op: 'set', path: [OFFICIAL_DEEPSEEK_DECLINED_FIELD], value: true }],
+    })
+    expect(replace).not.toHaveBeenCalled()
+  })
+
+  it('still hides official DeepSeek when no managed credential is identified', async () => {
+    const { face, mutate, unset, controller } = await mountSection()
+    await removeProviderProfile(
+      face as unknown as Parameters<typeof removeProviderProfile>[0],
+      controller,
+      { settingsNs: 'llm-deepseek', settingsPath: [] },
+    )
+    expect(unset).not.toHaveBeenCalled()
+    expect(mutate.mock.calls[0]?.[0]).toEqual({
+      ns: WELCOME_NOTICE_SETTINGS_NAMESPACE,
+      ops: [{ op: 'set', path: [OFFICIAL_DEEPSEEK_DECLINED_FIELD], value: true }],
+    })
+  })
+
+  it('clears the official DeepSeek hide flag so the shipped route can return', async () => {
+    const { face, mutate, controller } = await mountSection()
+    const failure = await revealOfficialDeepSeek(
+      face as unknown as Parameters<typeof revealOfficialDeepSeek>[0],
+      controller,
+    )
+    expect(failure).toBeUndefined()
+    expect(mutate.mock.calls[0]?.[0]).toEqual({
+      ns: WELCOME_NOTICE_SETTINGS_NAMESPACE,
+      ops: [{ op: 'unset', path: [OFFICIAL_DEEPSEEK_DECLINED_FIELD] }],
+    })
+  })
+
+  it('reports a refused official DeepSeek reveal without treating it as success', async () => {
+    const { face, controller } = await mountSection({
+      mutate: vi.fn(() => Promise.resolve(fail('read-only'))),
+    })
+    expect(await revealOfficialDeepSeek(
+      face as unknown as Parameters<typeof revealOfficialDeepSeek>[0],
+      controller,
+    )).toBe('read-only')
+  })
+
+  it('reports a transport rejection from official DeepSeek reveal', async () => {
+    const { face, controller } = await mountSection({
+      mutate: vi.fn(() => Promise.reject(new Error('connection lost'))),
+    })
+    expect(await revealOfficialDeepSeek(
+      face as unknown as Parameters<typeof revealOfficialDeepSeek>[0],
+      controller,
+    )).toBe('connection lost')
+  })
+
+  it('confirms deleting official DeepSeek from the row and records the hide flag', async () => {
+    const { mutate, unset } = await mountSection()
+    fireEvent.click(screen.getByRole('button', { name: deepSeekCopy(en.removeProvider) }))
+    const dialog = screen.getByRole('dialog', { name: deepSeekCopy(en.deleteTitle) })
+    expect(dialog.textContent).toContain(deepSeekCopy(en.deleteDescription))
+    fireEvent.click(within(dialog).getByRole('button', { name: deepSeekCopy(en.deleteConfirm) }))
+    await waitFor(() => {
+      expect(mutate.mock.calls[0]?.[0]).toEqual({
+        ns: WELCOME_NOTICE_SETTINGS_NAMESPACE,
+        ops: [{ op: 'set', path: [OFFICIAL_DEEPSEEK_DECLINED_FIELD], value: true }],
+      })
+    })
+    expect(unset).not.toHaveBeenCalled()
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: deepSeekCopy(en.deleteTitle) })).toBeNull()
+    })
+  })
+
+  it('restores official DeepSeek after a declined add by clearing the hide flag', async () => {
+    const scripted = scriptedFace()
+    scripted.face.settings.describe.mockImplementation(() => Promise.resolve(ok({
+      writable: true,
+      hasDocument: false,
+      namespaces: [...wireNamespaces(), onboardingNamespace(true)],
+    })))
+    await mountFace(scripted)
+    expect(screen.queryByRole('button', { name: deepSeekCopy(en.editProvider) })).toBeNull()
+    fireEvent.click(screen.getByText(en.add))
+    const select = await screen.findByLabelText<HTMLSelectElement>(en.provider)
+    expect(select.value).toBe(OFFICIAL_DEEPSEEK_PROVIDER)
+    fireEvent.change(screen.getByLabelText(en.keyInput), { target: { value: 'sk-live' } })
+    fireEvent.click(screen.getByText(en.apply))
+    await waitFor(() => {
+      expect(scripted.mutate.mock.calls.some(call => call[0]?.ns === WELCOME_NOTICE_SETTINGS_NAMESPACE)).toBe(true)
+    })
+    expect(scripted.mutate.mock.calls.find(call => call[0]?.ns === WELCOME_NOTICE_SETTINGS_NAMESPACE)?.[0]).toEqual({
+      ns: WELCOME_NOTICE_SETTINGS_NAMESPACE,
+      ops: [{ op: 'unset', path: [OFFICIAL_DEEPSEEK_DECLINED_FIELD] }],
+    })
+    expect((await screen.findByRole('status')).textContent).toBe(deepSeekCopy(en.savedProvider))
   })
 })
 

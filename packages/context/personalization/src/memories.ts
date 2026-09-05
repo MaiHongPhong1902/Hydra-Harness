@@ -29,6 +29,14 @@ export function redactMemorySecrets(text: string): string {
       (_match, name: string, separator: string) => `${name}${separator} [redacted]`)
 }
 
+/** Whether a parsed file entry carries the full runtime shape. */
+function isMemoryEntry(entry: unknown): entry is MemoryEntry {
+  if (typeof entry !== 'object' || entry === null) return false
+  const candidate = entry as Partial<MemoryEntry>
+  return typeof candidate.id === 'string' && typeof candidate.text === 'string'
+    && Number.isSafeInteger(candidate.createdAt) && Number.isSafeInteger(candidate.updatedAt)
+}
+
 /** Validate the persisted document before it can influence a prompt. */
 function parseDocument(raw: string): MemoryDocument {
   const value: unknown = JSON.parse(raw)
@@ -37,12 +45,10 @@ function parseDocument(raw: string): MemoryDocument {
   if (document.version !== MEMORY_FILE_VERSION || !Array.isArray(document.entries)) {
     throw new Error('memory document has an unsupported format')
   }
-  for (const entry of document.entries) {
-    if (typeof entry !== 'object' || entry === null
-      || typeof entry.id !== 'string' || typeof entry.text !== 'string'
-      || !Number.isSafeInteger(entry.createdAt) || !Number.isSafeInteger(entry.updatedAt)) {
-      throw new Error('memory document contains an invalid entry')
-    }
+  // The element type is a parse claim over the durable file boundary; the
+  // loop validates every entry's runtime shape before the spread trusts it.
+  for (const entry of document.entries as unknown[]) {
+    if (!isMemoryEntry(entry)) throw new Error('memory document contains an invalid entry')
   }
   return { version: MEMORY_FILE_VERSION, entries: document.entries.map(entry => ({ ...entry })) }
 }
@@ -76,7 +82,7 @@ export class LocalMemoryStore {
       throw new Error(`memory text must contain 1-${String(MAX_MEMORY_CHARS)} characters`)
     }
     await mkdir(dirname(this.path), { recursive: true, mode: 0o700 })
-    // ponytail: one host-wide file lock; split stores only if memory writes become contended.
+    // One host-wide file lock; split stores only if memory writes become contended.
     return await withFileLock(this.path, async () => {
       const document = await this.read()
       if (document.entries.length >= MAX_MEMORY_ENTRIES) {

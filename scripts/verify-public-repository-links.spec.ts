@@ -31,7 +31,8 @@ describe('repository link policy', () => {
   })
 
   it('preserves frozen archived Agent Notes', () => {
-    const unavailableRepository = ['bosch', 'bosch-harness-sdk'].join('/')
+    // Built from parts so a mechanical rename cannot retarget the policy.
+    const unavailableRepository = `${['deepseek', 'ai'].join('-')}/${['deepseek', 'harness', 'sdk'].join('-')}`
 
     expect(findUnavailableRepositoryReferences(
       '.agents/notes/archived/process/historical-record.md',

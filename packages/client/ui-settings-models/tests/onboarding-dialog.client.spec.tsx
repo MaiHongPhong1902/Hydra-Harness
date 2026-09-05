@@ -10,6 +10,9 @@ import type { DeepSeekOnboardingDialogProps } from '../src/client/DeepSeekOnboar
 import { SettingsDescribeMirror } from '@bosch/bh-client-ui-settings/src/client/settings-mirror.ts'
 import { ModelsSettingsStore } from '../src/client/store.ts'
 import { en } from '../src/client/locales.ts'
+import {
+  OFFICIAL_DEEPSEEK_DECLINED_FIELD, WELCOME_NOTICE_SETTINGS_NAMESPACE,
+} from '../src/onboarding-copy.ts'
 import { settingsSchema } from './settings-schema.client.ts'
 
 afterEach(() => {
@@ -68,6 +71,7 @@ function harness(options: {
   providersReject?: boolean
   setFailure?: string
   setReject?: string
+  declined?: boolean
 } = {}) {
   if (document.getElementById('root') === null) {
     const appRoot = document.createElement('div')
@@ -105,7 +109,20 @@ function harness(options: {
       describe: () => Promise.resolve(ok({
         writable: options.settingsWritable ?? true,
         hasDocument: false,
-        namespaces: options.settingsNamespace === false ? [] : [deepSeekNamespace(apiKeyEnv)],
+        namespaces: [
+          ...options.settingsNamespace === false ? [] : [deepSeekNamespace(apiKeyEnv)],
+          ...options.declined === true
+            ? [{
+              ns: WELCOME_NOTICE_SETTINGS_NAMESPACE,
+              schema: {},
+              value: { [OFFICIAL_DEEPSEEK_DECLINED_FIELD]: true },
+              user: { [OFFICIAL_DEEPSEEK_DECLINED_FIELD]: true },
+              applies: 'live' as const,
+              secrets: [] as never[],
+              revision: 0,
+            }]
+            : [],
+        ],
       })),
       mutate,
     },
@@ -234,6 +251,7 @@ describe('DeepSeekOnboardingDialog', () => {
       harness({ providerActive: false }),
       harness({ settingsNamespace: false }),
       harness({ apiKeyEnv: null }),
+      harness({ declined: true }),
     ]) {
       const view = render(<DeepSeekOnboardingDialog {...h.props} />)
       await act(async () => { await h.controller.load() })

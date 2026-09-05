@@ -22,7 +22,6 @@
     },
     {
       "path": "../../credentials/credentials"
-
     },
     {
       "path": "../../context/file-reference"
@@ -41,6 +40,12 @@
     },
     {
       "path": "../../host/plugin-inventory"
+    },
+    {
+      "path": "../../mcp/mcp-registry"
+    },
+    {
+      "path": "../../hooks/hooks-registry"
     },
     {
       "path": "../../interaction/commands"

@@ -51,6 +51,25 @@ src/                          the Node half: service, child process, types
 
 In standalone use, `BrowserSessionService` talks to its Electron child in NDJSON over stdin/stdout — one JSON object per line, `{id, method, args}` out and `{id, ok, result|error}` back. No port is involved, and the channel dies with the process; `main.cjs` therefore sends diagnostics to stderr because stdout is the protocol. The desktop shell instead hosts the same controller in its Electron main process and exposes only narrow, validated preload/IPC operations for configuration and browser management.
 
+## Checking out PageAgent
+
+`pnpm install` links `@page-agent/core` and `@page-agent/page-controller` from this package's [`third-party/page-agent`](third-party/page-agent) git submodule. An empty checkout produces `ERR_PNPM_WORKSPACE_PKG_NOT_FOUND`.
+
+From the repository root:
+
+```sh
+git submodule update --init packages/browser/browser-electron/third-party/page-agent
+```
+
+When GitHub does not advertise the gitlink SHA (`not our ref`), check out the public tag that matches the lockfile (`v1.12.2`):
+
+```sh
+rm -rf packages/browser/browser-electron/third-party/page-agent
+git clone --branch v1.12.2 --depth 1 https://github.com/alibaba/page-agent.git packages/browser/browser-electron/third-party/page-agent
+```
+
+Then rerun `pnpm install`. The licence is in [THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md).
+
 ## Rebuilding the preload
 
 `electron-app/preload.cjs` is committed. Regenerate it only when the upstream submodule or `preload.entry.js` changes:
@@ -59,7 +78,7 @@ In standalone use, `BrowserSessionService` talks to its Electron child in NDJSON
 pnpm --filter @bosch/bh-browser-electron run build:preload
 ```
 
-The exact upstream commit is the [`third-party/page-agent`](third-party/page-agent) gitlink; the licence is in [THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md).
+Populate the submodule before that rebuild; see [Checking out PageAgent](#checking-out-pageagent).
 
 ## Installing the Electron binary behind a proxy
 

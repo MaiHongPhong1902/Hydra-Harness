@@ -607,6 +607,22 @@ const SERVICE_ROLES: ServiceRole[] = [
     note: 'Stages immutable OpenAI/Codex bundles and owns their enablement, hook review, skills, MCP process, tool, and teardown lifecycle; plugin-inventory exposes the Host projection.',
   },
   {
+    key: 'mcpServers',
+    pkg: 'mcp-registry',
+    title: 'User-declared MCP server records',
+    mode: 'core',
+    consumers: ['plugin-inventory'],
+    note: 'Owns the `mcp-servers` settings records and converges each enabled one onto an mcp-client fiber; plugin-inventory exposes the Host projection.',
+  },
+  {
+    key: 'hookRecords',
+    pkg: 'hooks-registry',
+    title: 'User-declared hook records',
+    mode: 'core',
+    consumers: ['plugin-inventory'],
+    note: 'Owns the `hooks` settings records and converges each enabled one onto its dialect bridge fiber; plugin-inventory exposes the Host projection.',
+  },
+  {
     key: 'cordisInspect',
     pkg: 'cordis-host-runner',
     title: 'Dynamic Cordis inspect registry',

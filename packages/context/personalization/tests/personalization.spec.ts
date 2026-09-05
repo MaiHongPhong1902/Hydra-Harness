@@ -6,6 +6,7 @@ import { Context } from '@bosch/cordis'
 import { createUserMessage, LlmAdapter } from '@bosch/bh-llm'
 import type { GenerateOptions, StreamChunk } from '@bosch/bh-llm'
 import { SessionId } from '@bosch/bh-session'
+import type { SessionEvent } from '@bosch/bh-session'
 import AgentLoop from '@bosch/bh-agent-loop'
 import { mountAgentLoopTestDependencies } from '@bosch/bh-agent-loop-testkit'
 import SettingsProvider, { settingsNamespace } from '@bosch/bh-settings'
@@ -43,12 +44,12 @@ describe('resolveSessionPersonality / hasLoggedPersonality', () => {
   })
 
   it('uses the last logged selection, newest winning', () => {
+    // Provenance-only fixtures: the resolvers read type/data, not seq/time.
     const events = [
       { type: 'personalization/personality', data: { personality: 'friendly' } },
       { type: 'turn/start', data: { turn: 1 } },
       { type: 'personalization/personality', data: { personality: 'none' } },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ] as any
+    ] as unknown as SessionEvent[]
     expect(resolveSessionPersonality({ events })).toBe('none')
     expect(hasLoggedPersonality({ events })).toBe(true)
   })

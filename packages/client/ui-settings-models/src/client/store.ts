@@ -12,6 +12,10 @@ import type {
 import type { SnapshotStore } from '@bosch/bh-client-runtime/client'
 import { createSnapshotStore } from '@bosch/bh-client-runtime/client'
 import type { SettingsDescribeFace } from '@bosch/bh-client-ui-settings/client'
+import {
+  OFFICIAL_DEEPSEEK_DECLINED_FIELD, OFFICIAL_DEEPSEEK_PROVIDER,
+  OFFICIAL_DEEPSEEK_SETTINGS_NS, WELCOME_NOTICE_SETTINGS_NAMESPACE,
+} from '../onboarding-copy.ts'
 import type { SettingsSchemaOperations } from './schema-operations.ts'
 
 /**
@@ -26,7 +30,11 @@ export interface ProviderRow {
   entry: ConfigurableProviderView
   /** Whether any layer configures this provider (its profile resolves). */
   configured: boolean
-  /** Whether the user layer alone carries the profile (removal restores the base). */
+  /**
+   * Whether this row can leave the configured list. Nested user-only profiles
+   * restore the composition base; the shipped official DeepSeek route records
+   * a durable hide flag instead of unsetting its composition section.
+   */
   removable: boolean
   /** The credential reference the resolved profile names, when one does. */
   apiKeyEnv: string | undefined
@@ -47,6 +55,11 @@ export interface ModelsSettingsState {
   rows: readonly ProviderRow[]
   /** Namespace views by ns, for the editor's schema/layers/secrets. */
   namespaces: ReadonlyMap<string, SettingsNamespaceView>
+  /**
+   * Durable hide for the shipped official DeepSeek row and first-run prompt.
+   * The adapter stays mounted; Add provider can restore the row.
+   */
+  officialDeepSeekDeclined: boolean
 }
 
 /**
@@ -91,6 +104,31 @@ export function protocolChoices(
   return list.list.map(entry => entry.value).filter((value): value is string => typeof value === 'string')
 }
 
+/**
+ * The shipped whole-section DeepSeek directory entry: empty settings path
+ * under `llm-deepseek`, route id `deepseek-official`.
+ * @param entry - a configurable-provider directory row.
+ * @returns whether this is the official DeepSeek Models target.
+ */
+export function isOfficialDeepSeekEntry(entry: Pick<
+  ConfigurableProviderView,
+  'provider' | 'settingsNs' | 'settingsPath'
+>): boolean {
+  return entry.provider === OFFICIAL_DEEPSEEK_PROVIDER
+    && entry.settingsNs === OFFICIAL_DEEPSEEK_SETTINGS_NS
+    && entry.settingsPath.length === 0
+}
+
+/** The durable hide flag stored in the product-onboarding settings section. */
+function officialDeepSeekDeclinedOf(
+  namespaces: ReadonlyMap<string, SettingsNamespaceView>,
+  schema: SettingsSchemaOperations,
+): boolean {
+  const view = namespaces.get(WELCOME_NOTICE_SETTINGS_NAMESPACE)
+  if (view === undefined) return false
+  return schema.getPath(view.value, [OFFICIAL_DEEPSEEK_DECLINED_FIELD]) === true
+}
+
 /** The credential reference a resolved profile names (its `apiKeyEnv` field). */
 function apiKeyEnvOf(
   namespace: SettingsNamespaceView | undefined,
@@ -108,7 +146,13 @@ function apiKeyEnvOf(
 export class ModelsSettingsStore {
   /** The snapshot the section renders from (uSES-safe store). */
   readonly store: SnapshotStore<ModelsSettingsState> = createSnapshotStore<ModelsSettingsState>({
-    status: 'idle', error: null, credentialError: null, writable: false, rows: [], namespaces: new Map(),
+    status: 'idle',
+    error: null,
+    credentialError: null,
+    writable: false,
+    rows: [],
+    namespaces: new Map(),
+    officialDeepSeekDeclined: false,
   })
 
   /** Latest load wins; an older response never overwrites a newer one. */
@@ -160,14 +204,19 @@ export class ModelsSettingsStore {
       return
     }
     const namespaces = new Map(views.map(view => [view.ns, view]))
+    const officialDeepSeekDeclined = officialDeepSeekDeclinedOf(namespaces, this.schema)
     const rows: ProviderRow[] = providers.map((entry) => {
       const namespace = namespaces.get(entry.settingsNs)
-      const configured = namespace !== undefined
+      const pathConfigured = namespace !== undefined
         && (entry.settingsPath.length === 0 || this.schema.getPath(namespace.value, entry.settingsPath) !== undefined)
-      const removable = namespace !== undefined
-        && entry.settingsPath.length > 0
-        && this.schema.hasPath(namespace.user, entry.settingsPath)
-        && !this.schema.hasPath(namespace.base, entry.settingsPath)
+      const official = isOfficialDeepSeekEntry(entry)
+      const configured = pathConfigured && !(official && officialDeepSeekDeclined)
+      const removable = official
+        ? configured
+        : namespace !== undefined
+          && entry.settingsPath.length > 0
+          && this.schema.hasPath(namespace.user, entry.settingsPath)
+          && !this.schema.hasPath(namespace.base, entry.settingsPath)
       return {
         entry,
         configured,
@@ -204,6 +253,7 @@ export class ModelsSettingsStore {
           : {},
       }))
       s.namespaces = namespaces
+      s.officialDeepSeekDeclined = officialDeepSeekDeclined
     })
   }
 }
@@ -238,6 +288,7 @@ export type OnboardingReadiness =
       | 'credentials-unavailable'
       | 'settings-read-only'
       | 'credential-read-only'
+      | 'provider-declined'
   }
 
 /**
@@ -245,8 +296,10 @@ export type OnboardingReadiness =
  * by the Models page. The step exists to leave the user with a model to talk
  * to, so ANY usable provider ends it; only when none exists does the official
  * DeepSeek route — the one route the prompt can offer a key field for — decide
- * whether prompting can help. A missing official configurable-provider
- * declaration means the adapter is not repairable by navigating to Models.
+ * whether prompting can help. A recorded official-DeepSeek dismissal ends it
+ * the same way: the user already chose not to keep that row. A missing official
+ * configurable-provider declaration means the adapter is not repairable by
+ * navigating to Models.
  * @param state - current shared Models join snapshot.
  * @returns the onboarding state without reading a parallel fact source.
  */
@@ -261,10 +314,10 @@ export function onboardingReadiness(state: ModelsSettingsState): OnboardingReadi
     }
   }
   if (state.rows.some(providerUsable)) return { kind: 'provider-ready' }
-  const row = state.rows.find(candidate =>
-    candidate.entry.provider === 'deepseek-official'
-    && candidate.entry.settingsNs === 'llm-deepseek'
-    && candidate.entry.settingsPath.length === 0)
+  if (state.officialDeepSeekDeclined) {
+    return { kind: 'unavailable', reason: 'provider-declined' }
+  }
+  const row = state.rows.find(candidate => isOfficialDeepSeekEntry(candidate.entry))
   if (row === undefined) return { kind: 'adapter-absent' }
   if (!row.entry.active) {
     return {

@@ -5,11 +5,15 @@ import { Context } from '@bosch/cordis'
 import SystemPrompt from '@bosch/bh-system-prompt'
 import SkillRegistry from '@bosch/bh-skill'
 import CommandRuntime from '@bosch/bh-commands'
+import type { CommandResult } from '@bosch/bh-commands'
 import ToolRuntime from '@bosch/bh-tools'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ImportedPluginRuntime, PluginManifestLoader, PluginStore } from '../src/index.ts'
 
-const { execFileMock } = vi.hoisted(() => ({ execFileMock: vi.fn() }))
+type ExecFileCallback = (error: Error | null, stdout: string, stderr: string) => void
+const { execFileMock } = vi.hoisted(() => ({
+  execFileMock: vi.fn<(command: string, args: string[], options: object, callback: ExecFileCallback) => void>(),
+}))
 
 vi.mock('node:child_process', async importOriginal => ({
   ...await importOriginal<typeof import('node:child_process')>(),
@@ -134,8 +138,8 @@ describe('PluginStore', () => {
     await plugin(join(repository, 'plugins', 'demo-plugin'))
     execFileMock.mockImplementation((_command, args, _options, callback) => {
       void cp(repository, String(args.at(-1)), { recursive: true }).then(
-        () => callback(null, '', ''),
-        error => callback(error, '', ''),
+        () => { callback(null, '', '') },
+        (error: unknown) => { callback(error as Error, '', '') },
       )
     })
     await mkdir(join(marketplace, '.agents', 'plugins'), { recursive: true })
@@ -292,5 +296,257 @@ describe('PluginStore', () => {
     })
     const disabled = await plugins.disable(identity)
     expect(disabled.plugins[0]?.mcpServers[0]?.startupState).toBe('not-started')
+  })
+})
+
+async function pluginCommand(ctx: Context, rawInput: string): Promise<CommandResult> {
+  const definition = ctx.commands.find({} as never, 'plugin')
+  if (definition === undefined) throw new Error('missing /plugin')
+  return await definition.handler({
+    commandId: 'test-command' as never,
+    agent: {} as never,
+    rawInput,
+    attachments: [],
+    signal: new AbortController().signal,
+  })
+}
+
+function fakeInventory(initial: Array<{ source: string; status?: string; enabled?: boolean }> = []) {
+  const marketplaces = [...initial]
+  return {
+    marketplaces,
+    addMarketplace: vi.fn(async (request: { source: string }) => {
+      marketplaces.push({ source: request.source, status: 'ready', enabled: true })
+      return { marketplaces: [...marketplaces] }
+    }),
+    listMarketplaces: vi.fn(async () => ({ marketplaces: [...marketplaces] })),
+    removeMarketplace: vi.fn(async (source: string) => {
+      const index = marketplaces.findIndex(entry => entry.source === source)
+      if (index !== -1) marketplaces.splice(index, 1)
+      return { marketplaces: [...marketplaces] }
+    }),
+  }
+}
+
+async function catalog(label: string): Promise<string> {
+  const root = await temp(label)
+  await plugin(join(root, 'plugins', 'demo-plugin'))
+  await mkdir(join(root, '.agents', 'plugins'), { recursive: true })
+  await writeFile(join(root, '.agents', 'plugins', 'marketplace.json'), JSON.stringify({
+    name: 'demo-marketplace',
+    plugins: [{ name: 'demo-plugin', source: { source: 'local', path: './plugins/demo-plugin/' } }],
+  }))
+  return root
+}
+
+describe('/plugin command', () => {
+  it('lists, imports, inspects, enables, and removes through the slash handler', async () => {
+    const home = await temp('command-home')
+    const source = await temp('command-source')
+    await plugin(source)
+    const { ctx, plugins } = await runtime(home)
+
+    expect(await pluginCommand(ctx, '')).toEqual({ kind: 'success', text: 'No imported plugins.' })
+    expect(await pluginCommand(ctx, 'import')).toMatchObject({ kind: 'error' })
+    expect(await pluginCommand(ctx, `import ${source}`)).toEqual({
+      kind: 'success', text: 'Plugin imported. It is disabled until explicitly enabled.',
+    })
+    const identity = (await plugins.list()).plugins[0]!.identity
+    expect(await pluginCommand(ctx, 'list')).toEqual({
+      kind: 'success', text: `${identity} 1.0.0 disabled`,
+    })
+    const info = await pluginCommand(ctx, `info ${identity}`)
+    expect(info.kind).toBe('success')
+    expect(info.text).toContain('demo-plugin')
+    expect(info.text).toContain('skills: hello')
+    expect(info.text).toContain('MCP: none')
+    expect(await pluginCommand(ctx, `enable ${identity}`)).toEqual({ kind: 'success', text: 'Plugin enabled.' })
+    expect(await pluginCommand(ctx, 'list')).toEqual({
+      kind: 'success', text: `${identity} 1.0.0 enabled`,
+    })
+    expect(await pluginCommand(ctx, `disable ${identity}`)).toEqual({
+      kind: 'success', text: 'Plugin disabled and unloaded.',
+    })
+    expect(await pluginCommand(ctx, `remove ${identity}`)).toEqual({ kind: 'success', text: 'Plugin removed.' })
+    expect(await pluginCommand(ctx, 'list')).toEqual({ kind: 'success', text: 'No imported plugins.' })
+  })
+
+  it('trusts and untrusts hooks and reports pending review on list', async () => {
+    const home = await temp('command-hooks-home')
+    const source = await temp('command-hooks-source')
+    await plugin(source, '1.0.0', { hooks: { Stop: [] } })
+    const { ctx, plugins } = await runtime(home)
+    await pluginCommand(ctx, `import ${source}`)
+    const identity = (await plugins.list()).plugins[0]!.identity
+    expect((await pluginCommand(ctx, 'list')).text).toContain('hook review pending')
+    expect(await pluginCommand(ctx, `trust ${identity}`)).toEqual({
+      kind: 'success', text: 'Current hook definitions trusted; no MCP/tool approval changed.',
+    })
+    expect(await pluginCommand(ctx, `untrust ${identity}`)).toEqual({ kind: 'success', text: 'Hook trust removed.' })
+  })
+
+  it.each([
+    'info', 'enable', 'disable', 'trust', 'untrust', 'remove', 'marketplace', 'marketplace add', 'marketplace remove', 'install',
+  ])('returns usage for incomplete %s', async (line) => {
+    const { ctx } = await runtime(await temp('command-usage-home'))
+    const result = await pluginCommand(ctx, line)
+    expect(result.kind).toBe('error')
+    expect(result.text).toContain('Usage: /plugin')
+  })
+
+  it('returns usage for an unknown verb and maps thrown values to error text', async () => {
+    const { ctx } = await runtime(await temp('command-error-home'))
+    const unknownVerb = await pluginCommand(ctx, 'nope')
+    expect(unknownVerb.kind).toBe('error')
+    expect(unknownVerb.text).toContain('Usage: /plugin')
+    expect(await pluginCommand(ctx, 'import missing-source')).toMatchObject({ kind: 'error' })
+    ctx.provide('pluginInventory' as never, {
+      addMarketplace: vi.fn(async () => Promise.reject(new Error('catalog boom'))),
+      listMarketplaces: vi.fn(async () => ({ marketplaces: [] })),
+      removeMarketplace: vi.fn(async () => ({ marketplaces: [] })),
+    } as never)
+    expect(await pluginCommand(ctx, 'marketplace add owner/repo')).toEqual({ kind: 'error', text: 'catalog boom' })
+  })
+
+  it('adds a marketplace through pluginInventory and imports when inventory is absent', async () => {
+    const catalogRoot = await catalog('command-catalog')
+    const withInventory = await runtime(await temp('command-marketplace-home'))
+    const inventory = fakeInventory()
+    withInventory.ctx.provide('pluginInventory' as never, inventory as never)
+    expect(await pluginCommand(withInventory.ctx, `marketplace add ${catalogRoot}`)).toEqual({
+      kind: 'success',
+      text: 'Marketplace added. Install a plugin with /plugin install <name>@<marketplace>.',
+    })
+    expect(inventory.addMarketplace).toHaveBeenCalledWith({ source: catalogRoot })
+    expect((await withInventory.plugins.list()).plugins).toHaveLength(0)
+
+    const withoutInventory = await runtime(await temp('command-marketplace-fallback-home'))
+    expect(await pluginCommand(withoutInventory.ctx, `marketplace add ${catalogRoot}`)).toEqual({
+      kind: 'success', text: 'Plugin imported. It is disabled until explicitly enabled.',
+    })
+    expect((await withoutInventory.plugins.list()).plugins[0]?.enabled).toBe(false)
+  })
+
+  it('lists and removes persisted marketplaces, including unnamed status and disabled slots', async () => {
+    const { ctx } = await runtime(await temp('command-marketplace-list-home'))
+    expect(await pluginCommand(ctx, 'marketplace list')).toEqual({
+      kind: 'error', text: 'plugin runtime: plugin inventory is unavailable',
+    })
+    expect(await pluginCommand(ctx, 'marketplace remove owner/repo')).toEqual({
+      kind: 'error', text: 'plugin runtime: plugin inventory is unavailable',
+    })
+    const inventory = fakeInventory()
+    ctx.provide('pluginInventory' as never, inventory as never)
+    expect(await pluginCommand(ctx, 'marketplace list')).toEqual({
+      kind: 'success', text: 'No plugin marketplaces.',
+    })
+    inventory.marketplaces.push(
+      { source: 'https://github.com/example-labs/toolkit.git', status: 'ready', enabled: true },
+      { source: '/local/catalog' },
+      { source: 'example/other', status: 'unavailable', enabled: false },
+    )
+    expect(await pluginCommand(ctx, 'marketplace list')).toEqual({
+      kind: 'success',
+      text: [
+        'https://github.com/example-labs/toolkit.git ready',
+        '/local/catalog ready',
+        'example/other unavailable disabled',
+      ].join('\n'),
+    })
+    expect(await pluginCommand(ctx, 'marketplace remove toolkit')).toEqual({
+      kind: 'success', text: 'Marketplace removed.',
+    })
+    expect(inventory.removeMarketplace).toHaveBeenCalledWith('https://github.com/example-labs/toolkit.git')
+  })
+
+  it('installs from an explicit source, a catalog selector, and an already imported name', async () => {
+    const source = await temp('command-install-source')
+    await plugin(source)
+    const catalogRoot = await catalog('command-install-catalog')
+    const { ctx, plugins } = await runtime(await temp('command-install-home'))
+    expect(await pluginCommand(ctx, `install ${source}`)).toEqual({
+      kind: 'success', text: 'Plugin demo-plugin enabled.',
+    })
+    expect((await plugins.list()).plugins[0]?.enabled).toBe(true)
+    expect(await pluginCommand(ctx, 'install demo-plugin')).toEqual({
+      kind: 'success', text: 'Plugin demo-plugin enabled.',
+    })
+    await pluginCommand(ctx, 'remove demo-plugin')
+
+    const inventory = fakeInventory([{ source: catalogRoot, status: 'ready', enabled: true }])
+    ctx.provide('pluginInventory' as never, inventory as never)
+    expect(await pluginCommand(ctx, 'install demo-plugin@missing')).toEqual({
+      kind: 'error', text: 'plugin runtime: unknown marketplace missing',
+    })
+    expect(await pluginCommand(ctx, `install demo-plugin@${catalogRoot}`)).toEqual({
+      kind: 'success', text: 'Plugin demo-plugin enabled.',
+    })
+    await pluginCommand(ctx, 'remove demo-plugin')
+    expect(await pluginCommand(ctx, 'install demo-plugin')).toEqual({
+      kind: 'success', text: 'Plugin demo-plugin enabled.',
+    })
+  })
+
+  it('resolves marketplace names, rejects ambiguous keys, and enables a unique catalog entry', async () => {
+    const catalogRoot = await catalog('command-install-key-catalog')
+    const { ctx } = await runtime(await temp('command-install-key-home'))
+    ctx.provide('pluginInventory' as never, fakeInventory([
+      { source: 'https://github.com/example-labs/toolkit.git', status: 'ready', enabled: true },
+      { source: 'https://github.com/other/toolkit.git', status: 'ready', enabled: true },
+    ]) as never)
+    expect(await pluginCommand(ctx, 'install demo-plugin@toolkit')).toEqual({
+      kind: 'error', text: 'plugin runtime: marketplace toolkit matches multiple sources',
+    })
+    expect(await pluginCommand(ctx, 'install demo-plugin')).toEqual({
+      kind: 'error', text: 'plugin runtime: imported plugin demo-plugin is not installed',
+    })
+
+    const single = await runtime(await temp('command-install-unique-home'))
+    single.ctx.provide('pluginInventory' as never, fakeInventory([
+      { source: catalogRoot, status: 'ready', enabled: true },
+    ]) as never)
+    expect(await pluginCommand(single.ctx, 'install demo-plugin')).toEqual({
+      kind: 'success', text: 'Plugin demo-plugin enabled.',
+    })
+  })
+
+  it('treats Git URLs and scp sources as explicit install sources and maps an empty import', async () => {
+    const pluginRoot = await temp('command-git-plugin')
+    await plugin(pluginRoot)
+    execFileMock.mockImplementation((_command, args, _options, callback) => {
+      void cp(pluginRoot, String(args.at(-1)), { recursive: true }).then(
+        () => { callback(null, '', '') },
+        (error: unknown) => { callback(error as Error, '', '') },
+      )
+    })
+    const { ctx, plugins } = await runtime(await temp('command-git-home'))
+    expect(await pluginCommand(ctx, 'install https://example.test/demo.git')).toEqual({
+      kind: 'success', text: 'Plugin demo-plugin enabled.',
+    })
+    await plugins.remove((await plugins.list()).plugins[0]!.identity)
+    expect(await pluginCommand(ctx, 'install owner/demo')).toEqual({
+      kind: 'success', text: 'Plugin demo-plugin enabled.',
+    })
+    await plugins.remove((await plugins.list()).plugins[0]!.identity)
+    expect(await pluginCommand(ctx, 'install git@github.com:owner/demo.git')).toEqual({
+      kind: 'success', text: 'Plugin demo-plugin enabled.',
+    })
+    await plugins.remove((await plugins.list()).plugins[0]!.identity)
+    expect(await pluginCommand(ctx, 'install owner\\demo')).toMatchObject({ kind: 'error' })
+
+    vi.spyOn(plugins, 'import').mockResolvedValueOnce({ plugins: [] })
+    expect(await pluginCommand(ctx, `install ${pluginRoot}`)).toEqual({
+      kind: 'error', text: 'plugin runtime: import produced no plugin',
+    })
+  })
+
+  it('rejects an unknown marketplace name when inventory is absent', async () => {
+    const { ctx } = await runtime(await temp('command-unknown-marketplace-home'))
+    expect(await pluginCommand(ctx, 'install demo-plugin@toolkit')).toEqual({
+      kind: 'error', text: 'plugin runtime: unknown marketplace toolkit',
+    })
+    expect(await pluginCommand(ctx, 'install demo-plugin')).toEqual({
+      kind: 'error', text: 'plugin runtime: imported plugin demo-plugin is not installed',
+    })
   })
 })

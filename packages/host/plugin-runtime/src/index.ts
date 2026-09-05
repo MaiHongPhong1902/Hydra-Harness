@@ -55,6 +55,23 @@ const COMMAND_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u
 // oxlint-disable-next-line @stylistic/max-len
 const VERSION = /^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/u
 const GITHUB_SHORTHAND = /^([A-Za-z0-9][A-Za-z0-9._-]*)\/([A-Za-z0-9][A-Za-z0-9._-]*)$/u
+const SCP_GIT_SOURCE = /^[A-Za-z0-9._-]+@[A-Za-z0-9.-]+:[A-Za-z0-9._~/-]+$/u
+const PLUGIN_COMMAND_HINT = '[list|import <folder-or-git-source>|install <plugin[@marketplace]|folder-or-git-source>|marketplace add <folder-or-git-source>|marketplace list|marketplace remove <source>|info <name>|enable <name>|disable <name>|trust <name>|untrust <name>|remove <name>]'
+
+/** Optional Host inventory used by `/plugin marketplace` without a package dependency. */
+interface MarketplaceInventory {
+  addMarketplace(request: { source: string }): Promise<MarketplaceList>
+  listMarketplaces(): Promise<MarketplaceList>
+  removeMarketplace(source: string): Promise<MarketplaceList>
+}
+
+interface MarketplaceList {
+  readonly marketplaces: readonly {
+    readonly source: string
+    readonly status?: string
+    readonly enabled?: boolean
+  }[]
+}
 
 interface HookDefinition {
   readonly label: string
@@ -286,8 +303,8 @@ export class PluginStore {
       await this.writeRegistry(registry)
       const cache = join(this.cacheRoot, entry.source.sourceId, entry.name)
       const data = join(this.dataRoot, entry.source.sourceId, entry.name)
-      await assertStoreDescendant(this.cacheRoot, cache)
-      await assertStoreDescendant(this.dataRoot, data)
+      assertStoreDescendant(this.cacheRoot, cache)
+      assertStoreDescendant(this.dataRoot, data)
       await rm(cache, { recursive: true, force: true })
       await rm(data, { recursive: true, force: true })
       return entry
@@ -434,7 +451,7 @@ export class ImportedPluginRuntime extends Service {
     this.ctx.commands.register({
       name: 'plugin',
       description: 'Manage imported OpenAI/Codex-compatible plugin bundles',
-      input: { hint: '[list|import <folder-or-git-source>|info <name>|enable <name>|disable <name>|trust <name>|untrust <name>|remove <name>]' },
+      input: { hint: PLUGIN_COMMAND_HINT },
       handler: async ({ rawInput }) => this.command(rawInput),
     })
     const entries = await this.store.list()
@@ -607,8 +624,10 @@ export class ImportedPluginRuntime extends Service {
     component.skillDispose?.()
     for (const dispose of [...component.commandDisposes].reverse()) dispose()
     const fibers = [...component.mcpFibers.values(), component.hookFiber].filter((fiber): fiber is Fiber => fiber !== undefined)
-    for (const fiber of fibers) fiber.dispose()
-    await Promise.all(fibers.map(async (fiber) => { await fiber.await().catch(() => {}) }))
+    for (const fiber of fibers) void fiber.dispose()
+    await Promise.all(fibers.map(async (fiber) => {
+      await fiber.await().catch(() => {})
+    }))
     this.startup.delete(identity)
   }
 
@@ -621,7 +640,7 @@ export class ImportedPluginRuntime extends Service {
       const skillDispose = this.registerSkills(identity, loaded.skills)
       if (skillDispose !== undefined) component.skillDispose = skillDispose
       this.registerCommands(identity, loaded.commands, component.commandDisposes)
-      await this.startMcp(identity, entry, loaded, component)
+      this.startMcp(identity, entry, loaded, component)
       if (loaded.hookDigest !== undefined && entry.hookTrustDigest === loaded.hookDigest) {
         component.hookFiber = await this.startHooks(identity, entry, loaded)
       }
@@ -640,20 +659,22 @@ export class ImportedPluginRuntime extends Service {
     if (skills.length === 0) return undefined
     return this.ctx.skills.registerProvider((): SkillProvider => ({
       name: `codex-plugin:${identity}`,
-      list: async (_options: SkillLookupOptions): Promise<SkillCandidate[]> => skills.map(skill => ({
-        name: qualifiedSkillName(identity, skill.rawName),
-        aliases: [skill.rawName],
-        description: skill.description,
-        ...skill.whenToUse === undefined ? {} : { whenToUse: skill.whenToUse },
-        invocation: { modelInvocable: true, userInvocable: true },
-        source: `codex-plugin:${identity}`,
-        provider: `codex-plugin:${identity}`,
-        rank: BUNDLED_SKILL_RANK,
-        locator: skill,
-        path: skill.path,
-        resourceBase: { kind: 'directory', path: skill.directory },
-        metadata: { pluginIdentity: identity, skillName: skill.rawName },
-      })),
+      list: (_options: SkillLookupOptions): Promise<SkillCandidate[]> => {
+        return Promise.resolve(skills.map(skill => ({
+          name: qualifiedSkillName(identity, skill.rawName),
+          aliases: [skill.rawName],
+          description: skill.description,
+          ...skill.whenToUse === undefined ? {} : { whenToUse: skill.whenToUse },
+          invocation: { modelInvocable: true, userInvocable: true },
+          source: `codex-plugin:${identity}`,
+          provider: `codex-plugin:${identity}`,
+          rank: BUNDLED_SKILL_RANK,
+          locator: skill,
+          path: skill.path,
+          resourceBase: { kind: 'directory', path: skill.directory },
+          metadata: { pluginIdentity: identity, skillName: skill.rawName },
+        })))
+      },
       get: async (candidate: SkillCandidate): Promise<SkillDefinition | undefined> => {
         const skill = candidate.locator as LoadedSkill
         const content = stripFrontmatter(await readFile(skill.path, 'utf8'))
@@ -695,12 +716,12 @@ export class ImportedPluginRuntime extends Service {
     }
   }
 
-  private async startMcp(
+  private startMcp(
     identity: string,
     entry: StoredPlugin,
     loaded: LoadedPlugin,
     component: RuntimeComponent,
-  ): Promise<void> {
+  ): void {
     const states = new Map<string, ImportedMcpServerSnapshot['startupState']>()
     this.startup.set(identity, states)
     for (const server of loaded.mcp) {
@@ -827,6 +848,96 @@ export class ImportedPluginRuntime extends Service {
     return await next()
   }
 
+  private marketplaceInventory(): MarketplaceInventory | undefined {
+    // Cross-plugin lookup: the inventory service lives in another composition
+    // plane, so the Context merge cannot type it here.
+    const inventory: unknown = this.ctx.get('pluginInventory')
+    return inventory === undefined || inventory === null ? undefined : inventory as MarketplaceInventory
+  }
+
+  private requireMarketplaceInventory(): MarketplaceInventory {
+    const inventory = this.marketplaceInventory()
+    if (inventory === undefined) throw new Error('plugin runtime: plugin inventory is unavailable')
+    return inventory
+  }
+
+  private async resolveMarketplace(name: string): Promise<string> {
+    const trimmed = name.trim()
+    if (isExplicitSource(trimmed)) return trimmed
+    const inventory = this.marketplaceInventory()
+    if (inventory === undefined) throw new Error(`plugin runtime: unknown marketplace ${trimmed}`)
+    const { marketplaces } = await inventory.listMarketplaces()
+    const key = marketplaceRepoKey(trimmed)
+    const matches = marketplaces.filter(entry => entry.source === trimmed || marketplaceRepoKey(entry.source) === key)
+    if (matches.length === 1) return matches[0]?.source ?? trimmed
+    if (matches.length > 1) throw new Error(`plugin runtime: marketplace ${trimmed} matches multiple sources`)
+    throw new Error(`plugin runtime: unknown marketplace ${trimmed}`)
+  }
+
+  private async marketplaceCommand(input: string): Promise<CommandResult> {
+    const [verb, ...rest] = input.split(/\s+/u).filter(part => part !== '')
+    const argument = rest.join(' ')
+    switch (verb) {
+      case 'add': {
+        if (argument === '') return usage()
+        const inventory = this.marketplaceInventory()
+        if (inventory === undefined) {
+          await this.import(argument)
+          return { kind: 'success', text: 'Plugin imported. It is disabled until explicitly enabled.' }
+        }
+        await inventory.addMarketplace({ source: argument })
+        return { kind: 'success', text: 'Marketplace added. Install a plugin with /plugin install <name>@<marketplace>.' }
+      }
+      case 'list': {
+        const { marketplaces } = await this.requireMarketplaceInventory().listMarketplaces()
+        return {
+          kind: 'success',
+          text: marketplaces.length === 0
+            ? 'No plugin marketplaces.'
+            : marketplaces.map(entry => `${entry.source} ${entry.status ?? 'ready'}${entry.enabled === false ? ' disabled' : ''}`).join('\n'),
+        }
+      }
+      case 'remove': {
+        if (argument === '') return usage()
+        await this.requireMarketplaceInventory().removeMarketplace(await this.resolveMarketplace(argument))
+        return { kind: 'success', text: 'Marketplace removed.' }
+      }
+      default:
+        return usage()
+    }
+  }
+
+  private async installCommand(argument: string): Promise<CommandResult> {
+    if (argument === '') return usage()
+    const qualified = /^([A-Za-z0-9][A-Za-z0-9._-]{0,99})@(.+)$/u.exec(argument)
+    let request: PluginImportSource
+    if (isExplicitSource(argument)) {
+      request = argument
+    } else if (qualified !== null) {
+      const marketplace = qualified[2]
+      const plugin = qualified[1]
+      if (marketplace === undefined || plugin === undefined) return usage()
+      request = { source: await this.resolveMarketplace(marketplace), plugin }
+    } else {
+      const entries = [...await this.store.list()].filter(([, entry]) => entry.name === argument)
+      if (entries.length === 1) {
+        const [entryId] = entries[0] ?? []
+        if (entryId === undefined) return usage()
+        await this.enable(entryId)
+        return { kind: 'success', text: `Plugin ${argument} enabled.` }
+      }
+      const inventory = this.marketplaceInventory()
+      const marketplaces = inventory === undefined ? [] : (await inventory.listMarketplaces()).marketplaces
+      if (marketplaces.length !== 1) throw new Error(`plugin runtime: imported plugin ${argument} is not installed`)
+      request = { source: marketplaces[0]?.source ?? '', plugin: argument }
+    }
+    const snapshot = await this.import(request)
+    const name = snapshot.plugins[0]?.name
+    if (name === undefined) throw new Error('plugin runtime: import produced no plugin')
+    await this.enable(name)
+    return { kind: 'success', text: `Plugin ${name} enabled.` }
+  }
+
   private async command(rawInput: string): Promise<CommandResult> {
     const input = rawInput.trim()
     if (input === '' || input === 'list') {
@@ -843,6 +954,10 @@ export class ImportedPluginRuntime extends Service {
           if (argument === '') return usage()
           await this.import(argument)
           return { kind: 'success', text: 'Plugin imported. It is disabled until explicitly enabled.' }
+        case 'install':
+          return await this.installCommand(argument)
+        case 'marketplace':
+          return await this.marketplaceCommand(argument)
         case 'info': return argument === '' ? usage() : { kind: 'success', text: renderInfo(await this.info(argument)) }
         case 'enable': if (argument === '') return usage(); await this.enable(argument); return { kind: 'success', text: 'Plugin enabled.' }
         case 'disable': if (argument === '') return usage(); await this.disable(argument); return { kind: 'success', text: 'Plugin disabled and unloaded.' }
@@ -865,7 +980,21 @@ export const name = 'plugin-runtime'
 export default ImportedPluginRuntime
 
 function usage(): CommandResult {
-  return { kind: 'error', text: 'Usage: /plugin [list|import <folder-or-git-source>|info <name>|enable <name>|disable <name>|trust <name>|untrust <name>|remove <name>]' }
+  return { kind: 'error', text: `Usage: /plugin ${PLUGIN_COMMAND_HINT}` }
+}
+
+function isExplicitSource(value: string): boolean {
+  if (GITHUB_SHORTHAND.test(value) || SCP_GIT_SOURCE.test(value)) return true
+  if (/^[A-Za-z][A-Za-z0-9+.-]*:\/\//u.test(value) || isAbsolute(value)) return true
+  return !value.includes('@') && (value.includes('/') || value.includes('\\'))
+}
+
+function marketplaceRepoKey(source: string): string {
+  const withoutGit = source.replace(/\.git$/iu, '')
+  const parts = withoutGit.split(/[/\\:]/u).filter(part => part.length > 0)
+  const last = parts.at(-1)
+  /* v8 ignore next -- persisted marketplace sources always retain a host or path segment */
+  return (last ?? source).toLowerCase()
 }
 
 function renderInfo(plugin: ImportedPluginEntry): string {
@@ -988,7 +1117,13 @@ function runGit(cwd: string, args: string[], ref: string | undefined): Promise<v
   return new Promise((resolvePromise, reject) => {
     execFile('git', ['-c', 'protocol.ext.allow=never', '-c', 'protocol.file.allow=never', ...cloneArgs], {
       cwd, env, timeout: GIT_TIMEOUT_MS, maxBuffer: MAX_MARKETPLACE_BYTES, windowsHide: true,
-    }, error => error === null ? resolvePromise() : reject(new Error('plugin runtime: Git import failed', { cause: error })))
+    }, (error) => {
+      if (error === null) {
+        resolvePromise()
+      } else {
+        reject(new Error('plugin runtime: Git import failed', { cause: error }))
+      }
+    })
   })
 }
 
@@ -1121,10 +1256,7 @@ function validateManifestPaths(manifest: Record<string, unknown>): void {
     if (typeof ui[key] === 'string') assertRelativePluginPath(ui[key], `manifest interface.${key}`)
   }
   if (ui.screenshots !== undefined) {
-    if (!Array.isArray(ui.screenshots) || ui.screenshots.some(path => typeof path !== 'string')) {
-      throw new Error('plugin runtime: manifest interface.screenshots must be a string array')
-    }
-    for (const path of ui.screenshots) assertRelativePluginPath(path, 'manifest interface.screenshots')
+    for (const path of stringArray(ui.screenshots, 'manifest interface.screenshots')) assertRelativePluginPath(path, 'manifest interface.screenshots')
   }
 }
 
@@ -1260,7 +1392,9 @@ function mergeHookDefinitions(definitions: readonly HookDefinition[]): Record<st
     const source = isRecord(definition.raw.hooks) ? definition.raw.hooks : definition.raw
     for (const [event, groups] of Object.entries(source)) {
       if (!Array.isArray(groups)) continue
-      hooks[event] = [...hooks[event] ?? [], ...groups]
+      // Array.isArray narrows the entry value to any[]; re-root it in unknown
+      // before spreading so the stored hook group keeps a checked type.
+      hooks[event] = [...hooks[event] ?? [], ...(groups as unknown[])]
     }
   }
   return { hooks }
@@ -1339,7 +1473,7 @@ async function existingInside(root: string, path: string, label: string): Promis
   return actual
 }
 
-async function assertStoreDescendant(root: string, path: string): Promise<void> {
+function assertStoreDescendant(root: string, path: string): void {
   if (!isInside(resolve(root), resolve(path))) throw new Error('plugin runtime: refusing to remove outside the plugin store')
 }
 
@@ -1384,8 +1518,11 @@ function record(value: unknown, label: string): Record<string, unknown> {
   return value
 }
 function stringArray(value: unknown, label: string): string[] {
-  if (!Array.isArray(value) || value.some(item => typeof item !== 'string')) throw new Error(`plugin runtime: ${label} must be a string array`)
-  return [...value]
+  // Validate against unknown[] first: Array.isArray on unknown yields any[],
+  // whose spread/index would leak any into the returned strings.
+  const items: unknown[] = Array.isArray(value) ? value : []
+  if (!Array.isArray(value) || items.some(item => typeof item !== 'string')) throw new Error(`plugin runtime: ${label} must be a string array`)
+  return items.filter((item): item is string => typeof item === 'string')
 }
 function stringRecord(value: unknown, label: string): Record<string, string> {
   if (value === undefined) return {}
@@ -1411,5 +1548,8 @@ async function exists(path: string): Promise<boolean> {
 function stableJson(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(stableJson).join(',')}]`
   if (isRecord(value)) return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(',')}}`
+  // JSON.stringify returns undefined for functions/symbols at runtime even
+  // though its type says string; fall back to null like JSON does.
+  /* oxlint-disable-next-line typescript/no-unnecessary-condition -- load-bearing: stringify returns undefined for function/symbol leaves */
   return JSON.stringify(value) ?? 'null'
 }

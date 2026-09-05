@@ -75,6 +75,12 @@ export function MarketplaceSettingsTab({
   const [sparsePaths, setSparsePaths] = useState('')
   const [pluginName, setPluginName] = useState('')
   const [adding, setAdding] = useState(false)
+  /**
+   * The source this dialog already persisted, when a later import failed. It
+   * keeps a retry from re-adding a record the Host stores, and it is what the
+   * import notice reports as saved.
+   */
+  const [savedSource, setSavedSource] = useState<string>()
   const [removing, setRemoving] = useState<string>()
   const [toggling, setToggling] = useState<string>()
   const [mutationFailure, setMutationFailure] = useState<MutationFailure>()
@@ -100,9 +106,17 @@ export function MarketplaceSettingsTab({
     setGitRef('')
     setSparsePaths('')
     setPluginName('')
+    setSavedSource(undefined)
     setMutationFailure(undefined)
   }
 
+  /**
+   * Add the source, then import the named plugin when one was named. The two
+   * are separate steps because the first one is what a marketplace record is:
+   * the source stays saved when the import fails, and `savedSource` records
+   * that, so retrying imports again rather than re-adding a source the Host
+   * already stores. Leaving the plugin name blank adds the source alone.
+   */
   const add = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault()
     const normalizedSource = source.trim()
@@ -116,22 +130,31 @@ export function MarketplaceSettingsTab({
     }
     setAdding(true)
     setMutationFailure(undefined)
-    void addMarketplace(request).then(
-      async (snapshot) => {
-        setState({ status: 'ready', snapshot })
-        await importedPlugins.import({
-          source: normalizedSource,
-          ...(normalizedGitRef === '' ? {} : { ref: normalizedGitRef }),
-          ...(normalizedPluginName === '' ? {} : { plugin: normalizedPluginName }),
-        })
-        setSource('')
-        setGitRef('')
-        setSparsePaths('')
-        setPluginName('')
-        setAddOpen(false)
+    const saveSource = async (): Promise<void> => {
+      if (savedSource === normalizedSource) return
+      setState({ status: 'ready', snapshot: await addMarketplace(request) })
+      setSavedSource(normalizedSource)
+    }
+    void saveSource().then(
+      async () => {
+        if (normalizedPluginName !== '') {
+          try {
+            await importedPlugins.import({
+              source: normalizedSource,
+              ...(normalizedGitRef === '' ? {} : { ref: normalizedGitRef }),
+              plugin: normalizedPluginName,
+            })
+          } catch (_marketplacePluginImportFailed) {
+            // The source is stored either way; the notice says so, and the
+            // dialog stays open so the plugin name can be corrected.
+            setMutationFailure('import')
+            return
+          }
+        }
+        closeAdd()
       },
       (error: unknown) => { setMutationFailure(isMissingMarketplaceCatalog(error) ? 'missing-catalog' : 'add') },
-    ).catch(() => { setMutationFailure('import') }).finally(() => { setAdding(false) })
+    ).finally(() => { setAdding(false) })
   }
 
   const busy = adding || removing !== undefined || toggling !== undefined
@@ -292,7 +315,7 @@ export function MarketplaceSettingsTab({
             id="marketplace-plugin-name"
             type="text"
             value={pluginName}
-            placeholder="ponytail"
+            placeholder="toolkit"
             disabled={adding}
             onChange={(event) => { setPluginName(event.currentTarget.value) }}
           />

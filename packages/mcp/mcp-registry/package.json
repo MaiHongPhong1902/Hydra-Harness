@@ -1,0 +1,59 @@
+{
+  "name": "@bosch/bh-mcp-registry",
+  "description": "Settings-backed MCP server records that mount and unmount mcp-client fibers",
+  "version": "0.1.1-rc.1",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bosch/bosch-harness.git",
+    "directory": "packages/mcp/mcp-registry"
+  },
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./invariant": {
+      "types": "./lib/types/invariant.d.ts",
+      "default": "./lib/invariant.js"
+    },
+    "./types": {
+      "types": "./lib/types/types.d.ts",
+      "default": "./lib/types/types.js"
+    },
+    "./src/*": "./src/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/invariant.js",
+    "lib/types/**/*.js",
+    "lib/types/**/*.d.ts"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "@bosch/bh-invariants": "workspace:^",
+    "@bosch/bh-mcp-client": "workspace:^",
+    "@bosch/bh-settings": "workspace:^",
+    "@bosch/bh-tools": "workspace:^",
+    "@bosch/cordis": "workspace:^"
+  },
+  "dependencies": {
+    "@bosch/schemastery": "workspace:^"
+  },
+  "devDependencies": {
+    "@bosch/bh-invariants": "workspace:^",
+    "@bosch/bh-mcp-client": "workspace:^",
+    "@bosch/bh-settings": "workspace:^",
+    "@bosch/bh-settings-file": "workspace:^",
+    "@bosch/bh-tools": "workspace:^",
+    "@bosch/cordis": "workspace:^",
+    "@bosch/cordis-plugin-loader": "workspace:^",
+    "@modelcontextprotocol/sdk": "^1.12.0"
+  }
+}

@@ -22,6 +22,25 @@ export type {
   PluginMarketplaceSnapshot,
   SetPluginMarketplaceEnablementRequest,
 } from '@bosch/bh-host-plugin-inventory/types'
+// The user's own MCP and hook records: the inventory gateway publishes their
+// Remotes, and each registry package owns the payload vocabulary.
+export type {
+  McpServerDefinitionRequest,
+  McpServerEnablementRequest,
+  McpServerSnapshot,
+  McpServerStatus,
+  McpServerTransport,
+  McpServerView,
+} from '@bosch/bh-mcp-registry/types'
+export type {
+  HookDialect,
+  HookRecordDefinitionRequest,
+  HookRecordEnablementRequest,
+  HookRecordSnapshot,
+  HookRecordStatus,
+  HookRecordView,
+  HookSourceKind,
+} from '@bosch/bh-hooks-registry/types'
 export type {} from '@bosch/bh-commands/remote'
 export type {} from '@bosch/bh-file-reference/remote'
 export type {} from '@bosch/bh-goal/remote'

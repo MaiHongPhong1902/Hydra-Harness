@@ -823,6 +823,22 @@ export interface Config {
 
 Source: [`packages/hooks/hooks-codex/src/index.ts:44`](../packages/hooks/hooks-codex/src/index.ts)
 
+<a id="boschbh-hooks-registry"></a>
+
+## `@bosch/bh-hooks-registry`
+
+Requires: `settings` · `shell`
+
+```ts config-catalog
+/** Registry configuration. */
+export interface Config {
+  /** Override the resolved harness home that holds materialized inline documents. */
+  bhHome?: string
+}
+```
+
+Source: [`packages/hooks/hooks-registry/src/index.ts:54`](../packages/hooks/hooks-registry/src/index.ts)
+
 <a id="boschbh-host-apiproxy"></a>
 
 ## `@bosch/bh-host-apiproxy`
@@ -903,7 +919,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/host/plugin-inventory/src/index.ts:309`](../packages/host/plugin-inventory/src/index.ts)
+Source: [`packages/host/plugin-inventory/src/index.ts:315`](../packages/host/plugin-inventory/src/index.ts)
 
 <a id="boschbh-host-webserver"></a>
 
@@ -1593,7 +1609,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/host/plugin-runtime/src/index.ts:39`](../packages/host/plugin-runtime/src/index.ts)
+Source: [`packages/host/plugin-runtime/src/index.ts:41`](../packages/host/plugin-runtime/src/index.ts)
 
 <a id="boschbh-pwsh-local"></a>
 
@@ -2064,7 +2080,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/skill/skill/src/index.ts:280`](../packages/skill/skill/src/index.ts)
+Source: [`packages/skill/skill/src/index.ts:283`](../packages/skill/skill/src/index.ts)
 
 <a id="boschbh-skill-filesystem"></a>
 
@@ -2863,7 +2879,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/fs/tool-str-replace-editor/src/index.ts:497`](../packages/fs/tool-str-replace-editor/src/index.ts)
+Source: [`packages/fs/tool-str-replace-editor/src/index.ts:505`](../packages/fs/tool-str-replace-editor/src/index.ts)
 
 <a id="boschbh-tool-subagent"></a>
 
@@ -3358,6 +3374,7 @@ These load from a `cordis.yml` entry with no `config:` block; they declare no co
 - `@bosch/bh-host-directory-picker-native` ([`packages/host/directory-picker-native/src/index.ts`](../packages/host/directory-picker-native/src/index.ts))
 - `@bosch/bh-llm` ([`packages/llm/llm/src/index.ts`](../packages/llm/llm/src/index.ts))
 - `@bosch/bh-lsp` ([`packages/lsp/lsp/src/index.ts`](../packages/lsp/lsp/src/index.ts))
+- `@bosch/bh-mcp-registry` — requires `settings` · `tools` ([`packages/mcp/mcp-registry/src/index.ts`](../packages/mcp/mcp-registry/src/index.ts))
 - `@bosch/bh-personalization` — requires `systemPrompt` ([`packages/context/personalization/src/index.ts`](../packages/context/personalization/src/index.ts))
 - `@bosch/bh-schedule` — requires `agents` · `sessions` · `tools` · `sessionPersistence` ([`packages/schedule/schedule/src/index.ts`](../packages/schedule/schedule/src/index.ts))
 - `@bosch/bh-session` ([`packages/core/session/src/index.ts`](../packages/core/session/src/index.ts))

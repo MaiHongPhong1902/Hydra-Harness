@@ -15,6 +15,12 @@ import { TypertRemoteService, Remote } from '@bosch/bh-typert-protocol'
 import type {
   ImportedPluginEntry, ImportedPluginRuntime, ImportedPluginSnapshot, PluginImportSource,
 } from '@bosch/bh-plugin-runtime'
+import type {
+  HookRecordDefinitionRequest, HookRecordEnablementRequest, HookRecordRegistry, HookRecordSnapshot,
+} from '@bosch/bh-hooks-registry'
+import type {
+  McpServerDefinitionRequest, McpServerEnablementRequest, McpServerRegistry, McpServerSnapshot,
+} from '@bosch/bh-mcp-registry'
 import z from '@bosch/schemastery'
 import { z as zod } from 'zod'
 import type {
@@ -69,7 +75,7 @@ const MAX_MARKETPLACE_SPARSE_PATH_LENGTH = 512
 const GITHUB_SHORTHAND_PATTERN = /^([A-Za-z0-9][A-Za-z0-9._-]*)\/([A-Za-z0-9][A-Za-z0-9._-]*)$/u
 const MarketplaceDocumentSchema = zod.object({
   plugins: zod.array(zod.record(zod.string(), zod.unknown())).max(500),
-}).passthrough()
+}).loose()
 
 type MarketplaceDocument = zod.infer<typeof MarketplaceDocumentSchema>
 
@@ -271,7 +277,7 @@ async function loadMarketplace(request: AddPluginMarketplaceRequest | Marketplac
     return { source, document: await readMarketplaceDocument(source.source) }
   }
 
-  // ponytail: temporary shallow clones avoid cache invalidation; add snapshots if list latency becomes material.
+  // Temporary shallow clones avoid cache invalidation; add snapshots if list latency becomes material.
   const tempRoot = await mkdtemp(join(tmpdir(), 'bh-marketplace-'))
   const checkout = join(tempRoot, 'repository')
   try {
@@ -686,13 +692,20 @@ export class PluginInventoryGateway extends TypertRemoteService {
     })
   }
 
-  /** @returns OpenAI/Codex marketplace sources in persisted order. */
+  /**
+   * Project every persisted OpenAI/Codex marketplace source.
+   * @returns OpenAI/Codex marketplace sources in persisted order.
+   */
   @Remote('listMarketplaces')
   listMarketplaces(): Promise<PluginMarketplaceSnapshot> {
     return this.marketplaceSnapshot()
   }
 
-  /** @returns The refreshed OpenAI/Codex marketplace source list. */
+  /**
+   * Persist one validated OpenAI/Codex marketplace source, replacing any source of the same location.
+   * @param request - marketplace location with its optional Git ref and sparse paths.
+   * @returns The refreshed OpenAI/Codex marketplace source list.
+   */
   @Remote('addMarketplace')
   addMarketplace(request: AddPluginMarketplaceRequest): Promise<PluginMarketplaceSnapshot> {
     return this.enqueue(async () => {
@@ -708,7 +721,11 @@ export class PluginInventoryGateway extends TypertRemoteService {
     })
   }
 
-  /** Enable or disable one marketplace slot, cascading to its imported plugins. */
+  /**
+   * Enable or disable one marketplace slot, cascading to its imported plugins.
+   * @param request - marketplace source and its desired enablement.
+   * @returns The refreshed OpenAI/Codex marketplace source list.
+   */
   @Remote('setMarketplaceEnabled')
   setMarketplaceEnabled(request: SetPluginMarketplaceEnablementRequest): Promise<PluginMarketplaceSnapshot> {
     return this.enqueue(async () => {
@@ -727,7 +744,11 @@ export class PluginInventoryGateway extends TypertRemoteService {
     })
   }
 
-  /** Remove one persisted OpenAI/Codex marketplace source and uninstall its imported plugins. */
+  /**
+   * Remove one persisted OpenAI/Codex marketplace source and uninstall its imported plugins.
+   * @param source - the persisted marketplace location to delete.
+   * @returns The refreshed OpenAI/Codex marketplace source list.
+   */
   @Remote('removeMarketplace')
   removeMarketplace(source: string): Promise<PluginMarketplaceSnapshot> {
     return this.enqueue(async () => {
@@ -815,7 +836,11 @@ export class PluginInventoryGateway extends TypertRemoteService {
     return this.importedPlugins().disable(identityOrName)
   }
 
-  /** Change one imported plugin MCP server without changing hook trust. */
+  /**
+   * Change one imported plugin MCP server without changing hook trust.
+   * @param request - plugin identity, server name, and desired enablement.
+   * @returns Current imported-plugin projection.
+   */
   @Remote('setPluginMcpServerEnabled')
   setPluginMcpServerEnabled(
     request: ImportedPluginMcpServerEnablementRequest,
@@ -853,15 +878,107 @@ export class PluginInventoryGateway extends TypertRemoteService {
     return this.importedPlugins().remove(identityOrName)
   }
 
+  /**
+   * List the user's own MCP server records with their live state.
+   * @returns Current MCP record projection.
+   */
+  @Remote('listMcpServers')
+  listMcpServers(): Promise<McpServerSnapshot> {
+    return Promise.resolve(this.mcpServers().list())
+  }
+
+  /**
+   * Store one complete MCP server definition and converge its mount.
+   * @param request - Complete server definition.
+   * @returns Refreshed MCP record projection.
+   */
+  @Remote('defineMcpServer')
+  defineMcpServer(request: McpServerDefinitionRequest): Promise<McpServerSnapshot> {
+    return this.mcpServers().define(request)
+  }
+
+  /**
+   * Change one MCP record's desired state without touching its definition.
+   * @param request - Target record and desired state.
+   * @returns Refreshed MCP record projection.
+   */
+  @Remote('setMcpServerEnabled')
+  setMcpServerEnabled(request: McpServerEnablementRequest): Promise<McpServerSnapshot> {
+    return this.mcpServers().setEnabled(request)
+  }
+
+  /**
+   * Remove one MCP record and unmount its server.
+   * @param name - Stored record name.
+   * @returns Refreshed MCP record projection.
+   */
+  @Remote('removeMcpServer')
+  removeMcpServer(name: string): Promise<McpServerSnapshot> {
+    return this.mcpServers().remove(name)
+  }
+
+  /**
+   * List the user's own hook records with their live state.
+   * @returns Current hook record projection.
+   */
+  @Remote('listHookRecords')
+  listHookRecords(): Promise<HookRecordSnapshot> {
+    return Promise.resolve(this.hookRecords().list())
+  }
+
+  /**
+   * Store one complete hook record definition and converge its bridge mount.
+   * @param request - Complete record definition.
+   * @returns Refreshed hook record projection.
+   */
+  @Remote('defineHookRecord')
+  defineHookRecord(request: HookRecordDefinitionRequest): Promise<HookRecordSnapshot> {
+    return this.hookRecords().define(request)
+  }
+
+  /**
+   * Change one hook record's desired state without touching its definition.
+   * @param request - Target record and desired state.
+   * @returns Refreshed hook record projection.
+   */
+  @Remote('setHookRecordEnabled')
+  setHookRecordEnabled(request: HookRecordEnablementRequest): Promise<HookRecordSnapshot> {
+    return this.hookRecords().setEnabled(request)
+  }
+
+  /**
+   * Remove one hook record and unmount its bridge.
+   * @param name - Stored record name.
+   * @returns Refreshed hook record projection.
+   */
+  @Remote('removeHookRecord')
+  removeHookRecord(name: string): Promise<HookRecordSnapshot> {
+    return this.hookRecords().remove(name)
+  }
+
   private importedPlugins(): ImportedPluginRuntime {
-    const runtime = this.ctx.get('importedPlugins') as ImportedPluginRuntime | undefined
+    const runtime = this.ctx.get('importedPlugins')
     if (runtime === undefined) throw new Error('pluginInventory: imported plugin runtime is unavailable')
     return runtime
   }
 
+  /** The MCP record registry is optional in compositions without user MCP servers. */
+  private mcpServers(): McpServerRegistry {
+    const registry = this.ctx.get('mcpServers')
+    if (registry === undefined) throw new Error('pluginInventory: MCP server registry is unavailable')
+    return registry
+  }
+
+  /** The hook record registry is optional in compositions without user hooks. */
+  private hookRecords(): HookRecordRegistry {
+    const registry = this.ctx.get('hookRecords')
+    if (registry === undefined) throw new Error('pluginInventory: hook record registry is unavailable')
+    return registry
+  }
+
   /** Agent-preset ownership is optional in headless and non-roster compositions. */
   private agentPresets(): AgentPresetPluginControls | undefined {
-    return this.ctx.get('agentPresets') as AgentPresetPluginControls | undefined
+    return this.ctx.get('agentPresets')
   }
 }
 

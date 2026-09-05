@@ -49,7 +49,9 @@ async function forwardingProxy(): Promise<{ url: string; requests: string[] }> {
 afterEach(async () => {
   vi.unstubAllEnvs()
   await closeMockServers()
-  await Promise.all(proxyServers.splice(0).map(server => new Promise<void>(resolve => server.close(() => resolve()))))
+  await Promise.all(proxyServers.splice(0).map(server => new Promise<void>((resolve) => {
+    server.close(() => { resolve() })
+  })))
 })
 
 const IMAGE_REF: ImageAttachmentRef = {

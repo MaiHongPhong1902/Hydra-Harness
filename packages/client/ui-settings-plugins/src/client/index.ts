@@ -22,9 +22,10 @@ import type {} from '@bosch/bh-api-remotes/client'
 import { AgentLoopCard } from './AgentLoopCard.tsx'
 import { BashCard } from './BashCard.tsx'
 import { ConfigurablePluginsTab } from './ConfigurablePluginsTab.tsx'
-import { McpSettingsTab, type ImportedMcpSettingsFace, type NativeMcpSettingsFace } from './McpSettingsTab.tsx'
+import { McpSettingsTab, type ImportedMcpSettingsFace, type NativeMcpSettingsFace, type UserMcpSettingsFace } from './McpSettingsTab.tsx'
 import { PluginsSettingsSection } from './PluginsSettingsSection.tsx'
 import type { PluginsSettingsSectionInjected, PluginsSettingsTabEntry } from './PluginsSettingsSection.tsx'
+import { UserHooksSettingsTab, type UserHooksSettingsFace } from './UserHooksSettingsTab.tsx'
 import { WebSearchCard } from './WebSearchCard.tsx'
 import { AGENT_LOOP_NS, AgentLoopCardController } from './agent-loop-card-controller.ts'
 import { SHELL_NS, BashCardController } from './bash-card-controller.ts'
@@ -45,6 +46,10 @@ export type {
 export type { AgentLoopCardFace, AgentLoopCardState } from './agent-loop-card-controller.ts'
 export type { BashCardFace, BashCardState } from './bash-card-controller.ts'
 export type { WebSearchCardFace, WebSearchCardState } from './web-search-card-controller.ts'
+export type { UserMcpControls } from './McpServerCatalog.tsx'
+export type { UserHookControls } from './HookRecordCatalog.tsx'
+export type { UserMcpSettingsFace } from './McpSettingsTab.tsx'
+export type { UserHooksSettingsFace, UserHooksSettingsTabProps } from './UserHooksSettingsTab.tsx'
 
 /** Dictionary namespace owned by this plugin. */
 const NS = 'settings.plugins'
@@ -88,6 +93,53 @@ export function apply(ctx: ClientContext): void {
     setEnabled: async (entryId, enabled) => {
       const result = await ctx.remote.pluginInventory.setEnabled({ entryId, enabled })
       if (!result.ok) throw new Error(`pluginInventory.setEnabled failed: ${result.error.code}: ${result.error.message}`)
+      return result.value
+    },
+  } : undefined
+  // The user's own MCP and hook records are loopback-only for the same reason
+  // the rest of plugin management is: they name Host filesystem paths and start
+  // Host processes, which a remote browser must not do.
+  const userMcp: UserMcpSettingsFace['userMcp'] = connection.isLoopback ? {
+    list: async () => {
+      const result = await ctx.remote.pluginInventory.listMcpServers()
+      if (!result.ok) throw new Error(`pluginInventory.listMcpServers failed: ${result.error.code}: ${result.error.message}`)
+      return result.value
+    },
+    define: async (request) => {
+      const result = await ctx.remote.pluginInventory.defineMcpServer(request)
+      if (!result.ok) throw new Error(`pluginInventory.defineMcpServer failed: ${result.error.code}: ${result.error.message}`)
+      return result.value
+    },
+    setEnabled: async (name, enabled) => {
+      const result = await ctx.remote.pluginInventory.setMcpServerEnabled({ name, enabled })
+      if (!result.ok) throw new Error(`pluginInventory.setMcpServerEnabled failed: ${result.error.code}: ${result.error.message}`)
+      return result.value
+    },
+    remove: async (name) => {
+      const result = await ctx.remote.pluginInventory.removeMcpServer(name)
+      if (!result.ok) throw new Error(`pluginInventory.removeMcpServer failed: ${result.error.code}: ${result.error.message}`)
+      return result.value
+    },
+  } : undefined
+  const userHooks: UserHooksSettingsFace['userHooks'] = connection.isLoopback ? {
+    list: async () => {
+      const result = await ctx.remote.pluginInventory.listHookRecords()
+      if (!result.ok) throw new Error(`pluginInventory.listHookRecords failed: ${result.error.code}: ${result.error.message}`)
+      return result.value
+    },
+    define: async (request) => {
+      const result = await ctx.remote.pluginInventory.defineHookRecord(request)
+      if (!result.ok) throw new Error(`pluginInventory.defineHookRecord failed: ${result.error.code}: ${result.error.message}`)
+      return result.value
+    },
+    setEnabled: async (name, enabled) => {
+      const result = await ctx.remote.pluginInventory.setHookRecordEnabled({ name, enabled })
+      if (!result.ok) throw new Error(`pluginInventory.setHookRecordEnabled failed: ${result.error.code}: ${result.error.message}`)
+      return result.value
+    },
+    remove: async (name) => {
+      const result = await ctx.remote.pluginInventory.removeHookRecord(name)
+      if (!result.ok) throw new Error(`pluginInventory.removeHookRecord failed: ${result.error.code}: ${result.error.message}`)
       return result.value
     },
   } : undefined
@@ -184,8 +236,21 @@ export function apply(ctx: ClientContext): void {
       ...mcp.inject(),
       ...(importedMcp === undefined ? {} : { importedMcp }),
       ...(nativeMcp === undefined ? {} : { nativeMcp }),
+      ...(userMcp === undefined ? {} : { userMcp }),
     }),
   }, McpSettingsTab))
+
+  // The user's own hooks get their own tab rather than sharing the imported
+  // bundles' Hooks tab: that one reviews and trusts definitions a bundle
+  // shipped, while this one is where the user writes their own.
+  ctx.slots.inject('settings.plugins.tab', () => ctx.slots.register({
+    name: 'settings.plugins.tab',
+    id: 'user-hooks',
+    order: 7,
+    label: () => t('userHooksTab'),
+    locale: NS,
+    inject: () => (userHooks === undefined ? {} : { userHooks }),
+  }, UserHooksSettingsTab))
 
   ctx.slots.inject('settings.plugin.item', function* () {
     yield ctx.slots.register({

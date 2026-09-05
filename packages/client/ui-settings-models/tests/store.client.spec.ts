@@ -1,9 +1,9 @@
 /** Page-store join: directory × namespaces × credentials, with last-good rows on failure. */
 import { describe, expect, it } from 'vitest'
-import type { RpcResponse } from '@bosch/bh-api-remotes/client'
+import type { RpcResponse, SettingsNamespaceView } from '@bosch/bh-api-remotes/client'
 import { SettingsDescribeMirror } from '@bosch/bh-client-ui-settings/src/client/settings-mirror.ts'
 import { settingsSchema } from './settings-schema.client.ts'
-import { messageOf, ModelsSettingsStore } from '../src/client/store.ts'
+import { isOfficialDeepSeekEntry, messageOf, ModelsSettingsStore } from '../src/client/store.ts'
 
 let nextRpc = 0
 function ok<T>(value: T): RpcResponse<T> {
@@ -20,7 +20,7 @@ const DIRECTORY = [
   { provider: 'ghost', displayName: 'Ghost', settingsNs: '', settingsPath: [], active: true },
 ]
 
-const NAMESPACES = [
+const NAMESPACES: SettingsNamespaceView[] = [
   {
     ns: 'llm-deepseek',
     schema: {},
@@ -43,7 +43,11 @@ const NAMESPACES = [
 
 function api(overrides: {
   providers?: () => Promise<RpcResponse<{ providers: typeof DIRECTORY }>>
-  describeSettings?: () => Promise<RpcResponse<{ writable: boolean; namespaces: typeof NAMESPACES }>>
+  describeSettings?: () => Promise<RpcResponse<{
+    writable: boolean
+    hasDocument: boolean
+    namespaces: SettingsNamespaceView[]
+  }>>
   describeCredentials?: (refs: string[]) => Promise<RpcResponse<{ credentials: Record<string, unknown> }>>
 } = {}) {
   const seenRefs: string[][] = []
@@ -85,7 +89,7 @@ describe('ModelsSettingsStore', () => {
     const byProvider = new Map(state.rows.map(row => [row.entry.provider, row]))
     expect(byProvider.get('deepseek-official')).toMatchObject({
       configured: true,
-      removable: false,
+      removable: true,
       apiKeyEnv: 'DEEPSEEK_API_KEY',
       credential: { configured: false, writable: true },
     })
@@ -99,6 +103,38 @@ describe('ModelsSettingsStore', () => {
     expect(byProvider.get('anthropic')?.apiKeyEnv).toBeUndefined()
     expect(byProvider.get('ghost')).toMatchObject({ configured: false, removable: false })
     expect(state.namespaces.get('llm-pi-ai')?.ns).toBe('llm-pi-ai')
+    expect(state.officialDeepSeekDeclined).toBe(false)
+  })
+
+  it('hides official DeepSeek from the configured list when the durable hide flag is set', async () => {
+    const { face, mirror } = api({
+      describeSettings: () => Promise.resolve(ok({
+        writable: true,
+        hasDocument: false,
+        namespaces: [
+          ...NAMESPACES,
+          {
+            ns: 'ui-onboarding',
+            schema: {},
+            value: { deepseekOfficialDeclined: true },
+            user: { deepseekOfficialDeclined: true },
+            applies: 'live' as const,
+            secrets: [],
+            revision: 0,
+          },
+        ],
+      })),
+    })
+    const store = new ModelsSettingsStore(face, settingsSchema, mirror)
+    await store.load()
+    const state = store.store.getSnapshot()
+    expect(state.officialDeepSeekDeclined).toBe(true)
+    const byProvider = new Map(state.rows.map(row => [row.entry.provider, row]))
+    expect(byProvider.get('deepseek-official')).toMatchObject({
+      configured: false,
+      removable: false,
+    })
+    expect(byProvider.get('openai')).toMatchObject({ configured: true, removable: true })
   })
 
   it('degrades the credential badge, not the page, when the credential domain fails', async () => {
@@ -295,5 +331,20 @@ describe('messageOf', () => {
     expect(messageOf(new Error('connection lost'))).toBe('connection lost')
     expect(messageOf('the host refused')).toBe('the host refused')
     expect(messageOf(undefined)).toBe('undefined')
+  })
+})
+
+describe('isOfficialDeepSeekEntry', () => {
+  const official = {
+    provider: 'deepseek-official',
+    settingsNs: 'llm-deepseek',
+    settingsPath: [] as string[],
+  }
+
+  it('matches only the shipped whole-section DeepSeek route', () => {
+    expect(isOfficialDeepSeekEntry(official)).toBe(true)
+    expect(isOfficialDeepSeekEntry({ ...official, provider: 'deepseek' })).toBe(false)
+    expect(isOfficialDeepSeekEntry({ ...official, settingsNs: 'llm-pi-ai' })).toBe(false)
+    expect(isOfficialDeepSeekEntry({ ...official, settingsPath: ['models'] })).toBe(false)
   })
 })

@@ -25,6 +25,7 @@
       - text: DeepSeek
       - img "API key missing"
       - button "Edit DeepSeek (deepseek-official)": Edit
+      - button "Delete DeepSeek (deepseek-official)": Delete
   - text: Provider
   - combobox "Provider":
     - option "amazon-bedrock"

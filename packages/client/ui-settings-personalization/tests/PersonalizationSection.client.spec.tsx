@@ -66,15 +66,17 @@ describe('PersonalizationSection', () => {
   it('shows the loaded draft and disables Save until the draft changes', () => {
     renderSection()
 
-    expect((screen.getByRole('textbox') as HTMLTextAreaElement).value).toBe('be nice')
-    expect((screen.getByRole('button', { name: 'Save' }) as HTMLButtonElement).disabled).toBe(true)
+    const textbox = screen.getByRole('textbox')
+    expect(textbox instanceof HTMLTextAreaElement && textbox.value).toBe('be nice')
+    const save = screen.getByRole('button', { name: 'Save' })
+    expect(save instanceof HTMLButtonElement && save.disabled).toBe(true)
   })
 
   it('enables Save once the draft diverges and calls save on click', () => {
     const { actions } = renderSection({ draft: 'be nicer' })
 
-    const button = screen.getByRole('button', { name: 'Save' }) as HTMLButtonElement
-    expect(button.disabled).toBe(false)
+    const button = screen.getByRole('button', { name: 'Save' })
+    expect(button instanceof HTMLButtonElement && button.disabled).toBe(false)
     fireEvent.click(button)
 
     expect(actions.save).toHaveBeenCalledTimes(1)
@@ -91,8 +93,8 @@ describe('PersonalizationSection', () => {
   it('shows a busy label and disables Save while saving', () => {
     renderSection({ status: 'saving', draft: 'be nicer' })
 
-    const button = screen.getByRole('button', { name: 'Saving…' }) as HTMLButtonElement
-    expect(button.disabled).toBe(true)
+    const button = screen.getByRole('button', { name: 'Saving…' })
+    expect(button instanceof HTMLButtonElement && button.disabled).toBe(true)
   })
 
   it('shows the conflict affordance and reloads on click, instead of a plain retry', () => {
@@ -100,7 +102,8 @@ describe('PersonalizationSection', () => {
 
     expect(screen.getByRole('alert').textContent).toContain('These instructions changed elsewhere since you loaded them.')
     // Saving stays blocked until the user resolves the conflict.
-    expect((screen.getByRole('button', { name: 'Save' }) as HTMLButtonElement).disabled).toBe(true)
+    const save = screen.getByRole('button', { name: 'Save' })
+    expect(save instanceof HTMLButtonElement && save.disabled).toBe(true)
 
     fireEvent.click(screen.getByRole('button', { name: 'Reload' }))
 
@@ -137,6 +140,7 @@ describe('PersonalizationSection', () => {
   it('disables the personality selector while unavailable or read-only', () => {
     renderSection({}, { status: 'unavailable', writable: false })
 
-    expect((screen.getByRole('combobox') as HTMLSelectElement).disabled).toBe(true)
+    const select = screen.getByRole('combobox')
+    expect(select instanceof HTMLSelectElement && select.disabled).toBe(true)
   })
 })

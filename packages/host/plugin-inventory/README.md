@@ -1,6 +1,6 @@
 # @bosch/bh-host-plugin-inventory
 
-`PluginInventoryGateway` projects the current Cordis Loader tree, persistent module enablement, imported OpenAI/Codex bundle lifecycle, and OpenAI/Codex marketplace sources through `pluginInventory` Remotes. It publishes `list`, `setEnabled`, `listMarketplaces`, `addMarketplace`, `setMarketplaceEnabled`, `removeMarketplace`, `listImportedPlugins`, `importPlugin`, `infoPlugin`, `enablePlugin`, `disablePlugin`, `setPluginMcpServerEnabled`, `trustPlugin`, `untrustPlugin`, and `removePlugin`.
+`PluginInventoryGateway` projects the current Cordis Loader tree, persistent module enablement, imported OpenAI/Codex bundle lifecycle, OpenAI/Codex marketplace sources, and the user's own MCP server and hook records through `pluginInventory` Remotes. It publishes `list`, `setEnabled`, `listMarketplaces`, `addMarketplace`, `setMarketplaceEnabled`, `removeMarketplace`, `listImportedPlugins`, `importPlugin`, `infoPlugin`, `enablePlugin`, `disablePlugin`, `setPluginMcpServerEnabled`, `trustPlugin`, `untrustPlugin`, `removePlugin`, `listMcpServers`, `defineMcpServer`, `setMcpServerEnabled`, `removeMcpServer`, `listHookRecords`, `defineHookRecord`, `setHookRecordEnabled`, and `removeHookRecord`.
 
 Loader inventory reads `ctx.loader.entries()` directly, skips structural group rows and configured Host placeholders for agent-preset entries, and projects one logical module with its configured entry id, module name, effective enablement, toggle eligibility, and root Fiber phase. When `agentPresets` is present, it also projects each preset leaf with an `agent-preset:<preset>:<row>` id. Ordinary Host rows change live and persist in `plugins.enabled`; protected core rows persist their desired state in `bh.profile.pluginEnablement`, remain live until restart, and return `restartRequired`. Preset rows persist in `agent-presets.pluginEnablement` and affect only sessions created after the change.
 
@@ -11,6 +11,10 @@ Loader inventory reads `ctx.loader.entries()` directly, skips structural group r
 Git reads use a temporary shallow clone, enable sparse checkout only when paths are supplied, always retain the catalog path, reject unsafe transports and credential-like environment variables, apply a 30-second command timeout, and remove the checkout after parsing. Local catalog files and Git output are capped at 1 MiB. At most 20 sources and 500 catalog entries are accepted.
 
 `setMarketplaceEnabled` persists the slot's `enabled` flag and cascades to every imported plugin whose recorded source marketplace matches this source, calling the same `enable`/`disable` lifecycle as `enablePlugin`/`disablePlugin`. `removeMarketplace` cascades a full `removePlugin` (uninstall, including writable data) to those same plugins before deleting the source record. Both cascades are a no-op when the imported-plugin runtime is not part of the composition.
+
+## The user's own MCP servers and hooks
+
+The `listMcpServers`/`defineMcpServer`/`setMcpServerEnabled`/`removeMcpServer` and `listHookRecords`/`defineHookRecord`/`setHookRecordEnabled`/`removeHookRecord` Remotes forward to `@bosch/bh-mcp-registry` and `@bosch/bh-hooks-registry`, which own the stored records (`mcp-servers.servers` and `hooks.records`), their validation, and their mounts. This gateway adds only the Remote surface: a composition without either registry answers its calls with `MCP server registry is unavailable` or `hook record registry is unavailable` rather than failing to mount.
 
 ## Model Experience
 

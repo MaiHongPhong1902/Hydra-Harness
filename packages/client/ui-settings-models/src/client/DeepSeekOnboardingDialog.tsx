@@ -12,7 +12,7 @@ import type { IApiClient } from '@bosch/bh-api-remotes/client'
 import type { SnapshotStore } from '@bosch/bh-client-runtime/client'
 import type { InjectFace, PropsRuntime } from '@bosch/bh-client-ui-slots'
 import type { ModelsSettingsState, ModelsSettingsStore } from './store.ts'
-import { onboardingReadiness } from './store.ts'
+import { isOfficialDeepSeekEntry, onboardingReadiness } from './store.ts'
 import type { SettingsSchemaOperations } from './schema-operations.ts'
 import { ProviderEditor } from './ProviderEditor.tsx'
 import type { en } from './locales.ts'
@@ -80,10 +80,7 @@ export function DeepSeekOnboardingDialog(props: DeepSeekOnboardingDialogProps): 
       return assertNever(readiness)
   }
 
-  const row = state.rows.find(candidate =>
-    candidate.entry.provider === 'deepseek-official'
-    && candidate.entry.settingsNs === 'llm-deepseek'
-    && candidate.entry.settingsPath.length === 0)
+  const row = state.rows.find(candidate => isOfficialDeepSeekEntry(candidate.entry))
   const namespace = state.namespaces.get('llm-deepseek')
   /* v8 ignore next 2 -- credential-missing is derived only from this exact joined row. */
   if (row === undefined || namespace === undefined) return null

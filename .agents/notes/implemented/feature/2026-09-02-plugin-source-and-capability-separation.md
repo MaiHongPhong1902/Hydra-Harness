@@ -10,7 +10,7 @@ Marketplace combined source management with individual plugin management, while 
 
 The loopback **Marketplace** tab manages OpenAI/Codex marketplace sources and imported bundle lifecycle: its add dialog persists the source and imports the selected catalog entry into the BH home, while bundle cards enable, disable, and remove imports. A catalog with one entry needs no plugin name; a catalog with multiple entries requires one. The **Plugins** tab lists native BH deployment plugins with their enablement controls. **Skills** lists imported skills, the existing **MCP** tab owns imported MCP-server enablement, and **Hooks** owns imported hook trust. Bundle cards do not duplicate those capability controls.
 
-The imported bundle runtime keeps source-qualified lifecycle and trust state from [Codex-compatible imported plugin runtime](2026-09-01-codex-compatible-imported-plugin-runtime.md). The source format and removal of native BH marketplace installation are recorded in [OpenAI/Codex marketplace ownership](2026-09-02-openai-codex-marketplace-ownership.md).
+The imported bundle runtime keeps source-qualified lifecycle and trust state from [Codex-compatible imported plugin runtime](2026-09-01-codex-compatible-imported-plugin-runtime.md). The source format and removal of native BH marketplace installation are recorded in [OpenAI/Codex marketplace ownership](../simplification/2026-09-02-openai-codex-marketplace-ownership.md).
 
 ## Alternatives considered
 

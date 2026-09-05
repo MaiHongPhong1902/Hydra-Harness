@@ -5,6 +5,7 @@ import type { ImportedPluginSnapshot, PluginEnablementResult, PluginInventorySna
 import { Switch } from '@bosch/bh-client-ui-primitives'
 import type { InjectFace, PropsLocale, PropsRuntime } from '@bosch/bh-client-ui-slots'
 import { SecretField, ValueField } from './fields.tsx'
+import { McpServerCatalog, type UserMcpControls } from './McpServerCatalog.tsx'
 import { PluginCard } from './PluginCard.tsx'
 import type { McpSettingsFace } from './mcp-settings-controller.ts'
 import css from './PluginsSettingsSection.module.css'
@@ -13,7 +14,7 @@ import css from './PluginsSettingsSection.module.css'
 export type McpSettingsTabProps =
   PropsRuntime<'settings.plugins.tab'>
   & PropsLocale<'settings.plugins'>
-  & InjectFace<McpSettingsFace & ImportedMcpSettingsFace & NativeMcpSettingsFace>
+  & InjectFace<McpSettingsFace & ImportedMcpSettingsFace & NativeMcpSettingsFace & UserMcpSettingsFace>
 
 const OBSIDIAN_MCP_MODULE = '@bosch/bh-obsidian-knowledge'
 
@@ -23,6 +24,11 @@ export interface ImportedMcpSettingsFace {
     list: () => Promise<ImportedPluginSnapshot>
     setEnabled: (identity: string, server: string, enabled: boolean) => Promise<ImportedPluginSnapshot>
   }
+}
+
+/** The user's own MCP server records; available only in the local desktop app. */
+export interface UserMcpSettingsFace {
+  userMcp?: UserMcpControls
 }
 
 /** Local controls for the native Obsidian MCP plugin. */
@@ -105,9 +111,12 @@ export function McpSettingsTab(props: McpSettingsTabProps) {
   const importedRows = imported?.plugins.flatMap(plugin => plugin.mcpServers.map(server => ({ plugin, server })))
     .filter(({ plugin, server }) => matchesQuery([server.name, plugin.name, plugin.identity])) ?? []
 
-  if (!state.available && props.importedMcp === undefined && props.nativeMcp === undefined) return <p className={css.empty}>{t('mcpUnavailable')}</p>
+  if (!state.available && props.importedMcp === undefined && props.nativeMcp === undefined && props.userMcp === undefined) return <p className={css.empty}>{t('mcpUnavailable')}</p>
   return (
     <div className={css.cards} role="list">
+      {props.userMcp === undefined
+        ? null
+        : <McpServerCatalog controls={props.userMcp} query={props.query} t={t} />}
       {state.available && matchesQuery([t('mcpTitle')]) ? <PluginCard
         t={t}
         titleKey="mcpTitle"

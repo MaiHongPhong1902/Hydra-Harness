@@ -1364,7 +1364,7 @@ export const CLIENT_SLOT_API: readonly ClientSlotEntry[] = [
     ],
     replaceRisk: 'none',
     example: 'return {\n  inject: [\'slots\'],\n  apply(ctx) {\n    ctx.slots.inject(\'settings.general.item\', () => ctx.slots.register(\n      { name: \'settings.general.item\', id: \'my-entry\', order: 100, label: \'My entry\' },\n      () => React.createElement(\'div\', null, \'hello\'),\n    ))\n  },\n}',
-    source: 'packages/client/ui-settings/src/client/contract/slots.ts:94',
+    source: 'packages/client/ui-settings/src/client/contract/slots.ts:97',
   },
   {
     key: 'settings.header',
@@ -1436,7 +1436,7 @@ export const CLIENT_SLOT_API: readonly ClientSlotEntry[] = [
     ],
     replaceRisk: 'none',
     example: 'return {\n  inject: [\'slots\'],\n  apply(ctx) {\n    ctx.slots.inject(\'settings.onboarding\', () => ctx.slots.register(\n      { name: \'settings.onboarding\', id: \'my-entry\', order: 100, label: \'My entry\' },\n      () => React.createElement(\'div\', null, \'hello\'),\n    ))\n  },\n}',
-    source: 'packages/client/ui-settings/src/client/contract/slots.ts:79',
+    source: 'packages/client/ui-settings/src/client/contract/slots.ts:82',
   },
   {
     key: 'settings.plugin.item',
@@ -1478,7 +1478,7 @@ export const CLIENT_SLOT_API: readonly ClientSlotEntry[] = [
     kind: 'list',
     scope: 'root',
     summary: 'One page inside the Plugins settings section.',
-    doc: 'One page inside the Plugins settings section. The section owner renders\nlocalized entry labels as tabs and mounts each contribution inside its\ncorresponding tab panel. Options: `id` (tab key), `order` (tab order),\nand `label` (registrant-localized tab text). Declared at runtime by the\nfeature that owns the Plugins section; the type lives here so inventory\nand configuration plugins collaborate without depending on one another.',
+    doc: 'One page inside the Plugins settings section. The section owner renders\nlocalized entry labels as tabs and mounts each contribution inside its\ncorresponding tab panel. Options: `id` (tab key), `order` (tab order),\nand `label` (registrant-localized tab text). Declared at runtime by the\nfeature that owns the Plugins section; the type lives here so inventory\nand configuration plugins collaborate without depending on one another.\nThe section also owns the one shared search box for the whole Plugins\nsurface (Plugins, Skills, Hooks, Marketplaces, MCP); each tab receives\nits current text as `query` and filters its own rows against it.',
     registerOptions: [
       {
         name: 'id',
@@ -1500,7 +1500,7 @@ export const CLIENT_SLOT_API: readonly ClientSlotEntry[] = [
       },
     ],
     ownerProps: [
-      '/** Owner share of a Plugins tab (the section supplies nothing). */\nexport interface SettingsPluginsTabOwnerProps {\n  /** Marker field: tab owner props are intentionally empty. */\n  children?: never\n}',
+      '/** Owner share of a Plugins tab: the section\'s one shared search box. */\nexport interface SettingsPluginsTabOwnerProps {\n  /** Current text of the section-level search box; empty string matches everything. */\n  query: string\n}',
     ],
     ownerPropsReferences: [],
     standardProps: [
@@ -1512,14 +1512,17 @@ export const CLIENT_SLOT_API: readonly ClientSlotEntry[] = [
     slotInject: '',
     declaredBy: 'an entry in \'settings.section\' (client-ui-settings-plugins), so it exists while that entry is mounted',
     occupants: [
-      'client-ui-settings-plugin-inventory PluginInventorySettingsTab id \'all\'',
       'client-ui-settings-plugin-inventory MarketplaceSettingsTab id \'marketplace\'',
+      'client-ui-settings-plugin-inventory ImportedPluginCapabilitiesTab id \'skills\'',
+      'client-ui-settings-plugin-inventory ImportedPluginCapabilitiesTab id \'hooks\'',
+      'client-ui-settings-plugin-inventory PluginInventorySettingsTab id \'all\'',
       'client-ui-settings-plugins ConfigurablePluginsTab id \'configurable\'',
       'client-ui-settings-plugins McpSettingsTab id \'mcp\'',
+      'client-ui-settings-plugins UserHooksSettingsTab id \'user-hooks\'',
     ],
     replaceRisk: 'none',
     example: 'return {\n  inject: [\'slots\'],\n  apply(ctx) {\n    ctx.slots.inject(\'settings.plugins.tab\', () => ctx.slots.register(\n      { name: \'settings.plugins.tab\', id: \'my-entry\', order: 100, label: \'My entry\' },\n      () => React.createElement(\'div\', null, \'hello\'),\n    ))\n  },\n}',
-    source: 'packages/client/ui-settings/src/client/contract/slots.ts:68',
+    source: 'packages/client/ui-settings/src/client/contract/slots.ts:71',
   },
   {
     key: 'settings.section',

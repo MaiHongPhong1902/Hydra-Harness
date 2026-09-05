@@ -4,6 +4,18 @@ export const WELCOME_NOTICE_SETTINGS_NAMESPACE = 'ui-onboarding'
 /** Field storing the last welcome notice version the user acknowledged. */
 export const WELCOME_NOTICE_ACK_FIELD = 'welcomeNoticeVersion'
 
+/** Shipped whole-section DeepSeek route the Models page can hide. */
+export const OFFICIAL_DEEPSEEK_PROVIDER = 'deepseek-official'
+
+/** Settings namespace that owns the official DeepSeek whole-section profile. */
+export const OFFICIAL_DEEPSEEK_SETTINGS_NS = 'llm-deepseek'
+
+/**
+ * Durable hide flag for the official DeepSeek Models row and first-run prompt.
+ * Set on Delete; unset when the user adds that route again.
+ */
+export const OFFICIAL_DEEPSEEK_DECLINED_FIELD = 'deepseekOfficialDeclined'
+
 /**
  * Bump only when the notice changes materially and every user should see it
  * again. The acknowledgement is compared for exact equality.

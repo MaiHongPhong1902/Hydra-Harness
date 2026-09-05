@@ -57,7 +57,6 @@ describe('ask_user_question tool', () => {
 
     expect(schema).toMatchObject({
       name: 'ask_user_question',
-      description: expect.stringContaining('choose it yourself'),
       parameters: {
         type: 'object',
         properties: {
@@ -66,6 +65,8 @@ describe('ask_user_question tool', () => {
         required: ['questions'],
       },
     })
+    expect(schema).toHaveProperty('description')
+    expect(String(schema?.description)).toContain('choose it yourself')
     expect(schema?.description).toContain('Do not use this for greetings')
     expect(schema?.description).toContain('generic action, task, or tool menus')
     const parameters = schema?.parameters as unknown as OptionSchemaShape
@@ -177,10 +178,9 @@ describe('ask_user_question tool', () => {
       },
     })
 
-    expect(result).toMatchObject({
-      isError: true,
-      content: [{ type: 'text', text: expect.stringContaining('generic improvement-category menu') }],
-    })
+    expect(result).toMatchObject({ isError: true })
+    expect(result).toHaveProperty('content')
+    expect(String((result.content as unknown as { text?: unknown }[])[0]?.text)).toContain('generic improvement-category menu')
     expect(ask).not.toHaveBeenCalled()
   })
 
@@ -202,10 +202,9 @@ describe('ask_user_question tool', () => {
       },
     })
 
-    expect(result).toMatchObject({
-      isError: true,
-      content: [{ type: 'text', text: expect.stringContaining('generic improvement-category menu') }],
-    })
+    expect(result).toMatchObject({ isError: true })
+    expect(result).toHaveProperty('content')
+    expect(String((result.content as unknown as { text?: unknown }[])[0]?.text)).toContain('generic improvement-category menu')
     expect(ask).not.toHaveBeenCalled()
   })
 

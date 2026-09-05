@@ -2,7 +2,7 @@
 
 /** Locale keys these surfaces render. */
 export type PluginsSettingsLocaleKey =
-  | 'nav' | 'title' | 'intro' | 'tabs' | 'search' | 'configurableTab' | 'mcpTab' | 'empty'
+  | 'nav' | 'title' | 'intro' | 'tabs' | 'search' | 'configurableTab' | 'mcpTab' | 'userHooksTab' | 'empty'
   | 'overridden' | 'reset' | 'readOnly' | 'expand' | 'collapse'
   | 'save' | 'saving' | 'discard' | 'unsaved' | 'saveFailed' | 'invalidNumber'
   | 'bashTitle' | 'bashDescription' | 'bashTimeoutMs' | 'bashTimeoutMsHint'
@@ -15,6 +15,23 @@ export type PluginsSettingsLocaleKey =
   | 'mcpLoading' | 'mcpEnabled' | 'mcpToggleFailed' | 'importedMcpTitle' | 'importedMcpEmpty' | 'enable' | 'disable' | 'disabled'
   | 'mcpApiKey' | 'mcpApiKeyHint' | 'mcpApiKeySet' | 'mcpApiKeyUnset'
   | 'mcpTargetDomain' | 'mcpTargetDomainHint' | 'mcpInvalidDomain'
+  | 'userMcpTitle' | 'userMcpDescription' | 'userMcpAdd' | 'userMcpAddTitle' | 'userMcpEditTitle'
+  | 'userMcpFormDescription' | 'userMcpEmpty' | 'userMcpEmptySearch' | 'userMcpLoadError' | 'userMcpRetry'
+  | 'userMcpMutationError' | 'userMcpSaveError' | 'userMcpEdit' | 'userMcpRemove' | 'userMcpSave'
+  | 'userMcpCancel' | 'userMcpClose' | 'userMcpName' | 'userMcpTransport' | 'userMcpTransportStdio'
+  | 'userMcpTransportHttp' | 'userMcpCommand' | 'userMcpArgs' | 'userMcpCwd' | 'userMcpEnv'
+  | 'userMcpEnvHint' | 'userMcpEnvInvalid' | 'userMcpEnvStored' | 'userMcpUrl' | 'userMcpHeaders'
+  | 'userMcpHeadersHint' | 'userMcpHeadersInvalid' | 'userMcpHeadersStored' | 'userMcpTools'
+  | 'userMcpStarted' | 'userMcpStarting' | 'userMcpFailed' | 'userMcpInvalid'
+  | 'userHooksTitle' | 'userHooksDescription' | 'userHooksTrust' | 'userHooksAdd' | 'userHooksAddTitle'
+  | 'userHooksEditTitle' | 'userHooksFormDescription' | 'userHooksEmpty' | 'userHooksEmptySearch'
+  | 'userHooksLoading' | 'userHooksLoadError' | 'userHooksRetry' | 'userHooksMutationError'
+  | 'userHooksSaveError' | 'userHooksEdit' | 'userHooksRemove' | 'userHooksSave' | 'userHooksCancel'
+  | 'userHooksClose' | 'userHooksName' | 'userHooksDialect' | 'userHooksDialectClaudeCode'
+  | 'userHooksDialectCodex' | 'userHooksSource' | 'userHooksSourceInline' | 'userHooksSourceFile'
+  | 'userHooksInlineSource' | 'userHooksPath' | 'userHooksConfig' | 'userHooksConfigHint'
+  | 'userHooksConfigInvalid' | 'userHooksPluginRoot' | 'userHooksProjectDir' | 'userHooksEvents'
+  | 'userHooksStarted' | 'userHooksFailed' | 'userHooksInvalid' | 'userHooksUnavailable'
 
 /** English copy. */
 export const en: Record<PluginsSettingsLocaleKey, string> = {
@@ -25,6 +42,7 @@ export const en: Record<PluginsSettingsLocaleKey, string> = {
   search: 'Search plugins, skills, hooks, marketplaces, and MCP servers',
   configurableTab: 'Configuration',
   mcpTab: 'MCP',
+  userHooksTab: 'Your hooks',
   empty: 'This deployment exposes no plugin settings.',
   overridden: 'Overridden',
   reset: 'Reset to default',
@@ -75,4 +93,80 @@ export const en: Record<PluginsSettingsLocaleKey, string> = {
   mcpTargetDomain: 'Browser target domain',
   mcpTargetDomainHint: 'Optional hostname for same-domain Browser evidence. Leave blank for knowledge-only use.',
   mcpInvalidDomain: 'Enter one hostname without a scheme, port, path, or wildcard.',
+  userMcpTitle: 'Your MCP servers',
+  userMcpDescription: 'Saved in your settings file, so they come back the next time you start.',
+  userMcpAdd: 'Add server',
+  userMcpAddTitle: 'Add MCP server',
+  userMcpEditTitle: 'Edit MCP server',
+  userMcpFormDescription: 'A new server is saved switched off. Turn it on when you are ready to run it.',
+  userMcpEmpty: 'You have not added any MCP servers.',
+  userMcpEmptySearch: 'No matching MCP servers.',
+  userMcpLoadError: 'Your MCP servers are temporarily unavailable.',
+  userMcpRetry: 'Retry',
+  userMcpMutationError: 'The server could not be changed.',
+  userMcpSaveError: 'The server was not saved. Check the fields and try again.',
+  userMcpEdit: 'Edit',
+  userMcpRemove: 'Remove',
+  userMcpSave: 'Save server',
+  userMcpCancel: 'Cancel',
+  userMcpClose: 'Close',
+  userMcpName: 'Name',
+  userMcpTransport: 'Connection',
+  userMcpTransportStdio: 'Local command (stdio)',
+  userMcpTransportHttp: 'Remote endpoint (HTTP)',
+  userMcpCommand: 'Command',
+  userMcpArgs: 'Arguments, one per line',
+  userMcpCwd: 'Working directory',
+  userMcpEnv: 'Environment, one NAME=value per line',
+  userMcpEnvHint: 'Values are never shown again. Leave blank to keep what is saved.',
+  userMcpEnvInvalid: 'Each line needs a NAME=value pair.',
+  userMcpEnvStored: 'Environment',
+  userMcpUrl: 'Endpoint URL',
+  userMcpHeaders: 'Headers, one Name=value per line',
+  userMcpHeadersHint: 'Values are never shown again. Leave blank to keep what is saved.',
+  userMcpHeadersInvalid: 'Each line needs a Name=value pair.',
+  userMcpHeadersStored: 'Headers',
+  userMcpTools: 'Tools',
+  userMcpStarted: 'Connected',
+  userMcpStarting: 'Connecting…',
+  userMcpFailed: 'Could not connect',
+  userMcpInvalid: 'Saved settings are incomplete',
+  userHooksTitle: 'Your hooks',
+  userHooksDescription: 'Saved in your settings file, so they come back the next time you start.',
+  userHooksTrust: 'A hook runs commands on your machine. Only enable hooks you wrote or trust.',
+  userHooksAdd: 'Add hooks',
+  userHooksAddTitle: 'Add hooks',
+  userHooksEditTitle: 'Edit hooks',
+  userHooksFormDescription: 'A new hook record is saved switched off. Turn it on when you are ready to run it.',
+  userHooksEmpty: 'You have not added any hooks.',
+  userHooksEmptySearch: 'No matching hooks.',
+  userHooksLoading: 'Reading hooks…',
+  userHooksLoadError: 'Your hooks are temporarily unavailable.',
+  userHooksRetry: 'Retry',
+  userHooksMutationError: 'The hooks could not be changed.',
+  userHooksSaveError: 'The hooks were not saved. Check the fields and try again.',
+  userHooksEdit: 'Edit',
+  userHooksRemove: 'Remove',
+  userHooksSave: 'Save hooks',
+  userHooksCancel: 'Cancel',
+  userHooksClose: 'Close',
+  userHooksName: 'Name',
+  userHooksDialect: 'Format',
+  userHooksDialectClaudeCode: 'Claude Code',
+  userHooksDialectCodex: 'Codex',
+  userHooksSource: 'Definitions',
+  userHooksSourceInline: 'Written here',
+  userHooksSourceFile: 'Read from a file',
+  userHooksInlineSource: 'Written in your settings file',
+  userHooksPath: 'File path',
+  userHooksConfig: 'Hook definitions (JSON)',
+  userHooksConfigHint: 'Paste an existing hooks.json, with or without its "hooks" wrapper.',
+  userHooksConfigInvalid: 'Enter a JSON object of hook events.',
+  userHooksPluginRoot: 'Plugin root (optional)',
+  userHooksProjectDir: 'Project directory (optional)',
+  userHooksEvents: 'Events',
+  userHooksStarted: 'Active',
+  userHooksFailed: 'Could not start',
+  userHooksInvalid: 'Definitions could not be read',
+  userHooksUnavailable: 'Hook management is available from the local desktop app only.',
 }

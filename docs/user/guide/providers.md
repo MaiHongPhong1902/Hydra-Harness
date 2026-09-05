@@ -6,6 +6,8 @@ This guide assumes you started the Web UI through the [root README](../../../REA
 
 Open **Settings → Models**. The DeepSeek card exposes one API-key field; enter the key and save it.
 
+To remove the shipped DeepSeek row, choose **Delete**. The adapter stays in the composition; choose **Add provider** and select DeepSeek if you want the row back. First-run setup will not recreate it while that choice is stored.
+
 ![The Models page: the DeepSeek card, with Add provider and Add a custom provider below it](providers-models-page.png)
 
 Keys are write-only. The page receives a redacted descriptor after saving, never the literal secret. The key is stored in `$BH_HOME/.credentials.yaml`, while settings retain only its credential reference.

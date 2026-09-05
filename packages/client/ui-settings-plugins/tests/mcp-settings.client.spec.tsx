@@ -181,29 +181,29 @@ describe('McpSettingsTab', () => {
   it('lists and switches imported plugin MCP servers in the MCP tab', async () => {
     const snapshot = {
       plugins: [{
-        identity: 'ponytail@local', name: 'Ponytail', version: '4.9.0', enabled: true,
-        mcpServers: [{ name: 'ponytail-mcp', enabled: true, startupState: 'started' }],
+        identity: 'toolkit@local', name: 'Toolkit', version: '4.9.0', enabled: true,
+        mcpServers: [{ name: 'toolkit-mcp', enabled: true, startupState: 'started' }],
       }],
     } as never
     const setEnabled = vi.fn(async () => snapshot)
     renderTab({}, { list: vi.fn(async () => snapshot), setEnabled })
 
-    expect(await screen.findByText('ponytail-mcp')).toBeTruthy()
-    fireEvent.click(screen.getByRole('switch', { name: `${en.disable} ponytail-mcp` }))
-    await vi.waitFor(() => { expect(setEnabled).toHaveBeenCalledWith('ponytail@local', 'ponytail-mcp', false) })
+    expect(await screen.findByText('toolkit-mcp')).toBeTruthy()
+    fireEvent.click(screen.getByRole('switch', { name: `${en.disable} toolkit-mcp` }))
+    await vi.waitFor(() => { expect(setEnabled).toHaveBeenCalledWith('toolkit@local', 'toolkit-mcp', false) })
   })
 
   it('filters imported MCP server rows by the shared search query', async () => {
     const snapshot = {
       plugins: [{
-        identity: 'ponytail@local', name: 'Ponytail', version: '4.9.0', enabled: true,
-        mcpServers: [{ name: 'ponytail-mcp', enabled: true, startupState: 'started' }],
+        identity: 'toolkit@local', name: 'Toolkit', version: '4.9.0', enabled: true,
+        mcpServers: [{ name: 'toolkit-mcp', enabled: true, startupState: 'started' }],
       }],
     } as never
     renderTab({}, { list: vi.fn(async () => snapshot), setEnabled: vi.fn() }, undefined, 'no-match')
 
     expect(await screen.findByText(en.importedMcpEmpty)).toBeTruthy()
-    expect(screen.queryByText('ponytail-mcp')).toBeNull()
+    expect(screen.queryByText('toolkit-mcp')).toBeNull()
   })
 
   it('hides the unavailable native MCP fallback section when the query does not match it', async () => {

@@ -330,7 +330,9 @@ export function apply(ctx: Context, config: Config = {}): void {
     text: BROWSER_PROMPT_TEXT,
   })
 
-  ctx.inject(['attachments'], screenshotCtx => applyScreenshotTool(screenshotCtx, timeoutMs))
+  ctx.inject(['attachments'], (screenshotCtx) => {
+    applyScreenshotTool(screenshotCtx, timeoutMs)
+  })
 
   ctx.tools.register(defineTool({
     name: 'browser_navigate',

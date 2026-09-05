@@ -1,6 +1,6 @@
 # bh-client-ui-settings-plugins
 
-The **Plugins** settings section and its **Plugin configuration** and **MCP** tabs. The section owns the heading and compact tab chrome; feature plugins contribute pages through `settings.plugins.tab`. The configuration tab shows one expandable card per Host plugin whose configuration a user owns. A card shows the plugin's name and what it governs; expanding it in place reveals hand-written controls bound to that plugin's settings namespace, each field marking whether the user overrode it and offering a reset back to the value the deployment composed.
+The **Plugins** settings section and its **Plugin configuration**, **MCP**, and **Your hooks** tabs. The section owns the heading and compact tab chrome; feature plugins contribute pages through `settings.plugins.tab`. The configuration tab shows one expandable card per Host plugin whose configuration a user owns. A card shows the plugin's name and what it governs; expanding it in place reveals hand-written controls bound to that plugin's settings namespace, each field marking whether the user overrode it and offering a reset back to the value the deployment composed.
 
 ## What appears here
 
@@ -9,6 +9,14 @@ The configurable tab reads which settings namespaces the Host serves and dispatc
 The cards this package ships cover the shell executor (`bash`), the agent loop's tool-call parallelism (`agent-loop`), and the DeepSeek search provider (`web-search-deepseek`). The search card contributes to `settings.browser.item` in Desktop; a Web-only deployment keeps it in Plugin configuration because it has no Browser page.
 
 The MCP tab enables or disables the shipped `obsidian-knowledge` plugin locally, and configures its optional Browser target hostname through that plugin's settings namespace. It writes `OBSIDIAN_API_KEY` through the credentials domain, so the stored key never rides a browser response. The local MCP endpoint remains the plugin-owned loopback default.
+
+## The user's own MCP servers and hooks
+
+The MCP tab also carries the user's own MCP server records, and **Your hooks** carries their hook records. Both are stored in the harness settings document by `@bosch/bh-mcp-registry` and `@bosch/bh-hooks-registry`, so a server or hook added here comes back on the next start; both write through `pluginInventory` Remotes and appear only on a loopback connection, because they name Host paths and start Host processes.
+
+Adding a record saves it switched off, so nothing runs before the user reviews it; the switch is what mounts it. Each row reports what the Host actually did — connected, connecting, could not connect, or saved settings are incomplete for a record it refuses to mount — with the refusal reason beside it, and lists a mounted server's registered tool names. An MCP record's `env` and `header` values are write-only: the Host returns only their names, and leaving those fields blank on an edit keeps what is stored rather than clearing it, so an edit can never delete a credential the browser never received. Hook definitions are pasted as JSON in the record's own dialect (an existing `hooks.json` works verbatim, with or without its `hooks` wrapper) or pointed at an absolute path; because the row carries only what the definitions cover, editing an inline record starts from an empty document the user re-pastes.
+
+**Your hooks** stays separate from the imported bundles' Hooks tab: that one reviews and trusts definitions a plugin shipped, while this one is where the user writes their own.
 
 ## Extension point
 
@@ -38,3 +46,5 @@ None; this package neither assembles nor sends a provider request.
 - **A card still needs a browser bundle** — the browser half must be a `bh.client` package built in the client module system's lazy-CJS factory format, and the `clientBundle` preset that emits it lives in `packages/client/tsdown.client.ts` rather than a published package, so a plugin outside this repository has to reproduce that build itself. The bundle-purity gate also forbids importing this package's card chrome or form model as values, so such a card owns its own staging and revision fencing.
 - **The served namespaces re-read on two signals only** — the wire announces settings-document commits and connection resets, not registrations, so a namespace whose owner registers after the tab's read joins the list on the next document commit or reconnect.
 - **The shell card follows the composed executor** — the POSIX and PowerShell executor families share the `bash` namespace because a host composes exactly one of them, so the served schema differs by platform (PowerShell adds `pwshPath`) even though the card edits the same two fields on both, and a deployment composing neither shows no card.
+- **A record's name is fixed once saved** — the name is the record's identity, and for an MCP server also its tool prefix, so an edit pins that field; renaming means adding a record under the new name and removing the old one.
+- **An inline hook document is not read back for editing** — the Host returns which events a record covers, not its definitions, so editing an inline record replaces them from an empty field rather than amending what is stored.

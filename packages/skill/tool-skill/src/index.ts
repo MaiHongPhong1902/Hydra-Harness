@@ -289,7 +289,7 @@ function rankSkills(skills: readonly SkillSummary[], query: string): RankedSkill
   const queryTerms = new Set(queryPhrase.split(' ').filter(Boolean))
   if (queryTerms.size === 0) return []
 
-  // ponytail: lexical metadata ranking stays local; add semantic retrieval only after measured routing misses.
+  // Lexical metadata ranking stays local; add semantic retrieval only after measured routing misses.
   const ranked: RankedSkill[] = []
   for (const skill of skills) {
     const namePhrase = routingPhrase(skill.name)

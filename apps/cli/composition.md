@@ -96,6 +96,10 @@ flowchart LR
   cfg --> plugin_bh_base_commands
   plugin_bh_base_plugin_runtime["plugin-runtime<br/>@bosch/bh-plugin-runtime"]
   cfg --> plugin_bh_base_plugin_runtime
+  plugin_bh_base_mcp_registry["mcp-registry<br/>@bosch/bh-mcp-registry"]
+  cfg --> plugin_bh_base_mcp_registry
+  plugin_bh_base_hooks_registry["hooks-registry<br/>@bosch/bh-hooks-registry"]
+  cfg --> plugin_bh_base_hooks_registry
   plugin_bh_base_command_feedback["command-feedback<br/>@bosch/bh-command-feedback"]
   cfg --> plugin_bh_base_command_feedback
   plugin_bh_base_goal["goal<br/>@bosch/bh-goal"]
@@ -220,6 +224,8 @@ flowchart LR
 | `tool-skill` | `@bosch/bh-tool-skill` |
 | `commands` | `@bosch/bh-commands` |
 | `plugin-runtime` | `@bosch/bh-plugin-runtime` |
+| `mcp-registry` | `@bosch/bh-mcp-registry` |
+| `hooks-registry` | `@bosch/bh-hooks-registry` |
 | `command-feedback` | `@bosch/bh-command-feedback` |
 | `goal` | `@bosch/bh-goal` |
 | `goal-round-driver` | `@bosch/bh-goal-round-driver` |

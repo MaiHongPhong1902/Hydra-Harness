@@ -29,7 +29,13 @@ const windowsUnsupportedPackages = process.platform === 'win32'
       'packages/shell/bash-local',
       'packages/shell/bash-sandbox',
       'packages/shell/tool-bash',
-      'packages/hooks/*',
+      // Named individually for the same reason, and not as 'packages/hooks/*':
+      // only the suites that execute real hook commands need a POSIX shell, so
+      // hooks-registry — which mounts bridges against a stub shell and never
+      // runs one — stays covered on Windows.
+      'packages/hooks/hook-protocol',
+      'packages/hooks/hooks-claude-code',
+      'packages/hooks/hooks-codex',
       'packages/terminal/terminal-bash',
       'packages/sandbox/sandbox-local',
     ]

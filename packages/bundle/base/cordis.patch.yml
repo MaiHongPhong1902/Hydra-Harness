@@ -260,6 +260,17 @@
     - id: plugin-runtime
       name: '@bosch/bh-plugin-runtime'
 
+    # The user's own MCP servers and hooks, stored in `$BH_HOME/settings.yaml`
+    # rather than composed here: each registry mounts what its settings section
+    # declares and unmounts it again when the record is disabled or removed, so
+    # a server or hook added from the Settings page survives a restart and one
+    # added by hand-editing the document takes effect without one.
+    - id: mcp-registry
+      name: '@bosch/bh-mcp-registry'
+
+    - id: hooks-registry
+      name: '@bosch/bh-hooks-registry'
+
     - id: command-feedback
       name: '@bosch/bh-command-feedback'
 

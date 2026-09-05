@@ -25,6 +25,7 @@
       - text: DeepSeek
       - img "API key configured"
       - button "Edit DeepSeek (deepseek-official)": Edit
+      - button "Delete DeepSeek (deepseek-official)": Delete
       - text: DeepSeek deepseek-official API key
       - textbox "API key":
         - /placeholder: Configured — enter a new value to replace

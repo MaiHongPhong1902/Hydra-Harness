@@ -49,7 +49,7 @@ function isGenericImprovementMenu(value: unknown): boolean {
       const label = (option as { label?: unknown }).label
       return typeof label === 'string' ? [label.trim().toLowerCase()] : []
     }) : []
-    // ponytail: narrow phrase check; add an intent classifier only for reproduced evasions.
+    // Narrow phrase check; add an intent classifier only for reproduced evasions.
     const menuText = [typeof questionText === 'string' ? questionText : '', ...labels].join('\n').toLowerCase()
     return [...GENERIC_IMPROVEMENT_LABELS].filter(label => menuText.includes(label)).length >= 3
   })

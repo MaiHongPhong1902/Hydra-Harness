@@ -104,7 +104,7 @@ describe('gate graph validation', () => {
 
     expect(ids.slice(0, 10)).toEqual([
       'doc-typecheck', 'docs-site-build', 'doc-graphs', 'markdown-links', 'type-equivalence',
-      'cordis-catalog', 'mermaid', 'scoped-events', 'markdown-wrap',
+      'cordis-catalog', 'mermaid', 'scoped-events', 'markdown-wrap', 'client-catalog',
     ])
   })
 

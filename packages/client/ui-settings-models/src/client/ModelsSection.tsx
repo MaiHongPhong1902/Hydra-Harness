@@ -18,11 +18,17 @@ import type { IApiClient } from '@bosch/bh-api-remotes/client'
 import { Button, IconPlusOutline16, Modal } from '@bosch/bh-client-ui-primitives'
 import type { InjectFace } from '@bosch/bh-client-ui-slots'
 import { CustomProviderCard } from './CustomProviderCard.tsx'
-import { deriveKeyRef, messageOf, protocolChoices, providerUsable } from './store.ts'
+import {
+  deriveKeyRef, messageOf, protocolChoices, providerUsable,
+} from './store.ts'
 import type { ModelsSettingsStore, ProviderRow } from './store.ts'
 import type { SettingsSchemaOperations } from './schema-operations.ts'
 import { ProviderEditor, type ProviderEditorProps } from './ProviderEditor.tsx'
 import type { en } from './locales.ts'
+import {
+  OFFICIAL_DEEPSEEK_DECLINED_FIELD, OFFICIAL_DEEPSEEK_PROVIDER,
+  OFFICIAL_DEEPSEEK_SETTINGS_NS, WELCOME_NOTICE_SETTINGS_NAMESPACE,
+} from '../onboarding-copy.ts'
 import styles from './ModelsSection.module.css'
 
 /** Injected dependencies of {@link ModelsSection} (slot `inject`). */
@@ -88,12 +94,21 @@ function renderProviderEditor({ target, ...props }: ProviderEditorRenderProps): 
   )
 }
 
+/** Whether this removal hides the shipped official DeepSeek row. */
+function hidesOfficialDeepSeek(target: {
+  settingsNs: string
+  settingsPath: readonly string[]
+}): boolean {
+  return target.settingsNs === OFFICIAL_DEEPSEEK_SETTINGS_NS && target.settingsPath.length === 0
+}
+
 /**
- * Remove one user-added provider and its page-managed credential. Credential
+ * Remove one configured provider and its page-managed credential. Credential
  * removal comes first so a second-step failure leaves the provider row visible
  * and the whole operation safely retryable; both unsets are idempotent.
- * The settings removal names the profile rather than rebuilding its whole
- * namespace from a partial view.
+ * Nested profiles unset their user-layer path. The shipped official DeepSeek
+ * route records a durable hide flag instead of unsetting the composition
+ * section, which would fight the base document and recreate the row.
  * @param api - settings and credential wire faces.
  * @param controller - the page store to refresh.
  * @param target - the provider's settings address and optional managed credential.
@@ -102,17 +117,27 @@ function renderProviderEditor({ target, ...props }: ProviderEditorRenderProps): 
 export async function removeProviderProfile(
   api: Pick<IApiClient, 'settings' | 'credentials'>,
   controller: ModelsSettingsStore,
-  target: { settingsNs: string; settingsPath: readonly string[]; credentialRef?: string },
+  target: {
+    provider?: string
+    settingsNs: string
+    settingsPath: readonly string[]
+    credentialRef?: string
+  },
 ): Promise<string | undefined> {
   try {
     if (target.credentialRef !== undefined) {
       const credential = await api.credentials.unset({ ref: target.credentialRef })
       if (!credential.result.ok) return credential.result.error.message
     }
-    const response = await api.settings.mutate({
-      ns: target.settingsNs,
-      ops: [{ op: 'unset', path: [...target.settingsPath] }],
-    })
+    const response = hidesOfficialDeepSeek(target)
+      ? await api.settings.mutate({
+        ns: WELCOME_NOTICE_SETTINGS_NAMESPACE,
+        ops: [{ op: 'set', path: [OFFICIAL_DEEPSEEK_DECLINED_FIELD], value: true }],
+      })
+      : await api.settings.mutate({
+        ns: target.settingsNs,
+        ops: [{ op: 'unset', path: [...target.settingsPath] }],
+      })
     if (!response.result.ok) return response.result.error.message
   } catch (error) {
     // The transport rejected rather than answering; the caller must be able
@@ -121,6 +146,32 @@ export async function removeProviderProfile(
   }
   await controller.load()
   return undefined
+}
+
+/**
+ * Clear the official-DeepSeek hide flag so the shipped route can return to
+ * the configured list. Always reloads the join so a failed write still
+ * reflects the durable section.
+ * @param api - settings wire face.
+ * @param controller - the page store to refresh.
+ * @returns the failure message, or undefined once the write and reload landed.
+ */
+export async function revealOfficialDeepSeek(
+  api: Pick<IApiClient, 'settings'>,
+  controller: ModelsSettingsStore,
+): Promise<string | undefined> {
+  let failure: string | undefined
+  try {
+    const response = await api.settings.mutate({
+      ns: WELCOME_NOTICE_SETTINGS_NAMESPACE,
+      ops: [{ op: 'unset', path: [OFFICIAL_DEEPSEEK_DECLINED_FIELD] }],
+    })
+    if (!response.result.ok) failure = response.result.error.message
+  } catch (error) {
+    failure = messageOf(error)
+  }
+  await controller.load()
+  return failure
 }
 
 /**
@@ -203,11 +254,21 @@ function Loaded({ injected }: { injected: ModelsSectionFace }): ReactNode {
     void controller.load().then(() => { setSavedTarget(target) })
   }
 
+  const persistSaved = (changed: boolean, target: ProviderIdentity): void => {
+    if (!changed) return
+    if (target.provider === OFFICIAL_DEEPSEEK_PROVIDER
+      && controller.store.getSnapshot().officialDeepSeekDeclined) {
+      void revealOfficialDeepSeek(api, controller).then(() => { setSavedTarget(target) })
+      return
+    }
+    announceSaved(target)
+  }
+
   const closeEditor = (changed: boolean, target: ProviderIdentity): void => {
     setEditing(undefined)
     setAdding(false)
     setDeclaring(false)
-    if (changed) announceSaved(target)
+    persistSaved(changed, target)
   }
 
   /**
@@ -219,7 +280,7 @@ function Loaded({ injected }: { injected: ModelsSectionFace }): ReactNode {
    */
   const closeSetup = (changed: boolean, target: ProviderIdentity): void => {
     setDismissedSetup(previous => new Set([...previous, target.provider]))
-    if (changed) announceSaved(target)
+    persistSaved(changed, target)
   }
 
   const closeDelete = (): void => {

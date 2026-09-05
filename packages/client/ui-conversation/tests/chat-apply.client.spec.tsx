@@ -101,6 +101,8 @@ describe('apply wiring', () => {
     const usage = b.slots.entries('settings.section')
     expect(usage.map(entry => entry.options.id)).toEqual(['usage'])
     expect(resolveSlotLabel(usage[0]?.options.label)).toBe('Usage')
+    const usageInject = usage[0]?.inject as undefined | (() => { refresh: () => Promise<void> })
+    expect(typeof usageInject?.().refresh).toBe('function')
     await b.runtime.dispose()
   })
 

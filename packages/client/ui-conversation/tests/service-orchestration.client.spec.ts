@@ -15,7 +15,9 @@ import { en } from '../src/client/locales.ts'
 
 async function bench(readAttachment?: SessionFace['readAttachment']) {
   const runtime = await SlotTestRuntime.create()
-  const prompt = vi.fn(() => Promise.resolve({ ok: true as const, value: { accepted: true as const } }))
+  const prompt = vi.fn<(parts: unknown, queue: string, signal: AbortSignal) => Promise<{ ok: true; value: { accepted: true } }>>(
+    () => Promise.resolve({ ok: true, value: { accepted: true } }),
+  )
   const updateQueue = vi.fn(() => Promise.resolve({ ok: true as const, value: { accepted: true as const } }))
   const cancel = vi.fn(() => Promise.resolve({ ok: true as const, value: { accepted: true as const } }))
   const loadOlder = vi.fn(() => Promise.resolve())
@@ -119,12 +121,11 @@ describe('ConversationController', () => {
 
     b.shell.submit()
     await vi.waitFor(() => { expect(b.prompt).toHaveBeenCalledOnce() })
-    expect(b.prompt).toHaveBeenCalledWith([
-      {
-        type: 'text',
-        text: expect.stringContaining('Comment: Click this control'),
-      },
-    ], 'queue', expect.any(AbortSignal))
+    expect(b.prompt).toHaveBeenCalledTimes(1)
+    const [promptParts] = b.prompt.mock.calls[0] ?? []
+    expect(promptParts).toEqual([expect.objectContaining({ type: 'text' })])
+    expect(String((promptParts as { text?: unknown }[] | undefined)?.[0]?.text)).toContain('Comment: Click this control')
+    expect(b.prompt).toHaveBeenCalledWith(expect.anything(), 'queue', expect.any(AbortSignal))
     await vi.waitFor(() => { expect(b.shell.snapshot.browserAnnotationIds).toBeUndefined() })
     expect(b.root.draftBrowserAnnotations([attachment.id])).toEqual([])
     await b.runtime.dispose()

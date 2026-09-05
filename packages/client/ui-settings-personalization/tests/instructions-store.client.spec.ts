@@ -199,9 +199,11 @@ describe('the custom-instructions controller', () => {
     const api: Pick<IApiClient, 'settings'> = {
       settings: {
         readInstructions: () => new Promise((resolve) => {
-          resolveRead = () => resolve({
-            rpcId: 'r', result: { ok: true as const, value: { content: 'late', revision: 'a'.repeat(64) } },
-          })
+          resolveRead = () => {
+            resolve({
+              rpcId: 'r', result: { ok: true as const, value: { content: 'late', revision: 'a'.repeat(64) } },
+            })
+          }
         }),
         writeInstructions: () => Promise.reject(new Error('unused')),
       },

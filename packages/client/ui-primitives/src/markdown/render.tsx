@@ -425,7 +425,7 @@ function renderTable(node: Md.Table, key: Key, context: MarkdownRenderContext): 
 }
 
 function tableCellTsv(cell: HTMLTableCellElement): string {
-  const value = (cell.textContent ?? '').replace(/\r\n?/g, '\n').trim()
+  const value = cell.textContent.replace(/\r\n?/g, '\n').trim()
   return /["\t\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value
 }
 

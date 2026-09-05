@@ -2,8 +2,8 @@
  * The outward sessions-service face — what `ctx.sessions` exposes to feature
  * packages and the renderer host, and therefore exactly what the test
  * runtime's sessions double must implement. Wire-pump entry points
- * (handleMuxEnvelope/handleConnected/refresh) and runtime internals stay on
- * the concrete class; cross-domain consumers keep the narrower
+ * (handleMuxEnvelope/handleConnected) and runtime internals stay on the
+ * concrete class; cross-domain consumers keep the narrower
  * [SessionsPort](./sessions-port.ts). Widening this interface is the
  * explicit act of widening what features may do to the sessions domain.
  */
@@ -71,6 +71,13 @@ export interface ISessions {
    * @returns completion of the current or newly started refresh.
    */
   refreshSubagents(parentSessionId: SessionId): Promise<void>
+  /**
+   * Refresh the session-list baseline, reusing an in-flight pull. A page that
+   * aggregates cold list rows (Settings Usage) calls this on mount so those
+   * rows carry the Host's latest projection cut instead of the last baseline's.
+   * @returns completion of the current or newly started baseline pull.
+   */
+  refresh(): Promise<void>
 
   /**
    * Record the composition one session now runs. The agent-preset seat calls

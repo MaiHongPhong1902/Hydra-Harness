@@ -911,6 +911,9 @@ importers:
       '@bosch/bh-goal':
         specifier: workspace:^
         version: link:../../goal/goal
+      '@bosch/bh-hooks-registry':
+        specifier: workspace:^
+        version: link:../../hooks/hooks-registry
       '@bosch/bh-host-plugin-inventory':
         specifier: workspace:^
         version: link:../../host/plugin-inventory
@@ -920,6 +923,9 @@ importers:
       '@bosch/bh-llm':
         specifier: workspace:^
         version: link:../../llm/llm
+      '@bosch/bh-mcp-registry':
+        specifier: workspace:^
+        version: link:../../mcp/mcp-registry
       '@bosch/bh-message-feedback':
         specifier: workspace:^
         version: link:../../feedback/message-feedback
@@ -1086,8 +1092,8 @@ importers:
         specifier: 1.12.2
         version: link:../page-controller
       chalk:
-        specifier: ^6.0.0
-        version: 6.0.0
+        specifier: ^5.6.2
+        version: 5.6.2
     devDependencies:
       zod:
         specifier: ^4.4.3
@@ -1096,8 +1102,8 @@ importers:
   packages/browser/browser-electron/third-party/page-agent/packages/llms:
     dependencies:
       chalk:
-        specifier: ^6.0.0
-        version: 6.0.0
+        specifier: ^5.6.2
+        version: 5.6.2
     devDependencies:
       zod:
         specifier: ^4.4.3
@@ -1118,8 +1124,8 @@ importers:
         specifier: 1.12.2
         version: link:../ui
       chalk:
-        specifier: ^6.0.0
-        version: 6.0.0
+        specifier: ^5.6.2
+        version: 5.6.2
     devDependencies:
       zod:
         specifier: ^4.4.3
@@ -1278,6 +1284,9 @@ importers:
       '@bosch/bh-hooks-codex':
         specifier: workspace:^
         version: link:../../hooks/hooks-codex
+      '@bosch/bh-hooks-registry':
+        specifier: workspace:^
+        version: link:../../hooks/hooks-registry
       '@bosch/bh-jobs-local':
         specifier: workspace:^
         version: link:../../jobs/jobs-local
@@ -1296,6 +1305,9 @@ importers:
       '@bosch/bh-mcp-client':
         specifier: workspace:^
         version: link:../../mcp/mcp-client
+      '@bosch/bh-mcp-registry':
+        specifier: workspace:^
+        version: link:../../mcp/mcp-registry
       '@bosch/bh-obsidian-knowledge':
         specifier: workspace:^
         version: link:../../browser/obsidian-knowledge
@@ -5322,6 +5334,43 @@ importers:
         specifier: workspace:^
         version: link:../../../vendor/cordis
 
+  packages/hooks/hooks-registry:
+    dependencies:
+      '@bosch/bh-atomic-write':
+        specifier: workspace:^
+        version: link:../../util/atomic-write
+      '@bosch/bh-home-paths':
+        specifier: workspace:^
+        version: link:../../util/home-paths
+      '@bosch/schemastery':
+        specifier: link:../../../vendor/schemastery
+        version: link:../../../vendor/schemastery
+    devDependencies:
+      '@bosch/bh-hooks-claude-code':
+        specifier: workspace:^
+        version: link:../hooks-claude-code
+      '@bosch/bh-hooks-codex':
+        specifier: workspace:^
+        version: link:../hooks-codex
+      '@bosch/bh-invariants':
+        specifier: workspace:^
+        version: link:../../runtime-diagnostics/invariants
+      '@bosch/bh-session':
+        specifier: workspace:^
+        version: link:../../core/session
+      '@bosch/bh-settings':
+        specifier: workspace:^
+        version: link:../../settings/settings
+      '@bosch/bh-settings-file':
+        specifier: workspace:^
+        version: link:../../settings/settings-file
+      '@bosch/cordis':
+        specifier: workspace:^
+        version: link:../../../vendor/cordis
+      '@bosch/cordis-plugin-loader':
+        specifier: workspace:^
+        version: link:../../../vendor/loader
+
   packages/host/apiproxy:
     dependencies:
       '@bosch/bh-agent':
@@ -5563,9 +5612,15 @@ importers:
       '@bosch/bh-brand':
         specifier: workspace:^
         version: link:../../util/brand
+      '@bosch/bh-hooks-registry':
+        specifier: workspace:^
+        version: link:../../hooks/hooks-registry
       '@bosch/bh-invariants':
         specifier: workspace:^
         version: link:../../runtime-diagnostics/invariants
+      '@bosch/bh-mcp-registry':
+        specifier: workspace:^
+        version: link:../../mcp/mcp-registry
       '@bosch/bh-plugin-runtime':
         specifier: workspace:^
         version: link:../plugin-runtime
@@ -6229,6 +6284,37 @@ importers:
       '@modelcontextprotocol/server-filesystem':
         specifier: ^2026.7.4
         version: 2026.7.10(zod@4.4.3)
+
+  packages/mcp/mcp-registry:
+    dependencies:
+      '@bosch/schemastery':
+        specifier: link:../../../vendor/schemastery
+        version: link:../../../vendor/schemastery
+    devDependencies:
+      '@bosch/bh-invariants':
+        specifier: workspace:^
+        version: link:../../runtime-diagnostics/invariants
+      '@bosch/bh-mcp-client':
+        specifier: workspace:^
+        version: link:../mcp-client
+      '@bosch/bh-settings':
+        specifier: workspace:^
+        version: link:../../settings/settings
+      '@bosch/bh-settings-file':
+        specifier: workspace:^
+        version: link:../../settings/settings-file
+      '@bosch/bh-tools':
+        specifier: workspace:^
+        version: link:../../core/tools
+      '@bosch/cordis':
+        specifier: workspace:^
+        version: link:../../../vendor/cordis
+      '@bosch/cordis-plugin-loader':
+        specifier: workspace:^
+        version: link:../../../vendor/loader
+      '@modelcontextprotocol/sdk':
+        specifier: ^1.12.0
+        version: 1.29.0(zod@4.4.3)
 
   packages/plan/plan-mode:
     dependencies:
@@ -12593,10 +12679,6 @@ packages:
     resolution: {integrity: sha512-7NzBL0rN6fMUW+f7A6Io4h40qQlG+xGmtMxfbnH/K7TAtt8JQWVQK+6g0UXKMeVJoyV5EkkNsErQ8pVD3bLHbA==}
     engines: {node: ^12.17.0 || ^14.13 || >=16.0.0}
 
-  chalk@6.0.0:
-    resolution: {integrity: sha512-2uNTXIuTTxk7ciZgAU1BQcgnchcG0xXnrs6jzkQfj9SsRa9M2s5zE8WT96hS6KmG4MzWHSrvH43DF1m4XRkrFg==}
-    engines: {node: '>=22'}
-
   character-entities-html4@2.1.0:
     resolution: {integrity: sha512-1v7fgQRj6hnSwFpq1Eu0ynr/CDEw0rXo2B61qXrLNdHZmPKgb7fqS1a2JwF0rISo9q77jDI8VMEHoApn8qDoZA==}
 
@@ -17830,8 +17912,6 @@ snapshots:
   chai@6.2.2: {}
 
   chalk@5.6.2: {}
-
-  chalk@6.0.0: {}
 
   character-entities-html4@2.1.0: {}
 

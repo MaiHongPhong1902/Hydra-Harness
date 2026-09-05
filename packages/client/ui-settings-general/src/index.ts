@@ -10,10 +10,17 @@ const ONBOARDING_SETTINGS_NAMESPACE = 'ui-onboarding'
 interface OnboardingSettings {
   /** Last version acknowledged by the current product welcome step. */
   welcomeNoticeVersion?: string
+  /**
+   * Whether the user dismissed the shipped official DeepSeek Models row.
+   * The adapter stays mounted; the row and first-run prompt stay hidden
+   * until the user adds that route again.
+   */
+  deepseekOfficialDeclined?: boolean
 }
 
 const OnboardingSettingsSchema: z<OnboardingSettings> = z.object({
   welcomeNoticeVersion: z.string(),
+  deepseekOfficialDeclined: z.boolean(),
 })
 
 /** Register the durable GUI-onboarding section when a settings provider exists. */

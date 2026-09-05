@@ -382,7 +382,7 @@ class LocalVaultStorage implements ObsidianKnowledgeStorage {
 
   async search(query: string): Promise<KnowledgeSearchResult[]> {
     const terms = searchTerms(query)
-    // ponytail: bounded O(n) Markdown scan; add an index only if vault search latency is measured as a problem.
+    // Bounded O(n) Markdown scan; add an index only if vault search latency is measured as a problem.
     const files = await this.markdownFiles(join(this.vaultPath, GRAPH_ROOT), 5_000)
     const matches: Array<KnowledgeSearchResult & { termScore: number; titleScore: number; evidenceScore: number }> = []
     for (const file of files) {

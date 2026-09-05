@@ -68,6 +68,14 @@ describe('PluginInventoryGateway', () => {
       { method: 'trustPlugin', invocation: { kind: 'direct' } },
       { method: 'untrustPlugin', invocation: { kind: 'direct' } },
       { method: 'removePlugin', invocation: { kind: 'direct' } },
+      { method: 'listMcpServers', invocation: { kind: 'direct' } },
+      { method: 'defineMcpServer', invocation: { kind: 'direct' } },
+      { method: 'setMcpServerEnabled', invocation: { kind: 'direct' } },
+      { method: 'removeMcpServer', invocation: { kind: 'direct' } },
+      { method: 'listHookRecords', invocation: { kind: 'direct' } },
+      { method: 'defineHookRecord', invocation: { kind: 'direct' } },
+      { method: 'setHookRecordEnabled', invocation: { kind: 'direct' } },
+      { method: 'removeHookRecord', invocation: { kind: 'direct' } },
     ])
   })
 

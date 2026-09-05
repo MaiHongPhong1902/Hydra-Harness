@@ -25,7 +25,7 @@ The command starts the Web UI at `http://127.0.0.1:3080` by default and opens it
 To run from a repository checkout:
 
 ```sh
-git clone https://github.com/bosch/bosch-harness.git
+git clone --recurse-submodules https://github.com/bosch/bosch-harness.git
 cd bosch-harness
 pnpm install
 pnpm run build
@@ -34,7 +34,7 @@ pnpm bh web
 pnpm run desktop
 ```
 
-`pnpm run build` prepares the repository artifacts. `pnpm bh web` uses those built artifacts without rebuilding.
+`pnpm install` needs the PageAgent git submodule on disk. Clone with `--recurse-submodules`, or follow [Checking out PageAgent](packages/browser/browser-electron/README.md#checking-out-pageagent) if install reports `ERR_PNPM_WORKSPACE_PKG_NOT_FOUND` for `@page-agent/core` or `@page-agent/page-controller`. `pnpm run build` prepares the repository artifacts through the workspace `tsx`; `pnpm bh web` uses those built artifacts without rebuilding.
 
 ## Community and support
 

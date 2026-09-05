@@ -101,7 +101,9 @@ export function apply(ctx: Context, config: Config): void {
 
   const model = config.model ?? ''
   const lifecycle = new AbortController()
-  ctx.effect(() => () => lifecycle.abort(new Error('hooks-codex unloaded')), 'hooks-codex lifecycle')
+  ctx.effect(() => () => {
+    lifecycle.abort(new Error('hooks-codex unloaded'))
+  }, 'hooks-codex lifecycle')
 
   // SessionStart is the one emit-shaped (detached) point Codex has: track its
   // run chains so disposal aborts a still-running hook process and drains the

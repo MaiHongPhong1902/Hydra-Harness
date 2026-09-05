@@ -15,16 +15,16 @@ afterEach(cleanup)
 const t = ((key: PluginInventoryLocaleKey): string => en[key]) as PluginInventorySettingsTabProps['t']
 const SNAPSHOT = {
   plugins: [{
-    identity: 'ponytail@local' as never,
-    name: 'Ponytail',
+    identity: 'toolkit@local' as never,
+    name: 'Toolkit',
     version: '4.9.0',
-    source: { kind: 'local' as const, source: 'C:\\plugins\\ponytail', sourceId: 'local' },
-    pluginRoot: 'C:\\plugins\\ponytail',
-    dataPath: 'C:\\data\\ponytail',
+    source: { kind: 'local' as const, source: 'C:\\plugins\\toolkit', sourceId: 'local' },
+    pluginRoot: 'C:\\plugins\\toolkit',
+    dataPath: 'C:\\data\\toolkit',
     enabled: false,
     lifecycle: 'installed' as const,
     hookTrustState: 'pending' as const,
-    skills: ['ponytail', 'ponytail-help'],
+    skills: ['toolkit', 'toolkit-help'],
     mcpServers: [],
     hooks: ['PreToolUse'],
     installationStatus: 'installed' as const,
@@ -93,7 +93,7 @@ describe('PluginInventorySettingsTab', () => {
     expect(protectedSwitch.hasAttribute('disabled')).toBe(true)
     fireEvent.click(protectedSwitch)
     expect(native.setEnabled).toHaveBeenCalledOnce()
-    expect(screen.queryByText('Ponytail')).toBeNull()
+    expect(screen.queryByText('Toolkit')).toBeNull()
     expect(screen.queryByRole('heading', { name: en.importedPlugins })).toBeNull()
   })
 
@@ -178,25 +178,25 @@ describe('PluginInventorySettingsTab', () => {
     const imported = importedControls()
     render(<PluginInventorySettingsTab {...({ t, nativePlugins: native, importedPlugins: imported, query: '' } as PluginInventorySettingsTabProps)} />)
 
-    expect(await screen.findByText('Ponytail')).toBeTruthy()
-    fireEvent.click(screen.getByRole('switch', { name: `${en.importedPluginEnable} Ponytail` }))
-    await waitFor(() => { expect(imported.enable).toHaveBeenCalledWith('ponytail@local') })
+    expect(await screen.findByText('Toolkit')).toBeTruthy()
+    fireEvent.click(screen.getByRole('switch', { name: `${en.importedPluginEnable} Toolkit` }))
+    await waitFor(() => { expect(imported.enable).toHaveBeenCalledWith('toolkit@local') })
     fireEvent.click(screen.getByRole('button', { name: en.importedPluginRemove }))
-    await waitFor(() => { expect(imported.remove).toHaveBeenCalledWith('ponytail@local') })
+    await waitFor(() => { expect(imported.remove).toHaveBeenCalledWith('toolkit@local') })
   })
 
   it('groups imported plugins by their marketplace owner, filtered by the shared query', async () => {
     const grouped = {
       plugins: [
         {
-          identity: 'ponytail@abc' as never,
-          name: 'Ponytail',
+          identity: 'toolkit@abc' as never,
+          name: 'Toolkit',
           version: '1.0.0',
           source: {
             kind: 'marketplace-git' as const,
-            source: 'https://github.com/DietrichGebert/ponytail',
+            source: 'https://github.com/example-labs/toolkit',
             sourceId: 'abc',
-            marketplace: 'https://github.com/DietrichGebert/ponytail',
+            marketplace: 'https://github.com/example-labs/toolkit',
           },
           pluginRoot: 'x', dataPath: 'y', enabled: true, lifecycle: 'installed' as const,
           hookTrustState: 'not-applicable' as const, skills: [], mcpServers: [], hooks: [],
@@ -219,47 +219,47 @@ describe('PluginInventorySettingsTab', () => {
       <PluginInventorySettingsTab {...({ t, nativePlugins: native, importedPlugins: imported, query: '' } as PluginInventorySettingsTabProps)} />,
     )
 
-    expect(await screen.findByText('DietrichGebert')).toBeTruthy()
-    expect(screen.getByText('Ponytail')).toBeTruthy()
+    expect(await screen.findByText('example-labs')).toBeTruthy()
+    expect(screen.getByText('Toolkit')).toBeTruthy()
     expect(screen.getByText('other')).toBeTruthy()
     expect(screen.getByText('Other')).toBeTruthy()
 
     rerender(
-      <PluginInventorySettingsTab {...({ t, nativePlugins: native, importedPlugins: imported, query: 'ponytail' } as PluginInventorySettingsTabProps)} />,
+      <PluginInventorySettingsTab {...({ t, nativePlugins: native, importedPlugins: imported, query: 'toolkit' } as PluginInventorySettingsTabProps)} />,
     )
     await waitFor(() => { expect(screen.queryByText('Other')).toBeNull() })
     expect(screen.queryByText('other')).toBeNull()
-    expect(screen.getByText('DietrichGebert')).toBeTruthy()
-    expect(screen.getByText('Ponytail')).toBeTruthy()
+    expect(screen.getByText('example-labs')).toBeTruthy()
+    expect(screen.getByText('Toolkit')).toBeTruthy()
   })
 })
 
 /** A fixture plugin imported from a real-shaped marketplace, with skills, hooks, and an MCP server populated. */
 const MARKETPLACE_SNAPSHOT = {
   plugins: [{
-    identity: 'ponytail@dg1' as never,
-    name: 'Ponytail',
+    identity: 'toolkit@ex1' as never,
+    name: 'Toolkit',
     version: '2.0.0',
     source: {
       kind: 'marketplace-git' as const,
-      source: 'https://github.com/DietrichGebert/ponytail',
-      sourceId: 'dg1',
-      marketplace: 'https://github.com/DietrichGebert/ponytail',
+      source: 'https://github.com/example-labs/toolkit',
+      sourceId: 'ex1',
+      marketplace: 'https://github.com/example-labs/toolkit',
     },
-    pluginRoot: 'C:\\home\\plugins\\ponytail@dg1',
-    dataPath: 'C:\\home\\plugins\\ponytail@dg1\\data',
+    pluginRoot: 'C:\\home\\plugins\\toolkit@ex1',
+    dataPath: 'C:\\home\\plugins\\toolkit@ex1\\data',
     enabled: true,
     lifecycle: 'installed' as const,
     hookTrustState: 'pending' as const,
-    skills: ['ponytail-lint', 'ponytail-review'],
+    skills: ['toolkit-lint', 'toolkit-review'],
     mcpServers: [{
-      name: 'ponytail-mcp',
+      name: 'toolkit-mcp',
       enabled: true,
       startupState: 'started' as const,
       authenticationState: 'not-applicable' as const,
       defaultToolsApprovalMode: 'ask' as const,
       toolApproval: {},
-      tools: ['ponytail.lint'],
+      tools: ['toolkit.lint'],
     }],
     hooks: ['PreToolUse', 'Stop'],
     installationStatus: 'installed' as const,
@@ -267,13 +267,13 @@ const MARKETPLACE_SNAPSHOT = {
 } as const
 
 describe('ImportedPluginCapabilitiesTab', () => {
-  it('groups a marketplace plugin\'s skills under its owner, DietrichGebert', async () => {
+  it('groups a marketplace plugin\'s skills under its owner, example-labs', async () => {
     const list = vi.fn(async () => MARKETPLACE_SNAPSHOT)
     render(<ImportedPluginCapabilitiesTab {...({ t, list, capability: 'skills', query: '' } as ImportedPluginCapabilitiesTabProps)} />)
 
-    expect(await screen.findByText('DietrichGebert')).toBeTruthy()
-    expect(screen.getByText('ponytail-lint')).toBeTruthy()
-    expect(screen.getByText('ponytail-review')).toBeTruthy()
+    expect(await screen.findByText('example-labs')).toBeTruthy()
+    expect(screen.getByText('toolkit-lint')).toBeTruthy()
+    expect(screen.getByText('toolkit-review')).toBeTruthy()
   })
 
   it('groups a marketplace plugin\'s hooks under its owner and keeps the trust action', async () => {
@@ -283,11 +283,11 @@ describe('ImportedPluginCapabilitiesTab', () => {
     const untrust = vi.fn(async () => trusted)
     render(<ImportedPluginCapabilitiesTab {...({ t, list, trust, untrust, capability: 'hooks', query: '' } as ImportedPluginCapabilitiesTabProps)} />)
 
-    expect(await screen.findByText('DietrichGebert')).toBeTruthy()
+    expect(await screen.findByText('example-labs')).toBeTruthy()
     expect(screen.getByText('PreToolUse')).toBeTruthy()
     expect(screen.getByText('Stop')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: en.importedPluginTrust }))
-    await waitFor(() => { expect(trust).toHaveBeenCalledWith('ponytail@dg1') })
+    await waitFor(() => { expect(trust).toHaveBeenCalledWith('toolkit@ex1') })
     expect(await screen.findByRole('button', { name: en.importedPluginUntrust })).toBeTruthy()
   })
   it('keeps skills and hook trust in their own tabs', async () => {
@@ -297,12 +297,12 @@ describe('ImportedPluginCapabilitiesTab', () => {
     const hooks = { t, list, capability: 'hooks', trust, query: '' } as ImportedPluginCapabilitiesTabProps
     const { rerender } = render(<ImportedPluginCapabilitiesTab {...skills} />)
 
-    expect(await screen.findByText('ponytail-help')).toBeTruthy()
+    expect(await screen.findByText('toolkit-help')).toBeTruthy()
     expect(screen.queryByText('PreToolUse')).toBeNull()
     rerender(<ImportedPluginCapabilitiesTab {...hooks} />)
     expect(await screen.findByText('PreToolUse')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: en.importedPluginTrust }))
-    await waitFor(() => { expect(trust).toHaveBeenCalledWith('ponytail@local') })
+    await waitFor(() => { expect(trust).toHaveBeenCalledWith('toolkit@local') })
   })
 
   it('filters rows by the shared query and groups them by marketplace owner', async () => {
@@ -310,11 +310,11 @@ describe('ImportedPluginCapabilitiesTab', () => {
     const skills = { t, list, capability: 'skills', query: '' } as ImportedPluginCapabilitiesTabProps
     const { rerender } = render(<ImportedPluginCapabilitiesTab {...skills} />)
 
-    expect(await screen.findByRole('heading', { name: 'ponytail', level: 4 })).toBeTruthy()
-    expect(screen.getByText('Ponytail')).toBeTruthy()
+    expect(await screen.findByRole('heading', { name: 'toolkit', level: 4 })).toBeTruthy()
+    expect(screen.getByText('Toolkit')).toBeTruthy()
 
     rerender(<ImportedPluginCapabilitiesTab {...{ ...skills, query: 'no-match' }} />)
-    await waitFor(() => { expect(screen.queryByText('Ponytail')).toBeNull() })
+    await waitFor(() => { expect(screen.queryByText('Toolkit')).toBeNull() })
     expect(screen.getByText(en.emptySearch)).toBeTruthy()
   })
 })

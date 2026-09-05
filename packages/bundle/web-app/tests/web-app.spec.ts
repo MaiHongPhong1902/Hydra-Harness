@@ -101,16 +101,16 @@ describe('web-app runtime glue', () => {
       content: [{ type: 'text', text: 'Tôi muốn cải thiện agent' }],
       source: { kind: 'user' },
     })
-    expect(internals.agentImprovementContract([direct], 1)).toMatchObject({
+    const contract = internals.agentImprovementContract([direct], 1)
+    expect(contract).toMatchObject({
       source: { kind: 'plugin', plugin: 'web-app', form: 'instructions' },
-      content: [{ type: 'text', text: expect.stringContaining('inspect exactly that one with one read-only tool call') }],
     })
-    expect(internals.agentImprovementContract([direct], 1)?.content[0]).toMatchObject({
-      text: expect.stringContaining('no directly relevant observable decision failure'),
-    })
-    expect(internals.agentImprovementContract([direct], 1)?.content[0]).toMatchObject({
-      text: expect.stringContaining('do not scan or open arbitrary workspace files'),
-    })
+    const first = contract?.content[0]
+    expect(first).toMatchObject({ type: 'text' })
+    expect(first).toHaveProperty('text')
+    expect(String((first as { text?: unknown }).text)).toContain('inspect exactly that one with one read-only tool call')
+    expect(String((first as { text?: unknown }).text)).toContain('no directly relevant observable decision failure')
+    expect(String((first as { text?: unknown }).text)).toContain('do not scan or open arbitrary workspace files')
     const ordinary = createUserMessage({
       content: [{ type: 'text', text: 'Read the README' }],
       source: { kind: 'user' },

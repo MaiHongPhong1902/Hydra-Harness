@@ -934,6 +934,37 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'hookRecords',
+    summary: 'Settings-backed hook records with their live bridge mounts.',
+    description: 'Settings-backed hook records with their live bridge mounts. Reconciliation is idempotent and runs on one serialized chain, so a document commit from any source — this service\'s own write, another process, or a hand edit — converges the mounted set on the stored one.',
+    methods: [
+      {
+        signature: 'list(): HookRecordSnapshot',
+        description: 'Project every stored record with its live state.',
+        parameters: [],
+        returns: 'the current record projection, in stored order.',
+      },
+      {
+        signature: 'define(request: HookRecordDefinitionRequest): Promise<HookRecordSnapshot>',
+        description: 'Store one complete definition, replacing any record of the same name, then converge the mounted set. A definition this registry could not mount is refused before anything persists.',
+        parameters: [{ name: 'request', description: 'complete record definition.' }],
+        returns: 'the refreshed projection.',
+      },
+      {
+        signature: 'setEnabled(request: HookRecordEnablementRequest): Promise<HookRecordSnapshot>',
+        description: 'Change one stored record\'s desired state.',
+        parameters: [{ name: 'request', description: 'target record and desired state.' }],
+        returns: 'the refreshed projection.',
+      },
+      {
+        signature: 'remove(name: string): Promise<HookRecordSnapshot>',
+        description: 'Remove one stored record, unmount it, and delete any document this registry materialized for it.',
+        parameters: [{ name: 'name', description: 'stored record name.' }],
+        returns: 'the refreshed projection.',
+      },
+    ],
+  },
+  {
     key: 'importedPlugins',
     summary: 'Shared `bh-base` service for every imported bundle, not a Web-only facility.',
     description: 'Shared `bh-base` service for every imported bundle, not a Web-only facility.',
@@ -1215,6 +1246,37 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Select a provider by the file\'s extension and run one query. Selection is per-query and order-independent; no match throws `LspError` `LSP_UNAVAILABLE`.',
         parameters: [{ name: 'request', description: 'the normalized query.' }, { name: 'signal', description: 'optional cancellation forwarded to the selected provider.' }],
         returns: 'the normalized, closed-union result.',
+      },
+    ],
+  },
+  {
+    key: 'mcpServers',
+    summary: 'Settings-backed MCP server records with their live `mcp-client` mounts.',
+    description: 'Settings-backed MCP server records with their live `mcp-client` mounts. Reconciliation is idempotent and runs on one serialized chain, so a document commit from any source — this service\'s own write, another process, or a hand edit — converges the mounted set on the stored one.',
+    methods: [
+      {
+        signature: 'list(): McpServerSnapshot',
+        description: 'Project every stored record with its live state.',
+        parameters: [],
+        returns: 'the current record projection, in stored order.',
+      },
+      {
+        signature: 'define(request: McpServerDefinitionRequest): Promise<McpServerSnapshot>',
+        description: 'Store one complete definition, replacing any record of the same name, then converge the mounted set. A definition this registry could not mount is refused before anything persists.',
+        parameters: [{ name: 'request', description: 'complete server definition.' }],
+        returns: 'the refreshed projection.',
+      },
+      {
+        signature: 'setEnabled(request: McpServerEnablementRequest): Promise<McpServerSnapshot>',
+        description: 'Change one stored record\'s desired state.',
+        parameters: [{ name: 'request', description: 'target record and desired state.' }],
+        returns: 'the refreshed projection.',
+      },
+      {
+        signature: 'remove(name: string): Promise<McpServerSnapshot>',
+        description: 'Remove one stored record and unmount it.',
+        parameters: [{ name: 'name', description: 'stored record name.' }],
+        returns: 'the refreshed projection.',
       },
     ],
   },
@@ -2797,6 +2859,14 @@ export const EVENT_API: readonly EventApiEntry[] = [
     parameters: [{ name: 'payload', description: '.change - fresh current projection or clear tombstone.' }],
   },
   {
+    name: 'hooks-registry/reconciled',
+    mode: 'emit',
+    signature: '\'hooks-registry/reconciled\'(snapshot: HookRecordSnapshot): void',
+    summary: 'The mounted bridge set now matches the stored records.',
+    description: 'The mounted bridge set now matches the stored records. Emitted after each reconciliation settles — including the one at startup and the ones a document change triggers — so an observer never reads the projection between a committed record change and the mount that follows it.',
+    parameters: [{ name: 'snapshot', description: 'the projection as of this reconciliation.' }],
+  },
+  {
     name: 'llm/adapters-updated',
     mode: 'emit',
     signature: '\'llm/adapters-updated\'(): void',
@@ -2811,6 +2881,14 @@ export const EVENT_API: readonly EventApiEntry[] = [
     summary: 'Waterfall around every streaming model call (retry, replay, routing).',
     description: 'Waterfall around every streaming model call (retry, replay, routing). Bound to the LlmRuntime; call `next()` to reach the resolved adapter\'s stream, or yield your own chunks to short-circuit.',
     parameters: [{ name: 'options', description: 'the full request. A LOOP-built request carries the process-local {@link markAgentLoopRequest} identity and arrives deep-frozen (mutation throws): its content is a pure function of the session log (the reconstructability Agent Note), so listeners read it, never rewrite it. Hand-built calls do not carry that marker; their messages already obey the immutable creation contract.' }],
+  },
+  {
+    name: 'mcp-servers/reconciled',
+    mode: 'emit',
+    signature: '\'mcp-servers/reconciled\'(snapshot: McpServerSnapshot): void',
+    summary: 'The mounted server set now matches the stored records.',
+    description: 'The mounted server set now matches the stored records. Emitted after each reconciliation settles — including the one at startup and the ones a document change triggers — so an observer never reads the projection between a committed record change and the mount that follows it.',
+    parameters: [{ name: 'snapshot', description: 'the projection as of this reconciliation.' }],
   },
   {
     name: 'session-telemetry/record',
@@ -3693,6 +3771,30 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface GrantRecord {\n    readonly kind: \'grant\';\n    readonly payload: unknown;\n}',
   },
   {
+    name: 'HookRecordDefinitionRequest',
+    declaration: 'export interface HookRecordDefinitionRequest {\n    readonly name: string;\n    readonly dialect: HookDialect;\n    readonly configPath?: string;\n    readonly config?: Readonly<Record<string, JsonValue>>;\n    readonly pluginRoot?: string;\n    readonly projectDir?: string;\n    readonly defaultTimeoutMs?: number;\n    readonly enabled?: boolean;\n}',
+  },
+  {
+    name: 'HookRecordEnablementRequest',
+    declaration: 'export interface HookRecordEnablementRequest {\n    readonly name: string;\n    readonly enabled: boolean;\n}',
+  },
+  {
+    name: 'HookRecordSnapshot',
+    declaration: 'export interface HookRecordSnapshot {\n    readonly records: readonly HookRecordView[];\n}',
+  },
+  {
+    name: 'HookRecordStatus',
+    declaration: 'export type HookRecordStatus = \'stopped\' | \'started\' | \'failed\' | \'invalid\';',
+  },
+  {
+    name: 'HookRecordView',
+    declaration: 'export interface HookRecordView {\n    readonly name: string;\n    readonly dialect: HookDialect;\n    readonly source: HookSourceKind;\n    readonly enabled: boolean;\n    readonly status: HookRecordStatus;\n    readonly detail?: string;\n    readonly configPath?: string;\n    readonly events: readonly string[];\n    readonly hookCount: number;\n    readonly pluginRoot?: string;\n    readonly projectDir?: string;\n}',
+  },
+  {
+    name: 'HookSourceKind',
+    declaration: 'export type HookSourceKind = \'file\' | \'inline\';',
+  },
+  {
     name: 'HookTrustState',
     declaration: 'export type HookTrustState = \'not-applicable\' | \'pending\' | \'trusted\';',
   },
@@ -3967,6 +4069,30 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'ManualCompactAgentContext',
     declaration: 'export interface ManualCompactAgentContext extends CompactionAgentContext {\n    runMaintenance<T>(task: (signal: AbortSignal) => Promise<T>): Promise<T>;\n}',
+  },
+  {
+    name: 'McpServerDefinitionRequest',
+    declaration: 'export interface McpServerDefinitionRequest {\n    readonly name: string;\n    readonly transport: McpServerTransport;\n    readonly command?: string;\n    readonly args?: readonly string[];\n    readonly env?: Readonly<Record<string, string>>;\n    readonly cwd?: string;\n    readonly url?: string;\n    readonly headers?: Readonly<Record<string, string>>;\n    readonly toolCallTimeoutMs?: number;\n    readonly enabled?: boolean;\n}',
+  },
+  {
+    name: 'McpServerEnablementRequest',
+    declaration: 'export interface McpServerEnablementRequest {\n    readonly name: string;\n    readonly enabled: boolean;\n}',
+  },
+  {
+    name: 'McpServerSnapshot',
+    declaration: 'export interface McpServerSnapshot {\n    readonly servers: readonly McpServerView[];\n}',
+  },
+  {
+    name: 'McpServerStatus',
+    declaration: 'export type McpServerStatus = \'stopped\' | \'starting\' | \'started\' | \'failed\' | \'invalid\';',
+  },
+  {
+    name: 'McpServerTransport',
+    declaration: 'export type McpServerTransport = \'stdio\' | \'streamable-http\';',
+  },
+  {
+    name: 'McpServerView',
+    declaration: 'export interface McpServerView {\n    readonly name: string;\n    readonly transport: McpServerTransport;\n    readonly enabled: boolean;\n    readonly status: McpServerStatus;\n    readonly detail?: string;\n    readonly command?: string;\n    readonly args?: readonly string[];\n    readonly cwd?: string;\n    readonly url?: string;\n    readonly envNames: readonly string[];\n    readonly headerNames: readonly string[];\n    readonly toolCallTimeoutMs: number;\n    readonly tools: readonly string[];\n}',
   },
   {
     name: 'MemoryEntry',
@@ -4662,7 +4788,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SkillCandidate',
-    declaration: 'export interface SkillCandidate extends SkillSummary {\n    readonly rank: number;\n    readonly locator: unknown;\n    readonly path?: string;\n    readonly metadata?: Readonly<Record<string, unknown>>;\n}',
+    declaration: 'export interface SkillCandidate extends SkillSummary {\n    readonly aliases?: readonly string[];\n    readonly rank: number;\n    readonly locator: unknown;\n    readonly path?: string;\n    readonly metadata?: Readonly<Record<string, unknown>>;\n}',
   },
   {
     name: 'SkillCatalogSnapshot',

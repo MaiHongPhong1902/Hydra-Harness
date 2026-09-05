@@ -145,9 +145,9 @@ describe('PluginsSettingsSection', () => {
     } as unknown as PluginsSettingsSectionProps
     render(<PluginsSettingsSection {...props} />)
 
-    fireEvent.change(screen.getByRole('searchbox', { name: en.search }), { target: { value: 'ponytail' } })
+    fireEvent.change(screen.getByRole('searchbox', { name: en.search }), { target: { value: 'toolkit' } })
 
-    expect(seen.at(-1)).toBe('ponytail')
+    expect(seen.at(-1)).toBe('toolkit')
   })
 
   it('moves focus and selection with standard horizontal tab keys', () => {
