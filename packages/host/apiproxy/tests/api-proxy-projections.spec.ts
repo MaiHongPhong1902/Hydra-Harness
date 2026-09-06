@@ -264,6 +264,8 @@ describe('session.list projections column', () => {
   it('serves cold rows from the persisted projection cache with zero log loads', async () => {
     const { ctx } = await harness(true)
     const coldId = SessionId('session-cold-listing')
+    const revision = { sessionId: coldId, conversationId: SessionId('original'),
+      previousSessionId: SessionId('previous'), turn: 2, createdAt: 5 }
     const load = () => { throw new Error('list must not load event logs') }
     ctx.provide('sessionPersistence', {
       list: async () => [{ version: 0, id: coldId, createdAt: 5, cwd: '/tmp' }],
@@ -276,7 +278,8 @@ describe('session.list projections column', () => {
       // The carrier hands the listed header through as the identity witness.
       listSnapshot: (meta: { id: unknown; createdAt: number }) => Promise.resolve(
         meta.id === coldId && meta.createdAt === 5
-          ? { asOfSeq: 7, values: { 'test/last-user': { text: 'cached' } } }
+          ? { asOfSeq: 7, values: { 'test/last-user': { text: 'cached' },
+            sessionListMetadata: { blank: false, lastPromptAt: 6, revision } } }
           : undefined,
       ),
     } as never)
@@ -284,7 +287,8 @@ describe('session.list projections column', () => {
     if (!response.result.ok) throw new Error('unreachable')
     const row = response.result.value.items.find(item => item.sessionId === coldId)
     expect(row?.running).toBe(false)
-    expect(row?.projections).toEqual({ asOfSeq: 7, values: { 'test/last-user': { text: 'cached' } } })
+    expect(row?.revision).toEqual(revision)
+    expect(row?.projections).toMatchObject({ asOfSeq: 7, values: { 'test/last-user': { text: 'cached' } } })
   })
 
   it('cold rows without a cache plugin (or without a stored row) just lack the column', async () => {

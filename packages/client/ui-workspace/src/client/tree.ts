@@ -4,7 +4,7 @@
  * remains visible.
  */
 import {
-  indexSubagentDescendants, type PendingInteractionStatus, type SessionId, type SessionListState,
+  conversationRepresentatives, indexSubagentDescendants, type PendingInteractionStatus, type SessionId, type SessionListState,
   type SessionSearchResultItem, type SessionSummary, type SubagentDescendantSummary,
   type WorkspaceId, type WorkspaceView,
 } from '@hydra/harness-client-runtime/client'
@@ -179,13 +179,19 @@ function groupByWorkspace(
 ): Group[] {
   const groups: Group[] = []
   const accounted = new Set<SessionId>()
+  const representatives = conversationRepresentatives(list, archived)
+  const included = new Set<SessionId>()
   for (const workspace of workspaces) {
     const members: SessionSummary[] = []
+    const owned = new Set(workspace.sessionIds)
     for (const id of workspace.sessionIds) {
-      const summary = list.byId[id]
+      const summary = representatives.get(id)
       if (summary === undefined) continue // account may lead the list pull; the row appears when the summary lands
       accounted.add(id)
+      if (id !== summary.id && owned.has(summary.id)) continue
+      if (included.has(summary.id)) continue
       if (!sessionVisible(summary, list.current, archived)) continue
+      included.add(summary.id)
       members.push(summary)
     }
     groups.push(buildGroup(
@@ -193,10 +199,14 @@ function groupByWorkspace(
       Date.parse(workspace.createdAt), workspace.title, members, 'account',
     ))
   }
-  const stray = list.ids
-    .map(id => list.byId[id])
-    .filter((s): s is SessionSummary =>
-      s !== undefined && !accounted.has(s.id) && sessionVisible(s, list.current, archived))
+  const stray: SessionSummary[] = []
+  for (const id of list.ids) {
+    const summary = representatives.get(id)
+    if (summary === undefined || accounted.has(id) || included.has(summary.id)
+      || !sessionVisible(summary, list.current, archived)) continue
+    included.add(summary.id)
+    stray.push(summary)
+  }
   if (stray.length > 0) {
     groups.push(buildGroup(
       UNGROUPED_KEY,
@@ -228,7 +238,7 @@ function sessionNode(
 }
 
 /**
- * Derive the workspace browser groups with every session as a top-level row.
+ * Derive workspace groups with one row per conversation, including ordinary forks.
  *
  * Every group shows; sessions populate under expanded groups in the selected
  * local order. Blank sessions are excluded except for the selected
@@ -273,9 +283,8 @@ export function deriveGroups(
 }
 
 /**
- * Derive the flat session list ("In one list" mode): every session — fork
- * children included — as a top-level row, strictly newest-first. No grouping,
- * no parent/child adjacency. Content search lives outside this derivation
+ * Derive the flat session list ("In one list" mode): one row per conversation,
+ * including ordinary forks, strictly newest-first. Content search lives outside this derivation
  * (see {@link deriveSearchResults}).
  * @param list - sessions list snapshot.
  * @param archivedSessionIds - registry-global archive set.
@@ -288,9 +297,8 @@ export function deriveFlat(
   const archived = new Set(archivedSessionIds)
   const descendants = indexSubagentDescendants(list.byId)
   const rows: SessionSummary[] = []
-  for (const id of list.ids) {
-    const s = list.byId[id]
-    if (s === undefined || !sessionVisible(s, list.current, archived)) continue
+  for (const s of new Set(conversationRepresentatives(list, archived).values())) {
+    if (!sessionVisible(s, list.current, archived)) continue
     rows.push(s)
   }
   rows.sort(byRecency)
@@ -330,6 +338,7 @@ export function deriveSearchResults(
   if (q === '') return { items: [], hasMore: false }
   const archived = new Set(archivedSessionIds)
   const descendants = indexSubagentDescendants(list.byId)
+  const representatives = conversationRepresentatives(list, archived)
 
   const workspaceBySession = new Map<SessionId, string>()
   for (const workspace of workspaces) {
@@ -345,11 +354,10 @@ export function deriveSearchResults(
   }
 
   const local: SessionSummary[] = []
-  for (const id of list.ids) {
-    const summary = list.byId[id]
+  for (const summary of new Set(representatives.values())) {
     // Blank placeholders never match a query (their canonical title displays
     // localized, so matching it would tie search to one language).
-    if (summary === undefined || summary.blank || !sessionVisible(summary, list.current, archived)) continue
+    if (summary.blank || !sessionVisible(summary, list.current, archived)) continue
     if (
       sessionTitle(summary).toLowerCase().includes(q)
       || labelOf(summary).toLowerCase().includes(q)
@@ -368,7 +376,7 @@ export function deriveSearchResults(
   }
   for (const summary of local) include(summary)
   for (const item of content.items) {
-    const summary = list.byId[item.sessionId]
+    const summary = representatives.get(item.sessionId)
     if (summary !== undefined && !summary.blank && sessionVisible(summary, list.current, archived)) include(summary)
   }
 

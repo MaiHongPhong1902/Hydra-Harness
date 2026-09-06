@@ -162,6 +162,10 @@ export function apply(ctx: Context): void {
           type: result.value.attachment.mediaType,
         })
       }))
+    if (source.getSnapshot().running) {
+      const cancelled = await source.cancel()
+      if (!cancelled.ok) throw new Error(cancelled.error.message)
+    }
     const childId = await sessions.fork({ sessionId, beforeSeq: node.seq })
     const shell = inputHub.shell(childId)
     const conversation = concreteConversation(ctx)

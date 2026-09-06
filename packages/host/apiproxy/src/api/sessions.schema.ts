@@ -12,7 +12,8 @@ import type { RequestPayload, ResponseValue } from './rpc-map.ts'
 import type { Wire } from './rpc.schema.ts'
 import type {
   HistoryEntry, ModelCatalogFailure, ModelCatalogModel, ModelProviderGroup, ModelReasoning,
-  ModelReasoningEffort, ModelSelection, SessionListMetadata, SessionProjectionsBlock, SessionSearchItem, SessionSummary,
+  ConversationRevision, ModelReasoningEffort, ModelSelection, SessionListMetadata,
+  SessionProjectionsBlock, SessionSearchItem, SessionSummary,
 } from './sessions.ts'
 import type { ToolEventView } from './events.ts'
 import type { AttachmentIdType, ImageAttachmentLimits, ImageAttachmentRef } from '@hydra/harness-attachment'
@@ -48,6 +49,15 @@ export const sessionEventSchema = z.object({
   ignorable: z.literal(true).optional(),
 }) as unknown as z.ZodType<SessionEvent>
 
+/** Durable prompt revision identity carried by list and creation frames. */
+export const conversationRevisionSchema: z.ZodType<ConversationRevision> = z.object({
+  sessionId: sessionIdSchema,
+  conversationId: sessionIdSchema,
+  previousSessionId: sessionIdSchema,
+  turn: z.number().int().positive(),
+  createdAt: z.number().int().nonnegative(),
+})
+
 /** SessionSummary row of session.list (`projections` reuses the history block's shape and schema). */
 export const sessionSummarySchema = z.object({
   sessionId: sessionIdSchema,
@@ -55,6 +65,7 @@ export const sessionSummarySchema = z.object({
   running: z.boolean(),
   blank: z.boolean(),
   parentSessionId: sessionIdSchema.optional(),
+  revision: conversationRevisionSchema.optional(),
   origin: z.literal('subagent').optional(),
   cwd: z.string().optional(),
   agentPreset: z.string().optional(),
@@ -144,6 +155,7 @@ export const sessionForkRequestSchema = z.object({
 /** session.fork response value (the child session id). */
 export const sessionForkValueSchema = z.object({
   sessionId: sessionIdSchema,
+  revision: conversationRevisionSchema.optional(),
 }) satisfies z.ZodType<Wire<ResponseValue<'session.fork'>>>
 
 /** session.history request payload (beforeSeq/maxMessages page backwards from the window tail). */
@@ -227,6 +239,7 @@ export const sessionProjectionsBlockSchema = z.object({
 export const sessionListMetadataProjectionSchema: z.ZodType<SessionListMetadata> = z.object({
   blank: z.boolean(),
   lastPromptAt: z.number().nullable(),
+  revision: conversationRevisionSchema.optional(),
 })
 
 /**

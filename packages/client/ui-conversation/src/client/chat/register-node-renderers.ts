@@ -12,7 +12,7 @@ import { TurnTailNodeView } from './TurnTailNodeView.tsx'
 /**
  * Register this package's business renderers behind the keyed Chat Node seat.
  * @param ctx - owning UI Conversation context.
- * @param editMessage - forks before a user message and submits its edited text.
+ * @param editMessage - replaces a turn with a new prompt revision and response.
  */
 export function registerChatNodeRenderers(
   ctx: Context,
@@ -23,6 +23,7 @@ export function registerChatNodeRenderers(
       name: 'conversation.chat.node', key: 'user', locale: NS,
       inject: (sessionId: SessionId) => ({
         editMessage: (node: UserMessageNode, text: string) => editMessage(sessionId, node, text),
+        openVersion: (id: SessionId) => { ctx.sessions.open(id) },
       }),
     }, UserMessageNodeView))
   ctx.slots.inject('conversation.chat.node', () => ctx.slots.register(

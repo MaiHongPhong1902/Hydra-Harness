@@ -6,7 +6,7 @@ import {
 } from '../src/api/rpc.schema.ts'
 import { z } from 'zod'
 import {
-  contentBlockSchema, sessionCancelRequestSchema, sessionCancelValueSchema, sessionCreateRequestSchema,
+  contentBlockSchema, conversationRevisionSchema, sessionCancelRequestSchema, sessionCancelValueSchema, sessionCreateRequestSchema,
   sessionCreateValueSchema, sessionEventSchema, sessionHistoryRequestSchema, sessionHistoryValueSchema,
   sessionIdSchema, sessionListRequestSchema, sessionListValueSchema, sessionModelsRequestSchema,
   sessionModelsValueSchema, sessionPromptRequestSchema, sessionPromptValueSchema,
@@ -135,6 +135,14 @@ describe('rpcReceiptSchema', () => {
 })
 
 describe('sessions domain schemas', () => {
+  it('requires durable revision identities and a positive turn', () => {
+    const revision = { sessionId: 'edited', conversationId: 'original', previousSessionId: 'original', turn: 1, createdAt: 0 }
+    expect(conversationRevisionSchema.parse(revision)).toEqual(revision)
+    expect(() => conversationRevisionSchema.parse({ ...revision, conversationId: '' })).toThrow()
+    expect(() => conversationRevisionSchema.parse({ ...revision, turn: 0 })).toThrow()
+    expect(() => conversationRevisionSchema.parse({ ...revision, createdAt: -1 })).toThrow()
+  })
+
   it('validates ids, summaries, and the event passthrough envelope', () => {
     expect(sessionIdSchema.parse('s1')).toBe('s1')
     expect(() => sessionIdSchema.parse('')).toThrow()

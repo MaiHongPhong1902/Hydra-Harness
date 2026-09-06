@@ -3,6 +3,8 @@
 import { useEffect, useSyncExternalStore } from 'react'
 import clsx from 'clsx'
 import type { SessionId, SessionListState, SessionSummary } from '@hydra/harness-client-runtime/client'
+import { conversationVersions } from '@hydra/harness-client-runtime/client'
+import { IconChevronLeftOutline14, IconChevronRightOutline14 } from '@hydra/harness-client-ui-primitives'
 import type {
   ConversationSessionHeaderSlotProps, ConversationSessionSlotProps,
 } from '../contract/slots.ts'
@@ -72,6 +74,11 @@ export function ConversationSessionHeader({
   const selectedId = useStore(s => s.view)
   const active = resolveActiveView(tabs, selectedId)
   const ancestry = useSessions(s => deriveAncestry(s, sessionId), equalBreadcrumbs)
+  const versions = useSessions(s => conversationVersions(s, sessionId), (a, b) =>
+    a.length === b.length && a.every((version, index) => version.id === b[index]?.id))
+  const versionIndex = versions.findIndex(version => version.id === sessionId)
+  const previousVersion = versions[versionIndex - 1]
+  const nextVersion = versions[versionIndex + 1]
   const composerPhase = useSession(s => s.composerPhase)
   const blank = useSession(s => s.blank)
   const hideChrome = blank && composerPhase === 'blank'
@@ -142,6 +149,21 @@ export function ConversationSessionHeader({
               {renderSlot('conversation.session.header.utilities', {})}
             </div>
           </div>
+          {versions.length > 1 && (
+            <nav className={css.versions} aria-label={t('message.versions')}>
+              <button type="button" aria-label={t('message.previousVersion')} disabled={previousVersion === undefined}
+                onClick={() => { if (previousVersion !== undefined) open(previousVersion.id) }}>
+                <IconChevronLeftOutline14 />
+              </button>
+              <span aria-live="polite">{nextVersion === undefined
+                ? t('message.currentVersion')
+                : t('message.version', { version: String(versionIndex + 1) })}</span>
+              <button type="button" aria-label={t('message.nextVersion')} disabled={nextVersion === undefined}
+                onClick={() => { if (nextVersion !== undefined) open(nextVersion.id) }}>
+                <IconChevronRightOutline14 />
+              </button>
+            </nav>
+          )}
           {tabs.length > 1 && (
             <div className={css.tabs} role="tablist">
               {tabs.map(viewTab => (

@@ -684,6 +684,17 @@ Source: [`packages/schedule/schedule/src/types.ts:219`](../packages/schedule/sch
 
 Source: [`packages/core/session/src/types.ts:336`](../packages/core/session/src/types.ts)
 
+<a id="sessionrevision--log-only"></a>
+
+#### `session/revision` — log-only
+
+```ts persistence-catalog
+/** Log-only prompt revision identity; never enters model history. */
+'session/revision': ConversationRevision
+```
+
+Source: [`packages/host/apiproxy/src/api/sessions.ts:35`](../packages/host/apiproxy/src/api/sessions.ts)
+
 <a id="sessiontitle--log-only"></a>
 
 #### `session/title` — log-only

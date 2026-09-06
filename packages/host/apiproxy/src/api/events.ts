@@ -16,6 +16,7 @@ import type { ToolCallView, ToolResultView } from '@hydra/harness-tools/presenta
 import type { RpcError, RpcId, RpcRequest } from './rpc.ts'
 import type { JobView } from './jobs.ts'
 import type { WorkspaceView } from './workspace.ts'
+import type { ConversationRevision } from './sessions.ts'
 
 // Client-side consumers take the render-intent vocabulary from the contract;
 // @hydra/harness-tools remains its owner.
@@ -130,6 +131,7 @@ export type HostFrame =
     sessionId: SessionId
     blank: boolean
     parentSessionId?: SessionId
+    revision?: ConversationRevision
     origin?: 'subagent'
     cwd?: string
     agentPreset?: string

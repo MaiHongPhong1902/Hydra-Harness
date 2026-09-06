@@ -16,7 +16,7 @@
  */
 import type { Context, Fiber } from '@hydra/cordis'
 import type {
-  IApiClient, RpcError, RpcResult, SessionId, SubagentAddress, JobView, WorkspaceId,
+  ConversationRevision, IApiClient, RpcError, RpcResult, SessionId, SubagentAddress, JobView, WorkspaceId,
 } from '@hydra/harness-api-remotes/client'
 // Value import from the inline-safe wire layer (not the connection plugin):
 // plugin-to-plugin value imports are a bundle purity error.
@@ -53,6 +53,8 @@ export interface SessionSummary {
    */
   agentPreset?: string
   parentId?: SessionId
+  /** Prompt revision grouped under its original conversation. */
+  revision?: ConversationRevision
   /** Coarse durable origin for navigation filtering; not a continuation capability. */
   origin?: 'subagent'
   running: boolean
@@ -690,6 +692,7 @@ export class SessionRuntime implements ISessions {
         ...(entry.title !== undefined ? { title: entry.title } : {}),
         ...(entry.cwd !== undefined ? { cwd: entry.cwd } : {}),
         ...(entry.parentSessionId !== undefined ? { parentId: entry.parentSessionId } : {}),
+        ...(entry.revision === undefined ? {} : { revision: entry.revision }),
         ...(entry.origin !== undefined ? { origin: entry.origin } : {}),
         ...(entry.agentPreset !== undefined ? { agentPreset: entry.agentPreset } : {}),
       }

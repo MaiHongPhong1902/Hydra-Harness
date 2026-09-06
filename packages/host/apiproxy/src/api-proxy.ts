@@ -46,7 +46,7 @@ import type {
   ApiProxy, ConfigurableProviderView, CredentialView, GoalRef, HistoryEntry, HostFrame,
   InstructionsDocumentView, MemoryEntryView, ModelCatalogFailure, ModelProviderGroup,
   ModelReasoning, MuxFrame, PromptContentPart, QuestionResponsePayload, SessionListMetadata, SessionProjectionsBlock, SessionSearchItem,
-  QueuedInboxItem, SessionSummary, SettingsNamespaceView, SubagentAddress, JobView, ToolEventView,
+  ConversationRevision, QueuedInboxItem, SessionSummary, SettingsNamespaceView, SubagentAddress, JobView, ToolEventView,
   WorkspaceId, WorkspaceView,
 } from './api/index.ts'
 import {
@@ -97,7 +97,7 @@ import type { ApprovalOutcome, ApprovalRequestId } from '@hydra/harness-user-app
 // `ctx.get('approval')` without a value dependency on the seam (optional composition).
 import type {} from '@hydra/harness-user-approval'
 import { approvalResponsePayloadSchema } from './api/approvals.schema.ts'
-import { imageLimitsProjectionSchema, sessionListMetadataProjectionSchema } from './api/sessions.schema.ts'
+import { conversationRevisionSchema, imageLimitsProjectionSchema, sessionListMetadataProjectionSchema } from './api/sessions.schema.ts'
 import { questionResponsePayloadSchema } from './api/questions.schema.ts'
 import type { ClientResponse, RpcError, RpcReceipt, RpcRequest, RpcResponse } from './api/rpc.ts'
 import { RpcId } from './api/rpc.ts'
@@ -469,13 +469,14 @@ function sessionBlank(session: Session): boolean {
 
 /** Advance the Session-list hint projection by one committed event. */
 function applySessionListMetadata(state: SessionListMetadata, event: SessionEvent): SessionListMetadata {
+  if (event.type === 'session/revision') return { ...state, revision: conversationRevisionSchema.parse(event.data) }
   const blank = state.blank && event.type !== 'turn/start'
   const lastPromptAt = event.type === 'user/message' && event.data.source.kind === 'user'
     ? event.time
     : state.lastPromptAt
   return blank === state.blank && lastPromptAt === state.lastPromptAt
     ? state
-    : { blank, lastPromptAt }
+    : { ...state, blank, lastPromptAt }
 }
 
 /** Fold exact list metadata for an attached Session. */
@@ -493,6 +494,7 @@ function sessionListUpdatedAt(header: SessionHeader, metadata: SessionListMetada
 /** Shared Session-header projection for list baselines and creation frames. */
 function sessionListFields(header: SessionHeader, events: readonly SessionEvent[] = []): {
   parentSessionId?: SessionId
+  revision?: ConversationRevision
   origin?: 'subagent'
   cwd?: string
   agentPreset?: string
@@ -501,7 +503,9 @@ function sessionListFields(header: SessionHeader, events: readonly SessionEvent[
   // while blank ran its turns under the newer composition, and a picker
   // showing the creation-time value would contradict what the model saw.
   const agentPreset = resolveSessionPreset({ header, events })
+  const revision = sessionListMetadata(events).revision
   return {
+    ...revision?.sessionId === header.id ? { revision } : {},
     ...header.parentSession === undefined ? {} : { parentSessionId: header.parentSession },
     ...header.origin === undefined ? {} : { origin: header.origin },
     ...header.cwd === undefined ? {} : { cwd: header.cwd },
@@ -571,6 +575,7 @@ async function summarizeCold(
   const probed = metadata?.blank === false
     ? undefined
     : await probeColdSessionMetadata(ctx, persistence, meta, blankProbeMaxBytes, signal)
+  const revision = (probed ?? metadata)?.revision
   return {
     sessionId: meta.id,
     updatedAt: sessionListUpdatedAt(meta, probed ?? metadata),
@@ -580,6 +585,7 @@ async function summarizeCold(
     // defeat the same index read, and attaching the session replaces this row
     // with `summarize()`, which resolves the switch from the events.
     ...sessionListFields(meta),
+    ...revision?.sessionId === meta.id ? { revision } : {},
   }
 }
 
@@ -1264,7 +1270,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
       init: () => ({ blank: true, lastPromptAt: null }),
       apply: applySessionListMetadata,
       wire: { viewSchema: sessionListMetadataProjectionSchema, view: state => state },
-      stateVersion: 1,
+      stateVersion: 2,
     })
   })
 
@@ -2465,6 +2471,20 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
           })
         }
         const childId = `session-${randomUUID()}` as SessionId
+        const previousRevision = sessionListMetadata(events).revision
+        const revision: ConversationRevision | undefined = turnStart?.type === 'turn/start' ? {
+          sessionId: childId,
+          conversationId: previousRevision?.sessionId === source.id ? previousRevision.conversationId : source.id,
+          previousSessionId: source.id,
+          turn: turnStart.data.turn,
+          createdAt: Date.now(),
+        } : undefined
+        const seed = events.slice(0, cut)
+        if (revision !== undefined) {
+          seed.push({ type: 'session/revision', data: revision, seq: seed.length, time: revision.createdAt, ignorable: true })
+          const title = events.findLast(event => event.type === 'session/title')
+          if (title !== undefined && title.seq >= cut) seed.push({ ...title, seq: seed.length })
+        }
         // The child inherits the parent's composition for the same reason a
         // resumed session keeps its own: the seeded history was produced under
         // those tools, and composing anything else would strand the tool calls
@@ -2474,11 +2494,11 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
         try {
           await ctx.agents.create({
             sessionId: childId,
-            seed: events.slice(0, cut),
+            seed,
             meta: {
               ...source.header.cwd === undefined ? {} : { cwd: source.header.cwd },
               parentSession: source.id,
-              seedLength: cut,
+              seedLength: seed.length,
               ...forkComposition.agentPreset === undefined
                 ? {}
                 : { agentPreset: forkComposition.agentPreset },
@@ -2507,7 +2527,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
             })
           }
         }
-        return ok(request, { sessionId: childId })
+        return ok(request, { sessionId: childId, ...revision === undefined ? {} : { revision } })
       },
 
       async prompt(request) {

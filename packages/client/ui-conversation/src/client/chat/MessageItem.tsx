@@ -6,15 +6,17 @@
 import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import type {
-  ModelRetryNode, TurnErrorNode, UserMessageNode,
+  ModelRetryNode, SessionId, TurnErrorNode, UserMessageNode,
 } from '@hydra/harness-client-runtime/client'
-import { Button, JsonBlock, MessageText, StateDot } from '@hydra/harness-client-ui-primitives'
+import { conversationVersions } from '@hydra/harness-client-runtime/client'
+import { Button, IconRefreshOutline16, JsonBlock, MessageText, StateDot, Tooltip } from '@hydra/harness-client-ui-primitives'
 import type { ChatNodeOwnerProps, ChatNodeViewProps, ChatViewSlotProps } from '../contract/slots.ts'
 import { ReferenceIcon } from '../reference/ReferenceIcon.tsx'
 import { CompactionItem } from './CompactionItem.tsx'
 import { ContextInjectionRow } from './ContextInjectionRow.tsx'
 import { MessageIconActions } from './MessageIconActions.tsx'
 import css from './MessageItem.module.css'
+import actionCss from './MessageIconActions.module.css'
 
 type UserImage = Extract<UserMessageNode['content'][number], { type: 'image' }>
 
@@ -279,12 +281,42 @@ export function PendingSteeringBubble({ content, renderMessageImages, t }: {
   )
 }
 
+function PromptVersionsAction({ sessionId, useSessions, turn, open, t }: {
+  sessionId: SessionId
+  useSessions: ChatNodeViewProps['useSessions']
+  turn: number
+  open: (id: SessionId) => void
+  t: ChatNodeViewProps['t']
+}) {
+  const target = useSessions((list) => {
+    const versions = conversationVersions(list, sessionId)
+    const revisions = versions.filter(version => version.revision?.turn === turn)
+    if (revisions.length === 0) return undefined
+    for (let version = list.byId[sessionId]; version?.revision !== undefined;
+      version = list.byId[version.revision.previousSessionId]) {
+      const revision = version.revision
+      if (revision.turn === turn && list.byId[revision.previousSessionId] !== undefined) return revision.previousSessionId
+    }
+    return revisions.at(-1)?.id
+  })
+  if (target === undefined || target === sessionId) return null
+  return (
+    <Tooltip label={t('message.seeVersions')} side="bottom">
+      <button type="button" className={actionCss.action} aria-label={t('message.seeVersions')} onClick={() => { open(target) }}>
+        <IconRefreshOutline16 />
+      </button>
+    </Tooltip>
+  )
+}
+
 /** User and admitted-steering keyed Chat renderer. */
 export const UserMessageNodeView = memo(function UserMessageNodeView({
-  node, renderMessageImages, editMessage, t,
+  node, renderMessageImages, editMessage, openVersion, sessionId, useSessions, t,
 }: ChatNodeViewProps<'user' | 'steering'> & {
-  /** Hand off the edited prompt to a new conversation; rejection keeps this editor open. */
+  /** Submit a prompt revision in this conversation; rejection keeps this editor open. */
   editMessage?: (node: UserMessageNode, text: string) => Promise<void>
+  /** Open another stored version without creating a conversation. */
+  openVersion?: (id: SessionId) => void
 }) {
   const data = node.data
   const [draft, setDraft] = useState<string | null>(null)
@@ -359,6 +391,10 @@ export const UserMessageNodeView = memo(function UserMessageNodeView({
           clock="start"
           className={css.actions}
           onEdit={editable ? () => { setDraft(text); setError(null) } : undefined}
+          extraActions={openVersion !== undefined && (node.location.kind === 'turn' || node.location.kind === 'step')
+            ? <PromptVersionsAction sessionId={sessionId} useSessions={useSessions} turn={node.location.turn.turn}
+              open={openVersion} t={t} />
+            : undefined}
           t={t}
         />
       )}

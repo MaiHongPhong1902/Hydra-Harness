@@ -602,6 +602,7 @@ export class SessionManager {
         this.recordMutation({ kind: 'upsert', summary: {
           sessionId: childId, updatedAt: Date.now(), running: false, blank: false,
           parentSessionId: opts.sessionId,
+          ...(result.ok && result.value.revision !== undefined ? { revision: result.value.revision } : {}),
           ...(source?.cwd !== undefined ? { cwd: source.cwd } : {}),
         } })
       }
@@ -808,6 +809,7 @@ export class SessionManager {
         this.mergeSummary({
           sessionId: frame.sessionId, updatedAt: Date.now(), running: false, blank: frame.blank,
           ...(frame.parentSessionId !== undefined ? { parentSessionId: frame.parentSessionId } : {}),
+          ...(frame.revision === undefined ? {} : { revision: frame.revision }),
           ...(frame.origin !== undefined ? { origin: frame.origin } : {}),
           ...(frame.cwd !== undefined ? { cwd: frame.cwd } : {}),
           ...(frame.agentPreset !== undefined ? { agentPreset: frame.agentPreset } : {}),
@@ -1054,6 +1056,7 @@ export class SessionManager {
         prev !== undefined && prev.updatedAt === entry.updatedAt && prev.running === entry.running
         && prev.blank === entry.blank && prev.agentPreset === entry.agentPreset
         && prev.parentSessionId === entry.parentSessionId && prev.cwd === entry.cwd
+        && prev.revision === entry.revision
         && prev.origin === entry.origin && prev.title === entry.title && prev.depth === entry.depth
         && prev.pendingInteraction === entry.pendingInteraction
         && prev.projectionValues === entry.projectionValues
@@ -1101,6 +1104,8 @@ function applyMutation(summaries: readonly SessionSummary[], mutation: SessionLi
           ? { parentSessionId: mutation.summary.parentSessionId } : {}),
         ...(existing.origin === undefined && mutation.summary.origin !== undefined
           ? { origin: mutation.summary.origin } : {}),
+        ...(existing.revision === undefined && mutation.summary.revision !== undefined
+          ? { revision: mutation.summary.revision } : {}),
         // Newest wins, not fill-only: a blank-session preset switch replaces
         // the creation-time value, and every producer of this field (the
         // create echo, the select echo, a list row) reports the CURRENT one.
@@ -1109,6 +1114,7 @@ function applyMutation(summaries: readonly SessionSummary[], mutation: SessionLi
       }
       if (filled.cwd === existing.cwd && filled.parentSessionId === existing.parentSessionId
         && filled.origin === existing.origin && filled.blank === existing.blank
+        && filled.revision === existing.revision
         && filled.agentPreset === existing.agentPreset) return [...summaries]
       return summaries.map(summary => summary.sessionId === mutation.summary.sessionId ? filled : summary)
     }

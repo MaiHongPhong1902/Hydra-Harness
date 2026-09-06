@@ -92,11 +92,20 @@ describe('sessions.fork', () => {
     const ctx = await composed()
     const source = liveAgent(ctx, 'source-edit', 2)
     const original = [...source.events]
-    const response = await api(ctx).sessions.fork(request({ sessionId: source.id, beforeSeq }))
+    const proxy = api(ctx)
+    const response = await proxy.sessions.fork(request({ sessionId: source.id, beforeSeq }))
     expect(response.result.ok).toBe(true)
     if (!response.result.ok) throw new Error(response.result.error.message)
     const child = ctx.sessions.get(response.result.value.sessionId)!
-    expect(child.events.filter(event => event.type !== 'session/end-seed')).toEqual(original.slice(0, beforeSeq - 1))
+    expect(child.events.filter(event => event.type !== 'session/end-seed' && event.type !== 'session/revision'))
+      .toEqual(original.slice(0, beforeSeq - 1))
+    expect(response.result.value.revision).toMatchObject({
+      sessionId: child.id, conversationId: source.id, previousSessionId: source.id,
+      turn: beforeSeq === 1 ? 1 : 2,
+    })
+    const listed = await proxy.sessions.list(request({}))
+    expect(listed.result.ok && listed.result.value.items.find(item => item.sessionId === child.id)?.revision)
+      .toEqual(response.result.value.revision)
     expect(child.header.parentSession).toBe(source.id)
     expect(source.events).toEqual(original)
     await ctx.fiber.dispose()
@@ -108,6 +117,29 @@ describe('sessions.fork', () => {
     const response = await api(ctx).sessions.fork(request({ sessionId: source.id, beforeSeq: 1 }))
     expect(response.result.ok).toBe(true)
     expect(source.events.at(-1)?.type).toBe('user/message')
+    await ctx.fiber.dispose()
+  })
+
+  it('keeps repeated edits in one conversation while ordinary branches remain independent', async () => {
+    const ctx = await composed()
+    const source = liveAgent(ctx, 'version-root', 1)
+    const proxy = api(ctx)
+    const first = await proxy.sessions.fork(request({ sessionId: source.id, beforeSeq: 1 }))
+    if (!first.result.ok) throw new Error(first.result.error.message)
+    const revised = ctx.sessions.get(first.result.value.sessionId)!
+    revised.append('turn/start', { turn: 1 })
+    const prompt = revised.append('user/message', createUserMessage({
+      content: [{ type: 'text', text: 'revision' }], source: { kind: 'user' },
+    }), { surfaceOp: 'append' })
+    revised.append('turn/end', { turn: 1, reason: { kind: 'completed' } })
+    const next = await proxy.sessions.fork(request({ sessionId: revised.id, beforeSeq: prompt.seq }))
+    expect(next.result.ok && next.result.value.revision?.conversationId).toBe(source.id)
+    const branch = await proxy.sessions.fork(request({ sessionId: revised.id }))
+    if (!branch.result.ok) throw new Error(branch.result.error.message)
+    const branchId = branch.result.value.sessionId
+    const listed = await proxy.sessions.list(request({}))
+    expect(listed.result.ok && listed.result.value.items.find(item => item.sessionId === branchId)?.revision)
+      .toBeUndefined()
     await ctx.fiber.dispose()
   })
 

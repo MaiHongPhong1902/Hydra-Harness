@@ -15,6 +15,27 @@ import type { RpcId, RpcRequest, RpcResponse } from './rpc.ts'
 import type { ToolEventView } from './events.ts'
 import type { WorkspaceId } from './workspace.ts'
 
+/** One immutable prompt revision within a conversation. */
+export interface ConversationRevision {
+  /** Session containing this revision; inherited records belong to their original session. */
+  sessionId: SessionId
+  /** Original conversation shared by every revision. */
+  conversationId: SessionId
+  /** Version whose prompt was edited. */
+  previousSessionId: SessionId
+  /** One-based turn whose prompt and following response were replaced. */
+  turn: number
+  /** Creation time used to order versions independently of later prompts. */
+  createdAt: number
+}
+
+declare module '@hydra/harness-session/types' {
+  interface SessionEventMap {
+    /** Log-only prompt revision identity; never enters model history. */
+    'session/revision': ConversationRevision
+  }
+}
+
 declare module '@hydra/harness-session-projection/types' {
   interface SessionProjectionStateMap {
     sessionListMetadata: SessionListMetadata
@@ -45,6 +66,8 @@ export interface SessionListMetadata {
   blank: boolean
   /** Latest source.kind=user message time in the checkpoint prefix. */
   lastPromptAt: number | null
+  /** Latest revision record in the prefix; its sessionId identifies the owner. */
+  revision?: ConversationRevision | undefined
 }
 
 declare module '@hydra/harness-llm' {
@@ -200,6 +223,8 @@ export interface SessionSummary {
   blank: boolean
   /** fork/spawn lineage (session.header.parentSession passthrough); absent for root sessions. */
   parentSessionId?: SessionId
+  /** Prompt revision grouped with its original conversation in navigation. */
+  revision?: ConversationRevision
   /** Coarse durable origin used by navigation surfaces; never proves resumability. */
   origin?: 'subagent'
   /** Session working directory (header.cwd passthrough); absent when unrecorded. */
@@ -352,9 +377,12 @@ export interface SessionsApi {
    * user message and excludes its entire turn, including its answer. It accepts
    * the first or an active turn; an invalid or mid-turn message fails with
    * `fork-unavailable`. Forking never edits or stops the source session.
+   * A before-turn fork records and returns a prompt revision identity, letting
+   * clients replace the displayed transcript within one conversation and
+   * navigate its older versions. Ordinary forks remain separate conversations.
    */
   fork(request: RpcRequest<{ sessionId: SessionId; atSeq?: number; beforeSeq?: number }>):
-  Promise<RpcResponse<{ sessionId: SessionId }>>
+  Promise<RpcResponse<{ sessionId: SessionId; revision?: ConversationRevision }>>
 
   /**
    * Sends text and temporary image bytes to an ordinary session Agent after durable host admission.

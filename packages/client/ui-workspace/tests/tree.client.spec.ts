@@ -7,6 +7,7 @@ import {
   UNGROUPED_KEY, UNGROUPED_LABEL,
 } from '../src/client/tree.ts'
 import { createWorkspaceViewStore } from '../src/client/stores.ts'
+import { conversationVersions } from '@hydra/harness-client-runtime/client'
 
 const sid = (id: string) => id as SessionId
 const wid = (id: string) => id as WorkspaceId
@@ -32,6 +33,30 @@ const noArchive: readonly SessionId[] = []
 const archived = (...ids: string[]): readonly SessionId[] => ids.map(sid)
 
 describe('deriveGroups', () => {
+  it('shows one conversation row for revisions in groups, flat lists and search, retaining its versions', () => {
+    const original = summary('original', 30)
+    const first = { ...summary('first', 10), revision: {
+      sessionId: sid('first'), conversationId: original.id, previousSessionId: original.id, turn: 1, createdAt: 10,
+    } }
+    const latest = { ...summary('latest', 20), revision: { ...first.revision,
+      sessionId: sid('latest'), previousSessionId: first.id, createdAt: 10,
+    } }
+    const sessions = list(latest, original, first, summary('branch', 5))
+    const workspaces = [workspace('project', ['original', 'branch', 'first', 'latest'])]
+    expect(conversationVersions(sessions, first.id).map(version => version.id)).toEqual(['original', 'first', 'latest'])
+    expect(deriveGroups(sessions, workspaces, noArchive, view(['project']))[0]!.sessions.map(row => row.id))
+      .toEqual(['branch', 'latest'])
+    workspaces[0]!.sessionIds = [latest.id, sid('branch'), original.id, first.id]
+    expect(deriveGroups(sessions, workspaces, noArchive, view(['project']))[0]!.sessions.map(row => row.id))
+      .toEqual(['latest', 'branch'])
+    expect(deriveFlat(sessions, noArchive).map(row => row.id)).toEqual(['latest', 'branch'])
+    expect(deriveSearchResults(sessions, workspaces, 'project', noArchive, { items: [], hasMore: false }, 20)
+      .items.map(row => row.id)).toEqual(['latest', 'branch'])
+    sessions.current = original.id
+    expect(deriveFlat(sessions, noArchive).map(row => row.id)).toEqual(['original', 'branch'])
+    expect(deriveFlat(sessions, [latest.id]).map(row => row.id)).toEqual(['branch'])
+  })
+
   it('keeps Host Workspace and sessionIds order without Client recency sorting', () => {
     const sessions = list(summary('newer', 20), summary('older', 10))
     const workspaces = [workspace('first', ['older', 'newer']), workspace('empty', [])]

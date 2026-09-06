@@ -160,13 +160,15 @@ async function bench(withBrowserAnnotation = false, readAttachment?: ISession['r
 }
 
 describe('conversation slot inject API', () => {
-  it('copies the original images to an edited child and retains its rejected draft without changing the source draft', async () => {
+  it('cancels an active response before editing, copies images and retains rejected drafts', async () => {
     const attachment = { attachmentId: AttachmentId('original-image'), mediaType: 'image/png' as const,
       bytes: 3, width: 1, height: 1 }
     const read = vi.fn<ISession['readAttachment']>().mockResolvedValue({
       ok: true, value: { attachment, data: Uint8Array.of(1, 2, 3) },
     })
     const b = await bench(false, read)
+    const source = b.runtime.sessions.binding(ROOT)!.session
+    const snapshot = vi.spyOn(source, 'getSnapshot').mockReturnValue({ ...source.getSnapshot(), running: true })
     const childId = 'edit-child' as SessionId
     const child = sessionFakeFor()
     child.prompt.mockResolvedValueOnce({ ok: false, error: { code: 'internal', message: 'offline', details: {} } })
@@ -180,9 +182,14 @@ describe('conversation slot inject API', () => {
       const injected = (entry.inject as (sessionId: SessionId) => {
         editMessage: (node: UserMessageNode, text: string) => Promise<void>
       })(ROOT)
-      await injected.editMessage({ kind: 'user', seq: 7, time: 1_000, source: { kind: 'user' },
+      const original: UserMessageNode = { kind: 'user', seq: 7, time: 1_000, source: { kind: 'user' },
         content: [{ type: 'image', attachment }, { type: 'text', text: 'old prompt' }],
-      }, 'edited prompt')
+      }
+      b.sessionFake.cancel.mockResolvedValueOnce({ ok: false, error: { code: 'internal', message: 'cancel failed', details: {} } })
+      await expect(injected.editMessage(original, 'edited prompt')).rejects.toThrow('cancel failed')
+      expect(fork).not.toHaveBeenCalled()
+      await injected.editMessage(original, 'edited prompt')
+      expect(b.sessionFake.cancel).toHaveBeenCalledTimes(2)
       expect(read).toHaveBeenCalledWith(attachment.attachmentId)
       expect(fork).toHaveBeenCalledWith({ sessionId: ROOT, beforeSeq: 7 })
       await vi.waitFor(() => { expect(child.prompt).toHaveBeenCalledTimes(1) })
@@ -202,6 +209,7 @@ describe('conversation slot inject API', () => {
       fork.mockRestore()
       created.mockRestore()
       revoked.mockRestore()
+      snapshot.mockRestore()
     }
   })
 

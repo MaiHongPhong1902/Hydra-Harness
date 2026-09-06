@@ -11,7 +11,7 @@ import { bindSnapshotSelector } from '@hydra/harness-client-test-runtime'
 import { makeTranslate } from '@hydra/harness-client-test-runtime'
 import { en as commonEn } from '@hydra/harness-client-locale/src/locales/en.ts'
 import type {
-  ChatConversationViewNode, ConversationNode,
+  ChatConversationViewNode, ConversationNode, SessionId, SessionListState,
 } from '@hydra/harness-client-runtime/client'
 import type { ChatNodeViewProps } from '../src/client/contract/slots.ts'
 import {
@@ -89,6 +89,34 @@ function MessageItem({ node, t: translate, referenceLabels, editMessage }: Messa
 }
 
 describe('MessageItem arms', () => {
+  it('opens the earlier version of this turn even after another turn was edited', () => {
+    const original = { id: 'original' as SessionId, displayTitle: 'Chat', updatedAt: 0, blank: false, running: false }
+    const first = { ...original, id: 'first' as SessionId, revision: {
+      sessionId: 'first' as SessionId, conversationId: original.id, previousSessionId: original.id, turn: 1, createdAt: 1,
+    } }
+    const latest = { ...first, id: 'latest' as SessionId, revision: {
+      ...first.revision, sessionId: 'latest' as SessionId, previousSessionId: first.id, turn: 2, createdAt: 2,
+    } }
+    const list: SessionListState = { ids: [original.id, first.id, latest.id],
+      byId: { [original.id]: original, [first.id]: first, [latest.id]: latest }, current: latest.id,
+      phase: 'ready', subagentsByParent: {}, jobsBySession: {}, currentAddress: undefined }
+    const useSessions = bindSnapshotSelector({ getSnapshot: () => list, subscribe: () => () => {} })
+    const node: ChatNodeViewProps<'user'>['node'] = {
+      key: 'user:1', kind: 'user', id: '1', target: 'chat', anchorSeq: 1, visibility: 'visible',
+      location: { kind: 'turn', turn: { turn: 1, start: undefined, end: undefined, status: 'closed', steps: [],
+        data: { get: () => undefined } } },
+      data: { kind: 'user', seq: 1, time: 1_000, content: [{ type: 'text', text: 'revised prompt' }], source: null },
+    }
+    const openVersion = vi.fn()
+    const props = { node, sessionId: latest.id, useSessions, t, renderMessageImages } as ChatNodeViewProps<'user'>
+    const view = render(<UserMessageNodeView {...props} openVersion={openVersion} />)
+    fireEvent.click(view.getByRole('button', { name: 'See versions' }))
+    expect(openVersion).toHaveBeenLastCalledWith(original.id)
+    view.rerender(<UserMessageNodeView {...props} sessionId={original.id} openVersion={openVersion} />)
+    fireEvent.click(view.getByRole('button', { name: 'See versions' }))
+    expect(openVersion).toHaveBeenLastCalledWith(first.id)
+  })
+
   it('edits inline, cancels unchanged, rejects blank text, and retains a failed submission for retry', async () => {
     const editMessage = vi.fn().mockRejectedValueOnce(new Error('offline')).mockResolvedValue(undefined)
     const node = { kind: 'user' as const, seq: 1, time: 1_000,
