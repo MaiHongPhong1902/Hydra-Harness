@@ -7,9 +7,9 @@ Services support direct calls; **events** let a plugin announce something withou
 Create `stats.ts` in `tmp/cordis-tutorial` — a service that counts things and announces each change:
 
 ```ts
-import { Service, type Context } from '@bosch/cordis'
+import { Service, type Context } from '@hydra/cordis'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     stats: StatsService
   }
@@ -44,7 +44,7 @@ The `interface Events` merge is the event-system twin of the `interface Context`
 Create `reporter.ts`:
 
 ```ts ignore-check
-import type { Context } from '@bosch/cordis'
+import type { Context } from '@hydra/cordis'
 import type {} from './stats.ts'
 
 export const name = 'reporter'
@@ -94,9 +94,9 @@ Every harness event documents its mode in the generated reference on its owning 
 Waterfall is the mode that powers interception. Each listener receives the arguments plus a `next()` continuation; it can transform what `next()` returns, or return without calling `next()` and short-circuit the rest of the chain — what the Cordis docs call the veto. Create `waterfall-demo.ts`:
 
 ```ts
-import type { Context } from '@bosch/cordis'
+import type { Context } from '@hydra/cordis'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Events {
     'demo/transform'(input: string, next: () => Promise<string>): Promise<string>
   }
@@ -139,4 +139,4 @@ The harness uses waterfalls for decisions that cooperating plugins may wrap or a
 
 Next: [Configuration](05-config.md) — plugin options from `cordis.yml`.
 
-[![](https://img.shields.io/badge/powered_by-bh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/bosch/bosch-harness)
+![Powered by Hydra harness](../../packages/skill/skill-badge/assets/hydra-badge.png)

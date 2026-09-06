@@ -1,33 +1,33 @@
-# Bosch Harness Python SDK
+# Hydra harness Python SDK
 
-Python subprocess SDK for driving Bosch Harness over JSON-RPC stdio. The
-runtime inherits normal Bosch Harness environment variables such as
+Python subprocess SDK for driving Hydra harness over JSON-RPC stdio. The
+runtime inherits normal Hydra harness environment variables such as
 `DEEPSEEK_BASE_URL` and `DEEPSEEK_API_KEY`, so callers can use real model
 endpoints directly or point those variables at a local proxy.
 
-Install the `bosch-harness-sdk` distribution from PyPI; the import module remains `bosch_harness`:
+Install the `hydra-harness-sdk` distribution from PyPI; the import module remains `hydra_harness`:
 
 ```sh
-python -m pip install bosch-harness-sdk
+python -m pip install hydra-harness-sdk
 ```
 
-Installing `bosch-harness-sdk` installs the exact same-version `bosch-harness-runtime-bin` platform wheel. The normal entry point therefore needs no executable argument:
+Installing `hydra-harness-sdk` installs the exact same-version `hydra-harness-runtime-bin` platform wheel. The normal entry point therefore needs no executable argument:
 
 ```py
-from bosch_harness import BoschHarness
+from hydra_harness import HydraHarness
 
-with BoschHarness() as harness:
+with HydraHarness() as harness:
     result = harness.run("Say hi.")
 ```
 
-`BoschHarness` keeps its lazily started runtime subprocess for reuse across calls. Use it as a context manager, as above, or call `close()` explicitly when finished.
+`HydraHarness` keeps its lazily started runtime subprocess for reuse across calls. Use it as a context manager, as above, or call `close()` explicitly when finished.
 
-By default, the SDK launches the bundled single-file `bh-jsonrpc-agent` executable from the `bosch-harness-runtime-bin` package and injects that package's default configuration (the stdio JSON-RPC server, agent core, preloaded DeepSeek adapter, JSONL session persistence with an explicitly composed semantic checkpoint policy, local bash) via `BH_CORDIS_CONFIG`. To run a plugin composition of your own, keep the `@bosch/bh-sdk-jsonrpc-server` entry in the config and pass the Cordis config path.
+By default, the SDK launches the bundled single-file `bh-jsonrpc-agent` executable from the `hydra-harness-runtime-bin` package and injects that package's default configuration (the stdio JSON-RPC server, agent core, preloaded DeepSeek adapter, JSONL session persistence with an explicitly composed semantic checkpoint policy, local bash) via `BH_CORDIS_CONFIG`. To run a plugin composition of your own, keep the `@hydra/harness-sdk-jsonrpc-server` entry in the config and pass the Cordis config path.
 
 ```py
-from bosch_harness import BoschHarness
+from hydra_harness import HydraHarness
 
-with BoschHarness(
+with HydraHarness(
     provider="deepseek-official",
     model="deepseek-v4-flash",
     max_tokens=49_152,

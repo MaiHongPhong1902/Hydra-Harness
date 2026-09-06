@@ -1,5 +1,5 @@
 {
-  "name": "@bosch/bh-api-remotes",
+  "name": "@hydra/harness-api-remotes",
   "description": "Remote BFF assembly and Host Agent/Session lookup policy",
   "version": "0.1.1-rc.1",
   "publishConfig": {
@@ -36,7 +36,7 @@
   "bh": {
     "client": {
       "inject": [
-        "@bosch/bh-api-gateway"
+        "@hydra/harness-api-gateway"
       ],
       "platform": "web",
       "immediately": true
@@ -55,52 +55,52 @@
     "lib/types/**/*.d.ts"
   ],
   "dependencies": {
-    "@bosch/bh-typert-protocol": "workspace:^"
+    "@hydra/harness-typert-protocol": "workspace:^"
   },
   "peerDependencies": {
-    "@bosch/bh-agent": "workspace:^",
-    "@bosch/bh-agent-presets": "workspace:^",
-    "@bosch/bh-api-gateway": "workspace:^",
-    "@bosch/bh-commands": "workspace:^",
-    "@bosch/bh-cordis-host-runner": "workspace:^",
-    "@bosch/bh-credentials": "workspace:^",
-    "@bosch/bh-file-reference": "workspace:^",
-    "@bosch/bh-goal": "workspace:^",
-    "@bosch/bh-hooks-registry": "workspace:^",
-    "@bosch/bh-host-plugin-inventory": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-llm": "workspace:^",
-    "@bosch/bh-mcp-registry": "workspace:^",
-    "@bosch/bh-message-feedback": "workspace:^",
-    "@bosch/bh-session": "workspace:^",
-    "@bosch/bh-session-persistence": "workspace:^",
-    "@bosch/bh-session-reference": "workspace:^",
-    "@bosch/bh-settings": "workspace:^",
-    "@bosch/bh-skill": "workspace:^",
-    "@bosch/bh-typert-registry": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-agent": "workspace:^",
+    "@hydra/harness-agent-presets": "workspace:^",
+    "@hydra/harness-api-gateway": "workspace:^",
+    "@hydra/harness-commands": "workspace:^",
+    "@hydra/harness-cordis-host-runner": "workspace:^",
+    "@hydra/harness-credentials": "workspace:^",
+    "@hydra/harness-file-reference": "workspace:^",
+    "@hydra/harness-goal": "workspace:^",
+    "@hydra/harness-hooks-registry": "workspace:^",
+    "@hydra/harness-host-plugin-inventory": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/harness-mcp-registry": "workspace:^",
+    "@hydra/harness-message-feedback": "workspace:^",
+    "@hydra/harness-session": "workspace:^",
+    "@hydra/harness-session-persistence": "workspace:^",
+    "@hydra/harness-session-reference": "workspace:^",
+    "@hydra/harness-settings": "workspace:^",
+    "@hydra/harness-skill": "workspace:^",
+    "@hydra/harness-typert-registry": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@bosch/bh-agent": "workspace:^",
-    "@bosch/bh-agent-presets": "workspace:^",
-    "@bosch/bh-api-gateway": "workspace:^",
-    "@bosch/bh-commands": "workspace:^",
-    "@bosch/bh-cordis-host-runner": "workspace:^",
-    "@bosch/bh-credentials": "workspace:^",
-    "@bosch/bh-file-reference": "workspace:^",
-    "@bosch/bh-goal": "workspace:^",
-    "@bosch/bh-hooks-registry": "workspace:^",
-    "@bosch/bh-host-plugin-inventory": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-llm": "workspace:^",
-    "@bosch/bh-mcp-registry": "workspace:^",
-    "@bosch/bh-message-feedback": "workspace:^",
-    "@bosch/bh-session": "workspace:^",
-    "@bosch/bh-session-persistence": "workspace:^",
-    "@bosch/bh-session-reference": "workspace:^",
-    "@bosch/bh-settings": "workspace:^",
-    "@bosch/bh-skill": "workspace:^",
-    "@bosch/bh-typert-registry": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-agent": "workspace:^",
+    "@hydra/harness-agent-presets": "workspace:^",
+    "@hydra/harness-api-gateway": "workspace:^",
+    "@hydra/harness-commands": "workspace:^",
+    "@hydra/harness-cordis-host-runner": "workspace:^",
+    "@hydra/harness-credentials": "workspace:^",
+    "@hydra/harness-file-reference": "workspace:^",
+    "@hydra/harness-goal": "workspace:^",
+    "@hydra/harness-hooks-registry": "workspace:^",
+    "@hydra/harness-host-plugin-inventory": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/harness-mcp-registry": "workspace:^",
+    "@hydra/harness-message-feedback": "workspace:^",
+    "@hydra/harness-session": "workspace:^",
+    "@hydra/harness-session-persistence": "workspace:^",
+    "@hydra/harness-session-reference": "workspace:^",
+    "@hydra/harness-settings": "workspace:^",
+    "@hydra/harness-skill": "workspace:^",
+    "@hydra/harness-typert-registry": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   }
 }

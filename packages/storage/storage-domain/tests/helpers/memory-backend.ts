@@ -15,8 +15,8 @@
  * @module
  */
 
-import { StorageError } from '@bosch/bh-storage'
-import type { KvFacet, KvUnit, KvUnitDescriptor, StorageBackend } from '@bosch/bh-storage'
+import { StorageError } from '@hydra/harness-storage'
+import type { KvFacet, KvUnit, KvUnitDescriptor, StorageBackend } from '@hydra/harness-storage'
 
 /** One unit's medium: tables of records plus the global slot (`null` = never written). */
 export interface MemoryMedium {

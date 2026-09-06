@@ -9,11 +9,12 @@ const { tmpdir } = require('node:os')
 const { isAbsolute, join, relative, resolve, sep } = require('node:path')
 const { createInterface } = require('node:readline')
 const { setTimeout: delay } = require('node:timers/promises')
-const { app, BrowserWindow, dialog, ipcMain, utilityProcess } = require('electron')
+const { app, BrowserWindow, dialog, ipcMain, nativeImage, utilityProcess } = require('electron')
 const nodePty = require('node-pty')
 
-const CLI_ENTRY = join(require.resolve('@bosch/bh/package.json'), '..', 'lib', 'bin.js')
-const BROWSER_ENTRY = join(require.resolve('@bosch/bh-browser-electron/package.json'), '..', 'electron-app', 'main.cjs')
+const CLI_ENTRY = join(require.resolve('@hydra/harness/package.json'), '..', 'lib', 'bin.js')
+const BROWSER_ENTRY = join(require.resolve('@hydra/harness-browser-electron/package.json'), '..', 'electron-app', 'main.cjs')
+const DESKTOP_ICON = join(__dirname, 'assets', process.platform === 'win32' ? 'hydra.ico' : 'hydra.png')
 const SMOKE = process.argv.includes('--smoke')
 const HOST_READY_TIMEOUT_MS = 90_000
 const HOST_REQUEST_TIMEOUT_MS = 15_000
@@ -21,7 +22,7 @@ const HOST_SHUTDOWN_TIMEOUT_MS = 7_000
 const MAX_EDITABLE_FILE_BYTES = 1_000_000
 const HOST_URL = /^bh web: (http:\/\/127\.0\.0\.1:\d+)$/u
 
-app.setName('WorkON')
+app.setName('Hydra harness')
 app.setPath('userData', join(process.env.BH_HOME || join(app.getPath('home'), '.bh'), 'desktop-electron'))
 
 let mainWindow
@@ -120,7 +121,8 @@ function createWindow() {
     show: false,
     autoHideMenuBar: true,
     backgroundColor: '#111315',
-    title: 'WorkON',
+    title: 'Hydra harness',
+    icon: DESKTOP_ICON,
     webPreferences: {
       preload: join(__dirname, 'preload.cjs'),
       contextIsolation: true,
@@ -196,7 +198,7 @@ function startHost() {
     // the Loader internals. The built-in flag gives profile-relative plugin
     // resolution the same hook without loading that addon.
     execArgv: ['--expose-internals'],
-    serviceName: 'WorkON Host',
+    serviceName: 'Hydra harness Host',
     stdio: 'pipe',
   })
   host = child
@@ -215,10 +217,10 @@ function startHost() {
     if (match?.[1] !== undefined) ready.resolve(match[1])
   })
   child.once('exit', (code) => {
-    ready.reject(new Error(`WorkON Host exited before readiness (code ${String(code)})`))
+    ready.reject(new Error(`Hydra harness Host exited before readiness (code ${String(code)})`))
   })
   const timeout = setTimeout(() => {
-    ready.reject(new Error(`WorkON Host did not become ready within ${HOST_READY_TIMEOUT_MS}ms`))
+    ready.reject(new Error(`Hydra harness Host did not become ready within ${HOST_READY_TIMEOUT_MS}ms`))
   }, HOST_READY_TIMEOUT_MS)
   return ready.promise.finally(() => { clearTimeout(timeout) })
 }
@@ -258,7 +260,7 @@ async function startTerminal(id, size) {
     try { current.instance.resize(size.cols, size.rows) } catch {}
     return { running: true }
   }
-  const { scrubbedParentEnv } = await import('@bosch/bh-subprocess')
+  const { scrubbedParentEnv } = await import('@hydra/harness-subprocess')
   const env = scrubbedParentEnv()
   const shell = process.platform === 'win32'
     ? Object.entries(env).find(([key]) => key.toUpperCase() === 'COMSPEC')?.[1] ?? 'cmd.exe'
@@ -496,7 +498,7 @@ async function saveWorkspaceFile(root, target, content, expectedVersion) {
     const body = current.lineEnding === 'CRLF' ? normalized.replaceAll('\n', '\r\n') : normalized
     const output = current.bom ? `\ufeff${body}` : body
     if (Buffer.byteLength(output, 'utf8') > MAX_EDITABLE_FILE_BYTES) throw new Error('file is larger than 1 MB')
-    const { writeFileAtomic } = await import('@bosch/bh-atomic-write')
+    const { writeFileAtomic } = await import('@hydra/harness-atomic-write')
     const publicationPath = await confinedPath(root, current.path)
     await writeFileAtomic(publicationPath, output, { mode: current.mode })
     const saved = await readWorkspaceText(root, publicationPath)
@@ -763,13 +765,14 @@ async function cleanupSmokeWorkspace() {
 }
 
 async function smoke() {
+  if (nativeImage.createFromPath(DESKTOP_ICON).isEmpty()) throw new Error('desktop Hydra icon is unavailable')
   if (typeof smokeWorkspace?.workspaceId !== 'string') throw new Error('desktop smoke Workspace is unavailable')
   const panelStartsClosed = await mainWindow.webContents.executeJavaScript(`(() => {
     const panel = document.querySelector('[aria-label="Right panel"]')
     return panel instanceof HTMLElement && panel.hidden
   })()`)
   if (!panelStartsClosed) throw new Error('desktop browser panel opens by default')
-  if (mainWindow.getTitle() !== 'WorkON') throw new Error(`unexpected desktop title: ${mainWindow.getTitle()}`)
+  if (mainWindow.getTitle() !== 'Hydra harness') throw new Error(`unexpected desktop title: ${mainWindow.getTitle()}`)
   if (panelShortcut({ type: 'keyDown', control: true, alt: false, meta: false, shift: false, key: 'p' }) !== 'files'
     || panelShortcut({ type: 'keyUp', control: true, alt: false, meta: false, shift: false, key: 'p' }) !== undefined
     || panelShortcut({ type: 'keyDown', control: true, alt: true, meta: false, shift: false, key: 's' }) !== 'side-chat'

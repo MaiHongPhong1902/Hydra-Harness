@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-client-ui-user-questions`.
- * @module @bosch/bh-client-ui-user-questions/invariant
+ * Package-owned invariant companion for `@hydra/harness-client-ui-user-questions`.
+ * @module @hydra/harness-client-ui-user-questions/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-client-ui-user-questions'
+const PACKAGE_NAME = '@hydra/harness-client-ui-user-questions'
 
 /** Cordis companion plugin name. */
 export const name = 'client-ui-user-questions-invariant'

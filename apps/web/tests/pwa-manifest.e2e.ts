@@ -12,8 +12,8 @@ it('ships install metadata with the built web application', async () => {
   const manifest: unknown = JSON.parse(await readFile(join(DIST_ROOT, 'manifest.webmanifest'), 'utf8'))
   expect(manifest).toEqual({
     id: '/',
-    name: 'Bosch Harness',
-    short_name: 'BH',
+    name: 'Hydra harness',
+    short_name: 'Hydra',
     start_url: '/',
     scope: '/',
     display: 'fullscreen',
@@ -26,10 +26,10 @@ it('ships install metadata with the built web application', async () => {
   })
 })
 
-it('ships the WorkON mark favicon', async () => {
+it('ships the Hydra artwork shared with the desktop icon', async () => {
   const favicon = await readFile(join(DIST_ROOT, 'favicon.svg'), 'utf8')
-  expect(favicon).toContain('viewBox="0 0 166 166"')
-  expect(favicon).toContain('fill="#0096E8"')
-  expect(favicon).toContain('fill="#006EAD"')
-  expect(favicon).toContain('stroke="#0096E8"')
+  expect(favicon).toContain('viewBox="0 0 256 256"')
+  const png = favicon.match(/href="data:image\/png;base64,([^"]+)"/)?.[1]
+  expect(png).toBeDefined()
+  expect(Buffer.from(png!, 'base64')).toEqual(await readFile(new URL('../../desktop/assets/hydra.png', import.meta.url)))
 })

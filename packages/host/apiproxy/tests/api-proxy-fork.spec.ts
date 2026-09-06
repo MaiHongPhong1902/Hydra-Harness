@@ -1,19 +1,19 @@
 /** Session-fork boundaries, lineage, and inherited model routing. */
 
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import AgentRegistry, { agentEvents } from '@bosch/bh-agent'
-import type { Agent, AgentHandle, CreateAgentOptions } from '@bosch/bh-agent'
-import { createUserMessage, ReasoningEffortId } from '@bosch/bh-llm'
-import type { LlmCallConfig } from '@bosch/bh-llm'
-import SessionStore from '@bosch/bh-session'
-import type { Session, SessionEvent, SessionHeader, SessionId } from '@bosch/bh-session'
-import SystemPrompt from '@bosch/bh-system-prompt'
-import UserQuestionService from '@bosch/bh-user-questions'
-import type { Workspace } from '@bosch/bh-workspace'
-import type { RpcRequest } from '@bosch/bh-host-apiproxy/api/rpc'
-import { RpcId } from '@bosch/bh-host-apiproxy/api/rpc'
-import { createApiProxy } from '@bosch/bh-host-apiproxy'
+import { Context } from '@hydra/cordis'
+import AgentRegistry, { agentEvents } from '@hydra/harness-agent'
+import type { Agent, AgentHandle, CreateAgentOptions } from '@hydra/harness-agent'
+import { createUserMessage, ReasoningEffortId } from '@hydra/harness-llm'
+import type { LlmCallConfig } from '@hydra/harness-llm'
+import SessionStore from '@hydra/harness-session'
+import type { Session, SessionEvent, SessionHeader, SessionId } from '@hydra/harness-session'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import UserQuestionService from '@hydra/harness-user-questions'
+import type { Workspace } from '@hydra/harness-workspace'
+import type { RpcRequest } from '@hydra/harness-host-apiproxy/api/rpc'
+import { RpcId } from '@hydra/harness-host-apiproxy/api/rpc'
+import { createApiProxy } from '@hydra/harness-host-apiproxy'
 
 const sid = (id: string): SessionId => id as SessionId
 

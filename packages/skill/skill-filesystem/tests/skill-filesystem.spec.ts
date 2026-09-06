@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { mkdir, readdir, readFile, rename, rm, stat, symlink, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { tmpdir } from 'node:os'
-import { Context } from '@bosch/cordis'
-import SkillRegistry from '@bosch/bh-skill'
-import { FileSystem, FsError, FsVersion, type FsDirEntry, type FsEditOutcome, type FsEditRequest, type FsInfo, type FsPathInfo, type FsTarget, type FsWriteOutcome } from '@bosch/bh-fs'
+import { Context } from '@hydra/cordis'
+import SkillRegistry from '@hydra/harness-skill'
+import { FileSystem, FsError, FsVersion, type FsDirEntry, type FsEditOutcome, type FsEditRequest, type FsInfo, type FsPathInfo, type FsTarget, type FsWriteOutcome } from '@hydra/harness-fs'
 import * as SkillFileSystem from '../src/index.ts'
 
 async function tempDir(name: string): Promise<string> {

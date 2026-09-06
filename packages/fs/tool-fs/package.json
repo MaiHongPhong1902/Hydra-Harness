@@ -1,6 +1,6 @@
 {
-  "name": "@bosch/bh-tool-fs",
-  "description": "Model-facing filesystem tools (read, write, edit) over the Bosch Harness filesystem seam (ctx.fs)",
+  "name": "@hydra/harness-tool-fs",
+  "description": "Model-facing filesystem tools (read, write, edit) over the Hydra harness filesystem seam (ctx.fs)",
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"
@@ -33,38 +33,38 @@
   "license": "MIT",
   "dependencies": {
     "diff": "^9.0.0",
-    "@bosch/schemastery": "workspace:^"
+    "@hydra/schemastery": "workspace:^"
   },
   "peerDependencies": {
-    "@bosch/bh-attachment": "workspace:^",
-    "@bosch/bh-fs": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-llm": "workspace:^",
-    "@bosch/bh-sandbox": "workspace:^",
-    "@bosch/bh-sandbox-policy": "workspace:^",
-    "@bosch/bh-session": "workspace:^",
-    "@bosch/bh-system-prompt": "workspace:^",
-    "@bosch/bh-tools": "workspace:^",
-    "@bosch/bh-user-approval": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-attachment": "workspace:^",
+    "@hydra/harness-fs": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/harness-sandbox": "workspace:^",
+    "@hydra/harness-sandbox-policy": "workspace:^",
+    "@hydra/harness-session": "workspace:^",
+    "@hydra/harness-system-prompt": "workspace:^",
+    "@hydra/harness-tools": "workspace:^",
+    "@hydra/harness-user-approval": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@bosch/bh-agent": "workspace:^",
-    "@bosch/bh-agent-loop": "workspace:^",
-    "@bosch/bh-agent-loop-testkit": "workspace:^",
-    "@bosch/bh-attachment": "workspace:^",
-    "@bosch/bh-fs": "workspace:^",
-    "@bosch/bh-fs-local": "workspace:^",
-    "@bosch/bh-fs-observation-policy": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-llm": "workspace:^",
-    "@bosch/bh-llm-deepseek": "workspace:^",
-    "@bosch/bh-sandbox": "workspace:^",
-    "@bosch/bh-sandbox-policy": "workspace:^",
-    "@bosch/bh-session": "workspace:^",
-    "@bosch/bh-system-prompt": "workspace:^",
-    "@bosch/bh-tools": "workspace:^",
-    "@bosch/bh-user-approval": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-agent": "workspace:^",
+    "@hydra/harness-agent-loop": "workspace:^",
+    "@hydra/harness-agent-loop-testkit": "workspace:^",
+    "@hydra/harness-attachment": "workspace:^",
+    "@hydra/harness-fs": "workspace:^",
+    "@hydra/harness-fs-local": "workspace:^",
+    "@hydra/harness-fs-observation-policy": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/harness-llm-deepseek": "workspace:^",
+    "@hydra/harness-sandbox": "workspace:^",
+    "@hydra/harness-sandbox-policy": "workspace:^",
+    "@hydra/harness-session": "workspace:^",
+    "@hydra/harness-system-prompt": "workspace:^",
+    "@hydra/harness-tools": "workspace:^",
+    "@hydra/harness-user-approval": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   }
 }

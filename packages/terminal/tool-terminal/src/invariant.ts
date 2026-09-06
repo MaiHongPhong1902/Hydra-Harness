@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-tool-terminal`.
- * @module @bosch/bh-tool-terminal/invariant
+ * Package-owned invariant companion for `@hydra/harness-tool-terminal`.
+ * @module @hydra/harness-tool-terminal/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-tool-terminal'
+const PACKAGE_NAME = '@hydra/harness-tool-terminal'
 
 /** Cordis companion plugin name. */
 export const name = 'tool-terminal-invariant'

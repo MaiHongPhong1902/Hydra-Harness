@@ -8,10 +8,10 @@ import { join } from 'node:path'
 import { createInterface } from 'node:readline'
 import { fileURLToPath } from 'node:url'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { launchBrowser, resolveElectronPath } from '@bosch/bh-browser-electron'
+import { launchBrowser, resolveElectronPath } from '@hydra/harness-browser-electron'
 import type {
   ActionResult, BrowserCdpEventPage, BrowserChild, BrowserScreenshot, BrowserState,
-} from '@bosch/bh-browser-electron'
+} from '@hydra/harness-browser-electron'
 
 /**
  * The embedded browser is an optional capability: the `electron` binary may not
@@ -82,7 +82,7 @@ function indexOf(content: string, needle: string): number {
   return Number(match[1])
 }
 
-/** Wait only while the independently running BH-controlled PageAgent is active. */
+/** Wait only while the independently running Hydra-controlled PageAgent is active. */
 async function pageAgentResult(child: BrowserChild): Promise<ActionResult> {
   const deadline = Date.now() + 10_000
   let result: ActionResult = { success: false, message: 'PageAgent status was not read.' }
@@ -193,7 +193,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
               type: 'function',
               function: {
                 name: 'AgentOutput',
-                arguments: JSON.stringify({ action: { done: { success: true, text: 'BH controlled bridge passed' } } }),
+                arguments: JSON.stringify({ action: { done: { success: true, text: 'Hydra controlled bridge passed' } } }),
               },
             }],
           },
@@ -393,13 +393,13 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
     expect(await child.call('autofill_remove_contact', { id: contact.id })).toBe(true)
   }, 30_000)
 
-  it('runs upstream PageAgent only through BH control without its panel', async () => {
+  it('runs upstream PageAgent only through Hydra control without its panel', async () => {
     await child.call('navigate', { url: fixture })
     expect(await child.call('page_agent_run', { task: 'Confirm the current page.' }))
       .toMatchObject({ success: true })
     const pageAgent = await pageAgentResult(child)
     expect(pageAgent.success).toBe(true)
-    expect(pageAgent.message).toContain('completed. BH controlled bridge passed')
+    expect(pageAgent.message).toContain('completed. Hydra controlled bridge passed')
     const result = await child.call('execute_javascript', {
       script: "return `${Boolean(document.querySelector('#page-agent-runtime_agent-panel'))}|${Boolean(document.querySelector('#page-agent-runtime_simulator-mask'))}`",
     }) as ActionResult

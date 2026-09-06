@@ -2,18 +2,18 @@
  * JSON-RPC methods and notifications for out-of-process harness SDKs.
  * The surrounding context owns plugins, persistence, and configured adapters.
  *
- * @module @bosch/bh-sdk-jsonrpc-server/server
+ * @module @hydra/harness-sdk-jsonrpc-server/server
  */
 
-import type { Context } from '@bosch/cordis'
+import type { Context } from '@hydra/cordis'
 import { resolve } from 'node:path'
-import type { Agent, AgentHandle } from '@bosch/bh-agent'
-import { createUserMessage } from '@bosch/bh-llm'
-import { carrierKeyOf, type Scoped } from '@bosch/bh-scope'
-import { SessionId } from '@bosch/bh-session'
-import type SubagentRuntime from '@bosch/bh-subagent'
-import type { SubagentRunEndInfo } from '@bosch/bh-subagent'
-import * as LlmDeepSeek from '@bosch/bh-llm-deepseek'
+import type { Agent, AgentHandle } from '@hydra/harness-agent'
+import { createUserMessage } from '@hydra/harness-llm'
+import { carrierKeyOf, type Scoped } from '@hydra/harness-scope'
+import { SessionId } from '@hydra/harness-session'
+import type SubagentRuntime from '@hydra/harness-subagent'
+import type { SubagentRunEndInfo } from '@hydra/harness-subagent'
+import * as LlmDeepSeek from '@hydra/harness-llm-deepseek'
 import type {
   InitializeParams,
   InitializeResult,
@@ -23,7 +23,7 @@ import type {
   SessionPromptResult,
   SubagentFinishedNotification,
   SubagentStartedNotification,
-} from '@bosch/bh-sdk-protocol'
+} from '@hydra/harness-sdk-protocol'
 
 interface SessionRecord {
   handle: AgentHandle
@@ -196,7 +196,7 @@ export class HarnessSdkJsonRpcServer {
       case 'shutdown':
         return this.shutdown()
       default:
-        throw new Error(`unknown Bosch Harness SDK runtime method: ${method}`)
+        throw new Error(`unknown Hydra harness SDK runtime method: ${method}`)
     }
   }
 
@@ -219,7 +219,7 @@ export class HarnessSdkJsonRpcServer {
     // No preset composition: this server's compositions keep the model-facing
     // rows in the host plane, so this agent reads them from the global layer. A
     // deployment that configures a roster has to join one here first
-    // (@bosch/bh-agent-presets README, "Composing a child agent").
+    // (@hydra/harness-agent-presets README, "Composing a child agent").
     const handle = await this.ctx.agents.create({
       sessionId: SessionId(sessionId),
       meta: { cwd: this.cwd },

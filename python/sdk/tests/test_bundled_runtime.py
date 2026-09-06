@@ -10,9 +10,9 @@ from pathlib import Path
 
 import pytest
 
-from bosch_harness import BoschHarness, HarnessClient, HarnessConfig
-from bosch_harness.errors import TransportClosedError
-from bosch_harness_runtime import resolve_bundled_launch_args
+from hydra_harness import HydraHarness, HarnessClient, HarnessConfig
+from hydra_harness.errors import TransportClosedError
+from hydra_harness_runtime import resolve_bundled_launch_args
 
 _MODES = ("exe", "node")
 _REPO_ROOT = Path(__file__).parents[3]
@@ -21,25 +21,25 @@ _MINIMAL_CONFIG = _REPO_ROOT / "examples" / "jsonrpc-agent" / "minimal.cordis.ym
 # The config must include the JSON-RPC serving plugin.
 _CORDIS_YML = """\
 - id: sdk-jsonrpc-server
-  name: '@bosch/bh-sdk-jsonrpc-server'
+  name: '@hydra/harness-sdk-jsonrpc-server'
 - id: agent-core
-  name: '@bosch/bh-agent-spine-demo'
+  name: '@hydra/harness-agent-spine-demo'
   config:
     workspaceContext: false
 - id: sessions
-  name: '@bosch/bh-session-persistence-jsonl'
+  name: '@hydra/harness-session-persistence-jsonl'
   config:
     root: './sessions'
 - id: session-checkpoints
-  name: '@bosch/bh-session-checkpoint-policy'
+  name: '@hydra/harness-session-checkpoint-policy'
 - id: subprocess
-  name: '@bosch/bh-subprocess-local'
+  name: '@hydra/harness-subprocess-local'
 - id: bash
-  name: '@bosch/bh-bash-local'
+  name: '@hydra/harness-bash-local'
   config:
     cwd: '.'
 - id: todo
-  name: '@bosch/bh-tool-todo'
+  name: '@hydra/harness-tool-todo'
   config:
     allowParallelInProgress: true
 """
@@ -86,7 +86,7 @@ def test_bundled_runtime_boots_a_cordis_config(tmp_path: Path, mode: str) -> Non
 def test_python_sdk_boots_minimal_jsonrpc_config(tmp_path: Path, mode: str) -> None:
     launch_args = _launch_args(mode)
     model = "minimal-environment-model"
-    harness = BoschHarness(
+    harness = HydraHarness(
         model=model,
         cwd=str(tmp_path),
         session_root=str(tmp_path / "sessions"),
@@ -110,7 +110,7 @@ def test_python_sdk_boots_minimal_jsonrpc_config(tmp_path: Path, mode: str) -> N
 def test_bundled_runtime_surfaces_unbundled_plugin_failure(tmp_path: Path, mode: str) -> None:
     launch_args = _launch_args(mode)
     (tmp_path / "cordis.yml").write_text(
-        "- id: missing\n  name: '@bosch/bh-does-not-exist'\n"
+        "- id: missing\n  name: '@hydra/harness-does-not-exist'\n"
     )
 
     client = _client(tmp_path, launch_args)
@@ -121,7 +121,7 @@ def test_bundled_runtime_surfaces_unbundled_plugin_failure(tmp_path: Path, mode:
     finally:
         client.close()
 
-    assert "@bosch/bh-does-not-exist" in str(excinfo.value)
+    assert "@hydra/harness-does-not-exist" in str(excinfo.value)
 
 
 @pytest.mark.parametrize("mode", _MODES)
@@ -136,7 +136,7 @@ def test_zero_config_run_injects_bundled_default_cordis_config(
     else:
         monkeypatch.setenv("BH_CORDIS_CONFIG", ambient_config)
 
-    harness = BoschHarness(
+    harness = HydraHarness(
         model="deepseek-v4-pro",
         cwd=str(tmp_path),
         session_root=str(tmp_path / "sessions"),

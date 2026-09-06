@@ -1,4 +1,4 @@
-import type { AssistantBlock } from '@bosch/bh-client-runtime/client'
+import type { AssistantBlock } from '@hydra/harness-client-runtime/client'
 
 /**
  * Collect visible prose from one Assistant lifecycle.

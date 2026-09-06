@@ -1,6 +1,6 @@
-import type { Context } from '@bosch/cordis'
-import type { GenerateOptions, StreamChunk } from '@bosch/bh-llm'
-import { LlmAdapter } from '@bosch/bh-llm'
+import type { Context } from '@hydra/cordis'
+import type { GenerateOptions, StreamChunk } from '@hydra/harness-llm'
+import { LlmAdapter } from '@hydra/harness-llm'
 
 /**
  * Scripted model for the CHILD runtime: answers every request with its own

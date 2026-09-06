@@ -12,10 +12,10 @@
 - text: "Using ONE run_code program: run bash `echo CODE_ROUND_OK`, then read the file missing.txt catching its error in the program. Return an object with both outcomes. Then reply DONE and stop. {{clock}}"
 - button "Copy":
   - img
-- button "Context injection @bosch/bh-system-prompt":
+- button "Context injection @hydra/harness-system-prompt":
   - img
   - img
-  - text: Context injection @bosch/bh-system-prompt
+  - text: Context injection @hydra/harness-system-prompt
 - 'button "Think The user wants me to write a single `run_code` program that:"':
   - img
   - img

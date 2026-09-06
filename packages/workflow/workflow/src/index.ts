@@ -1,11 +1,11 @@
 /**
  * Service Definition for the workflow capability seam. Service Providers execute orchestration scripts;
  * observe-only lifecycle events never expose run control.
- * @module @bosch/bh-workflow
+ * @module @hydra/harness-workflow
  */
 
-import { Context, Service } from '@bosch/cordis'
-import { HarnessError } from '@bosch/bh-llm'
+import { Context, Service } from '@hydra/cordis'
+import { HarnessError } from '@hydra/harness-llm'
 import type {
   WorkflowAgentEndInfo,
   WorkflowAgentInfo,
@@ -28,7 +28,7 @@ export type {
 } from './types.ts'
 export type { WorkflowRun, WorkflowStartRequest } from './runtime-types.ts'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     workflowEngine: WorkflowEngine
   }

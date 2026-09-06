@@ -8,9 +8,9 @@
 // `result.isError`) keeps the model-facing error text on ToolRow's Output
 // section, its first line in the collapsed summary.
 
-import type { Context } from '@bosch/cordis'
-import { IconEditOutline16 } from '@bosch/bh-client-ui-primitives'
-import type { PropsLocale } from '@bosch/bh-client-ui-slots'
+import type { Context } from '@hydra/cordis'
+import { IconEditOutline16 } from '@hydra/harness-client-ui-primitives'
+import type { PropsLocale } from '@hydra/harness-client-ui-slots'
 import type { ToolCallViewProps } from '../../contract/slots.ts'
 import { diffCardModel } from '../models/diff-card-model.ts'
 import { toolRowModel } from '../models/tool-call-model.ts'

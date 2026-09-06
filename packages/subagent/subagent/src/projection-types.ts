@@ -1,7 +1,7 @@
 /**
  * Pure client-safe subagent projection vocabulary.
  *
- * @module @bosch/bh-subagent/projection-types
+ * @module @hydra/harness-subagent/projection-types
  */
 
 /** Durable active-turn timing for one descriptor-backed child session. */
@@ -46,7 +46,7 @@ export type SubagentIdentityProjection =
     seq: number
   }
 
-declare module '@bosch/bh-session-projection/types' {
+declare module '@hydra/harness-session-projection/types' {
   interface SessionProjectionMap {
     /** Active-turn duration for a descriptor-backed subagent session. */
     subagentTiming: SubagentTimingProjection

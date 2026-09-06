@@ -1,25 +1,25 @@
 /**
- * High-level run API over {@link HarnessClient}: `BoschHarness` owns one
+ * High-level run API over {@link HarnessClient}: `HydraHarness` owns one
  * runtime subprocess across many sessions; `HarnessSession.run` sends a
  * prompt and settles when the whole agent next becomes idle.
- * Mirrors the Python SDK's `BoschHarness`/`Session` pair.
+ * Mirrors the Python SDK's `HydraHarness`/`Session` pair.
  *
- * @module @bosch/bh-sdk-client/api
+ * @module @hydra/harness-sdk-client/api
  */
 
 import { randomUUID } from 'node:crypto'
 import { resolve } from 'node:path'
-import type { SessionEvent } from '@bosch/bh-session'
+import type { SessionEvent } from '@hydra/harness-session'
 import { HarnessClient, isRecord, SdkProtocolError } from './client.ts'
-import type { ContentBlock, BoschHarnessOptions, HarnessClientOptions, HarnessNotification, RunResult } from './types.ts'
+import type { ContentBlock, HydraHarnessOptions, HarnessClientOptions, HarnessNotification, RunResult } from './types.ts'
 
 /**
- * Reusable SDK for running Bosch Harness agent turns in a runtime
+ * Reusable SDK for running Hydra harness agent turns in a runtime
  * subprocess. The subprocess starts lazily on first use and stays owned by
  * this instance until {@link close}; always close (or `await using`) so the
  * child is reaped.
  */
-export class BoschHarness implements AsyncDisposable {
+export class HydraHarness implements AsyncDisposable {
   private clientInstance: HarnessClient
   private readonly launch: HarnessClientOptions
   private readonly cwd: string
@@ -30,7 +30,7 @@ export class BoschHarness implements AsyncDisposable {
   private closed = false
 
   /** @param options - runtime launch spec plus the session route (cwd/provider/model). */
-  constructor(options: BoschHarnessOptions) {
+  constructor(options: HydraHarnessOptions) {
     this.launch = options.launch
     this.clientInstance = new HarnessClient(options.launch)
     // Absolute before the handshake: the child spawns relative to THIS
@@ -134,7 +134,7 @@ export class HarnessSession {
    * @param harness - the owning harness (supplies the client and handshake).
    * @param id - the wire session id this handle runs on.
    */
-  constructor(readonly harness: BoschHarness, readonly id: string) {}
+  constructor(readonly harness: HydraHarness, readonly id: string) {}
 
   /**
    * Queue one prompt, then observe the whole session through its next idle.

@@ -3,11 +3,11 @@
  * pure context-breakdown projection, so both surfaces price identical content
  * to identical numbers.
  *
- * @module @bosch/bh-token-meter/estimate
+ * @module @hydra/harness-token-meter/estimate
  */
 
-import type { ContentBlock, Message } from '@bosch/bh-llm'
-import type { EpochHeader } from '@bosch/bh-session'
+import type { ContentBlock, Message } from '@hydra/harness-llm'
+import type { EpochHeader } from '@hydra/harness-session'
 
 /** Fixed text-density estimate used until exact tokenization is needed. */
 const CHARS_PER_TOKEN = 4

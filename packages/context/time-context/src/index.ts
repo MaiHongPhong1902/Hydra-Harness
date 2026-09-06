@@ -2,14 +2,14 @@
  * Opt-in request clock context. Eligible steps add durable,
  * source-attributed time readings to the request history.
  *
- * @module @bosch/bh-time-context
+ * @module @hydra/harness-time-context
  */
 
-import type { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import type { Agent, PreStepDecision } from '@bosch/bh-agent'
-import { createUserMessage } from '@bosch/bh-llm'
-import type { UserMessage } from '@bosch/bh-llm'
+import type { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import type { Agent, PreStepDecision } from '@hydra/harness-agent'
+import { createUserMessage } from '@hydra/harness-llm'
+import type { UserMessage } from '@hydra/harness-llm'
 import {
   deriveBrowserTimeZoneContext,
   renderBrowserTimeZoneContext,

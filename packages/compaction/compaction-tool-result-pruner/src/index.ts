@@ -1,18 +1,18 @@
 /**
  * Replay-safe, model-free tool-result pruning service.
  *
- * @module @bosch/bh-compaction-tool-result-pruner
+ * @module @hydra/harness-compaction-tool-result-pruner
  */
 
-import { Context, Service } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import { freezeMessage } from '@bosch/bh-llm'
-import type { ContentBlock } from '@bosch/bh-llm'
-import type { Session, SessionEvent, ToolResultMessage } from '@bosch/bh-session'
+import { Context, Service } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import { freezeMessage } from '@hydra/harness-llm'
+import type { ContentBlock } from '@hydra/harness-llm'
+import type { Session, SessionEvent, ToolResultMessage } from '@hydra/harness-session'
 // Type-only: the `compaction/*` SessionEventMap merges (the shadow-price event).
-import type {} from '@bosch/bh-compaction'
+import type {} from '@hydra/harness-compaction'
 // Type-only: the `ctx.tokenMeter` Context merge for the declared injection.
-import type {} from '@bosch/bh-token-meter'
+import type {} from '@hydra/harness-token-meter'
 import { codePointLength, DEFAULTS, PRUNE_MARKER, resolveConfig } from './config.ts'
 import type {
   PrunedEntry,
@@ -29,7 +29,7 @@ export type {
   ToolResultPruneConfig,
 } from './types.ts'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     toolResultPruner: ToolResultPruner
   }

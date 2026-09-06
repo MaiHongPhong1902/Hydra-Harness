@@ -13,12 +13,12 @@ import {
   tokenizeSessionFixtureCwd,
   type HarvestedLog,
   type NormalizeContext,
-} from '@bosch/bh-acp-snapshot'
-import { LOADER_SMOKE_TEST_TIMEOUT_MS, runLoaderSmoke } from '@bosch/bh-loader-smoke'
+} from '@hydra/harness-acp-snapshot'
+import { LOADER_SMOKE_TEST_TIMEOUT_MS, runLoaderSmoke } from '@hydra/harness-loader-smoke'
 import {
   decompressZstdFrame,
   scanZstdFrames,
-} from '@bosch/bh-session-persistence-jsonl/src/zstd.ts'
+} from '@hydra/harness-session-persistence-jsonl/src/zstd.ts'
 import { describe, expect, it } from 'vitest'
 
 const snapshotsDir = join(dirname(fileURLToPath(import.meta.url)), 'snapshots')

@@ -7,12 +7,12 @@
  * payload, the scoped consume-token dispatch, per-session popupFor
  * lifecycle, and the directory invalidation event subscriptions.
  */
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { describe, expect, it, vi } from 'vitest'
-import type { CommandResult } from '@bosch/bh-commands/types'
-import { createScope, scopeOf } from '@bosch/bh-client-runtime/client'
-import type { SessionId } from '@bosch/bh-client-runtime/client'
-import type { ClientSessionContext, ConsumeTokenRequest, InputTriggerPick, InputTriggerSource, SubmitImageAttachment } from '@bosch/bh-client-ui-input-trigger/client'
+import type { CommandResult } from '@hydra/harness-commands/types'
+import { createScope, scopeOf } from '@hydra/harness-client-runtime/client'
+import type { SessionId } from '@hydra/harness-client-runtime/client'
+import type { ClientSessionContext, ConsumeTokenRequest, InputTriggerPick, InputTriggerSource, SubmitImageAttachment } from '@hydra/harness-client-ui-input-trigger/client'
 import type { CommandContribution, CommandDecoration, CommandUiSpec, SelectOption } from '../src/client/contract.ts'
 import type { CommandDescriptor } from '../src/client/directory.ts'
 import { CommandUiRuntime } from '../src/client/service.ts'

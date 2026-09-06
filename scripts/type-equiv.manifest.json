@@ -1182,9 +1182,14 @@
     },
     {
       "doc": "docs/subsystems/skills.md",
-      "symbol": "SkillSummary",
-      "source": "packages/skill/skill/src/index.ts"
-    },
+        "symbol": "SkillSummary",
+        "source": "packages/skill/skill/src/index.ts"
+      },
+      {
+        "doc": "docs/subsystems/skills.md",
+        "symbol": "SkillDocument",
+        "source": "packages/skill/skill/src/frontmatter.ts"
+      },
     {
       "doc": "docs/subsystems/skills.md",
       "symbol": "SkillCatalogSnapshot",

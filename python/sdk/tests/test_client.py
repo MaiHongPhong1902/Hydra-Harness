@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from bosch_harness import BoschHarness, HarnessClient, HarnessConfig, Notification, SdkProtocolError
+from hydra_harness import HydraHarness, HarnessClient, HarnessConfig, Notification, SdkProtocolError
 
 
 def test_high_level_sdk_runs_turn_and_collects_final_response(tmp_path: Path) -> None:
@@ -91,7 +91,7 @@ for line in sys.stdin:
 """.strip()
     )
 
-    with BoschHarness(
+    with HydraHarness(
         model="deepseek-v4-flash",
         max_tokens=4096,
         cwd=str(tmp_path),
@@ -149,7 +149,7 @@ for line in sys.stdin:
     )
 
     seen: list[str] = []
-    with BoschHarness(
+    with HydraHarness(
         launch_args_override=(sys.executable, str(script)),
         cwd=str(tmp_path),
     ) as harness:
@@ -187,7 +187,7 @@ for line in sys.stdin:
 """.strip()
     )
 
-    with BoschHarness(
+    with HydraHarness(
         launch_args_override=(sys.executable, str(script)),
         cwd=str(tmp_path),
     ) as harness:
@@ -221,7 +221,7 @@ for line in sys.stdin:
     )
     monkeypatch.chdir(tmp_path)
 
-    with BoschHarness(
+    with HydraHarness(
         cwd=".",
         runtime_cwd=".",
         launch_args_override=(sys.executable, str(script)),
@@ -262,7 +262,7 @@ for line in sys.stdin:
 """.strip()
     )
 
-    with BoschHarness(
+    with HydraHarness(
         launch_args_override=(sys.executable, str(script)),
         cwd=str(tmp_path),
     ) as harness:
@@ -311,7 +311,7 @@ for line in sys.stdin:
     )
 
     seen: list[str] = []
-    with BoschHarness(
+    with HydraHarness(
         launch_args_override=(sys.executable, str(script)),
         cwd=str(tmp_path),
     ) as harness:
@@ -366,7 +366,7 @@ for line in sys.stdin:
 """.strip()
     )
 
-    with BoschHarness(
+    with HydraHarness(
         launch_args_override=(sys.executable, str(script)),
         cwd=str(tmp_path),
     ) as harness:
@@ -401,7 +401,7 @@ for line in sys.stdin:
 """.strip()
     )
 
-    with BoschHarness(launch_args_override=(sys.executable, str(script)), cwd=str(tmp_path)) as harness:
+    with HydraHarness(launch_args_override=(sys.executable, str(script)), cwd=str(tmp_path)) as harness:
         result = harness.run("one turn", session_id="main")
         assert harness.client._notifications.qsize() == 0
 
@@ -441,7 +441,7 @@ for line in sys.stdin:
 """.strip()
     )
 
-    with BoschHarness(launch_args_override=(sys.executable, str(script)), cwd=str(tmp_path)) as harness:
+    with HydraHarness(launch_args_override=(sys.executable, str(script)), cwd=str(tmp_path)) as harness:
         first = harness.run("first turn", session_id="main")
         second = harness.run("second turn", session_id="main")
 
@@ -812,15 +812,15 @@ for line in sys.stdin:
 
 
 def test_public_signatures_omit_unsupported_wire_parameters() -> None:
-    from bosch_harness import BoschHarnessConfig, Session
+    from hydra_harness import HydraHarnessConfig, Session
 
     assert "session_root" not in inspect.signature(HarnessClient.initialize).parameters
     assert "system_prompt" not in inspect.signature(HarnessClient.initialize).parameters
     assert "profile" not in inspect.signature(HarnessClient.session_prompt).parameters
-    assert "profile" not in inspect.signature(BoschHarness.run).parameters
+    assert "profile" not in inspect.signature(HydraHarness.run).parameters
     assert "profile" not in inspect.signature(Session.run).parameters
-    assert "system_prompt" not in BoschHarnessConfig.__dataclass_fields__
-    assert "max_tokens" in BoschHarnessConfig.__dataclass_fields__
+    assert "system_prompt" not in HydraHarnessConfig.__dataclass_fields__
+    assert "max_tokens" in HydraHarnessConfig.__dataclass_fields__
     assert "max_tokens" in inspect.signature(HarnessClient.initialize).parameters
     assert "client_name" not in HarnessConfig.__dataclass_fields__
     assert "client_version" not in HarnessConfig.__dataclass_fields__
@@ -942,7 +942,7 @@ for line in sys.stdin:
     runtime.chmod(0o755)
 
     default_config = tmp_path / "default-cordis.yml"
-    module_dir = tmp_path / "bosch_harness_runtime"
+    module_dir = tmp_path / "hydra_harness_runtime"
     module_dir.mkdir()
     (module_dir / "__init__.py").write_text(
         f"""
@@ -956,7 +956,7 @@ def bundled_default_config_path():
     )
 
     monkeypatch.syspath_prepend(str(tmp_path))
-    monkeypatch.delitem(sys.modules, "bosch_harness_runtime", raising=False)
+    monkeypatch.delitem(sys.modules, "hydra_harness_runtime", raising=False)
     return default_config
 
 
@@ -994,8 +994,8 @@ def test_client_respects_explicit_config_over_bundled_default(
 
 
 def test_client_reports_missing_bundled_runtime_dependency(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.delitem(sys.modules, "bosch_harness_runtime", raising=False)
+    monkeypatch.delitem(sys.modules, "hydra_harness_runtime", raising=False)
     monkeypatch.setattr(sys, "path", [])
 
-    with pytest.raises(FileNotFoundError, match="Install bosch-harness-runtime-bin"):
+    with pytest.raises(FileNotFoundError, match="Install hydra-harness-runtime-bin"):
         HarnessClient().start()

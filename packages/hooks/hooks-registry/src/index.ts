@@ -1,7 +1,7 @@
 /**
  * User-declared hook records: one settings-backed registry that mounts every
- * enabled record on its dialect's bridge (`@bosch/bh-hooks-claude-code` or
- * `@bosch/bh-hooks-codex`) and unmounts it when the record is disabled,
+ * enabled record on its dialect's bridge (`@hydra/harness-hooks-claude-code` or
+ * `@hydra/harness-hooks-codex`) and unmounts it when the record is disabled,
  * redefined, or removed. The stored document (`hooks.records` in the harness
  * settings file) is the only source of truth, so a hook added from a
  * configuration surface survives a restart and one added by hand-editing that
@@ -10,31 +10,31 @@
  * A record either points at an existing hook document (`configPath`) or carries
  * its definitions inline. Inline definitions are materialized under the harness
  * home, because both bridges read one file path at load.
- * @module @bosch/bh-hooks-registry
+ * @module @hydra/harness-hooks-registry
  */
 
 import { mkdir, readFile, rm } from 'node:fs/promises'
 import { isAbsolute, join } from 'node:path'
-import { Service, type Context, type Fiber } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import { writeFileAtomic } from '@bosch/bh-atomic-write'
-import { resolveBhHome } from '@bosch/bh-home-paths'
-import { settingsNamespace, type SettingsScope } from '@bosch/bh-settings'
+import { Service, type Context, type Fiber } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import { writeFileAtomic } from '@hydra/harness-atomic-write'
+import { resolveBhHome } from '@hydra/harness-home-paths'
+import { settingsNamespace, type SettingsScope } from '@hydra/harness-settings'
 import {
   apply as applyClaudeCodeHooks, inject as claudeCodeInject,
-} from '@bosch/bh-hooks-claude-code'
-import { apply as applyCodexHooks, inject as codexInject } from '@bosch/bh-hooks-codex'
-import { parseClaudeCodeConfig } from '@bosch/bh-hooks-claude-code/config'
-import { parseCodexConfig } from '@bosch/bh-hooks-codex/config'
+} from '@hydra/harness-hooks-claude-code'
+import { apply as applyCodexHooks, inject as codexInject } from '@hydra/harness-hooks-codex'
+import { parseClaudeCodeConfig } from '@hydra/harness-hooks-claude-code/config'
+import { parseCodexConfig } from '@hydra/harness-hooks-codex/config'
 import type {
   HookDialect, HookRecordDefinitionRequest, HookRecordEnablementRequest, HookRecordSnapshot,
   HookRecordStatus, HookRecordView, HookSourceKind,
 } from './types.ts'
-import type { JsonValue } from '@bosch/bh-session/types'
+import type { JsonValue } from '@hydra/harness-session/types'
 
 export type * from './types.ts'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     /** User-declared hook records and their live bridge mounts. */
     hookRecords: HookRecordRegistry
@@ -117,7 +117,7 @@ function assertMountable(record: StoredRecord, label: string): void {
   if (record.configPath !== '' && !isAbsolute(record.configPath)) {
     throw new Error(`${label}: record ${record.name} configPath must be absolute`)
   }
-  if (inline && JSON.stringify(record.config).length > MAX_INLINE_BYTES) {
+  if (inline && Buffer.byteLength(JSON.stringify(record.config), 'utf8') > MAX_INLINE_BYTES) {
     throw new Error(`${label}: record ${record.name} inline hooks exceed ${String(MAX_INLINE_BYTES)} bytes`)
   }
   if (record.dialect === 'codex' && (record.pluginRoot !== '' || record.projectDir !== '')) {
@@ -150,6 +150,7 @@ function summarize(dialect: HookDialect, raw: unknown): { events: string[]; hook
   for (const groups of Object.values(parsed.config)) {
     for (const group of groups) hookCount += group.hooks.length
   }
+  if (hookCount === 0) throw new Error(`hookRecords: ${dialect} document contains no supported synchronous command hooks`)
   return { events, hookCount }
 }
 
@@ -198,6 +199,8 @@ interface LiveMount {
  */
 export class HookRecordRegistry extends Service {
   static inject = inject
+  /** Bridge mounts belong to this Host service, not to a traced API caller. */
+  private readonly owner: Context
   static Config: z<Config> = z.object({
     bhHome: z.string(),
   })
@@ -213,6 +216,7 @@ export class HookRecordRegistry extends Service {
 
   constructor(ctx: Context, config: Config = {}) {
     super(ctx, 'hookRecords')
+    this.owner = ctx
     this.inlineRoot = join(resolveBhHome(config.bhHome), 'hooks')
     this.settings = ctx.settings.register(HOOKS_SETTINGS_NAMESPACE, HooksSettingsSchema, {
       // Refuse a colliding section where it is written: two records claiming
@@ -239,16 +243,19 @@ export class HookRecordRegistry extends Service {
   }
 
   /**
-   * Store one complete definition, replacing any record of the same name, then
+   * Create or replace one complete definition as requested, then
    * converge the mounted set. A definition this registry could not mount is
    * refused before anything persists.
    * @param request - complete record definition.
    * @returns the refreshed projection.
+   * @throws If create names an existing record or replace names a missing record.
    */
   define(request: HookRecordDefinitionRequest): Promise<HookRecordSnapshot> {
     return this.enqueue(async () => {
       const records = this.settings.get().records
       const index = records.findIndex(candidate => candidate.name === request.name.trim())
+      if (request.mode === 'create' && index !== -1) throw new Error(`hookRecords.define: record ${request.name} already exists`)
+      if (request.mode === 'replace' && index === -1) throw new Error(`hookRecords.define: record ${request.name} is not configured`)
       const record = foldDefinition(request, index === -1 ? undefined : records[index])
       assertMountable(record, 'hookRecords.define')
       // The dialect parser is the authority on whether these definitions run;
@@ -352,7 +359,7 @@ export class HookRecordRegistry extends Service {
       return
     }
     const fiber = record.dialect === 'claude-code'
-      ? this.ctx.plugin({
+      ? this.owner.plugin({
         name: `hook-record:${record.name}`,
         inject: claudeCodeInject,
         apply: applyClaudeCodeHooks,
@@ -362,7 +369,7 @@ export class HookRecordRegistry extends Service {
         ...record.pluginRoot === '' ? {} : { pluginRoot: record.pluginRoot },
         ...record.projectDir === '' ? {} : { projectDir: record.projectDir },
       })
-      : this.ctx.plugin({
+      : this.owner.plugin({
         name: `hook-record:${record.name}`,
         inject: codexInject,
         apply: applyCodexHooks,

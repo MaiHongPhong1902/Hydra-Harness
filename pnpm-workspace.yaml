@@ -32,8 +32,8 @@ packages:
 linkWorkspacePackages: true
 
 overrides:
-  '@bosch/cosmokit': 'link:vendor/cosmokit'
-  '@bosch/schemastery': 'link:vendor/schemastery'
+  '@hydra/cosmokit': 'link:vendor/cosmokit'
+  '@hydra/schemastery': 'link:vendor/schemastery'
 
 peerDependencyRules:
   allowedVersions:
@@ -63,7 +63,7 @@ allowBuilds:
   electron: true
   # The Python runtime deploy includes the reviewed workspace postinstall that
   # restores the executable bit on node-pty's macOS spawn helper.
-  '@bosch/bh-subprocess-local@file:packages/subprocess/subprocess-local': true
+  '@hydra/harness-subprocess-local@file:packages/subprocess/subprocess-local': true
 
 minimumReleaseAgeExclude:
   # Fresh pi-ai releases carry the model catalog updates that are the whole

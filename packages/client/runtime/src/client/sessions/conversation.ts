@@ -5,15 +5,15 @@
 // views. callId/approvalId stay plain string here (narrow to real brands when
 // convenient).
 
-import type { CommandId } from '@bosch/bh-commands/brand'
-import type { MessageId } from '@bosch/bh-llm/brand'
-import type { ContentBlock } from '@bosch/bh-llm/types'
-import type { ImageAttachmentRef } from '@bosch/bh-attachment'
-import type { LlmRetryEventData } from '@bosch/bh-llm-retry/types'
-import type { TodoItem } from '@bosch/bh-session/types'
+import type { CommandId } from '@hydra/harness-commands/brand'
+import type { MessageId } from '@hydra/harness-llm/brand'
+import type { ContentBlock } from '@hydra/harness-llm/types'
+import type { ImageAttachmentRef } from '@hydra/harness-attachment'
+import type { LlmRetryEventData } from '@hydra/harness-llm-retry/types'
+import type { TodoItem } from '@hydra/harness-session/types'
 import type {
   RpcError, SessionId, SubagentAddress, ToolCallView, ToolResultView,
-} from '@bosch/bh-api-remotes/client'
+} from '@hydra/harness-api-remotes/client'
 import type { PendingInteraction } from './pending.ts'
 import type { ContextProvenanceView, KnownContextForm } from './context-provenance.ts'
 import type {

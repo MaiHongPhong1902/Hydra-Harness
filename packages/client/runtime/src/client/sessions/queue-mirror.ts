@@ -1,6 +1,6 @@
-import type { ContentBlock } from '@bosch/bh-llm/types'
-import type { MuxFrame } from '@bosch/bh-api-remotes/client'
-import type { SessionEvent } from '@bosch/bh-session/types'
+import type { ContentBlock } from '@hydra/harness-llm/types'
+import type { MuxFrame } from '@hydra/harness-api-remotes/client'
+import type { SessionEvent } from '@hydra/harness-session/types'
 import type { QueuedMessage } from './conversation.ts'
 
 const QUEUE_PREVIEW_CHARS = 200

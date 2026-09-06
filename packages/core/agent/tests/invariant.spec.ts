@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import type { Agent } from '@bosch/bh-agent'
-import * as AgentInvariant from '@bosch/bh-agent/invariant'
-import { scopeTarget } from '@bosch/bh-scope'
-import InvariantRegistry from '@bosch/bh-invariants'
+import { Context } from '@hydra/cordis'
+import type { Agent } from '@hydra/harness-agent'
+import * as AgentInvariant from '@hydra/harness-agent/invariant'
+import { scopeTarget } from '@hydra/harness-scope'
+import InvariantRegistry from '@hydra/harness-invariants'
 
 async function setup(): Promise<Context> {
   const ctx = new Context()

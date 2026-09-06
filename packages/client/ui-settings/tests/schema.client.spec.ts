@@ -1,5 +1,5 @@
-import { Context } from '@bosch/cordis'
-import Schema from '@bosch/schemastery'
+import { Context } from '@hydra/cordis'
+import Schema from '@hydra/schemastery'
 import { describe, expect, it } from 'vitest'
 import type { SchemaNode } from '../src/client/schema.ts'
 import { SettingsSchemaService } from '../src/client/schema.ts'

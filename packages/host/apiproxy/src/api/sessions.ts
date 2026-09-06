@@ -4,18 +4,18 @@
  * else references RequestPayload<'session.*'> / ResponseValue<'session.*'>.
  */
 
-import type { MessageId } from '@bosch/bh-llm/brand'
-import type { AttachmentIdType, ImageAttachmentLimits, ImageAttachmentRef, ImageMediaType } from '@bosch/bh-attachment'
-import type { ContentBlock } from '@bosch/bh-llm/types'
-import type { SessionEvent, SessionId } from '@bosch/bh-session/types'
+import type { MessageId } from '@hydra/harness-llm/brand'
+import type { AttachmentIdType, ImageAttachmentLimits, ImageAttachmentRef, ImageMediaType } from '@hydra/harness-attachment'
+import type { ContentBlock } from '@hydra/harness-llm/types'
+import type { SessionEvent, SessionId } from '@hydra/harness-session/types'
 // The pure-type outlet: api/ is browser-importable, and the package root's
-// cordis Context merge (via bh-agent) must not enter client aggregates.
-import type { SessionProjectionMap } from '@bosch/bh-session-projection/types'
+// cordis Context merge (via @hydra/harness-agent) must not enter client aggregates.
+import type { SessionProjectionMap } from '@hydra/harness-session-projection/types'
 import type { RpcId, RpcRequest, RpcResponse } from './rpc.ts'
 import type { ToolEventView } from './events.ts'
 import type { WorkspaceId } from './workspace.ts'
 
-declare module '@bosch/bh-session-projection/types' {
+declare module '@hydra/harness-session-projection/types' {
   interface SessionProjectionStateMap {
     sessionListMetadata: SessionListMetadata
     imageLimits: null
@@ -47,7 +47,7 @@ export interface SessionListMetadata {
   lastPromptAt: number | null
 }
 
-declare module '@bosch/bh-llm' {
+declare module '@hydra/harness-llm' {
   interface MessageSourceMap {
     /**
      * The prompt's rpcId is passed through MessageSource into the `user/message` event

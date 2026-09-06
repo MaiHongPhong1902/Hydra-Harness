@@ -8,66 +8,66 @@
 
 import { globSync, readFileSync, writeFileSync } from 'node:fs'
 import { basename, resolve } from 'node:path'
-import { Context } from '@bosch/cordis'
-import type { ToolSchema } from '@bosch/bh-llm'
-import AgentRegistry from '@bosch/bh-agent'
-import type { Agent } from '@bosch/bh-agent'
-import { createScope } from '@bosch/bh-scope'
-import SessionStore, { SessionId } from '@bosch/bh-session'
-import SessionProjectionRegistry from '@bosch/bh-session-projection'
-import SqliteSessionQueryEngine from '@bosch/bh-session-query-sqlite'
-import GoalService from '@bosch/bh-goal'
-import SystemPrompt from '@bosch/bh-system-prompt'
-import ToolRuntime, { type Config as ToolsConfig } from '@bosch/bh-tools'
-import LocalBashExecutor from '@bosch/bh-bash-local'
-import * as BashEnvPlugin from '@bosch/bh-shell-env'
-import { PwshLocalExecutor } from '@bosch/bh-pwsh-local'
-import LocalSubprocessRuntime from '@bosch/bh-subprocess-local'
-import LocalFileSystem from '@bosch/bh-fs-local'
-import { AttachmentStore } from '@bosch/bh-attachment'
-import type { ImageAttachmentLimits, ImageAttachmentRef, SaveImageAttachment, StoredImageAttachment } from '@bosch/bh-attachment'
-import UserQuestionService from '@bosch/bh-user-questions'
-import PlanModeController from '@bosch/bh-plan-mode'
-import WebRuntime from '@bosch/bh-web'
-import * as WebSearchExa from '@bosch/bh-web-search-exa'
-import * as WebFetchLocal from '@bosch/bh-web-fetch-http'
-import SubagentRuntime from '@bosch/bh-subagent'
-import type { SubagentProvider, SubagentReportDelivery } from '@bosch/bh-subagent'
-import * as ToolSubagentControl from '@bosch/bh-tool-subagent-control'
-import * as ToolSubagentListAgents from '@bosch/bh-tool-subagent-control/list-agents'
-import * as ToolSubagentReport from '@bosch/bh-tool-subagent-report'
-import SkillRegistry from '@bosch/bh-skill'
-import * as SkillFileSystem from '@bosch/bh-skill-filesystem'
-import LocalJobRegistry from '@bosch/bh-jobs-local'
-import * as ToolAskUser from '@bosch/bh-tool-ask-user'
-import * as ToolBash from '@bosch/bh-tool-bash'
-import * as ToolPwsh from '@bosch/bh-tool-pwsh'
-import * as ToolBashPersistent from '@bosch/bh-tool-bash-persistent'
-import * as ToolPwshPersistent from '@bosch/bh-tool-pwsh-persistent'
-import CordisHostRunner from '@bosch/bh-cordis-host-runner'
-import * as ToolCordis from '@bosch/bh-tool-cordis'
-import * as ToolFs from '@bosch/bh-tool-fs'
-import * as ToolFsSearch from '@bosch/bh-tool-fs-search'
-import * as ToolStrReplaceEditor from '@bosch/bh-tool-str-replace-editor'
-import TerminalSessionService from '@bosch/bh-terminal'
-import * as ToolPty from '@bosch/bh-tool-terminal'
-import * as ToolGoal from '@bosch/bh-tool-goal'
-import * as ToolSchedule from '@bosch/bh-schedule'
-import Lsp from '@bosch/bh-lsp'
-import * as ToolLsp from '@bosch/bh-tool-lsp'
-import * as ToolSkill from '@bosch/bh-tool-skill'
-import * as ToolSessionQuery from '@bosch/bh-tool-session-query'
-import * as ToolTasks from '@bosch/bh-tool-jobs'
-import type TeamService from '@bosch/bh-experimental-agent-team'
-import * as ToolTeam from '@bosch/bh-experimental-tool-agent-team'
-import * as ToolTodo from '@bosch/bh-tool-todo'
-import * as ToolSubagent from '@bosch/bh-tool-subagent'
-import * as ToolWeb from '@bosch/bh-tool-web'
-import BrowserSessionService from '@bosch/bh-browser-electron'
-import * as ToolBrowser from '@bosch/bh-tool-browser'
-import VmWorkflowEngine from '@bosch/bh-workflow-worker-thread'
-import * as ToolRalph from '@bosch/bh-tool-ralph'
-import * as ToolWorkflow from '@bosch/bh-tool-workflow'
+import { Context } from '@hydra/cordis'
+import type { ToolSchema } from '@hydra/harness-llm'
+import AgentRegistry from '@hydra/harness-agent'
+import type { Agent } from '@hydra/harness-agent'
+import { createScope } from '@hydra/harness-scope'
+import SessionStore, { SessionId } from '@hydra/harness-session'
+import SessionProjectionRegistry from '@hydra/harness-session-projection'
+import SqliteSessionQueryEngine from '@hydra/harness-session-query-sqlite'
+import GoalService from '@hydra/harness-goal'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import ToolRuntime, { type Config as ToolsConfig } from '@hydra/harness-tools'
+import LocalBashExecutor from '@hydra/harness-bash-local'
+import * as BashEnvPlugin from '@hydra/harness-shell-env'
+import { PwshLocalExecutor } from '@hydra/harness-pwsh-local'
+import LocalSubprocessRuntime from '@hydra/harness-subprocess-local'
+import LocalFileSystem from '@hydra/harness-fs-local'
+import { AttachmentStore } from '@hydra/harness-attachment'
+import type { ImageAttachmentLimits, ImageAttachmentRef, SaveImageAttachment, StoredImageAttachment } from '@hydra/harness-attachment'
+import UserQuestionService from '@hydra/harness-user-questions'
+import PlanModeController from '@hydra/harness-plan-mode'
+import WebRuntime from '@hydra/harness-web'
+import * as WebSearchExa from '@hydra/harness-web-search-exa'
+import * as WebFetchLocal from '@hydra/harness-web-fetch-http'
+import SubagentRuntime from '@hydra/harness-subagent'
+import type { SubagentProvider, SubagentReportDelivery } from '@hydra/harness-subagent'
+import * as ToolSubagentControl from '@hydra/harness-tool-subagent-control'
+import * as ToolSubagentListAgents from '@hydra/harness-tool-subagent-control/list-agents'
+import * as ToolSubagentReport from '@hydra/harness-tool-subagent-report'
+import SkillRegistry from '@hydra/harness-skill'
+import * as SkillFileSystem from '@hydra/harness-skill-filesystem'
+import LocalJobRegistry from '@hydra/harness-jobs-local'
+import * as ToolAskUser from '@hydra/harness-tool-ask-user'
+import * as ToolBash from '@hydra/harness-tool-bash'
+import * as ToolPwsh from '@hydra/harness-tool-pwsh'
+import * as ToolBashPersistent from '@hydra/harness-tool-bash-persistent'
+import * as ToolPwshPersistent from '@hydra/harness-tool-pwsh-persistent'
+import CordisHostRunner from '@hydra/harness-cordis-host-runner'
+import * as ToolCordis from '@hydra/harness-tool-cordis'
+import * as ToolFs from '@hydra/harness-tool-fs'
+import * as ToolFsSearch from '@hydra/harness-tool-fs-search'
+import * as ToolStrReplaceEditor from '@hydra/harness-tool-str-replace-editor'
+import TerminalSessionService from '@hydra/harness-terminal'
+import * as ToolPty from '@hydra/harness-tool-terminal'
+import * as ToolGoal from '@hydra/harness-tool-goal'
+import * as ToolSchedule from '@hydra/harness-schedule'
+import Lsp from '@hydra/harness-lsp'
+import * as ToolLsp from '@hydra/harness-tool-lsp'
+import * as ToolSkill from '@hydra/harness-tool-skill'
+import * as ToolSessionQuery from '@hydra/harness-tool-session-query'
+import * as ToolTasks from '@hydra/harness-tool-jobs'
+import type TeamService from '@hydra/harness-experimental-agent-team'
+import * as ToolTeam from '@hydra/harness-experimental-tool-agent-team'
+import * as ToolTodo from '@hydra/harness-tool-todo'
+import * as ToolSubagent from '@hydra/harness-tool-subagent'
+import * as ToolWeb from '@hydra/harness-tool-web'
+import BrowserSessionService from '@hydra/harness-browser-electron'
+import * as ToolBrowser from '@hydra/harness-tool-browser'
+import VmWorkflowEngine from '@hydra/harness-workflow-worker-thread'
+import * as ToolRalph from '@hydra/harness-tool-ralph'
+import * as ToolWorkflow from '@hydra/harness-tool-workflow'
 import { githubSlug } from './verify-md-links.ts'
 
 /** Attachment seam marker that makes the attachments-conditional `read_image` schema harvestable. */
@@ -189,7 +189,7 @@ export interface ToolPackage {
  */
 const TOOL_PACKAGES: ToolPackage[] = [
   {
-    pkg: '@bosch/bh-tool-ask-user',
+    pkg: '@hydra/harness-tool-ask-user',
     dir: 'tool-ask-user',
     source: 'packages/interaction/tool-ask-user/src/index.ts',
     requires: ['ctx.tools', 'ctx.userQuestions'],
@@ -202,7 +202,7 @@ const TOOL_PACKAGES: ToolPackage[] = [
       'ask_user_question pauses the tool call until the active UI provider returns a human answer.',
   },
   {
-    pkg: '@bosch/bh-tools',
+    pkg: '@hydra/harness-tools',
     dir: 'tools',
     source: 'packages/core/tools/src/code-mode.ts',
     requires: ['ctx.tools', 'ctx.codeRuntime (execution time)', 'ctx.systemPrompt'],
@@ -216,7 +216,7 @@ const TOOL_PACKAGES: ToolPackage[] = [
       'Owned by the tool registry as a reserved transport outside filterable capability layers under `mode: code` / `mode: both` (see the Code Mode Agent Note). Under `code` it is the registry\'s only wire contribution; the other visible capabilities are declared in a generated SDK section in the loaded runtime\'s language, and a program calls them through bindings scheduled under the native concurrency contract (submission-ordered starts and policy; concurrency-safe bodies overlap up to `maxParallelSubCalls`) that re-enter the complete guarded tool pipeline and link each nested execution to this outer result.',
   },
   {
-    pkg: '@bosch/bh-plan-mode',
+    pkg: '@hydra/harness-plan-mode',
     dir: 'plan-mode',
     source: 'packages/plan/plan-mode/src/index.ts',
     requires: ['ctx.tools', 'ctx.systemPrompt', 'ctx.userQuestions (execution time, opportunistic)'],
@@ -228,7 +228,7 @@ const TOOL_PACKAGES: ToolPackage[] = [
       'exit_plan_mode stays in the model-facing schema while planning is inactive so transitions add no tool-catalog churn on top of the plan-policy change. Its execute path rejects calls outside plan mode; in plan mode it presents the plan over the user-questions seam (approve / keep planning with feedback), and approval logs plan mode inactive at the step boundary.',
   },
   {
-    pkg: '@bosch/bh-tool-bash',
+    pkg: '@hydra/harness-tool-bash',
     dir: 'tool-bash',
     source: 'packages/shell/tool-bash/src/index.ts',
     requires: ['ctx.tools', 'ctx.shell', 'ctx.systemPrompt', 'ctx.shellEnv', 'ctx.jobs at call time for run_in_background'],
@@ -240,10 +240,10 @@ const TOOL_PACKAGES: ToolPackage[] = [
       await ctx.plugin(ToolBash)
     },
     note:
-      'The bash tool is the model-facing consumer of the bash executor seam. A `run_in_background` run registers with the generic `ctx.jobs` runtime and is collected/stopped through the `job_*` tools from `@bosch/bh-tool-jobs`; the `enableRunInBackground` config (default true) removes the parameter entirely when disabled.',
+      'The bash tool is the model-facing consumer of the bash executor seam. A `run_in_background` run registers with the generic `ctx.jobs` runtime and is collected/stopped through the `job_*` tools from `@hydra/harness-tool-jobs`; the `enableRunInBackground` config (default true) removes the parameter entirely when disabled.',
   },
   {
-    pkg: '@bosch/bh-tool-pwsh',
+    pkg: '@hydra/harness-tool-pwsh',
     dir: 'tool-pwsh',
     source: 'packages/shell/tool-pwsh/src/index.ts',
     requires: ['ctx.tools', 'ctx.shell', 'ctx.systemPrompt', 'ctx.shellEnv', 'ctx.jobs at call time for run_in_background'],
@@ -258,10 +258,10 @@ const TOOL_PACKAGES: ToolPackage[] = [
       await ctx.plugin(ToolPwsh)
     },
     note:
-      'The pwsh tool is the PowerShell-dialect consumer of the bash executor seam for Windows compositions (a PowerShell executor such as `@bosch/bh-pwsh-local` backs `ctx.shell`); it mirrors the bash tool call-for-call minus sandbox controls — `run_in_background` runs register with the generic `ctx.jobs` runtime and are collected/stopped through the `job_*` tools, and the managed `BH_*` environment comes from `@bosch/bh-shell-env`. Each call runs in a fresh process (no persistent PTY session), with native `C:\\...` paths and `$env:NAME` variables.',
+      'The pwsh tool is the PowerShell-dialect consumer of the bash executor seam for Windows compositions (a PowerShell executor such as `@hydra/harness-pwsh-local` backs `ctx.shell`); it mirrors the bash tool call-for-call minus sandbox controls — `run_in_background` runs register with the generic `ctx.jobs` runtime and are collected/stopped through the `job_*` tools, and the managed `BH_*` environment comes from `@hydra/harness-shell-env`. Each call runs in a fresh process (no persistent PTY session), with native `C:\\...` paths and `$env:NAME` variables.',
   },
   {
-    pkg: '@bosch/bh-tool-cordis',
+    pkg: '@hydra/harness-tool-cordis',
     dir: 'tool-cordis',
     source: 'packages/extensions/tool-cordis/src/index.ts',
     requires: ['ctx.tools', 'ctx.dynamicCordisRunner'],
@@ -271,10 +271,10 @@ const TOOL_PACKAGES: ToolPackage[] = [
       await ctx.plugin(ToolCordis)
     },
     note:
-      'Not in any shipped tree (a deliberate opt-in — dynamic package code reaches the real runtime, see .agents/notes/implemented/feature/2026-07-08-self-referential-cordis-toolset.md). The toolset injects `ctx.dynamicCordisRunner` from `@bosch/bh-cordis-host-runner`, which owns the definition registry and the vm sandbox; a composition missing it never activates the tools. A running package may register ADDITIONAL model-visible tools until it is stopped, undefined, or BH restarts; a full changed request header logs those tool-set changes.',
+      'Not in any shipped tree (a deliberate opt-in — dynamic package code reaches the real runtime, see .agents/notes/implemented/feature/2026-07-08-self-referential-cordis-toolset.md). The toolset injects `ctx.dynamicCordisRunner` from `@hydra/harness-cordis-host-runner`, which owns the definition registry and the vm sandbox; a composition missing it never activates the tools. A running package may register ADDITIONAL model-visible tools until it is stopped, undefined, or Hydra restarts; a full changed request header logs those tool-set changes.',
   },
   {
-    pkg: '@bosch/bh-tool-bash-persistent',
+    pkg: '@hydra/harness-tool-bash-persistent',
     dir: 'tool-bash-persistent',
     source: 'packages/shell/tool-bash-persistent/src/index.ts',
     requires: ['ctx.tools', 'ctx.terminals', 'an owning Agent at execution time'],
@@ -287,7 +287,7 @@ const TOOL_PACKAGES: ToolPackage[] = [
       'One owner-isolated persistent bash tool; deployment composition supplies the PTY backend and may override the model-facing environment description.',
   },
   {
-    pkg: '@bosch/bh-tool-pwsh-persistent',
+    pkg: '@hydra/harness-tool-pwsh-persistent',
     dir: 'tool-pwsh-persistent',
     source: 'packages/shell/tool-pwsh-persistent/src/index.ts',
     requires: ['ctx.tools', 'ctx.terminals', 'an owning Agent at execution time'],
@@ -300,7 +300,7 @@ const TOOL_PACKAGES: ToolPackage[] = [
       'One owner-isolated persistent pwsh tool, the Windows counterpart of the persistent bash tool; deployment composition supplies a pwsh-dialect PTY backend and may override the model-facing environment description.',
   },
   {
-    pkg: '@bosch/bh-tool-str-replace-editor',
+    pkg: '@hydra/harness-tool-str-replace-editor',
     dir: 'tool-str-replace-editor',
     source: 'packages/fs/tool-str-replace-editor/src/index.ts',
     requires: ['ctx.tools', 'ctx.fs'],
@@ -313,7 +313,7 @@ const TOOL_PACKAGES: ToolPackage[] = [
       'Standalone view/create/unique literal replace/line insert tool over the filesystem seam; it composes with any shell or terminal API.',
   },
   {
-    pkg: '@bosch/bh-tool-fs',
+    pkg: '@hydra/harness-tool-fs',
     dir: 'tool-fs',
     source: 'packages/fs/tool-fs/src/index.ts',
     requires: ['ctx.tools', 'ctx.fs', 'ctx.systemPrompt', 'ctx.attachments (read_image registration)', 'ctx.llm + an image-capable route (read_image execution)'],
@@ -327,10 +327,10 @@ const TOOL_PACKAGES: ToolPackage[] = [
       await ctx.plugin(ToolFs)
     },
     note:
-      'The read-before-write/edit policy is added by `@bosch/bh-fs-observation-policy` (an `fs/*` event-gate plugin, no schema change); a deployment that loads these tools is expected to also load it. `read_image` is not registered without `ctx.attachments`; its schema is route-independent, and execution refuses unless the exact routed model declares image input.',
+      'The read-before-write/edit policy is added by `@hydra/harness-fs-observation-policy` (an `fs/*` event-gate plugin, no schema change); a deployment that loads these tools is expected to also load it. `read_image` is not registered without `ctx.attachments`; its schema is route-independent, and execution refuses unless the exact routed model declares image input.',
   },
   {
-    pkg: '@bosch/bh-tool-fs-search',
+    pkg: '@hydra/harness-tool-fs-search',
     dir: 'tool-fs-search',
     source: 'packages/fs/tool-fs-search/src/index.ts',
     requires: ['ctx.tools', 'ctx.subprocess', 'ctx.systemPrompt'],
@@ -348,7 +348,7 @@ const TOOL_PACKAGES: ToolPackage[] = [
       'glob and grep are unconditional discovery tools that spawn the packaged ripgrep binary (`@vscode/ripgrep`) through ctx.subprocess as ordinary foreground calls (never background jobs) — no host `rg` install and no shell layer. The catalog uses `sampleOverCapGlobResults: true`; deployments must choose that behavior explicitly. Capped results save the complete formatted list through the optional ctx.spillStore backend; returned locators are follow-up-readable/searchable when the backend exposes local paths in co-located deployments.',
   },
   {
-    pkg: '@bosch/bh-tool-terminal',
+    pkg: '@hydra/harness-tool-terminal',
     dir: 'tool-terminal',
     source: 'packages/terminal/tool-terminal/src/index.ts',
     requires: ['ctx.tools', 'ctx.terminals', 'ctx.systemPrompt', 'ctx.jobs at call time for run_in_background'],
@@ -361,7 +361,7 @@ const TOOL_PACKAGES: ToolPackage[] = [
       'The six terminal tools are opt-in and complement one-shot shell/filesystem tools. `terminal_send(run_in_background: true)` registers with `ctx.jobs`; TUI, named key sequences, BEL, resize, auto-start, and cross-agent sharing are absent from the schema.',
   },
   {
-    pkg: '@bosch/bh-tool-goal',
+    pkg: '@hydra/harness-tool-goal',
     dir: 'tool-goal',
     source: 'packages/goal/tool-goal/src/index.ts',
     requires: ['ctx.tools', 'ctx.agents', 'ctx.goals', 'ctx.systemPrompt', 'a calling Agent in an authorized open turn'],
@@ -375,7 +375,7 @@ const TOOL_PACKAGES: ToolPackage[] = [
       'create, edit, pause, and resume require direct-human root authority; complete and blocked also accept the exact current goal round. The default blocked lower bound is three admitted rounds.',
   },
   {
-    pkg: '@bosch/bh-schedule',
+    pkg: '@hydra/harness-schedule',
     dir: 'schedule',
     source: 'packages/schedule/schedule/src/tools.ts',
     requires: ['ctx.tools', 'ctx.sessions', 'Session persistence', 'a future live root Agent'],
@@ -396,7 +396,7 @@ const TOOL_PACKAGES: ToolPackage[] = [
       + 'management reads and mutations require the shared Session persistence barrier.',
   },
   {
-    pkg: '@bosch/bh-tool-lsp',
+    pkg: '@hydra/harness-tool-lsp',
     dir: 'tool-lsp',
     source: 'packages/lsp/tool-lsp/src/index.ts',
     requires: ['ctx.tools', 'ctx.lsp', 'ctx.systemPrompt'],
@@ -407,10 +407,10 @@ const TOOL_PACKAGES: ToolPackage[] = [
       await ctx.plugin(ToolLsp)
     },
     note:
-      'The lsp tool keeps provider selection and language-server subprocesses behind ctx.lsp, so its model-visible schema stays stable across providers. Requires a registered provider (e.g. `@bosch/bh-lsp-stdio`) at runtime; without one, a query returns the structured `LSP_UNAVAILABLE` error rather than changing the schema.',
+      'The lsp tool keeps provider selection and language-server subprocesses behind ctx.lsp, so its model-visible schema stays stable across providers. Requires a registered provider (e.g. `@hydra/harness-lsp-stdio`) at runtime; without one, a query returns the structured `LSP_UNAVAILABLE` error rather than changing the schema.',
   },
   {
-    pkg: '@bosch/bh-tool-ralph',
+    pkg: '@hydra/harness-tool-ralph',
     dir: 'tool-ralph',
     source: 'packages/workflow/tool-ralph/src/index.ts',
     requires: ['ctx.tools', 'ctx.workflowEngine', 'ctx.subagents', 'ctx.systemPrompt', 'a calling Agent (exec.agent parents every fresh round)'],
@@ -425,7 +425,7 @@ const TOOL_PACKAGES: ToolPackage[] = [
       'A fixed foreground workflow starts one fresh structured child per round; the model selects only the immutable objective and an optional round cap.',
   },
   {
-    pkg: '@bosch/bh-tool-skill',
+    pkg: '@hydra/harness-tool-skill',
     dir: 'tool-skill',
     source: 'packages/skill/tool-skill/src/index.ts',
     requires: ['ctx.tools', 'ctx.agents', 'ctx.skills'],
@@ -441,7 +441,7 @@ const TOOL_PACKAGES: ToolPackage[] = [
     },
   },
   {
-    pkg: '@bosch/bh-tool-session-query',
+    pkg: '@hydra/harness-tool-session-query',
     dir: 'tool-session-query',
     source: 'packages/session-query/tool-session-query/src/index.ts',
     requires: ['ctx.tools', 'ctx.systemPrompt', 'ctx.sessionQuery', 'a calling Agent for workspace authority'],
@@ -455,7 +455,7 @@ const TOOL_PACKAGES: ToolPackage[] = [
       'The five read-only tools hide provider cursors and authorize every result from the immutable calling agent session. The package is opt-in; compositions that need enforced deadlines or bounded inline output also mount the generic timeout or spill policies.',
   },
   {
-    pkg: '@bosch/bh-tool-subagent',
+    pkg: '@hydra/harness-tool-subagent',
     dir: 'tool-subagent',
     source: 'packages/subagent/tool-subagent/src/index.ts',
     requires: ['ctx.tools', 'ctx.subagents', 'ctx.systemPrompt'],
@@ -470,7 +470,7 @@ const TOOL_PACKAGES: ToolPackage[] = [
       'The registered tool name is the load-time `toolName` config (default `subagent`); the schema above is that default. The shipped compositions load this package once per subagent backend, so the model additionally sees `subagent_fork` bound to the fork backend. Each instance\'s description, `run_in_background` parameter, and system-prompt policy follow its own `backgroundMode` and `enableRunInBackground`, so the two shipped schemas are not identical: `subagent` is `continuable` and defaults omitted calls to background with automatic settlement delivery, while `subagent_fork` stays `one-shot` and defaults them to foreground — see `packages/bundle/base/cordis.patch.yml` and `examples/acp-agent/cordis.yml`.',
   },
   {
-    pkg: '@bosch/bh-tool-subagent-control',
+    pkg: '@hydra/harness-tool-subagent-control',
     dir: 'tool-subagent-control',
     source: {
       interrupt_agent: 'packages/subagent/tool-subagent-control/src/index.ts',
@@ -492,7 +492,7 @@ const TOOL_PACKAGES: ToolPackage[] = [
       'The globally named control tools over continuable background subagents: provider-bound `tool-subagent` instances register distinct delegation tools, while this package registers `send_message` and `interrupt_agent` once, plus `list_agents` from its separately loaded `/list-agents` plugin (whose catalog rows use the sessionProjections and live Agent registries).',
   },
   {
-    pkg: '@bosch/bh-tool-subagent-report',
+    pkg: '@hydra/harness-tool-subagent-report',
     dir: 'tool-subagent-report',
     source: 'packages/subagent/tool-subagent-report/src/index.ts',
     requires: ['ctx.subagents', 'ctx.systemPrompt', 'a live continuable in-process child Agent'],
@@ -513,7 +513,7 @@ const TOOL_PACKAGES: ToolPackage[] = [
       + '`send_message` tool is installed independently.',
   },
   {
-    pkg: '@bosch/bh-tool-jobs',
+    pkg: '@hydra/harness-tool-jobs',
     dir: 'tool-jobs',
     source: 'packages/jobs/tool-jobs/src/index.ts',
     requires: ['ctx.tools', 'ctx.jobs', 'ctx.systemPrompt'],
@@ -526,7 +526,7 @@ const TOOL_PACKAGES: ToolPackage[] = [
       'The kind-agnostic background-job controller: background bash commands, PTY sends, and subagents are read, listed, and killed through the same three tools. Loading the plugin attaches the controller that arms producers\' `ctx.jobs.start()`.',
   },
   {
-    pkg: '@bosch/bh-experimental-tool-agent-team',
+    pkg: '@hydra/harness-experimental-tool-agent-team',
     dir: 'tool-agent-team',
     source: 'packages/experimental/tool-agent-team/src/index.ts',
     requires: ['ctx.tools', 'ctx.systemPrompt', 'ctx.agentTeams', 'an exact live Team member Agent'],
@@ -561,10 +561,10 @@ const TOOL_PACKAGES: ToolPackage[] = [
     },
     scope: ctx => catalogChildScopes.get(ctx) as Agent,
     note:
-      'All ten tools are scoped to implicit Team Leads and durable teammates. The shipped bh-base bundle keeps the package disabled; the documented Agent Teams profile patch enables it while disabling the legacy continuable-child control names.',
+      'All ten tools are scoped to implicit Team Leads and durable teammates. The shipped @hydra/harness-base bundle keeps the package disabled; the documented Agent Teams profile patch enables it while disabling the legacy continuable-child control names.',
   },
   {
-    pkg: '@bosch/bh-tool-todo',
+    pkg: '@hydra/harness-tool-todo',
     dir: 'tool-todo',
     source: 'packages/todo/tool-todo/src/index.ts',
     requires: ['ctx.tools', 'owning Agent session'],
@@ -576,7 +576,7 @@ const TOOL_PACKAGES: ToolPackage[] = [
       'todo_write is session-owned state; UIs render the latest todo/write event as a checklist. `allowParallelInProgress` is required with no default, so the catalog states its choice: `true`, whose description invites several `in_progress` items. A deployment choosing `false` receives the same tool with a description asking for exactly one active task.',
   },
   {
-    pkg: '@bosch/bh-tool-workflow',
+    pkg: '@hydra/harness-tool-workflow',
     dir: 'tool-workflow',
     source: 'packages/workflow/tool-workflow/src/index.ts',
     requires: ['ctx.tools', 'ctx.workflowEngine', 'ctx.systemPrompt', 'a calling Agent (exec.agent parents the script children)'],
@@ -592,7 +592,7 @@ const TOOL_PACKAGES: ToolPackage[] = [
     },
   },
   {
-    pkg: '@bosch/bh-tool-web',
+    pkg: '@hydra/harness-tool-web',
     dir: 'tool-web',
     source: 'packages/web/tool-web/src/index.ts',
     requires: ['ctx.tools', 'ctx.web', 'ctx.systemPrompt'],
@@ -609,7 +609,7 @@ const TOOL_PACKAGES: ToolPackage[] = [
       'web_search and web_fetch keep provider selection behind ctx.web so model-visible schemas stay stable across backend swaps.',
   },
   {
-    pkg: '@bosch/bh-tool-browser',
+    pkg: '@hydra/harness-tool-browser',
     dir: 'tool-browser',
     source: 'packages/browser/tool-browser/src/index.ts',
     requires: ['ctx.tools', 'ctx.browsers', 'ctx.systemPrompt', 'a calling Agent (the window is owned per agent)'],

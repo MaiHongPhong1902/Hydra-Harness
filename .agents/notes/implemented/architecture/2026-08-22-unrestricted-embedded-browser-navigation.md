@@ -4,7 +4,7 @@ Status: implemented
 
 ## Problem
 
-Enterprise SSO remained on its organization redirect screen because the embedded browser denied the cross-origin navigation and popup steps that the identity provider initiates. The browser needs to complete ordinary Chromium login flows with its persistent Bosch Harness profile.
+Enterprise SSO remained on its organization redirect screen because the embedded browser denied the cross-origin navigation and popup steps that the identity provider initiates. The browser needs to complete ordinary Chromium login flows with its persistent Hydra harness profile.
 
 ## Decision
 

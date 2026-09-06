@@ -1,6 +1,6 @@
 # client/ — web-GUI browser half
 
-The browser side of the bh web GUI: shell boot, browser-host communication, shared UI services, and feature plugins. Authoring rules live in [AGENTS.md](AGENTS.md); the host half is [`host/`](../host/README.md). All except `test-runtime` are **product** packages named `@bosch/bh-client-<name>`.
+The browser side of the bh web GUI: shell boot, browser-host communication, shared UI services, and feature plugins. Authoring rules live in [AGENTS.md](AGENTS.md); the host half is [`host/`](../host/README.md). All except `test-runtime` are **product** packages named `@hydra/harness-client-<name>`.
 
 | Package | Purpose |
 |---|---|

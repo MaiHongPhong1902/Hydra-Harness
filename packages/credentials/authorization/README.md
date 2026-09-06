@@ -1,4 +1,4 @@
-# bh-authorization
+# @hydra/harness-authorization
 
 Authorization Service Definition (`ctx.authorization`). Some credentials cannot be configured, only obtained: getting one means a conversation with a human — open this page, paste that code, pick an account. This seam owns that conversation and the lifecycle around it, and never the protocol.
 
@@ -11,9 +11,9 @@ Authorization Service Definition (`ctx.authorization`). Some credentials cannot 
 ## Surface
 
 ```ts
-import type { Context } from '@bosch/cordis'
-import { AuthorizationDeclinedError, type AuthorizationSession } from '@bosch/bh-authorization'
-import { credentialKey } from '@bosch/bh-credentials'
+import type { Context } from '@hydra/cordis'
+import { AuthorizationDeclinedError, type AuthorizationSession } from '@hydra/harness-authorization'
+import { credentialKey } from '@hydra/harness-credentials'
 
 declare const ctx: Context
 declare const exchange: (signal: AbortSignal) => Promise<void>

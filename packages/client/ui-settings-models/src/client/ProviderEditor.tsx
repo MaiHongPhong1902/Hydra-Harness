@@ -23,7 +23,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
-import type { CredentialView, IApiClient, SettingsNamespaceView, SettingsPathOpView } from '@bosch/bh-api-remotes/client'
+import type { CredentialView, IApiClient, SettingsNamespaceView, SettingsPathOpView } from '@hydra/harness-api-remotes/client'
 import {
   DeepSeekModelsEditor, modelDrafts, validateDeepSeekModels,
 } from './DeepSeekModelsEditor.tsx'
@@ -201,6 +201,11 @@ export function ProviderEditor(props: ProviderEditorProps): ReactNode {
     const value = schema.getPath(source, [key])
     return typeof value === 'string' && value.trim().length > 0 ? value : undefined
   }
+  const inheritedString = (key: string): string | undefined => {
+    const path = [...settingsPath, key]
+    const value: unknown = schema.getPath(namespace.base, path) ?? schema.nodeAtPath(root, path)?.meta.default
+    return typeof value === 'string' && value.trim().length > 0 ? value : undefined
+  }
   const setField = (key: string, next: string | undefined): void => {
     // A value of nothing but whitespace is cleared, not stored: `stringAt`
     // already reports it as absent, so the field would otherwise render empty
@@ -228,9 +233,9 @@ export function ProviderEditor(props: ProviderEditorProps): ReactNode {
   const shownKeyFailure = credentialRequiredFailure ?? keyFailure
   // What the form currently shows, which is what an interrogation must ask:
   // an edited-but-unsaved endpoint, and a key typed but not yet stored.
-  const probeApi = stringAt(draft, 'api') ?? stringAt(fallback, 'api')
-  const probeBaseURL = stringAt(draft, 'baseURL') ?? stringAt(fallback, 'baseURL')
-  const probeProxy = stringAt(draft, 'proxy') ?? stringAt(fallback, 'proxy')
+  const probeApi = stringAt(draft, 'api') ?? inheritedString('api')
+  const probeBaseURL = stringAt(draft, 'baseURL') ?? inheritedString('baseURL')
+  const probeProxy = stringAt(draft, 'proxy') ?? inheritedString('proxy')
   const probe = {
     settingsNs: namespace.ns,
     // Naming the route lets an adapter that already describes it answer from
@@ -427,7 +432,7 @@ export function ProviderEditor(props: ProviderEditorProps): ReactNode {
                 value={stringAt(draft, 'baseURL') ?? ''}
                 placeholder={family === 'deepseek'
                   ? DEEPSEEK_PUBLIC_BASE_URL
-                  : stringAt(fallback, 'baseURL') ?? t('baseUrlDefault')}
+                  : inheritedString('baseURL') ?? t('baseUrlDefault')}
                 aria-label={t('baseUrl')}
                 disabled={disabled}
                 onChange={(event) => {

@@ -7,14 +7,14 @@ import {
   createAssistantMessage,
   createToolResultMessage,
   createUserMessage,
-} from '@bosch/bh-llm'
+} from '@hydra/harness-llm'
 import {
   SESSION_FORMAT_VERSION,
   Session,
   SessionId,
-} from '@bosch/bh-session'
+} from '@hydra/harness-session'
 // Carries the session/title event declaration into this fixture builder.
-import type {} from '@bosch/bh-session-title'
+import type {} from '@hydra/harness-session-title'
 
 /** Options for one deterministic long-chat fixture. */
 export interface ChatScrollFixtureOptions {

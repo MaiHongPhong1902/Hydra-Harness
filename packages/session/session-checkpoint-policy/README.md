@@ -1,4 +1,4 @@
-# bh-session-checkpoint-policy
+# @hydra/harness-session-checkpoint-policy
 
 Semantic durability policy for persisted agents. It checkpoints the event-sourced session before a model adapter receives a request, before a top-level tool body may produce an external side effect, and at each `agent/pre-step` boundary so the preceding response and ordered tool results are durable before the next request.
 
@@ -8,10 +8,10 @@ This zero-config function plugin consumes `ctx.sessions`, `ctx.llm`, `ctx.tools`
 
 ```yaml
 - id: session-persistence
-  name: '@bosch/bh-session-persistence-jsonl'
+  name: '@hydra/harness-session-persistence-jsonl'
 
 - id: session-checkpoints
-  name: '@bosch/bh-session-checkpoint-policy'
+  name: '@hydra/harness-session-checkpoint-policy'
 ```
 
 Persistence and checkpoint scheduling are intentionally separate Cordis plugins. A persistence backend starts bounded background batches for `session/event` appends and makes each requested `session/flush` an immediate quiescence barrier; this policy chooses the request, tool-dispatch, and next-step barriers. Loading a backend without this policy is valid, but a crash may lose events still inside the configured batching window or an outstanding write. First-party persisted apps and runtimes mount both plugins explicitly; a specialized deployment may deliberately omit or replace the policy.
@@ -26,7 +26,7 @@ Checkpoint rejection is fail-closed at the model and tool boundaries: neither th
 
 #### What the model sees
 
-The plugin adds no prompt or tool schema. A hard crash after a tool checkpoint but before its result leaves a durable unmatched call; session recovery supplies the model-visible `TOOL_OUTCOME_UNKNOWN` result owned by `bh-session`. The message permits retry for read-only or idempotent work and requires state verification or user confirmation for calls that may have side effects.
+The plugin adds no prompt or tool schema. A hard crash after a tool checkpoint but before its result leaves a durable unmatched call; session recovery supplies the model-visible `TOOL_OUTCOME_UNKNOWN` result owned by `@hydra/harness-session`. The message permits retry for read-only or idempotent work and requires state verification or user confirmation for calls that may have side effects.
 
 #### Token effect
 

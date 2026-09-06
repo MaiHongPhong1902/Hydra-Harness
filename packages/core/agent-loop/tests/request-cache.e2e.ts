@@ -1,14 +1,14 @@
-import { createUserMessage } from '@bosch/bh-llm'
+import { createUserMessage } from '@hydra/harness-llm'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import LlmRuntime from '@bosch/bh-llm'
-import SessionStore, { SessionId } from '@bosch/bh-session'
-import SystemPrompt from '@bosch/bh-system-prompt'
-import ToolRuntime, { defineContentToolFixture } from '@bosch/bh-tools'
-import AgentRegistry, { type Agent } from '@bosch/bh-agent'
+import { Context } from '@hydra/cordis'
+import LlmRuntime from '@hydra/harness-llm'
+import SessionStore, { SessionId } from '@hydra/harness-session'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import ToolRuntime, { defineContentToolFixture } from '@hydra/harness-tools'
+import AgentRegistry, { type Agent } from '@hydra/harness-agent'
 
-import AgentLoop from '@bosch/bh-agent-loop'
-import * as LlmDeepSeek from '@bosch/bh-llm-deepseek'
+import AgentLoop from '@hydra/harness-agent-loop'
+import * as LlmDeepSeek from '@hydra/harness-llm-deepseek'
 
 /**
  * With-key proof that log-derived requests translate into real provider cache hits: a

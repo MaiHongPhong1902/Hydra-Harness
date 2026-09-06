@@ -10,8 +10,8 @@ import {
   createToolResultMessage,
   createUserMessage,
   isTokenDelta,
-} from '@bosch/bh-llm/message'
-import { CallId } from '@bosch/bh-llm/brand'
+} from '@hydra/harness-llm/message'
+import { CallId } from '@hydra/harness-llm/brand'
 import type {
   AssistantMessage,
   ContentBlock,
@@ -19,24 +19,24 @@ import type {
   TokenUsage,
   ToolResultMessage,
   UserMessage,
-} from '@bosch/bh-llm'
-import type { AttachmentIdType, ImageAttachmentRef } from '@bosch/bh-attachment'
+} from '@hydra/harness-llm'
+import type { AttachmentIdType, ImageAttachmentRef } from '@hydra/harness-attachment'
 import type {
   SessionEvent,
   SessionId,
   TodoItem,
-} from '@bosch/bh-session/types'
+} from '@hydra/harness-session/types'
 // Type-only: the brand constructor is host-side; the fixture casts at its
 // wire-fabrication boundary (the schema layer's one-cast-point posture).
-import type { CommandId } from '@bosch/bh-commands/brand'
-import type { CommandDescriptor, CommandExecution, CommandResult } from '@bosch/bh-commands/types'
-import { deriveEventMessage, foldSurface } from '@bosch/bh-session/surface'
+import type { CommandId } from '@hydra/harness-commands/brand'
+import type { CommandDescriptor, CommandExecution, CommandResult } from '@hydra/harness-commands/types'
+import { deriveEventMessage, foldSurface } from '@hydra/harness-session/surface'
 import type {
   ApiProxy, ClientRequest, ClientResponse, HistoryEntry, HostFrame, MuxFrame, RpcReceipt,
   ModelProviderGroup, ModelSelection, RpcRequest, RpcResponse, RpcResult, ServerRequest, ServerResponse, SessionSummary,
   ToolCallView, ToolEventView, ToolResultView, WorkspaceId, WorkspaceView,
 } from './api.ts'
-import type { RequestPayload, ResponseValue, RpcMethodMap } from '@bosch/bh-host-apiproxy/api'
+import type { RequestPayload, ResponseValue, RpcMethodMap } from '@hydra/harness-host-apiproxy/api'
 import { AbstractApiClient, RpcId, SESSION_SEARCH_RESULT_LIMIT } from './api.ts'
 import { randomUuid } from './random-uuid.ts'
 import type { ClientConnectionRpc } from '../rpc.ts'
@@ -180,7 +180,7 @@ const SEARCH_MATCHES_FIXTURE: { path: string; matches: { lineNumber: number; lin
 /**
  * The model-facing grep render text for the sample — what a UI without a search
  * card shows, attached as the view's `content`. Mirrors the real grep
- * presenter's shape (see formatGrepOutput in bh-tool-fs-search): a
+ * presenter's shape (see formatGrepOutput in @hydra/harness-tool-fs-search): a
  * `Found X of Y matches` header, the matches grouped under file headers with
  * `Line N:` rows, then a spill-recovery footer.
  */
@@ -208,7 +208,7 @@ const SEARCH_PATHS_FIXTURE = [
 /**
  * The model-facing glob render text — the newline-joined path list plus a
  * spill-recovery footer, mirroring the real glob presenter's shape (see
- * formatGlobOutput in bh-tool-fs-search).
+ * formatGlobOutput in @hydra/harness-tool-fs-search).
  */
 const SEARCH_PATHS_TEXT = [
   ...SEARCH_PATHS_FIXTURE,
@@ -253,11 +253,11 @@ const READ_SAMPLE_TEXT = READ_SAMPLE_SOURCE.map((text, index) => `${READ_SAMPLE_
  * search view minus its wire discriminants.
  */
 const WEB_SEARCH_RESULT: Omit<Extract<ToolResultView, { card: 'web'; kind: 'search' }>, 'card' | 'kind'> = {
-  answer: 'Bosch Harness is a plugin-based agent harness on vendored Cordis where **every capability is a plugin**.',
+  answer: 'Hydra harness is a plugin-based agent harness on vendored Cordis where **every capability is a plugin**.',
   sources: [
     {
       url: 'https://github.com/bosch/bosch-harness',
-      title: 'Bosch Harness — plugin-based agent harness',
+      title: 'Hydra harness — plugin-based agent harness',
       snippet: 'Everything is a plugin: session, tools, agent-loop, and LLM adapters all mount on the same Cordis context.',
       publishedAt: '2026-07-01',
     },
@@ -1379,7 +1379,7 @@ function backscanTodos(log: readonly SessionEvent[]): TodoItem[] | undefined {
   return undefined
 }
 
-/** Fixture-local mirror of the goal projection value (bh-goal's GoalProjection shape). */
+/** Fixture-local mirror of the goal projection value (@hydra/harness-goal's GoalProjection shape). */
 interface FxGoalProjection {
   goal: {
     id: string
@@ -1550,9 +1550,9 @@ function createFixtureWorld(options: FixtureOptions): FixtureWorld {
    * roster a GUI journey sees after writing is the text it wrote.
    */
   const fixturePresets = new Map<string, { trust: 'system' | 'user'; content: string }>([
-    ['standard', { trust: 'system', content: "- id: tool-bash\n  name: '@bosch/bh-tool-bash'\n" }],
-    ['minimal', { trust: 'system', content: "- id: tool-web-search\n  name: '@bosch/bh-tool-web-search'\n" }],
-    ['my-agent', { trust: 'user', content: "- id: tool-read\n  name: '@bosch/bh-tool-read'\n" }],
+    ['standard', { trust: 'system', content: "- id: tool-bash\n  name: '@hydra/harness-tool-bash'\n" }],
+    ['minimal', { trust: 'system', content: "- id: tool-web-search\n  name: '@hydra/harness-tool-web-search'\n" }],
+    ['my-agent', { trust: 'user', content: "- id: tool-read\n  name: '@hydra/harness-tool-read'\n" }],
   ])
   let fixtureDefaultPreset = 'standard'
   const nextTurn = new Map<SessionId, number>([[sid('fx-alpha'), 75]])

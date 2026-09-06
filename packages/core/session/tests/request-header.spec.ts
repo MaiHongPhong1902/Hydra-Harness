@@ -1,10 +1,10 @@
 /** Request-header canonicalization, equality, snapshot folding, and format rejection. */
 
 import { describe, expect, it } from 'vitest'
-import { Session, SessionId, canonicalHeader, foldRequestHeader, headerEquals } from '@bosch/bh-session'
-import type { EpochHeader, SessionEvent } from '@bosch/bh-session'
-import { createUserMessage, ReasoningEffortId } from '@bosch/bh-llm'
-import type { ToolSchema } from '@bosch/bh-llm'
+import { Session, SessionId, canonicalHeader, foldRequestHeader, headerEquals } from '@hydra/harness-session'
+import type { EpochHeader, SessionEvent } from '@hydra/harness-session'
+import { createUserMessage, ReasoningEffortId } from '@hydra/harness-llm'
+import type { ToolSchema } from '@hydra/harness-llm'
 
 const CONFIG = { provider: 'mock', model: 'm' }
 

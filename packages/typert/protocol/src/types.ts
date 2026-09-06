@@ -1,10 +1,10 @@
 /**
  * Compiler-independent Typert protocol shared by business packages, generated
  * Remote artifacts, the Host Gateway, and Client API implementations.
- * @module @bosch/bh-typert-protocol/types
+ * @module @hydra/harness-typert-protocol/types
  */
 
-import type { Context, Events } from '@bosch/cordis'
+import type { Context, Events } from '@hydra/cordis'
 
 declare const LOOKUP_HOST: unique symbol
 declare const LOOKUP_WIRE: unique symbol
@@ -484,7 +484,7 @@ export interface TypertRegistryContract {
   readonly contexts: TypertContextRegistry
 }
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     typert: TypertRegistryContract
   }

@@ -1,37 +1,37 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import AgentLoop from '@bosch/bh-agent-loop'
-import { mountAgentLoopTestDependencies } from '@bosch/bh-agent-loop-testkit'
-import InvariantRegistry from '@bosch/bh-invariants'
-import { CommandId } from '@bosch/bh-commands/brand'
-import * as SessionInvariant from '@bosch/bh-session/invariant'
-import * as AgentInvariant from '@bosch/bh-agent/invariant'
-import * as AgentLoopInvariant from '@bosch/bh-agent-loop/invariant'
-import * as CompactionInvariant from '@bosch/bh-compaction/invariant'
-import * as CompactionBasicInvariant from '@bosch/bh-compaction-basic/invariant'
-import { BasicCompactionEngine } from '@bosch/bh-compaction-basic'
-import { CompactionId, isCompactCheckpointSource, ManualCompactionError } from '@bosch/bh-compaction'
-import type { CompactionResult } from '@bosch/bh-compaction'
+import { Context } from '@hydra/cordis'
+import AgentLoop from '@hydra/harness-agent-loop'
+import { mountAgentLoopTestDependencies } from '@hydra/harness-agent-loop-testkit'
+import InvariantRegistry from '@hydra/harness-invariants'
+import { CommandId } from '@hydra/harness-commands/brand'
+import * as SessionInvariant from '@hydra/harness-session/invariant'
+import * as AgentInvariant from '@hydra/harness-agent/invariant'
+import * as AgentLoopInvariant from '@hydra/harness-agent-loop/invariant'
+import * as CompactionInvariant from '@hydra/harness-compaction/invariant'
+import * as CompactionBasicInvariant from '@hydra/harness-compaction-basic/invariant'
+import { BasicCompactionEngine } from '@hydra/harness-compaction-basic'
+import { CompactionId, isCompactCheckpointSource, ManualCompactionError } from '@hydra/harness-compaction'
+import type { CompactionResult } from '@hydra/harness-compaction'
 import {
   createAssistantMessage,
   createUserMessage,
   LlmAdapter,
-} from '@bosch/bh-llm'
+} from '@hydra/harness-llm'
 import type {
   ContentBlock,
   LlmResolvedModelInfo,
   Message,
   StreamChunk,
   TokenUsage,
-} from '@bosch/bh-llm'
-import SessionStore, { Session, SessionId, type SessionEvent } from '@bosch/bh-session'
-import LlmRuntime from '@bosch/bh-llm'
-import TokenMeter from '@bosch/bh-token-meter'
-import type { Agent } from '@bosch/bh-agent'
+} from '@hydra/harness-llm'
+import SessionStore, { Session, SessionId, type SessionEvent } from '@hydra/harness-session'
+import LlmRuntime from '@hydra/harness-llm'
+import TokenMeter from '@hydra/harness-token-meter'
+import type { Agent } from '@hydra/harness-agent'
 import type {
   SummarizationInput,
   SummaryResult,
-} from '@bosch/bh-compaction-basic/src/summarizer.ts'
+} from '@hydra/harness-compaction-basic/src/summarizer.ts'
 
 const MODEL = 'mock'
 const SIGNAL = new AbortController().signal

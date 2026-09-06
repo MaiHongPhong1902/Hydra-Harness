@@ -1,5 +1,5 @@
 /**
- * Registry tests for `@bosch/bh-shell-env`: built-in facts, contributor
+ * Registry tests for `@hydra/harness-shell-env`: built-in facts, contributor
  * ownership and validation, collection ordering, effect-scoped disposal, and
  * the explicit disposer contract.
  */
@@ -7,12 +7,12 @@
 import { homedir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import { CallId } from '@bosch/bh-llm'
-import type { Agent } from '@bosch/bh-agent'
-import type { ToolExecution } from '@bosch/bh-tools'
-import { ShellEnvRegistry } from '@bosch/bh-shell-env'
-import * as BashEnvPlugin from '@bosch/bh-shell-env'
+import { Context } from '@hydra/cordis'
+import { CallId } from '@hydra/harness-llm'
+import type { Agent } from '@hydra/harness-agent'
+import type { ToolExecution } from '@hydra/harness-tools'
+import { ShellEnvRegistry } from '@hydra/harness-shell-env'
+import * as BashEnvPlugin from '@hydra/harness-shell-env'
 
 const testToolSignal = new AbortController().signal
 

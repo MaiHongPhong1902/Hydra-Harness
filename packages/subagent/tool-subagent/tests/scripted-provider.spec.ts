@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import { type Agent } from '@bosch/bh-agent'
-import SubagentRuntime, { type SubagentStartRequest } from '@bosch/bh-subagent'
-import { SessionId } from '@bosch/bh-session'
+import { Context } from '@hydra/cordis'
+import { type Agent } from '@hydra/harness-agent'
+import SubagentRuntime, { type SubagentStartRequest } from '@hydra/harness-subagent'
+import { SessionId } from '@hydra/harness-session'
 import * as scripted from './scripted-provider.ts'
 
 /** A minimal parent; the scripted provider only reads its id. */

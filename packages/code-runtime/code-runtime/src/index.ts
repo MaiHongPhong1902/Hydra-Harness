@@ -1,10 +1,10 @@
 /**
  * Service Definition for the code-execution capability seam that runs one model-written program against host async bindings.
  * Runtimes know nothing about tools or sessions; consumers own those concerns.
- * @module @bosch/bh-code-runtime
+ * @module @hydra/harness-code-runtime
  */
 
-import { Context, Service } from '@bosch/cordis'
+import { Context, Service } from '@hydra/cordis'
 import type { CodeRunRequest, CodeRunResult } from './types.ts'
 
 export type {
@@ -86,7 +86,7 @@ export const PORTABLE_RESERVED_WORDS: ReadonlySet<string> = new Set([
   'global', 'is', 'lambda', 'nonlocal', 'not', 'or', 'pass', 'raise', 'match', 'type', '_',
 ])
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     codeRuntime: CodeRuntime
   }
@@ -106,7 +106,7 @@ export abstract class CodeRuntime extends Service {
    * generates language-specific presentation (typed SDK stubs, usage
    * instructions) switches on it and fails loud on a language it cannot
    * present. Well-known values: `'typescript'` and `'python'`, those
-   * `bh-tools` presents; only `'typescript'` has a published backend.
+   * `@hydra/harness-tools` presents; only `'typescript'` has a published backend.
    */
   abstract readonly language: string
 

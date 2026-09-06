@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import { stubSettingsScope, type StubSettingsScope } from '@bosch/bh-client-test-runtime'
-import type { LocaleSettings, LocaleSnapshot } from '@bosch/bh-client-locale/client'
-import { FALLBACK_LOCALE, LocaleRuntime } from '@bosch/bh-client-locale/client'
+import { Context } from '@hydra/cordis'
+import { stubSettingsScope, type StubSettingsScope } from '@hydra/harness-client-test-runtime'
+import type { LocaleSettings, LocaleSnapshot } from '@hydra/harness-client-locale/client'
+import { FALLBACK_LOCALE, LocaleRuntime } from '@hydra/harness-client-locale/client'
 const make = (host?: StubSettingsScope<LocaleSettings>): {
   ctx: Context
   svc: LocaleRuntime
@@ -141,7 +141,7 @@ describe('LocaleRuntime', () => {
     expect(host.set).toHaveBeenLastCalledWith('preference', 'en')
   })
 
-  it('persists an explicit pick of the provisional locale, so a shared BH home agrees', () => {
+  it('persists an explicit pick of the provisional locale, so a shared Hydra home agrees', () => {
     // A browser naming no shipped language opens at FALLBACK_LOCALE with
     // nothing stored. Choosing that same language in the menu must become
     // durable, or a browser sharing the home still opens at a stale default.

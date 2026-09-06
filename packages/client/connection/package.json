@@ -1,5 +1,5 @@
 {
-  "name": "@bosch/bh-client-connection",
+  "name": "@hydra/harness-client-connection",
   "description": "Wire consumer layer: HTTP-up/WebSocket-down client, ConnectionController dual streams with reconnect, and fixture api",
   "version": "0.1.1-rc.1",
   "publishConfig": {
@@ -38,7 +38,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@bosch/schemastery": "workspace:^",
+    "@hydra/schemastery": "workspace:^",
     "ws": "^8.21.0"
   },
   "files": [
@@ -48,26 +48,26 @@
     "lib/types/**/*.d.ts"
   ],
   "peerDependencies": {
-    "@bosch/bh-host-webserver": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/cordis": "workspace:^",
-    "@bosch/bh-attachment": "workspace:^",
-    "@bosch/bh-host-apiproxy": "workspace:^",
-    "@bosch/bh-commands": "workspace:^",
-    "@bosch/bh-llm": "workspace:^",
-    "@bosch/bh-session": "workspace:^",
-    "@bosch/bh-tools": "workspace:^"
+    "@hydra/harness-host-webserver": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/cordis": "workspace:^",
+    "@hydra/harness-attachment": "workspace:^",
+    "@hydra/harness-host-apiproxy": "workspace:^",
+    "@hydra/harness-commands": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/harness-session": "workspace:^",
+    "@hydra/harness-tools": "workspace:^"
   },
   "devDependencies": {
-    "@bosch/bh-host-webserver": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
+    "@hydra/harness-host-webserver": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
     "@types/ws": "^8.18.1",
-    "@bosch/cordis": "workspace:^",
-    "@bosch/bh-attachment": "workspace:^",
-    "@bosch/bh-host-apiproxy": "workspace:^",
-    "@bosch/bh-commands": "workspace:^",
-    "@bosch/bh-llm": "workspace:^",
-    "@bosch/bh-session": "workspace:^",
-    "@bosch/bh-tools": "workspace:^"
+    "@hydra/cordis": "workspace:^",
+    "@hydra/harness-attachment": "workspace:^",
+    "@hydra/harness-host-apiproxy": "workspace:^",
+    "@hydra/harness-commands": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/harness-session": "workspace:^",
+    "@hydra/harness-tools": "workspace:^"
   }
 }

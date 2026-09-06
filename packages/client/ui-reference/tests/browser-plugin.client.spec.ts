@@ -3,15 +3,15 @@
  * deterministic ordering and labels, quoted-path suppression, pick projections, codec
  * round-trip, and registration lifecycle.
  */
-import { Context, Service } from '@bosch/cordis'
+import { Context, Service } from '@hydra/cordis'
 import { describe, expect, it, vi } from 'vitest'
-import { LocaleRuntime } from '@bosch/bh-client-locale/client'
-import type { SessionId } from '@bosch/bh-client-runtime/client'
+import { LocaleRuntime } from '@hydra/harness-client-locale/client'
+import type { SessionId } from '@hydra/harness-client-runtime/client'
 import type {
   CandidateRequest, ClientSessionContext, InputTriggerCandidate, InputTriggerSource,
-} from '@bosch/bh-client-ui-input-trigger/client'
-import type { FileReferenceCandidate } from '@bosch/bh-file-reference/types'
-import type { SessionReferenceMentionCandidate } from '@bosch/bh-session-reference/types'
+} from '@hydra/harness-client-ui-input-trigger/client'
+import type { FileReferenceCandidate } from '@hydra/harness-file-reference/types'
+import type { SessionReferenceMentionCandidate } from '@hydra/harness-session-reference/types'
 import { apply, inject } from '../src/client/index.ts'
 import { apply as nodeApply } from '../src/index.ts'
 

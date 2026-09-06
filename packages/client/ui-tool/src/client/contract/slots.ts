@@ -1,11 +1,11 @@
 /** Tool UI slot declarations and their composed component props. */
-import type { HostDescriptionSource } from '@bosch/bh-client-connection/client'
-import type { InjectFace, PropsLocale, PropsRenderSlots, PropsRuntime } from '@bosch/bh-client-ui-slots'
-import type { ToolCallBlock } from '@bosch/bh-client-runtime/client'
-import type {} from '@bosch/bh-client-ui-conversation/client'
-import type {} from '@bosch/bh-client-locale/client'
+import type { HostDescriptionSource } from '@hydra/harness-client-connection/client'
+import type { InjectFace, PropsLocale, PropsRenderSlots, PropsRuntime } from '@hydra/harness-client-ui-slots'
+import type { ToolCallBlock } from '@hydra/harness-client-runtime/client'
+import type {} from '@hydra/harness-client-ui-conversation/client'
+import type {} from '@hydra/harness-client-locale/client'
 
-declare module '@bosch/bh-client-ui-slots' {
+declare module '@hydra/harness-client-ui-slots' {
   interface SlotMap {
     /**
      * Keyed atomic Tool call view, dispatched by the wire Tool name. Register

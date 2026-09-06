@@ -6,14 +6,14 @@
  * scope → popupFor; unknown id fails loud), both fold up on fiber disposal
  * (HMR safety), and the service satisfies the frozen CommandUiContract.
  */
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { describe, expect, it } from 'vitest'
-import { createScope, scopeOf, SlotRegistry } from '@bosch/bh-client-runtime/client'
-import type { SessionId } from '@bosch/bh-client-runtime/client'
-import type { InputTriggerSource } from '@bosch/bh-client-ui-input-trigger/client'
+import { createScope, scopeOf, SlotRegistry } from '@hydra/harness-client-runtime/client'
+import type { SessionId } from '@hydra/harness-client-runtime/client'
+import type { InputTriggerSource } from '@hydra/harness-client-ui-input-trigger/client'
 import type { CommandUiContract } from '../src/client/contract.ts'
 import type { PopupSelectInjected } from '../src/client/PopupSelectView.tsx'
-import { LocaleRuntime } from '@bosch/bh-client-locale/client'
+import { LocaleRuntime } from '@hydra/harness-client-locale/client'
 import { apply, CommandUiRuntime, inject } from '../src/client/index.ts'
 
 const sid = (k: string): SessionId => k as SessionId

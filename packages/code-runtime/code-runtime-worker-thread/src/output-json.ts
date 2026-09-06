@@ -1,6 +1,6 @@
-/** JSON string-prefix accounting for the outer-output ledger. @module @bosch/bh-code-runtime-worker-thread/output-json */
+/** JSON string-prefix accounting for the outer-output ledger. @module @hydra/harness-code-runtime-worker-thread/output-json */
 
-import type { CodeJsonValue } from '@bosch/bh-code-runtime'
+import type { CodeJsonValue } from '@hydra/harness-code-runtime'
 
 type IntrinsicCallable = (this: unknown, ...args: unknown[]) => unknown
 

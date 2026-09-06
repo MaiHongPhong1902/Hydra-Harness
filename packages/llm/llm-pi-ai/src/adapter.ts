@@ -44,8 +44,8 @@ import {
   LlmAdapter,
   LlmError,
   ReasoningEffortId,
-} from '@bosch/bh-llm'
-import { withHttpProxy } from '@bosch/bh-llm/proxy'
+} from '@hydra/harness-llm'
+import { withHttpProxy } from '@hydra/harness-llm/proxy'
 import type {
   GenerateOptions,
   LlmModelInfo,
@@ -54,9 +54,9 @@ import type {
   ReasoningEffortId as ReasoningEffortIdType,
   ResolvedRetryPolicy,
   StreamChunk,
-} from '@bosch/bh-llm'
-import type { AttachmentStore } from '@bosch/bh-attachment'
-import { idleWatchdog, timeoutOf } from '@bosch/bh-timeout'
+} from '@hydra/harness-llm'
+import type { AttachmentStore } from '@hydra/harness-attachment'
+import { idleWatchdog, timeoutOf } from '@hydra/harness-timeout'
 import type { ResolvedPiAiProviderProfile } from './config.ts'
 import { toPiContext } from './context.ts'
 import { toStreamChunks } from './stream.ts'

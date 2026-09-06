@@ -17,10 +17,10 @@ import { join } from 'node:path'
 import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterEach, describe, expect, it, onTestFailed } from 'vitest'
-import type { RetryPolicyConfig } from '@bosch/bh-llm'
-import { deriveReplayScript, parseSessionLog } from '@bosch/bh-llm-replay'
-import type { ReplayEntry, ReplayOverrideDoc } from '@bosch/bh-llm-replay'
-import type { SessionEvent } from '@bosch/bh-session'
+import type { RetryPolicyConfig } from '@hydra/harness-llm'
+import { deriveReplayScript, parseSessionLog } from '@hydra/harness-llm-replay'
+import type { ReplayEntry, ReplayOverrideDoc } from '@hydra/harness-llm-replay'
+import type { SessionEvent } from '@hydra/harness-session'
 import {
   assertFixtureInventory, captureStableAria, compareOrRefreshGolden, fixtureUserPrompts,
   launchWebScaffold, recordFixture, watchConsole, webSnapshotMode, type WebScaffold,

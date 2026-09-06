@@ -4,10 +4,10 @@
  * Unlike those tools, LSP has NO provider fallback — a missing cwd fails the call as
  * `LSP_WORKSPACE_REQUIRED`, because the local provider must canonicalize a real workspace before it
  * can start a server.
- * @module @bosch/bh-tool-lsp/session-cwd
+ * @module @hydra/harness-tool-lsp/session-cwd
  */
 
-import type { ToolExecution } from '@bosch/bh-tools'
+import type { ToolExecution } from '@hydra/harness-tools'
 
 /**
  * The session workspace cwd for this call, or `undefined` when none applies.

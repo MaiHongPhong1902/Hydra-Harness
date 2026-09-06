@@ -6,12 +6,12 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import Loader from '@bosch/cordis-plugin-loader'
-import SystemPrompt from '@bosch/bh-system-prompt'
-import ToolRuntime from '@bosch/bh-tools'
-import WebRuntime from '@bosch/bh-web'
-import * as toolWeb from '@bosch/bh-tool-web'
+import { Context } from '@hydra/cordis'
+import Loader from '@hydra/cordis-plugin-loader'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import ToolRuntime from '@hydra/harness-tools'
+import WebRuntime from '@hydra/harness-web'
+import * as toolWeb from '@hydra/harness-tool-web'
 
 describe('bh-tool-web real-load-path guard', () => {
   it('has no default export and keeps name/inject/Config through unwrapExports', () => {

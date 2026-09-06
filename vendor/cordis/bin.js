@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { pathToFileURL } from 'node:url'
-import Loader from '@bosch/cordis-plugin-loader'
+import Loader from '@hydra/cordis-plugin-loader'
 
 const ctx = new Context()
 ctx.baseUrl = pathToFileURL(process.cwd()).href + '/'
 
 await ctx.plugin(Loader)
 await ctx.loader.create({
-  name: '@bosch/cordis-plugin-include',
+  name: '@hydra/cordis-plugin-include',
   config: {
     path: './cordis.yml',
   },

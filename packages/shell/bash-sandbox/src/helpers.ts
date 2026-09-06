@@ -1,12 +1,12 @@
 /**
  * Internal sandbox-result classification helpers.
  *
- * @module @bosch/bh-bash-sandbox/helpers
+ * @module @hydra/harness-bash-sandbox/helpers
  */
 
 import { accessSync, constants, statSync } from 'node:fs'
-import type { ShellRunResult } from '@bosch/bh-shell'
-import type { RunnerFailureRule } from '@bosch/bh-sandbox'
+import type { ShellRunResult } from '@hydra/harness-shell'
+import type { RunnerFailureRule } from '@hydra/harness-sandbox'
 
 /** Node-local spawn codes proven to identify executable resolution or permission failure. */
 const EXECUTABLE_SPAWN_CODES = new Set(['EACCES', 'ENOENT'])

@@ -6,7 +6,7 @@ Status: implemented
 
 A repository-owned source installer can provide a stable launcher, isolated staging worktrees, atomic upgrades, rollback storage, and shared maintenance workflows for personal customizations. It also makes the repository responsible for a second lifecycle beside the package manager: host dependency installation, credential prompting, checkout adoption, symlink ownership, staging branch coordination, upgrade recovery, and continued compatibility between the installer and bundled maintenance skills.
 
-That lifecycle is not required to run or develop Bosch Harness from a source checkout. Maintaining it expands the supported filesystem and Git state space without improving the repository-native execution path.
+That lifecycle is not required to run or develop Hydra harness from a source checkout. Maintaining it expands the supported filesystem and Git state space without improving the repository-native execution path.
 
 ## Decision
 

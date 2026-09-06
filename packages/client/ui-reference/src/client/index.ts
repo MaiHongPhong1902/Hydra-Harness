@@ -3,19 +3,19 @@
  * the cancellable generated Remote namespaces in parallel with deterministic
  * ordering and labels.
  *
- * @module @bosch/bh-client-ui-reference/client
+ * @module @hydra/harness-client-ui-reference/client
  */
 // Type-only: pulls the generated Remote API and ctx.remote merge through the Client assembly boundary.
-import type {} from '@bosch/bh-api-remotes/client'
+import type {} from '@hydra/harness-api-remotes/client'
 // Type-only: pulls the locale plugin's Context merge (ctx.locale).
-import type {} from '@bosch/bh-client-locale/client'
-import type { ClientContext } from '@bosch/bh-client-runtime/client'
+import type {} from '@hydra/harness-client-locale/client'
+import type { ClientContext } from '@hydra/harness-client-runtime/client'
 import type {
   ClientSessionContext, InputTriggerServiceContract, InputTriggerSource,
-} from '@bosch/bh-client-ui-input-trigger/client'
-import { formatFileMention } from '@bosch/bh-file-reference/grammar'
-import type { FileReferenceCandidate } from '@bosch/bh-file-reference/types'
-import type { SessionReferenceMentionCandidate } from '@bosch/bh-session-reference/types'
+} from '@hydra/harness-client-ui-input-trigger/client'
+import { formatFileMention } from '@hydra/harness-file-reference/grammar'
+import type { FileReferenceCandidate } from '@hydra/harness-file-reference/types'
+import type { SessionReferenceMentionCandidate } from '@hydra/harness-session-reference/types'
 import { en, NS, type ReferenceKey } from './locales.ts'
 
 /** Required services: the trigger registry, the Remote namespaces, and the copy. */

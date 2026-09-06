@@ -1,9 +1,9 @@
 /**
  * Strict Schedule decoding, replay, time validation, and framing.
- * @module @bosch/bh-schedule
+ * @module @hydra/harness-schedule
  */
 
-import type { SessionEvent } from '@bosch/bh-session'
+import type { SessionEvent } from '@hydra/harness-session'
 import type {
   AfterScheduleRecord,
   AtInput,

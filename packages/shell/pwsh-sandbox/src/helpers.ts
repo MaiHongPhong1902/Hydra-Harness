@@ -1,15 +1,15 @@
 /**
  * Internal sandbox-result classification helpers — deliberate call-for-call
- * mirror of `@bosch/bh-bash-sandbox/src/helpers.ts` (the pwsh twin of
+ * mirror of `@hydra/harness-bash-sandbox/src/helpers.ts` (the pwsh twin of
  * the bash consumer shares the identical classification dialect).
  *
- * @module @bosch/bh-pwsh-sandbox/helpers
+ * @module @hydra/harness-pwsh-sandbox/helpers
  */
 
 /* jscpd:ignore-start */
 import { accessSync, constants, statSync } from 'node:fs'
-import type { ShellRunResult } from '@bosch/bh-shell'
-import type { RunnerFailureRule } from '@bosch/bh-sandbox'
+import type { ShellRunResult } from '@hydra/harness-shell'
+import type { RunnerFailureRule } from '@hydra/harness-sandbox'
 
 /** Node-local spawn codes proven to identify executable resolution or permission failure. */
 const EXECUTABLE_SPAWN_CODES = new Set(['EACCES', 'ENOENT'])

@@ -11,17 +11,17 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import AgentRegistry from '@bosch/bh-agent'
-import type { Agent } from '@bosch/bh-agent'
-import SessionStore from '@bosch/bh-session'
-import type { Session } from '@bosch/bh-session'
-import SystemPrompt from '@bosch/bh-system-prompt'
-import ToolRuntime from '@bosch/bh-tools'
-import SessionProjectionRegistry from '@bosch/bh-session-projection'
-import UserQuestionService from '@bosch/bh-user-questions'
-import { CommandId } from '@bosch/bh-commands/brand'
-import PlanModeController from '@bosch/bh-plan-mode'
+import { Context } from '@hydra/cordis'
+import AgentRegistry from '@hydra/harness-agent'
+import type { Agent } from '@hydra/harness-agent'
+import SessionStore from '@hydra/harness-session'
+import type { Session } from '@hydra/harness-session'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import ToolRuntime from '@hydra/harness-tools'
+import SessionProjectionRegistry from '@hydra/harness-session-projection'
+import UserQuestionService from '@hydra/harness-user-questions'
+import { CommandId } from '@hydra/harness-commands/brand'
+import PlanModeController from '@hydra/harness-plan-mode'
 
 interface Bench {
   ctx: Context

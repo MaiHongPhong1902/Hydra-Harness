@@ -8,7 +8,7 @@ Website knowledge had two production storage paths: Obsidian MCP reads and direc
 
 ## Decision
 
-`obsidian-knowledge` uses Obsidian Local REST API's built-in MCP server as its only production knowledge store. `ObsidianKnowledgeSettings` contains only the optional Browser-capture `targetDomain`; the composition-only `mcpUrl` defaults to the local loopback endpoint, and `OBSIDIAN_API_KEY` remains a BH credential. User settings contain no vault path, MCP URL, or token. Generic recall, exact reads, and approved saves do not require a target domain.
+`obsidian-knowledge` uses Obsidian Local REST API's built-in MCP server as its only production knowledge store. `ObsidianKnowledgeSettings` contains only the optional Browser-capture `targetDomain`; the composition-only `mcpUrl` defaults to the local loopback endpoint, and `OBSIDIAN_API_KEY` remains a Hydra credential. User settings contain no vault path, MCP URL, or token. Generic recall, exact reads, and approved saves do not require a target domain.
 
 The plugin builds its graph over MCP `search_simple`, `vault_read`, and `vault_write`. Each operation reads `BH Website Knowledge/BH MCP Vault Identity.md` through MCP first. Search and exact-note reads fail closed when the credential, endpoint, marker, authentication, protocol, or required note is unavailable; the model-facing tools do not fall back to filesystem discovery and the testcase skill reports `Unresolved`.
 

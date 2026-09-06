@@ -11,9 +11,9 @@
 
 import { memo, useMemo } from 'react'
 import type { ReactNode } from 'react'
-import type { AssistantBlock } from '@bosch/bh-client-runtime/client'
-import { JsonBlock, MarkdownText } from '@bosch/bh-client-ui-primitives'
-import type { MarkdownFileMentions } from '@bosch/bh-client-ui-primitives'
+import type { AssistantBlock } from '@hydra/harness-client-runtime/client'
+import { JsonBlock, MarkdownText } from '@hydra/harness-client-ui-primitives'
+import type { MarkdownFileMentions } from '@hydra/harness-client-ui-primitives'
 import type { ChatNodeOwnerProps, ChatViewSlotProps } from '../contract/slots.ts'
 import { ActivityGroup } from './ActivityGroup.tsx'
 import { ReasoningRow } from './ReasoningRow.tsx'

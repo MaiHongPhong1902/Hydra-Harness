@@ -1,15 +1,15 @@
 # Exercise the model-facing LSP tool through the shipped ACP app and Loader entry path.
 # The scenario workspace supplies the deterministic stdio server used by this test composition.
 - id: base
-  name: '@bosch/cordis-plugin-include'
+  name: '@hydra/cordis-plugin-include'
   config:
     path: ../cordis.yml
     patches:
       - insert:
           - id: lsp
-            name: '@bosch/bh-lsp'
+            name: '@hydra/harness-lsp'
           - id: lsp-stdio
-            name: '@bosch/bh-lsp-stdio'
+            name: '@hydra/harness-lsp-stdio'
             config:
               servers:
                 fixture:
@@ -18,8 +18,8 @@
                   extensionToLanguage:
                     '.ts': typescript
           - id: timeout-policy
-            name: '@bosch/bh-tool-call-timeout-policy'
+            name: '@hydra/harness-tool-call-timeout-policy'
           - id: tool-lsp
-            name: '@bosch/bh-tool-lsp'
+            name: '@hydra/harness-tool-lsp'
             config:
               maxLocations: 1

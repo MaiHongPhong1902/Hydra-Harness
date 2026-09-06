@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import SessionStore, { Session, SessionId } from '@bosch/bh-session'
-import type { SandboxMode } from '@bosch/bh-sandbox'
-import type { ApprovalPolicy } from '@bosch/bh-user-approval'
+import { Context } from '@hydra/cordis'
+import SessionStore, { Session, SessionId } from '@hydra/harness-session'
+import type { SandboxMode } from '@hydra/harness-sandbox'
+import type { ApprovalPolicy } from '@hydra/harness-user-approval'
 import PermissionPresetService, {
   CUSTOM_PRESET, effectivePermissionPreset, PERMISSION_SETTINGS_NAMESPACE,
-} from '@bosch/bh-permission-presets'
-import type { Config } from '@bosch/bh-permission-presets'
-import { SettingsProvider } from '@bosch/bh-settings'
-import type { SettingsNamespace } from '@bosch/bh-settings'
+} from '@hydra/harness-permission-presets'
+import type { Config } from '@hydra/harness-permission-presets'
+import { SettingsProvider } from '@hydra/harness-settings'
+import type { SettingsNamespace } from '@hydra/harness-settings'
 
 /** Writable memory provider for the permission/settings lifecycle specs. */
 class MemorySettings extends SettingsProvider {

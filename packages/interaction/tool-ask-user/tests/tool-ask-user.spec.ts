@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import { CallId } from '@bosch/bh-llm'
-import AgentRegistry, { type Agent } from '@bosch/bh-agent'
-import SystemPrompt from '@bosch/bh-system-prompt'
-import ToolRuntime from '@bosch/bh-tools'
-import UserQuestionService, { type AskUserQuestionRequest } from '@bosch/bh-user-questions'
-import * as toolAskUser from '@bosch/bh-tool-ask-user'
+import { Context } from '@hydra/cordis'
+import { CallId } from '@hydra/harness-llm'
+import AgentRegistry, { type Agent } from '@hydra/harness-agent'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import ToolRuntime from '@hydra/harness-tools'
+import UserQuestionService, { type AskUserQuestionRequest } from '@hydra/harness-user-questions'
+import * as toolAskUser from '@hydra/harness-tool-ask-user'
 
 const testToolSignal = new AbortController().signal
 

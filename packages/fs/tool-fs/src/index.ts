@@ -2,12 +2,12 @@
  * Model-facing read, read_image, write, and edit tools over `ctx.fs`. This package owns schemas, validation,
  * read windows, formatting, and observation events, never a concrete provider. An optional
  * event policy supplies mutation guards; without one the tools use unconditional provider calls.
- * @module @bosch/bh-tool-fs
+ * @module @hydra/harness-tool-fs
  */
 
-import type { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import type {} from '@bosch/bh-user-approval'
+import type { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import type {} from '@hydra/harness-user-approval'
 import { applyReadTool, READ_LIMIT, STREAM_MIN_SIZE } from './read.ts'
 import { applyWriteTool } from './write.ts'
 import { applyEditTool } from './edit.ts'

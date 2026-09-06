@@ -1,12 +1,12 @@
 /** Host registry for model-visible, read-only Cordis capability queries. */
 
-import { Service } from '@bosch/cordis'
-import type { Context } from '@bosch/cordis'
-import type { Agent } from '@bosch/bh-agent'
-import { snapshotJsonValue } from '@bosch/bh-session'
-import type { JsonValue } from '@bosch/bh-session/types'
-import { assertSupportedJsonSchema, validateJsonSchemaValue } from '@bosch/bh-tools'
-import type { JsonSchemaNode } from '@bosch/bh-tools'
+import { Service } from '@hydra/cordis'
+import type { Context } from '@hydra/cordis'
+import type { Agent } from '@hydra/harness-agent'
+import { snapshotJsonValue } from '@hydra/harness-session'
+import type { JsonValue } from '@hydra/harness-session/types'
+import { assertSupportedJsonSchema, validateJsonSchemaValue } from '@hydra/harness-tools'
+import type { JsonSchemaNode } from '@hydra/harness-tools'
 import type {
   CordisInspectMethodManifest, CordisInspectPlatform, CordisInspectProviderManifest,
   CordisInspectProviderView, CordisInspectQueryRequest, CordisInspectQueryResolution,
@@ -35,7 +35,7 @@ interface PendingClientQuery {
   settle(resolution: CordisInspectQueryResolution): void
 }
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     /** Host registry for Cordis inspect providers and Client manifest/query routing. */
     cordisInspect: CordisInspectRegistryService

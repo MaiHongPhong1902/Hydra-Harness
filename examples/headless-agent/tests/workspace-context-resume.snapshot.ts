@@ -7,19 +7,19 @@ import { createHash } from 'node:crypto'
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { Context } from '@bosch/cordis'
-import { normalizeSessionSnapshot, type NormalizeContext } from '@bosch/bh-acp-snapshot'
-import { LOADER_SMOKE_TEST_TIMEOUT_MS, runLoaderSmoke } from '@bosch/bh-loader-smoke'
-import { createUserMessage } from '@bosch/bh-llm'
+import { Context } from '@hydra/cordis'
+import { normalizeSessionSnapshot, type NormalizeContext } from '@hydra/harness-acp-snapshot'
+import { LOADER_SMOKE_TEST_TIMEOUT_MS, runLoaderSmoke } from '@hydra/harness-loader-smoke'
+import { createUserMessage } from '@hydra/harness-llm'
 import SessionStore, {
   SESSION_FORMAT_VERSION,
   SessionId,
   type SessionEvent,
   type SessionHeader,
-} from '@bosch/bh-session'
-import JsonlSessionPersistence from '@bosch/bh-session-persistence-jsonl'
-import { renderWorkspaceContext } from '@bosch/bh-agent-instructions'
-import { resolveConfig, workspaceBaselineIdentity } from '@bosch/bh-agent-instructions/src/config.ts'
+} from '@hydra/harness-session'
+import JsonlSessionPersistence from '@hydra/harness-session-persistence-jsonl'
+import { renderWorkspaceContext } from '@hydra/harness-agent-instructions'
+import { resolveConfig, workspaceBaselineIdentity } from '@hydra/harness-agent-instructions/src/config.ts'
 import { describe, expect, it } from 'vitest'
 
 const fixtureDir = join(dirname(fileURLToPath(import.meta.url)), 'workspace-context-resume-snapshots/offline-edit')

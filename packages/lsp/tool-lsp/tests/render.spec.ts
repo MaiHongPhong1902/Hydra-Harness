@@ -10,8 +10,8 @@ import {
   parseLspArgs,
   presentLspCall,
   renderUri,
-} from '@bosch/bh-tool-lsp'
-import type { LspLocation } from '@bosch/bh-lsp'
+} from '@hydra/harness-tool-lsp'
+import type { LspLocation } from '@hydra/harness-lsp'
 
 const WS = resolve('/home/u/proj')
 const WS_URI = pathToFileURL(WS).href

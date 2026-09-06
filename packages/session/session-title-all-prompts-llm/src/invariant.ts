@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-session-title-all-prompts-llm`.
- * @module @bosch/bh-session-title-all-prompts-llm/invariant
+ * Package-owned invariant companion for `@hydra/harness-session-title-all-prompts-llm`.
+ * @module @hydra/harness-session-title-all-prompts-llm/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-session-title-all-prompts-llm'
+const PACKAGE_NAME = '@hydra/harness-session-title-all-prompts-llm'
 
 /** Cordis companion plugin name. */
 export const name = 'session-title-all-prompts-llm-invariant'

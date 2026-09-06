@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-settings-file`.
- * @module @bosch/bh-settings-file/invariant
+ * Package-owned invariant companion for `@hydra/harness-settings-file`.
+ * @module @hydra/harness-settings-file/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-settings-file'
+const PACKAGE_NAME = '@hydra/harness-settings-file'
 
 /** Cordis companion plugin name. */
 export const name = 'settings-file-invariant'
@@ -17,7 +17,7 @@ export const inject = ['invariants']
 /**
  * No runtime invariant: this provider's contracts are file round-trip,
  * watcher timing, and atomic-write behavior — IO effects proven by package
- * tests; the in-process commit relation is owned by `@bosch/bh-settings`.
+ * tests; the in-process commit relation is owned by `@hydra/harness-settings`.
  */
 const install: InvariantInstaller = () => {}
 

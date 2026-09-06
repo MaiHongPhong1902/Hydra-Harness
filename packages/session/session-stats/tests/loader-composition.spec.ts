@@ -10,12 +10,12 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import Loader from '@bosch/cordis-plugin-loader'
-import Include from '@bosch/cordis-plugin-include'
-import SessionStore, { SessionId } from '@bosch/bh-session'
-import SessionProjectionRegistry from '@bosch/bh-session-projection'
-import * as SessionStatsPlugin from '@bosch/bh-session-stats'
+import { Context } from '@hydra/cordis'
+import Loader from '@hydra/cordis-plugin-loader'
+import Include from '@hydra/cordis-plugin-include'
+import SessionStore, { SessionId } from '@hydra/harness-session'
+import SessionProjectionRegistry from '@hydra/harness-session-projection'
+import * as SessionStatsPlugin from '@hydra/harness-session-stats'
 
 let root: string | undefined
 let context: Context | undefined
@@ -37,9 +37,9 @@ async function loadYaml(lines: readonly string[]): Promise<Context> {
   await context.plugin(Loader)
   context.loader.builtins.include = Include
   const modules = new Map<string, unknown>([
-    ['@bosch/bh-session', SessionStore],
-    ['@bosch/bh-session-projection', SessionProjectionRegistry],
-    ['@bosch/bh-session-stats', SessionStatsPlugin],
+    ['@hydra/harness-session', SessionStore],
+    ['@hydra/harness-session-projection', SessionProjectionRegistry],
+    ['@hydra/harness-session-stats', SessionStatsPlugin],
   ])
   context.loader.internal = {
     version: 'v2',
@@ -59,9 +59,9 @@ async function loadYaml(lines: readonly string[]): Promise<Context> {
 describe('real Loader composition', () => {
   it('loads the shipped session-stats YAML shape and serves whole-log counts', async () => {
     const loaded = await loadYaml([
-      "- name: '@bosch/bh-session'",
-      "- name: '@bosch/bh-session-projection'",
-      "- name: '@bosch/bh-session-stats'",
+      "- name: '@hydra/harness-session'",
+      "- name: '@hydra/harness-session-projection'",
+      "- name: '@hydra/harness-session-stats'",
     ])
 
     const unloaded = [...loaded.loader.entries()]

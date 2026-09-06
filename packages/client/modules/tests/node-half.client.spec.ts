@@ -6,15 +6,15 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { runInNewContext } from 'node:vm'
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { afterEach, describe, expect, it } from 'vitest'
-import { renderIndexInjections, type WebServer, type WebRoute } from '@bosch/bh-host-webserver'
+import { renderIndexInjections, type WebServer, type WebRoute } from '@hydra/harness-host-webserver'
 import * as modulesClient from '../src/client/index.ts'
 import { ClientModuleRegistry, bootInjections, orderByModuleGraph } from '../src/index.ts'
 import type { ClientModuleLoaderTarget, WebBootEntry, WebBootGraph } from '../src/client/index.ts'
 
-const MODULES_ID = '@bosch/bh-client-modules'
-const RUNTIME_ID = '@bosch/bh-client-runtime'
+const MODULES_ID = '@hydra/harness-client-modules'
+const RUNTIME_ID = '@hydra/harness-client-runtime'
 
 let root: string | undefined
 
@@ -304,7 +304,7 @@ describe('module graph order', () => {
 
   it('leaves a request no row answers to the static assembly channel', () => {
     expect(ids(orderByModuleGraph([
-      entry('consumer', { external: ['@bosch/cordis'] }),
+      entry('consumer', { external: ['@hydra/cordis'] }),
       entry('other'),
     ]))).toEqual(['consumer', 'other'])
   })

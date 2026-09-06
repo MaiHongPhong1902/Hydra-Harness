@@ -7,10 +7,10 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import SystemPrompt from '@bosch/bh-system-prompt'
-import ToolRuntime from '@bosch/bh-tools'
-import FileSettingsProvider from '@bosch/bh-settings-file'
+import { Context } from '@hydra/cordis'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import ToolRuntime from '@hydra/harness-tools'
+import FileSettingsProvider from '@hydra/harness-settings-file'
 
 const { mockConnect, mockClose, mockListTools, MockClient } = vi.hoisted(() => {
   const mockConnect = vi.fn<() => Promise<void>>()
@@ -34,8 +34,8 @@ vi.mock('@modelcontextprotocol/sdk/client/index.js', () => ({ Client: MockClient
 vi.mock('@modelcontextprotocol/sdk/client/stdio.js', () => ({ StdioClientTransport: vi.fn() }))
 vi.mock('@modelcontextprotocol/sdk/client/streamableHttp.js', () => ({ StreamableHTTPClientTransport: vi.fn() }))
 
-import McpServerRegistry, { MCP_SERVERS_SETTINGS_NAMESPACE } from '@bosch/bh-mcp-registry/src/index.ts'
-import type { McpServerSnapshot } from '@bosch/bh-mcp-registry/src/types.ts'
+import McpServerRegistry, { MCP_SERVERS_SETTINGS_NAMESPACE } from '@hydra/harness-mcp-registry/src/index.ts'
+import type { McpServerSnapshot } from '@hydra/harness-mcp-registry/src/types.ts'
 
 const contexts: Context[] = []
 const directories: string[] = []
@@ -49,6 +49,7 @@ afterEach(async () => {
 })
 
 const STDIO = {
+  mode: 'create' as const,
   name: 'notes',
   transport: 'stdio' as const,
   command: 'node',
@@ -107,6 +108,36 @@ function nextReconciliation(ctx: Context): Promise<McpServerSnapshot> {
 }
 
 describe('stored records', () => {
+  it('keeps a server mounted after the API caller is disposed', async () => {
+    const { ctx, registry } = await harness()
+    const caller = await ctx.plugin({
+      inject: ['mcpServers'],
+      async apply(caller) { await caller.mcpServers.define({ ...STDIO, enabled: true }) },
+    })
+    await caller.dispose()
+    expect(ctx.tools.schemas().map(tool => tool.name)).toEqual(['mcp__notes__read'])
+    await registry.setEnabled({ name: 'notes', enabled: false })
+    expect(ctx.tools.schemas()).toEqual([])
+  })
+
+  it('rejects duplicate creates without changing or restarting the active server', async () => {
+    const { registry, settingsPath } = await harness()
+    await registry.define({ ...STDIO, enabled: true })
+    const before = await readFile(settingsPath, 'utf8')
+    await expect(registry.define({ ...STDIO, command: 'replacement' })).rejects.toThrow('already exists')
+    expect(await readFile(settingsPath, 'utf8')).toBe(before)
+    expect(registry.list().servers[0]).toMatchObject({ enabled: true, command: 'node', status: 'started' })
+    expect(mockConnect).toHaveBeenCalledTimes(1)
+  })
+
+  it('serializes competing creates and refuses replacing a removed record', async () => {
+    const { registry } = await harness()
+    const results = await Promise.allSettled([registry.define(STDIO), registry.define(STDIO)])
+    expect(results.map(result => result.status)).toEqual(['fulfilled', 'rejected'])
+    await registry.remove('notes')
+    await expect(registry.define({ ...STDIO, mode: 'replace' })).rejects.toThrow('not configured')
+    expect(registry.list().servers).toEqual([])
+  })
   it('persists a defined record into the settings document', async () => {
     const { registry, settingsPath } = await harness()
 
@@ -163,7 +194,7 @@ describe('stored records', () => {
     const { registry } = await harness()
     await registry.define(STDIO)
 
-    const snapshot = await registry.define({
+    const snapshot = await registry.define({ mode: 'replace',
       name: 'notes',
       transport: 'stdio',
       command: 'node',
@@ -182,7 +213,7 @@ describe('stored records', () => {
     const { registry } = await harness()
     await registry.define(STDIO)
 
-    const snapshot = await registry.define({ ...STDIO, env: {} })
+    const snapshot = await registry.define({ ...STDIO, mode: 'replace', env: {} })
 
     expect(snapshot.servers[0]?.envNames).toEqual([])
   })
@@ -199,15 +230,15 @@ describe('stored records', () => {
   it('refuses a definition it could not mount before anything persists', async () => {
     const { registry, settingsPath } = await harness()
 
-    await expect(registry.define({ name: 'no name', transport: 'stdio', command: 'node' }))
+    await expect(registry.define({ mode: 'create', name: 'no name', transport: 'stdio', command: 'node' }))
       .rejects.toThrow('server name must match')
-    await expect(registry.define({ name: 'blank', transport: 'stdio', command: '  ' }))
+    await expect(registry.define({ mode: 'create', name: 'blank', transport: 'stdio', command: '  ' }))
       .rejects.toThrow('requires a command')
-    await expect(registry.define({ name: 'remote', transport: 'streamable-http', url: 'ftp://mcp.example.test' }))
+    await expect(registry.define({ mode: 'create', name: 'remote', transport: 'streamable-http', url: 'ftp://mcp.example.test' }))
       .rejects.toThrow('must use HTTP or HTTPS')
-    await expect(registry.define({ name: 'remote', transport: 'streamable-http', url: 'not-a-url' }))
+    await expect(registry.define({ mode: 'create', name: 'remote', transport: 'streamable-http', url: 'not-a-url' }))
       .rejects.toThrow('url is not absolute')
-    await expect(registry.define({ name: 'remote', transport: 'streamable-http' }))
+    await expect(registry.define({ mode: 'create', name: 'remote', transport: 'streamable-http' }))
       .rejects.toThrow('requires a url')
 
     await expect(readFile(settingsPath, 'utf8')).rejects.toThrow()
@@ -270,7 +301,7 @@ describe('mount reconciliation', () => {
     await registry.define({ ...STDIO, enabled: true })
     expect(mockConnect).toHaveBeenCalledTimes(1)
 
-    await registry.define({ ...STDIO, command: 'python', enabled: true })
+    await registry.define({ ...STDIO, mode: 'replace', command: 'python', enabled: true })
 
     expect(mockClose).toHaveBeenCalledTimes(1)
     expect(mockConnect).toHaveBeenCalledTimes(2)
@@ -282,7 +313,7 @@ describe('mount reconciliation', () => {
     await registry.define({ ...STDIO, enabled: true })
     expect(mockConnect).toHaveBeenCalledTimes(1)
 
-    await registry.define({ name: 'other', transport: 'stdio', command: 'node' })
+    await registry.define({ mode: 'create', name: 'other', transport: 'stdio', command: 'node' })
 
     expect(mockClose).not.toHaveBeenCalled()
     expect(mockConnect).toHaveBeenCalledTimes(1)

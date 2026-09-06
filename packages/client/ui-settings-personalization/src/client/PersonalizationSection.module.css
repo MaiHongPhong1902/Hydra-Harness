@@ -26,6 +26,34 @@
   gap: 16px;
 }
 
+.prompt {
+  padding: 12px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 10px;
+}
+
+.summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.prompt[open] > .summary {
+  margin-bottom: 12px;
+}
+
+.summary:focus-visible {
+  outline: 2px solid var(--dsw-alias-brand-primary);
+  outline-offset: 3px;
+}
+
+.badge {
+  margin-left: 10px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--dsw-alias-label-tertiary);
+}
+
 .personalityRow {
   display: flex;
   align-items: center;

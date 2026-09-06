@@ -11,14 +11,14 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import { createMessage } from '@bosch/bh-llm'
-import SessionStore, { SessionId } from '@bosch/bh-session'
-import type { Session, SessionEvent } from '@bosch/bh-session'
-import SessionProjectionRegistry from '@bosch/bh-session-projection'
-import * as SessionStatsPlugin from '@bosch/bh-session-stats'
-import { sessionStatsProjectionDefinition } from '@bosch/bh-session-stats/src/projection.ts'
-import type { SessionStatsProjection } from '@bosch/bh-session-stats/types'
+import { Context } from '@hydra/cordis'
+import { createMessage } from '@hydra/harness-llm'
+import SessionStore, { SessionId } from '@hydra/harness-session'
+import type { Session, SessionEvent } from '@hydra/harness-session'
+import SessionProjectionRegistry from '@hydra/harness-session-projection'
+import * as SessionStatsPlugin from '@hydra/harness-session-stats'
+import { sessionStatsProjectionDefinition } from '@hydra/harness-session-stats/src/projection.ts'
+import type { SessionStatsProjection } from '@hydra/harness-session-stats/types'
 
 async function harness(withStatsPlugin: boolean): Promise<{ ctx: Context; session: Session }> {
   const ctx = new Context()

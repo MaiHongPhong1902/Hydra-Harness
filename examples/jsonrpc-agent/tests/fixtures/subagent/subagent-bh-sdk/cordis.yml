@@ -10,12 +10,12 @@
   name: './mock-delegating-llm.ts'
 
 - id: subagent
-  name: '@bosch/bh-subagent'
+  name: '@hydra/harness-subagent'
 
 # providerName is omitted: the composition exercises the shipped default
 # (`bh-sdk`) through the real Loader.
 - id: subagent-bh-sdk
-  name: '@bosch/bh-subagent-bh-sdk'
+  name: '@hydra/harness-subagent-bh-sdk'
   config:
     command: !!js process.env.BH_TEST_CHILD_COMMAND
     args: !!js JSON.parse(process.env.BH_TEST_CHILD_ARGS ?? '[]')
@@ -24,7 +24,7 @@
     env: !!js JSON.parse(process.env.BH_TEST_CHILD_ENV ?? '{}')
 
 - id: tool-subagent
-  name: '@bosch/bh-tool-subagent'
+  name: '@hydra/harness-tool-subagent'
   config:
     provider: bh-sdk
     toolName: subagent
@@ -33,7 +33,7 @@
     maxDepth: 'provider-managed'
 
 - id: agent-spine
-  name: '@bosch/bh-agent-spine-demo'
+  name: '@hydra/harness-agent-spine-demo'
   config:
     agents:
       - id: main
@@ -44,10 +44,10 @@
     workspaceContext: false
 
 - id: persistence
-  name: '@bosch/bh-session-persistence-jsonl'
+  name: '@hydra/harness-session-persistence-jsonl'
   config:
     root: './.sessions'
     compression: 'none'
 
 - id: checkpoint-policy
-  name: '@bosch/bh-session-checkpoint-policy'
+  name: '@hydra/harness-session-checkpoint-policy'

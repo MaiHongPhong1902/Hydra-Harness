@@ -1,12 +1,12 @@
-# Bosch Harness
+# Hydra harness
 
-Bosch Harness (`bh`) is an open-source agent harness developed by [DeepSeek AI](https://deepseek.com).
+Hydra harness (`bh`) is an open-source agent harness based on [Bosch Harness](https://github.com/bosch/bosch-harness), originally developed by [DeepSeek AI](https://deepseek.com).
 
 It uses an architecture where **everything is a plugin**, and is powered by [Cordis](https://github.com/cordiverse/cordis), whose design is described in [_A Programming Paradigm for Spatiotemporal Composability_](https://github.com/cordiverse/paper).
 
 ## Developer preview
 
-Bosch Harness is currently in _developer preview_ and is iterating rapidly. **THERE WILL BE COMPATIBILITY-BREAKING CHANGES.**
+Hydra harness is currently in _developer preview_ and is iterating rapidly. **THERE WILL BE COMPATIBILITY-BREAKING CHANGES.**
 
 ## Run
 
@@ -15,7 +15,7 @@ Bosch Harness is currently in _developer preview_ and is iterating rapidly. **TH
 Install `Node.js`, then run:
 
 ```sh
-npx @bosch/bh web
+npx @hydra/harness web
 ```
 
 The command starts the Web UI at `http://127.0.0.1:3080` by default and opens it in the default browser for a local launch. An SSH launch only prints the host URL because the SSH client or editor owns the local forwarded address. Pass `--no-open` to run the server without opening a browser. See [Web UI guide](docs/user/guide/index.md).

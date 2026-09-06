@@ -11,10 +11,10 @@
  * @module bh-agent-loop/tool-calls
  */
 
-import type { Context } from '@bosch/cordis'
-import { assertNever, createToolResultMessage, type ToolCallBlock } from '@bosch/bh-llm'
-import type { Session, UserMessage } from '@bosch/bh-session'
-import { TOOL_ABORTED_BEFORE_DISPATCH, TOOL_RUNTIME_SCHEDULER, type ToolExecutionInput, type ToolExecutionMode, type ToolExecutionResult, type ToolRunContext } from '@bosch/bh-tools'
+import type { Context } from '@hydra/cordis'
+import { assertNever, createToolResultMessage, type ToolCallBlock } from '@hydra/harness-llm'
+import type { Session, UserMessage } from '@hydra/harness-session'
+import { TOOL_ABORTED_BEFORE_DISPATCH, TOOL_RUNTIME_SCHEDULER, type ToolExecutionInput, type ToolExecutionMode, type ToolExecutionResult, type ToolRunContext } from '@hydra/harness-tools'
 
 /** One tool call after argument parsing, ready to schedule. */
 interface PlannedCall {

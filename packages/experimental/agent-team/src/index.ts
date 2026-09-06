@@ -1,9 +1,9 @@
 /** Agent Teams service façade over roster, mailbox, task, and runtime lifecycle owners. */
 
-import { Context, Service } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import type { Agent } from '@bosch/bh-agent'
-import type {} from '@bosch/bh-session-persistence'
+import { Context, Service } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import type { Agent } from '@hydra/harness-agent'
+import type {} from '@hydra/harness-session-persistence'
 import { TeamActivity } from './activity.ts'
 import { errorMessage, TeamError } from './error.ts'
 import { TeamJournal } from './journal.ts'
@@ -32,7 +32,7 @@ export { TeamId, TeamMessageId, TeamTaskId } from './types.ts'
 export { TeamError } from './error.ts'
 export { foldTeam } from './fold.ts'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     agentTeams: TeamService
   }

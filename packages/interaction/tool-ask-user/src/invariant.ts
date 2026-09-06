@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-tool-ask-user`.
- * @module @bosch/bh-tool-ask-user/invariant
+ * Package-owned invariant companion for `@hydra/harness-tool-ask-user`.
+ * @module @hydra/harness-tool-ask-user/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-tool-ask-user'
+const PACKAGE_NAME = '@hydra/harness-tool-ask-user'
 
 /** Cordis companion plugin name. */
 export const name = 'tool-ask-user-invariant'

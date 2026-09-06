@@ -1,4 +1,4 @@
-# @bosch/bh-client-ui-settings-general
+# @hydra/harness-client-ui-settings-general
 
 Settings shell, ownerless copy, and durable product-onboarding namespace. It occupies `sidebar.settings` with the trigger chrome and modal settings panel, projects the `settings.section` ledger into the navigation and the `settings.onboarding` ledger into one mounted step at a time, and registers everything on the Settings pages that belongs to no single feature — the trigger/header/close chrome content, the local configuration-file action, the General section and its `settings.general.item` slot, and the `settings` dictionaries. The slot types it renders into belong to ui-settings, the settings domain base; only the shell's own contract types live here, because they reference ui-sidebar's slot type and the base layer must depend on no `ui-*` package. Feature-owned rows (Permission, Language, Appearance), sections (Models), and conditional onboarding steps stay with their feature packages.
 
@@ -7,6 +7,8 @@ The shell ships no onboarding copy of its own — all text arrives from registra
 A loopback browser loads the provider's `hasDocument` capability through `settings.describe` and renders **Open configuration file** only when the Host confirms that a provider-owned local document can be prepared. The action sends the pathless, loopback-only `settings.openDocument` request; the Host resolves the provider path again, materializes an absent document, and hands it to a native text editor (`open -t` on macOS, bypassing a browser file association; the desktop file association on Linux and Windows; Windows association after `wslpath -w` translation on WSL). Open failures keep the action available and render a localized error. Reopening the dialog or reconnecting refreshes availability after a transient read failure or Host topology change. Remote browsers never register the action and never issue the privileged settings read.
 
 The Host half registers `ui-onboarding` in the user-settings seam. The welcome step contributed by `ui-settings-models` reads and writes its `welcomeNoticeVersion` through the existing public settings boundary; the same section stores `deepseekOfficialDeclined` when the Models page hides the shipped official DeepSeek row. The shell itself remains policy-free.
+
+The Settings panel uses the shared [Modal](../ui-primitives/README.md#dialogs-and-menus) for keyboard focus and nested dismissal. Closing a child dialog leaves Settings open; closing Settings restores focus to its trigger.
 
 ## Model Experience
 

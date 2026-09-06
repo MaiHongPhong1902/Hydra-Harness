@@ -9,11 +9,11 @@
  */
 
 import { useEffect } from 'react'
-import type { SnapshotStore } from '@bosch/bh-client-runtime/client'
-import type { InjectFace, PropsLocale, PropsRuntime } from '@bosch/bh-client-ui-slots'
-import { IconAgentPresetOutline16 } from '@bosch/bh-client-ui-primitives'
+import type { SnapshotStore } from '@hydra/harness-client-runtime/client'
+import type { InjectFace, PropsLocale, PropsRuntime } from '@hydra/harness-client-ui-slots'
+import { IconAgentPresetOutline16 } from '@hydra/harness-client-ui-primitives'
 // Type-only: pulls the ui-conversation SlotMap merge (the header actions).
-import type {} from '@bosch/bh-client-ui-conversation/client'
+import type {} from '@hydra/harness-client-ui-conversation/client'
 import type { AgentPresetSettingsState } from './settings-store.ts'
 import { presetDisplayText } from './locales.ts'
 import css from './AgentPresetLabel.module.css'

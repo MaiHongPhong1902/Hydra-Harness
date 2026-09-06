@@ -5,14 +5,14 @@
  * signal. A provider timeout remains a backstop for direct service callers.
  */
 
-import type { Context } from '@bosch/cordis'
+import type { Context } from '@hydra/cordis'
 import TurndownService from 'turndown'
 import { gfm } from '@joplin/turndown-plugin-gfm'
-import { defineTool } from '@bosch/bh-tools'
-import type { GenericCallView, JsonValue, ToolResult, WebFetchResultView } from '@bosch/bh-tools'
-import type { WebFetchBody, WebFetchResult } from '@bosch/bh-web'
-import { assertNever } from '@bosch/bh-llm'
-import type {} from '@bosch/bh-system-prompt'
+import { defineTool } from '@hydra/harness-tools'
+import type { GenericCallView, JsonValue, ToolResult, WebFetchResultView } from '@hydra/harness-tools'
+import type { WebFetchBody, WebFetchResult } from '@hydra/harness-web'
+import { assertNever } from '@hydra/harness-llm'
+import type {} from '@hydra/harness-system-prompt'
 
 /**
  * The shared HTML→markdown converter: turndown over its bundled domino DOM,
@@ -80,7 +80,7 @@ turndown.addRule('tableRowWithoutSpanExpansion', {
  * Validate value constraints the schema DSL can't express: a non-blank `url`.
  * Throws a plain `Error` otherwise. No timeout parameter — the tool-call budget
  * is deployment policy declared via `fetchTimeoutMs` config and enforced by
- * `@bosch/bh-tool-call-timeout-policy`, not a model argument.
+ * `@hydra/harness-tool-call-timeout-policy`, not a model argument.
  *
  * @param args - the schema-validated `web_fetch` arguments.
  * @returns the arguments as the seam's request fields.
@@ -422,7 +422,7 @@ export function presentFetchResult(args: { url: string }, result: ToolResult): W
  * @param ctx - context whose `tools` and `systemPrompt` registries receive the
  *   registrations; both are effect-scoped and unregister on plugin dispose.
  * @param timeoutMs - the cooperative tool-call budget (ms) attached as the tool's
- *   `ToolDefinition.timeoutMs` for `@bosch/bh-tool-call-timeout-policy` to enforce.
+ *   `ToolDefinition.timeoutMs` for `@hydra/harness-tool-call-timeout-policy` to enforce.
  * @param maxOutputChars - cap on the complete rendered tool output (see
  *   {@link formatFetchOutput}) and on source characters converted synchronously.
  */

@@ -1,8 +1,8 @@
-/** Translate PageAgent's private OpenAI-shaped call into the owning BH model route. */
+/** Translate PageAgent's private OpenAI-shaped call into the owning Hydra model route. */
 
-import { BlockAssembler, createMessage } from '@bosch/bh-llm'
-import type { GenerateOptions, Message, ToolSchema } from '@bosch/bh-llm'
-import type { Agent } from '@bosch/bh-agent'
+import { BlockAssembler, createMessage } from '@hydra/harness-llm'
+import type { GenerateOptions, Message, ToolSchema } from '@hydra/harness-llm'
+import type { Agent } from '@hydra/harness-agent'
 import type { PageAgentLlmRequest } from './child.ts'
 
 type JsonRecord = Record<string, unknown>
@@ -53,7 +53,7 @@ function toolsOf(value: unknown): ToolSchema[] | undefined {
 }
 
 /**
- * Run one PageAgent planning step through the owning BH model selection.
+ * Run one PageAgent planning step through the owning Hydra model selection.
  * @param owner - agent whose provider, model, and model credentials are authoritative.
  * @param pageAgentRequest - opaque request emitted from the controlled preload.
  * @returns an OpenAI-compatible JSON response consumed only by upstream PageAgent.
@@ -62,7 +62,7 @@ export async function executePageAgentLlm(owner: Agent, pageAgentRequest: PageAg
   const provider = owner.options.provider
   const model = owner.options.model
   if (provider === undefined || model === undefined) {
-    throw new Error('PageAgent requires the owning BH agent to have a selected provider and model')
+    throw new Error('PageAgent requires the owning Hydra agent to have a selected provider and model')
   }
   const input = record(pageAgentRequest.request)
   if (input === undefined) throw new Error('PageAgent sent an invalid model request')

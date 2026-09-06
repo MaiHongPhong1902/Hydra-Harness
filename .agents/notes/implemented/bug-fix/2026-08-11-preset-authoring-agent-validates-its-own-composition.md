@@ -32,7 +32,7 @@ The agent reaches the roster service the way `cordis_mount` documents: a tempora
 
 The guidance keeps `${BH_HOME:-$HOME/.bh}/.agent-presets/` as the answer to "where do my presets live" while routing the path an agent actually reads or edits through `list()` or `resolve()`. Stating the path is right for talking to a person and wrong for feeding a file tool: a deployment may configure other roots, and `list()` cannot reveal a user root that holds nothing yet.
 
-That path is now a property of the package rather than of one launcher. `AgentPresets` derives `<bhHome>/.agent-presets` as a `user` root unless `includeUserRoot` is false, the way [`bh-skill-filesystem`](../../../../packages/skill/skill-filesystem/README.md) derives `<bhHome>/skills`, and `apps/cli` supplies only the SHIPPED root — the one path an installed app alone can resolve. The asymmetry it replaces cost a bug: with both roots patched in by one launcher, `bh run` booted a roster with no roots at all and failed resolving `standard` (fixed then by teaching every launcher the patch). The derived root is appended after every configured root, so a shipped id still shadows a home directory claiming it, and `writableRoot()` still prefers an explicitly configured `user` root. It is resolved once at construction: a root set that changed between a `list()` and the `copy()` acting on its answer would author into a directory the caller never saw.
+That path is now a property of the package rather than of one launcher. `AgentPresets` derives `<bhHome>/.agent-presets` as a `user` root unless `includeUserRoot` is false, the way [`@hydra/harness-skill-filesystem`](../../../../packages/skill/skill-filesystem/README.md) derives `<bhHome>/skills`, and `apps/cli` supplies only the SHIPPED root — the one path an installed app alone can resolve. The asymmetry it replaces cost a bug: with both roots patched in by one launcher, `bh run` booted a roster with no roots at all and failed resolving `standard` (fixed then by teaching every launcher the patch). The derived root is appended after every configured root, so a shipped id still shadows a home directory claiming it, and `writableRoot()` still prefers an explicitly configured `user` root. It is resolved once at construction: a root set that changed between a `list()` and the `copy()` acting on its answer would author into a directory the caller never saw.
 
 The prohibition on touching the shipped install is promoted from a paragraph inside the authoring steps to a top `## Off-limits` section, extended to cover editing the host composition as a workaround. The new self-validation calls do not weaken it: `copy()` refuses an id any root supplies, and `remove()` refuses a preset that ships with the deployment.
 
@@ -42,7 +42,7 @@ Each row was produced by booting the shipped Web composition and calling the too
 
 | Composition under test | `list()` `broken` | `standingKeyFor()` |
 |---|---|---|
-| row names an absent package | empty | `Cannot find package '@bosch/bh-does-not-exist'` |
+| row names an absent package | empty | `Cannot find package '@hydra/harness-does-not-exist'` |
 | service row with no realm, name the host supplies | empty | `service "tasks" has been registered at <LocalJobRegistry>` |
 | service row with no realm, name the host does not supply | empty | `row(s) published process-global service(s) [workflows]; …` |
 | same row inside `isolate` | empty | mounts |

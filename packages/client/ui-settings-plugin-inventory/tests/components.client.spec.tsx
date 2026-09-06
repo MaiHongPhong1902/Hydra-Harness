@@ -37,7 +37,7 @@ const NATIVE_SNAPSHOT = {
   entries: [
     {
       entryId: 'browser' as never,
-      moduleName: '@bosch/bh-browser-electron',
+      moduleName: '@hydra/harness-browser-electron',
       enabled: false,
       restartRequired: false,
       toggleable: true,
@@ -45,7 +45,7 @@ const NATIVE_SNAPSHOT = {
     },
     {
       entryId: 'settings' as never,
-      moduleName: '@bosch/bh-settings',
+      moduleName: '@hydra/harness-settings',
       enabled: true,
       restartRequired: false,
       toggleable: false,
@@ -93,10 +93,23 @@ function PluginInventorySettingsTab(props: PluginInventorySettingsTabProps) {
 }
 
 describe('PluginInventorySettingsTab', () => {
-  it('lists native BH plugins without imported bundle controls', async () => {
+  it('refreshes imported plugins when a retained tab is selected again', async () => {
+    const native = nativeControls()
+    const imported = importedControls()
+    vi.mocked(imported.list).mockResolvedValueOnce({ plugins: [] })
+    const props = { active: true, t, nativePlugins: native, importedPlugins: imported, query: '' } as PluginInventorySettingsTabProps
+    const view = render(<PluginInventorySettingsTab {...props} />)
+    await screen.findByText(en.importedPluginEmpty)
+    view.rerender(<PluginInventorySettingsTab {...props} active={false} />)
+    expect(imported.list).toHaveBeenCalledTimes(1)
+    view.rerender(<PluginInventorySettingsTab {...props} active />)
+    await screen.findByText('Toolkit')
+    expect(imported.list).toHaveBeenCalledTimes(2)
+  })
+  it('lists native Hydra plugins without imported bundle controls', async () => {
     const native = nativeControls()
     const { rerender } = render(
-      <PluginInventorySettingsTab {...({ t, nativePlugins: native, query: 'browser' } as PluginInventorySettingsTabProps)} />,
+      <PluginInventorySettingsTab {...({ active: true, t, nativePlugins: native, query: 'browser' } as PluginInventorySettingsTabProps)} />,
     )
 
     expect(await screen.findByRole('heading', { name: en.catalog })).toBeTruthy()
@@ -105,7 +118,7 @@ describe('PluginInventorySettingsTab', () => {
     expect(native.setEnabled).not.toHaveBeenCalled()
     fireEvent.click(screen.getByRole('button', { name: en.saveAll }))
     await waitFor(() => { expect(native.setEnabled).toHaveBeenCalledWith('browser', true) })
-    rerender(<PluginInventorySettingsTab {...({ t, nativePlugins: native, query: 'settings' } as PluginInventorySettingsTabProps)} />)
+    rerender(<PluginInventorySettingsTab {...({ active: true, t, nativePlugins: native, query: 'settings' } as PluginInventorySettingsTabProps)} />)
     await screen.findByText(en.requiredPlugin)
     expect(screen.queryByRole('switch', { name: `${en.disablePlugin} settings` })).toBeNull()
     expect(native.setEnabled).toHaveBeenCalledOnce()
@@ -116,7 +129,7 @@ describe('PluginInventorySettingsTab', () => {
   it('shows the core restart and preset new-session notices', async () => {
     const core = {
       entryId: 'typert-loader' as never,
-      moduleName: '@bosch/bh-typert-loader',
+      moduleName: '@hydra/harness-typert-loader',
       pluginType: 'core' as const,
       enabled: true,
       restartRequired: false,
@@ -125,7 +138,7 @@ describe('PluginInventorySettingsTab', () => {
     }
     const preset = {
       entryId: 'agent-preset:standard:tool-subagent' as never,
-      moduleName: '@bosch/bh-tool-subagent',
+      moduleName: '@hydra/harness-tool-subagent',
       enabled: true,
       presetId: 'standard',
       newSessionsOnly: true,
@@ -141,7 +154,7 @@ describe('PluginInventorySettingsTab', () => {
         return { snapshot, restartRequired: true }
       }),
     }
-    render(<PluginInventorySettingsTab {...({ t, nativePlugins: native, query: '' } as PluginInventorySettingsTabProps)} />)
+    render(<PluginInventorySettingsTab {...({ active: true, t, nativePlugins: native, query: '' } as PluginInventorySettingsTabProps)} />)
 
     expect(await screen.findByText(`${en.preset}: standard`)).toBeTruthy()
     expect(screen.getByText(en.newSessionsOnly)).toBeTruthy()
@@ -158,7 +171,7 @@ describe('PluginInventorySettingsTab', () => {
     const entries = [
       {
         entryId: 'agent-preset:standard:tool-subagent' as never,
-        moduleName: '@bosch/bh-tool-subagent',
+        moduleName: '@hydra/harness-tool-subagent',
         enabled: true,
         presetId: 'standard',
         newSessionsOnly: true,
@@ -168,7 +181,7 @@ describe('PluginInventorySettingsTab', () => {
       },
       {
         entryId: 'agent-preset:standard:tool-subagent-fork' as never,
-        moduleName: '@bosch/bh-tool-subagent',
+        moduleName: '@hydra/harness-tool-subagent',
         enabled: false,
         presetId: 'standard',
         newSessionsOnly: true,
@@ -181,10 +194,10 @@ describe('PluginInventorySettingsTab', () => {
       list: vi.fn(async () => ({ entries })),
       setEnabled: vi.fn(async () => ({ snapshot: { entries }, restartRequired: false })),
     }
-    const { container } = render(<PluginInventorySettingsTab {...({ t, nativePlugins: native, query: '' } as PluginInventorySettingsTabProps)} />)
+    const { container } = render(<PluginInventorySettingsTab {...({ active: true, t, nativePlugins: native, query: '' } as PluginInventorySettingsTabProps)} />)
 
     await screen.findByRole('switch', { name: `${en.disablePlugin} tool-subagent (standard: tool-subagent)` })
-    expect(container.querySelectorAll('[data-plugin-module="@bosch/bh-tool-subagent"]')).toHaveLength(1)
+    expect(container.querySelectorAll('[data-plugin-module="@hydra/harness-tool-subagent"]')).toHaveLength(1)
     expect(container.querySelectorAll('[data-plugin-entry]')).toHaveLength(2)
     expect(container.querySelector('[data-plugin-count]')?.getAttribute('data-plugin-count')).toBe('1')
     fireEvent.click(screen.getByRole('switch', { name: `${en.enablePlugin} tool-subagent (standard: tool-subagent-fork)` }))
@@ -197,7 +210,7 @@ describe('PluginInventorySettingsTab', () => {
   it('manages imported OpenAI/Codex plugins alongside native plugins', async () => {
     const native = nativeControls()
     const imported = importedControls()
-    render(<PluginInventorySettingsTab {...({ t, nativePlugins: native, importedPlugins: imported, query: '' } as PluginInventorySettingsTabProps)} />)
+    render(<PluginInventorySettingsTab {...({ active: true, t, nativePlugins: native, importedPlugins: imported, query: '' } as PluginInventorySettingsTabProps)} />)
 
     expect(await screen.findByText('Toolkit')).toBeTruthy()
     fireEvent.click(screen.getByRole('switch', { name: `${en.importedPluginEnable} Toolkit` }))
@@ -239,7 +252,7 @@ describe('PluginInventorySettingsTab', () => {
     const native = nativeControls()
     const imported: ImportedPluginControls = { ...importedControls(), list: vi.fn(async () => grouped) }
     const { rerender } = render(
-      <PluginInventorySettingsTab {...({ t, nativePlugins: native, importedPlugins: imported, query: '' } as PluginInventorySettingsTabProps)} />,
+      <PluginInventorySettingsTab {...({ active: true, t, nativePlugins: native, importedPlugins: imported, query: '' } as PluginInventorySettingsTabProps)} />,
     )
 
     expect(await screen.findByText('example-labs')).toBeTruthy()
@@ -248,7 +261,7 @@ describe('PluginInventorySettingsTab', () => {
     expect(screen.getByText('Other')).toBeTruthy()
 
     rerender(
-      <PluginInventorySettingsTab {...({ t, nativePlugins: native, importedPlugins: imported, query: 'toolkit' } as PluginInventorySettingsTabProps)} />,
+      <PluginInventorySettingsTab {...({ active: true, t, nativePlugins: native, importedPlugins: imported, query: 'toolkit' } as PluginInventorySettingsTabProps)} />,
     )
     await waitFor(() => { expect(screen.queryByText('Other')).toBeNull() })
     expect(screen.queryByText('other')).toBeNull()
@@ -292,7 +305,7 @@ const MARKETPLACE_SNAPSHOT = {
 describe('ImportedPluginCapabilitiesTab', () => {
   it('groups a marketplace plugin\'s skills under its owner, example-labs', async () => {
     const list = vi.fn(async () => MARKETPLACE_SNAPSHOT)
-    render(<ImportedPluginCapabilitiesTab {...({ t, list, capability: 'skills', query: '' } as ImportedPluginCapabilitiesTabProps)} />)
+    render(<ImportedPluginCapabilitiesTab {...({ active: true, t, list, capability: 'skills', query: '' } as ImportedPluginCapabilitiesTabProps)} />)
 
     expect(await screen.findByText('example-labs')).toBeTruthy()
     expect(screen.getByText('toolkit-lint')).toBeTruthy()
@@ -304,7 +317,7 @@ describe('ImportedPluginCapabilitiesTab', () => {
     const trusted = { plugins: [{ ...MARKETPLACE_SNAPSHOT.plugins[0], hookTrustState: 'trusted' as const }] }
     const trust = vi.fn(async () => trusted)
     const untrust = vi.fn(async () => trusted)
-    render(<ImportedPluginCapabilitiesTab {...({ t, list, trust, untrust, capability: 'hooks', query: '' } as ImportedPluginCapabilitiesTabProps)} />)
+    render(<ImportedPluginCapabilitiesTab {...({ active: true, t, list, trust, untrust, capability: 'hooks', query: '' } as ImportedPluginCapabilitiesTabProps)} />)
 
     expect(await screen.findByText('example-labs')).toBeTruthy()
     expect(screen.getByText('PreToolUse')).toBeTruthy()
@@ -313,11 +326,11 @@ describe('ImportedPluginCapabilitiesTab', () => {
     await waitFor(() => { expect(trust).toHaveBeenCalledWith('toolkit@ex1') })
     expect(await screen.findByRole('button', { name: en.importedPluginUntrust })).toBeTruthy()
   })
-  it('keeps skills and hook trust in their own tabs', async () => {
+  it('keeps skills and hook trust in their own catalogs', async () => {
     const list = vi.fn(async () => SNAPSHOT)
     const trust = vi.fn(async () => SNAPSHOT)
-    const skills = { t, list, capability: 'skills', query: '' } as ImportedPluginCapabilitiesTabProps
-    const hooks = { t, list, capability: 'hooks', trust, query: '' } as ImportedPluginCapabilitiesTabProps
+    const skills = { active: true, t, list, capability: 'skills', query: '' } as ImportedPluginCapabilitiesTabProps
+    const hooks = { active: true, t, list, capability: 'hooks', trust, query: '' } as ImportedPluginCapabilitiesTabProps
     const { rerender } = render(<ImportedPluginCapabilitiesTab {...skills} />)
 
     expect(await screen.findByText('toolkit-help')).toBeTruthy()
@@ -330,7 +343,7 @@ describe('ImportedPluginCapabilitiesTab', () => {
 
   it('filters rows by the shared query and groups them by marketplace owner', async () => {
     const list = vi.fn(async () => SNAPSHOT)
-    const skills = { t, list, capability: 'skills', query: '' } as ImportedPluginCapabilitiesTabProps
+    const skills = { active: true, t, list, capability: 'skills', query: '' } as ImportedPluginCapabilitiesTabProps
     const { rerender } = render(<ImportedPluginCapabilitiesTab {...skills} />)
 
     expect(await screen.findByRole('heading', { name: 'toolkit', level: 4 })).toBeTruthy()

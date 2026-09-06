@@ -1,16 +1,16 @@
-# @bosch/bh-acp-demo
+# @hydra/harness-acp-demo
 
-ACP automation server app: the default agent spine, client-created agents through [`@bosch/bh-acp`](../../acp/acp/README.md), JSONL persistence, and semantic checkpointing behind one JSON-RPC stdio bin. Programmatic clients create fresh sessions; this package mounts no human UI.
+ACP automation server app: the default agent spine, client-created agents through [`@hydra/harness-acp`](../../acp/acp/README.md), JSONL persistence, and semantic checkpointing behind one JSON-RPC stdio bin. Programmatic clients create fresh sessions; this package mounts no human UI.
 
 ## Composition
 
 | Plugin | Role |
 |---|---|
-| `@bosch/bh-agent-spine-demo` | Providerless agent spine with no pre-created agents; `session/new` creates each agent. |
-| `@bosch/bh-session-persistence-jsonl` | Durable session logs used by checkpointing, observability, and snapshot replay. |
-| `@bosch/bh-session-checkpoint-policy` | Durability barriers before model calls and top-level tool effects, plus completed-step checkpoints. |
-| `@bosch/bh-session-query-sqlite` | Derived exact/FTS session-query service, opened before the ACP transport so leaf consumers are ready for the first model request. |
-| `@bosch/bh-acp` | Automation-only ACP transport over stdin/stdout. |
+| `@hydra/harness-agent-spine-demo` | Providerless agent spine with no pre-created agents; `session/new` creates each agent. |
+| `@hydra/harness-session-persistence-jsonl` | Durable session logs used by checkpointing, observability, and snapshot replay. |
+| `@hydra/harness-session-checkpoint-policy` | Durability barriers before model calls and top-level tool effects, plus completed-step checkpoints. |
+| `@hydra/harness-session-query-sqlite` | Derived exact/FTS session-query service, opened before the ACP transport so leaf consumers are ready for the first model request. |
+| `@hydra/harness-acp` | Automation-only ACP transport over stdin/stdout. |
 
 The app does not install commands, user interaction, session navigation, configuration pickers, or a stdout logger. It owns these plugins through one ordered effect so the query service is ready before ACP accepts work and ACP sessions quiesce before checkpointing and persistence detach. Leaf configurations supply LLM, executor, sandbox, approval, filesystem, and model-facing tool plugins.
 
@@ -21,8 +21,8 @@ The app does not install commands, user interaction, session navigation, configu
 | `provider` | required | Provider route for each ACP-created agent. |
 | `model` | required | Model for each ACP-created agent. |
 | `maxParallelToolCalls` | agent-loop default | Positive-integer tool-call concurrency cap; `1` is serial. |
-| `persona` | — | Deployment persona template for `bh-system-prompt`. |
-| `toolOrder` | lexicographic | Explicit model-facing tool order for `bh-system-prompt`. |
+| `persona` | — | Deployment persona template for `@hydra/harness-system-prompt`. |
+| `toolOrder` | lexicographic | Explicit model-facing tool order for `@hydra/harness-system-prompt`. |
 | `tools` | `{ mode: 'native' }` | Native, Code Mode, or combined model tool transport. |
 | `bhHome` | `$BH_HOME` or `~/.bh` | Harness home shared by bash and local skill discovery. |
 | `sessionTitle` | spine example limits | Durable fallback-title limits; titles remain off the ACP wire. |
@@ -44,7 +44,7 @@ The shipped [`examples/acp-agent/cordis.yml`](../../../examples/acp-agent/cordis
 
 ## Model Experience
 
-Indirectly, through `bh-agent-spine-demo` and the leaf's model-facing plugins. ACP prompt text becomes the ordinary logged user message; protocol metadata and permission choices do not enter the model request.
+Indirectly, through `@hydra/harness-agent-spine-demo` and the leaf's model-facing plugins. ACP prompt text becomes the ordinary logged user message; protocol metadata and permission choices do not enter the model request.
 
 #### KV Cache effect
 

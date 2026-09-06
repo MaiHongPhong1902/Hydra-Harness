@@ -1,13 +1,13 @@
 /** The `web-search-deepseek` settings section layered over the composition entry. */
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import type { Fiber } from '@bosch/cordis'
-import { SettingsProvider } from '@bosch/bh-settings'
-import type { SettingsNamespace } from '@bosch/bh-settings'
-import WebRuntime from '@bosch/bh-web'
-import * as deepseekPlugin from '@bosch/bh-web-search-deepseek'
-import { WEB_SEARCH_DEEPSEEK_SETTINGS_NAMESPACE } from '@bosch/bh-web-search-deepseek'
+import { Context } from '@hydra/cordis'
+import type { Fiber } from '@hydra/cordis'
+import { SettingsProvider } from '@hydra/harness-settings'
+import type { SettingsNamespace } from '@hydra/harness-settings'
+import WebRuntime from '@hydra/harness-web'
+import * as deepseekPlugin from '@hydra/harness-web-search-deepseek'
+import { WEB_SEARCH_DEEPSEEK_SETTINGS_NAMESPACE } from '@hydra/harness-web-search-deepseek'
 
 /** The smallest real provider: one in-memory document, always writable. */
 class MemorySettings extends SettingsProvider {

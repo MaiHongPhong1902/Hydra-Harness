@@ -4,7 +4,7 @@
  * sends, what an edit withholds, and what each live state reads as.
  */
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import type { McpServerSnapshot } from '@bosch/bh-api-remotes/client'
+import type { McpServerSnapshot } from '@hydra/harness-api-remotes/client'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { McpServerCatalog, type UserMcpControls } from '../src/client/McpServerCatalog.tsx'
 import { en, type PluginsSettingsLocaleKey } from '../src/client/locales.ts'
@@ -43,6 +43,19 @@ function controls(overrides: Partial<UserMcpControls> = {}): UserMcpControls {
 }
 
 describe('McpServerCatalog', () => {
+  it('keeps an existing running server untouched when Add repeats its name', async () => {
+    const face = controls({ list: vi.fn(async () => RUNNING) })
+    render(<McpServerCatalog controls={face} query="" t={t} />)
+    await screen.findByText('notes')
+    fireEvent.click(screen.getByRole('button', { name: en.userMcpAdd }))
+    const dialog = screen.getByRole('dialog')
+    fireEvent.change(within(dialog).getByLabelText(en.userMcpName), { target: { value: ' notes ' } })
+    fireEvent.change(within(dialog).getByLabelText(en.userMcpCommand), { target: { value: 'replacement' } })
+    fireEvent.click(within(dialog).getByRole('button', { name: en.userMcpSave }))
+    expect(within(dialog).getByRole('alert').textContent).toBe(en.userMcpNameTaken)
+    expect(face.define).not.toHaveBeenCalled()
+    expect(screen.getByRole('switch', { name: `${en.disable} notes` }).getAttribute('aria-checked')).toBe('true')
+  })
   it('saves a stdio server with its arguments and environment', async () => {
     const face = controls()
     render(<McpServerCatalog controls={face} query="" t={t} />)
@@ -62,6 +75,7 @@ describe('McpServerCatalog', () => {
 
     await waitFor(() => {
       expect(face.define).toHaveBeenCalledWith({
+        mode: 'create',
         name: 'notes',
         transport: 'stdio',
         command: 'node',
@@ -94,6 +108,7 @@ describe('McpServerCatalog', () => {
 
     await waitFor(() => {
       expect(face.define).toHaveBeenCalledWith({
+        mode: 'create',
         name: 'remote',
         transport: 'streamable-http',
         url: 'https://mcp.example.test/v1',
@@ -115,6 +130,7 @@ describe('McpServerCatalog', () => {
 
     await waitFor(() => { expect(face.define).toHaveBeenCalledTimes(1) })
     expect(vi.mocked(face.define).mock.calls[0]?.[0]).not.toHaveProperty('env')
+    expect(vi.mocked(face.define).mock.calls[0]?.[0].mode).toBe('replace')
   })
 
   it('blocks the save when an assignment line carries no name', async () => {

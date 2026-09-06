@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-bash-local`.
- * @module @bosch/bh-bash-local/invariant
+ * Package-owned invariant companion for `@hydra/harness-bash-local`.
+ * @module @hydra/harness-bash-local/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-bash-local'
+const PACKAGE_NAME = '@hydra/harness-bash-local'
 
 /** Cordis companion plugin name. */
 export const name = 'bash-local-invariant'

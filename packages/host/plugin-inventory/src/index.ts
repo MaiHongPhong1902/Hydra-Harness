@@ -5,23 +5,23 @@ import { lstat, mkdtemp, readFile, realpath, rm, stat } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { basename, dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { Service, type Context, type FiberState } from '@bosch/cordis'
-import type { Entry } from '@bosch/cordis-plugin-loader'
-import type { Include } from '@bosch/cordis-plugin-include'
-import { profilePluginEnablement, readProfileManifest, resolveProfileDir } from '@bosch/bh-app-boot'
-import { withFileLock, writeFileAtomic } from '@bosch/bh-atomic-write'
-import { settingsNamespace, type SettingsScope } from '@bosch/bh-settings'
-import { TypertRemoteService, Remote } from '@bosch/bh-typert-protocol'
+import { Service, type Context, type FiberState } from '@hydra/cordis'
+import type { Entry } from '@hydra/cordis-plugin-loader'
+import type { Include } from '@hydra/cordis-plugin-include'
+import { profilePluginEnablement, readProfileManifest, resolveProfileDir } from '@hydra/harness-app-boot'
+import { withFileLock, writeFileAtomic } from '@hydra/harness-atomic-write'
+import { settingsNamespace, type SettingsScope } from '@hydra/harness-settings'
+import { TypertRemoteService, Remote } from '@hydra/harness-typert-protocol'
 import type {
   ImportedPluginEntry, ImportedPluginRuntime, ImportedPluginSnapshot, PluginImportSource,
-} from '@bosch/bh-plugin-runtime'
+} from '@hydra/harness-plugin-runtime'
 import type {
   HookRecordDefinitionRequest, HookRecordEnablementRequest, HookRecordRegistry, HookRecordSnapshot,
-} from '@bosch/bh-hooks-registry'
+} from '@hydra/harness-hooks-registry'
 import type {
   McpServerDefinitionRequest, McpServerEnablementRequest, McpServerRegistry, McpServerSnapshot,
-} from '@bosch/bh-mcp-registry'
-import z from '@bosch/schemastery'
+} from '@hydra/harness-mcp-registry'
+import z from '@hydra/schemastery'
 import { z as zod } from 'zod'
 import type {
   AddPluginMarketplaceRequest,
@@ -39,7 +39,7 @@ import type {
 
 export type * from './types.ts'
 
-declare module '@bosch/cordis-plugin-loader' {
+declare module '@hydra/cordis-plugin-loader' {
   interface EntryOptions {
     /** Core plugins change only on restart; omitted means normal. */
     pluginType?: 'core' | 'normal'
@@ -75,7 +75,7 @@ const FIBER_PHASE = {
 
 const PLUGIN_SETTINGS_NAMESPACE = settingsNamespace('plugins')
 const MARKETPLACE_SETTINGS_NAMESPACE = settingsNamespace('plugin-marketplaces')
-const HMR_MODULE = '@bosch/cordis-plugin-hmr'
+const HMR_MODULE = '@hydra/cordis-plugin-hmr'
 const AGENT_PRESET_ENTRY_PREFIX = 'agent-preset:'
 const MAX_MARKETPLACE_BYTES = 1024 * 1024
 const MARKETPLACE_GIT_TIMEOUT_MS = 30_000
@@ -867,7 +867,7 @@ export class PluginInventoryGateway extends TypertRemoteService {
   }
 
   /**
-   * Enable and load one imported bundle without changing native BH package state.
+   * Enable and load one imported bundle without changing native Hydra package state.
    * @param identityOrName - Source-qualified identity or unambiguous plugin name.
    * @returns Current imported-plugin projection.
    */

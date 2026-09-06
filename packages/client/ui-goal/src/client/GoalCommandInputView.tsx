@@ -1,6 +1,6 @@
 import { memo } from 'react'
-import { MessageText } from '@bosch/bh-client-ui-primitives'
-import type { PropsLocale, PropsRuntime } from '@bosch/bh-client-ui-slots'
+import { MessageText } from '@hydra/harness-client-ui-primitives'
+import type { PropsLocale, PropsRuntime } from '@hydra/harness-client-ui-slots'
 import type { GoalCommandInputData } from './goal-command-input.ts'
 import css from './GoalCommandInputView.module.css'
 

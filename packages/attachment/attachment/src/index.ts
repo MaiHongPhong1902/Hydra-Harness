@@ -1,6 +1,6 @@
-/** Durable attachment storage seam (`ctx.attachments`). @module @bosch/bh-attachment */
+/** Durable attachment storage seam (`ctx.attachments`). @module @hydra/harness-attachment */
 
-import { Context, Service } from '@bosch/cordis'
+import { Context, Service } from '@hydra/cordis'
 import { AttachmentError } from './error.ts'
 import type {
   ImageAttachmentLimits,
@@ -23,7 +23,7 @@ export type {
   StoredImageAttachment,
 } from './types.ts'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     attachments: AttachmentStore
   }

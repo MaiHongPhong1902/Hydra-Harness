@@ -3,10 +3,10 @@
  * text the model programs against (the `tools:sdk` prompt section). Sibling of
  * `json-schema.ts` — `schemas()` (native function calling) and this module (the generated
  * `declare const tools` API) are two projections of the same store.
- * @module @bosch/bh-tools/src/ts-types
+ * @module @hydra/harness-tools/src/ts-types
  */
 
-import type { ToolSchema } from '@bosch/bh-llm'
+import type { ToolSchema } from '@hydra/harness-llm'
 import { assertSupportedJsonSchema } from './json-schema.ts'
 import type { JsonSchemaNode, JsonSchemaScalar } from './json-schema.ts'
 /** Internal Code Mode projection: the model-facing schema plus the canonical output schema. */

@@ -10,16 +10,16 @@
  * VM-realm schemas and canonical values are rebuilt as host objects, while rendered content and
  * presentation metadata are shape-checked before entering the registry. Common JSON-Schema spellings are normalized when they
  * have one meaning; invalid vocabulary fails during registration with a teaching error.
- * @module @bosch/bh-cordis-host-runner/guard
+ * @module @hydra/harness-cordis-host-runner/guard
  */
 
-import { Context } from '@bosch/cordis'
-import type { Plugin } from '@bosch/cordis'
-import { scopeOf } from '@bosch/bh-scope'
-import { assertSupportedJsonSchema, defineTool } from '@bosch/bh-tools'
-import type { ToolDefinition } from '@bosch/bh-tools'
-import type { ContentBlock } from '@bosch/bh-llm'
-import type { JsonValue } from '@bosch/bh-session'
+import { Context } from '@hydra/cordis'
+import type { Plugin } from '@hydra/cordis'
+import { scopeOf } from '@hydra/harness-scope'
+import { assertSupportedJsonSchema, defineTool } from '@hydra/harness-tools'
+import type { ToolDefinition } from '@hydra/harness-tools'
+import type { ContentBlock } from '@hydra/harness-llm'
+import type { JsonValue } from '@hydra/harness-session'
 
 const DYNAMIC_TOOL = Symbol('cordis-host-runner.dynamic-tool')
 const SCHEMA_TYPES = new Set<unknown>(['string', 'number', 'integer', 'boolean', 'null', 'object', 'array', 'json'])
@@ -744,7 +744,7 @@ function sandboxContext(ctx: Context, reportFailure: (error: Error) => void): Co
   }
   const get = (name: string): unknown => readService(name, false)
   // The browser half builds the same façade over its own Context
-  // (`@bosch/bh-cordis-client-runner`, whose CTX_VERBS names this one its
+  // (`@hydra/harness-cordis-client-runner`, whose CTX_VERBS names this one its
   // twin), and the sameness is the point: a package author meets ONE contract on
   // both halves. Folding them together is not available — the two halves compile
   // in separate programs where `Context` merges different service keys — so the

@@ -1,9 +1,9 @@
 import { useEffect, useId, useMemo, useState, type ReactNode } from 'react'
 import type {
   ImportedPluginSnapshot, PluginEnablementResult, PluginImportSource, PluginInventorySnapshot,
-} from '@bosch/bh-api-remotes/client'
-import { Button, Switch } from '@bosch/bh-client-ui-primitives'
-import type { HostObservable, InjectFace, PropsLocale, PropsRuntime } from '@bosch/bh-client-ui-slots'
+} from '@hydra/harness-api-remotes/client'
+import { Button, Switch } from '@hydra/harness-client-ui-primitives'
+import type { HostObservable, InjectFace, PropsLocale, PropsRuntime } from '@hydra/harness-client-ui-slots'
 import type { InventoryDraftState } from './inventory-controller.ts'
 import { groupByOwner, matchesQuery } from './marketplace-owner.ts'
 import type { PluginInventoryLocaleKey } from './locales.ts'
@@ -25,7 +25,7 @@ export interface NativePluginControls {
 export interface ImportedPluginControls {
   /** Read imported OpenAI/Codex bundle state. */
   list: () => Promise<ImportedPluginSnapshot>
-  /** Import one direct source or marketplace entry into the BH home. */
+  /** Import one direct source or marketplace entry into the Hydra home. */
   import: (source: PluginImportSource) => Promise<ImportedPluginSnapshot>
   enable: (identity: string) => Promise<ImportedPluginSnapshot>
   disable: (identity: string) => Promise<ImportedPluginSnapshot>
@@ -81,17 +81,18 @@ function moduleShortName(moduleName: string): string {
   return unscoped
     .replace(/^cordis:/, '')
     .replace(/^cordis-plugin-/, '')
-    .replace(/^bh-(?:host-|client-)?/, '')
+    .replace(/^harness-(?:host-|client-)?/, '')
 }
 
 /** Render the deployment's plugin inventory and its safe in-app controls. */
 function NativePluginCatalog({
+  active,
   nativePlugins,
   onRestartRequiredChange,
   query,
   t,
   drafts,
-}: Pick<PluginInventorySettingsTabProps, 'nativePlugins' | 't'> & {
+}: Pick<PluginInventorySettingsTabProps, 'nativePlugins' | 't' | 'active'> & {
   onRestartRequiredChange: (required: boolean) => void
   query: string
   drafts: InventoryDraftState
@@ -105,6 +106,7 @@ function NativePluginCatalog({
   const [mutationFailed, setMutationFailed] = useState(false)
 
   useEffect(() => {
+    if (!active) return undefined
     if (nativePlugins === undefined) {
       setState({ status: 'unavailable' })
       onRestartRequiredChange(false)
@@ -123,7 +125,7 @@ function NativePluginCatalog({
       () => { if (current) setState({ status: 'error' }) },
     )
     return () => { current = false }
-  }, [nativePlugins, onRestartRequiredChange, request, drafts.revision])
+  }, [active, nativePlugins, onRestartRequiredChange, request, drafts.revision])
 
   const normalizedQuery = query.trim().toLocaleLowerCase()
   const groups = useMemo(
@@ -259,7 +261,7 @@ function NativePluginCatalog({
 
 /** Render OpenAI/Codex bundle lifecycle controls without duplicating capability settings. */
 function ImportedPluginCatalog(
-  { importedPlugins, query, t, drafts }: { importedPlugins: ImportedPluginControls; query: string; t: PluginInventorySettingsTabProps['t']; drafts: InventoryDraftState },
+  { active = true, importedPlugins, query, t, drafts }: { active?: boolean; importedPlugins: ImportedPluginControls; query: string; t: PluginInventorySettingsTabProps['t']; drafts: InventoryDraftState },
 ): ReactNode {
   const sourceId = useId()
   const [request, setRequest] = useState(0)
@@ -268,6 +270,7 @@ function ImportedPluginCatalog(
   const [mutationFailed, setMutationFailed] = useState(false)
 
   useEffect(() => {
+    if (!active) return undefined
     let current = true
     setState({ status: 'loading' })
     void importedPlugins.list().then(
@@ -275,7 +278,7 @@ function ImportedPluginCatalog(
       () => { if (current) setState({ status: 'error' }) },
     )
     return () => { current = false }
-  }, [importedPlugins, request, drafts.revision])
+  }, [active, importedPlugins, request, drafts.revision])
 
   const normalizedQuery = query.trim().toLocaleLowerCase()
   const groups = useMemo(
@@ -352,9 +355,9 @@ function ImportedPluginCatalog(
   )
 }
 
-/** Render native BH plugins together with imported OpenAI/Codex bundles: everything the agent can use. */
+/** Render native Hydra plugins together with imported OpenAI/Codex bundles: everything the agent can use. */
 export function PluginInventorySettingsTab(
-  { nativePlugins, importedPlugins, query, t, usePluginDrafts, savePlugins, discardPluginChanges }: PluginInventorySettingsTabProps,
+  { active, nativePlugins, importedPlugins, query, t, usePluginDrafts, savePlugins, discardPluginChanges }: PluginInventorySettingsTabProps,
 ): ReactNode {
   const [restartRequired, setRestartRequired] = useState(false)
   const drafts = usePluginDrafts(value => value)
@@ -363,10 +366,10 @@ export function PluginInventorySettingsTab(
   return (
     <div className={css.section}>
       <NativePluginCatalog
-        nativePlugins={nativePlugins} onRestartRequiredChange={setRestartRequired} query={query} t={t} drafts={drafts}
+        active={active} nativePlugins={nativePlugins} onRestartRequiredChange={setRestartRequired} query={query} t={t} drafts={drafts}
       />
       {importedPlugins === undefined ? null : (
-        <ImportedPluginCatalog importedPlugins={importedPlugins} query={query} t={t} drafts={drafts} />
+        <ImportedPluginCatalog active={active} importedPlugins={importedPlugins} query={query} t={t} drafts={drafts} />
       )}
       <div className={css.saveFooter}>
         {drafts.error === null ? null : <p className={css.mutationFailure} role="alert">{t('saveError')} {drafts.error}</p>}

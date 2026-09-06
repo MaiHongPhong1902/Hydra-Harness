@@ -4,13 +4,13 @@ import { afterEach, describe, expect, it } from 'vitest'
 import type {
   ChatConversationViewNode, ChatSnapshot, ConversationEventInput,
   ConversationNodeDefinition, ConversationViewDefinition,
-} from '@bosch/bh-client-runtime/client'
-import { ConversationNodeAssembler } from '@bosch/bh-client-runtime/client'
-import { makeTranslate } from '@bosch/bh-client-test-runtime'
-import { en as commonEn } from '@bosch/bh-client-locale/src/locales/en.ts'
-import type { SessionEvent } from '@bosch/bh-session/types'
-import { commandDefinition } from '@bosch/bh-client-ui-conversation/src/client/conversation-nodes/command.ts'
-import { chatViewDefinition } from '@bosch/bh-client-ui-conversation/src/client/conversation-nodes/chat-snapshot-builder.ts'
+} from '@hydra/harness-client-runtime/client'
+import { ConversationNodeAssembler } from '@hydra/harness-client-runtime/client'
+import { makeTranslate } from '@hydra/harness-client-test-runtime'
+import { en as commonEn } from '@hydra/harness-client-locale/src/locales/en.ts'
+import type { SessionEvent } from '@hydra/harness-session/types'
+import { commandDefinition } from '@hydra/harness-client-ui-conversation/src/client/conversation-nodes/command.ts'
+import { chatViewDefinition } from '@hydra/harness-client-ui-conversation/src/client/conversation-nodes/chat-snapshot-builder.ts'
 import { GoalCommandInputView } from '../src/client/GoalCommandInputView.tsx'
 import {
   goalCommandInputDefinition, goalCommandText,

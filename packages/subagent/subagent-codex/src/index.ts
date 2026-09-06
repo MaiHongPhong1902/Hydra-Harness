@@ -3,12 +3,12 @@
  * fresh official package-local Codex wrapper with `app-server --stdio` in the
  * delegating Session's workspace and publishes only after an ephemeral thread exists.
  *
- * @module @bosch/bh-subagent-codex
+ * @module @hydra/harness-subagent-codex
  */
 
-import type { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import { MAX_TIMER_DELAY_MS } from '@bosch/bh-timeout'
+import type { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import { MAX_TIMER_DELAY_MS } from '@hydra/harness-timeout'
 import {
   assertPositiveFinite,
   NO_START_CAPABILITIES,
@@ -16,7 +16,7 @@ import {
   type ResolvedSubagentStartRequest,
   type SubagentCapabilities,
   type SubagentProvider,
-} from '@bosch/bh-subagent'
+} from '@hydra/harness-subagent'
 import {
   CODEX_PERMISSION_MODES,
   DEFAULT_CODEX_PERMISSION_MODE,

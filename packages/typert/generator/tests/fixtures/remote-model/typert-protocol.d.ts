@@ -1,4 +1,4 @@
-declare module '@bosch/bh-typert-protocol' {
+declare module '@hydra/harness-typert-protocol' {
   export interface TypertLookup<Host, Wire> {
     readonly host: Host
     readonly wire: Wire

@@ -1,17 +1,17 @@
 /**
  * Durable, lifecycle-bound feedback for finalized assistant messages.
- * @module @bosch/bh-message-feedback
+ * @module @hydra/harness-message-feedback
  */
 
 import { Buffer } from 'node:buffer'
 import { randomUUID } from 'node:crypto'
-import { Context, Service } from '@bosch/cordis'
-import s from '@bosch/schemastery'
-import { deriveEventMessage, isAppendSurfaceEvent } from '@bosch/bh-session/surface'
-import type { SessionHeader, SessionId } from '@bosch/bh-session/types'
-import type { SessionInspection } from '@bosch/bh-session-persistence'
-import type { KvTable } from '@bosch/bh-storage-domain'
-import { TypertRemoteService, Remote } from '@bosch/bh-typert-protocol'
+import { Context, Service } from '@hydra/cordis'
+import s from '@hydra/schemastery'
+import { deriveEventMessage, isAppendSurfaceEvent } from '@hydra/harness-session/surface'
+import type { SessionHeader, SessionId } from '@hydra/harness-session/types'
+import type { SessionInspection } from '@hydra/harness-session-persistence'
+import type { KvTable } from '@hydra/harness-storage-domain'
+import { TypertRemoteService, Remote } from '@hydra/harness-typert-protocol'
 import { messageFeedbackDomainSpec } from './spec.ts'
 import type { MessageFeedbackRow, MessageFeedbackSessionIdentity } from './spec.ts'
 import type {
@@ -51,7 +51,7 @@ export interface Config {
   readonly maxNoteBytes: number
 }
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     messageFeedback: MessageFeedbackService
   }

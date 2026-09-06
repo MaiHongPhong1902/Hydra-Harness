@@ -12,7 +12,7 @@ import type {
   RequestView,
   ToolCallBlock,
   ToolResultNode,
-} from '@bosch/bh-client-runtime/client'
+} from '@hydra/harness-client-runtime/client'
 import type {
   TrajectoryCellProps,
   TrajectorySourceBlock,

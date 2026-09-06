@@ -2,22 +2,22 @@
  * Bridge for unmodified Claude Code command hooks on harness interception
  * extension points. It supports SessionStart, prompt/tool pre/post, Stop, and subagent
  * start/stop. It owns Claude payloads, environment, substitution, and decision
- * mapping; shared execution and parsing live in `bh-hook-protocol`.
+ * mapping; shared execution and parsing live in `@hydra/harness-hook-protocol`.
  * `updatedInput` is logged and warned but not honored. Bespoke behavior should
  * use typed native plugins on the same extension points; see the
  * [hook-bridges Agent Note](../../../../.agents/notes/implemented/feature/2026-06-30-hook-bridges.md).
- * @module @bosch/bh-hooks-claude-code
+ * @module @hydra/harness-hooks-claude-code
  */
 
 import { readFileSync } from 'node:fs'
-import type { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import type { Agent, PreStepDecision } from '@bosch/bh-agent'
-import { createUserMessage } from '@bosch/bh-llm'
-import type { ContentBlock, MessageSource } from '@bosch/bh-llm'
-import type { UserMessage } from '@bosch/bh-session'
-import type {} from '@bosch/bh-session-persistence'
-import type { PostToolDecision, PreToolDecision, ToolExecution, ToolExecutionResult } from '@bosch/bh-tools'
+import type { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import type { Agent, PreStepDecision } from '@hydra/harness-agent'
+import { createUserMessage } from '@hydra/harness-llm'
+import type { ContentBlock, MessageSource } from '@hydra/harness-llm'
+import type { UserMessage } from '@hydra/harness-session'
+import type {} from '@hydra/harness-session-persistence'
+import type { PostToolDecision, PreToolDecision, ToolExecution, ToolExecutionResult } from '@hydra/harness-tools'
 import {
   appendHookInvoked,
   appendHookResult,
@@ -30,10 +30,10 @@ import {
   type HookOutput,
   type MatcherGroup,
   type MergedHookOutcome,
-} from '@bosch/bh-hook-protocol'
+} from '@hydra/harness-hook-protocol'
 // Pulls in the declaration-merged subagent events and the identity pairing their
 // start/end edges.
-import type { SubagentRunId } from '@bosch/bh-subagent'
+import type { SubagentRunId } from '@hydra/harness-subagent'
 import { parseClaudeCodeConfig, type ClaudeCodeHookConfig } from './config.ts'
 
 export const name = 'hooks-claude-code'

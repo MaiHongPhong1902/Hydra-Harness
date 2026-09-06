@@ -1,12 +1,12 @@
 import type {
   ChatConversationViewNode, ConversationLocation, ConversationNodeContext,
   ConversationNodeDefinition,
-} from '@bosch/bh-client-runtime/client'
-import type { SessionId } from '@bosch/bh-session/types'
+} from '@hydra/harness-client-runtime/client'
+import type { SessionId } from '@hydra/harness-session/types'
 import type {
   ToolWorkflowAgentEndData, ToolWorkflowAgentStartData,
-} from '@bosch/bh-tool-workflow/types'
-import type { WorkflowAgentOutcome, WorkflowStopReason } from '@bosch/bh-workflow/types'
+} from '@hydra/harness-tool-workflow/types'
+import type { WorkflowAgentOutcome, WorkflowStopReason } from '@hydra/harness-workflow/types'
 
 /** Status shown for a workflow, phase, or member. */
 export type WorkflowRunStatus = 'running' | 'completed' | 'failed' | 'cancelled' | 'interrupted'
@@ -34,7 +34,7 @@ export interface WorkflowRunChatData {
   readonly phases: readonly WorkflowRunPhaseData[]
 }
 
-declare module '@bosch/bh-client-ui-conversation/client' {
+declare module '@hydra/harness-client-ui-conversation/client' {
   interface ChatNodeDataMap {
     /** Durable top-level workflow run and all members that actually started. */
     'workflow-run': WorkflowRunChatData

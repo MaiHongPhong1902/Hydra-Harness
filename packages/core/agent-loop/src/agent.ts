@@ -14,9 +14,9 @@ import type {
   InboxTarget,
   PreStepDecision,
   RequestErrorAction,
-} from '@bosch/bh-agent'
-import { Inbox, agentEvents, assembleContextFor } from '@bosch/bh-agent'
-import type { GenerateOptions, LlmCallConfig, Message, PreparedLlmCall } from '@bosch/bh-llm'
+} from '@hydra/harness-agent'
+import { Inbox, agentEvents, assembleContextFor } from '@hydra/harness-agent'
+import type { GenerateOptions, LlmCallConfig, Message, PreparedLlmCall } from '@hydra/harness-llm'
 import {
   BlockAssembler,
   LlmError,
@@ -24,14 +24,14 @@ import {
   deepFreeze,
   errorChain,
   markAgentLoopRequest,
-} from '@bosch/bh-llm'
-import type { Scope } from '@bosch/bh-scope'
-import { createScope } from '@bosch/bh-scope'
-import type { EpochHeader, RequestContext, Session, SessionId, TurnEndReason, UserMessage } from '@bosch/bh-session'
-import { canonicalHeader, headerEquals } from '@bosch/bh-session'
-import { joinContextSections, renderContextSections, renderPrompt } from '@bosch/bh-system-prompt'
-import type { PromptAssembly } from '@bosch/bh-system-prompt'
-import type { Context } from '@bosch/cordis'
+} from '@hydra/harness-llm'
+import type { Scope } from '@hydra/harness-scope'
+import { createScope } from '@hydra/harness-scope'
+import type { EpochHeader, RequestContext, Session, SessionId, TurnEndReason, UserMessage } from '@hydra/harness-session'
+import { canonicalHeader, headerEquals } from '@hydra/harness-session'
+import { joinContextSections, renderContextSections, renderPrompt } from '@hydra/harness-system-prompt'
+import type { PromptAssembly } from '@hydra/harness-system-prompt'
+import type { Context } from '@hydra/cordis'
 import { RuntimeContextProjection } from './runtime-context.ts'
 import { executeToolCalls } from './tool-calls.ts'
 

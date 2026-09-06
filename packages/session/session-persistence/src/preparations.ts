@@ -1,9 +1,9 @@
 /**
  * Bounded sharing and exclusive reservation of unpublished Sessions.
- * @module @bosch/bh-session-persistence/preparations
+ * @module @hydra/harness-session-persistence/preparations
  */
 
-import type { Session, SessionId } from '@bosch/bh-session'
+import type { Session, SessionId } from '@hydra/harness-session'
 
 interface PreparedSource {
   readonly session: Session

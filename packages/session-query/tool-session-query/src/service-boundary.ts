@@ -1,15 +1,15 @@
 /**
  * Session-query service error containment and model-safe translation.
  *
- * @module @bosch/bh-tool-session-query/service-boundary
+ * @module @hydra/harness-tool-session-query/service-boundary
  */
 
-import type { Context } from '@bosch/cordis'
-import { HarnessError } from '@bosch/bh-llm'
+import type { Context } from '@hydra/cordis'
+import { HarnessError } from '@hydra/harness-llm'
 import {
   SessionQueryError,
   type SessionQueryErrorCode,
-} from '@bosch/bh-session-query'
+} from '@hydra/harness-session-query'
 
 interface ModelSafeServiceFailure {
   readonly code: SessionQueryErrorCode | 'SESSION_QUERY_TOOL_FAILED'

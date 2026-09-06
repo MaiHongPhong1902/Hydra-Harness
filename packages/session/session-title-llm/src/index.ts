@@ -1,25 +1,25 @@
 /**
  * Shared route, framing, timeout, assembly, and validation policy for
  * model-backed session-title providers.
- * @module @bosch/bh-session-title-llm
+ * @module @hydra/harness-session-title-llm
  */
 
-import type { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import { createUserMessage, BlockAssembler, deepFreeze } from '@bosch/bh-llm'
-import type { FinishReason, GenerateOptions, Message } from '@bosch/bh-llm'
-import { deadline, MAX_TIMER_DELAY_MS } from '@bosch/bh-timeout'
+import type { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import { createUserMessage, BlockAssembler, deepFreeze } from '@hydra/harness-llm'
+import type { FinishReason, GenerateOptions, Message } from '@hydra/harness-llm'
+import { deadline, MAX_TIMER_DELAY_MS } from '@hydra/harness-timeout'
 import {
   normalizeSessionTitle,
   SessionTitleProviderId,
-} from '@bosch/bh-session-title'
+} from '@hydra/harness-session-title'
 import type {
   SessionTitleAutomaticMode,
   SessionTitleModelProvenance,
   SessionTitleProviderRequest,
   SessionTitleProviderResult,
   SessionTitleUserMessage,
-} from '@bosch/bh-session-title'
+} from '@hydra/harness-session-title'
 
 /** Exact model-visible request recorded before one auxiliary title dispatch. */
 export interface SessionTitleLlmRequestEventData {
@@ -37,7 +37,7 @@ export interface SessionTitleLlmRequestEventData {
   readonly maxTokens: number
 }
 
-declare module '@bosch/bh-session/types' {
+declare module '@hydra/harness-session/types' {
   interface SessionEventMap {
     /** Log-only pre-dispatch record of one session-title model request. */
     'session/title-llm-request': SessionTitleLlmRequestEventData

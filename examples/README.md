@@ -1,6 +1,6 @@
 # Examples
 
-Runnable demonstrations of the main Bosch Harness interfaces and extension points. Each child directory owns its configuration, prerequisites, commands, and detailed behavior.
+Runnable demonstrations of the main Hydra harness interfaces and extension points. Each child directory owns its configuration, prerequisites, commands, and detailed behavior.
 
 ## mcp-memory
 

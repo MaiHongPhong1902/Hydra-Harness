@@ -1,5 +1,5 @@
 {
-  "name": "@bosch/bh-client-ui-settings-plugin-inventory",
+  "name": "@hydra/harness-client-ui-settings-plugin-inventory",
   "description": "Cordis Loader inventory and enablement controls in Web Plugins settings",
   "version": "0.1.1-rc.1",
   "publishConfig": {
@@ -32,11 +32,11 @@
   "bh": {
     "client": {
       "inject": [
-        "@bosch/bh-api-remotes",
-        "@bosch/bh-client-connection",
-        "@bosch/bh-client-runtime",
-        "@bosch/bh-client-ui-settings",
-        "@bosch/bh-client-locale"
+        "@hydra/harness-api-remotes",
+        "@hydra/harness-client-connection",
+        "@hydra/harness-client-runtime",
+        "@hydra/harness-client-ui-settings",
+        "@hydra/harness-client-locale"
       ],
       "platform": "web"
     }
@@ -47,27 +47,27 @@
   },
   "license": "MIT",
   "peerDependencies": {
-    "@bosch/bh-api-remotes": "workspace:^",
-    "@bosch/bh-client-connection": "workspace:^",
-    "@bosch/bh-client-locale": "workspace:^",
-    "@bosch/bh-client-runtime": "workspace:^",
-    "@bosch/bh-client-ui-settings": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-api-remotes": "workspace:^",
+    "@hydra/harness-client-connection": "workspace:^",
+    "@hydra/harness-client-locale": "workspace:^",
+    "@hydra/harness-client-runtime": "workspace:^",
+    "@hydra/harness-client-ui-settings": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@bosch/bh-api-remotes": "workspace:^",
-    "@bosch/bh-client-connection": "workspace:^",
-    "@bosch/bh-client-locale": "workspace:^",
-    "@bosch/bh-client-runtime": "workspace:^",
-    "@bosch/bh-client-test-runtime": "workspace:^",
-    "@bosch/bh-client-ui-primitives": "workspace:^",
-    "@bosch/bh-client-ui-settings": "workspace:^",
-    "@bosch/bh-client-ui-slots": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
+    "@hydra/harness-api-remotes": "workspace:^",
+    "@hydra/harness-client-connection": "workspace:^",
+    "@hydra/harness-client-locale": "workspace:^",
+    "@hydra/harness-client-runtime": "workspace:^",
+    "@hydra/harness-client-test-runtime": "workspace:^",
+    "@hydra/harness-client-ui-primitives": "workspace:^",
+    "@hydra/harness-client-ui-settings": "workspace:^",
+    "@hydra/harness-client-ui-slots": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
     "@testing-library/react": "^16.1.0",
     "@types/react": "~18.3.1",
-    "@bosch/cordis": "workspace:^",
+    "@hydra/cordis": "workspace:^",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

@@ -1,4 +1,4 @@
-# @bosch/bh-tool-pwsh-persistent
+# @hydra/harness-tool-pwsh-persistent
 
 Model-facing `pwsh(command)` backed by one owner-scoped `ctx.terminals` shell. The package owns the tool contract and shell reuse; deployments select the terminal backend (a `terminal-bash` instance configured with `shellDialect: pwsh`) and sandbox policy. It is the Windows counterpart of `tool-bash-persistent`: same persistent-state contract, PowerShell dialect.
 
@@ -17,7 +17,7 @@ Model-facing `pwsh(command)` backed by one owner-scoped `ctx.terminals` shell. T
 
 #### What the model sees
 
-The generated [`pwsh` schema](../../../docs/tool-catalog.md#boschbh-tool-pwsh-persistent), including the configured `description`. The plugin contributes no standalone system-prompt section; the deployment owns persona and environment guidance.
+The generated [`pwsh` schema](../../../docs/tool-catalog.md#hydraharness-tool-pwsh-persistent), including the configured `description`. The plugin contributes no standalone system-prompt section; the deployment owns persona and environment guidance.
 
 #### Token effect
 

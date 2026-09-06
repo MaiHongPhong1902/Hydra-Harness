@@ -3,11 +3,11 @@
  * record of the child's declared composition before its first request, so a
  * later cold resume can reconstruct it from its own log.
  *
- * @module @bosch/bh-subagent/descriptor-seed
+ * @module @hydra/harness-subagent/descriptor-seed
  */
 
-import { Session } from '@bosch/bh-session'
-import type { SessionEvent, SessionId } from '@bosch/bh-session'
+import { Session } from '@hydra/harness-session'
+import type { SessionEvent, SessionId } from '@hydra/harness-session'
 import type { SubagentDescriptorData } from './descriptor.ts'
 
 /**

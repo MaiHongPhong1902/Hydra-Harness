@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import SystemPrompt, { PromptAssembly, TOOL_ORDER_REST } from '@bosch/bh-system-prompt'
-import type { ToolSchema } from '@bosch/bh-llm'
+import { Context } from '@hydra/cordis'
+import SystemPrompt, { PromptAssembly, TOOL_ORDER_REST } from '@hydra/harness-system-prompt'
+import type { ToolSchema } from '@hydra/harness-llm'
 
 function tool(name: string, description = name): ToolSchema {
   return { name, description, parameters: { type: 'object', properties: {} } }

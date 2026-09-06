@@ -1,13 +1,13 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import { stubSettingsScope, type StubSettingsScope } from '@bosch/bh-client-test-runtime'
+import { Context } from '@hydra/cordis'
+import { stubSettingsScope, type StubSettingsScope } from '@hydra/harness-client-test-runtime'
 import type {
   ThemeSettings,
   ThemeSnapshot,
   ThemeTokenOverrides,
-} from '@bosch/bh-client-ui-theme/client'
-import { ThemeRuntime } from '@bosch/bh-client-ui-theme/client'
+} from '@hydra/harness-client-ui-theme/client'
+import { ThemeRuntime } from '@hydra/harness-client-ui-theme/client'
 
 const make = (host = stubSettingsScope<ThemeSettings>()): {
   ctx: Context

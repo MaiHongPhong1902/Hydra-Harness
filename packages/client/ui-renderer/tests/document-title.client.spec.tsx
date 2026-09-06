@@ -11,26 +11,26 @@ afterEach(() => {
 
 describe('DocumentTitle', () => {
   it('projects a durable title and restores the product title', () => {
-    vi.stubEnv('BH_CLIENT_TITLE', 'Bosch Harness')
+    vi.stubEnv('BH_CLIENT_TITLE', 'Hydra harness')
     document.title = 'stale title'
     const mounted = render(<DocumentTitle />)
-    expect(document.title).toBe('Bosch Harness')
+    expect(document.title).toBe('Hydra harness')
     mounted.rerender(<DocumentTitle title="First title" />)
-    expect(document.title).toBe('First title — Bosch Harness')
+    expect(document.title).toBe('First title — Hydra harness')
     mounted.rerender(<DocumentTitle title="Revised title" />)
-    expect(document.title).toBe('Revised title — Bosch Harness')
+    expect(document.title).toBe('Revised title — Hydra harness')
     mounted.rerender(<DocumentTitle />)
-    expect(document.title).toBe('Bosch Harness')
+    expect(document.title).toBe('Hydra harness')
     mounted.unmount()
-    expect(document.title).toBe('Bosch Harness')
+    expect(document.title).toBe('Hydra harness')
   })
 
   it('uses the generic title when the build provides no title', () => {
     vi.stubEnv('BH_CLIENT_TITLE', '')
     delete process.env.BH_CLIENT_TITLE
     const mounted = render(<DocumentTitle title="First title" />)
-    expect(document.title).toBe('First title — BH Local Build')
+    expect(document.title).toBe('First title — Hydra harness')
     mounted.unmount()
-    expect(document.title).toBe('BH Local Build')
+    expect(document.title).toBe('Hydra harness')
   })
 })

@@ -6,11 +6,11 @@ Status: implemented
 
 Same-session goals preserve conversation and let one agent continue a durable objective, while the general workflow tool lets the model write a fan-out orchestration script. Neither is the Ralph pattern: repeatedly give the same objective to a completely fresh worker, use the shared workspace as long-term memory, and carry only a small explicit handoff until work completes or a limit is reached.
 
-Adding Ralph behavior to `bh-agent-loop`, the goal driver, or the public model-written workflow language would couple one policy to unrelated execution machinery. Letting each child inherit the parent conversation would also defeat context reset and make replay depend on a growing implicit prefix. The feature needs a fixed, reviewable policy built from existing plugin primitives, with cancellation quiescence, bounded cross-round data, a generous configurable cap, and no novel human-facing goal state.
+Adding Ralph behavior to `@hydra/harness-agent-loop`, the goal driver, or the public model-written workflow language would couple one policy to unrelated execution machinery. Letting each child inherit the parent conversation would also defeat context reset and make replay depend on a growing implicit prefix. The feature needs a fixed, reviewable policy built from existing plugin primitives, with cancellation quiescence, bounded cross-round data, a generous configurable cap, and no novel human-facing goal state.
 
 ## Decision
 
-Add `@bosch/bh-tool-ralph` as a separate Consumer package under `packages/workflow/`. It registers `ralph({ objective, maxRounds? })`, owns a fixed workflow script, and depends only on `ctx.tools`, `ctx.systemPrompt`, `ctx.workflowEngine`, and `ctx.subagents`. A Ralph run is not a session goal, creates no goal state, and requires no branch in the concrete agent loop.
+Add `@hydra/harness-tool-ralph` as a separate Consumer package under `packages/workflow/`. It registers `ralph({ objective, maxRounds? })`, owns a fixed workflow script, and depends only on `ctx.tools`, `ctx.systemPrompt`, `ctx.workflowEngine`, and `ctx.subagents`. A Ralph run is not a session goal, creates no goal state, and requires no branch in the concrete agent loop.
 
 The tool is foreground-only. The calling agent parents every child for cwd and lineage, the parent tool call waits for the complete run, and the parent step's abort signal cancels the workflow. `run.dispose()` is awaited on every path, so cancellation reaches the worker engine's bounded settlement and child quiescence before the call returns.
 

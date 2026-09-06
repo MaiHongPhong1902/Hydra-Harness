@@ -1,8 +1,8 @@
-import type { Context } from '@bosch/cordis'
+import type { Context } from '@hydra/cordis'
 import type {
   ConversationNodeDefinition, ConversationPreviousContext,
-} from '@bosch/bh-client-runtime/client'
-import type { InboxTarget } from '@bosch/bh-agent/types'
+} from '@hydra/harness-client-runtime/client'
+import type { InboxTarget } from '@hydra/harness-agent/types'
 
 interface InboxIdentity {
   readonly id: string

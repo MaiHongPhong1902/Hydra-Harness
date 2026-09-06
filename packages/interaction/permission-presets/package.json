@@ -1,6 +1,6 @@
 {
-  "name": "@bosch/bh-permission-presets",
-  "description": "User-facing permission presets (ctx.permissionPresets) for the Bosch Harness: one product-level Permissions select bundling the sandbox-mode and approval-policy knobs, written through to their own session events",
+  "name": "@hydra/harness-permission-presets",
+  "description": "User-facing permission presets (ctx.permissionPresets) for the Hydra harness: one product-level Permissions select bundling the sandbox-mode and approval-policy knobs, written through to their own session events",
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"
@@ -41,31 +41,31 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@bosch/bh-shell": "workspace:^",
-    "@bosch/bh-commands": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-sandbox": "workspace:^",
-    "@bosch/bh-sandbox-policy": "workspace:^",
-    "@bosch/bh-session": "workspace:^",
-    "@bosch/bh-session-projection": "workspace:^",
-    "@bosch/bh-settings": "workspace:^",
-    "@bosch/bh-user-approval": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-shell": "workspace:^",
+    "@hydra/harness-commands": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-sandbox": "workspace:^",
+    "@hydra/harness-sandbox-policy": "workspace:^",
+    "@hydra/harness-session": "workspace:^",
+    "@hydra/harness-session-projection": "workspace:^",
+    "@hydra/harness-settings": "workspace:^",
+    "@hydra/harness-user-approval": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   },
   "dependencies": {
-    "@bosch/schemastery": "workspace:^",
+    "@hydra/schemastery": "workspace:^",
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@bosch/bh-shell": "workspace:^",
-    "@bosch/bh-commands": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-sandbox": "workspace:^",
-    "@bosch/bh-sandbox-policy": "workspace:^",
-    "@bosch/bh-session": "workspace:^",
-    "@bosch/bh-session-projection": "workspace:^",
-    "@bosch/bh-settings": "workspace:^",
-    "@bosch/bh-user-approval": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-shell": "workspace:^",
+    "@hydra/harness-commands": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-sandbox": "workspace:^",
+    "@hydra/harness-sandbox-policy": "workspace:^",
+    "@hydra/harness-session": "workspace:^",
+    "@hydra/harness-session-projection": "workspace:^",
+    "@hydra/harness-settings": "workspace:^",
+    "@hydra/harness-user-approval": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   }
 }

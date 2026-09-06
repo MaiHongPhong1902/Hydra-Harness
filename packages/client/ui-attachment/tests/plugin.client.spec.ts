@@ -1,6 +1,6 @@
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { describe, expect, it } from 'vitest'
-import { SlotRegistry } from '@bosch/bh-client-runtime/client'
+import { SlotRegistry } from '@hydra/harness-client-runtime/client'
 import { apply as applyHost } from '../src/index.ts'
 import { apply, inject } from '../src/client/index.ts'
 import { ComposerAttachments } from '../src/client/ComposerAttachments.tsx'

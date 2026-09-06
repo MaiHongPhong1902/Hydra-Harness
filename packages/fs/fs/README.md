@@ -1,4 +1,4 @@
-# @bosch/bh-fs
+# @hydra/harness-fs
 
 The **`FileSystem`** (`ctx.fs`) defines the storage primitives in one execution world — resolve paths, expose canonical process paths and file URIs, test containment, read whole or streaming text, read bounded raw bytes, inspect/list metadata, write atomically, and apply a literal edit — without saying HOW. Both mutations take their version guard **optionally**, so `ctx.fs` on its own is a complete, unconstrained storage seam. This package also owns the `fs/*` policy event vocabulary the tool dispatches and the policy plugin listens for.
 
@@ -6,10 +6,10 @@ This package owns the Service Definition and provider contract layer of the four
 
 | Layer | Package | Role |
 |---|---|---|
-| tool / executor | `@bosch/bh-tool-fs` | model-facing `read`/`write`/`edit` schemas + read windowing + text rendering; reads/writes/edits via `ctx.fs`, dispatches the `fs/*` events |
-| policy | `@bosch/bh-fs-observation-policy` | observed-state + read-before-edit + version-guarded write/edit, contributed through the `fs/*` event gate (no service) |
-| provider contract | `@bosch/bh-fs` (this) | `ctx.fs`: execution-world paths, text IO, and atomic mutation primitives (optional version guard); owns the `fs/*` event vocabulary |
-| provider | `@bosch/bh-fs-local` | the host-filesystem implementation |
+| tool / executor | `@hydra/harness-tool-fs` | model-facing `read`/`write`/`edit` schemas + read windowing + text rendering; reads/writes/edits via `ctx.fs`, dispatches the `fs/*` events |
+| policy | `@hydra/harness-fs-observation-policy` | observed-state + read-before-edit + version-guarded write/edit, contributed through the `fs/*` event gate (no service) |
+| provider contract | `@hydra/harness-fs` (this) | `ctx.fs`: execution-world paths, text IO, and atomic mutation primitives (optional version guard); owns the `fs/*` event vocabulary |
+| provider | `@hydra/harness-fs-local` | the host-filesystem implementation |
 
 `fs-sandbox` and `fs-e2b` implement this interface without touching the policy/tool layers.
 
@@ -36,11 +36,11 @@ The mutation runs inside the backend's per-target lock either way, so an uncondi
 
 ## The `fs/*` policy events
 
-This package declares three events (see the generated region of [filesystem.md](../../../docs/subsystems/filesystem.md#cordis-surface)) so the emitter (`@bosch/bh-tool-fs`) and the policy listener (`@bosch/bh-fs-observation-policy`) share a vocabulary without the emitter depending on the policy plugin. `fs/write-intent` and `fs/edit-intent` are single-slot decision waterfalls (the listener fully decides, never calling `next()`); `fs/observed` is a fire-and-forget recording event carrying an `FsObservation` discriminated union: present with a version or confirmed absent. They carry only `bh-fs` vocabulary plus an opaque `object` actor — no model-facing concepts and no agent/session owner structure.
+This package declares three events (see the generated region of [filesystem.md](../../../docs/subsystems/filesystem.md#cordis-surface)) so the emitter (`@hydra/harness-tool-fs`) and the policy listener (`@hydra/harness-fs-observation-policy`) share a vocabulary without the emitter depending on the policy plugin. `fs/write-intent` and `fs/edit-intent` are single-slot decision waterfalls (the listener fully decides, never calling `next()`); `fs/observed` is a fire-and-forget recording event carrying an `FsObservation` discriminated union: present with a version or confirmed absent. They carry only `@hydra/harness-fs` vocabulary plus an opaque `object` actor — no model-facing concepts and no agent/session owner structure.
 
 ## A provider contract, not the policy layer
 
-`ctx.fs` is deliberately close to fsspec-style storage primitives — half a level above byte-level `cat`/`open`, because it decodes text and rejects binaries so the policy layer never touches raw bytes. It owns UTF-8 decoding, binary rejection, atomic writes, and the literal-edit critical section. It does **not** own line windows, numbered lines, rendered footers, or observed-state. Observed-state, read-before-edit, and version-guarded write/edit are policy a plugin (`@bosch/bh-fs-observation-policy`) ADDS by supplying the optional guard — not provider behavior — so a sandboxed/remote backend inherits no model-facing observation policy.
+`ctx.fs` is deliberately close to fsspec-style storage primitives — half a level above byte-level `cat`/`open`, because it decodes text and rejects binaries so the policy layer never touches raw bytes. It owns UTF-8 decoding, binary rejection, atomic writes, and the literal-edit critical section. It does **not** own line windows, numbered lines, rendered footers, or observed-state. Observed-state, read-before-edit, and version-guarded write/edit are policy a plugin (`@hydra/harness-fs-observation-policy`) ADDS by supplying the optional guard — not provider behavior — so a sandboxed/remote backend inherits no model-facing observation policy.
 
 `editText` stays on this seam (not composed in the policy layer from a read plus a write) because version guard + literal match + atomic rewrite must stay inside one critical section for correct error attribution and one-wins/one-stale concurrency, and a remote backend may implement it as a native compare-and-edit.
 
@@ -50,7 +50,7 @@ This package declares three events (see the generated region of [filesystem.md](
 
 ## Model Experience
 
-Indirectly, through `bh-tool-fs`, which renders provider text and errors as bounded, retained filesystem tool results.
+Indirectly, through `@hydra/harness-tool-fs`, which renders provider text and errors as bounded, retained filesystem tool results.
 
 #### KV Cache effect
 

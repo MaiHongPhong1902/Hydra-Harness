@@ -1,6 +1,6 @@
-# @bosch/bh-tool-browser
+# @hydra/harness-tool-browser
 
-The model-facing half of the embedded browser: standard `browser_*` tools over controlled tabs, a selected-viewport screenshot, policy-gated history search, opt-in Full CDP controls, explicit controls for the full upstream PageAgent runtime, and the one browser prompt section. The user also has a native tab strip and omnibox; the window, the page, and the process live behind `ctx.browsers` in [@bosch/bh-browser-electron](../browser-electron/README.md).
+The model-facing half of the embedded browser: standard `browser_*` tools over controlled tabs, a selected-viewport screenshot, policy-gated history search, opt-in Full CDP controls, explicit controls for the full upstream PageAgent runtime, and the one browser prompt section. The user also has a native tab strip and omnibox; the window, the page, and the process live behind `ctx.browsers` in [@hydra/harness-browser-electron](../browser-electron/README.md).
 
 The split is the usual consumer/seam one. Everything the model can see — schema wording, the DOM-format guidance, the character cap, the card titles — is decided here; nothing here knows that the browser is Electron.
 
@@ -37,7 +37,7 @@ An action the page rejects — a missing index, a `select` that has no such opti
 | `maxStateChars` | `16000` | Cap on the element list one call returns, matching `tool-str-replace-editor`'s `maxOutputChars`. |
 | `timeoutMs` | `60000` | Cooperative tool-call budget for one browser action. |
 
-`experimentalScriptExecution` belongs to `@bosch/bh-browser-electron`, not this consumer. When the host enables it, `browser_execute_javascript` appears; it runs in PageController's isolated document world and is deliberately not a page-world scripting escape hatch.
+`experimentalScriptExecution` belongs to `@hydra/harness-browser-electron`, not this consumer. When the host enables it, `browser_execute_javascript` appears; it runs in PageController's isolated document world and is deliberately not a page-world scripting escape hatch.
 
 Only `content` is cut. The header and footer are short, fixed-shape, and are the only way the model learns there is more page below — cutting them to fit the cap would hide exactly the thing that makes the cut recoverable.
 
@@ -101,7 +101,7 @@ Prefix-stable while the package is loaded and the section text is unchanged. Loa
 
 #### What the model sees
 
-The generated [`browser_*` schemas](../../../docs/tool-catalog.md#boschbh-tool-browser): navigation, state, wait, indexed DOM actions, tab actions, selected-viewport screenshot, sensitive-history search, and `browser_page_agent_run`/`status`/`stop`. PageAgent uses the invoking BH agent's selected model through a private host bridge; no API key or PageAgent UI is sent to a page. Screenshot appears only while durable attachments are mounted; experimental JavaScript appears only when its host gate is enabled, while the two Full CDP schemas appear only during the effective organization-and-user opt-in. `maxStateChars` and `timeoutMs` are deployment settings, not model arguments.
+The generated [`browser_*` schemas](../../../docs/tool-catalog.md#hydraharness-tool-browser): navigation, state, wait, indexed DOM actions, tab actions, selected-viewport screenshot, sensitive-history search, and `browser_page_agent_run`/`status`/`stop`. PageAgent uses the invoking Hydra agent's selected model through a private host bridge; no API key or PageAgent UI is sent to a page. Screenshot appears only while durable attachments are mounted; experimental JavaScript appears only when its host gate is enabled, while the two Full CDP schemas appear only during the effective organization-and-user opt-in. `maxStateChars` and `timeoutMs` are deployment settings, not model arguments.
 
 #### Token effect
 

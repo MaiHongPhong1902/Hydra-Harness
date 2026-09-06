@@ -1,20 +1,20 @@
 /**
  * Model-facing Cordis runtime/package inspection, define, run, stop, and remove tools.
- * @module @bosch/bh-tool-cordis
+ * @module @hydra/harness-tool-cordis
  */
 
-import type { Context } from '@bosch/cordis'
-import type { Agent, PreStepDecision } from '@bosch/bh-agent'
+import type { Context } from '@hydra/cordis'
+import type { Agent, PreStepDecision } from '@hydra/harness-agent'
 import {
   CordisDynamicPackageId, CordisDynamicPluginId,
-} from '@bosch/bh-cordis-host-runner'
-import type { DynamicCordisReference } from '@bosch/bh-cordis-host-runner'
-import { createUserMessage } from '@bosch/bh-llm'
-import type { JsonValue } from '@bosch/bh-session'
-import type { UserMessage } from '@bosch/bh-session'
-import { defineTool } from '@bosch/bh-tools'
-import type { ToolExecution } from '@bosch/bh-tools'
-import type {} from '@bosch/bh-system-prompt'
+} from '@hydra/harness-cordis-host-runner'
+import type { DynamicCordisReference } from '@hydra/harness-cordis-host-runner'
+import { createUserMessage } from '@hydra/harness-llm'
+import type { JsonValue } from '@hydra/harness-session'
+import type { UserMessage } from '@hydra/harness-session'
+import { defineTool } from '@hydra/harness-tools'
+import type { ToolExecution } from '@hydra/harness-tools'
+import type {} from '@hydra/harness-system-prompt'
 import { missingServices, providedServices } from './inspect.ts'
 import {
   presentDefineCall, presentInspectListCall, presentInspectQueryCall, presentInspectSelfCall, presentRunCall,
@@ -523,7 +523,7 @@ function renderUnavailableReference(id: string): string {
   return [
     '<cordis_dynamic_plugin_context>',
     `The user explicitly referenced @${id}, but this Plugin is unavailable in the current Session.`,
-    'It may have been removed, belong to another Session, or have been lost when the BH process restarted.',
+    'It may have been removed, belong to another Session, or have been lost when the Hydra process restarted.',
     'Do not claim that it was updated or silently create a replacement Plugin. Tell the user that the reference is currently unavailable.',
     '</cordis_dynamic_plugin_context>',
   ].join('\n')

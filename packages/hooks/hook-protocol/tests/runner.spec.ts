@@ -1,7 +1,7 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import type { ShellExecRequest, ShellExecSpec, ShellExecutor, ShellRunResult } from '@bosch/bh-shell'
-import { DEFAULT_HOOK_TIMEOUT_MS, runHook } from '@bosch/bh-hook-protocol'
-import type { RunHookOptions } from '@bosch/bh-hook-protocol'
+import type { ShellExecRequest, ShellExecSpec, ShellExecutor, ShellRunResult } from '@hydra/harness-shell'
+import { DEFAULT_HOOK_TIMEOUT_MS, runHook } from '@hydra/harness-hook-protocol'
+import type { RunHookOptions } from '@hydra/harness-hook-protocol'
 
 /**
  * A minimal stand-in for the bits of {@link ShellExecutor} that {@link runHook}

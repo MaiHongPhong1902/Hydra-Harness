@@ -14,13 +14,13 @@ Two further gaps followed from the same missing plane. A provider's own ambient 
 
 Three seams, each owning one question, and every pi-ai concept behind an adapter inside `llm-pi-ai`.
 
-**`bh-credentials` grows a second key space.** A `CredentialRef` answers *what is behind this environment-variable name*; a `CredentialKey` answers *what credential does this plugin hold for this id*. The record union is `{ kind: 'api-key', key?, env? } | { kind: 'grant', payload }` — the api-key half structural because the seam can describe it, the grant half opaque because a library that owns a token format keeps owning it. The only constraint on a payload is that it survives a JSON round trip, enforced on the way in and on the way out.
+**`@hydra/harness-credentials` grows a second key space.** A `CredentialRef` answers *what is behind this environment-variable name*; a `CredentialKey` answers *what credential does this plugin hold for this id*. The record union is `{ kind: 'api-key', key?, env? } | { kind: 'grant', payload }` — the api-key half structural because the seam can describe it, the grant half opaque because a library that owns a token format keeps owning it. The only constraint on a payload is that it survives a JSON round trip, enforced on the way in and on the way out.
 
 The key is `<scope>/<id>` where the scope is the **owning plugin's registered name**, not the provider's. A user knows `openai-codex`; which adapter family answers for the bytes inside that record is exactly what a bare provider name loses. Two plugins serving the same provider name would read each other's payload, and a record left by an uninstalled plugin could not be told from a live one. The `/` also keeps the two grammars disjoint, so the key spaces cannot collide. This assumes one adapter registers a given provider route, which the LLM registry already enforces.
 
 Records do not layer. There is no environment an authorization grant could be read from, so presence of the record is the whole fact, and the empty-value rule that governs references does not apply: an `api-key` record carrying neither a key nor env states that its owner confirmed ambient authentication, which is configured.
 
-**`bh-authorization` owns the conversation, never the protocol.** A plugin that knows how to obtain its own credential registers a flow under the `CredentialKey` that flow writes. The seam runs one attempt per key, routes a neutral vocabulary of notices and prompts, and settles. A second authorization protocol arrives as another flow rather than as another seam, and a surface that renders one flow renders all of them.
+**`@hydra/harness-authorization` owns the conversation, never the protocol.** A plugin that knows how to obtain its own credential registers a flow under the `CredentialKey` that flow writes. The seam runs one attempt per key, routes a neutral vocabulary of notices and prompts, and settles. A second authorization protocol arrives as another flow rather than as another seam, and a surface that renders one flow renders all of them.
 
 Two choices carry the weight:
 

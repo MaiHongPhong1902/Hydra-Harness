@@ -5,7 +5,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import type { IApiClient } from '@bosch/bh-api-remotes/client'
+import type { IApiClient } from '@hydra/harness-api-remotes/client'
 import { InstructionsController } from '../src/client/instructions-store.ts'
 
 const EMPTY_SHA256 = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
@@ -210,6 +210,7 @@ describe('the custom-instructions controller', () => {
     } as unknown as Pick<IApiClient, 'settings'>
     const controller = new InstructionsController(api)
     const pending = controller.load()
+    await Promise.resolve()
 
     controller.dispose()
     resolveRead?.()

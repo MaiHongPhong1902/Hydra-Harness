@@ -3,7 +3,7 @@
 # The redact-rule entry models a deployment mounting its own scrub rule on the
 # session-telemetry/record waterfall — the seam itself ships no rules.
 - id: logger-console
-  name: '@bosch/cordis-plugin-logger-console'
+  name: '@hydra/cordis-plugin-logger-console'
   config:
     colors: false
     levels:
@@ -18,20 +18,20 @@
 
 # Managed child-process groups required by the bash executor.
 - id: subprocess
-  name: '@bosch/bh-subprocess-local'
+  name: '@hydra/harness-subprocess-local'
 
 - id: bash
-  name: '@bosch/bh-bash-local'
+  name: '@hydra/harness-bash-local'
 
 - id: session-telemetry-otel
-  name: '@bosch/bh-session-telemetry-otel'
+  name: '@hydra/harness-session-telemetry-otel'
   config:
     mode: !!js process.env.BH_TELEMETRY_E2E_MODE || 'FULL'
     exporter:
       url: !!js process.env.BH_TELEMETRY_E2E_URL
 
 - id: agent-spine
-  name: '@bosch/bh-agent-spine-demo'
+  name: '@hydra/harness-agent-spine-demo'
   config:
     agents:
       - id: main
@@ -42,10 +42,10 @@
     workspaceContext: false
 
 - id: persistence
-  name: '@bosch/bh-session-persistence-jsonl'
+  name: '@hydra/harness-session-persistence-jsonl'
   config:
     root: './.sessions'
     compression: 'none'
 
 - id: checkpoint-policy
-  name: '@bosch/bh-session-checkpoint-policy'
+  name: '@hydra/harness-session-checkpoint-policy'

@@ -202,7 +202,7 @@ export function addProjectionFrontmatter(markdown: string, page: Pick<DocsPage, 
 }
 
 /** The repository badge a canonical page carries for its GitHub reader. */
-const REPOSITORY_BADGE = /^\[!\[[^\]]*\]\(https:\/\/img\.shields\.io\/[^)]*\)\]\([^)]*\)$/
+const REPOSITORY_BADGE = /^!\[Powered by Hydra harness\]\([^)]*hydra-badge\.png\)$/
 
 /**
  * Drop the lines that address a canonical page's GitHub reader.

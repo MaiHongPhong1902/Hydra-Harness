@@ -8,19 +8,19 @@
  * anything, while an in-flight stream keeps the facts it started with. The
  * one registration-captured fact — the retry policy — re-registers the route
  * in place when it changes.
- * @module @bosch/bh-llm-deepseek
+ * @module @hydra/harness-llm-deepseek
  */
 
-import type { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import { assertUsableApiKey, LlmError, resolveRetryPolicy, RetryPolicySchema } from '@bosch/bh-llm'
-import { normalizeHttpProxy } from '@bosch/bh-llm/proxy'
-import type { ModelModality, RetryPolicyConfig } from '@bosch/bh-llm'
-import { credentialRef } from '@bosch/bh-credentials'
-import { launchEnvironmentOf, type LaunchEnvironmentSnapshot } from '@bosch/bh-launch-environment'
-import { deepEqualJson, installSettingsSection, settingsNamespace } from '@bosch/bh-settings'
-import { MAX_TIMER_DELAY_MS } from '@bosch/bh-timeout'
-import { getOrCreateAnonymousUserId, type AnonymousUserId } from '@bosch/bh-anonymous-user-id'
+import type { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import { assertUsableApiKey, LlmError, resolveRetryPolicy, RetryPolicySchema } from '@hydra/harness-llm'
+import { normalizeHttpProxy } from '@hydra/harness-llm/proxy'
+import type { ModelModality, RetryPolicyConfig } from '@hydra/harness-llm'
+import { credentialRef } from '@hydra/harness-credentials'
+import { launchEnvironmentOf, type LaunchEnvironmentSnapshot } from '@hydra/harness-launch-environment'
+import { deepEqualJson, installSettingsSection, settingsNamespace } from '@hydra/harness-settings'
+import { MAX_TIMER_DELAY_MS } from '@hydra/harness-timeout'
+import { getOrCreateAnonymousUserId, type AnonymousUserId } from '@hydra/harness-anonymous-user-id'
 import {
   DEFAULT_CONTEXT_WINDOW,
   DEFAULT_MAX_REQUEST_IMAGE_BYTES,

@@ -1,13 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { appendFile, mkdir, mkdtemp, open, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises'
 import type { FileHandle } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { performance } from 'node:perf_hooks'
-import SessionStore, { SessionId } from '@bosch/bh-session'
-import type { SessionEvent } from '@bosch/bh-session'
-import JsonlSessionPersistence from '@bosch/bh-session-persistence-jsonl'
+import SessionStore, { SessionId } from '@hydra/harness-session'
+import type { SessionEvent } from '@hydra/harness-session'
+import JsonlSessionPersistence from '@hydra/harness-session-persistence-jsonl'
 import { logPath, scanLog, sessionDir, toHeaderLine, type JsonlCompression } from '../src/format.ts'
 import {
   compressZstdFrame, createZstdFrameDecoder, decompressZstdFrame, decompressZstdPrefix, scanZstdFrames,

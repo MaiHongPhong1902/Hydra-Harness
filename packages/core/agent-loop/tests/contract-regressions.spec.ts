@@ -1,16 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import LlmRuntime, { createUserMessage, CallId, LlmError, MessageSource, ProviderRequestId, StreamChunk  } from '@bosch/bh-llm'
-import SessionStore, { Session, SessionEvent, SessionId, TurnEndReason, type UserMessage } from '@bosch/bh-session'
-import SystemPrompt from '@bosch/bh-system-prompt'
-import ToolRuntime, { defineContentToolFixture, type PostToolDecision } from '@bosch/bh-tools'
-import AgentRegistry, { type Agent } from '@bosch/bh-agent'
-import AgentLoop from '@bosch/bh-agent-loop'
+import { Context } from '@hydra/cordis'
+import LlmRuntime, { createUserMessage, CallId, LlmError, MessageSource, ProviderRequestId, StreamChunk  } from '@hydra/harness-llm'
+import SessionStore, { Session, SessionEvent, SessionId, TurnEndReason, type UserMessage } from '@hydra/harness-session'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import ToolRuntime, { defineContentToolFixture, type PostToolDecision } from '@hydra/harness-tools'
+import AgentRegistry, { type Agent } from '@hydra/harness-agent'
+import AgentLoop from '@hydra/harness-agent-loop'
 import { ReactLoopAgent } from '../src/agent.ts'
-import InvariantRegistry from '@bosch/bh-invariants'
-import * as SessionInvariant from '@bosch/bh-session/invariant'
-import * as AgentInvariant from '@bosch/bh-agent/invariant'
-import * as AgentLoopInvariant from '@bosch/bh-agent-loop/invariant'
+import InvariantRegistry from '@hydra/harness-invariants'
+import * as SessionInvariant from '@hydra/harness-session/invariant'
+import * as AgentInvariant from '@hydra/harness-agent/invariant'
+import * as AgentLoopInvariant from '@hydra/harness-agent-loop/invariant'
 import { MockAdapter, textResponse, toolCallResponse } from './mock-adapter.ts'
 
 async function mountInvariants(ctx: Context): Promise<void> {
@@ -810,7 +810,7 @@ describe('turn and step boundary recovery', () => {
     expect(adapter.requests).toHaveLength(1)
     expect(errors.map(error => error.message)).toEqual([
       'reject first step-end',
-      'invariant violated by "@bosch/bh-session": turn/end 1 while step 1 is still open',
+      'invariant violated by "@hydra/harness-session": turn/end 1 while step 1 is still open',
     ])
     expect(boundaryCounts(agent)).toMatchObject({
       turnStart: 1,

@@ -1,10 +1,10 @@
-# bh-home-paths
+# @hydra/harness-home-paths
 
-Shared filesystem path helpers for Bosch Harness user data.
+Shared filesystem path helpers for Hydra harness user data.
 
-## BH home
+## Hydra home
 
-`resolveBhHome()` resolves the single-root Bosch Harness home. Precedence, highest first: an explicit configured path, `$BH_HOME`, then `~/.bh`. The harness keeps all user data under one root.
+`resolveBhHome()` resolves the single-root Hydra harness home. Precedence, highest first: an explicit configured path, `$BH_HOME`, then `~/.bh`. The harness keeps all user data under one root.
 
 `bhHomePath(...segments)` joins child segments onto that resolved home with Node's platform path rules. With no segments it returns the home itself.
 
@@ -12,7 +12,7 @@ Shared filesystem path helpers for Bosch Harness user data.
 
 `BH_HOME_DIR_NAME` owns the default user-data directory name: `.bh`.
 
-`defaultBhHome()` returns the default Bosch Harness home by joining the operating-system home directory with `.bh`, using Node's platform path rules.
+`defaultBhHome()` returns the default Hydra harness home by joining the operating-system home directory with `.bh`, using Node's platform path rules.
 
 `expandHomePath()` expands `~`, `~/...`, and Windows-style `~\...` prefixes against the operating-system home directory. It leaves non-tilde paths and `~user/...` untouched.
 

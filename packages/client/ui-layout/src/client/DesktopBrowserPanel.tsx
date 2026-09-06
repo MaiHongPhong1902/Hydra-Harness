@@ -1,7 +1,7 @@
 /** Desktop-only tab host for Browser, Files, Side chat, and Terminal surfaces. */
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import type { SessionId, WorkspaceId } from '@bosch/bh-client-runtime/client'
+import type { SessionId, WorkspaceId } from '@hydra/harness-client-runtime/client'
 import {
   IconApiOutline14,
   IconCloseOutline16,
@@ -9,7 +9,7 @@ import {
   IconGlobeOutline14,
   IconNewChatOutline16,
   IconPlusOutline16,
-} from '@bosch/bh-client-ui-primitives'
+} from '@hydra/harness-client-ui-primitives'
 import { DesktopFilesPanel, type DesktopFilesApi } from './DesktopFilesPanel.tsx'
 import { DesktopTerminalPanel } from './DesktopTerminalPanel.tsx'
 import css from './DesktopBrowserPanel.module.css'

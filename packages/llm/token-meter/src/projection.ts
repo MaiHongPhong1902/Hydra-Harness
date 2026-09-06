@@ -1,7 +1,7 @@
 /**
  * Pure client-safe token-projection vocabulary.
  *
- * @module @bosch/bh-token-meter/projection
+ * @module @hydra/harness-token-meter/projection
  */
 
 /**
@@ -74,7 +74,7 @@ export interface ContextBreakdownProjection {
   messageTokens: number
 }
 
-declare module '@bosch/bh-session-projection/types' {
+declare module '@hydra/harness-session-projection/types' {
   interface SessionProjectionMap {
     /** Provider-reported usage accumulated across the complete durable log. */
     tokenUsage: TokenUsageProjection

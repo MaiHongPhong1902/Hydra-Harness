@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-llm-deepseek`.
- * @module @bosch/bh-llm-deepseek/invariant
+ * Package-owned invariant companion for `@hydra/harness-llm-deepseek`.
+ * @module @hydra/harness-llm-deepseek/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-llm-deepseek'
+const PACKAGE_NAME = '@hydra/harness-llm-deepseek'
 
 /** Cordis companion plugin name. */
 export const name = 'llm-deepseek-invariant'

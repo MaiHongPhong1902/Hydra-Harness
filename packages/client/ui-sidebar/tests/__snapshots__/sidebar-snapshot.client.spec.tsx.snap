@@ -131,11 +131,11 @@ exports[`sidebar shell snapshots > renders the expanded column (wordmark, capsul
               <svg
                 aria-hidden="true"
                 class="localBrandLogo"
-                data-content="6b75681b"
+                data-content="16cd8671"
                 fill="none"
-                height="44"
-                viewBox="0 0 952 172"
-                width="144"
+                height="24"
+                viewBox="0 0 182 24"
+                width="182"
               />
               <span
                 class="buildRevision"
@@ -252,11 +252,11 @@ exports[`sidebar shell snapshots > renders the expanded column in the default lo
               <svg
                 aria-hidden="true"
                 class="localBrandLogo"
-                data-content="6b75681b"
+                data-content="16cd8671"
                 fill="none"
-                height="44"
-                viewBox="0 0 952 172"
-                width="144"
+                height="24"
+                viewBox="0 0 182 24"
+                width="182"
               />
               <span
                 class="buildRevision"

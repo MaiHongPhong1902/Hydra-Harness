@@ -5,7 +5,7 @@
  * reference-stable across unrelated snapshot swaps, so this is a pure
  * projection — no second store, no copy.
  */
-import type { ObservableSnapshot, SessionFace } from '@bosch/bh-client-runtime/client'
+import type { ObservableSnapshot, SessionFace } from '@hydra/harness-client-runtime/client'
 import type { QueuedMessage } from '../input/contract.ts'
 
 /**

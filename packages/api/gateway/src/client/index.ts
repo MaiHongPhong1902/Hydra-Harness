@@ -4,9 +4,9 @@
  * participates in method lookup, invocation, or type exposure.
  */
 
-import { Service } from '@bosch/cordis'
-import type { Context, Events } from '@bosch/cordis'
-import type { ConnectionHandle } from '@bosch/bh-client-connection/client'
+import { Service } from '@hydra/cordis'
+import type { Context, Events } from '@hydra/cordis'
+import type { ConnectionHandle } from '@hydra/harness-client-connection/client'
 import type {
   InvocationDescriptor,
   TypertClientRemote,
@@ -15,7 +15,7 @@ import type {
   TypertDisposer,
   TypertRemoteContribution,
   TypertRemoteEvent,
-} from '@bosch/bh-typert-protocol'
+} from '@hydra/harness-typert-protocol'
 
 interface MountToken {
   active: boolean
@@ -63,7 +63,7 @@ interface InstalledMethod {
 /** Typed Remote service augmented by generated direct namespaces. */
 export type ClientRemote = TypertClientRemote
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     /** Generated Remote namespaces selected by the Client assembly. */
     remote: ClientRemote

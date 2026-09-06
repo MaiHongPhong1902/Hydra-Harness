@@ -78,7 +78,7 @@ export function apply(ctx: Context) {
 To stop a plugin instance early:
 
 ```ts
-import type { Context } from '@bosch/cordis'
+import type { Context } from '@hydra/cordis'
 
 declare const ctx: Context
 declare function myPlugin(ctx: Context): void
@@ -96,7 +96,7 @@ await fiber.dispose()
 
 ## Hot replacement (HMR)
 
-With `@bosch/cordis-plugin-hmr` loaded from `cordis.yml`, editing a plugin source file triggers:
+With `@hydra/cordis-plugin-hmr` loaded from `cordis.yml`, editing a plugin source file triggers:
 
 1. Unload the old plugin and clean up its registrations.
 2. Load the new code.

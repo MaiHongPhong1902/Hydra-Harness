@@ -2,36 +2,36 @@
 # e2b.cwd and sandbox-policy.workspaceRoot must name the same remote directory,
 # which is also bash-local's implicit default workdir.
 - id: e2b
-  name: '@bosch/bh-e2b'
+  name: '@hydra/harness-e2b'
   config:
     cwd: !!js process.cwd()
     timeoutMs: 180000
 
 - id: subprocess-e2b
-  name: '@bosch/bh-subprocess-e2b'
+  name: '@hydra/harness-subprocess-e2b'
 
 - id: bash
-  name: '@bosch/bh-bash-local'
+  name: '@hydra/harness-bash-local'
   config:
     timeoutMs: 30000
 
 - id: fs-e2b
-  name: '@bosch/bh-fs-e2b'
+  name: '@hydra/harness-fs-e2b'
 
 - id: agents
-  name: '@bosch/bh-agent'
+  name: '@hydra/harness-agent'
 
 - id: sandbox-policy
-  name: '@bosch/bh-sandbox-policy'
+  name: '@hydra/harness-sandbox-policy'
   config:
     mode: danger-full-access
     workspaceRoot: !!js process.cwd()
 
 - id: pty
-  name: '@bosch/bh-terminal'
+  name: '@hydra/harness-terminal'
 
 - id: terminal-bash
-  name: '@bosch/bh-terminal-bash'
+  name: '@hydra/harness-terminal-bash'
   config:
     pollIntervalMs: 25
     exactProbeAfterMs: 150
@@ -41,10 +41,10 @@
     disposeGraceMs: 1000
 
 - id: lsp
-  name: '@bosch/bh-lsp'
+  name: '@hydra/harness-lsp'
 
 - id: lsp-stdio
-  name: '@bosch/bh-lsp-stdio'
+  name: '@hydra/harness-lsp-stdio'
   config:
     servers:
       fixture:

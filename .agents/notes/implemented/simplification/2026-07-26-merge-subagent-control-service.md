@@ -10,7 +10,7 @@ Continuable-child orchestration originally lived in a separate `ctx.subagentCont
 
 ## Decision
 
-`SubagentRuntime` is the only public service. It exposes ordinary `start(name, request)`, Task-backed `startContinuable(spec)`, and intent-named `followup(...)`; provider resume dispatch remains private to its continuation manager. The standalone `@bosch/bh-subagent-control` package and `ctx.subagentControl` key are absent; the optional `@bosch/bh-tool-subagent-control` package injects `ctx.subagents` directly.
+`SubagentRuntime` is the only public service. It exposes ordinary `start(name, request)`, Task-backed `startContinuable(spec)`, and intent-named `followup(...)`; provider resume dispatch remains private to its continuation manager. The standalone `@hydra/harness-subagent-control` package and `ctx.subagentControl` key are absent; the optional `@hydra/harness-tool-subagent-control` package injects `ctx.subagents` directly.
 
 The merged service and its providers expose one `SubagentError` taxonomy. Stable codes distinguish provider lookup and capability failures from continuation routing, authorization, cancellation, persistence, and delivery failures; the removed service does not retain a separate error class.
 
@@ -18,7 +18,7 @@ The continuation implementation remains an internal manager rather than expandin
 
 `startContinuable` remains distinct from raw `start` because it has a different ownership and timing contract: it allocates the durable child id, creates the Task, and returns both ids synchronously while startup continues inside the Task. Raw `start` instead awaits provider publication and transfers a holder-owned run. Folding the method onto `start` through flags or return unions would broaden the low-level contract and create more change than keeping the existing explicit entry.
 
-Each `@bosch/bh-tool-subagent` instance selects `backgroundMode: 'one-shot' | 'continuable'`, defaulting to `one-shot`. This configuration is policy; `provider.resume` is only the capability check for configured continuable mode. A resumable provider can therefore still run one-shot background work. The `send_message` tool is an independent adapter: loading or omitting it neither enables nor disables `startContinuable`.
+Each `@hydra/harness-tool-subagent` instance selects `backgroundMode: 'one-shot' | 'continuable'`, defaulting to `one-shot`. This configuration is policy; `provider.resume` is only the capability check for configured continuable mode. A resumable provider can therefore still run one-shot background work. The `send_message` tool is an independent adapter: loading or omitting it neither enables nor disables `startContinuable`.
 
 ## Alternatives considered
 
@@ -35,5 +35,5 @@ Each `@bosch/bh-tool-subagent` instance selects `backgroundMode: 'one-shot' | 'c
 - The service topology has one public key and one package fewer while raw provider dispatch remains usable without Jobs or persistence.
 - Continuable mode fails at provider mount when the configured provider lacks `resume`; missing Jobs, Agents, or persistence still fail at the earliest operation that requires them.
 - Follow-up delivery remains optional. Deployments may start and collect continuable work through Task tools without exposing `send_message`.
-- The continuation manager is still Task- and persistence-aware inside the `bh-subagent` package, so the package declares optional peer dependencies on those services even though ordinary `start` callers do not need them.
+- The continuation manager is still Task- and persistence-aware inside the `@hydra/harness-subagent` package, so the package declares optional peer dependencies on those services even though ordinary `start` callers do not need them.
 - Existing continuation races, authorization, durability, cancellation, and settle-then-dispose semantics are unchanged and remain pinned by the migrated `subagent` tests.

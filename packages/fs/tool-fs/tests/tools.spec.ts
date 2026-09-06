@@ -4,14 +4,14 @@
  */
 
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve, sep } from 'node:path'
-import { CallId } from '@bosch/bh-llm'
-import SystemPrompt, { renderPrompt } from '@bosch/bh-system-prompt'
-import ToolRuntime, { type ToolResult } from '@bosch/bh-tools'
-import { FileSystem, FsError, FsTargetKey, FsVersion } from '@bosch/bh-fs'
+import { CallId } from '@hydra/harness-llm'
+import SystemPrompt, { renderPrompt } from '@hydra/harness-system-prompt'
+import ToolRuntime, { type ToolResult } from '@hydra/harness-tools'
+import { FileSystem, FsError, FsTargetKey, FsVersion } from '@hydra/harness-fs'
 import type {
   FsDirEntry,
   FsEditOutcome,
@@ -21,16 +21,16 @@ import type {
   FsTarget,
   FsWriteIntent,
   FsWriteOutcome,
-} from '@bosch/bh-fs'
-import * as FsPolicy from '@bosch/bh-fs-observation-policy'
-import * as ToolFs from '@bosch/bh-tool-fs'
+} from '@hydra/harness-fs'
+import * as FsPolicy from '@hydra/harness-fs-observation-policy'
+import * as ToolFs from '@hydra/harness-tool-fs'
 import { STREAM_MIN_SIZE } from '../src/read.ts'
 import { formatReadOutput } from '../src/read-render.ts'
 import type { FileReadOutcome } from '../src/read-render.ts'
 import { sessionCwd } from '../src/session-cwd.ts'
-import ApprovalService from '@bosch/bh-user-approval'
-import type { SandboxExecutionPolicy, SandboxMode } from '@bosch/bh-sandbox'
-import SandboxPolicyService from '@bosch/bh-sandbox-policy'
+import ApprovalService from '@hydra/harness-user-approval'
+import type { SandboxExecutionPolicy, SandboxMode } from '@hydra/harness-sandbox'
+import SandboxPolicyService from '@hydra/harness-sandbox-policy'
 
 const testToolSignal = new AbortController().signal
 

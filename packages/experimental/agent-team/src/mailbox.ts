@@ -1,12 +1,12 @@
 /** Durable Team mailbox admission, target-local dispatch, acknowledgement, and recovery. */
 
 import { randomUUID } from 'node:crypto'
-import type { Context } from '@bosch/cordis'
-import type { Agent } from '@bosch/bh-agent'
-import { createUserMessage } from '@bosch/bh-llm'
-import type { ContentBlock } from '@bosch/bh-llm'
-import { SessionId } from '@bosch/bh-session'
-import type { Session, SessionEvent } from '@bosch/bh-session'
+import type { Context } from '@hydra/cordis'
+import type { Agent } from '@hydra/harness-agent'
+import { createUserMessage } from '@hydra/harness-llm'
+import type { ContentBlock } from '@hydra/harness-llm'
+import { SessionId } from '@hydra/harness-session'
+import type { Session, SessionEvent } from '@hydra/harness-session'
 import { errorMessage, TeamError } from './error.ts'
 import type { TeamJournal } from './journal.ts'
 import type { TeamRuntimeLifecycle } from './lifecycle.ts'

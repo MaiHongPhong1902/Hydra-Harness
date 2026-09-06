@@ -2,9 +2,9 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { expect, it } from 'vitest'
-import type {} from '@bosch/bh-skill'
-import { SessionId } from '@bosch/bh-session'
-import type {} from '@bosch/bh-agent-presets'
+import type {} from '@hydra/harness-skill'
+import { SessionId } from '@hydra/harness-session'
+import type {} from '@hydra/harness-agent-presets'
 import { launchWebScaffold, type WebScaffold } from './scaffold.ts'
 
 async function writeSkill(root: string, name: string): Promise<void> {

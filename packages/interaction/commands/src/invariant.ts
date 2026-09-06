@@ -1,14 +1,14 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-commands`:
+ * Package-owned invariant companion for `@hydra/harness-commands`:
  * command lifecycle events pair by commandId within one session log.
- * @module @bosch/bh-commands/invariant
+ * @module @hydra/harness-commands/invariant
  */
 
-import type { Context } from '@bosch/cordis'
-import type { Session, SessionEvent } from '@bosch/bh-session'
-import type { InvariantFailure, InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { Session, SessionEvent } from '@hydra/harness-session'
+import type { InvariantFailure, InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-commands'
+const PACKAGE_NAME = '@hydra/harness-commands'
 
 /** Cordis companion plugin name. */
 export const name = 'commands-invariant'

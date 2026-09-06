@@ -42,7 +42,13 @@ it('boots the built plugin graph and renders a fixture session end to end', asyn
 
   // The sidebar renders from the boot graph: every inject layer activated.
   const tree = await screen.findByRole('tree', { name: 'Sessions' }, { timeout: 10_000 })
-  expect(document.querySelector('svg[viewBox="26 0 156 24"]')).not.toBeNull()
+  const brand = screen.getByText('Hydra harness').closest('svg')!
+  expect(brand.querySelector('image')?.getAttribute('href')).toMatch(/^data:image\/png;base64,/)
+  const mark = brand.querySelector('svg')!
+  fireEvent.mouseEnter(mark)
+  expect(mark.querySelectorAll('image')[1]?.getAttribute('href')).toMatch(/^data:image\/webp;base64,/)
+  fireEvent.mouseLeave(mark)
+  expect(mark.querySelectorAll('image')).toHaveLength(1)
   expect(screen.queryByText('BH Local Build')).toBeNull()
   // The compact layout dropped group session counts; the fixture workspace
   // group row renders immediately with its sessions beneath it.
@@ -125,7 +131,7 @@ it('boots the built plugin graph and renders a fixture session end to end', asyn
   // Every bundle injected its plugin-owned style tag (the loader's CSS path).
   const styleOwners = [...document.head.querySelectorAll('style[data-plugin]')]
     .map(style => style.getAttribute('data-plugin'))
-  for (const plugin of ['@bosch/bh-client-ui-layout', '@bosch/bh-client-ui-sidebar', '@bosch/bh-client-ui-conversation', '@bosch/bh-client-ui-tool']) {
+  for (const plugin of ['@hydra/harness-client-ui-layout', '@hydra/harness-client-ui-sidebar', '@hydra/harness-client-ui-conversation', '@hydra/harness-client-ui-tool']) {
     expect(styleOwners).toContain(plugin)
   }
 })

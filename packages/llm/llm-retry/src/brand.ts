@@ -1,4 +1,4 @@
-import type { Branded } from '@bosch/bh-brand'
+import type { Branded } from '@hydra/harness-brand'
 
 /** Stable identity shared by every attempt in one request-step retry chain. */
 export type RetryId = Branded<'RetryId'>

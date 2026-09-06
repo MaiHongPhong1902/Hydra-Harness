@@ -2,21 +2,21 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { Context } from '@bosch/cordis'
-import Loader from '@bosch/cordis-plugin-loader'
-import { credentialRef } from '@bosch/bh-credentials'
-import LocalCredentialProvider from '@bosch/bh-credentials-local'
-import WebRuntime from '@bosch/bh-web'
+import { Context } from '@hydra/cordis'
+import Loader from '@hydra/cordis-plugin-loader'
+import { credentialRef } from '@hydra/harness-credentials'
+import LocalCredentialProvider from '@hydra/harness-credentials-local'
+import WebRuntime from '@hydra/harness-web'
 import {
   DeepSeekSearchProvider,
   DEEPSEEK_PROVIDER_ID,
-} from '@bosch/bh-web-search-deepseek'
-import * as deepseekPlugin from '@bosch/bh-web-search-deepseek'
+} from '@hydra/harness-web-search-deepseek'
+import * as deepseekPlugin from '@hydra/harness-web-search-deepseek'
 import { citationSnippets, mapAnthropicResponse } from '../src/provider.ts'
-import type { AnthropicResponse } from '@bosch/bh-web-search-deepseek/src/types.ts'
+import type { AnthropicResponse } from '@hydra/harness-web-search-deepseek/src/types.ts'
 
 /** Construct the provider over a fixed options value; production passes a live thunk. */
-import type { DeepSeekSearchProviderOptions } from '@bosch/bh-web-search-deepseek'
+import type { DeepSeekSearchProviderOptions } from '@hydra/harness-web-search-deepseek'
 
 const searchProvider = (options: DeepSeekSearchProviderOptions): DeepSeekSearchProvider =>
   new DeepSeekSearchProvider(() => options)

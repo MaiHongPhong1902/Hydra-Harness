@@ -18,20 +18,20 @@
  * agent factory's `setup(agentCtx)` hook is the one supported call site,
  * because only there is the join installed while the agent is still
  * unpublished, so a rejected composition rolls the whole creation back.
- * @module @bosch/bh-agent-presets
+ * @module @hydra/harness-agent-presets
  */
 
 import { stat } from 'node:fs/promises'
-import { Context, Service } from '@bosch/cordis'
-import { entryListSchema, type PatchOptions } from '@bosch/cordis-plugin-include'
-import type { EntryOptions } from '@bosch/cordis-plugin-loader'
-import z from '@bosch/schemastery'
-import { bindScopeParent, createScope, scopeOf, type Scope, type ScopeKey, type ScopeParentBinding } from '@bosch/bh-scope'
+import { Context, Service } from '@hydra/cordis'
+import { entryListSchema, type PatchOptions } from '@hydra/cordis-plugin-include'
+import type { EntryOptions } from '@hydra/cordis-plugin-loader'
+import z from '@hydra/schemastery'
+import { bindScopeParent, createScope, scopeOf, type Scope, type ScopeKey, type ScopeParentBinding } from '@hydra/harness-scope'
 import { load } from 'js-yaml'
 // Type-only: resolves the `agent/created` lifecycle event this service watches.
-import type {} from '@bosch/bh-agent'
-import { settingsNamespace, type SettingsScope, type default as SettingsService } from '@bosch/bh-settings'
-import { bhHomePath } from '@bosch/bh-home-paths'
+import type {} from '@hydra/harness-agent'
+import { settingsNamespace, type SettingsScope, type default as SettingsService } from '@hydra/harness-settings'
+import { bhHomePath } from '@hydra/harness-home-paths'
 import { discoverPresets, USER_PRESET_DIR } from './discovery.ts'
 import { copyComposition, deleteComposition, readComposition } from './authoring.ts'
 import { mountPreset, serviceForAgent, standingMountFor } from './mount.ts'
@@ -128,7 +128,7 @@ export { resolveSessionPreset, type PresetBearingSession } from './session.ts'
 export { PresetMountError, UnknownPresetError } from './preset.ts'
 export type { AgentPreset, Config, PresetRoot, PresetTrust } from './preset.ts'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     agentPresets: AgentPresets
   }
@@ -324,7 +324,7 @@ export class AgentPresets extends Service {
 
   /**
    * Parent bindings of the agents this roster composed, keyed by the agent's
-   * scope key. The binding is bh-scope's only re-link capability; holding it
+   * scope key. The binding is @hydra/harness-scope's only re-link capability; holding it
    * here makes this service the sole authority that can move an agent between
    * standing compositions. WeakMap: entries die with their agents.
    */
@@ -555,7 +555,7 @@ export class AgentPresets extends Service {
    * new one is ensured BEFORE the link moves. An unknown or unusable preset
    * therefore throws with the agent exactly as it was — there is no torn-down
    * state to restore. The re-link runs through the binding this roster kept
-   * from the agent's mount — bh-scope's only re-link authority. An agent
+   * from the agent's mount — @hydra/harness-scope's only re-link authority. An agent
    * that never composed one has nothing to re-link: the switch is then the
    * agent's first bind, exactly a mount.
    * @param agentCtx - the agent's scope context.
@@ -608,7 +608,7 @@ export class AgentPresets extends Service {
       const current = await compositionStamp(preset.path)
       if (current === undefined || sameStamp(mounted.stamp, current)) return mounted
       // TODO: reclaim the superseded generation once the last agent joined to
-      // it is gone. The subtree is not inert — `bh-skill-filesystem` watches its
+      // it is gone. The subtree is not inert — `@hydra/harness-skill-filesystem` watches its
       // roots — and the settings-page authoring flow turns "a composition
       // changed" into a per-save event. This needs a joined-agent count on
       // StandingMount, incremented in `mount`/`composeFrom`/`recompose` and

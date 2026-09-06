@@ -1,16 +1,16 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context, type Fiber } from '@bosch/cordis'
-import type { Agent } from '@bosch/bh-agent'
-import { createUserMessage, CallId, HarnessError , createMessage } from '@bosch/bh-llm'
-import { MAX_TIMER_DELAY_MS, TimeoutReason } from '@bosch/bh-timeout'
-import * as TimeoutPolicy from '@bosch/bh-tool-call-timeout-policy'
+import { Context, type Fiber } from '@hydra/cordis'
+import type { Agent } from '@hydra/harness-agent'
+import { createUserMessage, CallId, HarnessError , createMessage } from '@hydra/harness-llm'
+import { MAX_TIMER_DELAY_MS, TimeoutReason } from '@hydra/harness-timeout'
+import * as TimeoutPolicy from '@hydra/harness-tool-call-timeout-policy'
 import SessionStore, {
   SESSION_FORMAT_VERSION,
   SessionId,
   type Session,
   type SessionHeader,
   type SessionId as SessionIdValue,
-} from '@bosch/bh-session'
+} from '@hydra/harness-session'
 import SessionQueryEngine, {
   SessionQueryError,
   SessionSearchCursor,
@@ -23,10 +23,10 @@ import SessionQueryEngine, {
   type SessionSearchPage,
   type SessionSearchRequest,
   type SessionTitleObservationResult,
-} from '@bosch/bh-session-query'
-import SystemPrompt from '@bosch/bh-system-prompt'
-import ToolRuntime, { type ToolExecutionResult } from '@bosch/bh-tools'
-import * as ToolSessionQuery from '@bosch/bh-tool-session-query'
+} from '@hydra/harness-session-query'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import ToolRuntime, { type ToolExecutionResult } from '@hydra/harness-tools'
+import * as ToolSessionQuery from '@hydra/harness-tool-session-query'
 
 const activeContexts: Context[] = []
 

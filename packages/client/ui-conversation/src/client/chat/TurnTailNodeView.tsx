@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import type { PropsRenderSlots } from '@bosch/bh-client-ui-slots'
+import type { PropsRenderSlots } from '@hydra/harness-client-ui-slots'
 import type { ChatNodeViewProps, TurnTailOwnerProps } from '../contract/slots.ts'
 import { MessageIconActions } from './MessageIconActions.tsx'
 import { assistantText } from './turn-assistant.ts'

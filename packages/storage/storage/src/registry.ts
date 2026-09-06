@@ -1,6 +1,6 @@
 /**
  * Named backend registry of the storage hub.
- * @module @bosch/bh-storage/src/registry
+ * @module @hydra/harness-storage/src/registry
  */
 
 import type { StorageBackend } from './backend.ts'

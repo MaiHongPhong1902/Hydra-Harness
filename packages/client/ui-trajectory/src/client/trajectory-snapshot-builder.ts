@@ -1,9 +1,9 @@
-import type { Context } from '@bosch/cordis'
+import type { Context } from '@hydra/cordis'
 import type {
   AssistantMessageNode, ConversationNode, ConversationPromptSnapshot,
   ConversationViewBuilder, ConversationViewDefinition, RequestView,
   ToolCallBlock,
-} from '@bosch/bh-client-runtime/client'
+} from '@hydra/harness-client-runtime/client'
 import type {
   TrajectoryConversationViewNode, TrajectoryRequestHeaderState,
   TrajectorySnapshot,

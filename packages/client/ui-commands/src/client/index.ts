@@ -5,13 +5,13 @@
  * popupSelect shell self-registers into conversation.input.overlay with
  * per-session resolution.
  */
-import type { ClientContext } from '@bosch/bh-client-runtime/client'
+import type { ClientContext } from '@hydra/harness-client-runtime/client'
 // Type-only: pulls the 'conversation.input.overlay' SlotMap declaration (the
 // key's owner) into this program so the overlay registration below typechecks
 // against the real declaration — no runtime edge to ui-conversation.
-import type {} from '@bosch/bh-client-ui-conversation/client'
+import type {} from '@hydra/harness-client-ui-conversation/client'
 // Type-only: pulls the locale plugin's Context merge (ctx.locale).
-import type {} from '@bosch/bh-client-locale/client'
+import type {} from '@hydra/harness-client-locale/client'
 import { CommandUiRuntime } from './service.ts'
 import type { PopupSelectInjected } from './PopupSelectView.tsx'
 import { PopupSelectView } from './PopupSelectView.tsx'
@@ -28,13 +28,13 @@ export type {
 } from './contract.ts'
 export type { CommandKey } from './locales.ts'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     commandUi: CommandUiRuntime
   }
 }
 
-declare module '@bosch/bh-client-ui-slots' {
+declare module '@hydra/harness-client-ui-slots' {
   interface LocaleNamespaceMap {
     /** The popupSelect shell's copy. */
     command: CommandKey

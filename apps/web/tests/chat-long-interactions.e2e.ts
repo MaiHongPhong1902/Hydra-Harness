@@ -8,9 +8,9 @@ import { join } from 'node:path'
 import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
-import type { StreamChunk } from '@bosch/bh-llm'
-import type { ReplayEntry, ReplayOverrideDoc } from '@bosch/bh-llm-replay'
-import { SessionId, type SessionEvent } from '@bosch/bh-session'
+import type { StreamChunk } from '@hydra/harness-llm'
+import type { ReplayEntry, ReplayOverrideDoc } from '@hydra/harness-llm-replay'
+import { SessionId, type SessionEvent } from '@hydra/harness-session'
 import { createChatScrollFixture } from './chat-scroll-fixture.ts'
 import {
   launchWebScaffold,

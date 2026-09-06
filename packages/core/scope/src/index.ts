@@ -2,11 +2,11 @@
  * Scoped-context primitive: mint a Cordis context that tags registrations with
  * an opaque identity and build routing-only event carriers for that identity.
  *
- * @module @bosch/bh-scope
+ * @module @hydra/harness-scope
  */
 
-import type { Context, Fiber } from '@bosch/cordis'
-import { Context as CordisContext } from '@bosch/cordis'
+import type { Context, Fiber } from '@hydra/cordis'
+import { Context as CordisContext } from '@hydra/cordis'
 
 export { AnonymousEntries, NamedEntries, ScopedLayers } from './store.ts'
 export type { ScopeLayer } from './store.ts'

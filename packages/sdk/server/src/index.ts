@@ -6,13 +6,13 @@
  * owns EOF and signal exits. Keep named plugin exports with no default export so
  * Loader `unwrapExports` preserves `name`, `inject`, `Config`, and `apply`.
  *
- * @module @bosch/bh-sdk-jsonrpc-server
+ * @module @hydra/harness-sdk-jsonrpc-server
  */
 
-import type { Context } from '@bosch/cordis'
+import type { Context } from '@hydra/cordis'
 import type { Readable, Writable } from 'node:stream'
-import Schema from '@bosch/schemastery'
-import { JsonRpcLineTransport } from '@bosch/bh-sdk-protocol'
+import Schema from '@hydra/schemastery'
+import { JsonRpcLineTransport } from '@hydra/harness-sdk-protocol'
 import { HarnessSdkJsonRpcServer } from './server.ts'
 
 export * from './server.ts'

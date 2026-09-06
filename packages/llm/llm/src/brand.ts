@@ -1,16 +1,16 @@
 /**
- * bh-llm's owned branded ids: tool-call correlation and provider request
+ * @hydra/harness-llm's owned branded ids: tool-call correlation and provider request
  * diagnostics.
  *
- * The `Branded<B>` primitive itself lives in `@bosch/bh-brand` (a
+ * The `Branded<B>` primitive itself lives in `@hydra/harness-brand` (a
  * zero-dependency type-only package) so every owner of a cross-boundary id can
- * brand it without depending on bh-llm; see that package's README for the
+ * brand it without depending on @hydra/harness-llm; see that package's README for the
  * nominal-typing policy.
  *
- * @module @bosch/bh-llm/brand
+ * @module @hydra/harness-llm/brand
  */
 
-import type { Branded } from '@bosch/bh-brand'
+import type { Branded } from '@hydra/harness-brand'
 
 /** Stable identity carried by one message across inbox, log, and model-request boundaries. */
 export type MessageId = Branded<'MessageId'>

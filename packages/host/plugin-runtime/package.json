@@ -1,6 +1,6 @@
 {
-  "name": "@bosch/bh-plugin-runtime",
-  "description": "Shared immutable OpenAI/Codex-compatible imported plugin runtime for the Bosch Harness",
+  "name": "@hydra/harness-plugin-runtime",
+  "description": "Shared immutable OpenAI/Codex-compatible imported plugin runtime for the Hydra harness",
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"
@@ -37,33 +37,33 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@bosch/bh-atomic-write": "workspace:^",
-    "@bosch/bh-commands": "workspace:^",
-    "@bosch/bh-hook-protocol": "workspace:^",
-    "@bosch/bh-hooks-codex": "workspace:^",
-    "@bosch/bh-home-paths": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-llm": "workspace:^",
-    "@bosch/bh-mcp-client": "workspace:^",
-    "@bosch/bh-skill": "workspace:^",
-    "@bosch/bh-tools": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-atomic-write": "workspace:^",
+    "@hydra/harness-commands": "workspace:^",
+    "@hydra/harness-hook-protocol": "workspace:^",
+    "@hydra/harness-hooks-codex": "workspace:^",
+    "@hydra/harness-home-paths": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/harness-mcp-client": "workspace:^",
+    "@hydra/harness-skill": "workspace:^",
+    "@hydra/harness-tools": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   },
   "dependencies": {
     "smol-toml": "^1.7.1"
   },
   "devDependencies": {
-    "@bosch/bh-atomic-write": "workspace:^",
-    "@bosch/bh-commands": "workspace:^",
-    "@bosch/bh-hook-protocol": "workspace:^",
-    "@bosch/bh-hooks-codex": "workspace:^",
-    "@bosch/bh-home-paths": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-llm": "workspace:^",
-    "@bosch/bh-mcp-client": "workspace:^",
-    "@bosch/bh-skill": "workspace:^",
-    "@bosch/bh-system-prompt": "workspace:^",
-    "@bosch/bh-tools": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-atomic-write": "workspace:^",
+    "@hydra/harness-commands": "workspace:^",
+    "@hydra/harness-hook-protocol": "workspace:^",
+    "@hydra/harness-hooks-codex": "workspace:^",
+    "@hydra/harness-home-paths": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/harness-mcp-client": "workspace:^",
+    "@hydra/harness-skill": "workspace:^",
+    "@hydra/harness-system-prompt": "workspace:^",
+    "@hydra/harness-tools": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   }
 }

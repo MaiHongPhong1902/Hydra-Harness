@@ -1,4 +1,4 @@
-import type { Context } from '@bosch/cordis'
+import type { Context } from '@hydra/cordis'
 import type { ConversationViewDefinition } from '../contract/conversation.ts'
 import { ConversationDefinitionRegistry } from './definition-registry.ts'
 

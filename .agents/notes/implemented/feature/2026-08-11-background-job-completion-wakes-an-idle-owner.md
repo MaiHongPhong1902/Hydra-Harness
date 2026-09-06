@@ -46,7 +46,7 @@ The bound exists because this chain is self-exciting in a way subagent settlemen
 
 **A producer-declared wake bit on `JobStart`,** matching Codex's `trigger_turn` and Kimi's `admission` enum. It is the better long-run shape — a `tail -f` stream and a two-hour build want different answers — but no current producer distinguishes them, and the repository requires a current owner and need for public surface. The natural trigger to add it is the first producer that wants one task to wake and another not to.
 
-**A general unsolicited-input queue** with priority lanes, as Claude Code uses to merge background jobs, cron, MCP push, and hooks into one drain. BH's inbox already is that queue — durable `agent/inbox/spliced` splices over `next-turn`/`next-step` — so this would add a layer above an existing one to decide a single bit.
+**A general unsolicited-input queue** with priority lanes, as Claude Code uses to merge background jobs, cron, MCP push, and hooks into one drain. Hydra harness's inbox already is that queue — durable `agent/inbox/spliced` splices over `next-turn`/`next-step` — so this would add a layer above an existing one to decide a single bit.
 
 **Refusing to reopen a turn that already produced a visible answer,** Codex's `MailboxDeliveryPhase` latch. That latch is the default this decision deliberately inverts: waking after the model has spoken is the entire point, and the wake budget is the bound instead.
 

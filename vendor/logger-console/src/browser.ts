@@ -1,4 +1,4 @@
-import { Message } from '@bosch/cordis'
+import { Message } from '@hydra/cordis'
 import { ConsoleExporter as Base } from './shared.ts'
 
 /** Re-export shared console exporter config and base implementation. */

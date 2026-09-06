@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http'
 import { AddressInfo } from 'node:net'
-import { Context } from '@bosch/cordis'
-import WebRuntime from '@bosch/bh-web'
-import { HttpFetchProvider, LOCAL_FETCH_PROVIDER_ID } from '@bosch/bh-web-fetch-http'
-import type { HttpFetchLimits } from '@bosch/bh-web-fetch-http'
-import * as fetchPlugin from '@bosch/bh-web-fetch-http'
+import { Context } from '@hydra/cordis'
+import WebRuntime from '@hydra/harness-web'
+import { HttpFetchProvider, LOCAL_FETCH_PROVIDER_ID } from '@hydra/harness-web-fetch-http'
+import type { HttpFetchLimits } from '@hydra/harness-web-fetch-http'
+import * as fetchPlugin from '@hydra/harness-web-fetch-http'
 import { classifyContentType, decoderForCharset, isSameOrigin, parseCharset, validateFetchUrl } from '../src/policy.ts'
 
 const limits: HttpFetchLimits = {

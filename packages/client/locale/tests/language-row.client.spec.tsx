@@ -3,8 +3,8 @@
  * opens/closes, and selection drives setLocale. */
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { createSnapshotStore, type SessionListState, type WorkspaceListState } from '@bosch/bh-client-runtime/client'
-import { bindSnapshotSelector } from '@bosch/bh-client-test-runtime'
+import { createSnapshotStore, type SessionListState, type WorkspaceListState } from '@hydra/harness-client-runtime/client'
+import { bindSnapshotSelector } from '@hydra/harness-client-test-runtime'
 import { LanguageRow } from '../src/client/LanguageRow.tsx'
 import type { LanguageRowComponentProps } from '../src/client/LanguageRow.tsx'
 import { createLanguageRowStore } from '../src/client/settings-store.ts'

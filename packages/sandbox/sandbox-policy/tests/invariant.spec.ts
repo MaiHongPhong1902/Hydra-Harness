@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import SessionStore, { type Session, type SessionEvent } from '@bosch/bh-session'
-import InvariantRegistry, { InvariantError } from '@bosch/bh-invariants'
-import * as SandboxPolicyInvariant from '@bosch/bh-sandbox-policy/invariant'
+import { Context } from '@hydra/cordis'
+import SessionStore, { type Session, type SessionEvent } from '@hydra/harness-session'
+import InvariantRegistry, { InvariantError } from '@hydra/harness-invariants'
+import * as SandboxPolicyInvariant from '@hydra/harness-sandbox-policy/invariant'
 
 async function setup(): Promise<Context> {
   const ctx = new Context()
@@ -36,7 +36,7 @@ describe('sandbox-policy invariants', () => {
   it('rejects and attributes an unknown durable sandbox mode', async () => {
     const ctx = await setup()
     expect(() => { ctx.emit('session/event', {} as Session, modeEvent('host-root')) })
-      .toThrow(new InvariantError('@bosch/bh-sandbox-policy', 'sandbox/mode carries unknown mode "host-root"'))
+      .toThrow(new InvariantError('@hydra/harness-sandbox-policy', 'sandbox/mode carries unknown mode "host-root"'))
   })
 
   it('rejects an unknown mode already present on late registration', async () => {
@@ -47,7 +47,7 @@ describe('sandbox-policy invariants', () => {
 
     await expect(ctx.plugin(SandboxPolicyInvariant).then(() => undefined)).rejects.toMatchObject({
       code: 'INVARIANT',
-      packageName: '@bosch/bh-sandbox-policy',
+      packageName: '@hydra/harness-sandbox-policy',
     })
   })
 })

@@ -5,13 +5,13 @@
  * to the same append-only / contiguous-seq / lazy-materialization / crash
  * semantics. The JSONL backend's own spec adds file-specific tests on top.
  *
- * @module @bosch/bh-session-persistence/tests/contract
+ * @module @hydra/harness-session-persistence/tests/contract
  */
 
 import { describe, expect, it } from 'vitest'
-import { SESSION_FORMAT_VERSION, Session, SessionId, TOOL_NOT_STARTED, TOOL_OUTCOME_UNKNOWN } from '@bosch/bh-session'
-import type { SessionEvent, SessionHeader, SurfaceEventType, SurfaceIntent } from '@bosch/bh-session'
-import { CallId, MessageId, createMessage, freezeMessage } from '@bosch/bh-llm'
+import { SESSION_FORMAT_VERSION, Session, SessionId, TOOL_NOT_STARTED, TOOL_OUTCOME_UNKNOWN } from '@hydra/harness-session'
+import type { SessionEvent, SessionHeader, SurfaceEventType, SurfaceIntent } from '@hydra/harness-session'
+import { CallId, MessageId, createMessage, freezeMessage } from '@hydra/harness-llm'
 import type { SessionPersistence } from '../src/index.ts'
 
 /** A backend under test plus its teardown. */

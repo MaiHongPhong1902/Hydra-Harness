@@ -5,21 +5,21 @@
  */
 
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { stat } from 'node:fs/promises'
-import AgentRegistry from '@bosch/bh-agent'
-import { createUserMessage } from '@bosch/bh-llm'
-import SessionStore from '@bosch/bh-session'
-import type { SessionHeader, SessionId } from '@bosch/bh-session'
-import UserQuestionService from '@bosch/bh-user-questions'
+import AgentRegistry from '@hydra/harness-agent'
+import { createUserMessage } from '@hydra/harness-llm'
+import SessionStore from '@hydra/harness-session'
+import type { SessionHeader, SessionId } from '@hydra/harness-session'
+import UserQuestionService from '@hydra/harness-user-questions'
 import {
   SessionQueryError,
   type SessionSearchHit,
   type SessionSearchRequest,
-} from '@bosch/bh-session-query'
-import type { RpcRequest } from '@bosch/bh-host-apiproxy/api'
-import { RpcId } from '@bosch/bh-host-apiproxy/api'
-import { createApiProxy } from '@bosch/bh-host-apiproxy'
+} from '@hydra/harness-session-query'
+import type { RpcRequest } from '@hydra/harness-host-apiproxy/api'
+import { RpcId } from '@hydra/harness-host-apiproxy/api'
+import { createApiProxy } from '@hydra/harness-host-apiproxy'
 
 vi.mock('node:fs/promises', async (importOriginal) => {
   const actual = await importOriginal<typeof import('node:fs/promises')>()

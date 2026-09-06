@@ -3,7 +3,7 @@
  * the caret for a live trigger char under the guard tier and applies the
  * word-boundary rules. Zero React / DOM / cordis.
  */
-import { activeAtToken } from '@bosch/bh-file-reference/grammar'
+import { activeAtToken } from '@hydra/harness-file-reference/grammar'
 import type { TriggerChar } from '../types.ts'
 import type { DetectTrigger } from './contract.ts'
 

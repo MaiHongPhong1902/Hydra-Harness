@@ -1,11 +1,11 @@
 /**
- * Shared wire protocol for the Bosch Harness SDK runtime: the
+ * Shared wire protocol for the Hydra harness SDK runtime: the
  * newline-delimited JSON-RPC stdio transport plus the named request, result,
  * and notification types both wire ends speak. The runtime server plugin
- * (`@bosch/bh-sdk-jsonrpc-server`) serves this protocol; SDK clients
- * (`@bosch/bh-sdk-client`, the Python SDK) drive it.
+ * (`@hydra/harness-sdk-jsonrpc-server`) serves this protocol; SDK clients
+ * (`@hydra/harness-sdk-client`, the Python SDK) drive it.
  *
- * @module @bosch/bh-sdk-protocol
+ * @module @hydra/harness-sdk-protocol
  */
 
 export { JsonRpcLineTransport, JsonRpcResponseError } from './transport.ts'

@@ -1,15 +1,15 @@
 // SessionTitleService.rename: user-source acceptance, normalization/rejection
 // boundaries, and the pin (a user-sourced latest title schedules no automatic
 // revision; explicit refresh stays the unpin).
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { describe, expect, it, vi } from 'vitest'
-import { createUserMessage } from '@bosch/bh-llm'
-import SessionStore, { Session, SessionId } from '@bosch/bh-session'
+import { createUserMessage } from '@hydra/harness-llm'
+import SessionStore, { Session, SessionId } from '@hydra/harness-session'
 import SessionTitleService, {
   SessionTitleProviderId,
   foldSessionTitle,
   type SessionTitleProviderRequest,
-} from '@bosch/bh-session-title'
+} from '@hydra/harness-session-title'
 
 const CONFIG = {
   fallbackMaxWords: 5,

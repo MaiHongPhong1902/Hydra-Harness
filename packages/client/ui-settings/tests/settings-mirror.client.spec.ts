@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { RpcResponse, SettingsNamespaceView } from '@bosch/bh-api-remotes/client'
+import type { RpcResponse, SettingsNamespaceView } from '@hydra/harness-api-remotes/client'
 import { SettingsDescribeMirror, type SettingsDescribeView } from '../src/client/settings-mirror.ts'
 
 let rpc = 0
@@ -33,6 +33,20 @@ function deferred<T>() {
 }
 
 describe('SettingsDescribeMirror', () => {
+  it('ignores a write acknowledgment older than a completed refresh', async () => {
+    const describeCall = vi.fn()
+      .mockResolvedValueOnce(described([view('theme', 1)]))
+      .mockResolvedValueOnce(described([view('theme', 3)]))
+    const mirror = new SettingsDescribeMirror({ settings: { describe: describeCall } } as never)
+    await mirror.load()
+    await mirror.load()
+    const current = mirror.getSnapshot()
+    mirror.acceptView(view('theme', 2))
+    expect(mirror.getSnapshot()).toBe(current)
+    expect(mirror.namespace('theme')?.revision).toBe(3)
+    expect(describeCall).toHaveBeenCalledTimes(2)
+  })
+
   it('folds loads before the wire read into it, and mid-flight loads into one rerun', async () => {
     const gate = deferred<RpcResponse<SettingsDescribeView>>()
     const describeCall = vi.fn()
@@ -72,7 +86,7 @@ describe('SettingsDescribeMirror', () => {
 
   it('returns to idle after a first read that never succeeded, so ensure retries', async () => {
     const describeCall = vi.fn()
-      .mockRejectedValueOnce(new Error('offline'))
+      .mockRejectedValueOnce('offline')
       .mockResolvedValueOnce(described([view('theme', 1)]))
     const mirror = new SettingsDescribeMirror({ settings: { describe: describeCall } } as never)
     await mirror.ensure()
@@ -80,6 +94,19 @@ describe('SettingsDescribeMirror', () => {
     await mirror.ensure()
     expect(mirror.getSnapshot()).toMatchObject({ status: 'ready', error: null })
     expect(describeCall).toHaveBeenCalledTimes(2)
+  })
+
+  it('shares the pending initial read when another section ensures the mirror', async () => {
+    const gate = deferred<RpcResponse<SettingsDescribeView>>()
+    const describeCall = vi.fn().mockReturnValue(gate.promise)
+    const mirror = new SettingsDescribeMirror({ settings: { describe: describeCall } } as never)
+    const first = mirror.ensure()
+    await Promise.resolve()
+    const second = mirror.ensure()
+    gate.resolve(described([view('theme', 1)]))
+    await Promise.all([first, second])
+    expect(describeCall).toHaveBeenCalledTimes(1)
+    expect(mirror.namespace('theme')?.revision).toBe(1)
   })
 
   it('treats ensure as a no-op once ready', async () => {

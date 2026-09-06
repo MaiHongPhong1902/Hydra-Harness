@@ -18,10 +18,10 @@
  * @module bh-sandbox-policy/session-mode
  */
 
-import type { Session, SessionEvent } from '@bosch/bh-session'
-import type { SandboxMode } from '@bosch/bh-sandbox'
+import type { Session, SessionEvent } from '@hydra/harness-session'
+import type { SandboxMode } from '@hydra/harness-sandbox'
 
-declare module '@bosch/bh-session/types' {
+declare module '@hydra/harness-session/types' {
   interface SessionEventMap {
     /**
      * The session's sandbox mode was switched — log-only (like `approval/*`;

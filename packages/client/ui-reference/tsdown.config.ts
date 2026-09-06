@@ -1,3 +1,3 @@
 import { clientBundle } from '../tsdown.client.ts'
 
-export default clientBundle('@bosch/bh-client-ui-reference', ['lib/types/index.js', 'lib/types/invariant.js'])
+export default clientBundle('@hydra/harness-client-ui-reference', ['lib/types/index.js', 'lib/types/invariant.js'])

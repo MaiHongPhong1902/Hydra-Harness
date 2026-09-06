@@ -2,7 +2,7 @@
 
 import { closeSync, openSync, readFileSync, readdirSync, readlinkSync, readSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
-import type { SubprocessTerminalSignal } from '@bosch/bh-subprocess'
+import type { SubprocessTerminalSignal } from '@hydra/harness-subprocess'
 import { createWindowsProcessInspector } from './windows-inspector.ts'
 
 /** PID plus start identity, preventing teardown escalation after PID reuse. */

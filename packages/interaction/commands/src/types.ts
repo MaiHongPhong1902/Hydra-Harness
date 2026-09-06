@@ -4,7 +4,7 @@
  * reaches a Host-only symbol, so a Client compilation face reads the same
  * `commands/change` signature the Host emits.
  *
- * @module @bosch/bh-commands/types
+ * @module @hydra/harness-commands/types
  */
 
 import type { CommandId } from './brand.ts'
@@ -69,7 +69,7 @@ export interface CommandSourceMap {
 /** The union over {@link CommandSourceMap} — who issued a command line. */
 export type CommandSource = CommandSourceMap[keyof CommandSourceMap]
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Events {
     /**
      * A command was registered or unregistered. This is an unfiltered registry
@@ -81,7 +81,7 @@ declare module '@bosch/cordis' {
   }
 }
 
-declare module '@bosch/bh-session/types' {
+declare module '@hydra/harness-session/types' {
   interface SessionEventMap {
     /**
      * A resolved slash command entered its handler. Log-only (never model

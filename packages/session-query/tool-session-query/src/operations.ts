@@ -1,20 +1,20 @@
 /**
  * Tool operation orchestration over session-query service capabilities.
  *
- * @module @bosch/bh-tool-session-query/operations
+ * @module @hydra/harness-tool-session-query/operations
  */
 
-import type { Context } from '@bosch/cordis'
-import { HarnessError } from '@bosch/bh-llm'
-import type { SessionId } from '@bosch/bh-session'
+import type { Context } from '@hydra/cordis'
+import { HarnessError } from '@hydra/harness-llm'
+import type { SessionId } from '@hydra/harness-session'
 import {
   SessionQueryError,
   type SessionEventSearchPage,
   type SessionEventSurface,
   type SessionRecord,
   type SessionSearchCursor,
-} from '@bosch/bh-session-query'
-import type { ToolRunContext } from '@bosch/bh-tools'
+} from '@hydra/harness-session-query'
+import type { ToolRunContext } from '@hydra/harness-tools'
 import { toolInput } from './input.ts'
 import { presentation } from './presentation.ts'
 import { serviceBoundary } from './service-boundary.ts'

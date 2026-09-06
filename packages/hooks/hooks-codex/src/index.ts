@@ -4,23 +4,23 @@
  * matchers, snake_case payloads without a trailing newline, no hook environment
  * or command substitution, and no pre-tool approval or rewrite path; only
  * blocking decisions are honored. Shared execution and parsing live in
- * `bh-hook-protocol`; see the
+ * `@hydra/harness-hook-protocol`; see the
  * [hook-bridges Agent Note](../../../../.agents/notes/implemented/feature/2026-06-30-hook-bridges.md).
- * @module @bosch/bh-hooks-codex
+ * @module @hydra/harness-hooks-codex
  */
 
 // Each dialect bridge keeps its complete dependency list visible at the entry
 // point; a cross-package facade for imports alone would add indirection.
 /* jscpd:ignore-start */
 import { readFileSync } from 'node:fs'
-import type { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import type { Agent, PreStepDecision } from '@bosch/bh-agent'
-import { createUserMessage } from '@bosch/bh-llm'
-import type { ContentBlock, MessageSource } from '@bosch/bh-llm'
-import type { UserMessage } from '@bosch/bh-session'
-import type {} from '@bosch/bh-session-persistence'
-import type { PostToolDecision, PreToolDecision, ToolExecution, ToolExecutionResult } from '@bosch/bh-tools'
+import type { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import type { Agent, PreStepDecision } from '@hydra/harness-agent'
+import { createUserMessage } from '@hydra/harness-llm'
+import type { ContentBlock, MessageSource } from '@hydra/harness-llm'
+import type { UserMessage } from '@hydra/harness-session'
+import type {} from '@hydra/harness-session-persistence'
+import type { PostToolDecision, PreToolDecision, ToolExecution, ToolExecutionResult } from '@hydra/harness-tools'
 import {
   appendHookInvoked,
   appendHookResult,
@@ -33,7 +33,7 @@ import {
   type HookOutput,
   type MatcherGroup,
   type MergedHookOutcome,
-} from '@bosch/bh-hook-protocol'
+} from '@hydra/harness-hook-protocol'
 import { parseCodexConfig, type CodexHookConfig } from './config.ts'
 /* jscpd:ignore-end */
 

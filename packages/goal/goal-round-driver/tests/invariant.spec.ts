@@ -1,15 +1,15 @@
-import { createUserMessage } from '@bosch/bh-llm'
+import { createUserMessage } from '@hydra/harness-llm'
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import {
   GoalId,
   type GoalSnapshotChangeMeta,
   type GoalView,
-} from '@bosch/bh-goal'
-import * as GoalSessionInvariant from '@bosch/bh-goal-round-driver/invariant'
-import { renderGoalRoundPrompt } from '@bosch/bh-goal-round-driver'
-import InvariantRegistry, { InvariantError } from '@bosch/bh-invariants'
-import SessionStore, { SessionId, type Session } from '@bosch/bh-session'
+} from '@hydra/harness-goal'
+import * as GoalSessionInvariant from '@hydra/harness-goal-round-driver/invariant'
+import { renderGoalRoundPrompt } from '@hydra/harness-goal-round-driver'
+import InvariantRegistry, { InvariantError } from '@hydra/harness-invariants'
+import SessionStore, { SessionId, type Session } from '@hydra/harness-session'
 
 const change: GoalSnapshotChangeMeta = {
   kind: 'goal/change',
@@ -95,7 +95,7 @@ describe('goal-round-driver prompt invariants', () => {
       appendRound(session, 2, [{ type: 'text', text: 'counterfeit continuation' }])
     }).toThrow(expect.objectContaining<Partial<InvariantError>>({
       code: 'INVARIANT',
-      packageName: '@bosch/bh-goal-round-driver',
+      packageName: '@hydra/harness-goal-round-driver',
     }))
   })
 
@@ -110,7 +110,7 @@ describe('goal-round-driver prompt invariants', () => {
         source,
       }), { surfaceOp: 'append' })
     }).toThrow(expect.objectContaining<Partial<InvariantError>>({
-      packageName: '@bosch/bh-goal-round-driver',
+      packageName: '@hydra/harness-goal-round-driver',
     }))
   })
 
@@ -122,7 +122,7 @@ describe('goal-round-driver prompt invariants', () => {
 
     await expect(ctx.plugin(GoalSessionInvariant)).rejects.toMatchObject({
       code: 'INVARIANT',
-      packageName: '@bosch/bh-goal-round-driver',
+      packageName: '@hydra/harness-goal-round-driver',
     })
   })
 })

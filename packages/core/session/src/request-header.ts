@@ -7,8 +7,8 @@
  * @module bh-session/request-header
  */
 
-import { callConfigEquals } from '@bosch/bh-llm'
-import type { ToolSchema } from '@bosch/bh-llm'
+import { callConfigEquals } from '@hydra/harness-llm'
+import type { ToolSchema } from '@hydra/harness-llm'
 import type { EpochHeader, SessionEvent } from './types.ts'
 
 /**

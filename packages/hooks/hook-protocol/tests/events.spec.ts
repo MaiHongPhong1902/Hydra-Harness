@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { Session, SessionId } from '@bosch/bh-session'
-import { appendHookInvoked, appendHookResult, summarizeStderr, type HookOutput } from '@bosch/bh-hook-protocol'
+import { Session, SessionId } from '@hydra/harness-session'
+import { appendHookInvoked, appendHookResult, summarizeStderr, type HookOutput } from '@hydra/harness-hook-protocol'
 
 /** A {@link HookOutput} with the required stream fields defaulted. */
 function output(over: Partial<HookOutput> = {}): HookOutput {

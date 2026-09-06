@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-client-ui-deliverables`.
- * @module @bosch/bh-client-ui-deliverables/invariant
+ * Package-owned invariant companion for `@hydra/harness-client-ui-deliverables`.
+ * @module @hydra/harness-client-ui-deliverables/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-client-ui-deliverables'
+const PACKAGE_NAME = '@hydra/harness-client-ui-deliverables'
 
 /** Cordis companion plugin name. */
 export const name = 'client-ui-deliverables-invariant'

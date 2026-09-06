@@ -1,8 +1,8 @@
 /** Settings page for durable provider-reported token usage by model. */
 import { useEffect } from 'react'
-import type { SessionListState } from '@bosch/bh-client-runtime/client'
-import type { InjectFace, PropsLocale, PropsRuntime } from '@bosch/bh-client-ui-slots'
-import type {} from '@bosch/bh-token-meter/client'
+import type { SessionListState } from '@hydra/harness-client-runtime/client'
+import type { InjectFace, PropsLocale, PropsRuntime } from '@hydra/harness-client-ui-slots'
+import type {} from '@hydra/harness-token-meter/client'
 import css from './UsageSection.module.css'
 
 export interface UsageRow {

@@ -100,7 +100,7 @@ not wired to unrelated existing views or presented as functional shortcuts.
 
 - `pnpm exec vitest run packages/client/ui-layout/tests/desktop-browser-panel.client.spec.tsx packages/client/ui-layout/tests/app-frame.client.spec.tsx`: 28/28 passed.
 - `pnpm run build`: passed.
-- `pnpm --filter @bosch/bh-desktop run smoke`: passed with chooser, app-wide
+- `pnpm --filter @hydra/harness-desktop run smoke`: passed with chooser, app-wide
   shortcut, simultaneous panel, expand, and restored-bound checks.
 - `pnpm run verify-third-party-notices`: passed.
 - `git diff --check`: passed.

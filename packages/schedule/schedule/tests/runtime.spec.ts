@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import AgentRegistry, { Inbox } from '@bosch/bh-agent'
-import type { Agent, AgentCancelCause, InboxTarget } from '@bosch/bh-agent'
-import type { UserMessage } from '@bosch/bh-llm'
-import SessionStore, { SessionId } from '@bosch/bh-session'
+import { Context } from '@hydra/cordis'
+import AgentRegistry, { Inbox } from '@hydra/harness-agent'
+import type { Agent, AgentCancelCause, InboxTarget } from '@hydra/harness-agent'
+import type { UserMessage } from '@hydra/harness-llm'
+import SessionStore, { SessionId } from '@hydra/harness-session'
 import {
   ScheduleId,
   createAfterScheduleRecord,

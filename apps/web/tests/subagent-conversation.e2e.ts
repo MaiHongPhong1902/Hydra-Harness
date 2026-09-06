@@ -7,9 +7,9 @@ import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
 import {
   SESSION_FORMAT_VERSION, SessionId as sessionId, type SessionEvent, type SessionId,
-} from '@bosch/bh-session'
-import type {} from '@bosch/bh-agent'
-import { snapshotSubagentDescriptor } from '@bosch/bh-subagent'
+} from '@hydra/harness-session'
+import type {} from '@hydra/harness-agent'
+import { snapshotSubagentDescriptor } from '@hydra/harness-subagent'
 import {
   acknowledgeReloadConnectionLoss, captureStableAria, compareOrRefreshGolden,
   launchWebScaffold, watchConsole,

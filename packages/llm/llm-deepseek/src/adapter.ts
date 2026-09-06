@@ -8,8 +8,8 @@
  * @module bh-llm-deepseek/adapter
  */
 
-import { attributionHeaders, contentHasImage, CONTEXT_WINDOW_EXCEEDED_CODE, isContextWindowExceededError, isQuotaExceededError, LlmAdapter, LlmError, ProviderRequestId, QUOTA_EXCEEDED_CODE, ReasoningEffortId } from '@bosch/bh-llm'
-import { fetchWithHttpProxy } from '@bosch/bh-llm/proxy'
+import { attributionHeaders, contentHasImage, CONTEXT_WINDOW_EXCEEDED_CODE, isContextWindowExceededError, isQuotaExceededError, LlmAdapter, LlmError, ProviderRequestId, QUOTA_EXCEEDED_CODE, ReasoningEffortId } from '@hydra/harness-llm'
+import { fetchWithHttpProxy } from '@hydra/harness-llm/proxy'
 import type {
   GenerateOptions,
   LlmModelInfo,
@@ -18,11 +18,11 @@ import type {
   ModelModality,
   ResolvedRetryPolicy,
   StreamChunk,
-} from '@bosch/bh-llm'
-import type { AttachmentStore } from '@bosch/bh-attachment'
-import type { CredentialRef } from '@bosch/bh-credentials'
-import { idleWatchdog, timeoutOf } from '@bosch/bh-timeout'
-import type { AnonymousUserId } from '@bosch/bh-anonymous-user-id'
+} from '@hydra/harness-llm'
+import type { AttachmentStore } from '@hydra/harness-attachment'
+import type { CredentialRef } from '@hydra/harness-credentials'
+import { idleWatchdog, timeoutOf } from '@hydra/harness-timeout'
+import type { AnonymousUserId } from '@hydra/harness-anonymous-user-id'
 import { serializeRequest, serializeRequestWithImages } from './serialize.ts'
 import type { RequestDefaults } from './serialize.ts'
 import { parseSse } from './sse.ts'

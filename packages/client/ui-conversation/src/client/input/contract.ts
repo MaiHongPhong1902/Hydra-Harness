@@ -5,12 +5,12 @@
  * conversation wiring layer alone sees the full SessionInput. InputMachine
  * (machine.ts) is package-private and never exported.
  */
-import type { ClientContext, SnapshotStore } from '@bosch/bh-client-runtime/client'
-import type { Branded } from '@bosch/bh-brand'
+import type { ClientContext, SnapshotStore } from '@hydra/harness-client-runtime/client'
+import type { Branded } from '@hydra/harness-brand'
 import type {
   ArbitrateKey, ArbitrateOutcome, CommandClaim, ConsumeTokenRequest, PickOutcome,
   ReferenceInsert, SubmitOutcome, TokenSpan,
-} from '@bosch/bh-client-ui-input-trigger/client'
+} from '@hydra/harness-client-ui-input-trigger/client'
 import type { QueueRow } from '../contract/queue.ts'
 import type { InputSubmitMode } from '../contract/composer-submission.ts'
 

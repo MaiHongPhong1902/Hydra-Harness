@@ -14,9 +14,10 @@
  * more than the row it targeted.
  */
 
-import type { IApiClient } from '@bosch/bh-api-remotes/client'
-import { createSnapshotStore, type SnapshotStore } from '@bosch/bh-client-runtime/client'
-import { beginRosterRead, messageOf, writeDefaultPreset } from './settings-store.ts'
+import type { IApiClient } from '@hydra/harness-api-remotes/client'
+import { createSnapshotStore, type SnapshotStore } from '@hydra/harness-client-runtime/client'
+import { createRosterLoader, messageOf, writeDefaultPreset } from './settings-store.ts'
+import type { RosterValue } from './settings-store.ts'
 
 /** Ids a preset directory may be named, mirroring the host's own rule. */
 const PRESET_ID = /^[a-z0-9][a-z0-9-]*$/
@@ -131,6 +132,7 @@ export function draftBlocker(
 export class AgentPresetSectionController {
   /** Page snapshot the renderer subscribes to. */
   readonly store: SnapshotStore<AgentPresetSectionState> = createSnapshotStore(INITIAL)
+  private readonly refresh: () => Promise<void>
 
   constructor(
     private readonly api: Pick<IApiClient, 'agentPresets' | 'settings'>,
@@ -143,7 +145,9 @@ export class AgentPresetSectionController {
      * offer now exists.
      */
     private readonly rosterChanged: () => void = () => {},
-  ) {}
+  ) {
+    this.refresh = createRosterLoader(api, this.store, (roster) => { this.acceptRoster(roster) })
+  }
 
   private set(patch: Partial<AgentPresetSectionState>): void {
     this.store.set({ ...this.store.getSnapshot(), ...patch })
@@ -161,9 +165,11 @@ export class AgentPresetSectionController {
    * reports `unavailable` and renders nothing.
    * @returns once the snapshot reflects the host.
    */
-  async load(): Promise<void> {
-    const roster = await beginRosterRead(this.api, this.store)
-    if (roster === undefined) return
+  load(): Promise<void> {
+    return this.refresh()
+  }
+
+  private acceptRoster(roster: RosterValue): void {
     const { presets, authorable, hasDocument } = roster
     if (presets.length === 0) {
       // Nothing to manage leaves nothing to keep a dialog open over.

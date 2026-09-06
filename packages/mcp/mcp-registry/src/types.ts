@@ -1,6 +1,6 @@
 /** Public types for the user-declared MCP server registry. */
 
-import type {} from '@bosch/cordis'
+import type {} from '@hydra/cordis'
 
 /** Transport a stored record selects; the record carries both transports' fields. */
 export type McpServerTransport = 'stdio' | 'streamable-http'
@@ -52,6 +52,8 @@ export interface McpServerSnapshot {
  * caller never received.
  */
 export interface McpServerDefinitionRequest {
+  /** Create requires an unused name; replace requires an existing record. */
+  readonly mode: 'create' | 'replace'
   /** Stable local namespace for this server's tool names; `[A-Za-z0-9_-]{1,32}`. */
   readonly name: string
   readonly transport: McpServerTransport
@@ -76,7 +78,7 @@ export interface McpServerEnablementRequest {
   readonly enabled: boolean
 }
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Events {
     /**
      * The mounted server set now matches the stored records. Emitted after each

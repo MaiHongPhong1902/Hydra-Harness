@@ -4,8 +4,8 @@
  * the ordinary-process and terminal teardown ladders.
  */
 
-import { CommandExitError, e2bControlEnvs, SandboxNotFoundError } from '@bosch/bh-e2b'
-import type { Sandbox } from '@bosch/bh-e2b'
+import { CommandExitError, e2bControlEnvs, SandboxNotFoundError } from '@hydra/harness-e2b'
+import type { Sandbox } from '@hydra/harness-e2b'
 
 /**
  * Normalize an unknown rejection into an Error.

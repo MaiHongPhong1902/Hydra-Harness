@@ -1,6 +1,6 @@
 # Keyless replay counterpart to persistent-pwsh.cordis.yml.
 - id: llm-replay
-  name: '@bosch/bh-llm-replay'
+  name: '@hydra/harness-llm-replay'
   config:
     providers:
       - id: deepseek-official
@@ -9,25 +9,25 @@
           - id: deepseek-v4-pro
 
 - id: terminal
-  name: '@bosch/bh-terminal'
+  name: '@hydra/harness-terminal'
 
 - id: sandbox-policy
-  name: '@bosch/bh-sandbox-policy'
+  name: '@hydra/harness-sandbox-policy'
   config:
     mode: danger-full-access
     workspaceRoot: !!js process.cwd()
 
 - id: subprocess
-  name: '@bosch/bh-subprocess-local'
+  name: '@hydra/harness-subprocess-local'
 
 - id: terminal-pwsh
-  name: '@bosch/bh-terminal-bash'
+  name: '@hydra/harness-terminal-bash'
   config:
     shellDialect: pwsh
     timeoutMs: 30000
 
 - id: acp-agent
-  name: '@bosch/bh-acp-demo'
+  name: '@hydra/harness-acp-demo'
   config:
     provider: deepseek-official
     model: deepseek-v4-pro
@@ -42,4 +42,4 @@
     persona: You are a concise snapshot agent working in {{cwd}}.
 
 - id: tool-pwsh-persistent
-  name: '@bosch/bh-tool-pwsh-persistent'
+  name: '@hydra/harness-tool-pwsh-persistent'

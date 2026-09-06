@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-acp-snapshot`.
- * @module @bosch/bh-acp-snapshot/invariant
+ * Package-owned invariant companion for `@hydra/harness-acp-snapshot`.
+ * @module @hydra/harness-acp-snapshot/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-acp-snapshot'
+const PACKAGE_NAME = '@hydra/harness-acp-snapshot'
 
 /** Cordis companion plugin name. */
 export const name = 'acp-snapshot-invariant'

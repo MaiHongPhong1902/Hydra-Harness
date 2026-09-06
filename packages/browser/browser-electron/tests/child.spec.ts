@@ -2,8 +2,8 @@ import { EventEmitter } from 'node:events'
 import { createInterface } from 'node:readline'
 import { PassThrough } from 'node:stream'
 import { describe, expect, it, vi } from 'vitest'
-import { BrowserError, launchBrowser, resolveElectronPath } from '@bosch/bh-browser-electron'
-import type { BrowserChild, BrowserChildProcess } from '@bosch/bh-browser-electron'
+import { BrowserError, launchBrowser, resolveElectronPath } from '@hydra/harness-browser-electron'
+import type { BrowserChild, BrowserChildProcess } from '@hydra/harness-browser-electron'
 
 interface Request {
   id: number

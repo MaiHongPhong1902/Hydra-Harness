@@ -4,7 +4,7 @@
  * discipline), so `./client` projects the same single-source content
  * `./types` serves to host consumers — zero duplication.
  *
- * @module @bosch/bh-tool-todo/client
+ * @module @hydra/harness-tool-todo/client
  */
 
 export type * from './types.ts'

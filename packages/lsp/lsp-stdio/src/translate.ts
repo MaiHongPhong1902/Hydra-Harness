@@ -2,7 +2,7 @@
  * Pure protocol translation for the local host: what the server's capabilities allow, and how its
  * `Location`/`LocationLink`/`Hover` payloads normalize into the seam's closed result unions. No I/O
  * or process state — every function here is a pure transform, which the fake-stdio tests pin exactly.
- * @module @bosch/bh-lsp-stdio/translate
+ * @module @hydra/harness-lsp-stdio/translate
  */
 
 import type {
@@ -10,9 +10,9 @@ import type {
   LspLocation,
   LspOperation,
   LspRange,
-} from '@bosch/bh-lsp'
-import { LspError } from '@bosch/bh-lsp'
-import { assertNever } from '@bosch/bh-llm'
+} from '@hydra/harness-lsp'
+import { LspError } from '@hydra/harness-lsp'
+import { assertNever } from '@hydra/harness-llm'
 import type {
   WireHover,
   WireLocation,

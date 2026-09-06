@@ -13,13 +13,13 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import Loader from '@bosch/cordis-plugin-loader'
-import Include from '@bosch/cordis-plugin-include'
-import HttpServer from '@bosch/bh-host-webserver'
-import type { DirectoryPicker } from '@bosch/bh-host-directory-picker'
-import BrowseDirectoryPicker from '@bosch/bh-host-directory-picker-browse'
-import NativeDirectoryPicker from '@bosch/bh-host-directory-picker-native'
+import { Context } from '@hydra/cordis'
+import Loader from '@hydra/cordis-plugin-loader'
+import Include from '@hydra/cordis-plugin-include'
+import HttpServer from '@hydra/harness-host-webserver'
+import type { DirectoryPicker } from '@hydra/harness-host-directory-picker'
+import BrowseDirectoryPicker from '@hydra/harness-host-directory-picker-browse'
+import NativeDirectoryPicker from '@hydra/harness-host-directory-picker-native'
 import * as DirectoryPickerAuto from '../src/index.ts'
 
 const renameControl = vi.hoisted(() => ({
@@ -45,11 +45,11 @@ vi.mock('node:fs/promises', async (importOriginal) => {
   }
 })
 
-const AUTO = '@bosch/bh-host-directory-picker-auto'
-const NATIVE = '@bosch/bh-host-directory-picker-native'
-const BROWSE = '@bosch/bh-host-directory-picker-browse'
-const NATIVE_SURFACE = '@bosch/bh-client-ui-directory-picker-native'
-const BROWSE_SURFACE = '@bosch/bh-client-ui-directory-picker-browse'
+const AUTO = '@hydra/harness-host-directory-picker-auto'
+const NATIVE = '@hydra/harness-host-directory-picker-native'
+const BROWSE = '@hydra/harness-host-directory-picker-browse'
+const NATIVE_SURFACE = '@hydra/harness-client-ui-directory-picker-native'
+const BROWSE_SURFACE = '@hydra/harness-client-ui-directory-picker-browse'
 
 /**
  * Loader-visible stand-in for a client surface package: the surfaces belong to
@@ -95,7 +95,7 @@ async function loadComposition(
   root = await mkdtemp(join(tmpdir(), 'bh-directory-picker-auto-'))
   const configPath = join(root, 'cordis.yml')
   await writeFile(configPath, [
-    "- name: '@bosch/bh-host-webserver'",
+    "- name: '@hydra/harness-host-webserver'",
     '  config:',
     `    host: '${bindHost}'`,
     '    port: 0',
@@ -108,7 +108,7 @@ async function loadComposition(
   await context.plugin(Loader)
   context.loader.builtins.include = Include
   const modules = new Map<string, unknown>([
-    ['@bosch/bh-host-webserver', HttpServer],
+    ['@hydra/harness-host-webserver', HttpServer],
     [AUTO, DirectoryPickerAuto],
     [NATIVE, NativeDirectoryPicker],
     [BROWSE, BrowseDirectoryPicker],

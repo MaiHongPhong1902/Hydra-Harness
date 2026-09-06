@@ -4,7 +4,7 @@ Status: implemented
 
 ## Problem
 
-The native BH marketplace modeled npm packages and invoked `bh plugin`, while imported plugins used OpenAI/Codex bundles. Maintaining both marketplace models made a source ambiguous and forced plugin authors to support an unused BH package format.
+The native Hydra marketplace modeled npm packages and invoked `bh plugin`, while imported plugins used OpenAI/Codex bundles. Maintaining both marketplace models made a source ambiguous and forced plugin authors to support an unused Hydra package format.
 
 ## Decision
 
@@ -14,10 +14,10 @@ The imported-plugin runtime remains the only marketplace-entry importer. It stag
 
 ## Alternatives considered
 
-**Keep the BH marketplace beside the OpenAI/Codex importer.** Rejected because the two catalogs install incompatible formats and create a second plugin-management path without a current owner.
+**Keep the Hydra marketplace beside the OpenAI/Codex importer.** Rejected because the two catalogs install incompatible formats and create a second plugin-management path without a current owner.
 
-**Translate OpenAI/Codex catalog entries into BH packages.** Rejected because a bundle imports directly and translation would recreate the unsupported BH package contract.
+**Translate OpenAI/Codex catalog entries into Hydra packages.** Rejected because a bundle imports directly and translation would recreate the unsupported Hydra package contract.
 
 ## Consequences
 
-Marketplace sources must use the OpenAI/Codex bundle catalog format. Existing BH runtime bundles remain part of the application composition, but Settings no longer installs BH package plugins. Focused Host and client tests verify source validation, source removal, direct bundle import, and the separated capability tabs.
+Marketplace sources must use the OpenAI/Codex bundle catalog format. Existing Hydra runtime bundles remain part of the application composition, but Settings no longer installs Hydra package plugins. Focused Host and client tests verify source validation, source removal, direct bundle import, and the separated capability tabs.

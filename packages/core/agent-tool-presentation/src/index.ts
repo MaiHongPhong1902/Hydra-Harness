@@ -11,18 +11,18 @@
  * process. One row per composition, not one per session.
  *
  * A code mode needs a TypeScript code runtime, which is a host-plane service
- * ([`bh-code-runtime-worker-thread`](../../code-runtime/code-runtime-worker/README.md)).
+ * ([`@hydra/harness-code-runtime-worker-thread`](../../code-runtime/code-runtime-worker/README.md)).
  * This row therefore waits for it rather than assuming it: a preset selecting
  * Code Mode against a deployment that composes no runtime fails at mount, named
  * in the preset's own activation audit, instead of at the first prompt.
- * @module @bosch/bh-agent-tool-presentation
+ * @module @hydra/harness-agent-tool-presentation
  */
 
-import type { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import type { ToolPresentationMode } from '@bosch/bh-tools'
+import type { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import type { ToolPresentationMode } from '@hydra/harness-tools'
 // Type-only: brings the `ctx.tools` Context merge into this program.
-import type {} from '@bosch/bh-tools'
+import type {} from '@hydra/harness-tools'
 
 /** Cordis plugin name. */
 export const name = 'tool-presentation'
@@ -65,7 +65,7 @@ export function apply(ctx: Context, config: Config): void {
     return
   }
   // The wait is the loud failure: an entry still pending on `codeRuntime` is
-  // what `bh-agent-presets` reports as an unusable row, naming this id.
+  // what `@hydra/harness-agent-presets` reports as an unusable row, naming this id.
   ctx.inject(['codeRuntime'], (runtimeCtx: Context) => {
     runtimeCtx.tools.presentAs(config.mode)
   })

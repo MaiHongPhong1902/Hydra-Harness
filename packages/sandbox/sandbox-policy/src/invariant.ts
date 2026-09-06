@@ -1,11 +1,11 @@
-/** Package-owned session-event invariants for sandbox policy. @module @bosch/bh-sandbox-policy/invariant */
+/** Package-owned session-event invariants for sandbox policy. @module @hydra/harness-sandbox-policy/invariant */
 
-import type { Context } from '@bosch/cordis'
-import type { Session, SessionEvent } from '@bosch/bh-session'
-import type { InvariantFailure, InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { Session, SessionEvent } from '@hydra/harness-session'
+import type { InvariantFailure, InvariantInstaller } from '@hydra/harness-invariants'
 import { SANDBOX_MODES } from './session-mode.ts'
 
-const PACKAGE_NAME = '@bosch/bh-sandbox-policy'
+const PACKAGE_NAME = '@hydra/harness-sandbox-policy'
 
 /** Cordis companion plugin name. */
 export const name = 'sandbox-policy-invariant'

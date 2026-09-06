@@ -1,5 +1,5 @@
-import type { Context } from '@bosch/cordis'
-import { SessionId } from '@bosch/bh-session'
+import type { Context } from '@hydra/cordis'
+import { SessionId } from '@hydra/harness-session'
 
 export const name = 'subagent-durability-failure'
 export const inject = ['agents', 'sessionPersistence', 'subagents']

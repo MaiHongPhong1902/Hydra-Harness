@@ -1,4 +1,4 @@
-/** Lossless-JSON validation and detached snapshots for durable session data. @module @bosch/bh-session/json */
+/** Lossless-JSON validation and detached snapshots for durable session data. @module @hydra/harness-session/json */
 
 /**
  * A value that round-trips losslessly through JSON: `null`, a boolean, a finite

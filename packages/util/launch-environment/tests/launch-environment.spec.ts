@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import {
   createLaunchEnvironmentSnapshot, BH_LAUNCH_ENVIRONMENT_KEY, launchEnvironmentOf,
 } from '../src/index.ts'

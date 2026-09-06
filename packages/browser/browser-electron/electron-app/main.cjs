@@ -1,5 +1,5 @@
 // Electron main process for the harness's embedded browser. Spawned by
-// `@bosch/bh-browser-electron`; it owns one window holding controlled tab views
+// `@hydra/harness-browser-electron`; it owns one window holding controlled tab views
 // and speaks NDJSON over stdio.
 //
 // Protocol, one JSON object per line:
@@ -465,7 +465,7 @@ async function flushSessionCookies() {
 const pendingPageCalls = new Map()
 let nextPageCallId = 1
 
-/** In-flight PageAgent model requests awaiting the owning BH agent. */
+/** In-flight PageAgent model requests awaiting the owning Hydra agent. */
 const pendingPageAgentLlmCalls = new Map()
 let nextPageAgentLlmCallId = 1
 
@@ -763,7 +763,7 @@ function abortPageAgentLlmCalls(tab, reason) {
   }
 }
 
-/** Ask the owning BH process to run one PageAgent model step. */
+/** Ask the owning Hydra process to run one PageAgent model step. */
 function pageAgentLlm(tab, request) {
   return new Promise((resolve, reject) => {
     const id = nextPageAgentLlmCallId++
@@ -1573,7 +1573,8 @@ app.whenReady().then(async () => {
     width: config.width ?? 1280,
     height: config.height ?? 900,
     show: config.show ?? true,
-    title: 'Bosch Harness — controlled browser',
+    title: 'Hydra harness — controlled browser',
+    icon: join(__dirname, 'hydra.png'),
   })
   window.once('close', () => {
     windowClosing = true
@@ -1816,7 +1817,7 @@ app.whenReady().then(async () => {
       if (pending === undefined) return undefined
       pendingPageAgentLlmCalls.delete(args.callId)
       if (args.ok === true) pending.resolve(args.result)
-      else pending.reject(new Error(args.error ?? 'BH could not complete the PageAgent model request'))
+      else pending.reject(new Error(args.error ?? 'Hydra could not complete the PageAgent model request'))
       return undefined
     }
     try {

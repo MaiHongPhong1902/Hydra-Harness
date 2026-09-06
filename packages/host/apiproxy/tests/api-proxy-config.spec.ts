@@ -9,18 +9,18 @@ import { mkdtemp, readFile, stat } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import AgentRegistry from '@bosch/bh-agent'
-import SessionStore from '@bosch/bh-session'
-import SystemPrompt from '@bosch/bh-system-prompt'
-import ToolRuntime from '@bosch/bh-tools'
-import UserQuestionService from '@bosch/bh-user-questions'
-import LlmRuntime, { LlmAdapter } from '@bosch/bh-llm'
-import type { GenerateOptions, LlmModelInfo, LlmProviderInfo, StreamChunk } from '@bosch/bh-llm'
-import { SettingsProvider, settingsNamespace } from '@bosch/bh-settings'
-import type { SettingsNamespace } from '@bosch/bh-settings'
-import { CredentialProvider } from '@bosch/bh-credentials'
+import { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import AgentRegistry from '@hydra/harness-agent'
+import SessionStore from '@hydra/harness-session'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import ToolRuntime from '@hydra/harness-tools'
+import UserQuestionService from '@hydra/harness-user-questions'
+import LlmRuntime, { LlmAdapter } from '@hydra/harness-llm'
+import type { GenerateOptions, LlmModelInfo, LlmProviderInfo, StreamChunk } from '@hydra/harness-llm'
+import { SettingsProvider, settingsNamespace } from '@hydra/harness-settings'
+import type { SettingsNamespace } from '@hydra/harness-settings'
+import { CredentialProvider } from '@hydra/harness-credentials'
 import type {
   CredentialInfo,
   CredentialKey,
@@ -29,11 +29,11 @@ import type {
   CredentialRecordInfo,
   CredentialRef,
   ResolvedCredential,
-} from '@bosch/bh-credentials'
+} from '@hydra/harness-credentials'
 import type { HostFrame } from '../src/api/index.ts'
 import type { RpcRequest, RpcResponse } from '../src/api/rpc.ts'
 import { RpcId } from '../src/api/rpc.ts'
-import { AGENT_DEFAULT_MODEL_SETTINGS_NAMESPACE } from '@bosch/bh-agent-default-model'
+import { AGENT_DEFAULT_MODEL_SETTINGS_NAMESPACE } from '@hydra/harness-agent-default-model'
 import { createApiProxy } from '../src/api-proxy.ts'
 
 const DEFAULTS = { defaultModelSelection: () => ({ provider: 'p', model: 'm' }), cwd: '/tmp' }
@@ -276,7 +276,7 @@ describe('settings domain', () => {
     const api = createApiProxy(ctx, DEFAULTS)
     const error = expectErr(await api.settings.describe(request({})))
     expect(error.code).toBe('internal')
-    expect(error.message).toContain('bh-settings-file')
+    expect(error.message).toContain('@hydra/harness-settings-file')
   })
 
   it('describes layered redacted namespaces with their secret slots', async () => {
@@ -619,7 +619,7 @@ describe('credentials domain', () => {
     const api = createApiProxy(ctx, DEFAULTS)
     const error = expectErr(await api.credentials.describe(request({ refs: ['A'] })))
     expect(error.code).toBe('internal')
-    expect(error.message).toContain('bh-credentials-local')
+    expect(error.message).toContain('@hydra/harness-credentials-local')
   })
 
   it('describes value-free views and flips state through set/unset with frames', async () => {

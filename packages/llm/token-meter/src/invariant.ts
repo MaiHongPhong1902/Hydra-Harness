@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-token-meter`.
- * @module @bosch/bh-token-meter/invariant
+ * Package-owned invariant companion for `@hydra/harness-token-meter`.
+ * @module @hydra/harness-token-meter/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-token-meter'
+const PACKAGE_NAME = '@hydra/harness-token-meter'
 
 /** Cordis companion plugin name. */
 export const name = 'token-meter-invariant'

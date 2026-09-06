@@ -1,5 +1,5 @@
 /** The General section: one column rendering feature-owned item contributions. */
-import type { PropsRenderSlots, PropsRuntime } from '@bosch/bh-client-ui-slots'
+import type { PropsRenderSlots, PropsRuntime } from '@hydra/harness-client-ui-slots'
 import css from './GeneralSection.module.css'
 
 /** Full component props: section owner share plus item render share. */

@@ -1,4 +1,4 @@
-# @bosch/bh-repeat-tool-reminder
+# @hydra/harness-repeat-tool-reminder
 
 An advisory loop-breaker, not a model-facing tool: it never appears in the tool list, never vetoes or rewrites a call, and adds exactly one behavior — it watches each agent's stream of tool calls, counts runs of consecutive calls to the same tool with identical canonicalized arguments, and at configured run lengths injects an escalating advisory reminder telling the model to stop repeating itself, re-read the last result, and either change approach or conclude. The decision (retry differently, gather more evidence, or finish) stays entirely with the model: a legitimately repeated call is delayed by nothing and blocked by nothing. Decision record: [the repeat-tool-reminder Agent Note](../../../.agents/notes/archived/feature/2026-07-08-repeat-tool-guard.md).
 
@@ -6,7 +6,7 @@ An advisory loop-breaker, not a model-facing tool: it never appears in the tool 
 
 ```yaml
 - id: repeat-tool-reminder
-  name: '@bosch/bh-repeat-tool-reminder'
+  name: '@hydra/harness-repeat-tool-reminder'
   config:
     thresholds: [3, 5, 8]        # default; consecutive counts that trigger a reminder
     include: []                  # tool-name patterns to track; empty ⇒ all tools

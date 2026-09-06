@@ -43,7 +43,7 @@ def _host_platform_tag() -> str:
     try:
         return _PLATFORMS[key][0]
     except KeyError as exc:
-        raise RuntimeError(f"unsupported bosch-harness-runtime-bin build platform: {key}") from exc
+        raise RuntimeError(f"unsupported hydra-harness-runtime-bin build platform: {key}") from exc
 
 
 class RuntimeBuildHook(BuildHookInterface):
@@ -54,7 +54,7 @@ class RuntimeBuildHook(BuildHookInterface):
             return
         if self.target_name == "sdist":
             raise RuntimeError(
-                "bosch-harness-runtime-bin is wheel-only; build and publish platform wheels only."
+                "hydra-harness-runtime-bin is wheel-only; build and publish platform wheels only."
             )
 
         platform_tag = os.environ.get("BH_RUNTIME_PLATFORM_TAG") or _host_platform_tag()
@@ -65,7 +65,7 @@ class RuntimeBuildHook(BuildHookInterface):
                 f"unsupported BH_RUNTIME_PLATFORM_TAG {platform_tag!r}; expected one of {supported}"
             )
         expected_executable = matches[0][1]
-        runtime_dir = Path(self.root) / "src" / "bosch_harness_runtime" / "runtime"
+        runtime_dir = Path(self.root) / "src" / "hydra_harness_runtime" / "runtime"
         runtime_files = sorted(runtime_dir.glob("bh-jsonrpc-agent-pkg-*") if runtime_dir.is_dir() else [])
         expected_files = [expected_executable, f"{expected_executable}-rg"]
         if "-macos-" in expected_executable:

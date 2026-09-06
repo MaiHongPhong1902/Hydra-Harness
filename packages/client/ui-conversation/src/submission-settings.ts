@@ -1,6 +1,6 @@
 /** Busy-Enter preference stored in the Host user-settings document. */
 
-import z from '@bosch/schemastery'
+import z from '@hydra/schemastery'
 
 /** Settings namespace owned by the conversation plugin. */
 export const CONVERSATION_SETTINGS_NAMESPACE = 'ui-conversation'

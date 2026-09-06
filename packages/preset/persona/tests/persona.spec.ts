@@ -1,9 +1,9 @@
-import { Context } from '@bosch/cordis'
-import SystemPrompt, { renderPrompt } from '@bosch/bh-system-prompt'
-import { createScope, type ScopeKey } from '@bosch/bh-scope'
+import { Context } from '@hydra/cordis'
+import SystemPrompt, { renderPrompt } from '@hydra/harness-system-prompt'
+import { createScope, type ScopeKey } from '@hydra/harness-scope'
 import { describe, expect, it } from 'vitest'
-import * as Persona from '@bosch/bh-persona'
-import { PERSONA_SECTION } from '@bosch/bh-persona'
+import * as Persona from '@hydra/harness-persona'
+import { PERSONA_SECTION } from '@hydra/harness-persona'
 
 async function harness(deploymentPersona: string): Promise<Context> {
   const ctx = new Context()

@@ -1,9 +1,9 @@
 /** Host plugin inventory and enablement controls registered into Web Settings. */
 
-import type {} from '@bosch/bh-client-locale/client'
-import type { ClientContext } from '@bosch/bh-client-runtime/client'
-import type { ConnectionHandle } from '@bosch/bh-client-connection/client'
-import type {} from '@bosch/bh-client-ui-settings/client'
+import type {} from '@hydra/harness-client-locale/client'
+import type { ClientContext } from '@hydra/harness-client-runtime/client'
+import type { ConnectionHandle } from '@hydra/harness-client-connection/client'
+import type {} from '@hydra/harness-client-ui-settings/client'
 import { MarketplaceSettingsTab, type MarketplaceSettingsTabInjected } from './MarketplaceSettingsTab.tsx'
 import { ImportedPluginCapabilitiesTab, type ImportedPluginCapabilitiesTabInjected } from './ImportedPluginCapabilitiesTab.tsx'
 import {
@@ -23,7 +23,7 @@ export type { ImportedPluginCapabilitiesTabInjected, ImportedPluginCapabilitiesT
 export type { MarketplaceSettingsTabInjected, MarketplaceSettingsTabProps } from './MarketplaceSettingsTab.tsx'
 export type { PluginInventoryLocaleKey } from './locales.ts'
 
-declare module '@bosch/bh-client-ui-slots' {
+declare module '@hydra/harness-client-ui-slots' {
   interface LocaleNamespaceMap {
     /** Host plugin inventory copy and mutation labels. */
     'settings.pluginInventory': PluginInventoryLocaleKey
@@ -155,15 +155,18 @@ export function apply(ctx: ClientContext): void {
         locale: NS,
         inject: () => capabilitiesInjected('skills'),
       }, ImportedPluginCapabilitiesTab)
-      yield ctx.slots.register({
-        name: 'settings.plugins.tab',
-        id: 'hooks',
-        order: 25,
-        label: () => t('hooksTab'),
-        locale: NS,
-        inject: () => capabilitiesInjected('hooks'),
-      }, ImportedPluginCapabilitiesTab)
     })
+    // The imported bundles' hook catalog rides the Hooks tab's child slot
+    // rather than owning a tab of its own: the tab stacks the user's own
+    // records above it, and the slot contract keeps this package from
+    // depending on the tab owner.
+    ctx.slots.inject('settings.plugins.hooks.item', () => ctx.slots.register({
+      name: 'settings.plugins.hooks.item',
+      id: 'imported-hooks',
+      order: 10,
+      locale: NS,
+      inject: () => capabilitiesInjected('hooks'),
+    }, ImportedPluginCapabilitiesTab))
   }
 
   const inventory = new PluginInventoryController(nativePlugins, importedPluginsControls)

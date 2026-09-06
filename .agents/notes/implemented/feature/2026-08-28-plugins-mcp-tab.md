@@ -16,7 +16,7 @@ The tab reports an unavailable plugin instead of rendering inert controls. It di
 
 **Add MCP fields to Plugin configuration.** Rejected because a dedicated tab makes the server setup discoverable without mixing it into unrelated shell, loop, and search settings.
 
-**Build a generic MCP registry and server editor.** Rejected because BH currently owns one bounded MCP consumer, and no runtime metadata supports safe generic discovery or arbitrary endpoint editing.
+**Build a generic MCP registry and server editor.** Rejected because Hydra currently owns one bounded MCP consumer, and no runtime metadata supports safe generic discovery or arbitrary endpoint editing.
 
 **Store the bearer token in the settings document.** Rejected because settings sections are readable by the browser; the credentials domain already provides a write-only control and configured-state projection.
 

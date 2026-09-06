@@ -5,8 +5,8 @@
  */
 
 import { useEffect, useState } from 'react'
-import type { SnapshotStore } from '@bosch/bh-client-runtime/client'
-import type { InjectFace, PropsLocale, PropsRuntime } from '@bosch/bh-client-ui-slots'
+import type { SnapshotStore } from '@hydra/harness-client-runtime/client'
+import type { InjectFace, PropsLocale, PropsRuntime } from '@hydra/harness-client-ui-slots'
 import type { AgentPresetSettingsState } from './settings-store.ts'
 import { presetDisplayText, type AgentPresetSettingsKey } from './locales.ts'
 import { PresetMenu } from './PresetMenu.tsx'
@@ -81,7 +81,7 @@ export function AgentPresetRow({ load, select, useAgentPreset, t }: AgentPresetR
   )
 }
 
-declare module '@bosch/bh-client-ui-slots' {
+declare module '@hydra/harness-client-ui-slots' {
   interface LocaleNamespaceMap {
     /** Agent-preset row copy. */
     'settings.agentPreset': AgentPresetSettingsKey

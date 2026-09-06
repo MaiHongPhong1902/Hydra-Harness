@@ -2,12 +2,12 @@
 /** First-run DeepSeek prompt behavior over the shared Models join. */
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import Schema from '@bosch/schemastery'
-import type { RpcResponse, SettingsNamespaceView } from '@bosch/bh-api-remotes/client'
-import { bindSnapshotSelector } from '@bosch/bh-client-test-runtime'
+import Schema from '@hydra/schemastery'
+import type { RpcResponse, SettingsNamespaceView } from '@hydra/harness-api-remotes/client'
+import { bindSnapshotSelector } from '@hydra/harness-client-test-runtime'
 import { DeepSeekOnboardingDialog } from '../src/client/DeepSeekOnboardingDialog.tsx'
 import type { DeepSeekOnboardingDialogProps } from '../src/client/DeepSeekOnboardingDialog.tsx'
-import { SettingsDescribeMirror } from '@bosch/bh-client-ui-settings/src/client/settings-mirror.ts'
+import { SettingsDescribeMirror } from '@hydra/harness-client-ui-settings/src/client/settings-mirror.ts'
 import { ModelsSettingsStore } from '../src/client/store.ts'
 import { en } from '../src/client/locales.ts'
 import {

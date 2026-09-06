@@ -3,17 +3,17 @@
  * the derived LLM message history. Persistence is a plugin concern (subscribe
  * to `session/event`, drain on `session/flush`).
  *
- * @module @bosch/bh-session
+ * @module @hydra/harness-session
  */
 
-import { Context, Service } from '@bosch/cordis'
+import { Context, Service } from '@hydra/cordis'
 import { isAbsolute } from 'node:path'
-import { deepFreeze } from '@bosch/bh-llm'
-import { scopeOf, scopeTarget } from '@bosch/bh-scope'
-import type { Scoped } from '@bosch/bh-scope'
-import type { Message } from '@bosch/bh-llm'
+import { deepFreeze } from '@hydra/harness-llm'
+import { scopeOf, scopeTarget } from '@hydra/harness-scope'
+import type { Scoped } from '@hydra/harness-scope'
+import type { Message } from '@hydra/harness-llm'
 import { SESSION_FORMAT_VERSION, SessionId } from './types.ts'
-import type { TypertLookup } from '@bosch/bh-typert-protocol'
+import type { TypertLookup } from '@hydra/harness-typert-protocol'
 import type { CreateSessionOptions, EpochHeader, PrepareSessionOptions, RequestContext, SessionEvent, SessionEventMap, SessionEventType, SessionHeader, SurfaceIntent, SurfaceEventType } from './types.ts'
 import { snapshotJsonValue } from './json.ts'
 import { deriveEventMessage, SurfaceManager } from './surface.ts'
@@ -23,7 +23,7 @@ import { foldRequestHeader } from './request-header.ts'
 export * from './types.ts'
 export { SessionPreparation } from './preparation.ts'
 export type { SessionPreparationOptions } from './preparation.ts'
-export type { AssistantMessage, ToolResultMessage, UserMessage } from '@bosch/bh-llm'
+export type { AssistantMessage, ToolResultMessage, UserMessage } from '@hydra/harness-llm'
 export { isJsonValue, snapshotJsonValue } from './json.ts'
 export type { JsonValue } from './json.ts'
 export { interruptedTurnClosers, TOOL_NOT_STARTED, TOOL_OUTCOME_UNKNOWN } from './repair.ts'
@@ -34,7 +34,7 @@ export { deriveEventMessage, foldSurface, isAppendSurfaceEvent, isReplacementSur
 export { canonicalHeader, foldRequestHeader, headerEquals } from './request-header.ts'
 export { KNOWN_SESSION_EVENT_TYPES } from './known-event-types.ts'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     sessions: SessionStore
   }
@@ -45,7 +45,7 @@ declare module '@bosch/cordis' {
      * back with a paired disposal; detach requested during dispatch is deferred.
      * A returned-promise rejection is logged but cannot retroactively veto this
      * synchronous boundary.
-     * Scope-filtered dispatch (`@bosch/bh-scope`): agent-scoped listeners
+     * Scope-filtered dispatch (`@hydra/harness-scope`): agent-scoped listeners
      * receive only sessions entered through that agent's context.
      * @param session - the session just entered and announced.
      * @bhScopeScan unsupported
@@ -56,7 +56,7 @@ declare module '@bosch/cordis' {
      * Emitted once when an announced session leaves the store, including
      * publication rollback, but never for an entry whose creation announcement
      * did not begin. Listener failures are logged and contained.
-     * Scope-filtered dispatch (`@bosch/bh-scope`) reuses the owner scope.
+     * Scope-filtered dispatch (`@hydra/harness-scope`) reuses the owner scope.
      * @param session - the session that is no longer live in the store.
      * @bhScopeScan unsupported
      * @mode emit
@@ -66,7 +66,7 @@ declare module '@bosch/cordis' {
      * Post-commit, fire-and-forget append feed. The listener snapshot resolves
      * before the log push, but callbacks run after it; observer failures are
      * logged and contained without making the committed append fail.
-     * Scope-filtered dispatch (`@bosch/bh-scope`): agent-scoped listeners
+     * Scope-filtered dispatch (`@hydra/harness-scope`): agent-scoped listeners
      * receive only events from sessions entered through that agent's context.
      * @param session - the session whose log grew.
      * @param event - the appended event, exactly as recorded.
@@ -77,7 +77,7 @@ declare module '@bosch/cordis' {
     /**
      * Awaited parallel durability checkpoint: every listener runs and the
      * caller awaits all of them, with no waterfall veto. Scope-filtered dispatch
-     * (`@bosch/bh-scope`) reuses the session's owner scope.
+     * (`@hydra/harness-scope`) reuses the session's owner scope.
      * @param session - the session whose buffered events must reach durable storage.
      * @bhScopeScan unsupported
      * @mode parallel
@@ -86,7 +86,7 @@ declare module '@bosch/cordis' {
   }
 }
 
-declare module '@bosch/bh-typert-protocol' {
+declare module '@hydra/harness-typert-protocol' {
   interface TypertLookupMap {
     session: TypertLookup<Session, SessionId>
   }
@@ -799,8 +799,8 @@ export class SessionStore extends Service {
       typeCtx.typert.lookups.register('session', {
         parameter: 'session',
         wire: 'sessionId',
-        hostTypeSymbol: '@bosch/bh-session#Session',
-        wireTypeSymbol: '@bosch/bh-session/types#SessionId',
+        hostTypeSymbol: '@hydra/harness-session#Session',
+        wireTypeSymbol: '@hydra/harness-session/types#SessionId',
         resolve: sessionId => this.get(sessionId),
       })
     })
@@ -818,7 +818,7 @@ export class SessionStore extends Service {
    * loop's final events are published before the store attachment ends), do NOT use this
    * — fold the session lifecycle into the agent's own effect via
    * {@link prepare} + {@link enter} + {@link announce} (see
-   * `bh-agent-loop`'s creation transaction).
+   * `@hydra/harness-agent-loop`'s creation transaction).
    *
    * @param id - the session id; omitted, the store mints `session-<n>`.
    * @param options - seed events and/or creation metadata for the header.

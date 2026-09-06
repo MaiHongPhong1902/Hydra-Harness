@@ -1,9 +1,9 @@
 import { createServer } from 'node:http'
 import type { IncomingMessage, Server, ServerResponse } from 'node:http'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import LlmRuntime, { userAgent } from '@bosch/bh-llm'
-import * as LlmPiAi from '@bosch/bh-llm-pi-ai'
+import { Context } from '@hydra/cordis'
+import LlmRuntime, { userAgent } from '@hydra/harness-llm'
+import * as LlmPiAi from '@hydra/harness-llm-pi-ai'
 import { getBuiltinModels } from '@earendil-works/pi-ai/providers/all'
 import { discoverModels } from '../src/discovery.ts'
 

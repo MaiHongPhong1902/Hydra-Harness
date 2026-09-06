@@ -3,7 +3,7 @@
  * standard decorators in TypeScript dependencies before bundling, then emits
  * model-driven face artifacts at the package output root. Packages without a
  * Typert or Remote export are skipped.
- * @module @bosch/bh-typert-generator/tsdown
+ * @module @hydra/harness-typert-generator/tsdown
  */
 
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'

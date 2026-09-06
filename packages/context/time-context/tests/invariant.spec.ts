@@ -1,10 +1,10 @@
-import { createUserMessage } from '@bosch/bh-llm'
+import { createUserMessage } from '@hydra/harness-llm'
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import type { ContentBlock } from '@bosch/bh-llm'
-import SessionStore, { Session, SessionId, type SessionEvent } from '@bosch/bh-session'
-import * as TimeInvariant from '@bosch/bh-time-context/invariant'
-import InvariantRegistry from '@bosch/bh-invariants'
+import { Context } from '@hydra/cordis'
+import type { ContentBlock } from '@hydra/harness-llm'
+import SessionStore, { Session, SessionId, type SessionEvent } from '@hydra/harness-session'
+import * as TimeInvariant from '@hydra/harness-time-context/invariant'
+import InvariantRegistry from '@hydra/harness-invariants'
 
 const SECOND = Date.parse('2026-07-14T00:00:00Z')
 

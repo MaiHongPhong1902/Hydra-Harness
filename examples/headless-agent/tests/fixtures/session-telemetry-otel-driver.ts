@@ -9,9 +9,9 @@
 import { writeFile } from 'node:fs/promises'
 import { createServer } from 'node:http'
 import { once } from 'node:events'
-import { boot, resolveConfigPath } from '@bosch/bh-app-boot'
-import { recordFeedback } from '@bosch/bh-command-feedback'
-import { runFixtureTurn } from '@bosch/bh-loader-smoke'
+import { boot, resolveConfigPath } from '@hydra/harness-app-boot'
+import { recordFeedback } from '@hydra/harness-command-feedback'
+import { runFixtureTurn } from '@hydra/harness-loader-smoke'
 
 const configPath = process.argv[2]
 if (configPath === undefined) throw new Error('session-telemetry-otel driver requires a config path')

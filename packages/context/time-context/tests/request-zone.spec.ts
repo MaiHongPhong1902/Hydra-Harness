@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { createUserMessage } from '@bosch/bh-llm'
-import type { UserMessage } from '@bosch/bh-llm'
+import { createUserMessage } from '@hydra/harness-llm'
+import type { UserMessage } from '@hydra/harness-llm'
 import {
   deriveBrowserTimeZoneContext,
   renderBrowserTimeZoneContext,

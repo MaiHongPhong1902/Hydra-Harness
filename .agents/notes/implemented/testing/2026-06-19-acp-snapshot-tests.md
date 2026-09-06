@@ -61,7 +61,7 @@ Tool determinism comes from a generated cwd, scrubbed environment, fresh non-log
 
 ### The replay plugin is its own package
 
-`@bosch/bh-llm-replay` is a support package rather than example-local glue. It replaces the real adapter by short-circuiting `llm/stream` with streams reconstructed from JSONL, and its package placement keeps the replay logic under normal coverage gates.
+`@hydra/harness-llm-replay` is a support package rather than example-local glue. It replaces the real adapter by short-circuiting `llm/stream` with streams reconstructed from JSONL, and its package placement keeps the replay logic under normal coverage gates.
 
 ### Two subcommands, replay in the default gate
 

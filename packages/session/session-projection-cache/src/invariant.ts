@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-session-projection-cache`.
- * @module @bosch/bh-session-projection-cache/invariant
+ * Package-owned invariant companion for `@hydra/harness-session-projection-cache`.
+ * @module @hydra/harness-session-projection-cache/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-session-projection-cache'
+const PACKAGE_NAME = '@hydra/harness-session-projection-cache'
 
 /** Cordis companion plugin name. */
 export const name = 'session-projection-cache-invariant'

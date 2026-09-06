@@ -8,101 +8,101 @@ The ACP demo exposes fresh baseline-prompt agent sessions to programmatic client
 ```mermaid
 flowchart LR
   cfg["examples/acp-agent<br/>cordis.yml"]
-  plugin_acp_llm_deepseek["llm-deepseek<br/>@bosch/bh-llm-deepseek"]
+  plugin_acp_llm_deepseek["llm-deepseek<br/>@hydra/harness-llm-deepseek"]
   cfg --> plugin_acp_llm_deepseek
-  plugin_acp_sandbox["sandbox<br/>@bosch/bh-sandbox-local"]
+  plugin_acp_sandbox["sandbox<br/>@hydra/harness-sandbox-local"]
   cfg --> plugin_acp_sandbox
-  plugin_acp_sandbox_policy["sandbox-policy<br/>@bosch/bh-sandbox-policy"]
+  plugin_acp_sandbox_policy["sandbox-policy<br/>@hydra/harness-sandbox-policy"]
   cfg --> plugin_acp_sandbox_policy
-  plugin_acp_subprocess["subprocess<br/>@bosch/bh-subprocess-local"]
+  plugin_acp_subprocess["subprocess<br/>@hydra/harness-subprocess-local"]
   cfg --> plugin_acp_subprocess
-  plugin_acp_bash["bash<br/>@bosch/bh-bash-sandbox"]
+  plugin_acp_bash["bash<br/>@hydra/harness-bash-sandbox"]
   cfg --> plugin_acp_bash
-  plugin_acp_approval["approval<br/>@bosch/bh-user-approval"]
+  plugin_acp_approval["approval<br/>@hydra/harness-user-approval"]
   cfg --> plugin_acp_approval
-  plugin_acp_acp_agent["acp-agent<br/>@bosch/bh-acp-demo"]
+  plugin_acp_acp_agent["acp-agent<br/>@hydra/harness-acp-demo"]
   cfg --> plugin_acp_acp_agent
-  plugin_acp_acp_agent --> bundle_agent_core["@bosch/bh-agent-spine-demo"]
-  plugin_acp_acp_agent --> bundle_jsonl["@bosch/bh-session-persistence-jsonl"]
-  plugin_acp_acp_agent --> entrypoint_acp["@bosch/bh-acp<br/>automation-only JSON-RPC stdio<br/>fresh sessions created by client"]
+  plugin_acp_acp_agent --> bundle_agent_core["@hydra/harness-agent-spine-demo"]
+  plugin_acp_acp_agent --> bundle_jsonl["@hydra/harness-session-persistence-jsonl"]
+  plugin_acp_acp_agent --> entrypoint_acp["@hydra/harness-acp<br/>automation-only JSON-RPC stdio<br/>fresh sessions created by client"]
   bundle_agent_core --> spine_llm["ctx.llm"]
   bundle_agent_core --> spine_sessions["ctx.sessions"]
   bundle_agent_core --> spine_tools["ctx.tools + tool-bash"]
   bundle_agent_core --> spine_loop["ctx.agents + ctx.agentLoop"]
-  plugin_acp_token_meter["token-meter<br/>@bosch/bh-token-meter"]
+  plugin_acp_token_meter["token-meter<br/>@hydra/harness-token-meter"]
   cfg --> plugin_acp_token_meter
-  plugin_acp_compaction_basic["compaction-basic<br/>@bosch/bh-compaction-basic"]
+  plugin_acp_compaction_basic["compaction-basic<br/>@hydra/harness-compaction-basic"]
   cfg --> plugin_acp_compaction_basic
-  plugin_acp_session_projection["session-projection<br/>@bosch/bh-session-projection"]
+  plugin_acp_session_projection["session-projection<br/>@hydra/harness-session-projection"]
   cfg --> plugin_acp_session_projection
-  plugin_acp_subagent["subagent<br/>@bosch/bh-subagent"]
+  plugin_acp_subagent["subagent<br/>@hydra/harness-subagent"]
   cfg --> plugin_acp_subagent
-  plugin_acp_subagent_spawn_in_process["subagent-spawn-in-process<br/>@bosch/bh-subagent-spawn-in-process"]
+  plugin_acp_subagent_spawn_in_process["subagent-spawn-in-process<br/>@hydra/harness-subagent-spawn-in-process"]
   cfg --> plugin_acp_subagent_spawn_in_process
-  plugin_acp_subagent_fork_in_process["subagent-fork-in-process<br/>@bosch/bh-subagent-fork-in-process"]
+  plugin_acp_subagent_fork_in_process["subagent-fork-in-process<br/>@hydra/harness-subagent-fork-in-process"]
   cfg --> plugin_acp_subagent_fork_in_process
-  plugin_acp_tool_subagent_control["tool-subagent-control<br/>@bosch/bh-tool-subagent-control"]
+  plugin_acp_tool_subagent_control["tool-subagent-control<br/>@hydra/harness-tool-subagent-control"]
   cfg --> plugin_acp_tool_subagent_control
-  plugin_acp_tool_subagent_list_agents["tool-subagent-list-agents<br/>@bosch/bh-tool-subagent-control/list-agents"]
+  plugin_acp_tool_subagent_list_agents["tool-subagent-list-agents<br/>@hydra/harness-tool-subagent-control/list-agents"]
   cfg --> plugin_acp_tool_subagent_list_agents
-  plugin_acp_tool_subagent_report["tool-subagent-report<br/>@bosch/bh-tool-subagent-report"]
+  plugin_acp_tool_subagent_report["tool-subagent-report<br/>@hydra/harness-tool-subagent-report"]
   cfg --> plugin_acp_tool_subagent_report
-  plugin_acp_tool_subagent["tool-subagent<br/>@bosch/bh-tool-subagent"]
+  plugin_acp_tool_subagent["tool-subagent<br/>@hydra/harness-tool-subagent"]
   cfg --> plugin_acp_tool_subagent
-  plugin_acp_tool_subagent_fork["tool-subagent-fork<br/>@bosch/bh-tool-subagent"]
+  plugin_acp_tool_subagent_fork["tool-subagent-fork<br/>@hydra/harness-tool-subagent"]
   cfg --> plugin_acp_tool_subagent_fork
-  plugin_acp_workflow_worker_thread["workflow-worker-thread<br/>@bosch/bh-workflow-worker-thread"]
+  plugin_acp_workflow_worker_thread["workflow-worker-thread<br/>@hydra/harness-workflow-worker-thread"]
   cfg --> plugin_acp_workflow_worker_thread
-  plugin_acp_tool_workflow["tool-workflow<br/>@bosch/bh-tool-workflow"]
+  plugin_acp_tool_workflow["tool-workflow<br/>@hydra/harness-tool-workflow"]
   cfg --> plugin_acp_tool_workflow
-  plugin_acp_tool_ralph["tool-ralph<br/>@bosch/bh-tool-ralph"]
+  plugin_acp_tool_ralph["tool-ralph<br/>@hydra/harness-tool-ralph"]
   cfg --> plugin_acp_tool_ralph
-  plugin_acp_tool_todo["tool-todo<br/>@bosch/bh-tool-todo"]
+  plugin_acp_tool_todo["tool-todo<br/>@hydra/harness-tool-todo"]
   cfg --> plugin_acp_tool_todo
-  plugin_acp_repeat_tool_reminder["repeat-tool-reminder<br/>@bosch/bh-repeat-tool-reminder"]
+  plugin_acp_repeat_tool_reminder["repeat-tool-reminder<br/>@hydra/harness-repeat-tool-reminder"]
   cfg --> plugin_acp_repeat_tool_reminder
-  plugin_acp_fs_sandbox["fs-sandbox<br/>@bosch/bh-fs-sandbox"]
+  plugin_acp_fs_sandbox["fs-sandbox<br/>@hydra/harness-fs-sandbox"]
   cfg --> plugin_acp_fs_sandbox
-  plugin_acp_fs_observation_policy["fs-observation-policy<br/>@bosch/bh-fs-observation-policy"]
+  plugin_acp_fs_observation_policy["fs-observation-policy<br/>@hydra/harness-fs-observation-policy"]
   cfg --> plugin_acp_fs_observation_policy
-  plugin_acp_tool_fs["tool-fs<br/>@bosch/bh-tool-fs"]
+  plugin_acp_tool_fs["tool-fs<br/>@hydra/harness-tool-fs"]
   cfg --> plugin_acp_tool_fs
-  plugin_acp_hooks_claude_code["hooks-claude-code<br/>@bosch/bh-hooks-claude-code"]
+  plugin_acp_hooks_claude_code["hooks-claude-code<br/>@hydra/harness-hooks-claude-code"]
   cfg --> plugin_acp_hooks_claude_code
-  plugin_acp_hooks_codex["hooks-codex<br/>@bosch/bh-hooks-codex"]
+  plugin_acp_hooks_codex["hooks-codex<br/>@hydra/harness-hooks-codex"]
   cfg --> plugin_acp_hooks_codex
 ```
 
 | Plugin id | Package / module |
 | --- | --- |
-| `llm-deepseek` | `@bosch/bh-llm-deepseek` |
-| `sandbox` | `@bosch/bh-sandbox-local` |
-| `sandbox-policy` | `@bosch/bh-sandbox-policy` |
-| `subprocess` | `@bosch/bh-subprocess-local` |
-| `bash` | `@bosch/bh-bash-sandbox` |
-| `approval` | `@bosch/bh-user-approval` |
-| `acp-agent` | `@bosch/bh-acp-demo` |
-| `token-meter` | `@bosch/bh-token-meter` |
-| `compaction-basic` | `@bosch/bh-compaction-basic` |
-| `session-projection` | `@bosch/bh-session-projection` |
-| `subagent` | `@bosch/bh-subagent` |
-| `subagent-spawn-in-process` | `@bosch/bh-subagent-spawn-in-process` |
-| `subagent-fork-in-process` | `@bosch/bh-subagent-fork-in-process` |
-| `tool-subagent-control` | `@bosch/bh-tool-subagent-control` |
-| `tool-subagent-list-agents` | `@bosch/bh-tool-subagent-control/list-agents` |
-| `tool-subagent-report` | `@bosch/bh-tool-subagent-report` |
-| `tool-subagent` | `@bosch/bh-tool-subagent` |
-| `tool-subagent-fork` | `@bosch/bh-tool-subagent` |
-| `workflow-worker-thread` | `@bosch/bh-workflow-worker-thread` |
-| `tool-workflow` | `@bosch/bh-tool-workflow` |
-| `tool-ralph` | `@bosch/bh-tool-ralph` |
-| `tool-todo` | `@bosch/bh-tool-todo` |
-| `repeat-tool-reminder` | `@bosch/bh-repeat-tool-reminder` |
-| `fs-sandbox` | `@bosch/bh-fs-sandbox` |
-| `fs-observation-policy` | `@bosch/bh-fs-observation-policy` |
-| `tool-fs` | `@bosch/bh-tool-fs` |
-| `hooks-claude-code` | `@bosch/bh-hooks-claude-code` |
-| `hooks-codex` | `@bosch/bh-hooks-codex` |
+| `llm-deepseek` | `@hydra/harness-llm-deepseek` |
+| `sandbox` | `@hydra/harness-sandbox-local` |
+| `sandbox-policy` | `@hydra/harness-sandbox-policy` |
+| `subprocess` | `@hydra/harness-subprocess-local` |
+| `bash` | `@hydra/harness-bash-sandbox` |
+| `approval` | `@hydra/harness-user-approval` |
+| `acp-agent` | `@hydra/harness-acp-demo` |
+| `token-meter` | `@hydra/harness-token-meter` |
+| `compaction-basic` | `@hydra/harness-compaction-basic` |
+| `session-projection` | `@hydra/harness-session-projection` |
+| `subagent` | `@hydra/harness-subagent` |
+| `subagent-spawn-in-process` | `@hydra/harness-subagent-spawn-in-process` |
+| `subagent-fork-in-process` | `@hydra/harness-subagent-fork-in-process` |
+| `tool-subagent-control` | `@hydra/harness-tool-subagent-control` |
+| `tool-subagent-list-agents` | `@hydra/harness-tool-subagent-control/list-agents` |
+| `tool-subagent-report` | `@hydra/harness-tool-subagent-report` |
+| `tool-subagent` | `@hydra/harness-tool-subagent` |
+| `tool-subagent-fork` | `@hydra/harness-tool-subagent` |
+| `workflow-worker-thread` | `@hydra/harness-workflow-worker-thread` |
+| `tool-workflow` | `@hydra/harness-tool-workflow` |
+| `tool-ralph` | `@hydra/harness-tool-ralph` |
+| `tool-todo` | `@hydra/harness-tool-todo` |
+| `repeat-tool-reminder` | `@hydra/harness-repeat-tool-reminder` |
+| `fs-sandbox` | `@hydra/harness-fs-sandbox` |
+| `fs-observation-policy` | `@hydra/harness-fs-observation-policy` |
+| `tool-fs` | `@hydra/harness-tool-fs` |
+| `hooks-claude-code` | `@hydra/harness-hooks-claude-code` |
+| `hooks-codex` | `@hydra/harness-hooks-codex` |
 
 Source config: [`examples/acp-agent/cordis.yml`](cordis.yml).
 

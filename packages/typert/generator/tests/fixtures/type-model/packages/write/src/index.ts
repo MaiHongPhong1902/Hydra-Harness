@@ -1,4 +1,4 @@
-import { Service } from '@bosch/cordis'
+import { Service } from '@hydra/cordis'
 
 /** Service whose public annotations are intentionally absent. */
 export class WritableService extends Service {
@@ -9,7 +9,7 @@ export class WritableService extends Service {
   }
 }
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     writable: WritableService
   }

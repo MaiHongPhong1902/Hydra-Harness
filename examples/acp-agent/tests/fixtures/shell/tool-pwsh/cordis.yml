@@ -1,27 +1,27 @@
 # Minimal tool-pwsh composition: real app boot path, real pwsh executor, real
 # foreground + background tool calls; driven by the package's loader.spec.ts.
 - id: system-prompt
-  name: '@bosch/bh-system-prompt'
+  name: '@hydra/harness-system-prompt'
 
 - id: tools
-  name: '@bosch/bh-tools'
+  name: '@hydra/harness-tools'
 
 - id: subprocess
-  name: '@bosch/bh-subprocess-local'
+  name: '@hydra/harness-subprocess-local'
 
 - id: bash
-  name: '@bosch/bh-pwsh-local'
+  name: '@hydra/harness-pwsh-local'
   config:
     graceMs: 200
 
 - id: shell-env
-  name: '@bosch/bh-shell-env'
+  name: '@hydra/harness-shell-env'
 
 - id: tasks
-  name: '@bosch/bh-jobs-local'
+  name: '@hydra/harness-jobs-local'
 
 - id: tool-jobs
-  name: '@bosch/bh-tool-jobs'
+  name: '@hydra/harness-tool-jobs'
 
 - id: tool-pwsh
-  name: '@bosch/bh-tool-pwsh'
+  name: '@hydra/harness-tool-pwsh'

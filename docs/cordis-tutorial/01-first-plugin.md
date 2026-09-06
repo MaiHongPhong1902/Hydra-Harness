@@ -7,7 +7,7 @@ In the loader configuration used here, a Cordis plugin module named-exports an `
 In your `tmp/cordis-tutorial` directory (see [setup](index.md#setup)), create `hello.ts`:
 
 ```ts
-import type { Context } from '@bosch/cordis'
+import type { Context } from '@hydra/cordis'
 
 export const name = 'hello'
 
@@ -53,7 +53,7 @@ There is no framework bootstrap code in your file: a plugin describes what it co
 A function is the most common form, but Cordis accepts three:
 
 ```ts
-import { Service, type Context } from '@bosch/cordis'
+import { Service, type Context } from '@hydra/cordis'
 
 // 1. Function plugin (what you just wrote).
 export function apply(ctx: Context) {}
@@ -90,4 +90,4 @@ One caveat worth knowing early: a config entry whose module cannot be **resolved
 
 Next: [Lifecycle and effects](02-lifecycle-and-effects.md) — what happens when a plugin unloads.
 
-[![](https://img.shields.io/badge/powered_by-bh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/bosch/bosch-harness)
+![Powered by Hydra harness](../../packages/skill/skill-badge/assets/hydra-badge.png)

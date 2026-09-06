@@ -1,4 +1,4 @@
-import { createUserMessage } from '@bosch/bh-llm'
+import { createUserMessage } from '@hydra/harness-llm'
 /**
  * The `session-telemetry/record` waterfall contract: pass-through when no listener is
  * mounted, listener stacking and replacement, ops-record coverage, the
@@ -6,8 +6,8 @@ import { createUserMessage } from '@bosch/bh-llm'
  */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import SessionStore, { SessionId } from '@bosch/bh-session'
+import { Context } from '@hydra/cordis'
+import SessionStore, { SessionId } from '@hydra/harness-session'
 import {
   SessionTelemetryCoordinator,
   type SessionTelemetrySink,

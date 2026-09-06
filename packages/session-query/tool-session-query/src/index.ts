@@ -1,14 +1,14 @@
 /**
  * Model-facing, workspace-authorized session-history search and read tools.
  *
- * @module @bosch/bh-tool-session-query
+ * @module @hydra/harness-tool-session-query
  */
 
-import type { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import { MAX_TIMER_DELAY_MS } from '@bosch/bh-timeout'
-import { defineTool } from '@bosch/bh-tools'
-import type {} from '@bosch/bh-system-prompt'
+import type { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import { MAX_TIMER_DELAY_MS } from '@hydra/harness-timeout'
+import { defineTool } from '@hydra/harness-tools'
+import type {} from '@hydra/harness-system-prompt'
 import { toolInput } from './input.ts'
 import { operations } from './operations.ts'
 import { presentation } from './presentation.ts'

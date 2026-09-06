@@ -1,15 +1,15 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import { Session, SessionId } from '@bosch/bh-session'
-import AgentRegistry, { Inbox } from '@bosch/bh-agent'
-import type { Agent } from '@bosch/bh-agent'
-import { bindScopeParent, createScope, scopeOf } from '@bosch/bh-scope'
-import type { ScopeKey } from '@bosch/bh-scope'
-import { JobId } from '@bosch/bh-jobs'
-import type { JobHooks, JobKind, JobOutcome, JobSnapshot, JobStart } from '@bosch/bh-jobs'
-import LocalJobRegistry, { type Config as JobsConfig } from '@bosch/bh-jobs-local'
+import { Context } from '@hydra/cordis'
+import { Session, SessionId } from '@hydra/harness-session'
+import AgentRegistry, { Inbox } from '@hydra/harness-agent'
+import type { Agent } from '@hydra/harness-agent'
+import { bindScopeParent, createScope, scopeOf } from '@hydra/harness-scope'
+import type { ScopeKey } from '@hydra/harness-scope'
+import { JobId } from '@hydra/harness-jobs'
+import type { JobHooks, JobKind, JobOutcome, JobSnapshot, JobStart } from '@hydra/harness-jobs'
+import LocalJobRegistry, { type Config as JobsConfig } from '@hydra/harness-jobs-local'
 
-declare module '@bosch/bh-jobs' {
+declare module '@hydra/harness-jobs' {
   interface JobKindMap {
     workflow: 'workflow'
   }
@@ -119,7 +119,7 @@ describe('LocalJobRegistry.start', () => {
     const ctx = new Context()
     await ctx.plugin(LocalJobRegistry)
     expect(() => ctx.jobs.start(producer().spec))
-      .toThrow('background jobs unavailable: no job controller serves this agent (load @bosch/bh-tool-jobs in its composition)')
+      .toThrow('background jobs unavailable: no job controller serves this agent (load @hydra/harness-tool-jobs in its composition)')
   })
 
   it('refuses an owner whose own composition attaches no controller', async () => {

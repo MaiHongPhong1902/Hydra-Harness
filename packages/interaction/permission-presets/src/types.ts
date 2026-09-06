@@ -6,7 +6,7 @@
  * browser half-entry's re-export) for client aggregates — with zero content
  * duplication.
  *
- * @module @bosch/bh-permission-presets/types
+ * @module @hydra/harness-permission-presets/types
  */
 
 /** The select-option shape a presentation layer advertises for one preset (or for the derived `custom` state). */
@@ -31,7 +31,7 @@ export interface PermissionSelect {
   currentValue: string
 }
 
-declare module '@bosch/bh-session-projection/types' {
+declare module '@hydra/harness-session-projection/types' {
   interface SessionProjectionMap {
     /**
      * The session's permission select, folded from the three whole-value

@@ -12,11 +12,11 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { PassThrough } from 'node:stream'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import { createLaunchEnvironmentSnapshot, BH_LAUNCH_ENVIRONMENT_KEY } from '@bosch/bh-launch-environment'
-import { createUserMessage } from '@bosch/bh-llm'
-import SystemPrompt from '@bosch/bh-system-prompt'
-import type { WebServer } from '@bosch/bh-host-webserver'
+import { Context } from '@hydra/cordis'
+import { createLaunchEnvironmentSnapshot, BH_LAUNCH_ENVIRONMENT_KEY } from '@hydra/harness-launch-environment'
+import { createUserMessage } from '@hydra/harness-llm'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import type { WebServer } from '@hydra/harness-host-webserver'
 import { apply, Config, internals } from '../src/index.ts'
 
 vi.mock('node:child_process', async importOriginal => ({
@@ -160,7 +160,7 @@ describe('web-app runtime glue', () => {
       'open:http://127.0.0.1:4567',
     ])
     const assembly = await ctx.systemPrompt.assemble()
-    expect(assembly.sections.find(entry => entry.name === 'harness:source')?.text).toContain('Bosch Harness implementation checkout')
+    expect(assembly.sections.find(entry => entry.name === 'harness:source')?.text).toContain('Hydra harness implementation checkout')
     const section = assembly.sections.find(entry => entry.name === 'app:web-surface')
     expect(section?.text).toContain('http://127.0.0.1:4567')
     expect(section?.text).toContain('Classify the user message before planning')

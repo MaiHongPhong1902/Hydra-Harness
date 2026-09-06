@@ -1,7 +1,7 @@
 /** Reconstruct durable steering identity from the event-sourced agent inbox. */
 
-import type { SessionEvent } from '@bosch/bh-session/types'
-import type { InboxTarget } from '@bosch/bh-agent/types'
+import type { SessionEvent } from '@hydra/harness-session/types'
+import type { InboxTarget } from '@hydra/harness-agent/types'
 
 /** Minimal pending identity retained while replaying durable inbox splices. */
 interface PendingIdentity {

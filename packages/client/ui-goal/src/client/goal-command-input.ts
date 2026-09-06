@@ -1,9 +1,9 @@
-import type { SessionEvent } from '@bosch/bh-session/types'
-import type { CommandId } from '@bosch/bh-commands/brand'
-import type {} from '@bosch/bh-commands/types'
+import type { SessionEvent } from '@hydra/harness-session/types'
+import type { CommandId } from '@hydra/harness-commands/brand'
+import type {} from '@hydra/harness-commands/types'
 import type {
   ConversationNodeDefinition,
-} from '@bosch/bh-client-runtime/client'
+} from '@hydra/harness-client-runtime/client'
 
 /** Goal-owned human command input projected independently of model messages. */
 export interface GoalCommandInputData {
@@ -12,7 +12,7 @@ export interface GoalCommandInputData {
   readonly time: number
 }
 
-declare module '@bosch/bh-client-ui-conversation/client' {
+declare module '@hydra/harness-client-ui-conversation/client' {
   interface ChatNodeDataMap {
     /** Human-entered `/goal` command input. */
     'command-input': GoalCommandInputData

@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import type { InjectFace, PropsLocale, PropsRuntime } from '@bosch/bh-client-ui-slots'
-import { IconCloseFill14 } from '@bosch/bh-client-ui-primitives'
+import type { InjectFace, PropsLocale, PropsRuntime } from '@hydra/harness-client-ui-slots'
+import { IconCloseFill14 } from '@hydra/harness-client-ui-primitives'
 // Type-only: pulls the ui-conversation SlotMap merge (the input.plan seat and
 // its {locked} owner share).
-import type {} from '@bosch/bh-client-ui-conversation/client'
+import type {} from '@hydra/harness-client-ui-conversation/client'
 import type { PlanChipInjected } from './index.ts'
 import css from './PlanModeControl.module.css'
 

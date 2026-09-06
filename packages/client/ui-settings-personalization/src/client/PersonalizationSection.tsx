@@ -5,18 +5,25 @@
 
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import type { SettingsScope, SettingsScopeSnapshot, SnapshotStore } from '@bosch/bh-client-runtime/client'
-import type { InjectFace, PropsLocale, PropsRuntime } from '@bosch/bh-client-ui-slots'
+import type { SettingsScope, SettingsScopeSnapshot, SnapshotStore } from '@hydra/harness-client-runtime/client'
+import type { InjectFace, PropsLocale, PropsRuntime } from '@hydra/harness-client-ui-slots'
 import type { InstructionsState } from './instructions-store.ts'
 import type { PersonalizationKey } from './locales.ts'
 import css from './PersonalizationSection.module.css'
 
-/** The closed set of personality values (mirrors `@bosch/bh-personalization`'s `Personality`). */
+/** The closed set of personality values (mirrors `@hydra/harness-personalization`'s `Personality`). */
 export type Personality = 'friendly' | 'pragmatic' | 'none'
 
 /** The personalization settings-namespace shape. */
 export interface PersonalitySettings {
   personality: Personality
+}
+
+/** Unsaved tone selection, retained while the settings section is closed. */
+export interface PersonalityDraft {
+  value: Personality | undefined
+  saving: boolean
+  failed: boolean
 }
 
 /** Global defaults for the host-local memory store. */
@@ -40,10 +47,12 @@ export interface PersonalizationSectionInjected {
     instructions: SnapshotStore<InstructionsState>
     /** Personality settings scope, bound by the renderer as usePersonality. */
     personality: SettingsScope<PersonalitySettings>
+    /** Staged personality selection, bound as usePersonalityDraft. */
+    personalityDraft: SnapshotStore<PersonalityDraft>
     /** Memory settings scope, bound by the renderer as useMemory. */
     memory: SettingsScope<MemorySettings>
   }
-  /** Read the custom-instructions document; called once when the section first renders. */
+  /** Refresh a clean editor on section entry, preserving any unsaved draft. */
   load: () => Promise<void>
   /** Update the custom-instructions editor draft. */
   setDraft: (text: string) => void
@@ -51,8 +60,10 @@ export interface PersonalizationSectionInjected {
   save: () => Promise<void>
   /** Discard the local custom-instructions draft and reload the Host's current content. */
   reload: () => Promise<void>
-  /** Change the personality preference. */
-  setPersonality: (personality: Personality) => Promise<void>
+  /** Stage a personality preference without writing it. */
+  setPersonality: (personality: Personality) => void
+  /** Save the staged personality preference. */
+  savePersonality: () => Promise<void>
   /** Read saved local memories for the management list. */
   loadMemories: () => Promise<MemoryEntryView[]>
   /** Delete one saved local memory. */
@@ -83,6 +94,7 @@ export function PersonalizationSection(props: PersonalizationSectionProps): Reac
   const instructions = useInstructions((snapshot: InstructionsState) => snapshot)
   const memory = useMemory((snapshot: SettingsScopeSnapshot<MemorySettings>) => snapshot)
   const personality = usePersonality((snapshot: SettingsScopeSnapshot<PersonalitySettings>) => snapshot)
+  const personalityDraft = props.usePersonalityDraft((snapshot: PersonalityDraft) => snapshot)
   const [entries, setEntries] = useState<MemoryEntryView[]>([])
   const [memoryError, setMemoryError] = useState<string | null>(null)
 
@@ -107,6 +119,7 @@ export function PersonalizationSection(props: PersonalizationSectionProps): Reac
     ? memory.value ?? { enabled: false, useMemories: true, generateMemories: true }
     : { enabled: false, useMemories: true, generateMemories: true }
   const currentPersonality = personality.status === 'ready' ? personality.value?.personality ?? 'pragmatic' : 'pragmatic'
+  const selectedPersonality = personalityDraft.value ?? currentPersonality
   const memoryWritable = memory.status === 'ready' && memory.writable
 
   async function removeMemory(id: string): Promise<void> {
@@ -121,43 +134,81 @@ export function PersonalizationSection(props: PersonalizationSectionProps): Reac
     <div className={css.section}>
       <h2 className={css.title}>{t('nav')}</h2>
 
-      <section className={css.group}>
-        <div className={css.groupHead}>
-          <div>
-            <h3 className={css.groupTitle}>{t('instructionsTitle')}</h3>
-            <p className={css.groupDesc}>{t('instructionsDescription')}</p>
-          </div>
-          <button
-            type="button"
-            className={css.primaryButton}
-            disabled={!dirty || saving || conflicted}
-            onClick={() => { void props.save() }}
-          >
-            {saving ? t('saving') : t('save')}
-          </button>
-        </div>
-        <textarea
-          className={css.textarea}
-          value={instructions.draft}
-          placeholder={t('instructionsPlaceholder')}
-          spellCheck={false}
-          disabled={instructions.status === 'loading'}
-          onChange={(event) => { props.setDraft(event.target.value) }}
-        />
-        {conflicted
-          ? (
-            <p className={css.error} role="alert">
-              {t('conflict')}
-              {' '}
-              <button type="button" className={css.linkButton} onClick={() => { void props.reload() }}>
-                {t('reload')}
+      <section className={css.group} aria-label={t('promptsTitle')}>
+        <h3 className={css.groupTitle}>{t('promptsTitle')}</h3>
+        <details className={css.prompt}>
+          <summary className={css.summary}>
+            {t('instructionsTitle')}
+            {dirty ? <span className={css.badge}>{t('unsaved')}</span> : null}
+          </summary>
+          <div className={css.group}>
+            <div className={css.groupHead}>
+              <p className={css.groupDesc}>{t('instructionsDescription')}</p>
+              <button
+                type="button"
+                className={css.primaryButton}
+                disabled={!dirty || saving || conflicted || instructions.status === 'loading'}
+                onClick={() => { void props.save() }}
+              >
+                {saving ? t('saving') : t('save')}
               </button>
-            </p>
-          )
-          : null}
-        {instructions.status === 'error' && instructions.error !== null
-          ? <p className={css.error} role="alert">{instructions.error}</p>
-          : null}
+            </div>
+            <textarea
+              aria-label={t('instructionsTitle')}
+              className={css.textarea}
+              value={instructions.draft}
+              placeholder={t('instructionsPlaceholder')}
+              spellCheck={false}
+              disabled={instructions.status === 'loading'}
+              onChange={(event) => { props.setDraft(event.target.value) }}
+            />
+            {conflicted
+              ? (
+                <p className={css.error} role="alert">
+                  {t('conflict')}
+                  {' '}
+                  <button type="button" className={css.linkButton} onClick={() => { void props.reload() }}>
+                    {t('reload')}
+                  </button>
+                </p>
+              )
+              : null}
+            {instructions.status === 'error' && instructions.error !== null
+              ? <p className={css.error} role="alert">{instructions.error}</p>
+              : null}
+          </div>
+        </details>
+        <details className={css.prompt}>
+          <summary className={css.summary}>
+            {t('personalityTitle')}
+            {selectedPersonality !== currentPersonality ? <span className={css.badge}>{t('unsaved')}</span> : null}
+          </summary>
+          <div className={css.group}>
+            <p className={css.groupDesc}>{t('personalityDescription')}</p>
+            <div className={css.personalityRow}>
+              <select
+                aria-label={t('personalityTitle')}
+                className={css.select}
+                value={selectedPersonality}
+                disabled={personality.status !== 'ready' || !personality.writable}
+                onChange={(event) => { props.setPersonality(event.target.value as Personality) }}
+              >
+                {PERSONALITY_OPTIONS.map(option => (
+                  <option key={option.value} value={option.value}>{t(option.key)}</option>
+                ))}
+              </select>
+              <button
+                type="button"
+                className={css.primaryButton}
+                disabled={selectedPersonality === currentPersonality || personalityDraft.saving || personality.status !== 'ready' || !personality.writable}
+                onClick={() => { void props.savePersonality() }}
+              >
+                {personalityDraft.saving ? t('saving') : t('save')}
+              </button>
+            </div>
+            {personalityDraft.failed ? <p className={css.error} role="alert">{t('saveFailed')}</p> : null}
+          </div>
+        </details>
       </section>
 
       <section className={css.group}>
@@ -207,24 +258,6 @@ export function PersonalizationSection(props: PersonalizationSectionProps): Reac
         {memoryError === null ? null : <p className={css.error} role="alert">{memoryError}</p>}
       </section>
 
-      <section className={css.group}>
-        <div className={css.personalityRow}>
-          <div>
-            <h3 className={css.groupTitle}>{t('personalityTitle')}</h3>
-            <p className={css.groupDesc}>{t('personalityDescription')}</p>
-          </div>
-          <select
-            className={css.select}
-            value={currentPersonality}
-            disabled={personality.status !== 'ready' || !personality.writable}
-            onChange={(event) => { void props.setPersonality(event.target.value as Personality) }}
-          >
-            {PERSONALITY_OPTIONS.map(option => (
-              <option key={option.value} value={option.value}>{t(option.key)}</option>
-            ))}
-          </select>
-        </div>
-      </section>
     </div>
   )
 }

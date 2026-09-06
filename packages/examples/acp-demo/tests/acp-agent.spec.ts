@@ -2,14 +2,14 @@ import { describe, expect, it } from 'vitest'
 import { mkdtemp } from 'node:fs/promises'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
-import { Context } from '@bosch/cordis'
-import Loader from '@bosch/cordis-plugin-loader'
-import { TOOL_ORDER_REST } from '@bosch/bh-system-prompt'
-import { CallId } from '@bosch/bh-llm'
+import { Context } from '@hydra/cordis'
+import Loader from '@hydra/cordis-plugin-loader'
+import { TOOL_ORDER_REST } from '@hydra/harness-system-prompt'
+import { CallId } from '@hydra/harness-llm'
 import * as acpAgent from '../src/index.ts'
 
 /**
- * In-process unit coverage for the @bosch/bh-acp-demo composition:
+ * In-process unit coverage for the @hydra/harness-acp-demo composition:
  * mounting it brings up the agent-spine-demo spine + JSONL persistence + the ACP
  * bridge in one `ctx.plugin`. It loads no Loader-only plugin (no hmr), so it
  * mounts in a plain Context.

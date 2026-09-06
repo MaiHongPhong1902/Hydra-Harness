@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { createUserMessage, CallId , createMessage, createToolResultMessage } from '@bosch/bh-llm'
-import { toolPairingBalancedAfter, toolPairingBalancedBefore } from '@bosch/bh-compaction'
-import { Session, SessionId } from '@bosch/bh-session'
-import type { SessionEvent } from '@bosch/bh-session'
+import { createUserMessage, CallId , createMessage, createToolResultMessage } from '@hydra/harness-llm'
+import { toolPairingBalancedAfter, toolPairingBalancedBefore } from '@hydra/harness-compaction'
+import { Session, SessionId } from '@hydra/harness-session'
+import type { SessionEvent } from '@hydra/harness-session'
 
 const SURFACE = { surfaceOp: 'append' as const }
 

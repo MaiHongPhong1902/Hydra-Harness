@@ -1,17 +1,17 @@
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { describe, expect, it, vi } from 'vitest'
-import LlmRuntime, { createUserMessage, CallId, isAgentLoopRequest, LlmAdapter  } from '@bosch/bh-llm'
-import type { FinishReason, GenerateOptions, StreamChunk } from '@bosch/bh-llm'
-import SessionStore, { SessionId } from '@bosch/bh-session'
-import { SessionTitleProviderId } from '@bosch/bh-session-title'
-import type { SessionTitleProviderRequest } from '@bosch/bh-session-title'
-import { MAX_TIMER_DELAY_MS } from '@bosch/bh-timeout'
+import LlmRuntime, { createUserMessage, CallId, isAgentLoopRequest, LlmAdapter  } from '@hydra/harness-llm'
+import type { FinishReason, GenerateOptions, StreamChunk } from '@hydra/harness-llm'
+import SessionStore, { SessionId } from '@hydra/harness-session'
+import { SessionTitleProviderId } from '@hydra/harness-session-title'
+import type { SessionTitleProviderRequest } from '@hydra/harness-session-title'
+import { MAX_TIMER_DELAY_MS } from '@hydra/harness-timeout'
 import {
   generateSessionTitleWithLlm,
   resolveSessionTitleLlmConfig,
   SESSION_TITLE_TIMEOUT_CODE,
-} from '@bosch/bh-session-title-llm'
-import type { SessionTitleLlmConfig } from '@bosch/bh-session-title-llm'
+} from '@hydra/harness-session-title-llm'
+import type { SessionTitleLlmConfig } from '@hydra/harness-session-title-llm'
 
 class RecordingAdapter extends LlmAdapter {
   readonly requests: GenerateOptions[] = []

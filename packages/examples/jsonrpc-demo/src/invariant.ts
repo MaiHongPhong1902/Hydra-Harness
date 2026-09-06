@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-sdk-jsonrpc-demo`.
- * @module @bosch/bh-sdk-jsonrpc-demo/invariant
+ * Package-owned invariant companion for `@hydra/harness-sdk-jsonrpc-demo`.
+ * @module @hydra/harness-sdk-jsonrpc-demo/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-sdk-jsonrpc-demo'
+const PACKAGE_NAME = '@hydra/harness-sdk-jsonrpc-demo'
 
 /** Cordis companion plugin name. */
 export const name = 'sdk-jsonrpc-demo-invariant'

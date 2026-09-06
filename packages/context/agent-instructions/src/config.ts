@@ -1,12 +1,12 @@
 /**
  * Configuration normalization for workspace instruction discovery and rendering.
  *
- * @module @bosch/bh-agent-instructions/config
+ * @module @hydra/harness-agent-instructions/config
  */
 
 import { relative } from 'node:path'
-import z from '@bosch/schemastery'
-import { resolveBhHome } from '@bosch/bh-home-paths'
+import z from '@hydra/schemastery'
+import { resolveBhHome } from '@hydra/harness-home-paths'
 
 const DEFAULT_PROJECT_ROOT_MARKERS = ['.git'] as const
 const DEFAULT_INSTRUCTION_FILE_CANDIDATES = ['AGENTS.md', 'CLAUDE.md'] as const

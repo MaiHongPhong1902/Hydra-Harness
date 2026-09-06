@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import { FsTargetKey, FsVersion } from '@bosch/bh-fs'
-import type { FsTarget } from '@bosch/bh-fs'
-import * as FsInvariant from '@bosch/bh-fs/invariant'
-import InvariantRegistry from '@bosch/bh-invariants'
+import { Context } from '@hydra/cordis'
+import { FsTargetKey, FsVersion } from '@hydra/harness-fs'
+import type { FsTarget } from '@hydra/harness-fs'
+import * as FsInvariant from '@hydra/harness-fs/invariant'
+import InvariantRegistry from '@hydra/harness-invariants'
 
 async function setup(): Promise<Context> {
   const ctx = new Context()

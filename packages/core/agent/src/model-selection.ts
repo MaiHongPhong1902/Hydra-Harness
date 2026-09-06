@@ -1,10 +1,10 @@
 /**
  * Agent-scoped model selection shared by runtime entry points.
- * @module @bosch/bh-agent/model-selection
+ * @module @hydra/harness-agent/model-selection
  */
 
-import type { Context } from '@bosch/cordis'
-import type { LlmCallConfig, ReasoningEffortId } from '@bosch/bh-llm'
+import type { Context } from '@hydra/cordis'
+import type { LlmCallConfig, ReasoningEffortId } from '@hydra/harness-llm'
 
 /** Complete provider, model, and optional reasoning effort selected for one live Agent. */
 export interface ModelSelection {

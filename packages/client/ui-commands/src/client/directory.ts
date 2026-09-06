@@ -5,10 +5,10 @@
  * / epoch-guard behavior of the original global cache; the session-key axis
  * is the only extra dimension.
  */
-import type { CommandDescriptor } from '@bosch/bh-commands/types'
-import type { SessionId } from '@bosch/bh-client-runtime/client'
+import type { CommandDescriptor } from '@hydra/harness-commands/types'
+import type { SessionId } from '@hydra/harness-client-runtime/client'
 
-export type { CommandDescriptor } from '@bosch/bh-commands/types'
+export type { CommandDescriptor } from '@hydra/harness-commands/types'
 
 /**
  * cold = never pulled; pending = pull in flight with nothing servable;

@@ -116,7 +116,7 @@ jobs:
 
   sdk-wheel:
     needs: plan
-    name: bosch_harness_sdk-${{ needs.plan.outputs.version }}-py3-none-any.whl
+    name: hydra_harness_sdk-${{ needs.plan.outputs.version }}-py3-none-any.whl
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -137,8 +137,8 @@ jobs:
 
       - uses: actions/upload-artifact@v7
         with:
-          name: bosch_harness_sdk-${{ needs.plan.outputs.version }}-py3-none-any.whl
-          path: dist-python/bosch_harness_sdk-${{ needs.plan.outputs.version }}-py3-none-any.whl
+          name: hydra_harness_sdk-${{ needs.plan.outputs.version }}-py3-none-any.whl
+          path: dist-python/hydra_harness_sdk-${{ needs.plan.outputs.version }}-py3-none-any.whl
           if-no-files-found: error
           retention-days: 7
 
@@ -234,9 +234,9 @@ jobs:
           exe="$PWD/dist-exe/bh-jsonrpc-agent-pkg-$platform"
           [ -x "$exe" ] || { echo "::error::$exe missing or not executable"; exit 1; }
           case "$platform" in
-            linux-x64) wheel=bosch_harness_runtime_bin-$VERSION-py3-none-manylinux_2_28_x86_64.whl ;;
-            linux-arm64) wheel=bosch_harness_runtime_bin-$VERSION-py3-none-manylinux_2_28_aarch64.whl ;;
-            macos-arm64) wheel=bosch_harness_runtime_bin-$VERSION-py3-none-macosx_14_0_arm64.whl ;;
+            linux-x64) wheel=hydra_harness_runtime_bin-$VERSION-py3-none-manylinux_2_28_x86_64.whl ;;
+            linux-arm64) wheel=hydra_harness_runtime_bin-$VERSION-py3-none-manylinux_2_28_aarch64.whl ;;
+            macos-arm64) wheel=hydra_harness_runtime_bin-$VERSION-py3-none-macosx_14_0_arm64.whl ;;
             *) echo "::error::Unsupported runtime platform $platform"; exit 1 ;;
           esac
           echo "platform=$platform" >> "$GITHUB_OUTPUT"
@@ -260,13 +260,13 @@ jobs:
 
       - uses: actions/download-artifact@v8
         with:
-          name: bosch_harness_sdk-${{ needs.plan.outputs.version }}-py3-none-any.whl
+          name: hydra_harness_sdk-${{ needs.plan.outputs.version }}-py3-none-any.whl
           path: dist-python
 
       - name: Install local SDK and runtime wheels into a clean venv
         env:
           RUNTIME_WHEEL: ${{ steps.runtime.outputs.wheel }}
-          SDK_WHEEL: bosch_harness_sdk-${{ needs.plan.outputs.version }}-py3-none-any.whl
+          SDK_WHEEL: hydra_harness_sdk-${{ needs.plan.outputs.version }}-py3-none-any.whl
         run: |
           set -euo pipefail
           python -m venv "$RUNNER_TEMP/bh-sdk-smoke"
@@ -303,7 +303,7 @@ jobs:
         env:
           RUNNER_ARCH: ${{ runner.arch }}
           RUNTIME_WHEEL: ${{ steps.runtime.outputs.wheel }}
-          SDK_WHEEL: bosch_harness_sdk-${{ needs.plan.outputs.version }}-py3-none-any.whl
+          SDK_WHEEL: hydra_harness_sdk-${{ needs.plan.outputs.version }}-py3-none-any.whl
         run: |
           set -euo pipefail
           case "$RUNNER_ARCH" in

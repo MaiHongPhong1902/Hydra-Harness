@@ -5,14 +5,14 @@
  * that are already showing, so a default set from one converges the other.
  */
 
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { describe, expect, it, vi } from 'vitest'
-import { resolveSlotLabel } from '@bosch/bh-client-ui-slots'
-import { SlotRegistry } from '@bosch/bh-client-runtime/client'
-import { LocaleRuntime } from '@bosch/bh-client-locale/client'
-import { TestRemote } from '@bosch/bh-client-test-runtime'
-import { apply as settingsApply, inject as settingsInject } from '@bosch/bh-client-ui-settings/client'
-import { apply, inject } from '@bosch/bh-client-ui-agent-preset/client'
+import { resolveSlotLabel } from '@hydra/harness-client-ui-slots'
+import { SlotRegistry } from '@hydra/harness-client-runtime/client'
+import { LocaleRuntime } from '@hydra/harness-client-locale/client'
+import { TestRemote } from '@hydra/harness-client-test-runtime'
+import { apply as settingsApply, inject as settingsInject } from '@hydra/harness-client-ui-settings/client'
+import { apply, inject } from '@hydra/harness-client-ui-agent-preset/client'
 import { AgentPresetLabel } from '../src/client/AgentPresetLabel.tsx'
 import type { AgentPresetLabelInjected } from '../src/client/AgentPresetLabel.tsx'
 import { AgentPresetRow } from '../src/client/AgentPresetRow.tsx'

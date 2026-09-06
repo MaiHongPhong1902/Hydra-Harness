@@ -1,7 +1,7 @@
 /**
  * Keyless snapshot coverage for the TypeScript SDK path: each scenario spawns
  * the REAL `bh-jsonrpc-agent` runtime (per `BH_EXAMPLE_MODE`) through the
- * REAL `@bosch/bh-sdk-client`, drives one turn over stdio JSON-RPC,
+ * REAL `@hydra/harness-sdk-client`, drives one turn over stdio JSON-RPC,
  * and pins the SDK `RunResult`, the complete notification stream, and the
  * persisted session logs. Replay serves recorded model
  * responses via `llm-replay` (`cordis.snapshot.yml`); `BH_SNAPSHOT=record`
@@ -27,9 +27,9 @@ import {
   tokenizeSessionFixtureCwd,
   type HarvestedLog,
   type NormalizeContext,
-} from '@bosch/bh-acp-snapshot'
-import { resolveExampleLaunch } from '@bosch/bh-loader-smoke'
-import { BoschHarness, type HarnessNotification, type RunResult } from '@bosch/bh-sdk-client'
+} from '@hydra/harness-acp-snapshot'
+import { resolveExampleLaunch } from '@hydra/harness-loader-smoke'
+import { HydraHarness, type HarnessNotification, type RunResult } from '@hydra/harness-sdk-client'
 
 const testsDir = dirOf(import.meta.url)
 const snapshotsDir = join(testsDir, 'snapshots')
@@ -189,7 +189,7 @@ function assembledRuntimeContexts(log: PersistedLog): string[] {
     }
     if (event.type !== 'user/message'
       || event.data?.source?.kind !== 'plugin'
-      || event.data.source.plugin !== '@bosch/bh-system-prompt') return []
+      || event.data.source.plugin !== '@hydra/harness-system-prompt') return []
     return event.data.content?.flatMap(block => block.type === 'text' && typeof block.text === 'string' ? [block.text] : []) ?? []
   })
 }
@@ -294,7 +294,7 @@ async function runScenario(scenario: SdkScenario): Promise<{
     ...scenario.environment,
   }
 
-  const harness = new BoschHarness({
+  const harness = new HydraHarness({
     launch: {
       command: launch.command,
       args: launch.args,

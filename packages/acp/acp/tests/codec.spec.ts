@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { TurnEndReason } from '@bosch/bh-session'
+import type { TurnEndReason } from '@hydra/harness-session'
 import { turnEndToStopReason } from '../src/codec.ts'
 
 describe('ACP codec', () => {

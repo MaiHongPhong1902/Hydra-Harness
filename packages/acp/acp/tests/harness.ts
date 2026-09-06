@@ -1,6 +1,6 @@
 /** In-memory ACP transport fixture over the real agent factory and loop. */
 
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { createHash } from 'node:crypto'
 import {
   ClientSideConnection,
@@ -12,11 +12,11 @@ import {
   type SessionNotification,
   type Stream,
 } from '@agentclientprotocol/sdk'
-import AttachmentStore, { AttachmentError, AttachmentId } from '@bosch/bh-attachment'
-import type { ImageAttachmentLimits, ImageAttachmentRef, SaveImageAttachment, StoredImageAttachment } from '@bosch/bh-attachment'
-import { type GenerateOptions, LlmAdapter, type LlmResolvedModelInfo, type StreamChunk } from '@bosch/bh-llm'
-import AgentLoop from '@bosch/bh-agent-loop'
-import { mountAgentLoopTestDependencies } from '@bosch/bh-agent-loop-testkit'
+import AttachmentStore, { AttachmentError, AttachmentId } from '@hydra/harness-attachment'
+import type { ImageAttachmentLimits, ImageAttachmentRef, SaveImageAttachment, StoredImageAttachment } from '@hydra/harness-attachment'
+import { type GenerateOptions, LlmAdapter, type LlmResolvedModelInfo, type StreamChunk } from '@hydra/harness-llm'
+import AgentLoop from '@hydra/harness-agent-loop'
+import { mountAgentLoopTestDependencies } from '@hydra/harness-agent-loop-testkit'
 import * as AcpPlugin from '../src/index.ts'
 import type { AcpConfig } from '../src/index.ts'
 

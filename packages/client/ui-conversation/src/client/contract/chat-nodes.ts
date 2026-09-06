@@ -1,7 +1,7 @@
 import type {
   AssistantBlock, AssistantMessageNode, ChatConversationViewNode, CommandNode,
   CompactionSummaryNode, ModelRetryNode, RunningToolCall, ToolCallBlock,
-} from '@bosch/bh-client-runtime/client'
+} from '@hydra/harness-client-runtime/client'
 
 /** Merge-extensible payload registry keyed by final Chat renderer kind. */
 export interface ChatNodeDataMap {}

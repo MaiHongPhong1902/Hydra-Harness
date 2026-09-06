@@ -1,7 +1,7 @@
 /** Web Session-log download command over the host endpoint owned by ApiProxy. */
 
-import type { Context } from '@bosch/cordis'
-import type { CommandResult } from '@bosch/bh-commands'
+import type { Context } from '@hydra/cordis'
+import type { CommandResult } from '@hydra/harness-commands'
 
 export const name = 'session-log-download'
 export const inject = ['commands']

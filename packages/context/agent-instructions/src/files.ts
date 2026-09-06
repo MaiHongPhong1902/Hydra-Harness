@@ -1,15 +1,15 @@
 /**
  * Instruction-file discovery and bounded, abort-aware provider reads.
  *
- * @module @bosch/bh-agent-instructions/files
+ * @module @hydra/harness-agent-instructions/files
  */
 
 import { createReadStream } from 'node:fs'
 import { stat } from 'node:fs/promises'
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path'
-import type { FileSystem, FsInfo, FsTarget, FsVersion } from '@bosch/bh-fs'
-import { assertNever } from '@bosch/bh-llm'
-import { bhHomeDisplay } from '@bosch/bh-home-paths'
+import type { FileSystem, FsInfo, FsTarget, FsVersion } from '@hydra/harness-fs'
+import { assertNever } from '@hydra/harness-llm'
+import { bhHomeDisplay } from '@hydra/harness-home-paths'
 import { resolveConfig, resolveDiscoveryConfig, type ResolvedConfig } from './config.ts'
 import { trimmedInstructionDigest } from './digest.ts'
 import {

@@ -1,10 +1,10 @@
 /** Canonical session URI and inline mention encoding. */
 
-import { SessionId, type SessionId as SessionIdType } from '@bosch/bh-session'
+import { SessionId, type SessionId as SessionIdType } from '@hydra/harness-session'
 import { SessionReferenceError } from './config.ts'
 import type { SessionReferenceInput } from './types.ts'
 
-/** URI scheme reserved for Bosch Harness session snapshots. */
+/** URI scheme reserved for Hydra harness session snapshots. */
 export const SESSION_REFERENCE_SCHEME = 'bh-session:'
 
 /**

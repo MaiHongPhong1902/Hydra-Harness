@@ -15,16 +15,16 @@
 // chat-toolview-slot.spec.tsx.
 
 import { describe, expect, it, vi } from 'vitest'
-import { SlotTestRuntime, usePinnedBrowserLanguages, stubSettingsScope } from '@bosch/bh-client-test-runtime'
-import type { SessionBehaviorOverrides } from '@bosch/bh-client-test-runtime'
-import { LocaleRuntime } from '@bosch/bh-client-locale/client'
-import type { ISession, SessionId } from '@bosch/bh-client-runtime/client'
-import type { DraftAttachmentId } from '@bosch/bh-client-ui-conversation/client'
-import { apply, inject } from '@bosch/bh-client-ui-conversation/client'
+import { SlotTestRuntime, usePinnedBrowserLanguages, stubSettingsScope } from '@hydra/harness-client-test-runtime'
+import type { SessionBehaviorOverrides } from '@hydra/harness-client-test-runtime'
+import { LocaleRuntime } from '@hydra/harness-client-locale/client'
+import type { ISession, SessionId } from '@hydra/harness-client-runtime/client'
+import type { DraftAttachmentId } from '@hydra/harness-client-ui-conversation/client'
+import { apply, inject } from '@hydra/harness-client-ui-conversation/client'
 import type {
   ChatViewInjected, ComposerBarInjected, ConversationInjected, ConversationSessionHeaderInjected,
   ConversationSessionInjected, DetailsInjected,
-} from '@bosch/bh-client-ui-conversation/client'
+} from '@hydra/harness-client-ui-conversation/client'
 import type { createChatStore } from '../src/client/stores.ts'
 
 // The service reads its initial locale from the browser, so these specs state

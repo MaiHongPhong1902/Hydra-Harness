@@ -4,17 +4,17 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import { createUserMessage, CallId, StreamChunk  } from '@bosch/bh-llm'
-import SessionStore, { SessionEvent, SessionId } from '@bosch/bh-session'
-import SystemPrompt from '@bosch/bh-system-prompt'
-import LlmRuntime from '@bosch/bh-llm'
-import ToolRuntime, { defineContentToolFixture, TOOL_ABORTED_BEFORE_DISPATCH, TOOL_RUNTIME_SCHEDULER, type PostToolDecision, type PreToolDecision } from '@bosch/bh-tools'
-import AgentRegistry, { type Agent } from '@bosch/bh-agent'
-import AgentLoop, { DEFAULT_MAX_PARALLEL_TOOL_CALLS } from '@bosch/bh-agent-loop'
+import { Context } from '@hydra/cordis'
+import { createUserMessage, CallId, StreamChunk  } from '@hydra/harness-llm'
+import SessionStore, { SessionEvent, SessionId } from '@hydra/harness-session'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import LlmRuntime from '@hydra/harness-llm'
+import ToolRuntime, { defineContentToolFixture, TOOL_ABORTED_BEFORE_DISPATCH, TOOL_RUNTIME_SCHEDULER, type PostToolDecision, type PreToolDecision } from '@hydra/harness-tools'
+import AgentRegistry, { type Agent } from '@hydra/harness-agent'
+import AgentLoop, { DEFAULT_MAX_PARALLEL_TOOL_CALLS } from '@hydra/harness-agent-loop'
 import { MockAdapter, textResponse } from './mock-adapter.ts'
-import { CodeRuntime } from '@bosch/bh-code-runtime'
-import type { CodeRunRequest, CodeRunResult } from '@bosch/bh-code-runtime'
+import { CodeRuntime } from '@hydra/harness-code-runtime'
+import type { CodeRunRequest, CodeRunResult } from '@hydra/harness-code-runtime'
 
 async function harness(adapter: MockAdapter, maxParallelToolCalls?: number) {
   const ctx = new Context()

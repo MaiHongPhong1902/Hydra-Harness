@@ -8,12 +8,12 @@
  * Activation disposal, so no installation outlives either owner and no removed
  * contribution can be installed after revocation reports completion.
  *
- * @module @bosch/bh-subagent/activation-setup-registry
+ * @module @hydra/harness-subagent/activation-setup-registry
  */
 
-import type { Context } from '@bosch/cordis'
-import type { AgentSetupCommit } from '@bosch/bh-agent'
-import { errorChain } from '@bosch/bh-llm'
+import type { Context } from '@hydra/cordis'
+import type { AgentSetupCommit } from '@hydra/harness-agent'
+import { errorChain } from '@hydra/harness-llm'
 import { SubagentError } from './error.ts'
 
 /**

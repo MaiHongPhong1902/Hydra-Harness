@@ -1,12 +1,12 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-client-hmr`.
- * @module @bosch/bh-client-hmr/invariant
+ * Package-owned invariant companion for `@hydra/harness-client-hmr`.
+ * @module @hydra/harness-client-hmr/invariant
  */
 
-import type { Context, Fiber } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context, Fiber } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-client-hmr'
+const PACKAGE_NAME = '@hydra/harness-client-hmr'
 
 /** Cordis companion plugin name. */
 export const name = 'client-hmr-invariant'

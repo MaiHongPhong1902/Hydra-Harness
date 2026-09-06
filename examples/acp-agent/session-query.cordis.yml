@@ -1,12 +1,12 @@
 # Explicit session-query tool opt-in for the dedicated spill scenario. The
 # nested filesystem overlay supplies private spill storage and its byte limit.
 - id: base
-  name: '@bosch/cordis-plugin-include'
+  name: '@hydra/cordis-plugin-include'
   config:
     path: ./fs.cordis.yml
     patches:
       - insert:
           - id: tool-session-query
-            name: '@bosch/bh-tool-session-query'
+            name: '@hydra/harness-tool-session-query'
           - id: timeout-policy
-            name: '@bosch/bh-tool-call-timeout-policy'
+            name: '@hydra/harness-tool-call-timeout-policy'

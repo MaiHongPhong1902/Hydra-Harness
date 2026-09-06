@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-jobs-local`.
- * @module @bosch/bh-jobs-local/invariant
+ * Package-owned invariant companion for `@hydra/harness-jobs-local`.
+ * @module @hydra/harness-jobs-local/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-jobs-local'
+const PACKAGE_NAME = '@hydra/harness-jobs-local'
 
 /** Cordis companion plugin name. */
 export const name = 'jobs-local-invariant'
@@ -15,7 +15,7 @@ export const name = 'jobs-local-invariant'
 export const inject = ['invariants']
 
 /**
- * No runtime invariant: `@bosch/bh-jobs/invariant` owns per-snapshot identity, status,
+ * No runtime invariant: `@hydra/harness-jobs/invariant` owns per-snapshot identity, status,
  * timestamp, and owner checks. This provider's admission decision uses private configuration and
  * must fail before a backend starter runs; `LocalJobRegistry.start()` enforces it synchronously
  * for current producers. Repeating an aggregate after publication would expose private

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { createUserMessage } from '@bosch/bh-llm'
-import { Session, SessionId } from '@bosch/bh-session'
-import type { TurnEndReason } from '@bosch/bh-session'
-import { foldConsumedWork } from '@bosch/bh-agent'
+import { createUserMessage } from '@hydra/harness-llm'
+import { Session, SessionId } from '@hydra/harness-session'
+import type { TurnEndReason } from '@hydra/harness-session'
+import { foldConsumedWork } from '@hydra/harness-agent'
 
 /** One pending message, as the inbox records it. */
 function message(text: string) {

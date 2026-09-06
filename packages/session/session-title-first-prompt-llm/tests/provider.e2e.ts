@@ -1,11 +1,11 @@
-import { createUserMessage } from '@bosch/bh-llm'
+import { createUserMessage } from '@hydra/harness-llm'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import LlmRuntime from '@bosch/bh-llm'
-import * as LlmDeepSeek from '@bosch/bh-llm-deepseek'
-import SessionStore, { SessionId } from '@bosch/bh-session'
-import SessionTitleService from '@bosch/bh-session-title'
-import * as FirstMessageTitleProvider from '@bosch/bh-session-title-first-prompt-llm'
+import { Context } from '@hydra/cordis'
+import LlmRuntime from '@hydra/harness-llm'
+import * as LlmDeepSeek from '@hydra/harness-llm-deepseek'
+import SessionStore, { SessionId } from '@hydra/harness-session'
+import SessionTitleService from '@hydra/harness-session-title'
+import * as FirstMessageTitleProvider from '@hydra/harness-session-title-first-prompt-llm'
 
 const contexts: Context[] = []
 

@@ -1,18 +1,18 @@
 import { Buffer } from 'node:buffer'
 import { dirname, posix } from 'node:path'
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import {
   CommandExitError,
   FileNotFoundError,
   FileType,
   type EntryInfo,
   type Sandbox,
-} from '@bosch/bh-e2b'
-import type E2BRuntime from '@bosch/bh-e2b'
-import { FsTargetKey, FsVersion } from '@bosch/bh-fs'
-import E2BFileSystem from '@bosch/bh-fs-e2b'
+} from '@hydra/harness-e2b'
+import type E2BRuntime from '@hydra/harness-e2b'
+import { FsTargetKey, FsVersion } from '@hydra/harness-fs'
+import E2BFileSystem from '@hydra/harness-fs-e2b'
 import * as E2BFsInvariant from '../src/invariant.ts'
-import InvariantRegistry from '@bosch/bh-invariants'
+import InvariantRegistry from '@hydra/harness-invariants'
 import { describe, expect, it, vi } from 'vitest'
 
 interface RemoteNode {

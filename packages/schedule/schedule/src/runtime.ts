@@ -1,11 +1,11 @@
 /**
  * Disposable live timer projection for one exact root agent.
- * @module @bosch/bh-schedule
+ * @module @hydra/harness-schedule
  */
 
-import type { Context } from '@bosch/cordis'
-import type { Agent } from '@bosch/bh-agent'
-import { createUserMessage } from '@bosch/bh-llm'
+import type { Context } from '@hydra/cordis'
+import type { Agent } from '@hydra/harness-agent'
+import { createUserMessage } from '@hydra/harness-llm'
 import type { EveryScheduleRecord, OneShotScheduleRecord } from './types.ts'
 import {
   foldScheduleEvents,

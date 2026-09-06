@@ -2,5 +2,5 @@
   - strong: session-stats
   - text: Enabled
   - switch "Disable plugin session-stats" [checked]
-  - code: "@bosch/bh-session-stats"
+  - code: "@hydra/harness-session-stats"
   - text: "Cordis status: Mounted"

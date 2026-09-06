@@ -7,13 +7,13 @@
  * `request.parent` is the session's workspace cwd. This plugin uses named
  * exports only; a default would hide its loader metadata (see
  * `docs/postmortem/0001-acp-default-export-drops-inject.md`).
- * @module @bosch/bh-subagent-bh-sdk
+ * @module @hydra/harness-subagent-bh-sdk
  */
 
-import type { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import type { SubagentCapabilities, SubagentProvider, SubagentStartRequest } from '@bosch/bh-subagent'
-import { assertPositiveFinite, NO_START_CAPABILITIES, resolveChildCwd, validateConfiguredCwd } from '@bosch/bh-subagent'
+import type { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import type { SubagentCapabilities, SubagentProvider, SubagentStartRequest } from '@hydra/harness-subagent'
+import { assertPositiveFinite, NO_START_CAPABILITIES, resolveChildCwd, validateConfiguredCwd } from '@hydra/harness-subagent'
 import {
   DEFAULT_DISPOSE_EOF_GRACE_MS,
   DEFAULT_DISPOSE_GRACE_MS,

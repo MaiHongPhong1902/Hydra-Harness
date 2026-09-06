@@ -12,13 +12,13 @@ import { homedir } from 'node:os'
 import { access } from 'node:fs/promises'
 import { resolve as resolvePath } from 'node:path'
 import type { AuthContext, Credential, CredentialInfo, CredentialStore } from '@earendil-works/pi-ai'
-import type { Context } from '@bosch/cordis'
+import type { Context } from '@hydra/cordis'
 import {
   credentialKey, credentialKeyId, credentialKeyScope, credentialRef, isCredentialKeySegment, isCredentialRefName,
-} from '@bosch/bh-credentials'
-import type { CredentialKey, CredentialProvider, CredentialRecord } from '@bosch/bh-credentials'
-import { launchEnvironmentOf } from '@bosch/bh-launch-environment'
-import { LlmError } from '@bosch/bh-llm'
+} from '@hydra/harness-credentials'
+import type { CredentialKey, CredentialProvider, CredentialRecord } from '@hydra/harness-credentials'
+import { launchEnvironmentOf } from '@hydra/harness-launch-environment'
+import { LlmError } from '@hydra/harness-llm'
 
 /**
  * The record scope every credential this adapter family stores is written

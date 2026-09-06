@@ -10,7 +10,7 @@ Disabling an overly broad skill fixes one symptom by removing a capability the u
 
 ## Decision
 
-`@bosch/bh-tool-skill` publishes no automatic skill roster. It exposes two model tools:
+`@hydra/harness-tool-skill` publishes no automatic skill roster. It exposes two model tools:
 
 - `skill_search({ query })` snapshots only the calling agent's visible registry metadata, filters model-disabled entries, ranks lexical matches across `name`, `description`, and `whenToUse`, and returns a bounded shortlist without calling any provider's `get()` method.
 - `skill({ name })` remains the exact body loader. Its accepted name comes from the current search result or an explicit user reference, and invocation policy is checked both before and after loading.

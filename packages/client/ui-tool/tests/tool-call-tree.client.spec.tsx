@@ -2,13 +2,13 @@
 /** ToolCallTree-owned root/subcall markers and selection projection. */
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, render } from '@testing-library/react'
-import type { HostDescription } from '@bosch/bh-client-connection/client'
-import type { ConversationSnapshot, ToolResultNode } from '@bosch/bh-client-runtime/client'
-import { makeTranslate } from '@bosch/bh-client-test-runtime'
-import { en as commonEn } from '@bosch/bh-client-locale/src/locales/en.ts'
+import type { HostDescription } from '@hydra/harness-client-connection/client'
+import type { ConversationSnapshot, ToolResultNode } from '@hydra/harness-client-runtime/client'
+import { makeTranslate } from '@hydra/harness-client-test-runtime'
+import { en as commonEn } from '@hydra/harness-client-locale/src/locales/en.ts'
 import type { ToolTreeProps } from '../src/client/contract/slots.ts'
 import { ToolCallTree } from '../src/client/tool/ToolCallTree.tsx'
-import { en } from '@bosch/bh-client-ui-conversation/src/client/locales.ts'
+import { en } from '@hydra/harness-client-ui-conversation/src/client/locales.ts'
 
 afterEach(cleanup)
 

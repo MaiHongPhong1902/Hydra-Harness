@@ -1,22 +1,22 @@
 /**
  * Tool-independent shell environment plugin: owns the `ctx.shellEnv` registry of
  * trusted, per-execution `BH_*` variables consumed by the model-facing shell
- * tools (`bh-tool-bash`, `bh-tool-pwsh`). Built-in shell facts are owned by
+ * tools (`@hydra/harness-tool-bash`, `@hydra/harness-tool-pwsh`). Built-in shell facts are owned by
  * the registry itself while plugins can register additional, enumerable facts
  * with effect-scoped disposal.
  *
- * @module @bosch/bh-shell-env
+ * @module @hydra/harness-shell-env
  */
 
-import { Service, type Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import { BH_ENV_PREFIX } from '@bosch/bh-shell'
-import type { BhEnvironment, BhEnvironmentKey } from '@bosch/bh-shell'
-import { BH_HOME_ENV, resolveBhHome } from '@bosch/bh-home-paths'
-import type { ToolExecution } from '@bosch/bh-tools'
-import type {} from '@bosch/bh-session-persistence'
+import { Service, type Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import { BH_ENV_PREFIX } from '@hydra/harness-shell'
+import type { BhEnvironment, BhEnvironmentKey } from '@hydra/harness-shell'
+import { BH_HOME_ENV, resolveBhHome } from '@hydra/harness-home-paths'
+import type { ToolExecution } from '@hydra/harness-tools'
+import type {} from '@hydra/harness-session-persistence'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     shellEnv: ShellEnvRegistry
   }
@@ -27,7 +27,7 @@ export const inject: string[] = []
 
 /** Plugin config (all optional — the built-in facts resolve without defaults). */
 export interface Config {
-  /** Bosch Harness home directory exposed as `BH_HOME`; defaults to `$BH_HOME` or `~/.bh`. */
+  /** Hydra harness home directory exposed as `BH_HOME`; defaults to `$BH_HOME` or `~/.bh`. */
   bhHome?: string
 }
 

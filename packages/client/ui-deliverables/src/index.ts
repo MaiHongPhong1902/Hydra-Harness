@@ -5,8 +5,8 @@
  * bh.client declaration.
  */
 
-import type { Context } from '@bosch/cordis'
-import type {} from '@bosch/bh-system-prompt'
+import type { Context } from '@hydra/cordis'
+import type {} from '@hydra/harness-system-prompt'
 
 /** Services required for the model guidance paired with the browser renderer. */
 export const inject = ['systemPrompt']

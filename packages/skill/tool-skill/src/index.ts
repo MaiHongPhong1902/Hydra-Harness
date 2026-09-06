@@ -1,16 +1,16 @@
 /**
  * Bounded skill routing, model-facing search, and exact loading.
  *
- * @module @bosch/bh-tool-skill
+ * @module @hydra/harness-tool-skill
  */
 
 import { Buffer } from 'node:buffer'
-import type { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import type { PreStepDecision } from '@bosch/bh-agent'
-import { defineTool } from '@bosch/bh-tools'
-import { createUserMessage } from '@bosch/bh-llm'
-import type { UserMessage } from '@bosch/bh-session'
+import type { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import type { PreStepDecision } from '@hydra/harness-agent'
+import { defineTool } from '@hydra/harness-tools'
+import { createUserMessage } from '@hydra/harness-llm'
+import type { UserMessage } from '@hydra/harness-session'
 import {
   escapeText,
   isModelInvocable,
@@ -19,7 +19,7 @@ import {
   renderSkillContent,
   type SkillInvocationSource,
   type SkillSummary,
-} from '@bosch/bh-skill'
+} from '@hydra/harness-skill'
 
 export const name = 'tool-skill'
 export const inject = ['agents', 'tools', 'skills']
@@ -224,6 +224,7 @@ export function apply(ctx: Context, config: Config = {}): void {
     const lookup = { cwd: agent.session.header.cwd, signal, scope: agent }
     const injections: UserMessage[] = []
     if (names.length === 0) {
+      if (vetoesAutomaticSkill(task)) return decision
       try {
         const snapshot = await ctx.skills.snapshot(lookup)
         signal.throwIfAborted()
@@ -317,8 +318,22 @@ function rankSkills(skills: readonly SkillSummary[], query: string): RankedSkill
     || right.nameMatches - left.nameMatches
     || right.whenToUseMatches - left.whenToUseMatches
     || right.descriptionMatches - left.descriptionMatches
+    || Number(right.skill.aliasFor !== undefined) - Number(left.skill.aliasFor !== undefined)
     || compareText(left.skill.name, right.skill.name))
-  return ranked
+  const seen = new Set<string>()
+  return ranked.filter(({ skill }) => {
+    const canonical = skill.aliasFor ?? skill.name
+    if (seen.has(canonical)) return false
+    seen.add(canonical)
+    return true
+  })
+}
+
+function vetoesAutomaticSkill(task: string): boolean {
+  // ponytail: lexical English/Vietnamese veto; use model classification if broader intent detection is needed.
+  const text = task.normalize('NFKC')
+  return /(?:^|[^\p{L}\p{N}])(?:no|not|never|without|avoid|skip|stop|cannot|\p{L}+n['’]t)(?=$|[^\p{L}\p{N}])/iu.test(text)
+    || /(?:^|[^\p{L}\p{N}])(?:không|đừng|chớ|ngừng|khong|dung)(?=$|[^\p{L}\p{N}])/iu.test(text)
 }
 
 function automaticallySelectedSkill(ranked: readonly RankedSkill[]): SkillSummary | undefined {

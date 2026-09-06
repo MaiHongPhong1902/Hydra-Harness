@@ -1,6 +1,6 @@
 /** Shared immutable-header checks for logical session source observers. */
 
-import type { SessionHeader } from '@bosch/bh-session'
+import type { SessionHeader } from '@hydra/harness-session'
 import { SessionQueryError } from './config.ts'
 
 /**

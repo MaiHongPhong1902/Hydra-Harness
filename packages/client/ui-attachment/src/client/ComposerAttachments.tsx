@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type {
   ComposerAttachment, ComposerAttachmentsProps,
-} from '@bosch/bh-client-ui-conversation/client'
-import { IconCloseOutline16, IconPaperclipOutline16 } from '@bosch/bh-client-ui-primitives'
+} from '@hydra/harness-client-ui-conversation/client'
+import { IconCloseOutline16, IconPaperclipOutline16 } from '@hydra/harness-client-ui-primitives'
 import { AttachmentRail } from '../AttachmentRail.tsx'
 import type { AttachmentRailItem } from '../AttachmentRail.tsx'
 import { DropOverlay } from '../DropOverlay.tsx'

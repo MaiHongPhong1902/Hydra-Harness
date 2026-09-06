@@ -1,5 +1,5 @@
 {
-  "name": "@bosch/cordis-plugin-include",
+  "name": "@hydra/cordis-plugin-include",
   "description": "Include files in cordis configurations",
   "version": "1.0.6",
   "publishConfig": {
@@ -30,11 +30,11 @@
   "author": "Shigma <shigma10826@gmail.com>",
   "license": "MIT",
   "peerDependencies": {
-    "@bosch/cordis-plugin-loader": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/cordis-plugin-loader": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   },
   "dependencies": {
-    "@bosch/cosmokit": "workspace:^",
+    "@hydra/cosmokit": "workspace:^",
     "js-yaml": "^4.1.0"
   }
 }

@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-sandbox`.
- * @module @bosch/bh-sandbox/invariant
+ * Package-owned invariant companion for `@hydra/harness-sandbox`.
+ * @module @hydra/harness-sandbox/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-sandbox'
+const PACKAGE_NAME = '@hydra/harness-sandbox'
 
 /** Cordis companion plugin name. */
 export const name = 'sandbox-invariant'

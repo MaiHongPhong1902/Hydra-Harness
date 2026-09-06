@@ -6,9 +6,9 @@
  */
 
 import { describe, expect, it, vi } from 'vitest'
-import type { SessionId } from '@bosch/bh-session'
-import type { ApiProxy, GoalRef, HostFrame, MuxFrame, RpcMessage, RpcRequest, RpcResponse } from '@bosch/bh-host-apiproxy'
-import { InProcessApiClient, RpcId, toFetchHandler } from '@bosch/bh-host-apiproxy'
+import type { SessionId } from '@hydra/harness-session'
+import type { ApiProxy, GoalRef, HostFrame, MuxFrame, RpcMessage, RpcRequest, RpcResponse } from '@hydra/harness-host-apiproxy'
+import { InProcessApiClient, RpcId, toFetchHandler } from '@hydra/harness-host-apiproxy'
 
 const sid = (id: string): SessionId => id as SessionId
 

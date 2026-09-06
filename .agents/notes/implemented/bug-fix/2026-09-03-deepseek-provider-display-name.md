@@ -12,11 +12,11 @@ The DeepSeek adapter catalog owns the `DeepSeek` provider name and `DeepSeek-V4-
 
 This is a display-only correction. The provider id `deepseek-official`, model ids `deepseek-v4-*`, package and settings namespace `llm-deepseek`, environment variables `DEEPSEEK_*`, and DeepSeek endpoint remain unchanged.
 
-`BHAgent` remains the browser control actor and the `bhagent` browser destination described by [desktop browser settings](../feature/2026-08-26-desktop-browser-settings.md). Branding work classifies that term by owner instead of applying a repository-wide replacement.
+`Hydra harness` names the browser control actor; `bhagent` remains its destination id, as described by [desktop browser settings](../feature/2026-08-26-desktop-browser-settings.md). Branding work classifies that term by owner instead of applying a repository-wide replacement.
 
 ## Verification
 
-Focused DeepSeek adapter, configurable-provider, client fixture, settings, model-selection, API-proxy, SDK, replay, and Web tests pin the provider and model labels. Web snapshots pin the assembled model picker, onboarding, and search-provider copy. A tracked-source residue scan finds no `BHAgent`-prefixed V4 model label and limits `BHAgent` to browser-owned paths and this ownership note.
+Focused DeepSeek adapter, configurable-provider, client fixture, settings, model-selection, API-proxy, SDK, replay, and Web tests pin the provider and model labels. Web snapshots pin the assembled model picker, onboarding, and search-provider copy. A tracked-source residue scan finds no `BHAgent`-prefixed V4 model label and preserves the historical provider labels only in this ownership note.
 
 ## Alternatives considered
 
@@ -26,4 +26,4 @@ Focused DeepSeek adapter, configurable-provider, client fixture, settings, model
 
 ## Consequences
 
-Provider-facing UI identifies DeepSeek consistently while existing configuration remains compatible. Browser settings continue to use `BHAgent`, so future copy changes require an owner-aware residue scan rather than a global token replacement.
+Provider-facing UI identifies DeepSeek consistently while existing configuration remains compatible. Browser settings identify the actor as `Hydra harness`; provider names remain independent of product branding.

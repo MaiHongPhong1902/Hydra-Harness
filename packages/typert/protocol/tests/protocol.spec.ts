@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import {
   bindTypertRemote,
@@ -11,9 +11,9 @@ import {
   type TypertContext,
   type TypertForwardableEvent,
   type TypertRemoteEvent,
-} from '@bosch/bh-typert-protocol'
+} from '@hydra/harness-typert-protocol'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Events {
     /**
      * Test-only one-way event: bound to no Scope and returning nothing.
@@ -34,7 +34,7 @@ declare module '@bosch/cordis' {
   }
 }
 
-declare module '@bosch/bh-typert-protocol' {
+declare module '@hydra/harness-typert-protocol' {
   interface TypertContextMap {
     metaFixture: TypertContext<string>
   }

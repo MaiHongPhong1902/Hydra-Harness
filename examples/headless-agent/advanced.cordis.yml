@@ -1,11 +1,11 @@
 # Add Code Mode and Cordis tools to the headless spawn/workflow stack.
 - id: base
-  name: '@bosch/cordis-plugin-include'
+  name: '@hydra/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - id: agent-spine
-        name: '@bosch/bh-agent-spine-demo'
+        name: '@hydra/harness-agent-spine-demo'
         config:
           agents:
             - id: main
@@ -21,14 +21,14 @@
 
             Verify your work by running the code or tests. Keep answers brief and factual.
       - id: persistence
-        name: '@bosch/bh-session-persistence-jsonl'
+        name: '@hydra/harness-session-persistence-jsonl'
         config:
           root: './.sessions'
           compression: !!js "process.env.BH_SNAPSHOT === undefined ? 'zstd' : 'none'"
       - insert:
           - id: code-runtime
-            name: '@bosch/bh-code-runtime-worker-thread'
+            name: '@hydra/harness-code-runtime-worker-thread'
           - id: cordis-host-runner
-            name: '@bosch/bh-cordis-host-runner'
+            name: '@hydra/harness-cordis-host-runner'
           - id: tool-cordis
-            name: '@bosch/bh-tool-cordis'
+            name: '@hydra/harness-tool-cordis'

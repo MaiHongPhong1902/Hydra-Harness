@@ -4,6 +4,9 @@
     - button "General":
       - img
       - text: General
+    - button "Personalization":
+      - img
+      - text: Personalization
     - button "Models":
       - img
       - text: Models

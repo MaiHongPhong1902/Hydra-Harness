@@ -7,19 +7,22 @@ import {
 } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node:path'
-import { Service, type Context, type Fiber } from '@bosch/cordis'
-import { withFileLock, writeFileAtomic } from '@bosch/bh-atomic-write'
-import type {} from '@bosch/bh-commands'
-import type { CommandResult } from '@bosch/bh-commands'
-import { resolveBhHome } from '@bosch/bh-home-paths'
-import { apply as applyCodexHooks, inject as codexHooksInject } from '@bosch/bh-hooks-codex'
-import { createUserMessage } from '@bosch/bh-llm'
-import { apply as applyMcpClient, inject as mcpClientInject, type Config as McpClientConfig } from '@bosch/bh-mcp-client'
+import { Service, type Context, type Fiber } from '@hydra/cordis'
+import { withFileLock, writeFileAtomic } from '@hydra/harness-atomic-write'
+import type {} from '@hydra/harness-commands'
+import type { CommandResult } from '@hydra/harness-commands'
+import { resolveBhHome } from '@hydra/harness-home-paths'
+import { apply as applyCodexHooks, inject as codexHooksInject } from '@hydra/harness-hooks-codex'
+import { parseCodexConfig } from '@hydra/harness-hooks-codex/config'
+import { createUserMessage } from '@hydra/harness-llm'
+import { apply as applyMcpClient, inject as mcpClientInject, publicToolName, type Config as McpClientConfig } from '@hydra/harness-mcp-client'
 import {
   BUNDLED_SKILL_RANK,
+  parseSkillDocument,
+  type SkillDocument,
   type SkillCandidate, type SkillDefinition, type SkillLookupOptions, type SkillProvider,
-} from '@bosch/bh-skill'
-import type { PreToolDecision, ToolExecution } from '@bosch/bh-tools'
+} from '@hydra/harness-skill'
+import type { PreToolDecision, ToolExecution } from '@hydra/harness-tools'
 import { parse as parseToml } from 'smol-toml'
 import type {
   HookTrustState, ImportedMcpServerSnapshot, ImportedPluginEntry, ImportedPluginIdentity,
@@ -28,7 +31,7 @@ import type {
 
 export type * from './types.ts'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     importedPlugins: ImportedPluginRuntime
   }
@@ -39,7 +42,7 @@ export const inject = ['skills', 'commands', 'tools']
 
 /** Runtime configuration for the imported-plugin service. */
 export interface Config {
-  /** Override the resolved BH home directory. */
+  /** Override the resolved Hydra home directory. */
   bhHome?: string
 }
 
@@ -98,6 +101,7 @@ interface LoadedSkill {
   readonly rawName: string
   readonly description: string
   readonly whenToUse?: string
+  readonly invocation: SkillDocument['invocation']
   readonly path: string
   readonly directory: string
 }
@@ -179,7 +183,7 @@ export class PluginManifestLoader {
   }
 }
 
-/** Durable registry and immutable bundle store beneath one BH home directory. */
+/** Durable registry and immutable bundle store beneath one Hydra home directory. */
 export class PluginStore {
   /** Immutable versioned plugin-bundle root. */
   readonly cacheRoot: string
@@ -423,9 +427,11 @@ export class PluginLifecycleManager {
   unload(identity: string): Promise<void> { return this.runtime.unload(identity) }
 }
 
-/** Shared `bh-base` service for every imported bundle, not a Web-only facility. */
+/** Shared `@hydra/harness-base` service for every imported bundle, not a Web-only facility. */
 export class ImportedPluginRuntime extends Service {
   static inject = inject
+  /** Component effects belong to the Host service, independent of a method caller's context. */
+  private readonly owner: Context
   private readonly store: PluginStore
   /** Read-only facade over durable imported-plugin records. */
   readonly registry: PluginRegistry
@@ -440,6 +446,7 @@ export class ImportedPluginRuntime extends Service {
 
   constructor(ctx: Context, config: Config = {}) {
     super(ctx, 'importedPlugins')
+    this.owner = ctx
     this.store = new PluginStore(resolveBhHome(config.bhHome))
     this.registry = new PluginRegistry(this.store)
     this.trust = new PluginTrustStore(this.store)
@@ -579,7 +586,8 @@ export class ImportedPluginRuntime extends Service {
     return this.enqueue(async () => {
       const [identity] = await this.resolve(identityOrName)
       await this.store.update(identity, (entry) => {
-        const state = entry.mcp[server] ?? { enabled: true, defaultToolsApprovalMode: 'ask' as const, toolApproval: {} }
+        const state = entry.mcp[server]
+        if (!Object.hasOwn(entry.mcp, server) || state === undefined) throw new Error(`plugin runtime: MCP server ${server} is not declared`)
         state.enabled = enabled
         entry.mcp[server] = state
       })
@@ -606,7 +614,8 @@ export class ImportedPluginRuntime extends Service {
     return this.enqueue(async () => {
       const [identity] = await this.resolve(identityOrName)
       await this.store.update(identity, (entry) => {
-        const state = entry.mcp[server] ?? { enabled: true, defaultToolsApprovalMode: 'ask' as const, toolApproval: {} }
+        const state = entry.mcp[server]
+        if (!Object.hasOwn(entry.mcp, server) || state === undefined) throw new Error(`plugin runtime: MCP server ${server} is not declared`)
         state.toolApproval[tool] = approval
         entry.mcp[server] = state
       })
@@ -642,7 +651,7 @@ export class ImportedPluginRuntime extends Service {
       const skillDispose = this.registerSkills(identity, loaded.skills)
       if (skillDispose !== undefined) component.skillDispose = skillDispose
       this.registerCommands(identity, loaded.commands, component.commandDisposes)
-      this.startMcp(identity, entry, loaded, component)
+      await this.startMcp(identity, entry, loaded, component)
       if (loaded.hookDigest !== undefined && entry.hookTrustDigest === loaded.hookDigest) {
         component.hookFiber = await this.startHooks(identity, entry, loaded)
       }
@@ -659,7 +668,7 @@ export class ImportedPluginRuntime extends Service {
 
   private registerSkills(identity: string, skills: readonly LoadedSkill[]): (() => void) | undefined {
     if (skills.length === 0) return undefined
-    return this.ctx.skills.registerProvider((): SkillProvider => ({
+    return this.owner.skills.registerProvider((): SkillProvider => ({
       name: `codex-plugin:${identity}`,
       list: (_options: SkillLookupOptions): Promise<SkillCandidate[]> => {
         return Promise.resolve(skills.map(skill => ({
@@ -667,7 +676,7 @@ export class ImportedPluginRuntime extends Service {
           aliases: [skill.rawName],
           description: skill.description,
           ...skill.whenToUse === undefined ? {} : { whenToUse: skill.whenToUse },
-          invocation: { modelInvocable: true, userInvocable: true },
+          invocation: skill.invocation,
           source: `codex-plugin:${identity}`,
           provider: `codex-plugin:${identity}`,
           rank: BUNDLED_SKILL_RANK,
@@ -679,18 +688,19 @@ export class ImportedPluginRuntime extends Service {
       },
       get: async (candidate: SkillCandidate): Promise<SkillDefinition | undefined> => {
         const skill = candidate.locator as LoadedSkill
-        const content = stripFrontmatter(await readFile(skill.path, 'utf8'))
+        const parsed = parseSkillDocument(await readBoundedText(skill.path, MAX_FILE_BYTES, 'skill file'))
+        if (parsed.name !== skill.rawName) return undefined
         return {
           name: candidate.name,
-          description: skill.description,
-          ...skill.whenToUse === undefined ? {} : { whenToUse: skill.whenToUse },
-          invocation: { modelInvocable: true, userInvocable: true },
+          description: parsed.description,
+          ...parsed.whenToUse === undefined ? {} : { whenToUse: parsed.whenToUse },
+          invocation: parsed.invocation,
           source: `codex-plugin:${identity}`,
           provider: `codex-plugin:${identity}`,
           resourceBase: { kind: 'directory', path: skill.directory },
           path: skill.path,
           metadata: { pluginIdentity: identity, skillName: skill.rawName },
-          content,
+          content: parsed.content,
         }
       },
     }))
@@ -699,7 +709,7 @@ export class ImportedPluginRuntime extends Service {
   private registerCommands(identity: string, commands: readonly LoadedCommand[], disposes: (() => void)[]): void {
     for (const command of commands) {
       try {
-        disposes.push(this.ctx.commands.register({
+        disposes.push(this.owner.commands.register({
           name: command.name,
           description: command.description,
           input: { hint: '[arguments]' },
@@ -718,45 +728,48 @@ export class ImportedPluginRuntime extends Service {
     }
   }
 
-  private startMcp(
+  private async startMcp(
     identity: string,
     entry: StoredPlugin,
     loaded: LoadedPlugin,
     component: RuntimeComponent,
-  ): void {
+  ): Promise<void> {
     const states = new Map<string, ImportedMcpServerSnapshot['startupState']>()
     this.startup.set(identity, states)
+    const pending: Promise<void>[] = []
     for (const server of loaded.mcp) {
       if (entry.mcp[server.name]?.enabled === false) continue
       states.set(server.name, 'starting')
-      const fiber = this.ctx.plugin({
+      const fiber = this.owner.plugin({
         name: `imported-mcp:${identity}:${server.name}`,
         inject: mcpClientInject,
         apply: applyMcpClient,
       }, server.config)
       component.mcpFibers.set(server.name, fiber)
-      void fiber.then(
+      pending.push(Promise.resolve(fiber).then(
         () => { states.set(server.name, 'started') },
-        () => {
+        async () => {
           states.set(server.name, 'failed')
           component.mcpFibers.delete(server.name)
           try {
-            void Promise.resolve(fiber.dispose()).catch(() => {
-              // The failed fiber is already inactive; its cleanup error cannot restore it.
-            })
+            await fiber.dispose()
           } catch {
             // The failed fiber is already inactive; no further cleanup is possible here.
           }
         },
-      )
+      ))
     }
+    await Promise.all(pending)
   }
 
   private async startHooks(identity: string, entry: StoredPlugin, loaded: LoadedPlugin): Promise<Fiber> {
     const configPath = join(this.store.dataPath(entry), `hooks-${loaded.hookDigest}.json`)
     const hookConfig = mergeHookDefinitions(loaded.hooks)
-    await writeFileAtomic(configPath, `${JSON.stringify(hookConfig)}\n`, { mode: 0o600, dirMode: 0o700 })
-    return this.ctx.plugin({
+    // Windows profiles use PowerShell; expand known plugin variables without embedding path bytes as shell code.
+    const text = JSON.stringify(hookConfig, (key, value: unknown) => key === 'command' && typeof value === 'string' && process.platform === 'win32'
+      ? value.replaceAll(/\$\{((?:CLAUDE_)?PLUGIN_(?:ROOT|DATA))\}/gu, '${env:$1}') : value)
+    await writeFileAtomic(configPath, `${text}\n`, { mode: 0o600, dirMode: 0o700 })
+    return this.owner.plugin({
       name: `imported-hooks:${identity}`,
       inject: codexHooksInject,
       apply: applyCodexHooks,
@@ -830,20 +843,17 @@ export class ImportedPluginRuntime extends Service {
   }
 
   private async approveMcpTool(exec: ToolExecution, next: () => Promise<PreToolDecision>): Promise<PreToolDecision> {
-    const parsed = /^mcp__([A-Za-z0-9_-]+)__(.+)$/u.exec(exec.name)
-    if (parsed === null) return await next()
-    const serverName = parsed[1]
-    const toolName = parsed[2]
-    if (serverName === undefined || toolName === undefined) return await next()
+    if (!exec.name.startsWith('mcp__')) return await next()
     for (const [identity, component] of this.live) {
-      const matching = [...component.mcpFibers.keys()].find((name) => {
-        const internal = mcpServerName(identity, name)
-        return internal === serverName
-      })
+      const matching = [...component.mcpFibers.keys()]
+        .find(name => exec.name.startsWith(`mcp__${mcpServerName(identity, name)}__`))
       if (matching === undefined) continue
       const entry = await this.require(identity)
       const state = entry.mcp[matching]
-      const approval = state?.toolApproval[toolName] ?? state?.defaultToolsApprovalMode ?? 'ask'
+      const override = Object.entries(state?.toolApproval ?? {})
+        .find(([raw]) => publicToolName(mcpServerName(identity, matching), raw) === exec.name)
+      const toolName = override?.[0] ?? exec.name
+      const approval = override?.[1] ?? state?.defaultToolsApprovalMode ?? 'ask'
       if (approval === 'allow') return await next()
       if (approval === 'deny') return { kind: 'deny', reason: `MCP tool ${toolName} is disabled by its plugin policy` }
       return { kind: 'ask', reason: `MCP tool ${toolName} requires approval` }
@@ -1276,9 +1286,12 @@ async function discoverSkills(root: string, manifest: PluginManifest): Promise<L
     for (const file of files) {
       if (basename(file) !== 'SKILL.md' || !await exists(file)) continue
       const resolved = await existingInside(root, relative(root, file), 'skill file')
-      const parsed = parseSkill(await readBoundedText(resolved, MAX_FILE_BYTES, 'skill file'))
-      if (parsed === undefined) continue
-      skills.push({ ...parsed, path: resolved, directory: dirname(resolved) })
+      const parsed = parseSkillDocument(await readBoundedText(resolved, MAX_FILE_BYTES, 'skill file'))
+      skills.push({
+        rawName: parsed.name, description: parsed.description, invocation: parsed.invocation,
+        ...parsed.whenToUse === undefined ? {} : { whenToUse: parsed.whenToUse },
+        path: resolved, directory: dirname(resolved),
+      })
     }
   }
   return skills.sort((left, right) => left.rawName.localeCompare(right.rawName))
@@ -1313,7 +1326,7 @@ async function discoverCommands(root: string): Promise<LoadedCommand[]> {
 async function discoverMcp(root: string, manifest: PluginManifest, identity: string): Promise<McpDefinition[]> {
   const documents: unknown[] = []
   const sources = stringPaths(manifest.mcpServers)
-  if (sources.length === 0 && await exists(join(root, '.mcp.json'))) sources.push('.mcp.json')
+  if (manifest.mcpServers === undefined && await exists(join(root, '.mcp.json'))) sources.push('.mcp.json')
   for (const path of sources) documents.push(await readBoundedJson(await existingInside(root, path, 'MCP configuration'), MAX_MANIFEST_BYTES, 'MCP configuration'))
   if (isRecord(manifest.mcpServers)) documents.push(manifest.mcpServers)
   const result: McpDefinition[] = []
@@ -1369,6 +1382,12 @@ async function discoverHooks(root: string, manifest: PluginManifest): Promise<Ho
       hooks.push({ label: `manifest hooks ${String(index + 1)}`, raw: entry })
     } else {
       throw new Error('plugin runtime: manifest hooks must be paths or objects')
+    }
+  }
+  for (const hook of hooks) {
+    const parsed = parseCodexConfig(hook.raw)
+    if (Object.keys(parsed.config).length === 0) {
+      throw new Error(`plugin runtime: ${hook.label} contains no supported synchronous command hooks`)
     }
   }
   return hooks
@@ -1495,23 +1514,6 @@ async function readBoundedText(path: string, limit: number, label: string): Prom
   const text = await readFile(path, 'utf8')
   if (Buffer.byteLength(text) > limit) throw new Error(`plugin runtime: ${label} is too large`)
   return text
-}
-
-function parseSkill(source: string): Omit<LoadedSkill, 'path' | 'directory'> | undefined {
-  const frontmatter = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/u.exec(source)
-  if (frontmatter === null) return undefined
-  const values = Object.fromEntries((frontmatter[1] ?? '').split(/\r?\n/u).flatMap((line) => {
-    const match = /^([A-Za-z][A-Za-z0-9_-]*):\s*(.+?)\s*$/u.exec(line)
-    return match === null ? [] : [[match[1] ?? '', (match[2] ?? '').replace(/^['"]|['"]$/gu, '')]]
-  }))
-  const rawName = typeof values.name === 'string' ? values.name : undefined
-  const description = typeof values.description === 'string' ? values.description : undefined
-  if (rawName === undefined || description === undefined || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(rawName)) return undefined
-  return { rawName, description, ...typeof values.whenToUse === 'string' ? { whenToUse: values.whenToUse } : {} }
-}
-
-function stripFrontmatter(source: string): string {
-  return source.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/u, '').trim()
 }
 
 function string(value: unknown): string { return typeof value === 'string' ? value : '' }

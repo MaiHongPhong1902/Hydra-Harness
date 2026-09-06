@@ -5,12 +5,12 @@
  * the command never ran: foreground calls throw `SANDBOX_UNAVAILABLE`, while
  * background processes carry `runnerFailed`; other spawn rejections retain
  * local-executor semantics. The tool owns approval and passes a complete per-call policy.
- * @module @bosch/bh-bash-sandbox
+ * @module @hydra/harness-bash-sandbox
  */
 
-import { Context } from '@bosch/cordis'
-import type { ShellExecRequest, ShellExecSpec, ShellProcess, ShellRunResult } from '@bosch/bh-shell'
-import { SandboxUnavailableError } from '@bosch/bh-sandbox'
+import { Context } from '@hydra/cordis'
+import type { ShellExecRequest, ShellExecSpec, ShellProcess, ShellRunResult } from '@hydra/harness-shell'
+import { SandboxUnavailableError } from '@hydra/harness-sandbox'
 import type {
   ConfinedArgv,
   ConfinedSandboxMode,
@@ -19,16 +19,16 @@ import type {
   SandboxExecutionPolicy,
   SandboxMode,
   SandboxPolicy,
-} from '@bosch/bh-sandbox'
-import type {} from '@bosch/bh-sandbox-policy'
-import { LocalBashExecutor } from '@bosch/bh-bash-local'
-import type { Config as LocalConfig } from '@bosch/bh-bash-local'
+} from '@hydra/harness-sandbox'
+import type {} from '@hydra/harness-sandbox-policy'
+import { LocalBashExecutor } from '@hydra/harness-bash-local'
+import type { Config as LocalConfig } from '@hydra/harness-bash-local'
 import { classifyDenial, classifyRunnerFailure, isRunnerSpawnFailure, matchesSignature } from './helpers.ts'
 
 /**
  * Plugin config: the local executor's knobs, verbatim. The sandbox policy —
  * the default mode and fallback `workspace-write` root — is NOT here: it lives
- * on `ctx.sandboxPolicy` (`@bosch/bh-sandbox-policy`), which resolves
+ * on `ctx.sandboxPolicy` (`@hydra/harness-sandbox-policy`), which resolves
  * each calling session's mode and cwd for every enforcing capability. The runner
  * choice is likewise the `ctx.sandbox` provider's config, not this executor's.
  */

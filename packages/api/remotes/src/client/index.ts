@@ -1,16 +1,16 @@
 /** Platform-neutral assembly of generated Host Remote contributions. */
 
-import type { Context } from '@bosch/cordis'
-import commandsRemote from '@bosch/bh-commands/remote'
-import goalsRemote from '@bosch/bh-goal/remote'
-import dynamicRemote from '@bosch/bh-cordis-host-runner/remote'
-import fileReferencesRemote from '@bosch/bh-file-reference/remote'
-import pluginInventoryRemote from '@bosch/bh-host-plugin-inventory/remote'
-import messageFeedbackRemote from '@bosch/bh-message-feedback/remote'
-import sessionReferencesRemote from '@bosch/bh-session-reference/remote'
-import type { TypertClientRemote } from '@bosch/bh-typert-protocol'
+import type { Context } from '@hydra/cordis'
+import commandsRemote from '@hydra/harness-commands/remote'
+import goalsRemote from '@hydra/harness-goal/remote'
+import dynamicRemote from '@hydra/harness-cordis-host-runner/remote'
+import fileReferencesRemote from '@hydra/harness-file-reference/remote'
+import pluginInventoryRemote from '@hydra/harness-host-plugin-inventory/remote'
+import messageFeedbackRemote from '@hydra/harness-message-feedback/remote'
+import sessionReferencesRemote from '@hydra/harness-session-reference/remote'
+import type { TypertClientRemote } from '@hydra/harness-typert-protocol'
 
-export type { TypertClientRemote as ClientRemote } from '@bosch/bh-typert-protocol'
+export type { TypertClientRemote as ClientRemote } from '@hydra/harness-typert-protocol'
 export type {
   AddPluginMarketplaceRequest,
   ImportedPluginEntry,
@@ -21,7 +21,7 @@ export type {
   PluginInventorySnapshot,
   PluginMarketplaceSnapshot,
   SetPluginMarketplaceEnablementRequest,
-} from '@bosch/bh-host-plugin-inventory/types'
+} from '@hydra/harness-host-plugin-inventory/types'
 // The user's own MCP and hook records: the inventory gateway publishes their
 // Remotes, and each registry package owns the payload vocabulary.
 export type {
@@ -31,7 +31,7 @@ export type {
   McpServerStatus,
   McpServerTransport,
   McpServerView,
-} from '@bosch/bh-mcp-registry/types'
+} from '@hydra/harness-mcp-registry/types'
 export type {
   HookDialect,
   HookRecordDefinitionRequest,
@@ -40,26 +40,26 @@ export type {
   HookRecordStatus,
   HookRecordView,
   HookSourceKind,
-} from '@bosch/bh-hooks-registry/types'
-export type {} from '@bosch/bh-commands/remote'
-export type {} from '@bosch/bh-file-reference/remote'
-export type {} from '@bosch/bh-goal/remote'
-export type {} from '@bosch/bh-host-plugin-inventory/remote'
-export type {} from '@bosch/bh-message-feedback/remote'
-export type {} from '@bosch/bh-session-reference/remote'
+} from '@hydra/harness-hooks-registry/types'
+export type {} from '@hydra/harness-commands/remote'
+export type {} from '@hydra/harness-file-reference/remote'
+export type {} from '@hydra/harness-goal/remote'
+export type {} from '@hydra/harness-host-plugin-inventory/remote'
+export type {} from '@hydra/harness-message-feedback/remote'
+export type {} from '@hydra/harness-session-reference/remote'
 // The forwarded-event allowlist's selection seat: without it in the consumer's
 // compilation face `TypertRemoteEvent` is `never` and every `$on` call fails.
 export type { ApiRemoteForwardedEvent } from '../types.ts'
 // The owner packages' client-safe `./types` exports supply the `Events`
 // signatures `$on` hands to a listener, so a consumer reads the very
 // declaration the Host emits rather than a flattened restatement of it.
-export type {} from '@bosch/bh-commands/types'
-export type {} from '@bosch/bh-cordis-host-runner/types'
-export type {} from '@bosch/bh-credentials/types'
-export type {} from '@bosch/bh-llm/types'
-export type {} from '@bosch/bh-agent-presets/types'
-export type {} from '@bosch/bh-settings/types'
-export type {} from '@bosch/bh-skill/types'
+export type {} from '@hydra/harness-commands/types'
+export type {} from '@hydra/harness-cordis-host-runner/types'
+export type {} from '@hydra/harness-credentials/types'
+export type {} from '@hydra/harness-llm/types'
+export type {} from '@hydra/harness-agent-presets/types'
+export type {} from '@hydra/harness-settings/types'
+export type {} from '@hydra/harness-skill/types'
 
 /**
  * The carrier's Client-facing types, re-exported so a business package names one
@@ -75,9 +75,9 @@ export type {
   SessionSummary, SettingsNamespaceView, SettingsPathOpView, SkillEntry, StreamChunk,
   SubagentAddress, SubagentCatalog, JobView, ToolCallView, ToolEventView, ToolResultView,
   WorkspaceId, WorkspaceView,
-} from '@bosch/bh-client-connection/client'
-export type {} from '@bosch/bh-api-gateway/client'
-export type {} from '@bosch/bh-cordis-host-runner/remote'
+} from '@hydra/harness-client-connection/client'
+export type {} from '@hydra/harness-api-gateway/client'
+export type {} from '@hydra/harness-cordis-host-runner/remote'
 
 // The payload vocabulary of the selected namespaces, re-exported so a Client
 // contribution can name what it sends and receives without importing a Host
@@ -115,17 +115,17 @@ export type {
   DynamicCordisStopResponse,
   DynamicCordisUndefineReceipt,
   RequestRunOutcome,
-} from '@bosch/bh-cordis-host-runner/types'
+} from '@hydra/harness-cordis-host-runner/types'
 // The JSON vocabulary those payloads are built from, re-exported for the same
 // reason: a Client contribution names what it sends without importing a Host
 // package, and this assembly is where both planes legitimately meet.
-export type { JsonValue } from '@bosch/bh-session/types'
+export type { JsonValue } from '@hydra/harness-session/types'
 // Reference-discovery result vocabulary for the fileReferences and
 // sessionReferenceResolver namespaces.
-export type { FileReferenceCandidate } from '@bosch/bh-file-reference/types'
-export type { SessionReferenceMentionCandidate } from '@bosch/bh-session-reference/types'
+export type { FileReferenceCandidate } from '@hydra/harness-file-reference/types'
+export type { SessionReferenceMentionCandidate } from '@hydra/harness-session-reference/types'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     /** Generated Remote namespaces selected by this Client assembly. */
     remote: TypertClientRemote

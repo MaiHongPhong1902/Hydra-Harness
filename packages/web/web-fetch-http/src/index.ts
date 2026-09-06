@@ -1,15 +1,15 @@
 /**
- * `@bosch/bh-web-fetch-http`: registers an anonymous public HTTP(S)
+ * `@hydra/harness-web-fetch-http`: registers an anonymous public HTTP(S)
  * `WebFetchProvider` with `ctx.web`. A function/namespace plugin (NOT a
  * default-export service): it registers INTO the seam's fetch registry, like the
  * search providers register into the search registry.
  *
- * @module @bosch/bh-web-fetch-http
+ * @module @hydra/harness-web-fetch-http
  */
 
-import type { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import type {} from '@bosch/bh-web'
+import type { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import type {} from '@hydra/harness-web'
 import { HttpFetchProvider } from './provider.ts'
 import type { HttpFetchLimits } from './provider.ts'
 

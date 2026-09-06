@@ -1,21 +1,21 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { access, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import LlmRuntime, { createUserMessage, INVALID_CREDENTIAL_CODE } from '@bosch/bh-llm'
-import AttachmentStore, { AttachmentId } from '@bosch/bh-attachment'
+import LlmRuntime, { createUserMessage, INVALID_CREDENTIAL_CODE } from '@hydra/harness-llm'
+import AttachmentStore, { AttachmentId } from '@hydra/harness-attachment'
 import type {
   ImageAttachmentLimits,
   ImageAttachmentRef,
   SaveImageAttachment,
   StoredImageAttachment,
-} from '@bosch/bh-attachment'
-import { credentialRef } from '@bosch/bh-credentials'
-import { LocalCredentialProvider } from '@bosch/bh-credentials-local'
-import { settingsNamespace } from '@bosch/bh-settings'
-import { FileSettingsProvider } from '@bosch/bh-settings-file'
-import * as LlmDeepSeek from '@bosch/bh-llm-deepseek'
+} from '@hydra/harness-attachment'
+import { credentialRef } from '@hydra/harness-credentials'
+import { LocalCredentialProvider } from '@hydra/harness-credentials-local'
+import { settingsNamespace } from '@hydra/harness-settings'
+import { FileSettingsProvider } from '@hydra/harness-settings-file'
+import * as LlmDeepSeek from '@hydra/harness-llm-deepseek'
 import { assemble } from './assemble.ts'
 import { closeMockServers, mockServer, textEvents } from './mock-server.ts'
 

@@ -1,6 +1,6 @@
 {
-  "name": "@bosch/bh-invariants",
-  "description": "Registry service for package-owned Bosch Harness runtime invariants",
+  "name": "@hydra/harness-invariants",
+  "description": "Registry service for package-owned Hydra harness runtime invariants",
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"
@@ -32,12 +32,12 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@bosch/cordis": "workspace:^"
+    "@hydra/cordis": "workspace:^"
   },
   "dependencies": {
-    "@bosch/schemastery": "workspace:^"
+    "@hydra/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@bosch/cordis": "workspace:^"
+    "@hydra/cordis": "workspace:^"
   }
 }

@@ -1,5 +1,5 @@
 {
-  "name": "@bosch/bh-headless",
+  "name": "@hydra/harness-headless",
   "description": "The bh one-shot bundle: a direct core Agent/Session runner over bh-base with no Host, HTTP, or browser layer",
   "version": "0.1.1-rc.1",
   "publishConfig": {
@@ -44,27 +44,27 @@
     }
   },
   "dependencies": {
-    "@bosch/bh-cmdline": "workspace:^",
-    "@bosch/bh-code-runtime-worker-thread": "workspace:^",
-    "@bosch/schemastery": "workspace:^",
+    "@hydra/harness-cmdline": "workspace:^",
+    "@hydra/harness-code-runtime-worker-thread": "workspace:^",
+    "@hydra/schemastery": "workspace:^",
     "commander": "^15.0.0"
   },
   "peerDependencies": {
-    "@bosch/cordis-plugin-loader": "workspace:^",
-    "@bosch/bh-agent": "workspace:^",
-    "@bosch/bh-agent-default-model": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-llm": "workspace:^",
-    "@bosch/bh-session": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/cordis-plugin-loader": "workspace:^",
+    "@hydra/harness-agent": "workspace:^",
+    "@hydra/harness-agent-default-model": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/harness-session": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@bosch/cordis-plugin-loader": "workspace:^",
-    "@bosch/bh-agent": "workspace:^",
-    "@bosch/bh-agent-default-model": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-llm": "workspace:^",
-    "@bosch/bh-session": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/cordis-plugin-loader": "workspace:^",
+    "@hydra/harness-agent": "workspace:^",
+    "@hydra/harness-agent-default-model": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/harness-session": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   }
 }

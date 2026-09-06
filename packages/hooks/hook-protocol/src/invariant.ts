@@ -1,11 +1,11 @@
-/** Package-owned hook invocation/result stream invariants. @module @bosch/bh-hook-protocol/invariant */
+/** Package-owned hook invocation/result stream invariants. @module @hydra/harness-hook-protocol/invariant */
 
-import type { Context } from '@bosch/cordis'
-import type { Session, SessionEvent } from '@bosch/bh-session'
-import type { InvariantFailure, InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { Session, SessionEvent } from '@hydra/harness-session'
+import type { InvariantFailure, InvariantInstaller } from '@hydra/harness-invariants'
 import type {} from './types.ts'
 
-const PACKAGE_NAME = '@bosch/bh-hook-protocol'
+const PACKAGE_NAME = '@hydra/harness-hook-protocol'
 
 /** Cordis companion plugin name. */
 export const name = 'hook-protocol-invariant'

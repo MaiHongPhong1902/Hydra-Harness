@@ -16,10 +16,10 @@ const CLIENT_BUILD_ENV_PREFIX = 'BH_CLIENT_'
 /** Non-public selector used by build orchestration to request a named client profile. */
 export const CLIENT_BUILD_PROFILE_SELECTOR = 'BH_BUILD_CLIENT_PROFILE'
 
-/** Public client environment required by official BH artifacts. */
+/** Public client environment required by official Hydra artifacts. */
 const OFFICIAL_CLIENT_BUILD_ENVIRONMENT = {
   BH_CLIENT_BUILD_PROFILE: 'official',
-  BH_CLIENT_TITLE: 'Bosch Harness',
+  BH_CLIENT_TITLE: 'Hydra harness',
 } as const
 
 /** Public variable carrying the source commit embedded in client artifacts. */

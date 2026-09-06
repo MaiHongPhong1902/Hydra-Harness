@@ -1,8 +1,8 @@
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { describe, expect, it, vi } from 'vitest'
-import type { SettingsNamespaceView } from '@bosch/bh-api-remotes/client'
-import { SettingsSchemaService } from '@bosch/bh-client-ui-settings/src/client/schema.ts'
-import { SettingsDescribeMirror } from '@bosch/bh-client-ui-settings/src/client/settings-mirror.ts'
+import type { SettingsNamespaceView } from '@hydra/harness-api-remotes/client'
+import { SettingsSchemaService } from '@hydra/harness-client-ui-settings/src/client/schema.ts'
+import { SettingsDescribeMirror } from '@hydra/harness-client-ui-settings/src/client/settings-mirror.ts'
 import {
   PermissionPresetSettingsController, permissionDefaultOf,
 } from '../src/client/settings-store.ts'

@@ -5,10 +5,10 @@
  * for. Stopping needs no helper — a host half unwinds through an ordinary
  * awaited `fiber.dispose()`, because everything the plugin registered is an
  * effect on its fiber.
- * @module @bosch/bh-cordis-host-runner/lifecycle
+ * @module @hydra/harness-cordis-host-runner/lifecycle
  */
 
-import type { Context, Fiber, Plugin } from '@bosch/cordis'
+import type { Context, Fiber, Plugin } from '@hydra/cordis'
 import { guardedPlugin } from './guard.ts'
 
 /**

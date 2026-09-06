@@ -11,9 +11,9 @@
 // nested run_code sub-dispatch, a legacy generic result) surfaces its
 // model-facing text through ToolRow's Output section instead.
 
-import type { Context } from '@bosch/cordis'
-import { IconSearchOutline16 } from '@bosch/bh-client-ui-primitives'
-import type { PropsLocale } from '@bosch/bh-client-ui-slots'
+import type { Context } from '@hydra/cordis'
+import { IconSearchOutline16 } from '@hydra/harness-client-ui-primitives'
+import type { PropsLocale } from '@hydra/harness-client-ui-slots'
 import type { ToolCallViewProps } from '../../contract/slots.ts'
 import { searchCardModel } from '../models/search-card-model.ts'
 import { toolRowModel } from '../models/tool-call-model.ts'

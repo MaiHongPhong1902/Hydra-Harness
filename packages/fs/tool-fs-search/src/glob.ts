@@ -6,15 +6,15 @@
  * argument validation, argv construction, result parsing, inline sampling,
  * and formatting; process concerns (spawn execution, tree termination,
  * environment scrubbing, output capture) stay behind `ctx.subprocess`.
- * @module @bosch/bh-tool-fs-search/glob
+ * @module @hydra/harness-tool-fs-search/glob
  */
 
-import type { Context } from '@bosch/cordis'
+import type { Context } from '@hydra/cordis'
 import { sep } from 'node:path'
-import { defineTool } from '@bosch/bh-tools'
-import type { GenericCallView, SearchResultView, ToolResult } from '@bosch/bh-tools'
-import type { SpillRef } from '@bosch/bh-spill'
-import type {} from '@bosch/bh-system-prompt'
+import { defineTool } from '@hydra/harness-tools'
+import type { GenericCallView, SearchResultView, ToolResult } from '@hydra/harness-tools'
+import type { SpillRef } from '@hydra/harness-spill'
+import type {} from '@hydra/harness-system-prompt'
 import { runRipgrep, toWorkdirRelative, trySaveFormattedResult } from './search-core.ts'
 import { globSearchMeta, searchViewFromMeta } from './presentation.ts'
 import { acceptedDirectCallValue } from './direct-call.ts'

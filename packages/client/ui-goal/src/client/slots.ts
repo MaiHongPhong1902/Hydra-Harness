@@ -7,7 +7,7 @@
  * (callbacks from inject, live state from useProjection).
  */
 
-import type { RemoteResult } from '@bosch/bh-typert-protocol'
+import type { RemoteResult } from '@hydra/harness-typert-protocol'
 
 /**
  * Settled outcome of one goal mutation, rendered inline by the strip. The

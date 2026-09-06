@@ -1,6 +1,6 @@
 {
-  "name": "@bosch/bh-lsp",
-  "description": "Abstract LSP capability seam (ctx.lsp) for the Bosch Harness — language-server provider registry keyed by branded id and extension mapping, order-independent per-query selection, normalized definition/references/implementation/hover requests and results, and the LspError taxonomy",
+  "name": "@hydra/harness-lsp",
+  "description": "Abstract LSP capability seam (ctx.lsp) for the Hydra harness — language-server provider registry keyed by branded id and extension mapping, order-independent per-query selection, normalized definition/references/implementation/hover requests and results, and the LspError taxonomy",
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"
@@ -32,15 +32,15 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@bosch/bh-brand": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-llm": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-brand": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@bosch/bh-brand": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-llm": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-brand": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   }
 }

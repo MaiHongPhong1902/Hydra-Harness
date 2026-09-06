@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import type { PluginMarketplaceSnapshot } from '@bosch/bh-api-remotes/client'
+import type { PluginMarketplaceSnapshot } from '@hydra/harness-api-remotes/client'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { MarketplaceSettingsTab } from '../src/client/MarketplaceSettingsTab.tsx'
 import type {
@@ -64,6 +64,7 @@ function props(
     removeMarketplace: vi.fn(async () => EMPTY),
     setMarketplaceEnabled: vi.fn(async () => EMPTY),
     query: '',
+    active: true,
     ...overrides,
   } as MarketplaceSettingsTabProps
 }

@@ -8,18 +8,18 @@
 # `llm-replay` reads `BH_SNAPSHOT_FILE` / `BH_SNAPSHOT_CHILD_FILES` from the
 # harness. Stdout remains reserved for JSON-RPC frames.
 - id: base
-  name: '@bosch/cordis-plugin-include'
+  name: '@hydra/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       # `name` asserts the target: a mismatch skips the patch and warns only
       # when a logger exists.
       - id: llm-deepseek
-        name: '@bosch/bh-llm-deepseek'
+        name: '@hydra/harness-llm-deepseek'
         disabled: true
       - insert:
           - id: llm-replay
-            name: '@bosch/bh-llm-replay'
+            name: '@hydra/harness-llm-replay'
             config:
               providers:
                 - id: deepseek-official

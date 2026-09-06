@@ -1,6 +1,6 @@
 # browser/ — embedded browser family
 
-This family gives the harness a browser of its own: one Electron window per agent, opened on that agent's first browser action and closed with it. The model controls the page as a numbered text DOM (`[12]<button>Save</button>`) and acts by index through the upstream [PageAgent](https://github.com/alibaba/page-agent) engine (Core, LLM loop, and PageController) bundled into the view's preload; that control loop uses neither page screenshots nor a vision model. Browser annotations are a separate user-composer path and may add a bounded screenshot of a selected element or viewport region according to the desktop setting. BH, not the target webpage, owns the visible control surface.
+This family gives the harness a browser of its own: one Electron window per agent, opened on that agent's first browser action and closed with it. The model controls the page as a numbered text DOM (`[12]<button>Save</button>`) and acts by index through the upstream [PageAgent](https://github.com/alibaba/page-agent) engine (Core, LLM loop, and PageController) bundled into the view's preload; that control loop uses neither page screenshots nor a vision model. Browser annotations are a separate user-composer path and may add a bounded screenshot of a selected element or viewport region according to the desktop setting. Hydra harness, not the target webpage, owns the visible control surface.
 
 | Package | Role | ctx key |
 |---|---|---|

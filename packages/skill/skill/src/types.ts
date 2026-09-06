@@ -1,11 +1,11 @@
 /**
  * Client-safe skill registry event vocabulary shared with type-only consumers.
- * @module @bosch/bh-skill/types
+ * @module @hydra/harness-skill/types
  */
 
-import type {} from '@bosch/cordis'
+import type {} from '@hydra/cordis'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Events {
     /**
      * A skill provider, runtime contribution, or provider-backed catalog may

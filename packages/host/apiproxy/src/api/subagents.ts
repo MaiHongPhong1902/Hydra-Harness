@@ -4,9 +4,9 @@
  * direct parent into the child's Agent inbox.
  */
 
-import type { MessageId } from '@bosch/bh-llm/brand'
-import type { ContentBlock } from '@bosch/bh-llm/types'
-import type { SessionId } from '@bosch/bh-session/types'
+import type { MessageId } from '@hydra/harness-llm/brand'
+import type { ContentBlock } from '@hydra/harness-llm/types'
+import type { SessionId } from '@hydra/harness-session/types'
 import type { RpcRequest, RpcResponse } from './rpc.ts'
 import type { HistoryEntry, SessionProjectionsBlock } from './sessions.ts'
 

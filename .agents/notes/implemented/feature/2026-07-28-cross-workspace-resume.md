@@ -10,7 +10,7 @@ Storage was the binding one. The shipped TUI composition defaulted its persisten
 
 The picker then filtered again. It dropped records whose `cwd` differed from the current session before display, and `summarizeResumeCandidate` independently marked a differing `cwd` as `disabledReason: 'different workspace'`, so a foreign session that did reach the store was both hidden and refused.
 
-Finally, resume never changed directory. The host re-execs `bh --resume=<id>` through `process.execve`, which inherits the cwd. Session *header* cwd is restored from the log, but process cwd is what `bh-fs-local`, the bash executor, and glob/grep resolve against, so resuming a foreign session would have replayed its transcript while acting on the wrong project.
+Finally, resume never changed directory. The host re-execs `bh --resume=<id>` through `process.execve`, which inherits the cwd. Session *header* cwd is restored from the log, but process cwd is what `@hydra/harness-fs-local`, the bash executor, and glob/grep resolve against, so resuming a foreign session would have replayed its transcript while acting on the wrong project.
 
 ## Decision
 

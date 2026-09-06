@@ -1,10 +1,10 @@
 /**
  * Process-local dynamic Plugin registry and its opaque identity mints.
- * @module @bosch/bh-cordis-host-runner/registry
+ * @module @hydra/harness-cordis-host-runner/registry
  */
 
-import type { Fiber } from '@bosch/cordis'
-import type { SessionId } from '@bosch/bh-session/types'
+import type { Fiber } from '@hydra/cordis'
+import type { SessionId } from '@hydra/harness-session/types'
 import type {
   ApprovalRequestId, CordisDynamicPackageId, CordisDynamicPluginId, CordisDynamicPluginRunId,
   CordisDynamicRunMode, DynamicCordisRenderFailure, DynamicCordisRunAttempt,

@@ -14,9 +14,9 @@
 
 import { useState } from 'react'
 import type { ReactNode } from 'react'
-import type { IApiClient } from '@bosch/bh-api-remotes/client'
-import { Button, IconPlusOutline16, Modal } from '@bosch/bh-client-ui-primitives'
-import type { InjectFace } from '@bosch/bh-client-ui-slots'
+import type { IApiClient } from '@hydra/harness-api-remotes/client'
+import { Button, IconPlusOutline16, Modal } from '@hydra/harness-client-ui-primitives'
+import type { InjectFace } from '@hydra/harness-client-ui-slots'
 import { CustomProviderCard } from './CustomProviderCard.tsx'
 import {
   deriveKeyRef, messageOf, protocolChoices, providerUsable,

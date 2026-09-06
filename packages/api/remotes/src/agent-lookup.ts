@@ -1,11 +1,11 @@
 /** Host BFF policy for resolving Remote Agent and Session identities. */
 
-import type { Context } from '@bosch/cordis'
-import type { Agent, AgentOptions, AgentSetup } from '@bosch/bh-agent'
-import type { Session, SessionEvent, SessionHeader, SessionId } from '@bosch/bh-session'
-import type {} from '@bosch/bh-session-persistence'
-import { TypertLookupFailure } from '@bosch/bh-typert-protocol'
-import type {} from '@bosch/bh-typert-registry'
+import type { Context } from '@hydra/cordis'
+import type { Agent, AgentOptions, AgentSetup } from '@hydra/harness-agent'
+import type { Session, SessionEvent, SessionHeader, SessionId } from '@hydra/harness-session'
+import type {} from '@hydra/harness-session-persistence'
+import { TypertLookupFailure } from '@hydra/harness-typert-protocol'
+import type {} from '@hydra/harness-typert-registry'
 
 /** Caller-facing failures preserved by the Gateway's RPC adapter. */
 export type ApiRemoteLookupError =

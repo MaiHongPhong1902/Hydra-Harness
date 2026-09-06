@@ -6,8 +6,8 @@ import type { Duplex } from 'node:stream'
 import WebSocket, { WebSocketServer } from 'ws'
 import type {
   ApiProxy, HostFrame, MuxFrame, RpcRequest, ServerRequest,
-} from '@bosch/bh-host-apiproxy/api'
-import { RpcId } from '@bosch/bh-host-apiproxy/api'
+} from '@hydra/harness-host-apiproxy/api'
+import { RpcId } from '@hydra/harness-host-apiproxy/api'
 
 type Frame = MuxFrame | HostFrame
 

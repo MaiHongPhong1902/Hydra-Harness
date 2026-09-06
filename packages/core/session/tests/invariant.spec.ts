@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import { createScope, scopeTarget } from '@bosch/bh-scope'
-import { createUserMessage, CallId, createMessage, createToolResultMessage, freezeMessage } from '@bosch/bh-llm'
-import SessionStore, { SessionId, TOOL_NOT_STARTED } from '@bosch/bh-session'
-import * as SessionInvariant from '@bosch/bh-session/invariant'
-import InvariantRegistry, { InvariantError } from '@bosch/bh-invariants'
+import { Context } from '@hydra/cordis'
+import { createScope, scopeTarget } from '@hydra/harness-scope'
+import { createUserMessage, CallId, createMessage, createToolResultMessage, freezeMessage } from '@hydra/harness-llm'
+import SessionStore, { SessionId, TOOL_NOT_STARTED } from '@hydra/harness-session'
+import * as SessionInvariant from '@hydra/harness-session/invariant'
+import InvariantRegistry, { InvariantError } from '@hydra/harness-invariants'
 
 async function setup(): Promise<{ ctx: Context; fiber: Awaited<ReturnType<Context['plugin']>> }> {
   const ctx = new Context()

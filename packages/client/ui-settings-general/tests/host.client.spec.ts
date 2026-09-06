@@ -1,6 +1,6 @@
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { describe, expect, it } from 'vitest'
-import { SettingsProvider, settingsNamespace, type SettingsNamespace } from '@bosch/bh-settings'
+import { SettingsProvider, settingsNamespace, type SettingsNamespace } from '@hydra/harness-settings'
 import { apply } from '../src/index.ts'
 
 /** Mirrors the module-local namespace id in src/index.ts. */

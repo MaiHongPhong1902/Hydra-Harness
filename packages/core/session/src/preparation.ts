@@ -1,6 +1,6 @@
 /**
  * Ownership of one unpublished Session before registry publication.
- * @module @bosch/bh-session/preparation
+ * @module @hydra/harness-session/preparation
  */
 
 import type { Session } from './index.ts'

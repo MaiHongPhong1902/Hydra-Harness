@@ -8,7 +8,7 @@ import {
   launchAcpTestAgent,
   type AgentUnderTest,
   type LaunchedAcpTestAgent,
-} from '@bosch/bh-acp-snapshot'
+} from '@hydra/harness-acp-snapshot'
 import { cleanupAcpExampleTest } from './cleanup.ts'
 
 /**

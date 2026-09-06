@@ -1,8 +1,8 @@
 /** Public Agent Teams identities, durable records, and service request values. */
 
-import type { Branded } from '@bosch/bh-brand'
-import type { ContentBlock } from '@bosch/bh-llm'
-import type { SessionId } from '@bosch/bh-session'
+import type { Branded } from '@hydra/harness-brand'
+import type { ContentBlock } from '@hydra/harness-llm'
+import type { SessionId } from '@hydra/harness-session'
 
 /** Identifies the implicit team rooted at one top-level Session. */
 export type TeamId = Branded<'TeamId'>
@@ -115,7 +115,7 @@ export interface TeamMessageSource {
   readonly senderName: string
 }
 
-declare module '@bosch/bh-llm' {
+declare module '@hydra/harness-llm' {
   interface MessageSourceMap {
     'team-message': TeamMessageSource
   }
@@ -200,7 +200,7 @@ export interface TeamWaitResult {
   readonly timedOut: boolean
 }
 
-declare module '@bosch/bh-session/types' {
+declare module '@hydra/harness-session/types' {
   interface SessionEventMap {
     /** Whole teammate lifecycle value, stored only in the Team Lead Session. */
     'team/member': { version: 1; teamId: TeamId; member: TeamMemberSnapshot }

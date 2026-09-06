@@ -1,6 +1,6 @@
 # Skills
 
-The [skill capability family](../../packages/skill) includes the Service Definition ([bh-skill](../../packages/skill/skill), `ctx.skills`), the local Service Provider ([bh-skill-filesystem](../../packages/skill/skill-filesystem)), the optional packaged badge provider ([bh-skill-badge](../../packages/skill/skill-badge)), and the Consumer ([bh-tool-skill](../../packages/skill/tool-skill)). The registry merges provider catalogs across its host and per-scope layers; providers contribute local or packaged skills; the Consumer owns bounded model-facing search, exact loading, and direct user invocation. Skills are optional instructions, not session events, so their vocabulary lives here rather than in [core.md](core.md).
+The [skill capability family](../../packages/skill) includes the Service Definition ([@hydra/harness-skill](../../packages/skill/skill), `ctx.skills`), the local Service Provider ([@hydra/harness-skill-filesystem](../../packages/skill/skill-filesystem)), the optional packaged badge provider ([@hydra/harness-skill-badge](../../packages/skill/skill-badge)), and the Consumer ([@hydra/harness-tool-skill](../../packages/skill/tool-skill)). The registry merges provider catalogs across its host and per-scope layers; providers contribute local or packaged skills; the Consumer owns bounded model-facing search, exact loading, and direct user invocation. Skills are optional instructions, not session events, so their vocabulary lives here rather than in [core.md](core.md).
 
 Source: [`packages/skill/skill/src/index.ts`](../../packages/skill/skill/src/index.ts), [`packages/skill/skill-filesystem/src/index.ts`](../../packages/skill/skill-filesystem/src/index.ts), [`packages/skill/skill-badge/src/index.ts`](../../packages/skill/skill-badge/src/index.ts), and [`packages/skill/tool-skill/src/index.ts`](../../packages/skill/tool-skill/src/index.ts).
 
@@ -8,7 +8,7 @@ Source: [`packages/skill/skill/src/index.ts`](../../packages/skill/skill/src/ind
 
 `ctx.skills` combines local, embedded, remote, or other providers. Registration is synchronous; remote initialization and discovery belong in awaited `list()`. Provider objects, options, and candidates are borrowed readonly, while semantic fields are validated.
 
-The registry is host+per-scope layered, the shape the [tools registry](tools.md) established over [bh-scope](../../packages/core/scope): a registration files into the layer of its calling context's scope, so host rows and repository plugins land in the global layer while a plugin mounted by an agent preset's standing composition lands in that preset's layer, and provider names are unique per layer rather than process-wide. A read merges the global layer with the viewing scope's chain — the nearest layer's entry wins a duplicate skill name outright, and the rank order below decides duplicates only within one layer. Discovery caches are keyed by the resolved scope chain, so re-parenting a scope (a blank-session recompose) is visible to the next read without a registry mutation.
+The registry is host+per-scope layered, the shape the [tools registry](tools.md) established over [@hydra/harness-scope](../../packages/core/scope): a registration files into the layer of its calling context's scope, so host rows and repository plugins land in the global layer while a plugin mounted by an agent preset's standing composition lands in that preset's layer, and provider names are unique per layer rather than process-wide. A read merges the global layer with the viewing scope's chain — the nearest layer's entry wins a duplicate skill name outright, and the rank order below decides duplicates only within one layer. Discovery caches are keyed by the resolved scope chain, so re-parenting a scope (a blank-session recompose) is visible to the next read without a registry mutation.
 
 Within one layer, duplicate names resolve by rank, provider order, then local order; summaries sort by name. A rejected `list()` is logged and omitted from an incomplete observation, while an explicit incomplete observation contributes usable candidates without making the result cacheable; malformed candidates fail fast. Each provider factory receives a registration-scoped control whose `invalidate()` clears completed catalogs only while that exact registration remains active and whose signal aborts on failed registration or disposal. An in-flight discovery retries once when its provider generation changes; a second change returns the latest candidates incomplete and uncached. Provider and runtime mutations emit the unfiltered `skills/change` invalidation event; it carries no diff, so consumers refetch `snapshot()` with their own lookup options.
 
@@ -72,9 +72,9 @@ The shipped local provider scans roots in rank order:
 | 500 | `user-agents` | `<agentsHome>/skills` |
 | 600 | `bundled` | `Config.bundledSkillDir` when configured |
 
-The project root is the nearest ancestor containing `.git`; without one, the current cwd is used. When `ctx.fs` is available, the git-root walk probes `.git` through the filesystem service so remote or sandboxed workspaces do not fall back to the host filesystem boundary. The user BH root skips its `.system` child. The local provider does not synthesize built-in system skills; deployments supply packaged skills through configured bundled roots or dedicated providers.
+The project root is the nearest ancestor containing `.git`; without one, the current cwd is used. When `ctx.fs` is available, the git-root walk probes `.git` through the filesystem service so remote or sandboxed workspaces do not fall back to the host filesystem boundary. The user Hydra root skips its `.system` child. The local provider does not synthesize built-in system skills; deployments supply packaged skills through configured bundled roots or dedicated providers.
 
-`bh-skill-badge` registers one immutable `bundled` candidate at `BUNDLED_SKILL_RANK` and exposes its packaged asset directory through `resourceBase`. The shipped CLI declares the plugin disabled, so enabling its composition row is an explicit opt-in.
+`@hydra/harness-skill-badge` registers one immutable `bundled` candidate at `BUNDLED_SKILL_RANK` and exposes its packaged asset directory through `resourceBase`. The shipped CLI declares the plugin disabled, so enabling its composition row is an explicit opt-in.
 
 Chokidar watches existing roots for direct bundle/flat-entry additions and removals plus direct skill-entry changes. A missing root is followed one absent path segment at a time from its nearest existing ancestor until Chokidar can attach. Resource files below a bundle are not catalog changes. Model-facing `write` and `edit` observations synchronously invalidate the provider when their target is catalog-relevant, while the host watcher covers IDE, Git, shell, and external-process mutations. Watcher failures make the current observation incomplete without hiding readable candidates from direct loads; project-scoped watchers use a configured bounded LRU.
 
@@ -88,6 +88,13 @@ type SkillSource = 'project-bh' | 'project-agents' | 'runtime' | 'user-bh' | 'us
 ```
 
 ## Summaries, candidates, and complete definitions
+
+File-backed providers share `parseSkillDocument(raw)`, which returns the provider-independent `SkillDocument` fields from leading YAML frontmatter and the trimmed instruction body. Invalid YAML, required fields, or invocation controls throw; each provider owns whether that rejects a bundle or skips an individual file. The parser accepts folded/literal YAML strings and the invocation spellings documented by the [filesystem provider](../../packages/skill/skill-filesystem/README.md#skill-format).
+
+```ts type-equiv
+/** Provider-independent fields parsed from one skill document. */
+type SkillDocument = Pick<SkillDefinition, 'name' | 'description' | 'whenToUse' | 'invocation' | 'metadata' | 'content'>
+```
 
 `SkillSummary` is the registry's invocation-neutral summary shape. Consumers choose which entries and fields to render; model search uses model-invocable `name`, `description`, and optional `whenToUse`, never the body or absolute file path. `SkillInvocationPolicy` normalizes the two independent invocation controls into positive booleans, and every resolved summary, candidate, and definition carries it without turning arbitrary frontmatter into the domain model.
 
@@ -106,6 +113,8 @@ interface SkillInvocationPolicy {
 interface SkillSummary {
   /** Kebab-case identifier used to address the skill. */
   readonly name: string
+  /** Canonical catalog name when this summary exposes an unambiguous alias. */
+  readonly aliasFor?: string
   /** Short routing description shown by discovery consumers. */
   readonly description: string
   /** Optional extra routing guidance. */
@@ -135,7 +144,7 @@ interface SkillCatalogSnapshot {
 }
 ```
 
-`SkillCandidate` is the provider-to-registry shape. `locator` is opaque provider state; the registry only stores it and gives it back to the winning provider's `get()`. Optional `aliases` are exposed only when exactly one resolved candidate claims the alias and no canonical skill already has that name.
+`SkillCandidate` is the provider-to-registry shape. `locator` is opaque provider state; the registry only stores it and gives it back to the winning provider's `get()`. Optional `aliases` are exposed only when exactly one resolved candidate claims the alias and no canonical skill already has that name. Alias summaries identify that candidate with `aliasFor`; model discovery ranks all names and keeps one result per canonical definition before applying its limits.
 
 ```ts type-equiv
 /** Provider catalog entry used by the registry to merge and later load skills. */
@@ -228,7 +237,7 @@ interface Config {
 
 ## Bounded search and tool contract
 
-`bh-tool-skill` does not inject a skill roster at session or step boundaries. The model first decides whether a substantive task warrants `skill_search({ query })`; its schema explicitly excludes greetings, thanks, acknowledgements, casual chat, meta questions, and vague requests. Search snapshots the registry for the calling agent cwd and scope, forwards cancellation, filters with `isModelInvocable`, and ranks lexical matches across `name`, `description`, and `whenToUse` without loading any body. Exact whole-name phrases rank first, followed by matched query terms and deterministic name ordering.
+`@hydra/harness-tool-skill` does not inject a skill roster at session or step boundaries. The model first decides whether a substantive task warrants `skill_search({ query })`; its schema explicitly excludes greetings, thanks, acknowledgements, casual chat, meta questions, and vague requests. Search snapshots the registry for the calling agent cwd and scope, forwards cancellation, filters with `isModelInvocable`, and ranks lexical matches across `name`, `description`, and `whenToUse` without loading any body. Exact whole-name phrases rank first, followed by matched query terms and deterministic name ordering.
 
 One search returns at most `searchMaxResults` candidates (default `5`), normalizes and caps each description or routing hint at `searchDescriptionMaxLength` characters (default `500`, integer minimum `3`), and caps the complete rendered result at `searchMaxResultBytes` UTF-8 bytes (default `8192`). `truncated` reports candidates omitted by count or byte limits. `complete: false` preserves the registry's partial-discovery meaning, so an empty incomplete result does not assert that no matching skill exists. A complete empty result directs the model to load no skill; a non-empty result directs it to choose zero or one candidate and load another only for an independent need. Model-visible search output is therefore bounded independently of registry size; the host still scans the available metadata lexically.
 

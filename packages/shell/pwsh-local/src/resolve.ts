@@ -5,7 +5,7 @@
  * resolved differently from the code under test could exempt a file whose
  * suites actually run.
  *
- * @module @bosch/bh-pwsh-local/resolve
+ * @module @hydra/harness-pwsh-local/resolve
  */
 
 import { lstatSync } from 'node:fs'

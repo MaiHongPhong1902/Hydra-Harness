@@ -10,14 +10,14 @@ Providers occasionally return a degenerate completion: a well-formed stream that
 
 An adapter classifies a completed empty response as a provider-boundary failure, and retry policy treats it as transient:
 
-- `bh-llm` exports the canonical code `EMPTY_RESPONSE_CODE` (`'EMPTY_RESPONSE'`) beside `CONTEXT_WINDOW_EXCEEDED_CODE`/`QUOTA_EXCEEDED_CODE`.
-- `bh-llm-pi-ai` (`mapStopReason`): a terminal `stop` whose assistant message has no content blocks becomes a `finish {kind: 'error'}` with that code. Context-overflow detection still wins where it applies (it is checked first and is the more actionable classification).
-- `bh-llm-deepseek` (`translate`): at `[DONE]`, a `stop` (or absent) finish with no opened blocks becomes the same error finish. Reasoning-only streams count as content and stay successful.
-- The provider-owned normal retry default includes `EMPTY_RESPONSE`: the attempt produced nothing durable, so repeating it is safe; deployments can still remove it via `retryableCodes`, and `bh-llm-retry` executes the resolved policy.
+- `@hydra/harness-llm` exports the canonical code `EMPTY_RESPONSE_CODE` (`'EMPTY_RESPONSE'`) beside `CONTEXT_WINDOW_EXCEEDED_CODE`/`QUOTA_EXCEEDED_CODE`.
+- `@hydra/harness-llm-pi-ai` (`mapStopReason`): a terminal `stop` whose assistant message has no content blocks becomes a `finish {kind: 'error'}` with that code. Context-overflow detection still wins where it applies (it is checked first and is the more actionable classification).
+- `@hydra/harness-llm-deepseek` (`translate`): at `[DONE]`, a `stop` (or absent) finish with no opened blocks becomes the same error finish. Reasoning-only streams count as content and stay successful.
+- The provider-owned normal retry default includes `EMPTY_RESPONSE`: the attempt produced nothing durable, so repeating it is safe; deployments can still remove it via `retryableCodes`, and `@hydra/harness-llm-retry` executes the resolved policy.
 
 Detection is scoped to `stop` finishes only. `max-tokens` with empty content keeps its existing meaning (pi-ai already normalizes the zero-output overflow case), `tool-calls` cannot be block-empty in practice, and error/aborted finishes already fail.
 
-The classification uses the existing loop machinery — `finishError` → `agent/request-error` → `bh-llm-retry` — and keeps `agent-loop` provider-neutral. Exhausting the retry budget ends the turn with an explicit `EMPTY_RESPONSE` failure instead of an empty success.
+The classification uses the existing loop machinery — `finishError` → `agent/request-error` → `@hydra/harness-llm-retry` — and keeps `agent-loop` provider-neutral. Exhausting the retry budget ends the turn with an explicit `EMPTY_RESPONSE` failure instead of an empty success.
 
 ## Alternatives considered
 

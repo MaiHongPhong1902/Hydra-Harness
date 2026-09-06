@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-mcp-registry`.
- * @module @bosch/bh-mcp-registry/invariant
+ * Package-owned invariant companion for `@hydra/harness-mcp-registry`.
+ * @module @hydra/harness-mcp-registry/invariant
  */
 
-import type { Context } from '@bosch/cordis'
-import type { InvariantFailure, InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantFailure, InvariantInstaller } from '@hydra/harness-invariants'
 import type { McpServerSnapshot } from './types.ts'
 
-const PACKAGE_NAME = '@bosch/bh-mcp-registry'
+const PACKAGE_NAME = '@hydra/harness-mcp-registry'
 
 /** Cordis companion plugin name. */
 export const name = 'mcp-registry-invariant'

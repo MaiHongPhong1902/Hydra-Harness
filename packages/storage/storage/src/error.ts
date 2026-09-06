@@ -1,6 +1,6 @@
 /**
  * Error vocabulary for the storage hub and its backends.
- * @module @bosch/bh-storage/src/error
+ * @module @hydra/harness-storage/src/error
  */
 
 /** Discriminant codes carried by every {@link StorageError}. */

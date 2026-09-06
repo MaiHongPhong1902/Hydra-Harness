@@ -1,4 +1,4 @@
-# @bosch/bh-tool-ask-user
+# @hydra/harness-tool-ask-user
 
 Model-facing `ask_user_question` tool over `ctx.userQuestions`. It lets the model ask the human a concise question when it needs confirmation, a user-owned choice, or missing information before continuing. When the request clearly implies an available tool or execution path, the model should choose it itself instead of asking the user to choose between tools or implementation options.
 
@@ -25,7 +25,7 @@ This is the Consumer package for the user-questions seam. It does not render UI 
 
 #### What the model sees
 
-The model sees the generated [`ask_user_question` schema](../../../docs/tool-catalog.md#boschbh-tool-ask-user), including question ids, prompts, headings, options, and multi-select flags. It reserves the tool for a concrete task blocked by confirmation, a user-owned choice, or a fact normal inspection cannot establish; greetings, casual chat, vague requests, and generic action/tool menus are excluded.
+The model sees the generated [`ask_user_question` schema](../../../docs/tool-catalog.md#hydraharness-tool-ask-user), including question ids, prompts, headings, options, and multi-select flags. It reserves the tool for a concrete task blocked by confirmation, a user-owned choice, or a fact normal inspection cannot establish; greetings, casual chat, vague requests, and generic action/tool menus are excluded.
 
 #### Token effect
 

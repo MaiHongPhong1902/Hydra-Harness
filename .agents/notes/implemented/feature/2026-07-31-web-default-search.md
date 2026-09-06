@@ -8,17 +8,17 @@ The harness had a complete Web capability family—provider registry, DeepSeek/E
 
 ## Decision
 
-`apps/cli/config/base.cordis.yml` explicitly mounts `bh-web` with `searchProvider: deepseek-official`, `bh-web-search-deepseek`, and `bh-tool-web` with `fetch: false` and `searchTimeoutMs: 60000`. It does not mount `bh-web-fetch-http` or select a fetch provider. The shared base makes only `web_search` a default for TUI, browser, and headless sessions. The explicit search provider id keeps selection independent of registration order and leaves personal or `--config` overlays able to replace or disable the rows. The one-minute shipped budget covers an auxiliary DeepSeek Messages request plus server-side retrieval while leaving `bh-tool-web`'s provider-neutral 30-second default unchanged for custom compositions.
+`apps/cli/config/base.cordis.yml` explicitly mounts `@hydra/harness-web` with `searchProvider: deepseek-official`, `@hydra/harness-web-search-deepseek`, and `@hydra/harness-tool-web` with `fetch: false` and `searchTimeoutMs: 60000`. It does not mount `@hydra/harness-web-fetch-http` or select a fetch provider. The shared base makes only `web_search` a default for TUI, browser, and headless sessions. The explicit search provider id keeps selection independent of registration order and leaves personal or `--config` overlays able to replace or disable the rows. The one-minute shipped budget covers an auxiliary DeepSeek Messages request plus server-side retrieval while leaving `@hydra/harness-tool-web`'s provider-neutral 30-second default unchanged for custom compositions.
 
 DeepSeek search uses the same `DEEPSEEK_API_KEY` credential reference as the official conversation adapter. The provider resolves that reference inside every search through the optional `ctx.credentials` service; only a composition without the seam falls back to the launching process environment, and a non-empty literal `apiKey` remains the programmatic last resort. A stored or rotated Web Models key therefore reaches the next search without restarting or retaining the value on the provider. Because `WebSearchProvider.available()` is synchronous, it treats an installed resolver as locally usable and missing dynamic credentials fail the operation with the provider-specific `WEB_PROVIDER_CREDENTIAL_MISSING` code while the stable tool schema stays registered.
 
 Search keeps its endpoint distinct from chat completions: `DEEPSEEK_SEARCH_BASE_URL` overrides the Anthropic-compatible base, while `DEEPSEEK_BASE_URL` continues to configure conversation requests. Each `web_search` performs an auxiliary DeepSeek Messages call with the native search server tool. Immediately before dispatch, the provider appends a log-only `web/deepseek-search-llm-request` event to the initiating Agent session with the resolved endpoint, API version, and exact secret-free JSON body. Credential preflight remains provider-local and races caller cancellation; neither concern expands the generic Web or credentials seams.
 
-The default mount does not create a Web-specific permission policy. `web_search` executes outside the shell/filesystem sandbox and approval presets, following `bh-tool-web`'s existing contract. It does not mount `web_fetch` or a local fetch provider, so the default does not grant model-selected arbitrary URL retrieval. The shipped `workspace-write` default governs file mutations only; a restricted-network product stance requires a `tools/pre-execute` policy or capability-specific network confinement rather than implying that filesystem access mode governs Web calls.
+The default mount does not create a Web-specific permission policy. `web_search` executes outside the shell/filesystem sandbox and approval presets, following `@hydra/harness-tool-web`'s existing contract. It does not mount `web_fetch` or a local fetch provider, so the default does not grant model-selected arbitrary URL retrieval. The shipped `workspace-write` default governs file mutations only; a restricted-network product stance requires a `tools/pre-execute` policy or capability-specific network confinement rather than implying that filesystem access mode governs Web calls.
 
 ## Alternatives considered
 
-**Mount only `bh-tool-web`.** Rejected because stable schemas without registered providers would make every default call fail; enablement and backend availability are deliberately separate, but a shipped default must supply its intended implementations.
+**Mount only `@hydra/harness-tool-web`.** Rejected because stable schemas without registered providers would make every default call fail; enablement and backend availability are deliberately separate, but a shipped default must supply its intended implementations.
 
 **Read `$BH_HOME/.env` from `cordis.yml` or hoist it into `process.env`.** Rejected because the credential provider owns that document, environment values are read-only overrides, and hoisting would make stored keys unrotatable while bypassing the audited secret boundary.
 
@@ -26,9 +26,9 @@ The default mount does not create a Web-specific permission policy. `web_search`
 
 **Keep Web tools in `web.cordis.yml`.** Rejected because it preserves an unexplained tool-roster difference between TUI and Web/headless. The rows are not surface-specific, so `base.cordis.yml` is their one home; the [tool-roster decision](2026-07-31-even-out-shipped-tool-rosters.md) records the shared composition.
 
-**Raise `bh-tool-web`'s provider-neutral timeout.** Rejected because custom providers and deployments own different latency expectations; the shipped DeepSeek composition owns this deployment budget.
+**Raise `@hydra/harness-tool-web`'s provider-neutral timeout.** Rejected because custom providers and deployments own different latency expectations; the shipped DeepSeek composition owns this deployment budget.
 
-**Enable search and fetch together.** Rejected because default `web_fetch` would allow model-selected anonymous outbound HTTP(S) retrieval to arbitrary URLs. Search covers discovery; deployments that accept broader retrieval can opt into `bh-web-fetch-http` and set `bh-tool-web`'s `fetch` option to `true` in their overlay.
+**Enable search and fetch together.** Rejected because default `web_fetch` would allow model-selected anonymous outbound HTTP(S) retrieval to arbitrary URLs. Search covers discovery; deployments that accept broader retrieval can opt into `@hydra/harness-web-fetch-http` and set `@hydra/harness-tool-web`'s `fetch` option to `true` in their overlay.
 
 ## Consequences
 

@@ -5,10 +5,10 @@ import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { PassThrough, Writable } from 'node:stream'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import Loader from '@bosch/cordis-plugin-loader'
-import * as agentCore from '@bosch/bh-agent-spine-demo'
-import JsonlSessionPersistence from '@bosch/bh-session-persistence-jsonl'
+import { Context } from '@hydra/cordis'
+import Loader from '@hydra/cordis-plugin-loader'
+import * as agentCore from '@hydra/harness-agent-spine-demo'
+import JsonlSessionPersistence from '@hydra/harness-session-persistence-jsonl'
 import * as jsonrpc from '../src/index.ts'
 
 /**
@@ -344,7 +344,7 @@ describe('bh-sdk-jsonrpc-server plugin apply', () => {
       const error = await harness.waitForFrame(frame => frame.id === 'probe-1', 'error response for unknown method')
       expect(error.error).toMatchObject({
         code: -32603,
-        message: 'unknown Bosch Harness SDK runtime method: nope/unknown',
+        message: 'unknown Hydra harness SDK runtime method: nope/unknown',
       })
 
       await harness.fiber.dispose()

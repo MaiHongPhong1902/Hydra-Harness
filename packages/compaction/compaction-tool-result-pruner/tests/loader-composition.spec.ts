@@ -3,11 +3,11 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import Loader from '@bosch/cordis-plugin-loader'
-import Include from '@bosch/cordis-plugin-include'
-import TokenMeter from '@bosch/bh-token-meter'
-import ToolResultPruner from '@bosch/bh-compaction-tool-result-pruner'
+import { Context } from '@hydra/cordis'
+import Loader from '@hydra/cordis-plugin-loader'
+import Include from '@hydra/cordis-plugin-include'
+import TokenMeter from '@hydra/harness-token-meter'
+import ToolResultPruner from '@hydra/harness-compaction-tool-result-pruner'
 
 let root: string | undefined
 let context: Context | undefined
@@ -24,8 +24,8 @@ describe('compaction-tool-result-pruner real Loader composition', () => {
     root = await mkdtemp(join(tmpdir(), 'bh-compact-tool-result-prune-loader-'))
     const configPath = join(root, 'cordis.yml')
     await writeFile(configPath, [
-      "- name: '@bosch/bh-token-meter'",
-      "- name: '@bosch/bh-compaction-tool-result-pruner'",
+      "- name: '@hydra/harness-token-meter'",
+      "- name: '@hydra/harness-compaction-tool-result-pruner'",
       '  config:',
       '    thresholdChars: 100',
       '    headChars: 20',
@@ -40,8 +40,8 @@ describe('compaction-tool-result-pruner real Loader composition', () => {
     context.loader.internal = {
       version: 'v2',
       async import(specifier: string) {
-        if (specifier === '@bosch/bh-token-meter') return TokenMeter
-        if (specifier === '@bosch/bh-compaction-tool-result-pruner') return ToolResultPruner
+        if (specifier === '@hydra/harness-token-meter') return TokenMeter
+        if (specifier === '@hydra/harness-compaction-tool-result-pruner') return ToolResultPruner
         throw new Error(`unexpected Loader import: ${specifier}`)
       },
     } as unknown as NonNullable<typeof context.loader.internal>

@@ -1,11 +1,11 @@
 /**
  * Human-facing `/compact` command over the backend-independent compaction seam.
- * @module @bosch/bh-command-compact
+ * @module @hydra/harness-command-compact
  */
 
-import type { Context } from '@bosch/cordis'
-import { ManualCompactionError } from '@bosch/bh-compaction'
-import type { CommandInvocation, CommandResult } from '@bosch/bh-commands'
+import type { Context } from '@hydra/cordis'
+import { ManualCompactionError } from '@hydra/harness-compaction'
+import type { CommandInvocation, CommandResult } from '@hydra/harness-commands'
 
 export const name = 'command-compact'
 export const inject = ['commands', 'compaction']

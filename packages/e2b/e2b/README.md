@@ -1,4 +1,4 @@
-# @bosch/bh-e2b
+# @hydra/harness-e2b
 
 Shared lifecycle owner for one E2B sandbox. The filesystem and subprocess adapters inject `ctx.e2b`, await its single SDK handle, and therefore inhabit the same remote Linux working tree and process world. The package pins `e2b@2.29.1`; the [family map](../README.md) lists the opt-in composition.
 
@@ -6,16 +6,16 @@ Shared lifecycle owner for one E2B sandbox. The filesystem and subprocess adapte
 
 ```yaml
 - id: e2b
-  name: '@bosch/bh-e2b'
+  name: '@hydra/harness-e2b'
   config:
     cwd: /home/user/workspace
     timeoutMs: 300000
 
 - id: subprocess-e2b
-  name: '@bosch/bh-subprocess-e2b'
+  name: '@hydra/harness-subprocess-e2b'
 
 - id: fs-e2b
-  name: '@bosch/bh-fs-e2b'
+  name: '@hydra/harness-fs-e2b'
 ```
 
 `apiKey` is optional and otherwise reads `E2B_API_KEY`; the key configures the host SDK connection and is never installed in the sandbox. `cwd` defaults to `/home/user/workspace` and must be an absolute POSIX path. `timeoutMs` defaults to five minutes and controls the sandbox lifetime; expiry deletes the sandbox.

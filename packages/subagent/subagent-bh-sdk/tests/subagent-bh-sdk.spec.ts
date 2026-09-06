@@ -7,13 +7,13 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { existsSync, mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import SubagentRuntime from '@bosch/bh-subagent'
-import type { Agent } from '@bosch/bh-agent'
+import SubagentRuntime from '@hydra/harness-subagent'
+import type { Agent } from '@hydra/harness-agent'
 import * as sdk from '../src/index.ts'
 import {
   DEFAULT_DISPOSE_EOF_GRACE_MS,

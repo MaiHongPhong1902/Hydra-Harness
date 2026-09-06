@@ -8,18 +8,18 @@
  *
  * Namespace plugin (named exports, no default export). Lifecycle is effect-scoped: disposal
  * unregisters from `ctx.lsp` and tears down every live server.
- * @module @bosch/bh-lsp-stdio
+ * @module @hydra/harness-lsp-stdio
  */
 
-import type { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import { LspError, LspProviderId } from '@bosch/bh-lsp'
+import type { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import { LspError, LspProviderId } from '@hydra/harness-lsp'
 import type {
   LspProvider,
   LspProviderQuery,
   LspQueryResult,
-} from '@bosch/bh-lsp'
-import { MAX_TIMER_DELAY_MS } from '@bosch/bh-timeout'
+} from '@hydra/harness-lsp'
+import { MAX_TIMER_DELAY_MS } from '@hydra/harness-timeout'
 import { abortable, abortError } from './abort.ts'
 import { canonicalizeWorkspace, readHostSource } from './host.ts'
 import type { HostWorkspace } from './host.ts'

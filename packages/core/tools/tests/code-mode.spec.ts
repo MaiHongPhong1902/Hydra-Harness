@@ -1,16 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import { createUserMessage, CallId  } from '@bosch/bh-llm'
-import { createScope } from '@bosch/bh-scope'
-import type { Scope } from '@bosch/bh-scope'
-import SystemPrompt from '@bosch/bh-system-prompt'
-import { CodeRuntime } from '@bosch/bh-code-runtime'
-import type { CodeRunRequest, CodeRunResult } from '@bosch/bh-code-runtime'
-import ToolRuntime, { CodeRunFailedError, RUN_CODE_NAME, TOOL_ABORTED_BEFORE_DISPATCH, defineContentToolFixture, defineTool } from '@bosch/bh-tools'
-import type { Config, JsonSchemaNode, PostToolDecision, ToolExecutionResult } from '@bosch/bh-tools'
-import type { Agent } from '@bosch/bh-agent'
-import { Session, SessionId } from '@bosch/bh-session'
-import type { JsonValue, SessionEventMap } from '@bosch/bh-session'
+import { Context } from '@hydra/cordis'
+import { createUserMessage, CallId  } from '@hydra/harness-llm'
+import { createScope } from '@hydra/harness-scope'
+import type { Scope } from '@hydra/harness-scope'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import { CodeRuntime } from '@hydra/harness-code-runtime'
+import type { CodeRunRequest, CodeRunResult } from '@hydra/harness-code-runtime'
+import ToolRuntime, { CodeRunFailedError, RUN_CODE_NAME, TOOL_ABORTED_BEFORE_DISPATCH, defineContentToolFixture, defineTool } from '@hydra/harness-tools'
+import type { Config, JsonSchemaNode, PostToolDecision, ToolExecutionResult } from '@hydra/harness-tools'
+import type { Agent } from '@hydra/harness-agent'
+import { Session, SessionId } from '@hydra/harness-session'
+import type { JsonValue, SessionEventMap } from '@hydra/harness-session'
 
 const testToolSignal = new AbortController().signal
 
@@ -1735,7 +1735,7 @@ describe('per-agent presentation', () => {
   })
 
   it('inherits a STANDING preset scope\'s mode down the chain, agents beside it unaffected', async () => {
-    const { bindScopeParent } = await import('@bosch/bh-scope')
+    const { bindScopeParent } = await import('@hydra/harness-scope')
     const { ctx, systemPrompt } = await setup({ mode: 'native' })
     const calls = registerEcho(ctx)
     // The preset's standing scope declares once; the agent only PARENTS to it

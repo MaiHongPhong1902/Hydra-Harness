@@ -10,8 +10,8 @@
  * (`LlmRuntime.registerAdapter`), not the single-service bash executor.
  *
  * This package owns the Service Definition role of the capability seam. Service Providers
- * (`@bosch/bh-subagent-spawn-in-process`, `-fork`, `-acp`) and the model-facing
- * consumer (`@bosch/bh-tool-subagent`) are separate packages.
+ * (`@hydra/harness-subagent-spawn-in-process`, `-fork`, `-acp`) and the model-facing
+ * consumer (`@hydra/harness-tool-subagent`) are separate packages.
  *
  * Public operations express caller intent: `start` returns one published owned
  * one-shot run, `startContinuable` establishes a durable continuable child, and
@@ -28,16 +28,16 @@
  * serialization and hostile-input validation belong at real process, worker,
  * persistence, and model boundaries.
  *
- * @module @bosch/bh-subagent
+ * @module @hydra/harness-subagent
  */
 
-import { Context, Service } from '@bosch/cordis'
-import { scopeTarget } from '@bosch/bh-scope'
-import type { Scoped } from '@bosch/bh-scope'
-import { assertObjectJsonSchema } from '@bosch/bh-tools'
-import type { ContentBlock, MessageId } from '@bosch/bh-llm'
-import type { Agent } from '@bosch/bh-agent'
-import type { SessionId } from '@bosch/bh-session'
+import { Context, Service } from '@hydra/cordis'
+import { scopeTarget } from '@hydra/harness-scope'
+import type { Scoped } from '@hydra/harness-scope'
+import { assertObjectJsonSchema } from '@hydra/harness-tools'
+import type { ContentBlock, MessageId } from '@hydra/harness-llm'
+import type { Agent } from '@hydra/harness-agent'
+import type { SessionId } from '@hydra/harness-session'
 import type {
   ContinuableCreateRequest,
   ContinuableCreateSpec,
@@ -126,7 +126,7 @@ export type { SubagentDescendantListEntry, SubagentListEntry } from './list-chil
 export type { SubagentRunEndInfo, SubagentRunInfo } from './types.ts'
 export type { SubagentIdentityProjection, SubagentTimingProjection } from './projection-types.ts'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     subagents: SubagentRuntime
   }

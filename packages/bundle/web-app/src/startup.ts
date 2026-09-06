@@ -3,12 +3,12 @@
  * family (`--host`, `--port`, `--trusted-host`, `--no-open`) and its `--help`
  * text, then provides the immutable values as {@link WEB_STARTUP_SERVICE}.
  * Ordinary rows inject that service before reading it from lazy config.
- * @module @bosch/bh-web-app/startup
+ * @module @hydra/harness-web-app/startup
  */
 
 import { Command } from 'commander'
-import type { Context } from '@bosch/cordis'
-import { parseCmdline } from '@bosch/bh-cmdline'
+import type { Context } from '@hydra/cordis'
+import { parseCmdline } from '@hydra/harness-cmdline'
 
 /** Stable Cordis plugin name. */
 export const name = 'web-startup'
@@ -46,7 +46,7 @@ interface WebOptions {
 function webCommand(): Command {
   return new Command()
     .name('bh --profile web')
-    .description('Serve the Bosch Harness browser UI.')
+    .description('Serve the Hydra harness browser UI.')
     .helpOption('-h, --help', 'show this help')
     .option('--host <host>', 'bind host')
     .option('--no-open', 'do not open the Web UI in the default browser')

@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-llm-replay`.
- * @module @bosch/bh-llm-replay/invariant
+ * Package-owned invariant companion for `@hydra/harness-llm-replay`.
+ * @module @hydra/harness-llm-replay/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-llm-replay'
+const PACKAGE_NAME = '@hydra/harness-llm-replay'
 
 /** Cordis companion plugin name. */
 export const name = 'llm-replay-invariant'

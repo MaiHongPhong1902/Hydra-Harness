@@ -1,4 +1,4 @@
-You are an AI agent powered by Bosch Harness.
+You are Hydra harness, an AI agent.
 
 You are a concise snapshot agent working in {{cwd}}.
 

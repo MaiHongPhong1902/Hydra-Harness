@@ -1,16 +1,16 @@
 /**
  * Safe HTTP(S) retrieval for `ctx.web`: validates URLs, follows only same-origin redirects,
  * enforces time and size limits, classifies and decodes text, and leaves presentation to
- * `@bosch/bh-tool-web`. Requests carry no browser cookies or ambient credentials.
+ * `@hydra/harness-tool-web`. Requests carry no browser cookies or ambient credentials.
  *
  * Private-network and SSRF protection is not implemented; do not enable this provider where
  * it can reach sensitive internal targets.
- * @module @bosch/bh-web-fetch-http/provider
+ * @module @hydra/harness-web-fetch-http/provider
  */
 
-import { WebError } from '@bosch/bh-web'
-import type { WebFetchBody, WebFetchProvider, WebFetchRequest, WebFetchResult } from '@bosch/bh-web'
-import { deadline, timeoutOf } from '@bosch/bh-timeout'
+import { WebError } from '@hydra/harness-web'
+import type { WebFetchBody, WebFetchProvider, WebFetchRequest, WebFetchResult } from '@hydra/harness-web'
+import { deadline, timeoutOf } from '@hydra/harness-timeout'
 import { classifyContentType, decoderForCharset, isSameOrigin, parseCharset, validateFetchUrl } from './policy.ts'
 
 /** Resolved provider limits (the plugin's schemastery Config supplies defaults). */

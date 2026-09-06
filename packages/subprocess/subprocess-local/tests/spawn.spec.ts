@@ -9,8 +9,8 @@ import {
   spawnSubprocess,
   taskkillProcessTree,
 } from '../src/spawn.ts'
-import type { SubprocessHandle, SubprocessOutputReader } from '@bosch/bh-subprocess'
-import { MAX_TIMER_DELAY_MS } from '@bosch/bh-timeout'
+import type { SubprocessHandle, SubprocessOutputReader } from '@hydra/harness-subprocess'
+import { MAX_TIMER_DELAY_MS } from '@hydra/harness-timeout'
 
 /**
  * Translate the suite's POSIX command strings into node one-liners on Windows,
@@ -754,8 +754,8 @@ describe.skipIf(process.platform === 'win32')('tree-survivor escalation (termina
   })
 
   it('service teardown awaits tree survivors, not just handle settlement', async () => {
-    const { Context } = await import('@bosch/cordis')
-    const { default: LocalSubprocessRuntime } = await import('@bosch/bh-subprocess-local')
+    const { Context } = await import('@hydra/cordis')
+    const { default: LocalSubprocessRuntime } = await import('@hydra/harness-subprocess-local')
     const ctx = new Context()
     const fiber = await ctx.plugin(LocalSubprocessRuntime)
     ;(ctx.subprocess as InstanceType<typeof LocalSubprocessRuntime>).internals = { spillDir }
@@ -1038,7 +1038,7 @@ describe('abort edge cases', () => {
 })
 
 describe('environment and spill-file hardening', () => {
-  it('scrubs credential-shaped and ambient BH env vars from child processes', async () => {
+  it('scrubs credential-shaped and ambient Hydra env vars from child processes', async () => {
     process.env.BH_TEST_API_KEY = 'super-secret'
     process.env.BH_TEST_TOKEN = 'also-secret'
     process.env.SUBPROCESS_TEST_PASSWORD = 'password-secret'

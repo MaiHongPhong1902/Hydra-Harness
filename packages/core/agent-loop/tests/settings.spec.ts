@@ -1,16 +1,16 @@
 /** The `agent-loop` settings section layered over the composition entry. */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import type { Fiber } from '@bosch/cordis'
-import LlmRuntime from '@bosch/bh-llm'
-import SessionStore from '@bosch/bh-session'
-import SystemPrompt from '@bosch/bh-system-prompt'
-import ToolRuntime from '@bosch/bh-tools'
-import AgentRegistry from '@bosch/bh-agent'
-import { SettingsProvider } from '@bosch/bh-settings'
-import type { SettingsNamespace } from '@bosch/bh-settings'
-import AgentLoop, { AGENT_LOOP_SETTINGS_NAMESPACE } from '@bosch/bh-agent-loop'
+import { Context } from '@hydra/cordis'
+import type { Fiber } from '@hydra/cordis'
+import LlmRuntime from '@hydra/harness-llm'
+import SessionStore from '@hydra/harness-session'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import ToolRuntime from '@hydra/harness-tools'
+import AgentRegistry from '@hydra/harness-agent'
+import { SettingsProvider } from '@hydra/harness-settings'
+import type { SettingsNamespace } from '@hydra/harness-settings'
+import AgentLoop, { AGENT_LOOP_SETTINGS_NAMESPACE } from '@hydra/harness-agent-loop'
 
 /** The smallest real provider: one in-memory document, always writable. */
 class MemorySettings extends SettingsProvider {

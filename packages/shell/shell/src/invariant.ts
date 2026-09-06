@@ -1,9 +1,9 @@
-/** Package-owned invariant companion for the bash seam. @module @bosch/bh-shell/invariant */
+/** Package-owned invariant companion for the bash seam. @module @hydra/harness-shell/invariant */
 
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-shell'
+const PACKAGE_NAME = '@hydra/harness-shell'
 
 /** Cordis companion plugin name. */
 export const name = 'shell-invariant'

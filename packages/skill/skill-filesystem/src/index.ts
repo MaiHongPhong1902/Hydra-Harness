@@ -6,32 +6,31 @@
  * user roots, parses YAML frontmatter, and loads bodies through `ctx.fs` when a
  * filesystem service is present.
  *
- * @module @bosch/bh-skill-filesystem
+ * @module @hydra/harness-skill-filesystem
  */
 
 import { access, lstat, readdir, readFile, stat } from 'node:fs/promises'
 import { unwatchFile, watchFile, type Stats } from 'node:fs'
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { homedir } from 'node:os'
-import type { Context } from '@bosch/cordis'
+import type { Context } from '@hydra/cordis'
 import chokidar from 'chokidar'
-import z from '@bosch/schemastery'
-import type Schema from '@bosch/schemastery'
-import { parse as parseYaml } from 'yaml'
-import type { FileSystem, FsDirEntry, FsTarget } from '@bosch/bh-fs'
-import { canonicalizeWatchPath, resolveBhHome } from '@bosch/bh-home-paths'
+import z from '@hydra/schemastery'
+import type Schema from '@hydra/schemastery'
+import type { FileSystem, FsDirEntry, FsTarget } from '@hydra/harness-fs'
+import { canonicalizeWatchPath, resolveBhHome } from '@hydra/harness-home-paths'
 import {
   BUNDLED_SKILL_RANK,
-  isSkillName,
+  parseSkillDocument,
+  type SkillDocument,
   type SkillCandidate,
   type SkillDefinition,
-  type SkillInvocationPolicy,
   type SkillLookupOptions,
   type SkillProvider,
   type SkillProviderControl,
   type SkillProviderObservation,
   type SkillSource,
-} from '@bosch/bh-skill'
+} from '@hydra/harness-skill'
 
 const PROJECT_BH_RANK = 100
 const PROJECT_AGENTS_RANK = 200
@@ -51,7 +50,7 @@ export interface Config {
   providerName?: string
   /** Whether project and user roots are included around custom roots. */
   includeDefaultRoots?: boolean
-  /** Bosch Harness config root. Defaults to `$BH_HOME` or `~/.bh`. */
+  /** Hydra harness config root. Defaults to `$BH_HOME` or `~/.bh`. */
   bhHome?: string
   /** Shared agent config root. Defaults to `$BH_AGENTS_HOME` or `~/.agents`. */
   agentsHome?: string
@@ -101,15 +100,6 @@ interface SkillRootEntry {
   name: string
   type: 'directory' | 'file' | 'other'
   path: string
-}
-
-interface ParsedSkill {
-  name: string
-  description: string
-  whenToUse?: string
-  invocation: SkillInvocationPolicy
-  metadata?: Record<string, unknown>
-  content: string
 }
 
 interface LocalLocator {
@@ -790,47 +780,17 @@ async function listSkillRootEntriesFromNode(root: SkillRoot, ctx: Context): Prom
   return result
 }
 
-async function parseSkillFile(path: string, ctx: Context, signal?: AbortSignal, trustedHost = false): Promise<ParsedSkill | undefined> {
+async function parseSkillFile(path: string, ctx: Context, signal?: AbortSignal, trustedHost = false): Promise<SkillDocument | undefined> {
   const raw = await readSkillText(ctx, path, signal, trustedHost)
   signal?.throwIfAborted()
   if (raw === undefined) {
     return undefined
   }
-  let parsed
   try {
-    parsed = parseFrontmatter(raw)
+    return parseSkillDocument(raw)
   } catch (error) {
-    ctx.logger.warn(`skill file ${path} ignored: invalid YAML frontmatter: ${errorMessage(error)}`)
+    ctx.logger.warn(`skill file ${path} ignored: ${errorMessage(error)}`)
     return undefined
-  }
-  if (!parsed) {
-    ctx.logger.warn(`skill file ${path} ignored: missing YAML frontmatter`)
-    return undefined
-  }
-  const name = stringField(parsed.data, 'name')
-  const description = stringField(parsed.data, 'description')
-  if (name === undefined || description === undefined) {
-    ctx.logger.warn(`skill file ${path} ignored: frontmatter requires name and description`)
-    return undefined
-  }
-  if (!isSkillName(name)) {
-    ctx.logger.warn(`skill file ${path} ignored: invalid skill name "${name}"`)
-    return undefined
-  }
-  let invocation
-  try {
-    invocation = parseInvocationPolicy(parsed.data)
-  } catch (error) {
-    ctx.logger.warn(`skill file ${path} ignored: invalid invocation frontmatter: ${errorMessage(error)}`)
-    return undefined
-  }
-  return {
-    name,
-    description,
-    ...optionalString(parsed.data, 'whenToUse'),
-    invocation,
-    ...optionalMetadata(parsed.data),
-    content: parsed.body.trim(),
   }
 }
 
@@ -906,34 +866,6 @@ async function nodeEntryKind(fullPath: string, entry: { isDirectory(): boolean; 
   }
 }
 
-function parseFrontmatter(raw: string): { data: Record<string, unknown>; body: string } | undefined {
-  const firstLineEnd = raw.indexOf('\n')
-  if (firstLineEnd < 0) return undefined
-  const firstLine = raw.slice(0, firstLineEnd).replace(/\r$/, '')
-  if (firstLine !== '---') return undefined
-  const start = firstLineEnd + 1
-  const closing = findClosingFrontmatter(raw, start)
-  if (closing === undefined) return undefined
-  const yaml = raw.slice(start, closing.start)
-  const parsed = parseYaml(yaml) as unknown
-  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return undefined
-  return { data: parsed as Record<string, unknown>, body: raw.slice(closing.bodyStart) }
-}
-
-function findClosingFrontmatter(raw: string, start: number): { start: number; bodyStart: number } | undefined {
-  let lineStart = start
-  while (lineStart <= raw.length) {
-    const nextNewline = raw.indexOf('\n', lineStart)
-    const lineEnd = nextNewline < 0 ? raw.length : nextNewline
-    const line = raw.slice(lineStart, lineEnd).replace(/\r$/, '')
-    if (line === '---') {
-      return { start: lineStart, bodyStart: nextNewline < 0 ? raw.length : nextNewline + 1 }
-    }
-    if (nextNewline < 0) return undefined
-    lineStart = nextNewline + 1
-  }
-}
-
 async function findProjectRoot(cwd: string, fs: FileSystem | undefined): Promise<string> {
   let current = cwd
   while (true) {
@@ -977,63 +909,6 @@ async function pathExistsInNode(path: string): Promise<boolean> {
     // Missing host paths are expected while walking toward the filesystem root.
     return false
   }
-}
-
-function stringField(data: Record<string, unknown>, key: string): string | undefined {
-  const value = data[key]
-  return typeof value === 'string' && value.length > 0 ? value : undefined
-}
-
-function optionalString(data: Record<string, unknown>, key: string): { [K in typeof key]?: string } {
-  const value = data[key]
-  return typeof value === 'string' && value.length > 0 ? { [key]: value } : {}
-}
-
-function parseInvocationPolicy(data: Record<string, unknown>): SkillInvocationPolicy {
-  rejectLegacyInvocationKey(data, 'disableModelInvocation', 'disable-model-invocation')
-  rejectLegacyInvocationKey(data, 'modelInvocable', 'disable-model-invocation')
-  rejectLegacyInvocationKey(data, 'userInvocable', 'user-invocable')
-  const disableModelInvocation = frontmatterBoolean(data, 'disable-model-invocation')
-  const userInvocable = frontmatterBoolean(data, 'user-invocable')
-  return {
-    modelInvocable: disableModelInvocation !== true,
-    userInvocable: userInvocable !== false,
-  }
-}
-
-function rejectLegacyInvocationKey(data: Record<string, unknown>, legacy: string, canonical: string): void {
-  if (Object.hasOwn(data, legacy)) {
-    throw new Error(`frontmatter field "${legacy}" is unsupported; use "${canonical}"`)
-  }
-}
-
-function frontmatterBoolean(data: Record<string, unknown>, key: string): boolean | undefined {
-  if (!Object.hasOwn(data, key)) return undefined
-  const value = data[key]
-  if (typeof value === 'boolean') return value
-  if (value === 1 || value === '1') return true
-  if (value === 0 || value === '0') return false
-  if (typeof value === 'string') {
-    switch (value.toLowerCase()) {
-      case 'true':
-      case 'yes':
-      case 'on':
-        return true
-      case 'false':
-      case 'no':
-      case 'off':
-        return false
-    }
-  }
-  throw new TypeError(`frontmatter field "${key}" must be a boolean`)
-}
-
-function optionalMetadata(data: Record<string, unknown>): { metadata?: Record<string, unknown> } {
-  const value = data.metadata
-  if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-    return { metadata: value as Record<string, unknown> }
-  }
-  return {}
 }
 
 function errorMessage(error: unknown): string {

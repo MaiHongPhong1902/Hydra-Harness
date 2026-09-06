@@ -20,7 +20,7 @@ Unit coverage pins command defaults, `--no-open`, SSH suppression, readiness ord
 
 **Open from the CLI launcher** — rejected because the launcher deliberately knows only profile selection and cannot derive the OS-assigned port or the app-owned Loader settlement point without reversing the app-owned command-line decision.
 
-**Open from `bh-host-webserver` when its socket binds** — rejected because that package is a generic route carrier with no shell or frontend knowledge, and socket readiness precedes application readiness.
+**Open from `@hydra/harness-host-webserver` when its socket binds** — rejected because that package is a generic route carrier with no shell or frontend knowledge, and socket readiness precedes application readiness.
 
 **Infer whether to open from TTY, CI, editor, display, container, or WSL variables** — rejected because those signals do not establish a host/browser split and misclassify detached terminals and desktop launches. Non-empty `SSH_CONNECTION` or `SSH_TTY` is narrower evidence: it identifies a remote host whose loopback URL is not the forwarding owner's local URL. The default plus explicit `--no-open` remains stable for non-SSH launches.
 

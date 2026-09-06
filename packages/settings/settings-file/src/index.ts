@@ -4,18 +4,18 @@
  * through the seam, and every write re-reads the document under a
  * cross-process writer lock before patching it as a comment-preserving
  * leaf-level diff.
- * @module @bosch/bh-settings-file
+ * @module @hydra/harness-settings-file
  */
 
-import { Context, Service } from '@bosch/cordis'
-import z from '@bosch/schemastery'
+import { Context, Service } from '@hydra/cordis'
+import z from '@hydra/schemastery'
 import { watch as chokidarWatch } from 'chokidar'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, extname, join, resolve } from 'node:path'
 import { Document, parseDocument } from 'yaml'
-import { withFileLock, writeFileAtomic } from '@bosch/bh-atomic-write'
-import { canonicalizeWatchPath, resolveBhHome } from '@bosch/bh-home-paths'
-import { SettingsProvider, deepEqualJson, type SettingsNamespace } from '@bosch/bh-settings'
+import { withFileLock, writeFileAtomic } from '@hydra/harness-atomic-write'
+import { canonicalizeWatchPath, resolveBhHome } from '@hydra/harness-home-paths'
+import { SettingsProvider, deepEqualJson, type SettingsNamespace } from '@hydra/harness-settings'
 
 /** Plugin config: file location and hot-reload behavior. */
 export interface Config {

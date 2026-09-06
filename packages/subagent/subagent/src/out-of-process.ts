@@ -6,14 +6,14 @@
  * session's workspace), the never-reject result settlement, and the standard
  * run-handle publication. Backends compose these with their own wire drivers;
  * the process machinery itself (spawn, env scrub, tree-scoped teardown)
- * belongs to the `bh-subprocess` seam.
+ * belongs to the `@hydra/harness-subprocess` seam.
  *
- * @module @bosch/bh-subagent/out-of-process
+ * @module @hydra/harness-subagent/out-of-process
  */
 
 import { accessSync, constants, statSync } from 'node:fs'
 import { isAbsolute, resolve } from 'node:path'
-import type { ContentBlock } from '@bosch/bh-llm'
+import type { ContentBlock } from '@hydra/harness-llm'
 import type { SubagentCapabilities, SubagentResult, SubagentRun, SubagentStopReason } from './types.ts'
 
 /** Maximum UTF-8 size of {@link SubagentResult.diagnostic}. */

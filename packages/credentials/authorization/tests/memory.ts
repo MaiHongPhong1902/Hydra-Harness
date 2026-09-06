@@ -1,4 +1,4 @@
-import { CredentialProvider } from '@bosch/bh-credentials'
+import { CredentialProvider } from '@hydra/harness-credentials'
 import type {
   CredentialInfo,
   CredentialKey,
@@ -7,7 +7,7 @@ import type {
   CredentialRecordInfo,
   CredentialRef,
   ResolvedCredential,
-} from '@bosch/bh-credentials'
+} from '@hydra/harness-credentials'
 
 /**
  * In-memory credentials provider for the authorization suite. Only the record

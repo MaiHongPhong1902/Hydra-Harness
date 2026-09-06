@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-tool-lsp`.
- * @module @bosch/bh-tool-lsp/invariant
+ * Package-owned invariant companion for `@hydra/harness-tool-lsp`.
+ * @module @hydra/harness-tool-lsp/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-tool-lsp'
+const PACKAGE_NAME = '@hydra/harness-tool-lsp'
 
 /** Cordis companion plugin name. */
 export const name = 'tool-lsp-invariant'

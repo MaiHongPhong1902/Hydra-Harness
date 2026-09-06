@@ -5,8 +5,8 @@
  * echoing that rpcId, with no resource id in the payload (rpcId suffices).
  */
 
-import type { AskUserQuestionAnswer } from '@bosch/bh-user-questions/types'
-import type { SessionId } from '@bosch/bh-session/types'
+import type { AskUserQuestionAnswer } from '@hydra/harness-user-questions/types'
+import type { SessionId } from '@hydra/harness-session/types'
 
 /**
  * Question answer payload (the result.value slot of a client-response):

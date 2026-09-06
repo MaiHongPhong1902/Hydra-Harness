@@ -3,11 +3,11 @@
  * the stored records. The companion reads the authoritative projection off the
  * reconciliation event, so a violation is observable without re-deriving it.
  */
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { describe, expect, it } from 'vitest'
-import InvariantRegistry from '@bosch/bh-invariants'
-import type { McpServerSnapshot } from '@bosch/bh-mcp-registry/src/types.ts'
-import * as McpRegistryInvariant from '@bosch/bh-mcp-registry/src/invariant.ts'
+import InvariantRegistry from '@hydra/harness-invariants'
+import type { McpServerSnapshot } from '@hydra/harness-mcp-registry/src/types.ts'
+import * as McpRegistryInvariant from '@hydra/harness-mcp-registry/src/invariant.ts'
 
 /** One projection with the enablement and status a caller wants to test. */
 function snapshot(enabled: boolean, status: McpServerSnapshot['servers'][number]['status']): McpServerSnapshot {

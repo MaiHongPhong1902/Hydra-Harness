@@ -1,15 +1,15 @@
 # Keyless counterpart to depth-two.cordis.yml: apply the depth patch and replace
 # the live adapter with per-session replay.
 - id: base
-  name: '@bosch/cordis-plugin-include'
+  name: '@hydra/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - id: llm-deepseek
-        name: '@bosch/bh-llm-deepseek'
+        name: '@hydra/harness-llm-deepseek'
         disabled: true
       - id: sandbox
-        name: '@bosch/bh-sandbox-local'
+        name: '@hydra/harness-sandbox-local'
         config:
           runnerCommand:
             - bash
@@ -19,7 +19,7 @@
           runnerFailureSignatures:
             - 'passthrough-runner: profile rejected'
       - id: tool-subagent
-        name: '@bosch/bh-tool-subagent'
+        name: '@hydra/harness-tool-subagent'
         config:
           provider: spawn
           toolName: subagent
@@ -29,7 +29,7 @@
       # scenario's corpus was captured on flash. A config patch replaces the
       # whole app config, so the base fields are restated verbatim.
       - id: acp-agent
-        name: '@bosch/bh-acp-demo'
+        name: '@hydra/harness-acp-demo'
         config:
           provider: deepseek-official
           model: deepseek-v4-flash
@@ -43,7 +43,7 @@
             Verify your work by running the code or tests. Keep answers brief and factual.
       - insert:
           - id: llm-replay
-            name: '@bosch/bh-llm-replay'
+            name: '@hydra/harness-llm-replay'
             config:
               providers:
                 - id: deepseek-official

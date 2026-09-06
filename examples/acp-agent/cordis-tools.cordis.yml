@@ -1,12 +1,12 @@
 # Add the self-referential Cordis tools without changing the base ACP tool
 # presentation mode.
 - id: base
-  name: '@bosch/cordis-plugin-include'
+  name: '@hydra/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - insert:
           - id: cordis-host-runner
-            name: '@bosch/bh-cordis-host-runner'
+            name: '@hydra/harness-cordis-host-runner'
           - id: tool-cordis
-            name: '@bosch/bh-tool-cordis'
+            name: '@hydra/harness-tool-cordis'

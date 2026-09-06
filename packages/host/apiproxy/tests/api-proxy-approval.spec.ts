@@ -7,17 +7,17 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import AgentRegistry from '@bosch/bh-agent'
-import type { Agent } from '@bosch/bh-agent'
-import SessionStore from '@bosch/bh-session'
-import SystemPrompt from '@bosch/bh-system-prompt'
-import UserQuestionService from '@bosch/bh-user-questions'
-import ApprovalService from '@bosch/bh-user-approval'
-import type { ApprovalRequestId } from '@bosch/bh-user-approval'
-import type { ApiProxy, MuxFrame, RpcRequest } from '@bosch/bh-host-apiproxy/api'
-import type { RpcId } from '@bosch/bh-host-apiproxy/api/rpc'
-import { RpcId as mintRpcId } from '@bosch/bh-host-apiproxy/api/rpc'
+import { Context } from '@hydra/cordis'
+import AgentRegistry from '@hydra/harness-agent'
+import type { Agent } from '@hydra/harness-agent'
+import SessionStore from '@hydra/harness-session'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import UserQuestionService from '@hydra/harness-user-questions'
+import ApprovalService from '@hydra/harness-user-approval'
+import type { ApprovalRequestId } from '@hydra/harness-user-approval'
+import type { ApiProxy, MuxFrame, RpcRequest } from '@hydra/harness-host-apiproxy/api'
+import type { RpcId } from '@hydra/harness-host-apiproxy/api/rpc'
+import { RpcId as mintRpcId } from '@hydra/harness-host-apiproxy/api/rpc'
 import { createApiProxy } from '../src/api-proxy.ts'
 
 async function harness(): Promise<{ ctx: Context; api: ApiProxy }> {

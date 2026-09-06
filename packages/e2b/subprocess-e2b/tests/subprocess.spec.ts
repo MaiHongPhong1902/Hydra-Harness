@@ -1,5 +1,5 @@
 import { once } from 'node:events'
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import {
   CommandExitError,
   FileNotFoundError,
@@ -7,14 +7,14 @@ import {
   type CommandHandle,
   type CommandResult,
   type Sandbox,
-} from '@bosch/bh-e2b'
-import type E2BRuntime from '@bosch/bh-e2b'
-import type { SubprocessSpawnSpec } from '@bosch/bh-subprocess'
-import E2BSubprocessRuntime from '@bosch/bh-subprocess-e2b'
+} from '@hydra/harness-e2b'
+import type E2BRuntime from '@hydra/harness-e2b'
+import type { SubprocessSpawnSpec } from '@hydra/harness-subprocess'
+import E2BSubprocessRuntime from '@hydra/harness-subprocess-e2b'
 import * as E2BSubprocessInvariant from '../src/invariant.ts'
 import { E2BBase64Decoder, E2B_OUTPUT_COMPLETE_FRAME, E2BOutputReader } from '../src/output.ts'
 import { E2BSubprocessHandle } from '../src/process.ts'
-import InvariantRegistry from '@bosch/bh-invariants'
+import InvariantRegistry from '@hydra/harness-invariants'
 import { describe, expect, it, vi } from 'vitest'
 
 function commandError(exitCode: number): CommandExitError {

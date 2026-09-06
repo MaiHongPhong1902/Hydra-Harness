@@ -10,7 +10,7 @@
  * mounted for the seat to exist. Data only — this module is the one legitimate
  * meeting point of the two planes, so it carries strings, never client imports.
  *
- * @module @bosch/bh-cordis-client-runner/client/slot-catalog
+ * @module @hydra/harness-cordis-client-runner/client/slot-catalog
  */
 
 /* jscpd:ignore-start */
@@ -488,7 +488,7 @@ export const CLIENT_SLOT_API: readonly ClientSlotEntry[] = [
     kind: 'single',
     scope: 'root',
     summary: 'Brand mark leading the blank-session headline.',
-    doc: 'Brand mark leading the blank-session headline. Declared by this\npackage\'s `conversation` entry; the shell supplies a fish fallback.',
+    doc: 'Brand mark leading the blank-session headline. Declared by this\npackage\'s `conversation` entry; the shell supplies a Hydra fallback.',
     registerOptions: [],
     ownerProps: [
       '/** Presentation props supplied to the blank-session brand-mark occupant. */\nexport interface HeroBrandMarkOwnerProps {\n  /** Requested square edge in pixels. */\n  size: number\n  /** Host CSS class for preserving the default hero mark color and hover motion. */\n  className?: string | undefined\n}',
@@ -1364,7 +1364,7 @@ export const CLIENT_SLOT_API: readonly ClientSlotEntry[] = [
     ],
     replaceRisk: 'none',
     example: 'return {\n  inject: [\'slots\'],\n  apply(ctx) {\n    ctx.slots.inject(\'settings.general.item\', () => ctx.slots.register(\n      { name: \'settings.general.item\', id: \'my-entry\', order: 100, label: \'My entry\' },\n      () => React.createElement(\'div\', null, \'hello\'),\n    ))\n  },\n}',
-    source: 'packages/client/ui-settings/src/client/contract/slots.ts:97',
+    source: 'packages/client/ui-settings/src/client/contract/slots.ts:108',
   },
   {
     key: 'settings.header',
@@ -1436,7 +1436,7 @@ export const CLIENT_SLOT_API: readonly ClientSlotEntry[] = [
     ],
     replaceRisk: 'none',
     example: 'return {\n  inject: [\'slots\'],\n  apply(ctx) {\n    ctx.slots.inject(\'settings.onboarding\', () => ctx.slots.register(\n      { name: \'settings.onboarding\', id: \'my-entry\', order: 100, label: \'My entry\' },\n      () => React.createElement(\'div\', null, \'hello\'),\n    ))\n  },\n}',
-    source: 'packages/client/ui-settings/src/client/contract/slots.ts:82',
+    source: 'packages/client/ui-settings/src/client/contract/slots.ts:93',
   },
   {
     key: 'settings.plugin.item',
@@ -1474,6 +1474,51 @@ export const CLIENT_SLOT_API: readonly ClientSlotEntry[] = [
     source: 'packages/client/ui-settings-plugins/src/client/slot-contract.ts:19',
   },
   {
+    key: 'settings.plugins.hooks.item',
+    kind: 'list',
+    scope: 'root',
+    summary: 'Feature-owned catalog sections inside the Plugins section\'s Hooks page.',
+    doc: 'Feature-owned catalog sections inside the Plugins section\'s Hooks page.\nThe Hooks tab (ui-settings-plugins) stacks its own user-record catalog\nand these contributions; each item owns its heading, rows, and writes.\nDeclared at runtime by that tab; the type lives here so the inventory\nplugin contributes its imported-bundle hooks catalog without depending\non the tab owner (same rationale as `settings.plugins.tab`). Each item\nreceives the section\'s shared search text as `query` and filters its own\nrows against it.',
+    registerOptions: [
+      {
+        name: 'id',
+        requirement: 'required',
+        type: 'string',
+        doc: 'Your cell key. Use an id of your own: a fresh id is added beside the shipped entries, while reusing a shipped id puts you in THAT cell and replaces it. Owners that filter by id address you by it.',
+      },
+      {
+        name: 'order',
+        requirement: 'optional',
+        type: 'number',
+        doc: 'Position among the entries, ascending (default 0).',
+      },
+      {
+        name: 'label',
+        requirement: 'optional',
+        type: 'string | (() => string)',
+        doc: 'Display text where the owner projects one (nav rows, tabs). A thunk is re-read on every projection, so localized text follows the active locale without re-registering.',
+      },
+    ],
+    ownerProps: [
+      '/** Owner share of a Plugins tab: selection and the section\'s shared search box. */\nexport interface SettingsPluginsTabOwnerProps {\n  /** Whether this tab is selected; retained tabs refresh Host lists when selected again. */\n  active: boolean\n  /** Current text of the section-level search box; empty string matches everything. */\n  query: string\n}',
+    ],
+    ownerPropsReferences: [],
+    standardProps: [
+      'useSessions: SnapshotSelectorHook<SessionListState>',
+      'useWorkspaces: SnapshotSelectorHook<import(\'./workspaces/service.ts\').WorkspaceListState>',
+    ],
+    keyDomain: '',
+    hookContext: '',
+    slotInject: '',
+    declaredBy: 'an entry in \'settings.plugins.tab\' (client-ui-settings-plugins), so it exists while that entry is mounted',
+    occupants: [
+      'client-ui-settings-plugin-inventory ImportedPluginCapabilitiesTab id \'imported-hooks\'',
+    ],
+    replaceRisk: 'none',
+    example: 'return {\n  inject: [\'slots\'],\n  apply(ctx) {\n    ctx.slots.inject(\'settings.plugins.hooks.item\', () => ctx.slots.register(\n      { name: \'settings.plugins.hooks.item\', id: \'my-entry\', order: 100, label: \'My entry\' },\n      () => React.createElement(\'div\', null, \'hello\'),\n    ))\n  },\n}',
+    source: 'packages/client/ui-settings/src/client/contract/slots.ts:82',
+  },
+  {
     key: 'settings.plugins.tab',
     kind: 'list',
     scope: 'root',
@@ -1500,7 +1545,7 @@ export const CLIENT_SLOT_API: readonly ClientSlotEntry[] = [
       },
     ],
     ownerProps: [
-      '/** Owner share of a Plugins tab: the section\'s one shared search box. */\nexport interface SettingsPluginsTabOwnerProps {\n  /** Current text of the section-level search box; empty string matches everything. */\n  query: string\n}',
+      '/** Owner share of a Plugins tab: selection and the section\'s shared search box. */\nexport interface SettingsPluginsTabOwnerProps {\n  /** Whether this tab is selected; retained tabs refresh Host lists when selected again. */\n  active: boolean\n  /** Current text of the section-level search box; empty string matches everything. */\n  query: string\n}',
     ],
     ownerPropsReferences: [],
     standardProps: [
@@ -1514,11 +1559,10 @@ export const CLIENT_SLOT_API: readonly ClientSlotEntry[] = [
     occupants: [
       'client-ui-settings-plugin-inventory MarketplaceSettingsTab id \'marketplace\'',
       'client-ui-settings-plugin-inventory ImportedPluginCapabilitiesTab id \'skills\'',
-      'client-ui-settings-plugin-inventory ImportedPluginCapabilitiesTab id \'hooks\'',
       'client-ui-settings-plugin-inventory PluginInventorySettingsTab id \'all\'',
       'client-ui-settings-plugins ConfigurablePluginsTab id \'configurable\'',
       'client-ui-settings-plugins McpSettingsTab id \'mcp\'',
-      'client-ui-settings-plugins UserHooksSettingsTab id \'user-hooks\'',
+      'client-ui-settings-plugins HooksSettingsTab id \'hooks\'',
     ],
     replaceRisk: 'none',
     example: 'return {\n  inject: [\'slots\'],\n  apply(ctx) {\n    ctx.slots.inject(\'settings.plugins.tab\', () => ctx.slots.register(\n      { name: \'settings.plugins.tab\', id: \'my-entry\', order: 100, label: \'My entry\' },\n      () => React.createElement(\'div\', null, \'hello\'),\n    ))\n  },\n}',

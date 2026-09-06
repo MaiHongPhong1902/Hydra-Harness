@@ -1,10 +1,10 @@
 /**
  * Public configuration and measurement vocabulary for replay token metering.
  *
- * @module @bosch/bh-token-meter/types
+ * @module @hydra/harness-token-meter/types
  */
 
-import type { TokenUsage } from '@bosch/bh-llm'
+import type { TokenUsage } from '@hydra/harness-llm'
 
 export type { ContextBreakdownProjection, ContextPressureProjection, TokenUsageProjection } from './projection.ts'
 

@@ -1,13 +1,13 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { Context } from '@bosch/cordis'
-import { bindSnapshotSelector, makeTranslate, stubSettingsScope } from '@bosch/bh-client-test-runtime'
-import { SlotRegistry } from '@bosch/bh-client-runtime/client'
-import { LocaleRuntime } from '@bosch/bh-client-locale/client'
-import { ThemeRuntime, type ThemeSettings } from '@bosch/bh-client-ui-theme/client'
-import { resolveSlotLabel } from '@bosch/bh-client-ui-slots'
-import { apply, inject } from '@bosch/bh-client-ui-layout/client'
+import { Context } from '@hydra/cordis'
+import { bindSnapshotSelector, makeTranslate, stubSettingsScope } from '@hydra/harness-client-test-runtime'
+import { SlotRegistry } from '@hydra/harness-client-runtime/client'
+import { LocaleRuntime } from '@hydra/harness-client-locale/client'
+import { ThemeRuntime, type ThemeSettings } from '@hydra/harness-client-ui-theme/client'
+import { resolveSlotLabel } from '@hydra/harness-client-ui-slots'
+import { apply, inject } from '@hydra/harness-client-ui-layout/client'
 import { BrowserSection } from '../src/client/BrowserSection.tsx'
 import type {
   BrowserSectionInjected, BrowserSectionProps, BrowserSettings,

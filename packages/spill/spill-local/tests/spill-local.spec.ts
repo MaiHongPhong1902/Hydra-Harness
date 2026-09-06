@@ -7,14 +7,14 @@
  */
 
 import { describe, expect, it, beforeEach, afterEach } from 'vitest'
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { mkdtempSync, readFileSync, rmSync, statSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { basename, dirname, isAbsolute, join, normalize } from 'node:path'
-import { CallId } from '@bosch/bh-llm'
-import { SessionId } from '@bosch/bh-session'
-import type { SaveTextSpill } from '@bosch/bh-spill'
-import LocalSpillStore, { encodeSegment, privateRoot, saveTextFile, sessionDir } from '@bosch/bh-spill-local'
+import { CallId } from '@hydra/harness-llm'
+import { SessionId } from '@hydra/harness-session'
+import type { SaveTextSpill } from '@hydra/harness-spill'
+import LocalSpillStore, { encodeSegment, privateRoot, saveTextFile, sessionDir } from '@hydra/harness-spill-local'
 
 let root: string
 

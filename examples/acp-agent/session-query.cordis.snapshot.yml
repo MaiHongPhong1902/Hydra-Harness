@@ -1,12 +1,12 @@
 # Keyless counterpart to session-query.cordis.yml: the nested snapshot overlay
 # supplies replay plus deterministic private spill storage and its byte limit.
 - id: base
-  name: '@bosch/cordis-plugin-include'
+  name: '@hydra/cordis-plugin-include'
   config:
     path: ./fs.cordis.snapshot.yml
     patches:
       - insert:
           - id: tool-session-query
-            name: '@bosch/bh-tool-session-query'
+            name: '@hydra/harness-tool-session-query'
           - id: timeout-policy
-            name: '@bosch/bh-tool-call-timeout-policy'
+            name: '@hydra/harness-tool-call-timeout-policy'

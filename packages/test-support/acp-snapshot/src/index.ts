@@ -13,7 +13,7 @@
  * NOTE: ./suite.ts imports vitest, so this package is importable only inside a
  * vitest run — a support-tier constraint stated in the README.
  *
- * @module @bosch/bh-acp-snapshot
+ * @module @hydra/harness-acp-snapshot
  */
 
 export {

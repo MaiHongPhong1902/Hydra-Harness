@@ -1,10 +1,10 @@
 import { createHash } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { describe, expect, it } from 'vitest'
-import SkillRegistry from '@bosch/bh-skill'
-import * as SkillBadge from '@bosch/bh-skill-badge'
+import SkillRegistry from '@hydra/harness-skill'
+import * as SkillBadge from '@hydra/harness-skill-badge'
 
 describe('bh-skill-badge', () => {
   it('registers and disposes the bundled badge skill', async () => {
@@ -14,27 +14,27 @@ describe('bh-skill-badge', () => {
     const resourcePath = fileURLToPath(new URL('../assets/', import.meta.url))
 
     expect(await ctx.skills.list()).toEqual([{
-      name: 'bh-badge',
-      description: 'Add the official “powered by bh” badge to documents, pull requests, merge requests, and other content produced with Bosch Harness. Use whenever creating a pull request or merge request. Also use when the user asks for a bh badge, powered-by-bh attribution, or a reusable bh badge asset or snippet.',
+      name: 'hydra-badge',
+      description: 'Add the official “powered by Hydra harness” badge to documents, pull requests, merge requests, and other content produced with Hydra harness. Use whenever creating a pull request or merge request. Also use when the user asks for a Hydra badge, powered-by-hydra attribution, or a reusable Hydra badge asset or snippet.',
       invocation: { modelInvocable: true, userInvocable: true },
-      provider: 'bh-badge',
+      provider: 'hydra-badge',
       source: 'bundled',
       resourceBase: { kind: 'directory', path: resourcePath },
     }])
-    const loaded = await ctx.skills.get('bh-badge')
-    expect(loaded?.content).toContain('Preserve the badge\'s 121×20 dimensions')
+    const loaded = await ctx.skills.get('hydra-badge')
+    expect(loaded?.content).toContain('Preserve the badge\'s 180×28 display dimensions')
     expect(loaded?.resourceBase).toEqual({ kind: 'directory', path: resourcePath })
 
     await fiber.dispose()
     expect(await ctx.skills.list()).toEqual([])
   })
 
-  it('ships the official 726×120 PNG unchanged', async () => {
-    const image = await readFile(new URL('../assets/bh-badge.png', import.meta.url))
-    expect(image.readUInt32BE(16)).toBe(726)
-    expect(image.readUInt32BE(20)).toBe(120)
+  it('ships the official 1080×168 Hydra PNG', async () => {
+    const image = await readFile(new URL('../assets/hydra-badge.png', import.meta.url))
+    expect(image.readUInt32BE(16)).toBe(1080)
+    expect(image.readUInt32BE(20)).toBe(168)
     expect(createHash('sha256').update(image).digest('hex')).toBe(
-      'f2c4f5ec9cbe847c0c763545c4d839efa8485bc74203733d0a0e8259f233c653',
+      'ab6cf27bb32b582bad8c5ccac62169ce43203b43903d4b72d0a72b059559980b',
     )
   })
 })

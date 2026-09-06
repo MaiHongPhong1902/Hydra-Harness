@@ -1,6 +1,6 @@
 {
-  "name": "@bosch/bh-hooks-claude-code",
-  "description": "Bridge plugin: run a Claude Code hooks.json / settings hook config on the Bosch Harness interception seams",
+  "name": "@hydra/harness-hooks-claude-code",
+  "description": "Bridge plugin: run a Claude Code hooks.json / settings hook config on the Hydra harness interception seams",
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"
@@ -37,34 +37,34 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@bosch/schemastery": "workspace:^"
+    "@hydra/schemastery": "workspace:^"
   },
   "peerDependencies": {
-    "@bosch/bh-agent": "workspace:^",
-    "@bosch/bh-hook-protocol": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-llm": "workspace:^",
-    "@bosch/bh-session": "workspace:^",
-    "@bosch/bh-session-persistence": "workspace:^",
-    "@bosch/bh-subagent": "workspace:^",
-    "@bosch/bh-tools": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-agent": "workspace:^",
+    "@hydra/harness-hook-protocol": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/harness-session": "workspace:^",
+    "@hydra/harness-session-persistence": "workspace:^",
+    "@hydra/harness-subagent": "workspace:^",
+    "@hydra/harness-tools": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@bosch/bh-agent": "workspace:^",
-    "@bosch/bh-agent-loop": "workspace:^",
-    "@bosch/bh-agent-loop-testkit": "workspace:^",
-    "@bosch/bh-shell": "workspace:^",
-    "@bosch/bh-bash-local": "workspace:^",
-    "@bosch/bh-subprocess-local": "workspace:^",
-    "@bosch/bh-hook-protocol": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-llm": "workspace:^",
-    "@bosch/bh-session": "workspace:^",
-    "@bosch/bh-session-persistence": "workspace:^",
-    "@bosch/bh-session-persistence-jsonl": "workspace:^",
-    "@bosch/bh-subagent": "workspace:^",
-    "@bosch/bh-tools": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-agent": "workspace:^",
+    "@hydra/harness-agent-loop": "workspace:^",
+    "@hydra/harness-agent-loop-testkit": "workspace:^",
+    "@hydra/harness-shell": "workspace:^",
+    "@hydra/harness-bash-local": "workspace:^",
+    "@hydra/harness-subprocess-local": "workspace:^",
+    "@hydra/harness-hook-protocol": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/harness-session": "workspace:^",
+    "@hydra/harness-session-persistence": "workspace:^",
+    "@hydra/harness-session-persistence-jsonl": "workspace:^",
+    "@hydra/harness-subagent": "workspace:^",
+    "@hydra/harness-tools": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   }
 }

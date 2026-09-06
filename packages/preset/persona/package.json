@@ -1,6 +1,6 @@
 {
-  "name": "@bosch/bh-persona",
-  "description": "Composition-authored deployment persona section for the Bosch Harness",
+  "name": "@hydra/harness-persona",
+  "description": "Composition-authored deployment persona section for the Hydra harness",
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"
@@ -32,17 +32,17 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-system-prompt": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-system-prompt": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   },
   "dependencies": {
-    "@bosch/schemastery": "workspace:^"
+    "@hydra/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-scope": "workspace:^",
-    "@bosch/bh-system-prompt": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-scope": "workspace:^",
+    "@hydra/harness-system-prompt": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   }
 }

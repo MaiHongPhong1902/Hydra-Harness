@@ -3,7 +3,7 @@
  * exists so the plugin appears in the host cordis.yml / Loader; the browser
  * half ships via exports["./client"], discovered through the package.json
  * bh.client declaration. The OS chooser it drives lives in
- * `@bosch/bh-host-directory-picker-native`.
+ * `@hydra/harness-host-directory-picker-native`.
  */
 
 /** Host plugin body — no host-side behavior for this surface plugin. */

@@ -8,17 +8,17 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import SessionStore from '@bosch/bh-session'
-import AgentRegistry from '@bosch/bh-agent'
-import type { Agent, AgentHandle, CreateAgentOptions } from '@bosch/bh-agent'
-import { createUserMessage } from '@bosch/bh-llm'
-import SessionTitleService from '@bosch/bh-session-title'
-import UserQuestionService from '@bosch/bh-user-questions'
-import type { Session, SessionId } from '@bosch/bh-session'
-import type { RpcRequest } from '@bosch/bh-host-apiproxy/api/rpc'
-import { RpcId } from '@bosch/bh-host-apiproxy/api/rpc'
-import { createApiProxy } from '@bosch/bh-host-apiproxy'
+import { Context } from '@hydra/cordis'
+import SessionStore from '@hydra/harness-session'
+import AgentRegistry from '@hydra/harness-agent'
+import type { Agent, AgentHandle, CreateAgentOptions } from '@hydra/harness-agent'
+import { createUserMessage } from '@hydra/harness-llm'
+import SessionTitleService from '@hydra/harness-session-title'
+import UserQuestionService from '@hydra/harness-user-questions'
+import type { Session, SessionId } from '@hydra/harness-session'
+import type { RpcRequest } from '@hydra/harness-host-apiproxy/api/rpc'
+import { RpcId } from '@hydra/harness-host-apiproxy/api/rpc'
+import { createApiProxy } from '@hydra/harness-host-apiproxy'
 
 const sid = (id: string): SessionId => id as SessionId
 

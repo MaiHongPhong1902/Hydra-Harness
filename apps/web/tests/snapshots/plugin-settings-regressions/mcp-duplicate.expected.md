@@ -1,0 +1,29 @@
+- dialog "Add MCP server":
+  - heading "Add MCP server" [level=2]
+  - button "Close":
+    - img
+  - paragraph: A new server is saved switched off. Turn it on when you are ready to run it.
+  - text: Name
+  - textbox "Name":
+    - /placeholder: notes
+    - text: regression-server
+  - text: Connection
+  - combobox "Connection":
+    - option "Local command (stdio)" [selected]
+    - option "Remote endpoint (HTTP)"
+  - text: Command
+  - textbox "Command":
+    - /placeholder: npx
+    - text: replacement-command
+  - text: Arguments, one per line
+  - textbox "Arguments, one per line":
+    - /placeholder: "-y\n@modelcontextprotocol/server-filesystem"
+  - text: Working directory
+  - textbox "Working directory"
+  - text: Environment, one NAME=value per line
+  - textbox "Environment, one NAME=value per line":
+    - /placeholder: API_TOKEN=…
+  - paragraph: Values are never shown again. Leave blank to keep what is saved.
+  - alert: A server with this name already exists. Edit it or choose another name.
+  - button "Cancel"
+  - button "Save server"

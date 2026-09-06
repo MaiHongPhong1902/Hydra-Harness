@@ -1,10 +1,10 @@
-/** Package-owned agent lifecycle invariants. @module @bosch/bh-agent/invariant */
+/** Package-owned agent lifecycle invariants. @module @hydra/harness-agent/invariant */
 
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
-import type { Agent, AgentStatus } from '@bosch/bh-agent'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
+import type { Agent, AgentStatus } from '@hydra/harness-agent'
 
-const PACKAGE_NAME = '@bosch/bh-agent'
+const PACKAGE_NAME = '@hydra/harness-agent'
 
 /** Cordis companion plugin name. */
 export const name = 'agent-invariant'

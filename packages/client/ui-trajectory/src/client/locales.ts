@@ -20,7 +20,7 @@ export type TrajectoryKey =
   | 'toolbar.search'
   | 'toolbar.searchPlaceholder'
 
-declare module '@bosch/bh-client-ui-slots' {
+declare module '@hydra/harness-client-ui-slots' {
   interface LocaleNamespaceMap {
     /** The trajectory view tab label and toolbar strings. */
     'trajectory': TrajectoryKey

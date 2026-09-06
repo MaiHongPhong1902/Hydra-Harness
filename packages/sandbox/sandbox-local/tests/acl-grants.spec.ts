@@ -9,10 +9,10 @@ import { existsSync, mkdtempSync, realpathSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { basename, join } from 'node:path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import type { SandboxPolicy } from '@bosch/bh-sandbox'
-import { SessionId } from '@bosch/bh-session'
-import { LocalSandboxProvider } from '@bosch/bh-sandbox-local'
+import { Context } from '@hydra/cordis'
+import type { SandboxPolicy } from '@hydra/harness-sandbox'
+import { SessionId } from '@hydra/harness-session'
+import { LocalSandboxProvider } from '@hydra/harness-sandbox-local'
 
 /** Cross-file state shared with the vi.mock factory (hoisting contract). */
 const mockState = vi.hoisted(() => ({
@@ -24,7 +24,7 @@ const mockState = vi.hoisted(() => ({
   disposeFailure: undefined as Error | undefined,
 }))
 
-vi.mock('@bosch/bh-sandbox-windows-acl', () => {
+vi.mock('@hydra/harness-sandbox-windows-acl', () => {
   class MockAclWriteGrant {
     readonly writeSid: string
     readonly added: Array<{ path: string; standing: boolean }> = []

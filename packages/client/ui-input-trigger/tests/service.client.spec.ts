@@ -7,15 +7,15 @@
  * scope-birth roster warm — is InputTriggerController behavior, tested on a real
  * session scope (createScope).
  */
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { describe, expect, it, vi } from 'vitest'
-import { createScope, scopeOf } from '@bosch/bh-client-runtime/client'
-import type { SessionId } from '@bosch/bh-client-runtime/client'
-import { InputTriggerController, InputTriggerService } from '@bosch/bh-client-ui-input-trigger/client'
+import { createScope, scopeOf } from '@hydra/harness-client-runtime/client'
+import type { SessionId } from '@hydra/harness-client-runtime/client'
+import { InputTriggerController, InputTriggerService } from '@hydra/harness-client-ui-input-trigger/client'
 import type {
   BeginCommandRequest, ClientSessionContext, CommandClaim, InsertReferenceRequest, PickOutcome,
   ReferenceInsert, InputTriggerCandidate, InputTriggerPick, InputTriggerSource, SourceRoster, TriggerChar,
-} from '@bosch/bh-client-ui-input-trigger/client'
+} from '@hydra/harness-client-ui-input-trigger/client'
 
 const sid = (k: string): SessionId => k as SessionId
 

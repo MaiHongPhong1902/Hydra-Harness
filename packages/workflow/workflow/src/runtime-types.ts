@@ -3,10 +3,10 @@
  * vocabulary remains in `./types` so Client programs never import Agent or
  * host Cordis context declarations.
  *
- * @module @bosch/bh-workflow
+ * @module @hydra/harness-workflow
  */
 
-import type { Agent } from '@bosch/bh-agent'
+import type { Agent } from '@hydra/harness-agent'
 import type {
   WorkflowMeta, WorkflowResult, WorkflowRunId,
 } from './types.ts'

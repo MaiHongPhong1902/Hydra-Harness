@@ -8,9 +8,9 @@
 
 import { useEffect } from 'react'
 import type { ReactNode } from 'react'
-import type { IApiClient } from '@bosch/bh-api-remotes/client'
-import type { SnapshotStore } from '@bosch/bh-client-runtime/client'
-import type { InjectFace, PropsRuntime } from '@bosch/bh-client-ui-slots'
+import type { IApiClient } from '@hydra/harness-api-remotes/client'
+import type { SnapshotStore } from '@hydra/harness-client-runtime/client'
+import type { InjectFace, PropsRuntime } from '@hydra/harness-client-ui-slots'
 import type { ModelsSettingsState, ModelsSettingsStore } from './store.ts'
 import { isOfficialDeepSeekEntry, onboardingReadiness } from './store.ts'
 import type { SettingsSchemaOperations } from './schema-operations.ts'

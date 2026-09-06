@@ -10,18 +10,18 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { Context } from '@bosch/cordis'
-import type { Agent } from '@bosch/bh-agent'
-import AgentLoop from '@bosch/bh-agent-loop'
-import { mountAgentLoopTestDependencies } from '@bosch/bh-agent-loop-testkit'
-import { createUserMessage } from '@bosch/bh-llm'
-import SandboxPolicyService, { effectiveSandboxMode, setSandboxMode } from '@bosch/bh-sandbox-policy'
-import { SessionId } from '@bosch/bh-session'
-import type { SessionEvent } from '@bosch/bh-session'
-import JsonlSessionPersistence from '@bosch/bh-session-persistence-jsonl'
-import * as SubagentFork from '@bosch/bh-subagent-fork-in-process'
-import * as SubagentSpawn from '@bosch/bh-subagent-spawn-in-process'
-import ApprovalService, { effectiveApprovalPolicy } from '@bosch/bh-user-approval'
+import { Context } from '@hydra/cordis'
+import type { Agent } from '@hydra/harness-agent'
+import AgentLoop from '@hydra/harness-agent-loop'
+import { mountAgentLoopTestDependencies } from '@hydra/harness-agent-loop-testkit'
+import { createUserMessage } from '@hydra/harness-llm'
+import SandboxPolicyService, { effectiveSandboxMode, setSandboxMode } from '@hydra/harness-sandbox-policy'
+import { SessionId } from '@hydra/harness-session'
+import type { SessionEvent } from '@hydra/harness-session'
+import JsonlSessionPersistence from '@hydra/harness-session-persistence-jsonl'
+import * as SubagentFork from '@hydra/harness-subagent-fork-in-process'
+import * as SubagentSpawn from '@hydra/harness-subagent-spawn-in-process'
+import ApprovalService, { effectiveApprovalPolicy } from '@hydra/harness-user-approval'
 import { MockAdapter, textResponse } from '../../../core/agent-loop/tests/mock-adapter.ts'
 import SubagentRuntime from '../src/index.ts'
 
@@ -104,7 +104,7 @@ describe('continuable policy inheritance', () => {
     const runtimeContext = loaded.events.find(
       (event): event is SessionEvent<'user/message'> => event.type === 'user/message'
         && event.data.source.kind === 'plugin'
-        && event.data.source.plugin === '@bosch/bh-system-prompt',
+        && event.data.source.plugin === '@hydra/harness-system-prompt',
     )
     const contextText = runtimeContext?.data.content
       .flatMap(block => block.type === 'text' ? [block.text] : [])

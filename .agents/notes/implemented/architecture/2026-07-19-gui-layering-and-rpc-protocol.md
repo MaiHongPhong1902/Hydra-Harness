@@ -28,8 +28,8 @@ Directories layer as follows:
     - **Static-arrival entry packages** (`connection`, `runtime`, `ui-theme`, `i18n`, `hmr`): no `bh.client` key and no browser bundle — the shell bundles their `src/client/` half and registers it with `ctx.modules`; they are governed as entries of the host-authored graph like everything else.
     - **Fetch-arrival plugin packages** (`ui-layout`, `ui-sidebar`, `ui-conversation`, `ui-trajectory`): dual-entry — the root index is the node half (an empty `apply`, existing so the host Loader governs lifecycle and the web plugin registry discovers the package.json `bh.client` declaration); the implementation lives under `src/client/`, shipped as the `./client` subpath (a tsdown closure-factory bundle). Cross-plugin consumption of `/client` is type-only; value cooperation goes through cordis services.
 - `apps/` holds the externally exported applications, assembled from Client / Host mixtures.
-    - `apps/web` (`bh-web-frontend`) is the vite application: a thin `main.ts` over the shell API exported by `bh-client-web`.
-    - `apps/cli` (`@bosch/bh`) dispatches commands: `bh web` = Host + webserver + the built `bh-web-frontend` dist; `bh --profile headless` = [a direct core Agent/Session entry point](2026-08-09-headless-direct-core-entry-point.md), with zero Host, HTTP, or browser layer.
+    - `apps/web` (`@hydra/harness-web-frontend`) is the vite application: a thin `main.ts` over the shell API exported by `@hydra/harness-client-web`.
+    - `apps/cli` (`@hydra/harness`) dispatches commands: `bh web` = Host + webserver + the built `@hydra/harness-web-frontend` dist; `bh --profile headless` = [a direct core Agent/Session entry point](2026-08-09-headless-direct-core-entry-point.md), with zero Host, HTTP, or browser layer.
     - A future Electron application reuses the same web client packages over an IPC fetch carrier.
 
 ```
@@ -60,28 +60,28 @@ On the protocol side: TS interfaces (`packages/host/apiproxy/src/api/`, zero Nod
 
 | Layer | Package | Responsibility | Key discipline |
 |---|---|---|---|
-| Front layer | `bh-host-apiproxy` | TS/zod definitions (api/) + the fetch abstraction (fetch/: handler + client base class) | Keep it simple — every consumer needs it; importable from Node and browser alike; protocol content in the "Message protocol" sections below; clients must not bypass api through ctx |
+| Front layer | `@hydra/harness-host-apiproxy` | TS/zod definitions (api/) + the fetch abstraction (fetch/: handler + client base class) | Keep it simple — every consumer needs it; importable from Node and browser alike; protocol content in the "Message protocol" sections below; clients must not bypass api through ctx |
 | Assembly layer | `bh-host-runtime` | Plugin composition + ApiProxy integration + the web UI plugin mount (in-memory Loader tree over the eight bh.client packages); home of host-level configuration (defaults/persistenceRoot, future user profile) | Which plugins mount and with what defaults is decided only here; shells must not alter the assembly |
-| Carrier layer | `bh-host-webserver` | Web HTTP and upgrade: static serving + `/api/*`→handler forwarding + WebSocket upgrade route + close semantics; plugin bundle endpoint + `__BH_BOOT__` manifest injection (fed by the web plugin registry) | Web (browser access) only; zero workspace dependencies (the registry arrives by structural injection); Electron does not reuse it |
-| Client libraries | `bh-client-ui-slots` / `bh-client-ui-primitives` | Slot contracts / pure React atoms | Seeded into the loader module table by the shell |
-| Client plugins | `bh-client-connection` / `bh-client-runtime` / `bh-client-ui-theme` / `bh-client-ui-renderer` / feature UI packages | Browser-side Cordis plugin tree: wire consumer, core services, theme, React rendering, and feature composition — see the web client architecture note | Dual entry (node half = empty apply; implementation in `src/client/`); cross-plugin value cooperation uses services and slots |
-| Application | `@bosch/bh` (apps/cli) + `bh-web-frontend` (apps/web, the vite application) | Coarse bin dispatch + one assembly module per application (web.ts / headless.ts); the vite app is a thin main over the `bh-client-web` shell surface | Applications use dynamic imports so they never load each other; workspace knowledge like dist location stays in the app |
+| Carrier layer | `@hydra/harness-host-webserver` | Web HTTP and upgrade: static serving + `/api/*`→handler forwarding + WebSocket upgrade route + close semantics; plugin bundle endpoint + `__BH_BOOT__` manifest injection (fed by the web plugin registry) | Web (browser access) only; zero workspace dependencies (the registry arrives by structural injection); Electron does not reuse it |
+| Client libraries | `@hydra/harness-client-ui-slots` / `@hydra/harness-client-ui-primitives` | Slot contracts / pure React atoms | Seeded into the loader module table by the shell |
+| Client plugins | `@hydra/harness-client-connection` / `@hydra/harness-client-runtime` / `@hydra/harness-client-ui-theme` / `@hydra/harness-client-ui-renderer` / feature UI packages | Browser-side Cordis plugin tree: wire consumer, core services, theme, React rendering, and feature composition — see the web client architecture note | Dual entry (node half = empty apply; implementation in `src/client/`); cross-plugin value cooperation uses services and slots |
+| Application | `@hydra/harness` (apps/cli) + `@hydra/harness-web-frontend` (apps/web, the vite application) | Coarse bin dispatch + one assembly module per application (web.ts / headless.ts); the vite app is a thin main over the `@hydra/harness-client-web` shell surface | Applications use dynamic imports so they never load each other; workspace knowledge like dist location stays in the app |
 
 #### Naming rule
 
-Packages under `packages/host/*` and `packages/client/*` **must carry the directory-group prefix in the package name**: host/runtime → `bh-host-runtime`, client/runtime → `bh-client-runtime`. The directory name does not repeat the group prefix (host/ already expresses it). The package-name tail therefore ≠ the directory name, so the `bh-*` wildcard in tsconfig.base.json (which resolves by directory name) misses them — **each package in these two groups needs an explicit paths entry**, including separate entries for the client packages' `/client` subpaths so source-level resolution matches the exports map.
+Packages under `packages/host/*` and `packages/client/*` **must carry the directory-group prefix in the package name**: host/runtime → `bh-host-runtime`, client/runtime → `@hydra/harness-client-runtime`. The directory name does not repeat the group prefix (host/ already expresses it). The package-name tail therefore ≠ the directory name, so the `bh-*` wildcard in tsconfig.base.json (which resolves by directory name) misses them — **each package in these two groups needs an explicit paths entry**, including separate entries for the client packages' `/client` subpaths so source-level resolution matches the exports map.
 
 #### How to integrate a new application (operational checklist)
 
 1. **Pick a fetch impersonation**: browser same-origin HTTP / in-process `host.handler.fetch` injection / your own transport-aspect subclass (e.g. future Electron IPC, see the "Subclass table" below).
 2. **Write an assembly module under `apps/`**: `startHost()` + a client subclass + the application's private signal/print/exit semantics; a mixture never becomes a package — assembly is written in the app.
-3. **Import `bh-host-webserver` only if you need HTTP carriage**, otherwise zero ports.
+3. **Import `@hydra/harness-host-webserver` only if you need HTTP carriage**, otherwise zero ports.
 
 The two existing applications preserve the division: the Web application mounts Host, carrier, and browser composition, while `bh --profile headless` mounts a direct core runner with zero Host, HTTP, or ports. ACP-class protocol bridges do not follow the client-carrier checklist: they expose core to the external ecosystem and mount directly via `ctx.plugin(entry-point plugin)` without fetch.
 
 ## Message protocol
 
-The sections from here down are the protocol body carried by the front layer (`bh-host-apiproxy`). The wire has exactly four message kinds (the four quadrants) — the Web carriage in the right column is only an example; swapping the carrier (in-process/IPC) leaves the quadrants unchanged:
+The sections from here down are the protocol body carried by the front layer (`@hydra/harness-host-apiproxy`). The wire has exactly four message kinds (the four quadrants) — the Web carriage in the right column is only an example; swapping the carrier (in-process/IPC) leaves the quadrants unchanged:
 
 ```
                  client-initiated                server-initiated
@@ -214,8 +214,8 @@ All four quadrant full forms pass through `onEnvelope`; the base implementation 
 | Subclass | Package | doFetch | Purpose |
 |---|---|---|---|
 | `InProcessApiClient` | apiproxy itself | the injected `{ fetch }` handler | **The isomorphic point**: `new InProcessApiClient(toFetchHandler(api))` never touches the network yet runs the real wire serialization/zod/SSE framing; carrier tests and callers can exercise the protocol without opening a port, while product `bh --profile headless` drives core directly |
-| `WebApiClient` | bh-client-connection | `globalThis.fetch` uplink + one same-origin WebSocket downlink per logical stream | the browser client; physical boundary in the [WebSocket downlink carrier](2026-08-04-websocket-downlink-carrier.md) |
-| `FixtureApiClient` | bh-client-connection | unused (protocol-layer override) | serverless UI development (`?fixture`): overrides the `callUnary`/`openMux`/`openHost`/`respond` virtuals and is itself the fake server (frame rpcIds minted by it, semantics self-consistent) |
+| `WebApiClient` | @hydra/harness-client-connection | `globalThis.fetch` uplink + one same-origin WebSocket downlink per logical stream | the browser client; physical boundary in the [WebSocket downlink carrier](2026-08-04-websocket-downlink-carrier.md) |
+| `FixtureApiClient` | @hydra/harness-client-connection | unused (protocol-layer override) | serverless UI development (`?fixture`): overrides the `callUnary`/`openMux`/`openHost`/`respond` virtuals and is itself the fake server (frame rpcIds minted by it, semantics self-consistent) |
 | IPC bridge subclass (hypothetical example — no such shell exists) | an Electron shell | IPC serialization round trip | would swap only doFetch; contract and base class unchanged |
 
 ## How to extend (operational checklists)
@@ -243,7 +243,7 @@ Every client consumes one contract: adding a unary method is a five-step mechani
 | Consuming clients connecting to ctx directly (skipping the apiproxy layer) | Clients require wire validation, observability, and multi-client consistency. Direct headless is a local entry point with no client boundary and uses the public Agent/Session seams rather than a client command plane |
 | webserver depending on runtime (saving the handler injection) | Structural-typing injection keeps webserver reusable by sidecars/tests with zero workspace deps; a package dependency would drag assembly knowledge into the carrier layer |
 | Package names without the group prefix (continuing bh-<tail>) | `bh-runtime`/`bh-web-ui` lose their belonging in the flat npm namespace; the cost is one explicit paths entry per package |
-| Reusing the in-repo JSON-RPC 2.0 (bh-sdk-jsonrpc-server) | Numeric error codes degrade to a single fallback code, contracts get aligned by hand in two copies, and naming drifts without a convention |
+| Reusing the in-repo JSON-RPC 2.0 (@hydra/harness-sdk-jsonrpc-server) | Numeric error codes degrade to a single fallback code, contracts get aligned by hand in two copies, and naming drifts without a convention |
 | A three-envelope model (Request/Response/Frame envelopes, signatures direction-blind) | rpcId correlation is logical-layer; frame and response direction semantics inferred from the channel break the moment the carrier changes |
 | Named Request/Response type pairs as the source of truth (map registering type pairs) | Flat named types are a second name for the same fact; signature inference makes adding a method a one-place change |
 | REST-style paths | The consumer is our own client with no third-party REST expectations; RPC mapping straight onto the method table is more mechanical |

@@ -1,12 +1,12 @@
 /** Deterministic provider for model-visible foreground and Job diagnostic snapshots. */
 
-import type { Context } from '@bosch/cordis'
+import type { Context } from '@hydra/cordis'
 import {
   NO_START_CAPABILITIES,
   type ResolvedSubagentStartRequest,
   type SubagentProvider,
-} from '@bosch/bh-subagent'
-import { SessionId } from '@bosch/bh-session'
+} from '@hydra/harness-subagent'
+import { SessionId } from '@hydra/harness-session'
 
 export const name = 'subagent-result-diagnostic'
 export const inject = ['subagents']

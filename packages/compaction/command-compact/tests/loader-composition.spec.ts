@@ -3,11 +3,11 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import Loader from '@bosch/cordis-plugin-loader'
-import Include from '@bosch/cordis-plugin-include'
-import type { Agent } from '@bosch/bh-agent'
-import CommandRuntime from '@bosch/bh-commands'
+import { Context } from '@hydra/cordis'
+import Loader from '@hydra/cordis-plugin-loader'
+import Include from '@hydra/cordis-plugin-include'
+import type { Agent } from '@hydra/harness-agent'
+import CommandRuntime from '@hydra/harness-commands'
 import {
   CompactionId,
   CompactionEngine,
@@ -15,9 +15,9 @@ import {
   type CompactionResult,
   type CompactionTrigger,
   type ManualCompactAgentContext,
-} from '@bosch/bh-compaction'
-import * as commandCompact from '@bosch/bh-command-compact'
-import { Session, SessionId } from '@bosch/bh-session'
+} from '@hydra/harness-compaction'
+import * as commandCompact from '@hydra/harness-command-compact'
+import { Session, SessionId } from '@hydra/harness-session'
 
 const COMPACTION_ID = CompactionId('loader-command-compact-test')
 
@@ -84,9 +84,9 @@ describe('command-compact real Loader composition', () => {
     root = await mkdtemp(join(tmpdir(), 'bh-command-compact-loader-'))
     const configPath = join(root, 'cordis.yml')
     await writeFile(configPath, [
-      "- name: '@bosch/bh-commands'",
+      "- name: '@hydra/harness-commands'",
       "- name: '@test/compact-backend'",
-      "- name: '@bosch/bh-command-compact'",
+      "- name: '@hydra/harness-command-compact'",
       '',
     ].join('\n'))
 
@@ -95,9 +95,9 @@ describe('command-compact real Loader composition', () => {
     await context.plugin(Loader)
     context.loader.builtins.include = Include
     const modules = new Map<string, unknown>([
-      ['@bosch/bh-commands', CommandRuntime],
+      ['@hydra/harness-commands', CommandRuntime],
       ['@test/compact-backend', LoaderCompactionEngine],
-      ['@bosch/bh-command-compact', commandCompact],
+      ['@hydra/harness-command-compact', commandCompact],
     ])
     context.loader.internal = {
       version: 'v2',

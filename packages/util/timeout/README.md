@@ -1,4 +1,4 @@
-# bh-timeout
+# @hydra/harness-timeout
 
 The **timing-and-classification** half of a timeout — a zero-dependency library of pure functions (no runtime harness deps) shared by every capability that clamps a caller's timeout hint, arms a deadline, and later has to tell "timed out" apart from "cancelled".
 
@@ -9,7 +9,7 @@ It is a **library, not a service or plugin**: no `ctx`, registers nothing, holds
 ## API
 
 ```ts
-import { clampTimeout, deadline, idleWatchdog, MAX_TIMER_DELAY_MS, timeoutOf, TimeoutReason } from '@bosch/bh-timeout'
+import { clampTimeout, deadline, idleWatchdog, MAX_TIMER_DELAY_MS, timeoutOf, TimeoutReason } from '@hydra/harness-timeout'
 ```
 
 | Export | Role |
@@ -28,7 +28,7 @@ import { clampTimeout, deadline, idleWatchdog, MAX_TIMER_DELAY_MS, timeoutOf, Ti
 ## Usage shape
 
 ```ts
-import { deadline, timeoutOf } from '@bosch/bh-timeout'
+import { deadline, timeoutOf } from '@hydra/harness-timeout'
 
 declare function runWork(options: { signal: AbortSignal }): Promise<unknown>
 
@@ -54,7 +54,7 @@ Local file `read`/`write`/`edit` take no `timeoutMs`: file IO runs untimed becau
 
 ## Model Experience
 
-Indirectly, through consumers such as `bh-tool-call-timeout-policy`, which may replace a provider result with a retained timeout error or suppress a late result.
+Indirectly, through consumers such as `@hydra/harness-tool-call-timeout-policy`, which may replace a provider result with a retained timeout error or suppress a late result.
 
 #### KV Cache effect
 

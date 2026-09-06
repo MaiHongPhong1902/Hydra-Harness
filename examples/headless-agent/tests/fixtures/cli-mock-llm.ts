@@ -1,4 +1,4 @@
-import type { Context } from '@bosch/cordis'
+import type { Context } from '@hydra/cordis'
 import {
   CallId,
   LlmAdapter,
@@ -6,7 +6,7 @@ import {
   type GenerateOptions,
   type LlmResolvedModelInfo,
   type StreamChunk,
-} from '@bosch/bh-llm'
+} from '@hydra/harness-llm'
 
 const HIGH = ReasoningEffortId('high')
 const OFF = ReasoningEffortId('off')

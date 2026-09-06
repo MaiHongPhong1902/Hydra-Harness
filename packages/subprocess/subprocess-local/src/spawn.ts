@@ -14,8 +14,8 @@ import { closeSync, mkdtempSync, openSync, unlinkSync, writeSync } from 'node:fs
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { setTimeout as sleepMs } from 'node:timers/promises'
-import { scrubbedParentEnv } from '@bosch/bh-subprocess'
-import { MAX_TIMER_DELAY_MS } from '@bosch/bh-timeout'
+import { scrubbedParentEnv } from '@hydra/harness-subprocess'
+import { MAX_TIMER_DELAY_MS } from '@hydra/harness-timeout'
 import type {
   CollectedOutput,
   SubprocessCollect,
@@ -23,7 +23,7 @@ import type {
   SubprocessOutcome,
   SubprocessOutputMode,
   SubprocessSpawnSpec,
-} from '@bosch/bh-subprocess'
+} from '@hydra/harness-subprocess'
 import { linuxProcessGroupHasLiveMembers } from './process-inspector.ts'
 
 /**

@@ -8,9 +8,9 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, relative, resolve } from 'node:path'
 import ts from 'typescript'
-import { projectCordisCatalog } from '@bosch/bh-typert-generator'
+import { projectCordisCatalog } from '@hydra/harness-typert-generator'
 import { CORDIS_CATALOG_POLICY } from './gen-cordis-catalog.ts'
-import type { EventEntry, ServiceEntry } from '@bosch/bh-typert-generator'
+import type { EventEntry, ServiceEntry } from '@hydra/harness-typert-generator'
 import {
   collectPackageGraph,
   escapeMermaidLabel as escLabel,
@@ -154,7 +154,7 @@ const SERVICE_ROLES: ServiceRole[] = [
     title: 'Runtime type registry',
     mode: 'core',
     consumers: ['typert-loader', 'api-gateway'],
-    note: 'Plugins register live zod contributions directly or through bh-typert-loader; the API gateway consumes invocation descriptors and providers, while other runtime consumers query schemas and reflection metadata at their own edges.',
+    note: 'Plugins register live zod contributions directly or through @hydra/harness-typert-loader; the API gateway consumes invocation descriptors and providers, while other runtime consumers query schemas and reflection metadata at their own edges.',
   },
   {
     key: 'typertGateway',
@@ -372,7 +372,7 @@ const SERVICE_ROLES: ServiceRole[] = [
     title: 'Concrete loop driver',
     mode: 'bundle',
     consumers: ['agent-spine-demo'],
-    note: 'The one concrete loop plugin; extension packages depend on bh-agent events and services, not on this package.',
+    note: 'The one concrete loop plugin; extension packages depend on @hydra/harness-agent events and services, not on this package.',
   },
   {
     key: 'goals',
@@ -768,10 +768,10 @@ const APP_EXAMPLES = [
   {
     id: 'bh_base',
     rel: 'apps/cli/composition.md',
-    title: 'BH Base Composition',
+    title: 'Hydra Base Composition',
     label: 'packages/bundle/base/cordis.patch.yml',
     config: 'packages/bundle/base/cordis.patch.yml',
-    summary: 'The bh-base bundle patch every profile applies first; mode bundles (bh-web-app, bh-headless) and the user\'s profile layer patch over it.',
+    summary: 'The @hydra/harness-base bundle patch every profile applies first; mode bundles (@hydra/harness-web-app, @hydra/harness-headless) and the user\'s profile layer patch over it.',
   },
   {
     id: 'headless',
@@ -796,10 +796,10 @@ type AppExample = typeof APP_EXAMPLES[number]
 function renderAppExpansion(lines: string[], appNode: string, pluginName: string): void {
   const agentCore = nodeId('bundle', 'agent_core')
   const jsonl = nodeId('bundle', 'jsonl')
-  lines.push(`  ${appNode} --> ${agentCore}["@bosch/bh-agent-spine-demo"]`)
-  lines.push(`  ${appNode} --> ${jsonl}["@bosch/bh-session-persistence-jsonl"]`)
-  if (pluginName === '@bosch/bh-acp-demo') {
-    lines.push(`  ${appNode} --> ${nodeId('entrypoint', 'acp')}["@bosch/bh-acp<br/>automation-only JSON-RPC stdio<br/>fresh sessions created by client"]`)
+  lines.push(`  ${appNode} --> ${agentCore}["@hydra/harness-agent-spine-demo"]`)
+  lines.push(`  ${appNode} --> ${jsonl}["@hydra/harness-session-persistence-jsonl"]`)
+  if (pluginName === '@hydra/harness-acp-demo') {
+    lines.push(`  ${appNode} --> ${nodeId('entrypoint', 'acp')}["@hydra/harness-acp<br/>automation-only JSON-RPC stdio<br/>fresh sessions created by client"]`)
   }
   lines.push(
     `  ${agentCore} --> ${nodeId('spine', 'llm')}["ctx.llm"]`,
@@ -824,7 +824,7 @@ function renderAppComposition(example: AppExample): string {
     const pluginNode = nodeId(`plugin_${example.id}`, plugin.id)
     lines.push(`  ${pluginNode}["${escLabel(plugin.id)}<br/>${escLabel(plugin.name)}"]`)
     lines.push(`  cfg --> ${pluginNode}`)
-    if (plugin.name === '@bosch/bh-acp-demo') {
+    if (plugin.name === '@hydra/harness-acp-demo') {
       renderAppExpansion(lines, pluginNode, plugin.name)
     }
   }
@@ -1365,7 +1365,7 @@ function renderLifecycle(): string {
     '',
     'The `assistant/message` event records every successful provider call, including content-less and `max-tokens` finishes. Empty content stays out of derived history, while the durable event keeps usage and `sourceEventSeqs` listing the exact `assistant/chunk` events, including an explicit empty list.',
     '',
-    '`bh-compaction-basic` uses `agent/pre-step` for pressure before request derivation and `agent/request-error` only for canonical context overflow. Once either trigger qualifies, optional tool-result pruning runs before summary selection. Recovery works between the closed failed step and failed turn close, and opens a fresh retry turn only when pruning or summarization advances the surface replacement generation; otherwise the original request error remains authoritative.',
+    '`@hydra/harness-compaction-basic` uses `agent/pre-step` for pressure before request derivation and `agent/request-error` only for canonical context overflow. Once either trigger qualifies, optional tool-result pruning runs before summary selection. Recovery works between the closed failed step and failed turn close, and opens a fresh retry turn only when pruning or summarization advances the surface replacement generation; otherwise the original request error remains authoritative.',
     '',
     'The returned `agent/pre-step` decision is authoritative; listeners wrapping `next()` preserve downstream messages unless replacement is intentional. Steering and injected context pass through the same waterfall after a later claim operation takes their next-step batch.',
     '',

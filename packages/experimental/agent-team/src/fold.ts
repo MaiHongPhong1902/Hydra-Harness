@@ -1,9 +1,9 @@
 /** Strict replay fold for Agent Teams log-only events. */
 
 import { z } from 'zod'
-import type { ContentBlock } from '@bosch/bh-llm'
-import { SessionId } from '@bosch/bh-session'
-import type { SessionEvent, SessionEventMap } from '@bosch/bh-session'
+import type { ContentBlock } from '@hydra/harness-llm'
+import { SessionId } from '@hydra/harness-session'
+import type { SessionEvent, SessionEventMap } from '@hydra/harness-session'
 import type {
   TeamId,
   TeamMemberSnapshot,

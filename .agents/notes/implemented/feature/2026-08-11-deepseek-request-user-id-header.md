@@ -10,7 +10,7 @@ The user id is transport metadata, not model input. It must not enter the reques
 
 ## Decision
 
-`bh-llm-deepseek` sends `x-bosch-harness-user-id` on every provider request sent after successful credential resolution. The value comes from `@bosch/bh-anonymous-user-id` and therefore matches the OpenTelemetry Resource `user.id` and `/feedback` acknowledgement for the same `$BH_HOME`. The adapter continues to send `x-bosch-harness-session-id` only when `GenerateOptions.sessionId` is present; the agent loop supplies the current durable `Session.id` for ordinary agent, title-generation, and compaction requests.
+`@hydra/harness-llm-deepseek` sends `x-bosch-harness-user-id` on every provider request sent after successful credential resolution. The value comes from `@hydra/harness-anonymous-user-id` and therefore matches the OpenTelemetry Resource `user.id` and `/feedback` acknowledgement for the same `$BH_HOME`. The adapter continues to send `x-bosch-harness-session-id` only when `GenerateOptions.sessionId` is present; the agent loop supplies the current durable `Session.id` for ordinary agent, title-generation, and compaction requests.
 
 The plugin resolves the user id lazily after credentials succeed and memoizes it for that plugin instance. A missing credential therefore does not create `.anonymous-user-id`, while the first authorized provider request can create it even when `BH_TELEMETRY_DISABLED` is set. The direct adapter constructor accepts a `resolveUserId` dependency so wire behavior remains deterministic in unit tests.
 

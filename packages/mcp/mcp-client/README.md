@@ -1,4 +1,4 @@
-# @bosch/bh-mcp-client
+# @hydra/harness-mcp-client
 
 MCP client bridge plugin: connects to external [Model Context Protocol](https://modelcontextprotocol.io/) servers and registers their tools on `ctx.tools`, making them available to the model as native tools under server-qualified names (`mcp__<serverName>__<rawName>`).
 
@@ -8,7 +8,7 @@ One plugin instance per MCP server in `cordis.yml`:
 
 ```yaml
 - id: mcp-github
-  name: '@bosch/bh-mcp-client'
+  name: '@hydra/harness-mcp-client'
   config:
     serverName: github
     transport: stdio
@@ -18,7 +18,7 @@ One plugin instance per MCP server in `cordis.yml`:
       GITHUB_TOKEN: !!js process.env.GITHUB_TOKEN
 
 - id: mcp-web
-  name: '@bosch/bh-mcp-client'
+  name: '@hydra/harness-mcp-client'
   config:
     serverName: web
     transport: streamable-http
@@ -58,6 +58,8 @@ Every MCP tool has two names: the raw MCP name (sent on the wire in `tools/call`
 - A foreign registration squatting on this server's namespace rolls back the whole generation (never a partial set), with a loud error.
 
 ## Behavior
+
+`publicToolName(serverName, rawName)` is exported for consumers that match raw MCP identities to registered tool names. Consumers must apply this same normalization instead of parsing a public name to recover the raw name.
 
 - On connect: plugin activation awaits `listTools()` and registers each tool via `ctx.tools.register()` under its public name before the composition starts its first turn. Initial connection, discovery, or registration failure is always logged; it rejects activation when `failOnStartupError` is true and otherwise activates with no tools.
 - Listens for `notifications/tools/list_changed` → re-syncs; a fetch-phase failure keeps the previous generation registered, while a registration conflict rolls back the attempted generation and leaves no tools from that server.
@@ -109,7 +111,7 @@ Append-only; newly visible content follows the reusable request prefix and does 
 ## Known Limitations and Deferred Work
 
 - **Tools are the only bridged MCP capability** — Resources and Prompts have no harness consumer and are deferred.
-- **Startup timeout is inherited from the MCP SDK** — BH does not yet expose a connection/discovery timeout. Each initialize or paginated `tools/list` request uses the SDK's 60-second default, so an unresponsive server or cursor chain can delay both activation and teardown while the initial synchronization settles.
+- **Startup timeout is inherited from the MCP SDK** — Hydra harness does not yet expose a connection/discovery timeout. Each initialize or paginated `tools/list` request uses the SDK's 60-second default, so an unresponsive server or cursor chain can delay both activation and teardown while the initial synchronization settles.
 - **Reconnect triggers on transport close** — a crashed stdio child fires it; Streamable HTTP failures surface per request and through the SDK transport's own SSE-stream recovery, so an unreachable HTTP server is retried per call rather than respawned by the supervisor.
 - **Image is the only durable rich-result bridge** — PNG, JPEG, WebP, and GIF can enter Native context after exact capability proof. Audio and embedded-resource payloads remain execution-local with explicit diagnostics, while resource links preserve only their name and URI as text.
 - **Unsupported MCP output schemas are not enforced** — `structuredContent` falls back to `JsonValue` when the advertised schema uses vocabulary outside the harness subset.

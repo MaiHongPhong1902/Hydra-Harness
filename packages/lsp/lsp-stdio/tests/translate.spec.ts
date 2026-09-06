@@ -6,8 +6,8 @@ import {
   requestMethod,
   supportsOperation,
   supportsTransientOpen,
-} from '@bosch/bh-lsp-stdio'
-import type { WireServerCapabilities } from '@bosch/bh-lsp-stdio/src/protocol.ts'
+} from '@hydra/harness-lsp-stdio'
+import type { WireServerCapabilities } from '@hydra/harness-lsp-stdio/src/protocol.ts'
 
 const RANGE = { start: { line: 1, character: 2 }, end: { line: 1, character: 5 } }
 

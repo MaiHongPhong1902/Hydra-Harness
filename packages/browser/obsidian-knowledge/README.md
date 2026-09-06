@@ -1,17 +1,17 @@
-# @bosch/bh-obsidian-knowledge
+# @hydra/harness-obsidian-knowledge
 
 Provides token-bounded graph memory over an Obsidian vault. Production reads and writes use Obsidian Local REST API's built-in MCP server; raw MCP tools are never exposed to the model. The package keeps the existing `BH Website Knowledge/` vault root so current notes remain valid after the package rename.
 
 ## Configuration
 
-Mount the plugin in a BH profile or patch:
+Mount the plugin in a Hydra profile or patch:
 
 ```yaml
 - id: obsidian-knowledge
-  name: '@bosch/bh-obsidian-knowledge'
+  name: '@hydra/harness-obsidian-knowledge'
 ```
 
-Generic recall, exact reads, and approval-gated saves work without website configuration. To add Browser evidence capture, configure one canonical hostname in the existing BH settings document:
+Generic recall, exact reads, and approval-gated saves work without website configuration. To add Browser evidence capture, configure one canonical hostname in the existing Hydra settings document:
 
 ```yaml
 obsidian-knowledge:
@@ -22,7 +22,7 @@ obsidian-knowledge:
 
 The Web app exposes `targetDomain` and the write-only `OBSIDIAN_API_KEY` credential under **Settings → Plugins → MCP**. The credential stays outside the settings document, and the MCP endpoint remains deployment configuration.
 
-Enable the Local REST API community plugin and its built-in MCP server in the intended vault. Create the unique marker `BH Website Knowledge/BH MCP Vault Identity.md`; BH reads it before each operation so a different open vault fails closed. BH connects on demand to `http://127.0.0.1:27123/mcp/`, uses a five-second timeout, and resolves the bearer token from BH credential reference `OBSIDIAN_API_KEY`.
+Enable the Local REST API community plugin and its built-in MCP server in the intended vault. Create the unique marker `BH Website Knowledge/BH MCP Vault Identity.md`; Hydra harness reads it before each operation so a different open vault fails closed. Hydra harness connects on demand to `http://127.0.0.1:27123/mcp/`, uses a five-second timeout, and resolves the bearer token from Hydra credential reference `OBSIDIAN_API_KEY`.
 
 ## Behavior
 
@@ -54,5 +54,5 @@ Tool schemas and the prompt prefix stay stable. Data-dependent excerpts, paths, 
 
 - Retrieval uses Obsidian search plus explicit wikilinks, not embedding similarity. Add a semantic index only after measured misses justify its dependency, migration, and index lifecycle.
 - Graph expansion follows one hop from the three strongest matches. Read a returned related note and recall a narrower intent when deeper traversal is needed.
-- Browser capture sees BH's viewport-scoped text DOM, not selectors, screenshots, or unvisited pages.
+- Browser capture sees Hydra harness's viewport-scoped text DOM, not selectors, screenshots, or unvisited pages.
 - Obsidian and its Local REST API MCP server must be running, and `OBSIDIAN_API_KEY` must resolve, for knowledge access.

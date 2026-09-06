@@ -9,11 +9,11 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { createSnapshotStore } from '@bosch/bh-client-runtime/client'
-import { makeTranslate } from '@bosch/bh-client-test-runtime'
-import { en as commonEn } from '@bosch/bh-client-locale/src/locales/en.ts'
+import { createSnapshotStore } from '@hydra/harness-client-runtime/client'
+import { makeTranslate } from '@hydra/harness-client-test-runtime'
+import { en as commonEn } from '@hydra/harness-client-locale/src/locales/en.ts'
 import { en } from '../src/client/locales.ts'
-import type { MenuState, TriggerHit } from '@bosch/bh-client-ui-input-trigger/client'
+import type { MenuState, TriggerHit } from '@hydra/harness-client-ui-input-trigger/client'
 import { MenuView } from '../src/client/MenuView.tsx'
 
 const hit: TriggerHit = {

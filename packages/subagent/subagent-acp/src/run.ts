@@ -5,7 +5,7 @@
  * TODO(acp-subagent-replay): add snapshot-tier coverage with a separate replay fixture and
  * sessions root inside each child process. Current keyless coverage uses a scripted ACP child;
  * with-key coverage drives the real ACP example.
- * @module @bosch/bh-subagent-acp/run
+ * @module @hydra/harness-subagent-acp/run
  */
 
 import { randomUUID } from 'node:crypto'
@@ -22,11 +22,11 @@ import {
   type SessionNotification,
   type StopReason,
 } from '@agentclientprotocol/sdk'
-import type { ContentBlock } from '@bosch/bh-llm'
-import { SessionId } from '@bosch/bh-session'
-import { AssistantOutputFold } from '@bosch/bh-subagent'
-import type { SubagentResult, SubagentRun, SubagentStartRequest, SubagentStopReason } from '@bosch/bh-subagent'
-import type { SubprocessHandle, SubprocessSpawnSpec } from '@bosch/bh-subprocess'
+import type { ContentBlock } from '@hydra/harness-llm'
+import { SessionId } from '@hydra/harness-session'
+import { AssistantOutputFold } from '@hydra/harness-subagent'
+import type { SubagentResult, SubagentRun, SubagentStartRequest, SubagentStopReason } from '@hydra/harness-subagent'
+import type { SubprocessHandle, SubprocessSpawnSpec } from '@hydra/harness-subprocess'
 
 /** Fixed response to child permission requests: reject by default, or select the first allow option. */
 export type PermissionPolicy = 'allow' | 'reject'

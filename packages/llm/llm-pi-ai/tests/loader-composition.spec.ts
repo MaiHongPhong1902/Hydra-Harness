@@ -13,13 +13,13 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import Loader from '@bosch/cordis-plugin-loader'
-import Include from '@bosch/cordis-plugin-include'
-import LlmRuntime, { createMessage, createUserMessage } from '@bosch/bh-llm'
-import LocalCredentialProvider from '@bosch/bh-credentials-local'
-import FileSettingsProvider from '@bosch/bh-settings-file'
-import * as LlmPiAi from '@bosch/bh-llm-pi-ai'
+import { Context } from '@hydra/cordis'
+import Loader from '@hydra/cordis-plugin-loader'
+import Include from '@hydra/cordis-plugin-include'
+import LlmRuntime, { createMessage, createUserMessage } from '@hydra/harness-llm'
+import LocalCredentialProvider from '@hydra/harness-credentials-local'
+import FileSettingsProvider from '@hydra/harness-settings-file'
+import * as LlmPiAi from '@hydra/harness-llm-pi-ai'
 import { assemble } from './assemble.ts'
 import { closeMockServers, mockServer, textEvents } from './mock-server.ts'
 
@@ -56,17 +56,17 @@ async function loadComposition(): Promise<{ ctx: Context; settingsPath: string }
     '- id: llm',
     "  name: 'test-llm-service'",
     '- id: settings',
-    "  name: '@bosch/bh-settings-file'",
+    "  name: '@hydra/harness-settings-file'",
     '  config:',
     `    path: ${JSON.stringify(settingsPath)}`,
     '    debounceMs: 10',
     '- id: credentials',
-    "  name: '@bosch/bh-credentials-local'",
+    "  name: '@hydra/harness-credentials-local'",
     '  config:',
     `    path: ${JSON.stringify(join(root, '.credentials.yaml'))}`,
     '    debounceMs: 10',
     '- id: llm-pi-ai',
-    "  name: '@bosch/bh-llm-pi-ai'",
+    "  name: '@hydra/harness-llm-pi-ai'",
     '',
   ].join('\n'))
 
@@ -77,9 +77,9 @@ async function loadComposition(): Promise<{ ctx: Context; settingsPath: string }
   ctx.loader.builtins.include = Include
   const modules = new Map<string, unknown>([
     ['test-llm-service', LlmRuntime],
-    ['@bosch/bh-settings-file', FileSettingsProvider],
-    ['@bosch/bh-credentials-local', LocalCredentialProvider],
-    ['@bosch/bh-llm-pi-ai', LlmPiAi],
+    ['@hydra/harness-settings-file', FileSettingsProvider],
+    ['@hydra/harness-credentials-local', LocalCredentialProvider],
+    ['@hydra/harness-llm-pi-ai', LlmPiAi],
   ])
   ctx.loader.internal = {
     version: 'v2',

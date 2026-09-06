@@ -22,14 +22,14 @@
 - insert:
     # Code Mode is a core execution capability, not a Web component.
     - id: code-runtime
-      name: '@bosch/bh-code-runtime-worker-thread'
+      name: '@hydra/harness-code-runtime-worker-thread'
 
     - id: headless-startup
-      name: '@bosch/bh-headless/startup'
+      name: '@hydra/harness-headless/startup'
 
     # Reads its task from the ordinary headlessStartup provider.
     - id: headless-runner
-      name: '@bosch/bh-headless'
+      name: '@hydra/harness-headless'
       inject: [headlessStartup]
       config:
         task: !!js ctx.headlessStartup.task

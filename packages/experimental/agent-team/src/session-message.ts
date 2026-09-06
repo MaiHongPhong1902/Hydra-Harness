@@ -1,7 +1,7 @@
 /** Durable Session-message acceptance checks shared by provisioning and mailbox recovery. */
 
-import type { UserMessage } from '@bosch/bh-llm'
-import type { SessionEvent } from '@bosch/bh-session'
+import type { UserMessage } from '@hydra/harness-llm'
+import type { SessionEvent } from '@hydra/harness-session'
 
 type InboxProjection = Record<'next-turn' | 'next-step', UserMessage[]>
 

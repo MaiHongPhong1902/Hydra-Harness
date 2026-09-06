@@ -2,13 +2,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render } from '@testing-library/react'
 
-import type { RunningToolCall, ToolResultNode } from '@bosch/bh-client-runtime/client'
-import { makeTranslate } from '@bosch/bh-client-test-runtime'
-import { en as commonEn } from '@bosch/bh-client-locale/src/locales/en.ts'
+import type { RunningToolCall, ToolResultNode } from '@hydra/harness-client-runtime/client'
+import { makeTranslate } from '@hydra/harness-client-test-runtime'
+import { en as commonEn } from '@hydra/harness-client-locale/src/locales/en.ts'
 import { classifyTool, resultText, toolRowModel } from '../src/client/tool/models/tool-call-model.ts'
 import { ToolRow } from '../src/client/tool/components/ToolRow.tsx'
 import { GenericToolCard, type GenericToolCardProps } from '../src/client/tool/toolviews/GenericToolCard.tsx'
-import { en } from '@bosch/bh-client-ui-conversation/src/client/locales.ts'
+import { en } from '@hydra/harness-client-ui-conversation/src/client/locales.ts'
 
 afterEach(() => {
   cleanup()

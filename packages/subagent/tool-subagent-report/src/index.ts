@@ -3,16 +3,16 @@
  * continuable in-process child's unpublished context. Roots, one-shot children,
  * remote providers, and agentless executions never see the registration.
  *
- * @module @bosch/bh-tool-subagent-report
+ * @module @hydra/harness-tool-subagent-report
  */
 
-import type { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import type { Agent } from '@bosch/bh-agent'
-import type { ContentBlock } from '@bosch/bh-llm'
-import type { SubagentReportDelivery } from '@bosch/bh-subagent'
-import type {} from '@bosch/bh-system-prompt'
-import { defineTool } from '@bosch/bh-tools'
+import type { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import type { Agent } from '@hydra/harness-agent'
+import type { ContentBlock } from '@hydra/harness-llm'
+import type { SubagentReportDelivery } from '@hydra/harness-subagent'
+import type {} from '@hydra/harness-system-prompt'
+import { defineTool } from '@hydra/harness-tools'
 
 export const name = 'tool-subagent-report'
 // The contribution registers only through childCtx.tools and

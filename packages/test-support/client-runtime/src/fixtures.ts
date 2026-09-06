@@ -1,10 +1,10 @@
 /** Session/workspace fixture shapes and snapshot defaults for the test runtime. */
 import type {
   ConversationSnapshot, ISession, SessionId, SessionSummary, WorkspaceListState,
-} from '@bosch/bh-client-runtime/client'
+} from '@hydra/harness-client-runtime/client'
 import {
   EMPTY_CHAT_SNAPSHOT, EMPTY_CONVERSATION_VIEWS,
-} from '@bosch/bh-client-runtime/client'
+} from '@hydra/harness-client-runtime/client'
 
 /**
  * Fixture overrides for the session behavior face: any subset of the

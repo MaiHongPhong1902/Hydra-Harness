@@ -28,7 +28,7 @@ Host-side `session.create(workspaceId)` produces Session + Agent + cwd in one pi
 
 ### Agent scope: the actx is the sole session carrier in the client-side cordis world
 
-The runtime's `agents/scope.ts` matches the host's `bh-scope` at the mechanism layer (fiber + tag + filter; no value import: the host package carries the scoped-events `Events` merge, which would collide with the Context merge inside the client program):
+The runtime's `agents/scope.ts` matches the host's `@hydra/harness-scope` at the mechanism layer (fiber + tag + filter; no value import: the host package carries the scoped-events `Events` merge, which would collide with the Context merge inside the client program):
 
 - `createScope(ctx, key)`: a no-op plugin fiber plus `extend({[kScope]: key, [Context.filter]: …})` — the filter lives directly on the actx: untagged listeners receive globally, tagged ones receive only their own scope.
 - Dispatch is the cordis primitives with thisArg = the actx itself: `actx.bail(actx, event, req)` / `actx.emit(actx, event, payload)`.
@@ -116,7 +116,7 @@ Slot scope is the closed set `root | session-maybe | session`:
 | Host-reserved IDs (a draft Map) | The host merely acknowledges a number; the state machine stays on the client untouched |
 | A host draft Session (a Session without an Agent) | Every host surface that looks up the Agent must fork for drafts; core would need an `attachAgent` API plus late-written header cwd |
 | Binding an Agent before cwd (ungrouped) | Overturns the readonly header.cwd "created in" invariant, plus the launch-dir side-effect product trap |
-| Passing session context down through React Context | Plugins should hold one mental model across host and client; the scope mechanism is isomorphic to the host bh-scope |
+| Passing session context down through React Context | Plugins should hold one mental model across host and client; the scope mechanism is isomorphic to the host @hydra/harness-scope |
 | A `scopeTarget` carrier + fused dispatcher (mirroring the host `agentEvents`) | The host wrapper layer guards the business Agent subject against drifting from the scope key; client events have no subject to guard — the filter on the actx plus cordis primitives covers every need |
 | Sessions not holding a ctx (a cordis-free object layer) | A red line born only so the filtering unit tests avoid importing cordis, at the cost of two-hop contribute callbacks plus mutable public fields; the host Agent already holds loopCtx |
 | Resident Session instances (resident-instance) | The host session log is the durable truth; residency is mere identity convenience, and its misalignment with the scope lifecycle is a source of complexity |

@@ -1,6 +1,6 @@
-# @bosch/bh-tool-cordis
+# @hydra/harness-tool-cordis
 
-The self-referential Cordis toolset: five model-facing tools over the live runtime in the current BH process. The registry, the vm sandbox, and the browser broadcast belong to [`@bosch/bh-cordis-host-runner`](../cordis-host-runner/README.md) (`ctx.dynamic`), which this toolset injects — a composition with these tools but no runner never activates them. Design home — sandbox semantics, dynamic-package lifecycle and composition, standing decisions: [the toolset Agent Note](../../../.agents/notes/implemented/feature/2026-07-08-self-referential-cordis-toolset.md).
+The self-referential Cordis toolset: five model-facing tools over the live runtime in the current Hydra process. The registry, the vm sandbox, and the browser broadcast belong to [`@hydra/harness-cordis-host-runner`](../cordis-host-runner/README.md) (`ctx.dynamic`), which this toolset injects — a composition with these tools but no runner never activates them. Design home — sandbox semantics, dynamic-package lifecycle and composition, standing decisions: [the toolset Agent Note](../../../.agents/notes/implemented/feature/2026-07-08-self-referential-cordis-toolset.md).
 
 ## What it does
 
@@ -14,7 +14,7 @@ Two paired verbs, plus the read-only report.
 
 Exact model-facing schemas: [the generated tool catalog](../../../docs/tool-catalog.md).
 
-Dynamic packages live only in the shared BH process memory. They remain active across later turns and may affect other sessions in that process, but disappear after `cordis_stop`/`cordis_undefine`, toolset unload, or BH restart. They create no Plugin file, install no package, change no `cordis.yml` or personal/project configuration, do not survive restart, and cannot be promoted automatically. To keep an experiment, ask the Agent to implement a normal local, project, or repository Plugin through the regular development workflow. Every verb is session-scoped: a package is visible and controllable only in the session that defined it.
+Dynamic packages live only in the shared Hydra process memory. They remain active across later turns and may affect other sessions in that process, but disappear after `cordis_stop`/`cordis_undefine`, toolset unload, or Hydra harness restart. They create no Plugin file, install no package, change no `cordis.yml` or personal/project configuration, do not survive restart, and cannot be promoted automatically. To keep an experiment, ask the Agent to implement a normal local, project, or repository Plugin through the regular development workflow. Every verb is session-scoped: a package is visible and controllable only in the session that defined it.
 
 ## Trust stance
 
@@ -22,7 +22,7 @@ The sandbox isolates globals but is not a security boundary. Node globals are ab
 
 ## Config
 
-None. The vm evaluation bound (`vmTimeoutMs`) and the browser acknowledgement window (`ackTimeoutMs`) belong to the runner service that owns the sandbox and the broadcast — see [`@bosch/bh-cordis-host-runner`](../cordis-host-runner/README.md#config).
+None. The vm evaluation bound (`vmTimeoutMs`) and the browser acknowledgement window (`ackTimeoutMs`) belong to the runner service that owns the sandbox and the broadcast — see [`@hydra/harness-cordis-host-runner`](../cordis-host-runner/README.md#config).
 
 ## The generated client slot catalog
 
@@ -45,7 +45,7 @@ The generated `INHERITED_CTX_API` closes the `api` report with the framework-inh
 
 ## Rendering
 
-Every tool renders a `generic` card (`read` / `execute` / `delete`); `cordis_define` carries the submitted halves as `rawInput` and titles the card with the label and purpose. Presenters are pure functions of the args, and results keep the default text rendering. A Web client registers its own keyed `cordis_define` row (`@bosch/bh-client-ui-cordis`) and reads the label, purpose, and minted id from the call arguments and the result metadata; the generic card is what a surface without that registration falls back to.
+Every tool renders a `generic` card (`read` / `execute` / `delete`); `cordis_define` carries the submitted halves as `rawInput` and titles the card with the label and purpose. Presenters are pure functions of the args, and results keep the default text rendering. A Web client registers its own keyed `cordis_define` row (`@hydra/harness-client-ui-cordis`) and reads the label, purpose, and minted id from the call arguments and the result metadata; the generic card is what a surface without that registration falls back to.
 
 ## Export shape
 
@@ -57,7 +57,7 @@ Namespace plugin: named exports `name` / `inject` / `apply`, no default export (
 
 #### What the model sees
 
-The conversation model sees the generated [`cordis_inspect`, `cordis_define`, `cordis_run`, `cordis_stop`, and `cordis_undefine` schemas](../../../docs/tool-catalog.md#boschbh-tool-cordis) whenever this plugin is visible.
+The conversation model sees the generated [`cordis_inspect`, `cordis_define`, `cordis_run`, `cordis_stop`, and `cordis_undefine` schemas](../../../docs/tool-catalog.md#hydraharness-tool-cordis) whenever this plugin is visible.
 
 #### Token effect
 

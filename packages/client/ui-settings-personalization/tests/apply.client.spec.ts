@@ -4,15 +4,16 @@
  * instructions and personality actions to their own transports.
  */
 
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
+import type { ConnectionHandle } from '@hydra/harness-api-remotes/client'
 import { describe, expect, it, vi } from 'vitest'
-import z from '@bosch/schemastery'
-import { resolveSlotLabel } from '@bosch/bh-client-ui-slots'
-import { SlotRegistry } from '@bosch/bh-client-runtime/client'
-import { LocaleRuntime } from '@bosch/bh-client-locale/client'
-import { TestRemote } from '@bosch/bh-client-test-runtime'
-import { apply as settingsApply, inject as settingsInject } from '@bosch/bh-client-ui-settings/client'
-import { apply, inject } from '@bosch/bh-client-ui-settings-personalization/client'
+import z from '@hydra/schemastery'
+import { resolveSlotLabel } from '@hydra/harness-client-ui-slots'
+import { SlotRegistry } from '@hydra/harness-client-runtime/client'
+import { LocaleRuntime } from '@hydra/harness-client-locale/client'
+import { TestRemote } from '@hydra/harness-client-test-runtime'
+import { apply as settingsApply, inject as settingsInject } from '@hydra/harness-client-ui-settings/client'
+import { apply, inject } from '@hydra/harness-client-ui-settings-personalization/client'
 import { PersonalizationSection } from '../src/client/PersonalizationSection.tsx'
 import type { PersonalizationSectionInjected } from '../src/client/PersonalizationSection.tsx'
 
@@ -163,12 +164,16 @@ describe('ui-settings-personalization apply', () => {
     const section = (slots.entries('settings.section')[0]!.inject as unknown as () => PersonalizationSectionInjected)()
     await vi.waitFor(() => { expect(section.hooks.personality.getSnapshot().status).toBe('ready') })
 
-    await section.setPersonality('friendly')
+    section.setPersonality('friendly')
+    expect(calls).toEqual([])
+    expect(section.hooks.personalityDraft.getSnapshot().value).toBe('friendly')
+    await section.savePersonality()
 
     expect(calls).toEqual([
       `mutate:${JSON.stringify([{ op: 'set', path: ['personality'], value: 'friendly' }])}`,
     ])
     expect(section.hooks.personality.getSnapshot().value).toEqual({ personality: 'friendly' })
+    expect(section.hooks.personalityDraft.getSnapshot()).toEqual({ value: undefined, saving: false, failed: false })
   })
 
   it('routes a memory toggle and the management RPCs', async () => {
@@ -182,5 +187,48 @@ describe('ui-settings-personalization apply', () => {
     expect(await section.loadMemories()).toEqual([])
     expect(await section.removeMemory('00000000-0000-4000-8000-000000000001')).toBe(true)
     expect(calls).toContain(`mutate:${JSON.stringify([{ op: 'set', path: ['enabled'], value: true }])}`)
+  })
+
+  it('retains a newer tone draft during Save and across section reinjection', async () => {
+    const { ctx, slots } = await bench()
+    declareRoot(slots)
+    await ctx.plugin({ inject: [...inject], apply }).await()
+    const sectionFactory = slots.entries('settings.section')[0]!.inject as unknown as () => PersonalizationSectionInjected
+    const section = sectionFactory()
+    await vi.waitFor(() => { expect(section.hooks.personality.getSnapshot().status).toBe('ready') })
+    const api = (ctx.get('connection') as ConnectionHandle).api.settings
+    const original = api.mutate.bind(api)
+    const pending = Promise.withResolvers<undefined>()
+    const write = vi.spyOn(api, 'mutate').mockImplementation(async (payload) => {
+      await pending.promise
+      return original(payload)
+    })
+    section.setPersonality('friendly')
+    const saving = section.savePersonality()
+    section.setPersonality('none')
+    await section.savePersonality()
+    pending.resolve(undefined)
+    await saving
+    expect(write).toHaveBeenCalledOnce()
+    expect(sectionFactory().hooks.personalityDraft.getSnapshot()).toEqual({ value: 'none', saving: false, failed: false })
+    await section.savePersonality()
+    expect(section.hooks.personality.getSnapshot().value?.personality).toBe('none')
+    await ctx.fiber.dispose()
+  })
+
+  it('keeps a rejected tone draft available for retry', async () => {
+    const { ctx, slots } = await bench()
+    declareRoot(slots)
+    await ctx.plugin({ inject: [...inject], apply }).await()
+    const section = (slots.entries('settings.section')[0]!.inject as unknown as () => PersonalizationSectionInjected)()
+    await vi.waitFor(() => { expect(section.hooks.personality.getSnapshot().status).toBe('ready') })
+    const api = (ctx.get('connection') as ConnectionHandle).api.settings
+    vi.spyOn(api, 'mutate').mockRejectedValueOnce(new Error('Disconnected'))
+    section.setPersonality('friendly')
+    await section.savePersonality()
+    expect(section.hooks.personalityDraft.getSnapshot()).toEqual({ value: 'friendly', saving: false, failed: true })
+    await section.savePersonality()
+    expect(section.hooks.personalityDraft.getSnapshot()).toEqual({ value: undefined, saving: false, failed: false })
+    await ctx.fiber.dispose()
   })
 })

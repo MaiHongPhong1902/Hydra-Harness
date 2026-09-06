@@ -1,4 +1,4 @@
-// Hero chrome for the blank-draft phase of ConversationRoot: WorkON-mark headline,
+// Hero chrome for the blank-draft phase of ConversationRoot: Hydra-mark headline,
 // glow backdrop, and the workspace row. Pure presentation — the resident
 // composer is NOT rendered here (it keeps its own stable tree position in
 // ConversationRoot so the textarea survives the hero → composer flip); CSS
@@ -7,9 +7,9 @@
 import { useId } from 'react'
 import type { ReactNode, RefObject } from 'react'
 import {
-  FishLogo, IconChevronDownOutline14, IconFolderClose16, IconFolderOpen16,
-} from '@bosch/bh-client-ui-primitives'
-import { workspaceTitleOf } from '@bosch/bh-client-runtime/client'
+  HydraLogo, IconChevronDownOutline14, IconFolderClose16, IconFolderOpen16,
+} from '@hydra/harness-client-ui-primitives'
+import { workspaceTitleOf } from '@hydra/harness-client-runtime/client'
 import type { ConversationSlotProps } from '../contract/slots.ts'
 import css from './HeroShell.module.css'
 
@@ -121,10 +121,10 @@ export function HeroShell({ t, renderSlot, children }: HeroShellProps) {
     <div className={css.root}>
       <div className={css.stack}>
         <div className={css.headline}>
-          {/* WorkON mark 34×34 leading the headline, gap 10. */}
-          <span className={css.fishHitbox}>
-            {renderSlot('conversation.hero.brand.mark', { size: 34, className: css.fish }, {
-              fallback: <FishLogo size={34} className={css.fish} />,
+          {/* Hydra mark 34×34 leading the headline, gap 10. */}
+          <span className={css.brandHitbox}>
+            {renderSlot('conversation.hero.brand.mark', { size: 34 }, {
+              fallback: <HydraLogo size={34} />,
             })}
           </span>
           <span className={css.headlineText}>{t('hero.headline')}</span>

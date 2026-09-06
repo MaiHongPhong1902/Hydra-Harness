@@ -4,19 +4,19 @@
  * producers. It also delivers unreported completions to the owning agent:
  * injected into a busy owner's next step, or opening a turn on an idle one
  * under the default `wakeup` delivery, bounded per owner.
- * @module @bosch/bh-tool-jobs
+ * @module @hydra/harness-tool-jobs
  */
 
-import type { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import { boundContextSummary, createUserMessage, type ContentBlock } from '@bosch/bh-llm'
-import { TextRetainer } from '@bosch/bh-output-retention'
-import { defineTool } from '@bosch/bh-tools'
-import type { GenericCallView, ToolDefinition, ToolExecution } from '@bosch/bh-tools'
-import { JobId } from '@bosch/bh-jobs'
-import type { JobSnapshot } from '@bosch/bh-jobs'
-import type {} from '@bosch/bh-system-prompt'
-import type { Agent } from '@bosch/bh-agent'
+import type { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import { boundContextSummary, createUserMessage, type ContentBlock } from '@hydra/harness-llm'
+import { TextRetainer } from '@hydra/harness-output-retention'
+import { defineTool } from '@hydra/harness-tools'
+import type { GenericCallView, ToolDefinition, ToolExecution } from '@hydra/harness-tools'
+import { JobId } from '@hydra/harness-jobs'
+import type { JobSnapshot } from '@hydra/harness-jobs'
+import type {} from '@hydra/harness-system-prompt'
+import type { Agent } from '@hydra/harness-agent'
 
 export const name = 'tool-jobs'
 export const inject = ['tools', 'jobs', 'systemPrompt']

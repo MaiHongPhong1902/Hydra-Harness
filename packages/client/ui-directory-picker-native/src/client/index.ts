@@ -7,9 +7,9 @@
  * both sides of the native interaction with one cordis.yml row; no client
  * code branches on a capability kind.
  */
-import type { ClientContext } from '@bosch/bh-client-runtime/client'
+import type { ClientContext } from '@hydra/harness-client-runtime/client'
 // Type-only: pulls the SlotMap merge declaring the directory-flow holes.
-import type {} from '@bosch/bh-client-ui-workspace/client'
+import type {} from '@hydra/harness-client-ui-workspace/client'
 import type { NativeFlowInjected } from './flow.ts'
 import { NativeDirectoryFlow } from './flow.ts'
 

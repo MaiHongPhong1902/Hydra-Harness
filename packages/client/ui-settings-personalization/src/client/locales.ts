@@ -3,6 +3,7 @@
 /** Locale keys this section renders. */
 export type PersonalizationKey =
   | 'nav'
+  | 'promptsTitle' | 'unsaved' | 'saveFailed'
   | 'instructionsTitle' | 'instructionsDescription' | 'instructionsPlaceholder'
   | 'save' | 'saving' | 'conflict' | 'reload'
   | 'memoryTitle' | 'memoryDescription' | 'memoryEnabled' | 'memoryUse' | 'memorySave'
@@ -13,8 +14,11 @@ export type PersonalizationKey =
 /** English copy. */
 export const en: Record<PersonalizationKey, string> = {
   nav: 'Personalization',
+  promptsTitle: 'System prompts',
+  unsaved: 'Unsaved changes',
+  saveFailed: 'Could not save. Your changes are still here; try again.',
   instructionsTitle: 'Custom instructions',
-  instructionsDescription: 'Give the agent extra instructions and context for all sessions on this host.',
+  instructionsDescription: 'Additional guidance for chats on this host. Save to apply from the next model request, including in existing chats. System and direct user instructions take precedence.',
   instructionsPlaceholder: 'Adhere to the following rules for all responses…',
   save: 'Save',
   saving: 'Saving…',
@@ -30,7 +34,7 @@ export const en: Record<PersonalizationKey, string> = {
   memoryNone: 'No saved local memories.',
   memoryDelete: 'Delete',
   personalityTitle: 'Personality',
-  personalityDescription: 'Choose a default tone for the agent\'s responses.',
+  personalityDescription: 'Choose the default tone for new chats. Save to apply; existing chats keep their tone.',
   personalityFriendly: 'Friendly',
   personalityPragmatic: 'Pragmatic',
   personalityNone: 'None',

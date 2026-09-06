@@ -1,13 +1,13 @@
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { describe, expect, it, vi } from 'vitest'
-import LlmRuntime, { createUserMessage, deepFreeze, markAgentLoopRequest  } from '@bosch/bh-llm'
-import SessionStore, { SessionId } from '@bosch/bh-session'
+import LlmRuntime, { createUserMessage, deepFreeze, markAgentLoopRequest  } from '@hydra/harness-llm'
+import SessionStore, { SessionId } from '@hydra/harness-session'
 import SessionTitleService, {
   SessionTitleProviderId,
   type SessionTitleProvider,
   type SessionTitleProviderRequest,
   type SessionTitleProviderResult,
-} from '@bosch/bh-session-title'
+} from '@hydra/harness-session-title'
 
 const CONFIG = {
   fallbackMaxWords: 5,

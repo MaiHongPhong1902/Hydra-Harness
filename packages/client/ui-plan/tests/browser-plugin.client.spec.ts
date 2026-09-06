@@ -5,11 +5,11 @@
  * outcomes into null (admitted) or a user-visible failure line; teardown
  * empties the seat (HMR safety).
  */
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { describe, expect, it, vi } from 'vitest'
-import { SlotRegistry } from '@bosch/bh-client-runtime/client'
-import type { SessionId } from '@bosch/bh-client-runtime/client'
-import { LocaleRuntime } from '@bosch/bh-client-locale/client'
+import { SlotRegistry } from '@hydra/harness-client-runtime/client'
+import type { SessionId } from '@hydra/harness-client-runtime/client'
+import { LocaleRuntime } from '@hydra/harness-client-locale/client'
 import { PlanChip } from '../src/client/PlanModeControl.tsx'
 import type { PlanChipInjected } from '../src/client/index.ts'
 import { apply, inject } from '../src/client/index.ts'

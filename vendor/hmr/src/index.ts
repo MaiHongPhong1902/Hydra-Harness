@@ -1,18 +1,18 @@
-import { Context, Service, type Plugin } from '@bosch/cordis'
-import type { Dict } from '@bosch/cosmokit'
-import { ModuleLoader, type ModuleJob, type ResolveResult } from '@bosch/cordis-plugin-loader'
-import type { Include } from '@bosch/cordis-plugin-include'
+import { Context, Service, type Plugin } from '@hydra/cordis'
+import type { Dict } from '@hydra/cosmokit'
+import { ModuleLoader, type ModuleJob, type ResolveResult } from '@hydra/cordis-plugin-loader'
+import type { Include } from '@hydra/cordis-plugin-include'
 import { FSWatcher, watch, type ChokidarOptions } from 'chokidar'
 import { dirname, relative, resolve } from 'node:path'
 import { realpath, stat } from 'node:fs/promises'
 import { handleError } from './error.ts'
-import type {} from '@bosch/cordis-plugin-timer'
+import type {} from '@hydra/cordis-plugin-timer'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { createRequire } from 'node:module'
 import picomatch from 'picomatch'
-import z from '@bosch/schemastery'
+import z from '@hydra/schemastery'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     hmr: Hmr
   }

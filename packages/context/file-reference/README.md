@@ -1,4 +1,4 @@
-# `@bosch/bh-file-reference`
+# `@hydra/harness-file-reference`
 
 File-reference discovery seam and browser-safe `@file` grammar shared by host-backed user interfaces. `ctx.fileReferences.list(agent, query, signal)` returns path-only file or directory candidates for the addressed agent; concrete providers own namespace access, ranking, caching, and invalidation. The same contract is remotely callable as the unary `fileReferences/list` Remote method (`@Remote` on the Service Definition, cancelled through the reserved trailing signal), so browser consumers call `ctx.remote.fileReferences.list` without an API Proxy route.
 
@@ -8,7 +8,7 @@ Selecting a candidate does not read or attach file contents. The exported `FILE_
 
 ## Model Experience
 
-Indirectly, through `@bosch/bh-file-reference-local`, which conditionally contributes this package's stable file-reference guidance.
+Indirectly, through `@hydra/harness-file-reference-local`, which conditionally contributes this package's stable file-reference guidance.
 
 #### KV Cache effect
 

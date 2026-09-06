@@ -4,13 +4,13 @@
  * product methods, current thread/turn association, unattended approval
  * responses, and terminal-answer selection.
  *
- * @module @bosch/bh-subagent-codex/wire
+ * @module @hydra/harness-subagent-codex/wire
  */
 
 import type { Readable, Writable } from 'node:stream'
-import type { ContentBlock } from '@bosch/bh-llm'
-import type { SubagentResult } from '@bosch/bh-subagent'
-import { JsonRpcLineTransport } from '@bosch/bh-sdk-protocol'
+import type { ContentBlock } from '@hydra/harness-llm'
+import type { SubagentResult } from '@hydra/harness-subagent'
+import { JsonRpcLineTransport } from '@hydra/harness-sdk-protocol'
 import type { CodexPermissionMode } from './run.ts'
 
 type JsonObject = Record<string, unknown>
@@ -288,7 +288,7 @@ export class CodexAppServerWire {
     object(await this.guarded(this.transport.request('initialize', {
       clientInfo: {
         name: 'bosch-harness',
-        title: 'Bosch Harness',
+        title: 'Hydra harness',
         version: '0.0.1',
       },
       capabilities: {

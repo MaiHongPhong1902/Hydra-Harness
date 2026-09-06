@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import fc from 'fast-check'
-import type { SessionEvent } from '@bosch/bh-session'
+import type { SessionEvent } from '@hydra/harness-session'
 import {
   ScheduleId,
   createEveryScheduleRecord,

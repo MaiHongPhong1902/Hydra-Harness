@@ -3,31 +3,31 @@
 # turn over stream-json; the replay adapter supplies the deterministic response.
 
 - id: persistence
-  name: '@bosch/bh-session-persistence-jsonl'
+  name: '@hydra/harness-session-persistence-jsonl'
   config:
     root: './.sessions'
     compression: none
 
 - id: checkpoint
-  name: '@bosch/bh-session-checkpoint-policy'
+  name: '@hydra/harness-session-checkpoint-policy'
 
 - id: replay
-  name: '@bosch/bh-llm-replay'
+  name: '@hydra/harness-llm-replay'
   config:
     file: !!js process.env.BH_SNAPSHOT_FILE
     overrideFile: !!js process.env.BH_SNAPSHOT_OVERRIDE
 
 # Managed child-process groups for the bash executor (spawn/kill/output plumbing).
 - id: subprocess
-  name: '@bosch/bh-subprocess-local'
+  name: '@hydra/harness-subprocess-local'
 
 - id: bash
-  name: '@bosch/bh-bash-local'
+  name: '@hydra/harness-bash-local'
   config:
     timeoutMs: 60000
 
 - id: agent
-  name: '@bosch/bh-agent-spine-demo'
+  name: '@hydra/harness-agent-spine-demo'
   config:
     agents: []
     workspaceContext: false

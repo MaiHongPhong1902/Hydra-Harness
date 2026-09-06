@@ -1,12 +1,12 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-base`.
- * @module @bosch/bh-base/invariant
+ * Package-owned invariant companion for `@hydra/harness-base`.
+ * @module @hydra/harness-base/invariant
  */
 
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-base'
+const PACKAGE_NAME = '@hydra/harness-base'
 
 /** Cordis companion plugin name. */
 export const name = 'base-bundle-invariant'

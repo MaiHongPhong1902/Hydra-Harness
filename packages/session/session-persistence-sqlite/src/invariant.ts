@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-session-persistence-sqlite`.
- * @module @bosch/bh-session-persistence-sqlite/invariant
+ * Package-owned invariant companion for `@hydra/harness-session-persistence-sqlite`.
+ * @module @hydra/harness-session-persistence-sqlite/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-session-persistence-sqlite'
+const PACKAGE_NAME = '@hydra/harness-session-persistence-sqlite'
 
 /** Cordis companion plugin name. */
 export const name = 'session-persistence-sqlite-invariant'

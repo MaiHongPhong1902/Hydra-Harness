@@ -377,7 +377,7 @@
 }
 
 /* Primary send (figma IconButton 34:10465): 34px circle using the shared
-   WorkON info-fill pair, NOT button-primary (ink);
+   Hydra info-fill pair, NOT button-primary (ink);
    white glyph; empty text = 0.4 opacity. */
 .primary {
   display: grid;

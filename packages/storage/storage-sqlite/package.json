@@ -1,6 +1,6 @@
 {
-  "name": "@bosch/bh-storage-sqlite",
-  "description": "SQLite storage backend (kv facet) for the Bosch Harness storage hub",
+  "name": "@hydra/harness-storage-sqlite",
+  "description": "SQLite storage backend (kv facet) for the Hydra harness storage hub",
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"
@@ -32,16 +32,16 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-storage": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-storage": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   },
   "dependencies": {
-    "@bosch/schemastery": "workspace:^"
+    "@hydra/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-storage": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-storage": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   }
 }

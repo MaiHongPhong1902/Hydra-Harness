@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import LlmRuntime, { CallId, LlmAdapter } from '@bosch/bh-llm'
-import type { GenerateOptions, StreamChunk } from '@bosch/bh-llm'
-import * as LlmInvariant from '@bosch/bh-llm/invariant'
-import InvariantRegistry from '@bosch/bh-invariants'
+import { Context } from '@hydra/cordis'
+import LlmRuntime, { CallId, LlmAdapter } from '@hydra/harness-llm'
+import type { GenerateOptions, StreamChunk } from '@hydra/harness-llm'
+import * as LlmInvariant from '@hydra/harness-llm/invariant'
+import InvariantRegistry from '@hydra/harness-invariants'
 
 async function setup(): Promise<Context> {
   const ctx = new Context()

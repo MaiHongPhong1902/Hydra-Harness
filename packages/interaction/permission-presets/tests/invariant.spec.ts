@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { Context, Service } from '@bosch/cordis'
-import SessionStore, { type Session, type SessionEvent } from '@bosch/bh-session'
-import * as PermissionInvariant from '@bosch/bh-permission-presets/invariant'
-import InvariantRegistry from '@bosch/bh-invariants'
+import { Context, Service } from '@hydra/cordis'
+import SessionStore, { type Session, type SessionEvent } from '@hydra/harness-session'
+import * as PermissionInvariant from '@hydra/harness-permission-presets/invariant'
+import InvariantRegistry from '@hydra/harness-invariants'
 
 class PermissionProbe extends Service {
   readonly names = ['safe', 'trusted']

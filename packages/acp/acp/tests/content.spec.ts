@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { Context } from '@bosch/cordis'
-import { AttachmentError, AttachmentId } from '@bosch/bh-attachment'
-import type { ImageAttachmentRef, SaveImageAttachment } from '@bosch/bh-attachment'
-import type { Agent } from '@bosch/bh-agent'
+import type { Context } from '@hydra/cordis'
+import { AttachmentError, AttachmentId } from '@hydra/harness-attachment'
+import type { ImageAttachmentRef, SaveImageAttachment } from '@hydra/harness-attachment'
+import type { Agent } from '@hydra/harness-agent'
 import {
   AcpContentError,
   admitAcpPrompt,

@@ -1,4 +1,4 @@
-import type { Context } from '@bosch/cordis'
+import type { Context } from '@hydra/cordis'
 import { registerAssistantConversationNode } from './assistant.ts'
 import { registerChatConversationView } from './chat-snapshot-builder.ts'
 import { registerCommandConversationNode } from './command.ts'

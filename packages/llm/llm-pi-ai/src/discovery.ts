@@ -22,10 +22,10 @@
  * @module bh-llm-pi-ai/discovery
  */
 
-import { INVALID_CREDENTIAL_CODE, LlmError, normalizeApiKey } from '@bosch/bh-llm'
-import { fetchWithHttpProxy } from '@bosch/bh-llm/proxy'
-import type { LlmDiscoveredModel, LlmModelDiscoveryRequest } from '@bosch/bh-llm'
-import { attributionHeaders } from '@bosch/bh-llm'
+import { INVALID_CREDENTIAL_CODE, LlmError, normalizeApiKey } from '@hydra/harness-llm'
+import { fetchWithHttpProxy } from '@hydra/harness-llm/proxy'
+import type { LlmDiscoveredModel, LlmModelDiscoveryRequest } from '@hydra/harness-llm'
+import { attributionHeaders } from '@hydra/harness-llm'
 import { catalogModels } from './catalog.ts'
 
 /**

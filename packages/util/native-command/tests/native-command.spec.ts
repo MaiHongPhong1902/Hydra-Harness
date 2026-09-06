@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { runNativeCommand } from '@bosch/bh-native-command'
+import { runNativeCommand } from '@hydra/harness-native-command'
 
 const node = process.execPath
 

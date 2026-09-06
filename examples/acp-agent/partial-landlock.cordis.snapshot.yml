@@ -1,18 +1,18 @@
 # Keyless runner-classification composition: replay authored model turns and
 # replace the shipping provider with a deterministic process-launch stand-in.
 - id: base
-  name: '@bosch/cordis-plugin-include'
+  name: '@hydra/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - id: llm-deepseek
-        name: '@bosch/bh-llm-deepseek'
+        name: '@hydra/harness-llm-deepseek'
         disabled: true
       - id: sandbox
-        name: '@bosch/bh-sandbox-local'
+        name: '@hydra/harness-sandbox-local'
         disabled: true
       - id: acp-agent
-        name: '@bosch/bh-acp-demo'
+        name: '@hydra/harness-acp-demo'
         config:
           provider: deepseek-official
           model: deepseek-v4-flash
@@ -26,7 +26,7 @@
             Verify your work by running the code or tests. Keep answers brief and factual.
       - insert:
           - id: llm-replay
-            name: '@bosch/bh-llm-replay'
+            name: '@hydra/harness-llm-replay'
             config:
               providers:
                 - id: deepseek-official

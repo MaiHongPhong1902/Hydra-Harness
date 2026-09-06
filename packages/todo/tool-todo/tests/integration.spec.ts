@@ -1,11 +1,11 @@
-import { createUserMessage } from '@bosch/bh-llm'
+import { createUserMessage } from '@hydra/harness-llm'
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import { SessionId, type SessionEvent } from '@bosch/bh-session'
-import type { Agent } from '@bosch/bh-agent'
-import AgentLoop from '@bosch/bh-agent-loop'
-import { mountAgentLoopTestDependencies } from '@bosch/bh-agent-loop-testkit'
-import * as ToolTodo from '@bosch/bh-tool-todo'
+import { Context } from '@hydra/cordis'
+import { SessionId, type SessionEvent } from '@hydra/harness-session'
+import type { Agent } from '@hydra/harness-agent'
+import AgentLoop from '@hydra/harness-agent-loop'
+import { mountAgentLoopTestDependencies } from '@hydra/harness-agent-loop-testkit'
+import * as ToolTodo from '@hydra/harness-tool-todo'
 import { MockAdapter, textResponse, toolCallResponse } from '../../../core/agent-loop/tests/mock-adapter.ts'
 
 /**

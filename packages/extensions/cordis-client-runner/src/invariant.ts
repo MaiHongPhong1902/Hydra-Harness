@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-cordis-client-runner`.
- * @module @bosch/bh-cordis-client-runner/invariant
+ * Package-owned invariant companion for `@hydra/harness-cordis-client-runner`.
+ * @module @hydra/harness-cordis-client-runner/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-cordis-client-runner'
+const PACKAGE_NAME = '@hydra/harness-cordis-client-runner'
 
 /** Cordis companion plugin name. */
 export const name = 'cordis-client-runner-invariant'

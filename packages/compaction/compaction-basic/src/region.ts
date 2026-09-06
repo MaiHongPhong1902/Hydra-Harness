@@ -2,7 +2,7 @@
  * Surface retention selection and the shared log-recorded compaction
  * transaction for automatic open-turn and manual idle-session compaction.
  *
- * @module @bosch/bh-compaction-basic/region
+ * @module @hydra/harness-compaction-basic/region
  */
 
 import { randomUUID } from 'node:crypto'
@@ -13,14 +13,14 @@ import {
   compactCheckpointSource,
   toolPairingBalancedAfter,
   toolPairingBalancedBefore,
-} from '@bosch/bh-compaction'
-import type { CompactionResult } from '@bosch/bh-compaction'
-import type { CommandId } from '@bosch/bh-commands/brand'
-import { createUserMessage, errorChain } from '@bosch/bh-llm'
-import type { Message, UserMessage } from '@bosch/bh-llm'
-import type { TokenMeasurement, TokenMeter } from '@bosch/bh-token-meter'
-import type { Session, SessionEvent } from '@bosch/bh-session'
-import type { Agent } from '@bosch/bh-agent'
+} from '@hydra/harness-compaction'
+import type { CompactionResult } from '@hydra/harness-compaction'
+import type { CommandId } from '@hydra/harness-commands/brand'
+import { createUserMessage, errorChain } from '@hydra/harness-llm'
+import type { Message, UserMessage } from '@hydra/harness-llm'
+import type { TokenMeasurement, TokenMeter } from '@hydra/harness-token-meter'
+import type { Session, SessionEvent } from '@hydra/harness-session'
+import type { Agent } from '@hydra/harness-agent'
 import { frameSummary } from './summarizer.ts'
 import type { SummarizationInput, SummaryResult } from './summarizer.ts'
 

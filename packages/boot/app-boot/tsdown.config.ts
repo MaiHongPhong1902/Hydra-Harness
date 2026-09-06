@@ -14,6 +14,6 @@ export default defineConfig({
   dts: false,
   clean: false,
   deps: {
-    alwaysBundle: ['@bosch/cordis-plugin-include'],
+    alwaysBundle: ['@hydra/cordis-plugin-include'],
   },
 })

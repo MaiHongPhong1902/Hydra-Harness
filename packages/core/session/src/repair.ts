@@ -2,11 +2,11 @@
  * Crash-recovery repair for an interrupted session log. It preserves a fully
  * written final turn and supplies the missing tool, step, and turn boundaries
  * needed to resume with a provider-valid transcript.
- * @module @bosch/bh-session/repair
+ * @module @hydra/harness-session/repair
  */
 
-import { MessageId, freezeMessage, type CallId } from '@bosch/bh-llm'
-import type { ToolResultMessage } from '@bosch/bh-llm'
+import { MessageId, freezeMessage, type CallId } from '@hydra/harness-llm'
+import type { ToolResultMessage } from '@hydra/harness-llm'
 import type { SessionEvent } from './types.ts'
 
 /** Recovery code for an assistant tool request that never reached a recorded call start. */

@@ -1,16 +1,16 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import AgentRegistry, { agentEvents, Inbox } from '@bosch/bh-agent'
-import type { Agent } from '@bosch/bh-agent'
-import { createUserMessage, HarnessError } from '@bosch/bh-llm'
-import SessionStore, { Session, SessionId, type UserMessage } from '@bosch/bh-session'
+import { Context } from '@hydra/cordis'
+import AgentRegistry, { agentEvents, Inbox } from '@hydra/harness-agent'
+import type { Agent } from '@hydra/harness-agent'
+import { createUserMessage, HarnessError } from '@hydra/harness-llm'
+import SessionStore, { Session, SessionId, type UserMessage } from '@hydra/harness-session'
 import GoalService, {
   GoalError,
   GoalId,
   decodeGoalChange,
   foldGoal,
-} from '@bosch/bh-goal'
-import type { GoalChangeMeta, GoalRef, GoalSnapshotChangeMeta } from '@bosch/bh-goal'
+} from '@hydra/harness-goal'
+import type { GoalChangeMeta, GoalRef, GoalSnapshotChangeMeta } from '@hydra/harness-goal'
 
 interface StubAgent {
   agent: Agent
@@ -53,7 +53,7 @@ function stubAgentForSession(session: Session): StubAgent {
 }
 
 /** Build a registry-compatible agent around a fresh session. */
-function stubAgent(rawId: string, seed?: readonly import('@bosch/bh-session').SessionEvent[]): StubAgent {
+function stubAgent(rawId: string, seed?: readonly import('@hydra/harness-session').SessionEvent[]): StubAgent {
   return stubAgentForSession(Session.create(SessionId(rawId), seed))
 }
 

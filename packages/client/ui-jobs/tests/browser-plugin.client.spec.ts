@@ -4,12 +4,12 @@
  * removal — HMR safety), the inert node entry, and the invariant companion's
  * ownership reservation.
  */
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { describe, expect, it } from 'vitest'
-import InvariantRegistry from '@bosch/bh-invariants'
-import { SlotRegistry } from '@bosch/bh-client-runtime/client'
-import { stubSettingsScope } from '@bosch/bh-client-test-runtime'
-import { apply as applyLocale, inject as localeInject } from '@bosch/bh-client-locale/client'
+import InvariantRegistry from '@hydra/harness-invariants'
+import { SlotRegistry } from '@hydra/harness-client-runtime/client'
+import { stubSettingsScope } from '@hydra/harness-client-test-runtime'
+import { apply as applyLocale, inject as localeInject } from '@hydra/harness-client-locale/client'
 import { apply, inject } from '../src/client/index.ts'
 import { apply as applyNode } from '../src/index.ts'
 import * as JobInvariant from '../src/invariant.ts'

@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-tool-skill`.
- * @module @bosch/bh-tool-skill/invariant
+ * Package-owned invariant companion for `@hydra/harness-tool-skill`.
+ * @module @hydra/harness-tool-skill/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-tool-skill'
+const PACKAGE_NAME = '@hydra/harness-tool-skill'
 
 /** Cordis companion plugin name. */
 export const name = 'tool-skill-invariant'

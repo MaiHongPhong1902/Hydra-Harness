@@ -14,11 +14,11 @@ import { useEffect, useState, type ReactNode } from 'react'
 import {
   SlotOwnershipError, StaleAuthorizationError,
   type ActionsDecl, type SlotEntryDef, type SlotSpec, type StoreHandle, type StoredEntry,
-} from '@bosch/bh-client-ui-slots'
-import type { SessionMaybeProvideInfo } from '@bosch/bh-client-ui-slots'
+} from '@hydra/harness-client-ui-slots'
+import type { SessionMaybeProvideInfo } from '@hydra/harness-client-ui-slots'
 import type {
   RenderOpts, SessionProvideInfo, SlotRendererHost, StoreInstanceLike,
-} from '@bosch/bh-client-ui-renderer/client'
+} from '@hydra/harness-client-ui-renderer/client'
 import { createSlotRenderer } from '../src/client/scoped-slots.tsx'
 import { SessionProvider } from '../src/client/session-provider.tsx'
 

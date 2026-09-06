@@ -1,10 +1,10 @@
 import { writeFile } from 'node:fs/promises'
-import { Context } from '@bosch/cordis'
-import AgentLoop from '@bosch/bh-agent-loop'
-import { mountAgentLoopTestDependencies } from '@bosch/bh-agent-loop-testkit'
-import { createUserMessage, CallId, type GenerateOptions, LlmAdapter, type StreamChunk  } from '@bosch/bh-llm'
-import { SessionId } from '@bosch/bh-session'
-import JsonlSessionPersistence from '@bosch/bh-session-persistence-jsonl'
+import { Context } from '@hydra/cordis'
+import AgentLoop from '@hydra/harness-agent-loop'
+import { mountAgentLoopTestDependencies } from '@hydra/harness-agent-loop-testkit'
+import { createUserMessage, CallId, type GenerateOptions, LlmAdapter, type StreamChunk  } from '@hydra/harness-llm'
+import { SessionId } from '@hydra/harness-session'
+import JsonlSessionPersistence from '@hydra/harness-session-persistence-jsonl'
 import * as checkpointPolicy from '../../src/index.ts'
 
 function waitForCrash(): Promise<never> {

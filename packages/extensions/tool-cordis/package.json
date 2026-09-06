@@ -1,5 +1,5 @@
 {
-  "name": "@bosch/bh-tool-cordis",
+  "name": "@hydra/harness-tool-cordis",
   "description": "Self-referential cordis toolset: inspect the live runtime, mount and dispose model-written plugins",
   "version": "0.1.1-rc.1",
   "publishConfig": {
@@ -32,26 +32,26 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@bosch/bh-agent": "workspace:^",
-    "@bosch/bh-cordis-host-runner": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-llm": "workspace:^",
-    "@bosch/bh-scope": "workspace:^",
-    "@bosch/bh-session": "workspace:^",
-    "@bosch/bh-system-prompt": "workspace:^",
-    "@bosch/bh-tools": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-agent": "workspace:^",
+    "@hydra/harness-cordis-host-runner": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/harness-scope": "workspace:^",
+    "@hydra/harness-session": "workspace:^",
+    "@hydra/harness-system-prompt": "workspace:^",
+    "@hydra/harness-tools": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@bosch/cordis-plugin-loader": "workspace:^",
-    "@bosch/bh-agent": "workspace:^",
-    "@bosch/bh-cordis-host-runner": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-llm": "workspace:^",
-    "@bosch/bh-scope": "workspace:^",
-    "@bosch/bh-session": "workspace:^",
-    "@bosch/bh-system-prompt": "workspace:^",
-    "@bosch/bh-tools": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/cordis-plugin-loader": "workspace:^",
+    "@hydra/harness-agent": "workspace:^",
+    "@hydra/harness-cordis-host-runner": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/harness-scope": "workspace:^",
+    "@hydra/harness-session": "workspace:^",
+    "@hydra/harness-system-prompt": "workspace:^",
+    "@hydra/harness-tools": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   }
 }

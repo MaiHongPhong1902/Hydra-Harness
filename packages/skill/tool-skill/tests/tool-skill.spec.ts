@@ -3,16 +3,16 @@ import { Buffer } from 'node:buffer'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
-import { Context } from '@bosch/cordis'
-import { createToolResultMessage, createUserMessage, CallId } from '@bosch/bh-llm'
-import { createScope, type Scope } from '@bosch/bh-scope'
-import { Session, SessionId, type UserMessage } from '@bosch/bh-session'
-import SystemPrompt from '@bosch/bh-system-prompt'
-import ToolRuntime from '@bosch/bh-tools'
-import AgentRegistry, { agentEvents, Inbox, type Agent, type PreStepDecision } from '@bosch/bh-agent'
-import SkillRegistry from '@bosch/bh-skill'
-import * as SkillFileSystem from '@bosch/bh-skill-filesystem'
-import * as toolSkill from '@bosch/bh-tool-skill'
+import { Context } from '@hydra/cordis'
+import { createToolResultMessage, createUserMessage, CallId } from '@hydra/harness-llm'
+import { createScope, type Scope } from '@hydra/harness-scope'
+import { Session, SessionId, type UserMessage } from '@hydra/harness-session'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import ToolRuntime from '@hydra/harness-tools'
+import AgentRegistry, { agentEvents, Inbox, type Agent, type PreStepDecision } from '@hydra/harness-agent'
+import SkillRegistry from '@hydra/harness-skill'
+import * as SkillFileSystem from '@hydra/harness-skill-filesystem'
+import * as toolSkill from '@hydra/harness-tool-skill'
 
 const testToolSignal = new AbortController().signal
 
@@ -169,6 +169,42 @@ describe('bh-tool-skill', () => {
     })
     expect(load.isError).toBe(false)
     expect(getCalls).toEqual(['bulk-skill-000'])
+  })
+
+  it('ranks aliases once per definition before applying the result cap and automatic confidence', async () => {
+    const home = await tempDir('tool-alias-search')
+    const ctx = await setup(home, { searchMaxResults: 2 })
+    ctx.skills.registerProvider(() => ({
+      name: 'imported',
+      async list() {
+        return ['workon-uat-test-design', 'other-test'].map(name => ({
+          name: `plugin-hash-${name}`, aliases: [name], description: 'Test workflow',
+          invocation: { modelInvocable: true, userInvocable: true }, provider: 'imported',
+          source: 'test', rank: 1, locator: name,
+        }))
+      },
+      async get(candidate) { return { ...candidate, content: 'Instructions.' } },
+    }))
+    const search = await ctx.tools.execute({
+      signal: testToolSignal, callId: CallId('alias-search'), name: 'skill_search', arguments: { query: 'workon test' },
+    })
+    expect(search.isError).toBe(false)
+    if (search.isError) throw new Error('expected skill search success')
+    expect(search.value).toEqual({
+      complete: true, truncated: false,
+      matches: [
+        { name: 'workon-uat-test-design', description: 'Test workflow' },
+        { name: 'other-test', description: 'Test workflow' },
+      ],
+    })
+    const decision = await proposeStep(ctx, agentForCwd(home), [createUserMessage({
+      content: [{ type: 'text', text: 'test workon' }], source: { kind: 'user' },
+    })])
+    expect(decision.kind === 'enter' && decision.messages.filter(message => message.source.kind === 'skill-invocation')
+      .map(message => message.source)).toEqual([{
+      kind: 'skill-invocation', name: 'workon-uat-test-design', trigger: 'automatic', form: 'instructions',
+    }])
+    await ctx.fiber.dispose()
   })
 
   it('defaults greetings to no match and ranks name, description, and whenToUse metadata', async () => {
@@ -650,6 +686,20 @@ describe('automatic invocation injection', () => {
 
     const unknown = await proposeStep(ctx, agent, [user('/missing-skill test workon')])
     expect(skillInjections(unknown)).toEqual([])
+  })
+
+  it('leaves negated requests to model-led discovery without confusing Vietnamese use with do not', async () => {
+    const { ctx, agent } = await automaticHarness()
+    for (const task of [
+      'Do not use workon-uat-test-design; explain what it does.',
+      "Don't use workon-uat-test-design.", 'Don’t use workon-uat-test-design.',
+      'Never load workon-uat-test-design.', 'Avoid workon-uat-test-design.',
+      'Test WorkON without skills.', 'Stop using workon-uat-test-design.',
+      'Không dùng workon-uat-test-design.', 'Đừng dùng workon-uat-test-design.',
+      'Khong dung workon-uat-test-design.', 'Chớ dùng workon-uat-test-design.',
+    ]) expect(skillInjections(await proposeStep(ctx, agent, [user(task)]))).toEqual([])
+    expect(skillInjections(await proposeStep(ctx, agent, [user('Dùng workon-uat-test-design để kiểm thử.')]))).toHaveLength(1)
+    await ctx.fiber.dispose()
   })
 
   it('fails open for incomplete discovery and stale or failing automatic loads', async () => {

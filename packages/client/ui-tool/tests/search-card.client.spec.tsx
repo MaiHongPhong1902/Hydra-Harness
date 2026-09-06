@@ -8,22 +8,22 @@
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render } from '@testing-library/react'
-import { bindSnapshotSelector } from '@bosch/bh-client-test-runtime'
+import { bindSnapshotSelector } from '@hydra/harness-client-test-runtime'
 import {
   createSnapshotStore, EMPTY_CONVERSATION_VIEWS,
-} from '@bosch/bh-client-runtime/client'
+} from '@hydra/harness-client-runtime/client'
 import type {
   ConversationSnapshot, RunningToolCall, SessionId, SessionListState, ToolResultNode, WorkspaceListState,
-} from '@bosch/bh-client-runtime/client'
-import type { ToolResultView } from '@bosch/bh-api-remotes/client'
-import type { SelectionTarget } from '@bosch/bh-client-ui-conversation/client'
-import { makeTranslate } from '@bosch/bh-client-test-runtime'
-import { en as commonEn } from '@bosch/bh-client-locale/src/locales/en.ts'
+} from '@hydra/harness-client-runtime/client'
+import type { ToolResultView } from '@hydra/harness-api-remotes/client'
+import type { SelectionTarget } from '@hydra/harness-client-ui-conversation/client'
+import { makeTranslate } from '@hydra/harness-client-test-runtime'
+import { en as commonEn } from '@hydra/harness-client-locale/src/locales/en.ts'
 import { CHAT_SEARCH_MAX_LINES, searchCardModel } from '../src/client/tool/models/search-card-model.ts'
-import { en } from '@bosch/bh-client-ui-conversation/src/client/locales.ts'
-import { createChatStore } from '@bosch/bh-client-ui-conversation/src/client/stores.ts'
+import { en } from '@hydra/harness-client-ui-conversation/src/client/locales.ts'
+import { createChatStore } from '@hydra/harness-client-ui-conversation/src/client/stores.ts'
 import { GenericToolCard, type GenericToolCardProps } from '../src/client/tool/toolviews/GenericToolCard.tsx'
-import { DetailsPanel } from '@bosch/bh-client-ui-conversation/src/client/skeleton/DetailsPanel.tsx'
+import { DetailsPanel } from '@hydra/harness-client-ui-conversation/src/client/skeleton/DetailsPanel.tsx'
 import { SearchRow, searchToolview } from '../src/client/tool/toolviews/search-row.tsx'
 import { renderToolDetails, SessionProviderStub, toolChatSnapshot } from './tool-details-render.client.tsx'
 

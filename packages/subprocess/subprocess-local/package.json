@@ -1,6 +1,6 @@
 {
-  "name": "@bosch/bh-subprocess-local",
-  "description": "Local-subprocess implementation of the Bosch Harness subprocess seam",
+  "name": "@hydra/harness-subprocess-local",
+  "description": "Local-subprocess implementation of the Hydra harness subprocess seam",
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"
@@ -36,20 +36,20 @@
   },
   "license": "MIT",
   "peerDependencies": {
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-subprocess": "workspace:^",
-    "@bosch/bh-timeout": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-subprocess": "workspace:^",
+    "@hydra/harness-timeout": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   },
   "dependencies": {
     "koffi": "^3.1.0",
     "node-pty": "1.2.0-beta.15"
   },
   "devDependencies": {
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-loader-smoke": "workspace:^",
-    "@bosch/bh-subprocess": "workspace:^",
-    "@bosch/bh-timeout": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-loader-smoke": "workspace:^",
+    "@hydra/harness-subprocess": "workspace:^",
+    "@hydra/harness-timeout": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   }
 }

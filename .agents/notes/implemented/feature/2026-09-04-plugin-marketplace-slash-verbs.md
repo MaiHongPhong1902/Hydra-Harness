@@ -4,7 +4,7 @@ Status: implemented
 
 ## Problem
 
-Users paste Claude Code / Codex catalog commands such as `/plugin marketplace add example-labs/toolkit` into BH chat. The `/plugin` handler only accepted `list`, `import`, `info`, `enable`, `disable`, `trust`, `untrust`, and `remove`. The unknown `marketplace` verb returned a usage error. Admission still succeeded, the composer cleared the draft, and the long usage string is ellipsized on the command row, so the session looked like the agent did nothing. A second documented command, `/plugin install toolkit@toolkit`, had the same gap. Settings already persisted OpenAI/Codex marketplace sources; the chat command did not call that path.
+Users paste Claude Code / Codex catalog commands such as `/plugin marketplace add example-labs/toolkit` into Hydra chat. The `/plugin` handler only accepted `list`, `import`, `info`, `enable`, `disable`, `trust`, `untrust`, and `remove`. The unknown `marketplace` verb returned a usage error. Admission still succeeded, the composer cleared the draft, and the long usage string is ellipsized on the command row, so the session looked like the agent did nothing. A second documented command, `/plugin install toolkit@toolkit`, had the same gap. Settings already persisted OpenAI/Codex marketplace sources; the chat command did not call that path.
 
 ## Decision
 
@@ -14,7 +14,7 @@ Users paste Claude Code / Codex catalog commands such as `/plugin marketplace ad
 
 **Leave `/plugin` unchanged and tell users to use Settings or `/plugin import`.** Rejected because the documented catalog commands are what users type, and the usage-error row is easy to miss.
 
-**Treat `marketplace add` as import-and-enable.** Rejected because Claude Code's add step only records the catalog; install is the enablement step, and BH Settings already separates persisting a source from enabling a bundle.
+**Treat `marketplace add` as import-and-enable.** Rejected because Claude Code's add step only records the catalog; install is the enablement step, and Hydra Settings already separates persisting a source from enabling a bundle.
 
 **Add a peer dependency from plugin-runtime onto plugin-inventory.** Rejected because inventory already depends on the runtime; the command reads `ctx.get('pluginInventory')` and falls back to import when that service is missing.
 

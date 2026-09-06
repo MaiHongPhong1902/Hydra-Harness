@@ -4,6 +4,9 @@
     - button "General":
       - img
       - text: General
+    - button "Personalization":
+      - img
+      - text: Personalization
     - button "Models":
       - img
       - text: Models
@@ -20,11 +23,16 @@
     - text: Close
   - heading "Plugins" [level=2]
   - paragraph: Configure and inspect the plugins installed in this deployment.
+  - text: Search plugins, skills, hooks, marketplaces, and MCP servers
+  - searchbox "Search plugins, skills, hooks, marketplaces, and MCP servers"
   - tablist "Plugin views":
-    - tab "Plugin configuration" [selected]
-    - tab "Plugin list"
+    - tab "Configuration" [selected]
+    - tab "MCP"
+    - tab "Plugins"
+    - tab "Skills"
     - tab "Marketplace"
-  - tabpanel "Plugin configuration":
+    - tab "Hooks"
+  - tabpanel "Configuration":
     - list:
       - listitem:
         - 'button "Show settings: Shell"':

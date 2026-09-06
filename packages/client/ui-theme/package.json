@@ -1,5 +1,5 @@
 {
-  "name": "@bosch/bh-client-ui-theme",
+  "name": "@hydra/harness-client-ui-theme",
   "description": "Theme plugin: Host bootstrap for the pre-plugin palette; DOM-free ThemeRuntime for light/dark/system state; --dsw-* token styles and Appearance settings row",
   "version": "0.1.1-rc.1",
   "publishConfig": {
@@ -32,11 +32,11 @@
   "bh": {
     "client": {
       "inject": [
-        "@bosch/bh-client-connection",
-        "@bosch/bh-client-runtime",
-        "@bosch/bh-client-locale",
-        "@bosch/bh-client-ui-settings",
-        "@bosch/bh-api-remotes"
+        "@hydra/harness-client-connection",
+        "@hydra/harness-client-runtime",
+        "@hydra/harness-client-locale",
+        "@hydra/harness-client-ui-settings",
+        "@hydra/harness-api-remotes"
       ],
       "platform": "web",
       "immediately": true
@@ -44,29 +44,29 @@
   },
   "license": "MIT",
   "peerDependencies": {
-    "@bosch/cordis": "workspace:^",
-    "@bosch/bh-api-remotes": "workspace:^",
-    "@bosch/bh-client-connection": "workspace:^",
-    "@bosch/bh-client-locale": "workspace:^",
-    "@bosch/bh-client-runtime": "workspace:^",
-    "@bosch/bh-client-ui-settings": "workspace:^",
-    "@bosch/bh-host-webserver": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-settings": "workspace:^"
+    "@hydra/cordis": "workspace:^",
+    "@hydra/harness-api-remotes": "workspace:^",
+    "@hydra/harness-client-connection": "workspace:^",
+    "@hydra/harness-client-locale": "workspace:^",
+    "@hydra/harness-client-runtime": "workspace:^",
+    "@hydra/harness-client-ui-settings": "workspace:^",
+    "@hydra/harness-host-webserver": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-settings": "workspace:^"
   },
   "devDependencies": {
-    "@bosch/cordis": "workspace:^",
-    "@bosch/bh-api-remotes": "workspace:^",
-    "@bosch/bh-client-connection": "workspace:^",
-    "@bosch/bh-client-locale": "workspace:^",
-    "@bosch/bh-client-runtime": "workspace:^",
-    "@bosch/bh-client-test-runtime": "workspace:^",
-    "@bosch/bh-client-ui-primitives": "workspace:^",
-    "@bosch/bh-client-ui-settings": "workspace:^",
-    "@bosch/bh-client-ui-slots": "workspace:^",
-    "@bosch/bh-host-webserver": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-settings": "workspace:^",
+    "@hydra/cordis": "workspace:^",
+    "@hydra/harness-api-remotes": "workspace:^",
+    "@hydra/harness-client-connection": "workspace:^",
+    "@hydra/harness-client-locale": "workspace:^",
+    "@hydra/harness-client-runtime": "workspace:^",
+    "@hydra/harness-client-test-runtime": "workspace:^",
+    "@hydra/harness-client-ui-primitives": "workspace:^",
+    "@hydra/harness-client-ui-settings": "workspace:^",
+    "@hydra/harness-client-ui-slots": "workspace:^",
+    "@hydra/harness-host-webserver": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-settings": "workspace:^",
     "@types/react": "~18.3.1",
     "react": "^18.2.0"
   },
@@ -83,6 +83,6 @@
   },
   "dependencies": {
     "clsx": "^2.0.0",
-    "@bosch/schemastery": "workspace:^"
+    "@hydra/schemastery": "workspace:^"
   }
 }

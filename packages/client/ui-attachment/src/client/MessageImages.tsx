@@ -1,4 +1,4 @@
-import type { MessageImagesProps } from '@bosch/bh-client-ui-conversation/client'
+import type { MessageImagesProps } from '@hydra/harness-client-ui-conversation/client'
 import { ImageGallery } from '../MessageImage.tsx'
 import { messageImageLabels } from './labels.ts'
 

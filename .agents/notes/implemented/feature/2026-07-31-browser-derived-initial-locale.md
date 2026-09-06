@@ -18,7 +18,7 @@ Reading the browser fixed the readers whose browser names a language this app sh
 
 **`window`, not `navigator`, is the browser test.** Node ≥ 21 exposes a global `navigator` reporting the machine's own language, so gating on `navigator` would let a node boot of the client tree resolve to the machine's language instead of the documented fallback. Gating on `window` keeps every non-browser run on `FALLBACK_LOCALE`.
 
-**An explicit choice is durable.** `setLocale` writes the supported `en` choice through the Host settings API, so the preference stays consistent across browser origins and system languages that share the same BH home. Nothing writes the detected locale back: detection is re-derived every boot and stays invisible to the “has the user chosen?” question.
+**An explicit choice is durable.** `setLocale` writes the supported `en` choice through the Host settings API, so the preference stays consistent across browser origins and system languages that share the same Hydra home. Nothing writes the detected locale back: detection is re-derived every boot and stays invisible to the “has the user chosen?” question.
 
 **`<html lang>` follows the resolved locale.** The locale plugin sets `document.documentElement.lang` from the active locale at activation and on a supported selection. The static markup and runtime both declare `en`; the client assignment still prevents an embedder's placeholder value from surviving boot.
 

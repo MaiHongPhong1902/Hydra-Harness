@@ -1,10 +1,10 @@
 // Title-source invariant: `messageSeqs` is empty iff `source.kind` is `user`.
 // — the durable relationship every appended session/title event must keep.
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import * as SessionTitleInvariantCompanion from '@bosch/bh-session-title/invariant'
-import InvariantRegistry, { InvariantError } from '@bosch/bh-invariants'
-import SessionStore, { SessionId } from '@bosch/bh-session'
+import { Context } from '@hydra/cordis'
+import * as SessionTitleInvariantCompanion from '@hydra/harness-session-title/invariant'
+import InvariantRegistry, { InvariantError } from '@hydra/harness-invariants'
+import SessionStore, { SessionId } from '@hydra/harness-session'
 
 async function setup(): Promise<Context> {
   const ctx = new Context()
@@ -31,13 +31,13 @@ describe('session-title source invariant', () => {
       session.append('session/title', { title: 'auto', messageSeqs: [], source: { kind: 'fallback' } })
     }).toThrow(expect.objectContaining<Partial<InvariantError>>({
       code: 'INVARIANT',
-      packageName: '@bosch/bh-session-title',
+      packageName: '@hydra/harness-session-title',
     }))
     expect(() => {
       session.append('session/title', { title: 'named', messageSeqs: [1], source: { kind: 'user' } })
     }).toThrow(expect.objectContaining<Partial<InvariantError>>({
       code: 'INVARIANT',
-      packageName: '@bosch/bh-session-title',
+      packageName: '@hydra/harness-session-title',
     }))
     expect(session.seq).toBe(0)
   })

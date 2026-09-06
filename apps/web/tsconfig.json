@@ -23,6 +23,7 @@
   // cannot see both sides of the cordis Context merges).
   "exclude": [
     "tests/scaffold.ts",
+    "tests/brand-hover.e2e.ts",
     "tests/scaffold-hermetic.e2e.ts",
     "tests/startup-rpc-budget.e2e.ts",
     "tests/minimal-preset.snapshot.ts",
@@ -39,6 +40,8 @@
     "tests/lifecycle-chrome.e2e.ts",
     "tests/details-session-lifecycle.e2e.ts",
     "tests/plugin-config.e2e.ts",
+    "tests/plugin-settings-regressions.e2e.ts",
+    "tests/settings-regressions.e2e.ts",
     "tests/settings-chrome.e2e.ts",
     "tests/models-settings.e2e.ts",
     "tests/default-model.e2e.ts",

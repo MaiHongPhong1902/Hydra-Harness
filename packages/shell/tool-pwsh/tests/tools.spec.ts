@@ -11,26 +11,26 @@
  */
 
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { mkdtempSync, realpathSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve as resolvePath } from 'node:path'
-import { CallId } from '@bosch/bh-llm'
-import SystemPrompt, { renderPrompt } from '@bosch/bh-system-prompt'
-import ToolRuntime, { TOOL_ABORTED, TOOL_ABORTED_BEFORE_DISPATCH } from '@bosch/bh-tools'
-import LocalJobRegistry from '@bosch/bh-jobs-local'
-import * as ToolTasks from '@bosch/bh-tool-jobs'
-import AgentRegistry from '@bosch/bh-agent'
-import type { Agent } from '@bosch/bh-agent'
-import { SessionId } from '@bosch/bh-session'
-import ApprovalService from '@bosch/bh-user-approval'
-import type { ApprovalOutcome } from '@bosch/bh-user-approval'
-import { ShellExecutor } from '@bosch/bh-shell'
-import type { ShellExecRequest, ShellExecSpec, ShellProcess, ShellRunResult } from '@bosch/bh-shell'
-import SandboxPolicyService from '@bosch/bh-sandbox-policy'
-import * as ToolPwsh from '@bosch/bh-tool-pwsh'
-import * as BashEnvPlugin from '@bosch/bh-shell-env'
-import type { ShellProcessRead } from '@bosch/bh-shell'
+import { CallId } from '@hydra/harness-llm'
+import SystemPrompt, { renderPrompt } from '@hydra/harness-system-prompt'
+import ToolRuntime, { TOOL_ABORTED, TOOL_ABORTED_BEFORE_DISPATCH } from '@hydra/harness-tools'
+import LocalJobRegistry from '@hydra/harness-jobs-local'
+import * as ToolTasks from '@hydra/harness-tool-jobs'
+import AgentRegistry from '@hydra/harness-agent'
+import type { Agent } from '@hydra/harness-agent'
+import { SessionId } from '@hydra/harness-session'
+import ApprovalService from '@hydra/harness-user-approval'
+import type { ApprovalOutcome } from '@hydra/harness-user-approval'
+import { ShellExecutor } from '@hydra/harness-shell'
+import type { ShellExecRequest, ShellExecSpec, ShellProcess, ShellRunResult } from '@hydra/harness-shell'
+import SandboxPolicyService from '@hydra/harness-sandbox-policy'
+import * as ToolPwsh from '@hydra/harness-tool-pwsh'
+import * as BashEnvPlugin from '@hydra/harness-shell-env'
+import type { ShellProcessRead } from '@hydra/harness-shell'
 import { processOutcome } from '../src/background.ts'
 import { renderPwshProcessRead, renderPwshResult } from '../src/render.ts'
 
@@ -744,7 +744,7 @@ describe('background execution through the job runtime', () => {
     const { ctx } = await setup() // no LocalJobRegistry / ToolTasks
     const result = await call(ctx, 'pwsh', { command: 'Start-Sleep -Seconds 60', description: 'test command', run_in_background: true })
     expect(result.isError).toBe(true)
-    expect(text(result)).toContain('background jobs unavailable: load @bosch/bh-jobs and @bosch/bh-tool-jobs')
+    expect(text(result)).toContain('background jobs unavailable: load @hydra/harness-jobs and @hydra/harness-tool-jobs')
   })
 
   it('a pre-aborted call is skipped before the process starts', async () => {

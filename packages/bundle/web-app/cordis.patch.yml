@@ -46,72 +46,72 @@
 # window.__BH_BOOT__; the modules row is simultaneously a host row.
 - insert:
     - id: code-runtime
-      name: '@bosch/bh-code-runtime-worker-thread'
+      name: '@hydra/harness-code-runtime-worker-thread'
       pluginType: core
 
     - id: storage
-      name: '@bosch/bh-storage'
+      name: '@hydra/harness-storage'
       pluginType: core
       pluginGroup: storage
 
     - id: storage-json
-      name: '@bosch/bh-storage-json'
+      name: '@hydra/harness-storage-json'
       pluginType: core
       pluginGroup: storage
       config:
         root: !!js bhHomePath('storages')
 
     - id: storage-domain
-      name: '@bosch/bh-storage-domain'
+      name: '@hydra/harness-storage-domain'
       pluginType: core
       pluginGroup: storage
       config:
         backend: json
 
     - id: message-feedback
-      name: '@bosch/bh-message-feedback'
+      name: '@hydra/harness-message-feedback'
       config:
         maxNoteBytes: 8192
 
     # Browser Session export: `/export` command plus the shared download dialog.
     - id: session-log-download
-      name: '@bosch/bh-session-log-export'
+      name: '@hydra/harness-session-log-export'
 
     - id: workspace
-      name: '@bosch/bh-workspace'
+      name: '@hydra/harness-workspace'
       pluginType: core
 
     - id: session-projection-cache
-      name: '@bosch/bh-session-projection-cache'
+      name: '@hydra/harness-session-projection-cache'
       pluginType: core
       config:
         writeEveryEvents: 200
         writeIntervalMs: 5000
 
     - id: session-reference
-      name: '@bosch/bh-session-reference'
+      name: '@hydra/harness-session-reference'
       pluginType: core
 
     - id: file-reference-local
-      name: '@bosch/bh-file-reference-local'
+      name: '@hydra/harness-file-reference-local'
       pluginType: core
 
     # Whole-log turn/step counts for the chat stats strip (the sessionStats
     # projection key); the projection registry itself is a base-layer row.
     - id: session-stats
-      name: '@bosch/bh-session-stats'
+      name: '@hydra/harness-session-stats'
 
     # Resolve bind host, SSH launch, and display once at boot, then mount the
     # matching dual-face directory picker. Mount -native or -browse directly in
     # an overlay to pin the interaction.
     - id: directory-picker
-      name: '@bosch/bh-host-directory-picker-auto'
+      name: '@hydra/harness-host-directory-picker-auto'
       pluginType: core
       pluginGroup: directory-picker
 
     # Loader inventory and staged enablement controls.
     - id: plugin-inventory
-      name: '@bosch/bh-host-plugin-inventory'
+      name: '@hydra/harness-host-plugin-inventory'
       pluginType: core
       config:
         # These disabled root rows are placeholders for agent-preset entries.
@@ -144,17 +144,17 @@
     # The API gateway: the transport-agnostic dispatch face every client shape
     # shares. The base layer's agent-default-model service owns the default model.
     - id: api-gateway
-      name: '@bosch/bh-host-apiproxy'
+      name: '@hydra/harness-host-apiproxy'
       pluginType: core
 
     - id: cordis-host-runner
-      name: '@bosch/bh-cordis-host-runner'
+      name: '@hydra/harness-cordis-host-runner'
       pluginType: core
 
     # Ordinary provider for the parsed Web flags. Its plugin-level injection
     # waits for cmdlineArgs; no launcher metadata or special row kind is needed.
     - id: web-startup
-      name: '@bosch/bh-web-app/startup'
+      name: '@hydra/harness-web-app/startup'
       pluginType: core
 
     # ── layer 2: transport/service ──────────────────────────────────────────────
@@ -163,7 +163,7 @@
     # webStartup provider, with these deployment fallbacks. The dist is served by
     # the web-runtime row below through the fallback seat.
     - id: webserver
-      name: '@bosch/bh-host-webserver'
+      name: '@hydra/harness-host-webserver'
       pluginType: core
       inject: [webStartup]
       config:
@@ -180,7 +180,7 @@
     # suppresses the prompt section for that agent while retaining the host-owned
     # shell variable.
     - id: web-runtime
-      name: '@bosch/bh-web-app'
+      name: '@hydra/harness-web-app'
       pluginType: core
       inject: [webStartup]
       config:
@@ -194,7 +194,7 @@
     # is a row rather than a child of web-runtime because its node half is a
     # client-side package, which a host-side bundle cannot import.
     - id: client-hmr
-      name: '@bosch/bh-client-hmr'
+      name: '@hydra/harness-client-hmr'
       pluginType: core
 
     # ── browser plugin roster (bh.client rows; node halves are layer-2 hosts) ──
@@ -204,13 +204,13 @@
     # the shell kernel constructs before cordis exists (adopted as a plugin
     # entry by the kernel, never fetched).
     - id: modules
-      name: '@bosch/bh-client-modules'
+      name: '@hydra/harness-client-modules'
       pluginType: core
 
     # Owns both ends of the web transport: node half binds the gateway to the
     # webserver under /api; browser half is the fetch/SSE client.
     - id: connection
-      name: '@bosch/bh-client-connection'
+      name: '@hydra/harness-client-connection'
       pluginType: core
       inject: [webRuntime]
       config:
@@ -220,172 +220,172 @@
         trustedHosts: !!js ctx.webRuntime.trustedHosts
 
     - id: api-remotes
-      name: '@bosch/bh-api-remotes'
+      name: '@hydra/harness-api-remotes'
       pluginType: core
 
     - id: client-runtime
-      name: '@bosch/bh-client-runtime'
+      name: '@hydra/harness-client-runtime'
       pluginType: core
 
     - id: cordis-client-runner
-      name: '@bosch/bh-cordis-client-runner'
+      name: '@hydra/harness-cordis-client-runner'
       pluginType: core
 
     - id: ui-theme
-      name: '@bosch/bh-client-ui-theme'
+      name: '@hydra/harness-client-ui-theme'
       pluginType: core
 
     - id: locale
-      name: '@bosch/bh-client-locale'
+      name: '@hydra/harness-client-locale'
       pluginType: core
 
     - id: ui-layout
-      name: '@bosch/bh-client-ui-layout'
+      name: '@hydra/harness-client-ui-layout'
       pluginType: core
 
     - id: ui-renderer
-      name: '@bosch/bh-client-ui-renderer'
+      name: '@hydra/harness-client-ui-renderer'
       pluginType: core
 
     - id: ui-sidebar
-      name: '@bosch/bh-client-ui-sidebar'
+      name: '@hydra/harness-client-ui-sidebar'
       pluginType: core
 
     - id: ui-settings
-      name: '@bosch/bh-client-ui-settings'
+      name: '@hydra/harness-client-ui-settings'
       pluginType: core
       pluginGroup: settings-ui
 
     - id: ui-settings-general
-      name: '@bosch/bh-client-ui-settings-general'
+      name: '@hydra/harness-client-ui-settings-general'
       pluginType: core
       pluginGroup: settings-ui
 
     - id: ui-settings-models
-      name: '@bosch/bh-client-ui-settings-models'
+      name: '@hydra/harness-client-ui-settings-models'
       pluginType: core
       pluginGroup: settings-ui
 
     - id: ui-settings-personalization
-      name: '@bosch/bh-client-ui-settings-personalization'
+      name: '@hydra/harness-client-ui-settings-personalization'
       pluginType: core
       pluginGroup: settings-ui
 
     - id: ui-settings-plugin-inventory
-      name: '@bosch/bh-client-ui-settings-plugin-inventory'
+      name: '@hydra/harness-client-ui-settings-plugin-inventory'
       pluginType: core
       pluginGroup: settings-ui
 
     - id: ui-conversation
-      name: '@bosch/bh-client-ui-conversation'
+      name: '@hydra/harness-client-ui-conversation'
       pluginType: core
 
     # Official occupants for the generic sidebar and conversation brand slots.
     - id: ui-brand-official
-      name: '@bosch/bh-client-ui-brand-official'
+      name: '@hydra/harness-client-ui-brand-official'
       pluginType: core
 
     - id: ui-attachment
-      name: '@bosch/bh-client-ui-attachment'
+      name: '@hydra/harness-client-ui-attachment'
       pluginType: core
 
     # Tool call tree, generic fallback, and keyed business Tool views.
     - id: ui-tool
-      name: '@bosch/bh-client-ui-tool'
+      name: '@hydra/harness-client-ui-tool'
       pluginType: core
 
     - id: ui-cordis
-      name: '@bosch/bh-client-ui-cordis'
+      name: '@hydra/harness-client-ui-cordis'
       pluginType: core
 
     # Durable workflow lifecycle as an independent Chat node after the
     # existing generic workflow tool row.
     - id: ui-workflow-run
-      name: '@bosch/bh-client-ui-workflow-run'
+      name: '@hydra/harness-client-ui-workflow-run'
       pluginType: core
 
     # Turn tail: the produced-files row under each closing assistant message.
     # Remove this entry to turn the surface off; the tail hole renders empty.
     - id: ui-deliverables
-      name: '@bosch/bh-client-ui-deliverables'
+      name: '@hydra/harness-client-ui-deliverables'
       pluginType: core
 
 
     - id: ui-workspace
-      name: '@bosch/bh-client-ui-workspace'
+      name: '@hydra/harness-client-ui-workspace'
       pluginType: core
 
     # Input triggers: the '/' | '@' pipeline (ui-input-trigger), the command surface over
     # it (ui-commands), and the reference sources (ui-skill / ui-reference).
     - id: ui-input-trigger
-      name: '@bosch/bh-client-ui-input-trigger'
+      name: '@hydra/harness-client-ui-input-trigger'
       pluginType: core
 
     - id: ui-commands
-      name: '@bosch/bh-client-ui-commands'
+      name: '@hydra/harness-client-ui-commands'
       pluginType: core
 
     - id: ui-skill
-      name: '@bosch/bh-client-ui-skill'
+      name: '@hydra/harness-client-ui-skill'
       pluginType: core
 
     - id: ui-subagent
-      name: '@bosch/bh-client-ui-subagent'
+      name: '@hydra/harness-client-ui-subagent'
       pluginType: core
 
     - id: ui-reference
-      name: '@bosch/bh-client-ui-reference'
+      name: '@hydra/harness-client-ui-reference'
       pluginType: core
 
     # Background jobs: the session-header list over the jobsBySession mirror.
     - id: ui-jobs
-      name: '@bosch/bh-client-ui-jobs'
+      name: '@hydra/harness-client-ui-jobs'
       pluginType: core
 
     # Goal surface: GoalBar in the input dock over the goal session projection.
     - id: ui-goal
-      name: '@bosch/bh-client-ui-goal'
+      name: '@hydra/harness-client-ui-goal'
       pluginType: core
 
     # Per-message feedback: Like/Dislike plus an optional note in the
     # assistant-message action strip, over the messageFeedback Remote.
     - id: ui-message-feedback
-      name: '@bosch/bh-client-ui-message-feedback'
+      name: '@hydra/harness-client-ui-message-feedback'
       pluginType: core
 
     # Model selection: the /model popupSelect + composer seat over session.models.
     - id: ui-model-selection
-      name: '@bosch/bh-client-ui-model-selection'
+      name: '@hydra/harness-client-ui-model-selection'
       pluginType: core
 
     - id: ui-permission
-      name: '@bosch/bh-client-ui-permission-presets'
+      name: '@hydra/harness-client-ui-permission-presets'
       pluginType: core
 
     # The agent-preset row in General settings: the default preset for
     # sessions created later. Absent a roster it renders nothing.
     - id: ui-agent-preset
-      name: '@bosch/bh-client-ui-agent-preset'
+      name: '@hydra/harness-client-ui-agent-preset'
       pluginType: core
 
     # Plugin configuration: the host-plane sections a user owns, as expandable
     # cards. A namespace this deployment does not expose renders nothing.
     - id: ui-settings-plugins
-      name: '@bosch/bh-client-ui-settings-plugins'
+      name: '@hydra/harness-client-ui-settings-plugins'
       pluginType: core
       pluginGroup: settings-ui
 
     # Plan control: the composer plan seat over the plan projection + /plan channel.
     - id: ui-plan
-      name: '@bosch/bh-client-ui-plan'
+      name: '@hydra/harness-client-ui-plan'
       pluginType: core
 
     - id: ui-user-questions
-      name: '@bosch/bh-client-ui-user-questions'
+      name: '@hydra/harness-client-ui-user-questions'
       pluginType: core
 
     - id: ui-trajectory
-      name: '@bosch/bh-client-ui-trajectory'
+      name: '@hydra/harness-client-ui-trajectory'
       pluginType: core
 
 # ── the agent plane moves behind agent presets ─────────────────────────────
@@ -534,6 +534,6 @@
 # never reaches that patch still finds a person's presets.
 - insert:
     - id: agent-presets
-      name: '@bosch/bh-agent-presets'
+      name: '@hydra/harness-agent-presets'
       config:
         default: standard

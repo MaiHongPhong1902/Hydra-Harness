@@ -254,7 +254,7 @@ describe('docsPages routes', () => {
       expect(projected).toContain('layout: false')
       expect(projected).toContain('http-equiv: refresh')
       expect(projected).toContain('content: 0; url=./guide/quickstart')
-      expect(projected).not.toContain('# Bosch Harness')
+      expect(projected).not.toContain('# Hydra harness')
     }
   })
 
@@ -303,9 +303,9 @@ describe('docsPages routes', () => {
 
   it('places the shared todo fragment alias on the todo section', () => {
     const catalog = readFileSync(resolve(repositoryRoot, 'docs/tool-catalog.md'), 'utf8')
-    expect(catalog.match(/<a id="boschbh-tool-todo"><\/a>/g)).toHaveLength(1)
+    expect(catalog.match(/<a id="hydraharness-tool-todo"><\/a>/g)).toHaveLength(1)
     expect(catalog).toContain(
-      '<a id="boschbh-tool-todo"></a>\n\n## `@bosch/bh-tool-todo`',
+      '<a id="hydraharness-tool-todo"></a>\n\n## `@hydra/harness-tool-todo`',
     )
   })
 
@@ -420,7 +420,7 @@ describe('projectedPageContent', () => {
   })
 
   it('drops the repository badge every page links from its footer', () => {
-    const badge = '[![](https://img.shields.io/badge/powered_by-bh-4D6BFE?style=flat-square)](https://github.com/bosch/bosch-harness)'
+    const badge = '![Powered by Hydra harness](../../packages/skill/skill-badge/assets/hydra-badge.png)'
     expect(projectedPageContent(`# Guide\n\nBody.\n\n${badge}\n`, page('guide')))
       .toBe('# Guide\n\nBody.\n')
   })
@@ -440,7 +440,7 @@ describe('rawMarkdownPageContent', () => {
   })
 
   it('drops the repository badge like the rendered site', () => {
-    const badge = '[![](https://img.shields.io/badge/powered_by-bh-4D6BFE?style=flat-square)](https://github.com/bosch/bosch-harness)'
+    const badge = '![Powered by Hydra harness](../../packages/skill/skill-badge/assets/hydra-badge.png)'
     expect(rawMarkdownPageContent(`# Guide\n\nBody.\n\n${badge}\n`, 'docs/guide.md'))
       .toBe('# Guide\n\nBody.\n')
   })
@@ -555,7 +555,7 @@ describe('raw Markdown projection of the published manifest', () => {
   it('emits the home page with its body instead of the frontmatter stub', () => {
     const home = readFileSync(join(mirror, 'index.md'), 'utf8')
     expect(home.startsWith('---')).toBe(false)
-    expect(home).toContain('# Bosch Harness')
+    expect(home).toContain('# Hydra harness')
   })
 
   it('resolves every relative link inside the emitted tree', { timeout: 60_000 }, () => {
@@ -591,7 +591,7 @@ function relativeTargets(markdown: string): string[] {
 }
 
 describe('llmsTxt', () => {
-  const site = { base: '/x/', title: 'Bosch Harness', description: 'Plugin-based SDK' }
+  const site = { base: '/x/', title: 'Hydra harness', description: 'Plugin-based SDK' }
 
   it('lists every sidebar page as a base-prefixed raw-Markdown link', () => {
     const text = llmsTxt(site)
@@ -609,7 +609,7 @@ describe('llmsTxt', () => {
 
   it('carries the site identity and the raw-Markdown convention', () => {
     const text = llmsTxt(site)
-    expect(text.startsWith('# Bosch Harness\n')).toBe(true)
+    expect(text.startsWith('# Hydra harness\n')).toBe(true)
     expect(text).toContain('> Plugin-based SDK')
     expect(text).toMatch(/`\.md`/)
   })

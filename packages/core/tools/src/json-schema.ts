@@ -12,8 +12,8 @@
  * @module bh-tools/json-schema
  */
 
-import { assertNever, HarnessError } from '@bosch/bh-llm'
-import { isJsonValue, type JsonValue } from '@bosch/bh-session'
+import { assertNever, HarnessError } from '@hydra/harness-llm'
+import { isJsonValue, type JsonValue } from '@hydra/harness-session'
 
 /** Scalar JSON values supported by `enum` and `const`. */
 export type JsonSchemaScalar = string | number | boolean | null

@@ -2,9 +2,9 @@
 
 import {
   IconInspectOutline12, IconStopFill16, IconTrashOutline16, StateDot,
-} from '@bosch/bh-client-ui-primitives'
-import type { PropsLocale } from '@bosch/bh-client-ui-slots'
-import type { ToolCallViewProps } from '@bosch/bh-client-ui-tool/client'
+} from '@hydra/harness-client-ui-primitives'
+import type { PropsLocale } from '@hydra/harness-client-ui-slots'
+import type { ToolCallViewProps } from '@hydra/harness-client-ui-tool/client'
 import { cordisActionCard } from './card-model.ts'
 import css from './CordisRunRow.module.css'
 

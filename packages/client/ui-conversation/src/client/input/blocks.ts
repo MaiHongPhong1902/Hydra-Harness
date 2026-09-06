@@ -12,8 +12,8 @@
  * route regardless of what any client disables.
  */
 
-import { createSnapshotStore } from '@bosch/bh-client-runtime/client'
-import type { SessionId, SnapshotStore } from '@bosch/bh-client-runtime/client'
+import { createSnapshotStore } from '@hydra/harness-client-runtime/client'
+import type { SessionId, SnapshotStore } from '@hydra/harness-client-runtime/client'
 
 /** Why one session's composer is inert. */
 export interface ComposerBlock {

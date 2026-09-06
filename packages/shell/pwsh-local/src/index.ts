@@ -10,22 +10,22 @@
  * shell-quoting layer to escape (the `bash -c` string domain has no
  * equivalent here). Native Win32 paths (`C:\...`) pass through unchanged.
  *
- * @module @bosch/bh-pwsh-local
+ * @module @hydra/harness-pwsh-local
  */
 
-/* jscpd:ignore-start -- this executor mirrors bh-bash-local call-for-call by
+/* jscpd:ignore-start -- this executor mirrors @hydra/harness-bash-local call-for-call by
    design (see this package's README), so the two import the same seam surface */
-import { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import { SHELL_SETTINGS_NAMESPACE, ShellExecutor } from '@bosch/bh-shell'
-import type { ShellExecRequest, ShellExecSpec, ShellProcess, ShellProcessRead, ShellRunResult, CollectedOutput } from '@bosch/bh-shell'
-import type { SubprocessCollect, SubprocessHandle, SubprocessOutputReader, SubprocessSpawnSpec } from '@bosch/bh-subprocess'
-import { installSettingsSection } from '@bosch/bh-settings'
-import { clampTimeout, deadline, MAX_TIMER_DELAY_MS, timeoutOf } from '@bosch/bh-timeout'
+import { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import { SHELL_SETTINGS_NAMESPACE, ShellExecutor } from '@hydra/harness-shell'
+import type { ShellExecRequest, ShellExecSpec, ShellProcess, ShellProcessRead, ShellRunResult, CollectedOutput } from '@hydra/harness-shell'
+import type { SubprocessCollect, SubprocessHandle, SubprocessOutputReader, SubprocessSpawnSpec } from '@hydra/harness-subprocess'
+import { installSettingsSection } from '@hydra/harness-settings'
+import { clampTimeout, deadline, MAX_TIMER_DELAY_MS, timeoutOf } from '@hydra/harness-timeout'
 /* jscpd:ignore-end */
 import { resolvePwshPath } from './resolve.ts'
 
-/* jscpd:ignore-start -- deliberate call-for-call mirror of bh-bash-local (Agent Note: pwsh-tool-and-executor). */
+/* jscpd:ignore-start -- deliberate call-for-call mirror of @hydra/harness-bash-local (Agent Note: pwsh-tool-and-executor). */
 /**
  * Model-friendly environment overrides for PowerShell: disable colors and
  * pagers that would garble tool output. `TERM=dumb` is a POSIX concept and is
@@ -211,8 +211,8 @@ export class PwshLocalExecutor extends ShellExecutor {
   /**
    * The pwsh invocation argv for one resolved spec — the argv-level seam a
    * confining subclass wraps through `ctx.sandbox.confine` (the pwsh twin of
-   * `bh-bash-local`'s `runArgv`/`startArgv` hooks; see
-   * `@bosch/bh-pwsh-sandbox`).
+   * `@hydra/harness-bash-local`'s `runArgv`/`startArgv` hooks; see
+   * `@hydra/harness-pwsh-sandbox`).
    */
   protected argv(spec: ShellExecSpec): string[] {
     return [this.pwshPath, '-NoLogo', '-NoProfile', '-NonInteractive', '-Command', `${ENCODING_PREAMBLE}${spec.command}`]
@@ -349,8 +349,8 @@ export class PwshLocalExecutor extends ShellExecutor {
   /**
    * Settlement hook for subclasses that attach execution facts to a process.
    * The base implementation is intentionally empty. Mirrored from
-   * `bh-bash-local` (whose sandboxing subclass consumes the same hook); the
-   * pwsh-confining consumer is `@bosch/bh-pwsh-sandbox`.
+   * `@hydra/harness-bash-local` (whose sandboxing subclass consumes the same hook); the
+   * pwsh-confining consumer is `@hydra/harness-pwsh-sandbox`.
    * @param _proc - the settled process handle.
    * @param _stderr - the process's retained stderr tail used by subclasses for settlement classification.
    * @param _spawnFailed - whether the spawn rejected before any process existed.

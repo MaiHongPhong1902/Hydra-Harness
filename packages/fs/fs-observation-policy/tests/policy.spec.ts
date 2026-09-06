@@ -1,11 +1,11 @@
 /** Event-level policy tests; no filesystem provider is needed because the plugin performs no I/O. */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import { FsTargetKey, FsVersion } from '@bosch/bh-fs'
-import type { FsObservation, FsTarget, FsWriteIntent } from '@bosch/bh-fs'
-import * as FsPolicy from '@bosch/bh-fs-observation-policy'
-import type { FsObservationActor } from '@bosch/bh-fs-observation-policy'
+import { Context } from '@hydra/cordis'
+import { FsTargetKey, FsVersion } from '@hydra/harness-fs'
+import type { FsObservation, FsTarget, FsWriteIntent } from '@hydra/harness-fs'
+import * as FsPolicy from '@hydra/harness-fs-observation-policy'
+import type { FsObservationActor } from '@hydra/harness-fs-observation-policy'
 
 function target(path: string): FsTarget {
   return { targetKey: FsTargetKey(path), displayPath: path }

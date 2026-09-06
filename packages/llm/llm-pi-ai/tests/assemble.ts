@@ -5,9 +5,9 @@
  * one-shot convenience method.
  */
 
-import { BlockAssembler } from '@bosch/bh-llm'
-import type { Context } from '@bosch/cordis'
-import type { FinishReason, GenerateOptions, Message, TokenUsage } from '@bosch/bh-llm'
+import { BlockAssembler } from '@hydra/harness-llm'
+import type { Context } from '@hydra/cordis'
+import type { FinishReason, GenerateOptions, Message, TokenUsage } from '@hydra/harness-llm'
 
 export interface AssembledResult {
   message: Message

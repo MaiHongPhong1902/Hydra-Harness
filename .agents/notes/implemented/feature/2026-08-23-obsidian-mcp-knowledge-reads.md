@@ -6,11 +6,11 @@ Status: implemented
 
 ## Problem
 
-The website knowledge plugin searched and read Markdown directly from disk, so BH did not benefit from Obsidian's live index and could not distinguish a live Obsidian result from a filesystem fallback. Mounting the generic MCP client would expose Obsidian's mutating vault and command tools without the knowledge plugin's domain and approval policy.
+The website knowledge plugin searched and read Markdown directly from disk, so Hydra did not benefit from Obsidian's live index and could not distinguish a live Obsidian result from a filesystem fallback. Mounting the generic MCP client would expose Obsidian's mutating vault and command tools without the knowledge plugin's domain and approval policy.
 
 ## Decision
 
-`obsidian-knowledge` connects on demand to Obsidian Local REST API's Streamable HTTP MCP endpoint. Its `obsidian_knowledge_recall` and `obsidian_knowledge_read` tools call only `search_simple` and `vault_read`; raw MCP tools are not registered with the model. The endpoint is restricted to `127.0.0.1` and `/mcp/`, the bearer token is resolved per operation from BH credential reference `OBSIDIAN_API_KEY`, and exact content at `BH Website Knowledge/BH MCP Vault Identity.md` must match through the configured local vault and MCP before any knowledge operation runs.
+`obsidian-knowledge` connects on demand to Obsidian Local REST API's Streamable HTTP MCP endpoint. Its `obsidian_knowledge_recall` and `obsidian_knowledge_read` tools call only `search_simple` and `vault_read`; raw MCP tools are not registered with the model. The endpoint is restricted to `127.0.0.1` and `/mcp/`, the bearer token is resolved per operation from Hydra credential reference `OBSIDIAN_API_KEY`, and exact content at `BH Website Knowledge/BH MCP Vault Identity.md` must match through the configured local vault and MCP before any knowledge operation runs.
 
 A missing credential, unavailable connection, rejected authentication, incompatible protocol, different vault marker, valid empty result, malformed MCP result, tool failure, mismatched path, or oversized note fails closed and never falls back to filesystem discovery. MCP search reranks valid hits by exact phrase, term coverage, individual test-case evidence, and stable path before bounded graph recall. Read results identify `obsidian-mcp` as their backend. Exact-note limits and semantics remain owned by [Exact Obsidian source-note reads](../bug-fix/2026-08-23-exact-obsidian-source-note-reads.md).
 
@@ -26,7 +26,7 @@ Writes use MCP and remain available only through `obsidian_knowledge_save_approv
 
 ## Consequences
 
-BH gets native Obsidian search and exact reads without exposing remote mutation tools or adding startup latency. Obsidian and its Local REST API plugin must be running for the MCP backend; otherwise result provenance makes the local fallback explicit. Loopback HTTP protects the bearer token from remote hosts but is not encrypted on the local machine.
+Hydra gets native Obsidian search and exact reads without exposing remote mutation tools or adding startup latency. Obsidian and its Local REST API plugin must be running for the MCP backend; otherwise result provenance makes the local fallback explicit. Loopback HTTP protects the bearer token from remote hosts but is not encrypted on the local machine.
 
 ## Testing
 

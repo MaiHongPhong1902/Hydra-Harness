@@ -3,14 +3,14 @@
 import { EventEmitter } from 'node:events'
 import { createInterface } from 'node:readline'
 import { PassThrough } from 'node:stream'
-import type { Agent } from '@bosch/bh-agent'
-import { SettingsProvider } from '@bosch/bh-settings'
-import type { SettingsNamespace } from '@bosch/bh-settings'
-import { Context } from '@bosch/cordis'
-import type { Fiber } from '@bosch/cordis'
+import type { Agent } from '@hydra/harness-agent'
+import { SettingsProvider } from '@hydra/harness-settings'
+import type { SettingsNamespace } from '@hydra/harness-settings'
+import { Context } from '@hydra/cordis'
+import type { Fiber } from '@hydra/cordis'
 import { describe, expect, it, vi } from 'vitest'
-import BrowserSessionService, { BROWSER_SETTINGS_NAMESPACE } from '@bosch/bh-browser-electron'
-import type { BrowserChildProcess } from '@bosch/bh-browser-electron'
+import BrowserSessionService, { BROWSER_SETTINGS_NAMESPACE } from '@hydra/harness-browser-electron'
+import type { BrowserChildProcess } from '@hydra/harness-browser-electron'
 
 /** Small writable provider used to exercise the real settings registration. */
 class MemorySettings extends SettingsProvider {

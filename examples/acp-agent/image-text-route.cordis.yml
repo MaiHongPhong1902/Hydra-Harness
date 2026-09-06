@@ -5,12 +5,12 @@
 # authored fixture and the pinned header class are flash), because a config
 # patch replaces the whole app config.
 - id: base
-  name: '@bosch/cordis-plugin-include'
+  name: '@hydra/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - id: acp-agent
-        name: '@bosch/bh-acp-demo'
+        name: '@hydra/harness-acp-demo'
         config:
           provider: deepseek-official
           model: deepseek-v4-flash
@@ -24,4 +24,4 @@
             Verify your work by running the code or tests. Keep answers brief and factual.
       - insert:
           - id: attachment-local
-            name: '@bosch/bh-attachment-local'
+            name: '@hydra/harness-attachment-local'

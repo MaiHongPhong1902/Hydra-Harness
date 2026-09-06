@@ -1,6 +1,6 @@
 /** Deterministic keyless Agent Teams adapter for the real headless Loader snapshot. */
 
-import { CallId, LlmAdapter } from '@bosch/bh-llm'
+import { CallId, LlmAdapter } from '@hydra/harness-llm'
 
 let nextCall = 0
 

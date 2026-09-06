@@ -10,16 +10,16 @@
  * plugin fiber (HMR safety). The node half and the invariant companion are
  * exercised over the same Context.
  */
-import { Context, Service } from '@bosch/cordis'
+import { Context, Service } from '@hydra/cordis'
 import { describe, expect, it, vi } from 'vitest'
 import { cleanup, render } from '@testing-library/react'
 import { afterEach } from 'vitest'
-import { SlotRegistry, type SessionId } from '@bosch/bh-client-runtime/client'
-import { ConversationEventRegistry } from '@bosch/bh-client-runtime/src/client/conversation/event-registry.ts'
-import type { GoalProjection } from '@bosch/bh-goal/client'
-import { LocaleRuntime } from '@bosch/bh-client-locale/client'
-import { makeTranslate } from '@bosch/bh-client-test-runtime'
-import { en as commonEn } from '@bosch/bh-client-locale/src/locales/en.ts'
+import { SlotRegistry, type SessionId } from '@hydra/harness-client-runtime/client'
+import { ConversationEventRegistry } from '@hydra/harness-client-runtime/src/client/conversation/event-registry.ts'
+import type { GoalProjection } from '@hydra/harness-goal/client'
+import { LocaleRuntime } from '@hydra/harness-client-locale/client'
+import { makeTranslate } from '@hydra/harness-client-test-runtime'
+import { en as commonEn } from '@hydra/harness-client-locale/src/locales/en.ts'
 import type { GoalBarActions } from '../src/client/slots.ts'
 import { apply, inject } from '../src/client/index.ts'
 import { GoalDock } from '../src/client/GoalBar.tsx'

@@ -14,10 +14,10 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import Loader from '@bosch/cordis-plugin-loader'
-import FileSettingsProvider from '@bosch/bh-settings-file'
-import type { ImportedPluginEntry, ImportedPluginIdentity, ImportedPluginRuntime } from '@bosch/bh-plugin-runtime'
+import { Context } from '@hydra/cordis'
+import Loader from '@hydra/cordis-plugin-loader'
+import FileSettingsProvider from '@hydra/harness-settings-file'
+import type { ImportedPluginEntry, ImportedPluginIdentity, ImportedPluginRuntime } from '@hydra/harness-plugin-runtime'
 import PluginInventoryGateway from '../src/index.ts'
 
 const contexts: Context[] = []
@@ -109,7 +109,7 @@ describe('OpenAI/Codex marketplace sources', () => {
     if (sparseClone) expect(sparseCalls[0]?.[1]).toContain('.agents/plugins')
   })
 
-  it('stores a standard marketplace source without treating its entries as BH packages', async () => {
+  it('stores a standard marketplace source without treating its entries as Hydra packages', async () => {
     const root = await mkdtemp(join(tmpdir(), 'bh-openai-marketplace-source-'))
     directories.push(root)
     await mkdir(join(root, '.agents', 'plugins'), { recursive: true })

@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import TurndownService from 'turndown'
-import { CallId } from '@bosch/bh-llm'
-import SystemPrompt from '@bosch/bh-system-prompt'
-import ToolRuntime, { type ToolExecutionResult } from '@bosch/bh-tools'
-import WebRuntime from '@bosch/bh-web'
-import type { WebSearchProvider, WebSearchResult } from '@bosch/bh-web'
-import * as ToolWeb from '@bosch/bh-tool-web'
+import { CallId } from '@hydra/harness-llm'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import ToolRuntime, { type ToolExecutionResult } from '@hydra/harness-tools'
+import WebRuntime from '@hydra/harness-web'
+import type { WebSearchProvider, WebSearchResult } from '@hydra/harness-web'
+import * as ToolWeb from '@hydra/harness-tool-web'
 import {
   formatSearchOutput,
   formatFetchOutput,
@@ -21,9 +21,9 @@ import {
   fetchMetaFromResult,
   WEB_SEARCH_MAX_QUERIES,
   WEB_SEARCH_MAX_RESULTS,
-} from '@bosch/bh-tool-web'
-import type { ContentBlock } from '@bosch/bh-llm'
-import type { ToolResult } from '@bosch/bh-tools'
+} from '@hydra/harness-tool-web'
+import type { ContentBlock } from '@hydra/harness-llm'
+import type { ToolResult } from '@hydra/harness-tools'
 import { parseSearchArgs } from '../src/search.ts'
 
 const testToolSignal = new AbortController().signal
@@ -39,7 +39,7 @@ async function mountTools(opts: {
   config?: ToolWeb.Config
   webConfig?: ConstructorParameters<typeof WebRuntime>[1]
   search?: WebSearchProvider
-  fetchProvider?: import('@bosch/bh-web').WebFetchProvider
+  fetchProvider?: import('@hydra/harness-web').WebFetchProvider
 } = {}): Promise<{ ctx: Context; fiber: Awaited<ReturnType<Context['plugin']>>; call: (name: string, args: unknown) => Promise<ToolExecutionResult> }> {
   const ctx = new Context()
   await ctx.plugin(SystemPrompt)

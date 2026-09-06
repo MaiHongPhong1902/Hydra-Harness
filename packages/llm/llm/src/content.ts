@@ -1,4 +1,4 @@
-/** Content-block structure helpers. @module @bosch/bh-llm/content */
+/** Content-block structure helpers. @module @hydra/harness-llm/content */
 
 import type { ContentBlock } from './types.ts'
 import type { Message } from './message.ts'

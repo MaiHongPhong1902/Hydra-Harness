@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { encodeMessage, MessageDecoder } from '@bosch/bh-lsp-stdio'
+import { encodeMessage, MessageDecoder } from '@hydra/harness-lsp-stdio'
 
 /** Frame a message the way a server would, for decoder round-trips. */
 function frame(body: string): Buffer {

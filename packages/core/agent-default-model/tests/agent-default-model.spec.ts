@@ -1,11 +1,11 @@
 /** Default Agent model settings layered over a real settings provider. */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import AgentDefaultModelConfig, { AGENT_DEFAULT_MODEL_SETTINGS_NAMESPACE } from '../src/index.ts'
-import { SettingsProvider } from '@bosch/bh-settings'
-import type { SettingsNamespace } from '@bosch/bh-settings'
-import { ReasoningEffortId } from '@bosch/bh-llm'
+import { SettingsProvider } from '@hydra/harness-settings'
+import type { SettingsNamespace } from '@hydra/harness-settings'
+import { ReasoningEffortId } from '@hydra/harness-llm'
 
 /** The smallest real provider: one in-memory document, always writable. */
 class MemorySettings extends SettingsProvider {

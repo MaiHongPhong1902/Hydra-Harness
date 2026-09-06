@@ -1,15 +1,15 @@
 /**
  * Host-filesystem implementation of `ctx.fs`. Realpath-derived target identity makes aliases
  * share stale guards, and writes through a symlink update its target without replacing the link.
- * @module @bosch/bh-fs-local
+ * @module @hydra/harness-fs-local
  */
 
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { constants as bufferConstants } from 'node:buffer'
 import { isAbsolute, relative, resolve, sep } from 'node:path'
 import { pathToFileURL } from 'node:url'
-import z from '@bosch/schemastery'
-import { FileSystem, FsError, FsVersion } from '@bosch/bh-fs'
+import z from '@hydra/schemastery'
+import { FileSystem, FsError, FsVersion } from '@hydra/harness-fs'
 import type {
   FsDirEntry,
   FsEditOutcome,
@@ -19,7 +19,7 @@ import type {
   FsTarget,
   FsWriteIntent,
   FsWriteOutcome,
-} from '@bosch/bh-fs'
+} from '@hydra/harness-fs'
 import {
   applyLiteralEdit,
   listDirectory,

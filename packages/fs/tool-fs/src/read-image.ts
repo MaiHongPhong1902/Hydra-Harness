@@ -8,17 +8,17 @@
  * tool result enters durable session history, so emitting an image on a route
  * that cannot carry it would break that route's continuation. Unknown
  * capability therefore refuses instead of relying on the adapter guard.
- * @module @bosch/bh-tool-fs/src/read-image
+ * @module @hydra/harness-tool-fs/src/read-image
  */
 
 import { basename, extname } from 'node:path'
-import type { Context } from '@bosch/cordis'
-import { AttachmentError, AttachmentId } from '@bosch/bh-attachment'
-import type { ImageAttachmentRef, ImageMediaType } from '@bosch/bh-attachment'
-import type { ContentBlock } from '@bosch/bh-llm'
-import { defineTool } from '@bosch/bh-tools'
-import type { GenericCallView, ToolExecution } from '@bosch/bh-tools'
-import type {} from '@bosch/bh-fs'
+import type { Context } from '@hydra/cordis'
+import { AttachmentError, AttachmentId } from '@hydra/harness-attachment'
+import type { ImageAttachmentRef, ImageMediaType } from '@hydra/harness-attachment'
+import type { ContentBlock } from '@hydra/harness-llm'
+import { defineTool } from '@hydra/harness-tools'
+import type { GenericCallView, ToolExecution } from '@hydra/harness-tools'
+import type {} from '@hydra/harness-fs'
 import { resolveRegularReadTarget } from './read-target.ts'
 
 /** Extensions `read_image` accepts; magic-byte validation at the attachment service stays authoritative. */

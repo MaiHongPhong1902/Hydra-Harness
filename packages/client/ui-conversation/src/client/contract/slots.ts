@@ -1,18 +1,18 @@
 /** Conversation slot declarations and their composed component props. */
 import type { ReactNode, RefObject } from 'react'
-import type { ImageAttachmentRef } from '@bosch/bh-attachment'
+import type { ImageAttachmentRef } from '@hydra/harness-attachment'
 import type {
   InjectFace, MaybeSnapshotSelectorHook, PropsLocale, PropsRenderSlots, PropsRuntime, PropsStore,
   SlotHookFactory, SnapshotSelectorHook,
-} from '@bosch/bh-client-ui-slots'
+} from '@hydra/harness-client-ui-slots'
 import type {
   CommandNode, CompactionSummaryNode, ConversationSnapshot, ConversationTurnDataMap,
   ObservableSnapshot, PendingInteraction, PendingWait, SessionId, ToolCallBlock,
   TurnLocation, WorkspaceId,
-} from '@bosch/bh-client-runtime/client'
-import type { MarkdownFileMentions } from '@bosch/bh-client-ui-primitives'
-import type { MessageId } from '@bosch/bh-client-connection/client'
-import type {} from '@bosch/bh-client-ui-layout/client'
+} from '@hydra/harness-client-runtime/client'
+import type { MarkdownFileMentions } from '@hydra/harness-client-ui-primitives'
+import type { MessageId } from '@hydra/harness-client-connection/client'
+import type {} from '@hydra/harness-client-ui-layout/client'
 import type { ComposerBlock } from '../input/blocks.ts'
 import type {
   ComposerKeyboard, DraftAttachmentId, EditSelection, InputActions, InputNotice, InputState,
@@ -71,7 +71,7 @@ export interface MessageImagesOwnerProps {
 /** Slot-backed renderer used by chat nodes without importing an attachment implementation. */
 export type RenderMessageImages = (owner: Omit<MessageImagesOwnerProps, 'loadImage'>) => ReactNode
 
-declare module '@bosch/bh-client-ui-slots' {
+declare module '@hydra/harness-client-ui-slots' {
   interface SlotMap {
     /**
      * The entire body of one session: taking this seat means rendering that
@@ -192,7 +192,7 @@ declare module '@bosch/bh-client-ui-slots' {
     'conversation.hero.workspace': { kind: 'single'; scope: 'root'; owner: EmptyWorkspaceOwnerProps }
     /**
      * Brand mark leading the blank-session headline. Declared by this
-     * package's `conversation` entry; the shell supplies a fish fallback.
+     * package's `conversation` entry; the shell supplies a Hydra fallback.
      */
     'conversation.hero.brand.mark': { kind: 'single'; scope: 'root'; owner: HeroBrandMarkOwnerProps }
     /**
@@ -380,7 +380,7 @@ export interface ChatFileMentions {
   forClosing(owner: TurnTailOwnerProps): MarkdownFileMentions | undefined
 }
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     /** Prose file-mention provider (ui-deliverables); reach via ctx.get — optional. */
     chatFileMentions: ChatFileMentions

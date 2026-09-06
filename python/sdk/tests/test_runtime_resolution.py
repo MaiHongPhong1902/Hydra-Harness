@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import bosch_harness_runtime as runtime
+import hydra_harness_runtime as runtime
 import pytest
 
-from bosch_harness_runtime import (
+from hydra_harness_runtime import (
     RUNTIME_MODE_ENV_VAR,
     bundled_default_config_path,
     bundled_package_dir,
@@ -19,9 +19,9 @@ def test_default_config_is_shipped_with_the_package() -> None:
     path = bundled_default_config_path()
     assert path == bundled_package_dir() / "runtime" / "cordis.yml"
     config = path.read_text()
-    assert "@bosch/bh-agent-spine-demo" in config
-    assert "@bosch/bh-session-persistence-jsonl" in config
-    assert "@bosch/bh-session-checkpoint-policy" in config
+    assert "@hydra/harness-agent-spine-demo" in config
+    assert "@hydra/harness-session-persistence-jsonl" in config
+    assert "@hydra/harness-session-checkpoint-policy" in config
 
 
 def test_unknown_explicit_mode_fails_loud() -> None:

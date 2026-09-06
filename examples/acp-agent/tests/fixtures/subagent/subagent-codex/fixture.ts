@@ -1,8 +1,8 @@
 /** Parent adapter that fails if the composition-only Loader test starts a turn. */
 
-import type { Context } from '@bosch/cordis'
-import type { GenerateOptions, StreamChunk } from '@bosch/bh-llm'
-import { LlmAdapter } from '@bosch/bh-llm'
+import type { Context } from '@hydra/cordis'
+import type { GenerateOptions, StreamChunk } from '@hydra/harness-llm'
+import { LlmAdapter } from '@hydra/harness-llm'
 
 class CompositionOnlyAdapter extends LlmAdapter {
   async * stream(_options: GenerateOptions): AsyncIterable<StreamChunk> {

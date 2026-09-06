@@ -9,8 +9,8 @@
  */
 import { Fragment, useEffect, useRef, useSyncExternalStore } from 'react'
 import clsx from 'clsx'
-import { useAnchoredMaxHeight } from '@bosch/bh-client-ui-primitives'
-import type { PropsLocale } from '@bosch/bh-client-ui-slots'
+import { useAnchoredMaxHeight } from '@hydra/harness-client-ui-primitives'
+import type { PropsLocale } from '@hydra/harness-client-ui-slots'
 import css from './MenuView.module.css'
 import type { MenuViewInjected } from './slots.ts'
 import type { MenuKey } from './locales.ts'

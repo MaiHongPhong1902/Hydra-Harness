@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-acp-demo`.
- * @module @bosch/bh-acp-demo/invariant
+ * Package-owned invariant companion for `@hydra/harness-acp-demo`.
+ * @module @hydra/harness-acp-demo/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-acp-demo'
+const PACKAGE_NAME = '@hydra/harness-acp-demo'
 
 /** Cordis companion plugin name. */
 export const name = 'acp-demo-invariant'

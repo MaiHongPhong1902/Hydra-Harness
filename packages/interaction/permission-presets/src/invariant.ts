@@ -1,10 +1,10 @@
-/** Package-owned permission-preset event invariants. @module @bosch/bh-permission-presets/invariant */
+/** Package-owned permission-preset event invariants. @module @hydra/harness-permission-presets/invariant */
 
-import type { Context } from '@bosch/cordis'
-import type { Session, SessionEvent } from '@bosch/bh-session'
-import type { InvariantFailure, InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { Session, SessionEvent } from '@hydra/harness-session'
+import type { InvariantFailure, InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-permission-presets'
+const PACKAGE_NAME = '@hydra/harness-permission-presets'
 
 /** Cordis companion plugin name. */
 export const name = 'permission-presets-invariant'

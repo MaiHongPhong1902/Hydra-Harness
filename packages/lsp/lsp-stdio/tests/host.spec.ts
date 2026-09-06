@@ -6,10 +6,10 @@ import { realpath } from 'node:fs/promises'
 import { execFile } from 'node:child_process'
 import { pathToFileURL } from 'node:url'
 import { promisify } from 'node:util'
-import { Context } from '@bosch/cordis'
-import LocalFileSystem from '@bosch/bh-fs-local'
-import { deadline } from '@bosch/bh-timeout'
-import { canonicalizeWorkspace, readHostSource } from '@bosch/bh-lsp-stdio'
+import { Context } from '@hydra/cordis'
+import LocalFileSystem from '@hydra/harness-fs-local'
+import { deadline } from '@hydra/harness-timeout'
+import { canonicalizeWorkspace, readHostSource } from '@hydra/harness-lsp-stdio'
 
 const execFileAsync = promisify(execFile)
 

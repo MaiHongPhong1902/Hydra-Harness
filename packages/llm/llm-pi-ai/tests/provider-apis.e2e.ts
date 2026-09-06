@@ -1,16 +1,16 @@
 import { readFile } from 'node:fs/promises'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import { AttachmentId, AttachmentStore } from '@bosch/bh-attachment'
+import { Context } from '@hydra/cordis'
+import { AttachmentId, AttachmentStore } from '@hydra/harness-attachment'
 import type {
   ImageAttachmentLimits,
   ImageAttachmentRef,
   SaveImageAttachment,
   StoredImageAttachment,
-} from '@bosch/bh-attachment'
-import LlmRuntime, { createUserMessage, CallId } from '@bosch/bh-llm'
-import type { Message, ToolSchema } from '@bosch/bh-llm'
-import * as LlmPiAi from '@bosch/bh-llm-pi-ai'
+} from '@hydra/harness-attachment'
+import LlmRuntime, { createUserMessage, CallId } from '@hydra/harness-llm'
+import type { Message, ToolSchema } from '@hydra/harness-llm'
+import * as LlmPiAi from '@hydra/harness-llm-pi-ai'
 import type { PiAiReplayResponse } from '../src/replay.ts'
 import { assemble, type AssembledResult } from './assemble.ts'
 

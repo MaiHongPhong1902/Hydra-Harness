@@ -3,16 +3,16 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import Loader from '@bosch/cordis-plugin-loader'
-import Include from '@bosch/cordis-plugin-include'
-import AgentRegistry from '@bosch/bh-agent'
-import AgentLoop from '@bosch/bh-agent-loop'
-import LlmRuntime, { createUserMessage, LlmAdapter, LlmError, resolveRetryPolicy  } from '@bosch/bh-llm'
-import type { GenerateOptions, ResolvedRetryPolicy, StreamChunk } from '@bosch/bh-llm'
-import SessionStore, { SessionId } from '@bosch/bh-session'
-import SystemPrompt from '@bosch/bh-system-prompt'
-import ToolRuntime from '@bosch/bh-tools'
+import { Context } from '@hydra/cordis'
+import Loader from '@hydra/cordis-plugin-loader'
+import Include from '@hydra/cordis-plugin-include'
+import AgentRegistry from '@hydra/harness-agent'
+import AgentLoop from '@hydra/harness-agent-loop'
+import LlmRuntime, { createUserMessage, LlmAdapter, LlmError, resolveRetryPolicy  } from '@hydra/harness-llm'
+import type { GenerateOptions, ResolvedRetryPolicy, StreamChunk } from '@hydra/harness-llm'
+import SessionStore, { SessionId } from '@hydra/harness-session'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import ToolRuntime from '@hydra/harness-tools'
 import * as retry from '../src/index.ts'
 
 let root: string | undefined
@@ -58,13 +58,13 @@ async function loadYaml(lines: readonly string[]): Promise<Context> {
   await context.plugin(Loader)
   context.loader.builtins.include = Include
   const modules = new Map<string, unknown>([
-    ['@bosch/bh-llm', LlmRuntime],
-    ['@bosch/bh-session', SessionStore],
-    ['@bosch/bh-system-prompt', SystemPrompt],
-    ['@bosch/bh-tools', ToolRuntime],
-    ['@bosch/bh-agent', AgentRegistry],
-    ['@bosch/bh-llm-retry', retry],
-    ['@bosch/bh-agent-loop', AgentLoop],
+    ['@hydra/harness-llm', LlmRuntime],
+    ['@hydra/harness-session', SessionStore],
+    ['@hydra/harness-system-prompt', SystemPrompt],
+    ['@hydra/harness-tools', ToolRuntime],
+    ['@hydra/harness-agent', AgentRegistry],
+    ['@hydra/harness-llm-retry', retry],
+    ['@hydra/harness-agent-loop', AgentLoop],
   ])
   context.loader.internal = {
     version: 'v2',
@@ -87,13 +87,13 @@ describe('real Loader composition', () => {
   // to trip the default 5s budget on cold caches.
   it('loads provider-supplied policy and records recovery through the shipping loop', { timeout: 60_000 }, async () => {
     const loaded = await loadYaml([
-      "- name: '@bosch/bh-llm'",
-      "- name: '@bosch/bh-session'",
-      "- name: '@bosch/bh-system-prompt'",
-      "- name: '@bosch/bh-tools'",
-      "- name: '@bosch/bh-agent'",
-      "- name: '@bosch/bh-llm-retry'",
-      "- name: '@bosch/bh-agent-loop'",
+      "- name: '@hydra/harness-llm'",
+      "- name: '@hydra/harness-session'",
+      "- name: '@hydra/harness-system-prompt'",
+      "- name: '@hydra/harness-tools'",
+      "- name: '@hydra/harness-agent'",
+      "- name: '@hydra/harness-llm-retry'",
+      "- name: '@hydra/harness-agent-loop'",
     ])
 
     const unloaded = [...loaded.loader.entries()]

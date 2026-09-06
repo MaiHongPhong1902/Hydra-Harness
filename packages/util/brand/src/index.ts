@@ -9,8 +9,8 @@
  * factory in the OWNING package (a plain cast inside — zero runtime cost);
  * comparison, logging, and serialization all behave as ordinary strings.
  *
- * Policy: a package brands the ids it owns — `CallId` in bh-llm (tool-call
- * correlation), the shared agent/session `SessionId` in bh-session, and
+ * Policy: a package brands the ids it owns — `CallId` in @hydra/harness-llm (tool-call
+ * correlation), the shared agent/session `SessionId` in @hydra/harness-session, and
  * `JobId` in bh-jobs. Branding is for ids that cross package boundaries and
  * could plausibly be confused; not every string needs a brand.
  * This package owns ONLY the primitive — no concrete id, no runtime code beyond
@@ -18,7 +18,7 @@
  * package can brand its ids without depending on an unrelated capability
  * package.
  *
- * @module @bosch/bh-brand
+ * @module @hydra/harness-brand
  */
 
 declare const BRAND: unique symbol

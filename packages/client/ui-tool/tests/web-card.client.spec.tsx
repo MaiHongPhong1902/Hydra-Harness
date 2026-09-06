@@ -12,24 +12,24 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render } from '@testing-library/react'
 import {
   createSnapshotStore, EMPTY_CONVERSATION_VIEWS,
-} from '@bosch/bh-client-runtime/client'
+} from '@hydra/harness-client-runtime/client'
 import type {
   ConversationSnapshot, RunningToolCall, SessionId, SessionListState, ToolResultNode, WorkspaceListState,
-} from '@bosch/bh-client-runtime/client'
-import type { ToolResultView } from '@bosch/bh-api-remotes/client'
-import { bindSnapshotSelector } from '@bosch/bh-client-test-runtime'
-import type { SelectionTarget } from '@bosch/bh-client-ui-conversation/client'
-import type { ToolCallOwnerProps } from '@bosch/bh-client-ui-tool/client'
-import { IconGlobeOutline14 } from '@bosch/bh-client-ui-primitives'
+} from '@hydra/harness-client-runtime/client'
+import type { ToolResultView } from '@hydra/harness-api-remotes/client'
+import { bindSnapshotSelector } from '@hydra/harness-client-test-runtime'
+import type { SelectionTarget } from '@hydra/harness-client-ui-conversation/client'
+import type { ToolCallOwnerProps } from '@hydra/harness-client-ui-tool/client'
+import { IconGlobeOutline14 } from '@hydra/harness-client-ui-primitives'
 import { webCardModel } from '../src/client/tool/models/web-card-model.ts'
-import { createChatStore } from '@bosch/bh-client-ui-conversation/src/client/stores.ts'
+import { createChatStore } from '@hydra/harness-client-ui-conversation/src/client/stores.ts'
 import { GenericToolCard } from '../src/client/tool/toolviews/GenericToolCard.tsx'
-import { DetailsPanel } from '@bosch/bh-client-ui-conversation/src/client/skeleton/DetailsPanel.tsx'
+import { DetailsPanel } from '@hydra/harness-client-ui-conversation/src/client/skeleton/DetailsPanel.tsx'
 import { WebRow, webToolview } from '../src/client/tool/toolviews/web-row.tsx'
 import { renderToolDetails, SessionProviderStub, toolChatSnapshot } from './tool-details-render.client.tsx'
-import { makeTranslate } from '@bosch/bh-client-test-runtime'
-import { en as commonEn } from '@bosch/bh-client-locale/src/locales/en.ts'
-import { en } from '@bosch/bh-client-ui-conversation/src/client/locales.ts'
+import { makeTranslate } from '@hydra/harness-client-test-runtime'
+import { en as commonEn } from '@hydra/harness-client-locale/src/locales/en.ts'
+import { en } from '@hydra/harness-client-ui-conversation/src/client/locales.ts'
 
 afterEach(cleanup)
 
@@ -300,7 +300,7 @@ describe('web toolview registration', () => {
           return () => {}
         },
       },
-    } as unknown as import('@bosch/cordis').Context
+    } as unknown as import('@hydra/cordis').Context
     webToolview.apply(ctx)
     expect(registered.map(r => r.key)).toEqual(['web_search', 'web_fetch'])
     // Both keys claim the conversation locale seat ToolRow's body copy needs.

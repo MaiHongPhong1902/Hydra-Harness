@@ -9,7 +9,7 @@
 # `BH_SNAPSHOT_OVERRIDE` from the harness. The one-shot patch applies at include
 # load time, and stdout remains reserved for ACP JSON-RPC.
 - id: base
-  name: '@bosch/cordis-plugin-include'
+  name: '@hydra/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
@@ -17,10 +17,10 @@
       # a logger exists. A renamed id leaves a stale adapter entry, but replay still
       # short-circuits through `llm-replay`.
       - id: llm-deepseek
-        name: '@bosch/bh-llm-deepseek'
+        name: '@hydra/harness-llm-deepseek'
         disabled: true
       - id: acp-agent
-        name: '@bosch/bh-acp-demo'
+        name: '@hydra/harness-acp-demo'
         config:
           provider: deepseek-official
           model: deepseek-v4-flash
@@ -36,7 +36,7 @@
 
             Verify your work by running the code or tests. Keep answers brief and factual.
       - id: sandbox
-        name: '@bosch/bh-sandbox-local'
+        name: '@hydra/harness-sandbox-local'
         config:
           runnerCommand:
             - bash
@@ -47,7 +47,7 @@
             - 'passthrough-runner: profile rejected'
       - insert:
           - id: llm-replay
-            name: '@bosch/bh-llm-replay'
+            name: '@hydra/harness-llm-replay'
             config:
               providers:
                 - id: deepseek-official

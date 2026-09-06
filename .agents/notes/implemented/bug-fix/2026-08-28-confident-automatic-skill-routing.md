@@ -8,11 +8,13 @@ Bounded skill discovery depended on the model calling `skill_search` before exac
 
 ## Decision
 
-`@bosch/bh-tool-skill` ranks newly claimed direct-user text at `agent/pre-step` with the same dependency-free lexical metadata scores used by `skill_search`. It automatically injects exactly one model-invocable skill when discovery is complete and the top candidate either appears as an exact whole multi-term skill name or matches at least two distinct name terms including the leading name term. The top score must be unique before lexical name tie-breaking.
+`@hydra/harness-tool-skill` ranks newly claimed direct-user text at `agent/pre-step` with the same dependency-free lexical metadata scores used by `skill_search`. It automatically injects exactly one model-invocable skill when discovery is complete and the top candidate either appears as an exact whole multi-term skill name or matches at least two distinct name terms including the leading name term. The top score must be unique before lexical name tie-breaking.
 
 An explicit `/name` gesture suppresses automatic routing and retains its user-invocation policy. Automatic discovery and loading fail open on stale, invalid, incomplete, or failing providers, recheck model-invocation policy on the loaded definition, and preserve cancellation. Successful injections use the durable `skill-invocation` source with `trigger: 'automatic' | 'user'`, so session replay distinguishes the route. Weak, generic, description-only, tied, incomplete, and non-user matches load nothing; the model-facing `skill_search` and `skill` tools remain the fallback.
 
 This partially supersedes the search-only separation in [bounded skill routing](../architecture/2026-08-25-bounded-skill-routing.md) without restoring a catalog or an automatic first-match rule.
+
+[Imported skill metadata and conservative routing](2026-09-06-imported-skill-policy-and-routing.md) further narrows automatic confidence with an English/Vietnamese negation veto and counts aliases once per definition. The complete-discovery, strong-match, and durable-provenance rules remain in force.
 
 ## Alternatives considered
 

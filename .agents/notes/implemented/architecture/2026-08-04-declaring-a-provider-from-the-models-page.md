@@ -10,6 +10,8 @@ Two things were missing, and they are not the same shape. Editing an existing ro
 
 ## Decision
 
+The [Settings lifecycle note](../bug-fix/2026-09-05-settings-draft-and-dialog-lifecycle.md) owns credential retries after directory refresh and discovery inheritance after clearing overrides.
+
 The model list is a component shared by both flows; the create is its own card.
 
 `ModelListEditor` edits a profile's `models` array — one row per model with id, display name, context window, and output cap — and owns the fetch action. An empty list means "serve this route's built-in catalog", so a row is only ever added deliberately; clearing an optional field drops it rather than storing a value the schema would reject, and a capacity that is not a positive integer is not stored at all.

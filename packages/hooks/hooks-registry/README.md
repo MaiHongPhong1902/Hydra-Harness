@@ -1,12 +1,12 @@
-# @bosch/bh-hooks-registry
+# @hydra/harness-hooks-registry
 
-`HookRecordRegistry` (`ctx.hookRecords`) owns the user's own hook records. The records live in the `hooks` settings namespace, so one added from a configuration surface is written to `$BH_HOME/settings.yaml` and mounts again on the next start; one added by hand-editing that document mounts without a restart. Each enabled record is mounted on its dialect's bridge — `@bosch/bh-hooks-claude-code` or `@bosch/bh-hooks-codex` — which owns the payloads, matcher semantics, and extension-point mapping.
+`HookRecordRegistry` (`ctx.hookRecords`) owns the user's own hook records. The records live in the `hooks` settings namespace, so one added from a configuration surface is written to `$BH_HOME/settings.yaml` and mounts again on the next start; one added by hand-editing that document mounts without a restart. Each enabled record is mounted on its dialect's bridge — `@hydra/harness-hooks-claude-code` or `@hydra/harness-hooks-codex` — which owns the payloads, matcher semantics, and extension-point mapping.
 
 ## Service API
 
-`list()` projects every stored record with its live status, the events its definitions cover, and how many command hooks they declare. `define(request)` stores one complete definition — replacing any record of the same name — and converges the mounted set. `setEnabled({ name, enabled })` changes only the desired state. `remove(name)` deletes the record, unmounts it, and deletes any document this registry materialized for it. Every mutation and every reconciliation runs on one serialized chain.
+`list()` projects every stored record with its live status, the events its definitions cover, and how many command hooks they declare. `define(request)` stores one complete definition and converges the mounted set: `mode: 'create'` requires an unused name, and `mode: 'replace'` requires an existing record. These conditions are checked inside the serialized mutation chain, so concurrent creates cannot overwrite one another and an edit cannot recreate a removed record. `setEnabled({ name, enabled })` changes only the desired state. `remove(name)` deletes the record, unmounts it, and deletes any document this registry materialized for it. Every mutation and every reconciliation runs on one serialized chain.
 
-`define` replaces the named record wholesale: an omitted optional field clears the stored one. Nothing here is withheld from a read, so an omission is always a deliberate clear.
+On replacement, omitted `enabled` and `defaultTimeoutMs` retain their stored values. Other omitted optional fields clear the stored values; callers must supply the complete document source, since inline definitions are not returned by `list()`.
 
 ## Stored records
 
@@ -18,9 +18,11 @@ The document source is either `configPath` — an absolute path to a hook docume
 
 `hooks-registry/reconciled` is emitted after each reconciliation settles, carrying the projection. The package invariant checks the registry's one contract on that event: an accepted enabled record is live and a disabled one is not.
 
+Mounts belong to the registry's Host context, so they retain their declared services and survive disposal of the API caller. Definition validation requires at least one supported synchronous command hook, and the inline-document limit measures UTF-8 bytes.
+
 ## Model Experience
 
-Indirectly, through the bridge a record mounts. `@bosch/bh-hooks-claude-code` and `@bosch/bh-hooks-codex` own everything a hook injects into a request — `SessionStart` and `UserPromptSubmit` context, `PostToolUse` feedback, `Stop` continuation messages — and this package decides only which of their configurations are live. It assembles no model input of its own.
+Indirectly, through the bridge a record mounts. `@hydra/harness-hooks-claude-code` and `@hydra/harness-hooks-codex` own everything a hook injects into a request — `SessionStart` and `UserPromptSubmit` context, `PostToolUse` feedback, `Stop` continuation messages — and this package decides only which of their configurations are live. It assembles no model input of its own.
 
 #### KV Cache effect
 

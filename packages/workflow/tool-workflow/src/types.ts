@@ -2,13 +2,13 @@
  * Browser-safe durable workflow-record events written by the model-facing
  * workflow tool into its calling parent Session.
  *
- * @module @bosch/bh-tool-workflow/types
+ * @module @hydra/harness-tool-workflow/types
  */
 
-import type { SessionId } from '@bosch/bh-session/types'
+import type { SessionId } from '@hydra/harness-session/types'
 import type {
   WorkflowAgentOutcome, WorkflowRunId, WorkflowStopReason,
-} from '@bosch/bh-workflow/types'
+} from '@hydra/harness-workflow/types'
 
 /** Opens one durable top-level workflow run record. */
 export interface ToolWorkflowRunStartData {
@@ -38,7 +38,7 @@ export interface ToolWorkflowRunEndData {
   readonly stopReason: WorkflowStopReason
 }
 
-declare module '@bosch/bh-session/types' {
+declare module '@hydra/harness-session/types' {
   interface SessionEventMap {
     /**
      * Opens one top-level workflow record.

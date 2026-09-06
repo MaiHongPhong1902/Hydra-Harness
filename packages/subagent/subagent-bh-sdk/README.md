@@ -1,12 +1,12 @@
-# @bosch/bh-subagent-bh-sdk
+# @hydra/harness-subagent-bh-sdk
 
-The SDK provider runs each subagent as a complete Bosch Harness runtime in a fresh subprocess, driven over stdio JSON-RPC through the [TypeScript SDK client](../../sdk/client/README.md). It is the second out-of-process backend beside [`subagent-acp`](../subagent-acp/README.md), differing in the wire and the child contract: the ACP backend drives any Agent Client Protocol agent; this backend drives specifically a harness SDK runtime (`bh-jsonrpc-agent` bin or packaged executable), so the child is a full peer harness — own `cordis.yml`-decided composition, session persistence, model route, and tools.
+The SDK provider runs each subagent as a complete Hydra harness runtime in a fresh subprocess, driven over stdio JSON-RPC through the [TypeScript SDK client](../../sdk/client/README.md). It is the second out-of-process backend beside [`subagent-acp`](../subagent-acp/README.md), differing in the wire and the child contract: the ACP backend drives any Agent Client Protocol agent; this backend drives specifically a harness SDK runtime (`bh-jsonrpc-agent` bin or packaged executable), so the child is a full peer harness — own `cordis.yml`-decided composition, session persistence, model route, and tools.
 
 ## Start and ownership
 
-`start(request)` resolves the child's working directory, spawns the runtime through `BoschHarness`, and completes the `initialize` handshake (with the configured `provider`/`model` route and optional `maxTokens` output cap) before it fulfills. Fulfillment therefore means the child runtime is ready and ownership has transferred to the caller. A spawn, handshake, or pre-publication cancellation failure rejects only after the subprocess has been reaped; a working-directory resolution failure rejects before anything is spawned.
+`start(request)` resolves the child's working directory, spawns the runtime through `HydraHarness`, and completes the `initialize` handshake (with the configured `provider`/`model` route and optional `maxTokens` output cap) before it fulfills. Fulfillment therefore means the child runtime is ready and ownership has transferred to the caller. A spawn, handshake, or pre-publication cancellation failure rejects only after the subprocess has been reaped; a working-directory resolution failure rejects before anything is spawned.
 
-The working directory resolves exactly like the ACP backend, through the seam's shared out-of-process helpers ([`bh-subagent`](../subagent/README.md)): the configured `cwd` override when set (validated once at load), else the delegating parent session's cwd — never the server process's own cwd. The resolved path becomes the child process cwd and the workspace cwd of its SDK session.
+The working directory resolves exactly like the ACP backend, through the seam's shared out-of-process helpers ([`@hydra/harness-subagent`](../subagent/README.md)): the configured `cwd` override when set (validated once at load), else the delegating parent session's cwd — never the server process's own cwd. The resolved path becomes the child process cwd and the workspace cwd of its SDK session.
 
 The returned run id is minted in the parent namespace; the child runtime's session id exists only inside the child process. After publication the provider owns one SDK activity and reads the child's answer from its session events: the last complete non-empty `assistant/message` (an empty-content message that records usage is skipped), or the accumulated `text-delta` stream when no such message exists. Partial output remains available after cancellation or an error.
 
@@ -18,7 +18,7 @@ The SDK client returns an owned child activity rather than a prompt result. The 
 
 ## Capabilities and context
 
-The provider advertises no start-time capabilities (`outputSchema`/`depthLimit`/`toolFilter`/`persona` all false) and `inheritsParentContext: false`: the child is a fresh runtime in another process, and the only parent-derived input is the workspace cwd. `bh-tool-subagent` deployments over this provider set `maxDepth: 'provider-managed'` — the child harness owns its own recursion budget.
+The provider advertises no start-time capabilities (`outputSchema`/`depthLimit`/`toolFilter`/`persona` all false) and `inheritsParentContext: false`: the child is a fresh runtime in another process, and the only parent-derived input is the workspace cwd. `@hydra/harness-tool-subagent` deployments over this provider set `maxDepth: 'provider-managed'` — the child harness owns its own recursion budget.
 
 ## Configuration
 
@@ -38,7 +38,7 @@ The provider advertises no start-time capabilities (`outputSchema`/`depthLimit`/
 
 ```yaml
 - id: subagent-bh-sdk
-  name: '@bosch/bh-subagent-bh-sdk'
+  name: '@hydra/harness-subagent-bh-sdk'
   config:
     providerName: bh-sdk
     command: node
@@ -47,13 +47,13 @@ The provider advertises no start-time capabilities (`outputSchema`/`depthLimit`/
     env:
       DEEPSEEK_API_KEY: !!js process.env.DEEPSEEK_API_KEY
 - id: tool-subagent
-  name: '@bosch/bh-tool-subagent'
+  name: '@hydra/harness-tool-subagent'
   config: { provider: bh-sdk, toolName: subagent, maxDepth: 'provider-managed' }
 ```
 
 ## Process boundary
 
-The child environment is the [`bh-subprocess`](../../subprocess/README.md) seam's `scrubbedParentEnv()` base — ambient credential-shaped and `BH_*` names dropped — with explicit `config.env` values merged after the scrub. The child is spawned by the SDK client rather than through `ctx.subprocess` (the subprocess README's documented exception for SDK-managed transports), which is why this backend applies the scrub itself. The JSON-RPC wire is the real serialization boundary.
+The child environment is the [`@hydra/harness-subprocess`](../../subprocess/README.md) seam's `scrubbedParentEnv()` base — ambient credential-shaped and `BH_*` names dropped — with explicit `config.env` values merged after the scrub. The child is spawned by the SDK client rather than through `ctx.subprocess` (the subprocess README's documented exception for SDK-managed transports), which is why this backend applies the scrub itself. The JSON-RPC wire is the real serialization boundary.
 
 The package has no default export. Cordis loader unwrapping would otherwise hide the named `inject` metadata; see [postmortem 0001](../../../docs/postmortem/0001-acp-default-export-drops-inject.md).
 
@@ -77,7 +77,7 @@ Independent of the parent request cache. Each SDK child can reuse only prefixes 
 
 #### What the model sees
 
-Through `bh-tool-subagent`, the parent receives only the child's final assistant text (or accumulated partial text) or that consumer's exact stop-reason error, not intermediate messages or tool traffic.
+Through `@hydra/harness-tool-subagent`, the parent receives only the child's final assistant text (or accumulated partial text) or that consumer's exact stop-reason error, not intermediate messages or tool traffic.
 
 #### Token effect
 

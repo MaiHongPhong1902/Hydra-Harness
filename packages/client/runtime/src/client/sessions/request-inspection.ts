@@ -1,4 +1,4 @@
-import type { ContentBlock, ToolSchema } from '@bosch/bh-llm/types'
+import type { ContentBlock, ToolSchema } from '@hydra/harness-llm/types'
 import type {
   AssistantProvenanceView, AssistantRequestConfig,
 } from './conversation.ts'

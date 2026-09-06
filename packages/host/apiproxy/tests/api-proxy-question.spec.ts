@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import AgentRegistry, { type Agent } from '@bosch/bh-agent'
-import SessionStore from '@bosch/bh-session'
-import UserQuestionService from '@bosch/bh-user-questions'
-import type { ApiProxy, MuxFrame, RpcRequest } from '@bosch/bh-host-apiproxy/api'
-import { RpcId } from '@bosch/bh-host-apiproxy/api/rpc'
+import { Context } from '@hydra/cordis'
+import AgentRegistry, { type Agent } from '@hydra/harness-agent'
+import SessionStore from '@hydra/harness-session'
+import UserQuestionService from '@hydra/harness-user-questions'
+import type { ApiProxy, MuxFrame, RpcRequest } from '@hydra/harness-host-apiproxy/api'
+import { RpcId } from '@hydra/harness-host-apiproxy/api/rpc'
 import { createApiProxy } from '../src/api-proxy.ts'
 
 async function harness(): Promise<{ ctx: Context; api: ApiProxy }> {

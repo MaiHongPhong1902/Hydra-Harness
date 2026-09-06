@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import AgentLoop from '@bosch/bh-agent-loop'
-import { renderPrompt } from '@bosch/bh-system-prompt'
+import { Context } from '@hydra/cordis'
+import AgentLoop from '@hydra/harness-agent-loop'
+import { renderPrompt } from '@hydra/harness-system-prompt'
 import { mountAgentLoopTestDependencies } from '../src/index.ts'
 
 describe('bh-agent-loop-testkit', () => {

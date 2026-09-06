@@ -1,17 +1,17 @@
-import { createUserMessage } from '@bosch/bh-llm'
+import { createUserMessage } from '@hydra/harness-llm'
 /**
  * Keyless real-Loader-path smoke for the combined SQLite session-query service.
  *
- * @module @bosch/bh-session-query-sqlite/tests/load-path
+ * @module @hydra/harness-session-query-sqlite/tests/load-path
  */
 
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import Loader from '@bosch/cordis-plugin-loader'
-import { SESSION_FORMAT_VERSION, SessionId } from '@bosch/bh-session'
-import SessionStore from '@bosch/bh-session'
-import SqliteSessionPersistence from '@bosch/bh-session-persistence-sqlite'
-import SqliteSessionQueryEngine, * as queryModule from '@bosch/bh-session-query-sqlite'
+import { Context } from '@hydra/cordis'
+import Loader from '@hydra/cordis-plugin-loader'
+import { SESSION_FORMAT_VERSION, SessionId } from '@hydra/harness-session'
+import SessionStore from '@hydra/harness-session'
+import SqliteSessionPersistence from '@hydra/harness-session-persistence-sqlite'
+import SqliteSessionQueryEngine, * as queryModule from '@hydra/harness-session-query-sqlite'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'

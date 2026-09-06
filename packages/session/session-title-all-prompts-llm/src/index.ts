@@ -1,12 +1,12 @@
 /** All-human-messages model provider for `ctx.sessionTitle`. */
 
-import type { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
+import type { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
 import {
   registerSessionTitleLlmProvider,
   SessionTitleLlmConfigFields,
-} from '@bosch/bh-session-title-llm'
-import type { SessionTitleLlmConfig } from '@bosch/bh-session-title-llm'
+} from '@hydra/harness-session-title-llm'
+import type { SessionTitleLlmConfig } from '@hydra/harness-session-title-llm'
 
 export const name = 'session-title-all-prompts-llm'
 export const inject = ['sessionTitle', 'llm', 'sessions']

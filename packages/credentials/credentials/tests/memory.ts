@@ -1,4 +1,4 @@
-import type { Context } from '@bosch/cordis'
+import type { Context } from '@hydra/cordis'
 import { CredentialProvider } from '../src/index.ts'
 import type {
   CredentialInfo,

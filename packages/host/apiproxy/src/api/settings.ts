@@ -51,7 +51,7 @@ export type SettingsPathOpView =
 
 /**
  * The personalization custom-instructions document (`$BH_HOME/AGENTS.md`,
- * the same fixed user-global file `@bosch/bh-agent-instructions` discovers).
+ * the same fixed user-global file `@hydra/harness-agent-instructions` discovers).
  */
 export interface InstructionsDocumentView {
   /** Raw file content; the empty string when the file does not exist yet. */
@@ -146,7 +146,7 @@ export interface SettingsApi {
     request: RpcRequest<{ content: string; expectedRevision?: string }>,
   ): Promise<RpcResponse<InstructionsDocumentView>>
 
-  /** List memories held in the local BH-home memory file. */
+  /** List memories held in the local Hydra-home memory file. */
   listMemories(request: RpcRequest<{}>): Promise<RpcResponse<{ entries: MemoryEntryView[] }>>
 
   /** Delete one memory by its opaque local id. */

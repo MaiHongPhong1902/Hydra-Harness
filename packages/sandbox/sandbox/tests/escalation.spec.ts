@@ -14,8 +14,8 @@ import {
   escalationHintMarker,
   sandboxDenialMarker,
   validateEscalationArgs,
-} from '@bosch/bh-sandbox'
-import type { EscalationApprover, EscalationOutcome } from '@bosch/bh-sandbox'
+} from '@hydra/harness-sandbox'
+import type { EscalationApprover, EscalationOutcome } from '@hydra/harness-sandbox'
 
 describe('the strictly-wider ladder', () => {
   it('read-only escalates to either wider mode; workspace-write only to full access', () => {

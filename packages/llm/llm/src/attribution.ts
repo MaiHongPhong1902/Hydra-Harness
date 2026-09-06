@@ -4,7 +4,7 @@
  * `.agents/notes/implemented/architecture/2026-06-21-mandatory-app-attribution-headers.md`.
  *
  * App-attribution vocabulary for provider requests.
- * @module @bosch/bh-llm/attribution
+ * @module @hydra/harness-llm/attribution
  */
 
 import { createRequire } from 'node:module'

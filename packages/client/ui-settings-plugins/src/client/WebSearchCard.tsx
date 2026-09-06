@@ -4,8 +4,8 @@
  * the settings section, so the literal never rides a response.
  */
 
-import type { InjectFace, PropsLocale, PropsRuntime } from '@bosch/bh-client-ui-slots'
-import type {} from '@bosch/bh-client-ui-settings/client'
+import type { InjectFace, PropsLocale, PropsRuntime } from '@hydra/harness-client-ui-slots'
+import type {} from '@hydra/harness-client-ui-settings/client'
 import { SecretField, ValueField } from './fields.tsx'
 import { PluginCard } from './PluginCard.tsx'
 import type { WebSearchCardFace } from './web-search-card-controller.ts'

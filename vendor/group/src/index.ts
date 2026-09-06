@@ -1,3 +1,3 @@
-import { Group } from '@bosch/cordis-plugin-loader'
+import { Group } from '@hydra/cordis-plugin-loader'
 
 export default Group

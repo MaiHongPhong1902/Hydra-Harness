@@ -1,5 +1,5 @@
 {
-  "name": "@bosch/bh-api-gateway",
+  "name": "@hydra/harness-api-gateway",
   "description": "Typert Remote Host dispatcher and Client API endpoint",
   "version": "0.1.1-rc.1",
   "publishConfig": {
@@ -36,8 +36,8 @@
   "bh": {
     "client": {
       "inject": [
-        "@bosch/bh-typert-registry",
-        "@bosch/bh-client-connection"
+        "@hydra/harness-typert-registry",
+        "@hydra/harness-client-connection"
       ],
       "platform": "web",
       "immediately": true
@@ -56,20 +56,20 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@bosch/bh-typert-protocol": "workspace:^"
+    "@hydra/harness-typert-protocol": "workspace:^"
   },
   "peerDependencies": {
-    "@bosch/bh-client-connection": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-typert-registry": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-client-connection": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-typert-registry": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@bosch/bh-client-connection": "workspace:^",
-    "@bosch/bh-host-webserver": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-typert-registry": "workspace:^",
-    "@bosch/cordis": "workspace:^",
+    "@hydra/harness-client-connection": "workspace:^",
+    "@hydra/harness-host-webserver": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-typert-registry": "workspace:^",
+    "@hydra/cordis": "workspace:^",
     "zod": "^4.4.3"
   }
 }

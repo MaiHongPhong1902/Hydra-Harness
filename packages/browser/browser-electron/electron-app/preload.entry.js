@@ -1,5 +1,5 @@
 // Source of `preload.cjs` — do not load this file directly; Electron loads the
-// bundle. Rebuild with `pnpm --filter @bosch/bh-browser-electron run build:preload`.
+// bundle. Rebuild with `pnpm --filter @hydra/harness-browser-electron run build:preload`.
 //
 // This is the Electron counterpart of PageAgent's content script. It runs the
 // upstream PageAgent engine (Core and PageController) in the isolated world of
@@ -441,7 +441,7 @@ const pageAgentReady = new Promise((resolve, reject) => {
         language: 'en-US',
         pageController,
         instructions: {
-          system: 'You are a BH-controlled browser engine. Do not present a user interface or ask the webpage user questions. Keep internal task results in English for BH to consume.',
+          system: 'You are a Hydra-controlled browser engine. Do not present a user interface or ask the webpage user questions. Keep internal task results in English for Hydra to consume.',
         },
       })
       resolve(pageAgent)

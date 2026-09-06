@@ -1,8 +1,8 @@
 /** Assistant block classifier (moved here with sessions/conversation.ts). */
 
 import { describe, expect, it } from 'vitest'
-import { AttachmentId } from '@bosch/bh-attachment'
-import type { ContentBlock } from '@bosch/bh-api-remotes/client'
+import { AttachmentId } from '@hydra/harness-attachment'
+import type { ContentBlock } from '@hydra/harness-api-remotes/client'
 import { toAssistantBlock, toAssistantBlocks } from '../src/client/sessions/conversation.ts'
 
 describe('toAssistantBlock', () => {

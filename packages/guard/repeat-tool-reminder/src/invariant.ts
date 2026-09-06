@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-repeat-tool-reminder`.
- * @module @bosch/bh-repeat-tool-reminder/invariant
+ * Package-owned invariant companion for `@hydra/harness-repeat-tool-reminder`.
+ * @module @hydra/harness-repeat-tool-reminder/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-repeat-tool-reminder'
+const PACKAGE_NAME = '@hydra/harness-repeat-tool-reminder'
 
 /** Cordis companion plugin name. */
 export const name = 'repeat-tool-reminder-invariant'

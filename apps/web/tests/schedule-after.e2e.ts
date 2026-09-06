@@ -5,17 +5,17 @@ import { fileURLToPath } from 'node:url'
 import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
-import type { AgentHandle } from '@bosch/bh-agent'
-import { CallId, createUserMessage, LlmAdapter } from '@bosch/bh-llm'
-import type { GenerateOptions, StreamChunk } from '@bosch/bh-llm'
-import { SessionId, type SessionEvent } from '@bosch/bh-session'
+import type { AgentHandle } from '@hydra/harness-agent'
+import { CallId, createUserMessage, LlmAdapter } from '@hydra/harness-llm'
+import type { GenerateOptions, StreamChunk } from '@hydra/harness-llm'
+import { SessionId, type SessionEvent } from '@hydra/harness-session'
 import {
   ScheduleId,
   createEveryScheduleRecord,
   foldScheduleEvents,
   resolveEveryOccurrence,
   type EveryScheduleRecord,
-} from '@bosch/bh-schedule'
+} from '@hydra/harness-schedule'
 import {
   assertFixtureInventory,
   captureStableAria,

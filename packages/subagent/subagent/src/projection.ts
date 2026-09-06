@@ -2,12 +2,12 @@
  * Pure session projections for subagent identity (mode/label) and active-turn
  * duration.
  *
- * @module @bosch/bh-subagent/projection
+ * @module @hydra/harness-subagent/projection
  */
 
 import { z } from 'zod'
-import type { ProjectionDefinition } from '@bosch/bh-session-projection'
-import type { SessionEvent } from '@bosch/bh-session'
+import type { ProjectionDefinition } from '@hydra/harness-session-projection'
+import type { SessionEvent } from '@hydra/harness-session'
 import { foldSubagentDescriptor } from './descriptor.ts'
 import type { SubagentDescriptorData } from './descriptor.ts'
 import type { SubagentIdentityProjection, SubagentTimingProjection } from './projection-types.ts'
@@ -44,7 +44,7 @@ const timingStateSchema: z.ZodType<TimingState> = z.object({
   descriptorSeen: z.boolean(),
 }).strict()
 
-declare module '@bosch/bh-session-projection/types' {
+declare module '@hydra/harness-session-projection/types' {
   interface SessionProjectionStateMap {
     subagentTiming: TimingState
     subagent: IdentityState

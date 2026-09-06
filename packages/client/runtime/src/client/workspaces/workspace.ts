@@ -2,8 +2,8 @@
 
 import type {
   IApiClient, RpcResult, WorkspaceView,
-} from '@bosch/bh-api-remotes/client'
-import { transportError } from '@bosch/bh-host-apiproxy/api'
+} from '@hydra/harness-api-remotes/client'
+import { transportError } from '@hydra/harness-host-apiproxy/api'
 import type { ObservableSnapshot } from '../contract/store.ts'
 import { Notifier } from '../sessions/notifier.ts'
 

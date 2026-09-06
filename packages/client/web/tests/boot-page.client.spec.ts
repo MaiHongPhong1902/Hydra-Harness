@@ -14,7 +14,7 @@ describe('BootPage', () => {
   it('draws the loading skeleton before any plugin state arrives', () => {
     const { el } = mount()
     expect(el.firstElementChild?.getAttribute('data-bh-boot')).toBe('')
-    expect(el.textContent).toContain('HARNESS')
+    expect(el.textContent).toContain('Hydra harness')
     expect(el.textContent).toContain('Loading plugins…')
   })
 
@@ -35,11 +35,11 @@ describe('BootPage', () => {
 
   it('lists failed entries', () => {
     const { el, page } = mount()
-    page.setState('@bosch/bh-client-ui-layout', 'failed')
+    page.setState('@hydra/harness-client-ui-layout', 'failed')
     page.setState('ok', 'active')
-    page.setState('@bosch/bh-client-ui-tool', 'failed')
-    expect(el.textContent).toContain('@bosch/bh-client-ui-layout')
-    expect(el.textContent).toContain('@bosch/bh-client-ui-tool')
+    page.setState('@hydra/harness-client-ui-tool', 'failed')
+    expect(el.textContent).toContain('@hydra/harness-client-ui-layout')
+    expect(el.textContent).toContain('@hydra/harness-client-ui-tool')
     expect(el.textContent).not.toContain('ok')
     expect(el.textContent).not.toContain('Loading plugins…')
   })

@@ -4,12 +4,12 @@
  * {@link CompactionEngine}. This interface necessarily depends on session and LLM
  * vocabulary; the rationale is in the
  * [compaction Agent Note](../../../../.agents/notes/implemented/feature/2026-06-18-compaction-capability-seam.md).
- * @module @bosch/bh-compaction
+ * @module @hydra/harness-compaction
  */
 
-import { Context, Service } from '@bosch/cordis'
-import type { Session } from '@bosch/bh-session'
-import type { CommandId } from '@bosch/bh-commands/brand'
+import { Context, Service } from '@hydra/cordis'
+import type { Session } from '@hydra/harness-session'
+import type { CommandId } from '@hydra/harness-commands/brand'
 import type { CompactionResult } from './types.ts'
 
 export type { CompactionResult } from './types.ts'
@@ -78,7 +78,7 @@ export interface ManualCompactAgentContext extends CompactionAgentContext {
   runMaintenance<T>(task: (signal: AbortSignal) => Promise<T>): Promise<T>
 }
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     compaction: CompactionEngine
   }

@@ -1,4 +1,4 @@
-# `@bosch/bh-session-reference`
+# `@hydra/harness-session-reference`
 
 `ctx.sessionReferenceResolver` prepares bounded, read-only snapshots of other sessions as sourced model-facing context. It consumes `ctx.sessionQuery` and the backend-independent compact checkpoint marker; SQLite FTS is not required. Hosts that support cross-session mentions may opt into the service.
 
@@ -10,7 +10,7 @@
 
 ## Snapshot semantics
 
-Preparation calls `ctx.sessionQuery.readSurface()` once per distinct source when the target message reaches `agent/pre-step`. A queued message therefore captures the source state at model-step entry, and the resulting context is immutable after that point. Projection keeps only direct-user `user/message`, assistant text, and `user/message` checkpoints carrying the canonical `bh-compaction` source marker from the folded current surface. Separately sourced session-reference messages are injected context and are excluded, preventing recursive snapshot propagation. Shadowed pre-compaction events, tools, reasoning, other plugin-generated user messages except marked compact checkpoints, and unfinished assistant chunks are also excluded. A compacted source therefore contributes its latest checkpoint plus retained later conversation, not restored shadowed text.
+Preparation calls `ctx.sessionQuery.readSurface()` once per distinct source when the target message reaches `agent/pre-step`. A queued message therefore captures the source state at model-step entry, and the resulting context is immutable after that point. Projection keeps only direct-user `user/message`, assistant text, and `user/message` checkpoints carrying the canonical `@hydra/harness-compaction` source marker from the folded current surface. Separately sourced session-reference messages are injected context and are excluded, preventing recursive snapshot propagation. Shadowed pre-compaction events, tools, reasoning, other plugin-generated user messages except marked compact checkpoints, and unfinished assistant chunks are also excluded. A compacted source therefore contributes its latest checkpoint plus retained later conversation, not restored shadowed text.
 
 The context source is `{ kind: 'session-reference', version: 1, references }`; each reference records its source id and label, capture seq, compact presence, retained/omitted message counts, omitted UTF-8 bytes, and truncation state. The service's outer `agent/pre-step` listener post-processes accepted direct user messages, preserves their message ids, and inserts each snapshot immediately after the message that cited it. Queue edits and queue-to-steer relocation need no reference-specific handling because parsing occurs after the final inbox claim. Invalid mentions, failed reads, cancellation, and budget failures end that turn before its messages enter model-visible history. The target log records the readable direct `user/message` followed by its sourced context `user/message`; source mutation after capture cannot change target replay.
 
@@ -22,7 +22,7 @@ The context source is `{ kind: 'session-reference', version: 1, references }`; e
 | `candidateLimit` | `50` | Default candidate count returned to a host. |
 | `maxReferenceBytes` | `65536` | Maximum serialized JSON bytes for one reference object. |
 
-Retention applies `maxReferenceBytes` independently to each source, keeps compact checkpoints and the newest message before dropping older non-checkpoint units, and uses `bh-output-retention` head/tail truncation with an exact UTF-8 omission notice. If one source's fixed serialized fields cannot fit, preparation fails with `SESSION_REFERENCE_BUDGET_EXCEEDED` instead of returning a partial context.
+Retention applies `maxReferenceBytes` independently to each source, keeps compact checkpoints and the newest message before dropping older non-checkpoint units, and uses `@hydra/harness-output-retention` head/tail truncation with an exact UTF-8 omission notice. If one source's fixed serialized fields cannot fit, preparation fails with `SESSION_REFERENCE_BUDGET_EXCEEDED` instead of returning a partial context.
 
 ## Model Experience
 

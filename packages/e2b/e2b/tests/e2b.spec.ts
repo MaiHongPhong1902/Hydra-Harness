@@ -1,15 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Mock } from 'vitest'
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import type { Sandbox as SandboxType } from 'e2b'
 import E2BRuntime, {
   e2bControlEnvs,
   FileType,
   SandboxNotFoundError,
   quoteE2BShellArg,
-} from '@bosch/bh-e2b'
+} from '@hydra/harness-e2b'
 import * as E2BInvariant from '../src/invariant.ts'
-import InvariantRegistry from '@bosch/bh-invariants'
+import InvariantRegistry from '@hydra/harness-invariants'
 
 const sdk = vi.hoisted(() => ({
   create: vi.fn(),

@@ -5,9 +5,9 @@
  * settings surface.
  */
 import { useState } from 'react'
-import type { PropsLocale, PropsRuntime, PropsStore } from '@bosch/bh-client-ui-slots'
-import { IconChevronDownOutline14, Menu } from '@bosch/bh-client-ui-primitives'
-import type {} from '@bosch/bh-client-ui-settings/client'
+import type { PropsLocale, PropsRuntime, PropsStore } from '@hydra/harness-client-ui-slots'
+import { IconChevronDownOutline14, Menu } from '@hydra/harness-client-ui-primitives'
+import type {} from '@hydra/harness-client-ui-settings/client'
 import type { createLanguageRowStore } from './settings-store.ts'
 import css from './LanguageRow.module.css'
 

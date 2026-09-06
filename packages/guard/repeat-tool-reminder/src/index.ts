@@ -3,16 +3,16 @@
  * with logged model context without vetoing or rewriting calls. Configuration
  * and chain semantics live in the package README; rationale lives in the
  * repeat-tool-reminder Agent Note.
- * @module @bosch/bh-repeat-tool-reminder
+ * @module @hydra/harness-repeat-tool-reminder
  */
 
-import type { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import type { Agent, PreStepDecision } from '@bosch/bh-agent'
-import { createUserMessage } from '@bosch/bh-llm'
-import type { MessageSource } from '@bosch/bh-llm'
-import type { UserMessage } from '@bosch/bh-session'
-import type { PostToolDecision, ToolExecution } from '@bosch/bh-tools'
+import type { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import type { Agent, PreStepDecision } from '@hydra/harness-agent'
+import { createUserMessage } from '@hydra/harness-llm'
+import type { MessageSource } from '@hydra/harness-llm'
+import type { UserMessage } from '@hydra/harness-session'
+import type { PostToolDecision, ToolExecution } from '@hydra/harness-tools'
 
 export const name = 'repeat-tool-reminder'
 

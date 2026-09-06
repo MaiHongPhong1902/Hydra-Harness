@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
-import { cleanup, render } from '@testing-library/react'
+import { cleanup, fireEvent, render } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
-import * as primitives from '@bosch/bh-client-ui-primitives'
+import * as primitives from '@hydra/harness-client-ui-primitives'
 import {
   IconApiOutline14, IconArchiveOutline20, IconFolderClose16, IconGoalOutline16, IconSendOutline16,
-} from '@bosch/bh-client-ui-primitives'
+} from '@hydra/harness-client-ui-primitives'
 
 afterEach(cleanup)
 
@@ -54,17 +54,30 @@ describe('ic_ds_ icon set', () => {
   })
 })
 
-describe('FishLogo', () => {
-  it('renders the supplied WorkON mark at the requested square size', () => {
-    const { container } = render(<primitives.FishLogo />)
+describe('HydraLogo', () => {
+  it('mounts the supplied animation on hover and restores the still logo on leave', () => {
+    const { container } = render(<primitives.HydraLogo />)
+    const svg = container.querySelector('svg')!
+    const still = container.querySelector('image')!.getAttribute('href')
+    expect(container.querySelectorAll('image')).toHaveLength(1)
+    fireEvent.mouseEnter(svg)
+    const animation = container.querySelectorAll('image')[1]!
+    expect(animation.getAttribute('href')).toMatch(/^data:image\/webp;base64,/)
+    fireEvent.mouseLeave(svg)
+    expect(animation.isConnected).toBe(false)
+    expect(container.querySelector('image')!.getAttribute('href')).toBe(still)
+  })
+
+  it('renders the supplied Hydra mark at the requested square size', () => {
+    const { container } = render(<primitives.HydraLogo />)
     const svg = container.querySelector('svg')!
     expect(svg.getAttribute('width')).toBe('24')
     expect(svg.getAttribute('height')).toBe('24')
-    expect(svg.getAttribute('viewBox')).toBe('0 0 166 166')
-    const paths = [...container.querySelectorAll('path')]
-    expect(paths).toHaveLength(3)
-    expect(paths.map(path => path.getAttribute('fill'))).toEqual(['#0096E8', '#006EAD', '#006EAD'])
-    expect(paths[0]?.getAttribute('stroke')).toBe('#0096E8')
+    expect(svg.getAttribute('viewBox')).toBe('0 0 256 256')
+    const png = Buffer.from(container.querySelector('image')!.getAttribute('href')!.split(',')[1]!, 'base64')
+    expect(png.subarray(1, 4).toString()).toBe('PNG')
+    expect(png.readUInt32BE(16)).toBe(256)
+    expect(png.readUInt32BE(20)).toBe(256)
   })
 })
 
@@ -74,11 +87,12 @@ describe('BrandWordmark', () => {
     const svg = view.container.querySelector('svg')!
     expect(svg.getAttribute('width')).toBe('182')
     expect(svg.getAttribute('viewBox')).toBe('0 0 182 24')
-    expect(view.container.querySelector('svg[viewBox="0 0 166 166"]')).not.toBeNull()
+    expect(svg.textContent).toBe('Hydra harness')
+    expect(view.container.querySelector('svg[viewBox="0 0 256 256"]')).not.toBeNull()
 
     view.rerender(<primitives.BrandWordmark includeMark={false} />)
     expect(svg.getAttribute('width')).toBe('156')
     expect(svg.getAttribute('viewBox')).toBe('26 0 156 24')
-    expect(view.container.querySelector('svg[viewBox="0 0 166 166"]')).toBeNull()
+    expect(view.container.querySelector('svg[viewBox="0 0 256 256"]')).toBeNull()
   })
 })

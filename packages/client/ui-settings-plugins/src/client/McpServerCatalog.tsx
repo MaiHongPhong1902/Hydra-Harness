@@ -12,8 +12,8 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import type {
   McpServerDefinitionRequest, McpServerSnapshot, McpServerTransport,
-} from '@bosch/bh-api-remotes/client'
-import { Button, IconPlusOutline16, Input, Modal, Switch } from '@bosch/bh-client-ui-primitives'
+} from '@hydra/harness-api-remotes/client'
+import { Button, IconPlusOutline16, Input, Modal, Switch } from '@hydra/harness-client-ui-primitives'
 import type { PluginsSettingsLocaleKey } from './locales.ts'
 import css from './PluginsSettingsSection.module.css'
 
@@ -111,6 +111,7 @@ function toRequest(draft: Draft): McpServerDefinitionRequest | AssignmentFailure
   const headers = parseAssignments(draft.headers)
   if (headers === 'invalid') return 'headers'
   const shared = {
+    mode: draft.editing === '' ? 'create' as const : 'replace' as const,
     name: draft.name.trim(),
     // A blank credential map is an omission, not an empty map: the Host keeps
     // the stored values for an omitted one and clears them for a supplied one.
@@ -153,7 +154,8 @@ function statusLabel(server: McpServer, t: (key: PluginsSettingsLocaleKey) => st
  * @param props.t - the section's bound dictionary.
  * @returns the catalog, its add/edit dialog, and any failure notice.
  */
-export function McpServerCatalog({ controls, query, t }: {
+export function McpServerCatalog({ active = true, controls, query, t }: {
+  active?: boolean
   controls: UserMcpControls
   query: string
   t: (key: PluginsSettingsLocaleKey) => string
@@ -163,9 +165,10 @@ export function McpServerCatalog({ controls, query, t }: {
   const [draft, setDraft] = useState<Draft>()
   const [saving, setSaving] = useState(false)
   const [mutating, setMutating] = useState<string>()
-  const [failure, setFailure] = useState<'save' | 'mutate' | 'env' | 'headers'>()
+  const [failure, setFailure] = useState<'save' | 'mutate' | 'env' | 'headers' | 'name'>()
 
   useEffect(() => {
+    if (!active) return undefined
     let current = true
     setState({ status: 'loading' })
     void controls.list().then(
@@ -173,7 +176,7 @@ export function McpServerCatalog({ controls, query, t }: {
       () => { if (current) setState({ status: 'error' }) },
     )
     return () => { current = false }
-  }, [controls, request])
+  }, [active, controls, request])
 
   const busy = saving || mutating !== undefined
   const normalizedQuery = query.trim().toLocaleLowerCase()
@@ -192,6 +195,11 @@ export function McpServerCatalog({ controls, query, t }: {
   const submit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault()
     if (draft === undefined || !submittable(draft)) return
+    if (draft.editing === '' && state.status === 'ready'
+      && state.snapshot.servers.some(server => server.name === draft.name.trim())) {
+      setFailure('name')
+      return
+    }
     const definition = toRequest(draft)
     if (definition === 'env' || definition === 'headers') {
       setFailure(definition)
@@ -410,6 +418,7 @@ export function McpServerCatalog({ controls, query, t }: {
             {failure === 'env' ? <p className={css.saveFailed} role="alert">{t('userMcpEnvInvalid')}</p> : null}
             {failure === 'headers' ? <p className={css.saveFailed} role="alert">{t('userMcpHeadersInvalid')}</p> : null}
             {failure === 'save' ? <p className={css.saveFailed} role="alert">{t('userMcpSaveError')}</p> : null}
+            {failure === 'name' ? <p className={css.saveFailed} role="alert">{t('userMcpNameTaken')}</p> : null}
           </form>
         )}
       </Modal>

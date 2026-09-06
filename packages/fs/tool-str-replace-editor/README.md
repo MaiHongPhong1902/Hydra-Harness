@@ -1,4 +1,4 @@
-# @bosch/bh-tool-str-replace-editor
+# @hydra/harness-tool-str-replace-editor
 
 Standalone model-facing `str_replace_editor` over `ctx.fs`. It can be composed with persistent Bash, one-shot Bash, sandboxed Bash, or another terminal surface.
 
@@ -19,7 +19,7 @@ The schema provides `view`, `create`, `str_replace`, and `insert` over absolute 
 
 #### What the model sees
 
-The generated [`str_replace_editor` schema](../../../docs/tool-catalog.md#boschbh-tool-str-replace-editor), including the configured `description`. The plugin contributes no standalone system-prompt section.
+The generated [`str_replace_editor` schema](../../../docs/tool-catalog.md#hydraharness-tool-str-replace-editor), including the configured `description`. The plugin contributes no standalone system-prompt section.
 
 #### Token effect
 

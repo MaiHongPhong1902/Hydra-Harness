@@ -8,10 +8,10 @@
 
 import type {
   ConfigurableProviderView, CredentialView, IApiClient, SettingsNamespaceView,
-} from '@bosch/bh-api-remotes/client'
-import type { SnapshotStore } from '@bosch/bh-client-runtime/client'
-import { createSnapshotStore } from '@bosch/bh-client-runtime/client'
-import type { SettingsDescribeFace } from '@bosch/bh-client-ui-settings/client'
+} from '@hydra/harness-api-remotes/client'
+import type { SnapshotStore } from '@hydra/harness-client-runtime/client'
+import { createSnapshotStore } from '@hydra/harness-client-runtime/client'
+import type { SettingsDescribeFace } from '@hydra/harness-client-ui-settings/client'
 import {
   OFFICIAL_DEEPSEEK_DECLINED_FIELD, OFFICIAL_DEEPSEEK_PROVIDER,
   OFFICIAL_DEEPSEEK_SETTINGS_NS, WELCOME_NOTICE_SETTINGS_NAMESPACE,

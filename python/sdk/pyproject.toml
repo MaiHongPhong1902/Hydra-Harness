@@ -3,16 +3,16 @@ requires = ["hatchling==1.30.1"]
 build-backend = "hatchling.build"
 
 [project]
-name = "bosch-harness-sdk"
+name = "hydra-harness-sdk"
 version = "0.0.0.dev0"
-description = "Python SDK for Bosch Harness"
+description = "Python SDK for Hydra harness"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
 authors = [{ name = "DeepSeek" }]
 dependencies = [
   "pydantic>=2.12,<3",
-  "bosch-harness-runtime-bin==0.0.0.dev0",
+  "hydra-harness-runtime-bin==0.0.0.dev0",
 ]
 
 [project.urls]
@@ -29,9 +29,9 @@ addopts = "-q"
 testpaths = ["tests"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/bosch_harness"]
+packages = ["src/hydra_harness"]
 
 # Editable installs see runtime executables injected after installation instead
 # of freezing a wheel snapshot.
 [tool.uv.sources]
-bosch-harness-runtime-bin = { path = "../sdk-runtime", editable = true }
+hydra-harness-runtime-bin = { path = "../sdk-runtime", editable = true }

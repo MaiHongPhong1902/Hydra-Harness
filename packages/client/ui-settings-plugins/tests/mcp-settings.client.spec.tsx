@@ -2,9 +2,9 @@
 
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { bindSnapshotSelector, stubSettingsScope, type StubSettingsScope } from '@bosch/bh-client-test-runtime'
-import { createSnapshotStore } from '@bosch/bh-client-runtime/client'
-import type { PluginInventorySnapshot } from '@bosch/bh-api-remotes/client'
+import { bindSnapshotSelector, stubSettingsScope, type StubSettingsScope } from '@hydra/harness-client-test-runtime'
+import { createSnapshotStore } from '@hydra/harness-client-runtime/client'
+import type { PluginInventorySnapshot } from '@hydra/harness-api-remotes/client'
 import { McpSettingsTab, type McpSettingsTabProps } from '../src/client/McpSettingsTab.tsx'
 import {
   MCP_API_KEY_REF,
@@ -70,6 +70,7 @@ function renderTab(
   })
   const actions = { edit: vi.fn(), resetField: vi.fn(), save: vi.fn(), discard: vi.fn() }
   render(<McpSettingsTab {...{
+    active: true,
     ...actions,
     t,
     query,
@@ -81,6 +82,25 @@ function renderTab(
 }
 
 describe('McpSettingsController', () => {
+  it.each(['rejected', 'error-result'])('retains a failed key rotation even when an older key exists: %s', async (failure) => {
+    const host = stubSettingsScope<McpSettings>()
+    const credentials = credentialApi(true)
+    const set = vi.fn(async () => {
+      if (failure === 'rejected') throw new Error('write refused')
+      return { rpcId: 'write', result: { ok: false, error: { code: 'unavailable', message: 'write refused' } } }
+    })
+    const controller = new McpSettingsController(host.scope, {
+      credentials: { describe: credentials.describe, set },
+    } as never)
+    host.publish({ status: 'ready', writable: true, value: {}, user: {} })
+    const face = controller.inject()
+    await vi.waitFor(() => { expect(face.hooks.mcpSettings.getSnapshot().apiKeyConfigured).toBe(true) })
+    face.edit('apiKey', 'replacement')
+    face.save()
+    await vi.waitFor(() => {
+      expect(face.hooks.mcpSettings.getSnapshot()).toMatchObject({ failed: true, dirty: true, apiKey: { text: 'replacement' } })
+    })
+  })
   it('saves the target domain and fixed Obsidian credential through their owning stores', async () => {
     const host = stubSettingsScope<McpSettings>()
     acceptWrites(host)
@@ -144,6 +164,17 @@ describe('McpSettingsController', () => {
 })
 
 describe('McpSettingsTab', () => {
+  it.each(['native', 'imported'] as const)('offers retry when the %s MCP inventory cannot load', async (kind) => {
+    const list = vi.fn(async () => { throw new Error('offline') })
+    const controls = { list, setEnabled: vi.fn() }
+    renderTab({ available: false }, kind === 'imported' ? controls : undefined, kind === 'native' ? controls : undefined)
+    expect((await screen.findByRole('alert')).textContent).toBe(en.mcpLoadError)
+    expect(screen.queryByText(en.mcpLoading)).toBeNull()
+    list.mockImplementationOnce(async () => (kind === 'imported' ? { plugins: [] } : { entries: [] }) as never)
+    fireEvent.click(screen.getByRole('button', { name: en.mcpRetry }))
+    await vi.waitFor(() => { expect(screen.queryByRole('alert')).toBeNull() })
+    expect(list).toHaveBeenCalledTimes(2)
+  })
   it('shows why the tab has no controls when the plugin is unavailable', () => {
     renderTab({ available: false })
 
@@ -208,7 +239,7 @@ describe('McpSettingsTab', () => {
 
   it('hides the unavailable native MCP fallback section when the query does not match it', async () => {
     const entry: PluginInventorySnapshot['entries'][number] = {
-      entryId: 'obsidian-knowledge' as never, moduleName: '@bosch/bh-obsidian-knowledge',
+      entryId: 'obsidian-knowledge' as never, moduleName: '@hydra/harness-obsidian-knowledge',
       enabled: false, restartRequired: false, toggleable: true, fiberPhase: null,
     }
     renderTab({ available: false }, undefined, { list: vi.fn(async () => ({ entries: [entry] })), setEnabled: vi.fn() }, 'no-match')
@@ -218,7 +249,7 @@ describe('McpSettingsTab', () => {
 
   it('switches the native Obsidian MCP plugin and keeps a disabled plugin enableable', async () => {
     const entry: PluginInventorySnapshot['entries'][number] = {
-      entryId: 'obsidian-knowledge' as never, moduleName: '@bosch/bh-obsidian-knowledge',
+      entryId: 'obsidian-knowledge' as never, moduleName: '@hydra/harness-obsidian-knowledge',
       enabled: true, restartRequired: false, toggleable: true, fiberPhase: 'active',
     }
     const enabled: PluginInventorySnapshot = { entries: [entry] }

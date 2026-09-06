@@ -3,23 +3,23 @@ import { mkdir, mkdtemp, readFile, stat, symlink, writeFile } from 'node:fs/prom
 import { tmpdir } from 'node:os'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { Context } from '@bosch/cordis'
-import { boot, healProfilesModuleFallback, loadOverlayPatches, loadProfile } from '@bosch/bh-app-boot'
-import { provideCmdline } from '@bosch/bh-cmdline'
-import { SessionId } from '@bosch/bh-session'
-import { agentEvents, type Agent } from '@bosch/bh-agent'
-import type { PatchOptions } from '@bosch/cordis-plugin-include'
+import { Context } from '@hydra/cordis'
+import { boot, healProfilesModuleFallback, loadOverlayPatches, loadProfile } from '@hydra/harness-app-boot'
+import { provideCmdline } from '@hydra/harness-cmdline'
+import { SessionId } from '@hydra/harness-session'
+import { agentEvents, type Agent } from '@hydra/harness-agent'
+import type { PatchOptions } from '@hydra/cordis-plugin-include'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
-import { settingsNamespace } from '@bosch/bh-settings'
-import { resolveSessionPreset, SETTINGS_NAMESPACE } from '@bosch/bh-agent-presets'
-import { applyChildComposition, childSessionMeta } from '@bosch/bh-subagent'
-import { CallId, createUserMessage } from '@bosch/bh-llm'
-import type {} from '@bosch/bh-compaction-basic'
-import type {} from '@bosch/bh-skill'
-import type {} from '@bosch/bh-tools'
+import { settingsNamespace } from '@hydra/harness-settings'
+import { resolveSessionPreset, SETTINGS_NAMESPACE } from '@hydra/harness-agent-presets'
+import { applyChildComposition, childSessionMeta } from '@hydra/harness-subagent'
+import { CallId, createUserMessage } from '@hydra/harness-llm'
+import type {} from '@hydra/harness-compaction-basic'
+import type {} from '@hydra/harness-skill'
+import type {} from '@hydra/harness-tools'
 // Type-only: resolves `ctx.get('sessionProjections')` and `ctx.get('tokenMeter')`.
-import type {} from '@bosch/bh-session-projection'
-import type {} from '@bosch/bh-token-meter'
+import type {} from '@hydra/harness-session-projection'
+import type {} from '@hydra/harness-token-meter'
 
 const CONFIG_DIR = fileURLToPath(new URL('../config/', import.meta.url))
 const REPO_ROOT = fileURLToPath(new URL('../../..', import.meta.url))
@@ -92,8 +92,8 @@ async function bootWeb(
     // supplies `directoryPicker` without one.
     { id: 'directory-picker', disabled: true },
     { insert: [
-      { id: 'directory-picker-browse', name: '@bosch/bh-host-directory-picker-browse' },
-      { id: 'ui-directory-picker-browse', name: '@bosch/bh-client-ui-directory-picker-browse' },
+      { id: 'directory-picker-browse', name: '@hydra/harness-host-directory-picker-browse' },
+      { id: 'ui-directory-picker-browse', name: '@hydra/harness-client-ui-directory-picker-browse' },
     ] },
     // The roster AppCLIEntry would patch in; only the shipped root, so a
     // developer's own `~/.bh/.preset` cannot change this test's outcome.
@@ -396,7 +396,7 @@ describe('the shipped Web composition', () => {
     ].join('\n'))
 
     const handle = await ctx.agents.create({
-      // Unique per run: the composition persists into the ambient BH home,
+      // Unique per run: the composition persists into the ambient Hydra home,
       // and a fixed id would collide with a log an earlier run left there.
       sessionId: SessionId(`preset-skills-standard-${randomUUID()}`),
       meta: { cwd: proj },
@@ -405,24 +405,24 @@ describe('the shipped Web composition', () => {
     try {
       // The host (global) view carries the deployment-level provider alone:
       // local discovery moved behind the presets with `skill-filesystem`.
-      expect((await ctx.skills.list({ cwd: proj })).map(skill => skill.name)).toEqual(['bh-badge'])
+      expect((await ctx.skills.list({ cwd: proj })).map(skill => skill.name)).toEqual(['hydra-badge'])
 
       // The standard agent's view merges the global layer with its preset's
       // own local discovery over the session cwd.
       const scoped = (await ctx.skills.list({ cwd: proj, scope: handle.agent })).map(skill => skill.name)
-      expect(scoped).toContain('bh-badge')
+      expect(scoped).toContain('hydra-badge')
       expect(scoped).toContain('project-proof')
 
       // The preset's own loader tool resolves the global-layer skill.
       const loaded = await ctx.tools.execute({
         callId: CallId('preset-skills-load'),
         name: 'skill',
-        arguments: { name: 'bh-badge' },
+        arguments: { name: 'hydra-badge' },
         signal: new AbortController().signal,
         agent: handle.agent,
       })
       expect(loaded.isError).toBe(false)
-      expect(JSON.stringify(loaded.content)).toContain('powered by bh')
+      expect(JSON.stringify(loaded.content)).toContain('powered by Hydra harness')
 
       const request = createUserMessage({
         content: [{ type: 'text', text: 'test tính năng search request trên workon' }],
@@ -454,7 +454,7 @@ describe('the shipped Web composition', () => {
       // Layer visibility is the registry's; whether an agent can USE skills
       // stays the preset's choice — minimal mounts no `tool-skill`, so its
       // tool table has no loader even though the global layer is readable.
-      expect((await ctx.skills.list({ scope: handle.agent })).map(skill => skill.name)).toContain('bh-badge')
+      expect((await ctx.skills.list({ scope: handle.agent })).map(skill => skill.name)).toContain('hydra-badge')
       expect(toolNames(ctx, handle.agent)).toEqual(['bash', 'str_replace_editor'])
     } finally {
       await handle.dispose()
@@ -513,8 +513,8 @@ describe('product Bundle and user-preset intersection', () => {
     )
     const packageName = (product: Product): string => (
       product === 'codex'
-        ? '@bosch/bh-subagent-codex'
-        : '@bosch/bh-subagent-claude-code'
+        ? '@hydra/harness-subagent-codex'
+        : '@hydra/harness-subagent-claude-code'
     )
     return await bootWeb(settingsFile, [
       {
@@ -529,8 +529,8 @@ describe('product Bundle and user-preset intersection', () => {
         },
       },
     ], installed.map(packageDir), [
-      '@bosch/bh-base',
-      '@bosch/bh-web-app',
+      '@hydra/harness-base',
+      '@hydra/harness-web-app',
       ...installed.map(packageName),
     ])
   }
@@ -755,7 +755,7 @@ describe('a launcher that configures no writable root', () => {
     await mkdir(join(home, '.agent-presets', 'derived-mine'), { recursive: true })
     await writeFile(
       join(home, '.agent-presets', 'derived-mine', 'agent.cordis.yml'),
-      '- id: tool-todo\n  name: \'@bosch/bh-tool-todo\'\n  config:\n    allowParallelInProgress: true\n',
+      '- id: tool-todo\n  name: \'@hydra/harness-tool-todo\'\n  config:\n    allowParallelInProgress: true\n',
     )
     const settingsFile = join(await mkdtemp(join(tmpdir(), 'bh-preset-derived-settings-')), 'settings.yaml')
     await writeFile(settingsFile, '{}\n')

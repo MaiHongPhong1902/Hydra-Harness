@@ -1,16 +1,16 @@
 # Keyless twin of product-subagent-codex.cordis.yml: keep both named product
 # providers and tools while replacing only the external model adapter.
 - id: base
-  name: '@bosch/cordis-plugin-include'
+  name: '@hydra/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - id: llm-deepseek
-        name: '@bosch/bh-llm-deepseek'
+        name: '@hydra/harness-llm-deepseek'
         disabled: true
       - insert:
           - id: llm-replay
-            name: '@bosch/bh-llm-replay'
+            name: '@hydra/harness-llm-replay'
             config:
               providers:
                 - id: deepseek-official
@@ -19,22 +19,22 @@
                     - id: deepseek-v4-flash
                     - id: deepseek-v4-pro
           - id: subagent-codex-primary
-            name: '@bosch/bh-subagent-codex'
+            name: '@hydra/harness-subagent-codex'
             config:
               providerName: codex-primary
           - id: subagent-codex-secondary
-            name: '@bosch/bh-subagent-codex'
+            name: '@hydra/harness-subagent-codex'
             config:
               providerName: codex-secondary
           - id: tool-subagent-codex-primary
-            name: '@bosch/bh-tool-subagent'
+            name: '@hydra/harness-tool-subagent'
             config:
               provider: codex-primary
               toolName: subagent_codex_primary
               backgroundMode: one-shot
               maxDepth: provider-managed
           - id: tool-subagent-codex-secondary
-            name: '@bosch/bh-tool-subagent'
+            name: '@hydra/harness-tool-subagent'
             config:
               provider: codex-secondary
               toolName: subagent_codex_secondary

@@ -1,12 +1,12 @@
-/** Package-owned durable goal-stream invariants. @module @bosch/bh-goal/invariant */
+/** Package-owned durable goal-stream invariants. @module @hydra/harness-goal/invariant */
 
-import type { Context } from '@bosch/cordis'
-import type { InvariantFailure, InvariantInstaller } from '@bosch/bh-invariants'
-import type { Session, SessionEvent } from '@bosch/bh-session'
+import type { Context } from '@hydra/cordis'
+import type { InvariantFailure, InvariantInstaller } from '@hydra/harness-invariants'
+import type { Session, SessionEvent } from '@hydra/harness-session'
 import { applyGoalEvent, emptyGoalFoldState } from './fold.ts'
 import type { GoalFoldState } from './fold.ts'
 
-const PACKAGE_NAME = '@bosch/bh-goal'
+const PACKAGE_NAME = '@hydra/harness-goal'
 
 /** Cordis companion plugin name. */
 export const name = 'goal-invariant'

@@ -1,7 +1,7 @@
 {
-  "name": "@bosch/node-addon-landlock-run-linux-arm64",
+  "name": "@hydra/node-addon-landlock-run-linux-arm64",
   "version": "0.1.1",
-  "description": "Prebuilt landlock-run Landlock launcher binary for linux-arm64 (static musl) — resolved as a file path by @bosch/node-addon-landlock-run, never imported",
+  "description": "Prebuilt landlock-run Landlock launcher binary for linux-arm64 (static musl) — resolved as a file path by @hydra/node-addon-landlock-run, never imported",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/bosch-harness/bosch-harness.git",

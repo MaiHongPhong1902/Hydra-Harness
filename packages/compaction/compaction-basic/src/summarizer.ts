@@ -1,15 +1,15 @@
 /**
  * Default one-shot summarization and durable checkpoint framing.
  *
- * @module @bosch/bh-compaction-basic/summarizer
+ * @module @hydra/harness-compaction-basic/summarizer
  */
 
-import type { Context } from '@bosch/cordis'
-import { contentHasImage, createUserMessage, BlockAssembler, LlmError } from '@bosch/bh-llm'
+import type { Context } from '@hydra/cordis'
+import { contentHasImage, createUserMessage, BlockAssembler, LlmError } from '@hydra/harness-llm'
 import type {
   ContentBlock, FinishReason, GenerateOptions, Message, TokenUsage, ToolSchema,
-} from '@bosch/bh-llm'
-import type { Agent } from '@bosch/bh-agent'
+} from '@hydra/harness-llm'
+import type { Agent } from '@hydra/harness-agent'
 
 interface SummaryConfig {
   readonly summarizationProvider: string

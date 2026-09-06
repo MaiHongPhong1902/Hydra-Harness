@@ -1,7 +1,7 @@
 /** Schedule-owned use of the shared session durability barrier. */
 
-import type { Context } from '@bosch/cordis'
-import type { Session } from '@bosch/bh-session'
+import type { Context } from '@hydra/cordis'
+import type { Session } from '@hydra/harness-session'
 
 /** Failure to prove that the current live prefix reached a persistence listener. */
 export class SchedulePersistenceError extends Error {

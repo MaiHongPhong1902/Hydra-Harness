@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useRef } from 'react'
 import type { ReactNode } from 'react'
-import type { SnapshotStore } from '@bosch/bh-client-runtime/client'
-import type { InjectFace, PropsRuntime } from '@bosch/bh-client-ui-slots'
-import { Button } from '@bosch/bh-client-ui-primitives'
+import type { SnapshotStore } from '@hydra/harness-client-runtime/client'
+import type { InjectFace, PropsRuntime } from '@hydra/harness-client-ui-slots'
+import { Button } from '@hydra/harness-client-ui-primitives'
 import type { WelcomeNoticeState, WelcomeNoticeStore } from './welcome-store.ts'
 import type { en } from './locales.ts'
 import { OnboardingModal } from './OnboardingModal.tsx'

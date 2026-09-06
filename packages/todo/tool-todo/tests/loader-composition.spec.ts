@@ -6,16 +6,16 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import Loader from '@bosch/cordis-plugin-loader'
-import Include from '@bosch/cordis-plugin-include'
-import { CallId } from '@bosch/bh-llm'
-import { Session, SessionId } from '@bosch/bh-session'
-import AgentRegistry, { Inbox } from '@bosch/bh-agent'
-import type { Agent } from '@bosch/bh-agent'
-import SystemPrompt from '@bosch/bh-system-prompt'
-import ToolRuntime from '@bosch/bh-tools'
-import * as ToolTodo from '@bosch/bh-tool-todo'
+import { Context } from '@hydra/cordis'
+import Loader from '@hydra/cordis-plugin-loader'
+import Include from '@hydra/cordis-plugin-include'
+import { CallId } from '@hydra/harness-llm'
+import { Session, SessionId } from '@hydra/harness-session'
+import AgentRegistry, { Inbox } from '@hydra/harness-agent'
+import type { Agent } from '@hydra/harness-agent'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import ToolRuntime from '@hydra/harness-tools'
+import * as ToolTodo from '@hydra/harness-tool-todo'
 
 let root: string | undefined
 let context: Context | undefined
@@ -55,10 +55,10 @@ async function boot(configLines: readonly string[]): Promise<Context> {
   root = await mkdtemp(join(tmpdir(), 'bh-todo-loader-'))
   const configPath = join(root, 'cordis.yml')
   await writeFile(configPath, [
-    "- name: '@bosch/bh-agent'",
-    "- name: '@bosch/bh-system-prompt'",
-    "- name: '@bosch/bh-tools'",
-    "- name: '@bosch/bh-tool-todo'",
+    "- name: '@hydra/harness-agent'",
+    "- name: '@hydra/harness-system-prompt'",
+    "- name: '@hydra/harness-tools'",
+    "- name: '@hydra/harness-tool-todo'",
     ...configLines.length > 0 ? ['  config:', ...configLines] : [],
     '',
   ].join('\n'))
@@ -69,10 +69,10 @@ async function boot(configLines: readonly string[]): Promise<Context> {
   await ctx.plugin(Loader)
   ctx.loader.builtins.include = Include
   const modules = new Map<string, unknown>([
-    ['@bosch/bh-agent', AgentRegistry],
-    ['@bosch/bh-system-prompt', SystemPrompt],
-    ['@bosch/bh-tools', ToolRuntime],
-    ['@bosch/bh-tool-todo', ToolTodo],
+    ['@hydra/harness-agent', AgentRegistry],
+    ['@hydra/harness-system-prompt', SystemPrompt],
+    ['@hydra/harness-tools', ToolRuntime],
+    ['@hydra/harness-tool-todo', ToolTodo],
   ])
   ctx.loader.internal = {
     version: 'v2',

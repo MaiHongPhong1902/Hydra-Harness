@@ -1,6 +1,6 @@
 {
-  "name": "@bosch/bh-web",
-  "description": "Abstract web access capability seam (ctx.web) for the Bosch Harness — search/fetch provider registry, registration-order-independent selection, request/result vocabulary, and the WebError taxonomy",
+  "name": "@hydra/harness-web",
+  "description": "Abstract web access capability seam (ctx.web) for the Hydra harness — search/fetch provider registry, registration-order-independent selection, request/result vocabulary, and the WebError taxonomy",
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"
@@ -32,16 +32,16 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-llm": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   },
   "dependencies": {
-    "@bosch/schemastery": "workspace:^"
+    "@hydra/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-llm": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   }
 }

@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-storage-sqlite`.
- * @module @bosch/bh-storage-sqlite/invariant
+ * Package-owned invariant companion for `@hydra/harness-storage-sqlite`.
+ * @module @hydra/harness-storage-sqlite/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-storage-sqlite'
+const PACKAGE_NAME = '@hydra/harness-storage-sqlite'
 
 /** Cordis companion plugin name. */
 export const name = 'storage-sqlite-invariant'

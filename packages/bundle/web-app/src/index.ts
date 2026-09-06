@@ -1,5 +1,5 @@
 /**
- * @bosch/bh-web-app — the browser-surface bundle's runtime glue plugin
+ * @hydra/harness-web-app — the browser-surface bundle's runtime glue plugin
  * plus the bundle patch (`cordis.patch.yml`, declared by the `bh.bundle.patch`
  * manifest field). The plugin owns the browser-surface glue: it resolves
  * the built frontend dist (workspace knowledge of this bundle, never user
@@ -8,26 +8,26 @@
  * variable, the URL line, and the default-browser handoff. App command-line
  * values arrive through the `webStartup` service expressions in the bundle
  * patch.
- * @module @bosch/bh-web-app
+ * @module @hydra/harness-web-app
  */
 
 import { spawn, type ChildProcess } from 'node:child_process'
 import { createRequire } from 'node:module'
 import { networkInterfaces } from 'node:os'
 import { fileURLToPath } from 'node:url'
-import type { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import type { PreStepDecision } from '@bosch/bh-agent'
-import { addHarnessSourceSection } from '@bosch/bh-app-boot'
-import * as FrontendStatic from '@bosch/bh-host-frontend-static'
-import { launchEnvironmentOf } from '@bosch/bh-launch-environment'
-import { createUserMessage } from '@bosch/bh-llm'
-import type { UserMessage } from '@bosch/bh-session'
-import { scrubbedParentEnv } from '@bosch/bh-subprocess'
-import type {} from '@bosch/cordis-plugin-loader'
-import type {} from '@bosch/bh-host-webserver'
-import type {} from '@bosch/bh-system-prompt'
-import type {} from '@bosch/bh-shell-env'
+import type { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import type { PreStepDecision } from '@hydra/harness-agent'
+import { addHarnessSourceSection } from '@hydra/harness-app-boot'
+import * as FrontendStatic from '@hydra/harness-host-frontend-static'
+import { launchEnvironmentOf } from '@hydra/harness-launch-environment'
+import { createUserMessage } from '@hydra/harness-llm'
+import type { UserMessage } from '@hydra/harness-session'
+import { scrubbedParentEnv } from '@hydra/harness-subprocess'
+import type {} from '@hydra/cordis-plugin-loader'
+import type {} from '@hydra/harness-host-webserver'
+import type {} from '@hydra/harness-system-prompt'
+import type {} from '@hydra/harness-shell-env'
 
 /** Stable Cordis plugin name. */
 export const name = 'web-app'
@@ -164,7 +164,7 @@ function webSurfacePrompt(webUrl: string): string {
   const updateContract = 'The client-plugin HMR receiver is active, but client-plugin changes reload without a refresh only while '
     + '`pnpm run dev:web` is also running from this same checkout to rebuild their bundles; verify that watcher before promising automatic updates. '
     + 'Every other change — the apps/web shell and plain packages — requires rebuilding the affected Web artifacts and verifying this existing URL after a page refresh. '
-  return `You are interacting with the user through the Bosch Harness Web GUI at ${webUrl}. `
+  return `You are interacting with the user through the Hydra harness Web GUI at ${webUrl}. `
     + 'When the user refers to "this page", "this GUI", or "this app" without naming another target, they mean this GUI. '
     + 'Classify the user message before planning. If it is only a greeting, acknowledgement, or casual chat, reply with one short natural conversational sentence and stop; do not ask a question, propose work, mention the GUI, workspace, tools, policy, permissions, or options, or take any action. '
     + 'Treat a stated goal as a task even when high-level: take the smallest safe useful step. Ask only when a material fact normal inspection cannot establish blocks that step; then ask one short natural question for that fact, never a generic action, task, or tool menu. '
@@ -187,7 +187,7 @@ function localWebUrl(ctx: Context): string {
 function resolveDistIndex(): string {
   const require = createRequire(import.meta.url)
   try {
-    return require.resolve('@bosch/bh-web-frontend/dist/index.html')
+    return require.resolve('@hydra/harness-web-frontend/dist/index.html')
   } catch {
     /* v8 ignore next 2 -- reachable only on a checkout without a built dist; the test tree builds it */
     throw new Error('web-app: frontend dist not built; run pnpm run build from the repository root first')
@@ -278,7 +278,7 @@ export function apply(ctx: Context, config: Config): void {
       runtimeCtx.shellEnv.register({
         name: 'web-runtime',
         variables: {
-          [BH_WEB_URL]: { description: 'Canonical local URL of the Bosch Harness Web GUI serving this session.' },
+          [BH_WEB_URL]: { description: 'Canonical local URL of the Hydra harness Web GUI serving this session.' },
         },
         resolve: () => ({ [BH_WEB_URL]: localWebUrl(runtimeCtx) }),
       })

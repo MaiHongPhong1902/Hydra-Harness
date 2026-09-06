@@ -1,11 +1,11 @@
-import { createUserMessage } from '@bosch/bh-llm'
+import { createUserMessage } from '@hydra/harness-llm'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import type { Context } from '@bosch/cordis'
+import type { Context } from '@hydra/cordis'
 import { codingHarness, finalText, SYSTEM_PROMPT, waitForIdle } from './harness.ts'
-import { SessionId } from '@bosch/bh-session'
+import { SessionId } from '@hydra/harness-session'
 
 /**
  * Key-gated smoke for mid-session compaction. It verifies the compact event

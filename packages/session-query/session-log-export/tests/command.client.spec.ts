@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import type { CommandDefinition, CommandInvocation } from '@bosch/bh-commands'
+import { Context } from '@hydra/cordis'
+import type { CommandDefinition, CommandInvocation } from '@hydra/harness-commands'
 import * as SessionLogDownload from '../src/index.ts'
 
 describe('/export Web download command', () => {

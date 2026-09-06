@@ -7,10 +7,10 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context, Service } from '@bosch/cordis'
-import FileSettingsProvider from '@bosch/bh-settings-file'
-import HookRecordRegistry, { HOOKS_SETTINGS_NAMESPACE } from '@bosch/bh-hooks-registry/src/index.ts'
-import type { HookRecordSnapshot } from '@bosch/bh-hooks-registry/src/types.ts'
+import { Context, Service } from '@hydra/cordis'
+import FileSettingsProvider from '@hydra/harness-settings-file'
+import HookRecordRegistry, { HOOKS_SETTINGS_NAMESPACE } from '@hydra/harness-hooks-registry/src/index.ts'
+import type { HookRecordSnapshot } from '@hydra/harness-hooks-registry/src/types.ts'
 
 const contexts: Context[] = []
 const directories: string[] = []
@@ -67,10 +67,40 @@ function nextReconciliation(ctx: Context): Promise<HookRecordSnapshot> {
 }
 
 describe('stored records', () => {
+  it.each(['codex', 'claude-code'] as const)('refuses inert %s definitions and bounds UTF-8 bytes', async (dialect) => {
+    const { registry } = await harness()
+    await expect(registry.define({ mode: 'create', name: 'inert', dialect, config: { Stop: [] } }))
+      .rejects.toThrow('no supported synchronous command hooks')
+    await expect(registry.define({ mode: 'create', name: 'oversized', dialect,
+      config: { Stop: [{ hooks: [{ command: 'echo ' + '界'.repeat(90_000) }] }] },
+    })).rejects.toThrow('exceed')
+    expect(registry.list().records).toEqual([])
+  })
+
+  it('rejects duplicate creates without changing the active hook definitions', async () => {
+    const { registry, root } = await harness()
+    await registry.define({ mode: 'create', name: 'guardrails', dialect: 'claude-code', config: CLAUDE_HOOKS, enabled: true })
+    const path = join(root, 'hooks', 'guardrails.json')
+    const before = await readFile(path, 'utf8')
+    await expect(registry.define({ mode: 'create', name: 'guardrails', dialect: 'codex', config: {} }))
+      .rejects.toThrow('already exists')
+    expect(await readFile(path, 'utf8')).toBe(before)
+    expect(registry.list().records[0]).toMatchObject({ enabled: true, dialect: 'claude-code', status: 'started' })
+  })
+
+  it('serializes competing creates and refuses replacing a removed record', async () => {
+    const { registry } = await harness()
+    const definition = { mode: 'create' as const, name: 'guardrails', dialect: 'claude-code' as const, config: CLAUDE_HOOKS }
+    const results = await Promise.allSettled([registry.define(definition), registry.define(definition)])
+    expect(results.map(result => result.status)).toEqual(['fulfilled', 'rejected'])
+    await registry.remove('guardrails')
+    await expect(registry.define({ ...definition, mode: 'replace' })).rejects.toThrow('not configured')
+    expect(registry.list().records).toEqual([])
+  })
   it('persists an inline record into the settings document', async () => {
     const { registry, root } = await harness()
 
-    const snapshot = await registry.define({
+    const snapshot = await registry.define({ mode: 'create',
       name: 'guardrails',
       dialect: 'claude-code',
       config: CLAUDE_HOOKS,
@@ -96,7 +126,7 @@ describe('stored records', () => {
     const configPath = join(root, 'hooks.json')
     await writeFile(configPath, JSON.stringify(CLAUDE_HOOKS))
 
-    const snapshot = await registry.define({ name: 'project', dialect: 'claude-code', configPath })
+    const snapshot = await registry.define({ mode: 'create', name: 'project', dialect: 'claude-code', configPath })
 
     expect(snapshot.records[0]).toMatchObject({ source: 'file', configPath })
   })
@@ -104,19 +134,19 @@ describe('stored records', () => {
   it('refuses a definition it could not mount before anything persists', async () => {
     const { registry, root } = await harness()
 
-    await expect(registry.define({ name: 'no name', dialect: 'codex', config: CLAUDE_HOOKS }))
+    await expect(registry.define({ mode: 'create', name: 'no name', dialect: 'codex', config: CLAUDE_HOOKS }))
       .rejects.toThrow('record name must match')
-    await expect(registry.define({ name: 'empty', dialect: 'claude-code' }))
+    await expect(registry.define({ mode: 'create', name: 'empty', dialect: 'claude-code' }))
       .rejects.toThrow('needs either a configPath or inline hook definitions')
-    await expect(registry.define({
+    await expect(registry.define({ mode: 'create',
       name: 'both', dialect: 'claude-code', configPath: join(root, 'hooks.json'), config: CLAUDE_HOOKS,
     })).rejects.toThrow('declares both a configPath and inline hook definitions')
-    await expect(registry.define({ name: 'relative', dialect: 'claude-code', configPath: 'hooks.json' }))
+    await expect(registry.define({ mode: 'create', name: 'relative', dialect: 'claude-code', configPath: 'hooks.json' }))
       .rejects.toThrow('configPath must be absolute')
-    await expect(registry.define({
+    await expect(registry.define({ mode: 'create',
       name: 'codex-roots', dialect: 'codex', config: CLAUDE_HOOKS, pluginRoot: 'C:\\plugin',
     })).rejects.toThrow('substitution roots apply to claude-code records only')
-    await expect(registry.define({
+    await expect(registry.define({ mode: 'create',
       name: 'missing', dialect: 'claude-code', configPath: join(root, 'absent.json'),
     })).rejects.toThrow('cannot read')
 
@@ -137,7 +167,7 @@ describe('stored records', () => {
 
   it('drops one record with the document it materialized', async () => {
     const { registry, root } = await harness()
-    await registry.define({ name: 'guardrails', dialect: 'claude-code', config: CLAUDE_HOOKS, enabled: true })
+    await registry.define({ mode: 'create', name: 'guardrails', dialect: 'claude-code', config: CLAUDE_HOOKS, enabled: true })
     const materialized = join(root, 'hooks', 'guardrails.json')
     expect(await readFile(materialized, 'utf8')).toContain('guard.sh')
 
@@ -151,7 +181,7 @@ describe('stored records', () => {
 describe('mount reconciliation', () => {
   it('mounts an enabled record and reports what its definitions cover', async () => {
     const { registry } = await harness()
-    await registry.define({ name: 'guardrails', dialect: 'claude-code', config: CLAUDE_HOOKS })
+    await registry.define({ mode: 'create', name: 'guardrails', dialect: 'claude-code', config: CLAUDE_HOOKS })
 
     const enabled = await registry.setEnabled({ name: 'guardrails', enabled: true })
 
@@ -197,9 +227,9 @@ describe('mount reconciliation', () => {
 
   it('materializes the inline document again on every mount, so an edit reaches the bridge', async () => {
     const { registry, root } = await harness()
-    await registry.define({ name: 'guardrails', dialect: 'claude-code', config: CLAUDE_HOOKS, enabled: true })
+    await registry.define({ mode: 'create', name: 'guardrails', dialect: 'claude-code', config: CLAUDE_HOOKS, enabled: true })
 
-    await registry.define({
+    await registry.define({ mode: 'replace',
       name: 'guardrails',
       dialect: 'claude-code',
       enabled: true,
@@ -230,11 +260,28 @@ describe('mount reconciliation', () => {
     expect(guardrails).toMatchObject({ name: 'guardrails', status: 'started', hookCount: 2 })
   })
 
+  it('reports hand-edited inert definitions as invalid while mounting their sibling', async () => {
+    const { ctx, registry } = await harness()
+    const reconciled = nextReconciliation(ctx)
+    await ctx.settings.replace(HOOKS_SETTINGS_NAMESPACE, {
+      records: [
+        { name: 'empty', dialect: 'codex', config: { Stop: [] }, enabled: true },
+        { name: 'guardrails', dialect: 'claude-code', config: CLAUDE_HOOKS, enabled: true },
+      ],
+    })
+    await reconciled
+    expect(registry.list().records).toMatchObject([
+      { name: 'empty', status: 'invalid' },
+      { name: 'guardrails', status: 'started', hookCount: 2 },
+    ])
+    expect(registry.list().records[0]?.detail).toContain('no supported synchronous command hooks')
+  })
+
   it('reports a file record whose document stopped being readable', async () => {
     const { ctx, registry, root } = await harness()
     const configPath = join(root, 'hooks.json')
     await writeFile(configPath, JSON.stringify(CLAUDE_HOOKS))
-    await registry.define({ name: 'project', dialect: 'claude-code', configPath })
+    await registry.define({ mode: 'create', name: 'project', dialect: 'claude-code', configPath })
 
     await rm(configPath)
     const reconciled = nextReconciliation(ctx)
@@ -270,7 +317,7 @@ describe('mount reconciliation', () => {
 
   it('unmounts every live record when the fiber disposes', async () => {
     const { ctx, registry } = await harness()
-    await registry.define({ name: 'guardrails', dialect: 'claude-code', config: CLAUDE_HOOKS, enabled: true })
+    await registry.define({ mode: 'create', name: 'guardrails', dialect: 'claude-code', config: CLAUDE_HOOKS, enabled: true })
     expect(registry.list().records[0]).toMatchObject({ status: 'started' })
 
     await ctx.fiber.dispose()

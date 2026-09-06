@@ -1,6 +1,6 @@
 {
-  "name": "@bosch/bh-compaction-basic",
-  "description": "Token-meter-driven compaction policy and LLM summarization backend for the Bosch Harness",
+  "name": "@hydra/harness-compaction-basic",
+  "description": "Token-meter-driven compaction policy and LLM summarization backend for the Hydra harness",
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"
@@ -32,39 +32,39 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@bosch/bh-agent": "workspace:^",
-    "@bosch/bh-compaction": "workspace:^",
-    "@bosch/bh-commands": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-llm": "workspace:^",
-    "@bosch/bh-session": "workspace:^",
-    "@bosch/bh-token-meter": "workspace:^",
-    "@bosch/bh-compaction-tool-result-pruner": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-agent": "workspace:^",
+    "@hydra/harness-compaction": "workspace:^",
+    "@hydra/harness-commands": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/harness-session": "workspace:^",
+    "@hydra/harness-token-meter": "workspace:^",
+    "@hydra/harness-compaction-tool-result-pruner": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   },
   "peerDependenciesMeta": {
-    "@bosch/bh-compaction-tool-result-pruner": {
+    "@hydra/harness-compaction-tool-result-pruner": {
       "optional": true
     }
   },
   "dependencies": {
-    "@bosch/schemastery": "workspace:^"
+    "@hydra/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@bosch/cordis-plugin-include": "workspace:^",
-    "@bosch/cordis-plugin-loader": "workspace:^",
-    "@bosch/bh-agent": "workspace:^",
-    "@bosch/bh-agent-loop": "workspace:^",
-    "@bosch/bh-agent-loop-testkit": "workspace:^",
-    "@bosch/bh-compaction": "workspace:^",
-    "@bosch/bh-commands": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-llm": "workspace:^",
-    "@bosch/bh-llm-retry": "workspace:^",
-    "@bosch/bh-session": "workspace:^",
-    "@bosch/bh-token-meter": "workspace:^",
-    "@bosch/bh-compaction-tool-result-pruner": "workspace:^",
-    "@bosch/bh-tools": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/cordis-plugin-include": "workspace:^",
+    "@hydra/cordis-plugin-loader": "workspace:^",
+    "@hydra/harness-agent": "workspace:^",
+    "@hydra/harness-agent-loop": "workspace:^",
+    "@hydra/harness-agent-loop-testkit": "workspace:^",
+    "@hydra/harness-compaction": "workspace:^",
+    "@hydra/harness-commands": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/harness-llm-retry": "workspace:^",
+    "@hydra/harness-session": "workspace:^",
+    "@hydra/harness-token-meter": "workspace:^",
+    "@hydra/harness-compaction-tool-result-pruner": "workspace:^",
+    "@hydra/harness-tools": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   }
 }

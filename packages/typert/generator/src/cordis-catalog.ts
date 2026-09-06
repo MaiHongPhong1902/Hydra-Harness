@@ -2,7 +2,7 @@
  * Cordis catalog-specific projection over the compiler-independent Typert
  * model. This module owns Cordis validation and text projection mechanics;
  * callers supply repository-specific type classifications and inherited data.
- * @module @bosch/bh-typert-generator
+ * @module @hydra/harness-typert-generator
  */
 
 import { WorkspaceAnalyzer, WorkspaceCaches } from './analyzer.ts'
@@ -682,7 +682,7 @@ function renderRuntimeApi(
     ' * the same AST walk as docs/cordis-catalog, so this data and the rendered',
     ' * docs cannot diverge.',
     ' *',
-    ' * @module @bosch/bh-tool-cordis/api-catalog',
+    ' * @module @hydra/harness-tool-cordis/api-catalog',
     ' */',
     '',
     '/* jscpd:ignore-start */',

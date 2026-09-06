@@ -3,8 +3,8 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import type {
   HostObservable, InjectFace, PropsLocale, PropsRenderSlots, PropsRuntime,
-} from '@bosch/bh-client-ui-slots'
-import { Input } from '@bosch/bh-client-ui-primitives'
+} from '@hydra/harness-client-ui-slots'
+import { Input } from '@hydra/harness-client-ui-primitives'
 import type { PluginsSettingsLocaleKey } from './locales.ts'
 import css from './PluginsSettingsSection.module.css'
 
@@ -42,8 +42,7 @@ export function PluginsSettingsSection({ t, renderSlot, useTabs }: PluginsSettin
   const active = rows.find(row => row.id === activeId)?.id ?? rows[0]?.id
 
   // A tab mounts only when first selected, then stays mounted while hidden so
-  // local drafts, disclosure state, search, and the inventory snapshot survive
-  // switching between the two views.
+  // local drafts and disclosure state survive switching between views.
   useEffect(() => {
     if (active === undefined) return
     setVisitedIds((previous) => {
@@ -118,7 +117,7 @@ export function PluginsSettingsSection({ t, renderSlot, useTabs }: PluginsSettin
                   aria-labelledby={`${tabsId}-tab-${row.id}`}
                   hidden={!selected}
                 >
-                  {renderSlot('settings.plugins.tab', { query }, { only: row.id })}
+                  {renderSlot('settings.plugins.tab', { query, active: selected }, { only: row.id })}
                 </div>
               )
             })}
@@ -128,7 +127,7 @@ export function PluginsSettingsSection({ t, renderSlot, useTabs }: PluginsSettin
   )
 }
 
-declare module '@bosch/bh-client-ui-slots' {
+declare module '@hydra/harness-client-ui-slots' {
   interface LocaleNamespaceMap {
     /** Plugins section, configurable-tab, and card copy. */
     'settings.plugins': PluginsSettingsLocaleKey

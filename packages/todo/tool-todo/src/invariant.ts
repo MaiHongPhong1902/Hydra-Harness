@@ -1,10 +1,10 @@
-/** Package-owned durable todo-snapshot invariants. @module @bosch/bh-tool-todo/invariant */
+/** Package-owned durable todo-snapshot invariants. @module @hydra/harness-tool-todo/invariant */
 
-import type { Context } from '@bosch/cordis'
-import type { Session, SessionEvent } from '@bosch/bh-session'
-import type { InvariantFailure, InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { Session, SessionEvent } from '@hydra/harness-session'
+import type { InvariantFailure, InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-tool-todo'
+const PACKAGE_NAME = '@hydra/harness-tool-todo'
 const TODO_STATUSES = new Set(['pending', 'in_progress', 'completed'])
 
 /** Cordis companion plugin name. */

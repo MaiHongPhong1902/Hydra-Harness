@@ -1,7 +1,7 @@
-/** Official Bosch Harness occupants for the generic browser-brand slots. */
-import type { ClientContext } from '@bosch/bh-client-runtime/client'
-import type {} from '@bosch/bh-client-ui-conversation/client'
-import type {} from '@bosch/bh-client-ui-sidebar/client'
+/** Official Hydra harness occupants for the generic browser-brand slots. */
+import type { ClientContext } from '@hydra/harness-client-runtime/client'
+import type {} from '@hydra/harness-client-ui-conversation/client'
+import type {} from '@hydra/harness-client-ui-sidebar/client'
 import { OfficialBrandMark, OfficialBrandName } from './Brand.tsx'
 
 /** Required service: the UI slot registry. */

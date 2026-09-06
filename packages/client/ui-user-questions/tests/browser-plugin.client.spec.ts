@@ -6,10 +6,10 @@
  * domain-face behavior is covered props-direct in question-composer.spec.tsx;
  * no renderer machinery here.
  */
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { describe, expect, it } from 'vitest'
-import { SlotRegistry } from '@bosch/bh-client-runtime/client'
-import { LocaleRuntime } from '@bosch/bh-client-locale/client'
+import { SlotRegistry } from '@hydra/harness-client-runtime/client'
+import { LocaleRuntime } from '@hydra/harness-client-locale/client'
 import { QuestionComposer } from '../src/client/QuestionComposer.tsx'
 import { apply, inject } from '../src/client/index.ts'
 

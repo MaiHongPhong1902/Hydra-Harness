@@ -3,21 +3,21 @@
  * (`goToDefinition`/`findReferences`/`goToImplementation`/`hover`); it converts one-based UTF-16
  * cursor coordinates to the seam's zero-based positions, requires the session workspace with no
  * fallback, caps and renders results, and attaches a configurable timeout budget for
- * `bh-tool-call-timeout-policy` to enforce. It runtime-injects only `tools`, `lsp`, and `systemPrompt` and
+ * `@hydra/harness-tool-call-timeout-policy` to enforce. It runtime-injects only `tools`, `lsp`, and `systemPrompt` and
  * imports no provider.
  *
  * Namespace plugin (named exports, no default export).
- * @module @bosch/bh-tool-lsp
+ * @module @hydra/harness-tool-lsp
  */
 
-import type { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import { defineTool } from '@bosch/bh-tools'
-import { assertNever } from '@bosch/bh-llm'
-import { LspError } from '@bosch/bh-lsp'
-import type {} from '@bosch/bh-lsp'
-import type {} from '@bosch/bh-system-prompt'
-import { MAX_TIMER_DELAY_MS } from '@bosch/bh-timeout'
+import type { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import { defineTool } from '@hydra/harness-tools'
+import { assertNever } from '@hydra/harness-llm'
+import { LspError } from '@hydra/harness-lsp'
+import type {} from '@hydra/harness-lsp'
+import type {} from '@hydra/harness-system-prompt'
+import { MAX_TIMER_DELAY_MS } from '@hydra/harness-timeout'
 import {
   DEFAULT_MAX_LOCATIONS,
   DEFAULT_MAX_RESULT_CHARS,

@@ -2848,7 +2848,7 @@
             ],
             "source": {
               "kind": "plugin",
-              "plugin": "@bosch/bh-system-prompt",
+              "plugin": "@hydra/harness-system-prompt",
               "form": "snapshot",
               "sections": [
                 {
@@ -3552,7 +3552,7 @@
             ],
             "source": {
               "kind": "plugin",
-              "plugin": "@bosch/bh-system-prompt",
+              "plugin": "@hydra/harness-system-prompt",
               "form": "snapshot",
               "sections": [
                 {

@@ -17,7 +17,7 @@
  * stops managing DACLs itself. The rung reports partial enforcement because
  * WRITE_RESTRICTED must retain Everyone in its
  * restricting list and NTFS hard links alias one file object across paths.
- * @module @bosch/bh-sandbox-local
+ * @module @hydra/harness-sandbox-local
  */
 
 import { spawnSync } from 'node:child_process'
@@ -30,14 +30,14 @@ import {
   LAUNCHER_FAILURE_EXIT,
   launcherPath as landlockLauncherPath,
   probe as defaultProbeLandlock,
-} from '@bosch/node-addon-landlock-run'
-import { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import { assertNever } from '@bosch/bh-llm'
-import { SandboxProvider, SandboxUnavailableError } from '@bosch/bh-sandbox'
-import type { ConfinedArgv, ConfinedSandboxMode, RunnerFailureRule, SandboxEnforcement, SandboxPolicy } from '@bosch/bh-sandbox'
-import type { SessionId } from '@bosch/bh-session'
-import { AclWriteGrant, assertTempRootOutsideWorkspace, tempWriteSid, workspaceWriteSid } from '@bosch/bh-sandbox-windows-acl'
+} from '@hydra/node-addon-landlock-run'
+import { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import { assertNever } from '@hydra/harness-llm'
+import { SandboxProvider, SandboxUnavailableError } from '@hydra/harness-sandbox'
+import type { ConfinedArgv, ConfinedSandboxMode, RunnerFailureRule, SandboxEnforcement, SandboxPolicy } from '@hydra/harness-sandbox'
+import type { SessionId } from '@hydra/harness-session'
+import { AclWriteGrant, assertTempRootOutsideWorkspace, tempWriteSid, workspaceWriteSid } from '@hydra/harness-sandbox-windows-acl'
 import { bwrapProfileArgs, landlockProfileArgs, seatbeltProfileArgs } from './profiles.ts'
 
 /** Plugin config. All optional — `static Config` supplies the defaults. */
@@ -159,7 +159,7 @@ interface AclTempCapability {
 const PLATFORM_CHAINS: Record<string, readonly SelectedRunner['runner'][]> = {
   linux: ['bwrap', 'landlock'],
   darwin: ['seatbelt'],
-  // The Windows restricted-token runner (@bosch/bh-sandbox-windows-acl):
+  // The Windows restricted-token runner (@hydra/harness-sandbox-windows-acl):
   // a sole candidate, selected without a probe — its execution-time refusal
   // fails closed through its stderr signature (windows-acl-run:) and exit 127.
   win32: ['windows-acl'],
@@ -557,9 +557,9 @@ export class LocalSandboxProvider extends SandboxProvider {
   private windowsAclRunnerInvocation(): string[] {
     const override = this.internals.windowsAclRunnerArgs
     if (override !== undefined) return override
-    const builtEntry = this.internals.windowsAclRunnerEntry ?? fileURLToPath(import.meta.resolve('@bosch/bh-sandbox-windows-acl/runner'))
+    const builtEntry = this.internals.windowsAclRunnerEntry ?? fileURLToPath(import.meta.resolve('@hydra/harness-sandbox-windows-acl/runner'))
     if (existsSync(builtEntry)) return [process.execPath, builtEntry]
-    const sourceEntry = fileURLToPath(import.meta.resolve('@bosch/bh-sandbox-windows-acl/src/runner.ts'))
+    const sourceEntry = fileURLToPath(import.meta.resolve('@hydra/harness-sandbox-windows-acl/src/runner.ts'))
     return [process.execPath, '--import', 'tsx/esm', sourceEntry]
   }
 }

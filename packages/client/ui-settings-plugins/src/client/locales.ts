@@ -2,7 +2,8 @@
 
 /** Locale keys these surfaces render. */
 export type PluginsSettingsLocaleKey =
-  | 'nav' | 'title' | 'intro' | 'tabs' | 'search' | 'configurableTab' | 'mcpTab' | 'userHooksTab' | 'empty'
+  | 'userMcpNameTaken' | 'userHooksNameTaken' | 'mcpLoadError' | 'mcpRetry'
+  | 'nav' | 'title' | 'intro' | 'tabs' | 'search' | 'configurableTab' | 'mcpTab' | 'hooksTab' | 'empty'
   | 'overridden' | 'reset' | 'readOnly' | 'expand' | 'collapse'
   | 'save' | 'saving' | 'discard' | 'unsaved' | 'saveFailed' | 'invalidNumber'
   | 'bashTitle' | 'bashDescription' | 'bashTimeoutMs' | 'bashTimeoutMsHint'
@@ -23,7 +24,7 @@ export type PluginsSettingsLocaleKey =
   | 'userMcpEnvHint' | 'userMcpEnvInvalid' | 'userMcpEnvStored' | 'userMcpUrl' | 'userMcpHeaders'
   | 'userMcpHeadersHint' | 'userMcpHeadersInvalid' | 'userMcpHeadersStored' | 'userMcpTools'
   | 'userMcpStarted' | 'userMcpStarting' | 'userMcpFailed' | 'userMcpInvalid'
-  | 'userHooksTitle' | 'userHooksDescription' | 'userHooksTrust' | 'userHooksAdd' | 'userHooksAddTitle'
+  | 'userHooksDescription' | 'userHooksTrust' | 'userHooksAdd' | 'userHooksAddTitle'
   | 'userHooksEditTitle' | 'userHooksFormDescription' | 'userHooksEmpty' | 'userHooksEmptySearch'
   | 'userHooksLoading' | 'userHooksLoadError' | 'userHooksRetry' | 'userHooksMutationError'
   | 'userHooksSaveError' | 'userHooksEdit' | 'userHooksRemove' | 'userHooksSave' | 'userHooksCancel'
@@ -35,6 +36,10 @@ export type PluginsSettingsLocaleKey =
 
 /** English copy. */
 export const en: Record<PluginsSettingsLocaleKey, string> = {
+  userMcpNameTaken: 'A server with this name already exists. Edit it or choose another name.',
+  userHooksNameTaken: 'A hook record with this name already exists. Edit it or choose another name.',
+  mcpLoadError: 'MCP servers could not be loaded.',
+  mcpRetry: 'Retry',
   nav: 'Plugins',
   title: 'Plugins',
   intro: 'Configure and inspect the plugins installed in this deployment.',
@@ -42,7 +47,7 @@ export const en: Record<PluginsSettingsLocaleKey, string> = {
   search: 'Search plugins, skills, hooks, marketplaces, and MCP servers',
   configurableTab: 'Configuration',
   mcpTab: 'MCP',
-  userHooksTab: 'Your hooks',
+  hooksTab: 'Hooks',
   empty: 'This deployment exposes no plugin settings.',
   overridden: 'Overridden',
   reset: 'Reset to default',
@@ -131,7 +136,6 @@ export const en: Record<PluginsSettingsLocaleKey, string> = {
   userMcpStarting: 'Connecting…',
   userMcpFailed: 'Could not connect',
   userMcpInvalid: 'Saved settings are incomplete',
-  userHooksTitle: 'Your hooks',
   userHooksDescription: 'Saved in your settings file, so they come back the next time you start.',
   userHooksTrust: 'A hook runs commands on your machine. Only enable hooks you wrote or trust.',
   userHooksAdd: 'Add hooks',

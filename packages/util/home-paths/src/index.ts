@@ -1,20 +1,20 @@
 /**
- * Shared filesystem path helpers for Bosch Harness user data.
+ * Shared filesystem path helpers for Hydra harness user data.
  *
- * @module @bosch/bh-home-paths
+ * @module @hydra/harness-home-paths
  */
 
 import { opendir, realpath } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { basename, dirname, join, resolve } from 'node:path'
 
-/** Directory name for the default Bosch Harness home under the OS home. */
+/** Directory name for the default Hydra harness home under the OS home. */
 export const BH_HOME_DIR_NAME = '.bh'
 
-/** Stable user-facing display form for the default Bosch Harness home. */
+/** Stable user-facing display form for the default Hydra harness home. */
 export const DEFAULT_BH_HOME_DISPLAY = `~/${BH_HOME_DIR_NAME}`
 
-/** Environment variable that overrides the default Bosch Harness home. */
+/** Environment variable that overrides the default Hydra harness home. */
 export const BH_HOME_ENV = 'BH_HOME'
 
 /**
@@ -55,7 +55,7 @@ export async function canonicalizeWatchPath(path: string): Promise<string> {
 }
 
 /**
- * Resolve the default Bosch Harness home using Node's platform path rules.
+ * Resolve the default Hydra harness home using Node's platform path rules.
  * @returns the absolute default harness home path.
  */
 export function defaultBhHome(): string {
@@ -74,7 +74,7 @@ export function expandHomePath(path: string): string {
 }
 
 /**
- * Resolve the single-root Bosch Harness home.
+ * Resolve the single-root Hydra harness home.
  *
  * Precedence, highest first: an explicit configured path, `$BH_HOME`, then
  * `~/.bh`. The harness keeps all user data under one root. An empty or
@@ -91,7 +91,7 @@ export function resolveBhHome(configured?: string, env: Record<string, string | 
 }
 
 /**
- * Join path segments onto the resolved Bosch Harness home.
+ * Join path segments onto the resolved Hydra harness home.
  * @param segments - path segments appended to the Harness home; an empty list returns the home itself.
  * @returns the normalized absolute joined path.
  */

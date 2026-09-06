@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-host-webserver`.
- * @module @bosch/bh-host-webserver/invariant
+ * Package-owned invariant companion for `@hydra/harness-host-webserver`.
+ * @module @hydra/harness-host-webserver/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-host-webserver'
+const PACKAGE_NAME = '@hydra/harness-host-webserver'
 
 /** Cordis companion plugin name. */
 export const name = 'host-webserver-invariant'

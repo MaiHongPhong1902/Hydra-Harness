@@ -16,7 +16,7 @@ interface CssPlugin {
 
 function cssPlugin(name: 'bh-css-modules-inline' | 'bh-css-global-inline' | 'bh-css-text-inline'): CssPlugin {
   const configs = clientBundle(
-    '@bosch/bh-client-test',
+    '@hydra/harness-client-test',
     ['lib/types/index.js', 'lib/types/invariant.js'],
   )({ env: { BH_BUILD_FACE: 'client' } })
   const client = configs.find(config => config.platform === 'browser')

@@ -2,17 +2,17 @@ import { describe, expect, it } from 'vitest'
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { Context } from '@bosch/cordis'
-import { createUserMessage, LlmAdapter } from '@bosch/bh-llm'
-import type { GenerateOptions, StreamChunk } from '@bosch/bh-llm'
-import { SessionId } from '@bosch/bh-session'
-import type { SessionEvent } from '@bosch/bh-session'
-import AgentLoop from '@bosch/bh-agent-loop'
-import { mountAgentLoopTestDependencies } from '@bosch/bh-agent-loop-testkit'
-import SettingsProvider, { settingsNamespace } from '@bosch/bh-settings'
-import type { SettingsNamespace } from '@bosch/bh-settings'
-import * as personalization from '@bosch/bh-personalization'
-import { hasLoggedPersonality, LocalMemoryStore, resolveMemoryPolicy, resolveSessionPersonality } from '@bosch/bh-personalization'
+import { Context } from '@hydra/cordis'
+import { createUserMessage, LlmAdapter } from '@hydra/harness-llm'
+import type { GenerateOptions, StreamChunk } from '@hydra/harness-llm'
+import { SessionId } from '@hydra/harness-session'
+import type { SessionEvent } from '@hydra/harness-session'
+import AgentLoop from '@hydra/harness-agent-loop'
+import { mountAgentLoopTestDependencies } from '@hydra/harness-agent-loop-testkit'
+import SettingsProvider, { settingsNamespace } from '@hydra/harness-settings'
+import type { SettingsNamespace } from '@hydra/harness-settings'
+import * as personalization from '@hydra/harness-personalization'
+import { hasLoggedPersonality, LocalMemoryStore, resolveMemoryPolicy, resolveSessionPersonality } from '@hydra/harness-personalization'
 
 /** In-memory settings provider: the Service Definition base class owns all tested behavior. */
 class MemorySettings extends SettingsProvider {
@@ -184,7 +184,7 @@ describe('personalization: real agent-loop request history', () => {
       await agent.whenIdle()
 
       expect(JSON.stringify(adapter.requests[0]!.messages)).toContain('User prefers concise Vietnamese answers')
-      expect(adapter.requests[0]!.messages.filter(message => message.source.kind === 'plugin' && message.source.plugin === '@bosch/bh-personalization')).toHaveLength(1)
+      expect(adapter.requests[0]!.messages.filter(message => message.source.kind === 'plugin' && message.source.plugin === '@hydra/harness-personalization')).toHaveLength(1)
       expect(resolveMemoryPolicy(agent.session)).toEqual({ useMemories: true, generateMemories: true })
       await ctx.fiber.dispose()
     } finally {

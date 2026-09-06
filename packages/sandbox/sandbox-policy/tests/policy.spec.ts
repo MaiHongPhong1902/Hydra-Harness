@@ -8,11 +8,11 @@ import { mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync } from 'node:
 import { tmpdir } from 'node:os'
 import { join, resolve, sep } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import type { Agent } from '@bosch/bh-agent'
-import { Session, SessionId } from '@bosch/bh-session'
-import SandboxPolicyService, { SANDBOX_MODES, effectiveSandboxMode, setSandboxMode } from '@bosch/bh-sandbox-policy'
-import SystemPrompt, { renderContextSnapshot, renderPrompt } from '@bosch/bh-system-prompt'
+import { Context } from '@hydra/cordis'
+import type { Agent } from '@hydra/harness-agent'
+import { Session, SessionId } from '@hydra/harness-session'
+import SandboxPolicyService, { SANDBOX_MODES, effectiveSandboxMode, setSandboxMode } from '@hydra/harness-sandbox-policy'
+import SystemPrompt, { renderContextSnapshot, renderPrompt } from '@hydra/harness-system-prompt'
 
 async function mounted(config: { mode?: 'read-only' | 'workspace-write' | 'danger-full-access'; workspaceRoot?: string } = {}) {
   const ctx = new Context()
@@ -153,9 +153,9 @@ describe('sandbox:policy request context', () => {
     const ctx = await promptMounted({ mode, workspaceRoot: '/fallback' })
     const workspaceRoot = resolve('/projects/current')
     const expected = {
-      'read-only': 'Current BH file policy: read-only. Any available operation enforced by the BH file sandbox cannot modify files in the standing mode. Do not refuse a required modification from this policy alone: try an available tool normally and follow any denial and escalation guidance it returns.',
-      'workspace-write': `Current BH file policy: workspace-write. Any available operation enforced by the BH file sandbox may modify files under the session workspace: ${JSON.stringify(workspaceRoot)}. Some platform temporary areas may also be writable.`,
-      'danger-full-access': 'Current BH file policy: danger-full-access. The BH file sandbox does not restrict file modifications by available operations.',
+      'read-only': 'Current Hydra file policy: read-only. Any available operation enforced by the Hydra file sandbox cannot modify files in the standing mode. Do not refuse a required modification from this policy alone: try an available tool normally and follow any denial and escalation guidance it returns.',
+      'workspace-write': `Current Hydra file policy: workspace-write. Any available operation enforced by the Hydra file sandbox may modify files under the session workspace: ${JSON.stringify(workspaceRoot)}. Some platform temporary areas may also be writable.`,
+      'danger-full-access': 'Current Hydra file policy: danger-full-access. The Hydra file sandbox does not restrict file modifications by available operations.',
     } as const
 
     expect(await policyContext(ctx, session(`sess-${mode}`, '/projects/../projects/current'))).toBe(expected[mode])
@@ -189,11 +189,11 @@ describe('sandbox:policy request context', () => {
 
     setSandboxMode(active, 'danger-full-access')
     const danger = await policyContext(ctx, active)
-    expect(danger).toBe('Current BH file policy: danger-full-access. The BH file sandbox does not restrict file modifications by available operations.')
+    expect(danger).toBe('Current Hydra file policy: danger-full-access. The Hydra file sandbox does not restrict file modifications by available operations.')
     expect(await policyContext(ctx, active)).toBe(danger)
 
     setSandboxMode(active, 'workspace-write')
-    expect(await policyContext(ctx, active)).toBe(`Current BH file policy: workspace-write. Any available operation enforced by the BH file sandbox may modify files under the session workspace: ${JSON.stringify(resolve('/projects/current'))}. Some platform temporary areas may also be writable.`)
+    expect(await policyContext(ctx, active)).toBe(`Current Hydra file policy: workspace-write. Any available operation enforced by the Hydra file sandbox may modify files under the session workspace: ${JSON.stringify(resolve('/projects/current'))}. Some platform temporary areas may also be writable.`)
   })
 
   it('reconstructs resumed policy from the session log and omits diagnostics without an agent', async () => {

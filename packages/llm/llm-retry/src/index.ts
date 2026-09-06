@@ -2,15 +2,15 @@
  * Provider-routed model-request retry policy on the agent loop's request
  * recovery extension point. Each scheduled retry is durable before its cancellable wait.
  *
- * @module @bosch/bh-llm-retry
+ * @module @hydra/harness-llm-retry
  */
 
 import { randomUUID } from 'node:crypto'
-import type { Context, Events } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import type { Agent, RequestErrorAction } from '@bosch/bh-agent'
-import type { LlmFailure, ResolvedRetryPolicy } from '@bosch/bh-llm'
-import type { SessionEvent } from '@bosch/bh-session'
+import type { Context, Events } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import type { Agent, RequestErrorAction } from '@hydra/harness-agent'
+import type { LlmFailure, ResolvedRetryPolicy } from '@hydra/harness-llm'
+import type { SessionEvent } from '@hydra/harness-session'
 import { RetryId } from './brand.ts'
 import type { LlmRetryEventData } from './types.ts'
 

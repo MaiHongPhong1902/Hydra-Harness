@@ -11,9 +11,9 @@ import {
   HoverCard, IconArchiveOutline20, IconBranchOutline16, IconEditOutline16,
   IconEllipsisOutline16, IconFolderClose16, IconFolderOpen16, IconPlusOutline16,
   IconTrashOutline16, IconTriangleRightFill14, Menu, StateDot,
-} from '@bosch/bh-client-ui-primitives'
-import type { StateDotState } from '@bosch/bh-client-ui-primitives'
-import { abbreviateHomePath } from '@bosch/bh-client-runtime/client'
+} from '@hydra/harness-client-ui-primitives'
+import type { StateDotState } from '@hydra/harness-client-ui-primitives'
+import { abbreviateHomePath } from '@hydra/harness-client-runtime/client'
 import type { WorkspaceBrowserProps } from '../contract/slots.ts'
 import type { GroupNode, SearchResultNode, SessionNode } from '../tree.ts'
 import { relativeTime } from '../tree.ts'

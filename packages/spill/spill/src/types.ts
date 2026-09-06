@@ -1,14 +1,14 @@
 /**
  * Vocabulary for the spill storage Service Definition. Types only — the abstract service
  * lives in `./index.ts`, implementations in sibling packages
- * (`@bosch/bh-spill-local` first).
+ * (`@hydra/harness-spill-local` first).
  *
- * @module @bosch/bh-spill/types
+ * @module @hydra/harness-spill/types
  */
 
-import type { Branded } from '@bosch/bh-brand'
-import type { CallId } from '@bosch/bh-llm'
-import type { SessionId } from '@bosch/bh-session'
+import type { Branded } from '@hydra/harness-brand'
+import type { CallId } from '@hydra/harness-llm'
+import type { SessionId } from '@hydra/harness-session'
 
 /**
  * Opaque model-facing handle for one spilled artifact. A local backend may use a

@@ -1,10 +1,10 @@
 /** Host HTTP bridge for browser-client RPC. */
-import type { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import type {} from '@bosch/bh-attachment'
+import type { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import type {} from '@hydra/harness-attachment'
 // Activates the webServer Context merge used below.
-import type { WebRoute, WebUpgradeRoute } from '@bosch/bh-host-webserver'
-import { toFetchHandler } from '@bosch/bh-host-apiproxy'
+import type { WebRoute, WebUpgradeRoute } from '@hydra/harness-host-webserver'
+import { toFetchHandler } from '@hydra/harness-host-apiproxy'
 import { API_PATH, HOST_EVENTS_PATH, MUX_EVENTS_PATH } from './api-path.ts'
 import { bridge, DEFAULT_MAX_REQUEST_BODY_BYTES } from './http-bridge.ts'
 import { assertTrustedAuthority, isTrustedApiRequest } from './api-request-trust.ts'

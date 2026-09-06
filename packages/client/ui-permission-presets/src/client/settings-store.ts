@@ -8,13 +8,13 @@
 
 import type {
   IApiClient, SettingsNamespaceView,
-} from '@bosch/bh-api-remotes/client'
+} from '@hydra/harness-api-remotes/client'
 import {
   createSnapshotStore, type SnapshotStore,
-} from '@bosch/bh-client-runtime/client'
+} from '@hydra/harness-client-runtime/client'
 import type {
   SchemaNode, SettingsDescribeFace, SettingsSchemaService,
-} from '@bosch/bh-client-ui-settings/client'
+} from '@hydra/harness-client-ui-settings/client'
 import { displayPermissionPreset } from './presentation.ts'
 
 /** Permission's settings namespace on the host wire. */

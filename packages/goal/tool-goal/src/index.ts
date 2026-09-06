@@ -1,17 +1,17 @@
 /**
  * Model-facing `get_goal`, `create_goal`, and `update_goal` tools over the
  * persisted same-session goal domain.
- * @module @bosch/bh-tool-goal
+ * @module @hydra/harness-tool-goal
  */
 
-import type { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import { GoalId } from '@bosch/bh-goal'
-import type { GoalRef, GoalView } from '@bosch/bh-goal'
-import { boundContextSummary, createUserMessage, HarnessError } from '@bosch/bh-llm'
-import { defineTool } from '@bosch/bh-tools'
-import type { GenericCallView } from '@bosch/bh-tools'
-import type {} from '@bosch/bh-system-prompt'
+import type { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import { GoalId } from '@hydra/harness-goal'
+import type { GoalRef, GoalView } from '@hydra/harness-goal'
+import { boundContextSummary, createUserMessage, HarnessError } from '@hydra/harness-llm'
+import { defineTool } from '@hydra/harness-tools'
+import type { GenericCallView } from '@hydra/harness-tools'
+import type {} from '@hydra/harness-system-prompt'
 import {
   completionAuthority,
   goalToolExecution,

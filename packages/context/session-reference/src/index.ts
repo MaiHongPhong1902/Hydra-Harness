@@ -2,17 +2,17 @@
  * Cross-session snapshot preparation. Hosts adapt mentions into structured
  * references; this service owns exact reads, projection, budgets, and durable context.
  *
- * @module @bosch/bh-session-reference
+ * @module @hydra/harness-session-reference
  */
 
-import { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import type { Agent, PreStepDecision } from '@bosch/bh-agent'
-import { Remote, TypertRemoteService } from '@bosch/bh-typert-protocol'
-import { createUserMessage, freezeMessage } from '@bosch/bh-llm'
-import type { ContentBlock, UserMessage } from '@bosch/bh-llm'
-import type { SessionId } from '@bosch/bh-session'
-import type { SessionSurfaceSnapshot, SessionTitleObservationResult } from '@bosch/bh-session-query'
+import { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import type { Agent, PreStepDecision } from '@hydra/harness-agent'
+import { Remote, TypertRemoteService } from '@hydra/harness-typert-protocol'
+import { createUserMessage, freezeMessage } from '@hydra/harness-llm'
+import type { ContentBlock, UserMessage } from '@hydra/harness-llm'
+import type { SessionId } from '@hydra/harness-session'
+import type { SessionSurfaceSnapshot, SessionTitleObservationResult } from '@hydra/harness-session-query'
 import {
   DEFAULT_CANDIDATE_LIMIT,
   DEFAULT_MAX_REFERENCE_BYTES,
@@ -55,7 +55,7 @@ user explicitly repeats them.
 `
 const PROMPT_SUFFIX = '\n</referenced-sessions>'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     sessionReferenceResolver: SessionReferenceResolver
   }

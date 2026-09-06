@@ -20,22 +20,22 @@
  * Agent Note:
  * - .agents/notes/implemented/simplification/2026-07-22-plan-specific-collaboration-state.md
  *
- * @module @bosch/bh-plan-mode
+ * @module @hydra/harness-plan-mode
  */
 
-import { Context, Service } from '@bosch/cordis'
+import { Context, Service } from '@hydra/cordis'
 import { z as zod } from 'zod'
 import type { ZodType } from 'zod'
-import type { Agent, PreStepDecision } from '@bosch/bh-agent'
-import { createUserMessage } from '@bosch/bh-llm'
-import type { Session, SessionEvent, UserMessage } from '@bosch/bh-session'
-import { defineTool } from '@bosch/bh-tools'
-import type {} from '@bosch/bh-system-prompt'
-import { UserQuestionError } from '@bosch/bh-user-questions'
+import type { Agent, PreStepDecision } from '@hydra/harness-agent'
+import { createUserMessage } from '@hydra/harness-llm'
+import type { Session, SessionEvent, UserMessage } from '@hydra/harness-session'
+import { defineTool } from '@hydra/harness-tools'
+import type {} from '@hydra/harness-system-prompt'
+import { UserQuestionError } from '@hydra/harness-user-questions'
 // Type-only edge: resolves `ctx.commands` for the optional command child.
-import type { CommandId } from '@bosch/bh-commands'
+import type { CommandId } from '@hydra/harness-commands'
 // Type-only: resolves ctx.sessionProjections for the optional unit child.
-import type {} from '@bosch/bh-session-projection'
+import type {} from '@hydra/harness-session-projection'
 import type { PlanProjection } from './types.ts'
 // The `plan` projection-key declaration lives in src/types.ts (its one home);
 // this re-export projects the type face onto the package root AND keeps the
@@ -43,7 +43,7 @@ import type { PlanProjection } from './types.ts'
 // declarations still receive the SessionProjectionMap merge.
 export type * from './types.ts'
 
-declare module '@bosch/bh-session/types' {
+declare module '@hydra/harness-session/types' {
   interface SessionEventMap {
     /**
      * Whether plan mode is in force from this point on: log-only, non-surface,
@@ -54,7 +54,7 @@ declare module '@bosch/bh-session/types' {
   }
 }
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     planMode: PlanModeController
   }
@@ -151,7 +151,7 @@ interface PlanUnitState {
   running: { commandId: CommandId; wanted: boolean } | null
 }
 
-declare module '@bosch/bh-session-projection/types' {
+declare module '@hydra/harness-session-projection/types' {
   interface SessionProjectionStateMap {
     plan: PlanUnitState
   }

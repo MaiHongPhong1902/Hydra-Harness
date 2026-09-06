@@ -1,8 +1,8 @@
-# @bosch/bh-compaction-tool-result-pruner
+# @hydra/harness-compaction-tool-result-pruner
 
 The replay-safe model-free pruning service (`ctx.toolResultPruner`). It rewrites over-budget `tool/result` surface nodes to a bounded head, a fixed omission marker, and a bounded tail while retaining the full original event in the append-only session log.
 
-This is a concrete companion to [`bh-compaction-basic`](../compaction-basic/README.md), not a compaction backend or model-facing tool. Compact-basic reads it through optional `ctx.get('toolResultPruner')`, so either package remains independently composable.
+This is a concrete companion to [`@hydra/harness-compaction-basic`](../compaction-basic/README.md), not a compaction backend or model-facing tool. Compact-basic reads it through optional `ctx.get('toolResultPruner')`, so either package remains independently composable.
 
 ## Service API
 
@@ -29,8 +29,8 @@ All values are integers; the threshold is positive and head/tail are non-negativ
 ## Usage
 
 ```ts
-import type { Context } from '@bosch/cordis'
-import ToolResultPruner from '@bosch/bh-compaction-tool-result-pruner'
+import type { Context } from '@hydra/cordis'
+import ToolResultPruner from '@hydra/harness-compaction-tool-result-pruner'
 
 export function apply(ctx: Context): void {
   ctx.plugin(ToolResultPruner)

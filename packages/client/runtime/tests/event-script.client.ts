@@ -1,8 +1,8 @@
-import { createUserMessage, createMessage, createToolResultMessage, CallId } from '@bosch/bh-llm'
+import { createUserMessage, createMessage, createToolResultMessage, CallId } from '@hydra/harness-llm'
 // Minimal SessionEvent builders for orchestration tests (shape mirrors what the
 // host emits; only the fields the object layer reads).
-import type { ContentBlock } from '@bosch/bh-llm/types'
-import type { SessionEvent } from '@bosch/bh-session/types'
+import type { ContentBlock } from '@hydra/harness-llm/types'
+import type { SessionEvent } from '@hydra/harness-session/types'
 
 /** One text content block (local helper). */
 const text = (t: string): ContentBlock[] => [{ type: 'text', text: t }]

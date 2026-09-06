@@ -1,9 +1,9 @@
 /** The package's node half: an empty host body and an explained empty invariant companion. */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import InvariantRegistry from '@bosch/bh-invariants'
-import * as AgentPresetInvariant from '@bosch/bh-client-ui-agent-preset/invariant'
+import { Context } from '@hydra/cordis'
+import InvariantRegistry from '@hydra/harness-invariants'
+import * as AgentPresetInvariant from '@hydra/harness-client-ui-agent-preset/invariant'
 
 describe('invariant companion', () => {
   it('reserves package ownership with an empty installer', async () => {
@@ -14,7 +14,7 @@ describe('invariant companion', () => {
   })
 
   it('has an empty node half', async () => {
-    const { apply } = await import('@bosch/bh-client-ui-agent-preset')
+    const { apply } = await import('@hydra/harness-client-ui-agent-preset')
 
     // The host body exists only so the plugin appears in the host cordis.yml;
     // every surface this package ships lives in the browser half.

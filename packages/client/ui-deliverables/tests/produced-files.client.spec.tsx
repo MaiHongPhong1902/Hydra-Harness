@@ -5,20 +5,20 @@
  * and opener wiring, and the plugin registrations' fiber-teardown removal
  * (HMR safety) against the real SlotRegistry.
  */
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { act, cleanup, fireEvent, render, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   ConversationEventRegistry, ConversationNodeAssembler, SlotRegistry,
-} from '@bosch/bh-client-runtime/client'
+} from '@hydra/harness-client-runtime/client'
 import type {
   ConversationEventInput, ConversationLocationDataStore, ConversationMatch, ConversationNodeDefinition,
   ConversationTimelineSnapshot, ConversationTurnDataMap, ConversationViewDefinition,
   ConversationViewNode, ToolResultNode, TurnLocation,
-} from '@bosch/bh-client-runtime/client'
-import { apply as applyLocale, inject as localeInject } from '@bosch/bh-client-locale/client'
-import type { ChatFileMentions, TurnTailOwnerProps } from '@bosch/bh-client-ui-conversation/client'
-import { makeTranslate, stubSettingsScope } from '@bosch/bh-client-test-runtime'
+} from '@hydra/harness-client-runtime/client'
+import { apply as applyLocale, inject as localeInject } from '@hydra/harness-client-locale/client'
+import type { ChatFileMentions, TurnTailOwnerProps } from '@hydra/harness-client-ui-conversation/client'
+import { makeTranslate, stubSettingsScope } from '@hydra/harness-client-test-runtime'
 import {
   fitProducedFiles, ProducedFiles, type ProducedFilesProps,
 } from '../src/client/ProducedFiles.tsx'
@@ -445,7 +445,7 @@ describe('package shells', () => {
       register: (pkg: string) => { registered.push(pkg); return () => {} },
     } as never)
     const dispose = await applyInvariant(ctx)
-    expect(registered).toEqual(['@bosch/bh-client-ui-deliverables'])
+    expect(registered).toEqual(['@hydra/harness-client-ui-deliverables'])
     expect(dispose).toBeTypeOf('function')
   })
 })

@@ -46,24 +46,6 @@
   white-space: nowrap;
 }
 
-/* Full-viewport layer (figma Mask 501:29946 #000@24%): mask tokens match the
-   Modal primitive (--dsw-alias-bg-mask-1 + --dsw-mask-blur). */
-.overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.mask {
-  position: absolute;
-  inset: 0;
-  background: var(--dsw-alias-bg-mask-1);
-  backdrop-filter: var(--dsw-mask-blur);
-}
-
 /* Panel (figma Settings 501:29947): r24, white, lv3 shadow (figma effects
    match --dsw-shadow-lv3 exactly); figma's 1080x700 is shrunk to 800 wide.
    One height for every section, taken from the viewport rather than the
@@ -74,6 +56,9 @@
   position: relative;
   z-index: 1;
   display: flex;
+  flex-direction: row;
+  gap: 0;
+  padding: 0;
   width: 800px;
   height: min(800px, calc(100vh - 48px));
   max-width: calc(100vw - 48px);

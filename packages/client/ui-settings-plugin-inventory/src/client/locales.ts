@@ -78,7 +78,6 @@ export const en = {
   importedPluginUnavailable: 'OpenAI/Codex plugin management is available from the local desktop app only.',
   importedPluginMutationError: 'The plugin action could not be completed.',
   skillsTab: 'Skills',
-  hooksTab: 'Hooks',
   importedPluginNoSkills: 'No skills',
 } satisfies Record<string, string>
 

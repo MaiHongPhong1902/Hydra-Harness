@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import { bindScopeParent, createScope, scopeOf } from '@bosch/bh-scope'
+import { Context } from '@hydra/cordis'
+import { bindScopeParent, createScope, scopeOf } from '@hydra/harness-scope'
 import SkillRegistry, {
   isModelInvocable,
   isUserInvocable,
@@ -11,7 +11,7 @@ import SkillRegistry, {
   type SkillLookupOptions,
   type SkillProvider,
   type SkillProviderObservation,
-} from '@bosch/bh-skill'
+} from '@hydra/harness-skill'
 
 function memorySkill(name: string, description: string, rank: number, body = `${name} body.`): SkillCandidate {
   return {
@@ -168,6 +168,10 @@ describe('SkillRegistry registry', () => {
     }]))
 
     expect((await ctx.skills.list()).map(skill => skill.name)).toEqual(['documents', 'plugin-documents'])
+    expect((await ctx.skills.list()).map(({ name, aliasFor }) => ({ name, aliasFor }))).toEqual([
+      { name: 'documents', aliasFor: 'plugin-documents' },
+      { name: 'plugin-documents', aliasFor: undefined },
+    ])
     await expect(ctx.skills.get('documents')).resolves.toMatchObject({ name: 'documents', content: 'Imported body.' })
 
     const disposeCanonical = ctx.skills.register({
@@ -175,6 +179,7 @@ describe('SkillRegistry registry', () => {
     })
     expect((await ctx.skills.list()).map(skill => skill.name)).toEqual(['documents', 'plugin-documents'])
     await expect(ctx.skills.get('documents')).resolves.toMatchObject({ content: 'Native body.' })
+    expect((await ctx.skills.list()).find(skill => skill.name === 'documents')?.aliasFor).toBeUndefined()
     disposeCanonical()
     await expect(ctx.skills.get('documents')).resolves.toMatchObject({ name: 'documents', content: 'Imported body.' })
 

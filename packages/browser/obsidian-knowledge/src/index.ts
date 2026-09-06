@@ -1,20 +1,20 @@
 /**
  * Obsidian graph memory with bounded contextual recall and optional
  * domain-gated Browser evidence capture.
- * @module @bosch/bh-obsidian-knowledge
+ * @module @hydra/harness-obsidian-knowledge
  */
 
-import type { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import type { Agent } from '@bosch/bh-agent'
-import { credentialRef } from '@bosch/bh-credentials'
-import { createUserMessage } from '@bosch/bh-llm'
-import { installSettingsSection, settingsNamespace } from '@bosch/bh-settings'
-import { defineTool } from '@bosch/bh-tools'
-import type { ToolExecution, ToolExecutionResult, ToolExecutionToken } from '@bosch/bh-tools'
-import type {} from '@bosch/bh-system-prompt'
-import type {} from '@bosch/bh-tools'
-import type { BrowserToolValue } from '@bosch/bh-tool-browser'
+import type { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import type { Agent } from '@hydra/harness-agent'
+import { credentialRef } from '@hydra/harness-credentials'
+import { createUserMessage } from '@hydra/harness-llm'
+import { installSettingsSection, settingsNamespace } from '@hydra/harness-settings'
+import { defineTool } from '@hydra/harness-tools'
+import type { ToolExecution, ToolExecutionResult, ToolExecutionToken } from '@hydra/harness-tools'
+import type {} from '@hydra/harness-system-prompt'
+import type {} from '@hydra/harness-tools'
+import type { BrowserToolValue } from '@hydra/harness-tool-browser'
 import {
   matchesTargetDomain,
   ObsidianKnowledgeGraph,
@@ -400,7 +400,7 @@ export function apply(ctx: Context, config: Config = {}): void {
         kind: 'deny' as const,
         reason: `Live WorkON verification cannot navigate outside the configured target domain ${settings.targetDomain}. `
           + 'Read the complete testcase note and use its matching application-root candidate; '
-          + 'do not navigate to the BH UI or ask for a link.',
+          + 'do not navigate to the Hydra UI or ask for a link.',
       })
     }
     if (settings !== undefined

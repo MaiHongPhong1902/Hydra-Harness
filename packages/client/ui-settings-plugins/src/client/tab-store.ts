@@ -10,9 +10,9 @@
  * trace and does not count toward the empty line.
  */
 
-import type { SettingsDescribeFace } from '@bosch/bh-client-ui-settings/client'
-import type { StoredEntry } from '@bosch/bh-client-ui-slots'
-import { createSnapshotStore, type SnapshotStore } from '@bosch/bh-client-runtime/client'
+import type { SettingsDescribeFace } from '@hydra/harness-client-ui-settings/client'
+import type { StoredEntry } from '@hydra/harness-client-ui-slots'
+import { createSnapshotStore, type SnapshotStore } from '@hydra/harness-client-runtime/client'
 
 /** What the section renders. */
 export interface ConfigurablePluginsTabState {

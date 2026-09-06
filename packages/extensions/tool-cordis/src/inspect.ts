@@ -4,14 +4,14 @@
  * `api-catalog.ts`. This module owns the join of the two plus presentation: which
  * lines a section prints, how compact the default report stays, and what an exact
  * `name` adds.
- * @module @bosch/bh-tool-cordis/inspect
+ * @module @hydra/harness-tool-cordis/inspect
  */
 
-import type { Context, Fiber } from '@bosch/cordis'
-import type { ScopeKey } from '@bosch/bh-scope'
-import type { Agent } from '@bosch/bh-agent'
+import type { Context, Fiber } from '@hydra/cordis'
+import type { ScopeKey } from '@hydra/harness-scope'
+import type { Agent } from '@hydra/harness-agent'
 // Type-only: resolves `ctx.dynamicCordisRunner` (the registry this report reads).
-import type {} from '@bosch/bh-cordis-host-runner'
+import type {} from '@hydra/harness-cordis-host-runner'
 import { EVENT_API, INHERITED_CTX_API, SERVICE_API, TYPE_API } from './api-catalog.ts'
 import type { EventApiEntry, InheritedApiEntry, ServiceApiEntry, ServiceApiMethod, TypeApiEntry } from './api-catalog.ts'
 import { FiberState, STATE_LABELS } from './fiber-state.ts'
@@ -180,7 +180,7 @@ export function describeTools(ctx: Context, scope?: ScopeKey): string[] {
 export function describeDynamic(ctx: Context, agent?: Agent): string[] {
   const rows = agent === undefined ? [] : ctx.dynamicCordisRunner.snapshot(agent)
   if (rows.length === 0) {
-    return ['No dynamic Plugins are defined in this session. Definitions live only in this process\'s memory, so a BH restart clears them.']
+    return ['No dynamic Plugins are defined in this session. Definitions live only in this process\'s memory, so a Hydra restart clears them.']
   }
   return rows.flatMap((row) => {
     const head = `- Plugin ${row.pluginId}; current: ${row.currentPackageId ?? 'none'}; next: ${row.nextPackageId ?? 'none'}`

@@ -8,8 +8,8 @@ import { join } from 'node:path'
 import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
-import type { StreamChunk } from '@bosch/bh-llm'
-import type { ReplayEntry } from '@bosch/bh-llm-replay'
+import type { StreamChunk } from '@hydra/harness-llm'
+import type { ReplayEntry } from '@hydra/harness-llm-replay'
 import { createChatScrollFixture } from './chat-scroll-fixture.ts'
 import {
   captureStableAria,

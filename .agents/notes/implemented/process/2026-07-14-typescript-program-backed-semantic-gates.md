@@ -40,7 +40,7 @@ Exactly one match generates a resolver. Multiple matches are ambiguous and fail.
 
 The committed [`scoped-events.generated.ts`](../../../../packages/core/scope/src/scoped-events.generated.ts) is a runtime-only map in the package that owns scoped dispatch and imports no event-owner package. Semantic completeness lives in the generator: its root Program enumerates every scoped `Events` declaration and real `scopeTarget` contract, resolves the unique payload path with the checker, and refuses missing, stale, or ambiguous entries before rendering the `unknown[]` runtime boundary.
 
-The `bh-scope/invariant` companion consumes this map instead of maintaining a handwritten table. Because Program analysis happens in the repository gate rather than through generated type imports, neither `bh-scope` nor `bh-invariants` acquires dependencies on every event owner.
+The `bh-scope/invariant` companion consumes this map instead of maintaining a handwritten table. Because Program analysis happens in the repository gate rather than through generated type imports, neither `@hydra/harness-scope` nor `@hydra/harness-invariants` acquires dependencies on every event owner.
 
 ### Semantic gaps fail explicitly
 

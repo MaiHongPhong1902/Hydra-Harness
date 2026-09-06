@@ -1,21 +1,21 @@
 # Keyless context-overflow composition for the assembled compaction snapshot.
 - id: base
-  name: '@bosch/cordis-plugin-include'
+  name: '@hydra/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - id: llm-deepseek
-        name: '@bosch/bh-llm-deepseek'
+        name: '@hydra/harness-llm-deepseek'
         disabled: true
       - id: compaction-basic
-        name: '@bosch/bh-compaction-basic'
+        name: '@hydra/harness-compaction-basic'
         config:
           thresholdRatio: 0.99
           retainTokens: 20
           maxTokens: 32
       - insert:
           - id: llm-replay
-            name: '@bosch/bh-llm-replay'
+            name: '@hydra/harness-llm-replay'
             config:
               providers:
                 - id: deepseek-official

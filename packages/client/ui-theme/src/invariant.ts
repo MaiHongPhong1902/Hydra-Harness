@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-client-ui-theme`.
- * @module @bosch/bh-client-ui-theme/invariant
+ * Package-owned invariant companion for `@hydra/harness-client-ui-theme`.
+ * @module @hydra/harness-client-ui-theme/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-client-ui-theme'
+const PACKAGE_NAME = '@hydra/harness-client-ui-theme'
 
 /** Cordis companion plugin name. */
 export const name = 'client-ui-theme-invariant'

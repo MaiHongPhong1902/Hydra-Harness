@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { SessionId, SessionSummary } from '@bosch/bh-client-runtime/client'
-import { indexSubagentDescendants } from '@bosch/bh-client-runtime/client'
+import type { SessionId, SessionSummary } from '@hydra/harness-client-runtime/client'
+import { indexSubagentDescendants } from '@hydra/harness-client-runtime/client'
 
 const sid = (id: string) => id as SessionId
 

@@ -1,7 +1,7 @@
 /** Public types for the user-declared hook registry. */
 
-import type {} from '@bosch/cordis'
-import type { JsonValue } from '@bosch/bh-session/types'
+import type {} from '@hydra/cordis'
+import type { JsonValue } from '@hydra/harness-session/types'
 
 /** Hook config dialect a record is written in, selecting its bridge. */
 export type HookDialect = 'claude-code' | 'codex'
@@ -52,6 +52,8 @@ export interface HookRecordSnapshot {
  * `configPath` and `config` must be supplied.
  */
 export interface HookRecordDefinitionRequest {
+  /** Create requires an unused name; replace requires an existing record. */
+  readonly mode: 'create' | 'replace'
   /** Stable record name; `[A-Za-z0-9_-]{1,64}`. */
   readonly name: string
   readonly dialect: HookDialect
@@ -81,7 +83,7 @@ export interface HookRecordEnablementRequest {
   readonly enabled: boolean
 }
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Events {
     /**
      * The mounted bridge set now matches the stored records. Emitted after each

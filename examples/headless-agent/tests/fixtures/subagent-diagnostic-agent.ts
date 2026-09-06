@@ -4,8 +4,8 @@
  * @module subagent-diagnostic-agent
  */
 
-import type { Context } from '@bosch/cordis'
-import type { SessionId } from '@bosch/bh-session'
+import type { Context } from '@hydra/cordis'
+import type { SessionId } from '@hydra/harness-session'
 
 /** Fixture plugin name. */
 export const name = 'subagent-diagnostic-agent'

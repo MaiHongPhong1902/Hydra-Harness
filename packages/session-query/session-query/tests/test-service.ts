@@ -1,4 +1,4 @@
-import SessionQueryEngine from '@bosch/bh-session-query'
+import SessionQueryEngine from '@hydra/harness-session-query'
 import type {
   SessionEventSearchPage,
   SessionEventSearchRequest,
@@ -6,7 +6,7 @@ import type {
   SessionSearchHit,
   SessionSearchPage,
   SessionSearchRequest,
-} from '@bosch/bh-session-query'
+} from '@hydra/harness-session-query'
 
 /** Test-only concrete query service for backend-independent behavior. */
 export class TestSessionQueryEngine extends SessionQueryEngine {

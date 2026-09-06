@@ -1,6 +1,6 @@
 import { join } from 'node:path'
-import type { ConfinedArgv, SandboxPolicy } from '@bosch/bh-sandbox'
-import { SandboxProvider } from '@bosch/bh-sandbox'
+import type { ConfinedArgv, SandboxPolicy } from '@hydra/harness-sandbox'
+import { SandboxProvider } from '@hydra/harness-sandbox'
 
 const NOTICE = 'landlock-run: partial enforcement (older Landlock ABI)'
 const MISSING_RUNNER_ENV = 'BH_SNAPSHOT_MISSING_SANDBOX_RUNNER'

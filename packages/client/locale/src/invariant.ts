@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-client-locale`.
- * @module @bosch/bh-client-locale/invariant
+ * Package-owned invariant companion for `@hydra/harness-client-locale`.
+ * @module @hydra/harness-client-locale/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-client-locale'
+const PACKAGE_NAME = '@hydra/harness-client-locale'
 
 /** Cordis companion plugin name. */
 export const name = 'client-locale-invariant'

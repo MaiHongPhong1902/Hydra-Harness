@@ -8,11 +8,11 @@
  * program picks this merge up transitively through its ui-input-trigger imports.
  */
 // Type-only edge: the SlotMap augmentation below merges into this package's interface.
-import type {} from '@bosch/bh-client-ui-slots'
-import type { SnapshotStore } from '@bosch/bh-client-runtime/client'
+import type {} from '@hydra/harness-client-ui-slots'
+import type { SnapshotStore } from '@hydra/harness-client-runtime/client'
 import type { MenuState } from '../core/contract.ts'
 
-declare module '@bosch/bh-client-ui-slots' {
+declare module '@hydra/harness-client-ui-slots' {
   interface SlotMap {
     /**
      * The InputBar floating overlay anchor: MenuView (this package) and the

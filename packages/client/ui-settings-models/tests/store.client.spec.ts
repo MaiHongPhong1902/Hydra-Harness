@@ -1,7 +1,7 @@
 /** Page-store join: directory × namespaces × credentials, with last-good rows on failure. */
 import { describe, expect, it } from 'vitest'
-import type { RpcResponse, SettingsNamespaceView } from '@bosch/bh-api-remotes/client'
-import { SettingsDescribeMirror } from '@bosch/bh-client-ui-settings/src/client/settings-mirror.ts'
+import type { RpcResponse, SettingsNamespaceView } from '@hydra/harness-api-remotes/client'
+import { SettingsDescribeMirror } from '@hydra/harness-client-ui-settings/src/client/settings-mirror.ts'
 import { settingsSchema } from './settings-schema.client.ts'
 import { isOfficialDeepSeekEntry, messageOf, ModelsSettingsStore } from '../src/client/store.ts'
 

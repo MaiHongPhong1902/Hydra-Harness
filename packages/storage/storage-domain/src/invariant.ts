@@ -1,19 +1,19 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-storage-domain`: every
+ * Package-owned invariant companion for `@hydra/harness-storage-domain`: every
  * `domain/changed` event must agree with the emitting domain's authoritative
  * in-memory state (the owned event-stream ↔ mutable-data relationship of this
  * package). Writes emit strictly after mutating memory and the write chain
  * serializes them, so at emission time the event's snapshot equals the
  * current read — any divergence means a write path skipped the chain or
  * emitted a stale value.
- * @module @bosch/bh-storage-domain/invariant
+ * @module @hydra/harness-storage-domain/invariant
  */
 
-import type { Context } from '@bosch/cordis'
-import type { InvariantFailure, InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantFailure, InvariantInstaller } from '@hydra/harness-invariants'
 import type { DomainChanged } from './events.ts'
 
-const PACKAGE_NAME = '@bosch/bh-storage-domain'
+const PACKAGE_NAME = '@hydra/harness-storage-domain'
 
 /** Cordis companion plugin name. */
 export const name = 'storage-domain-invariant'

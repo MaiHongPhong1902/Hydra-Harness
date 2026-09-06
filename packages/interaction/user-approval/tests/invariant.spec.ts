@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import SessionStore, { Session, SessionId } from '@bosch/bh-session'
-import { ApprovalRequestId } from '@bosch/bh-user-approval'
-import * as ApprovalInvariant from '@bosch/bh-user-approval/invariant'
-import InvariantRegistry from '@bosch/bh-invariants'
+import { Context } from '@hydra/cordis'
+import SessionStore, { Session, SessionId } from '@hydra/harness-session'
+import { ApprovalRequestId } from '@hydra/harness-user-approval'
+import * as ApprovalInvariant from '@hydra/harness-user-approval/invariant'
+import InvariantRegistry from '@hydra/harness-invariants'
 
 async function setup(): Promise<Context> {
   const ctx = new Context()

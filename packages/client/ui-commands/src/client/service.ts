@@ -7,25 +7,25 @@
  * addresses the session's agent by sessionId — sessions are always
  * agent-backed.
  */
-import { Service } from '@bosch/cordis'
-import type { Context } from '@bosch/cordis'
+import { Service } from '@hydra/cordis'
+import type { Context } from '@hydra/cordis'
 // Type-only: pulls the ctx.remote merge and the forwarded-event key face
 // (`commands/change` rides the allowlist) into this program.
-import type {} from '@bosch/bh-api-remotes/client'
-import type { CommandResult } from '@bosch/bh-commands/types'
-import type { ClientContext, ISessions, SessionId } from '@bosch/bh-client-runtime/client'
-import type { TranslateNS } from '@bosch/bh-client-locale/client'
+import type {} from '@hydra/harness-api-remotes/client'
+import type { CommandResult } from '@hydra/harness-commands/types'
+import type { ClientContext, ISessions, SessionId } from '@hydra/harness-client-runtime/client'
+import type { TranslateNS } from '@hydra/harness-client-locale/client'
 import type {
   CandidateRequest, ClientSessionContext, CommandClaim, PickOutcome, InputTriggerCandidate, InputTriggerPick,
   SubmitEnvelope, SubmitImageAttachment, SubmitOutcome,
-} from '@bosch/bh-client-ui-input-trigger/client'
+} from '@hydra/harness-client-ui-input-trigger/client'
 import type { CommandContribution, CommandDecoration, CommandUiContract } from './contract.ts'
 import type { CommandDescriptor } from './directory.ts'
 import { CommandDirectory } from './directory.ts'
 import { PopupSelectController } from './popup.ts'
 import type { TokenSegment } from './popup.ts'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Events {
     /**
      * This browser client completed one admitted Host command execution.

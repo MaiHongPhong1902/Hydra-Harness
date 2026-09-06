@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-llm-pi-ai`.
- * @module @bosch/bh-llm-pi-ai/invariant
+ * Package-owned invariant companion for `@hydra/harness-llm-pi-ai`.
+ * @module @hydra/harness-llm-pi-ai/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-llm-pi-ai'
+const PACKAGE_NAME = '@hydra/harness-llm-pi-ai'
 
 /** Cordis companion plugin name. */
 export const name = 'llm-pi-ai-invariant'

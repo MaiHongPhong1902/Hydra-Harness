@@ -1,10 +1,10 @@
 /**
  * Pure translation between the harness lifecycle and the automation-only ACP wire.
- * @module @bosch/bh-acp/codec
+ * @module @hydra/harness-acp/codec
  */
 
 import type { StopReason } from '@agentclientprotocol/sdk'
-import type { TurnEndReason } from '@bosch/bh-session'
+import type { TurnEndReason } from '@hydra/harness-session'
 
 /**
  * Map a harness turn ending to ACP's terminal reason vocabulary.

@@ -2,7 +2,7 @@
   - strong: ui-settings
   - text: Disabled
   - switch "Enable plugin ui-settings"
-  - code: "@bosch/bh-client-ui-settings"
+  - code: "@hydra/harness-client-ui-settings"
   - group: Included plugins (5)
   - paragraph: Core plugin — changes require an app restart and may affect app availability.
   - paragraph: Changed since app start

@@ -1,12 +1,12 @@
-import type { Context } from '@bosch/cordis'
+import type { Context } from '@hydra/cordis'
 import type {
   ContextMessageNode, ConversationNodeDefinition, ConversationPreviousContext,
   SteeringMessageNode, UserMessageNode,
-} from '@bosch/bh-client-runtime/client'
+} from '@hydra/harness-client-runtime/client'
 import {
   contextForm, contextProvenance,
-} from '@bosch/bh-client-runtime/client'
-import type {} from '@bosch/bh-agent/types'
+} from '@hydra/harness-client-runtime/client'
+import type {} from '@hydra/harness-agent/types'
 import { trajectoryNode } from './trajectory-definition-common.ts'
 
 /* jscpd:ignore-start -- Target-owned Definitions intentionally keep their event

@@ -1,7 +1,7 @@
 /**
  * Framework-free boot page and failure report. It remains available when a
  * client plugin fails because React arrives only with the UI renderer.
- * @module @bosch/bh-client-web/src/boot-page
+ * @module @hydra/harness-client-web/src/boot-page
  */
 import type { LoaderEntryState } from './loader-status.ts'
 import css from './boot-page.module.css'
@@ -34,7 +34,7 @@ export class BootPage {
     this.root = div(css.boot)
     this.root.dataset.bhBoot = ''
     this.card = div(css.card)
-    this.wordmark = div(css.wordmark, 'HARNESS')
+    this.wordmark = div(css.wordmark, 'Hydra harness')
     this.spinner = div(css.spinner)
     this.spinner.dataset.bhBootSpinner = ''
     this.hint = div(css.hint, 'Loading plugins…')

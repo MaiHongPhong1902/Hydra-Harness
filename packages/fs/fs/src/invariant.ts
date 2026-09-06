@@ -1,10 +1,10 @@
-/** Package-owned filesystem event-data invariants. @module @bosch/bh-fs/invariant */
+/** Package-owned filesystem event-data invariants. @module @hydra/harness-fs/invariant */
 
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 import type { FsObservation, FsTarget } from './types.ts'
 
-const PACKAGE_NAME = '@bosch/bh-fs'
+const PACKAGE_NAME = '@hydra/harness-fs'
 
 /** Cordis companion plugin name. */
 export const name = 'fs-invariant'

@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-settings`.
- * @module @bosch/bh-settings/invariant
+ * Package-owned invariant companion for `@hydra/harness-settings`.
+ * @module @hydra/harness-settings/invariant
  */
 
-import type { Context } from '@bosch/cordis'
-import type { InvariantFailure, InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantFailure, InvariantInstaller } from '@hydra/harness-invariants'
 import { deepEqualJson } from './index.ts'
 
-const PACKAGE_NAME = '@bosch/bh-settings'
+const PACKAGE_NAME = '@hydra/harness-settings'
 
 /** Cordis companion plugin name. */
 export const name = 'settings-invariant'

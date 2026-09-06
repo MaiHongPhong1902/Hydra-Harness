@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import { agentEvents, type Agent } from '@bosch/bh-agent'
-import { CompactionId, compactCheckpointSource } from '@bosch/bh-compaction'
-import { createUserMessage, CallId , createMessage, createToolResultMessage } from '@bosch/bh-llm'
-import SessionStore, { Session, SessionId } from '@bosch/bh-session'
-import SessionQueryEngine from '@bosch/bh-session-query'
+import { Context } from '@hydra/cordis'
+import { agentEvents, type Agent } from '@hydra/harness-agent'
+import { CompactionId, compactCheckpointSource } from '@hydra/harness-compaction'
+import { createUserMessage, CallId , createMessage, createToolResultMessage } from '@hydra/harness-llm'
+import SessionStore, { Session, SessionId } from '@hydra/harness-session'
+import SessionQueryEngine from '@hydra/harness-session-query'
 import SessionReferenceResolver, {
   decodeSessionReferenceUri,
   encodeSessionReferenceUri,
@@ -12,7 +12,7 @@ import SessionReferenceResolver, {
   parseSessionReferenceText,
   type Config,
   type SessionReferenceErrorCode,
-} from '@bosch/bh-session-reference'
+} from '@hydra/harness-session-reference'
 import { stringifyTagSafeJson } from '../src/serialization.ts'
 
 class TestSessionQueryEngine extends SessionQueryEngine {

@@ -1,17 +1,17 @@
 # Keyless replay keeps the LSP composition intact and replaces only the model adapter.
 - id: base
-  name: '@bosch/cordis-plugin-include'
+  name: '@hydra/cordis-plugin-include'
   config:
     path: ../cordis.yml
     patches:
       - id: llm-deepseek
-        name: '@bosch/bh-llm-deepseek'
+        name: '@hydra/harness-llm-deepseek'
         disabled: true
       - insert:
           - id: lsp
-            name: '@bosch/bh-lsp'
+            name: '@hydra/harness-lsp'
           - id: lsp-stdio
-            name: '@bosch/bh-lsp-stdio'
+            name: '@hydra/harness-lsp-stdio'
             config:
               servers:
                 fixture:
@@ -20,10 +20,10 @@
                   extensionToLanguage:
                     '.ts': typescript
           - id: timeout-policy
-            name: '@bosch/bh-tool-call-timeout-policy'
+            name: '@hydra/harness-tool-call-timeout-policy'
           - id: tool-lsp
-            name: '@bosch/bh-tool-lsp'
+            name: '@hydra/harness-tool-lsp'
             config:
               maxLocations: 1
           - id: llm-replay
-            name: '@bosch/bh-llm-replay'
+            name: '@hydra/harness-llm-replay'

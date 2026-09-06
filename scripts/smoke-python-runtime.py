@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
-    from bosch_harness import RunResult
+    from hydra_harness import RunResult
 
 
 EXPECTED_TEXT = "runtime smoke ok"
@@ -84,9 +84,9 @@ MINIMAL_SNAPSHOT_FILENAMES = ("model-visible.json",)
 RUNTIME_CONTEXT_PREFIX = "Current runtime context"
 CUSTOM_CORDIS = """\
 - id: sdk-jsonrpc-server
-  name: '@bosch/bh-sdk-jsonrpc-server'
+  name: '@hydra/harness-sdk-jsonrpc-server'
 - id: agent-core
-  name: '@bosch/bh-agent-spine-demo'
+  name: '@hydra/harness-agent-spine-demo'
   config:
     workspaceContext: false
     skills:
@@ -95,38 +95,38 @@ CUSTOM_CORDIS = """\
     tools:
       mode: both
 - id: sessions
-  name: '@bosch/bh-session-persistence-jsonl'
+  name: '@hydra/harness-session-persistence-jsonl'
   config:
     root: !!js process.env.BH_SESSION_ROOT
     compression: 'none'
 - id: code-runtime
-  name: '@bosch/bh-code-runtime-worker-thread'
+  name: '@hydra/harness-code-runtime-worker-thread'
 - id: subagents
-  name: '@bosch/bh-subagent'
+  name: '@hydra/harness-subagent'
 - id: subagent-spawn-in-process
-  name: '@bosch/bh-subagent-spawn-in-process'
+  name: '@hydra/harness-subagent-spawn-in-process'
   config:
     providerName: spawn
 - id: subagent-tool
-  name: '@bosch/bh-tool-subagent'
+  name: '@hydra/harness-tool-subagent'
   config:
     provider: spawn
 - id: workflow-engine
-  name: '@bosch/bh-workflow-worker-thread'
+  name: '@hydra/harness-workflow-worker-thread'
   config:
     provider: spawn
 - id: workflow-tool
-  name: '@bosch/bh-tool-workflow'
+  name: '@hydra/harness-tool-workflow'
 - id: cordis-host-runner
-  name: '@bosch/bh-cordis-host-runner'
+  name: '@hydra/harness-cordis-host-runner'
 - id: cordis-tool
-  name: '@bosch/bh-tool-cordis'
+  name: '@hydra/harness-tool-cordis'
 """
 FS_SEARCH_CORDIS = """\
 - id: sdk-jsonrpc-server
-  name: '@bosch/bh-sdk-jsonrpc-server'
+  name: '@hydra/harness-sdk-jsonrpc-server'
 - id: agent-core
-  name: '@bosch/bh-agent-spine-demo'
+  name: '@hydra/harness-agent-spine-demo'
   config:
     workspaceContext: false
     skills:
@@ -134,14 +134,14 @@ FS_SEARCH_CORDIS = """\
     toolBash: false
     toolJobs: false
 - id: sessions
-  name: '@bosch/bh-session-persistence-jsonl'
+  name: '@hydra/harness-session-persistence-jsonl'
   config:
     root: !!js process.env.BH_SESSION_ROOT
     compression: 'none'
 - id: subprocess
-  name: '@bosch/bh-subprocess-local'
+  name: '@hydra/harness-subprocess-local'
 - id: fs-search
-  name: '@bosch/bh-tool-fs-search'
+  name: '@hydra/harness-tool-fs-search'
   config:
     sampleOverCapGlobResults: false
 """
@@ -228,11 +228,11 @@ def mcp_cordis(server_script: Path) -> str:
     return json.dumps([
         {
             "id": "sdk-jsonrpc-server",
-            "name": "@bosch/bh-sdk-jsonrpc-server",
+            "name": "@hydra/harness-sdk-jsonrpc-server",
         },
         {
             "id": "agent-core",
-            "name": "@bosch/bh-agent-spine-demo",
+            "name": "@hydra/harness-agent-spine-demo",
             "config": {
                 "workspaceContext": False,
                 "skills": {"enabled": False},
@@ -241,12 +241,12 @@ def mcp_cordis(server_script: Path) -> str:
         },
         {
             "id": "sessions",
-            "name": "@bosch/bh-session-persistence-jsonl",
+            "name": "@hydra/harness-session-persistence-jsonl",
             "config": {"root": "./sessions", "compression": "none"},
         },
         {
             "id": "mcp-fixture",
-            "name": "@bosch/bh-mcp-client",
+            "name": "@hydra/harness-mcp-client",
             "config": {
                 "serverName": "fixture",
                 "transport": "stdio",
@@ -718,12 +718,12 @@ def main() -> None:
 
 
 def smoke_sdk_default(base_url: str) -> None:
-    from bosch_harness import BoschHarness
+    from hydra_harness import HydraHarness
 
     with tempfile.TemporaryDirectory(prefix="bh-sdk-default-") as temporary:
         root = Path(temporary).resolve()
         sessions = root / "sessions"
-        with BoschHarness(
+        with HydraHarness(
             provider="deepseek-official",
             model="smoke-model",
             cwd=str(root),
@@ -738,14 +738,14 @@ def smoke_sdk_default(base_url: str) -> None:
 
 
 def smoke_sdk_custom(base_url: str, executable: Path) -> None:
-    from bosch_harness import BoschHarness
+    from hydra_harness import HydraHarness
 
     with tempfile.TemporaryDirectory(prefix="bh-sdk-custom-") as temporary:
         root = Path(temporary).resolve()
         sessions = root / "sessions"
         cordis = root / "cordis.yml"
         cordis.write_text(CUSTOM_CORDIS)
-        with BoschHarness(
+        with HydraHarness(
             provider="deepseek-official",
             model="smoke-model",
             cwd=str(root),
@@ -767,7 +767,7 @@ def smoke_sdk_custom(base_url: str, executable: Path) -> None:
 
 def smoke_sdk_minimal(base_url: str, executable: Path, update_snapshots: bool) -> None:
     """Exercise the checked-in minimal composition through the packaged executable."""
-    from bosch_harness import BoschHarness
+    from hydra_harness import HydraHarness
 
     # One mock model serves every scenario of a run, so the snapshot takes this turn's slice.
     first_request = len(MockModelHandler.requests)
@@ -776,7 +776,7 @@ def smoke_sdk_minimal(base_url: str, executable: Path, update_snapshots: bool) -
         editor_path = root / "created.txt"
         prompt = f"{MINIMAL_PROMPT}\n{MINIMAL_EDITOR_PATH_PREFIX}{editor_path}"
         sessions = root / "sessions"
-        with BoschHarness(
+        with HydraHarness(
             provider="deepseek-official",
             model="smoke-model",
             cwd=str(root),
@@ -804,7 +804,7 @@ def smoke_sdk_minimal(base_url: str, executable: Path, update_snapshots: bool) -
 
 def smoke_sdk_fs_search(base_url: str, executable: Path) -> None:
     """Exercise real grep and glob spawns through the packaged executable."""
-    from bosch_harness import BoschHarness
+    from hydra_harness import HydraHarness
 
     with tempfile.TemporaryDirectory(prefix="bh-sdk-fs-search-") as temporary:
         root = Path(temporary).resolve()
@@ -812,7 +812,7 @@ def smoke_sdk_fs_search(base_url: str, executable: Path) -> None:
         sessions = root / "sessions"
         cordis = root / "cordis.yml"
         cordis.write_text(FS_SEARCH_CORDIS)
-        with BoschHarness(
+        with HydraHarness(
             provider="deepseek-official",
             model="smoke-model",
             cwd=str(root),
@@ -831,7 +831,7 @@ def smoke_sdk_fs_search(base_url: str, executable: Path) -> None:
 
 def smoke_sdk_mcp(base_url: str, executable: Path | None) -> None:
     """Discover and call an external stdio MCP tool through the packaged client."""
-    from bosch_harness import BoschHarness
+    from hydra_harness import HydraHarness
 
     with tempfile.TemporaryDirectory(prefix="bh-sdk-mcp-") as temporary:
         root = Path(temporary).resolve()
@@ -841,7 +841,7 @@ def smoke_sdk_mcp(base_url: str, executable: Path | None) -> None:
         cordis = root / "cordis.yml"
         cordis.write_text(mcp_cordis(server_script))
         discovery_log = server_script.with_suffix(".log")
-        with BoschHarness(
+        with HydraHarness(
             provider="deepseek-official",
             model="smoke-model",
             cwd=str(root),
@@ -866,14 +866,14 @@ def smoke_sdk_mcp(base_url: str, executable: Path | None) -> None:
 
 def smoke_sdk_snapshot(base_url: str, executable: Path, update_snapshots: bool) -> None:
     """Drive and compare the advanced SDK/executable behavioral snapshot."""
-    from bosch_harness import BoschHarness
+    from hydra_harness import HydraHarness
 
     with tempfile.TemporaryDirectory(prefix="bh-sdk-snapshot-") as temporary:
         root = Path(temporary).resolve()
         sessions = root / "sessions"
         cordis = root / "cordis.yml"
         cordis.write_text(CUSTOM_CORDIS)
-        with BoschHarness(
+        with HydraHarness(
             provider="deepseek-official",
             model="smoke-model",
             cwd=str(root),

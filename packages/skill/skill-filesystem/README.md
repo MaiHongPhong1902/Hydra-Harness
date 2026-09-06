@@ -1,8 +1,8 @@
-# @bosch/bh-skill-filesystem
+# @hydra/harness-skill-filesystem
 
 Local filesystem provider for the `ctx.skills` registry.
 
-This package implements one skill source. It scans local project, custom, and user skill roots, parses `SKILL.md` or flat Markdown skill files, and registers the provider on `ctx.skills`. The registry remains in `@bosch/bh-skill`; bounded model-facing search and exact loading remain in `@bosch/bh-tool-skill`.
+This package implements one skill source. It scans local project, custom, and user skill roots, parses `SKILL.md` or flat Markdown skill files through the shared `parseSkillDocument` parser, and registers the provider on `ctx.skills`. The registry and document parser remain in `@hydra/harness-skill`; bounded model-facing search and exact loading remain in `@hydra/harness-tool-skill`.
 
 ## Plugin
 
@@ -14,7 +14,7 @@ Requires `ctx.skills` (`inject: ['skills']`).
 |---|---|---|
 | `providerName` | `filesystem` | Unique name used to register this provider on `ctx.skills`. |
 | `includeDefaultRoots` | `true` | Include project and user roots around `customSkillDirs`; set false for an isolated custom-root provider. |
-| `bhHome` | `$BH_HOME` or `~/.bh` | Bosch Harness config root resolved by [`@bosch/bh-home-paths`](../../util/home-paths/README.md); scans `skills` under this directory. |
+| `bhHome` | `$BH_HOME` or `~/.bh` | Hydra harness config root resolved by [`@hydra/harness-home-paths`](../../util/home-paths/README.md); scans `skills` under this directory. |
 | `agentsHome` | `$BH_AGENTS_HOME` or `~/.agents` | Shared agent config root scanned for compatible skills. |
 | `customSkillDirs` | `[]` | Additional local skill roots scanned after project roots and before user roots. |
 | `watch` | `true` | Watch host-local roots and invalidate the local provider when catalog membership or frontmatter may have changed. |
@@ -36,7 +36,7 @@ Default roots are resolved in this provider's rank order:
 | 400 | `user-bh` | `<bhHome>/skills` |
 | 500 | `user-agents` | `<agentsHome>/skills` |
 
-The project root is the nearest ancestor containing `.git`; without one, the current cwd is used. The user BH root skips its `.system` child so system-owned directories are not treated as normal user skills. `includeDefaultRoots: false` omits the project and user rows and the `$BH_BUNDLED_SKILL_DIR` environment default while retaining explicitly configured custom and bundled roots, allowing several uniquely named isolated providers to see only their own roots. This provider supplies project and user skills; another provider may supply built-in system skills.
+The project root is the nearest ancestor containing `.git`; without one, the current cwd is used. The user Hydra root skips its `.system` child so system-owned directories are not treated as normal user skills. `includeDefaultRoots: false` omits the project and user rows and the `$BH_BUNDLED_SKILL_DIR` environment default while retaining explicitly configured custom and bundled roots, allowing several uniquely named isolated providers to see only their own roots. This provider supplies project and user skills; another provider may supply built-in system skills.
 
 When `ctx.fs` is available, discovery lists roots through `ctx.fs.listDir`, reads skill files through `ctx.fs.readText`, and probes `.git` through the filesystem service. Full skill loads forward the lookup abort signal to filesystem metadata and content reads. Without a filesystem service, the provider falls back to abortable Node filesystem I/O so minimal local contexts can still load skills. Confirmed missing paths are valid empty state, malformed or non-text entries warn and skip, and unexpected discovery/read failures make the registry snapshot incomplete rather than asserting a misleading deletion.
 
@@ -58,7 +58,7 @@ Metadata and body have separate lifecycles. Discovery parses frontmatter to prod
 
 ## Model Experience
 
-Indirectly, through `bh-tool-skill`, which returns bounded matching metadata on demand and a selected current instruction body plus resource-base guidance in retained tool history while paths, provider ranks, and disabled skills remain hidden.
+Indirectly, through `@hydra/harness-tool-skill`, which returns bounded matching metadata on demand and a selected current instruction body plus resource-base guidance in retained tool history while paths, provider ranks, and disabled skills remain hidden.
 
 #### KV Cache effect
 

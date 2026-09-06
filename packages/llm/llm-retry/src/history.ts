@@ -1,6 +1,6 @@
-/** Durable request-route lookup for one open model step. @module @bosch/bh-llm-retry/history */
+/** Durable request-route lookup for one open model step. @module @hydra/harness-llm-retry/history */
 
-import type { SessionEvent } from '@bosch/bh-session'
+import type { SessionEvent } from '@hydra/harness-session'
 
 /**
  * Find the provider in force for one currently open step.

@@ -1,4 +1,4 @@
-# bh-client-ui-agent-preset
+# @hydra/harness-client-ui-agent-preset
 
 The agent-preset surfaces: a General-settings row choosing which [preset](../../preset/agent-presets/README.md) new sessions are composed from, a chip on the new-session screen choosing the next session's, a read-only label in the session header, and a settings section that manages the roster — copy, delete, default, and the way into a preset's own files.
 
@@ -30,6 +30,8 @@ The row re-reads on `settings/changed` for its own namespace and on `connection/
 
 ## The management section
 
+The General row and management section coalesce roster invalidations during an in-flight read into a fresh read before publication. Their mutation promises settle after the requested refresh, so an older list response cannot leave a successfully changed default displayed as its prior value.
+
 A fourth surface, its own settings page (`settings.section` id `agent-presets`, ordered after Models — choosing a model is routine, composing an agent is the deployment-shaping act behind it): the roster as cards, a copy dialog as the only way a preset is created, and a read-only viewer over the shipped compositions.
 
 The browser edits no composition text. Editing YAML in a web textarea was a weak surface (no completion, no highlighting, no diff), so a new preset is a host-side copy of an existing one — the dialog collects an id (it becomes the directory name, which is why it must be named up front and cannot change later) and an optional display name, and `{ from, id, name? }` is all that crosses the wire. Everything else — description, composition, skills — is edited in the preset's own files, and the page's other job is getting the user TO those files: the copy completes by opening the new directory, and every custom row keeps a location action. Where the host has no desktop opener (`hasDocument: false` on the roster; remote and container deployments), the same actions answer the directory as text on the row instead of offering a button that would spawn into nothing.
@@ -48,7 +50,7 @@ A roster row carrying `broken` (the host's shape check found the composition mis
 
 Setting the default writes the `agent-presets` settings namespace, which the host exposes to configuration clients ([`bh-apiproxy`](../../host/apiproxy/README.md) keeps an explicit allowlist — a namespace outside it makes a picker move and then silently forget).
 
-`agentPreset.read`, `copy`, `openDocument`, and `remove` are loopback-pinned ([`bh-client-connection`](../connection/README.md)): a composition names the plugins a session runs, so reading one is reconnaissance, and the rest manage the roster and drive the host desktop. `agentPreset.list` is not — it carries ids, trust, and the two path-free capability flags, and a LAN client's picker needs it.
+`agentPreset.read`, `copy`, `openDocument`, and `remove` are loopback-pinned ([`@hydra/harness-client-connection`](../connection/README.md)): a composition names the plugins a session runs, so reading one is reconnaissance, and the rest manage the roster and drive the host desktop. `agentPreset.list` is not — it carries ids, trust, and the two path-free capability flags, and a LAN client's picker needs it.
 
 ## When the surfaces are absent
 
@@ -56,7 +58,7 @@ A deployment that composes no presets answers with an empty roster, and the row,
 
 ## Model Experience
 
-Indirectly, through the preset a later session is composed from; [`bh-agent-presets`](../../preset/agent-presets/README.md) owns what that composition puts in front of the model.
+Indirectly, through the preset a later session is composed from; [`@hydra/harness-agent-presets`](../../preset/agent-presets/README.md) owns what that composition puts in front of the model.
 
 #### KV Cache effect
 

@@ -37,9 +37,9 @@ Two scenarios compare committed expected output under `scripts/snapshots/python-
 An interactive smoke test needs `DEEPSEEK_API_KEY` in the environment or repository-root `.env`:
 
 ```python
-from bosch_harness import BoschHarness
+from hydra_harness import HydraHarness
 
-with BoschHarness() as harness:
+with HydraHarness() as harness:
     print(harness.run("say hi").final_response)
 ```
 
@@ -54,7 +54,7 @@ See `python/sdk/tests/manual_sdk_agent_smoke.py` for a complete source-mode invo
 
 ## Build distributions
 
-The root `package.json` version is authoritative for both Python distributions. The staging script injects that version into both wheels and pins the SDK to the same `bosch-harness-runtime-bin` version.
+The root `package.json` version is authoritative for both Python distributions. The staging script injects that version into both wheels and pins the SDK to the same `hydra-harness-runtime-bin` version.
 
 Build the pure SDK wheel once and one runtime wheel on each native platform:
 
@@ -69,8 +69,8 @@ PY
 python scripts/build-python-release.py --package sdk --output-dir dist-python
 python scripts/build-python-release.py --package runtime --platform macos-arm64 --runtime-exe dist-exe/bh-jsonrpc-agent-pkg-macos-arm64 --output-dir dist-python
 pip install \
-  "dist-python/bosch_harness_sdk-$version-py3-none-any.whl" \
-  "dist-python/bosch_harness_runtime_bin-$version-py3-none-macosx_14_0_arm64.whl"
+  "dist-python/hydra_harness_sdk-$version-py3-none-any.whl" \
+  "dist-python/hydra_harness_runtime_bin-$version-py3-none-macosx_14_0_arm64.whl"
 ```
 
 The runtime distribution is wheel-only. The release pipeline publishes three platform wheels with the pure SDK wheel: Linux x64, Linux arm64, and macOS 14 or newer on arm64. A `python-v<repository-version>` tag is accepted only when it matches the repository version; prerelease repository versions such as `0.0.1-rc.1` use their normalized PEP 440 spelling, such as `0.0.1rc1`, inside wheel filenames and metadata.

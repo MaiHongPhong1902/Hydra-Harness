@@ -2,21 +2,21 @@ import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { PassThrough } from 'node:stream'
 import { fileURLToPath } from 'node:url'
-import { Context } from '@bosch/cordis'
-import Loader from '@bosch/cordis-plugin-loader'
+import { Context } from '@hydra/cordis'
+import Loader from '@hydra/cordis-plugin-loader'
 import * as yaml from 'js-yaml'
 import { describe, expect, it, vi } from 'vitest'
-import type { Agent } from '@bosch/bh-agent'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
-import type { ContentBlock } from '@bosch/bh-llm'
-import SubagentRuntime from '@bosch/bh-subagent'
-import { MAX_TIMER_DELAY_MS } from '@bosch/bh-timeout'
+import type { Agent } from '@hydra/harness-agent'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
+import type { ContentBlock } from '@hydra/harness-llm'
+import SubagentRuntime from '@hydra/harness-subagent'
+import { MAX_TIMER_DELAY_MS } from '@hydra/harness-timeout'
 import type {
   SubprocessHandle,
   SubprocessOutcome,
   SubprocessSpawnSpec,
-} from '@bosch/bh-subprocess'
-import LocalSubprocessRuntime from '@bosch/bh-subprocess-local'
+} from '@hydra/harness-subprocess'
+import LocalSubprocessRuntime from '@hydra/harness-subprocess-local'
 import * as codex from '../src/index.ts'
 import * as invariant from '../src/invariant.ts'
 import {
@@ -368,11 +368,11 @@ describe('task admission and package contracts', () => {
     expect(manifest.bh?.bundle?.patch).toBe('./cordis.patch.yml')
     expect(manifest.files).toContain('cordis.patch.yml')
     expect(manifest.dependencies).toHaveProperty(
-      '@bosch/bh-sdk-protocol',
+      '@hydra/harness-sdk-protocol',
       'workspace:^',
     )
     expect(manifest.dependencies).toHaveProperty('@openai/codex', CODEX_VERSION)
-    expect(manifest.dependencies).not.toHaveProperty('@bosch/bh-subagent-claude-code')
+    expect(manifest.dependencies).not.toHaveProperty('@hydra/harness-subagent-claude-code')
 
     const codexPackageJson = fileURLToPath(import.meta.resolve('@openai/codex/package.json'))
     const codexManifest = JSON.parse(readFileSync(codexPackageJson, 'utf8')) as {
@@ -410,7 +410,7 @@ describe('task admission and package contracts', () => {
       : []
     expect(rows).toEqual([{
       id: 'subagent-codex',
-      name: '@bosch/bh-subagent-codex',
+      name: '@hydra/harness-subagent-codex',
     }])
     expect(JSON.stringify(rows)).not.toContain('tool-subagent')
   })
@@ -665,7 +665,7 @@ describe('task admission and package contracts', () => {
     const ctx = { invariants: { register } } as unknown as Context
     await expect(invariant.apply(ctx)).resolves.toBe(dispose)
     expect(register).toHaveBeenCalledWith(
-      '@bosch/bh-subagent-codex',
+      '@hydra/harness-subagent-codex',
       expect.any(Function),
     )
     const install = register.mock.calls[0]![1]
@@ -687,7 +687,7 @@ describe('CodexAppServerWire', () => {
     expect(initialize.params).toEqual({
       clientInfo: {
         name: 'bosch-harness',
-        title: 'Bosch Harness',
+        title: 'Hydra harness',
         version: '0.0.1',
       },
       capabilities: {

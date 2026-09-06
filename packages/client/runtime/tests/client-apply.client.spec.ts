@@ -3,12 +3,12 @@
  * connection handle, stream-loop sink wiring into the object layer, and the
  * fiber-scoped loop teardown.
  */
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { describe, expect, it, vi } from 'vitest'
-import type { ConnectionHandle } from '@bosch/bh-api-remotes/client'
-import type { ConnectionSinks } from '@bosch/bh-api-remotes/client'
-import { SESSION_SEARCH_RESULT_LIMIT } from '@bosch/bh-host-apiproxy/api'
-import TypertRegistry from '@bosch/bh-typert-registry'
+import type { ConnectionHandle } from '@hydra/harness-api-remotes/client'
+import type { ConnectionSinks } from '@hydra/harness-api-remotes/client'
+import { SESSION_SEARCH_RESULT_LIMIT } from '@hydra/harness-host-apiproxy/api'
+import TypertRegistry from '@hydra/harness-typert-registry'
 import * as RuntimeClient from '../src/client/index.ts'
 import type { ConversationNodeDefinition } from '../src/client/contract/conversation.ts'
 import { Session } from '../src/client/sessions/session.ts'

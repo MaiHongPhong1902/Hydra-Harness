@@ -11,18 +11,18 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { join, sep } from 'node:path'
-import { createUserMessage, CallId } from '@bosch/bh-llm'
-import SystemPrompt, { renderPrompt } from '@bosch/bh-system-prompt'
-import ToolRuntime, { TOOL_ABORTED_BEFORE_DISPATCH, type ToolExecution, type ToolExecutionToken } from '@bosch/bh-tools'
-import { SubprocessRuntime } from '@bosch/bh-subprocess'
-import type { SubprocessCollectedOutputs, SubprocessHandle, SubprocessOutcome, SubprocessOutputRead, SubprocessOutputReader, SubprocessSpawnSpec } from '@bosch/bh-subprocess'
-import { MAX_TIMER_DELAY_MS } from '@bosch/bh-timeout'
+import { createUserMessage, CallId } from '@hydra/harness-llm'
+import SystemPrompt, { renderPrompt } from '@hydra/harness-system-prompt'
+import ToolRuntime, { TOOL_ABORTED_BEFORE_DISPATCH, type ToolExecution, type ToolExecutionToken } from '@hydra/harness-tools'
+import { SubprocessRuntime } from '@hydra/harness-subprocess'
+import type { SubprocessCollectedOutputs, SubprocessHandle, SubprocessOutcome, SubprocessOutputRead, SubprocessOutputReader, SubprocessSpawnSpec } from '@hydra/harness-subprocess'
+import { MAX_TIMER_DELAY_MS } from '@hydra/harness-timeout'
 import { rgPath } from '@vscode/ripgrep'
-import { SpillLocator, SpillStore } from '@bosch/bh-spill'
-import type { SaveTextSpill, SpillRef } from '@bosch/bh-spill'
-import * as ToolFsSearch from '@bosch/bh-tool-fs-search'
+import { SpillLocator, SpillStore } from '@hydra/harness-spill'
+import type { SaveTextSpill, SpillRef } from '@hydra/harness-spill'
+import * as ToolFsSearch from '@hydra/harness-tool-fs-search'
 import {
   buildGlobCommand,
   buildGrepCommand,
@@ -37,7 +37,7 @@ import {
   runRipgrep,
   sampleAcrossTopLevel,
   toWorkdirRelative,
-} from '@bosch/bh-tool-fs-search'
+} from '@hydra/harness-tool-fs-search'
 
 const testToolSignal = new AbortController().signal
 

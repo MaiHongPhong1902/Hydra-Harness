@@ -4,13 +4,13 @@
  */
 
 import { describe, expect, it, vi } from 'vitest'
-import { stubSettingsScope, type StubSettingsScope } from '@bosch/bh-client-test-runtime'
+import { stubSettingsScope, type StubSettingsScope } from '@hydra/harness-client-test-runtime'
 import { CardForm, numberField, textField } from '../src/client/card-form.ts'
 import { AgentLoopCardController, type AgentLoopSettings } from '../src/client/agent-loop-card-controller.ts'
 import { BashCardController, type BashSettings } from '../src/client/bash-card-controller.ts'
 import {
   SettingsDescribeMirror, type SettingsMirrorSnapshot,
-} from '@bosch/bh-client-ui-settings/src/client/settings-mirror.ts'
+} from '@hydra/harness-client-ui-settings/src/client/settings-mirror.ts'
 import { ConfigurablePluginsTabController } from '../src/client/tab-store.ts'
 import { WebSearchCardController, type WebSearchSettings } from '../src/client/web-search-card-controller.ts'
 
@@ -238,6 +238,25 @@ describe('CardForm', () => {
     expect(host.set).toHaveBeenCalledTimes(1)
   })
 
+  it('preserves edits made while an earlier save is pending', async () => {
+    const host = stubSettingsScope<{ timeoutMs: number }>()
+    host.publish({ status: 'ready', writable: true, value: { timeoutMs: 1000 }, user: {} })
+    const pending = Promise.withResolvers<undefined>()
+    const scope = { ...host.scope, set: async (_field: string, value: unknown) => {
+      await pending.promise
+      host.publish({ value: { timeoutMs: value as number }, user: { timeoutMs: value } })
+    } }
+    const subject = new CardForm(scope, [numberField('timeoutMs')])
+    subject.actions().edit('timeoutMs', '2000')
+    const saving = subject.save()
+    subject.actions().edit('timeoutMs', '3000')
+    pending.resolve(undefined)
+    await saving
+    expect(host.scope.getSnapshot().value?.timeoutMs).toBe(2000)
+    expect(subject.field('timeoutMs').text).toBe('3000')
+    expect(subject.shell()).toMatchObject({ dirty: true, saving: false })
+  })
+
   it('publishes a projection whenever the scope or a draft changes', () => {
     const { host, subject } = form()
     const store = subject.bind(() => subject.field('timeoutMs').text)
@@ -384,6 +403,23 @@ describe('AgentLoopCardController', () => {
 })
 
 describe('WebSearchCardController', () => {
+  it.each(['rejected', 'error-result'])('retains a failed key rotation while an older key is configured: %s', async (failure) => {
+    const host = stubSettingsScope<WebSearchSettings>()
+    const credentials = credentialsApi(true)
+    const set = vi.fn(async () => {
+      if (failure === 'rejected') throw new Error('write refused')
+      return { rpcId: 'write', result: { ok: false, error: { code: 'unavailable', message: 'write refused' } } }
+    })
+    const controller = new WebSearchCardController(host.scope, { credentials: { describe: credentials.describe, set } } as never)
+    host.publish({ status: 'ready', writable: true, value: {}, user: {} })
+    const face = controller.inject()
+    await vi.waitFor(() => { expect(face.hooks.webSearchCard.getSnapshot().apiKeyConfigured).toBe(true) })
+    face.edit('apiKey', 'replacement')
+    face.save()
+    await vi.waitFor(() => {
+      expect(face.hooks.webSearchCard.getSnapshot()).toMatchObject({ failed: true, dirty: true, apiKey: { text: 'replacement' } })
+    })
+  })
   it('reads the credential state for the reference the tab names', async () => {
     const host = stubSettingsScope<WebSearchSettings>()
     const credentials = credentialsApi(true)
@@ -481,6 +517,7 @@ describe('WebSearchCardController', () => {
   it('reports a key the Host did not store as a failed save', async () => {
     const host = stubSettingsScope<WebSearchSettings>()
     const credentials = credentialsApi(false)
+    credentials.set.mockRejectedValueOnce(new Error('write refused'))
     const controller = new WebSearchCardController(host.scope, credentials.api)
     host.publish({ status: 'ready', writable: true, value: {}, user: {} })
     const face = controller.inject()

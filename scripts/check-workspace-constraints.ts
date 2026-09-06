@@ -22,24 +22,24 @@ const workspaceGlobs = [
   { dir: 'apps', depth: 1 },
 ] as const
 const vendoredPackages = new Set([
-  '@bosch/cordis',
-  '@bosch/cosmokit',
-  '@bosch/schemastery',
-  '@bosch/cordis-plugin-loader',
-  '@bosch/cordis-plugin-include',
-  '@bosch/cordis-plugin-group',
-  '@bosch/cordis-plugin-timer',
-  '@bosch/cordis-plugin-hmr',
-  '@bosch/cordis-plugin-logger-console',
+  '@hydra/cordis',
+  '@hydra/cosmokit',
+  '@hydra/schemastery',
+  '@hydra/cordis-plugin-loader',
+  '@hydra/cordis-plugin-include',
+  '@hydra/cordis-plugin-group',
+  '@hydra/cordis-plugin-timer',
+  '@hydra/cordis-plugin-hmr',
+  '@hydra/cordis-plugin-logger-console',
 ])
 const publicLandlockPackages = new Set([
-  '@bosch/node-addon-landlock-run',
-  '@bosch/node-addon-landlock-run-linux-arm64',
-  '@bosch/node-addon-landlock-run-linux-x64',
+  '@hydra/node-addon-landlock-run',
+  '@hydra/node-addon-landlock-run-linux-arm64',
+  '@hydra/node-addon-landlock-run-linux-x64',
 ])
 /** Deliberate source payloads whose exact bytes are part of the package's audit surface. */
 const publicationSourceAllowlist: Readonly<Record<string, readonly string[]>> = {
-  '@bosch/node-addon-landlock-run': ['src/main.c'],
+  '@hydra/node-addon-landlock-run': ['src/main.c'],
 }
 const repositoryUrl = 'git+https://github.com/bosch-harness/bosch-harness.git'
 /**
@@ -51,17 +51,17 @@ const publishedRepositoryUrl = 'git+https://github.com/bosch/bosch-harness.git'
 /** Private packages that participate in workspace checks but not releases. */
 const experimentalPackageDirectory = /^packages\/experimental\/[^/]+$/
 /** npm namespace reserved for private experimental packages. */
-const experimentalPackageNamePrefix = '@bosch/bh-experimental-'
+const experimentalPackageNamePrefix = '@hydra/harness-experimental-'
 /** Directories whose packages this repository publishes: one release member each. */
 const releaseMemberDirectory = /^(?:packages\/(?!experimental\/)[^/]+\/[^/]+|apps\/[^/]+|vendor\/[^/]+)$/
 
 const localArtifactDirs = new Set(['node_modules'])
 const appPackageFiles: Readonly<Record<string, readonly string[]>> = {
-  '@bosch/bh': ['lib/*.js', 'config'],
-  '@bosch/bh-desktop': ['main.cjs', 'preload.cjs'],
+  '@hydra/harness': ['lib/*.js', 'config'],
+  '@hydra/harness-desktop': ['main.cjs', 'preload.cjs', 'assets'],
   // The Web build emits sourcemaps for browser debugging; publishing them is
   // what the payload policy forbids, so the bundle ships without them.
-  '@bosch/bh-web-frontend': ['dist', '!dist/**/*.map'],
+  '@hydra/harness-web-frontend': ['dist', '!dist/**/*.map'],
 }
 
 /** The subset of package.json fields this constraint check cares about. */
@@ -147,30 +147,33 @@ const packageFileExtras: Readonly<Record<string, readonly string[]>> = {
   // them through its own CSS pipeline, so the sheets are published artifacts.
   // The glob covers whichever sheets a package emits; sourcemaps stay
   // unpublished, as everywhere else in the repository.
-  '@bosch/bh-client-ui-primitives': ['lib/**/*.css'],
-  '@bosch/bh-client-web': ['lib/**/*.css'],
-  '@bosch/bh-client-ui-theme': ['lib/styles'],
+  '@hydra/harness-client-ui-primitives': ['lib/**/*.css'],
+  '@hydra/harness-client-web': ['lib/**/*.css'],
+  '@hydra/harness-client-ui-theme': ['lib/styles'],
   // The CPython side ships as source .py files, published as-is rather than built.
-  '@bosch/bh-code-runtime-python': ['py/**/*.py'],
+  '@hydra/harness-code-runtime-python': ['py/**/*.py'],
   // The Electron half runs in Electron, not Node: its main process, native
   // chrome, and committed preload bundle ship as-is rather than through tsdown.
-  '@bosch/bh-browser-electron': [
+  '@hydra/harness-browser-electron': [
+    'electron-app/autofill-vault.cjs',
     'electron-app/main.cjs',
+    'electron-app/hydra.png',
     'electron-app/chrome.html',
     'electron-app/chrome-preload.cjs',
     'electron-app/preload.cjs',
   ],
   // The Python runtime uses a distinct closed-resolution bin; the public CLI
   // keeps config-owned bare-package resolution through lib/bin.js.
-  '@bosch/bh-sdk-jsonrpc-demo': ['lib/packaged-bin.js'],
+  '@hydra/harness-sdk-jsonrpc-demo': ['lib/packaged-bin.js'],
   // The argv-prefix runner entry ships beside the lib as its own bundle;
   // sandbox-local resolves it through the package's ./runner export. tsdown
   // also shares its generated FFI code through a hashed runtime chunk.
-  '@bosch/bh-sandbox-windows-acl': ['lib/runner.js', 'lib/types-*.js'],
+  '@hydra/harness-sandbox-windows-acl': ['lib/runner.js', 'lib/types-*.js'],
   // SQLite loads every statement from immutable package resources at runtime.
-  '@bosch/bh-session-persistence-sqlite': ['resources/sql/**/*.sql'],
-  '@bosch/bh-skill-badge': ['assets'],
-  '@bosch/bh-subprocess-local': ['scripts/ensure-spawn-helper.mjs'],
+  '@hydra/harness-session-persistence-sqlite': ['resources/sql/**/*.sql'],
+  '@hydra/harness-skill-badge': ['assets'],
+  '@hydra/harness-subprocess-local': ['scripts/ensure-spawn-helper.mjs'],
+  '@hydra/harness-llm': ['lib/proxy.js'],
 }
 
 function sameStringList(actual: readonly string[] | undefined, expected: readonly string[]): boolean {
@@ -263,6 +266,18 @@ export function checkExperimentalManifest({ dir, manifest }: WorkspaceManifest):
   return errors
 }
 
+/**
+ * Require repository-owned manifests to use the Hydra npm namespace.
+ * @param entry - Manifest and its repository-relative directory.
+ * @returns A diagnostic when the package name uses another namespace or family.
+ */
+export function checkPackageNamespace({ dir, manifest }: WorkspaceManifest): string[] {
+  const pattern = /^(?:packages|apps)\//.test(dir)
+    ? /^@hydra\/harness(?:-[a-z0-9-]+)?$/
+    : /^@hydra\/[a-z0-9-]+$/
+  return pattern.test(manifest.name ?? '') ? [] : [`${dir}: package name must match ${String(pattern)}`]
+}
+
 function checkWorkspace({ dir, manifest }: WorkspaceManifest): string[] {
   const errors = checkExperimentalManifest({ dir, manifest })
   const label = manifest.name ?? dir
@@ -314,7 +329,7 @@ function checkWorkspace({ dir, manifest }: WorkspaceManifest): string[] {
     return errors
   }
 
-  if (manifest.name?.startsWith('@bosch/')) {
+  if (manifest.name?.startsWith('@hydra/')) {
     const allowedSources = publicationSourceAllowlist[manifest.name] ?? []
     for (const file of manifest.files ?? []) {
       if (isForbiddenPublicationFile(file) && !allowedSources.includes(file)) {
@@ -323,7 +338,7 @@ function checkWorkspace({ dir, manifest }: WorkspaceManifest): string[] {
     }
   }
 
-  if (dir.startsWith('apps/') && manifest.name?.startsWith('@bosch/')) {
+  if (dir.startsWith('apps/') && manifest.name?.startsWith('@hydra/')) {
     const expectedFiles = appPackageFiles[manifest.name]
     if (expectedFiles === undefined) {
       errors.push(`${label}: app package has no publication files policy`)
@@ -341,14 +356,14 @@ function checkWorkspace({ dir, manifest }: WorkspaceManifest): string[] {
     }
   }
 
-  if (dir.startsWith('packages/') && manifest.name?.startsWith('@bosch/bh-')) {
-    const peer = manifest.peerDependencies?.['@bosch/cordis']
-    const dev = manifest.devDependencies?.['@bosch/cordis']
+  if (dir.startsWith('packages/') && manifest.name?.startsWith('@hydra/harness-')) {
+    const peer = manifest.peerDependencies?.['@hydra/cordis']
+    const dev = manifest.devDependencies?.['@hydra/cordis']
 
-    if (!peer) errors.push(`${label}: @bosch/cordis must be a peerDependency`)
-    if (!dev) errors.push(`${label}: @bosch/cordis must also be a devDependency`)
+    if (!peer) errors.push(`${label}: @hydra/cordis must be a peerDependency`)
+    if (!dev) errors.push(`${label}: @hydra/cordis must also be a devDependency`)
     if (peer && dev && peer !== dev) {
-      errors.push(`${label}: @bosch/cordis peer (${peer}) and dev (${dev}) ranges must match`)
+      errors.push(`${label}: @hydra/cordis peer (${peer}) and dev (${dev}) ranges must match`)
     }
     if (manifest.version !== repositoryVersion) {
       errors.push(`${label}: package.json version must match root version ${repositoryVersion ?? '(missing)'}`)
@@ -484,6 +499,10 @@ export function main(): void {
   ]
   const errors = [
     ...checkRepositoryVersion(),
+    ...[
+      ...dependencyManifests,
+      ...['.', 'examples', 'website'].map(dir => ({ dir, manifest: readJson(join(root, dir, 'package.json')) })),
+    ].flatMap(checkPackageNamespace),
     ...manifests.flatMap(checkWorkspace),
     ...checkWorkspaceProtocol(manifests),
     ...checkExperimentalDependencyIsolation(dependencyManifests),

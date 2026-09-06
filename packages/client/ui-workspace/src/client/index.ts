@@ -8,11 +8,11 @@
  * client half (see the contract module doc). Export discipline:
  * packages/client/AGENTS.md.
  */
-import type { ConnectionHandle } from '@bosch/bh-client-connection/client'
-import type { HostObservable } from '@bosch/bh-client-ui-slots'
-import type { ClientContext } from '@bosch/bh-client-runtime/client'
+import type { ConnectionHandle } from '@hydra/harness-client-connection/client'
+import type { HostObservable } from '@hydra/harness-client-ui-slots'
+import type { ClientContext } from '@hydra/harness-client-runtime/client'
 // Type-only: pulls the locale plugin's Context merge (ctx.locale).
-import type {} from '@bosch/bh-client-locale/client'
+import type {} from '@hydra/harness-client-locale/client'
 import type { WorkspaceBrowserInjected, WorkspacePickerInjected } from './contract/slots.ts'
 import { createWorkspaceViewStore } from './stores.ts'
 import { WorkspaceBrowser } from './WorkspaceBrowser.tsx'
@@ -25,7 +25,7 @@ export type {
 } from './contract/slots.ts'
 export type { WorkspaceKey } from './locales.ts'
 
-declare module '@bosch/bh-client-ui-slots' {
+declare module '@hydra/harness-client-ui-slots' {
   interface LocaleNamespaceMap {
     /** The workspace browsing region and pick/create flow copy. */
     workspace: WorkspaceKey

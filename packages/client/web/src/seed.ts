@@ -10,9 +10,9 @@ import * as React from 'react'
 import * as ReactJsxRuntime from 'react/jsx-runtime'
 import * as ReactDom from 'react-dom'
 import * as ReactDomClient from 'react-dom/client'
-import * as Cordis from '@bosch/cordis'
-import * as UiSlots from '@bosch/bh-client-ui-slots'
-import * as UiPrimitives from '@bosch/bh-client-ui-primitives'
+import * as Cordis from '@hydra/cordis'
+import * as UiSlots from '@hydra/harness-client-ui-slots'
+import * as UiPrimitives from '@hydra/harness-client-ui-primitives'
 import type { PlatformModule } from './platform.ts'
 
 /**
@@ -28,8 +28,8 @@ export function getStaticModules(): Record<string, unknown> {
     'react/jsx-runtime': ReactJsxRuntime,
     'react-dom': ReactDom,
     'react-dom/client': ReactDomClient,
-    '@bosch/cordis': Cordis,
-    '@bosch/bh-client-ui-slots': UiSlots,
-    '@bosch/bh-client-ui-primitives': UiPrimitives,
+    '@hydra/cordis': Cordis,
+    '@hydra/harness-client-ui-slots': UiSlots,
+    '@hydra/harness-client-ui-primitives': UiPrimitives,
   } satisfies Record<PlatformModule, unknown>
 }

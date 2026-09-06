@@ -3,11 +3,11 @@
  * fetch. Duplicate ids are rejected. At execution time, a configured provider must exist and
  * be usable; without one, exactly one usable provider is required, so selection never depends
  * on registration order.
- * @module @bosch/bh-web
+ * @module @hydra/harness-web
  */
 
-import { Context, Service } from '@bosch/cordis'
-import z from '@bosch/schemastery'
+import { Context, Service } from '@hydra/cordis'
+import z from '@hydra/schemastery'
 import type {
   WebFetchProvider,
   WebFetchRequest,
@@ -32,7 +32,7 @@ export type {
   WebSearchSource,
 } from './types.ts'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     web: WebRuntime
   }

@@ -4,8 +4,8 @@
  * entry; this package only contributes the single occupant, so no SlotMap
  * merge lives here.
  */
-import type { ModelSelection } from '@bosch/bh-api-remotes/client'
-import type { SnapshotStore } from '@bosch/bh-client-runtime/client'
+import type { ModelSelection } from '@hydra/harness-api-remotes/client'
+import type { SnapshotStore } from '@hydra/harness-client-runtime/client'
 import type { ModelDirectoryState } from './directory.ts'
 
 /** Injected business face of the composer model seat. */

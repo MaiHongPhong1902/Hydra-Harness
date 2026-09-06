@@ -7,15 +7,15 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import { createScope } from '@bosch/bh-scope'
-import SystemPrompt from '@bosch/bh-system-prompt'
-import { CodeRuntime } from '@bosch/bh-code-runtime'
-import type { CodeRunRequest, CodeRunResult } from '@bosch/bh-code-runtime'
-import ToolRuntime, { RUN_CODE_NAME, defineTool } from '@bosch/bh-tools'
-import type { Agent } from '@bosch/bh-agent'
-import { SessionId } from '@bosch/bh-session'
-import { apply, Config, inject, name } from '@bosch/bh-agent-tool-presentation'
+import { Context } from '@hydra/cordis'
+import { createScope } from '@hydra/harness-scope'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import { CodeRuntime } from '@hydra/harness-code-runtime'
+import type { CodeRunRequest, CodeRunResult } from '@hydra/harness-code-runtime'
+import ToolRuntime, { RUN_CODE_NAME, defineTool } from '@hydra/harness-tools'
+import type { Agent } from '@hydra/harness-agent'
+import { SessionId } from '@hydra/harness-session'
+import { apply, Config, inject, name } from '@hydra/harness-agent-tool-presentation'
 
 /** A runtime that never runs anything: presentation never dispatches. */
 class StubRuntime extends CodeRuntime {

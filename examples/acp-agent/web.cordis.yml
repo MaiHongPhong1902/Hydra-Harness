@@ -4,18 +4,18 @@
 # fixture server the scenario prompt fetches — deterministic content, no
 # external network, in recording and replay alike.
 - id: base
-  name: '@bosch/cordis-plugin-include'
+  name: '@hydra/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - insert:
           - id: web
-            name: '@bosch/bh-web'
+            name: '@hydra/harness-web'
           - id: web-fetch-http
-            name: '@bosch/bh-web-fetch-http'
+            name: '@hydra/harness-web-fetch-http'
           - id: web-fetch-fixture
             name: './web-fetch-fixture-server.mjs'
           - id: tool-web
-            name: '@bosch/bh-tool-web'
+            name: '@hydra/harness-tool-web'
             config:
               search: false

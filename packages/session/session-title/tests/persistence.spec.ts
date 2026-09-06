@@ -1,13 +1,13 @@
-import { createUserMessage } from '@bosch/bh-llm'
+import { createUserMessage } from '@hydra/harness-llm'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import SessionStore, { SessionId } from '@bosch/bh-session'
-import JsonlSessionPersistence from '@bosch/bh-session-persistence-jsonl'
-import SqliteSessionPersistence from '@bosch/bh-session-persistence-sqlite'
-import SessionTitleService, { foldSessionTitle } from '@bosch/bh-session-title'
+import SessionStore, { SessionId } from '@hydra/harness-session'
+import JsonlSessionPersistence from '@hydra/harness-session-persistence-jsonl'
+import SqliteSessionPersistence from '@hydra/harness-session-persistence-sqlite'
+import SessionTitleService, { foldSessionTitle } from '@hydra/harness-session-title'
 
 const CONFIG = {
   fallbackMaxWords: 5,

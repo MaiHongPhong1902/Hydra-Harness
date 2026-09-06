@@ -15,7 +15,7 @@ interface CssModulePlugin {
 }
 
 /** A representative dynamic bundle using the shared client baseline. */
-const REQUESTING_PACKAGE = '@bosch/bh-client-ui-conversation'
+const REQUESTING_PACKAGE = '@hydra/harness-client-ui-conversation'
 
 function clientConfigs(id = REQUESTING_PACKAGE) {
   return clientBundle(id, ['lib/types/index.js', 'lib/types/invariant.js'])(
@@ -25,7 +25,7 @@ function clientConfigs(id = REQUESTING_PACKAGE) {
 
 describe('client bundle build faces', () => {
   it('watches source in development and consumes emitted JavaScript in the Client build', () => {
-    const bundle = clientBundle('@bosch/bh-client-test', ['lib/types/index.js'])
+    const bundle = clientBundle('@hydra/harness-client-test', ['lib/types/index.js'])
     const development = bundle({ env: {} }).find(config => config.platform === 'browser')
     const artifact = bundle({ env: { BH_BUILD_FACE: 'client' } })
       .find(config => config.platform === 'browser')
@@ -63,78 +63,78 @@ describe('client bundle purity gate', () => {
   const resolveId = purityResolveId()
 
   it('leaves default externals and non-scoped specifiers alone', () => {
-    expect(resolveId('@bosch/bh-client-ui-slots')).toBeNull()
-    expect(resolveId('@bosch/bh-client-ui-primitives')).toBeNull()
-    expect(resolveId('@bosch/bh-client-runtime/client')).toBeNull()
+    expect(resolveId('@hydra/harness-client-ui-slots')).toBeNull()
+    expect(resolveId('@hydra/harness-client-ui-primitives')).toBeNull()
+    expect(resolveId('@hydra/harness-client-runtime/client')).toBeNull()
     expect(resolveId('react')).toBeNull()
     expect(resolveId('zod')).toBeNull()
   })
 
   it('rejects the retired web-react platform package', () => {
-    expect(() => resolveId('@bosch/bh-client-web-react')).toThrow(/purity/)
-    expect(() => resolveId('@bosch/bh-client-web-react/store')).toThrow(/purity/)
+    expect(() => resolveId('@hydra/harness-client-web-react')).toThrow(/purity/)
+    expect(() => resolveId('@hydra/harness-client-web-react/store')).toThrow(/purity/)
   })
 
   it('lets inline-safe wire layers inline', () => {
-    expect(resolveId('@bosch/bh-host-apiproxy/api')).toBeNull()
-    expect(resolveId('@bosch/bh-session/surface')).toBeNull()
-    expect(resolveId('@bosch/bh-brand')).toBeNull()
+    expect(resolveId('@hydra/harness-host-apiproxy/api')).toBeNull()
+    expect(resolveId('@hydra/harness-session/surface')).toBeNull()
+    expect(resolveId('@hydra/harness-brand')).toBeNull()
   })
 
   it('lets exact generated Remote contributions inline without admitting their package implementation', () => {
-    expect(resolveId('@bosch/bh-goal/remote')).toBeNull()
-    expect(() => resolveId('@bosch/bh-goal')).toThrow(/purity/)
-    expect(() => resolveId('@bosch/bh-goal/client')).toThrow(/purity/)
-    expect(() => resolveId('@bosch/bh-goal/remote/nested')).toThrow(/purity/)
+    expect(resolveId('@hydra/harness-goal/remote')).toBeNull()
+    expect(() => resolveId('@hydra/harness-goal')).toThrow(/purity/)
+    expect(() => resolveId('@hydra/harness-goal/client')).toThrow(/purity/)
+    expect(() => resolveId('@hydra/harness-goal/remote/nested')).toThrow(/purity/)
   })
 
-  it('throws on any other @bosch leak', () => {
-    expect(() => resolveId('@bosch/bh-agent')).toThrow(/purity/)
-    expect(() => resolveId('@bosch/bh-client-web')).toThrow(/purity/)
+  it('throws on any other @hydra leak', () => {
+    expect(() => resolveId('@hydra/harness-agent')).toThrow(/purity/)
+    expect(() => resolveId('@hydra/harness-client-web')).toThrow(/purity/)
   })
 
   it('throws on cross-plugin value imports — bare plugin names and /client subpaths alike', () => {
-    expect(() => resolveId('@bosch/bh-client-connection')).toThrow(/purity/)
-    expect(() => resolveId('@bosch/bh-client-runtime')).toThrow(/purity/)
-    expect(() => resolveId('@bosch/bh-client-ui-layout/client')).toThrow(/purity/)
+    expect(() => resolveId('@hydra/harness-client-connection')).toThrow(/purity/)
+    expect(() => resolveId('@hydra/harness-client-runtime')).toThrow(/purity/)
+    expect(() => resolveId('@hydra/harness-client-ui-layout/client')).toThrow(/purity/)
   })
 
   it('admits the parser-preloaded runtime for every dynamic bundle', () => {
-    expect(resolveId('@bosch/bh-client-runtime/client')).toBeNull()
-    const withoutRequest = purityResolveId('@bosch/bh-client-ui-goal')
-    expect(withoutRequest('@bosch/bh-client-runtime/client')).toBeNull()
+    expect(resolveId('@hydra/harness-client-runtime/client')).toBeNull()
+    const withoutRequest = purityResolveId('@hydra/harness-client-ui-goal')
+    expect(withoutRequest('@hydra/harness-client-runtime/client')).toBeNull()
   })
 
   it('externalizes the baseline independently of each package manifest', () => {
     const requesting = clientConfigs()[0]?.deps as { neverBundle: (specifier: string) => boolean }
-    const plain = clientConfigs('@bosch/bh-client-connection')[0]?.deps as {
+    const plain = clientConfigs('@hydra/harness-client-connection')[0]?.deps as {
       neverBundle: (specifier: string) => boolean
     }
 
     expect(requesting.neverBundle('react')).toBe(true)
     expect(requesting.neverBundle('zod')).toBe(false)
     expect(plain.neverBundle('react')).toBe(true)
-    expect(plain.neverBundle('@bosch/bh-client-runtime/client')).toBe(true)
+    expect(plain.neverBundle('@hydra/harness-client-runtime/client')).toBe(true)
   })
 })
 
 describe('client bundle module requests', () => {
   it('requests what the declaration lists', () => {
-    const requests = requestedExternals('@bosch/bh-client-fixture', {
-      external: ['react', 'react/jsx-runtime', '@bosch/bh-client-ui-slots'],
+    const requests = requestedExternals('@hydra/harness-client-fixture', {
+      external: ['react', 'react/jsx-runtime', '@hydra/harness-client-ui-slots'],
     })
 
     expect([...requests].sort()).toEqual([
-      '@bosch/bh-client-ui-slots', 'react', 'react/jsx-runtime',
+      '@hydra/harness-client-ui-slots', 'react', 'react/jsx-runtime',
     ])
   })
 
   it('requests nothing when the declaration is absent', () => {
-    expect(requestedExternals('@bosch/bh-client-fixture', {}).size).toBe(0)
+    expect(requestedExternals('@hydra/harness-client-fixture', {}).size).toBe(0)
   })
 
   it('rejects a malformed declaration instead of reading past it', () => {
-    expect(() => requestedExternals('@bosch/bh-client-fixture', { external: 'react' }))
+    expect(() => requestedExternals('@hydra/harness-client-fixture', { external: 'react' }))
       .toThrow(/bh\.client\.external must be a string array/)
   })
 })
@@ -146,7 +146,7 @@ describe('client bundle debug artifacts', () => {
   })
 
   it('maps first-party sources to their repository package paths', () => {
-    const configs = clientConfigs('@bosch/bh-client-ui-goal')
+    const configs = clientConfigs('@hydra/harness-client-ui-goal')
     const outputOptions = configs[0]?.outputOptions
     if (typeof outputOptions !== 'object' || outputOptions === null) throw new Error('client output options missing')
     const transform = outputOptions.sourcemapPathTransform
@@ -154,12 +154,12 @@ describe('client bundle debug artifacts', () => {
 
     const source = transform('../src/client/GoalBar.tsx', clientSourceMapPath('client/ui-goal'))
     expect(source).toBe('../../../packages/client/ui-goal/src/client/GoalBar.tsx')
-    const resolved = new URL(source, 'https://bh.test/plugins/@bosch/bh-client-ui-goal/client.js.map')
+    const resolved = new URL(source, 'https://bh.test/plugins/@hydra/harness-client-ui-goal/client.js.map')
     expect(resolved.pathname).toBe('/packages/client/ui-goal/src/client/GoalBar.tsx')
   })
 
   it('maps dual-face host sources to the host package group', () => {
-    const configs = clientConfigs('@bosch/bh-host-directory-picker-native')
+    const configs = clientConfigs('@hydra/harness-host-directory-picker-native')
     const outputOptions = configs[0]?.outputOptions
     if (typeof outputOptions !== 'object' || outputOptions === null) throw new Error('client output options missing')
     const transform = outputOptions.sourcemapPathTransform
@@ -170,7 +170,7 @@ describe('client bundle debug artifacts', () => {
   })
 
   it('maps inlined workspace sources to packages and leaves dependencies outside it unchanged', () => {
-    const configs = clientConfigs('@bosch/bh-client-connection')
+    const configs = clientConfigs('@hydra/harness-client-connection')
     const outputOptions = configs[0]?.outputOptions
     if (typeof outputOptions !== 'object' || outputOptions === null) throw new Error('client output options missing')
     const transform = outputOptions.sourcemapPathTransform
@@ -179,7 +179,7 @@ describe('client bundle debug artifacts', () => {
     const sourceMapPath = clientSourceMapPath('client/connection')
     const workspaceSource = transform('../../../host/apiproxy/src/api/rpc.ts', sourceMapPath)
     expect(workspaceSource).toBe('../../../packages/host/apiproxy/src/api/rpc.ts')
-    const resolved = new URL(workspaceSource, 'https://bh.test/plugins/@bosch/bh-client-connection/client.js.map')
+    const resolved = new URL(workspaceSource, 'https://bh.test/plugins/@hydra/harness-client-connection/client.js.map')
     expect(resolved.pathname).toBe('/packages/host/apiproxy/src/api/rpc.ts')
 
     const dependencySource = '../../../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/index.js'

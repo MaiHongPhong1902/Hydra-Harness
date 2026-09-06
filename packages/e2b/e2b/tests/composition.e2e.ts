@@ -1,21 +1,21 @@
 import { access } from 'node:fs/promises'
 import { join, posix } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { describe, expect, it } from 'vitest'
-import { Inbox } from '@bosch/bh-agent'
-import type { Agent } from '@bosch/bh-agent'
-import { runLoaderSmoke } from '@bosch/bh-loader-smoke'
+import { Inbox } from '@hydra/harness-agent'
+import type { Agent } from '@hydra/harness-agent'
+import { runLoaderSmoke } from '@hydra/harness-loader-smoke'
 import {
   FileNotFoundError,
   Sandbox,
   SandboxNotFoundError,
-} from '@bosch/bh-e2b'
-import TerminalSessionService, { TerminalSessionId } from '@bosch/bh-terminal'
-import { BashTerminalBackend } from '@bosch/bh-terminal-bash'
-import SandboxPolicyService from '@bosch/bh-sandbox-policy'
-import { Session, SessionId } from '@bosch/bh-session'
-import E2BSubprocessRuntime from '@bosch/bh-subprocess-e2b'
+} from '@hydra/harness-e2b'
+import TerminalSessionService, { TerminalSessionId } from '@hydra/harness-terminal'
+import { BashTerminalBackend } from '@hydra/harness-terminal-bash'
+import SandboxPolicyService from '@hydra/harness-sandbox-policy'
+import { Session, SessionId } from '@hydra/harness-session'
+import E2BSubprocessRuntime from '@hydra/harness-subprocess-e2b'
 
 const fixtureRoot = fileURLToPath(new URL('../../../../examples/headless-agent/tests/fixtures/e2b/e2b/', import.meta.url))
 const binScript = join(fixtureRoot, 'bin.ts')

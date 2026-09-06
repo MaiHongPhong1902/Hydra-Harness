@@ -1,6 +1,6 @@
 {
-  "name": "@bosch/bh-agent-presets",
-  "description": "Per-session agent composition from preset cordis.yml files for the Bosch Harness",
+  "name": "@hydra/harness-agent-presets",
+  "description": "Per-session agent composition from preset cordis.yml files for the Hydra harness",
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"
@@ -37,37 +37,37 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@bosch/cordis-plugin-include": "workspace:^",
-    "@bosch/cordis-plugin-loader": "workspace:^",
-    "@bosch/bh-agent": "workspace:^",
-    "@bosch/bh-atomic-write": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-home-paths": "workspace:^",
-    "@bosch/bh-scope": "workspace:^",
-    "@bosch/bh-session": "workspace:^",
-    "@bosch/bh-settings": "workspace:^",
-    "@bosch/bh-system-prompt": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/cordis-plugin-include": "workspace:^",
+    "@hydra/cordis-plugin-loader": "workspace:^",
+    "@hydra/harness-agent": "workspace:^",
+    "@hydra/harness-atomic-write": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-home-paths": "workspace:^",
+    "@hydra/harness-scope": "workspace:^",
+    "@hydra/harness-session": "workspace:^",
+    "@hydra/harness-settings": "workspace:^",
+    "@hydra/harness-system-prompt": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   },
   "dependencies": {
     "js-yaml": "^4.1.0",
-    "@bosch/schemastery": "workspace:^"
+    "@hydra/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@bosch/cordis-plugin-include": "workspace:^",
-    "@bosch/cordis-plugin-loader": "workspace:^",
-    "@bosch/bh-agent": "workspace:^",
-    "@bosch/bh-agent-loop": "workspace:^",
-    "@bosch/bh-atomic-write": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-llm": "workspace:^",
-    "@bosch/bh-home-paths": "workspace:^",
-    "@bosch/bh-scope": "workspace:^",
-    "@bosch/bh-session": "workspace:^",
-    "@bosch/bh-settings": "workspace:^",
-    "@bosch/bh-settings-file": "workspace:^",
-    "@bosch/bh-system-prompt": "workspace:^",
-    "@bosch/bh-tools": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/cordis-plugin-include": "workspace:^",
+    "@hydra/cordis-plugin-loader": "workspace:^",
+    "@hydra/harness-agent": "workspace:^",
+    "@hydra/harness-agent-loop": "workspace:^",
+    "@hydra/harness-atomic-write": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/harness-home-paths": "workspace:^",
+    "@hydra/harness-scope": "workspace:^",
+    "@hydra/harness-session": "workspace:^",
+    "@hydra/harness-settings": "workspace:^",
+    "@hydra/harness-settings-file": "workspace:^",
+    "@hydra/harness-system-prompt": "workspace:^",
+    "@hydra/harness-tools": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   }
 }

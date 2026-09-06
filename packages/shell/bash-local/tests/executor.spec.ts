@@ -2,11 +2,11 @@ import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import { LocalBashExecutor } from '@bosch/bh-bash-local'
-import LocalSubprocessRuntime from '@bosch/bh-subprocess-local'
-import { MAX_TIMER_DELAY_MS } from '@bosch/bh-timeout'
-import type { ShellProcess } from '@bosch/bh-shell'
+import { Context } from '@hydra/cordis'
+import { LocalBashExecutor } from '@hydra/harness-bash-local'
+import LocalSubprocessRuntime from '@hydra/harness-subprocess-local'
+import { MAX_TIMER_DELAY_MS } from '@hydra/harness-timeout'
+import type { ShellProcess } from '@hydra/harness-shell'
 
 const spillDir = mkdtempSync(join(tmpdir(), 'bh-bash-exec-spec-'))
 

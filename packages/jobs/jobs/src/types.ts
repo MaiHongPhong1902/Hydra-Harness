@@ -1,11 +1,11 @@
 /**
  * Types shared by job producers, the registry, and controllers. The
  * service implementation lives in `./index.ts`.
- * @module @bosch/bh-jobs/types
+ * @module @hydra/harness-jobs/types
  */
 
-import type { Agent } from '@bosch/bh-agent'
-import type { SessionId } from '@bosch/bh-session'
+import type { Agent } from '@hydra/harness-agent'
+import type { SessionId } from '@hydra/harness-session'
 import type { JobId } from './brand.ts'
 
 export { JobId } from './brand.ts'

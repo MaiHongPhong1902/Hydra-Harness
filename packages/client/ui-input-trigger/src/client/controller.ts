@@ -7,8 +7,8 @@
  * only the source roster. One controller per session scope; the service
  * disposes it with the scope fiber.
  */
-import type { ClientContext, SessionId, SnapshotStore } from '@bosch/bh-client-runtime/client'
-import { createSnapshotStore } from '@bosch/bh-client-runtime/client'
+import type { ClientContext, SessionId, SnapshotStore } from '@hydra/harness-client-runtime/client'
+import { createSnapshotStore } from '@hydra/harness-client-runtime/client'
 import { detectTrigger } from '../core/detect.ts'
 import { MENU_CLOSED, menuReduce, seedGroups } from '../core/menu.ts'
 import type { MenuEvent, MenuState, TriggerHit } from '../core/contract.ts'

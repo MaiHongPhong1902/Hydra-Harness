@@ -6,11 +6,11 @@
  * backend write leaves memory untouched (no divergence between reads and the
  * medium), and events carry values that equal the in-memory state at
  * emission, in write order.
- * @module @bosch/bh-storage-domain/src/domain
+ * @module @hydra/harness-storage-domain/src/domain
  */
 
-import type { Context } from '@bosch/cordis'
-import type { KvUnit } from '@bosch/bh-storage'
+import type { Context } from '@hydra/cordis'
+import type { KvUnit } from '@hydra/harness-storage'
 import { DomainError } from './error.ts'
 import type { DomainSpec, DomainGlobalSpec, TableKeyOf, TableValueOf } from './spec.ts'
 import type { DomainChanged } from './events.ts'

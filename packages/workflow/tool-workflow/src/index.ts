@@ -2,29 +2,29 @@
  * The model-facing `workflow` tool: run a JavaScript orchestration script that fans out
  * subagents, and return the script's final value. It owns the model-facing schema and run lifecycle; script
  * parsing, execution, caps, and cancellation live behind `ctx.workflowEngine`
- * (`@bosch/bh-workflow`), so a hardened engine swaps in without touching what the model
+ * (`@hydra/harness-workflow`), so a hardened engine swaps in without touching what the model
  * sees. Execution awaits `run.result` and always disposes the run; non-completed reasons become tool
  * errors, and background collection remains deferred. Presentation is an args-only generic card
  * titled from `meta.name`. Explicit-ask usage guidance is registered as the tool's own prompt
  * section rather than deployment persona prose.
- * @module @bosch/bh-tool-workflow
+ * @module @hydra/harness-tool-workflow
  */
 
-import type { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import { defineTool } from '@bosch/bh-tools'
-import type { ToolCallView, ToolResultView } from '@bosch/bh-tools'
-import type { ContentBlock } from '@bosch/bh-llm'
-import type { JsonValue, Session, SessionEventMap } from '@bosch/bh-session'
+import type { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import { defineTool } from '@hydra/harness-tools'
+import type { ToolCallView, ToolResultView } from '@hydra/harness-tools'
+import type { ContentBlock } from '@hydra/harness-llm'
+import type { JsonValue, Session, SessionEventMap } from '@hydra/harness-session'
 import type {
   WorkflowResult, WorkflowRun, WorkflowRunId, WorkflowStopReason,
-} from '@bosch/bh-workflow'
+} from '@hydra/harness-workflow'
 import type {
   ToolWorkflowAgentEndData, ToolWorkflowAgentStartData,
   ToolWorkflowRunEndData, ToolWorkflowRunStartData,
 } from './types.ts'
 // Declaration merge only: makes ctx.systemPrompt visible for the section registration.
-import type {} from '@bosch/bh-system-prompt'
+import type {} from '@hydra/harness-system-prompt'
 
 export const name = 'tool-workflow'
 export const inject = ['tools', 'workflowEngine', 'systemPrompt']

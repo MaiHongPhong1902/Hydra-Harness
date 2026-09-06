@@ -4,9 +4,9 @@
  * section can offer a reload affordance instead of a plain retry.
  */
 
-import { createSnapshotStore } from '@bosch/bh-client-runtime/client'
-import type { SnapshotStore } from '@bosch/bh-client-runtime/client'
-import type { IApiClient } from '@bosch/bh-api-remotes/client'
+import { createSnapshotStore } from '@hydra/harness-client-runtime/client'
+import type { SnapshotStore } from '@hydra/harness-client-runtime/client'
+import type { IApiClient } from '@hydra/harness-api-remotes/client'
 
 type InstructionsFace = Pick<IApiClient, 'settings'>
 
@@ -38,11 +38,28 @@ export class InstructionsController {
   /** Snapshot the renderer binds as `useInstructions`. */
   readonly store: SnapshotStore<InstructionsState> = createSnapshotStore(INITIAL)
   private disposed = false
+  private loading: Promise<void> | undefined
 
   constructor(private readonly api: InstructionsFace) {}
 
-  /** Read the current document from the Host, replacing any unsaved draft. */
-  async load(): Promise<void> {
+  /** Refresh a clean editor on entry, retaining unsaved edits and pending saves. */
+  ensure(): Promise<void> {
+    const state = this.store.getSnapshot()
+    if (state.draft !== state.savedContent || state.status === 'saving' || state.status === 'conflict') {
+      return Promise.resolve()
+    }
+    return this.load()
+  }
+
+  /** Read the current document from the Host, explicitly replacing any unsaved draft. */
+  load(): Promise<void> {
+    if (this.disposed) return Promise.resolve()
+    if (this.loading !== undefined) return this.loading
+    this.loading = Promise.resolve().then(() => this.read()).finally(() => { this.loading = undefined })
+    return this.loading
+  }
+
+  private async read(): Promise<void> {
     this.store.update((draft) => { draft.status = 'loading'; draft.error = null })
     let response
     try {
@@ -74,7 +91,7 @@ export class InstructionsController {
     this.store.update((draft) => { draft.draft = text })
   }
 
-  /** Write the current draft, fencing on the last-known revision. */
+  /** Write the submitted draft and retain edits made while awaiting the Host. */
   async save(): Promise<void> {
     const state = this.store.getSnapshot()
     if (state.status === 'saving') return
@@ -102,7 +119,7 @@ export class InstructionsController {
     const { content, revision } = response.result.value
     this.store.update((draft) => {
       draft.status = 'ready'
-      draft.draft = content
+      if (draft.draft === state.draft) draft.draft = content
       draft.savedContent = content
       draft.revision = revision
       draft.error = null

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /** Test driver: one delegation turn through a headless Loader composition. */
 
-import { boot, resolveConfigPath } from '@bosch/bh-app-boot'
-import { runFixtureTurn } from '@bosch/bh-loader-smoke'
+import { boot, resolveConfigPath } from '@hydra/harness-app-boot'
+import { runFixtureTurn } from '@hydra/harness-loader-smoke'
 
 const configPath = process.argv[2]
 if (configPath === undefined) throw new Error('acp-subagent cwd driver requires a config path')

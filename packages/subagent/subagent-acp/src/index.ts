@@ -4,20 +4,20 @@
  * the ONE thing it reads off `request.parent` is the session's workspace cwd (see
  * {@link resolveCwd}). This plugin uses named exports only; a default would hide its
  * loader metadata (see `docs/postmortem/0001-acp-default-export-drops-inject.md`).
- * @module @bosch/bh-subagent-acp
+ * @module @hydra/harness-subagent-acp
  */
 
 import { accessSync, constants, statSync } from 'node:fs'
 import { isAbsolute, resolve } from 'node:path'
-import type { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
+import type { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
 import type {
   ResolvedSubagentStartRequest,
   SubagentCapabilities,
   SubagentProvider,
   SubagentStartRequest,
-} from '@bosch/bh-subagent'
-import { MAX_TIMER_DELAY_MS } from '@bosch/bh-timeout'
+} from '@hydra/harness-subagent'
+import { MAX_TIMER_DELAY_MS } from '@hydra/harness-timeout'
 import { type AcpRunSpec, DEFAULT_DISPOSE_EOF_GRACE_MS, DEFAULT_DISPOSE_GRACE_MS, type PermissionPolicy, startAcpRun } from './run.ts'
 
 export const name = 'subagent-acp'

@@ -18,24 +18,24 @@
  * disposed by then, and the release that wakes the parent's own settlement
  * watcher has already run. See {@link SubagentContinuationManager.notifySettlement}.
  *
- * @module @bosch/bh-subagent
+ * @module @hydra/harness-subagent
  */
 
 import { randomUUID } from 'node:crypto'
-import type { Context } from '@bosch/cordis'
+import type { Context } from '@hydra/cordis'
 import type {
   Agent,
   AgentHandle,
   AgentOptions,
   AgentSetupCommit,
   CreateAgentOptions,
-} from '@bosch/bh-agent'
-import { boundContextSummary, createUserMessage, errorChain } from '@bosch/bh-llm'
-import type { ContentBlock, MessageId, MessageSource } from '@bosch/bh-llm'
-import { SessionId } from '@bosch/bh-session'
-import type { SessionEvent } from '@bosch/bh-session'
-import type { SessionPersistence } from '@bosch/bh-session-persistence'
-import type { ToolRestriction } from '@bosch/bh-tools'
+} from '@hydra/harness-agent'
+import { boundContextSummary, createUserMessage, errorChain } from '@hydra/harness-llm'
+import type { ContentBlock, MessageId, MessageSource } from '@hydra/harness-llm'
+import { SessionId } from '@hydra/harness-session'
+import type { SessionEvent } from '@hydra/harness-session'
+import type { SessionPersistence } from '@hydra/harness-session-persistence'
+import type { ToolRestriction } from '@hydra/harness-tools'
 import { foldSubagentDescriptor, snapshotSubagentDescriptor } from './descriptor.ts'
 import type { SubagentDescriptorData } from './descriptor.ts'
 import {
@@ -89,7 +89,7 @@ export interface SubagentSettledMessageSource {
   readonly senderSessionId: SessionId
 }
 
-declare module '@bosch/bh-llm' {
+declare module '@hydra/harness-llm' {
   interface MessageSourceMap {
     coordinator: CoordinatorMessageSource
     'subagent-report': SubagentReportMessageSource

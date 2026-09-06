@@ -5,8 +5,8 @@
 // even when this UI version has never seen its producer.
 
 import type { ReactNode } from 'react'
-import type { ContextMessageNode, KnownContextForm } from '@bosch/bh-client-runtime/client'
-import { JsonBlock } from '@bosch/bh-client-ui-primitives'
+import type { ContextMessageNode, KnownContextForm } from '@hydra/harness-client-runtime/client'
+import { JsonBlock } from '@hydra/harness-client-ui-primitives'
 import type { ChatViewSlotProps } from '../contract/slots.ts'
 import css from './ContextBody.module.css'
 

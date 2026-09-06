@@ -1,8 +1,8 @@
-# BH Desktop Build Plan
+# Hydra Desktop Build Plan
 
 ## Goal
 
-Ship BH as a Windows-first Electron desktop application while reusing the
+Ship Hydra harness as a Windows-first Electron desktop application while reusing the
 existing React renderer and Host runtime. The browser UI remains the renderer
 implementation, not the user-facing product shell.
 
@@ -55,7 +55,7 @@ close, and clean Host shutdown without opening an external browser.
 - Produce an unpacked x64 build first, then an NSIS installer after smoke tests.
 - Package the renderer dist, CLI runtime closure, profile configuration, and
   Electron preload into ASAR/resources with deterministic artifact names.
-- Add the WorkON application icon, product metadata, and uninstall behavior.
+- Add the Hydra application icon, product metadata, and uninstall behavior.
 
 Exit gate: install, first launch, upgrade, uninstall, and profile-data retention
 are verified on a clean Windows VM.

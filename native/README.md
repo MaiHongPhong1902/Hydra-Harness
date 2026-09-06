@@ -1,6 +1,6 @@
 # native/
 
-Native source and public packages maintained with Bosch Harness. The [`landlock-run/` workspace](landlock-run/README.md) owns the Landlock self-restrict-then-exec launcher consumed by the harness, including its architecture, three-package npm family, platform support, development workflow, and [release procedure](landlock-run/docs/release.md).
+Native source and public packages maintained with Hydra harness. The [`landlock-run/` workspace](landlock-run/README.md) owns the Landlock self-restrict-then-exec launcher consumed by the harness, including its architecture, three-package npm family, platform support, development workflow, and [release procedure](landlock-run/docs/release.md).
 
 ## Workspace and release boundary
 

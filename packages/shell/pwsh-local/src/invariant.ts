@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-pwsh-local`.
- * @module @bosch/bh-pwsh-local/invariant
+ * Package-owned invariant companion for `@hydra/harness-pwsh-local`.
+ * @module @hydra/harness-pwsh-local/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-pwsh-local'
+const PACKAGE_NAME = '@hydra/harness-pwsh-local'
 
 /** Cordis companion plugin name. */
 export const name = 'pwsh-local-invariant'

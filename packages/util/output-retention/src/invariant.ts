@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-output-retention`.
- * @module @bosch/bh-output-retention/invariant
+ * Package-owned invariant companion for `@hydra/harness-output-retention`.
+ * @module @hydra/harness-output-retention/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-output-retention'
+const PACKAGE_NAME = '@hydra/harness-output-retention'
 
 /** Cordis companion plugin name. */
 export const name = 'output-retention-invariant'

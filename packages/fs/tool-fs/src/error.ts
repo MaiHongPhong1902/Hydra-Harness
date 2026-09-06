@@ -4,11 +4,11 @@
  * not the only correct recovery (re-read / read the file), so this package
  * appends the remedy at the model boundary; provider messages stay
  * machine-oriented and unchanged.
- * @module @bosch/bh-tool-fs/src/error
+ * @module @hydra/harness-tool-fs/src/error
  */
 
-import { FsError } from '@bosch/bh-fs'
-import type { FsErrorCode } from '@bosch/bh-fs'
+import { FsError } from '@hydra/harness-fs'
+import type { FsErrorCode } from '@hydra/harness-fs'
 
 /** The remedy appended to each remediable failure code's message. */
 const REMEDIES: Partial<Record<FsErrorCode, string>> = {

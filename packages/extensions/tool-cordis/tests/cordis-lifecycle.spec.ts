@@ -1,4 +1,4 @@
-import { Context, CordisError, FiberState, type Fiber } from '@bosch/cordis'
+import { Context, CordisError, FiberState, type Fiber } from '@hydra/cordis'
 import { describe, expect, it } from 'vitest'
 
 /**

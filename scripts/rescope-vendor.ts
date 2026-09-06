@@ -1,5 +1,5 @@
 /**
- * Rescope the vendored Cordis packages into the `@bosch` scope, and undo
+ * Rescope the vendored Cordis packages into the `@hydra` scope, and undo
  * that rescope with `--reverse`. Every harness package declares `cordis` as a
  * peer dependency, so publication carries this framework layer too; publishing
  * it under the upstream names would squat them on the registry
@@ -11,7 +11,7 @@
  * scalar. A match needs a quote (or `name: `) immediately left and the matching
  * quote — optionally after a `/subpath` — immediately right, which excludes
  * `cordis.yml`, the Loader's `cordis:` builtin prefix, `cordis-config-entry`,
- * `@bosch/bh-tool-cordis`, and `cordiverse/cordis`, and makes the
+ * `@hydra/harness-tool-cordis`, and `cordiverse/cordis`, and makes the
  * rewrite idempotent because the scoped name's `cordis` is preceded by `/`.
  * Markdown follows the rename inside every fence, and in `docs/` prose too:
  * a tutorial that teaches an unresolvable name is wrong, while prose elsewhere
@@ -44,15 +44,15 @@ interface Rename {
 
 /** The mapping this codemod applies; `vendor/README.md` carries the same table. */
 const RENAMES: readonly Rename[] = [
-  { directory: 'cordis', upstream: 'cordis', scoped: '@bosch/cordis' },
-  { directory: 'cosmokit', upstream: 'cosmokit', scoped: '@bosch/cosmokit' },
-  { directory: 'schemastery', upstream: 'schemastery', scoped: '@bosch/schemastery' },
-  { directory: 'loader', upstream: '@cordisjs/plugin-loader', scoped: '@bosch/cordis-plugin-loader' },
-  { directory: 'include', upstream: '@cordisjs/plugin-include', scoped: '@bosch/cordis-plugin-include' },
-  { directory: 'group', upstream: '@cordisjs/plugin-group', scoped: '@bosch/cordis-plugin-group' },
-  { directory: 'timer', upstream: '@cordisjs/plugin-timer', scoped: '@bosch/cordis-plugin-timer' },
-  { directory: 'hmr', upstream: '@cordisjs/plugin-hmr', scoped: '@bosch/cordis-plugin-hmr' },
-  { directory: 'logger-console', upstream: '@cordisjs/plugin-logger-console', scoped: '@bosch/cordis-plugin-logger-console' },
+  { directory: 'cordis', upstream: 'cordis', scoped: '@hydra/cordis' },
+  { directory: 'cosmokit', upstream: 'cosmokit', scoped: '@hydra/cosmokit' },
+  { directory: 'schemastery', upstream: 'schemastery', scoped: '@hydra/schemastery' },
+  { directory: 'loader', upstream: '@cordisjs/plugin-loader', scoped: '@hydra/cordis-plugin-loader' },
+  { directory: 'include', upstream: '@cordisjs/plugin-include', scoped: '@hydra/cordis-plugin-include' },
+  { directory: 'group', upstream: '@cordisjs/plugin-group', scoped: '@hydra/cordis-plugin-group' },
+  { directory: 'timer', upstream: '@cordisjs/plugin-timer', scoped: '@hydra/cordis-plugin-timer' },
+  { directory: 'hmr', upstream: '@cordisjs/plugin-hmr', scoped: '@hydra/cordis-plugin-hmr' },
+  { directory: 'logger-console', upstream: '@cordisjs/plugin-logger-console', scoped: '@hydra/cordis-plugin-logger-console' },
 ]
 
 const EXTENSIONS = ['.ts', '.tsx', '.js', '.mjs', '.cjs', '.tpl', '.json', '.yml', '.yaml', '.md'] as const
@@ -141,17 +141,17 @@ interface PostCondition {
 }
 
 const POSTCONDITIONS: readonly PostCondition[] = [
-  { file: 'vendor/cordis/package.json', text: '"name": "@bosch/cordis"', count: 1 },
-  { file: 'vendor/hmr/package.json', text: '"name": "@bosch/cordis-plugin-hmr"', count: 1 },
-  { file: 'scripts/cordis-walk.ts', text: '@bosch\\/cordis', count: 1 },
-  { file: 'scripts/cordis-walk.ts', text: '!== \'@bosch/cordis\'', count: 1 },
-  { file: 'scripts/gen-scoped-events.ts', text: '=== \'@bosch/cordis\'', count: 1 },
-  { file: 'packages/typert/generator/src/analyzer.ts', text: '!== \'@bosch/cordis\'', count: 2 },
-  { file: 'scripts/check-workspace-constraints.ts', text: '?.[\'@bosch/cordis\']', count: 2 },
-  { file: 'packages/boot/app-boot/tsdown.config.ts', text: '[\'@bosch/cordis-plugin-include\']', count: 1 },
-  { file: 'tsconfig.base.json', text: '"@bosch/cordis-plugin-loader": ["./vendor/loader/src"]', count: 1 },
+  { file: 'vendor/cordis/package.json', text: '"name": "@hydra/cordis"', count: 1 },
+  { file: 'vendor/hmr/package.json', text: '"name": "@hydra/cordis-plugin-hmr"', count: 1 },
+  { file: 'scripts/cordis-walk.ts', text: '@hydra\\/cordis', count: 1 },
+  { file: 'scripts/cordis-walk.ts', text: '!== \'@hydra/cordis\'', count: 1 },
+  { file: 'scripts/gen-scoped-events.ts', text: '=== \'@hydra/cordis\'', count: 1 },
+  { file: 'packages/typert/generator/src/analyzer.ts', text: '!== \'@hydra/cordis\'', count: 2 },
+  { file: 'scripts/check-workspace-constraints.ts', text: '?.[\'@hydra/cordis\']', count: 2 },
+  { file: 'packages/boot/app-boot/tsdown.config.ts', text: '[\'@hydra/cordis-plugin-include\']', count: 1 },
+  { file: 'tsconfig.base.json', text: '"@hydra/cordis-plugin-loader": ["./vendor/loader/src"]', count: 1 },
   // The vendored README owns this required entry; reject its deletion or duplication.
-  { file: 'vendor/README.md', text: '17. **`@bosch` rescope**', count: 1 },
+  { file: 'vendor/README.md', text: '17. **`@hydra` rescope**', count: 1 },
   { file: 'knip.json', text: '@cordisjs', count: 0 },
   { file: 'pnpm-workspace.yaml', text: 'cordis@4.0.0-rc.7', count: 0 },
   // The preset ids in this table are product data, not package names.
@@ -172,7 +172,7 @@ const EXACT_EDITS: readonly ExactEdit[] = [
     id: 'cordis-walk-merge-head',
     file: 'scripts/cordis-walk.ts',
     find: 'const MERGE_HEAD = /declare module [\'"](?:cordis|\\.\\/context\\.ts)[\'"]/',
-    replace: 'const MERGE_HEAD = /declare module [\'"](?:@bosch\\/cordis|\\.\\/context\\.ts)[\'"]/',
+    replace: 'const MERGE_HEAD = /declare module [\'"](?:@hydra\\/cordis|\\.\\/context\\.ts)[\'"]/',
     expect: 1,
   },
   {
@@ -185,13 +185,13 @@ const EXACT_EDITS: readonly ExactEdit[] = [
     if (!dev) errors.push(\`\${label}: cordis must also be a devDependency\`)
     if (peer && dev && peer !== dev) {
       errors.push(\`\${label}: cordis peer (\${peer}) and dev (\${dev}) ranges must match\`)`,
-    replace: `    const peer = manifest.peerDependencies?.['@bosch/cordis']
-    const dev = manifest.devDependencies?.['@bosch/cordis']
+    replace: `    const peer = manifest.peerDependencies?.['@hydra/cordis']
+    const dev = manifest.devDependencies?.['@hydra/cordis']
 
-    if (!peer) errors.push(\`\${label}: @bosch/cordis must be a peerDependency\`)
-    if (!dev) errors.push(\`\${label}: @bosch/cordis must also be a devDependency\`)
+    if (!peer) errors.push(\`\${label}: @hydra/cordis must be a peerDependency\`)
+    if (!dev) errors.push(\`\${label}: @hydra/cordis must also be a devDependency\`)
     if (peer && dev && peer !== dev) {
-      errors.push(\`\${label}: @bosch/cordis peer (\${peer}) and dev (\${dev}) ranges must match\`)`,
+      errors.push(\`\${label}: @hydra/cordis peer (\${peer}) and dev (\${dev}) ranges must match\`)`,
     expect: 1,
   },
   {
@@ -199,12 +199,12 @@ const EXACT_EDITS: readonly ExactEdit[] = [
     file: 'knip.json',
     find: `    "packages/bundle/base": {
       "ignoreDependencies": [
-        "@bosch/.+",
+        "@hydra/.+",
         "@cordisjs/.+"
       ]`,
     replace: `    "packages/bundle/base": {
       "ignoreDependencies": [
-        "@bosch/.+"
+        "@hydra/.+"
       ]`,
     expect: 1,
   },
@@ -224,24 +224,24 @@ const EXACT_EDITS: readonly ExactEdit[] = [
   {
     id: 'publication-set-scope-assertion',
     file: 'scripts/publish-npm-baseline.ts',
-    find: '      if (!isVendored && !name.startsWith(\'@bosch/\')) {',
+    find: '      if (!isVendored && !name.startsWith(\'@hydra/\')) {',
     replace: `      // Vendored packages are rescoped too (vendor/README.md), so publication
       // never carries an upstream name that would squat it on the registry.
-      if (!name.startsWith('@bosch/')) {`,
+      if (!name.startsWith('@hydra/')) {`,
     expect: 1,
   },
   {
     id: 'vendor-readme-preamble',
     file: 'vendor/README.md',
     find: 'All vendored packages keep their **original npm names** and are marked `private: true` — they are never published from this repo. `pnpm-workspace.yaml#linkWorkspacePackages` makes matching upstream semver ranges resolve these pinned workspaces, including imports from built `lib/`; disabling it substitutes npm copies behind the same names.',
-    replace: 'All vendored packages are **renamed into the `@bosch` scope** (`cordis` → `@bosch/cordis`, `@cordisjs/plugin-<x>` → `@bosch/cordis-plugin-<x>`): every harness package declares `cordis` as a peer dependency, so publishing the harness publishes this framework layer too, and a publication under the upstream names would squat them on the registry. Directory names and upstream version numbers are deliberately unchanged, so the manifest below still reads as an upstream snapshot. `pnpm-workspace.yaml#linkWorkspacePackages` makes those preserved semver ranges resolve these pinned workspaces, including imports from built `lib/`.',
+    replace: 'All vendored packages are **renamed into the `@hydra` scope** (`cordis` → `@hydra/cordis`, `@cordisjs/plugin-<x>` → `@hydra/cordis-plugin-<x>`): every harness package declares `cordis` as a peer dependency, so publishing the harness publishes this framework layer too, and a publication under the upstream names would squat them on the registry. Directory names and upstream version numbers are deliberately unchanged, so the manifest below still reads as an upstream snapshot. `pnpm-workspace.yaml#linkWorkspacePackages` makes those preserved semver ranges resolve these pinned workspaces, including imports from built `lib/`.',
     expect: 1,
   },
   {
     id: 'vendor-readme-schemastery-note',
     file: 'vendor/README.md',
     find: 'whose lazy `require(\'cosmokit\')` can race',
-    replace: 'whose lazy `require(\'@bosch/cosmokit\')` can race',
+    replace: 'whose lazy `require(\'@hydra/cosmokit\')` can race',
     expect: 1,
   },
   {
@@ -256,7 +256,7 @@ const EXACT_EDITS: readonly ExactEdit[] = [
     id: 'agent-spine-demo-mounted-tree',
     file: 'packages/examples/agent-spine-demo/README.md',
     find: '@cordisjs/plugin-timer            timer service',
-    replace: '@bosch/cordis-plugin-timer  timer service',
+    replace: '@hydra/cordis-plugin-timer  timer service',
     expect: 1,
   },
   {
@@ -264,11 +264,11 @@ const EXACT_EDITS: readonly ExactEdit[] = [
     id: 'root-agents-vendored-name-contract',
     file: 'AGENTS.md',
     find: 'vendored packages keep upstream names and are `private: true`. `cordis` is a peerDependency (+ dev) of every harness package.',
-    replace: 'vendored packages are rescoped ([mapping](docs/rescope.md)) and `private: true`. `@bosch/cordis` is a peerDependency (+ dev) of every harness package.',
+    replace: 'vendored packages are rescoped ([mapping](docs/rescope.md)) and `private: true`. `@hydra/cordis` is a peerDependency (+ dev) of every harness package.',
     expect: 1,
   },
   {
-    // The client purity gate reads `@bosch/` as "another plugin package".
+    // The client purity gate reads `@hydra/` as "another plugin package".
     // The rescope moves the vendored framework and its libraries into that
     // namespace, where the gate would reject the library imports client
     // bundles have always inlined, so it needs their names.
@@ -276,12 +276,12 @@ const EXACT_EDITS: readonly ExactEdit[] = [
     file: 'packages/client/tsdown.client.ts',
     find: '/** Generated descriptor/codec contribution with no shared runtime identity. */',
     replace: `/**
- * Vendored framework libraries: rescoped into @bosch, so the gate below
+ * Vendored framework libraries: rescoped into @hydra, so the gate below
  * would read them as plugin packages. They carry no cross-plugin runtime
  * identity to share — the framework itself is a requested module-table row
  * (external), while these are ordinary libraries a browser bundle inlines.
  */
-const VENDORED_LIBRARY = /^@bosch\\/(cosmokit|schemastery)(\\/|$)/
+const VENDORED_LIBRARY = /^@hydra\\/(cosmokit|schemastery)(\\/|$)/
 
 /** Generated descriptor/codec contribution with no shared runtime identity. */`,
     expect: 1,
@@ -316,14 +316,14 @@ const VENDORED_LIBRARY = /^@bosch\\/(cosmokit|schemastery)(\\/|$)/
     id: 'agent-preset-spec-framework-import',
     file: 'packages/client/ui-agent-preset/tests/apply.client.spec.ts',
     find: "import { Context } from 'cordis'",
-    replace: "import { Context } from '@bosch/cordis'",
+    replace: "import { Context } from '@hydra/cordis'",
     expect: 1,
   },
   {
     id: 'web-agent-presets-e2e-framework-import',
     file: 'apps/cli/tests/web-agent-presets.e2e.ts',
     find: "import { Context } from 'cordis'",
-    replace: "import { Context } from '@bosch/cordis'",
+    replace: "import { Context } from '@hydra/cordis'",
     expect: 1,
   },
   {
@@ -361,7 +361,7 @@ const VENDORED_LIBRARY = /^@bosch\\/(cosmokit|schemastery)(\\/|$)/
     id: 'notices-vendored-section',
     file: 'scripts/gen-third-party-notices.ts',
     find: 'The Cordis framework and its foundation libraries are source-vendored into this repository rather than consumed from npm. All are MIT-licensed',
-    replace: 'The Cordis framework and its foundation libraries are source-vendored into this repository rather than consumed from npm, and republished under the \\`@bosch\\` scope. All are MIT-licensed',
+    replace: 'The Cordis framework and its foundation libraries are source-vendored into this repository rather than consumed from npm, and republished under the \\`@hydra\\` scope. All are MIT-licensed',
     expect: 1,
   },
   {
@@ -380,7 +380,7 @@ const VENDORED_LIBRARY = /^@bosch\\/(cosmokit|schemastery)(\\/|$)/
     file: 'scripts/gen-third-party-notices.spec.ts',
     find: '    expect(rows).toContainEqual({ npmName: \'cordis\', upstream: \'https://github.com/cordiverse/cordis\' })',
     replace: `    expect(rows).toContainEqual({
-      npmName: '@bosch/cordis',
+      npmName: '@hydra/cordis',
       upstreamName: 'cordis',
       upstream: 'https://github.com/cordiverse/cordis',
     })`,
@@ -390,7 +390,7 @@ const VENDORED_LIBRARY = /^@bosch\\/(cosmokit|schemastery)(\\/|$)/
     id: 'notices-spec-shape-fixture',
     file: 'scripts/gen-third-party-notices.spec.ts',
     find: 'parseVendoredRows(\'| `cordis/` | cordis | 4.0.0 | https://example.com | `abc123` |\\n\')',
-    replace: 'parseVendoredRows(\'| `cordis/` | `@bosch/cordis` | cordis | 4.0.0 | https://example.com | `abc123` |\\n\')',
+    replace: 'parseVendoredRows(\'| `cordis/` | `@hydra/cordis` | cordis | 4.0.0 | https://example.com | `abc123` |\\n\')',
     expect: 1,
   },
   {
@@ -402,7 +402,7 @@ const VENDORED_LIBRARY = /^@bosch\\/(cosmokit|schemastery)(\\/|$)/
 ]`,
     replace: `  'packages/runtime-diagnostics/invariants',
   // The framework and the vendored packages the closure declares outright:
-  // rescoped into @bosch, so the consumer installs this repository's
+  // rescoped into @hydra, so the consumer installs this repository's
   // copies. Schemastery is a hard dependency of three members above, not a
   // peer, so npm resolves it while installing them.
   'vendor/cordis',
@@ -587,7 +587,7 @@ function main(): void {
   const all = patterns(reverse)
   const files = execFileSync('git', ['ls-files', '-z'], { cwd: root, encoding: 'utf8' })
     .split('\0')
-    .filter(file => file !== '' && !excluded(file))
+    .filter(file => file !== '' && !excluded(file) && existsSync(resolve(root, file)))
 
   const counts = new Map<string, { files: number; lines: number }>()
   const failures: string[] = []

@@ -1,4 +1,4 @@
-# @bosch/bh-agent-default-model
+# @hydra/harness-agent-default-model
 
 The deployment default used when an entry point creates an Agent that has no session-local model selection. `AgentDefaultModelConfig` provides `ctx.agentDefaultModel`; direct entry points such as `bh --profile headless` and Host-backed entry points such as ApiProxy read the same service instead of owning parallel provider/model defaults.
 

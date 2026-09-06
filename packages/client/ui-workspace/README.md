@@ -1,4 +1,4 @@
-# @bosch/bh-client-ui-workspace
+# @hydra/harness-client-ui-workspace
 
 Shared Workspace browser and picker plugin. `WorkspaceBrowser` fills the sidebar's `sidebar.workspaces` slot, while `WorkspacePicker` fills the page-local Session Intent hero's `conversation.hero.workspace` slot; both surfaces use the same Workspace menu and add flow.
 

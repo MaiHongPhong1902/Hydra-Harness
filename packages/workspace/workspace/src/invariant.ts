@@ -1,14 +1,14 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-workspace`.
- * @module @bosch/bh-workspace/invariant
+ * Package-owned invariant companion for `@hydra/harness-workspace`.
+ * @module @hydra/harness-workspace/invariant
  */
 
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
-import type { DomainChanged } from '@bosch/bh-storage-domain'
-import { WorkspaceId } from '@bosch/bh-workspace'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
+import type { DomainChanged } from '@hydra/harness-storage-domain'
+import { WorkspaceId } from '@hydra/harness-workspace'
 
-const PACKAGE_NAME = '@bosch/bh-workspace'
+const PACKAGE_NAME = '@hydra/harness-workspace'
 
 /** Cordis companion plugin name. */
 export const name = 'workspace-invariant'

@@ -1,4 +1,4 @@
-# @bosch/bh-session-title
+# @hydra/harness-session-title
 
 Log-backed session titles with an immediate deterministic fallback and one optional asynchronous provider. Every accepted revision is a log-only `session/title` event; `foldSessionTitle()` and `ctx.sessionTitle.get()` select the latest event and return its event seq and timestamp.
 

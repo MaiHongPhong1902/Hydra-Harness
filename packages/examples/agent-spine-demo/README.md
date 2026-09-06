@@ -1,4 +1,4 @@
-# @bosch/bh-agent-spine-demo
+# @hydra/harness-agent-spine-demo
 
 The **default executor-less, UI-less agent spine** as ONE Cordis bundle plugin. It loads the fixed set of services every harness agent needs, including the local skill provider, and forwards the loop's `agents` list as its own config — so an app package composes a working agent by adding only an entry point and the swappable backends.
 
@@ -9,32 +9,32 @@ Read this package for the whole plugin tree and its composition order.
 `apply(ctx, config)` mounts each of these as a child of the bundle fiber:
 
 ```
-@bosch/cordis-plugin-timer  timer service (writes nothing to stdout)
-@bosch/bh-llm              abstract LLM service + content-block vocabulary
-@bosch/bh-session          event-sourced session log + store
-@bosch/bh-session-title    log-backed title service + deterministic fallback
-@bosch/bh-system-prompt    prompt-section + tool-schema assembly
-@bosch/bh-tools            registry + guarded pre/around/post/final-result pipeline
-@bosch/bh-skill            skill provider registry
-@bosch/bh-skill-filesystem      local filesystem skill provider
-@bosch/bh-agent            agent registry + initiator scope + agent/* events
-@bosch/bh-goal             optional persisted same-session goal domain
-@bosch/bh-tool-goal        optional model-facing goal controls
-@bosch/bh-goal-round-driver     optional same-session goal-round driver
-@bosch/bh-llm-retry        provider-routed request retry policy
-@bosch/bh-jobs-local      generic background-job registry
-@bosch/bh-invariants       configurable invariant registry service
-@bosch/bh-session/invariant
-@bosch/bh-agent/invariant
-@bosch/bh-scope/invariant
-@bosch/bh-agent-loop/invariant
+@hydra/cordis-plugin-timer  timer service (writes nothing to stdout)
+@hydra/harness-llm              abstract LLM service + content-block vocabulary
+@hydra/harness-session          event-sourced session log + store
+@hydra/harness-session-title    log-backed title service + deterministic fallback
+@hydra/harness-system-prompt    prompt-section + tool-schema assembly
+@hydra/harness-tools            registry + guarded pre/around/post/final-result pipeline
+@hydra/harness-skill            skill provider registry
+@hydra/harness-skill-filesystem      local filesystem skill provider
+@hydra/harness-agent            agent registry + initiator scope + agent/* events
+@hydra/harness-goal             optional persisted same-session goal domain
+@hydra/harness-tool-goal        optional model-facing goal controls
+@hydra/harness-goal-round-driver     optional same-session goal-round driver
+@hydra/harness-llm-retry        provider-routed request retry policy
+@hydra/harness-jobs-local      generic background-job registry
+@hydra/harness-invariants       configurable invariant registry service
+@hydra/harness-session/invariant
+@hydra/harness-agent/invariant
+@hydra/harness-scope/invariant
+@hydra/harness-agent-loop/invariant
                                   package-owned relational checks
-@bosch/bh-tool-bash        the model-facing bash schema (unless toolBash=false)
-@bosch/bh-agent-instructions  AGENTS.md/CLAUDE.md workspace context loader
-@bosch/bh-tool-skill       bounded skill search + exact model-facing loader schemas
-@bosch/bh-tool-jobs       job_output/job_list/job_kill schemas + completion notices
-@bosch/bh-agent-loop       THE concrete loop (gets the forwarded `agents`)
-                                  (bh-system-prompt gets the forwarded `persona`)
+@hydra/harness-tool-bash        the model-facing bash schema (unless toolBash=false)
+@hydra/harness-agent-instructions  AGENTS.md/CLAUDE.md workspace context loader
+@hydra/harness-tool-skill       bounded skill search + exact model-facing loader schemas
+@hydra/harness-tool-jobs       job_output/job_list/job_kill schemas + completion notices
+@hydra/harness-agent-loop       THE concrete loop (gets the forwarded `agents`)
+                                  (@hydra/harness-system-prompt gets the forwarded `persona`)
 ```
 
 ## What it deliberately leaves OUTSIDE the bundle
@@ -52,14 +52,14 @@ This applies the [Service Definition / Service Provider / Consumer separation](.
 ## Config
 
 ```ts
-import type { Config } from '@bosch/bh-agent-spine-demo'
+import type { Config } from '@hydra/harness-agent-spine-demo'
 // { agents?, maxParallelToolCalls?, includeHarnessIdentity?, includeRuntimeContext?, persona?, toolOrder?, tools?, bhHome?, sessionTitle?, skills?, workspaceContext, toolBash?, jobs?, toolJobs?, goals?, invariants? }
 // workspaceContext requires { maxBytes } or false; the other owner schemas supply defaults.
 ```
 
-The bundle forwards each field to the child that owns it. App packages supply any pre-created agents: headless and JSON-RPC compositions create `main`, while the ACP app creates agents on demand at `session/new`. `includeRuntimeContext: false` is forwarded to `bh-system-prompt` and suppresses all dynamic context snapshots for fresh sessions without disabling their policy services. Prompt, tool, title, skill, agent-instructions, invariant, goal, and task settings retain the schemas and defaults documented by their owning packages; `jobs.maxConcurrentJobsPerOwner` configures the local provider independently of the model-facing `toolJobs` controls. `pickSpineConfig()` copies only fields owned by this bundle, and conflicting `bhHome` values fail during composition.
+The bundle forwards each field to the child that owns it. App packages supply any pre-created agents: headless and JSON-RPC compositions create `main`, while the ACP app creates agents on demand at `session/new`. `includeRuntimeContext: false` is forwarded to `@hydra/harness-system-prompt` and suppresses all dynamic context snapshots for fresh sessions without disabling their policy services. Prompt, tool, title, skill, agent-instructions, invariant, goal, and task settings retain the schemas and defaults documented by their owning packages; `jobs.maxConcurrentJobsPerOwner` configures the local provider independently of the model-facing `toolJobs` controls. `pickSpineConfig()` copies only fields owned by this bundle, and conflicting `bhHome` values fail during composition.
 
-For example, `{ invariants: { enabled: true, package_allowlist: ['^@bosch/bh-'], package_blocklist: ['agent-loop$'] } }` keeps the package-owned companions mounted but suppresses the blocked owner. Blocklist matches override allowlist matches; see [`bh-invariants`](../../runtime-diagnostics/invariants/README.md) for regex and lifecycle rules.
+For example, `{ invariants: { enabled: true, package_allowlist: ['^@hydra/harness-'], package_blocklist: ['agent-loop$'] } }` keeps the package-owned companions mounted but suppresses the blocked owner. Blocklist matches override allowlist matches; see [`@hydra/harness-invariants`](../../runtime-diagnostics/invariants/README.md) for regex and lifecycle rules.
 
 ## Why a code bundle, not a shared YAML include
 
@@ -69,7 +69,7 @@ The retry policy may repeat a failed request in a new numbered step. Retry statu
 
 ## Model Experience
 
-Indirectly, through `bh-system-prompt`, `bh-tool-skill`, `bh-tool-bash`, `bh-tools`, and `bh-llm-retry`, plus `bh-tool-goal` and goal-round prompts when `goals` is enabled. The bundle adds no model-bound wrapper content of its own.
+Indirectly, through `@hydra/harness-system-prompt`, `@hydra/harness-tool-skill`, `@hydra/harness-tool-bash`, `@hydra/harness-tools`, and `@hydra/harness-llm-retry`, plus `@hydra/harness-tool-goal` and goal-round prompts when `goals` is enabled. The bundle adds no model-bound wrapper content of its own.
 
 #### KV Cache effect
 

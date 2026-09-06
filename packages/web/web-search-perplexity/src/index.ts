@@ -1,16 +1,16 @@
 /**
- * `@bosch/bh-web-search-perplexity`: registers a Perplexity-backed
+ * `@hydra/harness-web-search-perplexity`: registers a Perplexity-backed
  * `WebSearchProvider` with `ctx.web`. A function/namespace plugin (NOT a
  * default-export service): it registers INTO the seam's provider registry, like
- * `@bosch/bh-llm-deepseek` registers an adapter into `ctx.llm`.
+ * `@hydra/harness-llm-deepseek` registers an adapter into `ctx.llm`.
  *
- * @module @bosch/bh-web-search-perplexity
+ * @module @hydra/harness-web-search-perplexity
  */
 
-import type { Context } from '@bosch/cordis'
-import { launchEnvironmentOf } from '@bosch/bh-launch-environment'
-import z from '@bosch/schemastery'
-import type {} from '@bosch/bh-web'
+import type { Context } from '@hydra/cordis'
+import { launchEnvironmentOf } from '@hydra/harness-launch-environment'
+import z from '@hydra/schemastery'
+import type {} from '@hydra/harness-web'
 import { PerplexitySearchProvider, PERPLEXITY_DEFAULT_BASE_URL, PERPLEXITY_DEFAULT_MAX_TOKENS, PERPLEXITY_DEFAULT_MODEL } from './provider.ts'
 
 export {

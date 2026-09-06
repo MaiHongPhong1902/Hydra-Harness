@@ -78,7 +78,7 @@ You never write a profile manifest by hand: `bh plugin` creates and maintains it
 bh plugin --profile demo add ./hello-plugin
 ```
 
-The first use initializes the profile (with `@bosch/bh-base` as its first bundle), pnpm links the checkout, and `bh` appends the bundle to `bh.profile.bundles` because the package declares `bh.bundle`:
+The first use initializes the profile (with `@hydra/harness-base` as its first bundle), pnpm links the checkout, and `bh` appends the bundle to `bh.profile.bundles` because the package declares `bh.bundle`:
 
 ```json
 {
@@ -90,7 +90,7 @@ The first use initializes the profile (with `@bosch/bh-base` as its first bundle
   "bh": {
     "profile": {
       "bundles": [
-        "@bosch/bh-base",
+        "@hydra/harness-base",
         "bh-hello-plugin"
       ]
     }
@@ -111,7 +111,7 @@ bh --profile demo
 
 The effective configuration composes over an empty root by applying, in order:
 
-1. Each bundle patch named in the profile's `bh.profile.bundles` list, in list order — `@bosch/bh-base` first, then each installed bundle in the order it was added.
+1. Each bundle patch named in the profile's `bh.profile.bundles` list, in list order — `@hydra/harness-base` first, then each installed bundle in the order it was added.
 2. The profile's own `cordis.patch.yml`.
 3. The home-level `$BH_HOME/cordis.patch.yml` — machine-local preferences shared by every profile.
 4. Each `--patch <path>` overlay, in argv order.
@@ -120,10 +120,10 @@ App arguments are not another patch layer. A surface bundle can resolve them thr
 
 Later layers win per row, and a patch replaces a row's entire `config` value rather than deep-merging keys. Two consequences for bundle authors:
 
-- Your patch can override rows from earlier layers by `id` — the same way [the `bh-web-app` bundle](../../../../packages/bundle/web-app/cordis.patch.yml) overrides `bh-base` rows — but must restate every key the row needs, not just the changed one.
+- Your patch can override rows from earlier layers by `id` — the same way [the `@hydra/harness-web-app` bundle](../../../../packages/bundle/web-app/cordis.patch.yml) overrides `@hydra/harness-base` rows — but must restate every key the row needs, not just the changed one.
 - Users can override your rows in their profile's `cordis.patch.yml` without touching your package, so prefer configuration defaults users are likely to keep and let the schema carry the rest.
 
-In-box bundle names always resolve from the bh installation itself; pnpm manages only out-of-tree packages, so your bundle can rely on `@bosch/bh-base` being present and current.
+In-box bundle names always resolve from the bh installation itself; pnpm manages only out-of-tree packages, so your bundle can rely on `@hydra/harness-base` being present and current.
 
 ## Give a surface bundle its own command line
 
@@ -134,7 +134,7 @@ A bundle that defines a runnable app mounts an ordinary provider plugin:
   name: 'bh-hello-plugin/startup'
 ```
 
-The plugin exports `inject = ['cmdlineArgs']`, calls `parseCmdline` from [`@bosch/bh-cmdline`](../../../../packages/boot/cmdline/README.md) with its own commander program, and provides its app-owned service from the program's action. The launcher hands every plugin the same immutable arguments after launcher flags, so app-specific flags need no launcher change and multiple plugins may parse the snapshot. The Loader row needs no launcher marker or special kind.
+The plugin exports `inject = ['cmdlineArgs']`, calls `parseCmdline` from [`@hydra/harness-cmdline`](../../../../packages/boot/cmdline/README.md) with its own commander program, and provides its app-owned service from the program's action. The launcher hands every plugin the same immutable arguments after launcher flags, so app-specific flags need no launcher change and multiple plugins may parse the snapshot. The Loader row needs no launcher marker or special kind.
 
 Rows configured by those arguments inject the provider's service and read it from their own `!!js` options, with the deployment value beside it as the fallback:
 

@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
-import { credentialRef } from '@bosch/bh-credentials'
-import { createLaunchEnvironmentSnapshot, BH_LAUNCH_ENVIRONMENT_KEY } from '@bosch/bh-launch-environment'
-import type { CredentialRef } from '@bosch/bh-credentials'
+import { credentialRef } from '@hydra/harness-credentials'
+import { createLaunchEnvironmentSnapshot, BH_LAUNCH_ENVIRONMENT_KEY } from '@hydra/harness-launch-environment'
+import type { CredentialRef } from '@hydra/harness-credentials'
 import { LocalCredentialProvider, resolveSpec } from '../src/index.ts'
 
 /** Credential documents are seeded owner-only, exactly as the provider creates them. */

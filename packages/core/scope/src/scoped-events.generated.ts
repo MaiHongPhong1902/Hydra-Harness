@@ -2,7 +2,7 @@
  * Generated scoped-event routing-subject resolvers for bh-scope invariants.
  * Do not edit by hand; run `pnpm run gen-scoped-events`.
  *
- * @module @bosch/bh-scope/scoped-events.generated
+ * @module @hydra/harness-scope/scoped-events.generated
  */
 
 type ScopedSubjectResolver = (args: readonly unknown[]) => unknown

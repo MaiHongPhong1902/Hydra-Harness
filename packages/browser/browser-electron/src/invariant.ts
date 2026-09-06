@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-browser-electron`.
- * @module @bosch/bh-browser-electron/invariant
+ * Package-owned invariant companion for `@hydra/harness-browser-electron`.
+ * @module @hydra/harness-browser-electron/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-browser-electron'
+const PACKAGE_NAME = '@hydra/harness-browser-electron'
 
 /** Cordis companion plugin name. */
 export const name = 'browser-electron-invariant'

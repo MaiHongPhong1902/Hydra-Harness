@@ -5,10 +5,10 @@
  * connection is not local.
  */
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import type { HookRecordSnapshot } from '@bosch/bh-api-remotes/client'
+import type { HookRecordSnapshot } from '@hydra/harness-api-remotes/client'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { HookRecordCatalog, type UserHookControls } from '../src/client/HookRecordCatalog.tsx'
-import { UserHooksSettingsTab, type UserHooksSettingsTabProps } from '../src/client/UserHooksSettingsTab.tsx'
+import { HooksSettingsTab, type HooksSettingsTabProps } from '../src/client/HooksSettingsTab.tsx'
 import { en, type PluginsSettingsLocaleKey } from '../src/client/locales.ts'
 
 afterEach(cleanup)
@@ -42,6 +42,19 @@ function controls(overrides: Partial<UserHookControls> = {}): UserHookControls {
 }
 
 describe('HookRecordCatalog', () => {
+  it('keeps an existing active hook untouched when Add repeats its name', async () => {
+    const face = controls({ list: vi.fn(async () => ACTIVE) })
+    render(<HookRecordCatalog controls={face} query="" t={t} />)
+    await screen.findByText('guardrails')
+    fireEvent.click(screen.getByRole('button', { name: en.userHooksAdd }))
+    const dialog = screen.getByRole('dialog')
+    fireEvent.change(within(dialog).getByLabelText(en.userHooksName), { target: { value: ' guardrails ' } })
+    fireEvent.change(within(dialog).getByLabelText(en.userHooksConfig), { target: { value: '{}' } })
+    fireEvent.click(within(dialog).getByRole('button', { name: en.userHooksSave }))
+    expect(within(dialog).getByRole('alert').textContent).toBe(en.userHooksNameTaken)
+    expect(face.define).not.toHaveBeenCalled()
+    expect(screen.getByRole('switch', { name: `${en.disable} guardrails` }).getAttribute('aria-checked')).toBe('true')
+  })
   it('saves inline definitions with their substitution roots', async () => {
     const face = controls()
     render(<HookRecordCatalog controls={face} query="" t={t} />)
@@ -60,6 +73,7 @@ describe('HookRecordCatalog', () => {
 
     await waitFor(() => {
       expect(face.define).toHaveBeenCalledWith({
+        mode: 'create',
         name: 'guardrails',
         dialect: 'claude-code',
         projectDir: 'C:\\project',
@@ -87,6 +101,7 @@ describe('HookRecordCatalog', () => {
 
     await waitFor(() => {
       expect(face.define).toHaveBeenCalledWith({
+        mode: 'create',
         name: 'project',
         dialect: 'codex',
         configPath: 'C:\\project\\hooks.json',
@@ -162,18 +177,19 @@ describe('HookRecordCatalog', () => {
   })
 })
 
-describe('UserHooksSettingsTab', () => {
+describe('HooksSettingsTab', () => {
   it('says the surface is local-only without controls', () => {
-    render(<UserHooksSettingsTab {...({ query: '', t } as unknown as UserHooksSettingsTabProps)} />)
+    render(<HooksSettingsTab {...({ active: true, query: '', t, renderSlot: () => null } as unknown as HooksSettingsTabProps)} />)
 
     expect(screen.getByText(en.userHooksUnavailable)).toBeTruthy()
   })
 
   it('renders the catalog when the Host serves it', async () => {
-    render(<UserHooksSettingsTab
-      {...({ query: '', t, userHooks: controls() } as unknown as UserHooksSettingsTabProps)}
+    render(<HooksSettingsTab
+      {...({ active: true, query: '', t, renderSlot: () => null, userHooks: controls() } as unknown as HooksSettingsTabProps)}
     />)
 
-    expect(await screen.findByRole('heading', { name: en.userHooksTitle })).toBeTruthy()
+    expect(await screen.findByRole('region', { name: en.hooksTab })).toBeTruthy()
+    expect(await screen.findByText(en.userHooksEmpty)).toBeTruthy()
   })
 })

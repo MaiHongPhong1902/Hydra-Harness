@@ -9,9 +9,9 @@
  * Input side owns the span/bare-token CAS guard) and focuses the composer;
  * the controller never touches the input machine.
  */
-import { createSnapshotStore } from '@bosch/bh-client-runtime/client'
-import type { SnapshotStore } from '@bosch/bh-client-runtime/client'
-import type { TokenSpan } from '@bosch/bh-client-ui-input-trigger/client'
+import { createSnapshotStore } from '@hydra/harness-client-runtime/client'
+import type { SnapshotStore } from '@hydra/harness-client-runtime/client'
+import type { TokenSpan } from '@hydra/harness-client-ui-input-trigger/client'
 import type { SelectOption } from './contract.ts'
 
 /**

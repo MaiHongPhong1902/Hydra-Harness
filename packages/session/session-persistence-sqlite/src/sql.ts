@@ -1,6 +1,6 @@
 /**
  * Closed, package-owned SQL resource loading for SQLite.
- * @module @bosch/bh-session-persistence-sqlite/sql
+ * @module @hydra/harness-session-persistence-sqlite/sql
  */
 
 import { readFileSync } from 'node:fs'

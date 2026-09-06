@@ -3,14 +3,14 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import Loader from '@bosch/cordis-plugin-loader'
-import Include from '@bosch/cordis-plugin-include'
-import LlmRuntime from '@bosch/bh-llm'
-import SessionStore from '@bosch/bh-session'
-import TokenMeter from '@bosch/bh-token-meter'
-import BasicCompactionEngine from '@bosch/bh-compaction-basic'
-import ToolResultPruner from '@bosch/bh-compaction-tool-result-pruner'
+import { Context } from '@hydra/cordis'
+import Loader from '@hydra/cordis-plugin-loader'
+import Include from '@hydra/cordis-plugin-include'
+import LlmRuntime from '@hydra/harness-llm'
+import SessionStore from '@hydra/harness-session'
+import TokenMeter from '@hydra/harness-token-meter'
+import BasicCompactionEngine from '@hydra/harness-compaction-basic'
+import ToolResultPruner from '@hydra/harness-compaction-tool-result-pruner'
 
 let root: string | undefined
 let context: Context | undefined
@@ -32,11 +32,11 @@ async function loadYaml(lines: readonly string[]): Promise<Context> {
   await context.plugin(Loader)
   context.loader.builtins.include = Include
   const modules = new Map<string, unknown>([
-    ['@bosch/bh-llm', LlmRuntime],
-    ['@bosch/bh-session', SessionStore],
-    ['@bosch/bh-token-meter', TokenMeter],
-    ['@bosch/bh-compaction-tool-result-pruner', ToolResultPruner],
-    ['@bosch/bh-compaction-basic', BasicCompactionEngine],
+    ['@hydra/harness-llm', LlmRuntime],
+    ['@hydra/harness-session', SessionStore],
+    ['@hydra/harness-token-meter', TokenMeter],
+    ['@hydra/harness-compaction-tool-result-pruner', ToolResultPruner],
+    ['@hydra/harness-compaction-basic', BasicCompactionEngine],
   ])
   context.loader.internal = {
     version: 'v2',
@@ -56,15 +56,15 @@ async function loadYaml(lines: readonly string[]): Promise<Context> {
 describe('real Loader composition', () => {
   it('loads the shipped token-meter, pruning, and compaction-basic YAML order', async () => {
     const loaded = await loadYaml([
-      "- name: '@bosch/bh-llm'",
-      "- name: '@bosch/bh-session'",
-      "- name: '@bosch/bh-token-meter'",
-      "- name: '@bosch/bh-compaction-tool-result-pruner'",
+      "- name: '@hydra/harness-llm'",
+      "- name: '@hydra/harness-session'",
+      "- name: '@hydra/harness-token-meter'",
+      "- name: '@hydra/harness-compaction-tool-result-pruner'",
       '  config:',
       '    thresholdChars: 100',
       '    headChars: 20',
       '    tailChars: 10',
-      "- name: '@bosch/bh-compaction-basic'",
+      "- name: '@hydra/harness-compaction-basic'",
       '  config:',
       '    thresholdRatio: 0.5',
       '    retainRatio: 0.125',

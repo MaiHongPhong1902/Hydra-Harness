@@ -4,9 +4,9 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import { homedir, tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import type { SandboxPolicy } from '@bosch/bh-sandbox'
-import { LocalSandboxProvider } from '@bosch/bh-sandbox-local'
+import { Context } from '@hydra/cordis'
+import type { SandboxPolicy } from '@hydra/harness-sandbox'
+import { LocalSandboxProvider } from '@hydra/harness-sandbox-local'
 import { bwrapProfileArgs } from '../src/profiles.ts'
 
 /**

@@ -5,14 +5,14 @@
  * patch overlays to apply, and the config dumps — and hands **everything after
  * its own flags** to the booted tree verbatim, where injected app plugins parse
  * their own flag families and print their own `--help` (see
- * `@bosch/bh-cmdline`). Launcher flags therefore come first: the first
+ * `@hydra/harness-cmdline`). Launcher flags therefore come first: the first
  * token this parser does not recognize starts the inner arguments, so
  * `bh --profile tui --resume abc` boots the tui profile with `--resume abc`,
  * and `bh --profile web -h` prints the web app's help, not this one's.
  *
  * `web` is a hardcoded alias for `--profile web`; `plugin` manages a profile's
  * plugin dependencies by forwarding to pnpm.
- * @module @bosch/bh/args
+ * @module @hydra/harness/args
  */
 
 import { Command, CommanderError } from 'commander'
@@ -117,7 +117,7 @@ export function parseBhArgs(argv: readonly string[], version: string): BhInvocat
   program
     .name('bh')
     .version(version, '-V, --version', 'output the version number')
-    .description('bh: boot a Bosch Harness profile — an ordered stack of plugin-bundle patch layers under your own overrides.')
+    .description('bh: boot a Hydra harness profile — an ordered stack of plugin-bundle patch layers under your own overrides.')
     .addHelpText('after', HELP_EXAMPLES)
     .exitOverride()
     // The launcher's flags come first and end at the first token it does not

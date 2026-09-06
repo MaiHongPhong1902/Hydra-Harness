@@ -1,0 +1,4 @@
+- region "System prompts":
+  - heading "System prompts" [level=3]
+  - group: Custom instructions
+  - group: Personality

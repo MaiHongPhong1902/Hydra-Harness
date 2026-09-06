@@ -21,7 +21,7 @@ Every workspace package publishes a separately built `./invariant` companion and
 
 The empty form is an explicit architectural conclusion, not a generated placeholder. A future package change that introduces mutable state or an event protocol must replace the explanation with the corresponding check.
 
-The central `bh-invariants` service owns only configuration, registration uniqueness, child-fiber lifecycle, rollback, disposal, and package-attributed failure. It exposes no generic plugin-shape, service-shape, or startup-assertion helpers and imports no product package.
+The central `@hydra/harness-invariants` service owns only configuration, registration uniqueness, child-fiber lifecycle, rollback, disposal, and package-attributed failure. It exposes no generic plugin-shape, service-shape, or startup-assertion helpers and imports no product package.
 
 ### Implemented checks
 
@@ -29,27 +29,27 @@ The current 103-package workspace has 21 executable companions and 82 justified 
 
 | Owner | Runtime relationship |
 |---|---|
-| `bh-session` | Strict sequence growth, turn/step enclosure, and same-step tool call/result pairing. |
-| `bh-agent` | Non-repeating agent status and terminal disposal transitions. |
-| `bh-scope` | Scoped-event carrier presence and routed-subject consistency. |
-| `bh-agent-loop` | Explicitly marked, frozen loop request reconstruction from the session event log. |
-| `bh-llm` | Stream block grammar, delta type/index matching, single usage, closed blocks, and terminal finish. |
-| `bh-llm-retry` | Durable retry records identify the open turn's latest closed step, remain unique per step, increase monotonically, and stay within retry and non-negative timer bounds. |
-| `bh-tools` | Monotonic pre/execute/post stages and immutable final execution/result snapshots. |
-| `bh-system-prompt` | Authoritative assembly section, tool, and variable data constraints. |
-| `bh-compaction` | Compaction start/summary/end pairing, range endpoints, token counts, and successful-summary presence. |
-| `bh-hook-protocol` | Hook invocation/result correlation, dialect, identity, and duration constraints. |
-| `bh-sandbox-policy` | Durable `sandbox/mode` events use the closed sandbox-mode vocabulary. |
-| `bh-fs` | Filesystem decision/observation events carry usable target and version identities. |
-| `bh-goal` | Durable goal snapshots preserve source attribution, rendered content, revisions, lifecycle and timestamp relationships, and sequential admitted rounds. |
-| `bh-goal-round-driver` | Goal-sourced continuation messages match the prompt reconstructed from the preceding durable goal state. |
-| `bh-subagent` | Provider add/remove and child start/end events preserve identity and pairing. |
-| `bh-permission-presets` | Durable permission decisions name a preset in the active permission table. |
-| `bh-user-approval` | Approval asked/decided records pair by call and use valid outcomes and policies. |
-| `bh-workflow` | Workflow and child-agent start/end events preserve run metadata, identity, outcome, count, and error relations. |
-| `bh-jobs` | Current and terminal task snapshots preserve id/kind, owner, status, and timestamp relationships. |
-| `bh-tool-todo` | Durable whole-list snapshots use unique trimmed items and closed statuses. |
-| `bh-time-context` | Plugin-attributed clock readings agree with the session's open turn, next pre-step position, and elapsed baseline; rendered time parses and does not postdate its event. |
+| `@hydra/harness-session` | Strict sequence growth, turn/step enclosure, and same-step tool call/result pairing. |
+| `@hydra/harness-agent` | Non-repeating agent status and terminal disposal transitions. |
+| `@hydra/harness-scope` | Scoped-event carrier presence and routed-subject consistency. |
+| `@hydra/harness-agent-loop` | Explicitly marked, frozen loop request reconstruction from the session event log. |
+| `@hydra/harness-llm` | Stream block grammar, delta type/index matching, single usage, closed blocks, and terminal finish. |
+| `@hydra/harness-llm-retry` | Durable retry records identify the open turn's latest closed step, remain unique per step, increase monotonically, and stay within retry and non-negative timer bounds. |
+| `@hydra/harness-tools` | Monotonic pre/execute/post stages and immutable final execution/result snapshots. |
+| `@hydra/harness-system-prompt` | Authoritative assembly section, tool, and variable data constraints. |
+| `@hydra/harness-compaction` | Compaction start/summary/end pairing, range endpoints, token counts, and successful-summary presence. |
+| `@hydra/harness-hook-protocol` | Hook invocation/result correlation, dialect, identity, and duration constraints. |
+| `@hydra/harness-sandbox-policy` | Durable `sandbox/mode` events use the closed sandbox-mode vocabulary. |
+| `@hydra/harness-fs` | Filesystem decision/observation events carry usable target and version identities. |
+| `@hydra/harness-goal` | Durable goal snapshots preserve source attribution, rendered content, revisions, lifecycle and timestamp relationships, and sequential admitted rounds. |
+| `@hydra/harness-goal-round-driver` | Goal-sourced continuation messages match the prompt reconstructed from the preceding durable goal state. |
+| `@hydra/harness-subagent` | Provider add/remove and child start/end events preserve identity and pairing. |
+| `@hydra/harness-permission-presets` | Durable permission decisions name a preset in the active permission table. |
+| `@hydra/harness-user-approval` | Approval asked/decided records pair by call and use valid outcomes and policies. |
+| `@hydra/harness-workflow` | Workflow and child-agent start/end events preserve run metadata, identity, outcome, count, and error relations. |
+| `@hydra/harness-jobs` | Current and terminal task snapshots preserve id/kind, owner, status, and timestamp relationships. |
+| `@hydra/harness-tool-todo` | Durable whole-list snapshots use unique trimmed items and closed statuses. |
+| `@hydra/harness-time-context` | Plugin-attributed clock readings agree with the session's open turn, next pre-step position, and elapsed baseline; rendered time parses and does not postdate its event. |
 
 Session-backed companions validate existing durable events when they load, using the prefix preceding each candidate where the relationship depends on event order. Other checks observe the authoritative live event boundary or mutable service result. Validation runs before publication where accepting an invalid event would otherwise commit bad state.
 

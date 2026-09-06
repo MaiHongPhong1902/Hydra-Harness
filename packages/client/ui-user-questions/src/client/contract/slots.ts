@@ -6,12 +6,12 @@
  * cancelled error encoding, receipt checks — lives HERE, with the package
  * that consumes it.
  */
-import type { PropsLocale, PropsRuntime } from '@bosch/bh-client-ui-slots'
+import type { PropsLocale, PropsRuntime } from '@hydra/harness-client-ui-slots'
 // Also pulls ui-conversation's SlotMap merge (the 'conversation.composer'
 // entry) into every program that sees this contract, so PropsRuntime resolves.
-import type {} from '@bosch/bh-client-ui-conversation/client'
-import type { PendingWait } from '@bosch/bh-client-runtime/client'
-import type { QuestionResponsePayload } from '@bosch/bh-api-remotes/client'
+import type {} from '@hydra/harness-client-ui-conversation/client'
+import type { PendingWait } from '@hydra/harness-client-runtime/client'
+import type { QuestionResponsePayload } from '@hydra/harness-api-remotes/client'
 
 /** The pending question carrier the owner dispatches into the composer slot. */
 export type QuestionWait = PendingWait<'question'>

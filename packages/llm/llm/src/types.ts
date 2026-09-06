@@ -4,12 +4,12 @@
  * mapped interfaces make the content, source, and finish unions extensible.
  */
 
-import type { Branded } from '@bosch/bh-brand'
-import type { ImageAttachmentRef } from '@bosch/bh-attachment'
+import type { Branded } from '@hydra/harness-brand'
+import type { ImageAttachmentRef } from '@hydra/harness-attachment'
 import type { CallId, ProviderRequestId, ReasoningEffortId } from './brand.ts'
 import type { Message } from './message.ts'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Events {
     /**
      * The provider topology changed: an adapter registered or unregistered
@@ -328,8 +328,8 @@ export type StreamChunk =
 /**
  * JSON-schema description of a tool, as sent to the model.
  *
- * Declared here (not in bh-tools) because it is part of {@link GenerateOptions};
- * bh-tools' ToolDefinition and bh-system-prompt's PromptAssembly both import
+ * Declared here (not in @hydra/harness-tools) because it is part of {@link GenerateOptions};
+ * @hydra/harness-tools' ToolDefinition and @hydra/harness-system-prompt's PromptAssembly both import
  * it from this package.
  */
 export interface ToolSchema {
@@ -349,7 +349,7 @@ export interface GenerateOptions {
   /**
    * Ordered conversation messages, exactly as the provider sees them (after
    * the `system` slot). A loop-built request assembles them as
-   * the derived history (bh-agent-loop); a hand-built one-shot passes any list.
+   * the derived history (@hydra/harness-agent-loop); a hand-built one-shot passes any list.
    */
   messages: Message[]
   /** System prompt text (adapters map to the provider's system slot). */

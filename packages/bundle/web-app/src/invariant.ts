@@ -1,12 +1,12 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-web-app`.
- * @module @bosch/bh-web-app/invariant
+ * Package-owned invariant companion for `@hydra/harness-web-app`.
+ * @module @hydra/harness-web-app/invariant
  */
 
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-web-app'
+const PACKAGE_NAME = '@hydra/harness-web-app'
 
 /** Cordis companion plugin name. */
 export const name = 'web-app-invariant'

@@ -1,16 +1,16 @@
 /**
  * Default model selection for an Agent without a session-specific selection.
  *
- * @module @bosch/bh-agent-default-model
+ * @module @hydra/harness-agent-default-model
  */
 
-import { Context, Service } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import type { ModelSelection } from '@bosch/bh-agent'
-import { ReasoningEffortId } from '@bosch/bh-llm'
-import { installSettingsSection, settingsNamespace } from '@bosch/bh-settings'
+import { Context, Service } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import type { ModelSelection } from '@hydra/harness-agent'
+import { ReasoningEffortId } from '@hydra/harness-llm'
+import { installSettingsSection, settingsNamespace } from '@hydra/harness-settings'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     /** Default model selection for Agents created without an explicit model. */
     agentDefaultModel: AgentDefaultModelConfig

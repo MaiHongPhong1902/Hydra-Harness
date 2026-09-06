@@ -1,9 +1,9 @@
-import type { LlmFailure } from '@bosch/bh-llm/types'
+import type { LlmFailure } from '@hydra/harness-llm/types'
 import type { RetryId } from './brand.ts'
 
 export type { RetryId }
 
-declare module '@bosch/bh-session/types' {
+declare module '@hydra/harness-session/types' {
   interface SessionEventMap {
     /** Durable, non-surface record of one provider-routed retry scheduled after a failed request attempt. */
     'llm/retry': LlmRetryEventData

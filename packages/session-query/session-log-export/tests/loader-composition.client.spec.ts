@@ -3,13 +3,13 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import Loader from '@bosch/cordis-plugin-loader'
-import Include from '@bosch/cordis-plugin-include'
-import type { Agent } from '@bosch/bh-agent'
-import CommandRuntime from '@bosch/bh-commands'
-import SessionStore, { SessionId } from '@bosch/bh-session'
-import * as SessionLogDownload from '@bosch/bh-session-log-export'
+import { Context } from '@hydra/cordis'
+import Loader from '@hydra/cordis-plugin-loader'
+import Include from '@hydra/cordis-plugin-include'
+import type { Agent } from '@hydra/harness-agent'
+import CommandRuntime from '@hydra/harness-commands'
+import SessionStore, { SessionId } from '@hydra/harness-session'
+import * as SessionLogDownload from '@hydra/harness-session-log-export'
 
 let root: string | undefined
 let context: Context | undefined
@@ -26,9 +26,9 @@ describe('session-log-download real Loader composition', () => {
     root = await mkdtemp(join(tmpdir(), 'bh-session-export-loader-'))
     const configPath = join(root, 'cordis.yml')
     await writeFile(configPath, [
-      "- name: '@bosch/bh-session'",
-      "- name: '@bosch/bh-commands'",
-      "- name: '@bosch/bh-session-log-export'",
+      "- name: '@hydra/harness-session'",
+      "- name: '@hydra/harness-commands'",
+      "- name: '@hydra/harness-session-log-export'",
       '',
     ].join('\n'))
 
@@ -37,9 +37,9 @@ describe('session-log-download real Loader composition', () => {
     await context.plugin(Loader)
     context.loader.builtins.include = Include
     const modules = new Map<string, unknown>([
-      ['@bosch/bh-session', SessionStore],
-      ['@bosch/bh-commands', CommandRuntime],
-      ['@bosch/bh-session-log-export', SessionLogDownload],
+      ['@hydra/harness-session', SessionStore],
+      ['@hydra/harness-commands', CommandRuntime],
+      ['@hydra/harness-session-log-export', SessionLogDownload],
     ])
     context.loader.internal = {
       version: 'v2',

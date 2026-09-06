@@ -20,40 +20,40 @@ function createWorkspace(): string {
   const root = mkdtempSync(join(tmpdir(), 'bh-package-licenses-'))
   roots.push(root)
   writeManifest(root, 'package.json', {
-    name: '@bosch/bh-root',
+    name: '@hydra/harness-root',
     license: 'MIT',
     workspaces: ['apps/*', 'packages/*/*', 'vendor/*'],
   })
   return root
 }
 
-describe('BH package license gate', () => {
+describe('Hydra package license gate', () => {
   it('checks root, unhyphenated CLI, and bh-prefixed package names while ignoring other families', () => {
     const root = createWorkspace()
-    writeManifest(root, 'apps/cli/package.json', { name: '@bosch/bh', license: 'MIT' })
+    writeManifest(root, 'apps/cli/package.json', { name: '@hydra/harness', license: 'MIT' })
     writeManifest(root, 'packages/core/agent/package.json', {
-      name: '@bosch/bh-agent',
+      name: '@hydra/harness-agent',
       license: 'BSD-3-Clause',
     })
     writeManifest(root, 'vendor/cordis/package.json', {
-      name: '@bosch/cordis',
+      name: '@hydra/cordis',
       license: 'BSD-3-Clause',
     })
 
     expect(inspectBhPackageLicenses(root)).toEqual({
       packageCount: 3,
       failures: [
-        'packages/core/agent/package.json: @bosch/bh-agent must declare "license": "MIT"; found "BSD-3-Clause".',
+        'packages/core/agent/package.json: @hydra/harness-agent must declare "license": "MIT"; found "BSD-3-Clause".',
       ],
     })
   })
 
   it('rejects a missing license declaration', () => {
     const root = createWorkspace()
-    writeManifest(root, 'packages/core/agent/package.json', { name: '@bosch/bh-agent' })
+    writeManifest(root, 'packages/core/agent/package.json', { name: '@hydra/harness-agent' })
 
     expect(inspectBhPackageLicenses(root).failures).toEqual([
-      'packages/core/agent/package.json: @bosch/bh-agent must declare "license": "MIT"; found undefined.',
+      'packages/core/agent/package.json: @hydra/harness-agent must declare "license": "MIT"; found undefined.',
     ])
   })
 })

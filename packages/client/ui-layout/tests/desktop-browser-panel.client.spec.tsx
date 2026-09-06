@@ -3,13 +3,13 @@ import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, waitFor, within } from '@testing-library/react'
-import type { SessionId, WorkspaceId } from '@bosch/bh-client-runtime/client'
+import type { SessionId, WorkspaceId } from '@hydra/harness-client-runtime/client'
 import {
   DesktopBrowserPanel,
   DesktopPanelControls,
-} from '@bosch/bh-client-ui-layout/src/client/DesktopBrowserPanel.tsx'
-import type { DesktopBrowserApi } from '@bosch/bh-client-ui-layout/src/client/DesktopBrowserPanel.tsx'
-import { DesktopFilesPanel } from '@bosch/bh-client-ui-layout/src/client/DesktopFilesPanel.tsx'
+} from '@hydra/harness-client-ui-layout/src/client/DesktopBrowserPanel.tsx'
+import type { DesktopBrowserApi } from '@hydra/harness-client-ui-layout/src/client/DesktopBrowserPanel.tsx'
+import { DesktopFilesPanel } from '@hydra/harness-client-ui-layout/src/client/DesktopFilesPanel.tsx'
 
 vi.mock('@xterm/xterm', () => ({ Terminal: vi.fn() }))
 

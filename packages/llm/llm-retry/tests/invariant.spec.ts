@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import SessionStore, { SessionId, type Session } from '@bosch/bh-session'
-import { createUserMessage, ProviderRequestId } from '@bosch/bh-llm'
-import { MAX_TIMER_DELAY_MS } from '@bosch/bh-timeout'
-import InvariantRegistry from '@bosch/bh-invariants'
-import * as RetryInvariant from '@bosch/bh-llm-retry/invariant'
-import { RetryId } from '@bosch/bh-llm-retry'
+import { Context } from '@hydra/cordis'
+import SessionStore, { SessionId, type Session } from '@hydra/harness-session'
+import { createUserMessage, ProviderRequestId } from '@hydra/harness-llm'
+import { MAX_TIMER_DELAY_MS } from '@hydra/harness-timeout'
+import InvariantRegistry from '@hydra/harness-invariants'
+import * as RetryInvariant from '@hydra/harness-llm-retry/invariant'
+import { RetryId } from '@hydra/harness-llm-retry'
 import { providerForOpenStep } from '../src/history.ts'
 
 async function setup(): Promise<Context> {

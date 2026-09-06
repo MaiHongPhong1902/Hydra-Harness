@@ -3,12 +3,12 @@
  * children. Kept apart from the service so composition helpers can read it
  * without importing the registry.
  *
- * @module @bosch/bh-subagent/depth
+ * @module @hydra/harness-subagent/depth
  */
 
-import type { Agent } from '@bosch/bh-agent'
+import type { Agent } from '@hydra/harness-agent'
 
-declare module '@bosch/bh-agent' {
+declare module '@hydra/harness-agent' {
   interface AgentOptions {
     /** Delegation depth: zero for a top-level agent and parent depth + 1 for a child. */
     subagentDepth?: number

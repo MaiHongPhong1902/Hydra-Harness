@@ -1,11 +1,11 @@
-/** Local durable attachment backend rooted below `BH_HOME`. @module @bosch/bh-attachment-local */
+/** Local durable attachment backend rooted below `BH_HOME`. @module @hydra/harness-attachment-local */
 
 import { join, resolve } from 'node:path'
-import { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import { AttachmentStore } from '@bosch/bh-attachment'
-import type { ImageAttachmentLimits, ImageAttachmentRef, SaveImageAttachment, StoredImageAttachment } from '@bosch/bh-attachment'
-import { resolveBhHome } from '@bosch/bh-home-paths'
+import { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import { AttachmentStore } from '@hydra/harness-attachment'
+import type { ImageAttachmentLimits, ImageAttachmentRef, SaveImageAttachment, StoredImageAttachment } from '@hydra/harness-attachment'
+import { resolveBhHome } from '@hydra/harness-home-paths'
 import { readImageFile, saveImageFile, validateImageFile } from './store.ts'
 
 export { readImageFile, saveImageFile, validateImageFile } from './store.ts'

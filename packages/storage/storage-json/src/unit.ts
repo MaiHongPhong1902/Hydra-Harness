@@ -4,12 +4,12 @@
  * NOT queued here — per the backend contract, write ordering belongs to the
  * caller (the domain layer's write chain); this unit only guarantees that
  * each single call publishes a complete, durable file.
- * @module @bosch/bh-storage-json/src/unit
+ * @module @hydra/harness-storage-json/src/unit
  */
 
 import { readFile } from 'node:fs/promises'
-import { StorageError } from '@bosch/bh-storage'
-import type { KvUnit, KvUnitDescriptor } from '@bosch/bh-storage'
+import { StorageError } from '@hydra/harness-storage'
+import type { KvUnit, KvUnitDescriptor } from '@hydra/harness-storage'
 import { writeAtomic } from './atomic.ts'
 import { parse, serialize } from './format.ts'
 import type { UnitState } from './format.ts'

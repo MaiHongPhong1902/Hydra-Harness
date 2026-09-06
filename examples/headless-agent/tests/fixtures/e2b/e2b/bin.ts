@@ -1,13 +1,13 @@
 import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
-import { boot } from '@bosch/bh-app-boot'
-import { Inbox } from '@bosch/bh-agent'
-import type { Agent } from '@bosch/bh-agent'
-import { Session, SessionId } from '@bosch/bh-session'
-import type {} from '@bosch/bh-fs-e2b'
-import type {} from '@bosch/bh-bash-local'
-import type {} from '@bosch/bh-lsp-stdio'
-import type {} from '@bosch/bh-terminal-bash'
+import { boot } from '@hydra/harness-app-boot'
+import { Inbox } from '@hydra/harness-agent'
+import type { Agent } from '@hydra/harness-agent'
+import { Session, SessionId } from '@hydra/harness-session'
+import type {} from '@hydra/harness-fs-e2b'
+import type {} from '@hydra/harness-bash-local'
+import type {} from '@hydra/harness-lsp-stdio'
+import type {} from '@hydra/harness-terminal-bash'
 
 const configPath = process.argv[2]
 if (configPath === undefined) throw new Error('usage: bin.ts <cordis.yml>')

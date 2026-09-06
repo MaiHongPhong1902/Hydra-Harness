@@ -3,12 +3,12 @@
 # /tmp. A workspace-write mutation can therefore succeed only when the calling
 # session's cwd replaces the process-level fallback root.
 - id: base
-  name: '@bosch/cordis-plugin-include'
+  name: '@hydra/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - id: sandbox-policy
-        name: '@bosch/bh-sandbox-policy'
+        name: '@hydra/harness-sandbox-policy'
         config:
           mode: !!js "process.env.BH_PERMISSION_MODE ?? (process.env.BH_SNAPSHOT === undefined ? 'workspace-write' : 'danger-full-access')"
           workspaceRoot: /tmp

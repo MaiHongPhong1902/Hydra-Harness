@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-typert-loader`.
- * @module @bosch/bh-typert-loader/invariant
+ * Package-owned invariant companion for `@hydra/harness-typert-loader`.
+ * @module @hydra/harness-typert-loader/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-typert-loader'
+const PACKAGE_NAME = '@hydra/harness-typert-loader'
 
 /** Cordis companion plugin name. */
 export const name = 'typert-loader-invariant'

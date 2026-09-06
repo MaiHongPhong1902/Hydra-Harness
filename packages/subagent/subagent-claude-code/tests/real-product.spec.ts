@@ -17,16 +17,16 @@ import type {
   SDKMessage,
   SDKSystemMessage,
 } from '@anthropic-ai/claude-agent-sdk'
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
-import type { Agent } from '@bosch/bh-agent'
-import SubagentRuntime from '@bosch/bh-subagent'
+import type { Agent } from '@hydra/harness-agent'
+import SubagentRuntime from '@hydra/harness-subagent'
 import type {
   SubprocessHandle,
   SubprocessOutcome,
   SubprocessSpawnSpec,
-} from '@bosch/bh-subprocess'
-import LocalSubprocessRuntime from '@bosch/bh-subprocess-local'
+} from '@hydra/harness-subprocess'
+import LocalSubprocessRuntime from '@hydra/harness-subprocess-local'
 import * as claudeCode from '../src/index.ts'
 import type { ClaudeCodePermissionMode } from '../src/run.ts'
 import {

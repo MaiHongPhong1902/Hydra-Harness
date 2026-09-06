@@ -1,12 +1,12 @@
 # Live counterpart for the runner-classification snapshot overlay. It replaces
 # only the sandbox provider; authored scenarios are skipped in record mode.
 - id: base
-  name: '@bosch/cordis-plugin-include'
+  name: '@hydra/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - id: sandbox
-        name: '@bosch/bh-sandbox-local'
+        name: '@hydra/harness-sandbox-local'
         disabled: true
       - insert:
           - id: partial-landlock-sandbox

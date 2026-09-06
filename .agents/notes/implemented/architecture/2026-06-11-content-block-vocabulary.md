@@ -1,4 +1,4 @@
-# Agent Note: Provider-neutral content-block vocabulary owned by bh-llm
+# Agent Note: Provider-neutral content-block vocabulary owned by @hydra/harness-llm
 
 Status: implemented
 

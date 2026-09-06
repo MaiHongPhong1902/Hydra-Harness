@@ -1,20 +1,20 @@
 /**
  * Same-session goal domain: event-sourced state, compare-and-set mutations,
  * and process-local continuation activation.
- * @module @bosch/bh-goal
+ * @module @hydra/harness-goal
  */
 
 import { randomUUID } from 'node:crypto'
-import { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
+import { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
 import { z as zod } from 'zod'
 import type { ZodType } from 'zod'
-import { agentEvents } from '@bosch/bh-agent'
-import type { Agent } from '@bosch/bh-agent'
-import type { Session, SessionEvent } from '@bosch/bh-session'
-import { TypertRemoteService, Remote } from '@bosch/bh-typert-protocol'
+import { agentEvents } from '@hydra/harness-agent'
+import type { Agent } from '@hydra/harness-agent'
+import type { Session, SessionEvent } from '@hydra/harness-session'
+import { TypertRemoteService, Remote } from '@hydra/harness-typert-protocol'
 // Type-only: resolves ctx.sessionProjections for the optional unit child.
-import type {} from '@bosch/bh-session-projection'
+import type {} from '@hydra/harness-session-projection'
 import {
   applyGoalEvent,
   decodeGoalChange,
@@ -56,7 +56,7 @@ export type * from './domain.ts'
 export { GOAL_CHANGE_VERSION, GoalError, GoalId } from './runtime.ts'
 export { decodeGoalChange, foldGoal, goalChangeRef } from './fold.ts'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     goals: GoalService
   }

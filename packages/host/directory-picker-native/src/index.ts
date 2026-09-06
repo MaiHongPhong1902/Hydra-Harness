@@ -6,11 +6,11 @@
  * koffi-driven COM conversation on the child's main thread). Only viable when
  * the operator sits at the host's screen; remote deployments compose the
  * browse backend instead.
- * @module @bosch/bh-host-directory-picker-native
+ * @module @hydra/harness-host-directory-picker-native
  */
 
-import { DirectoryPicker } from '@bosch/bh-host-directory-picker'
-import type { DirectoryPickerCapability } from '@bosch/bh-host-directory-picker'
+import { DirectoryPicker } from '@hydra/harness-host-directory-picker'
+import type { DirectoryPickerCapability } from '@hydra/harness-host-directory-picker'
 import { pickNativeDirectory } from './native-picker.ts'
 
 export type { DirectoryPickerInternals, DirectoryPickerRunner } from './native-picker.ts'

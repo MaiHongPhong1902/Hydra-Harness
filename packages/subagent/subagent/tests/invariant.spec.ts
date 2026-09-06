@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import { scopeTarget } from '@bosch/bh-scope'
-import { SessionId } from '@bosch/bh-session'
-import SubagentRuntime, { SubagentRunId } from '@bosch/bh-subagent'
+import { Context } from '@hydra/cordis'
+import { scopeTarget } from '@hydra/harness-scope'
+import { SessionId } from '@hydra/harness-session'
+import SubagentRuntime, { SubagentRunId } from '@hydra/harness-subagent'
 import type {
   SubagentProvider,
   SubagentRunEndInfo,
   SubagentRunInfo,
-} from '@bosch/bh-subagent'
-import * as SubagentInvariant from '@bosch/bh-subagent/invariant'
-import InvariantRegistry from '@bosch/bh-invariants'
+} from '@hydra/harness-subagent'
+import * as SubagentInvariant from '@hydra/harness-subagent/invariant'
+import InvariantRegistry from '@hydra/harness-invariants'
 
 async function setup(): Promise<Context> {
   const ctx = new Context()

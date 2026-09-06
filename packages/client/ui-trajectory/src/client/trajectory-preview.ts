@@ -1,6 +1,6 @@
 /** Bounded Markdown-to-text projection shared by trajectory consumers. */
 
-import { extractMarkdownPlainText } from '@bosch/bh-client-ui-primitives'
+import { extractMarkdownPlainText } from '@hydra/harness-client-ui-primitives'
 
 const PREVIEW_SOURCE_CHARACTERS = 2_048
 const PREVIEW_OUTPUT_CHARACTERS = 512

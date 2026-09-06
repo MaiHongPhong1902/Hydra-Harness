@@ -1,4 +1,4 @@
-import { createToolResultMessage, createUserMessage } from '@bosch/bh-llm'
+import { createToolResultMessage, createUserMessage } from '@hydra/harness-llm'
 /**
  * Coordinator semantics against a bare fake backend — the RFC's named unit
  * tier for the seam: adoption (fresh, seeded, re-adoption via the handoff
@@ -7,9 +7,9 @@ import { createToolResultMessage, createUserMessage } from '@bosch/bh-llm'
  */
 
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import SessionStore, { SessionId, type Session, type SessionEvent } from '@bosch/bh-session'
-import type { Agent } from '@bosch/bh-agent'
+import { Context } from '@hydra/cordis'
+import SessionStore, { SessionId, type Session, type SessionEvent } from '@hydra/harness-session'
+import type { Agent } from '@hydra/harness-agent'
 import {
   SessionTelemetryCoordinator,
   type SessionTelemetrySink,
@@ -17,7 +17,7 @@ import {
   type SessionTelemetryRecord,
 } from '../src/index.ts'
 
-declare module '@bosch/bh-session/types' {
+declare module '@hydra/harness-session/types' {
   interface SessionEventMap {
     /**
      * Test-only merged event proving unknown types flow through unchanged.

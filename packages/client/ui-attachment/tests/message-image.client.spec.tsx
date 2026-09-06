@@ -2,8 +2,8 @@
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, waitFor } from '@testing-library/react'
-import { AttachmentId } from '@bosch/bh-attachment'
-import type { MessageImagesProps } from '@bosch/bh-client-ui-conversation/client'
+import { AttachmentId } from '@hydra/harness-attachment'
+import type { MessageImagesProps } from '@hydra/harness-client-ui-conversation/client'
 import { ImageGallery, MessageImage } from '../src/MessageImage.tsx'
 import type { MessageImageLabels } from '../src/MessageImage.tsx'
 import { MessageImages } from '../src/client/MessageImages.tsx'

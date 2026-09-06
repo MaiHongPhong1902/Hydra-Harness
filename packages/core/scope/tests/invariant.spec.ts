@@ -1,11 +1,11 @@
-import { freezeMessage, MessageId } from '@bosch/bh-llm'
+import { freezeMessage, MessageId } from '@hydra/harness-llm'
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import type { Events } from '@bosch/cordis'
-import type { Agent } from '@bosch/bh-agent'
-import { scopeTarget } from '@bosch/bh-scope'
-import * as ScopeInvariant from '@bosch/bh-scope/invariant'
-import InvariantRegistry from '@bosch/bh-invariants'
+import { Context } from '@hydra/cordis'
+import type { Events } from '@hydra/cordis'
+import type { Agent } from '@hydra/harness-agent'
+import { scopeTarget } from '@hydra/harness-scope'
+import * as ScopeInvariant from '@hydra/harness-scope/invariant'
+import InvariantRegistry from '@hydra/harness-invariants'
 
 async function setup(): Promise<Context> {
   const ctx = new Context()

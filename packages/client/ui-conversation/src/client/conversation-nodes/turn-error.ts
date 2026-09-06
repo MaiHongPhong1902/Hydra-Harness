@@ -1,11 +1,11 @@
-import type { Context } from '@bosch/cordis'
+import type { Context } from '@hydra/cordis'
 import type {
   ConversationMatch, ConversationNodeContext, ConversationNodeDefinition, TurnErrorNode,
-} from '@bosch/bh-client-runtime/client'
-import { displayFailureMessage } from '@bosch/bh-client-runtime/client'
+} from '@hydra/harness-client-runtime/client'
+import { displayFailureMessage } from '@hydra/harness-client-runtime/client'
 import { chatNode } from './common.ts'
 
-declare module '@bosch/bh-client-ui-conversation/client' {
+declare module '@hydra/harness-client-ui-conversation/client' {
   interface ChatNodeDataMap {
     /** Terminal turn failure recorded on the turn's end reason. */
     'turn-error': TurnErrorNode

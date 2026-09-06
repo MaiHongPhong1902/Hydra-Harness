@@ -21,7 +21,7 @@ The vocabulary is semantic, never visual. A value states that the content is a f
 
 **`instructions`** — instructions read out of workspace files. `agent-instructions` declares it on both the startup baseline and later deltas; its existing `changes[]` already carried the paths, actions, and digests the presentation needs, so no field was added. The body lists the reconciled files above the text, and keeps the `<system-reminder>` framing verbatim: the framing is part of what the model read, so hiding it would misreport the request.
 
-**`catalog`** — a catalog of items available at the time its producer published the message. Historical `bh-tool-skill` records use the dedicated `skill-catalog` source with `entries` (the exact `name`/`description` pairs published) and optional `update`; the body renders those fields instead of re-parsing model-facing prose. Current bounded skill routing emits tool results rather than new catalog-form messages, while replay keeps this form readable.
+**`catalog`** — a catalog of items available at the time its producer published the message. Historical `@hydra/harness-tool-skill` records use the dedicated `skill-catalog` source with `entries` (the exact `name`/`description` pairs published) and optional `update`; the body renders those fields instead of re-parsing model-facing prose. Current bounded skill routing emits tool results rather than new catalog-form messages, while replay keeps this form readable.
 
 Legacy entries record the published fact **unescaped**. Pseudo-XML escaping belonged to the model-facing `<available_skills>` frame and was never stored, so current transcript rendering can display descriptions containing `<` without knowing that frame's encoding.
 

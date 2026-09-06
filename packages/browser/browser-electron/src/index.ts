@@ -2,18 +2,18 @@
  * Owner-scoped embedded browser. One agent gets one Electron window, started
  * on its first action and closed with the agent, driven through the upstream
  * PageAgent runtime running in the view's preload.
- * @module @bosch/bh-browser-electron
+ * @module @hydra/harness-browser-electron
  */
 
 import { constants } from 'node:fs'
 import { access, realpath, stat } from 'node:fs/promises'
 import { isAbsolute, join } from 'node:path'
-import { Context, Service } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import type { Agent } from '@bosch/bh-agent'
-import { resolveBhHome } from '@bosch/bh-home-paths'
-import { installSettingsSection, settingsNamespace } from '@bosch/bh-settings'
-import type { ApprovalRequest } from '@bosch/bh-user-approval'
+import { Context, Service } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import type { Agent } from '@hydra/harness-agent'
+import { resolveBhHome } from '@hydra/harness-home-paths'
+import { installSettingsSection, settingsNamespace } from '@hydra/harness-settings'
+import type { ApprovalRequest } from '@hydra/harness-user-approval'
 import { launchBrowser } from './child.ts'
 import type { BrowserChild, BrowserChildProcess } from './child.ts'
 import { executePageAgentLlm } from './page-agent-llm.ts'
@@ -105,7 +105,7 @@ const DISABLED_BROWSER_SETTINGS: BrowserSettings = Object.freeze({
   controlEnabled: false,
 })
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     browsers: BrowserSessionService
   }

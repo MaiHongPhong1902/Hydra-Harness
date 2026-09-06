@@ -7,9 +7,9 @@
 
 import { describe, expect, it } from 'vitest'
 import fc from 'fast-check'
-import { isJsonValue } from '@bosch/bh-session'
-import { parameterSchemaSpecToJsonSchema, validateArgs } from '@bosch/bh-tools'
-import type { ParameterPropertySpec, ParameterSchemaSpec, ValueSchemaSpec } from '@bosch/bh-tools'
+import { isJsonValue } from '@hydra/harness-session'
+import { parameterSchemaSpecToJsonSchema, validateArgs } from '@hydra/harness-tools'
+import type { ParameterPropertySpec, ParameterSchemaSpec, ValueSchemaSpec } from '@hydra/harness-tools'
 
 /** Remove parameter-only requiredness before nesting a schema as an array item. */
 function asValueSchema(prop: ParameterPropertySpec): ValueSchemaSpec {

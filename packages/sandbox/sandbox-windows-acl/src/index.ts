@@ -1,5 +1,5 @@
 /**
- * Windows ACL write-restriction sandbox backend for the Bosch Harness
+ * Windows ACL write-restriction sandbox backend for the Hydra harness
  * sandbox seam. Mirrors the mechanism of github.com/huoyaoyuan/
  * windows-acl-restrict-poc @ 10e4dfb (the fixed revision): a WRITE_RESTRICTED
  * token whose restricting SIDs include distinct workspace and temp write
@@ -37,7 +37,7 @@
  *    the CALLER owns the DACLs (the sandbox seam's grant reuse):
  *    init()/dispose() skip grant/revoke entirely and the caller must not
  *    revoke under live children.
- * @module @bosch/bh-sandbox-windows-acl
+ * @module @hydra/harness-sandbox-windows-acl
  */
 
 import { existsSync, statSync } from 'node:fs'

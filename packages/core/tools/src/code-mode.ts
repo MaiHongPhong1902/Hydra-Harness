@@ -3,14 +3,14 @@
  * tools through nested executions scheduled under the native concurrency
  * contract; each sub-dispatch is logged for reconstruction, while only the
  * outer curated result enters model history.
- * @module @bosch/bh-tools/src/code-mode
+ * @module @hydra/harness-tools/src/code-mode
  */
 
-import { CallId, createUserMessage, HarnessError } from '@bosch/bh-llm'
-import type { ContentBlock } from '@bosch/bh-llm'
-import type { CodeBindingFunction, CodeRunResult, CodeRuntime } from '@bosch/bh-code-runtime'
-import { snapshotJsonValue } from '@bosch/bh-session'
-import type { JsonValue } from '@bosch/bh-session'
+import { CallId, createUserMessage, HarnessError } from '@hydra/harness-llm'
+import type { ContentBlock } from '@hydra/harness-llm'
+import type { CodeBindingFunction, CodeRunResult, CodeRuntime } from '@hydra/harness-code-runtime'
+import { snapshotJsonValue } from '@hydra/harness-session'
+import type { JsonValue } from '@hydra/harness-session'
 import { defineTool, parameterSchemaSpecToJsonSchema } from './schema.ts'
 import { TOOL_RUNTIME_SCHEDULER } from './index.ts'
 import type { CodeDispatchLog, ToolDefinition, ToolExecutionResult, ToolRuntime, ToolRunContext } from './index.ts'

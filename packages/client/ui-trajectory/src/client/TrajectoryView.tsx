@@ -1,12 +1,12 @@
 /** Trajectory view: compact summary over a turn-aware event ledger. */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { ConvViewProps } from '@bosch/bh-client-ui-conversation/client'
-import type { InjectFace, PropsLocale } from '@bosch/bh-client-ui-slots'
+import type { ConvViewProps } from '@hydra/harness-client-ui-conversation/client'
+import type { InjectFace, PropsLocale } from '@hydra/harness-client-ui-slots'
 import type {
   AssistantBlock, AssistantMessageNode, ConversationSnapshot,
   SnapshotStore,
-} from '@bosch/bh-client-runtime/client'
+} from '@hydra/harness-client-runtime/client'
 import {
   TrajectoryTable,
   type TrajectoryRequestNumber,

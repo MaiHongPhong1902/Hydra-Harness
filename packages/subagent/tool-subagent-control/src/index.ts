@@ -4,16 +4,16 @@
  * `ctx.subagents.interrupt()`. They perform no lifecycle routing of their own —
  * residency, cold resume, and interrupt authorization belong to the subagent
  * service — and they live apart from the provider-bound
- * `@bosch/bh-tool-subagent` instances so multiple delegation tools share
+ * `@hydra/harness-tool-subagent` instances so multiple delegation tools share
  * one control API.
- * @module @bosch/bh-tool-subagent-control
+ * @module @hydra/harness-tool-subagent-control
  */
 
-import type { Context } from '@bosch/cordis'
-import { defineTool } from '@bosch/bh-tools'
-import type { ContentBlock } from '@bosch/bh-llm'
-import { SessionId } from '@bosch/bh-session'
-import type {} from '@bosch/bh-subagent'
+import type { Context } from '@hydra/cordis'
+import { defineTool } from '@hydra/harness-tools'
+import type { ContentBlock } from '@hydra/harness-llm'
+import { SessionId } from '@hydra/harness-session'
+import type {} from '@hydra/harness-subagent'
 
 export const name = 'tool-subagent-control'
 export const inject = ['tools', 'subagents']

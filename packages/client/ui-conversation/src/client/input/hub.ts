@@ -8,9 +8,9 @@
  * bail events) and owns the default-sink choreography: every session is a
  * real host entity, so the sink is one unconditional prompt path.
  */
-import type { ClientContext, ISessions, SessionBinding, SessionFace, SessionId } from '@bosch/bh-client-runtime/client'
-import type { InputTriggerController, SubmitImageAttachment, SubmitOutcome } from '@bosch/bh-client-ui-input-trigger/client'
-import type { TranslateNS } from '@bosch/bh-client-locale/client'
+import type { ClientContext, ISessions, SessionBinding, SessionFace, SessionId } from '@hydra/harness-client-runtime/client'
+import type { InputTriggerController, SubmitImageAttachment, SubmitOutcome } from '@hydra/harness-client-ui-input-trigger/client'
+import type { TranslateNS } from '@hydra/harness-client-locale/client'
 import { queueReadFaceOf } from '../queue/store.ts'
 import type { ComposerKeyboard, DraftAttachmentId, SessionInputResolver, SessionInput } from './contract.ts'
 import type { InputSubmitMode } from '../contract/composer-submission.ts'

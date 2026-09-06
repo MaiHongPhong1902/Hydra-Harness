@@ -7,7 +7,7 @@
  * removed or bundle-less dependency leaves it). Reconciling by installed
  * state, not by dependency diff, means `update` activates a package that
  * gained its `bh.bundle` declaration in a newer version.
- * @module @bosch/bh/plugin
+ * @module @hydra/harness/plugin
  */
 
 import { spawnSync } from 'node:child_process'
@@ -22,7 +22,7 @@ import {
   resolveProfileDir,
   writeProfileManifest,
   type ProfileManifest,
-} from '@bosch/bh-app-boot'
+} from '@hydra/harness-app-boot'
 import { INSTALL_ANCHOR } from './profile-boot.ts'
 
 const NAME = 'bh'
@@ -77,7 +77,7 @@ function reconcilePlugins(before: ProfileManifest, profileDir: string): void {
   const dependencySet = new Set(dependencies)
   for (const packageName of [...plugins]) {
     // Only dependency-managed entries are subject to removal; template
-    // bundles (bh-base and friends) are not dependencies.
+    // bundles (@hydra/harness-base and friends) are not dependencies.
     const wasDependency = beforeDeps.has(packageName) || dependencySet.has(packageName)
     const stillBundle = dependencySet.has(packageName) && exportsPatch(packageName, profileDir)
     if (wasDependency && !stillBundle) {

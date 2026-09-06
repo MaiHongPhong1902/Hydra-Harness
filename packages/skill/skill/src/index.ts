@@ -3,22 +3,23 @@
  *
  * This package owns the Service Definition role of the skill capability seam.
  * Concrete
- * providers such as `@bosch/bh-skill-filesystem` decide where skills come
+ * providers such as `@hydra/harness-skill-filesystem` decide where skills come
  * from; this service only merges provider catalogs, resolves the winning skill
  * for a name, and exposes the winning summaries and definitions to consumers.
  *
- * @module @bosch/bh-skill
+ * @module @hydra/harness-skill
  */
 
-import { Context, Service } from '@bosch/cordis'
-import { assertNever } from '@bosch/bh-llm'
-import { NamedEntries, ScopedLayers, scopeChainOf, scopeOf } from '@bosch/bh-scope'
-import type { ScopeKey, ScopeLayer } from '@bosch/bh-scope'
-import z from '@bosch/schemastery'
-import type Schema from '@bosch/schemastery'
+import { Context, Service } from '@hydra/cordis'
+import { assertNever } from '@hydra/harness-llm'
+import { NamedEntries, ScopedLayers, scopeChainOf, scopeOf } from '@hydra/harness-scope'
+import type { ScopeKey, ScopeLayer } from '@hydra/harness-scope'
+import z from '@hydra/schemastery'
+import type Schema from '@hydra/schemastery'
+import { isSkillName } from './frontmatter.ts'
+export { isSkillName, parseSkillDocument, type SkillDocument } from './frontmatter.ts'
 export type {} from './types.ts'
 
-const SKILL_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 const DEFAULT_COLLECT_CACHE_ENTRIES = 128
 const MAX_COLLECT_ATTEMPTS = 2
 const RUNTIME_PROVIDER = 'runtime'
@@ -26,15 +27,6 @@ const RUNTIME_RANK = 250
 
 /** Standard precedence rank for packaged skill providers and local bundled roots. */
 export const BUNDLED_SKILL_RANK = 600
-
-/**
- * Return whether a string is a valid kebab-case skill name.
- * @param name - candidate skill name to validate.
- * @returns whether the name matches the public skill-name grammar.
- */
-export function isSkillName(name: string): boolean {
-  return SKILL_NAME.test(name)
-}
 
 /** Origin bucket for a skill contribution. The value is prompt-visible metadata, not precedence by itself. */
 export type SkillSource = 'project-bh' | 'project-agents' | 'runtime' | 'user-bh' | 'user-agents' | 'custom' | 'bundled' | (string & {})
@@ -57,6 +49,8 @@ export interface SkillInvocationPolicy {
 export interface SkillSummary {
   /** Kebab-case identifier used to address the skill. */
   readonly name: string
+  /** Canonical catalog name when this summary exposes an unambiguous alias. */
+  readonly aliasFor?: string
   /** Short routing description shown by discovery consumers. */
   readonly description: string
   /** Optional extra routing guidance. */
@@ -156,7 +150,7 @@ export interface SkillInvocationSource {
   readonly form: 'instructions'
 }
 
-declare module '@bosch/bh-llm' {
+declare module '@hydra/harness-llm' {
   interface MessageSourceMap {
     /** A skill invocation injected by the host. */
     'skill-invocation': SkillInvocationSource
@@ -285,7 +279,7 @@ export interface Config {
   readonly collectCacheMaxEntries?: number
 }
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     skills: SkillRegistry
   }
@@ -476,7 +470,10 @@ export class SkillRegistry extends Service {
     const collected = await this.collect(options)
     return {
       skills: [...collected.entries]
-        .map(([name, entry]) => ({ ...toSummary(entry.candidate), name }))
+        .map(([name, entry]) => ({
+          ...toSummary(entry.candidate), name,
+          ...name === entry.candidate.name ? {} : { aliasFor: entry.candidate.name },
+        }))
         .sort(compareSkillSummary),
       complete: collected.cacheable,
     }
@@ -718,7 +715,7 @@ function validateCandidate(candidate: SkillCandidate, providerName: string): voi
   if (typeof candidate.name !== 'string') {
     throw new TypeError(`skill provider "${providerName}" returned a non-string skill name`)
   }
-  if (!SKILL_NAME.test(candidate.name)) {
+  if (!isSkillName(candidate.name)) {
     throw new Error(`skill provider "${providerName}" returned invalid skill name "${candidate.name}"`)
   }
   if (typeof candidate.description !== 'string') {
@@ -754,7 +751,7 @@ function validateCandidate(candidate: SkillCandidate, providerName: string): voi
       if (typeof alias !== 'string') {
         throw new TypeError(`skill provider "${providerName}" returned skill "${candidate.name}" with a non-string alias`)
       }
-      if (!SKILL_NAME.test(alias)) {
+      if (!isSkillName(alias)) {
         throw new Error(`skill provider "${providerName}" returned skill "${candidate.name}" with invalid alias "${alias}"`)
       }
     }
@@ -762,7 +759,7 @@ function validateCandidate(candidate: SkillCandidate, providerName: string): voi
 }
 
 function validateRuntimeSkill(skill: SkillRegistration): void {
-  if (!SKILL_NAME.test(skill.name)) throw new Error(`invalid skill name "${skill.name}"`)
+  if (!isSkillName(skill.name)) throw new Error(`invalid skill name "${skill.name}"`)
   if (skill.description.length === 0) throw new Error(`skill "${skill.name}" requires a description`)
   validateInvocation(skill.invocation, `runtime skill "${skill.name}"`)
 }
@@ -778,7 +775,7 @@ function validateDefinition(skill: SkillDefinition): void {
   const content = skill.content
   const path = skill.path
   if (typeof name !== 'string') throw new TypeError('loaded skill name must be a string')
-  if (!SKILL_NAME.test(name)) throw new Error(`loaded skill has invalid name "${name}"`)
+  if (!isSkillName(name)) throw new Error(`loaded skill has invalid name "${name}"`)
   if (typeof description !== 'string') throw new TypeError(`loaded skill "${name}" description must be a string`)
   if (description.length === 0) throw new Error(`loaded skill "${name}" requires a description`)
   validateInvocation(invocation, `loaded skill "${name}"`)

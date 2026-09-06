@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { jsonSchemaToPy, renderToolsSdkPy } from '@bosch/bh-tools/src/py-types.ts'
-import { parameterSchemaSpecToJsonSchema } from '@bosch/bh-tools'
-import type { ToolSdkSchema } from '@bosch/bh-tools/src/ts-types.ts'
+import { jsonSchemaToPy, renderToolsSdkPy } from '@hydra/harness-tools/src/py-types.ts'
+import { parameterSchemaSpecToJsonSchema } from '@hydra/harness-tools'
+import type { ToolSdkSchema } from '@hydra/harness-tools/src/ts-types.ts'
 
 describe('jsonSchemaToPy', () => {
   it('maps the defineTool DSL subset', () => {

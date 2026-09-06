@@ -1,8 +1,8 @@
 /** The package's node half: an empty host body and an explained empty invariant companion. */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import InvariantRegistry from '@bosch/bh-invariants'
+import { Context } from '@hydra/cordis'
+import InvariantRegistry from '@hydra/harness-invariants'
 import { apply } from '../src/index.ts'
 import * as PersonalizationInvariant from '../src/invariant.ts'
 

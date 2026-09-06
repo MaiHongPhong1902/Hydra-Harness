@@ -1,0 +1,10 @@
+- region "System prompts":
+  - heading "System prompts" [level=3]
+  - group:
+    - text: Custom instructionsUnsaved changes
+    - paragraph: Additional guidance for chats on this host. Save to apply from the next model request, including in existing chats. System and direct user instructions take precedence.
+    - button "Save"
+    - textbox "Custom instructions":
+      - /placeholder: Adhere to the following rules for all responses…
+      - text: Unsaved instructions across sections
+  - group: Personality

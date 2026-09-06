@@ -19,19 +19,19 @@ Create the `packages/storage/` group — the `ctx.storage` hub (backend registry
 
 | Package | Path | ctx surface | This phase |
 | --- | --- | --- | --- |
-| `@bosch/bh-storage` | `packages/storage/storage/` | `ctx.storage` (the hub) | ✓ |
-| `@bosch/bh-storage-json` | `packages/storage/storage-json/` | registers backend `json` | ✓ |
-| `@bosch/bh-storage-sqlite` | `packages/storage/storage-sqlite/` | registers backend `sqlite` | ✓ |
-| `@bosch/bh-storage-domain` | `packages/storage/storage-domain/` | mounts `ctx.storage.domain` | ✓ |
-| `@bosch/bh-workspace` | `packages/workspace/workspace/` | `ctx.workspaceRegistry` | ✓ |
+| `@hydra/harness-storage` | `packages/storage/storage/` | `ctx.storage` (the hub) | ✓ |
+| `@hydra/harness-storage-json` | `packages/storage/storage-json/` | registers backend `json` | ✓ |
+| `@hydra/harness-storage-sqlite` | `packages/storage/storage-sqlite/` | registers backend `sqlite` | ✓ |
+| `@hydra/harness-storage-domain` | `packages/storage/storage-domain/` | mounts `ctx.storage.domain` | ✓ |
+| `@hydra/harness-workspace` | `packages/workspace/workspace/` | `ctx.workspaceRegistry` | ✓ |
 | `SessionPersistence.delete` extension + cascade orchestration | `packages/session/session-persistence*` | new method on the existing seam | ✗ future work (session side untouched this phase) |
 | `workspace.*` / `session.delete` RPC, GUI wiring, boot assembly | — | — | ✗ next phase |
 
-(workspace lives in its own group rather than `packages/host/`: the host group's naming rule requires the `bh-host-*` prefix while this package is named `bh-workspace`; and the workspace entity is a domain concept, not bound to the host assembly tier. Unrelated to the existing `agent-instructions` package — that is an AGENTS.md instruction loader.)
+(workspace lives in its own group rather than `packages/host/`: the host group's naming rule requires the `bh-host-*` prefix while this package is named `@hydra/harness-workspace`; and the workspace entity is a domain concept, not bound to the host assembly tier. Unrelated to the existing `agent-instructions` package — that is an AGENTS.md instruction loader.)
 
-Dependency direction: `bh-workspace` → `bh-domain` → `bh-storage` ← the two backends. `bh-workspace` additionally depends on the read-only face of `ctx.sessionPersistence` (attach's cwd check reads the session header; when the service is absent, attach rejects outright — no verification, no bookkeeping). The `ctx.sessions` running-check for session deletion moves into future work together with the cascade.
+Dependency direction: `@hydra/harness-workspace` → `bh-domain` → `@hydra/harness-storage` ← the two backends. `@hydra/harness-workspace` additionally depends on the read-only face of `ctx.sessionPersistence` (attach's cwd check reads the session header; when the service is absent, attach rejects outright — no verification, no bookkeeping). The `ctx.sessions` running-check for session deletion moves into future work together with the cascade.
 
-### `bh-storage`: the storage hub
+### `@hydra/harness-storage`: the storage hub
 
 A pure registration hub, no IO of its own, no Config. The `Storage` service mounts at `ctx.storage` with two faces: `backend` (a `BackendRegistry`: `register(name, backend)` returns the disposer, duplicate names throw; `get(name)` throws `backend-not-found` for unknown names) and data-form mounting (`mount(form, facility)` over the merge-extensible `StorageForms` map, into which `bh-domain` merges the `domain` key; unmounted access throws `form-not-mounted`). The signature text lives in `packages/storage/storage/src/index.ts` and `src/registry.ts`.
 
@@ -51,7 +51,7 @@ The backend contract (asserted clause by clause by the shared conformance suite,
 
 The error vocabulary is `StorageError` with a code discriminant: `backend-not-found` / `form-not-mounted` / `duplicate-backend` / `duplicate-mount` / `version-mismatch` / `malformed-medium` / `closed` (`packages/storage/storage/src/error.ts`).
 
-### `bh-storage-json`
+### `@hydra/harness-storage-json`
 
 Config is `root` only (required, no default, schemastery); apply registers backend `json` inside `ctx.effect()`, and the disposer unregisters the name before `backend.close()`.
 
@@ -69,7 +69,7 @@ Config is `root` only (required, no default, schemastery); apply registers backe
 - Writes: every write primitive = full serialization of the in-memory state → temp write + fsync → atomic rename publish (the Windows variant follows session-persistence-jsonl's win32 path). Memory is authoritative, disk is its projection.
 - `loadAll`: parse the whole file at open; a missing `unit` header, non-object tables, etc. → `malformed-medium`. A missing file = an empty unit, materialized on first write.
 
-### `bh-storage-sqlite`
+### `@hydra/harness-storage-sqlite`
 
 Config is `path` (required, `':memory:'` allowed) plus `journalMode` (enum, default `wal`); apply mirrors json, registering backend `sqlite`.
 
@@ -188,7 +188,7 @@ Orchestration rules (implemented together with the cascade; the `session.delete`
 | Recursive order is bottom-up (leaves → root) | — a mid-way crash leaves only "half the subtree deleted, ancestors intact"; re-running the same delete converges, and no dangling parent exists at any moment |
 | Some id in the cascade is already gone from disk | skip (idempotent resumption); any other error aborts |
 
-### `bh-workspace`
+### `@hydra/harness-workspace`
 
 The package owns the `WorkspaceId` brand and exposes `ctx.workspaceRegistry`. The record key is a generated uuid — path is not the key: normalization rewrites it, and reference anchors must be stable.
 
@@ -254,15 +254,15 @@ Consistency doctrine (the ledger = the only ownership authority; the implementat
 
 ### Reuse and the session-backend migration outlook
 
-**Long-term direction**: the pure medium operations inside session-persistence's JSONL/SQLite backends sink into `bh-storage` backends (the session packages stay; the `SessionPersistence` seam and coordinator semantics do not move — only the file/db operation layer beneath them does). The motive for reuse: the medium layer is all filesystem operations, database calls, and cross-platform grit (Windows permission and atomic-publish variants, fsync semantics, exclusive file creation…), which should be written once; business semantics (how a session appends, when, and what) stay above — while "did this append complete correctly underneath" (durability/atomicity/platform correctness) is the lower layer's responsibility, and the responsibility boundary is the facet primitive contract. The backend interface is therefore designed as **medium owner + data-shape facets**: a session log is an append-only stream, a different shape from KV — forcing them into one set of primitives would deform both, so facets split them (`kv` this phase, `log` at migration) while sharing the medium and its lifecycle.
+**Long-term direction**: the pure medium operations inside session-persistence's JSONL/SQLite backends sink into `@hydra/harness-storage` backends (the session packages stay; the `SessionPersistence` seam and coordinator semantics do not move — only the file/db operation layer beneath them does). The motive for reuse: the medium layer is all filesystem operations, database calls, and cross-platform grit (Windows permission and atomic-publish variants, fsync semantics, exclusive file creation…), which should be written once; business semantics (how a session appends, when, and what) stay above — while "did this append complete correctly underneath" (durability/atomicity/platform correctness) is the lower layer's responsibility, and the responsibility boundary is the facet primitive contract. The backend interface is therefore designed as **medium owner + data-shape facets**: a session log is an append-only stream, a different shape from KV — forcing them into one set of primitives would deform both, so facets split them (`kv` this phase, `log` at migration) while sharing the medium and its lifecycle.
 
 The current reuse audit (an account already legible before the migration):
 
 | Existing session-persistence logic | Nature | Disposition |
 | --- | --- | --- |
-| JSONL: temp write + fsync + link/unlink atomic publish, 0o700/0o600 permissions, Windows variant (win32.ts) | pure medium | copied by `bh-storage-json` this phase (whole-file atomic rewrite is the same protocol); becomes the shared implementation at migration |
+| JSONL: temp write + fsync + link/unlink atomic publish, 0o700/0o600 permissions, Windows variant (win32.ts) | pure medium | copied by `@hydra/harness-storage-json` this phase (whole-file atomic rewrite is the same protocol); becomes the shared implementation at migration |
 | JSONL: line-append, first-line header fast read, zstd per-frame compression | log shape | stays put; moves into the `log` facet at migration |
-| SQLite: openDatabase (mkdir/exclusive create/PRAGMA sequence/user_version check) | pure medium | copied by `bh-storage-sqlite` this phase — the two openDatabase copies are already near line-identical and this group is the third user; copy now, extract at migration |
+| SQLite: openDatabase (mkdir/exclusive create/PRAGMA sequence/user_version check) | pure medium | copied by `@hydra/harness-storage-sqlite` this phase — the two openDatabase copies are already near line-identical and this group is the third user; copy now, extract at migration |
 | SQLite: events/sessions schema, same-transaction materialization | log shape | stays put; moves into the `log` facet at migration |
 | coordinator (per-id write chain, lazy materialization, crash repair, flush barrier) | session semantics | never sinks — event-log domain logic whose counterpart here is the domain layer's write chain; each owns its own |
 | encodeSegment (id-to-path escaping) | medium utility | unused on the domain side (keys never reach paths); sinks together with the `log` facet (one file per session) at migration |

@@ -6,15 +6,15 @@
  * Plugin lifecycle reads use the optional `ctx.fs` provider, so providerless products
  * mount it as a no-op.
  *
- * @module @bosch/bh-agent-instructions
+ * @module @hydra/harness-agent-instructions
  */
 
-import type { Context } from '@bosch/cordis'
+import type { Context } from '@hydra/cordis'
 import { isDeepStrictEqual } from 'node:util'
-import type { Agent, PreStepDecision } from '@bosch/bh-agent'
-import { createUserMessage } from '@bosch/bh-llm'
-import type { Session, UserMessage } from '@bosch/bh-session'
-import type { ToolExecution, ToolExecutionResult, ToolExecutionToken } from '@bosch/bh-tools'
+import type { Agent, PreStepDecision } from '@hydra/harness-agent'
+import { createUserMessage } from '@hydra/harness-llm'
+import type { Session, UserMessage } from '@hydra/harness-session'
+import type { ToolExecution, ToolExecutionResult, ToolExecutionToken } from '@hydra/harness-tools'
 import { Config, resolveConfig, workspaceBaselineIdentity, type ResolvedConfig } from './config.ts'
 import { findProjectRoot, loadBaselineInstructionSet } from './files.ts'
 import {

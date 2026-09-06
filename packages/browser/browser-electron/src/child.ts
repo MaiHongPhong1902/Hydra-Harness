@@ -1,7 +1,7 @@
 /**
  * One Electron child process and the NDJSON conversation with it. Knows
  * nothing about agents; the service owns who may talk to which child.
- * @module @bosch/bh-browser-electron/child
+ * @module @hydra/harness-browser-electron/child
  */
 
 import { spawn } from 'node:child_process'
@@ -93,7 +93,7 @@ export interface LaunchOptions {
   readonly electronPath?: string | undefined
   /** Test seam standing in for the real Electron spawn. */
   readonly spawnChild?: ((command: string, args: string[]) => BrowserChildProcess) | undefined
-  /** Route PageAgent's private model request to the owning BH agent. */
+  /** Route PageAgent's private model request to the owning Hydra agent. */
   readonly onPageAgentLlm?: ((request: PageAgentLlmRequest) => Promise<unknown>) | undefined
 }
 

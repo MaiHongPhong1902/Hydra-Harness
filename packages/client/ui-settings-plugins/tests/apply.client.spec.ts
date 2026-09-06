@@ -1,16 +1,16 @@
 /** What the browser half registers, and that it all leaves with the fiber. */
 
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { describe, expect, it, vi } from 'vitest'
-import { resolveSlotLabel } from '@bosch/bh-client-ui-slots'
-import { SlotRegistry } from '@bosch/bh-client-runtime/client'
-import { LocaleRuntime } from '@bosch/bh-client-locale/client'
-import { TestRemote } from '@bosch/bh-client-test-runtime'
-import { apply as settingsApply, inject as settingsInject } from '@bosch/bh-client-ui-settings/client'
-import { apply, inject } from '@bosch/bh-client-ui-settings-plugins/client'
+import { resolveSlotLabel } from '@hydra/harness-client-ui-slots'
+import { SlotRegistry } from '@hydra/harness-client-runtime/client'
+import { LocaleRuntime } from '@hydra/harness-client-locale/client'
+import { TestRemote } from '@hydra/harness-client-test-runtime'
+import { apply as settingsApply, inject as settingsInject } from '@hydra/harness-client-ui-settings/client'
+import { apply, inject } from '@hydra/harness-client-ui-settings-plugins/client'
 import type {
   ConfigurablePluginsTabFace, PluginsSettingsSectionInjected,
-} from '@bosch/bh-client-ui-settings-plugins/client'
+} from '@hydra/harness-client-ui-settings-plugins/client'
 
 /**
  * @param served - namespaces the Host describes; omitted answers a failed read,
@@ -98,8 +98,10 @@ describe('ui-settings-plugins apply', () => {
     expect(resolveSlotLabel(tabs[0]!.options.label)).toBe('Configuration')
     expect(tabs[1]?.options).toMatchObject({ id: 'mcp', order: 5 })
     expect(resolveSlotLabel(tabs[1]!.options.label)).toBe('MCP')
-    expect(tabs[2]?.options).toMatchObject({ id: 'user-hooks', order: 7 })
-    expect(resolveSlotLabel(tabs[2]!.options.label)).toBe('Your hooks')
+    expect(tabs[2]?.options).toMatchObject({ id: 'hooks', order: 25 })
+    expect(resolveSlotLabel(tabs[2]!.options.label)).toBe('Hooks')
+    // The Hooks tab declares and renders the imported catalogs' child slot.
+    expect(slots.spec('settings.plugins.hooks.item')).toMatchObject({ kind: 'list', scope: 'root' })
     expect(slots.spec('settings.plugin.item')).toMatchObject({ kind: 'keyed', scope: 'root' })
   })
 
@@ -115,7 +117,7 @@ describe('ui-settings-plugins apply', () => {
     expect(initialTabs).toEqual([
       { id: 'configurable', order: 0, label: 'Configuration' },
       { id: 'mcp', order: 5, label: 'MCP' },
-      { id: 'user-hooks', order: 7, label: 'Your hooks' },
+      { id: 'hooks', order: 25, label: 'Hooks' },
     ])
     expect(sectionFace.hooks.tabs.getSnapshot()).toBe(initialTabs)
 
@@ -135,7 +137,7 @@ describe('ui-settings-plugins apply', () => {
     expect(sectionFace.hooks.tabs.getSnapshot()).toEqual([
       { id: 'configurable', order: 0, label: 'Configuration' },
       { id: 'mcp', order: 5, label: 'MCP' },
-      { id: 'user-hooks', order: 7, label: 'Your hooks' },
+      { id: 'hooks', order: 25, label: 'Hooks' },
       { id: 'plain', order: 30, label: '' },
     ])
     unsubscribe()

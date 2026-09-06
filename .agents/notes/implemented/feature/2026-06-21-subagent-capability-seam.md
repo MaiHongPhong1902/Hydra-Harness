@@ -2,7 +2,7 @@
 
 Status: implemented
 
-> The full seam is shipped: the `bh-subagent` interface and `bh-tool-subagent` consumer; the two in-process backends (`bh-subagent-spawn-in-process`, `bh-subagent-fork-in-process`); the nested-agent snapshot infrastructure ([per-session snapshot replay](../testing/2026-06-22-subagent-snapshot-replay.md)); and the out-of-process ACP, Codex, and Claude Code backends ([ACP Agent Note](2026-06-22-acp-subagent-backend.md), [product-provider Agent Note](2026-08-04-claude-code-and-codex-subagent-backends.md)).
+> The full seam is shipped: the `@hydra/harness-subagent` interface and `@hydra/harness-tool-subagent` consumer; the two in-process backends (`@hydra/harness-subagent-spawn-in-process`, `@hydra/harness-subagent-fork-in-process`); the nested-agent snapshot infrastructure ([per-session snapshot replay](../testing/2026-06-22-subagent-snapshot-replay.md)); and the out-of-process ACP, Codex, and Claude Code backends ([ACP Agent Note](2026-06-22-acp-subagent-backend.md), [product-provider Agent Note](2026-08-04-claude-code-and-codex-subagent-backends.md)).
 
 ## Problem
 
@@ -29,13 +29,13 @@ A new package group `packages/subagent/`:
 
 | Package | Role |
 |---|---|
-| `@bosch/bh-subagent` | interface: `SubagentRuntime` (`ctx.subagents`), `SubagentProvider`, `SubagentRun`, the request/result/capability vocabulary, the `subagent/*` events |
-| `@bosch/bh-subagent-spawn-in-process` | implementation: a fresh in-process child via `ctx.agents.create` |
-| `@bosch/bh-subagent-fork-in-process` | implementation: an in-process child seeded with a snapshot of the parent's log |
-| `@bosch/bh-subagent-acp` | implementation: an ACP client driving a configured child process |
-| `@bosch/bh-subagent-codex` | implementation: a one-shot official Codex app-server process |
-| `@bosch/bh-subagent-claude-code` | implementation: a one-shot official Claude Code process through the Agent SDK |
-| `@bosch/bh-tool-subagent` | consumer: the model-facing `subagent` tool over `ctx.subagents` |
+| `@hydra/harness-subagent` | interface: `SubagentRuntime` (`ctx.subagents`), `SubagentProvider`, `SubagentRun`, the request/result/capability vocabulary, the `subagent/*` events |
+| `@hydra/harness-subagent-spawn-in-process` | implementation: a fresh in-process child via `ctx.agents.create` |
+| `@hydra/harness-subagent-fork-in-process` | implementation: an in-process child seeded with a snapshot of the parent's log |
+| `@hydra/harness-subagent-acp` | implementation: an ACP client driving a configured child process |
+| `@hydra/harness-subagent-codex` | implementation: a one-shot official Codex app-server process |
+| `@hydra/harness-subagent-claude-code` | implementation: a one-shot official Claude Code process through the Agent SDK |
+| `@hydra/harness-tool-subagent` | consumer: the model-facing `subagent` tool over `ctx.subagents` |
 
 ### The primitive: async `start → SubagentRun`
 
@@ -48,7 +48,7 @@ A provider exposes `start(request) → Promise<SubagentRun>`. Fulfillment publis
 
 ### Fork vs. fresh are separate backends, not a flag
 
-Fresh and forked children are separate providers, not a request flag. `bh-subagent-spawn-in-process` starts an isolated child; `bh-subagent-fork-in-process` seeds a balanced prefix containing only completed parent turns. The in-flight turn is excluded because its subagent call has no result yet and cannot form valid replay history.
+Fresh and forked children are separate providers, not a request flag. `@hydra/harness-subagent-spawn-in-process` starts an isolated child; `@hydra/harness-subagent-fork-in-process` seeds a balanced prefix containing only completed parent turns. The in-flight turn is excluded because its subagent call has no result yet and cannot form valid replay history.
 
 ### Child isolation and the parent log
 
@@ -56,11 +56,11 @@ Each in-process subagent runs in its **own `Session`** (own id, `parentSession` 
 
 ### Synchronous collect (first cut)
 
-`bh-tool-subagent` passes its execution signal to `start()`, awaits the child result, and disposes the run before reporting. Non-completed outcomes become error results rather than successful partial output; they present the optional safe diagnostic owned by the [non-interactive permissions decision](2026-08-15-product-subagent-noninteractive-permissions.md) separately from partial assistant text. Independent result and disposal rejections remain independently observable.
+`@hydra/harness-tool-subagent` passes its execution signal to `start()`, awaits the child result, and disposes the run before reporting. Non-completed outcomes become error results rather than successful partial output; they present the optional safe diagnostic owned by the [non-interactive permissions decision](2026-08-15-product-subagent-noninteractive-permissions.md) separately from partial assistant text. Independent result and disposal rejections remain independently observable.
 
 ### Provider selection is config, not model-facing
 
-`bh-tool-subagent` binds to exactly one provider name (`Config.provider`); the model sees only `{ description, prompt }`. To expose more than one transport, load the tool plugin more than once, each bound to a different provider and a distinct `toolName` (the tool registry rejects a duplicate name). The *service* holds the multi-provider registry; the *tool* picks one — the schema carries no provider/type parameter.
+`@hydra/harness-tool-subagent` binds to exactly one provider name (`Config.provider`); the model sees only `{ description, prompt }`. To expose more than one transport, load the tool plugin more than once, each bound to a different provider and a distinct `toolName` (the tool registry rejects a duplicate name). The *service* holds the multi-provider registry; the *tool* picks one — the schema carries no provider/type parameter.
 
 ## Testing
 

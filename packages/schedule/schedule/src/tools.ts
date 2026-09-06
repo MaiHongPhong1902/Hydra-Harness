@@ -1,13 +1,13 @@
 /**
  * Agent-scoped Schedule management tools over the durable session fold.
- * @module @bosch/bh-schedule
+ * @module @hydra/harness-schedule
  */
 
-import type { Context } from '@bosch/cordis'
-import type { Agent } from '@bosch/bh-agent'
-import type { ContentBlock } from '@bosch/bh-llm'
-import { defineTool } from '@bosch/bh-tools'
-import type { GenericCallView } from '@bosch/bh-tools'
+import type { Context } from '@hydra/cordis'
+import type { Agent } from '@hydra/harness-agent'
+import type { ContentBlock } from '@hydra/harness-llm'
+import { defineTool } from '@hydra/harness-tools'
+import type { GenericCallView } from '@hydra/harness-tools'
 import {
   allocateScheduleId,
   createAfterScheduleRecord,

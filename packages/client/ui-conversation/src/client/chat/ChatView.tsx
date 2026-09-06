@@ -14,8 +14,8 @@
 // lifecycle updates replace only their own row without remounting it.
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import type { ChatConversationViewNode, ConversationTimelineSnapshot, ToolCallBlock } from '@bosch/bh-client-runtime/client'
-import { Button, IconChevronDownOutline14, Modal } from '@bosch/bh-client-ui-primitives'
+import type { ChatConversationViewNode, ConversationTimelineSnapshot, ToolCallBlock } from '@hydra/harness-client-runtime/client'
+import { Button, IconChevronDownOutline14, Modal } from '@hydra/harness-client-ui-primitives'
 import type { ChatViewSlotProps, RenderMessageImages } from '../contract/slots.ts'
 import { ActivityGroup, activityKindForTools, type ActivityKind } from './ActivityGroup.tsx'
 import { PendingSteeringBubble } from './MessageItem.tsx'

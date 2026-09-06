@@ -1,0 +1,20 @@
+- listitem:
+  - 'button "Hide settings: Web search" [expanded]':
+    - text: Web search DeepSeek search provider. Unsaved
+    - img
+  - text: API key A key is configured.
+  - textbox "API key": fixture-replacement-key
+  - paragraph: Stored outside the settings file. Leave blank to keep the current key.
+  - text: Endpoint
+  - textbox "Endpoint":
+    - /placeholder: ""
+    - text: https://example.invalid
+  - paragraph: Leave blank to use the provider default.
+  - text: Max searches per request
+  - textbox "Max searches per request":
+    - /placeholder: ""
+    - text: "5"
+  - paragraph: How many times one request may search before it must answer.
+  - status: The deployment did not accept these values; they were left for you to correct.
+  - button "Discard"
+  - button "Save"

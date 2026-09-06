@@ -4,15 +4,15 @@
  * creation, flatten post-publication failures, and dispose to whole-tree
  * quiescence.
  *
- * @module @bosch/bh-subagent-codex/run
+ * @module @hydra/harness-subagent-codex/run
  */
 
 import { randomUUID } from 'node:crypto'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { dirname, resolve } from 'node:path'
-import type { ContentBlock } from '@bosch/bh-llm'
-import { SessionId } from '@bosch/bh-session'
+import type { ContentBlock } from '@hydra/harness-llm'
+import { SessionId } from '@hydra/harness-session'
 import {
   settleRunResult,
   subprocessRunHandle,
@@ -20,12 +20,12 @@ import {
   type SubagentRun,
   type SubagentStartRequest,
   type SubagentStopReason,
-} from '@bosch/bh-subagent'
+} from '@hydra/harness-subagent'
 import type {
   SubprocessHandle,
   SubprocessOutcome,
   SubprocessSpawnSpec,
-} from '@bosch/bh-subprocess'
+} from '@hydra/harness-subprocess'
 import {
   CodexAppServerWire,
   type CodexWireFailureFacts,

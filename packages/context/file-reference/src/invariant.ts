@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-file-reference`.
- * @module @bosch/bh-file-reference/invariant
+ * Package-owned invariant companion for `@hydra/harness-file-reference`.
+ * @module @hydra/harness-file-reference/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-file-reference'
+const PACKAGE_NAME = '@hydra/harness-file-reference'
 
 /** Cordis companion plugin name. */
 export const name = 'file-reference-invariant'

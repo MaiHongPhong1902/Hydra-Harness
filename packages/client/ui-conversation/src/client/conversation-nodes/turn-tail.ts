@@ -1,23 +1,23 @@
-import type { Context } from '@bosch/cordis'
+import type { Context } from '@hydra/cordis'
 import type {
   ConversationMatch, ConversationNodeContext, ConversationNodeDefinition, TurnLocation,
-} from '@bosch/bh-client-runtime/client'
-import { isAppendSurfaceEvent, toAssistantBlocks } from '@bosch/bh-client-runtime/client'
-import type {} from '@bosch/bh-llm-retry/types'
+} from '@hydra/harness-client-runtime/client'
+import { isAppendSurfaceEvent, toAssistantBlocks } from '@hydra/harness-client-runtime/client'
+import type {} from '@hydra/harness-llm-retry/types'
 import type {
   AssistantChatData, FinalAssistantChatData, TurnTailChatData,
 } from '../contract/chat-nodes.ts'
 import { deriveTurnMetrics } from '../chat/turn-metrics.ts'
 import { CHAT_SYNTHETIC_SEQ_OFFSETS, chatNode } from './common.ts'
 
-declare module '@bosch/bh-client-ui-conversation/client' {
+declare module '@hydra/harness-client-ui-conversation/client' {
   interface ChatNodeDataMap {
     /** Completed-turn actions and extension tail. */
     'turn-tail': TurnTailChatData
   }
 }
 
-declare module '@bosch/bh-client-runtime/client' {
+declare module '@hydra/harness-client-runtime/client' {
   interface ConversationTurnDataMap {
     /** Closing Assistant and footer facts derived for this completed Turn. */
     'turn-tail': TurnTailChatData

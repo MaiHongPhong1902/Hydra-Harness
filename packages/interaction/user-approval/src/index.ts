@@ -1,20 +1,20 @@
 /**
  * Service Definition for the approval capability seam, covering requests, cancellation, audit, and per-session policy. Missing
  * answerers fail closed; grants apply only to the requested action.
- * @module @bosch/bh-user-approval
+ * @module @hydra/harness-user-approval
  */
 
 import { randomUUID } from 'node:crypto'
-import { Context, Service } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import type { Agent } from '@bosch/bh-agent'
-import { createUserMessage, type CallId } from '@bosch/bh-llm'
-import { scopeTarget } from '@bosch/bh-scope'
-import type { Scoped } from '@bosch/bh-scope'
-import type { Session, SessionEvent } from '@bosch/bh-session'
-import type {} from '@bosch/bh-system-prompt'
+import { Context, Service } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import type { Agent } from '@hydra/harness-agent'
+import { createUserMessage, type CallId } from '@hydra/harness-llm'
+import { scopeTarget } from '@hydra/harness-scope'
+import type { Scoped } from '@hydra/harness-scope'
+import type { Session, SessionEvent } from '@hydra/harness-session'
+import type {} from '@hydra/harness-system-prompt'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     approval: ApprovalService
   }
@@ -23,7 +23,7 @@ declare module '@bosch/cordis' {
     /**
      * Ask composed answerers for one decision. Return an outcome to claim the
      * request or call `next()`; failure yields the fail-closed default.
-     * Scope-filtered dispatch (`@bosch/bh-scope`): agent-scoped listeners receive only that agent.
+     * Scope-filtered dispatch (`@hydra/harness-scope`): agent-scoped listeners receive only that agent.
      * @param req - the pending decision (agent, tool identity, reason, signal).
      * @mode waterfall
      */
@@ -31,7 +31,7 @@ declare module '@bosch/cordis' {
   }
 }
 
-declare module '@bosch/bh-session/types' {
+declare module '@hydra/harness-session/types' {
   interface SessionEventMap {
     /**
      * An approval question was put to the answerer chain — log-only audit

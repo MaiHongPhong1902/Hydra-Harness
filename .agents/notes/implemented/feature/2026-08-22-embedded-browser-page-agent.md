@@ -18,9 +18,9 @@ And the modality had to be **text**. A screenshot loop needs a vision model, spe
 
 Two packages under a new `browser/` family, and a vendored perception core.
 
-`@bosch/bh-browser-electron` owns `ctx.browsers`: one Electron child process per `Agent`, spawned on that agent's first action and closed with it, holding one window and one `WebContentsView`. The parent speaks NDJSON over the child's stdin/stdout — `{id, method, args}` out, `{id, ok, result|error}` back.
+`@hydra/harness-browser-electron` owns `ctx.browsers`: one Electron child process per `Agent`, spawned on that agent's first action and closed with it, holding one window and one `WebContentsView`. The parent speaks NDJSON over the child's stdin/stdout — `{id, method, args}` out, `{id, ok, result|error}` back.
 
-`@bosch/bh-tool-browser` owns everything the model sees: eight `browser_*` schemas, the DOM-format prompt section, the character cap, the card titles, the origin approval. Nothing in it knows the browser is Electron.
+`@hydra/harness-tool-browser` owns everything the model sees: eight `browser_*` schemas, the DOM-format prompt section, the character cap, the card titles, the origin approval. Nothing in it knows the browser is Electron.
 
 The page is perceived and driven by [page-agent](https://github.com/alibaba/page-agent)'s `PageController`, vendored verbatim at `packages/browser/browser-electron/third-party/page-agent/packages/page-controller/` and bundled into the view's preload. It turns the live DOM into a numbered element list — `[12]<button>Save</button>` — and acts by index. Its own header says it is "designed to be independent of LLM", and that is exactly the half taken: page-agent's ReAct core, its `AgentOutput` shape, and its `done` action are all left behind, because the loop is the harness's.
 
@@ -106,7 +106,7 @@ The subsystem vocabulary is [docs/subsystems/browser.md](../../../../docs/subsys
 
 The 2026-08-22 statements about eight tools, permanent JavaScript omission, deferred tabs/horizontal scroll, and native-only popups are superseded by this update.
 
-The harness still deliberately excludes PageAgentCore: BH owns the model loop, completion decision, tool policy, and evidence lifecycle. It now bridges PageController's required action surface through fourteen default tools: state, navigation, explicit bounded wait, indexed actions, vertical/horizontal scroll, and model-addressable open/switch/close tab. Each Browser state carries a controlled-tab inventory, capture time, and `settled` status.
+The harness still deliberately excludes PageAgentCore: Hydra owns the model loop, completion decision, tool policy, and evidence lifecycle. It now bridges PageController's required action surface through fourteen default tools: state, navigation, explicit bounded wait, indexed actions, vertical/horizontal scroll, and model-addressable open/switch/close tab. Each Browser state carries a controlled-tab inventory, capture time, and `settled` status.
 
 Electron owns readiness because it owns document/tab transitions. After navigation, a tab change, a page-initiated navigation, or an explicit state read, it follows redirects and waits boundedly for Chromium to be idle and PageController to expose usable SPA content. A timeout returns `settled: false`; the Obsidian recorder discards that transient snapshot instead of allowing it to become durable UI evidence.
 

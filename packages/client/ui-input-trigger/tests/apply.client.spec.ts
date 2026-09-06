@@ -4,13 +4,13 @@
  * registration follows the slot declaration, resolves the per-session controller from the slot's
  * sessionId, and unregisters on fiber teardown.
  */
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { describe, expect, it } from 'vitest'
-import { LocaleRuntime } from '@bosch/bh-client-locale/client'
-import { createScope, scopeOf, SlotRegistry } from '@bosch/bh-client-runtime/client'
-import type { SessionId } from '@bosch/bh-client-runtime/client'
-import { apply, inject, InputTriggerService } from '@bosch/bh-client-ui-input-trigger/client'
-import type { MenuViewInjected } from '@bosch/bh-client-ui-input-trigger/client'
+import { LocaleRuntime } from '@hydra/harness-client-locale/client'
+import { createScope, scopeOf, SlotRegistry } from '@hydra/harness-client-runtime/client'
+import type { SessionId } from '@hydra/harness-client-runtime/client'
+import { apply, inject, InputTriggerService } from '@hydra/harness-client-ui-input-trigger/client'
+import type { MenuViewInjected } from '@hydra/harness-client-ui-input-trigger/client'
 
 const sid = (k: string): SessionId => k as SessionId
 

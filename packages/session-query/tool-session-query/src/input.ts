@@ -1,21 +1,21 @@
 /**
  * Model argument schemas, normalization, and filter construction.
  *
- * @module @bosch/bh-tool-session-query/input
+ * @module @hydra/harness-tool-session-query/input
  */
 
 import {
   SessionId,
   type SessionEventType,
   type SessionId as SessionIdValue,
-} from '@bosch/bh-session'
+} from '@hydra/harness-session'
 import {
   SessionQueryError,
   type SessionAvailability,
   type SessionEventMetadataFilter,
   type SessionEventSurface,
   type SessionResultFilter,
-} from '@bosch/bh-session-query'
+} from '@hydra/harness-session-query'
 
 interface SessionSearchArgs {
   query: string

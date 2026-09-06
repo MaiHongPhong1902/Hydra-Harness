@@ -1,12 +1,12 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-host-frontend-static`.
- * @module @bosch/bh-host-frontend-static/invariant
+ * Package-owned invariant companion for `@hydra/harness-host-frontend-static`.
+ * @module @hydra/harness-host-frontend-static/invariant
  */
 
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-host-frontend-static'
+const PACKAGE_NAME = '@hydra/harness-host-frontend-static'
 
 /** Cordis companion plugin name. */
 export const name = 'host-frontend-static-invariant'

@@ -8,24 +8,24 @@
  * back to plugin configuration in a Web-only deployment.
  */
 
-import type { ConnectionHandle } from '@bosch/bh-client-connection/client'
+import type { ConnectionHandle } from '@hydra/harness-client-connection/client'
 // Type-only: pulls the locale plugin's Context merge (ctx.locale).
-import type {} from '@bosch/bh-client-locale/client'
+import type {} from '@hydra/harness-client-locale/client'
 // Type-only: the settings shell's SlotMap merge (the 'settings.section' entry)
 // and the ctx.settingsScope Context merge. Cross-plugin collaboration goes
 // through the service, never a value import (client bundle purity gate).
-import type {} from '@bosch/bh-client-ui-settings/client'
-import type { ClientContext } from '@bosch/bh-client-runtime/client'
-import { resolveSlotLabel } from '@bosch/bh-client-ui-slots'
+import type {} from '@hydra/harness-client-ui-settings/client'
+import type { ClientContext } from '@hydra/harness-client-runtime/client'
+import { resolveSlotLabel } from '@hydra/harness-client-ui-slots'
 // Type-only: the ctx.remote Context merge and the forwarded-event key face.
-import type {} from '@bosch/bh-api-remotes/client'
+import type {} from '@hydra/harness-api-remotes/client'
 import { AgentLoopCard } from './AgentLoopCard.tsx'
 import { BashCard } from './BashCard.tsx'
 import { ConfigurablePluginsTab } from './ConfigurablePluginsTab.tsx'
 import { McpSettingsTab, type ImportedMcpSettingsFace, type NativeMcpSettingsFace, type UserMcpSettingsFace } from './McpSettingsTab.tsx'
 import { PluginsSettingsSection } from './PluginsSettingsSection.tsx'
 import type { PluginsSettingsSectionInjected, PluginsSettingsTabEntry } from './PluginsSettingsSection.tsx'
-import { UserHooksSettingsTab, type UserHooksSettingsFace } from './UserHooksSettingsTab.tsx'
+import { HooksSettingsTab, type HooksSettingsFace } from './HooksSettingsTab.tsx'
 import { WebSearchCard } from './WebSearchCard.tsx'
 import { AGENT_LOOP_NS, AgentLoopCardController } from './agent-loop-card-controller.ts'
 import { SHELL_NS, BashCardController } from './bash-card-controller.ts'
@@ -49,7 +49,7 @@ export type { WebSearchCardFace, WebSearchCardState } from './web-search-card-co
 export type { UserMcpControls } from './McpServerCatalog.tsx'
 export type { UserHookControls } from './HookRecordCatalog.tsx'
 export type { UserMcpSettingsFace } from './McpSettingsTab.tsx'
-export type { UserHooksSettingsFace, UserHooksSettingsTabProps } from './UserHooksSettingsTab.tsx'
+export type { HooksSettingsFace, HooksSettingsTabProps } from './HooksSettingsTab.tsx'
 
 /** Dictionary namespace owned by this plugin. */
 const NS = 'settings.plugins'
@@ -121,7 +121,7 @@ export function apply(ctx: ClientContext): void {
       return result.value
     },
   } : undefined
-  const userHooks: UserHooksSettingsFace['userHooks'] = connection.isLoopback ? {
+  const userHooks: HooksSettingsFace['userHooks'] = connection.isLoopback ? {
     list: async () => {
       const result = await ctx.remote.pluginInventory.listHookRecords()
       if (!result.ok) throw new Error(`pluginInventory.listHookRecords failed: ${result.error.code}: ${result.error.message}`)
@@ -240,17 +240,18 @@ export function apply(ctx: ClientContext): void {
     }),
   }, McpSettingsTab))
 
-  // The user's own hooks get their own tab rather than sharing the imported
-  // bundles' Hooks tab: that one reviews and trusts definitions a bundle
-  // shipped, while this one is where the user writes their own.
+  // The Hooks tab stacks the two hook catalogs: the user's own records, which
+  // this package edits, and the imported bundles' hook lists, contributed
+  // through the child slot so the inventory plugin never depends on this one.
   ctx.slots.inject('settings.plugins.tab', () => ctx.slots.register({
     name: 'settings.plugins.tab',
-    id: 'user-hooks',
-    order: 7,
-    label: () => t('userHooksTab'),
+    id: 'hooks',
+    order: 25,
+    label: () => t('hooksTab'),
     locale: NS,
     inject: () => (userHooks === undefined ? {} : { userHooks }),
-  }, UserHooksSettingsTab))
+    children: { 'settings.plugins.hooks.item': { kind: 'list', scope: 'root' } },
+  }, HooksSettingsTab))
 
   ctx.slots.inject('settings.plugin.item', function* () {
     yield ctx.slots.register({

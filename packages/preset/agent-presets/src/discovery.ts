@@ -11,14 +11,14 @@
  * path refuses the name while no surface shows anything to delete — and a
  * malformed composition would otherwise read as an ordinary preset until the
  * first session fails to mount it.
- * @module @bosch/bh-agent-presets/discovery
+ * @module @hydra/harness-agent-presets/discovery
  */
 
 import { readdir, readFile, stat } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import { load } from 'js-yaml'
-import { entryListSchema } from '@bosch/cordis-plugin-include'
-import { expandHomePath } from '@bosch/bh-home-paths'
+import { entryListSchema } from '@hydra/cordis-plugin-include'
+import { expandHomePath } from '@hydra/harness-home-paths'
 import { readPresetMetadata } from './metadata.ts'
 import { PRESET_ID, type AgentPreset, type PresetRoot } from './preset.ts'
 
@@ -28,7 +28,7 @@ export const COMPOSITION_FILE = 'agent.cordis.yml'
 /**
  * Harness-home directory holding locally authored presets.
  *
- * This package owns the writable root the way `bh-skill-filesystem` owns
+ * This package owns the writable root the way `@hydra/harness-skill-filesystem` owns
  * `<bhHome>/skills`. An app must assemble the SHIPPED root, whose path only
  * the installed app can resolve; where a person's own presets go is the same
  * place in every deployment that does not say otherwise, so a launcher that

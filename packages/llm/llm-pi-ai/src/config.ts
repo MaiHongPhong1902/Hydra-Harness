@@ -15,13 +15,13 @@
  */
 
 import type { CacheRetention, ChatTemplateKwargValue, ModelThinkingLevel, Provider, ThinkingBudgets, Transport } from '@earendil-works/pi-ai'
-import z from '@bosch/schemastery'
-import { credentialRef } from '@bosch/bh-credentials'
-import type { CredentialRef } from '@bosch/bh-credentials'
-import { MAX_TIMER_DELAY_MS } from '@bosch/bh-timeout'
-import { resolveRetryPolicy, RetryPolicySchema } from '@bosch/bh-llm'
-import { normalizeHttpProxy } from '@bosch/bh-llm/proxy'
-import type { ResolvedRetryPolicy, RetryPolicyConfig } from '@bosch/bh-llm'
+import z from '@hydra/schemastery'
+import { credentialRef } from '@hydra/harness-credentials'
+import type { CredentialRef } from '@hydra/harness-credentials'
+import { MAX_TIMER_DELAY_MS } from '@hydra/harness-timeout'
+import { resolveRetryPolicy, RetryPolicySchema } from '@hydra/harness-llm'
+import { normalizeHttpProxy } from '@hydra/harness-llm/proxy'
+import type { ResolvedRetryPolicy, RetryPolicyConfig } from '@hydra/harness-llm'
 import {
   CACHE_CONTROL_FORMATS,
   CHAT_TEMPLATE_VARS,

@@ -1,11 +1,11 @@
-import { createUserMessage } from '@bosch/bh-llm'
+import { createUserMessage } from '@hydra/harness-llm'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import type { Context } from '@bosch/cordis'
+import type { Context } from '@hydra/cordis'
 import { codingHarness, TODO_SYSTEM_PROMPT, waitForIdle } from './harness.ts'
-import { SessionId } from '@bosch/bh-session'
+import { SessionId } from '@hydra/harness-session'
 
 /**
  * A REAL model drives the REAL todo_write tool: verify the WORLD (the session

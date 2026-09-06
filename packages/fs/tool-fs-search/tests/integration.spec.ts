@@ -14,12 +14,12 @@ import { existsSync } from 'node:fs'
 import { mkdir, mkdtemp, rm, utimes, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { Context } from '@bosch/cordis'
-import { CallId } from '@bosch/bh-llm'
-import SystemPrompt from '@bosch/bh-system-prompt'
-import ToolRuntime, { TOOL_ABORTED_BEFORE_DISPATCH } from '@bosch/bh-tools'
-import LocalSubprocessRuntime from '@bosch/bh-subprocess-local'
-import * as ToolFsSearch from '@bosch/bh-tool-fs-search'
+import { Context } from '@hydra/cordis'
+import { CallId } from '@hydra/harness-llm'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import ToolRuntime, { TOOL_ABORTED_BEFORE_DISPATCH } from '@hydra/harness-tools'
+import LocalSubprocessRuntime from '@hydra/harness-subprocess-local'
+import * as ToolFsSearch from '@hydra/harness-tool-fs-search'
 
 const testToolSignal = new AbortController().signal
 

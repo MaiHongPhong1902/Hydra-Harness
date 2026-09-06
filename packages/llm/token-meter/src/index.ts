@@ -1,17 +1,17 @@
 /**
  * Single replay-aware token-meter service for request and surface pressure.
  *
- * @module @bosch/bh-token-meter
+ * @module @hydra/harness-token-meter
  */
 
-import { Context, Service } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import { BlockAssembler, deepFreeze } from '@bosch/bh-llm'
-import type { Message, TokenUsage } from '@bosch/bh-llm'
-import type { EpochHeader, Session, SessionEvent } from '@bosch/bh-session'
-import { canonicalHeader, headerEquals, isSurfaceEvent } from '@bosch/bh-session'
+import { Context, Service } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import { BlockAssembler, deepFreeze } from '@hydra/harness-llm'
+import type { Message, TokenUsage } from '@hydra/harness-llm'
+import type { EpochHeader, Session, SessionEvent } from '@hydra/harness-session'
+import { canonicalHeader, headerEquals, isSurfaceEvent } from '@hydra/harness-session'
 // Type-only: resolves the optional projection registry Context declaration.
-import type {} from '@bosch/bh-session-projection'
+import type {} from '@hydra/harness-session-projection'
 import type {
   TokenMeasurement,
   TokenMeasurementBaseline,
@@ -66,7 +66,7 @@ function validateConfigKeys(config: TokenMeterConfig): void {
   }
 }
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     tokenMeter: TokenMeter
   }

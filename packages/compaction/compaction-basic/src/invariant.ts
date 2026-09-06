@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-compaction-basic`.
- * @module @bosch/bh-compaction-basic/invariant
+ * Package-owned invariant companion for `@hydra/harness-compaction-basic`.
+ * @module @hydra/harness-compaction-basic/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-compaction-basic'
+const PACKAGE_NAME = '@hydra/harness-compaction-basic'
 
 /** Cordis companion plugin name. */
 export const name = 'compaction-basic-invariant'

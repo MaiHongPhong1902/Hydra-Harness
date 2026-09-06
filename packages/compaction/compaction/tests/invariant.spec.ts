@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import SessionStore, { Session, SessionId } from '@bosch/bh-session'
-import { createUserMessage } from '@bosch/bh-llm'
-import { CompactionId, compactCheckpointSource } from '@bosch/bh-compaction'
-import * as CompactionInvariant from '@bosch/bh-compaction/invariant'
-import { CommandId } from '@bosch/bh-commands/brand'
-import InvariantRegistry from '@bosch/bh-invariants'
+import { Context } from '@hydra/cordis'
+import SessionStore, { Session, SessionId } from '@hydra/harness-session'
+import { createUserMessage } from '@hydra/harness-llm'
+import { CompactionId, compactCheckpointSource } from '@hydra/harness-compaction'
+import * as CompactionInvariant from '@hydra/harness-compaction/invariant'
+import { CommandId } from '@hydra/harness-commands/brand'
+import InvariantRegistry from '@hydra/harness-invariants'
 
 async function setup(): Promise<Context> {
   const ctx = new Context()

@@ -6,14 +6,14 @@
  * and a subject-less root dispatch stays unfiltered. Scope-owned listeners
  * dispose with the fiber.
  */
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { describe, expect, it } from 'vitest'
-import type { SessionId } from '@bosch/bh-api-remotes/client'
+import type { SessionId } from '@hydra/harness-api-remotes/client'
 import { createScope, scopeOf } from '../src/client/agents/scope.ts'
 
 const sid = (k: string): SessionId => k as SessionId
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Events {
     /**
      * Test-only routed probe event.

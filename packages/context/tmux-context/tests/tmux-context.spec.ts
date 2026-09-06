@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import { Session, SessionId } from '@bosch/bh-session'
-import AgentRegistry, { agentEvents, Inbox, type Agent } from '@bosch/bh-agent'
-import { createUserMessage } from '@bosch/bh-llm'
-import { ShellExecutor } from '@bosch/bh-shell'
-import type { ShellExecRequest, ShellExecSpec, ShellProcess, ShellRunResult } from '@bosch/bh-shell'
-import * as tmuxContext from '@bosch/bh-tmux-context'
-import type { Config } from '@bosch/bh-tmux-context'
+import { Context } from '@hydra/cordis'
+import { Session, SessionId } from '@hydra/harness-session'
+import AgentRegistry, { agentEvents, Inbox, type Agent } from '@hydra/harness-agent'
+import { createUserMessage } from '@hydra/harness-llm'
+import { ShellExecutor } from '@hydra/harness-shell'
+import type { ShellExecRequest, ShellExecSpec, ShellProcess, ShellRunResult } from '@hydra/harness-shell'
+import * as tmuxContext from '@hydra/harness-tmux-context'
+import type { Config } from '@hydra/harness-tmux-context'
 
 const SIGNAL = new AbortController().signal
 

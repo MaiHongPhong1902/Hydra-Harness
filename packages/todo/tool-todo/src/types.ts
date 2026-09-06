@@ -1,18 +1,18 @@
 /**
  * Pure types of the todo domain: the ONE home of the `todos` projection-key
  * declaration plus its payload types, free of this package's host-side value
- * imports (bh-tools, zod). Two namespace projections serve it — `./types`
+ * imports (@hydra/harness-tools, zod). Two namespace projections serve it — `./types`
  * for host consumers, `./client/types` (the browser half-entry's re-export)
  * for client aggregates — with zero content duplication.
  *
- * @module @bosch/bh-tool-todo/types
+ * @module @hydra/harness-tool-todo/types
  */
 
-import type { TodoItem } from '@bosch/bh-session/types'
+import type { TodoItem } from '@hydra/harness-session/types'
 
-export type { TodoItem } from '@bosch/bh-session/types'
+export type { TodoItem } from '@hydra/harness-session/types'
 
-declare module '@bosch/bh-session-projection/types' {
+declare module '@hydra/harness-session-projection/types' {
   interface SessionProjectionStateMap {
     todos: TodoItem[] | null
   }

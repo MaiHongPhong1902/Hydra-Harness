@@ -4,8 +4,8 @@
  * @module subagent-report-fence
  */
 
-import type { Context } from '@bosch/cordis'
-import type {} from '@bosch/bh-agent-loop'
+import type { Context } from '@hydra/cordis'
+import type {} from '@hydra/harness-agent-loop'
 
 /** Fixture plugin name. */
 export const name = 'subagent-report-fence'

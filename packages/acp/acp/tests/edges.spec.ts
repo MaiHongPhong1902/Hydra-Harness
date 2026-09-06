@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { PROTOCOL_VERSION } from '@agentclientprotocol/sdk'
-import { createUserMessage, CallId, type StreamChunk  } from '@bosch/bh-llm'
-import { SessionId } from '@bosch/bh-session'
-import { defineContentToolFixture } from '@bosch/bh-tools'
+import { createUserMessage, CallId, type StreamChunk  } from '@hydra/harness-llm'
+import { SessionId } from '@hydra/harness-session'
+import { defineContentToolFixture } from '@hydra/harness-tools'
 import { makeBridgeHarness, textResponse, type BridgeHarness } from './harness.ts'
 
 function toolCallResponse(): StreamChunk[] {

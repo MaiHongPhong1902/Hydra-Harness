@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import * as SlotsInvariant from '@bosch/bh-client-ui-slots/invariant'
-import InvariantRegistry from '@bosch/bh-invariants'
+import { Context } from '@hydra/cordis'
+import * as SlotsInvariant from '@hydra/harness-client-ui-slots/invariant'
+import InvariantRegistry from '@hydra/harness-invariants'
 
 describe('invariant companion', () => {
   it('registers under the package name with an empty installer', async () => {

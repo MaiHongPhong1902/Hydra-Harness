@@ -26,4 +26,4 @@ Current verification starts Browser without a URL question and can use an applic
 
 ## Testing
 
-The package tests pin structured candidate extraction, rejection of a spaced product label as an application identifier, host denial of bare-domain navigation after candidate discovery, the no-question rule, and ephemeral navigation. Browser tool tests separately cover absolute HTTP(S) navigation; a live model run remains necessary to prove tool selection after BH reload.
+The package tests pin structured candidate extraction, rejection of a spaced product label as an application identifier, host denial of bare-domain navigation after candidate discovery, the no-question rule, and ephemeral navigation. Browser tool tests separately cover absolute HTTP(S) navigation; a live model run remains necessary to prove tool selection after Hydra reload.

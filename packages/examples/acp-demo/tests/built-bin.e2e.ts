@@ -78,7 +78,7 @@ async function makeConsumer(): Promise<string> {
     await link(dirname(resolved), dep, nm)
   }
   await writeFile(join(dir, 'mock-llm.mjs'), [
-    "import { LlmAdapter } from '@bosch/bh-llm'",
+    "import { LlmAdapter } from '@hydra/harness-llm'",
     'class Mock extends LlmAdapter {',
     '  async * stream() {',
     "    yield { type: 'block-start', index: 0, blockType: 'text' }",
@@ -96,11 +96,11 @@ async function makeConsumer(): Promise<string> {
     '- id: mock-llm',
     '  name: \'./mock-llm.mjs\'',
     '- id: subprocess',
-    '  name: \'@bosch/bh-subprocess-local\'',
+    '  name: \'@hydra/harness-subprocess-local\'',
     '- id: bash',
-    '  name: \'@bosch/bh-bash-local\'',
+    '  name: \'@hydra/harness-bash-local\'',
     '- id: acp-agent',
-    '  name: \'@bosch/bh-acp-demo\'',
+    '  name: \'@hydra/harness-acp-demo\'',
     '  config:',
     '    provider: built-acp-mock',
     '    model: built-acp-mock',

@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-shell-env`.
- * @module @bosch/bh-shell-env/invariant
+ * Package-owned invariant companion for `@hydra/harness-shell-env`.
+ * @module @hydra/harness-shell-env/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-shell-env'
+const PACKAGE_NAME = '@hydra/harness-shell-env'
 
 /** Cordis companion plugin name. */
 export const name = 'shell-env-invariant'

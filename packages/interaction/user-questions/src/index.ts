@@ -1,17 +1,17 @@
 /**
  * Service Definition for the user-questions capability seam (`ctx.userQuestions`): a UI-backed service for
  * pausing an agent tool call until the human answers a question. The model-
- * facing tool lives in `@bosch/bh-tool-ask-user`; UI packages provide
+ * facing tool lives in `@hydra/harness-tool-ask-user`; UI packages provide
  * the single active provider.
  *
- * @module @bosch/bh-user-questions
+ * @module @hydra/harness-user-questions
  */
 
-import { Context, Service } from '@bosch/cordis'
-import type { Agent } from '@bosch/bh-agent'
-import { HarnessError } from '@bosch/bh-llm'
+import { Context, Service } from '@hydra/cordis'
+import type { Agent } from '@hydra/harness-agent'
+import { HarnessError } from '@hydra/harness-llm'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     userQuestions: UserQuestionService
   }

@@ -9,9 +9,9 @@
  */
 
 import { join } from 'node:path'
-import { decodeStorageRecord, packChunkRuns, SESSION_FORMAT_VERSION } from '@bosch/bh-session'
-import type { SessionEvent, SessionHeader, SessionId, StorageRecord } from '@bosch/bh-session'
-import { SessionFormatUnsupportedError, sessionFormatVersionRefusal } from '@bosch/bh-session-persistence'
+import { decodeStorageRecord, packChunkRuns, SESSION_FORMAT_VERSION } from '@hydra/harness-session'
+import type { SessionEvent, SessionHeader, SessionId, StorageRecord } from '@hydra/harness-session'
+import { SessionFormatUnsupportedError, sessionFormatVersionRefusal } from '@hydra/harness-session-persistence'
 
 /** Physical encoding selected for JSONL session artifacts. */
 export type JsonlCompression = 'zstd' | 'none'

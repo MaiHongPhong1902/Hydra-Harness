@@ -9,9 +9,9 @@
 
 import { describe, expect, it } from 'vitest'
 import fc from 'fast-check'
-import { createUserMessage, CallId , createMessage, createToolResultMessage } from '@bosch/bh-llm'
-import { Session, SessionId } from '@bosch/bh-session'
-import type { SessionEventMap, SessionEventType, SurfaceIntent } from '@bosch/bh-session'
+import { createUserMessage, CallId , createMessage, createToolResultMessage } from '@hydra/harness-llm'
+import { Session, SessionId } from '@hydra/harness-session'
+import type { SessionEventMap, SessionEventType, SurfaceIntent } from '@hydra/harness-session'
 
 // Each arbitrary supplies its own surface intent; `build` must not synthesize
 // one or the property would fail to exercise malformed fixture choices.

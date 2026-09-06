@@ -2,10 +2,10 @@
  * Private teardown ladder for the runtime subprocess: stdin EOF (cooperative
  * quiesce), then SIGTERM, then SIGKILL, resolving only after the process has
  * actually exited. The SDK client runs OUTSIDE any harness context, so it
- * cannot ride the `bh-subprocess` service — this module is the seam's
+ * cannot ride the `@hydra/harness-subprocess` service — this module is the seam's
  * documented exception for SDK-managed transports.
  *
- * @module @bosch/bh-sdk-client/dispose
+ * @module @hydra/harness-sdk-client/dispose
  */
 
 import type { ChildProcess } from 'node:child_process'

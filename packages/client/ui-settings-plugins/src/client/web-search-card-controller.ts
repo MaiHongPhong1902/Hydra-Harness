@@ -9,8 +9,8 @@
  * covers everything the card shows.
  */
 
-import type { IApiClient } from '@bosch/bh-client-connection/client'
-import type { SettingsScope, SettingsScopeSnapshot, SnapshotStore } from '@bosch/bh-client-runtime/client'
+import type { IApiClient } from '@hydra/harness-client-connection/client'
+import type { SettingsScope, SettingsScopeSnapshot, SnapshotStore } from '@hydra/harness-client-runtime/client'
 import {
   CardForm, numberField, textField,
   type CardActions, type CardFieldState, type CardShell,
@@ -167,17 +167,18 @@ export class WebSearchCardController {
   /**
    * Write the staged key, then re-read whether the Host now holds one.
    * @param value - the staged credential literal.
-   * @returns whether the Host reports a configured credential afterwards.
+   * @returns whether the Host acknowledged this write.
    */
   private async writeKey(value: string): Promise<boolean> {
+    let accepted = false
     try {
-      await this.api.credentials.set({ ref: refOf(this.scope.getSnapshot()), value })
+      const response = await this.api.credentials.set({ ref: refOf(this.scope.getSnapshot()), value })
+      accepted = response.result.ok
     } catch (_credentialWriteFailure) {
-      // Refusals surface through the re-read below: the Host is the only
-      // authority on whether the key now exists.
+      // No acknowledgement: keep the draft even if an older key exists.
     }
     await this.readCredential()
-    return this.credential.configured
+    return accepted
   }
 }
 

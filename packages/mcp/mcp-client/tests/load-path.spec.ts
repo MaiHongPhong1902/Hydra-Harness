@@ -1,5 +1,5 @@
 /**
- * Real-load-path guard for @bosch/bh-mcp-client. `mcp-client` is a
+ * Real-load-path guard for @hydra/harness-mcp-client. `mcp-client` is a
  * NAMESPACE plugin with `inject` — so a stray `export default apply` would
  * make the cordis Loader's `unwrapExports` (`exports.default ?? exports`)
  * collapse the module to the bare `apply` function, DROPPING `inject`. The
@@ -11,8 +11,8 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import Loader from '@bosch/cordis-plugin-loader'
-import * as mcpClient from '@bosch/bh-mcp-client'
+import Loader from '@hydra/cordis-plugin-loader'
+import * as mcpClient from '@hydra/harness-mcp-client'
 
 describe('bh-mcp-client real-load-path guard', () => {
   it('has no default export and keeps name/inject/Config through unwrapExports', () => {

@@ -10,16 +10,16 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import LlmRuntime from '@bosch/bh-llm'
-import { createUserMessage, LlmAdapter } from '@bosch/bh-llm'
-import type { GenerateOptions, StreamChunk } from '@bosch/bh-llm'
-import SessionStore, { SessionId } from '@bosch/bh-session'
-import SystemPrompt from '@bosch/bh-system-prompt'
-import ToolRuntime from '@bosch/bh-tools'
-import AgentRegistry, { type Agent } from '@bosch/bh-agent'
+import { Context } from '@hydra/cordis'
+import LlmRuntime from '@hydra/harness-llm'
+import { createUserMessage, LlmAdapter } from '@hydra/harness-llm'
+import type { GenerateOptions, StreamChunk } from '@hydra/harness-llm'
+import SessionStore, { SessionId } from '@hydra/harness-session'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import ToolRuntime from '@hydra/harness-tools'
+import AgentRegistry, { type Agent } from '@hydra/harness-agent'
 
-import AgentLoop from '@bosch/bh-agent-loop'
+import AgentLoop from '@hydra/harness-agent-loop'
 import fc from 'fast-check'
 
 /** A never-exhausting adapter: every model call returns the same short reply. */

@@ -11,7 +11,7 @@
     "ignoreDeprecations": "6.0",
     "types": ["node"],
     "paths": {
-      "@bosch/cordis": ["./cordis.d.ts"],
+      "@hydra/cordis": ["./cordis.d.ts"],
       "@fixture/host": ["./packages/host/src/index.ts"],
       "@fixture/host/*": ["./packages/host/src/*"],
       "@fixture/client": ["./packages/client/src/index.ts"],

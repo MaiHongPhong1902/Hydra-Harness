@@ -1,4 +1,4 @@
-# @bosch/bh-client-ui-deliverables
+# @hydra/harness-client-ui-deliverables
 
 Produced-files and clickable-reference feature owner. The Node half registers final-response guidance with the system-prompt registry; the browser half registers the deliverables row a finished turn ends with into the chat view's `conversation.chat.turnTail` hole and links matching inline-code references in the closing prose. The shipped Web patch is the only composition that loads this package. Removing its one cordis.yml entry removes the guidance, row, and prose links together.
 

@@ -20,7 +20,7 @@ export const en = {
 /** The feedback namespace key union. */
 export type MessageFeedbackKey = keyof typeof en
 
-declare module '@bosch/bh-client-ui-slots' {
+declare module '@hydra/harness-client-ui-slots' {
   interface LocaleNamespaceMap {
     /** The per-message feedback controls' copy. */
     feedback: MessageFeedbackKey

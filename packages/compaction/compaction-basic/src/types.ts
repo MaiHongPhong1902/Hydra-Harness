@@ -1,10 +1,10 @@
 /**
  * Configuration vocabulary for the replay-aware basic compaction backend.
  *
- * @module @bosch/bh-compaction-basic/types
+ * @module @hydra/harness-compaction-basic/types
  */
 
-import type { LlmCallConfig } from '@bosch/bh-llm'
+import type { LlmCallConfig } from '@hydra/harness-llm'
 
 /** Policy fields shared by the default policy and exact model overrides. */
 export interface CompactionPolicyConfig {

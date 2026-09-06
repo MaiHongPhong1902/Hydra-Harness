@@ -1,15 +1,15 @@
-import { createUserMessage, createMessage } from '@bosch/bh-llm'
+import { createUserMessage, createMessage } from '@hydra/harness-llm'
 import { describe, expect, it, vi } from 'vitest'
-import { Context, type Fiber } from '@bosch/cordis'
-import SessionStore, { SESSION_FORMAT_VERSION, SessionId } from '@bosch/bh-session'
-import type { SessionEvent, SessionHeader, SessionId as SessionIdType } from '@bosch/bh-session'
-import SessionPersistence, { SessionPersistenceCorruptionError, SessionPersistenceRevision } from '@bosch/bh-session-persistence'
+import { Context, type Fiber } from '@hydra/cordis'
+import SessionStore, { SESSION_FORMAT_VERSION, SessionId } from '@hydra/harness-session'
+import type { SessionEvent, SessionHeader, SessionId as SessionIdType } from '@hydra/harness-session'
+import SessionPersistence, { SessionPersistenceCorruptionError, SessionPersistenceRevision } from '@hydra/harness-session-persistence'
 import SessionQueryEngine, {
   SESSION_QUERY_DEFAULT_PERSISTED_INSPECT_CONCURRENCY,
   type SessionEventSurface,
   type SessionQueryErrorCode,
-} from '@bosch/bh-session-query'
-import { SessionTitleProviderId } from '@bosch/bh-session-title'
+} from '@hydra/harness-session-query'
+import { SessionTitleProviderId } from '@hydra/harness-session-title'
 import { TestSessionQueryEngine } from './test-service.ts'
 
 function header(id: string, createdAt = 1, extra: Partial<SessionHeader> = {}): SessionHeader {

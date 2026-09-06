@@ -5,8 +5,8 @@
  * RpcReceipt carrier receipt as the HTTP response body; the final outcome arrives in the resolved frame.
  */
 
-import type { ApprovalRequestId } from '@bosch/bh-user-approval/types'
-import type { SessionId } from '@bosch/bh-session/types'
+import type { ApprovalRequestId } from '@hydra/harness-user-approval/types'
+import type { SessionId } from '@hydra/harness-session/types'
 
 /**
  * Approval answer payload (the result.value slot of a client-response). outcome accepts only

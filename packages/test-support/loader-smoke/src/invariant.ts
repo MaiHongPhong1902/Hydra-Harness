@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-loader-smoke`.
- * @module @bosch/bh-loader-smoke/invariant
+ * Package-owned invariant companion for `@hydra/harness-loader-smoke`.
+ * @module @hydra/harness-loader-smoke/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-loader-smoke'
+const PACKAGE_NAME = '@hydra/harness-loader-smoke'
 
 /** Cordis companion plugin name. */
 export const name = 'loader-smoke-invariant'

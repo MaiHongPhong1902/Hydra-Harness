@@ -26,12 +26,12 @@ All five events ride this path, and their dedicated `HostFrame` variants or Clie
 
 `skills/change`, `tools/change`, and `system-prompt/change` have the same shape but **no consumer today**; under "require a current owner and need" they stay out of the allowlist and are recorded here only as the extension seat.
 
-### Consumer contract (bh-typert-protocol)
+### Consumer contract (@hydra/harness-typert-protocol)
 
 type-meta gains one **shape predicate**, one **selection seat**, and **one** member on `TypertClientRemote`. No runtime code:
 
 ```ts
-import type { Events } from '@bosch/cordis'
+import type { Events } from '@hydra/cordis'
 
 /** Cordis events shaped for one-way remote delivery: no Scope binding, void return. */
 export type TypertForwardableEvent = {
@@ -81,7 +81,7 @@ export const API_REMOTE_FORWARDED_EVENTS = [
 // types.ts — the type face, derived
 export type ApiRemoteForwardedEvent = typeof API_REMOTE_FORWARDED_EVENTS[number]
 
-declare module '@bosch/bh-typert-protocol' {
+declare module '@hydra/harness-typert-protocol' {
   interface TypertRemoteEventSelection extends Record<ApiRemoteForwardedEvent, true> {}
 }
 ```
@@ -98,7 +98,7 @@ It is an expression statement rather than a named constant, which `noUnusedLocal
 
 **"Verbatim" is proved nowhere because it holds by construction**: `$on`'s listener type comes from the one cordis `Events` declaration in the owner package's `./types`, and Host forwarding reads that same declaration. There is no second declaration that could drift.
 
-JSON-safety is a runtime concern: before forwarding, apiproxy validates each argument with `bh-session`'s `isJsonValue` and **throws loudly** when one fails, because that is an allowlist composition mistake rather than untrusted input.
+JSON-safety is a runtime concern: before forwarding, apiproxy validates each argument with `@hydra/harness-session`'s `isJsonValue` and **throws loudly** when one fails, because that is an allowlist composition mistake rather than untrusted input.
 
 ### Wire contract (apiproxy)
 
@@ -110,13 +110,13 @@ The zod branch keeps `args: z.array(z.unknown())`: the frame arrives from `JSON.
 
 `events.host()` subscribes by allowlist when the stream opens. Each stream owns its disposers, so no broadcast set or derived invalidation listener is needed.
 
-`api/events.ts` is a wire contract file the browser side also compiles, so every type it references must come from an owner package's **client-safe, type-only subpath**, never the package root. Evidence: importing one type from `@bosch/bh-session` root drags the root's `declare module 'cordis' { interface Context { sessions: SessionStore } }` into the Client compilation face and overrides the Client's `ctx.sessions: ISessions`, producing 18 errors in the unrelated `ui-input-trigger` and `ui-conversation`. `JsonValue` therefore needs a re-export from `bh-session/src/types.ts`.
+`api/events.ts` is a wire contract file the browser side also compiles, so every type it references must come from an owner package's **client-safe, type-only subpath**, never the package root. Evidence: importing one type from `@hydra/harness-session` root drags the root's `declare module 'cordis' { interface Context { sessions: SessionStore } }` into the Client compilation face and overrides the Client's `ctx.sessions: ISessions`, producing 18 errors in the unrelated `ui-input-trigger` and `ui-conversation`. `JsonValue` therefore needs a re-export from `bh-session/src/types.ts`.
 
 ### The apps/web browser e2e belong to the Host face
 
 The `apps/web/tests/**` e2e type-check in the root **`tsconfig.host.json`**: they boot a real harness in-process and read `ctx.apiProxy`, the Host `SessionStore`'s `get`/`create`/`flush`, and `ctx.sessionProjectionCache`. **Driving a browser at runtime does not make a file part of the Client program** — moving them into the Client aggregate immediately produces 21 errors, because one program cannot hold both faces' merges for the same Context key.
 
-That yields a discipline this design depends on: **when those tests import a value or a type from a Client package, they pull that package's whole project — and every project it references — into the Host build graph**. Four consumers (`ui-settings-general`, `ui-settings-models`, `ui-permission`, `ui-commands`) reference `api/remotes`' Client face, and that face cannot compile until Host tsdown has generated `@bosch/bh-goal/remote`. The result is a build-order deadlock: Host tsc needs the Client face, which needs the generated artifact, which Host tsdown produces after Host tsc.
+That yields a discipline this design depends on: **when those tests import a value or a type from a Client package, they pull that package's whole project — and every project it references — into the Host build graph**. Four consumers (`ui-settings-general`, `ui-settings-models`, `ui-permission`, `ui-commands`) reference `api/remotes`' Client face, and that face cannot compile until Host tsdown has generated `@hydra/harness-goal/remote`. The result is a build-order deadlock: Host tsc needs the Client face, which needs the generated artifact, which Host tsdown produces after Host tsc.
 
 The few Client-owned symbols are therefore **mirrored** on the test side (`scaffold.ts` exports the mirrored welcome-notice constants; the two chat e2e keep importing `bh-client-runtime/client` because the `runtime` project is already in the Host graph), which lets those four consumers leave the Host graph. The 15 Client project references in `apps/cli/tsconfig.json` lost their owner-map role and are gone. Each mirrored value matches its source verbatim; a drift shows up as a missed selector or an unsuppressed notice, both loud failures.
 
@@ -124,13 +124,13 @@ The few Client-owned symbols are therefore **mirrored** on the test side (`scaff
 
 | Location | Change |
 |---|---|
-| `bh-typert-protocol` | `src/types.ts` gains `TypertForwardableEvent`, `TypertRemoteEventSelection`, and `TypertRemoteEvent`; `TypertClientRemote` gains `$on` and `$dispatch`. Types only, no runtime |
+| `@hydra/harness-typert-protocol` | `src/types.ts` gains `TypertForwardableEvent`, `TypertRemoteEventSelection`, and `TypertRemoteEvent`; `TypertClientRemote` gains `$on` and `$dispatch`. Types only, no runtime |
 | `api/gateway` Client half | `ClientRemoteService` implements `$on` (subscriptions addressed by registration, `ctx.effect` ownership for the calling fiber) and `$dispatch` (snapshot delivery in registration order, containing a listener that throws or rejects) |
-| `api/remotes` | New `src/remote-events.ts` (the allowlist value) and `src/types.ts` (type projection, selection seat), both listed in both faces' `files`; a `./types` export with `lib/types/**/*.js` added to `files`; the Host face adds the shape assertion and `import type {}` for the five owner `./types`; the Client half re-exports those five plus `@bosch/bh-api-gateway/client` |
+| `api/remotes` | New `src/remote-events.ts` (the allowlist value) and `src/types.ts` (type projection, selection seat), both listed in both faces' `files`; a `./types` export with `lib/types/**/*.js` added to `files`; the Host face adds the shape assertion and `import type {}` for the five owner `./types`; the Client half re-exports those five plus `@hydra/harness-api-gateway/client` |
 | Root `tsconfig.base.json` | Client-safe `paths` entries for settings, credentials, llm, agent-presets, and api-remotes types point at the **source** plane |
-| `bh-commands` / `bh-settings` / `bh-credentials` / `bh-llm` / `bh-agent-presets` | Each forwarded `interface Events` member lives in the owner's client-safe `./types`; agent-presets moves its previous domain vocabulary to `preset.ts` so the exported file itself remains `types.ts` |
+| `@hydra/harness-commands` / `@hydra/harness-settings` / `@hydra/harness-credentials` / `@hydra/harness-llm` / `@hydra/harness-agent-presets` | Each forwarded `interface Events` member lives in the owner's client-safe `./types`; agent-presets moves its previous domain vocabulary to `preset.ts` so the exported file itself remains `types.ts` |
 | `host/apiproxy` | `HostFrame` gains `host/remote-event` and loses the five dedicated passthrough or invalidation variants with their zod branches; `events.host()` subscribes by allowlist and validates through `assertJsonArgs` |
-| `bh-session` | `src/types.ts` re-exports `JsonValue` so wire contract files can use the client-safe subpath |
+| `@hydra/harness-session` | `src/types.ts` re-exports `JsonValue` so wire contract files can use the client-safe subpath |
 | `client/runtime` | The five Client-event bridge branches collapse into `ctx.remote.$dispatch(frame.event, frame.args)`, adding a `remote` injection and deleting their duplicated `Events` declarations |
 | Seven consumers | ui-commands / ui-model-selection / ui-settings-models / ui-settings-general / ui-permission / ui-agent-preset / ui-skill subscribe through `ctx.remote.$on(...)`, following `ui-goal`'s precedent for the type-only facade import and the `'remote'` injection |
 | `client/connection` | The fixture's `emitHost` produces `host/remote-event` |

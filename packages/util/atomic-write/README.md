@@ -1,11 +1,11 @@
-# bh-atomic-write
+# @hydra/harness-atomic-write
 
-Zero-dependency atomic file replacement shared by file-backed stores that must never leave partial, symlink-hijacked, or wider-than-intended content on disk — the user-settings document (`bh-settings-file`) and the credentials store (`bh-credentials-local`).
+Zero-dependency atomic file replacement shared by file-backed stores that must never leave partial, symlink-hijacked, or wider-than-intended content on disk — the user-settings document (`@hydra/harness-settings-file`) and the credentials store (`@hydra/harness-credentials-local`).
 
 ## Surface
 
 ```ts
-import { withFileLock, writeFileAtomic } from '@bosch/bh-atomic-write'
+import { withFileLock, writeFileAtomic } from '@hydra/harness-atomic-write'
 
 declare const text: string
 declare const render: (previous: string) => string

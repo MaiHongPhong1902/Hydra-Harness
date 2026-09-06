@@ -7,17 +7,17 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { mkdtemp, readFile, realpath, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { Context } from '@bosch/cordis'
-import type { Agent } from '@bosch/bh-agent'
-import AgentLoop from '@bosch/bh-agent-loop'
-import { mountAgentLoopTestDependencies } from '@bosch/bh-agent-loop-testkit'
-import SandboxedFileSystem from '@bosch/bh-fs-sandbox'
-import type { ContentBlock } from '@bosch/bh-llm'
-import SandboxPolicyService, { setSandboxMode } from '@bosch/bh-sandbox-policy'
-import { SessionId, type SessionEvent } from '@bosch/bh-session'
-import * as ToolFs from '@bosch/bh-tool-fs'
-import ApprovalService from '@bosch/bh-user-approval'
-import { snapshotSubagentDescriptor } from '@bosch/bh-subagent'
+import { Context } from '@hydra/cordis'
+import type { Agent } from '@hydra/harness-agent'
+import AgentLoop from '@hydra/harness-agent-loop'
+import { mountAgentLoopTestDependencies } from '@hydra/harness-agent-loop-testkit'
+import SandboxedFileSystem from '@hydra/harness-fs-sandbox'
+import type { ContentBlock } from '@hydra/harness-llm'
+import SandboxPolicyService, { setSandboxMode } from '@hydra/harness-sandbox-policy'
+import { SessionId, type SessionEvent } from '@hydra/harness-session'
+import * as ToolFs from '@hydra/harness-tool-fs'
+import ApprovalService from '@hydra/harness-user-approval'
+import { snapshotSubagentDescriptor } from '@hydra/harness-subagent'
 import { MockAdapter, textResponse, toolCallResponse } from '../../../core/agent-loop/tests/mock-adapter.ts'
 import { startInProcessRun } from '../src/index.ts'
 
@@ -114,7 +114,7 @@ describe('in-process policy inheritance', () => {
       const runtimeContext = child.session.events.find(
         (event): event is SessionEvent<'user/message'> => event.type === 'user/message'
           && event.data.source.kind === 'plugin'
-          && event.data.source.plugin === '@bosch/bh-system-prompt',
+          && event.data.source.plugin === '@hydra/harness-system-prompt',
       )
       if (request === undefined || runtimeContext === undefined) throw new Error('child request lacks its runtime policy context')
       expect(runtimeContext.seq).toBeLessThan(request.seq)
@@ -122,7 +122,7 @@ describe('in-process policy inheritance', () => {
         .filter((block): block is Extract<ContentBlock, { type: 'text' }> => block.type === 'text')
         .map(block => block.text)
         .join('\n')
-      expect(contextText).toContain('Current BH file policy: read-only')
+      expect(contextText).toContain('Current Hydra file policy: read-only')
       expect(contextText).toContain('Approval prompts are disabled')
       // The statement rides runtime context; the system prompt stays uniform.
       expect(contextText).toContain('You are a delegated subagent')

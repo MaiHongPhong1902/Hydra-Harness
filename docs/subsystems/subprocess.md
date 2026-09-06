@@ -1,6 +1,6 @@
 # Subprocess
 
-The subprocess seam is split across a Service Definition ([bh-subprocess](../../packages/subprocess/subprocess), `ctx.subprocess`) and Service Provider ([bh-subprocess-local](../../packages/subprocess/subprocess-local)); its Consumers are other capability seams and out-of-process backends: the [bash executor family](shell.md) uses collected batch output, LSP uses raw protocol pipes, the PTY backend uses the terminal primitive, and the ACP subagent backend uses piped ndjson plus inherited stderr. This seam owns the managed `BH_*` environment namespace, the shared credential scrub (`scrubbedParentEnv`), and the `CollectedOutput` shape; [bh-shell](../../packages/shell/shell) re-exports the vocabulary so bash consumers keep one import root.
+The subprocess seam is split across a Service Definition ([@hydra/harness-subprocess](../../packages/subprocess/subprocess), `ctx.subprocess`) and Service Provider ([@hydra/harness-subprocess-local](../../packages/subprocess/subprocess-local)); its Consumers are other capability seams and out-of-process backends: the [bash executor family](shell.md) uses collected batch output, LSP uses raw protocol pipes, the PTY backend uses the terminal primitive, and the ACP subagent backend uses piped ndjson plus inherited stderr. This seam owns the managed `BH_*` environment namespace, the shared credential scrub (`scrubbedParentEnv`), and the `CollectedOutput` shape; [@hydra/harness-shell](../../packages/shell/shell) re-exports the vocabulary so bash consumers keep one import root.
 
 Source: [`packages/subprocess/subprocess/src/types.ts`](../../packages/subprocess/subprocess/src/types.ts) and [`packages/subprocess/subprocess/src/index.ts`](../../packages/subprocess/subprocess/src/index.ts)
 
@@ -18,7 +18,7 @@ type BhEnvironmentKey = `${typeof BH_ENV_PREFIX}${string}`
 ```
 
 ```ts type-equiv
-/** Trusted Bosch Harness variables for one child-process execution. */
+/** Trusted Hydra harness variables for one child-process execution. */
 type BhEnvironment = Readonly<Record<BhEnvironmentKey, string>>
 ```
 
@@ -92,7 +92,7 @@ The seam applies no defaults: every disposition, limit, and directory is explici
 /**
  * A fully-specified spawn request. This seam applies no defaults: every
  * disposition, limit, and directory is explicit, so the caller's own config —
- * not a hidden subprocess-service default — decides them (the `bh-shell`
+ * not a hidden subprocess-service default — decides them (the `@hydra/harness-shell`
  * request/spec split is the owning template).
  */
 interface SubprocessSpawnSpec {
@@ -244,7 +244,7 @@ The terminal spec fully specifies argv, cwd, environment overrides, dimensions, 
 
 ## Service behavior
 
-The abstract [`SubprocessRuntime`](../../packages/subprocess/subprocess/src/index.ts) Service Definition specifies execution-world coordinates, executable lookup, ordinary `spawn`, and `spawnTerminal`. [`LocalSubprocessRuntime`](../../packages/subprocess/subprocess-local/src/index.ts) provides them with detached process trees, per-disposition wiring, credential scrubbing, `node-pty`, platform process inspection, and terminate-and-join disposal. See [`bh-subprocess`](../../packages/subprocess/subprocess/README.md) for the Service Definition contract and [`bh-subprocess-local`](../../packages/subprocess/subprocess-local/README.md) for local mechanics.
+The abstract [`SubprocessRuntime`](../../packages/subprocess/subprocess/src/index.ts) Service Definition specifies execution-world coordinates, executable lookup, ordinary `spawn`, and `spawnTerminal`. [`LocalSubprocessRuntime`](../../packages/subprocess/subprocess-local/src/index.ts) provides them with detached process trees, per-disposition wiring, credential scrubbing, `node-pty`, platform process inspection, and terminate-and-join disposal. See [`@hydra/harness-subprocess`](../../packages/subprocess/subprocess/README.md) for the Service Definition contract and [`@hydra/harness-subprocess-local`](../../packages/subprocess/subprocess-local/README.md) for local mechanics.
 
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 

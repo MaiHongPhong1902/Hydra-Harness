@@ -27,7 +27,7 @@ describe('verify-cordis-config metadata expressions', () => {
   })
   it('accepts a disabled !!js expression', () => {
     const problems = metadataExpressionErrors(
-      { id: 'tool-bash', name: '@bosch/bh-tool-bash', disabled: { __jsExpr: "process.platform === 'win32'" } },
+      { id: 'tool-bash', name: '@hydra/harness-tool-bash', disabled: { __jsExpr: "process.platform === 'win32'" } },
       '[0]',
     )
     expect(problems).toEqual([])
@@ -64,11 +64,11 @@ describe('workspace Bundle discovery and product dependency closures', () => {
       mkdirSync(bundleDir, { recursive: true })
       mkdirSync(plainDir, { recursive: true })
       writeFileSync(join(bundleDir, 'package.json'), JSON.stringify({
-        name: '@bosch/bh-subagent-example',
+        name: '@hydra/harness-subagent-example',
         bh: { bundle: { patch: './cordis.patch.yml' } },
       }))
       writeFileSync(join(plainDir, 'package.json'), JSON.stringify({
-        name: '@bosch/bh-plain',
+        name: '@hydra/harness-plain',
       }))
 
       expect(bundleManifestPaths(fixture)).toEqual([
@@ -83,16 +83,16 @@ describe('workspace Bundle discovery and product dependency closures', () => {
     const manifestPath = 'packages/subagent/example/package.json'
     const file = 'packages/subagent/example/cordis.patch.yml'
     const manifest = {
-      name: '@bosch/bh-subagent-example',
+      name: '@hydra/harness-subagent-example',
       dependencies: {},
     }
-    const self = { file, name: '@bosch/bh-subagent-example' }
+    const self = { file, name: '@hydra/harness-subagent-example' }
     expect(bundlePluginDependencyErrors(manifestPath, manifest, [self])).toEqual([])
     expect(bundlePluginDependencyErrors(manifestPath, manifest, [
       self,
-      { file, name: '@bosch/bh-missing-plugin' },
+      { file, name: '@hydra/harness-missing-plugin' },
     ])).toEqual([
-      `${file}: @bosch/bh-missing-plugin must be declared in ${manifestPath} dependencies`,
+      `${file}: @hydra/harness-missing-plugin must be declared in ${manifestPath} dependencies`,
     ])
   })
 })

@@ -1,13 +1,13 @@
 /** The shared `bash` settings section as the pwsh executor family resolves it. */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import type { Fiber } from '@bosch/cordis'
-import { SettingsProvider } from '@bosch/bh-settings'
-import type { SettingsNamespace } from '@bosch/bh-settings'
-import { SHELL_SETTINGS_NAMESPACE } from '@bosch/bh-shell'
-import LocalSubprocessRuntime from '@bosch/bh-subprocess-local'
-import { PwshLocalExecutor } from '@bosch/bh-pwsh-local'
+import { Context } from '@hydra/cordis'
+import type { Fiber } from '@hydra/cordis'
+import { SettingsProvider } from '@hydra/harness-settings'
+import type { SettingsNamespace } from '@hydra/harness-settings'
+import { SHELL_SETTINGS_NAMESPACE } from '@hydra/harness-shell'
+import LocalSubprocessRuntime from '@hydra/harness-subprocess-local'
+import { PwshLocalExecutor } from '@hydra/harness-pwsh-local'
 
 /** The smallest real provider: one in-memory document, always writable. */
 class MemorySettings extends SettingsProvider {

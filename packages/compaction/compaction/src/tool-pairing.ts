@@ -2,10 +2,10 @@
  * Tool-pairing balance over a session surface. Compaction changes surface
  * positions, so safe cuts are derived from tool-call/result content in current
  * surface order rather than step markers.
- * @module @bosch/bh-compaction/tool-pairing
+ * @module @hydra/harness-compaction/tool-pairing
  */
 
-import type { Session, SessionEvent } from '@bosch/bh-session'
+import type { Session, SessionEvent } from '@hydra/harness-session'
 
 /** Incremental balance state for one session surface generation. */
 interface BalanceCache {

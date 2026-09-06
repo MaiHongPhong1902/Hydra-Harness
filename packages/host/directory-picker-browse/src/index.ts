@@ -6,20 +6,20 @@
  * serves remote clients the dialog backend cannot. Policy decisions (hidden
  * entries flagged but returned, symlinks followed, whole-filesystem scope) are
  * recorded in the directory-picker seam Agent Note.
- * @module @bosch/bh-host-directory-picker-browse
+ * @module @hydra/harness-host-directory-picker-browse
  */
 
 import { mkdir, opendir, stat } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { basename, dirname, join, posix, resolve, win32 } from 'node:path'
-import type { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
+import type { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
 import {
   DirectoryPicker, DirectoryPickerError,
-} from '@bosch/bh-host-directory-picker'
+} from '@hydra/harness-host-directory-picker'
 import type {
   DirectoryEntry, DirectoryListing, DirectoryPickerCapability,
-} from '@bosch/bh-host-directory-picker'
+} from '@hydra/harness-host-directory-picker'
 
 /**
  * Ancestor chain from the filesystem root to `target` inclusive — the

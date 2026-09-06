@@ -1,12 +1,12 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { Context, Service, symbols } from '@bosch/cordis'
-import { createUserMessage, freezeMessage } from '@bosch/bh-llm'
-import { Session, SessionId, type UserMessage } from '@bosch/bh-session'
+import { Context, Service, symbols } from '@hydra/cordis'
+import { createUserMessage, freezeMessage } from '@hydra/harness-llm'
+import { Session, SessionId, type UserMessage } from '@hydra/harness-session'
 import AgentRegistry, {
   agentEvents,
   Inbox,
-} from '@bosch/bh-agent'
-import TypertRegistry from '@bosch/bh-typert-registry'
+} from '@hydra/harness-agent'
+import TypertRegistry from '@hydra/harness-typert-registry'
 
 import type {
   Agent,
@@ -15,7 +15,7 @@ import type {
   AgentStatus,
   CreateAgentOptions,
   ResumeAgentOptions,
-} from '@bosch/bh-agent'
+} from '@hydra/harness-agent'
 
 function stubAgent(rawId: string, overrides: Partial<Agent> = {}): Agent {
   const id = SessionId(rawId)
@@ -155,8 +155,8 @@ describe('AgentRegistry', () => {
     expect(lookup).toMatchObject({
       parameter: 'agent',
       wire: 'agentId',
-      hostTypeSymbol: '@bosch/bh-agent#Agent',
-      wireTypeSymbol: '@bosch/bh-session/types#SessionId',
+      hostTypeSymbol: '@hydra/harness-agent#Agent',
+      wireTypeSymbol: '@hydra/harness-session/types#SessionId',
     })
     expect(lookup?.resolve(agent.id)).toBe(agent)
     expect(ctx.typert.contexts.getHost('agent')?.resolve(agent.id)).toBe(agent.ctx)

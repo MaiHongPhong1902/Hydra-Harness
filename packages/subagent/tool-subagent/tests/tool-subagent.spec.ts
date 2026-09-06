@@ -2,25 +2,25 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
-import { Context } from '@bosch/cordis'
-import Loader from '@bosch/cordis-plugin-loader'
-import { CallId } from '@bosch/bh-llm'
-import SystemPrompt from '@bosch/bh-system-prompt'
-import ToolRuntime, { TOOL_ABORTED_BEFORE_DISPATCH } from '@bosch/bh-tools'
-import { assembleContextFor, type Agent } from '@bosch/bh-agent'
-import AgentRegistry from '@bosch/bh-agent'
-import AgentLoop from '@bosch/bh-agent-loop'
-import { mountAgentLoopTestDependencies } from '@bosch/bh-agent-loop-testkit'
-import JsonlSessionPersistence from '@bosch/bh-session-persistence-jsonl'
-import SubagentRuntime from '@bosch/bh-subagent'
-import type { SubagentStartRequest } from '@bosch/bh-subagent'
-import LocalJobRegistry from '@bosch/bh-jobs-local'
-import * as SubagentSpawn from '@bosch/bh-subagent-spawn-in-process'
-import * as ToolTasks from '@bosch/bh-tool-jobs'
+import { Context } from '@hydra/cordis'
+import Loader from '@hydra/cordis-plugin-loader'
+import { CallId } from '@hydra/harness-llm'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import ToolRuntime, { TOOL_ABORTED_BEFORE_DISPATCH } from '@hydra/harness-tools'
+import { assembleContextFor, type Agent } from '@hydra/harness-agent'
+import AgentRegistry from '@hydra/harness-agent'
+import AgentLoop from '@hydra/harness-agent-loop'
+import { mountAgentLoopTestDependencies } from '@hydra/harness-agent-loop-testkit'
+import JsonlSessionPersistence from '@hydra/harness-session-persistence-jsonl'
+import SubagentRuntime from '@hydra/harness-subagent'
+import type { SubagentStartRequest } from '@hydra/harness-subagent'
+import LocalJobRegistry from '@hydra/harness-jobs-local'
+import * as SubagentSpawn from '@hydra/harness-subagent-spawn-in-process'
+import * as ToolTasks from '@hydra/harness-tool-jobs'
 import { MockAdapter, textResponse } from '../../../core/agent-loop/tests/mock-adapter.ts'
 import * as mock from './scripted-provider.ts'
 import * as tool from '../src/index.ts'
-import { SessionId } from '@bosch/bh-session'
+import { SessionId } from '@hydra/harness-session'
 
 const testToolSignal = new AbortController().signal
 
@@ -902,7 +902,7 @@ describe('bh-tool-subagent background mode', () => {
     const ctx = await setup({ provider: 'mock' })
     const result = await callSubagent(ctx, { description: 'd', prompt: 'p', run_in_background: true })
     expect(result.isError).toBe(true)
-    expect(text(result)).toContain('background jobs unavailable: load @bosch/bh-jobs')
+    expect(text(result)).toContain('background jobs unavailable: load @hydra/harness-jobs')
   })
 
   it('skips background startup when the tool signal is already aborted', async () => {

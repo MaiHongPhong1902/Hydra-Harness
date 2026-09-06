@@ -1,4 +1,4 @@
-# @bosch/bh-client-ui-commands
+# @hydra/harness-client-ui-commands
 
 Client command API (`ctx.commandUi`): the session-keyed command-directory cache, the `/` command source with `matchSpace`/`matchEnter` decision hooks, three-kind dispatch (`execute` / `popupSelect` / `leadingInput`), and popupSelect registration for business packages. The [web command Agent Note](../../../.agents/notes/implemented/architecture/2026-07-25-web-command-surfaces-and-assembly.md) records the decision.
 

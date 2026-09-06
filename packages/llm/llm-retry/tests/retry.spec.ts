@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import type { Fiber } from '@bosch/cordis'
-import LlmRuntime, { createUserMessage, CallId, EMPTY_RESPONSE_CODE, LlmAdapter, LlmError, resolveRetryPolicy  } from '@bosch/bh-llm'
+import { Context } from '@hydra/cordis'
+import type { Fiber } from '@hydra/cordis'
+import LlmRuntime, { createUserMessage, CallId, EMPTY_RESPONSE_CODE, LlmAdapter, LlmError, resolveRetryPolicy  } from '@hydra/harness-llm'
 import type {
   AlwaysRetryPolicyConfig,
   BackoffConfig,
@@ -10,15 +10,15 @@ import type {
   ResolvedRetryPolicy,
   RetryPolicyConfig,
   StreamChunk,
-} from '@bosch/bh-llm'
-import SessionStore, { SessionId } from '@bosch/bh-session'
-import type { SessionEvent, SessionEventMap } from '@bosch/bh-session'
-import type { LlmRetryEventData } from '@bosch/bh-llm-retry/types'
-import SystemPrompt from '@bosch/bh-system-prompt'
-import ToolRuntime, { defineContentToolFixture } from '@bosch/bh-tools'
-import AgentRegistry from '@bosch/bh-agent'
-import type { Agent, RequestErrorAction } from '@bosch/bh-agent'
-import AgentLoop from '@bosch/bh-agent-loop'
+} from '@hydra/harness-llm'
+import SessionStore, { SessionId } from '@hydra/harness-session'
+import type { SessionEvent, SessionEventMap } from '@hydra/harness-session'
+import type { LlmRetryEventData } from '@hydra/harness-llm-retry/types'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import ToolRuntime, { defineContentToolFixture } from '@hydra/harness-tools'
+import AgentRegistry from '@hydra/harness-agent'
+import type { Agent, RequestErrorAction } from '@hydra/harness-agent'
+import AgentLoop from '@hydra/harness-agent-loop'
 import * as retry from '../src/index.ts'
 
 type ScriptEntry = Error | Iterable<StreamChunk> | AsyncIterable<StreamChunk>

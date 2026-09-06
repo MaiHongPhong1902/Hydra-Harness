@@ -8,8 +8,8 @@
  * @module bh-llm-deepseek/translate
  */
 
-import { CallId, EMPTY_RESPONSE_CODE, LlmError } from '@bosch/bh-llm'
-import type { ContentBlock, FinishReason, StreamChunk, TokenUsage } from '@bosch/bh-llm'
+import { CallId, EMPTY_RESPONSE_CODE, LlmError } from '@hydra/harness-llm'
+import type { ContentBlock, FinishReason, StreamChunk, TokenUsage } from '@hydra/harness-llm'
 import { DONE } from './sse.ts'
 import type { WireChunk, WireUsage } from './types.ts'
 

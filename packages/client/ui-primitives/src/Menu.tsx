@@ -1,6 +1,6 @@
 // Menu: minimal controlled dropdown (group-by pickers, project selectors).
 // Default: pure CSS positioning relative to the anchor wrapper — no popper.
-// Opt-in `portal` renders the list into document.body, fixed-positioned from
+// Opt-in `portal` renders the list into its enclosing dialog or document.body, fixed-positioned from
 // the anchor rect, for anchors inside overflow-clipping containers (sidebar).
 // The owner controls `open`; outside-click closing uses one document listener
 // active only while open. Submenus open on hover/focus inside the same root.
@@ -67,7 +67,7 @@ const MEASURE_STYLE: CSSProperties = { visibility: 'hidden', left: 0, top: 0 }
  * @param props.onClose - invoked on outside click or Escape.
  * @param props.align - list alignment against the anchor (default 'start').
  * @param props.side - open below (`bottom`, default) or above (`top`) the anchor.
- * @param props.portal - render the list into document.body, fixed-positioned
+ * @param props.portal - render the list into its enclosing dialog or document.body, fixed-positioned
  * from the anchor rect (repositions on scroll/resize while open). Use when an
  * ancestor's overflow clipping would crop the in-place list; default false
  * keeps the pure-CSS in-place behavior.
@@ -177,13 +177,16 @@ export function Menu({ open, anchor, items, selectedId, selectedIds, onSelect, o
       onClose()
     }
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key !== 'Escape' || e.defaultPrevented) return
+      e.preventDefault()
+      e.stopImmediatePropagation()
+      onClose()
     }
     document.addEventListener('pointerdown', onPointerDown)
-    document.addEventListener('keydown', onKeyDown)
+    document.addEventListener('keydown', onKeyDown, true)
     return () => {
       document.removeEventListener('pointerdown', onPointerDown)
-      document.removeEventListener('keydown', onKeyDown)
+      document.removeEventListener('keydown', onKeyDown, true)
     }
   }, [open, onClose])
 
@@ -296,7 +299,7 @@ export function Menu({ open, anchor, items, selectedId, selectedIds, onSelect, o
       onPointerLeave={closeOnPointerLeave ? () => { if (open) armClose() } : undefined}
     >
       {anchor}
-      {portal ? (list !== false && createPortal(list, document.body)) : list}
+      {portal ? (list !== false && createPortal(list, rootRef.current?.closest('[role="dialog"]') ?? document.body)) : list}
     </span>
   )
 }

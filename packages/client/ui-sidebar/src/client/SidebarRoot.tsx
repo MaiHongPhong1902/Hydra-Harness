@@ -18,11 +18,11 @@
 import { useEffect, useRef, useState } from 'react'
 import clsx from 'clsx'
 import {
-  FishLogo, IconNewChatOutline16, IconPanelLeftOutline16, Tooltip,
-} from '@bosch/bh-client-ui-primitives'
+  HydraLogo, IconNewChatOutline16, IconPanelLeftOutline16, Tooltip,
+} from '@hydra/harness-client-ui-primitives'
 import type { SidebarRootComponentProps } from './contract/slots.ts'
 import css from './SidebarRoot.module.css'
-import { WorkOnLogo } from './WorkOnLogo.tsx'
+import { HydraSidebarBrand } from './HydraSidebarBrand.tsx'
 
 /** Wide-content unmount delay; matches the 150ms wide-content fade-out. */
 const COLLAPSE_SETTLE_MS = 150
@@ -144,7 +144,7 @@ export function SidebarRoot({
                 {renderSlot('sidebar.brand.name', {}, {
                   fallback: (
                     <>
-                      <WorkOnLogo className={css.localBrandLogo} />
+                      <HydraSidebarBrand className={css.localBrandLogo} />
                       {process.env.BH_CLIENT_COMMIT_HASH
                         ? <span className={css.buildRevision}>{process.env.BH_CLIENT_COMMIT_HASH}</span>
                         : null}
@@ -155,7 +155,7 @@ export function SidebarRoot({
             </span>
           </button>
         )}
-        {/* Rail resting state is the WorkON mark; hovering swaps in the panel
+        {/* Rail resting state is the Hydra mark; hovering swaps in the panel
             icon (the expand affordance, figma sidebar-hover flow). */}
         <Tooltip label={collapsed ? t('toggle.open') : t('toggle.collapse')} delayMs={500}>
           <button
@@ -166,7 +166,7 @@ export function SidebarRoot({
           >
             {!wide && (
               <span className={css.railMark} aria-hidden="true">
-                {renderSlot('sidebar.brand.mark', { size: 24 }, { fallback: <FishLogo size={24} /> })}
+                {renderSlot('sidebar.brand.mark', { size: 24 }, { fallback: <HydraLogo size={24} /> })}
               </span>
             )}
             {/* Rail icons render at 18 (figma rail spec); expanded keeps the glyph-native sizes. */}

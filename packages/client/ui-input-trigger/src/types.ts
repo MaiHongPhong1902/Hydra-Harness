@@ -8,7 +8,7 @@
  * never a Cordis context or the mutable Session. RPC and service access go
  * through the provider plugin's own root context captured at registration.
  */
-import type { ClientContext, SessionId } from '@bosch/bh-client-runtime/client'
+import type { ClientContext, SessionId } from '@hydra/harness-client-runtime/client'
 
 /**
  * The provider-facing projection of one client session. It carries stable
@@ -270,7 +270,7 @@ export interface InsertTextRequest {
   readonly continue?: boolean
 }
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Events {
     /**
      * Applies one command claim to the scoped Input. Dispatched with the

@@ -1,0 +1,71 @@
+- dialog "Settings":
+  - navigation:
+    - text: Settings
+    - button "General":
+      - img
+      - text: General
+    - button "Personalization":
+      - img
+      - text: Personalization
+    - button "Models":
+      - img
+      - text: Models
+    - button "Usage"
+    - button "Plugins":
+      - img
+      - text: Plugins
+    - button "Agent presets":
+      - img
+      - text: Agent presets
+  - button "Open configuration file"
+  - button "Close":
+    - img
+    - text: Close
+  - heading "Models" [level=2]
+  - paragraph: Enter your API keys to use models from the following providers.
+  - list:
+    - listitem:
+      - text: settings-fixture Custom
+      - img "API key missing"
+      - button "Edit settings-fixture": Edit
+      - button "Delete settings-fixture": Delete
+  - text: Custom provider Provider ID
+  - textbox "Provider ID" [disabled]:
+    - /placeholder: acme-gateway
+    - text: settings-fixture
+  - paragraph: Lowercase identifier, starting with a letter, that uniquely names this provider in requests and as its credential name.
+  - text: Display name
+  - textbox "Display name" [disabled]:
+    - /placeholder: settings-fixture
+  - text: Base URL
+  - textbox "Base URL" [disabled]:
+    - /placeholder: https://gateway.example/v1
+    - text: https://old.invalid/v1
+  - text: Proxy
+  - textbox "Proxy" [disabled]:
+    - /placeholder: Optional HTTP(S) proxy, e.g. http://127.0.0.1:3128
+    - text: http://old.invalid:8080
+  - text: API protocol
+  - combobox "API protocol" [disabled]:
+    - option "openai-completions" [selected]
+    - option "openai-responses"
+    - option "anthropic-messages"
+    - option "azure-openai-completions"
+  - text: API key
+  - textbox "API key":
+    - /placeholder: Enter your API key
+    - text: fixture-key
+  - region "Models":
+    - text: Models
+    - button "Fetch available models" [disabled]
+    - textbox "Model ID 1" [disabled]:
+      - /placeholder: Model ID
+      - text: fixture-model
+    - textbox "Display name 1" [disabled]:
+      - /placeholder: Display name
+    - button "Capacities 1"
+    - button "Delete model 1" [disabled]
+    - button "Add model" [disabled]
+  - paragraph: Fixture key write refused
+  - button "Cancel"
+  - button "Create provider"

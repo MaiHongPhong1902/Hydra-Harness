@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
-import { AttachmentId } from '@bosch/bh-attachment'
-import type { AttachmentStore, ImageAttachmentRef } from '@bosch/bh-attachment'
-import { CallId, createMessage, createUserMessage, OFFLOADED_IMAGE_TEXT } from '@bosch/bh-llm'
-import type { ContentBlock, GenerateOptions, Message } from '@bosch/bh-llm'
+import { AttachmentId } from '@hydra/harness-attachment'
+import type { AttachmentStore, ImageAttachmentRef } from '@hydra/harness-attachment'
+import { CallId, createMessage, createUserMessage, OFFLOADED_IMAGE_TEXT } from '@hydra/harness-llm'
+import type { ContentBlock, GenerateOptions, Message } from '@hydra/harness-llm'
 import { toPiContext } from '../src/context.ts'
 import { toPiAssistant } from '../src/replay.ts'
 

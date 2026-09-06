@@ -7,9 +7,9 @@
  */
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { SessionEvent } from '@bosch/bh-session/types'
-import type {} from '@bosch/bh-commands/types'
-import type { SessionId } from '@bosch/bh-api-remotes/client'
+import type { SessionEvent } from '@hydra/harness-session/types'
+import type {} from '@hydra/harness-commands/types'
+import type { SessionId } from '@hydra/harness-api-remotes/client'
 import { Session } from '../src/client/sessions/session.ts'
 import type {
   ChatConversationViewNode, ChatLocationNodeIndex, ChatNodeStore, ChatSnapshot,

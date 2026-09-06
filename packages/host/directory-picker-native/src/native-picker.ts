@@ -1,6 +1,6 @@
 /** Cross-platform native single-directory chooser behind the native backend's capability. */
 
-import { runNativeCommand, type NativeCommandRunner } from '@bosch/bh-native-command'
+import { runNativeCommand, type NativeCommandRunner } from '@hydra/harness-native-command'
 import { pickWin32Directory } from './win32-dialog.ts'
 
 /** Testable command boundary; native implementations never invoke a shell. */

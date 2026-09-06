@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import WorkflowEngineDefault, {
   isFatalWorkflowError,
   WorkflowError,

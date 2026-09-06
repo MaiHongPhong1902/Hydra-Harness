@@ -1,5 +1,5 @@
 /**
- * Enforce the MIT license declaration for repository-owned BH npm packages.
+ * Enforce the MIT license declaration for repository-owned Hydra npm packages.
  * @module scripts/verify-bh-package-licenses
  */
 
@@ -7,11 +7,11 @@ import { globSync, readFileSync } from 'node:fs'
 import { resolve, sep } from 'node:path'
 
 const ROOT = resolve(import.meta.dirname, '..')
-const BH_PACKAGE_NAME = /^@bosch\/bh(?:-|$)/
+const BH_PACKAGE_NAME = /^@hydra\/harness(?:-|$)/
 
-/** Result of checking every BH package reachable through the root workspace list. */
+/** Result of checking every Hydra package reachable through the root workspace list. */
 export interface BhPackageLicenseReport {
-  /** Number of BH package manifests checked. */
+  /** Number of Hydra package manifests checked. */
   packageCount: number
   /** Repository-relative diagnostics for non-MIT declarations. */
   failures: string[]
@@ -50,7 +50,7 @@ function printable(value: unknown): string {
 }
 
 /**
- * Check every BH npm package declared by the repository workspace.
+ * Check every Hydra npm package declared by the repository workspace.
  * @param root - absolute repository root containing the workspace package.json.
  * @returns the checked package count and every non-MIT declaration.
  */
@@ -78,12 +78,12 @@ export function inspectBhPackageLicenses(root: string): BhPackageLicenseReport {
 if (process.argv[1] && import.meta.filename === resolve(process.argv[1])) {
   const report = inspectBhPackageLicenses(ROOT)
   if (report.failures.length > 0) {
-    process.stderr.write('verify-bh-package-licenses: non-MIT BH package declarations found:\n')
+    process.stderr.write('verify-bh-package-licenses: non-MIT Hydra package declarations found:\n')
     for (const failure of report.failures) process.stderr.write(`  ${failure}\n`)
     process.exitCode = 1
   } else {
     process.stdout.write(
-      `verify-bh-package-licenses: ${String(report.packageCount)} BH package(s) checked; all declare MIT.\n`,
+      `verify-bh-package-licenses: ${String(report.packageCount)} Hydra package(s) checked; all declare MIT.\n`,
     )
   }
 }

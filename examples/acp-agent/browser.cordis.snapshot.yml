@@ -3,16 +3,16 @@
 # process is scripted (a real window needs a 200 MB binary and a display, and
 # reports host-dependent viewport metrics) and the model adapter is replay.
 - id: base
-  name: '@bosch/cordis-plugin-include'
+  name: '@hydra/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - id: llm-deepseek
-        name: '@bosch/bh-llm-deepseek'
+        name: '@hydra/harness-llm-deepseek'
         disabled: true
       - insert:
           - id: browser-electron
-            name: '@bosch/bh-browser-electron'
+            name: '@hydra/harness-browser-electron'
             config:
               show: false
               # Never spawned: the scripted child replaces the spawn itself,
@@ -21,9 +21,9 @@
           - id: browser-snapshot-backend
             name: './browser-snapshot-backend.mjs'
           - id: tool-browser
-            name: '@bosch/bh-tool-browser'
+            name: '@hydra/harness-tool-browser'
           - id: llm-replay
-            name: '@bosch/bh-llm-replay'
+            name: '@hydra/harness-llm-replay'
             config:
               providers:
                 - id: deepseek-official

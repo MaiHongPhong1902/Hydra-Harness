@@ -14,7 +14,7 @@ import {
   IconPlusOutline16,
   IconProjectAddOutline16,
   IconRefreshOutline14,
-} from '@bosch/bh-client-ui-primitives'
+} from '@hydra/harness-client-ui-primitives'
 import css from './DesktopFilesPanel.module.css'
 
 export interface DesktopFileEntry {

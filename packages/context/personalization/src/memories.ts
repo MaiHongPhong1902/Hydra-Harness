@@ -3,7 +3,7 @@
 import { randomUUID } from 'node:crypto'
 import { mkdir, readFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
-import { withFileLock, writeFileAtomic } from '@bosch/bh-atomic-write'
+import { withFileLock, writeFileAtomic } from '@hydra/harness-atomic-write'
 import type { MemoryEntry } from './session.ts'
 
 /** Stable file format version for the local memory document. */
@@ -53,11 +53,11 @@ function parseDocument(raw: string): MemoryDocument {
   return { version: MEMORY_FILE_VERSION, entries: document.entries.map(entry => ({ ...entry })) }
 }
 
-/** JSON-backed local memory store, private to one BH home. */
+/** JSON-backed local memory store, private to one Hydra home. */
 export class LocalMemoryStore {
   private readonly path: string
 
-  /** @param home - resolved BH home for this host. */
+  /** @param home - resolved Hydra home for this host. */
   constructor(home: string) {
     this.path = join(home, 'memories', 'memories.json')
   }

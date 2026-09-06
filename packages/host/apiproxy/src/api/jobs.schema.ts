@@ -4,7 +4,7 @@
  */
 
 import { z } from 'zod'
-import type { JobId } from '@bosch/bh-jobs/brand'
+import type { JobId } from '@hydra/harness-jobs/brand'
 import type { JobView } from './jobs.ts'
 import type { Wire } from './rpc.schema.ts'
 

@@ -23,12 +23,12 @@
  * })
  * ```
  *
- * @module @bosch/bh-authorization
+ * @module @hydra/harness-authorization
  */
 
-import { Context, Service } from '@bosch/cordis'
-import type { CredentialKey } from '@bosch/bh-credentials'
-import { HarnessError } from '@bosch/bh-llm'
+import { Context, Service } from '@hydra/cordis'
+import type { CredentialKey } from '@hydra/harness-credentials'
+import { HarnessError } from '@hydra/harness-llm'
 
 import type {
   AuthorizationEntry, AuthorizationMethod, AuthorizationNotice, AuthorizationOutcome, AuthorizationPrompt,
@@ -40,7 +40,7 @@ export type {
   AuthorizationPromptOption, AuthorizationSettlement, AuthorizationStatus,
 } from './types.ts'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     authorization: AuthorizationService
   }

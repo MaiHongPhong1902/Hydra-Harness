@@ -11,7 +11,7 @@
  * and undercount cancelled steps (aborted before the message assembles).
  *
  * The wall-time folds mirror the client window fold field by field
- * (`deriveStats` in bh-client-ui-conversation, that fold's whole-window
+ * (`deriveStats` in @hydra/harness-client-ui-conversation, that fold's whole-window
  * fallback role): model time is `step/start` → `assistant/message`, first
  * token is the first non-empty delta chunk and survives an in-step
  * `llm/retry`, decode spans first token → assembled message on steps that
@@ -20,12 +20,12 @@
  * time stays uncounted in every time figure — matching the window, which
  * renders it as an untimed interrupted node.
  *
- * @module @bosch/bh-session-stats/projection
+ * @module @hydra/harness-session-stats/projection
  */
 
 import { z } from 'zod'
-import { isTokenDelta } from '@bosch/bh-llm/message'
-import type { ProjectionDefinition } from '@bosch/bh-session-projection'
+import { isTokenDelta } from '@hydra/harness-llm/message'
+import type { ProjectionDefinition } from '@hydra/harness-session-projection'
 
 /** Accumulated whole-log figures (the view is exactly these totals). */
 interface SessionStatsTotals {
@@ -62,7 +62,7 @@ interface SessionStatsState extends SessionStatsTotals {
   pendingCalls: Record<string, number>
 }
 
-declare module '@bosch/bh-session-projection/types' {
+declare module '@hydra/harness-session-projection/types' {
   interface SessionProjectionStateMap {
     sessionStats: SessionStatsState
   }

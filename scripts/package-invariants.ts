@@ -95,19 +95,19 @@ function checkManifest(
   if (!manifest.files?.includes('lib/invariant.js')) {
     addViolation(violations, owner.manifestPath, 'files must publish lib/invariant.js')
   }
-  if (owner.packageName === '@bosch/bh-invariants') return
-  if (manifest.peerDependencies?.['@bosch/bh-invariants'] !== 'workspace:^') {
+  if (owner.packageName === '@hydra/harness-invariants') return
+  if (manifest.peerDependencies?.['@hydra/harness-invariants'] !== 'workspace:^') {
     addViolation(
       violations,
       owner.manifestPath,
-      '@bosch/bh-invariants must be a workspace:^ peerDependency',
+      '@hydra/harness-invariants must be a workspace:^ peerDependency',
     )
   }
-  if (manifest.devDependencies?.['@bosch/bh-invariants'] !== 'workspace:^') {
+  if (manifest.devDependencies?.['@hydra/harness-invariants'] !== 'workspace:^') {
     addViolation(
       violations,
       owner.manifestPath,
-      '@bosch/bh-invariants must also be a workspace:^ devDependency',
+      '@hydra/harness-invariants must also be a workspace:^ devDependency',
     )
   }
 }
@@ -118,7 +118,7 @@ function checkBuild(
   violations: PackageInvariantViolation[],
 ): void {
   const tsconfigPath = `${owner.dir}/tsconfig.json`
-  if (owner.packageName !== '@bosch/bh-invariants'
+  if (owner.packageName !== '@hydra/harness-invariants'
     && !projectReferencesInvariants(root, owner.dir, tsconfigPath)) {
     addViolation(
       violations,

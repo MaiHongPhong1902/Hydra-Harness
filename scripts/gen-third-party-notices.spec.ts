@@ -46,12 +46,12 @@ describe('tierExternalDeps', () => {
     const { manifests, names } = workspace({
       // Root tooling and test infrastructure never ship, whichever section declares them.
       'package.json': { dependencies: { 'root-runtime-looking': '^1' }, devDependencies: { 'lint-tool': '^1' } },
-      'packages/test-support/loader-smoke/package.json': { name: '@bosch/bh-loader-smoke', dependencies: { 'smoke-helper': '^1' } },
-      'packages/test-support/client-runtime/package.json': { name: '@bosch/bh-client-test-runtime', dependencies: { 'test-lib': '^1' } },
+      'packages/test-support/loader-smoke/package.json': { name: '@hydra/harness-loader-smoke', dependencies: { 'smoke-helper': '^1' } },
+      'packages/test-support/client-runtime/package.json': { name: '@hydra/harness-client-test-runtime', dependencies: { 'test-lib': '^1' } },
       'website/package.json': { devDependencies: { 'site-tool': '^1' } },
       // A plugin package's runtime dependency ships even when no app mounts it by default.
-      'packages/mcp/mcp-client/package.json': { name: '@bosch/bh-mcp-client', dependencies: { 'protocol-sdk': '^1' }, devDependencies: { 'protocol-fixture-server': '^1' } },
-      'apps/cli/package.json': { name: '@bosch/bh-cli', dependencies: { 'cli-lib': '^1', '@bosch/bh-mcp-client': 'workspace:^' } },
+      'packages/mcp/mcp-client/package.json': { name: '@hydra/harness-mcp-client', dependencies: { 'protocol-sdk': '^1' }, devDependencies: { 'protocol-fixture-server': '^1' } },
+      'apps/cli/package.json': { name: '@hydra/harness-cli', dependencies: { 'cli-lib': '^1', '@hydra/harness-mcp-client': 'workspace:^' } },
     })
 
     expect(tierExternalDeps(manifests, names)).toEqual(new Map([
@@ -70,12 +70,12 @@ describe('tierExternalDeps', () => {
   it('keeps a package runtime when any shipping area declares it, and excludes workspace links', () => {
     const { manifests, names } = workspace({
       'package.json': { devDependencies: { shared: '^1' } },
-      'packages/interaction/tui/package.json': { name: '@bosch/bh-tui', dependencies: { shared: '^1', '@bosch/bh-cli': 'workspace:^' } },
-      'apps/cli/package.json': { name: '@bosch/bh-cli' },
+      'packages/interaction/tui/package.json': { name: '@hydra/harness-tui', dependencies: { shared: '^1', '@hydra/harness-cli': 'workspace:^' } },
+      'apps/cli/package.json': { name: '@hydra/harness-cli' },
     })
 
     expect(tierExternalDeps(manifests, names).get('shared')).toBe(true)
-    expect(tierExternalDeps(manifests, names).has('@bosch/bh-cli')).toBe(false)
+    expect(tierExternalDeps(manifests, names).has('@hydra/harness-cli')).toBe(false)
   })
 })
 
@@ -135,7 +135,7 @@ describe('parseVendoredRows', () => {
 
     expect(rows.length).toBeGreaterThan(0)
     expect(rows).toContainEqual({
-      npmName: '@bosch/cordis',
+      npmName: '@hydra/cordis',
       upstreamName: 'cordis',
       upstream: 'https://github.com/cordiverse/cordis',
     })
@@ -144,7 +144,7 @@ describe('parseVendoredRows', () => {
   })
 
   it('yields nothing when the table columns change, so the generator fails loud', () => {
-    expect(parseVendoredRows('| `cordis/` | `@bosch/cordis` | cordis | 4.0.0 | https://example.com | `abc123` |\n')).toEqual([])
+    expect(parseVendoredRows('| `cordis/` | `@hydra/cordis` | cordis | 4.0.0 | https://example.com | `abc123` |\n')).toEqual([])
   })
 
   it('covers every vendored directory, so no package can drop out of the notices', () => {
@@ -178,7 +178,7 @@ describe('parsePyprojectRequirements', () => {
       'docs = ["sphinx>=7"]',
       '',
       '[tool.hatch.build.targets.wheel]',
-      'packages = ["src/bosch_harness"]',
+      'packages = ["src/hydra_harness"]',
       '',
       '[tool.pytest.ini_options]',
       'testpaths = ["tests"]',
@@ -230,11 +230,11 @@ describe('parsePyprojectRequirements', () => {
 describe('collectPythonDependencies', () => {
   it('excludes normalized local project names without exempting a third-party prefix', () => {
     const pyprojects = [
-      '[project]\nname = "bosch-harness-runtime-bin"\ndependencies = ["pydantic"]\n',
-      '[project]\nname = "bosch-harness-sdk"\ndependencies = ["Bosch.Harness_Runtime-Bin", "bosch-unrelated"]\n',
+      '[project]\nname = "hydra-harness-runtime-bin"\ndependencies = ["pydantic"]\n',
+      '[project]\nname = "hydra-harness-sdk"\ndependencies = ["Hydra.Harness_Runtime-Bin", "hydra-unrelated"]\n',
     ]
     expect(() => collectPythonDependencies(pyprojects)).toThrow(
-      'python dependency bosch-unrelated is missing from PYTHON_METADATA',
+      'python dependency hydra-unrelated is missing from PYTHON_METADATA',
     )
   })
 })

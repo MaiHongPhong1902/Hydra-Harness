@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-host-apiproxy`.
- * @module @bosch/bh-host-apiproxy/invariant
+ * Package-owned invariant companion for `@hydra/harness-host-apiproxy`.
+ * @module @hydra/harness-host-apiproxy/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-host-apiproxy'
+const PACKAGE_NAME = '@hydra/harness-host-apiproxy'
 
 /** Cordis companion plugin name. */
 export const name = 'host-apiproxy-invariant'

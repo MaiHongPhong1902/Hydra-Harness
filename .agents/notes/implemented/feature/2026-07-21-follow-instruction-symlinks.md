@@ -14,7 +14,7 @@ A followed symlink is an ordinary file for every downstream step. It participate
 
 ### Trust boundary and residual risk
 
-Following repository-owned links crosses the plugin's trust boundary: a cloned, untrusted repository can carry an `AGENTS.md` whose symlink target is any file the process can read, surfacing off-tree content as workspace guidance. That content enters only as a lower-authority user-role prefix framed by the system-reminder pattern; it never overrides system, developer, or direct user instructions, and it is treated as data, not authority. The mitigating boundary is the filesystem layer, not this plugin: confine `ctx.fs` with the `bh-fs-observation-policy` gate or an OS sandbox ([cross-family fs sandbox](2026-07-14-cross-family-fs-sandbox.md)) when a deployment loads untrusted repositories. This is an explicit, owner-accepted trade-off, not an oversight.
+Following repository-owned links crosses the plugin's trust boundary: a cloned, untrusted repository can carry an `AGENTS.md` whose symlink target is any file the process can read, surfacing off-tree content as workspace guidance. That content enters only as a lower-authority user-role prefix framed by the system-reminder pattern; it never overrides system, developer, or direct user instructions, and it is treated as data, not authority. The mitigating boundary is the filesystem layer, not this plugin: confine `ctx.fs` with the `@hydra/harness-fs-observation-policy` gate or an OS sandbox ([cross-family fs sandbox](2026-07-14-cross-family-fs-sandbox.md)) when a deployment loads untrusted repositories. This is an explicit, owner-accepted trade-off, not an oversight.
 
 ## Alternatives considered
 

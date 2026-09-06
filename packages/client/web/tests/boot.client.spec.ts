@@ -1,14 +1,14 @@
 // @vitest-environment jsdom
-import type { Context } from '@bosch/cordis'
-import * as modulesClient from '@bosch/bh-client-modules/client'
+import type { Context } from '@hydra/cordis'
+import * as modulesClient from '@hydra/harness-client-modules/client'
 import type {
   ClientBundleRegistration, ClientModuleCreateOptions, ClientModuleLoaderTarget, BhWindow,
   WebBootEntry,
-} from '@bosch/bh-client-modules/client'
+} from '@hydra/harness-client-modules/client'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { AppWebEntry } from '../src/boot.ts'
 
-const MODULES_ID = '@bosch/bh-client-modules'
+const MODULES_ID = '@hydra/harness-client-modules'
 const win = globalThis as BhWindow
 const moduleFace = modulesClient as unknown as Record<string, unknown>
 

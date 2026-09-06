@@ -1,5 +1,5 @@
 {
-  "name": "@bosch/bh-client-ui-attachment",
+  "name": "@hydra/harness-client-ui-attachment",
   "description": "Dynamic attachment presentation plugin for conversation input and message-image slots",
   "version": "0.1.1-rc.1",
   "publishConfig": {
@@ -32,7 +32,7 @@
   "bh": {
     "client": {
       "inject": [
-        "@bosch/bh-client-ui-conversation"
+        "@hydra/harness-client-ui-conversation"
       ],
       "platform": "web"
     }
@@ -46,17 +46,17 @@
     "clsx": "^2.0.0"
   },
   "devDependencies": {
-    "@bosch/cordis": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
+    "@hydra/cordis": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
     "@types/react": "~18.3.1",
     "@types/react-dom": "~18.3.0",
-    "@bosch/bh-client-runtime": "workspace:^",
-    "@bosch/bh-client-ui-conversation": "workspace:^",
-    "@bosch/bh-client-ui-primitives": "workspace:^",
-    "@bosch/bh-client-ui-slots": "workspace:^",
+    "@hydra/harness-client-runtime": "workspace:^",
+    "@hydra/harness-client-ui-conversation": "workspace:^",
+    "@hydra/harness-client-ui-primitives": "workspace:^",
+    "@hydra/harness-client-ui-slots": "workspace:^",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "@bosch/bh-attachment": "workspace:^"
+    "@hydra/harness-attachment": "workspace:^"
   },
   "files": [
     "lib/index.js",
@@ -65,10 +65,10 @@
     "lib/types/**/*.d.ts"
   ],
   "peerDependencies": {
-    "@bosch/cordis": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-client-runtime": "workspace:^",
-    "@bosch/bh-client-ui-conversation": "workspace:^",
-    "@bosch/bh-attachment": "workspace:^"
+    "@hydra/cordis": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-client-runtime": "workspace:^",
+    "@hydra/harness-client-ui-conversation": "workspace:^",
+    "@hydra/harness-attachment": "workspace:^"
   }
 }

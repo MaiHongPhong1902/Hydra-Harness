@@ -1,6 +1,6 @@
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { describe, expect, it } from 'vitest'
-import InvariantRegistry from '@bosch/bh-invariants'
+import InvariantRegistry from '@hydra/harness-invariants'
 import * as PluginRuntimeInvariant from '../src/invariant.ts'
 
 describe('plugin-runtime invariant companion', () => {

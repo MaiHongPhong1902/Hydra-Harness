@@ -4,11 +4,11 @@
  * off the reconciliation event, so a violation is observable without
  * re-deriving it.
  */
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { describe, expect, it } from 'vitest'
-import InvariantRegistry from '@bosch/bh-invariants'
-import type { HookRecordSnapshot } from '@bosch/bh-hooks-registry/src/types.ts'
-import * as HooksRegistryInvariant from '@bosch/bh-hooks-registry/src/invariant.ts'
+import InvariantRegistry from '@hydra/harness-invariants'
+import type { HookRecordSnapshot } from '@hydra/harness-hooks-registry/src/types.ts'
+import * as HooksRegistryInvariant from '@hydra/harness-hooks-registry/src/invariant.ts'
 
 /** One projection with the enablement and status a caller wants to test. */
 function snapshot(enabled: boolean, status: HookRecordSnapshot['records'][number]['status']): HookRecordSnapshot {

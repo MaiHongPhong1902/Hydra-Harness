@@ -2,26 +2,26 @@
 # fixture server stay real (the tool call re-executes the actual HTTP fetch and
 # markdown rendering); only the model adapter is replaced by replay.
 - id: base
-  name: '@bosch/cordis-plugin-include'
+  name: '@hydra/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - id: llm-deepseek
-        name: '@bosch/bh-llm-deepseek'
+        name: '@hydra/harness-llm-deepseek'
         disabled: true
       - insert:
           - id: web
-            name: '@bosch/bh-web'
+            name: '@hydra/harness-web'
           - id: web-fetch-http
-            name: '@bosch/bh-web-fetch-http'
+            name: '@hydra/harness-web-fetch-http'
           - id: web-fetch-fixture
             name: './web-fetch-fixture-server.mjs'
           - id: tool-web
-            name: '@bosch/bh-tool-web'
+            name: '@hydra/harness-tool-web'
             config:
               search: false
           - id: llm-replay
-            name: '@bosch/bh-llm-replay'
+            name: '@hydra/harness-llm-replay'
             config:
               providers:
                 - id: deepseek-official

@@ -2,15 +2,15 @@
   name: './cli-mock-llm.ts'
 
 - id: base
-  name: '@bosch/cordis-plugin-include'
+  name: '@hydra/cordis-plugin-include'
   config:
     path: ../../cordis.yml
     patches:
       - id: llm-deepseek
-        name: '@bosch/bh-llm-deepseek'
+        name: '@hydra/harness-llm-deepseek'
         disabled: true
       - id: agent-spine
-        name: '@bosch/bh-agent-spine-demo'
+        name: '@hydra/harness-agent-spine-demo'
         config:
           agents:
             - id: main
@@ -24,6 +24,6 @@
               agentsHome: './.agents-home'
           persona: 'Keyless headless-agent smoke.'
       - id: persistence
-        name: '@bosch/bh-session-persistence-jsonl'
+        name: '@hydra/harness-session-persistence-jsonl'
         config:
           root: './.sessions'

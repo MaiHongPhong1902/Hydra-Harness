@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import SessionStore, { type Session, type SessionEvent } from '@bosch/bh-session'
-import ToolRuntime from '@bosch/bh-tools'
-import * as ToolTodo from '@bosch/bh-tool-todo'
-import * as TodoInvariant from '@bosch/bh-tool-todo/invariant'
-import InvariantRegistry from '@bosch/bh-invariants'
+import { Context } from '@hydra/cordis'
+import SessionStore, { type Session, type SessionEvent } from '@hydra/harness-session'
+import ToolRuntime from '@hydra/harness-tools'
+import * as ToolTodo from '@hydra/harness-tool-todo'
+import * as TodoInvariant from '@hydra/harness-tool-todo/invariant'
+import InvariantRegistry from '@hydra/harness-invariants'
 
 async function setup(): Promise<Context> {
   const ctx = new Context()

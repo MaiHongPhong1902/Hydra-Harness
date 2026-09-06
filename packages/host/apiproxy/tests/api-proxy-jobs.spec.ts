@@ -8,17 +8,17 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import AgentRegistry, { Inbox } from '@bosch/bh-agent'
-import type { Agent } from '@bosch/bh-agent'
-import SessionStore, { SessionId } from '@bosch/bh-session'
-import type { Session } from '@bosch/bh-session'
-import UserQuestionService from '@bosch/bh-user-questions'
-import LocalJobRegistry from '@bosch/bh-jobs-local'
-import type { JobOutcome } from '@bosch/bh-jobs'
-import type { MuxFrame, RpcRequest } from '@bosch/bh-host-apiproxy/api'
-import { RpcId } from '@bosch/bh-host-apiproxy/api/rpc'
-import { createApiProxy } from '@bosch/bh-host-apiproxy'
+import { Context } from '@hydra/cordis'
+import AgentRegistry, { Inbox } from '@hydra/harness-agent'
+import type { Agent } from '@hydra/harness-agent'
+import SessionStore, { SessionId } from '@hydra/harness-session'
+import type { Session } from '@hydra/harness-session'
+import UserQuestionService from '@hydra/harness-user-questions'
+import LocalJobRegistry from '@hydra/harness-jobs-local'
+import type { JobOutcome } from '@hydra/harness-jobs'
+import type { MuxFrame, RpcRequest } from '@hydra/harness-host-apiproxy/api'
+import { RpcId } from '@hydra/harness-host-apiproxy/api/rpc'
+import { createApiProxy } from '@hydra/harness-host-apiproxy'
 
 type JobFrame = Extract<MuxFrame, { type: 'session/jobs' }>
 

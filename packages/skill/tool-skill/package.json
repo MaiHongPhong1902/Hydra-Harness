@@ -1,6 +1,6 @@
 {
-  "name": "@bosch/bh-tool-skill",
-  "description": "Bounded automatic skill routing, model-facing search, and exact loading for Bosch Harness",
+  "name": "@hydra/harness-tool-skill",
+  "description": "Bounded automatic skill routing, model-facing search, and exact loading for Hydra harness",
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"
@@ -32,25 +32,25 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@bosch/bh-agent": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-llm": "workspace:^",
-    "@bosch/bh-skill": "workspace:^",
-    "@bosch/bh-tools": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-agent": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/harness-skill": "workspace:^",
+    "@hydra/harness-tools": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   },
   "dependencies": {
-    "@bosch/schemastery": "workspace:^"
+    "@hydra/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@bosch/bh-agent": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-llm": "workspace:^",
-    "@bosch/bh-scope": "workspace:^",
-    "@bosch/bh-session": "workspace:^",
-    "@bosch/bh-skill": "workspace:^",
-    "@bosch/bh-skill-filesystem": "workspace:^",
-    "@bosch/bh-tools": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-agent": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/harness-scope": "workspace:^",
+    "@hydra/harness-session": "workspace:^",
+    "@hydra/harness-skill": "workspace:^",
+    "@hydra/harness-skill-filesystem": "workspace:^",
+    "@hydra/harness-tools": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   }
 }

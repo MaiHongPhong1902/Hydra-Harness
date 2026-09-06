@@ -6,4 +6,4 @@ head:
       content: 0; url=./guide/quickstart
 ---
 
-# Bosch Harness
+# Hydra harness

@@ -8,8 +8,8 @@ import { fileURLToPath } from 'node:url'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import * as yaml from 'js-yaml'
-import { entryListSchema } from '@bosch/cordis-plugin-include'
-import { evaluate } from '@bosch/cordis-plugin-loader'
+import { entryListSchema } from '@hydra/cordis-plugin-include'
+import { evaluate } from '@hydra/cordis-plugin-loader'
 
 describe('bh-base bundle', () => {
   it('declares a parseable patch list through the bh.bundle.patch manifest field', () => {
@@ -37,10 +37,10 @@ describe('bh-base bundle', () => {
     })
     expect(rows.filter(row => row.id === 'subagent-codex')).toHaveLength(0)
     expect(rows.filter(row => row.id === 'subagent-claude-code')).toHaveLength(0)
-    expect(rows.find(row => row.id === 'plugin-runtime')).toMatchObject({ name: '@bosch/bh-plugin-runtime' })
-    expect(manifest.dependencies).not.toHaveProperty('@bosch/bh-subagent-codex')
-    expect(manifest.dependencies).not.toHaveProperty('@bosch/bh-subagent-claude-code')
-    expect(manifest.dependencies?.['@bosch/bh-plugin-runtime']).toBe('workspace:^')
+    expect(rows.find(row => row.id === 'plugin-runtime')).toMatchObject({ name: '@hydra/harness-plugin-runtime' })
+    expect(manifest.dependencies).not.toHaveProperty('@hydra/harness-subagent-codex')
+    expect(manifest.dependencies).not.toHaveProperty('@hydra/harness-subagent-claude-code')
+    expect(manifest.dependencies?.['@hydra/harness-plugin-runtime']).toBe('workspace:^')
   })
 
   it('gates each shell stack by platform with a symmetric disabled expression', () => {

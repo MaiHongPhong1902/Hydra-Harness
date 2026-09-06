@@ -7,8 +7,8 @@
  */
 
 import { writeFile } from 'node:fs/promises'
-import { boot, resolveConfigPath } from '@bosch/bh-app-boot'
-import { CallId } from '@bosch/bh-llm'
+import { boot, resolveConfigPath } from '@hydra/harness-app-boot'
+import { CallId } from '@hydra/harness-llm'
 
 const configPath = process.argv[2]
 if (configPath === undefined) throw new Error('tool-pwsh driver requires a config path')

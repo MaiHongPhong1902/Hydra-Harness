@@ -12,8 +12,8 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import type {
   HookDialect, HookRecordDefinitionRequest, HookRecordSnapshot, JsonValue,
-} from '@bosch/bh-api-remotes/client'
-import { Button, IconPlusOutline16, Input, Modal, Switch } from '@bosch/bh-client-ui-primitives'
+} from '@hydra/harness-api-remotes/client'
+import { Button, IconPlusOutline16, Input, Modal, Switch } from '@hydra/harness-client-ui-primitives'
 import type { PluginsSettingsLocaleKey } from './locales.ts'
 import css from './PluginsSettingsSection.module.css'
 
@@ -93,6 +93,7 @@ function parseConfig(text: string): Record<string, JsonValue> | undefined {
 /** Build the definition request one draft describes, or undefined when its JSON is not one. */
 function toRequest(draft: Draft): HookRecordDefinitionRequest | undefined {
   const shared = {
+    mode: draft.editing === '' ? 'create' as const : 'replace' as const,
     name: draft.name.trim(),
     dialect: draft.dialect,
     ...draft.dialect === 'claude-code' && draft.pluginRoot.trim() !== ''
@@ -130,7 +131,8 @@ function statusLabel(record: HookRecord, t: (key: PluginsSettingsLocaleKey) => s
  * @param props.t - the section's bound dictionary.
  * @returns the catalog, its add/edit dialog, and any failure notice.
  */
-export function HookRecordCatalog({ controls, query, t }: {
+export function HookRecordCatalog({ active = true, controls, query, t }: {
+  active?: boolean
   controls: UserHookControls
   query: string
   t: (key: PluginsSettingsLocaleKey) => string
@@ -140,9 +142,10 @@ export function HookRecordCatalog({ controls, query, t }: {
   const [draft, setDraft] = useState<Draft>()
   const [saving, setSaving] = useState(false)
   const [mutating, setMutating] = useState<string>()
-  const [failure, setFailure] = useState<'save' | 'mutate' | 'config'>()
+  const [failure, setFailure] = useState<'save' | 'mutate' | 'config' | 'name'>()
 
   useEffect(() => {
+    if (!active) return undefined
     let current = true
     setState({ status: 'loading' })
     void controls.list().then(
@@ -150,7 +153,7 @@ export function HookRecordCatalog({ controls, query, t }: {
       () => { if (current) setState({ status: 'error' }) },
     )
     return () => { current = false }
-  }, [controls, request])
+  }, [active, controls, request])
 
   const busy = saving || mutating !== undefined
   const normalizedQuery = query.trim().toLocaleLowerCase()
@@ -169,6 +172,11 @@ export function HookRecordCatalog({ controls, query, t }: {
   const submit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault()
     if (draft === undefined || !submittable(draft)) return
+    if (draft.editing === '' && state.status === 'ready'
+      && state.snapshot.records.some(record => record.name === draft.name.trim())) {
+      setFailure('name')
+      return
+    }
     const definition = toRequest(draft)
     if (definition === undefined) {
       setFailure('config')
@@ -195,9 +203,8 @@ export function HookRecordCatalog({ controls, query, t }: {
   }
 
   return (
-    <section className={css.userHooks} aria-labelledby="user-hooks-title" aria-busy={state.status === 'loading' || busy}>
+    <section className={css.userHooks} aria-label={t('hooksTab')} aria-busy={state.status === 'loading' || busy}>
       <div className={css.userHooksHeading}>
-        <h3 id="user-hooks-title">{t('userHooksTitle')}</h3>
         <Button
           variant="toolbar"
           size="sm"
@@ -381,6 +388,7 @@ export function HookRecordCatalog({ controls, query, t }: {
             ) : null}
             {failure === 'config' ? <p className={css.saveFailed} role="alert">{t('userHooksConfigInvalid')}</p> : null}
             {failure === 'save' ? <p className={css.saveFailed} role="alert">{t('userHooksSaveError')}</p> : null}
+            {failure === 'name' ? <p className={css.saveFailed} role="alert">{t('userHooksNameTaken')}</p> : null}
           </form>
         )}
       </Modal>

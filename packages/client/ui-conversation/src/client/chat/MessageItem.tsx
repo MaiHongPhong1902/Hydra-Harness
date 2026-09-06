@@ -7,8 +7,8 @@ import { memo, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import type {
   ModelRetryNode, TurnErrorNode, UserMessageNode,
-} from '@bosch/bh-client-runtime/client'
-import { JsonBlock, MessageText, StateDot } from '@bosch/bh-client-ui-primitives'
+} from '@hydra/harness-client-runtime/client'
+import { JsonBlock, MessageText, StateDot } from '@hydra/harness-client-ui-primitives'
 import type { ChatNodeOwnerProps, ChatNodeViewProps, ChatViewSlotProps } from '../contract/slots.ts'
 import { ReferenceIcon } from '../reference/ReferenceIcon.tsx'
 import { CompactionItem } from './CompactionItem.tsx'

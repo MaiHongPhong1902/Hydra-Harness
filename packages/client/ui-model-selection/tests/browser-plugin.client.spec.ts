@@ -8,14 +8,14 @@
  * (and the reverse), the one-shared-state contract of the dual entry.
  * Scope disposal drops the directory (HMR safety).
  */
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { describe, expect, it } from 'vitest'
-import { createScope } from '@bosch/bh-client-runtime/client'
-import type { SessionId } from '@bosch/bh-client-runtime/client'
-import { LocaleRuntime } from '@bosch/bh-client-locale/client'
-import { TestRemote } from '@bosch/bh-client-test-runtime'
-import type { ModelSelection } from '@bosch/bh-api-remotes/client'
-import type { CommandContribution, SelectOption } from '@bosch/bh-client-ui-commands/client'
+import { createScope } from '@hydra/harness-client-runtime/client'
+import type { SessionId } from '@hydra/harness-client-runtime/client'
+import { LocaleRuntime } from '@hydra/harness-client-locale/client'
+import { TestRemote } from '@hydra/harness-client-test-runtime'
+import type { ModelSelection } from '@hydra/harness-api-remotes/client'
+import type { CommandContribution, SelectOption } from '@hydra/harness-client-ui-commands/client'
 import type { ModelSelectInjected } from '../src/client/slots.ts'
 import { apply, inject } from '../src/client/index.ts'
 import { en } from '../src/client/locales.ts'

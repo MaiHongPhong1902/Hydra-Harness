@@ -3,11 +3,11 @@
  * conversion, workspace-grouped location rendering with `file:`-URI resolution, complete-result
  * capping, and UI presentation. No I/O — a UI may call the presenter on live streaming and on
  * replay, so it depends only on the tool arguments.
- * @module @bosch/bh-tool-lsp/render
+ * @module @hydra/harness-tool-lsp/render
  */
 
-import type { GenericCallView } from '@bosch/bh-tools'
-import type { LspHover, LspLocation, LspOperation, LspPosition } from '@bosch/bh-lsp'
+import type { GenericCallView } from '@hydra/harness-tools'
+import type { LspHover, LspLocation, LspOperation, LspPosition } from '@hydra/harness-lsp'
 import { posix, win32 } from 'node:path'
 import { fileURLToPath } from 'node:url'
 

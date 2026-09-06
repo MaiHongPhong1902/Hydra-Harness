@@ -1,9 +1,9 @@
 import { randomUUID } from 'node:crypto'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import type { MessageId } from '@bosch/bh-llm/brand'
-import { Session, SessionId } from '@bosch/bh-session'
-import { remoteMethods } from '@bosch/bh-typert-protocol'
+import { Context } from '@hydra/cordis'
+import type { MessageId } from '@hydra/harness-llm/brand'
+import { Session, SessionId } from '@hydra/harness-session'
+import { remoteMethods } from '@hydra/harness-typert-protocol'
 import MessageFeedbackService, { messageFeedbackRowSchema } from '../src/index.ts'
 import type {
   MessageFeedbackItem,

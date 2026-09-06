@@ -2,14 +2,14 @@
  * Web boot kernel. It owns only the module system, Cordis loader, and a
  * framework-free boot page. The dynamic UI renderer receives the mount
  * point after every client entry activates.
- * @module @bosch/bh-client-web/src/boot
+ * @module @hydra/harness-client-web/src/boot
  */
-import { Context } from '@bosch/cordis'
-import Loader from '@bosch/cordis-plugin-loader'
+import { Context } from '@hydra/cordis'
+import Loader from '@hydra/cordis-plugin-loader'
 import type {
   BootManifest, ClientModuleCreateOptions, ClientModuleSystem, BhWindow,
-} from '@bosch/bh-client-modules/client'
-import type {} from '@bosch/bh-client-ui-renderer/client'
+} from '@hydra/harness-client-modules/client'
+import type {} from '@hydra/harness-client-ui-renderer/client'
 import { BootPage } from './boot-page.ts'
 import { getStaticModules } from './seed.ts'
 import { STATE_LABELS } from './loader-status.ts'
@@ -52,7 +52,7 @@ export class AppWebEntry {
       }
       // A pre-injected transport (the worker preview page) owns bundle bytes;
       // its loadBundle is the default and explicit seams still win. The global
-      // is `ClientTransportHooks`, owned by @bosch/bh-client-connection;
+      // is `ClientTransportHooks`, owned by @hydra/harness-client-connection;
       // this structural slice reads one optional member without adding a
       // package edge.
       const transport = (globalThis as {

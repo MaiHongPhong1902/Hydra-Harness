@@ -3,9 +3,9 @@
  */
 
 import { z } from 'zod'
-import type { TokenUsage } from '@bosch/bh-llm'
-import type { SessionEvent } from '@bosch/bh-session'
-import type { ProjectionDefinition } from '@bosch/bh-session-projection'
+import type { TokenUsage } from '@hydra/harness-llm'
+import type { SessionEvent } from '@hydra/harness-session'
+import type { ProjectionDefinition } from '@hydra/harness-session-projection'
 import type {
   ContextPressureProjection, ModelTokenUsageProjection, TokenUsageProjection,
 } from './projection.ts'
@@ -117,7 +117,7 @@ const usageSampleOf = (
 
 const usageOf = (event: SessionEvent): TokenUsage | undefined => usageSampleOf(event)?.usage
 
-declare module '@bosch/bh-session-projection/types' {
+declare module '@hydra/harness-session-projection/types' {
   interface SessionProjectionStateMap {
     tokenUsage: TokenUsageState
     modelTokenUsage: ModelTokenUsageState

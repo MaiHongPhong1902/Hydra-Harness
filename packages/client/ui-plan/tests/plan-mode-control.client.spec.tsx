@@ -7,12 +7,12 @@
  */
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { createSnapshotStore } from '@bosch/bh-client-runtime/client'
-import { bindSnapshotSelector } from '@bosch/bh-client-test-runtime'
-import type { PlanProjection } from '@bosch/bh-plan-mode/client'
+import { createSnapshotStore } from '@hydra/harness-client-runtime/client'
+import { bindSnapshotSelector } from '@hydra/harness-client-test-runtime'
+import type { PlanProjection } from '@hydra/harness-plan-mode/client'
 import { PlanChip, type PlanChipProps } from '../src/client/PlanModeControl.tsx'
-import { makeTranslate } from '@bosch/bh-client-test-runtime'
-import { en as commonEn } from '@bosch/bh-client-locale/src/locales/en.ts'
+import { makeTranslate } from '@hydra/harness-client-test-runtime'
+import { en as commonEn } from '@hydra/harness-client-locale/src/locales/en.ts'
 import { en } from '../src/client/locales.ts'
 
 afterEach(cleanup)

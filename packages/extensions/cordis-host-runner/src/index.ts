@@ -1,16 +1,16 @@
 /**
  * Dynamic Cordis Plugin service: immutable package definitions, one active run
  * per Plugin, human-approved Client activation, and Host/Client invocation.
- * @module @bosch/bh-cordis-host-runner
+ * @module @hydra/harness-cordis-host-runner
  */
 
-import { Context } from '@bosch/cordis'
-import type { Fiber } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import type { Agent } from '@bosch/bh-agent'
-import { createUserMessage } from '@bosch/bh-llm'
-import type { JsonValue } from '@bosch/bh-session/types'
-import { TypertRemoteService, Remote } from '@bosch/bh-typert-protocol'
+import { Context } from '@hydra/cordis'
+import type { Fiber } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import type { Agent } from '@hydra/harness-agent'
+import { createUserMessage } from '@hydra/harness-llm'
+import type { JsonValue } from '@hydra/harness-session/types'
+import { TypertRemoteService, Remote } from '@hydra/harness-typert-protocol'
 import { isPlugin, normalizeHandler } from './guard.ts'
 import { CordisInspectRegistryService } from './inspect-registry.ts'
 import { missingServices, startHostHalf } from './lifecycle.ts'
@@ -77,7 +77,7 @@ export function ApprovalRequestId(id: string): ApprovalRequestId {
   return id as ApprovalRequestId
 }
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     /** Process-local dynamic Plugin registry and lifecycle service. */
     dynamicCordisRunner: DynamicCordisRunnerService
@@ -1245,7 +1245,7 @@ function missingFor(ctx: Context, run: DynamicCordisRun): string[] {
 }
 
 function missingPluginMessage(id: CordisDynamicPluginId): string {
-  return `no dynamic plugin "${id}" in this process — it may have been removed or lost on BH restart`
+  return `no dynamic plugin "${id}" in this process — it may have been removed or lost on Hydra restart`
 }
 
 function errorDetails(error: unknown): CordisErrorDetails {

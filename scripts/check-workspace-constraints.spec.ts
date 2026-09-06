@@ -4,21 +4,33 @@ import { describe, expect, it } from 'vitest'
 import {
   checkExperimentalDependencyIsolation,
   checkExperimentalManifest,
+  checkPackageNamespace,
   type WorkspaceManifest,
 } from './check-workspace-constraints.ts'
 
 const experimental: WorkspaceManifest = {
   dir: 'packages/experimental/prototype',
-  manifest: { name: '@bosch/bh-experimental-prototype', private: true },
+  manifest: { name: '@hydra/harness-experimental-prototype', private: true },
 }
+
+describe('package namespace', () => {
+  it('accepts Hydra families and rejects foreign or missing names', () => {
+    expect(checkPackageNamespace(experimental)).toEqual([])
+    expect(checkPackageNamespace({ dir: 'apps/cli', manifest: { name: '@hydra/harness' } })).toEqual([])
+    expect(checkPackageNamespace({ dir: 'vendor/cordis', manifest: { name: '@hydra/cordis' } })).toEqual([])
+    for (const name of ['@legacy/bh-agent', '@hydra/agent', undefined]) {
+      expect(checkPackageNamespace({ dir: 'packages/core/agent', manifest: name === undefined ? {} : { name } })).toHaveLength(1)
+    }
+  })
+})
 
 describe('experimental workspace constraints', () => {
   it('requires the experimental package-name prefix', () => {
     expect(checkExperimentalManifest({
       ...experimental,
-      manifest: { ...experimental.manifest, name: '@bosch/bh-prototype' },
+      manifest: { ...experimental.manifest, name: '@hydra/harness-prototype' },
     })).toEqual([
-      '@bosch/bh-prototype: experimental package name must start with "@bosch/bh-experimental-"',
+      '@hydra/harness-prototype: experimental package name must start with "@hydra/harness-experimental-"',
     ])
   })
 
@@ -28,8 +40,8 @@ describe('experimental workspace constraints', () => {
       ...experimental,
       manifest: { ...experimental.manifest, private: false, publishConfig: { access: 'public' } },
     })).toEqual([
-      '@bosch/bh-experimental-prototype: experimental package must set "private": true',
-      '@bosch/bh-experimental-prototype: experimental package must omit publishConfig',
+      '@hydra/harness-experimental-prototype: experimental package must set "private": true',
+      '@hydra/harness-experimental-prototype: experimental package must omit publishConfig',
     ])
   })
 
@@ -39,11 +51,11 @@ describe('experimental workspace constraints', () => {
       expect(checkExperimentalDependencyIsolation([experimental, {
         dir: 'packages/core/consumer',
         manifest: {
-          name: '@bosch/bh-consumer',
-          [section]: { '@bosch/bh-experimental-prototype': 'workspace:^' },
+          name: '@hydra/harness-consumer',
+          [section]: { '@hydra/harness-experimental-prototype': 'workspace:^' },
         },
       }])).toEqual([
-        `@bosch/bh-consumer: ${section}.@bosch/bh-experimental-prototype must not reference an experimental package`,
+        `@hydra/harness-consumer: ${section}.@hydra/harness-experimental-prototype must not reference an experimental package`,
       ])
     },
   )
@@ -52,25 +64,25 @@ describe('experimental workspace constraints', () => {
     const manifests: WorkspaceManifest[] = [experimental, {
       dir: 'packages/core/test-only',
       manifest: {
-        name: '@bosch/bh-test-only',
-        devDependencies: { '@bosch/bh-experimental-prototype': 'workspace:^' },
+        name: '@hydra/harness-test-only',
+        devDependencies: { '@hydra/harness-experimental-prototype': 'workspace:^' },
       },
     }, {
       dir: 'packages/experimental/consumer',
       manifest: {
-        name: '@bosch/bh-experimental-consumer',
-        dependencies: { '@bosch/bh-experimental-prototype': 'workspace:^' },
+        name: '@hydra/harness-experimental-consumer',
+        dependencies: { '@hydra/harness-experimental-prototype': 'workspace:^' },
       },
     }, {
       dir: 'python/sdk-runtime',
       manifest: {
-        name: '@bosch/bh-python-runtime',
-        dependencies: { '@bosch/bh-experimental-prototype': 'workspace:^' },
+        name: '@hydra/harness-python-runtime',
+        dependencies: { '@hydra/harness-experimental-prototype': 'workspace:^' },
       },
     }]
 
     expect(checkExperimentalDependencyIsolation(manifests)).toEqual([
-      '@bosch/bh-python-runtime: dependencies.@bosch/bh-experimental-prototype must not reference an experimental package',
+      '@hydra/harness-python-runtime: dependencies.@hydra/harness-experimental-prototype must not reference an experimental package',
     ])
   })
 })

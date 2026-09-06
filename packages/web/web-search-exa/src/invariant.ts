@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-web-search-exa`.
- * @module @bosch/bh-web-search-exa/invariant
+ * Package-owned invariant companion for `@hydra/harness-web-search-exa`.
+ * @module @hydra/harness-web-search-exa/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-web-search-exa'
+const PACKAGE_NAME = '@hydra/harness-web-search-exa'
 
 /** Cordis companion plugin name. */
 export const name = 'web-search-exa-invariant'

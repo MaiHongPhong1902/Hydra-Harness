@@ -1,6 +1,6 @@
-# @bosch/bh-shell-env
+# @hydra/harness-shell-env
 
-The tool-independent shell environment plugin: owns the `ctx.shellEnv` registry of trusted, per-execution `BH_*` variables that the model-facing shell tools (`bh-tool-bash`, `bh-tool-pwsh`) collect into every shell call's environment. Built-in shell facts (`BH_HOME`, `BH_SHELL=1`, `BH_SESSION_ID`) are owned by the registry itself; other plugins register additional enumerable facts with effect-scoped disposal, and duplicate ownership or undeclared runtime keys fail loudly.
+The tool-independent shell environment plugin: owns the `ctx.shellEnv` registry of trusted, per-execution `BH_*` variables that the model-facing shell tools (`@hydra/harness-tool-bash`, `@hydra/harness-tool-pwsh`) collect into every shell call's environment. Built-in shell facts (`BH_HOME`, `BH_SHELL=1`, `BH_SESSION_ID`) are owned by the registry itself; other plugins register additional enumerable facts with effect-scoped disposal, and duplicate ownership or undeclared runtime keys fail loudly.
 
 The package root exports the Cordis plugin contract (`name`, `inject`, `Config`, `apply`) plus the `ShellEnvRegistry` service class and its contributor types; consumers use `ctx.shellEnv` after loading this plugin.
 
@@ -8,20 +8,20 @@ The package root exports the Cordis plugin contract (`name`, `inject`, `Config`,
 
 ```yaml
 - id: shell-env
-  name: '@bosch/bh-shell-env'
+  name: '@hydra/harness-shell-env'
   config:
     bhHome: C:\Users\me\.bh   # default: $BH_HOME, then ~/.bh
 ```
 
 ## Managed environment
 
-Every foreground and background model shell call receives a newly collected trusted `BH_*` environment. `BH_HOME` is the absolute Harness home resolved by [`@bosch/bh-home-paths`](../../util/home-paths/README.md) (`bhHome` config, then ambient `$BH_HOME`, then `~/.bh`) and `BH_SHELL=1` identifies the managed child. Agent calls additionally receive `BH_SESSION_ID=agent.session.header.id`; when the active persistence seam locates a JSONL artifact they also receive `BH_SESSION_JSONL=<absolute target path>`. The JSONL path is a location hint: it may not exist before the first flush or contain the current buffered turn, and it is not an authorization credential.
+Every foreground and background model shell call receives a newly collected trusted `BH_*` environment. `BH_HOME` is the absolute Harness home resolved by [`@hydra/harness-home-paths`](../../util/home-paths/README.md) (`bhHome` config, then ambient `$BH_HOME`, then `~/.bh`) and `BH_SHELL=1` identifies the managed child. Agent calls additionally receive `BH_SESSION_ID=agent.session.header.id`; when the active persistence seam locates a JSONL artifact they also receive `BH_SESSION_JSONL=<absolute target path>`. The JSONL path is a location hint: it may not exist before the first flush or contain the current buffered turn, and it is not an authorization credential.
 
 `ctx.shellEnv` owns collection. Other plugins can register an effect-scoped contributor with a stable name, declared keys/descriptions, and `resolve(execution: ToolExecution)`; duplicate ownership and undeclared runtime keys fail loudly, while `list()` enumerates declarations without executing providers. Harness built-ins reserve `BH_HOME`, `BH_SHELL`, and `BH_SESSION_ID`; this plugin's persistence translator owns `BH_SESSION_JSONL` by reading the backend-neutral `sessionPersistence.locate()` seam.
 
 ```ts
-import type { Context } from '@bosch/cordis'
-import type {} from '@bosch/bh-shell-env'
+import type { Context } from '@hydra/cordis'
+import type {} from '@hydra/harness-shell-env'
 
 export const inject = ['shellEnv']
 
@@ -38,7 +38,7 @@ The overlay is computed from the current `ToolExecution` and passed through the 
 
 ## Model Experience
 
-Indirectly, through the shell tools (`bh-tool-bash`, `bh-tool-pwsh`), which collect this registry's managed `BH_*` snapshot into every shell-tool call.
+Indirectly, through the shell tools (`@hydra/harness-tool-bash`, `@hydra/harness-tool-pwsh`), which collect this registry's managed `BH_*` snapshot into every shell-tool call.
 
 #### KV Cache effect
 

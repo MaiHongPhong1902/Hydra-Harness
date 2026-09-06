@@ -1,4 +1,4 @@
-# `@bosch/bh-cmdline`
+# `@hydra/harness-cmdline`
 
 The command line a bh launcher hands to the app it boots. The launcher parses only its own flags (`--profile`, `--patch`, the config dumps) and hands **everything after them** to the tree verbatim, so an app owns its flag family, its `--help` text, and its parse errors instead of the launcher knowing them.
 
@@ -30,14 +30,14 @@ Its Loader row carries no launcher marker or special kind:
 
 ```yaml
 - id: web-startup
-  name: '@bosch/bh-web-app/startup'
+  name: '@hydra/harness-web-app/startup'
 ```
 
 Every row configured from those values uses ordinary service injection and direct lazy config access:
 
 ```yaml
 - id: webserver
-  name: '@bosch/bh-host-webserver'
+  name: '@hydra/harness-host-webserver'
   inject: [webStartup]
   config:
     host: !!js ctx.webStartup.host ?? '127.0.0.1'

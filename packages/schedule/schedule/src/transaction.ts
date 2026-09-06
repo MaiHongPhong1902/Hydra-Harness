@@ -1,6 +1,6 @@
 /** Agent-scoped serialization for Schedule reads and durable mutations. */
 
-import type { Agent } from '@bosch/bh-agent'
+import type { Agent } from '@hydra/harness-agent'
 
 const tails = new WeakMap<Agent, Promise<void>>()
 

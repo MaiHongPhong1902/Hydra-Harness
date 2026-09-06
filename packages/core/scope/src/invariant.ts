@@ -1,11 +1,11 @@
-/** Package-owned scoped-dispatch invariants. @module @bosch/bh-scope/invariant */
+/** Package-owned scoped-dispatch invariants. @module @hydra/harness-scope/invariant */
 
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
-import { carrierKeyOf, isScopeCarrier } from '@bosch/bh-scope'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
+import { carrierKeyOf, isScopeCarrier } from '@hydra/harness-scope'
 import { scopedSubjectResolverFor } from './scoped-events.generated.ts'
 
-const PACKAGE_NAME = '@bosch/bh-scope'
+const PACKAGE_NAME = '@hydra/harness-scope'
 
 /** Cordis companion plugin name. */
 export const name = 'scope-invariant'

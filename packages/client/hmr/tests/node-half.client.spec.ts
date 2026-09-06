@@ -5,10 +5,10 @@
 import { mkdtempSync, rmSync, statSync, unlinkSync, utimesSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { WebBootGraph, ClientModuleRegistry } from '@bosch/bh-client-modules'
-import type { WebRoute, WebServer } from '@bosch/bh-host-webserver'
+import type { WebBootGraph, ClientModuleRegistry } from '@hydra/harness-client-modules'
+import type { WebRoute, WebServer } from '@hydra/harness-host-webserver'
 import { apply, Config, EVENTS_ENDPOINT, inject } from '../src/index.ts'
 
 const POLL_MS = 20

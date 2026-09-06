@@ -1,6 +1,6 @@
 /**
  * Workspace-level discovery and model-driven Typert generation.
- * @module @bosch/bh-typert-generator/workspace
+ * @module @hydra/harness-typert-generator/workspace
  */
 
 import { readFileSync } from 'node:fs'

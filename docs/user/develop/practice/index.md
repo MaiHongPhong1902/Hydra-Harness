@@ -10,13 +10,13 @@ When a capability is general enough to need replaceable providers, such as Bash 
 
 The Bash execution capability consists of:
 
-- **Service Definition** (`bh-shell`) — defines the Cordis service and Bash request and result types
-- **Service Provider** (`bh-bash-local`) — executes commands on the local machine
-- **Consumer** (`bh-tool-bash`) — exposes the capability as a model-callable tool
+- **Service Definition** (`@hydra/harness-shell`) — defines the Cordis service and Bash request and result types
+- **Service Provider** (`@hydra/harness-bash-local`) — executes commands on the local machine
+- **Consumer** (`@hydra/harness-tool-bash`) — exposes the capability as a model-callable tool
 
 ```
 ┌─────────────┐     ┌──────────────────┐     ┌──────────────┐
-│  bh-shell   │────▶│  bh-bash-local  │     │ bh-tool-bash│
+│  @hydra/harness-shell   │────▶│  @hydra/harness-bash-local  │     │ @hydra/harness-tool-bash│
 │(definition) │     │    (provider)     │     │(consumer/tool)│
 └─────────────┘     └──────────────────┘     └──────────────┘
        ▲                                            │
@@ -32,7 +32,7 @@ One Service Definition can have multiple providers selected through `cordis.yml`
 
 ```yaml
 # Local execution
-- name: '@bosch/bh-bash-local'
+- name: '@hydra/harness-bash-local'
 
 # Replace this row with another package that provides the same service.
 ```
@@ -59,9 +59,9 @@ The [capability-seam reference](../../../capability-seams.md) owns the current b
 
 ```ts ignore-check
 // packages/my-cap/my-cap/src/index.ts
-import { Service, type Context } from '@bosch/cordis'
+import { Service, type Context } from '@hydra/cordis'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     myCap: MyCapService
   }
@@ -89,8 +89,8 @@ export interface MyCapResult {
 
 ```ts ignore-check
 // packages/my-cap/my-cap-local/src/index.ts
-import type { Context } from '@bosch/cordis'
-import { MyCapService, type MyCapRequest, type MyCapResult } from '@bosch/bh-my-cap'
+import type { Context } from '@hydra/cordis'
+import { MyCapService, type MyCapRequest, type MyCapResult } from '@hydra/harness-my-cap'
 
 class MyCapLocal extends MyCapService {
   async execute(request: MyCapRequest): Promise<MyCapResult> {
@@ -110,8 +110,8 @@ export function apply(ctx: Context) {
 
 ```ts ignore-check
 // packages/my-cap/tool-my-cap/src/index.ts
-import type { Context } from '@bosch/cordis'
-import { defineTool } from '@bosch/bh-tools'
+import type { Context } from '@hydra/cordis'
+import { defineTool } from '@hydra/harness-tools'
 
 export const name = 'tool-my-cap'
 export const inject = ['tools', 'myCap']
@@ -138,8 +138,8 @@ export function apply(ctx: Context) {
 ### Compose them in cordis.yml
 
 ```yaml
-- name: '@bosch/bh-my-cap-local'
-- name: '@bosch/bh-tool-my-cap'
+- name: '@hydra/harness-my-cap-local'
+- name: '@hydra/harness-tool-my-cap'
 ```
 
 ## Design points

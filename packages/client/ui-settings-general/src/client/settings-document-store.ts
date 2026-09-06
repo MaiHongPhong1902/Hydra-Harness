@@ -1,8 +1,8 @@
 /** State owner for the optional local settings-document action. */
 
-import type { IApiClient } from '@bosch/bh-api-remotes/client'
-import { createSnapshotStore, type SnapshotStore } from '@bosch/bh-client-runtime/client'
-import type { SettingsDescribeFace } from '@bosch/bh-client-ui-settings/client'
+import type { IApiClient } from '@hydra/harness-api-remotes/client'
+import { createSnapshotStore, type SnapshotStore } from '@hydra/harness-client-runtime/client'
+import type { SettingsDescribeFace } from '@hydra/harness-client-ui-settings/client'
 
 /** Browser state of the Host-owned settings document. */
 export interface SettingsDocumentState {

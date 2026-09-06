@@ -18,12 +18,12 @@ export type {
   CredentialsApi, CredentialView, ConfigurableProviderView, DiscoveredModelView, LlmApi,
   SubagentsApi, SubagentAddress, SubagentCatalog, SubagentListEntry, SubagentPromptReceipt,
   JobView,
-} from '@bosch/bh-host-apiproxy/api'
-export type { ToolCallView, ToolResultView } from '@bosch/bh-tools/presentation'
+} from '@hydra/harness-host-apiproxy/api'
+export type { ToolCallView, ToolResultView } from '@hydra/harness-tools/presentation'
 export type {
   RpcRequest, RpcResponse, RpcResult, RpcError, RpcErrorCode,
   ClientRequest, ServerResponse, ServerRequest, ClientResponse, RpcMessage, RpcReceipt,
-} from '@bosch/bh-host-apiproxy/api'
+} from '@hydra/harness-host-apiproxy/api'
 // transportError lives in the apiproxy api layer (beside RpcResult, its
 // subject); re-exported here so connection consumers keep one contract
 // entry point.
@@ -31,17 +31,17 @@ export {
   RpcId,
   SESSION_SEARCH_RESULT_LIMIT,
   transportError,
-} from '@bosch/bh-host-apiproxy/api'
-export { AbstractApiClient } from '@bosch/bh-host-apiproxy/client'
-export type { IApiClient } from '@bosch/bh-host-apiproxy/client'
-export type { SessionId, SessionEvent } from '@bosch/bh-session/types'
-export type { MessageId } from '@bosch/bh-llm/brand'
-export type { ContentBlock, StreamChunk } from '@bosch/bh-llm/types'
+} from '@hydra/harness-host-apiproxy/api'
+export { AbstractApiClient } from '@hydra/harness-host-apiproxy/client'
+export type { IApiClient } from '@hydra/harness-host-apiproxy/client'
+export type { SessionId, SessionEvent } from '@hydra/harness-session/types'
+export type { MessageId } from '@hydra/harness-llm/brand'
+export type { ContentBlock, StreamChunk } from '@hydra/harness-llm/types'
 
 /** Successful value returned by the connection-generation host handshake. */
-export type HostDescription = import('@bosch/bh-host-apiproxy/api').ResponseValue<'host.describe'>
+export type HostDescription = import('@hydra/harness-host-apiproxy/api').ResponseValue<'host.describe'>
 
-import type { RpcResponse, RpcResult } from '@bosch/bh-host-apiproxy/api'
+import type { RpcResponse, RpcResult } from '@hydra/harness-host-apiproxy/api'
 
 /**
  * Unwrap a unary response: RpcResponse<T> -> RpcResult<T> (business code only

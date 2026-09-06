@@ -3,7 +3,7 @@
 
 # Third-Party Notices
 
-Bosch Harness is licensed under [MIT](LICENSE). It depends on the third-party software listed below. Each project remains under its own license; nothing in this file changes those terms.
+Hydra harness is licensed under [MIT](LICENSE). It depends on the third-party software listed below. Each project remains under its own license; nothing in this file changes those terms.
 
 This file lists **direct** dependencies declared by the workspace and the explicitly disclosed official Claude Code platform payload closure. It is generated from the workspace manifests by `scripts/gen-third-party-notices.ts`: a pre-commit hook regenerates it whenever a staged file changes one of its inputs, and `scripts/gen-third-party-notices.spec.ts` asserts in the test lane that the committed bytes match. Deleting a manifest runs no hook, so that case is caught by the assertion instead. Run `pnpm run verify-third-party-notices` for the standalone check.
 
@@ -11,23 +11,23 @@ The complete npm transitive closure, including the Landlock launcher workspace, 
 
 ## Vendored source (`vendor/`)
 
-The Cordis framework and its foundation libraries are source-vendored into this repository rather than consumed from npm, and republished under the `@bosch` scope. All are MIT-licensed; each directory preserves its upstream `LICENSE` file. Exact upstream commits and local modifications are recorded in [`vendor/README.md`](vendor/README.md).
+The Cordis framework and its foundation libraries are source-vendored into this repository rather than consumed from npm, and republished under the `@hydra` scope. All are MIT-licensed; each directory preserves its upstream `LICENSE` file. Exact upstream commits and local modifications are recorded in [`vendor/README.md`](vendor/README.md).
 
 | Package | Upstream name | Upstream | License |
 | --- | --- | --- | --- |
-| `@bosch/cosmokit` | `cosmokit` | [github.com/bosch-harness/cosmokit](https://github.com/bosch-harness/cosmokit) | MIT |
-| `@bosch/schemastery` | `schemastery` | [github.com/bosch-harness/schemastery](https://github.com/bosch-harness/schemastery) | MIT |
-| `@bosch/cordis` | `cordis` | [github.com/cordiverse/cordis](https://github.com/cordiverse/cordis) | MIT |
-| `@bosch/cordis-plugin-loader` | `@cordisjs/plugin-loader` | [github.com/cordiverse/cordis](https://github.com/cordiverse/cordis) | MIT |
-| `@bosch/cordis-plugin-include` | `@cordisjs/plugin-include` | [github.com/bosch-harness/cordis](https://github.com/bosch-harness/cordis) | MIT |
-| `@bosch/cordis-plugin-group` | `@cordisjs/plugin-group` | [github.com/bosch-harness/cordis](https://github.com/bosch-harness/cordis) | MIT |
-| `@bosch/cordis-plugin-timer` | `@cordisjs/plugin-timer` | [github.com/bosch-harness/cordis](https://github.com/bosch-harness/cordis) | MIT |
-| `@bosch/cordis-plugin-hmr` | `@cordisjs/plugin-hmr` | [github.com/bosch-harness/cordis](https://github.com/bosch-harness/cordis) | MIT |
-| `@bosch/cordis-plugin-logger-console` | `@cordisjs/plugin-logger-console` | [github.com/bosch-harness/cordis](https://github.com/bosch-harness/cordis) | MIT |
+| `@hydra/cosmokit` | `cosmokit` | [github.com/bosch-harness/cosmokit](https://github.com/bosch-harness/cosmokit) | MIT |
+| `@hydra/schemastery` | `schemastery` | [github.com/bosch-harness/schemastery](https://github.com/bosch-harness/schemastery) | MIT |
+| `@hydra/cordis` | `cordis` | [github.com/cordiverse/cordis](https://github.com/cordiverse/cordis) | MIT |
+| `@hydra/cordis-plugin-loader` | `@cordisjs/plugin-loader` | [github.com/cordiverse/cordis](https://github.com/cordiverse/cordis) | MIT |
+| `@hydra/cordis-plugin-include` | `@cordisjs/plugin-include` | [github.com/bosch-harness/cordis](https://github.com/bosch-harness/cordis) | MIT |
+| `@hydra/cordis-plugin-group` | `@cordisjs/plugin-group` | [github.com/bosch-harness/cordis](https://github.com/bosch-harness/cordis) | MIT |
+| `@hydra/cordis-plugin-timer` | `@cordisjs/plugin-timer` | [github.com/bosch-harness/cordis](https://github.com/bosch-harness/cordis) | MIT |
+| `@hydra/cordis-plugin-hmr` | `@cordisjs/plugin-hmr` | [github.com/bosch-harness/cordis](https://github.com/bosch-harness/cordis) | MIT |
+| `@hydra/cordis-plugin-logger-console` | `@cordisjs/plugin-logger-console` | [github.com/bosch-harness/cordis](https://github.com/bosch-harness/cordis) | MIT |
 
 ## Vendored source in packages (`third-party/`)
 
-Source kept as an upstream-pinned git submodule rather than republished under the `@bosch` scope, because it must be bundled into the sandboxed preload. Each directory preserves its upstream `LICENSE`; its gitlink records the exact upstream commit.
+Source kept as an upstream-pinned git submodule rather than republished under the `@hydra` scope, because it must be bundled into the sandboxed preload. Each directory preserves its upstream `LICENSE`; its gitlink records the exact upstream commit.
 
 | Directory | Upstream name | Upstream | License | Role |
 | --- | --- | --- | --- | --- |
@@ -99,6 +99,7 @@ External packages that a workspace package resolves at runtime. The tier covers 
 | [`shiki`](https://github.com/shikijs/shiki) | MIT |
 | [`smol-toml`](https://github.com/squirrelchat/smol-toml) | BSD-3-Clause |
 | [`supports-color`](https://github.com/chalk/supports-color) | MIT |
+| [`tabbable`](https://github.com/focus-trap/tabbable) | MIT |
 | [`tsx`](https://github.com/privatenumber/tsx) | MIT |
 | [`turndown`](https://github.com/mixmark-io/turndown) | MIT |
 | [`typescript`](https://github.com/microsoft/TypeScript) | Apache-2.0 |
@@ -186,7 +187,7 @@ External packages **directly declared** only by repository tooling, test infrast
 | [`vitest`](https://github.com/vitest-dev/vitest) | MIT |
 | [`vue`](https://github.com/vuejs/core) | MIT |
 
-`eslint-plugin-sonarjs` (LGPL-3.0-only) and `lightningcss` (MPL-2.0) run only as development tooling; their code is not linked into or distributed with any Bosch Harness artifact.
+`eslint-plugin-sonarjs` (LGPL-3.0-only) and `lightningcss` (MPL-2.0) run only as development tooling; their code is not linked into or distributed with any Hydra harness artifact.
 
 ## Python SDK dependencies (`python/`)
 
@@ -195,7 +196,7 @@ Direct dependencies of the `pyproject.toml` manifests, plus `uv` as the developm
 | Package | License | Role |
 | --- | --- | --- |
 | [`hatchling`](https://github.com/pypa/hatch) | MIT | build backend |
-| [`pydantic`](https://github.com/pydantic/pydantic) | MIT | runtime dependency of `bosch-harness-sdk` |
+| [`pydantic`](https://github.com/pydantic/pydantic) | MIT | runtime dependency of `hydra-harness-sdk` |
 | [`pytest`](https://github.com/pytest-dev/pytest) | MIT | test-only |
 | [`uv`](https://github.com/astral-sh/uv) | MIT / Apache-2.0 | development workflow tool |
 
@@ -207,4 +208,4 @@ Direct dependencies of the `pyproject.toml` manifests, plus `uv` as the developm
 
 ## First-party native packages
 
-`@bosch/node-addon-landlock-run` (and its platform packages) is built and released from this repository under BSD 3-Clause. It is listed here for completeness; it is first-party, not third-party.
+`@hydra/node-addon-landlock-run` (and its platform packages) is built and released from this repository under BSD 3-Clause. It is listed here for completeness; it is first-party, not third-party.

@@ -9,9 +9,9 @@
 import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
-import { CallId, createAssistantMessage, createToolResultMessage, createUserMessage } from '@bosch/bh-llm'
-import { SESSION_FORMAT_VERSION, Session, SessionId } from '@bosch/bh-session'
-import type {} from '@bosch/bh-session-title'
+import { CallId, createAssistantMessage, createToolResultMessage, createUserMessage } from '@hydra/harness-llm'
+import { SESSION_FORMAT_VERSION, Session, SessionId } from '@hydra/harness-session'
+import type {} from '@hydra/harness-session-title'
 import {
   launchWebScaffold, seedSession, watchConsole, webSnapshotMode, type WebScaffold,
 } from './scaffold.ts'

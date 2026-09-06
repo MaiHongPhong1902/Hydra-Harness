@@ -3,13 +3,13 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context, type Plugin } from '@bosch/cordis'
-import Loader from '@bosch/cordis-plugin-loader'
-import Include from '@bosch/cordis-plugin-include'
-import { resolveProfileDir } from '@bosch/bh-app-boot'
-import { settingsNamespace } from '@bosch/bh-settings'
-import FileSettingsProvider from '@bosch/bh-settings-file'
-import { remoteMethods } from '@bosch/bh-typert-protocol'
+import { Context, type Plugin } from '@hydra/cordis'
+import Loader from '@hydra/cordis-plugin-loader'
+import Include from '@hydra/cordis-plugin-include'
+import { resolveProfileDir } from '@hydra/harness-app-boot'
+import { settingsNamespace } from '@hydra/harness-settings'
+import FileSettingsProvider from '@hydra/harness-settings-file'
+import { remoteMethods } from '@hydra/harness-typert-protocol'
 import PluginInventoryGateway from '../src/index.ts'
 import type { PluginEntryId } from '../src/types.ts'
 
@@ -267,7 +267,7 @@ describe('PluginInventoryGateway', () => {
       listPluginEntries: vi.fn(async () => [{
         entryId: 'agent-preset:standard:tool-subagent',
         presetId: 'standard',
-        moduleName: '@bosch/bh-tool-subagent',
+        moduleName: '@hydra/harness-tool-subagent',
         enabled,
       }]),
       setPluginEnabled: vi.fn(async (_entryId: string, next: boolean) => { enabled = next }),
@@ -277,7 +277,7 @@ describe('PluginInventoryGateway', () => {
     const entry = (await inventory.list()).entries.find(candidate => candidate.presetId === 'standard')!
     expect(entry).toMatchObject({
       entryId: 'agent-preset:standard:tool-subagent',
-      moduleName: '@bosch/bh-tool-subagent',
+      moduleName: '@hydra/harness-tool-subagent',
       enabled: true,
       newSessionsOnly: true,
       restartRequired: false,

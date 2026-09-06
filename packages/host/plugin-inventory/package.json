@@ -1,5 +1,5 @@
 {
-  "name": "@bosch/bh-host-plugin-inventory",
+  "name": "@hydra/harness-host-plugin-inventory",
   "description": "Remote projection and shared-settings controls for current Cordis Loader plugin state",
   "version": "0.1.1-rc.1",
   "publishConfig": {
@@ -49,36 +49,36 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@bosch/schemastery": "workspace:^",
+    "@hydra/schemastery": "workspace:^",
     "zod": "^4.4.3"
   },
   "peerDependencies": {
-    "@bosch/bh-app-boot": "workspace:^",
-    "@bosch/bh-atomic-write": "workspace:^",
-    "@bosch/bh-brand": "workspace:^",
-    "@bosch/bh-hooks-registry": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-mcp-registry": "workspace:^",
-    "@bosch/bh-plugin-runtime": "workspace:^",
-    "@bosch/bh-settings": "workspace:^",
-    "@bosch/bh-typert-protocol": "workspace:^",
-    "@bosch/cordis": "workspace:^",
-    "@bosch/cordis-plugin-include": "workspace:^",
-    "@bosch/cordis-plugin-loader": "workspace:^"
+    "@hydra/harness-app-boot": "workspace:^",
+    "@hydra/harness-atomic-write": "workspace:^",
+    "@hydra/harness-brand": "workspace:^",
+    "@hydra/harness-hooks-registry": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-mcp-registry": "workspace:^",
+    "@hydra/harness-plugin-runtime": "workspace:^",
+    "@hydra/harness-settings": "workspace:^",
+    "@hydra/harness-typert-protocol": "workspace:^",
+    "@hydra/cordis": "workspace:^",
+    "@hydra/cordis-plugin-include": "workspace:^",
+    "@hydra/cordis-plugin-loader": "workspace:^"
   },
   "devDependencies": {
-    "@bosch/bh-app-boot": "workspace:^",
-    "@bosch/bh-atomic-write": "workspace:^",
-    "@bosch/bh-brand": "workspace:^",
-    "@bosch/bh-hooks-registry": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-mcp-registry": "workspace:^",
-    "@bosch/bh-plugin-runtime": "workspace:^",
-    "@bosch/bh-settings": "workspace:^",
-    "@bosch/bh-settings-file": "workspace:^",
-    "@bosch/bh-typert-protocol": "workspace:^",
-    "@bosch/cordis": "workspace:^",
-    "@bosch/cordis-plugin-include": "workspace:^",
-    "@bosch/cordis-plugin-loader": "workspace:^"
+    "@hydra/harness-app-boot": "workspace:^",
+    "@hydra/harness-atomic-write": "workspace:^",
+    "@hydra/harness-brand": "workspace:^",
+    "@hydra/harness-hooks-registry": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-mcp-registry": "workspace:^",
+    "@hydra/harness-plugin-runtime": "workspace:^",
+    "@hydra/harness-settings": "workspace:^",
+    "@hydra/harness-settings-file": "workspace:^",
+    "@hydra/harness-typert-protocol": "workspace:^",
+    "@hydra/cordis": "workspace:^",
+    "@hydra/cordis-plugin-include": "workspace:^",
+    "@hydra/cordis-plugin-loader": "workspace:^"
   }
 }

@@ -1,14 +1,14 @@
 /**
  * Session-visible workspace instruction state and dynamic reconciliation.
  *
- * @module @bosch/bh-agent-instructions/state
+ * @module @hydra/harness-agent-instructions/state
  */
 
-import type { Agent } from '@bosch/bh-agent'
-import { createUserMessage } from '@bosch/bh-llm'
-import type { Message } from '@bosch/bh-llm'
-import type { Session, UserMessage } from '@bosch/bh-session'
-import type { FileSystem, FsVersion } from '@bosch/bh-fs'
+import type { Agent } from '@hydra/harness-agent'
+import { createUserMessage } from '@hydra/harness-llm'
+import type { Message } from '@hydra/harness-llm'
+import type { Session, UserMessage } from '@hydra/harness-session'
+import type { FileSystem, FsVersion } from '@hydra/harness-fs'
 import type { ResolvedConfig } from './config.ts'
 import { instructionContentSha1, trimmedInstructionDigest } from './digest.ts'
 import {
@@ -45,7 +45,7 @@ export interface AgentInstructionSource {
   changes: AgentInstructionChange[]
 }
 
-declare module '@bosch/bh-llm' {
+declare module '@hydra/harness-llm' {
   interface MessageSourceMap {
     'agent-instructions': AgentInstructionSource
   }

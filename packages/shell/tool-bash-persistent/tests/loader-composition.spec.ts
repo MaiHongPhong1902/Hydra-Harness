@@ -3,22 +3,22 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import Loader from '@bosch/cordis-plugin-loader'
-import Include from '@bosch/cordis-plugin-include'
-import { CallId } from '@bosch/bh-llm'
-import { Session, SessionId } from '@bosch/bh-session'
-import AgentRegistry, { Inbox } from '@bosch/bh-agent'
-import type { Agent } from '@bosch/bh-agent'
-import TerminalSessionService from '@bosch/bh-terminal'
-import * as TerminalLocal from '@bosch/bh-terminal-bash'
-import SandboxProvider from '@bosch/bh-sandbox'
-import type { ConfinedArgv, SandboxPolicy } from '@bosch/bh-sandbox'
-import SandboxPolicyService from '@bosch/bh-sandbox-policy'
-import LocalSubprocessRuntime from '@bosch/bh-subprocess-local'
-import SystemPrompt from '@bosch/bh-system-prompt'
-import ToolRuntime from '@bosch/bh-tools'
-import * as ToolBashPersistent from '@bosch/bh-tool-bash-persistent'
+import { Context } from '@hydra/cordis'
+import Loader from '@hydra/cordis-plugin-loader'
+import Include from '@hydra/cordis-plugin-include'
+import { CallId } from '@hydra/harness-llm'
+import { Session, SessionId } from '@hydra/harness-session'
+import AgentRegistry, { Inbox } from '@hydra/harness-agent'
+import type { Agent } from '@hydra/harness-agent'
+import TerminalSessionService from '@hydra/harness-terminal'
+import * as TerminalLocal from '@hydra/harness-terminal-bash'
+import SandboxProvider from '@hydra/harness-sandbox'
+import type { ConfinedArgv, SandboxPolicy } from '@hydra/harness-sandbox'
+import SandboxPolicyService from '@hydra/harness-sandbox-policy'
+import LocalSubprocessRuntime from '@hydra/harness-subprocess-local'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import ToolRuntime from '@hydra/harness-tools'
+import * as ToolBashPersistent from '@hydra/harness-tool-bash-persistent'
 
 let root: string | undefined
 let context: Context | undefined
@@ -70,17 +70,17 @@ suite('persistent Bash through a real cordis.yml Loader composition', () => {
     root = await mkdtemp(join(tmpdir(), 'bh-persistent-bash-loader-'))
     const configPath = join(root, 'cordis.yml')
     await writeFile(configPath, [
-      "- name: '@bosch/bh-agent'",
-      "- name: '@bosch/bh-system-prompt'",
-      "- name: '@bosch/bh-tools'",
-      "- name: '@bosch/bh-terminal'",
-      "- name: '@bosch/bh-test-sandbox'",
-      "- name: '@bosch/bh-sandbox-policy'",
+      "- name: '@hydra/harness-agent'",
+      "- name: '@hydra/harness-system-prompt'",
+      "- name: '@hydra/harness-tools'",
+      "- name: '@hydra/harness-terminal'",
+      "- name: '@hydra/harness-test-sandbox'",
+      "- name: '@hydra/harness-sandbox-policy'",
       '  config:',
       '    mode: danger-full-access',
       `    workspaceRoot: ${JSON.stringify(root)}`,
-      "- name: '@bosch/bh-subprocess-local'",
-      "- name: '@bosch/bh-terminal-bash'",
+      "- name: '@hydra/harness-subprocess-local'",
+      "- name: '@hydra/harness-terminal-bash'",
       '  config:',
       '    pollIntervalMs: 10',
       '    exactProbeAfterMs: 20',
@@ -92,7 +92,7 @@ suite('persistent Bash through a real cordis.yml Loader composition', () => {
       '    scrollbackLines: 20000',
       '    timeoutMs: 2000',
       '    disposeGraceMs: 500',
-      "- name: '@bosch/bh-tool-bash-persistent'",
+      "- name: '@hydra/harness-tool-bash-persistent'",
       '  config:',
       '    timeoutMs: 5000',
       '',
@@ -103,15 +103,15 @@ suite('persistent Bash through a real cordis.yml Loader composition', () => {
     await context.plugin(Loader)
     context.loader.builtins.include = Include
     const modules = new Map<string, unknown>([
-      ['@bosch/bh-agent', AgentRegistry],
-      ['@bosch/bh-system-prompt', SystemPrompt],
-      ['@bosch/bh-tools', ToolRuntime],
-      ['@bosch/bh-terminal', TerminalSessionService],
-      ['@bosch/bh-test-sandbox', PassthroughSandbox],
-      ['@bosch/bh-sandbox-policy', SandboxPolicyService],
-      ['@bosch/bh-subprocess-local', LocalSubprocessRuntime],
-      ['@bosch/bh-terminal-bash', TerminalLocal],
-      ['@bosch/bh-tool-bash-persistent', ToolBashPersistent],
+      ['@hydra/harness-agent', AgentRegistry],
+      ['@hydra/harness-system-prompt', SystemPrompt],
+      ['@hydra/harness-tools', ToolRuntime],
+      ['@hydra/harness-terminal', TerminalSessionService],
+      ['@hydra/harness-test-sandbox', PassthroughSandbox],
+      ['@hydra/harness-sandbox-policy', SandboxPolicyService],
+      ['@hydra/harness-subprocess-local', LocalSubprocessRuntime],
+      ['@hydra/harness-terminal-bash', TerminalLocal],
+      ['@hydra/harness-tool-bash-persistent', ToolBashPersistent],
     ])
     context.loader.internal = {
       version: 'v2',

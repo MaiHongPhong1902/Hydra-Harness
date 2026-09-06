@@ -1,6 +1,6 @@
 {
-  "name": "@bosch/bh-e2b",
-  "description": "Shared E2B sandbox lifecycle for Bosch Harness provider adapters",
+  "name": "@hydra/harness-e2b",
+  "description": "Shared E2B sandbox lifecycle for Hydra harness provider adapters",
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"
@@ -32,17 +32,17 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   },
   "dependencies": {
     "e2b": "2.29.1",
-    "@bosch/schemastery": "workspace:^"
+    "@hydra/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-loader-smoke": "workspace:^",
-    "@bosch/bh-sandbox-policy": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-loader-smoke": "workspace:^",
+    "@hydra/harness-sandbox-policy": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   }
 }

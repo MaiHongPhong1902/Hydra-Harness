@@ -11,13 +11,13 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup } from '@testing-library/react'
-import type { ISession, SessionId, ToolResultNode } from '@bosch/bh-client-runtime/client'
-import type { PropsRenderSlots } from '@bosch/bh-client-ui-slots'
-import { SlotTestRuntime, stubSettingsScope } from '@bosch/bh-client-test-runtime'
-import { LocaleRuntime } from '@bosch/bh-client-locale/client'
-import { apply as applyConversation, inject as injectConversation } from '@bosch/bh-client-ui-conversation/client'
-import { apply as applyTool, inject as injectTool } from '@bosch/bh-client-ui-tool/client'
-import type { ToolCallViewProps } from '@bosch/bh-client-ui-tool/client'
+import type { ISession, SessionId, ToolResultNode } from '@hydra/harness-client-runtime/client'
+import type { PropsRenderSlots } from '@hydra/harness-client-ui-slots'
+import { SlotTestRuntime, stubSettingsScope } from '@hydra/harness-client-test-runtime'
+import { LocaleRuntime } from '@hydra/harness-client-locale/client'
+import { apply as applyConversation, inject as injectConversation } from '@hydra/harness-client-ui-conversation/client'
+import { apply as applyTool, inject as injectTool } from '@hydra/harness-client-ui-tool/client'
+import type { ToolCallViewProps } from '@hydra/harness-client-ui-tool/client'
 import { toolChatSnapshot } from './tool-details-render.client.tsx'
 
 const SID = 's1' as SessionId

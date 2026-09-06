@@ -2,11 +2,11 @@
  * Public type vocabulary of the workspace entity: the `WorkspaceId` brand and
  * the `Workspace` consumer interface. Types only — the `WorkspaceId` factory
  * lives in `index.ts` (this file carries no runtime code).
- * @module @bosch/bh-workspace/src/types
+ * @module @hydra/harness-workspace/src/types
  */
 
-import type { Branded } from '@bosch/bh-brand'
-import type { SessionId } from '@bosch/bh-session'
+import type { Branded } from '@hydra/harness-brand'
+import type { SessionId } from '@hydra/harness-session'
 
 /**
  * Identifies one workspace record. A generated uuid, never the path: path

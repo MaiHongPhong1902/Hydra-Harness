@@ -4,6 +4,9 @@
     - button "General":
       - img
       - text: General
+    - button "Personalization":
+      - img
+      - text: Personalization
     - button "Models":
       - img
       - text: Models
@@ -40,7 +43,7 @@
           - text: Acme Gateway
         - text: Base URL
         - textbox "Base URL":
-          - /placeholder: https://gateway.acme.example/v1
+          - /placeholder: Provider default
           - text: https://gateway.acme.example/v1
         - text: Proxy
         - textbox "Proxy":

@@ -16,9 +16,9 @@ const CONFIG_GLOB = 'packages/*/*/tsdown.config.ts'
 const PLATFORM_SOURCE = 'packages/client/web/src/platform.ts'
 const PARSER_PRELOAD_SOURCE = 'packages/client/modules/src/index.ts'
 const STATIC_PRESET_SOURCE = 'packages/client/tsdown.client.ts'
-const CORDIS = '@bosch/cordis'
-const BH_PREFIX = '@bosch/bh-'
-const CLIENT_WEB = '@bosch/bh-client-web'
+const CORDIS = '@hydra/cordis'
+const BH_PREFIX = '@hydra/harness-'
+const CLIENT_WEB = '@hydra/harness-client-web'
 
 /** One workspace package's browser-module declaration. */
 export interface ClientDeclaration {
@@ -480,7 +480,7 @@ function collectDependencyViolations(facts: ClientPackageFacts): string[] {
         && peerRange === devRange) continue
       violations.push(
         pkg.manifest + ': ' + name + ' (' + describeOrigins(rule.origins) + ')'
-        + ' is a peer-installed BH relationship; declare it in peerDependencies and devDependencies'
+        + ' is a peer-installed Hydra relationship; declare it in peerDependencies and devDependencies'
         + ' with matching ranges, not dependencies; found ' + describeSections(actual)
         + describeRangeMismatch(peerRange, devRange),
       )
@@ -508,7 +508,7 @@ function collectDependencyViolations(facts: ClientPackageFacts): string[] {
         } else if (section === 'dependencies' && isInternalBh(name)) {
           violations.push(
             pkg.manifest + ': dynamic package declares ' + name + ' in dependencies;'
-            + ' dynamic BH relationships are peer plus dev, and static client inputs are dev-only',
+            + ' dynamic Hydra relationships are peer plus dev, and static client inputs are dev-only',
           )
         }
       }

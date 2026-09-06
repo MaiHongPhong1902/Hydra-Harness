@@ -14,11 +14,11 @@ import {
   JsonTree,
   MarkdownText,
   Tooltip,
-} from '@bosch/bh-client-ui-primitives'
+} from '@hydra/harness-client-ui-primitives'
 import { structuredPatch } from 'diff'
 import type {
   AssistantRequestConfig, ConversationPromptSnapshot,
-} from '@bosch/bh-client-runtime/client'
+} from '@hydra/harness-client-runtime/client'
 import type {
   AssistantMetricDetail, TrajectoryCellKind, TrajectoryCellProps, TrajectorySourceBlock,
 } from './trajectory-record.ts'

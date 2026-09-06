@@ -1,7 +1,7 @@
 /** Plugin enablement drafts survive Settings remounts and apply through one Save action. */
 
-import { createSnapshotStore } from '@bosch/bh-client-runtime/client'
-import type { PluginInventorySnapshot, ImportedPluginSnapshot } from '@bosch/bh-api-remotes/client'
+import { createSnapshotStore } from '@hydra/harness-client-runtime/client'
+import type { PluginInventorySnapshot, ImportedPluginSnapshot } from '@hydra/harness-api-remotes/client'
 import type { NativePluginControls, ImportedPluginControls } from './PluginInventorySettingsTab.tsx'
 
 /** Shared viewing state for the Plugins tab's staged enablement. */

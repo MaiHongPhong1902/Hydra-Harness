@@ -2,10 +2,10 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import TypertRegistry from '@bosch/bh-typert-registry'
-import type { TypertContribution } from '@bosch/bh-typert-registry/types'
-import { EVENT_API, SERVICE_API, TYPE_API } from '@bosch/bh-tool-cordis/src/api-catalog.ts'
+import { Context } from '@hydra/cordis'
+import TypertRegistry from '@hydra/harness-typert-registry'
+import type { TypertContribution } from '@hydra/harness-typert-registry/types'
+import { EVENT_API, SERVICE_API, TYPE_API } from '@hydra/harness-tool-cordis/src/api-catalog.ts'
 import { WorkspaceAnalyzer } from '../src/analyzer.ts'
 import { FaceModelEmitter } from '../src/emitter.ts'
 
@@ -21,11 +21,11 @@ describe('model-driven bh-tools generation', () => {
     const workspace = new WorkspaceAnalyzer({
       root: workspaceRoot,
       faces: ['host'],
-      packages: ['@bosch/bh-tools'],
+      packages: ['@hydra/harness-tools'],
     }).analyze()
     const host = workspace.faces.find(candidate => candidate.face === 'host')
     if (host === undefined) throw new Error('bh-tools has no analyzed host face')
-    const artifact = new FaceModelEmitter(host).emit('@bosch/bh-tools')
+    const artifact = new FaceModelEmitter(host).emit('@hydra/harness-tools')
 
     const root = mkdtempSync(join(import.meta.dirname, '.generated-tools-'))
     temporaryRoots.push(root)
@@ -38,7 +38,7 @@ describe('model-driven bh-tools generation', () => {
     const ctx = new Context()
     await ctx.plugin(TypertRegistry)
     const dispose = ctx.typert.register(generated.TYPERT)
-    const record = ctx.typert.getPackage('@bosch/bh-tools', 'host')
+    const record = ctx.typert.getPackage('@hydra/harness-tools', 'host')
     const service = record?.model.services.find(candidate => candidate.key === 'tools')
     expect(service).toBeDefined()
     expect({
@@ -71,6 +71,6 @@ describe('model-driven bh-tools generation', () => {
     )
 
     await dispose()
-    expect(ctx.typert.getPackage('@bosch/bh-tools', 'host')).toBeUndefined()
+    expect(ctx.typert.getPackage('@hydra/harness-tools', 'host')).toBeUndefined()
   })
 })

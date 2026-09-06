@@ -1,23 +1,23 @@
 /**
- * Fresh-process SDK subagent client. Drives one child Bosch Harness
- * runtime over stdio JSON-RPC through `@bosch/bh-sdk-client` and owns
+ * Fresh-process SDK subagent client. Drives one child Hydra harness
+ * runtime over stdio JSON-RPC through `@hydra/harness-sdk-client` and owns
  * cancellation and quiescent disposal. Structure mirrors the ACP backend
- * (`@bosch/bh-subagent-acp`): publish after the child handshake,
+ * (`@hydra/harness-subagent-acp`): publish after the child handshake,
  * flatten child failures into stop reasons, tear down to quiescence. The
  * child is spawned BY the SDK client rather than through `ctx.subprocess` —
  * the subprocess seam's documented exception for SDK-managed transports —
  * so this driver applies the seam's shared env scrub itself.
  *
- * @module @bosch/bh-subagent-bh-sdk/run
+ * @module @hydra/harness-subagent-bh-sdk/run
  */
 
 import { randomUUID } from 'node:crypto'
-import { BoschHarness, type HarnessNotification } from '@bosch/bh-sdk-client'
-import type { ContentBlock } from '@bosch/bh-llm'
-import { SessionId, type SessionEvent, type TurnEndReason } from '@bosch/bh-session'
-import type { SubagentResult, SubagentRun, SubagentStartRequest, SubagentStopReason } from '@bosch/bh-subagent'
-import { AssistantOutputFold, settleRunResult, subprocessRunHandle } from '@bosch/bh-subagent'
-import { scrubbedParentEnv } from '@bosch/bh-subprocess'
+import { HydraHarness, type HarnessNotification } from '@hydra/harness-sdk-client'
+import type { ContentBlock } from '@hydra/harness-llm'
+import { SessionId, type SessionEvent, type TurnEndReason } from '@hydra/harness-session'
+import type { SubagentResult, SubagentRun, SubagentStartRequest, SubagentStopReason } from '@hydra/harness-subagent'
+import { AssistantOutputFold, settleRunResult, subprocessRunHandle } from '@hydra/harness-subagent'
+import { scrubbedParentEnv } from '@hydra/harness-subprocess'
 
 /** Resolved spawn spec for an SDK runtime child process (no defaults — see Config). */
 export interface SdkRunSpec {
@@ -115,7 +115,7 @@ export async function startSdkRun(request: SubagentStartRequest, spec: SdkRunSpe
   // (minted below, private to the wire) exists only inside the child process.
   const id = SessionId(randomUUID())
 
-  const harness = new BoschHarness({
+  const harness = new HydraHarness({
     launch: {
       command: spec.command,
       args: spec.args,

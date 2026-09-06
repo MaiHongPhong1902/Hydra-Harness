@@ -5,12 +5,12 @@
  * `updatedAt` stamping and invalid-account pruning happen exactly once.
  * Not re-exported from the package entrypoint — consumers see only the
  * `Workspace` interface.
- * @module @bosch/bh-workspace/src/entity
+ * @module @hydra/harness-workspace/src/entity
  */
 
 import { stat } from 'node:fs/promises'
-import type { SessionHeader, SessionId } from '@bosch/bh-session'
-import type { KvTable } from '@bosch/bh-storage-domain'
+import type { SessionHeader, SessionId } from '@hydra/harness-session'
+import type { KvTable } from '@hydra/harness-storage-domain'
 import type { WorkspaceRecord } from './spec.ts'
 import type { Workspace, WorkspaceId } from './types.ts'
 import { realpathNormalize } from './paths.ts'

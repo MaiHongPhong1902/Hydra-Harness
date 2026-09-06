@@ -9,7 +9,7 @@
  * path), copying and deleting still rearrange what the deployment offers.
  */
 
-import type { SessionId } from '@bosch/bh-session/types'
+import type { SessionId } from '@hydra/harness-session/types'
 import type { RpcRequest, RpcResponse } from './rpc.ts'
 
 /** One preset the deployment can compose a session's agent from. */

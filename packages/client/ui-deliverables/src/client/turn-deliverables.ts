@@ -5,10 +5,10 @@
  */
 import type {
   ConversationNodeDefinition, ToolResultNode,
-} from '@bosch/bh-client-runtime/client'
-import { isAppendSurfaceEvent } from '@bosch/bh-client-runtime/client'
-import type { MarkdownFileMentions } from '@bosch/bh-client-ui-primitives'
-import type { TurnTailOwnerProps } from '@bosch/bh-client-ui-conversation/client'
+} from '@hydra/harness-client-runtime/client'
+import { isAppendSurfaceEvent } from '@hydra/harness-client-runtime/client'
+import type { MarkdownFileMentions } from '@hydra/harness-client-ui-primitives'
+import type { TurnTailOwnerProps } from '@hydra/harness-client-ui-conversation/client'
 
 interface ProducedPath {
   readonly seq: number
@@ -20,7 +20,7 @@ export interface DeliverablesTurnData {
   readonly produced: readonly ProducedPath[]
 }
 
-declare module '@bosch/bh-client-runtime/client' {
+declare module '@hydra/harness-client-runtime/client' {
   interface ConversationTurnDataMap {
     /** Successful mutation paths accumulated in this Turn. */
     deliverables: DeliverablesTurnData

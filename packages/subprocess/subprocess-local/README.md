@@ -1,6 +1,6 @@
-# @bosch/bh-subprocess-local
+# @hydra/harness-subprocess-local
 
-Local Service Provider for the [`@bosch/bh-subprocess`](../subprocess/README.md) seam. `LocalSubprocessRuntime` resolves local executables, spawns ordinary detached process trees with explicit stdio, and implements terminal processes through `node-pty` plus platform process inspection. It has no config: every disposition, limit, terminal dimension, grace, and directory arrives from the calling capability seams ([`bh-bash-local`](../../shell/bash-local/README.md), [`bh-lsp-stdio`](../../lsp/lsp-stdio/README.md), and [`bh-terminal-bash`](../../terminal/terminal-bash/README.md)).
+Local Service Provider for the [`@hydra/harness-subprocess`](../subprocess/README.md) seam. `LocalSubprocessRuntime` resolves local executables, spawns ordinary detached process trees with explicit stdio, and implements terminal processes through `node-pty` plus platform process inspection. It has no config: every disposition, limit, terminal dimension, grace, and directory arrives from the calling capability seams ([`@hydra/harness-bash-local`](../../shell/bash-local/README.md), [`@hydra/harness-lsp-stdio`](../../lsp/lsp-stdio/README.md), and [`@hydra/harness-terminal-bash`](../../terminal/terminal-bash/README.md)).
 
 ## Behavior
 
@@ -15,7 +15,7 @@ Local Service Provider for the [`@bosch/bh-subprocess`](../subprocess/README.md)
 
 ## Model Experience
 
-Indirectly, through Consumers (today the bash executor family behind `bh-tool-bash`), which own all model-facing rendering of process output and lifecycle.
+Indirectly, through Consumers (today the bash executor family behind `@hydra/harness-tool-bash`), which own all model-facing rendering of process output and lifecycle.
 
 #### KV Cache effect
 

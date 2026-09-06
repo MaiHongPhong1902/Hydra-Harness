@@ -1,9 +1,9 @@
 /**
  * Shared cancellation helpers for the local LSP provider's host-I/O, queue, and protocol phases.
- * @module @bosch/bh-lsp-stdio/abort
+ * @module @hydra/harness-lsp-stdio/abort
  */
 
-import { timeoutOf } from '@bosch/bh-timeout'
+import { timeoutOf } from '@hydra/harness-timeout'
 
 /**
  * Build an abort Error carrying the signal's reason and preserving timeout classification.

@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-session-title-llm`.
- * @module @bosch/bh-session-title-llm/invariant
+ * Package-owned invariant companion for `@hydra/harness-session-title-llm`.
+ * @module @hydra/harness-session-title-llm/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-session-title-llm'
+const PACKAGE_NAME = '@hydra/harness-session-title-llm'
 
 /** Cordis companion plugin name. */
 export const name = 'session-title-llm-invariant'

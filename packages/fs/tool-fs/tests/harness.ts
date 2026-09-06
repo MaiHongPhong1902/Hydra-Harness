@@ -1,11 +1,11 @@
-import { Context } from '@bosch/cordis'
-import type { Agent } from '@bosch/bh-agent'
-import AgentLoop from '@bosch/bh-agent-loop'
-import { mountAgentLoopTestDependencies } from '@bosch/bh-agent-loop-testkit'
-import LocalFileSystem from '@bosch/bh-fs-local'
-import * as FsPolicy from '@bosch/bh-fs-observation-policy'
-import * as ToolFs from '@bosch/bh-tool-fs'
-import * as LlmDeepSeek from '@bosch/bh-llm-deepseek'
+import { Context } from '@hydra/cordis'
+import type { Agent } from '@hydra/harness-agent'
+import AgentLoop from '@hydra/harness-agent-loop'
+import { mountAgentLoopTestDependencies } from '@hydra/harness-agent-loop-testkit'
+import LocalFileSystem from '@hydra/harness-fs-local'
+import * as FsPolicy from '@hydra/harness-fs-observation-policy'
+import * as ToolFs from '@hydra/harness-tool-fs'
+import * as LlmDeepSeek from '@hydra/harness-llm-deepseek'
 
 /**
  * Build the real fs-tool stack for with-key e2e tests. Agents have no session

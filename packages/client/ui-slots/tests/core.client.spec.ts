@@ -2,12 +2,12 @@
 // a-priori 'root', children declaration/authorization, load-time validation,
 // one-axis lifecycle cascade, store scope pinning, subscription API.
 import { describe, expect, it, vi } from 'vitest'
-import type { SlotComponent, StoreHandle } from '@bosch/bh-client-ui-slots'
-import { SlotCore } from '@bosch/bh-client-ui-slots'
+import type { SlotComponent, StoreHandle } from '@hydra/harness-client-ui-slots'
+import { SlotCore } from '@hydra/harness-client-ui-slots'
 
 // 'root' is NOT merged here: the runtime package owns the built-in row, and
 // the client aggregate program would see both merges collide.
-declare module '@bosch/bh-client-ui-slots' {
+declare module '@hydra/harness-client-ui-slots' {
   interface SlotMap {
     'test.single': { kind: 'single'; scope: 'root' }
     'test.session': { kind: 'single'; scope: 'session' }

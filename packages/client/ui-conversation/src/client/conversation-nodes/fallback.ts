@@ -1,11 +1,11 @@
-import type { Context } from '@bosch/cordis'
+import type { Context } from '@hydra/cordis'
 import type {
   ConversationNodeDefinition, UnknownSurfaceNode,
-} from '@bosch/bh-client-runtime/client'
-import { isAppendSurfaceEvent } from '@bosch/bh-client-runtime/client'
+} from '@hydra/harness-client-runtime/client'
+import { isAppendSurfaceEvent } from '@hydra/harness-client-runtime/client'
 import { chatNode } from './common.ts'
 
-declare module '@bosch/bh-client-ui-conversation/client' {
+declare module '@hydra/harness-client-ui-conversation/client' {
   interface ChatNodeDataMap {
     /** Generic presentation of an unclaimed append-surface event. */
     unknown: UnknownSurfaceNode

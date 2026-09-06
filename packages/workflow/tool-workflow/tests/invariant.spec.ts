@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import InvariantRegistry, { InvariantError } from '@bosch/bh-invariants'
-import SessionStore, { SessionId, type Session } from '@bosch/bh-session'
-import { WorkflowRunId, type WorkflowRunId as WorkflowRunIdType } from '@bosch/bh-workflow/types'
+import { Context } from '@hydra/cordis'
+import InvariantRegistry, { InvariantError } from '@hydra/harness-invariants'
+import SessionStore, { SessionId, type Session } from '@hydra/harness-session'
+import { WorkflowRunId, type WorkflowRunId as WorkflowRunIdType } from '@hydra/harness-workflow/types'
 import * as ToolWorkflowInvariant from '../src/invariant.ts'
 import type {} from '../src/types.ts'
 
@@ -53,7 +53,7 @@ describe('durable workflow-record invariants', () => {
       runId, seq: 1, outcome: 'completed',
     })).toThrow(expect.objectContaining<Partial<InvariantError>>({
       code: 'INVARIANT',
-      packageName: '@bosch/bh-tool-workflow',
+      packageName: '@hydra/harness-tool-workflow',
     }))
     expect(session.seq).toBe(before)
     expect(() => session.append('tool-workflow/run-end', {

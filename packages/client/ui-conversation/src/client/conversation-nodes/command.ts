@@ -1,16 +1,16 @@
-import type { Context } from '@bosch/cordis'
+import type { Context } from '@hydra/cordis'
 import type {
   CommandNode, CompactionSummaryNode, ConversationMatch, ConversationNodeContext,
   ConversationNodeDefinition,
-} from '@bosch/bh-client-runtime/client'
-import { isReplacementSurfaceEvent } from '@bosch/bh-client-runtime/client'
-import type { CompactionCheckpointSource } from '@bosch/bh-compaction/checkpoint'
-import type {} from '@bosch/bh-compaction/types'
-import type {} from '@bosch/bh-commands/types'
+} from '@hydra/harness-client-runtime/client'
+import { isReplacementSurfaceEvent } from '@hydra/harness-client-runtime/client'
+import type { CompactionCheckpointSource } from '@hydra/harness-compaction/checkpoint'
+import type {} from '@hydra/harness-compaction/types'
+import type {} from '@hydra/harness-commands/types'
 import type { ManualCompactionChatData } from '../contract/chat-nodes.ts'
 import { chatNode } from './common.ts'
 
-declare module '@bosch/bh-client-ui-conversation/client' {
+declare module '@hydra/harness-client-ui-conversation/client' {
   interface ChatNodeDataMap {
     /** Ordinary slash-command lifecycle. */
     command: CommandNode

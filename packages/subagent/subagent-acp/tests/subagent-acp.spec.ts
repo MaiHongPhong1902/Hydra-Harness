@@ -1,18 +1,18 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import Loader from '@bosch/cordis-plugin-loader'
+import { Context } from '@hydra/cordis'
+import Loader from '@hydra/cordis-plugin-loader'
 import { chmodSync, existsSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import SubagentRuntime from '@bosch/bh-subagent'
-import type { Agent } from '@bosch/bh-agent'
-import { MAX_TIMER_DELAY_MS } from '@bosch/bh-timeout'
-import type { SubprocessOutcome } from '@bosch/bh-subprocess'
+import SubagentRuntime from '@hydra/harness-subagent'
+import type { Agent } from '@hydra/harness-agent'
+import { MAX_TIMER_DELAY_MS } from '@hydra/harness-timeout'
+import type { SubprocessOutcome } from '@hydra/harness-subprocess'
 import * as acp from '../src/index.ts'
 import { acpStopReason, acpContentText, DEFAULT_DISPOSE_EOF_GRACE_MS, DEFAULT_DISPOSE_GRACE_MS, disposeAcpChild, startAcpRun, toAcpPrompt, type AcpRunSpec } from '../src/run.ts'
-import LocalSubprocessRuntime from '@bosch/bh-subprocess-local'
-import { spawnSubprocess } from '@bosch/bh-subprocess-local/src/spawn.ts'
+import LocalSubprocessRuntime from '@hydra/harness-subprocess-local'
+import { spawnSubprocess } from '@hydra/harness-subprocess-local/src/spawn.ts'
 
 /**
  * Keyless integration tests for the ACP subagent backend. Each spawns a REAL
@@ -264,7 +264,7 @@ describe('cwd resolution', () => {
 
   it('resolves a relative config cwd against the launch directory at load', async () => {
     // The child process AND its announced ACP session cwd must both get the
-    // ABSOLUTE form — BH's own ACP server rejects a relative session cwd, and
+    // ABSOLUTE form — Hydra's own ACP server rejects a relative session cwd, and
     // deferring resolution to spawn would hide the launch-dir dependency.
     const relative = 'packages/subagent/subagent-acp'
     const absolute = resolve(relative)

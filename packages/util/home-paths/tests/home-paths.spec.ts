@@ -11,14 +11,14 @@ import {
   bhHomePath,
   expandHomePath,
   resolveBhHome,
-} from '@bosch/bh-home-paths'
+} from '@hydra/harness-home-paths'
 
 afterEach(() => {
   vi.unstubAllEnvs()
 })
 
 describe('bh path helpers', () => {
-  it('owns the shared default BH home directory name', () => {
+  it('owns the shared default Hydra home directory name', () => {
     expect(BH_HOME_DIR_NAME).toBe('.bh')
     expect(DEFAULT_BH_HOME_DISPLAY).toBe('~/.bh')
     expect(defaultBhHome()).toBe(join(homedir(), '.bh'))

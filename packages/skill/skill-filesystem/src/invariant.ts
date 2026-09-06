@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-skill-filesystem`.
- * @module @bosch/bh-skill-filesystem/invariant
+ * Package-owned invariant companion for `@hydra/harness-skill-filesystem`.
+ * @module @hydra/harness-skill-filesystem/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-skill-filesystem'
+const PACKAGE_NAME = '@hydra/harness-skill-filesystem'
 
 /** Cordis companion plugin name. */
 export const name = 'skill-filesystem-invariant'

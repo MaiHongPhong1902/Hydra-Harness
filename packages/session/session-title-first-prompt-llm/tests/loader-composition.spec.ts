@@ -1,16 +1,16 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import Loader from '@bosch/cordis-plugin-loader'
-import Include from '@bosch/cordis-plugin-include'
+import { Context } from '@hydra/cordis'
+import Loader from '@hydra/cordis-plugin-loader'
+import Include from '@hydra/cordis-plugin-include'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
-import LlmRuntime, { createUserMessage, LlmAdapter  } from '@bosch/bh-llm'
-import type { GenerateOptions, StreamChunk } from '@bosch/bh-llm'
-import SessionStore, { SessionId } from '@bosch/bh-session'
-import SessionTitleService from '@bosch/bh-session-title'
-import * as providerPlugin from '@bosch/bh-session-title-first-prompt-llm'
+import LlmRuntime, { createUserMessage, LlmAdapter  } from '@hydra/harness-llm'
+import type { GenerateOptions, StreamChunk } from '@hydra/harness-llm'
+import SessionStore, { SessionId } from '@hydra/harness-session'
+import SessionTitleService from '@hydra/harness-session-title'
+import * as providerPlugin from '@hydra/harness-session-title-first-prompt-llm'
 
 let root: string | undefined
 let context: Context | undefined
@@ -36,14 +36,14 @@ async function loadComposition(): Promise<Context> {
   root = await mkdtemp(join(tmpdir(), 'bh-title-loader-'))
   const configPath = join(root, 'cordis.yml')
   await writeFile(configPath, [
-    "- name: '@bosch/bh-llm'",
-    "- name: '@bosch/bh-session'",
-    "- name: '@bosch/bh-session-title'",
+    "- name: '@hydra/harness-llm'",
+    "- name: '@hydra/harness-session'",
+    "- name: '@hydra/harness-session-title'",
     '  config:',
     '    fallbackMaxWords: 5',
     '    fallbackMaxBytes: 40',
     '    maxTitleBytes: 80',
-    "- name: '@bosch/bh-session-title-first-prompt-llm'",
+    "- name: '@hydra/harness-session-title-first-prompt-llm'",
     '  config:',
     '    targetWords: 5',
     '    targetCjkCharacters: 10',
@@ -60,10 +60,10 @@ async function loadComposition(): Promise<Context> {
   await context.plugin(Loader)
   context.loader.builtins.include = Include
   const modules = new Map<string, unknown>([
-    ['@bosch/bh-llm', LlmRuntime],
-    ['@bosch/bh-session', SessionStore],
-    ['@bosch/bh-session-title', SessionTitleService],
-    ['@bosch/bh-session-title-first-prompt-llm', providerPlugin],
+    ['@hydra/harness-llm', LlmRuntime],
+    ['@hydra/harness-session', SessionStore],
+    ['@hydra/harness-session-title', SessionTitleService],
+    ['@hydra/harness-session-title-first-prompt-llm', providerPlugin],
   ])
   context.loader.internal = {
     version: 'v2',

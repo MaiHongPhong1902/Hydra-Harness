@@ -20,7 +20,7 @@
  *  - Console isolation: under this restriction scheme a hidden console is not
  *    attainable, so children share the host console (stdio redirection is
  *    pipe-based and unaffected).
- * @module @bosch/bh-sandbox-windows-acl/win32-abi
+ * @module @hydra/harness-sandbox-windows-acl/win32-abi
  */
 
 // ---- winnt.h ---------------------------------------------------------------

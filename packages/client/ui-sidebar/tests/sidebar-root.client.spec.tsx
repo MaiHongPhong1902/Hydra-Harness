@@ -103,7 +103,7 @@ describe('SidebarRoot shell', () => {
         options?.fallback ?? null) as SidebarRootComponentProps['renderSlot']}
     />)
 
-    expect(container.querySelector('svg[viewBox="0 0 952 172"]')).not.toBeNull()
+    expect(container.querySelector('svg[viewBox="0 0 182 24"]')?.textContent).toBe('Hydra harness')
     expect(screen.getByText('0123456')).toBeTruthy()
   })
 

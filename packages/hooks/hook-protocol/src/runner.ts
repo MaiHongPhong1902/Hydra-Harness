@@ -3,10 +3,10 @@
  * process-group cancellation, and timeout machinery. The bridge supplies the
  * trusted stdin payload and dialect environment, then this module decodes the
  * captured outcome.
- * @module @bosch/bh-hook-protocol/runner
+ * @module @hydra/harness-hook-protocol/runner
  */
 
-import type { ShellExecutor } from '@bosch/bh-shell'
+import type { ShellExecutor } from '@hydra/harness-shell'
 import { parseHookOutput } from './codec.ts'
 import type { CommandHook, HookOutput } from './types.ts'
 

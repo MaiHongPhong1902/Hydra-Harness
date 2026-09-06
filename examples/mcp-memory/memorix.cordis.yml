@@ -2,7 +2,7 @@
 # first; BH starts it but does not run a package manager.
 - insert:
     - id: memory-memorix
-      name: '@bosch/bh-mcp-client'
+      name: '@hydra/harness-mcp-client'
       config:
         serverName: memorix
         transport: stdio

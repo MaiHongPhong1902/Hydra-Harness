@@ -7,8 +7,8 @@
 import { createHash } from 'node:crypto'
 import { mkdir, readdir, readFile, realpath, stat } from 'node:fs/promises'
 import { basename, dirname, isAbsolute, join, parse, posix, relative, resolve, sep } from 'node:path'
-import { withFileLock, writeFileAtomic } from '@bosch/bh-atomic-write'
-import type { BrowserToolValue } from '@bosch/bh-tool-browser'
+import { withFileLock, writeFileAtomic } from '@hydra/harness-atomic-write'
+import type { BrowserToolValue } from '@hydra/harness-tool-browser'
 
 /** Existing vault folder retained as the contained graph root. */
 export const GRAPH_ROOT = 'BH Website Knowledge'
@@ -57,7 +57,7 @@ export interface ObsidianKnowledgeStorage {
   readNotes(paths: readonly string[]): Promise<KnowledgeNote[]>
 }
 
-/** One visible interactive control parsed from BH's Browser text DOM. */
+/** One visible interactive control parsed from Hydra's Browser text DOM. */
 export interface ControlRecord {
   readonly id: string
   readonly index: number
@@ -330,7 +330,7 @@ async function existingText(path: string): Promise<string> {
 }
 
 /**
- * Parse the visible interactive-element lines that BH's Browser tool returned.
+ * Parse the visible interactive-element lines that Hydra's Browser tool returned.
  * @param value - Current Browser tool value.
  * @param pageId - Stable page-note identity used to derive control-note identities.
  * @returns One record per visible interactive element line.

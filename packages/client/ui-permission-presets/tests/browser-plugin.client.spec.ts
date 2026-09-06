@@ -8,14 +8,14 @@
  * disposal removes the contribution (HMR safety). The same plugin registers
  * its Settings row and invalidates that row on host settings changes.
  */
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { describe, expect, it } from 'vitest'
-import { SlotRegistry, type SessionId } from '@bosch/bh-client-runtime/client'
-import { LocaleRuntime } from '@bosch/bh-client-locale/client'
-import { TestRemote } from '@bosch/bh-client-test-runtime'
-import { apply as settingsApply, inject as settingsInject } from '@bosch/bh-client-ui-settings/client'
-import type { CommandDecoration } from '@bosch/bh-client-ui-commands/client'
-import type { PermissionSelect } from '@bosch/bh-permission-presets/client'
+import { SlotRegistry, type SessionId } from '@hydra/harness-client-runtime/client'
+import { LocaleRuntime } from '@hydra/harness-client-locale/client'
+import { TestRemote } from '@hydra/harness-client-test-runtime'
+import { apply as settingsApply, inject as settingsInject } from '@hydra/harness-client-ui-settings/client'
+import type { CommandDecoration } from '@hydra/harness-client-ui-commands/client'
+import type { PermissionSelect } from '@hydra/harness-permission-presets/client'
 import {
   PermissionRow, type PermissionRowInjected,
 } from '../src/client/PermissionRow.tsx'

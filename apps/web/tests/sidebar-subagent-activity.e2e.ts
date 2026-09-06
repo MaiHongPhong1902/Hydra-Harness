@@ -4,12 +4,12 @@ import { fileURLToPath } from 'node:url'
 import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
-import type { AgentHandle } from '@bosch/bh-agent'
-import { createUserMessage, LlmAdapter } from '@bosch/bh-llm'
-import type { GenerateOptions, StreamChunk } from '@bosch/bh-llm'
-import { SessionId, type SessionId as SessionIdValue } from '@bosch/bh-session'
-import type {} from '@bosch/bh-subagent'
-import type {} from '@bosch/bh-workspace'
+import type { AgentHandle } from '@hydra/harness-agent'
+import { createUserMessage, LlmAdapter } from '@hydra/harness-llm'
+import type { GenerateOptions, StreamChunk } from '@hydra/harness-llm'
+import { SessionId, type SessionId as SessionIdValue } from '@hydra/harness-session'
+import type {} from '@hydra/harness-subagent'
+import type {} from '@hydra/harness-workspace'
 import {
   assertFixtureInventory,
   captureStableAria,

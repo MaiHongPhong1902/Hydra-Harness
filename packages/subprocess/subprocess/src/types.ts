@@ -9,13 +9,13 @@
 
 import type { Readable, Writable } from 'node:stream'
 
-/** Namespace prefix reserved for Bosch Harness-managed child environment facts. */
+/** Namespace prefix reserved for Hydra harness-managed child environment facts. */
 export const BH_ENV_PREFIX = 'BH_' as const
 
 /** One environment key inside the managed {@link BH_ENV_PREFIX} namespace. */
 export type BhEnvironmentKey = `${typeof BH_ENV_PREFIX}${string}`
 
-/** Trusted Bosch Harness variables for one child-process execution. */
+/** Trusted Hydra harness variables for one child-process execution. */
 export type BhEnvironment = Readonly<Record<BhEnvironmentKey, string>>
 
 /** One captured stream: the (possibly truncated) text plus recovery info. */
@@ -69,7 +69,7 @@ export interface SubprocessStdio {
 /**
  * A fully-specified spawn request. This seam applies no defaults: every
  * disposition, limit, and directory is explicit, so the caller's own config —
- * not a hidden subprocess-service default — decides them (the `bh-shell`
+ * not a hidden subprocess-service default — decides them (the `@hydra/harness-shell`
  * request/spec split is the owning template).
  */
 export interface SubprocessSpawnSpec {
@@ -195,7 +195,7 @@ export interface SubprocessHandle {
 
 /**
  * Signals supported by the terminal-process primitive. Kept member-identical
- * to `TerminalSignal` in `@bosch/bh-terminal` without a cross-seam dependency;
+ * to `TerminalSignal` in `@hydra/harness-terminal` without a cross-seam dependency;
  * change both together.
  */
 export type SubprocessTerminalSignal = 'SIGINT' | 'SIGTERM' | 'SIGKILL' | 'SIGTSTP' | 'SIGHUP'

@@ -7,8 +7,8 @@ This tutorial adds a `greet` tool to the Web UI. Complete [Your first plugin](./
 Replace `scratch-plugin/src/my-plugin.ts` with:
 
 ```ts
-import type { Context } from '@bosch/cordis'
-import { defineTool } from '@bosch/bh-tools'
+import type { Context } from '@hydra/cordis'
+import { defineTool } from '@hydra/harness-tools'
 
 export const name = 'greet-tool'
 export const inject = ['tools']

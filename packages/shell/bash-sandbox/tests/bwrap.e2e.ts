@@ -4,18 +4,18 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import { LocalSandboxProvider } from '@bosch/bh-sandbox-local'
-import { SandboxPolicyService } from '@bosch/bh-sandbox-policy'
-import { bwrapProfileArgs } from '@bosch/bh-sandbox-local/src/profiles.ts'
-import { SandboxBashExecutor } from '@bosch/bh-bash-sandbox'
-import LocalSubprocessRuntime from '@bosch/bh-subprocess-local'
+import { Context } from '@hydra/cordis'
+import { LocalSandboxProvider } from '@hydra/harness-sandbox-local'
+import { SandboxPolicyService } from '@hydra/harness-sandbox-policy'
+import { bwrapProfileArgs } from '@hydra/harness-sandbox-local/src/profiles.ts'
+import { SandboxBashExecutor } from '@hydra/harness-bash-sandbox'
+import LocalSubprocessRuntime from '@hydra/harness-subprocess-local'
 
 /**
  * Keyless integration of the real provider and executor through public run/start paths. With
  * no rung forced, a passing bwrap probe selects the ladder's first rung. The tests check world
  * effects and stamped facts, including EROFS classification through the wrap-carried dialect;
- * backend-only confinement is covered by `@bosch/bh-sandbox-local`.
+ * backend-only confinement is covered by `@hydra/harness-sandbox-local`.
  *
  * Skips when bwrap or unprivileged user namespaces are unavailable. HOME-based paths are
  * intentional because bwrap replaces `/tmp`, which cannot prove the workspace-root boundary.

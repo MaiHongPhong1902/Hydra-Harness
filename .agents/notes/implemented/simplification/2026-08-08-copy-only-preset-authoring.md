@@ -8,6 +8,8 @@ The agent-preset settings page carried a web YAML editor: `agentPreset.write` ac
 
 ## Decision
 
+Roster refreshes after mutations follow the [Settings lifecycle rules](../bug-fix/2026-09-05-settings-draft-and-dialog-lifecycle.md), including invalidations that arrive while an older read is pending.
+
 Authoring is a host-side copy, and files are the editor. `agentPreset.write` became `agentPreset.copy { from, agentPreset, name? }`: two ids the host resolves against its own roots plus an optional display name, whole-directory `cp` (symlinks dereferenced, modes re-tightened to owner-only with owner-execute kept), metadata rewritten to keep the source's description but never its name or `order`. The page becomes: read-only viewer over shipped compositions, copy dialog as the only create entry (no blank "new preset" — writing YAML from nothing is not a thing people do), delete for custom rows, and a location action that leads to the files — `agentPreset.openDocument { agentPreset }` resolves the directory host-side and opens it natively, or answers `{ opened: false, path }` for the row to show as text where the deployment has no desktop (`hasDocument` on `list`, pinned by the gateway's `nativeOpen` config where `canOpenNativePath` platform detection would mislead, e.g. e2e and containers).
 
 ## Consequences

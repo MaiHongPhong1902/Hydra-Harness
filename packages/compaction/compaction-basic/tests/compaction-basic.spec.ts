@@ -1,18 +1,18 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import { AttachmentId } from '@bosch/bh-attachment'
-import BasicCompactionEngine from '@bosch/bh-compaction-basic'
-import type { BasicCompactionConfig } from '@bosch/bh-compaction-basic'
-import { selectCompactableRange } from '@bosch/bh-compaction-basic/src/region.ts'
-import type { SummarizationInput, SummaryResult } from '@bosch/bh-compaction-basic/src/summarizer.ts'
-import { CompactionId, toolPairingBalancedAfter, toolPairingBalancedBefore } from '@bosch/bh-compaction'
+import { Context } from '@hydra/cordis'
+import { AttachmentId } from '@hydra/harness-attachment'
+import BasicCompactionEngine from '@hydra/harness-compaction-basic'
+import type { BasicCompactionConfig } from '@hydra/harness-compaction-basic'
+import { selectCompactableRange } from '@hydra/harness-compaction-basic/src/region.ts'
+import type { SummarizationInput, SummaryResult } from '@hydra/harness-compaction-basic/src/summarizer.ts'
+import { CompactionId, toolPairingBalancedAfter, toolPairingBalancedBefore } from '@hydra/harness-compaction'
 import {
   resolveCompactSpec,
   resolveConfig,
   resolveTargetPolicy,
-} from '@bosch/bh-compaction-basic/src/config.ts'
-import type { CompactionResult } from '@bosch/bh-compaction'
-import LlmRuntime, { createUserMessage, CallId, CONTEXT_WINDOW_EXCEEDED_CODE, createToolResultMessage, LlmAdapter , createMessage } from '@bosch/bh-llm'
+} from '@hydra/harness-compaction-basic/src/config.ts'
+import type { CompactionResult } from '@hydra/harness-compaction'
+import LlmRuntime, { createUserMessage, CallId, CONTEXT_WINDOW_EXCEEDED_CODE, createToolResultMessage, LlmAdapter , createMessage } from '@hydra/harness-llm'
 import type {
   ContentBlock,
   GenerateOptions,
@@ -21,11 +21,11 @@ import type {
   Message,
   StreamChunk,
   TokenUsage,
-} from '@bosch/bh-llm'
-import SessionStore, { Session, SessionId } from '@bosch/bh-session'
-import TokenMeter from '@bosch/bh-token-meter'
-import { agentEvents, type Agent, type RequestErrorAction } from '@bosch/bh-agent'
-import ToolResultPruner from '@bosch/bh-compaction-tool-result-pruner'
+} from '@hydra/harness-llm'
+import SessionStore, { Session, SessionId } from '@hydra/harness-session'
+import TokenMeter from '@hydra/harness-token-meter'
+import { agentEvents, type Agent, type RequestErrorAction } from '@hydra/harness-agent'
+import ToolResultPruner from '@hydra/harness-compaction-tool-result-pruner'
 
 const SIGNAL = new AbortController().signal
 const MODEL = 'test-model'

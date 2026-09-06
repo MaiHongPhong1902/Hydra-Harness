@@ -1,6 +1,6 @@
 import type {
   SettingsSchemaService,
-} from '@bosch/bh-client-ui-settings/client'
+} from '@hydra/harness-client-ui-settings/client'
 
 /** Plain schema callbacks exposed to Models stores and presentation components. */
 export type SettingsSchemaOperations = Pick<

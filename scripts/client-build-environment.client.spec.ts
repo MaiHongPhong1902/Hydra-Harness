@@ -56,7 +56,7 @@ describe('client build environment', () => {
     const expected = {
       BH_CLIENT_BUILD_PROFILE: 'official',
       BH_CLIENT_COMMIT_HASH: COMMIT_HASH.slice(0, 7),
-      BH_CLIENT_TITLE: 'Bosch Harness',
+      BH_CLIENT_TITLE: 'Hydra harness',
     } as const
 
     expect(() => { assertClientBuildEnvironment({ PATH: '/bin', ...expected }, expected) }).not.toThrow()
@@ -83,7 +83,7 @@ describe('client build environment', () => {
     expect(resolveClientBuildEnvironment(parent)).toEqual({
       BH_CLIENT_BUILD_PROFILE: 'official',
       BH_CLIENT_COMMIT_HASH: COMMIT_HASH.slice(0, 7),
-      BH_CLIENT_TITLE: 'Bosch Harness',
+      BH_CLIENT_TITLE: 'Hydra harness',
     })
     expect(() => {
       resolveClientBuildEnvironment({ BH_BUILD_CLIENT_PROFILE: 'official' })
@@ -92,12 +92,12 @@ describe('client build environment', () => {
     expect(clientBuildProcessEnvironment(parent, {
       BH_CLIENT_BUILD_PROFILE: 'official',
       BH_CLIENT_COMMIT_HASH: COMMIT_HASH.slice(0, 7),
-      BH_CLIENT_TITLE: 'Bosch Harness',
+      BH_CLIENT_TITLE: 'Hydra harness',
     })).toEqual({
       PATH: '/bin',
       BH_CLIENT_BUILD_PROFILE: 'official',
       BH_CLIENT_COMMIT_HASH: COMMIT_HASH.slice(0, 7),
-      BH_CLIENT_TITLE: 'Bosch Harness',
+      BH_CLIENT_TITLE: 'Hydra harness',
     })
     expect(repositoryCommitHash('/unused', { BH_CLIENT_COMMIT_HASH: COMMIT_HASH })).toBe(COMMIT_HASH.slice(0, 7))
   })
@@ -119,12 +119,12 @@ describe('client build environment', () => {
   it('feeds the same build-process value to dynamic tsdown bundles and the Vite shell', async () => {
     process.env[PROBE_NAME] = 'shared-value'
 
-    const configs = clientBundle('@bosch/bh-client-ui-sidebar', [
+    const configs = clientBundle('@hydra/harness-client-ui-sidebar', [
       'lib/types/index.js',
       'lib/types/invariant.js',
     ])({ env: { BH_BUILD_FACE: 'client' } })
     if (!Array.isArray(configs)) throw new TypeError('client bundle config must be an array')
-    const dynamic = configs.find(config => config.name === '@bosch/bh-client-ui-sidebar/client')
+    const dynamic = configs.find(config => config.name === '@hydra/harness-client-ui-sidebar/client')
     expect(dynamic?.define).toMatchObject({
       'process.env': '{}',
       [PROBE_KEY]: '"shared-value"',
@@ -150,7 +150,7 @@ describe('client build environment', () => {
     const officialEnvironment = {
       BH_CLIENT_BUILD_PROFILE: 'official',
       BH_CLIENT_COMMIT_HASH: COMMIT_HASH.slice(0, 7),
-      BH_CLIENT_TITLE: 'Bosch Harness',
+      BH_CLIENT_TITLE: 'Hydra harness',
     }
     const official = buildFixture(officialEnvironment)
     const defaultBuild = buildFixture({})

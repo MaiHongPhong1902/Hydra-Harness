@@ -15,7 +15,7 @@ import {
   type ClientPackageFacts,
 } from './verify-client-packages.ts'
 
-const CORDIS = '@bosch/cordis'
+const CORDIS = '@hydra/cordis'
 const roots: string[] = []
 
 afterEach(() => {
@@ -27,7 +27,7 @@ function declaration(
   fields: Partial<Omit<ClientDeclaration, 'name' | 'manifest'>> = {},
 ): ClientDeclaration {
   return {
-    name: short.startsWith('@') ? short : '@bosch/bh-client-' + short,
+    name: short.startsWith('@') ? short : '@hydra/harness-client-' + short,
     manifest: 'packages/client/' + short.replace(/^.*\//, '') + '/package.json',
     dynamic: true,
     external: [],
@@ -73,26 +73,26 @@ function facts(
 describe('source package uses', () => {
   it('counts type imports, module augmentations, dynamic imports, and JSX', () => {
     const uses = collectSourcePackageUses('feature.tsx', [
-      "import type { A } from '@bosch/bh-a/subpath'",
-      "declare module '@bosch/bh-client-ui-slots' {}",
-      "const load = () => import('@bosch/bh-b')",
+      "import type { A } from '@hydra/harness-a/subpath'",
+      "declare module '@hydra/harness-client-ui-slots' {}",
+      "const load = () => import('@hydra/harness-b')",
       'export const view = <div />',
       "export type { Local } from './local.ts'",
     ].join('\n'))
 
     expect([...uses].sort()).toEqual([
-      '@bosch/bh-a',
-      '@bosch/bh-b',
-      '@bosch/bh-client-ui-slots',
+      '@hydra/harness-a',
+      '@hydra/harness-b',
+      '@hydra/harness-client-ui-slots',
       'react',
     ])
     expect([...collectRuntimeSourcePackageUses('feature.tsx', [
-      "import type { A } from '@bosch/bh-a/subpath'",
-      "declare module '@bosch/bh-client-ui-slots' {}",
-      "const load = () => import('@bosch/bh-b')",
+      "import type { A } from '@hydra/harness-a/subpath'",
+      "declare module '@hydra/harness-client-ui-slots' {}",
+      "const load = () => import('@hydra/harness-b')",
       'export const view = <div />',
     ].join('\n'))].sort()).toEqual([
-      '@bosch/bh-b',
+      '@hydra/harness-b',
       'react',
     ])
   })
@@ -135,7 +135,7 @@ describe('package modes', () => {
       parserPreloadIds: [],
     }))).toEqual([
       'packages/client/web/src/platform.ts: parser-preloaded external '
-      + '"@bosch/bh-client-runtime/client" has no matching PARSER_PRELOAD_IDS row in '
+      + '"@hydra/harness-client-runtime/client" has no matching PARSER_PRELOAD_IDS row in '
       + 'packages/client/modules/src/index.ts',
     ])
   })
@@ -145,23 +145,23 @@ describe('dependency sections', () => {
   it('accepts dynamic peer plus dev relationships, static dev inputs, and private dependencies', () => {
     const slots = pkg('ui-slots', { dynamic: false, staticLinked: true })
     const runtime = pkg('runtime', {
-      inject: ['@bosch/bh-client-feature'],
+      inject: ['@hydra/harness-client-feature'],
       sourceUses: {
-        '@bosch/bh-agent': ['packages/client/runtime/src/index.ts'],
-        '@bosch/bh-client-ui-slots': ['packages/client/runtime/src/client/slots.ts'],
+        '@hydra/harness-agent': ['packages/client/runtime/src/index.ts'],
+        '@hydra/harness-client-ui-slots': ['packages/client/runtime/src/client/slots.ts'],
         react: ['packages/client/runtime/src/client/view.tsx'],
       },
       dependencies: { immer: '^10.1.1' },
       peerDependencies: {
         [CORDIS]: 'workspace:^',
-        '@bosch/bh-agent': 'workspace:^',
-        '@bosch/bh-client-feature': 'workspace:^',
+        '@hydra/harness-agent': 'workspace:^',
+        '@hydra/harness-client-feature': 'workspace:^',
       },
       devDependencies: {
         [CORDIS]: 'workspace:^',
-        '@bosch/bh-agent': 'workspace:^',
-        '@bosch/bh-client-feature': 'workspace:^',
-        '@bosch/bh-client-ui-slots': 'workspace:^',
+        '@hydra/harness-agent': 'workspace:^',
+        '@hydra/harness-client-feature': 'workspace:^',
+        '@hydra/harness-client-ui-slots': 'workspace:^',
         react: '^18.2.0',
       },
     })
@@ -174,26 +174,26 @@ describe('dependency sections', () => {
     const slots = pkg('ui-slots', { dynamic: false, staticLinked: true })
     const subject = pkg('feature', {
       sourceUses: {
-        '@bosch/bh-agent': ['packages/client/feature/src/index.ts'],
+        '@hydra/harness-agent': ['packages/client/feature/src/index.ts'],
         [slots.name]: ['packages/client/feature/src/view.tsx'],
       },
-      dependencies: { '@bosch/bh-agent': 'workspace:^' },
+      dependencies: { '@hydra/harness-agent': 'workspace:^' },
       peerDependencies: { [CORDIS]: 'workspace:^', [slots.name]: 'workspace:^' },
       devDependencies: { [CORDIS]: 'workspace:^', [slots.name]: 'workspace:*' },
     })
     const found = collectClientPackageViolations(facts([slots, subject]))
     expect(found).toHaveLength(2)
-    expect(found.join('\n')).toContain('peer-installed BH relationship')
+    expect(found.join('\n')).toContain('peer-installed Hydra relationship')
     expect(found.join('\n')).toContain('static client input')
   })
 
   it('requires every peer to have the same development range', () => {
     const subject = pkg('feature', {
-      peerDependencies: { [CORDIS]: 'workspace:^', '@bosch/cordis-plugin-loader': 'workspace:^' },
+      peerDependencies: { [CORDIS]: 'workspace:^', '@hydra/cordis-plugin-loader': 'workspace:^' },
     })
     expect(collectClientPackageViolations(facts([subject]))).toEqual([
-      'packages/client/feature/package.json: peerDependencies.@bosch/cordis-plugin-loader'
-      + ' is workspace:^, so devDependencies.@bosch/cordis-plugin-loader must use the same range;'
+      'packages/client/feature/package.json: peerDependencies.@hydra/cordis-plugin-loader'
+      + ' is workspace:^, so devDependencies.@hydra/cordis-plugin-loader must use the same range;'
       + ' found no declaration',
     ])
   })
@@ -219,12 +219,12 @@ describe('dependency sections', () => {
       dynamic: false,
       staticLinked: true,
       runtimeSourceUses: {
-        '@bosch/cordis-plugin-loader': ['packages/client/web/src/boot.ts'],
+        '@hydra/cordis-plugin-loader': ['packages/client/web/src/boot.ts'],
         react: ['packages/client/web/src/seed.ts'],
       },
       devDependencies: {
         [CORDIS]: 'workspace:^',
-        '@bosch/cordis-plugin-loader': 'workspace:^',
+        '@hydra/cordis-plugin-loader': 'workspace:^',
         react: '^18.2.0',
       },
     })
@@ -233,12 +233,12 @@ describe('dependency sections', () => {
 
   it('allows npm dependency cycles', () => {
     const a = pkg('a', {
-      peerDependencies: { [CORDIS]: 'workspace:^', '@bosch/bh-client-b': 'workspace:^' },
-      devDependencies: { [CORDIS]: 'workspace:^', '@bosch/bh-client-b': 'workspace:^' },
+      peerDependencies: { [CORDIS]: 'workspace:^', '@hydra/harness-client-b': 'workspace:^' },
+      devDependencies: { [CORDIS]: 'workspace:^', '@hydra/harness-client-b': 'workspace:^' },
     })
     const b = pkg('b', {
-      peerDependencies: { [CORDIS]: 'workspace:^', '@bosch/bh-client-a': 'workspace:^' },
-      devDependencies: { [CORDIS]: 'workspace:^', '@bosch/bh-client-a': 'workspace:^' },
+      peerDependencies: { [CORDIS]: 'workspace:^', '@hydra/harness-client-a': 'workspace:^' },
+      devDependencies: { [CORDIS]: 'workspace:^', '@hydra/harness-client-a': 'workspace:^' },
     })
     expect(collectClientPackageViolations(facts([a, b]))).toEqual([])
   })
@@ -246,7 +246,7 @@ describe('dependency sections', () => {
 
 describe('module requests', () => {
   it('accepts a dynamic row supplier and its client subpath', () => {
-    const ui = declaration('ui', { external: ['@bosch/bh-client-slots/client'] })
+    const ui = declaration('ui', { external: ['@hydra/harness-client-slots/client'] })
     const slots = declaration('slots')
     expect(collectClientPackageViolations(facts([], { declarations: [ui, slots] }))).toEqual([])
   })
@@ -263,8 +263,8 @@ describe('module requests', () => {
 
   it('rejects duplicates, empty values, self-requests, and missing suppliers', () => {
     const ui = declaration('ui', {
-      external: ['', '@bosch/bh-client-ui', '@bosch/bh-missing', '@bosch/bh-missing'],
-      inject: ['', '@bosch/bh-a', '@bosch/bh-a'],
+      external: ['', '@hydra/harness-client-ui', '@hydra/harness-missing', '@hydra/harness-missing'],
+      inject: ['', '@hydra/harness-a', '@hydra/harness-a'],
     })
     const found = collectClientPackageViolations(facts([], { declarations: [ui] }))
     expect(found).toHaveLength(6)
@@ -276,12 +276,12 @@ describe('module requests', () => {
 
   it('rejects synchronous module-request cycles but ignores inject cycles', () => {
     const a = declaration('a', {
-      external: ['@bosch/bh-client-b'],
-      inject: ['@bosch/bh-client-b'],
+      external: ['@hydra/harness-client-b'],
+      inject: ['@hydra/harness-client-b'],
     })
     const b = declaration('b', {
-      external: ['@bosch/bh-client-a'],
-      inject: ['@bosch/bh-client-a'],
+      external: ['@hydra/harness-client-a'],
+      inject: ['@hydra/harness-client-a'],
     })
     const found = collectClientPackageViolations(facts([], { declarations: [a, b] }))
     expect(found).toHaveLength(1)
@@ -316,19 +316,19 @@ describe('manifest declarations', () => {
     const root = mkdtempSync(join(tmpdir(), 'client-packages-fix-'))
     roots.push(root)
     const subject = pkg('feature', {
-      external: ['', 'react', '@bosch/bh-client-feature', '@bosch/bh-missing'],
-      inject: ['', '@bosch/bh-agent', '@bosch/bh-agent'],
+      external: ['', 'react', '@hydra/harness-client-feature', '@hydra/harness-missing'],
+      inject: ['', '@hydra/harness-agent', '@hydra/harness-agent'],
       sourceUses: {
-        '@bosch/bh-agent': ['packages/client/feature/src/index.ts'],
-        '@bosch/bh-client-ui-slots': ['packages/client/feature/src/view.tsx'],
+        '@hydra/harness-agent': ['packages/client/feature/src/index.ts'],
+        '@hydra/harness-client-ui-slots': ['packages/client/feature/src/view.tsx'],
       },
       dependencies: {
         [CORDIS]: 'workspace:^',
-        '@bosch/bh-agent': 'workspace:*',
+        '@hydra/harness-agent': 'workspace:*',
       },
       peerDependencies: {
-        '@bosch/bh-client-ui-slots': 'workspace:^',
-        '@bosch/cordis-plugin-loader': 'workspace:^',
+        '@hydra/harness-client-ui-slots': 'workspace:^',
+        '@hydra/cordis-plugin-loader': 'workspace:^',
       },
       devDependencies: {},
     })
@@ -357,20 +357,20 @@ describe('manifest declarations', () => {
       devDependencies: Record<string, string>
     }
     expect(fixed.bh.client).toMatchObject({
-      external: ['@bosch/bh-missing'],
-      inject: ['@bosch/bh-agent'],
+      external: ['@hydra/harness-missing'],
+      inject: ['@hydra/harness-agent'],
     })
     expect(fixed.dependencies).toBeUndefined()
     expect(fixed.peerDependencies).toEqual({
-      '@bosch/cordis-plugin-loader': 'workspace:^',
+      '@hydra/cordis-plugin-loader': 'workspace:^',
       [CORDIS]: 'workspace:^',
-      '@bosch/bh-agent': 'workspace:*',
+      '@hydra/harness-agent': 'workspace:*',
     })
     expect(fixed.devDependencies).toEqual({
-      '@bosch/bh-client-ui-slots': 'workspace:^',
+      '@hydra/harness-client-ui-slots': 'workspace:^',
       [CORDIS]: 'workspace:^',
-      '@bosch/bh-agent': 'workspace:*',
-      '@bosch/cordis-plugin-loader': 'workspace:^',
+      '@hydra/harness-agent': 'workspace:*',
+      '@hydra/cordis-plugin-loader': 'workspace:^',
     })
   })
 

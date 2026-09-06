@@ -4,10 +4,10 @@
  * no runtime code, and nothing here reaches a Host-only symbol, so a Client
  * compilation face reads exactly the signatures the Host emits.
  *
- * @module @bosch/bh-settings/types
+ * @module @hydra/harness-settings/types
  */
 
-import type { Branded } from '@bosch/bh-brand'
+import type { Branded } from '@hydra/harness-brand'
 
 /** Nominal id of one registered settings namespace. */
 export type SettingsNamespace = Branded<'SettingsNamespace'>
@@ -15,7 +15,7 @@ export type SettingsNamespace = Branded<'SettingsNamespace'>
 /** Origin of one committed settings change. */
 export type SettingsUpdateSource = 'update' | 'provider'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Events {
     /**
      * Committed change to one registered namespace's resolved value. Emitted

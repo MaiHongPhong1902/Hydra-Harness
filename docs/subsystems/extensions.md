@@ -1,6 +1,6 @@
 # Extensions
 
-The extensions subsystem lets an agent define versioned Cordis packages, run their host and browser halves, and query approved runtime metadata before writing code. It also owns the shared [`ctx.importedPlugins`](../../packages/host/plugin-runtime/README.md) service, which stages and lifecycle-manages immutable OpenAI/Codex plugin bundles for every BH profile, plus the two user-declared record registries that extend the agent from settings rather than from a bundle: [`ctx.mcpServers`](../../packages/mcp/mcp-registry/README.md) mounts each enabled MCP server record as an `mcp-client` fiber, and [`ctx.hookRecords`](../../packages/hooks/hooks-registry/README.md) mounts each enabled hook record on its Claude Code or Codex bridge. Package lifecycle and sandbox behavior belong to the [`packages/extensions`](../../packages/extensions/README.md) package group.
+The extensions subsystem lets an agent define versioned Cordis packages, run their host and browser halves, and query approved runtime metadata before writing code. It also owns the shared [`ctx.importedPlugins`](../../packages/host/plugin-runtime/README.md) service, which stages and lifecycle-manages immutable OpenAI/Codex plugin bundles for every Hydra profile, plus the two user-declared record registries that extend the agent from settings rather than from a bundle: [`ctx.mcpServers`](../../packages/mcp/mcp-registry/README.md) mounts each enabled MCP server record as an `mcp-client` fiber, and [`ctx.hookRecords`](../../packages/hooks/hooks-registry/README.md) mounts each enabled hook record on its Claude Code or Codex bridge. Package lifecycle and sandbox behavior belong to the [`packages/extensions`](../../packages/extensions/README.md) package group.
 
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
@@ -268,11 +268,12 @@ Settings-backed hook records with their live bridge mounts. Reconciliation is id
 list(): HookRecordSnapshot
 
 /**
- * Store one complete definition, replacing any record of the same name, then
+ * Create or replace one complete definition as requested, then
  * converge the mounted set. A definition this registry could not mount is
  * refused before anything persists.
  * @param request - complete record definition.
  * @returns the refreshed projection.
+ * @throws If create names an existing record or replace names a missing record.
  */
 define(request: HookRecordDefinitionRequest): Promise<HookRecordSnapshot>
 
@@ -298,7 +299,7 @@ Source: [`packages/hooks/hooks-registry/src/index.ts`](../../packages/hooks/hook
 
 ### `ctx.importedPlugins` — `ImportedPluginRuntime`
 
-Shared `bh-base` service for every imported bundle, not a Web-only facility.
+Shared `@hydra/harness-base` service for every imported bundle, not a Web-only facility.
 
 ```ts cordis-catalog
 /**
@@ -399,11 +400,12 @@ Settings-backed MCP server records with their live `mcp-client` mounts. Reconcil
 list(): McpServerSnapshot
 
 /**
- * Store one complete definition, replacing any record of the same name, then
+ * Create or replace one complete definition as requested, then
  * converge the mounted set. A definition this registry could not mount is
  * refused before anything persists.
  * @param request - complete server definition.
  * @returns the refreshed projection.
+ * @throws If create names an existing record or replace names a missing record.
  */
 define(request: McpServerDefinitionRequest): Promise<McpServerSnapshot>
 

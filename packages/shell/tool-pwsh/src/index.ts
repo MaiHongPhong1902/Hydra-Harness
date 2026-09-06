@@ -1,10 +1,10 @@
 /**
  * Model-facing PowerShell Consumer of the `ctx.shell` capability seam. Intended for
  * Windows compositions where a PowerShell executor (e.g.
- * `@bosch/bh-pwsh-local`) backs `ctx.shell`; the tool contract is
+ * `@hydra/harness-pwsh-local`) backs `ctx.shell`; the tool contract is
  * PowerShell-dialect: native `C:\...` paths and `$env:NAME` variables.
  *
- * Behavior mirrors `bh-tool-bash` call-for-call: foreground and
+ * Behavior mirrors `@hydra/harness-tool-bash` call-for-call: foreground and
  * `run_in_background` execution (background handles register with the
  * generic `ctx.jobs` runtime), the managed `BH_*` environment through the
  * shared `shell-env` registry, the per-call sandbox policy resolution (the
@@ -14,32 +14,32 @@
  * `ctx.approval`), and the bash marker/truncation rendering story. UI
  * presentation mirrors the bash tool's too: a completed foreground call is
  * a terminal card with the parsed exit-status pill, using the shared
- * exit-status parse from `@bosch/bh-shell`.
+ * exit-status parse from `@hydra/harness-shell`.
  *
- * @module @bosch/bh-tool-pwsh
+ * @module @hydra/harness-tool-pwsh
  */
 
 import { isAbsolute, resolve as resolvePath } from 'node:path'
-import type { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import { defineTool, TOOL_ABORTED } from '@bosch/bh-tools'
-import type { GenericCallView, TerminalCallView, ToolExecution, ToolResult, ToolResultView } from '@bosch/bh-tools'
-import { HarnessError } from '@bosch/bh-llm'
-import type { Agent } from '@bosch/bh-agent'
-import type {} from '@bosch/bh-system-prompt'
-import type {} from '@bosch/bh-jobs'
-import type {} from '@bosch/bh-shell-env'
-import type {} from '@bosch/bh-user-approval'
-import type { SandboxExecutionPolicy, SandboxMode } from '@bosch/bh-sandbox'
-import { ESCALATION_TARGETS, approveEscalation, validateEscalationArgs } from '@bosch/bh-sandbox'
-import type { SandboxPolicyService } from '@bosch/bh-sandbox-policy'
-import type { ShellRunResult } from '@bosch/bh-shell'
-import { parseExitStatus } from '@bosch/bh-shell'
+import type { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import { defineTool, TOOL_ABORTED } from '@hydra/harness-tools'
+import type { GenericCallView, TerminalCallView, ToolExecution, ToolResult, ToolResultView } from '@hydra/harness-tools'
+import { HarnessError } from '@hydra/harness-llm'
+import type { Agent } from '@hydra/harness-agent'
+import type {} from '@hydra/harness-system-prompt'
+import type {} from '@hydra/harness-jobs'
+import type {} from '@hydra/harness-shell-env'
+import type {} from '@hydra/harness-user-approval'
+import type { SandboxExecutionPolicy, SandboxMode } from '@hydra/harness-sandbox'
+import { ESCALATION_TARGETS, approveEscalation, validateEscalationArgs } from '@hydra/harness-sandbox'
+import type { SandboxPolicyService } from '@hydra/harness-sandbox-policy'
+import type { ShellRunResult } from '@hydra/harness-shell'
+import { parseExitStatus } from '@hydra/harness-shell'
 import { processOutcome } from './background.ts'
 import { renderPwshProcessRead, renderPwshResult } from './render.ts'
 import type { RenderablePwshResult } from './render.ts'
 
-declare module '@bosch/bh-jobs' {
+declare module '@hydra/harness-jobs' {
   interface JobKindMap {
     pwsh: 'pwsh'
   }
@@ -83,7 +83,7 @@ interface PwshForegroundResult {
   sandbox?: { mode: string; denied: boolean; enforcement?: string; runnerFailed?: boolean }
 }
 
-/* jscpd:ignore-start -- minimal mirror of bh-tool-bash's validation and execute plumbing (Agent Note). */
+/* jscpd:ignore-start -- minimal mirror of @hydra/harness-tool-bash's validation and execute plumbing (Agent Note). */
 function validatePwshArgs(args: PwshToolArgs): void {
   if (args.command.trim().length === 0) {
     throw new Error('invalid command: expected a non-empty string')
@@ -171,7 +171,7 @@ function canonicalPwshResult(result: ShellRunResult): PwshForegroundResult {
     timedOut: result.timedOut,
     aborted: result.aborted,
     timeoutMs: result.timeoutMs,
-    /* jscpd:ignore-start -- the canonical projection and background-handle shape mirror bh-tool-bash's by design (Agent Note). */
+    /* jscpd:ignore-start -- projection and background handles mirror @hydra/harness-tool-bash (Agent Note). */
     stdout: output(result.stdout),
     stderr: output(result.stderr),
     ...result.sandbox !== undefined ? {
@@ -192,7 +192,7 @@ const BACKGROUND_OUTPUT_PROPERTIES = {
 } as const
 /* jscpd:ignore-end */
 
-/* jscpd:ignore-start -- deliberate mirror of bh-tool-bash's apply() preamble (pwsh-tool-and-executor Agent Note). */
+/* jscpd:ignore-start -- deliberate mirror of @hydra/harness-tool-bash's apply() preamble (pwsh-tool-and-executor Agent Note). */
 export function apply(ctx: Context, config: Config = {}): void {
   const backgroundEnabled = config.enableRunInBackground ?? true
   const defaultMode = ctx.shell.sandboxMode
@@ -206,7 +206,7 @@ export function apply(ctx: Context, config: Config = {}): void {
   const resolveSandboxPolicy = (exec: ToolExecution): SandboxExecutionPolicy | undefined =>
     sandboxPolicy?.resolve(exec.agent === undefined ? {} : { session: exec.agent.session })
 
-  /* jscpd:ignore-start -- deliberate mirror of bh-tool-bash's escalation resolver (pwsh-tool-and-executor Agent Note). */
+  /* jscpd:ignore-start -- deliberate mirror of @hydra/harness-tool-bash's escalation resolver (pwsh-tool-and-executor Agent Note). */
   /**
    * Resolve a sandbox-escalation request through `ctx.approval` BEFORE
    * anything executes, delegating the shared fail-closed sequence (strict
@@ -252,7 +252,7 @@ export function apply(ctx: Context, config: Config = {}): void {
   ctx.tools.register(defineTool({
     name: 'pwsh',
     description: pwshDescription(backgroundEnabled, escalationModes),
-    /* jscpd:ignore-start -- deliberate mirror of bh-tool-bash's parameter surface (pwsh-tool-and-executor Agent Note). */
+    /* jscpd:ignore-start -- deliberate mirror of @hydra/harness-tool-bash's parameter surface (pwsh-tool-and-executor Agent Note). */
     parameters: {
       command: { type: 'string', required: true, description: 'The PowerShell command to execute.' },
       description: {
@@ -281,7 +281,7 @@ export function apply(ctx: Context, config: Config = {}): void {
     },
     /* jscpd:ignore-end */
     output: {
-      // The foreground result wire shape mirrors bh-tool-bash's by contract —
+      // The foreground result wire shape mirrors @hydra/harness-tool-bash's by contract —
       // consumers of one must accept the other (see the pwsh-tool-and-executor
       // Agent Note).
       /* jscpd:ignore-start -- deliberate result-schema symmetry with bh-tool-bash. */
@@ -344,7 +344,7 @@ export function apply(ctx: Context, config: Config = {}): void {
           : renderPwshResult(value as RenderablePwshResult, escalationModes),
       }],
     },
-    /* jscpd:ignore-start -- the execute path mirrors bh-tool-bash's by design (see the pwsh-tool-and-executor Agent Note). */
+    /* jscpd:ignore-start -- the execute path mirrors @hydra/harness-tool-bash's by design (see the pwsh-tool-and-executor Agent Note). */
     async execute(args: PwshToolArgs, exec) {
       validatePwshArgs(args)
       // Description is display metadata; workdir defaults to the caller's session.
@@ -370,7 +370,7 @@ export function apply(ctx: Context, config: Config = {}): void {
         }
         const jobs = ctx.get('jobs')
         if (jobs === undefined) {
-          throw new Error('background jobs unavailable: load @bosch/bh-jobs and @bosch/bh-tool-jobs')
+          throw new Error('background jobs unavailable: load @hydra/harness-jobs and @hydra/harness-tool-jobs')
         }
         // The caller owns cancellation until ctx.jobs commits detached ownership.
         if (exec.signal.aborted) {

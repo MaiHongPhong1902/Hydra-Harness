@@ -2,13 +2,13 @@
  * Concrete agent-loop plugin: creates scoped ReactLoopAgents, publishes them
  * through the agent/session registries, and owns their ordered teardown.
  *
- * @module @bosch/bh-agent-loop
+ * @module @hydra/harness-agent-loop
  */
 
-import { Context, FiberState, Service } from '@bosch/cordis'
+import { Context, FiberState, Service } from '@hydra/cordis'
 import { randomUUID } from 'node:crypto'
-import z from '@bosch/schemastery'
-import { emitAgentEvent } from '@bosch/bh-agent'
+import z from '@hydra/schemastery'
+import { emitAgentEvent } from '@hydra/harness-agent'
 import type {
   Agent,
   AgentFactory,
@@ -18,14 +18,14 @@ import type {
   CreateAgentOptions,
   ResumeAgentOptions,
   SessionStartSource,
-} from '@bosch/bh-agent'
-import { errorChain } from '@bosch/bh-llm'
-import { installSettingsSection, settingsNamespace } from '@bosch/bh-settings'
-import { SessionId, SessionPreparation } from '@bosch/bh-session'
-import type { Session, SessionHeader } from '@bosch/bh-session'
-import type {} from '@bosch/bh-system-prompt'
-import type {} from '@bosch/bh-tools'
-import type { SessionPersistence } from '@bosch/bh-session-persistence'
+} from '@hydra/harness-agent'
+import { errorChain } from '@hydra/harness-llm'
+import { installSettingsSection, settingsNamespace } from '@hydra/harness-settings'
+import { SessionId, SessionPreparation } from '@hydra/harness-session'
+import type { Session, SessionHeader } from '@hydra/harness-session'
+import type {} from '@hydra/harness-system-prompt'
+import type {} from '@hydra/harness-tools'
+import type { SessionPersistence } from '@hydra/harness-session-persistence'
 import { ReactLoopAgent } from './agent.ts'
 import { DEFAULT_MAX_PARALLEL_TOOL_CALLS } from './constants.ts'
 
@@ -157,7 +157,7 @@ interface PreparedAgent {
   dispose(): Promise<void>
 }
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     agentLoop: AgentLoop
     /**

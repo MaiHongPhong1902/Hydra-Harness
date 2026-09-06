@@ -1,5 +1,5 @@
 /**
- * OpenTelemetry Service Provider for the Bosch Harness telemetry capability.
+ * OpenTelemetry Service Provider for the Hydra harness telemetry capability.
  *
  * Composes the OTel JS SDK as-is — a `LoggerProvider` with a
  * `BatchLogRecordProcessor` and an OTLP/HTTP log exporter — and maps each
@@ -9,13 +9,13 @@
  * capture mode and an outer shutdown deadline: the SDK's export timeout does
  * not bound its preceding `forceFlush()` wait.
  *
- * @module @bosch/bh-session-telemetry-otel
+ * @module @hydra/harness-session-telemetry-otel
  */
 
 import { createRequire } from 'node:module'
-import z from '@bosch/schemastery'
-import type { Context } from '@bosch/cordis'
-import type {} from '@bosch/bh-command-feedback'
+import z from '@hydra/schemastery'
+import type { Context } from '@hydra/cordis'
+import type {} from '@hydra/harness-command-feedback'
 import {
   SessionTelemetryBackend,
   SessionTelemetryCoordinator,
@@ -23,9 +23,9 @@ import {
   type SessionTelemetryRecord,
   type SessionTelemetrySeverity,
   type SessionTelemetrySharingStatus,
-} from '@bosch/bh-session-telemetry'
-import { APP_IDENTITY } from '@bosch/bh-llm'
-import { getOrCreateAnonymousUserId } from '@bosch/bh-anonymous-user-id'
+} from '@hydra/harness-session-telemetry'
+import { APP_IDENTITY } from '@hydra/harness-llm'
+import { getOrCreateAnonymousUserId } from '@hydra/harness-anonymous-user-id'
 import {
   BatchLogRecordProcessor,
   LoggerProvider,
@@ -37,7 +37,7 @@ import { SeverityNumber, type AnyValue, type Logger } from '@opentelemetry/api-l
 import { resourceFromAttributes } from '@opentelemetry/resources'
 
 // The package's own manifest is the single source of the instrumentation-scope
-// version (same pattern as bh-llm's attribution identity).
+// version (same pattern as @hydra/harness-llm's attribution identity).
 const { version } = createRequire(import.meta.url)('../package.json') as { version: string }
 
 /** Session-sharing policy selected by {@link Config.mode}. */
@@ -85,7 +85,7 @@ function sharingStatusFor(mode: SessionTelemetryMode): SessionTelemetrySharingSt
 
 /**
  * Plugin configuration: one sharing policy, two verbatim SDK option objects,
- * and one BH-owned shutdown bound. Uploading modes validate their endpoint
+ * and one Hydra-owned shutdown bound. Uploading modes validate their endpoint
  * and shutdown deadline at plugin load; `DISABLED` reads neither.
  */
 export interface Config {
@@ -216,8 +216,8 @@ export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
         }),
       ],
     })
-    const ledger = this.provider.getLogger('@bosch/bh-session-telemetry-otel', version)
-    const ops = this.provider.getLogger('@bosch/bh-session-telemetry-otel/ops', version)
+    const ledger = this.provider.getLogger('@hydra/harness-session-telemetry-otel', version)
+    const ops = this.provider.getLogger('@hydra/harness-session-telemetry-otel/ops', version)
     const enqueue: SessionTelemetrySink['emit'] = (record) => {
       const logger: Logger = record.channel === 'ops' ? ops : ledger
       logger.emit({

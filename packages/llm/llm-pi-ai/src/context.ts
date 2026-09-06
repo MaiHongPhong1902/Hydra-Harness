@@ -4,9 +4,9 @@
  * @module bh-llm-pi-ai/context
  */
 
-import { CallId, contentHasImage, LlmError, offloadRequestImages } from '@bosch/bh-llm'
-import type { ContentBlock, GenerateOptions, Message } from '@bosch/bh-llm'
-import type { AttachmentStore } from '@bosch/bh-attachment'
+import { CallId, contentHasImage, LlmError, offloadRequestImages } from '@hydra/harness-llm'
+import type { ContentBlock, GenerateOptions, Message } from '@hydra/harness-llm'
+import type { AttachmentStore } from '@hydra/harness-attachment'
 import type { Context as PiContext, ImageContent, Message as PiMessage, TextContent, Tool as PiTool } from '@earendil-works/pi-ai'
 import { toPiAssistant } from './replay.ts'
 

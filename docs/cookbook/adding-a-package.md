@@ -1,6 +1,6 @@
 # Cookbook: adding a workspace package
 
-The file-by-file checklist for a new `@bosch/bh-<name>` package. This checklist is validated against the bash and adapter packages as templates; if it drifts from them, fix it here.
+The file-by-file checklist for a new `@hydra/harness-<name>` package. This checklist is validated against the bash and adapter packages as templates; if it drifts from them, fix it here.
 
 ## 1. Create the package
 
@@ -20,7 +20,7 @@ packages/<group>/<pkg>/
 
 Choose an existing group when one matches the package's role (`core`, `llm`, `bash`, `compact`, `subagent`, `todo`, `session-persistence`, `ui`, `util`, or `support`). A new group is allowed, but it is a pure container: no `package.json`, no source files, and packages still sit exactly one level below it.
 
-package.json invariants (enforced by `pnpm run constraints` / `scripts/check-workspace-constraints.ts`): `private: true`, a `version` matching the root `package.json`, `type: module`, `main: "lib/index.js"`, `types: "lib/types/index.d.ts"`, `exports["."].types: "./lib/types/index.d.ts"`, `exports["."].default: "./lib/index.js"`, `@bosch/cordis` in BOTH peerDependencies and devDependencies (same range). Mirror every bh peer dependency in devDependencies. `@bosch/schemastery` goes in `dependencies` (it is a runtime validator), matching agent-loop. The `files` list contains exactly `lib/index.js`, `lib/invariant.js`, `lib/types/**/*.d.ts`, and package-specific runtime artifacts recognized by the gate; a package whose runtime export points into the emitted tree also includes `lib/types/**/*.js`. Do not publish `src`, declaration maps, JS maps, or stale root declaration files. CLI app packages with a package `bin` include `lib/bin.js` immediately after `lib/index.js` in `files`.
+package.json invariants (enforced by `pnpm run constraints` / `scripts/check-workspace-constraints.ts`): `private: true`, a `version` matching the root `package.json`, `type: module`, `main: "lib/index.js"`, `types: "lib/types/index.d.ts"`, `exports["."].types: "./lib/types/index.d.ts"`, `exports["."].default: "./lib/index.js"`, `@hydra/cordis` in BOTH peerDependencies and devDependencies (same range). Mirror every bh peer dependency in devDependencies. `@hydra/schemastery` goes in `dependencies` (it is a runtime validator), matching agent-loop. The `files` list contains exactly `lib/index.js`, `lib/invariant.js`, `lib/types/**/*.d.ts`, and package-specific runtime artifacts recognized by the gate; a package whose runtime export points into the emitted tree also includes `lib/types/**/*.js`. Do not publish `src`, declaration maps, JS maps, or stale root declaration files. CLI app packages with a package `bin` include `lib/bin.js` immediately after `lib/index.js` in `files`.
 
 In-package relative imports use explicit `.ts` specifiers in source (for example, `export * from './types.ts'`). The compiler rewrites those to `.js` in emitted JS and leaves explicit `.ts` specifiers in declarations, which standard NodeNext/Node16 TypeScript consumers resolve to the sibling `.d.ts` files.
 
@@ -28,7 +28,7 @@ In-package relative imports use explicit `.ts` specifiers in source (for example
 
 | File | Change |
 |---|---|
-| `tsconfig.base.json` | no edit for an existing group; for a new group, add a `./packages/<group>/*/src` candidate to the `@bosch/bh-*` wildcard |
+| `tsconfig.base.json` | no edit for an existing group; for a new group, add a `./packages/<group>/*/src` candidate to the `@hydra/harness-*` wildcard |
 | `tsconfig.host.json` (Host package) or `tsconfig.client.json` (Client package) | add `{ "path": "./packages/<group>/<pkg>" }` to `references` — an ordinary package belongs to exactly one aggregate, never both. `api/remotes` uses a repository-specific split because the Host generates a contract that the Client consumes in a later phase; new packages must not copy it ([layout](../development.md#typescript-project-layout)) |
 | `knip.json` | only if the package has entrypoints that repository discovery does not already cover |
 
@@ -66,7 +66,7 @@ Use a singular `ctx` key for one engine, runtime, policy, controller, resolver, 
 | `Config` | It owns one resolved configuration value or one tightly bounded record and its update contract. | It stores a general collection, executes work, or exposes unrelated settings. |
 | `Service` | It owns a cohesive domain service that no sharper role above states honestly. | The name exists only because the class extends Cordis `Service`. |
 
-Use `SDK` only for the JSON-RPC client/server protocol used by the supported Python and TypeScript SDKs. Bosch Harness itself is an agent harness, not an SDK project. Use the canonical product spelling `Typert`, never `TypeRT` or `typeRT`.
+Use `SDK` only for the JSON-RPC client/server protocol used by the supported Python and TypeScript SDKs. Hydra harness itself is an agent harness, not an SDK project. Use the canonical product spelling `Typert`, never `TypeRT` or `typeRT`.
 
 ## 4. Write the package README
 

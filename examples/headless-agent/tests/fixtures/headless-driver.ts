@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /** Snapshot-only Loader driver: stream one fixture turn as canonical JSONL. */
 
-import type { Context } from '@bosch/cordis'
-import { boot, installFailLoud, loadEnv, resolveConfigPath } from '@bosch/bh-app-boot'
-import { runFixtureTurn } from '@bosch/bh-loader-smoke'
-import type { SessionEvent } from '@bosch/bh-session'
+import type { Context } from '@hydra/cordis'
+import { boot, installFailLoud, loadEnv, resolveConfigPath } from '@hydra/harness-app-boot'
+import { runFixtureTurn } from '@hydra/harness-loader-smoke'
+import type { SessionEvent } from '@hydra/harness-session'
 
 const NAME = 'headless-test-driver'
 const [configPath, ...taskParts] = process.argv.slice(2)

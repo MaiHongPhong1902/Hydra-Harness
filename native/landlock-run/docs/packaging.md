@@ -5,9 +5,9 @@ The package family uses the same layout as native packages such as esbuild: one 
 ## Published packages
 
 ```text
-@bosch/node-addon-landlock-run
-@bosch/node-addon-landlock-run-linux-x64
-@bosch/node-addon-landlock-run-linux-arm64
+@hydra/node-addon-landlock-run
+@hydra/node-addon-landlock-run-linux-x64
+@hydra/node-addon-landlock-run-linux-arm64
 ```
 
 Unsupported platforms are intentionally absent from `optionalDependencies` — see [support-matrix.md](support-matrix.md).

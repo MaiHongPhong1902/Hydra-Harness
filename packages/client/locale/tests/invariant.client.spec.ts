@@ -1,12 +1,12 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import { apply as nodeApply } from '@bosch/bh-client-locale'
-import { apply as clientApply, COMMON_NS, LocaleRuntime, inject } from '@bosch/bh-client-locale/client'
-import * as LocaleInvariant from '@bosch/bh-client-locale/invariant'
-import { SlotRegistry } from '@bosch/bh-client-runtime/client'
-import InvariantRegistry from '@bosch/bh-invariants'
-import { stubSettingsScope } from '@bosch/bh-client-test-runtime'
+import { Context } from '@hydra/cordis'
+import { apply as nodeApply } from '@hydra/harness-client-locale'
+import { apply as clientApply, COMMON_NS, LocaleRuntime, inject } from '@hydra/harness-client-locale/client'
+import * as LocaleInvariant from '@hydra/harness-client-locale/invariant'
+import { SlotRegistry } from '@hydra/harness-client-runtime/client'
+import InvariantRegistry from '@hydra/harness-invariants'
+import { stubSettingsScope } from '@hydra/harness-client-test-runtime'
 
 describe('invariant companion', () => {
   it('registers under the package name with an empty installer', async () => {

@@ -5,22 +5,22 @@ import type { Server } from 'node:http'
 import { connect as connectSocket } from 'node:net'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { Context } from '@bosch/cordis'
-import { AttachmentId } from '@bosch/bh-attachment'
-import type { AttachmentStore, ImageAttachmentRef } from '@bosch/bh-attachment'
-import { createLaunchEnvironmentSnapshot } from '@bosch/bh-launch-environment'
+import { Context } from '@hydra/cordis'
+import { AttachmentId } from '@hydra/harness-attachment'
+import type { AttachmentStore, ImageAttachmentRef } from '@hydra/harness-attachment'
+import { createLaunchEnvironmentSnapshot } from '@hydra/harness-launch-environment'
 import LlmRuntime, { createUserMessage,
   CONTEXT_WINDOW_EXCEEDED_CODE,
   ProviderRequestId,
   QUOTA_EXCEEDED_CODE,
   ReasoningEffortId,
   userAgent,
-} from '@bosch/bh-llm'
-import { MAX_TIMER_DELAY_MS } from '@bosch/bh-timeout'
-import { getOrCreateAnonymousUserId, type AnonymousUserId } from '@bosch/bh-anonymous-user-id'
-import { SessionId } from '@bosch/bh-session'
-import * as LlmDeepSeek from '@bosch/bh-llm-deepseek'
-import { DeepSeekAdapter, resolveAdapterOptions } from '@bosch/bh-llm-deepseek'
+} from '@hydra/harness-llm'
+import { MAX_TIMER_DELAY_MS } from '@hydra/harness-timeout'
+import { getOrCreateAnonymousUserId, type AnonymousUserId } from '@hydra/harness-anonymous-user-id'
+import { SessionId } from '@hydra/harness-session'
+import * as LlmDeepSeek from '@hydra/harness-llm-deepseek'
+import { DeepSeekAdapter, resolveAdapterOptions } from '@hydra/harness-llm-deepseek'
 import { httpErrorCode } from '../src/adapter.ts'
 import { assemble } from './assemble.ts'
 import { closeMockServers, mockServer, textEvents } from './mock-server.ts'

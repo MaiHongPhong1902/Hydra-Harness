@@ -15,14 +15,14 @@
  * absent `ctx.shell`, or a failed query is a no-op, never an error: an executor
  * rejection is contained and logged as a warning so the turn continues.
  *
- * @module @bosch/bh-tmux-context
+ * @module @hydra/harness-tmux-context
  */
 
-import type { Context, LoggerService } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import type { Agent, PreStepDecision } from '@bosch/bh-agent'
-import type { ShellExecutor, ShellRunResult } from '@bosch/bh-shell'
-import { createUserMessage } from '@bosch/bh-llm'
+import type { Context, LoggerService } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import type { Agent, PreStepDecision } from '@hydra/harness-agent'
+import type { ShellExecutor, ShellRunResult } from '@hydra/harness-shell'
+import { createUserMessage } from '@hydra/harness-llm'
 
 /** Cordis plugin name used by loader diagnostics. */
 export const name = 'tmux-context'

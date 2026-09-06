@@ -1,20 +1,20 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import Loader from '@bosch/cordis-plugin-loader'
-import SystemPrompt from '@bosch/bh-system-prompt'
-import ToolRuntime, { TOOL_ABORTED_BEFORE_DISPATCH } from '@bosch/bh-tools'
-import type { ToolExecutionResult, ToolExecutionToken } from '@bosch/bh-tools'
-import type { Agent } from '@bosch/bh-agent'
-import { WorkflowRunId, WorkflowEngine } from '@bosch/bh-workflow'
+import { Context } from '@hydra/cordis'
+import Loader from '@hydra/cordis-plugin-loader'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import ToolRuntime, { TOOL_ABORTED_BEFORE_DISPATCH } from '@hydra/harness-tools'
+import type { ToolExecutionResult, ToolExecutionToken } from '@hydra/harness-tools'
+import type { Agent } from '@hydra/harness-agent'
+import { WorkflowRunId, WorkflowEngine } from '@hydra/harness-workflow'
 import type {
   WorkflowAgentEndInfo, WorkflowAgentInfo, WorkflowResult, WorkflowRun,
   WorkflowRunId as WorkflowRunIdType, WorkflowStartRequest,
-} from '@bosch/bh-workflow'
-import { CallId } from '@bosch/bh-llm'
-import SubagentRuntime from '@bosch/bh-subagent'
-import WorkerThreadWorkflowEngine from '@bosch/bh-workflow-worker-thread'
+} from '@hydra/harness-workflow'
+import { CallId } from '@hydra/harness-llm'
+import SubagentRuntime from '@hydra/harness-subagent'
+import WorkerThreadWorkflowEngine from '@hydra/harness-workflow-worker-thread'
 import * as toolWorkflow from '../src/index.ts'
-import { Session, SessionId } from '@bosch/bh-session'
+import { Session, SessionId } from '@hydra/harness-session'
 
 const testToolSignal = new AbortController().signal
 

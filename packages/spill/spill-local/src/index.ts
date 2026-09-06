@@ -1,18 +1,18 @@
 /**
  * `LocalSpillStore`: the host-filesystem implementation of the
- * `@bosch/bh-spill` storage seam. Persists a tool's oversized text to a
+ * `@hydra/harness-spill` storage seam. Persists a tool's oversized text to a
  * private, session-scoped file (see `./store.ts` for the traversal-safe naming
  * and exclusive owner-only write) and returns a path locator plus local
  * read/grep retrieval guidance.
  *
- * @module @bosch/bh-spill-local
+ * @module @hydra/harness-spill-local
  */
 
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { resolve } from 'node:path'
-import z from '@bosch/schemastery'
-import { SpillLocator, SpillStore } from '@bosch/bh-spill'
-import type { SaveTextSpill, SpillRef } from '@bosch/bh-spill'
+import z from '@hydra/schemastery'
+import { SpillLocator, SpillStore } from '@hydra/harness-spill'
+import type { SaveTextSpill, SpillRef } from '@hydra/harness-spill'
 import { privateRoot, saveTextFile } from './store.ts'
 
 export { encodeSegment, privateRoot, saveTextFile, sessionDir } from './store.ts'

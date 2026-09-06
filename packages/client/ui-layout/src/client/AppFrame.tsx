@@ -12,8 +12,8 @@
  */
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
-import type { SessionId } from '@bosch/bh-client-runtime/client'
-import type { PropsRenderSlots, PropsRuntime, PropsStore } from '@bosch/bh-client-ui-slots'
+import type { SessionId } from '@hydra/harness-client-runtime/client'
+import type { PropsRenderSlots, PropsRuntime, PropsStore } from '@hydra/harness-client-ui-slots'
 import { computeColumns, SIDEBAR_AUTO_COLLAPSE, SIDEBAR_DEFAULT } from './columns.ts'
 import type { createLayoutStore } from './stores.ts'
 import { DesktopBrowserPanel, DesktopPanelControls } from './DesktopBrowserPanel.tsx'

@@ -5,8 +5,8 @@ import { fileURLToPath } from 'node:url'
 import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
-import type { SessionEvent } from '@bosch/bh-session/types'
-import type {} from '@bosch/bh-commands/types'
+import type { SessionEvent } from '@hydra/harness-session/types'
+import type {} from '@hydra/harness-commands/types'
 import {
   acknowledgeReloadConnectionLoss, assertFixtureInventory, captureStableAria,
   compareOrRefreshGolden, launchWebScaffold, watchConsole, webSnapshotMode,

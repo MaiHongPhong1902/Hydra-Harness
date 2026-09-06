@@ -2,22 +2,22 @@
  * Model-facing `browser_*` tools over the embedded-browser seam (`ctx.browsers`).
  * This package owns the schemas, the DOM-format prompt section, bounding, and
  * presentation; the seam owns the window and the page.
- * @module @bosch/bh-tool-browser
+ * @module @hydra/harness-tool-browser
  */
 
 import { Buffer } from 'node:buffer'
-import type { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import type { Agent } from '@bosch/bh-agent'
-import { AttachmentId } from '@bosch/bh-attachment'
+import type { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import type { Agent } from '@hydra/harness-agent'
+import { AttachmentId } from '@hydra/harness-attachment'
 import type {
   BrowserAction, BrowserCdpCommandResult, BrowserCdpEventPage, BrowserHistorySearchEntry, BrowserScreenshot,
-} from '@bosch/bh-browser-electron'
-import type {} from '@bosch/bh-browser-electron'
-import type { ContentBlock } from '@bosch/bh-llm'
-import { defineTool } from '@bosch/bh-tools'
-import type { ToolExecution } from '@bosch/bh-tools'
-import type {} from '@bosch/bh-system-prompt'
+} from '@hydra/harness-browser-electron'
+import type {} from '@hydra/harness-browser-electron'
+import type { ContentBlock } from '@hydra/harness-llm'
+import { defineTool } from '@hydra/harness-tools'
+import type { ToolExecution } from '@hydra/harness-tools'
+import type {} from '@hydra/harness-system-prompt'
 import { BROWSER_PROMPT_NAME, BROWSER_PROMPT_ORDER, BROWSER_PROMPT_TEXT } from './prompt.ts'
 import { DEFAULT_MAX_STATE_CHARS, formatBrowserOutput, presentBrowserCall, toValue } from './render.ts'
 import type { BrowserToolValue } from './render.ts'
@@ -589,7 +589,7 @@ export function apply(ctx: Context, config: Config = {}): void {
 
   ctx.tools.register(defineTool({
     name: 'browser_page_agent_run',
-    description: 'Start the real upstream PageAgent ReAct engine under BH control. It uses this BH agent’s selected provider and model through a private host bridge; it never receives an API key or renders UI in the webpage. Poll browser_page_agent_status or stop it explicitly.',
+    description: 'Start the real upstream PageAgent ReAct engine under Hydra control. It uses this Hydra agent’s selected provider and model through a private host bridge; it never receives an API key or renders UI in the webpage. Poll browser_page_agent_status or stop it explicitly.',
     parameters: {
       task: { type: 'string', required: true, description: 'Concrete browser task for PageAgent to perform.' },
       tab_id: TAB_ID_PARAMETER,

@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-fs-e2b`.
- * @module @bosch/bh-fs-e2b/invariant
+ * Package-owned invariant companion for `@hydra/harness-fs-e2b`.
+ * @module @hydra/harness-fs-e2b/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-fs-e2b'
+const PACKAGE_NAME = '@hydra/harness-fs-e2b'
 
 /** Cordis companion plugin name. */
 export const name = 'fs-e2b-invariant'

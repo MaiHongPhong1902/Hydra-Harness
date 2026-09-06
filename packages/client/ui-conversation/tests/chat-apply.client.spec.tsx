@@ -6,11 +6,11 @@
 // entries. Tool composition belongs to ui-tool and its machinery spec.
 
 import { describe, expect, it, vi } from 'vitest'
-import { SlotTestRuntime, usePinnedBrowserLanguages, stubSettingsScope } from '@bosch/bh-client-test-runtime'
-import { resolveSlotLabel } from '@bosch/bh-client-ui-slots'
-import { LocaleRuntime } from '@bosch/bh-client-locale/client'
-import type { SessionId } from '@bosch/bh-client-runtime/client'
-import { apply, inject } from '@bosch/bh-client-ui-conversation/client'
+import { SlotTestRuntime, usePinnedBrowserLanguages, stubSettingsScope } from '@hydra/harness-client-test-runtime'
+import { resolveSlotLabel } from '@hydra/harness-client-ui-slots'
+import { LocaleRuntime } from '@hydra/harness-client-locale/client'
+import type { SessionId } from '@hydra/harness-client-runtime/client'
+import { apply, inject } from '@hydra/harness-client-ui-conversation/client'
 
 // The service reads its initial locale from the browser, so these specs state
 // the browser language they assume.

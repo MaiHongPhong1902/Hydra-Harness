@@ -1,18 +1,18 @@
 /**
  * Persistent shell PTY backend over the subprocess terminal primitive, shared
  * sandbox policy, bounded output, and provider-owned session cleanup.
- * @module @bosch/bh-terminal-bash
+ * @module @hydra/harness-terminal-bash
  */
 
-import { Context } from '@bosch/cordis'
-import type { Agent } from '@bosch/bh-agent'
-import type { Session, SessionEvent } from '@bosch/bh-session'
-import { TerminalBackendCleanupError } from '@bosch/bh-terminal'
-import type { TerminalBackend, TerminalBackendSpawnSpec } from '@bosch/bh-terminal'
-import type { SubprocessTerminalHandle, SubprocessTerminalSpawnSpec } from '@bosch/bh-subprocess'
-import type { SandboxExecutionPolicy } from '@bosch/bh-sandbox'
-import { effectiveSandboxMode } from '@bosch/bh-sandbox-policy'
-import { ENCODING_PREAMBLE } from '@bosch/bh-pwsh-local'
+import { Context } from '@hydra/cordis'
+import type { Agent } from '@hydra/harness-agent'
+import type { Session, SessionEvent } from '@hydra/harness-session'
+import { TerminalBackendCleanupError } from '@hydra/harness-terminal'
+import type { TerminalBackend, TerminalBackendSpawnSpec } from '@hydra/harness-terminal'
+import type { SubprocessTerminalHandle, SubprocessTerminalSpawnSpec } from '@hydra/harness-subprocess'
+import type { SandboxExecutionPolicy } from '@hydra/harness-sandbox'
+import { effectiveSandboxMode } from '@hydra/harness-sandbox-policy'
+import { ENCODING_PREAMBLE } from '@hydra/harness-pwsh-local'
 import { type Config, type ResolvedConfig, resolveConfig, type ShellDialect, validateConfig } from './config.ts'
 import { LocalPtySession } from './session.ts'
 import { CONTROLLED_PROMPT } from './sanitize.ts'

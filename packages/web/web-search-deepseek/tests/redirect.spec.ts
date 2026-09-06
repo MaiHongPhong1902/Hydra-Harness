@@ -6,10 +6,10 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { createServer, type IncomingMessage, type Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
-import { DeepSeekSearchProvider } from '@bosch/bh-web-search-deepseek'
+import { DeepSeekSearchProvider } from '@hydra/harness-web-search-deepseek'
 
 /** Construct the provider over a fixed options value; production passes a live thunk. */
-import type { DeepSeekSearchProviderOptions } from '@bosch/bh-web-search-deepseek'
+import type { DeepSeekSearchProviderOptions } from '@hydra/harness-web-search-deepseek'
 
 const searchProvider = (options: DeepSeekSearchProviderOptions): DeepSeekSearchProvider =>
   new DeepSeekSearchProvider(() => options)

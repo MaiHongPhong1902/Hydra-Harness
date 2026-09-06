@@ -7,7 +7,7 @@
  * default transport hook, and the loud failure modes (duplicate
  * registration, cycles, table misses, double boot).
  */
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   apply, createClientModuleSystem, parseBootManifest,
@@ -15,7 +15,7 @@ import {
   type ClientModuleLoader, type ClientModuleLoaderTarget, type BhWindow,
 } from '../src/client/index.ts'
 
-const MODULES_ID = '@bosch/bh-client-modules'
+const MODULES_ID = '@hydra/harness-client-modules'
 const win = globalThis as BhWindow
 const bootstrapExports = { apply, createClientModuleSystem }
 

@@ -12,10 +12,10 @@
 - text: Reply with the single word LIGHTHOUSE and stop. {{clock}}
 - button "Copy":
   - img
-- button "Context injection @bosch/bh-system-prompt":
+- button "Context injection @hydra/harness-system-prompt":
   - img
   - img
-  - text: Context injection @bosch/bh-system-prompt
+  - text: Context injection @hydra/harness-system-prompt
 - button "Think The user wants me to reply with a single word. Let me comply.":
   - img
   - img

@@ -2,7 +2,7 @@
   - strong: ui-settings
   - text: Enabled
   - switch "Disable plugin ui-settings" [checked]
-  - code: "@bosch/bh-client-ui-settings"
+  - code: "@hydra/harness-client-ui-settings"
   - group: Included plugins (5)
   - paragraph: Core plugin — changes require an app restart and may affect app availability.
   - text: "Cordis status: Mounted"

@@ -15,8 +15,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
 
-from bosch_harness import BoschHarness
-from bosch_harness_runtime import bundled_default_config_path
+from hydra_harness import HydraHarness
+from hydra_harness_runtime import bundled_default_config_path
 
 
 class MockCompletionHandler(BaseHTTPRequestHandler):
@@ -55,7 +55,7 @@ def run_smoke(repo_root: Path, keep_sessions: bool) -> None:
     print(f"mock_base_url={base_url}")
 
     try:
-        with BoschHarness(
+        with HydraHarness(
             model="sdk-smoke-model",
             cwd=str(repo_root / "python/sdk"),
             runtime_cwd=str(repo_root),

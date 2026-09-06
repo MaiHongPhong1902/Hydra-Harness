@@ -2,7 +2,7 @@
 // call/result slice.
 
 import { describe, expect, it } from 'vitest'
-import type { RunningToolCall, ToolResultNode } from '@bosch/bh-client-runtime/client'
+import type { RunningToolCall, ToolResultNode } from '@hydra/harness-client-runtime/client'
 import { cordisActionCard, cordisDefineCard } from '../src/client/card-model.ts'
 
 const ARGS = '{"name":"clock","purpose":"top bar clock","code":{"client":"return {}","host":"harness.handle(\'now\', () => Date.now())"}}'

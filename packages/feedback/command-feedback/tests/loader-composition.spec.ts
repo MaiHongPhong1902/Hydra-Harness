@@ -3,15 +3,15 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import Loader from '@bosch/cordis-plugin-loader'
-import Include from '@bosch/cordis-plugin-include'
-import AgentRegistry, { Inbox } from '@bosch/bh-agent'
-import type { Agent, AgentStatus } from '@bosch/bh-agent'
-import CommandRuntime from '@bosch/bh-commands'
-import SessionStore, { SessionId } from '@bosch/bh-session'
-import * as CommandFeedback from '@bosch/bh-command-feedback'
-import { getOrCreateAnonymousUserId } from '@bosch/bh-anonymous-user-id'
+import { Context } from '@hydra/cordis'
+import Loader from '@hydra/cordis-plugin-loader'
+import Include from '@hydra/cordis-plugin-include'
+import AgentRegistry, { Inbox } from '@hydra/harness-agent'
+import type { Agent, AgentStatus } from '@hydra/harness-agent'
+import CommandRuntime from '@hydra/harness-commands'
+import SessionStore, { SessionId } from '@hydra/harness-session'
+import * as CommandFeedback from '@hydra/harness-command-feedback'
+import { getOrCreateAnonymousUserId } from '@hydra/harness-anonymous-user-id'
 
 let root: string | undefined
 let context: Context | undefined
@@ -56,10 +56,10 @@ describe('/feedback real Loader composition through cordis.yml', () => {
     vi.stubEnv('BH_HOME', root)
     const configPath = join(root, 'cordis.yml')
     await writeFile(configPath, [
-      "- name: '@bosch/bh-agent'",
-      "- name: '@bosch/bh-session'",
-      "- name: '@bosch/bh-commands'",
-      "- name: '@bosch/bh-command-feedback'",
+      "- name: '@hydra/harness-agent'",
+      "- name: '@hydra/harness-session'",
+      "- name: '@hydra/harness-commands'",
+      "- name: '@hydra/harness-command-feedback'",
       '',
     ].join('\n'))
 
@@ -68,10 +68,10 @@ describe('/feedback real Loader composition through cordis.yml', () => {
     await context.plugin(Loader)
     context.loader.builtins.include = Include
     const modules = new Map<string, unknown>([
-      ['@bosch/bh-agent', AgentRegistry],
-      ['@bosch/bh-session', SessionStore],
-      ['@bosch/bh-commands', CommandRuntime],
-      ['@bosch/bh-command-feedback', CommandFeedback],
+      ['@hydra/harness-agent', AgentRegistry],
+      ['@hydra/harness-session', SessionStore],
+      ['@hydra/harness-commands', CommandRuntime],
+      ['@hydra/harness-command-feedback', CommandFeedback],
     ])
     context.loader.internal = {
       version: 'v2',

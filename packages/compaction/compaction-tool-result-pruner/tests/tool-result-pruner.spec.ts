@@ -1,22 +1,22 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import { CallId , createMessage, createToolResultMessage } from '@bosch/bh-llm'
-import type { ContentBlock } from '@bosch/bh-llm'
+import { Context } from '@hydra/cordis'
+import { CallId , createMessage, createToolResultMessage } from '@hydra/harness-llm'
+import type { ContentBlock } from '@hydra/harness-llm'
 import SessionStore, {
   Session,
   SessionId,
-} from '@bosch/bh-session'
-import type { SurfaceEvent } from '@bosch/bh-session'
-import * as SessionInvariant from '@bosch/bh-session/invariant'
-import InvariantRegistry from '@bosch/bh-invariants'
-import TokenMeter from '@bosch/bh-token-meter'
+} from '@hydra/harness-session'
+import type { SurfaceEvent } from '@hydra/harness-session'
+import * as SessionInvariant from '@hydra/harness-session/invariant'
+import InvariantRegistry from '@hydra/harness-invariants'
+import TokenMeter from '@hydra/harness-token-meter'
 import ToolResultPruner, {
   codePointLength,
   DEFAULTS,
   PRUNE_MARKER,
   resolveConfig,
-} from '@bosch/bh-compaction-tool-result-pruner'
-import type { ToolResultPruneConfig } from '@bosch/bh-compaction-tool-result-pruner'
+} from '@hydra/harness-compaction-tool-result-pruner'
+import type { ToolResultPruneConfig } from '@hydra/harness-compaction-tool-result-pruner'
 
 const MODEL = 'test-model'
 const SMALL: ToolResultPruneConfig = {

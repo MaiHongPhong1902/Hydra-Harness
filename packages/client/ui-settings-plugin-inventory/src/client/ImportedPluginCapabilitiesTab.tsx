@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import type { ImportedPluginSnapshot } from '@bosch/bh-api-remotes/client'
-import { Button } from '@bosch/bh-client-ui-primitives'
-import type { InjectFace, PropsLocale, PropsRuntime } from '@bosch/bh-client-ui-slots'
+import type { ImportedPluginSnapshot } from '@hydra/harness-api-remotes/client'
+import { Button } from '@hydra/harness-client-ui-primitives'
+import type { InjectFace, PropsLocale, PropsRuntime } from '@hydra/harness-client-ui-slots'
 import { groupByOwner, matchesQuery } from './marketplace-owner.ts'
 import css from './PluginInventorySettingsTab.module.css'
 
@@ -29,13 +29,14 @@ type ViewState =
 
 /** Render skills or hooks away from their owning plugin bundle card. */
 export function ImportedPluginCapabilitiesTab(
-  { capability, list, query, trust, untrust, t }: ImportedPluginCapabilitiesTabProps,
+  { active, capability, list, query, trust, untrust, t }: ImportedPluginCapabilitiesTabProps,
 ): ReactNode {
   const [request, setRequest] = useState(0)
   const [state, setState] = useState<ViewState>({ status: 'loading' })
   const [mutating, setMutating] = useState<string>()
 
   useEffect(() => {
+    if (!active) return undefined
     let current = true
     setState({ status: 'loading' })
     void list().then(
@@ -43,7 +44,7 @@ export function ImportedPluginCapabilitiesTab(
       () => { if (current) setState({ status: 'error' }) },
     )
     return () => { current = false }
-  }, [list, request])
+  }, [active, list, request])
 
   const mutate = (identity: string, action: (value: string) => Promise<ImportedPluginSnapshot>): void => {
     setMutating(identity)
@@ -53,7 +54,10 @@ export function ImportedPluginCapabilitiesTab(
     ).finally(() => { setMutating(undefined) })
   }
 
-  const title = capability === 'skills' ? t('skillsTab') : t('hooksTab')
+  // Only the skills catalog renders as its own tab and carries a heading; the
+  // hooks catalog stacks below the user's own records inside the merged Hooks
+  // tab, so it renders its rows bare — the tab itself is the label.
+  const title = capability === 'skills' ? t('skillsTab') : undefined
   const rows = state.status === 'ready'
     ? state.snapshot.plugins.filter(plugin => capability === 'skills' ? plugin.skills.length > 0 : plugin.hooks.length > 0)
     : []
@@ -67,7 +71,9 @@ export function ImportedPluginCapabilitiesTab(
 
   return (
     <div className={css.section} aria-busy={state.status === 'loading' || mutating !== undefined}>
-      <div className={css.catalogHeading}><h3>{title}</h3>{state.status === 'ready' ? <span>{total}</span> : null}</div>
+      {title === undefined ? null : (
+        <div className={css.catalogHeading}><h3>{title}</h3>{state.status === 'ready' ? <span>{total}</span> : null}</div>
+      )}
       {state.status === 'loading' ? <p className={css.status}>{t('loading')}</p> : null}
       {state.status === 'error' ? <div className={css.failure}><p role="alert">{t('importedPluginLoadError')}</p><button type="button" onClick={() => { setRequest(value => value + 1) }}>{t('retry')}</button></div> : null}
       {state.status === 'ready' && rows.length === 0 ? <p className={css.status}>{capability === 'skills' ? t('importedPluginNoSkills') : t('importedPluginNoHooks')}</p> : null}

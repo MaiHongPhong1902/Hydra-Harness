@@ -12,10 +12,10 @@
 - text: Reply with a one-sentence description of event sourcing, then stop. {{clock}}
 - button "Copy":
   - img
-- button "Context injection @bosch/bh-system-prompt":
+- button "Context injection @hydra/harness-system-prompt":
   - img
   - img
-  - text: Context injection @bosch/bh-system-prompt
+  - text: Context injection @hydra/harness-system-prompt
 - status:
   - text: This turn failedAPI key is invalid
   - code: AUTH

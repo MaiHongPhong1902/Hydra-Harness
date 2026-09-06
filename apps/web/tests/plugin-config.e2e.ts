@@ -23,6 +23,7 @@ describe('web e2e: plugin configuration section', () => {
   let browser: Browser
   let page: Page
   let marketplaceRoot: string
+  let composedTimeout: string
   let tripwire: ReturnType<typeof watchConsole>
 
   beforeAll(async () => {
@@ -70,7 +71,7 @@ describe('web e2e: plugin configuration section', () => {
       .poll(() => dialog.getByRole('button', { name: 'Plugins', exact: true }).getAttribute('aria-current'), { timeout: 5_000 })
       .toBe('true')
     await expect
-      .poll(() => dialog.getByRole('tab', { name: 'Plugin configuration', exact: true }).getAttribute('aria-selected'), { timeout: 5_000 })
+      .poll(() => dialog.getByRole('tab', { name: 'Configuration', exact: true }).getAttribute('aria-selected'), { timeout: 5_000 })
       .toBe('true')
     return dialog
   }
@@ -104,8 +105,9 @@ describe('web e2e: plugin configuration section', () => {
 
     const timeout = dialog.getByLabel('Command timeout (ms)')
     await timeout.waitFor({ timeout: 10_000 })
-    // The composed default this deployment ships, before any user layer.
-    expect(await timeout.inputValue()).toBe('60000')
+    // Shell providers have different defaults; reset must restore this deployment's baseline.
+    composedTimeout = await timeout.inputValue()
+    expect(Number(composedTimeout)).toBeGreaterThan(0)
     await timeout.fill('12000')
     await timeout.blur()
 
@@ -169,14 +171,14 @@ describe('web e2e: plugin configuration section', () => {
     // The reset stages the composed default; the document still carries the
     // override until the save lands.
     await dialog.getByRole('button', { name: 'Reset to default' }).click()
-    await expect.poll(() => timeout.inputValue(), { timeout: 5_000 }).toBe('60000')
+    await expect.poll(() => timeout.inputValue(), { timeout: 5_000 }).toBe(composedTimeout)
     expect(await settingsDocument()).toContain('timeoutMs: 12000')
 
     await dialog.getByRole('button', { name: 'Save', exact: true }).click()
 
     await expect.poll(async () => (await settingsDocument()).includes('timeoutMs'), { timeout: 10_000 })
       .toBe(false)
-    expect(await timeout.inputValue()).toBe('60000')
+    expect(await timeout.inputValue()).toBe(composedTimeout)
     expect(await dialog.getByText('Overridden').count()).toBe(0)
     expect(tripwire.pageErrors).toEqual([])
   }, 60_000)
@@ -196,8 +198,9 @@ describe('web e2e: plugin configuration section', () => {
     expect(await addDialog.getByLabel('Sparse paths', { exact: true }).count()).toBe(1)
     await addDialog.getByRole('button', { name: 'Add marketplace', exact: true }).click()
 
-    await dialog.getByRole('heading', { name: 'Fixture marketplace', exact: true }).waitFor({ timeout: 10_000 })
-    expect(await dialog.getByText('@example/bh-plugin@1.2.3', { exact: true }).count()).toBe(1)
+    await addDialog.waitFor({ state: 'hidden' })
+    await dialog.getByRole('heading', { name: 'marketplace-fixture', exact: true }).waitFor({ timeout: 10_000 })
+    expect(await dialog.getByText(marketplaceRoot, { exact: true }).count()).toBe(1)
     await expect.poll(async () => (await settingsDocument()).includes('plugin-marketplaces'), { timeout: 10_000 })
       .toBe(true)
     expect(tripwire.pageErrors).toEqual([])

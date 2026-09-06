@@ -1,4 +1,4 @@
-# `@bosch/bh-acp-snapshot`
+# `@hydra/harness-acp-snapshot`
 
 The ACP snapshot suite kit: the shared machinery behind the keyless snapshot tier (`pnpm run test:snapshot`, [testing policy](../../../docs/testing.md)). An example gets a full snapshot suite from a scenario table plus a fixtures directory; every compare/guard mechanic lives here, under the per-file coverage gate, instead of being copied per example.
 
@@ -20,7 +20,7 @@ import {
   defineAcpSnapshotSuite,
   type Scenario,
   type SnapshotSuiteOptions,
-} from '@bosch/bh-acp-snapshot'
+} from '@hydra/harness-acp-snapshot'
 
 function snapshotMode(value: string | undefined): SnapshotSuiteOptions['mode'] {
   switch (value) {
@@ -57,7 +57,7 @@ A child session whose own scope composes a different request declares it per fix
 
 Every scenario compares `stdout.expected.jsonl` with cwd-rooted separators canonicalized to `/`. On Windows, `pinsNativeWindowsStdout` additionally compares the complete `stdout.expected.windows.jsonl` after the shared expected output and requires that sidecar exactly when enabled. A scenario requiring a non-Windows host declares `posixOnly`, which skips its run test on Windows while the fixture guards keep covering its committed files everywhere; examples include POSIX process semantics (e.g. cancelling a live bash call kills a detached process group) and generated paths Windows cannot represent. A scenario whose composition needs a usable `pwsh` declares `pwshOnly`; the caller-supplied `hasPwsh` probe (the shipped acp-agent suite follows the executor's own resolution, so Program Files installs count) skips the run test when no usable `pwsh` resolves while the fixture guards keep covering its committed files everywhere.
 
-The example also ships a `cordis.snapshot.yml` replay overlay next to its `cordis.yml` (the bin swaps them under `BH_SNAPSHOT=replay` — [single-source replay config Agent Note](../../../.agents/notes/archived/testing/2026-07-04-single-source-acp-replay-config.md)); replay fixtures are served by [`bh-llm-replay`](../llm-replay/README.md), which this package points at via the `BH_SNAPSHOT_*` env vars it sets on the child. `pnpm run test:snapshot:record` calls the live LLM and rewrites the recorded scenarios' model fixtures; `pnpm run test:snapshot:refresh` stays keyless, runs the replay overlay, and rewrites stdout, comparable session-log expected outputs, and owned prompt and tool-schema sidecars from the committed model scripts. Fixture roles, record/replay/refresh semantics, and scenario-table fields are documented on `Scenario` and in the [snapshot Agent Note](../../../.agents/notes/implemented/testing/2026-06-19-acp-snapshot-tests.md).
+The example also ships a `cordis.snapshot.yml` replay overlay next to its `cordis.yml` (the bin swaps them under `BH_SNAPSHOT=replay` — [single-source replay config Agent Note](../../../.agents/notes/archived/testing/2026-07-04-single-source-acp-replay-config.md)); replay fixtures are served by [`@hydra/harness-llm-replay`](../llm-replay/README.md), which this package points at via the `BH_SNAPSHOT_*` env vars it sets on the child. `pnpm run test:snapshot:record` calls the live LLM and rewrites the recorded scenarios' model fixtures; `pnpm run test:snapshot:refresh` stays keyless, runs the replay overlay, and rewrites stdout, comparable session-log expected outputs, and owned prompt and tool-schema sidecars from the committed model scripts. Fixture roles, record/replay/refresh semantics, and scenario-table fields are documented on `Scenario` and in the [snapshot Agent Note](../../../.agents/notes/implemented/testing/2026-06-19-acp-snapshot-tests.md).
 
 Constraints: `suite.ts` and `harness.ts` import vitest (the harness polls its durable-boundary waits through `vi.waitFor`), so the package entry is importable only inside a vitest run (the launcher and normalizers have no such dependency but ship from the same entry). The launcher and suite factory are ACP-specific by design — the launcher speaks the SDK's `ClientSideConnection` — while the normalizers are transport-neutral session-log/text helpers also consumed by the JSON-RPC and Web snapshot recorders. Input scripts cover initialization, fresh-session creation, shorthand text prompts, exact structured ACP prompt blocks, cancellation, expected RPC failures, and durable turn-boundary waits. Permission round-trips are a FIFO queue of option-kind selections (`allow_once`, `reject_once`, …) mapped to the agent-issued `optionId`; an absent or exhausted queue answers `cancelled`, and an unoffered kind rejects the run.
 

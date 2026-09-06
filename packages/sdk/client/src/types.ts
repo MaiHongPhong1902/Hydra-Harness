@@ -2,11 +2,11 @@
  * Types for the TypeScript SDK client: launch options, notification shapes,
  * and owned activity results.
  *
- * @module @bosch/bh-sdk-client/types
+ * @module @hydra/harness-sdk-client/types
  */
 
-import type { ContentBlock } from '@bosch/bh-llm'
-import type { SessionEvent } from '@bosch/bh-session'
+import type { ContentBlock } from '@hydra/harness-llm'
+import type { SessionEvent } from '@hydra/harness-session'
 
 /** One server-to-client notification as received off the wire. */
 export interface HarnessNotification {
@@ -30,7 +30,7 @@ export interface HarnessClientOptions {
   /**
    * The complete child environment. `undefined` inherits the parent env
    * verbatim; passing an object replaces it entirely, so callers own
-   * credential policy (see `scrubbedParentEnv` in `@bosch/bh-subprocess`
+   * credential policy (see `scrubbedParentEnv` in `@hydra/harness-subprocess`
    * for the shared scrub-then-merge base).
    */
   env?: NodeJS.ProcessEnv
@@ -44,8 +44,8 @@ export interface HarnessClientOptions {
   disposeGraceMs?: number
 }
 
-/** Options for the high-level {@link BoschHarness} wrapper. */
-export interface BoschHarnessOptions {
+/** Options for the high-level {@link HydraHarness} wrapper. */
+export interface HydraHarnessOptions {
   /** Launch spec for the runtime subprocess (command, args, cwd, env, timeouts). */
   launch: HarnessClientOptions
   /** Workspace cwd recorded on every SDK-created session (default: the launch cwd, else `process.cwd()`). */

@@ -2,12 +2,12 @@
  * Public request, value, and failure vocabulary for per-message feedback.
  * This module contains types only so generated Remote clients can consume it
  * without importing Host runtime code.
- * @module @bosch/bh-message-feedback/types
+ * @module @hydra/harness-message-feedback/types
  */
 
-import type { Branded } from '@bosch/bh-brand'
-import type { MessageId } from '@bosch/bh-llm/brand'
-import type { SessionId } from '@bosch/bh-session/types'
+import type { Branded } from '@hydra/harness-brand'
+import type { MessageId } from '@hydra/harness-llm/brand'
+import type { SessionId } from '@hydra/harness-session/types'
 
 /** Opaque compare-and-set token for one exact feedback item revision. */
 export type MessageFeedbackVersion = Branded<'MessageFeedbackVersion'>

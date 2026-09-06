@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import type { Agent } from '@bosch/bh-agent'
-import { JobId, JobRegistry } from '@bosch/bh-jobs'
+import { Context } from '@hydra/cordis'
+import type { Agent } from '@hydra/harness-agent'
+import { JobId, JobRegistry } from '@hydra/harness-jobs'
 import type {
   JobDoneListener, JobRead, JobSnapshot, JobStart, JobsChangedListener,
-} from '@bosch/bh-jobs'
+} from '@hydra/harness-jobs'
 
 /**
  * Minimal concrete registry: one canned record. The Service Definition owns the contract
  * only (ids, snapshots, authorization-shaped signatures); the registry
- * behavior suite lives with `@bosch/bh-jobs-local`.
+ * behavior suite lives with `@hydra/harness-jobs-local`.
  */
 class StubJobRegistry extends JobRegistry {
   snapshotOf(id: JobId): JobSnapshot {
@@ -91,6 +91,6 @@ describe('JobRegistry seam', () => {
   it('mounting the abstract seam directly fails loudly at load (stale-composition fence)', async () => {
     const ctx = new Context()
     await expect(ctx.plugin(JobRegistry as unknown as typeof StubJobRegistry))
-      .rejects.toThrow(/abstract job registry seam; load an implementation such as @bosch\/bh-jobs-local/)
+      .rejects.toThrow(/abstract job registry seam; load an implementation such as @hydra\/harness-jobs-local/)
   })
 })

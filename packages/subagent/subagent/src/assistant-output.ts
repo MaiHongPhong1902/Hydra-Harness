@@ -7,11 +7,11 @@
  * select the accumulated assistant text. Selection is independent of the
  * run's stop reason.
  *
- * @module @bosch/bh-subagent/assistant-output
+ * @module @hydra/harness-subagent/assistant-output
  */
 
-import type { ContentBlock } from '@bosch/bh-llm'
-import type { SessionEvent } from '@bosch/bh-session'
+import type { ContentBlock } from '@hydra/harness-llm'
+import type { SessionEvent } from '@hydra/harness-session'
 
 /**
  * Incremental fold of the selection rule, for backends that observe a child's

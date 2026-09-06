@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-launch-environment`.
- * @module @bosch/bh-launch-environment/invariant
+ * Package-owned invariant companion for `@hydra/harness-launch-environment`.
+ * @module @hydra/harness-launch-environment/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-launch-environment'
+const PACKAGE_NAME = '@hydra/harness-launch-environment'
 
 /** Cordis companion plugin name. */
 export const name = 'launch-environment-invariant'

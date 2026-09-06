@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { extractMarkdownPlainText } from '@bosch/bh-client-ui-primitives'
+import { extractMarkdownPlainText } from '@hydra/harness-client-ui-primitives'
 
 const MARKDOWN = [
   '# Release notes',

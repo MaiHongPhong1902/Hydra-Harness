@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-client-ui-jobs`.
- * @module @bosch/bh-client-ui-jobs/invariant
+ * Package-owned invariant companion for `@hydra/harness-client-ui-jobs`.
+ * @module @hydra/harness-client-ui-jobs/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-client-ui-jobs'
+const PACKAGE_NAME = '@hydra/harness-client-ui-jobs'
 
 /** Cordis companion plugin name. */
 export const name = 'client-ui-jobs-invariant'

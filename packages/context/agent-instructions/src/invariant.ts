@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-agent-instructions`.
- * @module @bosch/bh-agent-instructions/invariant
+ * Package-owned invariant companion for `@hydra/harness-agent-instructions`.
+ * @module @hydra/harness-agent-instructions/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-agent-instructions'
+const PACKAGE_NAME = '@hydra/harness-agent-instructions'
 
 /** Cordis companion plugin name. */
 export const name = 'workspace-context-invariant'

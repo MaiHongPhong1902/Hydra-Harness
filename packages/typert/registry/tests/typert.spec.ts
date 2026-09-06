@@ -1,21 +1,21 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { z } from 'zod'
 import TypertRegistry, {
   typertEndpoint,
   typertKey,
   typertPackageKey,
   type TypertContribution,
-} from '@bosch/bh-typert-registry'
+} from '@hydra/harness-typert-registry'
 import type {
   InvocationDescriptor,
   TypertContext,
   TypertLookup,
   TypertRemoteContribution,
-} from '@bosch/bh-typert-protocol'
+} from '@hydra/harness-typert-protocol'
 import { apply as applyClientRegistry, inject as clientRegistryInject } from '../src/client/index.ts'
 
-declare module '@bosch/bh-typert-protocol' {
+declare module '@hydra/harness-typert-protocol' {
   interface TypertLookupMap {
     fixture: TypertLookup<{ readonly id: string }, string>
   }
@@ -33,7 +33,7 @@ async function makeCtx(): Promise<Context> {
 
 function toolsContribution(schema: z.ZodType = z.object({ name: z.string() })): TypertContribution {
   return {
-    package: '@bosch/bh-tools',
+    package: '@hydra/harness-tools',
     face: 'host',
     schemas: [{ name: 'ToolInput', schema }],
     invocations: [],
@@ -103,16 +103,16 @@ describe('TypertRegistry', () => {
     const contribution = toolsContribution()
     ctx.typert.register(contribution)
 
-    expect(typertKey('@bosch/bh-tools', 'ToolInput')).toBe('@bosch/bh-tools#ToolInput')
-    expect(typertPackageKey('@bosch/bh-tools', 'host')).toBe('@bosch/bh-tools#host')
-    expect(ctx.typert.get('@bosch/bh-tools#ToolInput')).toMatchObject({
-      package: '@bosch/bh-tools',
+    expect(typertKey('@hydra/harness-tools', 'ToolInput')).toBe('@hydra/harness-tools#ToolInput')
+    expect(typertPackageKey('@hydra/harness-tools', 'host')).toBe('@hydra/harness-tools#host')
+    expect(ctx.typert.get('@hydra/harness-tools#ToolInput')).toMatchObject({
+      package: '@hydra/harness-tools',
       face: 'host',
       name: 'ToolInput',
     })
-    expect(ctx.typert.get('@bosch/bh-tools#ToolInput')?.schema).toBe(contribution.schemas[0]?.schema)
-    expect(ctx.typert.getPackage('@bosch/bh-tools', 'host')).toMatchObject({
-      key: '@bosch/bh-tools#host',
+    expect(ctx.typert.get('@hydra/harness-tools#ToolInput')?.schema).toBe(contribution.schemas[0]?.schema)
+    expect(ctx.typert.getPackage('@hydra/harness-tools', 'host')).toMatchObject({
+      key: '@hydra/harness-tools#host',
       model: { services: [{ key: 'tools' }] },
     })
     expect(ctx.typert.list()).toHaveLength(1)
@@ -122,12 +122,12 @@ describe('TypertRegistry', () => {
   it('withdraws schemas and package metadata through the exact contribution disposer', async () => {
     const ctx = await makeCtx()
     const dispose = ctx.typert.register(toolsContribution())
-    expect(ctx.typert.getPackage('@bosch/bh-tools')).toBeDefined()
+    expect(ctx.typert.getPackage('@hydra/harness-tools')).toBeDefined()
 
     await dispose()
 
-    expect(ctx.typert.get('@bosch/bh-tools#ToolInput')).toBeUndefined()
-    expect(ctx.typert.getPackage('@bosch/bh-tools')).toBeUndefined()
+    expect(ctx.typert.get('@hydra/harness-tools#ToolInput')).toBeUndefined()
+    expect(ctx.typert.getPackage('@hydra/harness-tools')).toBeUndefined()
     expect(ctx.typert.listPackages()).toEqual([])
   })
 
@@ -138,11 +138,11 @@ describe('TypertRegistry', () => {
       { inject: ['typert'] },
     ))
     await fiber
-    expect(ctx.typert.getPackage('@bosch/bh-tools')).toBeDefined()
+    expect(ctx.typert.getPackage('@hydra/harness-tools')).toBeDefined()
 
     await fiber.dispose()
 
-    expect(ctx.typert.getPackage('@bosch/bh-tools')).toBeUndefined()
+    expect(ctx.typert.getPackage('@hydra/harness-tools')).toBeUndefined()
     expect(ctx.typert.list()).toEqual([])
   })
 
@@ -152,7 +152,7 @@ describe('TypertRegistry', () => {
     ctx.typert.register(original)
 
     expect(() => ctx.typert.register(toolsContribution(z.never()))).toThrow('package face')
-    expect(ctx.typert.get('@bosch/bh-tools#ToolInput')?.schema).toBe(original.schemas[0]?.schema)
+    expect(ctx.typert.get('@hydra/harness-tools#ToolInput')?.schema).toBe(original.schemas[0]?.schema)
 
     const duplicateBatch: TypertContribution = {
       ...toolsContribution(),
@@ -192,13 +192,13 @@ describe('TypertRegistry', () => {
     const ctx = await makeCtx()
     ctx.typert.register(toolsContribution())
 
-    expect(ctx.typert.resolve('@bosch/bh-tools#ToolInput').name).toBe('ToolInput')
-    expect(() => ctx.typert.resolve('@bosch/bh-tools#Missing')).toThrow('contributes no schema named "Missing"')
+    expect(ctx.typert.resolve('@hydra/harness-tools#ToolInput').name).toBe('ToolInput')
+    expect(() => ctx.typert.resolve('@hydra/harness-tools#Missing')).toThrow('contributes no schema named "Missing"')
     expect(() => ctx.typert.resolve('@fixture/absent#Value')).toThrow('has no registered contribution')
     expect(() => ctx.typert.resolve('invalid')).toThrow('expected "<package>#<name>"')
-    const projected = ctx.typert.toJSONSchema('@bosch/bh-tools#ToolInput')
+    const projected = ctx.typert.toJSONSchema('@hydra/harness-tools#ToolInput')
     expect(projected).toMatchObject({ type: 'object', properties: { name: { type: 'string' } } })
-    expect(ctx.typert.toJSONSchema('@bosch/bh-tools#ToolInput')).not.toBe(projected)
+    expect(ctx.typert.toJSONSchema('@hydra/harness-tools#ToolInput')).not.toBe(projected)
   })
 
   it('registers local invocations atomically with generated reflection', async () => {
@@ -220,7 +220,7 @@ describe('TypertRegistry', () => {
     await dispose()
     expect(ctx.typert.local.list()).toEqual([])
     expect(ctx.typert.local.hasSeen('goals/create')).toBe(true)
-    expect(ctx.typert.getPackage('@bosch/bh-tools')).toBeUndefined()
+    expect(ctx.typert.getPackage('@hydra/harness-tools')).toBeUndefined()
     expect(changes).toEqual(['local:goals/create', 'local:goals/create'])
   })
 

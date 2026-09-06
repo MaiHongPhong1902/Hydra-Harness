@@ -1,7 +1,7 @@
 /**
  * Windows security-descriptor helpers for atomic local-file replacement. Koffi loads lazily so
  * non-Windows processes never open Win32 libraries.
- * @module @bosch/bh-fs-local/win32
+ * @module @hydra/harness-fs-local/win32
  */
 
 import { toNamespacedPath } from 'node:path'

@@ -1,4 +1,4 @@
-# @bosch/bh-tool-bash-persistent
+# @hydra/harness-tool-bash-persistent
 
 Model-facing `bash(command)` backed by one owner-scoped `ctx.terminals` shell. The package owns the tool contract and shell reuse; deployments select the PTY backend and sandbox policy.
 
@@ -17,7 +17,7 @@ Model-facing `bash(command)` backed by one owner-scoped `ctx.terminals` shell. T
 
 #### What the model sees
 
-The generated [`bash` schema](../../../docs/tool-catalog.md#boschbh-tool-bash-persistent), including the configured `description`. The plugin contributes no standalone system-prompt section; the deployment owns persona and environment guidance.
+The generated [`bash` schema](../../../docs/tool-catalog.md#hydraharness-tool-bash-persistent), including the configured `description`. The plugin contributes no standalone system-prompt section; the deployment owns persona and environment guidance.
 
 #### Token effect
 

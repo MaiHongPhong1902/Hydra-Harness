@@ -8,22 +8,22 @@
  */
 
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { z } from 'zod'
-import AgentRegistry, { Inbox } from '@bosch/bh-agent'
-import { AttachmentStore } from '@bosch/bh-attachment'
-import type { Agent } from '@bosch/bh-agent'
-import { createUserMessage } from '@bosch/bh-llm'
-import SessionStore, { SessionId } from '@bosch/bh-session'
-import type { Session } from '@bosch/bh-session'
-import SessionProjectionRegistry from '@bosch/bh-session-projection'
-import type { ProjectionDefinition } from '@bosch/bh-session-projection'
-import UserQuestionService from '@bosch/bh-user-questions'
-import type { MuxFrame, RpcRequest } from '@bosch/bh-host-apiproxy/api'
-import { RpcId } from '@bosch/bh-host-apiproxy/api/rpc'
-import { createApiProxy } from '@bosch/bh-host-apiproxy'
+import AgentRegistry, { Inbox } from '@hydra/harness-agent'
+import { AttachmentStore } from '@hydra/harness-attachment'
+import type { Agent } from '@hydra/harness-agent'
+import { createUserMessage } from '@hydra/harness-llm'
+import SessionStore, { SessionId } from '@hydra/harness-session'
+import type { Session } from '@hydra/harness-session'
+import SessionProjectionRegistry from '@hydra/harness-session-projection'
+import type { ProjectionDefinition } from '@hydra/harness-session-projection'
+import UserQuestionService from '@hydra/harness-user-questions'
+import type { MuxFrame, RpcRequest } from '@hydra/harness-host-apiproxy/api'
+import { RpcId } from '@hydra/harness-host-apiproxy/api/rpc'
+import { createApiProxy } from '@hydra/harness-host-apiproxy'
 
-declare module '@bosch/bh-session-projection/types' {
+declare module '@hydra/harness-session-projection/types' {
   interface SessionProjectionStateMap {
     'test/last-user': LastUserState
     'test/internal-count': number

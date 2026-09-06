@@ -1,0 +1,29 @@
+- dialog "Add hooks":
+  - heading "Add hooks" [level=2]
+  - button "Close":
+    - img
+  - paragraph: A new hook record is saved switched off. Turn it on when you are ready to run it.
+  - text: Name
+  - textbox "Name":
+    - /placeholder: guardrails
+    - text: regression-hooks
+  - text: Format
+  - combobox "Format":
+    - option "Claude Code" [selected]
+    - option "Codex"
+  - text: Definitions
+  - combobox "Definitions":
+    - option "Written here" [selected]
+    - option "Read from a file"
+  - text: Hook definitions (JSON)
+  - textbox "Hook definitions (JSON)":
+    - /placeholder: "{\n  \"PreToolUse\": [\n    { \"matcher\": \"^Bash$\", \"hooks\": [{ \"type\": \"command\", \"command\": \"guard.sh\" }] }\n  ]\n}"
+    - text: "{\"Stop\":[{\"hooks\":[{\"type\":\"command\",\"command\":\"echo replacement-hook\"}]}]}"
+  - paragraph: Paste an existing hooks.json, with or without its "hooks" wrapper.
+  - text: Plugin root (optional)
+  - textbox "Plugin root (optional)"
+  - text: Project directory (optional)
+  - textbox "Project directory (optional)"
+  - alert: A hook record with this name already exists. Edit it or choose another name.
+  - button "Cancel"
+  - button "Save hooks"

@@ -1,27 +1,27 @@
 import { describe, expect, it, vi } from 'vitest'
 import { PassThrough } from 'node:stream'
 import { resolve } from 'node:path'
-import { Context } from '@bosch/cordis'
-import Loader from '@bosch/cordis-plugin-loader'
-import SessionStore, { Session, SessionId } from '@bosch/bh-session'
-import AgentRegistry, { Inbox, type Agent } from '@bosch/bh-agent'
-import SandboxProvider from '@bosch/bh-sandbox'
-import type { ConfinedArgv, SandboxPolicy } from '@bosch/bh-sandbox'
-import SandboxPolicyService, { setSandboxMode } from '@bosch/bh-sandbox-policy'
-import TerminalSessionService, { TerminalBackendCleanupError, TerminalSessionId } from '@bosch/bh-terminal'
-import type { TerminalSendRequest, TerminalWaitReason } from '@bosch/bh-terminal'
-import { BashTerminalBackend, PWSH_PROMPT_SETUP } from '@bosch/bh-terminal-bash'
-import { ENCODING_PREAMBLE } from '@bosch/bh-pwsh-local'
-import * as ptyLocal from '@bosch/bh-terminal-bash'
-import type { ResolvedConfig } from '@bosch/bh-terminal-bash/src/config.ts'
-import type { LocalPtySession } from '@bosch/bh-terminal-bash/src/session.ts'
-import { SubprocessRuntime } from '@bosch/bh-subprocess'
+import { Context } from '@hydra/cordis'
+import Loader from '@hydra/cordis-plugin-loader'
+import SessionStore, { Session, SessionId } from '@hydra/harness-session'
+import AgentRegistry, { Inbox, type Agent } from '@hydra/harness-agent'
+import SandboxProvider from '@hydra/harness-sandbox'
+import type { ConfinedArgv, SandboxPolicy } from '@hydra/harness-sandbox'
+import SandboxPolicyService, { setSandboxMode } from '@hydra/harness-sandbox-policy'
+import TerminalSessionService, { TerminalBackendCleanupError, TerminalSessionId } from '@hydra/harness-terminal'
+import type { TerminalSendRequest, TerminalWaitReason } from '@hydra/harness-terminal'
+import { BashTerminalBackend, PWSH_PROMPT_SETUP } from '@hydra/harness-terminal-bash'
+import { ENCODING_PREAMBLE } from '@hydra/harness-pwsh-local'
+import * as ptyLocal from '@hydra/harness-terminal-bash'
+import type { ResolvedConfig } from '@hydra/harness-terminal-bash/src/config.ts'
+import type { LocalPtySession } from '@hydra/harness-terminal-bash/src/session.ts'
+import { SubprocessRuntime } from '@hydra/harness-subprocess'
 import type {
   SubprocessHandle,
   SubprocessSpawnSpec,
   SubprocessTerminalHandle,
   SubprocessTerminalSpawnSpec,
-} from '@bosch/bh-subprocess'
+} from '@hydra/harness-subprocess'
 
 class EmptySandbox extends SandboxProvider {
   confine(_argv: readonly string[], _policy: SandboxPolicy): ConfinedArgv {

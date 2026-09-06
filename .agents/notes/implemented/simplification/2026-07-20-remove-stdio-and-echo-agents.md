@@ -4,7 +4,7 @@ Status: implemented
 
 ## Problem
 
-Bosch Harness exposed two redundant product agents beside the TUI and Headless coding agents. The line-oriented stdio agent duplicated terminal interaction and non-interactive execution with a mixed prompt/output protocol. Echo duplicated Headless as a network-free mock model plus one teaching tool, making a test fixture into a user-facing agent and the default quick-start path.
+Hydra harness exposed two redundant product agents beside the TUI and Headless coding agents. The line-oriented stdio agent duplicated terminal interaction and non-interactive execution with a mixed prompt/output protocol. Echo duplicated Headless as a network-free mock model plus one teaching tool, making a test fixture into a user-facing agent and the default quick-start path.
 
 Both agents carried support surfaces beyond their leaf configurations. Stdio owned a UI plugin, app package, SDK interface, REPL leaf, prompt protocol, and Loader tests. Echo owned a runnable command, mock adapter, tool, CI demo gate, graph entry, teaching references, and a shared test fixture. Keeping any of those product paths would preserve the redundant agent indirectly.
 
@@ -16,9 +16,9 @@ The stdio and Echo agents are removed without compatibility packages, modes, com
 
 The remaining application roles are explicit:
 
-- `@bosch/bh-tui` owns terminal-interactive execution. It rejects non-TTY streams before Loader boot; `apps/cli/config/base.cordis.yml` plus the `tui.cordis.yml` overlay own the complete coding composition, with PTY plus terminal-snapshot coverage in `apps/cli/tests/`.
+- `@hydra/harness-tui` owns terminal-interactive execution. It rejects non-TTY streams before Loader boot; `apps/cli/config/base.cordis.yml` plus the `tui.cordis.yml` overlay own the complete coding composition, with PTY plus terminal-snapshot coverage in `apps/cli/tests/`.
 - [`bh --profile headless`](../../../../apps/cli/README.md) owns non-interactive execution. Its `headless` profile is the product composition; `examples/headless-agent` owns replay snapshots, generic real-agent suites, and an unexported keyless Loader driver.
-- [`@bosch/bh-acp-demo`](../../../../packages/examples/acp-demo/README.md) and `@bosch/bh-sdk-jsonrpc-server` own their framed protocol integrations.
+- [`@hydra/harness-acp-demo`](../../../../packages/examples/acp-demo/README.md) and `@hydra/harness-sdk-jsonrpc-server` own their framed protocol integrations.
 
 The SDK project model that carried the `stdio` run-interface option is deleted by the [SDK project toolchain removal](2026-08-11-remove-sdk-project-toolchain.md). Repository-facing demo documentation requires a DeepSeek API key and leads with a current runnable product.
 

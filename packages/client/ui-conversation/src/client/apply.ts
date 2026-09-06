@@ -1,15 +1,15 @@
 /** Registers the conversation components, shared store, and service callbacks. */
-import type { Context } from '@bosch/cordis'
-import { resolveSlotLabel, type BoundActions } from '@bosch/bh-client-ui-slots'
+import type { Context } from '@hydra/cordis'
+import { resolveSlotLabel, type BoundActions } from '@hydra/harness-client-ui-slots'
 import {
   resolveWorkspacePath, type ISessions, type SessionId,
-} from '@bosch/bh-client-runtime/client'
+} from '@hydra/harness-client-runtime/client'
 // Type-only: the ctx.settingsScope Context merge. Cross-plugin collaboration
 // goes through the service, never a value import (client bundle purity gate).
-import type {} from '@bosch/bh-client-ui-settings/client'
-import type {} from '@bosch/bh-client-ui-layout/client'
+import type {} from '@hydra/harness-client-ui-settings/client'
+import type {} from '@hydra/harness-client-ui-layout/client'
 // Type-only: pulls the locale plugin's Context merge (ctx.locale).
-import type {} from '@bosch/bh-client-locale/client'
+import type {} from '@hydra/harness-client-locale/client'
 import type { ViewTab } from './contract/views.ts'
 import type {
   ApprovalWait, ChatNodeTurnDataInjected, ChatScrollPosition, ChatViewInjected, ComposerBarInjected,
@@ -71,7 +71,7 @@ function annotationScreenshotFile(screenshot: BrowserAnnotation['screenshot']): 
   }
 }
 
-declare module '@bosch/bh-client-ui-slots' {
+declare module '@hydra/harness-client-ui-slots' {
   interface LocaleNamespaceMap {
     /** The conversation skeleton, chat flow, commands, details, and docks copy. */
     conversation: ConversationKey

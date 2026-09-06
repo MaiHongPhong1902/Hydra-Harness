@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-hooks-claude-code`.
- * @module @bosch/bh-hooks-claude-code/invariant
+ * Package-owned invariant companion for `@hydra/harness-hooks-claude-code`.
+ * @module @hydra/harness-hooks-claude-code/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-hooks-claude-code'
+const PACKAGE_NAME = '@hydra/harness-hooks-claude-code'
 
 /** Cordis companion plugin name. */
 export const name = 'hooks-claude-code-invariant'

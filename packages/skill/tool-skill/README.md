@@ -1,4 +1,4 @@
-# @bosch/bh-tool-skill
+# @hydra/harness-tool-skill
 
 Bounded automatic skill routing, model-facing discovery, exact instruction loading, and deterministic user invocation.
 
@@ -10,7 +10,7 @@ Requires `ctx.agents`, `ctx.tools`, and `ctx.skills` (`inject: ['agents', 'tools
 |---|---|---|
 | `query` | string (required) | Concise task keywords. Greetings, thanks, acknowledgements, casual chat, meta questions, and vague requests should not be searched. |
 
-The tool snapshots the calling agent's cwd-sensitive registry view, keeps only model-invocable summaries, and ranks lexical matches across `name`, `description`, and `whenToUse`. Exact whole-name phrases rank first, then matched terms and metadata fields, with skill name as the deterministic tie-breaker. It does not call `ctx.skills.get()` and therefore never loads instruction bodies while searching.
+The tool snapshots the calling agent's cwd-sensitive registry view, keeps only model-invocable summaries, and ranks lexical matches across `name`, `description`, and `whenToUse`. Exact whole-name phrases rank first, then matched terms and metadata fields. Equal scores prefer an alias, then lexical name order. Each canonical definition contributes only its best-ranked name before count and byte limits apply. It does not call `ctx.skills.get()` and therefore never loads instruction bodies while searching.
 
 One result returns at most `searchMaxResults` candidates (default `5`), caps each description or routing hint at `searchDescriptionMaxLength` characters (default `500`), and caps the complete rendered UTF-8 result at `searchMaxResultBytes` bytes (default `8192`). All limits are positive integers; the description limit has minimum `3`, and the byte limit must fit the fixed empty-result framing. `truncated: true` says matching candidates were omitted by a count or byte bound. `complete: false` says provider discovery was unstable or partially unavailable, so an empty result is not authoritative.
 
@@ -32,6 +32,8 @@ Before an accepted step reaches the model, direct-user text is ranked with the s
 
 An explicit `/name` gesture suppresses automatic routing for that step. Automatic discovery and loading fail open on stale, invalid, incomplete, or failing providers, while cancellation still stops the step. A successful injection uses durable `skill-invocation` source metadata with `trigger: 'automatic'`; direct gestures use `trigger: 'user'`.
 
+English and Vietnamese negation or avoidance cues, including `not`, `don't`, `without`, `avoid`, `không`, and `đừng`, suppress automatic loading for the whole request. This conservative check leaves selection to the model-facing tools even if the negation concerns another part of the task. Explicit slash gestures retain their direct invocation behavior.
+
 ## Tool: `skill`
 
 | Arg | Type | Notes |
@@ -52,7 +54,7 @@ A whitespace-bounded `/name` token in a claimed direct-user message deterministi
 
 #### What the model sees
 
-The model sees the generated [`skill_search` and `skill` schemas](../../../docs/tool-catalog.md#boschbh-tool-skill). No data-dependent skill roster is added to the request prefix.
+The model sees the generated [`skill_search` and `skill` schemas](../../../docs/tool-catalog.md#hydraharness-tool-skill). No data-dependent skill roster is added to the request prefix.
 
 #### Token effect
 
@@ -107,6 +109,7 @@ Append-only after the reusable request prefix.
 ## Known Limitations and Deferred Work
 
 - Automatic routing and search use lexical metadata matching, not semantic retrieval. Add a semantic index only after measured routing misses justify its dependency and operational cost.
+- The automatic-routing veto recognizes common English/Vietnamese cues; it is not a general intent classifier and does not cover every language or phrasing.
 - Loaded instruction bodies have no size cap; a provider can return a body that consumes substantial next-step context.
 - Resources are guidance, not attachments; the tools neither enumerate nor fetch referenced files.
 - Loading is one-shot text; there is no partial, streaming, or cached-content handle.

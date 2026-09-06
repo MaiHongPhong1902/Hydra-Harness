@@ -1,0 +1,14 @@
+.motion {
+  display: none;
+}
+
+/* Hover explicitly requests playback; ambient motion preferences do not block it. */
+@media (hover: hover) {
+  .playing .still {
+    visibility: hidden;
+  }
+
+  .motion {
+    display: inline;
+  }
+}

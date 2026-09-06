@@ -1,21 +1,21 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import LlmRuntime, { createUserMessage, CallId  } from '@bosch/bh-llm'
+import { Context } from '@hydra/cordis'
+import LlmRuntime, { createUserMessage, CallId  } from '@hydra/harness-llm'
 import SessionStore, {
   SessionId,
   type SessionEvent,
   type TurnEndReason,
   type UserMessage,
-} from '@bosch/bh-session'
-import SystemPrompt from '@bosch/bh-system-prompt'
-import ToolRuntime, { defineContentToolFixture, type PostToolDecision, type PreToolDecision } from '@bosch/bh-tools'
+} from '@hydra/harness-session'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import ToolRuntime, { defineContentToolFixture, type PostToolDecision, type PreToolDecision } from '@hydra/harness-tools'
 import AgentRegistry, {
   type Agent,
   type PreStepDecision,
   type SessionStartSource,
-} from '@bosch/bh-agent'
+} from '@hydra/harness-agent'
 
-import AgentLoop from '@bosch/bh-agent-loop'
+import AgentLoop from '@hydra/harness-agent-loop'
 import { MockAdapter, textResponse, toolCallResponse } from './mock-adapter.ts'
 
 /**

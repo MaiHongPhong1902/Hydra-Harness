@@ -8,7 +8,7 @@ const src = (rel: string): string => fileURLToPath(new URL(rel, import.meta.url)
 const STANDALONE_ERROR = 'apps/web is not a standalone application: bare Vite cannot inject window.__BH_BOOT__. '
   + 'From a repository checkout, run `pnpm bh web`; an installed package uses `bh web`. '
   + 'For client-plugin HMR, run `pnpm bh web` together with `pnpm run dev:web`.'
-const DEFAULT_CLIENT_TITLE = 'BH Local Build'
+const DEFAULT_CLIENT_TITLE = 'Hydra harness'
 
 /** Escape build-time text before placing it in the HTML title element. */
 function escapeHtmlText(value: string): string {
@@ -21,7 +21,7 @@ function clientDocumentTitle(): Plugin {
   return {
     name: 'bh-client-document-title',
     transformIndexHtml(html) {
-      return html.replace('<title>BH Local Build</title>', `<title>${title}</title>`)
+      return html.replace('<title>Hydra harness</title>', `<title>${title}</title>`)
     },
   }
 }

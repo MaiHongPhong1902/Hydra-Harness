@@ -1,15 +1,15 @@
 /**
  * Durable projection state for dynamic runtime context.
- * @module @bosch/bh-agent-loop/runtime-context
+ * @module @hydra/harness-agent-loop/runtime-context
  */
 
-import { createUserMessage } from '@bosch/bh-llm'
-import type { ContextSnapshotSection } from '@bosch/bh-llm'
-import type { Session, UserMessage } from '@bosch/bh-session'
-import { isReplacementSurfaceEvent } from '@bosch/bh-session'
-import type { Context } from '@bosch/cordis'
+import { createUserMessage } from '@hydra/harness-llm'
+import type { ContextSnapshotSection } from '@hydra/harness-llm'
+import type { Session, UserMessage } from '@hydra/harness-session'
+import { isReplacementSurfaceEvent } from '@hydra/harness-session'
+import type { Context } from '@hydra/cordis'
 
-const SOURCE = '@bosch/bh-system-prompt'
+const SOURCE = '@hydra/harness-system-prompt'
 const CLEARED = 'Current runtime context: none. Earlier runtime-context snapshots no longer apply.'
 
 function isOwned(message: UserMessage): boolean {

@@ -4,7 +4,7 @@ Status: implemented
 
 ## Problem
 
-`bh-cmdline`'s ([app-owned command line](../architecture/2026-08-06-app-owned-command-line.md)) `parseCmdline` carried a bespoke callback: `CmdlinePlan<T> = (program, ctx) => T`, invoked after a successful parse inside the helper's catch so a plan's `program.error(...)` shared the help/parse-error exit path, with a type-unsound `(() => ({}) as T)` default only tests used and a `ctx` argument no plan read. The whole seam duplicated a slot commander already defines: a command's action handler runs inside `parse`, and `program.error(...)` thrown from it obeys `exitOverride` exactly like a grammar rejection.
+`@hydra/harness-cmdline`'s ([app-owned command line](../architecture/2026-08-06-app-owned-command-line.md)) `parseCmdline` carried a bespoke callback: `CmdlinePlan<T> = (program, ctx) => T`, invoked after a successful parse inside the helper's catch so a plan's `program.error(...)` shared the help/parse-error exit path, with a type-unsound `(() => ({}) as T)` default only tests used and a `ctx` argument no plan read. The whole seam duplicated a slot commander already defines: a command's action handler runs inside `parse`, and `program.error(...)` thrown from it obeys `exitOverride` exactly like a grammar rejection.
 
 ## Decision
 

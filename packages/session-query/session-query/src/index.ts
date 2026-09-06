@@ -1,13 +1,13 @@
 /**
  * Service Definition for combined session-history reads, traces, filters, and full-text search.
  *
- * @module @bosch/bh-session-query
+ * @module @hydra/harness-session-query
  */
 
-import { Context, Service } from '@bosch/cordis'
-import { Session, snapshotSessionEvent, type SessionId } from '@bosch/bh-session'
-import { foldSessionTitle } from '@bosch/bh-session-title'
-import type { SessionTitleSnapshot } from '@bosch/bh-session-title'
+import { Context, Service } from '@hydra/cordis'
+import { Session, snapshotSessionEvent, type SessionId } from '@hydra/harness-session'
+import { foldSessionTitle } from '@hydra/harness-session-title'
+import type { SessionTitleSnapshot } from '@hydra/harness-session-title'
 import type {
   SessionEventResultFilter,
   SessionEventSearchPage,
@@ -65,7 +65,7 @@ export {
 } from './filters.ts'
 export { assertSessionHeadersCompatible } from './sources.ts'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     sessionQuery: SessionQueryEngine
   }

@@ -1,14 +1,14 @@
 # Replay counterpart to advanced.cordis.yml; only the live model is replaced.
 - id: base
-  name: '@bosch/cordis-plugin-include'
+  name: '@hydra/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - id: llm-deepseek
-        name: '@bosch/bh-llm-deepseek'
+        name: '@hydra/harness-llm-deepseek'
         disabled: true
       - id: acp-agent
-        name: '@bosch/bh-acp-demo'
+        name: '@hydra/harness-acp-demo'
         config:
           provider: deepseek-official
           model: deepseek-v4-flash
@@ -24,13 +24,13 @@
             Verify your work by running the code or tests. Keep answers brief and factual.
       - insert:
           - id: code-runtime
-            name: '@bosch/bh-code-runtime-worker-thread'
+            name: '@hydra/harness-code-runtime-worker-thread'
           - id: cordis-host-runner
-            name: '@bosch/bh-cordis-host-runner'
+            name: '@hydra/harness-cordis-host-runner'
           - id: tool-cordis
-            name: '@bosch/bh-tool-cordis'
+            name: '@hydra/harness-tool-cordis'
           - id: llm-replay
-            name: '@bosch/bh-llm-replay'
+            name: '@hydra/harness-llm-replay'
             config:
               providers:
                 - id: deepseek-official

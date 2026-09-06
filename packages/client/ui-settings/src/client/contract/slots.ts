@@ -10,7 +10,7 @@
  */
 
 
-declare module '@bosch/bh-client-ui-slots' {
+declare module '@hydra/harness-client-ui-slots' {
   interface SlotMap {
     /**
      * The sidebar-foot trigger row content: icon + label, supplied as slot
@@ -70,6 +70,17 @@ declare module '@bosch/bh-client-ui-slots' {
      */
     'settings.plugins.tab': { kind: 'list'; scope: 'root'; owner: SettingsPluginsTabOwnerProps }
     /**
+     * Feature-owned catalog sections inside the Plugins section's Hooks page.
+     * The Hooks tab (ui-settings-plugins) stacks its own user-record catalog
+     * and these contributions; each item owns its heading, rows, and writes.
+     * Declared at runtime by that tab; the type lives here so the inventory
+     * plugin contributes its imported-bundle hooks catalog without depending
+     * on the tab owner (same rationale as `settings.plugins.tab`). Each item
+     * receives the section's shared search text as `query` and filters its own
+     * rows against it.
+     */
+    'settings.plugins.hooks.item': { kind: 'list'; scope: 'root'; owner: SettingsPluginsTabOwnerProps }
+    /**
      * Root-scoped onboarding steps contributed by settings features. The
      * shell mounts one ordered step at a time; the active registrant either
      * completes itself or keeps ownership until the user completes its sole
@@ -110,8 +121,10 @@ export interface SettingsGeneralItemOwnerProps {
   children?: never
 }
 
-/** Owner share of a Plugins tab: the section's one shared search box. */
+/** Owner share of a Plugins tab: selection and the section's shared search box. */
 export interface SettingsPluginsTabOwnerProps {
+  /** Whether this tab is selected; retained tabs refresh Host lists when selected again. */
+  active: boolean
   /** Current text of the section-level search box; empty string matches everything. */
   query: string
 }

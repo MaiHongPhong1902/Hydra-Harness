@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, render } from '@testing-library/react'
-import { Context } from '@bosch/cordis'
-import { SlotTestRuntime } from '@bosch/bh-client-test-runtime'
-import type { SessionId } from '@bosch/bh-client-runtime/client'
+import { Context } from '@hydra/cordis'
+import { SlotTestRuntime } from '@hydra/harness-client-test-runtime'
+import type { SessionId } from '@hydra/harness-client-runtime/client'
 import { buildRenderApp } from '../src/client/app.tsx'
 
 let runtime: SlotTestRuntime | undefined

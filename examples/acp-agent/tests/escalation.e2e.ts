@@ -12,8 +12,8 @@ import {
   launchAcpTestAgent,
   type AgentUnderTest,
   type LaunchedAcpTestAgent,
-} from '@bosch/bh-acp-snapshot'
-import { bwrapProfileArgs } from '@bosch/bh-sandbox-local/src/profiles.ts'
+} from '@hydra/harness-acp-snapshot'
+import { bwrapProfileArgs } from '@hydra/harness-sandbox-local/src/profiles.ts'
 import { cleanupAcpExampleTest } from './cleanup.ts'
 
 /**

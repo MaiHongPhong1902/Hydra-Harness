@@ -1,11 +1,11 @@
-/** Package-owned tool-pipeline invariants. @module @bosch/bh-tools/invariant */
+/** Package-owned tool-pipeline invariants. @module @hydra/harness-tools/invariant */
 
-import type { Context } from '@bosch/cordis'
-import type { Session, SessionEvent } from '@bosch/bh-session'
-import type { InvariantFailure, InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { Session, SessionEvent } from '@hydra/harness-session'
+import type { InvariantFailure, InvariantInstaller } from '@hydra/harness-invariants'
 import type { ToolExecution, ToolExecutionResult } from './index.ts'
 
-const PACKAGE_NAME = '@bosch/bh-tools'
+const PACKAGE_NAME = '@hydra/harness-tools'
 
 /** Cordis companion plugin name. */
 export const name = 'tools-invariant'

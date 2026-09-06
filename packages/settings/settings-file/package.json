@@ -1,6 +1,6 @@
 {
-  "name": "@bosch/bh-settings-file",
-  "description": "File-backed settings provider (settings.yaml) for the Bosch Harness",
+  "name": "@hydra/harness-settings-file",
+  "description": "File-backed settings provider (settings.yaml) for the Hydra harness",
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"
@@ -32,22 +32,22 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@bosch/bh-atomic-write": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-home-paths": "workspace:^",
-    "@bosch/bh-settings": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-atomic-write": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-home-paths": "workspace:^",
+    "@hydra/harness-settings": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   },
   "dependencies": {
     "chokidar": "^4.0.3",
-    "@bosch/schemastery": "workspace:^",
+    "@hydra/schemastery": "workspace:^",
     "yaml": "^2.9.0"
   },
   "devDependencies": {
-    "@bosch/bh-atomic-write": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-home-paths": "workspace:^",
-    "@bosch/bh-settings": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-atomic-write": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-home-paths": "workspace:^",
+    "@hydra/harness-settings": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   }
 }

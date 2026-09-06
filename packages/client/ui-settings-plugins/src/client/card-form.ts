@@ -13,8 +13,8 @@
  * override equal to the composition default is still an override.
  */
 
-import type { SettingsScope, SettingsScopeSnapshot } from '@bosch/bh-client-runtime/client'
-import { createSnapshotStore, type SnapshotStore } from '@bosch/bh-client-runtime/client'
+import type { SettingsScope, SettingsScopeSnapshot } from '@hydra/harness-client-runtime/client'
+import { createSnapshotStore, type SnapshotStore } from '@hydra/harness-client-runtime/client'
 
 /** The write one field's staged text performs when the card is saved. */
 export type FieldWrite =
@@ -82,7 +82,7 @@ export interface CardActions {
   edit: (field: string, text: string) => void
   /** Stage a clear, so saving lets the field re-inherit the composition layer. */
   resetField: (field: string) => void
-  /** Write every staged edit, then re-seed from what the Host accepted. */
+  /** Write the current drafts, clearing accepted versions while retaining edits made during the save. */
   save: () => void
   /** Drop every staged edit. */
   discard: () => void
@@ -246,7 +246,7 @@ export class CardForm<T> {
   }
 
   /**
-   * Write every staged edit, then re-seed from what the Host accepted.
+   * Write the current drafts, clearing accepted versions while retaining edits made during the save.
    *
    * The Host is the only authority on whether a value was accepted — its
    * validators own the constraints no schema can express — so the outcome is
@@ -258,6 +258,7 @@ export class CardForm<T> {
     const plan = this.plan()
     const writes = plan.flatMap(item => item.run === undefined ? [] : [item.run])
     if (plan.length === 0 || this.saving || writes.length !== plan.length) return
+    const submitted = new Map(this.staged)
     this.saving = true
     this.failed = false
     this.publish()
@@ -265,7 +266,11 @@ export class CardForm<T> {
     for (const write of writes) {
       landed = await write() && landed
     }
-    if (landed) this.staged.clear()
+    if (landed) {
+      for (const [field, edit] of submitted) {
+        if (this.staged.get(field) === edit) this.staged.delete(field)
+      }
+    }
     this.saving = false
     this.failed = !landed
     this.publish()

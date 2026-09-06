@@ -6,16 +6,16 @@
  */
 
 import { expect } from 'vitest'
-import { FiberState, Inject, RegistryService, ValidationError } from '@bosch/cordis'
-import type { Context, Plugin } from '@bosch/cordis'
-import { AttachmentStore } from '@bosch/bh-attachment'
+import { FiberState, Inject, RegistryService, ValidationError } from '@hydra/cordis'
+import type { Context, Plugin } from '@hydra/cordis'
+import { AttachmentStore } from '@hydra/harness-attachment'
 import type {
   ImageAttachmentLimits,
   ImageAttachmentRef,
   SaveImageAttachment,
   StoredImageAttachment,
-} from '@bosch/bh-attachment'
-import InvariantRegistry from '@bosch/bh-invariants'
+} from '@hydra/harness-attachment'
+import InvariantRegistry from '@hydra/harness-invariants'
 
 declare global {
   interface ImportMeta {

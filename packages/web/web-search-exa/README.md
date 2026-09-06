@@ -1,8 +1,8 @@
-# @bosch/bh-web-search-exa
+# @hydra/harness-web-search-exa
 
 An [Exa](https://exa.ai)-backed `WebSearchProvider` for the harness [web capability seam](../web/README.md) (`ctx.web`). It calls Exa's `POST /search` endpoint with highlight contents and maps the flat `results[]` into the seam's normalized `WebSearchResult`.
 
-This is an **implementation** package: it registers a provider into `ctx.web`, it does not own the `ctx.web` key and it does not register a model-facing tool (that is `@bosch/bh-tool-web`). Like `@bosch/bh-llm-deepseek`, it is a function/namespace plugin (`inject: ['web']`) that registers its backend, not a default-export service.
+This is an **implementation** package: it registers a provider into `ctx.web`, it does not own the `ctx.web` key and it does not register a model-facing tool (that is `@hydra/harness-tool-web`). Like `@hydra/harness-llm-deepseek`, it is a function/namespace plugin (`inject: ['web']`) that registers its backend, not a default-export service.
 
 ## Config
 
@@ -16,7 +16,7 @@ This is an **implementation** package: it registers a provider into `ctx.web`, i
 
 ```yaml
 - id: web-search-exa
-  name: '@bosch/bh-web-search-exa'
+  name: '@hydra/harness-web-search-exa'
   config:
     apiKey: !!js process.env.EXA_API_KEY
 ```
@@ -27,7 +27,7 @@ Exa returns a flat `results[]` and no generated answer, so `content` is omitted.
 
 ## Model Experience
 
-Indirectly, through [`bh-tool-web`](../tool-web/README.md), which retains this provider's `maxResults`-bounded URLs, titles, first highlights, and publication dates or its exact `Exa search aborted`, `Exa search request failed: <error>`, and `Exa returned an unprocessable response body: <error>` failures under the consumer's error wrapper while generated answers and provider-private fields remain outside context.
+Indirectly, through [`@hydra/harness-tool-web`](../tool-web/README.md), which retains this provider's `maxResults`-bounded URLs, titles, first highlights, and publication dates or its exact `Exa search aborted`, `Exa search request failed: <error>`, and `Exa returned an unprocessable response body: <error>` failures under the consumer's error wrapper while generated answers and provider-private fields remain outside context.
 
 #### KV Cache effect
 
@@ -37,4 +37,4 @@ No direct invalidation; the named consumer owns any request-prefix changes.
 
 - **A result with no non-blank highlight is dropped entirely** — no portable snippet to map, so fewer sources than the requested count can return.
 - **Only `searchType`/`numResults`/`highlightsPerResult` are exposed** — Exa's other controls (livecrawl, category, domain/date filters, full-text contents) wait on provider-neutral Service Definition fields ([seam Agent Note](../../../.agents/notes/implemented/architecture/2026-06-24-web-capability-seam.md)).
-- **Abort classification is error-shape-based** — only a `DOMException` named `AbortError` maps to `WEB_ABORTED`; an abort carrying a custom reason (e.g. `bh-timeout`'s `TimeoutReason`) surfaces as `WEB_PROVIDER_ERROR`.
+- **Abort classification is error-shape-based** — only a `DOMException` named `AbortError` maps to `WEB_ABORTED`; an abort carrying a custom reason (e.g. `@hydra/harness-timeout`'s `TimeoutReason`) surfaces as `WEB_PROVIDER_ERROR`.

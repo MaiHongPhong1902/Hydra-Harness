@@ -1,9 +1,9 @@
 /** Obsidian and imported-plugin MCP controls in the dedicated Plugins tab. */
 
 import { useEffect, useState } from 'react'
-import type { ImportedPluginSnapshot, PluginEnablementResult, PluginInventorySnapshot } from '@bosch/bh-api-remotes/client'
-import { Switch } from '@bosch/bh-client-ui-primitives'
-import type { InjectFace, PropsLocale, PropsRuntime } from '@bosch/bh-client-ui-slots'
+import type { ImportedPluginSnapshot, PluginEnablementResult, PluginInventorySnapshot } from '@hydra/harness-api-remotes/client'
+import { Switch } from '@hydra/harness-client-ui-primitives'
+import type { InjectFace, PropsLocale, PropsRuntime } from '@hydra/harness-client-ui-slots'
 import { SecretField, ValueField } from './fields.tsx'
 import { McpServerCatalog, type UserMcpControls } from './McpServerCatalog.tsx'
 import { PluginCard } from './PluginCard.tsx'
@@ -16,7 +16,7 @@ export type McpSettingsTabProps =
   & PropsLocale<'settings.plugins'>
   & InjectFace<McpSettingsFace & ImportedMcpSettingsFace & NativeMcpSettingsFace & UserMcpSettingsFace>
 
-const OBSIDIAN_MCP_MODULE = '@bosch/bh-obsidian-knowledge'
+const OBSIDIAN_MCP_MODULE = '@hydra/harness-obsidian-knowledge'
 
 /** Imported MCP controls that remain separate from the owning bundle lifecycle. */
 export interface ImportedMcpSettingsFace {
@@ -44,7 +44,7 @@ export interface NativeMcpSettingsFace {
 
 /** Render the current MCP setup without exposing its stored credential. */
 export function McpSettingsTab(props: McpSettingsTabProps) {
-  const { t } = props
+  const { t, active } = props
   const state = props.useMcpSettings(snapshot => snapshot)
   const [request, setRequest] = useState(0)
   const [imported, setImported] = useState<ImportedPluginSnapshot>()
@@ -53,25 +53,31 @@ export function McpSettingsTab(props: McpSettingsTabProps) {
   const [nativeFailed, setNativeFailed] = useState(false)
   const [importedMutating, setImportedMutating] = useState<string>()
   const [importedFailed, setImportedFailed] = useState(false)
+  const [nativeLoadFailed, setNativeLoadFailed] = useState(false)
+  const [importedLoadFailed, setImportedLoadFailed] = useState(false)
 
   useEffect(() => {
-    if (props.importedMcp === undefined) return undefined
+    if (!active || props.importedMcp === undefined) return undefined
     let current = true
+    setImportedLoadFailed(false)
     void props.importedMcp.list().then((snapshot) => {
       if (current) {
         setImported(snapshot)
-        setImportedFailed(false)
       }
-    }, () => {})
+    }, () => { if (current) setImportedLoadFailed(true) })
     return () => { current = false }
-  }, [props.importedMcp, request])
+  }, [active, props.importedMcp, request])
 
   useEffect(() => {
-    if (props.nativeMcp === undefined) return undefined
+    if (!active || props.nativeMcp === undefined) return undefined
     let current = true
-    void props.nativeMcp.list().then((snapshot) => { if (current) setNative(snapshot) }, () => {})
+    setNativeLoadFailed(false)
+    void props.nativeMcp.list().then(
+      (snapshot) => { if (current) setNative(snapshot) },
+      () => { if (current) setNativeLoadFailed(true) },
+    )
     return () => { current = false }
-  }, [props.nativeMcp])
+  }, [active, props.nativeMcp, request])
 
   const setImportedEnabled = (identity: string, server: string, enabled: boolean): void => {
     if (props.importedMcp === undefined) return
@@ -114,9 +120,15 @@ export function McpSettingsTab(props: McpSettingsTabProps) {
   if (!state.available && props.importedMcp === undefined && props.nativeMcp === undefined && props.userMcp === undefined) return <p className={css.empty}>{t('mcpUnavailable')}</p>
   return (
     <div className={css.cards} role="list">
+      {nativeLoadFailed || importedLoadFailed ? (
+        <div>
+          <p role="alert">{t('mcpLoadError')}</p>
+          <button type="button" onClick={() => { setRequest(value => value + 1) }}>{t('mcpRetry')}</button>
+        </div>
+      ) : null}
       {props.userMcp === undefined
         ? null
-        : <McpServerCatalog controls={props.userMcp} query={props.query} t={t} />}
+        : <McpServerCatalog active={active} controls={props.userMcp} query={props.query} t={t} />}
       {state.available && matchesQuery([t('mcpTitle')]) ? <PluginCard
         t={t}
         titleKey="mcpTitle"
@@ -150,7 +162,7 @@ export function McpSettingsTab(props: McpSettingsTabProps) {
         />
         {nativeFailed ? <p className={css.empty} role="alert">{t('mcpToggleFailed')}</p> : null}
       </PluginCard> : null}
-      {!state.available && native === undefined && props.nativeMcp !== undefined ? <p className={css.empty}>{t('mcpLoading')}</p> : null}
+      {!state.available && native === undefined && !nativeLoadFailed && props.nativeMcp !== undefined ? <p className={css.empty}>{t('mcpLoading')}</p> : null}
       {!state.available && nativeControl !== null && matchesQuery([t('mcpTitle'), nativeEntry?.moduleName ?? '']) ? (
         <section className={css.importedMcp} aria-labelledby="native-mcp-title">
           <h3 id="native-mcp-title">{t('mcpTitle')}</h3>
@@ -165,7 +177,7 @@ export function McpSettingsTab(props: McpSettingsTabProps) {
       {props.importedMcp !== undefined ? (
         <section className={css.importedMcp} aria-labelledby="imported-mcp-title">
           <h3 id="imported-mcp-title">{t('importedMcpTitle')}</h3>
-          {imported === undefined ? <p className={css.empty}>{t('mcpLoading')}</p> : null}
+          {imported === undefined && !importedLoadFailed ? <p className={css.empty}>{t('mcpLoading')}</p> : null}
           {imported !== undefined && importedRows.length === 0 ? <p className={css.empty}>{t('importedMcpEmpty')}</p> : null}
           {importedFailed ? <p className={css.empty} role="alert">{t('mcpToggleFailed')}</p> : null}
           {importedRows.map(({ plugin, server }) => (

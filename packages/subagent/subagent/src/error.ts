@@ -1,10 +1,10 @@
 /**
  * Typed failures shared by subagent service and provider operations.
  *
- * @module @bosch/bh-subagent
+ * @module @hydra/harness-subagent
  */
 
-import { HarnessError } from '@bosch/bh-llm'
+import { HarnessError } from '@hydra/harness-llm'
 
 /** Typed failure for the subagent seam. */
 export class SubagentError extends HarnessError {

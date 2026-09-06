@@ -3,13 +3,13 @@
  * The tool pauses until a UI provider returns a human answer, then feeds that
  * answer back into the agent loop as an ordinary tool result.
  *
- * @module @bosch/bh-tool-ask-user
+ * @module @hydra/harness-tool-ask-user
  */
 
-import type { Context } from '@bosch/cordis'
-import type { Agent } from '@bosch/bh-agent'
-import { defineTool } from '@bosch/bh-tools'
-import '@bosch/bh-user-questions'
+import type { Context } from '@hydra/cordis'
+import type { Agent } from '@hydra/harness-agent'
+import { defineTool } from '@hydra/harness-tools'
+import '@hydra/harness-user-questions'
 
 export const name = 'tool-ask-user'
 export const inject = ['tools', 'userQuestions']

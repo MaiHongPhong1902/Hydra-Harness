@@ -7,7 +7,7 @@ import type { WorkspaceEmitResult } from '../src/workspace.ts'
 
 const generated = vi.hoisted(() => vi.fn<() => WorkspaceEmitResult[]>(() => [
   {
-    package: '@bosch/bh-tools',
+    package: '@hydra/harness-tools',
     packageRoot: 'packages/core/tools',
     face: 'host' as const,
     exports: [],
@@ -20,7 +20,7 @@ const generated = vi.hoisted(() => vi.fn<() => WorkspaceEmitResult[]>(() => [
     },
   },
   {
-    package: '@bosch/bh-tools',
+    package: '@hydra/harness-tools',
     packageRoot: 'packages/core/tools',
     face: 'client' as const,
     exports: [],
@@ -43,7 +43,7 @@ const generated = vi.hoisted(() => vi.fn<() => WorkspaceEmitResult[]>(() => [
 ]))
 
 const discovered = vi.hoisted(() => vi.fn(() => [
-  { package: '@bosch/bh-tools', root: 'packages/core/tools', faces: ['host'] },
+  { package: '@hydra/harness-tools', root: 'packages/core/tools', faces: ['host'] },
   { package: '@fixture/ignored', root: 'packages/ignored', faces: ['host'] },
   { package: '@fixture/remote-only', root: 'packages/remote-only', faces: ['host'] },
 ]))
@@ -95,11 +95,11 @@ describe('typertPlugin', () => {
   it('writes every generated face beside a nested package bundle', async () => {
     const root = await workspace()
     const output = await packageOutput(root, 'tools', {
-      name: '@bosch/bh-tools',
+      name: '@hydra/harness-tools',
       exports: { './typert': './lib/typert.host.js' },
     }, 'lib/dev')
     const clientOutput = await packageOutput(root, 'client-tools', {
-      name: '@bosch/bh-tools',
+      name: '@hydra/harness-tools',
       exports: { './client/typert': './lib/typert.client.js' },
     })
 
@@ -145,7 +145,7 @@ describe('typertPlugin', () => {
   it('removes stale Remote artifacts from a Host package without Remote output', async () => {
     const root = await workspace()
     const output = await packageOutput(root, 'tools', {
-      name: '@bosch/bh-tools',
+      name: '@hydra/harness-tools',
       exports: { './typert': './lib/typert.host.js' },
     })
     const packageLib = join(root, 'packages', 'tools', 'lib')
@@ -155,7 +155,7 @@ describe('typertPlugin', () => {
       'typert.remote-client.d.ts.map',
     ]) writeFileSync(join(packageLib, file), 'stale\n')
     generated.mockReturnValueOnce([{
-      package: '@bosch/bh-tools',
+      package: '@hydra/harness-tools',
       packageRoot: 'packages/core/tools',
       face: 'host',
       exports: [],
@@ -174,9 +174,9 @@ describe('typertPlugin', () => {
 
   it('emits every explicit workspace contributor once from a host-only prepass', async () => {
     const root = await workspace()
-    const trigger = await packageOutput(root, 'generator', { name: '@bosch/bh-typert-generator' })
+    const trigger = await packageOutput(root, 'generator', { name: '@hydra/harness-typert-generator' })
     await packageOutput(root, 'core/tools', {
-      name: '@bosch/bh-tools',
+      name: '@hydra/harness-tools',
       exports: { './typert': './lib/typert.host.js' },
     })
     await packageOutput(root, 'ignored', { name: '@fixture/ignored' })
@@ -193,7 +193,7 @@ describe('typertPlugin', () => {
     expect(discovered).toHaveBeenCalledWith(['host'])
     expect(generated).toHaveBeenCalledOnce()
     expect(generated).toHaveBeenCalledWith(
-      ['@bosch/bh-tools', '@fixture/remote-only'],
+      ['@hydra/harness-tools', '@fixture/remote-only'],
       ['host'],
     )
     expect(readFileSync(join(root, 'packages/core/tools/lib/typert.host.js'), 'utf8'))

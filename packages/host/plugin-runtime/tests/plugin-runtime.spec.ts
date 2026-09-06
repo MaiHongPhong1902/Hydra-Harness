@@ -1,12 +1,15 @@
 import { cp, mkdtemp, mkdir, readFile, rm, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { Context } from '@bosch/cordis'
-import SystemPrompt from '@bosch/bh-system-prompt'
-import SkillRegistry from '@bosch/bh-skill'
-import CommandRuntime from '@bosch/bh-commands'
-import type { CommandResult } from '@bosch/bh-commands'
-import ToolRuntime from '@bosch/bh-tools'
+import { fileURLToPath } from 'node:url'
+import { Context } from '@hydra/cordis'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import SkillRegistry from '@hydra/harness-skill'
+import CommandRuntime from '@hydra/harness-commands'
+import type { CommandResult } from '@hydra/harness-commands'
+import ToolRuntime from '@hydra/harness-tools'
+import { CallId } from '@hydra/harness-llm'
+import { publicToolName } from '@hydra/harness-mcp-client/src/tools.ts'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ImportedPluginRuntime, PluginManifestLoader, PluginStore } from '../src/index.ts'
 
@@ -58,6 +61,79 @@ afterEach(async () => {
 })
 
 describe('PluginStore', () => {
+  it('uses inline MCP definitions instead of the default file', async () => {
+    const root = await temp('inline-mcp')
+    await plugin(root, '1.0.0', { mcpServers: { local: { command: 'node' } } })
+    await writeFile(join(root, '.mcp.json'), JSON.stringify({ local: { command: 'stale' } }))
+    expect((await new PluginManifestLoader().load(root)).mcp.map(server => server.config))
+      .toEqual([expect.objectContaining({ command: 'node' })])
+  })
+
+  it.each([
+    { PreToolUse: [{ matcher: '[', hooks: [{ command: 'echo guard' }] }] },
+    { Stop: [] },
+    { UserPromptSubmit: [{ hooks: [{ type: 'prompt', prompt: 'guard' }] }] },
+  ])('rejects imported hook documents the bridge cannot run', async (hooks) => {
+    const home = await temp('invalid-hooks-home')
+    const source = await temp('invalid-hooks-source')
+    await plugin(source, '1.0.0', { hooks })
+    const store = new PluginStore(home)
+    await expect(store.install(source)).rejects.toThrow()
+    expect((await store.list()).size).toBe(0)
+  })
+
+  it('parses folded YAML and keeps independent invocation policies on aliases and definitions', async () => {
+    const home = await temp('skill-policy-home')
+    const source = await temp('skill-policy-source')
+    await plugin(source)
+    const skillFile = join(source, 'skills', 'hello', 'SKILL.md')
+    await writeFile(skillFile, [
+      '---', 'name: hello', 'description: >', '  Multiline routing', '  instructions.',
+      'whenToUse: |', '  Read this hint.', 'disable-model-invocation: YES', 'user-invocable: OFF',
+      '---', 'Hello.', '',
+    ].join('\r\n'))
+    const { ctx, plugins } = await runtime(home)
+    try {
+      const identity = (await plugins.import(source)).plugins[0]!.identity
+      const enabled = (await plugins.enable(identity)).plugins[0]!
+      const summaries = await ctx.skills.list()
+      expect(summaries).toHaveLength(2)
+      for (const summary of summaries) {
+        expect(summary).toMatchObject({
+          description: 'Multiline routing instructions.\n', whenToUse: 'Read this hint.\n',
+          invocation: { modelInvocable: false, userInvocable: false },
+        })
+        expect(await ctx.skills.get(summary.name)).toMatchObject({
+          name: summary.name, content: 'Hello.', invocation: summary.invocation,
+        })
+      }
+      const installedFile = join(enabled.pluginRoot, 'skills', 'hello', 'SKILL.md')
+      await writeFile(installedFile, '---\nname: hello\ndescription: Changed\nuser-invocable: false\n---\nChanged body.')
+      expect(await ctx.skills.get('hello')).toMatchObject({
+        content: 'Changed body.', description: 'Changed', invocation: { modelInvocable: true, userInvocable: false },
+      })
+      await writeFile(installedFile, '---\nname: renamed\ndescription: Changed\n---\nChanged body.')
+      expect(await ctx.skills.get('hello')).toBeUndefined()
+      await plugins.disable(identity)
+      expect(await ctx.skills.list()).toEqual([])
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it.each([
+    'disable-model-invocation: maybe', 'user-invocable: null', 'disableModelInvocation: true',
+    'modelInvocable: false', 'userInvocable: false', 'description: [unclosed',
+  ])('rejects invalid imported skill metadata before installation: %s', async (field) => {
+    const home = await temp('invalid-skill-home')
+    const source = await temp('invalid-skill-source')
+    await plugin(source)
+    await writeFile(join(source, 'skills', 'hello', 'SKILL.md'), `---\nname: hello\ndescription: Hello\n${field}\n---\nBody.`)
+    const store = new PluginStore(home)
+    await expect(store.install(source)).rejects.toThrow()
+    expect((await store.list()).size).toBe(0)
+  })
+
   it('stages immutable source-qualified bundles and retains versions for rollback', async () => {
     const home = await temp('home')
     const source = await temp('source')
@@ -111,7 +187,7 @@ describe('PluginStore', () => {
   it('reads standard marketplace entries and lets a manifest hook override the default file', async () => {
     const marketplace = await temp('marketplace')
     const pluginRoot = join(marketplace, 'plugins', 'demo-plugin')
-    await plugin(pluginRoot, '1.0.0', { hooks: { Stop: [] } })
+    await plugin(pluginRoot, '1.0.0', { hooks: { Stop: [{ hooks: [{ command: 'echo reviewed' }] }] } })
     await mkdir(join(pluginRoot, 'hooks'), { recursive: true })
     await writeFile(join(pluginRoot, 'hooks', 'hooks.json'), JSON.stringify({ hooks: { SessionStart: [] } }))
     await mkdir(join(marketplace, '.agents', 'plugins'), { recursive: true })
@@ -207,7 +283,7 @@ describe('PluginStore', () => {
   it('removes enabled plugin skills and re-requires hook trust after an upgrade', async () => {
     const home = await temp('runtime-home')
     const source = await temp('runtime-source')
-    await plugin(source, '1.0.0', { hooks: { Stop: [] } })
+    await plugin(source, '1.0.0', { hooks: { Stop: [{ hooks: [{ command: 'echo reviewed' }] }] } })
     const { ctx, plugins } = await runtime(home)
     const imported = await plugins.import(source)
     const identity = imported.plugins[0]!.identity
@@ -219,7 +295,7 @@ describe('PluginStore', () => {
     expect((await ctx.skills.list()).some(skill => skill.source === `codex-plugin:${identity}`)).toBe(false)
 
     expect((await plugins.trustHooks(identity)).plugins[0]!.hookTrustState).toBe('trusted')
-    await plugin(source, '1.1.0', { hooks: { UserPromptSubmit: [] } })
+    await plugin(source, '1.1.0', { hooks: { UserPromptSubmit: [{ hooks: [{ command: 'echo reviewed' }] }] } })
     expect((await plugins.import(source)).plugins[0]!.hookTrustState).toBe('pending')
   })
 
@@ -235,6 +311,29 @@ describe('PluginStore', () => {
     expect((await second.plugins.list()).plugins[0]).toMatchObject({ enabled: true, initialEnabled: true })
     expect((await second.plugins.disable(identity)).plugins[0]).toMatchObject({ enabled: false, initialEnabled: true })
     await second.ctx.fiber.dispose()
+  })
+
+  it('keeps imported registrations owned by the service after an API caller is disposed', async () => {
+    const home = await temp('owner-home')
+    const source = await temp('owner-source')
+    await plugin(source)
+    await command(source, 'owned', 'description = "Owned command"\nprompt = "Hello"\n')
+    const { ctx, plugins } = await runtime(home)
+    try {
+      const identity = (await plugins.import(source)).plugins[0]!.identity
+      const caller = await ctx.plugin({
+        inject: ['importedPlugins'],
+        async apply(caller) { await caller.importedPlugins.enable(identity) },
+      })
+      await caller.dispose()
+      expect(await ctx.skills.get('hello')).toBeDefined()
+      expect(ctx.commands.find({} as never, 'owned')).toBeDefined()
+      await plugins.disable(identity)
+      expect(await ctx.skills.get('hello')).toBeUndefined()
+      expect(ctx.commands.find({} as never, 'owned')).toBeUndefined()
+    } finally {
+      await ctx.fiber.dispose()
+    }
   })
 
   it('loads an installed plugin after its local source is removed', async () => {
@@ -310,6 +409,57 @@ describe('PluginStore', () => {
     })
     const disabled = await plugins.disable(identity)
     expect(disabled.plugins[0]?.mcpServers[0]?.startupState).toBe('not-started')
+  })
+
+  it('settles imported MCP startup and enforces raw tool policies after name normalization', async () => {
+    const home = await temp('mcp-policy-home')
+    const source = await temp('mcp-policy-source')
+    const fixture = fileURLToPath(new URL('../../../mcp/mcp-client/tests/fixture-server.ts', import.meta.url))
+    await plugin(source, '1.0.0', { mcpServers: { local: { command: process.execPath, args: [fixture] } } })
+    const { ctx, plugins } = await runtime(home)
+    try {
+      const identity = (await plugins.import(source)).plugins[0]!.identity
+      const enabled = await plugins.enable(identity)
+      await vi.waitFor(async () => {
+        expect((await plugins.info(identity)).mcpServers[0]?.startupState).toBe('started')
+      }, { timeout: 10_000 })
+      const serverName = (await new PluginManifestLoader().load(source, identity)).mcp[0]!.config.serverName
+      const execute = (raw: string) => ctx.tools.execute({
+        name: publicToolName(serverName, raw), arguments: {}, callId: CallId('policy'), signal: new AbortController().signal,
+      })
+      expect((await execute('admin__reset')).isError).toBe(true)
+      for (const raw of ['admin.reset', 'admin__reset', 'admin-' + 'x'.repeat(80)]) {
+        await plugins.setMcpToolApproval(identity, 'local', raw, 'allow')
+        expect((await execute(raw)).isError).toBe(false)
+        await plugins.setMcpToolApproval(identity, 'local', raw, 'deny')
+        const denied = await execute(raw)
+        expect(denied.isError).toBe(true)
+        expect(denied.content).toEqual([{ type: 'text', text: `Error: MCP tool ${raw} is disabled by its plugin policy` }])
+      }
+      expect(enabled.plugins[0]?.mcpServers[0]?.startupState).toBe('started')
+      await plugins.setMcpServerEnabled(identity, 'local', false)
+      expect(ctx.tools.schemas()).toEqual([])
+      await plugins.setMcpServerEnabled(identity, 'local', true)
+      expect((await execute('admin__reset')).isError).toBe(true)
+      await plugins.disable(identity)
+      expect(ctx.tools.schemas()).toEqual([])
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('rejects changes to undeclared MCP servers', async () => {
+    const home = await temp('unknown-mcp-home')
+    const source = await temp('unknown-mcp-source')
+    await plugin(source)
+    const { ctx, plugins } = await runtime(home)
+    try {
+      const identity = (await plugins.import(source)).plugins[0]!.identity
+      await expect(plugins.setMcpServerEnabled(identity, 'missing', true)).rejects.toThrow('not declared')
+      await expect(plugins.setMcpToolApproval(identity, 'missing', 'tool', 'allow')).rejects.toThrow('not declared')
+    } finally {
+      await ctx.fiber.dispose()
+    }
   })
 })
 
@@ -388,7 +538,7 @@ describe('/plugin command', () => {
   it('trusts and untrusts hooks and reports pending review on list', async () => {
     const home = await temp('command-hooks-home')
     const source = await temp('command-hooks-source')
-    await plugin(source, '1.0.0', { hooks: { Stop: [] } })
+    await plugin(source, '1.0.0', { hooks: { Stop: [{ hooks: [{ command: 'echo reviewed' }] }] } })
     const { ctx, plugins } = await runtime(home)
     await pluginCommand(ctx, `import ${source}`)
     const identity = (await plugins.list()).plugins[0]!.identity

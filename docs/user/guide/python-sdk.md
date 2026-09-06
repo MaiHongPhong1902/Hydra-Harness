@@ -19,7 +19,7 @@ git clone https://github.com/bosch/bosch-harness.git
 cd bosch-harness
 python -m venv .venv
 . .venv/bin/activate
-python -m pip install bosch-harness-sdk
+python -m pip install hydra-harness-sdk
 ```
 
 The installed runtime needs no system Node.js. Repository contributors who need to build the runtime or wheels from source should use the [Python contributor workflows](../../../python/development.md).
@@ -54,13 +54,13 @@ The checked-in example is a thin wrapper around this SDK call:
 ```python
 from pathlib import Path
 
-from bosch_harness import BoschHarness
+from hydra_harness import HydraHarness
 
 config = Path("examples/jsonrpc-agent/minimal.cordis.yml").resolve()
 workspace = Path("/absolute/path/to/workspace").resolve()
 sessions = Path("/absolute/path/to/sessions").resolve()
 
-with BoschHarness(
+with HydraHarness(
     provider="deepseek-official",
     model="deepseek-v4-flash",
     max_tokens=49_152,
@@ -76,7 +76,7 @@ with BoschHarness(
 print(result.final_response)
 ```
 
-`BoschHarness` starts the bundled runtime lazily and reuses it until the context manager exits. Reusing the same harness and session id preserves the session-owned Bash process, including its working directory, exported variables, and shell functions. Use a fresh session id for an independent task; reuse an id only when the next call should continue the same durable conversation.
+`HydraHarness` starts the bundled runtime lazily and reuses it until the context manager exits. Reusing the same harness and session id preserves the session-owned Bash process, including its working directory, exported variables, and shell functions. Use a fresh session id for an independent task; reuse an id only when the next call should continue the same durable conversation.
 
 ## Understand the example composition
 

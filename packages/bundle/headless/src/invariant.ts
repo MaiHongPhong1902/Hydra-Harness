@@ -1,12 +1,12 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-headless`.
- * @module @bosch/bh-headless/invariant
+ * Package-owned invariant companion for `@hydra/harness-headless`.
+ * @module @hydra/harness-headless/invariant
  */
 
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-headless'
+const PACKAGE_NAME = '@hydra/harness-headless'
 
 /** Cordis companion plugin name. */
 export const name = 'headless-invariant'

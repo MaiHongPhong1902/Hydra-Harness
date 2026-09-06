@@ -15,8 +15,8 @@ import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
 import { join } from 'node:path'
 import { load as parseYaml } from 'js-yaml'
-import { SessionId } from '@bosch/bh-session'
-import type PluginInventoryGateway from '@bosch/bh-host-plugin-inventory'
+import { SessionId } from '@hydra/harness-session'
+import type PluginInventoryGateway from '@hydra/harness-host-plugin-inventory'
 import {
   acknowledgeReloadConnectionLoss, assertFixtureInventory, captureStableAria, compareOrRefreshGolden,
   launchWebScaffold, watchConsole, webSnapshotMode, type WebScaffold,
@@ -118,6 +118,7 @@ describe('web e2e: settings modal and General preferences', () => {
     const mcpTab = dialog.getByRole('tab', { name: 'MCP', exact: true })
     await mcpTab.click()
     await dialog.getByText('Obsidian MCP', { exact: true }).waitFor({ timeout: 10_000 })
+    await dialog.getByRole('switch', { name: 'Disable Obsidian MCP', exact: true }).waitFor()
     expect(await mcpTab.getAttribute('aria-selected')).toBe('true')
     const mcpSnapshot = await captureStableAria(
       page,
@@ -155,16 +156,16 @@ describe('web e2e: settings modal and General preferences', () => {
     await compareOrRefreshGolden(PLUGIN_TOGGLE_EXPECTED, toggleSnapshot, MODE)
     await toggleRow.getByRole('switch', { name: 'Disable plugin session-stats', exact: true }).click()
     await toggleRow.getByRole('switch', { name: 'Enable plugin session-stats', exact: true }).waitFor()
-    expect((await inventory.list()).entries.find(entry => entry.moduleName === '@bosch/bh-session-stats')?.enabled).toBe(true)
+    expect((await inventory.list()).entries.find(entry => entry.moduleName === '@hydra/harness-session-stats')?.enabled).toBe(true)
     await toggleRow.getByText('Unsaved change', { exact: true }).waitFor()
     await compareOrRefreshGolden(join(SNAPSHOT_DIR, 'plugin-draft.expected.md'),
       await captureStableAria(page, PLUGIN_TOGGLE_ROW_SELECTOR, scaffold.workspaceCwd), MODE)
     await inventoryPanel.getByRole('button', { name: 'Save plugin settings', exact: true }).click()
     await expect.poll(async () => (await inventory.list()).entries
-      .find(entry => entry.moduleName === '@bosch/bh-session-stats' && entry.presetId === undefined)?.enabled).toBe(false)
+      .find(entry => entry.moduleName === '@hydra/harness-session-stats' && entry.presetId === undefined)?.enabled).toBe(false)
     const settingsPath = join(scaffold.harnessHome, 'settings.yaml')
     expect(parseYaml(await readFile(settingsPath, 'utf8'))).toMatchObject({
-      plugins: { enabled: { '@bosch/bh-session-stats': false } },
+      plugins: { enabled: { '@hydra/harness-session-stats': false } },
     })
     await expect.poll(() => toggleRow.getByText('Unsaved change', { exact: true }).count()).toBe(0)
     await toggleRow.getByText('Changed since app start', { exact: true }).waitFor()
@@ -179,20 +180,20 @@ describe('web e2e: settings modal and General preferences', () => {
     await toggleRow.getByRole('switch', { name: 'Disable plugin session-stats', exact: true }).waitFor()
     await inventoryPanel.getByRole('button', { name: 'Save plugin settings', exact: true }).click()
     await expect.poll(async () => (await inventory.list()).entries
-      .find(entry => entry.moduleName === '@bosch/bh-session-stats' && entry.presetId === undefined)?.enabled).toBe(true)
+      .find(entry => entry.moduleName === '@hydra/harness-session-stats' && entry.presetId === undefined)?.enabled).toBe(true)
     expect(parseYaml(await readFile(settingsPath, 'utf8'))).toMatchObject({
-      plugins: { enabled: { '@bosch/bh-session-stats': true } },
+      plugins: { enabled: { '@hydra/harness-session-stats': true } },
     })
     await pluginRow.getByRole('switch', { name: 'Disable plugin ui-settings', exact: true }).click()
     await inventoryPanel.getByRole('button', { name: 'Save plugin settings', exact: true }).click()
-    await expect.poll(async () => (await inventory.list()).entries.find(entry => entry.moduleName === '@bosch/bh-client-ui-settings')?.restartRequired).toBe(true)
-    expect((await inventory.list()).entries.find(entry => entry.moduleName === '@bosch/bh-client-ui-settings')?.enabled).toBe(true)
+    await expect.poll(async () => (await inventory.list()).entries.find(entry => entry.moduleName === '@hydra/harness-client-ui-settings')?.restartRequired).toBe(true)
+    expect((await inventory.list()).entries.find(entry => entry.moduleName === '@hydra/harness-client-ui-settings')?.enabled).toBe(true)
     await pluginRow.getByText('This change will apply after restart.', { exact: true }).waitFor()
     await compareOrRefreshGolden(join(SNAPSHOT_DIR, 'plugin-core-pending.expected.md'),
       await captureStableAria(page, PLUGIN_ROW_SELECTOR, scaffold.workspaceCwd), MODE)
     await pluginRow.getByRole('switch', { name: 'Enable plugin ui-settings', exact: true }).click()
     await inventoryPanel.getByRole('button', { name: 'Save plugin settings', exact: true }).click()
-    await expect.poll(async () => (await inventory.list()).entries.find(entry => entry.moduleName === '@bosch/bh-client-ui-settings')?.restartRequired).toBe(false)
+    await expect.poll(async () => (await inventory.list()).entries.find(entry => entry.moduleName === '@hydra/harness-client-ui-settings')?.restartRequired).toBe(false)
     // Close path 1: Escape.
     await page.keyboard.press('Escape')
     await expect.poll(() => page.getByRole('dialog', { name: 'Settings' }).count(), { timeout: 5_000 }).toBe(0)
@@ -259,14 +260,17 @@ describe('web e2e: settings modal and General preferences', () => {
     await page.getByRole('button', { name: 'Settings', exact: true }).click()
     const initialDialog = page.getByRole('dialog', { name: 'Settings' })
     const darkCube = initialDialog.getByRole('button', { name: 'Dark' })
+    const themeWrite = page.waitForResponse('**/api/settings.mutate')
     await darkCube.click()
+    const themeResponse = await (await themeWrite).json() as { result: unknown }
+    expect(themeResponse.result).toMatchObject({ ok: true })
     await expect.poll(() => darkCube.getAttribute('aria-pressed'), { timeout: 5_000 }).toBe('true')
     await expect.poll(async () => readFile(join(scaffold.harnessHome, 'settings.yaml'), 'utf8'), { timeout: 5_000 })
       .toMatch(/ui-theme:\n\s+preference: dark/)
     await page.keyboard.press('Escape')
 
     // Hold real plugin bundles so the shell-owned loading page remains observable.
-    const pluginPattern = /\/plugins\/@bosch\/bh-client-ui-theme\/client\.js(?:\?.*)?$/
+    const pluginPattern = /\/plugins\/@hydra\/harness-client-ui-theme\/client\.js(?:\?.*)?$/
     let releaseBundles = (): void => {}
     const bundlesReleased = new Promise<void>((resolve) => { releaseBundles = resolve })
     await page.route(pluginPattern, async (route) => {

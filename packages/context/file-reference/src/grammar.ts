@@ -1,7 +1,7 @@
 /**
  * Browser-safe `@file` token grammar shared by terminal and web clients.
  *
- * @module @bosch/bh-file-reference/grammar
+ * @module @hydra/harness-file-reference/grammar
  */
 
 import type { FileReferenceCandidate } from './types.ts'

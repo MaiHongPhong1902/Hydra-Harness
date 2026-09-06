@@ -10,17 +10,17 @@ import type {
   AssistantMessageNode, CommandNode, CompactionSummaryNode, ConversationNode, ConversationSnapshot,
   ModelRetryNode, RunningToolCall, SessionId, SessionListState, ToolCallBlock, ToolResultNode, TurnErrorNode,
   TurnMaxTokensNode, UserMessageNode, WorkspaceListState,
-} from '@bosch/bh-client-runtime/client'
-import { bindSnapshotSelector } from '@bosch/bh-client-test-runtime'
+} from '@hydra/harness-client-runtime/client'
+import { bindSnapshotSelector } from '@hydra/harness-client-test-runtime'
 import {
   createSnapshotStore, EMPTY_CONVERSATION_VIEWS, PendingWait,
-} from '@bosch/bh-client-runtime/client'
-import { RpcId } from '@bosch/bh-client-connection/client'
+} from '@hydra/harness-client-runtime/client'
+import { RpcId } from '@hydra/harness-client-connection/client'
 import type {
   ChatNode, ChatNodeOwnerProps, ChatNodeViewProps, ChatViewSlotProps, SelectionTarget, UseChatNodeTurnData,
-} from '@bosch/bh-client-ui-conversation/client'
-import { makeTranslate } from '@bosch/bh-client-test-runtime'
-import { en as commonEn } from '@bosch/bh-client-locale/src/locales/en.ts'
+} from '@hydra/harness-client-ui-conversation/client'
+import { makeTranslate } from '@hydra/harness-client-test-runtime'
+import { en as commonEn } from '@hydra/harness-client-locale/src/locales/en.ts'
 import { createChatStore } from '../src/client/stores.ts'
 import { ChatView } from '../src/client/chat/ChatView.tsx'
 import { en } from '../src/client/locales.ts'

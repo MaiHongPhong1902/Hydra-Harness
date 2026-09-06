@@ -9,8 +9,8 @@
  * through {@link SettingsDescribeMirror.acceptView}.
  */
 
-import type { IApiClient, SettingsNamespaceView } from '@bosch/bh-api-remotes/client'
-import { createSnapshotStore, type SnapshotStore } from '@bosch/bh-client-runtime/client'
+import type { IApiClient, SettingsNamespaceView } from '@hydra/harness-api-remotes/client'
+import { createSnapshotStore, type SnapshotStore } from '@hydra/harness-client-runtime/client'
 
 type SettingsFace = Pick<IApiClient, 'settings'>
 
@@ -59,7 +59,7 @@ export interface SettingsDescribeFace {
    */
   ensure(): Promise<void>
   /**
-   * Fold one write answer's namespace view into the held view without a wire
+   * Fold a non-stale write answer's namespace view into the held view without a wire
    * read, invalidating any older read still in flight.
    * @param view - the namespace view a settings write answered with.
    */
@@ -137,7 +137,7 @@ export class SettingsDescribeMirror implements SettingsDescribeFace {
   }
 
   /**
-   * Fold one write answer's namespace view into the held view without a wire
+   * Fold a non-stale write answer's namespace view into the held view without a wire
    * read, and invalidate any read still in flight. With no held document, the
    * answer is not published as a partial document; an in-flight read reruns so
    * it cannot publish a document fetched before the write committed.
@@ -145,6 +145,8 @@ export class SettingsDescribeMirror implements SettingsDescribeFace {
    */
   acceptView(view: SettingsNamespaceView): void {
     const before = this.store.getSnapshot()
+    const current = before.view?.namespaces.find(row => row.ns === view.ns)
+    if (current !== undefined && current.revision > view.revision) return
     this.generation += 1
     if (this.inFlight !== undefined) this.rerun = true
     if (before.view === undefined) return

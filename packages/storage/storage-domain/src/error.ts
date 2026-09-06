@@ -1,6 +1,6 @@
 /**
  * Error vocabulary of the domain data form.
- * @module @bosch/bh-storage-domain/src/error
+ * @module @hydra/harness-storage-domain/src/error
  */
 
 /** Discriminant codes carried by every {@link DomainError}. */

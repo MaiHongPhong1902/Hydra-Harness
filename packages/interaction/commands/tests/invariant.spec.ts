@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import * as CommandInvariant from '@bosch/bh-commands/invariant'
-import InvariantRegistry, { InvariantError } from '@bosch/bh-invariants'
-import SessionStore, { SessionId, type Session } from '@bosch/bh-session'
-import { CommandId } from '@bosch/bh-commands'
+import { Context } from '@hydra/cordis'
+import * as CommandInvariant from '@hydra/harness-commands/invariant'
+import InvariantRegistry, { InvariantError } from '@hydra/harness-invariants'
+import SessionStore, { SessionId, type Session } from '@hydra/harness-session'
+import { CommandId } from '@hydra/harness-commands'
 
 async function mount(installCompanion = true): Promise<{ ctx: Context; session: Session }> {
   const ctx = new Context()
@@ -50,7 +50,7 @@ describe('command lifecycle invariants', () => {
       })
     }).toThrow(expect.objectContaining<Partial<InvariantError>>({
       code: 'INVARIANT',
-      packageName: '@bosch/bh-commands',
+      packageName: '@hydra/harness-commands',
     }))
   })
 
@@ -68,7 +68,7 @@ describe('command lifecycle invariants', () => {
       })
     }).toThrow(expect.objectContaining<Partial<InvariantError>>({
       code: 'INVARIANT',
-      packageName: '@bosch/bh-commands',
+      packageName: '@hydra/harness-commands',
     }))
   })
 
@@ -83,7 +83,7 @@ describe('command lifecycle invariants', () => {
 
     await expect(ctx.plugin(CommandInvariant)).rejects.toMatchObject({
       code: 'INVARIANT',
-      packageName: '@bosch/bh-commands',
+      packageName: '@hydra/harness-commands',
     })
   })
 })

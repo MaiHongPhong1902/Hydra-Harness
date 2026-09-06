@@ -3,15 +3,15 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import Include from '@bosch/cordis-plugin-include'
-import Loader from '@bosch/cordis-plugin-loader'
-import SessionStore, { SessionId } from '@bosch/bh-session'
-import JsonlSessionPersistence from '@bosch/bh-session-persistence-jsonl'
-import Storage from '@bosch/bh-storage'
-import * as StorageDomain from '@bosch/bh-storage-domain'
-import * as StorageJson from '@bosch/bh-storage-json'
-import { remoteMethods } from '@bosch/bh-typert-protocol'
+import { Context } from '@hydra/cordis'
+import Include from '@hydra/cordis-plugin-include'
+import Loader from '@hydra/cordis-plugin-loader'
+import SessionStore, { SessionId } from '@hydra/harness-session'
+import JsonlSessionPersistence from '@hydra/harness-session-persistence-jsonl'
+import Storage from '@hydra/harness-storage'
+import * as StorageDomain from '@hydra/harness-storage-domain'
+import * as StorageJson from '@hydra/harness-storage-json'
+import { remoteMethods } from '@hydra/harness-typert-protocol'
 import MessageFeedbackService from '../src/index.ts'
 import { appendMessageFixture } from './helpers.ts'
 
@@ -30,12 +30,12 @@ async function loadComposition(configPath: string): Promise<Context> {
   await ctx.plugin(Loader)
   ctx.loader.builtins.include = Include
   const modules = new Map<string, unknown>([
-    ['@bosch/bh-session', SessionStore],
-    ['@bosch/bh-session-persistence-jsonl', JsonlSessionPersistence],
-    ['@bosch/bh-storage', Storage],
-    ['@bosch/bh-storage-json', StorageJson],
-    ['@bosch/bh-storage-domain', StorageDomain],
-    ['@bosch/bh-message-feedback', MessageFeedbackService],
+    ['@hydra/harness-session', SessionStore],
+    ['@hydra/harness-session-persistence-jsonl', JsonlSessionPersistence],
+    ['@hydra/harness-storage', Storage],
+    ['@hydra/harness-storage-json', StorageJson],
+    ['@hydra/harness-storage-domain', StorageDomain],
+    ['@hydra/harness-message-feedback', MessageFeedbackService],
   ])
   ctx.loader.internal = {
     version: 'v2',
@@ -61,20 +61,20 @@ describe('message feedback through a real Loader composition', () => {
     root = await mkdtemp(join(tmpdir(), 'bh-message-feedback-loader-'))
     const configPath = join(root, 'cordis.yml')
     await writeFile(configPath, [
-      "- name: '@bosch/bh-session'",
-      "- name: '@bosch/bh-session-persistence-jsonl'",
+      "- name: '@hydra/harness-session'",
+      "- name: '@hydra/harness-session-persistence-jsonl'",
       '  config:',
       `    root: ${JSON.stringify(join(root, 'sessions'))}`,
       '    compression: none',
       '    writeBatchMaxDelayMs: 1',
-      "- name: '@bosch/bh-storage'",
-      "- name: '@bosch/bh-storage-json'",
+      "- name: '@hydra/harness-storage'",
+      "- name: '@hydra/harness-storage-json'",
       '  config:',
       `    root: ${JSON.stringify(join(root, 'storage'))}`,
-      "- name: '@bosch/bh-storage-domain'",
+      "- name: '@hydra/harness-storage-domain'",
       '  config:',
       '    backend: json',
-      "- name: '@bosch/bh-message-feedback'",
+      "- name: '@hydra/harness-message-feedback'",
       '  config:',
       '    maxNoteBytes: 32',
       '',

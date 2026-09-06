@@ -1,16 +1,16 @@
 /** Web subagent catalog, navigation, and addressed-session composer owner. */
 import type {
   ClientContext, SessionId, SubagentAddress,
-} from '@bosch/bh-client-runtime/client'
-import type { ComposerChainProps } from '@bosch/bh-client-ui-conversation/client'
+} from '@hydra/harness-client-runtime/client'
+import type { ComposerChainProps } from '@hydra/harness-client-ui-conversation/client'
 import { SubagentHeaderLineage, type SubagentCatalogInjected } from './SubagentHeaderLineage.tsx'
 import {
   SubagentReadOnlyComposer, type SubagentReadOnlyMatch,
 } from './SubagentReadOnlyComposer.tsx'
-import type {} from '@bosch/bh-client-locale/client'
+import type {} from '@hydra/harness-client-locale/client'
 import { en, NS, type SubagentKey } from './locales.ts'
 
-declare module '@bosch/bh-client-ui-slots' {
+declare module '@hydra/harness-client-ui-slots' {
   interface LocaleNamespaceMap {
     /** Subagent catalog and read-only composer copy. */
     'subagent': SubagentKey

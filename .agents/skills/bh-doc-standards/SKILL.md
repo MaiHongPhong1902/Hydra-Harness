@@ -1,9 +1,9 @@
 ---
 name: bh-doc-standards
-description: 'Use when writing, moving, reviewing, or auditing documentation in the bosch-harness repo — choosing hierarchy and detail, separating tutorials from references, checking tutorial progression, trimming doc slop, responding to a verify-doc-budgets failure, or requests like "improve the docs", "audit the docs", "where should this be documented", or "this doc is too long".'
+description: 'Use when writing, moving, reviewing, or auditing documentation in the Hydra-Harness repo — choosing hierarchy and detail, separating tutorials from references, checking tutorial progression, trimming doc slop, responding to a verify-doc-budgets failure, or requests like "improve the docs", "audit the docs", "where should this be documented", or "this doc is too long".'
 ---
 
-# Applying the Bosch Harness Documentation Standard
+# Applying the Hydra harness Documentation Standard
 
 The documentation rules live in [docs/AGENTS.md](../../../docs/AGENTS.md). This workflow covers placement, corpus audits, budgets, and validation across Markdown, JSDoc, and code comments. It is guidance, not a script; use [bh-prose-standard](../bh-prose-standard/SKILL.md) for required coverage and editorial judgment, and never treat length alone as a defect.
 

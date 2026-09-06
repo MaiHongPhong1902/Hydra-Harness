@@ -10,7 +10,7 @@ Some provider endpoints are reachable only through a forwarding proxy, but proce
 
 `llm-deepseek` and every `llm-pi-ai` provider profile accept an optional `proxy` URL with an `http:` or `https:` scheme. The Models page exposes the same field for configured and custom providers; its draft interrogation forwards it through the host contract.
 
-`@bosch/bh-llm/proxy` owns the Node-only per-request transport helper. Direct DeepSeek fetches use its proxy dispatcher, while pi-ai stream construction runs in an async request context so SDK-created fetches inherit only the selected route's proxy. The helper stays on a separate package export rather than the browser-consumed `@bosch/bh-llm` root entry.
+`@hydra/harness-llm/proxy` owns the Node-only per-request transport helper. Direct DeepSeek fetches use its proxy dispatcher, while pi-ai stream construction runs in an async request context so SDK-created fetches inherit only the selected route's proxy. The helper stays on a separate package export rather than the browser-consumed `@hydra/harness-llm` root entry.
 
 ## Alternatives considered
 

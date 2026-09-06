@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-agent-tool-presentation`.
- * @module @bosch/bh-agent-tool-presentation/invariant
+ * Package-owned invariant companion for `@hydra/harness-agent-tool-presentation`.
+ * @module @hydra/harness-agent-tool-presentation/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-agent-tool-presentation'
+const PACKAGE_NAME = '@hydra/harness-agent-tool-presentation'
 
 /** Cordis companion plugin name. */
 export const name = 'tool-presentation-invariant'
@@ -18,7 +18,7 @@ export const inject = ['invariants']
  * No runtime invariant: this package makes exactly one scoped call into
  * `ctx.tools` and owns no event or snapshot of its own; the relation it
  * establishes — which presentation one agent's assembly uses — is the tool
- * registry's to hold, and `bh-tools` observes it there.
+ * registry's to hold, and `@hydra/harness-tools` observes it there.
  */
 const install: InvariantInstaller = () => {}
 

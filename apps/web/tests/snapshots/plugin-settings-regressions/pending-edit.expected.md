@@ -1,0 +1,61 @@
+- dialog "Settings":
+  - navigation:
+    - text: Settings
+    - button "General":
+      - img
+      - text: General
+    - button "Personalization":
+      - img
+      - text: Personalization
+    - button "Models":
+      - img
+      - text: Models
+    - button "Usage"
+    - button "Plugins":
+      - img
+      - text: Plugins
+    - button "Agent presets":
+      - img
+      - text: Agent presets
+  - button "Open configuration file"
+  - button "Close":
+    - img
+    - text: Close
+  - heading "Plugins" [level=2]
+  - paragraph: Configure and inspect the plugins installed in this deployment.
+  - text: Search plugins, skills, hooks, marketplaces, and MCP servers
+  - searchbox "Search plugins, skills, hooks, marketplaces, and MCP servers"
+  - tablist "Plugin views":
+    - tab "Configuration" [selected]
+    - tab "MCP"
+    - tab "Plugins"
+    - tab "Skills"
+    - tab "Marketplace"
+    - tab "Hooks"
+  - tabpanel "Configuration":
+    - list:
+      - listitem:
+        - 'button "Hide settings: Shell" [expanded]':
+          - text: Shell Limits every command the agent runs. Unsaved
+          - img
+        - text: Command timeout (ms) Overridden
+        - button "Reset to default"
+        - textbox "Command timeout (ms)":
+          - /placeholder: ""
+          - text: "13000"
+        - paragraph: How long one command may run before it is terminated.
+        - text: Output cap per stream (bytes)
+        - textbox "Output cap per stream (bytes)":
+          - /placeholder: ""
+          - text: "64000"
+        - paragraph: Output beyond this spills to a temporary file rather than being lost.
+        - button "Discard"
+        - button "Save"
+      - listitem:
+        - 'button "Show settings: Agent loop"':
+          - text: Agent loop How the agent dispatches tool calls.
+          - img
+      - listitem:
+        - 'button "Show settings: Web search"':
+          - text: Web search DeepSeek search provider.
+          - img

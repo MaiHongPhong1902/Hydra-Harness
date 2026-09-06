@@ -1,6 +1,6 @@
-import type { Context } from '@bosch/cordis'
-import type { GenerateOptions, StreamChunk } from '@bosch/bh-llm'
-import { CallId, LlmAdapter } from '@bosch/bh-llm'
+import type { Context } from '@hydra/cordis'
+import type { GenerateOptions, StreamChunk } from '@hydra/harness-llm'
+import { CallId, LlmAdapter } from '@hydra/harness-llm'
 
 /**
  * Test adapter for the `mock-delegate` model: the first request calls the

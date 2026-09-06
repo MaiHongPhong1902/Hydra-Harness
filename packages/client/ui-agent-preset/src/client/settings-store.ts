@@ -7,9 +7,9 @@
  * namespace's `default` field, which is what the host resolves at creation.
  */
 
-import type { IApiClient } from '@bosch/bh-api-remotes/client'
-import { createSnapshotStore, type SnapshotStore } from '@bosch/bh-client-runtime/client'
-import type { SettingsDescribeFace } from '@bosch/bh-client-ui-settings/client'
+import type { IApiClient } from '@hydra/harness-api-remotes/client'
+import { createSnapshotStore, type SnapshotStore } from '@hydra/harness-client-runtime/client'
+import type { SettingsDescribeFace } from '@hydra/harness-client-ui-settings/client'
 
 /** The agent-preset settings namespace on the host wire. */
 export const AGENT_PRESET_SETTINGS_NS = 'agent-presets'
@@ -113,27 +113,42 @@ export async function readRoster(api: Pick<IApiClient, 'agentPresets'>): Promise
 }
 
 /**
- * The opening move every roster-backed surface makes: refuse a read that is
- * already in flight, mark the store loading, then read.
- *
- * A surface that gets `undefined` returns without touching its snapshot
- * further — either another read owns it, or this one already wrote the
- * failure. What differs between surfaces starts after this.
+ * Serialize roster refreshes, coalescing invalidations during a read into a
+ * rerun before publishing. Callers settle after the latest requested refresh.
  * @param api - the agent-preset wire face.
  * @param store - the surface's own snapshot store.
- * @returns the roster, or undefined when the caller should return.
+ * @param accept - publish a successful roster into the surface's snapshot.
+ * @returns the refresh callback owned by this controller.
  */
-export async function beginRosterRead<S extends { status: string; error: string | null }>(
+export function createRosterLoader<S extends { status: string; error: string | null }>(
   api: Pick<IApiClient, 'agentPresets'>,
   store: SnapshotStore<S>,
-): Promise<RosterValue | undefined> {
-  const before = store.getSnapshot()
-  if (before.status === 'loading') return undefined
-  store.set({ ...before, status: 'loading', error: null })
-  const roster = await readRoster(api)
-  if (roster.ok) return roster.value
-  store.set({ ...store.getSnapshot(), status: 'error', error: roster.error })
-  return undefined
+  accept: (roster: RosterValue) => void | Promise<void>,
+): () => Promise<void> {
+  let inFlight: Promise<void> | undefined
+  let rerun = false
+  const needsRerun = (): boolean => rerun
+  return () => {
+    if (inFlight !== undefined) {
+      rerun = true
+      return inFlight
+    }
+    inFlight = Promise.resolve().then(async () => {
+      try {
+        do {
+          store.set({ ...store.getSnapshot(), status: 'loading', error: null })
+          rerun = false
+          const roster = await readRoster(api)
+          if (needsRerun()) continue
+          if (roster.ok) await accept(roster.value)
+          else store.set({ ...store.getSnapshot(), status: 'error', error: roster.error })
+        } while (needsRerun())
+      } finally {
+        inFlight = undefined
+      }
+    })
+    return inFlight
+  }
 }
 
 /**
@@ -191,6 +206,7 @@ const INITIAL: AgentPresetSettingsState = {
 export class AgentPresetSettingsController {
   /** Row snapshot the renderer subscribes to. */
   readonly store: SnapshotStore<AgentPresetSettingsState> = createSnapshotStore(INITIAL)
+  private readonly refresh: () => Promise<void>
 
   /**
    * @param api - the agent-preset and settings wire faces (roster and default write).
@@ -199,7 +215,9 @@ export class AgentPresetSettingsController {
   constructor(
     private readonly api: IApiClient,
     private readonly describeFace: SettingsDescribeFace,
-  ) {}
+  ) {
+    this.refresh = createRosterLoader(api, this.store, roster => this.acceptRoster(roster))
+  }
 
   private set(patch: Partial<AgentPresetSettingsState>): void {
     this.store.set({ ...this.store.getSnapshot(), ...patch })
@@ -211,9 +229,11 @@ export class AgentPresetSettingsController {
    * reports `unavailable` and renders nothing.
    * @returns once the snapshot reflects the host.
    */
-  async load(): Promise<void> {
-    const roster = await beginRosterRead(this.api, this.store)
-    if (roster === undefined) return
+  load(): Promise<void> {
+    return this.refresh()
+  }
+
+  private async acceptRoster(roster: RosterValue): Promise<void> {
     const { presets } = roster
     const [first] = presets
     if (first === undefined) {

@@ -1,7 +1,7 @@
 /** Obsidian MCP settings and credential state for the Plugins MCP tab. */
 
-import type { IApiClient } from '@bosch/bh-client-connection/client'
-import type { SettingsScope, SnapshotStore } from '@bosch/bh-client-runtime/client'
+import type { IApiClient } from '@hydra/harness-client-connection/client'
+import type { SettingsScope, SnapshotStore } from '@hydra/harness-client-runtime/client'
 import {
   CardForm, textField,
   type CardActions, type CardFieldState, type CardShell,
@@ -106,12 +106,14 @@ export class McpSettingsController {
   }
 
   private async writeKey(value: string): Promise<boolean> {
+    let accepted = false
     try {
-      await this.api.credentials.set({ ref: MCP_API_KEY_REF, value })
+      const response = await this.api.credentials.set({ ref: MCP_API_KEY_REF, value })
+      accepted = response.result.ok
     } catch (_credentialWriteFailure) {
-      // The read-back below is authoritative when the write is refused.
+      // No acknowledgement: keep the draft even if an older key exists.
     }
     await this.readCredential()
-    return this.credential.configured
+    return accepted
   }
 }

@@ -1,4 +1,4 @@
-# @bosch/bh-code-runtime
+# @hydra/harness-code-runtime
 
 The **`CodeRuntime`** (`ctx.codeRuntime`) defines WHAT a code runtime does — run one model-written program against a set of host-provided async bindings and report `{ value, logs, error? }` — without saying HOW.
 
@@ -9,7 +9,7 @@ This package owns the Service Definition role of the capability (the bash trio i
 | Member | Semantics |
 |---|---|
 | `run(request)` | Execute one program against the request's bindings. **Resolves with an error FIELD for every program outcome** — parse/transform failure, thrown exception, invalid completion, output overflow, budget expiry, abort, or substrate death (`CodeRunFailure`'s orthogonal `kind` taxonomy); it rejects only for caller misuse of the Service Definition contract (e.g. a run submitted after disposal). The program runs as the body of an async function: top-level `await`/`return` work, and a lossless JSON completion becomes `result.value`. |
-| `language` | Readonly descriptor: the source language `run` expects. `'typescript'` and `'python'` are the well-known values — those `bh-tools` presents; only `'typescript'` has a published backend. Informational, not gating — a consumer that generates language-specific presentation switches on it and fails loud on a language it cannot present. |
+| `language` | Readonly descriptor: the source language `run` expects. `'typescript'` and `'python'` are the well-known values — those `@hydra/harness-tools` presents; only `'typescript'` has a published backend. Informational, not gating — a consumer that generates language-specific presentation switches on it and fails loud on a language it cannot present. |
 | `isolation` | Readonly descriptor: the execution substrate (`'worker-thread'`, `'process'`, `'container'`). A label for deployments and diagnostics, **not a security claim**. |
 
 Semantics every implementation must honor (contract details in the class JSDoc): binding calls bridge complete lossless-JSON arguments and resolutions with no seam-level byte cap; the program is treated as a hostile peer (arbitrary binding names are own properties, malformed traffic never crashes the host); no state survives between runs; disposal terminates in-flight runs AND awaits their exit before completing.
@@ -22,7 +22,7 @@ Binding-global and error-class names are **language-portable**: they must match 
 
 ## Model Experience
 
-Indirectly, through Code Mode in `bh-tools`, which exposes `run_code` and returns program logs, values, or failures as retained tool-result tokens.
+Indirectly, through Code Mode in `@hydra/harness-tools`, which exposes `run_code` and returns program logs, values, or failures as retained tool-result tokens.
 
 #### KV Cache effect
 

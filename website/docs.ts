@@ -32,7 +32,7 @@ const homeAndGuide: DocsPage[] = [
   {
     source: 'docs/user/index.md',
     route: 'index.md',
-    label: 'Bosch Harness',
+    label: 'Hydra harness',
     sidebar: null,
     section: 'Home',
     order: 0,

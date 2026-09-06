@@ -1,9 +1,9 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import { type Agent } from '@bosch/bh-agent'
+import { Context } from '@hydra/cordis'
+import { type Agent } from '@hydra/harness-agent'
 
-import { HarnessError } from '@bosch/bh-llm'
-import { carrierKeyOf } from '@bosch/bh-scope'
+import { HarnessError } from '@hydra/harness-llm'
+import { carrierKeyOf } from '@hydra/harness-scope'
 import SubagentRuntime, {
   foldSubagentDescriptor,
   snapshotSubagentDescriptor,
@@ -17,8 +17,8 @@ import SubagentRuntime, {
   type SubagentRun,
   type SubagentRunEndInfo,
   type SubagentStartRequest,
-} from '@bosch/bh-subagent'
-import { SessionId, type SessionEvent } from '@bosch/bh-session'
+} from '@hydra/harness-subagent'
+import { SessionId, type SessionEvent } from '@hydra/harness-session'
 
 function fakeParent(id = 'parent-1'): Agent {
   return { id: SessionId(id) } as unknown as Agent

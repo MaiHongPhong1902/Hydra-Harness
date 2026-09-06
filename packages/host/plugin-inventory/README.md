@@ -1,4 +1,4 @@
-# @bosch/bh-host-plugin-inventory
+# @hydra/harness-host-plugin-inventory
 
 `PluginInventoryGateway` projects the current Cordis Loader tree, persistent module enablement, imported OpenAI/Codex bundle lifecycle, OpenAI/Codex marketplace sources, and the user's own MCP server and hook records through `pluginInventory` Remotes. It publishes `list`, `setEnabled`, `listMarketplaces`, `addMarketplace`, `setMarketplaceEnabled`, `removeMarketplace`, `listImportedPlugins`, `importPlugin`, `infoPlugin`, `enablePlugin`, `disablePlugin`, `setPluginMcpServerEnabled`, `trustPlugin`, `untrustPlugin`, `removePlugin`, `listMcpServers`, `defineMcpServer`, `setMcpServerEnabled`, `removeMcpServer`, `listHookRecords`, `defineHookRecord`, `setHookRecordEnabled`, and `removeHookRecord`.
 
@@ -8,7 +8,7 @@ Entries declaring the same non-empty `pluginGroup` share one control; `relatedMo
 
 ## OpenAI/Codex marketplace sources
 
-`plugin-marketplaces.sources` stores a normalized source, optional Git ref, repository-relative sparse paths, and an `enabled` slot flag (default `true`). Sources are GitHub shorthand, HTTPS/SSH Git URLs, or existing local folders. A source must contain `.agents/plugins/marketplace.json` or root `marketplace.json` with a `plugins` array. The catalog is validation-only here; `importPlugin` selects and stages a bundle through `@bosch/bh-plugin-runtime`, which validates the bundle manifest and controls its lifecycle.
+`plugin-marketplaces.sources` stores a normalized source, optional Git ref, repository-relative sparse paths, and an `enabled` slot flag (default `true`). Sources are GitHub shorthand, HTTPS/SSH Git URLs, or existing local folders. A source must contain `.agents/plugins/marketplace.json` or root `marketplace.json` with a `plugins` array. The catalog is validation-only here; `importPlugin` selects and stages a bundle through `@hydra/harness-plugin-runtime`, which validates the bundle manifest and controls its lifecycle.
 
 Git reads use a temporary shallow clone, enable sparse checkout only when paths are supplied, always retain the catalog path, reject unsafe transports and credential-like environment variables, apply a 30-second command timeout, and remove the checkout after parsing. Local catalog files and Git output are capped at 1 MiB. At most 20 sources and 500 catalog entries are accepted.
 
@@ -16,7 +16,7 @@ Git reads use a temporary shallow clone, enable sparse checkout only when paths 
 
 ## The user's own MCP servers and hooks
 
-The `listMcpServers`/`defineMcpServer`/`setMcpServerEnabled`/`removeMcpServer` and `listHookRecords`/`defineHookRecord`/`setHookRecordEnabled`/`removeHookRecord` Remotes forward to `@bosch/bh-mcp-registry` and `@bosch/bh-hooks-registry`, which own the stored records (`mcp-servers.servers` and `hooks.records`), their validation, and their mounts. This gateway adds only the Remote surface: a composition without either registry answers its calls with `MCP server registry is unavailable` or `hook record registry is unavailable` rather than failing to mount.
+The `listMcpServers`/`defineMcpServer`/`setMcpServerEnabled`/`removeMcpServer` and `listHookRecords`/`defineHookRecord`/`setHookRecordEnabled`/`removeHookRecord` Remotes forward to `@hydra/harness-mcp-registry` and `@hydra/harness-hooks-registry`, which own the stored records (`mcp-servers.servers` and `hooks.records`), their validation, and their mounts. This gateway adds only the Remote surface: a composition without either registry answers its calls with `MCP server registry is unavailable` or `hook record registry is unavailable` rather than failing to mount.
 
 ## Model Experience
 

@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-api-gateway`.
- * @module @bosch/bh-api-gateway/invariant
+ * Package-owned invariant companion for `@hydra/harness-api-gateway`.
+ * @module @hydra/harness-api-gateway/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-api-gateway'
+const PACKAGE_NAME = '@hydra/harness-api-gateway'
 
 /** Cordis companion plugin name. */
 export const name = 'api-gateway-invariant'

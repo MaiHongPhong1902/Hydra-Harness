@@ -4,7 +4,7 @@ import {
   RpcId,
   serverResponseSchema,
   type ClientRequest,
-} from '@bosch/bh-host-apiproxy/api'
+} from '@hydra/harness-host-apiproxy/api'
 import type { ClientConnectionRpc } from '../rpc.ts'
 import { randomUuid } from './random-uuid.ts'
 

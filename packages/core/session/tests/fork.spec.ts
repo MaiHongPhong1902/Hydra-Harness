@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import { createUserMessage, CallId , createMessage } from '@bosch/bh-llm'
-import SessionStore, { Session, SessionForkError, SessionId } from '@bosch/bh-session'
-import type { SessionEvent, TurnEndReason } from '@bosch/bh-session'
+import { Context } from '@hydra/cordis'
+import { createUserMessage, CallId , createMessage } from '@hydra/harness-llm'
+import SessionStore, { Session, SessionForkError, SessionId } from '@hydra/harness-session'
+import type { SessionEvent, TurnEndReason } from '@hydra/harness-session'
 
-declare module '@bosch/bh-session/types' {
+declare module '@hydra/harness-session/types' {
   interface SessionEventMap {
     'test/log-only': { value: string }
     /** Stands in for a plugin's open/close bracket (`compaction/start`). */

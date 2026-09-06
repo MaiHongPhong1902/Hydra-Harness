@@ -1,19 +1,19 @@
-import { createUserMessage } from '@bosch/bh-llm'
+import { createUserMessage } from '@hydra/harness-llm'
 import { createServer } from 'node:http'
 import type { IncomingMessage, Server, ServerResponse } from 'node:http'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import AgentRegistry, { type Agent, type AgentHandle } from '@bosch/bh-agent'
+import { Context } from '@hydra/cordis'
+import AgentRegistry, { type Agent, type AgentHandle } from '@hydra/harness-agent'
 
-import SessionStore, { SessionId } from '@bosch/bh-session'
-import * as agentCore from '@bosch/bh-agent-spine-demo'
-import JsonlSessionPersistence from '@bosch/bh-session-persistence-jsonl'
-import * as LlmDeepSeek from '@bosch/bh-llm-deepseek'
-import SubagentRuntime, { type SubagentResult, type SubagentRunEndInfo } from '@bosch/bh-subagent'
-import type { JsonRpcTransportPeer } from '@bosch/bh-sdk-protocol'
+import SessionStore, { SessionId } from '@hydra/harness-session'
+import * as agentCore from '@hydra/harness-agent-spine-demo'
+import JsonlSessionPersistence from '@hydra/harness-session-persistence-jsonl'
+import * as LlmDeepSeek from '@hydra/harness-llm-deepseek'
+import SubagentRuntime, { type SubagentResult, type SubagentRunEndInfo } from '@hydra/harness-subagent'
+import type { JsonRpcTransportPeer } from '@hydra/harness-sdk-protocol'
 import { HarnessSdkJsonRpcServer } from '../src/index.ts'
 
 class FakeTransport implements JsonRpcTransportPeer {
@@ -859,7 +859,7 @@ describe('HarnessSdkJsonRpcServer', () => {
 
       await expect(server.handleRequest('does/not/exist', {}))
         .rejects
-        .toThrow('unknown Bosch Harness SDK runtime method: does/not/exist')
+        .toThrow('unknown Hydra harness SDK runtime method: does/not/exist')
 
       await server.shutdown()
     } finally {

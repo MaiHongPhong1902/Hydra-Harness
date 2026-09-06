@@ -4,16 +4,16 @@
  * instance owns one `(provider id, canonical workspace)` process. Queries serialize through a single
  * queue so a cancellation that fails to stop the server can terminate it without killing unrelated
  * work; distinct instances run in parallel.
- * @module @bosch/bh-lsp-stdio/instance
+ * @module @hydra/harness-lsp-stdio/instance
  */
 
-import { LspError } from '@bosch/bh-lsp'
+import { LspError } from '@hydra/harness-lsp'
 import type {
   LspOperation,
   LspProviderQuery,
   LspQueryResult,
-} from '@bosch/bh-lsp'
-import { deadline } from '@bosch/bh-timeout'
+} from '@hydra/harness-lsp'
+import { deadline } from '@hydra/harness-timeout'
 import { abortable, abortError } from './abort.ts'
 import { LspConnection } from './connection.ts'
 import type { ConnectionSpawner, ConnectionSpec, ConnectionWriter } from './connection.ts'

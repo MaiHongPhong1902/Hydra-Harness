@@ -8,17 +8,17 @@
  */
 /* oxlint-disable typescript/no-unsafe-assignment -- Vitest asymmetric matchers are typed as any. */
 
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { describe, expect, it, vi } from 'vitest'
-import InvariantService from '@bosch/bh-invariants'
+import InvariantService from '@hydra/harness-invariants'
 import type {
   ApprovalRequestId, CordisDynamicPackageId, CordisDynamicPluginId, CordisDynamicPluginRunId,
-} from '@bosch/bh-api-remotes/client'
-import type { SessionId } from '@bosch/bh-client-connection/client'
-import type { DynamicCordisInvokeResult } from '@bosch/bh-api-remotes/client'
+} from '@hydra/harness-api-remotes/client'
+import type { SessionId } from '@hydra/harness-client-connection/client'
+import type { DynamicCordisInvokeResult } from '@hydra/harness-api-remotes/client'
 // Type-only: resolves `ctx.remote` and with it the `$on`/`$dispatch` surface.
-import type {} from '@bosch/bh-api-gateway/client'
-import { SlotRegistry } from '@bosch/bh-client-runtime/client'
+import type {} from '@hydra/harness-api-gateway/client'
+import { SlotRegistry } from '@hydra/harness-client-runtime/client'
 import * as NodeHalf from '../src/index.ts'
 import * as Invariant from '../src/invariant.ts'
 import * as ClientHalf from '../src/client/index.ts'

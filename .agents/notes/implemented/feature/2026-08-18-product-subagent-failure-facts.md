@@ -56,8 +56,8 @@ Codex app-server 0.147.0 defines eleven string categories and five object varian
 | --- | --- | --- |
 | Product error category | Pinned official SDK or app-server version | The Provider maps only the declared structured union and uses `unknown` outside it |
 | Current failure stage | Product Provider operation | Derived at the failure site; never persisted or used as a recovery state |
-| Exit code and signal | `bh-subprocess` process handle | The Provider displays observed values without inferring missing ones |
-| Diagnostic bytes and delivery | `bh-subagent`, foreground tool, and Job runtime | The same bounded text is presented separately from assistant output in both scheduling modes |
+| Exit code and signal | `@hydra/harness-subprocess` process handle | The Provider displays observed values without inferring missing ones |
+| Diagnostic bytes and delivery | `@hydra/harness-subagent`, foreground tool, and Job runtime | The same bounded text is presented separately from assistant output in both scheduling modes |
 | Raw product failure | Product runtime, internal cause chain, and Host observation | It remains internal and never becomes model-visible result text |
 
 ## Verification

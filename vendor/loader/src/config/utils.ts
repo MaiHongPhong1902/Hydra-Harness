@@ -1,4 +1,4 @@
-import { valueMap } from '@bosch/cosmokit'
+import { valueMap } from '@hydra/cosmokit'
 
 // eslint-disable-next-line no-new-func
 /** Evaluate a JavaScript expression against a loader context scope. */

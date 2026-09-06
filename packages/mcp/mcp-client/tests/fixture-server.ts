@@ -73,4 +73,9 @@ server.registerTool('admin.reset', {
 }))
 
 const transport = new StdioServerTransport()
+for (const name of ['admin__reset', 'admin-' + 'x'.repeat(80)]) {
+  server.registerTool(name, { description: name, inputSchema: {} }, async () => ({
+    content: [{ type: 'text', text: name }],
+  }))
+}
 await server.connect(transport)

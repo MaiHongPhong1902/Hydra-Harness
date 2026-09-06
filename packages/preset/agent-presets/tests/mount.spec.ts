@@ -2,24 +2,24 @@ import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { Context } from '@bosch/cordis'
-import Loader from '@bosch/cordis-plugin-loader'
-import Include from '@bosch/cordis-plugin-include'
-import LlmRuntime from '@bosch/bh-llm'
-import SessionStore, { SessionId } from '@bosch/bh-session'
-import SystemPrompt from '@bosch/bh-system-prompt'
-import ToolRuntime from '@bosch/bh-tools'
-import AgentRegistry, { assembleContextFor, type Agent } from '@bosch/bh-agent'
-import AgentLoop from '@bosch/bh-agent-loop'
+import { Context } from '@hydra/cordis'
+import Loader from '@hydra/cordis-plugin-loader'
+import Include from '@hydra/cordis-plugin-include'
+import LlmRuntime from '@hydra/harness-llm'
+import SessionStore, { SessionId } from '@hydra/harness-session'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import ToolRuntime from '@hydra/harness-tools'
+import AgentRegistry, { assembleContextFor, type Agent } from '@hydra/harness-agent'
+import AgentLoop from '@hydra/harness-agent-loop'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import AgentPresets, {
   COMPOSITION_FILE, leakedServices, livePresetMounts, mountPreset, PresetMountError, serviceForAgent,
-} from '@bosch/bh-agent-presets'
-import type { Config } from '@bosch/bh-agent-presets'
-import type {} from '@bosch/bh-agent-presets/types'
-import { bindScopeParent, createScope, scopeOf } from '@bosch/bh-scope'
+} from '@hydra/harness-agent-presets'
+import type { Config } from '@hydra/harness-agent-presets'
+import type {} from '@hydra/harness-agent-presets/types'
+import { bindScopeParent, createScope, scopeOf } from '@hydra/harness-scope'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     /** Published by the `isolated` fixture preset behind an entry-local realm. */
     fixtureIsolatedSvc: { label: string }

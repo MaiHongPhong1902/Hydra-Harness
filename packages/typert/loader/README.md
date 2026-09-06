@@ -1,4 +1,4 @@
-# @bosch/bh-typert-loader
+# @hydra/harness-typert-loader
 
 Node-only Loader integration for generated Typert artifacts. The plugin requires `ctx.loader` and `ctx.typert`; it does not provide the registry itself.
 

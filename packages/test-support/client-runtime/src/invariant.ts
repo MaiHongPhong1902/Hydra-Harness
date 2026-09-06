@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-client-test-runtime`.
- * @module @bosch/bh-client-test-runtime/invariant
+ * Package-owned invariant companion for `@hydra/harness-client-test-runtime`.
+ * @module @hydra/harness-client-test-runtime/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-client-test-runtime'
+const PACKAGE_NAME = '@hydra/harness-client-test-runtime'
 
 /** Cordis companion plugin name. */
 export const name = 'client-test-runtime-invariant'

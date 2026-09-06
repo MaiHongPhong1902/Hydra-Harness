@@ -1,7 +1,7 @@
 /** Shared top-level-call post-policy selection for search result spill. @module bh-tool-fs-search/direct-call */
 
-import type { Context } from '@bosch/cordis'
-import type { JsonValue, PostToolDecision, ToolDefinition, ToolExecution, ToolExecutionResult } from '@bosch/bh-tools'
+import type { Context } from '@hydra/cordis'
+import type { JsonValue, PostToolDecision, ToolDefinition, ToolExecution, ToolExecutionResult } from '@hydra/harness-tools'
 
 /**
  * Return the accepted canonical value only when this tool still owns a direct

@@ -1,7 +1,7 @@
 /**
  * Normalization for values thrown by a final LLM adapter boundary.
  *
- * @module @bosch/bh-llm/adapter-failure
+ * @module @hydra/harness-llm/adapter-failure
  */
 
 import { HarnessError } from './error.ts'

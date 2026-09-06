@@ -1,4 +1,4 @@
-import type { SessionEvent } from '@bosch/bh-session/types'
+import type { SessionEvent } from '@hydra/harness-session/types'
 import type {
   ConversationEventInput, ConversationLocation, ConversationLocationData,
   ConversationLocationDataStore, ConversationStepDataMap, ConversationTimelineSnapshot,

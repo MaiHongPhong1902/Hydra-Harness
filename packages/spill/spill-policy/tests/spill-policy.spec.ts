@@ -9,19 +9,19 @@
  */
 
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import Loader from '@bosch/cordis-plugin-loader'
-import { createUserMessage, CallId } from '@bosch/bh-llm'
-import type { ContentBlock } from '@bosch/bh-llm'
-import { SessionId } from '@bosch/bh-session'
-import SystemPrompt from '@bosch/bh-system-prompt'
-import ToolRuntime, { defineContentToolFixture } from '@bosch/bh-tools'
-import type { ToolDefinition } from '@bosch/bh-tools'
-import type { PostToolDecision, ToolExecution, ToolExecutionToken } from '@bosch/bh-tools'
-import { SpillLocator, SpillStore } from '@bosch/bh-spill'
-import type { SaveTextSpill, SpillRef } from '@bosch/bh-spill'
-import * as SpillPolicy from '@bosch/bh-spill-policy'
-import { WorkerThreadCodeRuntime } from '@bosch/bh-code-runtime-worker-thread'
+import { Context } from '@hydra/cordis'
+import Loader from '@hydra/cordis-plugin-loader'
+import { createUserMessage, CallId } from '@hydra/harness-llm'
+import type { ContentBlock } from '@hydra/harness-llm'
+import { SessionId } from '@hydra/harness-session'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import ToolRuntime, { defineContentToolFixture } from '@hydra/harness-tools'
+import type { ToolDefinition } from '@hydra/harness-tools'
+import type { PostToolDecision, ToolExecution, ToolExecutionToken } from '@hydra/harness-tools'
+import { SpillLocator, SpillStore } from '@hydra/harness-spill'
+import type { SaveTextSpill, SpillRef } from '@hydra/harness-spill'
+import * as SpillPolicy from '@hydra/harness-spill-policy'
+import { WorkerThreadCodeRuntime } from '@hydra/harness-code-runtime-worker-thread'
 
 const testToolSignal = new AbortController().signal
 

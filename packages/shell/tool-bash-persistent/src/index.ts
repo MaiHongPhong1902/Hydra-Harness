@@ -1,15 +1,15 @@
 /**
  * Model-facing persistent `bash` tool over the owner-scoped PTY seam.
- * @module @bosch/bh-tool-bash-persistent
+ * @module @hydra/harness-tool-bash-persistent
  */
 
 import { randomUUID } from 'node:crypto'
-import type { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import type { Agent } from '@bosch/bh-agent'
-import type { TerminalReadResult, TerminalSessionId } from '@bosch/bh-terminal'
-import { deadline, timeoutOf } from '@bosch/bh-timeout'
-import { defineTool } from '@bosch/bh-tools'
+import type { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import type { Agent } from '@hydra/harness-agent'
+import type { TerminalReadResult, TerminalSessionId } from '@hydra/harness-terminal'
+import { deadline, timeoutOf } from '@hydra/harness-timeout'
+import { defineTool } from '@hydra/harness-tools'
 
 // TODO: Replace the file-search advice; arbitrary command output need not come from a searchable file.
 const TRUNCATED_MESSAGE = '<response clipped><NOTE>To save on context only part of this file has been shown to you. You should retry this tool after you have searched inside the file with `grep -n` in order to find the line numbers of what you are looking for.</NOTE>'

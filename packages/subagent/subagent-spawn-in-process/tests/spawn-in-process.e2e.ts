@@ -1,11 +1,11 @@
-import { createUserMessage } from '@bosch/bh-llm'
+import { createUserMessage } from '@hydra/harness-llm'
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import type { Context } from '@bosch/cordis'
+import type { Context } from '@hydra/cordis'
 import { spawnHarness, waitForIdle } from './harness.ts'
-import { SessionId } from '@bosch/bh-session'
+import { SessionId } from '@hydra/harness-session'
 
 /** Key-gated smoke for a real parent delegating filesystem work to a real child. */
 

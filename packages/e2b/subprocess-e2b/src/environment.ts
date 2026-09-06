@@ -2,9 +2,9 @@
 
 import { Buffer } from 'node:buffer'
 import { posix } from 'node:path'
-import { e2bControlEnvs } from '@bosch/bh-e2b'
-import type { Sandbox } from '@bosch/bh-e2b'
-import { SENSITIVE_ENV_PATTERN } from '@bosch/bh-subprocess'
+import { e2bControlEnvs } from '@hydra/harness-e2b'
+import type { Sandbox } from '@hydra/harness-e2b'
+import { SENSITIVE_ENV_PATTERN } from '@hydra/harness-subprocess'
 
 const BASE64 = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/
 

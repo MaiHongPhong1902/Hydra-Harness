@@ -1,10 +1,10 @@
 /** Test adapter for the production conversation.details.tool registration. */
-import type { HostDescription } from '@bosch/bh-client-connection/client'
+import type { HostDescription } from '@hydra/harness-client-connection/client'
 import type {
   ChatConversationViewNode, ChatSnapshot, ConversationNode, RunningToolCall, SessionId,
-} from '@bosch/bh-client-runtime/client'
-import type { SessionProviderComponent, TranslateNS } from '@bosch/bh-client-ui-slots'
-import type { DetailsSlotProps, DetailsToolOwnerProps } from '@bosch/bh-client-ui-conversation/src/client/contract/slots.ts'
+} from '@hydra/harness-client-runtime/client'
+import type { SessionProviderComponent, TranslateNS } from '@hydra/harness-client-ui-slots'
+import type { DetailsSlotProps, DetailsToolOwnerProps } from '@hydra/harness-client-ui-conversation/src/client/contract/slots.ts'
 import { ToolDetails } from '../src/client/tool/ToolDetails.tsx'
 
 /** Framework session-area seat used by direct DetailsPanel tests. */

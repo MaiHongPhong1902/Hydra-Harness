@@ -4,13 +4,13 @@ import {
   isInvalidHandle,
   windowsProcessTree,
   WindowsProcessInspector,
-} from '@bosch/bh-subprocess-local/src/windows-inspector.ts'
+} from '@hydra/harness-subprocess-local/src/windows-inspector.ts'
 import type {
   NativePtr,
   ProcessEntry,
   WindowsProcessInspectorInternals,
   WindowsProcessState,
-} from '@bosch/bh-subprocess-local/src/windows-inspector.ts'
+} from '@hydra/harness-subprocess-local/src/windows-inspector.ts'
 
 function fakeInternals() {
   const entries: ProcessEntry[] = []

@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 
-const DEFAULT_CLIENT_TITLE = 'BH Local Build'
+const DEFAULT_CLIENT_TITLE = 'Hydra harness'
 
 /** Props for the browser title projection. */
 export interface DocumentTitleProps {

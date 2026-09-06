@@ -1,15 +1,16 @@
-# @bosch/bh-skill
+# @hydra/harness-skill
 
-Pure agent skill provider registry.
+Agent skill provider registry and shared document parsing.
 
-This package owns the `ctx.skills` interface. It does not know whether skills come from local files, embedded plugin data, HTTP, or another backend; providers register those sources with `ctx.skills.registerProvider(...)`. The shipped local implementation is [`@bosch/bh-skill-filesystem`](../skill-filesystem).
+This package owns the `ctx.skills` interface. It does not know whether skills come from local files, embedded plugin data, HTTP, or another backend; providers register those sources with `ctx.skills.registerProvider(...)`. The shipped local implementation is [`@hydra/harness-skill-filesystem`](../skill-filesystem).
 
-The registry is host+per-scope layered over [`@bosch/bh-scope`](../../core/scope), the shape the tools registry established: a registration files into the layer of its calling context's scope — host rows and repository plugins land in the global layer, a plugin mounted by an agent preset's standing composition lands in that preset's layer — and a read merges the global layer with the viewing scope's chain, the nearest layer winning a duplicate name outright while rank decides duplicates only within one layer.
+The registry is host+per-scope layered over [`@hydra/harness-scope`](../../core/scope), the shape the tools registry established: a registration files into the layer of its calling context's scope — host rows and repository plugins land in the global layer, a plugin mounted by an agent preset's standing composition lands in that preset's layer — and a read merges the global layer with the viewing scope's chain, the nearest layer winning a duplicate name outright while rank decides duplicates only within one layer.
 
 ## Service: `SkillRegistry` (ctx key: `skills`)
 
 ### Public API
 
+- `parseSkillDocument(raw)` Parses a Markdown document with leading YAML frontmatter into `SkillDocument`: name, description, optional routing hint and metadata, resolved invocation policy, and trimmed instructions. Folded and literal YAML strings retain their parsed values. Missing or invalid required fields, malformed YAML, and invalid invocation controls throw. Both filesystem and imported-plugin providers use this parser.
 - `ctx.skills.registerProvider(create): () => void` Calls a synchronous provider factory with `{ signal, invalidate }`, then registers its readonly result by `provider.name`, unique within the calling context's layer. Duplicate names in one layer throw, `runtime` is reserved, and failed registration aborts the signal. The exact Cordis disposer unregisters the provider, aborts the signal, and preserves ordered composite teardown.
 - `ctx.skills.snapshot({ cwd?, signal?, scope? })` Returns the invocation-neutral `{ skills, complete }` observation for the viewing scope's merged layers. `complete` is false when any provider rejects or explicitly reports incomplete discovery, or when a second catalog revision races the bounded retry; candidates supplied by that observation remain in this result, which is never cached.
 - `ctx.skills.list({ cwd?, signal?, scope? })` Borrows the readonly view options, then returns every winning summary for the current workspace, merged across the global layer and the viewing scope's chain and sorted by name. Consumers apply `isModelInvocable(skill)` or `isUserInvocable(skill)` at their own boundary.
@@ -18,7 +19,7 @@ The registry is host+per-scope layered over [`@bosch/bh-scope`](../../core/scope
 
 ### Events
 
-- `skills/change` is an unfiltered invalidation notification emitted after a provider or runtime contribution is registered or disposed and after an active provider's registration control invalidates. It carries no catalog or diff: each consumer refetches `snapshot()` with its own lookup options. Its client-safe Cordis declaration is available from `@bosch/bh-skill/types`. Listener throws and rejected promises are logged and cannot veto the registry mutation or starve later listeners.
+- `skills/change` is an unfiltered invalidation notification emitted after a provider or runtime contribution is registered or disposed and after an active provider's registration control invalidates. It carries no catalog or diff: each consumer refetches `snapshot()` with its own lookup options. Its client-safe Cordis declaration is available from `@hydra/harness-skill/types`. Listener throws and rejected promises are logged and cannot veto the registry mutation or starve later listeners.
 
 ### Config
 
@@ -39,7 +40,7 @@ The registry is host+per-scope layered over [`@bosch/bh-scope`](../../core/scope
 
 ### Shared model-facing rendering
 
-`renderSkillContent(skill)` renders one loaded skill as the canonical `<skill_content>` block (escaped `name` attribute, resource hints, verbatim body). It is the single truth for every loading path: `bh-tool-skill` returns it as the `skill` tool result and uses it for automatic and user-explicit injections, so the model sees one shape regardless of who initiated the load. `escapeText` is exported beside it for consumers embedding prose in the same markup frame. The package also declares the `skill-invocation` `MessageSource` kind ({ name, trigger?: 'automatic' | 'user', form: 'instructions' }) that host injection stamps on its messages — current producers always set `trigger`, while older durable records without it remain readable.
+`renderSkillContent(skill)` renders one loaded skill as the canonical `<skill_content>` block (escaped `name` attribute, resource hints, verbatim body). It is the single truth for every loading path: `@hydra/harness-tool-skill` returns it as the `skill` tool result and uses it for automatic and user-explicit injections, so the model sees one shape regardless of who initiated the load. `escapeText` is exported beside it for consumers embedding prose in the same markup frame. The package also declares the `skill-invocation` `MessageSource` kind ({ name, trigger?: 'automatic' | 'user', form: 'instructions' }) that host injection stamps on its messages — current producers always set `trigger`, while older durable records without it remain readable.
 
 `isModelInvocable(skill)` and `isUserInvocable(skill)` read the matching positive field directly. `ctx.skills.get()` remains the trusted, policy-neutral loading primitive, so every user- or model-facing consumer must enforce the predicate that matches its surface before exposing or loading a skill.
 
@@ -47,7 +48,7 @@ The registry is host+per-scope layered over [`@bosch/bh-scope`](../../core/scope
 
 A provider factory runs synchronously and receives one registration-scoped control. `control.signal` aborts when registration fails or is disposed; `control.invalidate()` clears completed catalogs only while that exact registration remains active, so late callbacks cannot affect a replacement with the same name. Immutable providers may ignore the control. Remote setup, authentication, and discovery belong in the provider's awaited `list(options)` call. An array return is shorthand for complete discovery; a provider that collected usable candidates but could not establish an authoritative observation returns `{ candidates, complete: false }`. Provider objects, lookup options, candidates, and definitions are borrowed readonly rather than cloned or rebound. Providers should honor `options.signal`; the registry also stops awaiting uncooperative discovery or loading after cancellation.
 
-The registry validates candidates before caching and definitions before returning them. A candidate may declare kebab-case `aliases`; an alias is exposed only when exactly one resolved candidate claims it and no canonical skill has that name, while loading keeps the provider's original candidate and returns the requested alias as the definition name. The winning provider receives the same candidate and opaque `locator` it returned from `list()`, allowing backend-specific file, URL, id, or version handles. Callers and providers must preserve the readonly contract.
+The registry validates candidates before caching and definitions before returning them. A candidate may declare kebab-case `aliases`; an alias is exposed only when exactly one resolved candidate claims it and no canonical skill has that name. Alias summaries carry `aliasFor`, the winning canonical name, so discovery consumers can count each definition once. Loading keeps the provider's original candidate and returns the requested alias as the definition name. The winning provider receives the same candidate and opaque `locator` it returned from `list()`, allowing backend-specific file, URL, id, or version handles. Callers and providers must preserve the readonly contract.
 
 Contract violations fail fast. A rejected provider `list()` is treated as a transient source failure and omitted. An explicit incomplete observation still contributes its candidates for `list()` and `get()`, but makes the aggregate snapshot incomplete and uncacheable. A provider or runtime revision change discards an in-flight result and retries once. If the retry is also superseded, its candidates are returned incomplete and uncached so a continuously invalidating provider cannot monopolize the caller. Within one layer, duplicate names resolve by rank, provider registration order, then provider-local order; across layers the nearest scope's entry wins the name. Summaries are sorted by skill name.
 
@@ -59,11 +60,11 @@ Definitions remain progressively loaded. `get()` asks the winning provider for t
 
 ## Consumer boundary
 
-The registry does not render model guidance or register model-facing tools. [`@bosch/bh-tool-skill`](../tool-skill) consumes `ctx.skills` to provide bounded automatic routing, `skill_search`, exact `skill` loading, and direct user invocation, so providers remain independent of model-facing behavior.
+The registry does not render model guidance or register model-facing tools. [`@hydra/harness-tool-skill`](../tool-skill) consumes `ctx.skills` to provide bounded automatic routing, `skill_search`, exact `skill` loading, and direct user invocation, so providers remain independent of model-facing behavior.
 
 ## Model Experience
 
-Indirectly, through `bh-tool-skill`, which renders an automatically selected strong match or a bounded on-demand metadata shortlist and selected instructions.
+Indirectly, through `@hydra/harness-tool-skill`, which renders an automatically selected strong match or a bounded on-demand metadata shortlist and selected instructions.
 
 #### KV Cache effect
 

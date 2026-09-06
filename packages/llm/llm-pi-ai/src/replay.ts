@@ -8,8 +8,8 @@
  * @module bh-llm-pi-ai/replay
  */
 
-import { LlmError } from '@bosch/bh-llm'
-import type { Message, ModelMessageSource, ReplayEnvelope } from '@bosch/bh-llm'
+import { LlmError } from '@hydra/harness-llm'
+import type { Message, ModelMessageSource, ReplayEnvelope } from '@hydra/harness-llm'
 import type { Api, AssistantMessage, Usage as PiUsage } from '@earendil-works/pi-ai'
 
 /** Per-block half of the pi-ai replay envelope, one entry per content block. */

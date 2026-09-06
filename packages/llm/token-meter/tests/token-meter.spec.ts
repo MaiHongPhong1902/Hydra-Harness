@@ -1,12 +1,12 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import { createUserMessage, CallId, createMessage } from '@bosch/bh-llm'
-import type { ContentBlock, Message, TokenUsage } from '@bosch/bh-llm'
-import SessionStore, { Session, SessionId, canonicalHeader } from '@bosch/bh-session'
-import type { EpochHeader, SessionEvent } from '@bosch/bh-session'
-import SessionProjectionRegistry from '@bosch/bh-session-projection'
-import TokenMeter from '@bosch/bh-token-meter'
-import type { TokenMeasurement, TokenMeterConfig } from '@bosch/bh-token-meter'
+import { Context } from '@hydra/cordis'
+import { createUserMessage, CallId, createMessage } from '@hydra/harness-llm'
+import type { ContentBlock, Message, TokenUsage } from '@hydra/harness-llm'
+import SessionStore, { Session, SessionId, canonicalHeader } from '@hydra/harness-session'
+import type { EpochHeader, SessionEvent } from '@hydra/harness-session'
+import SessionProjectionRegistry from '@hydra/harness-session-projection'
+import TokenMeter from '@hydra/harness-token-meter'
+import type { TokenMeasurement, TokenMeterConfig } from '@hydra/harness-token-meter'
 
 function header(model: string, extras: Omit<EpochHeader, 'config'> = {}): EpochHeader {
   return canonicalHeader({ config: { provider: 'mock', model }, ...extras })

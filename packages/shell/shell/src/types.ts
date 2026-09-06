@@ -1,17 +1,17 @@
 /**
  * Execution types for the bash executor seam. Background job semantics belong
- * to `@bosch/bh-jobs`; this seam exposes only process handles. The
+ * to `@hydra/harness-jobs`; this seam exposes only process handles. The
  * managed-environment and captured-output vocabulary is owned by the
  * subprocess seam and re-exported here so bash consumers keep one import
  * root.
  * @module bh-shell/types
  */
 
-import type { SandboxEnforcement, SandboxExecutionPolicy, SandboxMode } from '@bosch/bh-sandbox'
-import type { CollectedOutput, BhEnvironment } from '@bosch/bh-subprocess'
+import type { SandboxEnforcement, SandboxExecutionPolicy, SandboxMode } from '@hydra/harness-sandbox'
+import type { CollectedOutput, BhEnvironment } from '@hydra/harness-subprocess'
 
-export { BH_ENV_PREFIX } from '@bosch/bh-subprocess'
-export type { CollectedOutput, BhEnvironment, BhEnvironmentKey } from '@bosch/bh-subprocess'
+export { BH_ENV_PREFIX } from '@hydra/harness-subprocess'
+export type { CollectedOutput, BhEnvironment, BhEnvironmentKey } from '@hydra/harness-subprocess'
 
 /**
  * Sandbox facts for one run, present iff a sandboxing executor handled it.

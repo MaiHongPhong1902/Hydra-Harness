@@ -1,10 +1,10 @@
-/** Package-owned invariant companion for `@bosch/bh-attachment`. @module @bosch/bh-attachment/invariant */
+/** Package-owned invariant companion for `@hydra/harness-attachment`. @module @hydra/harness-attachment/invariant */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-attachment'
+const PACKAGE_NAME = '@hydra/harness-attachment'
 /** Cordis companion plugin name. */
 export const name = 'attachment-invariant'
 /** Service required before package ownership can be reserved. */

@@ -1,11 +1,11 @@
-/** Package-owned durable workflow-record invariants. @module @bosch/bh-tool-workflow/invariant */
+/** Package-owned durable workflow-record invariants. @module @hydra/harness-tool-workflow/invariant */
 
-import type { Context } from '@bosch/cordis'
-import type { Session, SessionEvent } from '@bosch/bh-session'
-import type { InvariantFailure, InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { Session, SessionEvent } from '@hydra/harness-session'
+import type { InvariantFailure, InvariantInstaller } from '@hydra/harness-invariants'
 import type {} from './types.ts'
 
-const PACKAGE_NAME = '@bosch/bh-tool-workflow'
+const PACKAGE_NAME = '@hydra/harness-tool-workflow'
 
 /** Cordis companion plugin name. */
 export const name = 'tool-workflow-invariant'

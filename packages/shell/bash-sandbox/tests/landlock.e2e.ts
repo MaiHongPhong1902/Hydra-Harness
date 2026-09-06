@@ -4,12 +4,12 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import { homedir, tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import { launcherPath } from '@bosch/node-addon-landlock-run'
-import { LocalSandboxProvider } from '@bosch/bh-sandbox-local'
-import { SandboxPolicyService } from '@bosch/bh-sandbox-policy'
-import { SandboxBashExecutor } from '@bosch/bh-bash-sandbox'
-import LocalSubprocessRuntime from '@bosch/bh-subprocess-local'
+import { Context } from '@hydra/cordis'
+import { launcherPath } from '@hydra/node-addon-landlock-run'
+import { LocalSandboxProvider } from '@hydra/harness-sandbox-local'
+import { SandboxPolicyService } from '@hydra/harness-sandbox-policy'
+import { SandboxBashExecutor } from '@hydra/harness-bash-sandbox'
+import LocalSubprocessRuntime from '@hydra/harness-subprocess-local'
 
 /**
  * KEYLESS consumer-integration proof: the REAL `LocalSandboxProvider` (bwrap
@@ -17,7 +17,7 @@ import LocalSubprocessRuntime from '@bosch/bh-subprocess-local'
  * REAL `SandboxBashExecutor`, driven through the executor's public run/start
  * paths. Verifies the WORLD (files exist or don't) plus the stamped result
  * facts; the backend-only confinement proofs live with
- * `@bosch/bh-sandbox-local`.
+ * `@hydra/harness-sandbox-local`.
  *
  * Self-skips when the running kernel does not enforce Landlock. CI builds the launcher from
  * `native/landlock-run` before running this file.

@@ -76,13 +76,13 @@
         "**/*.ts"
       ],
       "ignoreDependencies": [
-        "@bosch/.+"
+        "@hydra/.+"
       ]
     },
     "packages/host/directory-picker-auto": {
       "ignoreDependencies": [
-        "@bosch/bh-client-ui-directory-picker-browse",
-        "@bosch/bh-client-ui-directory-picker-native"
+        "@hydra/harness-client-ui-directory-picker-browse",
+        "@hydra/harness-client-ui-directory-picker-native"
       ]
     },
     "packages/extensions/cordis-host-runner": {
@@ -116,7 +116,7 @@
         "tests/**/*.ts"
       ],
       "ignoreDependencies": [
-        "@bosch/bh-api-gateway"
+        "@hydra/harness-api-gateway"
       ]
     },
     "packages/client/ui-primitives": {
@@ -630,8 +630,8 @@
         "tests/**/*.ts"
       ],
       "ignoreDependencies": [
-        "@bosch/bh-client-ui-primitives",
-        "@bosch/bh-client-ui-slots",
+        "@hydra/harness-client-ui-primitives",
+        "@hydra/harness-client-ui-slots",
         "@types/react",
         "@types/react-dom",
         "react",
@@ -649,7 +649,7 @@
         "tests/**/*.ts"
       ],
       "ignoreDependencies": [
-        "@bosch/.+"
+        "@hydra/.+"
       ]
     },
     "packages/subagent/subagent-bh-sdk": {
@@ -664,17 +664,17 @@
     },
     "packages/bundle/base": {
       "ignoreDependencies": [
-        "@bosch/.+"
+        "@hydra/.+"
       ]
     },
     "packages/bundle/headless": {
       "ignoreDependencies": [
-        "@bosch/bh-code-runtime-worker-thread"
+        "@hydra/harness-code-runtime-worker-thread"
       ]
     },
     "packages/bundle/web-app": {
       "ignoreDependencies": [
-        "@bosch/.+"
+        "@hydra/.+"
       ]
     }
   }

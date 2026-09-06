@@ -1,7 +1,7 @@
 {
-  "name": "@bosch/bh-desktop",
+  "name": "@hydra/harness-desktop",
   "version": "0.1.1-rc.1",
-  "description": "Windows-first Electron shell for the existing BH Web renderer and controlled browser",
+  "description": "Windows-first Electron shell for the existing Hydra Web renderer and controlled browser",
   "publishConfig": {
     "access": "public"
   },
@@ -13,7 +13,8 @@
   "main": "main.cjs",
   "files": [
     "main.cjs",
-    "preload.cjs"
+    "preload.cjs",
+    "assets"
   ],
   "license": "MIT",
   "scripts": {
@@ -21,10 +22,10 @@
     "smoke": "electron . --smoke"
   },
   "dependencies": {
-    "@bosch/bh": "workspace:^",
-    "@bosch/bh-atomic-write": "workspace:^",
-    "@bosch/bh-browser-electron": "workspace:^",
-    "@bosch/bh-subprocess": "workspace:^",
+    "@hydra/harness": "workspace:^",
+    "@hydra/harness-atomic-write": "workspace:^",
+    "@hydra/harness-browser-electron": "workspace:^",
+    "@hydra/harness-subprocess": "workspace:^",
     "node-pty": "1.2.0-beta.15",
     "prettier": "^3.9.5"
   },

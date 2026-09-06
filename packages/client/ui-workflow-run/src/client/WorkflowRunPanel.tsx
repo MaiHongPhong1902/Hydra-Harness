@@ -5,9 +5,9 @@ import {
 import {
   DisclosureRow, IconChevronRightOutline14, StateDot,
   type DisclosureRowProps, type StateDotState,
-} from '@bosch/bh-client-ui-primitives'
-import type { PropsLocale, PropsRuntime } from '@bosch/bh-client-ui-slots'
-import { shallowEqual, type SessionId, type SessionListState } from '@bosch/bh-client-runtime/client'
+} from '@hydra/harness-client-ui-primitives'
+import type { PropsLocale, PropsRuntime } from '@hydra/harness-client-ui-slots'
+import { shallowEqual, type SessionId, type SessionListState } from '@hydra/harness-client-runtime/client'
 import type { WorkflowRunKey } from './locales.ts'
 import type {
   WorkflowRunMemberData, WorkflowRunPhaseData, WorkflowRunStatus,

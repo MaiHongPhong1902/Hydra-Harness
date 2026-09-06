@@ -1,6 +1,6 @@
-# @bosch/bh-jobs
+# @hydra/harness-jobs
 
-The background job registry contract (`ctx.jobs`). The abstract `JobRegistry` and its vocabulary types give long-running producers shared ids, owner isolation, reads, cancellation, waiting, notices, and cleanup under one contract; the process-local registry lives in [`bh-jobs-local`](../jobs-local/README.md). Producer plugins extend `JobKindMap` with their opaque id namespace.
+The background job registry contract (`ctx.jobs`). The abstract `JobRegistry` and its vocabulary types give long-running producers shared ids, owner isolation, reads, cancellation, waiting, notices, and cleanup under one contract; the process-local registry lives in [`@hydra/harness-jobs-local`](../jobs-local/README.md). Producer plugins extend `JobKindMap` with their opaque id namespace.
 
 ## Service contract
 
@@ -25,7 +25,7 @@ See the [job type catalog](../../../docs/subsystems/jobs.md), the [runtime Agent
 
 ## Model Experience
 
-Indirectly, through producer plugins and [`bh-tool-jobs`](../tool-jobs/README.md), which render job ids, output, status, cancellation, and completion notices.
+Indirectly, through producer plugins and [`@hydra/harness-tool-jobs`](../tool-jobs/README.md), which render job ids, output, status, cancellation, and completion notices.
 
 #### KV Cache effect
 

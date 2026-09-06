@@ -1,6 +1,6 @@
 {
-  "name": "@bosch/bh-subprocess-e2b",
-  "description": "E2B subprocess implementation for Bosch Harness",
+  "name": "@hydra/harness-subprocess-e2b",
+  "description": "E2B subprocess implementation for Hydra harness",
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"
@@ -32,20 +32,20 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@bosch/bh-e2b": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-subprocess": "workspace:^",
-    "@bosch/bh-timeout": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-e2b": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-subprocess": "workspace:^",
+    "@hydra/harness-timeout": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   },
   "dependencies": {
-    "@bosch/schemastery": "workspace:^"
+    "@hydra/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@bosch/bh-e2b": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-subprocess": "workspace:^",
-    "@bosch/bh-timeout": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-e2b": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-subprocess": "workspace:^",
+    "@hydra/harness-timeout": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   }
 }

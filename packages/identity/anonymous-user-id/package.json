@@ -1,6 +1,6 @@
 {
-  "name": "@bosch/bh-anonymous-user-id",
-  "description": "Shared anonymous user identity for Bosch Harness telemetry and feedback correlation",
+  "name": "@hydra/harness-anonymous-user-id",
+  "description": "Shared anonymous user identity for Hydra harness telemetry and feedback correlation",
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"
@@ -32,15 +32,15 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@bosch/bh-brand": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-home-paths": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-brand": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-home-paths": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@bosch/bh-brand": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-home-paths": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-brand": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-home-paths": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   }
 }

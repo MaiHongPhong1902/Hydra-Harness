@@ -1,6 +1,6 @@
 /**
  * The escalation vocabulary and choreography shared by every sandbox-enforcing
- * tool family (`@bosch/bh-tool-bash`, `@bosch/bh-tool-fs`): the
+ * tool family (`@hydra/harness-tool-bash`, `@hydra/harness-tool-fs`): the
  * strictly-wider ladder, the argument-pairing validation, the model-facing
  * denial/hint markers, and {@link approveEscalation} — the ordered fail-closed
  * sequence that resolves a `sandbox_permissions` request through a
@@ -16,7 +16,7 @@
  * @module bh-sandbox/escalation
  */
 
-import { assertNever } from '@bosch/bh-llm'
+import { assertNever } from '@hydra/harness-llm'
 import type { SandboxMode } from './index.ts'
 
 /**

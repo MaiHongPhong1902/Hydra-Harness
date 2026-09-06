@@ -4,13 +4,13 @@
  * conflict affordance), local-memory controls, and the personality selector.
  */
 
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { bindSnapshotSelector } from '@bosch/bh-client-test-runtime'
-import { createSnapshotStore } from '@bosch/bh-client-runtime/client'
-import type { SettingsScopeSnapshot } from '@bosch/bh-client-runtime/client'
+import { bindSnapshotSelector } from '@hydra/harness-client-test-runtime'
+import { createSnapshotStore } from '@hydra/harness-client-runtime/client'
+import type { SettingsScopeSnapshot } from '@hydra/harness-client-runtime/client'
 import { PersonalizationSection } from '../src/client/PersonalizationSection.tsx'
-import type { MemorySettings, PersonalitySettings, PersonalizationSectionProps } from '../src/client/PersonalizationSection.tsx'
+import type { MemorySettings, PersonalityDraft, PersonalitySettings, PersonalizationSectionProps } from '../src/client/PersonalizationSection.tsx'
 import type { InstructionsState } from '../src/client/instructions-store.ts'
 import { en } from '../src/client/locales.ts'
 
@@ -32,16 +32,19 @@ function renderSection(
   instructions: Partial<InstructionsState> = {},
   personality: Partial<SettingsScopeSnapshot<PersonalitySettings>> = {},
   memory: Partial<SettingsScopeSnapshot<MemorySettings>> = {},
+  expand = true,
 ) {
   const instructionsStore = createSnapshotStore<InstructionsState>({ ...INSTRUCTIONS_READY, ...instructions })
   const personalityStore = createSnapshotStore<SettingsScopeSnapshot<PersonalitySettings>>({ ...PERSONALITY_READY, ...personality })
   const memoryStore = createSnapshotStore<SettingsScopeSnapshot<MemorySettings>>({ ...MEMORY_READY, ...memory })
+  const personalityDraft = createSnapshotStore<PersonalityDraft>({ value: undefined, saving: false, failed: false })
   const actions = {
     load: vi.fn(() => Promise.resolve()),
     setDraft: vi.fn(),
     save: vi.fn(() => Promise.resolve()),
     reload: vi.fn(() => Promise.resolve()),
-    setPersonality: vi.fn(() => Promise.resolve()),
+    setPersonality: vi.fn((value: PersonalitySettings['personality']) => { personalityDraft.update((draft) => { draft.value = value }) }),
+    savePersonality: vi.fn(() => Promise.resolve()),
     loadMemories: vi.fn(() => Promise.resolve([])),
     removeMemory: vi.fn(() => Promise.resolve(true)),
     setMemory: vi.fn(() => Promise.resolve()),
@@ -52,12 +55,24 @@ function renderSection(
     useInstructions: bindSnapshotSelector(instructionsStore),
     useMemory: bindSnapshotSelector(memoryStore),
     usePersonality: bindSnapshotSelector(personalityStore),
+    usePersonalityDraft: bindSnapshotSelector(personalityDraft),
     t: (key: keyof typeof en) => en[key],
   } as unknown as PersonalizationSectionProps)} />)
+  if (expand) fireEvent.click(screen.getByText('Custom instructions', { selector: 'summary' }))
   return { actions, instructionsStore, personalityStore, memoryStore }
 }
 
 describe('PersonalizationSection', () => {
+  it('starts prompt editors collapsed and keeps typing separate from Save', () => {
+    const { actions } = renderSection({}, {}, {}, false)
+    expect(screen.getByText('Custom instructions', { selector: 'summary' }).closest('details')?.open).toBe(false)
+    expect(screen.getByText('Personality', { selector: 'summary' }).closest('details')?.open).toBe(false)
+    fireEvent.click(screen.getByText('Custom instructions', { selector: 'summary' }))
+    fireEvent.change(screen.getByRole('textbox', { name: 'Custom instructions' }), { target: { value: 'draft' } })
+    fireEvent.click(screen.getByText('Custom instructions', { selector: 'summary' }))
+    expect(actions.setDraft).toHaveBeenCalledWith('draft')
+    expect(actions.save).not.toHaveBeenCalled()
+  })
   it('loads once on mount', () => {
     const { actions } = renderSection()
     expect(actions.load).toHaveBeenCalledTimes(1)
@@ -68,14 +83,14 @@ describe('PersonalizationSection', () => {
 
     const textbox = screen.getByRole('textbox')
     expect(textbox instanceof HTMLTextAreaElement && textbox.value).toBe('be nice')
-    const save = screen.getByRole('button', { name: 'Save' })
+    const save = within(screen.getByText('Custom instructions', { selector: 'summary' }).closest('details')!).getByRole('button', { name: 'Save' })
     expect(save instanceof HTMLButtonElement && save.disabled).toBe(true)
   })
 
   it('enables Save once the draft diverges and calls save on click', () => {
     const { actions } = renderSection({ draft: 'be nicer' })
 
-    const button = screen.getByRole('button', { name: 'Save' })
+    const button = within(screen.getByText('Custom instructions', { selector: 'summary' }).closest('details')!).getByRole('button', { name: 'Save' })
     expect(button instanceof HTMLButtonElement && button.disabled).toBe(false)
     fireEvent.click(button)
 
@@ -102,7 +117,7 @@ describe('PersonalizationSection', () => {
 
     expect(screen.getByRole('alert').textContent).toContain('These instructions changed elsewhere since you loaded them.')
     // Saving stays blocked until the user resolves the conflict.
-    const save = screen.getByRole('button', { name: 'Save' })
+    const save = within(screen.getByText('Custom instructions', { selector: 'summary' }).closest('details')!).getByRole('button', { name: 'Save' })
     expect(save instanceof HTMLButtonElement && save.disabled).toBe(true)
 
     fireEvent.click(screen.getByRole('button', { name: 'Reload' }))
@@ -127,7 +142,8 @@ describe('PersonalizationSection', () => {
   })
 
   it('shows the current personality and routes a change to setPersonality', () => {
-    const { actions } = renderSection({}, { value: { personality: 'friendly' } })
+    const { actions } = renderSection({}, { value: { personality: 'friendly' } }, {}, false)
+    fireEvent.click(screen.getByText('Personality', { selector: 'summary' }))
 
     const select = screen.getByRole('combobox') as HTMLSelectElement
     expect(select.value).toBe('friendly')
@@ -135,10 +151,14 @@ describe('PersonalizationSection', () => {
     fireEvent.change(select, { target: { value: 'none' } })
 
     expect(actions.setPersonality).toHaveBeenCalledWith('none')
+    expect(actions.savePersonality).not.toHaveBeenCalled()
+    fireEvent.click(within(screen.getByText('Personality', { selector: 'summary' }).closest('details')!).getByRole('button', { name: 'Save' }))
+    expect(actions.savePersonality).toHaveBeenCalledOnce()
   })
 
   it('disables the personality selector while unavailable or read-only', () => {
     renderSection({}, { status: 'unavailable', writable: false })
+    fireEvent.click(screen.getByText('Personality', { selector: 'summary' }))
 
     const select = screen.getByRole('combobox')
     expect(select instanceof HTMLSelectElement && select.disabled).toBe(true)

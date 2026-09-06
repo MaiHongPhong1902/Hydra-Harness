@@ -1,11 +1,11 @@
 /** Cordis dynamic-plugin cards, inventory panel, business-view host, and `@pluginId` source. */
 
-import type { ClientContext, SessionId } from '@bosch/bh-client-runtime/client'
-import type {} from '@bosch/bh-client-ui-tool/client'
-import type {} from '@bosch/bh-client-locale/client'
-import type {} from '@bosch/bh-client-ui-sidebar/client'
-import type {} from '@bosch/bh-api-remotes/client'
-import type { InputTriggerService, InputTriggerSource } from '@bosch/bh-client-ui-input-trigger/client'
+import type { ClientContext, SessionId } from '@hydra/harness-client-runtime/client'
+import type {} from '@hydra/harness-client-ui-tool/client'
+import type {} from '@hydra/harness-client-locale/client'
+import type {} from '@hydra/harness-client-ui-sidebar/client'
+import type {} from '@hydra/harness-api-remotes/client'
+import type { InputTriggerService, InputTriggerSource } from '@hydra/harness-client-ui-input-trigger/client'
 import type {} from './events.ts'
 import { CordisActionRow } from './CordisActionRow.tsx'
 import { CordisDefineRow } from './CordisDefineRow.tsx'

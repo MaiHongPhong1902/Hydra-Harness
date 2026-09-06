@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { describe, expect, it, vi } from 'vitest'
 import { act, cleanup, render } from '@testing-library/react'
 import { afterEach } from 'vitest'
-import { SlotRegistry } from '@bosch/bh-client-runtime/client'
-import type { DirectoryFlowOwnerProps } from '@bosch/bh-client-ui-workspace/client'
+import { SlotRegistry } from '@hydra/harness-client-runtime/client'
+import type { DirectoryFlowOwnerProps } from '@hydra/harness-client-ui-workspace/client'
 import { apply, inject } from '../src/client/index.ts'
 import { NativeDirectoryFlow } from '../src/client/flow.ts'
 import { apply as nodeApply } from '../src/index.ts'

@@ -1,7 +1,7 @@
 # Test-only product-shaped composition: mount a deterministic provider behind
 # the same one-shot tool schema as the public Codex example.
 - id: base
-  name: '@bosch/cordis-plugin-include'
+  name: '@hydra/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
@@ -9,7 +9,7 @@
           - id: subagent-result-diagnostic
             name: './tests/fixtures/subagent-result-diagnostic.ts'
           - id: tool-subagent-codex
-            name: '@bosch/bh-tool-subagent'
+            name: '@hydra/harness-tool-subagent'
             config:
               provider: snapshot-diagnostic
               toolName: subagent_codex

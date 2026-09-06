@@ -1,20 +1,20 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
+import { Context } from '@hydra/cordis'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import type { Agent } from '@bosch/bh-agent'
-import { createUserMessage, CallId  } from '@bosch/bh-llm'
+import type { Agent } from '@hydra/harness-agent'
+import { createUserMessage, CallId  } from '@hydra/harness-llm'
 import SessionStore, {
   SESSION_FORMAT_VERSION,
   SessionId,
   type Session,
-} from '@bosch/bh-session'
-import JsonlSessionPersistence from '@bosch/bh-session-persistence-jsonl'
-import SqliteSessionQueryEngine from '@bosch/bh-session-query-sqlite'
-import SystemPrompt from '@bosch/bh-system-prompt'
-import ToolRuntime from '@bosch/bh-tools'
-import * as ToolSessionQuery from '@bosch/bh-tool-session-query'
+} from '@hydra/harness-session'
+import JsonlSessionPersistence from '@hydra/harness-session-persistence-jsonl'
+import SqliteSessionQueryEngine from '@hydra/harness-session-query-sqlite'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import ToolRuntime from '@hydra/harness-tools'
+import * as ToolSessionQuery from '@hydra/harness-tool-session-query'
 
 const temporaryDirectories: string[] = []
 const contexts: Context[] = []

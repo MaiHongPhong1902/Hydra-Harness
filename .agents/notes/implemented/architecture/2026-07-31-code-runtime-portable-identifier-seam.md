@@ -4,13 +4,13 @@ Status: implemented
 
 ## Problem
 
-The code-runtime seam promises that a binding-namespace list valid on one backend is valid on every backend, so a Code Mode consumer can hand the same bindings to any registered runtime without knowing its language. The first backend, `bh-code-runtime-worker-thread`, privately owned the identifier rules that enforce part of that promise: an `IDENTIFIER` regex that allowed the JS-only `$`, a `RESERVED_WORDS` set holding only ECMAScript keywords, and a `RESERVED_ERROR_PROPERTIES` set of three JS `Error` slots. Those rules described the worker's own language, not the seam's portability contract.
+The code-runtime seam promises that a binding-namespace list valid on one backend is valid on every backend, so a Code Mode consumer can hand the same bindings to any registered runtime without knowing its language. The first backend, `@hydra/harness-code-runtime-worker-thread`, privately owned the identifier rules that enforce part of that promise: an `IDENTIFIER` regex that allowed the JS-only `$`, a `RESERVED_WORDS` set holding only ECMAScript keywords, and a `RESERVED_ERROR_PROPERTIES` set of three JS `Error` slots. Those rules described the worker's own language, not the seam's portability contract.
 
 A second backend written against a different language (CPython) would either re-declare its own rules — letting `lambda` pass the worker and fail Python, or `$tools` pass the worker and fail every non-JS backend — or import the worker's, inverting the dependency so a Service Provider reached into a sibling Service Provider. Neither keeps the portability promise real: it would hold only for the backend a caller happened to test against.
 
 ## Decision
 
-The Service Definition package (`@bosch/bh-code-runtime`) exports the portable-identifier exclusion contract as four named constants, and every Service Provider imports them rather than re-declaring:
+The Service Definition package (`@hydra/harness-code-runtime`) exports the portable-identifier exclusion contract as four named constants, and every Service Provider imports them rather than re-declaring:
 
 - `PORTABLE_RESERVED_WORDS` — the union of ECMAScript and Python reserved words. A namespace global or error-class name matching any is refused on all backends, so `lambda` is refused even though it is a legal JS parameter name. Adding a language widens this union, which is a deliberate breaking review of existing binding names.
 - `RESERVED_BINDING_GLOBALS` — globals some backend owns in the program's namespace: `console` (the worker's log capture), `__bh_main__`/`__builtins__`/`__name__` (the Python bootstrap's wrapper and seeded module globals), and `__debug__` (not a seeded slot but a CPython compile-time constant that rejects assignment, so an injected global under that name is unreachable — the same portability split by a different mechanism). Refused everywhere so a namespace list cannot pick a name that works on one backend and collides on another.
@@ -23,7 +23,7 @@ The constants live in the Service Definition even though the worker is the only 
 
 ## Scope
 
-This decision delivers only the Service Definition extension and the worker's adoption of it. The `py-types` renderer and Code Mode language dispatch are owned by the [language-dispatch note](../feature/2026-07-31-code-mode-language-dispatch.md); a Python backend does not exist yet. The Service Definition README keeps its worker-only wording for that reason: linking to a `bh-code-runtime-python` README that does not exist would break the dead-link gate.
+This decision delivers only the Service Definition extension and the worker's adoption of it. The `py-types` renderer and Code Mode language dispatch are owned by the [language-dispatch note](../feature/2026-07-31-code-mode-language-dispatch.md); a Python backend does not exist yet. The Service Definition README keeps its worker-only wording for that reason: linking to a `@hydra/harness-code-runtime-python` README that does not exist would break the dead-link gate.
 
 `RESERVED_BINDING_GLOBALS` encodes the Python bootstrap's concrete design ahead of the backend itself: it seeds exactly `__builtins__`/`__name__` and wraps the program under `__bh_main__`. A Python backend that seeds any additional module global (`__doc__`, `__loader__`, `__spec__`, `__file__`, `__package__`, …) MUST widen this set in the same change, exactly as adding a language widens `PORTABLE_RESERVED_WORDS` — a name the bootstrap seeds but the set omits is the portability split this contract exists to prevent.
 

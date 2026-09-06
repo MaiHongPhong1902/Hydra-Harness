@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import SessionStore, { Session, SessionId } from '@bosch/bh-session'
-import * as HookInvariant from '@bosch/bh-hook-protocol/invariant'
-import InvariantRegistry from '@bosch/bh-invariants'
+import { Context } from '@hydra/cordis'
+import SessionStore, { Session, SessionId } from '@hydra/harness-session'
+import * as HookInvariant from '@hydra/harness-hook-protocol/invariant'
+import InvariantRegistry from '@hydra/harness-invariants'
 
 async function setup(): Promise<Context> {
   const ctx = new Context()

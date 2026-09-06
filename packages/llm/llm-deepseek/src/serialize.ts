@@ -6,10 +6,10 @@
  * @module bh-llm-deepseek/serialize
  */
 
-import { contentHasImage, LlmError, offloadRequestImages } from '@bosch/bh-llm'
-import type { ContentBlock, GenerateOptions, Message } from '@bosch/bh-llm'
-import { AttachmentError } from '@bosch/bh-attachment'
-import type { AttachmentStore } from '@bosch/bh-attachment'
+import { contentHasImage, LlmError, offloadRequestImages } from '@hydra/harness-llm'
+import type { ContentBlock, GenerateOptions, Message } from '@hydra/harness-llm'
+import { AttachmentError } from '@hydra/harness-attachment'
+import type { AttachmentStore } from '@hydra/harness-attachment'
 import type {
   WireImageContentPart,
   WireMessage,

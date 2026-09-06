@@ -1,11 +1,11 @@
-/** Package-owned background-job snapshot invariants. @module @bosch/bh-jobs/invariant */
+/** Package-owned background-job snapshot invariants. @module @hydra/harness-jobs/invariant */
 
-import type { Context } from '@bosch/cordis'
-import type { Agent } from '@bosch/bh-agent'
-import type { InvariantFailure, InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { Agent } from '@hydra/harness-agent'
+import type { InvariantFailure, InvariantInstaller } from '@hydra/harness-invariants'
 import type { JobSnapshot } from './types.ts'
 
-const PACKAGE_NAME = '@bosch/bh-jobs'
+const PACKAGE_NAME = '@hydra/harness-jobs'
 const TERMINAL_STATUSES = new Set(['completed', 'killed', 'failed'])
 
 /** Cordis companion plugin name. */

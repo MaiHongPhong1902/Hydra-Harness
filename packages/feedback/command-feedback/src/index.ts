@@ -3,14 +3,14 @@
  * appends one authoritative log-only event and does not start model work. The
  * append is eager but unflushed, so acknowledgement reports that the entry is
  * logged, not that it reached disk.
- * @module @bosch/bh-command-feedback
+ * @module @hydra/harness-command-feedback
  */
 
-import type { Context } from '@bosch/cordis'
-import type { CommandInvocation, CommandResult } from '@bosch/bh-commands'
-import type { SessionTelemetryBackend, SessionTelemetrySharingStatus } from '@bosch/bh-session-telemetry'
-import type { Session } from '@bosch/bh-session'
-import { getOrCreateAnonymousUserId } from '@bosch/bh-anonymous-user-id'
+import type { Context } from '@hydra/cordis'
+import type { CommandInvocation, CommandResult } from '@hydra/harness-commands'
+import type { SessionTelemetryBackend, SessionTelemetrySharingStatus } from '@hydra/harness-session-telemetry'
+import type { Session } from '@hydra/harness-session'
+import { getOrCreateAnonymousUserId } from '@hydra/harness-anonymous-user-id'
 
 export const name = 'command-feedback'
 export const inject = ['commands']
@@ -53,7 +53,7 @@ function sharingDisclosure(telemetry: SessionTelemetryBackend | undefined): stri
   return sharingSentence(telemetry.sharing)
 }
 
-declare module '@bosch/bh-session/types' {
+declare module '@hydra/harness-session/types' {
   interface SessionEventMap {
     /**
      * One recorded human remark about this session. Log-only and independent

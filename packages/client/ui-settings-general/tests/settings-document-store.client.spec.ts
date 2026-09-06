@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { RpcResponse } from '@bosch/bh-api-remotes/client'
-import { SettingsDescribeMirror } from '@bosch/bh-client-ui-settings/src/client/settings-mirror.ts'
+import type { RpcResponse } from '@hydra/harness-api-remotes/client'
+import { SettingsDescribeMirror } from '@hydra/harness-client-ui-settings/src/client/settings-mirror.ts'
 import { SettingsDocumentStore } from '../src/client/settings-document-store.ts'
 
 /** Store over a real mirror derived from the same fake wire. */

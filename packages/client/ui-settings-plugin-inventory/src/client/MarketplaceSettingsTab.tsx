@@ -3,15 +3,15 @@ import type {
   AddPluginMarketplaceRequest,
   PluginMarketplaceSnapshot,
   SetPluginMarketplaceEnablementRequest,
-} from '@bosch/bh-api-remotes/client'
+} from '@hydra/harness-api-remotes/client'
 import {
   Button,
   IconPlusOutline16,
   Input,
   Modal,
   Switch,
-} from '@bosch/bh-client-ui-primitives'
-import type { InjectFace, PropsLocale, PropsRuntime } from '@bosch/bh-client-ui-slots'
+} from '@hydra/harness-client-ui-primitives'
+import type { InjectFace, PropsLocale, PropsRuntime } from '@hydra/harness-client-ui-slots'
 import { marketplaceOwnerLabel, matchesQuery } from './marketplace-owner.ts'
 import type { ImportedPluginControls } from './PluginInventorySettingsTab.tsx'
 import css from './PluginInventorySettingsTab.module.css'
@@ -59,6 +59,7 @@ function isMissingMarketplaceCatalog(error: unknown): boolean {
 
 /** Add and inspect configured marketplace sources. */
 export function MarketplaceSettingsTab({
+  active,
   addMarketplace,
   importedPlugins,
   listMarketplaces,
@@ -86,13 +87,14 @@ export function MarketplaceSettingsTab({
   const [mutationFailure, setMutationFailure] = useState<MutationFailure>()
 
   useEffect(() => {
+    if (!active) return undefined
     let current = true
     void Promise.resolve().then(() => listMarketplaces()).then(
       (snapshot) => { if (current) setState({ status: 'ready', snapshot }) },
       () => { if (current) setState({ status: 'error' }) },
     )
     return () => { current = false }
-  }, [listMarketplaces, request])
+  }, [active, listMarketplaces, request])
 
   const retry = (): void => {
     setState({ status: 'loading' })

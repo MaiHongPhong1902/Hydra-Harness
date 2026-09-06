@@ -10,18 +10,19 @@
  * disposing the old instance and creating a new one; identical `serverName`
  * reproduces identical public tool names.
  *
- * @module @bosch/bh-mcp-client
+ * @module @hydra/harness-mcp-client
  */
 
-import type { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import { MAX_TIMER_DELAY_MS } from '@bosch/bh-timeout'
+import type { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import { MAX_TIMER_DELAY_MS } from '@hydra/harness-timeout'
 import { RECONNECT_DEFAULTS, resolveReconnectPolicy, startConnection } from './connection.ts'
 import type { ReconnectConfig } from './connection.ts'
 // Side-effect type import: declaration-merges `ctx.tools` onto Context.
-import type {} from '@bosch/bh-tools'
+import type {} from '@hydra/harness-tools'
 
 export type { McpResult } from './tools.ts'
+export { publicToolName } from './tools.ts'
 export type { ReconnectConfig, ResolvedReconnectPolicy } from './connection.ts'
 
 /** Cordis plugin name used by loader diagnostics. */

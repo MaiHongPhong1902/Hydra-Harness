@@ -2,7 +2,7 @@ import type {
   AssistantMessageNode, ConversationLocation, ConversationNode,
   ConversationPromptSnapshot, ConversationViewNode, PartialAssistant,
   RequestPromptChange, RequestView, RunningToolCall, ToolCallBlock,
-} from '@bosch/bh-client-runtime/client'
+} from '@hydra/harness-client-runtime/client'
 
 /** Request-header facts retained by the Trajectory target. */
 export interface TrajectoryRequestHeaderState {
@@ -67,7 +67,7 @@ export interface TrajectorySnapshot {
   readonly runningCalls: readonly RunningToolCall[]
 }
 
-declare module '@bosch/bh-client-runtime/client' {
+declare module '@hydra/harness-client-runtime/client' {
   interface ConversationViewSnapshotMap {
     /** Independently assembled data consumed by the Trajectory view. */
     trajectory: TrajectorySnapshot

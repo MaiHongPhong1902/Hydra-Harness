@@ -2,10 +2,10 @@
  * Wire-safe authorization types, free of cordis/service imports so browser type
  * chains (apiproxy api → client) can consume them without loading this
  * package's Context augmentation.
- * @module @bosch/bh-authorization/types
+ * @module @hydra/harness-authorization/types
  */
 
-import type { CredentialKey } from '@bosch/bh-credentials/types'
+import type { CredentialKey } from '@hydra/harness-credentials/types'
 
 /** One way a flow can obtain its credential, named by the flow that offers it. */
 export interface AuthorizationMethod {

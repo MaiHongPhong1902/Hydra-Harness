@@ -1,6 +1,6 @@
 {
-  "name": "@bosch/bh-session-stats",
-  "description": "Whole-log conversation counts and wall times projection (sessionStats) for the Bosch Harness",
+  "name": "@hydra/harness-session-stats",
+  "description": "Whole-log conversation counts and wall times projection (sessionStats) for the Hydra harness",
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"
@@ -41,22 +41,22 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-llm": "workspace:^",
-    "@bosch/bh-session": "workspace:^",
-    "@bosch/bh-session-projection": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/harness-session": "workspace:^",
+    "@hydra/harness-session-projection": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   },
   "dependencies": {
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@bosch/cordis-plugin-include": "workspace:^",
-    "@bosch/cordis-plugin-loader": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-llm": "workspace:^",
-    "@bosch/bh-session": "workspace:^",
-    "@bosch/bh-session-projection": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/cordis-plugin-include": "workspace:^",
+    "@hydra/cordis-plugin-loader": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/harness-session": "workspace:^",
+    "@hydra/harness-session-projection": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   }
 }

@@ -2,13 +2,13 @@
  * Provider-owned request-retry policy configuration and resolution.
  *
  * Adapters expose one resolved policy per registered provider route; the
- * optional bh-llm-retry plugin executes it on the agent's failed-step extension point.
+ * optional @hydra/harness-llm-retry plugin executes it on the agent's failed-step extension point.
  *
- * @module @bosch/bh-llm/retry-policy
+ * @module @hydra/harness-llm/retry-policy
  */
 
-import z from '@bosch/schemastery'
-import { MAX_TIMER_DELAY_MS } from '@bosch/bh-timeout'
+import z from '@hydra/schemastery'
+import { MAX_TIMER_DELAY_MS } from '@hydra/harness-timeout'
 import { EMPTY_RESPONSE_CODE } from './error.ts'
 
 const DEFAULT_MAX_RETRIES = 5

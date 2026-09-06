@@ -1,16 +1,16 @@
-import { BrandWordmark, FishLogo } from '@bosch/bh-client-ui-primitives'
-import type { HeroBrandMarkOwnerProps } from '@bosch/bh-client-ui-conversation/client'
-import type { SidebarBrandMarkOwnerProps } from '@bosch/bh-client-ui-sidebar/client'
+import { BrandWordmark, HydraLogo } from '@hydra/harness-client-ui-primitives'
+import type { HeroBrandMarkOwnerProps } from '@hydra/harness-client-ui-conversation/client'
+import type { SidebarBrandMarkOwnerProps } from '@hydra/harness-client-ui-sidebar/client'
 
 type OfficialBrandMarkProps = HeroBrandMarkOwnerProps & SidebarBrandMarkOwnerProps
 
 /**
  * Render the official mark with the presentation requested by its host surface.
  * @param props - Host-supplied mark presentation.
- * @returns the official WorkON mark.
+ * @returns the official Hydra mark.
  */
 export function OfficialBrandMark({ size, className }: OfficialBrandMarkProps) {
-  return <FishLogo size={size} className={className} />
+  return <HydraLogo size={size} className={className} />
 }
 
 /**

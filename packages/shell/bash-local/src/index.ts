@@ -6,16 +6,16 @@
  * classification, the model-friendly terminal environment, and the model-facing
  * stdout/stderr merge for background reads. Execution policy belongs in
  * `tools/pre-execute` or a sandboxing executor.
- * @module @bosch/bh-bash-local
+ * @module @hydra/harness-bash-local
  */
 
-import { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import { SHELL_SETTINGS_NAMESPACE, ShellExecutor } from '@bosch/bh-shell'
-import type { ShellExecRequest, ShellExecSpec, ShellProcess, ShellProcessRead, ShellRunResult, CollectedOutput } from '@bosch/bh-shell'
-import type { SubprocessCollect, SubprocessHandle, SubprocessOutputReader, SubprocessSpawnSpec } from '@bosch/bh-subprocess'
-import { installSettingsSection } from '@bosch/bh-settings'
-import { clampTimeout, deadline, MAX_TIMER_DELAY_MS, timeoutOf } from '@bosch/bh-timeout'
+import { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import { SHELL_SETTINGS_NAMESPACE, ShellExecutor } from '@hydra/harness-shell'
+import type { ShellExecRequest, ShellExecSpec, ShellProcess, ShellProcessRead, ShellRunResult, CollectedOutput } from '@hydra/harness-shell'
+import type { SubprocessCollect, SubprocessHandle, SubprocessOutputReader, SubprocessSpawnSpec } from '@hydra/harness-subprocess'
+import { installSettingsSection } from '@hydra/harness-settings'
+import { clampTimeout, deadline, MAX_TIMER_DELAY_MS, timeoutOf } from '@hydra/harness-timeout'
 
 /**
  * Model-friendly environment overrides: disable colors, pagers, and

@@ -1,7 +1,7 @@
 /** Session-local ownership index for Package business views on `cordis_run` cards. */
 
-import type { SessionId } from '@bosch/bh-client-connection/client'
-import type { HostObservable } from '@bosch/bh-client-ui-slots'
+import type { SessionId } from '@hydra/harness-client-connection/client'
+import type { HostObservable } from '@hydra/harness-client-ui-slots'
 import type {
   CordisDynamicPackageId, CordisDynamicPluginId, CordisDynamicPluginRunId,
 } from './events.ts'

@@ -3,19 +3,19 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createHash } from 'node:crypto'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import LlmRuntime, { createUserMessage, CallId, ReasoningEffortId , createMessage } from '@bosch/bh-llm'
-import type { Message, ToolSchema } from '@bosch/bh-llm'
-import AttachmentStore, { AttachmentId } from '@bosch/bh-attachment'
+import { Context } from '@hydra/cordis'
+import LlmRuntime, { createUserMessage, CallId, ReasoningEffortId , createMessage } from '@hydra/harness-llm'
+import type { Message, ToolSchema } from '@hydra/harness-llm'
+import AttachmentStore, { AttachmentId } from '@hydra/harness-attachment'
 import type {
   ImageAttachmentLimits,
   ImageAttachmentRef,
   SaveImageAttachment,
   StoredImageAttachment,
-} from '@bosch/bh-attachment'
-import { LocalCredentialProvider } from '@bosch/bh-credentials-local'
-import * as LlmDeepSeek from '@bosch/bh-llm-deepseek'
-import type { Config } from '@bosch/bh-llm-deepseek'
+} from '@hydra/harness-attachment'
+import { LocalCredentialProvider } from '@hydra/harness-credentials-local'
+import * as LlmDeepSeek from '@hydra/harness-llm-deepseek'
+import type { Config } from '@hydra/harness-llm-deepseek'
 import { assemble, type AssembledResult } from './assemble.ts'
 
 /**

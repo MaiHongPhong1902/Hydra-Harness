@@ -1,21 +1,21 @@
 /**
  * User-declared MCP servers: one settings-backed registry that mounts every
- * enabled record as an `@bosch/bh-mcp-client` fiber and unmounts it when the
+ * enabled record as an `@hydra/harness-mcp-client` fiber and unmounts it when the
  * record is disabled, redefined, or removed. The stored document
  * (`mcp-servers.servers` in the harness settings file) is the only source of
  * truth, so a server added from a configuration surface survives a restart and
  * a server added by hand-editing the document mounts without one.
- * @module @bosch/bh-mcp-registry
+ * @module @hydra/harness-mcp-registry
  */
 
-import { Service, type Context, type Fiber } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import { settingsNamespace, type SettingsScope } from '@bosch/bh-settings'
+import { Service, type Context, type Fiber } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import { settingsNamespace, type SettingsScope } from '@hydra/harness-settings'
 import {
   apply as applyMcpClient, inject as mcpClientInject, type Config as McpClientConfig,
-} from '@bosch/bh-mcp-client'
+} from '@hydra/harness-mcp-client'
 // Side-effect type import: declaration-merges `ctx.tools` onto Context.
-import type {} from '@bosch/bh-tools'
+import type {} from '@hydra/harness-tools'
 import type {
   McpServerDefinitionRequest, McpServerEnablementRequest, McpServerSnapshot,
   McpServerStatus, McpServerTransport, McpServerView,
@@ -23,7 +23,7 @@ import type {
 
 export type * from './types.ts'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     /** User-declared MCP server records and their live mounts. */
     mcpServers: McpServerRegistry
@@ -211,6 +211,8 @@ interface LiveMount {
  */
 export class McpServerRegistry extends Service {
   static inject = inject
+  /** Server mounts belong to this Host service, not to a traced API caller. */
+  private readonly owner: Context
 
   private readonly settings: SettingsScope<McpServersSettings>
   private readonly live = new Map<string, LiveMount>()
@@ -221,6 +223,7 @@ export class McpServerRegistry extends Service {
 
   constructor(ctx: Context) {
     super(ctx, 'mcpServers')
+    this.owner = ctx
     this.settings = ctx.settings.register(MCP_SERVERS_SETTINGS_NAMESPACE, McpServersSettingsSchema, {
       // Refuse a colliding section where it is written: two records claiming
       // one name would make which server serves a tool depend on mount order.
@@ -246,16 +249,19 @@ export class McpServerRegistry extends Service {
   }
 
   /**
-   * Store one complete definition, replacing any record of the same name, then
+   * Create or replace one complete definition as requested, then
    * converge the mounted set. A definition this registry could not mount is
    * refused before anything persists.
    * @param request - complete server definition.
    * @returns the refreshed projection.
+   * @throws If create names an existing record or replace names a missing record.
    */
   define(request: McpServerDefinitionRequest): Promise<McpServerSnapshot> {
     return this.enqueue(async () => {
       const servers = this.settings.get().servers
       const index = servers.findIndex(candidate => candidate.name === request.name.trim())
+      if (request.mode === 'create' && index !== -1) throw new Error(`mcpServers.define: server ${request.name} already exists`)
+      if (request.mode === 'replace' && index === -1) throw new Error(`mcpServers.define: server ${request.name} is not configured`)
       const record = foldDefinition(request, index === -1 ? undefined : servers[index])
       assertMountable(record, 'mcpServers.define')
       const next = index === -1 ? [...servers, record] : servers.map((candidate, position) => position === index ? record : candidate)
@@ -356,7 +362,7 @@ export class McpServerRegistry extends Service {
    */
   private async mount(record: StoredServer): Promise<void> {
     const digest = mountDigest(record)
-    const fiber = this.ctx.plugin({
+    const fiber = this.owner.plugin({
       name: `mcp-server:${record.name}`,
       inject: mcpClientInject,
       apply: applyMcpClient,

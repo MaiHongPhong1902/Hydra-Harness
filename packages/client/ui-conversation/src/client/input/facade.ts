@@ -6,12 +6,12 @@
  * sink). Package-private; the hub alone constructs it and wires the scoped
  * event listeners onto it.
  */
-import type { ClientContext, ObservableSnapshot, SnapshotStore } from '@bosch/bh-client-runtime/client'
-import { createSnapshotStore } from '@bosch/bh-client-runtime/client'
+import type { ClientContext, ObservableSnapshot, SnapshotStore } from '@hydra/harness-client-runtime/client'
+import { createSnapshotStore } from '@hydra/harness-client-runtime/client'
 import type {
   ArbitrateKey, ArbitrateOutcome, CommandClaim, ConsumeTokenRequest, PickOutcome,
   ReferenceInsert, InputTriggerController, SubmitImageAttachment, SubmitOutcome, TokenSpan,
-} from '@bosch/bh-client-ui-input-trigger/client'
+} from '@hydra/harness-client-ui-input-trigger/client'
 import type {
   DraftAttachmentId, EditRange, EditSelection, InputActions, InputEffect, InputNotice, InputState,
   PasteComponent, QueuedMessage, SessionInput, SubmitAttempt,

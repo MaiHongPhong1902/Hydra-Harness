@@ -1,6 +1,6 @@
-import { Context, Service } from '@bosch/cordis'
+import { Context, Service } from '@hydra/cordis'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context extends Pick<TimerService, 'interval' | 'timeout' | 'throttle' | 'debounce' | 'setTimeout' | 'setInterval'> {
     timer: TimerService
   }

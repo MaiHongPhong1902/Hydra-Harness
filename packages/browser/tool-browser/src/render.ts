@@ -4,8 +4,8 @@
  * no browser exists.
  */
 
-import type { BrowserOutcome, BrowserTabState } from '@bosch/bh-browser-electron'
-import type { GenericCallView } from '@bosch/bh-tools'
+import type { BrowserOutcome, BrowserTabState } from '@hydra/harness-browser-electron'
+import type { GenericCallView } from '@hydra/harness-tools'
 
 /** Default cap on the element list one browser call returns. */
 export const DEFAULT_MAX_STATE_CHARS = 16_000

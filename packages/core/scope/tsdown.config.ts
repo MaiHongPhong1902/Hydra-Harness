@@ -22,6 +22,6 @@ export default defineConfig([
     dts: false,
     clean: false,
     // Preserve the root entry's carrier WeakMap identity across bundles.
-    deps: { neverBundle: ['@bosch/bh-scope'] },
+    deps: { neverBundle: ['@hydra/harness-scope'] },
   },
 ])

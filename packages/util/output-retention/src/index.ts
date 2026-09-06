@@ -27,7 +27,7 @@
  *   web bodies). `head` / `tail` / `headTail`, preserving UTF-8 boundaries at
  *   {@link TextRetainer.finish}.
  *
- * @module @bosch/bh-output-retention
+ * @module @hydra/harness-output-retention
  */
 
 /**

@@ -1,0 +1,10 @@
+- id: skill-filesystem
+  config:
+    includeDefaultRoots: false
+    watch: false
+
+- id: session-title-llm
+  disabled: true
+
+- id: session-telemetry-otel
+  disabled: true

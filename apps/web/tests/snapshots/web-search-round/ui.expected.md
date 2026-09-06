@@ -9,17 +9,17 @@
   - tablist:
     - tab "Chat" [selected]
     - tab "Trajectory"
-- text: Use web_search once with queries ["Bosch Harness snapshot search","Bosch Harness multi-query search"]. Then reply exactly SEARCH_DONE and stop. {{clock}}
+- text: Use web_search once with queries ["Hydra harness snapshot search","Hydra harness multi-query search"]. Then reply exactly SEARCH_DONE and stop. {{clock}}
 - button "Copy":
   - img
-- button "Context injection @bosch/bh-system-prompt":
+- button "Context injection @hydra/harness-system-prompt":
   - img
   - img
-  - text: Context injection @bosch/bh-system-prompt
-- button "Search Bosch Harness snapshot search, Bosch Harness multi-query search":
+  - text: Context injection @hydra/harness-system-prompt
+- button "Search Hydra harness snapshot search, Hydra harness multi-query search":
   - img
   - img
-  - text: Search Bosch Harness snapshot search, Bosch Harness multi-query search
+  - text: Search Hydra harness snapshot search, Hydra harness multi-query search
 - paragraph: SEARCH_DONE
 - button "Copy":
   - img

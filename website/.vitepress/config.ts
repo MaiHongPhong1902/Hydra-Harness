@@ -144,8 +144,8 @@ const base = process.env.DOCS_BASE ?? '/'
 
 /** Site identity shared by the VitePress configuration and the llms.txt index. */
 const siteIdentity = {
-  title: 'Bosch Harness',
-  description: 'A plugin-based SDK for building agent harnesses',
+  title: 'Hydra harness',
+  description: 'An open-source, plugin-based agent harness',
 }
 
 /**
@@ -155,6 +155,7 @@ const siteIdentity = {
 const wordmark = readFileSync(resolve(import.meta.dirname, '../public/wordmark.svg'), 'utf8')
   .trim()
   .replace('<svg ', '<svg class="bh-wordmark" ')
+  .replace('href="hydra-hover.webp"', `href="${base}hydra-hover.webp"`)
 
 /**
  * Styles the default theme does not provide, carried inline because the site
@@ -170,6 +171,10 @@ const wordmark = readFileSync(resolve(import.meta.dirname, '../public/wordmark.s
 const siteStyle = `
 .bh-lockup { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
 .bh-wordmark { display: block; height: 22px; width: auto; color: var(--vp-c-text-1); }
+@media (hover: hover) {
+  .bh-wordmark:hover .hydra-still { visibility: hidden; }
+  .bh-wordmark:hover .hydra-motion { display: inline; }
+}
 .bh-tag {
   display: inline-flex;
   align-items: center;

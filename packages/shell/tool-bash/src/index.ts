@@ -5,25 +5,25 @@
  *
  * TODO(permissions): deployment policy belongs in `tools/pre-execute` and
  * sandboxing executors; see docs/architecture.md § Where new behavior goes.
- * @module @bosch/bh-tool-bash
+ * @module @hydra/harness-tool-bash
  */
 
-import type { Context } from '@bosch/cordis'
-import z from '@bosch/schemastery'
+import type { Context } from '@hydra/cordis'
+import z from '@hydra/schemastery'
 import { isAbsolute, resolve as resolvePath } from 'node:path'
-import { defineTool, TOOL_ABORTED } from '@bosch/bh-tools'
-import type { GenericCallView, TerminalCallView, ToolExecution, ToolResult, ToolResultView } from '@bosch/bh-tools'
-import { HarnessError } from '@bosch/bh-llm'
-import type { Agent } from '@bosch/bh-agent'
-import type {} from '@bosch/bh-system-prompt'
-import type {} from '@bosch/bh-jobs'
-import type {} from '@bosch/bh-user-approval'
-import type {} from '@bosch/bh-shell-env'
-import type { SandboxExecutionPolicy, SandboxMode } from '@bosch/bh-sandbox'
-import { ESCALATION_TARGETS, approveEscalation, canonicalPath, validateEscalationArgs } from '@bosch/bh-sandbox'
-import type { SandboxPolicyService } from '@bosch/bh-sandbox-policy'
-import { BH_ENV_PREFIX } from '@bosch/bh-shell'
-import type { ShellRunResult } from '@bosch/bh-shell'
+import { defineTool, TOOL_ABORTED } from '@hydra/harness-tools'
+import type { GenericCallView, TerminalCallView, ToolExecution, ToolResult, ToolResultView } from '@hydra/harness-tools'
+import { HarnessError } from '@hydra/harness-llm'
+import type { Agent } from '@hydra/harness-agent'
+import type {} from '@hydra/harness-system-prompt'
+import type {} from '@hydra/harness-jobs'
+import type {} from '@hydra/harness-user-approval'
+import type {} from '@hydra/harness-shell-env'
+import type { SandboxExecutionPolicy, SandboxMode } from '@hydra/harness-sandbox'
+import { ESCALATION_TARGETS, approveEscalation, canonicalPath, validateEscalationArgs } from '@hydra/harness-sandbox'
+import type { SandboxPolicyService } from '@hydra/harness-sandbox-policy'
+import { BH_ENV_PREFIX } from '@hydra/harness-shell'
+import type { ShellRunResult } from '@hydra/harness-shell'
 import { processOutcome } from './background.ts'
 import { parseExitStatus, renderProcessRead, renderResult } from './render.ts'
 
@@ -353,7 +353,7 @@ export function apply(ctx: Context, config: Config = {}): void {
         }
         const jobs = ctx.get('jobs')
         if (jobs === undefined) {
-          throw new Error('background jobs unavailable: load @bosch/bh-jobs and @bosch/bh-tool-jobs')
+          throw new Error('background jobs unavailable: load @hydra/harness-jobs and @hydra/harness-tool-jobs')
         }
         // The caller owns cancellation until ctx.jobs commits detached ownership.
         if (exec.signal.aborted) {

@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-storage`.
- * @module @bosch/bh-storage/invariant
+ * Package-owned invariant companion for `@hydra/harness-storage`.
+ * @module @hydra/harness-storage/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-storage'
+const PACKAGE_NAME = '@hydra/harness-storage'
 
 /** Cordis companion plugin name. */
 export const name = 'storage-invariant'

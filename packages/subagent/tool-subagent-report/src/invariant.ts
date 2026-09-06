@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-tool-subagent-report`.
- * @module @bosch/bh-tool-subagent-report/invariant
+ * Package-owned invariant companion for `@hydra/harness-tool-subagent-report`.
+ * @module @hydra/harness-tool-subagent-report/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-tool-subagent-report'
+const PACKAGE_NAME = '@hydra/harness-tool-subagent-report'
 
 /** Cordis companion plugin name. */
 export const name = 'tool-subagent-report-invariant'

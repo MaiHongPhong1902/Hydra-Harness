@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import AgentRegistry from '@bosch/bh-agent'
-import type { Agent } from '@bosch/bh-agent'
-import SessionStore from '@bosch/bh-session'
-import type { Session, SessionEvent, SessionHeader, SessionId } from '@bosch/bh-session'
-import { createApiRemoteAgentResolver } from '@bosch/bh-api-remotes'
-import { TypertLookupFailure } from '@bosch/bh-typert-protocol'
-import TypertRegistry from '@bosch/bh-typert-registry'
+import { Context } from '@hydra/cordis'
+import AgentRegistry from '@hydra/harness-agent'
+import type { Agent } from '@hydra/harness-agent'
+import SessionStore from '@hydra/harness-session'
+import type { Session, SessionEvent, SessionHeader, SessionId } from '@hydra/harness-session'
+import { createApiRemoteAgentResolver } from '@hydra/harness-api-remotes'
+import { TypertLookupFailure } from '@hydra/harness-typert-protocol'
+import TypertRegistry from '@hydra/harness-typert-registry'
 
 const sid = (value: string): SessionId => value as SessionId
 

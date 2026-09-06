@@ -13,16 +13,16 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import Loader from '@bosch/cordis-plugin-loader'
-import Include from '@bosch/cordis-plugin-include'
-import LlmRuntime from '@bosch/bh-llm'
-import { credentialRef } from '@bosch/bh-credentials'
-import LocalCredentialProvider from '@bosch/bh-credentials-local'
-import { settingsNamespace } from '@bosch/bh-settings'
-import FileSettingsProvider from '@bosch/bh-settings-file'
-import { getOrCreateAnonymousUserId } from '@bosch/bh-anonymous-user-id'
-import * as LlmDeepSeek from '@bosch/bh-llm-deepseek'
+import { Context } from '@hydra/cordis'
+import Loader from '@hydra/cordis-plugin-loader'
+import Include from '@hydra/cordis-plugin-include'
+import LlmRuntime from '@hydra/harness-llm'
+import { credentialRef } from '@hydra/harness-credentials'
+import LocalCredentialProvider from '@hydra/harness-credentials-local'
+import { settingsNamespace } from '@hydra/harness-settings'
+import FileSettingsProvider from '@hydra/harness-settings-file'
+import { getOrCreateAnonymousUserId } from '@hydra/harness-anonymous-user-id'
+import * as LlmDeepSeek from '@hydra/harness-llm-deepseek'
 import { assemble } from './assemble.ts'
 import { closeMockServers, mockServer, textEvents } from './mock-server.ts'
 
@@ -63,19 +63,19 @@ async function loadComposition(
     ...options.withDynamic
       ? [
         '- id: settings',
-        "  name: '@bosch/bh-settings-file'",
+        "  name: '@hydra/harness-settings-file'",
         '  config:',
         `    path: ${JSON.stringify(settingsPath)}`,
         '    debounceMs: 10',
         '- id: credentials',
-        "  name: '@bosch/bh-credentials-local'",
+        "  name: '@hydra/harness-credentials-local'",
         '  config:',
         `    path: ${JSON.stringify(credentialsPath)}`,
         '    debounceMs: 10',
       ]
       : [],
     '- id: llm-deepseek',
-    "  name: '@bosch/bh-llm-deepseek'",
+    "  name: '@hydra/harness-llm-deepseek'",
     '  config:',
     `    baseURL: ${JSON.stringify(options.baseURL)}`,
     '',
@@ -88,9 +88,9 @@ async function loadComposition(
   ctx.loader.builtins.include = Include
   const modules = new Map<string, unknown>([
     ['test-llm-service', LlmRuntime],
-    ['@bosch/bh-settings-file', FileSettingsProvider],
-    ['@bosch/bh-credentials-local', LocalCredentialProvider],
-    ['@bosch/bh-llm-deepseek', LlmDeepSeek],
+    ['@hydra/harness-settings-file', FileSettingsProvider],
+    ['@hydra/harness-credentials-local', LocalCredentialProvider],
+    ['@hydra/harness-llm-deepseek', LlmDeepSeek],
   ])
   ctx.loader.internal = {
     version: 'v2',

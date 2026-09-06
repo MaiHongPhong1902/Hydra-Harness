@@ -7,14 +7,14 @@
  * through one property read; assignment through the tracker proxy and `#`
  * private fields bypass that rebinding.
  */
-import { Service } from '@bosch/cordis'
-import type { Context } from '@bosch/cordis'
+import { Service } from '@hydra/cordis'
+import type { Context } from '@hydra/cordis'
 // Type-only imports: a plugin-to-plugin value import is a bundle purity
 // error, so scope resolution goes through the sessions service (scopeOf
 // method) instead of the standalone helper.
-import type { ISessions, SessionFace, SessionId } from '@bosch/bh-client-runtime/client'
-import type { SubmitImageAttachment, SubmitOutcome } from '@bosch/bh-client-ui-input-trigger/client'
-import type { ImageAttachmentRef, ImageMediaType } from '@bosch/bh-attachment'
+import type { ISessions, SessionFace, SessionId } from '@hydra/harness-client-runtime/client'
+import type { SubmitImageAttachment, SubmitOutcome } from '@hydra/harness-client-ui-input-trigger/client'
+import type { ImageAttachmentRef, ImageMediaType } from '@hydra/harness-attachment'
 import type { BrowserAnnotationAttachment, ComposerAttachment } from './contract/slots.ts'
 import type { QueueAction, QueueItemId } from './contract/queue.ts'
 import type { ComposerBlocks } from './input/blocks.ts'

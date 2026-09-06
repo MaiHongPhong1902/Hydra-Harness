@@ -1,6 +1,6 @@
 {
-  "name": "@bosch/bh-pwsh-sandbox",
-  "description": "Sandbox-consuming implementation of the Bosch Harness PowerShell executor seam (confines every command via ctx.sandbox, reports denial/enforcement result facts)",
+  "name": "@hydra/harness-pwsh-sandbox",
+  "description": "Sandbox-consuming implementation of the Hydra harness PowerShell executor seam (confines every command via ctx.sandbox, reports denial/enforcement result facts)",
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"
@@ -32,21 +32,21 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@bosch/bh-shell": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-pwsh-local": "workspace:^",
-    "@bosch/bh-sandbox": "workspace:^",
-    "@bosch/bh-sandbox-policy": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-shell": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-pwsh-local": "workspace:^",
+    "@hydra/harness-sandbox": "workspace:^",
+    "@hydra/harness-sandbox-policy": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@bosch/bh-shell": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-pwsh-local": "workspace:^",
-    "@bosch/bh-sandbox": "workspace:^",
-    "@bosch/bh-sandbox-local": "workspace:^",
-    "@bosch/bh-sandbox-policy": "workspace:^",
-    "@bosch/bh-subprocess-local": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-shell": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-pwsh-local": "workspace:^",
+    "@hydra/harness-sandbox": "workspace:^",
+    "@hydra/harness-sandbox-local": "workspace:^",
+    "@hydra/harness-sandbox-policy": "workspace:^",
+    "@hydra/harness-subprocess-local": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   }
 }

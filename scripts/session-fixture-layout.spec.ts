@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { type SessionEvent } from '@bosch/bh-session'
-import { parseSessionLog } from '@bosch/bh-llm-replay'
+import { type SessionEvent } from '@hydra/harness-session'
+import { parseSessionLog } from '@hydra/harness-llm-replay'
 import { canonicalSessionFixture } from './session-fixture-layout.ts'
 
 const HEADER = '  {"type":"session","version":0,"id":"fixture","createdAt":1,"delegationDepth":0}  '

@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import { createUserMessage } from '@bosch/bh-llm'
-import SessionStore, { SessionId } from '@bosch/bh-session'
+import { Context } from '@hydra/cordis'
+import { createUserMessage } from '@hydra/harness-llm'
+import SessionStore, { SessionId } from '@hydra/harness-session'
 import { RuntimeContextProjection } from '../src/runtime-context.ts'
 
-const SOURCE = '@bosch/bh-system-prompt'
+const SOURCE = '@hydra/harness-system-prompt'
 
 function contextMessage(text: string) {
   return createUserMessage({

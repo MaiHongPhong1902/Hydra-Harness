@@ -4,7 +4,7 @@
  * per push.
  */
 
-import type { JobId } from '@bosch/bh-jobs/brand'
+import type { JobId } from '@hydra/harness-jobs/brand'
 
 /**
  * One background job as the client sees it.

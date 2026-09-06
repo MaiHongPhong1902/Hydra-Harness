@@ -1,14 +1,14 @@
-import { createUserMessage } from '@bosch/bh-llm'
-import { Context, type Fiber } from '@bosch/cordis'
+import { createUserMessage } from '@hydra/harness-llm'
+import { Context, type Fiber } from '@hydra/cordis'
 import { describe, expect, it, vi } from 'vitest'
-import SessionStore, { Session, SessionId } from '@bosch/bh-session'
+import SessionStore, { Session, SessionId } from '@hydra/harness-session'
 import SessionTitleService, {
   SessionTitleProviderId,
   type Config,
   type SessionTitleProvider,
   type SessionTitleProviderRequest,
   type SessionTitleProviderResult,
-} from '@bosch/bh-session-title'
+} from '@hydra/harness-session-title'
 
 const CONFIG = {
   fallbackMaxWords: 5,

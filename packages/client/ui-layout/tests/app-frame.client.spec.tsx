@@ -13,13 +13,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render } from '@testing-library/react'
 import { useSyncExternalStore } from 'react'
-import { AppFrame } from '@bosch/bh-client-ui-layout/src/client/AppFrame.tsx'
-import type { AppFrameProps } from '@bosch/bh-client-ui-layout/src/client/AppFrame.tsx'
-import { SIDEBAR_COLLAPSED } from '@bosch/bh-client-ui-layout/src/client/columns.ts'
-import { createLayoutStore } from '@bosch/bh-client-ui-layout/src/client/stores.ts'
+import { AppFrame } from '@hydra/harness-client-ui-layout/src/client/AppFrame.tsx'
+import type { AppFrameProps } from '@hydra/harness-client-ui-layout/src/client/AppFrame.tsx'
+import { SIDEBAR_COLLAPSED } from '@hydra/harness-client-ui-layout/src/client/columns.ts'
+import { createLayoutStore } from '@hydra/harness-client-ui-layout/src/client/stores.ts'
 import type {
   SessionId, SessionListState, WorkspaceId, WorkspaceListState,
-} from '@bosch/bh-client-runtime/client'
+} from '@hydra/harness-client-runtime/client'
 
 // Session selection controls for the SessionProvider and useSessions stubs.
 const selectedSession = { current: 's-test' as SessionId | undefined }

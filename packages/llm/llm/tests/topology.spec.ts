@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@bosch/cordis'
-import LlmRuntime, { LlmAdapter, LlmError } from '@bosch/bh-llm'
-import type { GenerateOptions, LlmConfigurableProvider, StreamChunk } from '@bosch/bh-llm'
+import { Context } from '@hydra/cordis'
+import LlmRuntime, { LlmAdapter, LlmError } from '@hydra/harness-llm'
+import type { GenerateOptions, LlmConfigurableProvider, StreamChunk } from '@hydra/harness-llm'
 
 class NoopAdapter extends LlmAdapter {
 

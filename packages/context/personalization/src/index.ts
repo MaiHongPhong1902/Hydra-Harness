@@ -2,18 +2,18 @@
  * Local personalization: a settings-backed personality plus explicit local
  * memories. Global settings seed a chat's durable policy; `/memories` changes
  * only that chat.
- * @module @bosch/bh-personalization
+ * @module @hydra/harness-personalization
  */
 
-import type { Context } from '@bosch/cordis'
-import type {} from '@bosch/bh-agent'
-import type {} from '@bosch/bh-commands'
-import { createUserMessage } from '@bosch/bh-llm'
-import type { PreStepDecision } from '@bosch/bh-agent'
-import { installSettingsSection, settingsNamespace } from '@bosch/bh-settings'
-import type {} from '@bosch/bh-system-prompt'
-import { resolveBhHome } from '@bosch/bh-home-paths'
-import z from '@bosch/schemastery'
+import type { Context } from '@hydra/cordis'
+import type {} from '@hydra/harness-agent'
+import type {} from '@hydra/harness-commands'
+import { createUserMessage } from '@hydra/harness-llm'
+import type { PreStepDecision } from '@hydra/harness-agent'
+import { installSettingsSection, settingsNamespace } from '@hydra/harness-settings'
+import type {} from '@hydra/harness-system-prompt'
+import { resolveBhHome } from '@hydra/harness-home-paths'
+import z from '@hydra/schemastery'
 import {
   DEFAULT_MEMORY_POLICY, DEFAULT_PERSONALITY, hasLoggedMemoryPolicy, hasLoggedPersonality,
   PERSONALITIES, resolveMemoryPolicy, resolveSessionPersonality, type MemoryPolicy, type Personality,
@@ -27,14 +27,14 @@ export {
 export type { MemoryEntry } from './session.ts'
 export { LocalMemoryStore, redactMemorySecrets } from './memories.ts'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     localMemories: LocalMemoryStore
   }
 }
 
 /** Cordis plugin name. */
-export const name = '@bosch/bh-personalization'
+export const name = '@hydra/harness-personalization'
 
 /** The prompt registry this plugin contributes to. */
 export const inject = ['systemPrompt']
@@ -107,7 +107,7 @@ export function apply(ctx: Context): void {
   }), 'personalization.section()')
 
   ctx.on('agent/session-start', ({ agent }) => {
-    if (hasLoggedPersonality(agent.session)) return
+    if (hasLoggedPersonality(agent.session) || agent.session.events.some(event => event.type === 'step/start')) return
     const { personality } = current()
     if (personality === DEFAULT_PERSONALITY) return
     agent.session.append('personalization/personality', { personality })

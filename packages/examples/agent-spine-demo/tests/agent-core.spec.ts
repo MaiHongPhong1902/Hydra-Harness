@@ -2,15 +2,15 @@ import { describe, expect, it, vi } from 'vitest'
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { join, sep } from 'node:path'
 import { tmpdir } from 'node:os'
-import { Context } from '@bosch/cordis'
-import Loader from '@bosch/cordis-plugin-loader'
-import { renderPrompt, TOOL_ORDER_REST } from '@bosch/bh-system-prompt'
+import { Context } from '@hydra/cordis'
+import Loader from '@hydra/cordis-plugin-loader'
+import { renderPrompt, TOOL_ORDER_REST } from '@hydra/harness-system-prompt'
 import * as agentCore from '../src/index.ts'
-import type { Agent } from '@bosch/bh-agent'
-import { SessionId } from '@bosch/bh-session'
-import LocalBashExecutor from '@bosch/bh-bash-local'
-import LocalFileSystem from '@bosch/bh-fs-local'
-import * as ToolFs from '@bosch/bh-tool-fs'
+import type { Agent } from '@hydra/harness-agent'
+import { SessionId } from '@hydra/harness-session'
+import LocalBashExecutor from '@hydra/harness-bash-local'
+import LocalFileSystem from '@hydra/harness-fs-local'
+import * as ToolFs from '@hydra/harness-tool-fs'
 import { MockAdapter, textResponse, toolCallResponse } from '../../../core/agent-loop/tests/mock-adapter.ts'
 import {
   createUserMessage,
@@ -22,23 +22,23 @@ import {
   type Message,
   type ResolvedRetryPolicy,
   type StreamChunk,
-} from '@bosch/bh-llm'
-import type { ToolExecution } from '@bosch/bh-tools'
-import * as sessionInvariant from '@bosch/bh-session/invariant'
-import * as agentInvariant from '@bosch/bh-agent/invariant'
-import * as scopeInvariant from '@bosch/bh-scope/invariant'
-import * as agentLoopInvariant from '@bosch/bh-agent-loop/invariant'
+} from '@hydra/harness-llm'
+import type { ToolExecution } from '@hydra/harness-tools'
+import * as sessionInvariant from '@hydra/harness-session/invariant'
+import * as agentInvariant from '@hydra/harness-agent/invariant'
+import * as scopeInvariant from '@hydra/harness-scope/invariant'
+import * as agentLoopInvariant from '@hydra/harness-agent-loop/invariant'
 
 const testToolSignal = new AbortController().signal
 
-declare module '@bosch/bh-jobs' {
+declare module '@hydra/harness-jobs' {
   interface JobKindMap {
     probe: 'probe'
   }
 }
 
 /**
- * Unit coverage for the @bosch/bh-agent-spine-demo bundle: mounting it brings
+ * Unit coverage for the @hydra/harness-agent-spine-demo bundle: mounting it brings
  * up the whole default spine in one `ctx.plugin`, and the forwarded
  * `agents` config reaches the loop (default `[]`, or a pre-created agent).
  *
@@ -212,8 +212,8 @@ describe('bh-agent-spine-demo bundle', () => {
 
     for (const invariants of [
       { enabled: false },
-      { package_allowlist: ['^@bosch/bh-agent$'] },
-      { package_blocklist: ['^@bosch/bh-session$'] },
+      { package_allowlist: ['^@hydra/harness-agent$'] },
+      { package_blocklist: ['^@hydra/harness-session$'] },
     ]) {
       const filtered = await mount({ workspaceContext: false, invariants })
       expect(() => { nestedTurn(filtered) }).not.toThrow()
@@ -361,7 +361,7 @@ describe('bh-agent-spine-demo bundle', () => {
       const firstRequestText = adapter.requests[0]?.messages.map(messageText).join('\n')
       expect(firstRequestText).toContain('hi')
       expect(firstRequestText).toContain('bundled project rule')
-      expect(adapter.requests[0]?.system).toContain('You are an AI agent powered by Bosch Harness.')
+      expect(adapter.requests[0]?.system).toContain('You are Hydra harness, an AI agent.')
       expect(adapter.requests[0]?.system).not.toContain('bundled project rule')
       await handle.dispose()
       await ctx.fiber.dispose()
@@ -662,7 +662,7 @@ describe('bh-agent-spine-demo bundle', () => {
     await ctx.fiber.dispose()
   })
 
-  it('rejects conflicting global and nested BH home directories', () => {
+  it('rejects conflicting global and nested Hydra home directories', () => {
     expect(() => {
       agentCore.apply(new Context(), {
         bhHome: '/global-bh-home',

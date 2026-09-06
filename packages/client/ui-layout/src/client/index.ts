@@ -8,10 +8,10 @@
  * presenter, which projects ctx.theme snapshots onto document.body. The same
  * desktop feature owner contributes Browser settings when its preload exists.
  */
-import type { ClientContext } from '@bosch/bh-client-runtime/client'
-import type {} from '@bosch/bh-client-ui-theme/client'
-import type {} from '@bosch/bh-client-ui-settings/client'
-import type {} from '@bosch/bh-client-locale/client'
+import type { ClientContext } from '@hydra/harness-client-runtime/client'
+import type {} from '@hydra/harness-client-ui-theme/client'
+import type {} from '@hydra/harness-client-ui-settings/client'
+import type {} from '@hydra/harness-client-locale/client'
 import type { PanelActions } from './service.ts'
 import { AppFrame } from './AppFrame.tsx'
 import { BrowserSection, BROWSER_SETTINGS_NAMESPACE } from './BrowserSection.tsx'
@@ -67,14 +67,14 @@ function hasAutofillManagement(browser: DesktopBrowserApi): browser is AutofillM
 export { LayoutController } from './service.ts'
 export type { ILayout } from './service.ts'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     /** The outward face only; the concrete service stays inside this plugin. */
     layout: import('./service.ts').ILayout
   }
 }
 
-declare module '@bosch/bh-client-ui-slots' {
+declare module '@hydra/harness-client-ui-slots' {
   interface LocaleNamespaceMap {
     /** Desktop Browser settings copy. */
     'settings.browser': BrowserKey

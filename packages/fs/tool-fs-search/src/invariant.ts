@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-tool-fs-search`.
- * @module @bosch/bh-tool-fs-search/invariant
+ * Package-owned invariant companion for `@hydra/harness-tool-fs-search`.
+ * @module @hydra/harness-tool-fs-search/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-tool-fs-search'
+const PACKAGE_NAME = '@hydra/harness-tool-fs-search'
 
 /** Cordis companion plugin name. */
 export const name = 'tool-fs-search-invariant'

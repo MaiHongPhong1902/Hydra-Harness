@@ -8,6 +8,6 @@
   disabled: true
 - insert:
     - id: directory-picker-browse
-      name: '@bosch/bh-host-directory-picker-browse'
+      name: '@hydra/harness-host-directory-picker-browse'
     - id: ui-directory-picker-browse
-      name: '@bosch/bh-client-ui-directory-picker-browse'
+      name: '@hydra/harness-client-ui-directory-picker-browse'

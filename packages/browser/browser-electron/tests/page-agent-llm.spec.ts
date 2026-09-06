@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import type { Agent } from '@bosch/bh-agent'
-import type { GenerateOptions, StreamChunk } from '@bosch/bh-llm'
+import type { Agent } from '@hydra/harness-agent'
+import type { GenerateOptions, StreamChunk } from '@hydra/harness-llm'
 import { executePageAgentLlm } from '../src/page-agent-llm.ts'
 
 describe('executePageAgentLlm', () => {
-  it('uses the owning BH route and returns PageAgent’s expected tool call shape', async () => {
+  it('uses the owning Hydra route and returns PageAgent’s expected tool call shape', async () => {
     let sent: GenerateOptions | undefined
     const owner = {
       options: { provider: 'current-provider', model: 'current-model' },

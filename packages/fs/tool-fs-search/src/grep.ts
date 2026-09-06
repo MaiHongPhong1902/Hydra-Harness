@@ -8,15 +8,15 @@
  * `--json` record parsing, per-line preview retention, match retention,
  * grouping, and formatting; process concerns stay behind `ctx.subprocess`.
  *
- * @module @bosch/bh-tool-fs-search/grep
+ * @module @hydra/harness-tool-fs-search/grep
  */
 
-import type { Context } from '@bosch/cordis'
-import { defineTool } from '@bosch/bh-tools'
-import type { GenericCallView, SearchResultView, ToolResult } from '@bosch/bh-tools'
-import type { RetainedItems } from '@bosch/bh-output-retention'
-import type { SpillRef } from '@bosch/bh-spill'
-import type {} from '@bosch/bh-system-prompt'
+import type { Context } from '@hydra/cordis'
+import { defineTool } from '@hydra/harness-tools'
+import type { GenericCallView, SearchResultView, ToolResult } from '@hydra/harness-tools'
+import type { RetainedItems } from '@hydra/harness-output-retention'
+import type { SpillRef } from '@hydra/harness-spill'
+import type {} from '@hydra/harness-system-prompt'
 import type { GrepMatch } from './search-core.ts'
 import { SearchError, previewLine, retainGrepMatches, runRipgrep, toWorkdirRelative, trySaveFormattedResult } from './search-core.ts'
 import { grepSearchMeta, searchViewFromMeta } from './presentation.ts'

@@ -4,10 +4,10 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import { homedir, tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@bosch/cordis'
-import type { SandboxPolicy } from '@bosch/bh-sandbox'
-import { launcherPath } from '@bosch/node-addon-landlock-run'
-import { LocalSandboxProvider } from '@bosch/bh-sandbox-local'
+import { Context } from '@hydra/cordis'
+import type { SandboxPolicy } from '@hydra/harness-sandbox'
+import { launcherPath } from '@hydra/node-addon-landlock-run'
+import { LocalSandboxProvider } from '@hydra/harness-sandbox-local'
 
 /**
  * Keyless backend integration through `confine()` and the workspace `landlock-run` launcher, with

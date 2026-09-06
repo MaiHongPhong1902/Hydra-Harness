@@ -1,18 +1,18 @@
-import { createAssistantMessage, createUserMessage } from '@bosch/bh-llm'
+import { createAssistantMessage, createUserMessage } from '@hydra/harness-llm'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context, type Fiber } from '@bosch/cordis'
+import { Context, type Fiber } from '@hydra/cordis'
 import { DatabaseSync } from 'node:sqlite'
 import { chmod, mkdtemp, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
-import SessionStore, { SESSION_FORMAT_VERSION, SessionId } from '@bosch/bh-session'
-import type { SessionEvent, SessionHeader, SessionId as SessionIdType } from '@bosch/bh-session'
-import SessionPersistence, { SessionPersistenceRevision } from '@bosch/bh-session-persistence'
-import type { SessionPersistenceSnapshot } from '@bosch/bh-session-persistence'
-import SqliteSessionPersistence from '@bosch/bh-session-persistence-sqlite'
+import SessionStore, { SESSION_FORMAT_VERSION, SessionId } from '@hydra/harness-session'
+import type { SessionEvent, SessionHeader, SessionId as SessionIdType } from '@hydra/harness-session'
+import SessionPersistence, { SessionPersistenceRevision } from '@hydra/harness-session-persistence'
+import type { SessionPersistenceSnapshot } from '@hydra/harness-session-persistence'
+import SqliteSessionPersistence from '@hydra/harness-session-persistence-sqlite'
 import SqliteSessionQueryEngine, {
   SESSION_QUERY_SQLITE_SCHEMA_VERSION,
-} from '@bosch/bh-session-query-sqlite'
+} from '@hydra/harness-session-query-sqlite'
 import {
   SESSION_QUERY_DEFAULT_PERSISTED_INSPECT_CONCURRENCY,
   SessionQueryError,
@@ -20,7 +20,7 @@ import {
   type SessionAvailability,
   type SessionQueryErrorCode,
   type SessionSearchRequest,
-} from '@bosch/bh-session-query'
+} from '@hydra/harness-session-query'
 
 const temporaryDirectories: string[] = []
 

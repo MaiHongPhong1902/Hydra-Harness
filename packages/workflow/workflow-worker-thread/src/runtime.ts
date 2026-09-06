@@ -9,21 +9,21 @@
  * per-item nulls. Every returned promise has a rejection consumer so dropped script promises cannot
  * kill the worker. A cancelled script that never settles emits nothing; the host force-settles the
  * run within grace and terminates the thread.
- * @module @bosch/bh-workflow-worker-thread/runtime
+ * @module @hydra/harness-workflow-worker-thread/runtime
  */
 
 import * as vm from 'node:vm'
-import type { ContentBlock } from '@bosch/bh-llm'
-import { SessionId } from '@bosch/bh-session'
-import { assertObjectJsonSchema, JsonSchemaError } from '@bosch/bh-tools'
-import type { ObjectJsonSchema } from '@bosch/bh-tools'
-import { isFatalWorkflowError, WorkflowError } from '@bosch/bh-workflow'
+import type { ContentBlock } from '@hydra/harness-llm'
+import { SessionId } from '@hydra/harness-session'
+import { assertObjectJsonSchema, JsonSchemaError } from '@hydra/harness-tools'
+import type { ObjectJsonSchema } from '@hydra/harness-tools'
+import { isFatalWorkflowError, WorkflowError } from '@hydra/harness-workflow'
 import type {
   WorkflowAgentEndInfo,
   WorkflowAgentInfo,
   WorkflowMeta,
   WorkflowResult,
-} from '@bosch/bh-workflow'
+} from '@hydra/harness-workflow'
 import { materializeFromRealm, MaterializeError, renderThrown } from './realm.ts'
 import type { ChildHandle, ChildPort, WorkerLimits } from './types.ts'
 

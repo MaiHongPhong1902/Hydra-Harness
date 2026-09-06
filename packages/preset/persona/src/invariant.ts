@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@bosch/bh-persona`.
- * @module @bosch/bh-persona/invariant
+ * Package-owned invariant companion for `@hydra/harness-persona`.
+ * @module @hydra/harness-persona/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@bosch/cordis'
-import type { InvariantInstaller } from '@bosch/bh-invariants'
+import type { Context } from '@hydra/cordis'
+import type { InvariantInstaller } from '@hydra/harness-invariants'
 
-const PACKAGE_NAME = '@bosch/bh-persona'
+const PACKAGE_NAME = '@hydra/harness-persona'
 
 /** Cordis companion plugin name. */
 export const name = 'persona-invariant'

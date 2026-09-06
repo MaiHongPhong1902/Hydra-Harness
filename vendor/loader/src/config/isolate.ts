@@ -1,5 +1,5 @@
-import { Context } from '@bosch/cordis'
-import type { Dict } from '@bosch/cosmokit'
+import { Context } from '@hydra/cordis'
+import type { Dict } from '@hydra/cosmokit'
 import { Entry } from './entry.ts'
 
 declare module './entry.ts' {

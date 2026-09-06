@@ -1,11 +1,11 @@
 /**
  * Generic-task adaptation for background pwsh process handles — the shell-agnostic
- * twin of `bh-tool-bash`'s background adaptation.
+ * twin of `@hydra/harness-tool-bash`'s background adaptation.
  *
- * @module @bosch/bh-tool-pwsh/background
+ * @module @hydra/harness-tool-pwsh/background
  */
 
-import type { ShellProcess } from '@bosch/bh-shell'
+import type { ShellProcess } from '@hydra/harness-shell'
 
 /* jscpd:ignore-start -- deliberate twin of bh-tool-bash/background.ts (Agent Note). */
 

@@ -3,9 +3,9 @@ requires = ["hatchling==1.30.1"]
 build-backend = "hatchling.build"
 
 [project]
-name = "bosch-harness-runtime-bin"
+name = "hydra-harness-runtime-bin"
 version = "0.0.0.dev0"
-description = "Pinned Bosch Harness runtime for the Python SDK"
+description = "Pinned Hydra harness runtime for the Python SDK"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
@@ -20,11 +20,11 @@ Source = "https://github.com/bosch/bosch-harness"
 # Include the injected executable and default config; exclude the dev-only node
 # closure from wheels and sdists.
 [tool.hatch.build]
-artifacts = ["src/bosch_harness_runtime/runtime/bh-jsonrpc-agent-*"]
-exclude = ["src/bosch_harness_runtime/runtime/node"]
+artifacts = ["src/hydra_harness_runtime/runtime/bh-jsonrpc-agent-*"]
+exclude = ["src/hydra_harness_runtime/runtime/node"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/bosch_harness_runtime"]
+packages = ["src/hydra_harness_runtime"]
 
 [tool.hatch.build.targets.wheel.hooks.custom]
 

@@ -29,10 +29,10 @@
  * composes the wire.
  */
 
-import type {} from '@bosch/cordis'
+import type {} from '@hydra/cordis'
 import type { ClientModuleSystem } from './system.ts'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     /** The client module system the web shell builds at boot (provided by the `./client` wrapper plugin). */
     modules: ClientModuleLoader

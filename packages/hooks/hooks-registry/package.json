@@ -1,5 +1,5 @@
 {
-  "name": "@bosch/bh-hooks-registry",
+  "name": "@hydra/harness-hooks-registry",
   "description": "Settings-backed hook records that mount and unmount Claude Code and Codex hook bridges",
   "version": "0.1.1-rc.1",
   "publishConfig": {
@@ -37,26 +37,26 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@bosch/bh-atomic-write": "workspace:^",
-    "@bosch/bh-home-paths": "workspace:^",
-    "@bosch/schemastery": "workspace:^"
+    "@hydra/harness-atomic-write": "workspace:^",
+    "@hydra/harness-home-paths": "workspace:^",
+    "@hydra/schemastery": "workspace:^"
   },
   "peerDependencies": {
-    "@bosch/bh-hooks-claude-code": "workspace:^",
-    "@bosch/bh-hooks-codex": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-session": "workspace:^",
-    "@bosch/bh-settings": "workspace:^",
-    "@bosch/cordis": "workspace:^"
+    "@hydra/harness-hooks-claude-code": "workspace:^",
+    "@hydra/harness-hooks-codex": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-session": "workspace:^",
+    "@hydra/harness-settings": "workspace:^",
+    "@hydra/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@bosch/bh-hooks-claude-code": "workspace:^",
-    "@bosch/bh-hooks-codex": "workspace:^",
-    "@bosch/bh-invariants": "workspace:^",
-    "@bosch/bh-session": "workspace:^",
-    "@bosch/bh-settings": "workspace:^",
-    "@bosch/bh-settings-file": "workspace:^",
-    "@bosch/cordis": "workspace:^",
-    "@bosch/cordis-plugin-loader": "workspace:^"
+    "@hydra/harness-hooks-claude-code": "workspace:^",
+    "@hydra/harness-hooks-codex": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-session": "workspace:^",
+    "@hydra/harness-settings": "workspace:^",
+    "@hydra/harness-settings-file": "workspace:^",
+    "@hydra/cordis": "workspace:^",
+    "@hydra/cordis-plugin-loader": "workspace:^"
   }
 }

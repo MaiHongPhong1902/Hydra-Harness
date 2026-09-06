@@ -3,13 +3,13 @@
  * layout version, the database open/configure sequence (permissions, pragmas,
  * version stamp/reject), and the unit metadata tables. Unit record tables are
  * created per descriptor in `unit.ts`.
- * @module @bosch/bh-storage-sqlite/schema
+ * @module @hydra/harness-storage-sqlite/schema
  */
 
 import { DatabaseSync } from 'node:sqlite'
 import { mkdir, open } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
-import { StorageError } from '@bosch/bh-storage'
+import { StorageError } from '@hydra/harness-storage'
 
 /**
  * The on-disk physical layout version, stored in `PRAGMA user_version`.

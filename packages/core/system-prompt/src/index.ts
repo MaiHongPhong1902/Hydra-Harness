@@ -1,16 +1,16 @@
 /**
  * Registry for ordered system sections, dynamic context, tool schemas, and prompt variables.
  *
- * @module @bosch/bh-system-prompt
+ * @module @hydra/harness-system-prompt
  */
 
-import { Context, Service } from '@bosch/cordis'
-import z from '@bosch/schemastery'
-import { AnonymousEntries, NamedEntries, ScopedLayers, scopeTarget } from '@bosch/bh-scope'
-import type { ScopeKey, ScopeLayer, Scoped } from '@bosch/bh-scope'
-import type { ContextSnapshotSection, ToolSchema } from '@bosch/bh-llm'
+import { Context, Service } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import { AnonymousEntries, NamedEntries, ScopedLayers, scopeTarget } from '@hydra/harness-scope'
+import type { ScopeKey, ScopeLayer, Scoped } from '@hydra/harness-scope'
+import type { ContextSnapshotSection, ToolSchema } from '@hydra/harness-llm'
 
-declare module '@bosch/cordis' {
+declare module '@hydra/cordis' {
   interface Context {
     systemPrompt: SystemPrompt
   }
@@ -18,7 +18,7 @@ declare module '@bosch/cordis' {
   interface Events {
     /**
      * Expert waterfall over the assembled sections, contexts, tools, and variables.
-     * Scope-filtered dispatch (`@bosch/bh-scope`): scoped listeners
+     * Scope-filtered dispatch (`@hydra/harness-scope`): scoped listeners
      * receive only that scope's assemblies. The returned value is authoritative.
      * A supplied signal controls only this explicit assembly request and must not
      * be retained to control later turns. A registered complete section is
@@ -184,7 +184,7 @@ function compareToolNames(a: ToolSchema, b: ToolSchema): number {
 
 /** Plugin config: the deployment-authored fragment of the system prompt (see {@link Config.persona} for its contract). */
 export interface Config {
-  /** Include the fixed Bosch Harness identity before the deployment persona (default true). */
+  /** Include the fixed Hydra harness identity before the deployment persona (default true). */
   includeHarnessIdentity?: boolean
   /** Include dynamic runtime-context snapshots in model history (default true). */
   includeRuntimeContext?: boolean
@@ -358,7 +358,7 @@ export class SystemPrompt extends Service {
       this.section({
         name: 'harness:identity',
         order: -100,
-        text: 'You are an AI agent powered by Bosch Harness.',
+        text: 'You are Hydra harness, an AI agent.',
       })
     }
     this.section({
