@@ -12,7 +12,7 @@ A session resolves its model selection from three tiers on every access: a selec
 
 The section's `reasoningEffort` has no counterpart in the agent-default-model plugin config, deliberately: the seam merges the user layer over the composition entry per field, so an absent key cannot override a present one and a composition-set effort would survive every later switch to a model without one. A deployment default for effort belongs on the adapter profile, which resolves per model.
 
-The stored selection is independent of catalog membership. A default naming an unavailable provider still reaches `session.models` as the session's `current`, allowing the selector to request a replacement instead of silently choosing another model. Conversely, an adapter may serve a model that its catalog does not advertise.
+The stored selection is independent of catalog membership. A default naming an unavailable provider still reaches `session.models` as the session's `current`, allowing the selector to request a replacement instead of silently choosing another model. Conversely, an adapter may serve a model that its catalog does not advertise. Both `session.models` and `llm.models` omit the official DeepSeek group and its discovery failures while `ui-onboarding.deepseekOfficialDeclined` is true. This shared catalog reads the saved dismissal on each request; the route and the stored selection remain intact, and clearing the flag restores the catalog.
 
 ## Contract layer (`/api`)
 

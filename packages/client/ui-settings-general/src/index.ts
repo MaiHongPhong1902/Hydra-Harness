@@ -12,7 +12,7 @@ interface OnboardingSettings {
   welcomeNoticeVersion?: string
   /**
    * Whether the user dismissed the shipped official DeepSeek Models row.
-   * The adapter stays mounted; the row and first-run prompt stay hidden
+   * The adapter stays mounted; its row, model catalog, and first-run prompt stay hidden
    * until the user adds that route again.
    */
   deepseekOfficialDeclined?: boolean

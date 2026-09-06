@@ -1,0 +1,8 @@
+- menu "Model and reasoning effort":
+  - group "minimax-cn":
+    - text: minimax-cn
+    - menuitemradio "MiniMax-M2.7" [checked]:
+      - text: MiniMax-M2.7
+      - img
+    - menuitemradio "MiniMax-M2.7-highspeed"
+    - menuitemradio "MiniMax-M3"

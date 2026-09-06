@@ -270,18 +270,23 @@ function ok<T>(request: RpcRequest<unknown>, value: T): RpcResponse<T> {
 }
 
 /**
- * Build the provider/model catalog over every registered route. Shared by the
+ * Build the provider/model catalog over visible registered routes. Shared by the
  * session-scoped `session.models` and host-scoped `llm.models`. Catalog
  * membership stays advisory: an unlisted session selection remains valid for
  * provider dispatch, but is not injected back into the selector after its
  * owning catalog stops advertising it. Per-provider failures ride `failures`
  * without failing the sound groups; groups that advertise nothing are dropped.
+ * The official DeepSeek dismissal hides its catalog without unloading its route.
  */
 async function buildModelCatalog(ctx: Context): Promise<{
   groups: ModelProviderGroup[]
   failures: ModelCatalogFailure[]
 }> {
-  const catalog = await Promise.all(ctx.llm.listProviders().map(async (provider) => {
+  const onboarding = ctx.get('settings')?.get(settingsNamespace('ui-onboarding')) as
+    { deepseekOfficialDeclined?: boolean } | undefined
+  const providers = ctx.llm.listProviders().filter(provider =>
+    provider.id !== 'deepseek-official' || onboarding?.deepseekOfficialDeclined !== true)
+  const catalog = await Promise.all(providers.map(async (provider) => {
     try {
       const models = await ctx.llm.listModels(provider.id)
       const entries = await Promise.all(models.map(async (model) => {

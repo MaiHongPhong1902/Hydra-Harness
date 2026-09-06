@@ -11,7 +11,7 @@ export const OFFICIAL_DEEPSEEK_PROVIDER = 'deepseek-official'
 export const OFFICIAL_DEEPSEEK_SETTINGS_NS = 'llm-deepseek'
 
 /**
- * Durable hide flag for the official DeepSeek Models row and first-run prompt.
+ * Durable hide flag for the official DeepSeek row, model catalog, and first-run prompt.
  * Set on Delete; unset when the user adds that route again.
  */
 export const OFFICIAL_DEEPSEEK_DECLINED_FIELD = 'deepseekOfficialDeclined'

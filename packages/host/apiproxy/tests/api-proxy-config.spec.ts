@@ -693,6 +693,30 @@ describe('llm domain', () => {
     expect(value.failures).toEqual([{ id: 'broken', name: 'Broken', message: 'catalog backend down' }])
   })
 
+  it('hides a declined official catalog and restores it without changing registered routes', async () => {
+    const ctx = await harness({ settings: { doc: { 'ui-onboarding': { deepseekOfficialDeclined: true } } } })
+    const ns = settingsNamespace('ui-onboarding')
+    ctx.settings.register(ns, z.object({ deepseekOfficialDeclined: z.boolean() }))
+    ctx.llm.registerAdapter(['deepseek-official'], new BrokenCatalogAdapter('DeepSeek', []))
+    ctx.llm.registerAdapter(['xpiki'], new CatalogAdapter('xpiki', ['custom-model']))
+    const api = createApiProxy(ctx, DEFAULTS)
+    const visible = [{ id: 'xpiki', name: 'xpiki', models: [{ id: 'custom-model', name: 'custom-model' }] }]
+
+    expect(expectOk(await api.llm.models(request({})))).toEqual({ groups: visible, failures: [] })
+    expect(expectOk(await api.llm.providers(request({}))).providers).toContainEqual({
+      provider: 'deepseek-official', displayName: 'DeepSeek', settingsNs: 'llm-deepseek', settingsPath: [], active: true,
+    })
+
+    expectOk(await api.settings.mutate(request({ ns, ops: [{ op: 'unset', path: ['deepseekOfficialDeclined'] }] })))
+    const restored = { groups: visible, failures: [{ id: 'deepseek-official', name: 'DeepSeek', message: 'catalog backend down' }] }
+    expect(expectOk(await api.llm.models(request({})))).toEqual(restored)
+    await ctx.settings.update(ns, { deepseekOfficialDeclined: false })
+    expect(expectOk(await api.llm.models(request({})))).toEqual(restored)
+    await ctx.settings.update(ns, { deepseekOfficialDeclined: true })
+    expect(expectOk(await api.llm.models(request({})))).toEqual({ groups: visible, failures: [] })
+    await ctx.fiber.dispose()
+  })
+
   it('forwards llm/adapters-updated at every topology commit point', async () => {
     const ctx = await harness()
     const api = createApiProxy(ctx, DEFAULTS)

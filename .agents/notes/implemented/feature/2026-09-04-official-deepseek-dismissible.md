@@ -12,6 +12,8 @@ The shipped `deepseek-official` route is a whole-section composition default und
 
 **Delete records the hide flag instead of unsetting the composition section.** Nested pi-ai profiles still unset their user-layer path as the [web configuration plane](../architecture/2026-07-30-web-config-plane.md) already specified. Confirmation for official DeepSeek unsets a page-managed `DEEPSEEK_API_KEY` first when it can identify one, then `settings.mutate` sets `deepseekOfficialDeclined: true`. Environment credentials, custom references, and unidentified targets remain untouched, matching the existing credential-ownership rule.
 
+**The shared model catalog honors the same flag.** The API proxy omits the official DeepSeek group and its discovery failures from both `session.models` and `llm.models` while dismissed. Existing settings invalidations refresh open selectors. The adapter, default, and logged selections remain available for dispatch; hiding selectable models does not remove provider capability or infer readiness from a missing credential. Host RPC regression coverage and the keyless `onboarding-usable-provider` browser snapshot exercise dismissal and restoration beside another configured provider.
+
 **Re-adding clears the flag.** A successful Apply on the official DeepSeek editor while the flag is set unsets `deepseekOfficialDeclined` before reload, so the row returns. Configure later on the onboarding dialog still writes no durable fact and does not hide the Models row.
 
 **Onboarding follows the same join.** After any usable provider, a recorded dismissal projects `unavailable` / `provider-declined` and completes the step without prompting. The adapter remains repairable from Models through **Add provider**.
