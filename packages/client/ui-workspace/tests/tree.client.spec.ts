@@ -55,6 +55,17 @@ describe('deriveGroups', () => {
     sessions.current = original.id
     expect(deriveFlat(sessions, noArchive).map(row => row.id)).toEqual(['original', 'branch'])
     expect(deriveFlat(sessions, [latest.id]).map(row => row.id)).toEqual(['branch'])
+    sessions.viewedVersions = { [original.id]: original.id }
+    sessions.current = sid('branch')
+    expect(deriveFlat(sessions, noArchive).map(row => row.id)).toEqual(['original', 'branch'])
+    expect(deriveGroups(sessions, workspaces, noArchive, view(['project']))[0]!.sessions.map(row => row.id))
+      .toEqual(['branch', 'original'])
+    expect(deriveSearchResults(sessions, workspaces, 'project', noArchive, { items: [], hasMore: false }, 20)
+      .items.map(row => row.id)).toEqual(['original', 'branch'])
+    sessions.viewedVersions = { [original.id]: sid('missing') }
+    expect(deriveFlat(sessions, noArchive).map(row => row.id)).toEqual(['latest', 'branch'])
+    sessions.viewedVersions = { [original.id]: sid('branch') }
+    expect(deriveFlat(sessions, noArchive).map(row => row.id)).toEqual(['latest', 'branch'])
   })
 
   it('keeps Host Workspace and sessionIds order without Client recency sorting', () => {

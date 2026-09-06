@@ -8,7 +8,7 @@
  */
 import { Context } from '@hydra/cordis'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { SessionId } from '@hydra/harness-api-remotes/client'
+import type { ConversationRevision, SessionId } from '@hydra/harness-api-remotes/client'
 import { SessionCreateError, SessionRuntime, scopeOf } from '../src/client/sessions/service.ts'
 import { FakeApiClient, deferred, err, fakeRemote, ok } from './fake-api.client.ts'
 
@@ -36,6 +36,7 @@ type FeedRow = {
   running?: boolean
   blank?: boolean
   agentPreset?: string
+  revision?: ConversationRevision
 }
 
 async function feedList(b: Bench, rows: FeedRow[]): Promise<void> {
@@ -46,6 +47,7 @@ async function feedList(b: Bench, rows: FeedRow[]): Promise<void> {
       ...(r.parentId !== undefined ? { parentSessionId: sid(r.parentId) } : {}),
       ...(r.origin !== undefined ? { origin: r.origin } : {}),
       ...(r.agentPreset !== undefined ? { agentPreset: r.agentPreset } : {}),
+      ...(r.revision === undefined ? {} : { revision: r.revision }),
     })),
   }) as never)
   await b.svc.refresh()
@@ -175,6 +177,32 @@ describe('scope tree', () => {
 
 describe('current selection (migrated from ui-layout, arbitrated into the list snapshot)', () => {
   afterEach(() => { vi.unstubAllGlobals() })
+
+  it('remembers each conversation version across navigation, clear, reload, and a missing list member', async () => {
+    const storage = new Map<string, string>()
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => storage.get(key) ?? null,
+      setItem: (key: string, value: string) => { storage.set(key, value) },
+    })
+    const rows: FeedRow[] = [{ id: 'original' }, { id: 'other' }, { id: 'edit', revision: {
+      sessionId: sid('edit'), conversationId: sid('original'), previousSessionId: sid('original'), turn: 1, createdAt: 1,
+    } }]
+    const first = bench()
+    await feedList(first, rows)
+    first.svc.open(sid('edit'))
+    first.svc.open(sid('original'))
+    first.svc.open(sid('other'))
+    expect(first.svc.list.getSnapshot().viewedVersions).toEqual({ original: 'original' })
+    first.svc.clear()
+    const second = bench()
+    await feedList(second, rows.filter(row => row.id !== 'original'))
+    expect(second.svc.list.getSnapshot().current).toBeUndefined()
+    expect(second.svc.list.getSnapshot().viewedVersions).toEqual({ original: 'original' })
+    await feedList(second, rows)
+    second.svc.open(sid('edit'))
+    expect(second.svc.list.getSnapshot().viewedVersions).toEqual({ original: 'edit' })
+    expect(JSON.parse(storage.get('bh.sessions.current')!)).toMatchObject({ viewedVersions: { original: 'edit' } })
+  })
 
   it('open() writes list.current; unknown ids fail loud', async () => {
     const b = bench()

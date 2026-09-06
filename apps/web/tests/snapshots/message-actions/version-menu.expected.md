@@ -1,5 +1,5 @@
 - menu:
   - menuitem "Version 1 Original conversation"
-  - menuitem "Version 2 · Current version Edited prompt 2":
-    - text: Version 2 · Current version Edited prompt 2
+  - menuitem "Version 2 · Latest · Viewing Edited prompt 2 · From version 1":
+    - text: Version 2 · Latest · Viewing Edited prompt 2 · From version 1
     - img

@@ -95,13 +95,19 @@
 .versionOption {
   display: grid;
   gap: 2px;
+  width: min(260px, calc(100vw - 76px));
+  white-space: normal;
 }
 
-.versionTrigger {
+button.versionTrigger {
   width: auto;
   gap: 4px;
   border-radius: 6px;
   font-size: 12px;
+}
+
+.versionTrigger svg {
+  flex: none;
 }
 
 .editActions button {

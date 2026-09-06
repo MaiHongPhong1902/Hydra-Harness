@@ -76,7 +76,7 @@ export function ConversationSessionHeader({
   const active = resolveActiveView(tabs, selectedId)
   const ancestry = useSessions(s => deriveAncestry(s, sessionId), equalBreadcrumbs)
   const versions = useSessions(s => conversationVersions(s, sessionId), (a, b) =>
-    a.length === b.length && a.every((version, index) => version.id === b[index]?.id))
+    a.length === b.length && a.every((version, index) => version.id === b[index]?.id && version.revision === b[index].revision))
   const versionIndex = versions.findIndex(version => version.id === sessionId)
   const previousVersion = versions[versionIndex - 1]
   const nextVersion = versions[versionIndex + 1]
@@ -157,9 +157,8 @@ export function ConversationSessionHeader({
                 <IconChevronLeftOutline14 />
               </button>
               <PromptVersionMenu versions={versions} sessionId={sessionId} openVersion={open} t={t} className={css.versionPicker}>
-                <span aria-live="polite">{nextVersion === undefined
-                  ? t('message.currentVersion')
-                  : t('message.version', { version: String(versionIndex + 1) })}</span>
+                <span aria-live="polite">{t('message.version', { version: String(versionIndex + 1) })}</span>
+                {nextVersion === undefined && <span className={css.versionCount}>{t('message.latestVersion')}</span>}
                 <span className={css.versionCount}>{versionIndex + 1}/{versions.length}</span>
                 <IconChevronDownOutline14 />
               </PromptVersionMenu>

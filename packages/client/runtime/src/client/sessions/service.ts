@@ -85,6 +85,8 @@ export interface SessionListState {
   /** Host rows plus the current addressed subagent route used by navigation. */
   byId: Record<SessionId, SessionSummary>
   current: SessionId | undefined
+  /** Last viewed version per conversation, retained across navigation and browser reloads. */
+  viewedVersions?: Readonly<Partial<Record<SessionId, SessionId>>>
   /** Arrival lifecycle projected 1:1 from the manager snapshot (see SessionListPhase): empty-with-ready means "truly no sessions". */
   phase: SessionListPhase
   /** Direct durable catalogs keyed by their selected parent address. */
@@ -99,10 +101,11 @@ export interface SessionListState {
   currentAddress: SubagentAddress | undefined
 }
 
-/** Persisted navigation cell: address survives refresh for correct history routing. */
+/** Persisted current address and last viewed versions for conversation navigation. */
 interface SessionSelection {
   sessionId?: SessionId
   subagentAddress?: SubagentAddress
+  viewedVersions?: Readonly<Partial<Record<SessionId, SessionId>>>
 }
 
 /** Structured session-create failure. */
@@ -417,8 +420,9 @@ export class SessionRuntime implements ISessions {
   /**
    * Clear the current selection so the layout shows the no-session empty
    * state (new-session affordance and the workspace preselection flow).
-   * Wipes the persisted selection too — a reload stays on empty until the
-   * user opens or starts a session. The staged scope keeps its frozen view
+   * Clears the persisted current address — a reload stays on empty until the
+   * user opens or starts a session. Conversation version choices are retained.
+   * The staged scope keeps its frozen view
    * per the masked-gap contract until the next open() moves the stage.
    */
   clear(): void {
@@ -726,22 +730,32 @@ export class SessionRuntime implements ISessions {
         address = this.manager.navigationAddress(address.parentSessionId)
       }
     }
-    const persisted = this.selection.getSnapshot().sessionId
-    // No current (cleared, or masked gap) wipes the persisted cell — a reload
-    // stays on empty; the in-memory selection still resurfaces a masked id.
+    const selection = this.selection.getSnapshot()
+    const persisted = selection.sessionId
+    let viewedVersions = selection.viewedVersions
+    const currentRoot = current === undefined ? undefined : byId[current]?.revision?.conversationId ?? current
+    if (current !== undefined && currentRoot !== undefined
+      && items.some(entry => entry.revision?.conversationId === currentRoot)
+      && viewedVersions?.[currentRoot] !== current) {
+      viewedVersions = { ...viewedVersions, [currentRoot]: current }
+    }
+    const remembered = viewedVersions === undefined ? {} : { viewedVersions }
+    // Clearing or masking current preserves each conversation's version choice.
     if (current === undefined) {
-      if (persisted !== undefined) this.selection.set({})
+      if (persisted !== undefined) this.selection.set(remembered)
     } else if (byId[current] !== undefined
       && (persisted !== current
+        || viewedVersions !== selection.viewedVersions
         || this.selection.getSnapshot().subagentAddress?.childSessionId !== currentAddress?.childSessionId
         || this.selection.getSnapshot().subagentAddress?.parentSessionId !== currentAddress?.parentSessionId
         || this.selection.getSnapshot().subagentAddress?.mode !== currentAddress?.mode)) {
       this.selection.set({
+        ...remembered,
         sessionId: current,
         ...(currentAddress === undefined ? {} : { subagentAddress: currentAddress }),
       })
     }
-    this.list.set({ ids, byId, current, phase, subagentsByParent, jobsBySession, currentAddress })
+    this.list.set({ ids, byId, current, phase, subagentsByParent, jobsBySession, currentAddress, ...remembered })
     this.pruneScopes()
   }
 

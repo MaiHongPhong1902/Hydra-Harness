@@ -22,7 +22,7 @@ export function conversationVersions(list: SessionListState, sessionId: SessionI
 }
 
 /**
- * Map every version to one sidebar row: the viewed version, otherwise the latest.
+ * Map every version to one sidebar row: current, last viewed, otherwise latest.
  * Archiving any member hides the conversation as a whole.
  * @param list - current session list and selection.
  * @param archived - archived session identities.
@@ -42,11 +42,12 @@ export function conversationRepresentatives(
     groups.set(root, members)
   }
   const result = new Map<SessionId, SessionSummary>()
-  for (const members of groups.values()) {
+  for (const [root, members] of groups) {
     if (members.some(member => archived.has(member.id))) continue
     const selected = members.find(member => member.id === list.current)
+    const remembered = members.find(member => member.id === list.viewedVersions?.[root])
     const latest = members.reduce((a, b) => compareVersions(a, b) > 0 ? a : b)
-    for (const member of members) result.set(member.id, selected ?? latest)
+    for (const member of members) result.set(member.id, selected ?? remembered ?? latest)
   }
   return result
 }

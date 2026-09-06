@@ -2,7 +2,7 @@
   - button "Previous version":
     - img
   - button "See versions":
-    - text: Current version 2/2
+    - text: Version 2 Latest 2/2
     - img
   - button "Next version" [disabled]:
     - img

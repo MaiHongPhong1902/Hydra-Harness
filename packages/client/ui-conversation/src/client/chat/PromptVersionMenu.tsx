@@ -47,21 +47,34 @@ export function PromptVersionMenu({ versions, sessionId, openVersion, children, 
           const selected = versions.find(version => version.id === id)
           if (selected !== undefined && selected.id !== sessionId) openVersion(selected.id)
         }}
-        items={versions.map((version, index) => ({
-          id: version.id,
-          label: <span className={css.versionOption} ref={(element) => {
-            if (element === null) labels.current.delete(version.id)
-            else labels.current.set(version.id, element)
-          }}>
-            <span>{t('message.version', { version: String(index + 1) })}
-              {index === versions.length - 1 ? ` · ${t('message.currentVersion')}` : ''}</span>
-            <span className={css.versionDetail}>{version.revision === undefined
-              ? t('message.originalVersion')
-              : t('message.editedTurn', { turn: String(version.revision.turn) })}</span>
-          </span>,
-        }))}
+        items={versions.map((version, index) => {
+          const parentIndex = versions.findIndex(parent => parent.id === version.revision?.previousSessionId)
+          return {
+            id: version.id,
+            label: <span className={css.versionOption} ref={(element) => {
+              if (element === null) labels.current.delete(version.id)
+              else labels.current.set(version.id, element)
+            }}>
+              <span>{t('message.version', { version: String(index + 1) })}
+                {index === versions.length - 1 ? ` · ${t('message.latestVersion')}` : ''}
+                {version.id === sessionId ? ` · ${t('message.viewingVersion')}` : ''}</span>
+              <span className={css.versionDetail}>{version.revision === undefined
+                ? t('message.originalVersion')
+                : t('message.editedTurn', { turn: String(version.revision.turn) })}
+              {parentIndex >= 0 ? ` · ${t('message.fromVersion', { version: String(parentIndex + 1) })}` : ''}</span>
+            </span>,
+          }
+        })}
         anchor={<button ref={trigger} type="button" className={className} aria-label={t('message.seeVersions')}
-          aria-haspopup="menu" aria-expanded={open} onClick={() => { setOpen(!open) }}>{children}</button>}
+          title={t('message.seeVersions')} aria-haspopup="menu" aria-expanded={open} onClick={() => { setOpen(!open) }}>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+            strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+            <path d="M3 2h11M10 6h4M11 10h3M11 14h3" />
+            <circle cx="4.5" cy="10" r="3.5" />
+            <path d="M4.5 8v2l1.5 1" />
+          </svg>
+          {children}
+        </button>}
       />
     </span>
   )

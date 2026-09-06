@@ -290,7 +290,7 @@ function PromptVersionsAction({ sessionId, useSessions, turn, open, t }: {
   t: ChatNodeViewProps['t']
 }) {
   const versions = useSessions(list => conversationVersions(list, sessionId), (a, b) =>
-    a.length === b.length && a.every((version, index) => version.id === b[index]?.id))
+    a.length === b.length && a.every((version, index) => version.id === b[index]?.id && version.revision === b[index].revision))
   if (versions.length < 2 || !versions.some(version => version.revision !== undefined && version.revision.turn <= turn)) return null
   const versionIndex = versions.findIndex(version => version.id === sessionId)
   return (
