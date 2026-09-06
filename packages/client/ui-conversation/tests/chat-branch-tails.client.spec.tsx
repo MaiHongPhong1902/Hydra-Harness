@@ -49,10 +49,11 @@ interface MessageItemProps {
   readonly node: ConversationNode
   readonly t: ChatNodeViewProps['t']
   readonly referenceLabels?: readonly string[]
+  readonly editMessage?: (node: import('@hydra/harness-client-runtime/client').UserMessageNode, text: string) => Promise<void>
 }
 
 /** Legacy-node fixture adapter for the independently registered renderers. */
-function MessageItem({ node, t: translate, referenceLabels }: MessageItemProps) {
+function MessageItem({ node, t: translate, referenceLabels, editMessage }: MessageItemProps) {
   const kind = node.kind === 'assistant' ? 'assistant-step' : node.kind
   const viewNode: ChatConversationViewNode = {
     key: `fixture:${node.kind}:${node.seq}`,
@@ -72,7 +73,8 @@ function MessageItem({ node, t: translate, referenceLabels }: MessageItemProps) 
   switch (node.kind) {
     case 'user':
     case 'steering':
-      return <UserMessageNodeView {...props as ChatNodeViewProps<'user' | 'steering'>} />
+      return <UserMessageNodeView {...props as ChatNodeViewProps<'user' | 'steering'>}
+        {...editMessage === undefined ? {} : { editMessage }} />
     case 'context':
       return <ContextMessageNodeView {...props as ChatNodeViewProps<'context'>} />
     case 'compaction':
@@ -87,6 +89,47 @@ function MessageItem({ node, t: translate, referenceLabels }: MessageItemProps) 
 }
 
 describe('MessageItem arms', () => {
+  it('edits inline, cancels unchanged, rejects blank text, and retains a failed submission for retry', async () => {
+    const editMessage = vi.fn().mockRejectedValueOnce(new Error('offline')).mockResolvedValue(undefined)
+    const node = { kind: 'user' as const, seq: 1, time: 1_000,
+      content: [{ type: 'text' as const, text: 'original prompt' }], source: null }
+    const view = render(<MessageItem t={t} node={node} editMessage={editMessage} />)
+    fireEvent.click(view.getByRole('button', { name: 'Edit' }))
+    expect((view.getByRole('textbox', { name: 'Edit prompt' }) as HTMLTextAreaElement).value).toBe('original prompt')
+    fireEvent.change(view.getByRole('textbox'), { target: { value: 'discard me' } })
+    fireEvent.click(view.getByRole('button', { name: 'Cancel' }))
+    expect(view.getByText('original prompt')).toBeTruthy()
+    expect(editMessage).not.toHaveBeenCalled()
+    fireEvent.click(view.getByRole('button', { name: 'Edit' }))
+    fireEvent.change(view.getByRole('textbox'), { target: { value: '  ' } })
+    expect((view.getByRole('button', { name: 'Send' }) as HTMLButtonElement).disabled).toBe(true)
+    fireEvent.change(view.getByRole('textbox'), { target: { value: 'revised\nprompt' } })
+    await act(async () => { fireEvent.click(view.getByRole('button', { name: 'Send' })) })
+    expect(view.getByRole('alert').textContent).toContain('offline')
+    expect((view.getByRole('textbox') as HTMLTextAreaElement).value).toBe('revised\nprompt')
+    await act(async () => { fireEvent.keyDown(view.getByRole('textbox'), { key: 'Enter', ctrlKey: true }) })
+    expect(editMessage).toHaveBeenLastCalledWith(node, 'revised\nprompt')
+    expect(view.queryByRole('textbox')).toBeNull()
+  })
+
+  it('keeps one submission pending and lets Escape cancel without sending', async () => {
+    let finish!: () => void
+    const editMessage = vi.fn(() => new Promise<void>((resolve) => { finish = resolve }))
+    const view = render(<MessageItem t={t} editMessage={editMessage} node={{
+      kind: 'user', seq: 1, time: 1_000, content: [{ type: 'text', text: 'prompt' }], source: null,
+    }} />)
+    fireEvent.click(view.getByRole('button', { name: 'Edit' }))
+    fireEvent.keyDown(view.getByRole('textbox'), { key: 'Escape' })
+    expect(view.queryByRole('textbox')).toBeNull()
+    expect(editMessage).not.toHaveBeenCalled()
+    fireEvent.click(view.getByRole('button', { name: 'Edit' }))
+    fireEvent.click(view.getByRole('button', { name: 'Send' }))
+    fireEvent.keyDown(view.getByRole('textbox'), { key: 'Enter', ctrlKey: true })
+    expect(editMessage).toHaveBeenCalledTimes(1)
+    expect((view.getByRole('button', { name: 'Cancel' }) as HTMLButtonElement).disabled).toBe(true)
+    await act(async () => { finish() })
+  })
+
   it('renders an adjacent session mention as a chip even without trailing whitespace', () => {
     const view = render(
       <MessageItem

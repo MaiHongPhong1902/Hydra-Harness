@@ -18,7 +18,8 @@ import { describe, expect, it, vi } from 'vitest'
 import { SlotTestRuntime, usePinnedBrowserLanguages, stubSettingsScope } from '@hydra/harness-client-test-runtime'
 import type { SessionBehaviorOverrides } from '@hydra/harness-client-test-runtime'
 import { LocaleRuntime } from '@hydra/harness-client-locale/client'
-import type { ISession, SessionId } from '@hydra/harness-client-runtime/client'
+import type { ISession, SessionId, UserMessageNode } from '@hydra/harness-client-runtime/client'
+import { AttachmentId } from '@hydra/harness-attachment'
 import type { DraftAttachmentId } from '@hydra/harness-client-ui-conversation/client'
 import { apply, inject } from '@hydra/harness-client-ui-conversation/client'
 import type {
@@ -55,7 +56,7 @@ function sessionFakeFor() {
   } satisfies SessionBehaviorOverrides
 }
 
-async function bench(withBrowserAnnotation = false) {
+async function bench(withBrowserAnnotation = false, readAttachment?: ISession['readAttachment']) {
   const desktop = globalThis as typeof globalThis & {
     bhDesktop?: {
       browser?: {
@@ -84,7 +85,7 @@ async function bench(withBrowserAnnotation = false) {
   await runtime.sessions.add({
     id: ROOT,
     summary: { title: 'R', displayTitle: 'R', cwd: '/proj' },
-    session: sessionFake,
+    session: { ...sessionFake, ...(readAttachment === undefined ? {} : { readAttachment }) },
   })
   const layoutFake = { openDetails: vi.fn(), closeDetails: vi.fn() }
   runtime.provide('layout', layoutFake)
@@ -159,6 +160,51 @@ async function bench(withBrowserAnnotation = false) {
 }
 
 describe('conversation slot inject API', () => {
+  it('copies the original images to an edited child and retains its rejected draft without changing the source draft', async () => {
+    const attachment = { attachmentId: AttachmentId('original-image'), mediaType: 'image/png' as const,
+      bytes: 3, width: 1, height: 1 }
+    const read = vi.fn<ISession['readAttachment']>().mockResolvedValue({
+      ok: true, value: { attachment, data: Uint8Array.of(1, 2, 3) },
+    })
+    const b = await bench(false, read)
+    const childId = 'edit-child' as SessionId
+    const child = sessionFakeFor()
+    child.prompt.mockResolvedValueOnce({ ok: false, error: { code: 'internal', message: 'offline', details: {} } })
+    await b.runtime.sessions.add({ id: childId, session: child })
+    const fork = vi.spyOn(b.runtime.sessions, 'fork').mockResolvedValue(childId)
+    const created = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:edited-image')
+    const revoked = vi.spyOn(URL, 'revokeObjectURL').mockReturnValue(undefined)
+    try {
+      b.inputApi(ROOT).actions.setDraft('unrelated composer draft')
+      const entry = b.slots.entries('conversation.chat.node').find(item => item.options.key === 'user')!
+      const injected = (entry.inject as (sessionId: SessionId) => {
+        editMessage: (node: UserMessageNode, text: string) => Promise<void>
+      })(ROOT)
+      await injected.editMessage({ kind: 'user', seq: 7, time: 1_000, source: { kind: 'user' },
+        content: [{ type: 'image', attachment }, { type: 'text', text: 'old prompt' }],
+      }, 'edited prompt')
+      expect(read).toHaveBeenCalledWith(attachment.attachmentId)
+      expect(fork).toHaveBeenCalledWith({ sessionId: ROOT, beforeSeq: 7 })
+      await vi.waitFor(() => { expect(child.prompt).toHaveBeenCalledTimes(1) })
+      expect(child.prompt.mock.calls[0]?.[0]).toEqual([
+        expect.objectContaining({ type: 'image', mediaType: 'image/png', data: 'AQID' }),
+        { type: 'text', text: 'edited prompt' },
+      ])
+      await vi.waitFor(() => { expect(b.inputApi(childId).state.getSnapshot()).toMatchObject({
+        draft: 'edited prompt', imageIds: [expect.any(String)],
+      }) })
+      expect(b.inputApi(ROOT).state.getSnapshot().draft).toBe('unrelated composer draft')
+      b.inputApi(childId).actions.submit()
+      await vi.waitFor(() => { expect(b.inputApi(childId).state.getSnapshot()).toMatchObject({ draft: '', imageIds: [] }) })
+      expect(fork).toHaveBeenCalledTimes(1)
+    } finally {
+      await b.runtime.dispose()
+      fork.mockRestore()
+      created.mockRestore()
+      revoked.mockRestore()
+    }
+  })
+
   it('assembles the thin API side-effect-free', async () => {
     const b = await bench()
     const { injected } = b.conversationApi(ROOT)

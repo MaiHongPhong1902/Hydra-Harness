@@ -505,6 +505,8 @@ export class SessionRuntime implements ISessions {
    *   A fractional anchor floors to a real event seq: the frozen nodes of an
    *   interrupted turn carry flow-ordering seqs between two events, and the
    *   wire takes integers only.
+   *   `beforeSeq` excludes the selected turn-opening user message's entire turn
+   *   and cannot accompany `atSeq`; the first and active turns are supported.
    * @returns the child session id.
    * @throws {SessionForkError} with the source id.
    * @throws {Error} when a requested child-title rename fails after creation.
@@ -512,6 +514,7 @@ export class SessionRuntime implements ISessions {
   async fork(opts: {
     sessionId: SessionId
     atSeq?: number
+    beforeSeq?: number
     increaseTitle?: boolean
   }): Promise<SessionId> {
     const sourceTitle = opts.increaseTitle
@@ -523,6 +526,7 @@ export class SessionRuntime implements ISessions {
       // turn/start), so the host's first-turn/end-at-or-after cut still ends
       // on that turn — never clipped back to the previous one.
       ...(opts.atSeq === undefined ? {} : { atSeq: Math.floor(opts.atSeq) }),
+      ...(opts.beforeSeq === undefined ? {} : { beforeSeq: opts.beforeSeq }),
     })
     if (!result.ok) throw new SessionForkError(result.error, opts.sessionId)
     this.projectList()

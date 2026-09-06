@@ -18,8 +18,8 @@ A turn containing a steer keeps its fork point unchanged: fork is a log-prefix c
 
 **Keep the visible-but-unavailable control (status quo).** Rejected: the [completed-turn-tail decision](../bug-fix/2026-08-02-message-fork-actions-require-completed-turn-tail.md) chose visibility so the tooltip could explain a boundary the reader can reach; on user and steering bubbles the boundary is unreachable in practice, so the explanation props up a control that should not exist there.
 
-**Branch-before-the-message semantics on user bubbles.** Out of scope: re-asking from one's own prompt needs a cut before the message plus composer prefill, a different Host operation. Removing the current control keeps that seat free for such a feature instead of squatting on it with opposite semantics.
+**Branch-before-the-message semantics on user bubbles.** Re-asking requires a cut before the message and fresh submission. The [sent-prompt editor](../feature/2026-09-06-edit-sent-prompts.md) owns that separate action; the branch icon continues to mean inclusion through a completed answer.
 
 ## Consequences
 
-The only fork handles are the enabled branch controls under settled answers. A turn cancelled before any node followed its message loses its only handle and has no fork point, matching turns whose tail is a content-free interrupted node. Web aria goldens across `apps/web` drop the user-bubble disabled-branch row and its hidden explanation text. Package tests pin that user and steering bubbles render no branch control and that a steering-tail turn leaves the narration's control unavailable.
+The branch icon appears only under settled answers; the separate prompt editor uses a before-turn fork. A turn cancelled before any node followed its message loses its only handle and has no fork point, matching turns whose tail is a content-free interrupted node. Web aria goldens across `apps/web` drop the user-bubble disabled-branch row and its hidden explanation text. Package tests pin that user and steering bubbles render no branch control and that a steering-tail turn leaves the narration's control unavailable.

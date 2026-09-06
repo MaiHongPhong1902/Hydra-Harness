@@ -1,7 +1,5 @@
-// Web e2e scenario: message IconActions + clocks. Cold-seeds a deterministic
-// completed-turn-tail fork case (zero model calls) and pins the settled
-// conversation aria after the footers are focus-revealed — the surface package
-// jsdom tests cannot substitute for (docs/testing.md snapshot rule).
+// Real Web composition: settled message actions, before-turn editing, and
+// persisted replies through a deterministic model adapter.
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -9,9 +7,10 @@ import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
 import { SessionId } from '@hydra/harness-session'
+import { LlmAdapter, type GenerateOptions, type StreamChunk } from '@hydra/harness-llm'
 import {
   assertFixtureInventory, captureStableAria, compareOrRefreshGolden, fixtureUserPrompts,
-  launchWebScaffold, parseSeedFixture, renderSeedFixture, seedSession, watchConsole, webSnapshotMode, type WebScaffold,
+  launchWebScaffold, parseSeedFixture, realizeSeedFixture, renderSeedFixture, seedSession, watchConsole, webSnapshotMode, type WebScaffold,
 } from './scaffold.ts'
 import { newEnglishPage, saveFailureShot } from './support.ts'
 
@@ -23,6 +22,19 @@ const UI_EXPECTED = join(SNAPSHOT_DIR, 'ui.expected.md')
 const FORK_EXPECTED = join(SNAPSHOT_DIR, 'fork.expected.md')
 const MODE = webSnapshotMode()
 const SEED_ID = 'message-actions-web-e2e'
+
+/** Deterministic reply for edited prompts submitted through the real Host. */
+class EditReplyAdapter extends LlmAdapter {
+  readonly requests: GenerateOptions[] = []
+  override listModels(provider: string) {
+    return Promise.resolve([{ provider, id: 'edit-model', name: 'Edit model' }])
+  }
+  override async *stream(options: GenerateOptions): AsyncIterable<StreamChunk> {
+    this.requests.push(options)
+    yield { type: 'text-delta', index: 0, text: 'Reply to the edited prompt.' }
+    yield { type: 'finish', reason: { kind: 'stop' } }
+  }
+}
 
 const PROMPT = 'Use the read tool twice in one assistant message: read a.txt and b.txt. Then reply with the single word DONE and stop.'
 const MID_TURN_TEXT = 'I will read both files before answering.'
@@ -59,6 +71,9 @@ function completedTailFixture(raw: string): string {
   const tail = [
     at({ type: 'step/end', data: { turn: 1, step: 2 } }),
     at({ type: 'turn/end', data: { turn: 1, reason: { kind: 'aborted' } } }),
+    at({ type: 'request/header', data: {
+      header: { config: { provider: 'message-edit-test', model: 'edit-model' } }, reason: 'initial',
+    } }),
     at({ type: 'turn/start', data: { turn: 2, trigger: { kind: 'message', source: { kind: 'user', rpcId: '{{rpcId}}' } } } }),
     at({ type: 'user/message', data: { content: [{ type: 'text', text: SECOND_PROMPT }], source: { kind: 'user', rpcId: '{{rpcId}}' } }, surfaceOp: 'append' }),
     at({ type: 'step/start', data: { turn: 2, step: 1 } }),
@@ -74,9 +89,11 @@ describe('web e2e: message IconActions and clocks on settled history', () => {
   let browser: Browser
   let page: Page
   let tripwire: ReturnType<typeof watchConsole>
+  const editAdapter = new EditReplyAdapter()
 
   beforeAll(async () => {
     scaffold = await launchWebScaffold({})
+    scaffold.ctx.effect(() => scaffold.ctx.llm.registerAdapter(['message-edit-test'], editAdapter))
     const sessionCwd = join(scaffold.workspaceCwd, 'workspace')
     await mkdir(sessionCwd, { recursive: true })
     await writeFile(join(sessionCwd, 'a.txt'), 'alpha\n')
@@ -94,6 +111,14 @@ describe('web e2e: message IconActions and clocks on settled history', () => {
   afterAll(async () => {
     await browser?.close()
     await scaffold?.close()
+  })
+
+  it('realizes Windows seed paths as valid JSON and remains idempotent', () => {
+    const windows = { ...scaffold, workspaceCwd: 'C:\\seed "quoted"\\root' }
+    const seed = JSON.stringify({ type: 'session', cwd: '{{cwd}}/workspace', id: '{{sessionId}}' }) + '\n'
+    const realized = realizeSeedFixture(windows, seed, 'seed-test')
+    expect((JSON.parse(realized) as { cwd: string }).cwd).toBe(windows.workspaceCwd)
+    expect(realizeSeedFixture(windows, realized, 'seed-test')).toBe(realized)
   })
 
   it.skipIf(MODE === 'record')('enables branch only on the completed transcript tail', async () => {
@@ -122,7 +147,8 @@ describe('web e2e: message IconActions and clocks on settled history', () => {
     await branchButtons.first().focus()
     await expect.poll(() => page.getByRole('tooltip').textContent(), { timeout: 5_000 })
       .toBe('Available only on the last message of a completed turn')
-    await expect.poll(() => page.getByRole('button', { name: 'Edit' }).count(), { timeout: 5_000 }).toBe(0)
+    await expect.poll(() => page.locator('[data-chat-flow-kind="user"]').getByRole('button', { name: 'Edit' }).count(),
+      { timeout: 5_000 }).toBe(2)
   }, 60_000)
 
   it.skipIf(MODE === 'record')('matches the conversation aria golden with IconActions and clocks', async () => {
@@ -192,9 +218,46 @@ describe('web e2e: message IconActions and clocks on settled history', () => {
     await compareOrRefreshGolden(FORK_EXPECTED, tree, MODE)
   })
 
-  it.skipIf(MODE === 'record')('issued zero model calls and kept a closed inventory', async () => {
+  it.skipIf(MODE === 'record')('edits a sent prompt, keeps its prefix, and persists the new reply after reload', async () => {
+    onTestFailed(() => saveFailureShot(page, 'web-e2e-message-edit'))
+    const row = page.locator('[data-chat-flow-kind="user"]').last()
+    await row.getByRole('button', { name: 'Edit' }).click()
+    const editor = page.getByRole('textbox', { name: 'Edit prompt' })
+    expect(await editor.inputValue()).toBe(SECOND_PROMPT)
+    await editor.fill('discard this draft')
+    await page.getByRole('button', { name: 'Cancel', exact: true }).click()
+    expect(await row.textContent()).toContain(SECOND_PROMPT)
+    expect(editAdapter.requests).toHaveLength(0)
+    await row.getByRole('button', { name: 'Edit' }).click()
+    await editor.fill('Please revise the answer.\nKeep it concise.')
+    await page.getByRole('button', { name: 'Send', exact: true }).focus()
+    await compareOrRefreshGolden(join(SNAPSHOT_DIR, 'edit.expected.md'),
+      await captureStableAria(page, '[data-chat-flow-kind="user"]:has(textarea)', scaffold.workspaceCwd), MODE)
+    await mkdir('.artifacts/prompt-edit', { recursive: true })
+    await row.screenshot({ path: '.artifacts/prompt-edit/inline-edit.png' })
+    const originals = new Map(scaffold.ctx.agents.list().map(agent => [agent.id, [...agent.session.events]]))
+    const settled = scaffold.whenTurnSettled()
+    await page.getByRole('button', { name: 'Send', exact: true }).click()
+    const childId = await settled
+    const child = scaffold.ctx.agents.get(childId)!
+    expect(child.session.events.flatMap(event => event.type === 'user/message' && event.data.source.kind === 'user'
+      ? [event.data.content.filter(block => block.type === 'text').map(block => block.text).join('')] : []))
+      .toEqual([PROMPT, 'Please revise the answer.\nKeep it concise.'])
+    const sourceId = child.session.header.parentSession!
+    expect(scaffold.ctx.agents.get(sourceId)!.session.events).toEqual(originals.get(sourceId))
+    const ended = child.session.events.findLast(event => event.type === 'turn/end')?.data
+    expect(ended, JSON.stringify(ended)).toMatchObject({ reason: { kind: 'completed' } })
+    expect(editAdapter.requests, JSON.stringify(child.session.events.filter(event => event.type.includes('error')))).toHaveLength(1)
+    expect(JSON.stringify(editAdapter.requests[0]!.messages)).not.toContain(SECOND_PROMPT)
+    await page.getByText('Reply to the edited prompt.', { exact: true }).waitFor()
+    await page.reload()
+    await page.getByText('Please revise the answer.', { exact: false }).waitFor({ timeout: 15_000 })
+    await page.getByText('Reply to the edited prompt.', { exact: true }).waitFor({ timeout: 15_000 })
+  })
+
+  it.skipIf(MODE === 'record')('keeps a closed inventory and clean browser console', async () => {
     expect(tripwire.pageErrors).toEqual([])
     expect(tripwire.warnings).toEqual([])
-    await assertFixtureInventory(SNAPSHOT_DIR, ['fork.expected.md', 'ui.expected.md'])
+    await assertFixtureInventory(SNAPSHOT_DIR, ['edit.expected.md', 'fork.expected.md', 'ui.expected.md'])
   })
 })

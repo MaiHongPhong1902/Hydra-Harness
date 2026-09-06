@@ -1,0 +1,3 @@
+- textbox "Edit prompt": Please revise the answer. Keep it concise.
+- button "Cancel"
+- button "Send"

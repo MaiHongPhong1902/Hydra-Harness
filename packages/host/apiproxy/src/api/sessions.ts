@@ -348,8 +348,12 @@ export interface SessionsApi {
    * without acquiring an Agent. Workspace attachment follows the source
    * directly, or the nearest workspace-owning ancestor when the source is a
    * subagent.
+   * `beforeSeq`, mutually exclusive with `atSeq`, instead identifies a turn-opening
+   * user message and excludes its entire turn, including its answer. It accepts
+   * the first or an active turn; an invalid or mid-turn message fails with
+   * `fork-unavailable`. Forking never edits or stops the source session.
    */
-  fork(request: RpcRequest<{ sessionId: SessionId; atSeq?: number }>):
+  fork(request: RpcRequest<{ sessionId: SessionId; atSeq?: number; beforeSeq?: number }>):
   Promise<RpcResponse<{ sessionId: SessionId }>>
 
   /**

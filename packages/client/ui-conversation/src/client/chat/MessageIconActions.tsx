@@ -1,9 +1,9 @@
 // Shared IconActions chrome for user and assistant messages: copy
-// live, optional branch wiring, and an optional date-aware clock.
+// live, optional edit and branch wiring, and an optional date-aware clock.
 
 import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import {
-  IconBranchOutline16, IconCheckOutline16, IconCopyOutline16, Tooltip, writeClipboard,
+  IconBranchOutline16, IconCheckOutline16, IconCopyOutline16, IconEditOutline16, Tooltip, writeClipboard,
 } from '@hydra/harness-client-ui-primitives'
 import type { ChatViewSlotProps } from '../contract/slots.ts'
 import { formatLatencySeconds, formatMessageClock, formatRunDuration, formatTokensPerSecond } from './message-chrome.ts'
@@ -25,6 +25,8 @@ export interface MessageIconActionsProps {
   clock: 'start' | 'end'
   /** Fork the session at this message; omission hides the branch action. */
   onBranch?: (() => void) | undefined
+  /** Open the inline editor; omitted on messages without edit support. */
+  onEdit?: (() => void) | undefined
   /** The message is not a completed transcript tail, so branch stays visible but unavailable. */
   branchUnavailable?: boolean | undefined
   /** Parent layout class composed onto the actions row. */
@@ -39,13 +41,13 @@ export interface MessageIconActionsProps {
 }
 
 /**
- * Copy / branch (/ clock) IconActions row shared by user and assistant chrome.
- * @param props - Copy text, event time, clock side, branch callback, className.
+ * Copy, edit, branch, and clock actions shared by user and assistant chrome.
+ * @param props - Text, event timing, clock side, optional edit/branch callbacks, and styling.
  * @returns The actions row element.
  */
 export function MessageIconActions({
   text, time, runMs, ttftMs, tokensPerSecond, clock, onBranch, branchUnavailable = false, className,
-  extraActions, t,
+  extraActions, onEdit, t,
 }: MessageIconActionsProps) {
   const day = useCalendarDay()
   const reasonId = useId()
@@ -116,6 +118,13 @@ export function MessageIconActions({
         </button>
       </Tooltip>
       {extraActions}
+      {onEdit !== undefined && (
+        <Tooltip label={t('edit')} side="bottom">
+          <button type="button" className={css.action} aria-label={t('edit')} onClick={onEdit}>
+            <IconEditOutline16 />
+          </button>
+        </Tooltip>
+      )}
       {onBranch !== undefined && (
         <Tooltip label={branchUnavailable ? t('message.branchUnavailable') : t('message.branch')} side="bottom">
           {/* Native disabled buttons do not deliver the hover/focus events Tooltip needs. */}

@@ -1,14 +1,14 @@
 // MessageItem: simple chat nodes — user and consumed-steering bubbles
-// (right-aligned, with clock + copy IconActions; branch lives only under
+// (right-aligned, with clock, copy and user edit actions; branch lives only under
 // assistant answers), pending steering (copy only), context injection,
 // compaction marker, retry disclosure, and unknown-surface JSON rows.
 
-import { memo, useEffect, useMemo, useState } from 'react'
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import type {
   ModelRetryNode, TurnErrorNode, UserMessageNode,
 } from '@hydra/harness-client-runtime/client'
-import { JsonBlock, MessageText, StateDot } from '@hydra/harness-client-ui-primitives'
+import { Button, JsonBlock, MessageText, StateDot } from '@hydra/harness-client-ui-primitives'
 import type { ChatNodeOwnerProps, ChatNodeViewProps, ChatViewSlotProps } from '../contract/slots.ts'
 import { ReferenceIcon } from '../reference/ReferenceIcon.tsx'
 import { CompactionItem } from './CompactionItem.tsx'
@@ -214,12 +214,14 @@ function projectUserText(text: string, sessionLabels: readonly string[]): ReactN
 
 /** Right-aligned bubble shared by user and steering rows. */
 function UserStyleBubble({
-  content, renderMessageImages, actions, pending = false, referenceLabels = [], t,
+  content, renderMessageImages, actions, editor, pending = false, referenceLabels = [], t,
 }: {
   content: readonly unknown[]
   renderMessageImages: ChatNodeOwnerProps['renderMessageImages']
   /** Optional IconActions (or similar) below the bubble; receives the joined text. */
-  actions?: (text: string) => ReactNode
+  actions?: ((text: string) => ReactNode) | undefined
+  /** Local inline editor replacing the displayed text while keeping images visible. */
+  editor?: ReactNode
   /** Whether this is the Host-authoritative pre-admission steering projection. */
   pending?: boolean
   /** Exact session mention labels associated by the adjacent recall node. */
@@ -231,13 +233,13 @@ function UserStyleBubble({
   const showBubble = text !== '' || rest.length > 0
   return (
     <div className={css.userRow} data-pending-steering={pending || undefined} data-time-hover-root>
-      <div className={css.userStack}>
+      <div className={css.userStack} data-editing={editor !== undefined || undefined}>
         {renderMessageImages({ images, align: 'end' })}
-        {showBubble && <div className={css.bubble}>
-          {projectUserText(text, referenceLabels)}
+        {(showBubble || editor !== undefined) && <div className={css.bubble}>
+          {editor ?? projectUserText(text, referenceLabels)}
           {rest.map((block, i) => <JsonBlock key={i} label={t('message.extraBlock')} payload={block} truncatedLabel={truncated} />)}
         </div>}
-        {referenceLabels.length > 0 && (
+        {editor === undefined && referenceLabels.length > 0 && (
           <div className={css.referenceSummary}>
             {t('message.referenceSummary', { labels: referenceLabels.join(t('message.referenceSeparator')) })}
           </div>
@@ -279,21 +281,84 @@ export function PendingSteeringBubble({ content, renderMessageImages, t }: {
 
 /** User and admitted-steering keyed Chat renderer. */
 export const UserMessageNodeView = memo(function UserMessageNodeView({
-  node, renderMessageImages, t,
-}: ChatNodeViewProps<'user' | 'steering'>) {
+  node, renderMessageImages, editMessage, t,
+}: ChatNodeViewProps<'user' | 'steering'> & {
+  /** Hand off the edited prompt to a new conversation; rejection keeps this editor open. */
+  editMessage?: (node: UserMessageNode, text: string) => Promise<void>
+}) {
   const data = node.data
+  const [draft, setDraft] = useState<string | null>(null)
+  const [sending, setSending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const textarea = useRef<HTMLTextAreaElement>(null)
+  const pending = useRef(false)
+  useLayoutEffect(() => {
+    const input = textarea.current
+    if (input === null) return
+    input.style.height = 'auto'
+    input.style.height = `${input.scrollHeight}px`
+  }, [draft])
+  const cancel = (): void => { setDraft(null); setError(null) }
+  const send = async (): Promise<void> => {
+    if (pending.current || draft === null || draft.trim() === '' || node.kind !== 'user'
+      || editMessage === undefined) return
+    pending.current = true
+    setSending(true)
+    setError(null)
+    try {
+      await editMessage(node.data, draft)
+      setDraft(null)
+    } catch (failure) {
+      setError(t('message.editFailed', { message: failure instanceof Error ? failure.message : String(failure) }))
+    } finally {
+      pending.current = false
+      setSending(false)
+    }
+  }
+  const editable = node.kind === 'user' && editMessage !== undefined
+    && data.content.every(block => block.type === 'text' || block.type === 'image')
   return (
     <UserStyleBubble
       content={data.content}
       renderMessageImages={renderMessageImages}
       {...data.referenceLabels === undefined ? {} : { referenceLabels: data.referenceLabels }}
       t={t}
-      actions={text => (
+      editor={draft === null ? undefined : (
+        <form onSubmit={(event) => { event.preventDefault(); void send() }}>
+          <textarea
+            ref={textarea}
+            autoFocus
+            className={css.editText}
+            aria-label={t('message.editPrompt')}
+            value={draft}
+            disabled={sending}
+            rows={1}
+            onChange={(event) => { setDraft(event.currentTarget.value) }}
+            onKeyDown={(event) => {
+              if (event.nativeEvent.isComposing) return
+              if (event.key === 'Escape' && !sending) { event.preventDefault(); cancel() }
+              if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+                event.preventDefault()
+                void send()
+              }
+            }}
+          />
+          {error !== null && <p className={css.editError} role="alert">{error}</p>}
+          <div className={css.editActions}>
+            <Button type="button" variant="outline" disabled={sending} onClick={cancel}>{t('cancel')}</Button>
+            <Button type="submit" variant="primary" disabled={sending || draft.trim() === ''}>
+              {t('message.editSend')}
+            </Button>
+          </div>
+        </form>
+      )}
+      actions={draft !== null ? undefined : text => (
         <MessageIconActions
           text={text}
           time={data.time}
           clock="start"
           className={css.actions}
+          onEdit={editable ? () => { setDraft(text); setError(null) } : undefined}
           t={t}
         />
       )}

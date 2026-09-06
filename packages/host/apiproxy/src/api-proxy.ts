@@ -2389,7 +2389,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
       },
 
       async fork(request) {
-        const { sessionId, atSeq } = request.payload
+        const { sessionId, atSeq, beforeSeq } = request.payload
         let source: SessionReadState
         try {
           source = await readSessionState(sessionId)
@@ -2415,7 +2415,24 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
           ?? (atSeq === undefined || atSeq > lastSeq
             ? events.findLast(e => e.type === 'turn/end')
             : undefined)
-        if (boundary === undefined) {
+        const message = beforeSeq === undefined ? undefined : events.find(event => event.seq === beforeSeq)
+        const turnStart = beforeSeq === undefined
+          ? undefined
+          : events.findLast(event => event.type === 'turn/start' && event.seq < beforeSeq)
+        if (beforeSeq !== undefined && (atSeq !== undefined
+          || message?.type !== 'user/message' || message.data.source.kind !== 'user'
+          || turnStart === undefined
+          || events.some(event => event.seq > turnStart.seq && event.seq < beforeSeq
+            && (event.type === 'turn/end'
+              || (event.type === 'user/message' && event.data.source.kind === 'user'))))) {
+          return err(request, {
+            code: 'fork-unavailable',
+            message: 'beforeSeq must identify a turn-opening user message and cannot accompany atSeq',
+            details: { sessionId },
+          })
+        }
+        const cutBoundary = beforeSeq === undefined ? boundary : turnStart
+        if (cutBoundary === undefined) {
           return err(request, {
             code: 'fork-unavailable',
             message: atSeq !== undefined && atSeq <= lastSeq
@@ -2428,8 +2445,10 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
         // injections) up to the next turn/start: they are standalone events, so
         // the seed stays balanced, and the child inherits a title generated
         // right after the boundary turn.
-        let cut = boundary.seq + 1
-        while (cut < events.length && events[cut]?.type !== 'turn/start') cut++
+        let cut = cutBoundary.seq + (beforeSeq === undefined ? 1 : 0)
+        if (beforeSeq === undefined) {
+          while (cut < events.length && events[cut]?.type !== 'turn/start') cut++
+        }
         let workspace: Workspace | undefined
         try {
           workspace = await forkWorkspace(source)

@@ -14,6 +14,7 @@ import type { Workspace } from '@hydra/harness-workspace'
 import type { RpcRequest } from '@hydra/harness-host-apiproxy/api/rpc'
 import { RpcId } from '@hydra/harness-host-apiproxy/api/rpc'
 import { createApiProxy } from '@hydra/harness-host-apiproxy'
+import { sessionForkRequestSchema } from '../src/api/sessions.schema.ts'
 
 const sid = (id: string): SessionId => id as SessionId
 
@@ -87,6 +88,46 @@ const api = (ctx: Context) => createApiProxy(ctx, {
 })
 
 describe('sessions.fork', () => {
+  it.each([1, 4])('forks before prompt %s without inheriting that turn or changing the source', async (beforeSeq) => {
+    const ctx = await composed()
+    const source = liveAgent(ctx, 'source-edit', 2)
+    const original = [...source.events]
+    const response = await api(ctx).sessions.fork(request({ sessionId: source.id, beforeSeq }))
+    expect(response.result.ok).toBe(true)
+    if (!response.result.ok) throw new Error(response.result.error.message)
+    const child = ctx.sessions.get(response.result.value.sessionId)!
+    expect(child.events.filter(event => event.type !== 'session/end-seed')).toEqual(original.slice(0, beforeSeq - 1))
+    expect(child.header.parentSession).toBe(source.id)
+    expect(source.events).toEqual(original)
+    await ctx.fiber.dispose()
+  })
+
+  it('can replace the first prompt while its original turn is still running', async () => {
+    const ctx = await composed()
+    const source = liveAgent(ctx, 'open-edit', 0, 'open')
+    const response = await api(ctx).sessions.fork(request({ sessionId: source.id, beforeSeq: 1 }))
+    expect(response.result.ok).toBe(true)
+    expect(source.events.at(-1)?.type).toBe('user/message')
+    await ctx.fiber.dispose()
+  })
+
+  it('rejects conflicting, missing, non-user and mid-turn edit anchors', async () => {
+    const ctx = await composed()
+    const source = liveAgent(ctx, 'invalid-edit', 1, 'open')
+    const steer = source.append('user/message', createUserMessage({
+      content: [{ type: 'text', text: 'steering' }], source: { kind: 'user' },
+    }), { surfaceOp: 'append' })
+    const proxy = api(ctx)
+    for (const opts of [{ beforeSeq: 0 }, { beforeSeq: 999 }, { beforeSeq: steer.seq }, { beforeSeq: 1, atSeq: 1 }]) {
+      const response = await proxy.sessions.fork(request({ sessionId: source.id, ...opts }))
+      expect(response.result).toMatchObject({ ok: false, error: { code: 'fork-unavailable' } })
+    }
+    expect(sessionForkRequestSchema.safeParse({ sessionId: source.id, beforeSeq: 1, atSeq: 1 }).success).toBe(false)
+    expect(sessionForkRequestSchema.safeParse({ sessionId: source.id, beforeSeq: 1.5 }).success).toBe(false)
+    expect(sessionForkRequestSchema.safeParse({ sessionId: source.id, beforeSeq: 1 }).success).toBe(true)
+    await ctx.fiber.dispose()
+  })
+
   it('cuts at the anchored completed turn and records lineage and cwd', async () => {
     const ctx = await composed()
     const source = liveAgent(ctx, 'session-source', 2)

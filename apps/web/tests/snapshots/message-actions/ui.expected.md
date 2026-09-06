@@ -11,6 +11,8 @@
 - button "Copy":
   - img
 - tooltip "Copy"
+- button "Edit":
+  - img
 - button "Think The user wants me to read a.txt and b.txt, then reply with \"DONE\". Let me do both reads in parallel.":
   - img
   - img
@@ -25,6 +27,10 @@
 - button "Branch into a new conversation" [disabled]:
   - img
 - text: Available only on the last message of a completed turn 7/25 {{clock}} Ran for {{duration}} TTFT {{duration}} {{throughput}} tok/s
+- button "Read files" [expanded]:
+  - img
+  - text: Read files
+  - img
 - button "Read a.txt":
   - img
   - img
@@ -42,6 +48,8 @@
 - text: Stopped Now give the final answer. 7/25 {{clock}}
 - button "Copy":
   - img
+- button "Edit":
+  - img
 - paragraph: DONE
 - button "Copy":
   - img
@@ -56,8 +64,8 @@
 - button "Commands":
   - img
 - 'button "Access mode, current: Workspace Write"': Workspace Write
-- button "Select model, current DeepSeek-V4-Flash":
-  - text: DeepSeek-V4-Flash
+- button "Select model, current Edit model":
+  - text: Edit model
   - img
 - button "Send message" [disabled]
 - text: 2 turns · 3 steps LLM {{duration}} · Tool call {{duration}} TTFT avg {{duration}} · {{throughput}} tok/s Cache hit 98% Input 7.8K tok · Output 103 tok

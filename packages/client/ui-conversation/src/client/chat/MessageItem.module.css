@@ -29,6 +29,44 @@
   color: var(--dsw-alias-label-primary);
 }
 
+.userStack[data-editing] {
+  width: min(525px, 82%);
+}
+
+.userStack[data-editing] .bubble {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.editText {
+  display: block;
+  width: 100%;
+  max-height: 50vh;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  resize: none;
+}
+
+.editText:focus-visible {
+  outline: 1px solid var(--dsw-alias-border-l1);
+  outline-offset: 4px;
+}
+
+.editActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.editError {
+  color: var(--dsw-alias-label-primary);
+  font-size: 13px;
+}
+
 .referenceSummary {
   color: var(--dsw-alias-label-tertiary);
   font-size: 12px;
