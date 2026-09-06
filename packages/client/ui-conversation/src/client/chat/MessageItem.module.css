@@ -36,30 +36,43 @@
 .userStack[data-editing] .bubble {
   width: 100%;
   box-sizing: border-box;
+  padding: 12px;
+  border-radius: 20px;
 }
 
 .editText {
   display: block;
+  box-sizing: border-box;
   width: 100%;
   max-height: 50vh;
   padding: 0;
   border: none;
+  outline: none;
   background: transparent;
   color: inherit;
   font: inherit;
   resize: none;
 }
 
-.editText:focus-visible {
-  outline: 1px solid var(--dsw-alias-border-l1);
-  outline-offset: 4px;
+.userStack[data-editing] .bubble:has(.editText:focus-visible) {
+  outline: 1px solid var(--dsw-alias-border-l2);
+  outline-offset: 2px;
 }
 
 .editActions {
+  --dsw-alias-button-primary-fill: var(--dsw-alias-label-primary);
+  --dsw-alias-button-primary-hover: var(--dsw-alias-label-secondary);
   display: flex;
   justify-content: flex-end;
   gap: 6px;
   margin-top: 12px;
+}
+
+.editActions button {
+  padding: 0 8px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 20px;
 }
 
 .editError {

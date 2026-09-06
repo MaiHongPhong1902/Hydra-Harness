@@ -345,8 +345,8 @@ export const UserMessageNodeView = memo(function UserMessageNodeView({
           />
           {error !== null && <p className={css.editError} role="alert">{error}</p>}
           <div className={css.editActions}>
-            <Button type="button" variant="outline" disabled={sending} onClick={cancel}>{t('cancel')}</Button>
-            <Button type="submit" variant="primary" disabled={sending || draft.trim() === ''}>
+            <Button type="button" variant="outline" size="sm" disabled={sending} onClick={cancel}>{t('cancel')}</Button>
+            <Button type="submit" variant="primary" size="sm" disabled={sending || draft.trim() === ''}>
               {t('message.editSend')}
             </Button>
           </div>

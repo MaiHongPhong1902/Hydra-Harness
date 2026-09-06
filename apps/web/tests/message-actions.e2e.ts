@@ -234,7 +234,12 @@ describe('web e2e: message IconActions and clocks on settled history', () => {
     await compareOrRefreshGolden(join(SNAPSHOT_DIR, 'edit.expected.md'),
       await captureStableAria(page, '[data-chat-flow-kind="user"]:has(textarea)', scaffold.workspaceCwd), MODE)
     await mkdir('.artifacts/prompt-edit', { recursive: true })
+    await editor.focus()
     await row.screenshot({ path: '.artifacts/prompt-edit/inline-edit.png' })
+    await page.emulateMedia({ colorScheme: 'dark' })
+    await page.waitForFunction(() => document.body.hasAttribute('data-ds-dark-theme'))
+    await row.screenshot({ path: '.artifacts/prompt-edit/inline-edit-dark.png' })
+    await page.emulateMedia({ colorScheme: 'light' })
     const originals = new Map(scaffold.ctx.agents.list().map(agent => [agent.id, [...agent.session.events]]))
     const settled = scaffold.whenTurnSettled()
     await page.getByRole('button', { name: 'Send', exact: true }).click()
