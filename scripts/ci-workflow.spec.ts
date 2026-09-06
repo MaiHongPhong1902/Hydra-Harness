@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs'
+import { spawnSync } from 'node:child_process'
 import { resolve } from 'node:path'
 import * as yaml from 'js-yaml'
 import { describe, expect, it } from 'vitest'
@@ -70,7 +71,7 @@ describe('CI workflow', () => {
     // Required PR job: Wine on ubuntu-latest, runs wine-windows-gates.sh.
     expect(windows['runs-on']).toBe('ubuntu-latest')
     expect(windows.name).toBe('windows node 24 / wine blocking')
-    expect(windows.if).toBe("github.event_name == 'pull_request'")
+    expect(windows.if).toBeUndefined()
     expect(commandSteps.some(step => step.run.includes('wine-windows-gates.sh'))).toBe(true)
 
     // windows-native: non-blocking native job with failover, runs windows-complete.
@@ -80,9 +81,9 @@ describe('CI workflow', () => {
     expect(windowsNative['runs-on']).not.toContain('BH_CI_FAILOVER_LINUX')
     expect(windowsNative['runs-on']).toContain('self-hosted')
     expect(windowsNative['runs-on']).toContain('bh-win-ci')
-    expect(windowsNative['runs-on']).toContain('bh-windows-2025-16core')
+    expect(windowsNative['runs-on']).toContain("|| 'windows-latest'")
     expect(windowsNative.name).toBe('windows node 24 / native complete')
-    expect(windowsNative.if).toBe("github.event_name == 'pull_request'")
+    expect(windowsNative.if).toBeUndefined()
     expect(windowsNative.env).toMatchObject({
       BH_COVERAGE_TEST_TIMEOUT_MS: '30000',
     })
@@ -114,10 +115,13 @@ describe('CI workflow', () => {
       expect(job['runs-on'], `${jobName} runs-on must use the Linux failover switch`).toContain('BH_CI_FAILOVER_LINUX')
       expect(job['runs-on'], `${jobName} runs-on must not use the Windows failover switch`).not.toContain('BH_CI_FAILOVER_WINDOWS')
       expect(job['runs-on']).toContain('vm-backup')
+      expect(job['runs-on']).toContain("|| 'ubuntu-latest'")
+      expect(job.if).toBeUndefined()
     }
     expect(aggregate['runs-on']).toContain('BH_CI_FAILOVER_LINUX')
     expect(aggregate['runs-on']).not.toContain('BH_CI_FAILOVER_WINDOWS')
     expect(aggregate['runs-on']).toContain('vm-backup')
+    expect(aggregate.if).toBe('always()')
   })
 
   it('exempts push from cancellation in ci-master, so one master merge does not cancel the running drill', () => {
@@ -139,22 +143,22 @@ describe('CI workflow', () => {
     // larger runners for 15 minutes in this same group on master.
     expect(workflow.concurrency['cancel-in-progress']).toBe("${{ github.event_name != 'push' }}")
 
-    // The PR-only ci.yml still cancels a superseded run on a new push, so a
-    // fresh head does not stack a second full 9-job run behind a stale one.
-    // Unlike ci-master it has no push carve-out: every PR event supersedes.
+    // Primary CI cancels stale checks on the same ref, including direct pushes.
     expect(prWorkflow.concurrency).toMatchObject({
       'cancel-in-progress': true,
     })
 
-    // The exact event sets are what keep master-only jobs out of the PR check
-    // panel: ci-master triggers only on push(master) + workflow_dispatch and
-    // never on pull_request; ci.yml is exactly pull_request-only. Assert the
-    // full sets so losing the wrong event, or gaining an extra one, fails.
+    // Standby drills stay separate from primary push and PR validation.
     if (!isRecord(workflow.on) || !isRecord(prWorkflow.on)) {
       throw new TypeError('both CI workflows must define on')
     }
     expect(Object.keys(workflow.on).sort()).toEqual(['push', 'workflow_dispatch'])
-    expect(Object.keys(prWorkflow.on)).toEqual(['pull_request'])
+    expect(Object.keys(prWorkflow.on).sort()).toEqual(['pull_request', 'push', 'workflow_dispatch'])
+    expect(prWorkflow.on.push).toEqual({ branches: ['main', 'master', 'chore/rebrand-bh'] })
+    for (const [name, job] of Object.entries(prWorkflow.jobs)) {
+      if (!isRecord(job)) throw new TypeError(`${name} must define a job`)
+      expect(job.if, `${name} must run on push and dispatch`).toBe(name === 'all-checks-passed' ? 'always()' : undefined)
+    }
 
     // Neither drill may carry a job-level group: it would not exempt the job
     // from run-scoped cancellation.
@@ -216,7 +220,6 @@ describe('CI workflow', () => {
     }
 
     expect(pythonRuntime).toMatchObject({
-      if: "github.event_name == 'pull_request'",
       name: 'python runtime / release-shaped Linux x64',
       uses: './.github/workflows/build-exe-for-python-sdk.yml',
       with: {
@@ -246,6 +249,29 @@ describe('DeepSeek e2e workflow', () => {
       run: 'bash scripts/prepare-ci-bubblewrap.sh',
     })
     expect(JSON.stringify(steps)).not.toContain('apt-get')
+  })
+})
+
+describe('DeepSeek e2e workflow', () => {
+  it('requires an explicit dispatch and rejects a missing key before checkout', () => {
+    const workflow = loadWorkflow('.github/workflows/e2e.yml')
+    expect(workflow.on).toEqual({ workflow_dispatch: null })
+    const job = workflowJob(workflow, 'e2e')
+    if (!Array.isArray(job.steps)) throw new TypeError('e2e must define steps')
+    const preflight: unknown = job.steps[0]
+    if (!isRecord(preflight) || typeof preflight.run !== 'string') throw new TypeError('e2e must start with preflight')
+    expect(preflight.env).toEqual({ DEEPSEEK_API_KEY: '${{ secrets.DEEPSEEK_API_KEY_EXTERNAL }}' })
+    for (const [key, status] of [['', 1], ['test-placeholder', 0]] as const) {
+      const bash = process.platform === 'win32'
+        ? resolve(process.env.ProgramFiles ?? 'C:/Program Files', 'Git/bin/bash.exe') : 'bash'
+      const result = spawnSync(bash, ['--noprofile', '--norc', '-c', preflight.run], {
+        env: { ...process.env, DEEPSEEK_API_KEY: key }, encoding: 'utf8',
+      })
+      expect(result.error).toBeUndefined()
+      expect(result.status).toBe(status)
+      expect(result.stdout).toContain(key === '' ? 'DEEPSEEK_API_KEY_EXTERNAL' : 'DEEPSEEK_API_KEY present.')
+      expect(result.stdout).not.toContain('test-placeholder')
+    }
   })
 })
 

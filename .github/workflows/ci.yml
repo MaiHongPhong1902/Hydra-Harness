@@ -2,6 +2,9 @@ name: CI
 
 on:
   pull_request:
+  push:
+    branches: [main, master, chore/rebrand-bh]
+  workflow_dispatch:
 permissions:
   contents: read
 
@@ -11,22 +14,21 @@ env:
   # into apps/cli/cordis.yml (AppCLIEntry disables the row when set).
   BH_TELEMETRY_DISABLED: '1'
 
-# Cancel a superseded pull-request run on a new push so a fresh head does not
-# queue a second full 9-job run behind a stale one (paid enterprise runners
-# would otherwise stack with no auto-cancellation).
+# New commits supersede queued and running checks for the same ref.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
 
-  # Three enterprise jobs isolate coverage, static analysis, and the
+  # Three standard hosted jobs isolate coverage, static analysis, and the
   # build-backed consumer tail. The consumer job owns the only Linux build so
-  # all three jobs enter runner allocation independently.
+  # all three jobs enter runner allocation independently. Worker budgets fit
+  # the standard runners available to personal repositories.
   #
-  # FAILOVER (Linux): each Linux enterprise job resolves its pool through the
+  # FAILOVER (Linux): each Linux worker resolves its pool through the
   # BH_CI_FAILOVER_LINUX repository variable. Unset (normal), the expressions
-  # pick the hosted enterprise pools below. Setting the variable to
+  # pick standard GitHub-hosted runners. Setting the variable to
   # 'selfhosted' (repo Settings → Actions → Variables; writer-manageable
   # repository state — not PR-editable, no merge required) retargets all
   # three onto the in-house
@@ -37,15 +39,14 @@ jobs:
   # switch is the separate BH_CI_FAILOVER_WINDOWS variable on the windows-native
   # job below.
   node-24:
-    if: github.event_name == 'pull_request'
     runs-on: >-
       ${{ vars.BH_CI_FAILOVER_LINUX == 'selfhosted'
           && github.event.pull_request.user.login != 'dependabot[bot]'
           && fromJSON('["self-hosted", "linux", "x64", "vm-backup"]')
-          || 'bh-ubuntu-24-04-16core' }}
+          || 'ubuntu-latest' }}
     name: node 24 / static
     env:
-      BH_GATE_CONCURRENCY: '8'
+      BH_GATE_CONCURRENCY: '1'
     steps:
       # Fetch complete history so the archive gate can read the trusted PR base from a reused shallow checkout.
       - uses: actions/checkout@v6
@@ -85,23 +86,22 @@ jobs:
 
       - name: Run static gates
         env:
-          BH_ARCHIVE_BASE_REF: ${{ github.event.pull_request.base.sha }}
+          BH_ARCHIVE_BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
         run: pnpm run check:ci:static
 
   node-24-coverage:
-    if: github.event_name == 'pull_request'
     runs-on: >-
       ${{ vars.BH_CI_FAILOVER_LINUX == 'selfhosted'
           && github.event.pull_request.user.login != 'dependabot[bot]'
           && fromJSON('["self-hosted", "linux", "x64", "vm-backup"]')
-          || 'bh-ubuntu-24-04-16core' }}
+          || 'ubuntu-latest' }}
     name: node 24 / coverage
     env:
       # Partitioning replaces the instrumented share; this budget gives the
       # exempt-heavy gate two workers on both hosted and failover runners.
-      BH_COVERAGE_MAX_WORKERS: '6'
+      BH_COVERAGE_MAX_WORKERS: '2'
       BH_COVERAGE_PARTITIONS: '4'
-      BH_GATE_CONCURRENCY: '3'
+      BH_GATE_CONCURRENCY: '1'
     steps:
       - uses: actions/checkout@v6
         with:
@@ -151,21 +151,19 @@ jobs:
         run: pnpm run check:ci:coverage
 
   node-24-consumers:
-    if: github.event_name == 'pull_request'
     runs-on: >-
       ${{ vars.BH_CI_FAILOVER_LINUX == 'selfhosted'
           && github.event.pull_request.user.login != 'dependabot[bot]'
           && fromJSON('["self-hosted", "linux", "x64", "vm-backup"]')
-          || 'bh-ubuntu-24-04-16core' }}
+          || 'ubuntu-latest' }}
     name: node 24 / snapshots and artifacts
     env:
-      BH_GATE_CONCURRENCY: '8'
+      BH_GATE_CONCURRENCY: '1'
       BH_NODE_COMPAT_SKIP_TYPECHECK: '1'
-      BH_OXLINT_THREADS: '8'
-      BH_PUBLINT_CONCURRENCY: '8'
-      BH_WEB_SNAPSHOT_WORKERS: '6'
-      # Failover halves snapshot concurrency for the shared 64-core VM.
-      BH_SNAPSHOT_MAX_CONCURRENCY: ${{ vars.BH_CI_FAILOVER_LINUX == 'selfhosted' && github.event.pull_request.user.login != 'dependabot[bot]' && '12' || '32' }}
+      BH_OXLINT_THREADS: '2'
+      BH_PUBLINT_CONCURRENCY: '2'
+      BH_WEB_SNAPSHOT_WORKERS: '1'
+      BH_SNAPSHOT_MAX_CONCURRENCY: '2'
     steps:
       - uses: actions/checkout@v6
         with:
@@ -237,7 +235,6 @@ jobs:
 
 
   node-compat:
-    if: github.event_name == 'pull_request'
     # Each compatibility contract receives an independent standard hosted job.
     runs-on: ${{ matrix.runner }}
     name: ${{ matrix.name }}
@@ -277,7 +274,6 @@ jobs:
         run: pnpm run check:node-compat
 
   python-sdk:
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     name: python 3.10 / keyless SDK
     steps:
@@ -299,7 +295,6 @@ jobs:
   # The reusable builder owns the executable, snapshot, wheel, clean-install,
   # GLIBC, and manylinux checks; release validation retains all native targets.
   python-runtime:
-    if: github.event_name == 'pull_request'
     name: python runtime / release-shaped Linux x64
     uses: ./.github/workflows/build-exe-for-python-sdk.yml
     with:
@@ -317,7 +312,6 @@ jobs:
   # Current topology and fidelity limits live in
   # .agents/notes/implemented/process/2026-08-08-native-windows-pull-request-ci.md
   windows:
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     name: windows node 24 / wine blocking
     timeout-minutes: 15
@@ -399,7 +393,7 @@ jobs:
   # Every pull request also gets a real Windows-kernel signal. This job keeps
   # its own unmasked conclusion but is deliberately absent from
   # all-checks-passed.needs, so it never delays or changes that required
-  # verdict. Under normal operation it runs on the hosted larger runner; under
+  # verdict. Under normal operation it runs on windows-latest; under
   # Windows failover (BH_CI_FAILOVER_WINDOWS=selfhosted) it retargets onto the
   # in-house self-hosted Windows pool. Dependabot PRs are excluded from the
   # self-hosted pool and stay queued for the hosted runner — see the failover
@@ -407,22 +401,21 @@ jobs:
   # BH_CI_FAILOVER_LINUX variable that retargets the three required Linux jobs
   # and the all-checks-passed verdict above.
   windows-native:
-    if: github.event_name == 'pull_request'
     runs-on: >-
       ${{ vars.BH_CI_FAILOVER_WINDOWS == 'selfhosted'
           && github.event.pull_request.user.login != 'dependabot[bot]'
           && fromJSON('["self-hosted", "bh-win-ci", "windows"]')
-          || 'bh-windows-2025-16core' }}
+          || 'windows-latest' }}
     name: windows node 24 / native complete
     timeout-minutes: 120
     env:
-      BH_COVERAGE_MAX_WORKERS: '6'
+      BH_COVERAGE_MAX_WORKERS: '2'
       BH_COVERAGE_PARTITIONS: '8'
       # Instrumented process and polling fixtures can exceed Vitest's defaults
       # under the complete lane's concurrent gate load.
       BH_COVERAGE_TEST_TIMEOUT_MS: '30000'
-      BH_GATE_CONCURRENCY: '4'
-      BH_PUBLINT_CONCURRENCY: '8'
+      BH_GATE_CONCURRENCY: '1'
+      BH_PUBLINT_CONCURRENCY: '2'
     steps:
       - uses: actions/checkout@v6
         with:
@@ -479,7 +472,7 @@ jobs:
           && fromJSON('["self-hosted", "linux", "x64", "vm-backup"]')
           || 'ubuntu-latest' }}
     needs: [node-24, node-24-coverage, node-24-consumers, node-compat, python-sdk, python-runtime, windows]
-    if: always() && github.event_name == 'pull_request'
+    if: always()
     steps:
       - name: Fail if any needed job did not succeed
         if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped')
