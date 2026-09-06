@@ -3854,18 +3854,12 @@ importers:
       '@hydra/harness-invariants':
         specifier: workspace:^
         version: link:../../runtime-diagnostics/invariants
-      '@hydra/harness-llm-deepseek':
-        specifier: workspace:^
-        version: link:../../llm/llm-deepseek
       '@hydra/harness-session':
         specifier: workspace:^
         version: link:../../core/session
       '@hydra/harness-settings':
         specifier: workspace:^
         version: link:../../settings/settings
-      '@hydra/harness-settings-file':
-        specifier: workspace:^
-        version: link:../../settings/settings-file
       '@hydra/harness-system-prompt':
         specifier: workspace:^
         version: link:../../core/system-prompt
@@ -9705,9 +9699,6 @@ importers:
       vitepress-plugin-mermaid:
         specifier: ^2.0.17
         version: 2.0.17(mermaid@11.16.0)(vitepress@1.6.4(@algolia/client-search@5.55.2)(@types/node@25.9.3)(@types/react@18.3.31)(lightningcss@1.32.0)(postcss@8.5.15)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(search-insights@2.17.3)(typescript@6.0.3))
-      vue:
-        specifier: 3.5.39
-        version: 3.5.39(typescript@6.0.3)
 
 packages:
 

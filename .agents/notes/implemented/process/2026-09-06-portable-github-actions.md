@@ -14,6 +14,10 @@ The DeepSeek workflow is manual-only until a repository owner configures DEEPSEE
 
 The page-agent submodule uses upstream commit 5485e8cffb44a1e3bdf7f58b3e5879b892c2e8dd. A parent-repository push must publish an upstream-resolvable gitlink; changing dependency-update exclusions cannot repair a clone that fails before manifest discovery.
 
+Node jobs check out workspace submodules before installing. Knip analyzes the authored Electron preload entry and excludes the upstream PageAgent workspace, whose maintenance belongs to its pinned repository; the desktop's optional Electron binary remains an explicit scoped exemption. The Python deploy filter names the runtime workspace and fails immediately if no workspace matches. Serial Web snapshots leave BH_WEB_SNAPSHOT_WORKERS unset; explicit values select parallel execution and require at least two workers. Coverage uses two single-worker partitions and a 30-second default test budget; explicit fixture deadlines still apply. The missing-turn regression allows 200 milliseconds for its asynchronous log read to produce the expected timeout diagnostic.
+
+Static TypeScript programs resolve registry and personalization imports through source aliases. Existing lib artifacts must not conceal missing aliases on a developer checkout.
+
 ## Alternatives considered
 
 Keeping unavailable enterprise labels leaves jobs queued. Silently accepting an empty API key produces a false green. Disabling Dependabot hides dependency updates without repairing fresh clones.

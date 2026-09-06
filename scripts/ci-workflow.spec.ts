@@ -2,13 +2,54 @@ import { readFileSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
 import { resolve } from 'node:path'
 import * as yaml from 'js-yaml'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+import { gatesForMode } from './run-gates.ts'
 
 const root = resolve(import.meta.dirname, '..')
 const runnerPrivatePnpmDestination = '${{ runner.temp }}/setup-pnpm'
 const nativeWindowsPnpmDestination = '${{ runner.temp }}/setup-pnpm-js'
 
 describe('CI workflow', () => {
+  it('deploys the Python runtime workspace selected by its manifest', () => {
+    const result = spawnSync(process.execPath, [
+      '--import', 'tsx/esm', 'scripts/build-exe-for-python-sdk.ts',
+      '--dry-run', '--targets', 'node24-linux-x64',
+    ], { cwd: root, encoding: 'utf8' })
+    expect(result.status, result.stderr).toBe(0)
+    const manifest = JSON.parse(readFileSync(resolve(root, 'python/sdk-runtime/package.json'), 'utf8')) as { name: string }
+    expect(result.stdout).toContain(`--filter ${manifest.name} --fail-if-no-match deploy`)
+  })
+
+  it('checks out workspace submodules before pnpm setup', () => {
+    for (const file of ['ci.yml', 'ci-master.yml', 'build-exe-for-python-sdk.yml', 'e2e.yml']) {
+      const workflow = loadWorkflow(`.github/workflows/${file}`)
+      if (!isRecord(workflow.jobs)) throw new TypeError(`${file} must define jobs`)
+      for (const [name, job] of Object.entries(workflow.jobs)) {
+        if (!isRecord(job) || !Array.isArray(job.steps)) continue
+        if (!job.steps.some(step => isRecord(step) && String(step.uses).startsWith('pnpm/action-setup@'))) continue
+        const checkout: unknown = job.steps.find(step => isRecord(step) && String(step.uses).startsWith('actions/checkout@'))
+        expect(checkout, `${file}: ${name}`).toMatchObject({ with: { submodules: true } })
+      }
+    }
+  })
+
+  it('builds the consumer gate graph with the workflow worker settings', () => {
+    const consumer = workflowJob(loadWorkflow('.github/workflows/ci.yml'), 'node-24-consumers')
+    if (!isRecord(consumer.env)) throw new TypeError('consumer job must define its worker settings')
+    vi.stubEnv('BH_WEB_SNAPSHOT_WORKERS', undefined)
+    vi.stubEnv('npm_execpath', '/pnpm.cjs')
+    try {
+      for (const [key, value] of Object.entries(consumer.env)) {
+        if (typeof value !== 'string') throw new TypeError(`${key} must be a literal worker setting`)
+        vi.stubEnv(key, value)
+      }
+      expect(gatesForMode('ci-consumers').find(gate => gate.id === 'web-snapshot')?.displayCommand)
+        .toBe('BH_SNAPSHOT=replay pnpm run test:web:built')
+    } finally {
+      vi.unstubAllEnvs()
+    }
+  })
+
   it('isolates every pnpm action setup destination per runner', () => {
     const files = ['.github/workflows/ci.yml', '.github/workflows/ci-master.yml']
     const setups: Array<{ jobName: string; step: unknown }> = []

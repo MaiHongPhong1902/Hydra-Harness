@@ -15,6 +15,7 @@
   ],
   "ignoreWorkspaces": [
     "vendor/*",
+    "packages/browser/browser-electron/third-party/page-agent/packages/*",
     "python/sdk-runtime"
   ],
   "ignoreDependencies": [
@@ -22,6 +23,14 @@
     "lightningcss"
   ],
   "workspaces": {
+    "apps/desktop": {
+      "entry": ["preload.cjs"],
+      "ignoreBinaries": ["electron"]
+    },
+    "packages/browser/browser-electron": {
+      "entry": ["tests/**/*.spec.ts", "electron-app/preload.entry.js"],
+      "project": ["src/**/*.ts", "tests/**/*.ts"]
+    },
     ".": {
       "entry": [
         "scripts/**/*.mjs",

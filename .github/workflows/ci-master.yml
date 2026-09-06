@@ -83,6 +83,7 @@ jobs:
       # checkout resolves against the VM's local mirror.
       - uses: actions/checkout@v6
         with:
+          submodules: true
           fetch-depth: 0
 
       - uses: pnpm/action-setup@v4
@@ -128,6 +129,8 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          submodules: true
 
       - uses: pnpm/action-setup@v4
         with:
@@ -167,6 +170,8 @@ jobs:
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v6
+        with:
+          submodules: true
 
       - name: Enable Developer Mode (symlink support)
         shell: pwsh
@@ -261,6 +266,8 @@ jobs:
             workload: production-site
     steps:
       - uses: actions/checkout@v6
+        with:
+          submodules: true
 
       - uses: pnpm/action-setup@v4
         with:
@@ -352,6 +359,8 @@ jobs:
             workers: '2'
     steps:
       - uses: actions/checkout@v6
+        with:
+          submodules: true
 
       - uses: pnpm/action-setup@v4
         with:

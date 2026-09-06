@@ -16,7 +16,7 @@ import { resolveLinuxNodePtyAddon } from './build-exe-for-python-sdk-native-pty.
 const root = resolve(import.meta.dirname, '..')
 
 /** The closure manifest whose dependencies define the executable. */
-const DEPLOY_ROOT_PACKAGE = 'bh-jsonrpc-agent-pkg'
+const DEPLOY_ROOT_PACKAGE = '@hydra/harness-python-runtime'
 /** The closed-runtime app entry inside the deployed closure. */
 const ENTRY_BIN = 'node_modules/@hydra/harness-sdk-jsonrpc-demo/lib/packaged-bin.js'
 const OUTPUT_BASENAME = 'bh-jsonrpc-agent-pkg'
@@ -251,6 +251,7 @@ class SingleExeBuild {
     await this.run('deploy', pnpmBin(), [
       '--filter',
       DEPLOY_ROOT_PACKAGE,
+      '--fail-if-no-match',
       'deploy',
       '--legacy',
       '--prod',

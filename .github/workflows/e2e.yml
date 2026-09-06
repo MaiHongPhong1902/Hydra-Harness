@@ -51,6 +51,8 @@ jobs:
           echo "DEEPSEEK_API_KEY present."
 
       - uses: actions/checkout@v6
+        with:
+          submodules: true
 
       - uses: pnpm/action-setup@v4
 

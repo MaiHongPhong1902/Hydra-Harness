@@ -50,11 +50,8 @@
     "@hydra/harness-agent": "workspace:^",
     "@hydra/harness-agent-loop": "workspace:^",
     "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-llm-deepseek": "workspace:^",
     "@hydra/harness-session": "workspace:^",
     "@hydra/harness-settings": "workspace:^",
-    "@hydra/harness-settings-file": "workspace:^",
     "@hydra/harness-system-prompt": "workspace:^",
     "@hydra/cordis": "workspace:^",
     "@hydra/cordis-plugin-loader": "workspace:^"

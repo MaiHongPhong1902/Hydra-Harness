@@ -51,6 +51,7 @@ jobs:
       # Fetch complete history so the archive gate can read the trusted PR base from a reused shallow checkout.
       - uses: actions/checkout@v6
         with:
+          submodules: true
           fetch-depth: 0
           persist-credentials: false
 
@@ -100,11 +101,13 @@ jobs:
       # Partitioning replaces the instrumented share; this budget gives the
       # exempt-heavy gate two workers on both hosted and failover runners.
       BH_COVERAGE_MAX_WORKERS: '2'
-      BH_COVERAGE_PARTITIONS: '4'
+      BH_COVERAGE_PARTITIONS: '2'
+      BH_COVERAGE_TEST_TIMEOUT_MS: '30000'
       BH_GATE_CONCURRENCY: '1'
     steps:
       - uses: actions/checkout@v6
         with:
+          submodules: true
           persist-credentials: false
 
       - uses: pnpm/action-setup@v4
@@ -162,11 +165,11 @@ jobs:
       BH_NODE_COMPAT_SKIP_TYPECHECK: '1'
       BH_OXLINT_THREADS: '2'
       BH_PUBLINT_CONCURRENCY: '2'
-      BH_WEB_SNAPSHOT_WORKERS: '1'
       BH_SNAPSHOT_MAX_CONCURRENCY: '2'
     steps:
       - uses: actions/checkout@v6
         with:
+          submodules: true
           persist-credentials: false
 
       - uses: pnpm/action-setup@v4
@@ -255,6 +258,8 @@ jobs:
             gate_concurrency: '1'
     steps:
       - uses: actions/checkout@v6
+        with:
+          submodules: true
 
       - uses: pnpm/action-setup@v4
         with:
@@ -318,6 +323,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
+          submodules: true
           persist-credentials: false
 
       - uses: pnpm/action-setup@v4
@@ -410,7 +416,7 @@ jobs:
     timeout-minutes: 120
     env:
       BH_COVERAGE_MAX_WORKERS: '2'
-      BH_COVERAGE_PARTITIONS: '8'
+      BH_COVERAGE_PARTITIONS: '2'
       # Instrumented process and polling fixtures can exceed Vitest's defaults
       # under the complete lane's concurrent gate load.
       BH_COVERAGE_TEST_TIMEOUT_MS: '30000'
@@ -419,6 +425,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
+          submodules: true
           persist-credentials: false
 
       - name: Enable Developer Mode (symlink support)
