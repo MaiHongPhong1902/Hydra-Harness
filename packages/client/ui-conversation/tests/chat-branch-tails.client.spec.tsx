@@ -6,7 +6,7 @@
 // renderSlot.)
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { bindSnapshotSelector } from '@hydra/harness-client-test-runtime'
 import { makeTranslate } from '@hydra/harness-client-test-runtime'
 import { en as commonEn } from '@hydra/harness-client-locale/src/locales/en.ts'
@@ -89,7 +89,7 @@ function MessageItem({ node, t: translate, referenceLabels, editMessage }: Messa
 }
 
 describe('MessageItem arms', () => {
-  it('opens the earlier version of this turn even after another turn was edited', () => {
+  it('lists versions without navigating until a version is selected', async () => {
     const original = { id: 'original' as SessionId, displayTitle: 'Chat', updatedAt: 0, blank: false, running: false }
     const first = { ...original, id: 'first' as SessionId, revision: {
       sessionId: 'first' as SessionId, conversationId: original.id, previousSessionId: original.id, turn: 1, createdAt: 1,
@@ -111,9 +111,16 @@ describe('MessageItem arms', () => {
     const props = { node, sessionId: latest.id, useSessions, t, renderMessageImages } as ChatNodeViewProps<'user'>
     const view = render(<UserMessageNodeView {...props} openVersion={openVersion} />)
     fireEvent.click(view.getByRole('button', { name: 'See versions' }))
+    expect(openVersion).not.toHaveBeenCalled()
+    expect(view.getByRole('menuitem', { name: /Version 3.*Current version.*Edited prompt 2/ })).toBeTruthy()
+    await waitFor(() => { expect(document.activeElement).toBe(view.getByRole('menuitem', { name: /Version 3/ })) })
+    fireEvent.keyDown(document.activeElement!, { key: 'Home' })
+    expect(document.activeElement).toBe(view.getByRole('menuitem', { name: /Version 1/ }))
+    fireEvent.click(view.getByRole('menuitem', { name: /Version 1.*Original conversation/ }))
     expect(openVersion).toHaveBeenLastCalledWith(original.id)
     view.rerender(<UserMessageNodeView {...props} sessionId={original.id} openVersion={openVersion} />)
     fireEvent.click(view.getByRole('button', { name: 'See versions' }))
+    fireEvent.click(view.getByRole('menuitem', { name: /Version 2.*Edited prompt 1/ }))
     expect(openVersion).toHaveBeenLastCalledWith(first.id)
   })
 
@@ -123,16 +130,19 @@ describe('MessageItem arms', () => {
       content: [{ type: 'text' as const, text: 'original prompt' }], source: null }
     const view = render(<MessageItem t={t} node={node} editMessage={editMessage} />)
     fireEvent.click(view.getByRole('button', { name: 'Edit' }))
+    expect((view.getByRole('button', { name: 'Save & resend' }) as HTMLButtonElement).disabled).toBe(true)
+    expect(document.activeElement).toBe(view.getByRole('textbox'))
     expect((view.getByRole('textbox', { name: 'Edit prompt' }) as HTMLTextAreaElement).value).toBe('original prompt')
     fireEvent.change(view.getByRole('textbox'), { target: { value: 'discard me' } })
     fireEvent.click(view.getByRole('button', { name: 'Cancel' }))
+    expect(document.activeElement).toBe(view.getByRole('button', { name: 'Edit' }))
     expect(view.getByText('original prompt')).toBeTruthy()
     expect(editMessage).not.toHaveBeenCalled()
     fireEvent.click(view.getByRole('button', { name: 'Edit' }))
     fireEvent.change(view.getByRole('textbox'), { target: { value: '  ' } })
-    expect((view.getByRole('button', { name: 'Send' }) as HTMLButtonElement).disabled).toBe(true)
+    expect((view.getByRole('button', { name: 'Save & resend' }) as HTMLButtonElement).disabled).toBe(true)
     fireEvent.change(view.getByRole('textbox'), { target: { value: 'revised\nprompt' } })
-    await act(async () => { fireEvent.click(view.getByRole('button', { name: 'Send' })) })
+    await act(async () => { fireEvent.click(view.getByRole('button', { name: 'Save & resend' })) })
     expect(view.getByRole('alert').textContent).toContain('offline')
     expect((view.getByRole('textbox') as HTMLTextAreaElement).value).toBe('revised\nprompt')
     await act(async () => { fireEvent.keyDown(view.getByRole('textbox'), { key: 'Enter', ctrlKey: true }) })
@@ -151,7 +161,13 @@ describe('MessageItem arms', () => {
     expect(view.queryByRole('textbox')).toBeNull()
     expect(editMessage).not.toHaveBeenCalled()
     fireEvent.click(view.getByRole('button', { name: 'Edit' }))
-    fireEvent.click(view.getByRole('button', { name: 'Send' }))
+    fireEvent.change(view.getByRole('textbox'), { target: { value: 'revised prompt' } })
+    fireEvent.keyDown(view.getByRole('textbox'), { key: 'Enter', ctrlKey: true, keyCode: 229 })
+    fireEvent.keyDown(view.getByRole('textbox'), { key: 'Enter', ctrlKey: true, isComposing: true })
+    fireEvent.keyDown(view.getByRole('textbox'), { key: 'Enter', ctrlKey: true, shiftKey: true })
+    expect(editMessage).not.toHaveBeenCalled()
+    fireEvent.click(view.getByRole('button', { name: 'Save & resend' }))
+    expect(view.getByRole('button', { name: 'Resending…' })).toBeTruthy()
     fireEvent.keyDown(view.getByRole('textbox'), { key: 'Enter', ctrlKey: true })
     expect(editMessage).toHaveBeenCalledTimes(1)
     expect((view.getByRole('button', { name: 'Cancel' }) as HTMLButtonElement).disabled).toBe(true)

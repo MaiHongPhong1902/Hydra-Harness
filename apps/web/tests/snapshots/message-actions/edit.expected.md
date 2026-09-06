@@ -1,3 +1,7 @@
-- textbox "Edit prompt": Please revise the answer. Keep it concise.
-- button "Cancel"
-- button "Send"
+- form "Edit prompt":
+  - text: Edit prompt
+  - textbox "Edit prompt": Please revise the answer. Keep it concise.
+  - paragraph: Replaces this prompt and the conversation after it. Previous versions are kept. File changes stay as they are.
+  - text: Ctrl/⌘ + Enter to send · Esc to cancel
+  - button "Cancel"
+  - button "Save & resend"

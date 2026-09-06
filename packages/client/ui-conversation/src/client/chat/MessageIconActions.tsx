@@ -1,7 +1,7 @@
 // Shared IconActions chrome for user and assistant messages: copy
 // live, optional edit and branch wiring, and an optional date-aware clock.
 
-import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useId, useRef, useState, type ReactNode, type Ref } from 'react'
 import {
   IconBranchOutline16, IconCheckOutline16, IconCopyOutline16, IconEditOutline16, Tooltip, writeClipboard,
 } from '@hydra/harness-client-ui-primitives'
@@ -27,6 +27,8 @@ export interface MessageIconActionsProps {
   onBranch?: (() => void) | undefined
   /** Open the inline editor; omitted on messages without edit support. */
   onEdit?: (() => void) | undefined
+  /** Focus return target when an inline editor closes. */
+  editButtonRef?: Ref<HTMLButtonElement>
   /** The message is not a completed transcript tail, so branch stays visible but unavailable. */
   branchUnavailable?: boolean | undefined
   /** Parent layout class composed onto the actions row. */
@@ -47,7 +49,7 @@ export interface MessageIconActionsProps {
  */
 export function MessageIconActions({
   text, time, runMs, ttftMs, tokensPerSecond, clock, onBranch, branchUnavailable = false, className,
-  extraActions, onEdit, t,
+  extraActions, onEdit, editButtonRef, t,
 }: MessageIconActionsProps) {
   const day = useCalendarDay()
   const reasonId = useId()
@@ -120,7 +122,7 @@ export function MessageIconActions({
       {extraActions}
       {onEdit !== undefined && (
         <Tooltip label={t('edit')} side="bottom">
-          <button type="button" className={css.action} aria-label={t('edit')} onClick={onEdit}>
+          <button ref={editButtonRef} type="button" className={css.action} aria-label={t('edit')} onClick={onEdit}>
             <IconEditOutline16 />
           </button>
         </Tooltip>

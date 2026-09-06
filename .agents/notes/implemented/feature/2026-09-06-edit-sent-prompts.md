@@ -8,7 +8,9 @@ A reader needs to correct a sent prompt and obtain a fresh answer using the prec
 
 ## Decision
 
-Turn-opening user bubbles expose a pencil beside Copy. The inline textarea offers Cancel and Send; Escape cancels, Ctrl/Cmd+Enter sends, and plain Enter inserts a newline. Submission prevents duplicate clicks and keeps an error and the draft visible when attachment retrieval or forking fails. The generic locale `edit` label remains shared with other editors.
+Turn-opening user bubbles expose a pencil beside Copy. The inline textarea offers Cancel and Save & resend, with a description of the replaced transcript and retained file changes. Escape cancels and returns focus to the pencil; Ctrl/Cmd+Enter sends, and plain or Shift+Enter inserts a newline. IME composition never submits. Blank and unchanged drafts cannot send. Submission prevents duplicate clicks, displays Resending, and keeps an error and the draft visible when attachment retrieval or forking fails. The generic locale `edit` label remains shared with other editors.
+
+Explicit resend labels distinguish replacement from an ordinary follow-up. Keyboard focus begins at the end of the original text, and visible shortcut hints make the editor usable without discovering hidden keys. The reference points are [Codex desktop keyboard commands](https://learn.chatgpt.com/docs/reference/commands) and [Claude Code conversation rewind](https://code.claude.com/docs/en/checkpointing): recalling text must not submit it, and restoring conversation context must remain distinct from reverting files.
 
 `session.fork` accepts `beforeSeq` as an alternative to `atSeq`. The Host verifies that the anchor is the first user message of its turn and seeds the child only through the preceding event. This supports the first message and an active turn without mutating the source. The GUI cancels a running source response before submitting its replacement. Assistant branching retains its completed-turn semantics and [its own affordance](../simplification/2026-08-06-user-bubbles-drop-the-branch-action.md).
 

@@ -63,9 +63,45 @@
   --dsw-alias-button-primary-fill: var(--dsw-alias-label-primary);
   --dsw-alias-button-primary-hover: var(--dsw-alias-label-secondary);
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: flex-end;
   gap: 6px;
   margin-top: 12px;
+}
+
+.editHeading {
+  margin-bottom: 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.editHint,
+.editKeys,
+.versionDetail {
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.editHint {
+  margin: 12px 0 0;
+}
+
+.editKeys {
+  flex: 1 0 100%;
+}
+
+.versionOption {
+  display: grid;
+  gap: 2px;
+}
+
+.versionTrigger {
+  width: auto;
+  gap: 4px;
+  border-radius: 6px;
+  font-size: 12px;
 }
 
 .editActions button {

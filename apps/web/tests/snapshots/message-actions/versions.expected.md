@@ -1,6 +1,8 @@
 - navigation "Prompt versions":
   - button "Previous version":
     - img
-  - text: Current version
+  - button "See versions":
+    - text: Current version 2/2
+    - img
   - button "Next version" [disabled]:
     - img

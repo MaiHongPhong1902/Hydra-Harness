@@ -94,6 +94,19 @@
   cursor: default;
 }
 
+.versions .versionPicker {
+  display: flex;
+  gap: 8px;
+  width: auto;
+  padding: 0 8px;
+  font: inherit;
+}
+
+.versionCount {
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 12px;
+}
+
 .titleCluster {
   display: flex;
   flex: 1;

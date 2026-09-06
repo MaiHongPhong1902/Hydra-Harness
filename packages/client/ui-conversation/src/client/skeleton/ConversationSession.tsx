@@ -4,7 +4,8 @@ import { useEffect, useSyncExternalStore } from 'react'
 import clsx from 'clsx'
 import type { SessionId, SessionListState, SessionSummary } from '@hydra/harness-client-runtime/client'
 import { conversationVersions } from '@hydra/harness-client-runtime/client'
-import { IconChevronLeftOutline14, IconChevronRightOutline14 } from '@hydra/harness-client-ui-primitives'
+import { IconChevronDownOutline14, IconChevronLeftOutline14, IconChevronRightOutline14 } from '@hydra/harness-client-ui-primitives'
+import { PromptVersionMenu } from '../chat/PromptVersionMenu.tsx'
 import type {
   ConversationSessionHeaderSlotProps, ConversationSessionSlotProps,
 } from '../contract/slots.ts'
@@ -155,9 +156,13 @@ export function ConversationSessionHeader({
                 onClick={() => { if (previousVersion !== undefined) open(previousVersion.id) }}>
                 <IconChevronLeftOutline14 />
               </button>
-              <span aria-live="polite">{nextVersion === undefined
-                ? t('message.currentVersion')
-                : t('message.version', { version: String(versionIndex + 1) })}</span>
+              <PromptVersionMenu versions={versions} sessionId={sessionId} openVersion={open} t={t} className={css.versionPicker}>
+                <span aria-live="polite">{nextVersion === undefined
+                  ? t('message.currentVersion')
+                  : t('message.version', { version: String(versionIndex + 1) })}</span>
+                <span className={css.versionCount}>{versionIndex + 1}/{versions.length}</span>
+                <IconChevronDownOutline14 />
+              </PromptVersionMenu>
               <button type="button" aria-label={t('message.nextVersion')} disabled={nextVersion === undefined}
                 onClick={() => { if (nextVersion !== undefined) open(nextVersion.id) }}>
                 <IconChevronRightOutline14 />

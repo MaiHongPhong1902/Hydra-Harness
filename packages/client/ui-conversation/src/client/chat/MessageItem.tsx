@@ -3,18 +3,19 @@
 // assistant answers), pending steering (copy only), context injection,
 // compaction marker, retry disclosure, and unknown-surface JSON rows.
 
-import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { memo, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import type {
   ModelRetryNode, SessionId, TurnErrorNode, UserMessageNode,
 } from '@hydra/harness-client-runtime/client'
 import { conversationVersions } from '@hydra/harness-client-runtime/client'
-import { Button, IconRefreshOutline16, JsonBlock, MessageText, StateDot, Tooltip } from '@hydra/harness-client-ui-primitives'
+import { Button, IconChevronDownOutline14, JsonBlock, MessageText, StateDot } from '@hydra/harness-client-ui-primitives'
 import type { ChatNodeOwnerProps, ChatNodeViewProps, ChatViewSlotProps } from '../contract/slots.ts'
 import { ReferenceIcon } from '../reference/ReferenceIcon.tsx'
 import { CompactionItem } from './CompactionItem.tsx'
 import { ContextInjectionRow } from './ContextInjectionRow.tsx'
 import { MessageIconActions } from './MessageIconActions.tsx'
+import { PromptVersionMenu } from './PromptVersionMenu.tsx'
 import css from './MessageItem.module.css'
 import actionCss from './MessageIconActions.module.css'
 
@@ -288,24 +289,15 @@ function PromptVersionsAction({ sessionId, useSessions, turn, open, t }: {
   open: (id: SessionId) => void
   t: ChatNodeViewProps['t']
 }) {
-  const target = useSessions((list) => {
-    const versions = conversationVersions(list, sessionId)
-    const revisions = versions.filter(version => version.revision?.turn === turn)
-    if (revisions.length === 0) return undefined
-    for (let version = list.byId[sessionId]; version?.revision !== undefined;
-      version = list.byId[version.revision.previousSessionId]) {
-      const revision = version.revision
-      if (revision.turn === turn && list.byId[revision.previousSessionId] !== undefined) return revision.previousSessionId
-    }
-    return revisions.at(-1)?.id
-  })
-  if (target === undefined || target === sessionId) return null
+  const versions = useSessions(list => conversationVersions(list, sessionId), (a, b) =>
+    a.length === b.length && a.every((version, index) => version.id === b[index]?.id))
+  if (versions.length < 2 || !versions.some(version => version.revision !== undefined && version.revision.turn <= turn)) return null
+  const versionIndex = versions.findIndex(version => version.id === sessionId)
   return (
-    <Tooltip label={t('message.seeVersions')} side="bottom">
-      <button type="button" className={actionCss.action} aria-label={t('message.seeVersions')} onClick={() => { open(target) }}>
-        <IconRefreshOutline16 />
-      </button>
-    </Tooltip>
+    <PromptVersionMenu versions={versions} sessionId={sessionId} openVersion={open} t={t}
+      className={`${actionCss.action} ${css.versionTrigger}`}>
+      {versionIndex + 1}/{versions.length}<IconChevronDownOutline14 />
+    </PromptVersionMenu>
   )
 }
 
@@ -322,17 +314,33 @@ export const UserMessageNodeView = memo(function UserMessageNodeView({
   const [draft, setDraft] = useState<string | null>(null)
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const descriptionId = useId()
   const textarea = useRef<HTMLTextAreaElement>(null)
+  const editTrigger = useRef<HTMLButtonElement>(null)
+  const restoreFocus = useRef(false)
   const pending = useRef(false)
+  const originalText = contentParts(data.content).text
+  const changed = draft !== null && draft !== originalText && draft.trim() !== ''
+  const editing = draft !== null
+  useLayoutEffect(() => {
+    const input = textarea.current
+    if (editing && input !== null) {
+      input.focus()
+      input.setSelectionRange(input.value.length, input.value.length)
+    } else if (!editing && restoreFocus.current) {
+      restoreFocus.current = false
+      editTrigger.current?.focus()
+    }
+  }, [editing])
   useLayoutEffect(() => {
     const input = textarea.current
     if (input === null) return
     input.style.height = 'auto'
     input.style.height = `${input.scrollHeight}px`
   }, [draft])
-  const cancel = (): void => { setDraft(null); setError(null) }
+  const cancel = (): void => { restoreFocus.current = true; setDraft(null); setError(null) }
   const send = async (): Promise<void> => {
-    if (pending.current || draft === null || draft.trim() === '' || node.kind !== 'user'
+    if (pending.current || draft === null || !changed || node.kind !== 'user'
       || editMessage === undefined) return
     pending.current = true
     setSending(true)
@@ -356,30 +364,35 @@ export const UserMessageNodeView = memo(function UserMessageNodeView({
       {...data.referenceLabels === undefined ? {} : { referenceLabels: data.referenceLabels }}
       t={t}
       editor={draft === null ? undefined : (
-        <form onSubmit={(event) => { event.preventDefault(); void send() }}>
+        <form aria-label={t('message.editPrompt')} aria-busy={sending}
+          onSubmit={(event) => { event.preventDefault(); void send() }}>
+          <div className={css.editHeading}>{t('message.editPrompt')}</div>
           <textarea
             ref={textarea}
-            autoFocus
             className={css.editText}
             aria-label={t('message.editPrompt')}
+            aria-describedby={descriptionId}
             value={draft}
             disabled={sending}
             rows={1}
             onChange={(event) => { setDraft(event.currentTarget.value) }}
             onKeyDown={(event) => {
-              if (event.nativeEvent.isComposing) return
+              // oxlint-disable-next-line typescript/no-deprecated
+              if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return
               if (event.key === 'Escape' && !sending) { event.preventDefault(); cancel() }
-              if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+              if (event.key === 'Enter' && (event.ctrlKey || event.metaKey) && !event.shiftKey) {
                 event.preventDefault()
                 void send()
               }
             }}
           />
+          <p id={descriptionId} className={css.editHint}>{t('message.editEffect')}</p>
           {error !== null && <p className={css.editError} role="alert">{error}</p>}
           <div className={css.editActions}>
+            <span className={css.editKeys}>{t('message.editKeys')}</span>
             <Button type="button" variant="outline" size="sm" disabled={sending} onClick={cancel}>{t('cancel')}</Button>
-            <Button type="submit" variant="primary" size="sm" disabled={sending || draft.trim() === ''}>
-              {t('message.editSend')}
+            <Button type="submit" variant="primary" size="sm" disabled={sending || !changed}>
+              {t(sending ? 'message.editSending' : 'message.editSend')}
             </Button>
           </div>
         </form>
@@ -390,6 +403,7 @@ export const UserMessageNodeView = memo(function UserMessageNodeView({
           time={data.time}
           clock="start"
           className={css.actions}
+          editButtonRef={editTrigger}
           onEdit={editable ? () => { setDraft(text); setError(null) } : undefined}
           extraActions={openVersion !== undefined && (node.location.kind === 'turn' || node.location.kind === 'step')
             ? <PromptVersionsAction sessionId={sessionId} useSessions={useSessions} turn={node.location.turn.turn}
