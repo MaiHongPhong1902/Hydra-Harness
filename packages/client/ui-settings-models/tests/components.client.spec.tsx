@@ -1,12 +1,12 @@
 // @vitest-environment jsdom
-/** Section, setup-card, and hand-written editor behavior over a scripted wire face. */
+/** Section and provider editor behavior over a scripted wire face. */
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import Schema from '@hydra/schemastery'
 import { bindSnapshotSelector } from '@hydra/harness-client-test-runtime'
 import type { RpcResponse, SettingsNamespaceView } from '@hydra/harness-api-remotes/client'
 import {
-  ModelsSection, needsSetup, providerCopy, providerTargetLabel, removeProviderProfile,
+  ModelsSection, providerCopy, providerTargetLabel, removeProviderProfile,
   revealOfficialDeepSeek,
 } from '../src/client/ModelsSection.tsx'
 import type { ModelsSectionInjected, ModelsSectionProps } from '../src/client/ModelsSection.tsx'
@@ -17,7 +17,6 @@ import {
 import { apiKeyFailure } from '../src/client/apiKey.ts'
 import { SettingsDescribeMirror } from '@hydra/harness-client-ui-settings/src/client/settings-mirror.ts'
 import { deriveKeyRef, ModelsSettingsStore } from '../src/client/store.ts'
-import type { ProviderRow } from '../src/client/store.ts'
 import { en } from '../src/client/locales.ts'
 import {
   OFFICIAL_DEEPSEEK_DECLINED_FIELD, OFFICIAL_DEEPSEEK_PROVIDER,
@@ -226,7 +225,7 @@ async function mountSection(overrides: Parameters<typeof scriptedFace>[0] = {}) 
 
 /**
  * Mount for a user who cannot reach any provider yet: no credential is stored
- * anywhere, so the whole-section DeepSeek route owns the first-run setup card.
+ * anywhere, so the provider configuration entry point is needed.
  */
 async function mountFirstRun(overrides: Parameters<typeof scriptedFace>[0] = {}) {
   const scripted = scriptedFace(overrides)
@@ -255,12 +254,10 @@ describe('ModelsSection', () => {
     expect(document.body.textContent).toBe('')
   })
 
-  it('renders the unkeyed whole-section provider as an open setup card in the first-run posture', async () => {
+  it('leaves provider editors closed until the user chooses a provider', async () => {
     await mountFirstRun()
-    // Nothing is reachable yet, and DeepSeek has no configured credential and
-    // no stored apiKey → setup card.
     expect(screen.getByText('DeepSeek')).toBeTruthy()
-    expect(screen.getByLabelText(en.keyInput)).toBeTruthy()
+    expect(screen.queryByLabelText(en.keyInput)).toBeNull()
     expect(screen.getByText('openai')).toBeTruthy()
     expect(screen.queryByText('Active')).toBeNull()
     expect(screen.queryByText('Inactive')).toBeNull()
@@ -298,7 +295,7 @@ describe('ModelsSection', () => {
       t={t}
     />)
 
-    const missing = screen.getByRole('img', { name: en.credentialMissing })
+    const missing = screen.getAllByRole('img', { name: en.credentialMissing }).find(dot => dot.closest('li')?.textContent?.includes('openai'))!
     expect(missing.getAttribute('title')).toBe(en.credentialMissing)
     expect(missing.className).toContain('credentialDotMissing')
     expect(missing.closest('li')?.textContent).toContain('openai')
@@ -306,7 +303,7 @@ describe('ModelsSection', () => {
     expect(screen.getByText('zombie').closest('li')?.querySelector('[role="img"]')).toBeNull()
   })
 
-  it('turns the setup card into a row once the credential reports configured', async () => {
+  it('keeps editors closed when credentials become configured', async () => {
     const { face } = await mountFirstRun()
     face.credentials.describe.mockImplementation((payload: { refs: string[] }) => Promise.resolve(ok({
       credentials: Object.fromEntries(payload.refs.map(ref => [ref, { configured: true, writable: true }])),
@@ -324,24 +321,6 @@ describe('ModelsSection', () => {
     // Now a row with an Edit button, not an open card.
     expect(screen.getAllByText(en.edit).length).toBeGreaterThan(1)
     expect(screen.queryByLabelText(en.keyInput)).toBeNull()
-  })
-
-  it('decides setup need from the joined credential state and the first-run posture', () => {
-    const entry = { provider: 'p', displayName: 'p', settingsNs: 'llm-deepseek', settingsPath: [], active: true }
-    const row = (credential: ProviderRow['credential']): ProviderRow => ({
-      entry,
-      configured: true,
-      removable: true,
-      apiKeyEnv: 'X',
-      credential,
-    })
-    expect(needsSetup(row(undefined), false)).toBe(true)
-    expect(needsSetup(row({ configured: true, writable: true }), false)).toBe(false)
-    const nested = { ...row(undefined), entry: { ...entry, settingsPath: ['providers', 'x'] } }
-    expect(needsSetup(nested, false)).toBe(false)
-    // A user who can already reach some provider is not in the first-run
-    // posture, so nothing on the page opens itself.
-    expect(needsSetup(row(undefined), true)).toBe(false)
   })
 
   it('derives conventional credential references from route ids', () => {
@@ -365,8 +344,9 @@ describe('ModelsSection', () => {
     expect(pathOps([], { a: 1 }, { a: 1 })).toEqual([])
   })
 
-  it('stores a typed key write-only from the setup card without touching settings', async () => {
+  it('stores a typed key write-only from the selected editor without touching settings', async () => {
     const { set, update, face } = await mountFirstRun()
+    fireEvent.click(screen.getByRole('button', { name: deepSeekCopy(en.editProvider) }))
     const key = screen.getByLabelText<HTMLInputElement>(en.keyInput)
     fireEvent.change(key, { target: { value: '  sk-live  ' } })
     fireEvent.click(screen.getByText(en.apply))
@@ -380,66 +360,6 @@ describe('ModelsSection', () => {
     )
     fireEvent.click(screen.getByText(en.add))
     expect(screen.queryByRole('status')).toBeNull()
-  })
-
-  it('reuses the provider editor as a required credential-only onboarding form', async () => {
-    let finishSet: ((response: RpcResponse<Record<string, never>>) => void) | undefined
-    const set = vi.fn(() => new Promise<RpcResponse<Record<string, never>>>((resolve) => {
-      finishSet = resolve
-    }))
-    const { face, mutate } = scriptedFace({ set })
-    const onClose = vi.fn()
-    const { ProviderEditor } = await import('../src/client/ProviderEditor.tsx')
-
-    render(<ProviderEditor
-      provider="deepseek-official"
-      displayName="DeepSeek"
-      hideTitle
-      namespace={wireNamespaces()[0]!}
-      schema={settingsSchema}
-      settingsPath={[]}
-      api={face as never}
-      t={t}
-      readOnly={false}
-      credentialOnly
-      credentialRequired
-      autoFocusCredential
-      cancelLabel="onboardingLater"
-      submitLabel="onboardingSave"
-      submitBusyLabel="onboardingSaving"
-      onClose={onClose}
-    />)
-
-    const key = screen.getByLabelText<HTMLInputElement>(en.keyInput)
-    const save = screen.getByText<HTMLButtonElement>(en.onboardingSave)
-    expect(document.activeElement).toBe(key)
-    expect(key.required).toBe(true)
-    expect(save.disabled).toBe(true)
-    expect(screen.getByText(en.onboardingLater)).toBeTruthy()
-    expect(screen.queryByText(en.customized)).toBeNull()
-    expect(screen.queryByLabelText(en.baseUrl)).toBeNull()
-
-    fireEvent.change(key, { target: { value: '   ' } })
-    expect(screen.getByText(en.keyRequired)).toBeTruthy()
-    expect(key.getAttribute('aria-invalid')).toBe('true')
-    expect(save.disabled).toBe(true)
-
-    fireEvent.change(key, { target: { value: '  sk-onboarding  ' } })
-    expect(screen.queryByText(en.keyRequired)).toBeNull()
-    expect(save.disabled).toBe(false)
-    fireEvent.click(save)
-
-    expect(await screen.findByText(en.onboardingSaving)).toBeTruthy()
-    expect(set).toHaveBeenCalledWith({ ref: 'DEEPSEEK_API_KEY', value: 'sk-onboarding' })
-    expect(mutate).not.toHaveBeenCalled()
-    expect(onClose).not.toHaveBeenCalled()
-
-    if (finishSet === undefined) throw new Error('credential write did not start')
-    await act(async () => {
-      finishSet?.(ok({}))
-      await Promise.resolve()
-    })
-    expect(onClose).toHaveBeenCalledWith(true)
   })
 
   it('applies customized deepseek fields as path ops', async () => {
@@ -1051,6 +971,7 @@ describe('ModelsSection', () => {
         schema={settingsSchema}
         t={t}
       />)
+      fireEvent.click(screen.getByRole('button', { name: deepSeekCopy(en.editProvider) }))
       const key = await screen.findByLabelText<HTMLInputElement>(en.keyInput)
       expect(key.placeholder).toBe(en.keyPlaceholder)
       await new Promise(resolve => setTimeout(resolve, 10))
@@ -1090,6 +1011,7 @@ describe('ModelsSection', () => {
     await mountFirstRun({
       set: vi.fn(() => Promise.resolve(fail('credentials: DEEPSEEK_API_KEY is shadowed by the read-only environment', 'credential-rejected'))),
     })
+    fireEvent.click(screen.getByRole('button', { name: deepSeekCopy(en.editProvider) }))
     const key = screen.getByLabelText<HTMLInputElement>(en.keyInput)
     fireEvent.change(key, { target: { value: 'sk-live' } })
     fireEvent.click(screen.getByText(en.apply))
@@ -1237,29 +1159,6 @@ describe('ModelsSection', () => {
     await screen.findByLabelText(en.provider)
     fireEvent.click(screen.getByText(en.cancel))
     await screen.findByText(en.add)
-    expect(screen.queryByLabelText(en.provider)).toBeNull()
-  })
-
-  it('collapses the setup card on cancel without disturbing another open card', async () => {
-    // The regression: the setup card shared the row/add/declare close handler,
-    // so cancelling it discarded the add card's draft while staying open itself.
-    await mountFirstRun()
-    expect(screen.getAllByLabelText(en.keyInput)).toHaveLength(1)
-    fireEvent.click(screen.getByText(en.add))
-    await screen.findByLabelText(en.provider)
-    expect(screen.getAllByLabelText(en.keyInput)).toHaveLength(2)
-
-    // The setup card is the first one on the page, above the add block.
-    fireEvent.click(screen.getAllByText(en.cancel)[0] as HTMLElement)
-    // The add card kept its draft…
-    expect(screen.getByLabelText(en.provider)).toBeTruthy()
-    // …and DeepSeek collapsed to an ordinary row carrying the missing-key dot.
-    expect(screen.getAllByLabelText(en.keyInput)).toHaveLength(1)
-    expect(screen.getAllByRole('img', { name: en.credentialMissing })
-      .some(dot => dot.closest('li')?.textContent?.includes('DeepSeek') === true)).toBe(true)
-    // Its card reopens through Edit, which closes the add card as any row does.
-    fireEvent.click(screen.getByRole('button', { name: deepSeekCopy(en.editProvider) }))
-    expect(screen.getAllByLabelText(en.keyInput)).toHaveLength(1)
     expect(screen.queryByLabelText(en.provider)).toBeNull()
   })
 

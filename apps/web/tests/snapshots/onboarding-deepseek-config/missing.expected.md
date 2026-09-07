@@ -1,8 +1,37 @@
-- dialog "Add an API key to get started":
-  - heading "Add an API key to get started" [level=2]
-  - paragraph: Configure DeepSeek to start building.
-  - text: API key
-  - textbox "API key":
-    - /placeholder: Enter your API key
-  - button "Configure later"
-  - button "Save and continue" [disabled]
+- dialog "Settings":
+  - navigation:
+    - text: Settings
+    - button "General":
+      - img
+      - text: General
+    - button "Personalization":
+      - img
+      - text: Personalization
+    - button "Models":
+      - img
+      - text: Models
+    - button "Usage"
+    - button "Plugins":
+      - img
+      - text: Plugins
+    - button "Agent presets":
+      - img
+      - text: Agent presets
+  - button "Open configuration file"
+  - button "Close":
+    - img
+    - text: Close
+  - heading "Models" [level=2]
+  - paragraph: Enter your API keys to use models from the following providers.
+  - list:
+    - listitem:
+      - text: DeepSeek
+      - img "API key missing"
+      - button "Edit DeepSeek (deepseek-official)": Edit
+      - button "Delete DeepSeek (deepseek-official)": Delete
+  - button "Add provider":
+    - img
+    - text: Add provider
+  - button "Add a custom provider":
+    - img
+    - text: Add a custom provider

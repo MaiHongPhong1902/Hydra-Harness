@@ -1,7 +1,4 @@
-// Keyless browser e2e: the shipped DeepSeek adapter stays mounted while its
-// credential is absent, both ordered steps share the shipped modal chrome,
-// and the inline key write lands in an isolated harness home without a reload
-// or model call.
+// Keyless first-run provider selection, write-only credentials, and live model settings.
 import { randomBytes } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
@@ -24,7 +21,7 @@ const MISSING_EXPECTED = join(SNAPSHOT_DIR, 'missing.expected.md')
 const MODELS_EXPECTED = join(SNAPSHOT_DIR, 'models.expected.md')
 const MODE = webSnapshotMode()
 
-describe.skipIf(MODE === 'record')('web e2e: first-run DeepSeek credential setup', () => {
+describe.skipIf(MODE === 'record')('web e2e: first-run provider configuration', () => {
   let scaffold: WebScaffold
   let browser: Browser
   let page: Page
@@ -70,17 +67,21 @@ describe.skipIf(MODE === 'record')('web e2e: first-run DeepSeek credential setup
     await welcome.getByRole('button', { name: WELCOME_NOTICE_COPY.en.continueLabel }).click()
     await welcome.waitFor({ state: 'detached', timeout: 15_000 })
 
-    const credentialStep = page.getByRole('dialog', { name: 'Add an API key to get started' })
-    await credentialStep.waitFor({ timeout: 15_000 })
-    const keyInput = credentialStep.getByLabel('API key', { exact: true })
-    await keyInput.waitFor({ timeout: 10_000 })
+    const settings = page.getByRole('dialog', { name: 'Settings', exact: true })
+    await settings.waitFor({ timeout: 15_000 })
+    await settings.getByRole('button', { name: 'Add provider', exact: true }).waitFor()
+    expect(await settings.getByLabel('API key', { exact: true }).count()).toBe(0)
+    expect(await page.getByRole('dialog', { name: 'Add an API key to get started' }).count()).toBe(0)
     const initial = await captureStableAria(page, '[role="dialog"]', scaffold.workspaceCwd)
     await compareOrRefreshGolden(MISSING_EXPECTED, initial, MODE)
+    await page.screenshot({ path: '.hydra-build/provider-setup.png' })
 
+    await settings.getByRole('button', { name: 'Edit DeepSeek (deepseek-official)', exact: true }).click()
+    const keyInput = settings.getByLabel('API key', { exact: true })
     const secret = `hydra_onboarding_${randomBytes(12).toString('hex')}`
     await keyInput.fill(secret)
-    await credentialStep.getByRole('button', { name: 'Save and continue' }).click()
-    await credentialStep.waitFor({ state: 'detached', timeout: 15_000 })
+    await settings.getByRole('button', { name: 'Apply', exact: true }).click()
+    await keyInput.waitFor({ state: 'detached', timeout: 15_000 })
     expect(await page.locator('#root').evaluate(root => (root as HTMLElement).inert)).toBe(false)
 
     const stored = await readFile(join(scaffold.harnessHome, '.credentials.yaml'), 'utf8')
@@ -92,12 +93,6 @@ describe.skipIf(MODE === 'record')('web e2e: first-run DeepSeek credential setup
     const acknowledgedSettings = await readFile(join(scaffold.harnessHome, 'settings.yaml'), 'utf8')
     expect(acknowledgedSettings).toContain(`${WELCOME_NOTICE_ACK_FIELD}: ${WELCOME_NOTICE_VERSION}`)
 
-    // The ordinary Models surface reuses the refreshed join and exposes the
-    // configured write-only placeholder without a reload.
-    await page.getByRole('button', { name: 'Settings', exact: true }).click()
-    const settings = page.getByRole('dialog', { name: 'Settings' })
-    await settings.waitFor({ timeout: 10_000 })
-    await settings.getByRole('button', { name: 'Models' }).click()
     const deepSeekRow = settings.getByText('DeepSeek', { exact: true }).first()
     await deepSeekRow.waitFor({ timeout: 10_000 })
     await deepSeekRow.locator('xpath=ancestor::li').getByRole('button', { name: 'Edit' }).click()
@@ -114,6 +109,7 @@ describe.skipIf(MODE === 'record')('web e2e: first-run DeepSeek credential setup
     await page.waitForSelector('[class*="frame"]', { timeout: 15_000 })
     expect(await page.getByRole('dialog', { name: WELCOME_NOTICE_COPY.en.title }).count()).toBe(0)
     expect(await page.getByRole('dialog', { name: 'Add an API key to get started' }).count()).toBe(0)
+    expect(await page.getByRole('dialog', { name: 'Settings', exact: true }).count()).toBe(0)
 
     // An old acknowledgement means materially revised copy: welcome returns,
     // while the already-configured provider step remains complete.

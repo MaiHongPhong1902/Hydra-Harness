@@ -2,6 +2,8 @@
 
 Status: implemented
 
+The automatic setup card and DeepSeek-specific fallback described here are superseded by [provider-choice onboarding](2026-09-07-provider-choice-onboarding.md). The active-route and native-authentication rationale for `providerUsable` remains applicable.
+
 ## Problem
 
 The first-run step and the Models page both asked one question — is `deepseek-official`'s credential stored? — of a join that describes every provider. Two defects followed from that single reading.

@@ -1,15 +1,7 @@
 /**
- * Models settings section: the provider rows joined from the configurable
- * directory, settings namespaces, and credential states, with one editor
- * card at a time. Rows expose only confirmed API-key state through accessible
- * solid configured or missing dots. A whole-section provider without a
- * configured key renders as its open setup card instead of a row, but only in
- * the first-run posture — no provider on the page can serve requests yet — and
- * only until the user closes that card; the add flow is a card carrying the
- * dormant-provider select. Each card kind owns its own open state, so closing
- * one never discards a draft in another. Every mutation writes through the
- * wire, while a provider removal first requires confirmation; the page
- * re-renders from pushed invalidations or the post-apply reload.
+ * Provider configuration over the shared directory, settings, and credential
+ * join. Editors open only through Edit or Add; writes use the existing wire
+ * APIs, and provider removal requires confirmation.
  */
 
 import { useState } from 'react'
@@ -19,7 +11,7 @@ import { Button, IconPlusOutline16, Modal } from '@hydra/harness-client-ui-primi
 import type { InjectFace } from '@hydra/harness-client-ui-slots'
 import { CustomProviderCard } from './CustomProviderCard.tsx'
 import {
-  deriveKeyRef, messageOf, protocolChoices, providerUsable,
+  deriveKeyRef, messageOf, protocolChoices,
 } from './store.ts'
 import type { ModelsSettingsStore, ProviderRow } from './store.ts'
 import type { SettingsSchemaOperations } from './schema-operations.ts'
@@ -81,7 +73,7 @@ interface ProviderEditorRenderProps extends Pick<
   target: EditorTarget
 }
 
-/** Render an editor for either the setup posture or an expanded provider row. */
+/** Render the editor for an expanded provider row. */
 function renderProviderEditor({ target, ...props }: ProviderEditorRenderProps): ReactNode {
   return (
     <ProviderEditor
@@ -174,21 +166,6 @@ export async function revealOfficialDeepSeek(
   return failure
 }
 
-/**
- * Whether a whole-section provider still needs its first key: an unconfigured
- * credential opens the setup card instead of showing a row. This is the
- * first-run posture alone — a user who can already reach some provider gets an
- * ordinary row with the missing-key dot, since nothing here is blocking them.
- * @param row - the joined provider row.
- * @param anyUsable - whether any joined row can already serve requests.
- * @returns whether to render the setup card.
- */
-export function needsSetup(row: ProviderRow, anyUsable: boolean): boolean {
-  if (anyUsable) return false
-  if (row.entry.settingsPath.length > 0) return false
-  return row.credential?.configured !== true
-}
-
 function targetOf(row: ProviderRow): EditorTarget {
   const managedRef = deriveKeyRef(row.entry.provider)
   const credentialRef = row.apiKeyEnv === managedRef
@@ -245,7 +222,6 @@ function Loaded({ injected }: { injected: ModelsSectionFace }): ReactNode {
   const [deleteFailure, setDeleteFailure] = useState<string | undefined>(undefined)
   const [savedTarget, setSavedTarget] = useState<ProviderIdentity | undefined>(undefined)
   const [declaring, setDeclaring] = useState(false)
-  const [dismissedSetup, setDismissedSetup] = useState<ReadonlySet<string>>(() => new Set())
 
   const announceSaved = (target: ProviderIdentity): void => {
     // Announced only once the refreshed directory is in the snapshot the
@@ -268,18 +244,6 @@ function Loaded({ injected }: { injected: ModelsSectionFace }): ReactNode {
     setEditing(undefined)
     setAdding(false)
     setDeclaring(false)
-    persistSaved(changed, target)
-  }
-
-  /**
-   * Close a setup card, which owns none of the state above: the row-editor,
-   * add, and declare cards each own one of those, so clearing them here would
-   * discard a draft the user opened beside this card. Dismissal is this card's
-   * own — the provider falls back to an ordinary row for the rest of the
-   * session, and reopens through Edit.
-   */
-  const closeSetup = (changed: boolean, target: ProviderIdentity): void => {
-    setDismissedSetup(previous => new Set([...previous, target.provider]))
     persistSaved(changed, target)
   }
 
@@ -330,9 +294,6 @@ function Loaded({ injected }: { injected: ModelsSectionFace }): ReactNode {
     ? savedTarget
     : { provider: savedRow.entry.provider, displayName: savedRow.entry.displayName }
 
-  // One fact decides both first-run postures on this page and the onboarding
-  // step: whether the user already has a provider to talk to.
-  const anyUsable = state.rows.some(providerUsable)
   const configured = state.rows.filter(row => row.configured)
   const addable = state.rows.filter(row => !row.configured && row.entry.settingsNs !== '')
   const addTarget = adding ? editing : undefined
@@ -360,23 +321,6 @@ function Loaded({ injected }: { injected: ModelsSectionFace }): ReactNode {
           const namespace = state.namespaces.get(target.settingsNs)
           /* v8 ignore next -- the join marks a row configured only when its namespace resolved */
           if (namespace === undefined) return null
-          if (needsSetup(row, anyUsable) && !dismissedSetup.has(row.entry.provider)) {
-            // First-run posture: the provider exists but has no key — the
-            // setup card IS its presence on the page, until the user closes it.
-            return (
-              <li key={row.entry.provider} className={styles['setupCard']}>
-                {renderProviderEditor({
-                  target,
-                  namespace,
-                  schema,
-                  api,
-                  t,
-                  readOnly: !state.writable,
-                  onClose: (changed) => { closeSetup(changed, target) },
-                })}
-              </li>
-            )
-          }
           const open = !adding && editing?.provider === row.entry.provider
           const credentialConfigured = row.credential?.configured === true
           const credentialMissing = !credentialConfigured

@@ -2,6 +2,8 @@
 
 Status: implemented
 
+The credential-dialog decision below is superseded by [provider-choice onboarding](../bug-fix/2026-09-07-provider-choice-onboarding.md). The welcome notice retains its versioned acknowledgement, modal, and plugin ownership.
+
 ## Problem
 
 First-run onboarding mixed two interaction models: a viewport takeover for product context and a credential prompt that redirected users into Settings before they could enter a key. That made a short, ordered flow feel like two unrelated surfaces and left onboarding UI ownership split across packages. The product still needs a versioned testing-stage notice before provider setup, but restoring it must not add a second independent overlay or change the Host settings and credential boundaries.

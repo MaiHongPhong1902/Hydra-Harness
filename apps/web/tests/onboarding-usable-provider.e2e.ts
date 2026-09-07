@@ -1,9 +1,4 @@
-// Keyless browser e2e: a user who configures some OTHER provider is not asked
-// for the official DeepSeek key again, and the first-run setup card is a card
-// they can close. The shipped DeepSeek adapter stays mounted without a
-// credential throughout, so the only thing that ends onboarding here is the
-// pi-ai route the user configures through the real wire. Zero model calls:
-// configuration is pure settings/credentials/llm-domain traffic.
+// Keyless provider choice, dismissal, and restoration through the real application.
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { join } from 'node:path'
@@ -42,21 +37,18 @@ describe.skipIf(MODE === 'record')('web e2e: another usable provider ends first-
     await scaffold?.close()
   })
 
-  it('closes the setup card without discarding the add card beside it', async () => {
-    onTestFailed(() => saveFailureShot(page, 'web-e2e-onboarding-setup-card-cancel'))
-    const credentialStep = page.getByRole('dialog', { name: CREDENTIAL_STEP })
-    await credentialStep.waitFor({ timeout: 15_000 })
-    await credentialStep.getByRole('button', { name: 'Configure later' }).click()
-    await credentialStep.waitFor({ state: 'detached', timeout: 15_000 })
-
+  it('opens provider configuration with every editor closed and allows dismissal', async () => {
+    onTestFailed(() => saveFailureShot(page, 'web-e2e-onboarding-provider-choice'))
+    const settings = page.getByRole('dialog', { name: 'Settings', exact: true })
+    await settings.waitFor({ timeout: 15_000 })
+    await settings.getByRole('button', { name: 'Add provider', exact: true }).waitFor()
+    expect(await page.getByRole('dialog', { name: CREDENTIAL_STEP }).count()).toBe(0)
+    expect(await settings.getByLabel('API key', { exact: true }).count()).toBe(0)
+    await page.keyboard.press('Escape')
+    await settings.waitFor({ state: 'detached' })
+    expect(await page.locator('#root').evaluate(root => (root as HTMLElement).inert)).toBe(false)
     await page.getByRole('button', { name: 'Settings', exact: true }).click()
-    const settings = page.getByRole('dialog', { name: 'Settings' })
-    await settings.waitFor({ timeout: 10_000 })
-    // The onboarding step no longer navigates into Settings on dismissal, so
-    // enter the Models section explicitly before exercising its normal cards.
-    await settings.getByRole('button', { name: 'Models' }).click()
-    const setupKey = settings.getByRole('textbox', { name: 'API key', exact: true })
-    await setupKey.waitFor({ timeout: 10_000 })
+    await settings.getByRole('button', { name: 'Models', exact: true }).click()
 
     const add = settings.getByRole('button', { name: 'Add provider' })
     await expect.poll(async () => add.isEnabled(), { timeout: 10_000 }).toBe(true)
@@ -64,19 +56,7 @@ describe.skipIf(MODE === 'record')('web e2e: another usable provider ends first-
     const pick = settings.getByLabel('Provider')
     await pick.waitFor({ timeout: 10_000 })
     await pick.selectOption('minimax-cn')
-    await expect.poll(
-      async () => settings.getByRole('textbox', { name: 'API key', exact: true }).count(),
-      { timeout: 10_000 },
-    ).toBe(2)
-
-    // Cancelling the setup card must not close the independent add-provider
-    // draft beside it.
-    await settings.getByRole('button', { name: 'Cancel', exact: true }).first().click()
-    expect(await settings.getByLabel('Provider').count()).toBe(1)
-    await expect.poll(
-      async () => settings.getByRole('textbox', { name: 'API key', exact: true }).count(),
-      { timeout: 10_000 },
-    ).toBe(1)
+    expect(await settings.getByRole('textbox', { name: 'API key', exact: true }).count()).toBe(1)
     await settings.getByRole('button', { name: 'Edit DeepSeek (deepseek-official)' }).waitFor({ timeout: 10_000 })
     const dismissed = await captureStableAria(page, '[role="dialog"]', scaffold.workspaceCwd)
     await compareOrRefreshGolden(DISMISSED_EXPECTED, dismissed, MODE)
@@ -103,13 +83,12 @@ describe.skipIf(MODE === 'record')('web e2e: another usable provider ends first-
     await page.reload({ waitUntil: 'load' })
     acknowledgeReloadConnectionLoss(tripwire, warningsBefore)
     await page.waitForSelector('[class*="frame"]', { timeout: 15_000 })
-    // The regression: the step read only the official route's credential, so a
-    // fully configured user was taken over on every blank session.
     await expect.poll(
       async () => page.getByRole('dialog', { name: CREDENTIAL_STEP }).count(),
       { timeout: 10_000 },
     ).toBe(0)
     expect(await page.locator('#root').evaluate(root => (root as HTMLElement).inert)).toBe(false)
+    expect(await page.getByRole('dialog', { name: 'Settings', exact: true }).count()).toBe(0)
 
     // The Models page agrees: DeepSeek stays a row rather than reopening its
     // setup card over a user who already has somewhere to send a request.

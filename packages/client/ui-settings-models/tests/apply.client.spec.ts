@@ -11,7 +11,7 @@ import {
   WELCOME_NOTICE_ACK_FIELD, WELCOME_NOTICE_SETTINGS_NAMESPACE, WELCOME_NOTICE_VERSION,
 } from '../src/onboarding-copy.ts'
 import { ModelsSection } from '../src/client/ModelsSection.tsx'
-import { DeepSeekOnboardingDialog } from '../src/client/DeepSeekOnboardingDialog.tsx'
+import { ProviderOnboarding } from '../src/client/ProviderOnboarding.tsx'
 import { WelcomeNotice } from '../src/client/WelcomeNotice.tsx'
 
 // The package ships an English-only dictionary, and 'en' is the only
@@ -77,14 +77,13 @@ describe('ui-settings-models apply', () => {
       component: WelcomeNotice,
       options: { id: 'welcome-notice', order: -100 },
     })
-    const deepSeek = onboarding.find(entry => entry.options.id === 'deepseek-official')!
-    expect(deepSeek.component).toBe(DeepSeekOnboardingDialog)
-    expect(deepSeek.options).toMatchObject({ id: 'deepseek-official', order: 0 })
-    const deepSeekInjected = (
-      deepSeek.inject as unknown as () => import('../src/client/DeepSeekOnboardingDialog.tsx').DeepSeekOnboardingInjected
+    const providerSetup = onboarding.find(entry => entry.options.id === 'provider-setup')!
+    expect(providerSetup.component).toBe(ProviderOnboarding)
+    expect(providerSetup.options).toMatchObject({ id: 'provider-setup', order: 0 })
+    const providerInjected = (
+      providerSetup.inject as unknown as () => import('../src/client/ProviderOnboarding.tsx').ProviderOnboardingInjected
     )()
-    expect(deepSeekInjected.hooks.models).toBe(injected.controller.store)
-    expect(deepSeekInjected.api).toBeDefined()
+    expect(providerInjected.hooks.models).toBe(injected.controller.store)
 
     const after = await bench()
     await after.ctx.plugin({ inject: [...inject], apply }).await()
@@ -205,10 +204,10 @@ describe('pushed invalidations', () => {
     declare(b.slots)
     await b.ctx.plugin({ inject: [...inject], apply }).await()
     const entry = b.slots.entries('settings.onboarding')
-      .find(candidate => candidate.options.id === 'deepseek-official')!
+      .find(candidate => candidate.options.id === 'provider-setup')!
     const injected = (
       entry.inject as unknown as
-      () => import('../src/client/DeepSeekOnboardingDialog.tsx').DeepSeekOnboardingInjected
+      () => import('../src/client/ProviderOnboarding.tsx').ProviderOnboardingInjected
     )()
     injected.controller.store.update((state) => { state.status = 'ready' })
     const load = vi.spyOn(injected.controller, 'load').mockResolvedValue()

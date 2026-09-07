@@ -274,76 +274,25 @@ export function providerUsable(row: ProviderRow): boolean {
   return row.credential?.configured === true
 }
 
-/** First-run onboarding readiness derived only from the shared Models join. */
+/** First-run navigation readiness derived from the shared Models join. */
 export type OnboardingReadiness =
   | { kind: 'loading' }
-  | { kind: 'adapter-absent' }
   | { kind: 'provider-ready' }
-  | { kind: 'credential-missing' }
-  | {
-    kind: 'unavailable'
-    reason:
-      | 'load-failed'
-      | 'provider-inactive'
-      | 'credentials-unavailable'
-      | 'settings-read-only'
-      | 'credential-read-only'
-      | 'provider-declined'
-  }
+  | { kind: 'setup-needed' }
+  | { kind: 'unavailable' }
 
 /**
- * Project first-run readiness from the provider/settings/credential join used
- * by the Models page. The step exists to leave the user with a model to talk
- * to, so ANY usable provider ends it; only when none exists does the official
- * DeepSeek route — the one route the prompt can offer a key field for — decide
- * whether prompting can help. A recorded official-DeepSeek dismissal ends it
- * the same way: the user already chose not to keep that row. A missing official
- * configurable-provider declaration means the adapter is not repairable by
- * navigating to Models.
+ * Offer provider configuration when no route is usable and Models can edit
+ * a declared provider. Failed credential reads or failed or read-only
+ * settings leave navigation to the user; no provider is selected implicitly.
  * @param state - current shared Models join snapshot.
- * @returns the onboarding state without reading a parallel fact source.
+ * @returns whether setup can help, without writing settings or credentials.
  */
 export function onboardingReadiness(state: ModelsSettingsState): OnboardingReadiness {
-  if ((state.status === 'idle' || state.status === 'loading') && state.rows.length === 0) {
-    return { kind: 'loading' }
-  }
-  if (state.status === 'error') {
-    return {
-      kind: 'unavailable',
-      reason: 'load-failed',
-    }
-  }
+  if (state.status === 'idle' || state.status === 'loading') return { kind: 'loading' }
+  if (state.status === 'error') return { kind: 'unavailable' }
   if (state.rows.some(providerUsable)) return { kind: 'provider-ready' }
-  if (state.officialDeepSeekDeclined) {
-    return { kind: 'unavailable', reason: 'provider-declined' }
-  }
-  const row = state.rows.find(candidate => isOfficialDeepSeekEntry(candidate.entry))
-  if (row === undefined) return { kind: 'adapter-absent' }
-  if (!row.entry.active) {
-    return {
-      kind: 'unavailable',
-      reason: 'provider-inactive',
-    }
-  }
-  // Past the usable gate an active route names a reference it has no stored
-  // credential for, so the remaining questions are all about that credential.
-  if (state.credentialError !== null || row.credential === undefined) {
-    return {
-      kind: 'unavailable',
-      reason: 'credentials-unavailable',
-    }
-  }
-  if (!state.writable) {
-    return {
-      kind: 'unavailable',
-      reason: 'settings-read-only',
-    }
-  }
-  if (!row.credential.writable) {
-    return {
-      kind: 'unavailable',
-      reason: 'credential-read-only',
-    }
-  }
-  return { kind: 'credential-missing' }
+  if (!state.writable || state.credentialError !== null) return { kind: 'unavailable' }
+  const configurable = state.rows.some(row => state.namespaces.has(row.entry.settingsNs))
+  return { kind: configurable ? 'setup-needed' : 'unavailable' }
 }

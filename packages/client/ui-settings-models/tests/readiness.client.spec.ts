@@ -1,6 +1,6 @@
 /** Pure first-run readiness projection over the shared Models join. */
 import { describe, expect, it } from 'vitest'
-import type { CredentialView } from '@hydra/harness-api-remotes/client'
+import type { CredentialView, SettingsNamespaceView } from '@hydra/harness-api-remotes/client'
 import type { ModelsSettingsState, ProviderRow } from '../src/client/store.ts'
 import { onboardingReadiness, providerUsable } from '../src/client/store.ts'
 
@@ -48,7 +48,7 @@ function state(overrides: Partial<ModelsSettingsState> = {}): ModelsSettingsStat
     credentialError: null,
     writable: true,
     rows: [row()],
-    namespaces: new Map(),
+    namespaces: new Map([['llm-deepseek', { ns: 'llm-deepseek' } as SettingsNamespaceView]]),
     officialDeepSeekDeclined: false,
     ...overrides,
   }
@@ -68,75 +68,42 @@ describe('providerUsable', () => {
 })
 
 describe('onboardingReadiness', () => {
-  it('waits for the first join and skips onboarding when the adapter directory entry is absent', () => {
+  it('waits for the join, including refreshes with retained rows', () => {
     expect(onboardingReadiness(state({ status: 'idle', rows: [] }))).toEqual({ kind: 'loading' })
-    expect(onboardingReadiness(state({ status: 'loading', rows: [] }))).toEqual({ kind: 'loading' })
-    expect(onboardingReadiness(state({ rows: [] }))).toEqual({ kind: 'adapter-absent' })
-    expect(onboardingReadiness(state({
-      rows: [row({
-        entry: {
-          ...row().entry,
-          settingsNs: '',
-        },
-      })],
-    }))).toEqual({ kind: 'adapter-absent' })
+    expect(onboardingReadiness(state({ status: 'loading' }))).toEqual({ kind: 'loading' })
   })
 
-  it('reports a missing writable effective credential', () => {
-    expect(onboardingReadiness(state())).toEqual({ kind: 'credential-missing' })
-  })
-
-  it('ends onboarding once any other registered provider can serve requests', () => {
-    expect(onboardingReadiness(state({ rows: [row(), otherRow()] }))).toEqual({ kind: 'provider-ready' })
-    // A provider the user cannot reach yet leaves the prompt in place.
+  it('offers provider configuration without preferring official DeepSeek', () => {
+    expect(onboardingReadiness(state())).toEqual({ kind: 'setup-needed' })
+    expect(onboardingReadiness(state({ officialDeepSeekDeclined: true }))).toEqual({ kind: 'setup-needed' })
     expect(onboardingReadiness(state({
-      rows: [row(), otherRow({ credential: missingCredential })],
-    }))).toEqual({ kind: 'credential-missing' })
-  })
-
-  it('accepts file and process-environment credentials without prompting', () => {
-    expect(onboardingReadiness(state({
-      rows: [row({ credential: { configured: true, source: 'file', writable: true } })],
-    }))).toEqual({ kind: 'provider-ready' })
-    expect(onboardingReadiness(state({
-      rows: [row({ credential: { configured: true, source: 'env', writable: false } })],
-    }))).toEqual({ kind: 'provider-ready' })
-  })
-
-  it('turns missing capabilities into diagnostics that never block the product', () => {
-    expect(onboardingReadiness(state({ status: 'error', error: 'settings down' }))).toEqual({
-      kind: 'unavailable',
-      reason: 'load-failed',
-    })
+      rows: [otherRow({ credential: missingCredential })],
+      namespaces: new Map([['llm-pi-ai', { ns: 'llm-pi-ai' } as SettingsNamespaceView]]),
+    }))).toEqual({ kind: 'setup-needed' })
     expect(onboardingReadiness(state({
       rows: [row({ entry: { ...row().entry, active: false } })],
-    }))).toEqual({ kind: 'unavailable', reason: 'provider-inactive' })
-    expect(onboardingReadiness(state({
-      credentialError: 'credentials service is absent',
-    }))).toEqual({
-      kind: 'unavailable',
-      reason: 'credentials-unavailable',
-    })
-    expect(onboardingReadiness(state({
-      rows: [row({ credential: undefined })],
-    }))).toEqual({ kind: 'unavailable', reason: 'credentials-unavailable' })
-    expect(onboardingReadiness(state({
-      rows: [row({ credential: { configured: false, writable: false } })],
-    }))).toEqual({ kind: 'unavailable', reason: 'credential-read-only' })
-    expect(onboardingReadiness(state({ writable: false }))).toEqual({
-      kind: 'unavailable',
-      reason: 'settings-read-only',
-    })
+    }))).toEqual({ kind: 'setup-needed' })
   })
 
-  it('skips the DeepSeek prompt after the user dismissed that official row', () => {
-    expect(onboardingReadiness(state({ officialDeepSeekDeclined: true }))).toEqual({
-      kind: 'unavailable',
-      reason: 'provider-declined',
-    })
-    expect(onboardingReadiness(state({
-      officialDeepSeekDeclined: true,
-      rows: [row(), otherRow()],
-    }))).toEqual({ kind: 'provider-ready' })
+  it('skips setup for usable file, environment, or native authentication', () => {
+    for (const usable of [
+      otherRow(),
+      row({ credential: { configured: true, source: 'env', writable: false } }),
+      otherRow({ apiKeyEnv: undefined, credential: undefined }),
+    ]) {
+      expect(onboardingReadiness(state({ rows: [row(), usable] }))).toEqual({ kind: 'provider-ready' })
+    }
+  })
+
+  it('leaves unavailable or read-only configuration to manual navigation', () => {
+    for (const overrides of [
+      { status: 'error' as const },
+      { credentialError: 'credentials unavailable' },
+      { writable: false },
+      { rows: [] },
+      { namespaces: new Map() },
+    ]) {
+      expect(onboardingReadiness(state(overrides))).toEqual({ kind: 'unavailable' })
+    }
   })
 })
