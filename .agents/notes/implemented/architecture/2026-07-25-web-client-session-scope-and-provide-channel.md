@@ -34,7 +34,7 @@ The runtime's `agents/scope.ts` matches the host's `@hydra/harness-scope` at the
 - Dispatch is the cordis primitives with thisArg = the actx itself: `actx.bail(actx, event, req)` / `actx.emit(actx, event, payload)`.
 - `Session.bindScope(actx)`: paired exactly once when resolve mints the scope (rebinding throws; dropScope unbinds), mirroring the host's `Agent.loopCtx` — the Session uses it to dispatch its own scoped events. The reverse actx→Session direction is one hop through `sessions.sessionOf(actx)` (mirroring host plugins' `agent.session` usage).
 
-Three deliberate divergences from the host bh-scope:
+Three deliberate divergences from the host hydra-scope:
 
 - The filter lives on the actx itself rather than a separate carrier: the host wrapper layer guards the business Agent subject against drifting from the scope key (host events inject the Agent itself as the first argument), while client event payloads carry only an id — there is no subject to protect.
 - Keys compare by branded `SessionId` value rather than object identity: on the host, agent.id === session id (1:1 on the same axis), agent identity directly reuses the `SessionId` brand, and a client scope's identity is its wire id.

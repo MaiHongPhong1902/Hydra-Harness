@@ -10,7 +10,7 @@ overrides:
 
 patchedDependencies:
   '@earendil-works/pi-ai@0.82.1': 1fbcde43a40aad09a2849be88b5ca0616783c0288010ec448a897a3febe52b27
-  node-pty@1.2.0-beta.15: c9896e5bf6a305e53d92065b524aafebe9cd5a0a3f84a54940e8e21326addda5
+  node-pty@1.2.0-beta.15: 1137a730175ec9a8151d001a9576e1f133a35985504946f3280bcbf94834595e
 
 importers:
 
@@ -380,7 +380,7 @@ importers:
         version: link:../../packages/subprocess/subprocess
       node-pty:
         specifier: 1.2.0-beta.15
-        version: 1.2.0-beta.15(patch_hash=c9896e5bf6a305e53d92065b524aafebe9cd5a0a3f84a54940e8e21326addda5)
+        version: 1.2.0-beta.15(patch_hash=1137a730175ec9a8151d001a9576e1f133a35985504946f3280bcbf94834595e)
       prettier:
         specifier: ^3.9.5
         version: 3.9.6
@@ -661,9 +661,6 @@ importers:
       '@hydra/harness-subagent-acp':
         specifier: workspace:*
         version: link:../packages/subagent/subagent-acp
-      '@hydra/harness-subagent-bh-sdk':
-        specifier: workspace:*
-        version: link:../packages/subagent/subagent-bh-sdk
       '@hydra/harness-subagent-claude-code':
         specifier: workspace:*
         version: link:../packages/subagent/subagent-claude-code
@@ -673,6 +670,9 @@ importers:
       '@hydra/harness-subagent-fork-in-process':
         specifier: workspace:*
         version: link:../packages/subagent/subagent-fork-in-process
+      '@hydra/harness-subagent-sdk':
+        specifier: workspace:*
+        version: link:../packages/subagent/subagent-sdk
       '@hydra/harness-subagent-spawn-in-process':
         specifier: workspace:*
         version: link:../packages/subagent/subagent-spawn-in-process
@@ -7936,46 +7936,6 @@ importers:
         specifier: workspace:^
         version: link:../../util/timeout
 
-  packages/subagent/subagent-bh-sdk:
-    dependencies:
-      '@hydra/schemastery':
-        specifier: link:../../../vendor/schemastery
-        version: link:../../../vendor/schemastery
-    devDependencies:
-      '@hydra/cordis':
-        specifier: workspace:^
-        version: link:../../../vendor/cordis
-      '@hydra/cordis-plugin-loader':
-        specifier: workspace:^
-        version: link:../../../vendor/loader
-      '@hydra/harness-agent':
-        specifier: workspace:^
-        version: link:../../core/agent
-      '@hydra/harness-invariants':
-        specifier: workspace:^
-        version: link:../../runtime-diagnostics/invariants
-      '@hydra/harness-llm':
-        specifier: workspace:^
-        version: link:../../llm/llm
-      '@hydra/harness-loader-smoke':
-        specifier: workspace:^
-        version: link:../../test-support/loader-smoke
-      '@hydra/harness-sdk-client':
-        specifier: workspace:^
-        version: link:../../sdk/client
-      '@hydra/harness-sdk-protocol':
-        specifier: workspace:^
-        version: link:../../sdk/protocol
-      '@hydra/harness-session':
-        specifier: workspace:^
-        version: link:../../core/session
-      '@hydra/harness-subagent':
-        specifier: workspace:^
-        version: link:../subagent
-      '@hydra/harness-subprocess':
-        specifier: workspace:^
-        version: link:../../subprocess/subprocess
-
   packages/subagent/subagent-claude-code:
     dependencies:
       '@anthropic-ai/claude-agent-sdk':
@@ -8164,6 +8124,46 @@ importers:
       '@hydra/harness-user-approval':
         specifier: workspace:^
         version: link:../../interaction/user-approval
+
+  packages/subagent/subagent-sdk:
+    dependencies:
+      '@hydra/schemastery':
+        specifier: link:../../../vendor/schemastery
+        version: link:../../../vendor/schemastery
+    devDependencies:
+      '@hydra/cordis':
+        specifier: workspace:^
+        version: link:../../../vendor/cordis
+      '@hydra/cordis-plugin-loader':
+        specifier: workspace:^
+        version: link:../../../vendor/loader
+      '@hydra/harness-agent':
+        specifier: workspace:^
+        version: link:../../core/agent
+      '@hydra/harness-invariants':
+        specifier: workspace:^
+        version: link:../../runtime-diagnostics/invariants
+      '@hydra/harness-llm':
+        specifier: workspace:^
+        version: link:../../llm/llm
+      '@hydra/harness-loader-smoke':
+        specifier: workspace:^
+        version: link:../../test-support/loader-smoke
+      '@hydra/harness-sdk-client':
+        specifier: workspace:^
+        version: link:../../sdk/client
+      '@hydra/harness-sdk-protocol':
+        specifier: workspace:^
+        version: link:../../sdk/protocol
+      '@hydra/harness-session':
+        specifier: workspace:^
+        version: link:../../core/session
+      '@hydra/harness-subagent':
+        specifier: workspace:^
+        version: link:../subagent
+      '@hydra/harness-subprocess':
+        specifier: workspace:^
+        version: link:../../subprocess/subprocess
 
   packages/subagent/subagent-spawn-in-process:
     dependencies:
@@ -8376,7 +8376,7 @@ importers:
         version: 3.1.1
       node-pty:
         specifier: 1.2.0-beta.15
-        version: 1.2.0-beta.15(patch_hash=c9896e5bf6a305e53d92065b524aafebe9cd5a0a3f84a54940e8e21326addda5)
+        version: 1.2.0-beta.15(patch_hash=1137a730175ec9a8151d001a9576e1f133a35985504946f3280bcbf94834595e)
     devDependencies:
       '@hydra/cordis':
         specifier: workspace:^
@@ -19662,7 +19662,7 @@ snapshots:
       fetch-blob: 3.2.0
       formdata-polyfill: 4.0.10
 
-  node-pty@1.2.0-beta.15(patch_hash=c9896e5bf6a305e53d92065b524aafebe9cd5a0a3f84a54940e8e21326addda5):
+  node-pty@1.2.0-beta.15(patch_hash=1137a730175ec9a8151d001a9576e1f133a35985504946f3280bcbf94834595e):
     dependencies:
       node-addon-api: 7.1.1
 

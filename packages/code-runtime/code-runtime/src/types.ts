@@ -54,7 +54,7 @@ export interface CodeBindingNamespace {
    * of `language` — a JS-only spelling like `$tools` is rejected by design,
    * not just by the Python backend. Names that satisfy the identifier rule but
    * name a backend-owned slot (`RESERVED_BINDING_GLOBALS`, e.g. `console`,
-   * `__bh_main__`) are also refused everywhere; see its declaration for the
+   * `__hydra_main__`) are also refused everywhere; see its declaration for the
    * exact set and why each entry is reserved.
    */
   global: string

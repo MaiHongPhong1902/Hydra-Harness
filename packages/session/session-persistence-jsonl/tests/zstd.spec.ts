@@ -34,7 +34,7 @@ type HeaderRead = (
   position: number | null,
 ) => Promise<{ bytesRead: number; buffer: Buffer }>
 
-async function freshRoot(prefix = 'bh-jsonl-zstd-'): Promise<string> {
+async function freshRoot(prefix = 'hydra-jsonl-zstd-'): Promise<string> {
   const root = await mkdtemp(join(tmpdir(), prefix))
   roots.push(root)
   return root
@@ -113,7 +113,7 @@ afterEach(async () => {
 })
 
 runPersistenceContract('jsonl-zstd', async () => {
-  const root = await mkdtemp(join(tmpdir(), 'bh-jsonl-zstd-contract-'))
+  const root = await mkdtemp(join(tmpdir(), 'hydra-jsonl-zstd-contract-'))
   const ctx = new Context()
   await ctx.plugin(SessionStore)
   const fiber = await ctx.plugin(JsonlSessionPersistence, { root })
@@ -127,7 +127,7 @@ runPersistenceContract('jsonl-zstd', async () => {
 })
 
 runCoordinatorContract('jsonl-zstd', async (): Promise<CoordinatorFixture> => {
-  const root = await mkdtemp(join(tmpdir(), 'bh-jsonl-zstd-coordinator-'))
+  const root = await mkdtemp(join(tmpdir(), 'hydra-jsonl-zstd-coordinator-'))
   return {
     mount: async ctx => ctx.plugin(JsonlSessionPersistence, { root }),
     corruptTail: async (id, cwd) => {
@@ -697,7 +697,7 @@ describe('JsonlSessionPersistence: default Zstandard encoding', () => {
 
 describe('JsonlSessionPersistence: encoding selection', () => {
   it('rejects roots owned by the opposite encoding in both directions', async () => {
-    const rawRoot = await freshRoot('bh-jsonl-raw-mismatch-')
+    const rawRoot = await freshRoot('hydra-jsonl-raw-mismatch-')
     const raw = await mount(rawRoot, 'none')
     const rawHeader = meta('raw-log')
     await raw.sessionPersistence.create(rawHeader)
@@ -705,7 +705,7 @@ describe('JsonlSessionPersistence: encoding selection', () => {
     const defaultBackend = await mount(rawRoot)
     await expect(defaultBackend.sessionPersistence.list()).rejects.toThrow(/configured for compression "zstd"/)
 
-    const zstdRoot = await freshRoot('bh-jsonl-zstd-mismatch-')
+    const zstdRoot = await freshRoot('hydra-jsonl-zstd-mismatch-')
     const zstd = await mount(zstdRoot)
     const zstdHeader = meta('zstd-log')
     await zstd.sessionPersistence.create(zstdHeader)

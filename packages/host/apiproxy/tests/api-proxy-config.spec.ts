@@ -846,19 +846,19 @@ describe('settings.readInstructions / settings.writeInstructions', () => {
   let home: string
   let previousHome: string | undefined
 
-  // $BH_HOME is repointed per test because the RPC resolves it per call, not
+  // $HYDRA_HOME is repointed per test because the RPC resolves it per call, not
   // once at plugin construction, so the environment must name the temporary
   // home for the whole test body. The home itself does not exist yet, so the
   // first write's `mkdir` actually exercises the 0700 dirMode.
   beforeEach(async () => {
-    home = join(await mkdtemp(join(tmpdir(), 'bh-instructions-home-')), 'home')
-    previousHome = process.env.BH_HOME
-    process.env.BH_HOME = home
+    home = join(await mkdtemp(join(tmpdir(), 'hydra-instructions-home-')), 'home')
+    previousHome = process.env.HYDRA_HOME
+    process.env.HYDRA_HOME = home
   })
 
   afterEach(() => {
-    if (previousHome === undefined) delete process.env.BH_HOME
-    else process.env.BH_HOME = previousHome
+    if (previousHome === undefined) delete process.env.HYDRA_HOME
+    else process.env.HYDRA_HOME = previousHome
   })
 
   it('reads an empty document before any file exists, then round-trips a write', async () => {
@@ -913,7 +913,7 @@ describe('settings.readInstructions / settings.writeInstructions', () => {
     expect(expectOk(await api.settings.readInstructions(request({})))).toEqual({ content: '', revision: EMPTY_SHA256 })
   })
 
-  it('stores the document at $BH_HOME/AGENTS.md with an owner-only file and parent directory', async () => {
+  it('stores the document at $HYDRA_HOME/AGENTS.md with an owner-only file and parent directory', async () => {
     const ctx = await harness()
     const api = createApiProxy(ctx, DEFAULTS)
 

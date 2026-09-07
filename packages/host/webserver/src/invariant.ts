@@ -36,11 +36,11 @@ const install: InvariantInstaller = (ctx, fail) => {
     // behind, a second register throws the duplicate error — the asymmetry.
     // Each register(probe)() is one register+dispose cycle, so the probe never
     // leaves residue; a leftover from the first cycle makes the second throw.
-    const probe = { kind: 'exact' as const, path: '/__bh_invariant_probe__', handler: () => {} }
+    const probe = { kind: 'exact' as const, path: '/__hydra_invariant_probe__', handler: () => {} }
     try {
       server.register(probe)()
       server.register(probe)()
-      const upgradeProbe = { path: '/__bh_invariant_upgrade_probe__', handler: () => {} }
+      const upgradeProbe = { path: '/__hydra_invariant_upgrade_probe__', handler: () => {} }
       server.registerUpgrade(upgradeProbe)()
       server.registerUpgrade(upgradeProbe)()
     } catch {

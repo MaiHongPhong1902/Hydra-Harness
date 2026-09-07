@@ -36,7 +36,7 @@ describe('CI workflow', () => {
   it('builds the consumer gate graph with the workflow worker settings', () => {
     const consumer = workflowJob(loadWorkflow('.github/workflows/ci.yml'), 'node-24-consumers')
     if (!isRecord(consumer.env)) throw new TypeError('consumer job must define its worker settings')
-    vi.stubEnv('BH_WEB_SNAPSHOT_WORKERS', undefined)
+    vi.stubEnv('HYDRA_WEB_SNAPSHOT_WORKERS', undefined)
     vi.stubEnv('npm_execpath', '/pnpm.cjs')
     try {
       for (const [key, value] of Object.entries(consumer.env)) {
@@ -44,7 +44,7 @@ describe('CI workflow', () => {
         vi.stubEnv(key, value)
       }
       expect(gatesForMode('ci-consumers').find(gate => gate.id === 'web-snapshot')?.displayCommand)
-        .toBe('BH_SNAPSHOT=replay pnpm run test:web:built')
+        .toBe('HYDRA_SNAPSHOT=replay pnpm run test:web:built')
     } finally {
       vi.unstubAllEnvs()
     }
@@ -118,15 +118,15 @@ describe('CI workflow', () => {
     // windows-native: non-blocking native job with failover, runs windows-complete.
     // Its pool is resolved by the Windows-specific switch.
     expect(typeof windowsNative['runs-on']).toBe('string')
-    expect(windowsNative['runs-on']).toContain('BH_CI_FAILOVER_WINDOWS')
-    expect(windowsNative['runs-on']).not.toContain('BH_CI_FAILOVER_LINUX')
+    expect(windowsNative['runs-on']).toContain('HYDRA_CI_FAILOVER_WINDOWS')
+    expect(windowsNative['runs-on']).not.toContain('HYDRA_CI_FAILOVER_LINUX')
     expect(windowsNative['runs-on']).toContain('self-hosted')
-    expect(windowsNative['runs-on']).toContain('bh-win-ci')
+    expect(windowsNative['runs-on']).toContain('hydra-win-ci')
     expect(windowsNative['runs-on']).toContain("|| 'windows-latest'")
     expect(windowsNative.name).toBe('windows node 24 / native complete')
     expect(windowsNative.if).toBeUndefined()
     expect(windowsNative.env).toMatchObject({
-      BH_COVERAGE_TEST_TIMEOUT_MS: '30000',
+      HYDRA_COVERAGE_TEST_TIMEOUT_MS: '30000',
     })
     const nativeSteps = windowsNative.steps as unknown[]
     const nativeCommandSteps = nativeSteps.filter((step): step is Record<string, unknown> & { run: string } => (
@@ -140,7 +140,7 @@ describe('CI workflow', () => {
 
     // serial-windows: master-only standby, self-hosted, non-blocking, lives in ci-master.
     expect(serialWindows.if).toBe("github.event_name == 'push' && github.ref == 'refs/heads/master'")
-    expect(serialWindows['runs-on']).toEqual(['self-hosted', 'bh-win-ci', 'windows'])
+    expect(serialWindows['runs-on']).toEqual(['self-hosted', 'hydra-win-ci', 'windows'])
     expect(serialWindows.name).toBe('serial / windows (self-hosted standby)')
 
     // Aggregate: Wine `windows` required, native `windows-native` excluded.
@@ -149,18 +149,18 @@ describe('CI workflow', () => {
     expect(aggregate.needs).not.toContain('serial-windows')
 
     // Linux failover is a separate switch: the three required Linux workers
-    // and the verdict job resolve their pool through BH_CI_FAILOVER_LINUX,
+    // and the verdict job resolve their pool through HYDRA_CI_FAILOVER_LINUX,
     // never the Windows switch.
     for (const [jobName, job] of [['node-24', node24], ['node-24-coverage', node24Coverage], ['node-24-consumers', node24Consumers]] as const) {
       expect(typeof job['runs-on']).toBe('string')
-      expect(job['runs-on'], `${jobName} runs-on must use the Linux failover switch`).toContain('BH_CI_FAILOVER_LINUX')
-      expect(job['runs-on'], `${jobName} runs-on must not use the Windows failover switch`).not.toContain('BH_CI_FAILOVER_WINDOWS')
+      expect(job['runs-on'], `${jobName} runs-on must use the Linux failover switch`).toContain('HYDRA_CI_FAILOVER_LINUX')
+      expect(job['runs-on'], `${jobName} runs-on must not use the Windows failover switch`).not.toContain('HYDRA_CI_FAILOVER_WINDOWS')
       expect(job['runs-on']).toContain('vm-backup')
       expect(job['runs-on']).toContain("|| 'ubuntu-latest'")
       expect(job.if).toBeUndefined()
     }
-    expect(aggregate['runs-on']).toContain('BH_CI_FAILOVER_LINUX')
-    expect(aggregate['runs-on']).not.toContain('BH_CI_FAILOVER_WINDOWS')
+    expect(aggregate['runs-on']).toContain('HYDRA_CI_FAILOVER_LINUX')
+    expect(aggregate['runs-on']).not.toContain('HYDRA_CI_FAILOVER_WINDOWS')
     expect(aggregate['runs-on']).toContain('vm-backup')
     expect(aggregate.if).toBe('always()')
   })
@@ -195,7 +195,7 @@ describe('CI workflow', () => {
     }
     expect(Object.keys(workflow.on).sort()).toEqual(['push', 'workflow_dispatch'])
     expect(Object.keys(prWorkflow.on).sort()).toEqual(['pull_request', 'push', 'workflow_dispatch'])
-    expect(prWorkflow.on.push).toEqual({ branches: ['main', 'master', 'chore/rebrand-bh'] })
+    expect(prWorkflow.on.push).toEqual({ branches: ['main', 'master', 'chore/rebrand-hydra'] })
     for (const [name, job] of Object.entries(prWorkflow.jobs)) {
       if (!isRecord(job)) throw new TypeError(`${name} must define a job`)
       expect(job.if, `${name} must run on push and dispatch`).toBe(name === 'all-checks-passed' ? 'always()' : undefined)
@@ -335,8 +335,8 @@ describe('E2B e2e workflow', () => {
     expect(e2b).toMatchObject({
       env: {
         E2B_API_KEY: '${{ secrets.E2B_API_KEY_EXTERNAL }}',
-        BH_E2E_MAX_WORKERS: '1',
-        BH_EXAMPLE_MODE: 'lib',
+        HYDRA_E2E_MAX_WORKERS: '1',
+        HYDRA_EXAMPLE_MODE: 'lib',
       },
     })
     expect(e2b?.run).toContain('packages/e2b/e2b/tests/composition.e2e.ts')
@@ -468,7 +468,7 @@ describe('Python release workflows', () => {
     expect(JSON.stringify(macosCheck)).toContain('scripts/check-macos-deployment-target.py')
     expect(JSON.stringify(macosCheck)).toContain('$EXE-spawn-helper')
     expect(manylinuxSmoke).toMatchObject({ if: "runner.os == 'Linux'" })
-    expect(JSON.stringify(manylinuxSmoke)).toContain('-e BH_TELEMETRY_DISABLED')
+    expect(JSON.stringify(manylinuxSmoke)).toContain('-e HYDRA_TELEMETRY_DISABLED')
   })
 
   it('uses the shared macOS deployment-target check in GitLab', () => {
@@ -549,7 +549,7 @@ describe('npm release workflows', () => {
 })
 
 describe('Documentation site publication', () => {
-  it('keeps Pages deployment dispatch-only from a bh-v* tag', () => {
+  it('keeps Pages deployment dispatch-only from a hydra-v* tag', () => {
     const workflow = loadWorkflow('.github/workflows/docs-pages.yml')
     const build = workflowJob(workflow, 'build')
     const deploy = workflowJob(workflow, 'deploy')
@@ -561,7 +561,7 @@ describe('Documentation site publication', () => {
     // publication must never appear as a PR check.
     expect(Object.keys(workflow.on)).toEqual(['workflow_dispatch'])
 
-    // RELEASE_PUBLISH makes release:verify reject every ref that is not a bh-v*
+    // RELEASE_PUBLISH makes release:verify reject every ref that is not a hydra-v*
     // tag naming this tree's version, so the site and the npm sequence share one
     // definition of a released version.
     const steps = build.steps.filter(isRecord)
@@ -571,7 +571,7 @@ describe('Documentation site publication', () => {
     )
     expect(verify).toMatchObject({
       env: { RELEASE_PUBLISH: 'true' },
-      run: 'pnpm run release:verify --family bh',
+      run: 'pnpm run release:verify --family hydra',
     })
     // Complete history: the release scripts read tags.
     expect(checkout).toMatchObject({ with: { 'fetch-depth': 0 } })

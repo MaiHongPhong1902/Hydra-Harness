@@ -159,8 +159,8 @@
         "./packages/identity/*/src/invariant.ts",
         "./packages/test-support/*/src/invariant.ts"
       ],
-      // host/client package names prefix the group dir (bh-client-<dir>), so
-      // the generic bh-*/invariant list above cannot map them; strip the
+      // host/client package names prefix the group dir (hydra-client-<dir>), so
+      // the generic hydra-*/invariant list above cannot map them; strip the
       // group prefix with a dedicated wildcard per group instead.
       "@hydra/harness-host-*/invariant": ["./packages/host/*/src/invariant.ts"],
       "@hydra/harness-client-*/invariant": ["./packages/client/*/src/invariant.ts"],

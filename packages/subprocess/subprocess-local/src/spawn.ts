@@ -4,7 +4,7 @@
  * files, tree-scoped signalling (POSIX groups; Windows taskkill), and the
  * SIGTERM→SIGKILL escalation. This layer reacts to an abort signal; callers
  * own deadlines, teardown ladders, and cause classification.
- * @module bh-subprocess-local/spawn
+ * @module hydra-subprocess-local/spawn
  */
 
 import { type ChildProcess, spawn, spawnSync } from 'node:child_process'
@@ -87,7 +87,7 @@ let defaultSpillDir: string | undefined
  * other local users read command output or pre-create symlinks.
  */
 function privateSpillDir(): string {
-  defaultSpillDir ??= mkdtempSync(join(tmpdir(), 'bh-subprocess-'))
+  defaultSpillDir ??= mkdtempSync(join(tmpdir(), 'hydra-subprocess-'))
   return defaultSpillDir
 }
 
@@ -164,7 +164,7 @@ export class OutputCollector {
       // prediction and symlink planting in shared tmp dirs.
       this.spillFile = join(
         this.spillDir,
-        `bh-subprocess-${process.pid}-${++spillCounter}-${randomBytes(6).toString('hex')}-${this.label}.log`,
+        `hydra-subprocess-${process.pid}-${++spillCounter}-${randomBytes(6).toString('hex')}-${this.label}.log`,
       )
       this.spillFd = openSync(this.spillFile, 'wx', 0o600)
       for (const prior of this.chunks) writeSync(this.spillFd, prior)

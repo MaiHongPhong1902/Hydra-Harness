@@ -24,7 +24,7 @@
         name: '@hydra/harness-session-persistence-jsonl'
         config:
           root: './.sessions'
-          compression: !!js "process.env.BH_SNAPSHOT === undefined ? 'zstd' : 'none'"
+          compression: !!js "process.env.HYDRA_SNAPSHOT === undefined ? 'zstd' : 'none'"
       - insert:
           - id: code-runtime
             name: '@hydra/harness-code-runtime-worker-thread'

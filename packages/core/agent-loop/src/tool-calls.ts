@@ -8,7 +8,7 @@
  * Abort records synthetic error results for skipped calls so replay stays
  * valid. A terminal scheduler failure preserves already-recorded `tool/call`
  * events without fabricating results.
- * @module bh-agent-loop/tool-calls
+ * @module hydra-agent-loop/tool-calls
  */
 
 import type { Context } from '@hydra/cordis'

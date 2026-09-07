@@ -15,7 +15,7 @@ import { join } from 'node:path'
 import { AclSandbox, tempWriteSid, workspaceWriteSid } from '@hydra/harness-sandbox-windows-acl'
 
 const workspaceRoot = process.cwd()
-const tempDir = mkdtempSync(join(tmpdir(), 'bh-'))
+const tempDir = mkdtempSync(join(tmpdir(), 'hydra-'))
 
 // mode selects the token's restricting-SID list (see Modes below) and must
 // match the grant shape. workspace-write requires distinct workspace and

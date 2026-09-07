@@ -1,0 +1,4 @@
+interface:
+  display_name: "Hydra Pre-Push Checks"
+  short_description: "Run the relevant Hydra harness checks before push"
+  default_prompt: "Use $hydra-pre-push-checks before pushing this Hydra harness branch."

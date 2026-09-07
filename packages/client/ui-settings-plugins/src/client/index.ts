@@ -62,7 +62,7 @@ export const inject = ['slots', 'locale', 'connection', 'remote', 'remote.plugin
  * @param ctx - the browser plugin context.
  */
 export function apply(ctx: ClientContext): void {
-  const desktop = globalThis as typeof globalThis & { bhDesktop?: { browser?: unknown } }
+  const desktop = globalThis as typeof globalThis & { hydraDesktop?: { browser?: unknown } }
   const connection = ctx.get('connection') as ConnectionHandle
   const { api } = connection
   const t = ctx.locale.bind(NS)
@@ -268,7 +268,7 @@ export function apply(ctx: ClientContext): void {
     }, AgentLoopCard)
   })
 
-  if (desktop.bhDesktop?.browser === undefined) {
+  if (desktop.hydraDesktop?.browser === undefined) {
     ctx.slots.inject('settings.plugin.item', () => ctx.slots.register({
       name: 'settings.plugin.item',
       key: WEB_SEARCH_NS,

@@ -74,7 +74,7 @@ def main() -> None:
 
     output_dir = args.output_dir.resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix="bh-python-release-") as temporary:
+    with tempfile.TemporaryDirectory(prefix="hydra-python-release-") as temporary:
         staging = Path(temporary) / args.package
         if args.package == "sdk":
             stage_sdk(staging, wheel_version)
@@ -83,7 +83,7 @@ def main() -> None:
         else:
             platform_tag, executable_name = PLATFORMS[args.platform]
             stage_runtime(staging, wheel_version, args.runtime_exe.resolve(), executable_name)
-            environment = {"BH_RUNTIME_PLATFORM_TAG": platform_tag}
+            environment = {"HYDRA_RUNTIME_PLATFORM_TAG": platform_tag}
             expected = output_dir / f"hydra_harness_runtime_bin-{wheel_version}-py3-none-{platform_tag}.whl"
         command = ["uv", "build", "--wheel", "--out-dir", str(output_dir), str(staging)]
         subprocess.run(command, cwd=ROOT, env=None if environment is None else {**os.environ, **environment}, check=True)
@@ -150,7 +150,7 @@ def copy_package(source: Path, destination: Path) -> None:
             "*.pyc",
             "dist",
             "node_modules",
-            "bh-jsonrpc-agent-pkg-*",
+            "hydra-jsonrpc-agent-pkg-*",
         ),
     )
 
@@ -246,7 +246,7 @@ def verify_wheel(
                 f"{wheel} has license files {license_files}, expected {expected_license_files}"
             )
         runtime_files = [
-            name for name in archive.namelist() if "/runtime/bh-jsonrpc-agent-pkg-" in name
+            name for name in archive.namelist() if "/runtime/hydra-jsonrpc-agent-pkg-" in name
         ]
         if package == "runtime":
             assert platform is not None

@@ -109,17 +109,17 @@ describe('McpSettingsController', () => {
     host.publish({ status: 'ready', writable: true, value: {}, base: {}, user: {} })
     const face = controller.inject()
 
-    face.edit('targetDomain', ' workon.test ')
+    face.edit('targetDomain', ' shop.test ')
     face.edit('apiKey', ' secret ')
     face.save()
 
-    await vi.waitFor(() => { expect(host.set).toHaveBeenCalledWith('targetDomain', 'workon.test') })
+    await vi.waitFor(() => { expect(host.set).toHaveBeenCalledWith('targetDomain', 'shop.test') })
     await vi.waitFor(() => { expect(credentials.set).toHaveBeenCalledWith({ ref: MCP_API_KEY_REF, value: 'secret' }) })
     await vi.waitFor(() => {
       expect(face.hooks.mcpSettings.getSnapshot()).toMatchObject({
         dirty: false,
         apiKeyConfigured: true,
-        targetDomain: { text: 'workon.test', overridden: true },
+        targetDomain: { text: 'shop.test', overridden: true },
       })
     })
   })
@@ -184,7 +184,7 @@ describe('McpSettingsTab', () => {
 
   it('stages the secret and target domain without exposing the stored key', () => {
     const actions = renderTab({
-      targetDomain: { ...field('workon.test'), overridden: true },
+      targetDomain: { ...field('shop.test'), overridden: true },
       apiKeyConfigured: true,
     })
     fireEvent.click(screen.getByText(en.mcpTitle))

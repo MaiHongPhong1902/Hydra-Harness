@@ -308,11 +308,11 @@ class HarnessClient:
             raise self._runtime_closed_error("Failed to write to Hydra harness runtime") from exc
 
     def _start_reader_thread(self) -> None:
-        self._reader_thread = threading.Thread(target=self._reader_loop, name="bh-runtime-reader", daemon=True)
+        self._reader_thread = threading.Thread(target=self._reader_loop, name="hydra-runtime-reader", daemon=True)
         self._reader_thread.start()
 
     def _start_stderr_thread(self) -> None:
-        self._stderr_thread = threading.Thread(target=self._stderr_loop, name="bh-runtime-stderr", daemon=True)
+        self._stderr_thread = threading.Thread(target=self._stderr_loop, name="hydra-runtime-stderr", daemon=True)
         self._stderr_thread.start()
 
     def _reader_loop(self) -> None:
@@ -446,12 +446,12 @@ class HarnessClient:
             and self.config.runtime_bin is None
             and self.config.bridge_bin is None
         )
-        if not uses_bundled_runtime or env.get("BH_CORDIS_CONFIG"):
+        if not uses_bundled_runtime or env.get("HYDRA_CORDIS_CONFIG"):
             return
         # _default_launch_args already imported the package or raised its install error.
         from hydra_harness_runtime import bundled_default_config_path
 
-        env["BH_CORDIS_CONFIG"] = str(bundled_default_config_path())
+        env["HYDRA_CORDIS_CONFIG"] = str(bundled_default_config_path())
 
     def _unsubscribe_notifications(self, subscription_id: str) -> None:
         with self._lock:

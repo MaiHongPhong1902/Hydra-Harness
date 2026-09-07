@@ -110,7 +110,7 @@ class FakeSandbox {
   sdkKillStops = true
   alive = true
   zombieOnly = false
-  ambient = 'PATH=/ambient/bin\0KEEP=safe\0UNICODE=你好\0NPM_TOKEN=secret\0BH_STALE=old\0BROKEN\0=bad\0'
+  ambient = 'PATH=/ambient/bin\0KEEP=safe\0UNICODE=你好\0NPM_TOKEN=secret\0HYDRA_STALE=old\0BROKEN\0=bad\0'
   environmentHome = '/home/user'
   environmentWire: string | undefined
   environmentRequest: ((signal: AbortSignal | undefined) => Promise<void>) | undefined
@@ -315,7 +315,7 @@ function spec(overrides: Partial<SubprocessSpawnSpec> = {}): SubprocessSpawnSpec
 function runtime(fake: FakeSandbox, getSandbox: () => Promise<Sandbox> = async () => fake.sandbox): E2BRuntime {
   return {
     cwd: '/workspace',
-    runtimeRoot: '/workspace/.bh-e2b',
+    runtimeRoot: '/workspace/.hydra-e2b',
     getSandbox,
   } as unknown as E2BRuntime
 }
@@ -397,11 +397,11 @@ describe('E2BSubprocessHandle', () => {
         'FOO-BAR': 'hyphen-value',
         '--split-string': 'literal-value',
         DEEPSEEK_API_KEY: 'explicit-secret',
-        BH_MODE: 'test',
+        HYDRA_MODE: 'test',
         // The seam's tombstone: an explicit undefined removes the ambient entry.
         KEEP: undefined,
       },
-    }), '/workspace/.bh-e2b/processes/one')
+    }), '/workspace/.hydra-e2b/processes/one')
     expect(handle.pid).toBe(-1)
     handle.stdin!.write('hello')
     handle.stdin!.end()
@@ -411,41 +411,41 @@ describe('E2BSubprocessHandle', () => {
     expect(fake.handle.sent.map(value => String(value))).toEqual(['hello'])
     expect(fake.handle.closes).toBe(1)
     const controlEnvs = fake.startOptions?.envs
-    expect(controlEnvs?.HOME).toMatch(/^\/\.bh-e2b-control-/)
+    expect(controlEnvs?.HOME).toMatch(/^\/\.hydra-e2b-control-/)
     expect(controlEnvs).toEqual({
       TERM: 'dumb',
       NPM_TOKEN: '',
-      BH_STALE: '',
+      HYDRA_STALE: '',
       HOME: controlEnvs?.HOME,
     })
-    const command = fake.commandsSeen.find(value => value.includes('exec "$bh_e2b_env_bin" -i'))!
-    expect(command).toContain('"$bh_e2b_setsid" --wait -- "$bh_e2b_bash" -c')
+    const command = fake.commandsSeen.find(value => value.includes('exec "$hydra_e2b_env_bin" -i'))!
+    expect(command).toContain('"$hydra_e2b_setsid" --wait -- "$hydra_e2b_bash" -c')
     expect(command).not.toContain('DEEPSEEK_API_KEY')
-    expect(command).not.toContain('BH_MODE')
+    expect(command).not.toContain('HYDRA_MODE')
     expect(command).not.toContain('FOO-BAR')
     expect(command).not.toContain('explicit-secret')
     expect(command).not.toContain('hyphen-value')
-    expect(command).not.toContain('${!bh_e2b_name}')
+    expect(command).not.toContain('${!hydra_e2b_name}')
     const environmentProbe = fake.commandsSeen.find(value => value.includes('env -0 | base64'))
     expect(environmentProbe).toContain('getent passwd "$(id -u)"')
-    expect(environmentProbe).toContain('test -n "$bh_e2b_home" -a -d "$bh_e2b_home"')
+    expect(environmentProbe).toContain('test -n "$hydra_e2b_home" -a -d "$hydra_e2b_home"')
     expect(environmentProbe).not.toContain('"$PWD"')
     expect(command).toContain('mapfile -d')
-    expect(command).toContain('bh_e2b_node="$(command -v node)"')
-    expect(command).toContain('"$bh_e2b_env_bin" -i "$bh_e2b_node" -e')
-    expect(command).toContain('"$bh_e2b_env_bin" -i -- "${bh_e2b_env[@]}" "$@"')
-    expect(command).toContain('exec "$bh_e2b_env_bin" -i -- "${bh_e2b_env[@]}"')
+    expect(command).toContain('hydra_e2b_node="$(command -v node)"')
+    expect(command).toContain('"$hydra_e2b_env_bin" -i "$hydra_e2b_node" -e')
+    expect(command).toContain('"$hydra_e2b_env_bin" -i -- "${hydra_e2b_env[@]}" "$@"')
+    expect(command).toContain('exec "$hydra_e2b_env_bin" -i -- "${hydra_e2b_env[@]}"')
     expect(command).toContain('>&2 2>/dev/null')
     expect(command).not.toContain('2>/dev/null >&2')
     expect(command).toContain('base64')
     expect(fake.writtenFiles[0]).toEqual([
-      '/workspace/.bh-e2b/processes/one/pid',
-      '/workspace/.bh-e2b/processes/one/exit-code',
-      '/workspace/.bh-e2b/processes/one/environment',
-      '/workspace/.bh-e2b/processes/one/stderr.log',
+      '/workspace/.hydra-e2b/processes/one/pid',
+      '/workspace/.hydra-e2b/processes/one/exit-code',
+      '/workspace/.hydra-e2b/processes/one/environment',
+      '/workspace/.hydra-e2b/processes/one/stderr.log',
     ])
-    expect(fake.writtenFileData.get('/workspace/.bh-e2b/processes/one/environment')).toBe(
-      'PATH=/bin\0UNICODE=你好\0HOME=/home/user\0FOO-BAR=hyphen-value\0--split-string=literal-value\0DEEPSEEK_API_KEY=explicit-secret\0BH_MODE=test\0',
+    expect(fake.writtenFileData.get('/workspace/.hydra-e2b/processes/one/environment')).toBe(
+      'PATH=/bin\0UNICODE=你好\0HOME=/home/user\0FOO-BAR=hyphen-value\0--split-string=literal-value\0DEEPSEEK_API_KEY=explicit-secret\0HYDRA_MODE=test\0',
     )
 
     let piped = ''
@@ -456,7 +456,7 @@ describe('E2BSubprocessHandle', () => {
     await expect(handle.done).resolves.toEqual({ exitCode: 0, signal: null })
     expect(piped).toBe('pipe-data')
     expect(handle.collected.stderr!.readFrom(0)).toMatchObject({ text: 'err', lossy: false })
-    expect(fake.removed).toContain('/workspace/.bh-e2b/processes/one/stderr.log')
+    expect(fake.removed).toContain('/workspace/.hydra-e2b/processes/one/stderr.log')
     await expect(handle.waitForExit()).resolves.toBe(true)
   })
 
@@ -766,10 +766,10 @@ describe('E2BSubprocessHandle', () => {
     await handle.done
     expect(handle.collected.stdout!.readFrom(0)).toEqual({ text: 'cd', nextOffset: 4, lossy: true })
     expect(fake.removed).toContain('/runtime/oversize/stdout.log')
-    const command = fake.commandsSeen.find(value => value.includes('bh_e2b_tee='))!
-    expect(command).toContain('"$bh_e2b_head" -c 3')
+    const command = fake.commandsSeen.find(value => value.includes('hydra_e2b_tee='))!
+    expect(command).toContain('"$hydra_e2b_head" -c 3')
     expect(command).toContain('/runtime/oversize/stdout.log')
-    expect(command).toContain('"$bh_e2b_tee" --output-error=warn-nopipe')
+    expect(command).toContain('"$hydra_e2b_tee" --output-error=warn-nopipe')
     expect(command).not.toContain('tee -a')
   })
 

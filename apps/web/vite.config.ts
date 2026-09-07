@@ -5,9 +5,9 @@ import react from '@vitejs/plugin-react'
 import { clientBuildEnvironmentDefines } from '../../scripts/client-build-environment.ts'
 
 const src = (rel: string): string => fileURLToPath(new URL(rel, import.meta.url))
-const STANDALONE_ERROR = 'apps/web is not a standalone application: bare Vite cannot inject window.__BH_BOOT__. '
-  + 'From a repository checkout, run `pnpm bh web`; an installed package uses `bh web`. '
-  + 'For client-plugin HMR, run `pnpm bh web` together with `pnpm run dev:web`.'
+const STANDALONE_ERROR = 'apps/web is not a standalone application: bare Vite cannot inject window.__HYDRA_BOOT__. '
+  + 'From a repository checkout, run `pnpm hydra web`; an installed package uses `hydra web`. '
+  + 'For client-plugin HMR, run `pnpm hydra web` together with `pnpm run dev:web`.'
 const DEFAULT_CLIENT_TITLE = 'Hydra harness'
 
 /** Escape build-time text before placing it in the HTML title element. */
@@ -17,9 +17,9 @@ function escapeHtmlText(value: string): string {
 
 /** Project the public build title into the initial HTML document. */
 function clientDocumentTitle(): Plugin {
-  const title = escapeHtmlText(process.env.BH_CLIENT_TITLE ?? DEFAULT_CLIENT_TITLE)
+  const title = escapeHtmlText(process.env.HYDRA_CLIENT_TITLE ?? DEFAULT_CLIENT_TITLE)
   return {
-    name: 'bh-client-document-title',
+    name: 'hydra-client-document-title',
     transformIndexHtml(html) {
       return html.replace('<title>Hydra harness</title>', `<title>${title}</title>`)
     },
@@ -29,7 +29,7 @@ function clientDocumentTitle(): Plugin {
 /** Fail before a Vite dev or preview server can expose the boot-manifest-free shell. */
 function rejectStandaloneServe(): Plugin {
   return {
-    name: 'bh-reject-standalone-web-serve',
+    name: 'hydra-reject-standalone-web-serve',
     config(_config, env) {
       if (env.command === 'serve') throw new Error(STANDALONE_ERROR)
     },

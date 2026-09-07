@@ -121,7 +121,7 @@ export class HarnessSdkJsonRpcServer {
       if (this.provider !== 'deepseek-official') throw new Error(`no adapter registered for provider "${this.provider}"`)
       this.llmFiber = await this.ctx.plugin(LlmDeepSeek, {})
     }
-    return { serverInfo: { name: 'bosch-harness-sdk-runtime', version: '0.0.1' } }
+    return { serverInfo: { name: 'hydra-harness-sdk-runtime', version: '0.0.1' } }
   }
 
   /**

@@ -35,7 +35,7 @@ import * as toolSkill from '@hydra/harness-tool-skill'
 import * as toolJobs from '@hydra/harness-tool-jobs'
 import AgentLoop, { type Config as AgentLoopConfig } from '@hydra/harness-agent-loop'
 import * as llmRetry from '@hydra/harness-llm-retry'
-import { resolveBhHome } from '@hydra/harness-home-paths'
+import { resolveHydraHome } from '@hydra/harness-home-paths'
 
 export const name = 'agent-spine-demo'
 
@@ -73,7 +73,7 @@ export interface GoalConfig {
  * `persona`, and `toolOrder` to the system-prompt plugin (the fixed opener,
  * dynamic-context policy, deployment persona, and explicit model-facing tool
  * order), the `tools` object to the tool registry (its presentation `mode`),
- * `bhHome` to bash environment and local skill discovery, `sessionTitle` to
+ * `hydraHome` to bash environment and local skill discovery, `sessionTitle` to
  * the fallback title service, `skills` to the
  * skill registry/local provider/tool consumer, `workspaceContext` to the
  * agent-instructions loader, `jobs` to the process-local job provider, and
@@ -105,7 +105,7 @@ export interface Config {
   /** The tool registry's config — its presentation `mode` (see @hydra/harness-tools' `Config`). */
   tools?: ToolsConfig
   /** Hydra harness home directory shared by shell context and local skill discovery. */
-  bhHome?: string
+  hydraHome?: string
   /** Deterministic fallback and accepted-title limits; omission uses the bundle's example policy. */
   sessionTitle?: SessionTitleConfig
   /** Workspace-context loader controls with an explicit byte budget; set `false` for hermetic prompts. */
@@ -162,7 +162,7 @@ export const Config = z.intersect([
   SystemPrompt.Config,
   z.object({
     tools: ToolRuntime.Config,
-    bhHome: z.string(),
+    hydraHome: z.string(),
     sessionTitle: SessionTitleConfigSchema,
     skills: SkillConfigSchema,
     workspaceContext: z.union([z.const(false), workspaceContext.Config]).required(),
@@ -171,7 +171,7 @@ export const Config = z.intersect([
     toolJobs: z.union([z.const(false), ToolJobsConfigSchema]),
     invariants: InvariantRegistry.Config,
     goals: z.union([z.const(false), GoalConfigSchema]),
-  }) as unknown as z<Pick<Config, 'tools' | 'bhHome' | 'sessionTitle' | 'skills' | 'workspaceContext' | 'toolBash' | 'jobs' | 'toolJobs' | 'invariants' | 'goals'>>,
+  }) as unknown as z<Pick<Config, 'tools' | 'hydraHome' | 'sessionTitle' | 'skills' | 'workspaceContext' | 'toolBash' | 'jobs' | 'toolJobs' | 'invariants' | 'goals'>>,
 ]) as unknown as z<Config>
 
 /**
@@ -187,7 +187,7 @@ export function pickSpineConfig(config: Omit<Config, 'agents'>): Omit<Config, 'a
     ...config.persona !== undefined ? { persona: config.persona } : {},
     ...config.toolOrder !== undefined ? { toolOrder: config.toolOrder } : {},
     ...config.tools !== undefined ? { tools: config.tools } : {},
-    ...config.bhHome !== undefined ? { bhHome: config.bhHome } : {},
+    ...config.hydraHome !== undefined ? { hydraHome: config.hydraHome } : {},
     ...config.sessionTitle !== undefined ? { sessionTitle: config.sessionTitle } : {},
     workspaceContext: config.workspaceContext,
     ...config.skills !== undefined ? { skills: config.skills } : {},
@@ -210,12 +210,12 @@ export function pickSpineConfig(config: Omit<Config, 'agents'>): Omit<Config, 'a
  * seams, then the loop that drives them.
  */
 export function apply(ctx: Context, config: Config): void {
-  const nestedBhHome = config.skills?.filesystem?.bhHome
-  if (config.bhHome !== undefined && nestedBhHome !== undefined
-    && resolveBhHome(config.bhHome) !== resolveBhHome(nestedBhHome)) {
-    throw new Error('agent-spine-demo: bhHome and skills.filesystem.bhHome must resolve to the same directory')
+  const nestedHydraHome = config.skills?.filesystem?.hydraHome
+  if (config.hydraHome !== undefined && nestedHydraHome !== undefined
+    && resolveHydraHome(config.hydraHome) !== resolveHydraHome(nestedHydraHome)) {
+    throw new Error('agent-spine-demo: hydraHome and skills.filesystem.hydraHome must resolve to the same directory')
   }
-  const bhHome = resolveBhHome(config.bhHome ?? nestedBhHome)
+  const hydraHome = resolveHydraHome(config.hydraHome ?? nestedHydraHome)
 
   ctx.plugin(Timer)
   ctx.plugin(LlmRuntime)
@@ -232,7 +232,7 @@ export function apply(ctx: Context, config: Config): void {
   const skillsEnabled = config.skills?.enabled ?? true
   if (skillsEnabled) {
     ctx.plugin(SkillRegistry, config.skills?.registry ?? {})
-    ctx.plugin(SkillFileSystem, Object.assign({}, config.skills?.filesystem, { bhHome }))
+    ctx.plugin(SkillFileSystem, Object.assign({}, config.skills?.filesystem, { hydraHome }))
   }
   ctx.plugin(AgentRegistry)
   ctx.plugin(llmRetry)
@@ -248,7 +248,7 @@ export function apply(ctx: Context, config: Config): void {
   ctx.plugin(scopeInvariant)
   ctx.plugin(agentLoopInvariant)
   if (config.toolBash !== false) {
-    ctx.plugin(bashEnv, { bhHome })
+    ctx.plugin(bashEnv, { hydraHome })
     ctx.plugin(toolBash, config.toolBash ?? {})
   }
   if (config.workspaceContext !== false) {

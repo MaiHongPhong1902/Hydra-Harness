@@ -1,8 +1,8 @@
 # Opt-in Web composition for inspecting the self-referential Cordis tools.
 # Temporary Plugin code can reach every injected live capability; treat this
 # deployment like shell access, not as a security boundary.
-# This file is a PATCH OVERLAY over the web profile (bh-base + bh-web-app
-# bundle layers), not a tree: `bh web --patch` applies it as one more sibling
+# This file is a PATCH OVERLAY over the web profile (hydra-base + hydra-web-app
+# bundle layers), not a tree: `hydra web --patch` applies it as one more sibling
 # patch list at the same include level, so these patches reach every bundle
 # row. A patch replaces the targeted row's whole `config`.
 

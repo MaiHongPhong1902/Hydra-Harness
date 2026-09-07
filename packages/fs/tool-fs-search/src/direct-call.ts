@@ -1,4 +1,4 @@
-/** Shared top-level-call post-policy selection for search result spill. @module bh-tool-fs-search/direct-call */
+/** Shared top-level-call post-policy selection for search result spill. @module hydra-tool-fs-search/direct-call */
 
 import type { Context } from '@hydra/cordis'
 import type { JsonValue, PostToolDecision, ToolDefinition, ToolExecution, ToolExecutionResult } from '@hydra/harness-tools'

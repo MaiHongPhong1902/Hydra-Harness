@@ -22,7 +22,7 @@ import type { SubprocessHandle, SubprocessOutputReader, SubprocessSpawnSpec } fr
 import { MAX_TIMER_DELAY_MS } from '@hydra/harness-timeout'
 import type { ShellProcess } from '@hydra/harness-shell'
 
-const spillDir = mkdtempSync(join(tmpdir(), 'bh-pwsh-exec-spec-'))
+const spillDir = mkdtempSync(join(tmpdir(), 'hydra-pwsh-exec-spec-'))
 
 // The probe follows the executor's own resolution (Program Files installs on
 // Windows are found even when bare `pwsh` is not on PATH).
@@ -113,7 +113,7 @@ describe('resolvePwshPath and candidatePwshPaths (pure, every platform)', () => 
   })
 
   it('returns the first EXISTING win32 candidate, else pwsh', () => {
-    const dir = mkdtempSync(join(tmpdir(), 'bh-pwsh-resolve-'))
+    const dir = mkdtempSync(join(tmpdir(), 'hydra-pwsh-resolve-'))
     const store = join(dir, 'store')
     mkdirSync(store, { recursive: true })
     writeFileSync(join(store, 'pwsh.exe'), '')
@@ -130,7 +130,7 @@ describe('resolvePwshPath and candidatePwshPaths (pure, every platform)', () => 
   it('accepts a link-shaped PATH candidate whose target cannot be stat-ed', () => {
     // Store app execution aliases stat as EACCES but lstat as a link; a
     // dangling symlink reproduces that split on every platform.
-    const dir = mkdtempSync(join(tmpdir(), 'bh-pwsh-resolve-link-'))
+    const dir = mkdtempSync(join(tmpdir(), 'hydra-pwsh-resolve-link-'))
     const store = join(dir, 'store')
     mkdirSync(store, { recursive: true })
     const link = join(store, 'pwsh.exe')
@@ -140,7 +140,7 @@ describe('resolvePwshPath and candidatePwshPaths (pure, every platform)', () => 
   })
 
   it('skips a directory candidate and falls through to the PATH-resolution default', () => {
-    const dir = mkdtempSync(join(tmpdir(), 'bh-pwsh-resolve-dir-'))
+    const dir = mkdtempSync(join(tmpdir(), 'hydra-pwsh-resolve-dir-'))
     const store = join(dir, 'store')
     mkdirSync(join(store, 'pwsh.exe'), { recursive: true })
     expect(resolvePwshPath(undefined, {
@@ -199,8 +199,8 @@ describe.skipIf(!hasPwsh)('PwshLocalExecutor.run', () => {
   })
 
   it('uses config cwd, overridable per call', async () => {
-    const first = mkdtempSync(join(tmpdir(), 'bh-pwsh-cwd-a-'))
-    const second = mkdtempSync(join(tmpdir(), 'bh-pwsh-cwd-b-'))
+    const first = mkdtempSync(join(tmpdir(), 'hydra-pwsh-cwd-a-'))
+    const second = mkdtempSync(join(tmpdir(), 'hydra-pwsh-cwd-b-'))
     const { bash } = await setup({ cwd: first })
     const fromConfig = await bash.run(bash.resolve({ command: '(Get-Location).Path' }))
     expect(samePath(fromConfig.stdout.text.trim(), first)).toBe(true)
@@ -289,31 +289,31 @@ describe.skipIf(!hasPwsh)('PwshLocalExecutor.run', () => {
 
   it('rejects on spawn failure (bad workdir)', async () => {
     const { bash } = await setup()
-    await expect(bash.run(bash.resolve({ command: 'Write-Output ok', workdir: '/nonexistent-bh' }))).rejects.toThrow(/ENOENT/)
+    await expect(bash.run(bash.resolve({ command: 'Write-Output ok', workdir: '/nonexistent-hydra' }))).rejects.toThrow(/ENOENT/)
   })
 
-  it('resolve() carries stdin/env/bhEnv onto the spec, and run() threads them to the command', async () => {
+  it('resolve() carries stdin/env/hydraEnv onto the spec, and run() threads them to the command', async () => {
     const { bash } = await setup()
     const spec = bash.resolve({
-      command: '$s = ([Console]::In.ReadToEnd()).TrimEnd(); Write-Output $s; Write-Output "[$env:SEAM_VAR][$env:BH_SEAM_VAR]"',
+      command: '$s = ([Console]::In.ReadToEnd()).TrimEnd(); Write-Output $s; Write-Output "[$env:SEAM_VAR][$env:HYDRA_SEAM_VAR]"',
       stdin: 'piped\n',
       env: { SEAM_VAR: 'env-ok' },
-      bhEnv: { BH_SEAM_VAR: 'bh-ok' },
+      hydraEnv: { HYDRA_SEAM_VAR: 'hydra-ok' },
     })
     // resolve() keeps the optional input/environment fields verbatim.
     expect(spec.stdin).toBe('piped\n')
     expect(spec.env).toEqual({ SEAM_VAR: 'env-ok' })
-    expect(spec.bhEnv).toEqual({ BH_SEAM_VAR: 'bh-ok' })
+    expect(spec.hydraEnv).toEqual({ HYDRA_SEAM_VAR: 'hydra-ok' })
     const result = await bash.run(spec)
-    expect(lf(result.stdout.text)).toBe('piped\n[env-ok][bh-ok]\n')
+    expect(lf(result.stdout.text)).toBe('piped\n[env-ok][hydra-ok]\n')
   })
 
-  it('resolve() omits stdin/env/bhEnv when the request supplies none', async () => {
+  it('resolve() omits stdin/env/hydraEnv when the request supplies none', async () => {
     const { bash } = await setup()
     const spec = bash.resolve({ command: 'Write-Output ok' })
     expect('stdin' in spec).toBe(false)
     expect('env' in spec).toBe(false)
-    expect('bhEnv' in spec).toBe(false)
+    expect('hydraEnv' in spec).toBe(false)
   })
 })
 
@@ -334,15 +334,15 @@ describe.skipIf(!hasPwsh)('PwshLocalExecutor.start (background process handles)'
   it('threads stdin and extra env into a background process', async () => {
     const { bash } = await setup()
     const proc = bash.start(bash.resolve({
-      command: '$s = ([Console]::In.ReadToEnd()).TrimEnd(); Write-Output $s; Write-Output "[$env:BG_VAR][$env:BH_BG_VAR]"',
+      command: '$s = ([Console]::In.ReadToEnd()).TrimEnd(); Write-Output $s; Write-Output "[$env:BG_VAR][$env:HYDRA_BG_VAR]"',
       stdin: 'bg-stdin\n',
       env: { BG_VAR: 'bg-env' },
-      bhEnv: { BH_BG_VAR: 'bg-bh-env' },
+      hydraEnv: { HYDRA_BG_VAR: 'bg-hydra-env' },
     }))
-    const partialOutput = await readUntil(proc, '[bg-env][bg-bh-env]')
+    const partialOutput = await readUntil(proc, '[bg-env][bg-hydra-env]')
     await proc.done
     const output = partialOutput + lf(proc.readOutput().delta)
-    expect(output).toBe('bg-stdin\n[bg-env][bg-bh-env]\n')
+    expect(output).toBe('bg-stdin\n[bg-env][bg-hydra-env]\n')
     expect(proc.exitCode).toBe(0)
   })
 
@@ -438,7 +438,7 @@ describe.skipIf(!hasPwsh)('PwshLocalExecutor.start (background process handles)'
 
   it('a background spawn failure settles as killed with the error readable on stderr', async () => {
     const { bash } = await setup()
-    const proc = bash.start(bash.resolve({ command: 'Write-Output ok', workdir: '/nonexistent-bh' }))
+    const proc = bash.start(bash.resolve({ command: 'Write-Output ok', workdir: '/nonexistent-hydra' }))
     // done resolves (never rejects) even though the process never ran.
     await expect(proc.done).resolves.toBeUndefined()
     expect(proc.status).toBe('killed')

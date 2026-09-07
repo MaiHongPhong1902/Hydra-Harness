@@ -1,7 +1,7 @@
 /**
  * Default Agent driver over queued turns and step-boundary input. Every request
  * is derived from the session log.
- * @module bh-agent-loop/agent
+ * @module hydra-agent-loop/agent
  */
 
 import type {

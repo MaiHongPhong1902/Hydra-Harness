@@ -79,8 +79,8 @@
   border-radius: 12px;
   background: var(--dsw-specific-menu);
   box-shadow: var(--dsw-shadow-lv3);
-  --bh-scrollbar-thumb: var(--dsw-alias-scrollbar-bg-l2);
-  --bh-scrollbar-thumb-hover: var(--dsw-alias-scrollbar-hover-l2);
+  --hydra-scrollbar-thumb: var(--dsw-alias-scrollbar-bg-l2);
+  --hydra-scrollbar-thumb-hover: var(--dsw-alias-scrollbar-hover-l2);
 }
 
 .noteInput {

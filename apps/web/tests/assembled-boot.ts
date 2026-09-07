@@ -25,7 +25,7 @@ interface AssembledPlugin extends WebBootEntry {
 interface ClientPackageManifest {
   name?: string
   exports?: Record<string, string | { default?: string }>
-  bh?: {
+  hydra?: {
     client?: {
       platform?: string
       inject?: string[]
@@ -76,12 +76,12 @@ function resolveClientExport(packagePath: string, pkg: ClientPackageManifest): s
   const declared = pkg.exports?.['./client']
   const relative = typeof declared === 'string' ? declared : declared?.default
   if (relative === undefined) {
-    throw new Error(`assembled boot: ${pkg.name ?? packagePath} declares bh.client without a ./client export`)
+    throw new Error(`assembled boot: ${pkg.name ?? packagePath} declares hydra.client without a ./client export`)
   }
   return resolve(dirname(packagePath), relative)
 }
 
-/** Derive the assembled browser graph from the same bundle patches and package declarations as `bh web`. */
+/** Derive the assembled browser graph from the same bundle patches and package declarations as `hydra web`. */
 function loadAssembledPlugins(): readonly AssembledPlugin[] {
   const entries = appBoot.composeEntries(BUNDLE_LAYERS.map(layer =>
     appBoot.loadOverlayPatches('assembled boot', layer.patch)))
@@ -91,7 +91,7 @@ function loadAssembledPlugins(): readonly AssembledPlugin[] {
     const packagePath = resolvePackageManifest(entry.name)
     if (packagePath === undefined) continue
     const pkg = JSON.parse(readFileSync(packagePath, 'utf8')) as ClientPackageManifest
-    const declaration = pkg.bh?.client
+    const declaration = pkg.hydra?.client
     if (declaration?.platform !== 'web') continue
     if (pkg.name !== entry.name) {
       throw new Error(`assembled boot: ${entry.name} resolved package ${pkg.name ?? '<unnamed>'}`)
@@ -122,7 +122,7 @@ const bundles = new Map(PLUGINS.map(plugin => [
 ]))
 
 interface FixtureWindow extends Window {
-  __BH_BOOT__?: { rev: string; entries: WebBootEntry[] }
+  __HYDRA_BOOT__?: { rev: string; entries: WebBootEntry[] }
   __ModuleLoader__?: ClientModuleLoaderTarget
 }
 
@@ -168,7 +168,7 @@ export function installAssembledBootEnv(): void {
     await act(async () => { await unmount?.() })
     unmount = undefined
     cleanup()
-    delete win.__BH_BOOT__
+    delete win.__HYDRA_BOOT__
     delete win.__ModuleLoader__
     document.body.innerHTML = ''
     document.head.querySelectorAll('style[data-plugin]').forEach((style) => { style.remove() })
@@ -193,8 +193,8 @@ export function mountAssembledApp(search = '?fixture'): void {
   const root = document.createElement('div')
   root.id = 'root'
   document.body.appendChild(root)
-  win.__BH_BOOT__ = { rev: 'fx', entries: PLUGINS.map(({ bundlePath: _bundlePath, ...plugin }) => plugin) }
-  const [facadeRow] = bootInjections(win.__BH_BOOT__)
+  win.__HYDRA_BOOT__ = { rev: 'fx', entries: PLUGINS.map(({ bundlePath: _bundlePath, ...plugin }) => plugin) }
+  const [facadeRow] = bootInjections(win.__HYDRA_BOOT__)
   if (facadeRow?.kind !== 'script') throw new Error('missing injected ModuleLoader facade row')
   ;(0, eval)(facadeRow.text)
   // Mirror the blocking Host-injected scripts before the Vite entry calls create().
@@ -234,7 +234,7 @@ export function hasClass(el: Element, name: string): boolean {
 
 /**
  * Whether this run rewrites its golden instead of comparing against it, set by
- * the snapshot gate's `BH_SNAPSHOT` mode (`record` re-runs the scenarios from
+ * the snapshot gate's `HYDRA_SNAPSHOT` mode (`record` re-runs the scenarios from
  * scratch, `refresh` re-derives the expected text from the existing ones).
  */
-export const REFRESHING_GOLDEN = process.env.BH_SNAPSHOT === 'record' || process.env.BH_SNAPSHOT === 'refresh'
+export const REFRESHING_GOLDEN = process.env.HYDRA_SNAPSHOT === 'record' || process.env.HYDRA_SNAPSHOT === 'refresh'

@@ -6,7 +6,7 @@ The **model-facing filesystem tools** — `read`, `read_image`, `write`, `edit` 
 // Default deployment: a ctx.fs provider, the policy plugin, then the tools.
 await ctx.plugin(LocalFileSystem, { cwd: process.cwd() }) // @hydra/harness-fs-local
 await ctx.plugin(FsPolicy)                             // @hydra/harness-fs-observation-policy (policy gate)
-await ctx.plugin(LocalAttachmentStore, { bhHome })       // optional — enables durable read_image results
+await ctx.plugin(LocalAttachmentStore, { hydraHome })       // optional — enables durable read_image results
 await ctx.plugin(ToolFs)                                  // this package — read/write/edit, plus read_image with attachments
 ```
 

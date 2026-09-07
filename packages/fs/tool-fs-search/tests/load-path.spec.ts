@@ -22,7 +22,7 @@ import ToolRuntime from '@hydra/harness-tools'
 import LocalSubprocessRuntime from '@hydra/harness-subprocess-local'
 import * as toolFsSearch from '@hydra/harness-tool-fs-search'
 
-describe('bh-tool-fs-search real-load-path guard', () => {
+describe('hydra-tool-fs-search real-load-path guard', () => {
   it('has no default export and keeps name/inject/Config through unwrapExports', () => {
     expect('default' in toolFsSearch).toBe(false)
 

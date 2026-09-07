@@ -15,7 +15,7 @@ import {
 describe('seam-owned portable identifier exclusions', () => {
   it('RESERVED_BINDING_GLOBALS covers each backend-owned slot', () => {
     expect(RESERVED_BINDING_GLOBALS.has('console')).toBe(true)
-    expect(RESERVED_BINDING_GLOBALS.has('__bh_main__')).toBe(true)
+    expect(RESERVED_BINDING_GLOBALS.has('__hydra_main__')).toBe(true)
     expect(RESERVED_BINDING_GLOBALS.has('__builtins__')).toBe(true)
     expect(RESERVED_BINDING_GLOBALS.has('__name__')).toBe(true)
     expect(RESERVED_BINDING_GLOBALS.has('__debug__')).toBe(true)

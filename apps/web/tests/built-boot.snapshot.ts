@@ -43,13 +43,13 @@ it('boots the built plugin graph and renders a fixture session end to end', asyn
   // The sidebar renders from the boot graph: every inject layer activated.
   const tree = await screen.findByRole('tree', { name: 'Sessions' }, { timeout: 10_000 })
   const brand = screen.getByText('Hydra harness').closest('svg')!
-  expect(brand.querySelector('image')?.getAttribute('href')).toMatch(/^data:image\/png;base64,/)
+  expect(brand.querySelector('image')?.getAttribute('href')).toMatch(/\.png(?:\?.*)?$/)
   const mark = brand.querySelector('svg')!
   fireEvent.mouseEnter(mark)
-  expect(mark.querySelectorAll('image')[1]?.getAttribute('href')).toMatch(/^data:image\/webp;base64,/)
+  expect(mark.querySelectorAll('image')[1]?.getAttribute('href')).toMatch(/\.webp(?:\?.*)?$/)
   fireEvent.mouseLeave(mark)
   expect(mark.querySelectorAll('image')).toHaveLength(1)
-  expect(screen.queryByText('BH Local Build')).toBeNull()
+  expect(screen.queryByText('Hydra Local Build')).toBeNull()
   // The compact layout dropped group session counts; the fixture workspace
   // group row renders immediately with its sessions beneath it.
   const fixtureGroup = (await within(tree).findAllByText('fixture'))

@@ -14,7 +14,7 @@ Two architectural guarantees currently live only in prose: (1) nothing depends o
 - No cross-package deep imports (`@hydra/harness-*/src/...` paths) — public entry points only.
 - No import cycles anywhere in packages/.
 - `vendor/*` must not import from `packages/*`.
-- Layering: @hydra/harness-llm imports nothing from other bh packages; @hydra/harness-session only @hydra/harness-llm; etc. (the dependency table in packages/README.md, enforced).
+- Layering: @hydra/harness-llm imports nothing from other hydra packages; @hydra/harness-session only @hydra/harness-llm; etc. (the dependency table in packages/README.md, enforced).
 
 **Adapter conformance kit** in @hydra/harness-llm (`@hydra/harness-llm/conformance`): a reusable vitest suite parameterized by an adapter factory, asserting the chunk-protocol contract — index monotonicity per block, no deltas after `block-end` for an index, exactly one `finish`, usage at most once, every `tool-call-delta` carries the call id, abort honored promptly. Run it against the mocks now; the DeepSeek V4 adapter inherits it on day one. Optionally a dev-mode `strictAdapter()` wrapper enforcing the same at runtime behind a debug flag (pairs with [the dev-mode invariants](../../implemented/architecture/2026-06-11-dev-invariants-over-deep-readonly.md)).
 
@@ -29,6 +29,6 @@ dependency-cruiser config + CI step first (an hour of work, permanent guarantee)
 
 ## Risks
 
-Dep-cruiser rule maintenance as packages are added — keep rules pattern-based (`bh-*`) rather than enumerated.
+Dep-cruiser rule maintenance as packages are added — keep rules pattern-based (`hydra-*`) rather than enumerated.
 
 <!-- agent-note-format: alternatives-not-recorded (pre-format Agent Note) -->

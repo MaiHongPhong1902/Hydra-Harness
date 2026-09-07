@@ -64,7 +64,7 @@ describe('E2BRuntime', () => {
     const first = e2bControlEnvs({ HOME: '/hostile', NPM_TOKEN: '' })
     const second = e2bControlEnvs()
 
-    expect(first.HOME).toMatch(/^\/\.bh-e2b-control-/)
+    expect(first.HOME).toMatch(/^\/\.hydra-e2b-control-/)
     expect(first).toEqual({ HOME: first.HOME, NPM_TOKEN: '' })
     expect(first.HOME).not.toBe(second.HOME)
   })
@@ -78,7 +78,7 @@ describe('E2BRuntime', () => {
     const service = ctx.e2b
     await expect(service.getSandbox()).resolves.toBe(fixture.sandbox)
     expect(service.cwd).toBe('/home/user/workspace')
-    expect(service.runtimeRoot).toBe('/home/user/workspace/.bh-e2b')
+    expect(service.runtimeRoot).toBe('/home/user/workspace/.hydra-e2b')
     expect(sdk.create).toHaveBeenCalledWith({
       apiKey: 'test-key',
       timeoutMs: 300_000,
@@ -86,12 +86,12 @@ describe('E2BRuntime', () => {
       lifecycle: { onTimeout: 'kill' },
     })
     expect(fixture.makeDir).toHaveBeenNthCalledWith(1, '/home/user/workspace')
-    expect(fixture.makeDir).toHaveBeenNthCalledWith(2, '/home/user/workspace/.bh-e2b')
-    expect(fixture.getInfo).toHaveBeenCalledWith('/home/user/workspace/.bh-e2b')
+    expect(fixture.makeDir).toHaveBeenNthCalledWith(2, '/home/user/workspace/.hydra-e2b')
+    expect(fixture.getInfo).toHaveBeenCalledWith('/home/user/workspace/.hydra-e2b')
     const runOptions = fixture.run.mock.calls[0]?.[1]
-    expect(runOptions?.envs?.HOME).toMatch(/^\/\.bh-e2b-control-/)
+    expect(runOptions?.envs?.HOME).toMatch(/^\/\.hydra-e2b-control-/)
     expect(fixture.run).toHaveBeenCalledWith(
-      "chmod 700 -- '/home/user/workspace/.bh-e2b'",
+      "chmod 700 -- '/home/user/workspace/.hydra-e2b'",
       { envs: { HOME: runOptions?.envs?.HOME } },
     )
 

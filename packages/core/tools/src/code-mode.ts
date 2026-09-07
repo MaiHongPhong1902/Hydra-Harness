@@ -126,7 +126,7 @@ function resolveFlavor(peekRuntime: () => CodeRuntime | undefined): RunCodeFlavo
   const flavor = RUN_CODE_FLAVORS[runtime.language]
   if (!Object.hasOwn(RUN_CODE_FLAVORS, runtime.language) || flavor === undefined) {
     const known = Object.keys(RUN_CODE_FLAVORS).map(name => JSON.stringify(name)).join(', ')
-    throw new Error(`bh-tools: no run_code schema flavor registered for runtime language ${JSON.stringify(runtime.language)} (known: ${known})`)
+    throw new Error(`hydra-tools: no run_code schema flavor registered for runtime language ${JSON.stringify(runtime.language)} (known: ${known})`)
   }
   return flavor
 }

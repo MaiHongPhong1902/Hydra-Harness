@@ -75,9 +75,9 @@ let verdict: {
 
 describe.skipIf(!packable)('sandbox-local: packed-tarball distribution (publish-path rehearsal)', () => {
   beforeAll(async () => {
-    const packDest = mkdtempSync(join(tmpdir(), 'bh-pack-'))
-    consumerDir = mkdtempSync(join(tmpdir(), 'bh-packed-consumer-'))
-    workDir = mkdtempSync(join(tmpdir(), 'bh-packed-work-'))
+    const packDest = mkdtempSync(join(tmpdir(), 'hydra-pack-'))
+    consumerDir = mkdtempSync(join(tmpdir(), 'hydra-packed-consumer-'))
+    workDir = mkdtempSync(join(tmpdir(), 'hydra-packed-work-'))
 
     const nativePackDest = join(packDest, 'native')
     const nativePack = spawnSync('node', ['./scripts/pack-release.mjs', nativePackDest, '--current-platform-only'], {
@@ -108,7 +108,7 @@ describe.skipIf(!packable)('sandbox-local: packed-tarball distribution (publish-
 
     // Peer ranges resolve to the tarballs, the framework peer included. Do not omit optional
     // dependencies because the launcher selects its OS/CPU package through one.
-    writeFileSync(join(consumerDir, 'package.json'), JSON.stringify({ name: 'bh-packed-consumer', private: true, type: 'module' }))
+    writeFileSync(join(consumerDir, 'package.json'), JSON.stringify({ name: 'hydra-packed-consumer', private: true, type: 'module' }))
     const install = spawnSync('npm', ['install', '--no-audit', '--no-fund', ...tarballs], {
       cwd: consumerDir,
       encoding: 'utf8',

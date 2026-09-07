@@ -8,7 +8,7 @@ The sidebar's session list overflows after a handful of sessions, and from that 
 
 ## Decision
 
-`SidebarRoot` tracks the pointer over the whole column and carries a `quietBars` class whenever it is outside. The rule that class selects rebinds ui-theme's indirection pair — `--bh-scrollbar-thumb` and `--bh-scrollbar-thumb-hover` — to `transparent`, so every scroll region nested under the column draws no thumb. The session list is the only one today; a future one inherits the behavior rather than opting into it.
+`SidebarRoot` tracks the pointer over the whole column and carries a `quietBars` class whenever it is outside. The rule that class selects rebinds ui-theme's indirection pair — `--hydra-scrollbar-thumb` and `--hydra-scrollbar-thumb-hover` — to `transparent`, so every scroll region nested under the column draws no thumb. The session list is the only one today; a future one inherits the behavior rather than opting into it.
 
 The tail is `SCROLLBAR_LINGER_MS = 2000`: leaving arms a timer, entering cancels a pending one, and only the timer firing puts the class back. A pointer that crosses the column's edge and returns — travelling around a portalled menu, or overshooting on the way to a row — never sees the thumb blink.
 
@@ -28,7 +28,7 @@ Hiding no longer counts as elevating: only an l2 rebind exempts a sheet from "ev
 
 **CSS `:hover` on the column, with no JavaScript state.** The whole mechanism in one rule, and it cannot express the tail: the bar would vanish on the frame the pointer crossed the edge, which is exactly when a pointer is travelling to the conversation or around a portalled menu. The ask names the tail, and a hover-only version reads as flicker.
 
-**Keep it in CSS and get the delay from a transition,** by registering `--bh-scrollbar-thumb` through `@property` so the custom property becomes animatable and a `transition-delay` could hold the colour. Rejected on cost and on reach: the registration is global to every surface that reads the pair, for one column's timing, and the WebKit scrollbar pseudo-elements this palette actually renders through do not reliably transition — the delay would be specified where it cannot be observed.
+**Keep it in CSS and get the delay from a transition,** by registering `--hydra-scrollbar-thumb` through `@property` so the custom property becomes animatable and a `transition-delay` could hold the colour. Rejected on cost and on reach: the registration is global to every surface that reads the pair, for one column's timing, and the WebKit scrollbar pseudo-elements this palette actually renders through do not reliably transition — the delay would be specified where it cannot be observed.
 
 **Hide the bar itself** — `scrollbar-width: none`, or `display: none` on `::-webkit-scrollbar`. Rejected because it takes the reserved band with it: the bar would reappear by re-taking 8px and shift every row sideways under the pointer that revealed it, which is the regression the gutter reservation was added to fix.
 

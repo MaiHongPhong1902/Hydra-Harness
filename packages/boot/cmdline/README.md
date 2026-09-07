@@ -1,12 +1,12 @@
 # `@hydra/harness-cmdline`
 
-The command line a bh launcher hands to the app it boots. The launcher parses only its own flags (`--profile`, `--patch`, the config dumps) and hands **everything after them** to the tree verbatim, so an app owns its flag family, its `--help` text, and its parse errors instead of the launcher knowing them.
+The command line a hydra launcher hands to the app it boots. The launcher parses only its own flags (`--profile`, `--patch`, the config dumps) and hands **everything after them** to the tree verbatim, so an app owns its flag family, its `--help` text, and its parse errors instead of the launcher knowing them.
 
 ## The launcher values
 
 A launcher calls `provideCmdline(ctx, host)` before any tree entry mounts, which provides:
 
-- `ctx.cmdlineArgs` — the invocation's inner arguments. `get()` is the whole interface, and it returns a snapshot: `bh --profile tui --resume abc` yields `['--resume', 'abc']`.
+- `ctx.cmdlineArgs` — the invocation's inner arguments. `get()` is the whole interface, and it returns a snapshot: `hydra --profile tui --resume abc` yields `['--resume', 'abc']`.
 - `ctx.appExit` — a bounded process-exit request, wired to the launcher's shutdown controller.
 
 An embedding host with no command line provides an empty list; that is the honest answer, not a missing value.

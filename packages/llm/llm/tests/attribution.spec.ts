@@ -19,9 +19,9 @@ describe('APP_IDENTITY', () => {
 
   it('carries only static public product facts', () => {
     expect(APP_IDENTITY).toEqual({
-      product: 'bosch-harness',
+      product: 'hydra-harness',
       version: manifest.version,
-      url: 'https://github.com/bosch/bosch-harness',
+      url: 'https://github.com/MaiHongPhong1902/Hydra-Harness',
     })
   })
 })
@@ -29,7 +29,7 @@ describe('APP_IDENTITY', () => {
 describe('userAgent', () => {
   it('renders product/version with the +url comment', () => {
     expect(userAgent()).toBe(
-      `bosch-harness/${manifest.version} (+https://github.com/bosch/bosch-harness)`,
+      `hydra-harness/${manifest.version} (+https://github.com/MaiHongPhong1902/Hydra-Harness)`,
     )
   })
 

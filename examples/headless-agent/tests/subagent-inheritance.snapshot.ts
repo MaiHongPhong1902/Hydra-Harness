@@ -23,7 +23,7 @@ const configPath = fileURLToPath(new URL('../subagent-inheritance.cordis.snapsho
 const binScript = fileURLToPath(new URL('./fixtures/headless-driver.ts', import.meta.url))
 const tsconfigPath = fileURLToPath(new URL('../../../tsconfig.json', import.meta.url))
 const sessionId = SessionId('subagent-inheritance-parent')
-const refreshing = process.env.BH_SNAPSHOT === 'refresh'
+const refreshing = process.env.HYDRA_SNAPSHOT === 'refresh'
 const task = 'Delegate the write probe to a subagent.'
 
 /** Seed a completed parent turn with the only read-only fact in the app. */
@@ -57,7 +57,7 @@ describe('parent-only override inheritance snapshot', () => {
     let cwd = ''
     const result = await runLoaderSmoke({
       label: 'subagent inheritance headless stream-json snapshot',
-      tempDirPrefix: 'bh-subagent-inherit-',
+      tempDirPrefix: 'hydra-subagent-inherit-',
       binScript,
       libBinScript: binScript,
       configPath,
@@ -66,9 +66,9 @@ describe('parent-only override inheritance snapshot', () => {
       env: {
         // The primary fixture path must exist for llm-replay's config guard;
         // the override sidecar fully replaces the derived parent script.
-        BH_SNAPSHOT_FILE: replayOverride,
-        BH_SNAPSHOT_OVERRIDE: replayOverride,
-        BH_SNAPSHOT_CHILD_FILES: childReplay,
+        HYDRA_SNAPSHOT_FILE: replayOverride,
+        HYDRA_SNAPSHOT_OVERRIDE: replayOverride,
+        HYDRA_SNAPSHOT_CHILD_FILES: childReplay,
       },
       prepare: async (runCwd) => {
         cwd = runCwd
@@ -111,7 +111,7 @@ describe('parent-only override inheritance snapshot', () => {
         const policyContexts = [...runtimeContexts(parent), ...runtimeContexts(child)]
         expect(policyContexts).toHaveLength(2)
         for (const context of policyContexts) {
-          expect(context).toContain('Any available operation enforced by the BH file sandbox cannot modify files in the standing mode.')
+          expect(context).toContain('Any available operation enforced by the Hydra file sandbox cannot modify files in the standing mode.')
           expect(context).toContain('Do not refuse a required modification from this policy alone')
           expect(context).not.toContain('write and edit tools')
           expect(context).not.toContain('one-shot bash commands')

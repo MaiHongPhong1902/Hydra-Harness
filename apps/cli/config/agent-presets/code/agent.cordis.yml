@@ -19,7 +19,7 @@
 # A service row here MUST sit inside a group carrying an `isolate` realm.
 # Without one it publishes into the root realm, where it is process-global
 # rather than per-session and the second session mounting this preset collides
-# with the first; `bh-agent-presets` rejects that at mount. `true` means an
+# with the first; `hydra-agent-presets` rejects that at mount. `true` means an
 # entry-local realm — one private instance per mounted session, which is the
 # default this deployment wants. A shared label would instead pool one instance
 # across every session naming it.
@@ -42,7 +42,7 @@
 # ── shell ───────────────────────────────────────────────────────────────────
 
 # `shell-env` stays in the HOST composition: `apps/cli/src/web.ts` injects it to
-# publish `BH_WEB_URL`/`BH_WEB_MODE`, and a host row that injects a service is
+# publish `HYDRA_WEB_URL`/`HYDRA_WEB_MODE`, and a host row that injects a service is
 # the criterion for host-plane ownership — injection resolves before any session
 # exists, so there is no agent to key by. Behind a preset realm those variables
 # never reached the model's shell at all. Both shell tools consume the host
@@ -198,7 +198,7 @@
         toolName: subagent_fork
         backgroundMode: continuable
 
-    # Production bh does not install these optional providers. Install the
+    # Production hydra does not install these optional providers. Install the
     # matching Bundle in this Profile and restart the Host, then copy this
     # preset and remove `disabled` from the matching tool row. Host availability
     # alone grants no tool.

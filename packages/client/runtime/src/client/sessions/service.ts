@@ -289,7 +289,7 @@ export class SessionRuntime implements ISessions {
   ) {
     this.selection = createSnapshotStore<SessionSelection>(
       {},
-      { persist: { name: 'bh.sessions.current' } })
+      { persist: { name: 'hydra.sessions.current' } })
     const restored = this.selection.getSnapshot()
     const conversationEvents = rootCtx.get('conversationEvents')
     const conversationViews = rootCtx.get('conversationViews')

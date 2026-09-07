@@ -15,15 +15,15 @@ The Cordis framework and its foundation libraries are source-vendored into this 
 
 | Package | Upstream name | Upstream | License |
 | --- | --- | --- | --- |
-| `@hydra/cosmokit` | `cosmokit` | [github.com/bosch-harness/cosmokit](https://github.com/bosch-harness/cosmokit) | MIT |
-| `@hydra/schemastery` | `schemastery` | [github.com/bosch-harness/schemastery](https://github.com/bosch-harness/schemastery) | MIT |
+| `@hydra/cosmokit` | `cosmokit` | [github.com/shigma/cosmokit](https://github.com/shigma/cosmokit) | MIT |
+| `@hydra/schemastery` | `schemastery` | [github.com/shigma/schemastery](https://github.com/shigma/schemastery) | MIT |
 | `@hydra/cordis` | `cordis` | [github.com/cordiverse/cordis](https://github.com/cordiverse/cordis) | MIT |
 | `@hydra/cordis-plugin-loader` | `@cordisjs/plugin-loader` | [github.com/cordiverse/cordis](https://github.com/cordiverse/cordis) | MIT |
-| `@hydra/cordis-plugin-include` | `@cordisjs/plugin-include` | [github.com/bosch-harness/cordis](https://github.com/bosch-harness/cordis) | MIT |
-| `@hydra/cordis-plugin-group` | `@cordisjs/plugin-group` | [github.com/bosch-harness/cordis](https://github.com/bosch-harness/cordis) | MIT |
-| `@hydra/cordis-plugin-timer` | `@cordisjs/plugin-timer` | [github.com/bosch-harness/cordis](https://github.com/bosch-harness/cordis) | MIT |
-| `@hydra/cordis-plugin-hmr` | `@cordisjs/plugin-hmr` | [github.com/bosch-harness/cordis](https://github.com/bosch-harness/cordis) | MIT |
-| `@hydra/cordis-plugin-logger-console` | `@cordisjs/plugin-logger-console` | [github.com/bosch-harness/cordis](https://github.com/bosch-harness/cordis) | MIT |
+| `@hydra/cordis-plugin-include` | `@cordisjs/plugin-include` | [github.com/cordiverse/cordis](https://github.com/cordiverse/cordis) | MIT |
+| `@hydra/cordis-plugin-group` | `@cordisjs/plugin-group` | [github.com/cordiverse/cordis](https://github.com/cordiverse/cordis) | MIT |
+| `@hydra/cordis-plugin-timer` | `@cordisjs/plugin-timer` | [github.com/cordiverse/cordis](https://github.com/cordiverse/cordis) | MIT |
+| `@hydra/cordis-plugin-hmr` | `@cordisjs/plugin-hmr` | [github.com/cordiverse/cordis](https://github.com/cordiverse/cordis) | MIT |
+| `@hydra/cordis-plugin-logger-console` | `@cordisjs/plugin-logger-console` | [github.com/cordiverse/cordis](https://github.com/cordiverse/cordis) | MIT |
 
 ## Vendored source in packages (`third-party/`)
 
@@ -35,7 +35,7 @@ Source kept as an upstream-pinned git submodule rather than republished under th
 
 ## Runtime npm dependencies
 
-External packages that a workspace package resolves at runtime. The tier covers every plugin a user can mount from `cordis.yml` — not only what the `bh` CLI, Web UI, and Python SDK runtime load by default.
+External packages that a workspace package resolves at runtime. The tier covers every plugin a user can mount from `cordis.yml` — not only what the `hydra` CLI, Web UI, and Python SDK runtime load by default.
 
 | Package | License |
 | --- | --- |

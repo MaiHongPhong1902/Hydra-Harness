@@ -18,7 +18,7 @@ import chokidar from 'chokidar'
 import z from '@hydra/schemastery'
 import type Schema from '@hydra/schemastery'
 import type { FileSystem, FsDirEntry, FsTarget } from '@hydra/harness-fs'
-import { canonicalizeWatchPath, resolveBhHome } from '@hydra/harness-home-paths'
+import { canonicalizeWatchPath, resolveHydraHome } from '@hydra/harness-home-paths'
 import {
   BUNDLED_SKILL_RANK,
   parseSkillDocument,
@@ -32,10 +32,10 @@ import {
   type SkillSource,
 } from '@hydra/harness-skill'
 
-const PROJECT_BH_RANK = 100
+const PROJECT_HYDRA_RANK = 100
 const PROJECT_AGENTS_RANK = 200
 const CUSTOM_RANK = 300
-const USER_BH_RANK = 400
+const USER_HYDRA_RANK = 400
 const USER_AGENTS_RANK = 500
 const DEFAULT_WATCH_STABILITY_THRESHOLD_MS = 200
 const DEFAULT_WATCH_POLL_INTERVAL_MS = 100
@@ -50,9 +50,9 @@ export interface Config {
   providerName?: string
   /** Whether project and user roots are included around custom roots. */
   includeDefaultRoots?: boolean
-  /** Hydra harness config root. Defaults to `$BH_HOME` or `~/.bh`. */
-  bhHome?: string
-  /** Shared agent config root. Defaults to `$BH_AGENTS_HOME` or `~/.agents`. */
+  /** Hydra harness config root. Defaults to `$HYDRA_HOME` or `~/.hydra`. */
+  hydraHome?: string
+  /** Shared agent config root. Defaults to `$HYDRA_AGENTS_HOME` or `~/.agents`. */
   agentsHome?: string
   /** Additional skill roots scanned after project roots and before user roots. */
   customSkillDirs?: string[]
@@ -68,14 +68,14 @@ export interface Config {
   watchMaxProjects?: number
   /** Whether watched symbolic links follow their target files. */
   watchFollowSymlinks?: boolean
-  /** Bundled skill root; defaults to `$BH_BUNDLED_SKILL_DIR` when default roots are included, otherwise mounts none. */
+  /** Bundled skill root; defaults to `$HYDRA_BUNDLED_SKILL_DIR` when default roots are included, otherwise mounts none. */
   bundledSkillDir?: string
 }
 
 export const Config: Schema<Config> = z.object({
   providerName: z.string().min(1).default('filesystem'),
   includeDefaultRoots: z.boolean().default(true),
-  bhHome: z.string(),
+  hydraHome: z.string(),
   agentsHome: z.string(),
   customSkillDirs: z.array(z.string()).default([]),
   watch: z.boolean().default(true),
@@ -136,7 +136,7 @@ export function apply(ctx: Context, config: Config = {}): void {
 export class FileSystemSkillProvider implements SkillProvider {
   readonly name: string
   private readonly includeDefaultRoots: boolean
-  private readonly bhHome: string
+  private readonly hydraHome: string
   private readonly agentsHome: string
   private readonly customSkillDirs: string[]
   private readonly watchManager: SkillWatchManager
@@ -150,8 +150,8 @@ export class FileSystemSkillProvider implements SkillProvider {
   ) {
     this.name = config.providerName ?? 'filesystem'
     this.includeDefaultRoots = config.includeDefaultRoots ?? true
-    this.bhHome = resolveBhHome(config.bhHome)
-    this.agentsHome = resolve(config.agentsHome ?? process.env.BH_AGENTS_HOME ?? join(homedir(), '.agents'))
+    this.hydraHome = resolveHydraHome(config.hydraHome)
+    this.agentsHome = resolve(config.agentsHome ?? process.env.HYDRA_AGENTS_HOME ?? join(homedir(), '.agents'))
     this.customSkillDirs = (config.customSkillDirs ?? []).map(root => resolve(root))
     this.watchManager = new SkillWatchManager(ctx, control.invalidate, resolveWatchConfig(config))
     control.signal.addEventListener('abort', () => { void this.dispose() }, { once: true })
@@ -159,7 +159,7 @@ export class FileSystemSkillProvider implements SkillProvider {
     // must see only its explicit roots, or every such provider would
     // re-discover the app's bundled skills under its own provider name.
     const bundledSkillDir = config.bundledSkillDir
-      ?? (this.includeDefaultRoots ? process.env.BH_BUNDLED_SKILL_DIR : undefined)
+      ?? (this.includeDefaultRoots ? process.env.HYDRA_BUNDLED_SKILL_DIR : undefined)
     this.bundledSkillDir = bundledSkillDir === undefined ? undefined : resolve(bundledSkillDir)
   }
 
@@ -233,14 +233,14 @@ export class FileSystemSkillProvider implements SkillProvider {
     if (this.includeDefaultRoots && cwd !== undefined) {
       const projectRoot = await findProjectRoot(resolve(cwd), optionalFileSystem(this.ctx))
       roots.push(
-        { path: join(projectRoot, '.bh/skills'), source: 'project-bh', rank: PROJECT_BH_RANK, projectRoot },
+        { path: join(projectRoot, '.hydra/skills'), source: 'project-hydra', rank: PROJECT_HYDRA_RANK, projectRoot },
         { path: join(projectRoot, '.agents/skills'), source: 'project-agents', rank: PROJECT_AGENTS_RANK, projectRoot },
       )
     }
     roots.push(...this.customSkillDirs.map(path => ({ path, source: 'custom' as const, rank: CUSTOM_RANK })))
     if (this.includeDefaultRoots) {
       roots.push(
-        { path: join(this.bhHome, 'skills'), source: 'user-bh', rank: USER_BH_RANK, skipSystem: true },
+        { path: join(this.hydraHome, 'skills'), source: 'user-hydra', rank: USER_HYDRA_RANK, skipSystem: true },
         { path: join(this.agentsHome, 'skills'), source: 'user-agents', rank: USER_AGENTS_RANK },
       )
     }

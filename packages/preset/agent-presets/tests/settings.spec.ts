@@ -33,7 +33,7 @@ const NS = settingsNamespace(SETTINGS_NAMESPACE)
 async function harness(
   extraRoots: readonly { path: string; trust: 'system' | 'user' }[] = [],
 ): Promise<{ ctx: Context; settingsFile: string; settingsFiber: { dispose: () => unknown } }> {
-  const home = await mkdtemp(join(tmpdir(), 'bh-preset-settings-'))
+  const home = await mkdtemp(join(tmpdir(), 'hydra-preset-settings-'))
   const settingsFile = join(home, 'settings.yaml')
   await writeFile(settingsFile, '{}\n')
 
@@ -148,7 +148,7 @@ describe('the default preset as a user setting', () => {
   })
 
   it('clears a user default it has just deleted', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'bh-preset-authored-'))
+    const root = await mkdtemp(join(tmpdir(), 'hydra-preset-authored-'))
     await mkdir(join(root, 'mine'))
     await writeFile(
       join(root, 'mine', COMPOSITION_FILE),

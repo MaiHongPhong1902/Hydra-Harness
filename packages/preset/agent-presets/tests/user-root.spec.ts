@@ -1,11 +1,11 @@
 /**
  * The writable root is this package's own, not an assembly fact each app must
  * remember: a roster configured with only a `system` root still discovers and
- * authors into `<bhHome>/.agent-presets`, the way `bh-skill-filesystem` owns
- * `<bhHome>/skills`. `includeUserRoot: false` is how a deployment — or a test
+ * authors into `<hydraHome>/.agent-presets`, the way `hydra-skill-filesystem` owns
+ * `<hydraHome>/skills`. `includeUserRoot: false` is how a deployment — or a test
  * pinning an exact roster — opts out.
  *
- * `$BH_HOME` is repointed per test because the derived root is resolved in the
+ * `$HYDRA_HOME` is repointed per test because the derived root is resolved in the
  * constructor: the plugin must be mounted while the environment names the
  * temporary home, or it would reach the developer's real one.
  */
@@ -31,14 +31,14 @@ let home: string
 let previousHome: string | undefined
 
 beforeEach(async () => {
-  home = await mkdtemp(join(tmpdir(), 'bh-preset-home-'))
-  previousHome = process.env.BH_HOME
-  process.env.BH_HOME = home
+  home = await mkdtemp(join(tmpdir(), 'hydra-preset-home-'))
+  previousHome = process.env.HYDRA_HOME
+  process.env.HYDRA_HOME = home
 })
 
 afterEach(() => {
-  if (previousHome === undefined) delete process.env.BH_HOME
-  else process.env.BH_HOME = previousHome
+  if (previousHome === undefined) delete process.env.HYDRA_HOME
+  else process.env.HYDRA_HOME = previousHome
 })
 
 /** Boot a roster over the fixture system root, with the derived root left to the plugin. */
@@ -115,7 +115,7 @@ describe('the harness-home preset root', () => {
   })
 
   it('yields to a configured user root for authoring, which writableRoot takes first', async () => {
-    const explicit = await mkdtemp(join(tmpdir(), 'bh-preset-explicit-'))
+    const explicit = await mkdtemp(join(tmpdir(), 'hydra-preset-explicit-'))
     const ctx = await roster({
       roots: [
         { path: SYSTEM_ROOT, trust: 'system' as const },

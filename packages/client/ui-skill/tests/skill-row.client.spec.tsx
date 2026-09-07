@@ -22,7 +22,7 @@ function settled(over: Partial<ToolResultNode> = {}): ToolResultNode {
     seq: 3,
     time: 3_000,
     callId: 'call-skill',
-    call: { name: 'skill', argsRaw: '{"name":"bh-manage-issues"}' },
+    call: { name: 'skill', argsRaw: '{"name":"hydra-manage-issues"}' },
     callTime: 2_000,
     content: [{ type: 'text', text: 'Follow the issue workflow.\nKeep project fields in sync.' }],
     isError: false,
@@ -33,7 +33,7 @@ function settled(over: Partial<ToolResultNode> = {}): ToolResultNode {
   }
 }
 
-function running(argsRaw = '{"name":"bh-manage-issues"}'): RunningToolCall {
+function running(argsRaw = '{"name":"hydra-manage-issues"}'): RunningToolCall {
   return {
     callId: 'call-skill', name: 'skill', argsRaw, turn: 1, step: 1, time: 2_000, callView: null, subCalls: [],
   }
@@ -54,7 +54,7 @@ describe('SkillRow', () => {
   it('renders a compact Bash-shaped summary and discloses the exact instructions', () => {
     const inspect = vi.fn()
     const view = render(<SkillRow {...props(settled(), inspect)} />)
-    const row = screen.getByRole('button', { name: 'Skillbh-manage-issues' })
+    const row = screen.getByRole('button', { name: 'Skillhydra-manage-issues' })
     expect(row.getAttribute('aria-expanded')).toBe('false')
     expect(view.container.querySelector('[data-tool="skill"]')?.getAttribute('data-state')).toBe('ok')
     expect(view.container.querySelector('[data-tool="skill"] svg')?.getAttribute('width')).toBe('14')
@@ -64,7 +64,7 @@ describe('SkillRow', () => {
     expect(row.getAttribute('aria-expanded')).toBe('true')
     const card = screen.getByLabelText(en['row.instructions'])
     expect(card.textContent).toBe(`${en['row.instructions']}Follow the issue workflow.\nKeep project fields in sync.`)
-    expect(view.container.textContent).not.toContain('{"name":"bh-manage-issues"}')
+    expect(view.container.textContent).not.toContain('{"name":"hydra-manage-issues"}')
     fireEvent.click(screen.getByRole('button', { name: 'Inspect' }))
     expect(inspect).toHaveBeenCalledTimes(1)
 
@@ -88,7 +88,7 @@ describe('SkillRow', () => {
     const row = view.container.querySelector('[data-tool="skill"] > div')!
     expect(row.getAttribute('role')).toBeNull()
     expect(view.container.textContent).toContain(en['row.running'])
-    expect(view.container.textContent).toContain('bh-manage-issues')
+    expect(view.container.textContent).toContain('hydra-manage-issues')
     expect(view.container.querySelector('svg [fill="currentColor"]')).not.toBeNull()
   })
 

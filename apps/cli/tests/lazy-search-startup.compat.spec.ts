@@ -4,7 +4,7 @@
  * Only the dedicated Node compatibility gate opts this test in after building
  * both artifacts; ordinary Vitest inventory deterministically skips it.
  * The child runs built artifacts under plain Node with the real shipped
- * web profile (bh-base + bh-web-app bundle patches, auto-initialized).
+ * web profile (hydra-base + hydra-web-app bundle patches, auto-initialized).
  * Its URL line follows the settled profile boot; SIGTERM then exercises the
  * shipped quiescent disposer.
  */
@@ -25,7 +25,7 @@ const webDist = join(repoRoot, 'apps/web/dist/index.html')
 // base patch carries the default, and the web restatement must not re-enable it.
 const baseConfigPath = join(repoRoot, 'packages/bundle/base/cordis.patch.yml')
 const webConfigPath = join(repoRoot, 'packages/bundle/web-app/cordis.patch.yml')
-const requireBuiltArtifacts = process.env.BH_REQUIRE_BUILT_CLI_SMOKE === '1'
+const requireBuiltArtifacts = process.env.HYDRA_REQUIRE_BUILT_CLI_SMOKE === '1'
 
 interface ConfigRow {
   id?: string
@@ -48,8 +48,8 @@ function runBuiltWeb(cwd: string): Promise<{ stdout: string; stderr: string; cod
   return new Promise((resolveRun, rejectRun) => {
     const env: NodeJS.ProcessEnv = {
       ...process.env,
-      DEEPSEEK_API_KEY: 'bh-cli-smoke-dummy-key',
-      BH_HOME: join(cwd, '.bh'),
+      DEEPSEEK_API_KEY: 'hydra-cli-smoke-dummy-key',
+      HYDRA_HOME: join(cwd, '.hydra'),
     }
     delete env.DEEPSEEK_BASE_URL
     delete env.NODE_OPTIONS
@@ -74,7 +74,7 @@ function runBuiltWeb(cwd: string): Promise<{ stdout: string; stderr: string; cod
     child.stderr.setEncoding('utf8')
     child.stdout.on('data', (chunk: string) => {
       stdout += chunk
-      if (!settled && /bh web: http:\/\/127\.0\.0\.1:\d+/u.test(stdout)) {
+      if (!settled && /hydra web: http:\/\/127\.0\.0\.1:\d+/u.test(stdout)) {
         settled = true
         child.kill('SIGTERM')
       }
@@ -115,10 +115,10 @@ describe.skipIf(!requireBuiltArtifacts)('built CLI lazy-search startup', () => {
     expect(webRow?.config?.openAt).toBe('never')
     expect(webRow?.disabled).toBeUndefined()
 
-    const cwd = await mkdtemp(join(tmpdir(), 'bh-cli-lazy-search-'))
+    const cwd = await mkdtemp(join(tmpdir(), 'hydra-cli-lazy-search-'))
     try {
       const result = await runBuiltWeb(cwd)
-      expect(result.stdout).toMatch(/bh web: http:\/\/127\.0\.0\.1:\d+/u)
+      expect(result.stdout).toMatch(/hydra web: http:\/\/127\.0\.0\.1:\d+/u)
       expect(result.code).toBe(0)
       expect(result.stderr).not.toMatch(/ExperimentalWarning: SQLite/u)
     } finally {

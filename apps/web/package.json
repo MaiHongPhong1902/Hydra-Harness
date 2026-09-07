@@ -1,13 +1,13 @@
 {
   "name": "@hydra/harness-web-frontend",
-  "description": "Web application entry: vite build over the @hydra/harness-client-web shell library; dist/ served by apps/cli's bh web",
+  "description": "Web application entry: vite build over the @hydra/harness-client-web shell library; dist/ served by apps/cli's hydra web",
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bosch/bosch-harness.git",
+    "url": "git+https://github.com/MaiHongPhong1902/Hydra-Harness.git",
     "directory": "apps/web"
   },
   "type": "module",

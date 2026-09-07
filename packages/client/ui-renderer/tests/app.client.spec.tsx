@@ -34,7 +34,7 @@ describe('buildRenderApp', () => {
   })
 
   it('projects the selected durable session title', async () => {
-    vi.stubEnv('BH_CLIENT_TITLE', 'Product')
+    vi.stubEnv('HYDRA_CLIENT_TITLE', 'Product')
     document.title = 'stale title'
     const b = await bench()
     render(<>{b.renderApp()}</>)
@@ -48,7 +48,7 @@ describe('buildRenderApp', () => {
   })
 
   it('falls back when the selected id has no list row', async () => {
-    vi.stubEnv('BH_CLIENT_TITLE', 'Product')
+    vi.stubEnv('HYDRA_CLIENT_TITLE', 'Product')
     document.title = 'stale title'
     const b = await bench()
     await b.runtime.sessions.add({ id: 's1', summary: { title: 'First' } })

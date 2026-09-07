@@ -1,6 +1,6 @@
 # @hydra/harness-hooks-registry
 
-`HookRecordRegistry` (`ctx.hookRecords`) owns the user's own hook records. The records live in the `hooks` settings namespace, so one added from a configuration surface is written to `$BH_HOME/settings.yaml` and mounts again on the next start; one added by hand-editing that document mounts without a restart. Each enabled record is mounted on its dialect's bridge — `@hydra/harness-hooks-claude-code` or `@hydra/harness-hooks-codex` — which owns the payloads, matcher semantics, and extension-point mapping.
+`HookRecordRegistry` (`ctx.hookRecords`) owns the user's own hook records. The records live in the `hooks` settings namespace, so one added from a configuration surface is written to `$HYDRA_HOME/settings.yaml` and mounts again on the next start; one added by hand-editing that document mounts without a restart. Each enabled record is mounted on its dialect's bridge — `@hydra/harness-hooks-claude-code` or `@hydra/harness-hooks-codex` — which owns the payloads, matcher semantics, and extension-point mapping.
 
 ## Service API
 
@@ -12,7 +12,7 @@ On replacement, omitted `enabled` and `defaultTimeoutMs` retain their stored val
 
 `hooks.records` is an ordered list of at most 50 records. A record carries `name` (`[A-Za-z0-9_-]{1,64}`, unique across records), `dialect` (`claude-code` or `codex`), exactly one document source, `defaultTimeoutMs`, and `enabled` (default `false`, so a new record is inert until switched on). `claude-code` records may also carry `pluginRoot` and `projectDir`, which the bridge substitutes into command strings.
 
-The document source is either `configPath` — an absolute path to a hook document the harness reads as-is — or `config`, the definitions stored inline in the settings document as a bare event map or a `{ hooks: … }` wrapper. Inline definitions are capped at 256 KiB and materialized to `$BH_HOME/hooks/<name>.json` on every mount, because both bridges read one file path at load; editing the inline section is therefore enough to change what runs.
+The document source is either `configPath` — an absolute path to a hook document the harness reads as-is — or `config`, the definitions stored inline in the settings document as a bare event map or a `{ hooks: … }` wrapper. Inline definitions are capped at 256 KiB and materialized to `$HYDRA_HOME/hooks/<name>.json` on every mount, because both bridges read one file path at load; editing the inline section is therefore enough to change what runs.
 
 `define` parses the definitions with the record's own dialect parser before it persists, so a stored record can never be silently inert. At mount time the same parse decides the record's projection: a record whose document is missing, is not valid JSON, or declares nothing its dialect can run is reported with status `invalid` and the reason instead of failing the process — a hand-edited document must not stop every other record from mounting.
 

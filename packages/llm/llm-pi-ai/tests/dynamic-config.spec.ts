@@ -32,7 +32,7 @@ afterEach(async () => {
 })
 
 async function home(): Promise<string> {
-  const dir = await mkdtemp(join(tmpdir(), 'bh-pi-dynamic-'))
+  const dir = await mkdtemp(join(tmpdir(), 'hydra-pi-dynamic-'))
   cleanups.push(() => rm(dir, { recursive: true, force: true }))
   return dir
 }

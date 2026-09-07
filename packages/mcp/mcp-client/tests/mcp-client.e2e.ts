@@ -1,5 +1,5 @@
 /**
- * End-to-end tests for bh-mcp-client. Exercises the REAL MCP protocol against:
+ * End-to-end tests for hydra-mcp-client. Exercises the REAL MCP protocol against:
  * 1. A self-written fixture server over stdio (controlled edge cases)
  * 2. @modelcontextprotocol/server-everything (official integration test server)
  * 3. @modelcontextprotocol/server-filesystem (real filesystem operations)
@@ -56,9 +56,9 @@ class ImageAdapter extends LlmAdapter {
   }
 }
 
-async function mountImageRegistry(bhHome: string): Promise<Context> {
+async function mountImageRegistry(hydraHome: string): Promise<Context> {
   const ctx = await mountRegistry()
-  await ctx.plugin(LocalAttachmentStore, { bhHome })
+  await ctx.plugin(LocalAttachmentStore, { hydraHome })
   await ctx.plugin(LlmRuntime)
   ctx.llm.registerAdapter(['visual'], new ImageAdapter())
   return ctx

@@ -246,7 +246,7 @@ export interface SnapshotSuiteOptions {
    * `recorded` scenarios' fixtures and refreshes the Vitest expected outputs under
    * `--update`), or `refresh` (keyless replay that rewrites stdout expected outputs and
    * comparable session fixtures from the replay run). The caller derives this
-   * from `$BH_SNAPSHOT` — env reading stays outside this library.
+   * from `$HYDRA_SNAPSHOT` — env reading stays outside this library.
    */
   mode: 'replay' | 'record' | 'refresh'
   /**

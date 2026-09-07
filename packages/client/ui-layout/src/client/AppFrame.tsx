@@ -163,7 +163,7 @@ export function AppFrame({
     clamp(Math.round(window.innerHeight * 0.36), DESKTOP_TERMINAL_MIN, terminalMax))
 
   useEffect(() => {
-    if (window.bhDesktop === undefined) return
+    if (window.hydraDesktop === undefined) return
     const onResize = () => {
       setDesktopViewport({ height: window.innerHeight, width: window.innerWidth })
     }
@@ -286,7 +286,7 @@ export function AppFrame({
       {cols.details > 0 && <DragHandle side="details" left={viewport - cols.details} onStart={onDetailsStart} onDrag={onDetailsDrag} onEnd={onDragEnd} />}
     </div>
   )
-  if (window.bhDesktop === undefined) return frame
+  if (window.hydraDesktop === undefined) return frame
   const toggleBrowser = () => {
     if (browserOpen) {
       setBrowserExpanded(false)

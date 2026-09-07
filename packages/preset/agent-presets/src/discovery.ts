@@ -29,7 +29,7 @@ export const COMPOSITION_FILE = 'agent.cordis.yml'
  * Harness-home directory holding locally authored presets.
  *
  * This package owns the writable root the way `@hydra/harness-skill-filesystem` owns
- * `<bhHome>/skills`. An app must assemble the SHIPPED root, whose path only
+ * `<hydraHome>/skills`. An app must assemble the SHIPPED root, whose path only
  * the installed app can resolve; where a person's own presets go is the same
  * place in every deployment that does not say otherwise, so a launcher that
  * forgets to configure one still finds them.

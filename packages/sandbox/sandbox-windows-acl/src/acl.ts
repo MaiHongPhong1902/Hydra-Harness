@@ -44,9 +44,9 @@ export function buildExplicitAccess(sidPtr: NativePtr, mode: number, permissions
 }
 
 /**
- * One lock file per protected path: `<GetTempPathW()>\bh-acl-locks\<first 16
+ * One lock file per protected path: `<GetTempPathW()>\hydra-acl-locks\<first 16
  * hex of sha256(lowercased path)>.lock`. The lock root derives from
- * GetTempPathW (never from runner argv or BH_HOME), and the lowercasing
+ * GetTempPathW (never from runner argv or HYDRA_HOME), and the lowercasing
  * maps Windows's case-insensitive path spellings onto one lock.
  * @param api - the binding table.
  * @param path - the protected directory (absolute).
@@ -54,7 +54,7 @@ export function buildExplicitAccess(sidPtr: NativePtr, mode: number, permissions
  */
 export function lockFilePath(api: Win32Bindings, path: string): string {
   const digest = createHash('sha256').update(path.toLowerCase()).digest('hex').slice(0, 16)
-  return join(getTempPath(api), 'bh-acl-locks', `${digest}.lock`)
+  return join(getTempPath(api), 'hydra-acl-locks', `${digest}.lock`)
 }
 
 /**

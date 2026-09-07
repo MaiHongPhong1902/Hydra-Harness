@@ -885,7 +885,7 @@ export class ToolRuntime extends Service {
         // otherwise resolve an inherited Object.prototype member as a renderer.
         const render = SDK_RENDERERS[runtime.language]
         /* v8 ignore next -- requireCodeRuntime rejects an unknown language before this runs. */
-        if (render === undefined) throw new Error(`bh-tools: no SDK renderer for ${runtime.language}`)
+        if (render === undefined) throw new Error(`hydra-tools: no SDK renderer for ${runtime.language}`)
         return render(this.sdkSchemas(context.scope))
       },
     }
@@ -1019,11 +1019,11 @@ export class ToolRuntime extends Service {
   private requireCodeRuntime(mode: ToolPresentationMode): CodeRuntime {
     const runtime = this.ctx.get('codeRuntime')
     if (!runtime) {
-      throw new Error(`bh-tools: mode "${mode}" requires a code runtime — load a ctx.codeRuntime implementation (e.g. @hydra/harness-code-runtime-worker-thread) or set tools mode to "native"`)
+      throw new Error(`hydra-tools: mode "${mode}" requires a code runtime — load a ctx.codeRuntime implementation (e.g. @hydra/harness-code-runtime-worker-thread) or set tools mode to "native"`)
     }
     if (!Object.hasOwn(SDK_RENDERERS, runtime.language)) {
       const known = Object.keys(SDK_RENDERERS).map(name => JSON.stringify(name)).join(', ')
-      throw new Error(`bh-tools: no SDK renderer registered for runtime language ${JSON.stringify(runtime.language)} (known: ${known})`)
+      throw new Error(`hydra-tools: no SDK renderer registered for runtime language ${JSON.stringify(runtime.language)} (known: ${known})`)
     }
     return runtime
   }
@@ -1864,7 +1864,7 @@ export class ToolRuntime extends Service {
 
 /** Mint a same-process correlation token whose identity is its value. */
 function createExecutionToken(): ToolExecutionToken {
-  return Symbol('bh.tool.execution') as ToolExecutionToken
+  return Symbol('hydra.tool.execution') as ToolExecutionToken
 }
 
 function toolErrorResult(error: unknown): ToolExecutionResult {

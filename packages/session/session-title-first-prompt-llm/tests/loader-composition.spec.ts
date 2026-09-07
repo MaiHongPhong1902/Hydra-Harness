@@ -33,7 +33,7 @@ afterEach(async () => {
 })
 
 async function loadComposition(): Promise<Context> {
-  root = await mkdtemp(join(tmpdir(), 'bh-title-loader-'))
+  root = await mkdtemp(join(tmpdir(), 'hydra-title-loader-'))
   const configPath = join(root, 'cordis.yml')
   await writeFile(configPath, [
     "- name: '@hydra/harness-llm'",

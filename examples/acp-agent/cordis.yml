@@ -1,5 +1,5 @@
 # ACP automation server and backend snapshot-record composition. With
-# `BH_SNAPSHOT=record`, the app bin runs the real DeepSeek adapter and the
+# `HYDRA_SNAPSHOT=record`, the app bin runs the real DeepSeek adapter and the
 # harness harvests its persisted log. The bin loads the gitignored root `.env`
 # before this config. This tree has no stdout logger or HMR because stdout
 # carries ACP JSON-RPC.
@@ -20,7 +20,7 @@
 # The default composition confines bash AND the filesystem tools to the
 # workspace and asks before a wider retry. Snapshot runs select
 # danger-full-access so the established scenarios remain runner-independent;
-# BH_PERMISSION_MODE provides the same explicit deployment/test override
+# HYDRA_PERMISSION_MODE provides the same explicit deployment/test override
 # outside the snapshot harness. The sandbox default + fallback root live on
 # ctx.sandboxPolicy; agent calls resolve both families against the session cwd.
 - id: sandbox
@@ -29,7 +29,7 @@
 - id: sandbox-policy
   name: '@hydra/harness-sandbox-policy'
   config:
-    mode: !!js "process.env.BH_PERMISSION_MODE ?? (process.env.BH_SNAPSHOT === undefined ? 'workspace-write' : 'danger-full-access')"
+    mode: !!js "process.env.HYDRA_PERMISSION_MODE ?? (process.env.HYDRA_SNAPSHOT === undefined ? 'workspace-write' : 'danger-full-access')"
     workspaceRoot: !!js process.cwd()
 
 # Managed child-process groups for the bash executor (spawn/kill/output plumbing).
@@ -44,10 +44,10 @@
 - id: approval
   name: '@hydra/harness-user-approval'
   config:
-    policy: !!js "(process.env.BH_PERMISSION_MODE ?? (process.env.BH_SNAPSHOT === undefined ? 'workspace-write' : 'danger-full-access')) === 'danger-full-access' ? 'never' : 'ask'"
+    policy: !!js "(process.env.HYDRA_PERMISSION_MODE ?? (process.env.HYDRA_SNAPSHOT === undefined ? 'workspace-write' : 'danger-full-access')) === 'danger-full-access' ? 'never' : 'ask'"
 
 # The ACP automation app: agent spine + JSONL persistence + protocol bridge.
-# Persistence root: $BH_SNAPSHOT_SESSIONS_ROOT when the snapshot harness sets it
+# Persistence root: $HYDRA_SNAPSHOT_SESSIONS_ROOT when the snapshot harness sets it
 # (so it can harvest / isolate the log), else ./.sessions for the demo.
 # Snapshot modes use raw JSONL fixtures; ordinary runs keep the compressed default.
 - id: acp-agent
@@ -55,8 +55,8 @@
   config:
     provider: deepseek-official
     model: deepseek-v4-pro
-    persistenceRoot: !!js process.env.BH_SNAPSHOT_SESSIONS_ROOT ?? './.sessions'
-    persistenceCompression: !!js "process.env.BH_SNAPSHOT === undefined ? 'zstd' : 'none'"
+    persistenceRoot: !!js process.env.HYDRA_SNAPSHOT_SESSIONS_ROOT ?? './.sessions'
+    persistenceCompression: !!js "process.env.HYDRA_SNAPSHOT === undefined ? 'zstd' : 'none'"
     workspaceContext:
       maxBytes: 65536
     # Keep the persona to identity and behavior; tool plugins own tool guidance.
@@ -160,8 +160,8 @@
 - id: repeat-tool-reminder
   name: '@hydra/harness-repeat-tool-reminder'
 
-# The filesystem stack rides the SAME sandbox policy as bash: bh-fs-sandbox
-# replaces bh-fs-local behind ctx.fs and fences write/edit by the effective
+# The filesystem stack rides the SAME sandbox policy as bash: hydra-fs-sandbox
+# replaces hydra-fs-local behind ctx.fs and fences write/edit by the effective
 # mode (read-only denies, workspace-write contains to the workspace + temp
 # roots, danger-full-access passes through), so read/write/edit are available
 # under every mode. fs-observation-policy (read-before-edit) composes orthogonally on top.

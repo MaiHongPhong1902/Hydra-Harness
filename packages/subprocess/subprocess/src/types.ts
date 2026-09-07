@@ -4,19 +4,19 @@
  * recovery, raw piped streams, and tree-scoped termination. Command
  * defaulting, shell semantics, protocol framing, and presentation belong to
  * consumers such as the bash executor seam.
- * @module bh-subprocess/types
+ * @module hydra-subprocess/types
  */
 
 import type { Readable, Writable } from 'node:stream'
 
 /** Namespace prefix reserved for Hydra harness-managed child environment facts. */
-export const BH_ENV_PREFIX = 'BH_' as const
+export const HYDRA_ENV_PREFIX = 'HYDRA_' as const
 
-/** One environment key inside the managed {@link BH_ENV_PREFIX} namespace. */
-export type BhEnvironmentKey = `${typeof BH_ENV_PREFIX}${string}`
+/** One environment key inside the managed {@link HYDRA_ENV_PREFIX} namespace. */
+export type HydraEnvironmentKey = `${typeof HYDRA_ENV_PREFIX}${string}`
 
 /** Trusted Hydra harness variables for one child-process execution. */
-export type BhEnvironment = Readonly<Record<BhEnvironmentKey, string>>
+export type HydraEnvironment = Readonly<Record<HydraEnvironmentKey, string>>
 
 /** One captured stream: the (possibly truncated) text plus recovery info. */
 export interface CollectedOutput {
@@ -97,7 +97,7 @@ export interface SubprocessSpawnSpec {
    * Explicit environment entries merged onto the implementation's scrubbed
    * parent base (see `scrubbedParentEnv`), with no namespace validation. A
    * string is a deliberate caller opt-in, so a forwarded credential-shaped
-   * entry or current `BH_*` fact survives the scrub; `undefined` is a
+   * entry or current `HYDRA_*` fact survives the scrub; `undefined` is a
    * tombstone that removes an ordinary ambient entry from the child.
    */
   env?: NodeJS.ProcessEnv | undefined

@@ -23,7 +23,7 @@ import { MockAdapter, textResponse, toolCallResponse } from '../../../core/agent
  * (tool/call + tool/result session events, the generic `ctx.jobs` runtime,
  * agent.inject completion notices).
  */
-async function harness(adapter: MockAdapter, sessionRoot?: string, bhHome?: string) {
+async function harness(adapter: MockAdapter, sessionRoot?: string, hydraHome?: string) {
   const ctx = new Context()
   await mountAgentLoopTestDependencies(ctx)
   if (sessionRoot !== undefined) {
@@ -33,7 +33,7 @@ async function harness(adapter: MockAdapter, sessionRoot?: string, bhHome?: stri
   await ctx.plugin(LocalJobRegistry)
   await ctx.plugin(ToolTasks)
   await ctx.plugin(LocalSubprocessRuntime)
-  await ctx.plugin(BashEnvPlugin, bhHome === undefined ? {} : { bhHome })
+  await ctx.plugin(BashEnvPlugin, hydraHome === undefined ? {} : { hydraHome })
   await ctx.plugin(LocalBashExecutor, { timeoutMs: 10_000 })
   await ctx.plugin(ToolBash)
   ctx.llm.registerAdapter(['mock'], adapter)
@@ -94,18 +94,18 @@ async function pollUntil(predicate: () => boolean, timeoutMs = 5_000): Promise<v
 
 describe('bash tool through the agent loop', () => {
   it('first-turn bash receives session identity before the lazy JSONL file materializes', async () => {
-    const root = mkdtempSync(join(tmpdir(), 'bh-bash-session-env-'))
+    const root = mkdtempSync(join(tmpdir(), 'hydra-bash-session-env-'))
     dirs.push(root)
-    const bhHome = join(root, 'bh-home')
-    vi.stubEnv('BH_STALE_PARENT', 'stale')
+    const hydraHome = join(root, 'hydra-home')
+    vi.stubEnv('HYDRA_STALE_PARENT', 'stale')
     const adapter = new MockAdapter([
       toolCallResponse('call-1', 'bash', {
-        command: 'printf \'%s\\n%s\\n%s\\n%s\\n%s\\n\' "$BH_HOME" "$BH_SHELL" "$BH_SESSION_ID" "$BH_SESSION_JSONL" "${BH_STALE_PARENT-unset}"; if [ -e "$BH_SESSION_JSONL" ]; then printf \'present\\n\'; else printf \'absent\\n\'; fi',
+        command: 'printf \'%s\\n%s\\n%s\\n%s\\n%s\\n\' "$HYDRA_HOME" "$HYDRA_SHELL" "$HYDRA_SESSION_ID" "$HYDRA_SESSION_JSONL" "${HYDRA_STALE_PARENT-unset}"; if [ -e "$HYDRA_SESSION_JSONL" ]; then printf \'present\\n\'; else printf \'absent\\n\'; fi',
         description: 'inspect session environment',
       }),
       textResponse('Session environment inspected.'),
     ])
-    const ctx = await harness(adapter, root, bhHome)
+    const ctx = await harness(adapter, root, hydraHome)
     const handle = await ctx.agents.create({
       sessionId: SessionId('session-env-id'),
       agentOptions: { provider: 'mock', model: 'mock' },
@@ -118,7 +118,7 @@ describe('bash tool through the agent loop', () => {
     await waitForIdle(ctx, agent)
 
     const result = findEvent(events(agent), 'tool/result')
-    expect(resultText(result)).toBe(`${bhHome}\n1\nsession-env-id\n${location?.path}\nunset\nabsent\n`)
+    expect(resultText(result)).toBe(`${hydraHome}\n1\nsession-env-id\n${location?.path}\nunset\nabsent\n`)
     await ctx.sessions.flush(agent.session)
     expect(existsSync(location!.path)).toBe(true)
     const header = JSON.parse(readFileSync(location!.path, 'utf8').split('\n')[0]!) as { type: string; id: string }
@@ -181,7 +181,7 @@ describe('bash tool through the agent loop', () => {
     // claim, which folds the notice into a turn whose scripted reply is final:
     // the turn then closes with an empty next-step inbox and the collection
     // entries are never reached.
-    const dir = mkdtempSync(join(tmpdir(), 'bh-bg-'))
+    const dir = mkdtempSync(join(tmpdir(), 'hydra-bg-'))
     dirs.push(dir)
     const sentinel = join(dir, 'release')
     // The job id is deterministic (a fresh LocalJobRegistry counts per kind from 1),

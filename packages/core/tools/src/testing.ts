@@ -1,4 +1,4 @@
-/** Canonical tool-definition fixtures for repository tests. @module bh-tools/testing */
+/** Canonical tool-definition fixtures for repository tests. @module hydra-tools/testing */
 
 import type { ContentBlock } from '@hydra/harness-llm'
 import type { JsonValue } from '@hydra/harness-session'

@@ -203,7 +203,7 @@ export class PwshLocalExecutor extends ShellExecutor {
       ...request.signal ? { signal: request.signal } : {},
       ...request.stdin !== undefined ? { stdin: request.stdin } : {},
       ...request.env !== undefined ? { env: request.env } : {},
-      ...request.bhEnv !== undefined ? { bhEnv: request.bhEnv } : {},
+      ...request.hydraEnv !== undefined ? { hydraEnv: request.hydraEnv } : {},
       sandboxPolicy: request.sandboxPolicy,
     }
   }
@@ -237,7 +237,7 @@ export class PwshLocalExecutor extends ShellExecutor {
       },
       graceMs: this.config.graceMs,
       signal,
-      env: { ...ENV_OVERRIDES, ...spec.env, ...spec.bhEnv },
+      env: { ...ENV_OVERRIDES, ...spec.env, ...spec.hydraEnv },
     }
   }
 

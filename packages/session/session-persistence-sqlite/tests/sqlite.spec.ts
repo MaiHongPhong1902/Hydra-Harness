@@ -43,7 +43,7 @@ afterEach(async () => {
   for (const directory of dirs.splice(0)) await rm(directory, { recursive: true, force: true })
 })
 
-async function freshDbPath(prefix = 'bh-sqlite-'): Promise<string> {
+async function freshDbPath(prefix = 'hydra-sqlite-'): Promise<string> {
   const directory = await mkdtemp(join(tmpdir(), prefix))
   dirs.push(directory)
   return join(directory, 'sessions.db')
@@ -210,7 +210,7 @@ runPersistenceContract('sqlite', async () => {
 })
 
 runCoordinatorContract('sqlite', async (): Promise<CoordinatorFixture> => {
-  const directory = await mkdtemp(join(tmpdir(), 'bh-sqlite-coord-'))
+  const directory = await mkdtemp(join(tmpdir(), 'hydra-sqlite-coord-'))
   const path = join(directory, 'sessions.db')
   return {
     mount: async ctx => ctx.plugin(SessionPersistenceSqlite, { path }),
@@ -232,7 +232,7 @@ runCoordinatorContract('sqlite', async (): Promise<CoordinatorFixture> => {
 
 describe('SessionPersistenceSqlite physical packing', () => {
   it('loads from cordis.yml and packs through the assembled service', async () => {
-    const path = await freshDbPath('bh-sqlite-loader-')
+    const path = await freshDbPath('hydra-sqlite-loader-')
     const configPath = join(path, '..', 'cordis.yml')
     await writeFile(configPath, [
       "- name: '@hydra/harness-session'",
@@ -310,7 +310,7 @@ describe('SessionPersistenceSqlite physical packing', () => {
 
   it.runIf(process.platform !== 'win32')('bounds paced-stream WAL extent without rewriting committed rows', async () => {
     const events = chunkLog(1_000)
-    const measured = await measureWriteTraffic(await freshDbPath('bh-sqlite-traffic-'), events)
+    const measured = await measureWriteTraffic(await freshDbPath('hydra-sqlite-traffic-'), events)
 
     expect(measured).toMatchObject({ rows: 31, inserted: 31, changed: 0, removed: 0 })
     expect(measured.inserted).toBe(measured.rows)
@@ -319,7 +319,7 @@ describe('SessionPersistenceSqlite physical packing', () => {
   })
 
   it('includes a packed predecessor when an overlapping scalar tail hides it', async () => {
-    const path = await freshDbPath('bh-sqlite-overlap-')
+    const path = await freshDbPath('hydra-sqlite-overlap-')
     const store = new SqliteStore({ path, journalMode: 'wal', busyTimeoutMs: DEFAULT_BUSY_TIMEOUT_MS })
     const header = meta('overlap')
     await store.appendBatch(header, [chunk(0), chunk(1), chunk(2)], false)
@@ -341,7 +341,7 @@ describe('SessionPersistenceSqlite physical packing', () => {
   })
 
   it('waits for a competing process within the configured busy timeout', async () => {
-    const path = await freshDbPath('bh-sqlite-busy-')
+    const path = await freshDbPath('hydra-sqlite-busy-')
     const store = new SqliteStore({ path, journalMode: 'wal', busyTimeoutMs: 1_000 })
     const header = meta('busy')
     await store.appendBatch(header, [chunk(0)], false)
@@ -370,7 +370,7 @@ describe('SessionPersistenceSqlite physical packing', () => {
   })
 
   it('rejects an older SQLite physical schema', async () => {
-    const path = await freshDbPath('bh-sqlite-old-schema-')
+    const path = await freshDbPath('hydra-sqlite-old-schema-')
     const seed = await openDatabase(DatabaseSync, path, 'wal', DEFAULT_BUSY_TIMEOUT_MS)
     seed.exec(testSql('set-user-version-16'))
     seed.close()
@@ -380,7 +380,7 @@ describe('SessionPersistenceSqlite physical packing', () => {
   })
 
   it('rejects a stale physical append without replacing the winning tail', async () => {
-    const path = await freshDbPath('bh-sqlite-stale-')
+    const path = await freshDbPath('hydra-sqlite-stale-')
     const first = new SqliteStore({ path, journalMode: 'wal', busyTimeoutMs: DEFAULT_BUSY_TIMEOUT_MS })
     const second = new SqliteStore({ path, journalMode: 'wal', busyTimeoutMs: DEFAULT_BUSY_TIMEOUT_MS })
     const header = meta(SessionId('stale'))
@@ -393,7 +393,7 @@ describe('SessionPersistenceSqlite physical packing', () => {
   })
 
   it('rejects a stale repair without deleting a newer winning tail', async () => {
-    const path = await freshDbPath('bh-sqlite-stale-repair-')
+    const path = await freshDbPath('hydra-sqlite-stale-repair-')
     const stale = new SqliteStore({ path, journalMode: 'wal', busyTimeoutMs: DEFAULT_BUSY_TIMEOUT_MS })
     const winner = new SqliteStore({ path, journalMode: 'wal', busyTimeoutMs: DEFAULT_BUSY_TIMEOUT_MS })
     const header = meta(SessionId('stale-repair'))
@@ -421,7 +421,7 @@ describe('SessionPersistenceSqlite schema ownership', () => {
     } as const
     for (const mode of ['wal', 'delete', 'truncate', 'persist'] as const) {
       ;(await openDatabase(DatabaseSync, ':memory:', mode, DEFAULT_BUSY_TIMEOUT_MS)).close()
-      const path = await freshDbPath(`bh-sqlite-journal-${mode}-`)
+      const path = await freshDbPath(`hydra-sqlite-journal-${mode}-`)
       const db = await openDatabase(DatabaseSync, path, mode, DEFAULT_BUSY_TIMEOUT_MS)
       expect(db.prepare(sql(resources[mode])).get()).toEqual({ journal_mode: mode })
       expect(db.prepare(sql('select-trusted-schema')).get()).toEqual({ trusted_schema: 0 })
@@ -432,7 +432,7 @@ describe('SessionPersistenceSqlite schema ownership', () => {
   })
 
   it('retries a busy journal-mode transition within its retry budget', async () => {
-    const path = await freshDbPath('bh-sqlite-journal-busy-')
+    const path = await freshDbPath('hydra-sqlite-journal-busy-')
     let attempts = 0
     const BusyOnceDatabase = databaseWithJournalFailure(() => {
       attempts += 1
@@ -466,7 +466,7 @@ describe('SessionPersistenceSqlite schema ownership', () => {
       })
       await expect(openDatabase(
         FailingDatabase,
-        await freshDbPath(`bh-sqlite-journal-failure-${errcode}-`),
+        await freshDbPath(`hydra-sqlite-journal-failure-${errcode}-`),
         'wal',
         timeout,
       )).rejects.toThrow(`SQLite error ${errcode}`)
@@ -487,7 +487,7 @@ describe('SessionPersistenceSqlite schema ownership', () => {
     try {
       await expect(openDatabase(
         BusyDatabase,
-        await freshDbPath('bh-sqlite-journal-cutoff-'),
+        await freshDbPath('hydra-sqlite-journal-cutoff-'),
         'wal',
         100,
       )).rejects.toThrow('database is locked')
@@ -505,7 +505,7 @@ describe('SessionPersistenceSqlite schema ownership', () => {
     })
     await expect(openDatabase(
       BusyDatabase,
-      await freshDbPath('bh-sqlite-journal-paced-'),
+      await freshDbPath('hydra-sqlite-journal-paced-'),
       'wal',
       50,
     )).rejects.toThrow('database is locked')
@@ -514,19 +514,19 @@ describe('SessionPersistenceSqlite schema ownership', () => {
   })
 
   it('rejects unversioned, incompatible, and foreign-application databases', async () => {
-    const unversionedPath = await freshDbPath('bh-sqlite-unversioned-')
+    const unversionedPath = await freshDbPath('hydra-sqlite-unversioned-')
     const unversioned = new DatabaseSync(unversionedPath)
     unversioned.exec(testSql('create-unrelated-table'))
     unversioned.close()
     await expect(openDatabase(DatabaseSync, unversionedPath, 'wal', DEFAULT_BUSY_TIMEOUT_MS)).rejects.toThrow(/unversioned schema/)
 
-    const incompatiblePath = await freshDbPath('bh-sqlite-incompatible-')
+    const incompatiblePath = await freshDbPath('hydra-sqlite-incompatible-')
     const incompatible = new DatabaseSync(incompatiblePath)
     incompatible.exec(testSql('set-user-version-16'))
     incompatible.close()
     await expect(openDatabase(DatabaseSync, incompatiblePath, 'wal', DEFAULT_BUSY_TIMEOUT_MS)).rejects.toThrow(/incompatible with this build/)
 
-    const foreignPath = await freshDbPath('bh-sqlite-foreign-')
+    const foreignPath = await freshDbPath('hydra-sqlite-foreign-')
     const foreign = new DatabaseSync(foreignPath)
     foreign.exec(testSql('set-user-version-17'))
     foreign.exec(testSql('set-application-id-12345'))
@@ -535,21 +535,21 @@ describe('SessionPersistenceSqlite schema ownership', () => {
   })
 
   it('rejects changed columns and non-strict owned tables', async () => {
-    const changedPath = await freshDbPath('bh-sqlite-columns-')
+    const changedPath = await freshDbPath('hydra-sqlite-columns-')
     ;(await openDatabase(DatabaseSync, changedPath, 'wal', DEFAULT_BUSY_TIMEOUT_MS)).close()
     const changed = new DatabaseSync(changedPath)
     changed.exec(testSql('add-unexpected-column'))
     changed.close()
     await expect(openDatabase(DatabaseSync, changedPath, 'wal', DEFAULT_BUSY_TIMEOUT_MS)).rejects.toThrow(/required schema objects/)
 
-    const nonStrictPath = await freshDbPath('bh-sqlite-nonstrict-')
+    const nonStrictPath = await freshDbPath('hydra-sqlite-nonstrict-')
     ;(await openDatabase(DatabaseSync, nonStrictPath, 'wal', DEFAULT_BUSY_TIMEOUT_MS)).close()
     const nonStrict = new DatabaseSync(nonStrictPath)
     nonStrict.exec(testSql('replace-events-with-nonstrict-table'))
     nonStrict.close()
     await expect(openDatabase(DatabaseSync, nonStrictPath, 'wal', DEFAULT_BUSY_TIMEOUT_MS)).rejects.toThrow(/required schema objects/)
 
-    const loosePath = await freshDbPath('bh-sqlite-loose-')
+    const loosePath = await freshDbPath('hydra-sqlite-loose-')
     const loose = new DatabaseSync(loosePath)
     loose.exec(testSql('create-loose-schema'))
     loose.close()
@@ -644,7 +644,7 @@ describe('SessionPersistenceSqlite schema ownership', () => {
   })
 
   it('rejects invalid durable metadata before exposing a session header', async () => {
-    const path = await freshDbPath('bh-sqlite-metadata-')
+    const path = await freshDbPath('hydra-sqlite-metadata-')
     const store = new SqliteStore({ path, journalMode: 'wal', busyTimeoutMs: DEFAULT_BUSY_TIMEOUT_MS })
     const header = meta('invalid-metadata')
     await store.appendBatch(header, [chunk(0)], false)
@@ -663,7 +663,7 @@ describe('SessionPersistenceSqlite schema ownership', () => {
 
 describe('SessionPersistenceSqlite edge behavior', () => {
   it('keeps a fresh database unopened until the first persistence operation', async () => {
-    const path = await freshDbPath('bh-sqlite-lazy-')
+    const path = await freshDbPath('hydra-sqlite-lazy-')
     const ctx = new Context()
     await ctx.plugin(SessionStore)
     await ctx.plugin(SessionPersistenceSqlite, { path })
@@ -676,14 +676,14 @@ describe('SessionPersistenceSqlite edge behavior', () => {
   })
 
   it('disposes after path validation without opening the database', async () => {
-    const path = await freshDbPath('bh-sqlite-unused-')
+    const path = await freshDbPath('hydra-sqlite-unused-')
     const ctx = new Context()
     await ctx.plugin(SessionStore)
     await ctx.plugin(SessionPersistenceSqlite, { path })
     await ctx.fiber.dispose()
     await expect(stat(path)).rejects.toMatchObject({ code: 'ENOENT' })
 
-    const untouchedPath = await freshDbPath('bh-sqlite-never-validated-')
+    const untouchedPath = await freshDbPath('hydra-sqlite-never-validated-')
     const untouched = new SqliteStore({
       path: untouchedPath,
       journalMode: 'wal',
@@ -727,7 +727,7 @@ describe('SessionPersistenceSqlite edge behavior', () => {
   })
 
   it('rejects omitted torn markers and stale closer positions', async () => {
-    const path = await freshDbPath('bh-sqlite-repair-validation-')
+    const path = await freshDbPath('hydra-sqlite-repair-validation-')
     const store = new SqliteStore({ path, journalMode: 'wal', busyTimeoutMs: DEFAULT_BUSY_TIMEOUT_MS })
     const header = meta('repair-validation')
     await store.appendBatch(header, [chunk(0)], false)
@@ -747,7 +747,7 @@ describe('SessionPersistenceSqlite edge behavior', () => {
   })
 
   it('rejects malformed physical tail rows before appending', async () => {
-    const path = await freshDbPath('bh-sqlite-tail-')
+    const path = await freshDbPath('hydra-sqlite-tail-')
     const store = new SqliteStore({ path, journalMode: 'wal', busyTimeoutMs: DEFAULT_BUSY_TIMEOUT_MS })
     const header = meta('invalid-tail')
     await store.appendBatch(header, [chunk(0)], false)
@@ -762,7 +762,7 @@ describe('SessionPersistenceSqlite edge behavior', () => {
 
   it('rejects missing and empty store identities', async () => {
     for (const mode of ['missing', 'empty'] as const) {
-      const path = await freshDbPath(`bh-sqlite-identity-${mode}-`)
+      const path = await freshDbPath(`hydra-sqlite-identity-${mode}-`)
       const db = await openDatabase(DatabaseSync, path, 'wal', DEFAULT_BUSY_TIMEOUT_MS)
       if (mode === 'missing') db.exec(testSql('delete-persistence-state'))
       else db.exec(testSql('empty-store-id'))
@@ -774,7 +774,7 @@ describe('SessionPersistenceSqlite edge behavior', () => {
   })
 
   it('rejects invalid paths during service initialization', async () => {
-    const path = await freshDbPath('bh-sqlite-invalid-path-')
+    const path = await freshDbPath('hydra-sqlite-invalid-path-')
     const ctx = new Context()
     await ctx.plugin(SessionStore)
     await expect(ctx.plugin(SessionPersistenceSqlite, { path: `${path}\0` })).rejects.toMatchObject({
@@ -784,19 +784,19 @@ describe('SessionPersistenceSqlite edge behavior', () => {
   })
 
   it('rejects non-files and symbolic links', async () => {
-    const directoryPath = await freshDbPath('bh-sqlite-directory-')
+    const directoryPath = await freshDbPath('hydra-sqlite-directory-')
     await mkdir(directoryPath)
     expect(errorMessage(await backendFailure(directoryPath)))
       .toMatch(/must be a regular file/)
 
-    const linkPath = await freshDbPath('bh-sqlite-link-')
+    const linkPath = await freshDbPath('hydra-sqlite-link-')
     const target = join(linkPath, '..', 'target.db')
     await writeFile(target, '')
     await symlink(target, linkPath)
     expect(errorMessage(await backendFailure(linkPath)))
       .toMatch(/not a symbolic link/)
 
-    const parentLinkPath = await freshDbPath('bh-sqlite-parent-link-')
+    const parentLinkPath = await freshDbPath('hydra-sqlite-parent-link-')
     const realParent = join(parentLinkPath, '..', 'real-parent')
     const linkedParent = join(parentLinkPath, '..', 'linked-parent')
     await mkdir(realParent, { mode: 0o700 })
@@ -808,20 +808,20 @@ describe('SessionPersistenceSqlite edge behavior', () => {
   it.runIf(
     process.getuid !== undefined && process.getuid() !== 0,
   )('rejects permissive files and writable parents', async () => {
-    const permissivePath = await freshDbPath('bh-sqlite-permissive-')
+    const permissivePath = await freshDbPath('hydra-sqlite-permissive-')
     await writeFile(permissivePath, '')
     await chmod(permissivePath, 0o644)
     expect(errorMessage(await backendFailure(permissivePath)))
       .toMatch(/accessible only by that user/)
 
-    const writableParentPath = await freshDbPath('bh-sqlite-parent-')
+    const writableParentPath = await freshDbPath('hydra-sqlite-parent-')
     await chmod(join(writableParentPath, '..'), 0o770)
     expect(errorMessage(await backendFailure(writableParentPath)))
       .toMatch(/not group\/world-writable/)
   })
 
   it('surfaces database creation failures after path validation', async () => {
-    const path = await freshDbPath('bh-sqlite-create-failure-')
+    const path = await freshDbPath('hydra-sqlite-create-failure-')
     const store = new SqliteStore({ path, journalMode: 'wal', busyTimeoutMs: DEFAULT_BUSY_TIMEOUT_MS })
     await store.validatePath()
     const parent = join(path, '..')

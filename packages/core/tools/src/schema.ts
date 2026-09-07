@@ -1,4 +1,4 @@
-/** Unified JSON-value schema DSL, inference, compilation, and typed tool helper. @module bh-tools/schema */
+/** Unified JSON-value schema DSL, inference, compilation, and typed tool helper. @module hydra-tools/schema */
 
 import { HarnessError } from '@hydra/harness-llm'
 import type { ContentBlock } from '@hydra/harness-llm'

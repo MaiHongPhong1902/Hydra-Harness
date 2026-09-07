@@ -34,7 +34,7 @@ The local `release` command composes pack and publish. It first uses the pack co
 
 ## Current implementation boundary
 
-The checked-in pack command implements fixed-commit staging, exact internal dependency pins, static and tarball payload checks, the immutable manifest, and an isolated npm installation with every release tarball as a local top-level dependency. It runs the installed `bh --version` and `bh --dump-default-config` entries under plain Node, then starts the installed default TUI in a POSIX PTY, waits for its `main-session-` ready signal, and exits through `/exit` before printing the publish command. Publish supports integrity-based resumption, separates read-only registry verification from the authenticated identity check, and finishes with a complete remote integrity and dist-tag verification pass.
+The checked-in pack command implements fixed-commit staging, exact internal dependency pins, static and tarball payload checks, the immutable manifest, and an isolated npm installation with every release tarball as a local top-level dependency. It runs the installed `hydra --version` and `hydra --dump-default-config` entries under plain Node, then starts the installed default TUI in a POSIX PTY, waits for its `main-session-` ready signal, and exits through `/exit` before printing the publish command. Publish supports integrity-based resumption, separates read-only registry verification from the authenticated identity check, and finishes with a complete remote integrity and dist-tag verification pass.
 
 Pull-request CI does not invoke the pack command; the installed-entry probes are local release checks rather than merge gates. Credential-free CI execution, package-owned probes for every other bin and public runtime entry, workflow-artifact transfer, and the protected publication job remain proposal scope.
 
@@ -54,8 +54,8 @@ Installation uses the client behavior selected for this publication. Registry up
 
 The test covers at least these execution surfaces:
 
-- Installed `@hydra/harness` runs `bh --version` and `bh --dump-default-config` successfully under plain Node, covering the static CLI entry and one dynamic mode entry.
-- Installed default `bh` completes one keyless TUI startup in a PTY and exits under test control after reaching a defined ready signal. This path must load the real TUI dynamic chunk, so a missing publication file such as `lib/tui-*.js` fails the gate.
+- Installed `@hydra/harness` runs `hydra --version` and `hydra --dump-default-config` successfully under plain Node, covering the static CLI entry and one dynamic mode entry.
+- Installed default `hydra` completes one keyless TUI startup in a PTY and exits under test control after reaching a defined ready signal. This path must load the real TUI dynamic chunk, so a missing publication file such as `lib/tui-*.js` fails the gate.
 - Every other published `bin` defines a package-owned smoke command that neither reaches a real service nor modifies user state. Different CLIs are not forced to share `--help`; the test runs the actual installed entry and checks its agreed exit or ready signal.
 - Node-compatible public runtime entries load from the installation. Browser, worker, or host-protocol-only entries use matching isolated fixtures, but their inputs must still be the current tarballs exclusively.
 
@@ -83,7 +83,7 @@ The registry token is injected only into the publish job, which uses a protected
 
 **Test only built `lib/` in the working tree.** Rejected because that validates the build tree rather than the tarball selected by `package.json#files`. A dynamic chunk present in the working tree but omitted from the tarball is exactly the failure this proposal must catch.
 
-**Run only `bh --help`.** Rejected because Commander can print help and exit before loading the TUI, Web, or headless dynamic entry. It does not prove the default production startup path is complete.
+**Run only `hydra --help`.** Rejected because Commander can print help and exit before loading the TUI, Web, or headless dynamic entry. It does not prove the default production startup path is complete.
 
 **Publish `src` and declaration maps to reduce missing-file risk.** Rejected because the source plane is not a production-runtime fallback. Expanding the payload hides bundle-closure errors and turns local debugging outputs into accidental publication contracts.
 
@@ -96,7 +96,7 @@ The registry token is injected only into the publish job, which uses a protected
 - One pack entry discovers every target under `packages/*/*` and `apps/*` from a fixed commit, derives and displays a version from the UTC second and short commit before waiting for Enter, generates the complete release bundle before any registry write, and prints one copyable publish command; `release` waits again after packing, while `--yes` skips both confirmations.
 - Static manifest and tarball-content gates both reject published `src` and `.d.ts.map` while source manifests retain `exports["./src/*"]`.
 - The release bundle records the complete package set, commit, derived version, tag, registry, and per-tarball integrity; every internal dependency is pinned exactly to that version, and publish consumes only that bundle without rebuilding.
-- An isolated integration test installs from local tarballs and starts the installed default `bh` TUI under plain Node; deleting any required dynamic chunk makes the test fail deterministically.
+- An isolated integration test installs from local tarballs and starts the installed default `hydra` TUI under plain Node; deleting any required dynamic chunk makes the test fail deterministically.
 - Every published bin and applicable public runtime entry has post-tarball-install execution coverage, with resolution paths proving that no monorepo fallback occurred.
 - Publish safely resumes from the same manifest after partial success: matching integrity is skipped, conflicting integrity is rejected, and final verification requires every version and tag to agree.
 - A credential-free GitHub Actions job creates and tests the bundle, a protected job uploads the identical bundle, and the publication token exists only in the latter.
@@ -107,6 +107,6 @@ Full packing, installation, and startup add CI time and workflow-artifact volume
 
 Installing every tarball as a temporary project's top-level dependency can hide an undeclared internal dependency. The test generator should install each tested application's declared recursive closure and retain existing dependency gates. For `@hydra/harness`, whose dependency surface approaches the full set, package-manifest and static graph checks remain necessary to detect undeclared edges.
 
-Platform-specific optional dependencies, native addons, PTYs, and browser entries may require platform-owned probes. The first phase must cover primary `bh` startup on the publication Linux runner and one local macOS path, then expand the matrix with the actual publication platforms. Skipping an unstable probe must not move a production path outside the gate.
+Platform-specific optional dependencies, native addons, PTYs, and browser entries may require platform-owned probes. The first phase must cover primary `hydra` startup on the publication Linux runner and one local macOS path, then expand the matrix with the actual publication platforms. Skipping an unstable probe must not move a production path outside the gate.
 
 Recovery cannot remove npm's partial visibility. During a failed publication, the registry may briefly contain only some package versions from the bundle. Operators and automation must treat the final bundle verification, not one successful `npm publish`, as the baseline-availability signal.

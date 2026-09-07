@@ -31,11 +31,11 @@ describe('Web development entry', () => {
     const result = await execa('pnpm', ['run', 'dev'], { cwd: WEB_ROOT, reject: false })
     expect(result.exitCode).not.toBe(0)
     expect(result.stderr).toContain('apps/web is not a standalone application')
-    expect(result.stderr).toContain('bh web')
+    expect(result.stderr).toContain('hydra web')
   })
 
   it('rejects the standalone Vite server with the full-host correction', async () => {
-    const probeRoot = mkdtempSync(join(tmpdir(), 'bh-vite-listen-probe-'))
+    const probeRoot = mkdtempSync(join(tmpdir(), 'hydra-vite-listen-probe-'))
     const marker = join(probeRoot, 'listen-called')
     const port = await freePort()
     try {
@@ -46,15 +46,15 @@ describe('Web development entry', () => {
         timeout: 10_000,
         env: {
           ...process.env,
-          BH_LISTEN_PROBE_MARKER: marker,
+          HYDRA_LISTEN_PROBE_MARKER: marker,
           NODE_OPTIONS: `${process.env.NODE_OPTIONS ?? ''} --import ${pathToFileURL(probeModule).href}`.trim(),
         },
       })
       expect(result.timedOut).toBe(false)
       expect(result.exitCode).not.toBe(0)
       expect(result.stderr).toContain('apps/web is not a standalone application')
-      expect(result.stderr).toContain('bh web')
-      expect(result.stderr).toContain('window.__BH_BOOT__')
+      expect(result.stderr).toContain('hydra web')
+      expect(result.stderr).toContain('window.__HYDRA_BOOT__')
       expect(existsSync(marker), 'Vite called Server.listen before rejecting standalone serve mode').toBe(false)
     } finally {
       rmSync(probeRoot, { recursive: true, force: true })

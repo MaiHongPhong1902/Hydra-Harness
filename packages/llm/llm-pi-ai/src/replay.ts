@@ -5,7 +5,7 @@
  * module stores only the provider-native metadata needed to reconstruct a
  * pi-ai assistant message on a later request.
  *
- * @module bh-llm-pi-ai/replay
+ * @module hydra-llm-pi-ai/replay
  */
 
 import { LlmError } from '@hydra/harness-llm'
@@ -166,9 +166,9 @@ function foreignAssistant(message: Message): AssistantMessage {
     content,
     // Deliberately never equals a catalog API: absent replay state is foreign
     // even if source names the same provider/model as this request.
-    api: 'bh-foreign',
-    provider: source?.provider ?? 'bh-foreign',
-    model: source?.model ?? 'bh-foreign',
+    api: 'hydra-foreign',
+    provider: source?.provider ?? 'hydra-foreign',
+    model: source?.model ?? 'hydra-foreign',
     usage: emptyPiUsage(),
     stopReason: content.some(piece => piece.type === 'toolCall') ? 'toolUse' : 'stop',
     timestamp: 0,

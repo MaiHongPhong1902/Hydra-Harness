@@ -25,7 +25,7 @@ import { SessionId } from '@hydra/harness-session'
 const testToolSignal = new AbortController().signal
 
 /**
- * Drives the REAL plugin body: mounts `bh-tool-subagent` on a real
+ * Drives the REAL plugin body: mounts `hydra-tool-subagent` on a real
  * `ToolRuntime` + `SubagentRuntime`, with a package-local scripted child
  * boundary, and invokes the registered `subagent` tool through
  * `ctx.tools.execute`. Everything downstream of the child boundary is the
@@ -67,7 +67,7 @@ function text(result: { content: { type: string; text?: string }[] }): string {
   return result.content.filter(b => b.type === 'text').map(b => b.text).join('')
 }
 
-describe('bh-tool-subagent', () => {
+describe('hydra-tool-subagent', () => {
   it('rejects continuable background policy when the provider cannot prepare continuable children', async () => {
     let failure: unknown
     try {
@@ -773,7 +773,7 @@ describe('bh-tool-subagent', () => {
   })
 })
 
-describe('bh-tool-subagent background mode', () => {
+describe('hydra-tool-subagent background mode', () => {
   /** A live parent with a dedicated scope fiber for structural task cleanup. */
   function ownerAgent(ctx: Context, sessionId: string, inject: (...args: unknown[]) => void = () => {}): Agent {
     const scopeFiber = ctx.plugin(() => {})
@@ -1074,7 +1074,7 @@ describe('bh-tool-subagent background mode', () => {
 
 })
 
-describe('bh-tool-subagent continuable background mode', () => {
+describe('hydra-tool-subagent continuable background mode', () => {
   const roots: string[] = []
   afterEach(() => {
     for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true })
@@ -1084,7 +1084,7 @@ describe('bh-tool-subagent continuable background mode', () => {
   async function continuableSetup() {
     const ctx = new Context()
     await mountAgentLoopTestDependencies(ctx)
-    const root = mkdtempSync(path.join(tmpdir(), 'bh-tool-subagent-continuable-'))
+    const root = mkdtempSync(path.join(tmpdir(), 'hydra-tool-subagent-continuable-'))
     roots.push(root)
     await ctx.plugin(JsonlSessionPersistence, { root })
     await ctx.plugin(AgentLoop, { agents: [] })

@@ -61,15 +61,15 @@ class FakeParentPort extends EventEmitter {
     this.sent.push(message)
     if (typeof message !== 'object' || message === null || !('type' in message) || !('connectionId' in message)) return
     const connectionId = message.connectionId
-    if (message.type === 'bh-browser-connect') {
+    if (message.type === 'hydra-browser-connect') {
       queueMicrotask(() => {
-        this.emit('message', { data: { type: 'bh-browser-line', connectionId, line: JSON.stringify({ event: 'ready' }) } })
+        this.emit('message', { data: { type: 'hydra-browser-line', connectionId, line: JSON.stringify({ event: 'ready' }) } })
       })
-    } else if (message.type === 'bh-browser-line' && 'line' in message && typeof message.line === 'string') {
+    } else if (message.type === 'hydra-browser-line' && 'line' in message && typeof message.line === 'string') {
       const request = JSON.parse(message.line) as Request
       queueMicrotask(() => {
         this.emit('message', {
-          data: { type: 'bh-browser-line', connectionId, line: JSON.stringify({ id: request.id, ok: true, result: request.args }) },
+          data: { type: 'hydra-browser-line', connectionId, line: JSON.stringify({ id: request.id, ok: true, result: request.args }) },
         })
       })
     }
@@ -159,9 +159,9 @@ describe('launchBrowser startup', () => {
 
   it('reuses the desktop utility-process bridge without spawning Electron', async () => {
     const port = new FakeParentPort()
-    const previousBridge = process.env.BH_DESKTOP_BROWSER_BRIDGE
+    const previousBridge = process.env.HYDRA_DESKTOP_BROWSER_BRIDGE
     const previousPort = Object.getOwnPropertyDescriptor(process, 'parentPort')
-    process.env.BH_DESKTOP_BROWSER_BRIDGE = 'parent-port'
+    process.env.HYDRA_DESKTOP_BROWSER_BRIDGE = 'parent-port'
     Object.defineProperty(process, 'parentPort', { configurable: true, value: port })
     try {
       const fake = new FakeElectron()
@@ -173,12 +173,12 @@ describe('launchBrowser startup', () => {
         .resolves.toEqual({ url: 'https://example.test' })
       await child.close()
       expect(port.sent).toEqual(expect.arrayContaining([
-        expect.objectContaining({ type: 'bh-browser-connect' }),
-        expect.objectContaining({ type: 'bh-browser-disconnect' }),
+        expect.objectContaining({ type: 'hydra-browser-connect' }),
+        expect.objectContaining({ type: 'hydra-browser-disconnect' }),
       ]))
     } finally {
-      if (previousBridge === undefined) Reflect.deleteProperty(process.env, 'BH_DESKTOP_BROWSER_BRIDGE')
-      else process.env.BH_DESKTOP_BROWSER_BRIDGE = previousBridge
+      if (previousBridge === undefined) Reflect.deleteProperty(process.env, 'HYDRA_DESKTOP_BROWSER_BRIDGE')
+      else process.env.HYDRA_DESKTOP_BROWSER_BRIDGE = previousBridge
       if (previousPort === undefined) Reflect.deleteProperty(process, 'parentPort')
       else Object.defineProperty(process, 'parentPort', previousPort)
     }

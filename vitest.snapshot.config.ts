@@ -17,7 +17,7 @@ function positiveIntFromEnv(name: string, fallback: number): number {
 }
 
 const snapshotMaxConcurrency = positiveIntFromEnv(
-  'BH_SNAPSHOT_MAX_CONCURRENCY',
+  'HYDRA_SNAPSHOT_MAX_CONCURRENCY',
   Math.min(DEFAULT_SNAPSHOT_MAX_CONCURRENCY, availableParallelism()),
 )
 
@@ -26,7 +26,7 @@ const snapshotMaxConcurrency = positiveIntFromEnv(
 // `record` calls the real API and updates fixtures and expected outputs; `refresh` replays committed scripts
 // and updates current expected outputs. Replay/refresh never load `.env`; only record reads a key from the
 // environment or root `.env`.
-if (process.env.BH_SNAPSHOT === 'record') {
+if (process.env.HYDRA_SNAPSHOT === 'record') {
   try {
     process.loadEnvFile(new URL('.env', import.meta.url).pathname)
   } catch (error) {
@@ -48,7 +48,7 @@ export default defineConfig({
       'scripts/**/*.snapshot.ts',
       // The assembled Web snapshot executes generated client bundles; source
       // mode remains the zero-build path, while lib mode requires a prior build.
-      ...(process.env.BH_EXAMPLE_MODE === 'lib' ? ['apps/web/tests/**/*.snapshot.ts'] : []),
+      ...(process.env.HYDRA_EXAMPLE_MODE === 'lib' ? ['apps/web/tests/**/*.snapshot.ts'] : []),
       'apps/cli/tests/**/*.snapshot.ts',
       'examples/*/tests/**/*.snapshot.ts',
     ],
@@ -62,7 +62,7 @@ export default defineConfig({
     // disk, so concurrent writers would corrupt goldens.
     testTimeout: 120_000,
     hookTimeout: 30_000,
-    fileParallelism: (process.env.BH_SNAPSHOT || 'replay') === 'replay' && snapshotMaxConcurrency > 1,
+    fileParallelism: (process.env.HYDRA_SNAPSHOT || 'replay') === 'replay' && snapshotMaxConcurrency > 1,
     maxConcurrency: snapshotMaxConcurrency,
   },
 })

@@ -217,7 +217,7 @@ describe('timeout-policy disposal (HMR safety)', () => {
   })
 })
 
-describe('bh-tool-call-timeout-policy real-load-path guard', () => {
+describe('hydra-tool-call-timeout-policy real-load-path guard', () => {
   it('has no default export and keeps name/inject through unwrapExports', () => {
     expect('default' in timeoutPolicy).toBe(false)
     const loader = Object.create(Loader.prototype) as Loader

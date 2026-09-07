@@ -10,19 +10,19 @@
   margin: 0 auto;
   width: calc(
     100% -
-    var(--bh-composer-side-clearance) -
-    var(--bh-composer-side-clearance) -
-    var(--bh-composer-dock-inset) -
-    var(--bh-composer-dock-inset) -
-    var(--bh-composer-dock-inset) -
-    var(--bh-composer-dock-inset)
+    var(--hydra-composer-side-clearance) -
+    var(--hydra-composer-side-clearance) -
+    var(--hydra-composer-dock-inset) -
+    var(--hydra-composer-dock-inset) -
+    var(--hydra-composer-dock-inset) -
+    var(--hydra-composer-dock-inset)
   );
   max-width: calc(
-    var(--bh-composer-card-max-width) -
-    var(--bh-composer-dock-inset) -
-    var(--bh-composer-dock-inset) -
-    var(--bh-composer-dock-inset) -
-    var(--bh-composer-dock-inset)
+    var(--hydra-composer-card-max-width) -
+    var(--hydra-composer-dock-inset) -
+    var(--hydra-composer-dock-inset) -
+    var(--hydra-composer-dock-inset) -
+    var(--hydra-composer-dock-inset)
   );
   border: 1px solid var(--dsw-alias-border-l1);
   border-radius: 12px;
@@ -32,8 +32,8 @@
      elevation tokens. Declared here because the elevation belongs to the
      surface, and the custom properties inherit down to `.list` (see ui-theme
      styles/scrollbar.css for the rebinding contract). */
-  --bh-scrollbar-thumb: var(--dsw-alias-scrollbar-bg-l2);
-  --bh-scrollbar-thumb-hover: var(--dsw-alias-scrollbar-hover-l2);
+  --hydra-scrollbar-thumb: var(--dsw-alias-scrollbar-bg-l2);
+  --hydra-scrollbar-thumb-hover: var(--dsw-alias-scrollbar-hover-l2);
 }
 
 .body {

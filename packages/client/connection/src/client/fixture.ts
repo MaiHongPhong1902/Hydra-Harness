@@ -256,7 +256,7 @@ const WEB_SEARCH_RESULT: Omit<Extract<ToolResultView, { card: 'web'; kind: 'sear
   answer: 'Hydra harness is a plugin-based agent harness on vendored Cordis where **every capability is a plugin**.',
   sources: [
     {
-      url: 'https://github.com/bosch/bosch-harness',
+      url: 'https://github.com/MaiHongPhong1902/Hydra-Harness',
       title: 'Hydra harness — plugin-based agent harness',
       snippet: 'Everything is a plugin: session, tools, agent-loop, and LLM adapters all mount on the same Cordis context.',
       publishedAt: '2026-07-01',
@@ -545,7 +545,7 @@ function buildAlphaLog(): SessionEvent[] {
   // the real tools so they hit the keyed WebRow registration. Ordered BEFORE
   // the todo turn for the same reason turn 66 is: the standing plan retires at
   // the next turn/start, so a turn after it would empty the dock's plan strip.
-  toolTurn(70, 'web_search', '{"queries":["bosch harness architecture"]}', 'Search results for bosch harness architecture.')
+  toolTurn(70, 'web_search', '{"queries":["hydra harness architecture"]}', 'Search results for hydra harness architecture.')
   toolTurn(71, 'web_fetch', '{"url":"https://www.deepseek.com/blog/harness-architecture"}', '# Harness architecture\n\nEverything is a plugin.')
 
   // Turn 72: max-tokens sample — the provider ends the turn at its output cap
@@ -1594,7 +1594,7 @@ function createFixtureWorld(options: FixtureOptions): FixtureWorld {
     [FIXTURE_HOME, ['Documents', 'Downloads', '.config']],
     [`${FIXTURE_HOME}/Documents`, [
       'project', 'deepseek-iOS', 'deepseek-android', 'deepseek-platform',
-      'deepseek-web', 'bosch-harness', 'deepseek-app', 'deepseek-landing-blog',
+      'deepseek-web', 'hydra-harness', 'deepseek-app', 'deepseek-landing-blog',
     ]],
   ])
   const childrenOf = (path: string): string[] | undefined => {
@@ -1904,7 +1904,7 @@ function createFixtureWorld(options: FixtureOptions): FixtureWorld {
             label,
             ...item.cwd === undefined ? {} : { cwd: item.cwd },
             createdAt: item.updatedAt,
-            mention: `@[${label}](bh-session:${encoded})`,
+            mention: `@[${label}](hydra-session:${encoded})`,
           }
         })
       return { ok: true, value }

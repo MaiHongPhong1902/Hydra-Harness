@@ -39,12 +39,12 @@ async function setup(config: Config = {}, internals: LocalSandboxProvider['inter
  * `sandbox-windows-acl/lib/runner.js`.
  */
 function absentRunnerEntry(): string {
-  return join(mkdtempSync(join(tmpdir(), 'bh-absent-acl-entry-')), 'runner.js')
+  return join(mkdtempSync(join(tmpdir(), 'hydra-absent-acl-entry-')), 'runner.js')
 }
 
 /** Write an executable fake `landlock-run` that answers `--probe` with `report`. */
 function fakeLauncher(report = 'landlock: fully enforced'): string {
-  const dir = mkdtempSync(join(tmpdir(), 'bh-fake-landlock-'))
+  const dir = mkdtempSync(join(tmpdir(), 'hydra-fake-landlock-'))
   const launcher = join(dir, 'landlock-run')
   writeFileSync(launcher, `#!/bin/sh\nif [ "$1" = "--probe" ]; then echo "${report}"; exit 0; fi\nexit ${LAUNCHER_FAILURE_EXIT}\n`, { mode: 0o755 })
   return launcher
@@ -52,7 +52,7 @@ function fakeLauncher(report = 'landlock: fully enforced'): string {
 
 /** Write an executable fake `sandbox-exec` that exits `status` for any invocation. */
 function fakeSeatbeltExec(status: number): string {
-  const dir = mkdtempSync(join(tmpdir(), 'bh-fake-seatbelt-'))
+  const dir = mkdtempSync(join(tmpdir(), 'hydra-fake-seatbelt-'))
   const exec = join(dir, 'sandbox-exec')
   writeFileSync(exec, `#!/bin/sh\nexit ${status}\n`, { mode: 0o755 })
   return exec
@@ -315,7 +315,7 @@ describe('the default landlock probe (launcher CLI contract)', () => {
   })
 
   it('reads a failing launcher as unusable: the chain ends and fails closed', async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'bh-fake-landlock-'))
+    const dir = mkdtempSync(join(tmpdir(), 'hydra-fake-landlock-'))
     const launcher = join(dir, 'landlock-run')
     writeFileSync(launcher, `#!/bin/sh\nexit ${LAUNCHER_FAILURE_EXIT}\n`, { mode: 0o755 })
     const { sandbox } = await setup({}, { platform: 'linux', probeBwrap: () => false, landlockLauncher: launcher })
@@ -336,7 +336,7 @@ describe('probeTimeoutMs config', () => {
     // keep a wide margin from the launcher's 1s runtime so a loaded host (where
     // spawnSync blocks the worker and fork/exec latency inflates wall-clock)
     // cannot flip either verdict; the vitest timeout clears the patient budget.
-    const dir = mkdtempSync(join(tmpdir(), 'bh-slow-landlock-'))
+    const dir = mkdtempSync(join(tmpdir(), 'hydra-slow-landlock-'))
     const launcher = join(dir, 'landlock-run')
     writeFileSync(launcher, '#!/bin/sh\nsleep 1\necho "landlock: fully enforced"\nexit 0\n', { mode: 0o755 })
 
@@ -439,7 +439,7 @@ describe('the windows-acl probe (runner invocation contract)', () => {
   })
 
   it('prefers the built lib/runner.js entry when the resolved file exists', async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'bh-fake-acl-entry-'))
+    const dir = mkdtempSync(join(tmpdir(), 'hydra-fake-acl-entry-'))
     const builtEntry = join(dir, 'runner.js')
     writeFileSync(builtEntry, '')
     const { sandbox } = await setup({}, {

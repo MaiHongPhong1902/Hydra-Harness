@@ -12,7 +12,7 @@ import {
   SIDEBAR_DEFAULT, SIDEBAR_MAX, SIDEBAR_MIN,
 } from '@hydra/harness-client-ui-layout/src/client/columns.ts'
 
-const PERSIST_KEY = 'bh.layout.panels'
+const PERSIST_KEY = 'hydra.layout.panels'
 
 beforeEach(() => { localStorage.clear() })
 

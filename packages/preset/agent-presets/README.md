@@ -48,7 +48,7 @@ The header stays frozen because it is a creation fact. A switch is an `agent-pre
 
 `recompose()` unmounts the installed subtree and mounts the new one, because two compositions cannot coexist — both would register the same tool names into one layer. A failed mount restores the previous composition rather than leaving the agent with nothing, and an unknown id is rejected before anything is torn down.
 
-The restriction to a produced-nothing agent is a product rule, not a mechanical one: swapping tools mid-conversation would leave logged tool calls the new composition cannot make. The gateway enforces it at the wire ([`bh-apiproxy`](../../host/apiproxy/README.md) answers `agent-preset-locked`), which is where session history is in hand.
+The restriction to a produced-nothing agent is a product rule, not a mechanical one: swapping tools mid-conversation would leave logged tool calls the new composition cannot make. The gateway enforces it at the wire ([`hydra-apiproxy`](../../host/apiproxy/README.md) answers `agent-preset-locked`), which is where session history is in hand.
 
 ## Authoring
 
@@ -87,17 +87,17 @@ Every read failure degrades to no metadata — absent, malformed, wrongly typed,
 |---|---|---|
 | `default` | required | Preset id mounted when a caller names none |
 | `roots` | `[]` | Scanned directories in precedence order; each supplies `path` (a leading `~` expands) and `trust` (defaults to `user`) |
-| `includeUserRoot` | `true` | Append `<bhHome>/.agent-presets` as a `user` root, after every configured root |
+| `includeUserRoot` | `true` | Append `<hydraHome>/.agent-presets` as a `user` root, after every configured root |
 
 An absent root supplies no presets rather than failing: the user root does not exist until the first locally authored preset, and naming a default no root supplies already fails loud at resolution.
 
 ### The writable root is this package's, the shipped root is the app's
 
-`<bhHome>/.agent-presets` is where a person's own presets live, the way `<bhHome>/skills` is where their own skills live ([`@hydra/harness-skill-filesystem`](../../skill/skill-filesystem/README.md)), so the roster derives it rather than waiting for a deployment to remember it — a launcher that configures nothing still finds and authors presets. It is appended AFTER every configured root, which keeps an earlier root winning a duplicate id: a shipped `standard` still shadows a home directory that claimed the name, and `copy()` refuses that id rather than landing a preset nothing would resolve.
+`<hydraHome>/.agent-presets` is where a person's own presets live, the way `<hydraHome>/skills` is where their own skills live ([`@hydra/harness-skill-filesystem`](../../skill/skill-filesystem/README.md)), so the roster derives it rather than waiting for a deployment to remember it — a launcher that configures nothing still finds and authors presets. It is appended AFTER every configured root, which keeps an earlier root winning a duplicate id: a shipped `standard` still shadows a home directory that claimed the name, and `copy()` refuses that id rather than landing a preset nothing would resolve.
 
 The roots are resolved once, when the service is constructed. A root set that changed between a `list()` and the `copy()` acting on its answer would author into a directory the caller never saw.
 
-`includeUserRoot: false` mounts a roster over `roots` alone. A deployment that confines presets to its own directories needs it, and so does any test pinning an exact roster — otherwise the machine's real `<bhHome>` decides what the roster contains.
+`includeUserRoot: false` mounts a roster over `roots` alone. A deployment that confines presets to its own directories needs it, and so does any test pinning an exact roster — otherwise the machine's real `<hydraHome>` decides what the roster contains.
 
 The SHIPPED root stays an assembly fact: it sits beside the installed app's own config, a path only that app can resolve.
 

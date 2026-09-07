@@ -412,7 +412,7 @@ export class LocalSandboxProvider extends SandboxProvider {
     const key = JSON.stringify([String(sessionId), workspaceRoot])
     const existing = this.tempCapabilities.get(key)
     if (existing !== undefined) return existing
-    const tempDir = mkdtempSync(join(tmpdir(), 'bh-'))
+    const tempDir = mkdtempSync(join(tmpdir(), 'hydra-'))
     const tempSid = tempWriteSid(tempDir)
     let grant: AclWriteGrant | undefined
     try {

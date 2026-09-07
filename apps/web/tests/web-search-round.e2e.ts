@@ -24,7 +24,7 @@ const UI_EXPECTED = fileURLToPath(new URL('./snapshots/web-search-round/ui.expec
 const MODE = webSnapshotMode()
 const QUERIES = ['Hydra harness snapshot search', 'Hydra harness multi-query search'] as const
 const PROMPT = `Use web_search once with queries ${JSON.stringify(QUERIES)}. Then reply exactly SEARCH_DONE and stop.`
-const SEARCH_CREDENTIAL_REF = credentialRef('BH_WEB_SEARCH_E2E_KEY')
+const SEARCH_CREDENTIAL_REF = credentialRef('HYDRA_WEB_SEARCH_E2E_KEY')
 const SEARCH_CREDENTIAL = 'snapshot-search-key'
 
 /**

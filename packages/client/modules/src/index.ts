@@ -1,7 +1,7 @@
 /**
- * Node half of the client module system (`bh.client` dual-face package): scans
- * the host Loader's entries for packages declaring `bh.client`, composes the
- * `window.__BH_BOOT__` entry graph (wire single source: {@link WebBootEntry}
+ * Node half of the client module system (`hydra.client` dual-face package): scans
+ * the host Loader's entries for packages declaring `hydra.client`, composes the
+ * `window.__HYDRA_BOOT__` entry graph (wire single source: {@link WebBootEntry}
  * in `./client/manifest.ts`) in module-graph order, serves
  * `/plugins/<id>/client.js` and its source map, contributes the boot manifest
  * plus the parser-blocking bootstrap preloads to the webserver's index
@@ -46,8 +46,8 @@ declare module '@hydra/cordis' {
   }
 }
 
-/** package.json `bh.client` declaration fields, validated one by one after reading the file. */
-interface BhClientDeclaration {
+/** package.json `hydra.client` declaration fields, validated one by one after reading the file. */
+interface HydraClientDeclaration {
   inject?: string[]
   platform: string
   /** Boot phase-one prefetch mark; absent means lazy (fetched on demand). */
@@ -70,7 +70,7 @@ interface WebBootRowFields {
   immediately: boolean
 }
 
-/** Resolved package metadata for one `bh.client` package (cached per name, never expires). */
+/** Resolved package metadata for one `hydra.client` package (cached per name, never expires). */
 interface PkgMeta extends WebBootRowFields {
   clientPath: string
 }
@@ -122,20 +122,20 @@ interface WebPluginRecord {
   meta: PkgMeta
 }
 
-/** Narrow an unknown parsed JSON value to the `bh.client` declaration, throwing on malformed fields. */
-function parseBhClient(pkgName: string, value: unknown): BhClientDeclaration | undefined {
+/** Narrow an unknown parsed JSON value to the `hydra.client` declaration, throwing on malformed fields. */
+function parseHydraClient(pkgName: string, value: unknown): HydraClientDeclaration | undefined {
   if (value === undefined) return undefined
   if (typeof value !== 'object' || value === null) {
-    throw new Error(`client-modules: ${pkgName} has a non-object bh.client declaration`)
+    throw new Error(`client-modules: ${pkgName} has a non-object hydra.client declaration`)
   }
   const decl = value as Record<string, unknown>
   if (typeof decl.platform !== 'string') {
-    throw new Error(`client-modules: ${pkgName} bh.client.platform must be a string`)
+    throw new Error(`client-modules: ${pkgName} hydra.client.platform must be a string`)
   }
-  const inject = optionalStringArray(pkgName, 'bh.client.inject', decl.inject)
-  const external = optionalStringArray(pkgName, 'bh.client.external', decl.external)
+  const inject = optionalStringArray(pkgName, 'hydra.client.inject', decl.inject)
+  const external = optionalStringArray(pkgName, 'hydra.client.external', decl.external)
   if (decl.immediately !== undefined && typeof decl.immediately !== 'boolean') {
-    throw new Error(`client-modules: ${pkgName} bh.client.immediately must be a boolean`)
+    throw new Error(`client-modules: ${pkgName} hydra.client.immediately must be a boolean`)
   }
   return {
     platform: decl.platform,
@@ -206,7 +206,7 @@ export function orderByModuleGraph(entries: readonly WebBootEntry[]): WebBootEnt
       if (dependency === entry) {
         throw new Error(
           `client-modules: "${entry.id}" requests module "${name}" that it answers itself `
-          + '— a row must not declare its own package in bh.client.external',
+          + '— a row must not declare its own package in hydra.client.external',
         )
       }
       if (dependency !== undefined) visit(dependency)
@@ -268,12 +268,12 @@ window.__ModuleLoader__={
   return [
     { kind: 'script', placement: 'head', text: queue },
     ...preload,
-    { kind: 'global', name: '__BH_BOOT__', value: graph },
+    { kind: 'global', name: '__HYDRA_BOOT__', value: graph },
   ]
 }
 
 /**
- * The web plugin table service: incremental `bh.client` scan + wire composition
+ * The web plugin table service: incremental `hydra.client` scan + wire composition
  * + bundle route + index injection rows. Construction runs the activation scan
  * synchronously — a malformed declaration or missing bundle among the
  * already-loaded entries aggregates into one loud throw (FAILED fiber; the
@@ -284,7 +284,7 @@ export class ClientModuleRegistry extends Service {
 
   private readonly table = new Map<string, WebPluginRecord>()
   // Negative verdicts (unresolvable specifier — builtins like cordis:include,
-  // subpath rows — or a package without a web `bh.client` declaration) are
+  // subpath rows — or a package without a web `hydra.client` declaration) are
   // cached as null and never expire: plugin-set changes take effect on restart.
   private readonly pkgMeta = new Map<string, PkgMeta | null>()
   private readonly rebuildListeners = new Set<(id: string, rev: string) => void>()
@@ -347,7 +347,7 @@ export class ClientModuleRegistry extends Service {
 
   /**
    * Current composed entry graph (stable object between changes).
-   * @returns the graph served as `window.__BH_BOOT__`.
+   * @returns the graph served as `window.__HYDRA_BOOT__`.
    */
   graph(): WebBootGraph {
     return this.composed
@@ -439,10 +439,10 @@ export class ClientModuleRegistry extends Service {
       return null
     }
     const pkg = JSON.parse(readFileSync(pkgPath, 'utf8')) as Record<string, unknown>
-    const bh = pkg.bh
-    const decl = parseBhClient(
+    const hydra = pkg.hydra
+    const decl = parseHydraClient(
       pkgName,
-      bh !== null && typeof bh === 'object' ? (bh as Record<string, unknown>).client : undefined,
+      hydra !== null && typeof hydra === 'object' ? (hydra as Record<string, unknown>).client : undefined,
     )
     if (decl === undefined || decl.platform !== 'web') {
       this.pkgMeta.set(pkgName, null)
@@ -450,7 +450,7 @@ export class ClientModuleRegistry extends Service {
     }
     const clientRel = clientExportOf(pkgName, pkg.exports)
     if (clientRel === undefined) {
-      throw new Error(`client-modules: ${pkgName} declares bh.client but exports no "./client" bundle`)
+      throw new Error(`client-modules: ${pkgName} declares hydra.client but exports no "./client" bundle`)
     }
     const meta: PkgMeta = {
       clientPath: join(dirname(pkgPath), clientRel),

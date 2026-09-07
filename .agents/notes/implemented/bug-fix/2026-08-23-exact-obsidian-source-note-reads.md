@@ -8,7 +8,7 @@ The former search tool returned bounded excerpts for discovery, while the Browse
 
 ## Decision
 
-`obsidian-knowledge` exposes `obsidian_knowledge_read` beside contextual recall and current Browser evidence. It accepts exact extensionless paths returned by recall and returns complete Markdown notes in first-occurrence request order. One call accepts at most 32 paths and 64 KiB total; it fails the entire batch for missing, invalid, non-file, out-of-root, or oversized input instead of returning partial or truncated evidence. Canonical path containment prevents a symlink or junction from escaping `BH Website Knowledge/`.
+`obsidian-knowledge` exposes `obsidian_knowledge_read` beside contextual recall and current Browser evidence. It accepts exact extensionless paths returned by recall and returns complete Markdown notes in first-occurrence request order. One call accepts at most 32 paths and 64 KiB total; it fails the entire batch for missing, invalid, non-file, out-of-root, or oversized input instead of returning partial or truncated evidence. Canonical path containment prevents a symlink or junction from escaping `Hydra Website Knowledge/`.
 
 The production read backend is owned by [Obsidian MCP as the knowledge read backend](../feature/2026-08-23-obsidian-mcp-knowledge-reads.md): live MCP reads preserve this exact-path contract and fail closed rather than discovering notes through the filesystem. The contained filesystem reader remains isolated test support.
 

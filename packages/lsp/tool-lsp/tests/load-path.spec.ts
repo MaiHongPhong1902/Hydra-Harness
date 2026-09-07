@@ -9,7 +9,7 @@ import { describe, expect, it } from 'vitest'
 import Loader from '@hydra/cordis-plugin-loader'
 import * as toolLsp from '@hydra/harness-tool-lsp'
 
-describe('bh-tool-lsp Loader export-shape guard', () => {
+describe('hydra-tool-lsp Loader export-shape guard', () => {
   it('has no default export and keeps name/inject/Config through unwrapExports', () => {
     expect('default' in toolLsp).toBe(false)
 

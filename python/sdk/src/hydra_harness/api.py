@@ -62,10 +62,10 @@ class HydraHarness:
         self._cwd = cwd
         env = dict(self.config.env)
         if self.config.session_root is not None:
-            env["BH_SESSION_ROOT"] = self.config.session_root
+            env["HYDRA_SESSION_ROOT"] = self.config.session_root
         if self.config.cordis is not None:
-            env["BH_CORDIS_CONFIG"] = self.config.cordis
-        env["BH_CWD"] = cwd
+            env["HYDRA_CORDIS_CONFIG"] = self.config.cordis
+        env["HYDRA_CWD"] = cwd
         if self.config.base_url is not None:
             env["DEEPSEEK_BASE_URL"] = self.config.base_url
         if self.config.api_key is not None:

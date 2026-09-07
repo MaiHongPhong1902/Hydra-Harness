@@ -11,7 +11,7 @@ import { LocalSandboxProvider } from '@hydra/harness-sandbox-local'
 
 /**
  * Keyless backend integration through `confine()` and the workspace `landlock-run` launcher, with
- * bwrap forced off. Tests assert real world effects; consumer coverage lives in bh-bash-sandbox.
+ * bwrap forced off. Tests assert real world effects; consumer coverage lives in hydra-bash-sandbox.
  * Skips when the platform package or enforcing kernel is unavailable. HOME-based workspaces avoid
  * Landlock's wholesale `/tmp` grant, so workspace-write proves the workspace-root grant itself.
  */
@@ -31,7 +31,7 @@ afterEach(async () => {
 })
 
 async function tempDir(base: string): Promise<string> {
-  const dir = await mkdtemp(join(base, 'bh-landlock-e2e-'))
+  const dir = await mkdtemp(join(base, 'hydra-landlock-e2e-'))
   tempDirs.push(dir)
   return dir
 }
@@ -75,7 +75,7 @@ describe.skipIf(!landlockUsable)('sandbox-local: real Landlock confinement throu
     // the persistent host effect read-only promises never happen.
     const workdir = await tempDir(tmpdir())
     const sandbox = await provider()
-    const target = `/dev/shm/bh-landlock-e2e-${process.pid}`
+    const target = `/dev/shm/hydra-landlock-e2e-${process.pid}`
     const { result } = runConfined(sandbox, `echo hi > ${target}`, { mode: 'read-only', workspaceRoot: workdir })
     expect(result.status).not.toBe(0)
     expect(existsSync(target)).toBe(false)

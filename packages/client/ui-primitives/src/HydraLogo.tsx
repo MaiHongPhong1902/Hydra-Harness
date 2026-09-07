@@ -10,7 +10,7 @@ import css from './HydraLogo.module.css'
  * Render the supplied Hydra artwork, playing only while the pointer hovers over it.
  * @param props.size - Square size in pixels; defaults to 24.
  * @param props.className - Optional layout class.
- * @returns The logo SVG with its embedded image.
+ * @returns The logo SVG with its image hrefs.
  */
 export function HydraLogo({ size = 24, className }: IconProps) {
   const [playing, setPlaying] = useState(false)

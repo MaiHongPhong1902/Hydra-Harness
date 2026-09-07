@@ -1,6 +1,6 @@
 /**
- * Shared profile boot for every `bh` surface: resolve the profile, stack its
- * patch layers (bundle layers in `bh.profile.bundles` order, the profile's
+ * Shared profile boot for every `hydra` surface: resolve the profile, stack its
+ * patch layers (bundle layers in `hydra.profile.bundles` order, the profile's
  * own `cordis.patch.yml`, `--patch` overlays, the telemetry switch), mount the
  * tree over the profile's empty root config, keep the profile patch layer
  * live, and wire fail-loud plus bounded shutdown.
@@ -29,38 +29,38 @@ import {
   watchUserPatches,
   type Profile,
 } from '@hydra/harness-app-boot'
-import { resolveBhHome } from '@hydra/harness-home-paths'
+import { resolveHydraHome } from '@hydra/harness-home-paths'
 
 /** Shipped agent-preset root: beside this app's own config, in both source and built layouts. */
 const SHIPPED_PRESET_ROOT = fileURLToPath(new URL('../config/agent-presets/', import.meta.url))
 
-import { BH_LAUNCH_ENVIRONMENT_KEY, type LaunchEnvironmentSnapshot } from '@hydra/harness-launch-environment'
+import { HYDRA_LAUNCH_ENVIRONMENT_KEY, type LaunchEnvironmentSnapshot } from '@hydra/harness-launch-environment'
 import { provideCmdline } from '@hydra/harness-cmdline'
 import { createProcessShutdown, type ProcessShutdown } from './process-shutdown.ts'
 
-const NAME = 'bh'
+const NAME = 'hydra'
 
 /**
- * The home-level user patch layer (`$BH_HOME/cordis.patch.yml`), applied
+ * The home-level user patch layer (`$HYDRA_HOME/cordis.patch.yml`), applied
  * over every profile's own layer. Resolved per call, not at module load:
- * `$BH_HOME` may be set by the test or launcher after import.
+ * `$HYDRA_HOME` may be set by the test or launcher after import.
  * @returns the absolute patch-file path.
  */
 export function homePatchPath(): string {
-  return join(resolveBhHome(), PROFILE_PATCH_FILENAME)
+  return join(resolveHydraHome(), PROFILE_PATCH_FILENAME)
 }
 
-/** Absolute path of this bh installation's package.json (both anchors: src/ and lib/ sit one level under apps/cli). */
+/** Absolute path of this hydra installation's package.json (both anchors: src/ and lib/ sit one level under apps/cli). */
 export const INSTALL_ANCHOR = fileURLToPath(new URL('../package.json', import.meta.url))
 
-/** The session-telemetry row id the BH_TELEMETRY_DISABLED switch targets. */
+/** The session-telemetry row id the HYDRA_TELEMETRY_DISABLED switch targets. */
 const TELEMETRY_ROW_ID = 'session-telemetry-otel'
 /** Module reused for config-only HMR instead of creating a duplicate row. */
 const HMR_MODULE = '@hydra/cordis-plugin-hmr'
 
 /** The empty root entry list every profile tree patches over. */
-const PROFILE_ROOT_CONFIG = `# bh profile root — an empty entry list. The tree is composed as patches:
-# each bundle in package.json's bh.profile.bundles, then cordis.patch.yml, then any
+const PROFILE_ROOT_CONFIG = `# hydra profile root — an empty entry list. The tree is composed as patches:
+# each bundle in package.json's hydra.profile.bundles, then cordis.patch.yml, then any
 # --patch overlays. Edit cordis.patch.yml, not this file.
 []
 `
@@ -75,7 +75,7 @@ export const PROFILE_ROOT_FILENAME = 'cordis.yml'
  * exports nothing, so the switch is then trivially satisfied and no patch is
  * generated — custom profiles need not mount telemetry to run with the
  * switch set.
- * @param disabledEnv - the raw `BH_TELEMETRY_DISABLED` value (`undefined` when unset).
+ * @param disabledEnv - the raw `HYDRA_TELEMETRY_DISABLED` value (`undefined` when unset).
  * @param hasRow - whether the composition carries the telemetry row.
  * @returns the disable patch, or `undefined` when no hard-disable patch is required.
  */
@@ -116,7 +116,7 @@ interface ComposedProfile {
   profile: Profile
   /** Bundle layers concatenated — the part below the user layers on a live reload. */
   bundlePatches: PatchOptions[]
-  /** The home-level user layer (`$BH_HOME/cordis.patch.yml`), applied after the profile's own. */
+  /** The home-level user layer (`$HYDRA_HOME/cordis.patch.yml`), applied after the profile's own. */
   homePatches: PatchOptions[]
   /** Boot-only root switches, frozen so a manifest write waits for the next start. */
   pluginEnablementPatches: PatchOptions[]
@@ -142,9 +142,9 @@ function allPatches(composed: ComposedProfile): PatchOptions[] {
 
 /**
  * Load `name` and compose its effective patch stack: bundle layers in
- * `bh.profile.bundles` order (the base bundle gates the shell stacks by
+ * `hydra.profile.bundles` order (the base bundle gates the shell stacks by
  * platform on its own rows), the profile's user layer, the home-level user
- * layer (`$BH_HOME/cordis.patch.yml` — machine-local preferences that apply
+ * layer (`$HYDRA_HOME/cordis.patch.yml` — machine-local preferences that apply
  * to every profile, so it outranks the per-profile layer), `--patch` overlays,
  * then the telemetry switch.
  * @param name - the profile name.
@@ -188,7 +188,7 @@ function composeProfile(
       },
     })
   }
-  const telemetryPatch = resolveTelemetryPatch(process.env.BH_TELEMETRY_DISABLED, rows.has(TELEMETRY_ROW_ID))
+  const telemetryPatch = resolveTelemetryPatch(process.env.HYDRA_TELEMETRY_DISABLED, rows.has(TELEMETRY_ROW_ID))
   if (telemetryPatch !== undefined) composedOverlays.push(telemetryPatch)
   return {
     profile, bundlePatches, homePatches, pluginEnablementPatches, overlays: composedOverlays, rows,
@@ -275,7 +275,7 @@ export async function runProfile(options: RunProfileOptions): Promise<{ ctx: Con
     app.current = hostCtx
     // Before any config-tree entry mounts, so plugins resolve all launch-time
     // environment values from the same immutable provenance snapshot.
-    hostCtx.provide(BH_LAUNCH_ENVIRONMENT_KEY, options.environment)
+    hostCtx.provide(HYDRA_LAUNCH_ENVIRONMENT_KEY, options.environment)
     // The command line and bounded exit request are launcher facts available
     // to every app plugin that injects the argument snapshot.
     provideCmdline(hostCtx, {

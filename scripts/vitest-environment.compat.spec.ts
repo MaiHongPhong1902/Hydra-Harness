@@ -6,9 +6,9 @@ describe('Vitest jsdom compatibility', () => {
     if (process.allowedNodeEnvironmentFlags.has('--webstorage')) {
       expect(process.execArgv.filter(argument => argument === '--no-webstorage')).toHaveLength(1)
     }
-    localStorage.setItem('bh-vitest-storage-probe', 'available')
+    localStorage.setItem('hydra-vitest-storage-probe', 'available')
 
-    expect(localStorage.getItem('bh-vitest-storage-probe')).toBe('available')
-    localStorage.removeItem('bh-vitest-storage-probe')
+    expect(localStorage.getItem('hydra-vitest-storage-probe')).toBe('available')
+    localStorage.removeItem('hydra-vitest-storage-probe')
   })
 })

@@ -58,9 +58,9 @@ def _client(tmp_path: Path, launch_args: tuple[str, ...]) -> HarnessClient:
             launch_args_override=launch_args,
             cwd=str(tmp_path),
             env={
-                "BH_CORDIS_CONFIG": "./cordis.yml",
-                "BH_SESSION_ROOT": str(tmp_path / "sessions"),
-                "BH_CWD": str(tmp_path),
+                "HYDRA_CORDIS_CONFIG": "./cordis.yml",
+                "HYDRA_SESSION_ROOT": str(tmp_path / "sessions"),
+                "HYDRA_CWD": str(tmp_path),
                 # The lazily mounted adapter requires a key even without a model call.
                 "DEEPSEEK_API_KEY": "sk-dummy-for-boot",
                 "DEEPSEEK_BASE_URL": "http://127.0.0.1:9",
@@ -79,7 +79,7 @@ def test_bundled_runtime_boots_a_cordis_config(tmp_path: Path, mode: str) -> Non
         init = client.initialize(provider="deepseek-official", cwd=str(tmp_path), model="deepseek-v4-pro")
 
     assert init.serverInfo is not None
-    assert init.serverInfo.name == "bosch-harness-sdk-runtime"
+    assert init.serverInfo.name == "hydra-harness-sdk-runtime"
 
 
 @pytest.mark.parametrize("mode", _MODES)
@@ -92,9 +92,9 @@ def test_python_sdk_boots_minimal_jsonrpc_config(tmp_path: Path, mode: str) -> N
         session_root=str(tmp_path / "sessions"),
         cordis=str(_MINIMAL_CONFIG),
         env={
-            "BH_MODEL": model,
-            "BH_CONTEXT_WINDOW": "1000000",
-            "BH_SYSTEM_PROMPT": "You are the Python SDK minimal boot test agent.",
+            "HYDRA_MODEL": model,
+            "HYDRA_CONTEXT_WINDOW": "1000000",
+            "HYDRA_SYSTEM_PROMPT": "You are the Python SDK minimal boot test agent.",
         },
         api_key="sk-dummy-for-boot",
         base_url="http://127.0.0.1:9",
@@ -130,11 +130,11 @@ def test_zero_config_run_injects_bundled_default_cordis_config(
     tmp_path: Path, mode: str, ambient_config: str | None, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     _launch_args(mode)  # skip early when this carrier is unavailable
-    monkeypatch.setenv("BH_RUNTIME_MODE", mode)
+    monkeypatch.setenv("HYDRA_RUNTIME_MODE", mode)
     if ambient_config is None:
-        monkeypatch.delenv("BH_CORDIS_CONFIG", raising=False)
+        monkeypatch.delenv("HYDRA_CORDIS_CONFIG", raising=False)
     else:
-        monkeypatch.setenv("BH_CORDIS_CONFIG", ambient_config)
+        monkeypatch.setenv("HYDRA_CORDIS_CONFIG", ambient_config)
 
     harness = HydraHarness(
         model="deepseek-v4-pro",

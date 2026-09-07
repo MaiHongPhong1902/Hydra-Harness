@@ -556,14 +556,14 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
   },
   {
     key: 'clientModules',
-    summary: 'The web plugin table service: incremental `bh.client` scan + wire composition + bundle route + index injection rows.',
-    description: 'The web plugin table service: incremental `bh.client` scan + wire composition + bundle route + index injection rows. Construction runs the activation scan synchronously — a malformed declaration or missing bundle among the already-loaded entries aggregates into one loud throw (FAILED fiber; the boot activation audit reports it).',
+    summary: 'The web plugin table service: incremental `hydra.client` scan + wire composition + bundle route + index injection rows.',
+    description: 'The web plugin table service: incremental `hydra.client` scan + wire composition + bundle route + index injection rows. Construction runs the activation scan synchronously — a malformed declaration or missing bundle among the already-loaded entries aggregates into one loud throw (FAILED fiber; the boot activation audit reports it).',
     methods: [
       {
         signature: 'graph(): WebBootGraph',
         description: 'Current composed entry graph (stable object between changes).',
         parameters: [],
-        returns: 'the graph served as `window.__BH_BOOT__`.',
+        returns: 'the graph served as `window.__HYDRA_BOOT__`.',
       },
       {
         signature: 'clientPath(id: string): string | undefined',
@@ -1897,8 +1897,8 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
   },
   {
     key: 'shellEnv',
-    summary: 'Registry (`ctx.shellEnv`) for trusted, per-execution `BH_*` variables.',
-    description: 'Registry (`ctx.shellEnv`) for trusted, per-execution `BH_*` variables. The namespace is rebuilt for every model shell call: ambient `BH_*` values are discarded by the executor, then the registry\'s current snapshot is injected. Built-in shell facts remain owned by the registry itself while plugins can register additional, enumerable facts with effect-scoped disposal.',
+    summary: 'Registry (`ctx.shellEnv`) for trusted, per-execution `HYDRA_*` variables.',
+    description: 'Registry (`ctx.shellEnv`) for trusted, per-execution `HYDRA_*` variables. The namespace is rebuilt for every model shell call: ambient `HYDRA_*` values are discarded by the executor, then the registry\'s current snapshot is injected. Built-in shell facts remain owned by the registry itself while plugins can register additional, enumerable facts with effect-scoped disposal.',
     methods: [
       {
         signature: 'register(contributor: BashEnvContributor): () => void',
@@ -1907,8 +1907,8 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'the disposer that unregisters the contribution.',
       },
       {
-        signature: 'collect(execution: ToolExecution): BhEnvironment',
-        description: 'Build the trusted `BH_*` snapshot for one shell tool execution.',
+        signature: 'collect(execution: ToolExecution): HydraEnvironment',
+        description: 'Build the trusted `HYDRA_*` snapshot for one shell tool execution.',
         parameters: [{ name: 'execution', description: 'the current tool execution.' }],
         returns: 'an immutable environment overlay containing built-ins and current contributions.',
       },
@@ -3282,7 +3282,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'BashEnvContributor',
-    declaration: 'export interface BashEnvContributor {\n    name: string;\n    variables: Readonly<Record<BhEnvironmentKey, BashEnvVariable>>;\n    resolve(execution: ToolExecution): Readonly<Partial<Record<BhEnvironmentKey, string>>>;\n}',
+    declaration: 'export interface BashEnvContributor {\n    name: string;\n    variables: Readonly<Record<HydraEnvironmentKey, BashEnvVariable>>;\n    resolve(execution: ToolExecution): Readonly<Partial<Record<HydraEnvironmentKey, string>>>;\n}',
   },
   {
     name: 'BashEnvVariable',
@@ -3290,15 +3290,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'BashEnvVariableInfo',
-    declaration: 'export interface BashEnvVariableInfo extends BashEnvVariable {\n    contributor: string;\n    key: BhEnvironmentKey;\n}',
-  },
-  {
-    name: 'BhEnvironment',
-    declaration: 'export type BhEnvironment = Readonly<Record<BhEnvironmentKey, string>>;',
-  },
-  {
-    name: 'BhEnvironmentKey',
-    declaration: 'export type BhEnvironmentKey = `${typeof BH_ENV_PREFIX}${string}`;',
+    declaration: 'export interface BashEnvVariableInfo extends BashEnvVariable {\n    contributor: string;\n    key: HydraEnvironmentKey;\n}',
   },
   {
     name: 'Branded',
@@ -3805,6 +3797,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type HookTrustState = \'not-applicable\' | \'pending\' | \'trusted\';',
   },
   {
+    name: 'HydraEnvironment',
+    declaration: 'export type HydraEnvironment = Readonly<Record<HydraEnvironmentKey, string>>;',
+  },
+  {
+    name: 'HydraEnvironmentKey',
+    declaration: 'export type HydraEnvironmentKey = `${typeof HYDRA_ENV_PREFIX}${string}`;',
+  },
+  {
     name: 'ImageAttachmentLimits',
     declaration: 'export interface ImageAttachmentLimits {\n    maxImageBytes: number;\n    maxImagesPerMessage: number;\n    maxMessageImageBytes: number;\n    maxImagePixels: number;\n    maxImageDimension: number;\n    mediaTypes: readonly ImageMediaType[];\n}',
   },
@@ -4234,7 +4234,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'PluginStore',
-    declaration: 'export class PluginStore {\n    readonly cacheRoot: string;\n    readonly dataRoot: string;\n    readonly registryPath: string;\n    constructor(readonly home = resolveBhHome());\n    async list(): Promise<ReadonlyMap<string, StoredPlugin>>;\n    async get(identity: string): Promise<StoredPlugin | undefined>;\n    async install(source: PluginImportSource): Promise<string>;\n    async update(identity: string, mutation: (entry: StoredPlugin) => void): Promise<void>;\n    async remove(identity: string): Promise<StoredPlugin | undefined>;\n    bundlePath(entry: StoredPlugin): string;\n    dataPath(entry: StoredPlugin): string;\n    async load(entry: StoredPlugin, identity: string): Promise<LoadedPlugin>;\n}',
+    declaration: 'export class PluginStore {\n    readonly cacheRoot: string;\n    readonly dataRoot: string;\n    readonly registryPath: string;\n    constructor(readonly home = resolveHydraHome());\n    async list(): Promise<ReadonlyMap<string, StoredPlugin>>;\n    async get(identity: string): Promise<StoredPlugin | undefined>;\n    async install(source: PluginImportSource): Promise<string>;\n    async update(identity: string, mutation: (entry: StoredPlugin) => void): Promise<void>;\n    async remove(identity: string): Promise<StoredPlugin | undefined>;\n    bundlePath(entry: StoredPlugin): string;\n    dataPath(entry: StoredPlugin): string;\n    async load(entry: StoredPlugin, identity: string): Promise<LoadedPlugin>;\n}',
   },
   {
     name: 'PluginTrustStore',
@@ -4766,11 +4766,11 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ShellExecRequest',
-    declaration: 'export interface ShellExecRequest {\n    command: string;\n    workdir?: string | undefined;\n    timeoutMs?: number | undefined;\n    stdoutMaxBytes?: number | undefined;\n    signal?: AbortSignal | undefined;\n    stdin?: string | undefined;\n    env?: Record<string, string> | undefined;\n    bhEnv?: BhEnvironment | undefined;\n    sandboxPolicy?: SandboxExecutionPolicy | undefined;\n}',
+    declaration: 'export interface ShellExecRequest {\n    command: string;\n    workdir?: string | undefined;\n    timeoutMs?: number | undefined;\n    stdoutMaxBytes?: number | undefined;\n    signal?: AbortSignal | undefined;\n    stdin?: string | undefined;\n    env?: Record<string, string> | undefined;\n    hydraEnv?: HydraEnvironment | undefined;\n    sandboxPolicy?: SandboxExecutionPolicy | undefined;\n}',
   },
   {
     name: 'ShellExecSpec',
-    declaration: 'export interface ShellExecSpec {\n    command: string;\n    workdir: string;\n    timeoutMs: number;\n    stdoutMaxBytes: number;\n    signal?: AbortSignal | undefined;\n    stdin?: string | undefined;\n    env?: Record<string, string> | undefined;\n    bhEnv?: BhEnvironment | undefined;\n    sandboxPolicy: SandboxExecutionPolicy | undefined;\n}',
+    declaration: 'export interface ShellExecSpec {\n    command: string;\n    workdir: string;\n    timeoutMs: number;\n    stdoutMaxBytes: number;\n    signal?: AbortSignal | undefined;\n    stdin?: string | undefined;\n    env?: Record<string, string> | undefined;\n    hydraEnv?: HydraEnvironment | undefined;\n    sandboxPolicy: SandboxExecutionPolicy | undefined;\n}',
   },
   {
     name: 'ShellProcess',
@@ -4834,7 +4834,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SkillSource',
-    declaration: 'export type SkillSource = \'project-bh\' | \'project-agents\' | \'runtime\' | \'user-bh\' | \'user-agents\' | \'custom\' | \'bundled\' | (string & {});',
+    declaration: 'export type SkillSource = \'project-hydra\' | \'project-agents\' | \'runtime\' | \'user-hydra\' | \'user-agents\' | \'custom\' | \'bundled\' | (string & {});',
   },
   {
     name: 'SkillSummary',

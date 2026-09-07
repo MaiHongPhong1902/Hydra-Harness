@@ -72,7 +72,7 @@ The generated scoped-event subject resolver lives in `@hydra/harness-scope`, bes
 
 ### Example composition and SDK output
 
-The example agent spine mounts the service and all four stateful companion subpaths, forwarding `enabled`, `package_allowlist`, and `package_blocklist` to the service. Generated SDK Cordis composition emits the same entries. A subpath entry adds its installable root npm package rather than treating the subpath as a package name. The shipped `bh` TUI and Web config trees omit the service and companions under the [shipped-config decision](../simplification/2026-08-03-omit-invariants-from-shipped-config.md).
+The example agent spine mounts the service and all four stateful companion subpaths, forwarding `enabled`, `package_allowlist`, and `package_blocklist` to the service. Generated SDK Cordis composition emits the same entries. A subpath entry adds its installable root npm package rather than treating the subpath as a package name. The shipped `hydra` TUI and Web config trees omit the service and companions under the [shipped-config decision](../simplification/2026-08-03-omit-invariants-from-shipped-config.md).
 
 Workspace constraints recognize the separate invariant bundle, and package exports, project references, build configuration, dependency declarations, and the lockfile describe the same publication metadata. Generated config catalogs, module graphs, and API documentation derive from those sources.
 

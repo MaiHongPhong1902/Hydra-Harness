@@ -27,8 +27,8 @@ async function setGate(next: Promise<void>): Promise<void> {
   mocked.__setGate(next)
 }
 
-const KEY = credentialRef('BH_CRED_DRAIN_A')
-const OTHER = credentialRef('BH_CRED_DRAIN_B')
+const KEY = credentialRef('HYDRA_CRED_DRAIN_A')
+const OTHER = credentialRef('HYDRA_CRED_DRAIN_B')
 const RECORD = credentialKey('llm-drain', 'alpha')
 const OTHER_RECORD = credentialKey('llm-drain', 'beta')
 
@@ -41,7 +41,7 @@ afterEach(async () => {
 
 describe('write-drain teardown', () => {
   it('lets the in-flight write land and fails the queued one after disposal', async () => {
-    const dir = await mkdtemp(join(tmpdir(), 'bh-credentials-drain-'))
+    const dir = await mkdtemp(join(tmpdir(), 'hydra-credentials-drain-'))
     cleanups.push(() => rm(dir, { recursive: true, force: true }))
     const ctx = new Context()
     const fiber = ctx.plugin(LocalCredentialProvider, { path: join(dir, '.credentials.yaml'), watch: false })
@@ -72,7 +72,7 @@ describe('write-drain teardown', () => {
   })
 
   it('fails a queued record write after disposal on the same terms', async () => {
-    const dir = await mkdtemp(join(tmpdir(), 'bh-credentials-drain-record-'))
+    const dir = await mkdtemp(join(tmpdir(), 'hydra-credentials-drain-record-'))
     cleanups.push(() => rm(dir, { recursive: true, force: true }))
     const ctx = new Context()
     const fiber = ctx.plugin(LocalCredentialProvider, { path: join(dir, '.credentials.yaml'), watch: false })

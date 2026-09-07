@@ -8,7 +8,7 @@ import config from './config.json' with { type: 'json' }
 
 const API_VERSION = '2026-03-10'
 const BODY_LIMIT = 50
-const AUDIT_MARKER = '<!-- bh-issue-policy -->'
+const AUDIT_MARKER = '<!-- hydra-issue-policy -->'
 const OWNER_LINE = /^Owner: @([A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?)$/
 const TYPES = new Set(['Idea', 'Feature', 'Bug', 'Research', 'Task'])
 const PRIORITIES = ['p0', 'p1', 'p2', 'p3']
@@ -392,7 +392,7 @@ async function api(path, options = {}) {
       Accept: 'application/vnd.github+json',
       Authorization: `Bearer ${token()}`,
       'X-GitHub-Api-Version': API_VERSION,
-      'User-Agent': 'bh-issue-policy',
+      'User-Agent': 'hydra-issue-policy',
       ...options.headers,
     },
   })
@@ -457,6 +457,17 @@ async function projectContext(number, includeStatusActor = false) {
           }
         }
       }
+      user(login: $organization) {
+        projectV2(number: $project) {
+          id
+          title
+          fields(first: 50) {
+            nodes {
+              ... on ProjectV2SingleSelectField { id name options { id name } }
+            }
+          }
+        }
+      }
       repository(owner: $organization, name: $repository) {
         issue(number: $number) {
           id
@@ -490,7 +501,7 @@ async function projectContext(number, includeStatusActor = false) {
       includeStatusActor,
     },
   )
-  const project = data.organization?.projectV2
+  const project = data.organization?.projectV2 ?? data.user?.projectV2
   const issue = data.repository?.issue
   if (!project || project.title !== config.projectTitle) throw new Error('Target Project does not exist or its title does not match')
   if (!issue) throw new Error(`#${number} does not exist`)

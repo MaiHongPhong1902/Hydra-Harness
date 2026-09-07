@@ -48,7 +48,7 @@ declare module '@hydra/cordis' {
      * Scope-filtered dispatch (`@hydra/harness-scope`): agent-scoped listeners
      * receive only sessions entered through that agent's context.
      * @param session - the session just entered and announced.
-     * @bhScopeScan unsupported
+     * @hydraScopeScan unsupported
      * @mode emit
      */
     'session/created'(this: Scoped<Session>, session: Session): void
@@ -58,7 +58,7 @@ declare module '@hydra/cordis' {
      * did not begin. Listener failures are logged and contained.
      * Scope-filtered dispatch (`@hydra/harness-scope`) reuses the owner scope.
      * @param session - the session that is no longer live in the store.
-     * @bhScopeScan unsupported
+     * @hydraScopeScan unsupported
      * @mode emit
      */
     'session/disposed'(this: Scoped<Session>, session: Session): void
@@ -70,7 +70,7 @@ declare module '@hydra/cordis' {
      * receive only events from sessions entered through that agent's context.
      * @param session - the session whose log grew.
      * @param event - the appended event, exactly as recorded.
-     * @bhScopeScan unsupported
+     * @hydraScopeScan unsupported
      * @mode emit
      */
     'session/event'(this: Scoped<Session>, session: Session, event: SessionEvent): void
@@ -79,7 +79,7 @@ declare module '@hydra/cordis' {
      * caller awaits all of them, with no waterfall veto. Scope-filtered dispatch
      * (`@hydra/harness-scope`) reuses the session's owner scope.
      * @param session - the session whose buffered events must reach durable storage.
-     * @bhScopeScan unsupported
+     * @hydraScopeScan unsupported
      * @mode parallel
      */
     'session/flush'(this: Scoped<Session>, session: Session): Promise<void> | void

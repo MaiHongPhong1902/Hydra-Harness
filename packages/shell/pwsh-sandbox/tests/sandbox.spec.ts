@@ -27,7 +27,7 @@ function pwshAvailable(): boolean {
   return spawnSync(resolvePwshPath(), ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command', '$true'], { encoding: 'utf8' }).status === 0
 }
 
-const spillDir = mkdtempSync(join(tmpdir(), 'bh-pwsh-sandbox-spec-'))
+const spillDir = mkdtempSync(join(tmpdir(), 'hydra-pwsh-sandbox-spec-'))
 
 /** One recorded provider call: the argv handed over and the policy it rode with. */
 interface ConfineCall {
@@ -75,7 +75,7 @@ async function setup(
 }
 
 describe('helpers (pure)', () => {
-  const workdir = mkdtempSync(join(tmpdir(), 'bh-pwsh-sandbox-helpers-'))
+  const workdir = mkdtempSync(join(tmpdir(), 'hydra-pwsh-sandbox-helpers-'))
   afterAll(() => {
     rmSync(workdir, { recursive: true, force: true })
   })
@@ -155,7 +155,7 @@ describe.skipIf(!pwshAvailable())('SandboxPwshExecutor', () => {
   // unit tests never attempt writes outside the system temp directory. On
   // win32 there is no POSIX mode denial; the real-sandbox denial coverage
   // lives in tests/acl.e2e.ts, where the ACL runner denies scratch paths.
-  const readOnlyDir = mkdtempSync(join(tmpdir(), 'bh-pwsh-sandbox-ro-'))
+  const readOnlyDir = mkdtempSync(join(tmpdir(), 'hydra-pwsh-sandbox-ro-'))
   if (process.platform !== 'win32') chmodSync(readOnlyDir, 0o555)
   const deniedWriteCommand = `[IO.File]::WriteAllText('${join(readOnlyDir, 'probe.txt')}', 'x')`
 

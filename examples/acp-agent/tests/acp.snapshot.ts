@@ -20,7 +20,7 @@ import { OFFLOADED_IMAGE_TEXT } from '@hydra/harness-llm'
 
 /**
  * The acp-agent example's snapshot suite: the scenario table for
- * `bh-acp-snapshot`'s suite factory, which owns every compare/guard mechanic
+ * `hydra-acp-snapshot`'s suite factory, which owns every compare/guard mechanic
  * (expected-output + re-persisted-log diffs, record/refresh write-back, the pinned-header
  * uniformity guard, the fixture guards). Fixtures live under `snapshots/<name>/`;
  * `pnpm run test:snapshot:record` re-records model transcripts against the real
@@ -29,7 +29,7 @@ import { OFFLOADED_IMAGE_TEXT } from '@hydra/harness-llm'
  * .agents/notes/implemented/testing/2026-06-19-acp-snapshot-tests.md.
  */
 
-// The bh-acp-demo bin (the demo:acp entry), this example's cordis.yml, and
+// The hydra-acp-demo bin (the demo:acp entry), this example's cordis.yml, and
 // the repo-root tsconfig (four levels up from examples/acp-agent/tests) — all
 // ABSOLUTE: the subprocess cwd is a temp dir outside the repo.
 const AGENT = {
@@ -90,7 +90,7 @@ const SNAPSHOTS_DIR = join(dirname(fileURLToPath(import.meta.url)), 'snapshots')
 const PACKED_CHUNKS_SOURCE = 'hook-cc-pretool-deny'
 
 async function prepareEditingCordisSkillWorkspace(cwd: string): Promise<void> {
-  const target = join(cwd, '.bh', 'skills', 'editing-cordis-compositions', 'SKILL.md')
+  const target = join(cwd, '.hydra', 'skills', 'editing-cordis-compositions', 'SKILL.md')
   await mkdir(dirname(target), { recursive: true })
   await copyFile(EDITING_CORDIS_SKILL, target)
 }
@@ -156,7 +156,7 @@ function snapshotModeFromEnv(value: string | undefined): SnapshotSuiteOptions['m
     case 'refresh':
       return 'refresh'
     default:
-      throw new Error(`unknown BH_SNAPSHOT mode: ${value}`)
+      throw new Error(`unknown HYDRA_SNAPSHOT mode: ${value}`)
   }
 }
 
@@ -320,7 +320,7 @@ const SCENARIOS: Scenario[] = [
     recorded: false,
     headerClass: 'sandbox',
     configPath: PARTIAL_LANDLOCK_CONFIG,
-    env: { BH_PERMISSION_MODE: 'read-only' },
+    env: { HYDRA_PERMISSION_MODE: 'read-only' },
     posixOnly: true,
   },
   // A valid cwd plus a missing provider executable exercises the assembled
@@ -332,8 +332,8 @@ const SCENARIOS: Scenario[] = [
     headerClass: 'sandbox',
     configPath: PARTIAL_LANDLOCK_CONFIG,
     env: {
-      BH_PERMISSION_MODE: 'read-only',
-      BH_SNAPSHOT_MISSING_SANDBOX_RUNNER: '1',
+      HYDRA_PERMISSION_MODE: 'read-only',
+      HYDRA_SNAPSHOT_MISSING_SANDBOX_RUNNER: '1',
     },
     posixOnly: true,
   },
@@ -477,7 +477,7 @@ const SCENARIOS: Scenario[] = [
   // and the parent log pins call/call/result/result instead of the serial
   // interleaving. The twin delegations must stay identical: replay binds child
   // scripts and harvest order nondeterministically across concurrent children
-  // (XXX(concurrent-subagents) in bh-llm-replay).
+  // (XXX(concurrent-subagents) in hydra-llm-replay).
   { name: 'subagent-parallel', hasModelTurn: true, recorded: false },
   { name: 'subagent-fork-in-process', hasModelTurn: true, recorded: true },
   { name: 'subagent-mixed', hasModelTurn: true, recorded: true },
@@ -521,7 +521,7 @@ const SCENARIOS: Scenario[] = [
   // published-handle disposal failure.
   {
     name: 'subagent-published-run-failure',
-    env: { BH_SUBAGENT_PUBLISHED_FAILURE: '1' },
+    env: { HYDRA_SUBAGENT_PUBLISHED_FAILURE: '1' },
     hasModelTurn: true,
     recorded: false,
     overridden: true,
@@ -671,21 +671,21 @@ const SCENARIOS: Scenario[] = [
     headerClass: 'sandbox',
     systemPromptSource: 'text-turn',
     toolSchemasSource: 'text-turn',
-    env: { BH_PERMISSION_MODE: 'workspace-write' },
+    env: { HYDRA_PERMISSION_MODE: 'workspace-write' },
   },
   {
     name: 'escalation-rejected',
     hasModelTurn: true,
     recorded: true,
     headerClass: 'sandbox',
-    env: { BH_PERMISSION_MODE: 'workspace-write' },
+    env: { HYDRA_PERMISSION_MODE: 'workspace-write' },
   },
   {
     name: 'fs-escalation-approved',
     hasModelTurn: true,
     recorded: true,
     headerClass: 'sandbox',
-    env: { BH_PERMISSION_MODE: 'workspace-write' },
+    env: { HYDRA_PERMISSION_MODE: 'workspace-write' },
   },
   // Unlike ordinary snapshots, this session cwd is outside the platform temp
   // roots that workspace-write always grants. The overlay points the
@@ -698,7 +698,7 @@ const SCENARIOS: Scenario[] = [
     overridden: true,
     headerClass: 'sandbox',
     configPath: SESSION_SANDBOX_ROOT_CONFIG,
-    env: { BH_PERMISSION_MODE: 'workspace-write' },
+    env: { HYDRA_PERMISSION_MODE: 'workspace-write' },
     workspaceParent: homedir(),
   },
 ]
@@ -712,7 +712,7 @@ defineAcpSnapshotSuite({
   agent: AGENT,
   snapshotsDir: SNAPSHOTS_DIR,
   scenarios: SCENARIOS,
-  mode: snapshotModeFromEnv(process.env.BH_SNAPSHOT),
+  mode: snapshotModeFromEnv(process.env.HYDRA_SNAPSHOT),
   hasPwsh,
 })
 
@@ -772,8 +772,8 @@ it('pins native DeepSeek image offload in the request sent by the assembled app'
       fixtureFile: join(SNAPSHOTS_DIR, 'image-offload-request', 'session.jsonl'),
       workspaceDir: join(SNAPSHOTS_DIR, 'read-image', 'workspace'),
       env: {
-        BH_SNAPSHOT_API_KEY: 'snapshot-key',
-        BH_SNAPSHOT_BASE_URL: `http://127.0.0.1:${address.port}`,
+        HYDRA_SNAPSHOT_API_KEY: 'snapshot-key',
+        HYDRA_SNAPSHOT_BASE_URL: `http://127.0.0.1:${address.port}`,
       },
     })
     expect(result.stderr).toBe('')
@@ -829,7 +829,7 @@ it('pins native DeepSeek image offload in the request sent by the assembled app'
       {
         role: 'user',
         content: 'Current runtime context. This snapshot supersedes earlier runtime-context snapshots.\n\n'
-          + 'Current BH file policy: danger-full-access. The BH file sandbox does not restrict file modifications by available operations.\n\n'
+          + 'Current Hydra file policy: danger-full-access. The Hydra file sandbox does not restrict file modifications by available operations.\n\n'
           + 'Approval prompts are disabled in this session: actions that require approval are rejected automatically — do not request sandbox escalation (do not set `sandbox_permissions`).',
       },
       {

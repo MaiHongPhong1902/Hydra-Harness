@@ -147,7 +147,7 @@ export async function summarizeWithLlm(
     ...input.messages,
     createUserMessage({
       content: [{ type: 'text', text: COMPACTION_INSTRUCTION }],
-      source: { kind: 'plugin', plugin: 'bh-compaction-basic' },
+      source: { kind: 'plugin', plugin: 'hydra-compaction-basic' },
     }),
   ]
   const options: GenerateOptions = {

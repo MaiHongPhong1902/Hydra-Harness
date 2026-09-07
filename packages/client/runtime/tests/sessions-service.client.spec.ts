@@ -219,7 +219,7 @@ describe('current selection (migrated from ui-layout, arbitrated into the list s
     await feedList(second, rows)
     second.svc.open(sid('edit'))
     expect(second.svc.list.getSnapshot().viewedVersions).toEqual({ original: 'edit' })
-    expect(JSON.parse(storage.get('bh.sessions.current')!)).toMatchObject({ viewedVersions: { original: 'edit' } })
+    expect(JSON.parse(storage.get('hydra.sessions.current')!)).toMatchObject({ viewedVersions: { original: 'edit' } })
   })
 
   it('open() writes list.current; unknown ids fail loud', async () => {
@@ -243,7 +243,7 @@ describe('current selection (migrated from ui-layout, arbitrated into the list s
     const b = bench()
     await feedList(b, [{ id: 's1' }])
     b.svc.open(sid('s1'))
-    expect(storage.get('bh.sessions.current')).toContain('s1')
+    expect(storage.get('hydra.sessions.current')).toContain('s1')
     b.svc.clear()
     expect(b.svc.list.getSnapshot().current).toBeUndefined()
     // Persisted wipe: a fresh service with the same storage stays on empty.
@@ -262,7 +262,7 @@ describe('current selection (migrated from ui-layout, arbitrated into the list s
     expect(b.svc.list.getSnapshot().current).toBe('s1')
   })
 
-  it('persists the selection under bh.sessions.current and rehydrates it into a fresh service', async () => {
+  it('persists the selection under hydra.sessions.current and rehydrates it into a fresh service', async () => {
     const storage = new Map<string, string>()
     vi.stubGlobal('localStorage', {
       getItem: (k: string) => storage.get(k) ?? null,
@@ -271,7 +271,7 @@ describe('current selection (migrated from ui-layout, arbitrated into the list s
     const first = bench()
     await feedList(first, [{ id: 's1' }])
     first.svc.open(sid('s1'))
-    expect(storage.get('bh.sessions.current')).toContain('s1')
+    expect(storage.get('hydra.sessions.current')).toContain('s1')
     // A fresh boot (same storage) recovers the selection once the list holds the session.
     const second = bench()
     await feedList(second, [{ id: 's1' }])
@@ -380,7 +380,7 @@ describe('cell (render-layer session kit)', () => {
 
   it('startup restore: a persisted selection validated by the first projection opens its window unprompted', async () => {
     const storage = new Map<string, string>([
-      ['bh.sessions.current', JSON.stringify({ sessionId: 's1' })],
+      ['hydra.sessions.current', JSON.stringify({ sessionId: 's1' })],
     ])
     vi.stubGlobal('localStorage', {
       getItem: (k: string) => storage.get(k) ?? null,

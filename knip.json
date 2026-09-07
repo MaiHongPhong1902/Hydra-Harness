@@ -75,9 +75,9 @@
         "acp-agent/tests/fixtures/subagent/subagent-claude-code/driver.ts",
         "acp-agent/tests/fixtures/subagent/subagent-codex/fixture.ts",
         "acp-agent/tests/fixtures/subagent/subagent-codex/driver.ts",
-        "jsonrpc-agent/tests/fixtures/subagent/subagent-bh-sdk/driver.ts",
-        "jsonrpc-agent/tests/fixtures/subagent/subagent-bh-sdk/child-mock-llm.ts",
-        "jsonrpc-agent/tests/fixtures/subagent/subagent-bh-sdk/mock-delegating-llm.ts",
+        "jsonrpc-agent/tests/fixtures/subagent/subagent-sdk/driver.ts",
+        "jsonrpc-agent/tests/fixtures/subagent/subagent-sdk/child-mock-llm.ts",
+        "jsonrpc-agent/tests/fixtures/subagent/subagent-sdk/mock-delegating-llm.ts",
         "*/tests/**/*.e2e.ts",
         "*/tests/**/*.snapshot.ts"
       ],
@@ -661,7 +661,7 @@
         "@hydra/.+"
       ]
     },
-    "packages/subagent/subagent-bh-sdk": {
+    "packages/subagent/subagent-sdk": {
       "entry": [
         "tests/**/*.spec.ts",
         "tests/**/*.e2e.ts"

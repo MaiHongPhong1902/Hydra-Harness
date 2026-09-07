@@ -99,7 +99,7 @@ export class LspConnection {
       },
       graceMs: spec.killGraceMs,
       // The seam merges explicit config entries after its ambient scrub, so a
-      // configured credential or BH_* fact reaches the child deliberately.
+      // configured credential or HYDRA_* fact reaches the child deliberately.
       env: spec.env,
     })
     /* v8 ignore start -- 'pipe' dispositions expose both streams by the seam contract; defensive. */

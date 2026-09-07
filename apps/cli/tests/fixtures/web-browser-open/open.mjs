@@ -24,18 +24,18 @@ export default async function open(url) {
   }
   const response = await fetch(url)
   const html = await response.text()
-  console.log(`bh browser-open: ${JSON.stringify({
+  console.log(`hydra browser-open: ${JSON.stringify({
     url,
     status: response.status,
-    bootManifest: html.includes('__BH_BOOT__'),
+    bootManifest: html.includes('__HYDRA_BOOT__'),
     apiKeyPresent: process.env.DEEPSEEK_API_KEY !== undefined,
-    bhHomePresent: process.env.BH_HOME !== undefined,
+    hydraHomePresent: process.env.HYDRA_HOME !== undefined,
   })}`)
   // The Windows launcher writes the server-exit marker only while its helper
   // remains alive, so the assembled test detects an early helper exit.
   const launcher = spawn(process.execPath, [
     '--eval', handoffProbe,
-    '--', join(process.cwd(), `.bh-browser-open-${process.ppid}`), String(process.pid),
+    '--', join(process.cwd(), `.hydra-browser-open-${process.ppid}`), String(process.pid),
   ], { stdio: 'ignore' })
   launcher.unref()
   return launcher

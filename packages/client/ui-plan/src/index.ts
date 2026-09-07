@@ -1,7 +1,7 @@
 /**
  * Plan control plugin, node half. Pure UI plugin: the empty apply exists so
  * the plugin appears in the host cordis.yml / Loader; the browser half ships
- * via exports["./client"], discovered through the package.json bh.client
+ * via exports["./client"], discovered through the package.json hydra.client
  * declaration. Plan behavior itself (the /plan command, the plan projection
  * unit, the policy section) is owned by `@hydra/harness-plan-mode`,
  * composed independently on the host roster.

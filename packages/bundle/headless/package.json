@@ -1,13 +1,13 @@
 {
   "name": "@hydra/harness-headless",
-  "description": "The bh one-shot bundle: a direct core Agent/Session runner over bh-base with no Host, HTTP, or browser layer",
+  "description": "The hydra one-shot bundle: a direct core Agent/Session runner over hydra-base with no Host, HTTP, or browser layer",
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bosch/bosch-harness.git",
+    "url": "git+https://github.com/MaiHongPhong1902/Hydra-Harness.git",
     "directory": "packages/bundle/headless"
   },
   "type": "module",
@@ -38,7 +38,7 @@
     "lib/types/**/*.d.ts"
   ],
   "license": "MIT",
-  "bh": {
+  "hydra": {
     "bundle": {
       "patch": "./cordis.patch.yml"
     }

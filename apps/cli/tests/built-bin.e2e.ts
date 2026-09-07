@@ -11,7 +11,7 @@ const repoRoot = fileURLToPath(new URL('../../../', import.meta.url))
 // The release version, including a prerelease such as 0.0.1-rc.1: `--version`
 // prints what this manifest carries, so no test may pin it to a literal.
 const cliVersion = (JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as { version: string }).version
-const bhBin = join(repoRoot, 'apps/cli/lib/bin.js')
+const hydraBin = join(repoRoot, 'apps/cli/lib/bin.js')
 const invalidProvider = fileURLToPath(new URL('./fixtures/invalid-provider.cordis.yml', import.meta.url))
 
 async function runBuiltBin(
@@ -23,7 +23,7 @@ async function runBuiltBin(
     Object.entries({ ...process.env, ...env })
       .filter((entry): entry is [string, string] => entry[1] !== undefined),
   )
-  const result = await execa(process.execPath, [bhBin, ...args], {
+  const result = await execa(process.execPath, [hydraBin, ...args], {
     input: '',
     timeout: 25_000,
     killSignal: 'SIGKILL',
@@ -33,7 +33,7 @@ async function runBuiltBin(
     ...cwd === undefined ? {} : { cwd },
   })
   if (result.timedOut) {
-    throw new Error(`bh built bin did not exit within 25s. stdout:\n${result.stdout}\nstderr:\n${result.stderr}`)
+    throw new Error(`hydra built bin did not exit within 25s. stdout:\n${result.stdout}\nstderr:\n${result.stderr}`)
   }
   return { stdout: result.stdout, code: result.exitCode ?? -1, stderr: result.stderr }
 }
@@ -41,7 +41,7 @@ async function runBuiltBin(
 async function waitForFile(file: string): Promise<void> {
   const deadline = Date.now() + 20_000
   while (!existsSync(file)) {
-    if (Date.now() >= deadline) throw new Error(`bh profile lifecycle marker did not appear: ${file}`)
+    if (Date.now() >= deadline) throw new Error(`hydra profile lifecycle marker did not appear: ${file}`)
     await new Promise(resolve => setTimeout(resolve, 20))
   }
 }
@@ -56,11 +56,11 @@ interface ProfileLifecycleFixture {
 
 /**
  * A minimal custom profile: one lifecycle-marker plugin bundle listed in
- * bh.profile.bundles, no bh-base — proving out-of-box composition machinery without
+ * hydra.profile.bundles, no hydra-base — proving out-of-box composition machinery without
  * booting the entire product tree.
  */
 function createProfileLifecycleFixture(): ProfileLifecycleFixture {
-  const home = mkdtempSync(join(tmpdir(), 'bh-profile-lifecycle-'))
+  const home = mkdtempSync(join(tmpdir(), 'hydra-profile-lifecycle-'))
   const ready = join(home, 'ready')
   const settled = join(home, 'settled')
   const disposed = join(home, 'disposed')
@@ -83,7 +83,7 @@ function createProfileLifecycleFixture(): ProfileLifecycleFixture {
     '  }, 20)',
     '  // Echo the mounted generation so the hot-reload e2e can assert both an',
     '  // applied override and its removal reverting to this bundle default.',
-    "  writeFileSync(join(process.env.BH_HOME, 'config-echo'), String(config.generation ?? 'bundle-default'))",
+    "  writeFileSync(join(process.env.HYDRA_HOME, 'config-echo'), String(config.generation ?? 'bundle-default'))",
     "  writeFileSync(process.env.RAW_READY_FILE, 'ready')",
     '  void ctx.loader.await().then(() => {',
     "    if (active) writeFileSync(process.env.RAW_SETTLED_FILE, 'settled')",
@@ -103,22 +103,22 @@ function createProfileLifecycleFixture(): ProfileLifecycleFixture {
     '',
   ].join('\n'))
   writeFileSync(join(bundleDir, 'package.json'), JSON.stringify({
-    name: 'bh-lifecycle-bundle',
+    name: 'hydra-lifecycle-bundle',
     version: '0.0.0',
     type: 'module',
-    bh: { bundle: { patch: './cordis.patch.yml' } },
+    hydra: { bundle: { patch: './cordis.patch.yml' } },
   }, undefined, 2))
   const profileDir = join(home, 'profiles', 'lifecycle')
   mkdirSync(join(profileDir, 'node_modules'), { recursive: true })
   writeFileSync(join(profileDir, 'package.json'), JSON.stringify({
-    name: 'bh-profile-lifecycle',
+    name: 'hydra-profile-lifecycle',
     private: true,
     dependencies: {},
-    bh: { profile: { bundles: ['bh-lifecycle-bundle'] } },
+    hydra: { profile: { bundles: ['hydra-lifecycle-bundle'] } },
   }, undefined, 2))
   // Hand-place the "installed" bundle where profile resolution finds it.
   writeFileSync(join(profileDir, 'cordis.patch.yml'), '[]\n')
-  const linkTarget = join(profileDir, 'node_modules', 'bh-lifecycle-bundle')
+  const linkTarget = join(profileDir, 'node_modules', 'hydra-lifecycle-bundle')
   mkdirSync(join(profileDir, 'node_modules'), { recursive: true })
   try {
     rmSync(linkTarget, { recursive: true, force: true })
@@ -132,12 +132,12 @@ function createProfileLifecycleFixture(): ProfileLifecycleFixture {
 }
 
 function startProfileLifecycle(fixture: ProfileLifecycleFixture, args: readonly string[] = []) {
-  return execa(process.execPath, [bhBin, '--profile', 'lifecycle', ...args], {
+  return execa(process.execPath, [hydraBin, '--profile', 'lifecycle', ...args], {
     cwd: fixture.home,
     input: '',
     reject: false,
     env: {
-      BH_HOME: fixture.home,
+      HYDRA_HOME: fixture.home,
       RAW_READY_FILE: fixture.ready,
       RAW_SETTLED_FILE: fixture.settled,
       RAW_DISPOSED_FILE: fixture.disposed,
@@ -183,10 +183,10 @@ function createEnvironmentProbeProfile(home: string, project: string): void {
   const profileDir = join(home, 'profiles', 'environment-probe')
   mkdirSync(profileDir, { recursive: true })
   writeFileSync(join(profileDir, 'package.json'), JSON.stringify({
-    name: 'bh-profile-environment-probe',
+    name: 'hydra-profile-environment-probe',
     private: true,
     dependencies: {},
-    bh: { profile: { bundles: ['@hydra/harness-base'] } },
+    hydra: { profile: { bundles: ['@hydra/harness-base'] } },
   }, undefined, 2))
   writeFileSync(join(profileDir, 'cordis.patch.yml'), [
     '- insert:',
@@ -213,12 +213,12 @@ interface StartupFixture {
  * fallback, exactly as an installed out-of-tree bundle does.
  */
 function createStartupFixture(): StartupFixture {
-  const home = mkdtempSync(join(tmpdir(), 'bh-profile-startup-'))
+  const home = mkdtempSync(join(tmpdir(), 'hydra-profile-startup-'))
   const profileDir = join(home, 'profiles', 'startup')
   // Written straight into the installed location: a row module resolves its
   // own imports from where it is installed, and only inside the profile does
   // Node's parent walk reach the installation fallback these plugins need.
-  const bundleDir = join(profileDir, 'node_modules', 'bh-startup-bundle')
+  const bundleDir = join(profileDir, 'node_modules', 'hydra-startup-bundle')
   mkdirSync(bundleDir, { recursive: true })
   writeFileSync(join(bundleDir, 'startup.mjs'), [
     "import { Command } from 'commander'",
@@ -243,7 +243,7 @@ function createStartupFixture(): StartupFixture {
     '    interrupted = true',
     "    process.emit('SIGTERM')",
     '  }, 20)',
-    "  writeFileSync(join(process.env.BH_HOME, 'config-echo'), String(config.generation ?? 'bundle-default'))",
+    "  writeFileSync(join(process.env.HYDRA_HOME, 'config-echo'), String(config.generation ?? 'bundle-default'))",
     "  writeFileSync(process.env.RAW_READY_FILE, 'ready')",
     '  ctx.effect(() => () => { clearInterval(heartbeat) })',
     '}',
@@ -254,7 +254,7 @@ function createStartupFixture(): StartupFixture {
     "import { join } from 'node:path'",
     "export const name = 'reload-witness'",
     'export function apply(ctx, config = {}) {',
-    "  writeFileSync(join(process.env.BH_HOME, 'witness'), String(config.generation ?? 'bundle-default'))",
+    "  writeFileSync(join(process.env.HYDRA_HOME, 'witness'), String(config.generation ?? 'bundle-default'))",
     '}',
     '',
   ].join('\n'))
@@ -273,16 +273,16 @@ function createStartupFixture(): StartupFixture {
     '',
   ].join('\n'))
   writeFileSync(join(bundleDir, 'package.json'), JSON.stringify({
-    name: 'bh-startup-bundle',
+    name: 'hydra-startup-bundle',
     version: '0.0.0',
     type: 'module',
-    bh: { bundle: { patch: './cordis.patch.yml' } },
+    hydra: { bundle: { patch: './cordis.patch.yml' } },
   }, undefined, 2))
   writeFileSync(join(profileDir, 'package.json'), JSON.stringify({
-    name: 'bh-profile-startup',
+    name: 'hydra-profile-startup',
     private: true,
     dependencies: {},
-    bh: { profile: { bundles: ['bh-startup-bundle'] } },
+    hydra: { profile: { bundles: ['hydra-startup-bundle'] } },
   }, undefined, 2))
   writeFileSync(join(profileDir, 'cordis.patch.yml'), '[]\n')
   return {
@@ -295,21 +295,21 @@ function createStartupFixture(): StartupFixture {
 }
 
 function startStartupProfile(fixture: StartupFixture, args: readonly string[]) {
-  return execa(process.execPath, [bhBin, '--profile', 'startup', ...args], {
+  return execa(process.execPath, [hydraBin, '--profile', 'startup', ...args], {
     cwd: fixture.home,
     input: '',
     reject: false,
     timeout: 25_000,
     killSignal: 'SIGKILL',
     env: {
-      BH_HOME: fixture.home,
+      HYDRA_HOME: fixture.home,
       RAW_READY_FILE: fixture.ready,
       RAW_INTERRUPT_FILE: fixture.interrupt,
     },
   })
 }
 
-describe.skipIf(!existsSync(bhBin))('bh BUILT bin (node lib/bin.js, no tsx)', () => {
+describe.skipIf(!existsSync(hydraBin))('hydra BUILT bin (node lib/bin.js, no tsx)', () => {
   it('requires --profile and rejects removed commands', async () => {
     const bare = await runBuiltBin()
     expect(bare.code).toBe(1)
@@ -317,8 +317,8 @@ describe.skipIf(!existsSync(bhBin))('bh BUILT bin (node lib/bin.js, no tsx)', ()
     expect(bare.stderr).toContain('--profile <name> is required')
     const help = await runBuiltBin(['--help'])
     expect(help.code).toBe(0)
-    expect(help.stdout).toContain('bh --profile web')
-    expect(help.stdout).toContain('bh plugin --profile')
+    expect(help.stdout).toContain('hydra --profile web')
+    expect(help.stdout).toContain('hydra plugin --profile')
     expect(help.stdout).not.toMatch(/^\s+(?:tui|meta|upgrade)\b/mu)
     for (const removed of [['tui'], ['--config', 'x.yml'], ['-p', 'task'], ['run', 'task']]) {
       const result = await runBuiltBin(removed)
@@ -327,38 +327,38 @@ describe.skipIf(!existsSync(bhBin))('bh BUILT bin (node lib/bin.js, no tsx)', ()
   }, 30_000)
 
   it('routes help and usage errors without activating startup-dependent rows', async () => {
-    const home = mkdtempSync(join(tmpdir(), 'bh-app-help-'))
+    const home = mkdtempSync(join(tmpdir(), 'hydra-app-help-'))
     try {
       const web = await runBuiltBin(['--profile', 'web', '--help'], {
-        BH_HOME: home,
-        BH_TELEMETRY_DISABLED: '1',
+        HYDRA_HOME: home,
+        HYDRA_TELEMETRY_DISABLED: '1',
       })
       expect(web.code).toBe(0)
       expect(web.stderr).toBe('')
-      expect(web.stdout).toContain('Usage: bh --profile web')
+      expect(web.stdout).toContain('Usage: hydra --profile web')
       expect(web.stdout).toContain('--port <port>')
-      expect(web.stdout).not.toContain('bh web: http://')
+      expect(web.stdout).not.toContain('hydra web: http://')
 
       const wildcardHost = await runBuiltBin(['web', '--host', '0.0.0.0'], {
-        BH_HOME: home,
-        BH_TELEMETRY_DISABLED: '1',
+        HYDRA_HOME: home,
+        HYDRA_TELEMETRY_DISABLED: '1',
       })
       expect(wildcardHost.code).toBe(1)
       expect(wildcardHost.stdout).toBe('')
       expect(wildcardHost.stderr).toContain('--host 0.0.0.0 is intentionally not supported yet for safety: it would expose remote code execution to the network; use 127.0.0.1 instead')
-      expect(wildcardHost.stderr).not.toContain('bh web: http://')
+      expect(wildcardHost.stderr).not.toContain('hydra web: http://')
 
       const headlessHelp = await runBuiltBin(['--profile', 'headless', '--help'], {
-        BH_HOME: home,
-        BH_TELEMETRY_DISABLED: '1',
+        HYDRA_HOME: home,
+        HYDRA_TELEMETRY_DISABLED: '1',
       })
       expect(headlessHelp.code).toBe(0)
       expect(headlessHelp.stderr).toBe('')
-      expect(headlessHelp.stdout).toContain('Usage: bh --profile headless')
+      expect(headlessHelp.stdout).toContain('Usage: hydra --profile headless')
 
       const missingTask = await runBuiltBin(['--profile', 'headless'], {
-        BH_HOME: home,
-        BH_TELEMETRY_DISABLED: '1',
+        HYDRA_HOME: home,
+        HYDRA_TELEMETRY_DISABLED: '1',
       })
       expect(missingTask.code).toBe(1)
       expect(missingTask.stderr).toContain('a task is required')
@@ -368,17 +368,17 @@ describe.skipIf(!existsSync(bhBin))('bh BUILT bin (node lib/bin.js, no tsx)', ()
   }, 30_000)
 
   it('runs the headless profile through its app-owned task positional', async () => {
-    const apiKey = 'built-bh-headless-key'
+    const apiKey = 'built-hydra-headless-key'
     const server = await startMockLlmServer({
       sequence: ['success'],
       apiKey,
       successText: 'published headless profile reached the mock',
     })
-    const home = mkdtempSync(join(tmpdir(), 'bh-built-headless-'))
+    const home = mkdtempSync(join(tmpdir(), 'hydra-built-headless-'))
     try {
       const result = await runBuiltBin(['--profile', 'headless', 'answer', 'from', 'the', 'published', 'entry'], {
-        BH_HOME: home,
-        BH_TELEMETRY_DISABLED: '1',
+        HYDRA_HOME: home,
+        HYDRA_TELEMETRY_DISABLED: '1',
         DEEPSEEK_API_KEY: apiKey,
         DEEPSEEK_BASE_URL: server.baseURL,
       })
@@ -395,7 +395,7 @@ describe.skipIf(!existsSync(bhBin))('bh BUILT bin (node lib/bin.js, no tsx)', ()
   }, 30_000)
 
   it('does not load a project environment for --version', async () => {
-    const project = mkdtempSync(join(tmpdir(), 'bh-version-project-'))
+    const project = mkdtempSync(join(tmpdir(), 'hydra-version-project-'))
     writeFileSync(join(project, '.env'), 'PATH=/project-only-path\n')
     try {
       const result = await runBuiltBin(['--version'], {}, project)
@@ -406,12 +406,12 @@ describe.skipIf(!existsSync(bhBin))('bh BUILT bin (node lib/bin.js, no tsx)', ()
   })
 
   it('fails loud on a nonexistent profile with the plugin-command hint', async () => {
-    const home = mkdtempSync(join(tmpdir(), 'bh-missing-profile-'))
+    const home = mkdtempSync(join(tmpdir(), 'hydra-missing-profile-'))
     try {
-      const result = await runBuiltBin(['--profile', 'nope'], { BH_HOME: home })
+      const result = await runBuiltBin(['--profile', 'nope'], { HYDRA_HOME: home })
       expect(result.code).toBe(1)
       expect(result.stderr).toContain('profile "nope" does not exist')
-      expect(result.stderr).toContain('bh plugin --profile nope add')
+      expect(result.stderr).toContain('hydra plugin --profile nope add')
     } finally {
       rmSync(home, { recursive: true, force: true })
     }
@@ -424,16 +424,16 @@ describe.skipIf(!existsSync(bhBin))('bh BUILT bin (node lib/bin.js, no tsx)', ()
       apiKey,
       successText: 'launching endpoint reached the mock',
     })
-    const home = mkdtempSync(join(tmpdir(), 'bh-home-environment-'))
-    const project = mkdtempSync(join(tmpdir(), 'bh-home-project-'))
+    const home = mkdtempSync(join(tmpdir(), 'hydra-home-environment-'))
+    const project = mkdtempSync(join(tmpdir(), 'hydra-home-project-'))
     writeFileSync(join(home, '.credentials.yaml'), `version: 1\nrefs:\n  DEEPSEEK_API_KEY: ${apiKey}\n`, { mode: 0o600 })
     createEnvironmentProbeProfile(home, project)
     try {
       const result = await runBuiltBin(
         ['--profile', 'environment-probe'],
         {
-          BH_HOME: home,
-          BH_TELEMETRY_DISABLED: '1',
+          HYDRA_HOME: home,
+          HYDRA_TELEMETRY_DISABLED: '1',
           DEEPSEEK_API_KEY: undefined,
           DEEPSEEK_BASE_URL: server.baseURL,
         },
@@ -460,14 +460,14 @@ describe.skipIf(!existsSync(bhBin))('bh BUILT bin (node lib/bin.js, no tsx)', ()
   it('reports a patch-overlay boot failure without hanging', async () => {
     // The HMR main watcher's initial scan once refreshed the include
     // mid-initial-apply, deadlocking the failing apply's rollback against the
-    // refresh drain: bh exited 13 with no diagnostic instead of settling
+    // refresh drain: hydra exited 13 with no diagnostic instead of settling
     // ([Agent Note](../../../.agents/notes/implemented/bug-fix/2026-08-03-hmr-initial-scan-boot-deadlock.md)).
-    const home = mkdtempSync(join(tmpdir(), 'bh-invalid-patch-'))
+    const home = mkdtempSync(join(tmpdir(), 'hydra-invalid-patch-'))
     try {
       const result = await runBuiltBin(['--profile', 'web', '--patch', invalidProvider], {
-        BH_HOME: home,
+        HYDRA_HOME: home,
         DEEPSEEK_API_KEY: 'keyless-invalid-config',
-        BH_TELEMETRY_DISABLED: '1',
+        HYDRA_TELEMETRY_DISABLED: '1',
       })
       expect(result.code).toBe(1)
       expect(result.stdout).toBe('')
@@ -523,7 +523,7 @@ describe.skipIf(!existsSync(bhBin))('bh BUILT bin (node lib/bin.js, no tsx)', ()
       writeFileSync(profilePatch, '[]\n')
       await waitForFile(fixture.ready)
       expect(readFileSync(configFile, 'utf8')).toBe('bundle-default')
-      // The home-level user layer ($BH_HOME/cordis.patch.yml) is live too
+      // The home-level user layer ($HYDRA_HOME/cordis.patch.yml) is live too
       // and outranks the per-profile layer.
       rmSync(fixture.ready)
       writeFileSync(join(fixture.home, 'cordis.patch.yml'), [
@@ -623,37 +623,37 @@ describe.skipIf(!existsSync(bhBin))('bh BUILT bin (node lib/bin.js, no tsx)', ()
   }, 30_000)
 
   it('anchors a relative add spec to the invoking directory, not the profile', async () => {
-    // `bh plugin --profile x add .` from a plugin checkout must install THAT
+    // `hydra plugin --profile x add .` from a plugin checkout must install THAT
     // checkout — pnpm's cwd is the profile directory, so an un-anchored `.`
     // would self-link the profile.
-    const home = mkdtempSync(join(tmpdir(), 'bh-plugin-anchor-'))
-    const checkout = mkdtempSync(join(tmpdir(), 'bh-plugin-checkout-'))
+    const home = mkdtempSync(join(tmpdir(), 'hydra-plugin-anchor-'))
+    const checkout = mkdtempSync(join(tmpdir(), 'hydra-plugin-checkout-'))
     try {
       writeFileSync(join(checkout, 'package.json'), JSON.stringify({
         name: 'anchored-bundle',
         version: '1.0.0',
-        bh: { bundle: { patch: './cordis.patch.yml' } },
+        hydra: { bundle: { patch: './cordis.patch.yml' } },
       }))
       writeFileSync(join(checkout, 'cordis.patch.yml'), '[]\n')
-      const result = await execa(process.execPath, [bhBin, 'plugin', '--profile', 'anchor', 'add', '.'], {
+      const result = await execa(process.execPath, [hydraBin, 'plugin', '--profile', 'anchor', 'add', '.'], {
         cwd: checkout,
         input: '',
         timeout: 60_000,
         killSignal: 'SIGKILL',
         reject: false,
-        env: { BH_HOME: home },
+        env: { HYDRA_HOME: home },
       })
       expect(result.exitCode).toBe(0)
       const manifest = JSON.parse(readFileSync(join(home, 'profiles', 'anchor', 'package.json'), 'utf8')) as {
         dependencies: Record<string, string>
-        bh: { profile: { bundles: string[] } }
+        hydra: { profile: { bundles: string[] } }
       }
       expect(Object.keys(manifest.dependencies)).toEqual(['anchored-bundle'])
-      expect(manifest.bh.profile.bundles).toContain('anchored-bundle')
+      expect(manifest.hydra.profile.bundles).toContain('anchored-bundle')
 
       const removed = await runBuiltBin(
         ['plugin', '--profile', 'anchor', 'remove', 'anchored-bundle'],
-        { BH_HOME: home },
+        { HYDRA_HOME: home },
         checkout,
       )
       expect(removed.code).toBe(0)
@@ -661,48 +661,48 @@ describe.skipIf(!existsSync(bhBin))('bh BUILT bin (node lib/bin.js, no tsx)', ()
         readFileSync(join(home, 'profiles', 'anchor', 'package.json'), 'utf8'),
       ) as {
         dependencies?: Record<string, string>
-        bh: { profile: { bundles: string[] } }
+        hydra: { profile: { bundles: string[] } }
       }
       expect(Object.keys(afterRemove.dependencies ?? {})).toEqual([])
-      expect(afterRemove.bh.profile.bundles).not.toContain('anchored-bundle')
+      expect(afterRemove.hydra.profile.bundles).not.toContain('anchored-bundle')
     } finally {
       rmSync(home, { recursive: true, force: true })
       rmSync(checkout, { recursive: true, force: true })
     }
   }, 90_000)
 
-  it('activates a dependency that gained bh.bundle in a later update', async () => {
+  it('activates a dependency that gained hydra.bundle in a later update', async () => {
     // Reconcile runs against the INSTALLED state on every successful pnpm
     // run, so `update` (not only `add`) activates a package whose newer
-    // version declares bh.bundle. Simulated without a registry: hand-place
+    // version declares hydra.bundle. Simulated without a registry: hand-place
     // the installed package, flip its manifest, and run a benign pnpm verb.
-    const home = mkdtempSync(join(tmpdir(), 'bh-plugin-update-'))
+    const home = mkdtempSync(join(tmpdir(), 'hydra-plugin-update-'))
     try {
       const profileDir = join(home, 'profiles', 'up')
       const installed = join(profileDir, 'node_modules', 'late-bundle')
       mkdirSync(installed, { recursive: true })
       writeFileSync(join(profileDir, 'package.json'), JSON.stringify({
-        name: 'bh-profile-up',
+        name: 'hydra-profile-up',
         private: true,
         dependencies: { 'late-bundle': 'file:./late-bundle' },
-        bh: { profile: { bundles: ['@hydra/harness-base'] } },
+        hydra: { profile: { bundles: ['@hydra/harness-base'] } },
       }))
       writeFileSync(join(profileDir, 'cordis.patch.yml'), '[]\n')
-      // v1: no bh manifest — a plain dependency.
+      // v1: no hydra manifest — a plain dependency.
       writeFileSync(join(installed, 'package.json'), JSON.stringify({ name: 'late-bundle', version: '1.0.0' }))
-      const first = await runBuiltBin(['plugin', '--profile', 'up', 'root'], { BH_HOME: home })
+      const first = await runBuiltBin(['plugin', '--profile', 'up', 'root'], { HYDRA_HOME: home })
       expect(first.code).toBe(0)
-      let manifest = JSON.parse(readFileSync(join(profileDir, 'package.json'), 'utf8')) as { bh: { profile: { bundles: string[] } } }
-      expect(manifest.bh.profile.bundles).toEqual(['@hydra/harness-base'])
-      // v2: the installed package now declares bh.bundle (an update landed).
+      let manifest = JSON.parse(readFileSync(join(profileDir, 'package.json'), 'utf8')) as { hydra: { profile: { bundles: string[] } } }
+      expect(manifest.hydra.profile.bundles).toEqual(['@hydra/harness-base'])
+      // v2: the installed package now declares hydra.bundle (an update landed).
       writeFileSync(join(installed, 'package.json'), JSON.stringify({
-        name: 'late-bundle', version: '2.0.0', bh: { bundle: { patch: './cordis.patch.yml' } },
+        name: 'late-bundle', version: '2.0.0', hydra: { bundle: { patch: './cordis.patch.yml' } },
       }))
       writeFileSync(join(installed, 'cordis.patch.yml'), '[]\n')
-      const second = await runBuiltBin(['plugin', '--profile', 'up', 'root'], { BH_HOME: home })
+      const second = await runBuiltBin(['plugin', '--profile', 'up', 'root'], { HYDRA_HOME: home })
       expect(second.code).toBe(0)
-      manifest = JSON.parse(readFileSync(join(profileDir, 'package.json'), 'utf8')) as { bh: { profile: { bundles: string[] } } }
-      expect(manifest.bh.profile.bundles).toEqual(['@hydra/harness-base', 'late-bundle'])
+      manifest = JSON.parse(readFileSync(join(profileDir, 'package.json'), 'utf8')) as { hydra: { profile: { bundles: string[] } } }
+      expect(manifest.hydra.profile.bundles).toEqual(['@hydra/harness-base', 'late-bundle'])
     } finally {
       rmSync(home, { recursive: true, force: true })
     }
@@ -710,11 +710,11 @@ describe.skipIf(!existsSync(bhBin))('bh BUILT bin (node lib/bin.js, no tsx)', ()
 
   describe('config dump', () => {
     let home: string
-    beforeEach(() => { home = mkdtempSync(join(tmpdir(), 'bh-dump-bin-')) })
+    beforeEach(() => { home = mkdtempSync(join(tmpdir(), 'hydra-dump-bin-')) })
     afterEach(() => { rmSync(home, { recursive: true, force: true }) })
 
     it('prints the web profile bundle layers without a user layer', async () => {
-      const { stdout, code, stderr } = await runBuiltBin(['--profile', 'web', '--dump-default-config'], { BH_HOME: home })
+      const { stdout, code, stderr } = await runBuiltBin(['--profile', 'web', '--dump-default-config'], { HYDRA_HOME: home })
       expect(code).toBe(0)
       expect(stderr).toBe('')
       expect(stdout).toContain("name: '@hydra/harness-agent-loop'")
@@ -726,7 +726,7 @@ describe.skipIf(!existsSync(bhBin))('bh BUILT bin (node lib/bin.js, no tsx)', ()
     it('prints the headless profile without Host or browser layers', async () => {
       const { stdout, code, stderr } = await runBuiltBin(
         ['--profile', 'headless', '--dump-default-config'],
-        { BH_HOME: home },
+        { HYDRA_HOME: home },
       )
       expect(code).toBe(0)
       expect(stderr).toBe('')
@@ -738,7 +738,7 @@ describe.skipIf(!existsSync(bhBin))('bh BUILT bin (node lib/bin.js, no tsx)', ()
 
     it('composes the profile user layer and a --patch overlay in order', async () => {
       // Auto-init the web profile first, then write its user layer.
-      const init = await runBuiltBin(['--profile', 'web', '--dump-default-config'], { BH_HOME: home })
+      const init = await runBuiltBin(['--profile', 'web', '--dump-default-config'], { HYDRA_HOME: home })
       expect(init.code).toBe(0)
       const profilePatch = join(home, 'profiles', 'web', 'cordis.patch.yml')
       writeFileSync(profilePatch, [
@@ -765,7 +765,7 @@ describe.skipIf(!existsSync(bhBin))('bh BUILT bin (node lib/bin.js, no tsx)', ()
       ].join('\n'))
       const { stdout, code, stderr } = await runBuiltBin(
         ['--profile', 'web', '--patch', overlay, '--dump-config'],
-        { BH_HOME: home },
+        { HYDRA_HOME: home },
       )
       expect(code).toBe(0)
       expect(stdout).toContain('provider: configured-provider')

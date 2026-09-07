@@ -65,10 +65,10 @@ The shipped local provider scans roots in rank order:
 
 | Rank | Source | Root |
 |---|---|---|
-| 100 | `project-bh` | `<projectRoot>/.bh/skills` |
+| 100 | `project-hydra` | `<projectRoot>/.hydra/skills` |
 | 200 | `project-agents` | `<projectRoot>/.agents/skills` |
 | 300 | `custom` | `Config.customSkillDirs` |
-| 400 | `user-bh` | `<bhHome>/skills` |
+| 400 | `user-hydra` | `<hydraHome>/skills` |
 | 500 | `user-agents` | `<agentsHome>/skills` |
 | 600 | `bundled` | `Config.bundledSkillDir` when configured |
 
@@ -84,7 +84,7 @@ Skill names are kebab-case (`^[a-z0-9]+(?:-[a-z0-9]+)*$`). The local provider ac
 
 ```ts type-equiv
 /** Origin bucket for a skill contribution. The value is prompt-visible metadata, not precedence by itself. */
-type SkillSource = 'project-bh' | 'project-agents' | 'runtime' | 'user-bh' | 'user-agents' | 'custom' | 'bundled' | (string & {})
+type SkillSource = 'project-hydra' | 'project-agents' | 'runtime' | 'user-hydra' | 'user-agents' | 'custom' | 'bundled' | (string & {})
 ```
 
 ## Summaries, candidates, and complete definitions
@@ -225,7 +225,7 @@ interface SkillViewOptions extends SkillLookupOptions {
 }
 ```
 
-The registry owns only its discovery-cache bound. The local provider owns filesystem roots (`bhHome`, `agentsHome`, `customSkillDirs`, and optional `bundledSkillDir`/`BH_BUNDLED_SKILL_DIR`) plus watcher enablement, polling, stability, symlink, and project-capacity controls. The consumer owns search result count, field-length, and rendered-byte bounds. Exact defaults and validation are in the generated [config catalog](../config-catalog.md).
+The registry owns only its discovery-cache bound. The local provider owns filesystem roots (`hydraHome`, `agentsHome`, `customSkillDirs`, and optional `bundledSkillDir`/`HYDRA_BUNDLED_SKILL_DIR`) plus watcher enablement, polling, stability, symlink, and project-capacity controls. The consumer owns search result count, field-length, and rendered-byte bounds. Exact defaults and validation are in the generated [config catalog](../config-catalog.md).
 
 ```ts type-equiv
 /** Skill registry configuration. */

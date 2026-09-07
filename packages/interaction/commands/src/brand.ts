@@ -5,7 +5,7 @@
  * The `Branded<B>` primitive lives in `@hydra/harness-brand`; this module
  * is a pure type/constructor outlet (no cordis imports, no module
  * augmentation) so wire and client programs can name the brand without
- * loading the host plugin's Context merges — the `bh-llm/brand` shape.
+ * loading the host plugin's Context merges — the `hydra-llm/brand` shape.
  *
  * @module @hydra/harness-commands/brand
  */

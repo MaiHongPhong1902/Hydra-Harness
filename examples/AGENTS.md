@@ -15,6 +15,6 @@ Keyless process smokes use `@hydra/harness-loader-smoke` for Loader launch resol
 
 Do not inventory example tests here; the `tests/` trees and root scripts are authoritative.
 
-In `cordis.yml`, comment only non-obvious wiring, load-order consequences, replay, security boundaries, and configuration scope. Do not narrate visible entries; use [bh-prose-standard](../.agents/skills/bh-prose-standard/SKILL.md) for required coverage and editorial judgment.
+In `cordis.yml`, comment only non-obvious wiring, load-order consequences, replay, security boundaries, and configuration scope. Do not narrate visible entries; use [hydra-prose-standard](../.agents/skills/hydra-prose-standard/SKILL.md) for required coverage and editorial judgment.
 
 See [the root AGENTS.md](../AGENTS.md) for repo-wide conventions and [docs/architecture.md](../docs/architecture.md) for the design.

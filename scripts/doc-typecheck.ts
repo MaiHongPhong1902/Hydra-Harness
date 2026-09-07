@@ -223,7 +223,7 @@ if (checked.length === 0) {
   process.exit(0)
 }
 
-const useBuiltTypes = process.env.BH_DOC_TYPECHECK_USE_BUILD_OUTPUT === '1'
+const useBuiltTypes = process.env.HYDRA_DOC_TYPECHECK_USE_BUILD_OUTPUT === '1'
 const compilationError = useBuiltTypes
   ? (() => {
     const diagnostics = compileBlocksAgainstBuiltTypes(checked)

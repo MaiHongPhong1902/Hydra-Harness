@@ -3,13 +3,13 @@
 # the composition base, while user-plane values resolve per request through
 # the two providers below.
 
-# User-settings document (`$BH_HOME/settings.yaml`, hot-reloaded): a
+# User-settings document (`$HYDRA_HOME/settings.yaml`, hot-reloaded): a
 # `llm-deepseek:` section there overrides the adapter entry below without a
 # restart.
 - id: settings
   name: '@hydra/harness-settings-file'
 
-# Credential store: the live process environment over `$BH_HOME/.credentials.yaml`
+# Credential store: the live process environment over `$HYDRA_HOME/.credentials.yaml`
 # (owner-only file, hot-reloaded). The adapter resolves `DEEPSEEK_API_KEY`
 # through it at each request, so no key is inlined in this file.
 - id: credentials
@@ -64,7 +64,7 @@
   name: '@hydra/harness-session-persistence-jsonl'
   config:
     root: './.sessions'
-    compression: !!js "process.env.BH_SNAPSHOT === undefined ? 'zstd' : 'none'"
+    compression: !!js "process.env.HYDRA_SNAPSHOT === undefined ? 'zstd' : 'none'"
 
 - id: checkpoint-policy
   name: '@hydra/harness-session-checkpoint-policy'

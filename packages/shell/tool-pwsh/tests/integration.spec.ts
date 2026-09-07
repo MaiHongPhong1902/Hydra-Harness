@@ -54,7 +54,7 @@ function text(result: { content: { type: string; text?: string }[] }): string {
 
 describe.skipIf(!hasPwsh)('pwsh tool over the real pwsh executor', () => {
   beforeEach(async () => {
-    dir = await mkdtemp(join(tmpdir(), 'bh-tool-pwsh-'))
+    dir = await mkdtemp(join(tmpdir(), 'hydra-tool-pwsh-'))
     await writeFile(join(dir, 'greeting.txt'), 'hello pwsh\n')
 
     ctx = new Context()

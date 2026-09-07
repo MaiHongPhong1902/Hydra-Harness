@@ -29,14 +29,14 @@ server.listen(0, '127.0.0.1')
 await once(server, 'listening')
 const address = server.address()
 if (address === null || typeof address === 'string') throw new Error('collector has no port')
-process.env.BH_TELEMETRY_E2E_URL = `http://127.0.0.1:${address.port}/v1/logs`
+process.env.HYDRA_TELEMETRY_E2E_URL = `http://127.0.0.1:${address.port}/v1/logs`
 
 const ctx = await boot('telemetry-otel-e2e', resolveConfigPath(configPath, undefined))
 try {
   // The fixture credential rides the model-visible user message; the exported
   // copy must scrub it while the canonical log keeps the original bytes.
   await runFixtureTurn(ctx, { task: 'prove telemetry with key sk-e2efixture1234567890' })
-  const mode = process.env.BH_TELEMETRY_E2E_MODE ?? 'FULL'
+  const mode = process.env.HYDRA_TELEMETRY_E2E_MODE ?? 'FULL'
   if (mode !== 'FULL') {
     const [agent] = ctx.get('agents')?.roots() ?? []
     if (agent === undefined) throw new Error('session-telemetry-otel driver requires one root agent')

@@ -50,7 +50,7 @@ export type SettingsPathOpView =
   | { op: 'unset'; path: string[] }
 
 /**
- * The personalization custom-instructions document (`$BH_HOME/AGENTS.md`,
+ * The personalization custom-instructions document (`$HYDRA_HOME/AGENTS.md`,
  * the same fixed user-global file `@hydra/harness-agent-instructions` discovers).
  */
 export interface InstructionsDocumentView {

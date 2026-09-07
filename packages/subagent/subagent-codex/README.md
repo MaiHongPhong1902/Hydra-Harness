@@ -38,9 +38,9 @@ Production resolves the `codex` bin declared by its pinned `@openai/codex@0.147.
 This package is an optional Profile Bundle. Install it into the target Profile, then restart that Profile; installation brings the official wrapper and one compatible native platform payload into that Profile, while the declared `cordis.patch.yml` layer registers only the dormant `codex` Host provider and starts no Codex process. Removing the package withdraws that provider and its private runtime closure on the next Profile start.
 
 ```sh
-bh plugin --profile <name> add @hydra/harness-subagent-codex
-bh plugin --profile <name> remove @hydra/harness-subagent-codex
-bh --profile <name>
+hydra plugin --profile <name> add @hydra/harness-subagent-codex
+hydra plugin --profile <name> remove @hydra/harness-subagent-codex
+hydra --profile <name>
 ```
 
 Installation controls Host availability, not model permission. The Bundle supplies the dormant default `codex` row; the Profile may replace that row's complete config or mount additional rows with distinct `providerName`, `permissionMode`, and `env` values. Loading an instance starts no Codex process until a bound tool calls it. Each `@hydra/harness-tool-subagent` row names one provider and needs its own `toolName`, so the model sees static tools rather than a dynamic provider selector. Full Agent Presets carry a matching default product tool row with `disabled: true`; copy a preset and remove that field to expose `subagent_codex` only to agents composed from the copy. Its `one-shot` policy keeps omitted or `false` `run_in_background` calls in the foreground, while explicit `true` returns a parent-owned Job id for `job_output` or `job_kill`. The base host and full presets already provide the generic Job registry and controls.

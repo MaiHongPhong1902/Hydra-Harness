@@ -39,7 +39,7 @@ ACP requires each prompt response to carry a `stopReason`, but the bridge does n
 
 ## Running
 
-`pnpm --dir /path/to/bosch-harness run demo:acp` boots the repository's automation server composition. A parent harness can spawn it through [`@hydra/harness-subagent-acp`](../../subagent/subagent-acp/README.md); other ACP clients need only the core methods above.
+`pnpm --dir /path/to/Hydra-Harness run demo:acp` boots the repository's automation server composition. A parent harness can spawn it through [`@hydra/harness-subagent-acp`](../../subagent/subagent-acp/README.md); other ACP clients need only the core methods above.
 
 ## Model Experience
 

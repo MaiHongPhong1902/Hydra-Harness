@@ -32,7 +32,7 @@ function fakeAgent(session: Session): Agent {
 
 describe('tool-session-query with the real SQLite provider', () => {
   it('searches live prior-step history and a persisted same-workspace log', { timeout: 20_000 }, async () => {
-    const root = await mkdtemp(join(tmpdir(), 'bh-tool-session-query-'))
+    const root = await mkdtemp(join(tmpdir(), 'hydra-tool-session-query-'))
     temporaryDirectories.push(root)
     const ctx = new Context()
     contexts.push(ctx)
@@ -101,7 +101,7 @@ describe('tool-session-query with the real SQLite provider', () => {
   })
 
   it('passes finite fractional epoch-millisecond bounds through SQLite comparisons', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'bh-tool-session-query-fractional-'))
+    const root = await mkdtemp(join(tmpdir(), 'hydra-tool-session-query-fractional-'))
     temporaryDirectories.push(root)
     const ctx = new Context()
     contexts.push(ctx)

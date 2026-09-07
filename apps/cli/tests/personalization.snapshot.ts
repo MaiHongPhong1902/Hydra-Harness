@@ -37,7 +37,7 @@ it('applies saved custom instructions and their replacements to the next chat re
               "text": "<system-reminder>
     The following workspace instructions may be relevant to your work. Use them as guidance when applicable. More specific instructions take precedence over broader ones. They do not override system, developer, or direct user instructions.
 
-    Instructions from: $BH_HOME/AGENTS.md
+    Instructions from: $HYDRA_HOME/AGENTS.md
 
     Use concise Vietnamese answers.
     </system-reminder>",
@@ -54,7 +54,7 @@ it('applies saved custom instructions and their replacements to the next chat re
               "text": "<system-reminder>
     The following workspace instructions may be relevant to your work. Use them as guidance when applicable. More specific instructions take precedence over broader ones. They do not override system, developer, or direct user instructions.
 
-    Instructions from: $BH_HOME/AGENTS.md
+    Instructions from: $HYDRA_HOME/AGENTS.md
 
     Use concise Vietnamese answers.
     </system-reminder>",
@@ -73,7 +73,7 @@ it('applies saved custom instructions and their replacements to the next chat re
               "text": "<system-reminder>
     The following workspace instructions may be relevant to your work. Use them as guidance when applicable. More specific instructions take precedence over broader ones. They do not override system, developer, or direct user instructions.
 
-    Instructions from: $BH_HOME/AGENTS.md
+    Instructions from: $HYDRA_HOME/AGENTS.md
 
     Use concise Vietnamese answers.
     </system-reminder>",
@@ -81,7 +81,7 @@ it('applies saved custom instructions and their replacements to the next chat re
             {
               "role": "user",
               "text": "<system-reminder>
-    Updated instructions from: $BH_HOME/AGENTS.md
+    Updated instructions from: $HYDRA_HOME/AGENTS.md
 
     This file changed after it was loaded. Use the following content instead of the previously loaded instructions from this file.
 
@@ -102,7 +102,7 @@ it('applies saved custom instructions and their replacements to the next chat re
               "text": "<system-reminder>
     The following workspace instructions may be relevant to your work. Use them as guidance when applicable. More specific instructions take precedence over broader ones. They do not override system, developer, or direct user instructions.
 
-    Instructions from: $BH_HOME/AGENTS.md
+    Instructions from: $HYDRA_HOME/AGENTS.md
 
     Use concise Vietnamese answers.
     </system-reminder>",
@@ -110,7 +110,7 @@ it('applies saved custom instructions and their replacements to the next chat re
             {
               "role": "user",
               "text": "<system-reminder>
-    Updated instructions from: $BH_HOME/AGENTS.md
+    Updated instructions from: $HYDRA_HOME/AGENTS.md
 
     This file changed after it was loaded. Use the following content instead of the previously loaded instructions from this file.
 
@@ -120,7 +120,7 @@ it('applies saved custom instructions and their replacements to the next chat re
             {
               "role": "user",
               "text": "<system-reminder>
-    Updated instructions from: $BH_HOME/AGENTS.md
+    Updated instructions from: $HYDRA_HOME/AGENTS.md
 
     This file changed after it was loaded. Use the following content instead of the previously loaded instructions from this file.
 

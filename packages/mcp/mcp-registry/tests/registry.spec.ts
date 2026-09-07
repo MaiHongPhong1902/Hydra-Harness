@@ -69,7 +69,7 @@ async function mount(settingsPath: string): Promise<Context> {
 
 async function harness(): Promise<{ ctx: Context; registry: McpServerRegistry; settingsPath: string }> {
   primeSdk()
-  const root = await mkdtemp(join(tmpdir(), 'bh-mcp-registry-'))
+  const root = await mkdtemp(join(tmpdir(), 'hydra-mcp-registry-'))
   directories.push(root)
   const settingsPath = join(root, 'settings.yaml')
   const ctx = await mount(settingsPath)
@@ -162,7 +162,7 @@ describe('stored records', () => {
   })
 
   it('reads records the document already carries, so a hand edit needs no restart', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'bh-mcp-registry-existing-'))
+    const root = await mkdtemp(join(tmpdir(), 'hydra-mcp-registry-existing-'))
     directories.push(root)
     const settingsPath = join(root, 'settings.yaml')
     await writeFile(settingsPath, [
@@ -275,7 +275,7 @@ describe('mount reconciliation', () => {
   })
 
   it('mounts every enabled record the document already carried at startup', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'bh-mcp-registry-startup-'))
+    const root = await mkdtemp(join(tmpdir(), 'hydra-mcp-registry-startup-'))
     directories.push(root)
     const settingsPath = join(root, 'settings.yaml')
     primeSdk()

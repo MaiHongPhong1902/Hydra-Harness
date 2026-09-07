@@ -20,10 +20,10 @@ const HOST_READY_TIMEOUT_MS = 90_000
 const HOST_REQUEST_TIMEOUT_MS = 15_000
 const HOST_SHUTDOWN_TIMEOUT_MS = 7_000
 const MAX_EDITABLE_FILE_BYTES = 1_000_000
-const HOST_URL = /^bh web: (http:\/\/127\.0\.0\.1:\d+)$/u
+const HOST_URL = /^hydra web: (http:\/\/127\.0\.0\.1:\d+)$/u
 
 app.setName('Hydra harness')
-app.setPath('userData', join(process.env.BH_HOME || join(app.getPath('home'), '.bh'), 'desktop-electron'))
+app.setPath('userData', join(process.env.HYDRA_HOME || join(app.getPath('home'), '.hydra'), 'desktop-electron'))
 
 let mainWindow
 let host
@@ -50,7 +50,7 @@ app.on('web-contents-created', (_event, contents) => {
     const shortcut = panelShortcut(input)
     if (shortcut === undefined || mainWindow === undefined || mainWindow.isDestroyed()) return
     event.preventDefault()
-    mainWindow.webContents.send('bh-desktop:panel-shortcut', shortcut)
+    mainWindow.webContents.send('hydra-desktop:panel-shortcut', shortcut)
   })
 })
 let shuttingDown
@@ -72,11 +72,11 @@ function parseBrowserLine(line) {
 
 async function handleBrowserMessage(message) {
   if (typeof message !== 'object' || message === null || !('type' in message)) return
-  if (message.type === 'bh-browser-connect') {
+  if (message.type === 'hydra-browser-connect') {
     if (typeof message.connectionId !== 'string') return
     if (browserConnection !== undefined && browserConnection !== message.connectionId) {
-      postBrowser(message.connectionId, 'bh-browser-error', { error: 'another agent already owns the desktop browser' })
-      postBrowser(message.connectionId, 'bh-browser-close')
+      postBrowser(message.connectionId, 'hydra-browser-error', { error: 'another agent already owns the desktop browser' })
+      postBrowser(message.connectionId, 'hydra-browser-close')
       return
     }
     browserConnection = message.connectionId
@@ -84,8 +84,8 @@ async function handleBrowserMessage(message) {
     try {
       await browser.command('configure_browser', settings)
     } catch (error) {
-      postBrowser(message.connectionId, 'bh-browser-error', { error: String(error) })
-      postBrowser(message.connectionId, 'bh-browser-close')
+      postBrowser(message.connectionId, 'hydra-browser-error', { error: String(error) })
+      postBrowser(message.connectionId, 'hydra-browser-close')
       browserConnection = undefined
       return
     }
@@ -96,19 +96,19 @@ async function handleBrowserMessage(message) {
     if (homeUrl !== undefined) {
       try { await browser.command('navigate', { url: homeUrl }) } catch {}
     }
-    postBrowser(message.connectionId, 'bh-browser-line', { line: JSON.stringify({ event: 'ready' }) })
+    postBrowser(message.connectionId, 'hydra-browser-line', { line: JSON.stringify({ event: 'ready' }) })
     return
   }
-  if (message.type === 'bh-browser-disconnect') {
+  if (message.type === 'hydra-browser-disconnect') {
     if (message.connectionId === browserConnection) browserConnection = undefined
     return
   }
-  if (message.type !== 'bh-browser-line' || message.connectionId !== browserConnection || typeof message.line !== 'string') return
+  if (message.type !== 'hydra-browser-line' || message.connectionId !== browserConnection || typeof message.line !== 'string') return
   const request = parseBrowserLine(message.line)
   if (request === undefined) return
   const reply = await browser.request(request)
   if (reply !== undefined) {
-    postBrowser(message.connectionId, 'bh-browser-line', { line: JSON.stringify(reply) })
+    postBrowser(message.connectionId, 'hydra-browser-line', { line: JSON.stringify(reply) })
   }
 }
 
@@ -158,7 +158,7 @@ async function routeAppUrl(url) {
 
 function installBrowserController(window) {
   const registered = Promise.withResolvers()
-  globalThis.__BH_BROWSER_EMBED__ = {
+  globalThis.__HYDRA_BROWSER_EMBED__ = {
     window,
     config: {
       persistSessionCookies: true,
@@ -167,17 +167,17 @@ function installBrowserController(window) {
     },
     send(message) {
       if (browserConnection !== undefined) {
-        postBrowser(browserConnection, 'bh-browser-line', { line: JSON.stringify(message) })
+        postBrowser(browserConnection, 'hydra-browser-line', { line: JSON.stringify(message) })
       }
     },
     onState(state) {
       void state
     },
     onAnnotation(annotation) {
-      if (!window.isDestroyed()) window.webContents.send('bh-desktop:browser-annotation', annotation)
+      if (!window.isDestroyed()) window.webContents.send('hydra-desktop:browser-annotation', annotation)
     },
     openBrowser() {
-      if (!window.isDestroyed()) window.webContents.send('bh-desktop:panel-shortcut', 'browser')
+      if (!window.isDestroyed()) window.webContents.send('hydra-desktop:panel-shortcut', 'browser')
     },
     register(controller) { registered.resolve(controller) },
   }
@@ -193,7 +193,7 @@ function startHost() {
     'web', '--no-open', '--host', '127.0.0.1', '--port', '0',
   ], {
     cwd: process.cwd(),
-    env: { ...process.env, BH_DESKTOP_BROWSER_BRIDGE: 'parent-port' },
+    env: { ...process.env, HYDRA_DESKTOP_BROWSER_BRIDGE: 'parent-port' },
     // Electron's Node ABI cannot use the system-Node native helper that exposes
     // the Loader internals. The built-in flag gives profile-relative plugin
     // resolution the same hook without loading that addon.
@@ -240,7 +240,7 @@ function terminalSize(value) {
 
 function sendTerminalEvent(terminalId, value) {
   if (mainWindow === undefined || mainWindow.isDestroyed()) return
-  mainWindow.webContents.send('bh-desktop:terminal-event', { terminalId, event: value })
+  mainWindow.webContents.send('hydra-desktop:terminal-event', { terminalId, event: value })
 }
 
 function terminalId(value) {
@@ -526,7 +526,7 @@ function installRendererIpc() {
     if (shuttingDown !== undefined || !validSender(event)) throw new Error('browser management is unavailable')
     return await browser.command(method, args)
   }
-  ipcMain.on('bh-desktop:browser-bounds', (event, value) => {
+  ipcMain.on('hydra-desktop:browser-bounds', (event, value) => {
     if (shuttingDown !== undefined || !validSender(event) || typeof value !== 'object' || value === null) return
     const [windowWidth, windowHeight] = mainWindow.getContentSize()
     const zoom = mainWindow.webContents.getZoomFactor()
@@ -542,9 +542,9 @@ function installRendererIpc() {
     }
     browser.setBounds(browserBounds)
   })
-  ipcMain.handle('bh-desktop:browser-configure', (event, value) =>
+  ipcMain.handle('hydra-desktop:browser-configure', (event, value) =>
     browserOperation(event, 'configure_browser', value))
-  ipcMain.handle('bh-desktop:browser-confirm-full-cdp', async (event) => {
+  ipcMain.handle('hydra-desktop:browser-confirm-full-cdp', async (event) => {
     if (shuttingDown !== undefined || !validSender(event)) return false
     const choice = await dialog.showMessageBox(mainWindow, {
       type: 'warning',
@@ -558,83 +558,83 @@ function installRendererIpc() {
     })
     return choice.response === 0
   })
-  ipcMain.handle('bh-desktop:browser-clear-data', (event, value) =>
+  ipcMain.handle('hydra-desktop:browser-clear-data', (event, value) =>
     browserOperation(event, 'clear_browser_data', value))
-  ipcMain.handle('bh-desktop:browser-open-url', (event, value) =>
+  ipcMain.handle('hydra-desktop:browser-open-url', (event, value) =>
     browserOperation(event, 'route_user_url', value))
-  ipcMain.handle('bh-desktop:browser-history', event =>
+  ipcMain.handle('hydra-desktop:browser-history', event =>
     browserOperation(event, 'browser_history'))
-  ipcMain.handle('bh-desktop:browser-remove-history', (event, value) =>
+  ipcMain.handle('hydra-desktop:browser-remove-history', (event, value) =>
     browserOperation(event, 'remove_browser_history', value))
-  ipcMain.handle('bh-desktop:browser-downloads', event =>
+  ipcMain.handle('hydra-desktop:browser-downloads', event =>
     browserOperation(event, 'browser_downloads'))
-  ipcMain.handle('bh-desktop:browser-remove-download', (event, value) =>
+  ipcMain.handle('hydra-desktop:browser-remove-download', (event, value) =>
     browserOperation(event, 'remove_browser_download', value))
-  ipcMain.handle('bh-desktop:browser-sites', event =>
+  ipcMain.handle('hydra-desktop:browser-sites', event =>
     browserOperation(event, 'browser_sites'))
-  ipcMain.handle('bh-desktop:browser-set-site', (event, value) =>
+  ipcMain.handle('hydra-desktop:browser-set-site', (event, value) =>
     browserOperation(event, 'set_browser_site', value))
-  ipcMain.handle('bh-desktop:browser-remove-site', (event, value) =>
+  ipcMain.handle('hydra-desktop:browser-remove-site', (event, value) =>
     browserOperation(event, 'remove_browser_site', value))
-  ipcMain.handle('bh-desktop:browser-autofill-status', event =>
+  ipcMain.handle('hydra-desktop:browser-autofill-status', event =>
     browserOperation(event, 'autofill_status'))
-  ipcMain.handle('bh-desktop:browser-autofill-list-logins', event =>
+  ipcMain.handle('hydra-desktop:browser-autofill-list-logins', event =>
     browserOperation(event, 'autofill_list_logins'))
-  ipcMain.handle('bh-desktop:browser-autofill-save-login', (event, value) =>
+  ipcMain.handle('hydra-desktop:browser-autofill-save-login', (event, value) =>
     browserOperation(event, 'autofill_save_login', value))
-  ipcMain.handle('bh-desktop:browser-autofill-remove-login', (event, value) =>
+  ipcMain.handle('hydra-desktop:browser-autofill-remove-login', (event, value) =>
     browserOperation(event, 'autofill_remove_login', value))
-  ipcMain.handle('bh-desktop:browser-autofill-list-contacts', event =>
+  ipcMain.handle('hydra-desktop:browser-autofill-list-contacts', event =>
     browserOperation(event, 'autofill_list_contacts'))
-  ipcMain.handle('bh-desktop:browser-autofill-get-contact', (event, value) =>
+  ipcMain.handle('hydra-desktop:browser-autofill-get-contact', (event, value) =>
     browserOperation(event, 'autofill_get_contact', value))
-  ipcMain.handle('bh-desktop:browser-autofill-save-contact', (event, value) =>
+  ipcMain.handle('hydra-desktop:browser-autofill-save-contact', (event, value) =>
     browserOperation(event, 'autofill_save_contact', value))
-  ipcMain.handle('bh-desktop:browser-autofill-remove-contact', (event, value) =>
+  ipcMain.handle('hydra-desktop:browser-autofill-remove-contact', (event, value) =>
     browserOperation(event, 'autofill_remove_contact', value))
-  ipcMain.handle('bh-desktop:terminal-start', async (event, value) => {
+  ipcMain.handle('hydra-desktop:terminal-start', async (event, value) => {
     if (shuttingDown !== undefined || !validSender(event)) throw new Error('terminal is unavailable')
     const id = terminalId(value?.terminalId)
     const size = terminalSize(value?.size)
     if (id === undefined || size === undefined) throw new Error('terminal request is invalid')
     return await startTerminal(id, size)
   })
-  ipcMain.handle('bh-desktop:terminal-stop', async (event, value) => {
+  ipcMain.handle('hydra-desktop:terminal-stop', async (event, value) => {
     if (shuttingDown !== undefined || !validSender(event)) throw new Error('terminal is unavailable')
     const id = terminalId(value?.terminalId)
     if (id === undefined) throw new Error('terminal request is invalid')
     await stopTerminal(id)
   })
-  ipcMain.on('bh-desktop:terminal-write', (event, value) => {
+  ipcMain.on('hydra-desktop:terminal-write', (event, value) => {
     const id = terminalId(value?.terminalId)
     if (shuttingDown !== undefined || !validSender(event) || id === undefined
       || typeof value?.data !== 'string' || value.data.length > 65_536) return
     try { terminals.get(id)?.instance.write(value.data) } catch {}
   })
-  ipcMain.on('bh-desktop:terminal-resize', (event, value) => {
+  ipcMain.on('hydra-desktop:terminal-resize', (event, value) => {
     if (shuttingDown !== undefined || !validSender(event)) return
     const id = terminalId(value?.terminalId)
     const size = terminalSize(value?.size)
     if (id === undefined || size === undefined) return
     try { terminals.get(id)?.instance.resize(size.cols, size.rows) } catch {}
   })
-  ipcMain.handle('bh-desktop:files-root', async (event, value) => {
+  ipcMain.handle('hydra-desktop:files-root', async (event, value) => {
     if (shuttingDown !== undefined || !validSender(event)) throw new Error('files are unavailable')
     return await registeredWorkspaceRoot(value?.workspaceId)
   })
-  ipcMain.handle('bh-desktop:files-list', async (event, value) => {
+  ipcMain.handle('hydra-desktop:files-list', async (event, value) => {
     if (shuttingDown !== undefined || !validSender(event)) throw new Error('files are unavailable')
     return await listFiles(await registeredWorkspaceRoot(value?.workspaceId), value?.path)
   })
-  ipcMain.handle('bh-desktop:files-search', async (event, value) => {
+  ipcMain.handle('hydra-desktop:files-search', async (event, value) => {
     if (shuttingDown !== undefined || !validSender(event)) throw new Error('files are unavailable')
     return await searchFiles(await registeredWorkspaceRoot(value?.workspaceId), value?.query)
   })
-  ipcMain.handle('bh-desktop:files-read', async (event, value) => {
+  ipcMain.handle('hydra-desktop:files-read', async (event, value) => {
     if (shuttingDown !== undefined || !validSender(event)) throw new Error('files are unavailable')
     return await readWorkspaceFile(await registeredWorkspaceRoot(value?.workspaceId), value?.path)
   })
-  ipcMain.handle('bh-desktop:files-create', async (event, value) => {
+  ipcMain.handle('hydra-desktop:files-create', async (event, value) => {
     if (shuttingDown !== undefined || !validSender(event)) throw new Error('files are unavailable')
     return await createWorkspaceEntry(
       await registeredWorkspaceRoot(value?.workspaceId),
@@ -643,7 +643,7 @@ function installRendererIpc() {
       value?.kind,
     )
   })
-  ipcMain.handle('bh-desktop:files-save', async (event, value) => {
+  ipcMain.handle('hydra-desktop:files-save', async (event, value) => {
     if (shuttingDown !== undefined || !validSender(event)) throw new Error('files are unavailable')
     return await saveWorkspaceFile(
       await registeredWorkspaceRoot(value?.workspaceId),
@@ -652,7 +652,7 @@ function installRendererIpc() {
       value?.expectedVersion,
     )
   })
-  ipcMain.handle('bh-desktop:files-format', async (event, value) => {
+  ipcMain.handle('hydra-desktop:files-format', async (event, value) => {
     if (shuttingDown !== undefined || !validSender(event)) throw new Error('files are unavailable')
     return await formatWorkspaceFile(
       await registeredWorkspaceRoot(value?.workspaceId),
@@ -728,11 +728,11 @@ async function waitForRenderer(label, expression) {
 }
 
 async function prepareSmokeWorkspace() {
-  const root = await mkdtemp(join(tmpdir(), 'bh-desktop-smoke-'))
+  const root = await mkdtemp(join(tmpdir(), 'hydra-desktop-smoke-'))
   smokeWorkspace = { root }
-  const outside = await mkdtemp(join(tmpdir(), 'bh-desktop-smoke-outside-'))
+  const outside = await mkdtemp(join(tmpdir(), 'hydra-desktop-smoke-outside-'))
   smokeWorkspace = { root, outside }
-  await writeFile(join(root, 'package.json'), '{"name":"bh-desktop-smoke"}\n')
+  await writeFile(join(root, 'package.json'), '{"name":"hydra-desktop-smoke"}\n')
   await writeFile(join(root, 'bom-crlf.txt'), '\ufeffone\r\ntwo\r\n')
   await writeFile(join(outside, 'outside-only.txt'), 'must not be searchable\n')
   await symlink(outside, join(root, 'linked-outside'), process.platform === 'win32' ? 'junction' : 'dir')
@@ -756,7 +756,7 @@ async function cleanupSmokeWorkspace() {
     const parent = resolve(tmpdir())
     const target = resolve(directory)
     const inside = relative(parent, target)
-    if (inside.includes(sep) || !inside.startsWith('bh-desktop-smoke-')) {
+    if (inside.includes(sep) || !inside.startsWith('hydra-desktop-smoke-')) {
       throw new Error(`refusing to remove unexpected smoke path: ${target}`)
     }
     await rm(target, { recursive: true, force: true })
@@ -810,7 +810,7 @@ async function smoke() {
   await waitForRenderer('workspace Files filter focus', `document.activeElement?.getAttribute('aria-label') === 'Filter workspace files'`)
   const files = await mainWindow.webContents.executeJavaScript(`(async () => {
     const workspaceId = ${JSON.stringify(smokeWorkspace.workspaceId)}
-    const api = window.bhDesktop?.files
+    const api = window.hydraDesktop?.files
     if (api === undefined) return undefined
     const rejected = promise => promise.then(() => false, () => true)
     const root = document.querySelector('[data-panel-kind="files"]:not([hidden]) [data-files-root]')?.getAttribute('data-files-root')
@@ -869,7 +869,7 @@ async function smoke() {
     }
   })()`)
   if (files?.root !== smokeWorkspace.root
-    || !String(files?.preview).includes('bh-desktop-smoke')
+    || !String(files?.preview).includes('hydra-desktop-smoke')
     || typeof files?.previewVersion !== 'string'
     || files?.linked !== 0
     || files?.unscopedRejected !== true
@@ -905,12 +905,12 @@ async function smoke() {
   })()`)
   if (!terminalsVisible) throw new Error('right and bottom Terminal panels did not open together')
   await waitForTerminal('bottom', 'bottom startup', () => true)
-  const marker = `BH_TERMINAL_SMOKE_${Date.now()}`
+  const marker = `HYDRA_TERMINAL_SMOKE_${Date.now()}`
   const rightMarker = `${marker}_RIGHT`
   const bottomMarker = `${marker}_BOTTOM`
   await mainWindow.webContents.executeJavaScript(`(() => {
-    window.bhDesktop?.terminal?.write('right', ${JSON.stringify(`echo ${rightMarker}\r`)})
-    window.bhDesktop?.terminal?.write('bottom', ${JSON.stringify(`echo ${bottomMarker}\r`)})
+    window.hydraDesktop?.terminal?.write('right', ${JSON.stringify(`echo ${rightMarker}\r`)})
+    window.hydraDesktop?.terminal?.write('bottom', ${JSON.stringify(`echo ${bottomMarker}\r`)})
   })()`)
   await waitForTerminal('right', 'right command output', terminal => terminal.output.includes(rightMarker))
   await waitForTerminal('bottom', 'bottom command output', terminal => terminal.output.includes(bottomMarker))

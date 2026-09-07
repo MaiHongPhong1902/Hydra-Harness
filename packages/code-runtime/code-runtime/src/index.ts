@@ -20,7 +20,7 @@ export type {
 /**
  * Binding globals EVERY backend refuses because SOME backend owns the slot in
  * the program's namespace: `console` (the worker's log capture), and
- * `__bh_main__`/`__builtins__`/`__name__` (the Python backend's bootstrap
+ * `__hydra_main__`/`__builtins__`/`__name__` (the Python backend's bootstrap
  * wrapper and seeded module globals; see the [portable-identifier Agent
  * Note](../../../../.agents/notes/implemented/architecture/2026-07-31-code-runtime-portable-identifier-seam.md)),
  * and `__debug__`. One shared set — rather than each backend refusing only its
@@ -39,7 +39,7 @@ export type {
  */
 export const RESERVED_BINDING_GLOBALS: ReadonlySet<string> = new Set([
   'console',
-  '__bh_main__', '__builtins__', '__name__', '__debug__',
+  '__hydra_main__', '__builtins__', '__name__', '__debug__',
 ])
 
 /**

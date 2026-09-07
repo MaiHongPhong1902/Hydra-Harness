@@ -48,7 +48,7 @@ function stubPanelObservers(): void {
 
 afterEach(() => {
   cleanup()
-  delete window.bhDesktop
+  delete window.hydraDesktop
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
 })
@@ -57,7 +57,7 @@ describe('DesktopBrowserPanel', () => {
   it('hides native bounds for overlays and non-Browser tabs, then restores them', async () => {
     const setBounds = vi.fn()
     const api: DesktopBrowserApi = { setBounds }
-    window.bhDesktop = { browser: api }
+    window.hydraDesktop = { browser: api }
     stubPanelObservers()
     vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue({
       x: 700, y: 72, left: 700, top: 72, right: 1200, bottom: 800,
@@ -126,7 +126,7 @@ describe('DesktopBrowserPanel', () => {
       save: vi.fn(),
       format: vi.fn(),
     }
-    window.bhDesktop = { browser: { setBounds: vi.fn() }, files }
+    window.hydraDesktop = { browser: { setBounds: vi.fn() }, files }
     stubPanelObservers()
     const sessionIds = ['side-1', 'side-2'] as SessionId[]
     let nextSession = 0
@@ -255,7 +255,7 @@ describe('DesktopBrowserPanel', () => {
       save: vi.fn(async (path: string) => ({ path, version: 'v-saved' })),
       format: vi.fn(async () => '{\n  "value": 2\n}\n'),
     }
-    window.bhDesktop = { browser: { setBounds: vi.fn() }, files }
+    window.hydraDesktop = { browser: { setBounds: vi.fn() }, files }
     const view = render(
       <DesktopFilesPanel workspaceId={workspaceId} active focusSearch={1} />,
     )
@@ -343,7 +343,7 @@ describe('DesktopBrowserPanel', () => {
       save: vi.fn(),
       format: vi.fn(),
     }
-    window.bhDesktop = { browser: { setBounds: vi.fn() }, files }
+    window.hydraDesktop = { browser: { setBounds: vi.fn() }, files }
     const view = render(<DesktopFilesPanel workspaceId={workspaceId} active focusSearch={1} />)
     const tree = await view.findByRole('tree', { name: 'Workspace files' })
     fireEvent.click(within(tree).getByRole('button', { name: 'first.txt' }))
@@ -410,7 +410,7 @@ describe('DesktopBrowserPanel', () => {
       save: vi.fn(() => new Promise<{ path: string; version: string }>((resolve) => { finishSave = resolve })),
       format: vi.fn(),
     }
-    window.bhDesktop = { browser: { setBounds: vi.fn() }, files }
+    window.hydraDesktop = { browser: { setBounds: vi.fn() }, files }
     stubPanelObservers()
     const createSideSession = vi.fn(async () => 'side' as SessionId)
     const renderSideChat = () => null

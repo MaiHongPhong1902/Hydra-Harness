@@ -27,13 +27,13 @@ afterEach(async () => {
   internals.resolveDistIndex = originalResolveDistIndex
   internals.openBrowser = originalOpenBrowser
   vi.unstubAllEnvs()
-  Reflect.deleteProperty(globalThis, '__bhWebAppApply')
-  Reflect.deleteProperty(globalThis, '__bhWebServer')
+  Reflect.deleteProperty(globalThis, '__hhWebAppApply')
+  Reflect.deleteProperty(globalThis, '__hhWebServer')
 })
 
 describe('web app browser startup', () => {
   it('opens the canonical URL only after the complete page is reachable', async () => {
-    const root = mkdtempSync(join(tmpdir(), 'bh-web-browser-open-'))
+    const root = mkdtempSync(join(tmpdir(), 'hydra-web-browser-open-'))
     tempRoots.push(root)
     const dist = join(root, 'dist')
     mkdirSync(dist)
@@ -43,11 +43,11 @@ describe('web app browser startup', () => {
 
     const webserverModule = join(root, 'webserver.mjs')
     const webAppModule = join(root, 'web-app.mjs')
-    writeFileSync(webserverModule, 'export default globalThis.__bhWebServer\n')
+    writeFileSync(webserverModule, 'export default globalThis.__hhWebServer\n')
     writeFileSync(webAppModule, [
       "export const name = 'fixture-web-app'",
       "export const inject = ['webServer']",
-      'export const apply = (ctx, config) => globalThis.__bhWebAppApply(ctx, config)',
+      'export const apply = (ctx, config) => globalThis.__hhWebAppApply(ctx, config)',
       '',
     ].join('\n'))
     const config = join(root, 'cordis.yml')
@@ -68,11 +68,11 @@ describe('web app browser startup', () => {
     ].join('\n'))
 
     const globals = globalThis as unknown as {
-      __bhWebAppApply: typeof apply
-      __bhWebServer: typeof WebServer
+      __hhWebAppApply: typeof apply
+      __hhWebServer: typeof WebServer
     }
-    globals.__bhWebAppApply = apply
-    globals.__bhWebServer = WebServer
+    globals.__hhWebAppApply = apply
+    globals.__hhWebServer = WebServer
 
     let openedUrl: string | undefined
     let openedStatus: number | undefined

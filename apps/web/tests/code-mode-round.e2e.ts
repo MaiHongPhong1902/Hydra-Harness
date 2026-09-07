@@ -6,8 +6,8 @@
 // component a native call renders through — plus details-panel resolution for
 // a clicked sub-row. Drive steps wait only on generic completion
 // (whenTurnSettled); assertion steps run in replay/refresh only.
-// Record: BH_SNAPSHOT=record rewrites session.jsonl, then a keyless
-// BH_SNAPSHOT=refresh regenerates ui.expected.md.
+// Record: HYDRA_SNAPSHOT=record rewrites session.jsonl, then a keyless
+// HYDRA_SNAPSHOT=refresh regenerates ui.expected.md.
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import type { Browser, Page } from 'playwright'

@@ -30,7 +30,7 @@ function stripNamespace(path: string): string {
 }
 
 async function tempRoot(): Promise<string> {
-  const dir = await mkdtemp(join(tmpdir(), 'bh-jsonl-win32-'))
+  const dir = await mkdtemp(join(tmpdir(), 'hydra-jsonl-win32-'))
   roots.push(dir)
   return dir
 }

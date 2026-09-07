@@ -12,7 +12,7 @@ import { bwrapProfileArgs } from '../src/profiles.ts'
 /**
  * Keyless backend integration through `confine()` and a real bwrap process. With no rung forced,
  * a passing probe must select the first rung. Tests assert world effects, wrap shape, and that the
- * kernel denial matches the advertised dialect; consumer coverage lives in bh-bash-sandbox.
+ * kernel denial matches the advertised dialect; consumer coverage lives in hydra-bash-sandbox.
  * Skips when bwrap or user namespaces are unavailable. HOME-based workspaces avoid bwrap's
  * ephemeral `/tmp`, so workspace-write actually proves the workspace-root rebind.
  */
@@ -32,7 +32,7 @@ afterEach(async () => {
 })
 
 async function tempDir(base: string): Promise<string> {
-  const dir = await mkdtemp(join(base, 'bh-bwrap-e2e-'))
+  const dir = await mkdtemp(join(base, 'hydra-bwrap-e2e-'))
   tempDirs.push(dir)
   return dir
 }
@@ -135,7 +135,7 @@ describe.skipIf(!bwrapUsable)('sandbox-local: real bwrap confinement', () => {
     // the HOST temp areas, bwrap swaps in a fresh tmpfs that dies with the
     // process — the strongest of the three temp semantics.
     const workdir = await tempDir(homedir())
-    const target = `/tmp/bh-bwrap-e2e-ephemeral-${process.pid}.txt`
+    const target = `/tmp/hydra-bwrap-e2e-ephemeral-${process.pid}.txt`
     tempFiles.push(target)
     const sandbox = await provider()
     const { result } = runConfined(sandbox, `printf tmp-ok > ${target} && cat ${target}`, { mode: 'workspace-write', workspaceRoot: workdir })

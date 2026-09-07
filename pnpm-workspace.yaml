@@ -12,7 +12,7 @@ packages:
   # its native build and publication scripts under native/landlock-run.
   - native/landlock-run
   - native/landlock-run/packages/*
-  # Product assemblies over the package tier; apps/cli owns the `bh` bin.
+  # Product assemblies over the package tier; apps/cli owns the `hydra` bin.
   - apps/*
   - website
   # The runnable demo leaves join as ONE workspace member: examples/package.json

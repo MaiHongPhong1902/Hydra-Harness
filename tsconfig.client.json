@@ -43,8 +43,8 @@
     // so it cannot drag host-side Context augmentation into this program.
     { "path": "./packages/host/webserver" },
     // Compaction seam: the client-runtime pin test value-imports the canonical
-    // checkpoint const from the cordis-free bh-compaction/checkpoint leaf and
-    // deliberately never loads the bh-compaction package root or the host-side
+    // checkpoint const from the cordis-free hydra-compaction/checkpoint leaf and
+    // deliberately never loads the hydra-compaction package root or the host-side
     // Context merges reachable through it. The client package pins the same
     // leaf through a type-only import in transcript-adapter.ts; composite
     // rootDir rules make both paths depend on this runtime project reference.

@@ -1,5 +1,5 @@
-# The bh-web-app bundle patch: the browser surface over the bh-base layer.
-# Applied after bh-base's insert; rows here override base rows by id, with
+# The hydra-web-app bundle patch: the browser surface over the hydra-base layer.
+# Applied after hydra-base's insert; rows here override base rows by id, with
 # the profile's own cordis.patch.yml and any --patch overlays still to come.
 #
 # A patch replaces the targeted row's whole `config`, so each row below
@@ -9,7 +9,7 @@
 # ordinary Cordis service. Rows configured from flags inject that service, so
 # Loader resolves their expressions only after it exists. The web runtime then
 # provides bind-dependent `webRuntime` values to the trust fence.
-# `bh --profile web --help` provides neither service, so no server binds.
+# `hydra --profile web --help` provides neither service, so no server binds.
 
 # ── surface-specific values the base deliberately omits ─────────────────────
 
@@ -34,16 +34,16 @@
 
 - id: tools
   config:
-    # TEMPORARY workaround: BH_TOOLS_MODE (native|code|both) opts a whole bh
+    # TEMPORARY workaround: HYDRA_TOOLS_MODE (native|code|both) opts a whole hydra
     # process into Code Mode while per-session tool-presentation selection is being
     # designed; unset keeps the schema default (native). Remove the env seam
     # once the web UI owns the choice per session.
-    mode: !!js process.env.BH_TOOLS_MODE
+    mode: !!js process.env.HYDRA_TOOLS_MODE
 
 # ── web-only host rows, the transport layer, and the browser roster ─────────
 
-# `bh.client` rows are the browser roster the modules node half scans into
-# window.__BH_BOOT__; the modules row is simultaneously a host row.
+# `hydra.client` rows are the browser roster the modules node half scans into
+# window.__HYDRA_BOOT__; the modules row is simultaneously a host row.
 - insert:
     - id: code-runtime
       name: '@hydra/harness-code-runtime-worker-thread'
@@ -59,7 +59,7 @@
       pluginType: core
       pluginGroup: storage
       config:
-        root: !!js bhHomePath('storages')
+        root: !!js hydraHomePath('storages')
 
     - id: storage-domain
       name: '@hydra/harness-storage-domain'
@@ -171,7 +171,7 @@
         port: !!js ctx.webStartup.port ?? 3080
 
     # Web glue owned by this bundle: resolves the built frontend dist (an
-    # assembly fact of bh-web-app, never user config), mounts the
+    # assembly fact of hydra-web-app, never user config), mounts the
     # frontend-static fallback owner, registers the web-surface prompt
     # section and the bash runtime variable, prints the URL line, and opens the
     # canonical local URL after the full tree settles. The webStartup provider
@@ -197,9 +197,9 @@
       name: '@hydra/harness-client-hmr'
       pluginType: core
 
-    # ── browser plugin roster (bh.client rows; node halves are layer-2 hosts) ──
+    # ── browser plugin roster (hydra.client rows; node halves are layer-2 hosts) ──
 
-    # Dual-face: the node half scans this tree, composes window.__BH_BOOT__,
+    # Dual-face: the node half scans this tree, composes window.__HYDRA_BOOT__,
     # and serves /plugins/<id>/client.js; the browser half is the module table
     # the shell kernel constructs before cordis exists (adopted as a plugin
     # entry by the kernel, never fetched).
@@ -400,7 +400,7 @@
 # the composition.
 
 # `shell-env` STAYS in the host plane: `apps/cli/src/web.ts` injects it to
-# publish `BH_WEB_URL`/`BH_WEB_MODE`, and a host row that injects a service is
+# publish `HYDRA_WEB_URL`/`HYDRA_WEB_MODE`, and a host row that injects a service is
 # the criterion for host-plane ownership — injection resolves before any session
 # exists, so there is no agent to key by. Behind a preset realm those variables
 # would never reach the model's shell at all.
@@ -523,14 +523,14 @@
   disabled: true
 
 # The preset roster. `config/agent-presets/` ships with the deployment and is
-# read-only (its entries carry `system` trust); `$BH_HOME/.agent-presets` is
+# read-only (its entries carry `system` trust); `$HYDRA_HOME/.agent-presets` is
 # where a person — or an agent — authors their own, and carries the same trust
 # as shell access because a preset IS a composition.
 #
 # Only the SHIPPED root is an assembly fact: it sits beside the installed app's
 # own config, so `apps/cli`'s `composeProfile` resolves and patches it in — the
 # same treatment `distIndex` gets on the webserver row. The writable root is
-# `bh-agent-presets`' own default (`includeUserRoot`), so a composition that
+# `hydra-agent-presets`' own default (`includeUserRoot`), so a composition that
 # never reaches that patch still finds a person's presets.
 - insert:
     - id: agent-presets

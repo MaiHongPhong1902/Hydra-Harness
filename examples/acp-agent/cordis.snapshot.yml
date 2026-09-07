@@ -5,8 +5,8 @@
 # recorded corpus (request headers, provenance, system prompt) was captured on flash,
 # so replay holds the recorded model to stay reproducible without a re-record. A config
 # patch replaces the whole app config, so the base fields are restated verbatim.
-# With `BH_SNAPSHOT=replay`, the app bin reads `BH_SNAPSHOT_FILE` and optional
-# `BH_SNAPSHOT_OVERRIDE` from the harness. The one-shot patch applies at include
+# With `HYDRA_SNAPSHOT=replay`, the app bin reads `HYDRA_SNAPSHOT_FILE` and optional
+# `HYDRA_SNAPSHOT_OVERRIDE` from the harness. The one-shot patch applies at include
 # load time, and stdout remains reserved for ACP JSON-RPC.
 - id: base
   name: '@hydra/cordis-plugin-include'
@@ -24,7 +24,7 @@
         config:
           provider: deepseek-official
           model: deepseek-v4-flash
-          persistenceRoot: !!js process.env.BH_SNAPSHOT_SESSIONS_ROOT ?? './.sessions'
+          persistenceRoot: !!js process.env.HYDRA_SNAPSHOT_SESSIONS_ROOT ?? './.sessions'
           # Replay fixtures are raw JSONL; the whole-config patch must restate
           # the compression choice or the default zstd frames hide the logs
           # from the harness's harvest.

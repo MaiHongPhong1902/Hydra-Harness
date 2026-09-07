@@ -77,7 +77,7 @@ describe.skipIf(MODE === 'record')('web e2e: first-run DeepSeek credential setup
     const initial = await captureStableAria(page, '[role="dialog"]', scaffold.workspaceCwd)
     await compareOrRefreshGolden(MISSING_EXPECTED, initial, MODE)
 
-    const secret = `bh_onboarding_${randomBytes(12).toString('hex')}`
+    const secret = `hydra_onboarding_${randomBytes(12).toString('hex')}`
     await keyInput.fill(secret)
     await credentialStep.getByRole('button', { name: 'Save and continue' }).click()
     await credentialStep.waitFor({ state: 'detached', timeout: 15_000 })

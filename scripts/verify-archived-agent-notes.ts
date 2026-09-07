@@ -84,7 +84,7 @@ if (existsSync(manifestPath)) {
 }
 
 // CI supplies its trusted pre-change commit; local writes compare with committed HEAD.
-const baselineRef = process.env.BH_ARCHIVE_BASE_REF ?? 'HEAD'
+const baselineRef = process.env.HYDRA_ARCHIVE_BASE_REF ?? 'HEAD'
 try {
   const baseline = readBaselineManifest(baselineRef)
   errors.push(...validateArchiveManifestExtension(baseline, manifest))

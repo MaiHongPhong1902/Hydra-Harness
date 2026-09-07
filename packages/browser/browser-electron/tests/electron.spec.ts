@@ -130,10 +130,10 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
       } else if (request.url === '/transient-body') {
         response.end('<!doctype html><html><head><script>document.addEventListener("DOMContentLoaded", () => { document.body.remove(); setTimeout(() => { const body = document.createElement("body"); document.title = "Body restored"; body.innerHTML = "<button id=restored>Restored</button>"; document.documentElement.append(body) }, 600) })</script></head><body></body></html>')
       } else if (request.url === '/cookie-set') {
-        response.setHeader('set-cookie', 'bh-browser-persistence=1; Path=/')
+        response.setHeader('set-cookie', 'hydra-browser-persistence=1; Path=/')
         response.end('<!doctype html><title>Cookie set</title>')
       } else if (request.url === '/cookie-check') {
-        response.end(`<!doctype html><title>${request.headers.cookie?.includes('bh-browser-persistence=1') ? 'Cookie persisted' : 'Cookie missing'}</title>`)
+        response.end(`<!doctype html><title>${request.headers.cookie?.includes('hydra-browser-persistence=1') ? 'Cookie persisted' : 'Cookie missing'}</title>`)
       } else if (request.url?.startsWith('/download')) {
         response.setHeader('content-disposition', 'attachment; filename="browser-artifact.txt"')
         response.flushHeaders()
@@ -173,7 +173,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
     policyFixture = `http://127.0.0.1:${address.port}/policy`
     redirectFixture = `http://127.0.0.1:${address.port}/redirect-cross`
     crossOrigin = `http://localhost:${address.port}`
-    profile = mkdtempSync(join(tmpdir(), 'bh-browser-'))
+    profile = mkdtempSync(join(tmpdir(), 'hydra-browser-'))
     child = await launchBrowser({
       userDataDir: profile,
       width: 1024,
@@ -189,7 +189,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
           message: {
             role: 'assistant',
             tool_calls: [{
-              id: 'bh-page-agent-smoke',
+              id: 'hydra-page-agent-smoke',
               type: 'function',
               function: {
                 name: 'AgentOutput',
@@ -277,7 +277,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
       const pending = child.call('annotate_element', {})
       await expect.poll(async () => {
         const ready = await child.call('execute_javascript', {
-          script: "return Boolean(document.querySelector('#bh-browser-annotation-overlay'))",
+          script: "return Boolean(document.querySelector('#hydra-browser-annotation-overlay'))",
         }) as ActionResult
         return ready.message.includes('true')
       }, { timeout: 5_000 }).toBe(true)
@@ -285,7 +285,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
     }
     const pointer = (type: 'pointerdown' | 'pointermove' | 'pointerup' | 'pointercancel', x: number, y: number, pointerId = 1) =>
       child.call('execute_javascript', {
-        script: `const overlay = document.querySelector('#bh-browser-annotation-overlay'); overlay.dispatchEvent(new PointerEvent('${type}', { bubbles: true, isPrimary: true, pointerId: ${pointerId}, button: 0, buttons: ${type === 'pointerup' || type === 'pointercancel' ? 0 : 1}, clientX: ${x}, clientY: ${y} }))`,
+        script: `const overlay = document.querySelector('#hydra-browser-annotation-overlay'); overlay.dispatchEvent(new PointerEvent('${type}', { bubbles: true, isPrimary: true, pointerId: ${pointerId}, button: 0, buttons: ${type === 'pointerup' || type === 'pointercancel' ? 0 : 1}, clientX: ${x}, clientY: ${y} }))`,
       })
 
     const quick = await child.call('annotate_element_at', point) as {
@@ -299,7 +299,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
 
     const { pending } = await startPicker()
     await child.call('execute_javascript', {
-      script: `const overlay = document.querySelector('#bh-browser-annotation-overlay'); overlay.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: ${point.x}, clientY: ${point.y} }))`,
+      script: `const overlay = document.querySelector('#hydra-browser-annotation-overlay'); overlay.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: ${point.x}, clientY: ${point.y} }))`,
     })
     const selected = await pending as { kind: string; index?: number; preview: string }
     expect(selected).toMatchObject({ kind: 'browser-element', index })
@@ -458,8 +458,8 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
 
   it('retains tab-scoped CDP events and shares its debugger with approved uploads', async () => {
     const configure = (fullCdpAccess: boolean) => child.call('configure_browser', {
-      webDestination: 'bhagent',
-      localDestination: 'bhagent',
+      webDestination: 'hydra',
+      localDestination: 'hydra',
       annotationScreenshots: 'include',
       downloadDirectory: '',
       askWhereToSave: false,
@@ -485,7 +485,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
     })
     await child.call('cdp_command', {
       method: 'Runtime.evaluate',
-      params: { expression: "console.log('bh-cdp-event')" },
+      params: { expression: "console.log('hydra-cdp-event')" },
       expectedOrigin: target.origin,
       tabId: target.tabId,
     })
@@ -582,7 +582,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
   }, 30_000)
 
   it('loads the configured home page before the first browser state', async () => {
-    const homeProfile = mkdtempSync(join(tmpdir(), 'bh-browser-home-'))
+    const homeProfile = mkdtempSync(join(tmpdir(), 'hydra-browser-home-'))
     let home: BrowserChild | undefined
     try {
       home = await launchBrowser({
@@ -606,7 +606,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
   }, 60_000)
 
   it('keeps cookies when a later browser session reuses the same profile', async () => {
-    const cookieProfile = mkdtempSync(join(tmpdir(), 'bh-browser-cookies-'))
+    const cookieProfile = mkdtempSync(join(tmpdir(), 'hydra-browser-cookies-'))
     let first: BrowserChild | undefined
     let second: BrowserChild | undefined
     try {
@@ -671,7 +671,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
   }, 60_000)
 
   it('clears only the requested history or download scope', async () => {
-    const scopedProfile = mkdtempSync(join(tmpdir(), 'bh-browser-clear-scope-'))
+    const scopedProfile = mkdtempSync(join(tmpdir(), 'hydra-browser-clear-scope-'))
     let scoped: BrowserChild | undefined
     try {
       writeFileSync(join(scopedProfile, 'browser-management.json'), JSON.stringify({
@@ -719,7 +719,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
   }, 60_000)
 
   it('keeps site overrides bounded while allowing updates at the limit', async () => {
-    const boundedProfile = mkdtempSync(join(tmpdir(), 'bh-browser-sites-'))
+    const boundedProfile = mkdtempSync(join(tmpdir(), 'hydra-browser-sites-'))
     let bounded: BrowserChild | undefined
     try {
       const sites = Object.fromEntries(Array.from({ length: 500 }, (_, index) => [
@@ -758,7 +758,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
   }, 60_000)
 
   it('enforces stored navigation blocks and revokes media before the mutation returns', async () => {
-    const mediaProfile = mkdtempSync(join(tmpdir(), 'bh-browser-media-'))
+    const mediaProfile = mkdtempSync(join(tmpdir(), 'hydra-browser-media-'))
     let media: BrowserChild | undefined
     try {
       media = await launchBrowser({
@@ -831,7 +831,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
   }, 60_000)
 
   it('reserves distinct paths for concurrent same-name downloads', async () => {
-    const downloadProfile = mkdtempSync(join(tmpdir(), 'bh-browser-downloads-'))
+    const downloadProfile = mkdtempSync(join(tmpdir(), 'hydra-browser-downloads-'))
     let downloadsChild: BrowserChild | undefined
     try {
       downloadsChild = await launchBrowser({
@@ -941,7 +941,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
   }, 60_000)
 
   it('captures only the selected visible tab as a bounded PNG', async () => {
-    const screenshotProfile = mkdtempSync(join(tmpdir(), 'bh-browser-screenshot-'))
+    const screenshotProfile = mkdtempSync(join(tmpdir(), 'hydra-browser-screenshot-'))
     let visible: BrowserChild | undefined
     try {
       visible = await launchBrowser({
@@ -980,7 +980,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
   }, 60_000)
 
   it('adds, selects, closes, and navigates native tabs', async () => {
-    const chromeProfile = mkdtempSync(join(tmpdir(), 'bh-browser-chrome-'))
+    const chromeProfile = mkdtempSync(join(tmpdir(), 'hydra-browser-chrome-'))
     try {
       await runChromeUi(chromeProfile)
     } finally {

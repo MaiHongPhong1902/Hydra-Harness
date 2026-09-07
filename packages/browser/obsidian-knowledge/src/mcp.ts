@@ -94,7 +94,7 @@ async function withClient<Value>(
 ): Promise<ConnectedResult<Value>> {
   const apiKey = await options.resolveApiKey()
   if (apiKey === undefined || apiKey.length === 0) return undefined
-  const client = new Client({ name: 'bh-obsidian-knowledge', version: '0.1.0' }, { capabilities: {} })
+  const client = new Client({ name: 'hydra-obsidian-knowledge', version: '0.1.0' }, { capabilities: {} })
   const transport = new StreamableHTTPClientTransport(new URL(options.url), {
     requestInit: { headers: { Authorization: `Bearer ${apiKey}` } },
   })

@@ -31,13 +31,13 @@ export const LOADER_SMOKE_TEST_TIMEOUT_MS = DEFAULT_PROCESS_TIMEOUT_MS + 15_000
 export type ExampleMode = 'src' | 'lib'
 
 /** Environment variable selecting the mode; CI sets it to `lib`, dev leaves it unset (`src`). */
-export const EXAMPLE_MODE_ENV = 'BH_EXAMPLE_MODE'
+export const EXAMPLE_MODE_ENV = 'HYDRA_EXAMPLE_MODE'
 
 /**
  * Parse an {@link ExampleMode} from a raw string, defaulting to `src` when absent so an unset
  * environment reproduces the dev/tsx behavior. Throws on any other value rather than silently
  * falling back, so a typo in a gate's env fails loud.
- * @param raw - the raw value; defaults to `process.env.BH_EXAMPLE_MODE`.
+ * @param raw - the raw value; defaults to `process.env.HYDRA_EXAMPLE_MODE`.
  * @returns the validated mode.
  */
 export function resolveExampleMode(raw: string | undefined = process.env[EXAMPLE_MODE_ENV]): ExampleMode {
@@ -182,7 +182,7 @@ export async function runLoaderSmoke(options: LoaderSmokeOptions): Promise<Loade
       configArgs: options.binArgs ?? [options.configPath],
       ...options.mode !== undefined ? { mode: options.mode } : {},
       tsconfigPath: options.tsconfigPath,
-      env: { BH_HOME: join(cwd, '.bh'), BH_AGENTS_HOME: join(cwd, '.agents'), ...options.env },
+      env: { HYDRA_HOME: join(cwd, '.hydra'), HYDRA_AGENTS_HOME: join(cwd, '.agents'), ...options.env },
     })
     // `input: ''` writes nothing and closes stdin — the fixture-visible
     // stdin-close contract. `reject: false` folds spawn errors, the SIGKILL

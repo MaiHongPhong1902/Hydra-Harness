@@ -10,8 +10,8 @@
           - id: spill-local
             name: '@hydra/harness-spill-local'
             config:
-              root: !!js process.env.BH_SNAPSHOT_SPILL_ROOT ?? './.spill'
+              root: !!js process.env.HYDRA_SNAPSHOT_SPILL_ROOT ?? './.spill'
           - id: spill-policy
             name: '@hydra/harness-spill-policy'
             config:
-              maxInlineBytes: !!js process.env.BH_SNAPSHOT && 800 || 50000
+              maxInlineBytes: !!js process.env.HYDRA_SNAPSHOT && 800 || 50000

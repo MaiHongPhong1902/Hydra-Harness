@@ -22,7 +22,7 @@ class StubEngine extends WorkflowEngine {
 
 const INFO: WorkflowRunInfo = { id: WorkflowRunId('run-1'), meta: { name: 'w', description: 'd' } }
 
-describe('bh-workflow (interface)', () => {
+describe('hydra-workflow (interface)', () => {
   it('WorkflowRunId brands a string (identity at runtime)', () => {
     expect(WorkflowRunId('abc')).toBe('abc')
   })

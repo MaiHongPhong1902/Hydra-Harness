@@ -20,7 +20,7 @@ import type { SubprocessHandle, SubprocessOutputReader } from '@hydra/harness-su
 import { classifyDenial, classifyRunnerFailure, isRunnerSpawnFailure } from '../src/helpers.ts'
 import type { Config } from '@hydra/harness-bash-sandbox'
 
-const spillDir = mkdtempSync(join(tmpdir(), 'bh-bash-sandbox-spec-'))
+const spillDir = mkdtempSync(join(tmpdir(), 'hydra-bash-sandbox-spec-'))
 
 /** One recorded provider call: the argv handed over and the policy it rode with. */
 interface ConfineCall {
@@ -99,10 +99,10 @@ describe('the provider hand-off', () => {
   })
 
   it('hands the provider\'s returned argv directly to ctx.subprocess.spawn', async () => {
-    const returnedArgv = ['env', 'BH_WRAP=1', 'bash', '-c', 'printf "%s" "$BH_WRAP"']
+    const returnedArgv = ['env', 'HYDRA_WRAP=1', 'bash', '-c', 'printf "%s" "$HYDRA_WRAP"']
     const { ctx, bash } = await setup({}, () => ({ argv: returnedArgv, enforcement: 'full', denialSignatures: UNIX_SIGNATURES, runnerFailureRules: RUNNER_FAILURE }))
     const spawn = vi.spyOn(ctx.subprocess, 'spawn')
-    const result = await bash.run(bash.resolve({ command: 'printf "%s" "$BH_WRAP"' }))
+    const result = await bash.run(bash.resolve({ command: 'printf "%s" "$HYDRA_WRAP"' }))
     expect(result.stdout.text).toBe('1')
     expect(spawn).toHaveBeenCalledTimes(1)
     expect(spawn.mock.calls[0]?.[0].argv).toEqual(returnedArgv)
@@ -110,14 +110,14 @@ describe('the provider hand-off', () => {
   })
 
   it('starts a non-Bash runner before the confined inner Bash evaluates BASH_ENV', async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'bh-bash-env-order-'))
+    const dir = mkdtempSync(join(tmpdir(), 'hydra-bash-env-order-'))
     const hook = join(dir, 'hook.sh')
     const order = join(dir, 'order.txt')
-    writeFileSync(hook, 'printf "hook\\n" >> "$BH_ORDER_FILE"\n')
+    writeFileSync(hook, 'printf "hook\\n" >> "$HYDRA_ORDER_FILE"\n')
     const runnerScript = [
       'const { appendFileSync } = require("node:fs");',
       'const { spawnSync } = require("node:child_process");',
-      'appendFileSync(process.env.BH_ORDER_FILE, "runner\\n");',
+      'appendFileSync(process.env.HYDRA_ORDER_FILE, "runner\\n");',
       'const child = spawnSync(process.argv[1], process.argv.slice(2), { env: process.env, stdio: "inherit" });',
       'process.exit(child.status ?? 125);',
     ].join('')
@@ -132,7 +132,7 @@ describe('the provider hand-off', () => {
       const result = await bash.run(bash.resolve({
         command: 'true',
         env: { BASH_ENV: hook },
-        bhEnv: { BH_ORDER_FILE: order },
+        hydraEnv: { HYDRA_ORDER_FILE: order },
       }))
       expect(result.exitCode).toBe(0)
       expect(readFileSync(order, 'utf8')).toBe('runner\nhook\n')
@@ -189,7 +189,7 @@ describe('fail closed', () => {
         denialSignatures: UNIX_SIGNATURES,
         runnerFailureRules: RUNNER_FAILURE,
       }))
-      const parent = mkdtempSync(join(tmpdir(), 'bh-sandbox-missing-cwd-'))
+      const parent = mkdtempSync(join(tmpdir(), 'hydra-sandbox-missing-cwd-'))
       try {
         const failure = await bash.run(bash.resolve({ command: 'true', workdir: join(parent, 'missing') }))
           .catch((error: unknown) => error)
@@ -203,7 +203,7 @@ describe('fail closed', () => {
 
   it('keeps an invalid workdir ordinary when danger-full-access bypasses the provider', async () => {
     const { bash } = await setup({ mode: 'danger-full-access' })
-    const parent = mkdtempSync(join(tmpdir(), 'bh-sandbox-missing-cwd-'))
+    const parent = mkdtempSync(join(tmpdir(), 'hydra-sandbox-missing-cwd-'))
     try {
       const failure = await bash.run(bash.resolve({ command: 'true', workdir: join(parent, 'missing') }))
         .catch((error: unknown) => error)
@@ -268,7 +268,7 @@ describe('fail closed', () => {
       denialSignatures: UNIX_SIGNATURES,
       runnerFailureRules: RUNNER_FAILURE,
     }))
-    const parent = mkdtempSync(join(tmpdir(), 'bh-sandbox-missing-cwd-'))
+    const parent = mkdtempSync(join(tmpdir(), 'hydra-sandbox-missing-cwd-'))
     const workdir = join(parent, 'missing')
     const failure = Object.assign(new Error('spawn ENOENT'), { code: 'ENOENT', syscall: `spawn ${runner}`, path: runner })
     vi.spyOn(ctx.subprocess, 'spawn').mockImplementation(() => { throw failure })
@@ -516,7 +516,7 @@ describe('result facts', () => {
 
   it('reports a real permission failure as a sandbox denial with the mode it ran under', async () => {
     const { bash } = await setup()
-    const lockedDir = join(mkdtempSync(join(tmpdir(), 'bh-sandbox-denied-')), 'locked')
+    const lockedDir = join(mkdtempSync(join(tmpdir(), 'hydra-sandbox-denied-')), 'locked')
     mkdirSync(lockedDir)
     chmodSync(lockedDir, 0o555)
     const result = await bash.run(bash.resolve({ command: `echo x > ${lockedDir}/f` }))
@@ -539,7 +539,7 @@ describe('background sandbox facts', () => {
       denialSignatures: UNIX_SIGNATURES,
       runnerFailureRules: RUNNER_FAILURE,
     }))
-    const parent = mkdtempSync(join(tmpdir(), 'bh-sandbox-missing-cwd-'))
+    const parent = mkdtempSync(join(tmpdir(), 'hydra-sandbox-missing-cwd-'))
     try {
       const task = bash.start(bash.resolve({ command: 'true', workdir: join(parent, 'missing') }))
       await task.done

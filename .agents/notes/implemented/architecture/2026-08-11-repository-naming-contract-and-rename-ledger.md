@@ -22,7 +22,7 @@ No family exposes two public vocabularies.
 
 ### Use `SDK` for one thing
 
-`SDK` means the JSON-RPC-based client/server protocol used by the supported Python and TypeScript SDKs. The repository keeps `@hydra/harness-sdk-client`, `@hydra/harness-sdk-protocol`, and the wire identity `bosch-harness-sdk-runtime`; the JSON-RPC server belongs to the same family. Hydra harness itself is not an SDK, and the removed project generator, launcher, helper, and launcher telemetry packages stay absent.
+`SDK` means the JSON-RPC-based client/server protocol used by the supported Python and TypeScript SDKs. The repository keeps `@hydra/harness-sdk-client`, `@hydra/harness-sdk-protocol`, and the wire identity `hydra-harness-sdk-runtime`; the JSON-RPC server belongs to the same family. Hydra harness itself is not an SDK, and the removed project generator, launcher, helper, and launcher telemetry packages stay absent.
 
 This decision partially supersedes three active decisions. It replaces the retained `bash/`, `pty/`, and `self-modification/` group names and both deferred package targets in the [package-regrouping decision](2026-07-29-package-regrouping.md). It replaces only the repository-wide SDK claim in the [SDK project toolchain removal](../simplification/2026-08-11-remove-sdk-project-toolchain.md), which remains the owner of the deletion and the surviving runtime SDK. It replaces only the package-name rationale in the [tool-call timeout policy](2026-07-07-tool-call-timeout-policy.md); the timeout mechanism and its `guard/timeout-policy/` home remain unchanged.
 
@@ -70,7 +70,7 @@ Do not invent a `process sandbox` concept. The current `sandbox` family already 
 
 Use title case for initialisms inside PascalCase identifiers: `Ui`, `Llm`, `JsonRpc`, and `ApiProxy`. Use the conventional uppercase form in prose and package names where applicable: UI, LLM, JSON-RPC, and API. `Typert` is the exact product spelling in identifiers and prose; do not write `TypeRT`, `TypeRt`, or `Typert` with another internal split.
 
-Do not remove an intentional vendor qualifier to avoid repetition. `@hydra/harness-subagent-bh-sdk` names the Hydra harness SDK provider and avoids confusion with another SDK. Its private class becomes `SdkSubagentProvider` because the class also needs to say what it provides.
+Do not remove an intentional vendor qualifier to avoid repetition. `@hydra/harness-subagent-sdk` names the Hydra harness SDK provider and avoids confusion with another SDK. Its private class becomes `SdkSubagentProvider` because the class also needs to say what it provides.
 
 ### Put the rule in project documentation
 
@@ -87,7 +87,7 @@ The tables record public and repository-wide renames. The `Current` column holds
 | `@hydra/harness-jsonrpc` | `@hydra/harness-sdk-jsonrpc-server` | It is the server half of the SDK protocol. `jsonrpc` alone names an encoding; `sdk-jsonrpc-server` gives the family, mechanism, and role. |
 | `HarnessSdkServer` | `HarnessSdkJsonRpcServer` | The class is one JSON-RPC server implementation, not every possible SDK server. |
 
-Keep `@hydra/harness-sdk-client`, `@hydra/harness-sdk-protocol`, and `bosch-harness-sdk-runtime`. Exclude `@hydra/create-sdk`, `@hydra/harness-scripts`, `@hydra/harness-helper`, and `@hydra/harness-telemetry`; the separate removal decision deletes them and their support graph.
+Keep `@hydra/harness-sdk-client`, `@hydra/harness-sdk-protocol`, and `hydra-harness-sdk-runtime`. Exclude `@hydra/create-sdk`, `@hydra/harness-scripts`, `@hydra/harness-helper`, and `@hydra/harness-telemetry`; the separate removal decision deletes them and their support graph.
 
 ### Shell and terminal
 
@@ -174,7 +174,7 @@ Keep `@hydra/harness-tools` and `ctx.tools`. Keep `@hydra/harness-api-gateway`, 
 | `session/user-id/`, `@hydra/harness-user-id` | `identity/anonymous-user-id/`, `@hydra/harness-anonymous-user-id` | The value is a random correlation id shared by telemetry, feedback, and DeepSeek requests. It is neither a Session concern nor an authenticated user identity. |
 | `USER_ID_FILE_NAME`, `.userid`, feedback label `User` | `ANONYMOUS_USER_ID_FILE_NAME`, `.anonymous-user-id`, feedback label `Anonymous user` | The file and UI must not imply account identity. Keep the existing `AnonymousUserId` functions and the standard OTel attribute `user.id`. |
 | `util/environment/`, `@hydra/harness-environment` | `util/launch-environment/`, `@hydra/harness-launch-environment` | The package captures one immutable layered snapshot at launch. It is not a general environment API. |
-| Public `Environment*`, `createEnvironmentSnapshot`, `environmentOf`, `BH_ENVIRONMENT_KEY` | `LaunchEnvironment*`, `createLaunchEnvironmentSnapshot`, `launchEnvironmentOf`, `BH_LAUNCH_ENVIRONMENT_KEY` | The names state the snapshot's lifetime and purpose. |
+| Public `Environment*`, `createEnvironmentSnapshot`, `environmentOf`, `HYDRA_ENVIRONMENT_KEY` | `LaunchEnvironment*`, `createLaunchEnvironmentSnapshot`, `launchEnvironmentOf`, `HYDRA_LAUNCH_ENVIRONMENT_KEY` | The names state the snapshot's lifetime and purpose. |
 | `ctx.launcherEnvironment` | `ctx.launchEnvironment` | The value describes the application launch, not only a launcher component. Keep source labels `process`, `project-env`, and `user-env`. |
 
 ### Schedule, workflow, goals, and compaction
@@ -241,11 +241,11 @@ Keep the complete session projection family and `SessionProjection*` vocabulary.
 | `@hydra/harness-subagent-spawn`, `SpawnProvider` | `@hydra/harness-subagent-spawn-in-process`, `SpawnInProcessProvider` | This provider starts a child agent in the current process. The configured provider id remains `spawn`. |
 | `@hydra/harness-subagent-fork`, `ForkProvider` | `@hydra/harness-subagent-fork-in-process`, `ForkInProcessProvider` | This provider forks an agent in the current process. The configured provider id remains `fork`. |
 | `@hydra/harness-subagent-inprocess`, `subagent-inprocess/` | `@hydra/harness-subagent-in-process-driver`, `subagent-in-process-driver/` | The package contains common in-process driving logic, not a third provider. |
-| Private `SdkProvider` in `@hydra/harness-subagent-bh-sdk` | `SdkSubagentProvider` | The repeated package qualifier is intentional, and the class must say that it provides subagents through the SDK. |
+| Private `SdkProvider` in `@hydra/harness-subagent-sdk` | `SdkSubagentProvider` | The repeated package qualifier is intentional, and the class must say that it provides subagents through the SDK. |
 | `WebService`, `WebServiceConfig` | `WebRuntime`, `WebRuntimeConfig` | The object selects providers and runs live search and fetch operations. Keep the package, key, provider packages, and model tool. |
 | `@hydra/harness-web-fetch-local`, `LocalFetchProvider`, `LocalFetchLimits`, provider id `local-http` | `@hydra/harness-web-fetch-http`, `HttpFetchProvider`, `HttpFetchLimits`, provider id `http` | This provider performs direct HTTP fetches. `local` says where code happens to run, not which mechanism it provides. |
 
-Keep `@hydra/harness-subagent-bh-sdk`, its provider id `bh-sdk`, external ACP, Codex, and Claude Code provider families, the subagent tool package names, the main filesystem package and backends, filesystem tools and events, and the skill badge and tool packages.
+Keep `@hydra/harness-subagent-sdk`, its provider id `hydra-sdk`, external ACP, Codex, and Claude Code provider families, the subagent tool package names, the main filesystem package and backends, filesystem tools and events, and the skill badge and tool packages.
 
 ### Hooks, guards, plan mode, extensions, and diagnostics
 
@@ -322,7 +322,7 @@ The following debated names stay unchanged because the current scope is accurate
 - Keep `PermissionPresetSettingsController` even though it is long. Every word limits the role.
 - Keep `ModelsSettingsStore`; its main contract is one settings data model with store operations.
 - Keep `InputHub`; it is the concrete hub that backs `SessionInputResolver`.
-- Keep `@hydra/harness-subagent-bh-sdk` and provider id `bh-sdk`; the repeated qualifier prevents ambiguity.
+- Keep `@hydra/harness-subagent-sdk` and provider id `hydra-sdk`; the repeated qualifier prevents ambiguity.
 - Keep `headless`; the product identity is accurate even if the runtime later supports more than one-shot use.
 - Keep deprecated Host `ApiProxy` and client connection names until the API replacement removes them.
 - Keep `Web` for the Host server and the provider-neutral web capability. Use `HTTP` only for the direct fetch provider.
@@ -353,7 +353,7 @@ The following debated names stay unchanged because the current scope is accurate
 
 **Use broad names for possible future features.** Rejected. Name the stable current role. A future boundary change can rename the object again before release or use a new proposal after release. Vague names charge every current reader for an unbuilt future.
 
-**Rename `bh-compact-basic` to `bh-compaction-llm`.** Rejected. `LLM` adds no distinction in the current backend family. `basic` is less ambitious and does not claim an algorithm that does not exist.
+**Rename `hydra-compact-basic` to `hydra-compaction-llm`.** Rejected. `LLM` adds no distinction in the current backend family. `basic` is less ambitious and does not claim an algorithm that does not exist.
 
 **Rename session projections to reducers.** Rejected. Reduction is how a projection is built. The package also owns the read-model value, cache, and lookup contract.
 

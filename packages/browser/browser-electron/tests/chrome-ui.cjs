@@ -49,7 +49,7 @@ server = createServer((request, response) => {
 server.listen(0, '127.0.0.1', () => {
   const config = JSON.parse(process.argv[2] ?? '{}')
   app.setPath('userData', config.userDataDir)
-  globalThis.__BH_BROWSER_EMBED__ = {
+  globalThis.__HYDRA_BROWSER_EMBED__ = {
     config: {
       ...config,
       annotationScreenshots: 'include',
@@ -101,14 +101,14 @@ server.listen(0, '127.0.0.1', () => {
       return await waitFor(async () => {
         const page = activePage()
         if (page === undefined) return undefined
-        return await page.executeJavaScript("Boolean(document.querySelector('#bh-browser-annotation-overlay'))")
+        return await page.executeJavaScript("Boolean(document.querySelector('#hydra-browser-annotation-overlay'))")
           ? page : undefined
       })
     }
     const dragRegion = async (page, pointerId) => {
       await page.executeJavaScript(`
         (() => {
-          const overlay = document.querySelector('#bh-browser-annotation-overlay')
+          const overlay = document.querySelector('#hydra-browser-annotation-overlay')
           overlay.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, isPrimary: true, pointerId: ${pointerId}, button: 0, buttons: 1, clientX: 40, clientY: 100 }))
           overlay.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, isPrimary: true, pointerId: ${pointerId}, button: 0, buttons: 1, clientX: 200, clientY: 220 }))
           overlay.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, isPrimary: true, pointerId: ${pointerId}, button: 0, buttons: 0, clientX: 200, clientY: 220 }))

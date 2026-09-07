@@ -48,10 +48,10 @@ declare module '@hydra/harness-jobs' {
  * bin smokes; here we assert the composition + config forwarding.
  */
 async function mount(config: agentCore.Config, withBash = false): Promise<Context> {
-  const oldBhHome = process.env.BH_HOME
-  const oldAgentsHome = process.env.BH_AGENTS_HOME
-  process.env.BH_HOME = await mkdtemp(join(tmpdir(), 'bh-agent-spine-demo-home-'))
-  process.env.BH_AGENTS_HOME = await mkdtemp(join(tmpdir(), 'bh-agent-spine-demo-agents-'))
+  const oldHydraHome = process.env.HYDRA_HOME
+  const oldAgentsHome = process.env.HYDRA_AGENTS_HOME
+  process.env.HYDRA_HOME = await mkdtemp(join(tmpdir(), 'hydra-agent-spine-demo-home-'))
+  process.env.HYDRA_AGENTS_HOME = await mkdtemp(join(tmpdir(), 'hydra-agent-spine-demo-agents-'))
   const ctx = new Context()
   if (withBash) {
     ctx.provide('shell', {
@@ -68,36 +68,36 @@ async function mount(config: agentCore.Config, withBash = false): Promise<Contex
     await new Promise(resolve => setTimeout(resolve, 50))
     return ctx
   } finally {
-    if (oldBhHome === undefined) {
-      delete process.env.BH_HOME
+    if (oldHydraHome === undefined) {
+      delete process.env.HYDRA_HOME
     } else {
-      process.env.BH_HOME = oldBhHome
+      process.env.HYDRA_HOME = oldHydraHome
     }
     if (oldAgentsHome === undefined) {
-      delete process.env.BH_AGENTS_HOME
+      delete process.env.HYDRA_AGENTS_HOME
     } else {
-      process.env.BH_AGENTS_HOME = oldAgentsHome
+      process.env.HYDRA_AGENTS_HOME = oldAgentsHome
     }
   }
 }
 
 async function withIsolatedSkillHomes<T>(run: () => Promise<T>): Promise<T> {
-  const oldBhHome = process.env.BH_HOME
-  const oldAgentsHome = process.env.BH_AGENTS_HOME
-  process.env.BH_HOME = await mkdtemp(join(tmpdir(), 'bh-agent-spine-demo-home-'))
-  process.env.BH_AGENTS_HOME = await mkdtemp(join(tmpdir(), 'bh-agent-spine-demo-agents-'))
+  const oldHydraHome = process.env.HYDRA_HOME
+  const oldAgentsHome = process.env.HYDRA_AGENTS_HOME
+  process.env.HYDRA_HOME = await mkdtemp(join(tmpdir(), 'hydra-agent-spine-demo-home-'))
+  process.env.HYDRA_AGENTS_HOME = await mkdtemp(join(tmpdir(), 'hydra-agent-spine-demo-agents-'))
   try {
     return await run()
   } finally {
-    if (oldBhHome === undefined) {
-      delete process.env.BH_HOME
+    if (oldHydraHome === undefined) {
+      delete process.env.HYDRA_HOME
     } else {
-      process.env.BH_HOME = oldBhHome
+      process.env.HYDRA_HOME = oldHydraHome
     }
     if (oldAgentsHome === undefined) {
-      delete process.env.BH_AGENTS_HOME
+      delete process.env.HYDRA_AGENTS_HOME
     } else {
-      process.env.BH_AGENTS_HOME = oldAgentsHome
+      process.env.HYDRA_AGENTS_HOME = oldAgentsHome
     }
   }
 }
@@ -129,7 +129,7 @@ class TransientOnceAdapter extends LlmAdapter {
   }
 }
 
-describe('bh-agent-spine-demo bundle', () => {
+describe('hydra-agent-spine-demo bundle', () => {
   it('brings up the full default spine', async () => {
     const ctx = await mount({ workspaceContext: false })
     // One service from each layer of the spine proves the children loaded.
@@ -339,7 +339,7 @@ describe('bh-agent-spine-demo bundle', () => {
   })
 
   it('loads workspace instructions into requests through the bundled spine', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'bh-agent-spine-demo-workspace-context-'))
+    const root = await mkdtemp(join(tmpdir(), 'hydra-agent-spine-demo-workspace-context-'))
     try {
       await mkdir(join(root, '.git'), { recursive: true })
       await writeFile(join(root, 'AGENTS.md'), 'bundled project rule')
@@ -371,7 +371,7 @@ describe('bh-agent-spine-demo bundle', () => {
   })
 
   it('forwards agent-instructions config to the bundled loader', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'bh-agent-spine-demo-workspace-context-disabled-'))
+    const root = await mkdtemp(join(tmpdir(), 'hydra-agent-spine-demo-workspace-context-disabled-'))
     try {
       await mkdir(join(root, '.git'), { recursive: true })
       await writeFile(join(root, 'AGENTS.md'), 'must not be injected')
@@ -401,9 +401,9 @@ describe('bh-agent-spine-demo bundle', () => {
   })
 
   it('forwards skill config to the registry, local provider, and model-facing consumer', async () => {
-    const home = await mkdtemp(join(tmpdir(), 'bh-agent-spine-demo-skill-home-'))
-    const agentsHome = await mkdtemp(join(tmpdir(), 'bh-agent-spine-demo-skill-agents-'))
-    const custom = await mkdtemp(join(tmpdir(), 'bh-agent-spine-demo-skill-custom-'))
+    const home = await mkdtemp(join(tmpdir(), 'hydra-agent-spine-demo-skill-home-'))
+    const agentsHome = await mkdtemp(join(tmpdir(), 'hydra-agent-spine-demo-skill-agents-'))
+    const custom = await mkdtemp(join(tmpdir(), 'hydra-agent-spine-demo-skill-custom-'))
     await mkdir(custom, { recursive: true })
     await writeFile(join(custom, 'custom-skill.md'), '---\nname: custom-skill\ndescription: Custom skill\n---\n\nCustom body.\n')
     const ctx = await mount({
@@ -412,7 +412,7 @@ describe('bh-agent-spine-demo bundle', () => {
       skills: {
         registry: { collectCacheMaxEntries: 4 },
         filesystem: {
-          bhHome: join(home, '.bh'),
+          hydraHome: join(home, '.hydra'),
           agentsHome: join(agentsHome, '.agents'),
           customSkillDirs: [custom],
         },
@@ -431,15 +431,15 @@ describe('bh-agent-spine-demo bundle', () => {
   })
 
   it('injects one strong filesystem skill match before the first bundled model request', async () => {
-    const custom = await mkdtemp(join(tmpdir(), 'bh-agent-spine-demo-automatic-skill-'))
-    await writeFile(join(custom, 'workon-uat-test-design.md'), [
+    const custom = await mkdtemp(join(tmpdir(), 'hydra-agent-spine-demo-automatic-skill-'))
+    await writeFile(join(custom, 'obsidian-uat-test-design.md'), [
       '---',
-      'name: workon-uat-test-design',
-      'description: Ground WorkON testcase lookup and test design in Obsidian knowledge.',
-      'whenToUse: Use for WorkON testcase lookup, test design, or live validation.',
+      'name: obsidian-uat-test-design',
+      'description: Ground UAT testcase lookup and test design in Obsidian knowledge.',
+      'whenToUse: Use for UAT testcase lookup, test design, or live validation.',
       '---',
       '',
-      'Use obsidian_knowledge_recall before WorkON testing.',
+      'Use obsidian_knowledge_recall before UAT testing.',
       '',
     ].join('\n'))
     const adapter = new MockAdapter([textResponse('ok')])
@@ -456,7 +456,7 @@ describe('bh-agent-spine-demo bundle', () => {
       })
 
       handle.agent.followup(createUserMessage({
-        content: [{ type: 'text', text: 'test tính năng search request trên workon' }],
+        content: [{ type: 'text', text: 'test tính năng search request trên obsidian' }],
         source: { kind: 'user' },
       }))
       await waitForIdle(ctx, handle.agent)
@@ -473,24 +473,24 @@ describe('bh-agent-spine-demo bundle', () => {
             "source": {
               "kind": "user",
             },
-            "text": "test tính năng search request trên workon",
+            "text": "test tính năng search request trên obsidian",
           },
           {
             "role": "user",
             "source": {
               "form": "instructions",
               "kind": "skill-invocation",
-              "name": "workon-uat-test-design",
+              "name": "obsidian-uat-test-design",
               "trigger": "automatic",
             },
-            "text": "<skill_content name=\"workon-uat-test-design\">
+            "text": "<skill_content name=\"obsidian-uat-test-design\">
         <skill_resources>
         Base directory for this skill: {{skill-root}}
         Resolve relative paths mentioned by this skill against the base directory before using them. Load referenced resources only as needed.
         </skill_resources>
 
         <skill_instructions>
-        Use obsidian_knowledge_recall before WorkON testing.
+        Use obsidian_knowledge_recall before UAT testing.
         </skill_instructions>
         </skill_content>",
           },
@@ -498,7 +498,7 @@ describe('bh-agent-spine-demo bundle', () => {
       `)
       expect(handle.agent.session.events.some(event => event.type === 'user/message'
         && event.data.source.kind === 'skill-invocation'
-        && event.data.source.name === 'workon-uat-test-design')).toBe(true)
+        && event.data.source.name === 'obsidian-uat-test-design')).toBe(true)
       await handle.dispose()
     } finally {
       await ctx.fiber.dispose()
@@ -507,8 +507,8 @@ describe('bh-agent-spine-demo bundle', () => {
   })
 
   it('snapshots a created project skill through search and progressive loading', { timeout: 15_000 }, async () => {
-    const root = await mkdtemp(join(tmpdir(), 'bh-agent-spine-demo-skill-refresh-'))
-    const home = await mkdtemp(join(tmpdir(), 'bh-agent-spine-demo-skill-refresh-home-'))
+    const root = await mkdtemp(join(tmpdir(), 'hydra-agent-spine-demo-skill-refresh-'))
+    const home = await mkdtemp(join(tmpdir(), 'hydra-agent-spine-demo-skill-refresh-home-'))
     try {
       await mkdir(join(root, '.git'), { recursive: true })
       const skillPath = '.agents/skills/hot-skill/SKILL.md'
@@ -530,7 +530,7 @@ describe('bh-agent-spine-demo bundle', () => {
         workspaceContext: false,
         skills: {
           filesystem: {
-            bhHome: join(home, '.bh'),
+            hydraHome: join(home, '.hydra'),
             agentsHome: join(home, '.agents'),
             watchStabilityThresholdMs: 20,
             watchPollIntervalMs: 10,
@@ -637,14 +637,14 @@ describe('bh-agent-spine-demo bundle', () => {
     }
   })
 
-  it('shares top-level bhHome between local skills and the managed bash environment', async () => {
-    const home = await mkdtemp(join(tmpdir(), 'bh-agent-core-shared-home-'))
-    const agentsHome = await mkdtemp(join(tmpdir(), 'bh-agent-core-shared-agents-'))
+  it('shares top-level hydraHome between local skills and the managed bash environment', async () => {
+    const home = await mkdtemp(join(tmpdir(), 'hydra-agent-core-shared-home-'))
+    const agentsHome = await mkdtemp(join(tmpdir(), 'hydra-agent-core-shared-agents-'))
     await mkdir(join(home, 'skills'), { recursive: true })
     await writeFile(join(home, 'skills', 'shared-skill.md'), '---\nname: shared-skill\ndescription: Shared home skill\n---\n\nShared body.\n')
 
     const ctx = await mount({
-      bhHome: home,
+      hydraHome: home,
       workspaceContext: false,
       skills: { filesystem: { agentsHome } },
     }, true)
@@ -652,28 +652,28 @@ describe('bh-agent-spine-demo bundle', () => {
     expect((await ctx.skills.list()).map(skill => skill.name)).toEqual(['shared-skill'])
     const execution: ToolExecution = {
       signal: testToolSignal,
-      token: Symbol('agent-core-bh-home-test') as ToolExecution['token'],
-      callId: CallId('agent-core-bh-home'),
-      rootCallId: CallId('agent-core-bh-home'),
+      token: Symbol('agent-core-hydra-home-test') as ToolExecution['token'],
+      callId: CallId('agent-core-hydra-home'),
+      rootCallId: CallId('agent-core-hydra-home'),
       name: 'bash',
       arguments: { command: 'true' },
     }
-    expect(ctx.shellEnv.collect(execution)).toMatchObject({ BH_HOME: home, BH_SHELL: '1' })
+    expect(ctx.shellEnv.collect(execution)).toMatchObject({ HYDRA_HOME: home, HYDRA_SHELL: '1' })
     await ctx.fiber.dispose()
   })
 
   it('rejects conflicting global and nested Hydra home directories', () => {
     expect(() => {
       agentCore.apply(new Context(), {
-        bhHome: '/global-bh-home',
+        hydraHome: '/global-hydra-home',
         workspaceContext: false,
-        skills: { filesystem: { bhHome: '/nested-bh-home' } },
+        skills: { filesystem: { hydraHome: '/nested-hydra-home' } },
       })
-    }).toThrow('agent-spine-demo: bhHome and skills.filesystem.bhHome must resolve to the same directory')
+    }).toThrow('agent-spine-demo: hydraHome and skills.filesystem.hydraHome must resolve to the same directory')
   })
 
   it('does not inject skill summaries into the first model request', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'bh-agent-spine-demo-prefix-order-'))
+    const root = await mkdtemp(join(tmpdir(), 'hydra-agent-spine-demo-prefix-order-'))
     try {
       await mkdir(join(root, '.git'), { recursive: true })
       await writeFile(join(root, 'AGENTS.md'), 'workspace rule before skills')
@@ -785,7 +785,7 @@ describe('bh-agent-spine-demo bundle', () => {
       persona: 'You are merged.',
       toolOrder: ['zulu'],
       tools: { mode: 'native' as const },
-      bhHome: '/tmp/bh-home',
+      hydraHome: '/tmp/hydra-home',
       sessionTitle: { fallbackMaxWords: 3, fallbackMaxBytes: 24, maxTitleBytes: 60 },
       workspaceContext: false as const,
       skills: { enabled: false },
@@ -803,7 +803,7 @@ describe('bh-agent-spine-demo bundle', () => {
       persona: appConfig.persona,
       toolOrder: appConfig.toolOrder,
       tools: appConfig.tools,
-      bhHome: appConfig.bhHome,
+      hydraHome: appConfig.hydraHome,
       sessionTitle: appConfig.sessionTitle,
       workspaceContext: false,
       skills: appConfig.skills,

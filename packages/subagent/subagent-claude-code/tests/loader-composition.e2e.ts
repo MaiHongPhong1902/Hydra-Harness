@@ -15,9 +15,9 @@ const driver = join(fixtureDir, 'driver.ts')
 const configPath = join(fixtureDir, 'cordis.yml')
 const packageDir = fileURLToPath(new URL('..', import.meta.url))
 const manifest = JSON.parse(readFileSync(join(packageDir, 'package.json'), 'utf8')) as {
-  bh?: { bundle?: { patch?: string } }
+  hydra?: { bundle?: { patch?: string } }
 }
-const bundlePatch = manifest.bh?.bundle?.patch
+const bundlePatch = manifest.hydra?.bundle?.patch
 if (bundlePatch === undefined) throw new Error('Claude Code package must declare a Bundle patch')
 const bundlePatchPath = join(packageDir, bundlePatch)
 const repoTsconfig = fileURLToPath(new URL('../../../../tsconfig.json', import.meta.url))
@@ -26,7 +26,7 @@ describe('product-provider public Loader composition', () => {
   it('loads the Bundle default, two named Claude instances, their tools, and Codex without starting either product', async () => {
     const { stdout, stderr } = await runLoaderSmoke({
       label: 'product-provider Loader composition',
-      tempDirPrefix: 'bh-product-provider-loader-',
+      tempDirPrefix: 'hydra-product-provider-loader-',
       binScript: driver,
       libBinScript: driver,
       configPath,

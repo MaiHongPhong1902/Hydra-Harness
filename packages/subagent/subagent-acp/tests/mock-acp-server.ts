@@ -1,6 +1,6 @@
 /**
  * A minimal mock ACP AGENT, run as a subprocess, for the keyless
- * `bh-subagent-acp` tests. It speaks the agent side of ACP over stdio and is
+ * `hydra-subagent-acp` tests. It speaks the agent side of ACP over stdio and is
  * fully scripted by environment variables — no model, no network:
  *
  * - `MOCK_TEXT`        — the assistant text it streams as one `agent_message_chunk`.

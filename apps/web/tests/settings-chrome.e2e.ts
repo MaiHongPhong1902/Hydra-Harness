@@ -335,7 +335,7 @@ describe('web e2e: settings modal and General preferences', () => {
       return {
         attr: document.body.hasAttribute('data-ds-dark-theme'),
         background: computed.backgroundColor,
-        legacy: localStorage.getItem('bh.theme'),
+        legacy: localStorage.getItem('hydra.theme'),
         themeColor: metas[0]?.content ?? null,
         themeColorCount: metas.length,
         token: computed.getPropertyValue('--dsw-alias-bg-base').trim(),
@@ -431,7 +431,7 @@ describe('web e2e: settings modal and General preferences', () => {
     await dialog.getByRole('button', { name: 'Queue' }).click()
     await page.getByRole('menuitem', { name: 'Steer' }).click()
     await dialog.getByRole('button', { name: 'Steer' }).waitFor({ timeout: 10_000 })
-    expect(await page.evaluate(() => localStorage.getItem('bh.conversation.busyEnter'))).toBeNull()
+    expect(await page.evaluate(() => localStorage.getItem('hydra.conversation.busyEnter'))).toBeNull()
     await expect.poll(async () => readFile(join(scaffold.harnessHome, 'settings.yaml'), 'utf8'), { timeout: 5_000 })
       .toMatch(/ui-conversation:\n\s+busyEnter: steer/)
     await page.keyboard.press('Escape')
@@ -454,7 +454,7 @@ describe('web e2e: settings modal and General preferences', () => {
       await secondPage.getByRole('button', { name: 'Settings', exact: true }).click()
       await secondPage.getByRole('dialog', { name: 'Settings' })
         .getByRole('button', { name: 'Steer' }).waitFor({ timeout: 10_000 })
-      expect(await secondPage.evaluate(() => localStorage.getItem('bh.conversation.busyEnter'))).toBeNull()
+      expect(await secondPage.evaluate(() => localStorage.getItem('hydra.conversation.busyEnter'))).toBeNull()
       expect(secondTripwire.pageErrors).toEqual([])
       expect(secondTripwire.warnings).toEqual([])
     } finally {
@@ -465,7 +465,7 @@ describe('web e2e: settings modal and General preferences', () => {
     await reloaded.getByRole('button', { name: 'Steer' }).click()
     await page.getByRole('menuitem', { name: 'Queue' }).click()
     await reloaded.getByRole('button', { name: 'Queue' }).waitFor({ timeout: 10_000 })
-    expect(await page.evaluate(() => localStorage.getItem('bh.conversation.busyEnter'))).toBeNull()
+    expect(await page.evaluate(() => localStorage.getItem('hydra.conversation.busyEnter'))).toBeNull()
     await expect.poll(async () => readFile(join(scaffold.harnessHome, 'settings.yaml'), 'utf8'), { timeout: 5_000 })
       .toMatch(/ui-conversation:\n\s+busyEnter: queue/)
     await page.keyboard.press('Escape')
@@ -485,7 +485,7 @@ describe('web e2e: settings modal and General preferences', () => {
     try {
       await enPage.goto(fresh.baseUrl, { waitUntil: 'load' })
       await enPage.waitForSelector('[class*="frame"]', { timeout: 30_000 })
-      expect(await enPage.evaluate(() => localStorage.getItem('bh.locale'))).toBeNull()
+      expect(await enPage.evaluate(() => localStorage.getItem('hydra.locale'))).toBeNull()
       await enPage.getByRole('button', { name: 'Settings', exact: true }).click()
       const dialog = enPage.getByRole('dialog', { name: 'Settings' })
       await dialog.waitFor({ timeout: 10_000 })
@@ -510,7 +510,7 @@ describe('web e2e: settings modal and General preferences', () => {
     try {
       await frPage.goto(fresh.baseUrl, { waitUntil: 'load' })
       await frPage.waitForSelector('[class*="frame"]', { timeout: 30_000 })
-      expect(await frPage.evaluate(() => localStorage.getItem('bh.locale'))).toBeNull()
+      expect(await frPage.evaluate(() => localStorage.getItem('hydra.locale'))).toBeNull()
       await frPage.getByRole('button', { name: 'Settings', exact: true }).click()
       const dialog = frPage.getByRole('dialog', { name: 'Settings' })
       await dialog.waitFor({ timeout: 10_000 })

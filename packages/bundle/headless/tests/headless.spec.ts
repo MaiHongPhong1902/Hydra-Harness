@@ -167,7 +167,7 @@ describe('headless runner', () => {
     expect(await test.run()).toMatchObject({
       code: 1,
       out: '\n',
-      err: 'bh: SERVER: provider unavailable\n',
+      err: 'hydra: SERVER: provider unavailable\n',
     })
     await test.ctx.fiber.dispose()
   })
@@ -191,7 +191,7 @@ describe('headless runner', () => {
     ctx.provide('agents', { create: () => Promise.reject(new Error('factory exploded')) } as never)
     apply(ctx, { task: 't' })
     expect(await exited).toBe(1)
-    expect(err).toBe('bh: factory exploded\n')
+    expect(err).toBe('hydra: factory exploded\n')
     await ctx.fiber.dispose()
   })
 
@@ -213,7 +213,7 @@ describe('headless runner', () => {
     ctx.provide('agents', { create: () => rejected } as never)
     apply(ctx, { task: 't' })
     expect(await exited).toBe(1)
-    expect(err).toBe('bh: factory exploded\n')
+    expect(err).toBe('hydra: factory exploded\n')
     await ctx.fiber.dispose()
   })
 

@@ -145,8 +145,8 @@ export function SidebarRoot({
                   fallback: (
                     <>
                       <HydraSidebarBrand className={css.localBrandLogo} />
-                      {process.env.BH_CLIENT_COMMIT_HASH
-                        ? <span className={css.buildRevision}>{process.env.BH_CLIENT_COMMIT_HASH}</span>
+                      {process.env.HYDRA_CLIENT_COMMIT_HASH
+                        ? <span className={css.buildRevision}>{process.env.HYDRA_CLIENT_COMMIT_HASH}</span>
                         : null}
                     </>
                   ),

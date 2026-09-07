@@ -8,20 +8,20 @@
  * so an `html` rule resolves them to the guaranteed-invalid value and
  * `scrollbar-color` falls back to `auto`.
  *
- * Surfaces pick their elevation by rebinding --bh-scrollbar-thumb{,-hover}:
+ * Surfaces pick their elevation by rebinding --hydra-scrollbar-thumb{,-hover}:
  * the l1 pair here is the base-surface default, and an elevated surface
  * (menu, popover, dialog) rebinds to the l2 pair on its own container. Both
  * rendering paths below read the indirection, so one rebind reaches whichever
  * path the engine took. */
 
 body {
-  --bh-scrollbar-thumb: var(--dsw-alias-scrollbar-bg-l1);
-  --bh-scrollbar-thumb-hover: var(--dsw-alias-scrollbar-hover-l1);
+  --hydra-scrollbar-thumb: var(--dsw-alias-scrollbar-bg-l1);
+  --hydra-scrollbar-thumb-hover: var(--dsw-alias-scrollbar-hover-l1);
   /* The WebKit bar's layout width, mirrored by the ::-webkit-scrollbar rule
      below. A surface that must align itself beside a space-consuming bar
      (ConversationRoot's overlay composer seat) reads this instead of
      hardcoding the number. */
-  --bh-scrollbar-width: 8px;
+  --hydra-scrollbar-width: 8px;
 }
 
 /* The two paths are mutually exclusive, and the gate is load-bearing rather
@@ -44,7 +44,7 @@ body {
 @supports not selector(::-webkit-scrollbar) {
   /* Declared on every element rather than inherited from `body`. Inheriting
      would pass down the COLOUR already substituted at `body`, so a descendant
-     rebinding --bh-scrollbar-thumb could not change it; re-declaring makes
+     rebinding --hydra-scrollbar-thumb could not change it; re-declaring makes
      each element substitute the variable as it sees it, which is what gives
      an elevated surface a working rebind. `scrollbar-width` is not an
      inherited property at all, so it needs the per-element declaration
@@ -55,7 +55,7 @@ body {
   body,
   body * {
     scrollbar-width: thin;
-    scrollbar-color: var(--bh-scrollbar-thumb) transparent;
+    scrollbar-color: var(--hydra-scrollbar-thumb) transparent;
   }
 }
 
@@ -76,11 +76,11 @@ body {
 
 ::-webkit-scrollbar-thumb {
   border-radius: 4px;
-  background: var(--bh-scrollbar-thumb);
+  background: var(--hydra-scrollbar-thumb);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--bh-scrollbar-thumb-hover);
+  background: var(--hydra-scrollbar-thumb-hover);
 }
 
 /* Both scrollbars meeting in a corner: no separate token, so the corner

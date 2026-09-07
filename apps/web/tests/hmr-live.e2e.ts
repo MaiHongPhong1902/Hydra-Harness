@@ -1,4 +1,4 @@
-/** Published bh web + pnpm dev:web → browser HMR, with no page reload. */
+/** Published hydra web + pnpm dev:web → browser HMR, with no page reload. */
 
 import { existsSync, globSync } from 'node:fs'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
@@ -69,10 +69,10 @@ async function stopTree(child: SubprocessHandle): Promise<void> {
 }
 
 it('hot-reloads a real client-plugin source edit without refreshing the page', async () => {
-  const world = await mkdtemp(join(tmpdir(), 'bh-web-hmr-world-'))
+  const world = await mkdtemp(join(tmpdir(), 'hydra-web-hmr-world-'))
   const sourcePath = join(REPO_ROOT, 'packages/client/ui-conversation/src/client/locales.ts')
   const binPath = join(REPO_ROOT, 'apps/cli/lib/bin.js')
-  if (!existsSync(binPath)) throw new Error('HMR browser test needs the built bh bin; run pnpm run build first')
+  if (!existsSync(binPath)) throw new Error('HMR browser test needs the built hydra bin; run pnpm run build first')
   const clientBuildEnvironment = readClientBuildRecord(REPO_ROOT).environment
   const clientBundlePaths = globSync('packages/*/*/lib/client.js{,.map}', { cwd: REPO_ROOT })
     .map(path => join(REPO_ROOT, path))
@@ -103,10 +103,10 @@ it('hot-reloads a real client-plugin source edit without refreshing the page', a
       world,
       {
         DEEPSEEK_API_KEY: 'keyless-hmr-no-call',
-        BH_HOME: join(world, '.bh'),
+        HYDRA_HOME: join(world, '.hydra'),
       },
     ))
-    const baseUrl = await waitForOutput(host, /bh web: (http:\/\/[^\s]+)/, 'built bh web')
+    const baseUrl = await waitForOutput(host, /hydra web: (http:\/\/[^\s]+)/, 'built hydra web')
     browser = await chromium.launch()
     const page = await browser.newPage()
     const pageErrors: string[] = []
@@ -115,13 +115,13 @@ it('hot-reloads a real client-plugin source edit without refreshing the page', a
     await page.getByText(oldText, { exact: true }).waitFor({ timeout: 15_000 })
     const pageIdentity = await page.evaluate(() => {
       const identity = crypto.randomUUID()
-      Object.defineProperty(window, '__bhHmrPageIdentity', { value: identity })
+      Object.defineProperty(window, '__hhHmrPageIdentity', { value: identity })
       return identity
     })
 
     await writeFile(sourcePath, updatedSource)
     await page.getByText(newText, { exact: true }).waitFor({ timeout: 30_000 })
-    expect(await page.evaluate(() => (window as Window & { __bhHmrPageIdentity?: string }).__bhHmrPageIdentity))
+    expect(await page.evaluate(() => (window as Window & { __hhHmrPageIdentity?: string }).__hhHmrPageIdentity))
       .toBe(pageIdentity)
     expect(pageErrors).toEqual([])
   } catch (error) {

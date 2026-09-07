@@ -1,6 +1,6 @@
 # Hydra harness
 
-Hydra harness (`bh`) is an open-source agent harness based on [Bosch Harness](https://github.com/bosch/bosch-harness), originally developed by [DeepSeek AI](https://deepseek.com).
+Hydra harness (`hydra`) is an open-source agent harness originally developed by [DeepSeek AI](https://deepseek.com). This repository is a public fork of that work.
 
 It uses an architecture where **everything is a plugin**, and is powered by [Cordis](https://github.com/cordiverse/cordis), whose design is described in [_A Programming Paradigm for Spatiotemporal Composability_](https://github.com/cordiverse/paper).
 
@@ -25,22 +25,21 @@ The command starts the Web UI at `http://127.0.0.1:3080` by default and opens it
 To run from a repository checkout:
 
 ```sh
-git clone --recurse-submodules https://github.com/bosch/bosch-harness.git
-cd bosch-harness
+git clone --recurse-submodules https://github.com/MaiHongPhong1902/Hydra-Harness.git
+cd Hydra-Harness
 pnpm install
 pnpm run build
-pnpm bh web
+pnpm hydra web
 # for desktop:
 pnpm run desktop
 ```
 
-`pnpm install` needs the PageAgent git submodule on disk. Clone with `--recurse-submodules`, or follow [Checking out PageAgent](packages/browser/browser-electron/README.md#checking-out-pageagent) if install reports `ERR_PNPM_WORKSPACE_PKG_NOT_FOUND` for `@page-agent/core` or `@page-agent/page-controller`. `pnpm run build` prepares the repository artifacts through the workspace `tsx`; `pnpm bh web` uses those built artifacts without rebuilding.
+`pnpm install` needs the PageAgent git submodule on disk. Clone with `--recurse-submodules`, or follow [Checking out PageAgent](packages/browser/browser-electron/README.md#checking-out-pageagent) if install reports `ERR_PNPM_WORKSPACE_PKG_NOT_FOUND` for `@page-agent/core` or `@page-agent/page-controller`. `pnpm run build` prepares the repository artifacts through the workspace `tsx`; `pnpm hydra web` uses those built artifacts without rebuilding.
 
 ## Community and support
 
-- Feel free to submit feedback or bug reports through [GitHub Discussions](https://github.com/bosch/bosch-harness/discussions).
-- Add the [`bh-plugin`](https://github.com/topics/bh-plugin) topic to your plugin repository for discoverability.
-- Join <a href="https://discord.gg/Ycq5dCaS4">Bosch Harness Discord community</a>.
+- Feel free to submit feedback or bug reports through [GitHub Discussions](https://github.com/MaiHongPhong1902/Hydra-Harness/discussions).
+- Add the [`hydra-plugin`](https://github.com/topics/hydra-plugin) topic to your plugin repository for discoverability.
 
 ## Contributing
 

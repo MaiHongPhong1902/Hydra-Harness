@@ -136,7 +136,7 @@ describe('session cwd resolution', () => {
     expect(sessionCwd(execution(cwd) as never, 'file.txt')).toBe(cwd)
     expect(sessionCwd(execution(throughParent) as never, 'file.txt')).toBe(realpathSync.native(throughParent))
 
-    const root = mkdtempSync(join(tmpdir(), 'bh-tool-fs-session-cwd-'))
+    const root = mkdtempSync(join(tmpdir(), 'hydra-tool-fs-session-cwd-'))
     const physical = join(root, 'physical')
     const link = join(root, 'link')
     try {

@@ -1,12 +1,12 @@
 /**
- * `bh plugin --profile <name> <args...>` — profile plugin management as a
+ * `hydra plugin --profile <name> <args...>` — profile plugin management as a
  * thin pnpm forwarder: initialize the profile on first use, run
  * `pnpm <args...>` in the profile directory, then reconcile the
- * `bh.profile.bundles` layer list against the installed state (a dependency
- * resolving to a package that declares `bh.bundle` joins the layer stack; a
+ * `hydra.profile.bundles` layer list against the installed state (a dependency
+ * resolving to a package that declares `hydra.bundle` joins the layer stack; a
  * removed or bundle-less dependency leaves it). Reconciling by installed
  * state, not by dependency diff, means `update` activates a package that
- * gained its `bh.bundle` declaration in a newer version.
+ * gained its `hydra.bundle` declaration in a newer version.
  * @module @hydra/harness/plugin
  */
 
@@ -25,13 +25,13 @@ import {
 } from '@hydra/harness-app-boot'
 import { INSTALL_ANCHOR } from './profile-boot.ts'
 
-const NAME = 'bh'
+const NAME = 'hydra'
 
 /**
  * Whether a resolved dependency exports a profile patch, i.e. is a bundle.
  * @param packageName - the dependency's package name.
  * @param profileDir - the profile directory (resolution anchor).
- * @returns true when the package manifest declares `bh.bundle`.
+ * @returns true when the package manifest declares `hydra.bundle`.
  */
 function exportsPatch(packageName: string, profileDir: string): boolean {
   let dir: string
@@ -41,14 +41,14 @@ function exportsPatch(packageName: string, profileDir: string): boolean {
     return false // pnpm reported success yet the package is unresolvable — treat as plain
   }
   const manifest = readProfileManifest(NAME, dir)
-  return manifest.bh?.bundle?.patch !== undefined
+  return manifest.hydra?.bundle?.patch !== undefined
 }
 
 /**
- * Reconcile `bh.profile.bundles` against the installed state: pnpm has
+ * Reconcile `hydra.profile.bundles` against the installed state: pnpm has
  * already written the real installed names (so a git/path/tarball/alias spec
  * on the command line reconciles by its true package name) and materialized
- * the packages. A dependency that resolves to a `bh.bundle`-declaring
+ * the packages. A dependency that resolves to a `hydra.bundle`-declaring
  * package joins the layer stack (appended in dependency order); a
  * dependency-listed name that no longer does — removed, or the installed
  * version dropped the declaration — leaves it. In-box bundles from the
@@ -60,7 +60,7 @@ function reconcilePlugins(before: ProfileManifest, profileDir: string): void {
   const after = readProfileManifest(NAME, profileDir)
   const beforeDeps = new Set(Object.keys(before.dependencies ?? {}))
   const dependencies = Object.keys(after.dependencies ?? {})
-  const plugins = after.bh?.profile?.bundles ?? []
+  const plugins = after.hydra?.profile?.bundles ?? []
   let changed = false
   for (const packageName of dependencies) {
     const isBundle = exportsPatch(packageName, profileDir)
@@ -69,7 +69,7 @@ function reconcilePlugins(before: ProfileManifest, profileDir: string): void {
       changed = true
     } else if (!isBundle && !beforeDeps.has(packageName)) {
       process.stderr.write(
-        `${NAME}: warning: ${packageName} declares no bh.bundle — installed as a plain dependency, not a profile layer `
+        `${NAME}: warning: ${packageName} declares no hydra.bundle — installed as a plain dependency, not a profile layer `
         + '(a later update that gains one activates it automatically)\n',
       )
     }
@@ -86,7 +86,7 @@ function reconcilePlugins(before: ProfileManifest, profileDir: string): void {
     }
   }
   if (!changed) return
-  after.bh = { ...after.bh, profile: { ...after.bh?.profile, bundles: plugins } }
+  after.hydra = { ...after.hydra, profile: { ...after.hydra?.profile, bundles: plugins } }
   writeProfileManifest(profileDir, after)
 }
 
@@ -98,7 +98,7 @@ function reconcilePlugins(before: ProfileManifest, profileDir: string): void {
  * specs, registry names, and every other pnpm argument pass through
  * untouched.
  * @param argument - one pnpm argument, verbatim from argv.
- * @param cwd - the directory `bh` was invoked from.
+ * @param cwd - the directory `hydra` was invoked from.
  * @returns the argument with a relative path spec anchored to `cwd`.
  */
 function anchorPathSpec(argument: string, cwd: string): string {
@@ -112,7 +112,7 @@ function anchorPathSpec(argument: string, cwd: string): string {
 }
 
 /**
- * Run one `bh plugin` invocation: init if needed, forward to pnpm, reconcile.
+ * Run one `hydra plugin` invocation: init if needed, forward to pnpm, reconcile.
  * @param profile - the profile name.
  * @param args - pnpm arguments with relative path specs anchored to the invoking directory.
  * @returns the pnpm exit code.

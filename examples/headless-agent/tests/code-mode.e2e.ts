@@ -187,7 +187,7 @@ describe('Code Mode typed values: keyless real-worker contracts', () => {
   })
 
   it('returns a background job id, settles the outer run, and polls that id to completion', async () => {
-    workdir = await mkdtemp(join(tmpdir(), 'bh-code-mode-background-'))
+    workdir = await mkdtemp(join(tmpdir(), 'hydra-code-mode-background-'))
     ctx = await backgroundCodeModeHarness(workdir)
 
     const jobId = completion(await runCode(ctx, `
@@ -210,7 +210,7 @@ describe('Code Mode typed values: keyless real-worker contracts', () => {
   }, 15_000)
 
   it('pre-abort spawns nothing; post-publication abort leaves job_kill as the cancellation owner', async () => {
-    workdir = await mkdtemp(join(tmpdir(), 'bh-code-mode-task-cancel-'))
+    workdir = await mkdtemp(join(tmpdir(), 'hydra-code-mode-task-cancel-'))
     ctx = await backgroundCodeModeHarness(workdir)
 
     const pre = new AbortController()
@@ -247,7 +247,7 @@ describe('Code Mode typed values: keyless real-worker contracts', () => {
   }, 15_000)
 
   it('keeps foreground bash coupled to the outer signal', async () => {
-    workdir = await mkdtemp(join(tmpdir(), 'bh-code-mode-foreground-cancel-'))
+    workdir = await mkdtemp(join(tmpdir(), 'hydra-code-mode-foreground-cancel-'))
     ctx = await backgroundCodeModeHarness(workdir)
     const controller = new AbortController()
     const startedAt = Date.now()
@@ -351,7 +351,7 @@ function waitForIdle(harness: Context, agent: Agent): Promise<void> {
 
 describe.skipIf(!process.env.DEEPSEEK_API_KEY)('Code Mode: real model writes a program over real tools', () => {
   it('collapses the wire tool list to [run_code], bridges sub-calls, and returns curated output', async () => {
-    workdir = await mkdtemp(join(tmpdir(), 'bh-code-mode-e2e-'))
+    workdir = await mkdtemp(join(tmpdir(), 'hydra-code-mode-e2e-'))
     ctx = await codeModeHarness(workdir)
     const agent = ctx.agentLoop.create(SessionId('e2e-code-mode'), { provider: 'deepseek-official', model: 'deepseek-v4-flash' })
 
@@ -396,7 +396,7 @@ describe.skipIf(!process.env.DEEPSEEK_API_KEY)('Code Mode: real model writes a p
   }, 180_000)
 
   it('projects nested workspace instructions discovered by an fs sub-call', async () => {
-    workdir = await mkdtemp(join(tmpdir(), 'bh-code-mode-workspace-e2e-'))
+    workdir = await mkdtemp(join(tmpdir(), 'hydra-code-mode-workspace-e2e-'))
     await mkdir(join(workdir, '.git'), { recursive: true })
     await mkdir(join(workdir, 'pkg/deep'), { recursive: true })
     await writeFile(join(workdir, 'pkg/AGENTS.md'), `If asked for the Code Mode workspace handshake, reply with exactly ${WORKSPACE_PROBE} and nothing else.\n`)

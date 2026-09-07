@@ -88,7 +88,7 @@ describe('gate graph validation', () => {
     const ids = withPnpmEntrypoint(() => gatesForMode('hygiene').map(subject => subject.id))
 
     expect(ids).toEqual([
-      'rescope-vendor', 'knip', 'publint', 'constraints', 'bh-package-licenses',
+      'rescope-vendor', 'knip', 'publint', 'constraints', 'hydra-package-licenses',
       'package-invariants', 'built-package-invariants', 'node-next-types',
       'optional-dependency-imports', 'client-packages', 'cordis-config',
       'runtime-closure', 'vendored-links',
@@ -123,7 +123,7 @@ describe('gate graph validation', () => {
     (mode) => {
       const ids = withPnpmEntrypoint(() => gatesForMode(mode).map(subject => subject.id))
 
-      expect(ids).toContain('bh-package-licenses')
+      expect(ids).toContain('hydra-package-licenses')
     },
   )
 
@@ -158,7 +158,7 @@ describe('gate graph validation', () => {
   })
 
   it('applies one configured test and polling timeout to both coverage gates', () => {
-    const gates = withEnv('BH_COVERAGE_TEST_TIMEOUT_MS', '15000', () =>
+    const gates = withEnv('HYDRA_COVERAGE_TEST_TIMEOUT_MS', '15000', () =>
       withPnpmEntrypoint(() => gatesForMode('ci-windows-complete')))
 
     for (const id of ['coverage', 'coverage-exempt-heavy']) {
@@ -170,7 +170,7 @@ describe('gate graph validation', () => {
   })
 
   it('keeps Vitest timeout defaults when the coverage override is absent', () => {
-    const gates = withEnv('BH_COVERAGE_TEST_TIMEOUT_MS', undefined, () =>
+    const gates = withEnv('HYDRA_COVERAGE_TEST_TIMEOUT_MS', undefined, () =>
       withPnpmEntrypoint(() => gatesForMode('ci-windows-complete')))
 
     for (const id of ['coverage', 'coverage-exempt-heavy']) {
@@ -181,26 +181,26 @@ describe('gate graph validation', () => {
   })
 
   it('rejects an invalid coverage timeout before starting a gate', () => {
-    expect(() => withEnv('BH_COVERAGE_TEST_TIMEOUT_MS', '0', () =>
+    expect(() => withEnv('HYDRA_COVERAGE_TEST_TIMEOUT_MS', '0', () =>
       withPnpmEntrypoint(() => gatesForMode('ci-windows-complete'))))
-      .toThrow('BH_COVERAGE_TEST_TIMEOUT_MS must be a positive integer')
+      .toThrow('HYDRA_COVERAGE_TEST_TIMEOUT_MS must be a positive integer')
   })
 
   it('selects partitioned coverage only when explicitly configured', () => {
-    const coverage = withEnv('BH_COVERAGE_PARTITIONS', '3', () =>
+    const coverage = withEnv('HYDRA_COVERAGE_PARTITIONS', '3', () =>
       withPnpmEntrypoint(() => gatesForMode('ci-windows-complete').find(subject => subject.id === 'coverage')))
 
     expect(coverage).toMatchObject({
-      displayCommand: 'BH_COVERAGE_PARTITIONS=3 pnpm run test:coverage:partitioned',
+      displayCommand: 'HYDRA_COVERAGE_PARTITIONS=3 pnpm run test:coverage:partitioned',
       args: ['/private/pnpm.cjs', 'run', 'test:coverage:partitioned'],
       streamOutput: true,
     })
   })
 
   it('rejects an invalid coverage partition count before starting a gate', () => {
-    expect(() => withEnv('BH_COVERAGE_PARTITIONS', '1', () =>
+    expect(() => withEnv('HYDRA_COVERAGE_PARTITIONS', '1', () =>
       withPnpmEntrypoint(() => gatesForMode('ci-windows-complete'))))
-      .toThrow('BH_COVERAGE_PARTITIONS must be an integer greater than 1')
+      .toThrow('HYDRA_COVERAGE_PARTITIONS must be an integer greater than 1')
   })
 
   it.each([
@@ -262,7 +262,7 @@ describe('gate graph validation', () => {
 
 describe('Oxlint gate', () => {
   it('uses the package script when no worker bound is configured', () => {
-    const subject = withEnv('BH_OXLINT_THREADS', undefined, () =>
+    const subject = withEnv('HYDRA_OXLINT_THREADS', undefined, () =>
       withPnpmEntrypoint(() => gatesForMode('ci-lint-contracts-ready')[0]))
 
     expect(subject).toMatchObject({
@@ -274,12 +274,12 @@ describe('Oxlint gate', () => {
   })
 
   it('surfaces the configured worker bound on the shared package script', () => {
-    const subject = withEnv('BH_OXLINT_THREADS', '4', () =>
+    const subject = withEnv('HYDRA_OXLINT_THREADS', '4', () =>
       withPnpmEntrypoint(() => gatesForMode('ci-lint-contracts-ready')[0]))
 
     expect(subject).toMatchObject({
       id: 'lint',
-      displayCommand: 'BH_OXLINT_THREADS=4 pnpm run lint:contracts-ready',
+      displayCommand: 'HYDRA_OXLINT_THREADS=4 pnpm run lint:contracts-ready',
       command: process.execPath,
       args: ['/private/pnpm.cjs', 'run', 'lint:contracts-ready'],
     })
@@ -288,7 +288,7 @@ describe('Oxlint gate', () => {
 
 describe('Typert contract preparation', () => {
   it('prepares primary source consumers once before they run', () => {
-    const subject = withEnv('BH_OXLINT_THREADS', undefined, () =>
+    const subject = withEnv('HYDRA_OXLINT_THREADS', undefined, () =>
       withPnpmEntrypoint(() => gatesForMode('ci-primary')))
 
     expect(subject.find(item => item.id === 'typert-contracts')).toMatchObject({
@@ -380,10 +380,10 @@ describe('Node 24 lane ownership', () => {
     ])
     expect(subject.find(item => item.id === 'publint')?.needs).toEqual(['build'])
     expect(subject.find(item => item.id === 'build')?.env).toEqual({
-      BH_BUILD_CLIENT_PROFILE: 'official',
+      HYDRA_BUILD_CLIENT_PROFILE: 'official',
     })
     expect(subject.find(item => item.id === 'node-compat')?.env).toEqual({
-      BH_BUILD_CLIENT_PROFILE: 'official',
+      HYDRA_BUILD_CLIENT_PROFILE: 'official',
     })
     expect(subject.find(item => item.id === 'built-package-invariants')?.needs).toEqual(['build'])
     expect(subject.find(item => item.id === 'lint-and-duplication')?.needs).toEqual(['built-package-invariants'])
@@ -396,9 +396,9 @@ describe('Node 24 lane ownership', () => {
     ]) {
       expect(subject.find(item => item.id === id)?.needs).toEqual(['built-package-invariants'])
     }
-    expect(subject.find(item => item.id === 'snapshot')?.env).toEqual({ BH_EXAMPLE_MODE: 'lib' })
+    expect(subject.find(item => item.id === 'snapshot')?.env).toEqual({ HYDRA_EXAMPLE_MODE: 'lib' })
     expect(subject.find(item => item.id === 'doc-typecheck')?.env).toEqual({
-      BH_DOC_TYPECHECK_USE_BUILD_OUTPUT: '1',
+      HYDRA_DOC_TYPECHECK_USE_BUILD_OUTPUT: '1',
     })
     expect(subject.find(item => item.id === 'built-bin-smoke')?.args).toEqual(
       expect.arrayContaining([
@@ -407,8 +407,8 @@ describe('Node 24 lane ownership', () => {
       ]),
     )
     expect(subject.find(item => item.id === 'web-snapshot')).toMatchObject({
-      displayCommand: 'BH_SNAPSHOT=replay pnpm run test:web:built',
-      env: { BH_SNAPSHOT: 'replay' },
+      displayCommand: 'HYDRA_SNAPSHOT=replay pnpm run test:web:built',
+      env: { HYDRA_SNAPSHOT: 'replay' },
     })
   })
 })
@@ -419,8 +419,8 @@ describe('Linux primary graph', () => {
     const web = subject.find(item => item.id === 'web-snapshot')
 
     expect(web).toMatchObject({
-      displayCommand: 'BH_SNAPSHOT=replay pnpm run test:web:built',
-      env: { BH_SNAPSHOT: 'replay' },
+      displayCommand: 'HYDRA_SNAPSHOT=replay pnpm run test:web:built',
+      env: { HYDRA_SNAPSHOT: 'replay' },
       needs: ['built-package-invariants'],
     })
   })

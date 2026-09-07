@@ -1,6 +1,6 @@
 /**
  * Tool-independent shell environment plugin: owns the `ctx.shellEnv` registry of
- * trusted, per-execution `BH_*` variables consumed by the model-facing shell
+ * trusted, per-execution `HYDRA_*` variables consumed by the model-facing shell
  * tools (`@hydra/harness-tool-bash`, `@hydra/harness-tool-pwsh`). Built-in shell facts are owned by
  * the registry itself while plugins can register additional, enumerable facts
  * with effect-scoped disposal.
@@ -10,9 +10,9 @@
 
 import { Service, type Context } from '@hydra/cordis'
 import z from '@hydra/schemastery'
-import { BH_ENV_PREFIX } from '@hydra/harness-shell'
-import type { BhEnvironment, BhEnvironmentKey } from '@hydra/harness-shell'
-import { BH_HOME_ENV, resolveBhHome } from '@hydra/harness-home-paths'
+import { HYDRA_ENV_PREFIX } from '@hydra/harness-shell'
+import type { HydraEnvironment, HydraEnvironmentKey } from '@hydra/harness-shell'
+import { HYDRA_HOME_ENV, resolveHydraHome } from '@hydra/harness-home-paths'
 import type { ToolExecution } from '@hydra/harness-tools'
 import type {} from '@hydra/harness-session-persistence'
 
@@ -27,16 +27,16 @@ export const inject: string[] = []
 
 /** Plugin config (all optional — the built-in facts resolve without defaults). */
 export interface Config {
-  /** Hydra harness home directory exposed as `BH_HOME`; defaults to `$BH_HOME` or `~/.bh`. */
-  bhHome?: string
+  /** Hydra harness home directory exposed as `HYDRA_HOME`; defaults to `$HYDRA_HOME` or `~/.hydra`. */
+  hydraHome?: string
 }
 
 /** Runtime configuration schema for the shell-env plugin. */
 export const Config: z<Config> = z.object({
-  bhHome: z.string(),
+  hydraHome: z.string(),
 })
 
-/** Model-visible metadata for one managed `BH_*` environment variable. */
+/** Model-visible metadata for one managed `HYDRA_*` environment variable. */
 export interface BashEnvVariable {
   /** Concise description of the environment fact represented by the variable. */
   description: string
@@ -50,37 +50,37 @@ export interface BashEnvVariable {
 export interface BashEnvContributor {
   /** Stable contributor name used in diagnostics and duplicate detection. */
   name: string
-  /** Complete set of `BH_*` keys this contributor may return. */
-  variables: Readonly<Record<BhEnvironmentKey, BashEnvVariable>>
+  /** Complete set of `HYDRA_*` keys this contributor may return. */
+  variables: Readonly<Record<HydraEnvironmentKey, BashEnvVariable>>
   /**
    * Resolve this contributor's available values for one tool execution.
    * @param execution - the shell tool execution and its optional calling agent.
    * @returns a partial map containing only keys declared in {@link variables}.
    */
-  resolve(execution: ToolExecution): Readonly<Partial<Record<BhEnvironmentKey, string>>>
+  resolve(execution: ToolExecution): Readonly<Partial<Record<HydraEnvironmentKey, string>>>
 }
 
 /** An enumerable declaration returned by {@link ShellEnvRegistry.list}. */
 export interface BashEnvVariableInfo extends BashEnvVariable {
   /** Contributor that owns the variable. */
   contributor: string
-  /** Declared `BH_*` environment variable name. */
-  key: BhEnvironmentKey
+  /** Declared `HYDRA_*` environment variable name. */
+  key: HydraEnvironmentKey
 }
 
-const BH_SHELL_KEY = `${BH_ENV_PREFIX}SHELL` as const
-const BH_SESSION_ID_KEY = `${BH_ENV_PREFIX}SESSION_ID` as const
-const BH_SESSION_JSONL_KEY = `${BH_ENV_PREFIX}SESSION_JSONL` as const
-const RESERVED_BASH_ENV_KEYS = new Set<BhEnvironmentKey>([
-  BH_HOME_ENV,
-  BH_SHELL_KEY,
-  BH_SESSION_ID_KEY,
+const HYDRA_SHELL_KEY = `${HYDRA_ENV_PREFIX}SHELL` as const
+const HYDRA_SESSION_ID_KEY = `${HYDRA_ENV_PREFIX}SESSION_ID` as const
+const HYDRA_SESSION_JSONL_KEY = `${HYDRA_ENV_PREFIX}SESSION_JSONL` as const
+const RESERVED_BASH_ENV_KEYS = new Set<HydraEnvironmentKey>([
+  HYDRA_HOME_ENV,
+  HYDRA_SHELL_KEY,
+  HYDRA_SESSION_ID_KEY,
 ])
 const BASH_ENV_KEY_SUFFIX = /^[A-Z][A-Z0-9_]*$/
 
 /**
- * Registry (`ctx.shellEnv`) for trusted, per-execution `BH_*` variables.
- * The namespace is rebuilt for every model shell call: ambient `BH_*` values
+ * Registry (`ctx.shellEnv`) for trusted, per-execution `HYDRA_*` variables.
+ * The namespace is rebuilt for every model shell call: ambient `HYDRA_*` values
  * are discarded by the executor, then the registry's current snapshot is
  * injected. Built-in shell facts remain owned by the registry itself while
  * plugins can register additional, enumerable facts with effect-scoped
@@ -88,8 +88,8 @@ const BASH_ENV_KEY_SUFFIX = /^[A-Z][A-Z0-9_]*$/
  */
 export class ShellEnvRegistry extends Service {
   private readonly contributors = new Map<string, BashEnvContributor>()
-  private readonly keyOwners = new Map<BhEnvironmentKey, string>()
-  private readonly bhHome: string
+  private readonly keyOwners = new Map<HydraEnvironmentKey, string>()
+  private readonly hydraHome: string
 
   /**
    * Create and install the `ctx.shellEnv` service.
@@ -98,7 +98,7 @@ export class ShellEnvRegistry extends Service {
    */
   constructor(ctx: Context, config: Config = {}) {
     super(ctx, 'shellEnv')
-    this.bhHome = resolveBhHome(config.bhHome)
+    this.hydraHome = resolveHydraHome(config.hydraHome)
   }
 
   /**
@@ -116,10 +116,10 @@ export class ShellEnvRegistry extends Service {
         throw new Error(`bash env contributor "${contributor.name}" is already registered`)
       }
 
-      const variables = Object.entries(contributor.variables) as [BhEnvironmentKey, BashEnvVariable][]
+      const variables = Object.entries(contributor.variables) as [HydraEnvironmentKey, BashEnvVariable][]
       for (const [key, variable] of variables) {
-        if (!key.startsWith(BH_ENV_PREFIX)
-          || !BASH_ENV_KEY_SUFFIX.test(key.slice(BH_ENV_PREFIX.length))) {
+        if (!key.startsWith(HYDRA_ENV_PREFIX)
+          || !BASH_ENV_KEY_SUFFIX.test(key.slice(HYDRA_ENV_PREFIX.length))) {
           throw new Error(`bash env contributor "${contributor.name}" declared invalid key "${key}"`)
         }
         if (RESERVED_BASH_ENV_KEYS.has(key)) {
@@ -145,23 +145,23 @@ export class ShellEnvRegistry extends Service {
   }
 
   /**
-   * Build the trusted `BH_*` snapshot for one shell tool execution.
+   * Build the trusted `HYDRA_*` snapshot for one shell tool execution.
    * @param execution - the current tool execution.
    * @returns an immutable environment overlay containing built-ins and current contributions.
    */
-  collect(execution: ToolExecution): BhEnvironment {
-    const values: Record<BhEnvironmentKey, string> = {
-      [BH_HOME_ENV]: this.bhHome,
-      [BH_SHELL_KEY]: '1',
+  collect(execution: ToolExecution): HydraEnvironment {
+    const values: Record<HydraEnvironmentKey, string> = {
+      [HYDRA_HOME_ENV]: this.hydraHome,
+      [HYDRA_SHELL_KEY]: '1',
     }
     if (execution.agent !== undefined) {
-      values[BH_SESSION_ID_KEY] = execution.agent.session.header.id
+      values[HYDRA_SESSION_ID_KEY] = execution.agent.session.header.id
     }
 
     for (const contributor of [...this.contributors.values()].sort((left, right) => left.name.localeCompare(right.name))) {
       const resolved = contributor.resolve(execution)
       for (const [rawKey, value] of Object.entries(resolved)) {
-        const key = rawKey as BhEnvironmentKey
+        const key = rawKey as HydraEnvironmentKey
         if (!Object.hasOwn(contributor.variables, key)) {
           throw new Error(`bash env contributor "${contributor.name}" returned undeclared key "${key}"`)
         }
@@ -186,7 +186,7 @@ export class ShellEnvRegistry extends Service {
       .flatMap(contributor => Object.entries(contributor.variables).map(([key, variable]) => ({
         contributor: contributor.name,
         description: variable.description,
-        key: key as BhEnvironmentKey,
+        key: key as HydraEnvironmentKey,
       })))
       .sort((left, right) => left.key.localeCompare(right.key))
   }
@@ -194,7 +194,7 @@ export class ShellEnvRegistry extends Service {
 
 /**
  * Load the shell-env plugin: register the `ctx.shellEnv` service and the
- * shell-agnostic persistence contributor (`BH_SESSION_JSONL`).
+ * shell-agnostic persistence contributor (`HYDRA_SESSION_JSONL`).
  * @param ctx - Cordis context that owns the service and registrations.
  * @param config - home-directory configuration for the built-in variables.
  */
@@ -203,7 +203,7 @@ export function apply(ctx: Context, config: Config = {}): void {
   registry.register({
     name: 'session-persistence',
     variables: {
-      [BH_SESSION_JSONL_KEY]: {
+      [HYDRA_SESSION_JSONL_KEY]: {
         description: 'Absolute target path of the current session JSONL when the active persistence backend provides one.',
       },
     },
@@ -211,7 +211,7 @@ export function apply(ctx: Context, config: Config = {}): void {
       const agent = execution.agent
       if (agent === undefined) return {}
       const location = ctx.get('sessionPersistence')?.locate(agent.session.header)
-      return location?.kind === 'jsonl' ? { [BH_SESSION_JSONL_KEY]: location.path } : {}
+      return location?.kind === 'jsonl' ? { [HYDRA_SESSION_JSONL_KEY]: location.path } : {}
     },
   })
 }

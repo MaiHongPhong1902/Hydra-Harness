@@ -13,7 +13,7 @@
  * hands the closure down, so this package never depends on the approval or
  * agent packages.
  *
- * @module bh-sandbox/escalation
+ * @module hydra-sandbox/escalation
  */
 
 import { assertNever } from '@hydra/harness-llm'

@@ -11,7 +11,7 @@ import { z as zod } from 'zod'
 import type { Context } from '@hydra/cordis'
 import { USER_GLOBAL_FILE } from '@hydra/harness-agent-instructions'
 import { withFileLock, writeFileAtomic } from '@hydra/harness-atomic-write'
-import { resolveBhHome } from '@hydra/harness-home-paths'
+import { resolveHydraHome } from '@hydra/harness-home-paths'
 import { installModelSelection } from '@hydra/harness-agent'
 import type { Agent, ModelSelection, ModelSelectionRef, AgentOptions, AgentStatus } from '@hydra/harness-agent'
 import type {} from '@hydra/harness-agent-presets/types'
@@ -1975,7 +1975,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
 
   /** Absolute path of the personalization custom-instructions document. */
   function instructionsPath(): string {
-    return join(resolveBhHome(), USER_GLOBAL_FILE)
+    return join(resolveHydraHome(), USER_GLOBAL_FILE)
   }
 
   /** Read the custom-instructions document and its SHA-256 content-hash revision. */

@@ -15,12 +15,12 @@ import {
 import { clientBundle } from '../packages/client/tsdown.client.ts'
 
 const root = resolve(import.meta.dirname, '..')
-const PROBE_NAME = 'BH_CLIENT_BUILD_TEST'
+const PROBE_NAME = 'HYDRA_CLIENT_BUILD_TEST'
 const COMMIT_HASH = '0123456789abcdef0123456789abcdef01234567'
 const PROBE_KEY = `process.env.${PROBE_NAME}`
 const originalProbe = process.env[PROBE_NAME]
 const roots: string[] = []
-const bhBuildWorkflows = [
+const hydraBuildWorkflows = [
   'build-exe-for-python-sdk.yml',
   'ci.yml',
   'e2b-e2e.yml',
@@ -43,7 +43,7 @@ function write(path: string, content: string): void {
 }
 
 function buildFixture(environment: Record<string, string>): string {
-  const fixtureRoot = mkdtempSync(join(tmpdir(), 'bh-client-build-'))
+  const fixtureRoot = mkdtempSync(join(tmpdir(), 'hydra-client-build-'))
   roots.push(fixtureRoot)
   write(join(fixtureRoot, 'apps/web/dist/index.html'), '<main></main>')
   write(join(fixtureRoot, 'packages/client/example/lib/client.js'), 'module.exports = {}\n')
@@ -54,65 +54,65 @@ function buildFixture(environment: Record<string, string>): string {
 describe('client build environment', () => {
   it('requires an exact public environment for a named artifact profile', () => {
     const expected = {
-      BH_CLIENT_BUILD_PROFILE: 'official',
-      BH_CLIENT_COMMIT_HASH: COMMIT_HASH.slice(0, 7),
-      BH_CLIENT_TITLE: 'Hydra harness',
+      HYDRA_CLIENT_BUILD_PROFILE: 'official',
+      HYDRA_CLIENT_COMMIT_HASH: COMMIT_HASH.slice(0, 7),
+      HYDRA_CLIENT_TITLE: 'Hydra harness',
     } as const
 
     expect(() => { assertClientBuildEnvironment({ PATH: '/bin', ...expected }, expected) }).not.toThrow()
-    expect(() => { assertClientBuildEnvironment({}, expected) }).toThrow(/BH_CLIENT_TITLE/)
-    expect(() => { assertClientBuildEnvironment({ BH_CLIENT_TITLE: 'Other' }, expected) }).toThrow(/BH_CLIENT_TITLE/)
+    expect(() => { assertClientBuildEnvironment({}, expected) }).toThrow(/HYDRA_CLIENT_TITLE/)
+    expect(() => { assertClientBuildEnvironment({ HYDRA_CLIENT_TITLE: 'Other' }, expected) }).toThrow(/HYDRA_CLIENT_TITLE/)
     expect(() => {
-      assertClientBuildEnvironment({ ...expected, BH_CLIENT_UNDECLARED: 'value' }, expected)
-    }).toThrow(/BH_CLIENT_UNDECLARED/)
+      assertClientBuildEnvironment({ ...expected, HYDRA_CLIENT_UNDECLARED: 'value' }, expected)
+    }).toThrow(/HYDRA_CLIENT_UNDECLARED/)
   })
 
   it('inherits public values by default and isolates an explicit official profile', () => {
     const parent = {
       PATH: '/bin',
-      BH_BUILD_CLIENT_PROFILE: 'official',
-      BH_CLIENT_BUILD_PROFILE: 'local',
-      BH_CLIENT_COMMIT_HASH: COMMIT_HASH.slice(0, 7),
-      BH_CLIENT_TITLE: 'Local title',
-      BH_CLIENT_EXTRA: 'local-extra',
+      HYDRA_BUILD_CLIENT_PROFILE: 'official',
+      HYDRA_CLIENT_BUILD_PROFILE: 'local',
+      HYDRA_CLIENT_COMMIT_HASH: COMMIT_HASH.slice(0, 7),
+      HYDRA_CLIENT_TITLE: 'Local title',
+      HYDRA_CLIENT_EXTRA: 'local-extra',
     }
 
-    expect(resolveClientBuildEnvironment({ BH_CLIENT_TITLE: 'Local title' })).toEqual({
-      BH_CLIENT_TITLE: 'Local title',
+    expect(resolveClientBuildEnvironment({ HYDRA_CLIENT_TITLE: 'Local title' })).toEqual({
+      HYDRA_CLIENT_TITLE: 'Local title',
     })
     expect(resolveClientBuildEnvironment(parent)).toEqual({
-      BH_CLIENT_BUILD_PROFILE: 'official',
-      BH_CLIENT_COMMIT_HASH: COMMIT_HASH.slice(0, 7),
-      BH_CLIENT_TITLE: 'Hydra harness',
+      HYDRA_CLIENT_BUILD_PROFILE: 'official',
+      HYDRA_CLIENT_COMMIT_HASH: COMMIT_HASH.slice(0, 7),
+      HYDRA_CLIENT_TITLE: 'Hydra harness',
     })
     expect(() => {
-      resolveClientBuildEnvironment({ BH_BUILD_CLIENT_PROFILE: 'official' })
-    }).toThrow(/BH_CLIENT_COMMIT_HASH/)
+      resolveClientBuildEnvironment({ HYDRA_BUILD_CLIENT_PROFILE: 'official' })
+    }).toThrow(/HYDRA_CLIENT_COMMIT_HASH/)
     expect(() => { resolveClientBuildEnvironment({}, 'unknown') }).toThrow(/unknown client build profile/)
     expect(clientBuildProcessEnvironment(parent, {
-      BH_CLIENT_BUILD_PROFILE: 'official',
-      BH_CLIENT_COMMIT_HASH: COMMIT_HASH.slice(0, 7),
-      BH_CLIENT_TITLE: 'Hydra harness',
+      HYDRA_CLIENT_BUILD_PROFILE: 'official',
+      HYDRA_CLIENT_COMMIT_HASH: COMMIT_HASH.slice(0, 7),
+      HYDRA_CLIENT_TITLE: 'Hydra harness',
     })).toEqual({
       PATH: '/bin',
-      BH_CLIENT_BUILD_PROFILE: 'official',
-      BH_CLIENT_COMMIT_HASH: COMMIT_HASH.slice(0, 7),
-      BH_CLIENT_TITLE: 'Hydra harness',
+      HYDRA_CLIENT_BUILD_PROFILE: 'official',
+      HYDRA_CLIENT_COMMIT_HASH: COMMIT_HASH.slice(0, 7),
+      HYDRA_CLIENT_TITLE: 'Hydra harness',
     })
-    expect(repositoryCommitHash('/unused', { BH_CLIENT_COMMIT_HASH: COMMIT_HASH })).toBe(COMMIT_HASH.slice(0, 7))
+    expect(repositoryCommitHash('/unused', { HYDRA_CLIENT_COMMIT_HASH: COMMIT_HASH })).toBe(COMMIT_HASH.slice(0, 7))
   })
 
   it('defines only public client values over a non-enumerable fallback', () => {
     expect(clientBuildEnvironmentDefines({
       PATH: '/bin',
-      BH_TEST_API_KEY: 'secret',
-      BH_CLIENT_VARIANT: 'quoted "value"',
-      BH_CLIENT_EMPTY: '',
-      BH_CLIENT_UNSET: undefined,
+      HYDRA_TEST_API_KEY: 'secret',
+      HYDRA_CLIENT_VARIANT: 'quoted "value"',
+      HYDRA_CLIENT_EMPTY: '',
+      HYDRA_CLIENT_UNSET: undefined,
     })).toEqual({
       'process.env': '{}',
-      'process.env.BH_CLIENT_EMPTY': '""',
-      'process.env.BH_CLIENT_VARIANT': '"quoted \\"value\\""',
+      'process.env.HYDRA_CLIENT_EMPTY': '""',
+      'process.env.HYDRA_CLIENT_VARIANT': '"quoted \\"value\\""',
     })
   })
 
@@ -122,7 +122,7 @@ describe('client build environment', () => {
     const configs = clientBundle('@hydra/harness-client-ui-sidebar', [
       'lib/types/index.js',
       'lib/types/invariant.js',
-    ])({ env: { BH_BUILD_FACE: 'client' } })
+    ])({ env: { HYDRA_BUILD_FACE: 'client' } })
     if (!Array.isArray(configs)) throw new TypeError('client bundle config must be an array')
     const dynamic = configs.find(config => config.name === '@hydra/harness-client-ui-sidebar/client')
     expect(dynamic?.define).toMatchObject({
@@ -148,15 +148,15 @@ describe('client build environment', () => {
 
   it('binds the recorded environment to a complete set of client artifacts', () => {
     const officialEnvironment = {
-      BH_CLIENT_BUILD_PROFILE: 'official',
-      BH_CLIENT_COMMIT_HASH: COMMIT_HASH.slice(0, 7),
-      BH_CLIENT_TITLE: 'Hydra harness',
+      HYDRA_CLIENT_BUILD_PROFILE: 'official',
+      HYDRA_CLIENT_COMMIT_HASH: COMMIT_HASH.slice(0, 7),
+      HYDRA_CLIENT_TITLE: 'Hydra harness',
     }
     const official = buildFixture(officialEnvironment)
     const defaultBuild = buildFixture({})
 
     expect(readClientBuildRecord(official, officialEnvironment).environment).toEqual(officialEnvironment)
-    expect(() => { readClientBuildRecord(defaultBuild, officialEnvironment) }).toThrow(/BH_CLIENT_/)
+    expect(() => { readClientBuildRecord(defaultBuild, officialEnvironment) }).toThrow(/HYDRA_CLIENT_/)
     expect(() => { readClientBuildRecord(join(defaultBuild, 'missing')) }).toThrow(/record.*missing/)
 
     write(join(official, 'apps/web/dist/index.html'), '<main>changed</main>')
@@ -164,13 +164,13 @@ describe('client build environment', () => {
   })
 
   it('keeps public client values out of workflow-wide environments', () => {
-    for (const name of bhBuildWorkflows) {
+    for (const name of hydraBuildWorkflows) {
       const path = `.github/workflows/${name}`
       const document: unknown = yaml.load(readFileSync(resolve(root, path), 'utf8'))
       if (typeof document !== 'object' || document === null || Array.isArray(document)) {
         throw new TypeError(`${path} must contain a workflow object`)
       }
-      expect(JSON.stringify(document), path).not.toContain('BH_CLIENT_')
+      expect(JSON.stringify(document), path).not.toContain('HYDRA_CLIENT_')
     }
   })
 })

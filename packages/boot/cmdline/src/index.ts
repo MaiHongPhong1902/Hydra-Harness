@@ -1,5 +1,5 @@
 /**
- * @hydra/harness-cmdline — the command line a bh launcher hands to the app
+ * @hydra/harness-cmdline — the command line a hydra launcher hands to the app
  * it boots.
  *
  * The launcher parses only its own flags (`--profile`, `--patch`, the config
@@ -21,7 +21,7 @@ import type { Context } from '@hydra/cordis'
 
 /**
  * The invocation's inner arguments: everything after the launcher's own flags,
- * verbatim and in argv order. `bh --profile tui --resume abc` yields
+ * verbatim and in argv order. `hydra --profile tui --resume abc` yields
  * `['--resume', 'abc']`.
  */
 export interface CmdlineArgs {

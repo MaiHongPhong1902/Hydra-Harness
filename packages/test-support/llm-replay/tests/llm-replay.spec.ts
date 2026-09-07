@@ -1113,17 +1113,17 @@ describe('installLlmReplay (per-session keying)', () => {
 
 describe('apply (the plugin entry)', () => {
   const ORIG = {
-    file: process.env.BH_SNAPSHOT_FILE,
-    override: process.env.BH_SNAPSHOT_OVERRIDE,
-    children: process.env.BH_SNAPSHOT_CHILD_FILES,
+    file: process.env.HYDRA_SNAPSHOT_FILE,
+    override: process.env.HYDRA_SNAPSHOT_OVERRIDE,
+    children: process.env.HYDRA_SNAPSHOT_CHILD_FILES,
   }
   afterEach(() => {
-    if (ORIG.file === undefined) delete process.env.BH_SNAPSHOT_FILE
-    else process.env.BH_SNAPSHOT_FILE = ORIG.file
-    if (ORIG.override === undefined) delete process.env.BH_SNAPSHOT_OVERRIDE
-    else process.env.BH_SNAPSHOT_OVERRIDE = ORIG.override
-    if (ORIG.children === undefined) delete process.env.BH_SNAPSHOT_CHILD_FILES
-    else process.env.BH_SNAPSHOT_CHILD_FILES = ORIG.children
+    if (ORIG.file === undefined) delete process.env.HYDRA_SNAPSHOT_FILE
+    else process.env.HYDRA_SNAPSHOT_FILE = ORIG.file
+    if (ORIG.override === undefined) delete process.env.HYDRA_SNAPSHOT_OVERRIDE
+    else process.env.HYDRA_SNAPSHOT_OVERRIDE = ORIG.override
+    if (ORIG.children === undefined) delete process.env.HYDRA_SNAPSHOT_CHILD_FILES
+    else process.env.HYDRA_SNAPSHOT_CHILD_FILES = ORIG.children
   })
 
   it('exposes the namespace plugin shape (name/inject, no default export)', () => {
@@ -1160,12 +1160,12 @@ describe('apply (the plugin entry)', () => {
     )
   })
 
-  it('falls back to $BH_SNAPSHOT_FILE / $BH_SNAPSHOT_OVERRIDE when config is empty', async () => {
+  it('falls back to $HYDRA_SNAPSHOT_FILE / $HYDRA_SNAPSHOT_OVERRIDE when config is empty', async () => {
     writeFileSync(file, sessionJsonl([]), 'utf8')
     const overrideFile = join(dir, 'replay.override.json')
     writeFileSync(overrideFile, JSON.stringify([{ kind: 'chunks', chunks: TEXT_CHUNKS }]), 'utf8')
-    process.env.BH_SNAPSHOT_FILE = file
-    process.env.BH_SNAPSHOT_OVERRIDE = overrideFile
+    process.env.HYDRA_SNAPSHOT_FILE = file
+    process.env.HYDRA_SNAPSHOT_OVERRIDE = overrideFile
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
     apply(ctx)
@@ -1174,8 +1174,8 @@ describe('apply (the plugin entry)', () => {
 
   it('uses only the file when no override path is configured or in the env', async () => {
     writeFileSync(file, sessionJsonl(TEXT_CHUNKS.map((c, i) => chunkEvent(i + 1, 1, 1, c))), 'utf8')
-    process.env.BH_SNAPSHOT_FILE = file
-    delete process.env.BH_SNAPSHOT_OVERRIDE
+    process.env.HYDRA_SNAPSHOT_FILE = file
+    delete process.env.HYDRA_SNAPSHOT_OVERRIDE
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
     apply(ctx)
@@ -1183,14 +1183,14 @@ describe('apply (the plugin entry)', () => {
   })
 
   it('throws when no fixture path is given by config or env', async () => {
-    delete process.env.BH_SNAPSHOT_FILE
+    delete process.env.HYDRA_SNAPSHOT_FILE
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
     expect(() => { apply(ctx, {}) }).toThrow(/a fixture path is required/)
   })
 
   it('treats an empty-string fixture path as missing', async () => {
-    delete process.env.BH_SNAPSHOT_FILE
+    delete process.env.HYDRA_SNAPSHOT_FILE
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
     expect(() => { apply(ctx, { file: '' }) }).toThrow(/a fixture path is required/)
@@ -1214,7 +1214,7 @@ describe('apply (the plugin entry)', () => {
     expect(await drain(ctx.llm.stream(live('B')))).toEqual(childSecond)
   })
 
-  it('falls back to $BH_SNAPSHOT_CHILD_FILES (path-delimited) when config omits childFiles', async () => {
+  it('falls back to $HYDRA_SNAPSHOT_CHILD_FILES (path-delimited) when config omits childFiles', async () => {
     const childChunks: StreamChunk[] = [
       { type: 'block-start', index: 0, blockType: 'text' },
       { type: 'text-delta', index: 0, text: 'env-kid' },
@@ -1223,8 +1223,8 @@ describe('apply (the plugin entry)', () => {
     writeFileSync(file, sessionJsonl(TEXT_CHUNKS.map((c, i) => chunkEvent(i + 1, 1, 1, c)), { id: 'p', createdAt: 1 }), 'utf8')
     const childFile = join(dir, 'session.1.jsonl')
     writeFileSync(childFile, sessionJsonl(childChunks.map((c, i) => chunkEvent(i + 1, 1, 1, c)), { id: 'c', createdAt: 2 }), 'utf8')
-    process.env.BH_SNAPSHOT_FILE = file
-    process.env.BH_SNAPSHOT_CHILD_FILES = childFile // single entry, no delimiter needed
+    process.env.HYDRA_SNAPSHOT_FILE = file
+    process.env.HYDRA_SNAPSHOT_CHILD_FILES = childFile // single entry, no delimiter needed
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
     apply(ctx)
@@ -1234,10 +1234,10 @@ describe('apply (the plugin entry)', () => {
     expect(await drain(ctx.llm.stream(live('B')))).toEqual(childChunks)
   })
 
-  it('ignores an empty $BH_SNAPSHOT_CHILD_FILES (single-session)', async () => {
+  it('ignores an empty $HYDRA_SNAPSHOT_CHILD_FILES (single-session)', async () => {
     writeFileSync(file, sessionJsonl(TEXT_CHUNKS.map((c, i) => chunkEvent(i + 1, 1, 1, c)), { id: 'p', createdAt: 1 }), 'utf8')
-    process.env.BH_SNAPSHOT_FILE = file
-    process.env.BH_SNAPSHOT_CHILD_FILES = ''
+    process.env.HYDRA_SNAPSHOT_FILE = file
+    process.env.HYDRA_SNAPSHOT_CHILD_FILES = ''
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
     apply(ctx)

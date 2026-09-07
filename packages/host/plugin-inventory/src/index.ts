@@ -287,7 +287,7 @@ async function loadMarketplace(request: AddPluginMarketplaceRequest | Marketplac
   }
 
   // Temporary shallow clones avoid cache invalidation; add snapshots if list latency becomes material.
-  const tempRoot = await mkdtemp(join(tmpdir(), 'bh-marketplace-'))
+  const tempRoot = await mkdtemp(join(tmpdir(), 'hydra-marketplace-'))
   const checkout = join(tempRoot, 'repository')
   try {
     if (source.gitRef !== '') {
@@ -493,7 +493,7 @@ export class PluginInventoryGateway extends TypertRemoteService {
     const actual = resolve(dirname(path))
     const expected = resolve(resolveProfileDir(basename(actual)))
     if (actual !== expected) {
-      throw new Error(`pluginInventory: active root ${path} is not a managed bh profile`)
+      throw new Error(`pluginInventory: active root ${path} is not a managed hydra profile`)
     }
     return expected
   }
@@ -512,10 +512,10 @@ export class PluginInventoryGateway extends TypertRemoteService {
       }
       const next = {
         ...manifest,
-        bh: {
-          ...manifest.bh,
+        hydra: {
+          ...manifest.hydra,
           profile: {
-            ...manifest.bh?.profile,
+            ...manifest.hydra?.profile,
             pluginEnablement,
           },
         },

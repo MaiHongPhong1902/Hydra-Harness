@@ -34,7 +34,7 @@ describe('UsageSection', () => {
           id: a, displayTitle: a, running: false, blank: false, updatedAt: 1,
           projectionValues: {
             modelTokenUsage: [{
-              provider: 'bosch', model: 'model-a', uncachedInputTokens: 1_000,
+              provider: 'fixture', model: 'model-a', uncachedInputTokens: 1_000,
               cacheReadTokens: 500, cacheWriteTokens: 0, outputTokens: 40,
             }],
           },
@@ -44,11 +44,11 @@ describe('UsageSection', () => {
           projectionValues: {
             modelTokenUsage: [
               {
-                provider: 'bosch', model: 'model-a', uncachedInputTokens: 100,
+                provider: 'fixture', model: 'model-a', uncachedInputTokens: 100,
                 cacheReadTokens: 0, cacheWriteTokens: 0, outputTokens: 10,
               },
               {
-                provider: 'bosch', model: 'model-b', uncachedInputTokens: 20,
+                provider: 'fixture', model: 'model-b', uncachedInputTokens: 20,
                 cacheReadTokens: 0, cacheWriteTokens: 0, outputTokens: 400,
               },
             ],
@@ -108,7 +108,7 @@ describe('UsageSection', () => {
             id: a, displayTitle: a, running: false, blank: false, updatedAt: 2,
             projectionValues: {
               modelTokenUsage: [{
-                provider: 'bosch', model: 'live-model', uncachedInputTokens: 42,
+                provider: 'fixture', model: 'live-model', uncachedInputTokens: 42,
                 cacheReadTokens: 0, cacheWriteTokens: 0, outputTokens: 7,
               }],
             },

@@ -1,13 +1,13 @@
 {
   "name": "@hydra/harness-skill-badge",
-  "description": "Bundled bh badge skill provider for Hydra harness",
+  "description": "Bundled hydra badge skill provider for Hydra harness",
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bosch/bosch-harness.git",
+    "url": "git+https://github.com/MaiHongPhong1902/Hydra-Harness.git",
     "directory": "packages/skill/skill-badge"
   },
   "type": "module",

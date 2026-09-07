@@ -21,7 +21,7 @@
     "./src/*": "./src/*",
     "./package.json": "./package.json"
   },
-  "bh": {
+  "hydra": {
     "client": {
       "inject": [
         "@hydra/harness-client-locale",
@@ -39,7 +39,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bosch/bosch-harness.git",
+    "url": "git+https://github.com/MaiHongPhong1902/Hydra-Harness.git",
     "directory": "packages/client/ui-jobs"
   },
   "publishConfig": {

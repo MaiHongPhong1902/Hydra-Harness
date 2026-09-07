@@ -4,15 +4,15 @@
    rail state renders only the two 36x36 icon controls. */
 
 .root {
-  --bh-session-list-edge-inset: var(--bh-sidebar-inline-padding);
-  --bh-session-list-scrollbar-width: 8px;
-  --bh-session-list-scrollbar-offset: 2px;
+  --hydra-session-list-edge-inset: var(--hydra-sidebar-inline-padding);
+  --hydra-session-list-scrollbar-width: 8px;
+  --hydra-session-list-scrollbar-offset: 2px;
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  padding-right: var(--bh-session-list-edge-inset);
+  padding-right: var(--hydra-session-list-edge-inset);
 }
 
 .root.rail {
@@ -286,7 +286,7 @@
   display: flex;
   flex-direction: column;
   margin-left: -4px;
-  margin-right: calc(-1 * var(--bh-session-list-edge-inset));
+  margin-right: calc(-1 * var(--hydra-session-list-edge-inset));
   padding-left: 4px;
   /* The list remains the scroll clip. This seat stays visible so the
      absolutely positioned first-boundary marker can occupy the header gap. */
@@ -313,7 +313,7 @@
 .fade {
   position: absolute;
   left: 0;
-  right: var(--bh-session-list-edge-inset);
+  right: var(--hydra-session-list-edge-inset);
   bottom: 0;
   height: 24px;
   background: linear-gradient(to bottom, transparent, var(--dsw-specific-sidebar-fill));
@@ -338,12 +338,12 @@
   min-height: 0;
   overflow-y: auto;
   margin-left: -4px;
-  margin-right: var(--bh-session-list-scrollbar-offset);
+  margin-right: var(--hydra-session-list-scrollbar-offset);
   padding-left: 4px;
   padding-right: calc(
-    var(--bh-session-list-edge-inset)
-    - var(--bh-session-list-scrollbar-width)
-    - var(--bh-session-list-scrollbar-offset)
+    var(--hydra-session-list-edge-inset)
+    - var(--hydra-session-list-scrollbar-width)
+    - var(--hydra-session-list-scrollbar-offset)
   );
   /* Clears the compact bottom fade overlay: at scroll end the last row sits
      above the gradient instead of under it. */
@@ -411,7 +411,7 @@
 .listTopDropIndicator {
   top: -8px;
   left: 0;
-  right: var(--bh-session-list-edge-inset);
+  right: var(--hydra-session-list-edge-inset);
 }
 
 .listTopDropActive > .workspaceDropBefore:first-child::before {

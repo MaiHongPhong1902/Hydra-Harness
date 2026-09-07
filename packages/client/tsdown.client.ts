@@ -24,9 +24,9 @@ import { clientBuildEnvironmentDefines } from '../../scripts/client-build-enviro
  * (which requires @tsdown/css). The suffix matters: tsdown's guard matches ids
  * ending in `.css`, so the virtual id must not.
  */
-const CSS_VIRTUAL_PREFIX = '\0bh-css:'
-const GLOBAL_CSS_VIRTUAL_PREFIX = '\0bh-global-css:'
-const INLINE_CSS_VIRTUAL_PREFIX = '\0bh-inline-css:'
+const CSS_VIRTUAL_PREFIX = '\0hydra-css:'
+const GLOBAL_CSS_VIRTUAL_PREFIX = '\0hydra-global-css:'
+const INLINE_CSS_VIRTUAL_PREFIX = '\0hydra-inline-css:'
 const CSS_VIRTUAL_SUFFIX = '.mjs'
 const INLINE_CSS_QUERY = '?inline'
 
@@ -110,7 +110,7 @@ export function clientBundle(
 ): BuildFaceConfig {
   const lib = clientLibraryConfig(id, libEntry, options.lib)
   return ({ env }) => {
-    const face = buildFace(env?.BH_BUILD_FACE)
+    const face = buildFace(env?.HYDRA_BUILD_FACE)
     const clientEntry = face === undefined ? 'src/client/index.ts' : 'lib/types/client/index.js'
     const client = clientConfig(id, clientEntry)
     const node = [lib, ...(options.companions ?? [])]
@@ -189,7 +189,7 @@ export function clientLibrary(id: string, libEntry: readonly string[]): BuildFac
  * @returns ENV-selected tsdown config for the Client build face.
  */
 export function clientOnly(configs: readonly UserConfig[]): BuildFaceConfig {
-  return ({ env }) => buildFace(env?.BH_BUILD_FACE) === 'host'
+  return ({ env }) => buildFace(env?.HYDRA_BUILD_FACE) === 'host'
     ? [SKIP_WORKSPACE_BUILD]
     : [...configs]
 }
@@ -209,7 +209,7 @@ type BuildFaceConfig = (inlineConfig: Pick<UserConfig, 'env'>) => UserConfig[]
 
 function buildFace(value: unknown): BuildFace {
   if (value === undefined || value === 'host' || value === 'client') return value
-  throw new Error(`tsdown: --env.BH_BUILD_FACE must be host or client, received ${String(value)}`)
+  throw new Error(`tsdown: --env.HYDRA_BUILD_FACE must be host or client, received ${String(value)}`)
 }
 
 function clientLibraryConfig(
@@ -286,7 +286,7 @@ function staticLinkedConfig(id: string, entry: string, outputName = basename(ent
       // inputs, so each tsc map is handed over as that module's map and
       // composed into the bundle map; without it frames stop at the emitted
       // lib/types JavaScript instead of reaching the TSX.
-      name: 'bh-tsc-sourcemap',
+      name: 'hydra-tsc-sourcemap',
       async load(id: string) {
         if (!id.includes(TYPES_MARKER) || !id.endsWith('.js') || !existsSync(`${id}.map`)) return null
         const code = await readFile(id, 'utf8')
@@ -295,9 +295,9 @@ function staticLinkedConfig(id: string, entry: string, outputName = basename(ent
     }, {
       // Contract 4. The import survives verbatim and the sheet lands beside the
       // JavaScript, so the shell's CSS Modules pipeline sees a real stylesheet.
-      name: 'bh-css-asset',
+      name: 'hydra-css-asset',
       async resolveId(this: AssetEmitter, source: string, importer: string | undefined) {
-        if (!source.endsWith('.css') || importer === undefined) return null
+        if (!isStaticAssetSpecifier(source) || importer === undefined) return null
         const { file, fileName } = stylesheetAsset(source, importer)
         if (!emitted.has(fileName)) {
           emitted.add(fileName)
@@ -318,16 +318,21 @@ function isBareSpecifier(specifier: string): boolean {
   return !specifier.startsWith('.') && !specifier.startsWith('\0') && !isAbsolute(specifier)
 }
 
+/** Stylesheets and brand bitmaps the static preset copies beside `lib/`. */
+function isStaticAssetSpecifier(specifier: string): boolean {
+  return specifier.endsWith('.css') || specifier.endsWith('.png') || specifier.endsWith('.webp')
+}
+
 /**
- * Locate a stylesheet import against the package sources and name its emitted position.
+ * Locate a static asset import against the package sources and name its emitted position.
  * @param source - relative import specifier as written in the source.
  * @param importer - absolute path of the importing module, emitted or source.
- * @returns the stylesheet on disk plus its `src`-relative name under `lib/`.
+ * @returns the asset on disk plus its `src`-relative name under `lib/`.
  */
 function stylesheetAsset(source: string, importer: string): { readonly file: string, readonly fileName: string } {
   const file = sourceAssetPath(source, importer)
   const boundary = file.lastIndexOf(SOURCE_MARKER)
-  if (boundary < 0) throw new Error(`tsdown: stylesheet ${file} is outside the package sources`)
+  if (boundary < 0) throw new Error(`tsdown: asset ${file} is outside the package sources`)
   return { file, fileName: file.slice(boundary + SOURCE_MARKER.length).split(sep).join('/') }
 }
 
@@ -338,7 +343,7 @@ interface WorkspaceManifest {
   readonly dependencies?: Record<string, string>
   readonly peerDependencies?: Record<string, string>
   readonly optionalDependencies?: Record<string, string>
-  readonly bh?: { readonly client?: { readonly external?: unknown } }
+  readonly hydra?: { readonly client?: { readonly external?: unknown } }
 }
 
 const manifestCache = new Map<string, WorkspaceManifest>()
@@ -390,11 +395,11 @@ function productionExternals(id: string): readonly RegExp[] {
 }
 
 /**
- * Module-table specifiers one `bh.client` declaration requests. Matching is
+ * Module-table specifiers one `hydra.client` declaration requests. Matching is
  * exact, never normalized: a package declares the specifier its own code
  * imports, and the loader keys static entries the same way.
  * @param subject - package name, used in diagnostics.
- * @param declaration - the package's `bh.client` object.
+ * @param declaration - the package's `hydra.client` object.
  * @returns the requested specifiers, empty when the package declares none.
  * @throws {Error} when `external` is not a string array.
  */
@@ -402,12 +407,12 @@ export function requestedExternals(
   subject: string,
   declaration: { readonly external?: unknown },
 ): ReadonlySet<string> {
-  return new Set(optionalStringArray(subject, 'bh.client.external', declaration.external) ?? [])
+  return new Set(optionalStringArray(subject, 'hydra.client.external', declaration.external) ?? [])
 }
 
 /**
  * Module-table specifiers one package requests. The shell baseline is implicit
- * for every dynamic bundle; `bh.client.external` only adds package-specific
+ * for every dynamic bundle; `hydra.client.external` only adds package-specific
  * dynamic rows or subpaths.
  * @param id - package name, as spelled at the preset call site.
  * @returns the baseline plus the package's explicit requests.
@@ -418,7 +423,7 @@ function clientExternals(id: string): ReadonlySet<string> {
   const externals = new Set([
     ...PLATFORM_MODULES,
     ...PRELOADED_CLIENT_EXTERNALS,
-    ...requestedExternals(id, workspaceManifest(id).bh?.client ?? {}),
+    ...requestedExternals(id, workspaceManifest(id).hydra?.client ?? {}),
   ])
   clientExternalCache.set(id, externals)
   return externals
@@ -483,20 +488,20 @@ function clientConfig(id: string, entry: string): UserConfig {
       // cross-plugin value import either inlines a duplicate runtime instance
       // or requires a specifier the module table cannot answer for this package.
       // Cross-plugin collaboration goes through cordis services instead.
-      name: 'bh-client-bundle-purity',
+      name: 'hydra-client-bundle-purity',
       resolveId(source: string) {
         if (!source.startsWith('@hydra/')) return null
         if (isRequested(source)) return null // requested module-table row: external wins
         if (VENDORED_LIBRARY.test(source)) return null // vendored library: inline, no shared identity
         if (INLINE_SAFE.test(source) || GENERATED_REMOTE.test(source)) return null // wire contribution: inline is the point
         throw new Error(
-          `client bundle purity: "${source}" is not in the default client externals or ${id}'s bh.client.external, an inline-safe wire layer, or a generated /remote contribution — `
+          `client bundle purity: "${source}" is not in the default client externals or ${id}'s hydra.client.external, an inline-safe wire layer, or a generated /remote contribution — `
           + 'cross-plugin value imports are forbidden; declare a non-default module request or collaborate through cordis services '
           + '(type-only imports are erased and never reach this gate)',
         )
       },
     }, {
-      name: 'bh-css-modules-inline',
+      name: 'hydra-css-modules-inline',
       resolveId(source: string, importer: string | undefined) {
         if (!source.endsWith('.module.css')) return null
         const abs = importer !== undefined ? sourceAssetPath(source, importer) : source
@@ -521,7 +526,7 @@ function clientConfig(id: string, entry: string): UserConfig {
         return styleInjectionModule(id, fileId, code.toString(), classMap)
       },
     }, {
-      name: 'bh-css-text-inline',
+      name: 'hydra-css-text-inline',
       resolveId(source: string, importer: string | undefined) {
         if (!source.endsWith(`.css${INLINE_CSS_QUERY}`)) return null
         const stylesheet = source.slice(0, -INLINE_CSS_QUERY.length)
@@ -537,7 +542,7 @@ function clientConfig(id: string, entry: string): UserConfig {
         return `export default ${JSON.stringify(code.toString())};`
       },
     }, {
-      name: 'bh-css-global-inline',
+      name: 'hydra-css-global-inline',
       resolveId(source: string, importer: string | undefined) {
         if (!source.endsWith('.css') || source.endsWith('.module.css')) return null
         const abs = importer !== undefined ? sourceAssetPath(source, importer) : source
@@ -570,7 +575,7 @@ function clientConfig(id: string, entry: string): UserConfig {
 const TYPES_MARKER = `${sep}lib${sep}types${sep}`
 
 /** Plugin name carrying contract 1, and the marker that identifies a statically linked config. */
-const STATIC_LINKED_PLUGIN = 'bh-static-linked-external'
+const STATIC_LINKED_PLUGIN = 'hydra-static-linked-external'
 
 /** Path segment a package's sources hang under, and the root emitted assets mirror. */
 const SOURCE_MARKER = `${sep}src${sep}`

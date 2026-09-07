@@ -6,12 +6,12 @@
   box-sizing: border-box;
   width: calc(
     100% -
-    var(--bh-composer-side-clearance) -
-    var(--bh-composer-side-clearance) -
-    var(--bh-composer-dock-inset) -
-    var(--bh-composer-dock-inset) -
-    var(--bh-composer-dock-inset) -
-    var(--bh-composer-dock-inset)
+    var(--hydra-composer-side-clearance) -
+    var(--hydra-composer-side-clearance) -
+    var(--hydra-composer-dock-inset) -
+    var(--hydra-composer-dock-inset) -
+    var(--hydra-composer-dock-inset) -
+    var(--hydra-composer-dock-inset)
   );
   margin: 0 auto;
 }
@@ -22,7 +22,7 @@
   align-items: center;
   gap: 10px;
   width: 100%;
-  max-width: calc(var(--bh-composer-card-max-width) - 4 * var(--bh-composer-dock-inset));
+  max-width: calc(var(--hydra-composer-card-max-width) - 4 * var(--hydra-composer-dock-inset));
   height: 36px;
   margin: 0 auto;
   padding: 4px 5px 4px 12px;

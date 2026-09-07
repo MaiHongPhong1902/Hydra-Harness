@@ -11,7 +11,7 @@ import { Service, type Context, type Fiber } from '@hydra/cordis'
 import { withFileLock, writeFileAtomic } from '@hydra/harness-atomic-write'
 import type {} from '@hydra/harness-commands'
 import type { CommandResult } from '@hydra/harness-commands'
-import { resolveBhHome } from '@hydra/harness-home-paths'
+import { resolveHydraHome } from '@hydra/harness-home-paths'
 import { apply as applyCodexHooks, inject as codexHooksInject } from '@hydra/harness-hooks-codex'
 import { parseCodexConfig } from '@hydra/harness-hooks-codex/config'
 import { createUserMessage } from '@hydra/harness-llm'
@@ -43,7 +43,7 @@ export const inject = ['skills', 'commands', 'tools']
 /** Runtime configuration for the imported-plugin service. */
 export interface Config {
   /** Override the resolved Hydra home directory. */
-  bhHome?: string
+  hydraHome?: string
 }
 
 const REGISTRY_VERSION = 1
@@ -193,7 +193,7 @@ export class PluginStore {
   readonly registryPath: string
   private readonly manifests = new PluginManifestLoader()
 
-  constructor(readonly home = resolveBhHome()) {
+  constructor(readonly home = resolveHydraHome()) {
     this.cacheRoot = join(home, 'plugins', 'cache')
     this.dataRoot = join(home, 'plugins', 'data')
     this.registryPath = join(home, 'plugins', 'registry.json')
@@ -447,7 +447,7 @@ export class ImportedPluginRuntime extends Service {
   constructor(ctx: Context, config: Config = {}) {
     super(ctx, 'importedPlugins')
     this.owner = ctx
-    this.store = new PluginStore(resolveBhHome(config.bhHome))
+    this.store = new PluginStore(resolveHydraHome(config.hydraHome))
     this.registry = new PluginRegistry(this.store)
     this.trust = new PluginTrustStore(this.store)
     this.lifecycle = new PluginLifecycleManager(this)
@@ -1069,7 +1069,7 @@ async function materializeSource(input: PluginImportSource): Promise<SourceMater
     if (!isMissing(error)) throw error
   }
   const remote = normalizeGitSource(source)
-  const temp = await mkdirTemp('bh-imported-plugin-')
+  const temp = await mkdirTemp('hydra-imported-plugin-')
   const checkout = join(temp, 'repository')
   try {
     await runGit(temp, ['clone', '--depth', '1', '--filter=blob:none', '--', remote, checkout], request.ref)

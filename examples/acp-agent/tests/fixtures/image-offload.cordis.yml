@@ -9,8 +9,8 @@
       - id: llm-deepseek
         name: '@hydra/harness-llm-deepseek'
         config:
-          apiKeyEnv: BH_SNAPSHOT_API_KEY
-          baseURL: !!js process.env.BH_SNAPSHOT_BASE_URL
+          apiKeyEnv: HYDRA_SNAPSHOT_API_KEY
+          baseURL: !!js process.env.HYDRA_SNAPSHOT_BASE_URL
           thinking: disabled
           maxRequestImageBytes: 92
           models:
@@ -23,7 +23,7 @@
         config:
           provider: deepseek-official
           model: deepseek-v4-flash-vision-exp
-          persistenceRoot: !!js process.env.BH_SNAPSHOT_SESSIONS_ROOT ?? './.sessions'
+          persistenceRoot: !!js process.env.HYDRA_SNAPSHOT_SESSIONS_ROOT ?? './.sessions'
           persistenceCompression: none
           workspaceContext:
             maxBytes: 65536

@@ -26,7 +26,7 @@ const AGENT: AgentUnderTest = {
   configPath: fileURLToPath(new URL('../cordis.yml', import.meta.url)),
   tsconfigPath: fileURLToPath(new URL('../../../tsconfig.json', import.meta.url)),
 }
-const DANGER_FULL_ACCESS_ENV = { BH_PERMISSION_MODE: 'danger-full-access' }
+const DANGER_FULL_ACCESS_ENV = { HYDRA_PERMISSION_MODE: 'danger-full-access' }
 
 let spawned: LaunchedAcpTestAgent | undefined
 let workdir: string | undefined

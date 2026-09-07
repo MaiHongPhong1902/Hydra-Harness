@@ -4,11 +4,11 @@ Status: implemented
 
 ## Problem
 
-The native Hydra marketplace modeled npm packages and invoked `bh plugin`, while imported plugins used OpenAI/Codex bundles. Maintaining both marketplace models made a source ambiguous and forced plugin authors to support an unused Hydra package format.
+The native Hydra marketplace modeled npm packages and invoked `hydra plugin`, while imported plugins used OpenAI/Codex bundles. Maintaining both marketplace models made a source ambiguous and forced plugin authors to support an unused Hydra package format.
 
 ## Decision
 
-`pluginInventory` accepts OpenAI/Codex marketplace sources only. It validates `.agents/plugins/marketplace.json` or root `marketplace.json`, persists the source, and removes it without changing any imported bundle. It no longer projects package metadata or invokes `bh plugin` to install a catalog package.
+`pluginInventory` accepts OpenAI/Codex marketplace sources only. It validates `.agents/plugins/marketplace.json` or root `marketplace.json`, persists the source, and removes it without changing any imported bundle. It no longer projects package metadata or invokes `hydra plugin` to install a catalog package.
 
 The imported-plugin runtime remains the only marketplace-entry importer. It stages the selected OpenAI/Codex bundle, validates `.codex-plugin/plugin.json`, and keeps source-qualified lifecycle, MCP approval, and hook trust. The Settings ownership split is recorded in [Plugin source and capability separation](../feature/2026-09-02-plugin-source-and-capability-separation.md). Chat `/plugin marketplace` verbs persist those same sources and are recorded in [`/plugin marketplace` and `/plugin install` slash verbs](../feature/2026-09-04-plugin-marketplace-slash-verbs.md).
 

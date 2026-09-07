@@ -18,7 +18,7 @@
               model: cli-mock
               cwd: !!js process.cwd()
           workspaceContext: false
-          bhHome: './.bh-home'
+          hydraHome: './.hydra-home'
           skills:
             filesystem:
               agentsHome: './.agents-home'

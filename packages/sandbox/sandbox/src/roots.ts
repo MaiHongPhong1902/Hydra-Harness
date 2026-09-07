@@ -10,7 +10,7 @@
  * ephemeral `/tmp` mount, launcher-owned flags) — the honest per-runner
  * differences recorded in the sandbox RFC — with parity pinned by test.
  *
- * @module bh-sandbox/roots
+ * @module hydra-sandbox/roots
  */
 
 import { realpathSync } from 'node:fs'

@@ -13,7 +13,7 @@ function mount() {
 describe('BootPage', () => {
   it('draws the loading skeleton before any plugin state arrives', () => {
     const { el } = mount()
-    expect(el.firstElementChild?.getAttribute('data-bh-boot')).toBe('')
+    expect(el.firstElementChild?.getAttribute('data-hydra-boot')).toBe('')
     expect(el.textContent).toContain('Hydra harness')
     expect(el.textContent).toContain('Loading plugins…')
   })
@@ -21,14 +21,14 @@ describe('BootPage', () => {
   it('keeps loading while entries are active or loading', () => {
     const { el, page } = mount()
     page.setTotal(2)
-    const spinner = el.querySelector<HTMLElement>('[data-bh-boot-spinner]')
-    expect(spinner?.style.getPropertyValue('--bh-boot-arc')).toBe('72deg')
+    const spinner = el.querySelector<HTMLElement>('[data-hydra-boot-spinner]')
+    expect(spinner?.style.getPropertyValue('--hydra-boot-arc')).toBe('72deg')
     page.setState('a', 'active')
-    expect(spinner?.style.getPropertyValue('--bh-boot-arc')).toBe('180deg')
+    expect(spinner?.style.getPropertyValue('--hydra-boot-arc')).toBe('180deg')
     page.setState('b', 'loading')
-    expect(el.querySelector('[data-bh-boot-spinner]')).toBe(spinner)
+    expect(el.querySelector('[data-hydra-boot-spinner]')).toBe(spinner)
     page.setState('b', 'active')
-    expect(spinner?.style.getPropertyValue('--bh-boot-arc')).toBe('288deg')
+    expect(spinner?.style.getPropertyValue('--hydra-boot-arc')).toBe('288deg')
     expect(el.textContent).toContain('Loading plugins…')
     expect(el.textContent).not.toContain('Failed to load plugins')
   })

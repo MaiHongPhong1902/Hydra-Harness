@@ -3,7 +3,7 @@
  * requests retain string user content; the image path resolves durable
  * attachments into ordered data-URL parts. Tool-result images follow their
  * string-only tool messages in a separate user message.
- * @module bh-llm-deepseek/serialize
+ * @module hydra-llm-deepseek/serialize
  */
 
 import { contentHasImage, LlmError, offloadRequestImages } from '@hydra/harness-llm'

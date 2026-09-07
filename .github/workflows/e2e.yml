@@ -23,13 +23,13 @@ permissions:
 env:
   # CI runs must never report to the production telemetry endpoint baked
   # into apps/cli/cordis.yml (AppCLIEntry disables the row when set).
-  BH_TELEMETRY_DISABLED: '1'
+  HYDRA_TELEMETRY_DISABLED: '1'
 
 jobs:
   e2e:
     runs-on: ubuntu-latest
     name: e2e
-    # Bounded file parallelism (BH_E2E_MAX_WORKERS), 120s/test, retry 2. 45m
+    # Bounded file parallelism (HYDRA_E2E_MAX_WORKERS), 120s/test, retry 2. 45m
     # still bounds retry storms against a slow API while the happy path fans out.
     timeout-minutes: 45
     steps:
@@ -70,7 +70,7 @@ jobs:
       - name: Prepare bubblewrap (unrestrict userns)
         run: bash scripts/prepare-ci-bubblewrap.sh
 
-      # The e2e suites boot the example bins in `lib` mode (BH_EXAMPLE_MODE=lib):
+      # The e2e suites boot the example bins in `lib` mode (HYDRA_EXAMPLE_MODE=lib):
       # the built artifact under plain Node, resolving plugins through real package
       # exports — the shape a real consumer runs. That requires a prior build.
       - name: Build (lib for the e2e example bins)
@@ -84,6 +84,6 @@ jobs:
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY_EXTERNAL }}
           DEEPSEEK_BASE_URL: https://api.deepseek.com
-          BH_E2E_MAX_WORKERS: 14
-          BH_EXAMPLE_MODE: lib
+          HYDRA_E2E_MAX_WORKERS: 14
+          HYDRA_EXAMPLE_MODE: lib
         run: pnpm run test:e2e

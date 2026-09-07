@@ -43,7 +43,7 @@ class MockCompletionHandler(BaseHTTPRequestHandler):
 
 
 def run_smoke(repo_root: Path, keep_sessions: bool) -> None:
-    session_root = Path(tempfile.mkdtemp(prefix="bh-sdk-smoke-sessions-"))
+    session_root = Path(tempfile.mkdtemp(prefix="hydra-sdk-smoke-sessions-"))
     runtime_entry = repo_root / "packages/examples/jsonrpc-demo/src/bin.ts"
     server = ThreadingHTTPServer(("127.0.0.1", 0), MockCompletionHandler)
     thread = threading.Thread(target=server.serve_forever, name="mock-openai-compatible-server", daemon=True)
@@ -104,7 +104,7 @@ def main() -> None:
         "--repo-root",
         type=Path,
         default=Path(__file__).resolve().parents[3],
-        help="Path to the bosch-harness checkout.",
+        help="Path to the Hydra-Harness checkout.",
     )
     parser.add_argument("--keep-sessions", action="store_true")
     args = parser.parse_args()

@@ -38,7 +38,7 @@ async function bootProvider(args: string[]): Promise<{
   values: WebStartupValues | undefined
   observed: Observed
 }> {
-  const dir = mkdtempSync(join(tmpdir(), 'bh-web-startup-'))
+  const dir = mkdtempSync(join(tmpdir(), 'hydra-web-startup-'))
   const observed: Observed = { exits: [], out: '' }
   writeFileSync(join(dir, 'reader.mjs'), `
 export function apply(_ctx, config) { globalThis.__webStartupObserved.readerConfig = config }
@@ -118,7 +118,7 @@ describe('web command-line provider', () => {
 
   it('prints its own help and leaves the consumer pending', async () => {
     const { values, observed } = await bootProvider(['--help'])
-    expect(observed.out).toContain('bh --profile web')
+    expect(observed.out).toContain('hydra --profile web')
     expect(observed.out).toContain('--no-open')
     expect(observed.out).toContain('--trusted-host')
     expect(values).toBeUndefined()

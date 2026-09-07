@@ -1533,7 +1533,7 @@ export class SubagentContinuationManager {
     const persistence = this.ctx.get('sessionPersistence')
     if (persistence === undefined) {
       throw new SubagentError(
-        'continuable subagents require session persistence (load a bh-session-persistence backend)',
+        'continuable subagents require session persistence (load a hydra-session-persistence backend)',
         'PERSISTENCE_UNAVAILABLE',
       )
     }

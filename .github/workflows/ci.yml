@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main, master, chore/rebrand-bh]
+    branches: [main, master, chore/rebrand-hydra]
   workflow_dispatch:
 permissions:
   contents: read
@@ -12,7 +12,7 @@ env:
   PRIMARY_NODE_VERSION: '24'
   # CI runs must never report to the production telemetry endpoint baked
   # into apps/cli/cordis.yml (AppCLIEntry disables the row when set).
-  BH_TELEMETRY_DISABLED: '1'
+  HYDRA_TELEMETRY_DISABLED: '1'
 
 # New commits supersede queued and running checks for the same ref.
 concurrency:
@@ -27,7 +27,7 @@ jobs:
   # the standard runners available to personal repositories.
   #
   # FAILOVER (Linux): each Linux worker resolves its pool through the
-  # BH_CI_FAILOVER_LINUX repository variable. Unset (normal), the expressions
+  # HYDRA_CI_FAILOVER_LINUX repository variable. Unset (normal), the expressions
   # pick standard GitHub-hosted runners. Setting the variable to
   # 'selfhosted' (repo Settings → Actions → Variables; writer-manageable
   # repository state — not PR-editable, no merge required) retargets all
@@ -36,17 +36,17 @@ jobs:
   # see .agents/notes/implemented/process/2026-07-26-ci-failover-runbook.md. The
   # in-house pool's readiness is re-proven on every master push by the
   # serial-linux-selfhosted standby lane in ci-master.yml. The Windows failover
-  # switch is the separate BH_CI_FAILOVER_WINDOWS variable on the windows-native
+  # switch is the separate HYDRA_CI_FAILOVER_WINDOWS variable on the windows-native
   # job below.
   node-24:
     runs-on: >-
-      ${{ vars.BH_CI_FAILOVER_LINUX == 'selfhosted'
+      ${{ vars.HYDRA_CI_FAILOVER_LINUX == 'selfhosted'
           && github.event.pull_request.user.login != 'dependabot[bot]'
           && fromJSON('["self-hosted", "linux", "x64", "vm-backup"]')
           || 'ubuntu-latest' }}
     name: node 24 / static
     env:
-      BH_GATE_CONCURRENCY: '1'
+      HYDRA_GATE_CONCURRENCY: '1'
     steps:
       # Fetch complete history so the archive gate can read the trusted PR base from a reused shallow checkout.
       - uses: actions/checkout@v6
@@ -75,7 +75,7 @@ jobs:
       # compression and upload on the paid latency-critical path. Skipped
       # under failover — see the coverage lane's identical rationale.
       - uses: actions/cache/restore@v4
-        if: vars.BH_CI_FAILOVER_LINUX != 'selfhosted' || github.event.pull_request.user.login == 'dependabot[bot]'
+        if: vars.HYDRA_CI_FAILOVER_LINUX != 'selfhosted' || github.event.pull_request.user.login == 'dependabot[bot]'
         with:
           path: ${{ steps.pnpm-store.outputs.path }}
           key: ${{ runner.os }}-node-${{ env.PRIMARY_NODE_VERSION }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
@@ -87,12 +87,12 @@ jobs:
 
       - name: Run static gates
         env:
-          BH_ARCHIVE_BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
+          HYDRA_ARCHIVE_BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
         run: pnpm run check:ci:static
 
   node-24-coverage:
     runs-on: >-
-      ${{ vars.BH_CI_FAILOVER_LINUX == 'selfhosted'
+      ${{ vars.HYDRA_CI_FAILOVER_LINUX == 'selfhosted'
           && github.event.pull_request.user.login != 'dependabot[bot]'
           && fromJSON('["self-hosted", "linux", "x64", "vm-backup"]')
           || 'ubuntu-latest' }}
@@ -100,10 +100,10 @@ jobs:
     env:
       # Partitioning replaces the instrumented share; this budget gives the
       # exempt-heavy gate two workers on both hosted and failover runners.
-      BH_COVERAGE_MAX_WORKERS: '2'
-      BH_COVERAGE_PARTITIONS: '2'
-      BH_COVERAGE_TEST_TIMEOUT_MS: '30000'
-      BH_GATE_CONCURRENCY: '1'
+      HYDRA_COVERAGE_MAX_WORKERS: '2'
+      HYDRA_COVERAGE_PARTITIONS: '2'
+      HYDRA_COVERAGE_TEST_TIMEOUT_MS: '30000'
+      HYDRA_GATE_CONCURRENCY: '1'
     steps:
       - uses: actions/checkout@v6
         with:
@@ -130,7 +130,7 @@ jobs:
       # already serves warm installs, while restoring the hosted archive
       # would spend ~52 s pulling ~180 MB into that populated store.
       - uses: actions/cache/restore@v4
-        if: vars.BH_CI_FAILOVER_LINUX != 'selfhosted' || github.event.pull_request.user.login == 'dependabot[bot]'
+        if: vars.HYDRA_CI_FAILOVER_LINUX != 'selfhosted' || github.event.pull_request.user.login == 'dependabot[bot]'
         with:
           path: ${{ steps.pnpm-store.outputs.path }}
           key: ${{ runner.os }}-node-${{ env.PRIMARY_NODE_VERSION }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
@@ -155,17 +155,17 @@ jobs:
 
   node-24-consumers:
     runs-on: >-
-      ${{ vars.BH_CI_FAILOVER_LINUX == 'selfhosted'
+      ${{ vars.HYDRA_CI_FAILOVER_LINUX == 'selfhosted'
           && github.event.pull_request.user.login != 'dependabot[bot]'
           && fromJSON('["self-hosted", "linux", "x64", "vm-backup"]')
           || 'ubuntu-latest' }}
     name: node 24 / snapshots and artifacts
     env:
-      BH_GATE_CONCURRENCY: '1'
-      BH_NODE_COMPAT_SKIP_TYPECHECK: '1'
-      BH_OXLINT_THREADS: '2'
-      BH_PUBLINT_CONCURRENCY: '2'
-      BH_SNAPSHOT_MAX_CONCURRENCY: '2'
+      HYDRA_GATE_CONCURRENCY: '1'
+      HYDRA_NODE_COMPAT_SKIP_TYPECHECK: '1'
+      HYDRA_OXLINT_THREADS: '2'
+      HYDRA_PUBLINT_CONCURRENCY: '2'
+      HYDRA_SNAPSHOT_MAX_CONCURRENCY: '2'
     steps:
       - uses: actions/checkout@v6
         with:
@@ -194,7 +194,7 @@ jobs:
       # entry until it evicts, after which the store is cold. Skipped under failover
       # — the self-hosted VM's persistent store is already warm.
       - uses: actions/cache/restore@v4
-        if: vars.BH_CI_FAILOVER_LINUX != 'selfhosted' || github.event.pull_request.user.login == 'dependabot[bot]'
+        if: vars.HYDRA_CI_FAILOVER_LINUX != 'selfhosted' || github.event.pull_request.user.login == 'dependabot[bot]'
         with:
           path: ${{ steps.pnpm-store.outputs.path }}
           key: ${{ runner.os }}-node-${{ env.PRIMARY_NODE_VERSION }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
@@ -203,7 +203,7 @@ jobs:
 
       # Skipped under failover: the VM's persistent browser cache is already warm.
       - uses: actions/cache/restore@v4
-        if: vars.BH_CI_FAILOVER_LINUX != 'selfhosted' || github.event.pull_request.user.login == 'dependabot[bot]'
+        if: vars.HYDRA_CI_FAILOVER_LINUX != 'selfhosted' || github.event.pull_request.user.login == 'dependabot[bot]'
         with:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml') }}
@@ -224,13 +224,13 @@ jobs:
           exit "$sandbox_status"
 
       - name: Install Playwright Chromium and hosted dependencies
-        if: vars.BH_CI_FAILOVER_LINUX != 'selfhosted' || github.event.pull_request.user.login == 'dependabot[bot]'
+        if: vars.HYDRA_CI_FAILOVER_LINUX != 'selfhosted' || github.event.pull_request.user.login == 'dependabot[bot]'
         run: pnpm --filter @hydra/harness-web-frontend exec playwright install --with-deps chromium
 
       # The persistent VM image owns Playwright's Linux system packages; do
       # not mutate the shared host with apt on every failover run.
       - name: Install Playwright Chromium on the failover VM
-        if: vars.BH_CI_FAILOVER_LINUX == 'selfhosted' && github.event.pull_request.user.login != 'dependabot[bot]'
+        if: vars.HYDRA_CI_FAILOVER_LINUX == 'selfhosted' && github.event.pull_request.user.login != 'dependabot[bot]'
         run: pnpm --filter @hydra/harness-web-frontend exec playwright install chromium
 
       - name: Run compatibility, snapshot, and artifact gates
@@ -242,8 +242,8 @@ jobs:
     runs-on: ${{ matrix.runner }}
     name: ${{ matrix.name }}
     env:
-      BH_GATE_CONCURRENCY: ${{ matrix.gate_concurrency }}
-      BH_NODE_COMPAT_SKIP_TYPECHECK: '1'
+      HYDRA_GATE_CONCURRENCY: ${{ matrix.gate_concurrency }}
+      HYDRA_NODE_COMPAT_SKIP_TYPECHECK: '1'
     strategy:
       fail-fast: false
       matrix:
@@ -275,7 +275,7 @@ jobs:
 
       - name: Run compatibility smokes
         env:
-          BH_BUILD_CLIENT_PROFILE: official
+          HYDRA_BUILD_CLIENT_PROFILE: official
         run: pnpm run check:node-compat
 
   python-sdk:
@@ -400,28 +400,28 @@ jobs:
   # its own unmasked conclusion but is deliberately absent from
   # all-checks-passed.needs, so it never delays or changes that required
   # verdict. Under normal operation it runs on windows-latest; under
-  # Windows failover (BH_CI_FAILOVER_WINDOWS=selfhosted) it retargets onto the
+  # Windows failover (HYDRA_CI_FAILOVER_WINDOWS=selfhosted) it retargets onto the
   # in-house self-hosted Windows pool. Dependabot PRs are excluded from the
   # self-hosted pool and stay queued for the hosted runner — see the failover
   # runbook. This Windows switch is independent of the Linux
-  # BH_CI_FAILOVER_LINUX variable that retargets the three required Linux jobs
+  # HYDRA_CI_FAILOVER_LINUX variable that retargets the three required Linux jobs
   # and the all-checks-passed verdict above.
   windows-native:
     runs-on: >-
-      ${{ vars.BH_CI_FAILOVER_WINDOWS == 'selfhosted'
+      ${{ vars.HYDRA_CI_FAILOVER_WINDOWS == 'selfhosted'
           && github.event.pull_request.user.login != 'dependabot[bot]'
-          && fromJSON('["self-hosted", "bh-win-ci", "windows"]')
+          && fromJSON('["self-hosted", "hydra-win-ci", "windows"]')
           || 'windows-latest' }}
     name: windows node 24 / native complete
     timeout-minutes: 120
     env:
-      BH_COVERAGE_MAX_WORKERS: '2'
-      BH_COVERAGE_PARTITIONS: '2'
+      HYDRA_COVERAGE_MAX_WORKERS: '2'
+      HYDRA_COVERAGE_PARTITIONS: '2'
       # Instrumented process and polling fixtures can exceed Vitest's defaults
       # under the complete lane's concurrent gate load.
-      BH_COVERAGE_TEST_TIMEOUT_MS: '30000'
-      BH_GATE_CONCURRENCY: '1'
-      BH_PUBLINT_CONCURRENCY: '2'
+      HYDRA_COVERAGE_TEST_TIMEOUT_MS: '30000'
+      HYDRA_GATE_CONCURRENCY: '1'
+      HYDRA_PUBLINT_CONCURRENCY: '2'
     steps:
       - uses: actions/checkout@v6
         with:
@@ -471,10 +471,10 @@ jobs:
     # provisioning — and under Linux failover it follows the same selector as
     # the worker jobs it aggregates, so a standard-hosted outage cannot strand
     # the branch-protection verdict either. It retargets with the Linux switch
-    # (BH_CI_FAILOVER_LINUX), not the Windows one, because it aggregates the
+    # (HYDRA_CI_FAILOVER_LINUX), not the Windows one, because it aggregates the
     # required Linux workers and runs on the vm-backup pool.
     runs-on: >-
-      ${{ vars.BH_CI_FAILOVER_LINUX == 'selfhosted'
+      ${{ vars.HYDRA_CI_FAILOVER_LINUX == 'selfhosted'
           && github.event.pull_request.user.login != 'dependabot[bot]'
           && fromJSON('["self-hosted", "linux", "x64", "vm-backup"]')
           || 'ubuntu-latest' }}

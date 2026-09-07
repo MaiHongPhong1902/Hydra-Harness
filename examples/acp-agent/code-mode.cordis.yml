@@ -1,7 +1,7 @@
 # Code Mode adds `ctx.codeRuntime` and changes the registry to one wire tool,
 # `run_code`, plus its generated TypeScript SDK prompt. The app bin selects this
 # overlay for `demo:code-mode` and snapshot recording, and selects the sibling
-# replay overlay for `BH_SNAPSHOT=replay`. A config patch replaces the whole app
+# replay overlay for `HYDRA_SNAPSHOT=replay`. A config patch replaces the whole app
 # config, so unchanged base fields are restated below.
 - id: base
   name: '@hydra/cordis-plugin-include'
@@ -13,8 +13,8 @@
         config:
           provider: deepseek-official
           model: deepseek-v4-pro
-          persistenceRoot: !!js process.env.BH_SNAPSHOT_SESSIONS_ROOT ?? './.sessions'
-          persistenceCompression: !!js "process.env.BH_SNAPSHOT === undefined ? 'zstd' : 'none'"
+          persistenceRoot: !!js process.env.HYDRA_SNAPSHOT_SESSIONS_ROOT ?? './.sessions'
+          persistenceCompression: !!js "process.env.HYDRA_SNAPSHOT === undefined ? 'zstd' : 'none'"
           workspaceContext:
             maxBytes: 65536
           tools:

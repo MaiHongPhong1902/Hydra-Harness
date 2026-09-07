@@ -21,6 +21,6 @@ Ordering contract: the loop claims inbox messages before `agent/pre-step`, opens
 ## Consequences
 
 - Replay, trace, and telemetry are structurally guaranteed, not bolted on.
-- Persistence stays a plugin concern; the in-memory store ships in bh-session.
+- Persistence stays a plugin concern; the in-memory store ships in hydra-session.
 - The event vocabulary is merge-extensible (plugins add e.g. compaction events); [session persistence](2026-06-14-session-persistence.md) froze its shape once the log became durable.
 - Derivation cost grows with log length — compaction (@hydra/harness-compaction) is the intended mitigation, not log mutation.

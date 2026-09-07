@@ -141,7 +141,7 @@ describe('web e2e: long Chat interaction contract', () => {
   let tripwire: ReturnType<typeof watchConsole>
 
   beforeAll(async () => {
-    replayDir = await mkdtemp(join(tmpdir(), 'bh-chat-interaction-replay-'))
+    replayDir = await mkdtemp(join(tmpdir(), 'hydra-chat-interaction-replay-'))
     const replayOverride = join(replayDir, 'replay.override.json')
     const replay: ReplayOverrideDoc = [replayEntry(continuationChunks())]
     await writeFile(replayOverride, JSON.stringify(replay))

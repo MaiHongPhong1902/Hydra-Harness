@@ -23,7 +23,7 @@ import type {} from '@hydra/harness-token-meter'
 
 const CONFIG_DIR = fileURLToPath(new URL('../config/', import.meta.url))
 const REPO_ROOT = fileURLToPath(new URL('../../..', import.meta.url))
-/** The shipped Web surface: the bh-base and bh-web-app bundle patches over an empty preset root. */
+/** The shipped Web surface: the hydra-base and hydra-web-app bundle patches over an empty preset root. */
 const BASE_PATCH = join(REPO_ROOT, 'packages/bundle/base/cordis.patch.yml')
 const WEB_PATCH = join(REPO_ROOT, 'packages/bundle/web-app/cordis.patch.yml')
 const CODEX_PACKAGE_DIR = join(REPO_ROOT, 'packages/subagent/subagent-codex')
@@ -53,14 +53,14 @@ async function bootWeb(
 ): Promise<Context> {
   const storageRoot = join(dirname(settingsFile), 'storages')
   const overrides: PatchOptions[] = [
-    // The settings row defaults to `$BH_HOME/settings.yaml`. Left alone it
+    // The settings row defaults to `$HYDRA_HOME/settings.yaml`. Left alone it
     // reads the developer's own document — and since the default preset is a
     // setting, a stored `agent-presets.default` would decide this file's
     // outcome. Point it at a temp file for the same reason the roster below
     // names only the shipped root.
     { id: 'settings', config: { path: settingsFile, watch: false } },
-    // storage-json's root is anchored to the real $BH_HOME. Unpinned, this
-    // file writes the developer's own `~/.bh/storages/` — and then reads it
+    // storage-json's root is anchored to the real $HYDRA_HOME. Unpinned, this
+    // file writes the developer's own `~/.hydra/storages/` — and then reads it
     // back on the next run, so a stored document from any other build decides
     // this test's boot. Same reason the settings row above is pinned.
     { id: 'storage-json', config: { root: storageRoot } },
@@ -96,7 +96,7 @@ async function bootWeb(
       { id: 'ui-directory-picker-browse', name: '@hydra/harness-client-ui-directory-picker-browse' },
     ] },
     // The roster AppCLIEntry would patch in; only the shipped root, so a
-    // developer's own `~/.bh/.preset` cannot change this test's outcome.
+    // developer's own `~/.hydra/.preset` cannot change this test's outcome.
     // `default` here is the COMPOSITION default — the base layer the settings
     // document overrides.
     {
@@ -117,7 +117,7 @@ async function bootWeb(
   healProfilesModuleFallback(INSTALL_ANCHOR, home)
   const profileDir = join(home, 'profiles', 'spec')
   await mkdir(profileDir, { recursive: true })
-  // Product Bundles are installed into the Profile, not the bh app. Model
+  // Product Bundles are installed into the Profile, not the hydra app. Model
   // pnpm's package link for only the selected products; their own production
   // dependencies resolve from the linked workspace packages, while shared
   // peers still resolve through the installation fallback above.
@@ -128,21 +128,21 @@ async function bootWeb(
     await symlink(packageDir, link, 'junction')
   }
   let bundlePatches: PatchOptions[] = [
-    ...loadOverlayPatches('bh-test', BASE_PATCH),
-    ...loadOverlayPatches('bh-test', WEB_PATCH),
+    ...loadOverlayPatches('hydra-test', BASE_PATCH),
+    ...loadOverlayPatches('hydra-test', WEB_PATCH),
   ]
   if (profileBundles !== undefined) {
     await writeFile(join(profileDir, 'package.json'), JSON.stringify({
       private: true,
       dependencies: Object.fromEntries(profileBundles.map(name => [name, 'workspace:*'])),
-      bh: { profile: { bundles: profileBundles } },
+      hydra: { profile: { bundles: profileBundles } },
     }, null, 2) + '\n')
-    const profile = loadProfile('bh-test', 'spec', INSTALL_ANCHOR, home, { userLayer: false })
+    const profile = loadProfile('hydra-test', 'spec', INSTALL_ANCHOR, home, { userLayer: false })
     bundlePatches = profile.layers.flatMap(layer => layer.patches)
   }
   const rootConfig = join(profileDir, 'cordis.yml')
   await writeFile(rootConfig, '[]\n')
-  return await boot('bh-test', rootConfig, [...bundlePatches, ...overrides], (bootCtx) => {
+  return await boot('hydra-test', rootConfig, [...bundlePatches, ...overrides], (bootCtx) => {
     provideCmdline(bootCtx, { args: [], exit: () => {} })
   })
 }
@@ -174,7 +174,7 @@ function enablePresetTool(composition: string, id: string): string {
 
 let ctx: Context
 beforeAll(async () => {
-  const settingsFile = join(await mkdtemp(join(tmpdir(), 'bh-web-presets-')), 'settings.yaml')
+  const settingsFile = join(await mkdtemp(join(tmpdir(), 'hydra-web-presets-')), 'settings.yaml')
   await writeFile(settingsFile, '{}\n')
   ctx = await bootWeb(settingsFile)
 }, 120_000)
@@ -372,9 +372,9 @@ describe('the shipped Web composition', () => {
   })
 
   it('merges the global skill layer into a preset agent\'s catalog, keeping local discovery preset-side', async () => {
-    const proj = await mkdtemp(join(tmpdir(), 'bh-preset-skill-proj-'))
-    await mkdir(join(proj, '.bh', 'skills', 'project-proof'), { recursive: true })
-    await writeFile(join(proj, '.bh', 'skills', 'project-proof', 'SKILL.md'), [
+    const proj = await mkdtemp(join(tmpdir(), 'hydra-preset-skill-proj-'))
+    await mkdir(join(proj, '.hydra', 'skills', 'project-proof'), { recursive: true })
+    await writeFile(join(proj, '.hydra', 'skills', 'project-proof', 'SKILL.md'), [
       '---',
       'name: project-proof',
       'description: Proves the preset layer discovers project skills beside global ones.',
@@ -383,15 +383,15 @@ describe('the shipped Web composition', () => {
       'Project proof body.',
       '',
     ].join('\n'))
-    await mkdir(join(proj, '.bh', 'skills', 'workon-uat-test-design'), { recursive: true })
-    await writeFile(join(proj, '.bh', 'skills', 'workon-uat-test-design', 'SKILL.md'), [
+    await mkdir(join(proj, '.hydra', 'skills', 'obsidian-uat-test-design'), { recursive: true })
+    await writeFile(join(proj, '.hydra', 'skills', 'obsidian-uat-test-design', 'SKILL.md'), [
       '---',
-      'name: workon-uat-test-design',
-      'description: Ground WorkON testcase lookup and test design in Obsidian knowledge.',
-      'whenToUse: Use for WorkON testcase lookup, test design, or live validation.',
+      'name: obsidian-uat-test-design',
+      'description: Ground UAT testcase lookup and test design in Obsidian knowledge.',
+      'whenToUse: Use for UAT testcase lookup, test design, or live validation.',
       '---',
       '',
-      'Use obsidian_knowledge_recall before WorkON testing.',
+      'Use obsidian_knowledge_recall before UAT testing.',
       '',
     ].join('\n'))
 
@@ -425,7 +425,7 @@ describe('the shipped Web composition', () => {
       expect(JSON.stringify(loaded.content)).toContain('powered by Hydra harness')
 
       const request = createUserMessage({
-        content: [{ type: 'text', text: 'test tính năng search request trên workon' }],
+        content: [{ type: 'text', text: 'test tính năng search request trên obsidian' }],
         source: { kind: 'user' },
       })
       const signal = new AbortController().signal
@@ -437,7 +437,7 @@ describe('the shipped Web composition', () => {
       if (decision.kind !== 'enter') throw new Error('standard preset rejected the skill-routing step')
       const injection = decision.messages.find(message => message.source.kind === 'skill-invocation')
       expect(injection?.source).toEqual({
-        kind: 'skill-invocation', name: 'workon-uat-test-design', trigger: 'automatic', form: 'instructions',
+        kind: 'skill-invocation', name: 'obsidian-uat-test-design', trigger: 'automatic', form: 'instructions',
       })
       expect(JSON.stringify(injection?.content)).toContain('obsidian_knowledge_recall')
     } finally {
@@ -491,7 +491,7 @@ describe('product Bundle and user-preset intersection', () => {
   type PresetId = typeof presetIds[number]
 
   async function bootProducts(installed: readonly Product[]): Promise<Context> {
-    const root = await mkdtemp(join(tmpdir(), 'bh-product-presets-'))
+    const root = await mkdtemp(join(tmpdir(), 'hydra-product-presets-'))
     const userRoot = join(root, 'presets')
     const settingsFile = join(root, 'settings.yaml')
     const standard = await readFile(join(CONFIG_DIR, 'agent-presets', 'standard', 'agent.cordis.yml'), 'utf8')
@@ -742,22 +742,22 @@ describe('a launcher that configures no writable root', () => {
   // The claim this default exists for, asserted through the real shipped
   // bundles rather than a hand-built context: `apps/cli` patches in only the
   // system root, and a person's own presets are found anyway because the
-  // roster derives `<bhHome>/.agent-presets` itself. `$BH_HOME` is pointed
+  // roster derives `<hydraHome>/.agent-presets` itself. `$HYDRA_HOME` is pointed
   // at a temp home BEFORE boot — the derived root is resolved when the plugin
   // is constructed, and an unpinned run would read the developer's own.
   let derivedCtx: Context
   let previousHome: string | undefined
 
   beforeAll(async () => {
-    const home = await mkdtemp(join(tmpdir(), 'bh-preset-derived-'))
-    previousHome = process.env.BH_HOME
-    process.env.BH_HOME = home
+    const home = await mkdtemp(join(tmpdir(), 'hydra-preset-derived-'))
+    previousHome = process.env.HYDRA_HOME
+    process.env.HYDRA_HOME = home
     await mkdir(join(home, '.agent-presets', 'derived-mine'), { recursive: true })
     await writeFile(
       join(home, '.agent-presets', 'derived-mine', 'agent.cordis.yml'),
       '- id: tool-todo\n  name: \'@hydra/harness-tool-todo\'\n  config:\n    allowParallelInProgress: true\n',
     )
-    const settingsFile = join(await mkdtemp(join(tmpdir(), 'bh-preset-derived-settings-')), 'settings.yaml')
+    const settingsFile = join(await mkdtemp(join(tmpdir(), 'hydra-preset-derived-settings-')), 'settings.yaml')
     await writeFile(settingsFile, '{}\n')
     // Only the shipped root, exactly what `composeProfile` supplies; the
     // writable one is the roster's own default rather than this patch's job.
@@ -772,8 +772,8 @@ describe('a launcher that configures no writable root', () => {
   }, 120_000)
 
   afterAll(async () => {
-    if (previousHome === undefined) delete process.env.BH_HOME
-    else process.env.BH_HOME = previousHome
+    if (previousHome === undefined) delete process.env.HYDRA_HOME
+    else process.env.HYDRA_HOME = previousHome
     await derivedCtx.fiber.dispose()
   })
 
@@ -803,8 +803,8 @@ describe('authoring a preset on the shipped composition', () => {
   let userRoot: string
 
   beforeAll(async () => {
-    userRoot = join(await mkdtemp(join(tmpdir(), 'bh-preset-authoring-')), 'profiles')
-    const settingsFile = join(await mkdtemp(join(tmpdir(), 'bh-preset-authoring-settings-')), 'settings.yaml')
+    userRoot = join(await mkdtemp(join(tmpdir(), 'hydra-preset-authoring-')), 'profiles')
+    const settingsFile = join(await mkdtemp(join(tmpdir(), 'hydra-preset-authoring-settings-')), 'settings.yaml')
     await writeFile(settingsFile, '{}\n')
     authorCtx = await bootWeb(settingsFile, [{
       id: 'agent-presets',

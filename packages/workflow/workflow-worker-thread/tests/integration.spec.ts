@@ -44,7 +44,7 @@ async function setup(script: Script) {
   return { ctx, parent, adapter }
 }
 
-describe('bh-workflow-worker-thread over the real in-process stack', () => {
+describe('hydra-workflow-worker-thread over the real in-process stack', () => {
   it('runs a two-stage workflow: a plain child, then a schema child through the structured runtime', async () => {
     const { ctx, parent } = await setup([
       textResponse('the file list is a.ts'),

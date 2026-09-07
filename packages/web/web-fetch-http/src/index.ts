@@ -22,7 +22,7 @@ export {
 export type { HttpFetchLimits } from './provider.ts'
 
 /** Default `User-Agent`: an explicit product agent, never a browser disguise. */
-export const DEFAULT_USER_AGENT = 'bosch-harness/0.0.1 (+https://github.com/bosch)'
+export const DEFAULT_USER_AGENT = 'hydra-harness/0.0.1 (+https://github.com/MaiHongPhong1902/Hydra-Harness)'
 
 /** Cordis plugin name used by loader diagnostics. */
 export const name = 'web-fetch-http'

@@ -6,7 +6,7 @@
  *
  * Behavior mirrors `@hydra/harness-tool-bash` call-for-call: foreground and
  * `run_in_background` execution (background handles register with the
- * generic `ctx.jobs` runtime), the managed `BH_*` environment through the
+ * generic `ctx.jobs` runtime), the managed `HYDRA_*` environment through the
  * shared `shell-env` registry, the per-call sandbox policy resolution (the
  * calling session's mode and cwd travel to the confining executor), the
  * sandbox-denial rendering with the same-turn escalation surface
@@ -108,7 +108,7 @@ function pwshDescription(backgroundEnabled: boolean, escalationModes: readonly S
     + 'Each call runs in a fresh pwsh process: no state (cwd, variables, functions) persists between calls — '
     + 'pass `workdir` instead of using `cd`. Paths use native Windows form (`C:\\...`); read environment '
     + 'variables with `$env:NAME`. Non-zero exits are reported as `[exit code: N]`. '
-    + 'Current harness environment facts are exposed through managed `$env:BH_*` variables; inspect them when needed. '
+    + 'Current harness environment facts are exposed through managed `$env:HYDRA_*` variables; inspect them when needed. '
     + 'Commands may run under a file sandbox; a blocked file operation is reported as `[sandbox: file access denied under <mode> mode]` — a policy denial, not a bug in the command; do not retry another way. '
     + 'Long output is truncated to its tail; the full output is saved to a file whose path is reported when available. '
     + 'On Windows a force-killed command settles as `[exit code: 1]` without a signal marker — treat it as an interruption, not a command failure. '
@@ -284,7 +284,7 @@ export function apply(ctx: Context, config: Config = {}): void {
       // The foreground result wire shape mirrors @hydra/harness-tool-bash's by contract —
       // consumers of one must accept the other (see the pwsh-tool-and-executor
       // Agent Note).
-      /* jscpd:ignore-start -- deliberate result-schema symmetry with bh-tool-bash. */
+      /* jscpd:ignore-start -- deliberate result-schema symmetry with hydra-tool-bash. */
       schema: {
         oneOf: [
           {
@@ -360,7 +360,7 @@ export function apply(ctx: Context, config: Config = {}): void {
         command: args.command,
         ...workdir !== undefined ? { workdir } : {},
         ...args.timeoutMs !== undefined ? { timeoutMs: args.timeoutMs } : {},
-        bhEnv: ctx.shellEnv.collect(exec),
+        hydraEnv: ctx.shellEnv.collect(exec),
         ...policy !== undefined ? { sandboxPolicy: policy } : {},
       }
       if (args.run_in_background === true) {

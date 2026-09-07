@@ -4,7 +4,7 @@
  * vocabulary and pi-ai's `AuthInteraction`; nothing above it knows which
  * library ran the conversation.
  *
- * @module bh-llm-pi-ai/login
+ * @module hydra-llm-pi-ai/login
  */
 
 import { createModels } from '@earendil-works/pi-ai'

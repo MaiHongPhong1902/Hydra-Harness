@@ -4,7 +4,7 @@ Two runtime carriers coexist under ``runtime/``, both injected by the repo's
 ``scripts/build-exe-for-python-sdk.ts`` build (neither is checked into git):
 
 - **exe (production)**: single-file Node executables named
-  ``bh-jsonrpc-agent-pkg-<platform>-<arch>`` (platform in {linux, macos}, arch in
+  ``hydra-jsonrpc-agent-pkg-<platform>-<arch>`` (platform in {linux, macos}, arch in
   {x64, arm64}) with a sibling ``-rg`` executable; macOS also uses a sibling
   ``-spawn-helper``. The target machine needs no Node installation.
 - **node (dev-only)**: the full deploy closure under ``runtime/node/``
@@ -14,7 +14,7 @@ Two runtime carriers coexist under ``runtime/``, both injected by the repo's
   selected automatically, and excluded from wheel/sdist distributions.
 
 ``runtime/cordis.yml`` IS checked in: it is the default agent configuration
-the client SDK injects via ``$BH_CORDIS_CONFIG`` for zero-config runs — the
+the client SDK injects via ``$HYDRA_CORDIS_CONFIG`` for zero-config runs — the
 runtime itself always requires an explicit config and has no built-in
 fallback.
 """
@@ -29,14 +29,14 @@ from pathlib import Path
 
 PACKAGE_METADATA_FILENAME = "hydra-harness-runtime.json"
 
-RUNTIME_MODE_ENV_VAR = "BH_RUNTIME_MODE"
+RUNTIME_MODE_ENV_VAR = "HYDRA_RUNTIME_MODE"
 
 _PLATFORM_TAGS = {"linux": "linux", "darwin": "macos"}
 _ARCH_TAGS = {"x86_64": "x64", "amd64": "x64", "arm64": "arm64", "aarch64": "arm64"}
 
 _EXE_ACQUISITION_HINT = (
     "Two ways to get the executable: run `scripts/build-exe-for-python-sdk.ts` (via tsx) in a "
-    "bosch-harness checkout, or install the matching `hydra-harness-runtime-bin` platform "
+    "Hydra-Harness checkout, or install the matching `hydra-harness-runtime-bin` platform "
     "wheel retained by the `build-exe-for-python-sdk` CI workflow. For local development "
     "against a repo source build, explicitly select the dev-only node carrier with "
     f"{RUNTIME_MODE_ENV_VAR}=node (or resolve_bundled_launch_args('node'))."
@@ -55,7 +55,7 @@ def bundled_package_dir() -> Path:
 def bundled_default_config_path() -> Path:
     """Path of the checked-in default runtime configuration (``runtime/cordis.yml``).
 
-    The client SDK injects this path via ``$BH_CORDIS_CONFIG`` when the caller
+    The client SDK injects this path via ``$HYDRA_CORDIS_CONFIG`` when the caller
     supplies no config and the launch resolves to the bundled runtime — the
     runtime binary itself always demands an explicit config.
     """
@@ -78,7 +78,7 @@ def bundled_runtime_path() -> Path:
     touching callers).
     """
     tag = _current_platform_tag()
-    path = bundled_package_dir() / "runtime" / f"bh-jsonrpc-agent-pkg-{tag}"
+    path = bundled_package_dir() / "runtime" / f"hydra-jsonrpc-agent-pkg-{tag}"
     if not path.is_file():
         raise FileNotFoundError(
             f"hydra-harness-runtime-bin is missing the runtime executable at {path}. "
@@ -104,7 +104,7 @@ def resolve_bundled_launch_args(mode: str | None = None) -> tuple[str, ...]:
     """The argv tuple that launches the bundled runtime.
 
     Mode selection: the explicit ``mode`` argument wins, then the
-    ``BH_RUNTIME_MODE`` environment variable (``exe`` | ``node``), then
+    ``HYDRA_RUNTIME_MODE`` environment variable (``exe`` | ``node``), then
     automatic resolution. Automatic resolution finds the production exe ONLY —
     the dev-only node carrier must be selected explicitly so a production
     deployment can never silently ride on a source build. Returns
@@ -128,7 +128,7 @@ def _current_platform_tag() -> str:
     arch = _ARCH_TAGS.get(platform.machine().lower())
     if plat is None or arch is None:
         raise FileNotFoundError(
-            "no bundled bh-jsonrpc-agent executable exists for this platform "
+            "no bundled hydra-jsonrpc-agent executable exists for this platform "
             f"(sys.platform={sys.platform!r}, machine={platform.machine()!r}); supported: "
             "linux/macos on x64/arm64. " + _EXE_ACQUISITION_HINT
         )
@@ -148,7 +148,7 @@ def _node_launch_args() -> tuple[str, str]:
     if not bin_js.is_file():
         raise FileNotFoundError(
             f"the dev-only node runtime closure is missing at {node_root} "
-            f"(no {bin_js}); run `scripts/build-exe-for-python-sdk.ts` in a bosch-harness "
+            f"(no {bin_js}); run `scripts/build-exe-for-python-sdk.ts` in a Hydra-Harness "
             "checkout, which builds and copies the deploy closure here. The node carrier "
             "is for repo-local development only — production uses the single-file exe."
         )

@@ -9,8 +9,8 @@ import type { InputTriggerController, SubmitOutcome } from '@hydra/harness-clien
 import { SessionInputShell } from '../src/client/input/facade.ts'
 import type { DraftAttachmentId } from '../src/client/input/contract.ts'
 
-const mention = '@[Research](bh-session:InNvdXJjZSI)'
-const spacedMention = '@[Research notes](bh-session:InNvdXJjZSI)'
+const mention = '@[Research](hydra-session:InNvdXJjZSI)'
+const spacedMention = '@[Research notes](hydra-session:InNvdXJjZSI)'
 const commandImages = {
   serialize: () => Promise.resolve([]),
   release: () => {},

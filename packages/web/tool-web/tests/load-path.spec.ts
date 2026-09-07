@@ -13,7 +13,7 @@ import ToolRuntime from '@hydra/harness-tools'
 import WebRuntime from '@hydra/harness-web'
 import * as toolWeb from '@hydra/harness-tool-web'
 
-describe('bh-tool-web real-load-path guard', () => {
+describe('hydra-tool-web real-load-path guard', () => {
   it('has no default export and keeps name/inject/Config through unwrapExports', () => {
     expect('default' in toolWeb).toBe(false)
 

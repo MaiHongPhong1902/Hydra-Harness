@@ -10,11 +10,11 @@ import { withFileLock, writeFileAtomic } from '@hydra/harness-atomic-write'
 declare const text: string
 declare const render: (previous: string) => string
 
-await writeFileAtomic('/home/u/.bh/settings.yaml', text, { mode: 0o600 })
+await writeFileAtomic('/home/u/.hydra/settings.yaml', text, { mode: 0o600 })
 
 // Read-modify-write against the same file from several processes.
-await withFileLock('/home/u/.bh/settings.yaml', async () => {
-  await writeFileAtomic('/home/u/.bh/settings.yaml', render(text), { mode: 0o600 })
+await withFileLock('/home/u/.hydra/settings.yaml', async () => {
+  await writeFileAtomic('/home/u/.hydra/settings.yaml', render(text), { mode: 0o600 })
 })
 ```
 

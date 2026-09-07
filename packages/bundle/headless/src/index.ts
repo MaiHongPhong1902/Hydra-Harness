@@ -83,7 +83,7 @@ function summarize(events: readonly SessionEvent[], firstSeq: number): RunOutcom
 
 /** Report an unexpected direct-driver failure and request a failing exit. */
 function fail(io: HeadlessIo, error: unknown): void {
-  io.stderr.write(`bh: ${error instanceof Error ? error.message : String(error)}\n`)
+  io.stderr.write(`hydra: ${error instanceof Error ? error.message : String(error)}\n`)
   io.exit(1)
 }
 
@@ -128,7 +128,7 @@ async function run(ctx: Context, task: string, io: HeadlessIo): Promise<void> {
   const outcome = summarize(agent.session.events, firstSeq)
   io.stdout.write(outcome.text + '\n')
   if (outcome.reason?.kind === 'error') {
-    io.stderr.write(`bh: ${outcome.reason.error.code}: ${outcome.reason.error.message}\n`)
+    io.stderr.write(`hydra: ${outcome.reason.error.code}: ${outcome.reason.error.message}\n`)
   }
   io.exit(outcome.reason?.kind === 'completed' ? 0 : 1)
 }

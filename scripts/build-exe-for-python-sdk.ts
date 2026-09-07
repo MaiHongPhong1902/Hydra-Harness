@@ -19,7 +19,7 @@ const root = resolve(import.meta.dirname, '..')
 const DEPLOY_ROOT_PACKAGE = '@hydra/harness-python-runtime'
 /** The closed-runtime app entry inside the deployed closure. */
 const ENTRY_BIN = 'node_modules/@hydra/harness-sdk-jsonrpc-demo/lib/packaged-bin.js'
-const OUTPUT_BASENAME = 'bh-jsonrpc-agent-pkg'
+const OUTPUT_BASENAME = 'hydra-jsonrpc-agent-pkg'
 /** Default Node major; SEA mode requires at least Node 22. */
 const DEFAULT_NODE_RANGE = 'node24'
 /** Pinned for reproducible builds. */

@@ -1,5 +1,5 @@
 /** Shared agent-loop scheduler defaults.
- * @module bh-agent-loop/constants
+ * @module hydra-agent-loop/constants
  */
 
 /** Default maximum in-flight parallel-safe calls per agent step. */

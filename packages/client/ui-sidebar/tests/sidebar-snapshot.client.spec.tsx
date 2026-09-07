@@ -18,7 +18,7 @@ import { apply, inject } from '@hydra/harness-client-ui-sidebar/client'
 // the shipped English copy, so they state the browser they assume.
 usePinnedBrowserLanguages('en-US')
 
-beforeEach(() => { vi.stubEnv('BH_CLIENT_COMMIT_HASH', 'abc1234') })
+beforeEach(() => { vi.stubEnv('HYDRA_CLIENT_COMMIT_HASH', 'abc1234') })
 
 afterEach(() => {
   cleanup()

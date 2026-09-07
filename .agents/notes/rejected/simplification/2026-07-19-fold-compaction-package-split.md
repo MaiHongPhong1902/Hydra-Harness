@@ -4,13 +4,13 @@ Status: rejected — More compaction backends are planned, so the Service Defini
 
 ## Problem
 
-Compaction is split between `@bosch/bh-compaction`, which owns an abstract two-method service and shared types, and `@bosch/bh-compaction-basic`, which owns the only complete provider. Shipped configurations load only the basic package, and no production package independently consumes the Service Definition package except that provider.
+Compaction is split between `@hydra/harness-compaction`, which owns an abstract two-method service and shared types, and `@hydra/harness-compaction-basic`, which owns the only complete provider. Shipped configurations load only the basic package, and no production package independently consumes the Service Definition package except that provider.
 
 The split adds a package manifest, README, project boundary, dependency edge, abstract forwarding class, generated catalog entries, and composition wiring without demonstrating backend substitution. The [capability-seam decision](../../implemented/architecture/2026-06-13-capability-seams.md) requires a real interface, implementation, and consumer rather than a preemptive split; the [compaction decision](../../implemented/feature/2026-06-18-compaction-capability-seam.md) records that its independent consumer was deferred.
 
 ## Proposal
 
-Move the basic implementation into `@bosch/bh-compaction` and remove `@bosch/bh-compaction-basic`. Keep `ctx.compaction`, `CompactionResult`, the shared transcript and tool-pairing helpers, the existing configuration, and the concrete compaction algorithm in one package.
+Move the basic implementation into `@hydra/harness-compaction` and remove `@hydra/harness-compaction-basic`. Keep `ctx.compaction`, `CompactionResult`, the shared transcript and tool-pairing helpers, the existing configuration, and the concrete compaction algorithm in one package.
 
 Preserve `summarize()` as a protected customization hook. A deployment-specific summarizer can subclass or intercept the existing LLM call without requiring a second capability package. Reintroduce a separate Service Definition package only when a second complete backend and an independent Consumer need substitution.
 
@@ -24,12 +24,12 @@ Amend the implemented compaction decision and the [recallable-compaction proposa
 
 ## Acceptance criteria
 
-- `@bosch/bh-compaction-basic` and its workspace/package metadata are removed.
-- `@bosch/bh-compaction` owns the current configuration, plugin class, algorithm, types, events, and shared helpers.
+- `@hydra/harness-compaction-basic` and its workspace/package metadata are removed.
+- `@hydra/harness-compaction` owns the current configuration, plugin class, algorithm, types, events, and shared helpers.
 - Existing deployments can load the surviving package with equivalent configuration and model-visible behavior.
 - Automatic and manual compaction preserve cancellation, locking, token accounting, tool pairing, durable events, cited source-event seqs, retry convergence, and transcript rendering.
 - Loader composition, unit, runaway-turn, cancellation, snapshot, and real-model compaction tests pass; generated catalogs and module graphs are current.
 
 ## Risks
 
-This is an intentional pre-release package-name contraction. Embedders loading `@bosch/bh-compaction-basic` must switch packages, and future backend substitution would require extracting a boundary again. The cost is acceptable only while one complete implementation exists; acceptance should be revisited if a second backend lands first.
+This is an intentional pre-release package-name contraction. Embedders loading `@hydra/harness-compaction-basic` must switch packages, and future backend substitution would require extracting a boundary again. The cost is acceptable only while one complete implementation exists; acceptance should be revisited if a second backend lands first.

@@ -3,7 +3,7 @@
  * readable from the repository rather than derived inside CI
  * ([rationale](../../.agents/notes/implemented/process/2026-08-10-npm-release-sequences.md)).
  *
- * The bh family shares one version across its publishable members, private
+ * The hydra family shares one version across its publishable members, private
  * package manifests, and the workspace root:
  * `major`, `minor`, `patch`, or an explicit `x.y.z` (including a prerelease such
  * as `0.0.1-rc.1`). The vendored family has one version line per package, but
@@ -32,10 +32,10 @@ const ALWAYS_PUBLISHED = ['package.json', 'README*', 'LICENSE*', 'LICENCE*'] as 
  */
 const BUILD_INPUTS = ['src/**', 'tsconfig*.json', 'tsdown.config.*', 'build.config.*'] as const
 
-/** Release types the bh family accepts besides an explicit version. */
+/** Release types the hydra family accepts besides an explicit version. */
 const RELEASE_TYPES = ['major', 'minor', 'patch'] as const
 
-/** The workspace root manifest, which carries the bh family's version. */
+/** The workspace root manifest, which carries the hydra family's version. */
 const ROOT_MANIFEST = 'package.json'
 
 /** One manifest the bump rewrites, and the tag its new version will carry. */
@@ -52,8 +52,8 @@ interface PlannedVersion {
   readonly tag: string | undefined
 }
 
-/** One private bh package whose version follows the publishable family. */
-interface PrivateBhVersion {
+/** One private hydra package whose version follows the publishable family. */
+interface PrivateHydraVersion {
   /** Repository-relative manifest path. */
   readonly manifestPath: string
   /** Package directory used in bump output. */
@@ -135,7 +135,7 @@ export function compareVersions(left: string, right: string): number {
 }
 
 /**
- * The next bh version.
+ * The next hydra version.
  * @param current - the family's current shared version.
  * @param request - `major`, `minor`, `patch`, or an explicit version.
  * @returns The target version.
@@ -143,7 +143,7 @@ export function compareVersions(left: string, right: string): number {
 function nextSharedVersion(current: string, request: string): string {
   if (!RELEASE_TYPES.includes(request as typeof RELEASE_TYPES[number])) {
     if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(request)) {
-      throw new Error(`usage: release:bh <major|minor|patch|x.y.z>, got ${request}`)
+      throw new Error(`usage: release:hydra <major|minor|patch|x.y.z>, got ${request}`)
     }
     return request
   }
@@ -247,12 +247,12 @@ function rootVersion(root: string): string {
 }
 
 /**
- * Discover private package manifests that share the bh version without joining
+ * Discover private package manifests that share the hydra version without joining
  * its publish set.
  * @param root - repository root.
  * @returns Private package manifests sorted by path.
  */
-function privateBhVersions(root: string): PrivateBhVersion[] {
+function privateHydraVersions(root: string): PrivateHydraVersion[] {
   return globSync('packages/*/*/package.json', { cwd: root })
     .map(path => path.replaceAll('\\', '/'))
     .sort()
@@ -275,9 +275,9 @@ function privateBhVersions(root: string): PrivateBhVersion[] {
 }
 
 /**
- * Plan the bh family's rewrite: one version for every publishable member,
+ * Plan the hydra family's rewrite: one version for every publishable member,
  * private package, and the root.
- * @param family - the bh family.
+ * @param family - the hydra family.
  * @param root - repository root.
  * @param members - the family's members.
  * @param request - `major`, `minor`, `patch`, or an explicit version.
@@ -307,7 +307,7 @@ export function planShared(
     })
   }
   const publishableManifests = new Set(members.map(member => `${member.directory}/package.json`))
-  for (const entry of privateBhVersions(root)) {
+  for (const entry of privateHydraVersions(root)) {
     if (publishableManifests.has(entry.manifestPath)) continue
     planned.push({
       manifestPath: entry.manifestPath,
@@ -362,7 +362,7 @@ function main(): void {
     },
     allowPositionals: true,
   })
-  if (values.family === undefined) throw new Error('usage: bump.ts --family <bh|vendor> [version]')
+  if (values.family === undefined) throw new Error('usage: bump.ts --family <hydra|vendor> [version]')
 
   const family = releaseFamily(values.family)
   const root = process.cwd()
@@ -371,11 +371,11 @@ function main(): void {
 
   let planned: PlannedVersion[]
   let sharedVersion: string | undefined
-  if (family.id === 'bh') {
+  if (family.id === 'hydra') {
     const request = positionals[0]
-    if (request === undefined) throw new Error('usage: release:bh <major|minor|patch|x.y.z>')
+    if (request === undefined) throw new Error('usage: release:hydra <major|minor|patch|x.y.z>')
     if (values.prerelease !== undefined) {
-      throw new Error('release:bh takes the prerelease in its version argument, as in 0.0.1-rc.1')
+      throw new Error('release:hydra takes the prerelease in its version argument, as in 0.0.1-rc.1')
     }
     const shared = planShared(family, root, members, request)
     planned = shared.planned

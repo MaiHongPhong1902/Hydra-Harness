@@ -51,7 +51,7 @@ afterEach(async () => {
 })
 
 async function tempDir(): Promise<string> {
-  const dir = await mkdtemp(join(tmpdir(), 'bh-settings-watch-'))
+  const dir = await mkdtemp(join(tmpdir(), 'hydra-settings-watch-'))
   cleanups.push(() => rm(dir, { recursive: true, force: true }))
   return dir
 }

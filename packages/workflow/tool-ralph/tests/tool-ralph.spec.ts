@@ -141,7 +141,7 @@ async function settleCompleted(
   return pending
 }
 
-describe('bh-tool-ralph', () => {
+describe('hydra-tool-ralph', () => {
   it('starts the fixed workflow through the configured fresh provider and renders completion', async () => {
     const { ctx, engine, parent } = await setup({ config: { maxRounds: 9, maxHandoffChars: 9000 } })
     const pending = execute(ctx, { objective: '  Finish the migration.  ', maxRounds: 4 }, { agent: parent })

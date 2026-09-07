@@ -18,7 +18,7 @@ import { isAbsolute, join } from 'node:path'
 import { Service, type Context, type Fiber } from '@hydra/cordis'
 import z from '@hydra/schemastery'
 import { writeFileAtomic } from '@hydra/harness-atomic-write'
-import { resolveBhHome } from '@hydra/harness-home-paths'
+import { resolveHydraHome } from '@hydra/harness-home-paths'
 import { settingsNamespace, type SettingsScope } from '@hydra/harness-settings'
 import {
   apply as applyClaudeCodeHooks, inject as claudeCodeInject,
@@ -53,7 +53,7 @@ const DEFAULT_HOOK_TIMEOUT_MS = 600_000
 /** Registry configuration. */
 export interface Config {
   /** Override the resolved harness home that holds materialized inline documents. */
-  bhHome?: string
+  hydraHome?: string
 }
 
 /** One stored record, as the settings document holds it. */
@@ -202,7 +202,7 @@ export class HookRecordRegistry extends Service {
   /** Bridge mounts belong to this Host service, not to a traced API caller. */
   private readonly owner: Context
   static Config: z<Config> = z.object({
-    bhHome: z.string(),
+    hydraHome: z.string(),
   })
 
   private readonly settings: SettingsScope<HooksSettings>
@@ -217,7 +217,7 @@ export class HookRecordRegistry extends Service {
   constructor(ctx: Context, config: Config = {}) {
     super(ctx, 'hookRecords')
     this.owner = ctx
-    this.inlineRoot = join(resolveBhHome(config.bhHome), 'hooks')
+    this.inlineRoot = join(resolveHydraHome(config.hydraHome), 'hooks')
     this.settings = ctx.settings.register(HOOKS_SETTINGS_NAMESPACE, HooksSettingsSchema, {
       // Refuse a colliding section where it is written: two records claiming
       // one name would make which definitions run depend on mount order.

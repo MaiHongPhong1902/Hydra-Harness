@@ -34,7 +34,7 @@ function fixture(options: {
   invariantReference?: boolean
   buildEntry?: boolean
 } = {}): string {
-  const root = mkdtempSync(join(tmpdir(), 'bh-package-invariants-'))
+  const root = mkdtempSync(join(tmpdir(), 'hydra-package-invariants-'))
   roots.push(root)
   const dir = join(root, 'packages/core/probe')
   mkdirSync(join(dir, 'src'), { recursive: true })

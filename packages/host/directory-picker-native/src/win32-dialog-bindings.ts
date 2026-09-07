@@ -88,12 +88,12 @@ export async function loadWin32DialogBindings(): Promise<Win32DialogBindings> {
   const coCreateInstance = ole32.func('__stdcall', 'CoCreateInstance', 'int32', ['void *', 'void *', 'uint32', 'void *', 'void *'])
   const coTaskMemFree = ole32.func('__stdcall', 'CoTaskMemFree', 'void', ['void *'])
   const getCurrentThreadId = kernel32.func('__stdcall', 'GetCurrentThreadId', 'uint32', [])
-  const protoShow = koffi.proto('int32 __stdcall BhDialogShow(void *self, void *owner)')
-  const protoSetOptions = koffi.proto('int32 __stdcall BhDialogSetOptions(void *self, uint32 options)')
-  const protoSetTitle = koffi.proto('int32 __stdcall BhDialogSetTitle(void *self, str16 title)')
-  const protoGetResult = koffi.proto('int32 __stdcall BhDialogGetResult(void *self, _Out_ void **item)')
-  const protoGetDisplayName = koffi.proto('int32 __stdcall BhItemGetDisplayName(void *self, int32 form, _Out_ void **name)')
-  const protoRelease = koffi.proto('uint32 __stdcall BhComRelease(void *self)')
+  const protoShow = koffi.proto('int32 __stdcall HydraDialogShow(void *self, void *owner)')
+  const protoSetOptions = koffi.proto('int32 __stdcall HydraDialogSetOptions(void *self, uint32 options)')
+  const protoSetTitle = koffi.proto('int32 __stdcall HydraDialogSetTitle(void *self, str16 title)')
+  const protoGetResult = koffi.proto('int32 __stdcall HydraDialogGetResult(void *self, _Out_ void **item)')
+  const protoGetDisplayName = koffi.proto('int32 __stdcall HydraItemGetDisplayName(void *self, int32 form, _Out_ void **name)')
+  const protoRelease = koffi.proto('uint32 __stdcall HydraComRelease(void *self)')
 
   /** Bind vtable slot `slot` of COM object `self` to a caller through `proto`. */
   const method = (self: unknown, slot: number, proto: unknown): (...args: unknown[]) => number => {
@@ -172,7 +172,7 @@ export async function closeThreadWindows(threadId: number): Promise<void> {
   const user32 = koffi.load('user32.dll')
   const enumThreadWindows = user32.func('__stdcall', 'EnumThreadWindows', 'int', ['uint32', 'void *', 'intptr'])
   const postMessageW = user32.func('__stdcall', 'PostMessageW', 'int', ['void *', 'uint32', 'uintptr', 'intptr'])
-  const protoEnumProc = koffi.proto('int __stdcall BhEnumThreadWndProc(void *hwnd, intptr lparam)')
+  const protoEnumProc = koffi.proto('int __stdcall HydraEnumThreadWndProc(void *hwnd, intptr lparam)')
   const callback = koffi.register((hwnd: unknown) => {
     postMessageW(hwnd, WM_CLOSE, 0, 0)
     return 1

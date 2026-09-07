@@ -16,7 +16,7 @@ afterEach(() => {
   for (const root of temporaryRoots.splice(0)) rmSync(root, { recursive: true, force: true })
 })
 
-describe('model-driven bh-tools generation', () => {
+describe('model-driven hydra-tools generation', () => {
   it('round-trips the complete service and event structure through the runtime registry', { timeout: 30_000 }, async () => {
     const workspace = new WorkspaceAnalyzer({
       root: workspaceRoot,
@@ -24,7 +24,7 @@ describe('model-driven bh-tools generation', () => {
       packages: ['@hydra/harness-tools'],
     }).analyze()
     const host = workspace.faces.find(candidate => candidate.face === 'host')
-    if (host === undefined) throw new Error('bh-tools has no analyzed host face')
+    if (host === undefined) throw new Error('hydra-tools has no analyzed host face')
     const artifact = new FaceModelEmitter(host).emit('@hydra/harness-tools')
 
     const root = mkdtempSync(join(import.meta.dirname, '.generated-tools-'))

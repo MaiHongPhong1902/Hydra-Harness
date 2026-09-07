@@ -520,7 +520,7 @@ describe('tool-web execution through the real registry', () => {
 
   it('uses the configured search provider independently of the active model provider', async () => {
     let deepseekCalls = 0
-    let boschCalls = 0
+    let altCalls = 0
     const deepseek: WebSearchProvider = {
       id: 'deepseek-official',
       available: () => available,
@@ -529,19 +529,19 @@ describe('tool-web execution through the real registry', () => {
         return Promise.resolve({ content: 'deepseek', sources: [], truncated: false })
       },
     }
-    const bosch: WebSearchProvider = {
-      id: 'bosch',
+    const altSearch: WebSearchProvider = {
+      id: 'alt-search',
       available: () => available,
       search: () => {
-        boschCalls += 1
-        return Promise.resolve({ content: 'bosch', sources: [], truncated: false })
+        altCalls += 1
+        return Promise.resolve({ content: 'alt-search', sources: [], truncated: false })
       },
     }
     const { ctx, fiber } = await mountTools({ webConfig: { searchProvider: 'deepseek-official' }, search: deepseek })
-    ctx.web.registerSearchProvider(bosch)
+    ctx.web.registerSearchProvider(altSearch)
     const agent = {
       options: { provider: 'deepseek-official' },
-      session: { requestHeader: () => ({ config: { provider: 'bosch' } }) },
+      session: { requestHeader: () => ({ config: { provider: 'alt-llm' } }) },
     }
     const out = await ctx.tools.execute({
       signal: testToolSignal,
@@ -553,7 +553,7 @@ describe('tool-web execution through the real registry', () => {
 
     expect(out.value).toEqual({ content: 'deepseek', sources: [], truncated: false })
     expect(deepseekCalls).toBe(1)
-    expect(boschCalls).toBe(0)
+    expect(altCalls).toBe(0)
     await fiber.dispose()
   })
 
@@ -771,7 +771,7 @@ describe('tool-web execution through the real registry', () => {
       truncated: false,
     })
     // The model schema exposes no timeout: the tool forwards only the url; the
-    // tool-call budget is owned by bh-tool-call-timeout-policy over exec.signal.
+    // tool-call budget is owned by hydra-tool-call-timeout-policy over exec.signal.
     expect(seen.request).toEqual({ url: 'https://a.test' })
     expect(seen.signal).toBe(controller.signal)
     await fiber.dispose()

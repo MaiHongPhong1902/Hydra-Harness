@@ -44,7 +44,7 @@ Compaction no longer erases terminal history; a session compacted several times 
 
 `rebuildTranscript` now materializes a component per append-origin event in the whole log, and it runs on mount, on a terminal color-scheme change, and on every reasoning toggle. Compaction used to bound that work for exactly the long sessions compaction serves, so the cost now grows with session length instead of with the surface. That is the trade the fix exists to make — preserved history is the point — but a windowing or reuse strategy belongs to whoever first measures a slow rebuild, not to a later profiler wondering why the work grew.
 
-`bh-tui` gains a dependency on the `@hydra/harness-compaction` seam for one pure predicate, mirroring `@hydra/harness-session-reference`'s existing use. The terminal still needs no compaction backend at runtime.
+`hydra-tui` gains a dependency on the `@hydra/harness-compaction` seam for one pure predicate, mirroring `@hydra/harness-session-reference`'s existing use. The terminal still needs no compaction backend at runtime.
 
 Two behaviors changed with their tests. The surface-replacement terminal test previously pinned erasure ("hides shadowed tool calls") and now pins preservation plus exactly one marker, including a pruned result copy, a regenerated assistant message, and a foreign plugin's replacement all rendering nothing. The compaction snapshot scenario wrote a `agent-instructions` source while claiming to pin compaction; it now writes a real checkpoint source, and its three fixtures are re-recorded to show the preserved prompt, the full tool card, and the marker.
 

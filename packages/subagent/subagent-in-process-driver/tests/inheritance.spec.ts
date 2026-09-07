@@ -28,7 +28,7 @@ const contexts: Context[] = []
 let workspace: string
 
 beforeEach(async () => {
-  workspace = await realpath(await mkdtemp(join(tmpdir(), 'bh-inherit-')))
+  workspace = await realpath(await mkdtemp(join(tmpdir(), 'hydra-inherit-')))
 })
 
 afterEach(async () => {

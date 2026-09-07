@@ -21,8 +21,8 @@ export type Win32DialogWorkerMessage =
   | { kind: 'done'; path: string | null }
   | { kind: 'error'; message: string }
 
-const title = process.env.BH_DIALOG_TITLE ?? ''
-if (title === '') throw new Error('win32-dialog-worker: BH_DIALOG_TITLE is required')
+const title = process.env.HYDRA_DIALOG_TITLE ?? ''
+if (title === '') throw new Error('win32-dialog-worker: HYDRA_DIALOG_TITLE is required')
 if (process.send === undefined) throw new Error('win32-dialog-worker must run as a child process with an IPC channel')
 // node's internal `send` reads `this.connected`, so bind the receiver.
 const send = process.send.bind(process)

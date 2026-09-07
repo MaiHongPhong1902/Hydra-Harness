@@ -7,7 +7,7 @@
 
 import type { ShellProcess } from '@hydra/harness-shell'
 
-/* jscpd:ignore-start -- deliberate twin of bh-tool-bash/background.ts (Agent Note). */
+/* jscpd:ignore-start -- deliberate twin of hydra-tool-bash/background.ts (Agent Note). */
 
 /**
  * Map a settled background process onto the generic task-outcome vocabulary:

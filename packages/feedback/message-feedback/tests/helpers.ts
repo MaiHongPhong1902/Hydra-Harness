@@ -185,7 +185,7 @@ export interface TestHarness {
 
 /** Compose the service over the real storage hub/domain/JSON backend. */
 export async function setupHarness(maxNoteBytes = 64): Promise<TestHarness> {
-  const root = await mkdtemp(join(tmpdir(), 'bh-message-feedback-test-'))
+  const root = await mkdtemp(join(tmpdir(), 'hydra-message-feedback-test-'))
   const ctx = new Context()
   let disposeFeedback: (() => Promise<void>) | undefined
   try {

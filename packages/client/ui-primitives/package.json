@@ -1,13 +1,13 @@
 {
   "name": "@hydra/harness-client-ui-primitives",
-  "description": "Pure React atoms for the bh web UI: controls, icons, markdown, and JSON inspectors (zero cordis)",
+  "description": "Pure React atoms for the hydra web UI: controls, icons, markdown, and JSON inspectors (zero cordis)",
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bosch/bosch-harness.git",
+    "url": "git+https://github.com/MaiHongPhong1902/Hydra-Harness.git",
     "directory": "packages/client/ui-primitives"
   },
   "type": "module",
@@ -59,6 +59,8 @@
     "lib/index.js",
     "lib/invariant.js",
     "lib/**/*.css",
+    "lib/**/*.png",
+    "lib/**/*.webp",
     "lib/types/**/*.d.ts"
   ],
   "peerDependencies": {

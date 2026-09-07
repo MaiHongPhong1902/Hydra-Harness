@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { parseBhArgs } from '../src/args.ts'
+import { parseHydraArgs } from '../src/args.ts'
 
-const parse = (argv: string[]) => parseBhArgs(argv, '1.2.3')
+const parse = (argv: string[]) => parseHydraArgs(argv, '1.2.3')
 
 /** Capture the process exit code while muting Commander's output. */
 function exitCode(argv: string[]): number {
@@ -20,7 +20,7 @@ function exitCode(argv: string[]): number {
 
 afterEach(() => { vi.restoreAllMocks() })
 
-describe('parseBhArgs', () => {
+describe('parseHydraArgs', () => {
   it('routes profile boots and the web alias, handing the rest to the app', () => {
     expect(parse(['--profile', 'tui'])).toEqual({ mode: 'profile', profile: 'tui', patches: [], args: [] })
     expect(parse(['--profile', 'tui', '--patch', 'a.yml', '--patch', 'b.yml']))

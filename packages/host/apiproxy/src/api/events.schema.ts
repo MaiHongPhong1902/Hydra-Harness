@@ -16,7 +16,7 @@ import {
 import { taskViewSchema } from './jobs.schema.ts'
 import { workspaceIdSchema, workspaceViewSchema } from './workspace.schema.ts'
 
-/** Question fields validated strictly against core bh-user-questions. */
+/** Question fields validated strictly against core hydra-user-questions. */
 export const askUserQuestionItemSchema = z.object({
   id: z.string(),
   question: z.string(),

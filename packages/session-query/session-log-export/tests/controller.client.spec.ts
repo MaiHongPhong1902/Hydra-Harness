@@ -29,7 +29,7 @@ describe('SessionLogDownloadController', () => {
     expect(init.signal).toBeInstanceOf(AbortSignal)
     expect(save).toHaveBeenCalledWith(
       url.toString(),
-      'bh-session-session-export-controller.zip',
+      'hydra-session-session-export-controller.zip',
     )
     expect(controller.store.getSnapshot().bySession[SID]).toEqual({
       open: true, status: 'success', error: null,
@@ -108,7 +108,7 @@ describe('SessionLogDownloadController', () => {
 
     await controller.download(SID)
 
-    expect((fetcher.mock.calls[0]?.[0] as URL).origin).toBe('http://bh.internal')
+    expect((fetcher.mock.calls[0]?.[0] as URL).origin).toBe('http://hydra.internal')
     expect(fetcher.mock.calls[0]?.[1]).toMatchObject({ method: 'HEAD' })
     expect(click).toHaveBeenCalledOnce()
   })
@@ -136,7 +136,7 @@ describe('browser download helpers', () => {
   it('sanitizes the archive filename and hands the URL to a download anchor', () => {
     const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
 
-    expect(sessionLogZipFilename('a/b' as SessionId)).toBe('bh-session-a_b.zip')
+    expect(sessionLogZipFilename('a/b' as SessionId)).toBe('hydra-session-a_b.zip')
     downloadUrl('http://host/api/session.export?sessionId=a', 'archive.zip')
     expect(click).toHaveBeenCalledOnce()
     const anchor = click.mock.instances[0] as HTMLAnchorElement

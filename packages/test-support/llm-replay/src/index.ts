@@ -805,14 +805,14 @@ export function installLlmReplay(ctx: Context, config: ReplayConfig): ReplayHand
 export const name = 'llm-replay'
 export const inject = ['llm']
 
-/** Plugin config: the {@link ReplayConfig} inputs, each defaulting to its `BH_SNAPSHOT_*` env var in `apply`. */
+/** Plugin config: the {@link ReplayConfig} inputs, each defaulting to its `HYDRA_SNAPSHOT_*` env var in `apply`. */
 export interface Config {
-  /** Override the fixture path; defaults to `$BH_SNAPSHOT_FILE`. */
+  /** Override the fixture path; defaults to `$HYDRA_SNAPSHOT_FILE`. */
   file?: string
-  /** Override the sidecar path; defaults to `$BH_SNAPSHOT_OVERRIDE`. */
+  /** Override the sidecar path; defaults to `$HYDRA_SNAPSHOT_OVERRIDE`. */
   overrideFile?: string
   /**
-   * Override the child-log paths; defaults to `$BH_SNAPSHOT_CHILD_FILES` (a
+   * Override the child-log paths; defaults to `$HYDRA_SNAPSHOT_CHILD_FILES` (a
    * path-separator-delimited list). Each is a recorded subagent session log for
    * a nested-agent scenario; absent/empty for a single-session scenario.
    */
@@ -840,13 +840,13 @@ function validateConfiguredModalities(providers: ReplayProviderConfig[] | undefi
 }
 
 export function apply(ctx: Context, config: Config = {}): void {
-  const file = config.file ?? process.env.BH_SNAPSHOT_FILE
+  const file = config.file ?? process.env.HYDRA_SNAPSHOT_FILE
   if (file === undefined || file.length === 0) {
-    throw new Error('llm-replay: a fixture path is required (Config.file or $BH_SNAPSHOT_FILE)')
+    throw new Error('llm-replay: a fixture path is required (Config.file or $HYDRA_SNAPSHOT_FILE)')
   }
   validateConfiguredModalities(config.providers)
-  const overrideFile = config.overrideFile ?? process.env.BH_SNAPSHOT_OVERRIDE
-  const childEnv = process.env.BH_SNAPSHOT_CHILD_FILES
+  const overrideFile = config.overrideFile ?? process.env.HYDRA_SNAPSHOT_OVERRIDE
+  const childEnv = process.env.HYDRA_SNAPSHOT_CHILD_FILES
   const childFiles = config.childFiles
     ?? (childEnv !== undefined && childEnv.length > 0 ? childEnv.split(pathDelimiter) : [])
   installLlmReplay(ctx, {

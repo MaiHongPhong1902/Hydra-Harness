@@ -1,4 +1,4 @@
-# The bh-base bundle patch: the shared core of every bh profile, applied as
+# The hydra-base bundle patch: the shared core of every hydra profile, applied as
 # ONE insert over the empty profile root. Later bundle patches and the user's
 # profile cordis.patch.yml address these rows by id, with the last write
 # winning per row.
@@ -82,7 +82,7 @@
     - id: llm-retry
       name: '@hydra/harness-llm-retry'
 
-    # User-settings document (`$BH_HOME/settings.yaml`, hot-reloaded): a
+    # User-settings document (`$HYDRA_HOME/settings.yaml`, hot-reloaded): a
     # `llm-deepseek:` or `llm-pi-ai:` section there overrides the adapter entries
     # below without a restart, and is what the web Models page writes.
     - id: settings
@@ -90,7 +90,7 @@
       pluginType: core
 
     # Credential sources: inherited environment over the managed
-    # `$BH_HOME/.credentials.yaml`, with project and user `.env` fallbacks.
+    # `$HYDRA_HOME/.credentials.yaml`, with project and user `.env` fallbacks.
     # Adapters resolve references per request; the Models page writes only the
     # managed document, which is never materialized into the process environment.
     - id: credentials
@@ -112,7 +112,7 @@
       name: '@hydra/harness-session-persistence-jsonl'
       pluginType: core
       config:
-        root: !!js bhHomePath('sessions')
+        root: !!js hydraHomePath('sessions')
 
     # Durable image bytes live outside the append-only session log. Messages
     # keep content-addressed references that this shared backend resolves for
@@ -141,15 +141,15 @@
       name: '@hydra/harness-session-projection'
       pluginType: core
 
-    # Session telemetry is mounted but disabled by default. BH_TELEMETRY_MODE
+    # Session telemetry is mounted but disabled by default. HYDRA_TELEMETRY_MODE
     # explicitly opts into FULL or FEEDBACK_ONLY reporting; uploading mirrors
     # session-log records onto OTLP/HTTP logs with no session-telemetry/record redaction
     # rule, so exports are the raw captured copy. The deployment stance, env
     # seams, and follow-ups are pinned in the default-off Agent Note.
-    # BH_TELEMETRY_OTLP_URL overrides the production endpoint. A non-empty
-    # BH_TELEMETRY_DISABLED — any value, including '0'/'false' — opts the
+    # HYDRA_TELEMETRY_OTLP_URL overrides the production endpoint. A non-empty
+    # HYDRA_TELEMETRY_DISABLED — any value, including '0'/'false' — opts the
     # process out (the launchers patch the row disabled; config cannot disable
-    # a row). Exports carry the harness home's anonymous user id ($BH_HOME/.anonymous-user-id,
+    # a row). Exports carry the harness home's anonymous user id ($HYDRA_HOME/.anonymous-user-id,
     # random UUID; delete the file to reset the identity) as the Resource's
     # user.id. The exporter/processor values normally bound the shutdown drain
     # to ~1s against an unreachable collector: exporter.timeoutMillis is both
@@ -163,10 +163,10 @@
     - id: session-telemetry-otel
       name: '@hydra/harness-session-telemetry-otel'
       config:
-        mode: !!js process.env.BH_TELEMETRY_MODE || 'DISABLED'
+        mode: !!js process.env.HYDRA_TELEMETRY_MODE || 'DISABLED'
         shutdownTimeoutMillis: 3000
         exporter:
-          url: !!js process.env.BH_TELEMETRY_OTLP_URL ?? 'https://harness-telemetry.deepseeksvc.com/v1/logs'
+          url: !!js process.env.HYDRA_TELEMETRY_OTLP_URL ?? 'https://harness-telemetry.deepseeksvc.com/v1/logs'
           compression: gzip
           timeoutMillis: 1000
         processor:
@@ -190,7 +190,7 @@
       name: '@hydra/harness-sandbox-policy'
       pluginType: core
       config:
-        mode: !!js process.env.BH_PERMISSION_MODE ?? 'workspace-write'
+        mode: !!js process.env.HYDRA_PERMISSION_MODE ?? 'workspace-write'
         workspaceRoot: !!js process.cwd()
 
     - id: bash-sandbox
@@ -209,7 +209,7 @@
       name: '@hydra/harness-user-approval'
       pluginType: core
       config:
-        policy: !!js "(process.env.BH_PERMISSION_MODE ?? 'workspace-write') === 'danger-full-access' ? 'never' : 'ask'"
+        policy: !!js "(process.env.HYDRA_PERMISSION_MODE ?? 'workspace-write') === 'danger-full-access' ? 'never' : 'ask'"
 
     - id: permission
       name: '@hydra/harness-permission-presets'
@@ -287,7 +287,7 @@
       name: '@hydra/harness-plugin-runtime'
       pluginType: core
 
-    # The user's own MCP servers and hooks, stored in `$BH_HOME/settings.yaml`
+    # The user's own MCP servers and hooks, stored in `$HYDRA_HOME/settings.yaml`
     # rather than composed here: each registry mounts what its settings section
     # declares and unmounts it again when the record is disabled or removed, so
     # a server or hook added from the Settings page survives a restart and one

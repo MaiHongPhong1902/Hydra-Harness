@@ -1,7 +1,7 @@
 /**
  * The three independent publish sequences this repository releases from
  * (`packages/` + `apps/`, `vendor/`, and `native/`) and the two this module
- * owns: `bh` and `vendor`. Each family carries its own version baseline, tag
+ * owns: `hydra` and `vendor`. Each family carries its own version baseline, tag
  * naming, and publish set, so releasing one never republishes another
  * ([rationale](../../.agents/notes/implemented/process/2026-08-10-npm-release-sequences.md)).
  *
@@ -317,10 +317,10 @@ export abstract class ReleaseFamily {
 }
 
 /** Release packages and apps: one shared version across the whole family. */
-class BhFamily extends ReleaseFamily {
-  readonly id = 'bh'
+class HydraFamily extends ReleaseFamily {
+  readonly id = 'hydra'
   readonly patterns = ['packages/!(experimental)/*/package.json', 'apps/*/package.json'] as const
-  readonly tagPrefix = 'bh-v'
+  readonly tagPrefix = 'hydra-v'
 
   /** Require current artifacts from a complete official client build. */
   override verifyBuildArtifacts(root: string): void {
@@ -335,13 +335,13 @@ class BhFamily extends ReleaseFamily {
     const versions = new Set(members.map(member => member.version))
     if (versions.size !== 1) {
       const detail = members.map(member => `${member.directory}: ${member.version}`).join('\n')
-      throw new Error(`bh release members must share one version:\n${detail}`)
+      throw new Error(`hydra release members must share one version:\n${detail}`)
     }
   }
 
   /**
    * The single family prefix: every member shares one version, so one tag names it.
-   * @returns `bh-v`.
+   * @returns `hydra-v`.
    */
   tagPrefixFor(): string {
     return this.tagPrefix
@@ -408,7 +408,7 @@ class VendorFamily extends ReleaseFamily {
 
 /** Every release family this module owns, in workflow order. */
 function releaseFamilies(): readonly ReleaseFamily[] {
-  return [new BhFamily(), new VendorFamily()]
+  return [new HydraFamily(), new VendorFamily()]
 }
 
 /**

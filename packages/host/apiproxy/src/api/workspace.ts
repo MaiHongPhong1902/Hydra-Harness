@@ -11,7 +11,7 @@ import type { RpcRequest, RpcResponse } from './rpc.ts'
 
 /**
  * Wire-side workspace id brand. Deliberately re-declared here rather than
- * imported from bh-workspace: api/ must stay browser-importable with zero
+ * imported from hydra-workspace: api/ must stay browser-importable with zero
  * host-package dependencies, and the brand string matches, so both sides
  * agree structurally.
  */

@@ -29,7 +29,7 @@ export async function readRemoteEnvironment(sandbox: Sandbox, signal?: AbortSign
   // TODO(e2b-replace-environment): Remove this ambient probe when E2B can start
   // a command with a replacement environment instead of merged overrides.
   const result = await sandbox.commands.run(
-    'set -o pipefail; bh_e2b_passwd="$(getent passwd "$(id -u)")"; IFS=: read -r _ _ _ _ _ bh_e2b_home _ <<<"$bh_e2b_passwd"; test -n "$bh_e2b_home" -a -d "$bh_e2b_home"; printf \'%s\' "$bh_e2b_home" | base64 -w 0; printf \'\\n\'; env -0 | base64 -w 0',
+    'set -o pipefail; hydra_e2b_passwd="$(getent passwd "$(id -u)")"; IFS=: read -r _ _ _ _ _ hydra_e2b_home _ <<<"$hydra_e2b_passwd"; test -n "$hydra_e2b_home" -a -d "$hydra_e2b_home"; printf \'%s\' "$hydra_e2b_home" | base64 -w 0; printf \'\\n\'; env -0 | base64 -w 0',
     { envs: e2bControlEnvs(), ...(signal === undefined ? {} : { signal }) },
   )
   const lines = result.stdout.trim().split('\n')
@@ -62,7 +62,7 @@ export async function readRemoteEnvironment(sandbox: Sandbox, signal?: AbortSign
 export function scrubRemoteEnvironment(raw: string): Map<string, string> {
   const environment = new Map<string, string>()
   for (const [name, value] of remoteEnvironmentEntries(raw)) {
-    if (name.startsWith('BH_') || SENSITIVE_ENV_PATTERN.test(name)) continue
+    if (name.startsWith('HYDRA_') || SENSITIVE_ENV_PATTERN.test(name)) continue
     environment.set(name, value)
   }
   return environment
@@ -76,7 +76,7 @@ export function scrubRemoteEnvironment(raw: string): Map<string, string> {
 export function bootstrapEnvironment(raw: string): Record<string, string> {
   const environment: Record<string, string> = { TERM: 'dumb' }
   for (const [name] of remoteEnvironmentEntries(raw)) {
-    if (name.startsWith('BH_') || SENSITIVE_ENV_PATTERN.test(name)) environment[name] = ''
+    if (name.startsWith('HYDRA_') || SENSITIVE_ENV_PATTERN.test(name)) environment[name] = ''
   }
   return environment
 }

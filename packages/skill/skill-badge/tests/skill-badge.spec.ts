@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 import SkillRegistry from '@hydra/harness-skill'
 import * as SkillBadge from '@hydra/harness-skill-badge'
 
-describe('bh-skill-badge', () => {
+describe('hydra-skill-badge', () => {
   it('registers and disposes the bundled badge skill', async () => {
     const ctx = new Context()
     await ctx.plugin(SkillRegistry)

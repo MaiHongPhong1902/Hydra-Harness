@@ -216,7 +216,7 @@ const randomWorkload = fc.record({
 describe('SQLite cross-backend differential behavior', () => {
   it('preserves ignorable logical events whose names match physical storage tags', async () => {
     const events = storageTagCollisionLog()
-    const directory = await freshDirectory('bh-sqlite-storage-tag-collision-')
+    const directory = await freshDirectory('hydra-sqlite-storage-tag-collision-')
     const root = join(directory, 'sqlite')
     await verifyBackend('sqlite', root, events, [2, 1])
     const db = new DatabaseSync(join(root, 'sessions.db'), { readOnly: true })
@@ -231,7 +231,7 @@ describe('SQLite cross-backend differential behavior', () => {
   it('matches JSONL/Zstandard for every packed kind, scalar fallback, suffix, partition, and reopen', async () => {
     const events = packingMatrixLog()
     for (const [partitionIndex, sizes] of [[events.length], [1], [2, 1, 5, 3]].entries()) {
-      const directory = await freshDirectory(`bh-sqlite-matrix-${partitionIndex}-`)
+      const directory = await freshDirectory(`hydra-sqlite-matrix-${partitionIndex}-`)
       for (const name of ['jsonl-zstd', 'sqlite'] as const) {
         const root = join(directory, name)
         await verifyBackend(name, root, events, sizes)
@@ -263,7 +263,7 @@ describe('SQLite cross-backend differential behavior', () => {
 
   it('matches JSONL/Zstandard across randomized logical logs and append partitions', async () => {
     await fc.assert(fc.asyncProperty(randomWorkload, async ({ events, batchSizes }) => {
-      const directory = await freshDirectory('bh-sqlite-property-')
+      const directory = await freshDirectory('hydra-sqlite-property-')
       for (const name of ['jsonl-zstd', 'sqlite'] as const) {
         await verifyBackend(name, join(directory, name), events, batchSizes)
       }

@@ -6,7 +6,7 @@ Status: implemented
 
 ## Problem
 
-A web session that produced a file had no way to look at it. The agent wrote `deepseek-homepage.html`, said so, and the user's only recourse was to copy an absolute path like `/private/tmp/bh-client-hotplug.ygPvsm/workspaces/plugin-hotplug/deepseek-homepage.html` into a terminal.
+A web session that produced a file had no way to look at it. The agent wrote `deepseek-homepage.html`, said so, and the user's only recourse was to copy an absolute path like `/private/tmp/hydra-client-hotplug.ygPvsm/workspaces/plugin-hotplug/deepseek-homepage.html` into a terminal.
 
 Two distinct defects sat behind that. The transcript never said what a turn had produced: `ToolCallView.locations` — the follow-along vocabulary the file tools already populate — had no consumer in the client, so a reader's only account of the output was whatever the closing message happened to spell. And the affordance that did exist was invisible: `ToolRow` already renders a mutation or read row's path as a real button wired to `host.openPath`, but styled exactly like the surrounding prose and underlined only on hover, so nobody found it. The reported "I can't open what it made" was a discoverability failure sitting on top of a working capability.
 

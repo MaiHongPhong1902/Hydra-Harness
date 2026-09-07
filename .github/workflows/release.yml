@@ -1,11 +1,11 @@
-# Pack the bh release sequence: every package under packages/ plus the apps/
+# Pack the hydra release sequence: every package under packages/ plus the apps/
 # entries, all on one version. The vendored framework and the native packages are
 # separate sequences with their own workflows and version lines.
 #
 # Pack runs without credentials on every pull request and master push, so a
 # pull request proves the whole publish set still packs. Publication is a manual
-# workflow_dispatch of release-publish.yml from a bh-v* tag.
-name: Release (bh)
+# workflow_dispatch of release-publish.yml from a hydra-v* tag.
+name: Release (hydra)
 
 on:
   pull_request:
@@ -23,7 +23,7 @@ concurrency:
 
 env:
   PRIMARY_NODE_VERSION: '24'
-  BH_TELEMETRY_DISABLED: '1'
+  HYDRA_TELEMETRY_DISABLED: '1'
 
 jobs:
   pack:
@@ -63,13 +63,13 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Verify release version
-        run: pnpm run release:verify --family bh
+        run: pnpm run release:verify --family hydra
 
       - name: Build
         run: pnpm run build:official
 
       - name: Pack release tarballs
-        run: pnpm run release:pack --family bh --out dist/npm
+        run: pnpm run release:pack --family hydra --out dist/npm
 
       # The harness packages declare the vendored framework as a peer, and this
       # verification must not depend on the registry already carrying matching
@@ -79,7 +79,7 @@ jobs:
       - name: Pack the vendored framework for verification
         run: pnpm run release:pack --family vendor --out dist/npm-vendor
 
-      # bh-sandbox-local declares the Landlock entry as a runtime dependency, so
+      # hydra-sandbox-local declares the Landlock entry as a runtime dependency, so
       # the verification needs its tarball. Its platform packages stay out: they
       # are optional, and building them needs a musl toolchain per architecture.
       - name: Pack the Landlock entry for verification
@@ -88,11 +88,11 @@ jobs:
           pnpm --dir native/landlock-run/packages/entry pack --pack-destination "$PWD/dist/npm-landlock"
 
       - name: Verify packed install
-        run: pnpm run release:verify-packed-install --family bh --from dist/npm --from dist/npm-vendor --from dist/npm-landlock
+        run: pnpm run release:verify-packed-install --family hydra --from dist/npm --from dist/npm-vendor --from dist/npm-landlock
 
       - uses: actions/upload-artifact@v4
         with:
-          name: bh-npm-tarballs
+          name: hydra-npm-tarballs
           path: dist/npm/*
           if-no-files-found: error
           retention-days: 7

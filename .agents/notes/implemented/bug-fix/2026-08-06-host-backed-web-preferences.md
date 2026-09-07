@@ -4,13 +4,13 @@ Status: implemented
 
 ## Problem
 
-The Web Appearance, Language, and busy-Enter preferences lived in browser `localStorage`. Browser storage is scoped to an origin, so reopening `bh web` on another port selected a different partition and lost choices even though both processes used the same Hydra home. These are user-level product preferences; session selection, drafts, disclosure state, and other transient browser state remain page-local.
+The Web Appearance, Language, and busy-Enter preferences lived in browser `localStorage`. Browser storage is scoped to an origin, so reopening `hydra web` on another port selected a different partition and lost choices even though both processes used the same Hydra home. These are user-level product preferences; session selection, drafts, disclosure state, and other transient browser state remain page-local.
 
 The first theme implementation moved only Appearance to Host settings but awaited its initial RPC before providing `ThemeRuntime`. A slow or unavailable settings request therefore suspended the assembled page. It also subscribed after the read, could miss an invalidation in that window, did not carry namespace revisions on writes, and allowed queued writes from a disposed plugin to reach the Host.
 
 ## Decision
 
-The owning Host halves register three schemas: optional `locale.preference` (`zh` or `en`, where absence delegates to the browser), `ui-theme.preference` (`light`, `dark`, or `system`, default `system`), and `ui-conversation.busyEnter` (`queue` or `steer`, default `queue`). The local settings provider stores explicit choices in `$BH_HOME/settings.yaml`, which resolves to `~/.bh/settings.yaml` under the default home. The API proxy serves every registered namespace to a loopback client; field roles still redact secrets.
+The owning Host halves register three schemas: optional `locale.preference` (`zh` or `en`, where absence delegates to the browser), `ui-theme.preference` (`light`, `dark`, or `system`, default `system`), and `ui-conversation.busyEnter` (`queue` or `steer`, default `queue`). The local settings provider stores explicit choices in `$HYDRA_HOME/settings.yaml`, which resolves to `~/.hydra/settings.yaml` under the default home. The API proxy serves every registered namespace to a loopback client; field roles still redact secrets.
 
 `@hydra/harness-client-ui-settings` owns one browser-wide settings describe mirror and provides `ctx.settingsScope.bind(spec)` as a per-namespace selector over it. The mirror installs `settings/document-updated` and `connection/reset` listeners before starting its background read, so no settings transport can block plugin activation and an invalidation cannot fall into a read-before-subscribe gap. Each bound scope publishes a snapshot store (status, section value, revision, writability, host/memory mode) the domain service subscribes to, without adding a wire read or listener of its own. The default decoder validates each incoming section against the namespace's own serialized wire schema, rehydrated through the colocated `ctx.settingsSchema` service, so domains carry no hand-written wire guards. Domain services take the scope as an ordinary constructor collaborator, publish their provisional defaults immediately—browser-derived locale, system theme, and Queue—then adopt an accepted Host section without writing it back; a service constructed without a scope (standalone dictionary or policy fixtures) simply stays process-local. The shared read and invalidation lifecycle is specified by the later [settings describe mirror decision](../architecture/2026-08-17-settings-describe-mirror.md).
 
@@ -34,7 +34,7 @@ Remote browsers cannot call the loopback-only configuration API, so their prefer
 
 ## Consequences
 
-Appearance, Language, and busy-Enter choices follow the Hydra user home across reloads, ports, and loopback origins. Direct edits to `settings.yaml` converge through the existing invalidation stream, while legacy `bh.theme`, `bh.locale`, and `bh.conversation.busyEnter` entries are neither read nor written.
+Appearance, Language, and busy-Enter choices follow the Hydra user home across reloads, ports, and loopback origins. Direct edits to `settings.yaml` converge through the existing invalidation stream, while legacy `hydra.theme`, `hydra.locale`, and `hydra.conversation.busyEnter` entries are neither read nor written.
 
 Boot may briefly show the domain default before the background read settles. A transient read failure keeps that default or the last good in-process value; reconnect retries. A write rejection can visibly restore the durable preference after the immediate local change.
 

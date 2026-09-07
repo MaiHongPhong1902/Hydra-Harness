@@ -5,12 +5,12 @@ import { SessionReferenceError } from './config.ts'
 import type { SessionReferenceInput } from './types.ts'
 
 /** URI scheme reserved for Hydra harness session snapshots. */
-export const SESSION_REFERENCE_SCHEME = 'bh-session:'
+export const SESSION_REFERENCE_SCHEME = 'hydra-session:'
 
 /**
  * Encode any JavaScript session-id string as a canonical lossless URI.
  * @param sessionId - opaque session id to serialize.
- * @returns canonical `bh-session:` URI.
+ * @returns canonical `hydra-session:` URI.
  */
 export function encodeSessionReferenceUri(sessionId: SessionIdType): string {
   const payload = Buffer.from(JSON.stringify(sessionId), 'utf8').toString('base64url')
@@ -67,7 +67,7 @@ export interface ParsedSessionReferenceText {
  */
 export function parseSessionReferenceText(text: string): ParsedSessionReferenceText {
   const references: SessionReferenceInput[] = []
-  const pattern = /@\[((?:\\.|[^\\\]])*)\]\((bh-session:[^\s)]*)\)|(bh-session:[A-Za-z0-9_-]+)/gu
+  const pattern = /@\[((?:\\.|[^\\\]])*)\]\((hydra-session:[^\s)]*)\)|(hydra-session:[A-Za-z0-9_-]+)/gu
   const rendered = text.replace(pattern, (
     _match,
     rawLabel: string | undefined,

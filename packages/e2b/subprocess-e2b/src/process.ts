@@ -91,49 +91,49 @@ function withinMs(settlement: Promise<CommandSettlement>, timeoutMs: number): Pr
 }
 
 function commandText(spec: SubprocessSpawnSpec, paths: RemotePaths): string {
-  const encoder = `"$bh_e2b_env_bin" -i "$bh_e2b_node" -e ${quoteE2BShellArg(OUTPUT_ENCODER_SOURCE)}`
+  const encoder = `"$hydra_e2b_env_bin" -i "$hydra_e2b_node" -e ${quoteE2BShellArg(OUTPUT_ENCODER_SOURCE)}`
   const stdoutRedirect = hasSpill(spec.stdio.stdout)
-    ? `> >("$bh_e2b_tee" --output-error=warn-nopipe >("$bh_e2b_head" -c ${spec.stdio.stdout.spill.maxBytes} > ${quoteE2BShellArg(paths.stdout)}) | ${encoder} 2>/dev/null)`
+    ? `> >("$hydra_e2b_tee" --output-error=warn-nopipe >("$hydra_e2b_head" -c ${spec.stdio.stdout.spill.maxBytes} > ${quoteE2BShellArg(paths.stdout)}) | ${encoder} 2>/dev/null)`
     : `> >(${encoder} 2>/dev/null)`
   const stderrRedirect = hasSpill(spec.stdio.stderr)
-    ? `2> >("$bh_e2b_tee" --output-error=warn-nopipe >("$bh_e2b_head" -c ${spec.stdio.stderr.spill.maxBytes} > ${quoteE2BShellArg(paths.stderr)}) | ${encoder} >&2 2>/dev/null)`
+    ? `2> >("$hydra_e2b_tee" --output-error=warn-nopipe >("$hydra_e2b_head" -c ${spec.stdio.stderr.spill.maxBytes} > ${quoteE2BShellArg(paths.stderr)}) | ${encoder} >&2 2>/dev/null)`
     : `2> >(${encoder} >&2 2>/dev/null)`
   const inner = [
     'set +e',
-    'bh_e2b_env_bin=$1',
-    'bh_e2b_node=$2',
-    'bh_e2b_ps=$3',
-    'bh_e2b_tr=$4',
-    'bh_e2b_tee=$5',
-    'bh_e2b_head=$6',
-    'bh_e2b_rm=$7',
+    'hydra_e2b_env_bin=$1',
+    'hydra_e2b_node=$2',
+    'hydra_e2b_ps=$3',
+    'hydra_e2b_tr=$4',
+    'hydra_e2b_tee=$5',
+    'hydra_e2b_head=$6',
+    'hydra_e2b_rm=$7',
     'shift 7',
-    'bh_e2b_pgid="$("$bh_e2b_ps" -o pgid= -p "$$" | "$bh_e2b_tr" -d " ")"',
-    `printf '%s\\n' "$bh_e2b_pgid" > ${quoteE2BShellArg(paths.pid)}`,
-    `mapfile -d '' -t bh_e2b_env < ${quoteE2BShellArg(paths.environment)}`,
-    `"$bh_e2b_rm" -f -- ${quoteE2BShellArg(paths.environment)}`,
-    `"$bh_e2b_env_bin" -i -- "\${bh_e2b_env[@]}" "$@" ${stdoutRedirect} ${stderrRedirect}`.trimEnd(),
-    'bh_e2b_status=$?',
-    `printf '%s\\n' "$bh_e2b_status" > ${quoteE2BShellArg(paths.status)}`,
+    'hydra_e2b_pgid="$("$hydra_e2b_ps" -o pgid= -p "$$" | "$hydra_e2b_tr" -d " ")"',
+    `printf '%s\\n' "$hydra_e2b_pgid" > ${quoteE2BShellArg(paths.pid)}`,
+    `mapfile -d '' -t hydra_e2b_env < ${quoteE2BShellArg(paths.environment)}`,
+    `"$hydra_e2b_rm" -f -- ${quoteE2BShellArg(paths.environment)}`,
+    `"$hydra_e2b_env_bin" -i -- "\${hydra_e2b_env[@]}" "$@" ${stdoutRedirect} ${stderrRedirect}`.trimEnd(),
+    'hydra_e2b_status=$?',
+    `printf '%s\\n' "$hydra_e2b_status" > ${quoteE2BShellArg(paths.status)}`,
     'wait',
-    'exit "$bh_e2b_status"',
+    'exit "$hydra_e2b_status"',
   ].join('\n')
   const argv = spec.argv.map(quoteE2BShellArg).join(' ')
   const bootstrap = [
-    `mapfile -d '' -t bh_e2b_env < ${quoteE2BShellArg(paths.environment)}`,
-    'bh_e2b_env_bin="$(command -v env)"',
-    'bh_e2b_setsid="$(command -v setsid)"',
-    'bh_e2b_bash="$(command -v bash)"',
-    'bh_e2b_node="$(command -v node)"',
-    'bh_e2b_ps="$(command -v ps)"',
-    'bh_e2b_tr="$(command -v tr)"',
-    'bh_e2b_tee="$(command -v tee)"',
-    'bh_e2b_head="$(command -v head)"',
-    'bh_e2b_rm="$(command -v rm)"',
-    'for bh_e2b_tool in "$bh_e2b_env_bin" "$bh_e2b_setsid" "$bh_e2b_bash" "$bh_e2b_node" "$bh_e2b_ps" "$bh_e2b_tr" "$bh_e2b_tee" "$bh_e2b_head" "$bh_e2b_rm"; do',
-    '  [[ "$bh_e2b_tool" == /* && -x "$bh_e2b_tool" ]] || exit 125',
+    `mapfile -d '' -t hydra_e2b_env < ${quoteE2BShellArg(paths.environment)}`,
+    'hydra_e2b_env_bin="$(command -v env)"',
+    'hydra_e2b_setsid="$(command -v setsid)"',
+    'hydra_e2b_bash="$(command -v bash)"',
+    'hydra_e2b_node="$(command -v node)"',
+    'hydra_e2b_ps="$(command -v ps)"',
+    'hydra_e2b_tr="$(command -v tr)"',
+    'hydra_e2b_tee="$(command -v tee)"',
+    'hydra_e2b_head="$(command -v head)"',
+    'hydra_e2b_rm="$(command -v rm)"',
+    'for hydra_e2b_tool in "$hydra_e2b_env_bin" "$hydra_e2b_setsid" "$hydra_e2b_bash" "$hydra_e2b_node" "$hydra_e2b_ps" "$hydra_e2b_tr" "$hydra_e2b_tee" "$hydra_e2b_head" "$hydra_e2b_rm"; do',
+    '  [[ "$hydra_e2b_tool" == /* && -x "$hydra_e2b_tool" ]] || exit 125',
     'done',
-    `exec "$bh_e2b_env_bin" -i -- "\${bh_e2b_env[@]}" "$bh_e2b_setsid" --wait -- "$bh_e2b_bash" -c ${quoteE2BShellArg(inner)} bh-e2b "$bh_e2b_env_bin" "$bh_e2b_node" "$bh_e2b_ps" "$bh_e2b_tr" "$bh_e2b_tee" "$bh_e2b_head" "$bh_e2b_rm" ${argv}`,
+    `exec "$hydra_e2b_env_bin" -i -- "\${hydra_e2b_env[@]}" "$hydra_e2b_setsid" --wait -- "$hydra_e2b_bash" -c ${quoteE2BShellArg(inner)} hydra-e2b "$hydra_e2b_env_bin" "$hydra_e2b_node" "$hydra_e2b_ps" "$hydra_e2b_tr" "$hydra_e2b_tee" "$hydra_e2b_head" "$hydra_e2b_rm" ${argv}`,
   ].join('\n')
   return bootstrap
 }

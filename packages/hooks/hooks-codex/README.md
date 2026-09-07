@@ -27,7 +27,7 @@ const config: Config = {
 In a `cordis.yml`:
 
 ```yaml
-- bh-hooks-codex:
+- hydra-hooks-codex:
     configPath: ./.codex/hooks.json
     model: deepseek-v4
 ```

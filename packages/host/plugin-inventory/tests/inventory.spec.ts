@@ -34,7 +34,7 @@ async function harness(): Promise<{
 }> {
   const ctx = new Context()
   contexts.push(ctx)
-  const dir = await mkdtemp(join(tmpdir(), 'bh-plugin-inventory-settings-'))
+  const dir = await mkdtemp(join(tmpdir(), 'hydra-plugin-inventory-settings-'))
   tempDirs.push(dir)
   await ctx.plugin(Loader)
   await ctx.plugin(FileSettingsProvider, { path: join(dir, 'settings.yaml'), watch: false })
@@ -153,10 +153,10 @@ describe('PluginInventoryGateway', () => {
   })
 
   it('toggles profile entries live and persists protected core state for restart', async () => {
-    const dir = await mkdtemp(join(tmpdir(), 'bh-plugin-inventory-'))
+    const dir = await mkdtemp(join(tmpdir(), 'hydra-plugin-inventory-'))
     tempDirs.push(dir)
     const home = join(dir, 'home')
-    vi.stubEnv('BH_HOME', home)
+    vi.stubEnv('HYDRA_HOME', home)
     const profileDir = resolveProfileDir('test', home)
     await mkdir(profileDir, { recursive: true })
     const configPath = join(profileDir, 'cordis.yml')
@@ -180,7 +180,7 @@ describe('PluginInventoryGateway', () => {
       '  pluginType: core',
       '',
     ].join('\n'))
-    await writeFile(join(profileDir, 'package.json'), JSON.stringify({ name: 'test', bh: { profile: {} } }))
+    await writeFile(join(profileDir, 'package.json'), JSON.stringify({ name: 'test', hydra: { profile: {} } }))
     await writeFile(settingsPath, '# keep this user comment\n{}\n')
 
     const ctx = new Context()
@@ -223,7 +223,7 @@ describe('PluginInventoryGateway', () => {
       restartRequired: true,
     })
     expect(JSON.parse(await readFile(join(profileDir, 'package.json'), 'utf8'))).toMatchObject({
-      bh: { profile: { pluginEnablement: { protected: false, companion: false } } },
+      hydra: { profile: { pluginEnablement: { protected: false, companion: false } } },
     })
 
     await inventory.setEnabled({ entryId: mutable.entryId, enabled: false })
@@ -252,7 +252,7 @@ describe('PluginInventoryGateway', () => {
     expect(coreRestored.restartRequired).toBe(false)
     expect(coreRestored.snapshot.entries.find(entry => entry.entryId === protectedId)?.changedSinceStart).toBe(false)
     expect(JSON.parse(await readFile(join(profileDir, 'package.json'), 'utf8'))).toMatchObject({
-      bh: { profile: { pluginEnablement: { protected: true } } },
+      hydra: { profile: { pluginEnablement: { protected: true } } },
     })
     await expect(inventory.setEnabled({
       entryId: `${includeId}:missing` as PluginEntryId,
@@ -295,7 +295,7 @@ describe('PluginInventoryGateway', () => {
   })
 
   it('ignores persisted switches for entries owned by another composition plane', async () => {
-    const dir = await mkdtemp(join(tmpdir(), 'bh-plugin-inventory-composition-'))
+    const dir = await mkdtemp(join(tmpdir(), 'hydra-plugin-inventory-composition-'))
     tempDirs.push(dir)
     const configPath = join(dir, 'cordis.yml')
     const settingsPath = join(dir, 'settings.yaml')
@@ -338,7 +338,7 @@ describe('PluginInventoryGateway', () => {
   })
 
   it('deduplicates a module and hands its shared setting to the configured entry', async () => {
-    const dir = await mkdtemp(join(tmpdir(), 'bh-plugin-inventory-duplicate-'))
+    const dir = await mkdtemp(join(tmpdir(), 'hydra-plugin-inventory-duplicate-'))
     tempDirs.push(dir)
     const configPath = join(dir, 'cordis.yml')
     const settingsPath = join(dir, 'settings.yaml')

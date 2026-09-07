@@ -41,10 +41,10 @@ function shellArgv(command: string): string[] {
     case 'echo "$EXTRA_ONE/$EXTRA_TWO"': return node('console.log(process.env.EXTRA_ONE + "/" + process.env.EXTRA_TWO)')
     case 'echo "$EXPLICIT_OVERRIDE_PASSWORD"': return node('console.log(process.env.EXPLICIT_OVERRIDE_PASSWORD)')
     case 'echo "${SUBPROCESS_TOMBSTONE_PROBE:-absent}"': return node('console.log(process.env.SUBPROCESS_TOMBSTONE_PROBE ?? "absent")')
-    case 'echo "[${BH_STALE:-absent}|$BH_SHELL|$BH_SESSION_ID]"':
-      return node('console.log("[" + [process.env.BH_STALE ?? "absent", process.env.BH_SHELL, process.env.BH_SESSION_ID].join("|") + "]")')
-    case 'echo "[${BH_TEST_API_KEY:-absent}|${BH_TEST_TOKEN:-absent}|${SUBPROCESS_TEST_PASSWORD:-absent}|${BH_TEST_PLAIN:-absent}]"':
-      return node('console.log("[" + [process.env.BH_TEST_API_KEY ?? "absent", process.env.BH_TEST_TOKEN ?? "absent", process.env.SUBPROCESS_TEST_PASSWORD ?? "absent", process.env.BH_TEST_PLAIN ?? "absent"].join("|") + "]")')
+    case 'echo "[${HYDRA_STALE:-absent}|$HYDRA_SHELL|$HYDRA_SESSION_ID]"':
+      return node('console.log("[" + [process.env.HYDRA_STALE ?? "absent", process.env.HYDRA_SHELL, process.env.HYDRA_SESSION_ID].join("|") + "]")')
+    case 'echo "[${HYDRA_TEST_API_KEY:-absent}|${HYDRA_TEST_TOKEN:-absent}|${SUBPROCESS_TEST_PASSWORD:-absent}|${HYDRA_TEST_PLAIN:-absent}]"':
+      return node('console.log("[" + [process.env.HYDRA_TEST_API_KEY ?? "absent", process.env.HYDRA_TEST_TOKEN ?? "absent", process.env.SUBPROCESS_TEST_PASSWORD ?? "absent", process.env.HYDRA_TEST_PLAIN ?? "absent"].join("|") + "]")')
     case 'printf "%.0sx" $(seq 1 500)': return node('process.stdout.write("x".repeat(500))')
     case 'printf "%.0sx" $(seq 1 500); printf "%.0se" $(seq 1 500) >&2':
       return node('process.stdout.write("x".repeat(500)); process.stderr.write("e".repeat(500))')
@@ -80,7 +80,7 @@ vi.mock('node:fs', async (importOriginal) => {
   }
 })
 
-const spillDir = mkdtempSync(join(tmpdir(), 'bh-subprocess-spec-'))
+const spillDir = mkdtempSync(join(tmpdir(), 'hydra-subprocess-spec-'))
 
 type SpecOverrides = Partial<Parameters<typeof spawnSubprocess>[0]> & {
   stdoutMaxBytes?: number
@@ -315,7 +315,7 @@ describe('spawnSubprocess', () => {
   })
 
   it('rejects with a spawn error for a nonexistent cwd', async () => {
-    await expect(spawnSubprocess(spec('echo hi', { cwd: '/nonexistent-dir-bh-test' })).done)
+    await expect(spawnSubprocess(spec('echo hi', { cwd: '/nonexistent-dir-hydra-test' })).done)
       .rejects.toThrow(/ENOENT/)
   })
 
@@ -832,7 +832,7 @@ describe('coverage seams', () => {
   it('childEnv keeps the POSIX spread on non-Windows hosts', () => {
     const platform = vi.spyOn(process, 'platform', 'get').mockReturnValue('linux')
     try {
-      expect(childEnv({ BH_X: '1' }).BH_X).toBe('1')
+      expect(childEnv({ HYDRA_X: '1' }).HYDRA_X).toBe('1')
     } finally {
       platform.mockRestore()
     }
@@ -874,7 +874,7 @@ describe('coverage seams', () => {
   })
 
   it('a spawn-failed handle rejects done while waitForExit reports gone', async () => {
-    const running = spawnSubprocess(spec('true', { cwd: '/nonexistent-dir-bh-dispose-test' }))
+    const running = spawnSubprocess(spec('true', { cwd: '/nonexistent-dir-hydra-dispose-test' }))
     await expect(running.done).rejects.toThrow()
     await expect(running.waitForExit()).resolves.toBe(true)
   })
@@ -932,7 +932,7 @@ describe('coverage seams', () => {
   })
 
   it('waitForExit on a failed spawn reports exited immediately', async () => {
-    const running = spawnSubprocess(spec('true', { cwd: '/nonexistent-dir-bh-spawn-test' }))
+    const running = spawnSubprocess(spec('true', { cwd: '/nonexistent-dir-hydra-spawn-test' }))
     await expect(running.done).rejects.toThrow()
     await expect(running.waitForExit()).resolves.toBe(true)
   })
@@ -1039,34 +1039,34 @@ describe('abort edge cases', () => {
 
 describe('environment and spill-file hardening', () => {
   it('scrubs credential-shaped and ambient Hydra env vars from child processes', async () => {
-    process.env.BH_TEST_API_KEY = 'super-secret'
-    process.env.BH_TEST_TOKEN = 'also-secret'
+    process.env.HYDRA_TEST_API_KEY = 'super-secret'
+    process.env.HYDRA_TEST_TOKEN = 'also-secret'
     process.env.SUBPROCESS_TEST_PASSWORD = 'password-secret'
-    process.env.BH_TEST_PLAIN = 'visible'
+    process.env.HYDRA_TEST_PLAIN = 'visible'
     try {
       const result = await finish(spawnSubprocess(spec(
-        'echo "[${BH_TEST_API_KEY:-absent}|${BH_TEST_TOKEN:-absent}|${SUBPROCESS_TEST_PASSWORD:-absent}|${BH_TEST_PLAIN:-absent}]"',
+        'echo "[${HYDRA_TEST_API_KEY:-absent}|${HYDRA_TEST_TOKEN:-absent}|${SUBPROCESS_TEST_PASSWORD:-absent}|${HYDRA_TEST_PLAIN:-absent}]"',
       )))
       expect(result.stdout.text.trim()).toBe('[absent|absent|absent|absent]')
     } finally {
-      delete process.env.BH_TEST_API_KEY
-      delete process.env.BH_TEST_TOKEN
+      delete process.env.HYDRA_TEST_API_KEY
+      delete process.env.HYDRA_TEST_TOKEN
       delete process.env.SUBPROCESS_TEST_PASSWORD
-      delete process.env.BH_TEST_PLAIN
+      delete process.env.HYDRA_TEST_PLAIN
     }
   })
 
-  it('forwards explicit BH_* env entries while scrubbing ambient ones', async () => {
-    // Both facts through one explicit map: the ambient BH_STALE is dropped by
+  it('forwards explicit HYDRA_* env entries while scrubbing ambient ones', async () => {
+    // Both facts through one explicit map: the ambient HYDRA_STALE is dropped by
     // the scrub, and the deliberately supplied current values merge after it.
-    process.env.BH_STALE = 'old-value'
+    process.env.HYDRA_STALE = 'old-value'
     try {
-      const result = await finish(spawnSubprocess(spec('echo "[${BH_STALE:-absent}|$BH_SHELL|$BH_SESSION_ID]"', {
-        env: { BH_SHELL: '1', BH_SESSION_ID: 'current-session' },
+      const result = await finish(spawnSubprocess(spec('echo "[${HYDRA_STALE:-absent}|$HYDRA_SHELL|$HYDRA_SESSION_ID]"', {
+        env: { HYDRA_SHELL: '1', HYDRA_SESSION_ID: 'current-session' },
       })))
       expect(result.stdout.text.trim()).toBe('[absent|1|current-session]')
     } finally {
-      delete process.env.BH_STALE
+      delete process.env.HYDRA_STALE
     }
   })
 
@@ -1076,7 +1076,7 @@ describe('environment and spill-file hardening', () => {
       { spillDir },
     ))
     const path = result.stdout.spillPath!
-    expect(path).toMatch(/bh-subprocess-\d+-\d+-[0-9a-f]{12}-stdout\.log$/)
+    expect(path).toMatch(/hydra-subprocess-\d+-\d+-[0-9a-f]{12}-stdout\.log$/)
     const mode = statSync(path).mode & 0o777
     expect(mode).toBe(0o600)
   })
@@ -1086,7 +1086,7 @@ describe('environment and spill-file hardening', () => {
       spec('for i in $(seq 1 200); do printf "line-%04d\\n" $i; done', { stdoutMaxBytes: 500, stderrMaxBytes: 500 }),
     ))
     const dir = dirname(result.stdout.spillPath!)
-    expect(dir).toMatch(/bh-subprocess-/)
+    expect(dir).toMatch(/hydra-subprocess-/)
     const mode = statSync(dir).mode & 0o777
     expect(mode).toBe(0o700)
   })

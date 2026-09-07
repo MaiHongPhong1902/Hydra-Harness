@@ -28,48 +28,48 @@ async function mount(config: acpAgent.Config, withBash = false): Promise<Context
       start() { throw new Error('composition test does not execute bash') },
     })
   }
-  config.persistenceRoot ??= await mkdtemp(join(tmpdir(), 'bh-acp-demo-persistence-'))
+  config.persistenceRoot ??= await mkdtemp(join(tmpdir(), 'hydra-acp-demo-persistence-'))
   await ctx.plugin(acpAgent, config)
   return ctx
 }
 
 async function isolatedSkillsConfig(searchDescriptionMaxLength?: number): Promise<NonNullable<acpAgent.Config['skills']>> {
-  const home = await mkdtemp(join(tmpdir(), 'bh-acp-demo-skills-'))
+  const home = await mkdtemp(join(tmpdir(), 'hydra-acp-demo-skills-'))
   return {
-    filesystem: { bhHome: join(home, '.bh'), agentsHome: join(home, '.agents') },
+    filesystem: { hydraHome: join(home, '.hydra'), agentsHome: join(home, '.agents') },
     ...searchDescriptionMaxLength !== undefined ? { tool: { searchDescriptionMaxLength } } : {},
   }
 }
 
 async function withIsolatedSkillHomes<T>(run: () => Promise<T>): Promise<T> {
-  const oldBhHome = process.env.BH_HOME
-  const oldAgentsHome = process.env.BH_AGENTS_HOME
-  const home = await mkdtemp(join(tmpdir(), 'bh-acp-demo-default-skills-'))
-  process.env.BH_HOME = join(home, '.bh')
-  process.env.BH_AGENTS_HOME = join(home, '.agents')
+  const oldHydraHome = process.env.HYDRA_HOME
+  const oldAgentsHome = process.env.HYDRA_AGENTS_HOME
+  const home = await mkdtemp(join(tmpdir(), 'hydra-acp-demo-default-skills-'))
+  process.env.HYDRA_HOME = join(home, '.hydra')
+  process.env.HYDRA_AGENTS_HOME = join(home, '.agents')
   try {
     return await run()
   } finally {
-    if (oldBhHome === undefined) {
-      delete process.env.BH_HOME
+    if (oldHydraHome === undefined) {
+      delete process.env.HYDRA_HOME
     } else {
-      process.env.BH_HOME = oldBhHome
+      process.env.HYDRA_HOME = oldHydraHome
     }
     if (oldAgentsHome === undefined) {
-      delete process.env.BH_AGENTS_HOME
+      delete process.env.HYDRA_AGENTS_HOME
     } else {
-      process.env.BH_AGENTS_HOME = oldAgentsHome
+      process.env.HYDRA_AGENTS_HOME = oldAgentsHome
     }
   }
 }
 
-describe('bh-acp-demo composition', () => {
+describe('hydra-acp-demo composition', () => {
   it('brings up the spine + persistence + the ACP bridge', async () => {
     const ctx = await mount({
       provider: 'mock',
       model: 'mock',
       persona: 'hi',
-      persistenceRoot: await mkdtemp(join(tmpdir(), 'bh-acp-demo-test-')),
+      persistenceRoot: await mkdtemp(join(tmpdir(), 'hydra-acp-demo-test-')),
       persistenceCompression: 'none',
       skills: await isolatedSkillsConfig(),
       workspaceContext: false,
@@ -125,7 +125,7 @@ describe('bh-acp-demo composition', () => {
       provider: 'mock',
       model: 'mock',
       persona: 'hi',
-      persistenceRoot: await mkdtemp(join(tmpdir(), 'bh-acp-demo-workspace-context-')),
+      persistenceRoot: await mkdtemp(join(tmpdir(), 'hydra-acp-demo-workspace-context-')),
       workspaceContext: false,
     })
     expect(ctx.get('agents')).toBeDefined()
@@ -143,9 +143,9 @@ describe('bh-acp-demo composition', () => {
     })
   })
 
-  it('forwards skill config and bhHome into agent-spine-demo', async () => {
+  it('forwards skill config and hydraHome into agent-spine-demo', async () => {
     const skills = await isolatedSkillsConfig(6)
-    const ctx = await mount({ provider: 'mock', model: 'mock', persona: 'hi', bhHome: skills.filesystem!.bhHome!, skills, workspaceContext: false })
+    const ctx = await mount({ provider: 'mock', model: 'mock', persona: 'hi', hydraHome: skills.filesystem!.hydraHome!, skills, workspaceContext: false })
     ctx.skills.register({ name: 'acp-skill', description: 'ACP skill', source: 'runtime', content: 'body' })
     const result = await ctx.tools.execute({
       signal: new AbortController().signal,
@@ -162,7 +162,7 @@ describe('bh-acp-demo composition', () => {
       provider: 'mock',
       model: 'mock',
       maxParallelToolCalls: 3,
-      persistenceRoot: await mkdtemp(join(tmpdir(), 'bh-acp-demo-test-parallel-')),
+      persistenceRoot: await mkdtemp(join(tmpdir(), 'hydra-acp-demo-test-parallel-')),
       skills: await isolatedSkillsConfig(),
       workspaceContext: false,
     })
@@ -220,7 +220,7 @@ describe('bh-acp-demo composition', () => {
       provider: 'mock',
       model: 'mock',
       toolOrder: ['zulu', TOOL_ORDER_REST],
-      persistenceRoot: await mkdtemp(join(tmpdir(), 'bh-acp-demo-test-tool-order-')),
+      persistenceRoot: await mkdtemp(join(tmpdir(), 'hydra-acp-demo-test-tool-order-')),
       workspaceContext: false,
     })
     // The bundle's own bash tools pend on the absent `ctx.shell` executor in

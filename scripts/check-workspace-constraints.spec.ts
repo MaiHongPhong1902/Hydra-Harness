@@ -18,7 +18,7 @@ describe('package namespace', () => {
     expect(checkPackageNamespace(experimental)).toEqual([])
     expect(checkPackageNamespace({ dir: 'apps/cli', manifest: { name: '@hydra/harness' } })).toEqual([])
     expect(checkPackageNamespace({ dir: 'vendor/cordis', manifest: { name: '@hydra/cordis' } })).toEqual([])
-    for (const name of ['@legacy/bh-agent', '@hydra/agent', undefined]) {
+    for (const name of ['@legacy/hydra-agent', '@hydra/agent', undefined]) {
       expect(checkPackageNamespace({ dir: 'packages/core/agent', manifest: name === undefined ? {} : { name } })).toHaveLength(1)
     }
   })

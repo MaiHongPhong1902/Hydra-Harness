@@ -30,17 +30,17 @@ import { asError, commandOpts, delay, signalOpts, signalRemoteGroups } from './r
 const TERMINAL_RUNNER_SOURCE = [
   '#!/bin/bash',
   'set -euo pipefail',
-  'bh_state=$1',
-  'mapfile -d \'\' -t bh_env < "$bh_state/environment"',
-  'mapfile -d \'\' -t bh_argv < "$bh_state/argv"',
-  'bh_output_marker=$(<"$bh_state/output-marker")',
-  'rm -f -- "$bh_state/environment" "$bh_state/argv" "$bh_state/output-marker" "$bh_state/runner.bash"',
-  'if (( ${#bh_argv[@]} == 0 )); then',
+  'hydra_state=$1',
+  'mapfile -d \'\' -t hydra_env < "$hydra_state/environment"',
+  'mapfile -d \'\' -t hydra_argv < "$hydra_state/argv"',
+  'hydra_output_marker=$(<"$hydra_state/output-marker")',
+  'rm -f -- "$hydra_state/environment" "$hydra_state/argv" "$hydra_state/output-marker" "$hydra_state/runner.bash"',
+  'if (( ${#hydra_argv[@]} == 0 )); then',
   "  printf 'terminal runner received empty argv\\n' >&2",
   '  exit 125',
   'fi',
-  'printf \'%s\' "$bh_output_marker"',
-  'exec env -i -- "${bh_env[@]}" "${bh_argv[@]}"',
+  'printf \'%s\' "$hydra_output_marker"',
+  'exec env -i -- "${hydra_env[@]}" "${hydra_argv[@]}"',
   '',
 ].join('\n')
 
@@ -469,7 +469,7 @@ export async function spawnE2BTerminal(
     argv: posix.join(stateDir, 'argv'),
     outputMarker: posix.join(stateDir, 'output-marker'),
   }
-  const outputMarker = Buffer.from(`bh-e2b-bootstrap:${randomUUID()}`)
+  const outputMarker = Buffer.from(`hydra-e2b-bootstrap:${randomUUID()}`)
   const output = new PassThrough()
   const outputFilter = new BootstrapOutputFilter(outputMarker, output)
   let handle: CommandHandle | undefined

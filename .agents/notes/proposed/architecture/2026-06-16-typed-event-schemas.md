@@ -15,7 +15,7 @@ This raises whether the event vocabulary should move to **Zod** or another runti
 
 ## Why this is not a persistence change
 
-It is tempting to read "use Zod for serialization" as a local change to `bh-session-persistence-jsonl/src/format.ts`. It is not, for one structural reason: **a plugin cannot declaration-merge a Zod schema.** Declaration merging is a TypeScript compile-time mechanism; a Zod schema is a runtime value. To validate events with Zod you need a **runtime registry** that every event-producing package contributes its schema to (e.g. `ctx.sessionEvents.register('compaction/marker', z.object({…}))`), and every consumer reads from. That registry — not the persistence backend — becomes the source of truth for the vocabulary, replacing the merge-extensible interface.
+It is tempting to read "use Zod for serialization" as a local change to `hydra-session-persistence-jsonl/src/format.ts`. It is not, for one structural reason: **a plugin cannot declaration-merge a Zod schema.** Declaration merging is a TypeScript compile-time mechanism; a Zod schema is a runtime value. To validate events with Zod you need a **runtime registry** that every event-producing package contributes its schema to (e.g. `ctx.sessionEvents.register('compaction/marker', z.object({…}))`), and every consumer reads from. That registry — not the persistence backend — becomes the source of truth for the vocabulary, replacing the merge-extensible interface.
 
 So the real proposal is: **replace the compile-time merge-extensible-map pattern with a runtime schema registry, repo-wide.** That is a core-vocabulary redesign.
 

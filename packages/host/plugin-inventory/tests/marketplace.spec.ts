@@ -48,7 +48,7 @@ function stubGitMarketplace(): void {
 }
 
 async function harness(): Promise<{ ctx: Context; inventory: PluginInventoryGateway }> {
-  const root = await mkdtemp(join(tmpdir(), 'bh-openai-marketplace-'))
+  const root = await mkdtemp(join(tmpdir(), 'hydra-openai-marketplace-'))
   directories.push(root)
   const ctx = new Context()
   contexts.push(ctx)
@@ -110,7 +110,7 @@ describe('OpenAI/Codex marketplace sources', () => {
   })
 
   it('stores a standard marketplace source without treating its entries as Hydra packages', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'bh-openai-marketplace-source-'))
+    const root = await mkdtemp(join(tmpdir(), 'hydra-openai-marketplace-source-'))
     directories.push(root)
     await mkdir(join(root, '.agents', 'plugins'), { recursive: true })
     await writeFile(join(root, '.agents', 'plugins', 'marketplace.json'), JSON.stringify({
@@ -125,7 +125,7 @@ describe('OpenAI/Codex marketplace sources', () => {
   })
 
   it('requires a Codex marketplace document before it persists a source', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'bh-openai-marketplace-empty-'))
+    const root = await mkdtemp(join(tmpdir(), 'hydra-openai-marketplace-empty-'))
     directories.push(root)
     const { inventory } = await harness()
 
@@ -139,7 +139,7 @@ describe('marketplace slot cascade', () => {
     root: string
     runtime: ReturnType<typeof fakeImportedPluginsRuntime>
   }> {
-    const root = await mkdtemp(join(tmpdir(), 'bh-openai-marketplace-cascade-'))
+    const root = await mkdtemp(join(tmpdir(), 'hydra-openai-marketplace-cascade-'))
     directories.push(root)
     await mkdir(join(root, '.agents', 'plugins'), { recursive: true })
     await writeFile(join(root, '.agents', 'plugins', 'marketplace.json'), '{"plugins":[]}')
@@ -171,7 +171,7 @@ describe('marketplace slot cascade', () => {
 
   it('skips the cascade when no imported-plugin runtime is mounted', async () => {
     const { inventory } = await harness()
-    const root = await mkdtemp(join(tmpdir(), 'bh-openai-marketplace-no-runtime-'))
+    const root = await mkdtemp(join(tmpdir(), 'hydra-openai-marketplace-no-runtime-'))
     directories.push(root)
     await mkdir(join(root, '.agents', 'plugins'), { recursive: true })
     await writeFile(join(root, '.agents', 'plugins', 'marketplace.json'), '{"plugins":[]}')

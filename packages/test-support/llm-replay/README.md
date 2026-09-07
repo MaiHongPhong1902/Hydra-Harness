@@ -24,9 +24,9 @@ Replay keys every call by its calling session id (`GenerateOptions.sessionId`, s
 
 | Key | Type | Default | Notes |
 |---|---|---|---|
-| `file` | string | `$BH_SNAPSHOT_FILE` | Path to the primary (parent) `session.jsonl` fixture. Required (config or env). |
-| `overrideFile` | string | `$BH_SNAPSHOT_OVERRIDE` | Optional `ReplayOverrideDoc` sidecar for the primary session: a bare `ReplayEntry[]` replaces its derived script, while `{ patches }` augments it by call index. |
-| `childFiles` | string[] | `$BH_SNAPSHOT_CHILD_FILES` (path-delimited) | Recorded subagent child-session logs for a nested scenario; empty for a single-session scenario. |
+| `file` | string | `$HYDRA_SNAPSHOT_FILE` | Path to the primary (parent) `session.jsonl` fixture. Required (config or env). |
+| `overrideFile` | string | `$HYDRA_SNAPSHOT_OVERRIDE` | Optional `ReplayOverrideDoc` sidecar for the primary session: a bare `ReplayEntry[]` replaces its derived script, while `{ patches }` augments it by call index. |
+| `childFiles` | string[] | `$HYDRA_SNAPSHOT_CHILD_FILES` (path-delimited) | Recorded subagent child-session logs for a nested scenario; empty for a single-session scenario. |
 | `providers` | `ReplayProviderConfig[]` | — | Optional replay-only provider and model catalog. Each provider may set `retryPolicy`, and each model may publish `contextWindow` and an `inputModalities` array containing only `text` and `image`; invalid modalities fail during plugin loading. Configured routes dispatch through the replay adapter and never perform provider I/O. |
 | `paceMs` | number | — (burst) | Optional per-chunk delay in ms so downstream transports (e.g. the web SSE mux observed by a real browser) see genuinely incremental delivery. A realism knob only — tests must not depend on it for correctness. Non-negative integer; abort during a pace wait cancels the stream promptly. |
 
@@ -47,8 +47,8 @@ Replay keys every call by its calling session id (`GenerateOptions.sessionId`, s
           - id: deepseek-v4-flash
             contextWindow: 128000
           - id: deepseek-v4-pro
-  # file/overrideFile/childFiles default to $BH_SNAPSHOT_FILE /
-  # $BH_SNAPSHOT_OVERRIDE / $BH_SNAPSHOT_CHILD_FILES, set by the snapshot
+  # file/overrideFile/childFiles default to $HYDRA_SNAPSHOT_FILE /
+  # $HYDRA_SNAPSHOT_OVERRIDE / $HYDRA_SNAPSHOT_CHILD_FILES, set by the snapshot
   # harness per scenario.
 ```
 

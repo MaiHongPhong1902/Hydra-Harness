@@ -155,9 +155,9 @@ async function mockCompletionServer(): Promise<{ url: string; requests: unknown[
   return { url: `http://127.0.0.1:${address.port}`, requests }
 }
 
-describe('bh-sdk-jsonrpc-server plugin apply', () => {
+describe('hydra-sdk-jsonrpc-server plugin apply', () => {
   it('serves initialize over the injected stdio pair', async () => {
-    const storageDir = await mkdtemp(join(tmpdir(), 'bh-jsonrpc-apply-init-'))
+    const storageDir = await mkdtemp(join(tmpdir(), 'hydra-jsonrpc-apply-init-'))
     vi.stubEnv('DEEPSEEK_API_KEY', 'test-key')
     const harness = await mountPlugin(storageDir)
     try {
@@ -167,7 +167,7 @@ describe('bh-sdk-jsonrpc-server plugin apply', () => {
       expect(response).toEqual({
         jsonrpc: '2.0',
         id: 'init-1',
-        result: { serverInfo: { name: 'bosch-harness-sdk-runtime', version: '0.0.1' } },
+        result: { serverInfo: { name: 'hydra-harness-sdk-runtime', version: '0.0.1' } },
       })
       expect(harness.exits()).toEqual([])
     } finally {
@@ -177,7 +177,7 @@ describe('bh-sdk-jsonrpc-server plugin apply', () => {
   })
 
   it('does not answer initialize until async sibling Loader entries settle', async () => {
-    const storageDir = await mkdtemp(join(tmpdir(), 'bh-jsonrpc-apply-readiness-'))
+    const storageDir = await mkdtemp(join(tmpdir(), 'hydra-jsonrpc-apply-readiness-'))
     vi.stubEnv('DEEPSEEK_API_KEY', 'test-key')
     let markStarted!: () => void
     let release!: () => void
@@ -218,7 +218,7 @@ describe('bh-sdk-jsonrpc-server plugin apply', () => {
       const response = await harness.waitForFrame(frame => frame.id === 'init-delayed', 'initialize response after Loader settlement')
       expect(response).toMatchObject({
         id: 'init-delayed',
-        result: { serverInfo: { name: 'bosch-harness-sdk-runtime' } },
+        result: { serverInfo: { name: 'hydra-harness-sdk-runtime' } },
       })
     } finally {
       release()
@@ -229,7 +229,7 @@ describe('bh-sdk-jsonrpc-server plugin apply', () => {
   })
 
   it('drives a session/prompt turn end-to-end and forwards session notifications as output frames', async () => {
-    const storageDir = await mkdtemp(join(tmpdir(), 'bh-jsonrpc-apply-prompt-'))
+    const storageDir = await mkdtemp(join(tmpdir(), 'hydra-jsonrpc-apply-prompt-'))
     const llmServer = await mockCompletionServer()
     vi.stubEnv('DEEPSEEK_API_KEY', 'test-key')
     vi.stubEnv('DEEPSEEK_BASE_URL', llmServer.url)
@@ -271,7 +271,7 @@ describe('bh-sdk-jsonrpc-server plugin apply', () => {
   })
 
   it('answers shutdown before exiting 0 exactly once, even against a racing second shutdown', async () => {
-    const storageDir = await mkdtemp(join(tmpdir(), 'bh-jsonrpc-apply-shutdown-'))
+    const storageDir = await mkdtemp(join(tmpdir(), 'hydra-jsonrpc-apply-shutdown-'))
     const harness = await mountPlugin(storageDir, { writeDelayMs: 10 })
     try {
       // One chunk makes the two deferred exit callbacks race.
@@ -314,7 +314,7 @@ describe('bh-sdk-jsonrpc-server plugin apply', () => {
   })
 
   it('still disposes and exits once when the flush callback fails', async () => {
-    const storageDir = await mkdtemp(join(tmpdir(), 'bh-jsonrpc-apply-flush-failure-'))
+    const storageDir = await mkdtemp(join(tmpdir(), 'hydra-jsonrpc-apply-flush-failure-'))
     const harness = await mountPlugin(storageDir, { failFlush: true })
     try {
       harness.send({ jsonrpc: '2.0', id: 'sd-fail', method: 'shutdown' })
@@ -336,7 +336,7 @@ describe('bh-sdk-jsonrpc-server plugin apply', () => {
   })
 
   it('stops serving on a bare fiber dispose (HMR-style unload) without calling exit', async () => {
-    const storageDir = await mkdtemp(join(tmpdir(), 'bh-jsonrpc-apply-dispose-'))
+    const storageDir = await mkdtemp(join(tmpdir(), 'hydra-jsonrpc-apply-dispose-'))
     const harness = await mountPlugin(storageDir)
     try {
       // Prove the handler-rejection path is live before disposal.

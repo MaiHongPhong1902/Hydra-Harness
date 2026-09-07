@@ -6,7 +6,7 @@
 
 import { relative } from 'node:path'
 import z from '@hydra/schemastery'
-import { resolveBhHome } from '@hydra/harness-home-paths'
+import { resolveHydraHome } from '@hydra/harness-home-paths'
 
 const DEFAULT_PROJECT_ROOT_MARKERS = ['.git'] as const
 const DEFAULT_INSTRUCTION_FILE_CANDIDATES = ['AGENTS.md', 'CLAUDE.md'] as const
@@ -16,8 +16,8 @@ const RESERVED_PATH_SEGMENTS = new Set(['', '.', '..'])
 
 /** User-facing workspace instruction loader configuration. */
 export interface Config {
-  /** Harness home containing the fixed user-global `AGENTS.md`; defaults to `$BH_HOME` or `~/.bh`. */
-  bhHome?: string
+  /** Harness home containing the fixed user-global `AGENTS.md`; defaults to `$HYDRA_HOME` or `~/.hydra`. */
+  hydraHome?: string
   /** Directory entries that identify the project root while walking upward from the session cwd. */
   projectRootMarkers?: string[]
   /** UTF-8 byte cap for one rendered baseline or dynamic batch; non-positive or non-finite disables loading. */
@@ -37,7 +37,7 @@ export interface Config {
 }
 
 export const Config: z<Config> = z.object({
-  bhHome: z.string(),
+  hydraHome: z.string(),
   projectRootMarkers: z.array(z.string()).default([...DEFAULT_PROJECT_ROOT_MARKERS]),
   maxBytes: z.number().required(),
   maxSourceBytes: z.number().step(1).min(1).default(DEFAULT_MAX_SOURCE_BYTES),
@@ -47,7 +47,7 @@ export const Config: z<Config> = z.object({
 
 /** Normalized instruction discovery configuration. */
 export interface ResolvedDiscoveryConfig {
-  bhHome: string
+  hydraHome: string
   projectRootMarkers: string[]
   instructionFileCandidates: string[]
   localInstructionFileCandidates: string[]
@@ -100,10 +100,10 @@ export function resolveConfig(config: Config): ResolvedConfig {
  * @returns normalized home, root markers, and instruction candidates.
  */
 export function resolveDiscoveryConfig(
-  config: Pick<Config, 'bhHome' | 'projectRootMarkers' | 'instructionFileCandidates' | 'localInstructionFileCandidates'>,
+  config: Pick<Config, 'hydraHome' | 'projectRootMarkers' | 'instructionFileCandidates' | 'localInstructionFileCandidates'>,
 ): ResolvedDiscoveryConfig {
   return {
-    bhHome: resolveBhHome(config.bhHome),
+    hydraHome: resolveHydraHome(config.hydraHome),
     projectRootMarkers: config.projectRootMarkers ?? [...DEFAULT_PROJECT_ROOT_MARKERS],
     instructionFileCandidates: resolveInstructionFileCandidates(
       config.instructionFileCandidates,

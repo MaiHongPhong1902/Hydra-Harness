@@ -88,7 +88,7 @@ def test_stage_sdk_keeps_distribution_module_and_runtime_pin_distinct(tmp_path: 
 def test_stage_runtime_copies_platform_payload(
     tmp_path: Path, target: str, with_helper: bool
 ) -> None:
-    executable = tmp_path / f"bh-jsonrpc-agent-pkg-{target}"
+    executable = tmp_path / f"hydra-jsonrpc-agent-pkg-{target}"
     executable.write_bytes(b"runtime")
     executable.chmod(0o755)
     expected = {executable.name: b"runtime"}
@@ -106,7 +106,7 @@ def test_stage_runtime_copies_platform_payload(
     build_python_release.stage_runtime(destination, "1.2.3", executable, executable.name)
 
     runtime_dir = destination / "src" / "hydra_harness_runtime" / "runtime"
-    assert {path.name: path.read_bytes() for path in runtime_dir.glob("bh-jsonrpc-agent-pkg-*")} == expected
+    assert {path.name: path.read_bytes() for path in runtime_dir.glob("hydra-jsonrpc-agent-pkg-*")} == expected
     pyproject = (destination / "pyproject.toml").read_text()
     assert 'license = "MIT"' in pyproject
     assert 'license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]' in pyproject

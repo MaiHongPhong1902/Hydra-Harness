@@ -57,7 +57,7 @@ describe('verify-cordis-config metadata expressions', () => {
 
 describe('workspace Bundle discovery and product dependency closures', () => {
   it('discovers a Bundle outside packages/bundle from its manifest declaration', () => {
-    const fixture = mkdtempSync(join(tmpdir(), 'bh-bundle-discovery-'))
+    const fixture = mkdtempSync(join(tmpdir(), 'hydra-bundle-discovery-'))
     try {
       const bundleDir = join(fixture, 'packages/subagent/example')
       const plainDir = join(fixture, 'packages/bundle/plain')
@@ -65,7 +65,7 @@ describe('workspace Bundle discovery and product dependency closures', () => {
       mkdirSync(plainDir, { recursive: true })
       writeFileSync(join(bundleDir, 'package.json'), JSON.stringify({
         name: '@hydra/harness-subagent-example',
-        bh: { bundle: { patch: './cordis.patch.yml' } },
+        hydra: { bundle: { patch: './cordis.patch.yml' } },
       }))
       writeFileSync(join(plainDir, 'package.json'), JSON.stringify({
         name: '@hydra/harness-plain',

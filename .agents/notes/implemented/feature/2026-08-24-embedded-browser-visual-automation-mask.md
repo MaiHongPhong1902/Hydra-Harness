@@ -4,7 +4,7 @@ Status: implemented
 
 ## Problem
 
-The controlled browser's indexed actions were visible only through their resulting page state. A user watching a live WorkON flow could not see where Hydra was about to click or confirm that an action was automated, even though the vendored PageAgent already provides that visual feedback.
+The controlled browser's indexed actions were visible only through their resulting page state. A user watching a live browser flow could not see where Hydra was about to click or confirm that an action was automated, even though the vendored PageAgent already provides that visual feedback.
 
 ## Decision
 

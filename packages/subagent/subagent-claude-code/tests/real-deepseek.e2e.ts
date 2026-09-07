@@ -69,7 +69,7 @@ describe.skipIf(!process.env.DEEPSEEK_API_KEY)(
     it('returns one unique nonce through the production provider and real SDK/CLI', async () => {
       const apiKey = process.env.DEEPSEEK_API_KEY
       if (apiKey === undefined) throw new Error('e2e ran without DEEPSEEK_API_KEY')
-      const root = mkdtempSync(join(tmpdir(), 'bh-claude-deepseek-e2e-'))
+      const root = mkdtempSync(join(tmpdir(), 'hydra-claude-deepseek-e2e-'))
       roots.push(root)
       const workspace = join(root, 'workspace')
       const claudeConfig = join(root, 'claude-config')
@@ -131,7 +131,7 @@ describe.skipIf(!process.env.DEEPSEEK_API_KEY)(
       })
       expect(version.stdout.trim()).toBe('2.1.220 (Claude Code)')
 
-      const nonce = `BH_CLAUDE_DEEPSEEK_${randomUUID()}`
+      const nonce = `HYDRA_CLAUDE_DEEPSEEK_${randomUUID()}`
       const parent = {
         id: 'deepseek-e2e-parent',
         session: { header: { cwd: workspace } },

@@ -29,7 +29,7 @@ export function DesktopTerminalPanel({
   terminalId?: 'bottom' | 'right'
   embedded?: boolean
 }) {
-  const api = window.bhDesktop?.terminal
+  const api = window.hydraDesktop?.terminal
   const hostRef = useRef<HTMLDivElement | null>(null)
   const terminalRef = useRef<Terminal | null>(null)
   const fitRef = useRef<FitAddon | null>(null)

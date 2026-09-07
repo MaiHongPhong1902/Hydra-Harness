@@ -76,11 +76,11 @@ Configure credentials, the model catalog, and deployment-specific transport sett
       # AZURE_OPENAI_API_VERSION separately; it is process-wide, not per-route).
       # Model id = the gateway's deployment name, sent as both the URL segment
       # and the request body's `model` field.
-      bosch-farm:
-        displayName: Bosch Model Farm
-        apiKeyEnv: BMF_API_KEY
+      azure-gateway:
+        displayName: Azure OpenAI gateway
+        apiKeyEnv: AZURE_OPENAI_API_KEY
         api: azure-openai-completions
-        baseURL: https://aoai-farm.bosch-temp.com/api/openai
+        baseURL: https://example.openai.azure.com/openai
         models:
           - id: gpt-5-2025-08-07
             name: GPT-5
@@ -96,11 +96,11 @@ Configure credentials, the model catalog, and deployment-specific transport sett
       # protocol reaches it. One route per model, since baseURL is per-route.
       # The model id is this gateway's expected request-body `model` value,
       # which may differ from the URL's bare deployment segment (baked above).
-      bosch-farm-gemini-2.5-flash:
-        displayName: Gemini 2.5 Flash (Bosch Model Farm)
-        apiKeyEnv: BMF_API_KEY
+      azure-gateway-gemini-2.5-flash:
+        displayName: Gemini 2.5 Flash (Azure OpenAI gateway)
+        apiKeyEnv: AZURE_OPENAI_API_KEY
         api: openai-completions
-        baseURL: https://aoai-farm.bosch-temp.com/api/openai/deployments/gemini-2.5-flash
+        baseURL: https://example.openai.azure.com/openai/deployments/gemini-2.5-flash
         models:
           - id: google/gemini-2.5-flash
             contextWindow: 1048576

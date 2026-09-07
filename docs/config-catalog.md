@@ -58,7 +58,7 @@ export interface Config {
   /** Tool-registry config — its presentation `mode` (forwarded through agent-spine-demo; see @hydra/harness-tools). */
   tools?: ToolsConfig
   /** Hydra harness home directory exposed to bash and used for local skill discovery. */
-  bhHome?: string
+  hydraHome?: string
   /** Fallback session-title limits forwarded through agent-spine-demo. */
   sessionTitle?: NonNullable<agentCore.Config['sessionTitle']>
   /** Directory for JSONL sessions and the derived query index. Defaults to `./.sessions`. */
@@ -109,8 +109,8 @@ Source: [`packages/core/agent-default-model/src/index.ts:41`](../packages/core/a
 ```ts config-catalog
 /** User-facing workspace instruction loader configuration. */
 export interface Config {
-  /** Harness home containing the fixed user-global `AGENTS.md`; defaults to `$BH_HOME` or `~/.bh`. */
-  bhHome?: string
+  /** Harness home containing the fixed user-global `AGENTS.md`; defaults to `$HYDRA_HOME` or `~/.hydra`. */
+  hydraHome?: string
   /** Directory entries that identify the project root while walking upward from the session cwd. */
   projectRootMarkers?: string[]
   /** UTF-8 byte cap for one rendered baseline or dynamic batch; non-positive or non-finite disables loading. */
@@ -214,7 +214,7 @@ Source: [`packages/preset/agent-presets/src/preset.ts:52`](../packages/preset/ag
  * `persona`, and `toolOrder` to the system-prompt plugin (the fixed opener,
  * dynamic-context policy, deployment persona, and explicit model-facing tool
  * order), the `tools` object to the tool registry (its presentation `mode`),
- * `bhHome` to bash environment and local skill discovery, `sessionTitle` to
+ * `hydraHome` to bash environment and local skill discovery, `sessionTitle` to
  * the fallback title service, `skills` to the
  * skill registry/local provider/tool consumer, `workspaceContext` to the
  * agent-instructions loader, `jobs` to the process-local job provider, and
@@ -246,7 +246,7 @@ export interface Config {
   /** The tool registry's config — its presentation `mode` (see @hydra/harness-tools' `Config`). */
   tools?: ToolsConfig
   /** Hydra harness home directory shared by shell context and local skill discovery. */
-  bhHome?: string
+  hydraHome?: string
   /** Deterministic fallback and accepted-title limits; omission uses the bundle's example policy. */
   sessionTitle?: SessionTitleConfig
   /** Workspace-context loader controls with an explicit byte budget; set `false` for hermetic prompts. */
@@ -325,8 +325,8 @@ Source: [`packages/core/agent-tool-presentation/src/index.ts:38`](../packages/co
 ```ts config-catalog
 /** Local attachment backend configuration. */
 export interface Config {
-  /** Explicit harness home; omitted follows `BH_HOME`, then `~/.bh`. */
-  bhHome?: string
+  /** Explicit harness home; omitted follows `HYDRA_HOME`, then `~/.hydra`. */
+  hydraHome?: string
   /** Maximum encoded bytes accepted for one image. */
   maxImageBytes?: number
   /** Maximum image count accepted in one submitted message. */
@@ -439,7 +439,7 @@ export interface ConnectionConfig {
    * port-less `host` matching any port. The /api trust fence refuses any
    * request whose Host is neither loopback nor listed here, so a
    * non-loopback (`0.0.0.0`) deployment must declare the names it is reached
-   * by (the bh CLI derives the machine's LAN IP literals itself). An entry
+   * by (the hydra CLI derives the machine's LAN IP literals itself). An entry
    * that is not a bare, canonical authority fails the plugin load.
    */
   trustedHosts?: string[]
@@ -594,8 +594,8 @@ Source: [`packages/extensions/cordis-host-runner/src/index.ts:88`](../packages/e
 export interface Config {
   /** Credentials document path; defaults to `.credentials.yaml` under the harness home. */
   path?: string
-  /** Harness home used when `path` is omitted; defaults to `$BH_HOME` or `~/.bh`. */
-  bhHome?: string
+  /** Harness home used when `path` is omitted; defaults to `$HYDRA_HOME` or `~/.hydra`. */
+  hydraHome?: string
   /** Watch the document and hot-publish external edits; defaults to true. */
   watch?: boolean
   /** Watcher write-settle window in milliseconds; defaults to 100. */
@@ -833,7 +833,7 @@ Requires: `settings` · `shell`
 /** Registry configuration. */
 export interface Config {
   /** Override the resolved harness home that holds materialized inline documents. */
-  bhHome?: string
+  hydraHome?: string
 }
 ```
 
@@ -1290,14 +1290,14 @@ Source: [`packages/llm/llm-pi-ai/src/config.ts:204`](../packages/llm/llm-pi-ai/s
 Requires: `llm`
 
 ```ts config-catalog
-/** Plugin config: the {@link ReplayConfig} inputs, each defaulting to its `BH_SNAPSHOT_*` env var in `apply`. */
+/** Plugin config: the {@link ReplayConfig} inputs, each defaulting to its `HYDRA_SNAPSHOT_*` env var in `apply`. */
 export interface Config {
-  /** Override the fixture path; defaults to `$BH_SNAPSHOT_FILE`. */
+  /** Override the fixture path; defaults to `$HYDRA_SNAPSHOT_FILE`. */
   file?: string
-  /** Override the sidecar path; defaults to `$BH_SNAPSHOT_OVERRIDE`. */
+  /** Override the sidecar path; defaults to `$HYDRA_SNAPSHOT_OVERRIDE`. */
   overrideFile?: string
   /**
-   * Override the child-log paths; defaults to `$BH_SNAPSHOT_CHILD_FILES` (a
+   * Override the child-log paths; defaults to `$HYDRA_SNAPSHOT_CHILD_FILES` (a
    * path-separator-delimited list). Each is a recorded subagent session log for
    * a nested-agent scenario; absent/empty for a single-session scenario.
    */
@@ -1511,7 +1511,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/browser/obsidian-knowledge/src/index.ts:102`](../packages/browser/obsidian-knowledge/src/index.ts)
+Source: [`packages/browser/obsidian-knowledge/src/index.ts:103`](../packages/browser/obsidian-knowledge/src/index.ts)
 
 <a id="hydraharness-permission-presets"></a>
 
@@ -1603,7 +1603,7 @@ Requires: `skills` · `commands` · `tools`
 /** Runtime configuration for the imported-plugin service. */
 export interface Config {
   /** Override the resolved Hydra home directory. */
-  bhHome?: string
+  hydraHome?: string
 }
 ```
 
@@ -2041,8 +2041,8 @@ Source: [`packages/session/session-title-first-prompt-llm/src/index.ts:15`](../p
 export interface Config {
   /** Settings document path; defaults to `settings.yaml` under the harness home. */
   path?: string
-  /** Harness home used when `path` is omitted; defaults to `$BH_HOME` or `~/.bh`. */
-  bhHome?: string
+  /** Harness home used when `path` is omitted; defaults to `$HYDRA_HOME` or `~/.hydra`. */
+  hydraHome?: string
   /** Watch the document and hot-publish external edits; defaults to true. */
   watch?: boolean
   /** Watcher write-settle window in milliseconds; defaults to 100. */
@@ -2059,8 +2059,8 @@ Source: [`packages/settings/settings-file/src/index.ts:21`](../packages/settings
 ```ts config-catalog
 /** Plugin config (all optional — the built-in facts resolve without defaults). */
 export interface Config {
-  /** Hydra harness home directory exposed as `BH_HOME`; defaults to `$BH_HOME` or `~/.bh`. */
-  bhHome?: string
+  /** Hydra harness home directory exposed as `HYDRA_HOME`; defaults to `$HYDRA_HOME` or `~/.hydra`. */
+  hydraHome?: string
 }
 ```
 
@@ -2093,9 +2093,9 @@ export interface Config {
   providerName?: string
   /** Whether project and user roots are included around custom roots. */
   includeDefaultRoots?: boolean
-  /** Hydra harness config root. Defaults to `$BH_HOME` or `~/.bh`. */
-  bhHome?: string
-  /** Shared agent config root. Defaults to `$BH_AGENTS_HOME` or `~/.agents`. */
+  /** Hydra harness config root. Defaults to `$HYDRA_HOME` or `~/.hydra`. */
+  hydraHome?: string
+  /** Shared agent config root. Defaults to `$HYDRA_AGENTS_HOME` or `~/.agents`. */
   agentsHome?: string
   /** Additional skill roots scanned after project roots and before user roots. */
   customSkillDirs?: string[]
@@ -2111,7 +2111,7 @@ export interface Config {
   watchMaxProjects?: number
   /** Whether watched symbolic links follow their target files. */
   watchFollowSymlinks?: boolean
-  /** Bundled skill root; defaults to `$BH_BUNDLED_SKILL_DIR` when default roots are included, otherwise mounts none. */
+  /** Bundled skill root; defaults to `$HYDRA_BUNDLED_SKILL_DIR` when default roots are included, otherwise mounts none. */
   bundledSkillDir?: string
 }
 ```
@@ -2293,59 +2293,6 @@ export type PermissionPolicy = 'allow' | 'reject'
 
 Source: [`packages/subagent/subagent-acp/src/index.ts:27`](../packages/subagent/subagent-acp/src/index.ts)
 
-<a id="hydraharness-subagent-bh-sdk"></a>
-
-## `@hydra/harness-subagent-bh-sdk`
-
-Requires: `subagents`
-
-```ts config-catalog
-/** Config: how to spawn and drive the child SDK runtime process. */
-export interface Config {
-  /** Provider name on `ctx.subagents` (default `bh-sdk`). */
-  providerName: string
-  /** The executable to spawn for each run (the child runtime bin or packaged exe). */
-  command: string
-  /** Arguments passed to {@link command} (typically the child's `cordis.yml` path). */
-  args: string[]
-  /**
-   * Working directory override for the child process and its SDK session
-   * workspace. Must be non-empty; a relative path resolves against the
-   * harness launch directory at load, and the result must be an existing
-   * directory. When omitted, each child inherits its delegating parent
-   * session's cwd — and starting one from a parent session that has no cwd
-   * fails.
-   */
-  cwd?: string
-  /** Provider route the child runtime initializes with (default `deepseek-official`). */
-  provider: string
-  /** Model the child runtime initializes with (default `deepseek-v4-flash`). */
-  model: string
-  /** Optional per-request output-token cap for the child runtime. */
-  maxTokens?: number
-  /**
-   * Extra environment variables for the child process — e.g. the child
-   * runtime's own `DEEPSEEK_API_KEY`, or `BH_CORDIS_CONFIG` naming its
-   * config. Forwarded on top of a credential-scrubbed copy of the parent
-   * env, so an explicit key here reaches the child while ambient secrets do
-   * not leak implicitly.
-   */
-  env: Record<string, string>
-  /** Bound (ms) on the protocol `shutdown` exchange during dispose. */
-  shutdownTimeoutMs?: number
-  /**
-   * Grace period (ms) for the child's EOF-driven quiesce on dispose — its
-   * window to flush persistence and tear down its own nested subprocesses
-   * before the parent escalates to a signal.
-   */
-  disposeEofGraceMs?: number
-  /** Termination confirmation window (ms), including forced exit on every platform. */
-  disposeGraceMs?: number
-}
-```
-
-Source: [`packages/subagent/subagent-bh-sdk/src/index.ts:29`](../packages/subagent/subagent-bh-sdk/src/index.ts)
-
 <a id="hydraharness-subagent-claude-code"></a>
 
 ## `@hydra/harness-subagent-claude-code`
@@ -2425,6 +2372,59 @@ export interface Config {
 ```
 
 Source: [`packages/subagent/subagent-fork-in-process/src/index.ts:31`](../packages/subagent/subagent-fork-in-process/src/index.ts)
+
+<a id="hydraharness-subagent-sdk"></a>
+
+## `@hydra/harness-subagent-sdk`
+
+Requires: `subagents`
+
+```ts config-catalog
+/** Config: how to spawn and drive the child SDK runtime process. */
+export interface Config {
+  /** Provider name on `ctx.subagents` (default `hydra-sdk`). */
+  providerName: string
+  /** The executable to spawn for each run (the child runtime bin or packaged exe). */
+  command: string
+  /** Arguments passed to {@link command} (typically the child's `cordis.yml` path). */
+  args: string[]
+  /**
+   * Working directory override for the child process and its SDK session
+   * workspace. Must be non-empty; a relative path resolves against the
+   * harness launch directory at load, and the result must be an existing
+   * directory. When omitted, each child inherits its delegating parent
+   * session's cwd — and starting one from a parent session that has no cwd
+   * fails.
+   */
+  cwd?: string
+  /** Provider route the child runtime initializes with (default `deepseek-official`). */
+  provider: string
+  /** Model the child runtime initializes with (default `deepseek-v4-flash`). */
+  model: string
+  /** Optional per-request output-token cap for the child runtime. */
+  maxTokens?: number
+  /**
+   * Extra environment variables for the child process — e.g. the child
+   * runtime's own `DEEPSEEK_API_KEY`, or `HYDRA_CORDIS_CONFIG` naming its
+   * config. Forwarded on top of a credential-scrubbed copy of the parent
+   * env, so an explicit key here reaches the child while ambient secrets do
+   * not leak implicitly.
+   */
+  env: Record<string, string>
+  /** Bound (ms) on the protocol `shutdown` exchange during dispose. */
+  shutdownTimeoutMs?: number
+  /**
+   * Grace period (ms) for the child's EOF-driven quiesce on dispose — its
+   * window to flush persistence and tear down its own nested subprocesses
+   * before the parent escalates to a signal.
+   */
+  disposeEofGraceMs?: number
+  /** Termination confirmation window (ms), including forced exit on every platform. */
+  disposeGraceMs?: number
+}
+```
+
+Source: [`packages/subagent/subagent-sdk/src/index.ts:29`](../packages/subagent/subagent-sdk/src/index.ts)
 
 <a id="hydraharness-subagent-spawn-in-process"></a>
 
@@ -3171,7 +3171,7 @@ export interface Config {
   printUrl: boolean
   /**
    * Register the model-visible surface context (the `app:web-surface` prompt
-   * section and the `BH_WEB_URL` bash variable). A one-shot non-interactive
+   * section and the `HYDRA_WEB_URL` bash variable). A one-shot non-interactive
    * layer can turn it off when its user is not in the GUI, so the
    * orientation text would be false.
    */

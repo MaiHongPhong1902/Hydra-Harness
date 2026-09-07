@@ -18,7 +18,7 @@ function workspaceFixture(options: {
   readonly host: readonly string[]
   readonly client: readonly string[]
 }): string {
-  const root = mkdtempSync(join(tmpdir(), 'bh-project-reference-faces-'))
+  const root = mkdtempSync(join(tmpdir(), 'hydra-project-reference-faces-'))
   roots.push(root)
   const shared = join(root, 'packages/core/shared')
   const split = join(root, 'packages/api/split')

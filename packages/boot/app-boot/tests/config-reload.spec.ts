@@ -12,7 +12,7 @@ import { Context } from '@hydra/cordis'
 import type { Include } from '@hydra/cordis-plugin-include'
 import { boot } from '../src/index.ts'
 
-const NAME = 'bh-test-bin'
+const NAME = 'hydra-test-bin'
 
 const NOOP_PLUGIN = 'export const name = "noop"\nexport function apply() {}\n'
 
@@ -23,7 +23,7 @@ interface TreeFixture {
 }
 
 async function bootTree(configBody: string, files: Record<string, string> = {}): Promise<TreeFixture> {
-  const dir = mkdtempSync(join(tmpdir(), 'bh-config-reload-'))
+  const dir = mkdtempSync(join(tmpdir(), 'hydra-config-reload-'))
   writeFileSync(join(dir, 'noop.mjs'), NOOP_PLUGIN)
   for (const [name, content] of Object.entries(files)) writeFileSync(join(dir, name), content)
   writeFileSync(join(dir, 'cordis.yml'), configBody)
@@ -281,7 +281,7 @@ describe('loader tree replacement', () => {
 
 describe('include refresh with overlay patches', () => {
   it('re-applies entry patches and inserted entries on every re-read (parity with initial load)', async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'bh-config-reload-overlay-'))
+    const dir = mkdtempSync(join(tmpdir(), 'hydra-config-reload-overlay-'))
     writeFileSync(join(dir, 'noop.mjs'), NOOP_PLUGIN)
     writeFileSync(join(dir, 'base.yml'), '- id: noop\n  name: ./noop.mjs\n  config:\n    value: base\n')
     writeFileSync(join(dir, 'cordis.yml'), [
@@ -341,12 +341,12 @@ describe('include refresh with overlay patches', () => {
 
 describe('include patches layered over one base', () => {
   it('lets a later patch configure or disable a row an earlier patch inserted', async () => {
-    // The bundle/user-layer/`--patch` composition: `bh` includes one root
+    // The bundle/user-layer/`--patch` composition: `hydra` includes one root
     // and applies each source as its own patch list at the SAME include
     // level, because patches never cross an include boundary. A later layer
     // must therefore be able to reach a row an earlier layer inserted, or
     // bundle-only rows would be invisible to the user's patch layer.
-    const dir = mkdtempSync(join(tmpdir(), 'bh-config-layered-'))
+    const dir = mkdtempSync(join(tmpdir(), 'hydra-config-layered-'))
     writeFileSync(join(dir, 'noop.mjs'), NOOP_PLUGIN)
     writeFileSync(join(dir, 'base.yml'), '- id: shared\n  name: ./noop.mjs\n  config:\n    value: base\n')
     writeFileSync(join(dir, 'cordis.yml'), [

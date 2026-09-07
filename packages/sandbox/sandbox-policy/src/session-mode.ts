@@ -15,7 +15,7 @@
  * filesystem alike), so it lives here in the policy package rather than in any
  * one capability's seam.
  *
- * @module bh-sandbox-policy/session-mode
+ * @module hydra-sandbox-policy/session-mode
  */
 
 import type { Session, SessionEvent } from '@hydra/harness-session'

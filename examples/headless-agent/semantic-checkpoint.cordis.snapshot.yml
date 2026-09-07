@@ -14,8 +14,8 @@
 - id: replay
   name: '@hydra/harness-llm-replay'
   config:
-    file: !!js process.env.BH_SNAPSHOT_FILE
-    overrideFile: !!js process.env.BH_SNAPSHOT_OVERRIDE
+    file: !!js process.env.HYDRA_SNAPSHOT_FILE
+    overrideFile: !!js process.env.HYDRA_SNAPSHOT_OVERRIDE
 
 # Managed child-process groups for the bash executor (spawn/kill/output plumbing).
 - id: subprocess

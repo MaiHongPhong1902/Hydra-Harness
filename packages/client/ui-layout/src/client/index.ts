@@ -165,8 +165,8 @@ export const inject = ['slots', 'theme', 'sessions', 'workspaces', 'locale', 'se
  * @param ctx - client root context.
  */
 export function apply(ctx: ClientContext): void {
-  const desktop = globalThis as typeof globalThis & { bhDesktop?: { browser?: DesktopBrowserApi } }
-  const browser = desktop.bhDesktop?.browser
+  const desktop = globalThis as typeof globalThis & { hydraDesktop?: { browser?: DesktopBrowserApi } }
+  const browser = desktop.hydraDesktop?.browser
   if (hasBrowserManagement(browser)) {
     const autofill = hasAutofillManagement(browser) ? browser : undefined
     const openUrl = browser.openUrl === undefined ? undefined : async (url: string) => {

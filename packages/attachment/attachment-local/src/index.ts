@@ -1,11 +1,11 @@
-/** Local durable attachment backend rooted below `BH_HOME`. @module @hydra/harness-attachment-local */
+/** Local durable attachment backend rooted below `HYDRA_HOME`. @module @hydra/harness-attachment-local */
 
 import { join, resolve } from 'node:path'
 import { Context } from '@hydra/cordis'
 import z from '@hydra/schemastery'
 import { AttachmentStore } from '@hydra/harness-attachment'
 import type { ImageAttachmentLimits, ImageAttachmentRef, SaveImageAttachment, StoredImageAttachment } from '@hydra/harness-attachment'
-import { resolveBhHome } from '@hydra/harness-home-paths'
+import { resolveHydraHome } from '@hydra/harness-home-paths'
 import { readImageFile, saveImageFile, validateImageFile } from './store.ts'
 
 export { readImageFile, saveImageFile, validateImageFile } from './store.ts'
@@ -29,8 +29,8 @@ export const DEFAULT_MAX_IMAGE_DIMENSION = 2000
 
 /** Local attachment backend configuration. */
 export interface Config {
-  /** Explicit harness home; omitted follows `BH_HOME`, then `~/.bh`. */
-  bhHome?: string
+  /** Explicit harness home; omitted follows `HYDRA_HOME`, then `~/.hydra`. */
+  hydraHome?: string
   /** Maximum encoded bytes accepted for one image. */
   maxImageBytes?: number
   /** Maximum image count accepted in one submitted message. */
@@ -46,7 +46,7 @@ export interface Config {
 /** Persistent content-addressed local attachment store. */
 export class LocalAttachmentStore extends AttachmentStore {
   static Config: z<Config> = z.object({
-    bhHome: z.string(),
+    hydraHome: z.string(),
     maxImageBytes: z.number().step(1).min(1).default(DEFAULT_MAX_IMAGE_BYTES),
     maxImagesPerMessage: z.number().step(1).min(1).default(DEFAULT_MAX_IMAGES_PER_MESSAGE),
     maxMessageImageBytes: z.number().step(1).min(1).default(DEFAULT_MAX_MESSAGE_IMAGE_BYTES),
@@ -60,7 +60,7 @@ export class LocalAttachmentStore extends AttachmentStore {
 
   constructor(ctx: Context, config: Config) {
     super(ctx)
-    this.root = resolve(join(resolveBhHome(config.bhHome), 'attachments', 'v1'))
+    this.root = resolve(join(resolveHydraHome(config.hydraHome), 'attachments', 'v1'))
     this.imageLimits = Object.freeze({
       maxImageBytes: config.maxImageBytes ?? DEFAULT_MAX_IMAGE_BYTES,
       maxImagesPerMessage: config.maxImagesPerMessage ?? DEFAULT_MAX_IMAGES_PER_MESSAGE,

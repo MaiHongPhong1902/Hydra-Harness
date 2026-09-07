@@ -65,7 +65,7 @@ afterEach(async () => {
 async function setup(options: { load?: boolean; config?: tool.Config } = {}) {
   const ctx = new Context()
   await mountAgentLoopTestDependencies(ctx)
-  const root = mkdtempSync(join(tmpdir(), 'bh-tool-subagent-report-'))
+  const root = mkdtempSync(join(tmpdir(), 'hydra-tool-subagent-report-'))
   await ctx.plugin(JsonlSessionPersistence, { root })
   await ctx.plugin(AgentLoop, { agents: [] })
   await ctx.plugin(SubagentRuntime)
@@ -159,7 +159,7 @@ async function sectionNames(ctx: Context, agent: Agent): Promise<string[]> {
   return assembly.sections.map(section => section.name)
 }
 
-describe('bh-tool-subagent-report', () => {
+describe('hydra-tool-subagent-report', () => {
   it('registers report only in continuable child scopes', async () => {
     const { ctx, parent } = await setup()
     expect(ctx.tools.schemas().map(schema => schema.name)).not.toContain('report')
@@ -587,7 +587,7 @@ function userTexts(events: readonly SessionEvent[]): string[] {
     : [])
 }
 
-describe('bh-tool-subagent-report result independence', () => {
+describe('hydra-tool-subagent-report result independence', () => {
   it('does not report a final assistant answer automatically or create Jobs', async () => {
     const { ctx, parent, adapter } = await setup()
     const { started } = await startChild(ctx, parent)

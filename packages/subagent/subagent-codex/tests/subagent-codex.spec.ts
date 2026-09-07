@@ -363,9 +363,9 @@ describe('task admission and package contracts', () => {
     const manifest = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8')) as {
       dependencies?: Record<string, string>
       files?: string[]
-      bh?: { bundle?: { patch?: string } }
+      hydra?: { bundle?: { patch?: string } }
     }
-    expect(manifest.bh?.bundle?.patch).toBe('./cordis.patch.yml')
+    expect(manifest.hydra?.bundle?.patch).toBe('./cordis.patch.yml')
     expect(manifest.files).toContain('cordis.patch.yml')
     expect(manifest.dependencies).toHaveProperty(
       '@hydra/harness-sdk-protocol',
@@ -404,7 +404,7 @@ describe('task admission and package contracts', () => {
       )
     }
 
-    const parsed = yaml.load(readFileSync(resolve(root, manifest.bh!.bundle!.patch!), 'utf8'))
+    const parsed = yaml.load(readFileSync(resolve(root, manifest.hydra!.bundle!.patch!), 'utf8'))
     const rows = Array.isArray(parsed)
       ? (parsed as Array<{ insert?: Array<{ id?: string; name?: string }> }>).flatMap(entry => entry.insert ?? [])
       : []
@@ -465,7 +465,7 @@ describe('task admission and package contracts', () => {
     const spawnSpecs: SubprocessSpawnSpec[] = []
     vi.spyOn(ctx.subprocess, 'spawn').mockImplementation((spec) => {
       spawnSpecs.push(spec)
-      return spec.env?.BH_CODEX_INSTANCE === 'safe'
+      return spec.env?.HYDRA_CODEX_INSTANCE === 'safe'
         ? safeChild.handle
         : bypassChild.handle
     })
@@ -479,13 +479,13 @@ describe('task admission and package contracts', () => {
     ctx.on('subagent/provider-removed', providerName => void removed.push(providerName))
     const safeFiber = await ctx.plugin(codex, {
       providerName: 'codex-safe',
-      env: { BH_CODEX_INSTANCE: 'safe' },
+      env: { HYDRA_CODEX_INSTANCE: 'safe' },
       permissionMode: 'never',
       disposeGraceMs: 11,
     })
     const bypassFiber = await ctx.plugin(codex, {
       providerName: 'codex-bypass',
-      env: { BH_CODEX_INSTANCE: 'bypass' },
+      env: { HYDRA_CODEX_INSTANCE: 'bypass' },
       permissionMode: 'dangerously-bypass-approvals-and-sandbox',
       disposeGraceMs: 29,
     })
@@ -535,7 +535,7 @@ describe('task admission and package contracts', () => {
       stopReason: 'aborted',
     })
     expect(spawnSpecs.map(spec => ({
-      instance: spec.env?.BH_CODEX_INSTANCE,
+      instance: spec.env?.HYDRA_CODEX_INSTANCE,
       graceMs: spec.graceMs,
     }))).toEqual([
       { instance: 'safe', graceMs: 11 },
@@ -686,7 +686,7 @@ describe('CodexAppServerWire', () => {
     const initialize = await child.peer.nextMethod('initialize')
     expect(initialize.params).toEqual({
       clientInfo: {
-        name: 'bosch-harness',
+        name: 'hydra-harness',
         title: 'Hydra harness',
         version: '0.0.1',
       },

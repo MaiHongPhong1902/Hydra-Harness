@@ -105,7 +105,7 @@ function execute(ctx: Context, args: unknown, extra?: {
   })
 }
 
-describe('bh-tool-workflow', () => {
+describe('hydra-tool-workflow', () => {
   it('starts a run with the script/args/parent/signal and renders the completed value', async () => {
     const { ctx, engine, parent } = await setup()
     const controller = new AbortController()

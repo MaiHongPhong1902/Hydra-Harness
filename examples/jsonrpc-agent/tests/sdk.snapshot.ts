@@ -1,11 +1,11 @@
 /**
  * Keyless snapshot coverage for the TypeScript SDK path: each scenario spawns
- * the REAL `bh-jsonrpc-agent` runtime (per `BH_EXAMPLE_MODE`) through the
+ * the REAL `hydra-jsonrpc-agent` runtime (per `HYDRA_EXAMPLE_MODE`) through the
  * REAL `@hydra/harness-sdk-client`, drives one turn over stdio JSON-RPC,
  * and pins the SDK `RunResult`, the complete notification stream, and the
  * persisted session logs. Replay serves recorded model
- * responses via `llm-replay` (`cordis.snapshot.yml`); `BH_SNAPSHOT=record`
- * re-records against the live API; `BH_SNAPSHOT=refresh` replays committed
+ * responses via `llm-replay` (`cordis.snapshot.yml`); `HYDRA_SNAPSHOT=record`
+ * re-records against the live API; `HYDRA_SNAPSHOT=refresh` replays committed
  * fixtures and rewrites expected outputs.
  */
 
@@ -50,7 +50,7 @@ const MINIMAL_BASH_DESCRIPTION = `Run commands in a bash shell
 * Please avoid commands that may produce a very large amount of output.
 * Please run long lived commands in the background, e.g. 'sleep 10 &' or start a server in the background.`
 
-const mode = process.env.BH_SNAPSHOT ?? 'replay'
+const mode = process.env.HYDRA_SNAPSHOT ?? 'replay'
 const recording = mode === 'record'
 const refreshing = mode === 'refresh'
 
@@ -92,7 +92,7 @@ const SCENARIOS: SdkScenario[] = [
   },
   {
     name: 'bash-tool',
-    prompt: 'Run this exact command with your bash tool, then reply with its stdout only: echo bh-sdk-proof-7391',
+    prompt: 'Run this exact command with your bash tool, then reply with its stdout only: echo hydra-sdk-proof-7391',
     sessionId: 'sdk-snapshot-bash',
     children: 0,
   },
@@ -108,7 +108,7 @@ const SCENARIOS: SdkScenario[] = [
     sessionId: 'persistent-tools-snapshot',
     children: 0,
     configs: { live: minimalLiveConfig, replay: minimalReplayConfig },
-    environment: { BH_SYSTEM_PROMPT: MINIMAL_SYSTEM_PROMPT },
+    environment: { HYDRA_SYSTEM_PROMPT: MINIMAL_SYSTEM_PROMPT },
     expectedFiles: { 'note.txt': 'target:\n\tnew\n' },
     expectedTools: { bash: ['command'], str_replace_editor: ['command', 'path'] },
     expectedSystem: MINIMAL_SYSTEM_PROMPT,
@@ -280,16 +280,16 @@ async function runScenario(scenario: SdkScenario): Promise<{
   const env: Record<string, string> = {
     ...Object.fromEntries(Object.entries(process.env).filter(([, value]) => value !== undefined)) as Record<string, string>,
     ...Object.fromEntries(Object.entries(launch.env).filter(([, value]) => value !== undefined)) as Record<string, string>,
-    BH_CORDIS_CONFIG: recording
+    HYDRA_CORDIS_CONFIG: recording
       ? scenario.configs?.live ?? liveConfig
       : scenario.configs?.replay ?? replayConfig,
-    BH_SESSION_ROOT: sessionsRoot,
-    BH_CWD: cwd,
-    BH_SNAPSHOT: mode,
+    HYDRA_SESSION_ROOT: sessionsRoot,
+    HYDRA_CWD: cwd,
+    HYDRA_SNAPSHOT: mode,
     NODE_OPTIONS: [process.env.NODE_OPTIONS, '--disable-warning=ExperimentalWarning'].filter(Boolean).join(' '),
     ...parentFixture === undefined ? {} : {
-      BH_SNAPSHOT_FILE: parentFixture,
-      ...childFixtures.length > 0 ? { BH_SNAPSHOT_CHILD_FILES: childFixtures.join(delimiter) } : {},
+      HYDRA_SNAPSHOT_FILE: parentFixture,
+      ...childFixtures.length > 0 ? { HYDRA_SNAPSHOT_CHILD_FILES: childFixtures.join(delimiter) } : {},
     },
     ...scenario.environment,
   }

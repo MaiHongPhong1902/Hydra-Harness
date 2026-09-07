@@ -49,11 +49,11 @@ final result: passed
 
 Reference: `C:\Users\map7hc\AppData\Local\Temp\codex-clipboard-6409b7d6-1916-4613-97f5-5cb5e5d67171.png`
 
-Implementation screenshot: `C:\Users\map7hc\AppData\Local\Temp\workon-right-panel-switcher.png`
+Implementation screenshot: `C:\Users\map7hc\AppData\Local\Temp\hydra-right-panel-switcher.png`
 
-Combined comparison: `C:\Users\map7hc\AppData\Local\Temp\workon-right-panel-comparison.png`
+Combined comparison: `C:\Users\map7hc\AppData\Local\Temp\hydra-right-panel-comparison.png`
 
-State: WorkON desktop, light theme, 1425 × 893 window, Browser and Terminal
+State: Hydra harness desktop, light theme, 1425 × 893 window, Browser and Terminal
 open together, right-panel chooser open. The focused implementation crop and
 the 768 × 278 reference were compared at 1:1 pixel scale; both use 536 × 40
 rows with 4 px gaps.
@@ -71,7 +71,7 @@ rows with 4 px gaps.
 - Component geometry: four-row switcher, row height, spacing, radius, horizontal
   padding, icon alignment, label alignment, and trailing pill positions match the
   reference.
-- Typography and icons: existing WorkON font tokens and icon library are used;
+- Typography and icons: existing Hydra harness font tokens and icon library are used;
   no approximate SVG or CSS-drawn assets were introduced.
 - Color: the implementation intentionally follows the active light-theme tokens;
   the dark-theme reference supplies structure and state treatment, not a forced
@@ -116,11 +116,11 @@ References:
 - `C:\Users\map7hc\AppData\Local\Temp\codex-clipboard-f889d4d7-610e-4872-89e5-7d4fe85cc1a7.png`
 - `C:\Users\map7hc\AppData\Local\Temp\codex-clipboard-49b62002-0203-4e26-8887-1b413675e05e.png`
 
-Implementation screenshot: `C:\Users\map7hc\AppData\Local\Temp\workon-right-panel-live.png`
+Implementation screenshot: `C:\Users\map7hc\AppData\Local\Temp\hydra-right-panel-live.png`
 
-Combined comparison: `C:\Users\map7hc\AppData\Local\Temp\workon-right-panel-comparison.png`
+Combined comparison: `C:\Users\map7hc\AppData\Local\Temp\hydra-right-panel-comparison.png`
 
-State: WorkON Electron desktop, light theme, 1920 × 1032 window. Files was
+State: Hydra harness Electron desktop, light theme, 1920 × 1032 window. Files was
 active with the `deepseek-harness` workspace tree and `package.json` preview;
 Browser, two independent Side chat sessions, and right Terminal remained in the
 tab strip while the bottom Terminal was open.

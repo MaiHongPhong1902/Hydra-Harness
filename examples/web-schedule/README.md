@@ -1,9 +1,9 @@
 # Session-local Schedule
 
-This overlay opts one `bh web` process into Schedule reminders without changing the shipped default Web composition:
+This overlay opts one `hydra web` process into Schedule reminders without changing the shipped default Web composition:
 
 ```sh
-bh web --patch examples/web-schedule/cordis.yml
+hydra web --patch examples/web-schedule/cordis.yml
 ```
 
 The current overlay supports reminders created with a positive whole-number `after_seconds`, an absolute `at` target, or a fixed-rate `every_seconds` interval of at least 300 seconds. The model manages them through `schedule_create`, `schedule_list`, and `schedule_delete`; every result identifies delivery as `session-local`.

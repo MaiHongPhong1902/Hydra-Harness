@@ -44,17 +44,17 @@ interface OtlpLogsRequest {
 const servers: Server[] = []
 
 // The backend resolves the harness home's anonymous user id at construction;
-// pin BH_HOME to a temp dir so the suite never touches the ambient ~/.bh.
+// pin HYDRA_HOME to a temp dir so the suite never touches the ambient ~/.hydra.
 let tempHome: string
-let previousBhHome: string | undefined
+let previousHydraHome: string | undefined
 beforeAll(() => {
-  tempHome = mkdtempSync(join(tmpdir(), 'bh-otel-home-'))
-  previousBhHome = process.env.BH_HOME
-  process.env.BH_HOME = tempHome
+  tempHome = mkdtempSync(join(tmpdir(), 'hydra-otel-home-'))
+  previousHydraHome = process.env.HYDRA_HOME
+  process.env.HYDRA_HOME = tempHome
 })
 afterAll(() => {
-  if (previousBhHome === undefined) delete process.env.BH_HOME
-  else process.env.BH_HOME = previousBhHome
+  if (previousHydraHome === undefined) delete process.env.HYDRA_HOME
+  else process.env.HYDRA_HOME = previousHydraHome
   rmSync(tempHome, { recursive: true, force: true })
 })
 
@@ -140,7 +140,7 @@ describe('OpenTelemetrySessionBackend wire', () => {
     expect(authorization).toBe('Bearer test-token')
 
     const resource = first.body.resourceLogs[0]!.resource.attributes
-    expect(resource).toContainEqual({ key: 'service.name', value: { stringValue: 'bosch-harness' } })
+    expect(resource).toContainEqual({ key: 'service.name', value: { stringValue: 'hydra-harness' } })
     expect(resource).toContainEqual({ key: 'user.id', value: { stringValue: getOrCreateAnonymousUserId() } })
 
     const records = allRecords(captures)
@@ -490,7 +490,7 @@ describe('OpenTelemetrySessionBackend config fails loud', () => {
   })
 })
 
-describe('bh-session-telemetry-otel real-load-path guard', () => {
+describe('hydra-session-telemetry-otel real-load-path guard', () => {
   it('keeps the Service class with inject/Config through unwrapExports', async () => {
     const module = await import('../src/index.ts')
     const loader = Object.create(Loader.prototype) as Loader

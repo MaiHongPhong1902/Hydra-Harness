@@ -4,7 +4,7 @@ Status: implemented
 
 ## Problem
 
-The web shell's boot HTML needs three kinds of injection: client-modules' boot protocol (the `__ModuleLoader__` registration queue inline script, the parser-blocking preload `<script src>` tags, the `__BH_BOOT__` graph global) and ui-theme's first-paint theme script. The old mechanism was `webServer.tapIndex(html => html)` string transforms: each registrant regex-located `<head>`/`<body>` and spliced HTML on its own. The static worker deployment (the page is a build artifact; the host tree runs in a Web Worker) has no serve-HTML step at all, so the worker side hand-copied the same data into its `/__boot__` payload (`graph` + `theme` via `ctx.get`), and the page side re-implemented what the taps did (a facade installer, a theme applier, a preload loop) — one boot semantics, three implementations.
+The web shell's boot HTML needs three kinds of injection: client-modules' boot protocol (the `__ModuleLoader__` registration queue inline script, the parser-blocking preload `<script src>` tags, the `__HYDRA_BOOT__` graph global) and ui-theme's first-paint theme script. The old mechanism was `webServer.tapIndex(html => html)` string transforms: each registrant regex-located `<head>`/`<body>` and spliced HTML on its own. The static worker deployment (the page is a build artifact; the host tree runs in a Web Worker) has no serve-HTML step at all, so the worker side hand-copied the same data into its `/__boot__` payload (`graph` + `theme` via `ctx.get`), and the page side re-implemented what the taps did (a facade installer, a theme applier, a preload loop) — one boot semantics, three implementations.
 
 ## Decision
 
@@ -18,7 +18,7 @@ One table, two renderers: the served form's `webServer.renderIndex(html)` render
 
 - client-modules and ui-theme no longer regex-edit HTML; the worker's `readBootPayload` service-poking (`clientModules`, `settings`, theme constants through `loader.load`) is deleted; the page-side `installModuleLoaderFacade`, `applyBootTheme`, and `PARSER_PRELOAD_IDS` re-implementations retire.
 - Ordering: across subscribers, subscription order (same as the old tap order); within one subscriber, push order — modules itself guarantees queue → preloads → global.
-- The served rendering of the manifest global changed from `window.__BH_BOOT__ =` to `globalThis["__BH_BOOT__"] =`; no committed snapshot expectation carries that text, so none needed re-recording.
+- The served rendering of the manifest global changed from `window.__HYDRA_BOOT__ =` to `globalThis["__HYDRA_BOOT__"] =`; no committed snapshot expectation carries that text, so none needed re-recording.
 - New model-visible or page-visible boot inputs extend the row union; no new tap consumers.
 
 ## Alternatives considered

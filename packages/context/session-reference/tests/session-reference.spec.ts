@@ -218,23 +218,23 @@ describe('session reference URI and inline mentions', () => {
       { sessionId, label: sessionId },
     ])
 
-    expect(parseSessionReferenceText('what is a bh-session: URI?')).toEqual({
-      text: 'what is a bh-session: URI?',
+    expect(parseSessionReferenceText('what is a hydra-session: URI?')).toEqual({
+      text: 'what is a hydra-session: URI?',
       references: [],
     })
-    expect(parseSessionReferenceText('see bh-session:%%%')).toEqual({
-      text: 'see bh-session:%%%',
+    expect(parseSessionReferenceText('see hydra-session:%%%')).toEqual({
+      text: 'see hydra-session:%%%',
       references: [],
     })
   })
 
   it('rejects malformed explicit references and base64url-shaped bare candidates', () => {
     expect(() => decodeSessionReferenceUri('https://example.test')).toThrow(expectCode('SESSION_REFERENCE_INVALID_REFERENCE'))
-    expect(() => parseSessionReferenceText('see bh-session:IiJ')).toThrow(expectCode('SESSION_REFERENCE_INVALID_REFERENCE'))
-    expect(() => parseSessionReferenceText('@[bad](bh-session:%%%)')).toThrow(expectCode('SESSION_REFERENCE_INVALID_REFERENCE'))
-    const nonString = `bh-session:${Buffer.from(JSON.stringify({ id: 'x' })).toString('base64url')}`
+    expect(() => parseSessionReferenceText('see hydra-session:IiJ')).toThrow(expectCode('SESSION_REFERENCE_INVALID_REFERENCE'))
+    expect(() => parseSessionReferenceText('@[bad](hydra-session:%%%)')).toThrow(expectCode('SESSION_REFERENCE_INVALID_REFERENCE'))
+    const nonString = `hydra-session:${Buffer.from(JSON.stringify({ id: 'x' })).toString('base64url')}`
     expect(() => decodeSessionReferenceUri(nonString)).toThrow(expectCode('SESSION_REFERENCE_INVALID_REFERENCE'))
-    expect(() => decodeSessionReferenceUri('bh-session:IiJ')).toThrow(expectCode('SESSION_REFERENCE_INVALID_REFERENCE'))
+    expect(() => decodeSessionReferenceUri('hydra-session:IiJ')).toThrow(expectCode('SESSION_REFERENCE_INVALID_REFERENCE'))
   })
 })
 
@@ -357,7 +357,7 @@ describe('session reference discovery and preparation', () => {
     const target = ctx.sessions.create(SessionId('target'))
     const agent = fakeAgent(target)
     const malformed = createUserMessage({
-      content: [{ type: 'text', text: '@[bad](bh-session:not-canonical)' }],
+      content: [{ type: 'text', text: '@[bad](hydra-session:not-canonical)' }],
       source: { kind: 'user' },
     })
     const readSurface = vi.spyOn(ctx.sessionQuery, 'readSurface')

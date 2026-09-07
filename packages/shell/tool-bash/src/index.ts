@@ -22,7 +22,7 @@ import type {} from '@hydra/harness-shell-env'
 import type { SandboxExecutionPolicy, SandboxMode } from '@hydra/harness-sandbox'
 import { ESCALATION_TARGETS, approveEscalation, canonicalPath, validateEscalationArgs } from '@hydra/harness-sandbox'
 import type { SandboxPolicyService } from '@hydra/harness-sandbox-policy'
-import { BH_ENV_PREFIX } from '@hydra/harness-shell'
+import { HYDRA_ENV_PREFIX } from '@hydra/harness-shell'
 import type { ShellRunResult } from '@hydra/harness-shell'
 import { processOutcome } from './background.ts'
 import { parseExitStatus, renderProcessRead, renderResult } from './render.ts'
@@ -74,7 +74,7 @@ function bashDescription(backgroundEnabled: boolean, escalationModes: readonly S
   const base = 'Execute a bash command (`bash -c`) and return its stdout/stderr. '
     + 'Each call runs in a fresh shell: no state (cwd, variables, functions) persists between calls — '
     + 'pass `workdir` instead of using `cd`. Non-zero exits are reported as `[exit code: N]`. '
-    + `Current harness environment facts are exposed through managed \`$${BH_ENV_PREFIX}*\` variables; inspect them when needed. `
+    + `Current harness environment facts are exposed through managed \`$${HYDRA_ENV_PREFIX}*\` variables; inspect them when needed. `
     + 'Commands may run under a file sandbox; a blocked file operation is reported as `[sandbox: file access denied under <mode> mode]` — a policy denial, not a bug in the command; do not retry another way. '
     + 'Long output is truncated to its tail; the full output is saved to a file whose path is reported when available. '
     + background
@@ -338,12 +338,12 @@ export function apply(ctx: Context, config: Config = {}): void {
         ? standingPolicy
         : { ...(standingPolicy as SandboxExecutionPolicy), mode: approvedMode }
       const workdir = resolveWorkdir(args.workdir, exec, standingPolicy?.workspaceRoot)
-      const bhEnv = ctx.shellEnv.collect(exec)
+      const hydraEnv = ctx.shellEnv.collect(exec)
       const request = {
         command: args.command,
         ...workdir !== undefined ? { workdir } : {},
         ...args.timeoutMs !== undefined ? { timeoutMs: args.timeoutMs } : {},
-        bhEnv,
+        hydraEnv,
         ...policy !== undefined ? { sandboxPolicy: policy } : {},
       }
       if (args.run_in_background === true) {

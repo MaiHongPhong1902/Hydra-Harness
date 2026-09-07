@@ -75,7 +75,7 @@ export interface ClientTransportHooks {
 
 /** Page global carrying {@link ClientTransportHooks}; absent in the served web app. */
 interface ClientTransportGlobal {
-  __BH_TRANSPORT__?: ClientTransportHooks
+  __HYDRA_TRANSPORT__?: ClientTransportHooks
 }
 
 /**
@@ -111,7 +111,7 @@ export function apply(ctx: Context): void {
   const pageLocation = typeof location === 'undefined' ? undefined : location
   const fixture = pageLocation !== undefined && new URLSearchParams(pageLocation.search).has('fixture')
   const fixtureClient = fixture ? new FixtureApiClient() : undefined
-  const transport = (globalThis as ClientTransportGlobal).__BH_TRANSPORT__
+  const transport = (globalThis as ClientTransportGlobal).__HYDRA_TRANSPORT__
   const api: IApiClient = fixtureClient ?? transport?.createApiClient() ?? new WebApiClient()
   const rpc = fixtureClient?.rpc ?? createWebConnectionRpc(transport?.fetch)
   let started = false

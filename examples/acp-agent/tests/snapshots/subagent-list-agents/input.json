@@ -12,7 +12,7 @@
     },
     {
       "op": "waitForFile",
-      "path": ".bh-snapshot-subagent-settled"
+      "path": ".hydra-snapshot-subagent-settled"
     },
     {
       "op": "waitForTurnStart",

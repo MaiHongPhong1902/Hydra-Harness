@@ -12,7 +12,7 @@ The instructions editor retains unsaved drafts across section entry and pending 
 
 ### Custom instructions: `settings.readInstructions` / `settings.writeInstructions`
 
-Two new RPCs on the existing `settings.*` domain (`packages/host/apiproxy/src/api/settings.ts`) read and wholesale-replace `$BH_HOME/AGENTS.md` — the same fixed user-global file `@hydra/harness-agent-instructions` discovers (its `USER_GLOBAL_FILE` constant is now a public export used by the handler). They intentionally do **not** route through `SettingsProvider`/`ctx.settings.register`: that seam models a schema-validated, namespace-registered section with an in-memory monotonic revision counter, while this is one raw text file with no schema. The handler (`packages/host/apiproxy/src/api-proxy.ts`) instead:
+Two new RPCs on the existing `settings.*` domain (`packages/host/apiproxy/src/api/settings.ts`) read and wholesale-replace `$HYDRA_HOME/AGENTS.md` — the same fixed user-global file `@hydra/harness-agent-instructions` discovers (its `USER_GLOBAL_FILE` constant is now a public export used by the handler). They intentionally do **not** route through `SettingsProvider`/`ctx.settings.register`: that seam models a schema-validated, namespace-registered section with an in-memory monotonic revision counter, while this is one raw text file with no schema. The handler (`packages/host/apiproxy/src/api-proxy.ts`) instead:
 
 - Reads via plain `readFile`, treating `ENOENT` as empty content (no "settings service absent" error — there is no provider to be absent).
 - Writes under `@hydra/harness-atomic-write`'s `withFileLock` + `writeFileAtomic` (`mode: 0o600`, `dirMode: 0o700`), mirroring `settings-file`'s own `persistSection`. The parent directory is `mkdir`-created (mode `0700`) **before** acquiring the lock, because `withFileLock`'s `wx`-created `.lock` sibling requires the parent to already exist — the exact ordering `settings-file`'s `persistSection` uses.
@@ -61,7 +61,7 @@ A prior `step/start` prevents seeding a new personality during resume, even when
 
 - The real Loader snapshot in `apps/cli/tests/personalization.snapshot.ts` checks first use, unchanged turns, replacement, and clearing through the settings RPC and model request history. Browser snapshots cover collapsed entry, Save-only tone writes, and instructions drafts across pending writes and section switches.
 
-- `packages/host/apiproxy/tests/api-proxy-config.spec.ts`: real-`$BH_HOME` round-trip (empty-document read, write, stale-revision conflict, correct-revision success, oversized-content rejection, file/dir permission bits on POSIX).
+- `packages/host/apiproxy/tests/api-proxy-config.spec.ts`: real-`$HYDRA_HOME` round-trip (empty-document read, write, stale-revision conflict, correct-revision success, oversized-content rejection, file/dir permission bits on POSIX).
 - `packages/client/connection/tests/node-half.host.spec.ts`: both RPCs pinned to loopback even against a declared trusted LAN authority, over real HTTP.
 - `packages/context/personalization/tests/personalization.spec.ts`: real `AgentLoop`-driven agents — default/friendly/none prompt text, session-start seeding, and a resumed-in-place agent keeping its own logged personality after the global preference changes mid-conversation.
 - `packages/client/ui-settings-personalization/tests/`: the custom-instructions controller's conflict/error/dispose paths, real slot registration and RPC routing (`apply.client.spec.ts`), and component-level save-gating/conflict/personality-selector behavior.

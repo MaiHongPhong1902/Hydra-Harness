@@ -8,7 +8,7 @@ The website-scoped Obsidian package required a configured domain even for ordina
 
 ## Decision
 
-Rename the pre-release package, Loader id, settings namespace, prompt section, public types, and tools from the website-specific vocabulary to `obsidian-knowledge`. Keep the physical `BH Website Knowledge/` vault root unchanged so existing notes and identity-marker configuration remain valid. Do not retain aliases for the unreleased names.
+Rename the pre-release package, Loader id, settings namespace, prompt section, public types, and tools from the website-specific vocabulary to `obsidian-knowledge`. Keep the physical `Hydra Website Knowledge/` vault root unchanged so existing notes and identity-marker configuration remain valid. Do not retain aliases for the unreleased names.
 
 Generic `obsidian_knowledge_recall`, `obsidian_knowledge_read`, and approval-gated save work without `targetDomain`. Configuring `targetDomain` adds the existing exact-host Browser observation, navigation, and live-evidence policy; it does not gate graph memory.
 

@@ -2,10 +2,10 @@
  * Per-harness-home anonymous user id shared by telemetry and feedback.
  *
  * The id is a random UUID persisted as a bare line in `.anonymous-user-id` inside the
- * harness home resolved by {@link resolveBhHome} (`$BH_HOME` > `~/.bh`),
+ * harness home resolved by {@link resolveHydraHome} (`$HYDRA_HOME` > `~/.hydra`),
  * and never derived from the hostname, network address, git remote, or any
  * other identifying source. It is scoped to the harness home, not the
- * machine: every process sharing one `$BH_HOME` reports the same id, and
+ * machine: every process sharing one `$HYDRA_HOME` reports the same id, and
  * deleting the file mints a fresh identity on the next launch.
  *
  * Reads and writes are synchronous so boot-time and command consumers can
@@ -20,7 +20,7 @@ import { randomUUID } from 'node:crypto'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import type { Branded } from '@hydra/harness-brand'
-import { resolveBhHome } from '@hydra/harness-home-paths'
+import { resolveHydraHome } from '@hydra/harness-home-paths'
 
 /** A harness-home-scoped anonymous user id (random UUID v4). */
 export type AnonymousUserId = Branded<'AnonymousUserId'>
@@ -32,7 +32,7 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{
 
 /** Ambient hooks for locating and generating the id; every field has a default. */
 export interface AnonymousUserIdOptions {
-  /** Environment consulted for `BH_HOME`; defaults to `process.env`. */
+  /** Environment consulted for `HYDRA_HOME`; defaults to `process.env`. */
   env?: NodeJS.ProcessEnv
   /** UUID generator; defaults to `crypto.randomUUID` (test hook). */
   randomUUID?: () => string
@@ -66,7 +66,7 @@ function readPersistedId(file: string): AnonymousUserId | undefined {
  * @returns the stable per-harness-home anonymous user id.
  */
 export function getOrCreateAnonymousUserId(options: AnonymousUserIdOptions = {}): AnonymousUserId {
-  const file = join(resolveBhHome(undefined, options.env ?? process.env), ANONYMOUS_USER_ID_FILE_NAME)
+  const file = join(resolveHydraHome(undefined, options.env ?? process.env), ANONYMOUS_USER_ID_FILE_NAME)
   const cached = memo.get(file)
   if (cached !== undefined) return cached
 

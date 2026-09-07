@@ -19,7 +19,7 @@
   /* figma 75:8208: 12 between title block / workspace / card. */
   gap: 12px;
   width: 100%;
-  max-width: var(--bh-composer-card-max-width);
+  max-width: var(--hydra-composer-card-max-width);
   overflow: visible;
 }
 

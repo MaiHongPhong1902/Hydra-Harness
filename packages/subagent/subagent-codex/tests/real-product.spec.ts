@@ -74,7 +74,7 @@ type ResponsesScript = readonly ResponsesBehavior[] | ((workspace: string) => re
 async function realInstanceFixture(
   script: ResponsesScript,
 ): Promise<RealInstanceFixture> {
-  const root = mkdtempSync(join(tmpdir(), 'bh-codex-real-'))
+  const root = mkdtempSync(join(tmpdir(), 'hydra-codex-real-'))
   roots.push(root)
   const workspace = join(root, 'workspace')
   const codexHome = join(root, 'codex-home')
@@ -102,7 +102,7 @@ async function realInstanceFixture(
     '',
   ].join('\n'))
   const env = {
-    OPENAI_API_KEY: 'bh-fake-openai-key',
+    OPENAI_API_KEY: 'hydra-fake-openai-key',
     CODEX_HOME: codexHome,
     HOME: root,
     XDG_CONFIG_HOME: join(root, 'xdg'),
@@ -227,7 +227,7 @@ describe('real @openai/codex 0.147.0 product', () => {
       env: { ...process.env, ...harness.env },
     })
     expect(version.stdout.trim()).toBe('codex-cli 0.147.0')
-    const schemaRoot = mkdtempSync(join(tmpdir(), 'bh-codex-schema-'))
+    const schemaRoot = mkdtempSync(join(tmpdir(), 'hydra-codex-schema-'))
     roots.push(schemaRoot)
     await execFileAsync(process.execPath, [
       codexEntry,
@@ -300,13 +300,13 @@ describe('real @openai/codex 0.147.0 product', () => {
     const recorded = fixture.requests[0]!
     expect(recorded.method).toBe('POST')
     expect(recorded.path).toBe('/v1/responses')
-    expect(recorded.headers.authorization).toBe('Bearer bh-fake-openai-key')
+    expect(recorded.headers.authorization).toBe('Bearer hydra-fake-openai-key')
     expect(responseInputTexts(recorded.body)).toContain(task)
     await expectQuiescent(harness.handles)
   }, 60_000)
 
   it('fails a missing platform payload without falling back to a host codex', async () => {
-    const root = mkdtempSync(join(tmpdir(), 'bh-codex-missing-payload-'))
+    const root = mkdtempSync(join(tmpdir(), 'hydra-codex-missing-payload-'))
     roots.push(root)
     const isolatedPackage = join(root, 'node_modules', '@openai', 'codex')
     mkdirSync(dirname(isolatedPackage), { recursive: true })
@@ -458,7 +458,7 @@ describe('real @openai/codex 0.147.0 product', () => {
       tool.type === 'function' && tool.name === call.name
     )))).toBe(true)
     expect(fixture.requests.every(requestEntry =>
-      requestEntry.headers.authorization === 'Bearer bh-fake-openai-key',
+      requestEntry.headers.authorization === 'Bearer hydra-fake-openai-key',
     )).toBe(true)
     await expectQuiescent(harness.handles)
   }, 60_000)

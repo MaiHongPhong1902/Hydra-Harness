@@ -50,7 +50,7 @@ type BrowserAnnotation = BrowserAnnotationSelection & {
 }
 
 interface DesktopAnnotationBridge {
-  bhDesktop?: {
+  hydraDesktop?: {
     browser?: {
       onAnnotation?: (listener: (annotation: BrowserAnnotation) => void) => () => void
     }
@@ -223,7 +223,7 @@ export function apply(ctx: Context): void {
   const inputHub = new InputHub(ctx, t)
 
   const onBrowserAnnotation = (globalThis as typeof globalThis & DesktopAnnotationBridge)
-    .bhDesktop?.browser?.onAnnotation
+    .hydraDesktop?.browser?.onAnnotation
   if (onBrowserAnnotation !== undefined) {
     ctx.effect(() => onBrowserAnnotation((annotation) => {
       const sessionId = sessions.list.getSnapshot().current

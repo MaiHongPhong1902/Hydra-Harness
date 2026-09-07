@@ -1,17 +1,17 @@
 // Shared scaffold for the keyless browser e2e lane (Agent Note:
 // .agents/notes/implemented/testing/2026-07-24-web-gui-browser-e2e-lane.md).
-// Boots the REAL web composition — the bh-base and bh-web-app bundle
+// Boots the REAL web composition — the hydra-base and hydra-web-app bundle
 // patches over the empty profile root through the vendored Loader (the same
 // layer stack the profile boot composes), patched the
 // snapshot way — so a real chromium exercises the real HTTP uplink/WebSocket
-// downlink, api-gateway, agent loop, tools, and persistence. Modes ride $BH_SNAPSHOT:
+// downlink, api-gateway, agent loop, tools, and persistence. Modes ride $HYDRA_SNAPSHOT:
 // replay (default, keyless: normally disables the llm-deepseek row and
-// inserts bh-llm-replay in providers mode), record (real adapter + key,
+// inserts hydra-llm-replay in providers mode), record (real adapter + key,
 // harvests fixtures from live session memory), refresh (keyless replay that
 // rewrites goldens). A first-run option keeps the real adapter mounted while
 // masking its credential, without making a model call.
 //
-// Composition divergences from `bh web`, all deliberate, all via include
+// Composition divergences from `hydra web`, all deliberate, all via include
 // patches after the shipped bundle layers, over the SAME tree (never a
 // second yml): temp persistenceRoot; host-level skill roots confined to the
 // temp workspace while project skill discovery remains real; agent-instructions
@@ -44,7 +44,7 @@ import {
   healProfilesModuleFallback,
   loadOverlayPatches,
 } from '@hydra/harness-app-boot'
-import { bhHomePath } from '@hydra/harness-home-paths'
+import { hydraHomePath } from '@hydra/harness-home-paths'
 import { settingsNamespace } from '@hydra/harness-settings'
 import { LlmAdapter } from '@hydra/harness-llm'
 import type {
@@ -86,7 +86,7 @@ export const WELCOME_NOTICE_COPY = {
   },
 } as const
 
-/** Snapshot mode for the lane, from $BH_SNAPSHOT (same vocabulary as the other snapshot suites). */
+/** Snapshot mode for the lane, from $HYDRA_SNAPSHOT (same vocabulary as the other snapshot suites). */
 export type WebSnapshotMode = 'replay' | 'record' | 'refresh'
 
 /**
@@ -94,13 +94,13 @@ export type WebSnapshotMode = 'replay' | 'record' | 'refresh'
  * @returns the active mode; unset/empty selects replay.
  */
 export function webSnapshotMode(): WebSnapshotMode {
-  const value = process.env.BH_SNAPSHOT
+  const value = process.env.HYDRA_SNAPSHOT
   if (value === undefined || value === '' || value === 'replay') return 'replay'
   if (value === 'record' || value === 'refresh') return value
-  throw new Error(`BH_SNAPSHOT must be replay, record, or refresh; got ${JSON.stringify(value)}`)
+  throw new Error(`HYDRA_SNAPSHOT must be replay, record, or refresh; got ${JSON.stringify(value)}`)
 }
 
-/** The shipped composition under test: the bh-base and bh-web-app bundle patches over the empty profile root. */
+/** The shipped composition under test: the hydra-base and hydra-web-app bundle patches over the empty profile root. */
 const BASE_PATCH_PATH = join(REPO_ROOT, 'packages/bundle/base/cordis.patch.yml')
 const WEB_PATCH_PATH = join(REPO_ROOT, 'packages/bundle/web-app/cordis.patch.yml')
 /** The installation anchor whose dependency surface the profile module fallback mirrors. */
@@ -179,7 +179,7 @@ export interface WebScaffold {
   workspaceCwd: string
   /** Temp persistence root (seeded sessions land here through the real API). */
   persistenceRoot: string
-  /** Isolated harness home the settings/credentials rows write ($BH_HOME double). */
+  /** Isolated harness home the settings/credentials rows write ($HYDRA_HOME double). */
   harnessHome: string
   /** Await a settled turn end: in-process turn/end, then the agent's idle flip (which follows the persistence flush). */
   whenTurnSettled(timeoutMs?: number): Promise<SessionId>
@@ -200,7 +200,7 @@ export interface LaunchOptions {
    */
   extraOverlayPath?: string
   /**
-   * Replay fixture (session.jsonl) served by the inserted bh-llm-replay row
+   * Replay fixture (session.jsonl) served by the inserted hydra-llm-replay row
    * in replay/refresh modes; ignored in record mode (the real adapter
    * answers). Omit for scenarios issuing no model calls — a stray stream then
    * fails loud with NO_ADAPTER (llm-deepseek is disabled and no replay row
@@ -342,25 +342,25 @@ export async function launchWebScaffold(options: LaunchOptions = {}): Promise<We
       process.env.DEEPSEEK_API_KEY = originalDeepSeekCredential
     }
   }
-  const workspaceCwd = await realpath(await mkdtemp(join(tmpdir(), 'bh-web-e2e-ws-')))
-  // Isolated harness home: the settings/credentials rows resolve $BH_HOME
+  const workspaceCwd = await realpath(await mkdtemp(join(tmpdir(), 'hydra-web-e2e-ws-')))
+  // Isolated harness home: the settings/credentials rows resolve $HYDRA_HOME
   // paths at load, and an in-process boot must NEVER touch the developer's
-  // real ~/.bh document or credential file.
-  const harnessHome = options.harnessHome ?? join(workspaceCwd, '.bh-home')
+  // real ~/.hydra document or credential file.
+  const harnessHome = options.harnessHome ?? join(workspaceCwd, '.hydra-home')
   // Skill discovery is model-visible input, and its roots now resolve inside a
   // PRESET — a subtree this lane's include patches cannot reach, because the
   // roster mounts it directly per session rather than as a row of the booted
   // tree. The row's documented fallback is the environment, so pin that: the
   // whole scaffold lifetime, not just the boot, since presets mount when a
-  // session is created. Without this a developer's real ~/.bh/skills silently
-  // enters replay requests and goldens while CI sees none. `BH_HOME` follows
+  // session is created. Without this a developer's real ~/.hydra/skills silently
+  // enters replay requests and goldens while CI sees none. `HYDRA_HOME` follows
   // the resolved harness home so a scaffold sharing another's home — the
   // cross-port persistence scenario — pins the same roots the settings and
   // credentials rows were configured with.
   const skillRootEnvironment = {
-    BH_HOME: harnessHome,
-    BH_AGENTS_HOME: join(workspaceCwd, '.agents-home'),
-    BH_BUNDLED_SKILL_DIR: join(workspaceCwd, '.bundled-skills'),
+    HYDRA_HOME: harnessHome,
+    HYDRA_AGENTS_HOME: join(workspaceCwd, '.agents-home'),
+    HYDRA_BUNDLED_SKILL_DIR: join(workspaceCwd, '.bundled-skills'),
   }
   const originalSkillRootEnvironment = Object.fromEntries(
     Object.keys(skillRootEnvironment).map(key => [key, process.env[key]]),
@@ -377,7 +377,7 @@ export async function launchWebScaffold(options: LaunchOptions = {}): Promise<We
   Object.assign(process.env, skillRootEnvironment)
   let persistenceRoot: string
   try {
-    persistenceRoot = await mkdtemp(join(tmpdir(), 'bh-web-e2e-sessions-'))
+    persistenceRoot = await mkdtemp(join(tmpdir(), 'hydra-web-e2e-sessions-'))
   } catch (error) {
     const failures: unknown[] = [error]
     await rm(workspaceCwd, { recursive: true, force: true }).catch((cleanupError: unknown) => failures.push(cleanupError))
@@ -388,7 +388,7 @@ export async function launchWebScaffold(options: LaunchOptions = {}): Promise<We
   if (maskDeepSeekCredential) Reflect.deleteProperty(process.env, 'DEEPSEEK_API_KEY')
 
   // The include patch set — the same layer stack the profile boot composes
-  // (bundle patches in bh.profile.bundles order), applied over the SAME empty root (a
+  // (bundle patches in hydra.profile.bundles order), applied over the SAME empty root (a
   // patch id that stops matching a row fails the boot sweep loudly instead of
   // drifting).
   const basePatches = loadOverlayPatches('web e2e scaffold', BASE_PATCH_PATH)
@@ -411,7 +411,7 @@ export async function launchWebScaffold(options: LaunchOptions = {}): Promise<We
     // chooses it. This lane boots the shipped tree WITHOUT AppCLIEntry, so it
     // has to supply the same fact or the roster resolves nothing and every
     // session composes an agent with no tools, no persona, and no token meter.
-    // Only the shipped root: a developer's own `~/.bh/.agent-presets` must not be
+    // Only the shipped root: a developer's own `~/.hydra/.agent-presets` must not be
     // able to change a golden.
     {
       id: 'agent-presets',
@@ -427,18 +427,18 @@ export async function launchWebScaffold(options: LaunchOptions = {}): Promise<We
     // the seeded-session scenarios navigate by content search, and these e2e
     // runs are the assembled coverage for the opt-in search path.
     { id: 'session-query-sqlite', config: { path: ':memory:', openAt: 'first-search' } },
-    // storage-json's yml root is anchored to the real $BH_HOME; pin the row
+    // storage-json's yml root is anchored to the real $HYDRA_HOME; pin the row
     // to an absolute temp root (removed with the workspace at close) so tests
     // never write the user's harness home.
-    { id: 'storage-json', config: { root: join(workspaceCwd, '.bh-storages') } },
+    { id: 'storage-json', config: { root: join(workspaceCwd, '.hydra-storages') } },
     // Skill discovery is model-visible input. Pin every host-level root inside
-    // the owned temp world so ~/.bh, ~/.agents, and a bundled-root env setting
+    // the owned temp world so ~/.hydra, ~/.agents, and a bundled-root env setting
     // cannot change replay requests or conversation goldens. Project roots stay
     // enabled against the same empty temp workspace, preserving the real seam.
     {
       id: 'skill-filesystem',
       config: {
-        bhHome: join(workspaceCwd, '.bh-home'),
+        hydraHome: join(workspaceCwd, '.hydra-home'),
         agentsHome: join(workspaceCwd, '.agents-home'),
         bundledSkillDir: join(workspaceCwd, '.bundled-skills'),
         watch: false,
@@ -450,7 +450,7 @@ export async function launchWebScaffold(options: LaunchOptions = {}): Promise<We
     { id: 'agent-instructions', disabled: true },
     { id: 'session-title-llm', disabled: true },
     // Fixture sessions must never leave the process: the shipped row defaults
-    // to the production OTLP endpoint (or whatever BH_TELEMETRY_OTLP_URL
+    // to the production OTLP endpoint (or whatever HYDRA_TELEMETRY_OTLP_URL
     // names in the ambient environment). A scenario that pins a real backend
     // disclosure passes a local dead endpoint instead of disabling the row.
     options.telemetryUrl === undefined
@@ -476,8 +476,8 @@ export async function launchWebScaffold(options: LaunchOptions = {}): Promise<We
     ...options.remoteAuthority === undefined
       ? []
       : [{ id: 'connection', config: { trustedHosts: [options.remoteAuthority] } }],
-    { id: 'settings', config: { bhHome: harnessHome } },
-    { id: 'credentials', config: { bhHome: harnessHome } },
+    { id: 'settings', config: { hydraHome: harnessHome } },
+    { id: 'credentials', config: { hydraHome: harnessHome } },
     // The shipped directory-picker row is the -auto chooser, which resolves
     // the interaction from the RUNNING host (display, SSH launch, bind). The
     // lane's goldens are interaction-specific (workspace-management drives
@@ -533,13 +533,13 @@ export async function launchWebScaffold(options: LaunchOptions = {}): Promise<We
     await writeFile(join(profileDir, 'package.json'), JSON.stringify({
       name: 'scaffold',
       private: true,
-      bh: { profile: { bundles: [] } },
+      hydra: { profile: { bundles: [] } },
     }, undefined, 2) + '\n')
     const rootConfig = join(profileDir, 'cordis.yml')
     await writeFile(rootConfig, '[]\n')
     ctx.baseUrl = pathToFileURL(profileDir).href + '/'
     // This direct Loader harness supplies the same root-path capability as app-boot.
-    ctx.provide('bhHomePath', bhHomePath)
+    ctx.provide('hydraHomePath', hydraHomePath)
     // A host with no command line still provides one: the web bundle's startup
     // row releases the rows waiting on it, and with no arguments each starts on
     // the values this scaffold composed above. An exit request can only come
@@ -963,7 +963,7 @@ export async function compareOrRefreshGolden(goldenPath: string, actual: string,
     return
   }
   if (!existsSync(goldenPath)) {
-    throw new Error(`missing golden ${goldenPath} — run BH_SNAPSHOT=refresh pnpm run test:web to generate it`)
+    throw new Error(`missing golden ${goldenPath} — run HYDRA_SNAPSHOT=refresh pnpm run test:web to generate it`)
   }
   expect(payload).toBe(await readFile(goldenPath, 'utf8'))
 }

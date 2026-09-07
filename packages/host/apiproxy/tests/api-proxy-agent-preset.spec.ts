@@ -106,7 +106,7 @@ async function harness(
   persistence?: unknown,
   options: { userIds?: readonly string[]; defaults?: Record<string, unknown> } = {},
 ) {
-  const cwd = realpathSync(mkdtempSync(join(tmpdir(), 'bh-apiproxy-preset-')))
+  const cwd = realpathSync(mkdtempSync(join(tmpdir(), 'hydra-apiproxy-preset-')))
   const ctx = new Context()
   await ctx.plugin(SessionStore)
   await ctx.plugin(AgentRegistry)

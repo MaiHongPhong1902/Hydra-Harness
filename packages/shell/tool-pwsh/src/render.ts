@@ -14,7 +14,7 @@ import type { ShellProcessRead, ShellSandboxInfo, CollectedOutput } from '@hydra
 import type { SandboxMode } from '@hydra/harness-sandbox'
 import { escalationHintMarker, sandboxDenialMarker } from '@hydra/harness-sandbox'
 
-/* jscpd:ignore-start -- deliberate twin of bh-tool-bash/render.ts (Agent Note). */
+/* jscpd:ignore-start -- deliberate twin of hydra-tool-bash/render.ts (Agent Note). */
 
 /** Append the truncation notice (with the full-output spill path) to a stream's text. */
 function streamText(output: CollectedOutput): string {

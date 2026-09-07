@@ -41,12 +41,12 @@ async function mount(root: string): Promise<Context> {
   contexts.push(ctx)
   await ctx.plugin(StubShell)
   await ctx.plugin(FileSettingsProvider, { path: join(root, 'settings.yaml'), watch: false })
-  await ctx.plugin(HookRecordRegistry, { bhHome: root })
+  await ctx.plugin(HookRecordRegistry, { hydraHome: root })
   return ctx
 }
 
 async function harness(): Promise<{ ctx: Context; registry: HookRecordRegistry; root: string }> {
-  const root = await mkdtemp(join(tmpdir(), 'bh-hooks-registry-'))
+  const root = await mkdtemp(join(tmpdir(), 'hydra-hooks-registry-'))
   directories.push(root)
   const ctx = await mount(root)
   return { ctx, registry: ctx.get('hookRecords') as HookRecordRegistry, root }
@@ -198,7 +198,7 @@ describe('mount reconciliation', () => {
   })
 
   it('mounts every enabled record the document already carried at startup', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'bh-hooks-registry-startup-'))
+    const root = await mkdtemp(join(tmpdir(), 'hydra-hooks-registry-startup-'))
     directories.push(root)
     await writeFile(join(root, 'settings.yaml'), [
       'hooks:',

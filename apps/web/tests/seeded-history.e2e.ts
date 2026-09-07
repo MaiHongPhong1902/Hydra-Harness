@@ -7,7 +7,7 @@
 // command-row surfaces: the seeded manual `/compact` lifecycle folds into its
 // checkpoint, an Access-chip pick later runs `/permission` on the host, and
 // `/feedback` pins its expandable correlation ids. The seed is a recorded
-// fixture under the same record discipline as every other: BH_SNAPSHOT=record drives the turn
+// fixture under the same record discipline as every other: HYDRA_SNAPSHOT=record drives the turn
 // live through the composer (real read tool against seeded workspace files)
 // and harvests seed.jsonl; replay/refresh seed it cold and only render.
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
@@ -489,8 +489,8 @@ describe('web e2e: seeded history renders through cold resume', () => {
 
   it.skipIf(MODE === 'record')('reports full feedback correlation ids in an expandable two-line row', async () => {
     onTestFailed(() => saveFailureShot(page, 'web-e2e-seeded-feedback-row'))
-    const previousBhHome = process.env.BH_HOME
-    process.env.BH_HOME = scaffold.harnessHome
+    const previousHydraHome = process.env.HYDRA_HOME
+    process.env.HYDRA_HOME = scaffold.harnessHome
     try {
       const input = page.locator('textarea').first()
       await input.fill('/feedback the diff view is unreadable')
@@ -520,8 +520,8 @@ describe('web e2e: seeded history renders through cold resume', () => {
         .split(userId).join('{{userId}}')
       await compareOrRefreshGolden(FEEDBACK_ROW_EXPECTED, snapshot, MODE)
     } finally {
-      if (previousBhHome === undefined) delete process.env.BH_HOME
-      else process.env.BH_HOME = previousBhHome
+      if (previousHydraHome === undefined) delete process.env.HYDRA_HOME
+      else process.env.HYDRA_HOME = previousHydraHome
     }
   }, 60_000)
 

@@ -16,10 +16,10 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/bosch/bosch-harness"
-Documentation = "https://github.com/bosch/bosch-harness/blob/master/docs/user/guide/python-sdk.md"
-Issues = "https://github.com/bosch/bosch-harness/issues"
-Source = "https://github.com/bosch/bosch-harness"
+Homepage = "https://github.com/MaiHongPhong1902/Hydra-Harness"
+Documentation = "https://github.com/MaiHongPhong1902/Hydra-Harness/blob/master/docs/user/guide/python-sdk.md"
+Issues = "https://github.com/MaiHongPhong1902/Hydra-Harness/issues"
+Source = "https://github.com/MaiHongPhong1902/Hydra-Harness"
 
 [dependency-groups]
 test = ["pytest>=8.0"]

@@ -97,7 +97,7 @@ export async function inspectApiRemoteSession(
 ): Promise<{ meta: SessionHeader; events: SessionEvent[] }> {
   const persistence = ctx.get('sessionPersistence')
   if (persistence === undefined) {
-    throw new Error('session persistence is not configured (load a bh-session-persistence backend)')
+    throw new Error('session persistence is not configured (load a hydra-session-persistence backend)')
   }
   const meta = (await persistence.list()).find(candidate => candidate.id === sessionId)
   if (meta === undefined || meta.cwd === undefined) {

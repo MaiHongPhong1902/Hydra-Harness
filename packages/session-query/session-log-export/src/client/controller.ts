@@ -28,7 +28,7 @@ const INITIAL: SessionLogDownloadState = { bySession: {} }
  * @returns one safe browser download filename.
  */
 export function sessionLogZipFilename(sessionId: SessionId): string {
-  return `bh-session-${String(sessionId).replace(/[^A-Za-z0-9_-]/g, '_')}.zip`
+  return `hydra-session-${String(sessionId).replace(/[^A-Za-z0-9_-]/g, '_')}.zip`
 }
 
 /**
@@ -46,7 +46,7 @@ export function downloadUrl(url: string, filename: string): void {
 /** Resolve the browser's Host base with the connection carrier's null-origin fallback. */
 function hostBase(): string {
   const origin = (globalThis as { location?: { origin?: string } }).location?.origin
-  return origin !== undefined && origin !== 'null' ? origin : 'http://bh.internal'
+  return origin !== undefined && origin !== 'null' ? origin : 'http://hydra.internal'
 }
 
 function messageOf(error: unknown): string {

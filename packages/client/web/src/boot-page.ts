@@ -32,11 +32,11 @@ export class BootPage {
    */
   constructor(container: HTMLElement) {
     this.root = div(css.boot)
-    this.root.dataset.bhBoot = ''
+    this.root.dataset.hydraBoot = ''
     this.card = div(css.card)
     this.wordmark = div(css.wordmark, 'Hydra harness')
     this.spinner = div(css.spinner)
-    this.spinner.dataset.bhBootSpinner = ''
+    this.spinner.dataset.hydraBootSpinner = ''
     this.hint = div(css.hint, 'Loading plugins…')
     this.card.append(this.wordmark, this.spinner, this.hint)
     this.root.append(this.card)
@@ -98,6 +98,6 @@ export class BootPage {
   /** Grow the rotating arc monotonically as loader entries activate. */
   private updateProgress(): void {
     const ratio = this.total === 0 ? 0 : Math.min(this.active.size / this.total, 1)
-    this.spinner.style.setProperty('--bh-boot-arc', `${String(Math.round(72 + ratio * 216))}deg`)
+    this.spinner.style.setProperty('--hydra-boot-arc', `${String(Math.round(72 + ratio * 216))}deg`)
   }
 }

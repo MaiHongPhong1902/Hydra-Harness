@@ -60,8 +60,8 @@
   border: 1px solid var(--dsw-alias-border-l2);
   border-radius: var(--dsw-radius-panel);
   background: var(--dsw-specific-menu);
-  --bh-scrollbar-thumb: var(--dsw-alias-scrollbar-bg-l2);
-  --bh-scrollbar-thumb-hover: var(--dsw-alias-scrollbar-hover-l2);
+  --hydra-scrollbar-thumb: var(--dsw-alias-scrollbar-bg-l2);
+  --hydra-scrollbar-thumb-hover: var(--dsw-alias-scrollbar-hover-l2);
   box-shadow: var(--dsw-shadow-lv3);
 }
 

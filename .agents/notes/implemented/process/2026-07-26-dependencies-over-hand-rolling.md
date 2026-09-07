@@ -29,6 +29,6 @@ Dependency-swap proposals are recorded as `proposed/simplification` Agent Notes 
 
 ## Consequences
 
-- Agents and contributors surveying for simplifications now treat "replace hand-rolled X with package Y" as in-scope output; [bh-find-simplifications](../../../skills/bh-find-simplifications/SKILL.md) carries the corresponding guidance.
+- Agents and contributors surveying for simplifications now treat "replace hand-rolled X with package Y" as in-scope output; [hydra-find-simplifications](../../../skills/hydra-find-simplifications/SKILL.md) carries the corresponding guidance.
 - The dependency list will grow, and with it the supply-chain surface; the mitigations live in the [supply-chain proposal](../../proposed/process/2026-06-11-supply-chain-and-vendor-drift.md), which this policy makes more urgent.
 - Root `AGENTS.md` carries the one-line rule; this note owns the rationale and the bar.

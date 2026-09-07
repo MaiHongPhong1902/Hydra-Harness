@@ -1,10 +1,10 @@
 # @hydra/harness-sdk-jsonrpc-demo
 
-Bin-only app that boots an external `cordis.yml`; its [`jsonrpc`](../../sdk/server/README.md) entry serves SDK clients over newline-delimited stdio. The config composes the spine, backends, and serving plugin. The published `bh-jsonrpc-agent` bin resolves bare plugins from the configuration project. The Python SDK's `bh-jsonrpc-agent-pkg` [single-executable runtime](../../../.agents/notes/implemented/architecture/2026-07-10-single-file-executable-sdk-runtime-distribution.md) uses `lib/packaged-bin.js` instead: packaged bare plugins resolve from its closed runtime tree, while relative plugins remain configuration-relative.
+Bin-only app that boots an external `cordis.yml`; its [`jsonrpc`](../../sdk/server/README.md) entry serves SDK clients over newline-delimited stdio. The config composes the spine, backends, and serving plugin. The published `hydra-jsonrpc-agent` bin resolves bare plugins from the configuration project. The Python SDK's `hydra-jsonrpc-agent-pkg` [single-executable runtime](../../../.agents/notes/implemented/architecture/2026-07-10-single-file-executable-sdk-runtime-distribution.md) uses `lib/packaged-bin.js` instead: packaged bare plugins resolve from its closed runtime tree, while relative plugins remain configuration-relative.
 
 ## Config discovery
 
-The first non-empty channel wins: `$BH_CORDIS_CONFIG`, then positional `argv[2]`. If neither names an existing file, the bin prints one-line usage to stderr and exits 1; there is no working-directory or built-in fallback. [`@hydra/harness-app-boot`](../../boot/app-boot/README.md) makes plugin load failures fatal. This protocol does not use `BH_SNAPSHOT`.
+The first non-empty channel wins: `$HYDRA_CORDIS_CONFIG`, then positional `argv[2]`. If neither names an existing file, the bin prints one-line usage to stderr and exits 1; there is no working-directory or built-in fallback. [`@hydra/harness-app-boot`](../../boot/app-boot/README.md) makes plugin load failures fatal. This protocol does not use `HYDRA_SNAPSHOT`.
 
 A config without `@hydra/harness-sdk-jsonrpc-server` is valid and serves nothing; the bin does not designate a server plugin.
 
@@ -27,5 +27,5 @@ No direct invalidation; the named consumer owns any request-prefix changes.
 ## Known Limitations and Deferred Work
 
 - **The bin cannot prove that the config serves JSON-RPC** — a valid config with no `@hydra/harness-sdk-jsonrpc-server` entry boots successfully and serves nothing.
-- **No built-in or default config exists** — every launch must provide `BH_CORDIS_CONFIG` or a positional path, and deployment owns the complete plugin tree and stdout discipline.
+- **No built-in or default config exists** — every launch must provide `HYDRA_CORDIS_CONFIG` or a positional path, and deployment owns the complete plugin tree and stdout discipline.
 - **stdin EOF cuts off in-flight work** — client disappearance disposes the root immediately; callers that need orderly completion use the protocol-level `shutdown` request.

@@ -1,7 +1,7 @@
 /**
  * Tests for the filesystem Service Definition: registration, duplicate-service
  * behavior, disposal, and the branded id factories. The provider primitives and
- * policy live in `bh-fs-local` and `bh-fs-observation-policy`; this seam owns only the
+ * policy live in `hydra-fs-local` and `hydra-fs-observation-policy`; this seam owns only the
  * abstract service contract, so a minimal fake backend exercises it.
  */
 

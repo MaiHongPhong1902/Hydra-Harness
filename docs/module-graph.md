@@ -57,7 +57,7 @@ flowchart TD
   subgraph group_subagent["packages/subagent"]
     pkg_subagent["subagent"]
     pkg_subagent_acp["subagent-acp"]
-    pkg_subagent_bh_sdk["subagent-bh-sdk"]
+    pkg_subagent_hydra_sdk["subagent-sdk"]
     pkg_subagent_claude_code["subagent-claude-code"]
     pkg_subagent_codex["subagent-codex"]
     pkg_subagent_fork_in_process["subagent-fork-in-process"]
@@ -1215,13 +1215,13 @@ flowchart TD
   pkg_sdk_jsonrpc_server --> pkg_sdk_protocol
   pkg_sdk_jsonrpc_server --> pkg_session
   pkg_sdk_jsonrpc_server --> pkg_subagent
-  pkg_subagent_bh_sdk --> pkg_agent
-  pkg_subagent_bh_sdk --> pkg_invariants
-  pkg_subagent_bh_sdk --> pkg_llm
-  pkg_subagent_bh_sdk --> pkg_sdk_client
-  pkg_subagent_bh_sdk --> pkg_session
-  pkg_subagent_bh_sdk --> pkg_subagent
-  pkg_subagent_bh_sdk --> pkg_subprocess
+  pkg_subagent_hydra_sdk --> pkg_agent
+  pkg_subagent_hydra_sdk --> pkg_invariants
+  pkg_subagent_hydra_sdk --> pkg_llm
+  pkg_subagent_hydra_sdk --> pkg_sdk_client
+  pkg_subagent_hydra_sdk --> pkg_session
+  pkg_subagent_hydra_sdk --> pkg_subagent
+  pkg_subagent_hydra_sdk --> pkg_subprocess
   pkg_api_gateway --> pkg_client_connection
   pkg_api_gateway --> pkg_invariants
   pkg_api_gateway --> pkg_typert_registry
@@ -1725,7 +1725,7 @@ flowchart TD
 | [`experimental-tool-agent-team`](../packages/experimental/tool-agent-team) | `experimental` | [`agent`](../packages/core/agent), [`experimental-agent-team`](../packages/experimental/agent-team), [`invariants`](../packages/runtime-diagnostics/invariants), [`session`](../packages/core/session), [`system-prompt`](../packages/core/system-prompt), [`tools`](../packages/core/tools) |
 | [`sdk-client`](../packages/sdk/client) | `sdk` | [`invariants`](../packages/runtime-diagnostics/invariants), [`llm`](../packages/llm/llm), [`sdk-protocol`](../packages/sdk/protocol), [`session`](../packages/core/session) |
 | [`sdk-jsonrpc-server`](../packages/sdk/server) | `sdk` | [`agent`](../packages/core/agent), [`invariants`](../packages/runtime-diagnostics/invariants), [`llm`](../packages/llm/llm), [`llm-deepseek`](../packages/llm/llm-deepseek), [`scope`](../packages/core/scope), [`sdk-protocol`](../packages/sdk/protocol), [`session`](../packages/core/session), [`subagent`](../packages/subagent/subagent) |
-| [`subagent-bh-sdk`](../packages/subagent/subagent-bh-sdk) | `subagent` | [`agent`](../packages/core/agent), [`invariants`](../packages/runtime-diagnostics/invariants), [`llm`](../packages/llm/llm), [`sdk-client`](../packages/sdk/client), [`session`](../packages/core/session), [`subagent`](../packages/subagent/subagent), [`subprocess`](../packages/subprocess/subprocess) |
+| [`subagent-sdk`](../packages/subagent/subagent-sdk) | `subagent` | [`agent`](../packages/core/agent), [`invariants`](../packages/runtime-diagnostics/invariants), [`llm`](../packages/llm/llm), [`sdk-client`](../packages/sdk/client), [`session`](../packages/core/session), [`subagent`](../packages/subagent/subagent), [`subprocess`](../packages/subprocess/subprocess) |
 | [`api-gateway`](../packages/api/gateway) | `api` | [`client-connection`](../packages/client/connection), [`invariants`](../packages/runtime-diagnostics/invariants), [`typert-registry`](../packages/typert/registry) |
 | [`acp-demo`](../packages/examples/acp-demo) | `examples` | [`acp`](../packages/acp/acp), [`agent-instructions`](../packages/context/agent-instructions), [`agent-spine-demo`](../packages/examples/agent-spine-demo), [`app-boot`](../packages/boot/app-boot), [`invariants`](../packages/runtime-diagnostics/invariants), [`session-checkpoint-policy`](../packages/session/session-checkpoint-policy), [`session-persistence-jsonl`](../packages/session/session-persistence-jsonl), [`session-query`](../packages/session-query/session-query), [`session-query-sqlite`](../packages/session-query/session-query-sqlite), [`tools`](../packages/core/tools) |
 | [`host-plugin-inventory`](../packages/host/plugin-inventory) | `host` | [`app-boot`](../packages/boot/app-boot), [`atomic-write`](../packages/util/atomic-write), [`brand`](../packages/util/brand), [`hooks-registry`](../packages/hooks/hooks-registry), [`invariants`](../packages/runtime-diagnostics/invariants), [`mcp-registry`](../packages/mcp/mcp-registry), [`plugin-runtime`](../packages/host/plugin-runtime), [`settings`](../packages/settings/settings), [`typert-protocol`](../packages/typert/protocol) |

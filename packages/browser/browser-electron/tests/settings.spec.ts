@@ -79,8 +79,8 @@ describe('browser-electron settings', () => {
     const descriptor = ctx.settings.describe().find(row => row.ns === BROWSER_SETTINGS_NAMESPACE)
     const defaults = {
       controlEnabled: true,
-      webDestination: 'bhagent',
-      localDestination: 'bhagent',
+      webDestination: 'hydra',
+      localDestination: 'hydra',
       annotationScreenshots: 'include',
       downloadDirectory: '',
       askWhereToSave: false,

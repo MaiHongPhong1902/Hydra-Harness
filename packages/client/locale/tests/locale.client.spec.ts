@@ -18,7 +18,7 @@ const make = (host?: StubSettingsScope<LocaleSettings>): {
 /**
  * Pin the browser environment a fresh service reads its initial locale from.
  * This package's own specs stub the globals directly instead of using
- * `usePinnedBrowserLanguages` (bh-client-test-runtime): they need the shapes
+ * `usePinnedBrowserLanguages` (hydra-client-test-runtime): they need the shapes
  * that helper deliberately cannot express — a missing `languages` list, a
  * list decoupled from `language`, and a non-browser run with no `window`.
  */

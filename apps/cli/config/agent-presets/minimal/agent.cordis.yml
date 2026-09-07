@@ -80,7 +80,7 @@
     - id: fs-local
       name: '@hydra/harness-fs-local'
       config:
-        cwd: !!js process.env.BH_CWD ?? process.cwd()
+        cwd: !!js process.env.HYDRA_CWD ?? process.cwd()
 
     - id: str-replace-editor
       name: '@hydra/harness-tool-str-replace-editor'

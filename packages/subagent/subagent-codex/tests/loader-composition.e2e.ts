@@ -15,9 +15,9 @@ const driver = join(fixtureDir, 'driver.ts')
 const configPath = join(fixtureDir, 'cordis.yml')
 const packageDir = fileURLToPath(new URL('..', import.meta.url))
 const manifest = JSON.parse(readFileSync(join(packageDir, 'package.json'), 'utf8')) as {
-  bh?: { bundle?: { patch?: string } }
+  hydra?: { bundle?: { patch?: string } }
 }
-const bundlePatch = manifest.bh?.bundle?.patch
+const bundlePatch = manifest.hydra?.bundle?.patch
 if (bundlePatch === undefined) throw new Error('Codex package must declare a Bundle patch')
 const bundlePatchPath = join(packageDir, bundlePatch)
 const repoTsconfig = fileURLToPath(new URL('../../../../tsconfig.json', import.meta.url))
@@ -26,7 +26,7 @@ describe('Codex provider public Loader composition', () => {
   it('loads the Bundle default, two named instances, their tools, and job controls without starting Codex', async () => {
     const { stdout, stderr } = await runLoaderSmoke({
       label: 'subagent-codex Loader composition',
-      tempDirPrefix: 'bh-subagent-codex-loader-',
+      tempDirPrefix: 'hydra-subagent-codex-loader-',
       binScript: driver,
       libBinScript: driver,
       configPath,

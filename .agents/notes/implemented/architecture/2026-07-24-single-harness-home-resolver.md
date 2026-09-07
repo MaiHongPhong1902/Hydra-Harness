@@ -6,8 +6,8 @@ Status: implemented
 
 The harness had two inconsistent conventions for "where does Hydra harness user data live":
 
-- `@hydra/harness-home` resolved `configured ?? $BH_HOME ?? ~/.bh`.
-- `@hydra/harness-home-paths` shipped a **second** `resolveBhHome` with the same precedence plus tilde expansion — a near-duplicate of `bh-home` that no gate flagged because the two lived in different packages and had already drifted (only one expanded tildes).
+- `@hydra/harness-home` resolved `configured ?? $HYDRA_HOME ?? ~/.hydra`.
+- `@hydra/harness-home-paths` shipped a **second** `resolveHydraHome` with the same precedence plus tilde expansion — a near-duplicate of `hydra-home` that no gate flagged because the two lived in different packages and had already drifted (only one expanded tildes).
 
 Two resolvers for the same cross-cutting fact meant there was no single home policy.
 
@@ -16,20 +16,20 @@ Two resolvers for the same cross-cutting fact meant there was no single home pol
 One resolver owns the harness home, in `@hydra/harness-home-paths`, single-root:
 
 ```
-explicit configured path  >  $BH_HOME  >  ~/.bh
+explicit configured path  >  $HYDRA_HOME  >  ~/.hydra
 ```
 
-An empty or whitespace-only `$BH_HOME` is treated as unset; otherwise `resolve('')` would silently place the home at the current working directory. The harness keeps all user data under one root; there is no XDG config/data/cache split. `bhHomePath(...segments)` joins deployment-owned children onto that root, and `@hydra/harness-app-boot` exposes it to Loader `!!js` config expressions before mounting entries, so shipped compositions derive `sessions` and `storages` without copying the resolver. `bhHomeDisplay()` names a resolved root symbolically for user-facing paths — `~/.bh` for the default home, `$BH_HOME` for any configured home — so the user-global `AGENTS.md` label never leaks an absolute machine path. It replaces agent-instructions's bespoke default-vs-`$BH_HOME` check.
+An empty or whitespace-only `$HYDRA_HOME` is treated as unset; otherwise `resolve('')` would silently place the home at the current working directory. The harness keeps all user data under one root; there is no XDG config/data/cache split. `hydraHomePath(...segments)` joins deployment-owned children onto that root, and `@hydra/harness-app-boot` exposes it to Loader `!!js` config expressions before mounting entries, so shipped compositions derive `sessions` and `storages` without copying the resolver. `hydraHomeDisplay()` names a resolved root symbolically for user-facing paths — `~/.hydra` for the default home, `$HYDRA_HOME` for any configured home — so the user-global `AGENTS.md` label never leaks an absolute machine path. It replaces agent-instructions's bespoke default-vs-`$HYDRA_HOME` check.
 
-`@hydra/harness-home` is deleted. Its three importers (`@hydra/harness-tool-bash`, `@hydra/harness-skill-filesystem`, `@hydra/harness-agent-spine-demo`) import `resolveBhHome` from `@hydra/harness-home-paths`.
+`@hydra/harness-home` is deleted. Its three importers (`@hydra/harness-tool-bash`, `@hydra/harness-skill-filesystem`, `@hydra/harness-agent-spine-demo`) import `resolveHydraHome` from `@hydra/harness-home-paths`.
 
-`bh-telemetry` and its separate home policy are absent under the [SDK project toolchain removal](../simplification/2026-08-11-remove-sdk-project-toolchain.md), leaving this resolver as the sole home policy.
+`hydra-telemetry` and its separate home policy are absent under the [SDK project toolchain removal](../simplification/2026-08-11-remove-sdk-project-toolchain.md), leaving this resolver as the sole home policy.
 
 ## Alternatives considered
 
-**Leave the two `resolveBhHome` copies in place.** They had already drifted (one expands tildes, one didn't) and encode the same cross-cutting fact twice. Consolidation is the point of the `util/` layer; a duplicate resolver is a latent divergence bug.
+**Leave the two `resolveHydraHome` copies in place.** They had already drifted (one expands tildes, one didn't) and encode the same cross-cutting fact twice. Consolidation is the point of the `util/` layer; a duplicate resolver is a latent divergence bug.
 
-**Adopt XDG (honor `$XDG_CONFIG_HOME`, or split config/data/cache into separate trees).** Considered and dropped in favor of one obvious root. A single `$BH_HOME || ~/.bh` ground truth matches `~/.claude` / `~/.aws`, needs no per-kind reclassification of every `~/.bh` consumer, and leaves no resolver asymmetry to reconcile.
+**Adopt XDG (honor `$XDG_CONFIG_HOME`, or split config/data/cache into separate trees).** Considered and dropped in favor of one obvious root. A single `$HYDRA_HOME || ~/.hydra` ground truth matches `~/.claude` / `~/.aws`, needs no per-kind reclassification of every `~/.hydra` consumer, and leaves no resolver asymmetry to reconcile.
 
 ## Consequences
 

@@ -26,7 +26,7 @@ import { renderProcessRead, renderResult } from '../src/render.ts'
 
 const testToolSignal = new AbortController().signal
 
-const spillDir = mkdtempSync(join(tmpdir(), 'bh-tool-bash-spec-'))
+const spillDir = mkdtempSync(join(tmpdir(), 'hydra-tool-bash-spec-'))
 
 /** Foreground-only harness: no job runtime (backgrounding fails loud here). */
 async function setup() {
@@ -300,7 +300,7 @@ describe('bash tool', () => {
 
   it('surfaces spawn failures as isError', async () => {
     const ctx = await setup()
-    const result = await call(ctx, 'bash', { command: 'true', description: 'test command', workdir: '/nonexistent-bh' })
+    const result = await call(ctx, 'bash', { command: 'true', description: 'test command', workdir: '/nonexistent-hydra' })
     expect(result.isError).toBe(true)
     expect(text(result)).toMatch(/ENOENT/)
   })
@@ -1051,7 +1051,7 @@ describe('tool-owned UI presentation (presentCall / presentResult)', () => {
 })
 
 describe('the model-facing bash tool builds its request from named args only (no {...args} forward)', () => {
-  const recordingBhHome = join(spillDir, 'bh-home')
+  const recordingHydraHome = join(spillDir, 'hydra-home')
 
   /**
    * Records every {@link ShellExecRequest} the consumer hands to `resolve()`, so a
@@ -1062,7 +1062,7 @@ describe('the model-facing bash tool builds its request from named args only (no
    * future refactor that blindly forwards `...args` — which would silently thread
    * model input into the post-scrub `env` merge or per-run capture budget — NOT
    * to defend a trust boundary
-   * (the credential scrub in bh-bash-local is the security control; see the
+   * (the credential scrub in hydra-bash-local is the security control; see the
    * bash-stdin-env Agent Note). Foreground `run()` returns a canned result; `start()`
    * hands back an already-settled fake handle so the task registration completes.
    */
@@ -1078,7 +1078,7 @@ describe('the model-facing bash tool builds its request from named args only (no
         ...request.signal ? { signal: request.signal } : {},
         ...request.stdin !== undefined ? { stdin: request.stdin } : {},
         ...request.env !== undefined ? { env: request.env } : {},
-        ...request.bhEnv !== undefined ? { bhEnv: request.bhEnv } : {},
+        ...request.hydraEnv !== undefined ? { hydraEnv: request.hydraEnv } : {},
         sandboxPolicy: request.sandboxPolicy,
       }
     }
@@ -1111,7 +1111,7 @@ describe('the model-facing bash tool builds its request from named args only (no
     }
     await ctx.plugin(LocalJobRegistry)
     await ctx.plugin(ToolTasks)
-    await ctx.plugin(BashEnvPlugin, { bhHome: recordingBhHome })
+    await ctx.plugin(BashEnvPlugin, { hydraHome: recordingHydraHome })
     await ctx.plugin(RecordingBashExecutor)
     await ctx.plugin(ToolBash)
     return { ctx, bash: ctx.shell as RecordingBashExecutor }
@@ -1120,8 +1120,8 @@ describe('the model-facing bash tool builds its request from named args only (no
   it('describes the managed harness environment namespace to the model', async () => {
     const { ctx } = await setupRecording()
     const description = ctx.tools.get('bash')?.description ?? ''
-    expect(description).toContain('$BH_*')
-    expect(description).not.toContain('BH_SESSION_JSONL')
+    expect(description).toContain('$HYDRA_*')
+    expect(description).not.toContain('HYDRA_SESSION_JSONL')
   })
 
   it('injects the session id and JSONL target path into a foreground request', async () => {
@@ -1137,11 +1137,11 @@ describe('the model-facing bash tool builds its request from named args only (no
       agent,
     })
 
-    expect(bash.requests[0]?.bhEnv).toEqual({
-      BH_HOME: recordingBhHome,
-      BH_SESSION_ID: 'request-fg',
-      BH_SESSION_JSONL: path,
-      BH_SHELL: '1',
+    expect(bash.requests[0]?.hydraEnv).toEqual({
+      HYDRA_HOME: recordingHydraHome,
+      HYDRA_SESSION_ID: 'request-fg',
+      HYDRA_SESSION_JSONL: path,
+      HYDRA_SHELL: '1',
     })
   })
 
@@ -1158,24 +1158,24 @@ describe('the model-facing bash tool builds its request from named args only (no
         command: 'sleep 1',
         description: 'run command',
         run_in_background: true,
-        env: { BH_SESSION_ID: 'spoofed', BH_SESSION_JSONL: '/tmp/spoofed' },
+        env: { HYDRA_SESSION_ID: 'spoofed', HYDRA_SESSION_JSONL: '/tmp/spoofed' },
       },
       agent,
     })
 
     expect(bash.requests[0]?.env).toBeUndefined()
-    expect(bash.requests[0]?.bhEnv).toEqual({
-      BH_HOME: recordingBhHome,
-      BH_SESSION_ID: 'request-bg',
-      BH_SESSION_JSONL: path,
-      BH_SHELL: '1',
+    expect(bash.requests[0]?.hydraEnv).toEqual({
+      HYDRA_HOME: recordingHydraHome,
+      HYDRA_SESSION_ID: 'request-bg',
+      HYDRA_SESSION_JSONL: path,
+      HYDRA_SHELL: '1',
     })
   })
 
   it('injects built-ins and the stable session id when no JSONL locator is available', async () => {
     const { ctx, bash } = await setupRecording()
     const agent = registerFakeAgent(ctx, 'request-id-only', () => undefined)
-    const ambient = process.env.BH_SESSION_ID
+    const ambient = process.env.HYDRA_SESSION_ID
 
     await ctx.tools.execute({
       signal: testToolSignal,
@@ -1185,12 +1185,12 @@ describe('the model-facing bash tool builds its request from named args only (no
       agent,
     })
 
-    expect(bash.requests[0]?.bhEnv).toEqual({
-      BH_HOME: recordingBhHome,
-      BH_SESSION_ID: 'request-id-only',
-      BH_SHELL: '1',
+    expect(bash.requests[0]?.hydraEnv).toEqual({
+      HYDRA_HOME: recordingHydraHome,
+      HYDRA_SESSION_ID: 'request-id-only',
+      HYDRA_SHELL: '1',
     })
-    expect(process.env.BH_SESSION_ID).toBe(ambient)
+    expect(process.env.HYDRA_SESSION_ID).toBe(ambient)
   })
 
   it('keeps parent and child agent session environments isolated', async () => {
@@ -1208,21 +1208,21 @@ describe('the model-facing bash tool builds its request from named args only (no
       })
     }
 
-    expect(bash.requests.map(request => request.bhEnv)).toEqual([
+    expect(bash.requests.map(request => request.hydraEnv)).toEqual([
       {
-        BH_HOME: recordingBhHome,
-        BH_SESSION_ID: 'request-parent',
-        BH_SESSION_JSONL: ctx.sessionPersistence.locate(parent.session.header)?.path,
-        BH_SHELL: '1',
+        HYDRA_HOME: recordingHydraHome,
+        HYDRA_SESSION_ID: 'request-parent',
+        HYDRA_SESSION_JSONL: ctx.sessionPersistence.locate(parent.session.header)?.path,
+        HYDRA_SHELL: '1',
       },
       {
-        BH_HOME: recordingBhHome,
-        BH_SESSION_ID: 'request-child',
-        BH_SESSION_JSONL: ctx.sessionPersistence.locate(child.session.header)?.path,
-        BH_SHELL: '1',
+        HYDRA_HOME: recordingHydraHome,
+        HYDRA_SESSION_ID: 'request-child',
+        HYDRA_SESSION_JSONL: ctx.sessionPersistence.locate(child.session.header)?.path,
+        HYDRA_SHELL: '1',
       },
     ])
-    expect(bash.requests[0]?.bhEnv?.BH_SESSION_JSONL).not.toBe(bash.requests[1]?.bhEnv?.BH_SESSION_JSONL)
+    expect(bash.requests[0]?.hydraEnv?.HYDRA_SESSION_JSONL).not.toBe(bash.requests[1]?.hydraEnv?.HYDRA_SESSION_JSONL)
   })
 
   it('does not forward trusted-only fields even when the model includes them as extra arguments', async () => {

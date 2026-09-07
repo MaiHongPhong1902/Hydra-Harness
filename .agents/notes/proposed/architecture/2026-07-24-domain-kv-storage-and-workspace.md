@@ -27,15 +27,15 @@ Create the `packages/storage/` group — the `ctx.storage` hub (backend registry
 | `SessionPersistence.delete` extension + cascade orchestration | `packages/session/session-persistence*` | new method on the existing seam | ✗ future work (session side untouched this phase) |
 | `workspace.*` / `session.delete` RPC, GUI wiring, boot assembly | — | — | ✗ next phase |
 
-(workspace lives in its own group rather than `packages/host/`: the host group's naming rule requires the `bh-host-*` prefix while this package is named `@hydra/harness-workspace`; and the workspace entity is a domain concept, not bound to the host assembly tier. Unrelated to the existing `agent-instructions` package — that is an AGENTS.md instruction loader.)
+(workspace lives in its own group rather than `packages/host/`: the host group's naming rule requires the `hydra-host-*` prefix while this package is named `@hydra/harness-workspace`; and the workspace entity is a domain concept, not bound to the host assembly tier. Unrelated to the existing `agent-instructions` package — that is an AGENTS.md instruction loader.)
 
-Dependency direction: `@hydra/harness-workspace` → `bh-domain` → `@hydra/harness-storage` ← the two backends. `@hydra/harness-workspace` additionally depends on the read-only face of `ctx.sessionPersistence` (attach's cwd check reads the session header; when the service is absent, attach rejects outright — no verification, no bookkeeping). The `ctx.sessions` running-check for session deletion moves into future work together with the cascade.
+Dependency direction: `@hydra/harness-workspace` → `hydra-domain` → `@hydra/harness-storage` ← the two backends. `@hydra/harness-workspace` additionally depends on the read-only face of `ctx.sessionPersistence` (attach's cwd check reads the session header; when the service is absent, attach rejects outright — no verification, no bookkeeping). The `ctx.sessions` running-check for session deletion moves into future work together with the cascade.
 
 ### `@hydra/harness-storage`: the storage hub
 
-A pure registration hub, no IO of its own, no Config. The `Storage` service mounts at `ctx.storage` with two faces: `backend` (a `BackendRegistry`: `register(name, backend)` returns the disposer, duplicate names throw; `get(name)` throws `backend-not-found` for unknown names) and data-form mounting (`mount(form, facility)` over the merge-extensible `StorageForms` map, into which `bh-domain` merges the `domain` key; unmounted access throws `form-not-mounted`). The signature text lives in `packages/storage/storage/src/index.ts` and `src/registry.ts`.
+A pure registration hub, no IO of its own, no Config. The `Storage` service mounts at `ctx.storage` with two faces: `backend` (a `BackendRegistry`: `register(name, backend)` returns the disposer, duplicate names throw; `get(name)` throws `backend-not-found` for unknown names) and data-form mounting (`mount(form, facility)` over the merge-extensible `StorageForms` map, into which `hydra-domain` merges the `domain` key; unmounted access throws `form-not-mounted`). The signature text lives in `packages/storage/storage/src/index.ts` and `src/registry.ts`.
 
-**Multiple backends stay mounted side by side**; which backend serves a domain is `bh-domain`'s configuration (below), never a global either-or. Disposer semantics = remove the name from the table; closing the backend itself belongs to the backend package's effect closure, unregister first then close.
+**Multiple backends stay mounted side by side**; which backend serves a domain is `hydra-domain`'s configuration (below), never a global either-or. Disposer semantics = remove the name from the table; closing the backend itself belongs to the backend package's effect closure, unregister first then close.
 
 A backend is one **medium owner** (a file-tree root / one db file) exposing primitives through **data-shape facets** — only `kv` this phase; the session migration adds `log` (see the migration section). A facet is an optional member: absence means the backend cannot serve that shape, and resolution fails loud. The `kv` facet's primitive surface: `open(descriptor)` (descriptor = name/version/table list/global flag, with names and table names restricted to `^[a-z][a-z0-9_]*$` doubling as file-name and SQL-identifier segments) returns a unit exposing `loadAll` / `putRecord` / `deleteRecord` (missing key is a no-op) / `setGlobal` / `close` (idempotent); values are opaque JSON to the backend. The normative text (with per-method JSDoc) is `packages/storage/storage/src/backend.ts`.
 
@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS "u_<unit>_<table>" (
 - Unit versions live in `units` rows; a descriptor mismatch → `version-mismatch`. Row granularity is document-per-row, preserving precise per-key durable updates (the path left open for high-frequency point-update tables like the session sidecar); when query needs appear, JSON1 reads the value column directly.
 - Write primitives are single statements and thus atomic; no cross-statement transactions needed (the domain layer has no cross-table transactions, see the out-of-scope list).
 
-### `bh-domain`: the domain data form
+### `hydra-domain`: the domain data form
 
 A single implementation, not abstracted; consumers depend on this layer only and never touch backends directly.
 

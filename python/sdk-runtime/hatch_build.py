@@ -57,16 +57,16 @@ class RuntimeBuildHook(BuildHookInterface):
                 "hydra-harness-runtime-bin is wheel-only; build and publish platform wheels only."
             )
 
-        platform_tag = os.environ.get("BH_RUNTIME_PLATFORM_TAG") or _host_platform_tag()
+        platform_tag = os.environ.get("HYDRA_RUNTIME_PLATFORM_TAG") or _host_platform_tag()
         matches = [value for value in _PLATFORMS.values() if value[0] == platform_tag]
         if len(matches) != 1:
             supported = ", ".join(value[0] for value in _PLATFORMS.values())
             raise RuntimeError(
-                f"unsupported BH_RUNTIME_PLATFORM_TAG {platform_tag!r}; expected one of {supported}"
+                f"unsupported HYDRA_RUNTIME_PLATFORM_TAG {platform_tag!r}; expected one of {supported}"
             )
         expected_executable = matches[0][1]
         runtime_dir = Path(self.root) / "src" / "hydra_harness_runtime" / "runtime"
-        runtime_files = sorted(runtime_dir.glob("bh-jsonrpc-agent-pkg-*") if runtime_dir.is_dir() else [])
+        runtime_files = sorted(runtime_dir.glob("hydra-jsonrpc-agent-pkg-*") if runtime_dir.is_dir() else [])
         expected_files = [expected_executable, f"{expected_executable}-rg"]
         if "-macos-" in expected_executable:
             expected_files.append(f"{expected_executable}-spawn-helper")

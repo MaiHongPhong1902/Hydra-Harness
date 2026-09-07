@@ -10,5 +10,5 @@
       - id: sandbox-policy
         name: '@hydra/harness-sandbox-policy'
         config:
-          mode: !!js "process.env.BH_PERMISSION_MODE ?? (process.env.BH_SNAPSHOT === undefined ? 'workspace-write' : 'danger-full-access')"
+          mode: !!js "process.env.HYDRA_PERMISSION_MODE ?? (process.env.HYDRA_SNAPSHOT === undefined ? 'workspace-write' : 'danger-full-access')"
           workspaceRoot: /tmp

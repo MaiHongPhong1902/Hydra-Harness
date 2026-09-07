@@ -5,7 +5,7 @@
  * operation and the bearer token through a per-request resolver, so the
  * registering plugin owns validation, layering, and credential policy.
  *
- * @module bh-llm-deepseek/adapter
+ * @module hydra-llm-deepseek/adapter
  */
 
 import { attributionHeaders, contentHasImage, CONTEXT_WINDOW_EXCEEDED_CODE, isContextWindowExceededError, isQuotaExceededError, LlmAdapter, LlmError, ProviderRequestId, QUOTA_EXCEEDED_CODE, ReasoningEffortId } from '@hydra/harness-llm'
@@ -328,12 +328,12 @@ export class DeepSeekAdapter extends LlmAdapter {
       'content-type': 'application/json',
       'accept': 'text/event-stream',
       ...attributionHeaders(),
-      'x-bosch-harness-user-id': String(userId),
+      'x-hydra-harness-user-id': String(userId),
       ...options.sessionId !== undefined
-        ? { 'x-bosch-harness-session-id': String(options.sessionId) }
+        ? { 'x-hydra-harness-session-id': String(options.sessionId) }
         : {},
       ...options.purpose === 'compaction'
-        ? { 'x-bosch-harness-compact': '1' }
+        ? { 'x-hydra-harness-compact': '1' }
         : {},
     }
 

@@ -52,7 +52,7 @@ async function expectPersistedTitle(ctx: Context, id: ReturnType<typeof SessionI
 
 describe('session title persistence round trips', () => {
   it('round-trips through a remounted JSONL backend', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'bh-title-jsonl-'))
+    const root = await mkdtemp(join(tmpdir(), 'hydra-title-jsonl-'))
     roots.push(root)
     const id = SessionId('title-jsonl')
     const writer = new Context()
@@ -70,7 +70,7 @@ describe('session title persistence round trips', () => {
   })
 
   it('round-trips through a remounted SQLite backend', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'bh-title-sqlite-'))
+    const root = await mkdtemp(join(tmpdir(), 'hydra-title-sqlite-'))
     roots.push(root)
     const path = join(root, 'sessions.db')
     const id = SessionId('title-sqlite')

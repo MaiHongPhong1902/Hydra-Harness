@@ -118,7 +118,7 @@ export function DesktopFilesPanel(props: {
   onDirtyChange?: ((dirty: boolean) => void) | undefined
   onSavingChange?: ((saving: boolean) => void) | undefined
 }) {
-  const api = window.bhDesktop?.files
+  const api = window.hydraDesktop?.files
   const { workspaceId } = props
   const searchRef = useRef<HTMLInputElement | null>(null)
   const createRef = useRef<HTMLInputElement | null>(null)

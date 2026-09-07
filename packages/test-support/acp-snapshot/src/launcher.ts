@@ -84,8 +84,8 @@ export function launchAcpTestAgent(options: AcpTestLaunchOptions): LaunchedAcpTe
     tsconfigPath: agent.tsconfigPath,
     env: {
       ...options.env,
-      BH_HOME: join(cwd, '.bh'),
-      BH_AGENTS_HOME: join(cwd, '.agents'),
+      HYDRA_HOME: join(cwd, '.hydra'),
+      HYDRA_AGENTS_HOME: join(cwd, '.agents'),
     },
   })
   const child = spawn(

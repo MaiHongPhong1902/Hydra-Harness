@@ -2627,9 +2627,9 @@ function hasPackageSurface(model: PackageModel): boolean {
 }
 
 function isDualFacePackage(manifest: Record<string, unknown>): boolean {
-  const bh = manifest.bh
-  const client = bh !== null && typeof bh === 'object'
-    ? (bh as Record<string, unknown>).client
+  const hydra = manifest.hydra
+  const client = hydra !== null && typeof hydra === 'object'
+    ? (hydra as Record<string, unknown>).client
     : undefined
   return client !== null
     && typeof client === 'object'

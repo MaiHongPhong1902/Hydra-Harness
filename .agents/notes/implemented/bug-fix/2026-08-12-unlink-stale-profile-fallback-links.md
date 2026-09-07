@@ -4,7 +4,7 @@ Status: implemented
 
 ## Problem
 
-`healProfilesModuleFallback` re-points `$BH_HOME/profiles/node_modules` entries when an installation moves, and Windows hosts keep those entries as junctions. `ensureSymlink` deleted a stale entry with `rmSync(link)`, but Node treats a junction as a directory for removal: without `recursive`, `rmSync` throws `ERR_FS_EISDIR`, so every launch from a moved installation or a second worktree crashed before booting. The `replaces a wrong symlink` unit test reproduces that crash on Windows at the exact removal call.
+`healProfilesModuleFallback` re-points `$HYDRA_HOME/profiles/node_modules` entries when an installation moves, and Windows hosts keep those entries as junctions. `ensureSymlink` deleted a stale entry with `rmSync(link)`, but Node treats a junction as a directory for removal: without `recursive`, `rmSync` throws `ERR_FS_EISDIR`, so every launch from a moved installation or a second worktree crashed before booting. The `replaces a wrong symlink` unit test reproduces that crash on Windows at the exact removal call.
 
 ## Decision
 

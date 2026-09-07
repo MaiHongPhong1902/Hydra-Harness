@@ -90,8 +90,8 @@ function sectionText(file: LoadedInstructionFile): string {
 export const USER_GLOBAL_DIRECTORY = 'user-global'
 
 /**
- * File name of the single user-global instruction file under `$BH_HOME`.
- * Discovery (`$BH_HOME/<name>`) and reconciliation (the user-global scope key's
+ * File name of the single user-global instruction file under `$HYDRA_HOME`.
+ * Discovery (`$HYDRA_HOME/<name>`) and reconciliation (the user-global scope key's
  * candidate component) both key on this name, so it lives in one place: were the
  * two to disagree, the user-global instruction would load but never reconcile.
  */
@@ -103,7 +103,7 @@ export const USER_GLOBAL_FILE = 'AGENTS.md'
  * @returns `user-global`, `.`, or the containing project-relative directory.
  */
 export function scopeForDisplayPath(displayPath: string): string {
-  if (displayPath === '~/.bh/AGENTS.md' || displayPath === '$BH_HOME/AGENTS.md') return USER_GLOBAL_DIRECTORY
+  if (displayPath === '~/.hydra/AGENTS.md' || displayPath === '$HYDRA_HOME/AGENTS.md') return USER_GLOBAL_DIRECTORY
   return dirname(displayPath)
 }
 

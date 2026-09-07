@@ -4,7 +4,7 @@ Status: implemented
 
 ## Problem
 
-`bh`'s ask-user takeover renders the pending question set as a bottom card capped at `min(60vh, 520px)`, so a long batch or a user who wants to re-read the conversation above before deciding has no way to reduce the card — the conversation above becomes hard to read because only a few lines peek out at the top.
+`hydra`'s ask-user takeover renders the pending question set as a bottom card capped at `min(60vh, 520px)`, so a long batch or a user who wants to re-read the conversation above before deciding has no way to reduce the card — the conversation above becomes hard to read because only a few lines peek out at the top.
 
 ## Decision
 

@@ -66,7 +66,8 @@ export const OBSIDIAN_KNOWLEDGE_SETTINGS_NAMESPACE = settingsNamespace('obsidian
 const DEFAULT_OBSIDIAN_MCP_URL = 'http://127.0.0.1:27123/mcp/'
 const OBSIDIAN_MCP_API_KEY = credentialRef('OBSIDIAN_API_KEY')
 const OBSIDIAN_MCP_TIMEOUT_MS = 5_000
-const APPLICATION_IDENTIFIER = /\bWorkOn[A-Za-z][A-Za-z0-9_-]{1,79}\b/g
+/** PascalCase compounds with an internal capital; spaced labels such as "Shop Next Gen Portal" do not match. */
+const APPLICATION_IDENTIFIER = /\b[A-Z][a-z]+[A-Z][A-Za-z0-9_-]{1,79}\b/g
 const HTTP_URL = /https?:\/\/[^\s<>"'`]+/g
 const LIVE_VERIFICATION_REQUESTS = [
   /\b(?:verify|validate|execute|retest|re-test)\b/iu,
@@ -398,7 +399,7 @@ export function apply(ctx: Context, config: Config = {}): void {
       && !matchesTargetDomain(requestedUrl, settings.targetDomain)) {
       return Promise.resolve({
         kind: 'deny' as const,
-        reason: `Live WorkON verification cannot navigate outside the configured target domain ${settings.targetDomain}. `
+        reason: `Live target-domain verification cannot navigate outside the configured target domain ${settings.targetDomain}. `
           + 'Read the complete testcase note and use its matching application-root candidate; '
           + 'do not navigate to the Hydra UI or ask for a link.',
       })
@@ -409,8 +410,8 @@ export function apply(ctx: Context, config: Config = {}): void {
       return Promise.resolve({
         kind: 'deny' as const,
         reason: candidates !== undefined && candidates.length > 0
-          ? `Bare target-domain navigation is not a WorkON application entrypoint. Use the candidate matching the complete testcase context: ${candidates.map(candidate => `${candidate.application} -> ${candidate.url} (source: ${candidate.sourcePath})`).join('; ')}`
-          : 'Bare target-domain navigation is not a WorkON application entrypoint. Read the complete testcase knowledge note and use its matching application-root candidate.',
+          ? `Bare target-domain navigation is not a target-domain application entrypoint. Use the candidate matching the complete testcase context: ${candidates.map(candidate => `${candidate.application} -> ${candidate.url} (source: ${candidate.sourcePath})`).join('; ')}`
+          : 'Bare target-domain navigation is not a target-domain application entrypoint. Read the complete testcase knowledge note and use its matching application-root candidate.',
       })
     }
     if (settings !== undefined

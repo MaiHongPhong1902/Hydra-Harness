@@ -45,7 +45,7 @@ async function serve(downlinks: WebSocketDownlinks): Promise<{
 }> {
   const server = createServer()
   server.on('upgrade', (request, socket, head) => {
-    const pathname = new URL(request.url ?? '/', 'http://bh.internal').pathname
+    const pathname = new URL(request.url ?? '/', 'http://hydra.internal').pathname
     if (pathname === MUX_EVENTS_PATH) downlinks.handleMux(request, socket, head)
     else if (pathname === HOST_EVENTS_PATH) downlinks.handleHost(request, socket, head)
     else socket.destroy()

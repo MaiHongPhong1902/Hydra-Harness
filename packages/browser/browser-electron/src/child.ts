@@ -76,9 +76,9 @@ export interface LaunchOptions {
   /** User opt-in for full CDP access. */
   readonly fullCdpAccess?: boolean | undefined
   /** Destination for user-opened public HTTP(S) URLs. */
-  readonly webDestination?: 'bhagent' | 'system' | undefined
+  readonly webDestination?: 'hydra' | 'system' | undefined
   /** Destination for user-opened loopback HTTP(S) URLs. */
-  readonly localDestination?: 'bhagent' | 'system' | undefined
+  readonly localDestination?: 'hydra' | 'system' | undefined
   /** Screenshot behavior for browser annotations. */
   readonly annotationScreenshots?: 'include' | 'ask' | 'never' | undefined
   /** Directory used for downloads; an empty value keeps Electron's default. */
@@ -144,11 +144,11 @@ function connectDesktopBrowser(port: DesktopParentPort, settings: Record<string,
   const onMessage = (event: unknown): void => {
     const message = typeof event === 'object' && event !== null && 'data' in event ? event.data : event
     if (typeof message !== 'object' || message === null || !('connectionId' in message) || message.connectionId !== connectionId) return
-    if ('type' in message && message.type === 'bh-browser-line' && 'line' in message && typeof message.line === 'string') {
+    if ('type' in message && message.type === 'hydra-browser-line' && 'line' in message && typeof message.line === 'string') {
       stdout.write(`${message.line}\n`)
-    } else if ('type' in message && message.type === 'bh-browser-error' && 'error' in message && typeof message.error === 'string') {
+    } else if ('type' in message && message.type === 'hydra-browser-error' && 'error' in message && typeof message.error === 'string') {
       stderr.write(message.error)
-    } else if ('type' in message && message.type === 'bh-browser-close') {
+    } else if ('type' in message && message.type === 'hydra-browser-close') {
       finish()
     }
   }
@@ -160,18 +160,18 @@ function connectDesktopBrowser(port: DesktopParentPort, settings: Record<string,
       const lines = input.split(/\r?\n/u)
       input = lines.pop() ?? ''
       for (const line of lines) {
-        if (line !== '') port.postMessage({ type: 'bh-browser-line', connectionId, line })
+        if (line !== '') port.postMessage({ type: 'hydra-browser-line', connectionId, line })
       }
       callback()
     },
     final(callback) {
-      port.postMessage({ type: 'bh-browser-disconnect', connectionId })
+      port.postMessage({ type: 'hydra-browser-disconnect', connectionId })
       finish()
       callback()
     },
   })
 
-  port.postMessage({ type: 'bh-browser-connect', connectionId, settings })
+  port.postMessage({ type: 'hydra-browser-connect', connectionId, settings })
   return {
     stdin,
     stdout,
@@ -181,7 +181,7 @@ function connectDesktopBrowser(port: DesktopParentPort, settings: Record<string,
       return events
     },
     kill() {
-      port.postMessage({ type: 'bh-browser-disconnect', connectionId })
+      port.postMessage({ type: 'hydra-browser-disconnect', connectionId })
       finish()
     },
   }
@@ -229,8 +229,8 @@ export async function launchBrowser(options: LaunchOptions): Promise<BrowserChil
     ...options.navigationPolicy === undefined ? {} : { navigationPolicy: options.navigationPolicy },
     ...options.downloadPolicy === undefined ? {} : { downloadPolicy: options.downloadPolicy },
   }
-  const bridge = process.env.BH_DESKTOP_BROWSER_BRIDGE === 'parent-port' ? desktopParentPort() : undefined
-  if (process.env.BH_DESKTOP_BROWSER_BRIDGE === 'parent-port' && bridge === undefined) {
+  const bridge = process.env.HYDRA_DESKTOP_BROWSER_BRIDGE === 'parent-port' ? desktopParentPort() : undefined
+  if (process.env.HYDRA_DESKTOP_BROWSER_BRIDGE === 'parent-port' && bridge === undefined) {
     throw new BrowserError('the desktop browser bridge is unavailable', 'BROWSER_LAUNCH_FAILED')
   }
   const child = bridge === undefined

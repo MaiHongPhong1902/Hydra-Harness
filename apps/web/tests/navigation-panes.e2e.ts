@@ -309,7 +309,7 @@ describe('web e2e: navigation & panes over a rich seeded session', () => {
     const response = await responsePromise
     expect(response.status()).toBe(200)
     const download = await downloadPromise
-    expect(download.suggestedFilename()).toMatch(/^bh-session-.+\.zip$/)
+    expect(download.suggestedFilename()).toMatch(/^hydra-session-.+\.zip$/)
     const dialog = page.getByRole('dialog', { name: 'Session download started' })
     await dialog.waitFor({ timeout: 30_000 })
     // The real host streamed the ZIP; its root entry is the persisted log

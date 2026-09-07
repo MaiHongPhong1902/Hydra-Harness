@@ -40,7 +40,7 @@ function main(): void {
     options: { family: { type: 'string' }, out: { type: 'string' } },
     allowPositionals: false,
   })
-  if (values.family === undefined) throw new Error('usage: pack.ts --family <bh|vendor> [--out dist/npm]')
+  if (values.family === undefined) throw new Error('usage: pack.ts --family <hydra|vendor> [--out dist/npm]')
 
   const family = releaseFamily(values.family)
   const root = process.cwd()

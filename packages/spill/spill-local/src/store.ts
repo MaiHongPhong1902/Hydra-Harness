@@ -25,7 +25,7 @@ let defaultRoot: string | undefined
  * @returns The lazily-created private spill root.
  */
 export function privateRoot(): string {
-  defaultRoot ??= mkdtempSync(join(tmpdir(), 'bh-spill-'))
+  defaultRoot ??= mkdtempSync(join(tmpdir(), 'hydra-spill-'))
   return defaultRoot
 }
 

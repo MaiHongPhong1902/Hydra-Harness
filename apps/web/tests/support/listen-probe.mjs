@@ -1,7 +1,7 @@
 import { appendFileSync } from 'node:fs'
 import { Server } from 'node:net'
 
-const marker = process.env.BH_LISTEN_PROBE_MARKER
+const marker = process.env.HYDRA_LISTEN_PROBE_MARKER
 const listen = Server.prototype.listen
 Server.prototype.listen = function (...args) {
   if (marker !== undefined) appendFileSync(marker, 'listen\n')

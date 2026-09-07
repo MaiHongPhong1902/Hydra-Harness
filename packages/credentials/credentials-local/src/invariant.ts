@@ -15,7 +15,7 @@ export const name = 'credentials-local-invariant'
 export const inject = ['invariants']
 
 /**
- * No runtime invariant: the Service Definition companion (`bh-credentials/invariant`) owns the
+ * No runtime invariant: the Service Definition companion (`hydra-credentials/invariant`) owns the
  * `credentials/reference-updated` lifecycle contract; this provider's file/environment layering is
  * asynchronous I/O pinned by its unit suite.
  */

@@ -1,5 +1,5 @@
 /**
- * Generated scoped-event routing-subject resolvers for bh-scope invariants.
+ * Generated scoped-event routing-subject resolvers for hydra-scope invariants.
  * Do not edit by hand; run `pnpm run gen-scoped-events`.
  *
  * @module @hydra/harness-scope/scoped-events.generated

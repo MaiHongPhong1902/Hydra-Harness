@@ -6,7 +6,7 @@ This run's environment as one immutable snapshot that remembers **which layer su
 |---|---|---|
 | Inherited process environment | `process` | What the launching shell, CI job, or container passed in — this run's explicit intent |
 | `<invocation cwd>/.env` | `project-env` | The project the harness was launched in, which the product trusts to configure its own agent |
-| `$BH_HOME/.env` | `user-env` | The user's own machine-level defaults |
+| `$HYDRA_HOME/.env` | `user-env` | The user's own machine-level defaults |
 
 Values do also reach `process.env` — a user's `--config` tree and third-party libraries read it — but that flattened view is not the authority for anything the harness resolves.
 

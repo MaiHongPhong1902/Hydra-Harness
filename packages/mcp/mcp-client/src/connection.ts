@@ -236,7 +236,7 @@ export function startConnection(ctx: Context, config: Config, policy: ResolvedRe
    */
   async function connectGeneration(startup: boolean): Promise<void> {
     const generation = new Client(
-      { name: 'bh-mcp-client', version: '0.0.1' },
+      { name: 'hydra-mcp-client', version: '0.0.1' },
       { capabilities: {} },
     )
     const closed: PromiseWithResolvers<void> = Promise.withResolvers()

@@ -4,7 +4,7 @@
 .frame {
   display: flex;
   justify-content: center;
-  padding: 6px calc(var(--bh-composer-side-clearance) + 16px) 10px;
+  padding: 6px calc(var(--hydra-composer-side-clearance) + 16px) 10px;
 }
 
 /* Figma Input 973:36348 body over the 1019:36938 header: no banner strip —
@@ -13,7 +13,7 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: var(--bh-chat-content-width);
+  max-width: var(--hydra-chat-content-width);
   /* Composer seat sits in a fixed-height conversation column (overflow
      hidden): cap the card against the viewport and scroll the option list
      so header and footer actions stay reachable on long batches. */
@@ -30,8 +30,8 @@
      on the card because the elevation belongs to the surface, and the custom
      properties inherit down to `.body` (see ui-theme styles/scrollbar.css
      for the rebinding contract). */
-  --bh-scrollbar-thumb: var(--dsw-alias-scrollbar-bg-l2);
-  --bh-scrollbar-thumb-hover: var(--dsw-alias-scrollbar-hover-l2);
+  --hydra-scrollbar-thumb: var(--dsw-alias-scrollbar-bg-l2);
+  --hydra-scrollbar-thumb-hover: var(--dsw-alias-scrollbar-hover-l2);
 }
 
 .card,
@@ -334,13 +334,13 @@
 .field {
   display: grid;
   min-width: 0;
-  --bh-answer-field-padding: 0;
+  --hydra-answer-field-padding: 0;
 }
 
 .field > * {
   grid-area: 1 / 1;
   min-width: 0;
-  padding: var(--bh-answer-field-padding);
+  padding: var(--hydra-answer-field-padding);
   font: inherit;
   font-size: 14px;
   line-height: 24px;
@@ -397,7 +397,7 @@
   border: 1px solid var(--dsw-alias-border-l2);
   border-radius: var(--dsw-radius-control);
   background: var(--dsw-alias-bg-module-platform);
-  --bh-answer-field-padding: 8px 12px;
+  --hydra-answer-field-padding: 8px 12px;
 }
 
 .customBlock:focus-within {

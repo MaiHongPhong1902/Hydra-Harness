@@ -4,15 +4,15 @@ Shared filesystem path helpers for Hydra harness user data.
 
 ## Hydra home
 
-`resolveBhHome()` resolves the single-root Hydra harness home. Precedence, highest first: an explicit configured path, `$BH_HOME`, then `~/.bh`. The harness keeps all user data under one root.
+`resolveHydraHome()` resolves the single-root Hydra harness home. Precedence, highest first: an explicit configured path, `$HYDRA_HOME`, then `~/.hydra`. The harness keeps all user data under one root.
 
-`bhHomePath(...segments)` joins child segments onto that resolved home with Node's platform path rules. With no segments it returns the home itself.
+`hydraHomePath(...segments)` joins child segments onto that resolved home with Node's platform path rules. With no segments it returns the home itself.
 
-`bhHomeDisplay()` names an active root symbolically for user-facing paths: `~/.bh` for the default home, `$BH_HOME` for any configured home. It never leaks an absolute machine path.
+`hydraHomeDisplay()` names an active root symbolically for user-facing paths: `~/.hydra` for the default home, `$HYDRA_HOME` for any configured home. It never leaks an absolute machine path.
 
-`BH_HOME_DIR_NAME` owns the default user-data directory name: `.bh`.
+`HYDRA_HOME_DIR_NAME` owns the default user-data directory name: `.hydra`.
 
-`defaultBhHome()` returns the default Hydra harness home by joining the operating-system home directory with `.bh`, using Node's platform path rules.
+`defaultHydraHome()` returns the default Hydra harness home by joining the operating-system home directory with `.hydra`, using Node's platform path rules.
 
 `expandHomePath()` expands `~`, `~/...`, and Windows-style `~\...` prefixes against the operating-system home directory. It leaves non-tilde paths and `~user/...` untouched.
 

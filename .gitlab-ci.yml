@@ -15,9 +15,9 @@ variables:
   before_script:
     - python3 -m venv .ci-python
     - . .ci-python/bin/activate
-    - export BH_VERSION="$(python -c 'import json; print(json.load(open("package.json"))["version"])')"
-    - export BH_WHEEL_VERSION="$(python -c 'import runpy; release = runpy.run_path("scripts/build-python-release.py"); print(release["pep440_version"](release["repository_version"]()))')"
-    - test "$CI_COMMIT_TAG" = "python-v$BH_VERSION" || { echo "Tag $CI_COMMIT_TAG does not match package.json version $BH_VERSION"; exit 1; }
+    - export HYDRA_VERSION="$(python -c 'import json; print(json.load(open("package.json"))["version"])')"
+    - export HYDRA_WHEEL_VERSION="$(python -c 'import runpy; release = runpy.run_path("scripts/build-python-release.py"); print(release["pep440_version"](release["repository_version"]()))')"
+    - test "$CI_COMMIT_TAG" = "python-v$HYDRA_VERSION" || { echo "Tag $CI_COMMIT_TAG does not match package.json version $HYDRA_VERSION"; exit 1; }
     - python -m pip install uv==0.11.23
 
 sdk-wheel:
@@ -38,12 +38,12 @@ sdk-wheel:
     - pnpm install --frozen-lockfile
     - pnpm run verify-runtime-closure
     - pnpm exec tsx scripts/build-exe-for-python-sdk.ts --targets="$PKG_TARGET"
-    - EXE="$PWD/dist-exe/bh-jsonrpc-agent-pkg-$PLATFORM"
+    - EXE="$PWD/dist-exe/hydra-jsonrpc-agent-pkg-$PLATFORM"
     - test -x "$EXE"
     - uv run --python 3.10 --group test --project python/sdk python scripts/smoke-python-runtime.py --scenario all --exe "$EXE"
     - python scripts/build-python-release.py --package runtime --tag "$CI_COMMIT_TAG" --platform "$PLATFORM" --runtime-exe "$EXE" --output-dir "release/$PLATFORM"
     - python -m venv .wheel-smoke
-    - .wheel-smoke/bin/python -m pip install --find-links "release/$PLATFORM" --find-links release/sdk hydra-harness-sdk=="$BH_WHEEL_VERSION"
+    - .wheel-smoke/bin/python -m pip install --find-links "release/$PLATFORM" --find-links release/sdk hydra-harness-sdk=="$HYDRA_WHEEL_VERSION"
     - .wheel-smoke/bin/python scripts/smoke-python-runtime.py --scenario sdk-default
     - .wheel-smoke/bin/python scripts/smoke-python-runtime.py --scenario sdk-mcp
     - |
@@ -57,7 +57,7 @@ sdk-wheel:
           linux-arm64) image=quay.io/pypa/manylinux_2_28_aarch64 ;;
           *) echo "Unsupported Linux platform $PLATFORM"; exit 1 ;;
         esac
-        docker run --rm -v "$PWD:/work" -w /work "$image" bash -euxo pipefail -c "/opt/python/cp310-cp310/bin/python -m venv /tmp/bh-sdk && /tmp/bh-sdk/bin/python -m pip install --find-links /work/release/$PLATFORM --find-links /work/release/sdk hydra-harness-sdk==$BH_WHEEL_VERSION && /tmp/bh-sdk/bin/python /work/scripts/smoke-python-runtime.py --scenario sdk-default && /tmp/bh-sdk/bin/python /work/scripts/smoke-python-runtime.py --scenario sdk-mcp"
+        docker run --rm -v "$PWD:/work" -w /work "$image" bash -euxo pipefail -c "/opt/python/cp310-cp310/bin/python -m venv /tmp/hydra-sdk && /tmp/hydra-sdk/bin/python -m pip install --find-links /work/release/$PLATFORM --find-links /work/release/sdk hydra-harness-sdk==$HYDRA_WHEEL_VERSION && /tmp/hydra-sdk/bin/python /work/scripts/smoke-python-runtime.py --scenario sdk-default && /tmp/hydra-sdk/bin/python /work/scripts/smoke-python-runtime.py --scenario sdk-mcp"
       fi
     - |
       if [ "$PLATFORM" = macos-arm64 ]; then
@@ -113,16 +113,16 @@ publish-python:
   before_script:
     - python3 -m venv .ci-python
     - . .ci-python/bin/activate
-    - export BH_VERSION="$(python -c 'import json; print(json.load(open("package.json"))["version"])')"
-    - export BH_WHEEL_VERSION="$(python -c 'import runpy; release = runpy.run_path("scripts/build-python-release.py"); print(release["pep440_version"](release["repository_version"]()))')"
-    - test "$CI_COMMIT_TAG" = "python-v$BH_VERSION" || { echo "Tag $CI_COMMIT_TAG does not match package.json version $BH_VERSION"; exit 1; }
+    - export HYDRA_VERSION="$(python -c 'import json; print(json.load(open("package.json"))["version"])')"
+    - export HYDRA_WHEEL_VERSION="$(python -c 'import runpy; release = runpy.run_path("scripts/build-python-release.py"); print(release["pep440_version"](release["repository_version"]()))')"
+    - test "$CI_COMMIT_TAG" = "python-v$HYDRA_VERSION" || { echo "Tag $CI_COMMIT_TAG does not match package.json version $HYDRA_VERSION"; exit 1; }
     - python -m pip install twine==6.2.0
   script:
     - test "$(find release -name '*.whl' | wc -l | tr -d ' ')" = 4
-    - test -f "release/sdk/hydra_harness_sdk-${BH_WHEEL_VERSION}-py3-none-any.whl"
-    - test -f "release/linux-x64/hydra_harness_runtime_bin-${BH_WHEEL_VERSION}-py3-none-manylinux_2_28_x86_64.whl"
-    - test -f "release/linux-arm64/hydra_harness_runtime_bin-${BH_WHEEL_VERSION}-py3-none-manylinux_2_28_aarch64.whl"
-    - test -f "release/macos-arm64/hydra_harness_runtime_bin-${BH_WHEEL_VERSION}-py3-none-macosx_14_0_arm64.whl"
+    - test -f "release/sdk/hydra_harness_sdk-${HYDRA_WHEEL_VERSION}-py3-none-any.whl"
+    - test -f "release/linux-x64/hydra_harness_runtime_bin-${HYDRA_WHEEL_VERSION}-py3-none-manylinux_2_28_x86_64.whl"
+    - test -f "release/linux-arm64/hydra_harness_runtime_bin-${HYDRA_WHEEL_VERSION}-py3-none-manylinux_2_28_aarch64.whl"
+    - test -f "release/macos-arm64/hydra_harness_runtime_bin-${HYDRA_WHEEL_VERSION}-py3-none-macosx_14_0_arm64.whl"
     - python -m twine check release/*/*.whl
     - export TWINE_USERNAME=gitlab-ci-token
     - export TWINE_PASSWORD="$CI_JOB_TOKEN"

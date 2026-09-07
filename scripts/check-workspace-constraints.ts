@@ -41,13 +41,12 @@ const publicLandlockPackages = new Set([
 const publicationSourceAllowlist: Readonly<Record<string, readonly string[]>> = {
   '@hydra/node-addon-landlock-run': ['src/main.c'],
 }
-const repositoryUrl = 'git+https://github.com/bosch-harness/bosch-harness.git'
+const repositoryUrl = 'git+https://github.com/MaiHongPhong1902/Hydra-Harness.git'
 /**
- * Source home the published packages point consumers at. It differs from
- * {@link repositoryUrl}, which the Landlock packages keep because npm resolves
- * their trusted publishing against the repository that runs the workflow.
+ * Source home the published packages point consumers at. Landlock trusted
+ * publishing uses the same repository that runs CI.
  */
-const publishedRepositoryUrl = 'git+https://github.com/bosch/bosch-harness.git'
+const publishedRepositoryUrl = 'git+https://github.com/MaiHongPhong1902/Hydra-Harness.git'
 /** Private packages that participate in workspace checks but not releases. */
 const experimentalPackageDirectory = /^packages\/experimental\/[^/]+$/
 /** npm namespace reserved for private experimental packages. */
@@ -90,7 +89,7 @@ export interface PackageManifest {
   devDependencies?: Record<string, string>
   dependencies?: Record<string, string>
   optionalDependencies?: Record<string, string>
-  bh?: {
+  hydra?: {
     bundle?: {
       patch?: string
     }
@@ -147,7 +146,7 @@ const packageFileExtras: Readonly<Record<string, readonly string[]>> = {
   // them through its own CSS pipeline, so the sheets are published artifacts.
   // The glob covers whichever sheets a package emits; sourcemaps stay
   // unpublished, as everywhere else in the repository.
-  '@hydra/harness-client-ui-primitives': ['lib/**/*.css'],
+  '@hydra/harness-client-ui-primitives': ['lib/**/*.css', 'lib/**/*.png', 'lib/**/*.webp'],
   '@hydra/harness-client-web': ['lib/**/*.css'],
   '@hydra/harness-client-ui-theme': ['lib/styles'],
   // The CPython side ships as source .py files, published as-is rather than built.
@@ -180,8 +179,8 @@ function sameStringList(actual: readonly string[] | undefined, expected: readonl
   return !!actual && actual.length === expected.length && actual.every((value, index) => value === expected[index])
 }
 
-function expectedBhPackageFiles(manifest: PackageManifest): readonly string[] {
-  const declaredPatch = manifest.bh?.bundle?.patch
+function expectedHydraPackageFiles(manifest: PackageManifest): readonly string[] {
+  const declaredPatch = manifest.hydra?.bundle?.patch
   const bundleFiles = declaredPatch === undefined ? [] : [declaredPatch.replace(/^\.\//, '')]
   const extras = [
     ...bundleFiles,
@@ -306,7 +305,7 @@ function checkWorkspace({ dir, manifest }: WorkspaceManifest): string[] {
     //
     // Access is per release sequence, not per scope: the vendored framework and
     // the Landlock packages publish publicly because outside consumers install
-    // them, while the bh family stays restricted until its own sequence goes
+    // them, while the hydra family stays restricted until its own sequence goes
     // public. A mixed scope is why no publish path passes `--access` — one flag
     // cannot serve both, so each packed manifest decides
     // ([rationale](../.agents/notes/implemented/process/2026-08-13-public-vendor-and-native-sequences.md)).
@@ -396,7 +395,7 @@ function checkWorkspace({ dir, manifest }: WorkspaceManifest): string[] {
     if (invariantExport && (invariantExport.types === undefined || invariantExport.default === undefined)) {
       errors.push(`${label}: package.json exports["./invariant"] must declare both types and default targets`)
     }
-    const expectedFiles = expectedBhPackageFiles(manifest)
+    const expectedFiles = expectedHydraPackageFiles(manifest)
     if (!sameStringList(manifest.files, expectedFiles)) {
       errors.push(`${label}: package.json files must be ${JSON.stringify(expectedFiles)}`)
     }
@@ -432,8 +431,8 @@ function checkHierarchyShape(): string[] {
 }
 
 function checkRepositoryVersion(): string[] {
-  // The root carries the bh release family's version, so a prerelease such as
-  // 0.0.1-rc.1 is a valid state between `release:bh` and its publication.
+  // The root carries the hydra release family's version, so a prerelease such as
+  // 0.0.1-rc.1 is a valid state between `release:hydra` and its publication.
   if (repositoryVersion && /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(repositoryVersion)) return []
   return ['package.json: version must be X.Y.Z with an optional prerelease segment']
 }

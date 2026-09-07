@@ -10,7 +10,7 @@ import type { QuestionResponsePayload } from './questions.ts'
 import type { Wire } from './rpc.schema.ts'
 import { sessionIdSchema } from './sessions.schema.ts'
 
-/** AskUserQuestionAnswer validated strictly against core bh-user-questions. */
+/** AskUserQuestionAnswer validated strictly against core hydra-user-questions. */
 export const askUserQuestionAnswerSchema = z.object({
   answers: z.array(z.object({
     id: z.string(),

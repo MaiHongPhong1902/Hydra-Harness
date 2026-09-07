@@ -1,7 +1,7 @@
 /**
  * Harness request-history conversion into pi-ai's Context vocabulary.
  *
- * @module bh-llm-pi-ai/context
+ * @module hydra-llm-pi-ai/context
  */
 
 import { CallId, contentHasImage, LlmError, offloadRequestImages } from '@hydra/harness-llm'

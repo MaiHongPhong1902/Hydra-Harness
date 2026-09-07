@@ -1,40 +1,40 @@
 # `@hydra/harness`
 
-The `bh` command is the product launcher for profiles: ordered stacks of plugin-bundle patch layers under the user's own overrides. [`src/args.ts`](src/args.ts) owns the command grammar, and [`src/bin.ts`](src/bin.ts) loads only the selected runner. Invalid commands, options from another mode, configuration errors, and boot failures exit nonzero.
+The `hydra` command is the product launcher for profiles: ordered stacks of plugin-bundle patch layers under the user's own overrides. [`src/args.ts`](src/args.ts) owns the command grammar, and [`src/bin.ts`](src/bin.ts) loads only the selected runner. Invalid commands, options from another mode, configuration errors, and boot failures exit nonzero.
 
 ## Entry modes
 
 | Command | Purpose |
 |---|---|
-| `bh --profile <name>` | Boot the named profile under `$BH_HOME/profiles/<name>`. |
-| `bh --profile headless "job"` | Run one fresh persisted session, print the final answer, and exit. |
-| `bh web` | Alias of `--profile web`. |
-| `bh plugin --profile <name> <pnpm args>` | Manage a profile's plugins by forwarding to pnpm in the profile directory. |
+| `hydra --profile <name>` | Boot the named profile under `$HYDRA_HOME/profiles/<name>`. |
+| `hydra --profile headless "job"` | Run one fresh persisted session, print the final answer, and exit. |
+| `hydra web` | Alias of `--profile web`. |
+| `hydra plugin --profile <name> <pnpm args>` | Manage a profile's plugins by forwarding to pnpm in the profile directory. |
 
-The invoking directory is the default workspace root. The `web` and `headless` profiles auto-initialize on first use from shipped templates; any other profile must be created through `bh plugin`.
+The invoking directory is the default workspace root. The `web` and `headless` profiles auto-initialize on first use from shipped templates; any other profile must be created through `hydra plugin`.
 
 ## App arguments
 
 The launcher parses only its own flags and hands everything after them to the booted profile, where any injected app plugin may parse the shared immutable snapshot ([`@hydra/harness-cmdline`](../../packages/boot/cmdline/README.md)). Launcher flags therefore come first, and the first token the launcher does not recognize starts the app's arguments:
 
 ```sh
-bh --profile web --port 8080       # --port belongs to the web app
-bh --profile tui --resume <id>     # example, assuming the tui profile is installed; --resume belongs to the terminal app
-bh --profile headless "run the tests"
-bh --profile web --help            # the web app's flags, not the launcher's
-bh --help                          # the launcher's own help
+hydra --profile web --port 8080       # --port belongs to the web app
+hydra --profile tui --resume <id>     # example, assuming the tui profile is installed; --resume belongs to the terminal app
+hydra --profile headless "run the tests"
+hydra --profile web --help            # the web app's flags, not the launcher's
+hydra --help                          # the launcher's own help
 ```
 
 ## Profiles
 
-A profile directory holds a `package.json` (out-of-tree plugin dependencies plus the profile manifest `bh.profile` with its ordered `bundles` list) and a `cordis.patch.yml` (the user's own patch layer).
+A profile directory holds a `package.json` (out-of-tree plugin dependencies plus the profile manifest `hydra.profile` with its ordered `bundles` list) and a `cordis.patch.yml` (the user's own patch layer).
 
 The tree composes over an empty root:
-- each bundle's patch in `bh.profile.bundles` order
-- then the profile's `cordis.patch.yml`, then the home-level `$BH_HOME/cordis.patch.yml`
+- each bundle's patch in `hydra.profile.bundles` order
+- then the profile's `cordis.patch.yml`, then the home-level `$HYDRA_HOME/cordis.patch.yml`
 - then `--patch` overlays
 
-Bundles named in `bh.profile.bundles` resolve from the bh installation first (`@hydra/harness-base`, `@hydra/harness-web-app`, `@hydra/harness-headless`), then from the profile's own `node_modules`, where pnpm installs out-of-tree plugins.
+Bundles named in `hydra.profile.bundles` resolve from the hydra installation first (`@hydra/harness-base`, `@hydra/harness-web-app`, `@hydra/harness-headless`), then from the profile's own `node_modules`, where pnpm installs out-of-tree plugins.
 
 Use `--dump-default-config` and `--dump-config` to inspect the composed tree without booting it.
 
@@ -42,4 +42,4 @@ The [CLI behavior reference](reference/README.md) owns exact layer precedence, f
 
 ## Development
 
-Production runs require built package and frontend artifacts. From the repository root, run `pnpm run build` separately, then use `pnpm bh <args...>` to run the TypeScript entry and forward every argument; the [source-execution reference](reference/README.md#source-execution) owns the module-resolution contract.
+Production runs require built package and frontend artifacts. From the repository root, run `pnpm run build` separately, then use `pnpm hydra <args...>` to run the TypeScript entry and forward every argument; the [source-execution reference](reference/README.md#source-execution) owns the module-resolution contract.

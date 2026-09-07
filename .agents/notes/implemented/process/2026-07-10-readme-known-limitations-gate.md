@@ -12,7 +12,7 @@ Every package manifest under `packages/<group>/<pkg>/package.json` has a sibling
 
 A package with nothing to declare is listed in `NO_LIMITATIONS` and omits the section. Adding a limitation requires removing the entry; renames and removals fail because every entry must name a scanned package.
 
-The gate checks presence, shape, and the allowlist. Review under the documentation and [prose](../../../skills/bh-prose-standard/SKILL.md) standards owns coverage and accuracy. The standing rule lives in [packages/AGENTS.md](../../../../packages/AGENTS.md).
+The gate checks presence, shape, and the allowlist. Review under the documentation and [prose](../../../skills/hydra-prose-standard/SKILL.md) standards owns coverage and accuracy. The standing rule lives in [packages/AGENTS.md](../../../../packages/AGENTS.md).
 
 ## Alternatives considered
 

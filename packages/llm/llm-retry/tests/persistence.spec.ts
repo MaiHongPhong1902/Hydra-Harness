@@ -19,7 +19,7 @@ async function backend(kind: 'jsonl' | 'sqlite'): Promise<Context> {
   const ctx = new Context()
   await ctx.plugin(SessionStore)
   if (kind === 'jsonl') {
-    const root = await mkdtemp(join(tmpdir(), 'bh-llm-retry-jsonl-'))
+    const root = await mkdtemp(join(tmpdir(), 'hydra-llm-retry-jsonl-'))
     dirs.push(root)
     await ctx.plugin(JsonlSessionPersistence, { root })
   } else {

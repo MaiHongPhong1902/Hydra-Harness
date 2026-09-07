@@ -27,7 +27,7 @@ This supersedes new catalog publication in the [skill-system decision](../featur
 
 ## Alternatives considered
 
-**Disable the WorkON skill or other broad skills.** Rejected because it removes useful task-specific instructions instead of fixing unbounded discovery and over-selection for every provider.
+**Disable a broad domain skill.** Rejected because it removes useful task-specific instructions instead of fixing unbounded discovery and over-selection for every provider.
 
 **Keep injecting every summary and rely on the model to ignore most of them.** Rejected because prompt size and attention noise still scale with total skill count before the model makes any decision.
 

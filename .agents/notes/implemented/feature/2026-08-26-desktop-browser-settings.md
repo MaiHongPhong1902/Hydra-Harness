@@ -22,7 +22,7 @@ The page reaches this controller only through narrow preload and validated deskt
 
 The Browser page declares `settings.browser.item`; the existing `web-search-deepseek` disclosure card contributes there on Desktop and retains its Web-only fallback under Plugin configuration. Its established settings and credential paths continue to own the endpoint, native-search budget, and key. `web_search` delegates to the provider selected by `ctx.web`, independently of the current LLM provider, so the built-in search provider remains usable for Hydra model routes. The Web app protects the `web`, `web-search-deepseek`, and `browser-electron` host rows from in-app plugin disablement; model-facing browser and web tools remain scoped by agent presets.
 
-The page is registered only when the desktop preload exposes `bhDesktop.browser`. URL destinations, annotation screenshots, model-history access, Full CDP, Password Manager, and Contact Info are Host/native-backed controls. The two managers enable only when the current preload exposes their management methods and Electron reports secure storage available; otherwise they remain disabled and all vault operations fail closed. Passwords never cross the renderer boundary.
+The page is registered only when the desktop preload exposes `hydraDesktop.browser`. URL destinations, annotation screenshots, model-history access, Full CDP, Password Manager, and Contact Info are Host/native-backed controls. The two managers enable only when the current preload exposes their management methods and Electron reports secure storage available; otherwise they remain disabled and all vault operations fail closed. Passwords never cross the renderer boundary.
 
 ## Alternatives considered
 

@@ -5,7 +5,7 @@
  * workspace package's tests import it by relative path (it lives under
  * `tests/`, never `src/`, so it stays out of the published surface).
  *
- * Fidelity to the backend contract (`bh-storage` `src/backend.ts`): version
+ * Fidelity to the backend contract (`hydra-storage` `src/backend.ts`): version
  * stamping and `version-mismatch` on reopen, `malformed` never (memory cannot
  * corrupt), per-call atomicity trivially, `closed` after close, delete
  * idempotence. Media survive across backends through the shared `media` map

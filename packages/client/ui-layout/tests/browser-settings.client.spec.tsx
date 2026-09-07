@@ -23,8 +23,8 @@ const kit = { useSessions: unusedHook, useWorkspaces: unusedHook, close: vi.fn()
 
 const SETTINGS: BrowserSettings = {
   controlEnabled: true,
-  webDestination: 'bhagent',
-  localDestination: 'bhagent',
+  webDestination: 'hydra',
+  localDestination: 'hydra',
   annotationScreenshots: 'include',
   downloadDirectory: '',
   askWhereToSave: false,
@@ -36,8 +36,8 @@ const SETTINGS: BrowserSettings = {
 }
 
 const NATIVE_SETTINGS: BrowserNativeSettings = {
-  webDestination: 'bhagent',
-  localDestination: 'bhagent',
+  webDestination: 'hydra',
+  localDestination: 'hydra',
   annotationScreenshots: 'include',
   downloadDirectory: '',
   askWhereToSave: false,
@@ -108,7 +108,7 @@ type NativeCallbacks = Pick<BrowserSectionInjected,
 
 afterEach(() => {
   cleanup()
-  delete window.bhDesktop
+  delete window.hydraDesktop
 })
 
 function nativeCallbacks(overrides: Partial<NativeCallbacks> = {}): NativeCallbacks {
@@ -255,7 +255,7 @@ describe('BrowserSection', () => {
 
   it('does not persist Full CDP when native confirmation is rejected', async () => {
     const confirmFullCdpAccess = vi.fn(async () => false)
-    window.bhDesktop = { browser: { setBounds: vi.fn(), confirmFullCdpAccess } }
+    window.hydraDesktop = { browser: { setBounds: vi.fn(), confirmFullCdpAccess } }
     const { settings } = mount()
     const toggle = screen.getByRole<HTMLButtonElement>('switch', { name: 'Enable full CDP access' })
     await waitFor(() => { expect(toggle.disabled).toBe(false) })
@@ -267,7 +267,7 @@ describe('BrowserSection', () => {
 
   it('persists Full CDP only after native confirmation is accepted', async () => {
     const confirmFullCdpAccess = vi.fn(async () => true)
-    window.bhDesktop = { browser: { setBounds: vi.fn(), confirmFullCdpAccess } }
+    window.hydraDesktop = { browser: { setBounds: vi.fn(), confirmFullCdpAccess } }
     const { settings } = mount()
     const toggle = screen.getByRole<HTMLButtonElement>('switch', { name: 'Enable full CDP access' })
     await waitFor(() => { expect(toggle.disabled).toBe(false) })
@@ -281,7 +281,7 @@ describe('BrowserSection', () => {
 
   it('turns Full CDP off without confirmation', async () => {
     const confirmFullCdpAccess = vi.fn(async () => true)
-    window.bhDesktop = { browser: { setBounds: vi.fn(), confirmFullCdpAccess } }
+    window.hydraDesktop = { browser: { setBounds: vi.fn(), confirmFullCdpAccess } }
     const { settings } = mount({ value: { fullCdpAccess: true } })
     const toggle = screen.getByRole<HTMLButtonElement>('switch', { name: 'Enable full CDP access' })
     await waitFor(() => { expect(toggle.disabled).toBe(false) })
@@ -293,7 +293,7 @@ describe('BrowserSection', () => {
 
   it('locks Full CDP when the native capability is disabled', async () => {
     const confirmFullCdpAccess = vi.fn(async () => true)
-    window.bhDesktop = { browser: { setBounds: vi.fn(), confirmFullCdpAccess } }
+    window.hydraDesktop = { browser: { setBounds: vi.fn(), confirmFullCdpAccess } }
     mount({ native: { configureNative: vi.fn(async () => ({ fullCdpAccessAllowed: false })) } })
 
     const toggle = screen.getByRole<HTMLButtonElement>('switch', { name: 'Enable full CDP access' })
@@ -570,7 +570,7 @@ describe('Browser settings registration', () => {
     expect(web.slots.entries('settings.section')).toHaveLength(0)
     expect(web.bind).not.toHaveBeenCalled()
 
-    window.bhDesktop = { browser: { setBounds: vi.fn() } }
+    window.hydraDesktop = { browser: { setBounds: vi.fn() } }
     const olderDesktop = await bench()
     await olderDesktop.ctx.plugin({ inject: [...inject], apply }).await()
     declareSettings(olderDesktop.slots)
@@ -599,7 +599,7 @@ describe('Browser settings registration', () => {
       autofillSaveContact: vi.fn(async () => CONTACT_META),
       autofillRemoveContact: vi.fn(async () => true),
     } satisfies DesktopBrowserApi
-    window.bhDesktop = { browser }
+    window.hydraDesktop = { browser }
     const desktop = await bench()
     await desktop.ctx.plugin({ inject: [...inject], apply }).await()
     declareSettings(desktop.slots)
@@ -669,7 +669,7 @@ describe('Browser settings registration', () => {
       setSite: vi.fn(async () => {}),
       removeSite: vi.fn(async () => {}),
     } satisfies DesktopBrowserApi
-    window.bhDesktop = { browser }
+    window.hydraDesktop = { browser }
     const desktop = await bench()
     await desktop.ctx.plugin({ inject: [...inject], apply }).await()
     declareSettings(desktop.slots)

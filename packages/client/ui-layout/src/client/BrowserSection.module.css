@@ -241,8 +241,8 @@
 }
 
 .managerContent {
-  --bh-scrollbar-thumb: var(--dsw-alias-scrollbar-bg-l2);
-  --bh-scrollbar-thumb-hover: var(--dsw-alias-scrollbar-hover-l2);
+  --hydra-scrollbar-thumb: var(--dsw-alias-scrollbar-bg-l2);
+  --hydra-scrollbar-thumb-hover: var(--dsw-alias-scrollbar-hover-l2);
 
   min-height: 0;
   overflow: auto;

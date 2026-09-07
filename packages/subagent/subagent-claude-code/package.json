@@ -7,7 +7,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bosch/bosch-harness.git",
+    "url": "git+https://github.com/MaiHongPhong1902/Hydra-Harness.git",
     "directory": "packages/subagent/subagent-claude-code"
   },
   "type": "module",
@@ -32,7 +32,7 @@
     "lib/types/**/*.d.ts"
   ],
   "license": "MIT",
-  "bh": {
+  "hydra": {
     "bundle": {
       "patch": "./cordis.patch.yml"
     }

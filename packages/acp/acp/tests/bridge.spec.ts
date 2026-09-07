@@ -21,7 +21,7 @@ describe('automation-only ACP bridge', () => {
 
     expect(response).toEqual({
       protocolVersion: PROTOCOL_VERSION,
-      agentInfo: { name: 'bosch-harness-acp', version: '0.0.1' },
+      agentInfo: { name: 'hydra-harness-acp', version: '0.0.1' },
       agentCapabilities: {
         promptCapabilities: { image: false, audio: false, embeddedContext: false },
       },

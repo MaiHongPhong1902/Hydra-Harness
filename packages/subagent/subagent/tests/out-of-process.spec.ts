@@ -40,7 +40,7 @@ describe('child cwd resolution', () => {
   it('accepts an absolute enterable directory and rejects relative or missing paths', () => {
     expect(assertUsableCwd('p', 'config cwd', tmpdir())).toBe(tmpdir())
     expect(() => assertUsableCwd('p', 'config cwd', 'relative/path')).toThrow('must be an absolute path')
-    expect(() => assertUsableCwd('p', 'config cwd', join(tmpdir(), 'bh-no-such-dir-xyz'))).toThrow('not an accessible directory')
+    expect(() => assertUsableCwd('p', 'config cwd', join(tmpdir(), 'hydra-no-such-dir-xyz'))).toThrow('not an accessible directory')
   })
 
   it('rejects an existing path that is a file, not a directory', () => {

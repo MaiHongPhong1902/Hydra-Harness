@@ -1,19 +1,19 @@
 # Client Modules
 
-The web plugin table: the Node half of the client module system in [@hydra/harness-client-modules](../../packages/client/modules), provided as `ctx.clientModules` (`ClientModuleRegistry`). It scans the host Loader's entries for packages declaring `bh.client`, composes the `window.__BH_BOOT__` entry graph, serves each bundle at `/plugins/<id>/client.js`, and answers every index-injection collection with the boot manifest rows — the four faces of one service. It is an optional capability of the web GUI stack, not part of the agent-loop spine, and it is a consumer of [@hydra/harness-host-webserver](../../packages/host/webserver): the carrier described in [web-server.md](web-server.md) supplies the prefix route and the `webserver/index-inject` event this service answers. The same package's browser half (`ctx.modules`, the lazy-CJS module table that fetches and materializes these bundles) is kernel machinery documented in the [package README](../../packages/client/modules/README.md), not here.
+The web plugin table: the Node half of the client module system in [@hydra/harness-client-modules](../../packages/client/modules), provided as `ctx.clientModules` (`ClientModuleRegistry`). It scans the host Loader's entries for packages declaring `hydra.client`, composes the `window.__HYDRA_BOOT__` entry graph, serves each bundle at `/plugins/<id>/client.js`, and answers every index-injection collection with the boot manifest rows — the four faces of one service. It is an optional capability of the web GUI stack, not part of the agent-loop spine, and it is a consumer of [@hydra/harness-host-webserver](../../packages/host/webserver): the carrier described in [web-server.md](web-server.md) supplies the prefix route and the `webserver/index-inject` event this service answers. The same package's browser half (`ctx.modules`, the lazy-CJS module table that fetches and materializes these bundles) is kernel machinery documented in the [package README](../../packages/client/modules/README.md), not here.
 
 Source: [`packages/client/modules/src/client/manifest.ts`](../../packages/client/modules/src/client/manifest.ts)
 
 ## The wire
 
-The graph is the wire single source between the Node and browser halves: the host composes `WebBootEntry` rows from scanned packages, publishes the graph as a `global` injection row rendered ahead of later script rows (`globalThis["__BH_BOOT__"]`, with `<` escaped so plugin-controlled strings cannot break out of the script element), and the shell parses it before booting anything. A page without a valid manifest cannot boot — the browser-side parser throws loud on a missing or malformed graph.
+The graph is the wire single source between the Node and browser halves: the host composes `WebBootEntry` rows from scanned packages, publishes the graph as a `global` injection row rendered ahead of later script rows (`globalThis["__HYDRA_BOOT__"]`, with `<` escaped so plugin-controlled strings cannot break out of the script element), and the shell parses it before booting anything. A page without a valid manifest cannot boot — the browser-side parser throws loud on a missing or malformed graph.
 
 ```ts type-equiv
 /**
  * One composed client entry pushed by the host (a graph row). Wire
  * single source: the host node half (package root) produces this same shape.
  * `immediately` marks stage-one prefetch; `inject` is informational graph
- * metadata (the authoritative edges live in each package's `bh.client`
+ * metadata (the authoritative edges live in each package's `hydra.client`
  * declaration and reach fibers through entry creation). `external` carries
  * module-graph edges: unlike `inject`, they constrain code arrival because
  * `require` is synchronous (see {@link WebBootGraph.entries}).
@@ -35,7 +35,7 @@ interface WebBootEntry {
 ```
 
 ```ts type-equiv
-/** The composed client entry graph the host injects as `window.__BH_BOOT__`. */
+/** The composed client entry graph the host injects as `window.__HYDRA_BOOT__`. */
 interface WebBootGraph {
   /** Consistency anchor over the whole graph (content + bundle hashes). */
   rev: string
@@ -52,7 +52,7 @@ Each row's `rev` is the bundle's content hash and rides the URL as a cache-busti
 
 ## The scan
 
-A package joins the table by declaring `bh.client` (`platform: 'web'`, optional `inject` edges, optional `immediately`) in its package.json and exporting its built bundle at `exports["./client"]`. Package resolution anchors at the config tree's `ctx.baseUrl` — the cordis.yml directory, whose package declares every composed plugin as a dependency — and construction throws when that anchor is unset.
+A package joins the table by declaring `hydra.client` (`platform: 'web'`, optional `inject` edges, optional `immediately`) in its package.json and exporting its built bundle at `exports["./client"]`. Package resolution anchors at the config tree's `ctx.baseUrl` — the cordis.yml directory, whose package declares every composed plugin as a dependency — and construction throws when that anchor is unset.
 
 Scanning is incremental per package; there is no full-rescan code path. Every cordis `internal/plugin` emission (fiber construction or disposal) marks the fiber's entry name dirty, and a microtask flush reconciles each dirty name against the live loader entries. The activation pass seeds the same dirty set with all current entries and flushes synchronously, so first scan and steady state share one implementation — with opposite failure postures. At activation, a malformed declaration or missing bundle among the already-loaded entries aggregates into one loud `AggregateError` listing every broken package: the fiber FAILS and the boot's fail-loud sweep reports it. In steady state, a broken package logs a warning and must not poison the others.
 
@@ -80,12 +80,12 @@ Generated from source by `scripts/gen-cordis-catalog.ts` (verified fresh by `pnp
 
 ### `ctx.clientModules` — `ClientModuleRegistry`
 
-The web plugin table service: incremental `bh.client` scan + wire composition + bundle route + index injection rows. Construction runs the activation scan synchronously — a malformed declaration or missing bundle among the already-loaded entries aggregates into one loud throw (FAILED fiber; the boot activation audit reports it).
+The web plugin table service: incremental `hydra.client` scan + wire composition + bundle route + index injection rows. Construction runs the activation scan synchronously — a malformed declaration or missing bundle among the already-loaded entries aggregates into one loud throw (FAILED fiber; the boot activation audit reports it).
 
 ```ts cordis-catalog
 /**
  * Current composed entry graph (stable object between changes).
- * @returns the graph served as `window.__BH_BOOT__`.
+ * @returns the graph served as `window.__HYDRA_BOOT__`.
  */
 graph(): WebBootGraph
 

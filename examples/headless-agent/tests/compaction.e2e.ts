@@ -26,7 +26,7 @@ afterEach(async () => {
 
 describe.skipIf(!process.env.DEEPSEEK_API_KEY)('compaction: a long session compacts mid-flight and keeps running', () => {
   it('summarizes older history into a checkpoint without breaking the task', async () => {
-    workdir = await mkdtemp(join(tmpdir(), 'bh-compaction-'))
+    workdir = await mkdtemp(join(tmpdir(), 'hydra-compaction-'))
     for (let i = 1; i <= 4; i++) {
       await writeFile(join(workdir, `file${i}.txt`), `This is file number ${i}. `.repeat(50))
     }

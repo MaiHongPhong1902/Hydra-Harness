@@ -59,7 +59,7 @@ describe('resolveSessionPersonality / hasLoggedPersonality', () => {
 
 describe('LocalMemoryStore', () => {
   it('rejects malformed durable documents and enforces entry and text limits', async () => {
-    const home = await mkdtemp(join(tmpdir(), 'bh-memory-validation-'))
+    const home = await mkdtemp(join(tmpdir(), 'hydra-memory-validation-'))
     const path = join(home, 'memories', 'memories.json')
     const store = new LocalMemoryStore(home)
     try {
@@ -87,7 +87,7 @@ describe('LocalMemoryStore', () => {
   })
 
   it('redacts, persists, and removes an explicit local memory', async () => {
-    const home = await mkdtemp(join(tmpdir(), 'bh-memory-'))
+    const home = await mkdtemp(join(tmpdir(), 'hydra-memory-'))
     try {
       const store = new LocalMemoryStore(home)
       const entry = await store.add('token=super-secret-value and remember dark mode')
@@ -152,9 +152,9 @@ describe('personalization: real agent-loop request history', () => {
   })
 
   it('preserves seeded policy and recalls memory only at the first eligible proposal', async () => {
-    const home = await mkdtemp(join(tmpdir(), 'bh-memory-proposal-'))
-    const previousHome = process.env.BH_HOME
-    process.env.BH_HOME = home
+    const home = await mkdtemp(join(tmpdir(), 'hydra-memory-proposal-'))
+    const previousHome = process.env.HYDRA_HOME
+    process.env.HYDRA_HOME = home
     const ctx = await loopHarness(new ScriptedAdapter([]), { memory: { enabled: true } })
     try {
       const agent = ctx.agentLoop.create(SessionId('proposal'))
@@ -194,16 +194,16 @@ describe('personalization: real agent-loop request history', () => {
       }, async () => enter)).toEqual(enter)
     } finally {
       await ctx.fiber.dispose()
-      if (previousHome === undefined) delete process.env.BH_HOME
-      else process.env.BH_HOME = previousHome
+      if (previousHome === undefined) delete process.env.HYDRA_HOME
+      else process.env.HYDRA_HOME = previousHome
       await rm(home, { recursive: true, force: true })
     }
   })
 
   it('controls per-chat memory policy and stores only explicit accepted memories', async () => {
-    const home = await mkdtemp(join(tmpdir(), 'bh-memory-commands-'))
-    const previousHome = process.env.BH_HOME
-    process.env.BH_HOME = home
+    const home = await mkdtemp(join(tmpdir(), 'hydra-memory-commands-'))
+    const previousHome = process.env.HYDRA_HOME
+    process.env.HYDRA_HOME = home
     const ctx = await loopHarness(new ScriptedAdapter([]), { memory: { enabled: true } })
     try {
       await ctx.plugin(CommandRuntime)
@@ -235,8 +235,8 @@ describe('personalization: real agent-loop request history', () => {
       expect(await command('add disabled')).toMatchObject({ kind: 'error', text: 'Memory saving is off for this chat.' })
     } finally {
       await ctx.fiber.dispose()
-      if (previousHome === undefined) delete process.env.BH_HOME
-      else process.env.BH_HOME = previousHome
+      if (previousHome === undefined) delete process.env.HYDRA_HOME
+      else process.env.HYDRA_HOME = previousHome
       await rm(home, { recursive: true, force: true })
     }
   })
@@ -306,9 +306,9 @@ describe('personalization: real agent-loop request history', () => {
   })
 
   it('injects an enabled local memory once and records the chat policy', async () => {
-    const home = await mkdtemp(join(tmpdir(), 'bh-memory-loop-'))
-    const previousHome = process.env.BH_HOME
-    process.env.BH_HOME = home
+    const home = await mkdtemp(join(tmpdir(), 'hydra-memory-loop-'))
+    const previousHome = process.env.HYDRA_HOME
+    process.env.HYDRA_HOME = home
     try {
       const adapter = new ScriptedAdapter([textResponse('ack')])
       const ctx = await loopHarness(adapter, { memory: { enabled: true, useMemories: true, generateMemories: true } })
@@ -323,16 +323,16 @@ describe('personalization: real agent-loop request history', () => {
       expect(resolveMemoryPolicy(agent.session)).toEqual({ useMemories: true, generateMemories: true })
       await ctx.fiber.dispose()
     } finally {
-      if (previousHome === undefined) delete process.env.BH_HOME
-      else process.env.BH_HOME = previousHome
+      if (previousHome === undefined) delete process.env.HYDRA_HOME
+      else process.env.HYDRA_HOME = previousHome
       await rm(home, { recursive: true, force: true })
     }
   })
 
   it('does not recall memories when the global switch is off', async () => {
-    const home = await mkdtemp(join(tmpdir(), 'bh-memory-off-'))
-    const previousHome = process.env.BH_HOME
-    process.env.BH_HOME = home
+    const home = await mkdtemp(join(tmpdir(), 'hydra-memory-off-'))
+    const previousHome = process.env.HYDRA_HOME
+    process.env.HYDRA_HOME = home
     try {
       const adapter = new ScriptedAdapter([textResponse('ack')])
       const ctx = await loopHarness(adapter, { memory: { enabled: false, useMemories: true, generateMemories: true } })
@@ -346,8 +346,8 @@ describe('personalization: real agent-loop request history', () => {
       expect(resolveMemoryPolicy(agent.session)).toEqual({ useMemories: false, generateMemories: false })
       await ctx.fiber.dispose()
     } finally {
-      if (previousHome === undefined) delete process.env.BH_HOME
-      else process.env.BH_HOME = previousHome
+      if (previousHome === undefined) delete process.env.HYDRA_HOME
+      else process.env.HYDRA_HOME = previousHome
       await rm(home, { recursive: true, force: true })
     }
   })

@@ -11,9 +11,9 @@ import {
   installFailLoud, loadEnv, loadLayeredEnv, loadOverlayPatches, resolveConfigPath, type FailLoudProcess,
 } from '../src/index.ts'
 
-const NAME = 'bh-test-bin'
+const NAME = 'hydra-test-bin'
 
-const tmp = (): string => mkdtempSync(join(tmpdir(), 'bh-app-boot-'))
+const tmp = (): string => mkdtempSync(join(tmpdir(), 'hydra-app-boot-'))
 
 describe('resolveConfigPath', () => {
   it('resolves relative to the given cwd outside replay mode', () => {
@@ -35,12 +35,12 @@ describe('resolveConfigPath', () => {
 describe('loadEnv', () => {
   it('loads variables from .env in the given dir', () => {
     const dir = tmp()
-    writeFileSync(join(dir, '.env'), 'BH_APP_BOOT_SPEC_VAR=loaded\n')
+    writeFileSync(join(dir, '.env'), 'HYDRA_APP_BOOT_SPEC_VAR=loaded\n')
     const warn = vi.fn()
     loadEnv(NAME, dir, warn)
-    expect(process.env['BH_APP_BOOT_SPEC_VAR']).toBe('loaded')
+    expect(process.env['HYDRA_APP_BOOT_SPEC_VAR']).toBe('loaded')
     expect(warn).not.toHaveBeenCalled()
-    delete process.env['BH_APP_BOOT_SPEC_VAR']
+    delete process.env['HYDRA_APP_BOOT_SPEC_VAR']
   })
 
   it('stays silent when no .env exists (ambient environment wins)', () => {
@@ -60,7 +60,7 @@ describe('loadEnv', () => {
 
   it('defaults dir to the process cwd and warn to a stderr write', () => {
     const dir = tmp()
-    writeFileSync(join(dir, '.env'), 'BH_APP_BOOT_SPEC_DEFAULTS=yes\n')
+    writeFileSync(join(dir, '.env'), 'HYDRA_APP_BOOT_SPEC_DEFAULTS=yes\n')
     const previous = process.cwd()
     process.chdir(dir)
     try {
@@ -68,8 +68,8 @@ describe('loadEnv', () => {
     } finally {
       process.chdir(previous)
     }
-    expect(process.env['BH_APP_BOOT_SPEC_DEFAULTS']).toBe('yes')
-    delete process.env['BH_APP_BOOT_SPEC_DEFAULTS']
+    expect(process.env['HYDRA_APP_BOOT_SPEC_DEFAULTS']).toBe('yes')
+    delete process.env['HYDRA_APP_BOOT_SPEC_DEFAULTS']
     // The default warn sink itself: point it at a broken .env with stderr
     // spied, so the arrow body runs without polluting the test output.
     const broken = tmp()
@@ -110,7 +110,7 @@ describe('loadLayeredEnv', () => {
       '',
     ].join('\n'))
     clear()
-    vi.stubEnv('BH_HOME', home)
+    vi.stubEnv('HYDRA_HOME', home)
     vi.stubEnv('APP_BOOT_LAYERED_INHERITED', 'inherited')
     const warn = vi.fn()
     try {
@@ -127,10 +127,10 @@ describe('loadLayeredEnv', () => {
   })
 
   it.each([
-    ['a harness switch', 'BH_PERMISSION_MODE=danger-full-access\n'],
+    ['a harness switch', 'HYDRA_PERMISSION_MODE=danger-full-access\n'],
     ['the executable search path', 'PATH=/tmp/evil\n'],
     ['a module preload', 'NODE_OPTIONS=--require /tmp/evil.js\n'],
-    ['a skill root', 'BH_AGENTS_HOME=/tmp/injected\n'],
+    ['a skill root', 'HYDRA_AGENTS_HOME=/tmp/injected\n'],
     ['a network proxy', 'HTTPS_PROXY=http://attacker.example\n'],
     ['a lowercase network proxy', 'https_proxy=http://attacker.example\n'],
     ['a browser command', 'BROWSER=./script\n'],
@@ -139,7 +139,7 @@ describe('loadLayeredEnv', () => {
     const project = tmp()
     writeFileSync(join(project, '.env'), `${NAMES[1]}=applied-anyway\n${content}`)
     clear()
-    vi.stubEnv('BH_HOME', home)
+    vi.stubEnv('HYDRA_HOME', home)
     try {
       expect(() => loadLayeredEnv(NAME, project, vi.fn())).toThrow(/only the launching environment may set/)
       expect(process.env[NAMES[1]]).toBeUndefined()
@@ -155,7 +155,7 @@ describe('loadLayeredEnv', () => {
     writeFileSync(join(home, '.env'), `${NAMES[1]}=u\n`)
     writeFileSync(join(project, '.env'), `${NAMES[2]}=p\n`)
     clear()
-    vi.stubEnv('BH_HOME', home)
+    vi.stubEnv('HYDRA_HOME', home)
     try {
       const snapshot = loadLayeredEnv(NAME, project, vi.fn())
       expect(snapshot.get(NAMES[1])).toEqual({ value: 'u', source: 'user-env', path: join(home, '.env') })
@@ -173,7 +173,7 @@ describe('loadLayeredEnv', () => {
     writeFileSync(join(home, '.env'), `${NAMES[1]}=real-home\n`)
     writeFileSync(join(project, '.env'), `${NAMES[2]}=set-by-project\n`)
     clear()
-    vi.stubEnv('BH_HOME', home)
+    vi.stubEnv('HYDRA_HOME', home)
     try {
       loadLayeredEnv(NAME, project, vi.fn())
       expect(process.env[NAMES[1]]).toBe('real-home')
@@ -191,7 +191,7 @@ describe('loadLayeredEnv', () => {
     mkdirSync(join(home, '.env'))
     writeFileSync(join(project, '.env'), `${NAMES[2]}=project-only\n`)
     clear()
-    vi.stubEnv('BH_HOME', home)
+    vi.stubEnv('HYDRA_HOME', home)
     const warn = vi.fn()
     try {
       const snapshot = loadLayeredEnv(NAME, project, warn)
@@ -211,7 +211,7 @@ describe('loadLayeredEnv', () => {
     mkdirSync(join(home, '.env'))
     writeFileSync(join(project, '.env'), `${NAMES[2]}=project-only\n`)
     clear()
-    vi.stubEnv('BH_HOME', home)
+    vi.stubEnv('HYDRA_HOME', home)
     const write = vi.spyOn(process.stderr, 'write').mockReturnValue(true)
     try {
       const snapshot = loadLayeredEnv(NAME, project)
@@ -230,7 +230,7 @@ describe('loadLayeredEnv', () => {
     const project = tmp()
     writeFileSync(join(project, '.env'), `${NAMES[2]}=project-only\n`)
     clear()
-    vi.stubEnv('BH_HOME', home)
+    vi.stubEnv('HYDRA_HOME', home)
     const warn = vi.fn()
     try {
       const snapshot = loadLayeredEnv(NAME, project, warn)
@@ -246,7 +246,7 @@ describe('loadLayeredEnv', () => {
     const home = tmp()
     const project = tmp()
     clear()
-    vi.stubEnv('BH_HOME', home)
+    vi.stubEnv('HYDRA_HOME', home)
     vi.stubEnv('APP_BOOT_LAYERED_INHERITED', 'inherited')
     try {
       const snapshot = loadLayeredEnv(NAME, project, vi.fn())
@@ -261,7 +261,7 @@ describe('loadLayeredEnv', () => {
     const both = tmp()
     writeFileSync(join(both, '.env'), `${NAMES[2]}=one-file\n`)
     clear()
-    vi.stubEnv('BH_HOME', both)
+    vi.stubEnv('HYDRA_HOME', both)
     try {
       const snapshot = loadLayeredEnv(NAME, both, vi.fn())
       expect(snapshot.get(NAMES[2])).toEqual({ value: 'one-file', source: 'project-env', path: join(both, '.env') })
@@ -659,10 +659,10 @@ describe('boot', () => {
     expect(disposed).toBe(true)
   })
 
-  it('exposes bhHomePath to Loader config expressions', async () => {
+  it('exposes hydraHomePath to Loader config expressions', async () => {
     const dir = tmp()
-    const bhHome = join(dir, 'home')
-    vi.stubEnv('BH_HOME', bhHome)
+    const hydraHome = join(dir, 'home')
+    vi.stubEnv('HYDRA_HOME', hydraHome)
     writeFileSync(join(dir, 'capture.mjs'), [
       'export const name = "capture"',
       'export function apply(ctx, config) {',
@@ -674,13 +674,13 @@ describe('boot', () => {
       '- id: capture',
       '  name: ./capture.mjs',
       '  config:',
-      "    path: !!js bhHomePath('sessions')",
+      "    path: !!js hydraHomePath('sessions')",
       '',
     ].join('\n'))
     let ctx: Context | undefined
     try {
       ctx = await boot(NAME, join(dir, 'cordis.yml'))
-      expect(ctx.get('capturedPath')).toBe(join(bhHome, 'sessions'))
+      expect(ctx.get('capturedPath')).toBe(join(hydraHome, 'sessions'))
     } finally {
       await ctx?.fiber.dispose()
       vi.unstubAllEnvs()

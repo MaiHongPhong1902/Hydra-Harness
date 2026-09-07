@@ -147,7 +147,7 @@ The "single provider auto-selects" rule is for tests, demos, and simple deployme
   name: '@hydra/harness-tool-web'
 ```
 
-Operational overrides feed the same explicit selection path: `BH_WEB_SEARCH_PROVIDER=perplexity` is equivalent to config `searchProvider: perplexity`, not a hidden priority chain inside `@hydra/harness-tool-web`.
+Operational overrides feed the same explicit selection path: `HYDRA_WEB_SEARCH_PROVIDER=perplexity` is equivalent to config `searchProvider: perplexity`, not a hidden priority chain inside `@hydra/harness-tool-web`.
 
 `ctx.web.search()` and `ctx.web.fetch()` resolve the provider at execution time using the selection rules above. If the selected capability is unavailable, they throw `WebError` with a structured code such as `WEB_PROVIDER_UNAVAILABLE`, `WEB_PROVIDER_CONFIGURED_MISSING`, `WEB_PROVIDER_CONFIGURED_UNAVAILABLE`, or `WEB_PROVIDER_AMBIGUOUS`. If no provider is explicitly configured and no usable provider exists, the execution error is the generic `WEB_PROVIDER_UNAVAILABLE` case; there is deliberately no diagnostic summary of every unavailable provider.
 
@@ -290,7 +290,7 @@ This matches the most flexible provider-plugin systems: every provider can expos
 
 This resembles OpenCode's local web search: one stable `websearch` tool dispatches to Exa or Parallel internally. It is acceptable for a small product path but wrong as a harness foundation. The tool package would own provider selection, credentials, request mapping, transport, response parsing, and presentation, making it hard to add Exa and Perplexity without baking their differences into the tool schema.
 
-### Split search and fetch into two seams (`bh-search`, `bh-fetch`)
+### Split search and fetch into two seams (`hydra-search`, `hydra-fetch`)
 
 Tempting because the two halves share no request schema and no business logic, so each would map cleanly onto the shell/fs three-package template, and the `Search`/`Fetch` method-pair duplication on `WebRuntime` would disappear. Rejected because the shared machinery — provider-id registry, registration-order-independent selection policy, abort propagation, the `WebError` taxonomy, and the product-facing "how this harness reaches the web" configuration API — is real and would otherwise be duplicated across two near-identical seams. One `ctx.web` middle layer gives the product a single thing to inject and configure and gives provider selection one owner. The price is the parallel `searchX`/`fetchX` method pairs, which is accepted deliberately.
 

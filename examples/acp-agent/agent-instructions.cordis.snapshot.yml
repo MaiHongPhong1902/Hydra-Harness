@@ -14,13 +14,13 @@
         config:
           provider: deepseek-official
           model: deepseek-v4-flash
-          persistenceRoot: !!js process.env.BH_SNAPSHOT_SESSIONS_ROOT ?? './.sessions'
+          persistenceRoot: !!js process.env.HYDRA_SNAPSHOT_SESSIONS_ROOT ?? './.sessions'
           persistenceCompression: 'none'
           workspaceContext:
             maxBytes: 65536
-            bhHome: !!js process.cwd() + '/.bh'
+            hydraHome: !!js process.cwd() + '/.hydra'
             projectRootMarkers:
-              - .bh-project
+              - .hydra-project
           persona: |
             You are a coding assistant powered by the {{model}} model. Your working directory is {{cwd}}.
 

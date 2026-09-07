@@ -116,8 +116,8 @@ const contactFields = [
 
 const DEFAULT_SETTINGS: BrowserSettings = {
   controlEnabled: true,
-  webDestination: 'bhagent',
-  localDestination: 'bhagent',
+  webDestination: 'hydra',
+  localDestination: 'hydra',
   annotationScreenshots: 'include',
   downloadDirectory: '',
   askWhereToSave: false,
@@ -345,7 +345,7 @@ export function BrowserSection({
       : value === 'ask' ? t('browser.alwaysAsk') : t('browser.neverAllow'),
   })), [t])
   const destinationChoices = useMemo<readonly Choice<BrowserDestination>[]>(() => [
-    { value: 'bhagent', label: 'Hydra harness' },
+    { value: 'hydra', label: 'Hydra harness' },
     { value: 'system', label: t('browser.systemBrowser') },
   ], [t])
   const screenshotChoices = useMemo<readonly Choice<BrowserAnnotationScreenshots>[]>(() => [
@@ -482,7 +482,7 @@ export function BrowserSection({
     setPending('fullCdpAccess')
     setError(undefined)
     try {
-      if (await window.bhDesktop?.browser.confirmFullCdpAccess?.() === true) {
+      if (await window.hydraDesktop?.browser.confirmFullCdpAccess?.() === true) {
         await setSetting('fullCdpAccess', true)
       }
     } catch (reason) {

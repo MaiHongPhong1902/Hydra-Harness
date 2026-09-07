@@ -6,7 +6,7 @@ Source: [`packages/shell/shell/src/types.ts`](../../packages/shell/shell/src/typ
 
 ## Managed shell environment namespace
 
-`BH_*` variables are Harness-owned child-process facts. The model-facing bash tool collects them through `ctx.shellEnv` and passes them through `ShellExecRequest.bhEnv`; the subprocess service removes inherited `BH_*` names before merging the current snapshot. The `BhEnvironmentKey`/`BhEnvironment` vocabulary is owned by the [subprocess seam](subprocess.md) and re-exported by `@hydra/harness-shell`.
+`HYDRA_*` variables are Harness-owned child-process facts. The model-facing bash tool collects them through `ctx.shellEnv` and passes them through `ShellExecRequest.hydraEnv`; the subprocess service removes inherited `HYDRA_*` names before merging the current snapshot. The `HydraEnvironmentKey`/`HydraEnvironment` vocabulary is owned by the [subprocess seam](subprocess.md) and re-exported by `@hydra/harness-shell`.
 
 ## Request vs. spec: the `resolve()` split
 
@@ -44,20 +44,20 @@ interface ShellExecRequest {
   stdin?: string | undefined
   /**
    * Ordinary environment entries for the command, merged after the credential
-   * scrub. Managed facts belong in {@link bhEnv}, which merges after this
+   * scrub. Managed facts belong in {@link hydraEnv}, which merges after this
    * map, so an entry here can never displace one. Set by in-process plugins
    * (the hooks bridges set `CLAUDE_PROJECT_DIR`, `CLAUDE_PLUGIN_ROOT`, …); the
    * model-facing bash tool does not expose it as a parameter.
    */
   env?: Record<string, string> | undefined
   /**
-   * Harness-owned `BH_*` variables for this execution (typed to managed
-   * keys). Executors discard ambient `BH_*` entries before merging this
+   * Harness-owned `HYDRA_*` variables for this execution (typed to managed
+   * keys). Executors discard ambient `HYDRA_*` entries before merging this
    * snapshot last, so an unavailable current fact cannot inherit a stale
    * value from the harness process and a caller {@link env} entry cannot
    * displace a managed one.
    */
-  bhEnv?: BhEnvironment | undefined
+  hydraEnv?: HydraEnvironment | undefined
   /** Fully resolved per-call sandbox policy; sandboxing executors default it. */
   sandboxPolicy?: SandboxExecutionPolicy | undefined
 }
@@ -84,13 +84,13 @@ interface ShellExecSpec {
   stdin?: string | undefined
   /**
    * Ordinary environment entries carried through from
-   * {@link ShellExecRequest.env}; {@link bhEnv} still merges after them.
+   * {@link ShellExecRequest.env}; {@link hydraEnv} still merges after them.
    * OPTIONAL on the spec for the same reason as `stdin`: absent means no
    * ordinary extra environment.
    */
   env?: Record<string, string> | undefined
-  /** Managed `BH_*` snapshot (typed to managed keys); merges after {@link env}. */
-  bhEnv?: BhEnvironment | undefined
+  /** Managed `HYDRA_*` snapshot (typed to managed keys); merges after {@link env}. */
+  hydraEnv?: HydraEnvironment | undefined
   /** Resolved sandbox policy; ignored by executors that do not confine. */
   sandboxPolicy: SandboxExecutionPolicy | undefined
 }
@@ -270,7 +270,7 @@ Source: [`packages/shell/shell/src/index.ts`](../../packages/shell/shell/src/ind
 
 ### `ctx.shellEnv` — `ShellEnvRegistry`
 
-Registry (`ctx.shellEnv`) for trusted, per-execution `BH_*` variables. The namespace is rebuilt for every model shell call: ambient `BH_*` values are discarded by the executor, then the registry's current snapshot is injected. Built-in shell facts remain owned by the registry itself while plugins can register additional, enumerable facts with effect-scoped disposal.
+Registry (`ctx.shellEnv`) for trusted, per-execution `HYDRA_*` variables. The namespace is rebuilt for every model shell call: ambient `HYDRA_*` values are discarded by the executor, then the registry's current snapshot is injected. Built-in shell facts remain owned by the registry itself while plugins can register additional, enumerable facts with effect-scoped disposal.
 
 ```ts cordis-catalog
 /**
@@ -282,11 +282,11 @@ Registry (`ctx.shellEnv`) for trusted, per-execution `BH_*` variables. The names
 register(contributor: BashEnvContributor): () => void
 
 /**
- * Build the trusted `BH_*` snapshot for one shell tool execution.
+ * Build the trusted `HYDRA_*` snapshot for one shell tool execution.
  * @param execution - the current tool execution.
  * @returns an immutable environment overlay containing built-ins and current contributions.
  */
-collect(execution: ToolExecution): BhEnvironment
+collect(execution: ToolExecution): HydraEnvironment
 
 /**
  * Enumerate plugin-contributed variables without executing their resolvers.
@@ -295,7 +295,7 @@ collect(execution: ToolExecution): BhEnvironment
 list(): BashEnvVariableInfo[]
 ```
 
-Types: [BhEnvironment](subprocess.md) · [ToolExecution](tools.md)
+Types: [HydraEnvironment](subprocess.md) · [ToolExecution](tools.md)
 
 Source: [`packages/shell/shell-env/src/index.ts`](../../packages/shell/shell-env/src/index.ts)
 <!-- END GENERATED cordis-surface -->

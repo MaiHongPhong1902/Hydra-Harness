@@ -8,7 +8,7 @@ These third-party configurations are provided as interoperability examples only.
 
 Hydra harness parses the selected Cordis overlay, starts a configured stdio command or connects to a configured Streamable HTTP URL, discovers MCP tools, and exposes them as `mcp__<serverName>__<tool>`. Hydra harness does **not** download the server, initialize its database, choose its model or embedding provider, create a cloud account, migrate vendor data, or supervise a separate HTTP service. For stdio, the generic client launches and stops the child with the Hydra plugin lifecycle; for HTTP, the upstream service must already be running.
 
-The stdio bridge deliberately removes ambient variables whose names usually identify credentials and all `BH_*` variables before launching a child; other ambient variables remain inherited. Each example adds only the baseline override it needs. If an optional upstream feature needs another secret, add that variable to the row's `config.env` instead of putting the secret directly in YAML.
+The stdio bridge deliberately removes ambient variables whose names usually identify credentials and all `HYDRA_*` variables before launching a child; other ambient variables remain inherited. Each example adds only the baseline override it needs. If an optional upstream feature needs another secret, add that variable to the row's `config.env` instead of putting the secret directly in YAML.
 
 ## Choose one
 
@@ -23,12 +23,12 @@ The stdio bridge deliberately removes ambient variables whose names usually iden
 Pass one overlay to Hydra:
 
 ```sh
-bh web --patch "$PWD/examples/mcp-memory/memorix.cordis.yml"
+hydra web --patch "$PWD/examples/mcp-memory/memorix.cordis.yml"
 ```
 
 Replace the filename with `mcp-reference-memory.cordis.yml` or `engram.cordis.yml`. The path may point to a copied file anywhere on disk. No memory server is present in the shipped composition, so omitting `--patch` keeps all three disabled.
 
-To keep the selection across runs, merge the chosen file's single `insert` patch into a user patch layer — `$BH_HOME/profiles/<name>/cordis.patch.yml` for one profile, or `$BH_HOME/cordis.patch.yml` for every profile on the machine. Do not copy over an existing file: it may already contain unrelated user patches.
+To keep the selection across runs, merge the chosen file's single `insert` patch into a user patch layer — `$HYDRA_HOME/profiles/<name>/cordis.patch.yml` for one profile, or `$HYDRA_HOME/cordis.patch.yml` for every profile on the machine. Do not copy over an existing file: it may already contain unrelated user patches.
 
 ## Provider setup
 
@@ -36,7 +36,7 @@ To keep the selection across runs, merge the chosen file's single `insert` patch
 
 ```sh
 npm install --global memorix@1.3.0
-bh web --patch "$PWD/examples/mcp-memory/memorix.cordis.yml"
+hydra web --patch "$PWD/examples/mcp-memory/memorix.cordis.yml"
 ```
 
 Memorix works in local heuristic mode without an LLM or embedding service. Configure optional providers in Memorix's own `~/.memorix/config.toml` or project `memorix.toml`. The example keeps Memorix's Git-project identity from the Hydra working directory and uses Memorix's own `~/.memorix/data` default. Set `MEMORIX_DATA_DIR` before starting Hydra harness to override it.
@@ -45,10 +45,10 @@ Memorix works in local heuristic mode without an LLM or embedding service. Confi
 
 ```sh
 npm install --global @modelcontextprotocol/server-memory@2026.7.4
-bh web --patch "$PWD/examples/mcp-memory/mcp-reference-memory.cordis.yml"
+hydra web --patch "$PWD/examples/mcp-memory/mcp-reference-memory.cordis.yml"
 ```
 
-This reference server stores a local knowledge graph and exposes entity, relation, observation, read, search, and open tools. It needs no model or embedding service. The example stores its JSONL at `$HOME/.bh-mcp-reference-memory.jsonl` instead of the installed npm package directory. Set `MEMORY_FILE_PATH` before starting Hydra harness to override it.
+This reference server stores a local knowledge graph and exposes entity, relation, observation, read, search, and open tools. It needs no model or embedding service. The example stores its JSONL at `$HOME/.hydra-mcp-reference-memory.jsonl` instead of the installed npm package directory. Set `MEMORY_FILE_PATH` before starting Hydra harness to override it.
 
 Search is case-insensitive substring matching over entity names, types, and observations, not semantic retrieval. The server does not add embeddings, automatic summarization, conflict resolution, or a forgetting policy.
 
@@ -56,7 +56,7 @@ Search is case-insensitive substring matching over entity names, types, and obse
 
 ```sh
 go install github.com/Gentleman-Programming/engram/cmd/engram@v1.20.0
-bh web --patch "$PWD/examples/mcp-memory/engram.cordis.yml"
+hydra web --patch "$PWD/examples/mcp-memory/engram.cordis.yml"
 ```
 
 Engram owns storage and project selection: it uses `~/.engram` by default, detects the Git project from the Hydra working directory, and accepts `ENGRAM_DATA_DIR` or `ENGRAM_PROJECT` as ambient overrides.

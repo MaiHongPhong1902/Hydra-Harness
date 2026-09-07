@@ -653,7 +653,7 @@ export class AgentLoop extends Service implements AgentFactory {
   async resume(ownerCtx: Context, options: ResumeAgentOptions): Promise<AgentHandle> {
     const persistence = this.runtime.ctx.get('sessionPersistence')
     if (persistence === undefined) {
-      throw new Error('cannot resume: session persistence is not configured (load a bh-session-persistence backend)')
+      throw new Error('cannot resume: session persistence is not configured (load a hydra-session-persistence backend)')
     }
     return this.resumeWith(ownerCtx, persistence, options)
   }

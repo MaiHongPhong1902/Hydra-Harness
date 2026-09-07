@@ -68,7 +68,7 @@ describe.skipIf(MODE === 'record')('web e2e: subagent.interrupt over the real co
   let childId: SessionId
 
   beforeAll(async () => {
-    sidecarRoot = await mkdtemp(join(tmpdir(), 'bh-web-subagent-interrupt-'))
+    sidecarRoot = await mkdtemp(join(tmpdir(), 'hydra-web-subagent-interrupt-'))
     readyFile = join(sidecarRoot, 'hang-ready')
     // Whole-script replacement: the child's three model calls are the hang
     // (turn 1, interrupted), the parked follow-up's turn, and the waking turn.

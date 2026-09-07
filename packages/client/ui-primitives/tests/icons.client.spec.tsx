@@ -1,10 +1,14 @@
 // @vitest-environment jsdom
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { cleanup, fireEvent, render } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import * as primitives from '@hydra/harness-client-ui-primitives'
 import {
   IconApiOutline14, IconArchiveOutline20, IconFolderClose16, IconGoalOutline16, IconSendOutline16,
 } from '@hydra/harness-client-ui-primitives'
+import { hydraHoverData } from '../src/hydra-hover-data.ts'
+import { hydraLogoData } from '../src/hydra-logo-data.ts'
 
 afterEach(cleanup)
 
@@ -62,7 +66,7 @@ describe('HydraLogo', () => {
     expect(container.querySelectorAll('image')).toHaveLength(1)
     fireEvent.mouseEnter(svg)
     const animation = container.querySelectorAll('image')[1]!
-    expect(animation.getAttribute('href')).toMatch(/^data:image\/webp;base64,/)
+    expect(animation.getAttribute('href')).toBe(hydraHoverData)
     fireEvent.mouseLeave(svg)
     expect(animation.isConnected).toBe(false)
     expect(container.querySelector('image')!.getAttribute('href')).toBe(still)
@@ -74,7 +78,8 @@ describe('HydraLogo', () => {
     expect(svg.getAttribute('width')).toBe('24')
     expect(svg.getAttribute('height')).toBe('24')
     expect(svg.getAttribute('viewBox')).toBe('0 0 256 256')
-    const png = Buffer.from(container.querySelector('image')!.getAttribute('href')!.split(',')[1]!, 'base64')
+    const png = readFileSync(resolve(import.meta.dirname, '../src/hydra-logo.png'))
+    expect(container.querySelector('image')!.getAttribute('href')).toBe(hydraLogoData)
     expect(png.subarray(1, 4).toString()).toBe('PNG')
     expect(png.readUInt32BE(16)).toBe(256)
     expect(png.readUInt32BE(20)).toBe(256)

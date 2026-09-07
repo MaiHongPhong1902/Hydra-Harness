@@ -10,7 +10,7 @@ The semantic hazard is the fork boundary. A valid user-visible fork seed must be
 
 ## Decision
 
-`@hydra/harness-session` owns ordinary live-session forking directly on `ctx.sessions`. There is no separate `bh-session-fork` package or `ctx.sessionFork` service: the API has no independent backend, event vocabulary, lifecycle, or persistence behavior, and all durable work delegates to the existing session store and persistence backends.
+`@hydra/harness-session` owns ordinary live-session forking directly on `ctx.sessions`. There is no separate `hydra-session-fork` package or `ctx.sessionFork` service: the API has no independent backend, event vocabulary, lifecycle, or persistence behavior, and all durable work delegates to the existing session store and persistence backends.
 
 The store exposes one operation:
 

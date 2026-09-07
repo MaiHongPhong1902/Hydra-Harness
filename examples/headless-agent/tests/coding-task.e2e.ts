@@ -46,7 +46,7 @@ afterEach(async () => {
 
 describe.skipIf(!process.env.DEEPSEEK_API_KEY)('coding task: fix a failing test via bash', () => {
   it('repairs add.js so node add.test.js passes', async () => {
-    workdir = await mkdtemp(join(tmpdir(), 'bh-coding-task-'))
+    workdir = await mkdtemp(join(tmpdir(), 'hydra-coding-task-'))
     await writeFile(join(workdir, 'add.js'), BUGGY_ADD)
     await writeFile(join(workdir, 'add.test.js'), TEST_FILE)
 

@@ -53,7 +53,7 @@ async function harness(
   timing: { idleSilenceMs?: number; handoffGraceMs?: number; timeoutMs?: number } = {},
   dialect: 'bash' | 'pwsh' = 'bash',
 ) {
-  const root = mkdtempSync(join(tmpdir(), 'bh-pty-local-'))
+  const root = mkdtempSync(join(tmpdir(), 'hydra-pty-local-'))
   roots.push(root)
   const ctx = new Context()
   contexts.push(ctx)
@@ -122,24 +122,24 @@ function processIsRunning(pid: number): boolean {
 // Windows has no bash, and its pwsh counterpart lives in the describe below.
 describe.skipIf(process.platform === 'win32')('terminal-bash real shell', () => {
   it('persists cwd and environment across sends, scrubs secrets, and closes', async () => {
-    const previous = process.env.BH_TEST_SECRET
-    process.env.BH_TEST_SECRET = 'must-not-leak'
+    const previous = process.env.HYDRA_TEST_SECRET
+    process.env.HYDRA_TEST_SECRET = 'must-not-leak'
     try {
       const { ctx, root, agent } = await harness('danger-full-access')
       const created = await ctx.terminals.spawn(agent, { type: 'shell', name: 'main', cwd: root })
-      expect(created.motd).toContain('bh> ')
+      expect(created.motd).toContain('hh> ')
 
       const first = ctx.terminals.startSend(agent, created.sessionId, { text: 'export KEEP=ok; cd /', submit: true })
       expect((await first.done).waitReason).toBe('stdin_read')
-      const second = ctx.terminals.startSend(agent, created.sessionId, { text: 'printf "cwd=%s keep=%s secret=%s\\n" "$PWD" "$KEEP" "${BH_TEST_SECRET-unset}"', submit: true })
+      const second = ctx.terminals.startSend(agent, created.sessionId, { text: 'printf "cwd=%s keep=%s secret=%s\\n" "$PWD" "$KEEP" "${HYDRA_TEST_SECRET-unset}"', submit: true })
       expect((await second.done).viewport).toContain('cwd=/ keep=ok secret=unset')
 
       expect(ctx.terminals.read(agent, created.sessionId, { offset: 0, count: 20 }).text).toContain('cwd=/ keep=ok secret=unset')
       expect(await ctx.terminals.kill(agent, created.sessionId)).toBe(true)
       expect(ctx.terminals.list(agent)).toEqual([])
     } finally {
-      if (previous === undefined) delete process.env.BH_TEST_SECRET
-      else process.env.BH_TEST_SECRET = previous
+      if (previous === undefined) delete process.env.HYDRA_TEST_SECRET
+      else process.env.HYDRA_TEST_SECRET = previous
     }
   }, 10_000)
 
@@ -159,7 +159,7 @@ describe.skipIf(process.platform === 'win32')('terminal-bash real shell', () => 
     const after = ctx.terminals.startSend(agent, created.sessionId, { text: 'printf "healed=[%s]\\n" "$PS1"', submit: true })
     const result = await after.done
     expect(result.waitReason).toBe('stdin_read')
-    expect(result.viewport).toContain('healed=[bh> ]')
+    expect(result.viewport).toContain('healed=[hh> ]')
     await ctx.terminals.kill(agent, created.sessionId)
   }, 20_000)
 
@@ -205,7 +205,7 @@ describe.skipIf(process.platform === 'win32')('terminal-bash real shell', () => 
     let pid: number | undefined
     try {
       const background = ctx.terminals.startSend(agent, created.sessionId, {
-        text: `sh -c 'trap "" TERM; printf "%s" "$$" > "$1"; sleep 60' bh "${pidFile}" & disown`,
+        text: `sh -c 'trap "" TERM; printf "%s" "$$" > "$1"; sleep 60' hydra "${pidFile}" & disown`,
         submit: true,
       })
       await background.done
@@ -281,8 +281,8 @@ const hasPwsh = spawnSync(
 
 describe.skipIf(!hasPwsh)('terminal-bash pwsh real shell', () => {
   it('bootstraps a persistent pwsh, persists state, and scrubs secrets', async () => {
-    const previous = process.env.BH_TEST_SECRET
-    process.env.BH_TEST_SECRET = 'must-not-leak'
+    const previous = process.env.HYDRA_TEST_SECRET
+    process.env.HYDRA_TEST_SECRET = 'must-not-leak'
     try {
       const { ctx, root, agent } = await harness('danger-full-access', {
         idleSilenceMs: 300,
@@ -290,7 +290,7 @@ describe.skipIf(!hasPwsh)('terminal-bash pwsh real shell', () => {
         timeoutMs: 8_000,
       }, 'pwsh')
       const created = await ctx.terminals.spawn(agent, { type: 'shell', name: 'main', cwd: root })
-      expect(created.motd).toContain('bh> ')
+      expect(created.motd).toContain('hh> ')
 
       const first = ctx.terminals.startSend(agent, created.sessionId, {
         text: '$env:KEEP = "ok"; Set-Location /',
@@ -298,7 +298,7 @@ describe.skipIf(!hasPwsh)('terminal-bash pwsh real shell', () => {
       })
       expect((await first.done).waitReason).toBe('stdin_read')
       const second = ctx.terminals.startSend(agent, created.sessionId, {
-        text: 'Write-Output "keep=$env:KEEP secret=$env:BH_TEST_SECRET"',
+        text: 'Write-Output "keep=$env:KEEP secret=$env:HYDRA_TEST_SECRET"',
         submit: true,
       })
       const result = await second.done
@@ -310,8 +310,8 @@ describe.skipIf(!hasPwsh)('terminal-bash pwsh real shell', () => {
       expect(await ctx.terminals.kill(agent, created.sessionId)).toBe(true)
       expect(ctx.terminals.list(agent)).toEqual([])
     } finally {
-      if (previous === undefined) delete process.env.BH_TEST_SECRET
-      else process.env.BH_TEST_SECRET = previous
+      if (previous === undefined) delete process.env.HYDRA_TEST_SECRET
+      else process.env.HYDRA_TEST_SECRET = previous
     }
   }, 30_000)
 

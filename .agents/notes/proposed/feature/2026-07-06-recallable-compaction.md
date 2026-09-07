@@ -52,7 +52,7 @@ The request prefix after a pass is `[system][stubs…][state][tail]`. Frozen stu
 
 ### Packaging
 
-The design ships as a new backend `bh-compact-recallable` on the existing `ctx.compaction` seam, enabled by default in the shipped example configs; `compaction-basic` remains as the reference implementation and the seam's design twin, in the pattern of the paired LLM adapters. The seam JSDoc's "at most one auto-generated checkpoint, always at the head" clause is relaxed to name both backend behaviors.
+The design ships as a new backend `hydra-compact-recallable` on the existing `ctx.compaction` seam, enabled by default in the shipped example configs; `compaction-basic` remains as the reference implementation and the seam's design twin, in the pattern of the paired LLM adapters. The seam JSDoc's "at most one auto-generated checkpoint, always at the head" clause is relaxed to name both backend behaviors.
 
 ### Relation to in-flight work
 
@@ -95,7 +95,7 @@ Deferred until observation calls for them:
 - Every checkpoint's surface text ends with the deterministic footer; footers round-trip through replay byte-identically; the state checkpoint's `shadowedRange` records its wider input range.
 - Nothing commits before all summaries exist and the guard passes on like-for-like accounting; a guard failure commits nothing and does not fail the turn; a mid-commit kill resumed at the next pre-step completes the pass with the state region committed unconditionally, merge base read from the log; a legacy head checkpoint is adopted as state-class.
 - `history_read` renders any logged checkpoint's span under budget with a working cursor; `history_search` covers every shadowed span with checkpoint-id snippets and coverage metadata, asserted in particular by finding content that exists only in a span shadowed by a superseded state checkpoint — the regression pin for trailing-slice reachability; both reject non-agent callers and never-existing ids or orphaned `compaction/start` with typed errors; recalled content appears as ordinary `tool/result`s; request-reconstruction invariants pass over sessions with compaction plus recall; one keyless snapshot scenario covers compact-then-recall end to end; tool schemas and the prompt section are byte-identical across passes.
-- On the long-horizon bench suite: task success does not regress against `compaction-basic` at equal budgets; a handoff-fidelity probe (restate K known decisions and constraints after a pass) scores no worse; recall usage frequency and hit usefulness are reported per run via the bh bench report pipeline, alongside the stub-directory attention measurement and cache-hit telemetry.
+- On the long-horizon bench suite: task success does not regress against `compaction-basic` at equal budgets; a handoff-fidelity probe (restate K known decisions and constraints after a pass) scores no worse; recall usage frequency and hit usefulness are reported per run via the hydra bench report pipeline, alongside the stub-directory attention measurement and cache-hit telemetry.
 - Seam JSDoc, the compaction capability-seam Agent Note, `architecture.md`, and the generated tool, config, persistence, and module-graph catalogs update in the same change; all budgets live in config; new source directories hold per-file 100% coverage with HMR disposal tests.
 
 ## Risks

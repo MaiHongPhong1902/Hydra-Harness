@@ -26,9 +26,9 @@ afterEach(() => {
 /** Create a resolvable package whose client export points at the returned path. */
 function writePackage(
   packageName: string,
-  metadata: Record<string, unknown> = { bh: { client: { platform: 'web' } } },
+  metadata: Record<string, unknown> = { hydra: { client: { platform: 'web' } } },
 ): string {
-  root ??= realpathSync(mkdtempSync(join(tmpdir(), 'bh-client-modules-')))
+  root ??= realpathSync(mkdtempSync(join(tmpdir(), 'hydra-client-modules-')))
   const pkgRoot = join(root, 'node_modules', ...packageName.split('/'))
   const clientPath = join(pkgRoot, 'lib', 'client.js')
   mkdirSync(pkgRoot, { recursive: true })
@@ -45,7 +45,7 @@ function writePackage(
 
 /** Create a built package with the supplied client declaration. */
 function writeBuiltPackage(packageName: string, client: Record<string, unknown>): void {
-  const clientPath = writePackage(packageName, { bh: { client: { platform: 'web', ...client } } })
+  const clientPath = writePackage(packageName, { hydra: { client: { platform: 'web', ...client } } })
   mkdirSync(dirname(clientPath), { recursive: true })
   writeFileSync(clientPath, 'module.exports = {}\n')
 }
@@ -110,7 +110,7 @@ describe('HTML bootstrap facade', () => {
     const facadeAt = html.indexOf('window.__ModuleLoader__=')
     const modulesAt = html.indexOf('<script src="/plugins/modules.js?rev=m"></script>')
     const runtimeAt = html.indexOf('<script src="/plugins/runtime.js?rev=r"></script>')
-    const graphAt = html.indexOf('globalThis["__BH_BOOT__"] = ')
+    const graphAt = html.indexOf('globalThis["__HYDRA_BOOT__"] = ')
     const entryAt = html.indexOf('<script type="module" src="/index.js"></script>')
     expect([facadeAt, modulesAt, runtimeAt, graphAt, entryAt]).toEqual([...new Set([
       facadeAt, modulesAt, runtimeAt, graphAt, entryAt,
@@ -164,10 +164,10 @@ describe('HTML bootstrap facade', () => {
 })
 
 describe('client bundle activation', () => {
-  it('allows sibling bh roles', () => {
+  it('allows sibling hydra roles', () => {
     const currentName = '@fixture/current-client-field'
     const clientPath = writePackage(currentName, {
-      bh: {
+      hydra: {
         bundle: { patch: './cordis.patch.yml' },
         client: { platform: 'web' },
         profile: { bundles: [] },
@@ -269,7 +269,7 @@ describe('shared module declarations', () => {
     const packageName = '@fixture/external-not-array'
     writeBuiltPackage(packageName, { external: 'react' })
     expect(() => construct([packageName]))
-      .toThrow(`client-modules: ${packageName} bh.client.external must be a string array`)
+      .toThrow(`client-modules: ${packageName} hydra.client.external must be a string array`)
   })
 })
 

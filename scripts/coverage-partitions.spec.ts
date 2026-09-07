@@ -25,7 +25,7 @@ async function writeBlob(command: CoverageCommand): Promise<void> {
 }
 
 async function temporaryRoot(): Promise<string> {
-  return await mkdtemp(join(tmpdir(), 'bh-coverage-partitions-'))
+  return await mkdtemp(join(tmpdir(), 'hydra-coverage-partitions-'))
 }
 
 function successfulCommandRecorder(commands: CoverageCommand[]) {

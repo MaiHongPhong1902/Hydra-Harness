@@ -15,9 +15,9 @@ function writeCredentials(file: string, text: string): Promise<void> {
   return writeFile(file, text, { mode: 0o600 })
 }
 
-const ALPHA = credentialRef('BH_REVIEW_ALPHA')
-const BETA = credentialRef('BH_REVIEW_BETA')
-const INNER = credentialRef('BH_REVIEW_INNER')
+const ALPHA = credentialRef('HYDRA_REVIEW_ALPHA')
+const BETA = credentialRef('HYDRA_REVIEW_BETA')
+const INNER = credentialRef('HYDRA_REVIEW_INNER')
 
 const cleanups: Array<() => Promise<void>> = []
 
@@ -26,7 +26,7 @@ afterEach(async () => {
 })
 
 async function tempDir(): Promise<string> {
-  const dir = await mkdtemp(join(tmpdir(), 'bh-cred-review-'))
+  const dir = await mkdtemp(join(tmpdir(), 'hydra-cred-review-'))
   cleanups.push(() => rm(dir, { recursive: true, force: true }))
   return dir
 }
@@ -159,13 +159,13 @@ describe('document editor', () => {
   it('leaves a sibling multi-line value untouched while patching one entry', async () => {
     const dir = await tempDir()
     const path = join(dir, '.credentials.yaml')
-    const wrapped = `version: 1\nrefs:\n  BH_REVIEW_WRAPPED: |-\n    line1\n    line2\n  ${ALPHA}: a\n`
+    const wrapped = `version: 1\nrefs:\n  HYDRA_REVIEW_WRAPPED: |-\n    line1\n    line2\n  ${ALPHA}: a\n`
     await writeCredentials(path, wrapped)
     const ctx = await boot({ path, watch: false })
     await ctx.credentials.set(ALPHA, 'b')
     expect(await readFile(path, 'utf8'))
-      .toBe(`version: 1\nrefs:\n  BH_REVIEW_WRAPPED: |-\n    line1\n    line2\n  ${ALPHA}: b\n`)
-    expect(await ctx.credentials.resolve(credentialRef('BH_REVIEW_WRAPPED')))
+      .toBe(`version: 1\nrefs:\n  HYDRA_REVIEW_WRAPPED: |-\n    line1\n    line2\n  ${ALPHA}: b\n`)
+    expect(await ctx.credentials.resolve(credentialRef('HYDRA_REVIEW_WRAPPED')))
       .toEqual({ value: 'line1\nline2', source: 'file' })
   })
 

@@ -137,7 +137,7 @@ The defensive-pattern classes this repo has been bitten by are pinned directly:
 ## Alternatives considered
 
 - **Model-facing tools directly over `node:fs`** — the tool package would own execution policy, path resolution, atomic writes, text decoding, and edit semantics at once, coupling the three independently-changing concerns the Problem names and churning schemas on any backend swap.
-- **One combined `bh-fs-tools` package** — the pre-seam shape; rejected for the same Service Definition / Service Provider / Consumer split as bash, and the combined name never became public API.
+- **One combined `hydra-fs-tools` package** — the pre-seam shape; rejected for the same Service Definition / Service Provider / Consumer split as bash, and the combined name never became public API.
 - **Observed-state on `ctx.fs`** — the shape this Agent Note first landed; superseded by [the split-fs-seam Agent Note](../simplification/2026-06-26-fsspec-style-fs-seam.md) and [the event-gate Agent Note](2026-06-26-file-context-as-event-gate.md): a sandboxed/remote backend must not inherit model-facing observation policy, so the provider keeps only the version token and the optional version-guarded mutation.
 
 ## Consequences

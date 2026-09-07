@@ -1,5 +1,5 @@
 /**
- * The web app's command-line provider: it parses the `bh --profile web` flag
+ * The web app's command-line provider: it parses the `hydra --profile web` flag
  * family (`--host`, `--port`, `--trusted-host`, `--no-open`) and its `--help`
  * text, then provides the immutable values as {@link WEB_STARTUP_SERVICE}.
  * Ordinary rows inject that service before reading it from lazy config.
@@ -45,7 +45,7 @@ interface WebOptions {
  */
 function webCommand(): Command {
   return new Command()
-    .name('bh --profile web')
+    .name('hydra --profile web')
     .description('Serve the Hydra harness browser UI.')
     .helpOption('-h, --help', 'show this help')
     .option('--host <host>', 'bind host')
@@ -54,9 +54,9 @@ function webCommand(): Command {
     .option('--trusted-host <authority...>', 'extra authority the /api browser-trust fence accepts (host or host:port; repeatable)')
     .addHelpText('after', `
 Examples:
-  bh --profile web                          serve on the composed host and port
-  bh --profile web --no-open                serve without opening a browser
-  bh --profile web --port 8080              serve on another port
+  hydra --profile web                          serve on the composed host and port
+  hydra --profile web --no-open                serve without opening a browser
+  hydra --profile web --port 8080              serve on another port
 `)
 }
 

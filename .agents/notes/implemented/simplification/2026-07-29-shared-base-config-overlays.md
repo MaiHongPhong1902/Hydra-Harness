@@ -4,9 +4,9 @@ Status: implemented
 
 ## Problem
 
-`bh` shipped two full config trees that were 43 rows the same. `apps/cli/cordis.yml` composed the web surface as 74 flat rows, while the TUI booted `examples/tui-agent/cordis.yml`, whose single `@hydra/harness-tui-demo` row mounted twelve plugins and re-declared their configuration as its own twenty-key pass-through `Config`.
+`hydra` shipped two full config trees that were 43 rows the same. `apps/cli/cordis.yml` composed the web surface as 74 flat rows, while the TUI booted `examples/tui-agent/cordis.yml`, whose single `@hydra/harness-tui-demo` row mounted twelve plugins and re-declared their configuration as its own twenty-key pass-through `Config`.
 
-Neither file was what its location claimed. `examples/tui-agent` was not an example: `apps/cli/src/tui.ts` hardcoded it as the product's default config, and it owned the TUI PTY smoke, the eight terminal snapshot scenarios, and the PTY harness the `cordis-agent` leaf imported. `bh-tui-demo` was not a demo either — it was the application, mounted by the shipped binary from `packages/examples/`.
+Neither file was what its location claimed. `examples/tui-agent` was not an example: `apps/cli/src/tui.ts` hardcoded it as the product's default config, and it owned the TUI PTY smoke, the eight terminal snapshot scenarios, and the PTY harness the `cordis-agent` leaf imported. `hydra-tui-demo` was not a demo either — it was the application, mounted by the shipped binary from `packages/examples/`.
 
 The duplication was the load-bearing problem. Of the 43 shared rows, 38 were byte-identical and 5 differed for a defensible per-surface reason, so every capability change had to be made twice and could silently drift. The bundle also inverted a default: `composeTuiApp` read `config.goals ?? {}`, so the shipped TUI mounted goals, `tool-goal`, `goal-round-driver`, and `/goal` although no config key requested them.
 
@@ -16,7 +16,7 @@ One shared base, one overlay per surface, composed as sibling patch lists.
 
 `apps/cli/config/base.cordis.yml` holds the 43 rows both surfaces mount. `apps/cli/config/tui.cordis.yml` and `apps/cli/config/web.cordis.yml` are **patch lists**, not trees: each states the handful of rows whose value is surface-specific and inserts its own rows. The launcher includes the base once and applies every overlay as a sibling patch list at **one** include level, because include patches never cross an include boundary — stacking overlays as nested includes would silently stop reaching base rows.
 
-Precedence is list order, last write winning per row: base, then the surface overlay, then either a `--config` overlay or the personal `~/.bh/config.yaml`, then the launcher's own flag and profile patches.
+Precedence is list order, last write winning per row: base, then the surface overlay, then either a `--config` overlay or the personal `~/.hydra/config.yaml`, then the launcher's own flag and profile patches.
 
 `--config <path>` now applies an overlay **instead of** the personal overlay, so a demo or test tree never inherits the user's provider and model. `--config-replace <path>` boots a file as the entire tree, bypassing base, surface overlay, and personal overlay alike; that is what the old `--config` did, so trees like `examples/web-cordis` moved to the new flag. Both flags survive the `/resume` execve handoff, or resuming would silently change the agent.
 
@@ -40,7 +40,7 @@ An overlay or `--config` tree that named `@hydra/harness-tui-demo`, or patched t
 
 A patch whose `id` matches no row stays a no-op rather than an error. That is deliberate: one personal overlay is shared across surfaces, and `insert` rows match nothing by design, so a row that exists only under `web` must not fail the TUI's boot.
 
-`bh web` gains `--config`, threaded into `AppCLIEntry` as an extra overlay. Web keeps sandboxed Bash and filesystem providers plus approval, permission presets, directory picking, and browser permission UI; the overlay disables the shared local providers because patches can disable rows but cannot delete them. The TUI query index uses a unique process-local temporary database because the SQLite backend requires one writer owner. It is a disposable derived index rebuilt by each process; `/resume` lists the underlying corpus directly and does not depend on index reuse. `AppCLIEntry` reads both the base and its surface overlay when recovering row defaults for its own patch merge, since a flag override must preserve the overlay's other fields on the same row.
+`hydra web` gains `--config`, threaded into `AppCLIEntry` as an extra overlay. Web keeps sandboxed Bash and filesystem providers plus approval, permission presets, directory picking, and browser permission UI; the overlay disables the shared local providers because patches can disable rows but cannot delete them. The TUI query index uses a unique process-local temporary database because the SQLite backend requires one writer owner. It is a disposable derived index rebuilt by each process; `/resume` lists the underlying corpus directly and does not depend on index reuse. `AppCLIEntry` reads both the base and its surface overlay when recovering row defaults for its own patch merge, since a flag override must preserve the overlay's other fields on the same row.
 
 ## Verification
 

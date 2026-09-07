@@ -30,7 +30,7 @@ const repoRoot = fileURLToPath(new URL('../../../../', import.meta.url))
 const acpBin = join(repoRoot, 'packages/examples/acp-demo/lib/bin.js')
 const decompress = promisify(zstdDecompress)
 
-const bhPackages = [
+const hydraPackages = [
   'examples/agent-spine-demo', 'core/agent', 'core/session', 'core/system-prompt',
   'core/tools', 'core/agent-loop', 'llm/llm', 'shell/shell',
   'shell/bash-local', 'shell/tool-bash', 'subprocess/subprocess', 'subprocess/subprocess-local', 'context/agent-instructions', 'runtime-diagnostics/invariants', 'boot/app-boot',
@@ -62,7 +62,7 @@ async function link(target: string, name: string, nm: string): Promise<void> {
 async function makeConsumer(): Promise<string> {
   const dir = await mkdtemp(join(tmpdir(), 'acp-built-bin-'))
   const nm = join(dir, 'node_modules')
-  for (const rel of bhPackages) {
+  for (const rel of hydraPackages) {
     const abs = join(repoRoot, 'packages', rel)
     await link(abs, await pkgName(abs), nm)
   }
@@ -131,15 +131,15 @@ afterEach(async () => {
   consumer = undefined
 })
 
-describe.skipIf(!existsSync(acpBin))('bh-acp-demo BUILT bin (node lib/bin.js, no tsx)', () => {
+describe.skipIf(!existsSync(acpBin))('hydra-acp-demo BUILT bin (node lib/bin.js, no tsx)', () => {
   it('boots the published bin, completes a turn, and writes default Zstandard persistence', async () => {
     consumer = await makeConsumer()
     child = spawn(process.execPath, [acpBin, '--config', './cordis.yml'], {
       cwd: consumer,
       env: {
         ...process.env,
-        BH_HOME: join(consumer, '.bh'),
-        BH_AGENTS_HOME: join(consumer, '.agents'),
+        HYDRA_HOME: join(consumer, '.hydra'),
+        HYDRA_AGENTS_HOME: join(consumer, '.agents'),
       },
       stdio: ['pipe', 'pipe', 'pipe'],
     })
@@ -218,8 +218,8 @@ async function runBinExpectingExit(configArg: string, cwd: string = tmpdir()): P
   const result = await execa(process.execPath, [acpBin, '--config', configArg], {
     cwd,
     env: {
-      BH_HOME: join(cwd, '.bh'),
-      BH_AGENTS_HOME: join(cwd, '.agents'),
+      HYDRA_HOME: join(cwd, '.hydra'),
+      HYDRA_AGENTS_HOME: join(cwd, '.agents'),
     },
     input: '',
     timeout: 25_000,

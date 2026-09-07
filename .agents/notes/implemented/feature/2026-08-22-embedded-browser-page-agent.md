@@ -4,7 +4,7 @@ Status: implemented
 
 ## Problem
 
-The harness could read the web and not use it. `web_fetch` retrieves a document; nothing could fill a field, press a button, or follow a flow that only exists behind a login. Every internal system the product is aimed at — WorkON among them — is a form the user is already signed into, and no amount of fetching reaches it.
+The harness could read the web and not use it. `web_fetch` retrieves a document; nothing could fill a field, press a button, or follow a flow that only exists behind a login. Signed-in internal applications are forms the user already occupies, and no amount of fetching reaches them.
 
 Three things had to be true of whatever closed that gap.
 
@@ -112,6 +112,6 @@ Electron owns readiness because it owns document/tab transitions. After navigati
 
 `window.open()` is adopted into another controlled tab. `execute_javascript` is available only when the host's `experimentalScriptExecution` flag is true, and that flag is enforced both by the service and Electron main process. It remains isolated-world JavaScript: it can inspect or mutate the document, but cannot access page-world globals or serve as a policy bypass.
 
-The direct navigation/domain policy remains outside this generic seam. The WorkON Obsidian plugin applies its same-domain and non-bare-entrypoint guard to both `browser_navigate` and URL-bearing `browser_open_tab` calls.
+The direct navigation/domain policy remains outside this generic seam. The Obsidian knowledge plugin applies its same-domain and non-bare-entrypoint guard to both `browser_navigate` and URL-bearing `browser_open_tab` calls.
 
 Focused coverage now includes a real Electron delayed SSO redirect plus empty-to-hydrated SPA, page-initiated navigation, tabs, horizontal scroll, experimental JavaScript, host-side JavaScript denial, and deterministic model-facing snapshot replay.

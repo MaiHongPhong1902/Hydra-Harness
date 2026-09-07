@@ -4,7 +4,7 @@ Status: implemented
 
 ## Problem
 
-The two shipped `bh` surfaces offered different tools for no recorded reason. Session checkpoints, tool-result pruning, the goal tools, and Ralph were in `tui.cordis.yml`; `tool-todo` and, later, web search were in `web.cordis.yml`. Neither surface offered session search, a string-replacement editor, or a repeat-tool guard, though all three exist as packages and none is surface-specific.
+The two shipped `hydra` surfaces offered different tools for no recorded reason. Session checkpoints, tool-result pruning, the goal tools, and Ralph were in `tui.cordis.yml`; `tool-todo` and, later, web search were in `web.cordis.yml`. Neither surface offered session search, a string-replacement editor, or a repeat-tool guard, though all three exist as packages and none is surface-specific.
 
 The result was a user-visible difference nobody had decided: the same model, asked the same thing, could set a goal on the terminal but not in the browser, and could search the web in the browser but not on the terminal.
 
@@ -32,7 +32,7 @@ Withholding it narrows the surface without removing the reach: `bash` is mounted
 
 `@hydra/harness-mcp-client` becomes a runtime dependency of the CLI without a row in any shipped config. The plugin mounts exactly one server per instance and `command` is required, so a default would have to name a third-party server and spawn it as a child process on every launch — outside `ctx.shell`, and therefore outside the sandbox policy the Web surface composes.
 
-The layer that would make MCP a default is the one this repository does not have yet: a bridge that reads a user's server list and mounts one client per entry, the same shape [`@hydra/harness-hooks-claude-code`](../../../../packages/hooks/hooks-claude-code/README.md) already has for a Claude Code `hooks.json`. Shipping the dependency means an installed `bh` can mount servers from `$BH_HOME/config.yaml` today; the CLI README carries the YAML.
+The layer that would make MCP a default is the one this repository does not have yet: a bridge that reads a user's server list and mounts one client per entry, the same shape [`@hydra/harness-hooks-claude-code`](../../../../packages/hooks/hooks-claude-code/README.md) already has for a Claude Code `hooks.json`. Shipping the dependency means an installed `hydra` can mount servers from `$HYDRA_HOME/config.yaml` today; the CLI README carries the YAML.
 
 ## Testing
 
@@ -62,6 +62,6 @@ Beyond the committed tests, both surfaces were driven against a real key from th
 
 The same model gets the same tools on both surfaces, and the difference that existed for no recorded reason is gone. The tests assert the twenty unconditional names exactly and pin `glob` and `grep` as fixed members on both sides, so a later change that alters only one surface fails a check instead of shipping quietly; the [session-search-not-shipped-default decision](2026-08-02-session-search-not-shipped-default.md) is exactly such a later change, and both tests moved with it.
 
-`apps/cli` gained five workspace dependencies: four the shipped tree mounted, plus `@hydra/harness-mcp-client`, which it does not mount and which exists so an installed `bh` can. Four remain — the [session-search-not-shipped-default decision](2026-08-02-session-search-not-shipped-default.md) removed `@hydra/harness-tool-session-query` along with its row.
+`apps/cli` gained five workspace dependencies: four the shipped tree mounted, plus `@hydra/harness-mcp-client`, which it does not mount and which exists so an installed `hydra` can. Four remain — the [session-search-not-shipped-default decision](2026-08-02-session-search-not-shipped-default.md) removed `@hydra/harness-tool-session-query` along with its row.
 
 Execution policy stays independent of the roster. The [shared workspace-write decision](2026-07-31-workspace-write-surface-default.md) owns both surfaces' sandboxed executors and default permission; changing that policy does not add or remove a tool.

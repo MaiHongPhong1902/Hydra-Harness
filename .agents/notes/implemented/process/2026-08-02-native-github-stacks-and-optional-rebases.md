@@ -20,7 +20,7 @@ Relevant checks normally run before publication. `gh stack sync` is the explicit
 
 ## Verification
 
-The [stack landing skill](../../../skills/bh-merging-stacked-prs/SKILL.md) verifies native support, same-repository branches, live authors, official membership and order, merge range, and final merged state. The [stack review guide](../../../../docs/cookbook/responding-to-pr-review-on-a-stack.md) keeps fixes on their introducing layer and covers both propagation histories. The [pre-push workflow](../../../skills/bh-pre-push-checks/SKILL.md) owns lease protection and immediate post-sync evidence.
+The [stack landing skill](../../../skills/hydra-merging-stacked-prs/SKILL.md) verifies native support, same-repository branches, live authors, official membership and order, merge range, and final merged state. The [stack review guide](../../../../docs/cookbook/responding-to-pr-review-on-a-stack.md) keeps fixes on their introducing layer and covers both propagation histories. The [pre-push workflow](../../../skills/hydra-pre-push-checks/SKILL.md) owns lease protection and immediate post-sync evidence.
 
 ## Alternatives considered
 

@@ -238,7 +238,7 @@ class FakeRemote {
       ): Promise<{ exitCode: number; stdout: string; stderr: string }> => {
         this.checkAbort(options)
         const home = options?.envs?.HOME
-        expect(home).toMatch(/^\/\.bh-e2b-control-/)
+        expect(home).toMatch(/^\/\.hydra-e2b-control-/)
         expect(options?.envs).toEqual({ HOME: home })
         this.commands.push(command)
         if (this.nextCommandError !== undefined) {
@@ -307,7 +307,7 @@ async function setup(remote = new FakeRemote()): Promise<{ ctx: Context; fs: E2B
   const ctx = new Context()
   const runtime = {
     cwd: '/workspace',
-    runtimeRoot: '/workspace/.bh-e2b',
+    runtimeRoot: '/workspace/.hydra-e2b',
     getSandbox: async () => remote.sandbox,
   } as unknown as E2BRuntime
   ctx.provide('e2b', runtime)
@@ -540,7 +540,7 @@ describe('E2BFileSystem atomic writes and edits', () => {
     const outcome = await fs.writeText(target, 'one\r\ntwo\rthree', { kind: 'createIfAbsent' })
     expect(outcome).toMatchObject({ operation: 'create', before: null, after: 'one\ntwo\rthree' })
     expect(remote.nodes.get('/workspace/new.txt')?.mode).toBe(0o600)
-    expect(remote.nodes.get('/workspace/new.txt')?.metadata?.['bh-version']).toBeDefined()
+    expect(remote.nodes.get('/workspace/new.txt')?.metadata?.['hydra-version']).toBeDefined()
     expect(remote.writeParentModes).toEqual([0o700])
     expect(remote.links).toHaveLength(1)
     const stagingDirectory = posix.dirname(remote.writes[0]!.path)

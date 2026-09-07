@@ -20,7 +20,7 @@ afterEach(async () => {
 
 describe('jobs-local through a real Loader composition', () => {
   it('applies the provider-owned admission config from a Cordis row', async () => {
-    root = await mkdtemp(join(tmpdir(), 'bh-jobs-local-loader-'))
+    root = await mkdtemp(join(tmpdir(), 'hydra-jobs-local-loader-'))
     const configPath = join(root, 'cordis.yml')
     await writeFile(configPath, [
       "- name: '@hydra/harness-jobs-local'",

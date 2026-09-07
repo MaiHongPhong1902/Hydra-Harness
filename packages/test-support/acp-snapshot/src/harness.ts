@@ -160,7 +160,7 @@ export interface RunOptions {
   /**
    * Recorded SUBAGENT child-session fixture paths (replay). A nested-agent
    * scenario ships one per child (`session.1.jsonl`, …); the harness forwards
-   * them to `@hydra/harness-llm-replay` via `$BH_SNAPSHOT_CHILD_FILES` so each child
+   * them to `@hydra/harness-llm-replay` via `$HYDRA_SNAPSHOT_CHILD_FILES` so each child
    * session replays from its own recorded script. Empty for single-session
    * scenarios. Ignored in record mode (children are harvested, not replayed).
    */
@@ -212,7 +212,7 @@ export function snapshotSpillRoot(
   const scenario = basename(dirname(fixtureFile))
   const key = createHash('sha256').update(scenario).digest('hex').slice(0, 9)
   const root = platform === 'win32' ? '/t' : '/tmp'
-  return `${root}/bh-acp-snap-${key}`
+  return `${root}/hydra-acp-snap-${key}`
 }
 
 /**
@@ -248,15 +248,15 @@ export async function runScenario(input: InputScript, opts: RunOptions): Promise
     await opts.prepareWorkspace?.(cwd)
     const env: NodeJS.ProcessEnv = {
       ...opts.env,
-      BH_SNAPSHOT: opts.mode,
-      BH_SNAPSHOT_FILE: opts.fixtureFile,
-      BH_SNAPSHOT_SESSIONS_ROOT: sessionsRoot,
-      BH_SNAPSHOT_SPILL_ROOT: spillRoot,
-      BH_HOME: join(cwd, '.bh'),
-      BH_AGENTS_HOME: join(cwd, '.agents'),
-      ...opts.overrideFile !== undefined ? { BH_SNAPSHOT_OVERRIDE: opts.overrideFile } : {},
+      HYDRA_SNAPSHOT: opts.mode,
+      HYDRA_SNAPSHOT_FILE: opts.fixtureFile,
+      HYDRA_SNAPSHOT_SESSIONS_ROOT: sessionsRoot,
+      HYDRA_SNAPSHOT_SPILL_ROOT: spillRoot,
+      HYDRA_HOME: join(cwd, '.hydra'),
+      HYDRA_AGENTS_HOME: join(cwd, '.agents'),
+      ...opts.overrideFile !== undefined ? { HYDRA_SNAPSHOT_OVERRIDE: opts.overrideFile } : {},
       ...opts.childFiles !== undefined && opts.childFiles.length > 0
-        ? { BH_SNAPSHOT_CHILD_FILES: opts.childFiles.join(delimiter) }
+        ? { HYDRA_SNAPSHOT_CHILD_FILES: opts.childFiles.join(delimiter) }
         : {},
     }
 

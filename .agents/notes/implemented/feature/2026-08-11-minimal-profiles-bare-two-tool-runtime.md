@@ -14,7 +14,7 @@ Both shipped minimal profiles expose exactly persistent `bash` and `str_replace_
 
 The standalone [`minimal.cordis.yml`](../../../../examples/jsonrpc-agent/minimal.cordis.yml) remains a complete JSON-RPC process composition. It mounts `@hydra/harness-sdk-jsonrpc-server`, the local PTY and subprocess services required by persistent Bash, `fs-local`, the two tool consumers, and uncompressed JSONL persistence. It does not mount `token-meter`, `compaction-basic`, `fs-sandbox`, or `fs-observation-policy`. Persistent Bash still consumes the deployment's danger-full-access sandbox policy; the editor is not confined by that policy.
 
-`BH_SYSTEM_PROMPT` selects the standalone persona. `BH_MODEL` names the DeepSeek provider catalog entry, and `BH_CONTEXT_WINDOW` supplies that entry's capacity. Because the SDK client owns the JSON-RPC `initialize` request, [`minimal.py`](../../../../examples/jsonrpc-agent/minimal.py) also uses `BH_MODEL` as its default `model` argument; an explicit `--model` remains authoritative. Endpoint and credential variables stay owned by the DeepSeek adapter's existing environment-resolution path.
+`HYDRA_SYSTEM_PROMPT` selects the standalone persona. `HYDRA_MODEL` names the DeepSeek provider catalog entry, and `HYDRA_CONTEXT_WINDOW` supplies that entry's capacity. Because the SDK client owns the JSON-RPC `initialize` request, [`minimal.py`](../../../../examples/jsonrpc-agent/minimal.py) also uses `HYDRA_MODEL` as its default `model` argument; an explicit `--model` remains authoritative. Endpoint and credential variables stay owned by the DeepSeek adapter's existing environment-resolution path.
 
 ## Verification
 
@@ -30,7 +30,7 @@ The SDK replay boots the real JSON-RPC agent process through the SDK client, inj
 
 **Use one Cordis leaf for Web and Python SDK startup.** Rejected because a Web preset contributes agent-scoped services to an existing multi-session host, while the Python SDK must launch a complete process containing the JSON-RPC server and its process-wide dependencies.
 
-**Read `BH_MODEL` only inside Cordis.** Rejected because Cordis configures the provider catalog but does not own the SDK client's JSON-RPC `initialize` request. The launcher must pass the same model to the client request for the environment value to select the routed model.
+**Read `HYDRA_MODEL` only inside Cordis.** Rejected because Cordis configures the provider catalog but does not own the SDK client's JSON-RPC `initialize` request. The launcher must pass the same model to the client request for the environment value to select the routed model.
 
 ## Consequences
 

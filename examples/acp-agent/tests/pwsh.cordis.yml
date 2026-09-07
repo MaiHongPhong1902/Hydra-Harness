@@ -19,8 +19,8 @@
   config:
     provider: deepseek-official
     model: deepseek-v4-pro
-    persistenceRoot: !!js process.env.BH_SNAPSHOT_SESSIONS_ROOT ?? './.sessions'
-    persistenceCompression: !!js "process.env.BH_SNAPSHOT === undefined ? 'zstd' : 'none'"
+    persistenceRoot: !!js process.env.HYDRA_SNAPSHOT_SESSIONS_ROOT ?? './.sessions'
+    persistenceCompression: !!js "process.env.HYDRA_SNAPSHOT === undefined ? 'zstd' : 'none'"
     workspaceContext: false
     skills:
       enabled: false

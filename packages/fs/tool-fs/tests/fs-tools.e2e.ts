@@ -24,7 +24,7 @@ const SYSTEM = 'You are a coding assistant. Use the write tool to create files, 
 
 describe.skipIf(!process.env.DEEPSEEK_API_KEY)('fs tools with-key smoke', () => {
   it('creates, reads, then edits a file — verified on disk', async () => {
-    workdir = await mkdtemp(join(tmpdir(), 'bh-fs-e2e-'))
+    workdir = await mkdtemp(join(tmpdir(), 'hydra-fs-e2e-'))
     ctx = await fsHarness(workdir, SYSTEM)
     // agentLoop.create prepares a session with no cwd, so the provider default
     // (config.cwd = workdir) is the workspace.
@@ -53,9 +53,9 @@ describe.skipIf(!process.env.DEEPSEEK_API_KEY)('fs tools with-key smoke', () => 
     // config.cwd is the harness workdir, but the agent's SESSION cwd is a
     // different dir; the write must land in the SESSION dir, proving the tool
     // passes the per-session cwd (not the backend default).
-    const configDir = await mkdtemp(join(tmpdir(), 'bh-fs-e2e-cfg-'))
+    const configDir = await mkdtemp(join(tmpdir(), 'hydra-fs-e2e-cfg-'))
     workdir = configDir
-    const sessionDir = await mkdtemp(join(tmpdir(), 'bh-fs-e2e-session-'))
+    const sessionDir = await mkdtemp(join(tmpdir(), 'hydra-fs-e2e-session-'))
     try {
       ctx = await fsHarness(configDir, SYSTEM)
       const handle = await ctx.agents.create({

@@ -9,13 +9,13 @@ import { homedir } from 'node:os'
 import { basename, dirname, join, resolve } from 'node:path'
 
 /** Directory name for the default Hydra harness home under the OS home. */
-export const BH_HOME_DIR_NAME = '.bh'
+export const HYDRA_HOME_DIR_NAME = '.hydra'
 
 /** Stable user-facing display form for the default Hydra harness home. */
-export const DEFAULT_BH_HOME_DISPLAY = `~/${BH_HOME_DIR_NAME}`
+export const DEFAULT_HYDRA_HOME_DISPLAY = `~/${HYDRA_HOME_DIR_NAME}`
 
 /** Environment variable that overrides the default Hydra harness home. */
-export const BH_HOME_ENV = 'BH_HOME'
+export const HYDRA_HOME_ENV = 'HYDRA_HOME'
 
 /**
  * Give a native filesystem watcher one canonical spelling of a path, even
@@ -58,8 +58,8 @@ export async function canonicalizeWatchPath(path: string): Promise<string> {
  * Resolve the default Hydra harness home using Node's platform path rules.
  * @returns the absolute default harness home path.
  */
-export function defaultBhHome(): string {
-  return join(homedir(), BH_HOME_DIR_NAME)
+export function defaultHydraHome(): string {
+  return join(homedir(), HYDRA_HOME_DIR_NAME)
 }
 
 /**
@@ -76,17 +76,17 @@ export function expandHomePath(path: string): string {
 /**
  * Resolve the single-root Hydra harness home.
  *
- * Precedence, highest first: an explicit configured path, `$BH_HOME`, then
- * `~/.bh`. The harness keeps all user data under one root. An empty or
- * whitespace-only `$BH_HOME` is treated as unset, so a blank override never
+ * Precedence, highest first: an explicit configured path, `$HYDRA_HOME`, then
+ * `~/.hydra`. The harness keeps all user data under one root. An empty or
+ * whitespace-only `$HYDRA_HOME` is treated as unset, so a blank override never
  * resolves the home to the current working directory.
  * @param configured - explicit harness-home override, which has highest precedence.
- * @param env - environment mapping used to read `BH_HOME`.
+ * @param env - environment mapping used to read `HYDRA_HOME`.
  * @returns the normalized absolute harness home path.
  */
-export function resolveBhHome(configured?: string, env: Record<string, string | undefined> = process.env): string {
-  const fromEnv = env[BH_HOME_ENV]
-  const selected = configured ?? (fromEnv !== undefined && fromEnv.trim().length > 0 ? fromEnv : defaultBhHome())
+export function resolveHydraHome(configured?: string, env: Record<string, string | undefined> = process.env): string {
+  const fromEnv = env[HYDRA_HOME_ENV]
+  const selected = configured ?? (fromEnv !== undefined && fromEnv.trim().length > 0 ? fromEnv : defaultHydraHome())
   return resolve(expandHomePath(selected))
 }
 
@@ -95,18 +95,18 @@ export function resolveBhHome(configured?: string, env: Record<string, string | 
  * @param segments - path segments appended to the Harness home; an empty list returns the home itself.
  * @returns the normalized absolute joined path.
  */
-export function bhHomePath(...segments: string[]): string {
-  return join(resolveBhHome(), ...segments)
+export function hydraHomePath(...segments: string[]): string {
+  return join(resolveHydraHome(), ...segments)
 }
 
 /**
  * Describe a resolved harness home symbolically for user-facing display.
  *
  * It never returns an absolute machine path: the default home is labelled
- * `~/.bh`, and any configured home is labelled `$BH_HOME`.
- * @param resolvedHome - the absolute path returned by {@link resolveBhHome}.
- * @returns `~/.bh` for the default home, otherwise `$BH_HOME`.
+ * `~/.hydra`, and any configured home is labelled `$HYDRA_HOME`.
+ * @param resolvedHome - the absolute path returned by {@link resolveHydraHome}.
+ * @returns `~/.hydra` for the default home, otherwise `$HYDRA_HOME`.
  */
-export function bhHomeDisplay(resolvedHome: string): string {
-  return resolvedHome === resolve(defaultBhHome()) ? DEFAULT_BH_HOME_DISPLAY : `$${BH_HOME_ENV}`
+export function hydraHomeDisplay(resolvedHome: string): string {
+  return resolvedHome === resolve(defaultHydraHome()) ? DEFAULT_HYDRA_HOME_DISPLAY : `$${HYDRA_HOME_ENV}`
 }

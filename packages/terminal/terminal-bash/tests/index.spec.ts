@@ -210,9 +210,9 @@ describe('BashTerminalBackend startup rollback', () => {
       cwd: '/work',
       graceMs: 10,
       env: {
-        TERM: 'dumb', PAGER: 'cat', GIT_PAGER: 'cat', PS1: 'bh> ', BASH_SILENCE_DEPRECATION_WARNING: '1',
-        PROMPT_COMMAND: 'printf "\\033]133;D;%s\\007" "$?"; PS1=\'bh> \'',
-        BH_SHELL: '1', BH_SESSION_ID: 'agent', BH_PTY_SESSION_ID: 'pty-1',
+        TERM: 'dumb', PAGER: 'cat', GIT_PAGER: 'cat', PS1: 'hh> ', BASH_SILENCE_DEPRECATION_WARNING: '1',
+        PROMPT_COMMAND: 'printf "\\033]133;D;%s\\007" "$?"; PS1=\'hh> \'',
+        HYDRA_SHELL: '1', HYDRA_SESSION_ID: 'agent', HYDRA_PTY_SESSION_ID: 'pty-1',
       },
     })
     expect(spawned?.env?.PTY_TEST_SECRET).toBeUndefined()
@@ -331,14 +331,14 @@ describe('BashTerminalBackend startup rollback', () => {
         outcome.resolve({ exitCode: null, signal: 'SIGTERM' })
       },
     }
-    queueMicrotask(() => { output.write(Buffer.from('\x1b]133;D;0\x07bh> ')) })
+    queueMicrotask(() => { output.write(Buffer.from('\x1b]133;D;0\x07hh> ')) })
     const backend = new BashTerminalBackend(
       ctx,
       config(),
       async () => terminal,
     )
     const session = await backend.spawn(spec(agent(ctx)))
-    expect(session.motd).toBe('bh> ')
+    expect(session.motd).toBe('hh> ')
     await session.close('test complete')
   })
 
@@ -354,7 +354,7 @@ describe('BashTerminalBackend startup rollback', () => {
         sent = request
         return {
           done: Promise.resolve({
-            viewport: 'setup-echo bh> ', waitReason: 'stdin_read' as const,
+            viewport: 'setup-echo hh> ', waitReason: 'stdin_read' as const,
             sessionStatus: { kind: 'running' as const }, truncated: false,
           }),
           readOutput: () => ({ delta: '', truncated: false }),
@@ -371,9 +371,9 @@ describe('BashTerminalBackend startup rollback', () => {
     )
     expect(await backend.spawn(spec(agent(ctx)))).toBe(session)
     expect(sent).toMatchObject({ text: ENCODING_PREAMBLE + PWSH_PROMPT_SETUP, submit: true })
-    expect(session.motd).toBe('setup-echo bh> ')
+    expect(session.motd).toBe('setup-echo hh> ')
     expect(spawned?.env).toMatchObject({
-      TERM: 'dumb', NO_COLOR: '1', BH_SHELL: '1', BH_SESSION_ID: 'agent', BH_PTY_SESSION_ID: 'pty-1',
+      TERM: 'dumb', NO_COLOR: '1', HYDRA_SHELL: '1', HYDRA_SESSION_ID: 'agent', HYDRA_PTY_SESSION_ID: 'pty-1',
     })
     expect(spawned?.env?.PS1).toBeUndefined()
     expect(spawned?.env?.PROMPT_COMMAND).toBeUndefined()
@@ -391,7 +391,7 @@ describe('BashTerminalBackend startup rollback', () => {
         const second = sends.length > 1
         return {
           done: Promise.resolve({
-            viewport: second ? 'bh> ' : 'PowerShell 7.6.4\n',
+            viewport: second ? 'hh> ' : 'PowerShell 7.6.4\n',
             waitReason: 'inferred_idle' as const,
             sessionStatus: { kind: 'running' as const }, truncated: false,
           }),
@@ -410,7 +410,7 @@ describe('BashTerminalBackend startup rollback', () => {
     await backend.spawn(spec(agent(ctx)))
     expect(sends).toHaveLength(2)
     expect(sends[1]).toMatchObject({ text: '', submit: false })
-    expect(session.motd).toBe('bh> ')
+    expect(session.motd).toBe('hh> ')
   })
 
   it('rejects a pwsh bootstrap whose shell exits or times out', async () => {
@@ -446,7 +446,7 @@ describe('BashTerminalBackend startup rollback', () => {
         sends.push(request)
         return {
           done: Promise.resolve({
-            viewport: 'bh> ', waitReason: 'stdin_read' as const,
+            viewport: 'hh> ', waitReason: 'stdin_read' as const,
             sessionStatus: { kind: 'running' as const }, truncated: false,
           }),
           readOutput: () => ({ delta: '', truncated: false }),
@@ -463,7 +463,7 @@ describe('BashTerminalBackend startup rollback', () => {
     )
     const signal = new AbortController().signal
     const spawned = await backend.spawn({ ...spec(agent(ctx)), signal })
-    expect(spawned.motd).toBe('bh> ')
+    expect(spawned.motd).toBe('hh> ')
     expect(sends).toHaveLength(1)
     expect(sends[0]?.signal).toBe(signal)
   })

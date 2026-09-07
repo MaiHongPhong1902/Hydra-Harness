@@ -151,7 +151,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup()
-  delete window.bhDesktop
+  delete window.hydraDesktop
   vi.useRealTimers()
   vi.unstubAllGlobals()
 })
@@ -170,7 +170,7 @@ describe('AppFrame', () => {
       save: vi.fn(),
       format: vi.fn(),
     }
-    window.bhDesktop = {
+    window.hydraDesktop = {
       browser: { setBounds: vi.fn() },
       files,
       panels: {
@@ -202,7 +202,7 @@ describe('AppFrame', () => {
     frameWidth = 1400
     window.innerHeight = 900
     let shortcut: ((value: 'files' | 'side-chat' | 'browser' | 'terminal') => void) | undefined
-    window.bhDesktop = {
+    window.hydraDesktop = {
       browser: { setBounds: vi.fn() },
       panels: {
         onShortcut: (listener) => {
@@ -280,7 +280,7 @@ describe('AppFrame', () => {
   it('recomputes desktop panel limits from the whole app viewport', () => {
     frameWidth = 1500
     window.innerHeight = 1000
-    window.bhDesktop = { browser: { setBounds: vi.fn() } }
+    window.hydraDesktop = { browser: { setBounds: vi.fn() } }
     const view = mountFrame()
     fireEvent.click(view.getByLabelText('Toggle right panel'))
     const browserHandle = view.getByRole('separator', { name: 'Resize right panel' })

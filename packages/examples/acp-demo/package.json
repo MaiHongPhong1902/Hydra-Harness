@@ -7,14 +7,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bosch/bosch-harness.git",
+    "url": "git+https://github.com/MaiHongPhong1902/Hydra-Harness.git",
     "directory": "packages/examples/acp-demo"
   },
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/types/index.d.ts",
   "bin": {
-    "bh-acp-demo": "lib/bin.js"
+    "hydra-acp-demo": "lib/bin.js"
   },
   "exports": {
     ".": {

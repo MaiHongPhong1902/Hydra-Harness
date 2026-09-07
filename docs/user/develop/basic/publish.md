@@ -1,17 +1,17 @@
 # Package and install a plugin
 
-The previous tutorials loaded a local plugin through a `--patch` overlay. This tutorial packages it as an installable **bundle**, installs it into a **profile** with `bh plugin add`, and explains the layer order that determines the composed configuration. It assumes the `bh` CLI is installed. Complete [plugin configuration](./config.md) first.
+The previous tutorials loaded a local plugin through a `--patch` overlay. This tutorial packages it as an installable **bundle**, installs it into a **profile** with `hydra plugin add`, and explains the layer order that determines the composed configuration. It assumes the `hydra` CLI is installed. Complete [plugin configuration](./config.md) first.
 
-To use a fresh source checkout instead, complete the [run-from-source section](../../../../README.md#run-from-source), keep this tutorial's `hello-plugin` directory at the repository root, and run the remaining `bh ...` commands from there as `pnpm bh ...`. See [source execution](../../../../apps/cli/reference/README.md#source-execution) for build and launcher behavior.
+To use a fresh source checkout instead, complete the [run-from-source section](../../../../README.md#run-from-source), keep this tutorial's `hello-plugin` directory at the repository root, and run the remaining `hydra ...` commands from there as `pnpm hydra ...`. See [source execution](../../../../apps/cli/reference/README.md#source-execution) for build and launcher behavior.
 
 ## Two concepts, two manifests
 
-Installation is built on two concepts. Both are described by a `package.json`, but they carry different kinds of manifest under the `bh` key, and they answer different questions:
+Installation is built on two concepts. Both are described by a `package.json`, but they carry different kinds of manifest under the `hydra` key, and they answer different questions:
 
-- A **bundle** is an npm package that ships a configuration layer. Its manifest declares `bh.bundle`, answering "what does this package contribute?": a patch file that inserts or overrides plugin rows.
-- A **profile** is a directory under `$BH_HOME/profiles/<name>` describing one runnable composition. Its manifest declares `bh.profile`, answering "which bundles compose this setup, in what order?".
+- A **bundle** is an npm package that ships a configuration layer. Its manifest declares `hydra.bundle`, answering "what does this package contribute?": a patch file that inserts or overrides plugin rows.
+- A **profile** is a directory under `$HYDRA_HOME/profiles/<name>` describing one runnable composition. Its manifest declares `hydra.profile`, answering "which bundles compose this setup, in what order?".
 
-A bundle is what you author and distribute; a profile is what a user boots with `bh --profile <name>`. Nothing is both.
+A bundle is what you author and distribute; a profile is what a user boots with `hydra --profile <name>`. Nothing is both.
 
 ### The bundle manifest
 
@@ -23,7 +23,7 @@ mkdir -p hello-plugin
 
 ```
 hello-plugin/
-├── package.json       # declares bh.bundle
+├── package.json       # declares hydra.bundle
 ├── cordis.patch.yml   # the layer applied when a profile lists this bundle
 └── index.js           # plugin modules the patch rows reference
 ```
@@ -32,12 +32,12 @@ Create `hello-plugin/package.json`:
 
 ```json
 {
-  "name": "bh-hello-plugin",
+  "name": "hydra-hello-plugin",
   "version": "0.1.0",
   "type": "module",
   "main": "index.js",
   "files": ["index.js", "cordis.patch.yml"],
-  "bh": { "bundle": { "patch": "./cordis.patch.yml" } }
+  "hydra": { "bundle": { "patch": "./cordis.patch.yml" } }
 }
 ```
 
@@ -56,42 +56,42 @@ Create `hello-plugin/cordis.patch.yml`. The patch is a YAML array like the `--pa
 ```yaml
 - insert:
     - id: hello
-      name: bh-hello-plugin
+      name: hydra-hello-plugin
 ```
 
-A package without the `bh.bundle` declaration still installs, but only as a plain dependency: `bh plugin` prints a warning and activates no layer. Use that package format for a library that plugin packages import rather than a plugin users enable.
+A package without the `hydra.bundle` declaration still installs, but only as a plain dependency: `hydra plugin` prints a warning and activates no layer. Use that package format for a library that plugin packages import rather than a plugin users enable.
 
 ### The profile manifest
 
 A profile directory holds two files:
 
-- `package.json` — the profile's out-of-tree plugin dependencies (managed by pnpm) plus the `bh.profile` manifest with its ordered `bundles` list.
+- `package.json` — the profile's out-of-tree plugin dependencies (managed by pnpm) plus the `hydra.profile` manifest with its ordered `bundles` list.
 - `cordis.patch.yml` — the user's own patch layer, applied after every bundle layer.
 
-You never write a profile manifest by hand: `bh plugin` creates and maintains it. The next section shows the result.
+You never write a profile manifest by hand: `hydra plugin` creates and maintains it. The next section shows the result.
 
 ## Install into a profile
 
-`bh plugin --profile <name> <args...>` forwards to pnpm in the profile directory, so every pnpm verb works. From the directory that contains `hello-plugin`, install the package checkout:
+`hydra plugin --profile <name> <args...>` forwards to pnpm in the profile directory, so every pnpm verb works. From the directory that contains `hello-plugin`, install the package checkout:
 
 ```sh
-bh plugin --profile demo add ./hello-plugin
+hydra plugin --profile demo add ./hello-plugin
 ```
 
-The first use initializes the profile (with `@hydra/harness-base` as its first bundle), pnpm links the checkout, and `bh` appends the bundle to `bh.profile.bundles` because the package declares `bh.bundle`:
+The first use initializes the profile (with `@hydra/harness-base` as its first bundle), pnpm links the checkout, and `hydra` appends the bundle to `hydra.profile.bundles` because the package declares `hydra.bundle`:
 
 ```json
 {
-  "name": "bh-profile-demo",
+  "name": "hydra-profile-demo",
   "private": true,
   "dependencies": {
-    "bh-hello-plugin": "link:/path/to/hello-plugin"
+    "hydra-hello-plugin": "link:/path/to/hello-plugin"
   },
-  "bh": {
+  "hydra": {
     "profile": {
       "bundles": [
         "@hydra/harness-base",
-        "bh-hello-plugin"
+        "hydra-hello-plugin"
       ]
     }
   }
@@ -101,19 +101,19 @@ The first use initializes the profile (with `@hydra/harness-base` as its first b
 Verify the layer without booting, then boot:
 
 ```sh
-bh --profile demo --dump-config   # shows a "# == bh-hello-plugin" layer
-bh --profile demo
+hydra --profile demo --dump-config   # shows a "# == hydra-hello-plugin" layer
+hydra --profile demo
 ```
 
-`bh plugin --profile demo remove bh-hello-plugin` removes both the dependency and the layer.
+`hydra plugin --profile demo remove hydra-hello-plugin` removes both the dependency and the layer.
 
 ## The loading order
 
 The effective configuration composes over an empty root by applying, in order:
 
-1. Each bundle patch named in the profile's `bh.profile.bundles` list, in list order — `@hydra/harness-base` first, then each installed bundle in the order it was added.
+1. Each bundle patch named in the profile's `hydra.profile.bundles` list, in list order — `@hydra/harness-base` first, then each installed bundle in the order it was added.
 2. The profile's own `cordis.patch.yml`.
-3. The home-level `$BH_HOME/cordis.patch.yml` — machine-local preferences shared by every profile.
+3. The home-level `$HYDRA_HOME/cordis.patch.yml` — machine-local preferences shared by every profile.
 4. Each `--patch <path>` overlay, in argv order.
 
 App arguments are not another patch layer. A surface bundle can resolve them through an ordinary app-owned service, described below.
@@ -123,7 +123,7 @@ Later layers win per row, and a patch replaces a row's entire `config` value rat
 - Your patch can override rows from earlier layers by `id` — the same way [the `@hydra/harness-web-app` bundle](../../../../packages/bundle/web-app/cordis.patch.yml) overrides `@hydra/harness-base` rows — but must restate every key the row needs, not just the changed one.
 - Users can override your rows in their profile's `cordis.patch.yml` without touching your package, so prefer configuration defaults users are likely to keep and let the schema carry the rest.
 
-In-box bundle names always resolve from the bh installation itself; pnpm manages only out-of-tree packages, so your bundle can rely on `@hydra/harness-base` being present and current.
+In-box bundle names always resolve from the hydra installation itself; pnpm manages only out-of-tree packages, so your bundle can rely on `@hydra/harness-base` being present and current.
 
 ## Give a surface bundle its own command line
 
@@ -131,7 +131,7 @@ A bundle that defines a runnable app mounts an ordinary provider plugin:
 
 ```yaml
 - id: hello-startup
-  name: 'bh-hello-plugin/startup'
+  name: 'hydra-hello-plugin/startup'
 ```
 
 The plugin exports `inject = ['cmdlineArgs']`, calls `parseCmdline` from [`@hydra/harness-cmdline`](../../../../packages/boot/cmdline/README.md) with its own commander program, and provides its app-owned service from the program's action. The launcher hands every plugin the same immutable arguments after launcher flags, so app-specific flags need no launcher change and multiple plugins may parse the snapshot. The Loader row needs no launcher marker or special kind.
@@ -153,17 +153,17 @@ On `--help`, the provider publishes no service, so those rows never activate. Lo
 Publishing to a registry is not required — users can install straight from a git host:
 
 ```sh
-bh plugin --profile demo add github:you/hello-plugin
+hydra plugin --profile demo add github:you/hello-plugin
 ```
 
 But a git install fetches **sources, not built artifacts**: nothing runs your `build` script, so a TypeScript package arrives without its `lib/` output and fails to load. Two things must happen, one on each side:
 
-- **The author** ships a `prepare` script — pnpm runs it after a git install — that builds the published entry points from source, self-contained: it must not assume dev-only context such as a sibling monorepo checkout. [turtle-ui](https://github.com/bosch-harness/turtle-ui) is a working example: its `prepare` runs a dedicated tsdown config that transpiles `src/` without project references or type checking.
-- **The user** allowlists the build. pnpm ≥10 refuses to run a git dependency's `prepare` script until it is explicitly allowed, so the first `add` fails; `bh` points at the fix — copy the exact package key pnpm printed into the profile's `pnpm-workspace.yaml`:
+- **The author** ships a `prepare` script — pnpm runs it after a git install — that builds the published entry points from source, self-contained: it must not assume dev-only context such as a sibling monorepo checkout. An out-of-tree plugin such as turtle-ui is a working example: its `prepare` runs a dedicated tsdown config that transpiles `src/` without project references or type checking.
+- **The user** allowlists the build. pnpm ≥10 refuses to run a git dependency's `prepare` script until it is explicitly allowed, so the first `add` fails; `hydra` points at the fix — copy the exact package key pnpm printed into the profile's `pnpm-workspace.yaml`:
 
   ```yaml
   allowBuilds:
-    bh-hello-plugin: true
+    hydra-hello-plugin: true
   ```
 
   and re-run the `add`.
@@ -172,8 +172,8 @@ Treat that allowance as what it is: **permission to execute the package's code o
 
 If you would rather not ask users for the allowance, distribute built artifacts instead — neither form needs any build permission:
 
-- **Publish to npm** with `lib/` built at `pnpm publish` time; `bh plugin add your-package` then installs prebuilt code.
-- **Ship a tarball** from `pnpm pack`; users run `bh plugin add ./hello-plugin-0.1.0.tgz`.
+- **Publish to npm** with `lib/` built at `pnpm publish` time; `hydra plugin add your-package` then installs prebuilt code.
+- **Ship a tarball** from `pnpm pack`; users run `hydra plugin add ./hello-plugin-0.1.0.tgz`.
 
 ## Next steps
 

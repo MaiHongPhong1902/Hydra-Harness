@@ -5,7 +5,7 @@
   "publishConfig": { "access": "public" },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bosch/bosch-harness.git",
+    "url": "git+https://github.com/MaiHongPhong1902/Hydra-Harness.git",
     "directory": "packages/session-query/session-log-export"
   },
   "type": "module",
@@ -46,7 +46,7 @@
     "@types/react": "~18.3.1",
     "react": "^18.2.0"
   },
-  "bh": {
+  "hydra": {
     "client": {
       "inject": [
         "@hydra/harness-client-locale",

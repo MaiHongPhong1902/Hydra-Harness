@@ -5,7 +5,7 @@ This family discovers reusable agent instructions and exposes them to the model 
 | Package | Role | ctx key |
 |---|---|---|
 | [`skill/`](skill/README.md) | Defines skill provider registration and lookup | `ctx.skills` |
-| [`skill-badge/`](skill-badge/README.md) | Contributes the optional bundled bh badge skill | registers on `ctx.skills` |
+| [`skill-badge/`](skill-badge/README.md) | Contributes the optional bundled hydra badge skill | registers on `ctx.skills` |
 | [`skill-filesystem/`](skill-filesystem/README.md) | Discovers skills from local filesystems | registers on `ctx.skills` |
 | [`tool-skill/`](tool-skill/README.md) | Registers bounded skill search and the exact model-facing loader | registers on `ctx.tools` |
 

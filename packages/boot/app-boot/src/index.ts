@@ -1,7 +1,7 @@
 /**
- * Shared boot glue for the app bins (`bh`, `bh-acp-demo`): load the gitignored
+ * Shared boot glue for the app bins (`hydra`, `hydra-acp-demo`): load the gitignored
  * `.env`, install the fail-loud Loader guards, resolve the config path (snapshot-aware), load the
- * optional user patch layers from the Harness home (`~/.bh`), expose its path resolver to
+ * optional user patch layers from the Harness home (`~/.hydra`), expose its path resolver to
  * config expressions, and drive the Cordis Loader against a leaf `cordis.yml` until the tree settles.
  * @module @hydra/harness-app-boot
  */
@@ -15,7 +15,7 @@ import { Context, type FiberState } from '@hydra/cordis'
 import Loader, { type Entry, type EntryOptions } from '@hydra/cordis-plugin-loader'
 import Include, { applyEntryPatches, entryListSchema, type PatchOptions } from '@hydra/cordis-plugin-include'
 import Group from '@hydra/cordis-plugin-group'
-import { bhHomePath, resolveBhHome } from '@hydra/harness-home-paths'
+import { hydraHomePath, resolveHydraHome } from '@hydra/harness-home-paths'
 import { createLaunchEnvironmentSnapshot, type LaunchEnvironmentSnapshot } from '@hydra/harness-launch-environment'
 import type {} from '@hydra/cordis-plugin-hmr'
 // Side-effect type import: resolves `ctx.get('systemPrompt')` to the service.
@@ -24,7 +24,7 @@ import type {} from '@hydra/harness-system-prompt'
 declare module '@hydra/cordis' {
   interface Context {
     /** Harness-home path resolver available to Loader `!!js` config expressions. */
-    bhHomePath?: typeof bhHomePath
+    hydraHomePath?: typeof hydraHomePath
   }
 }
 
@@ -42,9 +42,9 @@ export {
   resolveBundleDir,
   resolveProfileDir,
   writeProfileManifest,
-  type BhBundleManifest,
-  type BhManifestSection,
-  type BhProfileManifest,
+  type HydraBundleManifest,
+  type HydraManifestSection,
+  type HydraProfileManifest,
   type Profile,
   type ProfileLayer,
   type ProfileManifest,
@@ -54,7 +54,7 @@ export {
  * Resolve the config to boot. Replay swaps a `cordis.yml` basename for
  * `cordis.snapshot.yml` in the same directory; every other mode keeps the path.
  * @param configPath - the requested config path (absolute, or relative to `cwd`).
- * @param snapshotMode - the bin's `$BH_SNAPSHOT` value; only `'replay'` swaps the
+ * @param snapshotMode - the bin's `$HYDRA_SNAPSHOT` value; only `'replay'` swaps the
  *   basename.
  * @param cwd - the base a relative `configPath` resolves against.
  * @returns the absolute path of the config to boot.
@@ -115,7 +115,7 @@ const BOOTSTRAP_NAMES = new Set([
 ])
 
 /** Name prefixes no discovered file may set. */
-const BOOTSTRAP_PREFIXES = ['BH_', 'XDG_', 'DYLD_', 'BASH_FUNC_']
+const BOOTSTRAP_PREFIXES = ['HYDRA_', 'XDG_', 'DYLD_', 'BASH_FUNC_']
 
 /**
  * Whether a variable may come only from the inherited process environment
@@ -179,7 +179,7 @@ export function loadLayeredEnv(
   binName: string, cwd: string = process.cwd(),
   warn: (line: string) => void = line => void process.stderr.write(line),
 ): LaunchEnvironmentSnapshot {
-  const home = resolveBhHome()
+  const home = resolveHydraHome()
   const inherited = { ...process.env } as Record<string, string>
   // Parse both layers first: a rejection must not leave one file applied.
   const project = readEnvLayer(binName, cwd, warn)
@@ -768,7 +768,7 @@ export async function boot(
   let stage = 'host preparation failed'
   try {
     ctx.baseUrl = pathToFileURL(dirname(absoluteConfigPath)).href + '/'
-    ctx.provide('bhHomePath', bhHomePath)
+    ctx.provide('hydraHomePath', hydraHomePath)
     await ctx.plugin(Loader)
     await prepare?.(ctx)
     stage = 'plugin tree failed to load'

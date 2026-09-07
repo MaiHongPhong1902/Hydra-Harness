@@ -4,7 +4,7 @@ import AgentLoop from '@hydra/harness-agent-loop'
 import { renderPrompt } from '@hydra/harness-system-prompt'
 import { mountAgentLoopTestDependencies } from '../src/index.ts'
 
-describe('bh-agent-loop-testkit', () => {
+describe('hydra-agent-loop-testkit', () => {
   it('mounts a configurable prerequisite spine that can activate AgentLoop', async () => {
     const ctx = new Context()
     await mountAgentLoopTestDependencies(ctx, {

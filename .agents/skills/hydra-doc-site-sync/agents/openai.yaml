@@ -1,0 +1,4 @@
+interface:
+  display_name: "Hydra Documentation Site Sync"
+  short_description: "Publish repository docs through the Hydra website manifest"
+  default_prompt: "Use $hydra-doc-site-sync to publish or update a Hydra harness documentation page on the website."

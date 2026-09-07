@@ -188,18 +188,18 @@ describe('web e2e: workspace management (create / rename / flat view / hover aff
         slotConsoleErrors.push(message.text())
       }
     })
-    await page.exposeFunction('recordBhSlotError', (key: string) => {
+    await page.exposeFunction('recordHydraSlotError', (key: string) => {
       if (!transientSlotErrors.includes(key)) transientSlotErrors.push(key)
     })
     await page.evaluate(() => {
-      const target = window as unknown as { recordBhSlotError(key: string): Promise<void> }
+      const target = window as unknown as { recordHydraSlotError(key: string): Promise<void> }
       const seen = new Set<string>()
       const collect = (): void => {
         for (const node of document.querySelectorAll<HTMLElement>('[data-slot-error]')) {
           const key = node.dataset.slotError ?? ''
           if (!seen.has(key)) {
             seen.add(key)
-            void target.recordBhSlotError(key)
+            void target.recordHydraSlotError(key)
           }
         }
       }
@@ -326,17 +326,17 @@ describe('web e2e: workspace management (create / rename / flat view / hover aff
     page.on('console', (message) => {
       if (message.type() === 'error') consoleErrors.push(message.text())
     })
-    await page.exposeFunction('recordBhTransientWorkspaceError', (message: string) => {
+    await page.exposeFunction('recordHydraTransientWorkspaceError', (message: string) => {
       if (!transientErrors.includes(message)) transientErrors.push(message)
     })
     await page.evaluate(() => {
       const target = window as unknown as {
-        recordBhTransientWorkspaceError(message: string): Promise<void>
+        recordHydraTransientWorkspaceError(message: string): Promise<void>
       }
       const collect = (): void => {
         for (const node of document.querySelectorAll<HTMLElement>('[data-slot-error], [role="alert"]')) {
           const message = node.dataset.slotError ?? node.textContent?.trim() ?? ''
-          if (message !== '') void target.recordBhTransientWorkspaceError(message)
+          if (message !== '') void target.recordHydraTransientWorkspaceError(message)
         }
       }
       new MutationObserver(collect).observe(document.documentElement, { childList: true, subtree: true })
@@ -381,7 +381,7 @@ describe('web e2e: workspace management (create / rename / flat view / hover aff
     await expect.poll(() => page.getByText('Sessions', { exact: true }).count(), { timeout: 10_000 }).toBeGreaterThanOrEqual(1)
     await expect.poll(() => page.getByText('Ungrouped', { exact: true }).count(), { timeout: 5_000 }).toBe(0)
     await expect.poll(() => page.locator('[role="treeitem"]').count(), { timeout: 10_000 }).toBeGreaterThanOrEqual(1)
-    expect(await page.evaluate(() => localStorage.getItem('bh.workspace.view.v5'))).toContain('flat')
+    expect(await page.evaluate(() => localStorage.getItem('hydra.workspace.view.v5'))).toContain('flat')
     // Persisted across reload; then restore grouped for inter-spec hygiene.
     const warningStart = tripwire.warnings.length
     await page.reload({ waitUntil: 'load' })

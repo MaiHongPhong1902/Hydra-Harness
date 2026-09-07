@@ -45,9 +45,9 @@ The command orchestration shape is:
 ```sh
 pnpm run build:
 tsc -b tsconfig.host.json
-tsdown --env.BH_BUILD_FACE host
+tsdown --env.HYDRA_BUILD_FACE host
 tsc -b tsconfig.client.json
-tsdown --env.BH_BUILD_FACE client
+tsdown --env.HYDRA_BUILD_FACE client
 pnpm run build:web
 
 pnpm run verify-node-next-types:
@@ -61,7 +61,7 @@ pnpm run clean:
 tsx scripts/clean.ts
 ```
 
-The source-mode demos run through their declared TypeScript launchers and the root paths map. The `bh` TUI chain uses Node's native transform plus its app-owned paths loader, the Web demo builds its required artifacts before entering that same CLI source chain, and the other source demos continue to use tsx.
+The source-mode demos run through their declared TypeScript launchers and the root paths map. The `hydra` TUI chain uses Node's native transform plus its app-owned paths loader, the Web demo builds its required artifacts before entering that same CLI source chain, and the other source demos continue to use tsx.
 
 ## Alternatives considered
 
@@ -74,7 +74,7 @@ The source-mode demos run through their declared TypeScript launchers and the ro
 
 Build responsibilities are clearer:
 
-- Each ordinary module under `packages/<group>/<pkg>` and `vendor/*` has one local tsconfig for build, typecheck, and tools that run source directly, such as the `bh` source loader, `tsx`, and `vitest`. `api/remotes` is the sole exception: generated-contract ordering requires one solution and two mutually exclusive emitting projects.
+- Each ordinary module under `packages/<group>/<pkg>` and `vendor/*` has one local tsconfig for build, typecheck, and tools that run source directly, such as the `hydra` source loader, `tsx`, and `vitest`. `api/remotes` is the sole exception: generated-contract ordering requires one solution and two mutually exclusive emitting projects.
 - The `build` command runs the Host and Client Project Reference graphs in order. In each phase, `tsc -b` owns the publishable per-module `.js` and `.d.ts` output, while the bundler owns only the published runtime bundles.
     - `lib/types/*.d.ts` is the publish declaration output; `.d.ts.map` remains only as a local compilation artifact.
     - `lib/types/*.d.ts` uses explicit `.ts` relative specifiers, which TypeScript's NodeNext/Node16 resolver maps to sibling `.d.ts` files.

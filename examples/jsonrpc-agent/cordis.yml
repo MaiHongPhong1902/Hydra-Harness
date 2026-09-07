@@ -1,10 +1,10 @@
-# Unattended coding-agent deployment for the bundled bh-jsonrpc-agent runtime.
+# Unattended coding-agent deployment for the bundled hydra-jsonrpc-agent runtime.
 # stdout is reserved for JSON-RPC; do not add a console logger or terminal UI.
 
 - id: sdk-jsonrpc-server
   name: '@hydra/harness-sdk-jsonrpc-server'
   config:
-    maxTokensAsSuccess: !!js "process.env.BH_MAX_TOKENS_AS_SUCCESS === undefined ? true : JSON.parse(process.env.BH_MAX_TOKENS_AS_SUCCESS)"
+    maxTokensAsSuccess: !!js "process.env.HYDRA_MAX_TOKENS_AS_SUCCESS === undefined ? true : JSON.parse(process.env.HYDRA_MAX_TOKENS_AS_SUCCESS)"
 
 # The DeepSeek adapter. Shipped default: full thinking at max effort on every
 # request; exact-model resolution materializes request defaults before logging.
@@ -22,13 +22,13 @@
 - id: bash
   name: '@hydra/harness-bash-local'
   config:
-    cwd: !!js process.env.BH_CWD ?? process.cwd()
+    cwd: !!js process.env.HYDRA_CWD ?? process.cwd()
     timeoutMs: 60000
 
 - id: agent-spine
   name: '@hydra/harness-agent-spine-demo'
   config:
-    persona: !!js process.env.BH_SYSTEM_PROMPT ?? 'You are a coding agent.'
+    persona: !!js process.env.HYDRA_SYSTEM_PROMPT ?? 'You are a coding agent.'
     workspaceContext: false
     skills:
       enabled: false
@@ -39,9 +39,9 @@
 - id: sessions
   name: '@hydra/harness-session-persistence-jsonl'
   config:
-    root: !!js process.env.BH_SESSION_ROOT ?? './.sessions'
+    root: !!js process.env.HYDRA_SESSION_ROOT ?? './.sessions'
     # Snapshot runs read the raw JSONL back; production keeps zstd frames.
-    compression: !!js "process.env.BH_SNAPSHOT === undefined ? 'zstd' : 'none'"
+    compression: !!js "process.env.HYDRA_SNAPSHOT === undefined ? 'zstd' : 'none'"
 
 - id: session-checkpoints
   name: '@hydra/harness-session-checkpoint-policy'
@@ -69,7 +69,7 @@
 - id: fs-local
   name: '@hydra/harness-fs-local'
   config:
-    cwd: !!js process.env.BH_CWD ?? process.cwd()
+    cwd: !!js process.env.HYDRA_CWD ?? process.cwd()
 
 - id: fs-observation-policy
   name: '@hydra/harness-fs-observation-policy'

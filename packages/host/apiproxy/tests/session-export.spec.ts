@@ -161,7 +161,7 @@ describe('session.export download endpoint', () => {
     )
     expect(response.status).toBe(200)
     expect(response.headers.get('content-type')).toBe('application/zip')
-    expect(response.headers.get('content-disposition')).toContain('bh-session-session-root.zip')
+    expect(response.headers.get('content-disposition')).toContain('hydra-session-session-root.zip')
     const files = unzipSync(await responseBytes(response))
     expect(Object.keys(files)).toEqual(['session.jsonl'])
     expect(strFromU8(files['session.jsonl'] as Uint8Array)).toBe(artifact('session-root').content)
@@ -176,7 +176,7 @@ describe('session.export download endpoint', () => {
 
     expect(response.status).toBe(200)
     expect(response.headers.get('content-type')).toBe('application/zip')
-    expect(response.headers.get('content-disposition')).toContain('bh-session-session-root.zip')
+    expect(response.headers.get('content-disposition')).toContain('hydra-session-session-root.zip')
     expect(response.body).toBeNull()
     expect(readRaw).toHaveBeenCalledOnce()
   })

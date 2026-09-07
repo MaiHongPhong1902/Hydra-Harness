@@ -4,7 +4,7 @@ Status: implemented
 
 ## Problem
 
-A continuable child can explicitly report selected content and later produce an unconditional manager-authored settlement notice. Report delivery used `Agent.followup()` and entered the parent's `next-turn` queue, while settlement delivery to a running parent used `Agent.steer()` and entered `next-step`. The first step of a turn claims the complete `next-step` batch before one `next-turn` message, so the later settlement notice could reach the model before the earlier report. The assembled report scenario required `reportDelivery: quiet` to avoid that nondeterministic interleaving. [Issue #2600](https://github.com/bosch-harness/bosch-harness/issues/2600) records the defect.
+A continuable child can explicitly report selected content and later produce an unconditional manager-authored settlement notice. Report delivery used `Agent.followup()` and entered the parent's `next-turn` queue, while settlement delivery to a running parent used `Agent.steer()` and entered `next-step`. The first step of a turn claims the complete `next-step` batch before one `next-turn` message, so the later settlement notice could reach the model before the earlier report. The assembled report scenario required `reportDelivery: quiet` to avoid that nondeterministic interleaving. Issue #2600 records the defect.
 
 The report tool tells a child to report whenever a finding changes what its parent should do next. Deferring that message to a later turn contradicted the tool's scheduling meaning and separated causally ordered messages across queues with different claim priority.
 

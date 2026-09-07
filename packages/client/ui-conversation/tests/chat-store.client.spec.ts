@@ -3,7 +3,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createChatStore } from '../src/client/stores.ts'
 
-const KEY = 'bh.conversation.chat'
+const KEY = 'hydra.conversation.chat'
 
 beforeEach(() => {
   localStorage.clear()

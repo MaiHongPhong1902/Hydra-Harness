@@ -43,13 +43,13 @@ try {
   }
   const search = await tool('skill_search', { query: 'zebra reconciliation' })
   const denied = await tool('skill', { name: 'user-only' })
-  const loaded = await tool('skill', { name: 'workon-uat-test-design' })
+  const loaded = await tool('skill', { name: 'obsidian-uat-test-design' })
   ctx.llm.registerAdapter(['skill-fixture'], adapter)
   const turns = []
   for (const [index, task] of [
-    'test WorkON',
-    'Do not use workon-uat-test-design; explain what it does.',
-    'Đừng dùng workon-uat-test-design.',
+    'test obsidian',
+    'Do not use obsidian-uat-test-design; explain what it does.',
+    'Đừng dùng obsidian-uat-test-design.',
     '/user-only',
     '/model-only',
   ].entries()) {

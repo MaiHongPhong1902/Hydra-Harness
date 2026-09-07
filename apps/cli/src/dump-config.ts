@@ -1,5 +1,5 @@
 /**
- * Config-dump entry for `bh --profile <name> --dump-config`: compose the
+ * Config-dump entry for `hydra --profile <name> --dump-config`: compose the
  * profile's patch layers through the include plugin's patch algorithm without
  * booting or evaluating `!!js`, with one source layer per bundle, the
  * profile's own patch file, and each `--patch` overlay.
@@ -18,7 +18,7 @@ import {
   homePatchPath, prepareProfile, profileEnablementPatches, PROFILE_ROOT_FILENAME,
 } from './profile-boot.ts'
 
-const NAME = 'bh'
+const NAME = 'hydra'
 
 /* v8 ignore start -- built-bin acceptance drives this boot-free dispatch */
 /**
@@ -46,7 +46,7 @@ export function runDumpConfig(profile: string, defaultOnly: boolean, patches: re
     }
     const enablementPatches = profileEnablementPatches(loaded.pluginEnablement)
     if (enablementPatches.length > 0) {
-      layers.push({ label: `${join(loaded.dir, 'package.json')}#bh.profile.pluginEnablement`, patches: enablementPatches })
+      layers.push({ label: `${join(loaded.dir, 'package.json')}#hydra.profile.pluginEnablement`, patches: enablementPatches })
     }
     for (const file of patches) {
       const absolute = resolve(file)

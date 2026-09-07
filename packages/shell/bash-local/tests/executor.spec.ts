@@ -8,7 +8,7 @@ import LocalSubprocessRuntime from '@hydra/harness-subprocess-local'
 import { MAX_TIMER_DELAY_MS } from '@hydra/harness-timeout'
 import type { ShellProcess } from '@hydra/harness-shell'
 
-const spillDir = mkdtempSync(join(tmpdir(), 'bh-bash-exec-spec-'))
+const spillDir = mkdtempSync(join(tmpdir(), 'hydra-bash-exec-spec-'))
 
 async function setup(config: ConstructorParameters<typeof LocalBashExecutor>[1] = {}) {
   const ctx = new Context()
@@ -130,31 +130,31 @@ describe('LocalBashExecutor.run', () => {
 
   it('rejects on spawn failure (bad workdir)', async () => {
     const { bash } = await setup()
-    await expect(bash.run(bash.resolve({ command: 'true', workdir: '/nonexistent-bh' }))).rejects.toThrow(/ENOENT/)
+    await expect(bash.run(bash.resolve({ command: 'true', workdir: '/nonexistent-hydra' }))).rejects.toThrow(/ENOENT/)
   })
 
-  it('resolve() carries stdin/env/bhEnv onto the spec, and run() threads them to the command', async () => {
+  it('resolve() carries stdin/env/hydraEnv onto the spec, and run() threads them to the command', async () => {
     const { bash } = await setup()
     const spec = bash.resolve({
-      command: 'cat; echo "[$SEAM_VAR][$BH_SEAM_VAR]"',
+      command: 'cat; echo "[$SEAM_VAR][$HYDRA_SEAM_VAR]"',
       stdin: 'piped\n',
       env: { SEAM_VAR: 'env-ok' },
-      bhEnv: { BH_SEAM_VAR: 'bh-ok' },
+      hydraEnv: { HYDRA_SEAM_VAR: 'hydra-ok' },
     })
     // resolve() keeps the optional input/environment fields verbatim.
     expect(spec.stdin).toBe('piped\n')
     expect(spec.env).toEqual({ SEAM_VAR: 'env-ok' })
-    expect(spec.bhEnv).toEqual({ BH_SEAM_VAR: 'bh-ok' })
+    expect(spec.hydraEnv).toEqual({ HYDRA_SEAM_VAR: 'hydra-ok' })
     const result = await bash.run(spec)
-    expect(result.stdout.text).toBe('piped\n[env-ok][bh-ok]\n')
+    expect(result.stdout.text).toBe('piped\n[env-ok][hydra-ok]\n')
   })
 
-  it('resolve() omits stdin/env/bhEnv when the request supplies none', async () => {
+  it('resolve() omits stdin/env/hydraEnv when the request supplies none', async () => {
     const { bash } = await setup()
     const spec = bash.resolve({ command: 'true' })
     expect('stdin' in spec).toBe(false)
     expect('env' in spec).toBe(false)
-    expect('bhEnv' in spec).toBe(false)
+    expect('hydraEnv' in spec).toBe(false)
   })
 })
 
@@ -173,12 +173,12 @@ describe('LocalBashExecutor.start (background process handles)', () => {
   it('threads stdin and extra env into a background process', async () => {
     const { bash } = await setup()
     const proc = bash.start(bash.resolve({
-      command: 'cat; echo "[$BG_VAR][$BH_BG_VAR]"',
+      command: 'cat; echo "[$BG_VAR][$HYDRA_BG_VAR]"',
       stdin: 'bg-stdin\n',
       env: { BG_VAR: 'bg-env' },
-      bhEnv: { BH_BG_VAR: 'bg-bh-env' },
+      hydraEnv: { HYDRA_BG_VAR: 'bg-hydra-env' },
     }))
-    const output = await readUntil(proc, '[bg-env][bg-bh-env]')
+    const output = await readUntil(proc, '[bg-env][bg-hydra-env]')
     expect(output).toContain('bg-stdin')
     await proc.done
     expect(proc.exitCode).toBe(0)
@@ -290,7 +290,7 @@ describe('LocalBashExecutor.start (background process handles)', () => {
 
   it('a background spawn failure settles as killed with the error readable on stderr', async () => {
     const { bash } = await setup()
-    const proc = bash.start(bash.resolve({ command: 'true', workdir: '/nonexistent-bh' }))
+    const proc = bash.start(bash.resolve({ command: 'true', workdir: '/nonexistent-hydra' }))
     // done resolves (never rejects) even though the process never ran.
     await expect(proc.done).resolves.toBeUndefined()
     expect(proc.status).toBe('killed')

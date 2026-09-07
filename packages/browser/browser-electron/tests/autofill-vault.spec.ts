@@ -81,7 +81,7 @@ class FakeSafeStorage implements SafeStorageLike {
 }
 
 async function location(): Promise<{ directory: string; filename: string }> {
-  const directory = await mkdtemp(join(tmpdir(), 'bh-autofill-vault-'))
+  const directory = await mkdtemp(join(tmpdir(), 'hydra-autofill-vault-'))
   temporaryDirectories.push(directory)
   return { directory, filename: join(directory, 'autofill.json') }
 }

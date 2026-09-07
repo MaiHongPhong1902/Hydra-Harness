@@ -416,11 +416,11 @@ const VENDORED_LIBRARY = /^@hydra\\/(cosmokit|schemastery)(\\/|$)/
     file: 'packages/sandbox/sandbox-local/tests/packed-install.e2e.ts',
     find: `    // Peer ranges resolve to the tarballs; Cordis is pinned to their peer range. Do not omit optional
     // dependencies because the launcher selects its OS/CPU package through one.
-    writeFileSync(join(consumerDir, 'package.json'), JSON.stringify({ name: 'bh-packed-consumer', private: true, type: 'module' }))
+    writeFileSync(join(consumerDir, 'package.json'), JSON.stringify({ name: 'hydra-packed-consumer', private: true, type: 'module' }))
     const install = spawnSync('npm', ['install', '--no-audit', '--no-fund', ...tarballs, 'cordis@4.0.0-rc.7'], {`,
     replace: `    // Peer ranges resolve to the tarballs, the framework peer included. Do not omit optional
     // dependencies because the launcher selects its OS/CPU package through one.
-    writeFileSync(join(consumerDir, 'package.json'), JSON.stringify({ name: 'bh-packed-consumer', private: true, type: 'module' }))
+    writeFileSync(join(consumerDir, 'package.json'), JSON.stringify({ name: 'hydra-packed-consumer', private: true, type: 'module' }))
     const install = spawnSync('npm', ['install', '--no-audit', '--no-fund', ...tarballs], {`,
     expect: 1,
   },

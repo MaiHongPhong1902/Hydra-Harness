@@ -20,7 +20,7 @@ This partially supersedes the search-only separation in [bounded skill routing](
 
 **Rely only on model tool choice.** Rejected because the observed failure was the model skipping available discovery and loading tools, so better tool wording could not enforce selection.
 
-**Add a skill subagent or auxiliary LLM classifier.** Rejected because it adds latency, cost, recursive composition concerns, and another failure mode while the existing metadata ranker already resolves the reported WorkON request.
+**Add a skill subagent or auxiliary LLM classifier.** Rejected because it adds latency, cost, recursive composition concerns, and another failure mode while the existing metadata ranker already resolves the reported domain-specific request.
 
 **Load the first lexical match.** Rejected because a generic term, incomplete provider result, or deterministic name tie-break is not enough evidence to add instructions to the request.
 

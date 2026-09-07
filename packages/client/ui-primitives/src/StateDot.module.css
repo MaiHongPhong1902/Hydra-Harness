@@ -1,7 +1,7 @@
 /* Ongoing uses the shared business accent so it stays aligned with the brand. */
 .dot,
 .matrix {
-  --bh-state-ongoing: var(--dsw-alias-state-business-primary);
+  --hydra-state-ongoing: var(--dsw-alias-state-business-primary);
 }
 
 /* Solid states: same-color halo via a 0.10-opacity outer layer (::before)
@@ -47,16 +47,16 @@
  * animation-delay (index * -125ms) set inline by the component. */
 .matrix {
   flex: none;
-  color: var(--bh-state-ongoing);
+  color: var(--hydra-state-ongoing);
 }
 
 .cell {
   fill: currentColor;
   opacity: 0.15;
-  animation: bh-state-dot-chase 1s infinite;
+  animation: hydra-state-dot-chase 1s infinite;
 }
 
-@keyframes bh-state-dot-chase {
+@keyframes hydra-state-dot-chase {
   0%, 12.4% { opacity: 1; }
   12.5%, 24.9% { opacity: 0.6; }
   25%, 37.4% { opacity: 0.35; }

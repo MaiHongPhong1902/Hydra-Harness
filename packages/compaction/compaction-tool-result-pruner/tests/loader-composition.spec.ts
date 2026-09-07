@@ -21,7 +21,7 @@ afterEach(async () => {
 
 describe('compaction-tool-result-pruner real Loader composition', () => {
   it('loads and resolves the flat YAML plugin shape', async () => {
-    root = await mkdtemp(join(tmpdir(), 'bh-compact-tool-result-prune-loader-'))
+    root = await mkdtemp(join(tmpdir(), 'hydra-compact-tool-result-prune-loader-'))
     const configPath = join(root, 'cordis.yml')
     await writeFile(configPath, [
       "- name: '@hydra/harness-token-meter'",

@@ -36,7 +36,7 @@ describe('resolveLinuxNodePtyAddon', () => {
 })
 
 function temporaryPackage(): string {
-  const root = mkdtempSync(join(tmpdir(), 'bh-node-pty-addon-'))
+  const root = mkdtempSync(join(tmpdir(), 'hydra-node-pty-addon-'))
   roots.push(root)
   return root
 }

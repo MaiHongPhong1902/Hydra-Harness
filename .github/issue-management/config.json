@@ -1,9 +1,9 @@
 {
-  "organization": "bosch-harness",
-  "repository": "bosch-harness",
+  "organization": "MaiHongPhong1902",
+  "repository": "Hydra-Harness",
   "projectNumber": 1,
-  "projectTitle": "BH Issue Management",
-  "lifecycleActor": "bh-issue-management",
+  "projectTitle": "Hydra Issue Management",
+  "lifecycleActor": "hydra-issue-management",
   "priorityField": "Priority",
   "allowUnassignedOwner": true,
   "statuses": [

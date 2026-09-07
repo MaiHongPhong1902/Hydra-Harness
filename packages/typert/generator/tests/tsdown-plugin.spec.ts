@@ -74,7 +74,7 @@ describe('typertPlugin', () => {
 
   it('skips outputs that do not identify a Typert contributor', async () => {
     const plugin = typertPlugin()
-    expect(plugin.name).toBe('bh-typert-generator')
+    expect(plugin.name).toBe('hydra-typert-generator')
     plugin.writeBundle({})
 
     const root = await workspace()
@@ -205,7 +205,7 @@ describe('typertPlugin', () => {
 })
 
 async function workspace(): Promise<string> {
-  const root = mkdtempSync(join(tmpdir(), 'bh-typert-tsdown-'))
+  const root = mkdtempSync(join(tmpdir(), 'hydra-typert-tsdown-'))
   roots.push(root)
   writeFileSync(join(root, 'tsconfig.host.json'), '{}\n')
   return root

@@ -50,7 +50,7 @@ const LIMITS: ImageAttachmentLimits = {
 const roots: string[] = []
 
 async function root(): Promise<string> {
-  const value = await mkdtemp(join(tmpdir(), 'bh-attachment-'))
+  const value = await mkdtemp(join(tmpdir(), 'hydra-attachment-'))
   roots.push(value)
   return join(value, 'attachments', 'v1')
 }
@@ -81,7 +81,7 @@ describe('local attachment store', () => {
 
     await saveImageFile(storageRoot, { data: PNG, mediaType: 'image/png' }, LIMITS)
 
-    // Each process first proves BH_HOME durable all the way to the filesystem
+    // Each process first proves HYDRA_HOME durable all the way to the filesystem
     // root; existence alone cannot vouch for a concurrent creator's fsync.
     // Later directory creation can then stop at that process-proven boundary.
     expect(fsControl.syncedDirectories).toEqual([

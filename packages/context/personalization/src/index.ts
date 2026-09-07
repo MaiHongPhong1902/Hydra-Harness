@@ -12,7 +12,7 @@ import { createUserMessage } from '@hydra/harness-llm'
 import type { PreStepDecision } from '@hydra/harness-agent'
 import { installSettingsSection, settingsNamespace } from '@hydra/harness-settings'
 import type {} from '@hydra/harness-system-prompt'
-import { resolveBhHome } from '@hydra/harness-home-paths'
+import { resolveHydraHome } from '@hydra/harness-home-paths'
 import z from '@hydra/schemastery'
 import {
   DEFAULT_MEMORY_POLICY, DEFAULT_PERSONALITY, hasLoggedMemoryPolicy, hasLoggedPersonality,
@@ -96,7 +96,7 @@ export function apply(ctx: Context): void {
     enabled: false,
     ...DEFAULT_MEMORY_POLICY,
   }, { setSource: (source) => { memory = source }, onChange: () => {} })
-  const memories = new LocalMemoryStore(resolveBhHome())
+  const memories = new LocalMemoryStore(resolveHydraHome())
   ctx.provide('localMemories', memories)
 
   ctx.effect(() => ctx.systemPrompt.section({

@@ -12,7 +12,7 @@ The plugin loads a second, independent candidate list per project directory. `lo
 
 The default lives in the plugin `Config` schema rather than a product `cordis.yml`, so every embedder (TUI, ACP, headless) reads `.local.` files consistently and a deployment overrides or disables the behavior in one place. This is symmetric with the plugin-owned `instructionFileCandidates` default.
 
-The fixed user-global `$BH_HOME/AGENTS.md` has no local overlay and stays base-only.
+The fixed user-global `$HYDRA_HOME/AGENTS.md` has no local overlay and stays base-only.
 
 ## Independent scopes per candidate
 
@@ -28,7 +28,7 @@ The base and local candidates in one directory must stay independent across base
 
 **Reuse the bare directory as the scope key for base and local files.** Rejected: base and local files in one directory would collide in every scope-keyed map, so a change to one would suppress or overwrite the other. A distinct scope key per candidate keeps them independent without widening the persisted metadata shape.
 
-**Extend the overlay to the user-global scope.** Deferred: `$BH_HOME` is a single fixed `AGENTS.md` with no committed base to supplement, so it stays base-only until a concrete need appears.
+**Extend the overlay to the user-global scope.** Deferred: `$HYDRA_HOME` is a single fixed `AGENTS.md` with no committed base to supplement, so it stays base-only until a concrete need appears.
 
 ## Consequences
 

@@ -5,7 +5,7 @@
  * activate, against that plugin context) and the entry `disabled` field (at
  * every mount decision, against the loader context). Every other entry
  * metadata field stays static, so an expression there remains truthy data and
- * silently changes composition. Example configs and the bh Web composition
+ * silently changes composition. Example configs and the hydra Web composition
  * resolve named plugins from their owning workspace manifests. Local example
  * packages must also be in the root TypeScript project graph.
  */
@@ -21,7 +21,7 @@ export interface PackageManifest {
   name?: string
   dependencies?: Record<string, string>
   optionalDependencies?: Record<string, string>
-  bh?: { bundle?: { patch?: string } }
+  hydra?: { bundle?: { patch?: string } }
 }
 
 export interface PluginReference {
@@ -30,7 +30,7 @@ export interface PluginReference {
 }
 
 const root = resolve(import.meta.dirname, '..')
-// These example files are overlays consumed by the built bh app, so their bare
+// These example files are overlays consumed by the built hydra app, so their bare
 // specifiers resolve from apps/cli rather than the examples workspace.
 const appOverlayFiles = new Set([
   'examples/web-cordis/cordis.yml',
@@ -91,7 +91,7 @@ if (import.meta.main) {
  * A browser plugin must declare the browser half it ships.
  *
  * The browser roster is discovered by scanning composed packages for a
- * `bh.client` block, and the node half of a surface plugin is an empty
+ * `hydra.client` block, and the node half of a surface plugin is an empty
  * `apply`. A `packages/client` package that exports `./client` without that
  * block therefore composes, activates, and contributes nothing — its bundle is
  * never served and no error is raised anywhere. The mismatch is invisible in
@@ -99,20 +99,20 @@ if (import.meta.main) {
  * this group is checked: a Host package's `./client` export is the typed wire
  * face its browser consumers import, not a plugin the roster serves.
  * @returns one violation per client package whose `./client` export and
- * `bh.client` declaration disagree.
+ * `hydra.client` declaration disagree.
  */
 function validateClientHalvesDeclared(): string[] {
   return globSync('packages/client/*/package.json', { cwd: root }).flatMap((manifestPath) => {
     const manifest = readManifest(manifestPath) as PackageManifest & {
       exports?: Record<string, unknown>
-      bh?: { client?: unknown }
+      hydra?: { client?: unknown }
     }
     const shipsClient = manifest.exports !== undefined && Object.hasOwn(manifest.exports, './client')
-    const declaresClient = manifest.bh?.client !== undefined
+    const declaresClient = manifest.hydra?.client !== undefined
     if (shipsClient === declaresClient) return []
     return [shipsClient
-      ? `${manifestPath}: exports "./client" but declares no bh.client, so its browser half is never served`
-      : `${manifestPath}: declares bh.client but exports no "./client" entry to serve`]
+      ? `${manifestPath}: exports "./client" but declares no hydra.client, so its browser half is never served`
+      : `${manifestPath}: declares hydra.client but exports no "./client" entry to serve`]
   })
 }
 
@@ -126,7 +126,7 @@ function validateClientHalvesDeclared(): string[] {
  * contributor to that service reaches nobody; a row that registers into a host
  * singleton registers once per live session, so the second one collides.
  *
- * Both have happened. `shell-env` in a preset realm left `BH_WEB_URL` reaching
+ * Both have happened. `shell-env` in a preset realm left `HYDRA_WEB_URL` reaching
  * no shell, and `tool-subagent-report` handed every child `report` once per live
  * session until the second registration threw. Neither changes a tool catalog,
  * so no catalog assertion can see them — and the shipped presets are near-copies
@@ -251,7 +251,7 @@ function validateAppResolution(): string[] {
   const violations: string[] = []
   const bundleManifests = bundleManifestPaths()
   // App overlays (and any config left under apps/cli/config) resolve from the
-  // bh app's own dependency surface — the profile module fallback mirrors it.
+  // hydra app's own dependency surface — the profile module fallback mirrors it.
   const appDependencies = {
     ...readManifest('apps/cli/package.json').dependencies,
     // The fallback also links every in-box bundle's own dependencies
@@ -269,7 +269,7 @@ function validateAppResolution(): string[] {
   for (const manifestPath of bundleManifests) {
     const bundleDir = manifestPath.replace(/\/package\.json$/, '')
     const manifest = readManifest(manifestPath)
-    const patch = manifest.bh?.bundle?.patch
+    const patch = manifest.hydra?.bundle?.patch
     if (typeof patch !== 'string') continue
     const patchFile = relative(root, resolve(root, bundleDir, patch)).replaceAll('\\', '/')
     const references = pluginReferences.filter(reference => reference.file === patchFile)
@@ -285,7 +285,7 @@ function validateAppResolution(): string[] {
  */
 export function bundleManifestPaths(repoRoot: string = root): string[] {
   return globSync('packages/*/*/package.json', { cwd: repoRoot })
-    .filter(path => typeof readManifest(path, repoRoot).bh?.bundle?.patch === 'string')
+    .filter(path => typeof readManifest(path, repoRoot).hydra?.bundle?.patch === 'string')
     .map(path => path.replaceAll('\\', '/'))
     .sort()
 }
@@ -312,7 +312,7 @@ export function bundlePluginDependencyErrors(
 
 /**
  * Every configured specifier of a local workspace package must resolve through
- * the tsconfig `paths` facade to a `.ts`/`.tsx` source file. The `bh` source
+ * the tsconfig `paths` facade to a `.ts`/`.tsx` source file. The `hydra` source
  * launch (tsx) and vitest resolve in the source plane; without a `paths` match
  * they fall back to package `exports`, which reach built `lib/` — present on a
  * built dev tree, absent on a clean one — so a missing mapping boots locally

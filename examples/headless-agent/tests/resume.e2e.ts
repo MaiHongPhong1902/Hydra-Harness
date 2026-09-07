@@ -32,7 +32,7 @@ afterEach(async () => {
 
 describe.skipIf(!process.env.DEEPSEEK_API_KEY)('resume: continue a persisted session across processes', () => {
   it('recalls a fact stored in a prior, separately-disposed session', async () => {
-    root = await mkdtemp(join(tmpdir(), 'bh-resume-e2e-'))
+    root = await mkdtemp(join(tmpdir(), 'hydra-resume-e2e-'))
 
     // Run 1: a fresh agent on a KNOWN session id learns a secret, then we
     // dispose the whole context (simulating process exit) so only the JSONL

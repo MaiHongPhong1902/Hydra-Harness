@@ -5,13 +5,13 @@ import { join, relative, sep } from 'node:path'
 import { pnpmInvocation } from './pnpm-invocation.ts'
 
 /** Environment variable selecting the number of instrumented coverage processes. */
-export const COVERAGE_PARTITIONS_ENV = 'BH_COVERAGE_PARTITIONS'
+export const COVERAGE_PARTITIONS_ENV = 'HYDRA_COVERAGE_PARTITIONS'
 
 /** Internal marker that suppresses reports and thresholds inside a partition process. */
-export const COVERAGE_PARTITION_MODE_ENV = 'BH_COVERAGE_PARTITION_MODE'
+export const COVERAGE_PARTITION_MODE_ENV = 'HYDRA_COVERAGE_PARTITION_MODE'
 
 /** Environment variable overriding instrumented test and polling timeouts. */
-export const COVERAGE_TEST_TIMEOUT_ENV = 'BH_COVERAGE_TEST_TIMEOUT_MS'
+export const COVERAGE_TEST_TIMEOUT_ENV = 'HYDRA_COVERAGE_TEST_TIMEOUT_MS'
 
 /** One child command owned by the coverage coordinator. */
 export interface CoverageCommand {

@@ -17,7 +17,7 @@ const configPath = fileURLToPath(new URL('../semantic-checkpoint.cordis.snapshot
 const binScript = fileURLToPath(new URL('./fixtures/headless-driver.ts', import.meta.url))
 const tsconfigPath = fileURLToPath(new URL('../../../tsconfig.json', import.meta.url))
 const sessionId = SessionId('semantic-checkpoint-unknown-outcome')
-const refreshing = process.env.BH_SNAPSHOT === 'refresh'
+const refreshing = process.env.HYDRA_SNAPSHOT === 'refresh'
 const task = 'Continue safely from the interrupted operation.'
 
 async function seedInterruptedSession(root: string, cwd: string): Promise<string> {
@@ -85,15 +85,15 @@ describe('semantic checkpoint recovery snapshot', () => {
     let sessionPath = ''
     const result = await runLoaderSmoke({
       label: 'semantic checkpoint headless stream-json snapshot',
-      tempDirPrefix: 'bh-semantic-snapshot-',
+      tempDirPrefix: 'hydra-semantic-snapshot-',
       binScript,
       libBinScript: binScript,
       configPath,
       binArgs: [configPath, task],
       tsconfigPath,
       env: {
-        BH_SNAPSHOT_FILE: replayFixture,
-        BH_SNAPSHOT_OVERRIDE: replayOverride,
+        HYDRA_SNAPSHOT_FILE: replayFixture,
+        HYDRA_SNAPSHOT_OVERRIDE: replayOverride,
       },
       prepare: async (runCwd) => {
         cwd = runCwd

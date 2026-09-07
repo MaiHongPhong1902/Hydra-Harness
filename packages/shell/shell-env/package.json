@@ -1,13 +1,13 @@
 {
   "name": "@hydra/harness-shell-env",
-  "description": "Tool-independent managed BH_* shell environment registry",
+  "description": "Tool-independent managed HYDRA_* shell environment registry",
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bosch/bosch-harness.git",
+    "url": "git+https://github.com/MaiHongPhong1902/Hydra-Harness.git",
     "directory": "packages/shell/shell-env"
   },
   "type": "module",

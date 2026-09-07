@@ -23,8 +23,8 @@
 }
 
 .tabs {
-  --bh-scrollbar-thumb: transparent;
-  --bh-scrollbar-thumb-hover: transparent;
+  --hydra-scrollbar-thumb: transparent;
+  --hydra-scrollbar-thumb-hover: transparent;
 
   min-width: 0;
   display: flex;
@@ -191,8 +191,8 @@
 }
 
 .chooserOverlay {
-  --bh-scrollbar-thumb: var(--dsw-alias-scrollbar-bg-l2);
-  --bh-scrollbar-thumb-hover: var(--dsw-alias-scrollbar-hover-l2);
+  --hydra-scrollbar-thumb: var(--dsw-alias-scrollbar-bg-l2);
+  --hydra-scrollbar-thumb-hover: var(--dsw-alias-scrollbar-hover-l2);
 
   position: absolute;
   top: 7px;

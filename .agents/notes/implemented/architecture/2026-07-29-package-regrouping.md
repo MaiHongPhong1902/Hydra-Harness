@@ -51,7 +51,7 @@ A group move did not touch: npm names, imports, `cordis.yml` configs, snapshot f
 
 **Abstract layer names** (`capability/`, `policy/`, `extension/`, `provider/`). Rejected: they describe every plugin equally badly, and a `capability/` bucket would hold ~50 packages.
 
-**A full npm rename sweep** (`bh-<group>-<pkg>` for every package). Rejected: npm names are flat, so group-prefixing adds churn across imports, configs, and fixtures with no disambiguation gain; targeted FIXME-tracked renames cover the actual collisions.
+**A full npm rename sweep** (`hydra-<group>-<pkg>` for every package). Rejected: npm names are flat, so group-prefixing adds churn across imports, configs, and fixtures with no disambiguation gain; targeted FIXME-tracked renames cover the actual collisions.
 
 **Performing the deferred renames inside the reorganization.** Rejected: renames multiply open-PR conflicts and destroy the pure-move review property. The remaining FIXME markers keep them visible release blockers to resolve as small follow-up PRs.
 

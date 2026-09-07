@@ -76,7 +76,7 @@ function main(): void {
     options: { family: { type: 'string' } },
     allowPositionals: false,
   })
-  if (values.family === undefined) throw new Error('usage: verify.ts --family <bh|vendor>')
+  if (values.family === undefined) throw new Error('usage: verify.ts --family <hydra|vendor>')
 
   const family = releaseFamily(values.family)
   const members = family.members(process.cwd())

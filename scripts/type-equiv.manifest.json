@@ -1592,12 +1592,12 @@
     },
     {
       "doc": "docs/subsystems/subprocess.md",
-      "symbol": "BhEnvironmentKey",
+      "symbol": "HydraEnvironmentKey",
       "source": "packages/subprocess/subprocess/src/types.ts"
     },
     {
       "doc": "docs/subsystems/subprocess.md",
-      "symbol": "BhEnvironment",
+      "symbol": "HydraEnvironment",
       "source": "packages/subprocess/subprocess/src/types.ts"
     },
     {

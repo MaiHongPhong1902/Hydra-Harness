@@ -43,12 +43,12 @@ export function apply(ctx: Context) {
 
 ## Register it in cordis.yml
 
-Run `pwd` from the repository root, then create `scratch-plugin/cordis.yml` as a Web overlay that inserts the local plugin. Replace `/absolute/path/to/bosch-harness` below with the printed path:
+Run `pwd` from the repository root, then create `scratch-plugin/cordis.yml` as a Web overlay that inserts the local plugin. Replace `/absolute/path/to/Hydra-Harness` below with the printed path:
 
 ```yaml
 - insert:
     - id: hello
-      name: '/absolute/path/to/bosch-harness/scratch-plugin/src/my-plugin.ts'
+      name: '/absolute/path/to/Hydra-Harness/scratch-plugin/src/my-plugin.ts'
 ```
 
 The plugin path must be absolute. A patch file contributes configuration but does not change the profile directory from which the loader resolves module paths.
@@ -56,7 +56,7 @@ The plugin path must be absolute. A patch file contributes configuration but doe
 Start the Web UI with that overlay:
 
 ```sh
-pnpm bh web --patch ./scratch-plugin/cordis.yml
+pnpm hydra web --patch ./scratch-plugin/cordis.yml
 ```
 
 Open `http://127.0.0.1:3080`. The terminal prints `[hello-plugin] plugin loaded!` during startup.

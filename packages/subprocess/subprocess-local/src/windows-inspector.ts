@@ -6,7 +6,7 @@
  * The koffi bindings load lazily so
  * non-Windows processes never touch Win32 libraries; all decision logic takes
  * an injectable internals boundary so suites can pin it on any host.
- * @module bh-subprocess-local/windows-inspector
+ * @module hydra-subprocess-local/windows-inspector
  */
 
 import { spawnSync } from 'node:child_process'

@@ -11,7 +11,7 @@ import { isAbsolute, join } from 'node:path'
 import { Context, Service } from '@hydra/cordis'
 import z from '@hydra/schemastery'
 import type { Agent } from '@hydra/harness-agent'
-import { resolveBhHome } from '@hydra/harness-home-paths'
+import { resolveHydraHome } from '@hydra/harness-home-paths'
 import { installSettingsSection, settingsNamespace } from '@hydra/harness-settings'
 import type { ApprovalRequest } from '@hydra/harness-user-approval'
 import { launchBrowser } from './child.ts'
@@ -39,7 +39,7 @@ export const BROWSER_SETTINGS_NAMESPACE = settingsNamespace('browser-electron')
 export type BrowserDecision = 'allow' | 'ask' | 'block'
 
 /** Where a user-opened HTTP(S) URL leaves the desktop application. */
-export type BrowserDestination = 'bhagent' | 'system'
+export type BrowserDestination = 'hydra' | 'system'
 
 /** Whether a browser annotation carries a bounded element screenshot. */
 export type BrowserAnnotationScreenshots = 'include' | 'ask' | 'never'
@@ -76,8 +76,8 @@ export type BrowserExecutionContext = Pick<ApprovalRequest, 'callId' | 'signal'>
 /** Schema for the small user-facing browser policy section. */
 const BrowserSettingsSchema: z<BrowserSettings> = z.object({
   controlEnabled: z.boolean().default(true),
-  webDestination: z.union(['bhagent', 'system'] as const).default('bhagent'),
-  localDestination: z.union(['bhagent', 'system'] as const).default('bhagent'),
+  webDestination: z.union(['hydra', 'system'] as const).default('hydra'),
+  localDestination: z.union(['hydra', 'system'] as const).default('hydra'),
   annotationScreenshots: z.union(['include', 'ask', 'never'] as const).default('include'),
   downloadDirectory: z.string().default(''),
   askWhereToSave: z.boolean().default(false),
@@ -90,8 +90,8 @@ const BrowserSettingsSchema: z<BrowserSettings> = z.object({
 
 const DEFAULT_BROWSER_SETTINGS: BrowserSettings = Object.freeze({
   controlEnabled: true,
-  webDestination: 'bhagent',
-  localDestination: 'bhagent',
+  webDestination: 'hydra',
+  localDestination: 'hydra',
   annotationScreenshots: 'include',
   downloadDirectory: '',
   askWhereToSave: false,
@@ -434,7 +434,7 @@ export class BrowserSessionService extends Service {
     const initialUrl = homeUrl(config.homeUrl)
     this.settings = {
       ...config as Omit<ResolvedSettings, 'userDataDir'>,
-      userDataDir: config.userDataDir ?? join(resolveBhHome(), 'browser-profile'),
+      userDataDir: config.userDataDir ?? join(resolveHydraHome(), 'browser-profile'),
       ...initialUrl === undefined ? {} : { homeUrl: initialUrl },
     }
     installSettingsSection(ctx, BROWSER_SETTINGS_NAMESPACE, BrowserSettingsSchema, DEFAULT_BROWSER_SETTINGS, {

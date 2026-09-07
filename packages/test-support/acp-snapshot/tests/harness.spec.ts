@@ -64,8 +64,8 @@ it('keeps scenario-owned snapshot spill root length stable across platforms', ()
   const fixtureFile = '/fixtures/scenario/session.jsonl'
   const posix = snapshotSpillRoot(fixtureFile, 'linux')
   const windows = snapshotSpillRoot(fixtureFile, 'win32')
-  expect(posix).toMatch(/^\/tmp\/bh-acp-snap-[0-9a-f]{9}$/)
-  expect(windows).toMatch(/^\/t\/bh-acp-snap-[0-9a-f]{9}$/)
+  expect(posix).toMatch(/^\/tmp\/hydra-acp-snap-[0-9a-f]{9}$/)
+  expect(windows).toMatch(/^\/t\/hydra-acp-snap-[0-9a-f]{9}$/)
   expect(windows.length + 2).toBe(posix.length)
 })
 
@@ -104,9 +104,9 @@ describe('runScenario', () => {
       cwd: dir,
       configPath: AGENT.configPath,
       env: {
-        BH_SNAPSHOT: 'replay',
-        BH_SNAPSHOT_FILE: fixtureFile,
-        BH_SNAPSHOT_SESSIONS_ROOT: sessionsRoot,
+        HYDRA_SNAPSHOT: 'replay',
+        HYDRA_SNAPSHOT_FILE: fixtureFile,
+        HYDRA_SNAPSHOT_SESSIONS_ROOT: sessionsRoot,
       },
     })
     await launched.client.initialize({ protocolVersion: PROTOCOL_VERSION, clientCapabilities: {} })
@@ -147,7 +147,7 @@ describe('runScenario', () => {
     const launched = launchAcpTestAgent({
       agent: AGENT,
       cwd: dir,
-      env: { BH_SNAPSHOT_FILE: fixtureFile },
+      env: { HYDRA_SNAPSHOT_FILE: fixtureFile },
     })
     await launched.client.initialize({ protocolVersion: PROTOCOL_VERSION, clientCapabilities: {} })
     await launched.client.newSession({ cwd: dir, mcpServers: [] })
@@ -326,7 +326,7 @@ describe('runScenario', () => {
     const launched = launchAcpTestAgent({
       agent: AGENT,
       cwd: dir,
-      env: { BH_SNAPSHOT_FILE: fixtureFile },
+      env: { HYDRA_SNAPSHOT_FILE: fixtureFile },
       async requestPermission() {
         markPermissionStarted?.()
         await permissionReleased
@@ -361,7 +361,7 @@ describe('runScenario', () => {
 
   it('preserves launch-resolution errors when no child process exists', async () => {
     const { dir, fixtureFile } = await scenario({})
-    vi.stubEnv('BH_EXAMPLE_MODE', 'lib')
+    vi.stubEnv('HYDRA_EXAMPLE_MODE', 'lib')
     try {
       await expect(runScenario(
         { steps: [] },

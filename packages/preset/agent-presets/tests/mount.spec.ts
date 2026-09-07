@@ -86,7 +86,7 @@ beforeEach(async () => {
 
 describe('composing an agent from a preset', () => {
   it('hands an absolute plugin path to Node as a file URL', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'bh-preset-absolute-plugin-'))
+    const root = await mkdtemp(join(tmpdir(), 'hydra-preset-absolute-plugin-'))
     const presetDir = join(root, 'absolute')
     const plugin = join(FIXTURES, 'plugins', 'contribute.js')
     await mkdir(presetDir)
@@ -344,7 +344,7 @@ describe('the preset roster', () => {
 describe('composing from a broken preset', () => {
   /** A roster whose only user preset carries `composition`. */
   async function rosterWith(composition: string): Promise<Context> {
-    const root = await mkdtemp(join(tmpdir(), 'bh-preset-broken-'))
+    const root = await mkdtemp(join(tmpdir(), 'hydra-preset-broken-'))
     await mkdir(join(root, 'damaged'))
     await writeFile(join(root, 'damaged', COMPOSITION_FILE), composition)
     return await harness({ default: 'damaged', roots: [{ path: root, trust: 'user' as const }], includeUserRoot: false })
@@ -393,7 +393,7 @@ describe('the preset file is an input, never a persistence target', () => {
     // `write()` override the Loader REWRITES the composition it read, so a
     // committed fixture would be mutated by the very run that proves the bug
     // and every later run would compare against the damaged file and pass.
-    const root = await mkdtemp(join(tmpdir(), 'bh-preset-write-'))
+    const root = await mkdtemp(join(tmpdir(), 'hydra-preset-write-'))
     const dir = join(root, 'self-disposing')
     await mkdir(dir)
     const path = join(dir, COMPOSITION_FILE)
@@ -567,7 +567,7 @@ describe('replacing a composition', () => {
   it('keeps the agent on its standing composition when a switch fails, even with the source deleted', async () => {
     // A preset root this test owns, so removing the composition mid-flight
     // cannot disturb the shipped fixtures.
-    const root = await mkdtemp(join(tmpdir(), 'bh-preset-restore-'))
+    const root = await mkdtemp(join(tmpdir(), 'hydra-preset-restore-'))
     const seeded: [string, string][] = [['first', `- id: only\n  name: ${join(FIXTURES, 'plugins', 'contribute.js')}\n  config:\n    tool: only\n`], ['broken', '- id: nope\n  name: ./does-not-exist.js\n']]
     for (const [id, body] of seeded) {
       await mkdir(join(root, id))
@@ -619,7 +619,7 @@ describe('editing a composition file', () => {
    * per-test because `livePresetMounts()` is a process-global registry.
    */
   async function editable(id: string): Promise<{ scoped: Context; path: string }> {
-    const root = await mkdtemp(join(tmpdir(), 'bh-preset-edit-'))
+    const root = await mkdtemp(join(tmpdir(), 'hydra-preset-edit-'))
     await mkdir(join(root, id))
     const path = join(root, id, COMPOSITION_FILE)
     await writeFile(path, rowFor('before'))

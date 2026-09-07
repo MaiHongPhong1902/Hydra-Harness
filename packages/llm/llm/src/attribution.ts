@@ -38,9 +38,9 @@ export interface AppIdentity {
  * can suppress attribution entirely.
  */
 export const APP_IDENTITY: AppIdentity = {
-  product: 'bosch-harness',
+  product: 'hydra-harness',
   version,
-  url: 'https://github.com/bosch/bosch-harness',
+  url: 'https://github.com/MaiHongPhong1902/Hydra-Harness',
 }
 
 /**

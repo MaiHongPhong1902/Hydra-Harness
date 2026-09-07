@@ -15,7 +15,7 @@ export interface DocumentTitleProps {
  * @returns No rendered content.
  */
 export function DocumentTitle({ title }: DocumentTitleProps): null {
-  const productTitle = process.env.BH_CLIENT_TITLE ?? DEFAULT_CLIENT_TITLE
+  const productTitle = process.env.HYDRA_CLIENT_TITLE ?? DEFAULT_CLIENT_TITLE
   useEffect(() => {
     document.title = title === undefined ? productTitle : `${title} — ${productTitle}`
     return () => { document.title = productTitle }

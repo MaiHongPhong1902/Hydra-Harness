@@ -19,7 +19,7 @@ const dirs: string[] = []
 afterEach(async () => { for (const d of dirs.splice(0)) await rm(d, { recursive: true, force: true }) })
 
 async function persistentHarness(adapter: MockAdapter): Promise<{ ctx: Context; root: string }> {
-  const root = await mkdtemp(join(tmpdir(), 'bh-resume-'))
+  const root = await mkdtemp(join(tmpdir(), 'hydra-resume-'))
   dirs.push(root)
   return { ctx: await mountPersistentHarness(root, adapter), root }
 }

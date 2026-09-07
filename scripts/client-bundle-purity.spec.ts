@@ -19,7 +19,7 @@ const REQUESTING_PACKAGE = '@hydra/harness-client-ui-conversation'
 
 function clientConfigs(id = REQUESTING_PACKAGE) {
   return clientBundle(id, ['lib/types/index.js', 'lib/types/invariant.js'])(
-    { env: { BH_BUILD_FACE: 'client' } },
+    { env: { HYDRA_BUILD_FACE: 'client' } },
   ).filter(config => config.platform === 'browser')
 }
 
@@ -27,7 +27,7 @@ describe('client bundle build faces', () => {
   it('watches source in development and consumes emitted JavaScript in the Client build', () => {
     const bundle = clientBundle('@hydra/harness-client-test', ['lib/types/index.js'])
     const development = bundle({ env: {} }).find(config => config.platform === 'browser')
-    const artifact = bundle({ env: { BH_BUILD_FACE: 'client' } })
+    const artifact = bundle({ env: { HYDRA_BUILD_FACE: 'client' } })
       .find(config => config.platform === 'browser')
 
     expect(development?.entry).toEqual({ client: 'src/client/index.ts' })
@@ -44,7 +44,7 @@ function purityResolveId(id = REQUESTING_PACKAGE): ResolveId {
   // package-invariants text check can see the invariant entry per package.
   const configs = clientConfigs(id)
   const plugins = (configs[0] as { plugins: { name: string; resolveId?: unknown }[] }).plugins
-  const gate = plugins.find(p => p.name === 'bh-client-bundle-purity')
+  const gate = plugins.find(p => p.name === 'hydra-client-bundle-purity')
   if (gate?.resolveId === undefined) throw new Error('purity plugin missing from client config')
   return gate.resolveId as ResolveId
 }
@@ -52,7 +52,7 @@ function purityResolveId(id = REQUESTING_PACKAGE): ResolveId {
 function cssModulePlugin(): CssModulePlugin {
   const configs = clientConfigs()
   const plugins = (configs[0] as { plugins: CssModulePlugin[] }).plugins
-  const plugin = plugins.find(candidate => candidate.name === 'bh-css-modules-inline')
+  const plugin = plugins.find(candidate => candidate.name === 'hydra-css-modules-inline')
   if (plugin?.resolveId === undefined || plugin.load === undefined) {
     throw new Error('CSS Modules plugin missing from client config')
   }
@@ -135,7 +135,7 @@ describe('client bundle module requests', () => {
 
   it('rejects a malformed declaration instead of reading past it', () => {
     expect(() => requestedExternals('@hydra/harness-client-fixture', { external: 'react' }))
-      .toThrow(/bh\.client\.external must be a string array/)
+      .toThrow(/hydra\.client\.external must be a string array/)
   })
 })
 
@@ -154,7 +154,7 @@ describe('client bundle debug artifacts', () => {
 
     const source = transform('../src/client/GoalBar.tsx', clientSourceMapPath('client/ui-goal'))
     expect(source).toBe('../../../packages/client/ui-goal/src/client/GoalBar.tsx')
-    const resolved = new URL(source, 'https://bh.test/plugins/@hydra/harness-client-ui-goal/client.js.map')
+    const resolved = new URL(source, 'https://hydra.test/plugins/@hydra/harness-client-ui-goal/client.js.map')
     expect(resolved.pathname).toBe('/packages/client/ui-goal/src/client/GoalBar.tsx')
   })
 
@@ -179,7 +179,7 @@ describe('client bundle debug artifacts', () => {
     const sourceMapPath = clientSourceMapPath('client/connection')
     const workspaceSource = transform('../../../host/apiproxy/src/api/rpc.ts', sourceMapPath)
     expect(workspaceSource).toBe('../../../packages/host/apiproxy/src/api/rpc.ts')
-    const resolved = new URL(workspaceSource, 'https://bh.test/plugins/@hydra/harness-client-connection/client.js.map')
+    const resolved = new URL(workspaceSource, 'https://hydra.test/plugins/@hydra/harness-client-connection/client.js.map')
     expect(resolved.pathname).toBe('/packages/host/apiproxy/src/api/rpc.ts')
 
     const dependencySource = '../../../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/index.js'

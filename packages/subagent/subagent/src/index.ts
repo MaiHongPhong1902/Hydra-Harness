@@ -151,7 +151,7 @@ declare module '@hydra/cordis' {
      * parent-scoped listener observes only its own delegations. Paired with
      * `subagent/end`.
      * @param info - the provider and published child identity.
-     * @bhScopeScan unsupported
+     * @hydraScopeScan unsupported
      * @mode emit
      */
     'subagent/start'(this: Scoped<SubagentRuntime>, info: SubagentRunInfo): void
@@ -160,7 +160,7 @@ declare module '@hydra/cordis' {
      * parent carrier as `subagent/start`, so the lifecycle pair reaches the
      * same scoped audience.
      * @param info - the run identity and terminal outcome.
-     * @bhScopeScan unsupported
+     * @hydraScopeScan unsupported
      * @mode emit
      */
     'subagent/end'(this: Scoped<SubagentRuntime>, info: SubagentRunEndInfo): void

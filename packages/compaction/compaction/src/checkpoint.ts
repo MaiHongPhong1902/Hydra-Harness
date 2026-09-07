@@ -7,7 +7,7 @@
  * contracts; this module is a pure type/value/predicate outlet (no cordis
  * imports, no module augmentation) so client and wire programs can name the
  * checkpoint source without loading the host plugin's Context merges — the
- * `bh-commands/brand` shape.
+ * `hydra-commands/brand` shape.
  *
  * @module @hydra/harness-compaction/checkpoint
  */

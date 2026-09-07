@@ -26,7 +26,7 @@ const { createAutofillVault } = require('./autofill-vault.cjs')
  * The desktop shell may host this controller in-process. Standalone launches
  * keep the original argv/stdout protocol used by BrowserSessionService.
  */
-const embedded = globalThis.__BH_BROWSER_EMBED__
+const embedded = globalThis.__HYDRA_BROWSER_EMBED__
 /** Config from the parent, or defaults when run by hand for a smoke test. */
 const config = embedded?.config ?? JSON.parse(process.argv[2] ?? '{}')
 const CHROME_HEIGHT = 96
@@ -45,7 +45,7 @@ const MAX_HISTORY_ENTRIES = 1_000
 const MAX_DOWNLOAD_ENTRIES = 500
 const MAX_SITE_ENTRIES = 500
 const DECISIONS = new Set(['allow', 'ask', 'block'])
-const DESTINATIONS = new Set(['bhagent', 'system'])
+const DESTINATIONS = new Set(['hydra', 'system'])
 const ANNOTATION_SCREENSHOTS = new Set(['include', 'ask', 'never'])
 const CLEAR_DATA_SCOPES = new Set(['all', 'history', 'site-data', 'cache', 'downloads'])
 const SITE_DATA_TYPES = ['cookies', 'backgroundFetch', 'fileSystems', 'indexedDB', 'localStorage', 'serviceWorkers', 'webSQL']
@@ -63,8 +63,8 @@ const CROSS_TARGET_CDP_DOMAINS = new Set(['Browser', 'SystemInfo', 'Target', 'Te
 
 /** Preferences enforced by the Electron owner, updated through validated commands. */
 const nativeSettings = {
-  webDestination: DESTINATIONS.has(config.webDestination) ? config.webDestination : 'bhagent',
-  localDestination: DESTINATIONS.has(config.localDestination) ? config.localDestination : 'bhagent',
+  webDestination: DESTINATIONS.has(config.webDestination) ? config.webDestination : 'hydra',
+  localDestination: DESTINATIONS.has(config.localDestination) ? config.localDestination : 'hydra',
   annotationScreenshots: ANNOTATION_SCREENSHOTS.has(config.annotationScreenshots)
     ? config.annotationScreenshots : 'include',
   downloadDirectory: typeof config.downloadDirectory === 'string' ? config.downloadDirectory : '',
@@ -93,7 +93,7 @@ let browserSession
 let autofillVault
 let autofillUnavailableReason = AUTOFILL_UNAVAILABLE_REASON
 
-const log = (...parts) => console.error('[bh-browser]', ...parts)
+const log = (...parts) => console.error('[hydra-browser]', ...parts)
 
 function boundedString(value, max) {
   return typeof value === 'string' && value.length <= max ? value : undefined
@@ -268,12 +268,12 @@ function configureBrowserSettings(value) {
   nativeSettings.downloadPolicy = downloadPolicy
   if (value.webDestination !== undefined) {
     const destination = validDestination(value.webDestination)
-    if (destination === undefined) throw new Error('web destination must be bhagent or system')
+    if (destination === undefined) throw new Error('web destination must be hydra or system')
     nativeSettings.webDestination = destination
   }
   if (value.localDestination !== undefined) {
     const destination = validDestination(value.localDestination)
-    if (destination === undefined) throw new Error('local destination must be bhagent or system')
+    if (destination === undefined) throw new Error('local destination must be hydra or system')
     nativeSettings.localDestination = destination
   }
   if (value.annotationScreenshots !== undefined) {
@@ -1280,7 +1280,7 @@ function httpOrigin(value) {
   }
 }
 
-const FILE_INPUT_MARK = 'data-bh-host-file-input'
+const FILE_INPUT_MARK = 'data-hydra-host-file-input'
 
 /** Whether a CDP node description is an HTML file input. */
 function isFileInputNode(node) {
@@ -1723,7 +1723,7 @@ if (config.userDataDir && embedded === undefined) app.setPath('userData', config
 app.whenReady().then(async () => {
   browserSession = embedded === undefined
     ? session.defaultSession
-    : session.fromPartition('persist:bh-controlled-browser')
+    : session.fromPartition('persist:hydra-controlled-browser')
   await Promise.all([loadProfileStore(), initializeAutofillVault()])
   nativeTheme.on('updated', updateChrome)
   configureBrowserSettings(nativeSettings)

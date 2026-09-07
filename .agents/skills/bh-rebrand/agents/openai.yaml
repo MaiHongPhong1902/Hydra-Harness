@@ -1,4 +1,0 @@
-interface:
-  display_name: "BH Rebrand"
-  short_description: "Fast-path branding changes for Hydra harness"
-  default_prompt: "Use $bh-rebrand to rebrand this Hydra harness checkout from its mapped brand owners."

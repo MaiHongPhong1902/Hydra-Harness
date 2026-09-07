@@ -14,7 +14,7 @@ Handlers return `success` or `error` plus optional UI text. A successful handler
 
 ## Composition
 
-The shipped `bh` base mounts this service and the Web client dispatches through it. UI-less demo spines and ACP automation do not provide a command adapter. Custom interactive compositions and command producers mount `@hydra/harness-commands` explicitly.
+The shipped `hydra` base mounts this service and the Web client dispatches through it. UI-less demo spines and ACP automation do not provide a command adapter. Custom interactive compositions and command producers mount `@hydra/harness-commands` explicitly.
 
 ## Model Experience
 

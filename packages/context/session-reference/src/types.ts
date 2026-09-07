@@ -57,7 +57,7 @@ export interface SessionReferenceCandidate {
 
 /** One discovery candidate carrying its canonical prompt mention. */
 export interface SessionReferenceMentionCandidate extends SessionReferenceCandidate {
-  /** Canonical `@[label](bh-session:…)` mention serialized into the prompt draft. */
+  /** Canonical `@[label](hydra-session:…)` mention serialized into the prompt draft. */
   mention: string
 }
 

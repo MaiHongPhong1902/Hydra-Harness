@@ -27,7 +27,7 @@ function write(path: string, content: string): void {
 }
 
 function buildFixture(environment: Record<string, string>): string {
-  const root = mkdtempSync(join(tmpdir(), 'bh-release-build-'))
+  const root = mkdtempSync(join(tmpdir(), 'hydra-release-build-'))
   roots.push(root)
   write(join(root, 'apps/web/dist/index.html'), '<main></main>')
   write(join(root, 'packages/client/example/lib/client.js'), 'module.exports = {}\n')
@@ -41,38 +41,38 @@ afterEach(() => {
 })
 
 describe('release families', () => {
-  it('excludes private experimental packages from the bh release', () => {
-    const members = releaseFamily('bh').members(resolve(import.meta.dirname, '../..'))
+  it('excludes private experimental packages from the hydra release', () => {
+    const members = releaseFamily('hydra').members(resolve(import.meta.dirname, '../..'))
 
     expect(members.some(member => member.directory.startsWith('packages/experimental/'))).toBe(false)
     expect(members.map(member => member.name)).not.toContain('@hydra/harness-experimental-agent-team')
   })
 
-  it('bumps private bh packages without adding release tags', () => {
-    const root = mkdtempSync(join(tmpdir(), 'bh-release-version-'))
+  it('bumps private hydra packages without adding release tags', () => {
+    const root = mkdtempSync(join(tmpdir(), 'hydra-release-version-'))
     roots.push(root)
     write(join(root, 'package.json'), '{"version":"0.0.1"}\n')
     write(join(root, 'packages/experimental/prototype/package.json'), '{"version":"0.0.1","private":true}\n')
     write(join(root, 'packages/core/unselected/package.json'), '{"version":"0.0.1"}\n')
 
-    const bh = releaseFamily('bh')
+    const hydra = releaseFamily('hydra')
     const published = member('packages/core/published', '@hydra/harness-published')
-    const { planned } = planShared(bh, root, [published], '0.0.2')
+    const { planned } = planShared(hydra, root, [published], '0.0.2')
 
     expect(planned.map(entry => ({ path: entry.manifestPath, tag: entry.tag }))).toEqual([
       { path: 'package.json', tag: undefined },
-      { path: 'packages/core/published/package.json', tag: 'bh-v0.0.2' },
+      { path: 'packages/core/published/package.json', tag: 'hydra-v0.0.2' },
       { path: 'packages/experimental/prototype/package.json', tag: undefined },
     ])
   })
 
-  it('names one tag for the whole bh family and one per vendored package', () => {
-    const bh = releaseFamily('bh')
+  it('names one tag for the whole hydra family and one per vendored package', () => {
+    const hydra = releaseFamily('hydra')
     const vendor = releaseFamily('vendor')
     const cli = member('apps/cli', '@hydra/harness')
     const cordis = { ...member('vendor/cordis', '@hydra/cordis'), version: '4.0.1' }
 
-    expect(bh.tagFor(cli)).toBe('bh-v0.0.1')
+    expect(hydra.tagFor(cli)).toBe('hydra-v0.0.1')
     expect(vendor.tagFor(cordis)).toBe('vendor-cordis-v4.0.1')
     // The prefix is constructed, not recovered from a tag: a version with a
     // hyphen would defeat any suffix-stripping.
@@ -81,11 +81,11 @@ describe('release families', () => {
   })
 
   it('rejects a family whose members disagree on the shared version', () => {
-    const bh = releaseFamily('bh')
+    const hydra = releaseFamily('hydra')
     const members = [member('apps/cli', '@hydra/harness'), { ...member('apps/web', '@hydra/harness-web-frontend'), version: '0.0.2' }]
 
-    expect(() => { bh.verifyVersions(members) }).toThrow(/must share one version/)
-    expect(() => { bh.verifyVersions([members[0]!]) }).not.toThrow()
+    expect(() => { hydra.verifyVersions(members) }).toThrow(/must share one version/)
+    expect(() => { hydra.verifyVersions([members[0]!]) }).not.toThrow()
   })
 
   it('accepts independent vendored versions and rejects an unpublishable one', () => {
@@ -99,32 +99,32 @@ describe('release families', () => {
     expect(() => { vendor.verifyVersions([{ ...members[0]!, version: 'latest' }]) }).toThrow(/unpublishable version/)
   })
 
-  it('requires a current official client build only for bh artifacts', () => {
-    const bh = releaseFamily('bh')
+  it('requires a current official client build only for hydra artifacts', () => {
+    const hydra = releaseFamily('hydra')
     const vendor = releaseFamily('vendor')
     const officialEnvironment = officialClientBuildEnvironment(resolve(import.meta.dirname, '../..'))
-    vi.stubEnv('BH_CLIENT_COMMIT_HASH', officialEnvironment.BH_CLIENT_COMMIT_HASH)
+    vi.stubEnv('HYDRA_CLIENT_COMMIT_HASH', officialEnvironment.HYDRA_CLIENT_COMMIT_HASH)
     const official = buildFixture(officialEnvironment)
     const defaultBuild = buildFixture({})
 
-    expect(() => { bh.verifyBuildArtifacts(official) }).not.toThrow()
-    expect(() => { bh.verifyBuildArtifacts(defaultBuild) }).toThrow(/BH_CLIENT_TITLE/)
-    expect(() => { bh.verifyBuildArtifacts(join(defaultBuild, 'missing')) }).toThrow(/record.*missing/)
+    expect(() => { hydra.verifyBuildArtifacts(official) }).not.toThrow()
+    expect(() => { hydra.verifyBuildArtifacts(defaultBuild) }).toThrow(/HYDRA_CLIENT_TITLE/)
+    expect(() => { hydra.verifyBuildArtifacts(join(defaultBuild, 'missing')) }).toThrow(/record.*missing/)
     expect(() => { vendor.verifyBuildArtifacts(join(defaultBuild, 'missing')) }).not.toThrow()
 
     write(join(official, 'packages/client/example/lib/client.js'), 'module.exports = { changed: true }\n')
-    expect(() => { bh.verifyBuildArtifacts(official) }).toThrow(/artifacts differ/)
+    expect(() => { hydra.verifyBuildArtifacts(official) }).toThrow(/artifacts differ/)
   })
 
   it('publishes a dependency before its consumer, and orders ties by name', () => {
-    const bh = releaseFamily('bh')
+    const hydra = releaseFamily('hydra')
     const members = [
       member('packages/a/consumer', '@hydra/harness-consumer', { dependencies: { '@hydra/harness-library': 'workspace:^' } }),
       member('packages/a/library', '@hydra/harness-library'),
       member('packages/a/zebra', '@hydra/harness-zebra'),
     ]
 
-    expect(bh.publishOrder(members).order.map(entry => entry.name)).toEqual([
+    expect(hydra.publishOrder(members).order.map(entry => entry.name)).toEqual([
       '@hydra/harness-library',
       '@hydra/harness-consumer',
       '@hydra/harness-zebra',
@@ -132,31 +132,31 @@ describe('release families', () => {
   })
 
   it('reports a runtime dependency cycle instead of emitting an arbitrary order', () => {
-    const bh = releaseFamily('bh')
+    const hydra = releaseFamily('hydra')
     const members = [
       member('packages/a/left', '@hydra/harness-left', { dependencies: { '@hydra/harness-right': 'workspace:^' } }),
       member('packages/a/right', '@hydra/harness-right', { dependencies: { '@hydra/harness-left': 'workspace:^' } }),
     ]
 
-    expect(() => { bh.publishOrder(members) }).toThrow(/dependency cycle/)
+    expect(() => { hydra.publishOrder(members) }).toThrow(/dependency cycle/)
   })
 
   it('publishes a peer before its consumer', () => {
-    const bh = releaseFamily('bh')
+    const hydra = releaseFamily('hydra')
     const members = [
       member('packages/a/consumer', '@hydra/harness-consumer', { peerDependencies: { '@hydra/harness-zebra': 'workspace:^' } }),
       member('packages/a/zebra', '@hydra/harness-zebra'),
     ]
 
     // Name order alone would place the consumer first; the peer edge moves it.
-    expect(bh.publishOrder(members).order.map(entry => entry.name)).toEqual([
+    expect(hydra.publishOrder(members).order.map(entry => entry.name)).toEqual([
       '@hydra/harness-zebra',
       '@hydra/harness-consumer',
     ])
   })
 
   it('orders around a peer cycle rather than refusing to publish, and reports the edge it dropped', () => {
-    const bh = releaseFamily('bh')
+    const hydra = releaseFamily('hydra')
     const members = [
       member('packages/a/left', '@hydra/harness-left', { peerDependencies: { '@hydra/harness-right': 'workspace:^' } }),
       member('packages/a/right', '@hydra/harness-right', { peerDependencies: { '@hydra/harness-left': 'workspace:^' } }),
@@ -164,7 +164,7 @@ describe('release families', () => {
 
     // Sibling packages declare each other as peers, and npm treats an unmet peer
     // as a warning, so this pair has to publish rather than fail the release.
-    const plan = bh.publishOrder(members)
+    const plan = hydra.publishOrder(members)
     expect(plan.order.map(entry => entry.name)).toEqual([
       '@hydra/harness-right',
       '@hydra/harness-left',
@@ -176,7 +176,7 @@ describe('release families', () => {
   })
 
   it('honours an install edge even when a peer cycle surrounds it', () => {
-    const bh = releaseFamily('bh')
+    const hydra = releaseFamily('hydra')
     const members = [
       member('packages/a/base', '@hydra/harness-base', { peerDependencies: { '@hydra/harness-consumer': 'workspace:^' } }),
       member('packages/a/consumer', '@hydra/harness-consumer', {
@@ -187,7 +187,7 @@ describe('release families', () => {
 
     // The install edge is absolute: base publishes first, and the peer edge that
     // would reverse it is the one dropped.
-    const plan = bh.publishOrder(members)
+    const plan = hydra.publishOrder(members)
     expect(plan.order.map(entry => entry.name)).toEqual([
       '@hydra/harness-base',
       '@hydra/harness-consumer',
@@ -198,7 +198,7 @@ describe('release families', () => {
   })
 
   it('refuses an order that would publish a consumer before a dependency it installs', () => {
-    const bh = releaseFamily('bh')
+    const hydra = releaseFamily('hydra')
     const members = [
       member('packages/a/alpha', '@hydra/harness-alpha', { peerDependencies: { '@hydra/harness-bravo': 'workspace:^' } }),
       member('packages/a/bravo', '@hydra/harness-bravo', { peerDependencies: { '@hydra/harness-charlie': 'workspace:^' } }),
@@ -209,11 +209,11 @@ describe('release families', () => {
     // would order this, and the traversal drops the install edge instead. That
     // order would publish charlie before the alpha it installs, so it is refused
     // here rather than published.
-    expect(() => { bh.publishOrder(members) }).toThrow(/no publish order honours @hydra\/harness-charlie -> @hydra\/harness-alpha/)
+    expect(() => { hydra.publishOrder(members) }).toThrow(/no publish order honours @hydra\/harness-charlie -> @hydra\/harness-alpha/)
   })
 
   it('ignores devDependencies when ordering', () => {
-    const bh = releaseFamily('bh')
+    const hydra = releaseFamily('hydra')
     const members = [
       member('packages/a/alpha', '@hydra/harness-alpha', { devDependencies: { '@hydra/harness-zebra': 'workspace:^' } }),
       member('packages/a/zebra', '@hydra/harness-zebra'),
@@ -221,26 +221,26 @@ describe('release families', () => {
 
     // A dev dependency is absent from the published package, so it must not move
     // the consumer behind it.
-    expect(bh.publishOrder(members).order.map(entry => entry.name)).toEqual([
+    expect(hydra.publishOrder(members).order.map(entry => entry.name)).toEqual([
       '@hydra/harness-alpha',
       '@hydra/harness-zebra',
     ])
   })
 
-  it('applies the harness payload policy to bh and keeps upstream payloads for vendored packages', () => {
-    const bh = releaseFamily('bh')
+  it('applies the harness payload policy to hydra and keeps upstream payloads for vendored packages', () => {
+    const hydra = releaseFamily('hydra')
     const vendor = releaseFamily('vendor')
     const harness = member('packages/a/library', '@hydra/harness-library')
     const vendored = member('vendor/cordis', '@hydra/cordis')
 
-    expect(() => { bh.validatePayload(harness, ['package/lib/index.js', 'package/src/index.ts']) })
+    expect(() => { hydra.validatePayload(harness, ['package/lib/index.js', 'package/src/index.ts']) })
       .toThrow(/publishes source file/)
     expect(() => { vendor.validatePayload(vendored, ['package/lib/index.js', 'package/src/index.ts']) }).not.toThrow()
     expect(() => { vendor.validatePayload(vendored, []) }).toThrow(/empty tarball/)
   })
 
   it('drives the installed entry only for the family that publishes one', () => {
-    expect(releaseFamily('bh').installedEntry).toEqual({ packageName: '@hydra/harness', binPath: 'lib/bin.js' })
+    expect(releaseFamily('hydra').installedEntry).toEqual({ packageName: '@hydra/harness', binPath: 'lib/bin.js' })
     expect(releaseFamily('vendor').installedEntry).toBeUndefined()
   })
 

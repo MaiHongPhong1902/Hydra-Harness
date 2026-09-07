@@ -35,9 +35,9 @@ afterEach(async () => {
   await Promise.all(homes.splice(0).map(dir => rm(dir, { recursive: true, force: true })))
 })
 
-/** A throwaway $BH_HOME with an empty settings document. */
+/** A throwaway $HYDRA_HOME with an empty settings document. */
 async function home(): Promise<string> {
-  const dir = await mkdtemp(join(tmpdir(), 'bh-pi-catalog-'))
+  const dir = await mkdtemp(join(tmpdir(), 'hydra-pi-catalog-'))
   homes.push(dir)
   await writeFile(join(dir, 'settings.yaml'), '')
   return dir

@@ -44,22 +44,22 @@ describe('WorkspaceBrowser.module.css list', () => {
   })
 
   it('counts the themed scrollbar inside the shell trailing inset', () => {
-    expect(root?.get('--bh-session-list-edge-inset')).toBe('var(--bh-sidebar-inline-padding)')
-    expect(root?.get('--bh-session-list-scrollbar-width')).toBe('8px')
-    expect(root?.get('--bh-session-list-scrollbar-offset')).toBe('2px')
-    expect(root?.get('padding-right')).toBe('var(--bh-session-list-edge-inset)')
+    expect(root?.get('--hydra-session-list-edge-inset')).toBe('var(--hydra-sidebar-inline-padding)')
+    expect(root?.get('--hydra-session-list-scrollbar-width')).toBe('8px')
+    expect(root?.get('--hydra-session-list-scrollbar-offset')).toBe('2px')
+    expect(root?.get('padding-right')).toBe('var(--hydra-session-list-edge-inset)')
     expect(listArea?.get('margin-left')).toBe('-4px')
     expect(listArea?.get('padding-left')).toBe('4px')
-    expect(listArea?.get('margin-right')).toBe('calc(-1 * var(--bh-session-list-edge-inset))')
-    expect(declarations('.fade')?.get('right')).toBe('var(--bh-session-list-edge-inset)')
-    expect(list?.get('margin-right')).toBe('var(--bh-session-list-scrollbar-offset)')
+    expect(listArea?.get('margin-right')).toBe('calc(-1 * var(--hydra-session-list-edge-inset))')
+    expect(declarations('.fade')?.get('right')).toBe('var(--hydra-session-list-edge-inset)')
+    expect(list?.get('margin-right')).toBe('var(--hydra-session-list-scrollbar-offset)')
     expect(list?.get('margin-left')).toBe('-4px')
     expect(list?.get('padding-left')).toBe('4px')
     expect(list?.get('padding-right')).toBe([
       'calc(',
-      'var(--bh-session-list-edge-inset)',
-      '- var(--bh-session-list-scrollbar-width)',
-      '- var(--bh-session-list-scrollbar-offset)',
+      'var(--hydra-session-list-edge-inset)',
+      '- var(--hydra-session-list-scrollbar-width)',
+      '- var(--hydra-session-list-scrollbar-offset)',
       ')',
     ].join(' '))
     expect(declarations('.list::-webkit-scrollbar')).toBeUndefined()

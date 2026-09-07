@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
  * Boot an ACP stdio server from `cordis.yml`; usage is
- * `bh-acp-demo [--config path]`, defaulting to `./cordis.yml`. Shared env
+ * `hydra-acp-demo [--config path]`, defaulting to `./cordis.yml`. Shared env
  * loading, Loader guards, snapshot config selection, and settled-tree boot live
- * in bh-app-boot. Replay skips `.env` and selects sibling
+ * in hydra-app-boot. Replay skips `.env` and selects sibling
  * `cordis.snapshot.yml` so a stray key cannot trigger a model call. EOF disposes
  * and flushes snapshot runs; the calling automation owns process lifetime. Stdout is
  * reserved for JSON-RPC, so diagnostics go only to stderr.
@@ -13,13 +13,13 @@
 import { parseArgs } from 'node:util'
 import { boot, installFailLoud, loadEnv, resolveConfigPath } from '@hydra/harness-app-boot'
 
-const NAME = 'bh-acp-demo'
+const NAME = 'hydra-acp-demo'
 
 /* v8 ignore start -- thin self-executing composition over the unit-tested
-   bh-app-boot helpers; exercised end-to-end by the snapshot suite and the
+   hydra-app-boot helpers; exercised end-to-end by the snapshot suite and the
    built-bin smoke */
 installFailLoud(NAME)
-const snapshotMode = process.env['BH_SNAPSHOT']
+const snapshotMode = process.env['HYDRA_SNAPSHOT']
 if (snapshotMode !== 'replay') loadEnv(NAME)
 const { values } = parseArgs({
   args: process.argv.slice(2),

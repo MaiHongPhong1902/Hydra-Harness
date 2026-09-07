@@ -33,7 +33,7 @@ async function eventually(test: () => boolean, message: string): Promise<void> {
 
 describe('HMR exact config paths', () => {
   it('observes module changes when its watch base is a filesystem alias', { timeout: 30_000 }, async () => {
-    const target = mkdtempSync(join(tmpdir(), 'bh-hmr-module-canonical-'))
+    const target = mkdtempSync(join(tmpdir(), 'hydra-hmr-module-canonical-'))
     const alias = `${target}-alias`
     const aliasFilename = join(alias, 'module.ts')
     symlinkSync(target, alias, process.platform === 'win32' ? 'junction' : 'dir')
@@ -68,7 +68,7 @@ describe('HMR exact config paths', () => {
   })
 
   it('collapses filesystem aliases before registering an exact watch', async () => {
-    const target = mkdtempSync(join(tmpdir(), 'bh-hmr-canonical-'))
+    const target = mkdtempSync(join(tmpdir(), 'hydra-hmr-canonical-'))
     const alias = `${target}-alias`
     symlinkSync(target, alias, process.platform === 'win32' ? 'junction' : 'dir')
     const ctx = await bootHmr(alias)
@@ -84,7 +84,7 @@ describe('HMR exact config paths', () => {
   })
 
   it('observes add, change, and unlink outside its module roots', { timeout: 20_000 }, async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'bh-hmr-config-'))
+    const dir = mkdtempSync(join(tmpdir(), 'hydra-hmr-config-'))
     const filename = join(dir, 'plugins.yml')
     const ctx = await bootHmr(dir)
     const observed: string[] = []
@@ -110,7 +110,7 @@ describe('HMR exact config paths', () => {
   })
 
   it('observes creation when the config parent did not exist at registration', { timeout: 20_000 }, async () => {
-    const root = mkdtempSync(join(tmpdir(), 'bh-hmr-config-'))
+    const root = mkdtempSync(join(tmpdir(), 'hydra-hmr-config-'))
     const dir = join(root, 'later')
     const filename = join(dir, 'plugins.yml')
     const ctx = await bootHmr(root)
@@ -128,7 +128,7 @@ describe('HMR exact config paths', () => {
   })
 
   it('serializes refreshes and waits for them during disposal', { timeout: 20_000 }, async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'bh-hmr-config-'))
+    const dir = mkdtempSync(join(tmpdir(), 'hydra-hmr-config-'))
     const filename = join(dir, 'plugins.yml')
     writeFileSync(filename, 'one')
     const ctx = await bootHmr(dir)
@@ -169,7 +169,7 @@ describe('HMR exact config paths', () => {
   })
 
   it('normalizes refresh failures and broadcasts them without escaping the watcher', { timeout: 20_000 }, async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'bh-hmr-config-'))
+    const dir = mkdtempSync(join(tmpdir(), 'hydra-hmr-config-'))
     const filename = join(dir, 'plugins.yml')
     const ctx = await bootHmr(dir)
     const failure = Promise.withResolvers<{ filename: string; error: Error }>()

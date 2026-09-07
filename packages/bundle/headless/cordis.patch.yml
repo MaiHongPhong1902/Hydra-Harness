@@ -1,7 +1,7 @@
-# The bh-headless bundle patch: one-shot task mode directly over bh-base.
+# The hydra-headless bundle patch: one-shot task mode directly over hydra-base.
 # It mounts no Host, HTTP server, Web runtime, or browser plugin. An ordinary
 # provider plugin injects `cmdlineArgs`, parses the task positional
-# (`bh --profile headless "<task>"`) and this app's --help, then the direct
+# (`hydra --profile headless "<task>"`) and this app's --help, then the direct
 # driver creates an Agent through the core registry and prints its durable result.
 
 - id: system-prompt
@@ -17,7 +17,7 @@
 - id: tools
   config:
     # Keep the same temporary process-wide Code Mode opt-in as the Web surface.
-    mode: !!js process.env.BH_TOOLS_MODE
+    mode: !!js process.env.HYDRA_TOOLS_MODE
 
 - insert:
     # Code Mode is a core execution capability, not a Web component.

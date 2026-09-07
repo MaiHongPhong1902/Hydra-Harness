@@ -3,7 +3,7 @@ import type { ConfinedArgv, SandboxPolicy } from '@hydra/harness-sandbox'
 import { SandboxProvider } from '@hydra/harness-sandbox'
 
 const NOTICE = 'landlock-run: partial enforcement (older Landlock ABI)'
-const MISSING_RUNNER_ENV = 'BH_SNAPSHOT_MISSING_SANDBOX_RUNNER'
+const MISSING_RUNNER_ENV = 'HYDRA_SNAPSHOT_MISSING_SANDBOX_RUNNER'
 
 /**
  * Snapshot-only provider for deterministic runner classification. Its default
@@ -15,7 +15,7 @@ export default class PartialLandlockSandboxProvider extends SandboxProvider {
   confine(argv: readonly string[], policy: SandboxPolicy): ConfinedArgv {
     if (process.env[MISSING_RUNNER_ENV] === '1') {
       return {
-        argv: [join(policy.workspaceRoot, '.bh-missing-sandbox-runner'), ...argv],
+        argv: [join(policy.workspaceRoot, '.hydra-missing-sandbox-runner'), ...argv],
         enforcement: 'full',
         denialSignatures: ['permission denied'],
         runnerFailureRules: [{ fatalSignatures: ['snapshot-runner: '] }],

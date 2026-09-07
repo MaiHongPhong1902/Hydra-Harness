@@ -8,6 +8,6 @@ import {
  */
 export function createTrajectoryDurationStore(): SnapshotStore<boolean> {
   return createSnapshotStore(false, {
-    persist: { name: 'bh.trajectory.duration' },
+    persist: { name: 'hydra.trajectory.duration' },
   })
 }

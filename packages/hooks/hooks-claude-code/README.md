@@ -20,7 +20,7 @@ const config: Config = {
 In a `cordis.yml`:
 
 ```yaml
-- bh-hooks-claude-code:
+- hydra-hooks-claude-code:
     configPath: ./.claude/hooks.json
     pluginRoot: ./.claude/plugins/my-plugin
     projectDir: .

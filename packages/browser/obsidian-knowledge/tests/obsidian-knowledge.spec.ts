@@ -26,7 +26,7 @@ import type { ObsidianKnowledgeStorage } from '../src/graph.ts'
 
 const roots: string[] = []
 const fixtureServers: FixtureMcp[] = []
-const FIXTURE_MARKER_PATH = 'BH Website Knowledge/BH MCP Vault Identity.md'
+const FIXTURE_MARKER_PATH = 'Hydra Website Knowledge/Hydra MCP Vault Identity.md'
 const FIXTURE_MARKER_MARKDOWN = '# Fixture vault identity\n'
 
 interface FixtureMcp {
@@ -84,7 +84,7 @@ async function markdownFiles(directory: string): Promise<string[]> {
 
 async function searchVault(vaultPath: string, query: string): Promise<unknown[]> {
   const terms = query.toLowerCase().split(/\s+/u).filter(Boolean)
-  const files = await markdownFiles(join(vaultPath, 'BH Website Knowledge'))
+  const files = await markdownFiles(join(vaultPath, 'Hydra Website Knowledge'))
   const matches: unknown[] = []
   for (const file of files) {
     const markdown = await readFile(file, 'utf8')
@@ -275,23 +275,23 @@ function firstText(result: ToolExecutionResult): string {
 describe('Obsidian knowledge graph', () => {
   it('uses an exact hostname gate', () => {
     expect(normalizeTargetDomain('SHOP.test')).toBe('shop.test')
-    expect(normalizeTargetDomain('https://apps-t-p4-outsystems.de.bosch.com')).toBe('apps-t-p4-outsystems.de.bosch.com')
-    expect(normalizeTargetDomain('apps-t-p4-outsystems.de.bosch.com')).toBe('apps-t-p4-outsystems.de.bosch.com')
+    expect(normalizeTargetDomain('https://apps-uat.example.test')).toBe('apps-uat.example.test')
+    expect(normalizeTargetDomain('apps-uat.example.test')).toBe('apps-uat.example.test')
     expect(matchesTargetDomain('https://shop.test/orders', 'shop.test')).toBe(true)
     expect(matchesTargetDomain('https://admin.shop.test/orders', 'shop.test')).toBe(false)
     expect(matchesTargetDomain('https://shop.test.evil.example/orders', 'shop.test')).toBe(false)
     expect(() => normalizeTargetDomain('https://shop.test/orders')).toThrow(/path/)
     expect(resolveSettings({ targetDomain: 'shop.test' })).toEqual({ targetDomain: 'shop.test' })
-    expect(resolveSettings({ targetDomain: 'https://apps-t-p4-outsystems.de.bosch.com' }))
-      .toEqual({ targetDomain: 'apps-t-p4-outsystems.de.bosch.com' })
+    expect(resolveSettings({ targetDomain: 'https://apps-uat.example.test' }))
+      .toEqual({ targetDomain: 'apps-uat.example.test' })
   })
 
   it('recalls and reads graph memory without website configuration', async () => {
-    const vaultPath = await mkdtemp(join(tmpdir(), 'bh-obsidian-knowledge-generic-'))
+    const vaultPath = await mkdtemp(join(tmpdir(), 'hydra-obsidian-knowledge-generic-'))
     roots.push(vaultPath)
-    const notePath = 'BH Website Knowledge/Team Decisions/release-policy'
-    await mkdir(join(vaultPath, 'BH Website Knowledge', 'Team Decisions'), { recursive: true })
-    await writeFile(join(vaultPath, 'BH Website Knowledge', 'BH MCP Vault Identity.md'), FIXTURE_MARKER_MARKDOWN)
+    const notePath = 'Hydra Website Knowledge/Team Decisions/release-policy'
+    await mkdir(join(vaultPath, 'Hydra Website Knowledge', 'Team Decisions'), { recursive: true })
+    await writeFile(join(vaultPath, 'Hydra Website Knowledge', 'Hydra MCP Vault Identity.md'), FIXTURE_MARKER_MARKDOWN)
     await writeFile(join(vaultPath, `${notePath}.md`), '# Release policy\n\nDeploy only after smoke tests pass.\n')
     const target = await pluginHarness(vaultPath, initial, undefined, null)
 
@@ -310,10 +310,10 @@ describe('Obsidian knowledge graph', () => {
   })
 
   it('recalls every testcase linked by one feature without returning their bodies', async () => {
-    const featurePath = 'BH Website Knowledge/WorkON UAT June 2026/Features/clear-filters'
+    const featurePath = 'Hydra Website Knowledge/UAT June 2026/Features/clear-filters'
     const relatedPaths = Array.from(
       { length: 15 },
-      (_, index) => `BH Website Knowledge/WorkON UAT June 2026/Test Cases/TC-${String(index + 1).padStart(4, '0')}`,
+      (_, index) => `Hydra Website Knowledge/UAT June 2026/Test Cases/TC-${String(index + 1).padStart(4, '0')}`,
     )
     const feature = {
       path: featurePath,
@@ -337,7 +337,7 @@ describe('Obsidian knowledge graph', () => {
   })
 
   it('writes page, control, and observed browser transition notes without storing typed values', async () => {
-    const vaultPath = await mkdtemp(join(tmpdir(), 'bh-obsidian-knowledge-'))
+    const vaultPath = await mkdtemp(join(tmpdir(), 'hydra-obsidian-knowledge-'))
     roots.push(vaultPath)
     const graph = createLocalObsidianKnowledgeGraph({ targetDomain: 'shop.test', vaultPath })
     const before = graph.page(initial)
@@ -353,70 +353,70 @@ describe('Obsidian knowledge graph', () => {
     const page = await graph.read(before)
     expect(page).toContain('New order')
     expect(page).toContain('Observed actions')
-    expect(page).toContain('[[BH Website Knowledge/shop.test/actions/')
-    const actionDirectory = join(vaultPath, 'BH Website Knowledge', 'shop.test', 'actions')
+    expect(page).toContain('[[Hydra Website Knowledge/shop.test/actions/')
+    const actionDirectory = join(vaultPath, 'Hydra Website Knowledge', 'shop.test', 'actions')
     const actionName = (await (await import('node:fs/promises')).readdir(actionDirectory))[0]
     const action = await readFile(join(actionDirectory, actionName!), 'utf8')
-    expect(action).toContain('From [[BH Website Knowledge/shop.test/pages/')
-    expect(action).toContain('Control: [[BH Website Knowledge/shop.test/controls/')
+    expect(action).toContain('From [[Hydra Website Knowledge/shop.test/pages/')
+    expect(action).toContain('Control: [[Hydra Website Knowledge/shop.test/controls/')
     expect(action).not.toContain('New order</button>')
   })
 
   it('searches and exactly reads imported test knowledge while containing note paths', async () => {
-    const vaultPath = await mkdtemp(join(tmpdir(), 'bh-obsidian-knowledge-search-'))
+    const vaultPath = await mkdtemp(join(tmpdir(), 'hydra-obsidian-knowledge-search-'))
     roots.push(vaultPath)
-    const root = join(vaultPath, 'BH Website Knowledge', 'WorkON UAT June 2026')
+    const root = join(vaultPath, 'Hydra Website Knowledge', 'UAT June 2026')
     const imported = join(root, 'Test Cases')
     await mkdir(imported, { recursive: true })
-    await writeFile(join(vaultPath, 'BH Website Knowledge', 'BH MCP Vault Identity.md'), '# Fixture identity marker\n')
+    await writeFile(join(vaultPath, 'Hydra Website Knowledge', 'Hydra MCP Vault Identity.md'), '# Fixture identity marker\n')
     await writeFile(join(root, '00 Index.md'), '# UAT index\n\nApplication search coverage.\n')
     await mkdir(join(root, 'Features'), { recursive: true })
     await writeFile(join(root, 'Features', 'application-search.md'), '---\ntype: uat-feature\n---\n\n# Application search\n\nFeature candidate.\n')
     await writeFile(join(imported, 'TC-0001.md'), '---\ntype: uat-test-case\n---\n\n# TC_001 — Verify application search\n\n## Source columns\n\n- Preconditions: User is signed in\n- Steps: Search for Payroll\n- Expected result: Payroll is listed\n- Test data: Payroll\n')
     const approved = join(root, 'Approved Knowledge')
     await mkdir(approved, { recursive: true })
-    await writeFile(join(approved, 'workon-backoffice-entrypoint.md'), '# WorkOnBackoffice browser entrypoint\n\n- URL: https://shop.test/workon\n- Provenance: user-approved\n')
+    await writeFile(join(approved, 'shop-backoffice-entrypoint.md'), '# ShopBackoffice browser entrypoint\n\n- URL: https://shop.test/shop\n- Provenance: user-approved\n')
     const graph = createLocalObsidianKnowledgeGraph({ targetDomain: 'shop.test', vaultPath })
 
     await expect(graph.recall('application search')).resolves.toMatchObject({ matches: [
-      { path: 'BH Website Knowledge/WorkON UAT June 2026/Test Cases/TC-0001', title: 'TC_001 — Verify application search' },
-      { path: 'BH Website Knowledge/WorkON UAT June 2026/Features/application-search', title: 'Application search' },
-      { path: 'BH Website Knowledge/WorkON UAT June 2026/00 Index', title: 'UAT index' },
+      { path: 'Hydra Website Knowledge/UAT June 2026/Test Cases/TC-0001', title: 'TC_001 — Verify application search' },
+      { path: 'Hydra Website Knowledge/UAT June 2026/Features/application-search', title: 'Application search' },
+      { path: 'Hydra Website Knowledge/UAT June 2026/00 Index', title: 'UAT index' },
     ] })
-    await expect(graph.recall('WorkOnBackoffice browser entrypoint')).resolves.toMatchObject({ matches: [
-      { path: 'BH Website Knowledge/WorkON UAT June 2026/Approved Knowledge/workon-backoffice-entrypoint', title: 'WorkOnBackoffice browser entrypoint' },
+    await expect(graph.recall('ShopBackoffice browser entrypoint')).resolves.toMatchObject({ matches: [
+      { path: 'Hydra Website Knowledge/UAT June 2026/Approved Knowledge/shop-backoffice-entrypoint', title: 'ShopBackoffice browser entrypoint' },
     ] })
     await expect(graph.recall('fixture identity marker')).resolves.toEqual({ matches: [], related: [] })
     const notes = await graph.readNotes([
-      'BH Website Knowledge/WorkON UAT June 2026/Features/application-search',
-      'BH Website Knowledge/WorkON UAT June 2026/Test Cases/TC-0001',
-      'BH Website Knowledge/WorkON UAT June 2026/Test Cases/TC-0001',
+      'Hydra Website Knowledge/UAT June 2026/Features/application-search',
+      'Hydra Website Knowledge/UAT June 2026/Test Cases/TC-0001',
+      'Hydra Website Knowledge/UAT June 2026/Test Cases/TC-0001',
     ])
     expect(notes.map(note => note.path)).toEqual([
-      'BH Website Knowledge/WorkON UAT June 2026/Features/application-search',
-      'BH Website Knowledge/WorkON UAT June 2026/Test Cases/TC-0001',
+      'Hydra Website Knowledge/UAT June 2026/Features/application-search',
+      'Hydra Website Knowledge/UAT June 2026/Test Cases/TC-0001',
     ])
     expect(notes[0]?.markdown).toContain('Feature candidate.')
     expect(notes[1]?.markdown).toContain('- Preconditions: User is signed in')
-    await expect(graph.readNotes(['BH Website Knowledge/../secret'])).rejects.toThrow(/invalid Obsidian knowledge note path/)
-    await expect(graph.readNotes(['BH Website Knowledge/WorkON UAT June 2026/Test Cases/missing'])).rejects.toThrow(/note not found/)
+    await expect(graph.readNotes(['Hydra Website Knowledge/../secret'])).rejects.toThrow(/invalid Obsidian knowledge note path/)
+    await expect(graph.readNotes(['Hydra Website Knowledge/UAT June 2026/Test Cases/missing'])).rejects.toThrow(/note not found/)
 
     const outside = join(vaultPath, 'Outside Knowledge')
     await mkdir(outside)
     await writeFile(join(outside, 'secret.md'), 'outside')
-    await symlink(outside, join(vaultPath, 'BH Website Knowledge', 'escape'), process.platform === 'win32' ? 'junction' : 'dir')
-    await expect(graph.readNotes(['BH Website Knowledge/escape/secret'])).rejects.toThrow(/outside BH Website Knowledge/)
+    await symlink(outside, join(vaultPath, 'Hydra Website Knowledge', 'escape'), process.platform === 'win32' ? 'junction' : 'dir')
+    await expect(graph.readNotes(['Hydra Website Knowledge/escape/secret'])).rejects.toThrow(/outside Hydra Website Knowledge/)
 
     const path = await graph.saveApproved('New search coverage', 'Add a regression case for the new filter.', 'User request; Browser: https://shop.test/apps')
     expect(await readFile(join(vaultPath, `${path}.md`), 'utf8')).toContain('provenance: user-approved-agent-proposal')
   })
 
   it('reads persisted notes without Browser but gates current-page evidence by domain', async () => {
-    const vaultPath = await mkdtemp(join(tmpdir(), 'bh-obsidian-knowledge-plugin-'))
+    const vaultPath = await mkdtemp(join(tmpdir(), 'hydra-obsidian-knowledge-plugin-'))
     roots.push(vaultPath)
-    const persistedPath = 'BH Website Knowledge/Imported/Test Cases/TC-0001'
-    await mkdir(join(vaultPath, 'BH Website Knowledge', 'Imported', 'Test Cases'), { recursive: true })
-    await writeFile(join(vaultPath, `${persistedPath}.md`), '# Complete persisted case\n\nApplication label: WorkOn Next Gen Portal\n\nPortal identity: WorkOnPortal\n\nPreconditions: User is logged into WorkOnBackoffice\n\nExpected result: visible\n')
+    const persistedPath = 'Hydra Website Knowledge/Imported/Test Cases/TC-0001'
+    await mkdir(join(vaultPath, 'Hydra Website Knowledge', 'Imported', 'Test Cases'), { recursive: true })
+    await writeFile(join(vaultPath, `${persistedPath}.md`), '# Complete persisted case\n\nApplication label: Shop Next Gen Portal\n\nPortal identity: ShopPortal\n\nPreconditions: User is logged into ShopBackoffice\n\nExpected result: visible\n')
     const target = await pluginHarness(vaultPath, initial, 'allowed-once')
     const blockedRootBeforeKnowledge = await target.call('browser_navigate', { url: 'https://shop.test/' })
     expect(blockedRootBeforeKnowledge.isError).toBe(true)
@@ -425,15 +425,15 @@ describe('Obsidian knowledge graph', () => {
     const persisted = await target.call('obsidian_knowledge_read', { paths: [persistedPath] })
     expect(persisted.isError).toBe(false)
     expect(firstText(persisted)).toContain('Expected result: visible')
-    expect(firstText(persisted)).toContain('WorkOnPortal: https://shop.test/WorkOnPortal/')
-    expect(firstText(persisted)).toContain('WorkOnBackoffice: https://shop.test/WorkOnBackoffice/')
-    expect(firstText(persisted)).not.toContain('https://shop.test/WorkOnNext/')
+    expect(firstText(persisted)).toContain('ShopPortal: https://shop.test/ShopPortal/')
+    expect(firstText(persisted)).toContain('ShopBackoffice: https://shop.test/ShopBackoffice/')
+    expect(firstText(persisted)).not.toContain('https://shop.test/ShopNext/')
     expect((await target.call('obsidian_knowledge_read_browser')).isError).toBe(true)
     const blockedRoot = await target.call('browser_navigate', { url: 'https://shop.test/' })
     expect(blockedRoot.isError).toBe(true)
-    expect(firstText(blockedRoot)).toContain('WorkOnPortal -> https://shop.test/WorkOnPortal/')
-    expect((await target.call('browser_navigate', { url: 'https://shop.test/WorkOnPortal/' })).isError).toBe(false)
-    expect((await target.call('browser_open_tab', { url: 'https://shop.test/WorkOnPortal/' })).isError).toBe(false)
+    expect(firstText(blockedRoot)).toContain('ShopPortal -> https://shop.test/ShopPortal/')
+    expect((await target.call('browser_navigate', { url: 'https://shop.test/ShopPortal/' })).isError).toBe(false)
+    expect((await target.call('browser_open_tab', { url: 'https://shop.test/ShopPortal/' })).isError).toBe(false)
     expect((await target.call('browser_navigate', { url: 'https://shop.test/orders' })).isError).toBe(false)
     expect((await target.call('browser_state')).isError).toBe(false)
     const read = await target.call('obsidian_knowledge_read_browser')
@@ -446,7 +446,7 @@ describe('Obsidian knowledge graph', () => {
       evidence: 'User request; Browser: https://shop.test/orders',
     })
     expect(saved.isError).toBe(false)
-    const actionDirectory = join(vaultPath, 'BH Website Knowledge', 'shop.test', 'actions')
+    const actionDirectory = join(vaultPath, 'Hydra Website Knowledge', 'shop.test', 'actions')
     const actionName = (await (await import('node:fs/promises')).readdir(actionDirectory))[0]
     const action = await readFile(join(actionDirectory, actionName!), 'utf8')
     expect(action).toContain('success: true')
@@ -465,7 +465,7 @@ describe('Obsidian knowledge graph', () => {
   })
 
   it('links observed browser transitions within each tab', async () => {
-    const vaultPath = await mkdtemp(join(tmpdir(), 'bh-obsidian-knowledge-tabs-'))
+    const vaultPath = await mkdtemp(join(tmpdir(), 'hydra-obsidian-knowledge-tabs-'))
     roots.push(vaultPath)
     const target = await pluginHarness(vaultPath, initial, 'allowed-once')
     const first = 'https://shop.test/tab-one/start'
@@ -486,7 +486,7 @@ describe('Obsidian knowledge graph', () => {
       evidence: `Live Browser: ${first} ${second} ${last}`,
     })).isError).toBe(false)
 
-    const actionDirectory = join(vaultPath, 'BH Website Knowledge', 'shop.test', 'actions')
+    const actionDirectory = join(vaultPath, 'Hydra Website Knowledge', 'shop.test', 'actions')
     const actions = await Promise.all((await readdir(actionDirectory))
       .map(name => readFile(join(actionDirectory, name), 'utf8')))
     expect(actions.join('\n')).toContain(`/pages/${firstPage.id}`)
@@ -496,11 +496,11 @@ describe('Obsidian knowledge graph', () => {
   })
 
   it('forces one Browser step for an explicit live verification with an application candidate', async () => {
-    const vaultPath = await mkdtemp(join(tmpdir(), 'bh-obsidian-knowledge-browser-required-'))
+    const vaultPath = await mkdtemp(join(tmpdir(), 'hydra-obsidian-knowledge-browser-required-'))
     roots.push(vaultPath)
-    const persistedPath = 'BH Website Knowledge/Imported/Test Cases/TC-0001'
-    await mkdir(join(vaultPath, 'BH Website Knowledge', 'Imported', 'Test Cases'), { recursive: true })
-    await writeFile(join(vaultPath, `${persistedPath}.md`), '# TC-0001\n\nApplication: WorkOnPortal\n')
+    const persistedPath = 'Hydra Website Knowledge/Imported/Test Cases/TC-0001'
+    await mkdir(join(vaultPath, 'Hydra Website Knowledge', 'Imported', 'Test Cases'), { recursive: true })
+    await writeFile(join(vaultPath, `${persistedPath}.md`), '# TC-0001\n\nApplication: ShopPortal\n')
     const target = await pluginHarness(vaultPath, initial)
 
     await target.beginTurn(1, 'verify TC-0001 on the live UI')
@@ -523,14 +523,14 @@ describe('Obsidian knowledge graph', () => {
     expect(wrongDomain.isError).toBe(true)
     expect(firstText(wrongDomain)).toContain('cannot navigate outside the configured target domain shop.test')
     expect((await target.call('browser_open_tab', { url: 'https://other.test/' })).isError).toBe(true)
-    expect((await target.call('browser_navigate', { url: 'https://shop.test/WorkOnPortal/' })).isError).toBe(false)
+    expect((await target.call('browser_navigate', { url: 'https://shop.test/ShopPortal/' })).isError).toBe(false)
     await target.stopTurn(3)
     expect(target.steered).toHaveLength(1)
     await target.dispose()
   })
 
   it('requires host approval before committing staged or approved knowledge', async () => {
-    const vaultPath = await mkdtemp(join(tmpdir(), 'bh-obsidian-knowledge-approval-'))
+    const vaultPath = await mkdtemp(join(tmpdir(), 'hydra-obsidian-knowledge-approval-'))
     roots.push(vaultPath)
     const target = await pluginHarness(vaultPath, initial, 'rejected')
     expect((await target.call('browser_state')).isError).toBe(false)
@@ -541,12 +541,12 @@ describe('Obsidian knowledge graph', () => {
       evidence: 'User did not approve this proposal.',
     })
     expect(saved.isError).toBe(true)
-    await expect(access(join(vaultPath, 'BH Website Knowledge'))).rejects.toThrow()
+    await expect(access(join(vaultPath, 'Hydra Website Knowledge'))).rejects.toThrow()
     await target.dispose()
   })
 
   it('commits only current proposal Browser evidence across the approval turn boundary', async () => {
-    const vaultPath = await mkdtemp(join(tmpdir(), 'bh-obsidian-knowledge-proposal-'))
+    const vaultPath = await mkdtemp(join(tmpdir(), 'hydra-obsidian-knowledge-proposal-'))
     roots.push(vaultPath)
     const target = await pluginHarness(vaultPath, initial, 'allowed-once')
     await target.beginTurn(1)
@@ -563,17 +563,17 @@ describe('Obsidian knowledge graph', () => {
       evidence: 'Live Browser: https://shop.test/approved',
     })
     expect(saved.isError).toBe(false)
-    const pageDirectory = join(vaultPath, 'BH Website Knowledge', 'shop.test', 'pages')
+    const pageDirectory = join(vaultPath, 'Hydra Website Knowledge', 'shop.test', 'pages')
     const pages = await Promise.all((await (await import('node:fs/promises')).readdir(pageDirectory))
       .map(name => readFile(join(pageDirectory, name), 'utf8')))
     expect(pages.join('\n')).toContain('https://shop.test/approved')
     expect(pages.join('\n')).not.toContain('https://shop.test/unrelated')
-    await expect(access(join(vaultPath, 'BH Website Knowledge', 'shop.test', 'actions'))).rejects.toThrow()
+    await expect(access(join(vaultPath, 'Hydra Website Knowledge', 'shop.test', 'actions'))).rejects.toThrow()
     await target.dispose()
   })
 
   it('does not attach stale Browser evidence but keeps cancelled evidence available for a retry', async () => {
-    const staleVaultPath = await mkdtemp(join(tmpdir(), 'bh-obsidian-knowledge-stale-'))
+    const staleVaultPath = await mkdtemp(join(tmpdir(), 'hydra-obsidian-knowledge-stale-'))
     roots.push(staleVaultPath)
     const stale = await pluginHarness(staleVaultPath, initial, 'allowed-once')
     await stale.beginTurn(1)
@@ -585,10 +585,10 @@ describe('Obsidian knowledge graph', () => {
       content: 'Save the approved proposal only.',
       evidence: 'Historical Browser URL: https://shop.test/stale',
     })).isError).toBe(false)
-    await expect(access(join(staleVaultPath, 'BH Website Knowledge', 'shop.test', 'pages'))).rejects.toThrow()
+    await expect(access(join(staleVaultPath, 'Hydra Website Knowledge', 'shop.test', 'pages'))).rejects.toThrow()
     await stale.dispose()
 
-    const retryVaultPath = await mkdtemp(join(tmpdir(), 'bh-obsidian-knowledge-cancelled-'))
+    const retryVaultPath = await mkdtemp(join(tmpdir(), 'hydra-obsidian-knowledge-cancelled-'))
     roots.push(retryVaultPath)
     const retry = await pluginHarness(retryVaultPath, initial, 'cancelled')
     await retry.beginTurn(1)
@@ -603,12 +603,12 @@ describe('Obsidian knowledge graph', () => {
     expect((await retry.call('obsidian_knowledge_save_approved', proposal)).isError).toBe(true)
     retry.setApproval('allowed-once')
     expect((await retry.call('obsidian_knowledge_save_approved', proposal)).isError).toBe(false)
-    await expect(access(join(retryVaultPath, 'BH Website Knowledge', 'shop.test', 'pages'))).resolves.toBeUndefined()
+    await expect(access(join(retryVaultPath, 'Hydra Website Knowledge', 'shop.test', 'pages'))).resolves.toBeUndefined()
     await retry.dispose()
   })
 
   it('tells the model to search precisely and require test-case evidence for coverage', async () => {
-    const vaultPath = await mkdtemp(join(tmpdir(), 'bh-obsidian-knowledge-prompt-'))
+    const vaultPath = await mkdtemp(join(tmpdir(), 'hydra-obsidian-knowledge-prompt-'))
     roots.push(vaultPath)
     const target = await pluginHarness(vaultPath, initial)
     const section = (await target.ctx.systemPrompt.assemble()).sections

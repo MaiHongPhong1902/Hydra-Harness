@@ -55,7 +55,7 @@ async function bench(
       label: 'Research',
       cwd: '/project',
       createdAt: 1_700_000_000_000,
-      mention: '@[Research](bh-session:InNvdXJjZSI)',
+      mention: '@[Research](hydra-session:InNvdXJjZSI)',
     }],
   })),
 ): Promise<{ ctx: Context; fiber: ReturnType<Context['plugin']>; source: InputTriggerSource }> {
@@ -154,7 +154,7 @@ describe('candidates', () => {
             label: 'Research',
             cwd: '/project',
             createdAt: 1_700_000_000_000,
-            mention: '@[Research](bh-session:InNvdXJjZSI)',
+            mention: '@[Research](hydra-session:InNvdXJjZSI)',
           }],
         })
       }
@@ -198,7 +198,7 @@ describe('candidates', () => {
         label: 'Research',
         cwd: '/project',
         createdAt: 0,
-        mention: '@[Research](bh-session:InNvdXJjZSI)',
+        mention: '@[Research](hydra-session:InNvdXJjZSI)',
       }],
     }))
     const { source } = await bench(files, sessions)
@@ -262,7 +262,7 @@ describe('candidates', () => {
         sessionId: sid('same'),
         label: 'same',
         createdAt: 0,
-        mention: '@[same](bh-session:InNhbWUi)',
+        mention: '@[same](hydra-session:InNhbWUi)',
       }],
     }))
     const { source } = await bench(files, sessions)
@@ -305,7 +305,7 @@ describe('pick and codec', () => {
     const { source } = await bench()
     const candidates = await source.candidates(session, request(''))
     const candidate = candidates.find(item => item.name === 'Session · Research')!
-    const mention = '@[Research](bh-session:InNvdXJjZSI)'
+    const mention = '@[Research](hydra-session:InNvdXJjZSI)'
     expect(pick(source, candidate)).toEqual({
       insert: {
         source: 'reference',

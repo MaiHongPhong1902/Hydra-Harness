@@ -36,7 +36,7 @@ describe('web e2e: plugin configuration section', () => {
         id: 'fixture-plugin',
         name: 'Fixture plugin',
         description: 'Exercises the composed marketplace add flow.',
-        package: '@example/bh-plugin',
+        package: '@example/hydra-plugin',
         version: '1.2.3',
       }],
     }))

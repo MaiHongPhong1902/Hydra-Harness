@@ -261,7 +261,7 @@ describe('modelTokenUsage session projection', () => {
   it('attributes replacement samples and later steps to their exact model', async () => {
     const { ctx, session } = await harness()
     startStep(session, 1, 1)
-    recordRoute(session, 'bosch', 'model-a', 'initial')
+    recordRoute(session, 'fixture', 'model-a', 'initial')
     const first = usageChunk(session, {
       inputTokens: 10,
       outputTokens: 2,
@@ -279,12 +279,12 @@ describe('modelTokenUsage session projection', () => {
     session.append('step/end', { turn: 2, step: 1 })
 
     startStep(session, 3, 1)
-    recordRoute(session, 'bosch', 'model-b', 'change')
+    recordRoute(session, 'fixture', 'model-b', 'change')
     usageChunk(session, { inputTokens: 20, outputTokens: 6 }, 3, 1)
 
     expect(projectedByModel(ctx, session)).toEqual([
       {
-        provider: 'bosch',
+        provider: 'fixture',
         model: 'model-a',
         uncachedInputTokens: 15,
         outputTokens: 6,
@@ -292,7 +292,7 @@ describe('modelTokenUsage session projection', () => {
         cacheWriteTokens: 1,
       },
       {
-        provider: 'bosch',
+        provider: 'fixture',
         model: 'model-b',
         uncachedInputTokens: 20,
         outputTokens: 6,

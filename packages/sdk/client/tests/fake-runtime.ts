@@ -170,7 +170,7 @@ reader.on('line', (line) => {
         const poll = setInterval(() => {
           if (!existsSync(go)) return
           clearInterval(poll)
-          write({ jsonrpc: '2.0', id, result: { serverInfo: { name: 'bosch-harness-sdk-runtime', version: '0.0.1' } } })
+          write({ jsonrpc: '2.0', id, result: { serverInfo: { name: 'hydra-harness-sdk-runtime', version: '0.0.1' } } })
         }, 5)
         return
       }
@@ -188,10 +188,10 @@ reader.on('line', (line) => {
         return
       }
       if (env.FAKE_ECHO_CWD_IN_INIT !== undefined) {
-        respond({ serverInfo: { name: 'bosch-harness-sdk-runtime', version: process.cwd() } })
+        respond({ serverInfo: { name: 'hydra-harness-sdk-runtime', version: process.cwd() } })
         return
       }
-      respond({ serverInfo: { name: 'bosch-harness-sdk-runtime', version: '0.0.1' } })
+      respond({ serverInfo: { name: 'hydra-harness-sdk-runtime', version: '0.0.1' } })
       return
     case 'session/prompt': {
       const sessionId = sessionIdOf(frame.params)

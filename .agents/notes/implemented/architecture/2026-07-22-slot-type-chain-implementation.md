@@ -65,7 +65,7 @@ The framework owns exactly one subscription machine: the snapshot store engine (
 export function createChatStore() {
   return defineStore({
     init: () => ({ selection: null as SelectionTarget | null, draft: '' }),
-    persist: 'bh.conversation.chat',
+    persist: 'hydra.conversation.chat',
     actions: {
       select:    (d, t: SelectionTarget) => { d.selection = t },
       clearDraft:(d) => { d.draft = '' },

@@ -164,8 +164,8 @@ test('keeps terminal Status aligned with the native close reason', () => {
 test('separates resolving and informational references', () => {
   assert.deepEqual(
     parseReferences({
-      body: 'Fixes #12\nRelated to #4\nRefs boschharness/bh-test#7',
-      repository: 'boschharness/bh-test',
+      body: 'Fixes #12\nRelated to #4\nRefs hydraharness/hydra-test#7',
+      repository: 'hydraharness/hydra-test',
     }),
     { all: [4, 7, 12], resolving: [12], related: [4, 7] },
   )
@@ -295,7 +295,7 @@ test('toggles automation-owned work on request changes and repeated review reque
   let status = nextResolvingIssueStatus(
     'In review',
     'changes-requested',
-    'bh-issue-management',
+    'hydra-issue-management',
   )
   assert.equal(status, 'In progress')
   status = nextResolvingIssueStatus(status, 'review-requested')

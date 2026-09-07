@@ -34,7 +34,7 @@ afterEach(async () => {
 })
 
 async function tempDir(base: string): Promise<string> {
-  const dir = await mkdtemp(join(base, 'bh-bwrap-e2e-'))
+  const dir = await mkdtemp(join(base, 'hydra-bwrap-e2e-'))
   tempDirs.push(dir)
   return dir
 }

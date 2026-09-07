@@ -5,7 +5,7 @@
     patches:
       - id: llm-deepseek
         config:
-          baseURL: !!js process.env.BH_SNAPSHOT_BASE_URL
+          baseURL: !!js process.env.HYDRA_SNAPSHOT_BASE_URL
           thinking: enabled
           reasoningEffort: low
           streamIdleTimeoutMs: 150

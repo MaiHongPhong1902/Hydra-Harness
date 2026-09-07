@@ -57,16 +57,16 @@ function sessionFakeFor() {
 
 async function bench(withBrowserAnnotation = false, readAttachment?: ISession['readAttachment']) {
   const desktop = globalThis as typeof globalThis & {
-    bhDesktop?: {
+    hydraDesktop?: {
       browser?: {
         onAnnotation?: (listener: (annotation: BrowserAnnotation) => void) => () => void
       }
     }
   }
-  delete desktop.bhDesktop
+  delete desktop.hydraDesktop
   let browserAnnotation: ((annotation: BrowserAnnotation) => void) | undefined
   if (withBrowserAnnotation) {
-    desktop.bhDesktop = {
+    desktop.hydraDesktop = {
       browser: {
         onAnnotation: (listener) => {
           browserAnnotation = listener
@@ -299,7 +299,7 @@ describe('conversation slot inject API', () => {
     expect(payload?.[1]?.type === 'text' ? payload[1].text : '').toContain('Inspect this region')
     expect(state.getSnapshot().browserAnnotationIds).toBeUndefined()
     await b.runtime.dispose()
-    delete (globalThis as typeof globalThis & { bhDesktop?: unknown }).bhDesktop
+    delete (globalThis as typeof globalThis & { hydraDesktop?: unknown }).hydraDesktop
   })
 
   it('inject fails loud when the session resolves no binding or the scope lacks the service', async () => {

@@ -26,7 +26,7 @@ vi.mock('node:child_process', async importOriginal => ({
 const roots: string[] = []
 
 async function temp(label: string): Promise<string> {
-  const root = await mkdtemp(join(tmpdir(), `bh-plugin-runtime-${label}-`))
+  const root = await mkdtemp(join(tmpdir(), `hydra-plugin-runtime-${label}-`))
   roots.push(root)
   return root
 }
@@ -51,7 +51,7 @@ async function runtime(home: string): Promise<{ ctx: Context; plugins: ImportedP
   await ctx.plugin(CommandRuntime)
   await ctx.plugin(SystemPrompt)
   await ctx.plugin(ToolRuntime)
-  await ctx.plugin(ImportedPluginRuntime, { bhHome: home })
+  await ctx.plugin(ImportedPluginRuntime, { hydraHome: home })
   return { ctx, plugins: ctx.importedPlugins }
 }
 

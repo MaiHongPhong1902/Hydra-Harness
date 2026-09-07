@@ -26,7 +26,7 @@ Providers register **capabilities**, not tools. `@hydra/harness-tool-web` is the
 
 ## Selection
 
-Selection never depends on registration, config, or HMR order. Search and fetch use their own explicit provider ids (config `searchProvider`/`fetchProvider`, or env `$BH_WEB_SEARCH_PROVIDER`/`$BH_WEB_FETCH_PROVIDER` feeding the same fields), or auto-select when exactly one usable provider is registered. The active LLM provider does not participate in web-provider selection. `search()`/`fetch()` resolve at execution time:
+Selection never depends on registration, config, or HMR order. Search and fetch use their own explicit provider ids (config `searchProvider`/`fetchProvider`, or env `$HYDRA_WEB_SEARCH_PROVIDER`/`$HYDRA_WEB_FETCH_PROVIDER` feeding the same fields), or auto-select when exactly one usable provider is registered. The active LLM provider does not participate in web-provider selection. `search()`/`fetch()` resolve at execution time:
 
 | Situation | Execution |
 |---|---|

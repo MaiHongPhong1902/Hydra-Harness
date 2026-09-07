@@ -1,6 +1,6 @@
 # @hydra/harness-mcp-registry
 
-`McpServerRegistry` (`ctx.mcpServers`) owns the user's own MCP server records. The records live in the `mcp-servers` settings namespace, so one added from a configuration surface is written to `$BH_HOME/settings.yaml` and mounts again on the next start; one added by hand-editing that document mounts without a restart. Each enabled record is mounted as an `@hydra/harness-mcp-client` fiber whose `serverName` is the record name, which makes its tools `mcp__<name>__<tool>`.
+`McpServerRegistry` (`ctx.mcpServers`) owns the user's own MCP server records. The records live in the `mcp-servers` settings namespace, so one added from a configuration surface is written to `$HYDRA_HOME/settings.yaml` and mounts again on the next start; one added by hand-editing that document mounts without a restart. Each enabled record is mounted as an `@hydra/harness-mcp-client` fiber whose `serverName` is the record name, which makes its tools `mcp__<name>__<tool>`.
 
 ## Service API
 

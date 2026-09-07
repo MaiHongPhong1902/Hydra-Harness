@@ -1,5 +1,5 @@
 /**
- * Profile machinery of `bh-app-boot`: directory resolution and init,
+ * Profile machinery of `hydra-app-boot`: directory resolution and init,
  * manifest round-trips, two-anchor bundle resolution, patch-layer loading,
  * empty-root composition, and the installation module-fallback healing.
  */
@@ -22,7 +22,7 @@ import {
   writeProfileManifest,
 } from '../src/index.ts'
 
-const tmp = (): string => mkdtempSync(join(tmpdir(), 'bh-profile-'))
+const tmp = (): string => mkdtempSync(join(tmpdir(), 'hydra-profile-'))
 
 /** Stage a fake installed app: package.json with deps and a node_modules holding bundles. */
 function stageInstallation(bundles: Record<string, { patch?: string; deps?: Record<string, string> }>): string {
@@ -38,11 +38,11 @@ function stageInstallation(bundles: Record<string, { patch?: string; deps?: Reco
       name,
       version: '0.0.0',
       dependencies: spec.deps ?? {},
-      ...spec.patch === undefined ? {} : { bh: { bundle: { patch: './cordis.patch.yml' } } },
+      ...spec.patch === undefined ? {} : { hydra: { bundle: { patch: './cordis.patch.yml' } } },
     }))
     if (spec.patch !== undefined) writeFileSync(join(dir, 'cordis.patch.yml'), spec.patch)
   }
-  writeFileSync(join(appDir, 'package.json'), JSON.stringify({ name: 'bh-app', dependencies: appDeps }))
+  writeFileSync(join(appDir, 'package.json'), JSON.stringify({ name: 'hydra-app', dependencies: appDeps }))
   return join(appDir, 'package.json')
 }
 
@@ -62,13 +62,13 @@ describe('initProfile', () => {
     const dir = resolveProfileDir('tui', home)
     initProfile(dir, ['@hydra/harness-base'])
     const manifest = readProfileManifest('t', dir)
-    expect(manifest.bh?.profile?.bundles).toEqual(['@hydra/harness-base'])
+    expect(manifest.hydra?.profile?.bundles).toEqual(['@hydra/harness-base'])
     expect(readFileSync(join(dir, PROFILE_PATCH_FILENAME), 'utf8')).toContain('[]')
     expect(readFileSync(join(dir, 'pnpm-workspace.yaml'), 'utf8')).toContain('nodeLinker: hoisted')
     // Re-init keeps user edits.
     writeFileSync(join(dir, PROFILE_PATCH_FILENAME), '- id: x\n  config: {}\n')
     initProfile(dir, ['other'])
-    expect(readProfileManifest('t', dir).bh?.profile?.bundles).toEqual(['@hydra/harness-base'])
+    expect(readProfileManifest('t', dir).hydra?.profile?.bundles).toEqual(['@hydra/harness-base'])
     expect(readFileSync(join(dir, PROFILE_PATCH_FILENAME), 'utf8')).toContain('- id: x')
   })
 })
@@ -76,8 +76,8 @@ describe('initProfile', () => {
 describe('manifest round-trip', () => {
   it('writes and reads back, and fails loud on a broken manifest', () => {
     const dir = tmp()
-    writeProfileManifest(dir, { name: 'p', bh: { profile: { bundles: ['a'] } } })
-    expect(readProfileManifest('t', dir).bh?.profile?.bundles).toEqual(['a'])
+    writeProfileManifest(dir, { name: 'p', hydra: { profile: { bundles: ['a'] } } })
+    expect(readProfileManifest('t', dir).hydra?.profile?.bundles).toEqual(['a'])
     writeFileSync(join(dir, 'package.json'), '[]')
     expect(() => readProfileManifest('t', dir)).toThrow('must hold a JSON object')
     expect(() => readProfileManifest('t', join(dir, 'nope'))).toThrow('failed to read profile manifest')
@@ -85,10 +85,10 @@ describe('manifest round-trip', () => {
 
   it('reads boot-only plugin switches only when every value is boolean', () => {
     expect(profilePluginEnablement({
-      bh: { profile: { pluginEnablement: { 'typert-loader': false, telemetry: true } } },
+      hydra: { profile: { pluginEnablement: { 'typert-loader': false, telemetry: true } } },
     })).toEqual({ 'typert-loader': false, telemetry: true })
     expect(() => profilePluginEnablement({
-      bh: { profile: { pluginEnablement: { 'typert-loader': 'false' } } },
+      hydra: { profile: { pluginEnablement: { 'typert-loader': 'false' } } },
     } as never)).toThrow('values must be booleans')
   })
 })
@@ -119,7 +119,7 @@ describe('resolveBundleDir', () => {
       name: 'sealed-bundle',
       version: '0.0.0',
       exports: { '.': './index.js' },
-      bh: { bundle: { patch: './cordis.patch.yml' } },
+      hydra: { bundle: { patch: './cordis.patch.yml' } },
     }))
     writeFileSync(join(dir, 'index.js'), '')
     writeFileSync(join(dir, 'cordis.patch.yml'), '[]\n')
@@ -128,7 +128,7 @@ describe('resolveBundleDir', () => {
 })
 
 describe('loadProfile', () => {
-  it('resolves each bh.profile.bundles entry to its patch layer in order, plus the user layer', () => {
+  it('resolves each hydra.profile.bundles entry to its patch layer in order, plus the user layer', () => {
     const anchor = stageInstallation({
       'bundle-a': { patch: '- insert:\n    - id: a\n      name: pkg-a\n' },
       'bundle-b': { patch: '- id: a\n  config:\n    v: 2\n' },
@@ -145,7 +145,7 @@ describe('loadProfile', () => {
       profile.patches,
     ])
     expect(entries).toEqual([{ id: 'a', name: 'pkg-a', config: { v: 3 } }])
-    // A hand-made profile without the user layer file or bh section: empty layers, no throw.
+    // A hand-made profile without the user layer file or hydra section: empty layers, no throw.
     rmSync(join(dir, PROFILE_PATCH_FILENAME))
     expect(loadProfile('t', 'demo', anchor, home).patches).toEqual([])
     writeProfileManifest(dir, { name: 'bare' })
@@ -167,7 +167,7 @@ describe('loadProfile', () => {
     } catch {
       // Resolution failure is the plain-Node outcome for this empty anchor.
     }
-    expect(readProfileManifest('t', resolveProfileDir('web', home)).bh?.profile?.bundles)
+    expect(readProfileManifest('t', resolveProfileDir('web', home)).hydra?.profile?.bundles)
       .toEqual([...PROFILE_TEMPLATES.web ?? []])
   })
 
@@ -184,7 +184,7 @@ describe('loadProfile', () => {
       '@hydra/harness-base', '@hydra/harness-web-app', '@hydra/harness-headless',
     ])
     loadProfile('t', 'headless', anchor, home)
-    expect(readProfileManifest('t', stock).bh?.profile?.bundles)
+    expect(readProfileManifest('t', stock).hydra?.profile?.bundles)
       .toEqual(['@hydra/harness-base', '@hydra/harness-headless'])
 
     const customHome = tmp()
@@ -193,17 +193,17 @@ describe('loadProfile', () => {
       '@hydra/harness-base', '@hydra/harness-web-app', '@hydra/harness-headless', 'custom-bundle',
     ])
     loadProfile('t', 'headless', anchor, customHome)
-    expect(readProfileManifest('t', custom).bh?.profile?.bundles).toEqual([
+    expect(readProfileManifest('t', custom).hydra?.profile?.bundles).toEqual([
       '@hydra/harness-base', '@hydra/harness-web-app', '@hydra/harness-headless', 'custom-bundle',
     ])
   })
 
-  it('fails loud when a listed bundle declares no bh.bundle', () => {
+  it('fails loud when a listed bundle declares no hydra.bundle', () => {
     const anchor = stageInstallation({ 'not-a-bundle': {} })
     const home = tmp()
     const dir = resolveProfileDir('demo', home)
     initProfile(dir, ['not-a-bundle'])
-    expect(() => loadProfile('t', 'demo', anchor, home)).toThrow('declares no bh.bundle')
+    expect(() => loadProfile('t', 'demo', anchor, home)).toThrow('declares no hydra.bundle')
   })
 })
 
@@ -240,7 +240,7 @@ describe('healProfilesModuleFallback', () => {
     const fallback = join(home, 'profiles', 'node_modules')
     // App deps, the bundle's own deps, and the bundle itself are linked; the
     // plain library is linked as an app dep (harmless), the app itself too.
-    for (const name of ['bundle-a', 'plain-lib', 'dep-of-a', 'bh-app']) {
+    for (const name of ['bundle-a', 'plain-lib', 'dep-of-a', 'hydra-app']) {
       expect(lstatSync(join(fallback, name)).isSymbolicLink(), name).toBe(true)
     }
     // Idempotent, and a moved target is re-pointed.
@@ -252,7 +252,7 @@ describe('healProfilesModuleFallback', () => {
   it('throws when a fallback entry is a real directory', () => {
     const anchor = stageInstallation({})
     const home = tmp()
-    mkdirSync(join(home, 'profiles', 'node_modules', 'bh-app'), { recursive: true })
+    mkdirSync(join(home, 'profiles', 'node_modules', 'hydra-app'), { recursive: true })
     expect(() => { healProfilesModuleFallback(anchor, home) }).toThrow('is not a symlink')
   })
 
@@ -261,9 +261,9 @@ describe('healProfilesModuleFallback', () => {
     const home = tmp()
     const fallback = join(home, 'profiles', 'node_modules')
     mkdirSync(fallback, { recursive: true })
-    symlinkSync(tmp(), join(fallback, 'bh-app'), 'junction')
+    symlinkSync(tmp(), join(fallback, 'hydra-app'), 'junction')
     healProfilesModuleFallback(anchor, home)
-    expect(readlinkSync(join(fallback, 'bh-app'))).toContain('app')
+    expect(readlinkSync(join(fallback, 'hydra-app'))).toContain('app')
   })
 
   it('tolerates losing the concurrent-heal race to an identical link and rejects a different one', () => {
@@ -277,6 +277,6 @@ describe('healProfilesModuleFallback', () => {
     healProfilesModuleFallback(anchor, home)
     healProfilesModuleFallback(anchor, home) // second healer sees the correct link
     const fallback = join(home, 'profiles', 'node_modules')
-    expect(lstatSync(join(fallback, 'bh-app')).isSymbolicLink()).toBe(true)
+    expect(lstatSync(join(fallback, 'hydra-app')).isSymbolicLink()).toBe(true)
   })
 })

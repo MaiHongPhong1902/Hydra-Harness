@@ -17,7 +17,7 @@ function fixture(options: {
   invariantExport?: string
   runtimeChunk?: string
 } = {}): { root: string; loaderUrl: string } {
-  const root = mkdtempSync(join(tmpdir(), 'bh-built-package-invariants-'))
+  const root = mkdtempSync(join(tmpdir(), 'hydra-built-package-invariants-'))
   roots.push(root)
   const packageDir = join(root, 'packages/core/probe')
   mkdirSync(join(packageDir, 'lib'), { recursive: true })

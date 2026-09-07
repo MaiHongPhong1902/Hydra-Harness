@@ -18,7 +18,7 @@ describe('imported skill assembled snapshot', () => {
         await mkdir(join(root, '.codex-plugin'), { recursive: true })
         await writeFile(join(root, '.codex-plugin', 'plugin.json'), JSON.stringify({ name: 'skill-fixture', version: '1.0.0', skills: './skills/' }))
         for (const [name, fields, body] of [
-          ['workon-uat-test-design', 'description: >\n  Zebra reconciliation\n  instructions.', 'Follow the reconciliation checklist.'],
+          ['obsidian-uat-test-design', 'description: >\n  Zebra reconciliation\n  instructions.', 'Follow the reconciliation checklist.'],
           ['user-only', 'description: Manual checklist\ndisable-model-invocation: true', 'Follow the manual checklist.'],
           ['model-only', 'description: Model checklist\nuser-invocable: false', 'Follow the model checklist.'],
         ] as const) {
@@ -44,9 +44,9 @@ describe('imported skill assembled snapshot', () => {
         },
         "loaded": {
           "isError": false,
-          "text": "<skill_content name="workon-uat-test-design">
+          "text": "<skill_content name="obsidian-uat-test-design">
       <skill_resources>
-      Base directory for this skill: {{skills}}/workon-uat-test-design
+      Base directory for this skill: {{skills}}/obsidian-uat-test-design
       Resolve relative paths mentioned by this skill against the base directory before using them. Load referenced resources only as needed.
       </skill_resources>
 
@@ -58,7 +58,7 @@ describe('imported skill assembled snapshot', () => {
         "search": {
           "isError": false,
           "text": "<skill_candidates complete="true" truncated="false">
-      - \`workon-uat-test-design\`: Zebra reconciliation instructions.
+      - \`obsidian-uat-test-design\`: Zebra reconciliation instructions.
       </skill_candidates>
       Choose zero or one candidate. Call \`skill\` only for the best match; load another only when the task clearly requires an independent skill.",
         },
@@ -69,18 +69,18 @@ describe('imported skill assembled snapshot', () => {
                 "source": {
                   "kind": "user",
                 },
-                "text": "test WorkON",
+                "text": "test obsidian",
               },
               {
                 "source": {
                   "form": "instructions",
                   "kind": "skill-invocation",
-                  "name": "workon-uat-test-design",
+                  "name": "obsidian-uat-test-design",
                   "trigger": "automatic",
                 },
-                "text": "<skill_content name="workon-uat-test-design">
+                "text": "<skill_content name="obsidian-uat-test-design">
       <skill_resources>
-      Base directory for this skill: {{skills}}/workon-uat-test-design
+      Base directory for this skill: {{skills}}/obsidian-uat-test-design
       Resolve relative paths mentioned by this skill against the base directory before using them. Load referenced resources only as needed.
       </skill_resources>
 
@@ -95,18 +95,18 @@ describe('imported skill assembled snapshot', () => {
                 "source": {
                   "kind": "user",
                 },
-                "text": "test WorkON",
+                "text": "test obsidian",
               },
               {
                 "source": {
                   "form": "instructions",
                   "kind": "skill-invocation",
-                  "name": "workon-uat-test-design",
+                  "name": "obsidian-uat-test-design",
                   "trigger": "automatic",
                 },
-                "text": "<skill_content name="workon-uat-test-design">
+                "text": "<skill_content name="obsidian-uat-test-design">
       <skill_resources>
-      Base directory for this skill: {{skills}}/workon-uat-test-design
+      Base directory for this skill: {{skills}}/obsidian-uat-test-design
       Resolve relative paths mentioned by this skill against the base directory before using them. Load referenced resources only as needed.
       </skill_resources>
 
@@ -123,7 +123,7 @@ describe('imported skill assembled snapshot', () => {
                 "source": {
                   "kind": "user",
                 },
-                "text": "Do not use workon-uat-test-design; explain what it does.",
+                "text": "Do not use obsidian-uat-test-design; explain what it does.",
               },
             ],
             "request": [
@@ -131,7 +131,7 @@ describe('imported skill assembled snapshot', () => {
                 "source": {
                   "kind": "user",
                 },
-                "text": "Do not use workon-uat-test-design; explain what it does.",
+                "text": "Do not use obsidian-uat-test-design; explain what it does.",
               },
             ],
           },
@@ -141,7 +141,7 @@ describe('imported skill assembled snapshot', () => {
                 "source": {
                   "kind": "user",
                 },
-                "text": "Đừng dùng workon-uat-test-design.",
+                "text": "Đừng dùng obsidian-uat-test-design.",
               },
             ],
             "request": [
@@ -149,7 +149,7 @@ describe('imported skill assembled snapshot', () => {
                 "source": {
                   "kind": "user",
                 },
-                "text": "Đừng dùng workon-uat-test-design.",
+                "text": "Đừng dùng obsidian-uat-test-design.",
               },
             ],
           },

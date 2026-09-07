@@ -264,7 +264,7 @@ export const WIRE_FRAME_FIELDS =
  * @returns the marker line.
  */
 export function logTruncationMarker(maxBytes: number): string {
-  return `[bh-code-runtime-python] log capture truncated at ${maxBytes} bytes`
+  return `[hydra-code-runtime-python] log capture truncated at ${maxBytes} bytes`
 }
 
 /**

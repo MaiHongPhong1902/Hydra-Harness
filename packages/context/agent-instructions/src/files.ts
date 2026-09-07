@@ -9,7 +9,7 @@ import { stat } from 'node:fs/promises'
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path'
 import type { FileSystem, FsInfo, FsTarget, FsVersion } from '@hydra/harness-fs'
 import { assertNever } from '@hydra/harness-llm'
-import { bhHomeDisplay } from '@hydra/harness-home-paths'
+import { hydraHomeDisplay } from '@hydra/harness-home-paths'
 import { resolveConfig, resolveDiscoveryConfig, type ResolvedConfig } from './config.ts'
 import { trimmedInstructionDigest } from './digest.ts'
 import {
@@ -48,7 +48,7 @@ export interface ProbedInstructionFile extends InstructionFile {
 
 interface DiscoverOptions {
   cwd: string
-  bhHome?: string
+  hydraHome?: string
   projectRootMarkers?: string[]
   instructionFileCandidates?: string[]
   localInstructionFileCandidates?: string[]
@@ -277,13 +277,13 @@ async function discoverInstructionFiles(
     files.push(file)
   }
 
-  const userGlobal = join(config.bhHome, USER_GLOBAL_FILE)
+  const userGlobal = join(config.hydraHome, USER_GLOBAL_FILE)
   const userGlobalProbe = await statFile(userGlobal, fileSystem, options.signal)
   switch (userGlobalProbe.kind) {
     case 'present':
       addFile({
         absolutePath: userGlobal,
-        displayPath: userGlobalDisplayPath(config.bhHome),
+        displayPath: userGlobalDisplayPath(config.hydraHome),
         ...userGlobalProbe.info,
       })
       break
@@ -466,7 +466,7 @@ export async function probeScopeInstruction(
 ): Promise<ScopeInstructionProbe> {
   const { directory, candidateName } = decodeScopeKey(scope)
   const dir = directory === USER_GLOBAL_DIRECTORY
-    ? resolved.bhHome
+    ? resolved.hydraHome
     : directory === '.' ? projectRoot : join(projectRoot, directory)
   const absolutePath = join(dir, candidateName)
   // resolve() follows a final-component symlink; stat then classifies the target.
@@ -484,7 +484,9 @@ export async function probeScopeInstruction(
   if (info?.type !== 'file') return { kind: 'absent' }
   const file: ProbedInstructionFile = {
     absolutePath,
-    displayPath: directory === USER_GLOBAL_DIRECTORY ? userGlobalDisplayPath(resolved.bhHome) : relativeDisplay(projectRoot, absolutePath),
+    displayPath: directory === USER_GLOBAL_DIRECTORY
+      ? userGlobalDisplayPath(resolved.hydraHome)
+      : relativeDisplay(projectRoot, absolutePath),
     target,
     version: info.version,
     ...info.size === undefined ? {} : { size: info.size },
@@ -516,6 +518,6 @@ export async function readScopeInstruction(
   }
 }
 
-function userGlobalDisplayPath(bhHome: string): string {
-  return `${bhHomeDisplay(bhHome)}/AGENTS.md`
+function userGlobalDisplayPath(hydraHome: string): string {
+  return `${hydraHomeDisplay(hydraHome)}/AGENTS.md`
 }

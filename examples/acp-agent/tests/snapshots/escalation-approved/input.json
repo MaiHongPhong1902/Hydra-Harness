@@ -8,7 +8,7 @@
     },
     {
       "op": "prompt",
-      "text": "The sandbox already denied writing /tmp/bh-escalated.txt earlier (it is outside this workspace). Retry it now exactly once: one single bash call with the command printf 'escalated\\n' > /tmp/bh-escalated.txt && cat /tmp/bh-escalated.txt && rm /tmp/bh-escalated.txt, with sandbox_permissions set to danger-full-access and the justification 'the user asked to write a file outside the workspace'. Do not run it without sandbox_permissions first. I will approve the permission prompt. After the result, reply with the single word DONE and stop."
+      "text": "The sandbox already denied writing /tmp/hydra-escalated.txt earlier (it is outside this workspace). Retry it now exactly once: one single bash call with the command printf 'escalated\\n' > /tmp/hydra-escalated.txt && cat /tmp/hydra-escalated.txt && rm /tmp/hydra-escalated.txt, with sandbox_permissions set to danger-full-access and the justification 'the user asked to write a file outside the workspace'. Do not run it without sandbox_permissions first. I will approve the permission prompt. After the result, reply with the single word DONE and stop."
     }
   ],
   "permissionAnswers": [

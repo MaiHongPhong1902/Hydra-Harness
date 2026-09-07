@@ -1,6 +1,6 @@
 /**
  * TypeScript client SDK for the Hydra harness runtime: spawn the
- * `bh-jsonrpc-agent` runtime as a subprocess and drive agent turns over
+ * `hydra-jsonrpc-agent` runtime as a subprocess and drive agent turns over
  * stdio JSON-RPC. `HydraHarness` is the high-level run API;
  * `HarnessClient` is the lower-level protocol client. A pure library — it
  * registers nothing on a Cordis context; the runtime process it spawns is a

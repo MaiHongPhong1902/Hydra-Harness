@@ -56,8 +56,8 @@ const TEST_USER_ID = '00000000-0000-4000-8000-000000000001' as AnonymousUserId
 let testHome: string
 
 beforeEach(() => {
-  testHome = mkdtempSync(join(tmpdir(), 'bh-llm-deepseek-'))
-  vi.stubEnv('BH_HOME', testHome)
+  testHome = mkdtempSync(join(tmpdir(), 'hydra-llm-deepseek-'))
+  vi.stubEnv('HYDRA_HOME', testHome)
 })
 
 afterEach(async () => {
@@ -132,12 +132,12 @@ describe('DeepSeekAdapter against a mock server', () => {
     })
     // App attribution and DeepSeek request identity are independent wire facts.
     expect(server.headers[0]?.['user-agent']).toBe(userAgent())
-    expect(server.headers[0]?.['x-bosch-harness-user-id']).toBe(getOrCreateAnonymousUserId())
-    expect(server.headers[0]).not.toHaveProperty('x-bosch-harness-session-id')
+    expect(server.headers[0]?.['x-hydra-harness-user-id']).toBe(getOrCreateAnonymousUserId())
+    expect(server.headers[0]).not.toHaveProperty('x-hydra-harness-session-id')
     expect(server.headers[0]).not.toHaveProperty('http-referer')
     expect(server.headers[0]).not.toHaveProperty('x-openrouter-title')
     expect(server.headers[0]).not.toHaveProperty('x-openrouter-categories')
-    expect(server.headers[0]).not.toHaveProperty('x-bosch-harness-compact')
+    expect(server.headers[0]).not.toHaveProperty('x-hydra-harness-compact')
   })
 
   it('routes official DeepSeek traffic through its configured proxy', async () => {
@@ -279,8 +279,8 @@ describe('DeepSeekAdapter against a mock server', () => {
       sessionId: SessionId('child-session'),
     })
 
-    expect(server.headers[0]?.['x-bosch-harness-session-id']).toBe('child-session')
-    expect(server.headers[0]?.['x-bosch-harness-user-id']).toBe(getOrCreateAnonymousUserId())
+    expect(server.headers[0]?.['x-hydra-harness-session-id']).toBe('child-session')
+    expect(server.headers[0]?.['x-hydra-harness-user-id']).toBe(getOrCreateAnonymousUserId())
   })
 
   it('marks the auxiliary compaction call on the wire', async () => {
@@ -296,7 +296,7 @@ describe('DeepSeekAdapter against a mock server', () => {
       purpose: 'compaction',
     })
 
-    expect(server.headers[0]?.['x-bosch-harness-compact']).toBe('1')
+    expect(server.headers[0]?.['x-hydra-harness-compact']).toBe('1')
   })
 
   it('switches dynamically from the configured low default through off to max', async () => {
@@ -1199,7 +1199,7 @@ describe('plugin registration and config', () => {
 
   it('takes DEEPSEEK_BASE_URL from any environment layer, with explicit config still on top', () => {
     const trusted = createLaunchEnvironmentSnapshot([
-      { source: 'user-env', path: '/home/.bh/.env', values: { DEEPSEEK_BASE_URL: 'https://user.example' } },
+      { source: 'user-env', path: '/home/.hydra/.env', values: { DEEPSEEK_BASE_URL: 'https://user.example' } },
     ])
     expect(resolveAdapterOptions({}, trusted).baseURL).toBe('https://user.example')
     // The product trusts the project it is launched in, so a checkout can

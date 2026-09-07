@@ -4,11 +4,11 @@ Status: implemented
 
 ## Problem
 
-After profiles, compositions were installable but their command lines were not. `apps/cli` still declared the Web flag family (`--host`, `--port`, `--dev`, `--workspace-root`, `--trusted-host`) and the one-shot task positional, then derived patches for row ids it hardcoded (`webserver`, `api-gateway`, `connection`, `web-runtime`). An out-of-tree app such as [turtle-ui](https://github.com/bosch-harness/turtle-ui) could contribute rows but had no way to accept a flag: `bh --profile tui --resume <session>` had nowhere to be parsed, and `bh --profile web --help` printed the launcher's help rather than the web app's.
+After profiles, compositions were installable but their command lines were not. `apps/cli` still declared the Web flag family (`--host`, `--port`, `--dev`, `--workspace-root`, `--trusted-host`) and the one-shot task positional, then derived patches for row ids it hardcoded (`webserver`, `api-gateway`, `connection`, `web-runtime`). An out-of-tree app such as turtle-ui could contribute rows but had no way to accept a flag: `hydra --profile tui --resume <session>` had nowhere to be parsed, and `hydra --profile web --help` printed the launcher's help rather than the web app's.
 
 ## Decision
 
-The launcher parses only what it owns — `--profile`, `--patch`, the config dumps — and hands **everything after its own flags** to the booted tree verbatim. The split is positional: the first token the launcher does not recognize starts the app's arguments (commander's `passThroughOptions` + `allowUnknownOption` + `helpOption(false)`). A bare `bh -h`, which has no app to hand the flag to, still prints the launcher's own help.
+The launcher parses only what it owns — `--profile`, `--patch`, the config dumps — and hands **everything after its own flags** to the booted tree verbatim. The split is positional: the first token the launcher does not recognize starts the app's arguments (commander's `passThroughOptions` + `allowUnknownOption` + `helpOption(false)`). A bare `hydra -h`, which has no app to hand the flag to, still prints the launcher's own help.
 
 The new `@hydra/harness-cmdline` package owns the handoff. A launcher calls `provideCmdline(ctx, host)` before any entry mounts, providing `ctx.cmdlineArgs` (whose whole interface is `get(): readonly string[]`) and `ctx.appExit`. Any ordinary app plugin may inject `cmdlineArgs`, call `parseCmdline(ctx, program)` with its own commander program, and provide the resolved value as an app-owned service from the program's action. Its Loader row carries no launcher marker or special kind, and the launcher does not inspect the composition for an owner. Multiple plugins may read the same immutable snapshot; a profile with no reader ignores its app arguments. Rows configured from a provider inject its service and read direct lazy config expressions (`port: !!js ctx.webStartup.port ?? 3080`), so a flag beats the value written beside it and nothing is written back into any row.
 
@@ -16,7 +16,7 @@ The boot mounts the composition once. Cordis holds each row until its injections
 
 The shipped apps moved their flags into their bundles: `@hydra/harness-web-app` owns the Web family, and `@hydra/harness-headless` owns the task positional and rejects a missing task as a usage error. `apps/cli/src/web.ts` is gone; `runProfile` no longer knows any flag-target row id. Out of tree, turtle-ui gained `--resume <session>` / `--session <id>` the same way, which is the design's real validation: an installed plugin added a flag with no launcher change.
 
-Two further consequences. Loader mounts sibling rows concurrently, so one row can activate while another still mounts or while the whole boot is rolling back; the Web bundle therefore publishes its URL only after its own Loader tree settles. The Web bundle's runtime plugin owns the harness-source prompt section too, so `bh web` and `bh --profile web` boot identically without Web-specific launcher setup.
+Two further consequences. Loader mounts sibling rows concurrently, so one row can activate while another still mounts or while the whole boot is rolling back; the Web bundle therefore publishes its URL only after its own Loader tree settles. The Web bundle's runtime plugin owns the harness-source prompt section too, so `hydra web` and `hydra --profile web` boot identically without Web-specific launcher setup.
 
 ## Why Loader owns the ordering
 

@@ -29,7 +29,7 @@ const RUNTIME_RANK = 250
 export const BUNDLED_SKILL_RANK = 600
 
 /** Origin bucket for a skill contribution. The value is prompt-visible metadata, not precedence by itself. */
-export type SkillSource = 'project-bh' | 'project-agents' | 'runtime' | 'user-bh' | 'user-agents' | 'custom' | 'bundled' | (string & {})
+export type SkillSource = 'project-hydra' | 'project-agents' | 'runtime' | 'user-hydra' | 'user-agents' | 'custom' | 'bundled' | (string & {})
 
 /** Optional provider-specific base used by loaded skill bodies to resolve relative resources. */
 export type SkillResourceBase =

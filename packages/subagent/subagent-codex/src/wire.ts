@@ -287,7 +287,7 @@ export class CodexAppServerWire {
   async initialize(signal: AbortSignal): Promise<void> {
     object(await this.guarded(this.transport.request('initialize', {
       clientInfo: {
-        name: 'bosch-harness',
+        name: 'hydra-harness',
         title: 'Hydra harness',
         version: '0.0.1',
       },

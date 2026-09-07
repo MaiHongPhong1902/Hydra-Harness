@@ -3,7 +3,7 @@
  * platform on its own rows (`disabled: !!js process.platform`), so exactly
  * one shell stack mounts per host and no separate platform layer exists —
  * the launcher applies nothing beyond the bundle layers. The spec composes
- * the REAL shipped bundle layers (bh-base + bh-web-app resolved from the
+ * the REAL shipped bundle layers (hydra-base + hydra-web-app resolved from the
  * app installation anchor) through the boot's patch algorithm and pins the
  * effective per-platform roster, the preset-level gates that keep tool-bash
  * out of win32 sessions and tool-pwsh out of POSIX sessions, and the
@@ -36,14 +36,14 @@ describe('the shipped shell composition (real bundle layers)', () => {
   let home: string
   afterEach(() => { if (home !== undefined) rmSync(home, { recursive: true, force: true }) })
   // The app installation anchor, mirroring profile-boot.ts: the bundle layers
-  // resolve from the REAL bh-base/bh-web-app packages through it, so this
+  // resolve from the REAL hydra-base/hydra-web-app packages through it, so this
   // suite composes the shipped patch files, not test fixtures.
   const anchor = fileURLToPath(new URL('../package.json', import.meta.url))
 
   it('composes the confined pwsh roster on win32 and the bash roster on POSIX from the same rows', () => {
-    home = mkdtempSync(join(tmpdir(), 'bh-windows-home-'))
+    home = mkdtempSync(join(tmpdir(), 'hydra-windows-home-'))
     initProfile(join(home, PROFILES_DIR, 'web'), ['@hydra/harness-base', '@hydra/harness-web-app'])
-    const profile = loadProfile('bh', 'web', anchor, home)
+    const profile = loadProfile('hydra', 'web', anchor, home)
     const warnings: string[] = []
     const rows = composeEntries(
       profile.layers.map(layer => layer.patches),
@@ -79,9 +79,9 @@ describe('the shipped shell composition (real bundle layers)', () => {
   })
 
   it('base-only profiles carry both stacks with the same platform gating', () => {
-    home = mkdtempSync(join(tmpdir(), 'bh-windows-home-'))
+    home = mkdtempSync(join(tmpdir(), 'hydra-windows-home-'))
     initProfile(join(home, PROFILES_DIR, 'base-only'), ['@hydra/harness-base'])
-    const profile = loadProfile('bh', 'base-only', anchor, home)
+    const profile = loadProfile('hydra', 'base-only', anchor, home)
     const warnings: string[] = []
     const rows = composeEntries(
       profile.layers.map(layer => layer.patches),

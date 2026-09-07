@@ -12,15 +12,15 @@ license = "MIT"
 authors = [{ name = "DeepSeek" }]
 
 [project.urls]
-Homepage = "https://github.com/bosch/bosch-harness"
-Documentation = "https://github.com/bosch/bosch-harness/blob/master/python/sdk-runtime/README.md"
-Issues = "https://github.com/bosch/bosch-harness/issues"
-Source = "https://github.com/bosch/bosch-harness"
+Homepage = "https://github.com/MaiHongPhong1902/Hydra-Harness"
+Documentation = "https://github.com/MaiHongPhong1902/Hydra-Harness/blob/master/python/sdk-runtime/README.md"
+Issues = "https://github.com/MaiHongPhong1902/Hydra-Harness/issues"
+Source = "https://github.com/MaiHongPhong1902/Hydra-Harness"
 
 # Include the injected executable and default config; exclude the dev-only node
 # closure from wheels and sdists.
 [tool.hatch.build]
-artifacts = ["src/hydra_harness_runtime/runtime/bh-jsonrpc-agent-*"]
+artifacts = ["src/hydra_harness_runtime/runtime/hydra-jsonrpc-agent-*"]
 exclude = ["src/hydra_harness_runtime/runtime/node"]
 
 [tool.hatch.build.targets.wheel]

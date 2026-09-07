@@ -838,7 +838,7 @@ describe('WorkerThreadCodeRuntime — seam misuse and lifecycle', () => {
     await expect(run([namespace('tools', 'CallError', '__dict__')])).rejects.toThrow(/member property.*not usable/)
     // The Python backend's owned globals are refused here too (shared
     // RESERVED_BINDING_GLOBALS), keeping namespace lists backend-portable.
-    await expect(runtime.run({ program: 'return 1', bindings: [{ global: '__bh_main__', functions: {} }] }))
+    await expect(runtime.run({ program: 'return 1', bindings: [{ global: '__hydra_main__', functions: {} }] }))
       .rejects.toThrow(/reserved binding global/)
   })
 

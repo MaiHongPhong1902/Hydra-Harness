@@ -13,7 +13,7 @@ import * as tool from '../src/index.ts'
 const testToolSignal = new AbortController().signal
 
 /**
- * Drives the REAL plugin body: mounts `bh-tool-todo` on a real `ToolRuntime`
+ * Drives the REAL plugin body: mounts `hydra-tool-todo` on a real `ToolRuntime`
  * and invokes the registered `todo_write` tool through `ctx.tools.execute`,
  * with a fake parent Agent carrying a real `Session` — so the append the tool
  * makes is observable on a genuine session log (only the agent wrapper is a
@@ -50,7 +50,7 @@ function text(result: { content: { type: string; text?: string }[] }): string {
   return result.content.filter(b => b.type === 'text').map(b => b.text).join('')
 }
 
-describe('bh-tool-todo', () => {
+describe('hydra-tool-todo', () => {
   it('registers a `todo_write` tool whose schema is an array of {content,status}', async () => {
     const ctx = await setup(true)
     const schema = ctx.tools.schemas().find(s => s.name === 'todo_write')

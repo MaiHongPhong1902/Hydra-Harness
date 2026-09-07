@@ -1753,7 +1753,7 @@ describe('per-agent presentation', () => {
     // `native` here, so a collapse predicate reading it instead of this
     // scope's effective mode would announce [run_code] and still execute the
     // native call — the bypass, reopened for exactly the preset composition
-    // `bh-agent-tool-presentation` produces.
+    // `hydra-agent-tool-presentation` produces.
     expect(ctx.tools.executionMode({
       signal: testToolSignal,
       callId: CallId('preset-coded-schedule'),

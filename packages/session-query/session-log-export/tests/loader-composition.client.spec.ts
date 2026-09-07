@@ -23,7 +23,7 @@ afterEach(async () => {
 
 describe('session-log-download real Loader composition', () => {
   it('discovers and executes /export through the assembled command plane', async () => {
-    root = await mkdtemp(join(tmpdir(), 'bh-session-export-loader-'))
+    root = await mkdtemp(join(tmpdir(), 'hydra-session-export-loader-'))
     const configPath = join(root, 'cordis.yml')
     await writeFile(configPath, [
       "- name: '@hydra/harness-session'",

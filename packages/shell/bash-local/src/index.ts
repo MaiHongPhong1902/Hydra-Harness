@@ -158,11 +158,11 @@ export class LocalBashExecutor extends ShellExecutor {
       timeoutMs,
       stdoutMaxBytes,
       ...request.signal ? { signal: request.signal } : {},
-      // Carry stdin/ordinary env/trusted bhEnv through verbatim — optional,
+      // Carry stdin/ordinary env/trusted hydraEnv through verbatim — optional,
       // no config default. The subprocess service owns the scrub and merge order.
       ...request.stdin !== undefined ? { stdin: request.stdin } : {},
       ...request.env !== undefined ? { env: request.env } : {},
-      ...request.bhEnv !== undefined ? { bhEnv: request.bhEnv } : {},
+      ...request.hydraEnv !== undefined ? { hydraEnv: request.hydraEnv } : {},
       // Carry a sandbox policy through verbatim: this executor never
       // confines, so the field is inert here (the seam contract) — a
       // sandboxing subclass overrides resolve() to stamp its default instead.
@@ -190,10 +190,10 @@ export class LocalBashExecutor extends ShellExecutor {
       },
       graceMs: this.config.graceMs,
       signal,
-      // One explicit env map for the seam, layered so the trusted bhEnv
+      // One explicit env map for the seam, layered so the trusted hydraEnv
       // snapshot beats both the caller's env and the terminal overrides; the
       // subprocess service merges the whole map after its ambient scrub.
-      env: { ...ENV_OVERRIDES, ...spec.env, ...spec.bhEnv },
+      env: { ...ENV_OVERRIDES, ...spec.env, ...spec.hydraEnv },
     }
   }
 

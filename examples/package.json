@@ -76,7 +76,7 @@
     "@hydra/harness-subagent-acp": "workspace:*",
     "@hydra/harness-subagent-claude-code": "workspace:*",
     "@hydra/harness-subagent-codex": "workspace:*",
-    "@hydra/harness-subagent-bh-sdk": "workspace:*",
+    "@hydra/harness-subagent-sdk": "workspace:*",
     "@hydra/harness-subagent-fork-in-process": "workspace:*",
     "@hydra/harness-subagent-spawn-in-process": "workspace:*",
     "@hydra/harness-subprocess-e2b": "workspace:*",

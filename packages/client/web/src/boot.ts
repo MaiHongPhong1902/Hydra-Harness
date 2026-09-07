@@ -7,7 +7,7 @@
 import { Context } from '@hydra/cordis'
 import Loader from '@hydra/cordis-plugin-loader'
 import type {
-  BootManifest, ClientModuleCreateOptions, ClientModuleSystem, BhWindow,
+  BootManifest, ClientModuleCreateOptions, ClientModuleSystem, HydraWindow,
 } from '@hydra/harness-client-modules/client'
 import type {} from '@hydra/harness-client-ui-renderer/client'
 import { BootPage } from './boot-page.ts'
@@ -45,7 +45,7 @@ export class AppWebEntry {
    */
   async run(): Promise<void> {
     try {
-      const win = globalThis as BhWindow
+      const win = globalThis as HydraWindow
       const moduleLoader = win.__ModuleLoader__
       if (moduleLoader === undefined) {
         throw new Error('web boot: window.__ModuleLoader__ bootstrap facade is missing')
@@ -56,10 +56,10 @@ export class AppWebEntry {
       // this structural slice reads one optional member without adding a
       // package edge.
       const transport = (globalThis as {
-        __BH_TRANSPORT__?: { loadBundle?: ClientModuleCreateOptions['loadBundle'] }
-      }).__BH_TRANSPORT__
+        __HYDRA_TRANSPORT__?: { loadBundle?: ClientModuleCreateOptions['loadBundle'] }
+      }).__HYDRA_TRANSPORT__
       this.modules = moduleLoader.create({
-        boot: win.__BH_BOOT__,
+        boot: win.__HYDRA_BOOT__,
         staticModules: getStaticModules(),
         ...transport?.loadBundle === undefined ? {} : { loadBundle: transport.loadBundle },
         ...this.seams,
@@ -99,8 +99,8 @@ export class AppWebEntry {
     // against its static deployment answers nothing. A transport without
     // loadBundle leaves bundles on HTTP, prefetch included.
     const transport = (globalThis as {
-      __BH_TRANSPORT__?: { loadBundle?: unknown }
-    }).__BH_TRANSPORT__
+      __HYDRA_TRANSPORT__?: { loadBundle?: unknown }
+    }).__HYDRA_TRANSPORT__
     if (transport?.loadBundle !== undefined) return
     await Promise.all(this.manifest.plugins
       .filter(row => row.immediately)

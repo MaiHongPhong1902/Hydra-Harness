@@ -4,11 +4,11 @@ Status: implemented
 
 ## Problem
 
-The repository carried an unreleased developer-project product with no consumers. `@hydra/create-sdk` generated an editable Cordis project, `@hydra/harness-scripts` supplied its `bh-sdk` development, build, start, configuration, and plugin-install commands, `@hydra/harness-helper` coordinated feature definitions and multi-file project edits, and `@hydra/harness-telemetry` reported launcher activity. The design aimed to keep generated projects editable while giving creation and later configuration one definition of dependencies, Cordis entries, environment placeholders, and owned files.
+The repository carried an unreleased developer-project product with no consumers. `@hydra/create-sdk` generated an editable Cordis project, `@hydra/harness-scripts` supplied its `hydra-sdk` development, build, start, configuration, and plugin-install commands, `@hydra/harness-helper` coordinated feature definitions and multi-file project edits, and `@hydra/harness-telemetry` reported launcher activity. The design aimed to keep generated projects editable while giving creation and later configuration one definition of dependencies, Cordis entries, environment placeholders, and owned files.
 
 No project was created through a public release, and no current repository or external consumer requires that lifecycle. Keeping it meant maintaining four packages, two interactive command products, project templates, package-manager adapters, configuration reconciliation, launcher telemetry, a repository skill, and their tests and documentation without evidence that the product boundary should exist.
 
-The same `scaffold/` group also contained the independently used SDK protocol, TypeScript client, and JSON-RPC server. Those packages serve the Python SDK, the `bh-sdk` subagent provider, and the JSON-RPC example; their runtime protocol does not depend on generated projects or the removed launcher.
+The same `scaffold/` group also contained the independently used SDK protocol, TypeScript client, and JSON-RPC server. Those packages serve the Python SDK, the `hydra-sdk` subagent provider, and the JSON-RPC example; their runtime protocol does not depend on generated projects or the removed launcher.
 
 ## Decision
 
@@ -24,7 +24,7 @@ The workspace contains none of the four deleted package names or either removed 
 
 ## Alternatives considered
 
-**Delete only the initializer.** Rejected because `bh-sdk`, the shared project model, and launcher telemetry existed to operate projects created by that initializer, and there are no existing projects that need them.
+**Delete only the initializer.** Rejected because `hydra-sdk`, the shared project model, and launcher telemetry existed to operate projects created by that initializer, and there are no existing projects that need them.
 
 **Keep error-only packages or command aliases.** Rejected because none of the commands shipped publicly. A tombstone would preserve package and executable surface area without a compatibility obligation.
 

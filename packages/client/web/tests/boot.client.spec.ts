@@ -2,19 +2,19 @@
 import type { Context } from '@hydra/cordis'
 import * as modulesClient from '@hydra/harness-client-modules/client'
 import type {
-  ClientBundleRegistration, ClientModuleCreateOptions, ClientModuleLoaderTarget, BhWindow,
+  ClientBundleRegistration, ClientModuleCreateOptions, ClientModuleLoaderTarget, HydraWindow,
   WebBootEntry,
 } from '@hydra/harness-client-modules/client'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { AppWebEntry } from '../src/boot.ts'
 
 const MODULES_ID = '@hydra/harness-client-modules'
-const win = globalThis as BhWindow
+const win = globalThis as HydraWindow
 const moduleFace = modulesClient as unknown as Record<string, unknown>
 
 afterEach(() => {
   vi.restoreAllMocks()
-  delete win.__BH_BOOT__
+  delete win.__HYDRA_BOOT__
   delete win.__ModuleLoader__
   document.body.innerHTML = ''
 })
@@ -66,15 +66,15 @@ describe('bootstrap failure rendering', () => {
   it('renders a malformed boot manifest', async () => {
     await expectBootFailure(() => {
       installFacade()
-      delete win.__BH_BOOT__
-    }, 'window.__BH_BOOT__ is missing or not an object')
+      delete win.__HYDRA_BOOT__
+    }, 'window.__HYDRA_BOOT__ is missing or not an object')
   })
 
   it('renders a module-system construction failure', async () => {
     await expectBootFailure(() => {
       installFacade()
       const duplicate = { id: 'duplicate', url: '/duplicate/client.js', rev: '1' }
-      win.__BH_BOOT__ = { rev: 'graph', entries: [duplicate, duplicate] }
+      win.__HYDRA_BOOT__ = { rev: 'graph', entries: [duplicate, duplicate] }
     }, 'duplicate graph entry "duplicate"')
   })
 })
@@ -90,7 +90,7 @@ describe('plugin activation', () => {
       { id: MODULES_ID, url: '/modules.js', rev: '1' },
       { id: 'renderer', url: '/renderer.js', rev: '1' },
     ]
-    win.__BH_BOOT__ = { rev: 'graph', entries }
+    win.__HYDRA_BOOT__ = { rev: 'graph', entries }
     const registrations = new Map<string, ClientBundleRegistration>([
       ['/consumer.js', {
         id: 'consumer',

@@ -91,7 +91,7 @@ type TaskSurfaceSubmissionId = Branded<'TaskSurfaceSubmissionId'>
 type TaskSurfaceDismissalId = Branded<'TaskSurfaceDismissalId'>
 
 interface TaskSurfacePresentationMeta {
-  kind: 'bh/task-surface'
+  kind: 'hydra/task-surface'
   version: 1
   surfaceId: TaskSurfaceId
   model: TaskSurfaceModelV1

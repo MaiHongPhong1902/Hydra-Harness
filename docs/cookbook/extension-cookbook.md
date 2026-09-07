@@ -88,7 +88,7 @@ export function apply(ctx: Context) {
 
 ## Runnable wirings
 
-Runnable leaves load their plugin trees from `examples/*/cordis.yml`; the root `demo:*` scripts and those leaf directories are the authoritative inventory. The product `bh` launcher owns Web and one-shot headless execution, ACP leaves use [`@hydra/harness-acp-demo`](../../packages/examples/acp-demo), and JSON-RPC leaves use [`@hydra/harness-sdk-jsonrpc-demo`](../../packages/examples/jsonrpc-demo). The headless snapshot leaf mounts [`@hydra/harness-agent-spine-demo`](../../packages/examples/agent-spine-demo) and JSONL persistence explicitly, then drives them through an example-owned test fixture rather than a shipped app package.
+Runnable leaves load their plugin trees from `examples/*/cordis.yml`; the root `demo:*` scripts and those leaf directories are the authoritative inventory. The product `hydra` launcher owns Web and one-shot headless execution, ACP leaves use [`@hydra/harness-acp-demo`](../../packages/examples/acp-demo), and JSON-RPC leaves use [`@hydra/harness-sdk-jsonrpc-demo`](../../packages/examples/jsonrpc-demo). The headless snapshot leaf mounts [`@hydra/harness-agent-spine-demo`](../../packages/examples/agent-spine-demo) and JSONL persistence explicitly, then drives them through an example-owned test fixture rather than a shipped app package.
 
 ## The feature → mechanism map
 
@@ -107,7 +107,7 @@ Every product feature maps to a listener on a documented extension point — the
 | System prompt configurability | `ctx.systemPrompt.section()` with ordering and scope-local shadowing |
 | AGENTS.md (root) | a section provider reading the file |
 | AGENTS.md (subdir, on-touch) + file-change notices | `agent.inject()` from a watcher / tool-result listener |
-| Built-in tools | `ctx.tools.register()`; schemas flow into the assembly automatically — the `bh-tool-*` families (bash, fs, web, subagent, todo) are the shipped examples |
+| Built-in tools | `ctx.tools.register()`; schemas flow into the assembly automatically — the `hydra-tool-*` families (bash, fs, web, subagent, todo) are the shipped examples |
 | ToolSearch / progressive disclosure | replace a scoped `ctx.tools.restrict()` registration as the visible set changes; the registry keeps presentation, lookup, and execution aligned |
 | Tool deadline / retry / metrics | wrap core dispatch with `tools/execute`; a wrapper may replace `exec.signal`, delegate, and inspect the normalized result in one lexical lifetime |
 | Final tool-result metrics / audit / capture | observe immutable authoritative outcomes with `tools/result`; use `tools/post-execute` instead only when the plugin must transform the result or attach context |
@@ -115,7 +115,7 @@ Every product feature maps to a listener on a documented extension point — the
 | Subprocess sandbox (landlock / sandbox-exec) | use a `ctx.sandbox` backend through `@hydra/harness-bash-sandbox`; use `tools/pre-execute` for capability-level denial |
 | Permission system / AskUserQuestion | return `ask` from `tools/pre-execute` and answer through `ctx.approval`; register a separate model-facing ask tool for ordinary user questions |
 | Plan mode | [`@hydra/harness-plan-mode`](../../packages/plan/plan-mode/README.md) — logged `plan/mode` state, the `plan:policy` guidance section, `/plan [message]` entry, `/plan off` direct exit, and the user-reviewed `exit_plan_mode` exit; enforcement stays on the independent sandbox/approval axes |
-| Sub-agent delegation | the `ctx.subagents` provider registry (`@hydra/harness-subagent-spawn-in-process`/`-fork`/`-acp`/`-codex`/`-claude-code`/`-bh-sdk`) + `@hydra/harness-tool-subagent` exposing one configured provider to the model |
+| Sub-agent delegation | the `ctx.subagents` provider registry (`@hydra/harness-subagent-spawn-in-process`/`-fork`/`-acp`/`-codex`/`-claude-code`/`-hydra-sdk`) + `@hydra/harness-tool-subagent` exposing one configured provider to the model |
 | MCP | one plugin per server: discover tools → `ctx.tools.register()` |
 | Skills | section + tool registration; `inject()` skill content on invocation |
 | Memory | section provider + tool |

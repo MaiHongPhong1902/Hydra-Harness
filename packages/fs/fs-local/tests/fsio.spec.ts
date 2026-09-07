@@ -2,7 +2,7 @@
  * Cordis-free tests for the raw local-filesystem I/O: path resolution, probe,
  * whole-file/streamed text reads, binary/UTF-8 rejection, atomic-write temp
  * safety, literal edit matching, and line-ending handling. Line WINDOWING is
- * policy and lives in `bh-fs-observation-policy`, so it is not tested here.
+ * policy and lives in `hydra-fs-observation-policy`, so it is not tested here.
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -29,7 +29,7 @@ import { FsError, FsTargetKey } from '@hydra/harness-fs'
 
 let dir: string
 beforeEach(async () => {
-  dir = await mkdtemp(join(tmpdir(), 'bh-fsio-'))
+  dir = await mkdtemp(join(tmpdir(), 'hydra-fsio-'))
 })
 afterEach(async () => {
   await rm(dir, { recursive: true, force: true })

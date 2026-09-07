@@ -154,7 +154,7 @@ const siteIdentity = {
  */
 const wordmark = readFileSync(resolve(import.meta.dirname, '../public/wordmark.svg'), 'utf8')
   .trim()
-  .replace('<svg ', '<svg class="bh-wordmark" ')
+  .replace('<svg ', '<svg class="hydra-wordmark" ')
   .replace('href="hydra-hover.webp"', `href="${base}hydra-hover.webp"`)
 
 /**
@@ -169,13 +169,13 @@ const wordmark = readFileSync(resolve(import.meta.dirname, '../public/wordmark.s
  * stay behind a query only Firefox answers.
  */
 const siteStyle = `
-.bh-lockup { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
-.bh-wordmark { display: block; height: 22px; width: auto; color: var(--vp-c-text-1); }
+.hydra-lockup { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+.hydra-wordmark { display: block; height: 22px; width: auto; color: var(--vp-c-text-1); }
 @media (hover: hover) {
-  .bh-wordmark:hover .hydra-still { visibility: hidden; }
-  .bh-wordmark:hover .hydra-motion { display: inline; }
+  .hydra-wordmark:hover .hydra-still { visibility: hidden; }
+  .hydra-wordmark:hover .hydra-motion { display: inline; }
 }
-.bh-tag {
+.hydra-tag {
   display: inline-flex;
   align-items: center;
   border: 1px solid var(--vp-c-brand-soft);
@@ -233,7 +233,7 @@ const scrollbarScript = `
  * @returns Markup placed beside the navigation-bar home link.
  */
 function siteTitle(previewTag: string): string {
-  return `<span class="bh-lockup">${wordmark}<span class="bh-tag">${previewTag}</span></span>`
+  return `<span class="hydra-lockup">${wordmark}<span class="hydra-tag">${previewTag}</span></span>`
 }
 
 export default withMermaid({
@@ -262,7 +262,7 @@ export default withMermaid({
     publicDir: resolve(import.meta.dirname, '../public'),
     plugins: [
       {
-        name: 'bosch-harness-doc-projector',
+        name: 'hydra-harness-doc-projector',
         configureServer(server) {
           watchCanonicalDocs(server)
           serveRawMarkdown(server)
@@ -315,14 +315,14 @@ export default withMermaid({
     docFooter: { prev: 'Previous', next: 'Next' },
     search: { provider: 'local' },
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/bosch/bosch-harness' },
+      { icon: 'github', link: 'https://github.com/MaiHongPhong1902/Hydra-Harness' },
     ],
     editLink: {
       pattern: ({ frontmatter }: PageData) => {
         const data: unknown = frontmatter
         const editSource: unknown = typeof data === 'object' && data !== null ? Reflect.get(data, 'editSource') : undefined
         if (typeof editSource !== 'string') throw new Error('Projected documentation page has no editSource frontmatter.')
-        return `https://github.com/bosch/bosch-harness/edit/master/${editSource}`
+        return `https://github.com/MaiHongPhong1902/Hydra-Harness/edit/master/${editSource}`
       },
       text: 'Edit this page on GitHub',
     },

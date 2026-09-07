@@ -4,7 +4,7 @@ The row an [agent preset](../../preset/agent-presets/README.md) carries to say w
 
 ## Why a row rather than a registry
 
-The tool registry cannot move into a preset. Its consumers are all host-plane — [`@hydra/harness-agent-loop`](../agent-loop/README.md) reads its scheduler, [`bh-apiproxy`](../../host/apiproxy/README.md) reads its presenters to render tool cards, and every tool plugin registers into it — and a service only moves down when all of its consumers move with it.
+The tool registry cannot move into a preset. Its consumers are all host-plane — [`@hydra/harness-agent-loop`](../agent-loop/README.md) reads its scheduler, [`hydra-apiproxy`](../../host/apiproxy/README.md) reads its presenters to render tool cards, and every tool plugin registers into it — and a service only moves down when all of its consumers move with it.
 
 What a preset can own is the **presentation** of that registry. `ctx.tools.presentAs()` declares it for the mounting agent alone, so a Code Mode session runs beside native ones in one process, each seeing its own catalog. The deployment's `mode` on the [`@hydra/harness-tools`](../tools/README.md) row remains the default that agents declaring nothing get.
 

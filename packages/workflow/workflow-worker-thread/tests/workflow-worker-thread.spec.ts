@@ -175,7 +175,7 @@ async function run(ctx: Context, parent: Agent, source: { script: string; meta: 
   }
 }
 
-describe('bh-workflow-worker-thread', () => {
+describe('hydra-workflow-worker-thread', () => {
   describe('script execution over a real worker thread', () => {
     it('runs a script end-to-end: agent() text results, phases, log, args, return value, events', async () => {
       const { ctx, parent, provider } = await setup({ reply: (_request, index) => text(`answer-${index}`) })
@@ -610,7 +610,7 @@ describe('bh-workflow-worker-thread', () => {
       const { ctx, parent } = await setup()
       // The ACP snapshot harness runs the parent with its cwd OUTSIDE the
       // repo and pins the repo tsconfig through this variable; the worker
-      // must inherit the pin (or its bh-* imports silently resolve to
+      // must inherit the pin (or its hydra-* imports silently resolve to
       // unbuilt lib/ bundles) while every other variable stays scrubbed.
       const tsconfig = fileURLToPath(new URL('../../../../tsconfig.json', import.meta.url))
       process.env.TSX_TSCONFIG_PATH = tsconfig

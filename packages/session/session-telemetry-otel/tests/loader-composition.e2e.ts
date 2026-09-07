@@ -120,7 +120,7 @@ describe('session-telemetry-otel through a real headless cordis.yml', () => {
       libBinScript: driver,
       configPath,
       tsconfigPath: repoTsconfig,
-      env: { BH_TELEMETRY_E2E_MODE: 'FEEDBACK_ONLY' },
+      env: { HYDRA_TELEMETRY_E2E_MODE: 'FEEDBACK_ONLY' },
       inspect: async (cwd) => { output = await readFixtureOutput(cwd) },
     })
     expect(stderr).not.toContain('UNHANDLED')
@@ -142,7 +142,7 @@ describe('session-telemetry-otel through a real headless cordis.yml', () => {
       libBinScript: driver,
       configPath,
       tsconfigPath: repoTsconfig,
-      env: { BH_TELEMETRY_E2E_MODE: 'DISABLED' },
+      env: { HYDRA_TELEMETRY_E2E_MODE: 'DISABLED' },
       inspect: async (cwd) => { output = await readFixtureOutput(cwd) },
     })
 

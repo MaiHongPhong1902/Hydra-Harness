@@ -799,7 +799,7 @@ describe('resolveBase', () => {
     }
     const probe = new Probe()
     await probe.sessions.list({})
-    expect(probe.urls[0]).toMatch(/^http:\/\/bh\.internal\//)
+    expect(probe.urls[0]).toMatch(/^http:\/\/hydra\.internal\//)
 
     const globalWithLocation = globalThis as { location?: { origin?: string } }
     globalWithLocation.location = { origin: 'http://host.example' }
@@ -810,7 +810,7 @@ describe('resolveBase', () => {
       globalWithLocation.location = { origin: 'null' } // sandboxed iframe shape
       const probe3 = new Probe()
       await probe3.sessions.list({})
-      expect(probe3.urls[0]).toMatch(/^http:\/\/bh\.internal\//)
+      expect(probe3.urls[0]).toMatch(/^http:\/\/hydra\.internal\//)
     } finally {
       delete globalWithLocation.location
     }

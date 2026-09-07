@@ -3,7 +3,7 @@
 # echoes its process cwd and announced session cwd, so parent-session cwd
 # inheritance is asserted keylessly end to end. `cwd` is deliberately omitted —
 # the inheritance branch under test. The child command path is machine-absolute,
-# so the driving e2e supplies it via BH_TEST_MOCK_ACP_SERVER.
+# so the driving e2e supplies it via HYDRA_TEST_MOCK_ACP_SERVER.
 - id: mock-llm
   name: './mock-delegating-llm.ts'
 
@@ -20,7 +20,7 @@
     providerName: acp
     command: !!js process.execPath
     args:
-      - !!js process.env.BH_TEST_MOCK_ACP_SERVER
+      - !!js process.env.HYDRA_TEST_MOCK_ACP_SERVER
     permission: reject
     env:
       MOCK_ECHO_CWD: '1'

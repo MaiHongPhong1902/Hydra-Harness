@@ -7,7 +7,7 @@
  * verification: the harness packages declare the vendored framework as a peer,
  * those packages live in another release sequence, and this job must not depend
  * on the registry already carrying versions that match — one pull request may
- * bump both families before either publishes — so a bh verification passes the
+ * bump both families before either publishes — so a hydra verification passes the
  * vendored family's pack output too, while publishing only its own
  * ([rationale](../../.agents/notes/implemented/process/2026-08-10-npm-release-sequences.md)).
  *
@@ -37,9 +37,9 @@ function consumerEnvironment(consumerRoot: string): NodeJS.ProcessEnv {
   delete environment.NPM_CONFIG_USER_AGENT
   delete environment.NODE_OPTIONS
   delete environment.NODE_PATH
-  environment.BH_HOME = resolve(consumerRoot, '.bh')
-  environment.BH_AGENTS_HOME = resolve(consumerRoot, '.agents')
-  environment.BH_TELEMETRY_DISABLED = '1'
+  environment.HYDRA_HOME = resolve(consumerRoot, '.hydra')
+  environment.HYDRA_AGENTS_HOME = resolve(consumerRoot, '.agents')
+  environment.HYDRA_TELEMETRY_DISABLED = '1'
   return environment
 }
 
@@ -73,7 +73,7 @@ function main(): void {
     allowPositionals: false,
   })
   if (values.family === undefined || values.from === undefined || values.from.length === 0) {
-    throw new Error('usage: verify-packed-install.ts --family <bh|vendor> --from <packed directory> [--from ...]')
+    throw new Error('usage: verify-packed-install.ts --family <hydra|vendor> --from <packed directory> [--from ...]')
   }
 
   const family = releaseFamily(values.family)
@@ -88,10 +88,10 @@ function main(): void {
   const expected = packed.get(entry.packageName)
   if (expected === undefined) throw new Error(`${entry.packageName} is not among the packed tarballs`)
 
-  const consumerRoot = mkdtempSync(join(tmpdir(), `bh-packed-${family.id}-`))
+  const consumerRoot = mkdtempSync(join(tmpdir(), `hydra-packed-${family.id}-`))
   try {
     writeFileSync(join(consumerRoot, 'package.json'), `${JSON.stringify({
-      name: `bh-packed-install-${family.id}`,
+      name: `hydra-packed-install-${family.id}`,
       version: '0.0.0',
       private: true,
       dependencies: Object.fromEntries([...packed].map(([name, entryPacked]) => [name, entryPacked.url])),

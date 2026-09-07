@@ -11,9 +11,9 @@ import { withFileLock, writeFileAtomic } from '@hydra/harness-atomic-write'
 import type { BrowserToolValue } from '@hydra/harness-tool-browser'
 
 /** Existing vault folder retained as the contained graph root. */
-export const GRAPH_ROOT = 'BH Website Knowledge'
+export const GRAPH_ROOT = 'Hydra Website Knowledge'
 /** Extensionless identity note that binds MCP operations to the intended vault. */
-export const OBSIDIAN_MCP_VAULT_MARKER_PATH = `${GRAPH_ROOT}/BH MCP Vault Identity`
+export const OBSIDIAN_MCP_VAULT_MARKER_PATH = `${GRAPH_ROOT}/Hydra MCP Vault Identity`
 /** Maximum exact paths accepted by one complete-note read. */
 export const MAX_READ_NOTES = 32
 /** Maximum UTF-8 bytes returned by one complete-note read. */
@@ -24,8 +24,8 @@ export const MAX_RECALL_MATCHES = 6
 export const MAX_RELATED_NOTES = 32
 const MAX_RECALL_SEEDS = 3
 const MAX_RECALL_EXCERPT = 320
-const ACTIONS_START = '<!-- bh-actions:start -->'
-const ACTIONS_END = '<!-- bh-actions:end -->'
+const ACTIONS_START = '<!-- hydra-actions:start -->'
+const ACTIONS_END = '<!-- hydra-actions:end -->'
 
 /** Optional user settings for Browser-to-Obsidian capture. */
 export interface ObsidianKnowledgeSettings {
@@ -570,7 +570,7 @@ export class ObsidianKnowledgeGraph {
   /**
    * Read complete persisted notes by the exact extensionless paths returned by search.
    * The whole batch fails rather than returning partial or truncated source evidence.
-   * @param paths - One to 32 logical paths below `BH Website Knowledge/`.
+   * @param paths - One to 32 logical paths below `Hydra Website Knowledge/`.
    * @returns Complete Markdown notes in first-occurrence request order.
    */
   async readNotes(paths: readonly string[]): Promise<KnowledgeNote[]> {

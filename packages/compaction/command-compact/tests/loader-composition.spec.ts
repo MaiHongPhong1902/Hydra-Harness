@@ -81,7 +81,7 @@ afterEach(async () => {
 
 describe('command-compact real Loader composition', () => {
   it('discovers and executes /compact through the assembled command plane', async () => {
-    root = await mkdtemp(join(tmpdir(), 'bh-command-compact-loader-'))
+    root = await mkdtemp(join(tmpdir(), 'hydra-command-compact-loader-'))
     const configPath = join(root, 'cordis.yml')
     await writeFile(configPath, [
       "- name: '@hydra/harness-commands'",

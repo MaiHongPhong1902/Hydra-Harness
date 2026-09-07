@@ -17,7 +17,7 @@ import * as toolSkill from '@hydra/harness-tool-skill'
 const testToolSignal = new AbortController().signal
 
 async function tempDir(name: string): Promise<string> {
-  return await import('node:fs/promises').then(fs => fs.mkdtemp(join(tmpdir(), `bh-${name}-`)))
+  return await import('node:fs/promises').then(fs => fs.mkdtemp(join(tmpdir(), `hydra-${name}-`)))
 }
 
 async function writeSkill(root: string, name: string, description: string, body: string): Promise<void> {
@@ -32,7 +32,7 @@ async function setup(home: string, config: toolSkill.Config = {}): Promise<Conte
   await ctx.plugin(ToolRuntime)
   await ctx.plugin(AgentRegistry)
   await ctx.plugin(SkillRegistry)
-  await ctx.plugin(SkillFileSystem, { bhHome: join(home, '.bh'), agentsHome: join(home, '.agents'), watch: false })
+  await ctx.plugin(SkillFileSystem, { hydraHome: join(home, '.hydra'), agentsHome: join(home, '.agents'), watch: false })
   await ctx.plugin(toolSkill, config)
   return ctx
 }
@@ -80,7 +80,7 @@ async function mintAgentScope(ctx: Context, subject: string | Agent): Promise<{ 
   return { agent, scope }
 }
 
-describe('bh-tool-skill', () => {
+describe('hydra-tool-skill', () => {
   it('registers bounded search and exact loading without injecting a catalog', async () => {
     const ctx = new Context()
     await ctx.plugin(SystemPrompt)
@@ -88,7 +88,7 @@ describe('bh-tool-skill', () => {
     await ctx.plugin(AgentRegistry)
     const home = await tempDir('tool-schema')
     await ctx.plugin(SkillRegistry)
-    await ctx.plugin(SkillFileSystem, { bhHome: join(home, '.bh'), agentsHome: join(home, '.agents'), watch: false })
+    await ctx.plugin(SkillFileSystem, { hydraHome: join(home, '.hydra'), agentsHome: join(home, '.agents'), watch: false })
     ctx.skills.register({ name: 'lifecycle-skill', description: 'Lifecycle', source: 'runtime', content: 'body' })
 
     const fiber = await ctx.plugin(toolSkill)
@@ -177,7 +177,7 @@ describe('bh-tool-skill', () => {
     ctx.skills.registerProvider(() => ({
       name: 'imported',
       async list() {
-        return ['workon-uat-test-design', 'other-test'].map(name => ({
+        return ['obsidian-uat-test-design', 'other-test'].map(name => ({
           name: `plugin-hash-${name}`, aliases: [name], description: 'Test workflow',
           invocation: { modelInvocable: true, userInvocable: true }, provider: 'imported',
           source: 'test', rank: 1, locator: name,
@@ -186,23 +186,23 @@ describe('bh-tool-skill', () => {
       async get(candidate) { return { ...candidate, content: 'Instructions.' } },
     }))
     const search = await ctx.tools.execute({
-      signal: testToolSignal, callId: CallId('alias-search'), name: 'skill_search', arguments: { query: 'workon test' },
+      signal: testToolSignal, callId: CallId('alias-search'), name: 'skill_search', arguments: { query: 'obsidian test' },
     })
     expect(search.isError).toBe(false)
     if (search.isError) throw new Error('expected skill search success')
     expect(search.value).toEqual({
       complete: true, truncated: false,
       matches: [
-        { name: 'workon-uat-test-design', description: 'Test workflow' },
+        { name: 'obsidian-uat-test-design', description: 'Test workflow' },
         { name: 'other-test', description: 'Test workflow' },
       ],
     })
     const decision = await proposeStep(ctx, agentForCwd(home), [createUserMessage({
-      content: [{ type: 'text', text: 'test workon' }], source: { kind: 'user' },
+      content: [{ type: 'text', text: 'test obsidian' }], source: { kind: 'user' },
     })])
     expect(decision.kind === 'enter' && decision.messages.filter(message => message.source.kind === 'skill-invocation')
       .map(message => message.source)).toEqual([{
-      kind: 'skill-invocation', name: 'workon-uat-test-design', trigger: 'automatic', form: 'instructions',
+      kind: 'skill-invocation', name: 'obsidian-uat-test-design', trigger: 'automatic', form: 'instructions',
     }])
     await ctx.fiber.dispose()
   })
@@ -392,7 +392,7 @@ describe('bh-tool-skill', () => {
     const home = await tempDir('tool-load')
     const project = await tempDir('tool-project')
     await mkdir(join(project, '.git'), { recursive: true })
-    await writeSkill(join(project, '.bh/skills'), 'project-skill', 'Project skill', 'Project instructions.')
+    await writeSkill(join(project, '.hydra/skills'), 'project-skill', 'Project skill', 'Project instructions.')
     const ctx = await setup(home)
 
     const result = await ctx.tools.execute({
@@ -408,7 +408,7 @@ describe('bh-tool-skill', () => {
     expect(result.value).toEqual({
       name: 'project-skill',
       provider: 'filesystem',
-      resourceBase: { kind: 'directory', path: join(project, '.bh/skills/project-skill') },
+      resourceBase: { kind: 'directory', path: join(project, '.hydra/skills/project-skill') },
       content: 'Project instructions.',
     })
     const block = result.content[0]
@@ -417,7 +417,7 @@ describe('bh-tool-skill', () => {
     expect(block.text).toBe([
       '<skill_content name="project-skill">',
       '<skill_resources>',
-      `Base directory for this skill: ${join(project, '.bh/skills/project-skill')}`,
+      `Base directory for this skill: ${join(project, '.hydra/skills/project-skill')}`,
       'Resolve relative paths mentioned by this skill against the base directory before using them. Load referenced resources only as needed.',
       '</skill_resources>',
       '',
@@ -491,8 +491,8 @@ describe('bh-tool-skill', () => {
 
   it('returns isError for unknown, invalid, and model-disabled skills', async () => {
     const home = await tempDir('tool-errors')
-    await writeSkill(join(home, '.bh/skills'), 'hidden-skill', 'Hidden skill', 'Hidden instructions.')
-    await writeFile(join(home, '.bh/skills/hidden-skill/SKILL.md'), '---\nname: hidden-skill\ndescription: Hidden skill\ndisable-model-invocation: true\n---\n\nHidden instructions.\n')
+    await writeSkill(join(home, '.hydra/skills'), 'hidden-skill', 'Hidden skill', 'Hidden instructions.')
+    await writeFile(join(home, '.hydra/skills/hidden-skill/SKILL.md'), '---\nname: hidden-skill\ndescription: Hidden skill\ndisable-model-invocation: true\n---\n\nHidden instructions.\n')
     const ctx = await setup(home)
     ctx.skills.register({
       name: 'model-only-skill',
@@ -599,11 +599,11 @@ describe('automatic invocation injection', () => {
     const home = await tempDir('automatic-invocation')
     const ctx = await setup(home)
     ctx.skills.register({
-      name: 'workon-uat-test-design',
-      description: 'Ground WorkON testcase lookup and test design in Obsidian knowledge.',
-      whenToUse: 'Use for WorkON testcase lookup, test design, or live validation.',
+      name: 'obsidian-uat-test-design',
+      description: 'Ground UAT testcase lookup and test design in Obsidian knowledge.',
+      whenToUse: 'Use for Obsidian UAT testcase lookup, test design, or live validation.',
       source: 'runtime',
-      content: 'Use obsidian_knowledge_recall before designing WorkON tests.',
+      content: 'Use obsidian_knowledge_recall before designing UAT tests.',
     })
     ctx.skills.register({
       name: 'shared-skill',
@@ -620,15 +620,15 @@ describe('automatic invocation injection', () => {
     return { ctx, agent: agentForCwd(home) }
   }
 
-  it('loads the unique strong WorkON match directly from Vietnamese user text', async () => {
+  it('loads the unique strong UAT match directly from Vietnamese user text', async () => {
     const { ctx, agent } = await automaticHarness()
-    const decision = await proposeStep(ctx, agent, [user('test tính năng search request trên workon')])
+    const decision = await proposeStep(ctx, agent, [user('test tính năng search request trên obsidian')])
     const injections = skillInjections(decision)
 
     expect(injections).toHaveLength(1)
     expect(injections[0]?.source).toEqual({
       kind: 'skill-invocation',
-      name: 'workon-uat-test-design',
+      name: 'obsidian-uat-test-design',
       trigger: 'automatic',
       form: 'instructions',
     })
@@ -636,7 +636,7 @@ describe('automatic invocation injection', () => {
     if (block?.type !== 'text') throw new Error('expected text skill injection')
     expect(block.text).toContain('obsidian_knowledge_recall')
 
-    const exact = await proposeStep(ctx, agent, [user('use workon-uat-test-design')])
+    const exact = await proposeStep(ctx, agent, [user('use obsidian-uat-test-design')])
     expect(skillInjections(exact)).toHaveLength(1)
   })
 
@@ -649,16 +649,16 @@ describe('automatic invocation injection', () => {
       content: 'Generic instructions.',
     })
     ctx.skills.register({
-      name: 'workon-alpha-test',
-      description: 'WorkON test helper',
-      whenToUse: 'Use for WorkON test',
+      name: 'obsidian-alpha-test',
+      description: 'Obsidian UAT test helper',
+      whenToUse: 'Use for Obsidian UAT test',
       source: 'runtime',
       content: 'Alpha instructions.',
     })
     ctx.skills.register({
-      name: 'workon-beta-test',
-      description: 'WorkON test helper',
-      whenToUse: 'Use for WorkON test',
+      name: 'obsidian-beta-test',
+      description: 'Obsidian UAT test helper',
+      whenToUse: 'Use for Obsidian UAT test',
       source: 'runtime',
       content: 'Beta instructions.',
     })
@@ -670,10 +670,10 @@ describe('automatic invocation injection', () => {
       [user('test for')],
       [user('test design')],
       [user('orchard banana')],
-      [user('workon test')],
-      [createUserMessage({ content: [{ type: 'text', text: 'workon test' }], source: { kind: 'plugin', plugin: 'forged' } })],
-      [createUserMessage({ content: [{ type: 'reasoning', text: 'workon test' }], source: { kind: 'user' } })],
-      [createToolResultMessage({ callId: CallId('workon-tool-result'), content: [{ type: 'text', text: 'workon test' }], isError: false })],
+      [user('obsidian test')],
+      [createUserMessage({ content: [{ type: 'text', text: 'obsidian test' }], source: { kind: 'plugin', plugin: 'forged' } })],
+      [createUserMessage({ content: [{ type: 'reasoning', text: 'obsidian test' }], source: { kind: 'user' } })],
+      [createToolResultMessage({ callId: CallId('obsidian-tool-result'), content: [{ type: 'text', text: 'obsidian test' }], isError: false })],
     ]) {
       expect(skillInjections(await proposeStep(ctx, agent, messages))).toEqual([])
     }
@@ -681,24 +681,24 @@ describe('automatic invocation injection', () => {
 
   it('gives an explicit gesture precedence over automatic routing', async () => {
     const { ctx, agent } = await automaticHarness()
-    const decision = await proposeStep(ctx, agent, [user('/shared-skill test workon')])
+    const decision = await proposeStep(ctx, agent, [user('/shared-skill test obsidian')])
     expect(skillInjections(decision).map(message => (message.source as { name: string }).name)).toEqual(['shared-skill'])
 
-    const unknown = await proposeStep(ctx, agent, [user('/missing-skill test workon')])
+    const unknown = await proposeStep(ctx, agent, [user('/missing-skill test obsidian')])
     expect(skillInjections(unknown)).toEqual([])
   })
 
   it('leaves negated requests to model-led discovery without confusing Vietnamese use with do not', async () => {
     const { ctx, agent } = await automaticHarness()
     for (const task of [
-      'Do not use workon-uat-test-design; explain what it does.',
-      "Don't use workon-uat-test-design.", 'Don’t use workon-uat-test-design.',
-      'Never load workon-uat-test-design.', 'Avoid workon-uat-test-design.',
-      'Test WorkON without skills.', 'Stop using workon-uat-test-design.',
-      'Không dùng workon-uat-test-design.', 'Đừng dùng workon-uat-test-design.',
-      'Khong dung workon-uat-test-design.', 'Chớ dùng workon-uat-test-design.',
+      'Do not use obsidian-uat-test-design; explain what it does.',
+      "Don't use obsidian-uat-test-design.", 'Don’t use obsidian-uat-test-design.',
+      'Never load obsidian-uat-test-design.', 'Avoid obsidian-uat-test-design.',
+      'Test UAT without skills.', 'Stop using obsidian-uat-test-design.',
+      'Không dùng obsidian-uat-test-design.', 'Đừng dùng obsidian-uat-test-design.',
+      'Khong dung obsidian-uat-test-design.', 'Chớ dùng obsidian-uat-test-design.',
     ]) expect(skillInjections(await proposeStep(ctx, agent, [user(task)]))).toEqual([])
-    expect(skillInjections(await proposeStep(ctx, agent, [user('Dùng workon-uat-test-design để kiểm thử.')]))).toHaveLength(1)
+    expect(skillInjections(await proposeStep(ctx, agent, [user('Dùng obsidian-uat-test-design để kiểm thử.')]))).toHaveLength(1)
     await ctx.fiber.dispose()
   })
 
@@ -709,7 +709,7 @@ describe('automatic invocation injection', () => {
       async list() { throw new Error('discovery failed') },
       async get() { return undefined },
     }))
-    expect(skillInjections(await proposeStep(incomplete.ctx, incomplete.agent, [user('test workon')]))).toEqual([])
+    expect(skillInjections(await proposeStep(incomplete.ctx, incomplete.agent, [user('test obsidian')]))).toEqual([])
 
     const home = await tempDir('automatic-load-policy')
     const ctx = await setup(home)
@@ -717,7 +717,7 @@ describe('automatic invocation injection', () => {
       name: 'automatic-load-policy',
       async list() {
         return ['missing', 'disabled', 'error'].map(kind => ({
-          name: `workon-${kind}-test`,
+          name: `obsidian-${kind}-test`,
           description: `${kind} automatic load`,
           invocation: { modelInvocable: true, userInvocable: true },
           provider: 'automatic-load-policy',
@@ -738,7 +738,7 @@ describe('automatic invocation injection', () => {
     }))
     const agent = agentForCwd(home)
     for (const kind of ['missing', 'disabled', 'error']) {
-      const decision = await proposeStep(ctx, agent, [user(`use workon-${kind}-test`)])
+      const decision = await proposeStep(ctx, agent, [user(`use obsidian-${kind}-test`)])
       expect(skillInjections(decision)).toEqual([])
     }
   })
@@ -751,7 +751,7 @@ describe('automatic invocation injection', () => {
       async list() { return [{ name: 'Invalid_Name' }] as never },
       async get() { return undefined },
     }))
-    const invalidDecision = await proposeStep(invalid, agentForCwd(invalidHome), [user('workon test')])
+    const invalidDecision = await proposeStep(invalid, agentForCwd(invalidHome), [user('obsidian test')])
     expect(skillInjections(invalidDecision)).toEqual([])
 
     const abortHome = await tempDir('automatic-aborted-discovery')
@@ -768,8 +768,8 @@ describe('automatic invocation injection', () => {
     const agent = agentForCwd(abortHome)
     await expect(agentEvents(aborted, agent).waterfall(
       'agent/pre-step',
-      { messages: [user('workon test')], turn: 1, step: 1, signal: controller.signal },
-      () => Promise.resolve({ kind: 'enter' as const, messages: [user('workon test')] }),
+      { messages: [user('obsidian test')], turn: 1, step: 1, signal: controller.signal },
+      () => Promise.resolve({ kind: 'enter' as const, messages: [user('obsidian test')] }),
     )).rejects.toMatchObject({ name: 'AbortError' })
   })
 })

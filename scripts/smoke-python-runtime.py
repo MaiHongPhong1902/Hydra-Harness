@@ -80,7 +80,7 @@ MINIMAL_SNAPSHOT_DIRECTORY = (
 MINIMAL_SNAPSHOT_FILENAMES = ("model-visible.json",)
 # The agent loop's dynamic runtime-context snapshot is the one model-visible message this
 # expected output cannot carry: the same composition emits it on macOS and not on Linux
-# (bosch-harness#2488), and the file must replay on both. Everything else is compared.
+# (issue #2488), and the file must replay on both. Everything else is compared.
 RUNTIME_CONTEXT_PREFIX = "Current runtime context"
 CUSTOM_CORDIS = """\
 - id: sdk-jsonrpc-server
@@ -97,7 +97,7 @@ CUSTOM_CORDIS = """\
 - id: sessions
   name: '@hydra/harness-session-persistence-jsonl'
   config:
-    root: !!js process.env.BH_SESSION_ROOT
+    root: !!js process.env.HYDRA_SESSION_ROOT
     compression: 'none'
 - id: code-runtime
   name: '@hydra/harness-code-runtime-worker-thread'
@@ -136,7 +136,7 @@ FS_SEARCH_CORDIS = """\
 - id: sessions
   name: '@hydra/harness-session-persistence-jsonl'
   config:
-    root: !!js process.env.BH_SESSION_ROOT
+    root: !!js process.env.HYDRA_SESSION_ROOT
     compression: 'none'
 - id: subprocess
   name: '@hydra/harness-subprocess-local'
@@ -720,7 +720,7 @@ def main() -> None:
 def smoke_sdk_default(base_url: str) -> None:
     from hydra_harness import HydraHarness
 
-    with tempfile.TemporaryDirectory(prefix="bh-sdk-default-") as temporary:
+    with tempfile.TemporaryDirectory(prefix="hydra-sdk-default-") as temporary:
         root = Path(temporary).resolve()
         sessions = root / "sessions"
         with HydraHarness(
@@ -740,7 +740,7 @@ def smoke_sdk_default(base_url: str) -> None:
 def smoke_sdk_custom(base_url: str, executable: Path) -> None:
     from hydra_harness import HydraHarness
 
-    with tempfile.TemporaryDirectory(prefix="bh-sdk-custom-") as temporary:
+    with tempfile.TemporaryDirectory(prefix="hydra-sdk-custom-") as temporary:
         root = Path(temporary).resolve()
         sessions = root / "sessions"
         cordis = root / "cordis.yml"
@@ -771,7 +771,7 @@ def smoke_sdk_minimal(base_url: str, executable: Path, update_snapshots: bool) -
 
     # One mock model serves every scenario of a run, so the snapshot takes this turn's slice.
     first_request = len(MockModelHandler.requests)
-    with tempfile.TemporaryDirectory(prefix="bh-sdk-minimal-") as temporary:
+    with tempfile.TemporaryDirectory(prefix="hydra-sdk-minimal-") as temporary:
         root = Path(temporary).resolve()
         editor_path = root / "created.txt"
         prompt = f"{MINIMAL_PROMPT}\n{MINIMAL_EDITOR_PATH_PREFIX}{editor_path}"
@@ -806,7 +806,7 @@ def smoke_sdk_fs_search(base_url: str, executable: Path) -> None:
     """Exercise real grep and glob spawns through the packaged executable."""
     from hydra_harness import HydraHarness
 
-    with tempfile.TemporaryDirectory(prefix="bh-sdk-fs-search-") as temporary:
+    with tempfile.TemporaryDirectory(prefix="hydra-sdk-fs-search-") as temporary:
         root = Path(temporary).resolve()
         (root / "needle.txt").write_text(f"{FS_SEARCH_MARKER}\n")
         sessions = root / "sessions"
@@ -833,7 +833,7 @@ def smoke_sdk_mcp(base_url: str, executable: Path | None) -> None:
     """Discover and call an external stdio MCP tool through the packaged client."""
     from hydra_harness import HydraHarness
 
-    with tempfile.TemporaryDirectory(prefix="bh-sdk-mcp-") as temporary:
+    with tempfile.TemporaryDirectory(prefix="hydra-sdk-mcp-") as temporary:
         root = Path(temporary).resolve()
         sessions = root / "sessions"
         server_script = root / "mcp_server.py"
@@ -868,7 +868,7 @@ def smoke_sdk_snapshot(base_url: str, executable: Path, update_snapshots: bool) 
     """Drive and compare the advanced SDK/executable behavioral snapshot."""
     from hydra_harness import HydraHarness
 
-    with tempfile.TemporaryDirectory(prefix="bh-sdk-snapshot-") as temporary:
+    with tempfile.TemporaryDirectory(prefix="hydra-sdk-snapshot-") as temporary:
         root = Path(temporary).resolve()
         sessions = root / "sessions"
         cordis = root / "cordis.yml"
@@ -910,16 +910,16 @@ def smoke_sdk_snapshot(base_url: str, executable: Path, update_snapshots: bool) 
 
 
 def smoke_direct(base_url: str, executable: Path) -> None:
-    with tempfile.TemporaryDirectory(prefix="bh-direct-") as temporary:
+    with tempfile.TemporaryDirectory(prefix="hydra-direct-") as temporary:
         root = Path(temporary).resolve()
         sessions = root / "sessions"
         cordis = root / "cordis.yml"
         cordis.write_text(CUSTOM_CORDIS)
         environment = {
             **os.environ,
-            "BH_CORDIS_CONFIG": str(cordis),
-            "BH_SESSION_ROOT": str(sessions),
-            "BH_CWD": str(root),
+            "HYDRA_CORDIS_CONFIG": str(cordis),
+            "HYDRA_SESSION_ROOT": str(sessions),
+            "HYDRA_CWD": str(root),
             "DEEPSEEK_API_KEY": "sk-keyless-smoke",
             "DEEPSEEK_BASE_URL": base_url,
         }

@@ -58,7 +58,7 @@ async function loadComposition(configPath: string): Promise<Context> {
 
 describe('message feedback through a real Loader composition', () => {
   it('persists a checkpointed target and its sidecar across a cold restart', async () => {
-    root = await mkdtemp(join(tmpdir(), 'bh-message-feedback-loader-'))
+    root = await mkdtemp(join(tmpdir(), 'hydra-message-feedback-loader-'))
     const configPath = join(root, 'cordis.yml')
     await writeFile(configPath, [
       "- name: '@hydra/harness-session'",

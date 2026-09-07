@@ -40,7 +40,7 @@ beforeEach(async () => {
   // would be legitimately writable. Sibling dirs under HOME are outside every
   // grant, so containment failures are real denials. (The bwrap e2e roots its
   // workspaces under HOME for the same reason.)
-  base = await mkdtemp(join(homedir(), '.bh-fssbx-'))
+  base = await mkdtemp(join(homedir(), '.hydra-fssbx-'))
   workspace = join(base, 'ws')
   outside = join(base, 'out')
   await mkdir(workspace)
@@ -98,7 +98,7 @@ describe('workspace-write containment', () => {
   })
 
   it('a write to the platform temp area lands (parity with the bash runner grant)', async () => {
-    const path = join(await mkdtemp(join(tmpdir(), 'bh-fssbx-tmp-')), 'temp.txt')
+    const path = join(await mkdtemp(join(tmpdir(), 'hydra-fssbx-tmp-')), 'temp.txt')
     await fs.writeText(await target(path), 'temp')
     expect(await readFile(path, 'utf8')).toBe('temp')
   })

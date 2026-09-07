@@ -106,7 +106,7 @@ export function inspectSiteFragments(distRoot: string): SiteFragmentReport {
     }
   }
 
-  const origin = 'https://bh-docs.invalid'
+  const origin = 'https://hydra-docs.invalid'
   const broken: BrokenSiteFragment[] = []
   let checked = 0
   for (const page of pages) {

@@ -1,3 +1,3 @@
 [
-  { "kind": "hang", "readyFile": ".bh-snapshot-stream-ready" }
+  { "kind": "hang", "readyFile": ".hydra-snapshot-stream-ready" }
 ]

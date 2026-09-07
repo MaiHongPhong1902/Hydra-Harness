@@ -22,7 +22,7 @@ describe('web e2e: plugin settings regressions', () => {
   beforeAll(async () => {
     if (MODE !== 'replay') await mkdir(SNAPSHOT_DIR, { recursive: true })
     scaffold = await launchWebScaffold({
-      deepSeekSearch: { baseURL: 'https://example.invalid', apiKeyEnv: 'BH_PLUGIN_REGRESSION_KEY' },
+      deepSeekSearch: { baseURL: 'https://example.invalid', apiKeyEnv: 'HYDRA_PLUGIN_REGRESSION_KEY' },
     })
     marketplaceRoot = join(scaffold.harnessHome, 'regression-marketplace')
     const pluginRoot = join(marketplaceRoot, 'plugins', 'regression-plugin')

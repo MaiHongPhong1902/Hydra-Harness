@@ -10,7 +10,7 @@
     root: './.sessions'
     compression: none
 
-# file/override both default to their BH_SNAPSHOT_* env vars.
+# file/override both default to their HYDRA_SNAPSHOT_* env vars.
 - id: replay
   name: '@hydra/harness-llm-replay'
 

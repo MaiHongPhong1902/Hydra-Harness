@@ -171,7 +171,7 @@ let base: string
 const tempDirs: string[] = []
 
 async function makeDir(name: string): Promise<string> {
-  base ??= await realpath(await mkdtemp(join(tmpdir(), 'bh-workspace-')))
+  base ??= await realpath(await mkdtemp(join(tmpdir(), 'hydra-workspace-')))
   if (tempDirs.length === 0) tempDirs.push(base)
   const dir = join(base, name)
   await mkdir(dir, { recursive: true })

@@ -18,7 +18,7 @@ function fixture(options: {
   indexSource?: string
   files?: Record<string, string>
 } = {}): string {
-  const root = mkdtempSync(join(tmpdir(), 'bh-publint-all-'))
+  const root = mkdtempSync(join(tmpdir(), 'hydra-publint-all-'))
   roots.push(root)
   const packageDir = join(root, 'packages/core/probe')
   mkdirSync(join(packageDir, 'lib'), { recursive: true })

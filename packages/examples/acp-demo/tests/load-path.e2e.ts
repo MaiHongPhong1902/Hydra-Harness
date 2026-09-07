@@ -89,8 +89,8 @@ async function boot(): Promise<Spawned & { cwd: string }> {
         TSX_TSCONFIG_PATH: repoTsconfig,
         // Key-present check only; no prompt is sent, so the model is never called.
         DEEPSEEK_API_KEY: process.env.DEEPSEEK_API_KEY ?? 'keyless-acp-agent-smoke',
-        BH_HOME: join(cwd, '.bh'),
-        BH_AGENTS_HOME: join(cwd, '.agents'),
+        HYDRA_HOME: join(cwd, '.hydra'),
+        HYDRA_AGENTS_HOME: join(cwd, '.agents'),
       },
       stdio: ['pipe', 'pipe', 'pipe'],
     },
@@ -115,7 +115,7 @@ async function boot(): Promise<Spawned & { cwd: string }> {
   return { ...spawned, cwd }
 }
 
-describe('bh-acp-demo real-load-path smoke (bin + Loader, keyless)', () => {
+describe('hydra-acp-demo real-load-path smoke (bin + Loader, keyless)', () => {
   it('boots via its bin and exposes only fresh text sessions', async () => {
     const { client, cwd, stderr } = await boot()
     // initialize: a broken export shape (collapsed bridge plugin, dropped inject)

@@ -12,11 +12,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   apply, createClientModuleSystem, parseBootManifest,
   type BootModuleRow, type ClientBundleRegistration, type ClientModuleCreateOptions,
-  type ClientModuleLoader, type ClientModuleLoaderTarget, type BhWindow,
+  type ClientModuleLoader, type ClientModuleLoaderTarget, type HydraWindow,
 } from '../src/client/index.ts'
 
 const MODULES_ID = '@hydra/harness-client-modules'
-const win = globalThis as BhWindow
+const win = globalThis as HydraWindow
 const bootstrapExports = { apply, createClientModuleSystem }
 
 type Factory = ClientBundleRegistration['factory']

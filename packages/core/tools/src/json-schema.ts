@@ -9,7 +9,7 @@
  * Unsupported or misplaced keywords reject rather than being accepted without
  * enforcement. Consumers that require an object root apply
  * {@link assertObjectJsonSchema} before accepting input.
- * @module bh-tools/json-schema
+ * @module hydra-tools/json-schema
  */
 
 import { assertNever, HarnessError } from '@hydra/harness-llm'

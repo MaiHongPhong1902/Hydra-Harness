@@ -24,23 +24,23 @@ describe('Obsidian MCP read backend', () => {
   }
   const notes = new Map<string, string>([
     [`${vaultMarker.path}.md`, vaultMarker.markdown],
-    ['BH Website Knowledge/Imported/Test Cases/TC-0001.md', '# Complete MCP note\n\nExpected result: Payroll is listed.\n'],
+    ['Hydra Website Knowledge/Imported/Test Cases/TC-0001.md', '# Complete MCP note\n\nExpected result: Payroll is listed.\n'],
   ])
   const seenReads: string[] = []
   const seenWrites: Array<{ path: string; content: string }> = []
   const rankingPayload = [
     {
-      filename: 'BH Website Knowledge/Imported/Test Cases/TC-0000.md',
+      filename: 'Hydra Website Knowledge/Imported/Test Cases/TC-0000.md',
       score: 200,
       matches: [{ context: 'Navigate to the Applications page, then click the Import button' }],
     },
     ...Array.from({ length: 9 }, (_, index) => ({
-      filename: `BH Website Knowledge/Imported/Features/noise-${index}.md`,
+      filename: `Hydra Website Knowledge/Imported/Features/noise-${index}.md`,
       score: 100 - index,
       matches: [{ context: 'Import Applications related link' }],
     })),
     {
-      filename: 'BH Website Knowledge/Imported/Test Cases/TC-9999.md',
+      filename: 'Hydra Website Knowledge/Imported/Test Cases/TC-9999.md',
       score: 1,
       matches: [{ context: 'Import Applications' }],
     },
@@ -68,7 +68,7 @@ describe('Obsidian MCP read backend', () => {
             : JSON.stringify([
               { filename: 'Other/private.md', score: 2, matches: ['must be filtered'] },
               {
-                filename: 'BH Website Knowledge/Imported/Test Cases/TC-0001.md',
+                filename: 'Hydra Website Knowledge/Imported/Test Cases/TC-0001.md',
                 score: 1,
                 matches: [{ context: 'Payroll application' }],
               },
@@ -128,14 +128,14 @@ describe('Obsidian MCP read backend', () => {
     const storage = createObsidianMcpStorage(options())
     await expect(storage.verifyVault()).resolves.toEqual(vaultMarker)
     await expect(storage.search('Payroll')).resolves.toEqual([{
-      path: 'BH Website Knowledge/Imported/Test Cases/TC-0001',
+      path: 'Hydra Website Knowledge/Imported/Test Cases/TC-0001',
       title: 'TC-0001',
       excerpt: '[{"context":"Payroll application"}]',
     }])
     await expect(storage.readNotes([
-      'BH Website Knowledge/Imported/Test Cases/TC-0001',
+      'Hydra Website Knowledge/Imported/Test Cases/TC-0001',
     ])).resolves.toEqual([{
-      path: 'BH Website Knowledge/Imported/Test Cases/TC-0001',
+      path: 'Hydra Website Knowledge/Imported/Test Cases/TC-0001',
       markdown: '# Complete MCP note\n\nExpected result: Payroll is listed.\n',
     }])
     expect(seenReads).toContain(`${OBSIDIAN_MCP_VAULT_MARKER_PATH}.md`)
@@ -154,8 +154,8 @@ describe('Obsidian MCP read backend', () => {
 
   it('returns undefined only when MCP reports one exact note missing', async () => {
     const storage = createObsidianMcpStorage(options())
-    const existingPath = 'BH Website Knowledge/Imported/Test Cases/TC-0001'
-    await expect(storage.readNote('BH Website Knowledge/Imported/Test Cases/TC-missing')).resolves.toBeUndefined()
+    const existingPath = 'Hydra Website Knowledge/Imported/Test Cases/TC-0001'
+    await expect(storage.readNote('Hydra Website Knowledge/Imported/Test Cases/TC-missing')).resolves.toBeUndefined()
     await expect(storage.readNote(existingPath)).resolves.toEqual({
       path: existingPath,
       markdown: '# Complete MCP note\n\nExpected result: Payroll is listed.\n',
@@ -171,7 +171,7 @@ describe('Obsidian MCP read backend', () => {
   it('reranks the complete Obsidian hit set and keeps individual test cases', async () => {
     const results = await searchObsidianMcp(options(), 'Import Applications')
     expect(results).toHaveLength(6)
-    expect(results?.[0]?.path).toBe('BH Website Knowledge/Imported/Test Cases/TC-9999')
+    expect(results?.[0]?.path).toBe('Hydra Website Knowledge/Imported/Test Cases/TC-9999')
   })
 
   it('fails closed for rejected authentication or a missing MCP vault marker', async () => {
@@ -184,7 +184,7 @@ describe('Obsidian MCP read backend', () => {
 
   it('writes one exact validated logical note through MCP and reads it back', async () => {
     const note = {
-      path: 'BH Website Knowledge/Imported/Approved Knowledge/approved-fixture',
+      path: 'Hydra Website Knowledge/Imported/Approved Knowledge/approved-fixture',
       markdown: '# Approved fixture\n\nExact content.\n',
     }
     const readsBefore = seenReads.length

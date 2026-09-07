@@ -53,7 +53,7 @@ afterAll(() => {
 })
 
 function scratch(): string {
-  const dir = mkdtempSync(join(tmpdir(), 'bh-acl-index-'))
+  const dir = mkdtempSync(join(tmpdir(), 'hydra-acl-index-'))
   scratchDirs.push(dir)
   return dir
 }

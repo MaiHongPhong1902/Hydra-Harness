@@ -2,7 +2,7 @@
 
 How a plugin puts its own configuration on the web settings page. Nothing in this path needs a change inside this repository: the Host serves every registered settings namespace, and the **Plugins** section keys its cards on the namespace they edit, so a plugin that registers both halves is paired up automatically.
 
-The two halves live in one package — the Host half under `src/`, the browser half under `src/client/`, exported as `./client` and declared with `bh.client`. [`packages/client/ui-theme`](../../packages/client/ui-theme) is a worked example of that packaging; the cards this section ships live in [`packages/client/ui-settings-plugins`](../../packages/client/ui-settings-plugins).
+The two halves live in one package — the Host half under `src/`, the browser half under `src/client/`, exported as `./client` and declared with `hydra.client`. [`packages/client/ui-theme`](../../packages/client/ui-theme) is a worked example of that packaging; the cards this section ships live in [`packages/client/ui-settings-plugins`](../../packages/client/ui-settings-plugins).
 
 ## 1. Register the namespace (Host half)
 
@@ -75,7 +75,7 @@ Cards appear in the order they registered into the slot; a keyed entry declares 
 
 ## Packaging
 
-The browser half is served to the page by the [client module system](../../packages/client/modules), which scans the enabled Loader entries for packages declaring `bh.client` and serves each one's built `./client` export. So the plugin appears on the page as soon as a `cordis.yml` mounts it — no rebuild of the web application.
+The browser half is served to the page by the [client module system](../../packages/client/modules), which scans the enabled Loader entries for packages declaring `hydra.client` and serves each one's built `./client` export. So the plugin appears on the page as soon as a `cordis.yml` mounts it — no rebuild of the web application.
 
 ```jsonc
 {
@@ -83,7 +83,7 @@ The browser half is served to the page by the [client module system](../../packa
     ".": { "types": "./lib/types/index.d.ts", "default": "./lib/index.js" },
     "./client": { "types": "./lib/types/client/index.d.ts", "default": "./lib/client.js" }
   },
-  "bh": { "client": { "platform": "web", "inject": ["@hydra/harness-client-ui-settings-plugins"] } }
+  "hydra": { "client": { "platform": "web", "inject": ["@hydra/harness-client-ui-settings-plugins"] } }
 }
 ```
 

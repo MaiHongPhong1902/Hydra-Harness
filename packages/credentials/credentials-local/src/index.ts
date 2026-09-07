@@ -1,15 +1,15 @@
 /**
- * File-backed credentials provider over `$BH_HOME/.credentials.yaml`, layered
+ * File-backed credentials provider over `$HYDRA_HOME/.credentials.yaml`, layered
  * against the environment by how much each layer is trusted:
  *
  * ```text
  * inherited process environment      (read-only, wins)
- * > $BH_HOME/.credentials.yaml      (provider-managed, writable)
+ * > $HYDRA_HOME/.credentials.yaml      (provider-managed, writable)
  * > <invocation cwd>/.env            (read-only fallback)
- * > $BH_HOME/.env                   (read-only fallback)
+ * > $HYDRA_HOME/.env                   (read-only fallback)
  * ```
  *
- * The inherited environment wins because `DEEPSEEK_API_KEY=… bh`, a CI
+ * The inherited environment wins because `DEEPSEEK_API_KEY=… hydra`, a CI
  * secret, or a container `-e` is this run's explicit intent; it cannot be
  * edited from inside, so it must be *visibly* read-only rather than silently
  * shadow writes. Everything below it loses to the managed store, so a key the
@@ -42,7 +42,7 @@ import { mkdir, readFile, stat } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
 import { Document, isMap, isScalar, parseDocument, type YAMLError } from 'yaml'
 import { withFileLock, writeFileAtomic } from '@hydra/harness-atomic-write'
-import { canonicalizeWatchPath, resolveBhHome } from '@hydra/harness-home-paths'
+import { canonicalizeWatchPath, resolveHydraHome } from '@hydra/harness-home-paths'
 import { launchEnvironmentOf } from '@hydra/harness-launch-environment'
 import { CredentialProvider, credentialRef, parseCredentialKey } from '@hydra/harness-credentials'
 import type {
@@ -64,8 +64,8 @@ export const CREDENTIALS_FILENAME = '.credentials.yaml'
 export interface Config {
   /** Credentials document path; defaults to `.credentials.yaml` under the harness home. */
   path?: string
-  /** Harness home used when `path` is omitted; defaults to `$BH_HOME` or `~/.bh`. */
-  bhHome?: string
+  /** Harness home used when `path` is omitted; defaults to `$HYDRA_HOME` or `~/.hydra`. */
+  hydraHome?: string
   /** Watch the document and hot-publish external edits; defaults to true. */
   watch?: boolean
   /** Watcher write-settle window in milliseconds; defaults to 100. */
@@ -87,7 +87,7 @@ interface ResolvedSpec {
  */
 export function resolveSpec(config: Config): ResolvedSpec {
   return {
-    filename: resolve(config.path ?? join(resolveBhHome(config.bhHome), CREDENTIALS_FILENAME)),
+    filename: resolve(config.path ?? join(resolveHydraHome(config.hydraHome), CREDENTIALS_FILENAME)),
     watch: config.watch ?? true,
     debounceMs: config.debounceMs ?? 100,
   }
@@ -509,14 +509,14 @@ function sameJsonValue(left: unknown, right: unknown): boolean {
     && sameJsonValue((left as Record<string, unknown>)[key], (right as Record<string, unknown>)[key]))
 }
 
-/** File-backed credentials provider (`$BH_HOME/.credentials.yaml`). */
+/** File-backed credentials provider (`$HYDRA_HOME/.credentials.yaml`). */
 export class LocalCredentialProvider extends CredentialProvider {
   /* jscpd:ignore-start -- deliberate config-surface and lifecycle symmetry with
      settings-file (prefer symmetry for parallel values); extracting the shared
      shape would couple the two providers' teardown semantics across packages. */
   static Config: z<Config> = z.object({
     path: z.string(),
-    bhHome: z.string(),
+    hydraHome: z.string(),
     watch: z.boolean().default(true),
     debounceMs: z.number().min(0).default(100),
   })
@@ -795,7 +795,7 @@ export class LocalCredentialProvider extends CredentialProvider {
     if (this.inherited(ref) !== undefined) {
       throw new Error(
         `credentials-local: "${ref}" is supplied read-only by the launching environment, so ${verb} would be`
-        + ' shadowed; unset it in the shell you start bh from instead',
+        + ' shadowed; unset it in the shell you start hydra from instead',
       )
     }
   }

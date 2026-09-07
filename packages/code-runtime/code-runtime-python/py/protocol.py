@@ -1,4 +1,4 @@
-"""Wire protocol vocabulary for the Python side of bh-code-runtime-python.
+"""Wire protocol vocabulary for the Python side of hydra-code-runtime-python.
 
 Mirrors ``src/protocol.ts``. Frames travel on fd 3 as JSON-lines (one JSON
 object per line). The host validates every inbound frame; this side trusts
@@ -135,4 +135,4 @@ def log_truncation_marker(max_bytes: int) -> str:
     same however the cap was hit.
     """
 
-    return f"[bh-code-runtime-python] log capture truncated at {max_bytes} bytes"
+    return f"[hydra-code-runtime-python] log capture truncated at {max_bytes} bytes"

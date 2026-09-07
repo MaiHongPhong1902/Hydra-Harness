@@ -29,7 +29,7 @@ export type BrowserPolicy = 'allow' | 'ask' | 'block'
 export type BrowserClearDataScope = 'all' | 'history' | 'site-data' | 'cache' | 'downloads'
 
 /** Where a user-opened URL leaves the desktop application. */
-export type BrowserDestination = 'bhagent' | 'system'
+export type BrowserDestination = 'hydra' | 'system'
 
 /** Whether a browser annotation carries a bounded element screenshot. */
 export type BrowserAnnotationScreenshots = 'include' | 'ask' | 'never'
@@ -184,7 +184,7 @@ export interface DesktopPanelApi {
 
 declare global {
   interface Window {
-    bhDesktop?: {
+    hydraDesktop?: {
       browser: DesktopBrowserApi
       terminal?: DesktopTerminalApi
       files?: DesktopFilesApi
@@ -324,7 +324,7 @@ export function DesktopBrowserPanel(props: {
   onOpen: () => void
 }) {
   const { createSideSession, onCloseChooser, onOpen } = props
-  const api = window.bhDesktop?.browser
+  const api = window.hydraDesktop?.browser
   const viewportRef = useRef<HTMLDivElement | null>(null)
   const sideChatNumber = useRef(0)
   const [tabs, setTabs] = useState<RightPanelTab[]>([INITIAL_TAB])
@@ -379,7 +379,7 @@ export function DesktopBrowserPanel(props: {
     onCloseChooser()
   }, [createSideSession, onCloseChooser, onOpen])
 
-  useEffect(() => window.bhDesktop?.panels?.onShortcut((shortcut) => {
+  useEffect(() => window.hydraDesktop?.panels?.onShortcut((shortcut) => {
     selectPanel(shortcut)
   }), [selectPanel])
 
@@ -388,7 +388,7 @@ export function DesktopBrowserPanel(props: {
     setTabs((current) => {
       const index = current.findIndex(tab => tab.id === id)
       if (index < 0) return current
-      if (current[index]?.kind === 'terminal') void window.bhDesktop?.terminal?.stop('right')
+      if (current[index]?.kind === 'terminal') void window.hydraDesktop?.terminal?.stop('right')
       const next = current.filter(tab => tab.id !== id)
       if (activeId === id) setActiveId(next[Math.min(index, next.length - 1)]?.id ?? '')
       return next

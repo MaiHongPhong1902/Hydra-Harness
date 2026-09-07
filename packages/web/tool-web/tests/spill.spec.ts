@@ -1,6 +1,6 @@
 /**
  * Showcase integration: the real `web_fetch` tool + the real spill stack
- * (`bh-spill-local` backend + `bh-spill-policy`), exercised through
+ * (`hydra-spill-local` backend + `hydra-spill-policy`), exercised through
  * `ctx.tools.execute()`. Proves the Agent Note's default local-backend path — a large
  * formatted fetch result is automatically retained and spilled with NO
  * tool-specific spill code, and the model-facing text changes ONLY by the
@@ -43,7 +43,7 @@ beforeEach(async () => {
   server = createServer((req, res) => { handler(req, res) })
   await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve))
   base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`
-  spillRoot = mkdtempSync(join(tmpdir(), 'bh-spill-web-'))
+  spillRoot = mkdtempSync(join(tmpdir(), 'hydra-spill-web-'))
 
   ctx = new Context()
   await ctx.plugin(SystemPrompt)

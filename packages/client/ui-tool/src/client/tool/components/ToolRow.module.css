@@ -45,12 +45,12 @@
     color-mix(in srgb, var(--dsw-alias-bg-base) 60%, transparent) 55%,
     transparent 100%
   );
-  animation: bh-tool-row-sweep 2.6s var(--ds-ease-in-out) infinite;
+  animation: hydra-tool-row-sweep 2.6s var(--ds-ease-in-out) infinite;
   pointer-events: none;
   transform: translateX(-125%);
 }
 
-@keyframes bh-tool-row-sweep {
+@keyframes hydra-tool-row-sweep {
   0% { transform: translateX(-125%); }
   90%, 100% { transform: translateX(350%); }
 }

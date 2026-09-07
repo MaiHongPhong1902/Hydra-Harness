@@ -6,7 +6,7 @@ Status: implemented
 
 The web shell renders `Loading plugins…` before the browser-side plugin tree activates. ui-theme's token styles arrive with its dynamic client bundle, so the framework-free loading page uses a private light/dark fallback palette. Without an earlier write to `color-scheme` and `body[data-ds-dark-theme]`, a persisted dark preference would still render that page first with its light fallback and then switch to dark when ui-theme's ThemeRuntime and ui-layout's ThemePresenter activate.
 
-`bhClient.immediately` only includes the bundle in first-stage prefetching; it does not cause the plugin to execute before HTML parsing or the shell's initial render. Changing only the client plugin's loading tier cannot close this window.
+`hydraClient.immediately` only includes the bundle in first-stage prefetching; it does not cause the plugin to execute before HTML parsing or the shell's initial render. Changing only the client plugin's loading tier cannot close this window.
 
 ## Decision
 

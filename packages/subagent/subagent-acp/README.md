@@ -55,7 +55,7 @@ ACP advertises no start-time capabilities because this process cannot enforce th
 
 ## Process boundary
 
-The child spawns through the [`@hydra/harness-subprocess`](../../subprocess/subprocess/README.md) seam: credential-shaped ambient variables and ambient `BH_*` names are removed by the shared scrub, then explicit `config.env` values merge after it (an intended `DEEPSEEK_API_KEY` survives, and a `BH_*` deployment fact such as `BH_PERMISSION_MODE` reaches the child the same way — the scrub drops only its stale ambient namesake), stderr is inherited to the parent's own stream, and disposal applies this plugin's EOF window before the subprocess-owned SIGTERM→SIGKILL escalation and whole-tree join. The ACP wire is the real serialization boundary; same-process subagent values are not defensively cloned.
+The child spawns through the [`@hydra/harness-subprocess`](../../subprocess/subprocess/README.md) seam: credential-shaped ambient variables and ambient `HYDRA_*` names are removed by the shared scrub, then explicit `config.env` values merge after it (an intended `DEEPSEEK_API_KEY` survives, and a `HYDRA_*` deployment fact such as `HYDRA_PERMISSION_MODE` reaches the child the same way — the scrub drops only its stale ambient namesake), stderr is inherited to the parent's own stream, and disposal applies this plugin's EOF window before the subprocess-owned SIGTERM→SIGKILL escalation and whole-tree join. The ACP wire is the real serialization boundary; same-process subagent values are not defensively cloned.
 
 The package has no default export. Cordis loader unwrapping would otherwise hide the named `inject` metadata; see [postmortem 0001](../../../docs/postmortem/0001-acp-default-export-drops-inject.md).
 

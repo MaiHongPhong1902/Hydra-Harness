@@ -9,4 +9,4 @@ The shared process substrate for one execution world: executable lookup, fully-s
 
 The service owns process lifetime across consumer reloads; consumers own what a process means (a bash command, a future non-shell runner) and every default that shapes one.
 
-The subsystem reference — spawn specs, output readers, outcomes, the `BH_*` environment — is [docs/subsystems/subprocess.md](../../docs/subsystems/subprocess.md); the seam decision in the [subprocess seam Agent Note](../../.agents/notes/implemented/architecture/2026-07-26-subprocess-seam.md).
+The subsystem reference — spawn specs, output readers, outcomes, the `HYDRA_*` environment — is [docs/subsystems/subprocess.md](../../docs/subsystems/subprocess.md); the seam decision in the [subprocess seam Agent Note](../../.agents/notes/implemented/architecture/2026-07-26-subprocess-seam.md).

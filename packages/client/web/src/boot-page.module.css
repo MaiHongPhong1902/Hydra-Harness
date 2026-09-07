@@ -1,26 +1,26 @@
 /* The framework-free boot page cannot depend on theme delivery succeeding. */
 
 .boot {
-  --bh-boot-bg: #fff;
-  --bh-boot-label-primary: #0f1115;
-  --bh-boot-label-secondary: #61666b;
-  --bh-boot-label-tertiary: #81858c;
-  --bh-boot-border: rgb(0 0 0 / 10%);
-  --bh-boot-brand: #0f1115;
+  --hydra-boot-bg: #fff;
+  --hydra-boot-label-primary: #0f1115;
+  --hydra-boot-label-secondary: #61666b;
+  --hydra-boot-label-tertiary: #81858c;
+  --hydra-boot-border: rgb(0 0 0 / 10%);
+  --hydra-boot-brand: #0f1115;
 
   height: 100%;
   display: grid;
   place-items: center;
-  background: var(--dsw-alias-bg-base, var(--bh-boot-bg));
+  background: var(--dsw-alias-bg-base, var(--hydra-boot-bg));
 }
 
 :global(body[data-ds-dark-theme]) .boot {
-  --bh-boot-bg: #151517;
-  --bh-boot-label-primary: #f9fafb;
-  --bh-boot-label-secondary: #cfd3d6;
-  --bh-boot-label-tertiary: #adb2b8;
-  --bh-boot-border: rgb(255 255 255 / 12%);
-  --bh-boot-brand: #f9fafb;
+  --hydra-boot-bg: #151517;
+  --hydra-boot-label-primary: #f9fafb;
+  --hydra-boot-label-secondary: #cfd3d6;
+  --hydra-boot-label-tertiary: #adb2b8;
+  --hydra-boot-border: rgb(255 255 255 / 12%);
+  --hydra-boot-brand: #f9fafb;
 }
 
 .card {
@@ -35,13 +35,13 @@
   line-height: 24px;
   font-weight: 600;
   letter-spacing: 0.08em;
-  color: var(--dsw-alias-label-primary, var(--bh-boot-label-primary));
+  color: var(--dsw-alias-label-primary, var(--hydra-boot-label-primary));
 }
 
 .hint {
   font-size: 12px;
   line-height: 18px;
-  color: var(--dsw-alias-label-tertiary, var(--bh-boot-label-tertiary));
+  color: var(--dsw-alias-label-tertiary, var(--hydra-boot-label-tertiary));
 }
 
 .spinner {
@@ -49,7 +49,7 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  border: 2px solid var(--dsw-alias-border-l2, var(--bh-boot-border));
+  border: 2px solid var(--dsw-alias-border-l2, var(--hydra-boot-border));
   animation: spin 0.8s linear infinite;
 }
 
@@ -59,7 +59,7 @@
   inset: -2px;
   border-radius: inherit;
   background: conic-gradient(
-    var(--dsw-alias-brand-primary, var(--bh-boot-brand)) var(--bh-boot-arc, 72deg),
+    var(--dsw-alias-brand-primary, var(--hydra-boot-brand)) var(--hydra-boot-arc, 72deg),
     transparent 0
   );
   -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 0);
@@ -81,7 +81,7 @@
   font-size: 14px;
   line-height: 22px;
   font-weight: 600;
-  color: var(--dsw-alias-label-primary, var(--bh-boot-label-primary));
+  color: var(--dsw-alias-label-primary, var(--hydra-boot-label-primary));
 }
 
 .failedItem {
@@ -99,6 +99,6 @@
   );
   font-size: 12px;
   line-height: 18px;
-  color: var(--dsw-alias-label-secondary, var(--bh-boot-label-secondary));
+  color: var(--dsw-alias-label-secondary, var(--hydra-boot-label-secondary));
   white-space: pre-wrap;
 }

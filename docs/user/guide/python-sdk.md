@@ -15,8 +15,8 @@ This tutorial is the programmatic alternative to the Web UI. It installs the pub
 Clone the repository for its runnable example, create a virtual environment, and install the SDK with its same-version bundled runtime:
 
 ```sh
-git clone https://github.com/bosch/bosch-harness.git
-cd bosch-harness
+git clone https://github.com/MaiHongPhong1902/Hydra-Harness.git
+cd Hydra-Harness
 python -m venv .venv
 . .venv/bin/activate
 python -m pip install hydra-harness-sdk
@@ -31,8 +31,8 @@ Set the credential in the environment. Set `DEEPSEEK_BASE_URL` as well when the 
 ```sh
 export DEEPSEEK_API_KEY=sk-your-key-here
 # export DEEPSEEK_BASE_URL=http://127.0.0.1:8000/v1
-# export BH_MODEL=deepseek-v4-flash
-# export BH_SYSTEM_PROMPT='You are a helpful software engineer assistant.'
+# export HYDRA_MODEL=deepseek-v4-flash
+# export HYDRA_SYSTEM_PROMPT='You are a helpful software engineer assistant.'
 ```
 
 Run one task against an isolated workspace and session directory:
@@ -82,14 +82,14 @@ print(result.final_response)
 
 | Property | Value |
 |---|---|
-| System prompt | `BH_SYSTEM_PROMPT`, falling back to `You are a helpful software engineer assistant.` |
-| Model in `minimal.py` | `--model`, then `BH_MODEL`, then `deepseek-v4-flash` |
+| System prompt | `HYDRA_SYSTEM_PROMPT`, falling back to `You are a helpful software engineer assistant.` |
+| Model in `minimal.py` | `--model`, then `HYDRA_MODEL`, then `deepseek-v4-flash` |
 | Model-facing tools | Persistent `bash` and `str_replace_editor` only |
 | Bash timeout | 300 seconds |
 | Editor output limit | 16,000 characters |
 | Context compaction | Disabled |
 | Filesystem | Bare local backend; absolute editor paths may address any path visible to the runtime process |
-| Session persistence | Uncompressed JSONL under `BH_SESSION_ROOT` |
+| Session persistence | Uncompressed JSONL under `HYDRA_SESSION_ROOT` |
 
 The composition omits harness identity, workspace prompt text, skills, one-shot Bash, task tools, compaction, and every other model-facing plugin. Sandbox-policy facts are logged as runtime user context rather than appended to the system prompt.
 
