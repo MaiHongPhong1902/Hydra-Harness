@@ -693,7 +693,7 @@ Source: [`packages/core/session/src/types.ts:336`](../packages/core/session/src/
 'session/revision': ConversationRevision
 ```
 
-Source: [`packages/host/apiproxy/src/api/sessions.ts:35`](../packages/host/apiproxy/src/api/sessions.ts)
+Source: [`packages/host/apiproxy/src/api/sessions.ts:60`](../packages/host/apiproxy/src/api/sessions.ts)
 
 <a id="sessiontitle--log-only"></a>
 

@@ -17,6 +17,7 @@ function fakeApi(overrides: Partial<{ muxFrames: MuxFrame[]; hostFrames: HostFra
   }
   return {
     sessions: {
+      revise: r => Promise.resolve({ rpcId: r.rpcId, result: { ok: false, error: { code: 'fork-unavailable', message: 'not configured', details: { sessionId: r.payload.sessionId } } } }),
       async list(request) {
         if (overrides.crashOn === 'session.list') throw new Error('impl crashed')
         return { rpcId: request.rpcId, result: { ok: true, value: { items: [] } } }

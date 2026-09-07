@@ -151,32 +151,17 @@ export function apply(ctx: Context): void {
   const slots = ctx.slots
 
   registerConversationNodes(ctx)
-  registerChatNodeRenderers(ctx, async (sessionId, node, text) => {
-    const source = sessions.binding(sessionId)?.session
-    if (source === undefined) throw new Error('Source conversation is unavailable')
-    const files = await Promise.all(node.content.flatMap(block => block.type === 'image' ? [block] : [])
-      .map(async (block) => {
-        const result = await source.readAttachment(block.attachment.attachmentId)
-        if (!result.ok) throw new Error(result.error.message)
-        return new File([new Uint8Array(result.value.data)], result.value.attachment.name ?? block.attachment.attachmentId, {
-          type: result.value.attachment.mediaType,
-        })
-      }))
-    if (source.getSnapshot().running) {
-      const cancelled = await source.cancel()
-      if (!cancelled.ok) throw new Error(cancelled.error.message)
-    }
-    const childId = await sessions.fork({ sessionId, beforeSeq: node.seq })
-    const shell = inputHub.shell(childId)
-    const conversation = concreteConversation(ctx)
-    const images = conversation.createDraftImages(files)
-    shell.setDraft(text)
-    if (!shell.addImages(images.map(image => image.id))) {
-      conversation.releaseDraftImages(images)
-      throw new Error('Could not restore the message attachments')
-    }
+  const revisionWorkspace = (sessionId: SessionId) => workspaces.list.getSnapshot().items
+    .find(workspace => workspace.sessionIds.includes(sessionId))?.workspaceId ?? null
+  registerChatNodeRenderers(ctx, async (sessionId, node, text, options) => {
+    const childId = await sessions.revise({
+      sessionId, workspaceId: revisionWorkspace(sessionId), idempotencyKey: options.idempotencyKey,
+      edit: { messageSeq: node.seq, text },
+    })
     sessions.open(childId)
-    shell.submit('queue')
+  }, async (sessionId, idempotencyKey) => {
+    const childId = await sessions.revise({ sessionId, workspaceId: revisionWorkspace(sessionId), idempotencyKey })
+    sessions.open(childId)
   })
 
   ctx.effect(() => ctx.locale.register(NS, { en }), 'ui-conversation: dictionaries')

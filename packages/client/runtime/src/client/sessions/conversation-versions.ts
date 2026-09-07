@@ -4,7 +4,8 @@ import type { SessionListState, SessionSummary } from './service.ts'
 
 function compareVersions(a: SessionSummary, b: SessionSummary): number {
   return Number(a.revision !== undefined) - Number(b.revision !== undefined)
-    || (a.revision?.createdAt ?? 0) - (b.revision?.createdAt ?? 0) || a.id.localeCompare(b.id)
+    || (a.revision?.createdAt ?? 0) - (b.revision?.createdAt ?? 0)
+    || (a.revision?.attempt ?? 1) - (b.revision?.attempt ?? 1) || a.id.localeCompare(b.id)
 }
 
 /**
@@ -15,10 +16,18 @@ function compareVersions(a: SessionSummary, b: SessionSummary): number {
  */
 export function conversationVersions(list: SessionListState, sessionId: SessionId): SessionSummary[] {
   const root = list.byId[sessionId]?.revision?.conversationId ?? sessionId
-  return list.ids.flatMap((id) => {
+  const attempts = list.ids.flatMap((id) => {
     const summary = list.byId[id]
     return summary !== undefined && (id === root || summary.revision?.conversationId === root) ? [summary] : []
-  }).sort(compareVersions)
+  })
+  const revisions = new Map<SessionId, SessionSummary>()
+  for (const attempt of attempts) {
+    const id = attempt.revision?.revisionId ?? attempt.id
+    const previous = revisions.get(id)
+    if (previous === undefined || attempt.id === sessionId
+      || (previous.id !== sessionId && (attempt.revision?.attempt ?? 1) > (previous.revision?.attempt ?? 1))) revisions.set(id, attempt)
+  }
+  return [...revisions.values()].sort(compareVersions)
 }
 
 /**

@@ -11,6 +11,7 @@ import type { Context } from '@hydra/cordis'
 import type {
   RpcResult, SessionId, SubagentAddress,
 } from '@hydra/harness-api-remotes/client'
+import type { PromptRevisionRequest } from '@hydra/harness-host-apiproxy/api'
 import type { HostObservable, SessionMaybeProvideInfo, SessionProvideInfo } from '@hydra/harness-client-ui-slots'
 import type { AgentContext } from '../agents/scope.ts'
 import type { SessionSearchResultItem } from '../sessions/manager.ts'
@@ -113,6 +114,12 @@ export interface ISessions {
    * @throws when the fork fails, or when a requested child-title rename fails after creation.
    */
   fork(opts: { sessionId: SessionId; atSeq?: number; beforeSeq?: number; increaseTitle?: boolean }): Promise<SessionId>
+  /**
+   * Admit a prompt revision or retry and make its attempt synchronously addressable.
+   * @param input - Host-validated source, workspace, edit, and stable retry key.
+   * @returns the new attempt session id; rejection leaves selection unchanged.
+   */
+  revise(input: PromptRevisionRequest): Promise<SessionId>
   /**
    * Register a per-session standard-props provider (hooks become `use<Name>`
    * selector hooks on the render side; props spread verbatim).

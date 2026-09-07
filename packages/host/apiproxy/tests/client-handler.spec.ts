@@ -35,6 +35,7 @@ function scriptedApi(overrides: {
     Promise.resolve({ rpcId: r.rpcId, result: { ok: false, error: { code: 'internal' as const, message: 'stub', details: {} } } })
   return {
     sessions: {
+      revise: r => Promise.resolve({ rpcId: r.rpcId, result: { ok: false, error: { code: 'fork-unavailable', message: 'not configured', details: { sessionId: r.payload.sessionId } } } }),
       list: r => ok(r, { items: [] }),
       search: r => ok(r, { items: [], hasMore: false }),
       create: r => ok(r, { sessionId: sid('s-new') }),

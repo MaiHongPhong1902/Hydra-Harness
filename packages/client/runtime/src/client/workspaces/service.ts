@@ -84,16 +84,20 @@ export class WorkspaceRuntime implements IWorkspaces {
    * caller owns navigation: take the returned id to `sessions.open`.
    * Resolution guarantee (both arms): the returned id is already in the list
    * store and `sessions.binding(id)` resolves synchronously — draft hand-off
-   * may write the new scope's machine before opening.
+   * may write the new scope's machine before opening. The create arm also
+   * fills the session row's cwd from the Workspace path and prepends the id
+   * onto that Workspace's local `sessionIds` before resolving, so the hero
+   * composer and a follow-up reuse scan do not wait for Host frames.
    * @param workspaceId - chosen Workspace (must be in the workspace list).
    * @returns the reused or newly created session id.
    */
   async connectWorkspace(workspaceId: WorkspaceId): Promise<SessionId> {
     const workspace = this.list.getSnapshot().items.find(item => item.workspaceId === workspaceId)
     if (workspace === undefined) throw new Error(`workspaces.connectWorkspace: unknown workspace ${workspaceId}`)
-    // Coalesce concurrent connects: a create's summary lands without cwd
-    // until the host frame arrives, so a second call inside that window
-    // would miss the reuse scan and mint another hidden blank session.
+    // Coalesce concurrent connects: two New Session clicks before the first
+    // create resolves would otherwise miss each other's echo and mint two
+    // hidden blank sessions. After resolve, the local cwd and account fill
+    // make a follow-up connect reuse.
     const inflight = this.connecting.get(workspaceId)
     if (inflight !== undefined) return inflight
     // Reuse requires workspace membership (id in sessionIds AND same
@@ -117,7 +121,14 @@ export class WorkspaceRuntime implements IWorkspaces {
         })
       }
     }
-    const attempt = this.sessions.create({ workspaceId })
+    // Stamp the Workspace path onto the create echo and prepend the new id
+    // onto the local account so hero ownership and a same-turn reuse scan
+    // do not wait for `host/session-added` / `host/workspace-changed`.
+    const attempt = this.sessions.create({ workspaceId, cwd: workspace.path })
+      .then((sessionId) => {
+        this.manager.accountSession(workspaceId, sessionId)
+        return sessionId
+      })
       .finally(() => { this.connecting.delete(workspaceId) })
     this.connecting.set(workspaceId, attempt)
     return attempt

@@ -266,6 +266,17 @@ describe('WorkspaceRuntime', () => {
     ])
     // Same guarantee on the create arm (draft hand-off writes the machine pre-open).
     expect(sessions.binding(sid('s-fresh'))).toBeDefined()
+    // Create echo fills cwd and local membership before Host frames, so a
+    // follow-up New Session reuses instead of minting another blank.
+    expect(sessions.list.getSnapshot().byId[sid('s-fresh')]?.cwd).toBe('/w/beta')
+    expect(workspaces.list.getSnapshot().items.find(item => item.workspaceId === wid('beta'))?.sessionIds)
+      .toEqual(['s-fresh'])
+    await expect(workspaces.connectWorkspace(wid('beta'))).resolves.toBe('s-fresh')
+    expect(api.callsOf('session.create')).toEqual([
+      { workspaceId: 'alpha', sessionId: 's-blank', reuseWorkspaceBlank: true },
+      { workspaceId: 'beta' },
+      { workspaceId: 'beta', sessionId: 's-fresh', reuseWorkspaceBlank: true },
+    ])
 
     // Miss: the stray blank matches gamma's path but is not a gamma member →
     // never reused, a fresh accounted session is created instead.
@@ -274,6 +285,7 @@ describe('WorkspaceRuntime', () => {
     expect(api.callsOf('session.create')).toEqual([
       { workspaceId: 'alpha', sessionId: 's-blank', reuseWorkspaceBlank: true },
       { workspaceId: 'beta' },
+      { workspaceId: 'beta', sessionId: 's-fresh', reuseWorkspaceBlank: true },
       { workspaceId: 'gamma' },
     ])
 

@@ -2482,6 +2482,7 @@ function createFixtureWorld(options: FixtureOptions): FixtureWorld {
         modelSelections.set(request.payload.sessionId, selected)
         return ok(request, { selected })
       },
+      revise: request => err(request, { code: 'fork-unavailable', message: 'Prompt revision tests require the real Host.', details: { sessionId: request.payload.sessionId } }),
       prompt: (request) => {
         const { sessionId: id, mode, content } = request.payload
         const summary = summaryOf(id)
@@ -3196,6 +3197,7 @@ export class FixtureApiClient extends AbstractApiClient {
       case 'session.selectModel': return this.api.sessions.selectModel(request)
       case 'session.rename': return this.api.sessions.rename(request)
       case 'session.fork': return this.api.sessions.fork(request)
+      case 'session.revise': return this.api.sessions.revise(request)
       case 'session.prompt': return this.api.sessions.prompt(request)
       case 'session.attachment': return this.api.sessions.attachment(request)
       case 'session.updateQueue': return this.api.sessions.updateQueue(request)

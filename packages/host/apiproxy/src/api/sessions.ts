@@ -27,6 +27,31 @@ export interface ConversationRevision {
   turn: number
   /** Creation time used to order versions independently of later prompts. */
   createdAt: number
+  /** Stable user revision identity shared by generation retries. */
+  revisionId?: SessionId | undefined
+  /** Generation attempt within this user revision, starting at one. */
+  attempt?: number | undefined
+  /** Durable admission receipt; inherited receipts never authorize another session. */
+  admission?: { fingerprint: string; messageId: MessageId; message: RevisionMessage } | undefined
+}
+
+/** Exact user content retained for a retry that crashed before prompt entry. */
+export interface RevisionMessage {
+  id: MessageId
+  role: 'user'
+  content: Array<{ type: 'text'; text: string } | { type: 'image'; attachment: ImageAttachmentRef }>
+  source: { kind: 'user' }
+}
+
+/** Host-addressed text edit or retry; lineage and unchanged attachments are resolved from the source log. */
+export interface PromptRevisionRequest {
+  sessionId: SessionId
+  workspaceId: WorkspaceId | null
+  idempotencyKey: string
+  edit?: {
+    messageSeq: number
+    text: string
+  } | undefined
 }
 
 declare module '@hydra/harness-session/types' {
@@ -383,6 +408,16 @@ export interface SessionsApi {
    */
   fork(request: RpcRequest<{ sessionId: SessionId; atSeq?: number; beforeSeq?: number }>):
   Promise<RpcResponse<{ sessionId: SessionId; revision?: ConversationRevision }>>
+
+  /**
+   * Admit an immutable prompt revision and start its generation. Omit edit to retry
+   * a failed/interrupted revision without minting another user revision. The same key
+   * and payload return the same attempt across reconnects and Host restarts.
+   * @param request - Source session/workspace, edit, and caller-owned idempotency key.
+   * @returns Durable child identity; model failure remains on that child's log.
+   */
+  revise(request: RpcRequest<PromptRevisionRequest>):
+  Promise<RpcResponse<{ sessionId: SessionId; revision: ConversationRevision }>>
 
   /**
    * Sends text and temporary image bytes to an ordinary session Agent after durable host admission.

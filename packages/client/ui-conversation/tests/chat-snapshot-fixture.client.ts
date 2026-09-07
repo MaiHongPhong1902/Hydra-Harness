@@ -161,11 +161,11 @@ export function chatSnapshotFixture(input: {
     turns.set(turn, {
       turn,
       start: timing === undefined ? undefined : {
-        type: 'turn/start', seq: Math.max(0, (endSeq ?? 1) - 1), time: timing.startTime, turn,
-      } as never,
+        type: 'turn/start', seq: Math.max(0, (endSeq ?? 1) - 1), time: timing.startTime, data: { turn },
+      },
       end: timing?.endTime === undefined || endSeq === undefined ? undefined : {
-        type: 'turn/end', seq: endSeq, time: timing.endTime, turn, reason: 'completed',
-      } as never,
+        type: 'turn/end', seq: endSeq, time: timing.endTime, data: { turn, reason: { kind: 'completed' } },
+      },
       status: endSeq === undefined ? 'open' : 'closed',
       steps: EMPTY,
       data,

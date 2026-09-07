@@ -8,26 +8,34 @@ import {
   TurnMaxTokensNodeView, UnknownNodeView, UserMessageNodeView,
 } from './MessageItem.tsx'
 import { TurnTailNodeView } from './TurnTailNodeView.tsx'
+import type { PromptEditOptions } from '../contract/prompt-edit.ts'
 
 /**
  * Register this package's business renderers behind the keyed Chat Node seat.
  * @param ctx - owning UI Conversation context.
  * @param editMessage - replaces a turn with a new prompt revision and response.
+ * @param retryRevision - retries the current failed attempt, keeping its user revision identity.
  */
 export function registerChatNodeRenderers(
   ctx: Context,
-  editMessage: (sessionId: SessionId, node: UserMessageNode, text: string) => Promise<void>,
+  editMessage: (sessionId: SessionId, node: UserMessageNode, text: string, options: PromptEditOptions) => Promise<void>,
+  retryRevision: (sessionId: SessionId, idempotencyKey: string) => Promise<void>,
 ): void {
   ctx.slots.inject('conversation.chat.node', () => ctx.slots.register(
     {
       name: 'conversation.chat.node', key: 'user', locale: NS,
       inject: (sessionId: SessionId) => ({
-        editMessage: (node: UserMessageNode, text: string) => editMessage(sessionId, node, text),
+        editMessage: (node: UserMessageNode, text: string, options: PromptEditOptions) => editMessage(sessionId, node, text, options),
         openVersion: (id: SessionId) => { ctx.sessions.open(id) },
       }),
     }, UserMessageNodeView))
   ctx.slots.inject('conversation.chat.node', () => ctx.slots.register(
-    { name: 'conversation.chat.node', key: 'steering', locale: NS }, UserMessageNodeView))
+    { name: 'conversation.chat.node', key: 'steering', locale: NS,
+      inject: (sessionId: SessionId) => ({
+        editMessage: (node: UserMessageNode, text: string, options: PromptEditOptions) => editMessage(sessionId, node, text, options),
+        openVersion: (id: SessionId) => { ctx.sessions.open(id) },
+      }),
+    }, UserMessageNodeView))
   ctx.slots.inject('conversation.chat.node', () => ctx.slots.register(
     { name: 'conversation.chat.node', key: 'context', locale: NS }, ContextMessageNodeView))
   ctx.slots.inject('conversation.chat.node', () => ctx.slots.register(
@@ -52,6 +60,7 @@ export function registerChatNodeRenderers(
     name: 'conversation.chat.node',
     key: 'turn-tail',
     locale: NS,
+    inject: (sessionId: SessionId) => ({ retryRevision: (key: string) => retryRevision(sessionId, key) }),
     children: {
       'conversation.chat.turnTail': { kind: 'chain', scope: 'session' },
       'conversation.chat.assistant-actions': { kind: 'list', scope: 'session' },

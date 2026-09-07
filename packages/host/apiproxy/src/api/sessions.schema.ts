@@ -56,6 +56,19 @@ export const conversationRevisionSchema: z.ZodType<ConversationRevision> = z.obj
   previousSessionId: sessionIdSchema,
   turn: z.number().int().positive(),
   createdAt: z.number().int().nonnegative(),
+  revisionId: sessionIdSchema.optional(),
+  attempt: z.number().int().positive().optional(),
+  admission: z.object({
+    fingerprint: z.string(), messageId: messageIdSchema,
+    message: z.lazy(() => z.object({
+      id: messageIdSchema, role: z.literal('user'),
+      content: z.array(z.union([
+        z.object({ type: z.literal('text'), text: z.string() }),
+        z.object({ type: z.literal('image'), attachment: imageAttachmentRefSchema }),
+      ])),
+      source: z.looseObject({ kind: z.literal('user') }),
+    })),
+  }).optional(),
 })
 
 /** SessionSummary row of session.list (`projections` reuses the history block's shape and schema). */
@@ -335,6 +348,22 @@ export const imageAttachmentRefSchema = z.object({
   height: z.number().int().positive(),
   name: z.string().optional(),
 }) as unknown as z.ZodType<ImageAttachmentRef>
+
+/** session.revise accepts exact text and rejects attachment mutations or forged lineage fields. */
+export const sessionReviseRequestSchema = z.strictObject({
+  sessionId: sessionIdSchema,
+  workspaceId: workspaceIdSchema.nullable(),
+  idempotencyKey: z.string().min(1).max(200),
+  edit: z.strictObject({
+    messageSeq: z.number().int().nonnegative(),
+    text: z.string(),
+  }).optional(),
+}) satisfies z.ZodType<Wire<RequestPayload<'session.revise'>>>
+
+/** Durable prompt revision and generation attempt accepted by the Host. */
+export const sessionReviseValueSchema = z.object({
+  sessionId: sessionIdSchema, revision: conversationRevisionSchema,
+}) satisfies z.ZodType<Wire<ResponseValue<'session.revise'>>>
 
 /** session.attachment request payload. */
 export const sessionAttachmentRequestSchema = z.object({

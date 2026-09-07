@@ -1,4 +1,4 @@
-# Agent Note: Edit sent prompts through a before-turn fork
+# Agent Note: Edit sent prompts through immutable session prefixes
 
 Status: implemented
 
@@ -8,13 +8,13 @@ A reader needs to correct a sent prompt and obtain a fresh answer using the prec
 
 ## Decision
 
-Turn-opening user bubbles expose a pencil beside Copy. The inline textarea offers Cancel and Save & resend, with a description of the replaced transcript and retained file changes. Escape cancels and returns focus to the pencil; Ctrl/Cmd+Enter sends, and plain or Shift+Enter inserts a newline. IME composition never submits. Blank and unchanged drafts cannot send. Submission prevents duplicate clicks, displays Resending, and keeps an error and the draft visible when attachment retrieval or forking fails. The generic locale `edit` label remains shared with other editors.
+User and admitted-steering bubbles expose a pencil that stays visible like Copy. The inline textarea offers Cancel and Save & resend, preserves whitespace and Unicode, and focuses at the end of the original text. Enter sends, Shift+Enter inserts a newline, and Escape cancels and returns focus. IME composition never submits. Blank drafts without images and unchanged drafts cannot send. Submission locks synchronously and retains the draft and request identity on failure. The generic locale `edit` label remains shared with other editors.
 
 Explicit resend labels distinguish replacement from an ordinary follow-up. Keyboard focus begins at the end of the original text, and visible shortcut hints make the editor usable without discovering hidden keys. The reference points are [Codex desktop keyboard commands](https://learn.chatgpt.com/docs/reference/commands) and [Claude Code conversation rewind](https://code.claude.com/docs/en/checkpointing): recalling text must not submit it, and restoring conversation context must remain distinct from reverting files.
 
-`session.fork` accepts `beforeSeq` as an alternative to `atSeq`. The Host verifies that the anchor is the first user message of its turn and seeds the child only through the preceding event. This supports the first message and an active turn without mutating the source. The GUI cancels a running source response before submitting its replacement. Assistant branching retains its completed-turn semantics and [its own affordance](../simplification/2026-08-06-user-bubbles-drop-the-branch-action.md).
+`session.revise` owns admission and generation. The Host verifies the source Workspace, human message, retained image relationships, decoded image limits, and model route before creating a child. An opening prompt excludes its entire turn; a steering prompt keeps earlier events and balances that partial turn with the session recovery helper. The source Agent is cancelled and drained before the new Agent starts. Assistant branching retains its completed-turn semantics and [its own affordance](../simplification/2026-08-06-user-bubbles-drop-the-branch-action.md).
 
-The client reads the original message's images with source-session authorization before creating the child. It fills the child's existing input machine with the edited text and copied images, opens the child, and submits through ordinary Queue admission. A failed admission retains the child composer draft and attachments for retry. The original session's composer draft is untouched. Unknown non-text blocks and mid-turn steering do not expose this editor. [Conversation versions](../bug-fix/2026-09-06-prompt-edits-stay-in-conversation.md) group these stored continuations into one visible chat and retain navigation to older transcripts.
+Editing changes text only so correcting a prompt cannot silently replace its supporting files. Existing attachments remain visible and use their original content-addressed objects. The editor has no upload or removal controls, and the Host rejects attachment fields on edit requests. The deterministic child id and durable receipt deduplicate reconnects and repeated requests. The prompt is parked in the durable inbox and flushed before Workspace attachment and generation. A terminal generation retry creates a separate attempt log with the same user-message and revision identities, preserving failed output without feeding it back to the model. Retry is refused once a later user prompt has continued the session. The original composer draft is untouched. Unsupported content blocks do not expose this editor. [Conversation versions](../bug-fix/2026-09-06-prompt-edits-stay-in-conversation.md) group stored continuations into one visible chat.
 
 ## Alternatives considered
 
@@ -22,8 +22,10 @@ The client reads the original message's images with source-session authorization
 
 **Reuse queue editing.** A queued occurrence has not reached the model. The queue mutation cannot replace a consumed message or remove its answer.
 
+**Retry by appending another prompt to the failed log.** This duplicates human input and can expose failed assistant/tool output to the next request. Independent attempts retain the audit trail while using the same admitted user identity and preceding context.
+
 **Display an inactive pencil or disabled placeholder.** This advertises an action without the Host operation to honor it. The control is available together with before-turn forking and submission.
 
 ## Consequences
 
-Sending an edit stores a child session as a version of the same visible conversation; it does not undo tool effects from the source turn. The new answer can reuse only the prefix preceding the edited turn. Images are uploaded again through the existing attachment admission path. Client component tests cover cancel, blank input, pending clicks, and failure retry; Host tests cover first, later, active, and invalid anchors. The real Web composition pins the inline editor and verifies the child history and reply after reload. The shared seed-fixture reader JSON-escapes substituted Windows paths so this browser scenario is portable.
+Sending an edit stores a child session as a version of the same visible conversation; it does not undo source tool effects. Optional admission fields extend the existing ignorable revision event without a database migration. The real Web composition verifies model-context exclusion, image retention, duplicate admission, retry, cancellation, browser reload, fresh-Host log recovery, and edits near the start of 100- and 1,000-message transcripts. Component tests cover draft and keyboard behavior. The local Host has no account ACL; source and Workspace checks enforce relationships within its existing single-user trust model.

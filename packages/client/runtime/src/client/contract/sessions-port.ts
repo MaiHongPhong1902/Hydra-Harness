@@ -40,6 +40,13 @@ export interface SessionsPort {
     workspaceId: WorkspaceId
     sessionId?: SessionId
     reuseWorkspaceBlank?: true
+    /**
+     * Local list-row cwd fill for the create echo. The Host derives cwd from
+     * the Workspace and this value is not sent on the wire; New Session
+     * supplies the Workspace path so the hero composer can resolve ownership
+     * before `host/session-added` arrives.
+     */
+    cwd?: string
   }): Promise<SessionId>
   /**
    * Select a session as current.

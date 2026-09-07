@@ -48,7 +48,8 @@ export function PromptVersionMenu({ versions, sessionId, openVersion, children, 
           if (selected !== undefined && selected.id !== sessionId) openVersion(selected.id)
         }}
         items={versions.map((version, index) => {
-          const parentIndex = versions.findIndex(parent => parent.id === version.revision?.previousSessionId)
+          const parentIndex = versions.findIndex(parent => parent.id === version.revision?.previousSessionId
+            || (parent.revision?.revisionId !== undefined && parent.revision.revisionId === version.revision?.previousSessionId))
           return {
             id: version.id,
             label: <span className={css.versionOption} ref={(element) => {

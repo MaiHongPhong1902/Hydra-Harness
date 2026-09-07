@@ -10,6 +10,7 @@ import { Context } from '@hydra/cordis'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { ConversationRevision, SessionId } from '@hydra/harness-api-remotes/client'
 import { SessionCreateError, SessionRuntime, scopeOf } from '../src/client/sessions/service.ts'
+import { conversationVersions, conversationRepresentatives } from '../src/client/sessions/conversation-versions.ts'
 import { FakeApiClient, deferred, err, fakeRemote, ok } from './fake-api.client.ts'
 
 const sid = (s: string): SessionId => s as SessionId
@@ -55,6 +56,23 @@ async function feedList(b: Bench, rows: FeedRow[]): Promise<void> {
 }
 
 describe('list store projection', () => {
+  it('groups generation attempts under one user revision while preserving the viewed attempt', async () => {
+    const b = bench()
+    try {
+      const revision = { sessionId: sid('edit'), revisionId: sid('edit'), conversationId: sid('original'),
+        previousSessionId: sid('original'), turn: 1, createdAt: 1, attempt: 1 }
+      await feedList(b, [{ id: 'original' }, { id: 'edit', revision },
+        { id: 'retry', revision: { ...revision, sessionId: sid('retry'), attempt: 2 } },
+        { id: 'next', revision: { ...revision, sessionId: sid('next'), revisionId: sid('next'), createdAt: 2 } }])
+      const list = b.svc.list.getSnapshot()
+      expect(conversationVersions(list, sid('original')).map(item => item.id)).toEqual(['original', 'retry', 'next'])
+      expect(conversationVersions(list, sid('edit')).map(item => item.id)).toEqual(['original', 'edit', 'next'])
+      expect(conversationVersions(list, sid('retry')).map(item => item.id)).toEqual(['original', 'retry', 'next'])
+      const selected = { ...list, current: sid('retry') }
+      expect(conversationRepresentatives(selected, new Set()).get(sid('edit'))?.id).toBe('retry')
+    } finally { await b.ctx.fiber.dispose() }
+  })
+
   it('projects durable titles separately from cwd/id display fallbacks and parent links', async () => {
     const b = bench()
     b.svc.handleMuxEnvelope({

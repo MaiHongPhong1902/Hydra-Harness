@@ -97,7 +97,7 @@ import type { ApprovalOutcome, ApprovalRequestId } from '@hydra/harness-user-app
 // `ctx.get('approval')` without a value dependency on the seam (optional composition).
 import type {} from '@hydra/harness-user-approval'
 import { approvalResponsePayloadSchema } from './api/approvals.schema.ts'
-import { conversationRevisionSchema, imageLimitsProjectionSchema, sessionListMetadataProjectionSchema } from './api/sessions.schema.ts'
+import { conversationRevisionSchema, imageLimitsProjectionSchema, sessionListMetadataProjectionSchema, sessionReviseRequestSchema } from './api/sessions.schema.ts'
 import { questionResponsePayloadSchema } from './api/questions.schema.ts'
 import type { ClientResponse, RpcError, RpcReceipt, RpcRequest, RpcResponse } from './api/rpc.ts'
 import { RpcId } from './api/rpc.ts'
@@ -116,6 +116,7 @@ import {
   inspectApiRemoteSession,
 } from '@hydra/harness-api-remotes'
 import { canOpenNativePath, openNativePath, openNativeTextFile } from './native-path-opener.ts'
+import { createPromptReviser } from './prompt-revisions.ts'
 
 /** Page size when history is called without maxMessages. */
 const DEFAULT_MAX_MESSAGES = 50
@@ -2055,6 +2056,37 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
     }
   }
 
+  const revisePrompt = createPromptReviser(ctx, {
+    read: readSessionState,
+    async resume(id) {
+      const found = await agentFor(id)
+      if ('error' in found) throw new Error(found.error.message)
+      return found.agent
+    },
+    async find(id) {
+      try { return await readSessionState(id) } catch (error) {
+        if (error instanceof SessionNotFound) return undefined
+        throw error
+      }
+    },
+    async compose(source) {
+      const composition = await composeAgent(resolveSessionPreset(source))
+      return { ...composition, agentOptions: agentOptions() }
+    },
+    async validateModel(source, images) {
+      const resolved = await agentFor(source.id)
+      if ('error' in resolved) throw new Error(resolved.error.message)
+      const selection = selectionFor(resolved.agent).current
+      if (!routeServed(selection.provider)) throw new Error(`No adapter serves provider "${selection.provider}".`)
+      if (images) {
+        const info = await ctx.llm.resolveModelInfo(selection.provider, selection.model)
+        if (info.inputModalities !== undefined && !info.inputModalities.includes('image')) {
+          throw new Error(`Model "${selection.model}" does not support image input.`)
+        }
+      }
+    },
+  })
+
   return {
     sessions: {
       // Attached sessions summarize from memory; persisted-but-unattached (cold)
@@ -2528,6 +2560,16 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
           }
         }
         return ok(request, { sessionId: childId, ...revision === undefined ? {} : { revision } })
+      },
+
+      async revise(request) {
+        try { return ok(request, await revisePrompt(sessionReviseRequestSchema.parse(request.payload))) } catch (error) {
+          return err(request, {
+            code: error instanceof SessionNotFound ? 'session-not-found' : 'fork-unavailable',
+            message: error instanceof Error ? error.message : String(error),
+            details: { sessionId: request.payload.sessionId },
+          })
+        }
       },
 
       async prompt(request) {

@@ -21,6 +21,7 @@ import type {
 // Value import from the inline-safe wire layer (not the connection plugin):
 // plugin-to-plugin value imports are a bundle purity error.
 import { SESSION_SEARCH_RESULT_LIMIT } from '@hydra/harness-host-apiproxy/api'
+import type { PromptRevisionRequest } from '@hydra/harness-host-apiproxy/api'
 import type {
   HostObservable, SessionMaybeProvideInfo, SessionProvideInfo,
 } from '@hydra/harness-client-ui-slots'
@@ -544,6 +545,18 @@ export class SessionRuntime implements ISessions {
       if (!renamed.ok) throw new Error(`fork child rename failed: ${renamed.error.code}: ${renamed.error.message}`)
     }
     return childId
+  }
+
+  /**
+   * Admit an edit or retry without changing selection until the Host acknowledges it.
+   * @param input - Revision admission and stable idempotency key.
+   * @returns synchronously addressable attempt identity.
+   */
+  async revise(input: PromptRevisionRequest): Promise<SessionId> {
+    const result = await this.manager.revise(input)
+    if (!result.ok) throw new Error(result.error.message)
+    this.projectList()
+    return result.value.sessionId
   }
 
   /**

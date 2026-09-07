@@ -18,6 +18,7 @@ import { MessageIconActions } from './MessageIconActions.tsx'
 import { PromptVersionMenu } from './PromptVersionMenu.tsx'
 import css from './MessageItem.module.css'
 import actionCss from './MessageIconActions.module.css'
+import type { PromptEditOptions } from '../contract/prompt-edit.ts'
 
 type UserImage = Extract<UserMessageNode['content'][number], { type: 'image' }>
 
@@ -235,7 +236,7 @@ function UserStyleBubble({
   const truncated = (total: number): string => t('json.truncated', { total })
   const showBubble = text !== '' || rest.length > 0
   return (
-    <div className={css.userRow} data-pending-steering={pending || undefined} data-time-hover-root>
+    <div className={css.userRow} data-pending-steering={pending || undefined}>
       <div className={css.userStack} data-editing={editor !== undefined || undefined}>
         {renderMessageImages({ images, align: 'end' })}
         {(showBubble || editor !== undefined) && <div className={css.bubble}>
@@ -291,7 +292,7 @@ function PromptVersionsAction({ sessionId, useSessions, turn, open, t }: {
 }) {
   const versions = useSessions(list => conversationVersions(list, sessionId), (a, b) =>
     a.length === b.length && a.every((version, index) => version.id === b[index]?.id && version.revision === b[index].revision))
-  if (versions.length < 2 || !versions.some(version => version.revision !== undefined && version.revision.turn <= turn)) return null
+  if (versions.length < 2 || !versions.some(version => version.revision?.turn === turn)) return null
   const versionIndex = versions.findIndex(version => version.id === sessionId)
   return (
     <PromptVersionMenu versions={versions} sessionId={sessionId} openVersion={open} t={t}
@@ -306,7 +307,7 @@ export const UserMessageNodeView = memo(function UserMessageNodeView({
   node, renderMessageImages, editMessage, openVersion, sessionId, useSessions, t,
 }: ChatNodeViewProps<'user' | 'steering'> & {
   /** Submit a prompt revision in this conversation; rejection keeps this editor open. */
-  editMessage?: (node: UserMessageNode, text: string) => Promise<void>
+  editMessage?: (node: UserMessageNode, text: string, options: PromptEditOptions) => Promise<void>
   /** Open another stored version without creating a conversation. */
   openVersion?: (id: SessionId) => void
 }) {
@@ -319,8 +320,11 @@ export const UserMessageNodeView = memo(function UserMessageNodeView({
   const editTrigger = useRef<HTMLButtonElement>(null)
   const restoreFocus = useRef(false)
   const pending = useRef(false)
-  const originalText = contentParts(data.content).text
-  const changed = draft !== null && draft !== originalText && draft.trim() !== ''
+  const admissionKey = useRef<string | null>(null)
+  const parts = contentParts(data.content)
+  const originalText = parts.text
+  const changed = draft !== null && draft !== originalText
+    && (draft.trim() !== '' || parts.images.length > 0)
   const editing = draft !== null
   useLayoutEffect(() => {
     const input = textarea.current
@@ -338,15 +342,22 @@ export const UserMessageNodeView = memo(function UserMessageNodeView({
     input.style.height = 'auto'
     input.style.height = `${input.scrollHeight}px`
   }, [draft])
-  const cancel = (): void => { restoreFocus.current = true; setDraft(null); setError(null) }
+  const cancel = (): void => {
+    restoreFocus.current = true
+    setDraft(null); setError(null)
+    admissionKey.current = null
+  }
   const send = async (): Promise<void> => {
-    if (pending.current || draft === null || !changed || node.kind !== 'user'
+    if (pending.current || draft === null || !changed
       || editMessage === undefined) return
     pending.current = true
     setSending(true)
     setError(null)
     try {
-      await editMessage(node.data, draft)
+      admissionKey.current ??= crypto.randomUUID()
+      await editMessage({ ...node.data, kind: 'user' }, draft, {
+        idempotencyKey: admissionKey.current,
+      })
       setDraft(null)
     } catch (failure) {
       setError(t('message.editFailed', { message: failure instanceof Error ? failure.message : String(failure) }))
@@ -355,7 +366,7 @@ export const UserMessageNodeView = memo(function UserMessageNodeView({
       setSending(false)
     }
   }
-  const editable = node.kind === 'user' && editMessage !== undefined
+  const editable = editMessage !== undefined
     && data.content.every(block => block.type === 'text' || block.type === 'image')
   return (
     <UserStyleBubble
@@ -375,14 +386,14 @@ export const UserMessageNodeView = memo(function UserMessageNodeView({
             value={draft}
             disabled={sending}
             rows={1}
-            onChange={(event) => { setDraft(event.currentTarget.value) }}
+            onChange={(event) => { setDraft(event.currentTarget.value); admissionKey.current = null }}
             onKeyDown={(event) => {
               // oxlint-disable-next-line typescript/no-deprecated
               if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return
               if (event.key === 'Escape' && !sending) { event.preventDefault(); cancel() }
-              if (event.key === 'Enter' && (event.ctrlKey || event.metaKey) && !event.shiftKey) {
+              if (event.key === 'Enter' && !event.shiftKey) {
                 event.preventDefault()
-                void send()
+                if (!event.repeat) void send()
               }
             }}
           />
@@ -445,6 +456,38 @@ export const RetryNodeView = memo(function RetryNodeView({ node, t }: ChatNodeVi
 export const TurnErrorNodeView = memo(function TurnErrorNodeView({ node, t }: ChatNodeViewProps<'turn-error'>) {
   return <TurnErrorItem node={node.data} t={t} />
 })
+
+/**
+ * Retry a terminal revision attempt without creating another user revision.
+ * @param props - Turn identity, framework state hooks, and Host retry callback.
+ * @returns A retry control for the latest admitted prompt, with retained request errors.
+ */
+export function RevisionRetryAction({ turn, t, sessionId, useSessions, useSession, retryRevision }:
+  Pick<ChatNodeViewProps, 't' | 'sessionId' | 'useSessions' | 'useSession'> & {
+    turn: number
+    retryRevision?: (key: string) => Promise<void>
+  }) {
+  const revision = useSessions(list => list.byId[sessionId]?.revision)
+  const running = useSession(snapshot => snapshot.running)
+  const latest = useSession(snapshot => snapshot.chat.timeline.turnOrder.at(-1) === turn)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const key = useRef<string | null>(null)
+  const pending = useRef(false)
+  if (revision?.revisionId === undefined || revision.turn !== turn || !latest || retryRevision === undefined) return null
+  return <>
+    <Button disabled={busy || running}
+      onClick={() => {
+        if (pending.current || running) return
+        pending.current = true; setBusy(true); setError(null)
+        key.current ??= crypto.randomUUID()
+        void retryRevision(key.current).catch((failure: unknown) => {
+          setError(failure instanceof Error ? failure.message : String(failure))
+        }).finally(() => { pending.current = false; setBusy(false) })
+      }}>{t('message.retryGeneration')}</Button>
+    {error !== null && <p role="alert">{error}</p>}
+  </>
+}
 
 /** Max-tokens turn-end notice keyed Chat renderer. */
 export const TurnMaxTokensNodeView = memo(function TurnMaxTokensNodeView({ t }: ChatNodeViewProps<'turn-max-tokens'>) {

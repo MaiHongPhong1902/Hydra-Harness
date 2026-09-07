@@ -1,0 +1,32 @@
+- text: My name is Charlie. {{clock}}
+- button "Copy":
+  - img
+- button "See versions":
+  - text: 3/3
+  - img
+- button "Edit":
+  - img
+- tooltip "Edit"
+- button "Context injection @hydra/harness-system-prompt":
+  - img
+  - img
+  - text: Context injection @hydra/harness-system-prompt
+- paragraph: Hello from the active revision.
+- button "Copy":
+  - img
+- button "Good response":
+  - img
+- button "Bad response":
+  - img
+- button "Branch into a new conversation":
+  - img
+- text: {{clock}} Ran for {{duration}} TTFT {{duration}}
+- textbox "Message the agent"
+- button "Commands":
+  - img
+- 'button "Access mode, current: Workspace Write"': Workspace Write
+- button "Select model, current Edit test":
+  - text: Edit test
+  - img
+- button "Send message" [disabled]
+- text: 1 turns · 1 steps LLM {{duration}} TTFT avg {{duration}}

@@ -2,15 +2,17 @@ import { memo } from 'react'
 import type { PropsRenderSlots } from '@hydra/harness-client-ui-slots'
 import type { ChatNodeViewProps, TurnTailOwnerProps } from '../contract/slots.ts'
 import { MessageIconActions } from './MessageIconActions.tsx'
+import { RevisionRetryAction } from './MessageItem.tsx'
 import { assistantText } from './turn-assistant.ts'
 import css from './TurnTailNodeView.module.css'
 
 type TurnTailNodeViewProps = ChatNodeViewProps<'turn-tail'>
   & PropsRenderSlots<'conversation.chat.turnTail' | 'conversation.chat.assistant-actions'>
+  & { retryRevision?: (key: string) => Promise<void> }
 
 /** Turn-local actions and feature tail over the Location index, independent of Assistant placement. */
 export const TurnTailNodeView = memo(function TurnTailNodeView({
-  node, openFile, forkAt, renderSlot, renderSlotChain, t, useSession,
+  node, openFile, forkAt, renderSlot, renderSlotChain, t, useSession, useSessions, sessionId, retryRevision,
 }: TurnTailNodeViewProps) {
   const data = node.data
   const hasLaterChatNode = useSession(snapshot =>
@@ -21,7 +23,13 @@ export const TurnTailNodeView = memo(function TurnTailNodeView({
   if (turn === undefined) return null
   const closing = data.closing
   const owner: TurnTailOwnerProps = { turn, seq: closing?.finalNode.seq ?? data.seq, openFile }
-  const tail = renderSlotChain('conversation.chat.turnTail', owner)
+  const reason = turn.end?.data.reason.kind
+  const retryable = reason === 'error' || reason === 'aborted' || reason === 'interrupted' || reason === 'blocked'
+  const featureTail = renderSlotChain('conversation.chat.turnTail', owner)
+  const tail = !retryable || retryRevision === undefined ? featureTail : <>
+    {featureTail}
+    <RevisionRetryAction turn={data.turn} {...{ t, useSession, useSessions, sessionId, retryRevision }} />
+  </>
   if (closing === null) return tail === null ? null : <div className={css.root}>{tail}</div>
   const runMs = turn.start === undefined || turn.end === undefined
     ? undefined
@@ -33,7 +41,7 @@ export const TurnTailNodeView = memo(function TurnTailNodeView({
     ? null
     : renderSlot('conversation.chat.assistant-actions', { messageId })
   return (
-    <div className={css.root} data-turn-tail={data.turn} data-time-hover-root>
+    <div className={css.root} data-turn-tail={data.turn}>
       {tail}
       <MessageIconActions
         text={assistantText(closing.blocks)}

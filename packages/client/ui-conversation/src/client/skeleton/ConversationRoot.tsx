@@ -51,6 +51,9 @@ export function ConversationRoot({
   const sessionWorkspace = sessionId === undefined
     ? undefined
     : workspaces.items.find(workspace => workspace.sessionIds.includes(sessionId))
+      ?? (cwd === undefined || cwd === ''
+        ? undefined
+        : workspaces.items.find(workspace => workspace.path === cwd))
   const pendingWorkspace = workspaces.items.find(
     workspace => workspace.workspaceId === pendingWorkspaceId,
   )
@@ -84,11 +87,13 @@ export function ConversationRoot({
   // The chip is a selector; label resolution walks the flow top-down:
   //   1. a just-picked workspace (pending) → its title;
   //   2. cold start, no session yet → placeholder ("Choose workspace");
-  //   3. the blank session's workspace is in the list → its title;
+  //   3. the session's workspace account, or a ready list row whose path
+  //      equals the session cwd while attach's sessionIds frame still lags
+  //      → that title;
   //   4. list still loading → cwd folder name bridges so the title does not
   //      flash on refresh (empty cwd → placeholder);
-  //   5. list ready but no owning workspace (deleted from the sidebar) →
-  //      placeholder, never the deleted folder's name via cwd.
+  //   5. list ready but no row matches account or path (deleted from the
+  //      sidebar) → placeholder, never the deleted folder's name via cwd.
   const chipTitle = pendingWorkspace?.title
     ?? (sessionId === undefined
       ? undefined
@@ -126,9 +131,12 @@ export function ConversationRoot({
 
   // The placeholder chip ("Choose workspace") and the Workspace-trigger input travel
   // together: no workspace picked yet (cold start, no session at all), or a
-  // blank session whose workspace vanished (deleted from the sidebar). The
-  // bar is ONE session-maybe slot rendered unconditionally — inert is a prop,
-  // not a different tree, so the textarea DOM survives the transition.
+  // blank session whose workspace vanished (deleted from the sidebar — cwd
+  // matches no remaining row). A session whose cwd already matches a listed
+  // Workspace stays editable while attach's sessionIds frame catches up, so
+  // typed prompts and slash commands do not wait for a second chip pick.
+  // The bar is ONE session-maybe slot rendered unconditionally — inert is a
+  // prop, not a different tree, so the textarea DOM survives the transition.
   const inert = sessionId === undefined || (hero && chipTitle === undefined)
   // A raised block is the same inert posture with the blocker's own reason:
   // one disabled textarea, never a second tree. The no-workspace state wins

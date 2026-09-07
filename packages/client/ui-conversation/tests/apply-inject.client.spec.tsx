@@ -19,7 +19,6 @@ import { SlotTestRuntime, usePinnedBrowserLanguages, stubSettingsScope } from '@
 import type { SessionBehaviorOverrides } from '@hydra/harness-client-test-runtime'
 import { LocaleRuntime } from '@hydra/harness-client-locale/client'
 import type { ISession, SessionId, UserMessageNode } from '@hydra/harness-client-runtime/client'
-import { AttachmentId } from '@hydra/harness-attachment'
 import type { DraftAttachmentId } from '@hydra/harness-client-ui-conversation/client'
 import { apply, inject } from '@hydra/harness-client-ui-conversation/client'
 import type {
@@ -160,57 +159,28 @@ async function bench(withBrowserAnnotation = false, readAttachment?: ISession['r
 }
 
 describe('conversation slot inject API', () => {
-  it('cancels an active response before editing, copies images and retains rejected drafts', async () => {
-    const attachment = { attachmentId: AttachmentId('original-image'), mediaType: 'image/png' as const,
-      bytes: 3, width: 1, height: 1 }
-    const read = vi.fn<ISession['readAttachment']>().mockResolvedValue({
-      ok: true, value: { attachment, data: Uint8Array.of(1, 2, 3) },
-    })
-    const b = await bench(false, read)
-    const source = b.runtime.sessions.binding(ROOT)!.session
-    const snapshot = vi.spyOn(source, 'getSnapshot').mockReturnValue({ ...source.getSnapshot(), running: true })
+  it('admits edits through one Host operation and keeps unrelated composer drafts', async () => {
+    const b = await bench()
     const childId = 'edit-child' as SessionId
-    const child = sessionFakeFor()
-    child.prompt.mockResolvedValueOnce({ ok: false, error: { code: 'internal', message: 'offline', details: {} } })
-    await b.runtime.sessions.add({ id: childId, session: child })
-    const fork = vi.spyOn(b.runtime.sessions, 'fork').mockResolvedValue(childId)
-    const created = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:edited-image')
-    const revoked = vi.spyOn(URL, 'revokeObjectURL').mockReturnValue(undefined)
+    await b.runtime.sessions.add({ id: childId, session: sessionFakeFor() })
+    const revise = vi.spyOn(b.runtime.sessions, 'revise')
+      .mockRejectedValueOnce(new Error('offline')).mockResolvedValue(childId)
     try {
       b.inputApi(ROOT).actions.setDraft('unrelated composer draft')
       const entry = b.slots.entries('conversation.chat.node').find(item => item.options.key === 'user')!
       const injected = (entry.inject as (sessionId: SessionId) => {
-        editMessage: (node: UserMessageNode, text: string) => Promise<void>
+        editMessage: (node: UserMessageNode, text: string, options: import('../src/client/contract/prompt-edit.ts').PromptEditOptions) => Promise<void>
       })(ROOT)
-      const original: UserMessageNode = { kind: 'user', seq: 7, time: 1_000, source: { kind: 'user' },
-        content: [{ type: 'image', attachment }, { type: 'text', text: 'old prompt' }],
-      }
-      b.sessionFake.cancel.mockResolvedValueOnce({ ok: false, error: { code: 'internal', message: 'cancel failed', details: {} } })
-      await expect(injected.editMessage(original, 'edited prompt')).rejects.toThrow('cancel failed')
-      expect(fork).not.toHaveBeenCalled()
-      await injected.editMessage(original, 'edited prompt')
-      expect(b.sessionFake.cancel).toHaveBeenCalledTimes(2)
-      expect(read).toHaveBeenCalledWith(attachment.attachmentId)
-      expect(fork).toHaveBeenCalledWith({ sessionId: ROOT, beforeSeq: 7 })
-      await vi.waitFor(() => { expect(child.prompt).toHaveBeenCalledTimes(1) })
-      expect(child.prompt.mock.calls[0]?.[0]).toEqual([
-        expect.objectContaining({ type: 'image', mediaType: 'image/png', data: 'AQID' }),
-        { type: 'text', text: 'edited prompt' },
-      ])
-      await vi.waitFor(() => { expect(b.inputApi(childId).state.getSnapshot()).toMatchObject({
-        draft: 'edited prompt', imageIds: [expect.any(String)],
-      }) })
+      const original: UserMessageNode = { kind: 'user', seq: 7, time: 1000, source: { kind: 'user' }, content: [{ type: 'text', text: 'old' }] }
+      const options = { idempotencyKey: 'same-retry' }
+      await expect(injected.editMessage(original, '  mới\nBob  ', options)).rejects.toThrow('offline')
+      await injected.editMessage(original, '  mới\nBob  ', options)
+      expect(revise).toHaveBeenLastCalledWith({ sessionId: ROOT, workspaceId: null, idempotencyKey: 'same-retry',
+        edit: { messageSeq: 7, text: '  mới\nBob  ' } })
+      expect(b.sessionFake.cancel).not.toHaveBeenCalled()
       expect(b.inputApi(ROOT).state.getSnapshot().draft).toBe('unrelated composer draft')
-      b.inputApi(childId).actions.submit()
-      await vi.waitFor(() => { expect(b.inputApi(childId).state.getSnapshot()).toMatchObject({ draft: '', imageIds: [] }) })
-      expect(fork).toHaveBeenCalledTimes(1)
-    } finally {
-      await b.runtime.dispose()
-      fork.mockRestore()
-      created.mockRestore()
-      revoked.mockRestore()
-      snapshot.mockRestore()
-    }
+      expect(b.runtime.sessions.list.getSnapshot().current).toBe(childId)
+    } finally { await b.runtime.dispose(); revise.mockRestore() }
   })
 
   it('assembles the thin API side-effect-free', async () => {

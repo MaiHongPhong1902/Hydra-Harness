@@ -330,6 +330,26 @@ describe('ConversationRoot resident composer', () => {
     expect(modelSeat).toEqual({ locked: true })
   })
 
+  it('keeps the hero composer live when cwd matches a workspace that has not accounted the session yet', () => {
+    // session.create attaches before host/workspace-changed prepends the id;
+    // treating that lag as "no workspace" forced a second chip pick before
+    // send or a typed slash command could run.
+    const b = mount(
+      conversationSnapshot({ composerPhase: 'blank', blank: true }),
+      [workspace('one')],
+      undefined,
+      { summaryBlank: true },
+    )
+    const box = b.view.getByRole('textbox') as HTMLTextAreaElement
+    expect(box.readOnly).toBe(false)
+    expect(box.disabled).toBe(false)
+    expect(box.placeholder).toBe(en['placeholder.hero'])
+    expect(b.view.getByText('one')).toBeTruthy()
+    fireEvent.change(box, { target: { value: '/plugin install toolkit' } })
+    fireEvent.keyDown(box, { key: 'Enter' })
+    expect(b.sink).toHaveBeenCalledWith('/plugin install toolkit', [], 'queue', expect.any(AbortSignal))
+  })
+
   it('keeps composer text in the machine, mirrors to the chat store, and submits through the sink', () => {
     const b = mount(conversationSnapshot())
     const box = b.view.getByRole('textbox')

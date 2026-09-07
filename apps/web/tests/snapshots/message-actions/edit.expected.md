@@ -1,7 +1,7 @@
 - form "Edit prompt":
   - text: Edit prompt
   - textbox "Edit prompt": Please revise the answer. Keep it concise.
-  - paragraph: Replaces this prompt and the conversation after it. Previous versions are kept. File changes stay as they are.
-  - text: Ctrl/⌘ + Enter to send · Esc to cancel
+  - paragraph: Replaces this prompt and the conversation after it. Previous versions are kept.
+  - text: Enter to send · Shift + Enter for a new line · Esc to cancel
   - button "Cancel"
   - button "Save & resend"

@@ -126,6 +126,33 @@ describe('MessageItem arms', () => {
     expect(openVersion).toHaveBeenLastCalledWith(first.id)
   })
 
+  it('shows See versions only on the user prompt whose turn was revised', () => {
+    const original = { id: 'original' as SessionId, displayTitle: 'Chat', updatedAt: 0, blank: false, running: false }
+    const edited = { ...original, id: 'edited' as SessionId, revision: {
+      sessionId: 'edited' as SessionId, conversationId: original.id, previousSessionId: original.id, turn: 1, createdAt: 1,
+    } }
+    const list: SessionListState = { ids: [original.id, edited.id],
+      byId: { [original.id]: original, [edited.id]: edited }, current: edited.id,
+      phase: 'ready', subagentsByParent: {}, jobsBySession: {}, currentAddress: undefined }
+    const useSessions = bindSnapshotSelector({ getSnapshot: () => list, subscribe: () => () => {} })
+    const userAt = (turn: number): ChatNodeViewProps<'user'>['node'] => ({
+      key: `user:${turn}`, kind: 'user', id: String(turn), target: 'chat', anchorSeq: turn, visibility: 'visible',
+      location: { kind: 'turn', turn: { turn, start: undefined, end: undefined, status: 'closed', steps: [],
+        data: { get: () => undefined } } },
+      data: { kind: 'user', seq: turn, time: 1_000, content: [{ type: 'text', text: `prompt ${turn}` }], source: null },
+    })
+    const openVersion = vi.fn()
+    const editMessage = async (): Promise<void> => {}
+    const props = { node: userAt(1), sessionId: edited.id, useSessions, t, renderMessageImages } as ChatNodeViewProps<'user'>
+    const revised = render(<UserMessageNodeView {...props} openVersion={openVersion} editMessage={editMessage} />)
+    expect(revised.getByRole('button', { name: 'See versions' })).toBeTruthy()
+    expect(revised.getByRole('button', { name: 'Edit' })).toBeTruthy()
+    revised.unmount()
+    const later = render(<UserMessageNodeView {...props} node={userAt(2)} openVersion={openVersion} editMessage={editMessage} />)
+    expect(later.queryByRole('button', { name: 'See versions' })).toBeNull()
+    expect(later.getByRole('button', { name: 'Edit' })).toBeTruthy()
+  })
+
   it('edits inline, cancels unchanged, rejects blank text, and retains a failed submission for retry', async () => {
     const editMessage = vi.fn().mockRejectedValueOnce(new Error('offline')).mockResolvedValue(undefined)
     const node = { kind: 'user' as const, seq: 1, time: 1_000,
@@ -148,7 +175,8 @@ describe('MessageItem arms', () => {
     expect(view.getByRole('alert').textContent).toContain('offline')
     expect((view.getByRole('textbox') as HTMLTextAreaElement).value).toBe('revised\nprompt')
     await act(async () => { fireEvent.keyDown(view.getByRole('textbox'), { key: 'Enter', ctrlKey: true }) })
-    expect(editMessage).toHaveBeenLastCalledWith(node, 'revised\nprompt')
+    expect(editMessage).toHaveBeenLastCalledWith(node, 'revised\nprompt', { idempotencyKey: expect.any(String) as unknown })
+    expect(editMessage.mock.calls[0]?.[2]).toEqual(editMessage.mock.calls[1]?.[2])
     expect(view.queryByRole('textbox')).toBeNull()
   })
 

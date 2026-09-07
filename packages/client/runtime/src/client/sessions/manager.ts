@@ -9,6 +9,7 @@ import type {
 // Value import from the inline-safe wire layer (not the connection plugin):
 // plugin-to-plugin value imports are a bundle purity error.
 import { transportError } from '@hydra/harness-host-apiproxy/api'
+import type { PromptRevisionRequest } from '@hydra/harness-host-apiproxy/api'
 import { mergeOrderedBaseline } from '../ordered-baseline.ts'
 import type { ConversationRuntime } from './conversation-assembler.ts'
 import type { SessionListEntry, TitledSessionSummary } from './lineage.ts'
@@ -610,6 +611,26 @@ export class SessionManager {
     } catch (error) {
       return transportError(error)
     }
+  }
+
+  /**
+   * Admit one immutable edit/retry and publish its Host-confirmed summary.
+   * @param input - Source address and caller-owned idempotency key.
+   * @returns durable generation attempt identity or the original RPC error.
+   */
+  async revise(input: PromptRevisionRequest): Promise<RpcResult<{ sessionId: SessionId }>> {
+    try {
+      const { result } = await this.api.sessions.revise(input)
+      if (result.ok) {
+        const source = this.summaries.find(summary => summary.sessionId === input.sessionId)
+        this.recordMutation({ kind: 'upsert', summary: {
+          sessionId: result.value.sessionId, revision: result.value.revision,
+          parentSessionId: input.sessionId, updatedAt: Date.now(), running: false, blank: false,
+          ...source?.cwd === undefined ? {} : { cwd: source.cwd },
+        } })
+      }
+      return result
+    } catch (error) { return transportError(error) }
   }
 
   /**

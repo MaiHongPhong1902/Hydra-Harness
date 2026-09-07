@@ -232,6 +232,26 @@ export class WorkspaceManager {
   }
 
   /**
+   * Prepend a session onto a materialized Workspace account without waiting
+   * for the Host changed frame. `session.create({ workspaceId })` has already
+   * attached; New Session reads this list in the same turn for reuse and the
+   * hero composer. Live items update immediately; an in-flight `workspace.list`
+   * is not patched, so a stale baseline can drop the id until the later
+   * changed frame. Direct adopt avoids recording a full-view upsert into
+   * that refresh replay, which would replace a newer Host row.
+   * @param workspaceId - Workspace that just attached the session.
+   * @param sessionId - attached session.
+   */
+  accountSession(workspaceId: WorkspaceId, sessionId: SessionId): void {
+    const workspace = this.items.find(item => item.getSnapshot().view?.workspaceId === workspaceId)
+    const view = workspace?.getSnapshot().view
+    if (workspace === undefined || view === undefined || view.sessionIds.includes(sessionId)) return
+    workspace.adopt({ ...view, sessionIds: [sessionId, ...view.sessionIds] })
+    this.items = [...this.items]
+    this.notifier.notifyNow()
+  }
+
+  /**
    * Host-frame entry. Non-workspace frames are ignored so the runtime can
    * fan one host stream out to both object managers.
    * @param envelope - host stream envelope.

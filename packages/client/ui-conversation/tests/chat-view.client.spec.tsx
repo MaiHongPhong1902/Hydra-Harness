@@ -749,15 +749,15 @@ describe('ChatView', () => {
     expect(view.queryByText(/TTFT|tok\/s/)).toBeNull()
   })
 
-  it('user and assistant message containers scope the hover-revealed time chrome', () => {
+  it('user and assistant messages keep Copy and clock chrome without hover', () => {
     const h = makeHarness({
       nodes: [user(1, 'hi'), assistant(2, 'answer')],
       turnTimings: new Map([[1, { startTime: 1_000, endTime: 2_000 }]]),
       turnEnds: new Map([[1, 2]]),
     })
     const view = render(<h.ChatView {...h.props} />)
-    // The user row and the settled assistant's Turn Tail each own one clock scope.
-    expect(view.container.querySelectorAll('[data-time-hover-root]')).toHaveLength(2)
+    expect(view.getAllByRole('button', { name: 'Copy' })).toHaveLength(2)
+    expect(view.getByText(/Ran for 1s/)).toBeTruthy()
   })
 
   it('the run-time label is withheld when the turn start is outside the window', () => {

@@ -185,7 +185,7 @@ export class TestSessions implements ISessions {
   /** Calls observed on the service-level face, newest last. */
   readonly calls: {
     method: 'open' | 'openSubagent' | 'setSubagentCatalogOpen' | 'refreshSubagents' | 'refresh'
-      | 'clear' | 'search' | 'fork' | 'create'
+      | 'clear' | 'search' | 'fork' | 'revise' | 'create'
     args: unknown[]
   }[] = []
 
@@ -509,6 +509,16 @@ export class TestSessions implements ISessions {
   fork(opts: { sessionId: SessionId; atSeq?: number; increaseTitle?: boolean }): Promise<SessionId> {
     this.calls.push({ method: 'fork', args: [opts] })
     return Promise.resolve(opts.sessionId)
+  }
+
+  /**
+   * Record revision admission; behavior tests use the real Host implementation.
+   * @param input - Source and stable revision admission.
+   * @returns the source identity unless replaced by the owning test.
+   */
+  revise(input: Parameters<ISessions['revise']>[0]): Promise<SessionId> {
+    this.calls.push({ method: 'revise', args: [input] })
+    return Promise.resolve(input.sessionId)
   }
 
   /**
