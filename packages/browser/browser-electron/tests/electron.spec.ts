@@ -234,6 +234,27 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
     expect(after.content).toContain('Ordered l for Ada')
   }, 60_000)
 
+  it('resolves named Hydra actions, fills fields, and goes forward', async () => {
+    expect(await child.call('navigate', { url: fixture })).toMatchObject({ success: true })
+    const found = await child.call('find_element', { query: 'Requester' }) as ActionResult
+    expect(found.success).toBe(true)
+    expect(found.message).toMatch(/\[\d+]/)
+    expect(await child.call('input_text', { name: 'who', text: 'Ada' })).toMatchObject({ success: true })
+    expect(await child.call('fill_fields', {
+      fields: [{ name: 'size', text: 'Large' }],
+    })).toMatchObject({ success: true })
+    expect(await child.call('click_element', { name: 'Place order' })).toMatchObject({ success: true })
+    const after = await child.call('get_browser_state', {}) as BrowserState
+    expect(after.content).toContain('Ordered l for Ada')
+    expect(await child.call('click_element', { name: 'Continue' })).toMatchObject({ success: true })
+    const next = await child.call('get_browser_state', { waitForReady: true }) as BrowserState
+    expect(next.url).toContain('next.html')
+    expect(await child.call('back', {})).toMatchObject({ success: true })
+    expect(await child.call('forward', {})).toMatchObject({ success: true })
+    const forwarded = await child.call('get_browser_state', { waitForReady: true }) as BrowserState
+    expect(forwarded.url).toContain('next.html')
+  }, 60_000)
+
   it('rejects a click whose indexed target is covered by a popup', async () => {
     await child.call('navigate', { url: fixture })
     const before = await child.call('get_browser_state', {}) as BrowserState

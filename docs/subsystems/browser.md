@@ -40,9 +40,21 @@ interface BrowserState {
 
 Each `BrowserTabState` in `tabs` has a stable `id`, `url`, `title`, `status` (`loading` or `complete`), and `active` flag.
 
-`header`, `content`, and `footer` arrive already formatted by `PageController`; the seam does not reshape them. Bounding `content` and joining the three into model-facing text is the consumer's job, because the cap is a deployment choice.
+`header`, `content`, and `footer` arrive already formatted by `PageController`. The Hydra preload ranks `content` so newly appeared and typical form controls survive a later cap; `@hydra/harness-tool-browser` ranks again, then cuts only `content` to the full (`browser_state` / `browser_navigate`) or compact (~4k) budget. Indices stay PageController's.
 
 ## Actions
+
+```ts type-equiv
+/** One field a Hydra fill action types, resolved by index or visible name. */
+interface BrowserFillField {
+  /** Element index from the latest snapshot for this tab. */
+  index?: number
+  /** Visible label, accessible name, placeholder, or id when index is omitted. */
+  name?: string
+  /** Text that replaces the field's current value. */
+  text: string
+}
+```
 
 ```ts type-equiv
 /**
@@ -55,11 +67,14 @@ type BrowserAction =
     | { method: 'get_browser_state' }
     | { method: 'navigate'; url: string }
     | { method: 'back' }
+    | { method: 'forward' }
     | { method: 'press'; key: string }
-    | { method: 'click_element'; index: number }
+    | { method: 'click_element'; index?: number; name?: string }
     | { method: 'upload_file'; index: number; filePath: string }
-    | { method: 'input_text'; index: number; text: string }
-    | { method: 'select_option'; index: number; text: string }
+    | { method: 'input_text'; index?: number; name?: string; text: string }
+    | { method: 'select_option'; index?: number; name?: string; text: string }
+    | { method: 'find_element'; query: string }
+    | { method: 'fill_fields'; fields: BrowserFillField[] }
     | { method: 'scroll'; down: boolean; numPages: number; pixels?: number; index?: number }
     | { method: 'scroll_horizontally'; right: boolean; pixels: number; index?: number }
     | { method: 'wait'; seconds: number }
@@ -73,7 +88,7 @@ type BrowserAction =
   | { method: 'close_tab'; tabId: number }
 ```
 
-The wire names are page-agent's own where possible. `navigate`, `back`, `press`, bounded `wait`, and tab actions are answered by the Electron main process; DOM actions reach the targeted view's preload and land in `PageController`. `execute_javascript` is host-gated and runs only in PageController's isolated document world.
+The wire names are page-agent's own where possible. `navigate`, `back`, `forward`, `press`, bounded `wait`, and tab actions are answered by the Electron main process; DOM actions — including Hydra-owned `find_element` and `fill_fields` — reach the targeted view's preload and land in `PageController`. Click, type, and select accept an index or a visible `name`. `execute_javascript` is host-gated and runs only in PageController's isolated document world. `page_agent_*` starts the vendored ReAct engine only when requested explicitly.
 
 An action without `tabId` is a window-wide barrier and captures the selected tab when Electron receives it. Explicit targets are serialized per tab and may overlap across different tabs; switching the visible tab does not retarget or cancel them. Navigation, renderer loss, or tab closure rejects only the affected tab's calls.
 

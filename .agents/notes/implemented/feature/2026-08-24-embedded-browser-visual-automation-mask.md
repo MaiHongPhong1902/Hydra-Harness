@@ -21,3 +21,5 @@ This supersedes only the simulator-mask exclusion in [Embedded browser driven by
 ## Consequences
 
 The mask is an intentionally visible DOM overlay while an automated indexed action runs, and it temporarily blocks user input to prevent interference. It is recreated per navigation with the preload and fades out after each direct action. Focused real-Electron coverage verifies the panel remains absent, the mask is styled, and its virtual cursor moves for an indexed click.
+
+Index highlights, compact action snapshots, and demoted PageAgentCore remain in [Hydra-owned browser control](../architecture/2026-09-07-hydra-owned-browser-control.md).

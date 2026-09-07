@@ -9,6 +9,7 @@ let finished = false
 let deadline
 let phase = 'starting'
 const annotations = []
+let opened = 0
 let resolveController
 const controllerReady = new Promise(resolve => { resolveController = resolve })
 
@@ -58,6 +59,7 @@ server.listen(0, '127.0.0.1', () => {
     send() {},
     onState() {},
     onAnnotation(annotation) { annotations.push(annotation) },
+    openBrowser() { opened += 1 },
     register(controller) { resolveController(controller) },
   }
   require('../electron-app/main.cjs')
@@ -76,6 +78,10 @@ server.listen(0, '127.0.0.1', () => {
       url: document.getElementById('omnibox').value,
       history: [...document.querySelectorAll('#omnibox-history option')].map(option => ({ label: option.label, value: option.value })),
       forwardDisabled: document.getElementById('forward').disabled,
+      activity: document.getElementById('status').textContent,
+      theme: document.documentElement.dataset.theme,
+      loadingHidden: document.getElementById('loading').hidden,
+      secureHidden: document.getElementById('secure').hidden,
     })`)
     const navigate = async path => {
       phase = `navigating ${path}`
@@ -127,6 +133,16 @@ server.listen(0, '127.0.0.1', () => {
     await navigate('/one')
     phase = 'waiting for first tab title'
     await waitFor(async () => (await state()).history.some(entry => entry.label === 'One' && entry.value === `${address}/one`))
+
+    phase = 'agent action reveals the panel and HUD'
+    await controller.command('navigate', { url: `${address}/two` })
+    await waitFor(async () => {
+      const current = await state()
+      return current.url === `${address}/two` && current.activity.includes('Hydra: Navigate')
+    })
+    assert.ok(opened >= 1)
+    assert.match((await state()).theme, /^(light|dark)$/)
+    await navigate('/one')
 
     phase = 'capturing an included region screenshot'
     await dragRegion(await startAnnotation(), 1)

@@ -56,6 +56,7 @@ const initial: BrowserToolValue = {
   settled: true,
   capturedAt: '2026-08-24T00:00:00.000Z',
   truncated: false,
+  compact: false,
 }
 
 function vaultFile(vaultPath: string, path: string): string {

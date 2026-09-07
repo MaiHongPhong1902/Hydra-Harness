@@ -1,13 +1,14 @@
 // Source of `preload.cjs` — do not load this file directly; Electron loads the
 // bundle. Rebuild with `pnpm --filter @hydra/harness-browser-electron run build:preload`.
 //
-// This is the Electron counterpart of PageAgent's content script. It runs the
-// upstream PageAgent engine (Core and PageController) in the isolated world of
-// every document the controlled view loads. BH owns all user-visible controls;
-// the upstream Panel is deliberately not instantiated. Its simulator mask is
-// visual feedback only and remains visible throughout the controlled page. Its
-// LLM fetches cross the private IPC boundary and are routed by BH to the model
-// the owning agent already selected; no provider credential reaches the webpage.
+// This is the Electron counterpart of PageAgent's content script. It runs
+// PageController in the isolated world of every document the controlled view
+// loads, and constructs PageAgentCore only for an explicit page_agent_run.
+// BH owns all user-visible controls; the upstream Panel is deliberately not
+// instantiated. PageController's simulator mask and index highlights are visual
+// feedback only. LLM fetches for the optional PageAgent engine cross the private
+// IPC boundary and are routed by BH to the model the owning agent already
+// selected; no provider credential reaches the webpage.
 //
 // The simulator mask is the sole visible DOM addition. `contextBridge` is never
 // called and `ipcRenderer` never leaves this module scope, so a hostile document
@@ -58,6 +59,14 @@ const annotationCss = `
 }
 `
 
+const HARNESS_OVERLAY_SELECTOR = [
+  '#playwright-highlight-container',
+  '#page-agent-runtime_simulator-mask',
+  '#bh-browser-annotation-overlay',
+  '#bh-browser-annotation-highlight',
+  '#bh-browser-annotation-tip',
+].join(', ')
+
 const cursorOverrideCss = `
 #page-agent-runtime_simulator-mask { cursor: default; }
 #page-agent-runtime_simulator-mask [class*="cursor_"] {
@@ -76,6 +85,10 @@ const cursorOverrideCss = `
   width: 64px;
   height: 64px;
   margin: -32px;
+}
+#playwright-highlight-container,
+#playwright-highlight-container * {
+  pointer-events: none !important;
 }
 `
 
@@ -149,13 +162,35 @@ async function describeElement(controller, selected) {
   }
 }
 
+/** True when the node is Hydra chrome, PageController highlights, or the simulator mask. */
+function isHarnessOverlay(element) {
+  if (!(element instanceof Element)) return false
+  return element.closest(HARNESS_OVERLAY_SELECTOR) !== null
+    || element.dataset.pageAgentIgnore === 'true'
+    || element.dataset.browserUseIgnore === 'true'
+}
+
+/**
+ * Topmost page-owned element at a viewport point, skipping Hydra overlays.
+ * @param {number} x - viewport X.
+ * @param {number} y - viewport Y.
+ * @returns {Element | undefined}
+ */
+function pageElementFromPoint(x, y) {
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return undefined
+  for (const hit of document.elementsFromPoint(x, y)) {
+    if (hit instanceof Element && !isHarnessOverlay(hit)) return hit
+  }
+}
+
 /** Read the page element under a picker point without selecting our overlay. */
 function elementAt(overlay, x, y) {
-  if (!Number.isFinite(x) || !Number.isFinite(y)) return undefined
   overlay?.setAttribute('data-peeking', 'true')
-  const element = document.elementFromPoint(x, y)
-  overlay?.removeAttribute('data-peeking')
-  return element instanceof Element ? element : undefined
+  try {
+    return pageElementFromPoint(x, y)
+  } finally {
+    overlay?.removeAttribute('data-peeking')
+  }
 }
 
 /** Enter a one-shot element-or-region picker; Escape and page changes cancel it. */
@@ -294,6 +329,52 @@ function getElementCenter(controller, index) {
   return { x: Math.round(rect.left + (rect.width / 2)), y: Math.round(rect.top + (rect.height / 2)) }
 }
 
+const FILE_INPUT_MARK = 'data-bh-host-file-input'
+
+/**
+ * Tag the indexed file input so the host can address it through CDP without
+ * hit-testing PageController highlights or the simulator mask.
+ * @param {import('@page-agent/page-controller').PageController} controller
+ * @param {number} index
+ * @returns {{ token: string }}
+ */
+function markFileInput(controller, index) {
+  const element = controller.selectorMap.get(index)?.ref
+  if (!(element instanceof HTMLInputElement) || element.type !== 'file') {
+    throw new Error('the indexed element is not an HTML file input')
+  }
+  const token = crypto.randomUUID()
+  element.setAttribute(FILE_INPUT_MARK, token)
+  return { token }
+}
+
+function unmarkFileInput(token) {
+  if (typeof token !== 'string' || token.length === 0) return { success: true }
+  document.querySelector(`[${FILE_INPUT_MARK}="${CSS.escape(token)}"]`)?.removeAttribute(FILE_INPUT_MARK)
+  return { success: true }
+}
+
+/** Session-history flags from the document. Isolated-world clicks update this, not always Electron's list. */
+function historyState() {
+  const navigation = window.navigation
+  if (navigation !== undefined) {
+    return { canGoBack: navigation.canGoBack, canGoForward: navigation.canGoForward }
+  }
+  return { canGoBack: window.history.length > 1, canGoForward: false }
+}
+
+function historyGo(delta) {
+  const state = historyState()
+  if (delta < 0 && !state.canGoBack) {
+    return { success: false, message: 'No earlier page in this view.' }
+  }
+  if (delta > 0 && !state.canGoForward && window.navigation !== undefined) {
+    return { success: false, message: 'No later page in this view.' }
+  }
+  window.history.go(delta)
+  return { success: true }
+}
+
 /** Show the passive visual feedback around a BH-owned indexed DOM action. */
 async function withVisualMask(controller, action) {
   await controller.showMask()
@@ -417,34 +498,236 @@ function maskPasswordValues(controller, content) {
   return masked
 }
 
+const INTERACTIVE_TAGS = new Set(['a', 'button', 'input', 'select', 'textarea'])
+const INDEXED_LINE = /^(\t*)(\*)?\[(\d+)\]<([a-z0-9-]+)/iu
+
+/** Rank snapshot lines so new and typical form controls survive a later cap. */
+function rankElementList(content) {
+  if (typeof content !== 'string' || content.length === 0) return content
+  return content.split('\n')
+    .map((line, order) => ({ line, order, rank: lineRank(line) }))
+    .sort((left, right) => left.rank - right.rank || left.order - right.order)
+    .map(entry => entry.line)
+    .join('\n')
+}
+
+function lineRank(line) {
+  const match = INDEXED_LINE.exec(line)
+  if (match === null) return 3
+  if (match[2] === '*') return 0
+  const tag = match[4]
+  if (tag !== undefined && INTERACTIVE_TAGS.has(tag.toLowerCase())) return 1
+  return 2
+}
+
+const FILLABLE_KIND = 2
+const CLICKABLE_KIND = 1
+
+function indexOfElement(controller, element) {
+  for (const [index, node] of controller.selectorMap) {
+    if (node.ref === element) return index
+  }
+}
+
+/** Follow a labeled control so "Size" addresses the select, not the label. */
+function effectiveIndex(controller, index) {
+  const element = controller.selectorMap.get(index)?.ref
+  if (element instanceof HTMLLabelElement && element.control instanceof Element) {
+    const controlIndex = indexOfElement(controller, element.control)
+    if (controlIndex !== undefined) return controlIndex
+  }
+  return index
+}
+
+function identityMatch(element, needle) {
+  if (!(element instanceof Element)) return false
+  return element.id.toLowerCase() === needle
+    || (element.getAttribute('name') ?? '').toLowerCase() === needle
+}
+
+function controlKind(element) {
+  if (
+    element instanceof HTMLInputElement
+    || element instanceof HTMLTextAreaElement
+    || element instanceof HTMLSelectElement
+  ) return FILLABLE_KIND
+  if (element instanceof HTMLButtonElement || element?.localName === 'button' || element?.localName === 'a') {
+    return CLICKABLE_KIND
+  }
+  return 0
+}
+
+function elementHaystacks(controller, index, line) {
+  const haystacks = [line]
+  const node = controller.selectorMap.get(index)
+  const element = node?.ref
+  if (element instanceof Element) {
+    haystacks.push(
+      element.getAttribute('aria-label'),
+      element.getAttribute('placeholder'),
+      element.getAttribute('name'),
+      element.id,
+      element.getAttribute('title'),
+      element instanceof HTMLElement ? element.innerText : element.textContent,
+    )
+    if (
+      (element instanceof HTMLInputElement
+        || element instanceof HTMLTextAreaElement
+        || element instanceof HTMLSelectElement)
+      && element.labels?.[0]?.textContent
+    ) {
+      haystacks.push(element.labels[0].textContent)
+    }
+  }
+  return haystacks
+    .filter(value => typeof value === 'string' && value.trim().length > 0)
+    .map(value => value.replace(/\s+/gu, ' ').trim().toLowerCase())
+}
+
+function matchQuery(controller, query) {
+  const needle = String(query).trim().toLowerCase()
+  if (needle.length === 0) return []
+  const matches = []
+  const seen = new Set()
+  const consider = (index, line) => {
+    const target = effectiveIndex(controller, index)
+    if (seen.has(target)) return
+    const element = controller.selectorMap.get(target)?.ref
+    const haystacks = [
+      ...elementHaystacks(controller, index, line),
+      ...(target === index ? [] : elementHaystacks(controller, target, '')),
+    ]
+    const exact = haystacks.some(text => text === needle)
+    const partial = haystacks.some(text => text.includes(needle))
+    if (!exact && !partial) return
+    seen.add(target)
+    matches.push({
+      index: target,
+      line,
+      exact,
+      identity: identityMatch(element, needle),
+      kind: controlKind(element),
+    })
+  }
+  for (const line of String(controller.simplifiedHTML ?? '').split('\n')) {
+    const match = /\[(\d+)\]/u.exec(line)
+    if (match !== null) consider(Number(match[1]), line.trim())
+  }
+  for (const [index, line] of controller.elementTextMap) consider(index, line)
+  matches.sort((left, right) =>
+    Number(right.identity) - Number(left.identity)
+    || Number(right.exact) - Number(left.exact)
+    || right.kind - left.kind
+    || left.index - right.index)
+  return matches
+}
+
+/**
+ * Fail when another page element covers the indexed target's center.
+ * Hydra owns this check so PageController stays unforked.
+ * @param {import('@page-agent/page-controller').PageController} controller
+ * @param {number} index
+ * @returns {{ success: false, message: string } | undefined}
+ */
+function coveredClickFailure(controller, index) {
+  const element = controller.selectorMap.get(index)?.ref
+  if (!(element instanceof Element)) return undefined
+  const rect = element.getBoundingClientRect()
+  const x = rect.left + (rect.width / 2)
+  const y = rect.top + (rect.height / 2)
+  const hit = pageElementFromPoint(x, y)
+  if (hit !== undefined && hit !== element && !element.contains(hit)) {
+    return {
+      success: false,
+      message: `Element is covered by <${hit.localName}> at (${Math.round(x)}, ${Math.round(y)}).`,
+    }
+  }
+}
+
+async function resolveNamedIndex(controller, args) {
+  if (typeof args.index === 'number') return args.index
+  const name = String(args.name ?? '').trim()
+  if (name.length === 0) throw new Error('provide index or a non-empty name')
+  await controller.updateTree()
+  const matches = matchQuery(controller, name)
+  return matches[0]?.index
+}
+
+async function actOnNamed(controller, args, act) {
+  const index = await resolveNamedIndex(controller, args)
+  if (index === undefined) {
+    return { success: false, message: `No element named "${String(args.name).trim()}" in the current snapshot.` }
+  }
+  return await withVisualMask(controller, () => act(index))
+}
+
+async function findElement(controller, query) {
+  const needle = String(query ?? '').trim()
+  if (needle.length === 0) throw new Error('find query must be a non-empty string')
+  const search = async () => {
+    await controller.updateTree()
+    return matchQuery(controller, needle)
+  }
+  let matches = await search()
+  for (let attempt = 0; attempt < 3 && matches.length === 0; attempt++) {
+    await controller.scroll({ down: true, numPages: 1 })
+    matches = await search()
+  }
+  if (matches.length === 0) {
+    return { success: false, message: `No element matching "${needle}" in the current page.` }
+  }
+  const listing = matches.slice(0, 8).map(match => `[${match.index}]`).join(', ')
+  return {
+    success: true,
+    message: matches.length === 1
+      ? `Found 1 element matching "${needle}": [${matches[0].index}].`
+      : `Found ${matches.length} elements matching "${needle}": ${listing}.`,
+  }
+}
+
+async function fillFields(controller, fields) {
+  if (!Array.isArray(fields) || fields.length === 0) throw new Error('fields must be a non-empty array')
+  const messages = []
+  for (const field of fields) {
+    await controller.updateTree()
+    const index = await resolveNamedIndex(controller, field)
+    if (index === undefined) {
+      messages.push(`No element named "${String(field.name).trim()}" in the current snapshot.`)
+      return { success: false, message: messages.join('\n') }
+    }
+    const element = controller.selectorMap.get(index)?.ref
+    const result = element instanceof HTMLSelectElement
+      ? await controller.selectOption(index, field.text)
+      : await controller.inputText(index, field.text)
+    messages.push(result.message)
+    if (!result.success) return { success: false, message: messages.join('\n') }
+  }
+  return { success: true, message: messages.join('\n') }
+}
+
 // Electron evaluates a preload before navigation creates <body>. Wait for a
-// document before constructing PageController. The engine runs privately; the
-// BH tool surface is the sole control plane.
-const pageAgentReady = new Promise((resolve, reject) => {
+// document before constructing PageController. PageAgentCore is created only
+// when an explicit page_agent_run arrives; Hydra owns the ordinary loop.
+const pageControllerReady = new Promise((resolve, reject) => {
   const initialize = async () => {
     try {
       installMaskStyles()
-      // `model` and `baseURL` satisfy PageAgent's public constructor contract
-      // only. bhModelFetch ignores both and the host resolves the real selected
-      // BH route.
-      const pageController = new PageController({ enableMask: true, persistentMask: true })
+      const pageController = new PageController({
+        enableMask: true,
+        persistentMask: true,
+        highlightOpacity: 0.12,
+        highlightLabelOpacity: 0.85,
+      })
       await pageController.showMask()
       const getBrowserState = pageController.getBrowserState.bind(pageController)
       pageController.getBrowserState = async () => {
         const state = await getBrowserState()
-        return { ...state, content: maskPasswordValues(pageController, state.content) }
+        return {
+          ...state,
+          content: rankElementList(maskPasswordValues(pageController, state.content)),
+        }
       }
-      const pageAgent = new PageAgentCore({
-        model: 'bh-selected-model',
-        baseURL: 'http://bh.local',
-        customFetch: bhModelFetch,
-        language: 'en-US',
-        pageController,
-        instructions: {
-          system: 'You are a Hydra-controlled browser engine. Do not present a user interface or ask the webpage user questions. Keep internal task results in English for Hydra to consume.',
-        },
-      })
-      resolve(pageAgent)
+      resolve(pageController)
     } catch (error) {
       reject(error)
     }
@@ -453,6 +736,26 @@ const pageAgentReady = new Promise((resolve, reject) => {
   else initialize()
 })
 
+let pageAgent
+
+function ensurePageAgent(controller) {
+  if (pageAgent !== undefined) return pageAgent
+  // `model` and `baseURL` satisfy PageAgent's public constructor contract
+  // only. bhModelFetch ignores both and the host resolves the real selected
+  // BH route.
+  pageAgent = new PageAgentCore({
+    model: 'bh-selected-model',
+    baseURL: 'http://bh.local',
+    customFetch: bhModelFetch,
+    language: 'en-US',
+    pageController: controller,
+    instructions: {
+      system: 'You are a Hydra-controlled browser engine. Do not present a user interface or ask the webpage user questions. Keep internal task results in English for Hydra to consume.',
+    },
+  })
+  return pageAgent
+}
+
 /**
  * Run one action against this document.
  * @param {string} action - action name, matching the extension's action set.
@@ -460,8 +763,7 @@ const pageAgentReady = new Promise((resolve, reject) => {
  * @returns {Promise<unknown>} the action's JSON-safe result.
  */
 async function dispatch(action, args) {
-  const pageAgent = await pageAgentReady
-  const controller = pageAgent.pageController
+  const controller = await pageControllerReady
   switch (action) {
     case 'get_browser_state':
       return await controller.getBrowserState()
@@ -484,13 +786,29 @@ async function dispatch(action, args) {
       return await describeElement(controller, element)
     }
     case 'click_element':
-      return await withVisualMask(controller, () => controller.clickElement(args.index))
+      return await actOnNamed(controller, args, (index) => {
+        const covered = coveredClickFailure(controller, index)
+        if (covered !== undefined) return covered
+        return controller.clickElement(index)
+      })
     case 'get_element_center':
       return getElementCenter(controller, args.index)
+    case 'mark_file_input':
+      return markFileInput(controller, args.index)
+    case 'unmark_file_input':
+      return unmarkFileInput(args.token)
+    case 'history_state':
+      return historyState()
+    case 'history_go':
+      return historyGo(args.delta)
     case 'input_text':
-      return await withVisualMask(controller, () => controller.inputText(args.index, args.text))
+      return await actOnNamed(controller, args, index => controller.inputText(index, args.text))
     case 'select_option':
-      return await withVisualMask(controller, () => controller.selectOption(args.index, args.text))
+      return await actOnNamed(controller, args, index => controller.selectOption(index, args.text))
+    case 'find_element':
+      return await findElement(controller, args.query)
+    case 'fill_fields':
+      return await withVisualMask(controller, () => fillFields(controller, args.fields))
     case 'autofill_login':
       return fillLogin(args)
     case 'autofill_contact':
@@ -505,21 +823,26 @@ async function dispatch(action, args) {
       if (typeof args.task !== 'string' || args.task.trim().length === 0) {
         throw new Error('PageAgent task must be a non-empty string')
       }
-      if (pageAgent.status === 'running') {
+      const agent = ensurePageAgent(controller)
+      if (agent.status === 'running') {
         return { success: false, message: 'PageAgent is already running.' }
       }
-      setTimeout(() => { void pageAgent.execute(args.task).catch(error => console.error('[PageAgent]', error)) }, 0)
+      setTimeout(() => { void agent.execute(args.task).catch(error => console.error('[PageAgent]', error)) }, 0)
       return { success: true, message: 'Started the upstream PageAgent task.' }
     }
-    case 'page_agent_status':
+    case 'page_agent_status': {
+      if (pageAgent === undefined) {
+        return { success: true, message: 'PageAgent status: idle.' }
+      }
       return {
         success: true,
         message: pageAgent.lastResult === null
           ? `PageAgent status: ${pageAgent.status}.`
           : `PageAgent status: ${pageAgent.status}. ${pageAgent.lastResult.data}`,
       }
+    }
     case 'page_agent_stop':
-      await pageAgent.stop()
+      if (pageAgent !== undefined) await pageAgent.stop()
       return { success: true, message: 'Stopped the upstream PageAgent task.' }
     default:
       throw new Error(`unknown page action: ${action}`)

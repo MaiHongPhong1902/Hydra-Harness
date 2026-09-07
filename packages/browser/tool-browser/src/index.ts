@@ -19,12 +19,17 @@ import { defineTool } from '@hydra/harness-tools'
 import type { ToolExecution } from '@hydra/harness-tools'
 import type {} from '@hydra/harness-system-prompt'
 import { BROWSER_PROMPT_NAME, BROWSER_PROMPT_ORDER, BROWSER_PROMPT_TEXT } from './prompt.ts'
-import { DEFAULT_MAX_STATE_CHARS, formatBrowserOutput, presentBrowserCall, toValue } from './render.ts'
+import {
+  DEFAULT_MAX_STATE_CHARS, formatBrowserOutput, presentBrowserCall, toValue,
+} from './render.ts'
 import type { BrowserToolValue } from './render.ts'
 
 export { BROWSER_PROMPT_NAME, BROWSER_PROMPT_ORDER, BROWSER_PROMPT_TEXT } from './prompt.ts'
-export { DEFAULT_MAX_STATE_CHARS, TRUNCATION_NOTICE, formatBrowserOutput, presentBrowserCall, toValue } from './render.ts'
-export type { BrowserToolValue } from './render.ts'
+export {
+  COMPACT_NOTICE, DEFAULT_COMPACT_STATE_CHARS, DEFAULT_MAX_STATE_CHARS, TRUNCATION_NOTICE,
+  compactHeader, formatBrowserOutput, presentBrowserCall, rankElementList, toValue,
+} from './render.ts'
+export type { BrowserToolValue, BrowserValueOptions } from './render.ts'
 
 /** Cordis plugin name used by loader diagnostics. */
 export const name = 'tool-browser'
@@ -89,6 +94,7 @@ const OUTPUT_SCHEMA = {
     settled: { type: 'boolean', required: true },
     capturedAt: { type: 'string', required: true },
     truncated: { type: 'boolean', required: true },
+    compact: { type: 'boolean', required: true },
   },
 } as const
 
@@ -230,9 +236,34 @@ const TAB_ID_PARAMETER = {
   description: 'Controlled tab id from a browser result. Omit to use the tab selected when this call starts.',
 } as const
 
+const NAME_PARAMETER = {
+  type: 'string',
+  description: 'Visible label, accessible name, placeholder, or id from the latest snapshot. Use instead of index when the control is named.',
+} as const
+
+const INDEX_OR_NAME_INDEX = {
+  type: 'integer',
+  description: 'Element index from the latest browser result. Provide this or name.',
+} as const
+
+type NamedTarget = { index?: number; name?: string }
+
+function namedTarget(args: NamedTarget): NamedTarget {
+  const name = args.name?.trim()
+  if (args.index === undefined && (name === undefined || name.length === 0)) {
+    throw new Error('provide index or a non-empty name')
+  }
+  return {
+    ...args.index === undefined ? {} : { index: args.index },
+    ...name === undefined || name.length === 0 ? {} : { name },
+  }
+}
+
 function tabTarget(args: TargetTabArgs): { tabId: number } | Record<string, never> {
   return args.tab_id === undefined ? {} : { tabId: args.tab_id }
 }
+
+const FULL_SNAPSHOT_METHODS = new Set<BrowserAction['method']>(['get_browser_state', 'navigate'])
 
 /** Explicit tab targets are isolated by the browser seam and may overlap. */
 function targetsTab(args: TargetTabArgs): boolean {
@@ -316,7 +347,7 @@ export function apply(ctx: Context, config: Config = {}): void {
     toValue(await ctx.browsers.perform(requireAgent(exec.agent), action, {
       callId: exec.callId,
       signal: exec.signal,
-    }), maxStateChars)
+    }), maxStateChars, { compact: !FULL_SNAPSHOT_METHODS.has(action.method) })
 
   const output = {
     schema: OUTPUT_SCHEMA,
@@ -384,17 +415,20 @@ export function apply(ctx: Context, config: Config = {}): void {
 
   ctx.tools.register(defineTool({
     name: 'browser_click',
-    description: 'Click the element at the given index of the most recent element list. Indexes are reassigned after every action, so use one from the latest result.',
+    description: 'Click a control from the latest snapshot by index or by visible name. Indexes are reassigned after every action.',
     parameters: {
-      index: { type: 'integer', required: true, description: 'Element index from the latest browser result.' },
+      index: INDEX_OR_NAME_INDEX,
+      name: NAME_PARAMETER,
       tab_id: TAB_ID_PARAMETER,
     },
     output,
     timeoutMs,
-    execute: (args: { index: number; tab_id?: number }, exec) =>
-      run(exec, { method: 'click_element', index: args.index, ...tabTarget(args) }),
+    execute: (args: { index?: number; name?: string; tab_id?: number }, exec) =>
+      run(exec, { method: 'click_element', ...namedTarget(args), ...tabTarget(args) }),
     isConcurrencySafe: targetsTab,
-    presentCall: (args: { index: number }) => presentBrowserCall(`Click [${args.index}]`),
+    presentCall: (args: { index?: number; name?: string }) => presentBrowserCall(
+      args.index === undefined ? `Click ${args.name}` : `Click [${args.index}]`,
+    ),
   }))
 
   ctx.tools.register(defineTool({
@@ -416,34 +450,41 @@ export function apply(ctx: Context, config: Config = {}): void {
 
   ctx.tools.register(defineTool({
     name: 'browser_type',
-    description: 'Type text into the input or textarea at the given index. Replaces whatever the field held; it does not append.',
+    description: 'Type text into an input or textarea by index or visible name. Replaces whatever the field held; it does not append.',
     parameters: {
-      index: { type: 'integer', required: true, description: 'Element index from the latest browser result.' },
+      index: INDEX_OR_NAME_INDEX,
+      name: NAME_PARAMETER,
       text: { type: 'string', required: true, description: 'Text to put in the field.' },
       tab_id: TAB_ID_PARAMETER,
     },
     output,
     timeoutMs,
-    execute: (args: { index: number; text: string; tab_id?: number }, exec) =>
-      run(exec, { method: 'input_text', index: args.index, text: args.text, ...tabTarget(args) }),
+    execute: (args: { index?: number; name?: string; text: string; tab_id?: number }, exec) =>
+      run(exec, { method: 'input_text', ...namedTarget(args), text: args.text, ...tabTarget(args) }),
     isConcurrencySafe: targetsTab,
-    presentCall: (args: { index: number; text: string }) => presentBrowserCall(`Type into [${args.index}]`, args.text),
+    presentCall: (args: { index?: number; name?: string; text: string }) => presentBrowserCall(
+      args.index === undefined ? `Type into ${args.name}` : `Type into [${args.index}]`,
+      args.text,
+    ),
   }))
 
   ctx.tools.register(defineTool({
     name: 'browser_select_option',
-    description: 'Choose an option of the dropdown at the given index by its visible label.',
+    description: 'Choose a dropdown option by the control\'s index or visible name and the option\'s visible label.',
     parameters: {
-      index: { type: 'integer', required: true, description: 'Element index of the dropdown.' },
+      index: INDEX_OR_NAME_INDEX,
+      name: NAME_PARAMETER,
       text: { type: 'string', required: true, description: 'Visible label of the option to choose.' },
       tab_id: TAB_ID_PARAMETER,
     },
     output,
     timeoutMs,
-    execute: (args: { index: number; text: string; tab_id?: number }, exec) =>
-      run(exec, { method: 'select_option', index: args.index, text: args.text, ...tabTarget(args) }),
+    execute: (args: { index?: number; name?: string; text: string; tab_id?: number }, exec) =>
+      run(exec, { method: 'select_option', ...namedTarget(args), text: args.text, ...tabTarget(args) }),
     isConcurrencySafe: targetsTab,
-    presentCall: (args: { index: number; text: string }) => presentBrowserCall(`Select "${args.text}" in [${args.index}]`),
+    presentCall: (args: { index?: number; name?: string; text: string }) => presentBrowserCall(
+      args.index === undefined ? `Select "${args.text}" in ${args.name}` : `Select "${args.text}" in [${args.index}]`,
+    ),
   }))
 
   ctx.tools.register(defineTool({
@@ -525,6 +566,70 @@ export function apply(ctx: Context, config: Config = {}): void {
   }))
 
   ctx.tools.register(defineTool({
+    name: 'browser_forward',
+    description: 'Go forward to the next page in this window. Reports a failure when there is nothing to go forward to.',
+    parameters: { tab_id: TAB_ID_PARAMETER },
+    output,
+    timeoutMs,
+    execute: (args: TargetTabArgs, exec) => run(exec, { method: 'forward', ...tabTarget(args) }),
+    isConcurrencySafe: targetsTab,
+    presentCall: () => presentBrowserCall('Go forward'),
+  }))
+
+  ctx.tools.register(defineTool({
+    name: 'browser_find',
+    description: 'Find controls matching a visible name, label, placeholder, or id in the current snapshot. Scrolls once if needed and returns matching indexes for the next action.',
+    parameters: {
+      query: { type: 'string', required: true, description: 'Visible label, accessible name, placeholder, or id to search for.' },
+      tab_id: TAB_ID_PARAMETER,
+    },
+    output,
+    timeoutMs,
+    execute: (args: { query: string; tab_id?: number }, exec) => {
+      if (args.query.trim().length === 0) throw new Error('query must be a non-empty string')
+      return run(exec, { method: 'find_element', query: args.query.trim(), ...tabTarget(args) })
+    },
+    isConcurrencySafe: targetsTab,
+    presentCall: (args: { query: string }) => presentBrowserCall('Find browser control', args.query),
+  }))
+
+  ctx.tools.register(defineTool({
+    name: 'browser_fill',
+    description: 'Type several named or indexed fields in one call. Each field is re-resolved after the previous one so autocomplete cannot steal later indexes.',
+    parameters: {
+      fields: {
+        type: 'array',
+        required: true,
+        description: 'Fields to fill, each identified by index or name.',
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {
+            index: INDEX_OR_NAME_INDEX,
+            name: NAME_PARAMETER,
+            text: { type: 'string', required: true, description: 'Text to put in the field.' },
+          },
+        },
+      },
+      tab_id: TAB_ID_PARAMETER,
+    },
+    output,
+    timeoutMs,
+    execute: (args: { fields: Array<NamedTarget & { text: string }>; tab_id?: number }, exec) => {
+      if (!Array.isArray(args.fields) || args.fields.length === 0) {
+        throw new Error('fields must be a non-empty array')
+      }
+      return run(exec, {
+        method: 'fill_fields',
+        fields: args.fields.map(field => ({ ...namedTarget(field), text: field.text })),
+        ...tabTarget(args),
+      })
+    },
+    isConcurrencySafe: targetsTab,
+    presentCall: (args: { fields: unknown[] }) => presentBrowserCall(`Fill ${args.fields.length} browser fields`),
+  }))
+
+  ctx.tools.register(defineTool({
     name: 'browser_history_search',
     description: 'Search the built-in Browser profile history after applying the user\'s sensitive-history access policy. Returns at most 20 matching pages; use browser_navigate to reopen one.',
     parameters: {
@@ -589,7 +694,7 @@ export function apply(ctx: Context, config: Config = {}): void {
 
   ctx.tools.register(defineTool({
     name: 'browser_page_agent_run',
-    description: 'Start the real upstream PageAgent ReAct engine under Hydra control. It uses this Hydra agent’s selected provider and model through a private host bridge; it never receives an API key or renders UI in the webpage. Poll browser_page_agent_status or stop it explicitly.',
+    description: 'Start the vendored PageAgent ReAct engine only when the user explicitly asks for that upstream engine. Ordinary browsing uses the indexed and named Hydra tools instead. It uses this Hydra agent\'s selected provider and model through a private host bridge; it never receives an API key or renders UI in the webpage.',
     parameters: {
       task: { type: 'string', required: true, description: 'Concrete browser task for PageAgent to perform.' },
       tab_id: TAB_ID_PARAMETER,

@@ -41,7 +41,7 @@ This table connects model-visible tool names to the plugin package and service s
 | `@hydra/harness-tool-todo` | `todo_write` | `ctx.tools`, `owning Agent session` | `tool/call`, `todo/write`, `tool/result` | - | todo_write is session-owned state; UIs render the latest todo/write event as a checklist. `allowParallelInProgress` is required with no default, so the catalog states its choice: `true`, whose description invites several `in_progress` items. A deployment choosing `false` receives the same tool with a description asking for exactly one active task. |
 | `@hydra/harness-tool-workflow` | `workflow` | `ctx.tools`, `ctx.workflowEngine`, `ctx.systemPrompt`, `a calling Agent (exec.agent parents the script children)` | `tool/call`, `tool/result` | - | - |
 | `@hydra/harness-tool-web` | `web_fetch`, `web_search` | `ctx.tools`, `ctx.web`, `ctx.systemPrompt` | `tool/call`, `tool/result` | - | web_search and web_fetch keep provider selection behind ctx.web so model-visible schemas stay stable across backend swaps. |
-| `@hydra/harness-tool-browser` | `browser_back`, `browser_click`, `browser_close_tab`, `browser_history_search`, `browser_navigate`, `browser_open_tab`, `browser_page_agent_run`, `browser_page_agent_status`, `browser_page_agent_stop`, `browser_press`, `browser_scroll`, `browser_scroll_horizontally`, `browser_select_option`, `browser_state`, `browser_switch_tab`, `browser_type`, `browser_upload_file`, `browser_wait` | `ctx.tools`, `ctx.browsers`, `ctx.systemPrompt`, `a calling Agent (the window is owned per agent)` | `tool/call`, `tool/result` | - | The embedded browser window opens on the first browser_* call of an agent and closes with it. Without the optional electron package the tools still register and every call fails with BROWSER_UNAVAILABLE. |
+| `@hydra/harness-tool-browser` | `browser_back`, `browser_click`, `browser_close_tab`, `browser_fill`, `browser_find`, `browser_forward`, `browser_history_search`, `browser_navigate`, `browser_open_tab`, `browser_page_agent_run`, `browser_page_agent_status`, `browser_page_agent_stop`, `browser_press`, `browser_scroll`, `browser_scroll_horizontally`, `browser_select_option`, `browser_state`, `browser_switch_tab`, `browser_type`, `browser_upload_file`, `browser_wait` | `ctx.tools`, `ctx.browsers`, `ctx.systemPrompt`, `a calling Agent (the window is owned per agent)` | `tool/call`, `tool/result` | - | The embedded browser window opens on the first browser_* call of an agent and closes with it. Without the optional electron package the tools still register and every call fails with BROWSER_UNAVAILABLE. |
 
 <a id="hydraharness-tool-ask-user"></a>
 
@@ -2305,7 +2305,7 @@ Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-
 
 ### `browser_click`
 
-Click the element at the given index of the most recent element list. Indexes are reassigned after every action, so use one from the latest result.
+Click a control from the latest snapshot by index or by visible name. Indexes are reassigned after every action.
 
 ```json
 {
@@ -2313,16 +2313,17 @@ Click the element at the given index of the most recent element list. Indexes ar
   "properties": {
     "index": {
       "type": "integer",
-      "description": "Element index from the latest browser result."
+      "description": "Element index from the latest browser result. Provide this or name."
+    },
+    "name": {
+      "type": "string",
+      "description": "Visible label, accessible name, placeholder, or id from the latest snapshot. Use instead of index when the control is named."
     },
     "tab_id": {
       "type": "integer",
       "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
     }
-  },
-  "required": [
-    "index"
-  ]
+  }
 }
 ```
 
@@ -2344,6 +2345,95 @@ Close a controlled tab by id. The agent cannot close the last tab or the browser
   "required": [
     "tab_id"
   ]
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_fill`
+
+Type several named or indexed fields in one call. Each field is re-resolved after the previous one so autocomplete cannot steal later indexes.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "fields": {
+      "type": "array",
+      "description": "Fields to fill, each identified by index or name.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "index": {
+            "type": "integer",
+            "description": "Element index from the latest browser result. Provide this or name."
+          },
+          "name": {
+            "type": "string",
+            "description": "Visible label, accessible name, placeholder, or id from the latest snapshot. Use instead of index when the control is named."
+          },
+          "text": {
+            "type": "string",
+            "description": "Text to put in the field."
+          }
+        },
+        "required": [
+          "text"
+        ]
+      }
+    },
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  },
+  "required": [
+    "fields"
+  ]
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_find`
+
+Find controls matching a visible name, label, placeholder, or id in the current snapshot. Scrolls once if needed and returns matching indexes for the next action.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "query": {
+      "type": "string",
+      "description": "Visible label, accessible name, placeholder, or id to search for."
+    },
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  },
+  "required": [
+    "query"
+  ]
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_forward`
+
+Go forward to the next page in this window. Reports a failure when there is nothing to go forward to.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  }
 }
 ```
 
@@ -2415,7 +2505,7 @@ Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-
 
 ### `browser_page_agent_run`
 
-Start the real upstream PageAgent ReAct engine under Hydra control. It uses this Hydra agent’s selected provider and model through a private host bridge; it never receives an API key or renders UI in the webpage. Poll browser_page_agent_status or stop it explicitly.
+Start the vendored PageAgent ReAct engine only when the user explicitly asks for that upstream engine. Ordinary browsing uses the indexed and named Hydra tools instead. It uses this Hydra agent's selected provider and model through a private host bridge; it never receives an API key or renders UI in the webpage.
 
 ```json
 {
@@ -2572,7 +2662,7 @@ Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-
 
 ### `browser_select_option`
 
-Choose an option of the dropdown at the given index by its visible label.
+Choose a dropdown option by the control's index or visible name and the option's visible label.
 
 ```json
 {
@@ -2580,7 +2670,11 @@ Choose an option of the dropdown at the given index by its visible label.
   "properties": {
     "index": {
       "type": "integer",
-      "description": "Element index of the dropdown."
+      "description": "Element index from the latest browser result. Provide this or name."
+    },
+    "name": {
+      "type": "string",
+      "description": "Visible label, accessible name, placeholder, or id from the latest snapshot. Use instead of index when the control is named."
     },
     "text": {
       "type": "string",
@@ -2592,7 +2686,6 @@ Choose an option of the dropdown at the given index by its visible label.
     }
   },
   "required": [
-    "index",
     "text"
   ]
 }
@@ -2641,7 +2734,7 @@ Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-
 
 ### `browser_type`
 
-Type text into the input or textarea at the given index. Replaces whatever the field held; it does not append.
+Type text into an input or textarea by index or visible name. Replaces whatever the field held; it does not append.
 
 ```json
 {
@@ -2649,7 +2742,11 @@ Type text into the input or textarea at the given index. Replaces whatever the f
   "properties": {
     "index": {
       "type": "integer",
-      "description": "Element index from the latest browser result."
+      "description": "Element index from the latest browser result. Provide this or name."
+    },
+    "name": {
+      "type": "string",
+      "description": "Visible label, accessible name, placeholder, or id from the latest snapshot. Use instead of index when the control is named."
     },
     "text": {
       "type": "string",
@@ -2661,7 +2758,6 @@ Type text into the input or textarea at the given index. Replaces whatever the f
     }
   },
   "required": [
-    "index",
     "text"
   ]
 }

@@ -214,9 +214,12 @@ describe('BrowserSessionService', () => {
     expect(first.state.title).toBe('child-0')
 
     await ctx.browsers.perform(owner, { method: 'click_element', index: 2 })
+    await ctx.browsers.perform(owner, { method: 'find_element', query: 'Requester' })
+    await ctx.browsers.perform(owner, { method: 'fill_fields', fields: [{ name: 'who', text: 'Ada' }] })
     expect(spawned).toHaveLength(1)
     expect(spawned[0]?.seen).toEqual([
       'navigate', 'get_browser_state', 'click_element', 'get_browser_state',
+      'find_element', 'get_browser_state', 'fill_fields', 'get_browser_state',
     ])
 
     await dispose()

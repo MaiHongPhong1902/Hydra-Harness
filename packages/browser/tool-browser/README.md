@@ -1,12 +1,14 @@
 # @hydra/harness-tool-browser
 
-The model-facing half of the embedded browser: standard `browser_*` tools over controlled tabs, a selected-viewport screenshot, policy-gated history search, opt-in Full CDP controls, explicit controls for the full upstream PageAgent runtime, and the one browser prompt section. The user also has a native tab strip and omnibox; the window, the page, and the process live behind `ctx.browsers` in [@hydra/harness-browser-electron](../browser-electron/README.md).
+The model-facing half of the embedded browser: standard `browser_*` tools over controlled tabs, a selected-viewport screenshot, policy-gated history search, opt-in Full CDP controls, demoted `browser_page_agent_*` controls for the vendored ReAct engine, and the one browser prompt section. The user also has a native tab strip and omnibox; the window, the page, and the process live behind `ctx.browsers` in [@hydra/harness-browser-electron](../browser-electron/README.md).
 
 The split is the usual consumer/seam one. Everything the model can see — schema wording, the DOM-format guidance, the character cap, the card titles — is decided here; nothing here knows that the browser is Electron.
 
 ## What one call returns
 
-Every DOM/action tool answers with the same object, and the model reads it as one text block: what the action did, the controlled tab list, the snapshot tab, then the page it left behind. The structured value uses `tabId` for that snapshot and its valid element indices, `activeTabId` for the tab selected in the visible chrome, plus `settled` and `capturedAt`; an exhausted readiness wait is transient evidence, not a UI verdict.
+Every DOM/action tool answers with the same object, and the model reads it as one text block: what the action did, the controlled tab list, the snapshot tab, then the page it left behind. The structured value uses `tabId` for that snapshot and its valid element indices, `activeTabId` for the tab selected in the visible chrome, plus `settled`, `capturedAt`, `truncated`, and `compact`. An exhausted readiness wait is transient evidence, not a UI verdict.
+
+`browser_state` and `browser_navigate` return a full snapshot, still bounded by `maxStateChars` (default 16,000). Every other browser result is compact: ranked controls, a shorter header, a one-line tab summary when only one tab is open, and a 4,000-character element-list budget, with a notice to call `browser_state` for the full list. Compact results still carry valid indices for the next call on that tab.
 
 ```
 did navigate
@@ -61,32 +63,45 @@ Every page-local DOM tool accepts optional `tab_id`. Omission uses the selected 
 
 #### What the model sees
 
-One section, `tool:browser`, at order 115 — after the terminal guidance and beside `web_fetch`'s. Its element-list format is PageAgent's own. The normal tools remain evidence-first; `browser_page_agent_run` starts PageAgent's separate upstream ReAct loop for a bounded autonomous in-page task, and `browser_page_agent_status`/`browser_page_agent_stop` control it.
+One section, `tool:browser`, at order 115 — after the terminal guidance and beside `web_fetch`'s. Its element-list format is PageAgent's own. Hydra owns the loop: indexed and named PageController tools are the path; `browser_page_agent_run` starts the vendored ReAct engine only when the user asks for that upstream engine.
 
 ##### Browser DOM guidance
 
 ```markdown
-The browser tools drive one embedded browser window. It opens on your first browser call and closes when the session ends; there is nothing to open or close yourself. Normal results represent the page as text; `browser_screenshot` explicitly returns the selected tab's visible viewport when visual evidence is needed.
+The browser tools drive one embedded browser window. It opens on your first browser call and closes when the session ends; there is nothing to open or close yourself. When the host configures a browser home page, it loads before the first result. For a direct request about that website with no explicit URL, call `browser_state` first instead of asking the user to choose a page. Normal browser results represent the page as text; when `browser_screenshot` is available, it explicitly returns one visual snapshot.
 
-Every browser result includes the controlled tab list, the snapshot tab, then a header with the current URL and scroll position, the list of interactive elements, and a footer saying whether content continues below. `tabId` identifies the snapshot and valid indices; `activeTabId` identifies the visibly selected tab. A result with `settled: false` is transient evidence; use `browser_wait` once before deciding that a UI control is absent.
+The embedded Browser is the default for interactive website work. A Browser-settings denial is a user security decision: report it and direct the user to Settings > Browser; never work around it by proposing or setting up Playwright, Puppeteer, Selenium, or another browser runtime. Create a separate browser test stack only when the user independently asks for that deliverable.
+
+Hydra decides every browser action. PageController supplies the numbered text DOM and executes indexed or named clicks, typing, and scrolls; do not treat an in-page engine as a second agent. Prefer `browser_find`, named click/type/select, and `browser_fill` for forms and labeled controls. Use `browser_state` when you need the full element list. `browser_page_agent_run` is only for an explicit user request to run the upstream PageAgent engine; do not poll it for ordinary work.
+
+`browser_state` and `browser_navigate` return a full snapshot. Every other browser result is compact: ranked controls, a shorter header, and a 4k element-list budget. Compact results still carry valid indices for the next call on that tab. Call `browser_state` when a control is missing from the compact list.
+
+Every browser result lists the controlled tabs and names the snapshot tab before the same three page blocks: the current URL and scroll position; the list of interactive elements; and a footer saying whether content continues below. The structured result carries `tabId` for the snapshot and its valid indices, `activeTabId` for the tab selected in the visible chrome, plus `settled` and `capturedAt`. A result with `settled: false` is transient evidence, never proof that a feature or control is absent; call `browser_wait` once before deciding.
 
 Elements are listed as [index]<type>text</type>:
 
 [33]<div>User form</div>
 	*[35]<button aria-label='Submit form'>Submit</button>
 
-- Only elements with a numeric [index] can be acted on, and only indexes the most recent result actually listed.
+- Only elements with a numeric [index] can be acted on, and only indexes the most recent result for that same tab actually listed.
 - A tab of indentation means the element is a child of the element above it.
 - `*[` marks an element that has appeared since the previous result for the same URL.
 - Text without [] is page content, not something you can act on.
+- Compact snapshots rank `*[` lines first, then typical form controls, then the rest.
 
-Indexes are reassigned on every action. Never reuse an index from an earlier result for that tab — read the one the last call returned. Only elements in the visible viewport are listed, so content the footer says lies below is not addressable until you reach it: `browser_scroll` vertically or `browser_scroll_horizontally` for a wide table, then act on the indexes the scroll returned. Use `browser_open_tab`, `browser_switch_tab`, and `browser_close_tab` with ids from the latest tab list; page-local tools accept `tab_id`, and independent calls for different ids may run together.
+Indexes are reassigned on every action. Never reuse an index from an earlier result — read the one the last call returned. Click, type, and select accept either that index or a `name` matching the control's visible label, accessible name, placeholder, or id. `browser_find` locates a query in the current snapshot and may scroll once to bring a match into view. `browser_fill` types several named or indexed fields in one call and re-resolves each field after the previous one.
 
-`browser_type` replaces a field's contents rather than appending to them, so type the whole value you want. It does not submit: reach the submit control by index and `browser_click` it, or `browser_press` Enter while the field is focused.
+Only elements in the visible viewport are listed, so content outside it is not addressable until you reach it: use `browser_scroll` vertically or `browser_scroll_horizontally` for wide pages and tables, then act on the indexes the scroll returned. `browser_find` is the cheaper way to look for a named control before scrolling blindly.
+
+Use `browser_open_tab`, `browser_switch_tab`, and `browser_close_tab` with ids from the latest tab list. Page-local tools accept an optional `tab_id`; provide it to keep the operation bound to that tab even while another tab is selected. Independent calls with different explicit `tab_id` values may run in parallel, but actions for one tab remain ordered because every result replaces that tab's valid element indices. A link that opens a new tab is adopted into this same controlled window; inspect the returned tab inventory instead of assuming the original tab changed.
+
+Use `browser_screenshot` when rendered appearance or spatial layout matters and the text DOM is insufficient. It captures only the visible viewport of the selected HTTP(S) tab; switch to the intended tab first. It cannot target background tabs, browser chrome, a crop, or a full page, and it does not provide coordinates for actions — continue to act through indices or names from the latest text result.
+
+`browser_type` replaces a field's contents rather than appending to them, so type the whole value you want. It does not submit: reach the submit control by index or name and `browser_click` it, or `browser_press` Enter while the field is focused.
 
 `browser_upload_file` selects one existing local test artifact through an observed HTML file input. Give it an index from the latest result and an absolute path that the user wrote as a standalone or quoted literal in the current turn; never guess, discover, or substitute another host path. It does not submit the form; inspect the returned page state before taking the next action.
 
-An action that the page rejects comes back as a failure message rather than an error; read it and adapt instead of repeating the same call. Use `browser_wait` for a bounded 1–10 second wait after asynchronous data changes. If the optional experimental JavaScript tool is present, use it only when indexed actions cannot inspect the requested state and never to bypass a domain or confirmation policy. If a captcha or a login you have no credentials for blocks the task, say so rather than guessing.
+An action that the page rejects comes back as a failure message rather than an error; read it and adapt instead of repeating the same call. Use `browser_wait` for a bounded 1–10 second wait when data or animation changes after the returned state; do not busy-poll `browser_state`. If the optional experimental JavaScript tool is present, use it only when indexed PageController actions cannot perform the requested inspection and never use it to bypass a user-confirmation or domain policy. If a captcha or a login you have no credentials for blocks the task, say so rather than guessing.
 ```
 
 #### Token effect
@@ -101,7 +116,7 @@ Prefix-stable while the package is loaded and the section text is unchanged. Loa
 
 #### What the model sees
 
-The generated [`browser_*` schemas](../../../docs/tool-catalog.md#hydraharness-tool-browser): navigation, state, wait, indexed DOM actions, tab actions, selected-viewport screenshot, sensitive-history search, and `browser_page_agent_run`/`status`/`stop`. PageAgent uses the invoking Hydra agent's selected model through a private host bridge; no API key or PageAgent UI is sent to a page. Screenshot appears only while durable attachments are mounted; experimental JavaScript appears only when its host gate is enabled, while the two Full CDP schemas appear only during the effective organization-and-user opt-in. `maxStateChars` and `timeoutMs` are deployment settings, not model arguments.
+The generated [`browser_*` schemas](../../../docs/tool-catalog.md#hydraharness-tool-browser): navigation, state, wait, indexed or named DOM actions, `browser_find`, `browser_fill`, tab actions including `browser_forward`, selected-viewport screenshot, sensitive-history search, and demoted `browser_page_agent_run`/`status`/`stop`. PageAgent uses the invoking Hydra agent's selected model through a private host bridge; no API key or PageAgent UI is sent to a page. Screenshot appears only while durable attachments are mounted; experimental JavaScript appears only when its host gate is enabled, while the two Full CDP schemas appear only during the effective organization-and-user opt-in. `maxStateChars` and `timeoutMs` are deployment settings, not model arguments.
 
 #### Token effect
 
@@ -115,11 +130,11 @@ Prefix-stable while the definitions and their visibility are unchanged. Plugin l
 
 #### What the model sees
 
-`<action message>`, a blank line, then `<tab list>\n<snapshot tab>\n\n<header>\n<content>\n<footer>`. `browser_state` omits the action line, because reading a page took no action to report. A background target is labeled after the snapshot id. A cut element list appends a blank line and `(Element list truncated. Scroll to a narrower part of the page to see the rest.)`; `settled: false` adds an explicit transient-evidence warning.
+`<action message>`, a blank line, then `<tab list>\n<snapshot tab>\n\n<header>\n<content>\n<footer>`. `browser_state` omits the action line, because reading a page took no action to report. A background target is labeled after the snapshot id. A cut element list appends a blank line and `(Element list truncated. Scroll to a narrower part of the page to see the rest.)`. A compact action snapshot also appends `(Compact snapshot after the action. Call browser_state for the full element list.)`. `settled: false` adds an explicit transient-evidence warning.
 
 #### Token effect
 
-Data-dependent and resent until compaction, bounded by `maxStateChars` plus the fixed-shape header and footer. A page whose DOM churns produces a fresh, differently-numbered list on every call, so a long browsing run is the most token-hungry thing this package does.
+Data-dependent and resent until compaction. Full state and navigate results are bounded by `maxStateChars` plus the fixed-shape header and footer. Ordinary actions use a ranked ~4k element list so a long browsing run does not append a 16k dump on every click.
 
 #### KV Cache effect
 
@@ -155,9 +170,8 @@ Append-only; the error follows the reusable request prefix and does not invalida
 
 ## Known Limitations and Deferred Work
 
-- **No `browser_forward` tool.** The native chrome has a Forward control; model flows can use the observed tab and `browser_back` but not Forward.
 - **Experimental JavaScript is host-gated.** It is absent by default, runs in the isolated document world when enabled, and cannot access page-world globals.
 - **No screenshot-based control.** `browser_screenshot` observes the selected viewport only; it cannot target a crop or full page and accepts no visual coordinates. The text DOM remains the action modality.
 - **File upload requires the real input.** It supports an observed HTML `<input type="file">`; a proxy button or hidden chooser control is not addressable.
-- **The cap cuts, it does not summarise.** A page over `maxStateChars` loses its tail with only a notice; there is no ranking of which elements matter. `browser_scroll` is the recovery, and it costs the model a round trip per screen.
+- **The cap ranks, then cuts.** A page over the full or compact budget loses its tail with a notice; ranking prefers new and typical form controls but is not a summary. `browser_find` or `browser_scroll` is the recovery.
 - **Presenters are pure over arguments** because they re-run during session-log replay, where no browser exists. That is why a pending call shows `Click [12]` rather than the element's label: the label lives in a process the replay does not have.

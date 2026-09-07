@@ -1362,6 +1362,11 @@
     },
     {
       "doc": "docs/subsystems/browser.md",
+      "symbol": "BrowserFillField",
+      "source": "packages/browser/browser-electron/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/browser.md",
       "symbol": "BrowserAction",
       "source": "packages/browser/browser-electron/src/types.ts"
     },

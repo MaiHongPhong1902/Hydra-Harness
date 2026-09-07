@@ -28,7 +28,8 @@ export type { BrowserChild, BrowserChildProcess, LaunchOptions, PageAgentLlmRequ
 export { BrowserError } from './types.ts'
 export type {
   ActionResult, BrowserAction, BrowserCdpCommandResult, BrowserCdpEvent, BrowserCdpEventPage, BrowserErrorCode,
-  BrowserHistorySearchEntry, BrowserJsonValue, BrowserOutcome, BrowserScreenshot, BrowserState, BrowserTabState,
+  BrowserFillField, BrowserHistorySearchEntry, BrowserJsonValue, BrowserOutcome, BrowserScreenshot, BrowserState,
+  BrowserTabState,
 } from './types.ts'
 
 /** Durable settings namespace owned by the embedded browser service. */
@@ -510,7 +511,10 @@ export class BrowserSessionService extends Service {
       const waitForReady = prepared.method === 'get_browser_state'
         || prepared.method === 'navigate'
         || prepared.method === 'back'
+        || prepared.method === 'forward'
         || prepared.method === 'click_element'
+        || prepared.method === 'fill_fields'
+        || prepared.method === 'find_element'
         || prepared.method === 'press'
         || prepared.method === 'wait'
         || prepared.method === 'open_new_tab'

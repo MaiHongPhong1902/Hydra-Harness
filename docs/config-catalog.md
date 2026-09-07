@@ -423,7 +423,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/browser/browser-electron/src/index.ts:124`](../packages/browser/browser-electron/src/index.ts)
+Source: [`packages/browser/browser-electron/src/index.ts:125`](../packages/browser/browser-electron/src/index.ts)
 
 <a id="hydraharness-client-connection"></a>
 
@@ -2634,7 +2634,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/browser/tool-browser/src/index.ts:39`](../packages/browser/tool-browser/src/index.ts)
+Source: [`packages/browser/tool-browser/src/index.ts:44`](../packages/browser/tool-browser/src/index.ts)
 
 <a id="hydraharness-tool-fs"></a>
 

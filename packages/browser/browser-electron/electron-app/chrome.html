@@ -1,26 +1,74 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="utf-8" />
     <title>Hydra harness browser chrome</title>
     <style>
+      :root {
+        --chrome-shell: #f1f3f4;
+        --chrome-tabstrip: #dee1e6;
+        --chrome-surface: #ffffff;
+        --chrome-text: #202124;
+        --chrome-muted: #5f6368;
+        --chrome-hover: #dfe3e7;
+        --chrome-border: #c4c7c5;
+        --chrome-accent: #1a73e8;
+        --chrome-omnibox: #ffffff;
+        --chrome-status: #e8f0fe;
+      }
+      html[data-theme="dark"] {
+        --chrome-shell: #202124;
+        --chrome-tabstrip: #2d2e30;
+        --chrome-surface: #35363a;
+        --chrome-text: #e8eaed;
+        --chrome-muted: #9aa0a6;
+        --chrome-hover: #3c4043;
+        --chrome-border: #5f6368;
+        --chrome-accent: #8ab4f8;
+        --chrome-omnibox: #202124;
+        --chrome-status: #174ea6;
+      }
       * { box-sizing: border-box; }
-      body { margin: 0; background: #f1f3f4; color: #202124; font: 13px system-ui, sans-serif; overflow: hidden; }
-      .tabs { height: 34px; display: flex; align-items: end; gap: 4px; padding: 0 10px; background: #dee1e6; }
+      body {
+        margin: 0;
+        background: var(--chrome-shell);
+        color: var(--chrome-text);
+        font: 13px system-ui, sans-serif;
+        overflow: hidden;
+      }
+      .tabs { height: 34px; display: flex; align-items: end; gap: 4px; padding: 0 10px; background: var(--chrome-tabstrip); }
       #tabs { min-width: 0; flex: 1; display: flex; align-items: end; gap: 4px; overflow: hidden; }
-      .tab { min-width: 0; width: min(240px, 40vw); height: 30px; display: flex; align-items: center; border-radius: 10px 10px 0 0; background: #cfd2d6; }
-      .tab[aria-selected="true"] { background: #fff; }
-      .tab-select { min-width: 0; flex: 1; height: 100%; padding: 7px 4px 7px 12px; overflow: hidden; border: 0; background: transparent; color: inherit; text-align: left; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+      .tab { min-width: 0; width: min(240px, 40vw); height: 30px; display: flex; align-items: center; border-radius: 10px 10px 0 0; background: var(--chrome-hover); }
+      .tab[aria-selected="true"] { background: var(--chrome-surface); }
+      .tab-favicon { width: 14px; height: 14px; flex: 0 0 14px; margin-left: 10px; border-radius: 2px; }
+      .tab-select { min-width: 0; flex: 1; height: 100%; padding: 7px 4px 7px 8px; overflow: hidden; border: 0; background: transparent; color: inherit; text-align: left; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
       .tab-close, #new-tab { width: 26px; height: 26px; flex: 0 0 26px; margin: 2px; border: 0; border-radius: 50%; background: transparent; color: inherit; font-size: 18px; cursor: pointer; }
-      .tab-close:hover, #new-tab:hover { background: #dfe3e7; }
+      .tab-close:hover, #new-tab:hover { background: var(--chrome-hover); }
       .controls { height: 40px; display: flex; align-items: center; gap: 8px; padding: 6px 10px; }
       .controls button { width: 28px; height: 28px; border: 0; border-radius: 50%; background: transparent; color: inherit; font-size: 18px; cursor: pointer; }
-      .controls button:disabled { color: #9aa0a6; cursor: default; }
-      .controls button[aria-pressed="true"] { color: #fff; background: #1a73e8; }
-      .controls button:not(:disabled):hover { background: #dfe3e7; }
+      .controls button:disabled { color: var(--chrome-muted); cursor: default; }
+      .controls button[aria-pressed="true"] { color: #fff; background: var(--chrome-accent); }
+      .controls button:not(:disabled):hover { background: var(--chrome-hover); }
       form { flex: 1; }
-      input { width: 100%; height: 28px; border: 1px solid #c4c7c5; border-radius: 14px; padding: 0 12px; outline: none; font: inherit; }
-      input:focus { border-color: #1a73e8; box-shadow: 0 0 0 1px #1a73e8; }
+      .omnibox { display: flex; align-items: center; gap: 6px; height: 28px; border: 1px solid var(--chrome-border); border-radius: 14px; padding: 0 10px; background: var(--chrome-omnibox); }
+      .omnibox:focus-within { border-color: var(--chrome-accent); box-shadow: 0 0 0 1px var(--chrome-accent); }
+      #secure, #loading { width: 14px; height: 14px; flex: 0 0 14px; color: var(--chrome-muted); }
+      #loading { border: 2px solid var(--chrome-border); border-top-color: var(--chrome-accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      input { flex: 1; min-width: 0; height: 24px; border: 0; background: transparent; color: inherit; outline: none; font: inherit; }
+      #status {
+        height: 22px;
+        display: flex;
+        align-items: center;
+        padding: 0 12px;
+        background: var(--chrome-status);
+        color: var(--chrome-text);
+        font-size: 12px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      #status[hidden], #secure[hidden], #loading[hidden], .tab-favicon[hidden] { display: none; }
     </style>
   </head>
   <body>
@@ -29,8 +77,18 @@
       <button id="back" type="button" aria-label="Back" title="Back">←</button>
       <button id="forward" type="button" aria-label="Forward" title="Forward">→</button>
       <button id="reload" type="button" aria-label="Reload" title="Reload">↻</button>
-      <form id="omnibox-form"><input id="omnibox" aria-label="Search or enter address" autocomplete="off" list="omnibox-history" placeholder="Search or enter address" spellcheck="false" /><datalist id="omnibox-history"></datalist></form>
+      <form id="omnibox-form">
+        <div class="omnibox">
+          <svg id="secure" hidden viewBox="0 0 14 14" aria-label="Secure connection">
+            <path fill="currentColor" d="M7 1.5a2.5 2.5 0 0 0-2.5 2.5V5H3.5A1.5 1.5 0 0 0 2 6.5v5A1.5 1.5 0 0 0 3.5 13h7A1.5 1.5 0 0 0 12 11.5v-5A1.5 1.5 0 0 0 10.5 5H9.5V4A2.5 2.5 0 0 0 7 1.5Zm1.5 3.5H5.5V4A1.5 1.5 0 0 1 7 2.5 1.5 1.5 0 0 1 8.5 4Z"/>
+          </svg>
+          <span id="loading" hidden aria-label="Loading"></span>
+          <input id="omnibox" aria-label="Search or enter address" autocomplete="off" list="omnibox-history" placeholder="Search or enter address" spellcheck="false" />
+        </div>
+        <datalist id="omnibox-history"></datalist>
+      </form>
       <button id="annotate" type="button" aria-label="Annotate page" title="Select an element or drag a region" disabled>⌖</button>
     </div>
+    <div id="status" hidden role="status"></div>
   </body>
 </html>

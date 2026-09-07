@@ -18,7 +18,7 @@ const { createInterface } = require('node:readline')
 const { basename, isAbsolute, join } = require('node:path')
 const { setTimeout: delay } = require('node:timers/promises')
 
-const { app, BrowserWindow, Menu, WebContentsView, dialog, ipcMain, safeStorage, session, shell } = require('electron')
+const { app, BrowserWindow, Menu, WebContentsView, dialog, ipcMain, nativeImage, nativeTheme, safeStorage, session, shell } = require('electron')
 
 const { createAutofillVault } = require('./autofill-vault.cjs')
 
@@ -29,7 +29,7 @@ const { createAutofillVault } = require('./autofill-vault.cjs')
 const embedded = globalThis.__BH_BROWSER_EMBED__
 /** Config from the parent, or defaults when run by hand for a smoke test. */
 const config = embedded?.config ?? JSON.parse(process.argv[2] ?? '{}')
-const CHROME_HEIGHT = 74
+const CHROME_HEIGHT = 96
 const READINESS_TIMEOUT_MS = config.readinessTimeoutMs ?? 45_000
 const READINESS_POLL_MS = 250
 const READINESS_SETTLE_MS = 500
@@ -469,7 +469,7 @@ let nextPageCallId = 1
 const pendingPageAgentLlmCalls = new Map()
 let nextPageAgentLlmCallId = 1
 
-/** @typedef {{ id: number, view: import('electron').WebContentsView, contents: import('electron').WebContents, cdp: { owned: boolean, persistent: boolean, nextSequence: number, events: Array<object>, bytes: number } }} Tab */
+/** @typedef {{ id: number, view: import('electron').WebContentsView, contents: import('electron').WebContents, favicon?: string, cdp: { owned: boolean, persistent: boolean, nextSequence: number, events: Array<object>, bytes: number } }} Tab */
 
 /** @type {Map<number, Tab>} */
 const tabs = new Map()
@@ -484,6 +484,10 @@ let chrome
 let embeddedBounds = { x: 0, y: 0, width: 0, height: 0, visible: false }
 /** Last browser chrome state, also returned to a newly mounted desktop panel. */
 let chromeState
+/** Status line shown in native chrome while the agent drives the page. */
+let chromeActivity = ''
+/** Whether an agent browser action has already revealed the desktop panel. */
+let agentBrowserRevealed = false
 /** Toolbar picker whose completion owns the pressed-state reset. */
 let toolbarAnnotation
 let windowClosing = false
@@ -719,20 +723,107 @@ async function routeUserUrl(value) {
   return { success: true, destination, url: opened.view.webContents.getURL() }
 }
 
+function isProfileManagement(method) {
+  return method === 'configure_browser'
+    || method === 'clear_browser_data'
+    || method.startsWith('autofill_')
+    || method === 'browser_history'
+    || method === 'search_browser_history'
+    || method === 'remove_browser_history'
+    || method === 'browser_downloads'
+    || method === 'remove_browser_download'
+    || method === 'browser_sites'
+    || method === 'set_browser_site'
+    || method === 'remove_browser_site'
+    || method === 'route_user_url'
+    || method === 'page_agent_llm_response'
+}
+
+function agentChromeActivity(method, args) {
+  switch (method) {
+    case 'click_element':
+      return typeof args.index === 'number' ? `Hydra: Click [${args.index}]` : `Hydra: Click ${args.name ?? 'element'}`
+    case 'input_text':
+      return typeof args.index === 'number' ? `Hydra: Type into [${args.index}]` : `Hydra: Type into ${args.name ?? 'field'}`
+    case 'select_option':
+      return typeof args.index === 'number' ? `Hydra: Select in [${args.index}]` : `Hydra: Select ${args.name ?? 'option'}`
+    case 'fill_fields':
+      return 'Hydra: Fill form'
+    case 'find_element':
+      return `Hydra: Find ${args.query ?? 'control'}`
+    case 'navigate':
+      return 'Hydra: Navigate'
+    case 'back':
+      return 'Hydra: Back'
+    case 'forward':
+      return 'Hydra: Forward'
+    case 'scroll':
+    case 'scroll_horizontally':
+      return 'Hydra: Scroll'
+    case 'press':
+      return `Hydra: Press ${args.key}`
+    case 'wait':
+      return 'Hydra: Wait'
+    case 'open_new_tab':
+      return 'Hydra: Open tab'
+    case 'switch_to_tab':
+      return 'Hydra: Switch tab'
+    case 'close_tab':
+      return 'Hydra: Close tab'
+    case 'upload_file':
+      return typeof args.index === 'number' ? `Hydra: Upload through [${args.index}]` : 'Hydra: Upload file'
+    case 'page_agent_run':
+      return 'Hydra: PageAgent'
+    case 'page_agent_stop':
+      return 'Hydra: Stop PageAgent'
+    default:
+      return `Hydra: ${method}`
+  }
+}
+
+function noteAgentBrowser(method, args) {
+  if (isProfileManagement(method)) return
+  if (!agentBrowserRevealed) {
+    agentBrowserRevealed = true
+    embedded?.openBrowser?.()
+  }
+  if (
+    method === 'get_browser_state'
+    || method === 'get_upload_target'
+    || method === 'get_cdp_target'
+    || method === 'browser_screenshot'
+    || method === 'cdp_command'
+    || method === 'cdp_read_events'
+  ) {
+    return
+  }
+  chromeActivity = agentChromeActivity(method, args)
+  updateChrome()
+}
+
 /** Keep the native browser chrome in sync with every tab and the selected page. */
 function updateChrome() {
   if (windowClosing || !activeTab) return
   const contents = activeTab.view.webContents
   if (contents.isDestroyed()) return
+  const url = contents.getURL()
   chromeState = {
-    tabs: Array.from(tabs.values(), tab => ({ id: tab.id, title: tab.view.webContents.getTitle() || 'New Tab' })),
+    tabs: Array.from(tabs.values(), tab => ({
+      id: tab.id,
+      title: tab.view.webContents.getTitle() || 'New Tab',
+      favicon: tab.favicon ?? '',
+    })),
     activeTabId: activeTab.id,
-    url: contents.getURL(),
+    url,
     canGoBack: contents.navigationHistory.canGoBack(),
     canGoForward: contents.navigationHistory.canGoForward(),
     history: profileStore.history.slice(0, MAX_HISTORY_SEARCH_RESULTS)
-      .map(({ title, url }) => ({ title, url })),
+      .map(({ title, url: entryUrl }) => ({ title, url: entryUrl })),
     annotationEnabled: typeof embedded?.onAnnotation === 'function',
+    loading: contents.isLoading(),
+    secure: url.startsWith('https:'),
+    theme: nativeTheme.shouldUseDarkColors ? 'dark' : 'light',
+    activity: chromeActivity,
   }
   if (embedded !== undefined) embedded.onState(chromeState)
   if (chrome !== undefined && !chrome.webContents.isDestroyed()) {
@@ -819,10 +910,67 @@ function annotationOf(value) {
   }
 }
 
+/**
+ * Copy pixels from the renderer when the OS compositor has no display surface.
+ * @param {Electron.WebContents} contents
+ * @param {{ x: number, y: number, width: number, height: number } | undefined} rect
+ * @returns {Promise<Electron.NativeImage | undefined>}
+ */
+async function captureViaCdp(contents, rect) {
+  const debug = contents.debugger
+  const attached = debug.isAttached()
+  try {
+    if (!attached) debug.attach('1.3')
+    const params = { format: 'png', fromSurface: false }
+    if (rect !== undefined) {
+      params.clip = {
+        x: rect.x,
+        y: rect.y,
+        width: rect.width,
+        height: rect.height,
+        scale: 1,
+      }
+    }
+    const result = await debug.sendCommand('Page.captureScreenshot', params)
+    if (typeof result?.data !== 'string' || result.data.length === 0) return undefined
+    const image = nativeImage.createFromBuffer(Buffer.from(result.data, 'base64'))
+    return image.isEmpty() ? undefined : image
+  } catch {
+    // Renderer screenshot is a fallback when the OS compositor has no surface.
+    return undefined
+  } finally {
+    if (!attached && debug.isAttached()) {
+      try {
+        debug.detach()
+      } catch {
+        // The tab closed before the fallback debugger could detach.
+      }
+    }
+  }
+}
+
 /** Capture one viewport/region as a bounded PNG; callers decide whether refusal is fatal. */
 async function boundedPng(contents, rect) {
-  let image = await contents.capturePage(rect, { stayHidden: true })
-  if (image.isEmpty()) return undefined
+  const capture = stayHidden => (rect === undefined
+    ? contents.capturePage({ stayHidden })
+    : contents.capturePage(rect, { stayHidden }))
+  let image
+  try {
+    image = await capture(false)
+  } catch {
+    // Hidden WebContentsView has no compositor surface until a shown capture.
+  }
+  if (image === undefined || image.isEmpty()) {
+    try {
+      image = await capture(true)
+    } catch {
+      // stayHidden copy can miss the same absent surface; retry from the renderer.
+    }
+  }
+  if (image === undefined || image.isEmpty()) {
+    image = await captureViaCdp(contents, rect)
+  }
+  if (image === undefined || image.isEmpty()) return undefined
   let size = image.getSize()
   if (Math.max(size.width, size.height) > MAX_SCREENSHOT_EDGE) {
     const scale = MAX_SCREENSHOT_EDGE / Math.max(size.width, size.height)
@@ -1132,6 +1280,8 @@ function httpOrigin(value) {
   }
 }
 
+const FILE_INPUT_MARK = 'data-bh-host-file-input'
+
 /** Whether a CDP node description is an HTML file input. */
 function isFileInputNode(node) {
   if (node?.nodeName !== 'INPUT') return false
@@ -1155,26 +1305,31 @@ async function uploadFile(tab, args) {
   }
   const devtools = contents.debugger
   let attached = false
+  let markToken
 
   try {
     attached = ensureTabDebugger(tab, false)
-    const point = await pageControl(tab, 'get_element_center', { index: args.index })
-    if (!Number.isFinite(point?.x) || !Number.isFinite(point?.y)) {
-      throw new Error('the indexed element has no usable viewport position')
+    const marked = await pageControl(tab, 'mark_file_input', { index: args.index })
+    if (typeof marked?.token !== 'string' || !/^[0-9a-f-]{36}$/iu.test(marked.token)) {
+      throw new Error('the indexed element is not an HTML file input')
     }
-    const located = await devtools.sendCommand('DOM.getNodeForLocation', {
-      x: point.x,
-      y: point.y,
-      ignorePointerEventsNone: true,
+    markToken = marked.token
+    const document = await devtools.sendCommand('DOM.getDocument', { depth: 0 })
+    const located = await devtools.sendCommand('DOM.querySelector', {
+      nodeId: document.root.nodeId,
+      selector: `input[${FILE_INPUT_MARK}="${marked.token}"]`,
     })
-    const hit = await devtools.sendCommand('DOM.describeNode', { backendNodeId: located.backendNodeId })
+    if (!Number.isInteger(located?.nodeId) || located.nodeId === 0) {
+      throw new Error('the indexed element is not an HTML file input')
+    }
+    const hit = await devtools.sendCommand('DOM.describeNode', { nodeId: located.nodeId })
     if (!isFileInputNode(hit?.node)) throw new Error('the indexed element is not an HTML file input')
     if (!tabs.has(tab.id) || contents.isDestroyed() || httpOrigin(contents.getURL()) !== expectedOrigin) {
       throw new Error('the target page origin changed before the file could be selected')
     }
     await devtools.sendCommand('DOM.setFileInputFiles', {
       files: [args.filePath],
-      backendNodeId: located.backendNodeId,
+      nodeId: located.nodeId,
     })
     return {
       success: true,
@@ -1186,6 +1341,11 @@ async function uploadFile(tab, args) {
       message: `❌ Failed to upload file through element [${args.index}]: ${error instanceof Error ? error.message : String(error)}`,
     }
   } finally {
+    if (markToken !== undefined) {
+      await pageControl(tab, 'unmark_file_input', { token: markToken }).catch(() => {
+        // The document may already have navigated away from the marked input.
+      })
+    }
     if (attached && !tab.cdp.persistent) detachTabDebugger(tab, true)
   }
 }
@@ -1311,6 +1471,7 @@ function readCdpEvents(tab, args) {
  * @returns {Promise<unknown>} the JSON-safe result.
  */
 async function handle(method, args) {
+  noteAgentBrowser(method, args ?? {})
   if (method === 'autofill_login' || method === 'autofill_contact') {
     throw new Error(`unknown browser method: ${method}`)
   }
@@ -1464,26 +1625,38 @@ async function handle(method, args) {
 
     case 'back': {
       const history = contents.navigationHistory
-      if (!history.canGoBack()) return { success: false, message: 'No earlier page in this view.' }
-      const targetUrl = historyDestination(contents, -1)
-      if (targetUrl === undefined || siteNavigationBlocked(targetUrl)) {
-        throw new Error(`navigation to ${targetUrl ?? 'the earlier page'} was blocked by Browser settings`)
-      }
       const loaded = once(contents, 'did-finish-load')
-      history.goToIndex(history.getActiveIndex() - 1)
+      if (history.canGoBack()) {
+        const targetUrl = historyDestination(contents, -1)
+        if (targetUrl === undefined || siteNavigationBlocked(targetUrl)) {
+          throw new Error(`navigation to ${targetUrl ?? 'the earlier page'} was blocked by Browser settings`)
+        }
+        history.goToIndex(history.getActiveIndex() - 1)
+      } else {
+        const moved = await pageControl(tab, 'history_go', { delta: -1 })
+        if (moved?.success !== true) {
+          return { success: false, message: moved?.message ?? 'No earlier page in this view.' }
+        }
+      }
       await loaded
       return { success: true, message: `Went back to ${contents.getURL()}` }
     }
 
     case 'forward': {
       const history = contents.navigationHistory
-      if (!history.canGoForward()) return { success: false, message: 'No later page in this view.' }
-      const targetUrl = historyDestination(contents, 1)
-      if (targetUrl === undefined || siteNavigationBlocked(targetUrl)) {
-        throw new Error(`navigation to ${targetUrl ?? 'the later page'} was blocked by Browser settings`)
-      }
       const loaded = once(contents, 'did-finish-load')
-      history.goToIndex(history.getActiveIndex() + 1)
+      if (history.canGoForward()) {
+        const targetUrl = historyDestination(contents, 1)
+        if (targetUrl === undefined || siteNavigationBlocked(targetUrl)) {
+          throw new Error(`navigation to ${targetUrl ?? 'the later page'} was blocked by Browser settings`)
+        }
+        history.goToIndex(history.getActiveIndex() + 1)
+      } else {
+        const moved = await pageControl(tab, 'history_go', { delta: 1 })
+        if (moved?.success !== true) {
+          return { success: false, message: moved?.message ?? 'No later page in this view.' }
+        }
+      }
       await loaded
       return { success: true, message: `Went forward to ${contents.getURL()}` }
     }
@@ -1537,7 +1710,7 @@ async function handle(method, args) {
         return await pageControl(tab, method, args)
       } catch (error) {
         if (isNavigationInterruption(error)
-          && ['click_element', 'input_text', 'select_option'].includes(method)) {
+          && ['click_element', 'input_text', 'select_option', 'fill_fields'].includes(method)) {
           return { success: true, message: `The ${method} action started a page navigation.` }
         }
         throw error
@@ -1552,6 +1725,7 @@ app.whenReady().then(async () => {
     ? session.defaultSession
     : session.fromPartition('persist:bh-controlled-browser')
   await Promise.all([loadProfileStore(), initializeAutofillVault()])
+  nativeTheme.on('updated', updateChrome)
   configureBrowserSettings(nativeSettings)
   browserSession.on('will-download', beginDownload)
   browserSession.setPermissionCheckHandler((contents, permission, requestingOrigin) =>
@@ -1626,6 +1800,7 @@ app.whenReady().then(async () => {
       cdp: { owned: false, persistent: false, nextSequence: 1, events: [], bytes: 0 },
       view,
       contents: view.webContents,
+      favicon: '',
     }
     tabs.set(tab.id, tab)
     window.contentView.addChildView(tab.view)
@@ -1688,7 +1863,14 @@ app.whenReady().then(async () => {
     })
     contents.on('did-finish-load', () => { recordHistory(contents) })
     contents.on('did-navigate-in-page', () => { recordHistory(contents) })
-    for (const event of ['did-finish-load', 'did-navigate', 'did-navigate-in-page', 'page-title-updated']) {
+    contents.on('page-favicon-updated', (_event, favicons) => {
+      tab.favicon = typeof favicons?.[0] === 'string' ? favicons[0] : ''
+      updateChrome()
+    })
+    for (const event of [
+      'did-finish-load', 'did-navigate', 'did-navigate-in-page', 'page-title-updated',
+      'did-start-loading', 'did-stop-loading',
+    ]) {
       contents.on(event, updateChrome)
     }
     return tab

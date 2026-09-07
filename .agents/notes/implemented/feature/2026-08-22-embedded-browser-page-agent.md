@@ -20,9 +20,9 @@ Two packages under a new `browser/` family, and a vendored perception core.
 
 `@hydra/harness-browser-electron` owns `ctx.browsers`: one Electron child process per `Agent`, spawned on that agent's first action and closed with it, holding one window and one `WebContentsView`. The parent speaks NDJSON over the child's stdin/stdout — `{id, method, args}` out, `{id, ok, result|error}` back.
 
-`@hydra/harness-tool-browser` owns everything the model sees: eight `browser_*` schemas, the DOM-format prompt section, the character cap, the card titles, the origin approval. Nothing in it knows the browser is Electron.
+`@hydra/harness-tool-browser` owns everything the model sees: the `browser_*` schemas, the DOM-format prompt section, the character cap, the card titles, the origin approval. Nothing in it knows the browser is Electron.
 
-The page is perceived and driven by [page-agent](https://github.com/alibaba/page-agent)'s `PageController`, vendored verbatim at `packages/browser/browser-electron/third-party/page-agent/packages/page-controller/` and bundled into the view's preload. It turns the live DOM into a numbered element list — `[12]<button>Save</button>` — and acts by index. Its own header says it is "designed to be independent of LLM", and that is exactly the half taken: page-agent's ReAct core, its `AgentOutput` shape, and its `done` action are all left behind, because the loop is the harness's.
+The page is perceived and driven by [page-agent](https://github.com/alibaba/page-agent)'s `PageController`, vendored verbatim at `packages/browser/browser-electron/third-party/page-agent/packages/page-controller/` and bundled into the view's preload. It turns the live DOM into a numbered element list — `[12]<button>Save</button>` — and acts by index. Its own header says it is "designed to be independent of LLM", and that is exactly the half taken. PageAgent's ReAct core is an explicit, demoted Hydra tool, not the default loop; see [Hydra-owned browser control](../architecture/2026-09-07-hydra-owned-browser-control.md).
 
 ### The extension, ported
 
@@ -80,13 +80,13 @@ The profile persists at `<harness-home>/browser-profile`, which is the point —
 
 **A vendored tree is a sync obligation.** `third-party/page-controller/` must stay verbatim; a local fix would turn the next upstream sync from a copy into a merge. `electron-app/preload.cjs` is a committed build artifact that has to be regenerated with it.
 
-**One window, one tab, no forward.** Tabs (a `WebContentsView` each, following page-agent's `TabsController`) are deferred; `browser_forward` is a line on top of them. Horizontal scroll, iframe traversal, and file upload are all reachable and none are wired.
+**One window, several tabs, with forward.** Each tab is a `WebContentsView`. `browser_forward` is a first-class model tool beside `browser_back`. Horizontal scroll and file upload are wired; iframe traversal is not.
 
 **Approval never expires and redirects are not re-checked.** A granted origin is granted for the agent's life, and a `302` out of one raises `will-redirect`, which the guard does not listen to. The model is bounded in what it *aims* the browser at, not in every document that ends up in it.
 
 **Origin approval and navigation blocking are superseded.** The user-approved Chromium-compatible navigation policy is recorded in [Chromium-compatible embedded browser navigation](../architecture/2026-08-22-unrestricted-embedded-browser-navigation.md); the original ownership, text-DOM, and persistent-profile decisions remain in force.
 
-**The text DOM is cheap per element and expensive per page.** A long browsing run is the most token-hungry thing the harness does: a page whose DOM churns produces a fresh, differently-numbered list on every call, bounded only by `maxStateChars`.
+**The text DOM is cheap per element and expensive per page unless compacted.** A page whose DOM churns still produces a fresh, differently numbered list on every call. Full dumps are reserved for `browser_state` and `browser_navigate`; ordinary actions return a ranked ~4k snapshot. The cost decision is recorded in [Hydra-owned browser control](../architecture/2026-09-07-hydra-owned-browser-control.md).
 
 ## Testing
 
@@ -94,7 +94,7 @@ Three tiers, because the process boundary is where this can go wrong.
 
 - **Unit** (`packages/browser/*/tests`) — the service against a scripted child over real streams: id matching, timeouts, reject-on-child-death, the per-owner queue, origin-grant replay into a replacement process. The tool package covers approval end to end: pre-allowed, asked once per origin, rejected, cancelled, no answerer, no service.
 - **Real Electron** (`browser-electron/tests/electron.spec.ts`) — a real window against a local fixture form: navigate, read, type, select, click, back, press, and a page-initiated link to an ungranted origin that must not move the window. Self-skips without the binary or a display, the way the with-key e2e suites skip without their keys.
-- **Snapshot** (`examples/acp-agent`, scenario `browser-tool-turn`) — the eight schemas, the prompt section, and the rendered page text pinned through a real ACP turn. The overlay scripts the Electron child through the service's own `spawnChild` seam and leaves every layer below the process real; a real window would need the binary, a display, and would report host-dependent viewport metrics.
+- **Snapshot** (`examples/acp-agent`, scenario `browser-tool-turn`) — the `browser_*` schemas, the prompt section, and the rendered page text pinned through a real ACP turn. The overlay scripts the Electron child through the service's own `spawnChild` seam and leaves every layer below the process real; a real window would need the binary, a display, and would report host-dependent viewport metrics.
 
 Writing the Electron guard surfaced one fact worth keeping: **`did-start-navigation` fires before `will-navigate`** in Electron 43. Two attempts that set a flag in the latter and read it in the former both failed. The shipped guard is order-independent — both handlers consult the same allowlist, and a `harnessNavigating` flag marks the main process's own navigation, which raises neither event.
 
@@ -106,7 +106,7 @@ The subsystem vocabulary is [docs/subsystems/browser.md](../../../../docs/subsys
 
 The 2026-08-22 statements about eight tools, permanent JavaScript omission, deferred tabs/horizontal scroll, and native-only popups are superseded by this update.
 
-The harness still deliberately excludes PageAgentCore: Hydra owns the model loop, completion decision, tool policy, and evidence lifecycle. It now bridges PageController's required action surface through fourteen default tools: state, navigation, explicit bounded wait, indexed actions, vertical/horizontal scroll, and model-addressable open/switch/close tab. Each Browser state carries a controlled-tab inventory, capture time, and `settled` status.
+The harness still keeps PageAgentCore off the default path: Hydra owns the model loop, completion decision, tool policy, and evidence lifecycle. `browser_page_agent_run` is an explicit, demoted tool; see [Hydra-owned browser control](../architecture/2026-09-07-hydra-owned-browser-control.md). Hydra-owned PageController tools cover state, navigation, explicit bounded wait, indexed or named actions, find, fill, vertical/horizontal scroll, forward, and model-addressable open/switch/close tab. Each Browser state carries a controlled-tab inventory, capture time, and `settled` status.
 
 Electron owns readiness because it owns document/tab transitions. After navigation, a tab change, a page-initiated navigation, or an explicit state read, it follows redirects and waits boundedly for Chromium to be idle and PageController to expose usable SPA content. A timeout returns `settled: false`; the Obsidian recorder discards that transient snapshot instead of allowing it to become durable UI evidence.
 

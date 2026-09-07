@@ -12,13 +12,25 @@ window.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('omnibox-form')
   const omnibox = document.getElementById('omnibox')
   const omniboxHistory = document.getElementById('omnibox-history')
+  const status = document.getElementById('status')
+  const secure = document.getElementById('secure')
+  const loading = document.getElementById('loading')
 
   const renderTabs = state => {
     tabs.replaceChildren()
-    for (const { id, title } of state.tabs) {
+    for (const { id, title, favicon } of state.tabs) {
       const tab = document.createElement('div')
       tab.className = 'tab'
       tab.setAttribute('aria-selected', String(id === state.activeTabId))
+      const icon = document.createElement('img')
+      icon.className = 'tab-favicon'
+      icon.alt = ''
+      if (typeof favicon === 'string' && favicon.length > 0) {
+        icon.src = favicon
+        icon.addEventListener('error', () => { icon.hidden = true })
+      } else {
+        icon.hidden = true
+      }
       const select = document.createElement('button')
       select.className = 'tab-select'
       select.type = 'button'
@@ -34,7 +46,7 @@ window.addEventListener('DOMContentLoaded', () => {
       close.title = `Close ${title}`
       close.textContent = '×'
       close.addEventListener('click', () => ipcRenderer.send('browser-chrome:close-tab', id))
-      tab.append(select, close)
+      tab.append(icon, select, close)
       tabs.append(tab)
     }
   }
@@ -66,11 +78,21 @@ window.addEventListener('DOMContentLoaded', () => {
   })
   ipcRenderer.on('browser-chrome:annotation-ended', () => { annotate.setAttribute('aria-pressed', 'false') })
   ipcRenderer.on('browser-chrome:update', (_event, state) => {
+    document.documentElement.dataset.theme = state.theme === 'dark' ? 'dark' : 'light'
     renderTabs(state)
     renderHistory(state.history)
     back.disabled = !state.canGoBack
     forward.disabled = !state.canGoForward
     annotate.disabled = !state.annotationEnabled
+    loading.hidden = !state.loading
+    secure.hidden = !state.secure || state.loading
+    if (typeof state.activity === 'string' && state.activity.length > 0) {
+      status.hidden = false
+      status.textContent = state.activity
+    } else {
+      status.hidden = true
+      status.textContent = ''
+    }
     if (document.activeElement !== omnibox) omnibox.value = state.url
   })
 })

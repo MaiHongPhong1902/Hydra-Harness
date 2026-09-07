@@ -21,7 +21,9 @@ import type { SettingsNamespace } from '@hydra/harness-settings'
 import BrowserSessionService, { BROWSER_SETTINGS_NAMESPACE } from '@hydra/harness-browser-electron'
 import type { BrowserChildProcess } from '@hydra/harness-browser-electron'
 import * as ToolBrowser from '@hydra/harness-tool-browser'
-import { BROWSER_PROMPT_NAME, BROWSER_PROMPT_TEXT } from '@hydra/harness-tool-browser'
+import {
+  BROWSER_PROMPT_NAME, BROWSER_PROMPT_TEXT, COMPACT_NOTICE, compactHeader, formatBrowserOutput, rankElementList, toValue,
+} from '@hydra/harness-tool-browser'
 
 function cdpEventPage(args: Record<string, unknown>) {
   const retained = [
@@ -240,7 +242,8 @@ describe('tool-browser registration', () => {
     const { ctx } = await harness()
     expect(ctx.tools.schemas().map(tool => tool.name).filter(name => name.startsWith('browser_')).sort())
       .toEqual([
-        'browser_back', 'browser_click', 'browser_close_tab', 'browser_history_search', 'browser_navigate',
+        'browser_back', 'browser_click', 'browser_close_tab', 'browser_fill', 'browser_find', 'browser_forward',
+        'browser_history_search', 'browser_navigate',
         'browser_open_tab', 'browser_page_agent_run', 'browser_page_agent_status', 'browser_page_agent_stop',
         'browser_press', 'browser_screenshot', 'browser_scroll', 'browser_scroll_horizontally',
         'browser_select_option', 'browser_state', 'browser_switch_tab', 'browser_type',
@@ -346,6 +349,15 @@ describe('browser tool calls', () => {
     const { call } = await harness()
     const result = await call('browser_state', {})
     expect(text(result.content).startsWith('Open tabs:')).toBe(true)
+    expect(text(result.content)).not.toContain(COMPACT_NOTICE)
+  })
+
+  it('returns a compact snapshot after an ordinary action', async () => {
+    const { call } = await harness()
+    const result = await call('browser_click', { index: 1 })
+    expect(text(result.content)).toContain('Tab [1] (active) Order — https://shop.test/order')
+    expect(text(result.content)).toContain(COMPACT_NOTICE)
+    expect(text(result.content)).not.toContain('Open tabs:')
   })
 
   it('captures the selected viewport, persists it, and returns no raw base64', async () => {
@@ -430,6 +442,23 @@ describe('browser tool calls', () => {
     expect(children[0]?.requests[0]).toEqual({ method: 'click_element', args: { index: 1 } })
   })
 
+  it('clicks a named control without inventing an index', async () => {
+    const { children, call } = await harness()
+    await call('browser_click', { name: 'Place order' })
+    expect(children[0]?.requests[0]).toEqual({ method: 'click_element', args: { name: 'Place order' } })
+  })
+
+  it('rejects a click that names neither an index nor a name', async () => {
+    const { children, call } = await harness()
+    const missing = await call('browser_click', {})
+    expect(missing.isError).toBe(true)
+    expect(text(missing.content)).toContain('provide index or a non-empty name')
+    const blank = await call('browser_click', { name: '   ' })
+    expect(blank.isError).toBe(true)
+    expect(text(blank.content)).toContain('provide index or a non-empty name')
+    expect(children).toHaveLength(0)
+  })
+
   it('keeps an explicit tab target on both the action and trailing state read', async () => {
     const { children, call } = await harness()
     const result = await call('browser_click', { index: 1, tab_id: 2 })
@@ -452,6 +481,9 @@ describe('browser tool calls', () => {
     await call('browser_wait', { seconds: 2 })
     await call('browser_press', { key: 'Enter' })
     await call('browser_back', {})
+    await call('browser_forward', {})
+    await call('browser_find', { query: 'Requester' })
+    await call('browser_fill', { fields: [{ name: 'who', text: 'Ada' }] })
     await call('browser_open_tab', { url: 'https://shop.test/help' })
     await call('browser_switch_tab', { tab_id: 1 })
     await call('browser_close_tab', { tab_id: 2 })
@@ -474,6 +506,9 @@ describe('browser tool calls', () => {
       { method: 'wait', args: { seconds: 2 } },
       { method: 'press', args: { key: 'Enter' } },
       { method: 'back', args: {} },
+      { method: 'forward', args: {} },
+      { method: 'find_element', args: { query: 'Requester' } },
+      { method: 'fill_fields', args: { fields: [{ name: 'who', text: 'Ada' }] } },
       { method: 'open_new_tab', args: { url: 'https://shop.test/help' } },
       { method: 'switch_to_tab', args: { tabId: 1 } },
       { method: 'close_tab', args: { tabId: 2 } },
@@ -490,6 +525,20 @@ describe('browser tool calls', () => {
       { method: 'page_agent_status', args: {} },
       { method: 'page_agent_stop', args: {} },
     ])
+  })
+
+  it('rejects a blank find query or empty fill list before touching the page', async () => {
+    const { children, call } = await harness()
+    const find = await call('browser_find', { query: '   ' })
+    expect(find.isError).toBe(true)
+    expect(text(find.content)).toContain('query must be a non-empty string')
+    const fill = await call('browser_fill', { fields: [] })
+    expect(fill.isError).toBe(true)
+    expect(text(fill.content)).toContain('fields must be a non-empty array')
+    const unnamed = await call('browser_fill', { fields: [{ text: 'Ada' }] })
+    expect(unnamed.isError).toBe(true)
+    expect(text(unnamed.content)).toContain('provide index or a non-empty name')
+    expect(children).toHaveLength(0)
   })
 
   it('rejects a blank key before touching the page', async () => {
@@ -566,8 +615,12 @@ describe('browser call presentation', () => {
     expect(present('browser_state', {})).toEqual({ card: 'generic', title: 'Read browser page', kind: 'execute' })
     expect(present('browser_click', { index: 12 }))
       .toEqual({ card: 'generic', title: 'Click [12]', kind: 'execute' })
+    expect(present('browser_click', { name: 'Place order' }))
+      .toEqual({ card: 'generic', title: 'Click Place order', kind: 'execute' })
     expect(present('browser_type', { index: 3, text: 'ACME' }))
       .toEqual({ card: 'generic', title: 'Type into [3]', kind: 'execute', rawInput: 'ACME' })
+    expect(present('browser_type', { name: 'Requester', text: 'Ada' }))
+      .toEqual({ card: 'generic', title: 'Type into Requester', kind: 'execute', rawInput: 'Ada' })
     expect(present('browser_upload_file', { index: 5, path: 'C:\\test\\artifact.json' }))
       .toEqual({ card: 'generic', title: 'Upload file through [5]', kind: 'execute', rawInput: 'C:\\test\\artifact.json' })
     expect(present('browser_select_option', { index: 4, text: 'Express' }))
@@ -578,10 +631,116 @@ describe('browser call presentation', () => {
     expect(present('browser_wait', { seconds: 3 })).toEqual({ card: 'generic', title: 'Wait 3s for browser page', kind: 'execute' })
     expect(present('browser_press', { key: 'Tab' })).toEqual({ card: 'generic', title: 'Press Tab', kind: 'execute' })
     expect(present('browser_back', {})).toEqual({ card: 'generic', title: 'Go back', kind: 'execute' })
+    expect(present('browser_forward', {})).toEqual({ card: 'generic', title: 'Go forward', kind: 'execute' })
+    expect(present('browser_find', { query: 'Requester' }))
+      .toEqual({ card: 'generic', title: 'Find browser control', kind: 'execute', rawInput: 'Requester' })
+    expect(present('browser_fill', { fields: [{ name: 'who', text: 'Ada' }] }))
+      .toEqual({ card: 'generic', title: 'Fill 1 browser fields', kind: 'execute' })
     expect(present('browser_history_search', { query: 'orders' }))
       .toEqual({ card: 'generic', title: 'Search Browser history', kind: 'execute', rawInput: 'orders' })
     expect(present('browser_open_tab', { url: 'https://shop.test/help' })).toEqual({ card: 'generic', title: 'Open tab https://shop.test/help', kind: 'execute', rawInput: 'https://shop.test/help' })
     expect(present('browser_switch_tab', { tab_id: 2 })).toEqual({ card: 'generic', title: 'Switch to tab [2]', kind: 'execute' })
     expect(present('browser_close_tab', { tab_id: 2 })).toEqual({ card: 'generic', title: 'Close tab [2]', kind: 'execute' })
+  })
+})
+
+describe('browser snapshot ranking', () => {
+  it('keeps newly appeared and typical form controls ahead of other indexed lines', () => {
+    expect(rankElementList([
+      '[9]<div>User form</div>',
+      '\t*[11]<button>Save</button>',
+      '[10]<span>hint</span>',
+      '[8]<input id=who/>',
+      'plain text',
+    ].join('\n')).split('\n')).toEqual([
+      '\t*[11]<button>Save</button>',
+      '[8]<input id=who/>',
+      '[9]<div>User form</div>',
+      '[10]<span>hint</span>',
+      'plain text',
+    ])
+  })
+
+  it('caps a compact value below the full state budget', () => {
+    const content = `${'[0]<div>padding</div>\n'.repeat(400)}[1]<input id=who/>`
+    const value = toValue({
+      action: { success: true, message: 'did click' },
+      state: {
+        url: 'https://shop.test/order',
+        title: 'Order',
+        header: 'Current Page: [Order](https://shop.test/order)\nPage info: 1280x900px viewport, 0.0 pages above, 2.0 pages below',
+        content,
+        footer: '[End of page]',
+        tabs: [{ id: 1, url: 'https://shop.test/order', title: 'Order', status: 'complete', active: true }],
+        tabId: 1,
+        activeTabId: 1,
+        settled: true,
+        capturedAt: '2026-09-07T00:00:00.000Z',
+      },
+    }, 16_000, { compact: true })
+    expect(value.compact).toBe(true)
+    expect(value.content.length).toBeLessThanOrEqual(4_000)
+    expect(value.content).toContain('[1]<input id=who/>')
+    expect(value.header).toContain('1280x900 viewport')
+  })
+
+  it('shortens headers that lack a viewport line and keeps the start-of-page hint', () => {
+    expect(rankElementList('')).toBe('')
+    expect(compactHeader('')).toBe('')
+    expect(compactHeader('Just a title')).toBe('Just a title')
+    expect(compactHeader([
+      'Current Page: [Order](https://shop.test/order)',
+      'Page info: unusual metrics',
+      '[Start of page]',
+    ].join('\n'))).toBe([
+      'Current Page: [Order](https://shop.test/order)',
+      'Page info: unusual metrics',
+      '[Start of page]',
+    ].join('\n'))
+    expect(compactHeader([
+      'Current Page: [Order](https://shop.test/order)',
+      '... 80 pixels above - scroll up ...',
+    ].join('\n'))).toContain('pixels above')
+    const inactive = toValue({
+      action: { success: true, message: 'did click' },
+      state: {
+        url: 'https://shop.test/help',
+        title: 'Help',
+        header: 'Current Page: [Help](https://shop.test/help)',
+        content: '[0]<a>Home</a>',
+        footer: '[End of page]',
+        tabs: [{ id: 2, url: 'https://shop.test/help', title: 'Help', status: 'complete', active: false }],
+        tabId: 2,
+        activeTabId: 1,
+        settled: false,
+        capturedAt: '2026-09-07T00:00:00.000Z',
+      },
+    }, 16_000, { compact: true })
+    const inactiveText = formatBrowserOutput(inactive)
+    expect(inactiveText).toContain('Tab [2] Help — https://shop.test/help')
+    expect(inactiveText).not.toContain('(active)')
+    expect(inactiveText).toContain('(background)')
+    expect(inactiveText).toContain('transient evidence')
+    const multi = toValue({
+      action: { success: true, message: 'did click' },
+      state: {
+        url: 'https://shop.test/help',
+        title: 'Help',
+        header: 'Current Page: [Help](https://shop.test/help)\nPage info: 800x600px viewport, 1.5 pages above, 0.0 pages below',
+        content: '[0]<a>Home</a>',
+        footer: '... 100 pixels below ...',
+        tabs: [
+          { id: 1, url: 'https://shop.test/order', title: 'Order', status: 'complete', active: false },
+          { id: 2, url: 'https://shop.test/help', title: 'Help', status: 'complete', active: true },
+        ],
+        tabId: 2,
+        activeTabId: 2,
+        settled: true,
+        capturedAt: '2026-09-07T00:00:00.000Z',
+      },
+    }, 16_000, { compact: true })
+    expect(formatBrowserOutput(multi)).toContain('Open tabs:')
+    expect(multi.header).toContain('1.5 pages above')
+    expect(multi.header).not.toContain('pages below')
   })
 })

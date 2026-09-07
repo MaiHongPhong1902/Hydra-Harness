@@ -103,6 +103,16 @@ export interface BrowserCdpEventPage {
   nextSequence: number
 }
 
+/** One field a Hydra fill action types, resolved by index or visible name. */
+export interface BrowserFillField {
+  /** Element index from the latest snapshot for this tab. */
+  index?: number
+  /** Visible label, accessible name, placeholder, or id when index is omitted. */
+  name?: string
+  /** Text that replaces the field's current value. */
+  text: string
+}
+
 /**
  * One page-local or tab-lifecycle action accepted by the browser seam.
  * `tabId` pins a page-local action to one tab; omission captures the selected
@@ -113,11 +123,14 @@ export type BrowserAction =
     | { method: 'get_browser_state' }
     | { method: 'navigate'; url: string }
     | { method: 'back' }
+    | { method: 'forward' }
     | { method: 'press'; key: string }
-    | { method: 'click_element'; index: number }
+    | { method: 'click_element'; index?: number; name?: string }
     | { method: 'upload_file'; index: number; filePath: string }
-    | { method: 'input_text'; index: number; text: string }
-    | { method: 'select_option'; index: number; text: string }
+    | { method: 'input_text'; index?: number; name?: string; text: string }
+    | { method: 'select_option'; index?: number; name?: string; text: string }
+    | { method: 'find_element'; query: string }
+    | { method: 'fill_fields'; fields: BrowserFillField[] }
     | { method: 'scroll'; down: boolean; numPages: number; pixels?: number; index?: number }
     | { method: 'scroll_horizontally'; right: boolean; pixels: number; index?: number }
     | { method: 'wait'; seconds: number }
