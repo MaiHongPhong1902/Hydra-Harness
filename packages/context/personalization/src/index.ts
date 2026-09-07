@@ -172,7 +172,7 @@ export function apply(ctx: Context): void {
       }
       if (verb === 'add') {
         if (!memory().enabled || !currentPolicy.generateMemories) return { kind: 'error', text: 'Memory saving is off for this chat.' }
-        const text = input.slice(parts[0]?.length ?? 0).trim()
+        const text = input.slice('add'.length).trim()
         if (text.length === 0) return { kind: 'error', text: 'Usage: /memories add <text>' }
         const wasRedacted = redactMemorySecrets(text).trim() !== text
         const entry = await memories.add(text)

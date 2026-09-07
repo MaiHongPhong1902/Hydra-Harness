@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { mkdtemp, readFile, rm } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Context } from '@hydra/cordis'
@@ -11,6 +11,8 @@ import AgentLoop from '@hydra/harness-agent-loop'
 import { mountAgentLoopTestDependencies } from '@hydra/harness-agent-loop-testkit'
 import SettingsProvider, { settingsNamespace } from '@hydra/harness-settings'
 import type { SettingsNamespace } from '@hydra/harness-settings'
+import CommandRuntime from '@hydra/harness-commands'
+import { agentEvents, type PreStepDecision } from '@hydra/harness-agent'
 import * as personalization from '@hydra/harness-personalization'
 import { hasLoggedPersonality, LocalMemoryStore, resolveMemoryPolicy, resolveSessionPersonality } from '@hydra/harness-personalization'
 
@@ -56,6 +58,34 @@ describe('resolveSessionPersonality / hasLoggedPersonality', () => {
 })
 
 describe('LocalMemoryStore', () => {
+  it('rejects malformed durable documents and enforces entry and text limits', async () => {
+    const home = await mkdtemp(join(tmpdir(), 'bh-memory-validation-'))
+    const path = join(home, 'memories', 'memories.json')
+    const store = new LocalMemoryStore(home)
+    try {
+      await mkdir(join(home, 'memories'))
+      for (const value of [null, [], 1, { version: 2, entries: [] }, { version: 1 },
+        ...[null, 1, {}, { id: '', text: '' }, { id: '', text: '', createdAt: 1.5, updatedAt: 1 },
+          { id: '', text: '', createdAt: 1, updatedAt: 1.5 }].map(entry => ({ version: 1, entries: [entry] })),
+      ]) {
+        await writeFile(path, JSON.stringify(value))
+        await expect(store.list()).rejects.toThrow('memory document')
+      }
+      await expect(store.add('  ')).rejects.toThrow('1-2000')
+      await expect(store.add('a'.repeat(2001))).rejects.toThrow('1-2000')
+      const entries = Array.from({ length: 100 }, (_, index) => ({
+        id: String(index), text: `entry ${index}`, createdAt: index, updatedAt: index,
+      }))
+      await writeFile(path, JSON.stringify({ version: 1, entries }))
+      expect((await store.list())[0]?.id).toBe('99')
+      await expect(store.add('one too many')).rejects.toThrow('limit of 100')
+      await store.remove('0')
+      expect((await store.add('a'.repeat(2000))).text).toHaveLength(2000)
+    } finally {
+      await rm(home, { recursive: true, force: true })
+    }
+  })
+
   it('redacts, persists, and removes an explicit local memory', async () => {
     const home = await mkdtemp(join(tmpdir(), 'bh-memory-'))
     try {
@@ -106,6 +136,111 @@ async function loopHarness(adapter: ScriptedAdapter, doc: Record<string, unknown
 }
 
 describe('personalization: real agent-loop request history', () => {
+  it('provides opt-in defaults when no settings provider is mounted', async () => {
+    const ctx = new Context()
+    await mountAgentLoopTestDependencies(ctx)
+    await ctx.plugin(AgentLoop, { agents: [] })
+    await ctx.plugin(personalization)
+    try {
+      const section = (await ctx.systemPrompt.assemble()).sections.find(section => section.name === 'personalization:personality')
+      expect(section?.text).toContain('matter-of-fact')
+      const agent = ctx.agentLoop.create(SessionId('no-settings'))
+      expect(resolveMemoryPolicy(agent.session)).toEqual({ useMemories: false, generateMemories: false })
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('preserves seeded policy and recalls memory only at the first eligible proposal', async () => {
+    const home = await mkdtemp(join(tmpdir(), 'bh-memory-proposal-'))
+    const previousHome = process.env.BH_HOME
+    process.env.BH_HOME = home
+    const ctx = await loopHarness(new ScriptedAdapter([]), { memory: { enabled: true } })
+    try {
+      const agent = ctx.agentLoop.create(SessionId('proposal'))
+      const enter: PreStepDecision = { kind: 'enter', messages: [] }
+      const propose = (step = 1, signal = new AbortController().signal, decision: PreStepDecision = enter) =>
+        agentEvents(ctx, agent).waterfall('agent/pre-step', { turn: 1, step, signal, messages: [] }, async () => decision)
+      expect(await propose()).toEqual(enter)
+      await ctx.localMemories.add('keep answers short')
+      expect(await propose(2)).toEqual(enter)
+      expect(await propose(1, AbortSignal.abort())).toEqual(enter)
+      const rejected: PreStepDecision = { kind: 'reject' }
+      expect(await propose(1, new AbortController().signal, rejected)).toEqual(rejected)
+      for (const source of [{ kind: 'user' }, { kind: 'plugin', plugin: 'other' },
+        { kind: 'plugin', plugin: personalization.name, form: 'instructions' }] as const) {
+        agent.session.append('user/message', createUserMessage({ content: [{ type: 'text', text: 'context' }], source }), { surfaceOp: 'append' })
+      }
+      const recalled = await propose()
+      if (recalled.kind !== 'enter') throw new Error('expected recall')
+      expect(recalled.messages).toHaveLength(1)
+      expect(recalled.messages[0]?.source).toEqual({ kind: 'plugin', plugin: personalization.name, form: 'recall' })
+      agent.session.append('user/message', recalled.messages[0]!, { surfaceOp: 'append' })
+      expect(await propose()).toEqual(enter)
+      const originalPolicy = resolveMemoryPolicy(agent.session)
+      agent.session.append('personalization/personality', { personality: 'friendly' })
+      agentEvents(ctx, agent).emit('agent/session-start', { source: 'resume' })
+      expect(resolveSessionPersonality(agent.session)).toBe('friendly')
+      expect(resolveMemoryPolicy(agent.session)).toEqual(originalPolicy)
+      const child = await ctx.agentLoop.createAgent(ctx, {
+        sessionId: SessionId('memory-child'),
+        meta: { parentSession: agent.id, delegationDepth: 1, seedLength: 0 },
+      })
+      await ctx.plugin(CommandRuntime)
+      expect((await ctx.commands.execute(child.agent, '/memories list', [], new AbortController().signal))?.result)
+        .toEqual({ kind: 'error', text: 'Memory controls are available only in a top-level chat.' })
+      expect(await agentEvents(ctx, child.agent).waterfall('agent/pre-step', {
+        turn: 1, step: 1, signal: new AbortController().signal, messages: [],
+      }, async () => enter)).toEqual(enter)
+    } finally {
+      await ctx.fiber.dispose()
+      if (previousHome === undefined) delete process.env.BH_HOME
+      else process.env.BH_HOME = previousHome
+      await rm(home, { recursive: true, force: true })
+    }
+  })
+
+  it('controls per-chat memory policy and stores only explicit accepted memories', async () => {
+    const home = await mkdtemp(join(tmpdir(), 'bh-memory-commands-'))
+    const previousHome = process.env.BH_HOME
+    process.env.BH_HOME = home
+    const ctx = await loopHarness(new ScriptedAdapter([]), { memory: { enabled: true } })
+    try {
+      await ctx.plugin(CommandRuntime)
+      const agent = ctx.agentLoop.create(SessionId('memory-commands'), { provider: 'mock', model: 'mock' })
+      const command = async (input: string) => (await ctx.commands.execute(agent, `/memories ${input}`, [], new AbortController().signal))?.result
+      expect(resolveMemoryPolicy({ events: [] })).toEqual({ useMemories: true, generateMemories: true })
+      expect(await command('')).toEqual({ kind: 'success', text: 'Memory: use=on, save=on, 0 stored.' })
+      expect(await command('list')).toEqual({ kind: 'success', text: 'No local memories.' })
+      expect(await command('save off')).toMatchObject({ text: 'Memory save off.' })
+      expect(await command('use off')).toMatchObject({ text: 'Memory use off.' })
+      expect(await command('')).toMatchObject({ text: 'Memory: use=off, save=off, 0 stored.' })
+      expect(await command('add remember me')).toMatchObject({ kind: 'error', text: 'Memory saving is off for this chat.' })
+      expect(await command('save on')).toMatchObject({ text: 'Memory save on.' })
+      expect(await command('use on')).toMatchObject({ text: 'Memory use on.' })
+      expect(await command('add')).toMatchObject({ kind: 'error', text: 'Usage: /memories add <text>' })
+      expect(await command('add write concisely')).toMatchObject({ text: 'Memory saved locally.' })
+      expect(await command('add sk-12345678901234567890')).toMatchObject({ text: 'Memory saved locally with a secret-like value redacted.' })
+      expect((await command('list'))?.text).toContain('write concisely')
+      const entries = await ctx.localMemories.list()
+      expect(agent.session.events.filter(event => event.type === 'memory/accepted')).toHaveLength(2)
+      expect(await command(`remove ${entries[0]!.id}`)).toMatchObject({ text: 'Memory removed.' })
+      expect(await command('remove missing')).toMatchObject({ kind: 'error', text: 'Memory id not found.' })
+      for (const input of ['remove', 'save invalid', 'unknown']) {
+        const result = await command(input)
+        expect(result?.kind).toBe('error')
+        expect(result?.text).toContain('Usage:')
+      }
+      await ctx.settings.update(settingsNamespace('memory'), { enabled: false })
+      expect(await command('add disabled')).toMatchObject({ kind: 'error', text: 'Memory saving is off for this chat.' })
+    } finally {
+      await ctx.fiber.dispose()
+      if (previousHome === undefined) delete process.env.BH_HOME
+      else process.env.BH_HOME = previousHome
+      await rm(home, { recursive: true, force: true })
+    }
+  })
+
   it('prompts the pragmatic tone and logs nothing for the default personality', async () => {
     const adapter = new ScriptedAdapter([textResponse('ack')])
     const ctx = await loopHarness(adapter)
