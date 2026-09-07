@@ -241,3 +241,20 @@ describe('request-level dynamic profiles', () => {
     expect(ctx.llm.listProviders().map(provider => provider.id)).toEqual(before)
   })
 })
+
+it('falls back from a missing reference and SDK authentication error without ambient auth', async () => {
+  const dir = await home()
+  const server = await mockServer([
+    { status: 401, body: '{"error":{"message":"invalid key"}}' },
+    { events: textEvents },
+  ])
+  const ctx = await boot(dir, { providers: { deepseek: {
+    baseURL: server.url, apiKeyEnv: 'MISSING_PRIMARY', apiKeyFallbackEnvs: ['PI_FIRST', 'PI_SECOND'],
+  } } })
+  await ctx.credentials.set(credentialRef('PI_FIRST'), 'first-key')
+  await ctx.credentials.set(credentialRef('PI_SECOND'), 'second-key')
+  const result = await assemble(ctx, { provider: 'deepseek', model: 'deepseek-v4-flash', messages: [] })
+  expect(server.headers.map(headers => headers.authorization)).toEqual(['Bearer first-key', 'Bearer second-key'])
+  expect(result.message.content).toEqual([{ type: 'text', text: 'hello' }])
+  expect(result.finish).toEqual({ kind: 'stop' })
+})

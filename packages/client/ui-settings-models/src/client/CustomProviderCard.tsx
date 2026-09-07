@@ -24,6 +24,7 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import type { IApiClient } from '@hydra/harness-api-remotes/client'
+import { FallbackKeysEditor, useFallbackKeys } from './FallbackKeysEditor.tsx'
 import { apiKeyFailure } from './apiKey.ts'
 import { EditorFooter } from './EditorFooter.tsx'
 import { validateDeepSeekModels } from './DeepSeekModelsEditor.tsx'
@@ -84,6 +85,7 @@ export function CustomProviderCard(props: CustomProviderCardProps): ReactNode {
   const [proxy, setProxy] = useState('')
   const [protocol, setProtocol] = useState(protocols[0] ?? '')
   const [keyDraft, setKeyDraft] = useState('')
+  const fallbackKeys = useFallbackKeys(undefined, route, api)
   const [models, setModels] = useState<readonly ModelDraft[]>([])
   const [busy, setBusy] = useState(false)
   const [failure, setFailure] = useState<string | undefined>(undefined)
@@ -93,6 +95,7 @@ export function CustomProviderCard(props: CustomProviderCardProps): ReactNode {
    * the credential alone.
    */
   const [committed, setCommitted] = useState(false)
+  const [primaryCommitted, setPrimaryCommitted] = useState(false)
   const disabled = props.readOnly || busy
   /** Everything but the key stops being editable once the provider exists. */
   const profileDisabled = disabled || committed
@@ -103,7 +106,7 @@ export function CustomProviderCard(props: CustomProviderCardProps): ReactNode {
   // bad row is named by its position here too. Capacities have route-level
   // fallbacks; what a route cannot default is at least one model.
   const modelFailure = validateDeepSeekModels(models)
-  const keyFailure = apiKeyFailure(keyDraft)
+  const keyFailure = apiKeyFailure(keyDraft) ?? fallbackKeys.failure
   // The typed key with paste whitespace removed. A blank field yields an empty
   // string, which the create path reads as "no key supplied" — a route may
   // legitimately authenticate through the provider's own ambient discovery.
@@ -141,6 +144,7 @@ export function CustomProviderCard(props: CustomProviderCardProps): ReactNode {
         // key left blank keeps its provider-native auth path (a credential
         // chain, ADC) instead of resolving a reference nothing ever sets.
         ...storesKey ? { apiKeyEnv: keyRef } : {},
+        ...fallbackKeys.refs.length === 0 ? {} : { apiKeyFallbackEnvs: fallbackKeys.refs },
         api: protocol,
         baseURL,
         ...proxy.trim().length === 0 ? {} : { proxy: proxy.trim() },
@@ -160,6 +164,7 @@ export function CustomProviderCard(props: CustomProviderCardProps): ReactNode {
       // just superseded, so the Host would answer `settings-conflict` and the
       // key could never be stored from this card at all.
       setCommitted(true)
+      setPrimaryCommitted(storesKey)
     }
     if (storesKey) {
       const stored = await api.credentials.set({ ref: keyRef, value: keyValue })
@@ -167,7 +172,8 @@ export function CustomProviderCard(props: CustomProviderCardProps): ReactNode {
       // and the retry above now goes straight back to this write.
       if (!stored.result.ok) return stored.result.error.message
     }
-    return undefined
+    setKeyDraft('')
+    return fallbackKeys.save()
   }
 
   const create = async (): Promise<void> => {
@@ -202,7 +208,7 @@ export function CustomProviderCard(props: CustomProviderCardProps): ReactNode {
           value={route}
           placeholder="acme-gateway"
           aria-label={t('customRoute')}
-          disabled={profileDisabled}
+          disabled={profileDisabled || fallbackKeys.rows.length > 0}
           onChange={(event) => { setRoute(event.target.value) }}
         />
       </div>
@@ -268,7 +274,7 @@ export function CustomProviderCard(props: CustomProviderCardProps): ReactNode {
           value={keyDraft}
           placeholder={t('keyPlaceholder')}
           aria-label={t('keyInput')}
-          disabled={disabled}
+          disabled={disabled || (committed && !primaryCommitted)}
           onChange={(event) => { setKeyDraft(event.target.value) }}
         />
         {/* A create card has no stored key to keep, so the blank case says
@@ -278,6 +284,8 @@ export function CustomProviderCard(props: CustomProviderCardProps): ReactNode {
           ? null
           : <p className={styles['error']}>{t(keyFailure === 'keyBlank' ? 'keyBlankNew' : keyFailure)}</p>}
       </div>
+      <FallbackKeysEditor keys={fallbackKeys} disabled={disabled || route.length === 0 || routeInvalid}
+        structureDisabled={committed} t={t} />
       <ModelListEditor
         models={models}
         onChange={setModels}
@@ -288,6 +296,7 @@ export function CustomProviderCard(props: CustomProviderCardProps): ReactNode {
           ...proxy.trim().length === 0 ? {} : { proxy: proxy.trim() },
           ...keyValue.length === 0 ? {} : { apiKey: keyValue },
         }}
+        probeKeys={fallbackKeys.rows.map(row => row.value.trim()).filter(Boolean)}
         probeBlocked={keyFailure === 'keyBlank' ? 'keyBlankNew' : keyFailure}
         api={api}
         t={t}

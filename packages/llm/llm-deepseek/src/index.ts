@@ -73,6 +73,8 @@ const MODEL_MODALITIES = ['text', 'image'] as const satisfies readonly ModelModa
 export interface Config {
   /** Credential reference (environment-variable name) resolved per request; defaults to `DEEPSEEK_API_KEY`. */
   apiKeyEnv?: string
+  /** Ordered fallback credential references, tried after apiKeyEnv. */
+  apiKeyFallbackEnvs?: string[]
   /** Endpoint base; falls back to $DEEPSEEK_BASE_URL from a trusted environment layer, then the public API. */
   baseURL?: string
   /** Optional HTTP(S) network proxy used for this provider's requests; blank keeps them direct. */
@@ -106,6 +108,7 @@ const catalogModel: z<DeepSeekCatalogModel> = z.object({
 
 export const Config: z<Config> = z.object({
   apiKeyEnv: z.string().role('credential-ref').default(DEFAULT_API_KEY_ENV),
+  apiKeyFallbackEnvs: z.array(z.string().role('credential-ref')),
   baseURL: z.string(),
   proxy: z.string(),
   thinking: z.union(['enabled', 'disabled']),
@@ -218,6 +221,8 @@ export function resolveAdapterOptions(config: Config, environment?: LaunchEnviro
   const proxy = normalizeHttpProxy(config.proxy, 'llm-deepseek proxy')
   return {
     apiKeyEnv: credentialRef(config.apiKeyEnv ?? DEFAULT_API_KEY_ENV),
+    apiKeyFallbackEnvs: [...new Set((config.apiKeyFallbackEnvs ?? []).map(credentialRef))]
+      .filter(ref => ref !== (config.apiKeyEnv ?? DEFAULT_API_KEY_ENV)),
     baseURL: config.baseURL
       ?? environment?.get(BASE_URL_ENV)?.value
       ?? PUBLIC_BASE_URL,

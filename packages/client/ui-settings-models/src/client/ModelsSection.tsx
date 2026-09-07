@@ -9,6 +9,7 @@ import type { ReactNode } from 'react'
 import type { IApiClient } from '@hydra/harness-api-remotes/client'
 import { Button, IconPlusOutline16, Modal } from '@hydra/harness-client-ui-primitives'
 import type { InjectFace } from '@hydra/harness-client-ui-slots'
+import { isManagedFallbackRef } from './FallbackKeysEditor.tsx'
 import { CustomProviderCard } from './CustomProviderCard.tsx'
 import {
   deriveKeyRef, messageOf, protocolChoices,
@@ -61,6 +62,8 @@ interface EditorTarget extends ProviderIdentity {
   settingsPath: readonly string[]
   /** Writable credential identified under this page's conventional reference. */
   credentialRef?: string
+  /** Writable fallback credentials owned by this page. */
+  credentialRefs: readonly string[]
   /** The adapter reports this route as one it does not ship (see {@link ProviderEditorProps.declared}). */
   declared?: boolean
 }
@@ -114,11 +117,12 @@ export async function removeProviderProfile(
     settingsNs: string
     settingsPath: readonly string[]
     credentialRef?: string
+    credentialRefs?: readonly string[]
   },
 ): Promise<string | undefined> {
   try {
-    if (target.credentialRef !== undefined) {
-      const credential = await api.credentials.unset({ ref: target.credentialRef })
+    for (const ref of [...target.credentialRef === undefined ? [] : [target.credentialRef], ...(target.credentialRefs ?? [])]) {
+      const credential = await api.credentials.unset({ ref })
       if (!credential.result.ok) return credential.result.error.message
     }
     const response = hidesOfficialDeepSeek(target)
@@ -179,6 +183,9 @@ function targetOf(row: ProviderRow): EditorTarget {
     settingsNs: row.entry.settingsNs,
     settingsPath: row.entry.settingsPath,
     ...credentialRef === undefined ? {} : { credentialRef },
+    credentialRefs: Object.entries(row.fallbackCredentials)
+      .filter(([ref, state]) => isManagedFallbackRef(row.entry.provider, ref) && state?.configured === true && state.writable)
+      .map(([ref]) => ref),
     // Absent is not "shipped": an adapter that answers nothing leaves the
     // route-level fields only a declared route owns off the card, exactly as
     // it leaves the custom tag off the row.
@@ -323,9 +330,9 @@ function Loaded({ injected }: { injected: ModelsSectionFace }): ReactNode {
           if (namespace === undefined) return null
           const open = !adding && editing?.provider === row.entry.provider
           const credentialConfigured = row.credential?.configured === true
-          const credentialMissing = !credentialConfigured
-            && row.apiKeyEnv !== undefined
-            && row.credential?.configured === false
+            || Object.values(row.fallbackCredentials).some(state => state?.configured === true)
+          const credentialMissing = !credentialConfigured && (row.credential?.configured === false
+            || Object.values(row.fallbackCredentials).some(state => state?.configured === false))
           return (
             <li key={row.entry.provider} className={styles['rowCard']}>
               <div className={styles['rowHead']}>
@@ -512,7 +519,7 @@ function Loaded({ injected }: { injected: ModelsSectionFace }): ReactNode {
         description={deleteTarget === undefined
           ? ''
           : providerCopy(
-            deleteTarget.credentialRef === undefined
+            deleteTarget.credentialRef === undefined && deleteTarget.credentialRefs.length === 0
               ? t('deleteDescription')
               : t('deleteDescriptionWithCredential'),
             deleteTarget,

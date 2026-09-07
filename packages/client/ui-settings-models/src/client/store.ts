@@ -40,6 +40,8 @@ export interface ProviderRow {
   apiKeyEnv: string | undefined
   /** Credential state for {@link apiKeyEnv}, once described. */
   credential: CredentialView | undefined
+  /** Fallback references joined with their write-only credential state. */
+  fallbackCredentials: Readonly<Record<string, CredentialView | undefined>>
 }
 
 /** Page snapshot. */
@@ -142,6 +144,17 @@ function apiKeyEnvOf(
   return typeof ref === 'string' && ref.length > 0 ? ref : undefined
 }
 
+/**
+ * Read ordered fallback references from a described profile.
+ * @param profile - effective settings subtree.
+ * @returns distinct named fallback credentials.
+ */
+export function fallbackKeyRefs(profile: unknown): string[] {
+  if (typeof profile !== 'object' || profile === null) return []
+  const refs = (profile as { apiKeyFallbackEnvs?: unknown }).apiKeyFallbackEnvs
+  return Array.isArray(refs) ? [...new Set(refs.filter((ref): ref is string => typeof ref === 'string' && ref.length > 0))] : []
+}
+
 /** The models settings page controller (one per settings surface). */
 export class ModelsSettingsStore {
   /** The snapshot the section renders from (uSES-safe store). */
@@ -205,7 +218,7 @@ export class ModelsSettingsStore {
     }
     const namespaces = new Map(views.map(view => [view.ns, view]))
     const officialDeepSeekDeclined = officialDeepSeekDeclinedOf(namespaces, this.schema)
-    const rows: ProviderRow[] = providers.map((entry) => {
+    const rows = providers.map((entry) => {
       const namespace = namespaces.get(entry.settingsNs)
       const pathConfigured = namespace !== undefined
         && (entry.settingsPath.length === 0 || this.schema.getPath(namespace.value, entry.settingsPath) !== undefined)
@@ -223,9 +236,13 @@ export class ModelsSettingsStore {
         removable,
         apiKeyEnv: apiKeyEnvOf(namespace, entry.settingsPath, this.schema),
         credential: undefined,
+        fallbackCredentials: Object.fromEntries(
+          fallbackKeyRefs(this.schema.getPath(namespace?.value, entry.settingsPath)).map(ref => [ref, undefined])),
       }
     })
-    const refs = [...new Set(rows.flatMap(row => row.apiKeyEnv === undefined ? [] : [row.apiKeyEnv]))]
+    const refs = [...new Set(rows.flatMap(row => [
+      ...row.apiKeyEnv === undefined ? [] : [row.apiKeyEnv], ...Object.keys(row.fallbackCredentials),
+    ]))]
     let credentials: Record<string, CredentialView> = {}
     let credentialError: string | null = null
     if (refs.length > 0) {
@@ -248,6 +265,7 @@ export class ModelsSettingsStore {
       s.writable = writable
       s.rows = rows.map(row => ({
         ...row,
+        fallbackCredentials: Object.fromEntries(Object.keys(row.fallbackCredentials).map(ref => [ref, credentials[ref]])),
         ...row.apiKeyEnv !== undefined && credentials[row.apiKeyEnv] !== undefined
           ? { credential: credentials[row.apiKeyEnv] }
           : {},
@@ -270,8 +288,8 @@ export class ModelsSettingsStore {
  */
 export function providerUsable(row: ProviderRow): boolean {
   if (!row.entry.active) return false
-  if (row.apiKeyEnv === undefined) return true
-  return row.credential?.configured === true
+  if (row.apiKeyEnv === undefined && Object.keys(row.fallbackCredentials).length === 0) return true
+  return row.credential?.configured === true || Object.values(row.fallbackCredentials).some(state => state?.configured === true)
 }
 
 /** First-run navigation readiness derived from the shared Models join. */

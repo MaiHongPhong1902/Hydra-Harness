@@ -8,7 +8,7 @@
  * @module hydra-llm-deepseek/adapter
  */
 
-import { attributionHeaders, contentHasImage, CONTEXT_WINDOW_EXCEEDED_CODE, isContextWindowExceededError, isQuotaExceededError, LlmAdapter, LlmError, ProviderRequestId, QUOTA_EXCEEDED_CODE, ReasoningEffortId } from '@hydra/harness-llm'
+import { streamWithApiKeys, attributionHeaders, contentHasImage, CONTEXT_WINDOW_EXCEEDED_CODE, isContextWindowExceededError, isQuotaExceededError, LlmAdapter, LlmError, ProviderRequestId, QUOTA_EXCEEDED_CODE, ReasoningEffortId } from '@hydra/harness-llm'
 import { fetchWithHttpProxy } from '@hydra/harness-llm/proxy'
 import type {
   GenerateOptions,
@@ -63,6 +63,8 @@ export interface DeepSeekConnectionOptions {
    * only this name — a literal key is not a configuration value.
    */
   apiKeyEnv: CredentialRef
+  /** Ordered fallback credential references from the same connection snapshot. */
+  apiKeyFallbackEnvs: readonly CredentialRef[]
   /** Request defaults applied to every call (thinking mode, effort). */
   defaults: RequestDefaults
   /** Default per-request output cap; explicit request values win. */
@@ -235,6 +237,13 @@ export class DeepSeekAdapter extends LlmAdapter {
     // The key resolves *from this snapshot*, so an endpoint and the secret
     // sent to it can never come from different configuration generations.
     const connection = this.config.options()
+    const refs = [connection.apiKeyEnv, ...connection.apiKeyFallbackEnvs]
+    yield* streamWithApiKeys(options, refs.length, index => this.streamAttempt(options, {
+      ...connection, apiKeyEnv: refs[index] as CredentialRef,
+    }))
+  }
+
+  private async * streamAttempt(options: GenerateOptions, connection: DeepSeekConnectionOptions): AsyncIterable<StreamChunk> {
     const hasImages = options.messages.some(message => contentHasImage(message.content))
     let attachments: AttachmentStore | undefined
     if (hasImages) {

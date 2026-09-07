@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { Context } from '@hydra/cordis'
 import type { Fiber } from '@hydra/cordis'
-import LlmRuntime, { createUserMessage, CallId, EMPTY_RESPONSE_CODE, LlmAdapter, LlmError, resolveRetryPolicy  } from '@hydra/harness-llm'
+import LlmRuntime, { streamWithApiKeys, markAgentLoopRequest, createUserMessage, CallId, EMPTY_RESPONSE_CODE, LlmAdapter, LlmError, resolveRetryPolicy  } from '@hydra/harness-llm'
 import type {
   AlwaysRetryPolicyConfig,
   BackoffConfig,
@@ -29,6 +29,8 @@ it('keeps the browser-safe retry payload identical to the session event', () => 
 
 class ScriptedAdapter extends LlmAdapter {
   readonly requests: GenerateOptions[] = []
+  readonly keyPositions: number[] = []
+  keyCount = 1
   private retryPolicies: Readonly<Record<string, ResolvedRetryPolicy | undefined>> = {}
 
   constructor(private readonly entries: ScriptEntry[]) {
@@ -36,6 +38,11 @@ class ScriptedAdapter extends LlmAdapter {
   }
 
   async * stream(options: GenerateOptions): AsyncIterable<StreamChunk> {
+    yield* streamWithApiKeys(options, this.keyCount, index => this.attempt(options, index))
+  }
+
+  private async * attempt(options: GenerateOptions, index: number): AsyncIterable<StreamChunk> {
+    this.keyPositions.push(index)
     this.requests.push(options)
     const entry = this.entries.shift()
     if (entry === undefined) throw new Error('retry test script exhausted')
@@ -1035,4 +1042,100 @@ describe('provider-routed retry policy', () => {
       retry.apply(new Context(), { retryPolciy: {} } as unknown as retry.Config)
     }).toThrow(/unknown key "retryPolciy"/)
   })
+})
+
+describe('ordered API key fallback', () => {
+  it('keeps partial streaming, discards failed tools, and advances keys even when normal retries are disabled', async () => {
+    const adapter = new ScriptedAdapter([
+      partialToolFailure(new LlmError('key refused', 'AUTH')),
+      textResponse('recovered'),
+    ])
+    adapter.keyCount = 2
+    ;({ ctx: context } = await harness(adapter, { mock: normalConfig({ maxRetries: 0 }) }))
+    const execute = vi.fn(async () => [{ type: 'text' as const, text: 'unexpected' }])
+    context.tools.register(defineContentToolFixture({ name: 'danger', description: 'side effect', parameters: {}, execute }))
+    const agent = context.agentLoop.create(SessionId('keys-partial'), { provider: 'mock', model: 'mock' })
+    agent.followup(createUserMessage({ content: [{ type: 'text', text: 'go' }], source: { kind: 'user' } }))
+    await agent.whenIdle()
+    expect(adapter.keyPositions).toEqual([0, 1])
+    expect(execute).not.toHaveBeenCalled()
+    expect(agent.session.events.some(event => event.type === 'assistant/chunk'
+      && event.data.chunk.type === 'text-delta' && event.data.chunk.text === 'discarded partial output')).toBe(true)
+    expect(agent.session.deriveMessages().at(-1)?.content).toEqual([{ type: 'text', text: 'recovered' }])
+    expect(agent.session.events.filter(event => event.type === 'llm/retry').map(event => event.data))
+      .toEqual([expect.objectContaining({ policyKey: 'api-key-fallback:2', retry: 1, maxRetries: 1, delayMs: 0 })])
+  })
+
+  it('stops after the last key rejects authentication', async () => {
+    const adapter = new ScriptedAdapter([new LlmError('first', 'AUTH'), new LlmError('last', 'AUTH')])
+    adapter.keyCount = 2
+    ;({ ctx: context } = await harness(adapter))
+    const agent = context.agentLoop.create(SessionId('keys-exhausted'), { provider: 'mock', model: 'mock' })
+    agent.followup(createUserMessage({ content: [{ type: 'text', text: 'go' }], source: { kind: 'user' } }))
+    await agent.whenIdle()
+    expect(adapter.keyPositions).toEqual([0, 1])
+    expect(agent.session.events.at(-1)).toMatchObject({ type: 'turn/end', data: { reason: { kind: 'error', error: { code: 'AUTH' } } } })
+  })
+})
+
+it('cancels before a fallback key is dispatched', async () => {
+  const adapter = new ScriptedAdapter([new LlmError('first key failed', 'AUTH'), textResponse('must not run')])
+  adapter.keyCount = 2
+  ;({ ctx: context } = await harness(adapter))
+  const agent = context.agentLoop.create(SessionId('keys-stop'), { provider: 'mock', model: 'mock' })
+  context.on('session/event', (session, event) => {
+    if (session === agent.session && event.type === 'llm/retry') agent.cancel({ kind: 'user' })
+  })
+  agent.followup(createUserMessage({ content: [{ type: 'text', text: 'go' }], source: { kind: 'user' } }))
+  await agent.whenIdle()
+  expect(adapter.keyPositions).toEqual([0])
+  expect(agent.session.events.filter(event => event.type === 'llm/retry-started')).toHaveLength(0)
+})
+
+it('isolates key positions between simultaneous agents and resets them for the next turn', async () => {
+  const adapter = new ScriptedAdapter([])
+  const seen = new Map<string, number[]>()
+  adapter.stream = options => streamWithApiKeys(options, 2, async function* (index) {
+    const id = String(options.sessionId)
+    const positions = seen.get(id) ?? []
+    positions.push(index)
+    seen.set(id, positions)
+    await Promise.resolve()
+    if (index === 0) throw new LlmError('first key failed', 'AUTH')
+    yield* textResponse('done')
+  })
+  ;({ ctx: context } = await harness(adapter))
+  const agents = ['keys-a', 'keys-b'].map(id => context!.agentLoop.create(SessionId(id), { provider: 'mock', model: 'mock' }))
+  const message = () => createUserMessage({ content: [{ type: 'text', text: 'go' }], source: { kind: 'user' } })
+  for (const agent of agents) agent.followup(message())
+  await Promise.all(agents.map(agent => agent.whenIdle()))
+  expect([...seen.values()]).toEqual([[0, 1], [0, 1]])
+  agents[0]!.followup(message())
+  await agents[0]!.whenIdle()
+  expect(seen.get('keys-a')).toEqual([0, 1, 0, 1])
+})
+
+it('records each fallback in one finite chain and does not retry aborted failures', async () => {
+  const adapter = new ScriptedAdapter([new LlmError('one', 'AUTH'), new LlmError('two', 'AUTH'),
+    [{ type: 'finish', reason: { kind: 'error', failure: { code: 'ABORTED', message: 'stopped' } } }]])
+  adapter.keyCount = 4
+  ;({ ctx: context } = await harness(adapter))
+  const agent = context.agentLoop.create(SessionId('keys-chain'), { provider: 'mock', model: 'mock' })
+  agent.followup(createUserMessage({ content: [{ type: 'text', text: 'go' }], source: { kind: 'user' } }))
+  await agent.whenIdle()
+  expect(adapter.keyPositions).toEqual([0, 1, 2])
+  const events = agent.session.events.filter(event => event.type === 'llm/retry')
+  expect(events.map(event => event.data.retry)).toEqual([1, 2])
+  expect(events[0]?.data.retryId).toBe(events[1]?.data.retryId)
+})
+
+it('closes direct consumers and supports a marked request without an initiating agent', async () => {
+  const adapter = new ScriptedAdapter([textResponse('direct'), textResponse('marked')])
+  ;({ ctx: context } = await harness(adapter))
+  const direct = context.llm.stream({ provider: 'mock', model: 'mock', messages: [] })[Symbol.asyncIterator]()
+  expect((await direct.next()).done).toBe(false)
+  await direct.return?.()
+  const chunks: StreamChunk[] = []
+  for await (const chunk of context.llm.stream(markAgentLoopRequest({ provider: 'mock', model: 'mock', messages: [] }))) chunks.push(chunk)
+  expect(chunks).toEqual(textResponse('marked'))
 })

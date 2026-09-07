@@ -312,7 +312,7 @@ describe('headless stream-json snapshots', () => {
     await expect(result.stderr).toMatchFileSnapshot(startupFailureExpected)
   }, LOADER_SMOKE_TEST_TIMEOUT_MS)
 
-  it('retries a transient provider failure through the one-shot app', async () => {
+  it('falls back to the next key and retries a transient provider failure through the one-shot app', async () => {
     const prompt = await scenarioPrompt(retryScenarioDir, 'provider-retry')
     const streamExpected = join(retryScenarioDir, 'stream-json.expected.jsonl')
     let runCwd = ''
@@ -334,8 +334,12 @@ describe('headless stream-json snapshots', () => {
         expect(logs).toHaveLength(1)
         const records = parseJsonl(logs[0]?.content ?? '')
         const retries = records.filter(record => record.type === 'llm/retry')
-        expect(retries).toHaveLength(1)
+        expect(retries).toHaveLength(2)
         expect(retries[0]?.data).toMatchObject({
+          policyKey: 'api-key-fallback:2', retry: 1, maxRetries: 1, delayMs: 0,
+          failure: { message: 'snapshot key refused', code: 'AUTH', status: 401 },
+        })
+        expect(retries[1]?.data).toMatchObject({
           provider: 'deepseek-official',
           mode: 'normal',
           policyKey: '["normal",1,["RATE_LIMIT"],1,1,0]',

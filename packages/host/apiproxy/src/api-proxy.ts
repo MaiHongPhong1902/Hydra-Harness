@@ -1089,7 +1089,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
     const { provider, model } = defaults.defaultModelSelection()
     return { provider, model }
   }
-  type WebModelSelectionRef = ModelSelectionRef & { current: ModelSelection }
+  type WebModelSelectionRef = ModelSelectionRef & { current: ModelSelection; readonly explicit: boolean }
   const selections = new WeakMap<Agent, WebModelSelectionRef>()
   /**
    * Serializes `agentPreset.select` per session. Two concurrent selects both
@@ -1132,6 +1132,9 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
     if (installed !== undefined) return installed
     let picked: ModelSelection | undefined
     const selection: WebModelSelectionRef = {
+      get explicit(): boolean {
+        return picked !== undefined || agent.session.requestHeader() !== undefined
+      },
       get current(): ModelSelection {
         if (picked !== undefined) return picked
         // Incrementally folded by the session, so a per-step read costs
@@ -1814,6 +1817,17 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
     return llm === undefined || llm.listProviders().some(entry => entry.id === provider)
   }
 
+  /** Implicit defaults must be visible; explicit and logged choices retain advisory routing. */
+  async function selectionRoutable(agent: Agent, groups?: ModelProviderGroup[]): Promise<boolean> {
+    const selection = selectionFor(agent)
+    const current = selection.current
+    if (!routeServed(current.provider)) return false
+    if (selection.explicit || ctx.get('llm') === undefined) return true
+    const catalog = groups ?? (await buildModelCatalog(ctx)).groups
+    return catalog.some(group => group.id === current.provider
+      && group.models.some(model => model.id === current.model))
+  }
+
   /**
    * Resolve the addressed agent for a turn-starting method and refuse when no
    * adapter serves its current selection: a provider nothing serves cannot start a
@@ -1830,11 +1844,11 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
     if ('error' in found) return { refused: err(request, found.error) }
     const agent = found.agent
     const selection = selectionFor(agent).current
-    if (!routeServed(selection.provider)) {
+    if (!await selectionRoutable(agent)) {
       return {
         refused: err(request, {
           code: 'model-unavailable',
-          message: `no adapter serves provider "${selection.provider}"; select a model for this session`,
+          message: 'Select a model before sending a message.',
           details: { provider: selection.provider, model: selection.model },
         }),
       }
@@ -2077,7 +2091,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
       const resolved = await agentFor(source.id)
       if ('error' in resolved) throw new Error(resolved.error.message)
       const selection = selectionFor(resolved.agent).current
-      if (!routeServed(selection.provider)) throw new Error(`No adapter serves provider "${selection.provider}".`)
+      if (!await selectionRoutable(resolved.agent)) throw new Error('Select a model before sending a message.')
       if (images) {
         const info = await ctx.llm.resolveModelInfo(selection.provider, selection.model)
         if (info.inputModalities !== undefined && !info.inputModalities.includes('image')) {
@@ -2346,7 +2360,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
         if ('error' in found) return err(request, found.error)
         const current = selectionFor(found.agent).current
         const { groups, failures } = await buildModelCatalog(ctx)
-        const routable = routeServed(current.provider)
+        const routable = await selectionRoutable(found.agent, groups)
         return ok(request, { current: { ...current }, routable, groups, failures })
       },
 

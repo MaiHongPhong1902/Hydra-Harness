@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import Schema from '@hydra/schemastery'
 import { bindSnapshotSelector } from '@hydra/harness-client-test-runtime'
 import type { RpcResponse, SettingsNamespaceView } from '@hydra/harness-api-remotes/client'
+import { ModelListEditor } from '../src/client/ModelListEditor.tsx'
 import { ModelsSection, providerCopy } from '../src/client/ModelsSection.tsx'
 import type { ModelsSectionInjected, ModelsSectionProps } from '../src/client/ModelsSection.tsx'
 import { CustomProviderCard } from '../src/client/CustomProviderCard.tsx'
@@ -25,6 +26,7 @@ const PiAiConfig = Schema.object({
   providers: Schema.dict(Schema.object({
     apiKey: Schema.string().role('secret'),
     apiKeyEnv: Schema.string().role('credential-ref'),
+    apiKeyFallbackEnvs: Schema.array(Schema.string().role('credential-ref')),
     displayName: Schema.string(),
     api: Schema.union(PROTOCOLS),
     baseURL: Schema.string(),
@@ -1423,4 +1425,150 @@ describe('API key field', () => {
     await waitFor(() => { expect(load).toHaveBeenCalledOnce() })
     expect(screen.queryByText(en.customTitle)).toBeNull()
   })
+})
+
+describe('ordered fallback credential editing', () => {
+  it('saves references separately and retries only the unacknowledged key', async () => {
+    const set = vi.fn()
+      .mockResolvedValueOnce(ok({}))
+      .mockResolvedValueOnce(fail('store unavailable', 'write-failed'))
+      .mockResolvedValueOnce(ok({}))
+    const mutate = vi.fn<(payload: MutateCall) => Promise<RpcResponse<SettingsNamespaceView>>>()
+    const { namespace } = await mountSection({ set, mutate })
+    mutate.mockImplementation((payload: MutateCall) => {
+      let user = namespace.user as Record<string, unknown>
+      for (const op of payload.ops) user = settingsSchema.setPath(user, op.path, op.value)
+      return Promise.resolve(ok({ ...namespace, user, revision: namespace.revision + 1 }))
+    })
+    openEditor('openai')
+    fireEvent.click(screen.getByText(en.addKey))
+    fireEvent.change(screen.getByLabelText(`${en.fallbackKey} 1`), { target: { value: 'first-fallback-secret' } })
+    fireEvent.click(screen.getByText(en.addKey))
+    fireEvent.change(screen.getByLabelText(`${en.fallbackKey} 2`), { target: { value: 'second-fallback-secret' } })
+    fireEvent.click(screen.getByText(en.apply))
+    await screen.findByText('store unavailable')
+    expect(set).toHaveBeenCalledTimes(2)
+    expect(screen.getByLabelText<HTMLInputElement>(`${en.fallbackKey} 1`).value).toBe('')
+    expect(screen.getByLabelText<HTMLInputElement>(`${en.fallbackKey} 2`).value).toBe('second-fallback-secret')
+    expect(JSON.stringify(mutate.mock.calls)).not.toContain('fallback-secret')
+    const refs = firstMutate(mutate).ops[0]?.value as string[]
+    expect(refs).toHaveLength(2)
+    expect(refs[0]).not.toBe(refs[1])
+    fireEvent.click(screen.getByText(en.apply))
+    await waitFor(() => { expect(screen.queryByText(en.apply)).toBeNull() })
+    expect(mutate).toHaveBeenCalledTimes(1)
+    expect(set.mock.calls.map(call => call[0] as unknown)).toEqual([
+      { ref: refs[0], value: 'first-fallback-secret' },
+      { ref: refs[1], value: 'second-fallback-secret' },
+      { ref: refs[1], value: 'second-fallback-secret' },
+    ])
+  })
+
+  it('removes an externally named fallback from the profile while preserving its credential', async () => {
+    const { mutate, face } = await mountSection({ providers: { openai: { apiKeyEnv: 'OPENAI_API_KEY', apiKeyFallbackEnvs: ['SHARED_KEY'] } } })
+    openEditor('openai')
+    fireEvent.click(screen.getByLabelText(`${en.removeKey} 1`))
+    fireEvent.click(screen.getByText(en.apply))
+    await waitFor(() => { expect(screen.queryByText(en.apply)).toBeNull() })
+    expect(firstMutate(mutate).ops).toEqual([{ op: 'set', path: ['providers', 'openai', 'apiKeyFallbackEnvs'], value: [] }])
+    expect(face.credentials.unset).not.toHaveBeenCalled()
+  })
+})
+
+it('deletes a removed managed fallback after describing the remaining keys', async () => {
+  const ref = 'OPENAI_API_KEY_FALLBACK_12345678_1234_1234_1234_123456789ABC'
+  const { face } = await mountSection({ providers: { openai: { apiKeyEnv: 'OPENAI_API_KEY', apiKeyFallbackEnvs: [ref] } } })
+  face.credentials.unset.mockResolvedValue(ok({}))
+  openEditor('openai')
+  await waitFor(() => { expect(face.credentials.describe).toHaveBeenCalledWith({ refs: [ref] }) })
+  fireEvent.click(screen.getByLabelText(`${en.removeKey} 1`))
+  await waitFor(() => { expect(screen.queryByLabelText(`${en.fallbackKey} 1`)).toBeNull() })
+  fireEvent.click(screen.getByText(en.apply))
+  await waitFor(() => { expect(screen.queryByText(en.apply)).toBeNull() })
+  expect(face.credentials.unset).toHaveBeenCalledWith({ ref })
+})
+
+it('tries unsaved fallback keys when fetching models', async () => {
+  const discover = vi.fn()
+    .mockResolvedValueOnce(fail('first key rejected', 'model-discovery-failed'))
+    .mockResolvedValueOnce(ok({ models: [{ id: 'working' }] }))
+  await mountSection({ discover })
+  openEditor('openai')
+  fireEvent.click(screen.getByText(en.addKey))
+  fireEvent.change(screen.getByLabelText(`${en.fallbackKey} 1`), { target: { value: 'probe-fallback' } })
+  fireEvent.click(screen.getByText(en.fetchModels))
+  await screen.findByText(en.fetchTitle)
+  expect(discover).toHaveBeenCalledTimes(2)
+  expect(discover.mock.calls[1]?.[0]).toMatchObject({ apiKey: 'probe-fallback' })
+})
+
+it('creates a custom provider with fallback keys and stops probing after success', async () => {
+  const { face, mutate, set, discover } = scriptedFace({ discover: vi.fn(() => Promise.resolve(ok({ models: [{ id: 'found' }] }))) })
+  const onClose = vi.fn()
+  render(<CustomProviderCard taken={[]} protocols={PROTOCOLS} revision={3} api={face as never} t={t} readOnly={false} onClose={onClose} />)
+  fireEvent.change(screen.getByLabelText(en.customRoute), { target: { value: 'custom' } })
+  fireEvent.change(screen.getByLabelText(en.baseUrl), { target: { value: 'https://gateway.test' } })
+  fireEvent.click(screen.getByText(en.addKey))
+  fireEvent.change(screen.getByLabelText(`${en.fallbackKey} 1`), { target: { value: 'custom-fallback' } })
+  fireEvent.click(screen.getByText(en.fetchModels))
+  await screen.findByText(en.fetchTitle)
+  expect(discover).toHaveBeenCalledTimes(1)
+  fireEvent.click(screen.getByText(en.fetchAdopt))
+  fireEvent.click(screen.getByText(en.create))
+  await waitFor(() => { expect(onClose).toHaveBeenCalledWith(true) })
+  const profile = firstMutate(mutate).ops[0]?.value as { apiKeyFallbackEnvs: string[] }
+  expect(profile.apiKeyFallbackEnvs).toHaveLength(1)
+  expect(set).toHaveBeenCalledWith({ ref: profile.apiKeyFallbackEnvs[0], value: 'custom-fallback' })
+})
+
+it('removes a provider and all its writable managed fallback credentials', async () => {
+  const ref = 'OPENAI_API_KEY_FALLBACK_12345678_1234_1234_1234_123456789ABC'
+  const scripted = scriptedFace({ providers: { openai: { apiKeyFallbackEnvs: [ref, 'SHARED_KEY'] } } })
+  scripted.face.credentials.describe.mockImplementation(({ refs }) => Promise.resolve(ok({
+    credentials: Object.fromEntries(refs.map(ref => [ref, { configured: true, writable: true }])),
+  })))
+  scripted.face.credentials.unset.mockResolvedValue(ok({}))
+  const controller = new ModelsSettingsStore(scripted.face as never, settingsSchema, new SettingsDescribeMirror(scripted.face as never))
+  await controller.load()
+  render(<ModelsSection controller={controller} useSnapshot={bindSnapshotSelector(controller.store)}
+    api={scripted.face as never} schema={settingsSchema} t={t} />)
+  expect(screen.getByRole('img', { name: en.credentialConfigured })).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: 'Delete openai' }))
+  expect(screen.getByText(en.deleteDescriptionWithCredential.replace('{provider}', 'openai'))).toBeTruthy()
+  fireEvent.click(screen.getAllByRole('button', { name: 'Delete openai' }).at(-1)!)
+  await waitFor(() => { expect(scripted.face.credentials.unset).toHaveBeenCalledWith({ ref }) })
+  expect(scripted.face.credentials.unset).toHaveBeenCalledTimes(1)
+})
+
+it('fetches a model list without extra probe keys', async () => {
+  const { face, discover } = scriptedFace({ discover: vi.fn(() => Promise.resolve(ok({ models: [{ id: 'found' }] }))) })
+  render(<ModelListEditor models={[]} onChange={() => undefined} probe={{ settingsNs: 'llm-pi-ai', baseURL: 'https://test.example' }}
+    api={face as never} t={t} disabled={false} />)
+  fireEvent.click(screen.getByText(en.fetchModels))
+  await screen.findByText(en.fetchTitle)
+  expect(discover).toHaveBeenCalledTimes(1)
+})
+
+it('keeps fallback-only creation retryable without adding an unreferenced primary', async () => {
+  await mountSection({ providers: { openai: { apiKeyFallbackEnvs: ['MISSING'] } } })
+  expect(screen.getByRole('img', { name: en.credentialMissing })).toBeTruthy()
+  cleanup()
+  const scripted = scriptedFace({
+    set: vi.fn().mockResolvedValueOnce(fail('key write failed', 'write-failed')).mockResolvedValueOnce(ok({})),
+  })
+  const onClose = vi.fn()
+  render(<CustomProviderCard taken={[]} protocols={PROTOCOLS} revision={3}
+    api={scripted.face as never} t={t} readOnly={false} onClose={onClose} />)
+  fireEvent.change(screen.getByLabelText(en.customRoute), { target: { value: 'custom' } })
+  fireEvent.change(screen.getByLabelText(en.baseUrl), { target: { value: 'https://gateway.test' } })
+  fireEvent.click(screen.getByText(en.addKey))
+  fireEvent.change(screen.getByLabelText(`${en.fallbackKey} 1`), { target: { value: 'custom-fallback' } })
+  fireEvent.click(screen.getByRole('button', { name: en.addModel }))
+  fireEvent.change(screen.getByLabelText(`${en.modelId} 1`), { target: { value: 'model' } })
+  fireEvent.click(screen.getByText(en.create))
+  await screen.findByText('key write failed')
+  expect(screen.getByLabelText<HTMLInputElement>(en.keyInput).disabled).toBe(true)
+  fireEvent.click(screen.getByText(en.create))
+  await waitFor(() => { expect(onClose).toHaveBeenCalledWith(true) })
+  expect(scripted.mutate).toHaveBeenCalledTimes(1)
 })

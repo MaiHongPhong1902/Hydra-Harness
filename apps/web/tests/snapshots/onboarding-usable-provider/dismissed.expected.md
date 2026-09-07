@@ -71,6 +71,8 @@
   - text: API key
   - textbox "API key":
     - /placeholder: Enter an API key, or leave blank to use environment authentication
+  - button "Add API key"
+  - paragraph: Keys are tried in order. If a request fails, the next key retries it. Stop cancels all retries.
   - group: Customized settings
   - button "Cancel"
   - button "Apply"

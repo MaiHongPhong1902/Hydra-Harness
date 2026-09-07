@@ -1,24 +1,7 @@
 /**
- * One provider's editor card, hand-written per adapter family: the primary
- * field is a single write-only **API key** input (the page never asks for an
- * environment-variable name — a typed key stores through `credentials.set`
- * under the profile's reference, deriving `<ROUTE>_API_KEY` when the profile
- * has none. The pi-ai profile records that derivation as `apiKeyEnv` only when
- * a key is entered; a blank key materializes a reference-free profile for
- * provider-native authentication);
- * the collapsed custom settings area carries the per-family extras (`baseURL` for
- * both families, DeepSeek's id/name/context-window model catalog, and the
- * display name and wire protocol of a pi-ai route the adapter does not ship —
- * the two fields the create card asked that route for, editable here for the
- * same reason).
- * Reasoning effort is deliberately absent: it is a per-MODEL capability, and
- * the models under one provider disagree about it, so a provider-scoped
- * control can only be set to a value some of them reject. The composer's
- * model picker offers each model its own levels; `settings.yaml` keeps the
- * profile field for a deployment that knows its route. Everything else stays
- * owned by `settings.yaml`. Profile edits land as minimal `settings.mutate`
- * path ops against the stored section — the card names only the fields it can
- * see instead of rebuilding the whole subtree from a partial descriptor.
+ * Provider configuration with write-only primary and ordered fallback keys.
+ * Settings use revision-checked path operations; credential writes are separately
+ * acknowledged and can be retried after the settings save succeeds.
  */
 
 import { useEffect, useMemo, useState } from 'react'
@@ -27,6 +10,7 @@ import type { CredentialView, IApiClient, SettingsNamespaceView, SettingsPathOpV
 import {
   DeepSeekModelsEditor, modelDrafts, validateDeepSeekModels,
 } from './DeepSeekModelsEditor.tsx'
+import { FallbackKeysEditor, useFallbackKeys } from './FallbackKeysEditor.tsx'
 import { apiKeyFailure } from './apiKey.ts'
 import { EditorFooter } from './EditorFooter.tsx'
 import { ModelListEditor } from './ModelListEditor.tsx'
@@ -156,6 +140,7 @@ export function ProviderEditor(props: ProviderEditorProps): ReactNode {
   const root = useMemo(() => schema.rehydrate(namespace.schema), [namespace.schema, schema])
   const node = useMemo(() => schema.nodeAtPath(root, settingsPath), [root, schema, settingsPath])
   const fallback = schema.getPath(namespace.value, settingsPath)
+  const fallbackKeys = useFallbackKeys(fallback, props.provider, api)
   const disabled = props.readOnly || busy
   const layout = layoutOf(namespace.ns)
   const keyRef = refFor(schema, namespace, settingsPath, props.provider)
@@ -208,7 +193,7 @@ export function ProviderEditor(props: ProviderEditorProps): ReactNode {
   // The model list is validated by the same per-row checker for both families,
   // so a bad row is named by its position rather than by a blanket message.
   const modelFailure = validateDeepSeekModels(schema.getPath(draft, ['models']))
-  const keyFailure = apiKeyFailure(keyDraft)
+  const keyFailure = apiKeyFailure(keyDraft) ?? fallbackKeys.failure
   // What a probe or a write must carry: the typed key with paste whitespace
   // removed. A blank field yields an empty string, which both call sites read
   // as "no key supplied" rather than as a key — that is how a card whose
@@ -239,10 +224,12 @@ export function ProviderEditor(props: ProviderEditorProps): ReactNode {
     const ns = namespace.ns
     // A pi-ai profile names the conventional reference only when this page is
     // about to store a key. Otherwise the provider keeps its native auth path.
+    const keyedDraft = fallbackKeys.changed || schema.hasPath(draft, ['apiKeyFallbackEnvs'])
+      ? schema.setPath(draft, ['apiKeyFallbackEnvs'], fallbackKeys.refs) : draft
     const next = layout === 'pi-ai' && stringAt(draft, 'apiKeyEnv') === undefined
       && stringAt(fallback, 'apiKeyEnv') === undefined && keyValue.length > 0
-      ? schema.setPath(draft, ['apiKeyEnv'], keyRef)
-      : draft
+      ? schema.setPath(keyedDraft, ['apiKeyEnv'], keyRef)
+      : keyedDraft
     // The same checker gates the submit button, so a card cannot reach this
     // with a bad row; it stays because the schema check below would refuse
     // the write with a message naming a path instead of the row, and because
@@ -280,7 +267,7 @@ export function ProviderEditor(props: ProviderEditorProps): ReactNode {
       if (!stored.result.ok) return stored.result.error.message
     }
     setKeyDraft('')
-    return undefined
+    return fallbackKeys.save()
   }
 
   const apply = async (): Promise<void> => {
@@ -371,6 +358,7 @@ export function ProviderEditor(props: ProviderEditorProps): ReactNode {
           />
           {keyFailure === undefined ? null : <p className={styles['error']}>{t(keyFailure)}</p>}
         </div>
+        <FallbackKeysEditor keys={fallbackKeys} disabled={disabled} t={t} />
         <details className={styles['customized']}>
           <summary className={styles['customizedSummary']}>{t('customized')}</summary>
           <div className={styles['customizedBody']}>
@@ -469,7 +457,9 @@ export function ProviderEditor(props: ProviderEditorProps): ReactNode {
                   defaultMaxTokens={typeof defaultMaxTokens === 'number' ? defaultMaxTokens : undefined}
                 />
               )
-              : <ModelListEditor {...catalogProps} probe={probe} probeBlocked={keyFailure} api={api} />}
+              : <ModelListEditor {...catalogProps} probe={probe}
+                probeKeys={fallbackKeys.rows.map(row => row.value.trim()).filter(Boolean)}
+                probeBlocked={keyFailure} api={api} />}
           </div>
         </details>
       </>

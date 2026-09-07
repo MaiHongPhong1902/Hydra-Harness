@@ -32,6 +32,12 @@
       - text: DeepSeek deepseek-official API key
       - textbox "API key":
         - /placeholder: Configured — enter a new value to replace
+      - text: Fallback API key 1
+      - textbox "Fallback API key 1":
+        - /placeholder: Configured — enter a new value to replace
+      - button "Remove API key 1": Delete
+      - button "Add API key"
+      - paragraph: Keys are tried in order. If a request fails, the next key retries it. Stop cancels all retries.
       - group:
         - text: Customized settings Base URL
         - textbox "Base URL":

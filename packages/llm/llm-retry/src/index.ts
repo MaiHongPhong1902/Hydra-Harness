@@ -9,7 +9,8 @@ import { randomUUID } from 'node:crypto'
 import type { Context, Events } from '@hydra/cordis'
 import z from '@hydra/schemastery'
 import type { Agent, RequestErrorAction } from '@hydra/harness-agent'
-import type { LlmFailure, ResolvedRetryPolicy } from '@hydra/harness-llm'
+import { isAgentLoopRequest, withApiKeyAttempt } from '@hydra/harness-llm'
+import type { ApiKeyAttempt, GenerateOptions, LlmFailure, ResolvedRetryPolicy, StreamChunk } from '@hydra/harness-llm'
 import type { SessionEvent } from '@hydra/harness-session'
 import { RetryId } from './brand.ts'
 import type { LlmRetryEventData } from './types.ts'
@@ -101,6 +102,48 @@ export function apply(ctx: Context, config: Config = {}, internals: RetryInterna
   const random = internals.random ?? Math.random
   const lifetime = new AbortController()
   const active = new Set<Promise<RequestErrorAction>>()
+  const keyAttempts = new WeakMap<Agent, ApiKeyAttempt & {
+    stepSeq: number
+    provider: string
+    model: string
+    failure?: LlmFailure
+  }>()
+
+  ctx.on('llm/stream', (options: GenerateOptions, next: () => AsyncIterable<StreamChunk>) => {
+    const agent = isAgentLoopRequest(options) ? ctx.agents.currentInitiator() : undefined
+    const step = agent?.session.events.findLast(event => event.type === 'step/start')
+    let attempt = agent === undefined ? undefined : keyAttempts.get(agent)
+    if (agent !== undefined && step !== undefined) {
+      if (attempt?.stepSeq !== step.seq || attempt.provider !== options.provider || attempt.model !== options.model) {
+        attempt = { index: 0, count: 0, stepSeq: step.seq, provider: options.provider, model: options.model }
+        keyAttempts.set(agent, attempt)
+      }
+      attempt.count = 0
+      delete attempt.failure
+    }
+    return streamAttempt(attempt, next)
+  })
+
+  async function* streamAttempt(
+    attempt: (ApiKeyAttempt & { failure?: LlmFailure }) | undefined,
+    next: () => AsyncIterable<StreamChunk>,
+  ): AsyncGenerator<StreamChunk> {
+    const iterator = withApiKeyAttempt(attempt, () => next()[Symbol.asyncIterator]())
+    let done = false
+    try {
+      while (true) {
+        const result = await withApiKeyAttempt(attempt, () => iterator.next())
+        if (result.done) { done = true; return }
+        const chunk = result.value
+        if (attempt !== undefined && chunk.type === 'finish' && chunk.reason.kind === 'error') {
+          attempt.failure = chunk.reason.failure
+        }
+        yield chunk
+      }
+    } finally {
+      if (!done) await withApiKeyAttempt(attempt, () => iterator.return?.())
+    }
+  }
 
   function track(operation: Promise<RequestErrorAction>): Promise<RequestErrorAction> {
     const tracked = operation.finally(() => active.delete(tracked))
@@ -157,6 +200,22 @@ export function apply(ctx: Context, config: Config = {}, internals: RetryInterna
     { agent, turn, step, provider, failure, retryPolicy: policy, signal }: Parameters<Events['agent/request-error']>[0],
     next: () => Promise<RequestErrorAction>,
   ): Promise<RequestErrorAction> {
+    const attempt = keyAttempts.get(agent)
+    if (!signal.aborted && !lifetime.signal.aborted && failure.code !== 'ABORTED'
+      && attempt?.failure === failure && attempt.index + 1 < attempt.count) {
+      const fallbackPolicy: ResolvedRetryPolicy = {
+        mode: 'normal', maxRetries: attempt.count - 1, retryableCodes: [],
+        initialDelayMs: 0, maxDelayMs: 0, jitterRatio: 0,
+      }
+      const policyKey = `api-key-fallback:${attempt.count}`
+      const prior = agent.session.events.findLast((event): event is SessionEvent<'llm/retry'> =>
+        event.type === 'llm/retry' && event.data.turn === turn && event.data.step === step
+        && event.data.provider === provider && event.data.policyKey === policyKey)
+      const action = await backoff(agent, turn, step, failure, provider, fallbackPolicy, policyKey,
+        (prior?.data.retry ?? 0) + 1, prior?.data.retryId ?? RetryId(randomUUID()), 0, signal)
+      if (action?.kind === 'retry') attempt.index++
+      return action
+    }
     if (policy === undefined) return next()
     if (policy.mode === 'always') {
       if (signal.aborted || lifetime.signal.aborted) return

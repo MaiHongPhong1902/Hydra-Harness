@@ -4,9 +4,11 @@ Generic multi-provider adapter for the harness LLM seam backed by [`@earendil-wo
 
 The package root exposes the Cordis plugin contract, `PiAiAdapter`, and `supportedProtocols()`; profile resolution, catalog materialization, provider construction, replay conversion, and stream conversion remain package-internal.
 
+Profiles accept `apiKeyFallbackEnvs`, ordered credential references after `apiKeyEnv`. Keys stay in the credentials provider. Missing, malformed, rejected, or failed keys advance to the next choice; cancellation stops the sequence. With `llm-retry` mounted, conversation output streams normally and each failure retries through agent recovery. After the last key fails, ordinary retry policy applies to that key. Direct calls with multiple keys buffer each attempt to expose only one response; single-key calls keep streaming.
+
 ## Config
 
-Configure credentials, the model catalog, and deployment-specific transport settings per provider, keyed by the provider route itself. Each profile may set a `retryPolicy`; omission uses normal mode with five retries. `apiKeyEnv` is a credential *reference* resolved per request, so no secret enters this file. Omitting it leaves the route unauthenticated, which for an installed catalog route means pi-ai's provider-native ambient discovery; a configured reference that resolves to nothing fails the request with `MISSING_CREDENTIAL` instead, because falling through would authenticate with whatever unrelated key the environment happens to hold. One credential serves every model on its route.
+Configure credentials, the model catalog, and deployment-specific transport settings per provider, keyed by the provider route itself. Each profile may set a `retryPolicy`; omission uses normal mode with five retries. `apiKeyEnv` is a credential *reference* resolved per request, so no secret enters this file. Omitting both credential fields leaves the route unauthenticated, which for an installed catalog route means pi-ai's provider-native ambient discovery; a configured reference that resolves to nothing fails the request with `MISSING_CREDENTIAL` instead, because falling through would authenticate with whatever unrelated key the environment happens to hold. The ordered credentials serve every model on the route.
 
 ```yaml
 - id: llm

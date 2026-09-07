@@ -270,3 +270,27 @@ describe('request-level dynamic configuration', () => {
     expect(serverA.headers[0]?.authorization).toBe('Bearer steady-key')
   })
 })
+
+it('tries stored fallback keys in order after authentication and partial-stream failures', async () => {
+  vi.stubEnv('DEEPSEEK_API_KEY', '')
+  const dir = await home()
+  const server = await mockServer([
+    { kind: 'http-error', status: 401, body: '{"error":{"message":"invalid key"}}' },
+    { kind: 'close-early', events: ['{"choices":[{"delta":{"content":"discard me"}}]}'] },
+    { kind: 'sse', events: textEvents },
+  ])
+  const { ctx } = await boot(dir, { baseURL: server.url, apiKeyFallbackEnvs: ['KEY_TWO', 'KEY_THREE'] })
+  await ctx.credentials.set(KEY_REF, 'first-key')
+  await ctx.credentials.set(credentialRef('KEY_TWO'), 'second-key')
+  await ctx.credentials.set(credentialRef('KEY_THREE'), 'third-key')
+  const result = await prompt(ctx)
+  expect(server.headers.map(headers => headers.authorization)).toEqual(['Bearer first-key', 'Bearer second-key', 'Bearer third-key'])
+  expect(result.finish).toEqual({ kind: 'stop' })
+  expect(result.message.content).toEqual([{ type: 'text', text: 'hello' }])
+})
+
+it('deduplicates fallback references against the default primary and rejects invalid references', () => {
+  expect(LlmDeepSeek.resolveAdapterOptions({ apiKeyFallbackEnvs: ['DEEPSEEK_API_KEY', 'SECOND', 'SECOND'] }).apiKeyFallbackEnvs)
+    .toEqual(['SECOND'])
+  expect(() => LlmDeepSeek.resolveAdapterOptions({ apiKeyFallbackEnvs: ['not a reference'] })).toThrow()
+})

@@ -130,6 +130,38 @@ function registerTextOnly(ctx: Context): void {
 }
 
 describe('Web session model selection', () => {
+  it.each(['deepseek-official', 'empty', 'broken'])('requires a choice before prompting with an unlisted default on %s', async (provider) => {
+    const { ctx, agent, sessionId } = await harness()
+    const followup = vi.fn()
+    const steer = vi.fn()
+    Object.assign(agent, { followup, steer })
+    const api = createApiProxy(ctx, {
+      defaultModelSelection: () => ({ provider, model: 'removed-model' }),
+      cwd: '/tmp',
+    })
+    try {
+      expect(expectValue(await api.sessions.models(request({ sessionId }))).routable).toBe(false)
+      for (const mode of ['queue', 'steer'] as const) {
+        expect((await api.sessions.prompt(request({
+          sessionId, mode, content: [{ type: 'text', text: 'keep this draft' }],
+        }))).result).toMatchObject({
+          ok: false, error: { code: 'model-unavailable', message: 'Select a model before sending a message.' },
+        })
+      }
+      expect(followup).not.toHaveBeenCalled()
+      expect(steer).not.toHaveBeenCalled()
+      expect(agent.session.events).toHaveLength(0)
+      expectValue(await api.sessions.selectModel(request({ sessionId, provider, model: 'removed-model' })))
+      expect(expectValue(await api.sessions.models(request({ sessionId }))).routable).toBe(true)
+      expectValue(await api.sessions.prompt(request({
+        sessionId, mode: 'queue', content: [{ type: 'text', text: 'explicit choice' }],
+      })))
+      expect(followup).toHaveBeenCalledOnce()
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
   it('validates an ordered image batch before persisting any member', async () => {
     const { ctx, agent, sessionId } = await harness()
     const validateImage = vi.fn((_input: { data: Uint8Array }) => Promise.resolve())

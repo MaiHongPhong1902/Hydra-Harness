@@ -1,5 +1,7 @@
 # @hydra/harness-llm
 
+`streamWithApiKeys()` selects ordered credentials using request-local `ApiKeyAttempt` positions supplied through `withApiKeyAttempt()`. Agent recovery streams partial output and retries with fresh assembly. Outside that scope, multiple-key calls buffer one attempt at a time; single-key calls stream unchanged. The helper never receives credential values.
+
 Provider-neutral LLM vocabulary and abstract service. This package defines the canonical language spoken by the agent loop, session logs, and every plugin.
 
 ## Service: `LlmRuntime` (ctx key: `llm`)

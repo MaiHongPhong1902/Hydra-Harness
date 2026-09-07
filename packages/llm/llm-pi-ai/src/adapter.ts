@@ -26,6 +26,7 @@
  * @module hydra-llm-pi-ai/adapter
  */
 
+import { streamWithApiKeys } from '@hydra/harness-llm'
 import { createModels, getSupportedThinkingLevels } from '@earendil-works/pi-ai'
 import type {
   Api,
@@ -319,6 +320,17 @@ export class PiAiAdapter extends LlmAdapter {
     // the one it started with and the next call picks up the new one.
     const snapshot = this.current()
     const profile = this.profileOf(snapshot, options.provider)
+    const refs = [...profile.apiKeyEnv === undefined ? [] : [profile.apiKeyEnv], ...profile.apiKeyFallbackEnvs]
+    yield* streamWithApiKeys(options, Math.max(1, refs.length), index => this.streamAttempt(options, snapshot, {
+      ...profile, ...refs[index] === undefined ? {} : { apiKeyEnv: refs[index] },
+    }))
+  }
+
+  private async * streamAttempt(
+    options: GenerateOptions,
+    snapshot: PiAiSnapshot,
+    profile: ResolvedPiAiProviderProfile,
+  ): AsyncIterable<StreamChunk> {
     const model = this.modelOf(snapshot, options.provider, options.model)
     const reasoning = resolveReasoningLevel(
       model,

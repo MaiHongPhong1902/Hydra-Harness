@@ -85,6 +85,8 @@ export type {
 export interface PiAiProviderProfile {
   /** Credential reference (environment-variable name) resolved per request through `ctx.credentials`. */
   apiKeyEnv?: string
+  /** Ordered fallback credential references, tried after apiKeyEnv. */
+  apiKeyFallbackEnvs?: string[]
   /** Name shown by configuration surfaces; defaults to the route key. */
   displayName?: string
   /**
@@ -172,13 +174,15 @@ export interface PiAiProviderProfile {
 
 /** Validated profile with its route stamped and every adapter-owned default resolved. */
 export interface ResolvedPiAiProviderProfile
-  extends Omit<PiAiProviderProfile, 'apiKeyEnv' | 'retryPolicy' | 'models' | 'displayName'> {
+  extends Omit<PiAiProviderProfile, 'apiKeyEnv' | 'apiKeyFallbackEnvs' | 'retryPolicy' | 'models' | 'displayName'> {
   /** Harness route key and the `Models` collection key (the configuration dict key). */
   provider: string
   /** Resolved display name for selectors and configuration surfaces. */
   displayName: string
   /** Validated credential reference, when one is configured. */
   apiKeyEnv?: CredentialRef
+  /** Ordered validated fallback references. */
+  apiKeyFallbackEnvs: readonly CredentialRef[]
   /** Positive finite provider-idle interval after defaulting. */
   streamIdleTimeoutMs: number
   /** Positive request-level base64 image payload bound after defaulting. */
@@ -297,6 +301,7 @@ const modelOverride: z<PiAiModelOverride> = z.object(modelFields)
 
 const profile = z.object({
   apiKeyEnv: z.string().role('credential-ref'),
+  apiKeyFallbackEnvs: z.array(z.string().role('credential-ref')),
   displayName: z.string(),
   api: z.union(supportedProtocols()),
   baseURL: z.string(),
@@ -420,13 +425,15 @@ export function resolveProfiles(
       defaultContextWindow: source.defaultContextWindow ?? DEFAULT_CONTEXT_WINDOW,
       defaultMaxTokens: source.defaultMaxTokens ?? DEFAULT_MAX_TOKENS,
     })
-    const { apiKeyEnv, retryPolicy, models: _models, displayName: _displayName, proxy: _proxy, ...rest } = source
+    const { apiKeyEnv, apiKeyFallbackEnvs, retryPolicy, models: _models, displayName: _displayName, proxy: _proxy, ...rest } = source
     resolved.set(provider, {
       ...rest,
       provider,
       displayName,
       ...proxy === undefined ? {} : { proxy },
       ...apiKeyEnv === undefined ? {} : { apiKeyEnv: credentialRef(apiKeyEnv) },
+      apiKeyFallbackEnvs: [...new Set((apiKeyFallbackEnvs ?? []).map(credentialRef))]
+        .filter(ref => ref !== apiKeyEnv),
       streamIdleTimeoutMs,
       maxRequestImageBytes,
       retryPolicy: resolveRetryPolicy(retryPolicy, `llm-pi-ai: provider "${provider}" retryPolicy`),
@@ -439,7 +446,7 @@ export function resolveProfiles(
         ...source.api === undefined ? {} : { api: source.api },
         ...source.baseURL === undefined ? {} : { baseURL: source.baseURL },
         models: catalog.models,
-        namesCredential: apiKeyEnv !== undefined,
+        namesCredential: apiKeyEnv !== undefined || (apiKeyFallbackEnvs?.length ?? 0) > 0,
       }),
     })
   }

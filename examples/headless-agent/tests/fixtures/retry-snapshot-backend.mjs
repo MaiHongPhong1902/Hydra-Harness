@@ -4,6 +4,7 @@ import {
   LlmAdapter,
   LlmError,
   resolveRetryPolicy,
+  streamWithApiKeys,
 } from '@hydra/harness-llm'
 
 class RetrySnapshotAdapter extends LlmAdapter {
@@ -21,15 +22,24 @@ class RetrySnapshotAdapter extends LlmAdapter {
   }
 
   async * stream(options) {
+    yield* streamWithApiKeys(options, 2, index => this.attempt(options, index))
+  }
+
+  async * attempt(options, keyIndex) {
     const messages = JSON.stringify(options.messages)
     this.requests++
     if (this.requests === 1) {
       this.firstMessages = messages
-      throw new LlmError('snapshot transient failure', 'RATE_LIMIT', { status: 429 })
+      if (keyIndex !== 0) throw new Error('first request must use the first key')
+      yield { type: 'block-start', index: 0, blockType: 'text' }
+      yield { type: 'text-delta', index: 0, text: 'partial failed response' }
+      throw new LlmError('snapshot key refused', 'AUTH', { status: 401 })
     }
-    if (this.requests === 2 && messages !== this.firstMessages) {
+    if (messages !== this.firstMessages) {
       throw new Error('retry snapshot changed the model-visible messages')
     }
+    if (keyIndex !== 1) throw new Error('retry must keep the fallback key')
+    if (this.requests === 2) throw new LlmError('snapshot transient failure', 'RATE_LIMIT', { status: 429 })
     const text = 'RETRY_OK'
     yield { type: 'block-start', index: 0, blockType: 'text' }
     yield { type: 'text-delta', index: 0, text }

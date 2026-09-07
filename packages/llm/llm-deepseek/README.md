@@ -6,6 +6,8 @@ A second, library-backed implementation of the same seam exists in `@hydra/harne
 
 The package root exposes the Cordis plugin contract and `DeepSeekAdapter`; wire serialization, SSE parsing, and chunk translation helpers are not part of that root contract.
 
+Profiles accept `apiKeyFallbackEnvs`, ordered credential references after `apiKeyEnv`. Keys stay in the credentials provider. Missing, malformed, rejected, or failed keys advance to the next choice; cancellation stops the sequence. With `llm-retry` mounted, conversation output streams normally and each failure retries through agent recovery. After the last key fails, ordinary retry policy applies to that key. Direct calls with multiple keys buffer each attempt to expose only one response; single-key calls keep streaming.
+
 ## Config
 
 ```yaml

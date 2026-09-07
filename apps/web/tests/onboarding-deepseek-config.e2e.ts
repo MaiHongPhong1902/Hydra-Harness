@@ -19,6 +19,7 @@ const SNAPSHOT_DIR = fileURLToPath(new URL('./snapshots/onboarding-deepseek-conf
 const WELCOME_EXPECTED = join(SNAPSHOT_DIR, 'welcome.expected.md')
 const MISSING_EXPECTED = join(SNAPSHOT_DIR, 'missing.expected.md')
 const MODELS_EXPECTED = join(SNAPSHOT_DIR, 'models.expected.md')
+const KEYS_EXPECTED = join(SNAPSHOT_DIR, 'keys.expected.md')
 const MODE = webSnapshotMode()
 
 describe.skipIf(MODE === 'record')('web e2e: first-run provider configuration', () => {
@@ -102,6 +103,27 @@ describe.skipIf(MODE === 'record')('web e2e: first-run provider configuration', 
       () => configuredInput.getAttribute('placeholder'),
       { timeout: 10_000 },
     ).toBe('Configured — enter a new value to replace')
+
+    await settings.getByRole('button', { name: 'Add API key', exact: true }).click()
+    const fallbackInput = settings.getByLabel('Fallback API key 1', { exact: true })
+    const fallbackSecret = `hydra_fallback_${randomBytes(12).toString('hex')}`
+    await fallbackInput.fill(fallbackSecret)
+    await settings.getByRole('button', { name: 'Apply', exact: true }).click()
+    await fallbackInput.waitFor({ state: 'detached', timeout: 15_000 })
+    const savedKeys = await readFile(join(scaffold.harnessHome, '.credentials.yaml'), 'utf8')
+    const savedProfile = await readFile(join(scaffold.harnessHome, 'settings.yaml'), 'utf8')
+    expect(savedKeys).toContain(fallbackSecret)
+    expect(savedProfile).toContain('apiKeyFallbackEnvs:')
+    expect(savedProfile).not.toContain(fallbackSecret)
+    await settings.getByRole('button', { name: 'Edit DeepSeek (deepseek-official)', exact: true }).click()
+    await expect.poll(() => settings.getByLabel('Fallback API key 1').getAttribute('placeholder'))
+      .toBe('Configured — enter a new value to replace')
+    expect(await settings.getByLabel('Fallback API key 1').inputValue()).toBe('')
+    await compareOrRefreshGolden(KEYS_EXPECTED,
+      await captureStableAria(page, '[role="dialog"]', scaffold.workspaceCwd), MODE)
+    await page.screenshot({ path: '.hydra-build/provider-multiple-keys.png' })
+    expect((await page.content()).includes(fallbackSecret)).toBe(false)
+    expect(browserConsole.some(line => line.includes(fallbackSecret))).toBe(false)
 
     const secondReloadWarnings = tripwire.warnings.length
     await page.reload({ waitUntil: 'load' })
@@ -243,7 +265,7 @@ describe.skipIf(MODE === 'record')('web e2e: first-run provider configuration', 
   it('keeps the fixture inventory closed', async () => {
     await assertFixtureInventory(
       SNAPSHOT_DIR,
-      ['welcome.expected.md', 'missing.expected.md', 'models.expected.md'],
+      ['welcome.expected.md', 'keys.expected.md', 'missing.expected.md', 'models.expected.md'],
     )
   })
 })

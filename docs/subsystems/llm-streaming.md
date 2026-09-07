@@ -1,5 +1,7 @@
 # LLM Streaming
 
+Ordered API-key fallback uses `ApiKeyAttempt` (`index`, `count`) as process-local state, scoped by `withApiKeyAttempt()` and read by `streamWithApiKeys()`. The retry plugin owns positions per agent step and records retries through existing events. Settings carry `apiKeyFallbackEnvs` references; values never enter recovery state. See [llm-retry](../../packages/llm/llm-retry/README.md) for streaming and direct-call behavior.
+
 The conversation and streaming types from [`packages/llm`](../../packages/llm/README.md): the `Message`/`ContentBlock` variants every request and durable history share, the fully assembled model request, the raw `StreamChunk` protocol, the adapter contract every adapter must implement, and the shared assembler. The [core packages](core.md) hold and log these values on every turn; this page declares them.
 
 Source: [`packages/llm/llm/src/types.ts`](../../packages/llm/llm/src/types.ts)

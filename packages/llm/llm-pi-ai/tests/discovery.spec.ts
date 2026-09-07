@@ -374,3 +374,63 @@ describe('probe key format', () => {
     expect(headers.has('authorization')).toBe(false)
   })
 })
+
+it('tries configured fallback keys for discovery and keeps an explicit draft key isolated', async () => {
+  process.env['DISCOVERY_FIRST'] = 'first'
+  process.env['DISCOVERY_SECOND'] = 'second'
+  touchedEnv.push('DISCOVERY_FIRST', 'DISCOVERY_SECOND')
+  const ctx = new Context()
+  await ctx.plugin(LlmRuntime)
+  await ctx.plugin(LlmPiAi, { providers: { 'acme-gateway': {
+    api: 'openai-completions', baseURL: 'https://listing.test', models: [{ id: 'test' }],
+    apiKeyEnv: 'DISCOVERY_FIRST', apiKeyFallbackEnvs: ['DISCOVERY_SECOND'],
+  } } })
+  const sent: string[] = []
+  vi.stubGlobal('fetch', (_url: string, options: RequestInit) => {
+    const auth = new Headers(options.headers).get('authorization') ?? ''
+    sent.push(auth)
+    return Promise.resolve(auth === 'Bearer second'
+      ? new Response('{"data":[{"id":"found"}]}', { status: 200 })
+      : new Response('{}', { status: 401 }))
+  })
+  try {
+    await expect(ctx.llm.discoverModels('llm-pi-ai', { provider: 'acme-gateway', baseURL: 'https://listing.test' }))
+      .resolves.toEqual([{ id: 'found' }])
+    expect(sent).toEqual(['Bearer first', 'Bearer second'])
+    await expect(ctx.llm.discoverModels('llm-pi-ai', { provider: 'acme-gateway', baseURL: 'https://listing.test', apiKey: 'draft' }))
+      .rejects.toMatchObject({ code: 'DISCOVERY_FAILED' })
+    expect(sent).toEqual(['Bearer first', 'Bearer second', 'Bearer draft'])
+  } finally {
+    await ctx.fiber.dispose()
+  }
+})
+
+it('discovers models for fallback-only and native-auth profiles', async () => {
+  const server = await listingServer({ body: '{"data":[{"id":"found"}]}' })
+  process.env['ONLY_FALLBACK'] = 'only-key'
+  touchedEnv.push('ONLY_FALLBACK')
+  const ctx = new Context()
+  await ctx.plugin(LlmRuntime)
+  await ctx.plugin(LlmPiAi, { providers: {
+    fallback: { api: 'openai-completions', baseURL: server.url, models: [{ id: 'test' }], apiKeyFallbackEnvs: ['ONLY_FALLBACK'] },
+    native: { api: 'openai-completions', baseURL: server.url, models: [{ id: 'test' }] },
+  } })
+  try {
+    for (const provider of ['fallback', 'native']) {
+      await expect(ctx.llm.discoverModels('llm-pi-ai', { provider, baseURL: server.url })).resolves.toEqual([{ id: 'found' }])
+    }
+    expect(server.headers.map(headers => headers.authorization)).toEqual(['Bearer only-key', undefined])
+  } finally {
+    await ctx.fiber.dispose()
+  }
+})
+
+it('classifies cancellation while waiting for discovery headers', async () => {
+  const controller = new AbortController()
+  vi.stubGlobal('fetch', () => {
+    controller.abort('stop')
+    return Promise.reject(new Error('aborted transport'))
+  })
+  await expect(discoverModels({ baseURL: 'https://listing.test', signal: controller.signal }))
+    .rejects.toMatchObject({ code: 'ABORTED' })
+})

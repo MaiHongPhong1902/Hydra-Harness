@@ -76,6 +76,8 @@ export interface ModelListEditorProps {
   onReset?: () => void
   /** Endpoint facts for the fetch action. */
   probe: ProbeTarget
+  /** Additional unsaved keys tried after the primary probe key. */
+  probeKeys?: readonly string[]
   /**
    * Copy key naming why the fetch action is unavailable, or `undefined` when
    * it is. The card owns this because the key it would send is judged there:
@@ -233,14 +235,19 @@ export function ModelListEditor(props: ModelListEditorProps): ReactNode {
     setBusy(true)
     setFailure(undefined)
     try {
-      const response = await api.llm.discoverModels({
+      const request = {
         settingsNs: probe.settingsNs,
         ...probe.provider === undefined ? {} : { provider: probe.provider },
         ...probe.baseURL === undefined || probe.baseURL.length === 0 ? {} : { baseURL: probe.baseURL },
         ...probe.proxy === undefined || probe.proxy.length === 0 ? {} : { proxy: probe.proxy },
         ...probe.api === undefined ? {} : { api: probe.api },
         ...probe.apiKey === undefined ? {} : { apiKey: probe.apiKey },
-      })
+      }
+      let response = await api.llm.discoverModels(request)
+      for (const apiKey of props.probeKeys ?? []) {
+        if (response.result.ok) break
+        response = await api.llm.discoverModels({ ...request, apiKey })
+      }
       if (!response.result.ok) {
         setFailure(response.result.error.message)
         return

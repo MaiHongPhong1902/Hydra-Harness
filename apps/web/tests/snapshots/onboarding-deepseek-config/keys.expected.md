@@ -1,0 +1,49 @@
+- dialog "Settings":
+  - navigation:
+    - text: Settings
+    - button "General":
+      - img
+      - text: General
+    - button "Personalization":
+      - img
+      - text: Personalization
+    - button "Models":
+      - img
+      - text: Models
+    - button "Usage"
+    - button "Plugins":
+      - img
+      - text: Plugins
+    - button "Agent presets":
+      - img
+      - text: Agent presets
+  - button "Open configuration file"
+  - button "Close":
+    - img
+    - text: Close
+  - heading "Models" [level=2]
+  - paragraph: Enter your API keys to use models from the following providers.
+  - list:
+    - listitem:
+      - text: DeepSeek
+      - img "API key configured"
+      - button "Edit DeepSeek (deepseek-official)": Edit
+      - button "Delete DeepSeek (deepseek-official)": Delete
+      - text: DeepSeek deepseek-official API key
+      - textbox "API key":
+        - /placeholder: Configured — enter a new value to replace
+      - text: Fallback API key 1
+      - textbox "Fallback API key 1":
+        - /placeholder: Configured — enter a new value to replace
+      - button "Remove API key 1": Delete
+      - button "Add API key"
+      - paragraph: Keys are tried in order. If a request fails, the next key retries it. Stop cancels all retries.
+      - group: Customized settings
+      - button "Cancel"
+      - button "Apply"
+  - button "Add provider":
+    - img
+    - text: Add provider
+  - button "Add a custom provider":
+    - img
+    - text: Add a custom provider

@@ -19,6 +19,7 @@ function row(overrides: Partial<ProviderRow> = {}): ProviderRow {
     removable: false,
     apiKeyEnv: 'DEEPSEEK_API_KEY',
     credential: missingCredential,
+    fallbackCredentials: {},
     ...overrides,
   }
 }
@@ -37,6 +38,7 @@ function otherRow(overrides: Partial<ProviderRow> = {}): ProviderRow {
     removable: true,
     apiKeyEnv: 'HFAI_API_KEY',
     credential: { configured: true, source: 'file', writable: true },
+    fallbackCredentials: {},
     ...overrides,
   }
 }
@@ -106,4 +108,12 @@ describe('onboardingReadiness', () => {
       expect(onboardingReadiness(state(overrides))).toEqual({ kind: 'unavailable' })
     }
   })
+})
+
+it('accepts a configured fallback while requiring a credential for fallback-only profiles', () => {
+  const available = row({ fallbackCredentials: { SECOND: { configured: true, writable: true } } })
+  expect(providerUsable(available)).toBe(true)
+  expect(onboardingReadiness(state({ rows: [available] }))).toEqual({ kind: 'provider-ready' })
+  expect(providerUsable(otherRow({ apiKeyEnv: undefined, credential: undefined,
+    fallbackCredentials: { SECOND: missingCredential } }))).toBe(false)
 })
