@@ -275,7 +275,7 @@ export const longProbe = 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 +
     if (!isRecord(stagedConfig)) throw new Error('.oxlintrc.staged.json must contain a config object')
     expect(stagedConfig).toMatchObject({
       extends: ['./.oxlintrc.json'],
-      options: { typeAware: false },
+      options: { typeAware: false, reportUnusedDisableDirectives: 'allow' },
     })
     expect(stagedConfig.ignorePatterns).not.toContain('packages/typert/generator/tests/fixtures/type-model/**')
 
@@ -301,15 +301,40 @@ export const longProbe = 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 +
     }
   })
 
+  it('leaves suppressions of type-aware rules alone in the staged profile', async () => {
+    const suffix = randomUUID()
+    const path = join(repositoryRoot, 'scripts', `staged-lint-probe-${suffix}.ts`)
+
+    try {
+      await writeFile(path, '// oxlint-disable-next-line typescript/no-deprecated\nexport const value = 1\n')
+      const result = runOxlint([
+        '--config',
+        '.oxlintrc.staged.json',
+        '--format',
+        'unix',
+        relative(repositoryRoot, path),
+      ])
+      const output = normalizedOutput(result)
+
+      expect(result.error).toBeUndefined()
+      expect(result.status, output).toBe(0)
+      expect(output).not.toContain('Unused oxlint-disable directive')
+    } finally {
+      await rm(path, { force: true })
+    }
+  })
+
   it('preserves successful fix output channels', async () => {
     const suffix = randomUUID()
     const path = join(repositoryRoot, 'scripts', `staged-lint-probe-${suffix}.ts`)
 
     try {
       await writeFile(path, '// oxlint-disable-next-line no-console\nexport const value = 1\n')
+      // The staged profile judges no directive, so this run asks for the warning it forwards.
       const result = runRepositoryOxlint([
         '--config',
         '.oxlintrc.staged.json',
+        '--report-unused-disable-directives-severity=warn',
         '--format',
         'unix',
         '--fix',
