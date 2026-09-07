@@ -277,6 +277,11 @@ export class FakeApiClient implements IApiClient {
     unset: payload => this.record('credentials.unset', payload, Promise.resolve(ok({}))),
   }
 
+  readonly webSearch: IApiClient['webSearch'] = {
+    providers: payload => this.record('webSearch.providers', payload, Promise.resolve(ok({ providers: [] }))),
+    testConnection: payload => this.record('webSearch.testConnection', payload, Promise.resolve(ok({ connected: true, provider: payload.provider, resultCount: 1 }))),
+  }
+
   readonly llm: IApiClient['llm'] = {
     providers: payload => this.record('llm.providers', payload, Promise.resolve(ok({ providers: [] }))),
     models: payload => this.record('llm.models', payload, Promise.resolve(ok({ groups: [], failures: [] }))),

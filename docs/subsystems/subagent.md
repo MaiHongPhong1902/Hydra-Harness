@@ -8,6 +8,8 @@ Sources: [`packages/subagent/subagent/src/types.ts`](../../packages/subagent/sub
 
 ## Two kinds of capability, discovered two ways
 
+Deployment configuration may bound simultaneous child residencies with `maxActivePerTree` and cumulative creation attempts with `maxChildrenPerTree`. Both apply across the live delegation tree; cold resume uses active capacity without another creation charge. The [subagent package](../../packages/subagent/subagent/README.md) owns admission and persistence details.
+
 A provider advertises its **start-time** features on a static descriptor the service checks BEFORE a one-shot run exists; a request that needs one the provider lacks is rejected loud (`SubagentError('UNSUPPORTED_CAPABILITY')`), never accepted-then-ignored. Those flags describe only the one-shot [`start()`](#the-provider-contract-subagentprovider) path, where the provider composes the child. **Continuable** children are composed by the continuation manager itself, so they are gated by one optional method whose presence IS the capability, with TS narrowing as the discovery mechanism: [`SubagentProvider.prepareContinuable`](#the-provider-contract-subagentprovider).
 
 ```ts type-equiv

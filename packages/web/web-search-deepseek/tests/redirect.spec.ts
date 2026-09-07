@@ -62,7 +62,7 @@ describe('DeepSeekSearchProvider redirect policy', () => {
     })
 
     await expect(provider.search({ query: TEST_QUERY }))
-      .rejects.toMatchObject({ code: 'WEB_PROVIDER_ERROR' })
+      .rejects.toMatchObject({ code: 'NETWORK_ERROR' })
     expect(targetRequests).toHaveLength(0)
   })
 

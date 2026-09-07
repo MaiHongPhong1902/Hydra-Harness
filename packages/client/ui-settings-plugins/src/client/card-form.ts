@@ -44,10 +44,14 @@ export interface CardSecretSpec {
   field: string
   /** Write the staged text; resolves to whether the Host accepted it. */
   write: (text: string) => Promise<boolean>
+  /** Remove the stored credential when explicitly staged through resetField. */
+  remove?: () => Promise<boolean>
 }
 
 /** One field as a card's control renders it. */
 export interface CardFieldState {
+  /** An explicit credential removal is staged. */
+  cleared?: boolean
   /** Draft text the control renders. */
   text: string
   /**
@@ -159,6 +163,7 @@ export class CardForm<T> {
   private readonly listeners = new Set<() => void>()
   private saving = false
   private failed = false
+  private readonly unsubscribeScope: () => void
 
   /**
    * @param scope - the bound settings scope for this card's namespace.
@@ -172,7 +177,7 @@ export class CardForm<T> {
   ) {
     this.specs = new Map(specs.map(spec => [spec.field, spec]))
     this.secretSpecs = new Map(secrets.map(spec => [spec.field, spec]))
-    scope.subscribe(() => { this.publish() })
+    this.unsubscribeScope = scope.subscribe(() => { this.publish() })
   }
 
   /**
@@ -184,6 +189,12 @@ export class CardForm<T> {
     const store = createSnapshotStore(project())
     this.listeners.add(() => { store.set(project()) })
     return store
+  }
+
+  /** Release scope observation when the owning settings controller unloads. */
+  dispose(): void {
+    this.unsubscribeScope()
+    this.listeners.clear()
   }
 
   /**
@@ -211,7 +222,7 @@ export class CardForm<T> {
   field(field: string): CardFieldState {
     const staged = this.staged.get(field)
     if (this.secretSpecs.has(field)) {
-      return { text: staged?.text ?? '', overridden: false, invalid: false }
+      return { text: staged?.text ?? '', overridden: false, invalid: false, ...(staged?.clear ? { cleared: true } : {}) }
     }
     const spec = this.spec(field)
     if (staged === undefined) {
@@ -233,7 +244,7 @@ export class CardForm<T> {
     return {
       edit: (field, text) => { this.stage(field, { text, clear: false }) },
       resetField: (field) => {
-        this.stage(field, { text: this.spec(field).format(this.baseValue(field)), clear: true })
+        this.stage(field, { text: this.secretSpecs.has(field) ? '' : this.spec(field).format(this.baseValue(field)), clear: true })
       },
       save: () => { void this.save() },
       discard: () => {
@@ -255,25 +266,41 @@ export class CardForm<T> {
    * @returns settlement after every write and the read-back.
    */
   async save(): Promise<void> {
+    await this.prepareSave()()
+  }
+
+  /**
+   * Capture the current edits for a coordinated save across several namespaces.
+   * @returns a write operation that retains edits made after this capture.
+   */
+  prepareSave(): () => Promise<void> {
     const plan = this.plan()
     const writes = plan.flatMap(item => item.run === undefined ? [] : [item.run])
-    if (plan.length === 0 || this.saving || writes.length !== plan.length) return
     const submitted = new Map(this.staged)
-    this.saving = true
-    this.failed = false
-    this.publish()
-    let landed = true
-    for (const write of writes) {
-      landed = await write() && landed
-    }
-    if (landed) {
-      for (const [field, edit] of submitted) {
-        if (this.staged.get(field) === edit) this.staged.delete(field)
+    return async () => {
+      if (plan.length === 0 || this.saving || writes.length !== plan.length) return
+      this.saving = true
+      this.failed = false
+      this.publish()
+      let landed = true
+      try {
+        for (const write of writes) {
+          landed = await write() && landed
+          if (!landed) break
+        }
+      } catch {
+      // A rejected settings or credential write leaves its submitted draft retryable.
+        landed = false
       }
+      if (landed) {
+        for (const [field, edit] of submitted) {
+          if (this.staged.get(field) === edit) this.staged.delete(field)
+        }
+      }
+      this.saving = false
+      this.failed = !landed
+      this.publish()
     }
-    this.saving = false
-    this.failed = !landed
-    this.publish()
   }
 
   /**
@@ -288,7 +315,8 @@ export class CardForm<T> {
       const secret = this.secretSpecs.get(field)
       if (secret !== undefined) {
         const value = staged.text.trim()
-        if (value !== '') plan.push({ field, run: () => secret.write(value) })
+        if (staged.clear && secret.remove !== undefined) plan.push({ field, run: secret.remove })
+        else if (value !== '') plan.push({ field, run: () => secret.write(value) })
         continue
       }
       const spec = this.spec(field)

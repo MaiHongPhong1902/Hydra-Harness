@@ -486,6 +486,14 @@ let embeddedBounds = { x: 0, y: 0, width: 0, height: 0, visible: false }
 let chromeState
 /** Status line shown in native chrome while the agent drives the page. */
 let chromeActivity = ''
+let activeBrowserCalls = 0
+
+/** The gradient follows browser commands; the preload retains the virtual cursor while idle. */
+function updateBrowserActivity() {
+  for (const tab of tabs.values()) {
+    if (!tab.contents.isDestroyed()) tab.contents.send('browser:activity', activeBrowserCalls > 0)
+  }
+}
 /** Whether an agent browser action has already revealed the desktop panel. */
 let agentBrowserRevealed = false
 /** Toolbar picker whose completion owns the pressed-state reset. */
@@ -585,7 +593,7 @@ function siteNavigationBlocked(targetUrl) {
 }
 
 /** Decide one cross-origin navigation at the Electron boundary. */
-function navigationAllowed(contents, targetUrl) {
+function navigationPolicy(contents, targetUrl) {
   if (targetUrl === 'about:blank') return true
   const origin = canonicalOrigin(targetUrl)
   if (origin === undefined) return false
@@ -595,58 +603,57 @@ function navigationAllowed(contents, targetUrl) {
   const policy = existing?.access ?? nativeSettings.navigationPolicy
   if (policy === 'allow') return true
   if (policy === 'block' || window === undefined || windowClosing) return false
-  const choice = dialog.showMessageBoxSync(window, {
-    type: 'question',
-    title: 'Website permission',
-    message: `Allow the built-in Browser to open ${origin}?`,
-    detail: 'Website content is untrusted. Allow it once, remember this site, or block it.',
-    buttons: ['Allow once', 'Always allow', 'Block'],
-    defaultId: 0,
-    cancelId: 2,
-    noLink: true,
-  })
-  if (choice === 1) {
-    profileStore.sites[origin] = { access: 'allow', media: existing?.media ?? 'block' }
-    persistProfileStore()
-  } else if (choice === 2) {
-    profileStore.sites[origin] = { access: 'block', media: existing?.media ?? 'block' }
-    persistProfileStore()
-  }
-  return choice !== 2
+  return undefined
 }
 
 async function loadAllowedUrl(contents, targetUrl) {
-  if (!navigationAllowed(contents, targetUrl)) {
+  if (navigationPolicy(contents, targetUrl) === false) {
     throw new Error(`navigation to ${targetUrl} was blocked by Browser settings`)
   }
   await contents.loadURL(targetUrl)
 }
 
-function mediaPermissionAllowed(contents, origin, prompt) {
+function mediaPermissionAllowed(contents, origin) {
   if (!isControlledContents(contents)) return false
   const normalized = canonicalOrigin(origin)
   if (normalized === undefined) return false
   const existing = profileStore.sites[normalized]
   if (existing?.media === 'allow') return true
-  if (existing?.media === 'block' || !prompt || window === undefined || windowClosing) return false
-  const choice = dialog.showMessageBoxSync(window, {
-    type: 'question',
-    title: 'Camera and microphone permission',
-    message: `Allow ${normalized} to use camera or microphone?`,
-    detail: 'Only grant this to a website you trust.',
-    buttons: ['Allow once', 'Always allow', 'Block'],
-    defaultId: 2,
-    cancelId: 2,
-    noLink: true,
-  })
-  if (choice === 1 || choice === 2) {
-    profileStore.sites[normalized] = {
-      access: existing?.access ?? 'block',
-      media: choice === 1 ? 'allow' : 'block',
-    }
-    persistProfileStore()
+  if (existing?.media === 'block' || window === undefined || windowClosing) return false
+  return undefined
+}
+
+const pendingPermissions = new Map()
+let nextPermissionId = 0
+
+/** Pending decisions belong to the initiating document and never survive its replacement. */
+function cancelPermissions(contents) {
+  for (const [id, pending] of pendingPermissions) {
+    if (contents !== undefined && pending.contents !== contents) continue
+    pendingPermissions.delete(id)
+    pending.resolve(undefined)
+    send({ event: 'browser:permission-cancelled', id })
   }
-  return choice !== 2
+}
+
+async function requestPermission(contents, kind, origin) {
+  if (windowClosing || contents.isDestroyed() || !isControlledContents(contents)) return false
+  const sourceUrl = contents.getURL()
+  const id = ++nextPermissionId
+  const choice = await new Promise(resolve => {
+    pendingPermissions.set(id, { contents, resolve })
+    send({ event: 'browser:permission', id, request: { kind, origin } })
+  })
+  if (windowClosing || contents.isDestroyed() || contents.getURL() !== sourceUrl) return false
+  const field = kind === 'navigation' ? 'access' : 'media'
+  const existing = profileStore.sites[origin]
+  if (existing?.[field] === 'block') return false
+  if (kind === 'navigation' && navigationPolicy(contents, origin) === false) return false
+  if (choice === 'always' || choice === 'block') {
+    profileStore.sites[origin] = { access: 'block', media: 'block', ...existing, [field]: choice === 'always' ? 'allow' : 'block' }
+    await persistProfileStore()
+  }
+  return choice === 'once' || choice === 'always'
 }
 
 function historyDestination(contents, offset) {
@@ -708,7 +715,7 @@ async function routeUserUrl(value) {
     await shell.openExternal(url.href)
     return { success: true, destination, url: url.href }
   }
-  if (!activeTab || !createTab || !selectTab || !navigationAllowed(activeTab.view.webContents, url.href)) {
+  if (!activeTab || !createTab || !selectTab || navigationPolicy(activeTab.view.webContents, url.href) === false) {
     throw new Error(`navigation to ${url.href} was blocked by Browser settings`)
   }
   const opened = createTab()
@@ -1471,6 +1478,18 @@ function readCdpEvents(tab, args) {
  * @returns {Promise<unknown>} the JSON-safe result.
  */
 async function handle(method, args) {
+  if (isProfileManagement(method)) return await handleCommand(method, args)
+  activeBrowserCalls += 1
+  updateBrowserActivity()
+  try {
+    return await handleCommand(method, args)
+  } finally {
+    activeBrowserCalls -= 1
+    updateBrowserActivity()
+  }
+}
+
+async function handleCommand(method, args) {
   noteAgentBrowser(method, args ?? {})
   if (method === 'autofill_login' || method === 'autofill_contact') {
     throw new Error(`unknown browser method: ${method}`)
@@ -1544,13 +1563,19 @@ async function handle(method, args) {
   }
   if (method === 'route_user_url') return await routeUserUrl(args.url)
   if (method === 'open_new_tab') {
-    if (args.url !== undefined && (!activeTab || !navigationAllowed(activeTab.view.webContents, args.url))) {
+    if (args.url !== undefined && (!activeTab || navigationPolicy(activeTab.view.webContents, args.url) === false)) {
       throw new Error(`navigation to ${args.url} was blocked by Browser settings`)
     }
     const opened = createTab?.()
     if (!opened || !selectTab) throw new Error('tab controls are unavailable')
     selectTab(opened)
-    if (args.url !== undefined) await opened.view.webContents.loadURL(args.url)
+    if (args.url !== undefined) {
+      try { await loadAllowedUrl(opened.view.webContents, args.url) }
+      catch (error) {
+        closeTab(opened)
+        throw error
+      }
+    }
     return { success: true, message: `Opened tab [${opened.id}]${args.url === undefined ? '' : ` at ${opened.view.webContents.getURL()}`}.` }
   }
   if (method === 'switch_to_tab') {
@@ -1727,14 +1752,25 @@ app.whenReady().then(async () => {
   await Promise.all([loadProfileStore(), initializeAutofillVault()])
   nativeTheme.on('updated', updateChrome)
   configureBrowserSettings(nativeSettings)
+  // Holding Chromium's request callback preserves POST bodies and redirects while chat answers.
+  browserSession.webRequest.onBeforeRequest((details, callback) => {
+    const contents = [...tabs.values()].find(tab => tab.contents.id === details.webContentsId)?.contents
+    if (details.resourceType !== 'mainFrame' || contents === undefined) { callback({}); return }
+    const allowed = navigationPolicy(contents, details.url)
+    if (allowed !== undefined) { callback({ cancel: !allowed }); return }
+    void requestPermission(contents, 'navigation', canonicalOrigin(details.url))
+      .then(approved => { callback({ cancel: !approved }) }, () => { callback({ cancel: true }) })
+  })
   browserSession.on('will-download', beginDownload)
   browserSession.setPermissionCheckHandler((contents, permission, requestingOrigin) =>
     contents !== null && permission === 'media'
-      ? mediaPermissionAllowed(contents, requestingOrigin, false)
+      ? mediaPermissionAllowed(contents, requestingOrigin) === true
       : false)
   browserSession.setPermissionRequestHandler((contents, permission, callback, details) => {
     const origin = details.requestingUrl ?? contents.getURL()
-    callback(permission === 'media' && mediaPermissionAllowed(contents, origin, true))
+    const allowed = permission === 'media' ? mediaPermissionAllowed(contents, origin) : false
+    if (allowed !== undefined) { callback(allowed); return }
+    void requestPermission(contents, 'media', canonicalOrigin(origin)).then(callback, () => { callback(false) })
   })
   browserSession.setDevicePermissionHandler(() => false)
   browserSession.setDisplayMediaRequestHandler((_request, callback) => { callback({}) })
@@ -1819,15 +1855,18 @@ app.whenReady().then(async () => {
       void openPageMenu(tab, params).catch(() => { log('page context menu could not be opened') })
     })
     contents.setWindowOpenHandler(({ url }) => {
-      if (!navigationAllowed(contents, url)) return { action: 'deny' }
+      if (navigationPolicy(contents, url) === false) return { action: 'deny' }
       const opened = createTab?.()
       if (!opened || !selectTab) return { action: 'deny' }
       selectTab(opened)
-      void opened.view.webContents.loadURL(url).catch(error => log('new-tab navigation failed:', error))
+      void loadAllowedUrl(opened.view.webContents, url).catch(error => {
+        if (!windowClosing && tabs.has(opened.id)) closeTab(opened)
+        log('new-tab navigation failed:', error)
+      })
       return { action: 'deny' }
     })
     const enforceNavigation = (event, url) => {
-      if (!navigationAllowed(contents, url)) event.preventDefault()
+      if (navigationPolicy(contents, url) === false) event.preventDefault()
     }
     contents.on('will-navigate', enforceNavigation)
     contents.on('will-redirect', enforceNavigation)
@@ -1835,17 +1874,20 @@ app.whenReady().then(async () => {
     // tab's indices; a background tab cannot cancel an active tab's action.
     contents.on('did-start-navigation', event => {
       if (!event.isMainFrame) return
+      cancelPermissions(contents)
       detachTabDebugger(tab, true)
       cancelAnnotation(tab)
       abortPageCalls(tab, 'page navigated away before the action completed')
       abortPageAgentLlmCalls(tab, 'page navigated away before PageAgent received a model response')
     })
     contents.on('render-process-gone', (_event, details) => {
+      cancelPermissions(contents)
       detachTabDebugger(tab, true)
       abortPageCalls(tab, `renderer gone: ${details.reason}`)
       abortPageAgentLlmCalls(tab, `renderer gone: ${details.reason}`)
     })
     contents.on('destroyed', () => {
+      cancelPermissions(contents)
       detachTabDebugger(tab, true)
       abortPageCalls(tab, 'tab renderer was destroyed')
       abortPageAgentLlmCalls(tab, 'tab renderer was destroyed')
@@ -1861,6 +1903,7 @@ app.whenReady().then(async () => {
         updateChrome()
       }
     })
+    contents.on('dom-ready', () => { contents.send('browser:activity', activeBrowserCalls > 0) })
     contents.on('did-finish-load', () => { recordHistory(contents) })
     contents.on('did-navigate-in-page', () => { recordHistory(contents) })
     contents.on('page-favicon-updated', (_event, favicons) => {
@@ -1925,16 +1968,6 @@ app.whenReady().then(async () => {
   window.on('resize', fit)
   chrome?.webContents.once('did-finish-load', updateChrome)
 
-  // Load the configured home before accepting actions, so the first browser
-  // state is useful and the persistent profile can resume its normal SSO flow.
-  if (HOME_URL !== undefined) {
-    try {
-      await loadAllowedUrl(initialTab.view.webContents, HOME_URL)
-    } catch (error) {
-      log('home navigation failed:', error)
-    }
-  }
-
   if (chrome !== undefined) {
     ipcMain.on('browser-chrome:navigate', (event, value) => {
       if (event.sender !== chrome.webContents) return
@@ -1994,6 +2027,17 @@ app.whenReady().then(async () => {
   /** Run one NDJSON request from either stdio or the desktop utility bridge. */
   const protocolRequest = async request => {
     const { id, method, args } = request
+    if (method === 'cancel_browser_permissions') {
+      cancelPermissions()
+      return undefined
+    }
+    if (method === 'browser_permission_response') {
+      const pending = pendingPermissions.get(args?.id)
+      if (pending === undefined) return undefined
+      pendingPermissions.delete(args.id)
+      pending.resolve(['once', 'always', 'block'].includes(args.choice) ? args.choice : undefined)
+      return undefined
+    }
     if (method === 'page_agent_llm_response') {
       const pending = pendingPageAgentLlmCalls.get(args?.callId)
       if (pending === undefined) return undefined
@@ -2014,6 +2058,7 @@ app.whenReady().then(async () => {
       async command(method, args = {}) { return await handle(method, args) },
       getState() { return chromeState },
       async request(request) { return await protocolRequest(request) },
+      cancelPermissions() { cancelPermissions() },
       setBounds(bounds) {
         if (windowClosing) return
         embeddedBounds = bounds
@@ -2021,6 +2066,7 @@ app.whenReady().then(async () => {
       },
       async dispose() {
         windowClosing = true
+        cancelPermissions()
         window.removeListener('resize', fit)
         for (const tab of tabs.values()) {
           detachTabDebugger(tab, true)
@@ -2062,11 +2108,16 @@ app.whenReady().then(async () => {
       void Promise.all([flushSessionCookies(), profileStoreWrite])
         .catch(error => log('profile flush failed:', error)).finally(() => app.quit())
     })
-
-    // The parent waits for this before sending anything; Electron's own startup
-    // noise on stdout arrives before it and is skipped as unparseable.
-    send({ event: 'ready' })
   }
+  // Permission replies must be readable while a configured home awaits its chat decision.
+  if (HOME_URL !== undefined) {
+    try {
+      await loadAllowedUrl(initialTab.view.webContents, HOME_URL)
+    } catch (error) {
+      log('home navigation failed:', error)
+    }
+  }
+  if (embedded === undefined) send({ event: 'ready' })
 })
 
 // Closing the window by hand is a shutdown too: the parent sees the child exit

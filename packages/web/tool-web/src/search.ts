@@ -9,6 +9,7 @@ import type { Context } from '@hydra/cordis'
 import { defineTool } from '@hydra/harness-tools'
 import type { GenericCallView, JsonValue, ToolResult, WebSearchResultView, WebSource } from '@hydra/harness-tools'
 import type { WebSearchResult, WebSearchSource } from '@hydra/harness-web'
+import { normalizedSearchUrl, SearchProviderError } from '@hydra/harness-web'
 import type {} from '@hydra/harness-system-prompt'
 
 /**
@@ -25,22 +26,24 @@ export const WEB_SEARCH_MAX_QUERIES = 4
 /** Model-facing `web_search` arguments. */
 interface WebSearchArgs {
   queries: string[]
+  country?: string
+  language?: string
 }
 
 /**
  * Validate value constraints the schema DSL can't express: `queries` is
  * non-empty, contains only non-blank strings, and fits the deployment's
  * query-count bound. Exact duplicate strings are collapsed after the bound
- * check. Throws a plain `Error` otherwise.
+ * check. Locale hints must use country/language code syntax. Throws a plain `Error` otherwise.
  *
  * @param args - the schema-validated `web_search` arguments.
  * @param maxQueries - the deployment's upper bound on queries in one call.
- * @returns the accepted queries in their first-occurrence order.
+ * @returns deduplicated queries and normalized optional locale hints.
  */
 export function parseSearchArgs(
   args: WebSearchArgs,
   maxQueries: number,
-): string[] {
+): WebSearchArgs {
   const queries = args.queries
   if (queries.length === 0) throw new Error('queries must contain at least one query')
   if (queries.length > maxQueries) {
@@ -48,7 +51,13 @@ export function parseSearchArgs(
     throw new Error(`queries must contain at most ${maxQueries} ${noun}`)
   }
   if (queries.some(query => query.trim().length === 0)) throw new Error('each query must be a non-empty string')
-  return [...new Set(queries)]
+  const country = args.country?.trim().toLowerCase()
+  const language = args.language?.trim().toLowerCase()
+  if (country !== undefined && !/^[a-z]{2}$/.test(country)) throw new Error('country must be a two-letter country code, or omitted')
+  if (language !== undefined && (language.length > 35 || !/^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$/.test(language))) {
+    throw new Error('language must be a language code such as vi, en, or zh-cn, or omitted')
+  }
+  return { queries: [...new Set(queries)], ...country === undefined ? {} : { country }, ...language === undefined ? {} : { language } }
 }
 
 /** Display label for a source: its title, else its hostname. */
@@ -135,12 +144,18 @@ function projectSource(source: WebSearchSource): {
   title?: string
   snippet?: string
   publishedAt?: string
+  provider?: string
+  position?: number
+  score?: number
 } {
   return {
     url: source.url,
     ...source.title !== undefined ? { title: source.title } : {},
     ...source.snippet !== undefined ? { snippet: source.snippet } : {},
     ...source.publishedAt !== undefined ? { publishedAt: source.publishedAt } : {},
+    ...source.provider !== undefined ? { provider: source.provider } : {},
+    ...source.position !== undefined ? { position: source.position } : {},
+    ...source.score !== undefined ? { score: source.score } : {},
   }
 }
 
@@ -224,21 +239,23 @@ export function presentSearchResult(args: WebSearchArgs, result: ToolResult): We
  * rethrowing the first failure.
  *
  * @param ctx - context whose `web` service performs the searches.
- * @param queries - validated non-empty queries.
+ * @param args - validated queries and optional locale hints shared by the batch.
  * @param maxResults - the deployment's source cap for the combined result.
  * @param signal - cancellation signal forwarded to every search.
  * @returns the combined search result.
  */
 async function runSearchQueries(
   ctx: Context,
-  queries: string[],
+  args: WebSearchArgs,
   maxResults: number,
   signal: AbortSignal,
 ): Promise<WebSearchResult> {
+  const { queries, ...locale } = args
   if (queries.length === 1) {
     return ctx.web.search({
       query: queries[0] as string,
       maxResults,
+      ...locale,
     }, signal)
   }
   const controller = new AbortController()
@@ -250,6 +267,7 @@ async function runSearchQueries(
       results[index] = await ctx.web.search({
         query,
         maxResults,
+        ...locale,
       }, batchSignal)
     } catch (error) {
       if (firstFailure === undefined) firstFailure = { error }
@@ -278,8 +296,8 @@ function mergeSearchResults(
   merge: for (let rank = 0; rank < sourceRanks; rank++) {
     for (const result of results) {
       const source = result.sources[rank]
-      if (source !== undefined && !seen.has(source.url)) {
-        seen.add(source.url)
+      if (source !== undefined && !seen.has(normalizedSearchUrl(source.url))) {
+        seen.add(normalizedSearchUrl(source.url))
         if (sources.length === maxResults) {
           droppedSource = true
           break merge
@@ -323,19 +341,27 @@ export function applyWebSearchTool(
     name: 'tool:web_search',
     order: 110,
     text: fetchEnabled
-      ? `Use the web_search tool to discover current information on the web. The required queries array accepts 1–${maxQueries} non-empty search queries; use a one-item array for a single search. It returns an optional answer plus a list of source URLs. Follow up with web_fetch when you need the full content of a specific result, and cite the relevant URLs as markdown links.`
-      : `Use the web_search tool to discover current information on the web. The required queries array accepts 1–${maxQueries} non-empty search queries; use a one-item array for a single search. It returns an optional answer plus a list of source URLs. Use the returned source snippets when available, and cite the relevant URLs as markdown links.`,
+      ? 'Use the web_search tool to discover current information on the web. The required queries array accepts non-empty search queries within the configured per-call limit; use a one-item array for a single search. Infer country and language from the user request when relevant. Use the requested location or market for country, not the prompt language alone; omit hints without enough context. It returns an optional answer plus a list of source URLs. Follow up with web_fetch when you need the full content of a specific result, and cite the relevant URLs as markdown links.'
+      : 'Use the web_search tool to discover current information on the web. The required queries array accepts non-empty search queries within the configured per-call limit; use a one-item array for a single search. Infer country and language from the user request when relevant. Use the requested location or market for country, not the prompt language alone; omit hints without enough context. It returns an optional answer plus a list of source URLs. Use the returned source snippets when available, and cite the relevant URLs as markdown links.',
   })
 
-  ctx.tools.register(defineTool({
+  const tool = defineTool({
     name: 'web_search',
-    description: `Search the web for current information. Provide 1–${maxQueries} queries in the required queries array. Returns an optional summary answer and a list of source URLs.`,
+    description: 'Search the web for current information. Provide non-empty queries in the required queries array within the configured per-call limit. Returns an optional summary answer and a list of source URLs.',
     parameters: {
       queries: {
         type: 'array',
         required: true,
         items: { type: 'string' },
-        description: `Required search queries; accepts 1–${maxQueries} items and merges their results.`,
+        description: 'Required non-empty search queries; merges their results within the configured per-call limits.',
+      },
+      country: {
+        type: 'string',
+        description: 'Optional two-letter country code inferred from the requested search location or market, such as vn or us. Omit when unspecified; do not infer location from language alone.',
+      },
+      language: {
+        type: 'string',
+        description: 'Optional search language inferred from the prompt, such as vi, en, or zh-cn. Follow explicit language requests; omit when unclear.',
       },
     },
     output: {
@@ -355,6 +381,9 @@ export function applyWebSearchTool(
                 title: { type: 'string' },
                 snippet: { type: 'string' },
                 publishedAt: { type: 'string' },
+                provider: { type: 'string' },
+                position: { type: 'number' },
+                score: { type: 'number' },
               },
             },
           },
@@ -368,8 +397,22 @@ export function applyWebSearchTool(
     // Provider reads do not mutate parent-agent state.
     isConcurrencySafe: () => true,
     async execute(args, exec) {
-      const queries = parseSearchArgs(args, maxQueries)
-      const result = await runSearchQueries(ctx, queries, maxResults, exec.signal)
+      const preferences = ctx.web.searchPreferences()
+      const parsed = parseSearchArgs(args, preferences?.maxQueries ?? maxQueries)
+      const { queries } = parsed
+      const started = Date.now()
+      let result: WebSearchResult
+      try {
+        result = await runSearchQueries(ctx, parsed, preferences?.maxResults ?? maxResults, exec.signal)
+      } catch (error) {
+        ctx.logger('web-search').info('provider=%s queries=%d duration=%d results=0 status=%s retries=0 error=%s',
+          preferences?.provider ?? 'standalone', queries.length, Date.now() - started,
+          error instanceof SearchProviderError ? error.statusCode ?? '-' : '-',
+          error instanceof SearchProviderError ? error.code : 'UNKNOWN')
+        throw error
+      }
+      ctx.logger('web-search').info('provider=%s queries=%d duration=%d results=%d retries=0',
+        preferences?.provider ?? 'standalone', queries.length, Date.now() - started, result.sources.length)
       return {
         ...result.content !== undefined ? { content: result.content } : {},
         sources: result.sources.map(projectSource),
@@ -378,5 +421,7 @@ export function applyWebSearchTool(
     },
     presentCall: presentSearchCall,
     presentResult: (args, result) => presentSearchResult(args, result),
-  }))
+  })
+  Object.defineProperty(tool, 'timeoutMs', { get: () => ctx.web.searchPreferences()?.timeoutMs ?? timeoutMs })
+  ctx.tools.register(tool)
 }

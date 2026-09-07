@@ -20,7 +20,7 @@ Reasoning effort makes the persistence shape significant: a model selection with
 
 `selectionFor(agent)` resolves its tiers on every read: a process-local session selection, otherwise the session's latest logged `request/header`, otherwise the live Agent default. A session with a logged request remains bound to that durable selection. A blank session observes the current default even when it was created before the preference was saved; this matches the New Session surface, which may reuse a blank session.
 
-The stored selection does not require catalog membership. A provider route may serve a model omitted from its advisory catalog. `session.models` therefore reports the stored selection independently of advertised groups and separately reports whether an adapter serves its provider.
+The stored selection does not require catalog membership. A provider route may serve a model omitted from its advisory catalog. `session.models` therefore reports the stored selection independently of advertised groups and separately reports prompt admission under the [implicit-default rule](../bug-fix/2026-09-07-web-implicit-model-admission.md).
 
 ## Consequences
 
@@ -28,11 +28,11 @@ The stored selection does not require catalog membership. A provider route may s
 
 ## A session that cannot send
 
-`session.prompt` refuses with `model-unavailable` before opening a turn when no adapter serves the session's selected provider. This method is the enforcement boundary; a disabled composer is only a client affordance.
+`session.prompt` refuses with `model-unavailable` before opening a turn when no adapter serves the session's selected provider or an implicit default is absent from the visible catalog. This method is the enforcement boundary; a disabled composer is only a client affordance.
 
 `session.models` reports `routable`. The ui-model-selection plugin projects an unroutable selection through `ctx.conversation.blocks`, and the composer becomes inert while leaving the model seat available. An unknown client-side routability state, including an initial or failed catalog load, does not block input.
 
-Routability is distinct from catalog membership. A live provider route can serve an unadvertised model, so absence from catalog groups does not imply that the session is unusable.
+Routability is distinct from catalog membership. An explicit or logged selection can use an unadvertised model on a live route. A blank session inheriting an absent default requires a model choice before sending.
 
 ## Alternatives considered
 

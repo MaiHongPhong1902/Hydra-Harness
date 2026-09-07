@@ -22,6 +22,8 @@ with HydraHarness() as harness:
 
 `HydraHarness` keeps its lazily started runtime subprocess for reuse across calls. Use it as a context manager, as above, or call `close()` explicitly when finished.
 
+`close()` waits for runtime exit after the shutdown acknowledgement so disposal can drain session logs. `shutdown_timeout_seconds` bounds each shutdown, graceful-exit, and termination wait; an unresponsive process is eventually killed.
+
 By default, the SDK launches the bundled single-file `hydra-jsonrpc-agent` executable from the `hydra-harness-runtime-bin` package and injects that package's default configuration (the stdio JSON-RPC server, agent core, preloaded DeepSeek adapter, JSONL session persistence with an explicitly composed semantic checkpoint policy, local bash) via `HYDRA_CORDIS_CONFIG`. To run a plugin composition of your own, keep the `@hydra/harness-sdk-jsonrpc-server` entry in the config and pass the Cordis config path.
 
 ```py

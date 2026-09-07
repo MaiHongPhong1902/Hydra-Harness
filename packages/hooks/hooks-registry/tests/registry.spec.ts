@@ -9,6 +9,7 @@ import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { Context, Service } from '@hydra/cordis'
 import FileSettingsProvider from '@hydra/harness-settings-file'
+import { SettingsConflictError } from '@hydra/harness-settings'
 import HookRecordRegistry, { HOOKS_SETTINGS_NAMESPACE } from '@hydra/harness-hooks-registry/src/index.ts'
 import type { HookRecordSnapshot } from '@hydra/harness-hooks-registry/src/types.ts'
 
@@ -67,6 +68,30 @@ function nextReconciliation(ctx: Context): Promise<HookRecordSnapshot> {
 }
 
 describe('stored records', () => {
+  it.each(['create', 'replace', 'setEnabled', 'remove'] as const)(
+    'refuses a stale %s without restoring another deleted hook, then accepts a refreshed retry', async (mode) => {
+      const { registry, root } = await harness()
+      const definition = { mode: 'create' as const, name: 'kept', dialect: 'claude-code' as const, config: CLAUDE_HOOKS }
+      await registry.define(definition)
+      await registry.define({ ...definition, name: 'removed' })
+      const peer = await mount(root)
+      await registry.remove('removed')
+      const before = await readFile(join(root, 'settings.yaml'), 'utf8')
+      const write = () => mode === 'setEnabled'
+        ? peer.hookRecords.setEnabled({ name: 'kept', enabled: false })
+        : mode === 'remove' ? peer.hookRecords.remove('kept')
+          : peer.hookRecords.define({ ...definition, mode, name: mode === 'create' ? 'added' : 'kept', defaultTimeoutMs: 12000 })
+
+      await expect(write()).rejects.toBeInstanceOf(SettingsConflictError)
+      expect(await readFile(join(root, 'settings.yaml'), 'utf8')).toBe(before)
+      expect(peer.hookRecords.list().records.map(record => record.name)).toEqual(['kept'])
+      const accepted = await write()
+      expect(accepted.records.map(record => record.name)).toEqual(mode === 'remove' ? [] : mode === 'create' ? ['kept', 'added'] : ['kept'])
+      if (mode === 'replace') expect(await readFile(join(root, 'settings.yaml'), 'utf8')).toContain('defaultTimeoutMs: 12000')
+      const restarted = await mount(root)
+      expect(restarted.hookRecords.list()).toEqual(accepted)
+    })
+
   it.each(['codex', 'claude-code'] as const)('refuses inert %s definitions and bounds UTF-8 bytes', async (dialect) => {
     const { registry } = await harness()
     await expect(registry.define({ mode: 'create', name: 'inert', dialect, config: { Stop: [] } }))

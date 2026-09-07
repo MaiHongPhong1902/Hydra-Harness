@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { Context } from '@hydra/cordis'
 import WebRuntime, {
   WebError,
+  SearchProviderError,
   type WebFetchProvider,
   type WebFetchResult,
   type WebSearchProvider,
@@ -211,5 +212,55 @@ describe('WebError', () => {
     const error = new WebError('boom', 'WEB_INVALID_URL')
     expect(error.code).toBe('WEB_INVALID_URL')
     expect(error.name).toBe('WebError')
+  })
+})
+
+
+describe('configured search fallback', () => {
+  it('tries each configured provider once and caps the successful result', async () => {
+    const { web } = await mountWeb({ searchProvider: 'primary', searchFallbackProviders: ['backup'] })
+    const calls: string[] = []
+    web.registerSearchProvider(makeSearchProvider('primary', true, async () => {
+      calls.push('primary')
+      throw new WebError('offline', 'WEB_PROVIDER_ERROR')
+    }))
+    web.registerSearchProvider(makeSearchProvider('backup', true, async () => {
+      calls.push('backup')
+      return searchResult('backup', { sources: [{ url: 'https://one.test' }, { url: 'https://two.test' }] })
+    }))
+    await expect(web.search({ query: 'q', maxResults: 1 })).resolves.toMatchObject({ content: 'backup', sources: [{ url: 'https://one.test' }], truncated: true })
+    expect(calls).toEqual(['primary', 'backup'])
+  })
+
+  it('uses explicitly configured fallback for retryable normalized failures only', async () => {
+    for (const code of ['NETWORK_ERROR', 'RATE_LIMITED', 'CONFIG_ERROR', 'AUTH_ERROR'] as const) {
+      const { web } = await mountWeb({ searchProvider: 'primary', searchFallbackProviders: ['backup'] })
+      web.registerSearchProvider(makeSearchProvider('primary', true, async () => { throw new SearchProviderError('primary', code) }))
+      web.registerSearchProvider(makeSearchProvider('backup', true, async () => searchResult('backup')))
+      if (code === 'NETWORK_ERROR' || code === 'RATE_LIMITED') {
+        await expect(web.search({ query: 'q' })).resolves.toMatchObject({ content: 'backup' })
+      } else await expect(web.search({ query: 'q' })).rejects.toMatchObject({ code })
+    }
+  })
+
+  it('does not retry cancellation or blocked destinations', async () => {
+    for (const code of ['WEB_ABORTED', 'WEB_BLOCKED_URL']) {
+      const { web } = await mountWeb({ searchProvider: 'primary', searchFallbackProviders: ['backup'] })
+      let backupCalls = 0
+      web.registerSearchProvider(makeSearchProvider('primary', true, async () => { throw new WebError('stopped', code) }))
+      web.registerSearchProvider(makeSearchProvider('backup', true, async () => { backupCalls++; return searchResult('backup') }))
+      await expect(web.search({ query: 'q' })).rejects.toMatchObject({ code })
+      expect(backupCalls).toBe(0)
+    }
+  })
+
+  it('rejects an invalid chain and missing configured backup before spending a request', async () => {
+    await expect(mountWeb({ searchFallbackProviders: ['backup'] })).rejects.toThrow('requires an explicit')
+    await expect(mountWeb({ searchProvider: 'a', searchFallbackProviders: ['a'] })).rejects.toThrow('distinct')
+    const { web } = await mountWeb({ searchProvider: 'a', searchFallbackProviders: ['missing'] })
+    let calls = 0
+    web.registerSearchProvider(makeSearchProvider('a', true, async () => { calls++; return searchResult('a') }))
+    await expect(web.search({ query: 'q' })).rejects.toMatchObject({ code: 'WEB_PROVIDER_CONFIGURED_MISSING' })
+    expect(calls).toBe(0)
   })
 })

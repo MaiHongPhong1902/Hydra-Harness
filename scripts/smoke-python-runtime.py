@@ -99,10 +99,15 @@ CUSTOM_CORDIS = """\
   config:
     root: !!js process.env.HYDRA_SESSION_ROOT
     compression: 'none'
+- id: session-checkpoints
+  name: '@hydra/harness-session-checkpoint-policy'
 - id: code-runtime
   name: '@hydra/harness-code-runtime-worker-thread'
 - id: subagents
   name: '@hydra/harness-subagent'
+  config:
+    maxActivePerTree: 4
+    maxChildrenPerTree: 8
 - id: subagent-spawn-in-process
   name: '@hydra/harness-subagent-spawn-in-process'
   config:

@@ -205,12 +205,9 @@ export interface SessionModels {
   /** Model selection for the session's next assembled step. */
   current: ModelSelection
   /**
-   * Whether an adapter currently serves `current.provider`, and therefore
-   * whether this session can start a turn at all. Deliberately NOT derivable
-   * from `groups`: catalog membership is advisory, so a route serving a model
-   * it stopped advertising is absent from the groups yet perfectly usable,
-   * while a route whose adapter is gone can serve nothing. A surface that
-   * blocks input must read this rather than the groups.
+   * Whether this session can start a turn: its provider must be served, and an
+   * implicit default must appear in the visible catalog. Explicit or logged
+   * choices may use unadvertised models. Input blocking reads this Host decision.
    */
   routable: boolean
   /** Successfully loaded provider groups. */

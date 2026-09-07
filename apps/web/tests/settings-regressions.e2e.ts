@@ -4,6 +4,12 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium, type Browser, type Page } from 'playwright'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { Context } from '@hydra/cordis'
+import Schema from '@hydra/schemastery'
+import FileSettingsProvider from '@hydra/harness-settings-file'
+import { settingsNamespace } from '@hydra/harness-settings'
+import { LocalMemoryStore } from '@hydra/harness-personalization'
+import { load as parseYaml } from 'js-yaml'
 import { captureStableAria, compareOrRefreshGolden, launchWebScaffold, watchConsole, webSnapshotMode, type WebScaffold } from './scaffold.ts'
 
 const SNAPSHOT_DIR = fileURLToPath(new URL('./snapshots/settings-regressions', import.meta.url))
@@ -215,4 +221,48 @@ describe('web e2e: Settings drafts and dialog interaction', () => {
       await page.unroute(discoveryRoute)
     }
   }, 30_000)
+
+  it('persists memory switches and deletion across section entry and an independent file read', async () => {
+    const memories = new LocalMemoryStore(scaffold.harnessHome)
+    const entry = await memories.add('Settings synchronization fixture')
+    const settings = page.getByRole('dialog', { name: 'Settings', exact: true })
+    await settings.getByRole('button', { name: 'Personalization', exact: true }).click()
+    const memory = settings.locator('section').filter({ has: page.getByRole('heading', { name: 'Memory', exact: true }) })
+    const enabled = memory.getByRole('checkbox', { name: 'Enable memories', exact: true })
+    if (!await enabled.isChecked()) await enabled.click()
+    await expect.poll(() => memory.getByRole('checkbox', { name: 'Use saved memories in new chats', exact: true }).isEnabled()).toBe(true)
+    for (const label of ['Use saved memories in new chats', 'Let new chats save explicit memories', 'Enable memories']) {
+      const checkbox = memory.getByRole('checkbox', { name: label, exact: true })
+      if (await checkbox.isChecked()) await checkbox.click()
+      await expect.poll(() => checkbox.isChecked()).toBe(false)
+    }
+    const path = join(scaffold.harnessHome, 'settings.yaml')
+    await expect.poll(async () => parseYaml(await readFile(path, 'utf8'))).toMatchObject({
+      memory: { enabled: false, useMemories: false, generateMemories: false },
+    })
+    await memory.getByRole('listitem').filter({ hasText: entry.text }).getByRole('button', { name: 'Delete', exact: true }).click()
+    await memory.getByText('No saved local memories.', { exact: true }).waitFor()
+    expect(await new LocalMemoryStore(scaffold.harnessHome).list()).toEqual([])
+    expect(await readFile(join(scaffold.harnessHome, 'memories', 'memories.json'), 'utf8')).not.toContain(entry.id)
+    await settings.getByRole('button', { name: 'General', exact: true }).click()
+    await settings.getByRole('button', { name: 'Personalization', exact: true }).click()
+    expect(await memory.getByRole('checkbox', { name: 'Enable memories', exact: true }).isChecked()).toBe(false)
+    await compareOrRefreshGolden(join(SNAPSHOT_DIR, 'memory-persisted.expected.md'),
+      await captureStableAria(page, '[role="dialog"] section:has(input[type="checkbox"])', scaffold.workspaceCwd), MODE)
+
+    const reader = new Context()
+    try {
+      await reader.plugin(FileSettingsProvider, { path, watch: false })
+      for (const descriptor of scaffold.ctx.settings.describe()) {
+        const scope = reader.settings.register(descriptor.ns, new Schema(descriptor.schema as Schema),
+          descriptor.base === undefined ? {} : { base: descriptor.base as object })
+        expect(scope.get(), descriptor.ns).toEqual(descriptor.value)
+      }
+      await reader.settings.mutate(settingsNamespace('memory'), [{ op: 'set', path: ['enabled'], value: true }])
+      await expect.poll(() => enabled.isChecked()).toBe(true)
+      expect(await memory.getByRole('checkbox', { name: 'Use saved memories in new chats', exact: true }).isChecked()).toBe(false)
+    } finally {
+      await reader.fiber.dispose()
+    }
+  })
 })

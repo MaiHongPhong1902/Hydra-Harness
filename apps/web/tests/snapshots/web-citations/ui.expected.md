@@ -1,0 +1,75 @@
+- button "New session"
+- button "Collapse sidebar":
+  - img
+- button "New session":
+  - img
+  - text: New Session
+- text: Workspaces
+- button "Search sessions":
+  - img
+- textbox "Search sessions..."
+- button "View options":
+  - img
+- button "Add workspace":
+  - img
+- tree "Sessions":
+  - treeitem "Ungrouped" [expanded]:
+    - img
+    - text: Ungrouped
+  - treeitem "Use the web_fetch tool exactly Session actions for Use the web_fetch tool exactly" [selected]:
+    - text: Use the web_fetch tool exactly
+    - button "Session actions for Use the web_fetch tool exactly":
+      - img
+- button "Settings":
+  - img
+  - text: Settings
+- banner:
+  - navigation "Session hierarchy":
+    - button "Use the web_fetch tool exactly" [disabled]
+  - button "Session log":
+    - text: Session log
+    - img
+  - tablist:
+    - tab "Chat" [selected]
+    - tab "Trajectory"
+- text: Use the web_fetch tool exactly once to fetch http://127.0.0.1:43117/menu.html, then reply with exactly DONE. Do not describe the content. 7/26 {{clock}}
+- button "Copy":
+  - img
+- button "Edit":
+  - img
+- button "Context injection @hydra/harness-system-prompt":
+  - img
+  - img
+  - text: Context injection @hydra/harness-system-prompt
+- button "Think The user wants me to use the web_fetch tool exactly once to fetch http://127.0.0.1:43117/menu.html, then reply with exactly \"DONE\". Let me do that.":
+  - img
+  - img
+  - text: Think The user wants me to use the web_fetch tool exactly once to fetch http://127.0.0.1:43117/menu.html, then reply with exactly "DONE". Let me do that.
+- button "Fetch http://127.0.0.1:43117/menu.html":
+  - img
+  - img
+  - text: Fetch http://127.0.0.1:43117/menu.html
+- paragraph:
+  - link "Menu source":
+    - /url: http://127.0.0.1:43117/menu.html
+  - text: Wrong quote Missing source
+- button "Copy":
+  - img
+- button "Good response":
+  - img
+- button "Bad response":
+  - img
+- button "Branch into a new conversation":
+  - img
+- text: 7/26 {{clock}} Ran for {{duration}} TTFT {{duration}} {{throughput}} tok/s
+- textbox "Message the agent"
+- button "Commands":
+  - img
+- 'button "Access mode, current: Workspace Write"': Workspace Write
+- button "Select model":
+  - text: Select model
+  - img
+- button "Send message" [disabled]
+- text: 1 turns · 2 steps LLM {{duration}} · Tool call {{duration}} TTFT avg {{duration}} · {{throughput}} tok/s Cache hit 49% Input 11K tok · Output 137 tok Details
+- button "Close details"
+- text: Click a tool row in the message flow to view its details

@@ -63,7 +63,7 @@ function runChromeUi(profile: string): Promise<void> {
     child.once('exit', (code) => {
       clearTimeout(timeout)
       if (result?.ok) resolve()
-      else reject(new Error(`native chrome test failed (exit ${code}): ${result?.error ?? stderr}`))
+      else reject(new Error(`native chrome test failed (exit ${code}): ${result?.error ?? ''}\n${stderr}`))
     })
   })
 }
@@ -220,6 +220,11 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
     const before = await child.call('get_browser_state', {}) as BrowserState
     expect(before.title).toBe('Harness browser fixture')
     expect(before.content).toMatch(/\[\d+]<button/)
+    const highlights = await child.call('execute_javascript', {
+      script: "return getComputedStyle(document.getElementById('playwright-highlight-container')).display",
+    }) as ActionResult
+    expect(highlights.success).toBe(true)
+    expect(highlights.message).toContain('none')
     const viewport = /Page info: \d+x(\d+)px viewport/.exec(before.header)
     expect(Number(viewport?.[1])).toBeLessThan(700)
 
@@ -581,13 +586,19 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
     expect(state.settled).toBe(true)
   }, 30_000)
 
-  it('loads the configured home page before the first browser state', async () => {
+  it('answers a home-page permission before the first browser state', async () => {
     const homeProfile = mkdtempSync(join(tmpdir(), 'hydra-browser-home-'))
+    const permissions: unknown[] = []
     let home: BrowserChild | undefined
     try {
       home = await launchBrowser({
         userDataDir: homeProfile,
         homeUrl: fixture,
+        navigationPolicy: 'ask',
+        onPermission: async (request) => {
+          permissions.push(request)
+          return 'once'
+        },
         width: 1024,
         height: 768,
         show: false,
@@ -599,6 +610,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
       const state = await home.call('get_browser_state', { waitForReady: true }) as BrowserState
       expect(state.url).toBe(fixture)
       expect(state.title).toBe('Harness browser fixture')
+      expect(permissions).toEqual([{ kind: 'navigation', origin: new URL(fixture).origin }])
     } finally {
       await home?.close()
       rmSync(homeProfile, { recursive: true, force: true, maxRetries: 30, retryDelay: 100 })

@@ -20,7 +20,7 @@ import SubagentRuntime, {
   SubagentError,
   SUBAGENT_DESCRIPTOR_VERSION,
 } from '../src/index.ts'
-import type { SubagentRunEndInfo, SubagentRunInfo } from '../src/index.ts'
+import type { DelegationLimits, SubagentRunEndInfo, SubagentRunInfo } from '../src/index.ts'
 import * as SubagentInvariant from '../src/invariant.ts'
 
 type Script = ConstructorParameters<typeof MockAdapter>[0]
@@ -65,7 +65,7 @@ afterEach(async () => {
 })
 
 /** Boot the full continuable stack: loop, persistence, providers, and subagents. */
-async function setupWith(adapter: LlmAdapter, options: { persistence?: boolean } = {}) {
+async function setupWith(adapter: LlmAdapter, options: { persistence?: boolean; limits?: DelegationLimits } = {}) {
   const ctx = new Context()
   await mountAgentLoopTestDependencies(ctx)
   let disposePersistence: (() => Promise<void>) | undefined
@@ -81,7 +81,7 @@ async function setupWith(adapter: LlmAdapter, options: { persistence?: boolean }
     })
   }
   await ctx.plugin(AgentLoop, { agents: [] })
-  await ctx.plugin(SubagentRuntime)
+  await ctx.plugin(SubagentRuntime, options.limits)
   await ctx.plugin(SubagentSpawn, { providerName: 'spawn' })
   await ctx.plugin(SubagentFork, { providerName: 'fork' })
   ctx.llm.registerAdapter(['mock'], adapter)
@@ -180,6 +180,43 @@ function observeCancel(agent: Agent, callback: () => void): void {
 }
 
 describe('SubagentRuntime.startContinuable', () => {
+  it('shares active capacity with cold resumes without spending another creation', async () => {
+    const first = Promise.withResolvers<undefined>()
+    const resumed = Promise.withResolvers<undefined>()
+    const adapter = new GatedAdapter([
+      { chunks: textResponse('first'), gate: first.promise },
+      { chunks: textResponse('resumed'), gate: resumed.promise },
+    ])
+    const { ctx, parent } = await setupWith(adapter, { limits: { maxActivePerTree: 1, maxChildrenPerTree: 1 } })
+    parkParent(ctx, parent)
+    try {
+      const started = await ctx.subagents.startContinuable(startSpec(parent))
+      await expect(ctx.subagents.startContinuable(startSpec(parent))).rejects.toMatchObject({ code: 'SUBAGENT_CAPACITY' })
+      first.resolve(undefined)
+      await waitNoActivation(ctx, started.childId)
+      await followup(ctx, parent, started.childId, message('continue'))
+      await expect(ctx.subagents.startContinuable(startSpec(parent))).rejects.toMatchObject({ code: 'SUBAGENT_CAPACITY' })
+      resumed.resolve(undefined)
+      await waitNoActivation(ctx, started.childId)
+      await expect(ctx.subagents.startContinuable(startSpec(parent))).rejects.toMatchObject({ code: 'SUBAGENT_BUDGET_EXHAUSTED' })
+      expect(parent.session.events.filter(event => event.type === 'subagent/admission')).toHaveLength(1)
+    } finally { first.resolve(undefined); resumed.resolve(undefined) }
+  })
+
+  it('releases a failed materialization slot while retaining its creation charge', async () => {
+    const { ctx, parent } = await setupWith(new MockAdapter([textResponse('accepted')]), {
+      limits: { maxActivePerTree: 1, maxChildrenPerTree: 2 },
+    })
+    parkParent(ctx, parent)
+    const create = vi.spyOn(ctx.agents, 'create').mockRejectedValueOnce(new Error('setup failed'))
+    await expect(ctx.subagents.startContinuable(startSpec(parent))).rejects.toThrow('setup failed')
+    create.mockRestore()
+    const started = await ctx.subagents.startContinuable(startSpec(parent))
+    await waitNoActivation(ctx, started.childId)
+    expect(parent.session.events.filter(event => event.type === 'subagent/admission')).toHaveLength(2)
+    await expect(ctx.subagents.startContinuable(startSpec(parent))).rejects.toMatchObject({ code: 'SUBAGENT_BUDGET_EXHAUSTED' })
+  })
+
   it('returns both identities at inbox acceptance, without waiting for the turn or the log', async () => {
     const { ctx, parent, adapter } = await setup([textResponse('first answer')])
     const enqueued: { id: MessageId; loggedYet: boolean }[] = []

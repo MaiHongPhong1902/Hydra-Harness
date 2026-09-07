@@ -105,6 +105,8 @@ The model-facing tool collects synchronously by default: it awaits the child res
 
 Continuable Activations await a best-effort final session flush without treating listener participation as durability confirmation. One-shot runs retain best-effort session checkpointing, so a completed one-shot child is discoverable after disposal only when its session actually reached persistence; the service does not invent a catalog entry from Task history when that checkpoint is absent.
 
+Optional `maxActivePerTree` and `maxChildrenPerTree` configure shared root-session admission limits. Active capacity includes pending starts and resident continuable children; cold resume reserves capacity without spending a new creation. Creation attempts are recorded in the root log before provider work, including failed starts, and survive resume. A child requires its live ancestry to resolve a capped root. Both defaults are unset; the base bundle sets 4 active children and 8 creation attempts.
+
 ## Model Experience
 
 ### Settlement notice

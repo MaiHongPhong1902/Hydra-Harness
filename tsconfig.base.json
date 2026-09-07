@@ -28,6 +28,8 @@
     // not declaration path aliases, keep each package/vendor source compiled
     // under its own tsconfig boundary.
     "paths": {
+      "@hydra/harness-web-search-http": ["./packages/web/web-search-http/src/index.ts"],
+      "@hydra/harness-web-search-http/*": ["./packages/web/web-search-http/src/*"],
       "@hydra/cordis": ["./vendor/cordis/src"],
       "@hydra/cosmokit": ["./vendor/cosmokit/src"],
       "@hydra/schemastery": ["./vendor/schemastery/src"],
@@ -39,6 +41,8 @@
       "@hydra/cordis-plugin-logger-console": ["./vendor/logger-console/src"],
       "@hydra/node-addon-landlock-run": ["./native/landlock-run/packages/entry/src/index.ts"],
       "@hydra/harness-invariants": ["./packages/runtime-diagnostics/invariants/src/index.ts"],
+      "@hydra/harness-research-policy": ["./packages/guard/research-policy/src"],
+      "@hydra/harness-research-policy/invariant": ["./packages/guard/research-policy/src/invariant.ts"],
       "@hydra/harness-tool-call-timeout-policy": ["./packages/guard/timeout-policy/src"],
       "@hydra/harness-tool-call-timeout-policy/invariant": ["./packages/guard/timeout-policy/src/invariant.ts"],
       "@hydra/harness-typert-registry": ["./packages/typert/registry/src/index.ts"],
@@ -171,7 +175,7 @@
       // dir names are unique across groups, so first-on-disk-wins resolution is
       // unambiguous; adding a package under an existing group needs no edit
       // here. The aggregates' project references (tsconfig.host.json /
-      // tsconfig.client.json) stay explicit — TS project references have no
+      // tsconfig.client.json) stay explicit â€” TS project references have no
       // wildcard form.
       "@hydra/harness-host-apiproxy": ["./packages/host/apiproxy/src"],
       "@hydra/harness-host-directory-picker": ["./packages/host/directory-picker/src"],

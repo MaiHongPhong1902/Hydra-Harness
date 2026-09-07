@@ -1,12 +1,15 @@
 import { memo, useMemo } from 'react'
 import type { ChatNodeViewProps, TurnTailOwnerProps } from '../contract/slots.ts'
 import { AssistantMarkdown } from './AssistantMarkdown.tsx'
+import { webCitations } from './web-citations.ts'
 
 /** Streaming, settled, and interrupted Assistant states share one keyed renderer instance. */
 export const AssistantNodeView = memo(function AssistantNodeView({
-  node, useTurnData, openFile, renderMessageImages, fileMentions, t,
+  node, useTurnData, useSession, openFile, renderMessageImages, fileMentions, t,
 }: ChatNodeViewProps<'assistant-step'>) {
   const data = node.data
+  const transcript = useSession(snapshot => snapshot.nodes)
+  const citations = useMemo(() => webCitations(transcript, data.finalNode?.seq ?? Infinity), [transcript, data.finalNode?.seq])
   const turn = node.location.kind === 'turn' || node.location.kind === 'step'
     ? node.location.turn
     : undefined
@@ -27,6 +30,7 @@ export const AssistantNodeView = memo(function AssistantNodeView({
       interrupted={data.status === 'interrupted'}
       renderMessageImages={renderMessageImages}
       mentions={mentions}
+      citations={citations}
       t={t}
     />
   )

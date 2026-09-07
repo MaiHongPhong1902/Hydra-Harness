@@ -101,6 +101,8 @@ export interface SettingsDescribeOptions {
 
 /** Owner-facing handle for one registered namespace. */
 export interface SettingsScope<T> {
+  /** Current user-section revision, sent as `expectedRevision` when writing a value derived from {@link get}. */
+  readonly revision: number
   /** Current resolved value: schema defaults, then `base`, then the user layer. */
   get(): T
   /**
@@ -423,6 +425,18 @@ export abstract class SettingsProvider extends Service {
   protected abstract persist(ns: SettingsNamespace, section: Record<string, unknown>): Promise<void>
 
   /**
+   * Run a namespace write with provider-owned storage exclusion. Providers
+   * sharing mutable storage must refresh through `publish()` before invoking
+   * the callback and retain exclusion through validation, persist, and commit.
+   * The default runs directly for storage owned by this instance alone.
+   * @param operation - derive and validate the section, persist it, then commit.
+   * @returns completion of the write, or its validation/storage rejection.
+   */
+  protected withWriteTransaction(operation: () => Promise<void>): Promise<void> {
+    return operation()
+  }
+
+  /**
    * Register a namespace schema and receive its owner scope. The registration
    * is an effect on the calling plugin's fiber: disposing that fiber removes
    * the namespace and its observers. An invalid stored section fails the
@@ -455,6 +469,7 @@ export abstract class SettingsProvider extends Service {
       return () => this.registrations.delete(ns)
     }, `settings.register(${JSON.stringify(String(ns))})`)
     return {
+      get revision() { return registration.revision },
       get: () => registration.resolved as T,
       watch: (callback) => {
         const watcher: SettingsWatcher = { callback: callback, tail: Promise.resolve(), active: true }
@@ -609,15 +624,15 @@ export abstract class SettingsProvider extends Service {
     const previous = this.writeQueues.get(ns) ?? Promise.resolve()
     // Chain past a failed predecessor: one rejected write must not poison the
     // namespace queue for every later caller.
-    const run = previous.catch(() => undefined).then(async () => {
+    const run = previous.catch(() => undefined).then(() => this.withWriteTransaction(async () => {
       if (this.isStopped()) {
         throw new Error(`settings service was disposed before the queued "${ns}" ${verb} ran`)
       }
       if (this.registrations.get(ns) !== registration) {
         throw new Error(`settings namespace "${ns}" registration was disposed before the queued ${verb} ran`)
       }
-      // Every mode derives from the section as it stands NOW, at the front of
-      // the queue — never from whatever the caller last saw.
+      // Storage reconciliation precedes both revision checking and derivation;
+      // otherwise an unseen file edit can be overwritten by a stale section.
       const current = this.section(ns) ?? {}
       // The revision check belongs HERE, not at call time: the queue orders
       // writes but cannot tell a fresh writer from one holding a snapshot
@@ -642,7 +657,7 @@ export abstract class SettingsProvider extends Service {
         this.bumpRevision(registration, current, section)
         this.commit(registration, next, 'update')
       }
-    })
+    }))
     this.writeQueues.set(ns, run)
     return run
   }

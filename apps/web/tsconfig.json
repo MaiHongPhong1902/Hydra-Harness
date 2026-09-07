@@ -24,6 +24,8 @@
   "exclude": [
     "tests/scaffold.ts",
     "tests/brand-hover.e2e.ts",
+    "tests/browser-permission.e2e.ts",
+    "tests/web-citations.e2e.ts",
     "tests/scaffold-hermetic.e2e.ts",
     "tests/startup-rpc-budget.e2e.ts",
     "tests/minimal-preset.snapshot.ts",
@@ -62,6 +64,7 @@
     "tests/composer-draft-scroll.e2e.ts",
     "tests/cordis-tool-round.e2e.ts",
     "tests/web-search-round.e2e.ts",
+    "tests/web-search-settings.e2e.ts",
     "tests/message-actions.e2e.ts",
     "tests/prompt-revisions.e2e.ts",
     "tests/message-feedback.e2e.ts",

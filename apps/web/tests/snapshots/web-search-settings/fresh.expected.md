@@ -1,0 +1,20 @@
+- region "Web Search":
+  - heading "Web Search" [level=2]
+  - paragraph: Choose how the agent searches the web. This selection is independent of your chat model. The agent chooses search country and language from your prompt.
+  - checkbox "Enable Web Search" [checked]
+  - text: Enable Web Search Search Provider
+  - combobox "Search Provider":
+    - option "Select provider…" [selected]
+    - option "DeepSeek"
+    - option "Serper.dev"
+    - option "Other"
+  - status: Select a search provider before using Web Search.
+  - text: Max Queries per Call
+  - spinbutton "Max Queries per Call": "4"
+  - text: Max Total Results
+  - spinbutton "Max Total Results": "8"
+  - text: Search Timeout (ms)
+  - spinbutton "Search Timeout (ms)": "60000"
+  - button "Test Connection" [disabled]
+  - button "Discard" [disabled]
+  - button "Save" [disabled]

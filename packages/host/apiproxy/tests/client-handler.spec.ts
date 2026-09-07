@@ -127,6 +127,12 @@ function scriptedApi(overrides: {
       unset: err,
       ...overrides.credentials,
     },
+    webSearch: {
+      providers: async request => ({ rpcId: request.rpcId, result: { ok: true, value: { providers: [] } } }),
+      testConnection: async request => ({
+        rpcId: request.rpcId, result: { ok: true, value: { connected: true, provider: request.payload.provider, resultCount: 1 } },
+      }),
+    },
     llm: {
       providers: r => ok(r, { providers: [] }),
       models: r => ok(r, { groups: [], failures: [] }),

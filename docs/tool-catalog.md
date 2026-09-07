@@ -2257,7 +2257,7 @@ Source: [`packages/web/tool-web/src/index.ts`](../packages/web/tool-web/src/inde
 
 ### `web_search`
 
-Search the web for current information. Provide 1–4 queries in the required queries array. Returns an optional summary answer and a list of source URLs.
+Search the web for current information. Provide non-empty queries in the required queries array within the configured per-call limit. Returns an optional summary answer and a list of source URLs.
 
 ```json
 {
@@ -2265,10 +2265,18 @@ Search the web for current information. Provide 1–4 queries in the required qu
   "properties": {
     "queries": {
       "type": "array",
-      "description": "Required search queries; accepts 1–4 items and merges their results.",
+      "description": "Required non-empty search queries; merges their results within the configured per-call limits.",
       "items": {
         "type": "string"
       }
+    },
+    "country": {
+      "type": "string",
+      "description": "Optional two-letter country code inferred from the requested search location or market, such as vn or us. Omit when unspecified; do not infer location from language alone."
+    },
+    "language": {
+      "type": "string",
+      "description": "Optional search language inferred from the prompt, such as vi, en, or zh-cn. Follow explicit language requests; omit when unclear."
     }
   },
   "required": [

@@ -11,6 +11,7 @@ import { Context } from '@hydra/cordis'
 import SystemPrompt from '@hydra/harness-system-prompt'
 import ToolRuntime from '@hydra/harness-tools'
 import FileSettingsProvider from '@hydra/harness-settings-file'
+import { SettingsConflictError } from '@hydra/harness-settings'
 
 const { mockConnect, mockClose, mockListTools, MockClient } = vi.hoisted(() => {
   const mockConnect = vi.fn<() => Promise<void>>()
@@ -108,6 +109,29 @@ function nextReconciliation(ctx: Context): Promise<McpServerSnapshot> {
 }
 
 describe('stored records', () => {
+  it.each(['create', 'replace', 'setEnabled', 'remove'] as const)(
+    'refuses a stale %s without restoring another deleted server, then accepts a refreshed retry', async (mode) => {
+      const { registry, settingsPath } = await harness()
+      await registry.define(STDIO)
+      await registry.define({ ...STDIO, name: 'removed' })
+      const peer = await mount(settingsPath)
+      await registry.remove('removed')
+      const before = await readFile(settingsPath, 'utf8')
+      const write = () => mode === 'setEnabled'
+        ? peer.mcpServers.setEnabled({ name: 'notes', enabled: false })
+        : mode === 'remove' ? peer.mcpServers.remove('notes')
+          : peer.mcpServers.define({ ...STDIO, mode, name: mode === 'create' ? 'added' : 'notes', command: 'updated' })
+
+      await expect(write()).rejects.toBeInstanceOf(SettingsConflictError)
+      expect(await readFile(settingsPath, 'utf8')).toBe(before)
+      expect(peer.mcpServers.list().servers.map(server => server.name)).toEqual(['notes'])
+      const accepted = await write()
+      expect(accepted.servers.map(server => server.name)).toEqual(mode === 'remove' ? [] : mode === 'create' ? ['notes', 'added'] : ['notes'])
+      if (mode === 'replace') expect(accepted.servers[0]?.command).toBe('updated')
+      const restarted = await mount(settingsPath)
+      expect(restarted.mcpServers.list()).toEqual(accepted)
+    })
+
   it('keeps a server mounted after the API caller is disposed', async () => {
     const { ctx, registry } = await harness()
     const caller = await ctx.plugin({

@@ -9,6 +9,8 @@ let finished = false
 let deadline
 let phase = 'starting'
 const annotations = []
+const permissions = []
+const requests = []
 let opened = 0
 let resolveController
 const controllerReady = new Promise(resolve => { resolveController = resolve })
@@ -38,6 +40,9 @@ process.on('unhandledRejection', error => finish(false, error))
 process.on('uncaughtException', error => finish(false, error))
 
 server = createServer((request, response) => {
+  const received = { host: request.headers.host, url: request.url, method: request.method, body: '' }
+  requests.push(received)
+  request.on('data', chunk => { received.body += chunk })
   const title = {
     '/one': 'One',
     '/two': 'Two',
@@ -56,7 +61,7 @@ server.listen(0, '127.0.0.1', () => {
       navigationPolicy: 'allow',
       downloadPolicy: 'allow',
     },
-    send() {},
+    send(message) { if (message.event === 'browser:permission') permissions.push(message) },
     onState() {},
     onAnnotation(annotation) { annotations.push(annotation) },
     openBrowser() { opened += 1 },
@@ -92,10 +97,10 @@ server.listen(0, '127.0.0.1', () => {
       await waitFor(async () => {
         const current = await state()
         return current.url === `${address}${path}` && current.active === titles[path]
-      })
+      }).catch(async error => { throw new Error(`${error.message}: ${JSON.stringify({ state: await state(), permissions, requests })}`) })
     }
-    const activePage = () => webContents.getAllWebContents()
-      .find(contents => contents !== chrome && contents.getURL().startsWith(address))
+    const activePage = () => BrowserWindow.getAllWindows()[0]?.contentView.children
+      .find(view => view.webContents !== chrome && view.getVisible())?.webContents
     const startAnnotation = async () => {
       await chrome.executeJavaScript("document.getElementById('annotate').click()")
       return await waitFor(async () => {
@@ -127,6 +132,9 @@ server.listen(0, '127.0.0.1', () => {
       navigationPolicy: 'allow',
       downloadPolicy: 'allow',
     })
+    const configureNavigation = navigationPolicy => controller.command('configure_browser', {
+      navigationPolicy, downloadDirectory: '', askWhereToSave: false, downloadPolicy: 'allow',
+    })
 
     phase = 'waiting for the initial tab'
     await waitFor(async () => (await state()).count === 1)
@@ -143,6 +151,30 @@ server.listen(0, '127.0.0.1', () => {
     assert.ok(opened >= 1)
     assert.match((await state()).theme, /^(light|dark)$/)
     await navigate('/one')
+
+    phase = 'showing the gradient only during browser commands'
+    const maskState = () => activePage().executeJavaScript(`(() => {
+      const mask = document.querySelector('#page-agent-runtime_simulator-mask')
+      const cursor = mask?.querySelector('[class*="cursor_"]')
+      const gradient = mask?.querySelector(':scope > :not([class*="cursor_"])')
+      return {
+        gradient: gradient && getComputedStyle(gradient).visibility,
+        cursor: cursor && getComputedStyle(cursor).visibility,
+        display: mask && getComputedStyle(mask).display,
+        pointerEvents: mask && getComputedStyle(mask).pointerEvents,
+      }
+    })()`)
+    await waitFor(async () => (await maskState()).gradient === 'hidden')
+    assert.deepEqual(await maskState(), { gradient: 'hidden', cursor: 'visible', display: 'block', pointerEvents: 'none' })
+    const waiting = controller.command('wait', { seconds: 1 })
+    await waitFor(async () => (await maskState()).gradient === 'visible')
+    await assert.rejects(controller.command('wait', { seconds: -1 }), /wait seconds/)
+    assert.equal((await maskState()).gradient, 'visible')
+    await waiting
+    await waitFor(async () => (await maskState()).gradient === 'hidden')
+    assert.equal((await maskState()).cursor, 'visible')
+    await assert.rejects(controller.command('wait', { seconds: -1 }), /wait seconds/)
+    await waitFor(async () => (await maskState()).gradient === 'hidden')
 
     phase = 'capturing an included region screenshot'
     await dragRegion(await startAnnotation(), 1)
@@ -200,6 +232,108 @@ server.listen(0, '127.0.0.1', () => {
     phase = 'closing the first tab'
     await chrome.executeJavaScript("document.querySelectorAll('.tab-close')[0].click()")
     await waitFor(async () => (await state()).count === 1 && (await state()).active === 'Three')
+    phase = 'responsive browser chrome and page viewport'
+    for (let count = 2; count <= 6; count += 1) {
+      await chrome.executeJavaScript("document.getElementById('new-tab').click()")
+      await waitFor(async () => (await state()).count === count)
+    }
+    await navigate('/one')
+    const page = activePage()
+    for (const width of [320, 480, 768, 1024]) {
+      controller.setBounds({ x: 0, y: 0, width, height: 600, visible: true })
+      await waitFor(async () => await chrome.executeJavaScript('innerWidth') === width)
+      await waitFor(async () => await page.executeJavaScript('innerWidth') === width)
+      const layout = await chrome.executeJavaScript(`(() => {
+        const fits = element => {
+          const rect = element.getBoundingClientRect()
+          return rect.left >= 0 && rect.right <= innerWidth && rect.width > 0
+        }
+        const controls = [...document.querySelectorAll('.controls button, #omnibox, #new-tab')]
+        const tabs = document.getElementById('tabs')
+        const last = tabs.lastElementChild
+        last.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+        const bounds = tabs.getBoundingClientRect()
+        const tab = last.getBoundingClientRect()
+        return {
+          controlsFit: controls.every(fits),
+          addressUsable: document.getElementById('omnibox').getBoundingClientRect().width >= 100,
+          lastTabReachable: tab.left >= bounds.left - 1 && tab.right <= bounds.right + 1,
+          noDocumentOverflow: document.documentElement.scrollWidth === innerWidth,
+        }
+      })()`)
+      assert.deepEqual(layout, {
+        controlsFit: true,
+        addressUsable: true,
+        lastTabReachable: true,
+        noDocumentOverflow: true,
+      }, `browser layout at ${width}px`)
+      assert.equal(await page.executeJavaScript('innerHeight'), 504)
+    }
+    phase = 'waiting for chat permission before a network request'
+    await configureNavigation('ask')
+    const target = `http://localhost:${server.address().port}/two`
+    const reachedTarget = () => requests.filter(request => request.host === new URL(target).host && request.url === '/two').length
+    const before = reachedTarget()
+    const navigating = controller.command('navigate', { url: target })
+    await waitFor(() => permissions.length === 1)
+    assert.equal(reachedTarget(), before)
+    assert.deepEqual(permissions[0].request, { kind: 'navigation', origin: new URL(target).origin })
+    await controller.request({ method: 'browser_permission_response', args: { id: permissions[0].id, choice: 'once' } })
+    await navigating
+    assert.equal((await state()).url, target)
+    assert.deepEqual(await controller.command('browser_sites'), [])
+
+    phase = 'remembering an exact website decision'
+    await configureNavigation('allow')
+    await controller.command('navigate', { url: `${address}/one` })
+    await configureNavigation('ask')
+    const remembered = controller.command('navigate', { url: target })
+    await waitFor(() => permissions.length === 2)
+    await controller.request({ method: 'browser_permission_response', args: { id: permissions[1].id, choice: 'always' } })
+    await remembered
+    assert.equal((await controller.command('browser_sites'))[0].access, 'allow')
+
+    phase = 'cancelled chat permission does not navigate'
+    const denied = controller.command('navigate', { url: `${address}/three` }).then(() => false, () => true)
+    await waitFor(() => permissions.length === 3)
+    controller.cancelPermissions()
+    assert.equal(await denied, true)
+    await controller.request({ method: 'browser_permission_response', args: { id: permissions[2].id, choice: 'always' } })
+    assert.equal((await controller.command('browser_sites')).length, 1)
+    phase = 'preserving a form POST while chat answers'
+    await configureNavigation('allow')
+    await controller.command('navigate', { url: `${address}/one` })
+    await controller.command('remove_browser_site', { origin: new URL(target).origin })
+    await configureNavigation('ask')
+    await activePage().executeJavaScript(`(() => {
+      const form = document.createElement('form')
+      form.method = 'POST'
+      form.action = ${JSON.stringify(target)}
+      const input = document.createElement('input')
+      input.name = 'proof'
+      input.value = 'kept through chat'
+      form.append(input)
+      document.body.append(form)
+      form.submit()
+    })()`)
+    await waitFor(() => permissions.length === 4)
+    assert.equal(requests.some(request => request.method === 'POST'), false)
+    await controller.request({ method: 'browser_permission_response', args: { id: permissions[3].id, choice: 'once' } })
+    await waitFor(() => requests.some(request => request.method === 'POST' && request.body === 'proof=kept+through+chat'))
+    await waitFor(() => activePage().getURL() === target && !activePage().isLoading())
+    phase = 'blocking a website from chat'
+    await configureNavigation('allow')
+    await controller.command('navigate', { url: `${address}/one` })
+    await configureNavigation('ask')
+    const blocked = controller.command('navigate', { url: target }).then(() => false, () => true)
+    await waitFor(() => permissions.length === 5).catch(async error => {
+      throw new Error(`${error.message}: ${JSON.stringify({ state: await state(), page: activePage().getURL(), permissions, requests })}`)
+    })
+    await controller.request({ method: 'browser_permission_response', args: { id: permissions[4].id, choice: 'block' } })
+    assert.equal(await blocked, true)
+    assert.equal((await controller.command('browser_sites'))[0].access, 'block')
+    await assert.rejects(controller.command('navigate', { url: target }), /blocked/)
+    assert.equal(permissions.length, 5)
     phase = 'closing the browser window'
     app.once('window-all-closed', () => finish(true))
     BrowserWindow.getAllWindows()[0]?.close()

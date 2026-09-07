@@ -122,7 +122,19 @@ export interface MarkdownFileMentions {
  * One render pass's state: immutable options and targets plus the footnote
  * numbering accumulated in document order while references render.
  */
+export interface MarkdownCitations {
+  /**
+   * Resolve a recorded source and an exact passage; absent evidence stays inert.
+   * @param id - source identity returned by retrieval.
+   * @param quote - authored verbatim passage.
+   * @returns the recorded URL and passage offsets, or undefined for an invalid reference.
+   */
+  resolve(id: string, quote: string): { url: string; start: number; end: number } | undefined
+}
+
 export interface MarkdownRenderContext {
+  /** Recorded-source resolver; applied only after a message settles. */
+  citations?: MarkdownCitations | undefined
   /** Streaming arm: fences render plain and TeX stays literal. */
   readonly streaming: boolean
   /** Localized fence copy-button labels. */
@@ -287,6 +299,15 @@ function renderNode(node: Md.RootContent, key: Key, context: MarkdownRenderConte
     case 'table':
       return renderTable(node, key, context)
     case 'link':
+      if (node.url.startsWith('hydra-cite://')) {
+        const id = node.url.slice('hydra-cite://'.length)
+        const quote = node.title ?? ''
+        const source = context.citations?.resolve(id, quote)
+        const children = renderChildren(node.children, { ...context, inLink: true })
+        if (source === undefined || !/^https?:\/\//.test(source.url)) return <Fragment key={key}>{children}</Fragment>
+        return <a key={key} href={source.url} title={quote} target="_blank" rel="noopener noreferrer"
+          data-source-id={id} data-passage-start={source.start} data-passage-end={source.end}>{children}</a>
+      }
       return renderAnchor(node.url, renderChildren(node.children, { ...context, inLink: true }), key)
     case 'linkReference':
       return renderLinkReference(node, key, context)

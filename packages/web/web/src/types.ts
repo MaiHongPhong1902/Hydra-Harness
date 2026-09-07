@@ -6,6 +6,7 @@
  */
 
 import { HarnessError } from '@hydra/harness-llm'
+import type { WebSearchProviderDescriptor, WebSearchType } from './search.ts'
 
 /**
  * What one search-capable backend is asked to search. Each request carries one
@@ -15,6 +16,10 @@ import { HarnessError } from '@hydra/harness-llm'
  */
 export interface WebSearchRequest {
   readonly query: string
+  readonly type?: WebSearchType
+  readonly country?: string
+  readonly language?: string
+  readonly date?: string
   /**
    * Upper bound on returned sources; the seam truncates to it. Omitted = no
    * bound. `@hydra/harness-tool-web` always sets it. A provider whose API supports a
@@ -33,6 +38,9 @@ export interface WebSearchRequest {
  * when it cut `sources[]` down to `maxResults`.
  */
 export interface WebSearchResult {
+  readonly provider?: string
+  readonly query?: string
+  readonly statusCode?: number
   /** Optional provider-generated answer text, search context, or summary. */
   readonly content?: string
   /** Citeable sources, already truncated to the request's `maxResults`. */
@@ -53,6 +61,9 @@ export interface WebSearchSource {
   readonly snippet?: string
   /** Publication/crawl timestamp as a provider-supplied ISO-8601 string. */
   readonly publishedAt?: string
+  readonly provider?: string
+  readonly position?: number
+  readonly score?: number
 }
 
 /**
@@ -101,6 +112,8 @@ export type WebFetchBody =
  */
 export interface WebSearchProvider {
   readonly id: string
+  /** Configurable providers expose their own metadata; others stay out of Settings. */
+  readonly descriptor?: WebSearchProviderDescriptor
   /** Cheap local usability check; must not make network calls. */
   available(): boolean
   /** Run one search; honor `signal` for cancellation. */

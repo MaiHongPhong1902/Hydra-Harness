@@ -1,0 +1,11 @@
+- heading "Memory" [level=3]
+- paragraph: Reviewed memories are stored only on this host and can be used by future top-level chats.
+- checkbox "Enable memories"
+- text: Enable memories
+- checkbox "Use saved memories in new chats" [disabled]
+- text: Use saved memories in new chats
+- checkbox "Let new chats save explicit memories" [disabled]
+- text: Let new chats save explicit memories
+- paragraph: Use /memories inside a chat to change that chat or add a memory.
+- heading "Saved memories" [level=4]
+- paragraph: No saved local memories.

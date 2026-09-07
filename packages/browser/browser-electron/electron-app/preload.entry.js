@@ -5,8 +5,8 @@
 // PageController in the isolated world of every document the controlled view
 // loads, and constructs PageAgentCore only for an explicit page_agent_run.
 // Hydra owns all user-visible controls; the upstream Panel is deliberately not
-// instantiated. PageController's simulator mask and index highlights are visual
-// feedback only. LLM fetches for the optional PageAgent engine cross the private
+// instantiated. PageController's index highlights are hidden; its simulator mask
+// supplies action feedback. LLM fetches for the optional PageAgent engine cross the private
 // IPC boundary and are routed by Hydra to the model the owning agent already
 // selected; no provider credential reaches the webpage.
 //
@@ -68,7 +68,8 @@ const HARNESS_OVERLAY_SELECTOR = [
 ].join(', ')
 
 const cursorOverrideCss = `
-#page-agent-runtime_simulator-mask { cursor: default; }
+#page-agent-runtime_simulator-mask { cursor: default; display: block !important; pointer-events: none !important; }
+#page-agent-runtime_simulator-mask:not([data-hydra-active]) > :not([class*="cursor_"]) { visibility: hidden !important; }
 #page-agent-runtime_simulator-mask [class*="cursor_"] {
   width: 1px;
   height: 1px;
@@ -86,10 +87,7 @@ const cursorOverrideCss = `
   height: 64px;
   margin: -32px;
 }
-#playwright-highlight-container,
-#playwright-highlight-container * {
-  pointer-events: none !important;
-}
+#playwright-highlight-container { display: none !important; }
 `
 
 let cancelActiveAnnotation
@@ -375,16 +373,6 @@ function historyGo(delta) {
   return { success: true }
 }
 
-/** Show the passive visual feedback around a Hydra-owned indexed DOM action. */
-async function withVisualMask(controller, action) {
-  await controller.showMask()
-  try {
-    return await action()
-  } finally {
-    await controller.hideMask()
-  }
-}
-
 function currentHttpOrigin() {
   return location.protocol === 'http:' || location.protocol === 'https:' ? location.origin : undefined
 }
@@ -658,7 +646,7 @@ async function actOnNamed(controller, args, act) {
   if (index === undefined) {
     return { success: false, message: `No element named "${String(args.name).trim()}" in the current snapshot.` }
   }
-  return await withVisualMask(controller, () => act(index))
+  return await act(index)
 }
 
 async function findElement(controller, query) {
@@ -808,7 +796,7 @@ async function dispatch(action, args) {
     case 'find_element':
       return await findElement(controller, args.query)
     case 'fill_fields':
-      return await withVisualMask(controller, () => fillFields(controller, args.fields))
+      return await fillFields(controller, args.fields)
     case 'autofill_login':
       return fillLogin(args)
     case 'autofill_contact':
@@ -848,6 +836,13 @@ async function dispatch(action, args) {
       throw new Error(`unknown page action: ${action}`)
   }
 }
+
+ipcRenderer.on('browser:activity', (_event, active) => {
+  void pageControllerReady.then(async controller => {
+    document.querySelector('#page-agent-runtime_simulator-mask')?.toggleAttribute('data-hydra-active', active)
+    if (active) await controller.showMask()
+  })
+})
 
 ipcRenderer.on('page-control', (_event, request) => {
   dispatch(request.action, request.args ?? {}).then(

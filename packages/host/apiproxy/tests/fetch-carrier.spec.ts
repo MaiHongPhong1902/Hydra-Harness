@@ -284,6 +284,12 @@ function fakeApi(overrides: Partial<{ muxFrames: MuxFrame[]; hostFrames: HostFra
         return { rpcId: request.rpcId, result: { ok: true, value: {} } }
       },
     },
+    webSearch: {
+      providers: async request => ({ rpcId: request.rpcId, result: { ok: true, value: { providers: [] } } }),
+      testConnection: async request => ({
+        rpcId: request.rpcId, result: { ok: true, value: { connected: true, provider: request.payload.provider, resultCount: 1 } },
+      }),
+    },
     llm: {
       async providers(request) {
         return { rpcId: request.rpcId, result: { ok: true, value: { providers: [] } } }

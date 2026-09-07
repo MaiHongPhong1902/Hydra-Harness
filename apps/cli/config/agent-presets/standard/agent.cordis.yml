@@ -248,7 +248,7 @@
 - id: tool-web
   name: '@hydra/harness-tool-web'
   config:
-    fetch: false
+    fetch: true
     searchTimeoutMs: 60000
 
 # The browser seam stays in the host composition; only the model-facing tools

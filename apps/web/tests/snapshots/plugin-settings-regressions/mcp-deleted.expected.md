@@ -1,0 +1,6 @@
+- strong: sync-kept
+- code: fixture-command
+- text: Disabled Disabled
+- switch "Enable sync-kept"
+- button "Edit"
+- button "Remove"

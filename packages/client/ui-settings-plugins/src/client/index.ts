@@ -62,7 +62,6 @@ export const inject = ['slots', 'locale', 'connection', 'remote', 'remote.plugin
  * @param ctx - the browser plugin context.
  */
 export function apply(ctx: ClientContext): void {
-  const desktop = globalThis as typeof globalThis & { hydraDesktop?: { browser?: unknown } }
   const connection = ctx.get('connection') as ConnectionHandle
   const { api } = connection
   const t = ctx.locale.bind(NS)
@@ -70,7 +69,9 @@ export function apply(ctx: ClientContext): void {
 
   const bash = new BashCardController(ctx.settingsScope.bind({ namespace: SHELL_NS }))
   const agentLoop = new AgentLoopCardController(ctx.settingsScope.bind({ namespace: AGENT_LOOP_NS }))
-  const webSearch = new WebSearchCardController(ctx.settingsScope.bind({ namespace: WEB_SEARCH_NS }), api)
+  const webSearch = new WebSearchCardController(
+    ctx.settingsScope.bind({ namespace: WEB_SEARCH_NS }), api, namespace => ctx.settingsScope.bind({ namespace }),
+  )
   const mcp = new McpSettingsController(ctx.settingsScope.bind({ namespace: MCP_SETTINGS_NS }), api)
   const importedMcp: ImportedMcpSettingsFace['importedMcp'] = connection.isLoopback ? {
     list: async () => {
@@ -268,19 +269,10 @@ export function apply(ctx: ClientContext): void {
     }, AgentLoopCard)
   })
 
-  if (desktop.hydraDesktop?.browser === undefined) {
-    ctx.slots.inject('settings.plugin.item', () => ctx.slots.register({
-      name: 'settings.plugin.item',
-      key: WEB_SEARCH_NS,
-      locale: NS,
-      inject: () => webSearch.inject(),
-    }, WebSearchCard))
-  } else {
-    ctx.slots.inject('settings.browser.item', () => ctx.slots.register({
-      name: 'settings.browser.item',
-      id: WEB_SEARCH_NS,
-      locale: NS,
-      inject: () => webSearch.inject(),
-    }, WebSearchCard))
-  }
+  ctx.effect(() => () => { webSearch.dispose() }, 'ui-settings-plugins: search lifecycle')
+  ctx.slots.inject('settings.section', () => ctx.slots.register({
+    name: 'settings.section', id: 'web-search', order: 11,
+    label: () => t('webSearchTitle'), locale: NS,
+    inject: () => webSearch.inject(),
+  }, WebSearchCard))
 }

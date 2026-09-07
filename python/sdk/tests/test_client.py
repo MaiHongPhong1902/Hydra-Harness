@@ -733,6 +733,7 @@ time.sleep(60)
         HarnessConfig(
             launch_args_override=(sys.executable, str(script)),
             request_timeout_seconds=0.1,
+            shutdown_timeout_seconds=0.1,
         )
     ) as client:
         start = time.monotonic()
@@ -743,6 +744,29 @@ time.sleep(60)
             assert "bridge is still starting" in str(exc)
         else:
             raise AssertionError("initialize should time out")
+
+
+def test_client_close_allows_post_reply_durable_cleanup(tmp_path: Path) -> None:
+    script = tmp_path / "draining_runtime.py"
+    marker = tmp_path / "drained"
+    script.write_text('''
+import json, sys, time
+from pathlib import Path
+for line in sys.stdin:
+    request = json.loads(line)
+    if request.get("method") == "shutdown":
+        print(json.dumps({"jsonrpc": "2.0", "id": request["id"], "result": {}}), flush=True)
+        time.sleep(0.15)
+        Path(sys.argv[1]).write_text("durable")
+        break
+''')
+    client = HarnessClient(HarnessConfig(
+        launch_args_override=(sys.executable, str(script), str(marker)),
+        shutdown_timeout_seconds=2,
+    ))
+    client.start()
+    client.close()
+    assert marker.read_text() == "durable"
 
 
 def test_client_close_times_out_when_shutdown_does_not_respond(tmp_path: Path) -> None:
@@ -947,7 +971,7 @@ for line in sys.stdin:
     (module_dir / "__init__.py").write_text(
         f"""
 def resolve_bundled_launch_args(mode=None):
-    return ({str(runtime)!r},)
+    return ({sys.executable!r}, {str(runtime)!r})
 
 
 def bundled_default_config_path():

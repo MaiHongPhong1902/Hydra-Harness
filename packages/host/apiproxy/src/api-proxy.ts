@@ -87,6 +87,7 @@ import type {} from '@hydra/harness-skill/types'
 // provider still serves every other domain.
 import { SettingsConflictError, settingsNamespace } from '@hydra/harness-settings'
 import type { SettingsDescriptor, SettingsNamespace, SettingsPathOp } from '@hydra/harness-settings'
+import { SearchProviderError } from '@hydra/harness-web'
 import { credentialRef } from '@hydra/harness-credentials'
 // Value edge: the rename impl narrows the title service's validation failure; the import also resolves `ctx.get('sessionTitle')`.
 import { SessionTitleInvalidError } from '@hydra/harness-session-title'
@@ -1829,11 +1830,8 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
   }
 
   /**
-   * Resolve the addressed agent for a turn-starting method and refuse when no
-   * adapter serves its current selection: a provider nothing serves cannot start a
-   * turn, and letting it try spends the whole pre-step path to fail inside
-   * the adapter with a message about registration. Refusing here names the
-   * model the session is pointed at while the draft is still in the composer.
+   * Resolve the addressed agent and refuse an unserved route or an implicit
+   * default missing from the visible catalog before accepting the draft.
    * This is `session.prompt`'s enforcement boundary: a client that disables
    * its input is an affordance, and the method stays callable regardless.
    */
@@ -3494,6 +3492,24 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
           })
         }
         return ok(request, {})
+      },
+    },
+
+    webSearch: {
+      providers(request) {
+        return Promise.resolve(ok(request, { providers: ctx.get('web')?.listSearchProviders() ?? [] }))
+      },
+      async testConnection(request, signal) {
+        const { provider } = request.payload
+        try {
+          const web = ctx.get('web')
+          if (web === undefined) throw new SearchProviderError(provider, 'CONFIG_ERROR')
+          const result = await web.testSearchProvider(provider, signal)
+          return ok(request, { connected: true, provider, resultCount: result.sources.length })
+        } catch (error) {
+          const failure = error instanceof SearchProviderError ? error : new SearchProviderError(provider, 'UNKNOWN')
+          return ok(request, { connected: false, provider, code: failure.code, message: failure.message, retryable: failure.retryable })
+        }
       },
     },
 

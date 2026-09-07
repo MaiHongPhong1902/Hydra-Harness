@@ -53,7 +53,8 @@
     "@hydra/harness-client-locale": "workspace:^",
     "@hydra/harness-client-runtime": "workspace:^",
     "@hydra/harness-client-ui-settings": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^"
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-host-apiproxy": "workspace:^"
   },
   "devDependencies": {
     "@hydra/cordis": "workspace:^",
@@ -67,7 +68,8 @@
     "@hydra/harness-client-ui-slots": "workspace:^",
     "@hydra/harness-invariants": "workspace:^",
     "@types/react": "~18.3.1",
-    "react": "^18.2.0"
+    "react": "^18.2.0",
+    "@hydra/harness-host-apiproxy": "workspace:^"
   },
   "files": [
     "lib/index.js",

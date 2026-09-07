@@ -38,6 +38,7 @@
     "@hydra/cordis": "workspace:^"
   },
   "dependencies": {
+    "undici": "^7.28.0",
     "@hydra/schemastery": "workspace:^"
   },
   "devDependencies": {

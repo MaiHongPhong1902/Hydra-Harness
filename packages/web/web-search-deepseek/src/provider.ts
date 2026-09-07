@@ -6,7 +6,7 @@
  * @module @hydra/harness-web-search-deepseek/provider
  */
 
-import { WebError } from '@hydra/harness-web'
+import { WebError, SearchProviderError, searchHttpError, WEB_SEARCH_CAPABILITIES } from '@hydra/harness-web'
 import type {
   WebSearchProvider,
   WebSearchRequest,
@@ -16,7 +16,6 @@ import type {
 import type { CredentialRef } from '@hydra/harness-credentials'
 import type {} from '@hydra/harness-session'
 import type {
-  AnthropicError,
   AnthropicResponse,
   ContentBlock,
   TextBlock,
@@ -176,6 +175,17 @@ export function mapAnthropicResponse(response: AnthropicResponse): WebSearchResu
 /** The DeepSeek-backed search provider; HTTP redirects fail as `WEB_PROVIDER_ERROR`. */
 export class DeepSeekSearchProvider implements WebSearchProvider {
   readonly id = DEEPSEEK_PROVIDER_ID
+  readonly descriptor = {
+    id: this.id, displayName: 'DeepSeek', configurable: true,
+    capabilities: WEB_SEARCH_CAPABILITIES, settingsNs: 'web-search-deepseek', credentialRef: 'DEEPSEEK_API_KEY',
+    fields: [
+      { key: 'model', label: 'Search Model', kind: 'text' as const },
+      { key: 'maxUses', label: 'Max Server Searches', kind: 'number' as const },
+      { key: 'maxTokens', label: 'Max Output Tokens', kind: 'number' as const },
+      { key: 'baseURL', label: 'Endpoint', kind: 'text' as const, advanced: true },
+      { key: 'apiKeyEnv', label: 'Credential Reference', kind: 'text' as const, advanced: true },
+    ],
+  }
 
   /**
    * @param resolveOptions - the options for the NEXT operation, snapshotted
@@ -195,10 +205,17 @@ export class DeepSeekSearchProvider implements WebSearchProvider {
   }
 
   async search(request: WebSearchRequest, signal?: AbortSignal): Promise<WebSearchResult> {
+    if (request.type !== undefined && request.type !== 'web') throw new SearchProviderError(this.id, 'CONFIG_ERROR', undefined,
+      `Provider "${this.id}" does not support ${request.type} search.`)
     // One snapshot for the whole operation: credential resolution awaits, and a
     // settings write landing inside that await must not send the key resolved
     // from the old section to the endpoint named by the new one.
     const options = this.resolveOptions()
+    if (!URL.canParse(options.baseURL)) throw new SearchProviderError(this.id, 'CONFIG_ERROR')
+    const base = new URL(options.baseURL)
+    if (!['http:', 'https:'].includes(base.protocol) || base.username || base.password || base.search || base.hash) {
+      throw new SearchProviderError(this.id, 'CONFIG_ERROR')
+    }
     const apiKey = await this.apiKey(options, signal)
     throwIfSearchAborted(signal)
     const endpoint = `${options.baseURL}/messages`
@@ -207,7 +224,11 @@ export class DeepSeekSearchProvider implements WebSearchProvider {
       max_tokens: options.maxTokens,
       messages: [{
         role: 'user',
-        content: [{ type: 'text', text: `Perform a web search for the query: ${request.query}` }],
+        content: [{ type: 'text', text: [
+          `Perform a web search for the query: ${request.query}`,
+          ...request.country === undefined ? [] : [`Search country: ${request.country}.`],
+          ...request.language === undefined ? [] : [`Search language: ${request.language}.`],
+        ].join('\n') }],
       }],
       tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: options.maxUses }],
     }
@@ -236,36 +257,23 @@ export class DeepSeekSearchProvider implements WebSearchProvider {
         ...signal !== undefined ? { signal } : {},
       })
     } catch (error: unknown) {
-      if (signal?.aborted === true || isAbortError(error)) throw searchAborted(signal, error)
-      throw new WebError(`DeepSeek search request failed: ${String(error)}`, 'WEB_PROVIDER_ERROR', { cause: error })
+      if (signal?.aborted === true || isAbortError(error)) throw searchAborted(signal)
+      throw new SearchProviderError(this.id, 'NETWORK_ERROR')
     }
 
     if (!response.ok) {
-      const status = response.status
-      let message = `DeepSeek API error (HTTP ${status})`
-      try {
-        const parsed = await response.json() as AnthropicError
-        const detail = typeof parsed.error === 'string' ? parsed.error : parsed.error?.message ?? parsed.message
-        if (detail !== undefined && detail.length > 0) message = detail
-      } catch (error: unknown) {
-        // An abort fired mid-body must surface as WEB_ABORTED, not be swallowed
-        // into a generic HTTP-error message — cancellation is not a provider
-        // error (the seam's cancellation contract).
-        if (signal?.aborted === true || isAbortError(error)) throw searchAborted(signal, error)
-        // Otherwise: the HTTP status is already captured in `message` above; a
-        // malformed/non-JSON error body (normal for gateway 5xx/429s) can only
-        // cost a richer provider message, never the real error.
-      }
-      throw new WebError(message, 'WEB_PROVIDER_ERROR')
+      await response.body?.cancel()
+      throw searchHttpError(this.id, response.status)
     }
 
     try {
       const payload = await response.json() as AnthropicResponse
-      return mapAnthropicResponse(payload)
+      const result = mapAnthropicResponse(payload)
+      if (JSON.stringify(result).includes(apiKey)) throw new SearchProviderError(this.id, 'INVALID_RESPONSE')
+      return { ...result, statusCode: response.status }
     } catch (error: unknown) {
-      if (signal?.aborted === true || isAbortError(error)) throw searchAborted(signal, error)
-      if (error instanceof WebError) throw error
-      throw new WebError(`DeepSeek returned an unprocessable response body: ${String(error)}`, 'WEB_PROVIDER_ERROR', { cause: error })
+      if (signal?.aborted === true || isAbortError(error)) throw searchAborted(signal)
+      throw new SearchProviderError(this.id, 'INVALID_RESPONSE')
     }
   }
 
@@ -282,21 +290,11 @@ export class DeepSeekSearchProvider implements WebSearchProvider {
     try {
       resolved = await abortable(options.resolveApiKey?.() ?? Promise.resolve(undefined), signal)
     } catch (error: unknown) {
-      if (signal?.aborted === true || isAbortError(error)) throw searchAborted(signal, error)
-      throw new WebError(
-        `DeepSeek search credential resolution failed: ${String(error)}`,
-        'WEB_PROVIDER_ERROR',
-        { cause: error },
-      )
+      if (signal?.aborted === true || isAbortError(error)) throw searchAborted(signal)
+      throw new SearchProviderError(this.id, 'CONFIG_ERROR')
     }
     if (resolved !== undefined && resolved.length > 0) return resolved
-    const ref = options.apiKeyEnv ?? 'DEEPSEEK_API_KEY'
-    throw new WebError(
-      `DeepSeek search has no API key for "${ref}"; store it through the credentials service`
-      + ' (the web Models page writes it), export it in the launching environment, or set a literal'
-      + ' "apiKey" in the web-search-deepseek config',
-      'WEB_PROVIDER_CREDENTIAL_MISSING',
-    )
+    throw new SearchProviderError(this.id, 'CONFIG_ERROR')
   }
 }
 
@@ -329,11 +327,12 @@ function throwIfSearchAborted(signal?: AbortSignal): void {
   if (signal?.aborted === true) throw searchAborted(signal)
 }
 
-/** Build the provider's stable cancellation error while retaining the caller's reason. */
-function searchAborted(signal?: AbortSignal, fallback?: unknown): WebError {
-  return new WebError('DeepSeek search aborted', 'WEB_ABORTED', {
-    cause: signal?.aborted === true ? signal.reason : fallback,
-  })
+/** Build a cancellation diagnostic without forwarding arbitrary caller error text. */
+function searchAborted(signal?: AbortSignal): WebError {
+  if (signal?.reason instanceof DOMException && signal.reason.name === 'TimeoutError') {
+    return new SearchProviderError(DEEPSEEK_PROVIDER_ID, 'TIMEOUT')
+  }
+  return new WebError('DeepSeek search aborted', 'WEB_ABORTED')
 }
 
 /** True for a fetch/`AbortSignal` abort, surfaced as `WEB_ABORTED`. */

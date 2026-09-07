@@ -86,10 +86,10 @@ describe('web e2e: plugin configuration section', () => {
     const dialog = await openPlugins()
 
     // Every card the shipped web composition exposes: the shell executor, the
-    // agent loop, and the DeepSeek search provider.
+    // agent loop. Web Search owns a separate Settings section.
     await dialog.getByText('Shell', { exact: true }).waitFor({ timeout: 10_000 })
     expect(await dialog.getByText('Agent loop', { exact: true }).count()).toBe(1)
-    expect(await dialog.getByText('Web search', { exact: true }).count()).toBe(1)
+    expect(await dialog.getByRole('button', { name: 'Web Search', exact: true }).count()).toBe(1)
     // Collapsed: a card's fields appear only once it is expanded.
     expect(await dialog.getByLabel('Command timeout (ms)').count()).toBe(0)
 

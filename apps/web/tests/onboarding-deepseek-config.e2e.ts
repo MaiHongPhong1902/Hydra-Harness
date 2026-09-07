@@ -208,8 +208,11 @@ describe.skipIf(MODE === 'record')('web e2e: first-run provider configuration', 
     expect(tripwire.pageErrors).toEqual([])
   }, 60_000)
 
-  it('configures arbitrary DeepSeek models and prompts after the selected model is removed', async () => {
+  it('requires a model choice when the implicit default is removed', async () => {
     onTestFailed(() => saveFailureShot(page, 'web-e2e-onboarding-deepseek-models'))
+    await connectFreshWorkspace(page, scaffold.workspaceCwd, 'model-fallback-e2e')
+    const composer = page.locator('[data-composer-card] textarea')
+    await composer.fill('Keep this draft until I select a model')
     // Opened here rather than inherited: the credential test reloads the page
     // after configuring the key, so nothing carries an open dialog across.
     await page.getByRole('button', { name: 'Settings', exact: true }).click()
@@ -247,9 +250,10 @@ describe.skipIf(MODE === 'record')('web e2e: first-run provider configuration', 
     expect(document).not.toMatch(/^\s*- id: deepseek-v4-flash$/m)
 
     await page.keyboard.press('Escape')
-    // A connected Workspace is what puts a live composer — and its model
-    // trigger — on the page; the scaffold boots without one.
-    await connectFreshWorkspace(page, scaffold.workspaceCwd, 'model-fallback-e2e')
+    await expect.poll(() => composer.isDisabled()).toBe(true)
+    expect(await composer.inputValue()).toBe('Keep this draft until I select a model')
+    await compareOrRefreshGolden(join(SNAPSHOT_DIR, 'model-required.expected.md'),
+      await captureStableAria(page, '[data-composer-card]', scaffold.workspaceCwd), MODE)
 
     const modelTrigger = page.getByRole('button', { name: 'Select model', exact: true })
     await modelTrigger.waitFor({ timeout: 10_000 })
@@ -258,6 +262,9 @@ describe.skipIf(MODE === 'record')('web e2e: first-run provider configuration', 
     expect(await page.getByText('deepseek-v4-flash', { exact: true }).count()).toBe(0)
     await page.getByRole('menuitemradio', { name: 'DeepSeek-V4-Flash-Vision-Exp' }).waitFor({ timeout: 10_000 })
     await page.getByRole('menuitemradio', { name: 'Private Preview' }).waitFor({ timeout: 10_000 })
+    await page.getByRole('menuitemradio', { name: 'Private Preview' }).click()
+    await expect.poll(() => composer.isDisabled()).toBe(false)
+    expect(await composer.inputValue()).toBe('Keep this draft until I select a model')
     expect(tripwire.warnings).toEqual([])
     expect(tripwire.pageErrors).toEqual([])
   }, 60_000)
@@ -265,7 +272,7 @@ describe.skipIf(MODE === 'record')('web e2e: first-run provider configuration', 
   it('keeps the fixture inventory closed', async () => {
     await assertFixtureInventory(
       SNAPSHOT_DIR,
-      ['welcome.expected.md', 'keys.expected.md', 'missing.expected.md', 'models.expected.md'],
+      ['welcome.expected.md', 'keys.expected.md', 'missing.expected.md', 'models.expected.md', 'model-required.expected.md'],
     )
   })
 })

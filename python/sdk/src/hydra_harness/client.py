@@ -97,16 +97,19 @@ class HarnessClient:
                 proc.stdin.close()
             except Exception as exc:
                 self._stderr_lines.append(f"stdin close failed: {exc}")
-        if proc.poll() is None:
+        # The shutdown reply precedes runtime disposal and its durable log drain.
+        try:
+            proc.wait(timeout=self.config.shutdown_timeout_seconds)
+        except subprocess.TimeoutExpired:
             try:
                 proc.terminate()
             except ProcessLookupError:
                 pass
-        try:
-            proc.wait(timeout=self.config.shutdown_timeout_seconds)
-        except subprocess.TimeoutExpired:
-            proc.kill()
-            proc.wait()
+            try:
+                proc.wait(timeout=self.config.shutdown_timeout_seconds)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                proc.wait()
         self._proc = None
         self._fail_waiters(self._runtime_closed_error("Hydra harness runtime closed"))
         if self._reader_thread and self._reader_thread.is_alive():

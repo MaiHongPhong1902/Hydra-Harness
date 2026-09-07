@@ -42,6 +42,8 @@ Portalled `Menu` lists attach to their enclosing dialog when present, otherwise 
 
 `HydraLogo` renders the [supplied artwork](../../../assets/branding/README.md) shared with the application icons and website. It mounts the supplied animation while hovered and removes it on leave. Pointer hover requests playback regardless of the OS reduced-motion preference; non-hover devices retain the still image. `BrandWordmark` pairs it with the product name.
 
+`MarkdownText.citations` resolves source links with verbatim quote titles after streaming settles. Unresolved source links render as plain text; resolved links carry the source id and passage offsets, open the recorded HTTP(S) URL, and expose the quote as their title. Ordinary links retain their normal URL policy.
+
 ## Model Experience
 
 None, as the package renders pure React atoms in the browser; nothing here reaches a model request.

@@ -35,50 +35,57 @@
 }
 
 .tabs {
-  display: flex;
-  align-items: flex-end;
-  gap: 22px;
-  border-bottom: 1px solid var(--dsw-alias-border-l2);
-  margin-top: 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px;
+  margin-top: 4px;
+  background: var(--dsw-alias-bg-layer-1);
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: var(--dsw-radius-control);
   overflow-x: auto;
+  max-width: 100%;
 }
 
 .tab {
   position: relative;
-  border: 0;
-  padding: 7px 1px 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 6px;
   background: transparent;
-  color: var(--dsw-alias-label-tertiary);
+  color: var(--dsw-alias-label-secondary);
   font: inherit;
   font-size: 13px;
-  line-height: 20px;
+  line-height: 18px;
+  font-weight: 450;
   cursor: pointer;
   flex: none;
   white-space: nowrap;
+  transition:
+    background var(--ds-transition-duration-fast, 120ms) var(--ds-ease-in-out, ease),
+    color var(--ds-transition-duration-fast, 120ms) var(--ds-ease-in-out, ease),
+    box-shadow var(--ds-transition-duration-fast, 120ms) var(--ds-ease-in-out, ease);
 }
 
-.tab:hover,
+.tab:hover {
+  color: var(--dsw-alias-label-primary);
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
 .tab[data-active='true'] {
   color: var(--dsw-alias-label-primary);
-}
-
-.tab[data-active='true']::after,
-.tab:focus-visible::after {
-  position: absolute;
-  right: 0;
-  bottom: -1px;
-  left: 0;
-  height: 2px;
-  border-radius: 2px 2px 0 0;
-  background: var(--dsw-alias-label-primary);
-  content: '';
+  background: var(--dsw-alias-bg-layer-2);
+  font-weight: 550;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 0 1px rgba(0, 0, 0, 0.08);
 }
 
 .tab:focus-visible {
-  outline: 2px solid var(--dsw-alias-state-business-primary);
-  outline-offset: 2px;
-  border-radius: 2px;
-  color: var(--dsw-alias-label-primary);
+  outline: 2px solid var(--dsw-alias-focus-ring);
+  outline-offset: 1px;
 }
 
 .panel {

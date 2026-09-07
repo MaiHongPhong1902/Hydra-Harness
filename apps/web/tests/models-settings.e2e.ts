@@ -19,6 +19,10 @@ import { join } from 'node:path'
 import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
+import { Context } from '@hydra/cordis'
+import { Config as PiAiConfig } from '@hydra/harness-llm-pi-ai'
+import { settingsNamespace } from '@hydra/harness-settings'
+import FileSettingsProvider from '@hydra/harness-settings-file'
 import {
   assertFixtureInventory, captureStableAria, compareOrRefreshGolden,
   launchWebScaffold, watchConsole, webSnapshotMode, type WebScaffold,
@@ -33,6 +37,7 @@ const DECLARED_EDIT_EXPECTED = join(SNAPSHOT_DIR, 'declared-edit.expected.md')
 const MODEL_PICKER_EXPECTED = join(SNAPSHOT_DIR, 'model-picker.expected.md')
 const NATIVE_DELETE_EXPECTED = join(SNAPSHOT_DIR, 'native-delete.expected.md')
 const DELETE_EXPECTED = join(SNAPSHOT_DIR, 'delete.expected.md')
+const DELETED_EXPECTED = join(SNAPSHOT_DIR, 'deleted.expected.md')
 const MODE = webSnapshotMode()
 
 describe('web e2e: Models settings page configures a dormant provider', () => {
@@ -40,6 +45,7 @@ describe('web e2e: Models settings page configures a dormant provider', () => {
   let browser: Browser
   let page: Page
   let tripwire: ReturnType<typeof watchConsole>
+  let peer: Context | undefined
 
   beforeAll(async () => {
     scaffold = await launchWebScaffold({})
@@ -52,6 +58,7 @@ describe('web e2e: Models settings page configures a dormant provider', () => {
 
   afterAll(async () => {
     await browser?.close()
+    await peer?.fiber.dispose()
     await scaffold?.close()
   })
 
@@ -296,6 +303,11 @@ describe('web e2e: Models settings page configures a dormant provider', () => {
 
     await deleteDialog.getByRole('button', { name: 'Cancel', exact: true }).click()
     expect(await readFile(join(scaffold.harnessHome, 'settings.yaml'), 'utf8')).toContain('minimax-cn:')
+    // A second process can still hold the provider before the UI deletes it.
+    peer = new Context()
+    await peer.plugin(FileSettingsProvider, { hydraHome: scaffold.harnessHome, watch: false })
+    const ns = settingsNamespace('llm-pi-ai')
+    peer.settings.register(ns, PiAiConfig)
     await settingsDialog.getByRole('button', { name: 'Delete minimax-cn', exact: true }).click()
     await page.getByRole('dialog', { name: 'Delete minimax-cn?' })
       .getByRole('button', { name: 'Delete minimax-cn', exact: true }).click()
@@ -309,6 +321,26 @@ describe('web e2e: Models settings page configures a dormant provider', () => {
       async () => page.getByRole('dialog', { name: 'Delete minimax-cn?' }).count(),
       { timeout: 10_000 },
     ).toBe(0)
+
+    await peer.settings.mutate(ns, [{
+      op: 'set', path: ['providers', 'acme-gateway', 'baseURL'], value: 'https://updated.acme.example/v1',
+    }])
+    const document = await readFile(join(scaffold.harnessHome, 'settings.yaml'), 'utf8')
+    expect(document).not.toContain('minimax-cn:')
+    expect(document).toContain('https://updated.acme.example/v1')
+    await expect.poll(() => scaffold.ctx.settings.get(ns)).toMatchObject({
+      providers: { 'acme-gateway': { baseURL: 'https://updated.acme.example/v1' } },
+    })
+    await expect.poll(() => scaffold.ctx.llm.listProviders().map(provider => provider.id)).not.toContain('minimax-cn')
+
+    await page.reload()
+    await page.getByRole('button', { name: 'Settings', exact: true }).click()
+    const reopened = page.getByRole('dialog', { name: 'Settings' })
+    await reopened.getByRole('button', { name: 'Models', exact: true }).click()
+    await reopened.getByRole('button', { name: 'Edit Renamed Acme Gateway (acme-gateway)' }).waitFor()
+    expect(await reopened.getByRole('button', { name: 'Edit minimax-cn', exact: true }).count()).toBe(0)
+    await compareOrRefreshGolden(DELETED_EXPECTED,
+      await captureStableAria(page, '[role="dialog"]', scaffold.workspaceCwd), MODE)
     await page.keyboard.press('Escape')
     expect(tripwire.pageErrors).toEqual([])
   }, 60_000)
@@ -316,7 +348,7 @@ describe('web e2e: Models settings page configures a dormant provider', () => {
   it.skipIf(MODE === 'record')('keeps the fixture inventory closed', async () => {
     await assertFixtureInventory(SNAPSHOT_DIR, [
       'configured.expected.md', 'declared-edit.expected.md', 'declared.expected.md',
-      'delete.expected.md', 'empty.expected.md', 'model-picker.expected.md',
+      'delete.expected.md', 'deleted.expected.md', 'empty.expected.md', 'model-picker.expected.md',
       'native-delete.expected.md',
     ])
   })

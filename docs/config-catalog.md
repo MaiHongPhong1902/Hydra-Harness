@@ -423,7 +423,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/browser/browser-electron/src/index.ts:125`](../packages/browser/browser-electron/src/index.ts)
+Source: [`packages/browser/browser-electron/src/index.ts:126`](../packages/browser/browser-electron/src/index.ts)
 
 <a id="hydraharness-client-connection"></a>
 
@@ -1702,6 +1702,30 @@ export interface Config {
 
 Source: [`packages/guard/repeat-tool-reminder/src/index.ts:28`](../packages/guard/repeat-tool-reminder/src/index.ts)
 
+<a id="hydraharness-research-policy"></a>
+
+## `@hydra/harness-research-policy`
+
+Requires: `tools` · `sessions`
+
+```ts config-catalog
+/** Deployment bounds for one root session, including resumed turns and descendants. */
+export interface Config {
+  /** Maximum admitted search tool calls per root session. */
+  maxSearchCalls?: number
+  /** Maximum distinct query strings summed across admitted search calls. */
+  maxQueries?: number
+  /** Maximum fetch tool calls per root session. */
+  maxFetches?: number
+  /** Maximum browser tool calls per root session. */
+  maxBrowserCalls?: number
+  /** Wall-clock milliseconds since the first research admission; time continues while idle. */
+  maxDurationMs?: number
+}
+```
+
+Source: [`packages/guard/research-policy/src/index.ts:14`](../packages/guard/research-policy/src/index.ts)
+
 <a id="hydraharness-sandbox-local"></a>
 
 ## `@hydra/harness-sandbox-local`
@@ -2243,6 +2267,22 @@ export type JournalMode = 'wal' | 'delete' | 'truncate' | 'persist'
 ```
 
 Source: [`packages/storage/storage-sqlite/src/index.ts:24`](../packages/storage/storage-sqlite/src/index.ts)
+
+<a id="hydraharness-subagent"></a>
+
+## `@hydra/harness-subagent`
+
+```ts config-catalog
+/** Tree admission bounds, supplied explicitly by the deployment. */
+export interface DelegationLimits {
+  /** Maximum simultaneous child residencies and pending starts per root. */
+  maxActivePerTree?: number
+  /** Maximum cumulative child creation attempts per root session, including failed attempts. */
+  maxChildrenPerTree?: number
+}
+```
+
+Source: [`packages/subagent/subagent/src/budget.ts:34`](../packages/subagent/subagent/src/budget.ts)
 
 <a id="hydraharness-subagent-acp"></a>
 
@@ -3151,14 +3191,18 @@ Source: [`packages/interaction/user-approval/src/index.ts:177`](../packages/inte
  * must feed these same fields rather than introduce a hidden priority chain.
  */
 export interface WebRuntimeConfig {
+  /** Product Settings owns selection; no single-provider auto-selection. */
+  readonly requireSearchSelection?: boolean
   /** Explicit search provider id. Omitted = auto-select when exactly one usable. */
   readonly searchProvider?: string
   /** Explicit fetch provider id. Omitted = auto-select when exactly one usable. */
   readonly fetchProvider?: string
+  /** Ordered backup search providers; requires an explicit primary searchProvider. Defaults to none. */
+  readonly searchFallbackProviders?: string[]
 }
 ```
 
-Source: [`packages/web/web/src/index.ts:55`](../packages/web/web/src/index.ts)
+Source: [`packages/web/web/src/index.ts:61`](../packages/web/web/src/index.ts)
 
 <a id="hydraharness-web-app"></a>
 
@@ -3208,6 +3252,8 @@ export interface Config {
   maxRedirects?: number
   /** `User-Agent` header sent on every request. */
   userAgent?: string
+  /** Exact HTTP(S) origins permitted to reach private addresses. Defaults to none. */
+  allowedOrigins?: string[]
 }
 ```
 
@@ -3264,6 +3310,76 @@ export interface Config {
 ```
 
 Source: [`packages/web/web-search-exa/src/index.ts:38`](../packages/web/web-search-exa/src/index.ts)
+
+<a id="hydraharness-web-search-http"></a>
+
+## `@hydra/harness-web-search-http`
+
+Requires: `web`
+
+```ts config-catalog
+/** Operator bases for the independent saved provider sections. */
+export interface Config {
+  /** Serper credential reference and request limits. */
+  serper?: Pick<Partial<HttpSearchConfig>, 'apiKeyEnv' | 'maxResults' | 'timeoutMs' | 'maxResponseBytes'>
+  /** Other provider endpoint, authentication, and JSON mappings. */
+  custom?: Partial<HttpSearchConfig>
+}
+
+/** Fully resolved, secret-free configuration captured once per request. */
+export interface HttpSearchConfig {
+  /** Name shown for this configured search service. */
+  displayName: string
+  /** HTTP(S) search URL; empty means unconfigured. */
+  endpoint: string
+  /** Query parameters for GET, JSON body for POST. */
+  method: 'GET' | 'POST'
+  /** Authentication scheme for the primary credential. */
+  auth: 'none' | 'bearer' | 'api_key_header' | 'custom_header'
+  /** Header receiving the primary key for header authentication. */
+  authHeader: string
+  /** Credential reference; never a plaintext key. */
+  apiKeyEnv: string
+  /** Dot-path receiving the search query. */
+  queryField: string
+  /** Dot-path receiving the provider result cap; empty omits it. */
+  limitField: string
+  /** Dot-path to the response result array. */
+  resultsPath: string
+  /** Result title dot-path; empty omits it. */
+  titleField: string
+  /** Result URL dot-path; must resolve to an HTTP(S) URL. */
+  urlField: string
+  /** Result excerpt dot-path; empty omits it. */
+  snippetField: string
+  /** Publication date dot-path; empty omits it. */
+  publishedAtField: string
+  /** Numeric relevance score dot-path; empty omits it. */
+  scoreField: string
+  /** Numeric provider rank dot-path; empty omits it. */
+  positionField: string
+  /** Country request dot-path; empty omits it. */
+  countryField: string
+  /** Language request dot-path; empty omits it. */
+  languageField: string
+  /** Search type request dot-path; empty omits it. */
+  typeField: string
+  /** Date filter request dot-path; empty omits it. */
+  dateField: string
+  /** JSON object mapping custom header names to credential references. */
+  headerRefs: string
+  /** JSON object with non-secret constant request fields. */
+  staticBody: string
+  /** Whole-request deadline in milliseconds, including credentials. */
+  timeoutMs: number
+  /** Maximum JSON response size in bytes before parsing. */
+  maxResponseBytes: number
+  /** Provider request limit; the common tool may impose a smaller total. */
+  maxResults: number
+}
+```
+
+Source: [`packages/web/web-search-http/src/index.ts:74`](../packages/web/web-search-http/src/index.ts)
 
 <a id="hydraharness-web-search-perplexity"></a>
 
@@ -3386,7 +3502,6 @@ These load from a `cordis.yml` entry with no `config:` block; they declare no co
 - `@hydra/harness-session-stats` — requires `sessionProjections` ([`packages/session/session-stats/src/index.ts`](../packages/session/session-stats/src/index.ts))
 - `@hydra/harness-skill-badge` — requires `skills` ([`packages/skill/skill-badge/src/index.ts`](../packages/skill/skill-badge/src/index.ts))
 - `@hydra/harness-storage` ([`packages/storage/storage/src/index.ts`](../packages/storage/storage/src/index.ts))
-- `@hydra/harness-subagent` ([`packages/subagent/subagent/src/index.ts`](../packages/subagent/subagent/src/index.ts))
 - `@hydra/harness-subprocess-local` ([`packages/subprocess/subprocess-local/src/index.ts`](../packages/subprocess/subprocess-local/src/index.ts))
 - `@hydra/harness-terminal` ([`packages/terminal/terminal/src/index.ts`](../packages/terminal/terminal/src/index.ts))
 - `@hydra/harness-tool-ask-user` — requires `tools` · `userQuestions` ([`packages/interaction/tool-ask-user/src/index.ts`](../packages/interaction/tool-ask-user/src/index.ts))

@@ -1,7 +1,7 @@
 /* Settings shell (figma 501:29904 mask context / 501:29947 panel): sidebar
    foot trigger row + centered 1080x700 modal panel. The trigger uses the
    sidebar foot's 42px row / 36px rail circle rhythm; the
-   panel is a two-column layout — 188px nav rail + content column with a
+   panel is a two-column layout -- 188px nav rail + content column with a
    54px header and the 24px-padded options area. */
 
 /* Trigger row: the 42px foot-row box shared with the Cordis footer action. */
@@ -77,7 +77,7 @@
 }
 
 /* Nav rail (figma .Setting-nav 501:29958): 188 wide, pad (12,22,12,0),
-   gap 18, no own fill — the panel white shows through. */
+   gap 18, no own fill -- the panel white shows through. */
 .nav {
   flex: none;
   display: flex;
@@ -109,6 +109,7 @@
 /* Nav cell (figma .Setting-nav-cell 501:29962): 164x40, r12, pad
    (12,9,16,9), gap 8; label 14/400 lh22; selected fill #EBEEF2. */
 .navCell {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -123,20 +124,49 @@
   font-size: 14px;
   line-height: 22px;
   font-weight: 400;
-  color: var(--dsw-alias-label-primary);
+  color: var(--dsw-alias-label-secondary);
   text-align: left;
+  transition:
+    background var(--ds-transition-duration-fast, 120ms) var(--ds-ease-in-out, ease),
+    color var(--ds-transition-duration-fast, 120ms) var(--ds-ease-in-out, ease);
 }
 
 .navCell:hover {
   background: var(--dsw-specific-sidebar-nav-item-hover);
+  color: var(--dsw-alias-label-primary);
 }
 
 .navCell.active {
   background: var(--dsw-specific-sidebar-nav-item-active);
+  color: var(--dsw-alias-label-primary);
+  font-weight: 500;
+}
+
+.navCell.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 9px;
+  bottom: 9px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--dsw-alias-brand-primary);
+}
+
+.navCell:focus-visible {
+  outline: 2px solid var(--dsw-alias-focus-ring);
+  outline-offset: -1px;
 }
 
 .navIcon {
   flex: none;
+  opacity: 0.85;
+  transition: opacity var(--ds-transition-duration-fast, 120ms) ease;
+}
+
+.navCell:hover .navIcon,
+.navCell.active .navIcon {
+  opacity: 1;
 }
 
 .navLabel {

@@ -519,7 +519,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       {
         signature: 'async perform( owner: Agent, action: BrowserAction, execution: BrowserExecutionContext = {}, ): Promise<BrowserOutcome>',
         description: 'Do one thing to an owner\'s page and report the page afterwards.\n\nThe trailing state read is not a convenience: PageController indexes elements while building the tree, so the snapshot both answers the caller and leaves the next action addressable. Explicit targets are ordered per tab and may overlap across tabs; implicit and lifecycle actions are barriers.',
-        parameters: [{ name: 'owner', description: 'agent whose window this is; its first call starts one.' }, { name: 'action', description: 'what to do, in page-agent\'s own vocabulary.' }, { name: 'execution', description: 'tool-call identity and cancellation for an interactive upload approval.' }],
+        parameters: [{ name: 'owner', description: 'agent whose window this is; its first call starts one.' }, { name: 'action', description: 'what to do, in page-agent\'s own vocabulary.' }, { name: 'execution', description: 'tool-call identity and cancellation for browser actions and permissions.' }],
         returns: 'the action\'s report, omitted for a plain state read, plus the state.',
       },
       {
@@ -936,7 +936,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
   {
     key: 'hookRecords',
     summary: 'Settings-backed hook records with their live bridge mounts.',
-    description: 'Settings-backed hook records with their live bridge mounts. Reconciliation is idempotent and runs on one serialized chain, so a document commit from any source — this service\'s own write, another process, or a hand edit — converges the mounted set on the stored one.',
+    description: 'Settings-backed hook records with their live bridge mounts. Reconciliation is idempotent and runs on one serialized chain, so a document commit from any source — this service\'s own write, another process, or a hand edit — converges the mounted set on the stored one. Mutations reject with `SettingsConflictError` if another writer changes the stored section after the read; retry uses the refreshed projection.',
     methods: [
       {
         signature: 'list(): HookRecordSnapshot',
@@ -1253,7 +1253,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
   {
     key: 'mcpServers',
     summary: 'Settings-backed MCP server records with their live `mcp-client` mounts.',
-    description: 'Settings-backed MCP server records with their live `mcp-client` mounts. Reconciliation is idempotent and runs on one serialized chain, so a document commit from any source — this service\'s own write, another process, or a hand edit — converges the mounted set on the stored one.',
+    description: 'Settings-backed MCP server records with their live `mcp-client` mounts. Reconciliation is idempotent and runs on one serialized chain, so a document commit from any source — this service\'s own write, another process, or a hand edit — converges the mounted set on the stored one. Mutations reject with `SettingsConflictError` if another writer changes the stored section after the read; retry uses the refreshed projection.',
     methods: [
       {
         signature: 'list(): McpServerSnapshot',
@@ -2472,6 +2472,29 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     description: 'The web access service. Registered as `ctx.web` (one instance per context).\n\nSelection semantics (resolved at execution time, never order-dependent):\n\n- A configured id that is registered and `available()` → that provider.\n- A configured id not registered → `WEB_PROVIDER_CONFIGURED_MISSING`.\n- A configured id registered but unavailable → `WEB_PROVIDER_CONFIGURED_UNAVAILABLE`.\n- No id configured, exactly one registered usable provider → that provider.\n- No id configured, multiple usable providers → `WEB_PROVIDER_AMBIGUOUS`.\n- No id configured, no usable provider → `WEB_PROVIDER_UNAVAILABLE`.',
     methods: [
       {
+        signature: 'searchPreferences(): WebSearchSettings | undefined',
+        description: 'Read current product limits; standalone compositions retain tool-level limits.',
+        parameters: [],
+        returns: 'saved invocation preferences when product selection is enabled.',
+      },
+      {
+        signature: 'listSearchProviders(): WebSearchProviderDescriptor[]',
+        description: 'List provider-owned, secret-free Settings descriptors.',
+        parameters: [],
+        returns: 'configurable providers in registration order.',
+      },
+      {
+        signature: 'async migrateSearchSelection(provider: string, configured: boolean): Promise<void>',
+        description: 'Persist the first search selection from explicit legacy configuration only. An explicit empty selection also marks a fresh installation as initialized.',
+        parameters: [{ name: 'provider', description: 'legacy registered id.' }, { name: 'configured', description: 'whether a legacy search section contains explicit settings.' }],
+      },
+      {
+        signature: 'async testSearchProvider(id: string, signal?: AbortSignal): Promise<WebSearchResult>',
+        description: 'Execute a small real search with a saved provider without changing selection.',
+        parameters: [{ name: 'id', description: 'registered provider to test.' }, { name: 'signal', description: 'caller cancellation.' }],
+        returns: 'normalized results after validating the provider response.',
+      },
+      {
         signature: 'registerSearchProvider(provider: WebSearchProvider): () => void',
         description: 'Register a search provider. Throws WebError `WEB_DUPLICATE_PROVIDER` if its id is already registered for search. Returns a disposer; disposed with the calling fiber.',
         parameters: [{ name: 'provider', description: 'the provider; its `id` is the registry key.' }],
@@ -2485,7 +2508,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       },
       {
         signature: 'async search(request: WebSearchRequest, signal?: AbortSignal): Promise<WebSearchResult>',
-        description: 'Run one search through the selected provider. Resolves the provider at call time with the selection rules above; throws WebError when the capability cannot run. The seam enforces `request.maxResults` on the result: if the provider over-returns, `sources[]` is truncated and `truncated` set.',
+        description: 'Run one search through the selected provider. Resolves the provider at call time with the selection rules above; throws WebError when the capability cannot run. The seam enforces `request.maxResults` on the result: if the provider over-returns, `sources[]` is truncated and `truncated` set. Configured fallbacks share the caller signal and retry only provider or credential unavailability; missing registrations and cancellation stop the chain.',
         parameters: [{ name: 'request', description: 'the query and optional result limit.' }, { name: 'signal', description: 'optional cancellation signal forwarded to the provider.' }],
         returns: 'the provider\'s results, capped to `request.maxResults`.',
       },
@@ -3557,6 +3580,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type CredentialRef = Branded<\'CredentialRef\'>;',
   },
   {
+    name: 'DelegationLimits',
+    declaration: 'export interface DelegationLimits {\n    maxActivePerTree?: number;\n    maxChildrenPerTree?: number;\n}',
+  },
+  {
     name: 'DiffCallView',
     declaration: 'export interface DiffCallView {\n    card: \'diff\';\n    title: string;\n    diffs: FileDiff[];\n    locations?: FileLocation[];\n}',
   },
@@ -4465,6 +4492,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type ScopeKey = object;',
   },
   {
+    name: 'SearchConfigField',
+    declaration: 'export interface SearchConfigField {\n    key: string;\n    label: string;\n    kind: \'text\' | \'number\' | \'select\' | \'json\';\n    options?: string[];\n    advanced?: boolean;\n    hint?: string;\n}',
+  },
+  {
     name: 'SearchFileMatches',
     declaration: 'export interface SearchFileMatches {\n    path: string;\n    matches: SearchLineMatch[];\n}',
   },
@@ -4938,7 +4969,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SubagentRuntime',
-    declaration: 'export class SubagentRuntime extends Service {\n    constructor(ctx: Context);\n    async startContinuable(spec: ContinuableStartSpec): Promise<ContinuableStart>;\n    async followup(parent: Agent, childId: SessionId, content: ContentBlock[], options: SubagentFollowupOptions): Promise<MessageId>;\n    interrupt(targetSessionId: SessionId, authority: SubagentInterruptAuthority): void;\n    async reportFrom(child: Agent, content: ContentBlock[], options: SubagentReportOptions): Promise<MessageId>;\n    registerContinuableSetup(contribution: ContinuableSetupContribution): () => void;\n    async drainContinuableDescendants(parents: readonly Agent[]): Promise<void>;\n    async drainContinuableChildren(parent: Agent, childIds: readonly SessionId[]): Promise<void>;\n    listChildren(parentSessionId: SessionId, signal?: AbortSignal): Promise<SubagentListEntry[]>;\n    listDescendants(rootSessionId: SessionId, signal?: AbortSignal): Promise<SubagentDescendantListEntry[]>;\n    registerProvider(provider: SubagentProvider): () => void;\n    getProvider(name: string): SubagentProvider | undefined;\n    list(): string[];\n    async start(name: string, request: SubagentStartRequest): Promise<SubagentRun>;\n}',
+    declaration: 'export class SubagentRuntime extends Service {\n    static Config: z<DelegationLimits>;\n    constructor(ctx: Context, config: DelegationLimits = {});\n    async startContinuable(spec: ContinuableStartSpec): Promise<ContinuableStart>;\n    async followup(parent: Agent, childId: SessionId, content: ContentBlock[], options: SubagentFollowupOptions): Promise<MessageId>;\n    interrupt(targetSessionId: SessionId, authority: SubagentInterruptAuthority): void;\n    async reportFrom(child: Agent, content: ContentBlock[], options: SubagentReportOptions): Promise<MessageId>;\n    registerContinuableSetup(contribution: ContinuableSetupContribution): () => void;\n    async drainContinuableDescendants(parents: readonly Agent[]): Promise<void>;\n    async drainContinuableChildren(parent: Agent, childIds: readonly SessionId[]): Promise<void>;\n    listChildren(parentSessionId: SessionId, signal?: AbortSignal): Promise<SubagentListEntry[]>;\n    listDescendants(rootSessionId: SessionId, signal?: AbortSignal): Promise<SubagentDescendantListEntry[]>;\n    registerProvider(provider: SubagentProvider): () => void;\n    getProvider(name: string): SubagentProvider | undefined;\n    list(): string[];\n    async start(name: string, request: SubagentStartRequest): Promise<SubagentRun>;\n}',
   },
   {
     name: 'SubagentStartRequest',
@@ -5402,15 +5433,19 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'WebSearchProvider',
-    declaration: 'export interface WebSearchProvider {\n    readonly id: string;\n    available(): boolean;\n    search(request: WebSearchRequest, signal?: AbortSignal): Promise<WebSearchResult>;\n}',
+    declaration: 'export interface WebSearchProvider {\n    readonly id: string;\n    readonly descriptor?: WebSearchProviderDescriptor;\n    available(): boolean;\n    search(request: WebSearchRequest, signal?: AbortSignal): Promise<WebSearchResult>;\n}',
+  },
+  {
+    name: 'WebSearchProviderDescriptor',
+    declaration: 'export interface WebSearchProviderDescriptor {\n    id: string;\n    displayName: string;\n    description?: string;\n    capabilities: Record<WebSearchType, boolean>;\n    configurable: boolean;\n    settingsNs: string;\n    credentialRef: string;\n    fields: SearchConfigField[];\n}',
   },
   {
     name: 'WebSearchRequest',
-    declaration: 'export interface WebSearchRequest {\n    readonly query: string;\n    readonly maxResults?: number;\n}',
+    declaration: 'export interface WebSearchRequest {\n    readonly query: string;\n    readonly type?: WebSearchType;\n    readonly country?: string;\n    readonly language?: string;\n    readonly date?: string;\n    readonly maxResults?: number;\n}',
   },
   {
     name: 'WebSearchResult',
-    declaration: 'export interface WebSearchResult {\n    readonly content?: string;\n    readonly sources: readonly WebSearchSource[];\n    readonly truncated: boolean;\n}',
+    declaration: 'export interface WebSearchResult {\n    readonly provider?: string;\n    readonly query?: string;\n    readonly statusCode?: number;\n    readonly content?: string;\n    readonly sources: readonly WebSearchSource[];\n    readonly truncated: boolean;\n}',
   },
   {
     name: 'WebSearchResultView',
@@ -5418,7 +5453,11 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'WebSearchSource',
-    declaration: 'export interface WebSearchSource {\n    readonly url: string;\n    readonly title?: string;\n    readonly snippet?: string;\n    readonly publishedAt?: string;\n}',
+    declaration: 'export interface WebSearchSource {\n    readonly url: string;\n    readonly title?: string;\n    readonly snippet?: string;\n    readonly publishedAt?: string;\n    readonly provider?: string;\n    readonly position?: number;\n    readonly score?: number;\n}',
+  },
+  {
+    name: 'WebSearchType',
+    declaration: 'export type WebSearchType = \'web\' | \'images\' | \'news\' | \'videos\' | \'academic\';',
   },
   {
     name: 'WebSource',

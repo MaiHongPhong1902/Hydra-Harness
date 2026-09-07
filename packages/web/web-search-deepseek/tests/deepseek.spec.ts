@@ -5,6 +5,7 @@ import { join } from 'node:path'
 import { Context } from '@hydra/cordis'
 import Loader from '@hydra/cordis-plugin-loader'
 import { credentialRef } from '@hydra/harness-credentials'
+import { SettingsProvider, settingsNamespace, type SettingsNamespace } from '@hydra/harness-settings'
 import LocalCredentialProvider from '@hydra/harness-credentials-local'
 import WebRuntime from '@hydra/harness-web'
 import {
@@ -51,6 +52,7 @@ function searchResponse(): AnthropicResponse {
 }
 
 afterEach(() => {
+  vi.restoreAllMocks()
   vi.unstubAllGlobals()
 })
 
@@ -166,7 +168,63 @@ describe('DeepSeekSearchProvider availability', () => {
   })
 })
 
+class LegacySearchSettings extends SettingsProvider {
+  readonly writable = true
+  doc: Record<string, unknown> = { 'web-search-deepseek': { apiKey: 'legacy-search-secret' } }
+  protected async load() { return this.doc }
+  protected async persist(ns: SettingsNamespace, section: Record<string, unknown>) { this.doc[ns] = section }
+}
+
+describe('DeepSeek credential isolation', () => {
+  it('moves a legacy user-layer key to Credentials before removing plaintext settings', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'hydra-search-migration-'))
+    const ctx = new Context()
+    try {
+      await ctx.plugin(LegacySearchSettings)
+      await ctx.plugin(LocalCredentialProvider, { path: join(dir, '.credentials.yaml'), watch: false })
+      await ctx.plugin(WebRuntime, { requireSearchSelection: true })
+      const failed = vi.spyOn(ctx.credentials, 'set').mockRejectedValueOnce(new Error('write failed'))
+      const first = await ctx.plugin(deepseekPlugin, {})
+      await vi.waitFor(() => { expect(failed).toHaveBeenCalledOnce() })
+      expect(ctx.settings.get(settingsNamespace('web-search-deepseek'))).toMatchObject({ apiKey: 'legacy-search-secret' })
+      await first.dispose()
+      failed.mockRestore()
+      await ctx.plugin(deepseekPlugin, {})
+      expect(ctx.web.searchPreferences()?.provider).toBe('deepseek-official')
+      await vi.waitFor(() => { expect(JSON.stringify((ctx.settings as LegacySearchSettings).doc)).not.toContain('legacy-search-secret') })
+      expect(ctx.settings.get(settingsNamespace('web-search-deepseek'))).toMatchObject({ apiKeyEnv: 'HYDRA_DEEPSEEK_SEARCH_API_KEY' })
+      expect(await ctx.credentials.resolve(credentialRef('HYDRA_DEEPSEEK_SEARCH_API_KEY'))).toMatchObject({ value: 'legacy-search-secret' })
+      const fetch = vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(searchResponse()))
+      await ctx.web.search({ query: 'migrated' })
+      expect(new Headers(fetch.mock.calls[0]?.[1]?.headers).get('x-api-key')).toBe('legacy-search-secret')
+    } finally {
+      await ctx.fiber.dispose()
+      await rm(dir, { recursive: true, force: true })
+    }
+  })
+
+  it.each(['https://user:secret@example.com', 'https://example.com?api_key=secret', 'https://example.com#secret', 'file:///secret'])(
+    'rejects credential-bearing or non-HTTP endpoints before logging %s', async (baseURL) => {
+      const recordRequest = vi.fn()
+      const resolveApiKey = vi.fn(async () => 'key')
+      await expect(searchProvider({ ...options, baseURL, recordRequest, resolveApiKey }).search({ query: 'q' }))
+        .rejects.toMatchObject({ code: 'CONFIG_ERROR' })
+      expect(recordRequest).not.toHaveBeenCalled()
+      expect(resolveApiKey).not.toHaveBeenCalled()
+    },
+  )
+})
+
 describe('DeepSeekSearchProvider request mapping', () => {
+  it('includes prompt locale hints in the logged auxiliary search request', async () => {
+    const recordRequest = vi.fn()
+    const fetch = vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(searchResponse()))
+    await searchProvider({ ...options, recordRequest }).search({ query: 'điện tử', country: 'vn', language: 'vi' })
+    const body = JSON.parse(fetch.mock.calls[0]?.[1]?.body as string) as unknown
+    expect(body).toMatchObject({ messages: [{ content: [{ text: 'Perform a web search for the query: điện tử\nSearch country: vn.\nSearch language: vi.' }] }] })
+    expect(recordRequest).toHaveBeenCalledWith(expect.objectContaining({ body }))
+  })
+
   it('records and posts the same Anthropic Messages request with the web_search server tool', async () => {
     const fetchMock = vi.fn(async () => jsonResponse(searchResponse()))
     const recordRequest = vi.fn()
@@ -285,7 +343,7 @@ describe('DeepSeekSearchProvider error handling', () => {
     expect((init.headers as Record<string, string>)['x-api-key']).toBe('resolved-key')
   })
 
-  it('maps a credential resolver rejection under an active signal to WEB_PROVIDER_ERROR', async () => {
+  it('maps a credential resolver rejection under an active signal to CONFIG_ERROR', async () => {
     const controller = new AbortController()
     await expect(searchProvider({
       ...options,
@@ -293,14 +351,14 @@ describe('DeepSeekSearchProvider error handling', () => {
       resolveApiKey: () => Promise.reject(new Error('credential backend failed')),
     }).search({ query: 'q' }, controller.signal))
       .rejects.toThrow(expect.objectContaining({
-        code: 'WEB_PROVIDER_ERROR',
-        message: 'DeepSeek search credential resolution failed: Error: credential backend failed',
+        code: 'CONFIG_ERROR',
+        message: 'Configure the provider and its credential in Settings > Web Search.',
       }))
   })
 
   it('uses the default credential reference when no resolver is configured', async () => {
     await expect(searchProvider({ ...options, apiKey: '' }).search({ query: 'q' }))
-      .rejects.toThrow('DeepSeek search has no API key for "DEEPSEEK_API_KEY"')
+      .rejects.toThrow('Configure the provider and its credential in Settings > Web Search.')
   })
 
   it('observes cancellation triggered synchronously by credential resolution', async () => {
@@ -319,28 +377,28 @@ describe('DeepSeekSearchProvider error handling', () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
-  it('maps an HTTP error to WEB_PROVIDER_ERROR with the provider message', async () => {
+  it('maps HTTP 429 to a safe quota error', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({ error: { message: 'rate limited' } }, { status: 429 })))
     await expect(searchProvider(options).search({ query: 'q' }))
-      .rejects.toThrow(expect.objectContaining({ code: 'WEB_PROVIDER_ERROR', message: 'rate limited' }))
+      .rejects.toThrow(expect.objectContaining({ code: 'RATE_LIMITED', statusCode: 429 }))
   })
 
   it('handles a string-form error body', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({ error: 'bad request' }, { status: 400 })))
     await expect(searchProvider(options).search({ query: 'q' }))
-      .rejects.toThrow(expect.objectContaining({ message: 'bad request' }))
+      .rejects.toThrow(expect.objectContaining({ code: 'CONFIG_ERROR' }))
   })
 
   it('keeps a status-line message when the error body is not JSON', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response('upstream error', { status: 503 })))
     await expect(searchProvider(options).search({ query: 'q' }))
-      .rejects.toThrow(expect.objectContaining({ message: 'DeepSeek API error (HTTP 503)' }))
+      .rejects.toThrow(expect.objectContaining({ code: 'NETWORK_ERROR', statusCode: 503 }))
   })
 
   it('keeps the status-line message when the JSON error body carries no detail', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({}, { status: 500 })))
     await expect(searchProvider(options).search({ query: 'q' }))
-      .rejects.toThrow(expect.objectContaining({ message: 'DeepSeek API error (HTTP 500)' }))
+      .rejects.toThrow(expect.objectContaining({ code: 'NETWORK_ERROR', statusCode: 500 }))
   })
 
   it('maps an abort to WEB_ABORTED', async () => {
@@ -360,16 +418,16 @@ describe('DeepSeekSearchProvider error handling', () => {
     await expect(search).rejects.toThrow(expect.objectContaining({ code: 'WEB_ABORTED' }))
   })
 
-  it('maps an unparseable success body to WEB_PROVIDER_ERROR', async () => {
+  it('maps an unparseable success body to INVALID_RESPONSE', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response('not json', { status: 200 })))
     await expect(searchProvider(options).search({ query: 'q' }))
-      .rejects.toThrow(expect.objectContaining({ code: 'WEB_PROVIDER_ERROR' }))
+      .rejects.toThrow(expect.objectContaining({ code: 'INVALID_RESPONSE' }))
   })
 
-  it('maps a well-formed body of the wrong shape to WEB_PROVIDER_ERROR, not a raw TypeError', async () => {
+  it('maps a well-formed body of the wrong shape to INVALID_RESPONSE, not a raw TypeError', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({ content: {} }, { status: 200 })))
     await expect(searchProvider(options).search({ query: 'q' }))
-      .rejects.toThrow(expect.objectContaining({ code: 'WEB_PROVIDER_ERROR' }))
+      .rejects.toThrow(expect.objectContaining({ code: 'INVALID_RESPONSE' }))
   })
 
   it('surfaces an abort during success-body parse as WEB_ABORTED', async () => {
@@ -379,23 +437,23 @@ describe('DeepSeekSearchProvider error handling', () => {
       .rejects.toThrow(expect.objectContaining({ code: 'WEB_ABORTED' }))
   })
 
-  it('surfaces an abort during error-body parse as WEB_ABORTED', async () => {
-    const body = { json: () => Promise.reject(new DOMException('aborted', 'AbortError')), ok: false, status: 500 }
-    vi.stubGlobal('fetch', vi.fn(async () => body as unknown as Response))
-    await expect(searchProvider(options).search({ query: 'q' }))
-      .rejects.toThrow(expect.objectContaining({ code: 'WEB_ABORTED' }))
+  it('does not parse upstream error bodies', async () => {
+    const json = vi.fn(() => Promise.reject(new Error('credential-echo')))
+    vi.stubGlobal('fetch', vi.fn(async () => ({ json, ok: false, status: 500 }) as unknown as Response))
+    await expect(searchProvider(options).search({ query: 'q' })).rejects.toMatchObject({ code: 'NETWORK_ERROR' })
+    expect(json).not.toHaveBeenCalled()
   })
 
-  it('maps a network failure to WEB_PROVIDER_ERROR', async () => {
+  it('maps a network failure to NETWORK_ERROR', async () => {
     vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new TypeError('connection refused'))))
     await expect(searchProvider(options).search({ query: 'q' }))
-      .rejects.toThrow(expect.objectContaining({ code: 'WEB_PROVIDER_ERROR' }))
+      .rejects.toThrow(expect.objectContaining({ code: 'NETWORK_ERROR' }))
   })
 
-  it('strict mode flows through search(): a prose-only response throws WEB_PROVIDER_ERROR', async () => {
+  it('strict mode flows through search(): a prose-only response throws INVALID_RESPONSE', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({ content: [{ type: 'text', text: 'no search happened' }] })))
     await expect(searchProvider(options).search({ query: 'q' }))
-      .rejects.toThrow(expect.objectContaining({ code: 'WEB_PROVIDER_ERROR' }))
+      .rejects.toThrow(expect.objectContaining({ code: 'INVALID_RESPONSE' }))
   })
 })
 
@@ -493,7 +551,7 @@ describe('web-search-deepseek plugin registration', () => {
       await ctx.plugin(deepseekPlugin, { baseURL: 'https://api.deepseek.test/anthropic/v1' })
 
       await expect(ctx.web.search({ query: 'missing' }))
-        .rejects.toThrow(expect.objectContaining({ code: 'WEB_PROVIDER_CREDENTIAL_MISSING' }))
+        .rejects.toThrow(expect.objectContaining({ code: 'CONFIG_ERROR' }))
 
       const ref = credentialRef('DEEPSEEK_API_KEY')
       await ctx.credentials.set(ref, 'stored-key')
@@ -524,9 +582,9 @@ describe('web-search-deepseek plugin registration', () => {
       } catch (error: unknown) {
         caught = error
       }
-      expect(caught).toMatchObject({ code: 'WEB_PROVIDER_CREDENTIAL_MISSING' })
+      expect(caught).toMatchObject({ code: 'CONFIG_ERROR' })
       if (!(caught instanceof Error)) throw new Error('search did not throw an Error')
-      expect(caught.message).toMatch(/store it through the credentials service.*Models page/s)
+      expect(caught.message).toMatch(/Settings > Web Search/)
     } finally {
       if (prev !== undefined) process.env.DEEPSEEK_API_KEY = prev
     }

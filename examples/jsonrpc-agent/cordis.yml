@@ -48,6 +48,9 @@
 
 - id: subagent
   name: '@hydra/harness-subagent'
+  config:
+    maxActivePerTree: 4
+    maxChildrenPerTree: 8
 
 - id: subagent-spawn-in-process
   name: '@hydra/harness-subagent-spawn-in-process'

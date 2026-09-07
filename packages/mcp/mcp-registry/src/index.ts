@@ -208,6 +208,8 @@ interface LiveMount {
  * Reconciliation is idempotent and runs on one serialized chain, so a document
  * commit from any source — this service's own write, another process, or a
  * hand edit — converges the mounted set on the stored one.
+ * Mutations reject with `SettingsConflictError` if another writer changes the
+ * stored section after the read; retry uses the refreshed projection.
  */
 export class McpServerRegistry extends Service {
   static inject = inject
@@ -258,6 +260,7 @@ export class McpServerRegistry extends Service {
    */
   define(request: McpServerDefinitionRequest): Promise<McpServerSnapshot> {
     return this.enqueue(async () => {
+      const revision = this.settings.revision
       const servers = this.settings.get().servers
       const index = servers.findIndex(candidate => candidate.name === request.name.trim())
       if (request.mode === 'create' && index !== -1) throw new Error(`mcpServers.define: server ${request.name} already exists`)
@@ -266,7 +269,7 @@ export class McpServerRegistry extends Service {
       assertMountable(record, 'mcpServers.define')
       const next = index === -1 ? [...servers, record] : servers.map((candidate, position) => position === index ? record : candidate)
       if (next.length > MAX_SERVERS) throw new Error(`mcpServers.define: at most ${String(MAX_SERVERS)} servers are supported`)
-      await this.settings.update({ servers: next })
+      await this.ctx.settings.update(MCP_SERVERS_SETTINGS_NAMESPACE, { servers: next }, revision)
       await this.reconcile()
       return this.list()
     })
@@ -279,13 +282,14 @@ export class McpServerRegistry extends Service {
    */
   setEnabled(request: McpServerEnablementRequest): Promise<McpServerSnapshot> {
     return this.enqueue(async () => {
+      const revision = this.settings.revision
       const servers = this.settings.get().servers
       const index = servers.findIndex(candidate => candidate.name === request.name)
       if (index === -1) throw new Error(`mcpServers.setEnabled: server ${request.name} is not configured`)
       const next = servers.map((candidate, position) => position === index
         ? { ...candidate, enabled: request.enabled }
         : candidate)
-      await this.settings.update({ servers: next })
+      await this.ctx.settings.update(MCP_SERVERS_SETTINGS_NAMESPACE, { servers: next }, revision)
       await this.reconcile()
       return this.list()
     })
@@ -298,11 +302,13 @@ export class McpServerRegistry extends Service {
    */
   remove(name: string): Promise<McpServerSnapshot> {
     return this.enqueue(async () => {
+      const revision = this.settings.revision
       const servers = this.settings.get().servers
       if (!servers.some(candidate => candidate.name === name)) {
         throw new Error(`mcpServers.remove: server ${name} is not configured`)
       }
-      await this.settings.replace({ servers: servers.filter(candidate => candidate.name !== name) })
+      await this.ctx.settings.replace(MCP_SERVERS_SETTINGS_NAMESPACE,
+        { servers: servers.filter(candidate => candidate.name !== name) }, revision)
       await this.reconcile()
       return this.list()
     })

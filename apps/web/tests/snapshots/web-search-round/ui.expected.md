@@ -12,6 +12,8 @@
 - text: Use web_search once with queries ["Hydra harness snapshot search","Hydra harness multi-query search"]. Then reply exactly SEARCH_DONE and stop. {{clock}}
 - button "Copy":
   - img
+- button "Edit":
+  - img
 - button "Context injection @hydra/harness-system-prompt":
   - img
   - img

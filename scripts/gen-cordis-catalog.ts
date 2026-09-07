@@ -505,6 +505,8 @@ export const LINK_MAP: Readonly<Record<string, string>> = {
   WebSearchProvider: 'web.md',
   WebSearchRequest: 'web.md',
   WebSearchResult: 'web.md',
+  WebSearchSettings: 'web.md',
+  WebSearchProviderDescriptor: 'web.md',
   WorkflowRun: 'workflow.md',
   PresetOption: 'permission-presets.md',
   PresetSpec: 'permission-presets.md',

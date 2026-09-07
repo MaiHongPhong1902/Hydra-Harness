@@ -46,6 +46,7 @@
     "@hydra/harness-invariants": "workspace:^",
     "@hydra/harness-settings": "workspace:^",
     "@hydra/harness-user-approval": "workspace:^",
+    "@hydra/harness-user-questions": "workspace:^",
     "@hydra/cordis": "workspace:^",
     "@hydra/schemastery": "workspace:^",
     "electron": "^43.4.1"
@@ -61,6 +62,7 @@
     "@hydra/harness-invariants": "workspace:^",
     "@hydra/harness-settings": "workspace:^",
     "@hydra/harness-user-approval": "workspace:^",
+    "@hydra/harness-user-questions": "workspace:^",
     "@hydra/harness-llm": "workspace:^",
     "@hydra/cordis": "workspace:^",
     "@hydra/schemastery": "workspace:^",

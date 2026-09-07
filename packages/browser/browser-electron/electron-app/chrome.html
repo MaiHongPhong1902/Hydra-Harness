@@ -2,6 +2,7 @@
 <html lang="en" data-theme="light">
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Hydra harness browser chrome</title>
     <style>
       :root {
@@ -37,19 +38,19 @@
         overflow: hidden;
       }
       .tabs { height: 34px; display: flex; align-items: end; gap: 4px; padding: 0 10px; background: var(--chrome-tabstrip); }
-      #tabs { min-width: 0; flex: 1; display: flex; align-items: end; gap: 4px; overflow: hidden; }
-      .tab { min-width: 0; width: min(240px, 40vw); height: 30px; display: flex; align-items: center; border-radius: 10px 10px 0 0; background: var(--chrome-hover); }
+      #tabs { min-width: 0; flex: 1; display: flex; align-items: end; gap: 4px; overflow: auto hidden; scrollbar-width: none; }
+      .tab { min-width: 96px; flex: 0 1 240px; height: 30px; display: flex; align-items: center; border-radius: 10px 10px 0 0; background: var(--chrome-hover); }
       .tab[aria-selected="true"] { background: var(--chrome-surface); }
       .tab-favicon { width: 14px; height: 14px; flex: 0 0 14px; margin-left: 10px; border-radius: 2px; }
       .tab-select { min-width: 0; flex: 1; height: 100%; padding: 7px 4px 7px 8px; overflow: hidden; border: 0; background: transparent; color: inherit; text-align: left; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
       .tab-close, #new-tab { width: 26px; height: 26px; flex: 0 0 26px; margin: 2px; border: 0; border-radius: 50%; background: transparent; color: inherit; font-size: 18px; cursor: pointer; }
       .tab-close:hover, #new-tab:hover { background: var(--chrome-hover); }
       .controls { height: 40px; display: flex; align-items: center; gap: 8px; padding: 6px 10px; }
-      .controls button { width: 28px; height: 28px; border: 0; border-radius: 50%; background: transparent; color: inherit; font-size: 18px; cursor: pointer; }
+      .controls button { width: 28px; height: 28px; flex: 0 0 28px; border: 0; border-radius: 50%; background: transparent; color: inherit; font-size: 18px; cursor: pointer; }
       .controls button:disabled { color: var(--chrome-muted); cursor: default; }
       .controls button[aria-pressed="true"] { color: #fff; background: var(--chrome-accent); }
       .controls button:not(:disabled):hover { background: var(--chrome-hover); }
-      form { flex: 1; }
+      form { flex: 1; min-width: 0; }
       .omnibox { display: flex; align-items: center; gap: 6px; height: 28px; border: 1px solid var(--chrome-border); border-radius: 14px; padding: 0 10px; background: var(--chrome-omnibox); }
       .omnibox:focus-within { border-color: var(--chrome-accent); box-shadow: 0 0 0 1px var(--chrome-accent); }
       #secure, #loading { width: 14px; height: 14px; flex: 0 0 14px; color: var(--chrome-muted); }
@@ -69,6 +70,12 @@
         text-overflow: ellipsis;
       }
       #status[hidden], #secure[hidden], #loading[hidden], .tab-favicon[hidden] { display: none; }
+      @media (max-width: 480px) {
+        .tabs { padding-inline: 4px; }
+        .controls { gap: 4px; padding-inline: 4px; }
+        .omnibox { padding-inline: 6px; }
+        #status { padding-inline: 8px; }
+      }
     </style>
   </head>
   <body>

@@ -62,6 +62,7 @@ import {
 import {
   credentialsDescribeValueSchema, credentialsSetValueSchema, credentialsUnsetValueSchema,
 } from '../api/credentials.schema.ts'
+import { webSearchProvidersValueSchema, webSearchTestConnectionValueSchema } from '../api/web-search.schema.ts'
 import { llmDiscoverModelsValueSchema, llmModelsValueSchema, llmProvidersValueSchema } from '../api/llm.schema.ts'
 import {
   subagentHistoryValueSchema,
@@ -163,6 +164,10 @@ export interface IApiClient {
     set(payload: RequestPayload<'credentials.set'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'credentials.set'>>>
     unset(payload: RequestPayload<'credentials.unset'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'credentials.unset'>>>
   }
+  webSearch: {
+    providers(payload: RequestPayload<'webSearch.providers'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'webSearch.providers'>>>
+    testConnection(payload: RequestPayload<'webSearch.testConnection'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'webSearch.testConnection'>>>
+  }
   llm: {
     providers(payload: RequestPayload<'llm.providers'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'llm.providers'>>>
     models(payload: RequestPayload<'llm.models'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'llm.models'>>>
@@ -231,6 +236,8 @@ const UNARY_VALUE_SCHEMAS: { [K in keyof RpcMethodMap]: z.ZodType<Wire<ResponseV
   'credentials.describe': credentialsDescribeValueSchema,
   'credentials.set': credentialsSetValueSchema,
   'credentials.unset': credentialsUnsetValueSchema,
+  'webSearch.providers': webSearchProvidersValueSchema,
+  'webSearch.testConnection': webSearchTestConnectionValueSchema,
   'llm.providers': llmProvidersValueSchema,
   'llm.models': llmModelsValueSchema,
   'llm.discoverModels': llmDiscoverModelsValueSchema,
@@ -509,6 +516,11 @@ export abstract class AbstractApiClient implements IApiClient {
     describe: (payload, signal) => this.callUnary('credentials.describe', payload, signal),
     set: (payload, signal) => this.callUnary('credentials.set', payload, signal),
     unset: (payload, signal) => this.callUnary('credentials.unset', payload, signal),
+  }
+
+  readonly webSearch: IApiClient['webSearch'] = {
+    providers: (payload, signal) => this.callUnary('webSearch.providers', payload, signal),
+    testConnection: (payload, signal) => this.callUnary('webSearch.testConnection', payload, signal),
   }
 
   readonly llm: IApiClient['llm'] = {

@@ -1,6 +1,6 @@
 {
   "name": "@hydra/harness-web",
-  "description": "Abstract web access capability seam (ctx.web) for the Hydra harness — search/fetch provider registry, registration-order-independent selection, request/result vocabulary, and the WebError taxonomy",
+  "description": "Abstract web access capability seam (ctx.web) for the Hydra harness \u00e2\u20ac\u201d search/fetch provider registry, registration-order-independent selection, request/result vocabulary, and the WebError taxonomy",
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"
@@ -34,7 +34,8 @@
   "peerDependencies": {
     "@hydra/harness-invariants": "workspace:^",
     "@hydra/harness-llm": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra/cordis": "workspace:^",
+    "@hydra/harness-settings": "workspace:^"
   },
   "dependencies": {
     "@hydra/schemastery": "workspace:^"
@@ -42,6 +43,7 @@
   "devDependencies": {
     "@hydra/harness-invariants": "workspace:^",
     "@hydra/harness-llm": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra/cordis": "workspace:^",
+    "@hydra/harness-settings": "workspace:^"
   }
 }

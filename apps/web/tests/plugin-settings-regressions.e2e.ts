@@ -4,8 +4,15 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium, type Browser, type Page } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { Context } from '@hydra/cordis'
+import FileSettingsProvider from '@hydra/harness-settings-file'
+import { SettingsConflictError } from '@hydra/harness-settings'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import ToolRuntime from '@hydra/harness-tools'
+import McpServerRegistry from '@hydra/harness-mcp-registry'
+import HookRecordRegistry from '@hydra/harness-hooks-registry'
 import {
-  assertFixtureInventory, captureStableAria, compareOrRefreshGolden,
+  acknowledgeReloadConnectionLoss, assertFixtureInventory, captureStableAria, compareOrRefreshGolden,
   launchWebScaffold, watchConsole, webSnapshotMode, type WebScaffold,
 } from './scaffold.ts'
 
@@ -39,6 +46,7 @@ describe('web e2e: plugin settings regressions', () => {
     }))
     browser = await chromium.launch()
     page = await browser.newPage({ viewport: { width: 1680, height: 1000 }, locale: 'en-US' })
+    page.setDefaultTimeout(10_000)
     tripwire = watchConsole(page)
     await page.goto(scaffold.baseUrl, { waitUntil: 'load' })
     await page.getByRole('button', { name: 'Settings', exact: true }).click()
@@ -85,12 +93,13 @@ describe('web e2e: plugin settings regressions', () => {
 
   it('retains a rejected replacement key even when a key is already configured', async () => {
     const settings = page.getByRole('dialog', { name: 'Settings', exact: true })
-    await settings.getByText('Web search', { exact: true }).click()
-    const card = settings.getByRole('listitem').filter({ has: page.getByLabel('API key', { exact: true }) })
-    const key = card.getByLabel('API key', { exact: true })
+    await settings.getByRole('button', { name: 'Web Search', exact: true }).click()
+    const card = settings.getByRole('region', { name: 'Web Search', exact: true })
+    await card.getByLabel('Search Provider').selectOption({ label: 'DeepSeek' })
+    const key = card.getByLabel('API Key / Header Value', { exact: true })
     await key.fill('fixture-old-key')
     await card.getByRole('button', { name: 'Save', exact: true }).click()
-    await card.getByText('A key is configured.', { exact: true }).waitFor()
+    await card.getByText('Configured', { exact: true }).waitFor()
     await expect.poll(() => key.inputValue()).toBe('')
     const path = join(scaffold.harnessHome, '.credentials.yaml')
     const stored = await readFile(path, 'utf8')
@@ -103,18 +112,20 @@ describe('web e2e: plugin settings regressions', () => {
       } })
     })
     try {
+      await card.getByRole('button', { name: 'Replace', exact: true }).click()
       await key.fill('fixture-replacement-key')
       await card.getByRole('button', { name: 'Save', exact: true }).click()
-      await card.getByRole('status').filter({
+      await card.getByRole('alert').filter({
         hasText: 'The deployment did not accept these values; they were left for you to correct.',
       }).waitFor()
       expect(await key.inputValue()).toBe('fixture-replacement-key')
       expect(await readFile(path, 'utf8')).toBe(stored)
       await compareOrRefreshGolden(join(SNAPSHOT_DIR, 'rejected-key.expected.md'),
-        await captureStableAria(page, '[role="listitem"]:has(#plugin-config-web-search-key)', scaffold.workspaceCwd), MODE)
+        await captureStableAria(page, 'section[aria-label="Web Search"]', scaffold.workspaceCwd), MODE)
     } finally {
       await page.unroute(routePattern)
       await card.getByRole('button', { name: 'Discard', exact: true }).click()
+      await settings.getByRole('button', { name: 'Plugins', exact: true }).click()
     }
   })
 
@@ -196,12 +207,55 @@ describe('web e2e: plugin settings regressions', () => {
     expect(await settings.getByRole('alert').count()).toBe(0)
   })
 
+  it.each(['MCP', 'Hooks'] as const)('keeps a UI-deleted %s record absent across a stale writer and reload', async (tab) => {
+    const path = join(scaffold.harnessHome, 'settings.yaml')
+    const peer = new Context()
+    try {
+      await peer.plugin(FileSettingsProvider, { path, watch: false })
+      await peer.plugin(SystemPrompt)
+      await peer.plugin(ToolRuntime)
+      await peer.plugin(McpServerRegistry)
+      peer.provide('shell', scaffold.ctx.shell)
+      await peer.plugin(HookRecordRegistry, { hydraHome: scaffold.harnessHome })
+      const name = tab === 'MCP' ? 'regression-server' : 'regression-hooks'
+      const settings = page.getByRole('dialog', { name: 'Settings', exact: true })
+      await settings.getByRole('tab', { name: tab, exact: true }).click()
+      const selector = tab === 'MCP' ? 'data-user-mcp' : 'data-user-hook'
+      const row = settings.locator(`[${selector}="${name}"]`)
+      await row.getByRole('button', { name: 'Remove', exact: true }).click()
+      await row.waitFor({ state: 'hidden' })
+      const stored = await readFile(path, 'utf8')
+      expect(stored).not.toContain(`name: ${name}`)
+      const write = () => tab === 'MCP'
+        ? peer.mcpServers.define({ mode: 'create', name: 'sync-kept', transport: 'stdio', command: 'fixture-command' })
+        : peer.hookRecords.define({ mode: 'create', name: 'sync-kept', dialect: 'claude-code',
+          config: { Stop: [{ hooks: [{ type: 'command', command: 'echo fixture' }] }] } })
+      await expect(write()).rejects.toBeInstanceOf(SettingsConflictError)
+      expect(await readFile(path, 'utf8')).toBe(stored)
+      await write()
+      expect(await readFile(path, 'utf8')).not.toContain(`name: ${name}`)
+      const warningStart = tripwire.warnings.length
+      await page.reload({ waitUntil: 'load' })
+      acknowledgeReloadConnectionLoss(tripwire, warningStart)
+      await page.getByRole('button', { name: 'Settings', exact: true }).click()
+      await settings.getByRole('button', { name: 'Plugins', exact: true }).click()
+      await settings.getByRole('tab', { name: tab, exact: true }).click()
+      await settings.locator(`[${selector}="sync-kept"]`).waitFor()
+      expect(await row.count()).toBe(0)
+      await compareOrRefreshGolden(join(SNAPSHOT_DIR, `${tab.toLowerCase()}-deleted.expected.md`),
+        await captureStableAria(page, `[${selector}="sync-kept"]`, scaffold.workspaceCwd), MODE)
+    } finally {
+      await peer.fiber.dispose()
+    }
+  })
+
   it('keeps the fixture inventory closed and the browser free of errors', async () => {
     expect(tripwire.pageErrors).toEqual([])
     expect(tripwire.warnings).toEqual([])
     await assertFixtureInventory(SNAPSHOT_DIR, [
       'pending-edit.expected.md', 'mcp-duplicate.expected.md', 'hooks-duplicate.expected.md',
       'refreshed-skills.expected.md', 'rejected-key.expected.md', 'mcp-load-failed.expected.md',
+      'mcp-deleted.expected.md', 'hooks-deleted.expected.md',
     ])
   })
 })

@@ -10,6 +10,9 @@
     - button "Models":
       - img
       - text: Models
+    - button "Web Search":
+      - img
+      - text: Web Search
     - button "Usage"
     - button "Plugins":
       - img
@@ -41,8 +44,4 @@
       - listitem:
         - 'button "Show settings: Agent loop"':
           - text: Agent loop How the agent dispatches tool calls.
-          - img
-      - listitem:
-        - 'button "Show settings: Web search"':
-          - text: Web search DeepSeek search provider.
           - img

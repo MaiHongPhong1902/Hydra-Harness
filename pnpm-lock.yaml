@@ -589,6 +589,9 @@ importers:
       '@hydra/harness-repeat-tool-reminder':
         specifier: workspace:*
         version: link:../packages/guard/repeat-tool-reminder
+      '@hydra/harness-research-policy':
+        specifier: workspace:^
+        version: link:../packages/guard/research-policy
       '@hydra/harness-sandbox':
         specifier: workspace:*
         version: link:../packages/sandbox/sandbox
@@ -1070,6 +1073,9 @@ importers:
       '@hydra/harness-user-approval':
         specifier: workspace:^
         version: link:../../interaction/user-approval
+      '@hydra/harness-user-questions':
+        specifier: workspace:^
+        version: link:../../interaction/user-questions
       '@page-agent/core':
         specifier: workspace:^
         version: link:third-party/page-agent/packages/core
@@ -1335,6 +1341,9 @@ importers:
       '@hydra/harness-repeat-tool-reminder':
         specifier: workspace:^
         version: link:../../guard/repeat-tool-reminder
+      '@hydra/harness-research-policy':
+        specifier: workspace:^
+        version: link:../../guard/research-policy
       '@hydra/harness-sandbox-local':
         specifier: workspace:^
         version: link:../../sandbox/sandbox-local
@@ -1470,9 +1479,15 @@ importers:
       '@hydra/harness-web':
         specifier: workspace:^
         version: link:../../web/web
+      '@hydra/harness-web-fetch-http':
+        specifier: workspace:^
+        version: link:../../web/web-fetch-http
       '@hydra/harness-web-search-deepseek':
         specifier: workspace:^
         version: link:../../web/web-search-deepseek
+      '@hydra/harness-web-search-http':
+        specifier: workspace:^
+        version: link:../../web/web-search-http
       '@hydra/harness-workflow-worker-thread':
         specifier: workspace:^
         version: link:../../workflow/workflow-worker-thread
@@ -3067,6 +3082,9 @@ importers:
       '@hydra/harness-client-ui-slots':
         specifier: workspace:^
         version: link:../ui-slots
+      '@hydra/harness-host-apiproxy':
+        specifier: workspace:^
+        version: link:../../host/apiproxy
       '@hydra/harness-invariants':
         specifier: workspace:^
         version: link:../../runtime-diagnostics/invariants
@@ -5197,6 +5215,40 @@ importers:
         specifier: workspace:^
         version: link:../../core/tools
 
+  packages/guard/research-policy:
+    dependencies:
+      '@hydra/schemastery':
+        specifier: link:../../../vendor/schemastery
+        version: link:../../../vendor/schemastery
+    devDependencies:
+      '@hydra/cordis':
+        specifier: workspace:^
+        version: link:../../../vendor/cordis
+      '@hydra/harness-agent':
+        specifier: workspace:^
+        version: link:../../core/agent
+      '@hydra/harness-invariants':
+        specifier: workspace:^
+        version: link:../../runtime-diagnostics/invariants
+      '@hydra/harness-llm':
+        specifier: workspace:^
+        version: link:../../llm/llm
+      '@hydra/harness-session':
+        specifier: workspace:^
+        version: link:../../core/session
+      '@hydra/harness-subagent':
+        specifier: workspace:^
+        version: link:../../subagent/subagent
+      '@hydra/harness-system-prompt':
+        specifier: workspace:^
+        version: link:../../core/system-prompt
+      '@hydra/harness-timeout':
+        specifier: workspace:^
+        version: link:../../util/timeout
+      '@hydra/harness-tools':
+        specifier: workspace:^
+        version: link:../../core/tools
+
   packages/guard/timeout-policy:
     devDependencies:
       '@hydra/cordis':
@@ -5451,6 +5503,9 @@ importers:
       '@hydra/harness-user-questions':
         specifier: workspace:^
         version: link:../../interaction/user-questions
+      '@hydra/harness-web':
+        specifier: workspace:^
+        version: link:../../web/web
       '@hydra/harness-workspace':
         specifier: workspace:^
         version: link:../../workspace/workspace
@@ -7834,6 +7889,9 @@ importers:
 
   packages/subagent/subagent:
     dependencies:
+      '@hydra/schemastery':
+        specifier: link:../../../vendor/schemastery
+        version: link:../../../vendor/schemastery
       zod:
         specifier: ^4.4.3
         version: 4.4.3
@@ -8911,12 +8969,18 @@ importers:
       '@hydra/harness-llm':
         specifier: workspace:^
         version: link:../../llm/llm
+      '@hydra/harness-settings':
+        specifier: workspace:^
+        version: link:../../settings/settings
 
   packages/web/web-fetch-http:
     dependencies:
       '@hydra/schemastery':
         specifier: link:../../../vendor/schemastery
         version: link:../../../vendor/schemastery
+      undici:
+        specifier: ^7.28.0
+        version: 7.28.0
     devDependencies:
       '@hydra/cordis':
         specifier: workspace:^
@@ -8983,6 +9047,34 @@ importers:
       '@hydra/harness-web':
         specifier: workspace:^
         version: link:../web
+
+  packages/web/web-search-http:
+    dependencies:
+      '@hydra/schemastery':
+        specifier: link:../../../vendor/schemastery
+        version: link:../../../vendor/schemastery
+    devDependencies:
+      '@hydra/cordis':
+        specifier: workspace:^
+        version: link:../../../vendor/cordis
+      '@hydra/harness-credentials':
+        specifier: workspace:^
+        version: link:../../credentials/credentials
+      '@hydra/harness-invariants':
+        specifier: workspace:^
+        version: link:../../runtime-diagnostics/invariants
+      '@hydra/harness-launch-environment':
+        specifier: workspace:^
+        version: link:../../util/launch-environment
+      '@hydra/harness-settings':
+        specifier: workspace:^
+        version: link:../../settings/settings
+      '@hydra/harness-web':
+        specifier: workspace:^
+        version: link:../web
+      '@hydra/harness-web-search-deepseek':
+        specifier: workspace:^
+        version: link:../web-search-deepseek
 
   packages/web/web-search-perplexity:
     dependencies:

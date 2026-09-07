@@ -39,7 +39,7 @@ beforeEach(async () => {
   await ctx.plugin(SystemPrompt)
   await ctx.plugin(ToolRuntime)
   await ctx.plugin(WebRuntime, { searchProvider: WebSearchExa.EXA_PROVIDER_ID, fetchProvider: WebFetchLocal.LOCAL_FETCH_PROVIDER_ID })
-  await ctx.plugin(WebFetchLocal, {})
+  await ctx.plugin(WebFetchLocal, { allowedOrigins: [base] })
   await ctx.plugin(WebSearchExa, { apiKey: 'exa-key', baseURL: 'https://api.exa.test' })
   // The shipped deployment shape: the tool-call budget is declared by tool-web
   // config (default 30s, attached as ToolDefinition.timeoutMs) and enforced by
@@ -110,7 +110,7 @@ describe('tool-call timeout policy over the migrated web tools', () => {
     const searchParams = byName.get('web_search')!.parameters as { properties: Record<string, unknown>; required?: string[] }
     expect(Object.keys(fetchParams.properties)).toEqual(['url'])
     expect('timeout_ms' in fetchParams.properties).toBe(false)
-    expect(Object.keys(searchParams.properties)).toEqual(['queries'])
+    expect(Object.keys(searchParams.properties)).toEqual(['queries', 'country', 'language'])
     expect(searchParams.required).toEqual(['queries'])
   })
 })
@@ -136,7 +136,7 @@ describe('tool-call timeout returns TOOL_TIMEOUT (deadline wins over a slow fetc
     await tctx.plugin(ToolRuntime)
     await tctx.plugin(WebRuntime, { fetchProvider: WebFetchLocal.LOCAL_FETCH_PROVIDER_ID })
     // Provider backstop well ABOVE the tool-call budget, so the policy wins.
-    await tctx.plugin(WebFetchLocal, { timeoutMs: 30_000 })
+    await tctx.plugin(WebFetchLocal, { timeoutMs: 30_000, allowedOrigins: [slowBase] })
     await tctx.plugin(TimeoutPolicy)
     // The tool-call budget is declared by tool-web config, enforced by the policy.
     tfiber = await tctx.plugin(ToolWeb, { fetchTimeoutMs: 50 })
@@ -168,6 +168,7 @@ describe('tool-call timeout returns TOOL_TIMEOUT (deadline wins over a slow fetc
       timeoutMs: 50,
       maxRedirects: 5,
       userAgent: 'integration-test',
+      allowedOrigins: [slowBase],
     })
     const err = await direct.fetch({ url: slowBase }).then(
       () => undefined,

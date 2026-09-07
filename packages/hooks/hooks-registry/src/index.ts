@@ -196,6 +196,8 @@ interface LiveMount {
  * idempotent and runs on one serialized chain, so a document commit from any
  * source — this service's own write, another process, or a hand edit —
  * converges the mounted set on the stored one.
+ * Mutations reject with `SettingsConflictError` if another writer changes the
+ * stored section after the read; retry uses the refreshed projection.
  */
 export class HookRecordRegistry extends Service {
   static inject = inject
@@ -252,6 +254,7 @@ export class HookRecordRegistry extends Service {
    */
   define(request: HookRecordDefinitionRequest): Promise<HookRecordSnapshot> {
     return this.enqueue(async () => {
+      const revision = this.settings.revision
       const records = this.settings.get().records
       const index = records.findIndex(candidate => candidate.name === request.name.trim())
       if (request.mode === 'create' && index !== -1) throw new Error(`hookRecords.define: record ${request.name} already exists`)
@@ -265,7 +268,7 @@ export class HookRecordRegistry extends Service {
         ? [...records, record]
         : records.map((candidate, position) => position === index ? record : candidate)
       if (next.length > MAX_RECORDS) throw new Error(`hookRecords.define: at most ${String(MAX_RECORDS)} records are supported`)
-      await this.settings.update({ records: next })
+      await this.ctx.settings.update(HOOKS_SETTINGS_NAMESPACE, { records: next }, revision)
       await this.reconcile()
       return this.list()
     })
@@ -278,13 +281,14 @@ export class HookRecordRegistry extends Service {
    */
   setEnabled(request: HookRecordEnablementRequest): Promise<HookRecordSnapshot> {
     return this.enqueue(async () => {
+      const revision = this.settings.revision
       const records = this.settings.get().records
       const index = records.findIndex(candidate => candidate.name === request.name)
       if (index === -1) throw new Error(`hookRecords.setEnabled: record ${request.name} is not configured`)
       const next = records.map((candidate, position) => position === index
         ? { ...candidate, enabled: request.enabled }
         : candidate)
-      await this.settings.update({ records: next })
+      await this.ctx.settings.update(HOOKS_SETTINGS_NAMESPACE, { records: next }, revision)
       await this.reconcile()
       return this.list()
     })
@@ -298,11 +302,12 @@ export class HookRecordRegistry extends Service {
    */
   remove(name: string): Promise<HookRecordSnapshot> {
     return this.enqueue(async () => {
+      const revision = this.settings.revision
       const records = this.settings.get().records
       if (!records.some(candidate => candidate.name === name)) {
         throw new Error(`hookRecords.remove: record ${name} is not configured`)
       }
-      await this.settings.replace({ records: records.filter(candidate => candidate.name !== name) })
+      await this.ctx.settings.replace(HOOKS_SETTINGS_NAMESPACE, { records: records.filter(candidate => candidate.name !== name) }, revision)
       await this.reconcile()
       await rm(this.inlinePath(name), { force: true })
       return this.list()

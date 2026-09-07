@@ -18,7 +18,11 @@ User-settings Service Definition (`ctx.settings`). One provider holds a raw docu
 
 ## Provider contract
 
+Owner scopes expose `revision` alongside `get()`. Owners constructing a whole array or section from `get()` pass that revision to the provider's write method; a concurrent commit rejects the stale replacement.
+
 Subclasses implement `writable`, `load()`, and `persist(ns, section)`, optionally override `documentPath` and `prepareDocument()` for one local user-editable file, and push externally observed documents through the protected `publish(doc)`. The base service init loads and publishes the document once before the service becomes injectable; a provider with its own init (watcher, connection) delegates first via `yield* super[Service.init]()`. At publish, each registered namespace re-resolves independently: an invalid section keeps that namespace's last good value and warns — a live reload never takes the process down — while boot-time and registration-time validation fail loud.
+
+Providers sharing mutable storage override `withWriteTransaction(operation)`: acquire storage exclusion, reconcile the current document through `publish()`, then invoke and await `operation` before releasing exclusion. The callback checks ownership and revision, derives and validates the section, persists it, and commits its value and notifications. The default invokes it directly for instance-owned storage. Locking only inside `persist()` is too late: derivation from an old document can restore deleted keys even when the final write is atomic.
 
 ## Events
 
@@ -40,4 +44,4 @@ No direct invalidation; a consumer that folds a settings value into the request 
 
 - **Single user layer** — resolution knows schema defaults, one composition `base`, and one user document; it does not yet record which layer supplied each resolved value.
 - **`redactSecrets` is not a proven wire boundary** — the walker follows `object`/`dict`/`array`, so a `role('secret')` reached only through a union, intersection, or transform is returned VERBATIM with an empty `secrets` list, and `schema.toJSON()` carries a secret field's `.default(...)` to every client. Neither case is rejected; a schema whose secrets are not reachable through the walked containers must not be registered on a wire-exposed namespace. A fail-closed `describeForWire()` — one that refuses a schema it cannot prove safe, and sanitizes the serialized envelope and error text — is the real answer and is deferred.
-- **Cross-process concurrency is provider-defined** — the seam serializes writes per namespace in-process only; concurrent processes converge by provider behavior (the local file provider read-modify-writes under a writer lock, so namespaces survive concurrent writers and same-namespace conflicts resolve last-write-wins).
+- **Cross-process concurrency is provider-defined** — the seam serializes writes per namespace in-process; shared-storage providers own exclusion and reconciliation. The [file provider](../settings-file/README.md#behavior) applies edits to the current stored section and checks revisions while holding its writer lock.

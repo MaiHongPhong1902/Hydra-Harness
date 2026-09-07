@@ -1,6 +1,6 @@
 # Web Access
 
-The web access seam — a [capability seam](../../.agents/notes/implemented/architecture/2026-06-24-web-capability-seam.md) that spans **two operations** (search and fetch) on one `ctx.web` service, split across packages: Service Definition ([@hydra/harness-web](../../packages/web/web), `ctx.web` + the provider registries), Service Providers ([@hydra/harness-web-search-exa](../../packages/web/web-search-exa), [@hydra/harness-web-search-perplexity](../../packages/web/web-search-perplexity), [@hydra/harness-web-search-deepseek](../../packages/web/web-search-deepseek), [@hydra/harness-web-fetch-http](../../packages/web/web-fetch-http)), and Consumer ([@hydra/harness-tool-web](../../packages/web/tool-web), the `web_search`/`web_fetch` tool schemas). Web is **one optional capability**, not part of the agent-loop spine — so its vocabulary lives here, not in [core.md](core.md). A search-provider swap does not change how the model asks for a query, and a fetch-provider swap does not change how the model asks for a URL.
+The web access seam — a [capability seam](../../.agents/notes/implemented/architecture/2026-06-24-web-capability-seam.md) that spans **two operations** (search and fetch) on one `ctx.web` service, split across packages: Service Definition ([@hydra/harness-web](../../packages/web/web), `ctx.web` + the provider registries), Service Providers ([@hydra/harness-web-search-exa](../../packages/web/web-search-exa), [@hydra/harness-web-search-perplexity](../../packages/web/web-search-perplexity), [@hydra/harness-web-search-deepseek](../../packages/web/web-search-deepseek), [@hydra/harness-web-search-http](../../packages/web/web-search-http), [@hydra/harness-web-fetch-http](../../packages/web/web-fetch-http)), and Consumer ([@hydra/harness-tool-web](../../packages/web/tool-web), the `web_search`/`web_fetch` tool schemas). Web is **one optional capability**, not part of the agent-loop spine — so its vocabulary lives here, not in [core.md](core.md). A search-provider swap does not change how the model asks for a query, and a fetch-provider swap does not change how the model asks for a URL.
 
 Source: [`packages/web/web/src/types.ts`](../../packages/web/web/src/types.ts)
 
@@ -21,6 +21,10 @@ Each seam request carries exactly one `query`. The `@hydra/harness-tool-web` con
  */
 interface WebSearchRequest {
   readonly query: string
+  readonly type?: WebSearchType
+  readonly country?: string
+  readonly language?: string
+  readonly date?: string
   /**
    * Upper bound on returned sources; the seam truncates to it. Omitted = no
    * bound. `@hydra/harness-tool-web` always sets it. A provider whose API supports a
@@ -41,6 +45,9 @@ interface WebSearchRequest {
  * when it cut `sources[]` down to `maxResults`.
  */
 interface WebSearchResult {
+  readonly provider?: string
+  readonly query?: string
+  readonly statusCode?: number
   /** Optional provider-generated answer text, search context, or summary. */
   readonly content?: string
   /** Citeable sources, already truncated to the request's `maxResults`. */
@@ -63,6 +70,57 @@ interface WebSearchSource {
   readonly snippet?: string
   /** Publication/crawl timestamp as a provider-supplied ISO-8601 string. */
   readonly publishedAt?: string
+  readonly provider?: string
+  readonly position?: number
+  readonly score?: number
+}
+```
+
+`WebSearchType` accepts `web`, `images`, `news`, `videos`, and `academic`. Registered descriptors declare the implemented types; all shipped search adapters expose only `web`. `country` and `language` are optional per-call hints inferred by the agent from the prompt; HTTP providers map them to request fields and DeepSeek includes them in its logged search prompt. Omitted hints do not apply saved country or language defaults. `date` is an optional HTTP-provider hint. Unsupported types fail before dispatch.
+
+Product selection and limits live in `web-search` Settings. `listSearchProviders()` exposes provider-owned field descriptors and capabilities without credentials. `testSearchProvider()` runs a small search through saved configuration; neither operation changes the active chat model. See the [selection and error reference](../../packages/web/web/README.md#product-search-settings).
+
+## Search settings and provider descriptors
+
+```ts type-equiv
+/** Saved search preferences. Empty provider requires an explicit user selection. */
+interface WebSearchSettings {
+  enabled: boolean
+  provider: string
+  maxQueries: number
+  maxResults: number
+  timeoutMs: number
+}
+```
+
+```ts type-equiv
+/** Search types a provider may explicitly support. */
+type WebSearchType = 'web' | 'images' | 'news' | 'videos' | 'academic'
+```
+
+```ts type-equiv
+/** One provider-owned settings control; values live in its settings namespace. */
+interface SearchConfigField {
+  key: string
+  label: string
+  kind: 'text' | 'number' | 'select' | 'json'
+  options?: string[]
+  advanced?: boolean
+  hint?: string
+}
+```
+
+```ts type-equiv
+/** Secret-free provider metadata used by the Settings directory. */
+interface WebSearchProviderDescriptor {
+  id: string
+  displayName: string
+  description?: string
+  capabilities: Record<WebSearchType, boolean>
+  configurable: boolean
+  settingsNs: string
+  credentialRef: string
+  fields: SearchConfigField[]
 }
 ```
 
@@ -128,7 +186,9 @@ Selection never depends on registration, config, or HMR order: a capability has 
 
 ## The service
 
-`WebRuntime` registers search and fetch providers, rejects duplicate ids with `WEB_DUPLICATE_PROVIDER`, and resolves providers at execution time with structured selection errors. The local fetch backend accepts only HTTP(S), rejects credentials, caps redirects, bytes, characters, and time, revalidates every same-origin redirect hop, and decodes the body; the tool owns presentation. The local backend does not block private-network targets; do not enable `web_fetch` where it can reach sensitive internal ones.
+`WebRuntime` registers search and fetch providers, rejects duplicate ids with `WEB_DUPLICATE_PROVIDER`, and resolves providers at execution time with structured selection errors. An explicit primary may configure an ordered [search fallback sequence](../../packages/web/web/README.md). The [HTTP provider](../../packages/web/web-fetch-http/README.md) enforces public IP destinations at socket lookup, rechecks each same-origin redirect, rejects credentials, and caps redirects, bytes, characters, and time. Exact operator-granted origins may reach private services.
+
+The [tool consumer](../../packages/web/tool-web/README.md) converts fetched content and identifies source versions for exact-passage citations in chat. The [research policy](../../packages/guard/research-policy/README.md) shares search, fetch, browser, and duration limits across one root session and its descendants. Use [session-log measurements](../cookbook/measuring-web-research.md) to compare research runs.
 
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
@@ -155,6 +215,34 @@ Selection semantics (resolved at execution time, never order-dependent):
 
 ```ts cordis-catalog
 /**
+ * Read current product limits; standalone compositions retain tool-level limits.
+ * @returns saved invocation preferences when product selection is enabled.
+ */
+searchPreferences(): WebSearchSettings | undefined
+
+/**
+ * List provider-owned, secret-free Settings descriptors.
+ * @returns configurable providers in registration order.
+ */
+listSearchProviders(): WebSearchProviderDescriptor[]
+
+/**
+ * Persist the first search selection from explicit legacy configuration only.
+ * An explicit empty selection also marks a fresh installation as initialized.
+ * @param provider - legacy registered id.
+ * @param configured - whether a legacy search section contains explicit settings.
+ */
+async migrateSearchSelection(provider: string, configured: boolean): Promise<void>
+
+/**
+ * Execute a small real search with a saved provider without changing selection.
+ * @param id - registered provider to test.
+ * @param signal - caller cancellation.
+ * @returns normalized results after validating the provider response.
+ */
+async testSearchProvider(id: string, signal?: AbortSignal): Promise<WebSearchResult>
+
+/**
  * Register a search provider. Throws {@link WebError} `WEB_DUPLICATE_PROVIDER`
  * if its id is already registered for search. Returns a disposer; disposed
  * with the calling fiber.
@@ -177,6 +265,8 @@ registerFetchProvider(provider: WebFetchProvider): () => void
  * time with the selection rules above; throws {@link WebError} when the
  * capability cannot run. The seam enforces `request.maxResults` on the result:
  * if the provider over-returns, `sources[]` is truncated and `truncated` set.
+ * Configured fallbacks share the caller signal and retry only provider or
+ * credential unavailability; missing registrations and cancellation stop the chain.
  * @param request - the query and optional result limit.
  * @param signal - optional cancellation signal forwarded to the provider.
  * @returns the provider's results, capped to `request.maxResults`.

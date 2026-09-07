@@ -1,0 +1,6 @@
+- strong: sync-kept
+- code: Written in your settings file
+- text: Disabled · claude-code Disabled
+- switch "Enable sync-kept"
+- button "Edit"
+- button "Remove"

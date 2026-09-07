@@ -32,6 +32,10 @@
  */
 
 import { Context, Service } from '@hydra/cordis'
+import z from '@hydra/schemastery'
+import { delegationAdmission, type DelegationLimits } from './budget.ts'
+export { delegationRoot } from './budget.ts'
+export type { DelegationLimits } from './budget.ts'
 import { scopeTarget } from '@hydra/harness-scope'
 import type { Scoped } from '@hydra/harness-scope'
 import { assertObjectJsonSchema } from '@hydra/harness-tools'
@@ -180,11 +184,20 @@ export class SubagentRuntime extends Service {
    */
   private readonly emitLifecycle: LifecycleEmitter
 
-  constructor(ctx: Context) {
+  static Config: z<DelegationLimits> = z.object({
+    maxActivePerTree: z.number(),
+    maxChildrenPerTree: z.number(),
+  })
+
+  private readonly admit: ReturnType<typeof delegationAdmission>
+
+  constructor(ctx: Context, config: DelegationLimits = {}) {
     super(ctx, 'subagents')
+    this.admit = delegationAdmission(ctx, config)
     this.emitLifecycle = createLifecycleEmitter(this.ctx, parent => scopeTarget(this, parent))
     ctx.inject(['agents'], (childCtx: Context) => {
       const manager = new SubagentContinuationManager(childCtx, {
+        admit: this.admit,
         prepareContinuable: (name, request) => this.prepareContinuable(name, request),
         observeActivation: (provider, childId, parent) => this.observeActivation(provider, childId, parent),
       }, this.setupRegistry)
@@ -438,7 +451,15 @@ export class SubagentRuntime extends Service {
       ...request.label !== undefined ? { label: request.label } : {},
     })
     const resolved: ResolvedSubagentStartRequest = { ...request, descriptor }
-    return observeRun(this.emitLifecycle, name, request.parent, await provider.start(resolved))
+    const release = this.admit(request.parent, true)
+    try {
+      const run = await provider.start(resolved)
+      void run.result.then(release, release)
+      return observeRun(this.emitLifecycle, name, request.parent, run)
+    } catch (error) {
+      release()
+      throw error
+    }
   }
 
   /**

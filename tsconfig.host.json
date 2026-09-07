@@ -10,6 +10,8 @@
   "include": [
     "apps/web/tests/scaffold.ts",
     "apps/web/tests/brand-hover.e2e.ts",
+    "apps/web/tests/browser-permission.e2e.ts",
+    "apps/web/tests/web-citations.e2e.ts",
     "apps/web/tests/default-model.e2e.ts",
     "apps/web/tests/declared-reasoning.e2e.ts",
     "apps/web/tests/support.ts",
@@ -49,6 +51,7 @@
     "apps/web/tests/composer-draft-scroll.e2e.ts",
     "apps/web/tests/cordis-tool-round.e2e.ts",
     "apps/web/tests/web-search-round.e2e.ts",
+    "apps/web/tests/web-search-settings.e2e.ts",
     "apps/web/tests/message-actions.e2e.ts",
     "apps/web/tests/prompt-revisions.e2e.ts",
     "apps/web/tests/message-feedback.e2e.ts",
@@ -118,6 +121,7 @@
     "scripts/client-bundle-purity.spec.ts"
   ],
   "references": [
+    { "path": "packages/web/web-search-http" },
     { "path": "./vendor/cosmokit" },
     { "path": "./vendor/schemastery" },
     { "path": "./vendor/cordis" },
@@ -255,6 +259,7 @@
     { "path": "./packages/spill/spill-local" },
     { "path": "./packages/spill/spill-policy" },
     { "path": "./packages/guard/timeout-policy" },
+    { "path": "./packages/guard/research-policy" },
     { "path": "./packages/runtime-diagnostics/invariants" },
     { "path": "./packages/test-support/agent-loop-testkit" },
     { "path": "./packages/acp/acp" },

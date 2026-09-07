@@ -258,7 +258,7 @@ Source: [`packages/extensions/cordis-host-runner/src/index.ts`](../../packages/e
 
 ### `ctx.hookRecords` — `HookRecordRegistry`
 
-Settings-backed hook records with their live bridge mounts. Reconciliation is idempotent and runs on one serialized chain, so a document commit from any source — this service's own write, another process, or a hand edit — converges the mounted set on the stored one.
+Settings-backed hook records with their live bridge mounts. Reconciliation is idempotent and runs on one serialized chain, so a document commit from any source — this service's own write, another process, or a hand edit — converges the mounted set on the stored one. Mutations reject with `SettingsConflictError` if another writer changes the stored section after the read; retry uses the refreshed projection.
 
 ```ts cordis-catalog
 /**
@@ -390,7 +390,7 @@ Source: [`packages/host/plugin-runtime/src/index.ts`](../../packages/host/plugin
 
 ### `ctx.mcpServers` — `McpServerRegistry`
 
-Settings-backed MCP server records with their live `mcp-client` mounts. Reconciliation is idempotent and runs on one serialized chain, so a document commit from any source — this service's own write, another process, or a hand edit — converges the mounted set on the stored one.
+Settings-backed MCP server records with their live `mcp-client` mounts. Reconciliation is idempotent and runs on one serialized chain, so a document commit from any source — this service's own write, another process, or a hand edit — converges the mounted set on the stored one. Mutations reject with `SettingsConflictError` if another writer changes the stored section after the read; retry uses the refreshed projection.
 
 ```ts cordis-catalog
 /**

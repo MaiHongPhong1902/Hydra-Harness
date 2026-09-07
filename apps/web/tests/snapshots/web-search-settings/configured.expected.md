@@ -1,0 +1,56 @@
+- region "Web Search":
+  - heading "Web Search" [level=2]
+  - paragraph: Choose how the agent searches the web. This selection is independent of your chat model. The agent chooses search country and language from your prompt.
+  - checkbox "Enable Web Search" [checked]
+  - text: Enable Web Search Search Provider
+  - combobox "Search Provider":
+    - option "Select provider…"
+    - option "DeepSeek"
+    - option "Serper.dev"
+    - option "Other" [selected]
+  - text: API Key / Header Value Configured
+  - textbox "API Key / Header Value" [disabled]:
+    - /placeholder: ••••••••••••••••
+  - button "Replace"
+  - button "Remove"
+  - text: Stored through Credentials. Save applies replacement or removal. Provider Name
+  - textbox "Provider Name": My Search Provider
+  - text: Endpoint
+  - textbox "Endpoint": http://127.0.0.1:SEARCH_PORT/search
+  - text: HTTP Method
+  - combobox "HTTP Method":
+    - option "POST" [selected]
+    - option "GET"
+  - text: Authentication
+  - combobox "Authentication":
+    - option "none"
+    - option "bearer"
+    - option "api_key_header" [selected]
+    - option "custom_header"
+  - text: API Key / Custom Header Name
+  - textbox "API Key / Custom Header Name": X-API-KEY
+  - text: Query Field
+  - textbox "Query Field": q
+  - text: Limit Field
+  - textbox "Limit Field": num
+  - text: Results Path
+  - textbox "Results Path": data.items
+  - text: Title Field
+  - textbox "Title Field": name
+  - text: URL Field
+  - textbox "URL Field": href
+  - text: Snippet Field
+  - textbox "Snippet Field": description
+  - text: Provider Result Limit
+  - spinbutton "Provider Result Limit": "8"
+  - group: Advanced Settings
+  - text: Max Queries per Call
+  - spinbutton "Max Queries per Call": "2"
+  - text: Max Total Results
+  - spinbutton "Max Total Results": "2"
+  - text: Search Timeout (ms)
+  - spinbutton "Search Timeout (ms)": "5000"
+  - button "Test Connection"
+  - status: "AUTH_ERROR: Authentication failed. Replace the API key in Settings > Web Search."
+  - button "Discard" [disabled]
+  - button "Save" [disabled]

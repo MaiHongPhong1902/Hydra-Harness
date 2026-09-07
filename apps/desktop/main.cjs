@@ -100,7 +100,10 @@ async function handleBrowserMessage(message) {
     return
   }
   if (message.type === 'hydra-browser-disconnect') {
-    if (message.connectionId === browserConnection) browserConnection = undefined
+    if (message.connectionId === browserConnection) {
+      browser.cancelPermissions()
+      browserConnection = undefined
+    }
     return
   }
   if (message.type !== 'hydra-browser-line' || message.connectionId !== browserConnection || typeof message.line !== 'string') return
@@ -168,6 +171,8 @@ function installBrowserController(window) {
     send(message) {
       if (browserConnection !== undefined) {
         postBrowser(browserConnection, 'hydra-browser-line', { line: JSON.stringify(message) })
+      } else if (message.event === 'browser:permission') {
+        void browser.request({ method: 'browser_permission_response', args: { id: message.id } })
       }
     },
     onState(state) {

@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { describe, expect, it, vi } from 'vitest'
 import { Context } from '@hydra/cordis'
 import TurndownService from 'turndown'
@@ -86,9 +87,9 @@ describe('search formatting', () => {
   })
 
   it('validates queries', () => {
-    expect(parseSearchArgs({ queries: ['hi'] }, WEB_SEARCH_MAX_QUERIES)).toEqual(['hi'])
+    expect(parseSearchArgs({ queries: ['hi'] }, WEB_SEARCH_MAX_QUERIES)).toEqual({ queries: ['hi'] })
     expect(parseSearchArgs({ queries: ['one', 'one', ' two '] }, WEB_SEARCH_MAX_QUERIES))
-      .toEqual(['one', ' two '])
+      .toEqual({ queries: ['one', ' two '] })
     expect(() => parseSearchArgs({ queries: [] }, WEB_SEARCH_MAX_QUERIES)).toThrow('at least one query')
     expect(() => parseSearchArgs({ queries: ['one', 'two'] }, 1)).toThrow('at most 1 query')
     expect(() => parseSearchArgs({ queries: ['one', 'two', 'three'] }, 2)).toThrow('at most 2 queries')
@@ -198,7 +199,8 @@ describe('web_search presentation meta and result view', () => {
 
 describe('fetch formatting', () => {
   const NO_CAP = 1_000_000
-  const HEADER = 'Fetched https://a.test (HTTP 200)\n\n'
+  const header = (text: string) => `Fetched https://a.test (HTTP 200)\nSource: ${createHash('sha256').update(JSON.stringify(['https://a.test', text])).digest('hex')}\n\n`
+  const HEADER = header('x')
   const renderHtml = (content: string) => formatFetchOutput({
     url: 'https://a.test', statusCode: 200, truncated: false,
     body: { kind: 'html', content },
@@ -238,8 +240,8 @@ describe('fetch formatting', () => {
     const exact = formatFetchOutput({
       url: 'https://a.test', statusCode: 200, truncated: false,
       body: { kind: 'text', content: 'abc' },
-    }, 'Fetched https://a.test (HTTP 200)\n\nabc'.length)
-    expect(exact).toBe('Fetched https://a.test (HTTP 200)\n\nabc')
+    }, (header('abc') + 'abc').length)
+    expect(exact).toBe(header('abc') + 'abc')
     const tiny = formatFetchOutput({
       url: 'https://a.test', statusCode: 200, truncated: true,
       body: { kind: 'text', content: 'abcdef' },
@@ -285,7 +287,7 @@ describe('fetch formatting', () => {
     expect(formatFetchOutput({
       url: 'https://a.test', statusCode: 200, truncated: false,
       body: { kind: 'html', content: pathological },
-    }, NO_CAP)).toBe(`${HEADER}${pathological}`)
+    }, NO_CAP)).toBe(`${header(pathological)}${pathological}`)
     expect(Date.now() - started).toBeLessThan(2_000)
   })
 
@@ -294,12 +296,12 @@ describe('fetch formatting', () => {
     expect(formatFetchOutput({
       url: 'https://a.test', statusCode: 200, truncated: false,
       body: { kind: 'html', content: pathological },
-    }, NO_CAP)).toBe(`${HEADER}${pathological}`)
+    }, NO_CAP)).toBe(`${header(pathological)}${pathological}`)
     const abruptlyClosedComments = '<div><!-->'.repeat(600) + 'x'
     expect(formatFetchOutput({
       url: 'https://a.test', statusCode: 200, truncated: false,
       body: { kind: 'html', content: abruptlyClosedComments },
-    }, NO_CAP)).toBe(`${HEADER}${abruptlyClosedComments}`)
+    }, NO_CAP)).toBe(`${header(abruptlyClosedComments)}${abruptlyClosedComments}`)
   })
 
   it('the preflight accepts ordinary closed, void, self-closing, quoted, and raw-text markup', () => {
@@ -333,7 +335,7 @@ describe('fetch formatting', () => {
       expect(formatFetchOutput({
         url: 'https://a.test', statusCode: 200, truncated: false,
         body: { kind: 'html', content: '<p>x</p>' },
-      }, NO_CAP)).toBe(`${HEADER}<p>x</p>`)
+      }, NO_CAP)).toBe(`${header('<p>x</p>')}<p>x</p>`)
     } finally {
       spy.mockRestore()
     }
@@ -489,8 +491,8 @@ describe('tool-web registration', () => {
     const { fiber, ctx } = await mountTools()
     const prompt = await ctx.systemPrompt.assemble()
     const text = prompt.sections.map(s => s.text).join('\n')
-    expect(text).toContain(`Use the web_search tool to discover current information on the web. The required queries array accepts 1–${WEB_SEARCH_MAX_QUERIES} non-empty search queries; use a one-item array for a single search. It returns an optional answer plus a list of source URLs. Follow up with web_fetch when you need the full content of a specific result, and cite the relevant URLs as markdown links.`)
-    expect(text).toContain('Use the web_fetch tool to retrieve the content of a specific HTTP(S) URL')
+    expect(text).toContain('Use the web_search tool to discover current information on the web. The required queries array accepts non-empty search queries within the configured per-call limit; use a one-item array for a single search. Infer country and language from the user request when relevant. Use the requested location or market for country, not the prompt language alone; omit hints without enough context. It returns an optional answer plus a list of source URLs. Follow up with web_fetch when you need the full content of a specific result, and cite the relevant URLs as markdown links.')
+    expect(text).toContain('Use web_fetch to read a known public HTTP(S) URL')
     await fiber.dispose()
   })
 
@@ -517,6 +519,30 @@ describe('tool-web execution through the real registry', () => {
     expect(out.content.map(b => b.type === 'text' ? b.text : '').join('')).toContain('[A](https://a.test)')
     await fiber.dispose()
   })
+
+  it.each([['one'], ['one', 'two']])('forwards prompt locale hints for query batch %j', async (...queries) => {
+    const search = vi.fn(async () => ({ sources: [], truncated: false }))
+    const provider: WebSearchProvider = { id: 'stub-search', available: () => true, search }
+    const { fiber, call } = await mountTools({ search: provider })
+    try {
+      expect((await call('web_search', { queries, country: ' VN ', language: 'VI' })).isError).toBe(false)
+      for (const query of queries) expect(search).toHaveBeenCalledWith({ query, maxResults: 8, country: 'vn', language: 'vi' }, expect.any(AbortSignal))
+      search.mockClear()
+      expect((await call('web_search', { queries })).isError).toBe(false)
+      for (const query of queries) expect(search).toHaveBeenCalledWith({ query, maxResults: 8 }, expect.any(AbortSignal))
+    } finally { await fiber.dispose() }
+  })
+
+  it.each([{ country: '' }, { country: 'Vietnam' }, { language: '' }, { language: 'English please' }, { language: 1 }])(
+    'rejects malformed locale hints before provider dispatch: %j', async (locale) => {
+      const search = vi.fn(async () => ({ sources: [], truncated: false }))
+      const { fiber, call } = await mountTools({ search: { id: 'stub-search', available: () => true, search } })
+      try {
+        expect((await call('web_search', { queries: ['q'], ...locale })).isError).toBe(true)
+        expect(search).not.toHaveBeenCalled()
+      } finally { await fiber.dispose() }
+    },
+  )
 
   it('uses the configured search provider independently of the active model provider', async () => {
     let deepseekCalls = 0
@@ -765,6 +791,7 @@ describe('tool-web execution through the real registry', () => {
     const out = await ctx.tools.execute({ callId: CallId('fetch-1'), name: 'web_fetch', arguments: { url: 'https://a.test' }, signal: controller.signal })
     expect(out.isError).toBe(false)
     expect(out.value).toEqual({
+      sourceId: 'ebdb2da87dab98ad51addfec853f2e9567f38f3415ffa471a9459e5c0de4495f',
       url: 'https://a.test',
       statusCode: 200,
       body: { kind: 'text', content: 'ok' },
@@ -792,6 +819,7 @@ describe('tool-web execution through the real registry', () => {
     const out = await ctx.tools.execute({ signal: testToolSignal, callId: CallId('fetch-2'), name: 'web_fetch', arguments: { url: 'https://a.test' } })
     expect(out.isError).toBe(false)
     expect(out.value).toEqual({
+      sourceId: 'ebdb2da87dab98ad51addfec853f2e9567f38f3415ffa471a9459e5c0de4495f',
       url: 'https://a.test',
       statusCode: 200,
       body: { kind: 'text', content: 'ok' },
@@ -887,7 +915,7 @@ describe('searchMaxResults is plugin config', () => {
 })
 
 describe('searchMaxQueries is plugin config', () => {
-  it('exposes the configured cap to the model and enforces it before provider calls', async () => {
+  it('describes configured limits and enforces the current cap before provider calls', async () => {
     const seen: string[] = []
     const provider: WebSearchProvider = {
       id: 'stub-search',
@@ -903,9 +931,9 @@ describe('searchMaxQueries is plugin config', () => {
       search: provider,
     })
     const schema = ctx.tools.schemas().find(item => item.name === 'web_search')
-    expect(schema?.description).toContain('1–2 queries')
+    expect(schema?.description).toContain('configured per-call limit')
     const prompt = await ctx.systemPrompt.assemble()
-    expect(prompt.sections.map(section => section.text).join('\n')).toContain('accepts 1–2 non-empty search queries')
+    expect(prompt.sections.map(section => section.text).join('\n')).toContain('accepts non-empty search queries within the configured per-call limit')
     const out = await call('web_search', { queries: ['one', 'two', 'three'] })
     expect(out.isError).toBe(true)
     expect(out.content).toEqual([{ type: 'text', text: 'Error: queries must contain at most 2 queries' }])

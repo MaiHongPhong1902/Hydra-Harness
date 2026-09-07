@@ -63,6 +63,8 @@ The scope is the owner-facing handle. `update` merges a sparse patch over the us
 ```ts type-equiv
 /** Owner-facing handle for one registered namespace. */
 interface SettingsScope<T> {
+  /** Current user-section revision, sent as `expectedRevision` when writing a value derived from {@link get}. */
+  readonly revision: number
   /** Current resolved value: schema defaults, then `base`, then the user layer. */
   get(): T
   /**

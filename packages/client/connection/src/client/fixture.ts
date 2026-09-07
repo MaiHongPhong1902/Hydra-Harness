@@ -3051,6 +3051,10 @@ function createFixtureWorld(options: FixtureOptions): FixtureWorld {
         return ok(request, {})
       },
     },
+    webSearch: {
+      providers: request => ok(request, { providers: [] }),
+      testConnection: request => ok(request, { connected: false, provider: request.payload.provider, code: 'CONFIG_ERROR', message: 'No search provider configured.', retryable: false }),
+    },
     llm: {
       providers: request => ok(request, {
         providers: [
@@ -3243,6 +3247,8 @@ export class FixtureApiClient extends AbstractApiClient {
       case 'credentials.describe': return this.api.credentials.describe(request)
       case 'credentials.set': return this.api.credentials.set(request)
       case 'credentials.unset': return this.api.credentials.unset(request)
+      case 'webSearch.providers': return this.api.webSearch.providers(request)
+      case 'webSearch.testConnection': return this.api.webSearch.testConnection(request)
       case 'llm.providers': return this.api.llm.providers(request)
       case 'llm.models': return this.api.llm.models(request)
       case 'llm.discoverModels': return this.api.llm.discoverModels(request, signal)

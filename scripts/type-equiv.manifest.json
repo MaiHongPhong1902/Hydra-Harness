@@ -1382,6 +1382,26 @@
     },
     {
       "doc": "docs/subsystems/web.md",
+      "symbol": "WebSearchSettings",
+      "source": "packages/web/web/src/settings.ts"
+    },
+    {
+      "doc": "docs/subsystems/web.md",
+      "symbol": "WebSearchType",
+      "source": "packages/web/web/src/search.ts"
+    },
+    {
+      "doc": "docs/subsystems/web.md",
+      "symbol": "SearchConfigField",
+      "source": "packages/web/web/src/search.ts"
+    },
+    {
+      "doc": "docs/subsystems/web.md",
+      "symbol": "WebSearchProviderDescriptor",
+      "source": "packages/web/web/src/search.ts"
+    },
+    {
+      "doc": "docs/subsystems/web.md",
       "symbol": "WebSearchRequest",
       "source": "packages/web/web/src/types.ts"
     },

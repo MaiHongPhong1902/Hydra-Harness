@@ -1,0 +1,58 @@
+{
+  "name": "@hydra/harness-research-policy",
+  "description": "Durable research budgets shared by a session and its delegated agents",
+  "version": "0.1.1-rc.1",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MaiHongPhong1902/Hydra-Harness.git",
+    "directory": "packages/guard/research-policy"
+  },
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./invariant": {
+      "types": "./lib/types/invariant.d.ts",
+      "default": "./lib/invariant.js"
+    },
+    "./src/*": "./src/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/invariant.js",
+    "lib/types/**/*.d.ts"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "@hydra/cordis": "workspace:^",
+    "@hydra/harness-agent": "workspace:^",
+    "@hydra/harness-session": "workspace:^",
+    "@hydra/harness-subagent": "workspace:^",
+    "@hydra/harness-tools": "workspace:^",
+    "@hydra/harness-timeout": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^"
+  },
+  "devDependencies": {
+    "@hydra/cordis": "workspace:^",
+    "@hydra/harness-agent": "workspace:^",
+    "@hydra/harness-session": "workspace:^",
+    "@hydra/harness-subagent": "workspace:^",
+    "@hydra/harness-tools": "workspace:^",
+    "@hydra/harness-timeout": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-system-prompt": "workspace:^"
+  },
+  "dependencies": {
+    "@hydra/schemastery": "workspace:^"
+  }
+}

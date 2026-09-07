@@ -75,7 +75,8 @@
     "@hydra/harness-workspace": "workspace:^",
     "@hydra/schemastery": "workspace:^",
     "fflate": "^0.8.2",
-    "zod": "^4.4.3"
+    "zod": "^4.4.3",
+    "@hydra/harness-web": "workspace:^"
   },
   "peerDependencies": {
     "@hydra/cordis": "workspace:^",
@@ -93,7 +94,6 @@
     "@hydra/harness-storage": "workspace:^",
     "@hydra/harness-storage-domain": "workspace:^",
     "@hydra/harness-typert-protocol": "workspace:^",
-    "@hydra/harness-typert-registry": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra/harness-typert-registry": "workspace:^"
   }
 }

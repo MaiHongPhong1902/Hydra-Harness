@@ -8,6 +8,7 @@
     "src"
   ],
   "references": [
+    { "path": "../../web/web" },
     {
       "path": "../../goal/goal"
     },
@@ -112,6 +113,9 @@
     },
     {
       "path": "../../util/home-paths"
+    },
+    {
+      "path": "../../web/web"
     }
   ]
 }

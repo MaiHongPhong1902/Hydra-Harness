@@ -122,6 +122,7 @@ class ScriptedChild extends EventEmitter implements BrowserChildProcess {
     readonly label: string,
     beforeReply: (method: string, args: Record<string, unknown>) => Promise<void> = () => Promise.resolve(),
     readonly screenshotResult: unknown = screenshot(label),
+    ready = true,
   ) {
     super()
     createInterface({ input: this.stdin }).on('line', (line: string) => {
@@ -164,7 +165,7 @@ class ScriptedChild extends EventEmitter implements BrowserChildProcess {
       })
     })
     this.stdin.on('finish', () => this.emit('exit'))
-    queueMicrotask(() => this.stdout.write(`${JSON.stringify({ event: 'ready' })}\n`))
+    if (ready) queueMicrotask(() => this.stdout.write(`${JSON.stringify({ event: 'ready' })}\n`))
   }
 
   kill(): void {
@@ -203,6 +204,29 @@ async function harness(options: HarnessOptions = {}) {
 }
 
 describe('BrowserSessionService', () => {
+  it.each(['action', 'owner', 'service'])('cancels startup when its %s is stopped', async (stopped) => {
+    const { ctx, dispose } = await harness()
+    const owner = stubAgent(ctx, 'starting')
+    const controller = new AbortController()
+    const spawned = Promise.withResolvers<ScriptedChild>()
+    ctx.browsers.spawnChild = () => {
+      const child = new ScriptedChild('starting', undefined, undefined, false)
+      spawned.resolve(child)
+      return child
+    }
+    const service = ctx.browsers
+    const action = service.perform(owner, { method: 'get_browser_state' }, { signal: controller.signal })
+    const rejected = expect(action).rejects.toMatchObject({ name: 'AbortError' })
+    const child = await spawned.promise
+    if (stopped === 'action') controller.abort()
+    else if (stopped === 'owner') await disposeAgentScope(owner)
+    else await dispose()
+    await rejected
+    expect(child.stdin.writableEnded).toBe(true)
+    expect(await service.close(owner)).toBe(false)
+    if (stopped !== 'service') await dispose()
+  })
+
   it('starts one window on the first action and reuses it after that', async () => {
     const { ctx, spawned, dispose } = await harness()
     const owner = stubAgent(ctx, 'agent-a')

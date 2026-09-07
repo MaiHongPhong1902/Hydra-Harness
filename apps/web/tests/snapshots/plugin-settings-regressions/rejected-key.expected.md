@@ -1,20 +1,34 @@
-- listitem:
-  - 'button "Hide settings: Web search" [expanded]':
-    - text: Web search DeepSeek search provider. Unsaved
-    - img
-  - text: API key A key is configured.
-  - textbox "API key": fixture-replacement-key
-  - paragraph: Stored outside the settings file. Leave blank to keep the current key.
-  - text: Endpoint
-  - textbox "Endpoint":
-    - /placeholder: ""
-    - text: https://example.invalid
-  - paragraph: Leave blank to use the provider default.
-  - text: Max searches per request
-  - textbox "Max searches per request":
-    - /placeholder: ""
-    - text: "5"
-  - paragraph: How many times one request may search before it must answer.
-  - status: The deployment did not accept these values; they were left for you to correct.
+- region "Web Search":
+  - heading "Web Search" [level=2]
+  - paragraph: Choose how the agent searches the web. This selection is independent of your chat model. The agent chooses search country and language from your prompt.
+  - checkbox "Enable Web Search" [checked]
+  - text: Enable Web Search Search Provider
+  - combobox "Search Provider":
+    - option "Select provider…"
+    - option "DeepSeek" [selected]
+    - option "Serper.dev"
+    - option "Other"
+  - text: API Key / Header Value Configured
+  - textbox "API Key / Header Value":
+    - /placeholder: ••••••••••••••••
+    - text: fixture-replacement-key
+  - button "Replace"
+  - button "Remove"
+  - text: Stored through Credentials. Save applies replacement or removal. Search Model
+  - textbox "Search Model": deepseek-v4-flash
+  - text: Max Server Searches
+  - spinbutton "Max Server Searches": "5"
+  - text: Max Output Tokens
+  - spinbutton "Max Output Tokens": "4096"
+  - group: Advanced Settings
+  - text: Max Queries per Call
+  - spinbutton "Max Queries per Call": "4"
+  - text: Max Total Results
+  - spinbutton "Max Total Results": "8"
+  - text: Search Timeout (ms)
+  - spinbutton "Search Timeout (ms)": "60000"
+  - button "Test Connection" [disabled]
+  - text: Save changes before testing.
+  - alert: The deployment did not accept these values; they were left for you to correct.
   - button "Discard"
   - button "Save"

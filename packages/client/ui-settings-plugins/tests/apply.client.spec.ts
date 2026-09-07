@@ -61,6 +61,7 @@ async function bench(served?: string[]) {
     api: {
       settings: { describe: describeSettings },
       credentials: { describe: describeCredentials },
+      webSearch: { providers: async () => ({ result: { ok: true, value: { providers: [{ id: 'deepseek-official', displayName: 'DeepSeek', settingsNs: 'web-search-deepseek', credentialRef: 'DEEPSEEK_API_KEY', fields: [{ key: 'apiKeyEnv', kind: 'text' }] }] } } }) },
     },
   } as never)
   await ctx.plugin({ inject: [...settingsInject], apply: settingsApply }).await()
@@ -88,7 +89,7 @@ describe('ui-settings-plugins apply', () => {
 
     await ctx.plugin({ inject: [...inject], apply }).await()
 
-    const section = slots.entries('settings.section')[0]!
+    const section = slots.entries('settings.section').find(entry => entry.options.id === 'plugins')!
     expect(section.options).toMatchObject({ id: 'plugins', order: 15 })
     // The nav label is a locale-following thunk; owners resolve it at read time.
     expect(resolveSlotLabel(section.options.label)).toBe('Plugins')
@@ -111,7 +112,7 @@ describe('ui-settings-plugins apply', () => {
     declareRoot(slots)
     await ctx.plugin({ inject: [...inject], apply }).await()
 
-    const section = slots.entries('settings.section')[0]!
+    const section = slots.entries('settings.section').find(entry => entry.options.id === 'plugins')!
     const sectionFace = (section.inject as unknown as () => PluginsSettingsSectionInjected)()
     const initialTabs = sectionFace.hooks.tabs.getSnapshot()
     expect(initialTabs).toEqual([
@@ -159,7 +160,7 @@ describe('ui-settings-plugins apply', () => {
     await ctx.plugin({ inject: [...inject], apply }).await()
 
     expect(slots.entries('settings.plugin.item').map(entry => entry.options.key))
-      .toEqual(['shell', 'agent-loop', 'web-search-deepseek'])
+      .toEqual(['shell', 'agent-loop'])
   })
 
   it('dispatches the served namespaces its cards claim, and no others', async () => {
@@ -173,7 +174,7 @@ describe('ui-settings-plugins apply', () => {
     const face = (tab.inject as unknown as () => ConfigurablePluginsTabFace)()
     await vi.waitFor(() => {
       expect(face.hooks.configurablePlugins.getSnapshot().namespaces)
-        .toEqual(['agent-loop', 'web-search-deepseek'])
+        .toEqual(['agent-loop'])
     })
   })
 
@@ -249,7 +250,7 @@ describe('ui-settings-plugins apply', () => {
 
     declareRoot(slots)
 
-    await vi.waitFor(() => { expect(slots.entries('settings.section')).toHaveLength(1) })
+    await vi.waitFor(() => { expect(slots.entries('settings.section')).toHaveLength(2) })
   })
 
   it('collapses every contribution on teardown', async () => {
@@ -257,7 +258,7 @@ describe('ui-settings-plugins apply', () => {
     declareRoot(slots)
     const fiber = ctx.plugin({ inject: [...inject], apply })
     await fiber.await()
-    expect(slots.entries('settings.plugin.item')).toHaveLength(3)
+    expect(slots.entries('settings.plugin.item')).toHaveLength(2)
 
     await fiber.dispose()
 

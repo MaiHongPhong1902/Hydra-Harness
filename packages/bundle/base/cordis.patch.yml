@@ -343,6 +343,9 @@
 
     - id: subagent
       name: '@hydra/harness-subagent'
+      config:
+        maxActivePerTree: 4
+        maxChildrenPerTree: 8
       pluginType: core
 
     - id: subagent-spawn-in-process
@@ -452,22 +455,40 @@
         argumentsPreviewChars: 500
 
     # Every mode enables the stable model-facing web_search tool. Search provider
-    # selection is independent of the active LLM route; this single shipped
-    # DeepSeek provider auto-selects unless a deployment configures another id.
-    # Fetch stays disabled and no fetch provider is mounted: that provider defers
-    # SSRF protection and the model would choose the request target.
+    # selection is saved independently of the active chat model in Settings.
+    - id: research-policy
+      name: '@hydra/harness-research-policy'
+      config:
+        maxSearchCalls: 4
+        maxQueries: 12
+        maxFetches: 8
+        maxBrowserCalls: 30
+        maxDurationMs: 600000
+
     - id: web
       name: '@hydra/harness-web'
       pluginType: core
+      config:
+        requireSearchSelection: true
 
     - id: web-search-deepseek
       name: '@hydra/harness-web-search-deepseek'
       pluginType: core
 
+    - id: web-search-http
+      name: '@hydra/harness-web-search-http'
+      pluginType: core
+
+    - id: web-fetch-http
+      name: '@hydra/harness-web-fetch-http'
+      pluginType: core
+      config:
+        timeoutMs: 45000
+
     - id: tool-web
       name: '@hydra/harness-tool-web'
       config:
-        fetch: false
+        fetch: true
         searchTimeoutMs: 60000
 
     # The embedded browser seam. It starts no Electron process until an agent's

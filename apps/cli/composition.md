@@ -156,10 +156,16 @@ flowchart LR
   cfg --> plugin_hydra_base_tool_str_replace_editor
   plugin_hydra_base_repeat_tool_reminder["repeat-tool-reminder<br/>@hydra/harness-repeat-tool-reminder"]
   cfg --> plugin_hydra_base_repeat_tool_reminder
+  plugin_hydra_base_research_policy["research-policy<br/>@hydra/harness-research-policy"]
+  cfg --> plugin_hydra_base_research_policy
   plugin_hydra_base_web["web<br/>@hydra/harness-web"]
   cfg --> plugin_hydra_base_web
   plugin_hydra_base_web_search_deepseek["web-search-deepseek<br/>@hydra/harness-web-search-deepseek"]
   cfg --> plugin_hydra_base_web_search_deepseek
+  plugin_hydra_base_web_search_http["web-search-http<br/>@hydra/harness-web-search-http"]
+  cfg --> plugin_hydra_base_web_search_http
+  plugin_hydra_base_web_fetch_http["web-fetch-http<br/>@hydra/harness-web-fetch-http"]
+  cfg --> plugin_hydra_base_web_fetch_http
   plugin_hydra_base_tool_web["tool-web<br/>@hydra/harness-tool-web"]
   cfg --> plugin_hydra_base_tool_web
   plugin_hydra_base_browser_electron["browser-electron<br/>@hydra/harness-browser-electron"]
@@ -254,8 +260,11 @@ flowchart LR
 | `tool-ralph` | `@hydra/harness-tool-ralph` |
 | `tool-str-replace-editor` | `@hydra/harness-tool-str-replace-editor` |
 | `repeat-tool-reminder` | `@hydra/harness-repeat-tool-reminder` |
+| `research-policy` | `@hydra/harness-research-policy` |
 | `web` | `@hydra/harness-web` |
 | `web-search-deepseek` | `@hydra/harness-web-search-deepseek` |
+| `web-search-http` | `@hydra/harness-web-search-http` |
+| `web-fetch-http` | `@hydra/harness-web-fetch-http` |
 | `tool-web` | `@hydra/harness-tool-web` |
 | `browser-electron` | `@hydra/harness-browser-electron` |
 | `obsidian-knowledge` | `@hydra/harness-obsidian-knowledge` |

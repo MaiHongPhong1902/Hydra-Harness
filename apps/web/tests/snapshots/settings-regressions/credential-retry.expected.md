@@ -10,6 +10,9 @@
     - button "Models":
       - img
       - text: Models
+    - button "Web Search":
+      - img
+      - text: Web Search
     - button "Usage"
     - button "Plugins":
       - img
@@ -55,6 +58,8 @@
   - textbox "API key":
     - /placeholder: Enter your API key
     - text: fixture-key
+  - button "Add API key" [disabled]
+  - paragraph: Keys are tried in order. If a request fails, the next key retries it. Stop cancels all retries.
   - region "Models":
     - text: Models
     - button "Fetch available models" [disabled]

@@ -553,3 +553,18 @@ describe('JsonBlock', () => {
     expect(body).toContain('truncated')
   })
 })
+
+
+describe('web passage links', () => {
+  it('keeps unknown or streaming references inert and links a resolved passage', () => {
+    const text = '[source](hydra-cite://abc "exact quote")'
+    const citations = { resolve: (id: string, quote: string) => id === 'abc' && quote === 'exact quote' ? { url: 'https://example.com', start: 4, end: 15 } : undefined }
+    const { container, rerender } = render(<MarkdownText text={text} citations={citations} streaming />)
+    expect(container.querySelector('a')).toBeNull()
+    rerender(<MarkdownText text={text} citations={citations} />)
+    expect(container.querySelector('a')?.getAttribute('href')).toBe('https://example.com')
+    expect(container.querySelector('a')?.getAttribute('data-passage-start')).toBe('4')
+    rerender(<MarkdownText text={'[source](hydra-cite://unknown "exact quote")'} citations={citations} />)
+    expect(container.querySelector('a')).toBeNull()
+  })
+})

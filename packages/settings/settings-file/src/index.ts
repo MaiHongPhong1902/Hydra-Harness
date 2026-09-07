@@ -181,12 +181,14 @@ export class FileSettingsProvider extends SettingsProvider {
     return doc
   }
 
-  protected persist(ns: SettingsNamespace, section: Record<string, unknown>): Promise<void> {
-    // One document backs every namespace, so writes from different namespace
-    // queues serialize with each other and with watcher reloads on the one
-    // operation chain: each render must see the text the previous operation
-    // committed, or a sibling section silently vanishes from disk.
-    return this.enqueue(() => this.persistSection(ns, section))
+  protected override withWriteTransaction(operation: () => Promise<void>): Promise<void> {
+    return this.enqueue(async () => {
+      await mkdir(dirname(this.spec.filename), { recursive: true, mode: 0o700 })
+      await withFileLock(this.spec.filename, async () => {
+        await this.reconcileFromDisk()
+        await operation()
+      })
+    })
   }
 
   /** Queue one exclusive document operation behind every earlier one. */
@@ -207,26 +209,13 @@ export class FileSettingsProvider extends SettingsProvider {
     })
   }
 
-  private async persistSection(ns: SettingsNamespace, section: Record<string, unknown>): Promise<void> {
-    // The writer lock's exclusive create needs the parent to exist before
-    // writeFileAtomic gets its own chance to create it.
-    // 0700: the harness home holds user-private documents.
-    await mkdir(dirname(this.spec.filename), { recursive: true, mode: 0o700 })
-    await withFileLock(this.spec.filename, async () => {
-      // Read-modify-write: fold in any on-disk state this process has not
-      // observed yet — an external edit still inside the watcher debounce
-      // window, a change the watcher missed, or another process's write — so
-      // the render below can never resurrect a stale document. An unparsable
-      // on-disk document fails the write loud instead of silently overwriting
-      // a user's manual edit.
-      await this.reconcileFromDisk()
-      const output = this.spec.format === 'yaml'
-        ? this.renderYaml(ns, section)
-        : this.renderJson(ns, section)
-      // 0600: a document that may hold personal values is never world-readable.
-      await writeFileAtomic(this.spec.filename, output, { mode: 0o600, dirMode: 0o700 })
-      this.text = output
-    })
+  protected async persist(ns: SettingsNamespace, section: Record<string, unknown>): Promise<void> {
+    const output = this.spec.format === 'yaml'
+      ? this.renderYaml(ns, section)
+      : this.renderJson(ns, section)
+    // 0600: a document that may hold personal values is never world-readable.
+    await writeFileAtomic(this.spec.filename, output, { mode: 0o600, dirMode: 0o700 })
+    this.text = output
   }
 
   override async* [Service.init](): AsyncGenerator<() => Promise<void> | void, void, void> {

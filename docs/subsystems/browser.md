@@ -10,6 +10,8 @@ Unlike [web.md](web.md), this seam has exactly one implementation and names it i
 
 The page-control modality is text, not pixels. `PageController` turns a targeted live DOM into a numbered element list (`[12]<button>Save</button>`) and acts by index, so the control loop uses neither screenshots nor a vision model. A user-created Browser annotation is a separate composer path that may attach a bounded screenshot of a selected element or viewport region. The native chrome and the model share one controlled-tab inventory and a functional omnibox.
 
+Website and media permission requests use the owning chat through `ctx.userQuestions`; the Electron owner enforces the answer before continuing. The [package README](../../packages/browser/browser-electron/README.md#security) defines the policy and cancellation behavior.
+
 ## Page state
 
 ```ts type-equiv
@@ -150,9 +152,9 @@ In standalone use, `BrowserSessionService` talks to the Electron child in NDJSON
 
 The controlled view runs with `contextIsolation: true`, `sandbox: true`, `nodeIntegration: false`, and the preload never calls `contextBridge` — `ipcRenderer` never leaves module scope, so a hostile document has no handle on the control channel. The window is headed by default: the user watches what the agent does.
 
-Every new top-level destination is policy-checked: direct tool/tab loads, the omnibox, and the configured home page check before `loadURL`; popups check before adoption; and Chromium's `will-navigate` and `will-redirect` events cover page links and redirects. An exact-origin site block takes precedence over same-origin access and vetoes Back, Forward, and Reload; otherwise same-origin HTTP(S) navigation proceeds automatically, non-HTTP(S) navigation is blocked, and each other destination uses its exact-origin `access` override or the default navigation policy. Native `ask` offers Allow once, Always allow, and Block; remembered allow/block choices are persisted for that canonical origin. Existing history entries do not reapply the default policy.
+Every new top-level destination is policy-checked: direct tool/tab loads, the omnibox, and the configured home page check before `loadURL`; popups check before adoption; and Chromium's navigation events and main-frame network requests cover page links and redirects. An exact-origin site block takes precedence over same-origin access and vetoes Back, Forward, and Reload; otherwise same-origin HTTP(S) navigation proceeds automatically, non-HTTP(S) navigation is blocked, and each other destination uses its exact-origin `access` override or the default navigation policy. The `ask` policy offers Allow once, Always allow, and Block in the owning chat; remembered allow/block choices are persisted for that canonical origin.
 
-Downloads are approved or blocked before Chromium writes them, receive a unique destination under the configured or system Downloads directory, and may open a native save dialog. Only camera and microphone media permission can be granted, by exact-origin override or native prompt; blocking media never grants site access and reloads every matching controlled document or frame before the update returns. Every other permission, device-permission, and display-capture request fails closed.
+Downloads are approved or blocked before Chromium writes them, receive a unique destination under the configured or system Downloads directory, and may open a native save dialog. Only camera and microphone media permission can be granted, by exact-origin override or chat answer; blocking media never grants site access and reloads every matching controlled document or frame before the update returns. Every other permission, device-permission, and display-capture request fails closed.
 
 **The profile carries real SSO cookies** and persists across sessions by design, so a prompt-injected page can act as the signed-in user on any reachable site that profile is authenticated to. Navigation approval reduces accidental cross-origin movement but does not make an allowed or remembered origin trustworthy. This is the same class of exposure as the deferred SSRF protection on `web_fetch`; do not enable the embedded browser where untrusted content can share a profile authenticated to sensitive internal systems.
 
@@ -180,7 +182,7 @@ One Electron window per agent, started lazily and closed with its owner.
  * tab and may overlap across tabs; implicit and lifecycle actions are barriers.
  * @param owner - agent whose window this is; its first call starts one.
  * @param action - what to do, in page-agent's own vocabulary.
- * @param execution - tool-call identity and cancellation for an interactive upload approval.
+ * @param execution - tool-call identity and cancellation for browser actions and permissions.
  * @returns the action's report, omitted for a plain state read, plus the state.
  */
 async perform( owner: Agent, action: BrowserAction, execution: BrowserExecutionContext = {}, ): Promise<BrowserOutcome>

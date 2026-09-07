@@ -99,6 +99,34 @@ async function started(overrides: Record<string, unknown> = {}): Promise<{ fake:
 }
 
 describe('launchBrowser startup', () => {
+  it('cancels a home-page question and exits even while its startup deadline is paused', async () => {
+    vi.useFakeTimers()
+    try {
+      const fake = new FakeElectron()
+      const controller = new AbortController()
+      const answer = Promise.withResolvers<'always'>()
+      let questionSignal: AbortSignal | undefined
+      const launching = launchBrowser(options(fake, {
+        signal: controller.signal,
+        onPermission: (_request: unknown, signal: AbortSignal) => {
+          questionSignal = signal
+          return answer.promise
+        },
+      }))
+      const rejected = expect(launching).rejects.toThrow('stopped')
+      fake.say({ event: 'browser:permission', id: 1, request: { kind: 'navigation', origin: 'https://example.test' } })
+      await vi.advanceTimersByTimeAsync(10_000)
+      expect(fake.killed).toBe(false)
+      expect(questionSignal?.aborted).toBe(false)
+      controller.abort(new Error('stopped'))
+      await rejected
+      expect(questionSignal?.aborted).toBe(true)
+      expect(fake.stdin.writableEnded).toBe(true)
+      answer.resolve('always')
+      await vi.runAllTimersAsync()
+    } finally { vi.useRealTimers() }
+  })
+
   it('passes the window settings to the child and waits for its ready line', async () => {
     const fake = new FakeElectron()
     const seen: { command: string; args: string[] } = { command: '', args: [] }
@@ -250,6 +278,61 @@ describe('launchBrowser requests', () => {
       method: 'page_agent_llm_response',
       args: { callId: 71, ok: true, result: { choices: [] } },
     })
+  })
+
+  it('keeps the browser call alive while chat answers and resumes its deadline', async () => {
+    vi.useFakeTimers()
+    try {
+      const answer = Promise.withResolvers<'once'>()
+      const onPermission = vi.fn(() => answer.promise)
+      const { fake, child } = await started({ onPermission })
+      const action = child.call('navigate', {})
+      const request = await fake.next()
+      fake.say({ event: 'browser:permission', id: 91, request: { kind: 'navigation', origin: 'https://example.test' } })
+      await vi.advanceTimersByTimeAsync(10_000)
+      expect(onPermission).toHaveBeenCalledOnce()
+      answer.resolve('once')
+      expect(await fake.next()).toEqual({ method: 'browser_permission_response', args: { id: 91, choice: 'once' } })
+      fake.say({ id: request.id, ok: true, result: 'loaded' })
+      await expect(action).resolves.toBe('loaded')
+      await child.close()
+    } finally { vi.useRealTimers() }
+  })
+
+  it('denies missing or malformed permission bridges and cancels outstanding questions on exit', async () => {
+    const { fake, child } = await started()
+    fake.say({ event: 'browser:permission', id: 90, request: { kind: 'navigation', origin: 'https://example.test' } })
+    expect((await fake.next()).args).toEqual({ id: 90 })
+    await child.close()
+    let signal: AbortSignal | undefined
+    const answer = Promise.withResolvers<'always'>()
+    const bridge = await started({ onPermission: (_request: unknown, pending: AbortSignal) => {
+      signal = pending
+      return answer.promise
+    } })
+    bridge.fake.say({ event: 'browser:permission', id: 91, request: { kind: 'navigation', origin: 'file:///secret' } })
+    expect((await bridge.fake.next()).args).toEqual({ id: 91 })
+    bridge.fake.say({ event: 'browser:permission', id: 92, request: { kind: 'media', origin: 'https://example.test' } })
+    await vi.waitFor(() => { expect(signal).toBeDefined() })
+    await bridge.child.close()
+    expect(signal?.aborted).toBe(true)
+    answer.resolve('always')
+  })
+
+  it('withdraws chat permissions when the calling action is cancelled', async () => {
+    const answer = Promise.withResolvers<'always'>()
+    const { fake, child } = await started({ onPermission: () => answer.promise })
+    const controller = new AbortController()
+    const action = child.call('navigate', {}, controller.signal)
+    const rejected = expect(action).rejects.toThrow('stopped')
+    await fake.next()
+    fake.say({ event: 'browser:permission', id: 1, request: { kind: 'navigation', origin: 'https://example.test' } })
+    controller.abort(new Error('stopped'))
+    await rejected
+    expect((await fake.next()).method).toBe('cancel_browser_permissions')
+    answer.resolve('always')
+    expect((await fake.next()).args).toEqual({ id: 1 })
+    await child.close()
   })
 
   it('fails outstanding and later calls once the child is gone', async () => {

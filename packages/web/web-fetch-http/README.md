@@ -14,6 +14,10 @@ A shipping web-tool deployment sets the provider backstop above the tool budget,
 
 ## Transport hygiene
 
+Connections use a private direct dispatcher and validate every DNS answer inside socket lookup. Only the validated addresses reach the socket; there is no second DNS lookup between checking and connecting. Literal IP URLs receive the same checks, and each redirect opens a separately checked connection. Private, loopback, link-local, multicast, reserved, and IPv6 transition destinations fail with `WEB_BLOCKED_URL`. Ambient proxies, global dispatchers, browser cookies, and credentials are not used.
+
+`allowedOrigins` grants exact operator-configured HTTP(S) origins access to non-public addresses. It defaults to an empty list and is never a tool argument. Ports are part of the grant; paths, credentials, and wildcards are rejected. Local fixture compositions explicitly grant their test server origin.
+
 - Accepts only `http:` and `https:` URLs; rejects credentials in URLs (`WEB_BLOCKED_URL`) and over-long/malformed URLs (`WEB_INVALID_URL`).
 - Enforces a max URL length, response byte cap (`WEB_FETCH_TOO_LARGE`), decoded body character cap, timeout (`WEB_FETCH_TIMEOUT`), and redirect hop cap.
 - Propagates the caller's abort signal (`WEB_ABORTED`) into the network request and the streaming read.
@@ -30,6 +34,7 @@ A shipping web-tool deployment sets the provider backstop above the tool budget,
 | `maxBodyChars` | `100_000` | Maximum decoded body length in characters. |
 | `timeoutMs` | `30_000` | Fetch timeout within Node's timer range — a resource backstop for direct `ctx.web.fetch()` callers, not the model-facing tool-call budget (that is `@hydra/harness-tool-call-timeout-policy`). |
 | `maxRedirects` | `5` | Maximum same-origin redirect hops (`0` follows none). |
+| `allowedOrigins` | `[]` | Exact HTTP(S) origins permitted to connect to non-public addresses. |
 | `userAgent` | `hydra-harness/…` | `User-Agent` header. |
 
 The numeric limits are validated at plugin construction: every cap except `maxRedirects` must be a positive finite number, and `maxRedirects` must be a non-negative integer. An invalid value throws rather than silently constructing a provider with nonsensical limits.
@@ -44,6 +49,6 @@ No direct invalidation; the named consumer owns any request-prefix changes.
 
 ## Known Limitations and Deferred Work
 
-- **SSRF / private-network protection is deferred** — no blocking of private, loopback, link-local, multicast, or otherwise non-public destinations, no DNS-resolve-then-validate, no per-hop re-validation (see [the web capability seam Agent Note](../../../.agents/notes/implemented/architecture/2026-06-24-web-capability-seam.md)). Until it lands, this provider is an SSRF primitive and **must not be enabled** in a deployment that can reach sensitive internal network targets.
+- **Public address policy is conservative** — special-use IPv4 and IPv6 transition/reserved ranges are refused even when a particular address is globally reachable. Network-level routing and explicitly granted private origins remain deployment responsibilities.
 - **Only textual content decodes** — html/xhtml and `text/*`-plus-JSON/XML families; a missing `Content-Type` or any binary type throws `WEB_UNSUPPORTED_CONTENT_TYPE`, and text-extractable PDF decoding is named deferred work.
 - **Charset comes only from the `Content-Type` header** (UTF-8 default) — an HTML `<meta charset>` declaration is ignored, and a declared-but-unrecognized charset label throws rather than falling back.

@@ -117,6 +117,7 @@
     "@hydra/harness-web": "workspace:*",
     "@hydra/harness-web-fetch-http": "workspace:*",
     "@hydra/harness-workflow-worker-thread": "workspace:*",
-    "@hydra/harness-agent-instructions": "workspace:*"
+    "@hydra/harness-agent-instructions": "workspace:*",
+    "@hydra/harness-research-policy": "workspace:^"
   }
 }

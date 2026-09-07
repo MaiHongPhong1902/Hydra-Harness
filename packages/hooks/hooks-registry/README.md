@@ -10,6 +10,8 @@ On replacement, omitted `enabled` and `defaultTimeoutMs` retain their stored val
 
 ## Stored records
 
+Registry writes carry the revision read before constructing the next record list. A concurrent settings change rejects the write with `SettingsConflictError` and refreshes the stored projection; retry against that projection. This prevents stale lists from restoring deleted records or discarding another writer's changes.
+
 `hooks.records` is an ordered list of at most 50 records. A record carries `name` (`[A-Za-z0-9_-]{1,64}`, unique across records), `dialect` (`claude-code` or `codex`), exactly one document source, `defaultTimeoutMs`, and `enabled` (default `false`, so a new record is inert until switched on). `claude-code` records may also carry `pluginRoot` and `projectDir`, which the bridge substitutes into command strings.
 
 The document source is either `configPath` — an absolute path to a hook document the harness reads as-is — or `config`, the definitions stored inline in the settings document as a bare event map or a `{ hooks: … }` wrapper. Inline definitions are capped at 256 KiB and materialized to `$HYDRA_HOME/hooks/<name>.json` on every mount, because both bridges read one file path at load; editing the inline section is therefore enough to change what runs.

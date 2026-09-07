@@ -609,6 +609,19 @@ Source: [`packages/core/session/src/types.ts:313`](../packages/core/session/src/
 
 Source: [`packages/core/session/src/types.ts:308`](../packages/core/session/src/types.ts)
 
+### `research/*`
+
+<a id="researchcharge--log-only"></a>
+
+#### `research/charge` — log-only
+
+```ts persistence-catalog
+/** Research attempt charged before dispatch; failures and cancellations retain the charge. */
+'research/charge': { owner: SessionId; kind: 'search' | 'fetch' | 'browser'; queries: number }
+```
+
+Source: [`packages/guard/research-policy/src/index.ts:33`](../packages/guard/research-policy/src/index.ts)
+
 ### `sandbox/*`
 
 <a id="sandboxmode--log-only"></a>
@@ -749,6 +762,17 @@ Source: [`packages/core/session/src/types.ts:256`](../packages/core/session/src/
 Source: [`packages/core/session/src/types.ts:254`](../packages/core/session/src/types.ts)
 
 ### `subagent/*`
+
+<a id="subagentadmission--log-only"></a>
+
+#### `subagent/admission` — log-only
+
+```ts persistence-catalog
+/** One admitted child creation, charged to the delegation root before provider work starts. */
+'subagent/admission': { parentId: Session['id'] }
+```
+
+Source: [`packages/subagent/subagent/src/budget.ts:10`](../packages/subagent/subagent/src/budget.ts)
 
 <a id="subagentdescriptor--log-only"></a>
 
@@ -1061,4 +1085,4 @@ Source: [`packages/core/session/src/types.ts:264`](../packages/core/session/src/
 'web/deepseek-search-llm-request': DeepSeekSearchLlmRequest
 ```
 
-Source: [`packages/web/web-search-deepseek/src/provider.ts:83`](../packages/web/web-search-deepseek/src/provider.ts)
+Source: [`packages/web/web-search-deepseek/src/provider.ts:82`](../packages/web/web-search-deepseek/src/provider.ts)

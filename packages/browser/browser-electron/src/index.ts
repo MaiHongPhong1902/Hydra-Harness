@@ -14,6 +14,7 @@ import type { Agent } from '@hydra/harness-agent'
 import { resolveHydraHome } from '@hydra/harness-home-paths'
 import { installSettingsSection, settingsNamespace } from '@hydra/harness-settings'
 import type { ApprovalRequest } from '@hydra/harness-user-approval'
+import '@hydra/harness-user-questions'
 import { launchBrowser } from './child.ts'
 import type { BrowserChild, BrowserChildProcess } from './child.ts'
 import { executePageAgentLlm } from './page-agent-llm.ts'
@@ -405,7 +406,7 @@ export class BrowserSessionService extends Service {
   })
 
   private readonly sessions = new Map<Agent, BrowserChild>()
-  private readonly launches = new Map<Agent, Promise<BrowserChild>>()
+  private readonly launches = new Map<Agent, { ready: Promise<BrowserChild>; controller: AbortController }>()
   private readonly queues = new WeakMap<Agent, OwnerQueue>()
   private readonly ownerCleanups = new Map<Agent, () => Promise<void> | void>()
   private readonly settings: ResolvedSettings
@@ -468,7 +469,7 @@ export class BrowserSessionService extends Service {
    * tab and may overlap across tabs; implicit and lifecycle actions are barriers.
    * @param owner - agent whose window this is; its first call starts one.
    * @param action - what to do, in page-agent's own vocabulary.
-   * @param execution - tool-call identity and cancellation for an interactive upload approval.
+   * @param execution - tool-call identity and cancellation for browser actions and permissions.
    * @returns the action's report, omitted for a plain state read, plus the state.
    */
   async perform(
@@ -488,7 +489,7 @@ export class BrowserSessionService extends Service {
       if (prepared.method === 'execute_javascript' && !this.settings.experimentalScriptExecution) {
         throw new Error('experimental browser JavaScript is disabled by the host')
       }
-      const child = await this.session(owner)
+      const child = await this.session(owner, execution.signal)
       const { method, ...args } = prepared
       if (prepared.method === 'upload_file') {
         const target = await child.call('get_upload_target', {
@@ -507,7 +508,7 @@ export class BrowserSessionService extends Service {
       }
       const result = method === 'get_browser_state'
         ? undefined
-        : await child.call(method, args) as ActionResult
+        : await child.call(method, args, execution.signal) as ActionResult
       const waitForReady = prepared.method === 'get_browser_state'
         || prepared.method === 'navigate'
         || prepared.method === 'back'
@@ -524,7 +525,7 @@ export class BrowserSessionService extends Service {
       const state = await child.call('get_browser_state', {
         waitForReady,
         ...tabId === undefined ? {} : { tabId },
-      }) as BrowserState
+      }, execution.signal) as BrowserState
       return result === undefined ? { state } : { action: result, state }
     })
   }
@@ -570,7 +571,7 @@ export class BrowserSessionService extends Service {
       execution.signal?.throwIfAborted()
       await this.approveHistorySearch(owner, normalized, execution)
       execution.signal?.throwIfAborted()
-      const child = await this.session(owner)
+      const child = await this.session(owner, execution.signal)
       return historySearchResults(await child.call('search_browser_history', {
         query: normalized,
         limit: MAX_HISTORY_SEARCH_RESULTS,
@@ -607,7 +608,7 @@ export class BrowserSessionService extends Service {
         throw new BrowserError('full browser CDP access is disabled by settings or organization policy', 'BROWSER_POLICY_DENIED')
       }
       execution.signal?.throwIfAborted()
-      const child = await this.session(owner)
+      const child = await this.session(owner, execution.signal)
       const target = await child.call('get_cdp_target', tabId === undefined ? {} : { tabId }) as {
         origin?: unknown
         tabId?: unknown
@@ -666,7 +667,7 @@ export class BrowserSessionService extends Service {
         throw new BrowserError('full browser CDP access is disabled by settings or organization policy', 'BROWSER_POLICY_DENIED')
       }
       execution.signal?.throwIfAborted()
-      const child = await this.session(owner)
+      const child = await this.session(owner, execution.signal)
       const target = await child.call('get_cdp_target', options.tabId === undefined ? {} : { tabId: options.tabId }) as {
         origin?: unknown
         tabId?: unknown
@@ -705,8 +706,9 @@ export class BrowserSessionService extends Service {
     const children = new Set<BrowserChild>()
     if (child !== undefined) children.add(child)
     if (launch !== undefined) {
+      launch.controller.abort()
       try {
-        children.add(await launch)
+        children.add(await launch.ready)
       } catch {
         // A failed launch owns no browser process that close() can release.
       }
@@ -743,17 +745,49 @@ export class BrowserSessionService extends Service {
   }
 
   /** Reuse this owner's window, or start the one it does not have yet. */
-  private session(owner: Agent): Promise<BrowserChild> {
+  private session(owner: Agent, signal?: AbortSignal): Promise<BrowserChild> {
+    signal?.throwIfAborted()
     const existing = this.sessions.get(owner)
     if (existing !== undefined) return Promise.resolve(existing)
     const launching = this.launches.get(owner)
-    if (launching !== undefined) return launching
+    if (launching !== undefined) return launching.ready
     this.ensureOwnerCleanup(owner)
     const settingsAtLaunch = nativeSettings(this.browserSettings(), this.settings.allowFullCdpAccess)
+    const controller = new AbortController()
     const ready = launchBrowser({
+      signal: signal === undefined ? controller.signal : AbortSignal.any([controller.signal, signal]),
       ...this.settings,
       ...settingsAtLaunch,
       spawnChild: this.spawnChild,
+      onPermission: async ({ kind, origin }, signal) => {
+        const questions = this.ctx.get('userQuestions')
+        if (questions === undefined || !this.browserSettings().controlEnabled) return undefined
+        const answer = await questions.ask({
+          agent: owner,
+          signal,
+          questions: [{
+            id: 'browser-permission',
+            header: kind === 'navigation' ? 'Website permission' : 'Camera and microphone',
+            question: kind === 'navigation'
+              ? `Allow the built-in Browser to open ${origin}?`
+              : `Allow ${origin} to use camera or microphone?`,
+            options: [
+              { label: 'Allow once', description: 'Allow only this request.' },
+              { label: 'Always allow', description: 'Remember this exact website in Browser settings.' },
+              { label: 'Block', description: 'Block this permission for this website.' },
+            ],
+          }],
+        })
+        const selected = answer.answers.find(item => item.id === 'browser-permission')
+        if (signal.aborted || !this.browserSettings().controlEnabled
+          || selected?.custom !== undefined || selected?.selected.length !== 1) return undefined
+        switch (selected.selected[0]) {
+          case 'Allow once': return 'once'
+          case 'Always allow': return 'always'
+          case 'Block': return 'block'
+          default: return undefined
+        }
+      },
       onPageAgentLlm: (request) => {
         if (!this.browserSettings().controlEnabled) {
           return Promise.reject(new BrowserError(
@@ -764,7 +798,7 @@ export class BrowserSessionService extends Service {
         return executePageAgentLlm(owner, request)
       },
     }).then(async (child) => {
-      if (this.launches.get(owner) !== ready) return child
+      if (this.launches.get(owner)?.ready !== ready) return child
       this.launches.delete(owner)
       if (this.disposing) {
         await child.close()
@@ -782,10 +816,10 @@ export class BrowserSessionService extends Service {
       })
       return child
     }, (error: unknown) => {
-      if (this.launches.get(owner) === ready) this.launches.delete(owner)
+      if (this.launches.get(owner)?.ready === ready) this.launches.delete(owner)
       throw error
     })
-    this.launches.set(owner, ready)
+    this.launches.set(owner, { ready, controller })
     return ready
   }
 
@@ -905,12 +939,13 @@ export class BrowserSessionService extends Service {
     this.disposing = true
     const children = [...this.sessions.values()]
     const launches = [...this.launches.values()]
+    for (const launch of launches) launch.controller.abort()
     this.sessions.clear()
     this.launches.clear()
     const cleanups = [...this.ownerCleanups.values()]
     this.ownerCleanups.clear()
     await Promise.all(cleanups.map(async detach => detach()))
-    const launched = (await Promise.allSettled(launches))
+    const launched = (await Promise.allSettled(launches.map(launch => launch.ready)))
       .flatMap(result => result.status === 'fulfilled' ? [result.value] : [])
     await Promise.all([...new Set([...children, ...launched])].map(async child => child.close()))
   }

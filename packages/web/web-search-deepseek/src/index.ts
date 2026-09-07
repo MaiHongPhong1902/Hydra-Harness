@@ -135,4 +135,28 @@ export function apply(ctx: Context, config: Config): void {
     onChange: () => {},
   })
   ctx.web.registerSearchProvider(new DeepSeekSearchProvider(() => resolveOptions(ctx, current())))
+  ctx.inject(['settings'], async (sctx) => {
+    const legacy = sctx.settings.describe().find(item => item.ns === WEB_SEARCH_DEEPSEEK_SETTINGS_NAMESPACE)
+    const defaults = Config({})
+    const configured = Object.keys(legacy?.user ?? {}).length > 0
+      || Object.entries(config).some(([key, value]) => value !== defaults[key as keyof Config])
+    await ctx.web.migrateSearchSelection('deepseek-official', configured)
+  })
+  ctx.inject(['settings', 'credentials'], async (sctx) => {
+    const legacy = sctx.settings.describe().find(item => item.ns === WEB_SEARCH_DEEPSEEK_SETTINGS_NAMESPACE)
+    const key = (legacy?.user as Config | undefined)?.apiKey
+    if (typeof key !== 'string' || key.length === 0 || !sctx.settings.writable) return
+    // A separate reference preserves any independently configured chat credential.
+    const ref = credentialRef('HYDRA_DEEPSEEK_SEARCH_API_KEY')
+    try {
+      if ((await sctx.credentials.resolve(ref))?.value !== key) await sctx.credentials.set(ref, key)
+      await sctx.settings.mutate(WEB_SEARCH_DEEPSEEK_SETTINGS_NAMESPACE, [
+        { op: 'set', path: ['apiKeyEnv'], value: ref },
+        { op: 'unset', path: ['apiKey'] },
+      ], legacy?.revision)
+    } catch {
+      // Keep the legacy key until both durable writes are acknowledged; retry on reload.
+      ctx.logger('web-search').warn('DeepSeek search credential migration could not finish; the existing configuration is retained.')
+    }
+  })
 }

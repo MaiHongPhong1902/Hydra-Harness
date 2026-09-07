@@ -6,6 +6,8 @@ The patch gates both shell stacks by platform on its own rows: `bash-sandbox`/`t
 
 The row set and its rationale are documented inline in the patch file; the [generated composition graph](../../../apps/cli/composition.md) renders it.
 
+The base bundle mounts DeepSeek, Serper, and Other search providers with [explicit Settings selection](../../web/web/README.md#product-search-settings), public HTTP fetch, and shared research limits. Standard and Code presets expose fetch; private origins require an explicit operator grant in the [HTTP provider](../../web/web-fetch-http/README.md). The [research policy](../../guard/research-policy/README.md) defines the root-session budget lifetime.
+
 ## Model Experience
 
 Indirectly, through the inserted rows: this bundle selects the shipped persona-less prompt base, tool set, and DeepSeek adapter that mode bundles specialize, and contributes no model-visible text of its own.

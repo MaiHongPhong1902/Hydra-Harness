@@ -38,9 +38,10 @@ export interface BrowserChild {
    * Send one request and await its reply.
    * @param method - protocol method the Electron main process understands.
    * @param args - JSON-safe arguments.
+   * @param signal - cancellation also withdraws pending browser permission questions.
    * @returns the JSON-safe result.
    */
-  call(method: string, args: Record<string, unknown>): Promise<unknown>
+  call(method: string, args: Record<string, unknown>, signal?: AbortSignal): Promise<unknown>
   /** Ask the child to exit, killing it if it will not. */
   close(): Promise<void>
   /** Settles when the child ends, however it ends. Never rejects. */
@@ -55,6 +56,8 @@ export interface PageAgentLlmRequest {
 
 /** Everything one child needs to start. */
 export interface LaunchOptions {
+  /** Cancel startup, including a pending home-page permission question. */
+  readonly signal?: AbortSignal | undefined
   /** Chromium profile directory; a persistent one keeps SSO across sessions. */
   readonly userDataDir: string
   /** Optional HTTP(S) page loaded before the child reports itself ready. */
@@ -95,6 +98,8 @@ export interface LaunchOptions {
   readonly spawnChild?: ((command: string, args: string[]) => BrowserChildProcess) | undefined
   /** Route PageAgent's private model request to the owning Hydra agent. */
   readonly onPageAgentLlm?: ((request: PageAgentLlmRequest) => Promise<unknown>) | undefined
+  /** Ask in the owning chat; cancellation or an unavailable answerer denies access. */
+  readonly onPermission?: ((request: { kind: 'navigation' | 'media'; origin: string }, signal: AbortSignal) => Promise<'once' | 'always' | 'block' | undefined>) | undefined
 }
 
 interface Reply {
@@ -111,6 +116,7 @@ interface PendingCall {
   resolve(value: unknown): void
   reject(error: Error): void
   timer: ReturnType<typeof setTimeout>
+  resume(): void
 }
 
 interface DesktopParentPort {
@@ -210,6 +216,7 @@ export function resolveElectronPath(load: NodeJS.Require = createRequire(import.
  * @returns the live child, once it can accept requests.
  */
 export async function launchBrowser(options: LaunchOptions): Promise<BrowserChild> {
+  options.signal?.throwIfAborted()
   const settings = {
     userDataDir: options.userDataDir,
     ...options.homeUrl === undefined ? {} : { homeUrl: options.homeUrl },
@@ -238,16 +245,20 @@ export async function launchBrowser(options: LaunchOptions): Promise<BrowserChil
     : connectDesktopBrowser(bridge, settings)
 
   const pending = new Map<number, PendingCall>()
+  const permissions = new Map<number, AbortController>()
   const ready = Promise.withResolvers<void>()
   const exited = Promise.withResolvers<void>()
   let nextId = 0
   let started = false
+  let closing = false
   let ended: BrowserError | undefined
   let stderr = ''
 
   const end = (error: BrowserError): void => {
     if (ended !== undefined) return
     ended = error
+    for (const controller of permissions.values()) controller.abort()
+    permissions.clear()
     for (const call of pending.values()) {
       clearTimeout(call.timer)
       call.reject(error)
@@ -273,6 +284,44 @@ export async function launchBrowser(options: LaunchOptions): Promise<BrowserChil
     if (reply.event === 'ready') {
       started = true
       ready.resolve()
+      return
+    }
+    if (reply.event === 'browser:permission-cancelled') {
+      if (reply.id !== undefined) permissions.get(reply.id)?.abort()
+      return
+    }
+    if (reply.event === 'browser:permission') {
+      const id = reply.id
+      const onPermission = options.onPermission
+      const request = reply.request as { kind?: unknown; origin?: unknown } | undefined
+      const respond = (choice?: string): void => {
+        if (ended === undefined && !closing) child.stdin.write(`${JSON.stringify({ method: 'browser_permission_response', args: { id, choice } })}\n`)
+      }
+      if (typeof id !== 'number' || !Number.isSafeInteger(id) || permissions.has(id)
+        || (request?.kind !== 'navigation' && request?.kind !== 'media') || typeof request.origin !== 'string'
+        || !URL.canParse(request.origin) || !['http:', 'https:'].includes(new URL(request.origin).protocol)
+        || new URL(request.origin).origin !== request.origin || onPermission === undefined) {
+        respond()
+        return
+      }
+      const controller = new AbortController()
+      permissions.set(id, controller)
+      clearTimeout(startup)
+      for (const call of pending.values()) clearTimeout(call.timer)
+      const cancelled = new Promise<undefined>((resolve) => {
+        controller.signal.addEventListener('abort', () => { resolve(undefined) }, { once: true })
+      })
+      const kind = request.kind
+      const origin = request.origin
+      void Promise.race([cancelled, Promise.resolve().then(() => onPermission({ kind, origin }, controller.signal))])
+        .then((choice) => { respond(controller.signal.aborted ? undefined : choice) }, () => { respond() })
+        .finally(() => {
+          permissions.delete(id)
+          if (permissions.size === 0) {
+            for (const call of pending.values()) call.resume()
+            if (!started && ended === undefined && !closing) startup = setTimeout(startupExpired, options.startupTimeoutMs)
+          }
+        })
       return
     }
     if (reply.event === 'page-agent:llm') {
@@ -311,51 +360,83 @@ export async function launchBrowser(options: LaunchOptions): Promise<BrowserChil
     end(new BrowserError(`the embedded browser could not be started: ${String(payload)}`, 'BROWSER_LAUNCH_FAILED'))
   })
 
-  const startup = setTimeout(() => {
+  const startupExpired = (): void => {
     child.kill()
     end(new BrowserError(
       `the embedded browser did not start within ${options.startupTimeoutMs}ms\n${stderr}`,
       'BROWSER_LAUNCH_FAILED',
     ))
-  }, options.startupTimeoutMs)
+  }
+  let startup = setTimeout(startupExpired, options.startupTimeoutMs)
+  const close = async (): Promise<void> => {
+    closing = true
+    for (const controller of permissions.values()) controller.abort()
+    child.stdin.end()
+    const forced = setTimeout(() => child.kill(), SHUTDOWN_GRACE_MS)
+    forced.unref()
+    try {
+      await exited.promise
+    } finally {
+      clearTimeout(forced)
+    }
+  }
+  const cancelStartup = (): void => {
+    for (const controller of permissions.values()) controller.abort()
+    ready.reject(options.signal?.reason)
+  }
+  options.signal?.addEventListener('abort', cancelStartup, { once: true })
+  if (options.signal?.aborted) cancelStartup()
   try {
     await ready.promise
+  } catch (error) {
+    await close()
+    throw error
   } finally {
     clearTimeout(startup)
+    options.signal?.removeEventListener('abort', cancelStartup)
   }
 
   return {
     closed: exited.promise,
 
-    call: (method, args) => new Promise<unknown>((resolve, reject) => {
+    call: (method, args, signal) => new Promise<unknown>((resolve, reject) => {
+      signal?.throwIfAborted()
       if (ended !== undefined) {
         reject(ended)
         return
       }
       const id = ++nextId
-      const timer = setTimeout(() => {
+      const expire = (): void => {
         pending.delete(id)
-        reject(new BrowserError(
+        call.reject(new BrowserError(
           `the embedded browser did not answer ${method} within ${options.actionTimeoutMs}ms`,
           'BROWSER_TIMEOUT',
         ))
-      }, options.actionTimeoutMs)
+      }
+      const timer = setTimeout(expire, options.actionTimeoutMs)
       timer.unref()
-      pending.set(id, { resolve, reject, timer })
+      const cancel = (): void => {
+        pending.delete(id)
+        clearTimeout(call.timer)
+        for (const controller of permissions.values()) controller.abort()
+        if (ended === undefined) child.stdin.write(`${JSON.stringify({ method: 'cancel_browser_permissions' })}\n`)
+        reject(signal?.reason instanceof Error ? signal.reason : new Error('browser action cancelled'))
+      }
+      const cleanup = (): void => { signal?.removeEventListener('abort', cancel) }
+      const call: PendingCall = {
+        resolve(value) { cleanup(); resolve(value) },
+        reject(error) { cleanup(); reject(error) },
+        timer, resume() {
+          call.timer = setTimeout(expire, options.actionTimeoutMs)
+          call.timer.unref()
+        },
+      }
+      signal?.addEventListener('abort', cancel, { once: true })
+      if (permissions.size > 0) clearTimeout(timer)
+      pending.set(id, call)
       child.stdin.write(`${JSON.stringify({ id, method, args })}\n`)
     }),
 
-    close: async () => {
-      // Closing stdin is the agreed shutdown signal; the kill is for a child
-      // that has stopped reading it.
-      child.stdin.end()
-      const forced = setTimeout(() => child.kill(), SHUTDOWN_GRACE_MS)
-      forced.unref()
-      try {
-        await exited.promise
-      } finally {
-        clearTimeout(forced)
-      }
-    },
+    close,
   }
 }

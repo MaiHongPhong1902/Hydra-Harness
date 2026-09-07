@@ -130,6 +130,28 @@ function registerTextOnly(ctx: Context): void {
 }
 
 describe('Web session model selection', () => {
+  it('blocks a dismissed implicit DeepSeek route and recovers when its catalog is restored', async () => {
+    const { ctx, agent, sessionId } = await harness()
+    let declined = true
+    ctx.provide('settings', { get: () => ({ deepseekOfficialDeclined: declined }) } as never)
+    const followup = vi.fn()
+    Object.assign(agent, { followup })
+    const api = createApiProxy(ctx, {
+      defaultModelSelection: () => ({ provider: 'deepseek-official', model: 'deepseek-chat' }), cwd: '/tmp',
+    })
+    try {
+      expect(expectValue(await api.sessions.models(request({ sessionId }))).routable).toBe(false)
+      expect((await api.sessions.prompt(request({
+        sessionId, mode: 'queue', content: [{ type: 'text', text: 'hi' }],
+      }))).result).toMatchObject({ ok: false, error: { code: 'model-unavailable' } })
+      expect(followup).not.toHaveBeenCalled()
+      declined = false
+      expect(expectValue(await api.sessions.models(request({ sessionId }))).routable).toBe(true)
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
   it.each(['deepseek-official', 'empty', 'broken'])('requires a choice before prompting with an unlisted default on %s', async (provider) => {
     const { ctx, agent, sessionId } = await harness()
     const followup = vi.fn()
@@ -322,6 +344,7 @@ describe('Web session model selection', () => {
       model: 'private-preview',
       reasoningEffort: 'max',
     })
+    expect(catalog.routable).toBe(true)
     expect(catalog.groups).toEqual([{
       id: 'deepseek-official',
       name: 'DeepSeek',

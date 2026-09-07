@@ -49,6 +49,7 @@ window.addEventListener('DOMContentLoaded', () => {
       tab.append(icon, select, close)
       tabs.append(tab)
     }
+    tabs.querySelector('.tab[aria-selected="true"]')?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
   }
 
   const renderHistory = entries => {

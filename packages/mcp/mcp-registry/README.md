@@ -10,6 +10,8 @@ On replacement, omitted `enabled` and `toolCallTimeoutMs` retain their stored va
 
 ## Stored records
 
+Registry writes carry the revision read before constructing the next server list. A concurrent settings change rejects the write with `SettingsConflictError` and refreshes the stored projection; retry against that projection. This prevents stale lists from restoring deleted servers or discarding another writer's changes.
+
 `mcp-servers.servers` is an ordered list of at most 50 records. A record carries `name`, `transport` (`stdio` or `streamable-http`), both transports' fields, `toolCallTimeoutMs`, and `enabled` (default `false`, so a new record is inert until switched on). A stdio record requires `command` and may carry `args`, `env`, and `cwd`; a `streamable-http` record requires an absolute HTTP/HTTPS `url` and may carry `headers`. `name` must match `[A-Za-z0-9_-]{1,32}` and be unique across records — a section declaring one name twice is refused at the write, because which server served a tool would otherwise depend on mount order.
 
 A stored record this registry cannot mount is reported with status `invalid` and the refusal reason instead of failing the process: a hand-edited document must not prevent every other server from starting. A record whose connection fails reports `failed` with the transport's summary; `mcp-client` keeps its own reconnect policy running underneath.

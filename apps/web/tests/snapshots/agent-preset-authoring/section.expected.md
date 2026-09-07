@@ -10,6 +10,9 @@
     - button "Models":
       - img
       - text: Models
+    - button "Web Search":
+      - img
+      - text: Web Search
     - button "Usage"
     - button "Plugins":
       - img

@@ -171,6 +171,8 @@ type ActivationState = 'running' | 'waiting' | 'settled'
  * consumer outside this package supplies a host.
  */
 interface ContinuationHost {
+  /** Reserve one tree slot before setup; release after rollback or residency disposal. */
+  admit(parent: Agent, creating: boolean): () => void
   /**
    * Resolve one provider's continuable-creation contribution, or reject when
    * the provider is unknown or lacks the capability.
@@ -195,6 +197,8 @@ interface ContinuationHost {
  * scope is its structural Cordis owner.
  */
 interface Activation {
+  /** Idempotent release of this residency's tree capacity. */
+  releaseBudget: () => void
   /** The durable child this Activation is an epoch of. */
   readonly childId: SessionId
   /**
@@ -1029,12 +1033,16 @@ export class SubagentContinuationManager {
     this.assertAdmitting(inputs.parent)
     const settled = Promise.withResolvers<void>()
     const lineage = this.liveLineage(inputs.parent)
+    const releaseBudget = this.host.admit(inputs.parent, inputs.create !== undefined)
     const materialization: Materialization = {
       lineage,
       settled: settled.promise,
     }
     this.materializations.add(materialization)
-    return this.materializeTracked(inputs, lineage).finally(() => {
+    return this.materializeTracked(inputs, lineage, releaseBudget).catch((error: unknown) => {
+      releaseBudget()
+      throw error
+    }).finally(() => {
       this.materializations.delete(materialization)
       settled.resolve()
     })
@@ -1048,6 +1056,7 @@ export class SubagentContinuationManager {
   private async materializeTracked(
     inputs: MaterializeInputs,
     parentLineage: readonly Agent[],
+    releaseBudget: () => void,
   ): Promise<Activation> {
     const { childId, provider, parent, create } = inputs
     // No id pre-check here: the child lock serializes each durable child, both
@@ -1085,6 +1094,7 @@ export class SubagentContinuationManager {
       })
 
     const activation: Activation = {
+      releaseBudget,
       childId,
       // The durable lineage, not merely the caller: creation stamps this same
       // agent into the child's header, and cold resume authorized it against
@@ -1426,6 +1436,7 @@ export class SubagentContinuationManager {
     // makes a racing delivery wait for release rather than cold-resume into the
     // still-registered agent.
     this.activations.delete(childId)
+    activation.releaseBudget()
     // BEFORE releasing ownership, while the parent still counts this child and
     // therefore cannot be judged settled. Delivering after the release would
     // race a parent watcher that resumes one microtask later, finds itself
