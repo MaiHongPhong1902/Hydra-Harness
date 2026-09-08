@@ -12,6 +12,7 @@ import type { Context } from '@hydra/cordis'
 import { USER_GLOBAL_FILE } from '@hydra/harness-agent-instructions'
 import { withFileLock, writeFileAtomic } from '@hydra/harness-atomic-write'
 import { resolveHydraHome } from '@hydra/harness-home-paths'
+import type {} from '@hydra/harness-fs-review'
 import { installModelSelection } from '@hydra/harness-agent'
 import type { Agent, ModelSelection, ModelSelectionRef, AgentOptions, AgentStatus } from '@hydra/harness-agent'
 import type {} from '@hydra/harness-agent-presets/types'
@@ -3181,6 +3182,53 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
           return ok(request, { cleared: true as const })
         } catch (error: unknown) {
           return goalError(request, error)
+        }
+      },
+    },
+
+    review: {
+      async list(request) {
+        try {
+          const review = ctx.get('fileReview')
+          if (!review) return ok(request, { changes: [] })
+          const { sessionId, includeChildren } = request.payload
+          const changes = await review.list(sessionId)
+          if (includeChildren) {
+            const persistence = ctx.get('sessionPersistence')
+            const headers = new Map((await persistence?.list() ?? []).map(h => [h.id, h]))
+            for (const session of ctx.sessions.list()) headers.set(session.id, session.header)
+            const owners = new Set([sessionId])
+            for (;;) {
+              const children = [...headers.values()].filter(h => h.origin === 'subagent' && h.parentSession !== undefined && owners.has(h.parentSession) && !owners.has(h.id))
+              if (children.length === 0) break
+              for (const child of children) {
+                owners.add(child.id)
+                changes.push(...await review.list(child.id))
+              }
+            }
+          }
+          changes.sort((a, b) => a.createdAt - b.createdAt || a.seq - b.seq || a.id.localeCompare(b.id))
+          return ok(request, { changes })
+        } catch (error: unknown) {
+          return err(request, { code: 'internal', message: error instanceof Error ? error.message : String(error), details: {} })
+        }
+      },
+      async keep(request) {
+        try {
+          const review = ctx.get('fileReview')
+          if (!review) throw new Error('file review is unavailable')
+          return ok(request, await review.keep(request.payload.sessionId, request.payload.changeId))
+        } catch (error: unknown) {
+          return err(request, { code: 'internal', message: error instanceof Error ? error.message : String(error), details: {} })
+        }
+      },
+      async undo(request) {
+        try {
+          const review = ctx.get('fileReview')
+          if (!review) throw new Error('file review is unavailable')
+          return ok(request, await review.undo(request.payload.sessionId, request.payload.changeId))
+        } catch (error: unknown) {
+          return err(request, { code: 'internal', message: error instanceof Error ? error.message : String(error), details: {} })
         }
       },
     },

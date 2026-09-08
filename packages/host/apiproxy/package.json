@@ -83,7 +83,8 @@
     "@hydra/harness-agent-presets": "workspace:^",
     "@hydra/harness-cordis-host-runner": "workspace:^",
     "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-permission-presets": "workspace:^"
+    "@hydra/harness-permission-presets": "workspace:^",
+    "@hydra/harness-fs-review": "workspace:^"
   },
   "devDependencies": {
     "@hydra/cordis": "workspace:^",
@@ -94,6 +95,7 @@
     "@hydra/harness-storage": "workspace:^",
     "@hydra/harness-storage-domain": "workspace:^",
     "@hydra/harness-typert-protocol": "workspace:^",
-    "@hydra/harness-typert-registry": "workspace:^"
+    "@hydra/harness-typert-registry": "workspace:^",
+    "@hydra/harness-fs-review": "workspace:^"
   }
 }

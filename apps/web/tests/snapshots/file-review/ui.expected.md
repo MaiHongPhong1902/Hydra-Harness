@@ -1,0 +1,13 @@
+- region "Review":
+  - strong: Review
+  - text: 2 changes · 1 file
+  - button "Refresh"
+  - alert: "review.txt: the file changed after this edit. Undo was skipped."
+  - region "review.txt kept":
+    - group: A review.txt +1 −0 Kept
+    - button "Keep" [disabled]
+    - button "Undo"
+  - region "review.txt active":
+    - group: M review.txt +1 −1 View diff
+    - button "Keep"
+    - button "Undo"

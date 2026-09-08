@@ -1,9 +1,10 @@
-/** Desktop-only tab host for Browser, Files, Side chat, and Terminal surfaces. */
+/** Desktop-only tab host for Browser, Files, Review, Side chat, and Terminal surfaces. */
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { SessionId, WorkspaceId } from '@hydra/harness-client-runtime/client'
 import {
   IconApiOutline14,
+  IconChecklistOutline14,
   IconCloseOutline16,
   IconFolderOpenOutline16,
   IconGlobeOutline14,
@@ -193,7 +194,7 @@ declare global {
   }
 }
 
-type RightPanelKind = 'files' | 'side-chat' | 'browser' | 'terminal'
+type RightPanelKind = 'files' | 'side-chat' | 'browser' | 'terminal' | 'review'
 
 interface RightPanelTab {
   id: string
@@ -252,6 +253,7 @@ function PanelChooser(props: {
         {row('side-chat', 'Side chat', <IconNewChatOutline16 size={14} />, 'Control+Alt+S', 'Ctrl+Alt+S')}
         {row('browser', 'Browser', <IconGlobeOutline14 />, 'Control+Shift+B', 'Ctrl+Shift+B')}
         {row('terminal', 'Terminal', <IconApiOutline14 />, 'Control+Backquote', 'Ctrl+`')}
+        {row('review', 'Review', <IconChecklistOutline14 size={14} />)}
         {props.error !== undefined && <div className={css.chooserError}>{props.error}</div>}
       </div>
     </div>
@@ -319,6 +321,7 @@ export function DesktopBrowserPanel(props: {
   workspaceId?: WorkspaceId | undefined
   createSideSession: () => Promise<SessionId>
   renderSideChat: (sessionId: SessionId) => ReactNode
+  renderReview: () => ReactNode
   onCloseChooser: () => void
   onToggleChooser: () => void
   onOpen: () => void
@@ -463,6 +466,7 @@ export function DesktopBrowserPanel(props: {
                 {tab.kind === 'side-chat' && <IconNewChatOutline16 size={13} />}
                 {tab.kind === 'browser' && <IconGlobeOutline14 size={13} />}
                 {tab.kind === 'terminal' && <IconApiOutline14 size={13} />}
+                {tab.kind === 'review' && <IconChecklistOutline14 size={13} />}
                 <span>{tab.label}</span>
               </button>
               <button
@@ -505,6 +509,7 @@ export function DesktopBrowserPanel(props: {
               <div className={css.sideChat}>{props.renderSideChat(tab.sessionId)}</div>
             )}
             {tab.kind === 'terminal' && <DesktopTerminalPanel open={props.open && tab.id === activeId} terminalId="right" embedded />}
+            {tab.kind === 'review' && props.renderReview()}
           </div>
         ))}
         {tabs.length === 0 && (

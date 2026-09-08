@@ -5,18 +5,58 @@
  * @module @hydra/harness-fs-local/fsio
  */
 
-import { randomUUID } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
 import { createReadStream } from 'node:fs'
 import { chmod, link, lstat, mkdir, open, readFile, realpath, readdir, rename, rm, stat } from 'node:fs/promises'
 import type { BigIntStats, Dirent, Stats } from 'node:fs'
 import { basename, dirname, join, resolve } from 'node:path'
 import { TextDecoder } from 'node:util'
 import { FsError, FsTargetKey, FsVersion } from '@hydra/harness-fs'
+import type { FsSnapshot } from '@hydra/harness-fs'
 import { copyFileDaclWin32, replaceFileWin32 } from './win32.ts'
 
 const BINARY_SAMPLE_BYTES = 8192
 // Bound one non-abortable FileHandle.read so cancellation is observed between chunks.
 const DIFF_BASIS_READ_CHUNK_BYTES = 64 * 1024
+
+/**
+ * Hash an opened regular file and retain bytes only within the inclusive cap.
+ * Reject files that change while read; absence never includes directories or links.
+ * @param path - canonical absolute file path.
+ * @param maxBytes - maximum retained bytes (zero permits hashing without retention).
+ * @returns exact observed file state.
+ */
+export async function snapshotFile(path: string, maxBytes: number): Promise<FsSnapshot> {
+  const entry = await probeNoFollow(path)
+  if (!entry) return { hash: null, bytes: null }
+  if (entry.type !== 'file') throw new FsError('snapshot target is not a regular file', 'FS_NOT_REGULAR_FILE')
+  const handle = await open(path, 'r')
+  try {
+    const before = await handle.stat({ bigint: true })
+    if (!before.isFile()) throw new FsError('snapshot target is not a regular file', 'FS_NOT_REGULAR_FILE')
+    const hash = createHash('sha256')
+    const chunks: Buffer[] = []
+    const buffer = Buffer.alloc(DIFF_BASIS_READ_CHUNK_BYTES)
+    let size = 0
+    for (;;) {
+      const { bytesRead } = await handle.read(buffer, 0, buffer.length, null)
+      if (bytesRead === 0) break
+      const chunk = buffer.subarray(0, bytesRead)
+      hash.update(chunk)
+      size += bytesRead
+      if (size <= maxBytes) chunks.push(Buffer.from(chunk))
+      else chunks.length = 0
+    }
+    const after = await handle.stat({ bigint: true })
+    const current = await probeNoFollow(path)
+    if (versionOf(before) !== versionOf(after) || current?.version !== versionOf(after)) {
+      throw new FsError('file changed during snapshot', 'FS_STALE_VERSION')
+    }
+    return { hash: hash.digest('hex'), bytes: size <= maxBytes ? Buffer.concat(chunks) : null }
+  } finally {
+    await handle.close()
+  }
+}
 
 function isENOENT(error: unknown): boolean {
   return error instanceof Error && 'code' in error && error.code === 'ENOENT'
@@ -529,14 +569,16 @@ async function throwGuardedCreateFailure(
  * @param createIfAbsent - when provided, publish with a hard-link no-replace
  * primitive; a concurrent creator's file is preserved and this write is
  * rejected with `FS_NOT_OBSERVED` using the supplied display path.
+ * @param verifyBeforePublish - optional freshness check after staging, before publication.
  */
 export async function writeFileAtomic(
   absolutePath: string,
-  content: string,
+  content: string | Uint8Array,
   mode: number | undefined,
   signal: AbortSignal | undefined,
   internals: FsIoInternals = {},
   createIfAbsent?: { displayPath: string },
+  verifyBeforePublish?: () => Promise<void>,
 ): Promise<void> {
   throwIfAborted(signal, 'write')
   const directory = dirname(absolutePath)
@@ -575,6 +617,7 @@ export async function writeFileAtomic(
     handle = undefined
 
     throwIfAborted(signal, 'write')
+    await verifyBeforePublish?.()
     if (createIfAbsent !== undefined) {
       try {
         await linkFile(tempPath, absolutePath)

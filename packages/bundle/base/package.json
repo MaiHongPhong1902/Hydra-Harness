@@ -127,7 +127,8 @@
     "@hydra/cordis-plugin-timer": "workspace:^",
     "@hydra/harness-web-fetch-http": "workspace:^",
     "@hydra/harness-research-policy": "workspace:^",
-    "@hydra/harness-web-search-http": "workspace:^"
+    "@hydra/harness-web-search-http": "workspace:^",
+    "@hydra/harness-fs-review": "workspace:^"
   },
   "peerDependencies": {
     "@hydra/harness-invariants": "workspace:^",

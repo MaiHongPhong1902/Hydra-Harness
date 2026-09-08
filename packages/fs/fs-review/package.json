@@ -1,0 +1,50 @@
+{
+  "name": "@hydra/harness-fs-review",
+  "description": "Durable agent-owned file change review and hash-guarded rollback",
+  "version": "0.1.1-rc.1",
+  "publishConfig": { "access": "public" },
+  "repository": { "type": "git", "url": "git+https://github.com/MaiHongPhong1902/Hydra-Harness.git", "directory": "packages/fs/fs-review" },
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/types/index.d.ts",
+  "exports": {
+    ".": { "types": "./lib/types/index.d.ts", "default": "./lib/index.js" },
+    "./client": { "types": "./lib/types/client.d.ts", "default": "./lib/client.js" },
+    "./invariant": { "types": "./lib/types/invariant.d.ts", "default": "./lib/invariant.js" },
+    "./src/*": "./src/*",
+    "./package.json": "./package.json"
+  },
+  "files": ["lib/index.js", "lib/invariant.js", "lib/client.js", "lib/types/**/*.d.ts"],
+  "license": "MIT",
+  "dependencies": { "diff": "^9.0.0", "zod": "^4.4.3", "@hydra/schemastery": "workspace:^" },
+  "peerDependencies": {
+    "@hydra/cordis": "workspace:^",
+    "@hydra/harness-atomic-write": "workspace:^",
+    "@hydra/harness-brand": "workspace:^",
+    "@hydra/harness-fs": "workspace:^",
+    "@hydra/harness-home-paths": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/harness-sandbox-policy": "workspace:^",
+    "@hydra/harness-session": "workspace:^",
+    "@hydra/harness-session-persistence": "workspace:^",
+    "@hydra/harness-tools": "workspace:^"
+  },
+  "devDependencies": {
+    "@hydra/cordis": "workspace:^",
+    "@hydra/harness-atomic-write": "workspace:^",
+    "@hydra/harness-brand": "workspace:^",
+    "@hydra/harness-fs": "workspace:^",
+    "@hydra/harness-fs-local": "workspace:^",
+    "@hydra/harness-home-paths": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/harness-sandbox-policy": "workspace:^",
+    "@hydra/harness-session": "workspace:^",
+    "@hydra/harness-session-persistence": "workspace:^",
+    "@hydra/harness-session-persistence-jsonl": "workspace:^",
+    "@hydra/harness-system-prompt": "workspace:^",
+    "@hydra/harness-tool-fs": "workspace:^",
+    "@hydra/harness-tools": "workspace:^"
+  }
+}

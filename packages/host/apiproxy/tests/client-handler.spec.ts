@@ -28,12 +28,14 @@ function scriptedApi(overrides: {
   settings?: Partial<ApiProxy['settings']>
   credentials?: Partial<ApiProxy['credentials']>
   llm?: Partial<ApiProxy['llm']>
+  review?: Partial<ApiProxy['review']>
   respond?: ApiProxy['respond']
 } = {}): ApiProxy {
   async function *empty<F>(): AsyncGenerator<RpcRequest<F>> { /* no frames */ }
   const err = <T>(r: RpcRequest<unknown>): Promise<RpcResponse<T>> =>
     Promise.resolve({ rpcId: r.rpcId, result: { ok: false, error: { code: 'internal' as const, message: 'stub', details: {} } } })
   return {
+    review: { list: r => ok(r, { changes: [] }), keep: err, undo: err, ...overrides.review },
     sessions: {
       revise: r => Promise.resolve({ rpcId: r.rpcId, result: { ok: false, error: { code: 'fork-unavailable', message: 'not configured', details: { sessionId: r.payload.sessionId } } } }),
       list: r => ok(r, { items: [] }),
@@ -835,5 +837,14 @@ describe('config unary surface', () => {
     expect(response.result.ok).toBe(false)
     if (response.result.ok) throw new Error('unreachable')
     expect(response.result.error.code).toBe('bad-request')
+  })
+
+  it('routes review history and rejects unsafe change ids before the action handler', async () => {
+    const undo = vi.fn()
+    const c = client(scriptedApi({ review: { undo } }))
+    expect((await c.review.list({ sessionId: sid('owner'), includeChildren: true })).result).toEqual({ ok: true, value: { changes: [] } })
+    const result = await c.review.undo({ sessionId: sid('owner'), changeId: '../outside' as never })
+    expect(result.result).toMatchObject({ ok: false, error: { code: 'bad-request' } })
+    expect(undo).not.toHaveBeenCalled()
   })
 })

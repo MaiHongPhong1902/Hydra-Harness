@@ -30,7 +30,7 @@ function clamp(value: number, min: number, max: number) {
 /** Full composed props: runtime share + child-slot render share + store share. */
 export type AppFrameProps =
   & PropsRuntime<'root'>
-  & PropsRenderSlots<'sidebar' | 'conversation' | 'details' | 'shell.overlay'>
+  & PropsRenderSlots<'sidebar' | 'conversation' | 'details' | 'review' | 'shell.overlay'>
   & PropsStore<ReturnType<typeof createLayoutStore>>
   & { createSideSession: () => Promise<SessionId> }
 
@@ -322,6 +322,7 @@ export function AppFrame({
             {() => renderSlot('conversation', { secondary: true })}
           </SessionProvider>
         )}
+        renderReview={() => renderSlot('review', {})}
         onCloseChooser={() => { setPanelChooserOpen(false) }}
         onToggleChooser={() => { setPanelChooserOpen(open => !open) }}
         onOpen={() => { setBrowserOpen(true) }}

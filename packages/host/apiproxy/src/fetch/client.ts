@@ -42,6 +42,7 @@ import {
   workspaceRenameValueSchema,
 } from '../api/workspace.schema.ts'
 import { skillListValueSchema } from '../api/skills.schema.ts'
+import { reviewListValueSchema, reviewActionValueSchema } from '../api/review.schema.ts'
 import {
   agentPresetCopyValueSchema, agentPresetListValueSchema, agentPresetOpenDocumentValueSchema,
   agentPresetReadValueSchema, agentPresetRemoveValueSchema, agentPresetSelectValueSchema,
@@ -88,6 +89,11 @@ import {
  * Derived per method key from RpcMethodMap so a map row addition updates this mechanically.
  */
 export interface IApiClient {
+  review: {
+    list(payload: RequestPayload<'review.list'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'review.list'>>>
+    keep(payload: RequestPayload<'review.keep'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'review.keep'>>>
+    undo(payload: RequestPayload<'review.undo'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'review.undo'>>>
+  }
   sessions: {
     list(payload: RequestPayload<'session.list'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'session.list'>>>
     search(payload: RequestPayload<'session.search'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'session.search'>>>
@@ -182,6 +188,9 @@ export interface IApiClient {
  * mirror of the handler's request table; key coverage compiler-enforced against RpcMethodMap).
  */
 const UNARY_VALUE_SCHEMAS: { [K in keyof RpcMethodMap]: z.ZodType<Wire<ResponseValue<K>>> } = {
+  'review.list': reviewListValueSchema,
+  'review.keep': reviewActionValueSchema,
+  'review.undo': reviewActionValueSchema,
   'session.list': sessionListValueSchema,
   'session.search': sessionSearchValueSchema,
   'session.create': sessionCreateValueSchema,
@@ -498,6 +507,12 @@ export abstract class AbstractApiClient implements IApiClient {
     resume: (payload, signal) => this.callUnary('goal.resume', payload, signal),
     complete: (payload, signal) => this.callUnary('goal.complete', payload, signal),
     clear: (payload, signal) => this.callUnary('goal.clear', payload, signal),
+  }
+
+  readonly review: IApiClient['review'] = {
+    list: (payload, signal) => this.callUnary('review.list', payload, signal),
+    keep: (payload, signal) => this.callUnary('review.keep', payload, signal),
+    undo: (payload, signal) => this.callUnary('review.undo', payload, signal),
   }
 
   readonly settings: IApiClient['settings'] = {

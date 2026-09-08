@@ -248,6 +248,9 @@
     - id: tool-fs
       name: '@hydra/harness-tool-fs'
 
+    - id: fs-review
+      name: '@hydra/harness-fs-review'
+
     - id: tool-fs-search
       name: '@hydra/harness-tool-fs-search'
       config:

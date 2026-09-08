@@ -167,6 +167,14 @@ export interface FsEditOutcome {
   after: string
 }
 
+/** Exact file state for agent-owned snapshots; null hash means confirmed absence. */
+export interface FsSnapshot {
+  /** SHA-256 of all storage bytes, or null for an absent file. */
+  hash: string | null
+  /** Complete bytes within the requested limit; null means absent or too large. */
+  bytes: Uint8Array | null
+}
+
 /**
  * Stable, machine-routable codes for filesystem failures. Carried on
  * {@link FsError}; the tool registry exposes `{ name, code }` on `isError`

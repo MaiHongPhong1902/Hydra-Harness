@@ -66,6 +66,15 @@ describe('the capability fact', () => {
 describe('read-only', () => {
   beforeEach(() => boot('read-only'))
 
+  it('denies snapshot restoration before changing any bytes', async () => {
+    const path = join(workspace, 'restore.txt')
+    await writeFile(path, 'new')
+    const resolved = await target(path)
+    const snapshot = await fs.snapshot(resolved, 0)
+    await expect(fs.restoreSnapshot(resolved, Buffer.from('old'), snapshot.hash)).rejects.toMatchObject({ code: 'FS_SANDBOX_DENIED' })
+    expect(await readFile(path, 'utf8')).toBe('new')
+  })
+
   it('denies write, leaving no file on disk', async () => {
     const path = join(workspace, 'denied.txt')
     await expect(fs.writeText(await target(path), 'x')).rejects.toMatchObject({ code: 'FS_SANDBOX_DENIED' })
@@ -117,14 +126,14 @@ describe('workspace-write containment', () => {
 
   it('a symlinked directory inside the workspace pointing OUT is denied (canonicalized before containment)', async () => {
     // workspace/link -> outside ; writing workspace/link/f.txt would land in outside/f.txt.
-    await symlink(outside, join(workspace, 'link'))
+    await symlink(outside, join(workspace, 'link'), process.platform === 'win32' ? 'junction' : 'dir')
     const path = join(workspace, 'link', 'f.txt')
     await expect(fs.writeText(await target(path), 'x')).rejects.toMatchObject({ code: 'FS_SANDBOX_DENIED' })
     expect(existsSync(join(outside, 'f.txt'))).toBe(false)
   })
 
   it('a NEW file created under a symlinked-out directory is denied (deepest-ancestor realpath)', async () => {
-    await symlink(outside, join(workspace, 'link'))
+    await symlink(outside, join(workspace, 'link'), process.platform === 'win32' ? 'junction' : 'dir')
     const path = join(workspace, 'link', 'newdir', 'deep.txt')
     await expect(fs.writeText(await target(path), 'x')).rejects.toMatchObject({ code: 'FS_SANDBOX_DENIED' })
     expect(existsSync(join(outside, 'newdir'))).toBe(false)

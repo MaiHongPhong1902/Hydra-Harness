@@ -25,6 +25,15 @@ describe('verify-cordis-config metadata expressions', () => {
       '[0].plugin_type: use pluginType',
     ])
   })
+
+  it('requires a browser-roster row to declare core classification', () => {
+    const client = { id: 'ui-tool', name: '@hydra/harness-client-ui-tool' }
+    expect(metadataExpressionErrors({ ...client, pluginType: 'core' }, '[0]')).toEqual([])
+    expect(metadataExpressionErrors(client, '[0]')).toEqual([
+      '[0].pluginType: a @hydra/harness-client-* row must be core',
+    ])
+    expect(metadataExpressionErrors({ id: 'fs-review', name: '@hydra/harness-fs-review' }, '[0]')).toEqual([])
+  })
   it('accepts a disabled !!js expression', () => {
     const problems = metadataExpressionErrors(
       { id: 'tool-bash', name: '@hydra/harness-tool-bash', disabled: { __jsExpr: "process.platform === 'win32'" } },

@@ -16,6 +16,11 @@ function fakeApi(overrides: Partial<{ muxFrames: MuxFrame[]; hostFrames: HostFra
     }
   }
   return {
+    review: {
+      list: async r => ({ rpcId: r.rpcId, result: { ok: true, value: { changes: [] } } }),
+      keep: async r => ({ rpcId: r.rpcId, result: { ok: false, error: { code: 'internal', message: 'unavailable', details: {} } } }),
+      undo: async r => ({ rpcId: r.rpcId, result: { ok: false, error: { code: 'internal', message: 'unavailable', details: {} } } }),
+    },
     sessions: {
       revise: r => Promise.resolve({ rpcId: r.rpcId, result: { ok: false, error: { code: 'fork-unavailable', message: 'not configured', details: { sessionId: r.payload.sessionId } } } }),
       async list(request) {

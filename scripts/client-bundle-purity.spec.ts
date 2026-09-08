@@ -79,6 +79,9 @@ describe('client bundle purity gate', () => {
     expect(resolveId('@hydra/harness-host-apiproxy/api')).toBeNull()
     expect(resolveId('@hydra/harness-session/surface')).toBeNull()
     expect(resolveId('@hydra/harness-brand')).toBeNull()
+    expect(resolveId('@hydra/harness-fs-review/client')).toBeNull()
+    expect(() => resolveId('@hydra/harness-fs-review')).toThrow(/purity/)
+    expect(() => resolveId('@hydra/harness-fs-review/client/nested')).toThrow(/purity/)
   })
 
   it('lets exact generated Remote contributions inline without admitting their package implementation', () => {

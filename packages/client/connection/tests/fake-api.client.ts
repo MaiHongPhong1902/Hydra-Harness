@@ -38,6 +38,11 @@ interface StreamConn<F> {
 }
 
 export class FakeApiClient implements IApiClient {
+  readonly review: IApiClient['review'] = {
+    list: async () => ok({ changes: [] }),
+    keep: async () => { throw new Error('review unavailable') },
+    undo: async () => { throw new Error('review unavailable') },
+  }
   /** Chronological call record: [method, payload]. */
   readonly calls: { method: string; payload: unknown }[] = []
 

@@ -42,17 +42,19 @@ describe('ui-layout client apply', () => {
     expect(inject).toEqual(['slots', 'theme', 'sessions', 'workspaces', 'locale', 'settingsScope'])
   })
 
-  it('provides ctx.layout and registers AppFrame into root with the three child declarations', async () => {
+  it('provides ctx.layout and registers AppFrame into root with its child declarations', async () => {
     const { ctx, slots } = await bench()
     const fiber = ctx.plugin({ inject: [...inject], apply })
     await fiber.await()
     expect(ctx.get('layout')).toBeInstanceOf(LayoutController)
     // The one register() call occupied 'root'…
     expect(slots.entries('root')).toHaveLength(1)
-    // …and declared the three children in the ledger.
+    // …and declared its children in the ledger.
     expect(slots.spec('sidebar')).toEqual({ kind: 'single', scope: 'root' })
     expect(slots.spec('conversation')).toEqual({ kind: 'single', scope: 'session-maybe' })
     expect(slots.spec('details')).toEqual({ kind: 'single', scope: 'session' })
+    expect(slots.spec('review')).toEqual({ kind: 'single', scope: 'session' })
+    expect(slots.spec('shell.overlay')).toEqual({ kind: 'list', scope: 'root' })
   })
 
   it('injects side-session creation and attaches the layout actions', async () => {

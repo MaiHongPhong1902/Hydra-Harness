@@ -2924,6 +2924,12 @@ function createFixtureWorld(options: FixtureOptions): FixtureWorld {
         ),
       ),
     },
+
+    review: {
+      async list(request) { return ok(request, { changes: [] }) },
+      async keep(request) { return err(request, { code: 'internal', message: 'fixture has no file snapshots', details: {} }) },
+      async undo(request) { return err(request, { code: 'internal', message: 'fixture has no file snapshots', details: {} }) },
+    },
     events: {
       async *mux(_request, signal) {
         const conn = new FxInbox<MuxFrame>()
@@ -3229,6 +3235,9 @@ export class FixtureApiClient extends AbstractApiClient {
       case 'agentPreset.copy': return this.api.agentPresets.copy(request)
       case 'agentPreset.openDocument': return this.api.agentPresets.openDocument(request, new AbortController().signal)
       case 'agentPreset.remove': return this.api.agentPresets.remove(request)
+      case 'review.list': return this.api.review.list(request)
+      case 'review.keep': return this.api.review.keep(request)
+      case 'review.undo': return this.api.review.undo(request)
       case 'goal.create': return this.api.goals.create(request)
       case 'goal.edit': return this.api.goals.edit(request)
       case 'goal.pause': return this.api.goals.pause(request)

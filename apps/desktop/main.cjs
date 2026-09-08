@@ -805,6 +805,7 @@ async function smoke() {
     { text: 'Side chatCtrl+Alt+S', disabled: false, shortcut: 'Control+Alt+S' },
     { text: 'BrowserCtrl+Shift+B', disabled: false, shortcut: 'Control+Shift+B' },
     { text: 'TerminalCtrl+`', disabled: false, shortcut: 'Control+Backquote' },
+    { text: 'Review', disabled: false, shortcut: null },
   ])) {
     throw new Error(`panel chooser contract is invalid: ${JSON.stringify(chooser)}`)
   }

@@ -5,6 +5,7 @@
  */
 
 import { Context } from '@hydra/cordis'
+import { unlink } from 'node:fs/promises'
 import { constants as bufferConstants } from 'node:buffer'
 import { isAbsolute, relative, resolve, sep } from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -19,6 +20,7 @@ import type {
   FsTarget,
   FsWriteIntent,
   FsWriteOutcome,
+  FsSnapshot,
 } from '@hydra/harness-fs'
 import {
   applyLiteralEdit,
@@ -33,6 +35,7 @@ import {
   resolveLocalTarget,
   restoreLineEndings,
   streamWholeText,
+  snapshotFile,
   writeFileAtomic,
 } from './fsio.ts'
 import type { FsIoInternals } from './fsio.ts'
@@ -169,7 +172,7 @@ export class LocalFileSystem extends FileSystem {
     expected?: FsWriteIntent,
     signal?: AbortSignal,
   ): Promise<FsWriteOutcome> {
-    return this.withLock(target.targetKey, async () => {
+    return this.withLock(target.targetKey, () => this.ctx.waterfall('fs/mutate', target, 'write', async () => {
       const existing = await probe(target.targetKey)
       if (existing && existing.type !== 'file') {
         throw new FsError(`cannot write "${target.displayPath}": not a regular file`, 'FS_NOT_REGULAR_FILE')
@@ -215,7 +218,7 @@ export class LocalFileSystem extends FileSystem {
         // is a storage detail the applied-hunk diff ignores.
         after: normalizeLineEndings(content),
       }
-    })
+    })) as Promise<FsWriteOutcome>
   }
 
   override async editText(
@@ -224,7 +227,7 @@ export class LocalFileSystem extends FileSystem {
     expected?: { version: FsVersion },
     signal?: AbortSignal,
   ): Promise<FsEditOutcome> {
-    return this.withLock(target.targetKey, async () => {
+    return this.withLock(target.targetKey, () => this.ctx.waterfall('fs/mutate', target, 'edit', async () => {
       const existing = await probe(target.targetKey)
       // Stale guard before literal matching: an edit based on an old read reports
       // FS_STALE_VERSION, not FS_EDIT_NOT_FOUND/FS_AMBIGUOUS_EDIT against newer content.
@@ -251,6 +254,35 @@ export class LocalFileSystem extends FileSystem {
         before: original.content,
         after: edited.content,
       }
+    })) as Promise<FsEditOutcome>
+  }
+
+  override snapshot(target: FsTarget, maxBytes: number): Promise<FsSnapshot> {
+    return snapshotFile(this.processPath(target), maxBytes)
+  }
+
+  override async restoreSnapshot(target: FsTarget, bytes: Uint8Array | null, afterHash: string | null): Promise<boolean> {
+    return this.withLock(target.targetKey, async () => {
+      const path = this.processPath(target)
+      const matches = async () => (await snapshotFile(path, 0)).hash === afterHash
+      if (!await matches()) return false
+      const existing = await probe(path)
+      if (bytes === null) {
+        if (!await matches()) return false
+        if (existing) await unlink(path)
+      } else {
+        try {
+          await writeFileAtomic(path, bytes, existing?.mode, undefined, this.internals,
+            afterHash === null ? { displayPath: target.displayPath } : undefined,
+            async () => {
+              if (!await matches()) throw new FsError('file changed before rollback', 'FS_STALE_VERSION')
+            })
+        } catch (error: unknown) {
+          if (error instanceof FsError && (error.code === 'FS_STALE_VERSION' || error.code === 'FS_NOT_OBSERVED')) return false
+          throw error
+        }
+      }
+      return true
     })
   }
 

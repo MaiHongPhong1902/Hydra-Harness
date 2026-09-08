@@ -702,7 +702,35 @@ export interface Config {
 }
 ```
 
-Source: [`packages/fs/fs-local/src/index.ts:41`](../packages/fs/fs-local/src/index.ts)
+Source: [`packages/fs/fs-local/src/index.ts:44`](../packages/fs/fs-local/src/index.ts)
+
+<a id="hydraharness-fs-review"></a>
+
+## `@hydra/harness-fs-review`
+
+Requires: `fs` · `tools` · `sessions` · `sessionPersistence`
+
+```ts config-catalog
+/** Snapshot location and inclusive resource limits. */
+export interface Config extends Partial<ReviewLimits> {
+  /** Defaults to the review-changes directory in the Hydra home, outside workspaces. */
+  directory?: string
+}
+
+/** Deployment limits for snapshot storage and preview work. */
+export interface ReviewLimits {
+  /** Inclusive before-snapshot byte cap; larger files retain hashes only. */
+  snapshotMaxBytes: number
+  /** Inclusive text-preview byte cap for each side. */
+  diffMaxBytes: number
+  /** Inclusive text-preview line cap for each side. */
+  diffMaxLines: number
+  /** Maximum product of the two line counts plus their empty-prefix rows. */
+  diffMaxCells: number
+}
+```
+
+Source: [`packages/fs/fs-review/src/index.ts:25`](../packages/fs/fs-review/src/index.ts)
 
 <a id="hydraharness-fs-sandbox"></a>
 
@@ -3465,6 +3493,7 @@ These load from a `cordis.yml` entry with no `config:` block; they declare no co
 - `@hydra/harness-client-ui-plan` ([`packages/client/ui-plan/src/index.ts`](../packages/client/ui-plan/src/index.ts))
 - `@hydra/harness-client-ui-reference` ([`packages/client/ui-reference/src/index.ts`](../packages/client/ui-reference/src/index.ts))
 - `@hydra/harness-client-ui-renderer` ([`packages/client/ui-renderer/src/index.ts`](../packages/client/ui-renderer/src/index.ts))
+- `@hydra/harness-client-ui-review` ([`packages/client/ui-review/src/index.ts`](../packages/client/ui-review/src/index.ts))
 - `@hydra/harness-client-ui-settings` ([`packages/client/ui-settings/src/index.ts`](../packages/client/ui-settings/src/index.ts))
 - `@hydra/harness-client-ui-settings-general` ([`packages/client/ui-settings-general/src/index.ts`](../packages/client/ui-settings-general/src/index.ts))
 - `@hydra/harness-client-ui-settings-models` ([`packages/client/ui-settings-models/src/index.ts`](../packages/client/ui-settings-models/src/index.ts))

@@ -13,6 +13,7 @@
     "src/types.ts"
   ],
   "references": [
+    { "path": "../../fs/fs-review" },
     {
       "path": "../../../vendor/cordis"
     },

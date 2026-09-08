@@ -294,6 +294,10 @@
       name: '@hydra/harness-client-ui-tool'
       pluginType: core
 
+    - id: ui-review
+      name: '@hydra/harness-client-ui-review'
+      pluginType: core
+
     - id: ui-cordis
       name: '@hydra/harness-client-ui-cordis'
       pluginType: core

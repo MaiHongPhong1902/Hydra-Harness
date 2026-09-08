@@ -10,6 +10,7 @@ import type { WorkspaceApi } from './workspace.ts'
 import type { AgentPresetsApi } from './agent-presets.ts'
 import type { SkillsApi } from './skills.ts'
 import type { GoalsApi } from './goals.ts'
+import type { ReviewApi } from './review.ts'
 import type { SettingsApi } from './settings.ts'
 import type { CredentialsApi } from './credentials.ts'
 import type { WebSearchApi } from './web-search.ts'
@@ -23,6 +24,9 @@ import type { RpcResponse } from './rpc.ts'
  * request (command.execute): the carrier passes its request signal, never a wire field.
  */
 export interface RpcMethodMap {
+  'review.list': ReviewApi['list']
+  'review.keep': ReviewApi['keep']
+  'review.undo': ReviewApi['undo']
   'session.list': SessionsApi['list']
   'session.search': SessionsApi['search']
   'session.create': SessionsApi['create']

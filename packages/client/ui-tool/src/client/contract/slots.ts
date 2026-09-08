@@ -7,6 +7,8 @@ import type {} from '@hydra/harness-client-locale/client'
 
 declare module '@hydra/harness-client-ui-slots' {
   interface SlotMap {
+    /** Agent-owned review entries attached to one tool call. */
+    'tool.call.review': { kind: 'list'; scope: 'session'; owner: { callId: string } }
     /**
      * Keyed atomic Tool call view, dispatched by the wire Tool name. Register
      * with `key: '<tool name>'` to own how one tool's calls render inside a
@@ -56,7 +58,7 @@ export type ToolHostDescriptionInjected = {
 
 /** Full props of the Tool call-tree renderer registered as a `tool-call` Chat Node. */
 export type ToolTreeProps = PropsRuntime<'conversation.chat.node', 'tool-call'>
-  & PropsRenderSlots<'tool.call.toolview'>
+  & PropsRenderSlots<'tool.call.toolview' | 'tool.call.review'>
   & PropsLocale<'conversation'>
   & InjectFace<ToolHostDescriptionInjected>
 

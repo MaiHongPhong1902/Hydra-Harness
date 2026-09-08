@@ -479,6 +479,14 @@ const SERVICE_ROLES: ServiceRole[] = [
     note: 'tool-fs executes read/write/edit through ctx.fs; fs-sandbox fences mutations by the shared sandbox mode; fs-observation-policy contributes observed-state checks through the fs/* event gate.',
   },
   {
+    key: 'fileReview',
+    pkg: 'fs-review',
+    title: 'Agent file change review',
+    mode: 'core',
+    consumers: ['apiproxy'],
+    note: 'Captures local Write/Edit/Create snapshots under the provider lock and serves session-owned Keep and hash-guarded Undo through ctx.fileReview; apiproxy exposes the review list, keep, and undo wire methods.',
+  },
+  {
     key: 'compaction',
     pkg: 'compaction',
     title: 'Compaction seam',

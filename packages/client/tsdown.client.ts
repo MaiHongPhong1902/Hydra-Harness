@@ -58,7 +58,7 @@ function styleInjectionModule(
  * Everything else under @hydra/* is either a module-table entry
  * (external) or a leak the purity gate rejects.
  */
-export const INLINE_SAFE = /^@hydra\/harness-(host-apiproxy|file-reference|session|llm|tools|brand)(\/|$)/
+export const INLINE_SAFE = /^@hydra\/harness-((host-apiproxy|file-reference|session|llm|tools|brand)(\/|$)|fs-review\/client$)/
 
 /**
  * Vendored framework libraries: rescoped into @hydra, so the gate below

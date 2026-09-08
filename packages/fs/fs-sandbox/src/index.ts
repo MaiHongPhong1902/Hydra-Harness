@@ -112,6 +112,13 @@ export class SandboxedFileSystem extends LocalFileSystem {
     return super.editText(await this.checkedTarget(target, sandboxPolicy), edit, expected, signal)
   }
 
+  /** @param sandboxPolicy - standing session policy; omission uses the deployment default. */
+  override async restoreSnapshot(
+    target: FsTarget, bytes: Uint8Array | null, afterHash: string | null, sandboxPolicy?: SandboxExecutionPolicy,
+  ): Promise<boolean> {
+    return super.restoreSnapshot(await this.checkedTarget(target, sandboxPolicy), bytes, afterHash)
+  }
+
   /**
    * Enforce the per-call policy against `target` and return the EXACT target the
    * mutation must use, so the checked identity is the mutated one (no

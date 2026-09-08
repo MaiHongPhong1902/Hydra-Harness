@@ -12,6 +12,7 @@ import type { SkillsApi } from './skills.ts'
 import type { SubagentsApi } from './subagents.ts'
 import type { EventsApi } from './events.ts'
 import type { GoalsApi } from './goals.ts'
+import type { ReviewApi } from './review.ts'
 import type { SettingsApi } from './settings.ts'
 import type { CredentialsApi } from './credentials.ts'
 import type { WebSearchApi } from './web-search.ts'
@@ -29,6 +30,7 @@ export interface ApiProxy {
   agentPresets: AgentPresetsApi
   events: EventsApi
   goals: GoalsApi
+  review: ReviewApi
   settings: SettingsApi
   credentials: CredentialsApi
   webSearch: WebSearchApi
@@ -60,6 +62,7 @@ export type { SkillsApi, SkillEntry } from './skills.ts'
 export type { AgentPresetsApi, AgentPresetEntry } from './agent-presets.ts'
 export type { EventsApi, MuxFrame, HostFrame, QueuedInboxItem, ToolCallView, ToolEventView, ToolResultView } from './events.ts'
 export type { GoalsApi, GoalId, GoalRef } from './goals.ts'
+export type { ReviewApi } from './review.ts'
 export type { InstructionsDocumentView, MemoryEntryView, SettingsApi, SettingsNamespaceView, SettingsPathOpView, SettingsSecretView } from './settings.ts'
 export type { CredentialsApi, CredentialView } from './credentials.ts'
 export type { ConfigurableProviderView, DiscoveredModelView, LlmApi } from './llm.ts'

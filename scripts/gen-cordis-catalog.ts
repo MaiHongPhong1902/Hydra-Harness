@@ -67,6 +67,7 @@ export const SERVICE_PAGE: Record<string, string> = {
   dynamicCordisRunner: 'extensions.md',
   e2b: 'subprocess.md',
   fileReferences: 'session-reference.md',
+  fileReview: 'filesystem.md',
   fs: 'filesystem.md',
   goals: 'goal.md',
   webServer: 'web-server.md',
@@ -176,6 +177,7 @@ export const EVENT_SCOPE_PAGE: Record<string, string> = {
   'credentials': 'credentials.md',
   'domain': 'storage.md',
   'fs': 'filesystem.md',
+  'file-review': 'filesystem.md',
   'goal': 'goal.md',
   'hooks-registry': 'extensions.md',
   'llm': 'llm-streaming.md',
@@ -332,6 +334,7 @@ export const LINK_MAP: Readonly<Record<string, string>> = {
   FsVersion: 'filesystem.md',
   FsWriteIntent: 'filesystem.md',
   FsWriteOutcome: 'filesystem.md',
+  FsSnapshot: 'filesystem.md',
   CreateGoalRequest: 'goal.md',
   EditGoalRequest: 'goal.md',
   GoalBlockReason: 'goal.md',
@@ -560,6 +563,9 @@ export const FOUNDATION_TYPE_NAMES: ReadonlySet<string> = new Set([
 
 /** Project types deliberately documented outside the subsystems catalog. */
 export const TYPE_LINK_EXEMPTIONS: Readonly<Record<string, string>> = {
+  ChangeId: 'review snapshot identity is owned by packages/fs/fs-review/README.md',
+  ReviewChange: 'durable review record is owned by packages/fs/fs-review/README.md',
+  ReviewOutcome: 'review action result is owned by packages/fs/fs-review/README.md',
   z: 'schemastery schema constructor is owned by vendor/schemastery (vendored upstream)',
   BeginCommandRequest: 'event-local request contract is owned by packages/client/ui-input-trigger/src/types.ts',
   InsertReferenceRequest: 'event-local request contract is owned by packages/client/ui-input-trigger/src/types.ts',

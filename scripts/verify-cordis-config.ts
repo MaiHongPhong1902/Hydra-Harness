@@ -442,18 +442,24 @@ function validateMetadata(entry: Record<string, unknown>, file: string, path: st
 }
 
 /**
- * Expression-node diagnostics for one entry. `disabled` is the single
+ * Entry-metadata diagnostics: expression nodes plus the static classifications
+ * the Loader and the plugin inventory read. `disabled` is the single
  * interpolated metadata field: its own `!!js` expression node is allowed and
  * must parse, while expressions nested below it stay truthy data; every other
- * metadata field must stay fully static.
+ * metadata field must stay fully static. A `@hydra/harness-client-*` row must
+ * be core: an unclassified browser-roster row persists its enablement in
+ * `plugins.enabled` and applies live instead of requiring a restart.
  * @param entry - one loader entry (or patch row).
  * @param path - the entry's diagnostic path prefix.
- * @returns one diagnostic per offending expression.
+ * @returns one diagnostic per offending field.
  */
 export function metadataExpressionErrors(entry: Record<string, unknown>, path: string): string[] {
   const problems: string[] = []
   if (entry.pluginType !== undefined && entry.pluginType !== 'core' && entry.pluginType !== 'normal') {
     problems.push(`${path}.pluginType: must be core or normal`)
+  }
+  if (typeof entry.name === 'string' && entry.name.startsWith('@hydra/harness-client-') && entry.pluginType !== 'core') {
+    problems.push(`${path}.pluginType: a @hydra/harness-client-* row must be core`)
   }
   if (entry.pluginGroup !== undefined && (typeof entry.pluginGroup !== 'string' || entry.pluginGroup.trim() === '')) {
     problems.push(`${path}.pluginGroup: must be a non-empty string`)

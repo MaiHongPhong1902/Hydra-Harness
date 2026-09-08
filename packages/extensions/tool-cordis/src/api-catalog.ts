@@ -787,10 +787,58 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'fileReview',
+    summary: 'Durable review service; records are scoped by exact session and random change id.',
+    description: 'Durable review service; records are scoped by exact session and random change id.',
+    methods: [
+      {
+        signature: 'readonly config: Required<Config>',
+        description: 'Schema-resolved storage location and resource limits.',
+        parameters: [],
+      },
+      {
+        signature: 'async list(sessionId: SessionId): Promise<ReviewChange[]>',
+        description: 'Read chronological snapshot history without consulting Git or current file contents.',
+        parameters: [{ name: 'sessionId', description: 'exact owner; forks do not inherit mutation authority.' }],
+        returns: 'every committed record, including unavailable interrupted operations.',
+      },
+      {
+        signature: 'async keep(sessionId: SessionId, id: ChangeId): Promise<ReviewOutcome>',
+        description: 'Mark a change kept, retaining its evidence and ability to undo.',
+        parameters: [{ name: 'sessionId', description: 'owning session id.' }, { name: 'id', description: 'exact change id.' }],
+        returns: 'the committed review state.',
+      },
+      {
+        signature: 'async undo(sessionId: SessionId, id: ChangeId): Promise<ReviewOutcome>',
+        description: 'Undo only the recorded post-edit state; verifies snapshot integrity before writing.',
+        parameters: [{ name: 'sessionId', description: 'owning session id.' }, { name: 'id', description: 'exact change id.' }],
+        returns: 'success, conflict, or unavailable; unavailable/uncertain records never write.',
+      },
+      {
+        signature: 'async sweep(): Promise<void>',
+        description: 'Remove orphan session directories; surviving sessions retain all review evidence.',
+        parameters: [],
+        returns: 'completion after stale directories are removed; never restores workspace files.',
+      },
+    ],
+  },
+  {
     key: 'fs',
     summary: 'Abstract filesystem provider.',
     description: 'Abstract filesystem provider. Targets must preserve identity across aliases; reads expose regular UTF-8 text or typed errors, listings are stable and content-free, and mutations are atomic. Optional guards add stale protection without changing the unguarded provider contract.',
     methods: [
+      {
+        signature: 'snapshot(_target: FsTarget, _maxBytes: number): Promise<FsSnapshot>',
+        description: 'Capture exact bytes and their hash; unsupported providers reject.',
+        parameters: [{ name: '_target', description: 'file to capture.' }, { name: '_maxBytes', description: 'inclusive memory limit; larger files retain only their hash.' }],
+        returns: 'complete hash and bounded raw bytes; absence is explicit.',
+      },
+      {
+        signature: 'restoreSnapshot( _target: FsTarget, _bytes: Uint8Array | null, _afterHash: string | null, _sandboxPolicy?: SandboxExecutionPolicy, ): Promise<boolean>',
+        description: 'Restore raw bytes (null removes a created file), only if the current hash equals the recorded after hash. Providers serialize with ordinary mutations.',
+        parameters: [{ name: '_target', description: 'canonical target owned by the change.' }, { name: '_bytes', description: 'verified before bytes, or null to remove the file.' }, { name: '_afterHash', description: 'expected current SHA-256, or null for absence.' }, { name: '_sandboxPolicy', description: 'resolved current policy for this user action.' }],
+        returns: 'false on conflict without changing the file; true on restoration.',
+      },
       {
         signature: 'abstract resolve(path: string, opts?: { cwd?: string; signal?: AbortSignal }): Promise<FsTarget>',
         description: 'Resolve a model/plugin-supplied path into a stable FsTarget. May perform I/O (a remote/sandboxed backend may need a round-trip to map a path to a stable identity), hence async even though the local backend only normalizes + realpaths.',
@@ -2852,12 +2900,28 @@ export const EVENT_API: readonly EventApiEntry[] = [
     parameters: [{ name: 'change', description: 'domain, table (`\'\'` for global), key (`\'\'` for global), operation discriminant, and on `put` the new snapshot.' }],
   },
   {
+    name: 'file-review/changed',
+    mode: 'emit',
+    signature: '\'file-review/changed\'(sessionId: SessionId): void',
+    summary: 'A durable record was created or changed; clients refetch its history.',
+    description: 'A durable record was created or changed; clients refetch its history.',
+    parameters: [{ name: 'sessionId', description: 'session owning the committed record.' }],
+  },
+  {
     name: 'fs/edit-intent',
     mode: 'waterfall',
     signature: '\'fs/edit-intent\'(target: FsTarget, actor: object | undefined, next: () => { version: FsVersion } | undefined | Promise<{ version: FsVersion } | undefined>): Promise<{ version: FsVersion } | undefined>',
     summary: 'Single-slot decision for the next FileSystem.editText.',
     description: 'Single-slot decision for the next FileSystem.editText. Calling `next()` yields an unconditional edit; the first returned guard wins.',
     parameters: [{ name: 'target', description: 'the resolved target about to be edited.' }, { name: 'actor', description: 'the opaque tool-execution context the decider keys off.' }],
+  },
+  {
+    name: 'fs/mutate',
+    mode: 'waterfall',
+    signature: '\'fs/mutate\'<T extends FsWriteOutcome | FsEditOutcome>(target: FsTarget, operation: \'write\' | \'edit\', next: () => Promise<T>): Promise<T>',
+    summary: 'Wrap one authorized mutation inside the provider\'s per-file lock.',
+    description: 'Wrap one authorized mutation inside the provider\'s per-file lock. Listeners may capture snapshots but must not recursively mutate the same target.',
+    parameters: [{ name: 'target', description: 'exact provider target being mutated.' }, { name: 'operation', description: 'structured mutation kind.' }, { name: 'next', description: 'performs the mutation; must be delegated once.' }],
   },
   {
     name: 'fs/observed',
@@ -3376,6 +3440,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface CancelOptions {\n    keepInbox?: boolean | undefined;\n}',
   },
   {
+    name: 'ChangeId',
+    declaration: 'export type ChangeId = Branded<\'ChangeId\'>;',
+  },
+  {
     name: 'ClientResponse',
     declaration: 'export interface ClientResponse {\n    type: \'client-response\';\n    rpcId: RpcId;\n    result: RpcResult<unknown>;\n}',
   },
@@ -3730,6 +3798,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'FsPathInfo',
     declaration: 'export interface FsPathInfo {\n    version: FsVersion;\n    type: \'file\' | \'directory\' | \'symlink\' | \'other\';\n    size?: number;\n}',
+  },
+  {
+    name: 'FsSnapshot',
+    declaration: 'export interface FsSnapshot {\n    hash: string | null;\n    bytes: Uint8Array | null;\n}',
   },
   {
     name: 'FsTarget',
@@ -4418,6 +4490,18 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'ResumeAgentOptions',
     declaration: 'export interface ResumeAgentOptions {\n    readonly resumeSessionId: SessionId;\n    readonly agentOptions?: AgentOptions;\n    readonly signal?: AbortSignal;\n    readonly setup?: AgentSetup;\n}',
+  },
+  {
+    name: 'ReviewChange',
+    declaration: 'export interface ReviewChange {\n    version: 1;\n    id: ChangeId;\n    sessionId: SessionId;\n    callId: CallId;\n    rootCallId: CallId;\n    toolName: string;\n    seq: number;\n    turnSeq: number | null;\n    stepSeq: number | null;\n    parentSessionId: SessionId | null;\n    agentPreset: string | null;\n    createdAt: number;\n    workspace: string;\n    path: string;\n    operation: \'write\' | \'edit\';\n    status: \'added\' | \'modified\' | \'deleted\';\n    state: \'pending\' | \'active\' | \'kept\' | \'undoing\' | \'rolledBack\';\n    beforeHash: string | null;\n    afterHash: string | null;\n    reversible: boolean;\n    binary: boolean;\n    truncated: boolean;\n    additions: number;\n    deletions: number;\n    hunks: ReviewHunk[];\n}',
+  },
+  {
+    name: 'ReviewHunk',
+    declaration: 'export interface ReviewHunk {\n    header: string;\n    lines: string[];\n}',
+  },
+  {
+    name: 'ReviewOutcome',
+    declaration: 'export interface ReviewOutcome {\n    status: \'kept\' | \'rolledBack\' | \'alreadyRolledBack\' | \'conflict\' | \'unavailable\';\n    change: ReviewChange;\n}',
   },
   {
     name: 'RpcError',

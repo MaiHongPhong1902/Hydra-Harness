@@ -14,6 +14,7 @@ import type {} from '@hydra/harness-llm/types'
 import type {} from '@hydra/harness-agent-presets/types'
 import type {} from '@hydra/harness-settings/types'
 import type {} from '@hydra/harness-skill/types'
+import type {} from '@hydra/harness-fs-review/client'
 
 export {
   ApiRemoteSessionNotFound,

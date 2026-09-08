@@ -67,6 +67,7 @@ function mountFrame(workspaceOverrides: Partial<WorkspaceListState> = {}) {
     if (key === 'sidebar') return <div data-testid="sidebar-content" />
     if (key === 'conversation') return <div data-testid="center-content" />
     if (key === 'details') return <div data-testid="details-content" />
+    if (key === 'review') return <div data-testid="review-content" />
     if (key === 'conversation.empty') return <div data-testid="empty-content" />
     return <div data-testid="other-content" />
   }) as AppFrameProps['renderSlot']
@@ -160,7 +161,7 @@ describe('AppFrame', () => {
   it('opens Ctrl+P Files against the current registered workspace', async () => {
     const workspaceId = 'workspace-test' as WorkspaceId
     const rootPath = 'C:\\workspace'
-    let shortcut: ((value: 'files' | 'side-chat' | 'browser' | 'terminal') => void) | undefined
+    let shortcut: ((value: 'files' | 'side-chat' | 'browser' | 'terminal' | 'review') => void) | undefined
     const files = {
       root: vi.fn(async () => rootPath),
       list: vi.fn(async () => []),
@@ -198,10 +199,22 @@ describe('AppFrame', () => {
     expect(files.root).toHaveBeenCalledWith(workspaceId)
   })
 
+  it('renders the Review seat from the right panel against the current session', () => {
+    window.hydraDesktop = { browser: { setBounds: vi.fn() } }
+    const view = mountFrame()
+    expect(view.queryByTestId('review-content')).toBeNull()
+    fireEvent.click(view.getByLabelText('Toggle right panel'))
+    fireEvent.click(view.getByRole('button', { name: 'Choose panel' }))
+    fireEvent.click(view.getByRole('button', { name: 'Review' }))
+    expect(view.getByRole('tab', { name: 'Review' }).getAttribute('aria-selected')).toBe('true')
+    expect(view.getByTestId('review-content')).toBeTruthy()
+    expect(view.slotCalls.find(call => call.key === 'review')!.props).toEqual({})
+  })
+
   it('starts with the right panel closed, then keeps its tabs and Terminals independent', async () => {
     frameWidth = 1400
     window.innerHeight = 900
-    let shortcut: ((value: 'files' | 'side-chat' | 'browser' | 'terminal') => void) | undefined
+    let shortcut: ((value: 'files' | 'side-chat' | 'browser' | 'terminal' | 'review') => void) | undefined
     window.hydraDesktop = {
       browser: { setBounds: vi.fn() },
       panels: {

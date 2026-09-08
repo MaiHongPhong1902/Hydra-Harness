@@ -21,7 +21,9 @@ import type {
   FsVersion,
   FsWriteIntent,
   FsWriteOutcome,
+  FsSnapshot,
 } from './types.ts'
+import { FsError } from './types.ts'
 
 export {
   FsError,
@@ -39,6 +41,7 @@ export type {
   FsTarget,
   FsWriteIntent,
   FsWriteOutcome,
+  FsSnapshot,
 } from './types.ts'
 
 declare module '@hydra/cordis' {
@@ -47,6 +50,15 @@ declare module '@hydra/cordis' {
   }
 
   interface Events {
+    /**
+     * Wrap one authorized mutation inside the provider's per-file lock. Listeners
+     * may capture snapshots but must not recursively mutate the same target.
+     * @param target - exact provider target being mutated.
+     * @param operation - structured mutation kind.
+     * @param next - performs the mutation; must be delegated once.
+     * @mode waterfall
+     */
+    'fs/mutate'<T extends FsWriteOutcome | FsEditOutcome>(target: FsTarget, operation: 'write' | 'edit', next: () => Promise<T>): Promise<T>
     /**
      * Single-slot decision for the next {@link FileSystem.writeText}. Calling
      * `next()` yields the bare provider's unconditional write; the first listener
@@ -86,6 +98,31 @@ declare module '@hydra/cordis' {
 export abstract class FileSystem extends Service {
   constructor(ctx: Context) {
     super(ctx, 'fs')
+  }
+
+  /**
+   * Capture exact bytes and their hash; unsupported providers reject.
+   * @param _target - file to capture.
+   * @param _maxBytes - inclusive memory limit; larger files retain only their hash.
+   * @returns complete hash and bounded raw bytes; absence is explicit.
+   */
+  snapshot(_target: FsTarget, _maxBytes: number): Promise<FsSnapshot> {
+    return Promise.reject(new FsError('filesystem snapshots are unavailable', 'FS_IO_ERROR'))
+  }
+
+  /**
+   * Restore raw bytes (null removes a created file), only if the current hash
+   * equals the recorded after hash. Providers serialize with ordinary mutations.
+   * @param _target - canonical target owned by the change.
+   * @param _bytes - verified before bytes, or null to remove the file.
+   * @param _afterHash - expected current SHA-256, or null for absence.
+   * @param _sandboxPolicy - resolved current policy for this user action.
+   * @returns false on conflict without changing the file; true on restoration.
+   */
+  restoreSnapshot(
+    _target: FsTarget, _bytes: Uint8Array | null, _afterHash: string | null, _sandboxPolicy?: SandboxExecutionPolicy,
+  ): Promise<boolean> {
+    return Promise.reject(new FsError('filesystem rollback is unavailable', 'FS_IO_ERROR'))
   }
 
   /**

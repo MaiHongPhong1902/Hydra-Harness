@@ -78,6 +78,8 @@ flowchart LR
   cfg --> plugin_hydra_base_fs_observation_policy
   plugin_hydra_base_tool_fs["tool-fs<br/>@hydra/harness-tool-fs"]
   cfg --> plugin_hydra_base_tool_fs
+  plugin_hydra_base_fs_review["fs-review<br/>@hydra/harness-fs-review"]
+  cfg --> plugin_hydra_base_fs_review
   plugin_hydra_base_tool_fs_search["tool-fs-search<br/>@hydra/harness-tool-fs-search"]
   cfg --> plugin_hydra_base_tool_fs_search
   plugin_hydra_base_agent_instructions["agent-instructions<br/>@hydra/harness-agent-instructions"]
@@ -221,6 +223,7 @@ flowchart LR
 | `tool-jobs` | `@hydra/harness-tool-jobs` |
 | `fs-observation-policy` | `@hydra/harness-fs-observation-policy` |
 | `tool-fs` | `@hydra/harness-tool-fs` |
+| `fs-review` | `@hydra/harness-fs-review` |
 | `tool-fs-search` | `@hydra/harness-tool-fs-search` |
 | `agent-instructions` | `@hydra/harness-agent-instructions` |
 | `personalization` | `@hydra/harness-personalization` |

@@ -914,6 +914,9 @@ importers:
       '@hydra/harness-file-reference':
         specifier: workspace:^
         version: link:../../context/file-reference
+      '@hydra/harness-fs-review':
+        specifier: workspace:^
+        version: link:../../fs/fs-review
       '@hydra/harness-goal':
         specifier: workspace:^
         version: link:../../goal/goal
@@ -1281,6 +1284,9 @@ importers:
       '@hydra/harness-fs-observation-policy':
         specifier: workspace:^
         version: link:../../fs/fs-observation-policy
+      '@hydra/harness-fs-review':
+        specifier: workspace:^
+        version: link:../../fs/fs-review
       '@hydra/harness-fs-sandbox':
         specifier: workspace:^
         version: link:../../fs/fs-sandbox
@@ -1619,6 +1625,9 @@ importers:
       '@hydra/harness-client-ui-renderer':
         specifier: workspace:^
         version: link:../../client/ui-renderer
+      '@hydra/harness-client-ui-review':
+        specifier: workspace:^
+        version: link:../../client/ui-review
       '@hydra/harness-client-ui-settings':
         specifier: workspace:^
         version: link:../../client/ui-settings
@@ -2836,6 +2845,45 @@ importers:
       react-dom:
         specifier: ^18.2.0
         version: 18.3.1(react@18.3.1)
+
+  packages/client/ui-review:
+    devDependencies:
+      '@hydra/cordis':
+        specifier: workspace:^
+        version: link:../../../vendor/cordis
+      '@hydra/harness-api-remotes':
+        specifier: workspace:^
+        version: link:../../api/remotes
+      '@hydra/harness-client-connection':
+        specifier: workspace:^
+        version: link:../connection
+      '@hydra/harness-client-runtime':
+        specifier: workspace:^
+        version: link:../runtime
+      '@hydra/harness-client-test-runtime':
+        specifier: workspace:^
+        version: link:../../test-support/client-runtime
+      '@hydra/harness-client-ui-layout':
+        specifier: workspace:^
+        version: link:../ui-layout
+      '@hydra/harness-client-ui-slots':
+        specifier: workspace:^
+        version: link:../ui-slots
+      '@hydra/harness-client-ui-tool':
+        specifier: workspace:^
+        version: link:../ui-tool
+      '@hydra/harness-fs-review':
+        specifier: workspace:^
+        version: link:../../fs/fs-review
+      '@hydra/harness-invariants':
+        specifier: workspace:^
+        version: link:../../runtime-diagnostics/invariants
+      '@types/react':
+        specifier: ~18.3.1
+        version: 18.3.31
+      react:
+        specifier: ^18.2.0
+        version: 18.3.1
 
   packages/client/ui-settings:
     dependencies:
@@ -4876,6 +4924,64 @@ importers:
         specifier: workspace:^
         version: link:../../llm/llm
 
+  packages/fs/fs-review:
+    dependencies:
+      '@hydra/schemastery':
+        specifier: link:../../../vendor/schemastery
+        version: link:../../../vendor/schemastery
+      diff:
+        specifier: ^9.0.0
+        version: 9.0.0
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
+    devDependencies:
+      '@hydra/cordis':
+        specifier: workspace:^
+        version: link:../../../vendor/cordis
+      '@hydra/harness-atomic-write':
+        specifier: workspace:^
+        version: link:../../util/atomic-write
+      '@hydra/harness-brand':
+        specifier: workspace:^
+        version: link:../../util/brand
+      '@hydra/harness-fs':
+        specifier: workspace:^
+        version: link:../fs
+      '@hydra/harness-fs-local':
+        specifier: workspace:^
+        version: link:../fs-local
+      '@hydra/harness-home-paths':
+        specifier: workspace:^
+        version: link:../../util/home-paths
+      '@hydra/harness-invariants':
+        specifier: workspace:^
+        version: link:../../runtime-diagnostics/invariants
+      '@hydra/harness-llm':
+        specifier: workspace:^
+        version: link:../../llm/llm
+      '@hydra/harness-sandbox-policy':
+        specifier: workspace:^
+        version: link:../../sandbox/sandbox-policy
+      '@hydra/harness-session':
+        specifier: workspace:^
+        version: link:../../core/session
+      '@hydra/harness-session-persistence':
+        specifier: workspace:^
+        version: link:../../session/session-persistence
+      '@hydra/harness-session-persistence-jsonl':
+        specifier: workspace:^
+        version: link:../../session/session-persistence-jsonl
+      '@hydra/harness-system-prompt':
+        specifier: workspace:^
+        version: link:../../core/system-prompt
+      '@hydra/harness-tool-fs':
+        specifier: workspace:^
+        version: link:../tool-fs
+      '@hydra/harness-tools':
+        specifier: workspace:^
+        version: link:../../core/tools
+
   packages/fs/fs-sandbox:
     devDependencies:
       '@hydra/cordis':
@@ -5528,6 +5634,9 @@ importers:
       '@hydra/harness-cordis-host-runner':
         specifier: workspace:^
         version: link:../../extensions/cordis-host-runner
+      '@hydra/harness-fs-review':
+        specifier: workspace:^
+        version: link:../../fs/fs-review
       '@hydra/harness-invariants':
         specifier: workspace:^
         version: link:../../runtime-diagnostics/invariants

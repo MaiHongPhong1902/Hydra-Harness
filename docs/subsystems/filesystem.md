@@ -283,6 +283,47 @@ type FsErrorCode =
 
 Generated from source by `scripts/gen-cordis-catalog.ts` (verified fresh by `pnpm run verify-cordis-catalog` in doc-sync; regenerate with `pnpm run gen-cordis-catalog`) — the language sides differ only in locale-specific paired document paths. Signature blocks use a `ts cordis-catalog` fence and keep the original source JSDoc; dispatch modes are defined in the [primer](../cordis-primer.md#dispatch-modes), and the framework-inherited `ctx` API lives in [cordis-api/inherited.md](../cordis-api/inherited.md).
 
+<a id="ctxfilereview--filereview"></a>
+
+### `ctx.fileReview` — `FileReview`
+
+Durable review service; records are scoped by exact session and random change id.
+
+```ts cordis-catalog
+/**
+ * Read chronological snapshot history without consulting Git or current file contents.
+ * @param sessionId - exact owner; forks do not inherit mutation authority.
+ * @returns every committed record, including unavailable interrupted operations.
+ */
+async list(sessionId: SessionId): Promise<ReviewChange[]>
+
+/**
+ * Mark a change kept, retaining its evidence and ability to undo.
+ * @param sessionId - owning session id.
+ * @param id - exact change id.
+ * @returns the committed review state.
+ */
+async keep(sessionId: SessionId, id: ChangeId): Promise<ReviewOutcome>
+
+/**
+ * Undo only the recorded post-edit state; verifies snapshot integrity before writing.
+ * @param sessionId - owning session id.
+ * @param id - exact change id.
+ * @returns success, conflict, or unavailable; unavailable/uncertain records never write.
+ */
+async undo(sessionId: SessionId, id: ChangeId): Promise<ReviewOutcome>
+
+/**
+ * Remove orphan session directories; surviving sessions retain all review evidence.
+ * @returns completion after stale directories are removed; never restores workspace files.
+ */
+async sweep(): Promise<void>
+```
+
+Types: [SessionId](core.md)
+
+Source: [`packages/fs/fs-review/src/index.ts`](../../packages/fs/fs-review/src/index.ts)
+
 <a id="ctxfs--filesystem-abstract-seam"></a>
 
 ### `ctx.fs` — `FileSystem` (abstract seam)
@@ -290,6 +331,25 @@ Generated from source by `scripts/gen-cordis-catalog.ts` (verified fresh by `pnp
 Abstract filesystem provider. Targets must preserve identity across aliases; reads expose regular UTF-8 text or typed errors, listings are stable and content-free, and mutations are atomic. Optional guards add stale protection without changing the unguarded provider contract.
 
 ```ts cordis-catalog
+/**
+ * Capture exact bytes and their hash; unsupported providers reject.
+ * @param _target - file to capture.
+ * @param _maxBytes - inclusive memory limit; larger files retain only their hash.
+ * @returns complete hash and bounded raw bytes; absence is explicit.
+ */
+snapshot(_target: FsTarget, _maxBytes: number): Promise<FsSnapshot>
+
+/**
+ * Restore raw bytes (null removes a created file), only if the current hash
+ * equals the recorded after hash. Providers serialize with ordinary mutations.
+ * @param _target - canonical target owned by the change.
+ * @param _bytes - verified before bytes, or null to remove the file.
+ * @param _afterHash - expected current SHA-256, or null for absence.
+ * @param _sandboxPolicy - resolved current policy for this user action.
+ * @returns false on conflict without changing the file; true on restoration.
+ */
+restoreSnapshot( _target: FsTarget, _bytes: Uint8Array | null, _afterHash: string | null, _sandboxPolicy?: SandboxExecutionPolicy, ): Promise<boolean>
+
 /**
  * Resolve a model/plugin-supplied path into a stable {@link FsTarget}. May perform I/O (a
  * remote/sandboxed backend may need a round-trip to map a path to a stable identity), hence
@@ -427,6 +487,29 @@ Types: [SandboxExecutionPolicy](sandbox.md)
 
 Source: [`packages/fs/fs/src/index.ts`](../../packages/fs/fs/src/index.ts)
 
+<a id="file-review-events"></a>
+
+### `file-review/*` events
+
+<a id="file-reviewchanged--emit"></a>
+
+#### `file-review/changed` — emit
+
+A durable record was created or changed; clients refetch its history.
+
+```ts cordis-catalog
+/**
+ * A durable record was created or changed; clients refetch its history.
+ * @param sessionId - session owning the committed record.
+ * @mode emit
+ */
+'file-review/changed'(sessionId: SessionId): void
+```
+
+Types: [SessionId](core.md)
+
+Source: [`packages/fs/fs-review/src/client.ts`](../../packages/fs/fs-review/src/client.ts)
+
 <a id="fs-events"></a>
 
 ### `fs/*` events
@@ -446,6 +529,26 @@ Single-slot decision for the next FileSystem.editText. Calling `next()` yields a
  * @mode waterfall
  */
 'fs/edit-intent'(target: FsTarget, actor: object | undefined, next: () => { version: FsVersion } | undefined | Promise<{ version: FsVersion } | undefined>): Promise<{ version: FsVersion } | undefined>
+```
+
+Source: [`packages/fs/fs/src/index.ts`](../../packages/fs/fs/src/index.ts)
+
+<a id="fsmutate--waterfall"></a>
+
+#### `fs/mutate` — waterfall
+
+Wrap one authorized mutation inside the provider's per-file lock. Listeners may capture snapshots but must not recursively mutate the same target.
+
+```ts cordis-catalog
+/**
+ * Wrap one authorized mutation inside the provider's per-file lock. Listeners
+ * may capture snapshots but must not recursively mutate the same target.
+ * @param target - exact provider target being mutated.
+ * @param operation - structured mutation kind.
+ * @param next - performs the mutation; must be delegated once.
+ * @mode waterfall
+ */
+'fs/mutate'<T extends FsWriteOutcome | FsEditOutcome>(target: FsTarget, operation: 'write' | 'edit', next: () => Promise<T>): Promise<T>
 ```
 
 Source: [`packages/fs/fs/src/index.ts`](../../packages/fs/fs/src/index.ts)
@@ -491,3 +594,8 @@ Single-slot decision for the next FileSystem.writeText. Calling `next()` yields 
 
 Source: [`packages/fs/fs/src/index.ts`](../../packages/fs/fs/src/index.ts)
 <!-- END GENERATED cordis-surface -->
+
+
+## File review
+
+The optional @hydra/harness-fs-review plugin records session-owned local Write/Edit/Create snapshots, bounded diffs, Keep, and hash-guarded Undo. Evidence persists outside the workspace and survives Git operations; shell, external-editor, Delete/Move, and non-local-provider changes remain outside this capability. See [the package README](../../packages/fs/fs-review/README.md).

@@ -22,6 +22,7 @@
   // this client-registered project must not also hold them (one program
   // cannot see both sides of the cordis Context merges).
   "exclude": [
+    "tests/file-review.e2e.ts",
     "tests/scaffold.ts",
     "tests/brand-hover.e2e.ts",
     "tests/browser-permission.e2e.ts",

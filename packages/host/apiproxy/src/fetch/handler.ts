@@ -10,6 +10,7 @@ import { randomUUID } from 'node:crypto'
 import type { z } from 'zod'
 import type { ApiProxy, MuxFrame, HostFrame } from '../api/index.ts'
 import { sessionLogQuerySchema } from '../api/downloads.schema.ts'
+import { reviewListRequestSchema, reviewActionRequestSchema } from '../api/review.schema.ts'
 import type { RequestPayload, ResponseValue, RpcMethodMap } from '../api/rpc-map.ts'
 import type { ClientRequest, RpcError, RpcRequest, RpcResponse, ServerRequest, ServerResponse } from '../api/rpc.ts'
 import { RpcId } from '../api/rpc.ts'
@@ -91,6 +92,9 @@ type UnaryRoutes = {
 }
 
 const UNARY_ROUTES: UnaryRoutes = {
+  'review.list': { schema: reviewListRequestSchema, invoke: (api, r) => api.review.list(r) },
+  'review.keep': { schema: reviewActionRequestSchema, invoke: (api, r) => api.review.keep(r) },
+  'review.undo': { schema: reviewActionRequestSchema, invoke: (api, r) => api.review.undo(r) },
   'session.list': { schema: sessionListRequestSchema, invoke: (api, r) => api.sessions.list(r) },
   'session.search': { schema: sessionSearchRequestSchema, invoke: (api, r, signal) => api.sessions.search(r, signal) },
   'session.create': { schema: sessionCreateRequestSchema, invoke: (api, r) => api.sessions.create(r) },

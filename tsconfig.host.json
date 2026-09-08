@@ -9,6 +9,7 @@
   },
   "include": [
     "apps/web/tests/scaffold.ts",
+    "apps/web/tests/file-review.e2e.ts",
     "apps/web/tests/brand-hover.e2e.ts",
     "apps/web/tests/browser-permission.e2e.ts",
     "apps/web/tests/web-citations.e2e.ts",
@@ -236,6 +237,7 @@
     { "path": "./packages/shell/tool-bash" },
     { "path": "./packages/fs/fs" },
     { "path": "./packages/fs/fs-local" },
+    { "path": "./packages/fs/fs-review" },
     { "path": "./packages/e2b/fs-e2b" },
     { "path": "./packages/fs/fs-observation-policy" },
     { "path": "./packages/fs/fs-sandbox" },

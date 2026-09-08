@@ -28,6 +28,7 @@ function PanelHarness(props: {
       workspaceId={props.workspaceId}
       createSideSession={props.createSideSession}
       renderSideChat={props.renderSideChat}
+      renderReview={() => <div data-testid="review-slot" />}
       onCloseChooser={() => { setChooserOpen(false) }}
       onToggleChooser={() => { setChooserOpen(open => !open) }}
       onOpen={props.onOpen ?? (() => {})}
@@ -102,6 +103,28 @@ describe('DesktopBrowserPanel', () => {
       <PanelHarness open={false} createSideSession={createSideSession} renderSideChat={renderSideChat} />,
     )
     await waitFor(() => { expect(setBounds).toHaveBeenLastCalledWith(hiddenBounds) })
+  })
+
+  it('opens Review from the chooser once and reopens the same tab after closing', () => {
+    window.hydraDesktop = { browser: { setBounds: vi.fn() } }
+    stubPanelObservers()
+    const createSideSession = vi.fn(async () => 'side' as SessionId)
+    const view = render(
+      <PanelHarness createSideSession={createSideSession} renderSideChat={() => null} />,
+    )
+    expect(view.queryByTestId('review-slot')).toBeNull()
+    const chooseReview = () => {
+      fireEvent.click(view.getByRole('button', { name: 'Choose panel' }))
+      fireEvent.click(within(view.getByRole('dialog', { name: 'Choose panel' })).getByRole('button', { name: 'Review' }))
+    }
+    chooseReview()
+    expect(view.getByRole('tab', { name: 'Review' }).getAttribute('aria-selected')).toBe('true')
+    expect(view.getByTestId('review-slot')).toBeTruthy()
+    chooseReview()
+    expect(view.getAllByRole('tab', { name: 'Review' })).toHaveLength(1)
+    fireEvent.click(view.getByRole('button', { name: 'Close Review' }))
+    expect(view.queryByRole('tab', { name: 'Review' })).toBeNull()
+    expect(view.getByRole('tab', { name: 'Browser' }).getAttribute('aria-selected')).toBe('true')
   })
 
   it('opens Files, multiple Side chat sessions, Browser, and a right Terminal as tabs', async () => {
