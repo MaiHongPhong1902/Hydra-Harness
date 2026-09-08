@@ -1,10 +1,12 @@
-import { useCallback, useDeferredValue, useEffect, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import {
   Button,
   CodeBlock,
   IconBrowseOutline16,
   IconCheckOutline14,
+  IconChevronDownOutline14,
   IconChevronRightOutline14,
+  IconChevronUpOutline14,
   IconCloseOutline16,
   IconCodeOutline16,
   IconCopyOutline16,
@@ -291,6 +293,11 @@ export function DesktopFilesPanel(props: {
   const [showGotoLine, setShowGotoLine] = useState(false)
   const [gotoLineValue, setGotoLineValue] = useState('')
   const [selectedChars, setSelectedChars] = useState(0)
+  const findInputRef = useRef<HTMLInputElement | null>(null)
+  const [showFind, setShowFind] = useState(false)
+  const [findQuery, setFindQuery] = useState('')
+  const [findMatchCase, setFindMatchCase] = useState(false)
+  const [currentMatchIndex, setCurrentMatchIndex] = useState(0)
 
   const [renamingPath, setRenamingPath] = useState<string>()
   const [renameName, setRenameName] = useState('')
@@ -825,6 +832,55 @@ export function DesktopFilesPanel(props: {
     }
   }, [api, document, updateDocument, workspaceId])
 
+  const findMatches = useMemo(() => {
+    if (!findQuery || document === undefined) return []
+    const draft = document.draft
+    const matches: Array<{ start: number; end: number; line: number }> = []
+    const queryToSearch = findMatchCase ? findQuery : findQuery.toLowerCase()
+    const textToSearch = findMatchCase ? draft : draft.toLowerCase()
+    let pos = 0
+    while (pos < textToSearch.length) {
+      const idx = textToSearch.indexOf(queryToSearch, pos)
+      if (idx === -1) break
+      const line = draft.slice(0, idx).split('\n').length
+      matches.push({ start: idx, end: idx + queryToSearch.length, line })
+      pos = idx + Math.max(1, queryToSearch.length)
+    }
+    return matches
+  }, [document, findMatchCase, findQuery])
+
+  const goToMatch = useCallback((index: number) => {
+    if (findMatches.length === 0 || editorTextareaRef.current === null || document === undefined) return
+    const normalizedIndex = (index + findMatches.length) % findMatches.length
+    setCurrentMatchIndex(normalizedIndex)
+    const match = findMatches[normalizedIndex]
+    if (match) {
+      editorTextareaRef.current.focus()
+      editorTextareaRef.current.setSelectionRange(match.start, match.end)
+      const lastNl = document.draft.lastIndexOf('\n', match.start - 1)
+      const col = lastNl === -1 ? match.start + 1 : match.start - lastNl
+      setCursorPos({ line: match.line, col })
+      const lineHeight = 19
+      const scrollTarget = Math.max(0, (match.line - 5) * lineHeight)
+      editorTextareaRef.current.scrollTop = scrollTarget
+    }
+  }, [document, findMatches])
+
+  const findNext = useCallback(() => {
+    goToMatch(currentMatchIndex + 1)
+  }, [currentMatchIndex, goToMatch])
+
+  const findPrev = useCallback(() => {
+    goToMatch(currentMatchIndex - 1)
+  }, [currentMatchIndex, goToMatch])
+
+  useEffect(() => {
+    if (showFind) {
+      findInputRef.current?.focus()
+      findInputRef.current?.select()
+    }
+  }, [showFind])
+
   useEffect(() => {
     if (!props.active) return
     const onKeyDown = (event: KeyboardEvent) => {
@@ -835,6 +891,9 @@ export function DesktopFilesPanel(props: {
       } else if (event.shiftKey && event.altKey && key === 'f') {
         event.preventDefault()
         void formatFile()
+      } else if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey && key === 'f') {
+        event.preventDefault()
+        setShowFind(true)
       } else if (event.altKey && !event.ctrlKey && !event.metaKey && key === 'z') {
         event.preventDefault()
         setWordWrap(w => !w)
@@ -842,6 +901,11 @@ export function DesktopFilesPanel(props: {
         event.preventDefault()
         setShowGotoLine(true)
       } else if (event.key === 'Escape') {
+        if (showFind) {
+          setShowFind(false)
+          editorTextareaRef.current?.focus()
+          return
+        }
         setContextMenu(undefined)
         setRenamingPath(undefined)
         setShowGotoLine(false)
@@ -849,7 +913,7 @@ export function DesktopFilesPanel(props: {
     }
     window.addEventListener('keydown', onKeyDown)
     return () => { window.removeEventListener('keydown', onKeyDown) }
-  }, [formatFile, props.active, saveFile])
+  }, [formatFile, props.active, saveFile, showFind])
 
   const renderDirectory = (path: string, depth: number): ReactNode => (
     children[path]?.map((entry) => {
@@ -1067,6 +1131,15 @@ export function DesktopFilesPanel(props: {
                 onClick={() => { startCreate('directory') }}
               >
                 <IconProjectAddOutline16 size={13} />
+              </button>
+              <button
+                type="button"
+                className={css.sectionActionBtn}
+                aria-label="Collapse all folders"
+                title="Collapse all folders"
+                onClick={() => setExpanded(new Set())}
+              >
+                <IconFolderClose16 size={13} />
               </button>
               <button
                 type="button"
@@ -1294,6 +1367,15 @@ export function DesktopFilesPanel(props: {
                 >
                   :Line
                 </Button>
+                <Button
+                  variant="toolbar"
+                  size="sm"
+                  aria-keyshortcuts="Control+F"
+                  title={showFind ? 'Close Find (Ctrl+F)' : 'Find in file (Ctrl+F)'}
+                  onClick={() => setShowFind(s => !s)}
+                >
+                  Find
+                </Button>
               </>
             )}
             {dirty && (
@@ -1400,6 +1482,79 @@ export function DesktopFilesPanel(props: {
               }}
             >
               ✕
+            </button>
+          </div>
+        )}
+
+        {showFind && document !== undefined && (
+          <div className={css.findWidget} role="search" aria-label="Find in file">
+            <input
+              ref={findInputRef}
+              type="search"
+              className={css.findInput}
+              aria-label="Find query"
+              placeholder="Find..."
+              value={findQuery}
+              onChange={e => setFindQuery(e.currentTarget.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  if (e.shiftKey) findPrev()
+                  else findNext()
+                } else if (e.key === 'Escape') {
+                  e.preventDefault()
+                  setShowFind(false)
+                  editorTextareaRef.current?.focus()
+                }
+              }}
+            />
+            <span className={css.findMatchesCount}>
+              {findQuery === ''
+                ? ''
+                : findMatches.length === 0
+                  ? 'No results'
+                  : `${currentMatchIndex + 1} of ${findMatches.length}`}
+            </span>
+            <button
+              type="button"
+              className={css.findBtn}
+              aria-label="Previous match"
+              title="Previous match (Shift+Enter)"
+              disabled={findMatches.length === 0}
+              onClick={findPrev}
+            >
+              <IconChevronUpOutline14 size={13} />
+            </button>
+            <button
+              type="button"
+              className={css.findBtn}
+              aria-label="Next match"
+              title="Next match (Enter)"
+              disabled={findMatches.length === 0}
+              onClick={findNext}
+            >
+              <IconChevronDownOutline14 size={13} />
+            </button>
+            <button
+              type="button"
+              className={`${css.findBtn} ${findMatchCase ? css.findBtnActive : ''}`}
+              aria-label="Match case"
+              title="Match case"
+              onClick={() => setFindMatchCase(c => !c)}
+            >
+              Aa
+            </button>
+            <button
+              type="button"
+              className={css.findBtn}
+              aria-label="Close find"
+              title="Close find"
+              onClick={() => {
+                setShowFind(false)
+                editorTextareaRef.current?.focus()
+              }}
+            >
+              <IconCloseOutline16 size={12} />
             </button>
           </div>
         )}

@@ -523,4 +523,79 @@ describe('DesktopFilesPanel', () => {
     const treePane = view.getByRole('complementary')
     expect(treePane.style.width).toBe('300px')
   })
+
+  it('supports Find in File (Ctrl+F) with next/previous matches and match case', async () => {
+    const rootPath = 'C:\\workspace'
+    const code = 'const hello = "world"\nconsole.log(hello)\nreturn hello'
+    const files = {
+      root: vi.fn(async () => rootPath),
+      list: vi.fn(async () => [{ name: 'file.ts', path: `${rootPath}\\file.ts`, directory: false }]),
+      search: vi.fn(async () => []),
+      read: vi.fn(async (path: string) => ({ path, content: code, version: 'v1' })),
+      create: vi.fn(),
+      save: vi.fn(),
+      format: vi.fn(),
+    }
+    window.hydraDesktop = { browser: { setBounds: vi.fn() }, files }
+    const view = render(<DesktopFilesPanel workspaceId="workspace" active focusSearch={1} />)
+    await view.findByRole('tree', { name: 'Workspace files' })
+    fireEvent.click(view.getByRole('button', { name: 'file.ts' }))
+    await view.findByRole('textbox', { name: 'Editor for file.ts' })
+
+    // Open Find via Ctrl+F
+    fireEvent.keyDown(window, { key: 'f', ctrlKey: true })
+    const findWidget = view.getByRole('search', { name: 'Find in file' })
+    expect(findWidget).toBeTruthy()
+
+    // Type search query
+    const findInput = view.getByRole('searchbox', { name: 'Find query' })
+    fireEvent.change(findInput, { target: { value: 'hello' } })
+    expect(view.getByText('1 of 3')).toBeTruthy()
+
+    // Next match
+    fireEvent.click(view.getByRole('button', { name: 'Next match' }))
+    expect(view.getByText('2 of 3')).toBeTruthy()
+
+    // Previous match
+    fireEvent.click(view.getByRole('button', { name: 'Previous match' }))
+    expect(view.getByText('1 of 3')).toBeTruthy()
+
+    // Toggle Match Case
+    fireEvent.click(view.getByRole('button', { name: 'Match case' }))
+    fireEvent.change(findInput, { target: { value: 'HELLO' } })
+    expect(view.getByText('No results')).toBeTruthy()
+
+    // Close find via Escape
+    fireEvent.keyDown(window, { key: 'Escape' })
+    expect(view.queryByRole('search', { name: 'Find in file' })).toBeNull()
+  })
+
+  it('supports collapsing all folders in explorer', async () => {
+    const rootPath = 'C:\\workspace'
+    const files = {
+      root: vi.fn(async () => rootPath),
+      list: vi.fn(async (path: string) => {
+        if (path === rootPath) {
+          return [{ name: 'sub', path: `${rootPath}\\sub`, directory: true }]
+        }
+        return [{ name: 'inner.ts', path: `${rootPath}\\sub\\inner.ts`, directory: false }]
+      }),
+      search: vi.fn(async () => []),
+      read: vi.fn(async (path: string) => ({ path, content: 'code', version: 'v1' })),
+      create: vi.fn(),
+      save: vi.fn(),
+      format: vi.fn(),
+    }
+    window.hydraDesktop = { browser: { setBounds: vi.fn() }, files }
+    const view = render(<DesktopFilesPanel workspaceId="workspace" active focusSearch={1} />)
+    await view.findByRole('tree', { name: 'Workspace files' })
+
+    // Expand subfolder
+    fireEvent.click(view.getByRole('button', { name: 'sub' }))
+    expect(await view.findByRole('button', { name: 'inner.ts' })).toBeTruthy()
+
+    // Click collapse all folders
+    fireEvent.click(view.getByRole('button', { name: 'Collapse all folders' }))
+    expect(view.queryByRole('button', { name: 'inner.ts' })).toBeNull()
+  })
 })

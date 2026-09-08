@@ -1050,3 +1050,75 @@
 .gotoLineBtn:hover {
   background: var(--dsw-alias-interactive-bg-active);
 }
+
+.findWidget {
+  position: absolute;
+  top: 8px;
+  right: 16px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  border: 1px solid var(--dsw-alias-focus-ring);
+  border-radius: 6px;
+  background: var(--dsw-alias-button-floating-fill);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  font-size: 11px;
+}
+
+.findInput {
+  width: 140px;
+  height: 22px;
+  padding: 0 6px;
+  border: 1px solid var(--dsw-alias-border-l1);
+  border-radius: 3px;
+  background: var(--dsw-alias-bg-base);
+  color: var(--dsw-alias-label-primary);
+  font: 11px/1.55 monospace;
+  outline: none;
+}
+
+.findInput:focus {
+  border-color: var(--dsw-alias-focus-ring);
+}
+
+.findMatchesCount {
+  font-size: 11px;
+  color: var(--dsw-alias-label-secondary);
+  min-width: 48px;
+  text-align: center;
+  padding: 0 2px;
+  user-select: none;
+}
+
+.findBtn {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--dsw-alias-label-secondary);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.findBtn:hover {
+  background: var(--dsw-alias-interactive-bg-hover);
+  color: var(--dsw-alias-label-primary);
+}
+
+.findBtn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.findBtnActive {
+  background: var(--dsw-alias-interactive-bg-active);
+  color: var(--dsw-alias-focus-ring);
+  font-weight: 700;
+}
