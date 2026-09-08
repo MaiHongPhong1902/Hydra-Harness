@@ -48,6 +48,7 @@ const TOOL_VARIANTS: Record<string, ToolRowVariant> = {
   write: 'write',
   edit: 'edit',
   run_code: 'code',
+  subagent: 'code',
   cordis_package_inspect: 'read',
   cordis_runtime_inspect: 'read',
   // The three run-control verbs take one package id and produce a receipt, so
@@ -67,6 +68,7 @@ const TOOL_TITLES: Record<string, string> = {
   cordis_stop: 'Stop Cordis Plugin',
   cordis_undefine: 'Remove Cordis Plugin',
   pwsh: 'Pwsh',
+  subagent: 'Subagent',
 }
 
 /**
@@ -146,8 +148,8 @@ const SUMMARY_KEYS: Record<ToolRowVariant, readonly string[]> = {
   search: ['query', 'pattern', 'url'],
   write: ['path', 'file_path'],
   edit: ['path', 'file_path'],
-  code: ['description'],
-  others: [],
+  code: ['description', 'task', 'prompt'],
+  others: ['description', 'task', 'prompt', 'message', 'query', 'command', 'title', 'name', 'action'],
 }
 
 /**

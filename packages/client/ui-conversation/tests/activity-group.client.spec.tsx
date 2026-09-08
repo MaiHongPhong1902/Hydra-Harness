@@ -20,6 +20,7 @@ describe('ActivityGroup', () => {
     expect(activityKindForTool('obsidian_knowledge_read')).toBe('read')
     expect(activityKindForTool('obsidian_knowledge_save_approved')).toBe('commands')
     expect(activityKindForTool('browser_click')).toBe('commands')
+    expect(activityKindForTool('subagent')).toBe('other')
     expect(activityKindForTools(['read', 'bash'])).toBe('read-commands')
     expect(activityKindForTools(['read', 'grep'])).toBe('read')
   })

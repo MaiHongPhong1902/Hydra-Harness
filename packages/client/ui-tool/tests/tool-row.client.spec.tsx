@@ -465,4 +465,17 @@ describe('GenericToolCard', () => {
     fireEvent.click(bashView.getByText('List files'))
     expect(bash.openFile).not.toHaveBeenCalled()
   })
+
+  it('renders generic callView title, variant, and salient rawInput', () => {
+    const generic = props('browser_open_tab', running({
+      name: 'browser_open_tab',
+      argsRaw: '{"url":"https://shop.test/help"}',
+      callView: { card: 'generic', title: 'Open tab https://shop.test/help', kind: 'execute', rawInput: 'https://shop.test/help' },
+    }))
+    const view = render(<GenericToolCard {...generic} />)
+    expect(view.getByText('Open tab https://shop.test/help')).toBeTruthy()
+    expect(view.container.querySelector('[data-variant="bash"]')).not.toBeNull()
+    fireEvent.click(view.getByRole('button', { name: /Tool call/ }))
+    expect(view.getByText('https://shop.test/help')).toBeTruthy()
+  })
 })

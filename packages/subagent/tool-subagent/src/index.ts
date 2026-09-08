@@ -375,6 +375,12 @@ export function apply(ctx: Context, config: Config): void {
       // Children never mutate the parent session; the one parent-owned write
       // (tasks.start) is a synchronous commutative insertion.
       isConcurrencySafe: () => true,
+      presentCall: args => ({
+        card: 'generic',
+        title: args.description || 'Subagent',
+        kind: 'other',
+        rawInput: args.prompt,
+      }),
       async execute(args, exec) {
         const parent = exec.agent
         if (!parent) {

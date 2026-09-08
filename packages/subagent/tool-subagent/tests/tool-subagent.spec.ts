@@ -109,6 +109,21 @@ describe('hydra-tool-subagent', () => {
     expect(schema!.description).toContain('job_output')
   })
 
+  it('declares presentCall with generic render intent and prompt rawInput', async () => {
+    const ctx = await setup({ provider: 'mock' })
+    const tool = ctx.tools.get('subagent')
+    expect(tool?.presentCall).toBeDefined()
+    expect(tool?.presentCall?.({
+      description: 'Research codebase',
+      prompt: 'Check packages/client',
+    })).toEqual({
+      card: 'generic',
+      title: 'Research codebase',
+      kind: 'other',
+      rawInput: 'Check packages/client',
+    })
+  })
+
   it('omits run_in_background entirely when the instance disables it (schema and capability never disagree)', async () => {
     const ctx = await setup({ provider: 'mock', enableRunInBackground: false })
     const schema = ctx.tools.schemas().find(s => s.name === 'subagent')

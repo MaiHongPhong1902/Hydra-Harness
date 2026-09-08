@@ -18,6 +18,7 @@ export function activityKindForTool(toolName: string): Exclude<ActivityKind, 're
     || name.includes('search') || name.includes('fetch')
     || name === 'obsidian_knowledge_recall' || name.startsWith('obsidian_knowledge_read')) return 'read'
   if (name === 'write' || name === 'edit' || name.startsWith('write_') || name.startsWith('edit_')) return 'write'
+  if (name === 'subagent' || name.includes('subagent') || name.includes('agent')) return 'other'
   // Unknown tool names are still executable activity; keep the header useful
   // when a persisted result no longer carries its original call metadata.
   return 'commands'

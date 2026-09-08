@@ -28,6 +28,16 @@ const VARIANT_ICONS: Record<ToolRowVariant, ReactNode> = {
   others: <IconSparkle16 size={14} />,
 }
 
+function variantForKind(kind: string | undefined): ToolRowVariant | undefined {
+  switch (kind) {
+    case 'read': return 'read'
+    case 'write': return 'write'
+    case 'execute': return 'bash'
+    case 'search': return 'search'
+    default: return undefined
+  }
+}
+
 /** Card props: the owner payload plus the render site's locale seat (plain prop). */
 export interface GenericToolCardProps extends ToolCallOwnerProps {
   t: ToolTreeProps['t']
@@ -46,21 +56,37 @@ export function GenericToolCard({ toolName, block, cwd, home, openFile, inspect,
     ? 'error'
     : model.state
   const singleFile = model.filePath !== undefined
+  const genericCall = block.callView !== null && block.callView.card === 'generic'
+    ? block.callView
+    : null
+  const variant = (model.variant === 'others' && genericCall?.kind ? variantForKind(genericCall.kind) : undefined)
+    ?? model.variant
+  const summary = terminal?.description
+    ?? search?.title
+    ?? genericCall?.title
+    ?? model.summary
+  const body = singleFile
+    ? null
+    : (genericCall !== null && genericCall.rawInput !== undefined
+      ? (typeof genericCall.rawInput === 'string'
+        ? genericCall.rawInput
+        : JSON.stringify(genericCall.rawInput, null, 2))
+      : model.body)
   return (
     <ToolRow
       t={t}
-      variant={model.variant}
+      variant={variant}
       toolName={toolName}
-      icon={VARIANT_ICONS[model.variant]}
+      icon={VARIANT_ICONS[variant]}
       title={model.title}
       // A terminal presenter's description is the contract's above-card text, so
       // it outranks the args-derived summary here exactly as it does in BashRow;
       // a search result view's replacement title outranks it the same way.
-      summary={terminal?.description ?? search?.title ?? model.summary}
+      summary={summary}
       // Single-file tools never expose an args body — the path link is the only
       // args interaction. A card is not an args body: a read/write/edit row is
       // single-file AND carries a card, so the card expands under the path link.
-      body={singleFile ? null : model.body}
+      body={body}
       output={model.output}
       errorSummary={model.errorSummary}
       terminal={terminal}
