@@ -103,4 +103,82 @@ describe('review evidence and actions', () => {
     expect(inline.getByText('a.txt')).toBeTruthy()
     history.dispose()
   })
+
+  it('supports batch Keep All and Undo All actions in ReviewPanel', async () => {
+    const records = [
+      change({ id: 'c1' as never, path: 'src/one.ts', state: 'active', reversible: true }),
+      change({ id: 'c2' as never, path: 'src/two.ts', state: 'active', reversible: true }),
+    ]
+    const keepFn = vi.fn(async () => ok({ status: 'kept' as const, change: records[0]! }))
+    const undoFn = vi.fn(async () => ok({ status: 'rolledBack' as const, change: records[0]! }))
+    const history = new ReviewHistory('owner' as never, {
+      list: async () => ok({ changes: records }),
+      keep: keepFn,
+      undo: undoFn,
+    })
+    await history.refresh()
+    const injected = {
+      ownerSessionId: 'owner',
+      useReview: bindSnapshotSelector(history),
+      act: history.act,
+      refresh: history.refresh,
+    }
+    const panel = render(<ReviewPanel {...injected as Parameters<typeof ReviewPanel>[0]} />)
+    expect(panel.getByRole('button', { name: 'Keep All' })).toBeTruthy()
+    expect(panel.getByRole('button', { name: 'Undo All' })).toBeTruthy()
+
+    fireEvent.click(panel.getByRole('button', { name: 'Keep All' }))
+    await act(async () => { await Promise.resolve() })
+    expect(keepFn).toHaveBeenCalled()
+
+    fireEvent.click(panel.getByRole('button', { name: 'Undo All' }))
+    await act(async () => { await Promise.resolve() })
+    expect(undoFn).toHaveBeenCalled()
+    panel.unmount()
+    history.dispose()
+  })
+
+  it('filters changes by search input and status tabs', async () => {
+    const records = [
+      change({ id: 'c1' as never, path: 'src/app.ts', state: 'active', status: 'modified' }),
+      change({ id: 'c2' as never, path: 'docs/readme.md', state: 'kept', status: 'added' }),
+    ]
+    const history = new ReviewHistory('owner' as never, {
+      list: async () => ok({ changes: records }),
+      keep: vi.fn(),
+      undo: vi.fn(),
+    })
+    await history.refresh()
+    const injected = {
+      ownerSessionId: 'owner',
+      useReview: bindSnapshotSelector(history),
+      act: history.act,
+      refresh: history.refresh,
+    }
+    const panel = render(<ReviewPanel {...injected as Parameters<typeof ReviewPanel>[0]} />)
+    expect(panel.getByText('src/app.ts')).toBeTruthy()
+    expect(panel.getByText('docs/readme.md')).toBeTruthy()
+
+    // Search filter
+    const searchInput = panel.getByLabelText('Filter changes by file')
+    fireEvent.change(searchInput, { target: { value: 'app' } })
+    expect(panel.getByText('src/app.ts')).toBeTruthy()
+    expect(panel.queryByText('docs/readme.md')).toBeNull()
+
+    // Clear search
+    fireEvent.change(searchInput, { target: { value: '' } })
+    expect(panel.getByText('docs/readme.md')).toBeTruthy()
+
+    // Filter tabs
+    fireEvent.click(panel.getByRole('tab', { name: /Kept/ }))
+    expect(panel.queryByText('src/app.ts')).toBeNull()
+    expect(panel.getByText('docs/readme.md')).toBeTruthy()
+
+    fireEvent.click(panel.getByRole('tab', { name: /Pending/ }))
+    expect(panel.getByText('src/app.ts')).toBeTruthy()
+    expect(panel.queryByText('docs/readme.md')).toBeNull()
+
+    panel.unmount()
+    history.dispose()
+  })
 })
