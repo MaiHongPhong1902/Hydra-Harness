@@ -5,6 +5,7 @@ const { contextBridge, ipcRenderer } = require('electron')
 contextBridge.exposeInMainWorld('hydraDesktop', {
   browser: {
     setBounds: bounds => { ipcRenderer.send('hydra-desktop:browser-bounds', bounds) },
+    setTheme: theme => { ipcRenderer.send('hydra-desktop:browser-theme', theme) },
     configure: settings => ipcRenderer.invoke('hydra-desktop:browser-configure', settings),
     confirmFullCdpAccess: () => ipcRenderer.invoke('hydra-desktop:browser-confirm-full-cdp'),
     clearData: scope => ipcRenderer.invoke('hydra-desktop:browser-clear-data', { scope }),
@@ -50,6 +51,12 @@ contextBridge.exposeInMainWorld('hydraDesktop', {
     read: (path, workspaceId) => ipcRenderer.invoke('hydra-desktop:files-read', { path, workspaceId }),
     create: (parentPath, name, kind, workspaceId) =>
       ipcRenderer.invoke('hydra-desktop:files-create', { parentPath, name, kind, workspaceId }),
+    rename: (path, newName, workspaceId) =>
+      ipcRenderer.invoke('hydra-desktop:files-rename', { path, newName, workspaceId }),
+    delete: (path, workspaceId) =>
+      ipcRenderer.invoke('hydra-desktop:files-delete', { path, workspaceId }),
+    reveal: (path, workspaceId) =>
+      ipcRenderer.invoke('hydra-desktop:files-reveal', { path, workspaceId }),
     save: (path, content, expectedVersion, workspaceId) =>
       ipcRenderer.invoke('hydra-desktop:files-save', { path, content, expectedVersion, workspaceId }),
     format: (path, content, workspaceId) =>
@@ -60,6 +67,11 @@ contextBridge.exposeInMainWorld('hydraDesktop', {
       const handler = (_event, shortcut) => { listener(shortcut) }
       ipcRenderer.on('hydra-desktop:panel-shortcut', handler)
       return () => { ipcRenderer.removeListener('hydra-desktop:panel-shortcut', handler) }
+    },
+    onClose: listener => {
+      const handler = (_event, kind) => { listener(kind) }
+      ipcRenderer.on('hydra-desktop:panel-close', handler)
+      return () => { ipcRenderer.removeListener('hydra-desktop:panel-close', handler) }
     },
   },
 })

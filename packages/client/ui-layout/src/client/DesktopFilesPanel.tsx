@@ -7,6 +7,7 @@ import {
   IconChevronRightOutline14,
   IconCloseOutline16,
   IconCodeOutline16,
+  IconCopyOutline16,
   IconDataOutline16,
   IconEditOutline16,
   IconFolderClose16,
@@ -14,6 +15,7 @@ import {
   IconPlusOutline16,
   IconProjectAddOutline16,
   IconRefreshOutline14,
+  IconTrashOutline16,
 } from '@hydra/harness-client-ui-primitives'
 import css from './DesktopFilesPanel.module.css'
 
@@ -34,6 +36,13 @@ export interface DesktopFilesApi {
     kind: 'file' | 'directory',
     workspaceId: string,
   ): Promise<DesktopFileEntry>
+  rename?(
+    path: string,
+    newName: string,
+    workspaceId: string,
+  ): Promise<{ oldPath: string; path: string; name: string; directory?: boolean }>
+  delete?(path: string, workspaceId: string): Promise<{ path: string }>
+  reveal?(path: string, workspaceId: string): Promise<boolean>
   save(
     path: string,
     content: string,
@@ -53,6 +62,13 @@ interface EditorDocument {
 interface CreateDraft {
   parent: string
   kind: 'file' | 'directory'
+}
+
+interface DiffLine {
+  type: 'add' | 'del' | 'context'
+  oldNo?: number
+  newNo?: number
+  text: string
 }
 
 type FileIconKind = 'code' | 'data' | 'web' | 'text'
@@ -98,6 +114,42 @@ function documentIsDirty(document: EditorDocument | undefined): boolean {
   return document !== undefined && document.draft !== document.savedContent
 }
 
+function lineEndingOf(content: string): 'CRLF' | 'LF' {
+  let crlf = 0
+  let lf = 0
+  for (let index = 0; index < content.length; index += 1) {
+    if (content[index] !== '\n') continue
+    if (content[index - 1] === '\r') crlf += 1
+    else lf += 1
+  }
+  return crlf > lf ? 'CRLF' : 'LF'
+}
+
+function computeLineDiff(oldText: string, newText: string): DiffLine[] {
+  const oldLines = oldText.split('\n')
+  const newLines = newText.split('\n')
+  const result: DiffLine[] = []
+  let oldIdx = 0
+  let newIdx = 0
+  while (oldIdx < oldLines.length || newIdx < newLines.length) {
+    if (oldIdx < oldLines.length && newIdx < newLines.length && oldLines[oldIdx] === newLines[newIdx]) {
+      result.push({ type: 'context', oldNo: oldIdx + 1, newNo: newIdx + 1, text: oldLines[oldIdx] ?? '' })
+      oldIdx += 1
+      newIdx += 1
+    } else if (
+      oldIdx < oldLines.length
+      && (newIdx >= newLines.length || foundInNew === -1 || (foundInOld !== -1 && foundInOld < foundInNew))
+    ) {
+      result.push({ type: 'del', oldNo: oldIdx + 1, text: oldLines[oldIdx] ?? '' })
+      oldIdx += 1
+    } else if (newIdx < newLines.length) {
+      result.push({ type: 'add', newNo: newIdx + 1, text: newLines[newIdx] ?? '' })
+      newIdx += 1
+    }
+  }
+  return result
+}
+
 function FileIcon({ path }: { path: string }) {
   const kind = fileIconKind(path)
   return (
@@ -110,7 +162,7 @@ function FileIcon({ path }: { path: string }) {
   )
 }
 
-/** Workspace Explorer and guarded text editor backed by the desktop bridge. */
+/** Workspace Explorer and guarded multi-document code editor backed by the desktop bridge. */
 export function DesktopFilesPanel(props: {
   workspaceId?: string | undefined
   active: boolean
@@ -123,55 +175,101 @@ export function DesktopFilesPanel(props: {
   const searchRef = useRef<HTMLInputElement | null>(null)
   const createRef = useRef<HTMLInputElement | null>(null)
   const listRequests = useRef(new Map<string, number>())
+  const listRequestSequence = useRef(0)
+  const listGeneration = useRef(0)
   const readRequest = useRef(0)
   const handledFocusSearch = useRef(-1)
   const savingRef = useRef(false)
   const formattingRef = useRef(false)
+  const creatingRef = useRef(false)
   const mountedRef = useRef(true)
+  const rootWorkspaceRef = useRef<string>()
   const documentRef = useRef<EditorDocument>()
+  const openDocumentsRef = useRef<EditorDocument[]>([])
+  const activePathRef = useRef<string>()
+
   const [rootPath, setRootPath] = useState<string>()
   const [children, setChildren] = useState<Record<string, DesktopFileEntry[]>>({})
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set())
   const [selectedDirectory, setSelectedDirectory] = useState<string>()
+  const [openDocuments, setOpenDocuments] = useState<EditorDocument[]>([])
+  const [activePath, setActivePath] = useState<string>()
   const [document, setDocument] = useState<EditorDocument>()
   const [query, setQuery] = useState('')
   const [matches, setMatches] = useState<DesktopFileEntry[]>([])
   const [createDraft, setCreateDraft] = useState<CreateDraft>()
   const [createName, setCreateName] = useState('')
+  const [renamingPath, setRenamingPath] = useState<string>()
+  const [renameName, setRenameName] = useState('')
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; entry: DesktopFileEntry }>()
+  const [showDiff, setShowDiff] = useState(false)
+  const [cursorPos, setCursorPos] = useState({ line: 1, col: 1 })
   const [error, setError] = useState<string>()
   const [loading, setLoading] = useState(false)
+  const [reading, setReading] = useState(false)
+  const [rootLoading, setRootLoading] = useState(false)
   const [searching, setSearching] = useState(false)
   const [creating, setCreating] = useState(false)
   const [saving, setSaving] = useState(false)
   const [formatting, setFormatting] = useState(false)
+
   const deferredDraft = useDeferredValue(document?.draft)
   const dirty = documentIsDirty(document)
+
   const updateDocument = useCallback((update: (current: EditorDocument | undefined) => EditorDocument | undefined) => {
     if (!mountedRef.current) return
-    const next = update(documentRef.current)
-    documentRef.current = next
-    setDocument(next)
-    props.onDirtyChange?.(documentIsDirty(next))
+    const currentActive = openDocumentsRef.current.find(d => d.path === activePathRef.current)
+    const next = update(currentActive)
+    let nextList: EditorDocument[]
+    if (next === undefined) {
+      nextList = openDocumentsRef.current.filter(d => d.path !== activePathRef.current)
+      const newActive = nextList[nextList.length - 1]?.path
+      activePathRef.current = newActive
+      setActivePath(newActive)
+    } else {
+      const idx = openDocumentsRef.current.findIndex(d => d.path === next.path)
+      if (idx >= 0) {
+        nextList = [...openDocumentsRef.current]
+        nextList[idx] = next
+      } else {
+        nextList = [...openDocumentsRef.current, next]
+      }
+      activePathRef.current = next.path
+      setActivePath(next.path)
+    }
+    openDocumentsRef.current = nextList
+    setOpenDocuments(nextList)
+    const nextActiveDoc = nextList.find(d => d.path === activePathRef.current)
+    documentRef.current = nextActiveDoc
+    setDocument(nextActiveDoc)
+    props.onDirtyChange?.(nextList.some(d => documentIsDirty(d)))
   }, [props.onDirtyChange])
 
   const loadDirectory = useCallback(async (path: string) => {
-    if (api === undefined || rootPath === undefined || workspaceId === undefined || !mountedRef.current) return
-    const request = (listRequests.current.get(path) ?? 0) + 1
+    if (api === undefined || rootPath === undefined || workspaceId === undefined
+      || rootWorkspaceRef.current !== workspaceId || !mountedRef.current) return
+    const generation = listGeneration.current
+    const request = ++listRequestSequence.current
     listRequests.current.set(path, request)
     setLoading(true)
     setError(undefined)
     try {
       const entries = await api.list(path, workspaceId)
       // oxlint-disable-next-line typescript/no-unnecessary-condition -- refs can change while the desktop request is pending.
-      if (mountedRef.current && listRequests.current.get(path) === request) {
+      if (mountedRef.current && listGeneration.current === generation && listRequests.current.get(path) === request) {
         setChildren(current => ({ ...current, [path]: entries }))
       }
     } catch (reason) {
       // oxlint-disable-next-line typescript/no-unnecessary-condition -- refs can change while the desktop request is pending.
-      if (mountedRef.current && listRequests.current.get(path) === request) setError(String(reason))
+      if (mountedRef.current && listGeneration.current === generation && listRequests.current.get(path) === request) {
+        setError(String(reason))
+      }
     } finally {
       // oxlint-disable-next-line typescript/no-unnecessary-condition -- refs can change while the desktop request is pending.
-      if (mountedRef.current && listRequests.current.get(path) === request) setLoading(false)
+      if (mountedRef.current && listGeneration.current === generation && listRequests.current.get(path) === request) {
+        listRequests.current.delete(path)
+        setLoading(listRequests.current.size > 0)
+      }
     }
   }, [api, rootPath, workspaceId])
 
@@ -181,12 +279,36 @@ export function DesktopFilesPanel(props: {
   }, [])
 
   useEffect(() => {
+    if (contextMenu === undefined) return
+    const handleDismiss = () => setContextMenu(undefined)
+    window.addEventListener('click', handleDismiss)
+    window.addEventListener('contextmenu', handleDismiss)
+    return () => {
+      window.removeEventListener('click', handleDismiss)
+      window.removeEventListener('contextmenu', handleDismiss)
+    }
+  }, [contextMenu])
+
+  useEffect(() => {
+    rootWorkspaceRef.current = undefined
+    listGeneration.current += 1
+    listRequests.current.clear()
+    readRequest.current += 1
+    setRootPath(undefined)
+    setLoading(false)
+    setReading(false)
+    setRootLoading(false)
     if (api === undefined || workspaceId === undefined) return
     let current = true
+    setRootLoading(true)
     void api.root(workspaceId).then(
-      (path) => { if (current) setRootPath(path) },
-      (reason: unknown) => { if (current) setError(String(reason)) },
-    )
+      (path) => {
+        if (!current || !mountedRef.current) return
+        rootWorkspaceRef.current = workspaceId
+        setRootPath(path)
+      },
+      (reason: unknown) => { if (current && mountedRef.current) setError(String(reason)) },
+    ).finally(() => { if (current && mountedRef.current) setRootLoading(false) })
     return () => { current = false }
   }, [api, workspaceId])
 
@@ -203,11 +325,19 @@ export function DesktopFilesPanel(props: {
 
   useEffect(() => {
     setChildren({})
-    updateDocument(() => undefined)
+    openDocumentsRef.current = []
+    setOpenDocuments([])
+    activePathRef.current = undefined
+    setActivePath(undefined)
+    documentRef.current = undefined
+    setDocument(undefined)
     setCreateDraft(undefined)
     setCreateName('')
+    setRenamingPath(undefined)
+    setContextMenu(undefined)
+    setShowDiff(false)
     setError(undefined)
-    if (rootPath === undefined) {
+    if (rootPath === undefined || rootWorkspaceRef.current !== workspaceId) {
       setExpanded(new Set())
       setSelectedDirectory(undefined)
       return
@@ -215,7 +345,7 @@ export function DesktopFilesPanel(props: {
     setExpanded(new Set([rootPath]))
     setSelectedDirectory(rootPath)
     void loadDirectory(rootPath)
-  }, [loadDirectory, rootPath, updateDocument])
+  }, [loadDirectory, rootPath, workspaceId])
 
   useEffect(() => {
     const value = query.trim()
@@ -254,8 +384,18 @@ export function DesktopFilesPanel(props: {
     const previous = documentRef.current
     if (previous?.path === path) return
     if (documentIsDirty(previous) && !window.confirm('Discard unsaved changes and open another file?')) return
+    const existing = openDocumentsRef.current.find(d => d.path === path)
+    if (existing !== undefined) {
+      activePathRef.current = path
+      setActivePath(path)
+      documentRef.current = existing
+      setDocument(existing)
+      setShowDiff(false)
+      setSelectedDirectory(parentDirectory(rootPath, path))
+      return
+    }
     const request = ++readRequest.current
-    setLoading(true)
+    setReading(true)
     setError(undefined)
     try {
       const next = await api.read(path, workspaceId)
@@ -266,7 +406,15 @@ export function DesktopFilesPanel(props: {
         const latest = documentRef.current
         if (latest !== previous && documentIsDirty(latest)
           && !window.confirm('Discard unsaved changes and open another file?')) return
-        updateDocument(() => ({ path: next.path, savedContent: next.content, draft: next.content, version: next.version }))
+        const newDoc: EditorDocument = { path: next.path, savedContent: next.content, draft: next.content, version: next.version }
+        const nextList = [...openDocumentsRef.current, newDoc]
+        openDocumentsRef.current = nextList
+        setOpenDocuments(nextList)
+        activePathRef.current = next.path
+        setActivePath(next.path)
+        documentRef.current = newDoc
+        setDocument(newDoc)
+        setShowDiff(false)
         setSelectedDirectory(parentDirectory(rootPath, next.path))
       }
     } catch (reason) {
@@ -274,12 +422,40 @@ export function DesktopFilesPanel(props: {
       if (mountedRef.current && readRequest.current === request) setError(String(reason))
     } finally {
       // oxlint-disable-next-line typescript/no-unnecessary-condition -- refs can change while the desktop request is pending.
-      if (mountedRef.current && readRequest.current === request) setLoading(false)
+      if (mountedRef.current && readRequest.current === request) setReading(false)
     }
-  }, [api, rootPath, updateDocument, workspaceId])
+  }, [api, rootPath, workspaceId])
+
+  const closeTab = useCallback((path: string, force = false) => {
+    const target = openDocumentsRef.current.find(d => d.path === path)
+    if (target === undefined) return
+    if (!force && documentIsDirty(target) && !window.confirm(`Discard unsaved changes in "${fileName(path)}"?`)) {
+      return
+    }
+    const nextList = openDocumentsRef.current.filter(d => d.path !== path)
+    openDocumentsRef.current = nextList
+    setOpenDocuments(nextList)
+    if (activePathRef.current === path) {
+      const nextActive = nextList[nextList.length - 1]?.path
+      activePathRef.current = nextActive
+      setActivePath(nextActive)
+      const nextDoc = nextList.find(d => d.path === nextActive)
+      documentRef.current = nextDoc
+      setDocument(nextDoc)
+      setShowDiff(false)
+    }
+    props.onDirtyChange?.(nextList.some(d => documentIsDirty(d)))
+  }, [props.onDirtyChange])
+
+  const discardChanges = useCallback(() => {
+    if (document === undefined || !dirty) return
+    if (!window.confirm(`Discard unsaved changes in "${fileName(document.path)}"?`)) return
+    updateDocument(current => current === undefined ? current : { ...current, draft: current.savedContent })
+    setShowDiff(false)
+  }, [dirty, document, updateDocument])
 
   const startCreate = (kind: CreateDraft['kind']) => {
-    if (rootPath === undefined) return
+    if (rootPath === undefined || creatingRef.current) return
     setQuery('')
     setError(undefined)
     setCreateName('')
@@ -287,18 +463,23 @@ export function DesktopFilesPanel(props: {
   }
 
   const submitCreate = async () => {
-    if (api === undefined || createDraft === undefined || workspaceId === undefined || createName.trim() === '') return
+    if (api === undefined || createDraft === undefined || workspaceId === undefined || createName.trim() === ''
+      || creatingRef.current) return
+    const draft = createDraft
+    const name = createName.trim()
+    const generation = listGeneration.current
     const documentAtSubmit = documentRef.current
     const readRequestAtSubmit = readRequest.current
+    creatingRef.current = true
     setCreating(true)
     setError(undefined)
     try {
-      const entry = await api.create(createDraft.parent, createName, createDraft.kind, workspaceId)
-      if (!mountedRef.current) return
-      setExpanded(current => new Set(current).add(createDraft.parent))
-      await loadDirectory(createDraft.parent)
+      const entry = await api.create(draft.parent, name, draft.kind, workspaceId)
+      if (!mountedRef.current || listGeneration.current !== generation) return
+      setExpanded(current => new Set(current).add(draft.parent))
+      await loadDirectory(draft.parent)
       // oxlint-disable-next-line typescript/no-unnecessary-condition -- unmount can occur while the directory refresh is pending.
-      if (!mountedRef.current) return
+      if (!mountedRef.current || listGeneration.current !== generation) return
       setCreateDraft(undefined)
       setCreateName('')
       if (entry.directory) setSelectedDirectory(entry.path)
@@ -307,10 +488,110 @@ export function DesktopFilesPanel(props: {
         await openFile(entry.path)
       }
     } catch (reason) {
-      setError(String(reason))
+      if (mountedRef.current && listGeneration.current !== generation) setError(String(reason))
     } finally {
+      creatingRef.current = false
       if (mountedRef.current) setCreating(false)
     }
+  }
+
+  const startRename = (entry: DesktopFileEntry) => {
+    setContextMenu(undefined)
+    setRenamingPath(entry.path)
+    setRenameName(entry.name)
+  }
+
+  const submitRename = async (entry: DesktopFileEntry) => {
+    if (api?.rename === undefined || workspaceId === undefined || rootPath === undefined
+      || renameName.trim() === '' || renameName.trim() === entry.name) {
+      setRenamingPath(undefined)
+      return
+    }
+    const newName = renameName.trim()
+    try {
+      const result = await api.rename(entry.path, newName, workspaceId)
+      const nextList = openDocumentsRef.current.map((d) => {
+        if (d.path === entry.path) return { ...d, path: result.path }
+        if (entry.directory && (d.path.startsWith(`${entry.path}/`) || d.path.startsWith(`${entry.path}\\`))) {
+          const sub = d.path.slice(entry.path.length)
+          return { ...d, path: `${result.path}${sub}` }
+        }
+        return d
+      })
+      openDocumentsRef.current = nextList
+      setOpenDocuments(nextList)
+      if (activePathRef.current === entry.path) {
+        activePathRef.current = result.path
+        setActivePath(result.path)
+        const nextDoc = nextList.find(d => d.path === result.path)
+        documentRef.current = nextDoc
+        setDocument(nextDoc)
+      }
+      const parent = parentDirectory(rootPath, entry.path)
+      await loadDirectory(parent)
+    } catch (reason) {
+      setError(String(reason))
+    } finally {
+      setRenamingPath(undefined)
+    }
+  }
+
+  const handleDelete = async (entry: DesktopFileEntry) => {
+    setContextMenu(undefined)
+    if (api?.delete === undefined || workspaceId === undefined || rootPath === undefined) return
+    if (!window.confirm(`Are you sure you want to delete "${entry.name}"?`)) return
+    try {
+      await api.delete(entry.path, workspaceId)
+      if (entry.directory) {
+        const inside = openDocumentsRef.current.filter(d => d.path.startsWith(`${entry.path}/`) || d.path.startsWith(`${entry.path}\\`))
+        for (const d of inside) {
+          closeTab(d.path, true)
+        }
+      } else {
+        closeTab(entry.path, true)
+      }
+      const parent = parentDirectory(rootPath, entry.path)
+      await loadDirectory(parent)
+    } catch (reason) {
+      setError(String(reason))
+    }
+  }
+
+  const handleReveal = async (path: string) => {
+    setContextMenu(undefined)
+    if (api?.reveal === undefined || workspaceId === undefined) return
+    try {
+      await api.reveal(path, workspaceId)
+    } catch (reason) {
+      setError(String(reason))
+    }
+  }
+
+  const handleCopyPath = async (path: string, isRelative = false) => {
+    setContextMenu(undefined)
+    if (rootPath === undefined) return
+    const text = isRelative ? relativePath(rootPath, path) : path
+    try {
+      await navigator.clipboard.writeText(text)
+    } catch {
+      // Clipboard permission or unsupported in headless environment
+    }
+  }
+
+  const copyDraftContent = async () => {
+    if (document === undefined) return
+    try {
+      await navigator.clipboard.writeText(document.draft)
+    } catch {
+      // Clipboard permission or unsupported in headless environment
+    }
+  }
+
+  const updateCursor = (target: HTMLTextAreaElement) => {
+    const text = target.value.slice(0, target.selectionStart)
+    const lines = text.split('\n')
+    const lastLine = lines[lines.length - 1]
+    setCursorPos({ line: lines.length, col: (lastLine ? lastLine.length : 0) + 1 })
   }
 
   const saveFile = useCallback(async () => {
@@ -327,7 +608,7 @@ export function DesktopFilesPanel(props: {
         ? { ...current, savedContent: snapshot.draft, version: saved.version }
         : current)
     } catch (reason) {
-      setError(String(reason))
+      if (mountedRef.current && documentRef.current?.path === snapshot.path) setError(String(reason))
     } finally {
       savingRef.current = false
       if (mountedRef.current) {
@@ -350,7 +631,8 @@ export function DesktopFilesPanel(props: {
         ? { ...current, draft: formatted }
         : current)
     } catch (reason) {
-      setError(String(reason))
+      if (mountedRef.current && documentRef.current?.path === snapshot.path
+        && documentRef.current.draft === snapshot.draft) setError(String(reason))
     } finally {
       formattingRef.current = false
       if (mountedRef.current) setFormatting(false)
@@ -367,6 +649,9 @@ export function DesktopFilesPanel(props: {
       } else if (event.shiftKey && event.altKey && key === 'f') {
         event.preventDefault()
         void formatFile()
+      } else if (event.key === 'Escape') {
+        setContextMenu(undefined)
+        setRenamingPath(undefined)
       }
     }
     window.addEventListener('keydown', onKeyDown)
@@ -376,26 +661,68 @@ export function DesktopFilesPanel(props: {
   const renderDirectory = (path: string, depth: number): ReactNode => (
     children[path]?.map((entry) => {
       const open = entry.directory && expanded.has(entry.path)
+      const isRenaming = renamingPath === entry.path
       return (
         <div key={entry.path} role="treeitem" aria-expanded={entry.directory ? open : undefined}>
-          <button
-            type="button"
-            className={css.row}
-            style={{ paddingLeft: 8 + depth * 14 }}
-            data-selected={!entry.directory && document?.path === entry.path || undefined}
-            onClick={() => {
-              if (entry.directory) toggleDirectory(entry.path)
-              else void openFile(entry.path)
-            }}
-          >
-            {entry.directory
-              ? <IconChevronRightOutline14 className={css.chevron} size={12} />
-              : <span className={css.chevron} />}
-            {entry.directory
-              ? open ? <IconFolderOpen16 size={15} /> : <IconFolderClose16 size={15} />
-              : <FileIcon path={entry.path} />}
-            <span className={css.name}>{entry.name}</span>
-          </button>
+          {isRenaming ? (
+            <form
+              className={css.renameRow}
+              style={{ paddingLeft: 8 + depth * 14 }}
+              onSubmit={(e) => {
+                e.preventDefault()
+                void submitRename(entry)
+              }}
+            >
+              {entry.directory ? <IconFolderClose16 size={15} /> : <FileIcon path={entry.path} />}
+              <input
+                autoFocus
+                className={css.renameInput}
+                aria-label={`Rename ${entry.name}`}
+                value={renameName}
+                onChange={e => setRenameName(e.currentTarget.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') setRenamingPath(undefined)
+                }}
+              />
+              <button type="submit" aria-label="Confirm rename" className={css.renameBtn}>
+                <IconCheckOutline14 />
+              </button>
+              <button
+                type="button"
+                aria-label="Cancel rename"
+                className={css.renameBtn}
+                onClick={() => setRenamingPath(undefined)}
+              >
+                <IconCloseOutline16 size={13} />
+              </button>
+            </form>
+          ) : (
+            <button
+              type="button"
+              className={css.row}
+              style={{ paddingLeft: 8 + depth * 14 }}
+              data-selected={entry.directory
+                ? selectedDirectory === entry.path
+                : document?.path === entry.path || undefined}
+              onClick={() => {
+                if (entry.directory) toggleDirectory(entry.path)
+                else void openFile(entry.path)
+              }}
+              onContextMenu={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                setContextMenu({ x: e.clientX, y: e.clientY, entry })
+              }}
+            >
+              {entry.directory
+                ? <IconChevronRightOutline14 className={css.chevron} size={12} />
+                : <span className={css.chevron} />}
+              {entry.directory
+                ? open ? <IconFolderOpen16 size={15} /> : <IconFolderClose16 size={15} />
+                : <FileIcon path={entry.path} />}
+              <span className={css.name}>{entry.name}</span>
+            </button>
+          )}
           {open && renderDirectory(entry.path, depth + 1)}
         </div>
       )
@@ -403,7 +730,13 @@ export function DesktopFilesPanel(props: {
   )
 
   if (rootPath === undefined) {
-    return <div className={css.empty}>{error ?? 'Open a workspace to browse its files.'}</div>
+    return (
+      <div className={css.empty} role={error === undefined ? 'status' : 'alert'}>
+        {error ?? (workspaceId === undefined
+          ? 'Open a workspace to browse its files.'
+          : rootLoading ? 'Loading workspace files…' : 'Workspace files are unavailable.')}
+      </div>
+    )
   }
 
   const status = saving
@@ -414,15 +747,15 @@ export function DesktopFilesPanel(props: {
         ? 'Creating…'
         : searching
           ? 'Searching…'
-          : loading
+          : loading || reading
             ? 'Loading…'
             : undefined
   const language = document === undefined ? undefined : editorLanguage(document.path)
-  // Keep large-file editing responsive; move Shiki to a worker if large-file highlighting becomes necessary.
   const highlightedDraft = document !== undefined && deferredDraft === document.draft
     && document.draft.length <= HIGHLIGHT_MAX_CHARS
     ? deferredDraft
     : undefined
+  const lineCount = document ? document.draft.split('\n').length : 1
 
   return (
     <div className={css.surface} data-files-root={rootPath}>
@@ -430,13 +763,13 @@ export function DesktopFilesPanel(props: {
         <header className={css.treeHeader}>
           <span title={rootPath}>{fileName(rootPath)}</span>
           <div className={css.treeActions}>
-            <button type="button" aria-label="New file" title="New file" onClick={() => { startCreate('file') }}>
+            <button type="button" aria-label="New file" title="New file" disabled={creating} onClick={() => { startCreate('file') }}>
               <IconPlusOutline16 size={14} />
             </button>
-            <button type="button" aria-label="New folder" title="New folder" onClick={() => { startCreate('directory') }}>
+            <button type="button" aria-label="New folder" title="New folder" disabled={creating} onClick={() => { startCreate('directory') }}>
               <IconProjectAddOutline16 size={14} />
             </button>
-            <button type="button" aria-label="Refresh files" title="Refresh files" onClick={() => { void loadDirectory(rootPath) }}>
+            <button type="button" aria-label="Refresh files" title="Refresh files" disabled={creating} onClick={() => { void loadDirectory(rootPath) }}>
               <IconRefreshOutline14 />
             </button>
           </div>
@@ -451,7 +784,7 @@ export function DesktopFilesPanel(props: {
             onChange={(event) => { setQuery(event.currentTarget.value); setError(undefined) }}
           />
         </div>
-        <div className={css.tree} role="tree" aria-label="Workspace files">
+        <div className={css.tree} role="tree" aria-label="Workspace files" aria-busy={loading || searching || creating || undefined}>
           {createDraft !== undefined && (
             <form
               className={css.createRow}
@@ -494,6 +827,11 @@ export function DesktopFilesPanel(props: {
                   data-selected={document?.path === entry.path || undefined}
                   title={entry.name}
                   onClick={() => { void openFile(entry.path) }}
+                  onContextMenu={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    setContextMenu({ x: e.clientX, y: e.clientY, entry })
+                  }}
                 >
                   <span className={css.chevron} />
                   <FileIcon path={entry.path} />
@@ -507,12 +845,82 @@ export function DesktopFilesPanel(props: {
         </div>
       </aside>
       <section className={css.editor} aria-label="File editor">
+        {openDocuments.length > 0 && (
+          <div className={css.tabBar} role="tablist" aria-label="Open files">
+            {openDocuments.map((doc) => {
+              const isTabActive = doc.path === activePath
+              const isTabDirty = documentIsDirty(doc)
+              return (
+                <div
+                  key={doc.path}
+                  className={`${css.tab} ${isTabActive ? css.tabActive : ''}`}
+                  role="tab"
+                  aria-selected={isTabActive}
+                  title={doc.path}
+                  onClick={() => {
+                    activePathRef.current = doc.path
+                    setActivePath(doc.path)
+                    documentRef.current = doc
+                    setDocument(doc)
+                    setShowDiff(false)
+                  }}
+                >
+                  <FileIcon path={doc.path} />
+                  <span className={css.tabName}>{fileName(doc.path)}</span>
+                  {isTabDirty && <span className={css.tabDirty} aria-hidden="true" title="Unsaved changes">●</span>}
+                  <button
+                    type="button"
+                    className={css.tabClose}
+                    aria-label={`Close ${fileName(doc.path)}`}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      closeTab(doc.path)
+                    }}
+                  >
+                    <IconCloseOutline16 size={12} />
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        )}
         <header className={css.editorHeader}>
           <span className={css.editorTitle} title={document?.path}>
             {document === undefined ? 'Open file' : relativePath(rootPath, document.path)}
             {dirty && <span className={css.dirty} aria-label="Unsaved changes">●</span>}
           </span>
           <div className={css.editorActions}>
+            {dirty && (
+              <>
+                <Button
+                  variant="toolbar"
+                  size="sm"
+                  disabled={saving || formatting}
+                  title="Toggle diff with disk"
+                  onClick={() => setShowDiff(s => !s)}
+                >
+                  {showDiff ? 'Editor' : 'Diff'}
+                </Button>
+                <Button
+                  variant="toolbar"
+                  size="sm"
+                  disabled={saving || formatting}
+                  title="Discard unsaved changes"
+                  onClick={discardChanges}
+                >
+                  Discard
+                </Button>
+              </>
+            )}
+            <Button
+              variant="toolbar"
+              size="sm"
+              disabled={document === undefined}
+              title="Copy file content"
+              onClick={() => { void copyDraftContent() }}
+            >
+              <IconCopyOutline16 size={13} />
+            </Button>
             <Button
               variant="toolbar"
               size="sm"
@@ -535,11 +943,39 @@ export function DesktopFilesPanel(props: {
             </Button>
           </div>
         </header>
-        {document === undefined
-          ? <div className={css.empty}>Select a text file from the workspace tree.</div>
-          : (
-            <div className={css.codeScroll}>
-              <div className={css.codeCanvas}>
+        {document === undefined ? (
+          <div className={css.empty}>Select a text file from the workspace tree.</div>
+        ) : showDiff && dirty ? (
+          <div className={css.diffScroll} role="region" aria-label="Diff with disk">
+            {computeLineDiff(document.savedContent, document.draft).map((line, idx) => (
+              <div
+                key={idx}
+                className={`${css.diffLine} ${line.type === 'add' ? css.diffLineAdd : line.type === 'del' ? css.diffLineDel : css.diffLineContext}`}
+              >
+                <span className={css.diffGutter} aria-hidden="true">
+                  {line.type === 'del' ? line.oldNo : line.type === 'add' ? line.newNo : `${line.oldNo ?? ''}`}
+                </span>
+                <span className={css.diffText}>
+                  {line.type === 'add' ? '+' : line.type === 'del' ? '-' : ' '} {line.text}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className={css.codeScroll}>
+            <div className={css.codeCanvas}>
+              <div className={css.lineGutter} aria-hidden="true">
+                {Array.from({ length: lineCount }, (_, i) => (
+                  <div
+                    key={i + 1}
+                    className={css.lineNumber}
+                    data-active={cursorPos.line === i + 1 ? 'true' : undefined}
+                  >
+                    {i + 1}
+                  </div>
+                ))}
+              </div>
+              <div className={css.codeArea}>
                 <div
                   ref={node => node?.setAttribute('inert', '')}
                   className={css.codeSyntax}
@@ -566,14 +1002,130 @@ export function DesktopFilesPanel(props: {
                   onChange={(event) => {
                     const draft = event.currentTarget.value
                     updateDocument(current => current === undefined ? current : { ...current, draft })
+                    updateCursor(event.currentTarget)
                   }}
+                  onSelect={event => updateCursor(event.currentTarget)}
+                  onKeyUp={event => updateCursor(event.currentTarget)}
+                  onClick={event => updateCursor(event.currentTarget)}
                 />
               </div>
             </div>
-          )}
-        {status !== undefined && <span className={css.status} role="status" aria-live="polite">{status}</span>}
-        {error !== undefined && <div className={css.error} role="alert">{error}</div>}
+          </div>
+        )}
+        {document !== undefined && (
+          <footer className={css.statusBar}>
+            <div className={css.statusLeft}>
+              <span className={css.statusItem}>Ln {cursorPos.line}, Col {cursorPos.col}</span>
+              <span className={css.statusDivider}>|</span>
+              <span className={css.statusItem}>{lineCount} lines</span>
+              <span className={css.statusDivider}>|</span>
+              <span className={css.statusItem}>{document.draft.length} chars</span>
+            </div>
+            <div className={css.statusRight}>
+              <span className={css.statusItem}>UTF-8</span>
+              <span className={css.statusDivider}>|</span>
+              <span className={css.statusItem}>{lineEndingOf(document.draft)}</span>
+              <span className={css.statusDivider}>|</span>
+              <span className={css.statusPill}>{(language ?? 'plain').toUpperCase()}</span>
+            </div>
+          </footer>
+        )}
+        {(status !== undefined || error !== undefined) && (
+          <div className={css.messages}>
+            {status !== undefined && <span className={css.status} role="status" aria-live="polite">{status}</span>}
+            {error !== undefined && <div className={css.error} role="alert">{error}</div>}
+          </div>
+        )}
       </section>
+
+      {contextMenu !== undefined && (
+        <div
+          className={css.contextMenu}
+          style={{ left: Math.min(contextMenu.x, window.innerWidth - 180), top: Math.min(contextMenu.y, window.innerHeight - 200) }}
+          role="menu"
+          aria-label="File options"
+        >
+          {contextMenu.entry.directory && (
+            <>
+              <button
+                type="button"
+                className={css.contextMenuItem}
+                role="menuitem"
+                onClick={() => {
+                  setContextMenu(undefined)
+                  setSelectedDirectory(contextMenu.entry.path)
+                  startCreate('file')
+                }}
+              >
+                <IconPlusOutline16 size={13} />
+                New File
+              </button>
+              <button
+                type="button"
+                className={css.contextMenuItem}
+                role="menuitem"
+                onClick={() => {
+                  setContextMenu(undefined)
+                  setSelectedDirectory(contextMenu.entry.path)
+                  startCreate('directory')
+                }}
+              >
+                <IconProjectAddOutline16 size={13} />
+                New Folder
+              </button>
+              <div className={css.contextMenuSeparator} />
+            </>
+          )}
+          <button
+            type="button"
+            className={css.contextMenuItem}
+            role="menuitem"
+            onClick={() => startRename(contextMenu.entry)}
+          >
+            <IconEditOutline16 size={13} />
+            Rename
+          </button>
+          <button
+            type="button"
+            className={css.contextMenuItem}
+            role="menuitem"
+            onClick={() => { void handleDelete(contextMenu.entry) }}
+          >
+            <IconTrashOutline16 size={13} />
+            Delete
+          </button>
+          <div className={css.contextMenuSeparator} />
+          <button
+            type="button"
+            className={css.contextMenuItem}
+            role="menuitem"
+            onClick={() => { void handleCopyPath(contextMenu.entry.path) }}
+          >
+            <IconCopyOutline16 size={13} />
+            Copy Path
+          </button>
+          <button
+            type="button"
+            className={css.contextMenuItem}
+            role="menuitem"
+            onClick={() => { void handleCopyPath(contextMenu.entry.path, true) }}
+          >
+            <IconCopyOutline16 size={13} />
+            Copy Relative Path
+          </button>
+          {api?.reveal !== undefined && (
+            <button
+              type="button"
+              className={css.contextMenuItem}
+              role="menuitem"
+              onClick={() => { void handleReveal(contextMenu.entry.path) }}
+            >
+              <IconBrowseOutline16 size={13} />
+              Reveal in Explorer
+            </button>
+          )}
+        </div>
+      )}
     </div>
   )
 }

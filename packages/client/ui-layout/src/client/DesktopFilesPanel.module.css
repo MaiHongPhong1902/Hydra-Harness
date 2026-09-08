@@ -25,7 +25,7 @@
 }
 
 .editor {
-  grid-template-rows: 34px minmax(0, 1fr);
+  grid-template-rows: auto 34px minmax(0, 1fr) 24px;
 }
 
 .treeHeader,
@@ -78,6 +78,11 @@
 .createRow button:hover,
 .row:hover {
   background: var(--dsw-alias-interactive-bg-hover);
+}
+
+.treeHeader button:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 .filter {
@@ -251,8 +256,44 @@
 
 .codeCanvas {
   position: relative;
+  display: flex;
   width: max-content;
   min-width: 100%;
+  min-height: 100%;
+}
+
+.lineGutter {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  flex: none;
+  min-width: 44px;
+  padding: 12px 10px 48px 12px;
+  border-right: 1px solid var(--dsw-alias-border-l1);
+  background: var(--dsw-specific-sidebar-fill);
+  user-select: none;
+  font: 12px/1.55 'Cascadia Mono', 'SFMono-Regular', Consolas, monospace;
+  color: var(--dsw-alias-label-tertiary);
+  text-align: right;
+  box-sizing: border-box;
+}
+
+.lineNumber {
+  line-height: 1.55;
+  transition: color 0.1s;
+}
+
+.lineNumber[data-active='true'] {
+  color: var(--dsw-alias-label-primary);
+  font-weight: 600;
+}
+
+.codeArea {
+  position: relative;
+  flex: 1;
+  min-width: 0;
   min-height: 100%;
 }
 
@@ -354,19 +395,257 @@
   text-align: center;
 }
 
-.status,
-.error {
+.messages {
   position: absolute;
   right: 10px;
   bottom: 10px;
   max-width: calc(100% - 20px);
+  display: grid;
+  gap: 4px;
+}
+
+.status,
+.error {
+  max-width: 100%;
   padding: 5px 8px;
   border-radius: 6px;
   color: var(--dsw-alias-label-secondary);
   background: var(--dsw-alias-button-floating-fill);
   font-size: 11px;
+  overflow-wrap: anywhere;
 }
 
 .error {
   color: var(--dsw-alias-state-danger-primary);
+}
+
+.tabBar {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  min-height: 32px;
+  background: var(--dsw-specific-sidebar-fill);
+  border-bottom: 1px solid var(--dsw-alias-border-l1);
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 100%;
+  padding: 0 10px;
+  border-right: 1px solid var(--dsw-alias-border-l1);
+  background: transparent;
+  color: var(--dsw-alias-label-secondary);
+  font: var(--dsw-font-xxs-12);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  flex: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.tab:hover {
+  background: var(--dsw-alias-interactive-bg-hover);
+  color: var(--dsw-alias-label-primary);
+}
+
+.tabActive {
+  background: var(--dsw-alias-bg-base);
+  color: var(--dsw-alias-label-primary);
+  font-weight: 600;
+  border-top: 2px solid var(--dsw-alias-focus-ring);
+}
+
+.tabName {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tabDirty {
+  color: var(--dsw-alias-state-warn-primary);
+  font-size: 8px;
+  margin-left: 2px;
+}
+
+.tabClose {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  margin-left: 4px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--dsw-alias-label-tertiary);
+  cursor: pointer;
+}
+
+.tabClose:hover {
+  background: var(--dsw-alias-interactive-bg-hover);
+  color: var(--dsw-alias-label-primary);
+}
+
+.statusBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 24px;
+  min-height: 24px;
+  padding: 0 10px;
+  border-top: 1px solid var(--dsw-alias-border-l1);
+  background: var(--dsw-specific-sidebar-fill);
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 11px;
+  user-select: none;
+}
+
+.statusLeft,
+.statusRight {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.statusItem {
+  font-family: inherit;
+}
+
+.statusDivider {
+  color: var(--dsw-alias-border-l1);
+  font-size: 10px;
+}
+
+.statusPill {
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--dsw-alias-interactive-bg-hover);
+  color: var(--dsw-alias-label-secondary);
+  font-weight: 600;
+  font-size: 10px;
+}
+
+.contextMenu {
+  position: fixed;
+  z-index: 9999;
+  min-width: 160px;
+  padding: 4px 0;
+  border: 1px solid var(--dsw-alias-border-l1);
+  border-radius: 6px;
+  background: var(--dsw-alias-button-floating-fill);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.contextMenuItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 26px;
+  padding: 0 10px;
+  border: 0;
+  background: transparent;
+  color: var(--dsw-alias-label-primary);
+  font: var(--dsw-font-xxs-12);
+  text-align: left;
+  cursor: pointer;
+}
+
+.contextMenuItem:hover {
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+.contextMenuSeparator {
+  height: 1px;
+  margin: 4px 0;
+  background: var(--dsw-alias-border-l1);
+}
+
+.diffScroll {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  padding: 12px 14px 48px;
+  box-sizing: border-box;
+  font: 12px/1.55 'Cascadia Mono', 'SFMono-Regular', Consolas, monospace;
+}
+
+.diffLine {
+  display: flex;
+  white-space: pre;
+  min-height: 18.6px;
+  line-height: 1.55;
+}
+
+.diffLineAdd {
+  background: rgba(46, 160, 67, 0.15);
+  color: #3fb950;
+}
+
+.diffLineDel {
+  background: rgba(248, 81, 73, 0.15);
+  color: #f85149;
+}
+
+.diffLineContext {
+  color: var(--dsw-alias-label-secondary);
+}
+
+.diffGutter {
+  width: 44px;
+  flex: none;
+  user-select: none;
+  color: var(--dsw-alias-label-tertiary);
+  text-align: right;
+  padding-right: 10px;
+}
+
+.diffText {
+  flex: 1;
+}
+
+.renameRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  padding-left: 24px;
+  padding-right: 6px;
+}
+
+.renameRow input {
+  flex: 1;
+  min-width: 0;
+  height: 22px;
+  padding: 0 4px;
+  border: 1px solid var(--dsw-alias-focus-ring);
+  border-radius: 3px;
+  color: var(--dsw-alias-label-primary);
+  background: var(--dsw-alias-bg-base);
+  font: var(--dsw-font-xxs-12);
+  outline: none;
+}
+
+.renameRow button {
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--dsw-alias-label-secondary);
+  cursor: pointer;
+}
+
+.renameRow button:hover {
+  background: var(--dsw-alias-interactive-bg-hover);
 }

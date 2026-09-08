@@ -4,12 +4,12 @@ const { once } = require('node:events')
 const { spawn } = require('node:child_process')
 const { randomUUID } = require('node:crypto')
 const { existsSync } = require('node:fs')
-const { glob, mkdir, mkdtemp, open, readFile, readdir, realpath, rm, stat, symlink, writeFile } = require('node:fs/promises')
+const { glob, mkdir, mkdtemp, open, readFile, readdir, realpath, rename, rm, stat, symlink, writeFile } = require('node:fs/promises')
 const { tmpdir } = require('node:os')
-const { isAbsolute, join, relative, resolve, sep } = require('node:path')
+const { dirname, isAbsolute, join, relative, resolve, sep } = require('node:path')
 const { createInterface } = require('node:readline')
 const { setTimeout: delay } = require('node:timers/promises')
-const { app, BrowserWindow, dialog, ipcMain, nativeImage, utilityProcess } = require('electron')
+const { app, BrowserWindow, dialog, ipcMain, nativeImage, nativeTheme, shell, utilityProcess } = require('electron')
 const nodePty = require('node-pty')
 
 const CLI_ENTRY = join(require.resolve('@hydra/harness/package.json'), '..', 'lib', 'bin.js')
@@ -31,7 +31,7 @@ let hostBaseUrl
 let smokeWorkspace
 let browser
 let browserConnection
-let browserBounds = { x: 0, y: 0, width: 0, height: 0, visible: false }
+let browserBounds = { x: 0, y: 0, width: 0, height: 0, visible: false, present: true }
 const terminals = new Map()
 const fileSaveTails = new Map()
 
@@ -183,6 +183,9 @@ function installBrowserController(window) {
     },
     openBrowser() {
       if (!window.isDestroyed()) window.webContents.send('hydra-desktop:panel-shortcut', 'browser')
+    },
+    closeBrowser() {
+      if (!window.isDestroyed()) window.webContents.send('hydra-desktop:panel-close', 'browser')
     },
     register(controller) { registered.resolve(controller) },
   }
@@ -478,6 +481,34 @@ async function createWorkspaceEntry(root, parentTarget, name, kind) {
   return { name, path, directory: kind === 'directory' }
 }
 
+async function renameWorkspaceEntry(root, target, newName) {
+  validateEntryName(newName)
+  const currentPath = await confinedPath(root, target)
+  const rootCanonical = await realpath(root)
+  if (currentPath === rootCanonical) throw new Error('cannot rename workspace root')
+  const parent = dirname(currentPath)
+  const destination = join(parent, newName)
+  const targetStat = await stat(currentPath)
+  if (existsSync(destination)) throw new Error('a file or folder with this name already exists')
+  await rename(currentPath, destination)
+  const newConfined = await confinedPath(root, destination)
+  return { oldPath: currentPath, path: newConfined, name: newName, directory: targetStat.isDirectory() }
+}
+
+async function deleteWorkspaceEntry(root, target) {
+  const currentPath = await confinedPath(root, target)
+  const rootCanonical = await realpath(root)
+  if (currentPath === rootCanonical) throw new Error('cannot delete workspace root')
+  await rm(currentPath, { recursive: true, force: true })
+  return { path: currentPath }
+}
+
+async function revealWorkspaceEntry(root, target) {
+  const currentPath = await confinedPath(root, target)
+  shell.showItemInFolder(currentPath)
+  return true
+}
+
 async function serializeFileSave(path, operation) {
   const previous = fileSaveTails.get(path) ?? Promise.resolve()
   const current = previous.catch(() => {}).then(operation)
@@ -544,11 +575,18 @@ function installRendererIpc() {
       width: Math.min(windowWidth - x, Math.max(0, dip(value.width))),
       height: Math.min(windowHeight - y, Math.max(0, dip(value.height))),
       visible: value.visible === true,
+      present: value.present !== false,
     }
     browser.setBounds(browserBounds)
   })
   ipcMain.handle('hydra-desktop:browser-configure', (event, value) =>
     browserOperation(event, 'configure_browser', value))
+  ipcMain.on('hydra-desktop:browser-theme', (event, value) => {
+    if (shuttingDown !== undefined || !validSender(event)) return
+    try { browser.setTheme(value) } catch (error) {
+      process.stderr.write(`desktop: Browser theme rejected: ${String(error)}\n`)
+    }
+  })
   ipcMain.handle('hydra-desktop:browser-confirm-full-cdp', async (event) => {
     if (shuttingDown !== undefined || !validSender(event)) return false
     const choice = await dialog.showMessageBox(mainWindow, {
@@ -646,6 +684,28 @@ function installRendererIpc() {
       value?.parentPath,
       value?.name,
       value?.kind,
+    )
+  })
+  ipcMain.handle('hydra-desktop:files-rename', async (event, value) => {
+    if (shuttingDown !== undefined || !validSender(event)) throw new Error('files are unavailable')
+    return await renameWorkspaceEntry(
+      await registeredWorkspaceRoot(value?.workspaceId),
+      value?.path,
+      value?.newName,
+    )
+  })
+  ipcMain.handle('hydra-desktop:files-delete', async (event, value) => {
+    if (shuttingDown !== undefined || !validSender(event)) throw new Error('files are unavailable')
+    return await deleteWorkspaceEntry(
+      await registeredWorkspaceRoot(value?.workspaceId),
+      value?.path,
+    )
+  })
+  ipcMain.handle('hydra-desktop:files-reveal', async (event, value) => {
+    if (shuttingDown !== undefined || !validSender(event)) throw new Error('files are unavailable')
+    return await revealWorkspaceEntry(
+      await registeredWorkspaceRoot(value?.workspaceId),
+      value?.path,
     )
   })
   ipcMain.handle('hydra-desktop:files-save', async (event, value) => {
@@ -789,26 +849,19 @@ async function smoke() {
   await selectControl('Toggle right panel')
   const right = await waitForBounds('right', bounds => bounds.x > 0 && bounds.width < mainWindow.getContentBounds().width)
   assertNativeViews(right)
-  await selectControl('Choose panel')
-  await waitForHiddenBrowser('panel chooser')
-  const chooser = await mainWindow.webContents.executeJavaScript(`(() => {
-    const dialog = document.querySelector('[role="dialog"][aria-label="Choose panel"]')
-    if (!(dialog instanceof HTMLElement)) return undefined
-    return [...dialog.querySelectorAll('button')].map(button => ({
-      text: button.textContent?.trim(),
-      disabled: button.disabled,
+  const panelOptions = await mainWindow.webContents.executeJavaScript(`(() =>
+    [...document.querySelectorAll('[aria-label="Open panel"] > button')].map(button => ({
+      label: button.getAttribute('aria-label'),
       shortcut: button.getAttribute('aria-keyshortcuts'),
     }))
-  })()`)
-  if (JSON.stringify(chooser) !== JSON.stringify([
-    { text: 'FilesCtrl+P', disabled: false, shortcut: 'Control+P' },
-    { text: 'Side chatCtrl+Alt+S', disabled: false, shortcut: 'Control+Alt+S' },
-    { text: 'BrowserCtrl+Shift+B', disabled: false, shortcut: 'Control+Shift+B' },
-    { text: 'TerminalCtrl+`', disabled: false, shortcut: 'Control+Backquote' },
-    { text: 'Review', disabled: false, shortcut: null },
-  ])) {
-    throw new Error(`panel chooser contract is invalid: ${JSON.stringify(chooser)}`)
-  }
+  )()`)
+  if (JSON.stringify(panelOptions) !== JSON.stringify([
+    { label: 'Files', shortcut: 'Control+P' },
+    { label: 'Side chat', shortcut: 'Control+Alt+S' },
+    { label: 'Browser', shortcut: 'Control+Shift+B' },
+    { label: 'Terminal', shortcut: 'Control+Backquote' },
+    { label: 'Review', shortcut: null },
+  ])) throw new Error(`panel options contract is invalid: ${JSON.stringify(panelOptions)}`)
   mainWindow.webContents.sendInputEvent({ type: 'keyDown', keyCode: 'P', modifiers: ['control'] })
   mainWindow.webContents.sendInputEvent({ type: 'keyUp', keyCode: 'P', modifiers: ['control'] })
   await waitForHiddenBrowser('Files panel')
@@ -898,14 +951,13 @@ async function smoke() {
   if (!bomCrlf.equals(Buffer.from('\ufeffone\r\ntwo\r\nthree\r\n'))) {
     throw new Error(`desktop Files changed BOM or CRLF bytes: ${JSON.stringify([...bomCrlf])}`)
   }
-  await selectControl('Choose panel')
   await selectControl('Terminal')
   await waitForHiddenBrowser('right Terminal')
   await waitForRenderer('right Terminal panel', `document.querySelector('[aria-label="Right terminal"]:not([hidden])')`)
   await waitForTerminal('right', 'right startup', () => true)
   await selectControl('Toggle bottom terminal')
   const terminalsVisible = await mainWindow.webContents.executeJavaScript(`(() => {
-    const bottom = document.querySelector('[aria-label="Terminal"]')
+    const bottom = document.querySelector('section[aria-label="Terminal"]')
     const right = document.querySelector('[aria-label="Right terminal"]')
     return bottom instanceof HTMLElement && !bottom.hidden && right instanceof HTMLElement && !right.hidden
   })()`)
@@ -925,7 +977,7 @@ async function smoke() {
   }
   const panels = await mainWindow.webContents.executeJavaScript(`(() => {
     const right = document.querySelector('[aria-label="Right panel"]')?.getBoundingClientRect()
-    const bottom = document.querySelector('[aria-label="Terminal"]')?.getBoundingClientRect()
+    const bottom = document.querySelector('section[aria-label="Terminal"]')?.getBoundingClientRect()
     return right && bottom ? {
       right: { left: right.left, top: right.top, bottom: right.bottom },
       bottom: { left: bottom.left, top: bottom.top, right: bottom.right },
@@ -958,7 +1010,7 @@ async function smoke() {
   const restored = await waitForBounds('restored right', bounds => bounds.width < expanded.width)
   assertNativeViews(restored)
   const terminalRestored = await mainWindow.webContents.executeJavaScript(`(() => {
-    const panel = document.querySelector('[aria-label="Terminal"]')
+    const panel = document.querySelector('section[aria-label="Terminal"]')
     const button = document.querySelector('[aria-label="Toggle bottom terminal"]')
     return panel instanceof HTMLElement && !panel.hidden && button?.getAttribute('aria-pressed') === 'true'
   })()`)
@@ -975,17 +1027,81 @@ async function smoke() {
   if (beforeClose?.tabs.length !== 1 || beforeClose.activeTabId !== beforeClose.tabs[0]?.id) {
     throw new Error(`desktop browser tab state is invalid: ${JSON.stringify(beforeClose)}`)
   }
-  await browser.command('close_tab', { tabId: beforeClose.activeTabId })
-  const afterClose = browser.getState()
-  if (BrowserWindow.getAllWindows().length !== 1 || afterClose?.tabs.length !== 1) {
-    throw new Error(`closing the last browser tab closed the desktop: ${JSON.stringify(afterClose)}`)
+  const nativeChrome = mainWindow.contentView.children.find(view => view.webContents.getURL().endsWith('/chrome.html'))
+  const themeSettings = (await hostRequest('settings.describe')).namespaces.find(item => item.ns === 'ui-theme')
+  let themeRevision = themeSettings.revision
+  const systemTheme = nativeTheme.themeSource
+  let previousPanelColor
+  try {
+    for (const colorScheme of ['dark', 'light']) {
+      nativeTheme.themeSource = colorScheme === 'dark' ? 'light' : 'dark'
+      const updated = await hostRequest('settings.mutate', {
+        ns: 'ui-theme', expectedRevision: themeRevision,
+        ops: [{ op: 'set', path: ['preference'], value: colorScheme }],
+      })
+      themeRevision = updated.revision
+      await waitForRenderer('app theme', `document.documentElement.style.colorScheme === ${JSON.stringify(colorScheme)} && document.body.hasAttribute('data-ds-dark-theme') === ${JSON.stringify(colorScheme === 'dark')}`)
+      const deadline = Date.now() + 15_000
+      let matched = false
+      while (Date.now() < deadline) {
+        const panelColor = await mainWindow.webContents.executeJavaScript(`getComputedStyle(document.querySelector('[data-desktop-panel="browser"] header')).backgroundColor`)
+        const colors = await nativeChrome.webContents.executeJavaScript(`({
+          scheme: document.documentElement.style.colorScheme,
+          shell: getComputedStyle(document.body).backgroundColor,
+          tabs: getComputedStyle(document.querySelector('.tabs')).backgroundColor,
+        })`)
+        if (colors.scheme === colorScheme && colors.shell === panelColor && colors.tabs === panelColor
+          && (previousPanelColor === undefined || panelColor !== previousPanelColor)) {
+          matched = true
+          previousPanelColor = panelColor
+          break
+        }
+        await delay(50)
+      }
+      if (!matched) throw new Error(`Browser chrome does not match the ${colorScheme} app theme`)
+      await waitForRenderer('terminal theme', `(() => {
+        const panels = [...document.querySelectorAll('[data-desktop-panel="terminal"], [data-desktop-panel="right-terminal"]')]
+        return panels.length === 2 && panels.every(panel => {
+          const viewport = panel.querySelector('.xterm-viewport')
+          return viewport && getComputedStyle(viewport).backgroundColor === getComputedStyle(panel).backgroundColor
+        })
+      })()`)
+      const artifacts = join(__dirname, '..', '..', '.artifacts')
+      await mkdir(artifacts, { recursive: true })
+      await writeFile(join(artifacts, `browser-theme-${colorScheme}.png`), (await mainWindow.capturePage()).toPNG())
+    }
+  } finally {
+    nativeTheme.themeSource = systemTheme
+    await hostRequest('settings.mutate', {
+      ns: 'ui-theme', expectedRevision: themeRevision,
+      ops: [themeSettings.user?.preference === undefined
+        ? { op: 'unset', path: ['preference'] }
+        : { op: 'set', path: ['preference'], value: themeSettings.user.preference }],
+    })
   }
+  await nativeChrome.webContents.executeJavaScript("document.querySelector('.tab-close').click()")
+  await waitForRenderer('Browser panel dismissed after last tab', `!document.querySelector('[role="tab"][aria-controls="hydra-right-panel-surface-browser"]')`)
+  await waitForHiddenBrowser('last browser tab closed')
+  const afterClose = browser.getState()
+  if (BrowserWindow.getAllWindows().length !== 1 || afterClose?.tabs.length !== 0) {
+    throw new Error(`last-tab close did not leave the desktop with an empty browser: ${JSON.stringify(afterClose)}`)
+  }
+  const reopened = await browser.command('get_browser_state')
+  if (reopened.tabs.length !== 1 || reopened.url !== 'about:blank') {
+    throw new Error(`agent could not reopen the browser: ${JSON.stringify(reopened)}`)
+  }
+  assertNativeViews(await waitForBounds('agent reopens browser', bounds => bounds.width < expanded.width))
+  await selectControl('Close Browser')
+  await waitForHiddenBrowser('Browser panel tab closed')
+  await browser.command('get_browser_state')
+  assertNativeViews(await waitForBounds('agent restores Browser panel tab', bounds => bounds.width < expanded.width))
   process.stdout.write(`${JSON.stringify({
     event: 'desktop-smoke',
     ok: true,
     windows: 1,
     files: { root: files.root, shortcut: 'Ctrl+P', search: true, preview: true, confined: true },
-    terminal: { rightMarker, bottomMarker, simultaneous: true, isolated: true },
+    terminal: { rightMarker, bottomMarker, simultaneous: true, isolated: true, appTheme: true },
+    browser: { lastTabClosesPanel: true, agentReopens: true, appTheme: true },
     bounds: { right, simultaneous, expanded, restored },
   })}\n`)
 }
