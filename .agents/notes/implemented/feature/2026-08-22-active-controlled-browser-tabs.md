@@ -8,7 +8,9 @@ One selected-page target cannot preserve independent page state, element indices
 
 ## Decision
 
-Each controlled tab owns a `WebContentsView` with the PageAgent preload and shares the Electron profile with the other tabs in its agent-owned window, so SSO cookies remain available. The native chrome and model can add, select, and close tabs; closing the final tab closes the standalone browser window.
+Each controlled tab owns a `WebContentsView` with the PageAgent preload and shares the Electron profile with the other tabs in its agent-owned window, so SSO cookies remain available. The native chrome and model can add, select, and close tabs. A user closing the final tab closes the standalone browser window; in the desktop shell it hides the native views and removes the Browser panel tab while retaining the shell and its other panels. Page-initiated closure uses the same tab cleanup. The model's close action keeps its final-tab guard so that its command and trailing observation can finish.
+
+An empty embedded browser retains its controller connection and profile. Opening Browser from the panel options or making a page action without a tab id creates a fresh controlled tab; an explicit stale id still fails rather than targeting another document. Closing the Browser panel itself resets its reveal state so the next agent action can restore it. A new tab commits its blank document before a PageController request because an unloaded view has no preload listener.
 
 `BrowserState.tabId` identifies the page that supplied a snapshot and owns its element indices. `BrowserState.activeTabId` identifies the tab selected in the visible chrome. Every page-local model tool accepts optional `tab_id`; omission captures the selected tab, while an explicit id keeps the action and trailing state read bound to that tab.
 
@@ -36,7 +38,7 @@ One agent still owns one Chromium profile and window. Work requiring independent
 
 ## Testing
 
-The service test holds two explicit-tab actions until both reach the same child, proving cross-tab overlap, single-window launch, and per-tab routing. Focused tool tests pin scheduler classification, `tab_id` forwarding, and the trailing same-tab state read. The knowledge-recorder test interleaves two tab histories and proves that only same-tab observations form a transition. The real-Electron suite reads a background tab while another remains selected and addresses both tab preloads concurrently; its native chrome test covers add, select, close, Back, and Forward.
+The service test holds two explicit-tab actions until both reach the same child, proving cross-tab overlap, single-window launch, and per-tab routing. Focused tool tests pin scheduler classification, `tab_id` forwarding, and the trailing same-tab state read. The knowledge-recorder test interleaves two tab histories and proves that only same-tab observations form a transition. The real-Electron suite reads a background tab while another remains selected and addresses both tab preloads concurrently; its native chrome test covers add, select, close, Back, Forward, zero-tab dismissal, and reopening through page observation, new-tab navigation, and user URLs. The desktop smoke checks the renderer's panel dismissal and agent-driven restoration.
 
 ## Related
 

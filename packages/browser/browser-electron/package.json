@@ -32,6 +32,7 @@
     "electron-app/main.cjs",
     "electron-app/hydra.png",
     "electron-app/chrome.html",
+    "electron-app/newtab.html",
     "electron-app/chrome-preload.cjs",
     "electron-app/preload.cjs",
     "lib/types/**/*.d.ts"

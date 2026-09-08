@@ -12,6 +12,7 @@ const annotations = []
 const permissions = []
 const requests = []
 let opened = 0
+let closed = 0
 let resolveController
 const controllerReady = new Promise(resolve => { resolveController = resolve })
 
@@ -65,6 +66,7 @@ server.listen(0, '127.0.0.1', () => {
     onState() {},
     onAnnotation(annotation) { annotations.push(annotation) },
     openBrowser() { opened += 1 },
+    closeBrowser() { closed += 1 },
     register(controller) { resolveController(controller) },
   }
   require('../electron-app/main.cjs')
@@ -88,6 +90,23 @@ server.listen(0, '127.0.0.1', () => {
       loadingHidden: document.getElementById('loading').hidden,
       secureHidden: document.getElementById('secure').hidden,
     })`)
+    const chromePalette = () => chrome.executeJavaScript(`(() => {
+      const style = getComputedStyle(document.documentElement)
+      return {
+        scheme: style.colorScheme,
+        shell: style.getPropertyValue('--chrome-shell').trim(),
+        tabstrip: style.getPropertyValue('--chrome-tabstrip').trim(),
+        surface: style.getPropertyValue('--chrome-surface').trim(),
+        text: style.getPropertyValue('--chrome-text').trim(),
+        muted: style.getPropertyValue('--chrome-muted').trim(),
+        hover: style.getPropertyValue('--chrome-hover').trim(),
+        border: style.getPropertyValue('--chrome-border').trim(),
+        accent: style.getPropertyValue('--chrome-accent').trim(),
+        accentText: style.getPropertyValue('--chrome-accent-text').trim(),
+        omnibox: style.getPropertyValue('--chrome-omnibox').trim(),
+        status: style.getPropertyValue('--chrome-status').trim(),
+      }
+    })()`)
     const navigate = async path => {
       phase = `navigating ${path}`
       await chrome.executeJavaScript(`
@@ -97,7 +116,11 @@ server.listen(0, '127.0.0.1', () => {
       await waitFor(async () => {
         const current = await state()
         return current.url === `${address}${path}` && current.active === titles[path]
-      }).catch(async error => { throw new Error(`${error.message}: ${JSON.stringify({ state: await state(), permissions, requests })}`) })
+      }).catch(async error => {
+        let diagnostic
+        try { diagnostic = await state() } catch (stateError) { diagnostic = `state read failed: ${stateError.message}` }
+        throw new Error(`${error.message}: ${JSON.stringify({ state: diagnostic, permissions, requests })}`)
+      })
     }
     const activePage = () => BrowserWindow.getAllWindows()[0]?.contentView.children
       .find(view => view.webContents !== chrome && view.getVisible())?.webContents
@@ -138,6 +161,36 @@ server.listen(0, '127.0.0.1', () => {
 
     phase = 'waiting for the initial tab'
     await waitFor(async () => (await state()).count === 1)
+    phase = 'syncing the app palette to native chrome'
+    const systemTheme = (await state()).theme
+    const appTheme = {
+      colorScheme: 'dark',
+      colors: {
+        shell: '#101114',
+        tabstrip: '#15171b',
+        surface: '#25272b',
+        text: '#f5f6f7',
+        muted: '#a1a5ad',
+        hover: '#30343a',
+        border: '#464a52',
+        accent: '#6ca7ff',
+        accentText: '#101114',
+        omnibox: '#17191d',
+        status: '#20252d',
+      },
+    }
+    assert.throws(() => controller.setTheme({ colorScheme: 'sepia', colors: appTheme.colors }), /colorScheme/)
+    controller.setTheme(appTheme)
+    await waitFor(async () => {
+      const current = await state()
+      return current.theme === 'dark' && JSON.stringify(controller.getState().themeColors) === JSON.stringify(appTheme.colors)
+    })
+    assert.deepEqual(await chromePalette(), { scheme: 'dark', ...appTheme.colors })
+    controller.setTheme(null)
+    await waitFor(async () => {
+      const current = await state()
+      return current.theme === systemTheme && controller.getState().themeColors === null
+    })
     await navigate('/one')
     phase = 'waiting for first tab title'
     await waitFor(async () => (await state()).history.some(entry => entry.label === 'One' && entry.value === `${address}/one`))
@@ -334,6 +387,53 @@ server.listen(0, '127.0.0.1', () => {
     assert.equal((await controller.command('browser_sites'))[0].access, 'block')
     await assert.rejects(controller.command('navigate', { url: target }), /blocked/)
     assert.equal(permissions.length, 5)
+    phase = 'closing the last controlled tab'
+    await configureNavigation('allow')
+    const tabIds = () => controller.getState().tabs.map(tab => tab.id)
+    while (tabIds().length > 1) await controller.command('close_tab', { tabId: tabIds()[0] })
+    const closeButtons = () => chrome.executeJavaScript('document.querySelectorAll(".tab-close").length')
+    await waitFor(async () => tabIds().length === 1 && await closeButtons() === 1)
+    const revealedBefore = opened
+    await chrome.executeJavaScript("document.querySelector('.tab-close').click()")
+    await waitFor(async () => closed === 1 && controller.getState().tabs.length === 0)
+    // The empty browser must reach the chrome before a later reopen renders one
+    // tab again, or a click could address the id the controller already dropped.
+    await waitFor(async () => await closeButtons() === 0)
+    assert.ok(
+      !BrowserWindow.getAllWindows()[0].contentView.children.some(view => view.getVisible()),
+      'a browser without tabs kept a native view visible',
+    )
+
+    phase = 'agent action reopens the closed browser'
+    const reopened = await controller.command('get_browser_state', {})
+    assert.equal(reopened.tabs.length, 1)
+    assert.equal(reopened.url, 'about:blank')
+    assert.ok(opened > revealedBefore, 'the agent did not reveal the closed browser again')
+
+    phase = 'reopening the panel restores a controlled tab'
+    // The chrome re-rendered from empty to the reopened tab.
+    await waitFor(async () => await closeButtons() === 1)
+    await chrome.executeJavaScript("document.querySelector('.tab-close').click()")
+    await waitFor(async () => closed === 2 && controller.getState().tabs.length === 0)
+    controller.setBounds({ x: 0, y: 0, width: 1024, height: 768, visible: false, present: false })
+    controller.setBounds({ x: 0, y: 0, width: 1024, height: 768, visible: true, present: true })
+    await waitFor(async () => controller.getState().tabs.length === 1)
+    assert.equal((await controller.command('navigate', { url: `${address}/one` })).success, true)
+    await waitFor(async () => (await state()).active === 'One')
+
+    phase = 'opening a URL in a fresh tab after user closure'
+    await chrome.executeJavaScript("document.querySelector('.tab-close').click()")
+    await waitFor(async () => closed === 3 && controller.getState().tabs.length === 0)
+    assert.equal((await controller.command('open_new_tab', { url: `${address}/two` })).success, true)
+    await waitFor(async () => (await state()).active === 'Two')
+    assert.equal(controller.getState().tabs.length, 1)
+
+    phase = 'a page closing itself returns the panel to the renderer'
+    activePage().close()
+    await waitFor(async () => closed === 4 && controller.getState().tabs.length === 0)
+    assert.equal((await controller.command('route_user_url', { url: `${address}/one` })).success, true)
+    await waitFor(async () => (await state()).active === 'One')
+
     phase = 'closing the browser window'
     app.once('window-all-closed', () => finish(true))
     BrowserWindow.getAllWindows()[0]?.close()

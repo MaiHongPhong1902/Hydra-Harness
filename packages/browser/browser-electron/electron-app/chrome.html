@@ -6,6 +6,7 @@
     <title>Hydra harness browser chrome</title>
     <style>
       :root {
+        color-scheme: light;
         --chrome-shell: #f1f3f4;
         --chrome-tabstrip: #dee1e6;
         --chrome-surface: #ffffff;
@@ -14,10 +15,15 @@
         --chrome-hover: #dfe3e7;
         --chrome-border: #c4c7c5;
         --chrome-accent: #1a73e8;
+        --chrome-accent-text: #ffffff;
         --chrome-omnibox: #ffffff;
         --chrome-status: #e8f0fe;
+        --chrome-star-active: #fbbc04;
+        --chrome-danger: #ea4335;
+        --chrome-success: #34a853;
       }
       html[data-theme="dark"] {
+        color-scheme: dark;
         --chrome-shell: #202124;
         --chrome-tabstrip: #2d2e30;
         --chrome-surface: #35363a;
@@ -26,76 +32,485 @@
         --chrome-hover: #3c4043;
         --chrome-border: #5f6368;
         --chrome-accent: #8ab4f8;
+        --chrome-accent-text: #202124;
         --chrome-omnibox: #202124;
         --chrome-status: #174ea6;
+        --chrome-star-active: #fdd663;
+        --chrome-danger: #f28b82;
+        --chrome-success: #81c995;
       }
       * { box-sizing: border-box; }
       body {
         margin: 0;
-        background: var(--chrome-shell);
+        background-color: var(--chrome-shell);
         color: var(--chrome-text);
-        font: 13px system-ui, sans-serif;
+        font: 13px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         overflow: hidden;
+        user-select: none;
       }
-      .tabs { height: 34px; display: flex; align-items: end; gap: 4px; padding: 0 10px; background: var(--chrome-tabstrip); }
-      #tabs { min-width: 0; flex: 1; display: flex; align-items: end; gap: 4px; overflow: auto hidden; scrollbar-width: none; }
-      .tab { min-width: 96px; flex: 0 1 240px; height: 30px; display: flex; align-items: center; border-radius: 10px 10px 0 0; background: var(--chrome-hover); }
-      .tab[aria-selected="true"] { background: var(--chrome-surface); }
-      .tab-favicon { width: 14px; height: 14px; flex: 0 0 14px; margin-left: 10px; border-radius: 2px; }
-      .tab-select { min-width: 0; flex: 1; height: 100%; padding: 7px 4px 7px 8px; overflow: hidden; border: 0; background: transparent; color: inherit; text-align: left; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
-      .tab-close, #new-tab { width: 26px; height: 26px; flex: 0 0 26px; margin: 2px; border: 0; border-radius: 50%; background: transparent; color: inherit; font-size: 18px; cursor: pointer; }
-      .tab-close:hover, #new-tab:hover { background: var(--chrome-hover); }
-      .controls { height: 40px; display: flex; align-items: center; gap: 8px; padding: 6px 10px; }
-      .controls button { width: 28px; height: 28px; flex: 0 0 28px; border: 0; border-radius: 50%; background: transparent; color: inherit; font-size: 18px; cursor: pointer; }
-      .controls button:disabled { color: var(--chrome-muted); cursor: default; }
-      .controls button[aria-pressed="true"] { color: #fff; background: var(--chrome-accent); }
-      .controls button:not(:disabled):hover { background: var(--chrome-hover); }
-      form { flex: 1; min-width: 0; }
-      .omnibox { display: flex; align-items: center; gap: 6px; height: 28px; border: 1px solid var(--chrome-border); border-radius: 14px; padding: 0 10px; background: var(--chrome-omnibox); }
-      .omnibox:focus-within { border-color: var(--chrome-accent); box-shadow: 0 0 0 1px var(--chrome-accent); }
-      #secure, #loading { width: 14px; height: 14px; flex: 0 0 14px; color: var(--chrome-muted); }
-      #loading { border: 2px solid var(--chrome-border); border-top-color: var(--chrome-accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+
+      /* Tabs strip */
+      .tabs {
+        height: 34px;
+        display: flex;
+        align-items: end;
+        gap: 4px;
+        padding: 0 8px;
+        background-color: var(--chrome-tabstrip);
+      }
+      #tabs {
+        min-width: 0;
+        flex: 1;
+        display: flex;
+        align-items: end;
+        gap: 3px;
+        overflow: auto hidden;
+        scrollbar-width: none;
+      }
+      #tabs::-webkit-scrollbar { display: none; }
+      .tab {
+        min-width: 96px;
+        flex: 0 1 220px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        border-radius: 8px 8px 0 0;
+        background-color: var(--chrome-hover);
+        transition: background-color 0.15s ease;
+        position: relative;
+      }
+      .tab[aria-selected="true"] {
+        background-color: var(--chrome-surface);
+      }
+      .tab-favicon {
+        width: 14px;
+        height: 14px;
+        flex: 0 0 14px;
+        margin-left: 8px;
+        border-radius: 2px;
+      }
+      .tab-spinner {
+        width: 12px;
+        height: 12px;
+        flex: 0 0 12px;
+        margin-left: 8px;
+        border: 2px solid var(--chrome-border);
+        border-top-color: var(--chrome-accent);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      .tab-select {
+        min-width: 0;
+        flex: 1;
+        height: 100%;
+        padding: 6px 4px 6px 6px;
+        overflow: hidden;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        text-align: left;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font: inherit;
+        cursor: pointer;
+      }
+      .tab-audio {
+        width: 20px;
+        height: 20px;
+        flex: 0 0 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 0;
+        background: transparent;
+        color: var(--chrome-muted);
+        cursor: pointer;
+        padding: 0;
+        border-radius: 50%;
+      }
+      .tab-audio:hover {
+        background-color: var(--chrome-hover);
+        color: var(--chrome-text);
+      }
+      .tab-close, #new-tab {
+        width: 24px;
+        height: 24px;
+        flex: 0 0 24px;
+        margin: 2px;
+        border: 0;
+        border-radius: 50%;
+        background-color: transparent;
+        color: inherit;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+      .tab-close:hover, #new-tab:hover {
+        background-color: var(--chrome-hover);
+      }
+
+      /* Controls toolbar */
+      .controls {
+        height: 40px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 8px;
+        background-color: var(--chrome-shell);
+      }
+      .nav-btn {
+        width: 28px;
+        height: 28px;
+        flex: 0 0 28px;
+        border: 0;
+        border-radius: 50%;
+        background-color: transparent;
+        color: inherit;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+      }
+      .nav-btn:disabled {
+        color: var(--chrome-muted);
+        cursor: default;
+        opacity: 0.5;
+      }
+      .nav-btn:not(:disabled):hover {
+        background-color: var(--chrome-hover);
+      }
+      .nav-btn[aria-pressed="true"] {
+        color: var(--chrome-accent-text);
+        background-color: var(--chrome-accent);
+      }
+
+      /* Omnibox */
+      form#omnibox-form {
+        flex: 1;
+        min-width: 0;
+        margin: 0;
+      }
+      .omnibox {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        height: 30px;
+        border: 1px solid var(--chrome-border);
+        border-radius: 15px;
+        padding: 0 8px;
+        background-color: var(--chrome-omnibox);
+        transition: border-color 0.15s, box-shadow 0.15s;
+        position: relative;
+      }
+      .omnibox:focus-within {
+        border-color: var(--chrome-accent);
+        box-shadow: 0 0 0 1.5px var(--chrome-accent);
+      }
+      .security-btn {
+        width: 20px;
+        height: 20px;
+        border: 0;
+        padding: 0;
+        background: transparent;
+        color: var(--chrome-muted);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        border-radius: 50%;
+      }
+      .security-btn.secure { color: var(--chrome-success); }
+      .security-btn.insecure { color: var(--chrome-danger); }
+      #loading {
+        width: 14px;
+        height: 14px;
+        flex: 0 0 14px;
+        border: 2px solid var(--chrome-border);
+        border-top-color: var(--chrome-accent);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
       @keyframes spin { to { transform: rotate(360deg); } }
-      input { flex: 1; min-width: 0; height: 24px; border: 0; background: transparent; color: inherit; outline: none; font: inherit; }
+      input#omnibox {
+        flex: 1;
+        min-width: 0;
+        height: 26px;
+        border: 0;
+        background-color: transparent;
+        color: inherit;
+        outline: none;
+        font: inherit;
+        user-select: text;
+      }
+      .omnibox-action-btn {
+        width: 22px;
+        height: 22px;
+        border: 0;
+        background: transparent;
+        color: var(--chrome-muted);
+        cursor: pointer;
+        padding: 0;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .omnibox-action-btn:hover {
+        background-color: var(--chrome-hover);
+        color: var(--chrome-text);
+      }
+      .omnibox-action-btn.bookmarked {
+        color: var(--chrome-star-active);
+      }
+      #zoom-badge {
+        font-size: 11px;
+        padding: 2px 6px;
+        border-radius: 10px;
+        background: var(--chrome-hover);
+        color: var(--chrome-text);
+        cursor: pointer;
+      }
+
+      /* Bookmarks bar */
+      #bookmarks-bar {
+        height: 28px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 0 10px;
+        background-color: var(--chrome-shell);
+        border-bottom: 1px solid var(--chrome-border);
+        overflow: auto hidden;
+        scrollbar-width: none;
+      }
+      #bookmarks-bar::-webkit-scrollbar { display: none; }
+      #bookmarks-bar[hidden] { display: none; }
+      .bookmark-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        height: 22px;
+        padding: 0 6px;
+        border: 0;
+        border-radius: 4px;
+        background: transparent;
+        color: var(--chrome-text);
+        font-size: 12px;
+        cursor: pointer;
+        white-space: nowrap;
+        max-width: 140px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .bookmark-item:hover {
+        background-color: var(--chrome-hover);
+      }
+      .bookmark-favicon {
+        width: 14px;
+        height: 14px;
+        border-radius: 2px;
+        flex-shrink: 0;
+      }
+
+      /* Floating Find in page bar */
+      #find-bar {
+        position: absolute;
+        top: 76px;
+        right: 16px;
+        height: 36px;
+        background-color: var(--chrome-surface);
+        border: 1px solid var(--chrome-border);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0 8px;
+        z-index: 100;
+      }
+      #find-bar[hidden] { display: none; }
+      #find-input {
+        width: 160px;
+        height: 24px;
+        border: 0;
+        outline: none;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        user-select: text;
+      }
+      #find-count {
+        font-size: 11px;
+        color: var(--chrome-muted);
+        min-width: 40px;
+        text-align: center;
+      }
+
+      /* Site info popover */
+      #site-info-card {
+        position: absolute;
+        top: 76px;
+        left: 80px;
+        width: 280px;
+        background-color: var(--chrome-surface);
+        border: 1px solid var(--chrome-border);
+        border-radius: 8px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        padding: 12px 14px;
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      #site-info-card[hidden] { display: none; }
+      .site-info-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-weight: 600;
+      }
+      .site-info-detail {
+        font-size: 12px;
+        color: var(--chrome-muted);
+        line-height: 1.4;
+      }
+
+      /* Agent status bar */
       #status {
         height: 22px;
         display: flex;
         align-items: center;
         padding: 0 12px;
-        background: var(--chrome-status);
+        background-color: var(--chrome-status);
         color: var(--chrome-text);
         font-size: 12px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
-      #status[hidden], #secure[hidden], #loading[hidden], .tab-favicon[hidden] { display: none; }
-      @media (max-width: 480px) {
+      [hidden], #status[hidden], #loading[hidden], .tab-favicon[hidden], .tab-spinner[hidden] { display: none !important; }
+
+      @media (max-width: 520px) {
         .tabs { padding-inline: 4px; }
         .controls { gap: 4px; padding-inline: 4px; }
-        .omnibox { padding-inline: 6px; }
+        .omnibox { padding-inline: 4px; }
         #status { padding-inline: 8px; }
+      }
+      @media (max-width: 400px) {
+        #home, #find-toggle { display: none !important; }
+        .controls { gap: 3px; padding-inline: 3px; }
+        .nav-btn { width: 24px; height: 24px; flex: 0 0 24px; }
+        .omnibox { padding-inline: 4px; gap: 3px; }
       }
     </style>
   </head>
   <body>
-    <div class="tabs"><div id="tabs" role="tablist"></div><button id="new-tab" type="button" aria-label="New tab" title="New tab">+</button></div>
+    <!-- Tabs Header -->
+    <div class="tabs">
+      <div id="tabs" role="tablist"></div>
+      <button id="new-tab" type="button" aria-label="New tab" title="New tab (Ctrl+T)">+</button>
+    </div>
+
+    <!-- Navigation & Omnibox Toolbar -->
     <div class="controls">
-      <button id="back" type="button" aria-label="Back" title="Back">←</button>
-      <button id="forward" type="button" aria-label="Forward" title="Forward">→</button>
-      <button id="reload" type="button" aria-label="Reload" title="Reload">↻</button>
+      <button id="back" class="nav-btn" type="button" aria-label="Back" title="Click to go back (Alt+Left)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+      <button id="forward" class="nav-btn" type="button" aria-label="Forward" title="Click to go forward (Alt+Right)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+      <button id="reload" class="nav-btn" type="button" aria-label="Reload" title="Reload page (Ctrl+R)">
+        <svg id="reload-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 4v6h-6"></path>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+        </svg>
+        <svg id="stop-icon" hidden width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <span id="home" class="nav-btn" role="button" tabindex="0" aria-label="Home" title="Open Home page">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+      </span>
+
+      <!-- Address / Search Bar -->
       <form id="omnibox-form">
         <div class="omnibox">
-          <svg id="secure" hidden viewBox="0 0 14 14" aria-label="Secure connection">
-            <path fill="currentColor" d="M7 1.5a2.5 2.5 0 0 0-2.5 2.5V5H3.5A1.5 1.5 0 0 0 2 6.5v5A1.5 1.5 0 0 0 3.5 13h7A1.5 1.5 0 0 0 12 11.5v-5A1.5 1.5 0 0 0 10.5 5H9.5V4A2.5 2.5 0 0 0 7 1.5Zm1.5 3.5H5.5V4A1.5 1.5 0 0 1 7 2.5 1.5 1.5 0 0 1 8.5 4Z"/>
-          </svg>
+          <span id="security-badge" class="security-btn" role="button" tabindex="0" aria-label="View site information" title="View site information">
+            <svg id="secure" hidden width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <svg id="insecure-icon" hidden width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+          </span>
           <span id="loading" hidden aria-label="Loading"></span>
-          <input id="omnibox" aria-label="Search or enter address" autocomplete="off" list="omnibox-history" placeholder="Search or enter address" spellcheck="false" />
+          <input id="omnibox" aria-label="Search or enter address" autocomplete="off" placeholder="Search Google or enter address" spellcheck="false" />
+          <span id="clear-omnibox" hidden class="omnibox-action-btn" role="button" tabindex="0" aria-label="Clear address" title="Clear">✕</span>
+          <span id="zoom-badge" hidden title="Click to reset zoom (Ctrl+0)">100%</span>
+          <span id="bookmark-star" class="omnibox-action-btn" role="button" tabindex="0" aria-label="Bookmark this tab" title="Bookmark this tab (Ctrl+D)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+          </span>
         </div>
         <datalist id="omnibox-history"></datalist>
       </form>
-      <button id="annotate" type="button" aria-label="Annotate page" title="Select an element or drag a region" disabled>⌖</button>
+
+      <!-- Action Buttons -->
+      <button id="annotate" class="nav-btn" type="button" aria-label="Annotate page" title="Select an element or drag a region" disabled>⌖</button>
+      <span id="find-toggle" class="nav-btn" role="button" tabindex="0" aria-label="Find in page" title="Find in page (Ctrl+F)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </span>
+      <span id="menu-button" class="nav-btn" role="button" tabindex="0" aria-label="Customize and control browser" title="Customize and control browser">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="12" cy="5" r="2"></circle>
+          <circle cx="12" cy="12" r="2"></circle>
+          <circle cx="12" cy="19" r="2"></circle>
+        </svg>
+      </span>
     </div>
+
+    <!-- Bookmarks Bar -->
+    <div id="bookmarks-bar" hidden></div>
+
+    <!-- Floating Find in Page Bar -->
+    <div id="find-bar" hidden>
+      <input id="find-input" placeholder="Find in page" spellcheck="false" />
+      <span id="find-count">0/0</span>
+      <button id="find-prev" class="nav-btn" type="button" aria-label="Previous match" title="Previous (Shift+Enter)">▲</button>
+      <button id="find-next" class="nav-btn" type="button" aria-label="Next match" title="Next (Enter)">▼</button>
+      <button id="find-close" class="nav-btn" type="button" aria-label="Close find bar" title="Close (Esc)">✕</button>
+    </div>
+
+    <!-- Site Information Popover -->
+    <div id="site-info-card" hidden>
+      <div class="site-info-header">
+        <span id="site-info-title">Site Information</span>
+        <button id="site-info-close" class="nav-btn" type="button">✕</button>
+      </div>
+      <div class="site-info-detail" id="site-info-body">
+        Connection is secure. Your information (e.g. passwords, cookies) is private when it is sent to this site.
+      </div>
+    </div>
+
+    <!-- Status footer for agent activity -->
     <div id="status" hidden role="status"></div>
   </body>
 </html>

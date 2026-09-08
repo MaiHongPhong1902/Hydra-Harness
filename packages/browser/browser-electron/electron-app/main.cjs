@@ -18,7 +18,7 @@ const { createInterface } = require('node:readline')
 const { basename, isAbsolute, join } = require('node:path')
 const { setTimeout: delay } = require('node:timers/promises')
 
-const { app, BrowserWindow, Menu, WebContentsView, dialog, ipcMain, nativeImage, nativeTheme, safeStorage, session, shell } = require('electron')
+const { app, BrowserWindow, Menu, WebContentsView, clipboard, dialog, ipcMain, nativeImage, nativeTheme, safeStorage, session, shell } = require('electron')
 
 const { createAutofillVault } = require('./autofill-vault.cjs')
 
@@ -30,6 +30,10 @@ const embedded = globalThis.__HYDRA_BROWSER_EMBED__
 /** Config from the parent, or defaults when run by hand for a smoke test. */
 const config = embedded?.config ?? JSON.parse(process.argv[2] ?? '{}')
 const CHROME_HEIGHT = 96
+const CHROME_THEME_COLOR_FIELDS = Object.freeze([
+  'shell', 'tabstrip', 'surface', 'text', 'muted', 'hover', 'border',
+  'accent', 'accentText', 'omnibox', 'status',
+])
 const READINESS_TIMEOUT_MS = config.readinessTimeoutMs ?? 45_000
 const READINESS_POLL_MS = 250
 const READINESS_SETTLE_MS = 500
@@ -80,7 +84,7 @@ const nativeSettings = {
 }
 
 /** App-owned browsing records; Chromium exposes neither durable history manager. */
-let profileStore = { history: [], downloads: [], sites: {} }
+let profileStore = { history: [], downloads: [], sites: {}, bookmarks: [] }
 let profileStorePath
 let profileStoreWrite = Promise.resolve()
 const reservedDownloadPaths = new Set()
@@ -175,9 +179,20 @@ function siteEntry(origin, value) {
   return { origin, access, media }
 }
 
+function bookmarkEntry(value) {
+  if (typeof value !== 'object' || value === null) return undefined
+  const id = boundedString(value.id, 100)
+  const url = boundedString(value.url, 2_048)
+  const title = boundedString(value.title, 512)
+  const favicon = typeof value.favicon === 'string' ? value.favicon.slice(0, 10_000) : ''
+  const createdAt = boundedString(value.createdAt, 64)
+  if (!id || !url || title === undefined || !createdAt) return undefined
+  return { id, url, title, favicon, createdAt }
+}
+
 /** Parse only the bounded app-owned records from a durable profile file. */
 function profileStoreOf(value) {
-  if (typeof value !== 'object' || value === null) return { history: [], downloads: [], sites: {} }
+  if (typeof value !== 'object' || value === null) return { history: [], downloads: [], sites: {}, bookmarks: [] }
   const history = Array.isArray(value.history)
     ? value.history.slice(0, MAX_HISTORY_ENTRIES).flatMap(entry => historyEntry(entry) ?? [])
     : []
@@ -191,7 +206,44 @@ function profileStoreOf(value) {
       if (entry !== undefined) sites[origin] = { access: entry.access, media: entry.media }
     }
   }
-  return { history, downloads, sites }
+  const bookmarks = Array.isArray(value.bookmarks)
+    ? value.bookmarks.slice(0, 500).flatMap(entry => bookmarkEntry(entry) ?? [])
+    : []
+  return { history, downloads, sites, bookmarks }
+}
+
+function listBookmarks() {
+  return profileStore.bookmarks.map(b => ({ ...b }))
+}
+
+async function addBookmark({ url, title, favicon }) {
+  if (!url || typeof url !== 'string') return
+  const id = randomUUID()
+  const existing = profileStore.bookmarks.find(b => b.url === url)
+  if (existing) {
+    if (title) existing.title = title
+    if (favicon) existing.favicon = favicon
+  } else {
+    profileStore.bookmarks.push({
+      id,
+      url,
+      title: title || url,
+      favicon: favicon || '',
+      createdAt: new Date().toISOString(),
+    })
+  }
+  await persistProfileStore()
+  updateChrome()
+}
+
+async function removeBookmark(urlOrId) {
+  profileStore.bookmarks = profileStore.bookmarks.filter(b => b.id !== urlOrId && b.url !== urlOrId)
+  await persistProfileStore()
+  updateChrome()
+}
+
+function isBookmarked(url) {
+  return profileStore.bookmarks.some(b => b.url === url)
 }
 
 async function loadProfileStore() {
@@ -484,6 +536,8 @@ let chrome
 let embeddedBounds = { x: 0, y: 0, width: 0, height: 0, visible: false }
 /** Last browser chrome state, also returned to a newly mounted desktop panel. */
 let chromeState
+/** Embedded desktop override; standalone chrome follows Electron's OS scheme. */
+let chromeThemeOverride
 /** Status line shown in native chrome while the agent drives the page. */
 let chromeActivity = ''
 let activeBrowserCalls = 0
@@ -715,7 +769,10 @@ async function routeUserUrl(value) {
     await shell.openExternal(url.href)
     return { success: true, destination, url: url.href }
   }
-  if (!activeTab || !createTab || !selectTab || navigationPolicy(activeTab.view.webContents, url.href) === false) {
+  if (!createTab || !selectTab) throw new Error('tab controls are unavailable')
+  // A browser the user closed has no tab to compare against; the fresh tab's own
+  // will-navigate and main-frame request checks then decide this destination.
+  if (activeTab !== undefined && navigationPolicy(activeTab.view.webContents, url.href) === false) {
     throw new Error(`navigation to ${url.href} was blocked by Browser settings`)
   }
   const opened = createTab()
@@ -788,6 +845,14 @@ function agentChromeActivity(method, args) {
   }
 }
 
+/** Reopen a controlled tab after the user closed the last one. */
+function ensureTab() {
+  if (tabs.size > 0) return activeTab
+  if (!createTab || !selectTab) return undefined
+  selectTab(createTab())
+  return activeTab
+}
+
 function noteAgentBrowser(method, args) {
   if (isProfileManagement(method)) return
   if (!agentBrowserRevealed) {
@@ -808,28 +873,79 @@ function noteAgentBrowser(method, args) {
   updateChrome()
 }
 
+/**
+ * Validate the renderer-owned native chrome palette before it crosses into CSS.
+ * @param {unknown} value - `{ colorScheme, colors }` or null to follow the OS.
+ * @returns {{ colorScheme: 'light'|'dark', colors: Record<string, string> } | null}
+ */
+function validateChromeTheme(value) {
+  if (value === null) return null
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    throw new Error('browser theme must be an object or null')
+  }
+  const source = /** @type {Record<string, unknown>} */ (value)
+  if (Object.keys(source).length !== 2 || !('colorScheme' in source) || !('colors' in source)) {
+    throw new Error('browser theme must contain only colorScheme and colors')
+  }
+  if (source.colorScheme !== 'light' && source.colorScheme !== 'dark') {
+    throw new Error('browser theme colorScheme must be light or dark')
+  }
+  if (typeof source.colors !== 'object' || source.colors === null || Array.isArray(source.colors)) {
+    throw new Error('browser theme colors must be an object')
+  }
+  const colors = /** @type {Record<string, unknown>} */ (source.colors)
+  if (Object.keys(colors).length !== CHROME_THEME_COLOR_FIELDS.length
+    || CHROME_THEME_COLOR_FIELDS.some(field => !Object.hasOwn(colors, field))) {
+    throw new Error('browser theme colors contain an unsupported field')
+  }
+  const validated = {}
+  for (const field of CHROME_THEME_COLOR_FIELDS) {
+    const color = colors[field]
+    if (typeof color !== 'string' || color.length === 0 || color.length > 256) {
+      throw new Error(`browser theme color ${field} must be a non-empty string of 256 characters or fewer`)
+    }
+    validated[field] = color
+  }
+  return { colorScheme: source.colorScheme, colors: validated }
+}
+
+/** Persist and publish the embedded chrome palette. */
+function setChromeTheme(value) {
+  chromeThemeOverride = validateChromeTheme(value)
+  updateChrome()
+}
+
 /** Keep the native browser chrome in sync with every tab and the selected page. */
 function updateChrome() {
-  if (windowClosing || !activeTab) return
-  const contents = activeTab.view.webContents
-  if (contents.isDestroyed()) return
-  const url = contents.getURL()
+  if (windowClosing) return
+  // No selected tab is a real state: the user closed the last one.
+  const contents = activeTab?.view.webContents
+  if (activeTab !== undefined && (contents === undefined || contents.isDestroyed())) return
+  const url = contents?.getURL() ?? ''
+  const bookmarks = listBookmarks()
   chromeState = {
     tabs: Array.from(tabs.values(), tab => ({
       id: tab.id,
       title: tab.view.webContents.getTitle() || 'New Tab',
       favicon: tab.favicon ?? '',
+      isAudible: tab.view.webContents.isCurrentlyAudible(),
+      isMuted: tab.view.webContents.isAudioMuted(),
+      isLoading: tab.view.webContents.isLoading(),
     })),
-    activeTabId: activeTab.id,
+    activeTabId: activeTab?.id ?? 0,
     url,
-    canGoBack: contents.navigationHistory.canGoBack(),
-    canGoForward: contents.navigationHistory.canGoForward(),
+    canGoBack: contents?.navigationHistory.canGoBack() ?? false,
+    canGoForward: contents?.navigationHistory.canGoForward() ?? false,
     history: profileStore.history.slice(0, MAX_HISTORY_SEARCH_RESULTS)
       .map(({ title, url: entryUrl }) => ({ title, url: entryUrl })),
+    bookmarks,
+    isBookmarked: isBookmarked(url),
+    zoomPercent: Math.round((contents?.getZoomFactor() ?? 1) * 100),
     annotationEnabled: typeof embedded?.onAnnotation === 'function',
-    loading: contents.isLoading(),
+    loading: contents?.isLoading() ?? false,
     secure: url.startsWith('https:'),
-    theme: nativeTheme.shouldUseDarkColors ? 'dark' : 'light',
+    theme: chromeThemeOverride?.colorScheme ?? (nativeTheme.shouldUseDarkColors ? 'dark' : 'light'),
+    themeColors: chromeThemeOverride?.colors ?? null,
     activity: chromeActivity,
   }
   if (embedded !== undefined) embedded.onState(chromeState)
@@ -871,23 +987,28 @@ function pageAgentLlm(tab, request) {
 }
 
 /**
- * Forward one action to the preload and await its reply.
+ * Forward one action to the preload after committing a new tab's blank document.
  * @param {Tab} tab - tab whose preload owns the request.
  * @param {string} action - action name the preload's dispatch understands.
  * @param {Record<string, unknown>} args - JSON-safe action arguments.
  * @returns {Promise<unknown>} the preload's JSON-safe result.
  */
-function pageControl(tab, action, args) {
-  return new Promise((resolve, reject) => {
+async function pageControl(tab, action, args) {
+  const contents = tab.view.webContents
+  // A fresh WebContentsView has no preload listener until its first document loads.
+  if (contents.getURL() === '' && !contents.isLoading()) {
+    await contents.loadURL('about:blank')
+  }
+  return await new Promise((resolve, reject) => {
     const id = nextPageCallId++
     pendingPageCalls.set(id, { resolve, reject, tab })
-    tab.view.webContents.send('page-control', { id, action, args })
+    contents.send('page-control', { id, action, args })
   })
 }
 
 /** Cancel a manual picker without exposing the private preload channel. */
 function cancelAnnotation(tab) {
-  if (!tab.view.webContents.isDestroyed()) tab.view.webContents.send('page-annotation:cancel')
+  if (!tab.contents.isDestroyed()) tab.contents.send('page-annotation:cancel')
 }
 
 /** Validate and bound page-owned annotation data before it reaches the app renderer. */
@@ -1113,42 +1234,138 @@ async function openPageMenu(tab, params) {
   const unavailableLabel = autofillVault === undefined ? 'Secure autofill storage unavailable' : undefined
   const history = contents.navigationHistory
   const annotationEnabled = typeof embedded?.onAnnotation === 'function'
-  Menu.buildFromTemplate([
-    {
-      label: 'Autofill login',
-      enabled: origin !== undefined,
-      submenu: matchingLogins.length > 0
-        ? matchingLogins.map(login => ({
-            label: autofillMenuLabel(login.username, 'Saved login'),
-            click: () => { void fillSavedLogin(tab, origin, login.id, point) },
-          }))
-        : [{ label: unavailableLabel ?? 'No saved login for this site', enabled: false }],
-    },
-    {
-      label: 'Autofill contact',
-      enabled: origin !== undefined,
-      submenu: contacts.length > 0
-        ? contacts.map(contact => ({
-            label: autofillMenuLabel(contact.label, 'Saved contact'),
-            click: () => { void fillSavedContact(tab, origin, contact.id, point) },
-          }))
-        : [{ label: unavailableLabel ?? 'No saved contacts', enabled: false }],
-    },
-    { type: 'separator' },
-    {
-      label: 'Quick annotate',
-      enabled: annotationEnabled,
-      click: () => { void publishAnnotation(tab, 'annotate_element_at', { x: params.x, y: params.y }) },
-    },
-    {
-      label: 'Annotate',
-      enabled: annotationEnabled,
-      click: () => { void publishAnnotation(tab, 'annotate_element', {}) },
-    },
-    { type: 'separator' },
+
+  const template = []
+
+  // Link context
+  if (params.linkURL) {
+    template.push(
+      {
+        label: 'Open link in new tab',
+        click: () => {
+          const opened = createTab?.()
+          if (opened && selectTab) {
+            selectTab(opened)
+            void loadAllowedUrl(opened.view.webContents, params.linkURL)
+          }
+        },
+      },
+      {
+        label: 'Copy link address',
+        click: () => { clipboard.writeText(params.linkURL) },
+      },
+      { type: 'separator' },
+    )
+  }
+
+  // Media/Image context
+  if (params.mediaType === 'image' && params.srcURL) {
+    template.push(
+      {
+        label: 'Open image in new tab',
+        click: () => {
+          const opened = createTab?.()
+          if (opened && selectTab) {
+            selectTab(opened)
+            void loadAllowedUrl(opened.view.webContents, params.srcURL)
+          }
+        },
+      },
+      {
+        label: 'Save image as...',
+        click: () => { contents.downloadURL(params.srcURL) },
+      },
+      {
+        label: 'Copy image address',
+        click: () => { clipboard.writeText(params.srcURL) },
+      },
+      { type: 'separator' },
+    )
+  }
+
+  // Text selection context
+  if (params.selectionText) {
+    const trimmed = params.selectionText.trim()
+    template.push(
+      { label: 'Copy', role: 'copy' },
+      {
+        label: `Search Google for "${trimmed.length > 25 ? `${trimmed.slice(0, 25)}…` : trimmed}"`,
+        click: () => {
+          const opened = createTab?.()
+          if (opened && selectTab) {
+            selectTab(opened)
+            void loadAllowedUrl(opened.view.webContents, `https://www.google.com/search?q=${encodeURIComponent(trimmed)}`)
+          }
+        },
+      },
+      { type: 'separator' },
+    )
+  }
+
+  // Autofill
+  if (origin !== undefined) {
+    template.push(
+      {
+        label: 'Autofill login',
+        enabled: origin !== undefined,
+        submenu: matchingLogins.length > 0
+          ? matchingLogins.map(login => ({
+              label: autofillMenuLabel(login.username, 'Saved login'),
+              click: () => { void fillSavedLogin(tab, origin, login.id, point) },
+            }))
+          : [{ label: unavailableLabel ?? 'No saved login for this site', enabled: false }],
+      },
+      {
+        label: 'Autofill contact',
+        enabled: origin !== undefined,
+        submenu: contacts.length > 0
+          ? contacts.map(contact => ({
+              label: autofillMenuLabel(contact.label, 'Saved contact'),
+              click: () => { void fillSavedContact(tab, origin, contact.id, point) },
+            }))
+          : [{ label: unavailableLabel ?? 'No saved contacts', enabled: false }],
+      },
+      { type: 'separator' },
+    )
+  }
+
+  // Annotations
+  if (annotationEnabled) {
+    template.push(
+      {
+        label: 'Quick annotate',
+        enabled: annotationEnabled,
+        click: () => { void publishAnnotation(tab, 'annotate_element_at', { x: params.x, y: params.y }) },
+      },
+      {
+        label: 'Annotate',
+        enabled: annotationEnabled,
+        click: () => { void publishAnnotation(tab, 'annotate_element', {}) },
+      },
+      { type: 'separator' },
+    )
+  }
+
+  // Navigation & Page Tools
+  template.push(
     { label: 'Back', enabled: history.canGoBack(), click: () => { moveInHistory(contents, -1) } },
     { label: 'Forward', enabled: history.canGoForward(), click: () => { moveInHistory(contents, 1) } },
     { label: 'Reload', click: () => { reloadAllowed(contents) } },
+    { type: 'separator' },
+    {
+      label: 'View page source',
+      click: () => {
+        const opened = createTab?.()
+        if (opened && selectTab) {
+          selectTab(opened)
+          void loadAllowedUrl(opened.view.webContents, `view-source:${contents.getURL()}`)
+        }
+      },
+    },
+    {
+      label: 'Print...',
+      click: () => { contents.print() },
+    },
     { type: 'separator' },
     {
       label: 'Inspect',
@@ -1157,7 +1374,319 @@ async function openPageMenu(tab, params) {
         contents.inspectElement(params.x, params.y)
       },
     },
+  )
+
+  Menu.buildFromTemplate(template).popup({ window })
+}
+
+/** Context menu for browser tabs. */
+function openTabMenu(tabId) {
+  const tab = tabs.get(tabId)
+  if (!tab || windowClosing) return
+  const orderedTabs = Array.from(tabs.values())
+  const index = orderedTabs.indexOf(tab)
+
+  Menu.buildFromTemplate([
+    {
+      label: 'New tab',
+      accelerator: 'CmdOrCtrl+T',
+      click: () => { if (createTab && selectTab) selectTab(createTab()) },
+    },
+    {
+      label: 'Reload tab',
+      accelerator: 'CmdOrCtrl+R',
+      click: () => { reloadAllowed(tab.view.webContents) },
+    },
+    {
+      label: 'Duplicate tab',
+      click: () => {
+        if (createTab && selectTab) {
+          const dup = createTab()
+          selectTab(dup)
+          void loadAllowedUrl(dup.view.webContents, tab.view.webContents.getURL())
+        }
+      },
+    },
+    {
+      label: tab.view.webContents.isAudioMuted() ? 'Unmute tab' : 'Mute tab',
+      click: () => {
+        tab.view.webContents.setAudioMuted(!tab.view.webContents.isAudioMuted())
+        updateChrome()
+      },
+    },
+    { type: 'separator' },
+    {
+      label: 'Close tab',
+      accelerator: 'CmdOrCtrl+W',
+      click: () => { closeTab?.(tab) },
+    },
+    {
+      label: 'Close other tabs',
+      enabled: tabs.size > 1,
+      click: () => {
+        for (const other of orderedTabs) {
+          if (other !== tab) closeTab?.(other)
+        }
+      },
+    },
+    {
+      label: 'Close tabs to the right',
+      enabled: index < orderedTabs.length - 1,
+      click: () => {
+        for (let i = index + 1; i < orderedTabs.length; i++) {
+          closeTab?.(orderedTabs[i])
+        }
+      },
+    },
   ]).popup({ window })
+}
+
+/** Chrome menu (three dots ⋮). */
+function openChromeMenu() {
+  if (windowClosing) return
+  const contents = activeTab?.view.webContents
+
+  Menu.buildFromTemplate([
+    {
+      label: 'New tab',
+      accelerator: 'CmdOrCtrl+T',
+      click: () => { if (createTab && selectTab) selectTab(createTab()) },
+    },
+    { type: 'separator' },
+    {
+      label: 'Bookmarks',
+      submenu: [
+        {
+          label: 'Bookmark this tab...',
+          accelerator: 'CmdOrCtrl+D',
+          enabled: activeTab !== undefined,
+          click: () => {
+            if (activeTab) {
+              const url = activeTab.view.webContents.getURL()
+              if (!isBookmarked(url)) {
+                void addBookmark({ url, title: activeTab.view.webContents.getTitle(), favicon: activeTab.favicon })
+              }
+            }
+          },
+        },
+        ...(profileStore.bookmarks.length > 0 ? [
+          { type: 'separator' },
+          ...profileStore.bookmarks.slice(0, 15).map(bm => ({
+            label: bm.title || bm.url,
+            click: () => {
+              if (activeTab) void loadAllowedUrl(activeTab.view.webContents, bm.url)
+            },
+          })),
+        ] : []),
+      ],
+    },
+    {
+      label: 'History',
+      accelerator: 'CmdOrCtrl+H',
+      submenu: [
+        {
+          label: 'Clear browsing data...',
+          click: () => {
+            void handle('clear_browser_data', { scope: 'all' })
+          },
+        },
+        ...(profileStore.history.length > 0 ? [
+          { type: 'separator' },
+          ...profileStore.history.slice(0, 15).map(h => ({
+            label: h.title || h.url,
+            click: () => {
+              if (activeTab) void loadAllowedUrl(activeTab.view.webContents, h.url)
+            },
+          })),
+        ] : []),
+      ],
+    },
+    {
+      label: 'Downloads',
+      accelerator: 'CmdOrCtrl+J',
+      submenu: profileStore.downloads.length > 0
+        ? profileStore.downloads.slice(0, 10).map(d => ({
+            label: `${d.filename} (${d.state})`,
+            click: () => { if (d.path) void shell.showItemInFolder(d.path) },
+          }))
+        : [{ label: 'No recent downloads', enabled: false }],
+    },
+    { type: 'separator' },
+    {
+      label: 'Zoom',
+      submenu: [
+        {
+          label: 'Zoom In (+)',
+          accelerator: 'CmdOrCtrl+Plus',
+          click: () => {
+            if (contents) {
+              contents.setZoomFactor(Math.min(3, contents.getZoomFactor() + 0.1))
+              updateChrome()
+            }
+          },
+        },
+        {
+          label: 'Zoom Out (-)',
+          accelerator: 'CmdOrCtrl+-',
+          click: () => {
+            if (contents) {
+              contents.setZoomFactor(Math.max(0.3, contents.getZoomFactor() - 0.1))
+              updateChrome()
+            }
+          },
+        },
+        {
+          label: 'Reset Zoom (100%)',
+          accelerator: 'CmdOrCtrl+0',
+          click: () => {
+            if (contents) {
+              contents.setZoomFactor(1)
+              updateChrome()
+            }
+          },
+        },
+      ],
+    },
+    {
+      label: 'Find in page...',
+      accelerator: 'CmdOrCtrl+F',
+      click: () => { chrome?.webContents.send('browser-chrome:show-find') },
+    },
+    {
+      label: 'Print...',
+      accelerator: 'CmdOrCtrl+P',
+      enabled: activeTab !== undefined,
+      click: () => { contents?.print() },
+    },
+    { type: 'separator' },
+    {
+      label: 'Developer tools',
+      accelerator: 'F12',
+      click: () => {
+        if (contents) {
+          if (contents.isDevToolsOpened()) contents.closeDevTools()
+          else contents.openDevTools({ mode: 'detach' })
+        }
+      },
+    },
+    {
+      label: 'View source',
+      enabled: activeTab !== undefined,
+      click: () => {
+        if (contents) {
+          const opened = createTab?.()
+          if (opened && selectTab) {
+            selectTab(opened)
+            void loadAllowedUrl(opened.view.webContents, `view-source:${contents.getURL()}`)
+          }
+        }
+      },
+    },
+  ]).popup({ window })
+}
+
+/** Standard keyboard shortcuts across browser views. */
+function handleKeyboardShortcuts(event, input, tab) {
+  if (input.type !== 'keyDown') return
+  const isCtrlOrCmd = process.platform === 'darwin' ? input.meta : input.control
+
+  if (input.key === 'F12') {
+    event.preventDefault()
+    const target = tab?.view.webContents ?? activeTab?.view.webContents
+    if (target) {
+      if (target.isDevToolsOpened()) target.closeDevTools()
+      else target.openDevTools({ mode: 'detach' })
+    }
+    return
+  }
+
+  if (input.key === 'F5') {
+    event.preventDefault()
+    const target = tab?.view.webContents ?? activeTab?.view.webContents
+    if (target) {
+      if (input.shift) target.reloadIgnoringCache()
+      else reloadAllowed(target)
+    }
+    return
+  }
+
+  if (!isCtrlOrCmd) return
+
+  const key = input.key.toLowerCase()
+  if (key === 't' && !input.shift && !input.alt) {
+    event.preventDefault()
+    if (createTab && selectTab) selectTab(createTab())
+  } else if (key === 'w' && !input.shift && !input.alt) {
+    event.preventDefault()
+    if (tab && closeTab) closeTab(tab)
+    else if (activeTab && closeTab) closeTab(activeTab)
+  } else if (key === 'r' && !input.shift && !input.alt) {
+    event.preventDefault()
+    const target = tab?.view.webContents ?? activeTab?.view.webContents
+    if (target) reloadAllowed(target)
+  } else if (key === 'r' && input.shift && !input.alt) {
+    event.preventDefault()
+    const target = tab?.view.webContents ?? activeTab?.view.webContents
+    if (target) target.reloadIgnoringCache()
+  } else if (key === 'f' && !input.shift && !input.alt) {
+    event.preventDefault()
+    chrome?.webContents.send('browser-chrome:show-find')
+  } else if (key === 'l' && !input.shift && !input.alt) {
+    event.preventDefault()
+    chrome?.webContents.send('browser-chrome:focus-omnibox')
+  } else if (key === 'd' && !input.shift && !input.alt) {
+    event.preventDefault()
+    const target = tab ?? activeTab
+    if (target) {
+      const url = target.view.webContents.getURL()
+      if (isBookmarked(url)) void removeBookmark(url)
+      else void addBookmark({ url, title: target.view.webContents.getTitle(), favicon: target.favicon })
+    }
+  } else if (key === 'i' && input.shift && !input.alt) {
+    event.preventDefault()
+    const target = tab?.view.webContents ?? activeTab?.view.webContents
+    if (target) {
+      if (target.isDevToolsOpened()) target.closeDevTools()
+      else target.openDevTools({ mode: 'detach' })
+    }
+  } else if ((input.key === '=' || input.key === '+') && !input.alt) {
+    event.preventDefault()
+    const target = tab?.view.webContents ?? activeTab?.view.webContents
+    if (target) {
+      target.setZoomFactor(Math.min(3, target.getZoomFactor() + 0.1))
+      updateChrome()
+    }
+  } else if (input.key === '-' && !input.alt) {
+    event.preventDefault()
+    const target = tab?.view.webContents ?? activeTab?.view.webContents
+    if (target) {
+      target.setZoomFactor(Math.max(0.3, target.getZoomFactor() - 0.1))
+      updateChrome()
+    }
+  } else if (input.key === '0' && !input.alt) {
+    event.preventDefault()
+    const target = tab?.view.webContents ?? activeTab?.view.webContents
+    if (target) {
+      target.setZoomFactor(1)
+      updateChrome()
+    }
+  } else if (input.key === 'Tab') {
+    event.preventDefault()
+    const tabList = Array.from(tabs.values())
+    const current = tab ?? activeTab
+    const idx = current ? tabList.indexOf(current) : -1
+    if (idx !== -1 && tabList.length > 1) {
+      const nextIdx = input.shift ? (idx - 1 + tabList.length) % tabList.length : (idx + 1) % tabList.length
+      selectTab?.(tabList[nextIdx])
+    }
+  } else if (input.key >= '1' && input.key <= '9') {
+    const num = Number(input.key)
+    const tabList = Array.from(tabs.values())
+    if (num <= tabList.length) {
+      event.preventDefault()
+      selectTab?.(tabList[num - 1])
+    }
+  }
 }
 
 /** Whether a page-control request was invalidated by a document/tab transition. */
@@ -1563,7 +2092,7 @@ async function handleCommand(method, args) {
   }
   if (method === 'route_user_url') return await routeUserUrl(args.url)
   if (method === 'open_new_tab') {
-    if (args.url !== undefined && (!activeTab || navigationPolicy(activeTab.view.webContents, args.url) === false)) {
+    if (args.url !== undefined && activeTab !== undefined && navigationPolicy(activeTab.view.webContents, args.url) === false) {
       throw new Error(`navigation to ${args.url} was blocked by Browser settings`)
     }
     const opened = createTab?.()
@@ -1594,7 +2123,8 @@ async function handleCommand(method, args) {
 
   let tab
   if (args.tabId === undefined) {
-    tab = activeTab
+    // The user may have closed the last controlled tab; a page action reopens one.
+    tab = ensureTab()
   } else {
     if (!Number.isSafeInteger(args.tabId) || args.tabId < 1) throw new Error('tabId must be a positive integer')
     tab = tabs.get(args.tabId)
@@ -1800,6 +2330,9 @@ app.whenReady().then(async () => {
     },
   })
   window.contentView.addChildView(chrome)
+  chrome.webContents.on('before-input-event', (event, input) => {
+    handleKeyboardShortcuts(event, input, activeTab)
+  })
 
   const fit = () => {
     const [windowWidth, windowHeight] = window.getContentSize()
@@ -1808,7 +2341,7 @@ app.whenReady().then(async () => {
       : embeddedBounds
     const chromeHeight = Math.min(CHROME_HEIGHT, panel.height)
     chrome.setBounds({ x: panel.x, y: panel.y, width: panel.width, height: chromeHeight })
-    chrome.setVisible(panel.visible && panel.width > 0 && chromeHeight > 0)
+    chrome.setVisible(panel.visible && panel.width > 0 && chromeHeight > 0 && tabs.size > 0)
     for (const tab of tabs.values()) {
       tab.view.setBounds({
         x: panel.x,
@@ -1888,20 +2421,7 @@ app.whenReady().then(async () => {
     })
     contents.on('destroyed', () => {
       cancelPermissions(contents)
-      detachTabDebugger(tab, true)
-      abortPageCalls(tab, 'tab renderer was destroyed')
-      abortPageAgentLlmCalls(tab, 'tab renderer was destroyed')
-      if (!tabs.delete(tab.id)) return
-      if (windowClosing) return
-      if (activeTab === tab) {
-        activeTab = undefined
-        const replacement = tabs.values().next().value
-        if (replacement) selectTab(replacement)
-        else if (embedded === undefined) window.close()
-        else selectTab(createTab())
-      } else {
-        updateChrome()
-      }
+      closeTab(tab)
     })
     contents.on('dom-ready', () => { contents.send('browser:activity', activeBrowserCalls > 0) })
     contents.on('did-finish-load', () => { recordHistory(contents) })
@@ -1909,6 +2429,16 @@ app.whenReady().then(async () => {
     contents.on('page-favicon-updated', (_event, favicons) => {
       tab.favicon = typeof favicons?.[0] === 'string' ? favicons[0] : ''
       updateChrome()
+    })
+    contents.on('media-started-playing', updateChrome)
+    contents.on('media-paused', updateChrome)
+    contents.on('found-in-page', (_event, result) => {
+      if (chrome !== undefined && !chrome.webContents.isDestroyed()) {
+        chrome.webContents.send('browser-chrome:found-in-page', result)
+      }
+    })
+    contents.on('before-input-event', (event, input) => {
+      handleKeyboardShortcuts(event, input, tab)
     })
     for (const event of [
       'did-finish-load', 'did-navigate', 'did-navigate-in-page', 'page-title-updated',
@@ -1933,11 +2463,11 @@ app.whenReady().then(async () => {
     updateChrome()
   }
 
-  /** Close a tab, or the window when it is the last remaining tab. */
+  /** Close a tab; the last one closes the window, or the desktop's Browser panel. */
   closeTab = function closeControlledTab(tab) {
     if (windowClosing || !tabs.has(tab.id)) return
-    if (tabs.size === 1) {
-      if (embedded === undefined) window.close()
+    if (tabs.size === 1 && embedded === undefined) {
+      window.close()
       return
     }
 
@@ -1952,13 +2482,17 @@ app.whenReady().then(async () => {
     tabs.delete(tab.id)
     tab.view.setVisible(false)
     window.contentView.removeChildView(tab.view)
-    if (wasActive) {
-      activeTab = undefined
-      selectTab(replacement)
+    if (wasActive) activeTab = undefined
+    if (!tab.contents.isDestroyed()) tab.contents.close()
+    if (wasActive && replacement !== undefined) selectTab(replacement)
+    else if (tabs.size === 0) {
+      agentBrowserRevealed = false
+      updateChrome()
+      fit()
+      embedded?.closeBrowser?.()
     } else {
       updateChrome()
     }
-    if (!tab.view.webContents.isDestroyed()) tab.view.webContents.close()
   }
 
   const initialTab = createTab()
@@ -2022,6 +2556,65 @@ app.whenReady().then(async () => {
       const tab = tabs.get(id)
       if (tab) closeTab(tab)
     })
+    ipcMain.on('browser-chrome:stop', event => {
+      if (event.sender !== chrome.webContents || !activeTab) return
+      activeTab.view.webContents.stop()
+    })
+    ipcMain.on('browser-chrome:hard-reload', event => {
+      if (event.sender !== chrome.webContents || !activeTab) return
+      activeTab.view.webContents.reloadIgnoringCache()
+    })
+    ipcMain.on('browser-chrome:home', event => {
+      if (event.sender !== chrome.webContents || !activeTab) return
+      const homeUrl = HOME_URL ?? 'https://www.google.com'
+      void loadAllowedUrl(activeTab.view.webContents, homeUrl)
+    })
+    ipcMain.on('browser-chrome:toggle-mute', (event, id) => {
+      if (event.sender !== chrome.webContents) return
+      const tab = (Number.isInteger(id) ? tabs.get(id) : undefined) ?? activeTab
+      if (tab) {
+        tab.view.webContents.setAudioMuted(!tab.view.webContents.isAudioMuted())
+        updateChrome()
+      }
+    })
+    ipcMain.on('browser-chrome:toggle-bookmark', event => {
+      if (event.sender !== chrome.webContents || !activeTab) return
+      const url = activeTab.view.webContents.getURL()
+      if (!url) return
+      if (isBookmarked(url)) {
+        void removeBookmark(url)
+      } else {
+        void addBookmark({ url, title: activeTab.view.webContents.getTitle(), favicon: activeTab.favicon })
+      }
+    })
+    ipcMain.on('browser-chrome:remove-bookmark', (event, id) => {
+      if (event.sender !== chrome.webContents || typeof id !== 'string') return
+      void removeBookmark(id)
+    })
+    ipcMain.on('browser-chrome:zoom', (event, action) => {
+      if (event.sender !== chrome.webContents || !activeTab) return
+      const contents = activeTab.view.webContents
+      if (action === 'in') contents.setZoomFactor(Math.min(3, contents.getZoomFactor() + 0.1))
+      else if (action === 'out') contents.setZoomFactor(Math.max(0.3, contents.getZoomFactor() - 0.1))
+      else contents.setZoomFactor(1)
+      updateChrome()
+    })
+    ipcMain.on('browser-chrome:find-in-page', (event, text, forward) => {
+      if (event.sender !== chrome.webContents || !activeTab || typeof text !== 'string') return
+      activeTab.view.webContents.findInPage(text, { forward: forward !== false, findNext: true })
+    })
+    ipcMain.on('browser-chrome:stop-find', event => {
+      if (event.sender !== chrome.webContents || !activeTab) return
+      activeTab.view.webContents.stopFindInPage('clearSelection')
+    })
+    ipcMain.on('browser-chrome:tab-context-menu', (event, id) => {
+      if (event.sender !== chrome.webContents || !Number.isInteger(id)) return
+      openTabMenu(id)
+    })
+    ipcMain.on('browser-chrome:open-menu', event => {
+      if (event.sender !== chrome.webContents) return
+      openChromeMenu()
+    })
   }
 
   /** Run one NDJSON request from either stdio or the desktop utility bridge. */
@@ -2059,9 +2652,14 @@ app.whenReady().then(async () => {
       getState() { return chromeState },
       async request(request) { return await protocolRequest(request) },
       cancelPermissions() { cancelPermissions() },
+      setTheme(value) { setChromeTheme(value) },
       setBounds(bounds) {
         if (windowClosing) return
         embeddedBounds = bounds
+        // `present: false` means the renderer no longer hosts a Browser panel, so
+        // the next agent action has to reveal one again.
+        if (bounds.present === false) agentBrowserRevealed = false
+        else if (bounds.visible && tabs.size === 0) ensureTab()
         fit()
       },
       async dispose() {
