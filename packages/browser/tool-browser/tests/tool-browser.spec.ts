@@ -260,6 +260,15 @@ describe('tool-browser registration', () => {
     expect(ctx.tools.get('browser_screenshot')).toBeUndefined()
   })
 
+  it('keeps prompt and schemas byte-stable across a browser call', async () => {
+    const { ctx, call } = await harness()
+    const beforeSchemas = JSON.stringify(ctx.tools.schemas())
+    const beforePrompt = JSON.stringify(await ctx.systemPrompt.assemble())
+    expect((await call('browser_state', {})).isError).toBe(false)
+    expect(JSON.stringify(ctx.tools.schemas())).toBe(beforeSchemas)
+    expect(JSON.stringify(await ctx.systemPrompt.assemble())).toBe(beforePrompt)
+  })
+
   it('refuses a non-positive character cap or timeout', () => {
     const ctx = {} as Context
     expect(() => { ToolBrowser.apply(ctx, { maxStateChars: 0 }) }).toThrow(/maxStateChars/)
@@ -683,6 +692,11 @@ describe('browser snapshot ranking', () => {
     ].join('\n'))
   })
 
+  it('drops empty non-indexed containers but keeps indexed empty controls', () => {
+    expect(dropIgnoredNodes('<div></div>\n[4]<div></div>\n[5]<input/>'))
+      .toBe('[4]<div></div>\n[5]<input/>')
+  })
+
   it('keeps newly appeared and typical form controls ahead of other indexed lines', () => {
     expect(rankElementList([
       '[9]<div>User form</div>',
@@ -762,6 +776,23 @@ describe('browser snapshot ranking', () => {
     })
     expect(value).toMatchObject({ mode: 'diff', baseRevision: 3, revision: 4, added: ['[2]<p>Done</p>'], removed: [] })
     expect(formatBrowserOutput(value)).toContain('Snapshot revision: 3 → 4')
+  })
+
+  it('falls back to a full snapshot when the claimed revision is stale', () => {
+    const value = toValue({
+      action: { success: true, message: 'did click' },
+      state: {
+        url: 'https://shop.test/order', title: 'Order', header: 'Current Page: Order',
+        content: '[1]<button>Save</button>\n[2]<p>Done</p>', footer: '[End of page]',
+        tabs: [{ id: 1, url: 'https://shop.test/order', title: 'Order', status: 'complete', active: true }],
+        tabId: 1, activeTabId: 1, settled: true, capturedAt: '2026-09-07T00:00:00.000Z',
+      },
+    }, 16_000, {
+      compact: true, baseRevision: 1, previousUrl: 'https://shop.test/order', previousRevision: 3,
+      previousElements: ['[1]<button>Save</button>'],
+    })
+    expect(value.mode).toBe('full')
+    expect(value.content).toContain('[2]<p>Done</p>')
   })
 
   it('shortens headers that lack a viewport line and keeps the start-of-page hint', () => {
