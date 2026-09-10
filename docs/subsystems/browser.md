@@ -42,7 +42,7 @@ interface BrowserState {
 
 Each `BrowserTabState` in `tabs` has a stable `id`, `url`, `title`, `status` (`loading` or `complete`), and `active` flag.
 
-`header`, `content`, and `footer` arrive already formatted by `PageController`. The Hydra preload ranks `content` so newly appeared and typical form controls survive a later cap; `@hydra/harness-tool-browser` ranks again, then cuts only `content` to the full (`browser_state` / `browser_navigate`) or compact (~4k) budget. Indices stay PageController's.
+`header`, `content`, and `footer` arrive already formatted by `PageController`, configured by the Hydra preload to include `disabled`, `aria-disabled`, and `href` alongside its own default attributes (`role`, `checked`/`aria-checked`, `aria-expanded`, and others). The Hydra preload ranks `content` so newly appeared and typical form controls survive a later cap; `@hydra/harness-tool-browser` omits only explicitly ignored accessibility nodes, ranks again, then cuts only `content` to the full (`browser_state` / `browser_navigate`) or compact (~4k) budget. Indices stay PageController's because the model projection never renumbers the seam's selector map.
 
 ## Actions
 

@@ -8,7 +8,7 @@ The split is the usual consumer/seam one. Everything the model can see — schem
 
 Every DOM/action tool answers with the same object, and the model reads it as one text block: what the action did, the controlled tab list, the snapshot tab, then the page it left behind. The structured value uses `tabId` for that snapshot and its valid element indices, `activeTabId` for the tab selected in the visible chrome, plus `settled`, `capturedAt`, `truncated`, and `compact`. An exhausted readiness wait is transient evidence, not a UI verdict.
 
-`browser_state` and `browser_navigate` return a full snapshot, still bounded by `maxStateChars` (default 16,000). Every other browser result is compact: ranked controls, a shorter header, a one-line tab summary when only one tab is open, and a 4,000-character element-list budget, with a notice to call `browser_state` for the full list. Compact results still carry valid indices for the next call on that tab.
+`browser_state` and `browser_navigate` return a full snapshot, still bounded by `maxStateChars` (default 16,000). Every other browser result is compact: explicitly ignored accessibility nodes are omitted, then controls are ranked, the header is shortened, a one-line tab summary is used when only one tab is open, and the element-list budget is 4,000 characters. When that normalized element list is identical to the previous result for the same tab, the result carries `unchanged: true` and omits the repeated list. A notice points to `browser_state` for the full list. Compact results still carry valid indices for the next call on that tab; omitted lines never renumber PageController indexes.
 
 ```
 did navigate

@@ -20,14 +20,14 @@ import type { ToolExecution } from '@hydra/harness-tools'
 import type {} from '@hydra/harness-system-prompt'
 import { BROWSER_PROMPT_NAME, BROWSER_PROMPT_ORDER, BROWSER_PROMPT_TEXT } from './prompt.ts'
 import {
-  DEFAULT_MAX_STATE_CHARS, formatBrowserOutput, presentBrowserCall, toValue,
+  DEFAULT_MAX_STATE_CHARS, dropIgnoredNodes, formatBrowserOutput, presentBrowserCall, rankElementList, toValue,
 } from './render.ts'
 import type { BrowserToolValue } from './render.ts'
 
 export { BROWSER_PROMPT_NAME, BROWSER_PROMPT_ORDER, BROWSER_PROMPT_TEXT } from './prompt.ts'
 export {
-  COMPACT_NOTICE, DEFAULT_COMPACT_STATE_CHARS, DEFAULT_MAX_STATE_CHARS, TRUNCATION_NOTICE,
-  compactHeader, formatBrowserOutput, presentBrowserCall, rankElementList, toValue,
+  COMPACT_NOTICE, DEFAULT_COMPACT_STATE_CHARS, DEFAULT_MAX_STATE_CHARS, TRUNCATION_NOTICE, UNCHANGED_NOTICE,
+  compactHeader, dropIgnoredNodes, formatBrowserOutput, presentBrowserCall, rankElementList, toValue,
 } from './render.ts'
 export type { BrowserToolValue, BrowserValueOptions } from './render.ts'
 
@@ -95,6 +95,7 @@ const OUTPUT_SCHEMA = {
     capturedAt: { type: 'string', required: true },
     truncated: { type: 'boolean', required: true },
     compact: { type: 'boolean', required: true },
+    unchanged: { type: 'boolean', required: true },
   },
 } as const
 
@@ -343,11 +344,31 @@ export function apply(ctx: Context, config: Config = {}): void {
     throw new Error('tool-browser: timeoutMs must be a positive integer')
   }
 
-  const run = async (exec: ToolExecution, action: BrowserAction): Promise<BrowserToolValue> =>
-    toValue(await ctx.browsers.perform(requireAgent(exec.agent), action, {
+  const previousContent = new WeakMap<Agent, Map<number, { url: string; content: string }>>()
+
+  const run = async (exec: ToolExecution, action: BrowserAction): Promise<BrowserToolValue> => {
+    const owner = requireAgent(exec.agent)
+    const outcome = await ctx.browsers.perform(owner, action, {
       callId: exec.callId,
       signal: exec.signal,
-    }), maxStateChars, { compact: !FULL_SNAPSHOT_METHODS.has(action.method) })
+    })
+    const compact = !FULL_SNAPSHOT_METHODS.has(action.method)
+    const perTab = previousContent.get(owner) ?? new Map<number, { url: string; content: string }>()
+    const previous = compact ? perTab.get(outcome.state.tabId) : undefined
+    const value = toValue(outcome, maxStateChars, {
+      compact,
+      ...previous === undefined ? {} : { previousContent: previous.content, previousUrl: previous.url },
+    })
+    perTab.set(outcome.state.tabId, {
+      url: outcome.state.url,
+      content: rankElementList(dropIgnoredNodes(outcome.state.content)),
+    })
+    for (const tabId of perTab.keys()) {
+      if (!outcome.state.tabs.some(tab => tab.id === tabId)) perTab.delete(tabId)
+    }
+    previousContent.set(owner, perTab)
+    return value
+  }
 
   const output = {
     schema: OUTPUT_SCHEMA,

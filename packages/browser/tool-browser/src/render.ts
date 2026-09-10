@@ -21,6 +21,10 @@ export const TRUNCATION_NOTICE
 export const COMPACT_NOTICE
   = '(Compact snapshot after the action. Call browser_state for the full element list.)'
 
+/** Appended when a compact action leaves the indexed page content unchanged. */
+export const UNCHANGED_NOTICE
+  = '(Page content unchanged since the previous browser result. Existing element indexes remain valid.)'
+
 /**
  * One browser tool's output value: what the action did, then what the page
  * looks like afterwards. `action` is absent for a plain state read, which took
@@ -51,6 +55,8 @@ export interface BrowserToolValue {
   capturedAt: string
   /** Whether `content` was cut. */
   truncated: boolean
+  /** Whether a compact action reused the preceding identical element list. */
+  unchanged: boolean
   /**
    * Whether this value used the compact action budget. Compact results still
    * carry valid indices for the next call; `browser_state` is the full list.
@@ -62,10 +68,41 @@ export interface BrowserToolValue {
 export interface BrowserValueOptions {
   /** True after an action that is not `browser_state` or `browser_navigate`. */
   compact?: boolean
+  /** Previously normalized content for the same controlled tab, when known. */
+  previousContent?: string
+  /** URL paired with `previousContent`, used to avoid cross-page reuse. */
+  previousUrl?: string
 }
 
 const INTERACTIVE_TAGS = new Set(['a', 'button', 'input', 'select', 'textarea'])
 const INDEXED_LINE = /^(\t*)(\*)?\[(\d+)\]<([a-z0-9-]+)/iu
+const IGNORED_NODE = /\b(?:aria-hidden\s*=\s*["']?true\b|role\s*=\s*["']?(?:presentation|none)\b|inert(?:\s|=|>|\/))/iu
+
+/**
+ * The tag/attribute declaration a PageController line opens with, up to and
+ * including its first `>`. Element text and any nested markup follow that
+ * `>`, so limiting the ignored-node check to this prefix keeps ordinary
+ * button/link text (which may itself contain words like "inert") from being
+ * mistaken for an accessibility marker.
+ * @param line - one line of the element list.
+ * @returns the line's tag-opening prefix, or the whole line if it has no `>`.
+ */
+function tagPrefix(line: string): string {
+  const end = line.indexOf('>')
+  return end === -1 ? line : line.slice(0, end + 1)
+}
+
+/**
+ * Remove only nodes whose serialized accessibility state explicitly excludes
+ * them from interaction. PageController indexes remain unchanged because the
+ * function filters lines rather than renumbering them.
+ * @param content - the element list as PageController rendered it.
+ * @returns the list without explicitly ignored nodes.
+ */
+export function dropIgnoredNodes(content: string): string {
+  if (content.length === 0) return content
+  return content.split('\n').filter(line => !IGNORED_NODE.test(tagPrefix(line))).join('\n')
+}
 
 /**
  * Rank one snapshot so newly appeared and typical form controls survive a
@@ -149,8 +186,12 @@ export function toValue(
   const compact = options.compact === true
   const budget = compact ? Math.min(maxStateChars, DEFAULT_COMPACT_STATE_CHARS) : maxStateChars
   const { state } = outcome
-  const ranked = rankElementList(state.content)
-  const content = ranked.slice(0, budget)
+  const ranked = rankElementList(dropIgnoredNodes(state.content))
+  const unchanged = compact
+    && options.previousContent !== undefined
+    && options.previousContent === ranked
+    && options.previousUrl === state.url
+  const content = unchanged ? '' : ranked.slice(0, budget)
   return {
     ...outcome.action === undefined ? {} : { action: outcome.action },
     url: state.url,
@@ -163,8 +204,9 @@ export function toValue(
     activeTabId: state.activeTabId,
     settled: state.settled,
     capturedAt: state.capturedAt,
-    truncated: content.length !== ranked.length,
+    truncated: !unchanged && content.length !== ranked.length,
     compact,
+    unchanged,
   }
 }
 
@@ -179,6 +221,7 @@ export function formatBrowserOutput(value: BrowserToolValue): string {
   const page = `${tabs}\n${target}\n\n${value.header}\n${value.content}\n${value.footer}`
   const notices = [
     ...value.truncated ? [TRUNCATION_NOTICE] : [],
+    ...value.unchanged ? [UNCHANGED_NOTICE] : [],
     ...value.compact ? [COMPACT_NOTICE] : [],
   ]
   const bounded = notices.length === 0 ? page : `${page}\n\n${notices.join('\n')}`

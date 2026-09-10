@@ -182,6 +182,7 @@ function isBrowserValue(value: unknown): value is BrowserToolValue {
     && typeof candidate.settled === 'boolean'
     && typeof candidate.capturedAt === 'string'
     && typeof candidate.truncated === 'boolean'
+    && typeof candidate.unchanged === 'boolean'
 }
 
 function browserResult(exec: ToolExecution, result: ToolExecutionResult): BrowserToolValue | undefined {
@@ -242,7 +243,9 @@ class BrowserKnowledgeRecorder {
     const graph = graphFor(this.ctx, this.settings, this.mcpUrl)
     const pages = this.pages.get(agent) ?? new Map<number, PageRecord>()
     const previous = pages.get(value.tabId)
-    const page = graph.page(value)
+    const page = value.unchanged && previous !== undefined
+      ? { ...previous, title: value.title, header: value.header, footer: value.footer, truncated: value.truncated }
+      : graph.page(value)
     pages.set(value.tabId, page)
     this.pages.set(agent, pages)
     this.latestTabs.set(agent, value.tabId)

@@ -705,6 +705,12 @@ const pageControllerReady = new Promise((resolve, reject) => {
         persistentMask: true,
         highlightOpacity: 0.12,
         highlightLabelOpacity: 0.85,
+        // PageController's own default list already covers checked/expanded
+        // state (checked, aria-checked, aria-expanded) and role. Add the
+        // disabled/link signals Hydra's compact projection also needs so the
+        // model can tell an inactive control from an active one without a
+        // full-state read.
+        includeAttributes: ['disabled', 'aria-disabled', 'href'],
       })
       await pageController.showMask()
       const getBrowserState = pageController.getBrowserState.bind(pageController)

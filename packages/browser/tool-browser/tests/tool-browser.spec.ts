@@ -22,7 +22,8 @@ import BrowserSessionService, { BROWSER_SETTINGS_NAMESPACE } from '@hydra/harnes
 import type { BrowserChildProcess } from '@hydra/harness-browser-electron'
 import * as ToolBrowser from '@hydra/harness-tool-browser'
 import {
-  BROWSER_PROMPT_NAME, BROWSER_PROMPT_TEXT, COMPACT_NOTICE, compactHeader, formatBrowserOutput, rankElementList, toValue,
+  BROWSER_PROMPT_NAME, BROWSER_PROMPT_TEXT, COMPACT_NOTICE, compactHeader, dropIgnoredNodes, formatBrowserOutput,
+  rankElementList, toValue,
 } from '@hydra/harness-tool-browser'
 
 function cdpEventPage(args: Record<string, unknown>) {
@@ -645,6 +646,23 @@ describe('browser call presentation', () => {
 })
 
 describe('browser snapshot ranking', () => {
+  it('drops only explicitly ignored accessibility nodes without changing indexes', () => {
+    expect(dropIgnoredNodes([
+      '[4]<div aria-hidden="true">decoration</div>',
+      '[7]<div role="presentation">layout</div>',
+      '[8]<div inert>inactive</div>',
+      '[12]<button>Save</button>',
+    ].join('\n'))).toBe('[12]<button>Save</button>')
+  })
+
+  it('does not drop a control whose own text happens to match an ignored marker', () => {
+    expect(dropIgnoredNodes([
+      '[3]<button>Mark account inert</button>',
+      '[5]<a href=/policy>See our inert gas safety policy</a>',
+      '[9]<div role="presentation">layout</div>',
+    ].join('\n'))).toBe('[3]<button>Mark account inert</button>\n[5]<a href=/policy>See our inert gas safety policy</a>')
+  })
+
   it('keeps newly appeared and typical form controls ahead of other indexed lines', () => {
     expect(rankElementList([
       '[9]<div>User form</div>',
@@ -679,9 +697,34 @@ describe('browser snapshot ranking', () => {
       },
     }, 16_000, { compact: true })
     expect(value.compact).toBe(true)
+    expect(value.unchanged).toBe(false)
     expect(value.content.length).toBeLessThanOrEqual(4_000)
     expect(value.content).toContain('[1]<input id=who/>')
     expect(value.header).toContain('1280x900 viewport')
+  })
+
+  it('emits an unchanged compact result when the normalized element list repeats', () => {
+    const value = toValue({
+      action: { success: true, message: 'did wait' },
+      state: {
+        url: 'https://shop.test/order',
+        title: 'Order',
+        header: 'Current Page: [Order](https://shop.test/order)',
+        content: '[1]<button>Save</button>',
+        footer: '[End of page]',
+        tabs: [{ id: 1, url: 'https://shop.test/order', title: 'Order', status: 'complete', active: true }],
+        tabId: 1,
+        activeTabId: 1,
+        settled: true,
+        capturedAt: '2026-09-07T00:00:00.000Z',
+      },
+    }, 16_000, {
+      compact: true,
+      previousContent: '[1]<button>Save</button>',
+      previousUrl: 'https://shop.test/order',
+    })
+    expect(value).toMatchObject({ content: '', compact: true, unchanged: true, truncated: false })
+    expect(formatBrowserOutput(value)).toContain('Page content unchanged since the previous browser result.')
   })
 
   it('shortens headers that lack a viewport line and keeps the start-of-page hint', () => {
