@@ -62,7 +62,6 @@ function renderTab(
 ) {
   const store = createSnapshotStore<McpSettingsState>({
     ...settled,
-    targetDomain: field(),
     apiKey: field(),
     apiKeyConfigured: false,
     apiKeyWritable: true,
@@ -101,7 +100,7 @@ describe('McpSettingsController', () => {
       expect(face.hooks.mcpSettings.getSnapshot()).toMatchObject({ failed: true, dirty: true, apiKey: { text: 'replacement' } })
     })
   })
-  it('saves the target domain and fixed Obsidian credential through their owning stores', async () => {
+  it('saves the fixed Obsidian credential through its owning store', async () => {
     const host = stubSettingsScope<McpSettings>()
     acceptWrites(host)
     const credentials = credentialApi()
@@ -109,17 +108,14 @@ describe('McpSettingsController', () => {
     host.publish({ status: 'ready', writable: true, value: {}, base: {}, user: {} })
     const face = controller.inject()
 
-    face.edit('targetDomain', ' shop.test ')
     face.edit('apiKey', ' secret ')
     face.save()
 
-    await vi.waitFor(() => { expect(host.set).toHaveBeenCalledWith('targetDomain', 'shop.test') })
     await vi.waitFor(() => { expect(credentials.set).toHaveBeenCalledWith({ ref: MCP_API_KEY_REF, value: 'secret' }) })
     await vi.waitFor(() => {
       expect(face.hooks.mcpSettings.getSnapshot()).toMatchObject({
         dirty: false,
         apiKeyConfigured: true,
-        targetDomain: { text: 'shop.test', overridden: true },
       })
     })
   })
@@ -182,9 +178,8 @@ describe('McpSettingsTab', () => {
     expect(screen.queryByText(en.mcpTitle)).toBeNull()
   })
 
-  it('stages the secret and target domain without exposing the stored key', () => {
+  it('stages the secret without exposing the stored key', () => {
     const actions = renderTab({
-      targetDomain: { ...field('shop.test'), overridden: true },
       apiKeyConfigured: true,
     })
     fireEvent.click(screen.getByText(en.mcpTitle))
@@ -193,19 +188,15 @@ describe('McpSettingsTab', () => {
     expect(key).toHaveProperty('type', 'password')
     expect(screen.getByText(en.mcpApiKeySet)).toBeTruthy()
     fireEvent.change(key, { target: { value: 'secret' } })
-    fireEvent.change(screen.getByLabelText(en.mcpTargetDomain), { target: { value: 'other.test' } })
-    fireEvent.click(screen.getByRole('button', { name: en.reset }))
 
-    expect(actions.edit.mock.calls).toEqual([['apiKey', 'secret'], ['targetDomain', 'other.test']])
-    expect(actions.resetField).toHaveBeenCalledWith('targetDomain')
+    expect(actions.edit.mock.calls).toEqual([['apiKey', 'secret']])
   })
 
-  it('uses each owning store to disable only the control it owns', () => {
+  it('uses the owning store to disable the control it owns', () => {
     renderTab({ writable: false, apiKeyWritable: false })
     fireEvent.click(screen.getByText(en.mcpTitle))
 
     expect(screen.getByLabelText(en.mcpApiKey)).toHaveProperty('disabled', true)
-    expect(screen.getByLabelText(en.mcpTargetDomain)).toHaveProperty('disabled', true)
     expect(screen.getByText(en.mcpApiKeyUnset)).toBeTruthy()
   })
 

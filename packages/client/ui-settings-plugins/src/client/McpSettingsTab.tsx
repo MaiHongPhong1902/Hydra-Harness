@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import type { ImportedPluginSnapshot, PluginEnablementResult, PluginInventorySnapshot } from '@hydra/harness-api-remotes/client'
 import { Switch } from '@hydra/harness-client-ui-primitives'
 import type { InjectFace, PropsLocale, PropsRuntime } from '@hydra/harness-client-ui-slots'
-import { SecretField, ValueField } from './fields.tsx'
+import { SecretField } from './fields.tsx'
 import { McpServerCatalog, type UserMcpControls } from './McpServerCatalog.tsx'
 import { PluginCard } from './PluginCard.tsx'
 import type { McpSettingsFace } from './mcp-settings-controller.ts'
@@ -147,18 +147,6 @@ export function McpSettingsTab(props: McpSettingsTabProps) {
           configured={state.apiKeyConfigured}
           stateLabel={state.apiKeyConfigured ? t('mcpApiKeySet') : t('mcpApiKeyUnset')}
           onEdit={(text) => { props.edit('apiKey', text) }}
-        />
-        <ValueField
-          id="plugin-mcp-target-domain"
-          label={t('mcpTargetDomain')}
-          hint={t('mcpTargetDomainHint')}
-          overriddenLabel={t('overridden')}
-          resetLabel={t('reset')}
-          invalidLabel={t('mcpInvalidDomain')}
-          disabled={!state.writable}
-          {...state.targetDomain}
-          onEdit={(text) => { props.edit('targetDomain', text) }}
-          onReset={() => { props.resetField('targetDomain') }}
         />
         {nativeFailed ? <p className={css.empty} role="alert">{t('mcpToggleFailed')}</p> : null}
       </PluginCard> : null}

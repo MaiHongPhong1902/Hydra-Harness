@@ -1,14 +1,13 @@
 /**
- * Obsidian knowledge graph retrieval plus rendering for observed browser
- * pages. The local adapter exists only for isolated tests; production uses
- * Obsidian MCP storage.
+ * Obsidian knowledge graph retrieval and approval-gated writes. The local
+ * adapter exists only for isolated tests; production uses Obsidian MCP
+ * storage.
  */
 
 import { createHash } from 'node:crypto'
 import { mkdir, readdir, readFile, realpath, stat } from 'node:fs/promises'
 import { basename, dirname, isAbsolute, join, parse, posix, relative, resolve, sep } from 'node:path'
-import { withFileLock, writeFileAtomic } from '@hydra/harness-atomic-write'
-import type { BrowserToolValue } from '@hydra/harness-tool-browser'
+import { writeFileAtomic } from '@hydra/harness-atomic-write'
 
 /** Existing vault folder retained as the contained graph root. */
 export const GRAPH_ROOT = 'Hydra Website Knowledge'
@@ -24,58 +23,20 @@ export const MAX_RECALL_MATCHES = 6
 export const MAX_RELATED_NOTES = 32
 const MAX_RECALL_SEEDS = 3
 const MAX_RECALL_EXCERPT = 320
-const ACTIONS_START = '<!-- hydra-actions:start -->'
-const ACTIONS_END = '<!-- hydra-actions:end -->'
-
-/** Optional user settings for Browser-to-Obsidian capture. */
-export interface ObsidianKnowledgeSettings {
-  /** Exact hostname or HTTP(S) origin whose browser observations may enter the vault. */
-  targetDomain?: string
-}
-
-/** Validated settings required for a graph write or read. */
-export interface ResolvedObsidianKnowledgeSettings {
-  readonly targetDomain: string
-}
 
 /** Local filesystem settings used only by the local graph test adapter. */
-export interface LocalObsidianKnowledgeSettings extends ResolvedObsidianKnowledgeSettings {
+export interface LocalObsidianKnowledgeSettings {
   readonly vaultPath: string
 }
 
 /** Storage owned by one configured Obsidian vault. */
 export interface ObsidianKnowledgeStorage {
-  /** Read an extensionless logical note path, returning empty text when absent. */
-  read(path: string): Promise<string>
-  /** Write one extensionless logical note path. */
-  write(path: string, content: string): Promise<void>
-  /** Update one extensionless logical note path from its current text. */
-  update(path: string, render: (current: string) => string): Promise<void>
   /** Search complete persisted knowledge. */
   search(query: string): Promise<KnowledgeSearchResult[]>
   /** Read complete exact persisted knowledge notes. */
   readNotes(paths: readonly string[]): Promise<KnowledgeNote[]>
-}
-
-/** One visible interactive control parsed from Hydra's Browser text DOM. */
-export interface ControlRecord {
-  readonly id: string
-  readonly index: number
-  readonly depth: number
-  readonly tag: string
-  readonly label: string
-  readonly descriptor: string
-}
-
-/** One observed Browser page and its currently visible controls. */
-export interface PageRecord {
-  readonly id: string
-  readonly url: string
-  readonly title: string
-  readonly header: string
-  readonly footer: string
-  readonly truncated: boolean
-  readonly controls: readonly ControlRecord[]
+  /** Write one extensionless logical note path. */
+  write(path: string, content: string): Promise<void>
 }
 
 /** One bounded full-text hit from the local website-knowledge folder. */
@@ -104,74 +65,6 @@ export interface KnowledgeRecall {
   readonly related: readonly KnowledgeRelation[]
 }
 
-/**
- * Return the exact HTTP(S) hostname, or undefined for any other URL.
- * @param url - Candidate URL to classify.
- * @returns Its lowercase hostname when it is an absolute HTTP(S) URL.
- */
-export function hostnameOf(url: string): string | undefined {
-  try {
-    const parsed = new URL(url)
-    return parsed.protocol === 'http:' || parsed.protocol === 'https:'
-      ? parsed.hostname.toLowerCase()
-      : undefined
-  } catch {
-    return undefined
-  }
-}
-
-/**
- * Normalize a configured hostname or HTTP(S) origin and reject broader URLs.
- * @param value - User-supplied hostname or origin configuration.
- * @returns The lowercase canonical hostname.
- */
-export function normalizeTargetDomain(value: string): string {
-  const input = value.trim().toLowerCase()
-  const isOrigin = /^https?:\/\//.test(input)
-  let parsed: URL
-  try {
-    parsed = new URL(isOrigin ? input : `https://${input}`)
-  } catch {
-    throw new Error('obsidian-knowledge: targetDomain must be a valid hostname or HTTP(S) origin')
-  }
-  const authority = isOrigin ? input.slice(input.indexOf('//') + 2).split(/[/?#]/, 1)[0] ?? '' : input
-  if (parsed.username !== ''
-    || parsed.password !== ''
-    || parsed.port !== ''
-    || parsed.pathname !== '/'
-    || parsed.search !== ''
-    || parsed.hash !== ''
-    || /[/:?#@*]/.test(authority)) {
-    throw new Error('obsidian-knowledge: targetDomain must be one hostname or HTTP(S) origin without credentials, port, path, query, fragment, or wildcard')
-  }
-  const hostname = parsed.hostname.toLowerCase()
-  if (hostname !== authority) {
-    throw new Error('obsidian-knowledge: targetDomain must be a canonical hostname')
-  }
-  return hostname
-}
-
-/**
- * Validate an optional settings section; an entirely absent section keeps the feature inactive.
- * @param settings - Unresolved configuration from the composition and user settings layers.
- * @returns Validated settings, or undefined when the feature is inactive.
- */
-export function resolveSettings(settings: ObsidianKnowledgeSettings): ResolvedObsidianKnowledgeSettings | undefined {
-  const targetDomain = settings.targetDomain?.trim()
-  if (targetDomain === undefined) return undefined
-  return { targetDomain: normalizeTargetDomain(targetDomain) }
-}
-
-/**
- * Apply the exact-host gate. Subdomains and lookalike hosts never match.
- * @param url - Browser URL to check.
- * @param targetDomain - Canonical configured hostname.
- * @returns Whether the URL is an HTTP(S) URL on the exact target hostname.
- */
-export function matchesTargetDomain(url: string, targetDomain: string): boolean {
-  return hostnameOf(url) === targetDomain
-}
-
 function digest(value: string): string {
   return createHash('sha256').update(value).digest('hex').slice(0, 16)
 }
@@ -182,10 +75,6 @@ function text(value: string, limit = 300): string {
 
 function yaml(value: string): string {
   return JSON.stringify(value)
-}
-
-function noteLink(path: string, label?: string): string {
-  return `[[${path}${label === undefined || label.length === 0 ? '' : `|${text(label, 120)}`}]]`
 }
 
 /**
@@ -311,15 +200,6 @@ function searchRank(markdown: string, terms: readonly string[]): { termScore: nu
   }
 }
 
-function extractActionLines(markdown: string): string[] {
-  const start = markdown.indexOf(ACTIONS_START)
-  const end = markdown.indexOf(ACTIONS_END)
-  if (start === -1 || end === -1 || end < start) return []
-  return markdown.slice(start + ACTIONS_START.length, end)
-    .split('\n')
-    .filter(line => line.startsWith('- [['))
-}
-
 async function existingText(path: string): Promise<string> {
   try {
     return await readFile(path, 'utf8')
@@ -329,55 +209,14 @@ async function existingText(path: string): Promise<string> {
   }
 }
 
-/**
- * Parse the visible interactive-element lines that Hydra's Browser tool returned.
- * @param value - Current Browser tool value.
- * @param pageId - Stable page-note identity used to derive control-note identities.
- * @returns One record per visible interactive element line.
- */
-export function controlsFrom(value: BrowserToolValue, pageId: string): ControlRecord[] {
-  const controls: ControlRecord[] = []
-  for (const line of value.content.split('\n')) {
-    const match = /^(\t*)\[(\d+)\]<([A-Za-z][A-Za-z0-9-]*)(?:\s[^>]*)?>(.*)$/.exec(line)
-    if (match === null) continue
-    const indentation = match[1] ?? ''
-    const indexText = match[2] ?? ''
-    const tag = match[3] ?? ''
-    const tail = match[4] ?? ''
-    const descriptor = text(line, 500)
-    const label = text(tail.replace(/<[^>]*>/g, ''), 160) || tag
-    controls.push({
-      id: `control-${pageId}-${digest(`${indentation.length}:${descriptor}`)}`,
-      index: Number(indexText),
-      depth: indentation.length,
-      tag: tag.toLowerCase(),
-      label,
-      descriptor,
-    })
-  }
-  return controls
-}
-
 /** Local filesystem adapter retained for isolated graph tests. */
 class LocalVaultStorage implements ObsidianKnowledgeStorage {
   constructor(private readonly vaultPath: string) {}
-
-  async read(path: string): Promise<string> {
-    return existingText(this.absolutePath(path))
-  }
 
   async write(path: string, content: string): Promise<void> {
     const absolute = this.absolutePath(path)
     await mkdir(dirname(absolute), { recursive: true, mode: 0o700 })
     await writeFileAtomic(absolute, content, { mode: 0o600, dirMode: 0o700 })
-  }
-
-  async update(path: string, render: (current: string) => string): Promise<void> {
-    const absolute = this.absolutePath(path)
-    await mkdir(dirname(absolute), { recursive: true, mode: 0o700 })
-    await withFileLock(absolute, async () => {
-      await writeFileAtomic(absolute, render(await existingText(absolute)), { mode: 0o600, dirMode: 0o700 })
-    })
   }
 
   async search(query: string): Promise<KnowledgeSearchResult[]> {
@@ -467,7 +306,7 @@ class LocalVaultStorage implements ObsidianKnowledgeStorage {
 
 /**
  * Create a local graph only for isolated graph tests.
- * @param settings - Contained fixture vault and Browser hostname settings.
+ * @param settings - Contained fixture vault settings.
  * @returns A graph backed by the local test-only storage adapter.
  */
 export function createLocalObsidianKnowledgeGraph(settings: LocalObsidianKnowledgeSettings): ObsidianKnowledgeGraph {
@@ -475,97 +314,12 @@ export function createLocalObsidianKnowledgeGraph(settings: LocalObsidianKnowled
   if (!isAbsolute(vaultPath) || resolve(vaultPath) === parse(resolve(vaultPath)).root) {
     throw new Error('obsidian-knowledge: vaultPath must be an absolute non-root directory')
   }
-  return new ObsidianKnowledgeGraph(
-    { targetDomain: normalizeTargetDomain(settings.targetDomain) },
-    new LocalVaultStorage(resolve(vaultPath)),
-  )
+  return new ObsidianKnowledgeGraph(new LocalVaultStorage(resolve(vaultPath)))
 }
 
 /** One Obsidian graph backed by the configured storage provider. */
 export class ObsidianKnowledgeGraph {
-  private readonly logicalRoot: string | undefined
-
-  constructor(
-    readonly settings: ResolvedObsidianKnowledgeSettings | undefined,
-    private readonly storage: ObsidianKnowledgeStorage,
-  ) {
-    this.logicalRoot = settings === undefined ? undefined : `${GRAPH_ROOT}/${settings.targetDomain}`
-  }
-
-  /**
-   * Derive one page record from a Browser value without performing I/O.
-   * @param value - Browser output to persist.
-   * @returns The stable page record and its visible controls.
-   */
-  page(value: BrowserToolValue): PageRecord {
-    const id = `page-${digest(value.url)}`
-    return {
-      id,
-      url: value.url,
-      title: text(value.title, 200) || value.url,
-      header: text(value.header, 500),
-      footer: text(value.footer, 500),
-      truncated: value.truncated,
-      controls: controlsFrom(value, id),
-    }
-  }
-
-  /**
-   * Persist an observed page, its controls, and the preceding browser transition when one exists.
-   * @param previous - Page observed before this Browser call.
-   * @param operation - Browser tool name that produced the page.
-   * @param arguments_ - Tool arguments, used only to identify a control index and never persisted verbatim.
-   * @param page - Resulting observed page.
-   * @param action - Browser-reported action outcome, absent for a plain state read.
-   * @returns When every generated Markdown note has been atomically published.
-   */
-  async record(
-    previous: PageRecord | undefined,
-    operation: string,
-    arguments_: unknown,
-    page: PageRecord,
-    action?: BrowserToolValue['action'],
-  ): Promise<void> {
-    await this.writePage(page)
-    await Promise.all(page.controls.map(async control => this.writeControl(page, control)))
-    if (previous === undefined || operation === 'browser_state') return
-
-    const control = operation === 'browser_click' || operation === 'browser_type' || operation === 'browser_select_option'
-      ? previous.controls.find(item => item.index === this.indexFromArguments(arguments_))
-      : undefined
-    const actionId = `action-${digest(`${previous.id}:${operation}:${control?.id ?? ''}:${page.id}`)}`
-    const actionPath = this.actionPath(actionId)
-    const sourcePath = this.pagePath(previous.id)
-    const targetPath = this.pagePath(page.id)
-    const actionNote = [
-      '---',
-      'type: website-action',
-      `operation: ${yaml(operation.replace('browser_', ''))}`,
-      ...action === undefined ? [] : [
-        `success: ${action.success}`,
-        `message: ${yaml(action.message)}`,
-      ],
-      `observed_at: ${yaml(new Date().toISOString())}`,
-      '---',
-      '',
-      `# ${text(operation.replace('browser_', ''))}`,
-      '',
-      `From ${noteLink(sourcePath, previous.title)} to ${noteLink(targetPath, page.title)}.`,
-      ...control === undefined ? [] : [`Control: ${noteLink(this.controlPath(control.id), control.label)}.`],
-      '',
-    ].join('\n')
-    await this.write(actionPath, actionNote)
-    await this.appendAction(sourcePath, noteLink(actionPath, text(operation.replace('browser_', ''))))
-  }
-
-  /**
-   * Read the generated Markdown note for one observed page.
-   * @param page - Page whose graph note should be read.
-   * @returns Complete Markdown content, or an empty string when it is not yet materialized.
-   */
-  async read(page: PageRecord): Promise<string> {
-    return this.storage.read(this.pagePath(page.id))
-  }
+  constructor(private readonly storage: ObsidianKnowledgeStorage) {}
 
   /**
    * Read complete persisted notes by the exact extensionless paths returned by search.
@@ -575,34 +329,6 @@ export class ObsidianKnowledgeGraph {
    */
   async readNotes(paths: readonly string[]): Promise<KnowledgeNote[]> {
     return this.storage.readNotes(paths)
-  }
-
-  /**
-   * Render current Browser evidence before it has been approved for persistence.
-   * @param page - Current Browser page evidence.
-   * @returns Markdown for the current staged page state.
-   */
-  describe(page: PageRecord): string {
-    return [
-      '---',
-      'type: staged-browser-evidence',
-      `url: ${yaml(page.url)}`,
-      `controls_complete: ${!page.truncated}`,
-      '---',
-      '',
-      `# ${page.title}`,
-      '',
-      '## Browser location',
-      '',
-      `- ${page.header || 'Current viewport'}`,
-      `- ${page.footer || 'No footer state reported'}`,
-      '',
-      '## Controls',
-      '',
-      ...page.controls.length === 0 ? ['- No interactive controls were observed in this viewport.'] : page.controls.map(control =>
-        `- ${control.label} — ${control.tag}, viewport index ${control.index}, tree depth ${control.depth}.`),
-      '',
-    ].join('\n')
   }
 
   /**
@@ -626,10 +352,10 @@ export class ObsidianKnowledgeGraph {
   }
 
   /**
-   * Validate an approved proposal before any staged Browser evidence is committed.
+   * Validate an approved proposal before it is committed.
    * @param title - Short proposal title.
    * @param content - Approved test knowledge or coverage decision.
-   * @param evidence - User context and source-note or live-browser references.
+   * @param evidence - User context and source-note references.
    */
   validateApproved(title: string, content: string, evidence: string): void {
     if (text(title, 180).length === 0 || content.trim().length === 0 || evidence.trim().length === 0) {
@@ -638,10 +364,10 @@ export class ObsidianKnowledgeGraph {
   }
 
   /**
-   * Persist a user-approved proposal without presenting it as browser evidence.
+   * Persist a user-approved proposal.
    * @param title - Short proposal title.
    * @param content - Approved test knowledge or coverage decision.
-   * @param evidence - User context and source-note or live-browser references.
+   * @param evidence - User context and source-note references.
    * @returns Logical note path beneath the vault-owned graph root.
    */
   async saveApproved(title: string, content: string, evidence: string): Promise<string> {
@@ -651,7 +377,7 @@ export class ObsidianKnowledgeGraph {
     const cleanEvidence = evidence.trim()
     const id = `approved-${digest(`${cleanTitle}\n${cleanContent}\n${cleanEvidence}`)}`
     const path = `${GRAPH_ROOT}/Approved Knowledge/${id}`
-    await this.write(path, [
+    await this.storage.write(path, [
       '---',
       'type: approved-test-knowledge',
       'provenance: user-approved-agent-proposal',
@@ -670,102 +396,5 @@ export class ObsidianKnowledgeGraph {
       '',
     ].join('\n'))
     return path
-  }
-
-  private indexFromArguments(arguments_: unknown): number | undefined {
-    if (arguments_ === null || typeof arguments_ !== 'object') return undefined
-    const index = (arguments_ as Record<string, unknown>).index
-    return Number.isSafeInteger(index) && (index as number) >= 0 ? index as number : undefined
-  }
-
-  private async writePage(page: PageRecord): Promise<void> {
-    const path = this.pagePath(page.id)
-    await this.storage.update(path, (current) => {
-      const actions = extractActionLines(current)
-      return [
-        '---',
-        'type: website-page',
-        `url: ${yaml(page.url)}`,
-        `domain: ${yaml(this.requireWebsiteSettings().targetDomain)}`,
-        `observed_at: ${yaml(new Date().toISOString())}`,
-        `controls_complete: ${!page.truncated}`,
-        '---',
-        '',
-        `# ${page.title}`,
-        '',
-        '## Browser location',
-        '',
-        `- ${page.header || 'Current viewport'}`,
-        `- ${page.footer || 'No footer state reported'}`,
-        '',
-        '## Controls',
-        '',
-        ...page.controls.length === 0 ? ['- No interactive controls were observed in this viewport.'] : page.controls.map(control =>
-          `- ${noteLink(this.controlPath(control.id), control.label)} — ${control.tag}, viewport index ${control.index}, tree depth ${control.depth}.`),
-        '',
-        '## Observed actions',
-        '',
-        ACTIONS_START,
-        ...actions,
-        ACTIONS_END,
-        '',
-      ].join('\n')
-    })
-  }
-
-  private async writeControl(page: PageRecord, control: ControlRecord): Promise<void> {
-    const path = this.controlPath(control.id)
-    const content = [
-      '---',
-      'type: website-control',
-      `page_url: ${yaml(page.url)}`,
-      `tag: ${yaml(control.tag)}`,
-      `viewport_index: ${control.index}`,
-      `tree_depth: ${control.depth}`,
-      `observed_at: ${yaml(new Date().toISOString())}`,
-      '---',
-      '',
-      `# ${control.label}`,
-      '',
-      `Located on ${noteLink(this.pagePath(page.id), page.title)} at visible tree depth ${control.depth}.`,
-      '',
-      `Observed DOM: \`${control.descriptor.replace(/`/g, '\\`')}\``,
-      '',
-    ].join('\n')
-    await this.storage.write(path, content)
-  }
-
-  private async appendAction(pagePath: string, actionLink: string): Promise<void> {
-    await this.storage.update(pagePath, (current) => {
-      if (current.includes(actionLink)) return current
-      return current.replace(ACTIONS_END, `- ${actionLink}\n${ACTIONS_END}`)
-    })
-  }
-
-  private async write(path: string, content: string): Promise<void> {
-    await this.storage.write(path, content)
-  }
-
-  private pagePath(id: string): string {
-    return `${this.requireWebsiteRoot()}/pages/${id}`
-  }
-
-  private controlPath(id: string): string {
-    return `${this.requireWebsiteRoot()}/controls/${id}`
-  }
-
-  private actionPath(id: string): string {
-    return `${this.requireWebsiteRoot()}/actions/${id}`
-  }
-
-  private requireWebsiteSettings(): ResolvedObsidianKnowledgeSettings {
-    if (this.settings === undefined) throw new Error('Obsidian browser knowledge requires configured targetDomain')
-    return this.settings
-  }
-
-  private requireWebsiteRoot(): string {
-    const root = this.logicalRoot
-    if (root === undefined) throw new Error('Obsidian browser knowledge requires configured targetDomain')
-    return root
   }
 }

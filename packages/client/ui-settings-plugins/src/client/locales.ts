@@ -15,7 +15,6 @@ export type PluginsSettingsLocaleKey =
   | 'mcpTitle' | 'mcpDescription' | 'mcpUnavailable'
   | 'mcpLoading' | 'mcpEnabled' | 'mcpToggleFailed' | 'importedMcpTitle' | 'importedMcpEmpty' | 'enable' | 'disable' | 'disabled'
   | 'mcpApiKey' | 'mcpApiKeyHint' | 'mcpApiKeySet' | 'mcpApiKeyUnset'
-  | 'mcpTargetDomain' | 'mcpTargetDomainHint' | 'mcpInvalidDomain'
   | 'userMcpTitle' | 'userMcpDescription' | 'userMcpAdd' | 'userMcpAddTitle' | 'userMcpEditTitle'
   | 'userMcpFormDescription' | 'userMcpEmpty' | 'userMcpEmptySearch' | 'userMcpLoadError' | 'userMcpRetry'
   | 'userMcpMutationError' | 'userMcpSaveError' | 'userMcpEdit' | 'userMcpRemove' | 'userMcpSave'
@@ -95,9 +94,6 @@ export const en: Record<PluginsSettingsLocaleKey, string> = {
   mcpApiKeyHint: 'Stored outside the settings file. Leave blank to keep the current key.',
   mcpApiKeySet: 'A key is configured.',
   mcpApiKeyUnset: 'No key is configured; Obsidian MCP is unavailable until one is.',
-  mcpTargetDomain: 'Browser target domain',
-  mcpTargetDomainHint: 'Optional hostname for same-domain Browser evidence. Leave blank for knowledge-only use.',
-  mcpInvalidDomain: 'Enter one hostname without a scheme, port, path, or wildcard.',
   userMcpTitle: 'Your MCP servers',
   userMcpDescription: 'Saved in your settings file, so they come back the next time you start.',
   userMcpAdd: 'Add server',

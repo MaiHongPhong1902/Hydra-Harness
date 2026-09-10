@@ -1,27 +1,20 @@
-import { access, mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises'
+import { access, mkdir, mkdtemp, readdir, readFile, rm, symlink, writeFile } from 'node:fs/promises'
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http'
 import { tmpdir } from 'node:os'
 import { dirname, join, relative, resolve, sep } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { Context } from '@hydra/cordis'
-import { agentEvents, type Agent } from '@hydra/harness-agent'
-import { CallId, createUserMessage } from '@hydra/harness-llm'
+import type { Agent } from '@hydra/harness-agent'
+import { CallId } from '@hydra/harness-llm'
 import SystemPrompt from '@hydra/harness-system-prompt'
 import ApprovalService, { type ApprovalOutcome } from '@hydra/harness-user-approval'
-import type { BrowserToolValue } from '@hydra/harness-tool-browser'
 import ToolRuntime, { defineTool, type JsonValue, type ToolExecutionResult } from '@hydra/harness-tools'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js'
 import { z } from 'zod'
 import * as ObsidianKnowledge from '../src/index.ts'
-import {
-  createLocalObsidianKnowledgeGraph,
-  matchesTargetDomain,
-  normalizeTargetDomain,
-  ObsidianKnowledgeGraph,
-  resolveSettings,
-} from '../src/graph.ts'
+import { createLocalObsidianKnowledgeGraph, ObsidianKnowledgeGraph } from '../src/graph.ts'
 import type { ObsidianKnowledgeStorage } from '../src/graph.ts'
 
 const roots: string[] = []
@@ -43,22 +36,6 @@ afterEach(async () => {
     retryDelay: 50,
   })))
 })
-
-const initial: BrowserToolValue = {
-  url: 'https://shop.test/orders',
-  title: 'Orders',
-  header: 'Current Page: [Orders](https://shop.test/orders)',
-  content: '[1]<button id=new-order>New order</button>',
-  footer: '[End of page]',
-  tabs: [{ id: 1, url: 'https://shop.test/orders', title: 'Orders', status: 'complete', active: true }],
-  tabId: 1,
-  activeTabId: 1,
-  settled: true,
-  capturedAt: '2026-08-24T00:00:00.000Z',
-  truncated: false,
-  compact: false,
-  unchanged: false,
-}
 
 function vaultFile(vaultPath: string, path: string): string {
   const root = resolve(vaultPath)
@@ -164,9 +141,8 @@ async function startFixtureMcp(vaultPath: string): Promise<FixtureMcp> {
 
 async function pluginHarness(
   vaultPath: string,
-  value: BrowserToolValue,
   approval?: ApprovalOutcome,
-  targetDomain: string | null = 'shop.test',
+  registerBrowserTools = false,
 ) {
   const mcp = await startFixtureMcp(vaultPath)
   const ctx = new Context()
@@ -181,51 +157,26 @@ async function pluginHarness(
     approvalState.value = approval
     ctx.on('approval/request', () => Promise.resolve(approvalState.value ?? 'cancelled'))
   }
-  await ctx.plugin(ObsidianKnowledge, targetDomain === null
-    ? { mcpUrl: mcp.url }
-    : { targetDomain, mcpUrl: mcp.url })
-  ctx.tools.register(defineTool({
-    name: 'browser_state',
-    description: 'fixture browser state',
-    parameters: { tab_id: { type: 'integer' } },
-    output: { schema: { type: 'json' }, render: () => [] },
-    execute: async args => ({
-      ...value,
-      tabId: args.tab_id ?? value.tabId,
-    }),
-  }))
-  ctx.tools.register(defineTool({
-    name: 'browser_navigate',
-    description: 'fixture browser navigation',
-    parameters: {
-      url: { type: 'string', required: true },
-      tab_id: { type: 'integer' },
-    },
-    output: { schema: { type: 'json' }, render: () => [] },
-    execute: async args => ({
-      ...value,
-      action: { success: true, message: 'navigate succeeded' },
-      url: args.url,
-      tabId: args.tab_id ?? value.tabId,
-    }),
-  }))
-  ctx.tools.register(defineTool({
-    name: 'browser_open_tab',
-    description: 'fixture browser tab navigation',
-    parameters: { url: { type: 'string' } },
-    output: { schema: { type: 'json' }, render: () => [] },
-    execute: async args => ({
-      ...value,
-      action: { success: true, message: 'open tab succeeded' },
-      url: args.url ?? 'about:blank',
-    }),
-  }))
-  const steered: string[] = []
+  await ctx.plugin(ObsidianKnowledge, { mcpUrl: mcp.url })
+  if (registerBrowserTools) {
+    ctx.tools.register(defineTool({
+      name: 'browser_state',
+      description: 'fixture browser state',
+      parameters: { tab_id: { type: 'integer' } },
+      output: { schema: { type: 'json' }, render: () => [] },
+      execute: async () => ({ url: 'https://shop.test/orders' }),
+    }))
+    ctx.tools.register(defineTool({
+      name: 'browser_navigate',
+      description: 'fixture browser navigation',
+      parameters: { url: { type: 'string', required: true }, tab_id: { type: 'integer' } },
+      output: { schema: { type: 'json' }, render: () => [] },
+      execute: async args => ({ url: args.url, action: { success: true, message: 'navigate succeeded' } }),
+    }))
+  }
   const agent = {
     session: { events: [{ type: 'turn/start' }], append: () => ({}) },
-    steer: (message: ReturnType<typeof createUserMessage>) => {
-      steered.push(message.content.filter(block => block.type === 'text').map(block => block.text).join('\n'))
-    },
+    steer: () => {},
   } as unknown as Agent
   const call = (name: string, arguments_: Record<string, JsonValue> = {}) => ctx.tools.execute({
     signal: new AbortController().signal,
@@ -234,29 +185,9 @@ async function pluginHarness(
     arguments: arguments_,
     agent,
   })
-  const beginTurn = (turn: number, text?: string) => agentEvents(ctx, agent).waterfall(
-    'agent/pre-step',
-    {
-      messages: text === undefined ? [] : [createUserMessage({
-        content: [{ type: 'text', text }],
-        source: { kind: 'user' },
-      })],
-      turn,
-      step: 1,
-      signal: new AbortController().signal,
-    },
-    () => Promise.resolve({ kind: 'enter' as const, messages: [] }),
-  )
-  const stopTurn = (turn: number) => agentEvents(ctx, agent).serial(
-    'agent/turn-stopping',
-    { turn, signal: new AbortController().signal },
-  )
   return {
     ctx,
     call,
-    beginTurn,
-    stopTurn,
-    steered,
     setApproval: (outcome: ApprovalOutcome) => { approvalState.value = outcome },
     dispose: async () => {
       try {
@@ -274,27 +205,14 @@ function firstText(result: ToolExecutionResult): string {
 }
 
 describe('Obsidian knowledge graph', () => {
-  it('uses an exact hostname gate', () => {
-    expect(normalizeTargetDomain('SHOP.test')).toBe('shop.test')
-    expect(normalizeTargetDomain('https://apps-uat.example.test')).toBe('apps-uat.example.test')
-    expect(normalizeTargetDomain('apps-uat.example.test')).toBe('apps-uat.example.test')
-    expect(matchesTargetDomain('https://shop.test/orders', 'shop.test')).toBe(true)
-    expect(matchesTargetDomain('https://admin.shop.test/orders', 'shop.test')).toBe(false)
-    expect(matchesTargetDomain('https://shop.test.evil.example/orders', 'shop.test')).toBe(false)
-    expect(() => normalizeTargetDomain('https://shop.test/orders')).toThrow(/path/)
-    expect(resolveSettings({ targetDomain: 'shop.test' })).toEqual({ targetDomain: 'shop.test' })
-    expect(resolveSettings({ targetDomain: 'https://apps-uat.example.test' }))
-      .toEqual({ targetDomain: 'apps-uat.example.test' })
-  })
-
-  it('recalls and reads graph memory without website configuration', async () => {
+  it('recalls and reads graph memory without any Browser tool registered', async () => {
     const vaultPath = await mkdtemp(join(tmpdir(), 'hydra-obsidian-knowledge-generic-'))
     roots.push(vaultPath)
     const notePath = 'Hydra Website Knowledge/Team Decisions/release-policy'
     await mkdir(join(vaultPath, 'Hydra Website Knowledge', 'Team Decisions'), { recursive: true })
     await writeFile(join(vaultPath, 'Hydra Website Knowledge', 'Hydra MCP Vault Identity.md'), FIXTURE_MARKER_MARKDOWN)
     await writeFile(join(vaultPath, `${notePath}.md`), '# Release policy\n\nDeploy only after smoke tests pass.\n')
-    const target = await pluginHarness(vaultPath, initial, undefined, null)
+    const target = await pluginHarness(vaultPath)
 
     const recall = await target.call('obsidian_knowledge_recall', { query: 'release policy' })
     expect(recall.isError).toBe(false)
@@ -302,11 +220,28 @@ describe('Obsidian knowledge graph', () => {
     const read = await target.call('obsidian_knowledge_read', { paths: [notePath] })
     expect(read.isError).toBe(false)
     expect(firstText(read)).toContain('Deploy only after smoke tests pass.')
-    expect((await target.call('obsidian_knowledge_read_browser')).isError).toBe(true)
     const prompt = (await target.ctx.systemPrompt.assemble()).sections
       .find(section => section.name === 'memory:obsidian-knowledge')?.text
     expect(prompt).toContain('Use obsidian_knowledge_recall once per distinct intent')
-    expect(prompt).not.toContain('current Browser evidence on shop.test')
+    await target.dispose()
+  })
+
+  it('runs Browser tools unmodified when Obsidian is mounted alongside them', async () => {
+    const vaultPath = await mkdtemp(join(tmpdir(), 'hydra-obsidian-knowledge-browser-independent-'))
+    roots.push(vaultPath)
+    await mkdir(join(vaultPath, 'Hydra Website Knowledge'), { recursive: true })
+    await writeFile(join(vaultPath, 'Hydra Website Knowledge', 'Hydra MCP Vault Identity.md'), FIXTURE_MARKER_MARKDOWN)
+    const target = await pluginHarness(vaultPath, undefined, true)
+
+    // No URL is blocked, no extra turn is forced, and no vault write happens as a side effect.
+    const state = await target.call('browser_state')
+    expect(state.isError).toBe(false)
+    const navigate = await target.call('browser_navigate', { url: 'https://shop.test/' })
+    expect(navigate.isError).toBe(false)
+    const navigateElsewhere = await target.call('browser_navigate', { url: 'https://other.test/anything' })
+    expect(navigateElsewhere.isError).toBe(false)
+    await expect(access(join(vaultPath, 'Hydra Website Knowledge', 'shop.test'))).rejects.toThrow()
+    await expect(access(join(vaultPath, 'Hydra Website Knowledge', 'other.test'))).rejects.toThrow()
     await target.dispose()
   })
 
@@ -321,46 +256,18 @@ describe('Obsidian knowledge graph', () => {
       markdown: `---\ntype: uat-feature\n---\n\n# Clear filters\n\n${relatedPaths.map((path, index) => `- [[Test Cases/${path.split('/').at(-1)}|Case ${index + 1}]]`).join('\n')}`,
     }
     const storage: ObsidianKnowledgeStorage = {
-      read: async () => '',
       write: async () => {},
-      update: async () => {},
       search: async () => [{ path: featurePath, title: 'Clear filters', excerpt: 'raw MCP excerpt' }],
       readNotes: async () => [feature],
     }
-    const recall = await new ObsidianKnowledgeGraph(undefined, storage).recall('clear filters')
+    const recall = await new ObsidianKnowledgeGraph(storage).recall('clear filters')
 
     expect(recall.matches[0]?.excerpt).toContain('# Clear filters')
     expect(recall.matches[0]?.excerpt.length).toBeLessThanOrEqual(322)
     expect(recall.related.map(relation => relation.path)).toEqual(relatedPaths)
     expect(recall.related.every(relation => relation.sourcePath === featurePath)).toBe(true)
-    const fallbackRecall = await new ObsidianKnowledgeGraph(undefined, storage).recall('semantic alias')
+    const fallbackRecall = await new ObsidianKnowledgeGraph(storage).recall('semantic alias')
     expect(fallbackRecall.matches[0]?.excerpt).toContain('# Clear filters')
-  })
-
-  it('writes page, control, and observed browser transition notes without storing typed values', async () => {
-    const vaultPath = await mkdtemp(join(tmpdir(), 'hydra-obsidian-knowledge-'))
-    roots.push(vaultPath)
-    const graph = createLocalObsidianKnowledgeGraph({ targetDomain: 'shop.test', vaultPath })
-    const before = graph.page(initial)
-    await graph.record(undefined, 'browser_state', {}, before)
-    const after = graph.page({
-      ...initial,
-      url: 'https://shop.test/orders/new',
-      title: 'New order',
-      content: '[4]<input id=name/>',
-    })
-    await graph.record(before, 'browser_click', { index: 1 }, after)
-
-    const page = await graph.read(before)
-    expect(page).toContain('New order')
-    expect(page).toContain('Observed actions')
-    expect(page).toContain('[[Hydra Website Knowledge/shop.test/actions/')
-    const actionDirectory = join(vaultPath, 'Hydra Website Knowledge', 'shop.test', 'actions')
-    const actionName = (await (await import('node:fs/promises')).readdir(actionDirectory))[0]
-    const action = await readFile(join(actionDirectory, actionName!), 'utf8')
-    expect(action).toContain('From [[Hydra Website Knowledge/shop.test/pages/')
-    expect(action).toContain('Control: [[Hydra Website Knowledge/shop.test/controls/')
-    expect(action).not.toContain('New order</button>')
   })
 
   it('searches and exactly reads imported test knowledge while containing note paths', async () => {
@@ -376,8 +283,8 @@ describe('Obsidian knowledge graph', () => {
     await writeFile(join(imported, 'TC-0001.md'), '---\ntype: uat-test-case\n---\n\n# TC_001 — Verify application search\n\n## Source columns\n\n- Preconditions: User is signed in\n- Steps: Search for Payroll\n- Expected result: Payroll is listed\n- Test data: Payroll\n')
     const approved = join(root, 'Approved Knowledge')
     await mkdir(approved, { recursive: true })
-    await writeFile(join(approved, 'shop-backoffice-entrypoint.md'), '# ShopBackoffice browser entrypoint\n\n- URL: https://shop.test/shop\n- Provenance: user-approved\n')
-    const graph = createLocalObsidianKnowledgeGraph({ targetDomain: 'shop.test', vaultPath })
+    await writeFile(join(approved, 'shop-backoffice-entrypoint.md'), '# ShopBackoffice browser entrypoint\n\n- Provenance: user-approved\n')
+    const graph = createLocalObsidianKnowledgeGraph({ vaultPath })
 
     await expect(graph.recall('application search')).resolves.toMatchObject({ matches: [
       { path: 'Hydra Website Knowledge/UAT June 2026/Test Cases/TC-0001', title: 'TC_001 — Verify application search' },
@@ -408,133 +315,39 @@ describe('Obsidian knowledge graph', () => {
     await symlink(outside, join(vaultPath, 'Hydra Website Knowledge', 'escape'), process.platform === 'win32' ? 'junction' : 'dir')
     await expect(graph.readNotes(['Hydra Website Knowledge/escape/secret'])).rejects.toThrow(/outside Hydra Website Knowledge/)
 
-    const path = await graph.saveApproved('New search coverage', 'Add a regression case for the new filter.', 'User request; Browser: https://shop.test/apps')
+    const path = await graph.saveApproved('New search coverage', 'Add a regression case for the new filter.', 'User request; see linked feature note.')
     expect(await readFile(join(vaultPath, `${path}.md`), 'utf8')).toContain('provenance: user-approved-agent-proposal')
   })
 
-  it('reads persisted notes without Browser but gates current-page evidence by domain', async () => {
+  it('recalls and reads through the mounted plugin regardless of approval outcome', async () => {
     const vaultPath = await mkdtemp(join(tmpdir(), 'hydra-obsidian-knowledge-plugin-'))
     roots.push(vaultPath)
     const persistedPath = 'Hydra Website Knowledge/Imported/Test Cases/TC-0001'
     await mkdir(join(vaultPath, 'Hydra Website Knowledge', 'Imported', 'Test Cases'), { recursive: true })
-    await writeFile(join(vaultPath, `${persistedPath}.md`), '# Complete persisted case\n\nApplication label: Shop Next Gen Portal\n\nPortal identity: ShopPortal\n\nPreconditions: User is logged into ShopBackoffice\n\nExpected result: visible\n')
-    const target = await pluginHarness(vaultPath, initial, 'allowed-once')
-    const blockedRootBeforeKnowledge = await target.call('browser_navigate', { url: 'https://shop.test/' })
-    expect(blockedRootBeforeKnowledge.isError).toBe(true)
-    expect(firstText(blockedRootBeforeKnowledge)).toContain('Read the complete testcase knowledge note')
-    expect((await target.call('browser_open_tab', { url: 'https://shop.test/' })).isError).toBe(true)
+    await writeFile(join(vaultPath, `${persistedPath}.md`), '# Complete persisted case\n\nExpected result: visible\n')
+    const target = await pluginHarness(vaultPath, 'allowed-once')
+
     const persisted = await target.call('obsidian_knowledge_read', { paths: [persistedPath] })
     expect(persisted.isError).toBe(false)
     expect(firstText(persisted)).toContain('Expected result: visible')
-    expect(firstText(persisted)).toContain('ShopPortal: https://shop.test/ShopPortal/')
-    expect(firstText(persisted)).toContain('ShopBackoffice: https://shop.test/ShopBackoffice/')
-    expect(firstText(persisted)).not.toContain('https://shop.test/ShopNext/')
-    expect((await target.call('obsidian_knowledge_read_browser')).isError).toBe(true)
-    const blockedRoot = await target.call('browser_navigate', { url: 'https://shop.test/' })
-    expect(blockedRoot.isError).toBe(true)
-    expect(firstText(blockedRoot)).toContain('ShopPortal -> https://shop.test/ShopPortal/')
-    expect((await target.call('browser_navigate', { url: 'https://shop.test/ShopPortal/' })).isError).toBe(false)
-    expect((await target.call('browser_open_tab', { url: 'https://shop.test/ShopPortal/' })).isError).toBe(false)
-    expect((await target.call('browser_navigate', { url: 'https://shop.test/orders' })).isError).toBe(false)
-    expect((await target.call('browser_state')).isError).toBe(false)
-    const read = await target.call('obsidian_knowledge_read_browser')
-    expect(read.isError).toBe(false)
-    expect(firstText(read)).toContain('Knowledge graph for https://shop.test/orders')
+
     const saved = await target.call('obsidian_knowledge_save_approved', {
       approval: 'approved-by-user',
-      title: 'Orders coverage',
+      title: 'Coverage note',
       content: 'User-approved regression coverage.',
-      evidence: 'User request; Browser: https://shop.test/orders',
+      evidence: `User request; source-note: ${persistedPath}`,
     })
     expect(saved.isError).toBe(false)
-    const actionDirectory = join(vaultPath, 'Hydra Website Knowledge', 'shop.test', 'actions')
-    const actionName = (await (await import('node:fs/promises')).readdir(actionDirectory))[0]
-    const action = await readFile(join(actionDirectory, actionName!), 'utf8')
-    expect(action).toContain('success: true')
-    expect(action).toContain('message: "navigate succeeded"')
-    const search = await target.call('obsidian_knowledge_recall', { query: 'orders' })
+    const search = await target.call('obsidian_knowledge_recall', { query: 'coverage note' })
     expect(search.isError).toBe(false)
     expect(firstText(search)).toContain('via obsidian-mcp')
     await target.dispose()
-
-    const offDomain = await pluginHarness(vaultPath, { ...initial, url: 'https://other.test/orders' })
-    expect((await offDomain.call('browser_state')).isError).toBe(false)
-    const rejected = await offDomain.call('obsidian_knowledge_read_browser')
-    expect(rejected.isError).toBe(true)
-    expect(firstText(rejected)).toContain('browse the configured website')
-    await offDomain.dispose()
   })
 
-  it('links observed browser transitions within each tab', async () => {
-    const vaultPath = await mkdtemp(join(tmpdir(), 'hydra-obsidian-knowledge-tabs-'))
-    roots.push(vaultPath)
-    const target = await pluginHarness(vaultPath, initial, 'allowed-once')
-    const first = 'https://shop.test/tab-one/start'
-    const second = 'https://shop.test/tab-two/start'
-    const last = 'https://shop.test/tab-one/end'
-    const graph = createLocalObsidianKnowledgeGraph({ targetDomain: 'shop.test', vaultPath })
-    const firstPage = graph.page({ ...initial, url: first })
-    const secondPage = graph.page({ ...initial, url: second })
-    const lastPage = graph.page({ ...initial, url: last })
-
-    expect((await target.call('browser_navigate', { url: first, tab_id: 1 })).isError).toBe(false)
-    expect((await target.call('browser_navigate', { url: second, tab_id: 2 })).isError).toBe(false)
-    expect((await target.call('browser_navigate', { url: last, tab_id: 1 })).isError).toBe(false)
-    expect((await target.call('obsidian_knowledge_save_approved', {
-      approval: 'approved-by-user',
-      title: 'Per-tab browser evidence',
-      content: 'Keep browser transitions attached to their source tab.',
-      evidence: `Live Browser: ${first} ${second} ${last}`,
-    })).isError).toBe(false)
-
-    const actionDirectory = join(vaultPath, 'Hydra Website Knowledge', 'shop.test', 'actions')
-    const actions = await Promise.all((await readdir(actionDirectory))
-      .map(name => readFile(join(actionDirectory, name), 'utf8')))
-    expect(actions.join('\n')).toContain(`/pages/${firstPage.id}`)
-    expect(actions.join('\n')).toContain(`/pages/${lastPage.id}`)
-    expect(actions.join('\n')).not.toContain(`/pages/${secondPage.id}`)
-    await target.dispose()
-  })
-
-  it('forces one Browser step for an explicit live verification with an application candidate', async () => {
-    const vaultPath = await mkdtemp(join(tmpdir(), 'hydra-obsidian-knowledge-browser-required-'))
-    roots.push(vaultPath)
-    const persistedPath = 'Hydra Website Knowledge/Imported/Test Cases/TC-0001'
-    await mkdir(join(vaultPath, 'Hydra Website Knowledge', 'Imported', 'Test Cases'), { recursive: true })
-    await writeFile(join(vaultPath, `${persistedPath}.md`), '# TC-0001\n\nApplication: ShopPortal\n')
-    const target = await pluginHarness(vaultPath, initial)
-
-    await target.beginTurn(1, 'verify TC-0001 on the live UI')
-    expect((await target.call('obsidian_knowledge_read', { paths: [persistedPath] })).isError).toBe(false)
-    await target.stopTurn(1)
-    expect(target.steered).toHaveLength(1)
-    expect(target.steered[0]).toContain('call browser_navigate')
-    await target.stopTurn(1)
-    expect(target.steered).toHaveLength(1)
-
-    await target.beginTurn(2, 'show TC-0001 source fields')
-    expect((await target.call('obsidian_knowledge_read', { paths: [persistedPath] })).isError).toBe(false)
-    expect((await target.call('browser_navigate', { url: 'https://other.test/' })).isError).toBe(false)
-    await target.stopTurn(2)
-    expect(target.steered).toHaveLength(1)
-
-    await target.beginTurn(3, 'kiểm chứng TC-0001')
-    expect((await target.call('obsidian_knowledge_read', { paths: [persistedPath] })).isError).toBe(false)
-    const wrongDomain = await target.call('browser_navigate', { url: 'http://127.0.0.1:3080/' })
-    expect(wrongDomain.isError).toBe(true)
-    expect(firstText(wrongDomain)).toContain('cannot navigate outside the configured target domain shop.test')
-    expect((await target.call('browser_open_tab', { url: 'https://other.test/' })).isError).toBe(true)
-    expect((await target.call('browser_navigate', { url: 'https://shop.test/ShopPortal/' })).isError).toBe(false)
-    await target.stopTurn(3)
-    expect(target.steered).toHaveLength(1)
-    await target.dispose()
-  })
-
-  it('requires host approval before committing staged or approved knowledge', async () => {
+  it('requires host approval before committing approved knowledge', async () => {
     const vaultPath = await mkdtemp(join(tmpdir(), 'hydra-obsidian-knowledge-approval-'))
     roots.push(vaultPath)
-    const target = await pluginHarness(vaultPath, initial, 'rejected')
-    expect((await target.call('browser_state')).isError).toBe(false)
+    const target = await pluginHarness(vaultPath, 'rejected')
     const saved = await target.call('obsidian_knowledge_save_approved', {
       approval: 'approved-by-user',
       title: 'Rejected proposal',
@@ -546,72 +359,10 @@ describe('Obsidian knowledge graph', () => {
     await target.dispose()
   })
 
-  it('commits only current proposal Browser evidence across the approval turn boundary', async () => {
-    const vaultPath = await mkdtemp(join(tmpdir(), 'hydra-obsidian-knowledge-proposal-'))
-    roots.push(vaultPath)
-    const target = await pluginHarness(vaultPath, initial, 'allowed-once')
-    await target.beginTurn(1)
-    expect((await target.call('browser_navigate', { url: 'https://shop.test/unrelated' })).isError).toBe(false)
-    expect((await target.call('browser_navigate', { url: 'https://shop.test/approved' })).isError).toBe(false)
-    expect((await target.call('browser_navigate', { url: 'https://other.test/reset' })).isError).toBe(false)
-    await target.beginTurn(2)
-    expect((await target.call('browser_navigate', { url: 'https://shop.test/approved' })).isError).toBe(false)
-
-    const saved = await target.call('obsidian_knowledge_save_approved', {
-      approval: 'approved-by-user',
-      title: 'Approved Browser evidence',
-      content: 'Persist only the evidence cited by this proposal.',
-      evidence: 'Live Browser: https://shop.test/approved',
-    })
-    expect(saved.isError).toBe(false)
-    const pageDirectory = join(vaultPath, 'Hydra Website Knowledge', 'shop.test', 'pages')
-    const pages = await Promise.all((await (await import('node:fs/promises')).readdir(pageDirectory))
-      .map(name => readFile(join(pageDirectory, name), 'utf8')))
-    expect(pages.join('\n')).toContain('https://shop.test/approved')
-    expect(pages.join('\n')).not.toContain('https://shop.test/unrelated')
-    await expect(access(join(vaultPath, 'Hydra Website Knowledge', 'shop.test', 'actions'))).rejects.toThrow()
-    await target.dispose()
-  })
-
-  it('does not attach stale Browser evidence but keeps cancelled evidence available for a retry', async () => {
-    const staleVaultPath = await mkdtemp(join(tmpdir(), 'hydra-obsidian-knowledge-stale-'))
-    roots.push(staleVaultPath)
-    const stale = await pluginHarness(staleVaultPath, initial, 'allowed-once')
-    await stale.beginTurn(1)
-    expect((await stale.call('browser_navigate', { url: 'https://shop.test/stale' })).isError).toBe(false)
-    await stale.beginTurn(3)
-    expect((await stale.call('obsidian_knowledge_save_approved', {
-      approval: 'approved-by-user',
-      title: 'Proposal without current Browser evidence',
-      content: 'Save the approved proposal only.',
-      evidence: 'Historical Browser URL: https://shop.test/stale',
-    })).isError).toBe(false)
-    await expect(access(join(staleVaultPath, 'Hydra Website Knowledge', 'shop.test', 'pages'))).rejects.toThrow()
-    await stale.dispose()
-
-    const retryVaultPath = await mkdtemp(join(tmpdir(), 'hydra-obsidian-knowledge-cancelled-'))
-    roots.push(retryVaultPath)
-    const retry = await pluginHarness(retryVaultPath, initial, 'cancelled')
-    await retry.beginTurn(1)
-    expect((await retry.call('browser_navigate', { url: 'https://shop.test/retry' })).isError).toBe(false)
-    await retry.beginTurn(2)
-    const proposal = {
-      approval: 'approved-by-user',
-      title: 'Retried proposal',
-      content: 'Persist after explicit approval.',
-      evidence: 'Live Browser: https://shop.test/retry',
-    } as const
-    expect((await retry.call('obsidian_knowledge_save_approved', proposal)).isError).toBe(true)
-    retry.setApproval('allowed-once')
-    expect((await retry.call('obsidian_knowledge_save_approved', proposal)).isError).toBe(false)
-    await expect(access(join(retryVaultPath, 'Hydra Website Knowledge', 'shop.test', 'pages'))).resolves.toBeUndefined()
-    await retry.dispose()
-  })
-
-  it('tells the model to search precisely and require test-case evidence for coverage', async () => {
+  it('tells the model to recall precisely and require test-case evidence for coverage, without any Browser rule', async () => {
     const vaultPath = await mkdtemp(join(tmpdir(), 'hydra-obsidian-knowledge-prompt-'))
     roots.push(vaultPath)
-    const target = await pluginHarness(vaultPath, initial)
+    const target = await pluginHarness(vaultPath)
     const section = (await target.ctx.systemPrompt.assemble()).sections
       .find(item => item.name === 'memory:obsidian-knowledge')
     expect(section?.text).toContain('Use obsidian_knowledge_recall once per distinct intent')
@@ -619,17 +370,8 @@ describe('Obsidian knowledge graph', () => {
     expect(section?.text).toContain('excerpt or graph edge locates evidence')
     expect(section?.text).toContain('glob, grep, or filesystem tools')
     expect(section?.text).toContain('Coverage requires a complete individual UAT case')
-    expect(section?.text).toContain('Direct open, sign-in, navigation, click, search, or create requests')
-    expect(section?.text).toContain('requires browser_* before a live verdict')
-    expect(section?.text).toContain('Block on conflicting identity')
-    expect(section?.text).toContain('current Browser evidence on shop.test')
-    expect(section?.text).toContain('recall the required role plus "browser entrypoint"')
-    expect(section?.text).toContain('matching application candidate emitted by obsidian_knowledge_read')
-    expect(section?.text).toContain('Never navigate to bare https://shop.test/')
-    expect(section?.text).toContain('request an entrypoint URL')
-    expect(section?.text).toContain('Browser observations remain staged')
-    expect(section?.text).toContain('list every live Browser result URL that belongs to that proposal')
-    expect(section?.text).toContain('report Unresolved instead of inferring')
+    expect(section?.text).not.toContain('browser_')
+    expect(section?.text).not.toContain('Browser')
     await target.dispose()
   })
 })

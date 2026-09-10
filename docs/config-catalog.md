@@ -1540,16 +1540,14 @@ Source: [`packages/feedback/message-feedback/src/index.ts:49`](../packages/feedb
 Requires: `tools` · `systemPrompt`
 
 ```ts config-catalog
-/** Host composition settings; targetDomain activates optional Browser capture. */
+/** Host composition settings. */
 export interface Config {
-  /** Initial target hostname, superseded by the user settings section when present. */
-  targetDomain?: string
   /** Local Obsidian MCP endpoint; the user settings document never stores this. */
   mcpUrl?: string
 }
 ```
 
-Source: [`packages/browser/obsidian-knowledge/src/index.ts:103`](../packages/browser/obsidian-knowledge/src/index.ts)
+Source: [`packages/browser/obsidian-knowledge/src/index.ts:52`](../packages/browser/obsidian-knowledge/src/index.ts)
 
 <a id="hydraharness-permission-presets"></a>
 

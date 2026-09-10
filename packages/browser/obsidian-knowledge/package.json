@@ -38,7 +38,6 @@
     "@hydra/harness-invariants": "workspace:^",
     "@hydra/harness-llm": "workspace:^",
     "@hydra/harness-settings": "workspace:^",
-    "@hydra/harness-tool-browser": "workspace:^",
     "@hydra/harness-tools": "workspace:^",
     "@hydra/cordis": "workspace:^"
   },
@@ -53,7 +52,6 @@
     "@hydra/harness-invariants": "workspace:^",
     "@hydra/harness-llm": "workspace:^",
     "@hydra/harness-settings": "workspace:^",
-    "@hydra/harness-tool-browser": "workspace:^",
     "@hydra/harness-tools": "workspace:^",
     "@hydra/harness-user-approval": "workspace:^",
     "@hydra/cordis": "workspace:^",

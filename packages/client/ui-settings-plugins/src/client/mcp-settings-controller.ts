@@ -3,7 +3,7 @@
 import type { IApiClient } from '@hydra/harness-client-connection/client'
 import type { SettingsScope, SnapshotStore } from '@hydra/harness-client-runtime/client'
 import {
-  CardForm, textField,
+  CardForm,
   type CardActions, type CardFieldState, type CardShell,
 } from './card-form.ts'
 
@@ -15,16 +15,11 @@ export const MCP_API_KEY_REF = 'OBSIDIAN_API_KEY'
 
 const API_KEY_FIELD = 'apiKey'
 
-/** User-editable Obsidian knowledge settings. */
-export interface McpSettings {
-  /** Optional hostname that enables same-domain Browser evidence. */
-  targetDomain?: string
-}
+/** User-editable Obsidian knowledge settings; the section carries no fields. */
+export type McpSettings = Record<string, unknown>
 
 /** State rendered by the MCP settings tab. */
 export interface McpSettingsState extends CardShell {
-  /** Optional Browser evidence hostname. */
-  targetDomain: CardFieldState
   /** Staged write-only MCP credential. */
   apiKey: CardFieldState
   /** Whether the Host resolves the MCP credential. */
@@ -57,7 +52,7 @@ export class McpSettingsController {
   ) {
     this.form = new CardForm(
       scope,
-      [textField('targetDomain')],
+      [],
       [{ field: API_KEY_FIELD, write: text => this.writeKey(text) }],
     )
     this.store = this.form.bind(() => this.projection())
@@ -83,7 +78,6 @@ export class McpSettingsController {
   private projection(): McpSettingsState {
     return {
       ...this.form.shell(),
-      targetDomain: this.form.field('targetDomain'),
       apiKey: this.form.field(API_KEY_FIELD),
       apiKeyConfigured: this.credential.configured,
       apiKeyWritable: this.credential.writable,

@@ -1178,9 +1178,6 @@ importers:
       '@hydra/harness-settings':
         specifier: workspace:^
         version: link:../../settings/settings
-      '@hydra/harness-tool-browser':
-        specifier: workspace:^
-        version: link:../tool-browser
       '@hydra/harness-tools':
         specifier: workspace:^
         version: link:../../core/tools

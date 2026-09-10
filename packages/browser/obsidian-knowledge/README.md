@@ -11,28 +11,23 @@ Mount the plugin in a Hydra profile or patch:
   name: '@hydra/harness-obsidian-knowledge'
 ```
 
-Generic recall, exact reads, and approval-gated saves work without website configuration. To add Browser evidence capture, configure one canonical hostname in the existing Hydra settings document:
+Recall, exact reads, and approval-gated saves work with no user-facing settings. The settings document intentionally contains no vault path, MCP URL, or token.
 
-```yaml
-obsidian-knowledge:
-  targetDomain: shop.example.internal
-```
+Earlier releases accepted an optional `targetDomain` setting that gated Browser-evidence capture into per-domain page/control/action notes. That capture path has been removed: Browser tools and Obsidian knowledge are independent plugins now, and `targetDomain` is no longer read from settings or composition config. If your settings document still has an `obsidian-knowledge.targetDomain` entry, it is ignored and can be deleted. Existing vault notes, including any previously captured page/control/action notes, are left untouched; nothing needs to be migrated.
 
-`targetDomain` accepts one hostname or HTTP(S) origin and normalizes it to the exact hostname used for Browser matching. Ports, credentials, paths, queries, fragments, wildcards, and implicit subdomain matching remain rejected. The settings document intentionally contains no vault path, MCP URL, or token.
-
-The Web app exposes `targetDomain` and the write-only `OBSIDIAN_API_KEY` credential under **Settings → Plugins → MCP**. The credential stays outside the settings document, and the MCP endpoint remains deployment configuration.
+The Web app exposes the write-only `OBSIDIAN_API_KEY` credential under **Settings → Plugins → MCP**. The credential stays outside the settings document, and the MCP endpoint remains deployment configuration.
 
 Enable the Local REST API community plugin and its built-in MCP server in the intended vault. Create the unique marker `Hydra Website Knowledge/Hydra MCP Vault Identity.md`; Hydra harness reads it before each operation so a different open vault fails closed. Hydra harness connects on demand to `http://127.0.0.1:27123/mcp/`, uses a five-second timeout, and resolves the bearer token from Hydra credential reference `OBSIDIAN_API_KEY`.
+
+This plugin is independent of Browser tooling. It never observes, gates, or reads `browser_*` tool calls or results.
 
 ## Behavior
 
 `obsidian_knowledge_recall` searches once per intent and returns at most six ranked matches. It exact-reads only the strongest three matches internally, replaces their raw search fragments with focused excerpts of at most 320 characters, and follows explicit Obsidian wikilinks to expose at most 32 related exact paths. Linked note bodies are not included. This combines title, phrase, typed-note, and graph context without adding an embedding index or vector-store dependency.
 
-`obsidian_knowledge_read` reads one to 32 selected extensionless paths as complete Markdown in one batch. The 64 KiB batch limit and path-containment checks fail the whole read for missing, invalid, mismatched, or oversized input rather than returning partial evidence. With `targetDomain` configured, complete notes can also emit bounded same-domain application-root candidates from literal PascalCase application identifiers.
+`obsidian_knowledge_read` reads one to 32 selected extensionless paths as complete Markdown in one batch. The 64 KiB batch limit and path-containment checks fail the whole read for missing, invalid, mismatched, or oversized input rather than returning partial evidence.
 
-`obsidian_knowledge_save_approved` is the only model-facing write path. The host asks the user to approve the exact call before saving under `Hydra Website Knowledge/Approved Knowledge/`. When Browser capture is configured, cited observations from the current or immediately previous turn are committed with the proposal. Page notes link controls and actions so Obsidian's native graph retains `page -> control` and `page -> action -> resulting page` relationships. Typed input and selected-option values are not persisted.
-
-`obsidian_knowledge_read_browser` returns current evidence only after a successful Browser result on the exact configured hostname. Browser navigation remains live evidence, while historical vault notes remain context. Authentication, protocol, marker, malformed-result, or required-note failures do not fall back to filesystem discovery; the agent must report `Unresolved`.
+`obsidian_knowledge_save_approved` is the only model-facing write path. The host asks the user to approve the exact call before saving under `Hydra Website Knowledge/Approved Knowledge/`.
 
 ## Model Experience
 
@@ -40,7 +35,7 @@ Enable the Local REST API community plugin and its built-in MCP server in the in
 
 #### What the model sees
 
-One stable prompt section instructs the model to recall once, select match or related paths, and exact-read them in one batch. Recall output contains short ranked context and graph edges; exact reads contain only the complete notes selected by the model. Configuring `targetDomain` adds Browser-navigation and evidence rules to the same section.
+One stable prompt section instructs the model to call `obsidian_knowledge_recall` once, select match or related paths, and exact-read them in one `obsidian_knowledge_read` batch. Recall output contains short ranked context and graph edges; exact reads contain only the complete notes selected by the model.
 
 #### Token effect
 
@@ -48,11 +43,10 @@ Recall output is capped at six 320-character excerpts plus 32 path-only graph ne
 
 #### KV Cache effect
 
-Tool schemas and the prompt prefix stay stable. Data-dependent excerpts, paths, complete notes, and Browser evidence are appended only when requested.
+Tool schemas and the prompt prefix stay stable. Data-dependent excerpts, paths, and complete notes are appended only when requested.
 
 ## Known Limitations and Deferred Work
 
 - Retrieval uses Obsidian search plus explicit wikilinks, not embedding similarity. Add a semantic index only after measured misses justify its dependency, migration, and index lifecycle.
 - Graph expansion follows one hop from the three strongest matches. Read a returned related note and recall a narrower intent when deeper traversal is needed.
-- Browser capture sees Hydra harness's viewport-scoped text DOM, not selectors, screenshots, or unvisited pages.
 - Obsidian and its Local REST API MCP server must be running, and `OBSIDIAN_API_KEY` must resolve, for knowledge access.

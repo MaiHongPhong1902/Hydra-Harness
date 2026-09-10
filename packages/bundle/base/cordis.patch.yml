@@ -504,8 +504,8 @@
       name: '@hydra/harness-browser-electron'
       pluginType: core
 
-    # Recalls graph-linked Obsidian knowledge through MCP. Optional domain
-    # settings add approval-gated Browser evidence capture.
+    # Recalls graph-linked Obsidian knowledge through MCP, plus approval-gated
+    # knowledge saves. Independent of Browser tooling.
     - id: obsidian-knowledge
       name: '@hydra/harness-obsidian-knowledge'
 
