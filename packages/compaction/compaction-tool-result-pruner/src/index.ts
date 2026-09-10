@@ -40,6 +40,17 @@ interface SnapshotCandidate {
   readonly event: SessionEvent<'tool/result'>
 }
 
+function browserMeta(event: SessionEvent<'tool/result'>): { tabId: number; revision: number; hash: string } | undefined {
+  const browser = event.data.meta && typeof event.data.meta === 'object' && !Array.isArray(event.data.meta)
+    ? (event.data.meta as Record<string, unknown>).browser
+    : undefined
+  if (browser === undefined || typeof browser !== 'object' || browser === null || Array.isArray(browser)) return undefined
+  const value = browser as Record<string, unknown>
+  return typeof value.tabId === 'number' && typeof value.revision === 'number' && typeof value.hash === 'string'
+    ? { tabId: value.tabId, revision: value.revision, hash: value.hash }
+    : undefined
+}
+
 /** Deterministic head/middle/tail pruning for current tool-result surface nodes. */
 export class ToolResultPruner extends Service {
   // The token meter prices each shadowed node for its logged shadow-price
@@ -142,8 +153,17 @@ export class ToolResultPruner extends Service {
     }
 
     const pruned: PrunedEntry[] = []
+    const browserLast = new Map<number, number>()
+    for (const candidate of candidates) {
+      const meta = browserMeta(candidate.event)
+      if (meta !== undefined) browserLast.set(meta.tabId, candidate.seq)
+    }
     let charsRemoved = 0
     for (const { seq, event } of candidates) {
+      const meta = browserMeta(event)
+      const failed = event.data.error !== undefined
+        || event.data.message.content.some(block => block.type === 'tool-result' && block.isError === true)
+      if (meta !== undefined && browserLast.get(meta.tabId) === seq && !failed) continue
       const result = event.data.message.content[0]
       const content = this.pruneContent(result.content)
       if (content === null) continue

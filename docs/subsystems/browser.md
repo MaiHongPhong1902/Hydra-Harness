@@ -12,6 +12,10 @@ The page-control modality is text, not pixels. `PageController` turns a targeted
 
 Website and media permission requests use the owning chat through `ctx.userQuestions`; the Electron owner enforces the answer before continuing. The [package README](../../packages/browser/browser-electron/README.md#security) defines the policy and cancellation behavior.
 
+## Context cost
+
+Ordinary browser actions keep a per-tab revision and return a structural diff when fewer than half the indexed lines change. Full state reads and navigation remain full snapshots; an empty diff records the revision while retaining the previous indexes. The offline six-scenario benchmark and committed measurements live in [examples/acp-agent/browser-bench](../../examples/acp-agent/browser-bench).
+
 ## Page state
 
 ```ts type-equiv

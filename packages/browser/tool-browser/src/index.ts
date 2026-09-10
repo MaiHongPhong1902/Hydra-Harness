@@ -20,13 +20,13 @@ import type { ToolExecution } from '@hydra/harness-tools'
 import type {} from '@hydra/harness-system-prompt'
 import { BROWSER_PROMPT_NAME, BROWSER_PROMPT_ORDER, BROWSER_PROMPT_TEXT } from './prompt.ts'
 import {
-  DEFAULT_MAX_STATE_CHARS, dropIgnoredNodes, formatBrowserOutput, presentBrowserCall, rankElementList, toValue,
+  DEFAULT_MAX_STATE_CHARS, contentHash, dropIgnoredNodes, formatBrowserOutput, presentBrowserCall, rankElementList, toValue,
 } from './render.ts'
 import type { BrowserToolValue } from './render.ts'
 
 export { BROWSER_PROMPT_NAME, BROWSER_PROMPT_ORDER, BROWSER_PROMPT_TEXT } from './prompt.ts'
 export {
-  COMPACT_NOTICE, DEFAULT_COMPACT_STATE_CHARS, DEFAULT_MAX_STATE_CHARS, TRUNCATION_NOTICE, UNCHANGED_NOTICE,
+  COMPACT_NOTICE, DEFAULT_COMPACT_STATE_CHARS, DEFAULT_MAX_STATE_CHARS, TRUNCATION_NOTICE, UNCHANGED_NOTICE, contentHash,
   compactHeader, dropIgnoredNodes, formatBrowserOutput, presentBrowserCall, rankElementList, toValue,
 } from './render.ts'
 export type { BrowserToolValue, BrowserValueOptions } from './render.ts'
@@ -96,6 +96,12 @@ const OUTPUT_SCHEMA = {
     truncated: { type: 'boolean', required: true },
     compact: { type: 'boolean', required: true },
     unchanged: { type: 'boolean', required: true },
+    mode: { type: 'string', enum: ['full', 'diff'] },
+    revision: { type: 'integer' },
+    baseRevision: { type: 'integer' },
+    added: { type: 'array', items: { type: 'string' } },
+    changed: { type: 'array', items: { type: 'string' } },
+    removed: { type: 'array', items: { type: 'string' } },
   },
 } as const
 
@@ -344,7 +350,7 @@ export function apply(ctx: Context, config: Config = {}): void {
     throw new Error('tool-browser: timeoutMs must be a positive integer')
   }
 
-  const previousContent = new WeakMap<Agent, Map<number, { url: string; content: string }>>()
+  const previousContent = new WeakMap<Agent, Map<number, { url: string; content: string; revision: number; elements: string[] }>>()
 
   const run = async (exec: ToolExecution, action: BrowserAction): Promise<BrowserToolValue> => {
     const owner = requireAgent(exec.agent)
@@ -353,15 +359,18 @@ export function apply(ctx: Context, config: Config = {}): void {
       signal: exec.signal,
     })
     const compact = !FULL_SNAPSHOT_METHODS.has(action.method)
-    const perTab = previousContent.get(owner) ?? new Map<number, { url: string; content: string }>()
-    const previous = compact ? perTab.get(outcome.state.tabId) : undefined
+    const perTab = previousContent.get(owner) ?? new Map<number, { url: string; content: string; revision: number; elements: string[] }>()
+    const previous = perTab.get(outcome.state.tabId)
     const value = toValue(outcome, maxStateChars, {
       compact,
       ...previous === undefined ? {} : { previousContent: previous.content, previousUrl: previous.url },
+      ...previous === undefined ? {} : { previousElements: previous.elements, previousRevision: previous.revision },
     })
     perTab.set(outcome.state.tabId, {
       url: outcome.state.url,
       content: rankElementList(dropIgnoredNodes(outcome.state.content)),
+      elements: rankElementList(dropIgnoredNodes(outcome.state.content)).split('\n').filter(Boolean),
+      revision: value.revision ?? 1,
     })
     for (const tabId of perTab.keys()) {
       if (!outcome.state.tabs.some(tab => tab.id === tabId)) perTab.delete(tabId)
@@ -374,6 +383,14 @@ export function apply(ctx: Context, config: Config = {}): void {
     schema: OUTPUT_SCHEMA,
     render: (_args: unknown, value: BrowserToolValue) =>
       [{ type: 'text' as const, text: formatBrowserOutput(value) }],
+    presentationMeta: (_args: unknown, value: BrowserToolValue) => ({
+      browser: {
+        tabId: value.tabId,
+        revision: value.revision ?? 1,
+        hash: contentHash([value.content, ...(value.added ?? []), ...(value.changed ?? []), ...(value.removed ?? [])].join('\n')),
+        mode: value.mode ?? 'full',
+      },
+    }),
   }
 
   ctx.systemPrompt.section({

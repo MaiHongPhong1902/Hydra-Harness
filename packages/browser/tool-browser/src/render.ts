@@ -62,6 +62,13 @@ export interface BrowserToolValue {
    * carry valid indices for the next call; `browser_state` is the full list.
    */
   compact: boolean
+  /** Snapshot revision and optional structural diff for compact actions. */
+  mode?: 'full' | 'diff'
+  revision?: number
+  baseRevision?: number
+  added?: string[]
+  changed?: string[]
+  removed?: string[]
 }
 
 /** Options that select the full or compact trailing snapshot. */
@@ -72,6 +79,11 @@ export interface BrowserValueOptions {
   previousContent?: string
   /** URL paired with `previousContent`, used to avoid cross-page reuse. */
   previousUrl?: string
+  /** Previous normalized lines and revision for same-tab diffing. */
+  previousElements?: string[]
+  previousRevision?: number
+  /** Caller revision claim; mismatches force a full snapshot. */
+  baseRevision?: number
 }
 
 const INTERACTIVE_TAGS = new Set(['a', 'button', 'input', 'select', 'textarea'])
@@ -117,7 +129,9 @@ export function dropIgnoredNodes(content: string): string {
   if (content.length === 0) return content
   return content.split('\n').filter((line) => {
     const end = line.indexOf('>')
-    return !hasIgnoredMarker(end === -1 ? line : line.slice(0, end + 1))
+    if (hasIgnoredMarker(end === -1 ? line : line.slice(0, end + 1))) return false
+    if (!/^\s*\[\d+\]/u.test(line) && /^\s*<[a-z0-9-]+(?:\s[^>]*)?>\s*<\/[^>]+>\s*$/iu.test(line)) return false
+    return line.trim().length > 0
   }).join('\n')
 }
 
@@ -204,11 +218,38 @@ export function toValue(
   const budget = compact ? Math.min(maxStateChars, DEFAULT_COMPACT_STATE_CHARS) : maxStateChars
   const { state } = outcome
   const ranked = rankElementList(dropIgnoredNodes(state.content))
+  const rankedLines = ranked.length === 0 ? [] : ranked.split('\n')
   const unchanged = compact
     && options.previousContent !== undefined
     && options.previousContent === ranked
     && options.previousUrl === state.url
   const content = unchanged ? '' : ranked.slice(0, budget)
+  const previousElements = options.previousElements
+  const canDiff = compact && previousElements !== undefined && options.previousRevision !== undefined
+    && options.previousUrl === state.url
+    && (options.baseRevision === undefined || options.baseRevision === options.previousRevision)
+  const previousLines = previousElements ?? []
+  const previousByIndex = new Map(previousLines.map(line => [lineIndex(line), line]))
+  const currentByIndex = new Map(rankedLines.map(line => [lineIndex(line), line]))
+  const added = canDiff ? rankedLines.filter((line) => {
+    const index = lineIndex(line)
+    return !previousLines.includes(line) && (index === undefined || previousByIndex.get(index) === undefined)
+  }) : []
+  const removed = canDiff ? previousLines.filter((line) => {
+    const index = lineIndex(line)
+    return !rankedLines.includes(line) && (index === undefined || currentByIndex.get(index) === undefined)
+  }) : []
+  const changed = canDiff ? rankedLines.filter((line) => {
+    const index = lineIndex(line)
+    return index !== undefined && previousByIndex.get(index) !== undefined && previousByIndex.get(index) !== line
+  }) : []
+  const diff = canDiff && added.length + removed.length + changed.length <= Math.max(1, ranked.length / 2)
+  const sameSnapshot = previousElements !== undefined
+    && options.previousRevision !== undefined
+    && options.previousUrl === state.url
+    && previousElements.join('\n') === ranked
+  const revision = options.previousRevision === undefined ? 1
+    : (sameSnapshot ? options.previousRevision : options.previousRevision + 1)
   return {
     ...outcome.action === undefined ? {} : { action: outcome.action },
     url: state.url,
@@ -224,7 +265,25 @@ export function toValue(
     truncated: !unchanged && content.length !== ranked.length,
     compact,
     unchanged,
+    mode: diff ? 'diff' : 'full',
+    revision,
+    ...diff ? { baseRevision: options.previousRevision ?? 1, added, changed, removed } : {},
   }
+}
+
+/** Stable short digest for browser trajectory classification.
+ * @param content - normalized browser lines to hash.
+ * @returns an eight-character hexadecimal digest.
+ */
+export function contentHash(content: string): string {
+  let hash = 2166136261
+  for (const character of content) hash = Math.imul(hash ^ (character.codePointAt(0) ?? 0), 16777619)
+  return (hash >>> 0).toString(16).padStart(8, '0')
+}
+
+function lineIndex(line: string): number | undefined {
+  const match = INDEXED_LINE.exec(line)
+  return match === null ? undefined : Number(match[3])
 }
 
 /**
@@ -235,7 +294,9 @@ export function toValue(
 export function formatBrowserOutput(value: BrowserToolValue): string {
   const tabs = formatTabs(value.tabs, value.compact)
   const target = `Snapshot tab: [${value.tabId}]${value.tabId === value.activeTabId ? '' : ' (background)'}`
-  const page = `${tabs}\n${target}\n\n${value.header}\n${value.content}\n${value.footer}`
+  const page = value.mode === 'diff'
+    ? `${tabs}\n${target}\n\nSnapshot revision: ${value.baseRevision ?? value.revision ?? 1} → ${value.revision ?? 1}\nAdded:\n${value.added?.join('\n') ?? ''}\nChanged:\n${value.changed?.join('\n') ?? ''}\nRemoved:\n${value.removed?.join('\n') ?? ''}`
+    : `${tabs}\n${target}\n\n${value.header}\n${value.content}\n${value.footer}`
   const notices = [
     ...value.truncated ? [TRUNCATION_NOTICE] : [],
     ...value.unchanged ? [UNCHANGED_NOTICE] : [],

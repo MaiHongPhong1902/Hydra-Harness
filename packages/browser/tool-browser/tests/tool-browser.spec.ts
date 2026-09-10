@@ -747,6 +747,23 @@ describe('browser snapshot ranking', () => {
     expect(formatBrowserOutput(value)).toContain('Page content unchanged since the previous browser result.')
   })
 
+  it('emits a same-tab structural diff and preserves indexes', () => {
+    const value = toValue({
+      action: { success: true, message: 'did click' },
+      state: {
+        url: 'https://shop.test/order', title: 'Order', header: 'Current Page: Order',
+        content: '[1]<button>Save</button>\n[2]<p>Done</p>', footer: '[End of page]',
+        tabs: [{ id: 1, url: 'https://shop.test/order', title: 'Order', status: 'complete', active: true }],
+        tabId: 1, activeTabId: 1, settled: true, capturedAt: '2026-09-07T00:00:00.000Z',
+      },
+    }, 16_000, {
+      compact: true, previousUrl: 'https://shop.test/order', previousRevision: 3,
+      previousContent: '[1]<button>Save</button>', previousElements: ['[1]<button>Save</button>'],
+    })
+    expect(value).toMatchObject({ mode: 'diff', baseRevision: 3, revision: 4, added: ['[2]<p>Done</p>'], removed: [] })
+    expect(formatBrowserOutput(value)).toContain('Snapshot revision: 3 → 4')
+  })
+
   it('shortens headers that lack a viewport line and keeps the start-of-page hint', () => {
     expect(rankElementList('')).toBe('')
     expect(compactHeader('')).toBe('')

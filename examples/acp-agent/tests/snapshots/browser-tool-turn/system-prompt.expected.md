@@ -25,7 +25,7 @@ The embedded Browser is the default for interactive website work. A Browser-sett
 
 Hydra decides every browser action. PageController supplies the numbered text DOM and executes indexed or named clicks, typing, and scrolls; do not treat an in-page engine as a second agent. Prefer `browser_find`, named click/type/select, and `browser_fill` for forms and labeled controls. Use `browser_state` when you need the full element list. `browser_page_agent_run` is only for an explicit user request to run the upstream PageAgent engine; do not poll it for ordinary work.
 
-`browser_state` and `browser_navigate` return a full snapshot. Every other browser result is compact: ranked controls, a shorter header, and a 4k element-list budget. Compact results still carry valid indices for the next call on that tab. Call `browser_state` when a control is missing from the compact list.
+`browser_state` and `browser_navigate` return a full snapshot. Every other browser result is compact: ignored accessibility nodes are omitted, controls are ranked, the header is shorter, and the element-list budget is 4k. Small same-tab changes use a revision diff with added, changed, and removed lines; large changes and navigation return a full snapshot. An empty diff keeps previous indexes valid. Call `browser_state` when a control is missing.
 
 Every browser result lists the controlled tabs and names the snapshot tab before the same three page blocks: the current URL and scroll position; the list of interactive elements; and a footer saying whether content continues below. The structured result carries `tabId` for the snapshot and its valid indices, `activeTabId` for the tab selected in the visible chrome, plus `settled` and `capturedAt`. A result with `settled: false` is transient evidence, never proof that a feature or control is absent; call `browser_wait` once before deciding.
 
@@ -36,7 +36,7 @@ Elements are listed as [index]<type>text</type>:
 	*[35]<button aria-label='Submit form'>Submit</button>
 ```
 
-- Only elements with a numeric [index] can be acted on, and only indexes the most recent result for that same tab actually listed.
+- Only elements with a numeric [index] can be acted on, and only indexes the most recent result for that same tab listed; when that result reported unchanged content, the indexes from the previous result for that tab are still the current ones.
 - A tab of indentation means the element is a child of the element above it.
 - `*[` marks an element that has appeared since the previous result for the same URL.
 - Text without [] is page content, not something you can act on.

@@ -243,6 +243,21 @@ describe('ToolResultPruner session transaction', () => {
     expect(second).toEqual({ pruned: [], charsRemoved: 0 })
   })
 
+  it('keeps the newest browser snapshot for each tab', () => {
+    const session = Session.create(SessionId('browser-retention'))
+    appendToolStep(session, 1, 'old', [{ type: 'text', text: 'old browser snapshot '.repeat(10) }], {
+      meta: { browser: { tabId: 1, revision: 1, hash: 'a', mode: 'full' } },
+    })
+    appendToolStep(session, 2, 'new', [{ type: 'text', text: 'new browser snapshot '.repeat(10) }], {
+      meta: { browser: { tabId: 1, revision: 2, hash: 'b', mode: 'diff' } },
+    })
+    session.append('turn/start', { turn: 3 })
+    const result = service().pruneSession(session)
+    expect(result.pruned.map(entry => entry.callId)).toEqual([CallId('old')])
+    expect(session.surface.nodes).toContain(result.pruned[0]!.replacementSeq)
+    expect(session.surface.nodes).toContain(session.events.find(event => event.type === 'tool/result' && event.data.message.source.callId === CallId('new'))!.seq)
+  })
+
   it('replays to the identical pruned model messages', () => {
     const session = Session.create(SessionId('replay'))
     appendToolStep(session, 1, 'a', [{ type: 'text', text: 'A'.repeat(100) }])
