@@ -219,15 +219,18 @@ export function toValue(
   const { state } = outcome
   const ranked = rankElementList(dropIgnoredNodes(state.content))
   const rankedLines = ranked.length === 0 ? [] : ranked.split('\n')
+  const revisionClaimMatches = options.baseRevision === undefined
+    || options.baseRevision === options.previousRevision
   const unchanged = compact
     && options.previousContent !== undefined
     && options.previousContent === ranked
     && options.previousUrl === state.url
+    && revisionClaimMatches
   const content = unchanged ? '' : ranked.slice(0, budget)
   const previousElements = options.previousElements
   const canDiff = compact && previousElements !== undefined && options.previousRevision !== undefined
     && options.previousUrl === state.url
-    && (options.baseRevision === undefined || options.baseRevision === options.previousRevision)
+    && revisionClaimMatches
   const previousLines = previousElements ?? []
   const previousByIndex = new Map(previousLines.map(line => [lineIndex(line), line]))
   const currentByIndex = new Map(rankedLines.map(line => [lineIndex(line), line]))

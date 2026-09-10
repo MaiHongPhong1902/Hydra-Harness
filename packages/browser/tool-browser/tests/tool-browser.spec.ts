@@ -795,6 +795,22 @@ describe('browser snapshot ranking', () => {
     expect(value.content).toContain('[2]<p>Done</p>')
   })
 
+  it('keeps a full snapshot when a stale claim sees unchanged content', () => {
+    const value = toValue({
+      action: { success: true, message: 'did wait' },
+      state: {
+        url: 'https://shop.test/order', title: 'Order', header: 'Current Page: Order',
+        content: '[1]<button>Save</button>', footer: '[End of page]',
+        tabs: [{ id: 1, url: 'https://shop.test/order', title: 'Order', status: 'complete', active: true }],
+        tabId: 1, activeTabId: 1, settled: true, capturedAt: '2026-09-07T00:00:00.000Z',
+      },
+    }, 16_000, {
+      compact: true, baseRevision: 1, previousUrl: 'https://shop.test/order', previousRevision: 3,
+      previousContent: '[1]<button>Save</button>', previousElements: ['[1]<button>Save</button>'],
+    })
+    expect(value).toMatchObject({ mode: 'full', revision: 3, unchanged: false, content: '[1]<button>Save</button>' })
+  })
+
   it('shortens headers that lack a viewport line and keeps the start-of-page hint', () => {
     expect(rankElementList('')).toBe('')
     expect(compactHeader('')).toBe('')
