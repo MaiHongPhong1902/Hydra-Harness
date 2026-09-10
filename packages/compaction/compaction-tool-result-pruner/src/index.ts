@@ -162,7 +162,7 @@ export class ToolResultPruner extends Service {
     for (const { seq, event } of candidates) {
       const meta = browserMeta(event)
       const failed = event.data.error !== undefined
-        || event.data.message.content.some(block => block.type === 'tool-result' && block.isError === true)
+        || event.data.message.content[0].isError === true
       if (meta !== undefined && browserLast.get(meta.tabId) === seq && !failed) continue
       const result = event.data.message.content[0]
       const content = this.pruneContent(result.content)
