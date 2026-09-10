@@ -33,6 +33,7 @@ let browser
 let browserConnection
 let browserBounds = { x: 0, y: 0, width: 0, height: 0, visible: false, present: true }
 const terminals = new Map()
+const terminalTails = new Map()
 const fileSaveTails = new Map()
 
 function panelShortcut(input) {
@@ -75,9 +76,9 @@ async function handleBrowserMessage(message) {
   if (message.type === 'hydra-browser-connect') {
     if (typeof message.connectionId !== 'string') return
     if (browserConnection !== undefined && browserConnection !== message.connectionId) {
-      postBrowser(message.connectionId, 'hydra-browser-error', { error: 'another agent already owns the desktop browser' })
-      postBrowser(message.connectionId, 'hydra-browser-close')
-      return
+      try { browser?.cancelPermissions() } catch {}
+      postBrowser(browserConnection, 'hydra-browser-close')
+      browserConnection = undefined
     }
     browserConnection = message.connectionId
     const settings = typeof message.settings === 'object' && message.settings !== null ? message.settings : {}
@@ -197,11 +198,13 @@ function startHost() {
   if (!existsSync(CLI_ENTRY)) {
     throw new Error('Desktop Host is not built. Run `pnpm run build` first.')
   }
+  const hostEnv = { ...process.env, HYDRA_DESKTOP_BROWSER_BRIDGE: 'parent-port' }
+  delete hostEnv.ELECTRON_RUN_AS_NODE
   const child = utilityProcess.fork(CLI_ENTRY, [
     'web', '--no-open', '--host', '127.0.0.1', '--port', '0',
   ], {
     cwd: process.cwd(),
-    env: { ...process.env, HYDRA_DESKTOP_BROWSER_BRIDGE: 'parent-port' },
+    env: hostEnv,
     // Electron's Node ABI cannot use the system-Node native helper that exposes
     // the Loader internals. The built-in flag gives profile-relative plugin
     // resolution the same hook without loading that addon.
@@ -252,7 +255,24 @@ function sendTerminalEvent(terminalId, value) {
 }
 
 function terminalId(value) {
-  return value === 'bottom' || value === 'right' ? value : undefined
+  if (value === 'bottom' || value === 'right') return value
+  if (typeof value !== 'string') return undefined
+  const match = /^(?:right|bottom|term)(?:-[1-9]\d{0,15})+$/.exec(value)
+  if (match === null) return undefined
+  const parts = value.split('-').slice(1)
+  return parts.every(part => Number.isSafeInteger(Number(part))) ? value : undefined
+}
+
+/** Serialize each PTY's start and stop so closing during startup cannot orphan its process. */
+async function queueTerminal(id, operation) {
+  const previous = terminalTails.get(id) ?? Promise.resolve()
+  const current = previous.catch(() => {}).then(operation)
+  terminalTails.set(id, current)
+  try {
+    return await current
+  } finally {
+    if (terminalTails.get(id) === current) terminalTails.delete(id)
+  }
 }
 
 function releaseTerminal(id, instance) {
@@ -270,10 +290,19 @@ async function startTerminal(id, size) {
   }
   const { scrubbedParentEnv } = await import('@hydra/harness-subprocess')
   const env = scrubbedParentEnv()
-  const shell = process.platform === 'win32'
-    ? Object.entries(env).find(([key]) => key.toUpperCase() === 'COMSPEC')?.[1] ?? 'cmd.exe'
-    : env.SHELL ?? '/bin/sh'
-  const args = process.platform === 'win32' ? ['/Q', '/D', '/K'] : ['-i']
+  let shell = env.SHELL ?? '/bin/sh'
+  let shellName = shell.split('/').pop() || 'sh'
+  if (process.platform === 'win32') {
+    const pwsh7 = join(process.env.ProgramFiles ?? 'C:\\Program Files', 'PowerShell', '7', 'pwsh.exe')
+    if (existsSync(pwsh7)) {
+      shell = pwsh7
+      shellName = 'pwsh.exe'
+    } else {
+      shell = 'powershell.exe'
+      shellName = 'powershell.exe'
+    }
+  }
+  const args = process.platform === 'win32' ? ['-NoLogo', '-NoProfile', '-NoExit'] : ['-i']
   const instance = nodePty.spawn(shell, args, {
     name: 'xterm-256color',
     cols: size.cols,
@@ -281,7 +310,7 @@ async function startTerminal(id, size) {
     cwd: process.cwd(),
     env,
   })
-  const record = { instance, subscriptions: [], output: '' }
+  const record = { instance, subscriptions: [], output: '', shellName }
   terminals.set(id, record)
   const data = instance.onData((value) => {
     record.output = (record.output + value).slice(-200_000)
@@ -640,13 +669,13 @@ function installRendererIpc() {
     const id = terminalId(value?.terminalId)
     const size = terminalSize(value?.size)
     if (id === undefined || size === undefined) throw new Error('terminal request is invalid')
-    return await startTerminal(id, size)
+    return await queueTerminal(id, () => startTerminal(id, size))
   })
   ipcMain.handle('hydra-desktop:terminal-stop', async (event, value) => {
     if (shuttingDown !== undefined || !validSender(event)) throw new Error('terminal is unavailable')
     const id = terminalId(value?.terminalId)
     if (id === undefined) throw new Error('terminal request is invalid')
-    await stopTerminal(id)
+    await queueTerminal(id, () => stopTerminal(id))
   })
   ipcMain.on('hydra-desktop:terminal-write', (event, value) => {
     const id = terminalId(value?.terminalId)
@@ -660,6 +689,24 @@ function installRendererIpc() {
     const size = terminalSize(value?.size)
     if (id === undefined || size === undefined) return
     try { terminals.get(id)?.instance.resize(size.cols, size.rows) } catch {}
+  })
+  ipcMain.handle('hydra-desktop:terminal-list', (event) => {
+    if (shuttingDown !== undefined || !validSender(event)) return []
+    const list = []
+    for (const [id, record] of terminals) {
+      list.push({
+        id,
+        pid: record.instance.pid,
+        shell: record.shellName || (process.platform === 'win32' ? 'powershell.exe' : 'bash'),
+      })
+    }
+    return list
+  })
+  ipcMain.on('hydra-desktop:emit-annotation', (event, annotation) => {
+    if (shuttingDown !== undefined || !validSender(event)) return
+    if (mainWindow !== undefined && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('hydra-desktop:browser-annotation', annotation)
+    }
   })
   ipcMain.handle('hydra-desktop:files-root', async (event, value) => {
     if (shuttingDown !== undefined || !validSender(event)) throw new Error('files are unavailable')
@@ -975,6 +1022,45 @@ async function smoke() {
   if (terminals.get('right').output.includes(bottomMarker) || terminals.get('bottom').output.includes(rightMarker)) {
     throw new Error('right and bottom Terminal output crossed PTY boundaries')
   }
+  const firstTerminal = terminals.get('right').instance
+  await selectControl('Terminal')
+  await waitForRenderer('second Terminal tab', `document.querySelector('[aria-label="Right terminal 2"]:not([hidden])')`)
+  await waitForTerminal('right-2', 'second right startup', () => true)
+  const secondMarker = `${marker}_SECOND`
+  await mainWindow.webContents.executeJavaScript(`window.hydraDesktop.terminal.write('right-2', ${JSON.stringify(`echo ${secondMarker}\r`)})`)
+  await waitForTerminal('right-2', 'second right output', terminal => terminal.output.includes(secondMarker))
+  if (terminals.get('right').instance !== firstTerminal || terminals.get('right').output.includes(secondMarker)
+    || terminals.get('right-2').output.includes(rightMarker) || terminals.get('bottom').output.includes(secondMarker)) {
+    throw new Error('Terminal tabs did not preserve independent PTYs')
+  }
+  if (process.platform === 'win32') {
+    await mainWindow.webContents.executeJavaScript(`window.hydraDesktop.terminal.write('right-2', "Write-Output ('HYDRA_' + 'POWERSHELL:' + $PSVersionTable.PSVersion.Major)\\r")`)
+    await waitForTerminal('right-2', 'PowerShell version', terminal => /HYDRA_POWERSHELL:\d+/.test(terminal.output))
+  }
+  await selectControl('Close Terminal 2')
+  await waitForRenderer('second Terminal closed', `!document.querySelector('[aria-label="Close Terminal 2"]')`)
+  if (terminals.has('right-2') || terminals.get('right')?.instance !== firstTerminal || !terminals.has('bottom')) {
+    throw new Error('closing the second Terminal affected another PTY')
+  }
+  const rejectedTerminalId = await mainWindow.webContents.executeJavaScript(`window.hydraDesktop.terminal.start('right-0', { cols: 80, rows: 24 }).then(() => false, () => true)`)
+  if (!rejectedTerminalId) throw new Error('invalid Terminal id was accepted')
+  const rejectedSplitTerminalId = await mainWindow.webContents.executeJavaScript(`window.hydraDesktop.terminal.start('right-4-0', { cols: 80, rows: 24 }).then(() => false, () => true)`)
+  if (!rejectedSplitTerminalId) throw new Error('invalid split Terminal id right-4-0 was accepted')
+  const splitTerminalAccepted = await mainWindow.webContents.executeJavaScript(`(async () => {
+    const res = await window.hydraDesktop.terminal.start('right-4-2', { cols: 80, rows: 24 })
+    await window.hydraDesktop.terminal.stop('right-4-2')
+    return res.running
+  })()`)
+  if (!splitTerminalAccepted) throw new Error('split terminal id right-4-2 was not accepted')
+  await mainWindow.webContents.executeJavaScript(`(async () => {
+    const api = window.hydraDesktop.terminal
+    await Promise.all([
+      api.start('right-9000', { cols: 80, rows: 24 }),
+      api.start('right-9000', { cols: 80, rows: 24 }),
+      api.stop('right-9000'),
+    ])
+  })()`)
+  if (terminals.has('right-9000')) throw new Error('closing during Terminal startup left a PTY alive')
   const panels = await mainWindow.webContents.executeJavaScript(`(() => {
     const right = document.querySelector('[aria-label="Right panel"]')?.getBoundingClientRect()
     const bottom = document.querySelector('section[aria-label="Terminal"]')?.getBoundingClientRect()
@@ -1100,7 +1186,7 @@ async function smoke() {
     ok: true,
     windows: 1,
     files: { root: files.root, shortcut: 'Ctrl+P', search: true, preview: true, confined: true },
-    terminal: { rightMarker, bottomMarker, simultaneous: true, isolated: true, appTheme: true },
+    terminal: { rightMarker, bottomMarker, secondMarker, simultaneous: true, isolated: true, appTheme: true, multipleTabs: true, powershell: process.platform === 'win32' },
     browser: { lastTabClosesPanel: true, agentReopens: true, appTheme: true },
     bounds: { right, simultaneous, expanded, restored },
   })}\n`)
@@ -1109,7 +1195,8 @@ async function smoke() {
 async function shutdown() {
   if (shuttingDown !== undefined) return await shuttingDown
   shuttingDown = (async () => {
-    try { await Promise.all([...terminals.keys()].map(stopTerminal)) } catch (error) { process.stderr.write(`${String(error)}\n`) }
+    const terminalIds = new Set([...terminals.keys(), ...terminalTails.keys()])
+    try { await Promise.all([...terminalIds].map(id => queueTerminal(id, () => stopTerminal(id)))) } catch (error) { process.stderr.write(`${String(error)}\n`) }
     try { await browser?.dispose() } catch (error) { process.stderr.write(`${String(error)}\n`) }
     try { await cleanupSmokeWorkspace() } catch (error) {
       process.stderr.write(`desktop: smoke Workspace cleanup failed: ${String(error)}\n`)

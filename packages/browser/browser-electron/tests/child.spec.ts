@@ -56,15 +56,25 @@ class FakeElectron extends EventEmitter implements BrowserChildProcess {
 /** Utility-process parent port used by the unified desktop shell. */
 class FakeParentPort extends EventEmitter {
   readonly sent: unknown[] = []
+  activeConnectionId?: string | undefined
 
   postMessage(message: unknown): void {
     this.sent.push(message)
     if (typeof message !== 'object' || message === null || !('type' in message) || !('connectionId' in message)) return
-    const connectionId = message.connectionId
+    const connectionId = message.connectionId as string
     if (message.type === 'hydra-browser-connect') {
+      if (this.activeConnectionId !== undefined && this.activeConnectionId !== connectionId) {
+        const previousId = this.activeConnectionId
+        queueMicrotask(() => {
+          this.emit('message', { data: { type: 'hydra-browser-close', connectionId: previousId } })
+        })
+      }
+      this.activeConnectionId = connectionId
       queueMicrotask(() => {
         this.emit('message', { data: { type: 'hydra-browser-line', connectionId, line: JSON.stringify({ event: 'ready' }) } })
       })
+    } else if (message.type === 'hydra-browser-disconnect') {
+      if (this.activeConnectionId === connectionId) this.activeConnectionId = undefined
     } else if (message.type === 'hydra-browser-line' && 'line' in message && typeof message.line === 'string') {
       const request = JSON.parse(message.line) as Request
       queueMicrotask(() => {
@@ -204,6 +214,38 @@ describe('launchBrowser startup', () => {
         expect.objectContaining({ type: 'hydra-browser-connect' }),
         expect.objectContaining({ type: 'hydra-browser-disconnect' }),
       ]))
+    } finally {
+      if (previousBridge === undefined) Reflect.deleteProperty(process.env, 'HYDRA_DESKTOP_BROWSER_BRIDGE')
+      else process.env.HYDRA_DESKTOP_BROWSER_BRIDGE = previousBridge
+      if (previousPort === undefined) Reflect.deleteProperty(process, 'parentPort')
+      else Object.defineProperty(process, 'parentPort', previousPort)
+    }
+  })
+
+  it('preempts earlier desktop browser connection when another agent connects', async () => {
+    const port = new FakeParentPort()
+    const previousBridge = process.env.HYDRA_DESKTOP_BROWSER_BRIDGE
+    const previousPort = Object.getOwnPropertyDescriptor(process, 'parentPort')
+    process.env.HYDRA_DESKTOP_BROWSER_BRIDGE = 'parent-port'
+    Object.defineProperty(process, 'parentPort', { configurable: true, value: port })
+    try {
+      const fake = new FakeElectron()
+      const firstChild = await launchBrowser(options(fake, {
+        spawnChild: undefined,
+        electronPath: undefined,
+      }))
+      await expect(firstChild.call('navigate', { url: 'https://first.test' }))
+        .resolves.toEqual({ url: 'https://first.test' })
+
+      const secondChild = await launchBrowser(options(fake, {
+        spawnChild: undefined,
+        electronPath: undefined,
+      }))
+      await expect(secondChild.call('navigate', { url: 'https://second.test' }))
+        .resolves.toEqual({ url: 'https://second.test' })
+
+      await expect(firstChild.closed).resolves.toBeUndefined()
+      await secondChild.close()
     } finally {
       if (previousBridge === undefined) Reflect.deleteProperty(process.env, 'HYDRA_DESKTOP_BROWSER_BRIDGE')
       else process.env.HYDRA_DESKTOP_BROWSER_BRIDGE = previousBridge
