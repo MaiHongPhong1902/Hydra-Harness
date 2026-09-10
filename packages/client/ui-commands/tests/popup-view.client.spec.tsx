@@ -40,13 +40,13 @@ const OPTIONS: SelectOption[] = [
 ]
 const GATED: SelectOption = {
   id: 'full',
-  label: 'Full access',
+  label: 'Auto-Pilot',
   confirmation: {
-    title: 'Enable Full access?',
+    title: 'Enable Auto-Pilot?',
     description: 'Sensitive operations.',
     acknowledgeLabel: 'I understand the risks',
     cancelLabel: 'Cancel',
-    confirmLabel: 'Enable Full access',
+    confirmLabel: 'Enable Auto-Pilot',
   },
 }
 
@@ -166,10 +166,10 @@ describe('PopupSelectView', () => {
       options: () => Promise.resolve([GATED]),
       onSelect,
     })
-    await act(async () => { fireEvent.click(screen.getByRole('option', { name: 'Full access' })) })
+    await act(async () => { fireEvent.click(screen.getByRole('option', { name: 'Auto-Pilot' })) })
     expect(screen.queryByLabelText('/theme options')).toBeNull()
-    expect(screen.getByRole('dialog', { name: 'Enable Full access?' })).toBeTruthy()
-    const enable = screen.getByRole('button', { name: 'Enable Full access' }) as HTMLButtonElement
+    expect(screen.getByRole('dialog', { name: 'Enable Auto-Pilot?' })).toBeTruthy()
+    const enable = screen.getByRole('button', { name: 'Enable Auto-Pilot' }) as HTMLButtonElement
     expect(enable.disabled).toBe(true)
     expect(onSelect).not.toHaveBeenCalled()
 
@@ -183,11 +183,11 @@ describe('PopupSelectView', () => {
 
   it('canceling a gated option returns to the picker with acknowledgement reset', async () => {
     await mountOpen({ options: () => Promise.resolve([GATED]) })
-    await act(async () => { fireEvent.click(screen.getByRole('option', { name: 'Full access' })) })
+    await act(async () => { fireEvent.click(screen.getByRole('option', { name: 'Auto-Pilot' })) })
     fireEvent.click(screen.getByRole('checkbox'))
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
     expect(screen.getByLabelText('/theme options')).toBeTruthy()
-    await act(async () => { fireEvent.click(screen.getByRole('option', { name: 'Full access' })) })
+    await act(async () => { fireEvent.click(screen.getByRole('option', { name: 'Auto-Pilot' })) })
     expect(screen.getByRole<HTMLInputElement>('checkbox').checked).toBe(false)
   })
 

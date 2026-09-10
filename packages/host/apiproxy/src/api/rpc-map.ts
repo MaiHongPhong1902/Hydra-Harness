@@ -25,6 +25,7 @@ import type { RpcResponse } from './rpc.ts'
  */
 export interface RpcMethodMap {
   'review.list': ReviewApi['list']
+  'review.workspace': ReviewApi['workspace']
   'review.keep': ReviewApi['keep']
   'review.undo': ReviewApi['undo']
   'session.list': SessionsApi['list']

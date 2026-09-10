@@ -23,7 +23,10 @@ export function apply(ctx: ClientContext): void {
       history = new ReviewHistory(id, connection.api.review)
       histories.set(id, history)
     }
-    return { ownerSessionId: id, hooks: { review: history }, act: history.act, refresh: history.refresh }
+    return {
+      ownerSessionId: id, hooks: { review: history }, act: history.act,
+      refresh: history.refresh, refreshWorkspace: history.refreshWorkspace,
+    }
   }
   ctx.effect(() => ctx.remote.$on('file-review/changed', () => {
     for (const history of histories.values()) void history.refresh()

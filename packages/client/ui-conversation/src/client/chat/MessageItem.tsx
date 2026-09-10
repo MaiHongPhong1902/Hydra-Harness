@@ -322,9 +322,7 @@ export const UserMessageNodeView = memo(function UserMessageNodeView({
   const pending = useRef(false)
   const admissionKey = useRef<string | null>(null)
   const parts = contentParts(data.content)
-  const originalText = parts.text
-  const changed = draft !== null && draft !== originalText
-    && (draft.trim() !== '' || parts.images.length > 0)
+  const canSend = draft !== null && (draft.trim() !== '' || parts.images.length > 0)
   const editing = draft !== null
   useLayoutEffect(() => {
     const input = textarea.current
@@ -348,7 +346,7 @@ export const UserMessageNodeView = memo(function UserMessageNodeView({
     admissionKey.current = null
   }
   const send = async (): Promise<void> => {
-    if (pending.current || draft === null || !changed
+    if (pending.current || draft === null || !canSend
       || editMessage === undefined) return
     pending.current = true
     setSending(true)
@@ -402,7 +400,7 @@ export const UserMessageNodeView = memo(function UserMessageNodeView({
           <div className={css.editActions}>
             <span className={css.editKeys}>{t('message.editKeys')}</span>
             <Button type="button" variant="outline" size="sm" disabled={sending} onClick={cancel}>{t('cancel')}</Button>
-            <Button type="submit" variant="primary" size="sm" disabled={sending || !changed}>
+            <Button type="submit" variant="primary" size="sm" disabled={sending || !canSend}>
               {t(sending ? 'message.editSending' : 'message.editSend')}
             </Button>
           </div>

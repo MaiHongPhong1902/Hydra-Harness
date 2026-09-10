@@ -78,7 +78,10 @@
 
 .tab[data-active='true'] {
   color: var(--dsw-alias-label-primary);
-  background: var(--dsw-alias-bg-layer-2);
+  /* Raised control, not a scroll surface: .tabs (bg-layer-1) is this sheet's
+     scroll track, so the button family keeps the l1 thumb correct there.
+     Resolves identically to bg-layer-2 in both palettes. */
+  background: var(--dsw-alias-button-floating-fill);
   font-weight: 550;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 0 1px rgba(0, 0, 0, 0.08);
 }

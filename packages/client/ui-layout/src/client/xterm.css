@@ -67,8 +67,8 @@
   position: absolute;
   z-index: 1;
   display: none;
-  color: #fff;
-  background: #000;
+  color: var(--dsw-alias-label-primary, #fff);
+  background: var(--dsw-alias-bg-base, #000);
   white-space: nowrap;
 }
 
@@ -80,7 +80,7 @@
   position: absolute;
   inset: 0;
   overflow-y: scroll;
-  background-color: #000;
+  background-color: var(--dsw-alias-bg-base, #000);
   cursor: default;
 }
 

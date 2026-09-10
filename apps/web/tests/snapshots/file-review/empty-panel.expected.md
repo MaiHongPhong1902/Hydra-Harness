@@ -1,0 +1,10 @@
+- region "Right panel":
+  - text: Side panel
+  - strong: Choose a panel
+  - text: No panel is open.
+  - group "Open panel":
+    - button "Files": Files Browse and edit workspace files. Ctrl+P
+    - button "Side chat": Side chat Start a separate conversation. Ctrl+Alt+S
+    - button "Browser": Browser Browse alongside your agent. Ctrl+Shift+B
+    - button "Terminal": "Terminal Run commands in a terminal. Ctrl+`"
+    - button "Review": Review Inspect and undo agent file changes.

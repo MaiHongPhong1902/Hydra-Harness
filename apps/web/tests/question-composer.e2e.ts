@@ -234,12 +234,22 @@ describe('web e2e: resident question composer round trip', () => {
   // padding, which is where a cap measured in box pixels drifts off the line
   // count — so it is asked straight through the user-questions seam (the same
   // service the tool calls; no model round is involved in a layout metric).
-  it.skipIf(MODE === 'record')('grows the optionless answer to the same cap', async () => {
+  it.skipIf(MODE === 'record')('keeps clarification available in Auto-Pilot and grows the optionless answer to the same cap', async () => {
     onTestFailed(() => saveFailureShot(page, 'web-e2e-question-optionless'))
     const sessionId = answeredSession
     expect(sessionId).toBeDefined()
     const agent = scaffold.ctx.agents.get(sessionId as SessionId)
     expect(agent).toBeDefined()
+    expect(scaffold.ctx.tools.schemas(agent).find(tool => tool.name === 'ask_user_question')?.description)
+      .toContain('Do not use this to request permission for an action.')
+    await page.getByRole('button', { name: 'Access mode, current: Edit', exact: true }).click()
+    await page.getByRole('menuitem', { name: 'Auto-Pilot', exact: true }).click()
+    const confirmation = page.getByRole('dialog', { name: 'Enable Auto-Pilot?' })
+    await confirmation.getByRole('checkbox', { name: 'I understand the risks and want to continue' }).check()
+    await confirmation.getByRole('button', { name: 'Enable Auto-Pilot', exact: true }).click()
+    await page.getByRole('button', { name: 'Access mode, current: Auto-Pilot', exact: true }).waitFor()
+    expect(sessionEvents.filter(event => event.type === 'approval/policy').at(-1)?.data.policy).toBe('never')
+    expect(sessionEvents.filter(event => event.type === 'sandbox/mode').at(-1)?.data.mode).toBe('danger-full-access')
     const asked = scaffold.ctx.userQuestions.ask({
       agent: agent as NonNullable<typeof agent>,
       questions: [{ id: 'free', header: 'More', question: 'Anything else?' }],
@@ -267,6 +277,7 @@ describe('web e2e: resident question composer round trip', () => {
     // Settle the wait so teardown is not racing a pending question.
     await composer.getByRole('button', { name: 'Skip this question' }).click()
     expect(await asked).toEqual({ answers: [{ id: 'free', selected: [] }] })
+    expect(sessionEvents.filter(event => event.type === 'approval/asked')).toEqual([])
     await expect.poll(() => page.locator('[data-question-key]').count(), { timeout: 10_000 }).toBe(0)
   }, 60_000)
 

@@ -40,6 +40,7 @@ interface StreamConn<F> {
 export class FakeApiClient implements IApiClient {
   readonly review: IApiClient['review'] = {
     list: async () => ok({ changes: [] }),
+    workspace: async request => ok({ workspace: '', repository: null, branch: null, branches: [], commits: [], mode: request.mode, baseRef: null, files: [], truncated: false }),
     keep: async () => { throw new Error('review unavailable') },
     undo: async () => { throw new Error('review unavailable') },
   }

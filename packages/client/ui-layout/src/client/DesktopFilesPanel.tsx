@@ -1,6 +1,5 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import {
-  Button,
   CodeBlock,
   IconBrowseOutline16,
   IconCheckOutline14,
@@ -17,6 +16,7 @@ import {
   IconPlusOutline16,
   IconProjectAddOutline16,
   IconRefreshOutline14,
+  IconSearchOutline16,
   IconTrashOutline16,
 } from '@hydra/harness-client-ui-primitives'
 import css from './DesktopFilesPanel.module.css'
@@ -242,6 +242,34 @@ function FileIcon({ path }: { path: string }) {
   )
 }
 
+function WordWrapIcon({ size = 14 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M2.5 4h11M2.5 8h7a2.5 2.5 0 0 1 0 5H7m0 0l2-2M7 13l2 2M2.5 12h2"
+        stroke="currentColor"
+        strokeWidth="1.25"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function GoToLineIcon({ size = 14 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M2.5 4.5h6M2.5 8h4M2.5 11.5h6M11 6.5l2.5 2.5L11 11.5M13.5 9H8.5"
+        stroke="currentColor"
+        strokeWidth="1.25"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 /** Workspace Explorer and guarded multi-document code editor backed by the desktop bridge. */
 export function DesktopFilesPanel(props: {
   workspaceId?: string | undefined
@@ -280,6 +308,10 @@ export function DesktopFilesPanel(props: {
   const [createDraft, setCreateDraft] = useState<CreateDraft>()
   const [createName, setCreateName] = useState('')
   const editorTextareaRef = useRef<HTMLTextAreaElement | null>(null)
+  const codeScrollRef = useRef<HTMLDivElement | null>(null)
+  const flashTimeoutRef = useRef<number | undefined>(undefined)
+  const [flashLine, setFlashLine] = useState<number>()
+  const [activeOutlineLine, setActiveOutlineLine] = useState<number>()
   const isDraggingRef = useRef(false)
   const startXRef = useRef(0)
   const startWidthRef = useRef(240)
@@ -380,7 +412,7 @@ export function DesktopFilesPanel(props: {
 
   useEffect(() => {
     if (contextMenu === undefined) return
-    const handleDismiss = () => setContextMenu(undefined)
+    const handleDismiss = () => { setContextMenu(undefined) }
     window.addEventListener('click', handleDismiss)
     window.addEventListener('contextmenu', handleDismiss)
     return () => {
@@ -422,6 +454,11 @@ export function DesktopFilesPanel(props: {
 
   useEffect(() => () => { props.onDirtyChange?.(false) }, [props.onDirtyChange])
   useEffect(() => () => { props.onSavingChange?.(false) }, [props.onSavingChange])
+  useEffect(() => () => {
+    if (flashTimeoutRef.current !== undefined) {
+      window.clearTimeout(flashTimeoutRef.current)
+    }
+  }, [])
 
   useEffect(() => {
     setChildren({})
@@ -437,6 +474,8 @@ export function DesktopFilesPanel(props: {
     setContextMenu(undefined)
     setShowDiff(false)
     setError(undefined)
+    setActiveOutlineLine(undefined)
+    setFlashLine(undefined)
     if (rootPath === undefined || rootWorkspaceRef.current !== workspaceId) {
       setExpanded(new Set())
       setSelectedDirectory(undefined)
@@ -694,6 +733,7 @@ export function DesktopFilesPanel(props: {
     setCursorPos({ line: lines.length, col: (lastLine ? lastLine.length : 0) + 1 })
     const selLength = Math.abs(target.selectionEnd - target.selectionStart)
     setSelectedChars(selLength)
+    setActiveOutlineLine(undefined)
   }
 
   const handleSplitterMouseDown = useCallback((e: React.MouseEvent) => {
@@ -733,9 +773,27 @@ export function DesktopFilesPanel(props: {
     editorTextareaRef.current.focus()
     editorTextareaRef.current.setSelectionRange(charOffset, endOfLineOffset)
     setCursorPos({ line: clampedLine, col: 1 })
-    const lineHeight = 19
-    const scrollTarget = Math.max(0, (clampedLine - 5) * lineHeight)
-    editorTextareaRef.current.scrollTop = scrollTarget
+    setActiveOutlineLine(clampedLine)
+
+    setFlashLine(clampedLine)
+    if (flashTimeoutRef.current !== undefined) {
+      window.clearTimeout(flashTimeoutRef.current)
+    }
+    flashTimeoutRef.current = window.setTimeout(() => {
+      setFlashLine(undefined)
+    }, 1800)
+
+    if (codeScrollRef.current !== null) {
+      const lineEl = codeScrollRef.current.querySelector<HTMLElement>(`[data-line="${clampedLine}"]`)
+      const viewportHeight = codeScrollRef.current.clientHeight || 400
+      const lineTop = lineEl ? lineEl.offsetTop : (12 + (clampedLine - 1) * 18.6)
+      const scrollTarget = Math.max(0, lineTop - Math.floor(viewportHeight / 3))
+      if (typeof codeScrollRef.current.scrollTo === 'function') {
+        codeScrollRef.current.scrollTo({ top: scrollTarget, behavior: 'smooth' })
+      } else {
+        codeScrollRef.current.scrollTop = scrollTarget
+      }
+    }
   }, [document])
 
   const closeAllTabs = useCallback(() => {
@@ -860,9 +918,17 @@ export function DesktopFilesPanel(props: {
       const lastNl = document.draft.lastIndexOf('\n', match.start - 1)
       const col = lastNl === -1 ? match.start + 1 : match.start - lastNl
       setCursorPos({ line: match.line, col })
-      const lineHeight = 19
-      const scrollTarget = Math.max(0, (match.line - 5) * lineHeight)
-      editorTextareaRef.current.scrollTop = scrollTarget
+      if (codeScrollRef.current !== null) {
+        const lineEl = codeScrollRef.current.querySelector<HTMLElement>(`[data-line="${match.line}"]`)
+        const viewportHeight = codeScrollRef.current.clientHeight || 400
+        const lineTop = lineEl ? lineEl.offsetTop : (12 + (match.line - 1) * 18.6)
+        const scrollTarget = Math.max(0, lineTop - Math.floor(viewportHeight / 3))
+        if (typeof codeScrollRef.current.scrollTo === 'function') {
+          codeScrollRef.current.scrollTo({ top: scrollTarget, behavior: 'smooth' })
+        } else {
+          codeScrollRef.current.scrollTop = scrollTarget
+        }
+      }
     }
   }, [document, findMatches])
 
@@ -915,6 +981,25 @@ export function DesktopFilesPanel(props: {
     return () => { window.removeEventListener('keydown', onKeyDown) }
   }, [formatFile, props.active, saveFile, showFind])
 
+  const language = document === undefined ? undefined : editorLanguage(document.path)
+  const outlineSymbols = useMemo(() => {
+    return document === undefined ? [] : extractSymbols(document.draft, language)
+  }, [document, language])
+
+  const activeSymbolLine = useMemo(() => {
+    if (outlineSymbols.length === 0) return undefined
+    if (activeOutlineLine !== undefined) return activeOutlineLine
+    let closestLine: number | undefined
+    for (const sym of outlineSymbols) {
+      if (sym.line <= cursorPos.line) {
+        if (closestLine === undefined || sym.line > closestLine) {
+          closestLine = sym.line
+        }
+      }
+    }
+    return closestLine
+  }, [activeOutlineLine, cursorPos.line, outlineSymbols])
+
   const renderDirectory = (path: string, depth: number): ReactNode => (
     children[path]?.map((entry) => {
       const open = entry.directory && expanded.has(entry.path)
@@ -936,7 +1021,7 @@ export function DesktopFilesPanel(props: {
                 className={css.renameInput}
                 aria-label={`Rename ${entry.name}`}
                 value={renameName}
-                onChange={e => setRenameName(e.currentTarget.value)}
+                onChange={(e) => { setRenameName(e.currentTarget.value) }}
                 onKeyDown={(e) => {
                   if (e.key === 'Escape') setRenamingPath(undefined)
                 }}
@@ -948,7 +1033,7 @@ export function DesktopFilesPanel(props: {
                 type="button"
                 aria-label="Cancel rename"
                 className={css.renameBtn}
-                onClick={() => setRenamingPath(undefined)}
+                onClick={() => { setRenamingPath(undefined) }}
               >
                 <IconCloseOutline16 size={13} />
               </button>
@@ -1007,13 +1092,11 @@ export function DesktopFilesPanel(props: {
           : loading || reading
             ? 'Loading…'
             : undefined
-  const language = document === undefined ? undefined : editorLanguage(document.path)
   const highlightedDraft = document !== undefined && deferredDraft === document.draft
     && document.draft.length <= HIGHLIGHT_MAX_CHARS
     ? deferredDraft
     : undefined
   const lineCount = document ? document.draft.split('\n').length : 1
-  const outlineSymbols = document === undefined ? [] : extractSymbols(document.draft, language)
 
   return (
     <div className={css.surface} style={{ gridTemplateColumns: `${sidebarWidth}px 4px minmax(0, 1fr)` }} data-files-root={rootPath}>
@@ -1024,7 +1107,7 @@ export function DesktopFilesPanel(props: {
             className={css.sectionHeader}
             role="button"
             tabIndex={0}
-            onClick={() => setOpenEditorsCollapsed(c => !c)}
+            onClick={() => { setOpenEditorsCollapsed(c => !c) }}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setOpenEditorsCollapsed(c => !c) }}
           >
             <span className={`${css.sectionChevron} ${!openEditorsCollapsed ? css.sectionChevronOpen : ''}`}>
@@ -1034,7 +1117,7 @@ export function DesktopFilesPanel(props: {
             {openDocuments.length > 0 && (
               <span className={css.sectionBadge}>{openDocuments.length}</span>
             )}
-            <div className={css.sectionActions} onClick={e => e.stopPropagation()}>
+            <div className={css.sectionActions} onClick={(e) => { e.stopPropagation() }}>
               <button
                 type="button"
                 className={css.sectionActionBtn}
@@ -1062,6 +1145,10 @@ export function DesktopFilesPanel(props: {
               {openDocuments.map((doc) => {
                 const isActive = doc.path === activePath
                 const isDocDirty = documentIsDirty(doc)
+                const name = fileName(doc.path)
+                const rel = relativePath(rootPath, doc.path)
+                const lastSlash = Math.max(rel.lastIndexOf('/'), rel.lastIndexOf('\\'))
+                const dirPath = lastSlash > 0 ? rel.slice(0, lastSlash) : ''
                 return (
                   <div
                     key={doc.path}
@@ -1077,13 +1164,13 @@ export function DesktopFilesPanel(props: {
                     }}
                   >
                     <FileIcon path={doc.path} />
-                    <span className={css.openEditorName}>{fileName(doc.path)}</span>
-                    <span className={css.openEditorPath}>{relativePath(rootPath, doc.path)}</span>
+                    <span className={css.openEditorName}>{name}</span>
+                    {dirPath !== '' && <span className={css.openEditorPath}>{dirPath}</span>}
                     {isDocDirty && <span className={css.tabDirty} aria-hidden="true" title="Unsaved changes">●</span>}
                     <button
                       type="button"
                       className={css.openEditorClose}
-                      aria-label={`Close editor ${fileName(doc.path)}`}
+                      aria-label={`Close editor ${name}`}
                       onClick={(e) => {
                         e.stopPropagation()
                         closeTab(doc.path)
@@ -1104,14 +1191,14 @@ export function DesktopFilesPanel(props: {
             className={css.sectionHeader}
             role="button"
             tabIndex={0}
-            onClick={() => setWorkspaceTreeCollapsed(c => !c)}
+            onClick={() => { setWorkspaceTreeCollapsed(c => !c) }}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setWorkspaceTreeCollapsed(c => !c) }}
           >
             <span className={`${css.sectionChevron} ${!workspaceTreeCollapsed ? css.sectionChevronOpen : ''}`}>
               <IconChevronRightOutline14 size={12} />
             </span>
             <span className={css.sectionTitle} title={rootPath}>{fileName(rootPath).toUpperCase()}</span>
-            <div className={css.sectionActions} onClick={e => e.stopPropagation()}>
+            <div className={css.sectionActions} onClick={(e) => { e.stopPropagation() }}>
               <button
                 type="button"
                 className={css.sectionActionBtn}
@@ -1120,7 +1207,7 @@ export function DesktopFilesPanel(props: {
                 disabled={creating}
                 onClick={() => { startCreate('file') }}
               >
-                <IconPlusOutline16 size={13} />
+                <IconPlusOutline16 size={12} />
               </button>
               <button
                 type="button"
@@ -1130,16 +1217,16 @@ export function DesktopFilesPanel(props: {
                 disabled={creating}
                 onClick={() => { startCreate('directory') }}
               >
-                <IconProjectAddOutline16 size={13} />
+                <IconProjectAddOutline16 size={12} />
               </button>
               <button
                 type="button"
                 className={css.sectionActionBtn}
                 aria-label="Collapse all folders"
                 title="Collapse all folders"
-                onClick={() => setExpanded(new Set())}
+                onClick={() => { setExpanded(new Set()) }}
               >
-                <IconFolderClose16 size={13} />
+                <IconFolderClose16 size={12} />
               </button>
               <button
                 type="button"
@@ -1149,7 +1236,7 @@ export function DesktopFilesPanel(props: {
                 disabled={creating}
                 onClick={() => { void loadDirectory(rootPath) }}
               >
-                <IconRefreshOutline14 />
+                <IconRefreshOutline14 size={12} />
               </button>
             </div>
           </div>
@@ -1234,7 +1321,7 @@ export function DesktopFilesPanel(props: {
             className={css.sectionHeader}
             role="button"
             tabIndex={0}
-            onClick={() => setOutlineCollapsed(c => !c)}
+            onClick={() => { setOutlineCollapsed(c => !c) }}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setOutlineCollapsed(c => !c) }}
           >
             <span className={`${css.sectionChevron} ${!outlineCollapsed ? css.sectionChevronOpen : ''}`}>
@@ -1250,20 +1337,36 @@ export function DesktopFilesPanel(props: {
               {outlineSymbols.length === 0 ? (
                 <div className={css.outlineEmpty}>No symbols found in file.</div>
               ) : (
-                outlineSymbols.map((sym, idx) => (
-                  <div
-                    key={`${sym.name}-${sym.line}-${idx}`}
-                    className={css.outlineItem}
-                    role="listitem"
-                    onClick={() => jumpToLine(sym.line)}
-                  >
-                    <span className={css.symbolBadge} data-kind={sym.kind}>
-                      {sym.kind === 'function' ? 'ƒ' : sym.kind === 'class' ? 'C' : sym.kind === 'interface' ? 'I' : sym.kind === 'type' ? 'T' : '#'}
-                    </span>
-                    <span className={css.symbolName}>{sym.name}</span>
-                    <span className={css.symbolLine}>:{sym.line}</span>
-                  </div>
-                ))
+                outlineSymbols.map((sym, idx) => {
+                  const isSelected = activeSymbolLine === sym.line
+                  return (
+                    <div
+                      key={`${sym.name}-${sym.line}-${idx}`}
+                      className={css.outlineItem}
+                      role="listitem"
+                      data-selected={isSelected ? 'true' : undefined}
+                      aria-selected={isSelected}
+                      tabIndex={0}
+                      onClick={() => {
+                        setActiveOutlineLine(sym.line)
+                        jumpToLine(sym.line)
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          setActiveOutlineLine(sym.line)
+                          jumpToLine(sym.line)
+                        }
+                      }}
+                    >
+                      <span className={css.symbolBadge} data-kind={sym.kind}>
+                        {sym.kind === 'function' ? 'ƒ' : sym.kind === 'class' ? 'C' : sym.kind === 'interface' ? 'I' : sym.kind === 'type' ? 'T' : '#'}
+                      </span>
+                      <span className={css.symbolName}>{sym.name}</span>
+                      <span className={css.symbolLine}>:{sym.line}</span>
+                    </div>
+                  )
+                })
               )}
             </div>
           )}
@@ -1281,156 +1384,162 @@ export function DesktopFilesPanel(props: {
 
       <section className={css.editor} aria-label="File editor">
         {openDocuments.length > 0 && (
-          <div className={css.tabBar} role="tablist" aria-label="Open files">
-            {openDocuments.map((doc) => {
-              const isTabActive = doc.path === activePath
-              const isTabDirty = documentIsDirty(doc)
-              return (
-                <div
-                  key={doc.path}
-                  className={`${css.tab} ${isTabActive ? css.tabActive : ''}`}
-                  role="tab"
-                  aria-selected={isTabActive}
-                  title={doc.path}
-                  onClick={() => {
-                    activePathRef.current = doc.path
-                    setActivePath(doc.path)
-                    documentRef.current = doc
-                    setDocument(doc)
-                    setShowDiff(false)
-                  }}
-                >
-                  <FileIcon path={doc.path} />
-                  <span className={css.tabName}>{fileName(doc.path)}</span>
-                  {isTabDirty && <span className={css.tabDirty} aria-hidden="true" title="Unsaved changes">●</span>}
-                  <button
-                    type="button"
-                    className={css.tabClose}
-                    aria-label={`Close ${fileName(doc.path)}`}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      closeTab(doc.path)
+          <div className={css.tabBar}>
+            <div className={css.tabList} role="tablist" aria-label="Open files">
+              {openDocuments.map((doc) => {
+                const isTabActive = doc.path === activePath
+                const isTabDirty = documentIsDirty(doc)
+                return (
+                  <div
+                    key={doc.path}
+                    className={`${css.tab} ${isTabActive ? css.tabActive : ''}`}
+                    role="tab"
+                    aria-selected={isTabActive}
+                    title={doc.path}
+                    onClick={() => {
+                      activePathRef.current = doc.path
+                      setActivePath(doc.path)
+                      documentRef.current = doc
+                      setDocument(doc)
+                      setShowDiff(false)
                     }}
                   >
-                    <IconCloseOutline16 size={12} />
-                  </button>
-                </div>
-              )
-            })}
+                    <FileIcon path={doc.path} />
+                    <span className={css.tabName}>{fileName(doc.path)}</span>
+                    {isTabDirty && <span className={css.tabDirty} aria-hidden="true" title="Unsaved changes">●</span>}
+                    <button
+                      type="button"
+                      className={css.tabClose}
+                      aria-label={`Close ${fileName(doc.path)}`}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        closeTab(doc.path)
+                      }}
+                    >
+                      <IconCloseOutline16 size={12} />
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+
+            {document !== undefined && (
+              <div className={css.editorActions}>
+                <button
+                  type="button"
+                  className={`${css.editorActionBtn} ${wordWrap ? css.editorActionBtnActive : ''}`}
+                  aria-label={wordWrap ? 'Wrap: On' : 'Wrap: Off'}
+                  aria-keyshortcuts="Alt+Z"
+                  title={wordWrap ? 'Disable Word Wrap (Alt+Z)' : 'Enable Word Wrap (Alt+Z)'}
+                  onClick={() => { setWordWrap(w => !w) }}
+                >
+                  <WordWrapIcon size={14} />
+                </button>
+                <button
+                  type="button"
+                  className={css.editorActionBtn}
+                  aria-label=":Line"
+                  aria-keyshortcuts="Control+G"
+                  title="Go to line (Ctrl+G)"
+                  onClick={() => { setShowGotoLine(true) }}
+                >
+                  <GoToLineIcon size={14} />
+                </button>
+                <button
+                  type="button"
+                  className={`${css.editorActionBtn} ${showFind ? css.editorActionBtnActive : ''}`}
+                  aria-label="Find"
+                  aria-keyshortcuts="Control+F"
+                  title={showFind ? 'Close Find (Ctrl+F)' : 'Find in file (Ctrl+F)'}
+                  onClick={() => { setShowFind(s => !s) }}
+                >
+                  <IconSearchOutline16 size={13} />
+                </button>
+                {dirty && (
+                  <>
+                    <button
+                      type="button"
+                      className={`${css.editorActionBtn} ${showDiff ? css.editorActionBtnActive : ''}`}
+                      aria-label={showDiff ? 'Editor' : 'Diff'}
+                      disabled={saving || formatting}
+                      title="Toggle diff with disk"
+                      onClick={() => { setShowDiff(s => !s) }}
+                    >
+                      <span className={css.btnTextBadge}>{showDiff ? 'Code' : 'Diff'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={css.editorActionBtn}
+                      aria-label="Discard"
+                      disabled={saving || formatting}
+                      title="Discard unsaved changes"
+                      onClick={discardChanges}
+                    >
+                      <span className={css.btnTextBadge}>Discard</span>
+                    </button>
+                  </>
+                )}
+                <button
+                  type="button"
+                  className={css.editorActionBtn}
+                  aria-label="Copy file content"
+                  title="Copy file content"
+                  onClick={() => { void copyDraftContent() }}
+                >
+                  <IconCopyOutline16 size={13} />
+                </button>
+                <button
+                  type="button"
+                  className={css.editorActionBtn}
+                  aria-label="Format"
+                  aria-keyshortcuts="Shift+Alt+F"
+                  disabled={formatting || saving}
+                  title="Format document (Shift+Alt+F)"
+                  onMouseDown={(event) => { event.preventDefault() }}
+                  onClick={() => { void formatFile() }}
+                >
+                  <IconCodeOutline16 size={13} />
+                </button>
+                <button
+                  type="button"
+                  className={`${css.editorActionBtn} ${dirty ? css.editorActionBtnDirty : ''}`}
+                  aria-label="Save"
+                  aria-keyshortcuts="Control+S"
+                  disabled={!dirty || saving || formatting}
+                  title="Save (Ctrl+S)"
+                  onMouseDown={(event) => { event.preventDefault() }}
+                  onClick={() => { void saveFile() }}
+                >
+                  <IconCheckOutline14 size={13} />
+                </button>
+              </div>
+            )}
           </div>
         )}
 
         {document !== undefined && (
           <nav className={css.breadcrumbs} aria-label="Breadcrumbs">
-            {relativePath(rootPath, document.path).split(/[/\\]/u).map((segment, idx, arr) => {
-              const isLast = idx === arr.length - 1
-              return (
-                <span key={idx} className={css.breadcrumbSegment}>
-                  {idx > 0 && (
-                    <span className={css.breadcrumbChevron} aria-hidden="true">
-                      <IconChevronRightOutline14 size={10} />
+            <div className={css.breadcrumbsPath}>
+              {relativePath(rootPath, document.path).split(/[/\\]/u).map((segment, idx, arr) => {
+                const isLast = idx === arr.length - 1
+                return (
+                  <span key={idx} className={css.breadcrumbSegment}>
+                    {idx > 0 && (
+                      <span className={css.breadcrumbChevron} aria-hidden="true">
+                        <IconChevronRightOutline14 size={10} />
+                      </span>
+                    )}
+                    <span className={`${css.breadcrumbItem} ${isLast ? css.breadcrumbActive : ''}`}>
+                      {isLast && <FileIcon path={document.path} />}
+                      {segment}
                     </span>
-                  )}
-                  <span className={`${css.breadcrumbItem} ${isLast ? css.breadcrumbActive : ''}`}>
-                    {isLast && <FileIcon path={document.path} />}
-                    {segment}
                   </span>
-                </span>
-              )
-            })}
+                )
+              })}
+            </div>
+            {dirty && <span className={css.dirty} aria-label="Unsaved changes">●</span>}
           </nav>
         )}
-
-        <header className={css.editorHeader}>
-          <span className={css.editorTitle} title={document?.path}>
-            {document === undefined ? 'Open file' : relativePath(rootPath, document.path)}
-            {dirty && <span className={css.dirty} aria-label="Unsaved changes">●</span>}
-          </span>
-          <div className={css.editorActions}>
-            {document !== undefined && (
-              <>
-                <Button
-                  variant="toolbar"
-                  size="sm"
-                  aria-keyshortcuts="Alt+Z"
-                  title={wordWrap ? 'Disable Word Wrap (Alt+Z)' : 'Enable Word Wrap (Alt+Z)'}
-                  onClick={() => setWordWrap(w => !w)}
-                >
-                  {wordWrap ? 'Wrap: On' : 'Wrap: Off'}
-                </Button>
-                <Button
-                  variant="toolbar"
-                  size="sm"
-                  aria-keyshortcuts="Control+G"
-                  title="Go to line (Ctrl+G)"
-                  onClick={() => setShowGotoLine(true)}
-                >
-                  :Line
-                </Button>
-                <Button
-                  variant="toolbar"
-                  size="sm"
-                  aria-keyshortcuts="Control+F"
-                  title={showFind ? 'Close Find (Ctrl+F)' : 'Find in file (Ctrl+F)'}
-                  onClick={() => setShowFind(s => !s)}
-                >
-                  Find
-                </Button>
-              </>
-            )}
-            {dirty && (
-              <>
-                <Button
-                  variant="toolbar"
-                  size="sm"
-                  disabled={saving || formatting}
-                  title="Toggle diff with disk"
-                  onClick={() => setShowDiff(s => !s)}
-                >
-                  {showDiff ? 'Editor' : 'Diff'}
-                </Button>
-                <Button
-                  variant="toolbar"
-                  size="sm"
-                  disabled={saving || formatting}
-                  title="Discard unsaved changes"
-                  onClick={discardChanges}
-                >
-                  Discard
-                </Button>
-              </>
-            )}
-            <Button
-              variant="toolbar"
-              size="sm"
-              disabled={document === undefined}
-              title="Copy file content"
-              onClick={() => { void copyDraftContent() }}
-            >
-              <IconCopyOutline16 size={13} />
-            </Button>
-            <Button
-              variant="toolbar"
-              size="sm"
-              aria-keyshortcuts="Shift+Alt+F"
-              disabled={document === undefined || formatting || saving}
-              onMouseDown={(event) => { event.preventDefault() }}
-              onClick={() => { void formatFile() }}
-            >
-              Format
-            </Button>
-            <Button
-              variant="toolbar"
-              size="sm"
-              aria-keyshortcuts="Control+S"
-              disabled={!dirty || saving || formatting}
-              onMouseDown={(event) => { event.preventDefault() }}
-              onClick={() => { void saveFile() }}
-            >
-              Save
-            </Button>
-          </div>
-        </header>
 
         {showGotoLine && (
           <div className={css.gotoLineDialog} role="dialog" aria-label="Go to line">
@@ -1443,7 +1552,7 @@ export function DesktopFilesPanel(props: {
               className={css.gotoLineInput}
               placeholder={`1-${lineCount}`}
               value={gotoLineValue}
-              onChange={e => setGotoLineValue(e.currentTarget.value)}
+              onChange={(e) => { setGotoLineValue(e.currentTarget.value) }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault()
@@ -1495,7 +1604,7 @@ export function DesktopFilesPanel(props: {
               aria-label="Find query"
               placeholder="Find..."
               value={findQuery}
-              onChange={e => setFindQuery(e.currentTarget.value)}
+              onChange={(e) => { setFindQuery(e.currentTarget.value) }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault()
@@ -1540,7 +1649,7 @@ export function DesktopFilesPanel(props: {
               className={`${css.findBtn} ${findMatchCase ? css.findBtnActive : ''}`}
               aria-label="Match case"
               title="Match case"
-              onClick={() => setFindMatchCase(c => !c)}
+              onClick={() => { setFindMatchCase(c => !c) }}
             >
               Aa
             </button>
@@ -1578,20 +1687,32 @@ export function DesktopFilesPanel(props: {
             ))}
           </div>
         ) : (
-          <div className={css.codeScroll}>
+          <div ref={codeScrollRef} className={css.codeScroll}>
             <div className={css.codeCanvas} data-wrap={wordWrap ? 'true' : undefined}>
               <div className={css.lineGutter} aria-hidden="true">
                 {Array.from({ length: lineCount }, (_, i) => (
                   <div
                     key={i + 1}
                     className={css.lineNumber}
+                    data-line={i + 1}
                     data-active={cursorPos.line === i + 1 ? 'true' : undefined}
+                    data-flash={flashLine === i + 1 ? 'true' : undefined}
                   >
                     {i + 1}
                   </div>
                 ))}
               </div>
               <div className={css.codeArea}>
+                {flashLine !== undefined && (
+                  <div
+                    className={css.lineFlashHighlight}
+                    style={{
+                      top: 12 + (flashLine - 1) * 18.6,
+                      height: 18.6,
+                    }}
+                    aria-hidden="true"
+                  />
+                )}
                 <div
                   ref={node => node?.setAttribute('inert', '')}
                   className={css.codeSyntax}
@@ -1627,9 +1748,9 @@ export function DesktopFilesPanel(props: {
                     updateDocument(current => current === undefined ? current : { ...current, draft })
                     updateCursorAndSelection(event.currentTarget)
                   }}
-                  onSelect={event => updateCursorAndSelection(event.currentTarget)}
-                  onKeyUp={event => updateCursorAndSelection(event.currentTarget)}
-                  onClick={event => updateCursorAndSelection(event.currentTarget)}
+                  onSelect={(event) => { updateCursorAndSelection(event.currentTarget) }}
+                  onKeyUp={(event) => { updateCursorAndSelection(event.currentTarget) }}
+                  onClick={(event) => { updateCursorAndSelection(event.currentTarget) }}
                 />
               </div>
             </div>
@@ -1706,7 +1827,7 @@ export function DesktopFilesPanel(props: {
             type="button"
             className={css.contextMenuItem}
             role="menuitem"
-            onClick={() => startRename(contextMenu.entry)}
+            onClick={() => { startRename(contextMenu.entry) }}
           >
             <IconEditOutline16 size={13} />
             Rename

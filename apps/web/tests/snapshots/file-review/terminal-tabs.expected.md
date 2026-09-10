@@ -1,0 +1,50 @@
+- region "Right panel":
+  - group "Open panel":
+    - button "Files"
+    - button "Side chat"
+    - button "Browser"
+    - button "Terminal" [pressed]
+    - button "Review"
+  - tablist "Right panel tabs":
+    - tab "Browser":
+      - img
+      - text: Browser
+    - button "Close Browser":
+      - img
+    - tab "Review":
+      - img
+      - text: Review
+    - button "Close Review":
+      - img
+    - tab "Terminal":
+      - img
+      - text: Terminal
+    - button "Close Terminal":
+      - img
+    - tab "Terminal 2" [selected]:
+      - img
+      - text: Terminal 2
+    - button "Close Terminal 2":
+      - img
+  - tabpanel "Terminal 2":
+    - region "Right terminal 2":
+      - text: Terminals
+      - button "Project profile":
+        - text: Project
+        - img
+      - text: Unavailable
+      - button "New Terminal":
+        - img
+      - button "Toggle Sidebar"
+      - complementary "Terminal processes":
+        - button "Conversations":
+          - img
+          - text: Conversations
+        - text: Write review.txt with A then
+        - list:
+          - listitem:
+            - text: powershell.exe
+            - button "Split Terminal"
+            - button "Kill powershell.exe":
+              - img
+      - status: Desktop terminal is unavailable.

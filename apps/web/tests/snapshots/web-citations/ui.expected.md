@@ -65,7 +65,7 @@
 - textbox "Message the agent"
 - button "Commands":
   - img
-- 'button "Access mode, current: Workspace Write"': Workspace Write
+- 'button "Access mode, current: Edit"': Edit
 - button "Select model":
   - text: Select model
   - img
@@ -73,3 +73,4 @@
 - text: 1 turns · 2 steps LLM {{duration}} · Tool call {{duration}} TTFT avg {{duration}} · {{throughput}} tok/s Cache hit 49% Input 11K tok · Output 137 tok Details
 - button "Close details"
 - text: Click a tool row in the message flow to view its details
+- separator "Resize sidebar"

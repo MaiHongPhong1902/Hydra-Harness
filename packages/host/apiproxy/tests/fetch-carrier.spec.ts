@@ -18,6 +18,7 @@ function fakeApi(overrides: Partial<{ muxFrames: MuxFrame[]; hostFrames: HostFra
   return {
     review: {
       list: async r => ({ rpcId: r.rpcId, result: { ok: true, value: { changes: [] } } }),
+      workspace: async r => ({ rpcId: r.rpcId, result: { ok: true, value: { workspace: '', repository: null, branch: null, branches: [], commits: [], mode: r.payload.mode, baseRef: null, files: [], truncated: false } } }),
       keep: async r => ({ rpcId: r.rpcId, result: { ok: false, error: { code: 'internal', message: 'unavailable', details: {} } } }),
       undo: async r => ({ rpcId: r.rpcId, result: { ok: false, error: { code: 'internal', message: 'unavailable', details: {} } } }),
     },

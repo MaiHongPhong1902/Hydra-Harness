@@ -4,8 +4,9 @@
  * asynchronous pipe draining and exit waiting. Console isolation
  * (CREATE_NO_WINDOW / CREATE_NEW_CONSOLE) is intentionally absent: under this
  * restriction scheme hidden-console children die with STATUS_DLL_INIT_FAILED
- * (0xC0000142) — verified empirically, see win32-abi.ts. Stdio redirection is
- * pipe-based and unaffected; the child shares the host console.
+ * (0xC0000142) — verified empirically, see win32-abi.ts. Console window
+ * flashing is suppressed via STARTF_USESHOWWINDOW with SW_HIDE instead.
+ * Stdio redirection is pipe-based and unaffected; the child shares the host console.
  * @module @hydra/harness-sandbox-windows-acl/spawn
  */
 
@@ -113,7 +114,8 @@ export function spawnSandboxed(
   const startupInfo = allocStartupInfo()
   encodeStartupInfo(startupInfo, {
     cb: abi.STARTUPINFOW_SIZE,
-    dwFlags: abi.STARTF_USESTDHANDLES,
+    dwFlags: abi.STARTF_USESTDHANDLES | abi.STARTF_USESHOWWINDOW,
+    wShowWindow: abi.SW_HIDE,
     hStdInput: stdIn.read,
     hStdOutput: stdOut.write,
     hStdError: stdErr.write,
@@ -297,7 +299,8 @@ export function spawnSandboxedInherited(
   const startupInfo = allocStartupInfo()
   encodeStartupInfo(startupInfo, {
     cb: abi.STARTUPINFOW_SIZE,
-    dwFlags: abi.STARTF_USESTDHANDLES,
+    dwFlags: abi.STARTF_USESTDHANDLES | abi.STARTF_USESHOWWINDOW,
+    wShowWindow: abi.SW_HIDE,
     hStdInput: stdIn,
     hStdOutput: stdOut,
     hStdError: stdErr,

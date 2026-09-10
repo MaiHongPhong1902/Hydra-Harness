@@ -223,7 +223,7 @@ describe('web e2e: message IconActions and clocks on settled history', () => {
     await row.getByRole('button', { name: 'Edit' }).click()
     const editor = page.getByRole('textbox', { name: 'Edit prompt' })
     expect(await editor.inputValue()).toBe(SECOND_PROMPT)
-    expect(await page.getByRole('button', { name: 'Save & resend', exact: true }).isDisabled()).toBe(true)
+    expect(await page.getByRole('button', { name: 'Save & resend', exact: true }).isDisabled()).toBe(false)
     await editor.fill('discard this draft')
     await page.getByRole('button', { name: 'Cancel', exact: true }).click()
     expect(await row.getByRole('button', { name: 'Edit' }).evaluate(element => element === document.activeElement)).toBe(true)

@@ -1,7 +1,7 @@
 - textbox "This model is unavailable — select one to continue" [disabled]: Keep this draft until I select a model
 - button "Commands" [disabled]:
   - img
-- 'button "Access mode, current: Workspace Write" [disabled]': Workspace Write
+- 'button "Access mode, current: Edit" [disabled]': Edit
 - button "Select model":
   - text: Select model
   - img

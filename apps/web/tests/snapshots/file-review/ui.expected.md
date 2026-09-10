@@ -1,13 +1,39 @@
 - region "Review":
   - strong: Review
-  - text: 2 changes · 1 file
+  - text: workspace 2 changes · 1 file +2 −1
   - button "Refresh"
+  - button "Keep All"
+  - button "Undo All"
+  - combobox "Review scope":
+    - option "Session changes" [selected]
+    - option "Uncommitted changes"
+    - option "Unstaged changes"
+    - option "Staged changes"
+    - option "Commit"
+    - option "Branch comparison"
+  - text: review-fixture
+  - button "Toggle file list" [pressed]: Files
+  - button "Toggle view mode": One file
+  - button "Expand all diffs": Expand all
+  - group: Diff preferences
+  - text: Showing all 1 changed files
   - alert: "review.txt: the file changed after this edit. Undo was skipped."
   - region "review.txt kept":
     - group: A review.txt +1 −0 Kept
     - button "Keep" [disabled]
     - button "Undo"
+    - button "Copy diff"
   - region "review.txt active":
     - group: M review.txt +1 −1 View diff
     - button "Keep"
     - button "Undo"
+    - button "Copy diff"
+  - complementary "Changed files":
+    - searchbox "Filter changes by file"
+    - tablist "Filter status":
+      - tab "All (2)" [selected]
+      - tab "Pending (1)"
+      - tab "Kept (1)"
+      - tab "Undone (0)"
+    - tree "File changes":
+      - treeitem "modified review.txt" [selected]: M review.txt

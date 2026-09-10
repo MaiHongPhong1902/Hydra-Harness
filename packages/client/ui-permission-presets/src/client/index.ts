@@ -8,7 +8,7 @@
  * projection (the same host-computed select the composer chip renders); a
  * pick submits the `/permission <preset>` command line, so both surfaces
  * write through one path and the pushed projection frame is the one
- * confirmation. The Full access row carries the same explicit risk gate as
+ * confirmation. The Auto-Pilot row carries the same explicit risk gate as
  * the composer chip; the shared popup shell owns the modal mechanics.
  * The General-settings row separately writes the default preset for fresh
  * sessions and eligible confirmed blank reuse through the host Settings API.
@@ -93,7 +93,7 @@ export function apply(ctx: ClientContext): void {
     'confirm.acknowledge': accessEn['confirm.acknowledge'],
     'confirm.cancel': accessEn['confirm.cancel'],
     'confirm.enable': accessEn['confirm.enable'],
-  }), 'ui-permission: Full access confirmation dictionary')
+  }), 'ui-permission: Auto-Pilot confirmation dictionary')
   /* jscpd:ignore-end */
   const t = ctx.locale.bind(ACCESS_NS)
   const sessionFor = (session: ClientSessionContext): SessionFace | undefined =>

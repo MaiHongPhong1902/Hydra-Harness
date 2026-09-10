@@ -21,13 +21,13 @@ const OPTIONS: SelectOption[] = [
 ]
 const GATED: SelectOption = {
   id: 'full',
-  label: 'Full access',
+  label: 'Auto-Pilot',
   confirmation: {
-    title: 'Enable Full access?',
+    title: 'Enable Auto-Pilot?',
     description: 'Sensitive operations.',
     acknowledgeLabel: 'I understand',
     cancelLabel: 'Cancel',
-    confirmLabel: 'Enable Full access',
+    confirmLabel: 'Enable Auto-Pilot',
   },
 }
 

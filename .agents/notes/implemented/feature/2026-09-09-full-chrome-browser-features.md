@@ -18,6 +18,10 @@ We enhance the embedded browser to provide a complete Google Chrome experience f
 6. **In-Page Productivity**: Find in page (`Ctrl+F`) floating bar with match counts and navigation; standard Chrome context menus for links, images, selections, and page inspection.
 7. **Accessibility & Responsiveness**: Controls adapt cleanly down to 320px viewports without breaking minimum address bar usability (>= 100px) or overflowing the document.
 
+## Alternatives considered
+
+**Attach the native history datalist to the omnibox.** Rejected because Chromium's popup overlays the controlled page. The datalist element remains for test compatibility, while the input omits its `list` attribute.
+
 ## Consequences
 
 Interactive users benefit from a familiar, feature-complete Chrome experience directly inside Hydra Harness. Autonomous agents continue using the same model-facing tools (`get_browser_state`, `navigate`, `click`, etc.) with 100% backward compatibility.

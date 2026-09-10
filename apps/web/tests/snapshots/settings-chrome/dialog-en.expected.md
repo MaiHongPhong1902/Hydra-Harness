@@ -29,8 +29,8 @@
     - text: Standard mode
     - img
   - text: Permission Choose the default permission mode for new sessions
-  - button "Workspace Write":
-    - text: Workspace Write
+  - button "Edit":
+    - text: Edit
     - img
   - text: Language
   - button "English":

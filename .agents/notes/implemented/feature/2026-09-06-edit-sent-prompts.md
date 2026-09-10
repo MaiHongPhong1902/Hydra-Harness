@@ -8,7 +8,7 @@ A reader needs to correct a sent prompt and obtain a fresh answer using the prec
 
 ## Decision
 
-User and admitted-steering bubbles expose a pencil that stays visible like Copy. The inline textarea offers Cancel and Save & resend, preserves whitespace and Unicode, and focuses at the end of the original text. Enter sends, Shift+Enter inserts a newline, and Escape cancels and returns focus. IME composition never submits. Blank drafts without images and unchanged drafts cannot send. Submission locks synchronously and retains the draft and request identity on failure. The generic locale `edit` label remains shared with other editors.
+User and admitted-steering bubbles expose a pencil that stays visible like Copy. The inline textarea offers Cancel and Save & resend, preserves whitespace and Unicode, and focuses at the end of the original text. Enter sends, Shift+Enter inserts a newline, and Escape cancels and returns focus. IME composition never submits. Blank drafts without images cannot send; [unchanged drafts resend the prompt](../bug-fix/2026-09-08-resend-unchanged-prompts.md). Submission locks synchronously and retains the draft and request identity on failure. The generic locale `edit` label remains shared with other editors.
 
 Explicit resend labels distinguish replacement from an ordinary follow-up. Keyboard focus begins at the end of the original text, and visible shortcut hints make the editor usable without discovering hidden keys. The reference points are [Codex desktop keyboard commands](https://learn.chatgpt.com/docs/reference/commands) and [Claude Code conversation rewind](https://code.claude.com/docs/en/checkpointing): recalling text must not submit it, and restoring conversation context must remain distinct from reverting files.
 

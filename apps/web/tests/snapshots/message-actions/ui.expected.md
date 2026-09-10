@@ -63,7 +63,7 @@
 - textbox "Message the agent"
 - button "Commands":
   - img
-- 'button "Access mode, current: Workspace Write"': Workspace Write
+- 'button "Access mode, current: Edit"': Edit
 - button "Select model, current Edit model":
   - text: Edit model
   - img

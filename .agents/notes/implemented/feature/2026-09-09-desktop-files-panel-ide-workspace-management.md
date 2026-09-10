@@ -1,4 +1,4 @@
-﻿# Agent Note: Desktop Files panel IDE workspace management and coding controls
+# Agent Note: Desktop Files panel IDE workspace management and coding controls
 
 Status: implemented
 

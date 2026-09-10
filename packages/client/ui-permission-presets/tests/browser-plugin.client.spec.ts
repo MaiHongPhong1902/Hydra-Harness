@@ -129,13 +129,13 @@ describe('ui-permission browser plugin', () => {
     expect(again.find(option => option.id === 'workspace-write')?.active).toBe(true)
     expect(again.find(option => option.id === 'read-only')?.detail).toBe('Reads only.')
     // Built-ins use product labels; other kebab-case names title-case.
-    expect(again.map(option => option.label)).toEqual(['Read Only', 'Workspace Write', 'Full access'])
+    expect(again.map(option => option.label)).toEqual(['Read only', 'Edit', 'Auto-Pilot'])
     expect(again.find(option => option.id === 'danger-full-access')?.confirmation).toEqual({
-      title: 'Enable Full access?',
+      title: 'Enable Auto-Pilot?',
       description: accessEn['confirm.description'],
       acknowledgeLabel: 'I understand the risks and want to continue',
       cancelLabel: 'Cancel',
-      confirmLabel: 'Enable Full access',
+      confirmLabel: 'Enable Auto-Pilot',
     })
     b.values.set(sid('s1'), { ...SELECT, options: [
       { value: 'workspace-write', name: 'Project Files' },

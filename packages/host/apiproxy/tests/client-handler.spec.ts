@@ -35,7 +35,7 @@ function scriptedApi(overrides: {
   const err = <T>(r: RpcRequest<unknown>): Promise<RpcResponse<T>> =>
     Promise.resolve({ rpcId: r.rpcId, result: { ok: false, error: { code: 'internal' as const, message: 'stub', details: {} } } })
   return {
-    review: { list: r => ok(r, { changes: [] }), keep: err, undo: err, ...overrides.review },
+    review: { list: r => ok(r, { changes: [] }), workspace: r => ok(r, { workspace: '', repository: null, branch: null, branches: [], commits: [], mode: r.payload.mode, baseRef: null, files: [], truncated: false }), keep: err, undo: err, ...overrides.review },
     sessions: {
       revise: r => Promise.resolve({ rpcId: r.rpcId, result: { ok: false, error: { code: 'fork-unavailable', message: 'not configured', details: { sessionId: r.payload.sessionId } } } }),
       list: r => ok(r, { items: [] }),
@@ -846,5 +846,28 @@ describe('config unary surface', () => {
     const result = await c.review.undo({ sessionId: sid('owner'), changeId: '../outside' as never })
     expect(result.result).toMatchObject({ ok: false, error: { code: 'bad-request' } })
     expect(undo).not.toHaveBeenCalled()
+  })
+
+  it('routes review.workspace for every mode and rejects unsafe ref values before the handler', async () => {
+    const workspace = vi.fn((r: Parameters<NonNullable<ApiProxy['review']['workspace']>>[0]) =>
+      ok(r, { workspace: '/w', repository: '/w', branch: 'main', branches: [], commits: [], mode: r.payload.mode, baseRef: null, files: [], truncated: false }),
+    )
+    const c = client(scriptedApi({ review: { workspace } }))
+    const modes = ['uncommitted', 'unstaged', 'staged', 'committed', 'branch'] as const
+    for (const mode of modes) {
+      const res = await c.review.workspace({ sessionId: sid('owner'), mode })
+      expect(res.result).toMatchObject({ ok: true, value: { mode } })
+    }
+    // Branch comparison with a valid ref reaches the handler.
+    const withRef = await c.review.workspace({ sessionId: sid('owner'), mode: 'branch', ref: 'refs/heads/main' })
+    expect(withRef.result.ok).toBe(true)
+    expect(workspace).toHaveBeenCalledTimes(modes.length + 1)
+    // A ref starting with '-' is refused by the schema refine — handler never runs.
+    const dashRef = await c.review.workspace({ sessionId: sid('owner'), mode: 'branch', ref: '--bad-flag' })
+    expect(dashRef.result).toMatchObject({ ok: false, error: { code: 'bad-request' } })
+    // A ref with a control character is refused by the schema refine — handler never runs.
+    const ctrlRef = await c.review.workspace({ sessionId: sid('owner'), mode: 'committed', ref: 'abc\x00xyz' })
+    expect(ctrlRef.result).toMatchObject({ ok: false, error: { code: 'bad-request' } })
+    expect(workspace).toHaveBeenCalledTimes(modes.length + 1)
   })
 })

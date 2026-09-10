@@ -14,9 +14,9 @@ const PRESET_LABEL_KEYS = new Map<string, PermissionPresetLabelKey>([
 ])
 
 const DEFAULT_PRESET_LABELS: Record<PermissionPresetLabelKey, string> = {
-  'preset.readOnly': 'Read Only',
-  'preset.workspaceWrite': 'Workspace Write',
-  'preset.fullAccess': 'Full access',
+  'preset.readOnly': 'Read only',
+  'preset.workspaceWrite': 'Edit',
+  'preset.fullAccess': 'Auto-Pilot',
 }
 
 /**

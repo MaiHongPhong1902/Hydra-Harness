@@ -12,6 +12,34 @@ export interface ReviewHunk {
   lines: string[]
 }
 
+/** Live Git comparison modes shown beside persisted session evidence. */
+export type ReviewMode = 'uncommitted' | 'unstaged' | 'staged' | 'committed' | 'branch'
+
+/** One read-only current-workspace file comparison. */
+export interface WorkspaceReviewFile {
+  path: string
+  status: 'added' | 'modified' | 'deleted'
+  additions: number
+  deletions: number
+  hunks: ReviewHunk[]
+  binary: boolean
+  truncated: boolean
+  patch: string | null
+}
+
+/** Git metadata and changes restricted to a session's recorded workspace. */
+export interface WorkspaceReview {
+  workspace: string
+  repository: string | null
+  branch: string | null
+  branches: string[]
+  commits: { oid: string; subject: string }[]
+  mode: ReviewMode
+  baseRef: string | null
+  files: WorkspaceReviewFile[]
+  truncated: boolean
+}
+
 /** Snapshot metadata and review evidence committed together. */
 export interface ReviewChange {
   version: 1

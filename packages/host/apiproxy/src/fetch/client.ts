@@ -42,7 +42,7 @@ import {
   workspaceRenameValueSchema,
 } from '../api/workspace.schema.ts'
 import { skillListValueSchema } from '../api/skills.schema.ts'
-import { reviewListValueSchema, reviewActionValueSchema } from '../api/review.schema.ts'
+import { reviewListValueSchema, reviewActionValueSchema, reviewWorkspaceValueSchema } from '../api/review.schema.ts'
 import {
   agentPresetCopyValueSchema, agentPresetListValueSchema, agentPresetOpenDocumentValueSchema,
   agentPresetReadValueSchema, agentPresetRemoveValueSchema, agentPresetSelectValueSchema,
@@ -91,6 +91,7 @@ import {
 export interface IApiClient {
   review: {
     list(payload: RequestPayload<'review.list'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'review.list'>>>
+    workspace(payload: RequestPayload<'review.workspace'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'review.workspace'>>>
     keep(payload: RequestPayload<'review.keep'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'review.keep'>>>
     undo(payload: RequestPayload<'review.undo'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'review.undo'>>>
   }
@@ -189,6 +190,7 @@ export interface IApiClient {
  */
 const UNARY_VALUE_SCHEMAS: { [K in keyof RpcMethodMap]: z.ZodType<Wire<ResponseValue<K>>> } = {
   'review.list': reviewListValueSchema,
+  'review.workspace': reviewWorkspaceValueSchema,
   'review.keep': reviewActionValueSchema,
   'review.undo': reviewActionValueSchema,
   'session.list': sessionListValueSchema,
@@ -511,6 +513,7 @@ export abstract class AbstractApiClient implements IApiClient {
 
   readonly review: IApiClient['review'] = {
     list: (payload, signal) => this.callUnary('review.list', payload, signal),
+    workspace: (payload, signal) => this.callUnary('review.workspace', payload, signal),
     keep: (payload, signal) => this.callUnary('review.keep', payload, signal),
     undo: (payload, signal) => this.callUnary('review.undo', payload, signal),
   }

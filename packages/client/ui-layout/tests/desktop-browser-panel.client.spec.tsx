@@ -1,5 +1,4 @@
 // @vitest-environment jsdom
-import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, waitFor, within } from '@testing-library/react'
@@ -8,10 +7,29 @@ import {
   DesktopBrowserPanel,
   DesktopPanelControls,
 } from '@hydra/harness-client-ui-layout/src/client/DesktopBrowserPanel.tsx'
-import type { DesktopBrowserApi } from '@hydra/harness-client-ui-layout/src/client/DesktopBrowserPanel.tsx'
+import type {
+  DesktopBrowserApi, DesktopPanelShortcut, DesktopTerminalApi, DesktopTerminalId,
+} from '@hydra/harness-client-ui-layout/src/client/DesktopBrowserPanel.tsx'
 import { DesktopFilesPanel } from '@hydra/harness-client-ui-layout/src/client/DesktopFilesPanel.tsx'
 
-vi.mock('@xterm/xterm', () => ({ Terminal: vi.fn() }))
+vi.mock('@xterm/xterm', () => ({
+  Terminal: vi.fn(function MockTerminal() { return {
+    cols: 80,
+    rows: 24,
+    loadAddon: vi.fn(),
+    open: vi.fn(),
+    onData: vi.fn(() => ({ dispose: vi.fn() })),
+    onResize: vi.fn(() => ({ dispose: vi.fn() })),
+    onSelectionChange: vi.fn(() => ({ dispose: vi.fn() })),
+    getSelection: vi.fn(() => ''),
+    attachCustomKeyEventHandler: vi.fn(),
+    write: vi.fn(),
+    writeln: vi.fn(),
+    focus: vi.fn(),
+    dispose: vi.fn(),
+  } }),
+}))
+vi.mock('@xterm/addon-fit', () => ({ FitAddon: vi.fn(function MockFitAddon() { return { fit: vi.fn() } }) }))
 
 function PanelHarness(props: {
   open?: boolean | undefined
@@ -20,17 +38,13 @@ function PanelHarness(props: {
   renderSideChat: (sessionId: SessionId) => ReactNode
   onOpen?: (() => void) | undefined
 }) {
-  const [chooserOpen, setChooserOpen] = useState(false)
   return (
     <DesktopBrowserPanel
       open={props.open ?? true}
-      chooserOpen={chooserOpen}
       workspaceId={props.workspaceId}
       createSideSession={props.createSideSession}
       renderSideChat={props.renderSideChat}
       renderReview={() => <div data-testid="review-slot" />}
-      onCloseChooser={() => { setChooserOpen(false) }}
-      onToggleChooser={() => { setChooserOpen(open => !open) }}
       onOpen={props.onOpen ?? (() => {})}
     />
   )
@@ -70,16 +84,9 @@ describe('DesktopBrowserPanel', () => {
     const view = render(
       <PanelHarness createSideSession={createSideSession} renderSideChat={renderSideChat} />,
     )
-    const visibleBounds = { x: 700, y: 72, width: 500, height: 728, visible: true }
-    const hiddenBounds = { x: 0, y: 0, width: 0, height: 0, visible: false }
+    const visibleBounds = { x: 700, y: 72, width: 500, height: 728, visible: true, present: true }
+    const hiddenBounds = { x: 0, y: 0, width: 0, height: 0, visible: false, present: true }
 
-    await waitFor(() => { expect(setBounds).toHaveBeenLastCalledWith(visibleBounds) })
-
-    fireEvent.click(view.getByRole('button', { name: 'Choose panel' }))
-    await waitFor(() => {
-      expect(setBounds).toHaveBeenLastCalledWith({ ...visibleBounds, visible: false })
-    })
-    fireEvent.keyDown(view.getByRole('dialog', { name: 'Choose panel' }), { key: 'Escape' })
     await waitFor(() => { expect(setBounds).toHaveBeenLastCalledWith(visibleBounds) })
 
     const modal = document.createElement('div')
@@ -92,20 +99,24 @@ describe('DesktopBrowserPanel', () => {
     modal.remove()
     await waitFor(() => { expect(setBounds).toHaveBeenLastCalledWith(visibleBounds) })
 
-    fireEvent.click(view.getByRole('button', { name: 'Choose panel' }))
-    fireEvent.click(within(view.getByRole('dialog', { name: 'Choose panel' })).getByRole('button', { name: 'Files' }))
+    fireEvent.click(view.getByRole('button', { name: 'Files' }))
     await waitFor(() => { expect(setBounds).toHaveBeenLastCalledWith(hiddenBounds) })
 
     fireEvent.click(view.getByRole('tab', { name: 'Browser' }))
     await waitFor(() => { expect(setBounds).toHaveBeenLastCalledWith(visibleBounds) })
 
+    // Closing the Browser tab tells the controller the panel no longer hosts one.
+    fireEvent.click(view.getByRole('button', { name: 'Close Browser' }))
+    const absentBounds = { ...hiddenBounds, present: false }
+    await waitFor(() => { expect(setBounds).toHaveBeenLastCalledWith(absentBounds) })
+
     view.rerender(
       <PanelHarness open={false} createSideSession={createSideSession} renderSideChat={renderSideChat} />,
     )
-    await waitFor(() => { expect(setBounds).toHaveBeenLastCalledWith(hiddenBounds) })
+    await waitFor(() => { expect(setBounds).toHaveBeenLastCalledWith(absentBounds) })
   })
 
-  it('opens Review from the chooser once and reopens the same tab after closing', () => {
+  it('opens Review from the panel options once and reopens the same tab after closing', () => {
     window.hydraDesktop = { browser: { setBounds: vi.fn() } }
     stubPanelObservers()
     const createSideSession = vi.fn(async () => 'side' as SessionId)
@@ -113,10 +124,7 @@ describe('DesktopBrowserPanel', () => {
       <PanelHarness createSideSession={createSideSession} renderSideChat={() => null} />,
     )
     expect(view.queryByTestId('review-slot')).toBeNull()
-    const chooseReview = () => {
-      fireEvent.click(view.getByRole('button', { name: 'Choose panel' }))
-      fireEvent.click(within(view.getByRole('dialog', { name: 'Choose panel' })).getByRole('button', { name: 'Review' }))
-    }
+    const chooseReview = () => { fireEvent.click(view.getByRole('button', { name: 'Review' })) }
     chooseReview()
     expect(view.getByRole('tab', { name: 'Review' }).getAttribute('aria-selected')).toBe('true')
     expect(view.getByTestId('review-slot')).toBeTruthy()
@@ -165,22 +173,14 @@ describe('DesktopBrowserPanel', () => {
       />,
     )
     const choose = (name: 'Files' | 'Side chat' | 'Terminal') => {
-      fireEvent.click(view.getByRole('button', { name: 'Choose panel' }))
-      const dialog = view.getByRole('dialog', { name: 'Choose panel' })
-      fireEvent.click(within(dialog).getByRole('button', { name }))
+      fireEvent.click(view.getByRole('button', { name }))
     }
 
     expect(view.getByRole('tab', { name: 'Browser' }).getAttribute('aria-selected')).toBe('true')
     choose('Files')
     expect(view.getByRole('tab', { name: 'Files' }).getAttribute('aria-selected')).toBe('true')
     await waitFor(() => { expect(files.root).toHaveBeenCalledWith(workspaceId) })
-    fireEvent.click(view.getByRole('button', { name: 'Choose panel' }))
-    const deferredDialog = view.getByRole('dialog', { name: 'Choose panel' })
-    const browserChoice = within(deferredDialog).getByRole('button', { name: 'Browser' })
-    await waitFor(() => { expect(document.activeElement).toBe(browserChoice) })
     await act(async () => { finishRoot(rootPath); await Promise.resolve() })
-    expect(document.activeElement).toBe(browserChoice)
-    fireEvent.keyDown(deferredDialog, { key: 'Escape' })
     const tree = await view.findByRole('tree', { name: 'Workspace files' })
     expect(files.list).toHaveBeenCalledWith(rootPath, workspaceId)
     const filter = view.getByRole('searchbox', { name: 'Filter workspace files' })
@@ -233,14 +233,16 @@ describe('DesktopBrowserPanel', () => {
     await waitFor(() => { expect(view.getByRole('tab', { name: 'Side chat 2' })).toBeTruthy() })
 
     choose('Terminal')
+    choose('Terminal')
     expect(view.getAllByRole('tab').map(tab => tab.textContent)).toEqual([
-      'Browser', 'Files', 'Side chat', 'Side chat 2', 'Terminal',
+      'Browser', 'Files', 'Side chat', 'Side chat 2', 'Terminal', 'Terminal 2',
     ])
     expect(view.getByLabelText('Right terminal').getAttribute('data-desktop-panel')).toBe('right-terminal')
+    expect(view.getByLabelText('Right terminal 2').getAttribute('data-desktop-panel')).toBe('right-terminal')
     expect(view.getByText('Chat side-1')).toBeTruthy()
     expect(view.getByText('Chat side-2')).toBeTruthy()
     expect(createSideSession).toHaveBeenCalledTimes(2)
-    expect(onOpen).toHaveBeenCalledTimes(4)
+    expect(onOpen).toHaveBeenCalledTimes(5)
 
     fireEvent.click(view.getByRole('tab', { name: 'Files' }))
     const editor = view.getByRole('textbox', { name: 'Editor for other.ts' })
@@ -253,6 +255,76 @@ describe('DesktopBrowserPanel', () => {
     confirm.mockReturnValue(true)
     fireEvent.click(view.getByRole('button', { name: 'Close Files' }))
     expect(view.queryByRole('tab', { name: 'Files' })).toBeNull()
+  })
+
+  it('creates independent right Terminal tabs and stops only the closed PTY', async () => {
+    const start = vi.fn(async () => ({ running: true }))
+    const stop = vi.fn(async () => {})
+    const terminal: DesktopTerminalApi = { start, stop, write: vi.fn(), resize: vi.fn(), onEvent: vi.fn(() => () => {}) }
+    window.hydraDesktop = { browser: { setBounds: vi.fn() }, terminal }
+    stubPanelObservers()
+    const view = render(<PanelHarness createSideSession={async () => 'side' as SessionId} renderSideChat={() => null} />)
+
+    fireEvent.click(view.getByRole('button', { name: 'Terminal' }))
+    await waitFor(() => { expect(start).toHaveBeenCalledWith('right', expect.anything()) })
+    fireEvent.click(view.getByRole('button', { name: 'Terminal' }))
+    await waitFor(() => { expect(start).toHaveBeenCalledWith('right-2', expect.anything()) })
+    expect(view.getByRole('tab', { name: 'Terminal 2' })).toBeTruthy()
+    expect(view.getByLabelText('Right terminal 2')).toBeTruthy()
+
+    fireEvent.click(view.getByRole('button', { name: 'Close Terminal 2' }))
+    await waitFor(() => { expect(stop).toHaveBeenCalledWith('right-2') })
+    expect(view.getByRole('tab', { name: 'Terminal' })).toBeTruthy()
+    expect(stop).not.toHaveBeenCalledWith('right')
+  })
+
+  it('closes each Terminal independently while a new Terminal is opened', async () => {
+    const firstStop = Promise.withResolvers<undefined>()
+    const secondStop = Promise.withResolvers<undefined>()
+    const stop = vi.fn((id: DesktopTerminalId) => id === 'right' ? firstStop.promise : secondStop.promise)
+    const start = vi.fn(async () => ({ running: true }))
+    const terminal: DesktopTerminalApi = {
+      start,
+      stop,
+      write: vi.fn(), resize: vi.fn(), onEvent: () => () => {},
+    }
+    window.hydraDesktop = { browser: { setBounds: vi.fn() }, terminal }
+    stubPanelObservers()
+    const view = render(<PanelHarness createSideSession={async () => 'side' as SessionId} renderSideChat={() => null} />)
+    const create = () => { fireEvent.click(view.getByRole('button', { name: 'Terminal' })) }
+    create()
+    create()
+    fireEvent.click(view.getByRole('button', { name: 'Close Terminal' }))
+    fireEvent.click(view.getByRole('button', { name: 'Close Terminal 2' }))
+    expect(stop).toHaveBeenCalledTimes(2)
+    expect(stop).toHaveBeenCalledWith('right')
+    expect(stop).toHaveBeenCalledWith('right-2')
+    create()
+    await waitFor(() => { expect(start).toHaveBeenCalledWith('right-3', expect.anything()) })
+    expect(view.getByRole('region', { name: 'Right terminal 3' })).toBeTruthy()
+    await act(async () => { firstStop.resolve(undefined); secondStop.reject(new Error('busy')) })
+    expect(view.queryByRole('tab', { name: 'Terminal' })).toBeNull()
+    expect(view.getByRole('tab', { name: 'Terminal 2' })).toBeTruthy()
+    expect(view.getByRole('tab', { name: 'Terminal 3' }).getAttribute('aria-selected')).toBe('true')
+    expect(view.getByRole('alert').textContent).toContain('Could not close Terminal 2')
+  })
+
+  it('keeps the selected panel when a pending Side chat finishes', async () => {
+    let finishCreate!: (sessionId: SessionId) => void
+    const createSideSession = vi.fn(() => new Promise<SessionId>((resolve) => { finishCreate = resolve }))
+    window.hydraDesktop = { browser: { setBounds: vi.fn() } }
+    stubPanelObservers()
+    const view = render(
+      <PanelHarness createSideSession={createSideSession} renderSideChat={() => null} />,
+    )
+
+    fireEvent.click(view.getByRole('button', { name: 'Side chat' }))
+    fireEvent.click(view.getByRole('button', { name: 'Review' }))
+    expect(view.getByRole('tab', { name: 'Review' }).getAttribute('aria-selected')).toBe('true')
+
+    await act(async () => { finishCreate('side' as SessionId); await Promise.resolve() })
+    expect(view.getByRole('tab', { name: 'Review' }).getAttribute('aria-selected')).toBe('true')
+    expect(view.getByRole('tab', { name: 'Side chat' }).getAttribute('aria-selected')).toBe('false')
   })
 
   it('creates entries, formats drafts, saves by version, and keeps stale drafts', async () => {
@@ -440,8 +512,7 @@ describe('DesktopBrowserPanel', () => {
     const view = render(
       <PanelHarness workspaceId={firstWorkspace} createSideSession={createSideSession} renderSideChat={renderSideChat} />,
     )
-    fireEvent.click(view.getByRole('button', { name: 'Choose panel' }))
-    fireEvent.click(within(view.getByRole('dialog', { name: 'Choose panel' })).getByRole('button', { name: 'Files' }))
+    fireEvent.click(view.getByRole('button', { name: 'Files' }))
     const tree = await view.findByRole('tree', { name: 'Workspace files' })
     fireEvent.click(within(tree).getByRole('button', { name: 'file.txt' }))
     const editor = await view.findByRole('textbox', { name: 'Editor for file.txt' }) as HTMLTextAreaElement
@@ -500,6 +571,135 @@ describe('DesktopBrowserPanel', () => {
     expect(view.getByRole('tab', { name: 'Files' })).toBeTruthy()
   })
 
+  it('moves the tab selection and focus by keyboard and names each surface from its tab', () => {
+    window.hydraDesktop = { browser: { setBounds: vi.fn() } }
+    stubPanelObservers()
+    const view = render(
+      <PanelHarness createSideSession={async () => 'side' as SessionId} renderSideChat={() => null} />,
+    )
+    const choose = (name: string) => { fireEvent.click(view.getByRole('button', { name })) }
+    choose('Review')
+    choose('Terminal')
+    const strip = view.getAllByRole('tab')
+    expect(strip.map(tab => tab.textContent)).toEqual(['Browser', 'Review', 'Terminal'])
+    // The strip is one tab stop: only the selected tab is focusable.
+    expect(strip.map(tab => tab.getAttribute('tabindex'))).toEqual(['-1', '-1', '0'])
+    const tab = (name: string) => view.getByRole('tab', { name })
+    const terminal = tab('Terminal')
+    const surface = document.getElementById(terminal.getAttribute('aria-controls')!)
+    expect(surface?.getAttribute('role')).toBe('tabpanel')
+    expect(surface?.getAttribute('aria-labelledby')).toBe(terminal.id)
+    // Arrows wrap both ways and move focus with the selection; Home/End jump.
+    fireEvent.keyDown(terminal, { key: 'ArrowRight' })
+    expect(document.activeElement).toBe(tab('Browser'))
+    expect(tab('Browser').getAttribute('aria-selected')).toBe('true')
+    fireEvent.keyDown(tab('Browser'), { key: 'ArrowLeft' })
+    expect(document.activeElement).toBe(tab('Terminal'))
+    fireEvent.keyDown(tab('Terminal'), { key: 'ArrowLeft' })
+    expect(document.activeElement).toBe(tab('Review'))
+    fireEvent.keyDown(tab('Review'), { key: 'ArrowRight' })
+    expect(document.activeElement).toBe(tab('Terminal'))
+    fireEvent.keyDown(tab('Terminal'), { key: 'Home' })
+    expect(document.activeElement).toBe(tab('Browser'))
+    fireEvent.keyDown(tab('Browser'), { key: 'End' })
+    expect(document.activeElement).toBe(tab('Terminal'))
+    fireEvent.keyDown(tab('Terminal'), { key: 'PageDown' })
+    expect(document.activeElement).toBe(tab('Terminal'))
+  })
+
+  it('closes the Browser tab when the native browser closes itself', () => {
+    let closePanel: ((kind: DesktopPanelShortcut) => void) | undefined
+    window.hydraDesktop = {
+      browser: { setBounds: vi.fn() },
+      panels: {
+        onShortcut: () => () => {},
+        onClose: (listener) => {
+          closePanel = listener
+          return () => {}
+        },
+      },
+    }
+    stubPanelObservers()
+    const view = render(
+      <PanelHarness createSideSession={async () => 'side' as SessionId} renderSideChat={() => null} />,
+    )
+    fireEvent.click(view.getByRole('button', { name: 'Review' }))
+    expect(view.getByRole('tab', { name: 'Browser' }).getAttribute('aria-selected')).toBe('false')
+    // The user closed the last controlled tab, so the browser hands its panel back.
+    act(() => { closePanel?.('browser') })
+    expect(view.queryByRole('tab', { name: 'Browser' })).toBeNull()
+    expect(view.getByRole('tab', { name: 'Review' }).getAttribute('aria-selected')).toBe('true')
+    // A second close is inert instead of closing whatever took over.
+    act(() => { closePanel?.('browser') })
+    expect(view.queryAllByRole('tab')).toHaveLength(1)
+  })
+
+  it('reopens Browser from a shortcut after its native tab was closed', () => {
+    let sendShortcut: ((kind: DesktopPanelShortcut) => void) | undefined
+    window.hydraDesktop = {
+      browser: { setBounds: vi.fn() },
+      panels: {
+        onShortcut: (listener) => {
+          sendShortcut = listener
+          return () => {}
+        },
+        onClose: (_listener) => {
+          return () => {}
+        },
+      },
+    }
+    stubPanelObservers()
+    const view = render(
+      <PanelHarness createSideSession={async () => 'side' as SessionId} renderSideChat={() => null} />,
+    )
+    fireEvent.click(view.getByRole('button', { name: 'Close Browser' }))
+    expect(view.queryByRole('tab', { name: 'Browser' })).toBeNull()
+
+    act(() => { sendShortcut?.('browser') })
+    expect(view.getByRole('tab', { name: 'Browser' }).getAttribute('aria-selected')).toBe('true')
+  })
+
+  it('stops the right Terminal once and hands focus to the tab that takes over', async () => {
+    window.hydraDesktop = { browser: { setBounds: vi.fn() } }
+    stubPanelObservers()
+    const view = render(
+      <PanelHarness createSideSession={async () => 'side' as SessionId} renderSideChat={() => null} />,
+    )
+    fireEvent.click(view.getByRole('button', { name: 'Terminal' }))
+    // The Terminal bridge arrives after mount, so the surface stays inert while
+    // the tab exists and the close path still reads the bridge at click time.
+    const stop = vi.fn(async () => {})
+    window.hydraDesktop.terminal = {
+      stop,
+      start: vi.fn(async () => ({ running: true })),
+      resize: vi.fn(),
+      write: vi.fn(),
+      onEvent: () => () => {},
+    }
+    const close = view.getByRole('button', { name: 'Close Terminal' })
+    close.focus()
+    fireEvent.click(close)
+    expect(stop).toHaveBeenCalledTimes(1)
+    expect(stop).toHaveBeenCalledWith('right')
+    await waitFor(() => { expect(view.queryByRole('tab', { name: 'Terminal' })).toBeNull() })
+    expect(document.activeElement).toBe(view.getByRole('tab', { name: 'Browser' }))
+  })
+
+  it('keeps the selection when a background tab closes and empties the panel with the last one', () => {
+    window.hydraDesktop = { browser: { setBounds: vi.fn() } }
+    stubPanelObservers()
+    const view = render(
+      <PanelHarness createSideSession={async () => 'side' as SessionId} renderSideChat={() => null} />,
+    )
+    fireEvent.click(view.getByRole('button', { name: 'Review' }))
+    fireEvent.click(view.getByRole('button', { name: 'Close Browser' }))
+    expect(view.queryByRole('tab', { name: 'Browser' })).toBeNull()
+    expect(view.getByRole('tab', { name: 'Review' }).getAttribute('aria-selected')).toBe('true')
+    fireEvent.click(view.getByRole('button', { name: 'Close Review' }))
+    expect(view.queryAllByRole('tab')).toHaveLength(0)
+    expect(view.getByText('No panel is open.')).toBeTruthy()
+  })
+
   it('uses the current labels and pressed state for independent desktop controls', () => {
     const onToggleBrowser = vi.fn()
     const onToggleTerminal = vi.fn()
@@ -523,5 +723,93 @@ describe('DesktopBrowserPanel', () => {
     expect(onToggleBrowser).toHaveBeenCalledOnce()
     expect(onToggleTerminal).toHaveBeenCalledOnce()
     expect(onToggleExpanded).toHaveBeenCalledOnce()
+  })
+
+  it('keeps a later panel selection when Side chat finishes, even after returning to the original tab', async () => {
+    window.hydraDesktop = { browser: { setBounds: vi.fn() } }
+    stubPanelObservers()
+    let finish!: (id: SessionId) => void
+    const view = render(
+      <PanelHarness createSideSession={() => new Promise((resolve) => { finish = resolve })} renderSideChat={() => null} />,
+    )
+    fireEvent.click(view.getByRole('button', { name: 'Side chat' }))
+    expect(view.getByRole('status').textContent).toBe('Creating side chat…')
+    fireEvent.click(view.getByRole('button', { name: 'Review' }))
+    fireEvent.click(view.getByRole('tab', { name: 'Browser' }))
+    await act(async () => { finish('side-late' as SessionId) })
+    expect(view.getByRole('tab', { name: 'Browser' }).getAttribute('aria-selected')).toBe('true')
+    expect(view.getByRole('tab', { name: 'Side chat' }).getAttribute('aria-selected')).toBe('false')
+    expect(view.queryByRole('status')).toBeNull()
+  })
+
+  it('closes tabs with Delete and returns keyboard focus to the empty panel choices', () => {
+    window.hydraDesktop = { browser: { setBounds: vi.fn() } }
+    stubPanelObservers()
+    const view = render(<PanelHarness createSideSession={async () => 'side' as SessionId} renderSideChat={() => null} />)
+    const browser = view.getByRole('tab', { name: 'Browser' })
+    browser.focus()
+    fireEvent.keyDown(browser, { key: 'Delete' })
+    expect(view.queryAllByRole('tab')).toHaveLength(0)
+    expect(document.activeElement).toBe(view.getByRole('button', { name: 'Files' }))
+    expect(view.getByText('Browse and edit workspace files.')).toBeTruthy()
+    fireEvent.click(view.getByRole('button', { name: 'Browser' }))
+    expect(view.getByRole('tab', { name: 'Browser' }).getAttribute('aria-selected')).toBe('true')
+  })
+
+  it('retains Terminal when stopping fails and preserves tabs opened while stopping', async () => {
+    let rejectStop!: (reason: Error) => void
+    const stop = vi.fn(() => new Promise<void>((_resolve, reject) => { rejectStop = reject }))
+    const terminal: DesktopTerminalApi = {
+      stop,
+      start: vi.fn(async () => ({ running: true })),
+      resize: vi.fn(),
+      write: vi.fn(),
+      onEvent: () => () => {},
+    }
+    window.hydraDesktop = { browser: { setBounds: vi.fn() }, terminal }
+    stubPanelObservers()
+    const view = render(<PanelHarness createSideSession={async () => 'side' as SessionId} renderSideChat={() => null} />)
+    fireEvent.click(view.getByRole('button', { name: 'Terminal' }))
+    const close = view.getByRole('button', { name: 'Close Terminal' }) as HTMLButtonElement
+    fireEvent.click(close)
+    expect(close.disabled).toBe(true)
+    fireEvent.click(view.getByRole('button', { name: 'Review' }))
+    await act(async () => { rejectStop(new Error('stop unavailable')) })
+    expect(view.getByRole('alert').textContent).toContain('Could not close Terminal')
+    expect(view.getByRole('tab', { name: 'Terminal' })).toBeTruthy()
+    expect(view.getByRole('tab', { name: 'Review' }).getAttribute('aria-selected')).toBe('true')
+    fireEvent.click(view.getByRole('button', { name: 'Dismiss panel error' }))
+    expect(view.queryByRole('alert')).toBeNull()
+    let finishStop!: () => void
+    stop.mockImplementationOnce(() => new Promise((resolve) => { finishStop = resolve }))
+    fireEvent.click(close)
+    fireEvent.click(view.getByRole('button', { name: 'Side chat' }))
+    await view.findByRole('tab', { name: 'Side chat' })
+    await act(async () => { finishStop() })
+    expect(view.queryByRole('tab', { name: 'Terminal' })).toBeNull()
+    expect(view.getByRole('tab', { name: 'Side chat' }).getAttribute('aria-selected')).toBe('true')
+  })
+
+  it('opens a new terminal tab when clicking New Terminal inside the terminal panel', async () => {
+    const terminal: DesktopTerminalApi = {
+      start: vi.fn(async () => ({ running: true })),
+      stop: vi.fn(async () => {}),
+      resize: vi.fn(),
+      write: vi.fn(),
+      onEvent: () => () => {},
+    }
+    window.hydraDesktop = { browser: { setBounds: vi.fn() }, terminal }
+    stubPanelObservers()
+    const view = render(<PanelHarness createSideSession={async () => 'side' as SessionId} renderSideChat={() => null} />)
+    fireEvent.click(view.getByRole('button', { name: 'Terminal' }))
+    expect(view.getByRole('tab', { name: 'Terminal' }).getAttribute('aria-selected')).toBe('true')
+
+    const newTerminalBtn = view.getByRole('button', { name: 'New Terminal' })
+    fireEvent.click(newTerminalBtn)
+
+    expect(view.getByRole('tab', { name: 'Terminal 2' }).getAttribute('aria-selected')).toBe('true')
+    expect(view.getAllByRole('tab').map(tab => tab.textContent)).toEqual([
+      'Browser', 'Terminal', 'Terminal 2',
+    ])
   })
 })

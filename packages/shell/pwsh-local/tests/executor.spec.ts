@@ -127,14 +127,22 @@ describe('resolvePwshPath and candidatePwshPaths (pure, every platform)', () => 
       .toBe('pwsh')
   })
 
-  it('accepts a link-shaped PATH candidate whose target cannot be stat-ed', () => {
+  it('accepts a link-shaped PATH candidate whose target cannot be stat-ed', (ctx) => {
     // Store app execution aliases stat as EACCES but lstat as a link; a
     // dangling symlink reproduces that split on every platform.
     const dir = mkdtempSync(join(tmpdir(), 'hydra-pwsh-resolve-link-'))
     const store = join(dir, 'store')
     mkdirSync(store, { recursive: true })
     const link = join(store, 'pwsh.exe')
-    symlinkSync(join(dir, 'no-such-target.exe'), link)
+    try {
+      symlinkSync(join(dir, 'no-such-target.exe'), link)
+    } catch (err: unknown) {
+      if ((err as NodeJS.ErrnoException).code === 'EPERM') {
+        ctx.skip()
+        return
+      }
+      throw err
+    }
     expect(resolvePwshPath(undefined, { ProgramFiles: join(dir, 'missing'), PATH: store }, 'win32'))
       .toBe(link)
   })

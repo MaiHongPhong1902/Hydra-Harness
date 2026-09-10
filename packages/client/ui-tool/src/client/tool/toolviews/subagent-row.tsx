@@ -20,8 +20,8 @@ interface SubagentArgs {
 
 function parseSubagentArgs(argsRaw: string): SubagentArgs | null {
   try {
-    const parsed = JSON.parse(argsRaw)
-    return typeof parsed === 'object' && parsed !== null ? parsed as SubagentArgs : null
+    const parsed: unknown = JSON.parse(argsRaw)
+    return typeof parsed === 'object' && parsed !== null ? parsed : null
   } catch {
     return null
   }

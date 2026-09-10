@@ -2,7 +2,7 @@
 import { z } from 'zod'
 import type { ReviewChange } from './types.ts'
 import type { SessionId } from '@hydra/harness-session/types'
-export type { ChangeId, ReviewChange, ReviewHunk, ReviewOutcome } from './types.ts'
+export type { ChangeId, ReviewChange, ReviewHunk, ReviewMode, ReviewOutcome, WorkspaceReview, WorkspaceReviewFile } from './types.ts'
 
 declare module '@hydra/cordis' {
   interface Events {

@@ -2,6 +2,8 @@
 
 `@hydra/harness-fs-review` provides `ctx.fileReview`: chronological, session-owned Write/Edit/Create evidence, Keep, and hash-guarded Undo. [PI source map](PI-SOURCE-MAP.md) records the implementation studied and explicit differences.
 
+Its client types also describe read-only `WorkspaceReview` Git comparisons. The host resolves these comparisons from the session cwd; this package owns their shared mode, file, hunk and metadata types, while Keep and Undo remain exclusive to persisted `ReviewChange` records.
+
 The local filesystem emits `fs/mutate` inside its existing per-file lock, after the sandbox fence. The review plugin captures raw bytes before delegating and commits SHA-256 hashes, attribution, counts, and bounded hunks outside the workspace. Git operations cannot erase these records. Keep marks an applied change reviewed and retains Undo; it does not write the workspace or change tool permissions.
 
 Undo verifies the owner, workspace, canonical path, snapshot hash and current after hash. New files are removed. Sequential edits must be undone in reverse order when their post-edit states differ. Interrupted pending/undoing records remain unavailable and never trigger automatic restoration. Records use the tool execution's session, tool call, root call, turn/step sequence, preset and parent session metadata.

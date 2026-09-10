@@ -435,6 +435,41 @@ describe('prompt revisions: immutable conversation paths', () => {
     expect(geometry.top).toBeLessThanOrEqual(Math.max(0, geometry.height - geometry.client))
   })
 
+  it('resends unchanged text from the editor and excludes the old answer and later turns', async () => {
+    const text = '  Tiếng Việt 🐉\nDòng thứ hai  '
+    const original = await source('Unchanged prompt retry', 2, [{ type: 'text', text }])
+    const before = [...original.events]
+    const requestsBefore = adapter.requests.length
+    await open('Unchanged prompt retry')
+    await page.locator('[data-chat-flow-kind="user"]').first().getByRole('button', { name: 'Edit', exact: true }).click()
+    const editor = page.getByRole('textbox', { name: 'Edit prompt' })
+    expect(await editor.inputValue()).toBe(text)
+    expect(await page.getByRole('button', { name: 'Save & resend', exact: true }).isEnabled()).toBe(true)
+    await compareOrRefreshGolden(fileURLToPath(new URL('./snapshots/prompt-revisions/unchanged-edit.expected.md', import.meta.url)),
+      await captureStableAria(page, 'form[aria-label="Edit prompt"]', scaffold.workspaceCwd), webSnapshotMode())
+    let settled = scaffold.whenTurnSettled()
+    await page.getByRole('button', { name: 'Save & resend', exact: true }).click()
+    const childId = await settled
+    await page.getByText('Hello from the active revision.', { exact: true }).waitFor()
+    expect(original.events).toEqual(before)
+    expect(scaffold.ctx.sessions.get(childId)!.deriveMessages().filter(message => message.source.kind === 'user')
+      .map(message => message.content)).toEqual([[{ type: 'text', text }]])
+    const context = JSON.stringify(adapter.requests.at(-1)!.messages)
+    expect(context).toContain(JSON.stringify(text))
+    expect(context).not.toContain('Nice to meet you, Alice.')
+    expect(context).not.toContain('What is my name?')
+    await page.reload()
+    await page.getByText('Hello from the active revision.', { exact: true }).waitFor()
+    await page.locator('[data-chat-flow-kind="user"]').getByRole('button', { name: 'Edit', exact: true }).click()
+    expect(await editor.inputValue()).toBe(text)
+    settled = scaffold.whenTurnSettled()
+    await editor.press('Enter')
+    expect(await settled).not.toBe(childId)
+    await page.getByText('Hello from the active revision.', { exact: true }).waitFor()
+    expect(adapter.requests).toHaveLength(requestsBefore + 2)
+    expect(await page.locator('[data-chat-flow-kind="user"]').count()).toBe(1)
+  })
+
   it('EDIT-004–007/016–021: retains exact failed drafts, retries generation once, and keeps a stopped branch active', async () => {
     const text = '  Tiếng Việt 🐉\nDòng thứ hai  '
     const original = await source('Retry editor acceptance', 1, [{ type: 'text', text }])

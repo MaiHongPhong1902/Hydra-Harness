@@ -1,0 +1,24 @@
+- region "Review":
+  - strong: Review
+  - text: workspace 1 changes · 1 file +1 −0
+  - button "Refresh"
+  - combobox "Review scope":
+    - option "Session changes"
+    - option "Uncommitted changes" [selected]
+    - option "Unstaged changes"
+    - option "Staged changes"
+    - option "Commit"
+    - option "Branch comparison"
+  - text: review-fixture
+  - button "Toggle file list" [pressed]: Files
+  - button "Toggle view mode": One file
+  - button "Expand all diffs": Expand all
+  - group: Diff preferences
+  - button "Copy patch"
+  - text: Showing all 1 changed files
+  - region "review.txt workspace added":
+    - group: A review.txt +1 −0 Workspace
+  - complementary "Changed files":
+    - searchbox "Filter changes by file"
+    - tree "File changes":
+      - treeitem "added review.txt" [selected]: A review.txt

@@ -896,10 +896,16 @@ export interface Config {
    * @default 1024
    */
   coldBlankProbeMaxBytes?: number
+  /** Maximum serialized bytes per live Git review response. @default 4194304 */
+  reviewMaxBytes?: number
+  /** Maximum files per live Git comparison. @default 500 */
+  reviewMaxFiles?: number
+  /** Total milliseconds available for one live Git request. @default 15000 */
+  reviewTimeoutMs?: number
 }
 ```
 
-Source: [`packages/host/apiproxy/src/index.ts:41`](../packages/host/apiproxy/src/index.ts)
+Source: [`packages/host/apiproxy/src/index.ts:42`](../packages/host/apiproxy/src/index.ts)
 
 <a id="hydraharness-host-directory-picker-browse"></a>
 

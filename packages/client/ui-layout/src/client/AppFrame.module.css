@@ -69,6 +69,18 @@
   transition: none;
 }
 
+/* The sidebar strip has no pill to reveal, so keyboard focus draws its own. */
+.handle:focus-visible {
+  outline: 2px solid var(--dsw-alias-focus-ring);
+  outline-offset: -2px;
+}
+
+.handle[data-side='details']:focus-visible::after {
+  opacity: 1;
+  background: var(--dsw-alias-button-floating-hover);
+  border-color: var(--dsw-alias-border-l3);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .handle {
     transition: none;
@@ -131,9 +143,9 @@
   background: var(--dsw-alias-bg-base);
 }
 
-/* Keep the closed-panel controls clear of the conversation header utilities. */
-.desktopShell:not([data-browser-open]) :global([data-slot='conversation.session.header']) > header {
-  padding-right: 102px;
+/* Keep the closed-panel controls clear of the first conversation-header row. */
+.desktopShell:not([data-browser-open]) :global([data-slot='conversation.session.header']) > header > :first-child {
+  padding-right: 94px;
 }
 
 .desktopShell > [data-desktop-panel][hidden] {

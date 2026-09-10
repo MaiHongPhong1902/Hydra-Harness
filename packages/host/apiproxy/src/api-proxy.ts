@@ -119,6 +119,7 @@ import {
 } from '@hydra/harness-api-remotes'
 import { canOpenNativePath, openNativePath, openNativeTextFile } from './native-path-opener.ts'
 import { createPromptReviser } from './prompt-revisions.ts'
+import { readWorkspaceReview, resolveReviewLimits } from './workspace-review.ts'
 
 /** Page size when history is called without maxMessages. */
 const DEFAULT_MAX_MESSAGES = 50
@@ -627,6 +628,12 @@ export interface ApiProxyDefaults {
   sessionExportCompressionLevel?: SessionLogCompressionLevel
   /** Maximum artifact size eligible for one cold blankness read. */
   coldBlankProbeMaxBytes?: number
+  /** Maximum serialized bytes returned by one live Git review. */
+  reviewMaxBytes?: number
+  /** Maximum files returned by one live Git review. */
+  reviewMaxFiles?: number
+  /** Total time available for one Git review request. */
+  reviewTimeoutMs?: number
   /**
    * Whether handing a path to the native opener can work at all — the
    * `hasDocument` capability the preset roster reports, and the switch
@@ -1061,7 +1068,6 @@ function workspaceView(workspace: Workspace): WorkspaceView {
     updatedAt: workspace.updatedAt,
   }
 }
-
 /** Wire projection of the durable record carried by `domain/changed`. */
 function changedWorkspaceView(workspaceId: string, value: unknown): WorkspaceView {
   const record: WorkspaceRecord = workspaceRecord.parse(value)
@@ -1086,6 +1092,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
     ?? DEFAULT_SESSION_LOG_COMPRESSION_LEVEL
   const coldBlankProbeMaxBytes = defaults.coldBlankProbeMaxBytes
     ?? DEFAULT_COLD_BLANK_PROBE_MAX_BYTES
+  const reviewLimits = resolveReviewLimits(defaults)
   /** The seed model each create/resume declares; re-read so it never goes stale. */
   const agentOptions = (): AgentOptions => {
     const { provider, model } = defaults.defaultModelSelection()
@@ -3187,6 +3194,17 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
     },
 
     review: {
+      async workspace(request, signal) {
+        try {
+          if (signal?.aborted === true) return err(request, { code: 'cancelled', message: 'workspace review was aborted', details: {} })
+          const session = await readSessionState(request.payload.sessionId)
+          if (session.header.cwd === undefined) return err(request, { code: 'internal', message: `session "${request.payload.sessionId}" has no project workspace`, details: {} })
+          const value = await readWorkspaceReview(session.header.cwd, request.payload, reviewLimits, signal)
+          return ok(request, value)
+        } catch (error: unknown) {
+          return err(request, { code: 'internal', message: `workspace review failed: ${error instanceof Error ? error.message : String(error)}`, details: {} })
+        }
+      },
       async list(request) {
         try {
           const review = ctx.get('fileReview')

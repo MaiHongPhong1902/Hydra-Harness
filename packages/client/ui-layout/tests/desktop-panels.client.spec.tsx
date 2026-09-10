@@ -4,10 +4,17 @@ import { act, cleanup, fireEvent, render, waitFor, within } from '@testing-libra
 import { DesktopFilesPanel } from '@hydra/harness-client-ui-layout/src/client/DesktopFilesPanel.tsx'
 import { DesktopTerminalPanel } from '@hydra/harness-client-ui-layout/src/client/DesktopTerminalPanel.tsx'
 
-const terminalInstances = vi.hoisted(() => [] as Array<{
+interface MockTerminalInstance {
   options: { theme?: Record<string, string> }
+  cols: number
+  rows: number
   disposed: boolean
-}>)
+  selection: string
+  setSelection(text: string): void
+  keyHandler?: (e: KeyboardEvent) => boolean
+}
+
+const terminalInstances = vi.hoisted(() => [] as MockTerminalInstance[])
 
 vi.mock('@xterm/xterm', () => ({
   Terminal: class {
@@ -15,6 +22,9 @@ vi.mock('@xterm/xterm', () => ({
     cols = 80
     rows = 24
     disposed = false
+    selection = ''
+    selectionListeners: Array<() => void> = []
+    keyHandler?: (e: KeyboardEvent) => boolean
     constructor(options: { theme?: Record<string, string> }) {
       this.options = options
       terminalInstances.push(this)
@@ -25,6 +35,18 @@ vi.mock('@xterm/xterm', () => ({
     write(): void {}
     writeln(): void {}
     focus(): void {}
+    getSelection(): string { return this.selection }
+    setSelection(text: string): void {
+      this.selection = text
+      for (const listener of this.selectionListeners) listener()
+    }
+    onSelectionChange(fn: () => void): { dispose(): void } {
+      this.selectionListeners.push(fn)
+      return { dispose: () => { this.selectionListeners = this.selectionListeners.filter(l => l !== fn) } }
+    }
+    attachCustomKeyEventHandler(handler: (e: KeyboardEvent) => boolean): void {
+      this.keyHandler = handler
+    }
     dispose(): void { this.disposed = true }
   },
 }))
@@ -129,6 +151,214 @@ describe('DesktopTerminalPanel', () => {
     terminalInstances.forEach((instance, index) => {
       expect(instance.options.theme).toBe(themesAfterUnmount[index])
     })
+  })
+
+  it('renders header toolbar with Terminals title, Project dropdown, and sidebar toggle', async () => {
+    stubObservers()
+    const api = {
+      start: vi.fn(async () => ({ running: true })),
+      stop: vi.fn(async () => {}),
+      write: vi.fn(),
+      resize: vi.fn(),
+      onEvent: vi.fn(() => () => {}),
+    }
+    window.hydraDesktop = { browser: { setBounds: vi.fn() }, terminal: api }
+
+    const view = render(<DesktopTerminalPanel open terminalId="bottom" sessionTitle="Sửa Lỗi Kỹ Thuật" />)
+    await waitFor(() => { expect(api.start).toHaveBeenCalledOnce() })
+
+    // Header controls
+    expect(view.getByText('Terminals')).toBeTruthy()
+    expect(view.getByRole('button', { name: 'Project profile' })).toBeTruthy()
+    expect(view.getByRole('button', { name: 'New Terminal' })).toBeTruthy()
+    const toggleBtn = view.getByRole('button', { name: 'Toggle Sidebar' })
+    expect(toggleBtn).toBeTruthy()
+
+    // Sidebar initially open
+    expect(view.getByRole('complementary', { name: 'Terminal processes' })).toBeTruthy()
+    expect(view.getByText('Conversations')).toBeTruthy()
+    expect(view.getByText('Sửa Lỗi Kỹ Thuật')).toBeTruthy()
+
+    // Toggle sidebar to hide
+    fireEvent.click(toggleBtn)
+    expect(view.queryByRole('complementary', { name: 'Terminal processes' })).toBeNull()
+
+    // Toggle sidebar to show again
+    fireEvent.click(toggleBtn)
+    expect(view.getByRole('complementary', { name: 'Terminal processes' })).toBeTruthy()
+  })
+
+  it('calls onNewTerminal when New Terminal button is clicked with callback', async () => {
+    stubObservers()
+    const api = {
+      start: vi.fn(async () => ({ running: true })),
+      stop: vi.fn(async () => {}),
+      write: vi.fn(),
+      resize: vi.fn(),
+      onEvent: vi.fn(() => () => {}),
+    }
+    window.hydraDesktop = { browser: { setBounds: vi.fn() }, terminal: api }
+    const onNewTerminal = vi.fn()
+
+    const view = render(
+      <DesktopTerminalPanel
+        open
+        terminalId="right"
+        sessionTitle="Sửa Lỗi Kỹ Thuật"
+        onNewTerminal={onNewTerminal}
+      />,
+    )
+    await waitFor(() => { expect(api.start).toHaveBeenCalledOnce() })
+
+    const newTerminalBtn = view.getByRole('button', { name: 'New Terminal' })
+    fireEvent.click(newTerminalBtn)
+    expect(onNewTerminal).toHaveBeenCalledOnce()
+  })
+
+  it('supports splitting and killing terminal panes', async () => {
+    stubObservers()
+    const api = {
+      start: vi.fn(async () => ({ running: true })),
+      stop: vi.fn(async () => {}),
+      write: vi.fn(),
+      resize: vi.fn(),
+      onEvent: vi.fn(() => () => {}),
+    }
+    window.hydraDesktop = { browser: { setBounds: vi.fn() }, terminal: api }
+
+    const view = render(<DesktopTerminalPanel open terminalId="bottom" sessionTitle="Sửa Lỗi Kỹ Thuật" />)
+    await waitFor(() => { expect(api.start).toHaveBeenCalledTimes(1) })
+
+    // Initial pane in sidebar
+    const initialSplitBtn = view.getByRole('button', { name: 'Split Terminal' })
+    expect(initialSplitBtn).toBeTruthy()
+
+    // Click split terminal
+    fireEvent.click(initialSplitBtn)
+    await waitFor(() => { expect(api.start).toHaveBeenCalledTimes(2) })
+
+    // Two panes now exist in the list
+    const splitBtns = view.getAllByRole('button', { name: 'Split Terminal' })
+    expect(splitBtns).toHaveLength(2)
+
+    // Kill the second pane
+    const killBtns = view.getAllByRole('button', { name: /Kill/ })
+    expect(killBtns).toHaveLength(2)
+    fireEvent.click(killBtns[1]!)
+
+    expect(api.stop).toHaveBeenCalledWith('bottom-2')
+    // After kill, only 1 pane remains
+    expect(view.getAllByRole('button', { name: 'Split Terminal' })).toHaveLength(1)
+  })
+
+  it('supports splitting in embedded tab terminal with monotonic sub-pane IDs and unmount cleanup', async () => {
+    stubObservers()
+    const api = {
+      start: vi.fn(async () => ({ running: true })),
+      stop: vi.fn(async () => {}),
+      write: vi.fn(),
+      resize: vi.fn(),
+      onEvent: vi.fn(() => () => {}),
+    }
+    window.hydraDesktop = { browser: { setBounds: vi.fn() }, terminal: api }
+
+    const view = render(<DesktopTerminalPanel open terminalId="right-4" embedded />)
+    await waitFor(() => { expect(api.start).toHaveBeenCalledWith('right-4', expect.any(Object)) })
+
+    const splitBtn = view.getByRole('button', { name: 'Split Terminal' })
+    fireEvent.click(splitBtn)
+    await waitFor(() => { expect(api.start).toHaveBeenCalledWith('right-4-2', expect.any(Object)) })
+
+    const splitBtns = view.getAllByRole('button', { name: 'Split Terminal' })
+    fireEvent.click(splitBtns[0]!)
+    await waitFor(() => { expect(api.start).toHaveBeenCalledWith('right-4-3', expect.any(Object)) })
+
+    // Kill the second pane (right-4-2)
+    const killBtns = view.getAllByRole('button', { name: /Kill/ })
+    expect(killBtns).toHaveLength(3)
+    fireEvent.click(killBtns[1]!)
+    expect(api.stop).toHaveBeenCalledWith('right-4-2')
+
+    // Split again should generate next monotonic ID right-4-4 without colliding with right-4-3
+    const remainingSplitBtns = view.getAllByRole('button', { name: 'Split Terminal' })
+    fireEvent.click(remainingSplitBtns[0]!)
+    await waitFor(() => { expect(api.start).toHaveBeenCalledWith('right-4-4', expect.any(Object)) })
+
+    // Unmounting cleans up all open split panes
+    view.unmount()
+    expect(api.stop).toHaveBeenCalledWith('right-4-3')
+    expect(api.stop).toHaveBeenCalledWith('right-4-4')
+  })
+
+  it('generates right-1-2 for split right terminal without colliding with tab 2', async () => {
+    stubObservers()
+    const api = {
+      start: vi.fn(async () => ({ running: true })),
+      stop: vi.fn(async () => {}),
+      write: vi.fn(),
+      resize: vi.fn(),
+      onEvent: vi.fn(() => () => {}),
+    }
+    window.hydraDesktop = { browser: { setBounds: vi.fn() }, terminal: api }
+
+    const view = render(<DesktopTerminalPanel open terminalId="right" embedded />)
+    await waitFor(() => { expect(api.start).toHaveBeenCalledWith('right', expect.any(Object)) })
+
+    const splitBtn = view.getByRole('button', { name: 'Split Terminal' })
+    fireEvent.click(splitBtn)
+    await waitFor(() => { expect(api.start).toHaveBeenCalledWith('right-1-2', expect.any(Object)) })
+  })
+
+  it('supports quoting selected terminal text into chat session', async () => {
+    stubObservers()
+    const onQuote = vi.fn()
+    const emitAnnotation = vi.fn()
+    const api = {
+      start: vi.fn(async () => ({ running: true })),
+      stop: vi.fn(async () => {}),
+      write: vi.fn(),
+      resize: vi.fn(),
+      onEvent: vi.fn(() => () => {}),
+    }
+    window.hydraDesktop = {
+      browser: { setBounds: vi.fn(), emitAnnotation },
+      terminal: api,
+    }
+
+    const view = render(
+      <DesktopTerminalPanel
+        open
+        terminalId="bottom"
+        sessionTitle="Sửa Lỗi Kỹ Thuật"
+        onQuote={onQuote}
+      />,
+    )
+    await waitFor(() => { expect(api.start).toHaveBeenCalledOnce() })
+
+    // Simulate selection in xterm
+    const terminal = terminalInstances.at(-1)
+    expect(terminal).toBeDefined()
+    act(() => {
+      terminal?.setSelection('echo "Hello Hydra"')
+    })
+
+    // Quote Ctrl+L pill should appear
+    await waitFor(() => {
+      expect(view.getByRole('button', { name: 'Quote Ctrl+L' })).toBeTruthy()
+    })
+
+    // Click the Quote pill button
+    fireEvent.click(view.getByRole('button', { name: 'Quote Ctrl+L' }))
+
+    // Expect quote callback and emitAnnotation to be called
+    expect(onQuote).toHaveBeenCalledWith('echo "Hello Hydra"')
+    expect(emitAnnotation).toHaveBeenCalledWith(expect.objectContaining({
+      kind: 'browser-element',
+      preview: 'echo "Hello Hydra"',
+    }))
+
+    // Popover should be dismissed
+    expect(view.queryByRole('button', { name: 'Quote Ctrl+L' })).toBeNull()
   })
 })
 
@@ -356,7 +586,7 @@ describe('DesktopFilesPanel', () => {
 
   it('supports Open Editors section with Save All and Close All', async () => {
     const rootPath = 'C:\\workspace'
-    const saveFn = vi.fn(async (path: string, content: string, version: string) => ({
+    const saveFn = vi.fn(async (path: string, _content: string, version: string) => ({
       path,
       version: `${version}-saved`,
     }))
@@ -440,9 +670,9 @@ describe('DesktopFilesPanel', () => {
     // Outline should show symbols
     const outline = view.getByRole('list', { name: 'Code outline' })
     expect(outline).toBeTruthy()
-    expect(view.getByText('UserConfig')).toBeTruthy()
-    expect(view.getByText('UserService')).toBeTruthy()
-    expect(view.getByText('main')).toBeTruthy()
+    expect(within(outline).getByText('UserConfig')).toBeTruthy()
+    expect(within(outline).getByText('UserService')).toBeTruthy()
+    expect(within(outline).getByText('main')).toBeTruthy()
 
     // Breadcrumbs should render
     const breadcrumbs = view.getByRole('navigation', { name: 'Breadcrumbs' })
@@ -450,8 +680,13 @@ describe('DesktopFilesPanel', () => {
     expect(within(breadcrumbs).getByText('app.ts')).toBeTruthy()
 
     // Clicking a symbol jumps to line
-    fireEvent.click(view.getByText('UserService'))
+    fireEvent.click(within(outline).getByText('UserService'))
     expect(view.getByText('Ln 5, Col 1')).toBeTruthy()
+    const userServiceItem = within(outline).getByText('UserService').closest('[role="listitem"]')
+    expect(userServiceItem?.getAttribute('data-selected')).toBe('true')
+    const activeLineNumber = view.container.querySelector('[data-line="5"]')
+    expect(activeLineNumber?.getAttribute('data-active')).toBe('true')
+    expect(activeLineNumber?.getAttribute('data-flash')).toBe('true')
   })
 
   it('supports Word Wrap toggle and Go to Line shortcut', async () => {

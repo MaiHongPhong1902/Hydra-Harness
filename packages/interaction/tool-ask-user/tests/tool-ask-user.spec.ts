@@ -68,6 +68,8 @@ describe('ask_user_question tool', () => {
     expect(schema).toHaveProperty('description')
     expect(String(schema?.description)).toContain('choose it yourself')
     expect(schema?.description).toContain('Do not use this for greetings')
+    expect(schema?.description).toContain('Do not use this to request permission for an action.')
+    expect(schema?.description).toContain('Necessary clarification questions remain available when approval prompts are disabled.')
     expect(schema?.description).toContain('generic action, task, or tool menus')
     const parameters = schema?.parameters as unknown as OptionSchemaShape
     expect(parameters.properties.questions.items.properties).toMatchObject({

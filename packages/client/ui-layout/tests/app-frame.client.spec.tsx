@@ -179,6 +179,7 @@ describe('AppFrame', () => {
           shortcut = listener
           return () => { shortcut = undefined }
         },
+        onClose: () => () => {},
       },
     }
     const view = mountFrame({
@@ -204,7 +205,6 @@ describe('AppFrame', () => {
     const view = mountFrame()
     expect(view.queryByTestId('review-content')).toBeNull()
     fireEvent.click(view.getByLabelText('Toggle right panel'))
-    fireEvent.click(view.getByRole('button', { name: 'Choose panel' }))
     fireEvent.click(view.getByRole('button', { name: 'Review' }))
     expect(view.getByRole('tab', { name: 'Review' }).getAttribute('aria-selected')).toBe('true')
     expect(view.getByTestId('review-content')).toBeTruthy()
@@ -222,6 +222,7 @@ describe('AppFrame', () => {
           shortcut = listener
           return () => { shortcut = undefined }
         },
+        onClose: () => () => {},
       },
     }
     const view = mountFrame()
@@ -239,12 +240,12 @@ describe('AppFrame', () => {
     fireEvent.click(view.getByLabelText('Toggle bottom terminal'))
     expect(shell.hasAttribute('data-browser-open')).toBe(true)
     expect(shell.hasAttribute('data-terminal-open')).toBe(true)
-    expect(view.getByLabelText('Terminal').hasAttribute('hidden')).toBe(false)
+    expect(view.getByLabelText('Terminal', { selector: 'section' }).hasAttribute('hidden')).toBe(false)
 
     act(() => { shortcut?.('terminal') })
     expect(view.getByRole('tab', { name: 'Terminal' }).getAttribute('aria-selected')).toBe('true')
     expect(view.getByLabelText('Right terminal').hasAttribute('hidden')).toBe(false)
-    expect(view.getByLabelText('Terminal').hasAttribute('hidden')).toBe(false)
+    expect(view.getByLabelText('Terminal', { selector: 'section' }).hasAttribute('hidden')).toBe(false)
 
     const browserHandle = view.getByRole('separator', { name: 'Resize right panel' })
     const terminalHandle = view.getByRole('separator', { name: 'Resize Terminal panel' })
@@ -261,8 +262,6 @@ describe('AppFrame', () => {
     expect(browserHandle.getAttribute('aria-valuenow')).toBe('428')
     expect(terminalHandle.getAttribute('aria-valuenow')).toBe('272')
 
-    fireEvent.click(view.getByRole('button', { name: 'Choose panel' }))
-    expect(view.getByRole('dialog', { name: 'Choose panel' })).toBeTruthy()
     fireEvent.click(view.getByRole('button', { name: 'Side chat' }))
     await vi.advanceTimersByTimeAsync(0)
     expect(view.createSideSession).toHaveBeenCalledOnce()
@@ -274,18 +273,18 @@ describe('AppFrame', () => {
     const toggleRight = view.getByLabelText('Toggle right panel')
     fireEvent.click(toggleRight)
     expect(view.getByLabelText('Right panel').hasAttribute('hidden')).toBe(true)
-    expect(view.getByLabelText('Terminal').hasAttribute('hidden')).toBe(false)
+    expect(view.getByLabelText('Terminal', { selector: 'section' }).hasAttribute('hidden')).toBe(false)
     fireEvent.click(toggleRight)
     expect(view.getByLabelText('Right terminal').hasAttribute('hidden')).toBe(false)
 
     fireEvent.click(view.getByLabelText('Expand right panel'))
     expect(shell.hasAttribute('data-browser-expanded')).toBe(true)
     expect(view.getByLabelText('Toggle bottom terminal').getAttribute('aria-pressed')).toBe('true')
-    expect(view.getByLabelText('Terminal').hasAttribute('hidden')).toBe(true)
+    expect(view.getByLabelText('Terminal', { selector: 'section' }).hasAttribute('hidden')).toBe(true)
     expect(view.getByLabelText('Right terminal').hasAttribute('hidden')).toBe(false)
     fireEvent.click(view.getByLabelText('Expand right panel'))
     expect(shell.hasAttribute('data-browser-expanded')).toBe(false)
-    expect(view.getByLabelText('Terminal').hasAttribute('hidden')).toBe(false)
+    expect(view.getByLabelText('Terminal', { selector: 'section' }).hasAttribute('hidden')).toBe(false)
     expect(view.getByRole('separator', { name: 'Resize right panel' }).getAttribute('aria-valuenow')).toBe('428')
     expect(view.getByRole('separator', { name: 'Resize Terminal panel' }).getAttribute('aria-valuenow')).toBe('272')
   })
@@ -316,6 +315,40 @@ describe('AppFrame', () => {
     expect(terminalHandle.getAttribute('aria-valuemax')).toBe('350')
     expect(browserHandle.getAttribute('aria-valuenow')).toBe('666')
     expect(terminalHandle.getAttribute('aria-valuenow')).toBe('350')
+
+    // The temporary viewport clamp must not overwrite the dimensions the user
+    // chose before the window was narrowed.
+    act(() => {
+      window.innerWidth = 1500
+      window.innerHeight = 1000
+      window.dispatchEvent(new Event('resize'))
+    })
+    expect(browserHandle.getAttribute('aria-valuenow')).toBe('1000')
+    expect(terminalHandle.getAttribute('aria-valuenow')).toBe('500')
+  })
+
+  it('steps the sidebar and details widths from the keyboard', () => {
+    const view = mountFrame()
+    act(() => { view.instance.actions.openDetails() })
+    const sidebar = view.getByRole('separator', { name: 'Resize sidebar' })
+    const details = view.getByRole('separator', { name: 'Resize details panel' })
+    expect(sidebar.getAttribute('aria-orientation')).toBe('vertical')
+    expect(sidebar.getAttribute('aria-valuemin')).toBe('264')
+    expect(sidebar.getAttribute('aria-valuemax')).toBe('420')
+    expect(tracks(view.frame)).toEqual([280, 360])
+    // ArrowRight grows the sidebar; ArrowLeft grows details, whose drag delta is inverted.
+    fireEvent.keyDown(sidebar, { key: 'ArrowRight' })
+    fireEvent.keyDown(details, { key: 'ArrowLeft' })
+    expect(tracks(view.frame)).toEqual([288, 368])
+    expect(sidebar.getAttribute('aria-valuenow')).toBe('288')
+    expect(details.getAttribute('aria-valuenow')).toBe('368')
+    // Shift steps by 32 and the store clamps into the contract range.
+    fireEvent.keyDown(sidebar, { key: 'ArrowLeft', shiftKey: true })
+    fireEvent.keyDown(details, { key: 'ArrowRight', shiftKey: true })
+    expect(tracks(view.frame)).toEqual([264, 336])
+    // The cross-axis arrow is not a resize for a vertical separator.
+    fireEvent.keyDown(sidebar, { key: 'ArrowUp' })
+    expect(tracks(view.frame)).toEqual([264, 336])
   })
 
   it('renders three tracks from store state', () => {

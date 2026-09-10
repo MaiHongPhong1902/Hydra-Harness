@@ -1,0 +1,17 @@
+- group "Open panel":
+  - button "Files"
+  - button "Side chat"
+  - button "Browser"
+  - button "Terminal"
+  - button "Review" [pressed]
+- tablist "Right panel tabs":
+  - tab "Browser":
+    - img
+    - text: Browser
+  - button "Close Browser":
+    - img
+  - tab "Review" [selected]:
+    - img
+    - text: Review
+  - button "Close Review":
+    - img

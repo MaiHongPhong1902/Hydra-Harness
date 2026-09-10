@@ -14,7 +14,9 @@ import '@hydra/harness-user-questions'
 export const name = 'tool-ask-user'
 export const inject = ['tools', 'userQuestions']
 
-const description = 'Ask the user a concise question only when confirmation, a genuine user-owned choice, or a material fact unavailable through normal inspection blocks a concrete task. '
+const description = 'Ask the user a concise question only when a genuine user-owned choice or a material fact unavailable through normal inspection blocks a concrete task. '
+  + 'Do not use this to request permission for an action. Follow the current sandbox and approval policy and the acting tool\'s approval flow; a question answer does not grant permission or override a denial. '
+  + 'Necessary clarification questions remain available when approval prompts are disabled. '
   + 'Do not use this for greetings, acknowledgements, casual chat, vague requests, or generic action, task, or tool menus. '
   + 'When the request clearly implies an available tool or execution path, inspect the context, choose it yourself, and proceed; do not ask the user to choose between tools or implementation options. '
   + 'Send one or more questions, each with a stable id that will be echoed in the answer.'

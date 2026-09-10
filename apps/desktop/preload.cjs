@@ -25,6 +25,9 @@ contextBridge.exposeInMainWorld('hydraDesktop', {
     autofillGetContact: id => ipcRenderer.invoke('hydra-desktop:browser-autofill-get-contact', { id }),
     autofillSaveContact: value => ipcRenderer.invoke('hydra-desktop:browser-autofill-save-contact', value),
     autofillRemoveContact: id => ipcRenderer.invoke('hydra-desktop:browser-autofill-remove-contact', { id }),
+    emitAnnotation(annotation) {
+      ipcRenderer.send('hydra-desktop:emit-annotation', annotation)
+    },
     onAnnotation(listener) {
       const handler = (_event, annotation) => { listener(annotation) }
       ipcRenderer.on('hydra-desktop:browser-annotation', handler)
@@ -36,6 +39,7 @@ contextBridge.exposeInMainWorld('hydraDesktop', {
     stop: terminalId => ipcRenderer.invoke('hydra-desktop:terminal-stop', { terminalId }),
     write: (terminalId, data) => { ipcRenderer.send('hydra-desktop:terminal-write', { terminalId, data }) },
     resize: (terminalId, size) => { ipcRenderer.send('hydra-desktop:terminal-resize', { terminalId, size }) },
+    list: () => ipcRenderer.invoke('hydra-desktop:terminal-list'),
     onEvent(terminalId, listener) {
       const handler = (_event, value) => {
         if (value?.terminalId === terminalId) listener(value.event)

@@ -1,4 +1,4 @@
-// Web e2e scenario: every visible permission picker gates Full access behind
+// Web e2e scenario: every visible permission picker gates Auto-Pilot behind
 // the same locale-aware, in-page risk confirmation. Zero model calls: the
 // scenario boots the shipped Web composition and exercises the real
 // permission projection, client command path, HTTP RPC, and pushed update.
@@ -17,7 +17,7 @@ const SNAPSHOT_DIR = fileURLToPath(new URL('./snapshots/access-confirmation', im
 const UI_EXPECTED = join(SNAPSHOT_DIR, 'ui.expected.md')
 const MODE = webSnapshotMode()
 
-describe('web e2e: Full access confirmation', () => {
+describe('web e2e: Auto-Pilot confirmation', () => {
   let scaffold: WebScaffold
   let browser: Browser
   let page: Page
@@ -44,18 +44,18 @@ describe('web e2e: Full access confirmation', () => {
     await scaffold?.close()
   })
 
-  it('requires acknowledgement before the composer picker can enable Full access', async () => {
+  it('requires acknowledgement before the composer picker can enable Auto-Pilot', async () => {
     onTestFailed(() => saveFailureShot(page, 'web-e2e-full-access-confirmation'))
     const access = page.locator('button[aria-label^="Access mode"]').first()
     await access.waitFor({ timeout: 10_000 })
 
-    expect(await access.getAttribute('aria-label')).toBe('Access mode, current: Workspace Write')
+    expect(await access.getAttribute('aria-label')).toBe('Access mode, current: Edit')
 
     await access.click()
-    await page.getByRole('menuitem', { name: 'Full access' }).click()
-    const dialog = page.getByRole('dialog', { name: 'Enable Full access?' })
+    await page.getByRole('menuitem', { name: 'Auto-Pilot' }).click()
+    const dialog = page.getByRole('dialog', { name: 'Enable Auto-Pilot?' })
     await dialog.waitFor({ timeout: 10_000 })
-    const enable = dialog.getByRole('button', { name: 'Enable Full access' })
+    const enable = dialog.getByRole('button', { name: 'Enable Auto-Pilot' })
     expect(await enable.isDisabled()).toBe(true)
 
     // The modal is in this page's body (not a native/new window) and escapes
@@ -68,7 +68,7 @@ describe('web e2e: Full access confirmation', () => {
     expect(await enable.isEnabled()).toBe(true)
     await enable.click()
     await expect.poll(() => access.getAttribute('aria-label'), { timeout: 10_000 })
-      .toBe('Access mode, current: Full access')
+      .toBe('Access mode, current: Auto-Pilot')
     expect(await dialog.count()).toBe(0)
     expect(tripwire.pageErrors).toEqual([])
   }, 60_000)

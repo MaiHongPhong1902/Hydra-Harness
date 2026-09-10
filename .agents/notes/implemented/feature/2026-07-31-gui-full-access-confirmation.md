@@ -1,19 +1,19 @@
-# Agent Note: GUI Full access risk confirmation
+# Agent Note: GUI Auto-Pilot risk confirmation
 
 Status: implemented
 
 ## Problem
 
-Switching the web client to `danger-full-access` was a single click on a permission picker, with the preset shown as the title-cased machine name `Danger Full Access`. Full access reduces confirmation steps and lets the agent run sensitive operations, modify files, or execute external commands, so an accidental pick armed the most dangerous preset with no deliberate acknowledgement step.
+Switching the web client to `danger-full-access` was a single click on a permission picker, with the preset shown as the title-cased machine name `Danger Full Access`. Auto-Pilot reduces confirmation steps and lets the agent run sensitive operations, modify files, or execute external commands, so an accidental pick armed the most dangerous preset with no deliberate acknowledgement step.
 
 ## Decision
 
-**Every permission picker gates `danger-full-access` behind the shared in-page `RiskConfirmation` dialog whose enabling action stays disabled until an explicit acknowledgement checkbox is checked; the preset renders under the locale product label for full access; every dismissal path submits nothing.**
+**Every permission picker gates `danger-full-access` behind the shared in-page `RiskConfirmation` dialog whose enabling action stays disabled until an explicit acknowledgement checkbox is checked; the preset renders under the locale product label Auto-Pilot; every dismissal path submits nothing.**
 
 - `RiskConfirmation` (ui-primitives) is a controlled Modal composition: title, description, acknowledgement checkbox, cancel, and a confirm button disabled until `acknowledged`. It stays an in-page dialog — the Modal portals to this document's body and never opens a native or separate browser window that could land on another display. `Modal` gains a `contentClassName` seat so the warning body scrolls inside constrained mobile/landscape viewports while the action row stays fixed.
-- The composer chip (`PermissionSelect`, ui-conversation) intercepts a Full-access pick before the `/permission` submit: `confirmation`/`acknowledged` component state opens the dialog, confirm submits `/permission danger-full-access` through the same injected `command` path as every other pick, and cancel/Escape/close/mask leave the current preset untouched with the checkbox reset. The confirmation revokes itself when the session locks (`locked`/value-absent effect) and resets across task switches (`key={sessionId}` remount). Copy rides the standard `conversation` locale seat as `access.confirm.*` keys.
+- The composer chip (`PermissionSelect`, ui-conversation) intercepts an Auto-Pilot pick before the `/permission` submit: `confirmation`/`acknowledged` component state opens the dialog, confirm submits `/permission danger-full-access` through the same injected `command` path as every other pick, and cancel/Escape/close/mask leave the current preset untouched with the checkbox reset. The confirmation revokes itself when the session locks (`locked`/value-absent effect) and resets across task switches (`key={sessionId}` remount). Copy rides the standard `conversation` locale seat as `access.confirm.*` keys.
 - The `/permission` popup (ui-permission over the ui-commands shell) gates through data, not a second dialog implementation: `SelectOption` grows an optional `confirmation` payload, the popup controller owns the `confirming`/`acknowledged` state transitions, and `PopupSelectView` swaps the picker card for the same `RiskConfirmation` while a gated option is pending.
-- The General-settings Permission row uses the same controlled `RiskConfirmation` before persisting Full access as the default for later sessions. Its warning names that future-session lifetime; cancel, Escape, close, and mask dismissal leave the stored default untouched.
+- The General-settings Permission row uses the same controlled `RiskConfirmation` before persisting Auto-Pilot as the default for later sessions. Its warning names that future-session lifetime; cancel, Escape, close, and mask dismissal leave the stored default untouched.
 - The full-access product label overrides the kebab-to-title display transform when the host keeps the canonical built-in name; an explicit host label wins. Command and Settings writes keep the machine name on the wire, and each warning body remains locale-aware in Chinese and English. The same conditional localization applies to the safer shipped presets ([blank permission default refresh](../bug-fix/2026-08-17-blank-permission-default-refresh.md)).
 
 ## Alternatives considered
@@ -26,4 +26,4 @@ Switching the web client to `danger-full-access` was a single click on a permiss
 
 ## Consequences
 
-Every visible GUI path into Full access requires a deliberate, informed acknowledgement, at the cost of one extra dialog step for users who genuinely want the preset. New pickers reuse the shared dialog through their owning state machine or attach a `confirmation` payload to the popup path. Acceptance: the composer flow's gated cases in `input-bar.spec.tsx`, the popup gate in `popup-view.spec.tsx` and `popup.spec.ts`, the default-setting gate in `permission-row.spec.tsx`, the Modal/RiskConfirmation contract in `atoms.spec.tsx`, and the assembled Web replays.
+Every visible GUI path into Auto-Pilot requires a deliberate, informed acknowledgement, at the cost of one extra dialog step for users who genuinely want the preset. New pickers reuse the shared dialog through their owning state machine or attach a `confirmation` payload to the popup path. Acceptance: the composer flow's gated cases in `input-bar.spec.tsx`, the popup gate in `popup-view.spec.tsx` and `popup.spec.ts`, the default-setting gate in `permission-row.spec.tsx`, the Modal/RiskConfirmation contract in `atoms.spec.tsx`, and the assembled Web replays.

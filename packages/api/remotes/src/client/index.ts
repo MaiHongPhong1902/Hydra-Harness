@@ -61,6 +61,7 @@ export type {} from '@hydra/harness-agent-presets/types'
 export type {} from '@hydra/harness-settings/types'
 export type {} from '@hydra/harness-skill/types'
 export type {} from '@hydra/harness-fs-review/client'
+export type { ReviewMode, WorkspaceReview, WorkspaceReviewFile } from '@hydra/harness-fs-review/client'
 
 /**
  * The carrier's Client-facing types, re-exported so a business package names one

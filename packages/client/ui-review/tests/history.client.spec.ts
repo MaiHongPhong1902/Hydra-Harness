@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { ReviewHistory } from '../src/client/history.ts'
 import { change, ok } from './fixture.ts'
 import type { IApiClient } from '@hydra/harness-api-remotes/client'
+import type { WorkspaceReview } from '@hydra/harness-fs-review/client'
 
 function bench() {
   const api = {
@@ -13,6 +14,33 @@ function bench() {
 }
 
 describe('shared review history', () => {
+  it('keeps the latest comparison when requests finish out of order and refreshes it after host changes', async () => {
+    const { api } = bench()
+    const older = Promise.withResolvers<Awaited<ReturnType<IApiClient['review']['workspace']>>>()
+    const value: WorkspaceReview = {
+      workspace: '/workspace', repository: '/workspace', branch: 'topic', branches: [], commits: [],
+      mode: 'staged', baseRef: null, files: [], truncated: false,
+    }
+    const workspace = vi.fn<IApiClient['review']['workspace']>(async () => ok(value))
+    workspace.mockReturnValueOnce(older.promise)
+    const history = new ReviewHistory('owner' as never, { ...api, workspace })
+    const read = history.refreshWorkspace('unstaged')
+    await history.refreshWorkspace('staged')
+    older.resolve(ok({ ...value, mode: 'unstaged' }))
+    await read
+    expect(history.getSnapshot().workspace?.mode).toBe('staged')
+    const unsubscribe = history.subscribe(vi.fn())
+    await history.refresh()
+    expect(workspace).toHaveBeenLastCalledWith({ sessionId: 'owner', mode: 'staged', fullContext: false })
+    workspace.mockRejectedValueOnce(new Error('Git unavailable'))
+    await history.refreshWorkspace()
+    expect(history.getSnapshot()).toMatchObject({ workspaceError: 'Git unavailable', error: null, changes: [change()] })
+    unsubscribe()
+    history.dispose()
+    const calls = workspace.mock.calls.length
+    await history.refreshWorkspace()
+    expect(workspace).toHaveBeenCalledTimes(calls)
+  })
   it('surfaces wire failures and unavailable snapshots, and ignores a read settled after disposal', async () => {
     const failure = { rpcId: 'rpc' as never, result: { ok: false as const, error: { code: 'internal' as const, message: 'disk unavailable', details: {} } } }
     const api = {

@@ -112,7 +112,7 @@ describe('hydra-tool-subagent', () => {
   it('declares presentCall with generic render intent and prompt rawInput', async () => {
     const ctx = await setup({ provider: 'mock' })
     const tool = ctx.tools.get('subagent')
-    expect(tool?.presentCall).toBeDefined()
+    expect(typeof tool?.presentCall).toBe('function')
     expect(tool?.presentCall?.({
       description: 'Research codebase',
       prompt: 'Check packages/client',

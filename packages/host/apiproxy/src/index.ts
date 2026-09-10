@@ -17,6 +17,7 @@ import z from '@hydra/schemastery'
 import type {} from '@hydra/harness-agent-default-model'
 import type { ApiProxy } from './api/index.ts'
 import { createApiProxy, DEFAULT_COLD_BLANK_PROBE_MAX_BYTES } from './api-proxy.ts'
+import { resolveReviewLimits } from './workspace-review.ts'
 import {
   DEFAULT_SESSION_LOG_COMPRESSION_LEVEL,
   type SessionLogCompressionLevel,
@@ -59,6 +60,12 @@ export interface Config {
    * @default 1024
    */
   coldBlankProbeMaxBytes?: number
+  /** Maximum serialized bytes per live Git review response. @default 4194304 */
+  reviewMaxBytes?: number
+  /** Maximum files per live Git comparison. @default 500 */
+  reviewMaxFiles?: number
+  /** Total milliseconds available for one live Git request. @default 15000 */
+  reviewTimeoutMs?: number
 }
 
 /**
@@ -77,6 +84,9 @@ export class ApiProxyService extends Service implements ApiProxy {
     sessionExportCompressionLevel: z.number().step(1).min(0).max(9)
       .default(DEFAULT_SESSION_LOG_COMPRESSION_LEVEL) as z<SessionLogCompressionLevel>,
     coldBlankProbeMaxBytes: z.natural().default(DEFAULT_COLD_BLANK_PROBE_MAX_BYTES),
+    reviewMaxBytes: z.number().step(1).min(1).default(resolveReviewLimits({}).reviewMaxBytes),
+    reviewMaxFiles: z.number().step(1).min(1).default(resolveReviewLimits({}).reviewMaxFiles),
+    reviewTimeoutMs: z.number().step(1).min(1).default(resolveReviewLimits({}).reviewTimeoutMs),
   })
 
   readonly sessions: ApiProxy['sessions']
@@ -108,6 +118,9 @@ export class ApiProxyService extends Service implements ApiProxy {
       ...(config.coldBlankProbeMaxBytes === undefined
         ? {}
         : { coldBlankProbeMaxBytes: config.coldBlankProbeMaxBytes }),
+      ...(config.reviewMaxBytes === undefined ? {} : { reviewMaxBytes: config.reviewMaxBytes }),
+      ...(config.reviewMaxFiles === undefined ? {} : { reviewMaxFiles: config.reviewMaxFiles }),
+      ...(config.reviewTimeoutMs === undefined ? {} : { reviewTimeoutMs: config.reviewTimeoutMs }),
     })
     this.sessions = api.sessions
     this.subagents = api.subagents

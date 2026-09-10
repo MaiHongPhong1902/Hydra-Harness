@@ -3,11 +3,13 @@
  * document — `html { color-scheme }` for native UA chrome (scrollbars, form
  * controls), `body[data-ds-dark-theme]` for the token palette, the active
  * theme's alias-token overrides as inline CSS variables on body, and one
- * presenter-owned `meta[name="theme-color"]` for surrounding browser UI. Pure
+ * presenter-owned `meta[name="theme-color"]` for surrounding browser UI.
+ * Embedded browser chrome receives the same resolved scheme and CSS colors. Pure
  * DOM writes, no React involvement; the presenter only ever retracts what it
  * wrote itself, so foreign attributes, metadata, and inline styles survive.
  */
 import type { ThemeSnapshot } from '@hydra/harness-client-ui-theme/client'
+import type { DesktopBrowserTheme } from './DesktopBrowserPanel.tsx'
 
 /** Body attribute selecting the dark base palette in the token stylesheets. */
 export const DARK_ATTRIBUTE = 'data-ds-dark-theme'
@@ -30,8 +32,8 @@ export class ThemePresenter {
    * palette attribute from `active.colorScheme` (never the id — `system` is
    * resolved upstream), then replace the previously applied token variables
    * with `active.tokens`. Browser theme-color metadata follows the computed
-   * body background after those writes, so the rendered palette remains the
-   * color authority.
+   * body background after those writes; embedded browser chrome receives the
+   * computed token colors, so the rendered palette remains the color authority.
    * @param snapshot - resolved theme snapshot from ctx.theme.
    */
   apply(snapshot: ThemeSnapshot): void {
@@ -46,17 +48,37 @@ export class ThemePresenter {
       body.style.setProperty(name, value)
       this.appliedTokens.push(name)
     }
+    const style = getComputedStyle(body)
+    const value = (name: string): string => style.getPropertyValue(name).trim()
+    const browserTheme: DesktopBrowserTheme = {
+      colorScheme: scheme,
+      colors: {
+        shell: value('--dsw-specific-sidebar-fill'),
+        tabstrip: value('--dsw-specific-sidebar-fill'),
+        surface: value('--dsw-alias-interactive-bg-active'),
+        text: value('--dsw-alias-label-primary'),
+        muted: value('--dsw-alias-label-tertiary'),
+        hover: value('--dsw-alias-interactive-bg-hover'),
+        border: value('--dsw-alias-border-l1'),
+        accent: value('--dsw-alias-focus-ring'),
+        accentText: value('--dsw-alias-label-primary-foreground'),
+        omnibox: value('--dsw-alias-bg-base'),
+        status: value('--dsw-alias-interactive-bg-active'),
+      },
+    }
+    window.hydraDesktop?.browser.setTheme?.(browserTheme)
     this.themeColorMeta.content = getComputedStyle(body).backgroundColor
     if (!this.themeColorMeta.isConnected) document.head.append(this.themeColorMeta)
   }
 
-  /** Retract root color-scheme, the palette attribute, token variables, and the owned metadata node. */
+  /** Retract owned DOM theme values and return native browser chrome to its OS palette. */
   dispose(): void {
     document.documentElement.style.removeProperty('color-scheme')
     const body = document.body
     body.removeAttribute(DARK_ATTRIBUTE)
     for (const name of this.appliedTokens) body.style.removeProperty(name)
     this.appliedTokens = []
+    window.hydraDesktop?.browser.setTheme?.(null)
     this.themeColorMeta.remove()
   }
 }

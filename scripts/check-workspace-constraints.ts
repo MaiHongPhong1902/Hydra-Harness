@@ -158,6 +158,7 @@ const packageFileExtras: Readonly<Record<string, readonly string[]>> = {
     'electron-app/main.cjs',
     'electron-app/hydra.png',
     'electron-app/chrome.html',
+    'electron-app/newtab.html',
     'electron-app/chrome-preload.cjs',
     'electron-app/preload.cjs',
   ],

@@ -4,8 +4,9 @@
 // set, theme-color metadata follows the rendered body background, and dispose
 // retracts everything the presenter wrote.
 
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ThemeSnapshot } from '@hydra/harness-client-ui-theme/client'
+import type { DesktopBrowserTheme } from '@hydra/harness-client-ui-layout/src/client/DesktopBrowserPanel.tsx'
 import { DARK_ATTRIBUTE, ThemePresenter } from '@hydra/harness-client-ui-layout/src/client/theme-presenter.ts'
 
 const LIGHT_THEME_COLOR = 'rgb(255, 255, 255)'
@@ -25,6 +26,15 @@ function themeColorMeta(): HTMLMetaElement | null {
   return document.head.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
 }
 
+function browserThemeSpy(): { setTheme: ReturnType<typeof vi.fn> } {
+  const setTheme = vi.fn<(theme: DesktopBrowserTheme | null) => void>()
+  Object.defineProperty(window, 'hydraDesktop', {
+    configurable: true,
+    value: { browser: { setBounds: vi.fn(), setTheme } },
+  })
+  return { setTheme }
+}
+
 beforeEach(() => {
   clearThemePresentation()
   document.documentElement.style.removeProperty('color-scheme')
@@ -39,7 +49,10 @@ beforeEach(() => {
   document.head.append(style)
 })
 
-afterEach(clearThemePresentation)
+afterEach(() => {
+  clearThemePresentation()
+  delete window.hydraDesktop
+})
 
 describe('ThemePresenter', () => {
   it('light scheme sets root color-scheme and leaves the dark attribute absent', () => {
@@ -65,6 +78,56 @@ describe('ThemePresenter', () => {
     expect(document.head.querySelectorAll('meta[name="theme-color"]')).toHaveLength(1)
   })
 
+  it('sends the initial resolved token palette to the desktop browser', () => {
+    const { setTheme } = browserThemeSpy()
+    const presenter = new ThemePresenter()
+    presenter.apply(snapshot('dark', {
+      '--dsw-specific-sidebar-fill': '#101114',
+      '--dsw-alias-interactive-bg-active': '#25272b',
+      '--dsw-alias-label-primary': '#f5f6f7',
+      '--dsw-alias-label-tertiary': '#a1a5ad',
+      '--dsw-alias-interactive-bg-hover': '#30343a',
+      '--dsw-alias-border-l1': '#464a52',
+      '--dsw-alias-focus-ring': '#6ca7ff',
+      '--dsw-alias-label-primary-foreground': '#ffffff',
+      '--dsw-alias-bg-base': '#17191d',
+    }))
+    expect(setTheme).toHaveBeenCalledWith({
+      colorScheme: 'dark',
+      colors: {
+        shell: '#101114',
+        tabstrip: '#101114',
+        surface: '#25272b',
+        text: '#f5f6f7',
+        muted: '#a1a5ad',
+        hover: '#30343a',
+        border: '#464a52',
+        accent: '#6ca7ff',
+        accentText: '#ffffff',
+        omnibox: '#17191d',
+        status: '#25272b',
+      },
+    })
+  })
+
+  it('refreshes the desktop browser theme on scheme switches', () => {
+    const { setTheme } = browserThemeSpy()
+    const presenter = new ThemePresenter()
+    presenter.apply(snapshot('light', {
+      '--dsw-specific-sidebar-fill': '#fafafa',
+      '--dsw-alias-label-primary': '#111111',
+    }))
+    presenter.apply(snapshot('dark', {
+      '--dsw-specific-sidebar-fill': '#222222',
+      '--dsw-alias-label-primary': '#eeeeee',
+    }))
+    expect(setTheme).toHaveBeenCalledTimes(2)
+    expect(setTheme.mock.calls[1]?.[0]).toMatchObject({
+      colorScheme: 'dark',
+      colors: { shell: '#222222', tabstrip: '#222222', text: '#eeeeee' },
+    })
+  })
+
   it('applies tokens as inline variables and clears the previous set on theme change', () => {
     const presenter = new ThemePresenter()
     presenter.apply(snapshot('dark', { '--dsw-alias-bg': '#111', '--dsw-alias-fg': '#eee' }))
@@ -77,6 +140,7 @@ describe('ThemePresenter', () => {
   })
 
   it('dispose removes color-scheme, the attribute, and every applied variable, sparing foreign inline styles', () => {
+    const { setTheme } = browserThemeSpy()
     document.body.style.setProperty('--foreign', 'kept')
     const presenter = new ThemePresenter()
     presenter.apply(snapshot('dark', { '--dsw-alias-bg': '#111' }))
@@ -87,5 +151,6 @@ describe('ThemePresenter', () => {
     expect(document.body.style.getPropertyValue('--dsw-alias-bg')).toBe('')
     expect(document.body.style.getPropertyValue('--foreign')).toBe('kept')
     expect(meta?.isConnected).toBe(false)
+    expect(setTheme).toHaveBeenLastCalledWith(null)
   })
 })

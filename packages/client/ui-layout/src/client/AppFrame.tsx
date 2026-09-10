@@ -14,7 +14,10 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import type { CSSProperties, ReactNode } from 'react'
 import type { SessionId } from '@hydra/harness-client-runtime/client'
 import type { PropsRenderSlots, PropsRuntime, PropsStore } from '@hydra/harness-client-ui-slots'
-import { computeColumns, SIDEBAR_AUTO_COLLAPSE, SIDEBAR_DEFAULT } from './columns.ts'
+import {
+  computeColumns, DETAILS_MAX, DETAILS_MIN,
+  SIDEBAR_AUTO_COLLAPSE, SIDEBAR_DEFAULT, SIDEBAR_MAX, SIDEBAR_MIN,
+} from './columns.ts'
 import type { createLayoutStore } from './stores.ts'
 import { DesktopBrowserPanel, DesktopPanelControls } from './DesktopBrowserPanel.tsx'
 import { DesktopTerminalPanel } from './DesktopTerminalPanel.tsx'
@@ -111,13 +114,13 @@ function DragHandle(props: {
       style={props.left === undefined ? undefined : { left: props.left }}
       data-side={props.side}
       data-dragging={dragging || undefined}
-      role={desktop ? 'separator' : undefined}
+      role="separator"
       aria-label={props.label}
-      aria-orientation={desktop ? axis === 'x' ? 'vertical' : 'horizontal' : undefined}
+      aria-orientation={axis === 'x' ? 'vertical' : 'horizontal'}
       aria-valuemin={props.min}
       aria-valuemax={props.max}
       aria-valuenow={props.value}
-      tabIndex={desktop ? 0 : undefined}
+      tabIndex={0}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -138,6 +141,12 @@ export function AppFrame({
 }: AppFrameProps) {
   const panels = useStore(s => s)
   const currentSessionId = useSessions(s => s.current)
+  const currentSessionTitle = useSessions((s) => {
+    const current = s.current
+    if (current === undefined) return undefined
+    const session = s.byId[current]
+    return session?.title || session?.displayTitle
+  })
   const detailsSession = useSessions((s) => {
     const current = s.current
     return current !== undefined && s.byId[current]?.blank === false ? current : undefined
@@ -156,11 +165,16 @@ export function AppFrame({
   const [browserOpen, setBrowserOpen] = useState(false)
   const [terminalOpen, setTerminalOpen] = useState(false)
   const [browserExpanded, setBrowserExpanded] = useState(false)
-  const [panelChooserOpen, setPanelChooserOpen] = useState(false)
   const [browserWidth, setBrowserWidth] = useState(() =>
     clamp(Math.round(window.innerWidth * 0.42), DESKTOP_BROWSER_MIN, browserMax))
   const [terminalHeight, setTerminalHeight] = useState(() =>
     clamp(Math.round(window.innerHeight * 0.36), DESKTOP_TERMINAL_MIN, terminalMax))
+
+  // A window resize is a rendering constraint, not a user preference. Keep
+  // the preferred dimensions so a panel returns to its previous size when the
+  // window grows again.
+  const renderedBrowserWidth = Math.min(browserWidth, browserMax)
+  const renderedTerminalHeight = Math.min(terminalHeight, terminalMax)
 
   useEffect(() => {
     if (window.hydraDesktop === undefined) return
@@ -170,11 +184,6 @@ export function AppFrame({
     window.addEventListener('resize', onResize)
     return () => { window.removeEventListener('resize', onResize) }
   }, [])
-
-  useEffect(() => {
-    setBrowserWidth(width => clamp(width, DESKTOP_BROWSER_MIN, browserMax))
-    setTerminalHeight(height => clamp(height, DESKTOP_TERMINAL_MIN, terminalMax))
-  }, [browserMax, terminalMax])
 
   const lastSession = useRef(detailsSession)
   useLayoutEffect(() => {
@@ -240,8 +249,8 @@ export function AppFrame({
   const onDetailsDrag = useCallback((dx: number) => {
     actions.setDetails(detailsBase.current - dx)
   }, [actions])
-  const onBrowserStart = useCallback(() => { browserBase.current = browserWidth }, [browserWidth])
-  const onTerminalStart = useCallback(() => { terminalBase.current = terminalHeight }, [terminalHeight])
+  const onBrowserStart = useCallback(() => { browserBase.current = renderedBrowserWidth }, [renderedBrowserWidth])
+  const onTerminalStart = useCallback(() => { terminalBase.current = renderedTerminalHeight }, [renderedTerminalHeight])
   const onBrowserDrag = useCallback((dx: number) => {
     setBrowserWidth(clamp(browserBase.current - dx, DESKTOP_BROWSER_MIN, browserMax))
   }, [browserMax])
@@ -282,21 +291,46 @@ export function AppFrame({
         {renderSlot('shell.overlay', {})}
       </div>
       {/* The collapsed rail is fixed-width: no resize handle while closed. */}
-      {!sidebarCollapsed && <DragHandle side="sidebar" left={cols.sidebar} onStart={onSidebarStart} onDrag={onSidebarDrag} onEnd={onDragEnd} />}
-      {cols.details > 0 && <DragHandle side="details" left={viewport - cols.details} onStart={onDetailsStart} onDrag={onDetailsDrag} onEnd={onDragEnd} />}
+      {/* Keyboard steps start from the rendered width like a drag does, so a
+          concession-clamped column does not jump: ArrowRight grows the sidebar
+          and ArrowLeft grows details, whose drag delta is inverted. */}
+      {!sidebarCollapsed && (
+        <DragHandle
+          side="sidebar"
+          left={cols.sidebar}
+          label="Resize sidebar"
+          min={SIDEBAR_MIN}
+          max={SIDEBAR_MAX}
+          value={cols.sidebar}
+          onStart={onSidebarStart}
+          onDrag={onSidebarDrag}
+          onEnd={onDragEnd}
+          onStep={(delta) => { actions.setSidebar(cols.sidebar - delta) }}
+        />
+      )}
+      {cols.details > 0 && (
+        <DragHandle
+          side="details"
+          left={viewport - cols.details}
+          label="Resize details panel"
+          min={DETAILS_MIN}
+          max={DETAILS_MAX}
+          value={cols.details}
+          onStart={onDetailsStart}
+          onDrag={onDetailsDrag}
+          onEnd={onDragEnd}
+          onStep={(delta) => { actions.setDetails(cols.details + delta) }}
+        />
+      )}
     </div>
   )
   if (window.hydraDesktop === undefined) return frame
   const toggleBrowser = () => {
-    if (browserOpen) {
-      setBrowserExpanded(false)
-      setPanelChooserOpen(false)
-    }
+    if (browserOpen) setBrowserExpanded(false)
     setBrowserOpen(!browserOpen)
   }
   const toggleExpanded = () => {
     if (!browserOpen) setBrowserOpen(true)
-    setPanelChooserOpen(false)
     setBrowserExpanded(!browserExpanded)
   }
 
@@ -304,8 +338,8 @@ export function AppFrame({
     <div
       className={css.desktopShell}
       style={{
-        '--desktop-browser-width': `${browserWidth}px`,
-        '--desktop-terminal-height': `${terminalHeight}px`,
+        '--desktop-browser-width': `${renderedBrowserWidth}px`,
+        '--desktop-terminal-height': `${renderedTerminalHeight}px`,
       } as CSSProperties}
       data-browser-open={browserOpen || undefined}
       data-terminal-open={terminalOpen || undefined}
@@ -314,8 +348,8 @@ export function AppFrame({
       <div className={css.desktopApp}>{frame}</div>
       <DesktopBrowserPanel
         open={browserOpen}
-        chooserOpen={panelChooserOpen}
         workspaceId={workspaceId}
+        sessionTitle={currentSessionTitle}
         createSideSession={createSideSession}
         renderSideChat={sessionId => (
           <SessionProvider sessionId={sessionId}>
@@ -323,22 +357,23 @@ export function AppFrame({
           </SessionProvider>
         )}
         renderReview={() => renderSlot('review', {})}
-        onCloseChooser={() => { setPanelChooserOpen(false) }}
-        onToggleChooser={() => { setPanelChooserOpen(open => !open) }}
         onOpen={() => { setBrowserOpen(true) }}
       />
-      <DesktopTerminalPanel open={terminalOpen && !browserExpanded} />
+      <DesktopTerminalPanel
+        open={terminalOpen && !browserExpanded}
+        sessionTitle={currentSessionTitle}
+      />
       {browserOpen && !browserExpanded && (
         <DragHandle
           side="browser"
           label="Resize right panel"
           min={DESKTOP_BROWSER_MIN}
           max={browserMax}
-          value={browserWidth}
+          value={renderedBrowserWidth}
           onStart={onBrowserStart}
           onDrag={onBrowserDrag}
           onStep={(delta) => {
-            setBrowserWidth(width => clamp(width + delta, DESKTOP_BROWSER_MIN, browserMax))
+            setBrowserWidth(clamp(renderedBrowserWidth + delta, DESKTOP_BROWSER_MIN, browserMax))
           }}
         />
       )}
@@ -349,11 +384,11 @@ export function AppFrame({
           label="Resize Terminal panel"
           min={DESKTOP_TERMINAL_MIN}
           max={terminalMax}
-          value={terminalHeight}
+          value={renderedTerminalHeight}
           onStart={onTerminalStart}
           onDrag={onTerminalDrag}
           onStep={(delta) => {
-            setTerminalHeight(height => clamp(height + delta, DESKTOP_TERMINAL_MIN, terminalMax))
+            setTerminalHeight(clamp(renderedTerminalHeight + delta, DESKTOP_TERMINAL_MIN, terminalMax))
           }}
         />
       )}

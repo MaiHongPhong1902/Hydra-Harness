@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { act, cleanup, fireEvent, render } from '@testing-library/react'
-import type { ReviewChange } from '@hydra/harness-fs-review/client'
+import { act, cleanup, fireEvent, render, within } from '@testing-library/react'
+import type { ReviewChange, WorkspaceReview } from '@hydra/harness-fs-review/client'
 import { bindSnapshotSelector } from '@hydra/harness-client-test-runtime'
 import { ChangeRow, InlineReview, ReviewPanel } from '../src/client/Review.tsx'
 import { ReviewHistory } from '../src/client/history.ts'
@@ -177,8 +177,169 @@ describe('review evidence and actions', () => {
     fireEvent.click(panel.getByRole('tab', { name: /Pending/ }))
     expect(panel.getByText('src/app.ts')).toBeTruthy()
     expect(panel.queryByText('docs/readme.md')).toBeNull()
+    fireEvent.keyDown(panel.getByRole('tab', { name: /Pending/ }), { key: 'ArrowRight' })
+    expect(panel.getByRole('tab', { name: /Kept/ }).getAttribute('aria-selected')).toBe('true')
 
     panel.unmount()
     history.dispose()
   })
+
+  it('stops Undo All on a conflict so later actions cannot clear its error', async () => {
+    const records = [change(), change({ id: 'latest' as never })]
+    const undo = vi.fn(async () => ok({ status: 'conflict' as const, change: records[1]! }))
+    const history = new ReviewHistory('owner' as never, { list: async () => ok({ changes: records }), keep: vi.fn(), undo })
+    await history.refresh()
+    const panel = render(<ReviewPanel {...{
+      ownerSessionId: 'owner', useReview: bindSnapshotSelector(history), act: history.act, refresh: history.refresh,
+    } as Parameters<typeof ReviewPanel>[0]} />)
+    fireEvent.click(panel.getByRole('button', { name: 'Undo All' }))
+    await panel.findByRole('alert')
+    expect(undo).toHaveBeenCalledExactlyOnceWith({ sessionId: 'owner', changeId: 'latest' })
+    expect(panel.getByRole('alert').textContent).toContain('Undo was skipped')
+    panel.unmount()
+    history.dispose()
+  })
+
+  it('supports hierarchical tree navigation, file pagination, and sidebar toggle', async () => {
+    const records = [
+      change({ id: 'c1' as never, path: '.agents/notes/architecture/seam.md', state: 'active', status: 'modified' }),
+      change({ id: 'c2' as never, path: '.agents/notes/bug-fix/fix.md', state: 'active', status: 'added' }),
+    ]
+    const history = new ReviewHistory('owner' as never, {
+      list: async () => ok({ changes: records }),
+      keep: vi.fn(),
+      undo: vi.fn(),
+    })
+    await history.refresh()
+    const injected = {
+      ownerSessionId: 'owner',
+      useReview: bindSnapshotSelector(history),
+      act: history.act,
+      refresh: history.refresh,
+    }
+    const panel = render(<ReviewPanel {...injected as Parameters<typeof ReviewPanel>[0]} />)
+
+    // Verify folder hierarchy
+    expect(panel.getByText('.agents / notes')).toBeTruthy()
+    expect(panel.getByText('architecture')).toBeTruthy()
+    expect(panel.getByText('bug-fix')).toBeTruthy()
+    expect(panel.getByText('seam.md')).toBeTruthy()
+    expect(panel.getByText('fix.md')).toBeTruthy()
+
+    // Test folder collapse
+    const folder = panel.getByTitle('.agents / notes')
+    fireEvent.click(folder)
+    expect(panel.queryByText('seam.md')).toBeNull()
+    fireEvent.click(folder)
+    expect(panel.getByText('seam.md')).toBeTruthy()
+
+    // Test view mode toggle (switch to single file mode)
+    const toggleViewBtn = panel.getByRole('button', { name: 'Toggle view mode' })
+    fireEvent.click(toggleViewBtn)
+    expect(panel.getByText('Showing one file at a time')).toBeTruthy()
+
+    // Test file navigation (< and >) in single mode
+    const nextBtn = panel.getByRole('button', { name: 'Next file' })
+    const prevBtn = panel.getByRole('button', { name: 'Previous file' })
+    expect((prevBtn as HTMLButtonElement).disabled).toBe(true)
+    expect((nextBtn as HTMLButtonElement).disabled).toBe(false)
+    fireEvent.click(nextBtn)
+    expect((nextBtn as HTMLButtonElement).disabled).toBe(true)
+    expect((prevBtn as HTMLButtonElement).disabled).toBe(false)
+
+    // Test selecting a file directly from tree
+    fireEvent.click(panel.getByText('seam.md'))
+    expect((prevBtn as HTMLButtonElement).disabled).toBe(true)
+
+    // Test sidebar toggle
+    const toggleSidebarBtn = panel.getByRole('button', { name: 'Toggle file list' })
+    fireEvent.click(toggleSidebarBtn)
+    expect(panel.queryByRole('tree')).toBeNull()
+    fireEvent.click(toggleSidebarBtn)
+    expect(panel.getByRole('tree')).toBeTruthy()
+
+    panel.unmount()
+    history.dispose()
+  })
+
+  it('changes diff preferences and selects live workspace comparisons', async () => {
+    const workspace = vi.fn(async ({ mode }: { mode: WorkspaceReview['mode'] }) => ok({
+      workspace: '/workspace', repository: '/workspace', branch: 'feature/review', branches: ['refs/heads/main'],
+      commits: [{ oid: 'a'.repeat(40), subject: 'Initial commit' }], mode, baseRef: null, truncated: false,
+      files: [{ path: 'src/live.ts', status: 'modified' as const, additions: 1, deletions: 1, hunks: change().hunks, binary: false, truncated: false, patch: 'live patch\n' }],
+    }))
+    const history = new ReviewHistory('owner' as never, {
+      list: async () => ok({ changes: [change()] }), keep: vi.fn(), undo: vi.fn(), workspace,
+    })
+    await history.refresh()
+    const injected = { ownerSessionId: 'owner', useReview: bindSnapshotSelector(history), act: history.act, refresh: history.refresh, refreshWorkspace: history.refreshWorkspace }
+    const panel = render(<ReviewPanel {...injected as Parameters<typeof ReviewPanel>[0]} />)
+    await panel.findByText('feature/review')
+    fireEvent.click(panel.getByText('Diff preferences'))
+    fireEvent.click(panel.getByRole('checkbox', { name: 'Word wrap' }))
+    expect((panel.getByRole('checkbox', { name: 'Word wrap' }) as HTMLInputElement).checked).toBe(true)
+    fireEvent.change(panel.getByLabelText('Diff layout'), { target: { value: 'split' } })
+    expect(panel.getByLabelText('Recorded diff for a.txt').getAttribute('data-mode')).toBe('split')
+    fireEvent.change(panel.getByLabelText('Review scope'), { target: { value: 'unstaged' } })
+    await panel.findByText('src/live.ts')
+    expect(workspace).toHaveBeenLastCalledWith({ sessionId: 'owner', mode: 'unstaged', fullContext: false })
+    expect(panel.queryByRole('button', { name: 'Keep All' })).toBeNull()
+    expect(panel.queryByRole('button', { name: 'Undo' })).toBeNull()
+    fireEvent.click(within(panel.getByRole('tree')).getByText('live.ts'))
+    expect(panel.getByText('Showing one file at a time')).toBeTruthy()
+    fireEvent.change(panel.getByLabelText('Review scope'), { target: { value: 'branch' } })
+    await act(async () => { await Promise.resolve() })
+    fireEvent.change(panel.getByLabelText('Base branch'), { target: { value: 'refs/heads/main' } })
+    await act(async () => { await Promise.resolve() })
+    expect(workspace).toHaveBeenLastCalledWith({ sessionId: 'owner', mode: 'branch', ref: 'refs/heads/main', fullContext: false })
+    fireEvent.change(panel.getByLabelText('Review scope'), { target: { value: 'committed' } })
+    await act(async () => { await Promise.resolve() })
+    fireEvent.change(panel.getByLabelText('Commit'), { target: { value: 'a'.repeat(40) } })
+    await act(async () => { await Promise.resolve() })
+    expect(workspace).toHaveBeenLastCalledWith({ sessionId: 'owner', mode: 'committed', ref: 'a'.repeat(40), fullContext: false })
+    panel.unmount()
+    history.dispose()
+  })
+
+  it('labels the workspace from the mounted session and excludes demo branch names', async () => {
+    const history = new ReviewHistory('owner' as never, {
+      list: async () => ok({ changes: [change()] }), keep: vi.fn(), undo: vi.fn(),
+    })
+    await history.refresh()
+    const useWorkspaces = (
+      select: (state: { items: { workspaceId: string; title: string; path: string; sessionIds: string[] }[] }) => unknown,
+    ) => select({ items: [
+      { workspaceId: 'workspace-owner', title: 'Project Alpha', path: '/projects/alpha', sessionIds: ['owner'] },
+      { workspaceId: 'workspace-other', title: 'Project Beta', path: '/projects/beta', sessionIds: ['other'] },
+    ] })
+    const injected = { ownerSessionId: 'owner', useReview: bindSnapshotSelector(history), act: history.act, refresh: history.refresh, useWorkspaces }
+    const panel = render(<ReviewPanel {...injected as Parameters<typeof ReviewPanel>[0]} />)
+    expect(panel.getByText('Project Alpha')).toBeTruthy()
+    expect(panel.queryByText('Project Beta')).toBeNull()
+    expect(panel.container.textContent).not.toContain('origin/chore/rebrand-bh')
+    expect(panel.container.textContent).not.toContain('codex/implement-pi-desktop-change-review')
+    panel.unmount()
+    history.dispose()
+  })
+
+  it('keeps aggregated child evidence in the mounted workspace', async () => {
+    const history = new ReviewHistory('owner' as never, {
+      list: async () => ok({ changes: [
+        change({ id: 'inside' as never, workspace: '/projects/alpha', path: 'inside.ts' }),
+        change({ id: 'outside' as never, workspace: '/projects/beta', path: 'outside.ts' }),
+      ] }), keep: vi.fn(), undo: vi.fn(),
+    })
+    await history.refresh()
+    const useWorkspaces = (select: (state: { items: { title: string; path: string; sessionIds: string[] }[] }) => unknown) => select({
+      items: [{ title: 'Alpha', path: '/projects/alpha', sessionIds: ['owner'] }],
+    })
+    const panel = render(<ReviewPanel {...{
+      ownerSessionId: 'owner', useReview: bindSnapshotSelector(history), act: history.act, refresh: history.refresh, useWorkspaces,
+    } as Parameters<typeof ReviewPanel>[0]} />)
+    expect(panel.getAllByText('inside.ts').length).toBeGreaterThan(0)
+    expect(panel.queryByText('outside.ts')).toBeNull()
+    panel.unmount()
+    history.dispose()
+  })
+
 })

@@ -153,13 +153,13 @@ describe('MessageItem arms', () => {
     expect(later.getByRole('button', { name: 'Edit' })).toBeTruthy()
   })
 
-  it('edits inline, cancels unchanged, rejects blank text, and retains a failed submission for retry', async () => {
+  it('edits inline, cancels drafts, rejects blank text, and retains a failed submission for retry', async () => {
     const editMessage = vi.fn().mockRejectedValueOnce(new Error('offline')).mockResolvedValue(undefined)
     const node = { kind: 'user' as const, seq: 1, time: 1_000,
       content: [{ type: 'text' as const, text: 'original prompt' }], source: null }
     const view = render(<MessageItem t={t} node={node} editMessage={editMessage} />)
     fireEvent.click(view.getByRole('button', { name: 'Edit' }))
-    expect((view.getByRole('button', { name: 'Save & resend' }) as HTMLButtonElement).disabled).toBe(true)
+    expect((view.getByRole('button', { name: 'Save & resend' }) as HTMLButtonElement).disabled).toBe(false)
     expect(document.activeElement).toBe(view.getByRole('textbox'))
     expect((view.getByRole('textbox', { name: 'Edit prompt' }) as HTMLTextAreaElement).value).toBe('original prompt')
     fireEvent.change(view.getByRole('textbox'), { target: { value: 'discard me' } })
@@ -177,6 +177,21 @@ describe('MessageItem arms', () => {
     await act(async () => { fireEvent.keyDown(view.getByRole('textbox'), { key: 'Enter', ctrlKey: true }) })
     expect(editMessage).toHaveBeenLastCalledWith(node, 'revised\nprompt', { idempotencyKey: expect.any(String) as unknown })
     expect(editMessage.mock.calls[0]?.[2]).toEqual(editMessage.mock.calls[1]?.[2])
+    expect(view.queryByRole('textbox')).toBeNull()
+  })
+
+  it.each(['button', 'Enter'])('resends the exact unchanged prompt through %s', async (trigger) => {
+    const editMessage = vi.fn().mockResolvedValue(undefined)
+    const text = '  Tiếng Việt 🐉\nDòng thứ hai  '
+    const node = { kind: 'user' as const, seq: 1, time: 1_000,
+      content: [{ type: 'text' as const, text }], source: null }
+    const view = render(<MessageItem t={t} node={node} editMessage={editMessage} />)
+    fireEvent.click(view.getByRole('button', { name: 'Edit' }))
+    await act(async () => {
+      if (trigger === 'button') fireEvent.click(view.getByRole('button', { name: 'Save & resend' }))
+      else fireEvent.keyDown(view.getByRole('textbox'), { key: 'Enter' })
+    })
+    expect(editMessage).toHaveBeenCalledExactlyOnceWith(node, text, { idempotencyKey: expect.any(String) as unknown })
     expect(view.queryByRole('textbox')).toBeNull()
   })
 

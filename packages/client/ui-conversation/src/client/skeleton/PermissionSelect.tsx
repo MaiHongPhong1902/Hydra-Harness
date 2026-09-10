@@ -9,8 +9,8 @@ import css from './PermissionSelect.module.css'
 
 const FULL_ACCESS = 'danger-full-access'
 
-/* Shield glyphs (design set 1556): check = read-only, pencil = workspace
-   write, exclamation = full access. currentColor so the trigger and menu
+/* Shield glyphs (design set 1556): check = read-only, pencil = edit,
+   exclamation = Auto-Pilot. currentColor so the trigger and menu
    rows tint them with their own text color. */
 
 const shieldOutline = 'M8.20554 0.899994L14.7901 3.36857V7.01026C14.7901 12 11.0466 14.2103 8.20554 15.3C5.36446 14.2103 1.62012 12 1.62012 7.01026V3.36857L8.20554 0.899994Z'
@@ -55,9 +55,9 @@ function displayName(name: string): string {
 }
 
 const BUILT_IN_PERMISSION_NAMES = new Map<string, string>([
-  ['read-only', 'Read Only'],
-  ['workspace-write', 'Workspace Write'],
-  [FULL_ACCESS, 'Full access'],
+  ['read-only', 'Read only'],
+  ['workspace-write', 'Edit'],
+  [FULL_ACCESS, 'Auto-Pilot'],
 ])
 
 function permissionLabel(value: string, name: string, t: ComposerBarProps['t']): string {
