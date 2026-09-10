@@ -76,20 +76,34 @@ export interface BrowserValueOptions {
 
 const INTERACTIVE_TAGS = new Set(['a', 'button', 'input', 'select', 'textarea'])
 const INDEXED_LINE = /^(\t*)(\*)?\[(\d+)\]<([a-z0-9-]+)/iu
-const IGNORED_NODE = /\b(?:aria-hidden\s*=\s*["']?true\b|role\s*=\s*["']?(?:presentation|none)\b|inert(?:\s|=|>|\/))/iu
 
 /**
- * The tag/attribute declaration a PageController line opens with, up to and
- * including its first `>`. Element text and any nested markup follow that
- * `>`, so limiting the ignored-node check to this prefix keeps ordinary
- * button/link text (which may itself contain words like "inert") from being
- * mistaken for an accessibility marker.
- * @param line - one line of the element list.
- * @returns the line's tag-opening prefix, or the whole line if it has no `>`.
+ * Whether one serialized tag declaration carries an attribute that explicitly
+ * excludes the node from accessibility or interaction.
+ *
+ * Attribute *names* are compared, never raw substrings: a rendered attribute
+ * value can itself contain `role=none` (a URL query string), `aria-hidden=true`
+ * (an aria-label describing ARIA), or `inert` (`data-state=inert`, a real
+ * transition-state value), and none of those marks the control as ignored.
+ * PageController emits values unquoted, so a value containing whitespace is
+ * indistinguishable from a following attribute; that residual ambiguity is
+ * accepted rather than guessed at.
+ * @param prefix - a line's tag declaration, ending at the line's first `>`.
+ * @returns True when the element is explicitly marked ignored.
  */
-function tagPrefix(line: string): string {
-  const end = line.indexOf('>')
-  return end === -1 ? line : line.slice(0, end + 1)
+function hasIgnoredMarker(prefix: string): boolean {
+  const open = prefix.indexOf('<')
+  if (open === -1) return false
+  const tokens = prefix.slice(open + 1).replace(/[\s/>]+$/u, '').split(/\s+/u)
+  for (const token of tokens.slice(1)) {
+    const equals = token.indexOf('=')
+    const name = (equals === -1 ? token : token.slice(0, equals)).toLowerCase()
+    const value = equals === -1 ? '' : token.slice(equals + 1).replace(/^["']|["']$/gu, '').toLowerCase()
+    if (name === 'inert') return true
+    if (name === 'aria-hidden' && value === 'true') return true
+    if (name === 'role' && (value === 'presentation' || value === 'none')) return true
+  }
+  return false
 }
 
 /**
@@ -101,7 +115,10 @@ function tagPrefix(line: string): string {
  */
 export function dropIgnoredNodes(content: string): string {
   if (content.length === 0) return content
-  return content.split('\n').filter(line => !IGNORED_NODE.test(tagPrefix(line))).join('\n')
+  return content.split('\n').filter((line) => {
+    const end = line.indexOf('>')
+    return !hasIgnoredMarker(end === -1 ? line : line.slice(0, end + 1))
+  }).join('\n')
 }
 
 /**

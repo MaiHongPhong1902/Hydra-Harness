@@ -35,7 +35,7 @@ Elements are listed as [index]<type>text</type>:
 	*[35]<button aria-label='Submit form'>Submit</button>
 \`\`\`
 
-- Only elements with a numeric [index] can be acted on, and only indexes the most recent result for that same tab actually listed.
+- Only elements with a numeric [index] can be acted on, and only indexes the most recent result for that same tab listed; when that result reported unchanged content, the indexes from the previous result for that tab are still the current ones.
 - A tab of indentation means the element is a child of the element above it.
 - \`*[\` marks an element that has appeared since the previous result for the same URL.
 - Text without [] is page content, not something you can act on.

@@ -663,6 +663,26 @@ describe('browser snapshot ranking', () => {
     ].join('\n'))).toBe('[3]<button>Mark account inert</button>\n[5]<a href=/policy>See our inert gas safety policy</a>')
   })
 
+  it('does not drop a control whose attribute value happens to equal an ignored marker', () => {
+    expect(dropIgnoredNodes([
+      '[4]<button data-state=inert>Retry</button>',
+      '[6]<a href=inert.html>Details</a>',
+      '[2]<a href=/docs?role=none>Docs</a>',
+      '[3]<a href=/guide?role=presentation>Guide</a>',
+      '[7]<input aria-label=aria-hidden=true/>',
+      '[5]<button title=role=none>Lock</button>',
+      '[8]<div inert>inactive</div>',
+      '[10]<input disabled inert/>',
+    ].join('\n'))).toBe([
+      '[4]<button data-state=inert>Retry</button>',
+      '[6]<a href=inert.html>Details</a>',
+      '[2]<a href=/docs?role=none>Docs</a>',
+      '[3]<a href=/guide?role=presentation>Guide</a>',
+      '[7]<input aria-label=aria-hidden=true/>',
+      '[5]<button title=role=none>Lock</button>',
+    ].join('\n'))
+  })
+
   it('keeps newly appeared and typical form controls ahead of other indexed lines', () => {
     expect(rankElementList([
       '[9]<div>User form</div>',
