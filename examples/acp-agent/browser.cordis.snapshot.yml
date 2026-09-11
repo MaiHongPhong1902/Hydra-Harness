@@ -15,6 +15,10 @@
             name: '@hydra/harness-browser-electron'
             config:
               show: false
+              browserPermissions:
+                browsing: allow
+                downloads: allow
+                uploads: allow
               # Never spawned: the scripted child replaces the spawn itself,
               # and this only keeps the launcher from resolving a real binary.
               electronPath: /snapshot/electron

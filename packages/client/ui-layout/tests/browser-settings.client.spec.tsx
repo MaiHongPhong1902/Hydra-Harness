@@ -170,7 +170,7 @@ describe('BrowserSection', () => {
     expect(screen.getByRole('region', { name: 'Browser' })).toBeTruthy()
     expect(screen.getAllByRole('heading').map(heading => heading.textContent)).toEqual(expect.arrayContaining([
       'Browser', 'General', 'Autofill and passwords', 'Downloads',
-      'Permissions', 'Site permissions', 'Developer mode',
+      'Site permissions', 'Developer mode',
     ]))
 
     await waitFor(() => {
@@ -183,9 +183,17 @@ describe('BrowserSection', () => {
     expect(screen.getByRole<HTMLButtonElement>('button', { name: 'Download history Manage' }).disabled).toBe(false)
     expect(screen.getByRole<HTMLButtonElement>('button', { name: 'Site settings Manage' }).disabled).toBe(false)
     expect(screen.getByRole<HTMLButtonElement>('button', { name: '+ Add' }).disabled).toBe(false)
-    expect(screen.getByRole<HTMLSelectElement>('combobox', { name: 'Approval' }).disabled).toBe(false)
+    expect(screen.queryByRole('combobox', { name: 'Approval' })).toBeNull()
     expect(screen.getByRole<HTMLSelectElement>('combobox', { name: 'Downloads' }).disabled).toBe(false)
     expect(screen.getByRole<HTMLSelectElement>('combobox', { name: 'Uploads' }).disabled).toBe(false)
+    expect(screen.getByRole<HTMLSelectElement>('combobox', { name: 'Browsing' }).disabled).toBe(false)
+    const permissions = screen.getByRole('region', { name: 'Browser permissions' })
+    expect(within(permissions).getAllByRole('combobox')).toHaveLength(3)
+    for (const select of within(permissions).getAllByRole('combobox')) {
+      expect(within(select).getAllByRole('option').map(option => option.textContent))
+        .toEqual(['Requires approval', 'Always allow', 'Block'])
+    }
+    expect(screen.queryByRole('heading', { name: /^Permissions$/u })).toBeNull()
 
     expect(screen.getByRole<HTMLSelectElement>('combobox', { name: 'Web URL and link open destination' }).disabled).toBe(false)
     expect(screen.getByRole<HTMLSelectElement>('combobox', { name: 'Local URL open destination' }).disabled).toBe(false)
@@ -212,6 +220,11 @@ describe('BrowserSection', () => {
     await waitFor(() => { expect(native.configureNative).toHaveBeenCalledWith(NATIVE_SETTINGS) })
     vi.mocked(native.configureNative).mockClear()
 
+    fireEvent.change(screen.getByRole('combobox', { name: 'Browsing' }), { target: { value: 'allow' } })
+    await waitFor(() => {
+      expect(settings.set).toHaveBeenCalledWith('browserPermissions', { browsing: 'allow', downloads: 'ask', uploads: 'ask' })
+    })
+
     fireEvent.click(screen.getByRole('switch', { name: 'Browser' }))
     await waitFor(() => { expect(settings.set).toHaveBeenCalledWith('controlEnabled', false) })
 
@@ -223,10 +236,6 @@ describe('BrowserSection', () => {
       expect(native.configureNative).toHaveBeenCalledWith({ ...NATIVE_SETTINGS, askWhereToSave: true })
     })
     vi.mocked(native.configureNative).mockClear()
-
-    fireEvent.change(screen.getByRole('combobox', { name: 'Approval' }), { target: { value: 'allow' } })
-    await waitFor(() => { expect(settings.set).toHaveBeenCalledWith('navigationPolicy', 'allow') })
-    expect(native.configureNative).not.toHaveBeenCalled()
 
     fireEvent.change(screen.getByRole('combobox', { name: 'Web URL and link open destination' }), {
       target: { value: 'system' },

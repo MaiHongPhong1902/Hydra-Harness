@@ -195,9 +195,10 @@ async perform( owner: Agent, action: BrowserAction, execution: BrowserExecutionC
  * Capture the selected controlled page's visible viewport as a bounded PNG.
  * The base64 is transient: callers must consume it before persisting output.
  * @param owner - agent whose selected controlled tab is captured.
+ * @param execution - tool-call identity and cancellation for the browsing approval.
  * @returns the bounded screenshot payload.
  */
-async takeScreenshot(owner: Agent): Promise<BrowserScreenshot>
+async takeScreenshot(owner: Agent, execution: BrowserExecutionContext = {}): Promise<BrowserScreenshot>
 
 /**
  * Search only the bounded app-owned history after applying the model-access policy.

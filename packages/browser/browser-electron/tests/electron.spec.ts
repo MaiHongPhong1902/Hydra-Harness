@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process'
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { createServer } from 'node:http'
 import type { Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
@@ -28,6 +28,7 @@ function browserRunnable(): boolean {
 }
 
 const FIXTURE_FILE = fileURLToPath(new URL('./fixtures/form.html', import.meta.url))
+const HIDDEN_UPLOAD_FIXTURE_FILE = fileURLToPath(new URL('./fixtures/hidden-upload.html', import.meta.url))
 const NEXT_FIXTURE_FILE = fileURLToPath(new URL('./fixtures/next.html', import.meta.url))
 const CHROME_UI_DRIVER = fileURLToPath(new URL('./chrome-ui.cjs', import.meta.url))
 
@@ -99,6 +100,8 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
   let child: BrowserChild
   let fixtureServer: Server
   let fixture: string
+  let hiddenUploadFixture: string
+  let uploadedArtifact = ''
   let nextFixture: string
   let spaStart: string
   let transientBody: string
@@ -151,6 +154,13 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
         response.end(`<!doctype html><title>Policy fixture</title><a id="cross" href="${crossOrigin}/next.html">Cross origin</a><a id="popup" href="${crossOrigin}/next.html" target="_blank">Popup</a>`)
       } else if (request.url === '/redirect-cross') {
         response.writeHead(302, { location: `${crossOrigin}/next.html` }).end()
+      } else if (request.url === '/hidden-upload.html') {
+        response.end(readFileSync(HIDDEN_UPLOAD_FIXTURE_FILE))
+      } else if (request.url === '/uploaded-artifact') {
+        request.setEncoding('utf8')
+        uploadedArtifact = ''
+        request.on('data', (chunk: string) => { uploadedArtifact += chunk })
+        request.on('end', () => { response.end('received') })
       } else {
         response.end(readFileSync(request.url === '/next.html' ? NEXT_FIXTURE_FILE : FIXTURE_FILE))
       }
@@ -161,6 +171,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
     })
     const address = fixtureServer.address() as AddressInfo
     fixture = `http://127.0.0.1:${address.port}/form.html`
+    hiddenUploadFixture = `http://127.0.0.1:${address.port}/hidden-upload.html`
     nextFixture = `http://127.0.0.1:${address.port}/next.html`
     spaStart = `http://127.0.0.1:${address.port}/sso-start`
     transientBody = `http://127.0.0.1:${address.port}/transient-body`
@@ -459,6 +470,37 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
     expect(uploaded.message).toContain('artifact.json')
     const after = await child.call('get_browser_state', {}) as BrowserState
     expect(after.content).toContain('Selected artifact.json')
+  }, 30_000)
+
+  it('finds and uploads through a hidden file input and rejects a disabled target', async () => {
+    await child.call('navigate', { url: hiddenUploadFixture })
+    const artifact = join(profile, 'hidden-artifact.json')
+    writeFileSync(artifact, '{"name":"hidden fixture"}')
+    expect(await child.call('find_element', { query: 'Attach artifact' })).toMatchObject({ success: true })
+    const before = await child.call('get_browser_state', {}) as BrowserState
+    expect(before.content.match(/type=file/g)).toHaveLength(1)
+    const target = await child.call('get_upload_target', {}) as { origin: string; tabId: number }
+    const uploadArgs = {
+      index: indexOf(before.content, 'id=hidden-artifact'),
+      filePath: artifact,
+      tabId: target.tabId,
+      expectedOrigin: target.origin,
+    }
+    expect(await child.call('upload_file', uploadArgs)).toMatchObject({ success: true })
+    let after = before
+    await expect.poll(async () => {
+      after = await child.call('get_browser_state', {}) as BrowserState
+      return after.content
+    }).toContain('Uploaded hidden-artifact.json')
+    expect(uploadedArtifact).toBe('{"name":"hidden fixture"}')
+    await child.call('execute_javascript', {
+      script: "document.getElementById('hidden-artifact').disabled = true",
+    })
+    const disabled = await child.call('upload_file', {
+      ...uploadArgs, index: indexOf(after.content, 'id=hidden-artifact'),
+    }) as { success: boolean; message: string }
+    expect(disabled.success).toBe(false)
+    expect(disabled.message).toContain('enabled HTML file input')
   }, 30_000)
 
   it('retains tab-scoped CDP events and shares its debugger with approved uploads', async () => {
@@ -879,6 +921,52 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
     }
   }, 60_000)
 
+  it('holds download bytes for approval and keeps navigation approval scoped to its URL', async () => {
+    const permissionProfile = mkdtempSync(join(tmpdir(), 'hydra-browser-permissions-'))
+    let browser: BrowserChild | undefined
+    const answer = Promise.withResolvers<'once' | undefined>()
+    const asked = Promise.withResolvers<{ kind: string; filename?: string }>()
+    try {
+      browser = await launchBrowser({
+        userDataDir: permissionProfile, width: 1024, height: 768, show: false,
+        startupTimeoutMs: 60_000, actionTimeoutMs: 30_000, readinessTimeoutMs: 10_000,
+        experimentalScriptExecution: false, downloadDirectory: permissionProfile,
+        askWhereToSave: false, navigationPolicy: 'ask', downloadPolicy: 'ask',
+        onPermission: (request) => { asked.resolve(request); return answer.promise },
+      })
+      await browser.call('navigate', { url: fixture, navigationApproved: true })
+      const navigation = browser.call('navigate', { url: downloadUrl, navigationApproved: true }).catch(() => undefined)
+      expect(await asked.promise).toEqual({ kind: 'download', origin: new URL(downloadUrl).origin, filename: 'browser-artifact.txt' })
+      await new Promise(resolve => setTimeout(resolve, 800))
+      const partials = readdirSync(permissionProfile).filter(name => name.startsWith('browser-artifact'))
+      expect(partials.every(name => statSync(join(permissionProfile, name)).size === 0)).toBe(true)
+      answer.resolve('once')
+      await navigation
+      await expect.poll(async () => {
+        const downloads = await browser!.call('browser_downloads', {}) as Array<{ state: string }>
+        return downloads[0]?.state
+      }, { timeout: 10_000 }).toBe('completed')
+      expect(readFileSync(join(permissionProfile, 'browser-artifact.txt'), 'utf8')).toBe('browser download fixture')
+      await browser.call('configure_browser', {
+        downloadDirectory: permissionProfile, askWhereToSave: false, navigationPolicy: 'allow', downloadPolicy: 'block',
+      })
+      await browser.call('navigate', { url: downloadUrl }).catch(() => undefined)
+      await expect.poll(async () => {
+        const downloads = await browser!.call('browser_downloads', {}) as Array<{ state: string }>
+        return downloads[0]?.state
+      }).toBe('cancelled')
+      expect(readdirSync(permissionProfile).filter(name => name.startsWith('browser-artifact'))).toEqual(['browser-artifact.txt'])
+      expect((await browser.call('get_browser_state', {}) as BrowserState).footer)
+        .toContain('BROWSER_POLICY_DENIED: Download "browser-artifact.txt" was blocked by Browser permissions.')
+      await browser.call('navigate', { url: fixture })
+      expect((await browser.call('get_browser_state', {}) as BrowserState).footer).not.toContain('BROWSER_POLICY_DENIED')
+    } finally {
+      answer.resolve(undefined)
+      await browser?.close()
+      rmSync(permissionProfile, { recursive: true, force: true, maxRetries: 30, retryDelay: 100 })
+    }
+  }, 60_000)
+
   it('blocks explicit, redirected, clicked, and popup cross-origin navigation', async () => {
     await child.call('configure_browser', {
       downloadDirectory: profile,
@@ -900,7 +988,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
     await expect(child.call('open_new_tab', { url: `${crossOrigin}/next.html` })).rejects.toThrow(/blocked/)
     await expect(child.call('navigate', { url: redirectFixture })).rejects.toThrow()
 
-    await child.call('navigate', { url: policyFixture })
+    await expect(child.call('navigate', { url: policyFixture })).rejects.toThrow(/blocked/)
     const links = await child.call('get_browser_state', {}) as BrowserState
     await child.call('click_element', { index: indexOf(links.content, 'id=cross') })
     expect((await child.call('get_browser_state', {}) as BrowserState).url).toBe(policyFixture)

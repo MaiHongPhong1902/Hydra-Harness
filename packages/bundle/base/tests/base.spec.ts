@@ -38,6 +38,8 @@ describe('hydra-base bundle', () => {
     expect(rows.filter(row => row.id === 'subagent-codex')).toHaveLength(0)
     expect(rows.filter(row => row.id === 'subagent-claude-code')).toHaveLength(0)
     expect(rows.find(row => row.id === 'plugin-runtime')).toMatchObject({ name: '@hydra/harness-plugin-runtime' })
+    expect(rows.find(row => row.id === 'research-policy')).toMatchObject({ name: '@hydra/harness-research-policy' })
+    expect(rows.find(row => row.id === 'research-policy')?.config).toBeUndefined()
     expect(manifest.dependencies).not.toHaveProperty('@hydra/harness-subagent-codex')
     expect(manifest.dependencies).not.toHaveProperty('@hydra/harness-subagent-claude-code')
     expect(manifest.dependencies?.['@hydra/harness-plugin-runtime']).toBe('workspace:^')

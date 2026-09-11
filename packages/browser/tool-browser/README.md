@@ -91,7 +91,7 @@ Elements are listed as [index]<type>text</type>:
 
 Indexes are reassigned on every action. Never reuse an index from an earlier result — read the one the last call returned. Click, type, and select accept either that index or a `name` matching the control's visible label, accessible name, placeholder, or id. `browser_find` locates a query in the current snapshot and may scroll once to bring a match into view. `browser_fill` types several named or indexed fields in one call and re-resolves each field after the previous one.
 
-Only elements in the visible viewport are listed, so content outside it is not addressable until you reach it: use `browser_scroll` vertically or `browser_scroll_horizontally` for wide pages and tables, then act on the indexes the scroll returned. `browser_find` is the cheaper way to look for a named control before scrolling blindly.
+Ordinary controls are listed inside the visible viewport; HTML file inputs are also listed when a site hides them. For other controls outside the viewport, use `browser_scroll` vertically or `browser_scroll_horizontally` for wide pages and tables, then act on the indexes the scroll returned. `browser_find` is the cheaper way to look for a named control before scrolling blindly.
 
 Use `browser_open_tab`, `browser_switch_tab`, and `browser_close_tab` with ids from the latest tab list. Page-local tools accept an optional `tab_id`; provide it to keep the operation bound to that tab even while another tab is selected. Independent calls with different explicit `tab_id` values may run in parallel, but actions for one tab remain ordered because every result replaces that tab's valid element indices. A link that opens a new tab is adopted into this same controlled window; inspect the returned tab inventory instead of assuming the original tab changed.
 
@@ -99,7 +99,7 @@ Use `browser_screenshot` when rendered appearance or spatial layout matters and 
 
 `browser_type` replaces a field's contents rather than appending to them, so type the whole value you want. It does not submit: reach the submit control by index or name and `browser_click` it, or `browser_press` Enter while the field is focused.
 
-`browser_upload_file` selects one existing local test artifact through an observed HTML file input. Give it an index from the latest result and an absolute path that the user wrote as a standalone or quoted literal in the current turn; never guess, discover, or substitute another host path. It does not submit the form; inspect the returned page state before taking the next action.
+`browser_upload_file` selects one existing readable local file through an indexed HTML file input, including hidden inputs. Give it an index from the latest result and an absolute path to the intended file, which may be an artifact you created for the task. The Uploads Browser permission allows, requests approval for, or blocks the transfer. Do not ask the user to type a path solely to authorize an upload. Never substitute a different file or bypass a denial. File selection may start sending bytes immediately; form submission is a separate action. Inspect the returned page state before continuing.
 
 An action that the page rejects comes back as a failure message rather than an error; read it and adapt instead of repeating the same call. Use `browser_wait` for a bounded 1–10 second wait when data or animation changes after the returned state; do not busy-poll `browser_state`. If the optional experimental JavaScript tool is present, use it only when indexed PageController actions cannot perform the requested inspection and never use it to bypass a user-confirmation or domain policy. If a captcha or a login you have no credentials for blocks the task, say so rather than guessing.
 ```
@@ -172,6 +172,6 @@ Append-only; the error follows the reusable request prefix and does not invalida
 
 - **Experimental JavaScript is host-gated.** It is absent by default, runs in the isolated document world when enabled, and cannot access page-world globals.
 - **No screenshot-based control.** `browser_screenshot` observes the selected viewport only; it cannot target a crop or full page and accepts no visual coordinates. The text DOM remains the action modality.
-- **File upload requires the real input.** It supports an observed HTML `<input type="file">`; a proxy button or hidden chooser control is not addressable.
+- **File upload requires the real input.** It supports an indexed HTML `<input type="file">`, including hidden inputs; a proxy button without a real input is not addressable.
 - **The cap ranks, then cuts.** A page over the full or compact budget loses its tail with a notice; ranking prefers new and typical form controls but is not a summary. `browser_find` or `browser_scroll` is the recovery.
 - **Presenters are pure over arguments** because they re-run during session-log replay, where no browser exists. That is why a pending call shows `Click [12]` rather than the element's label: the label lives in a process the replay does not have.

@@ -74,10 +74,48 @@ async function boot(): Promise<{ ctx: Context; browserFiber: Fiber; settingsFibe
 }
 
 describe('browser-electron settings', () => {
+  it('uses composed browser permission defaults until the user overrides them', async () => {
+    const ctx = new Context()
+    const settingsFiber = ctx.plugin(MemorySettings)
+    await settingsFiber.await()
+    const browserFiber = ctx.plugin(BrowserSessionService, {
+      electronPath: '/fake/electron', show: false,
+      browserPermissions: { browsing: 'allow', downloads: 'block', uploads: 'ask' },
+    })
+    await browserFiber.await()
+    expect(ctx.settings.describe().find(row => row.ns === BROWSER_SETTINGS_NAMESPACE)?.value)
+      .toMatchObject({ browserPermissions: { browsing: 'allow', downloads: 'block', uploads: 'ask' } })
+    await ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, { browserPermissions: { browsing: 'block' } })
+    expect(ctx.settings.describe().find(row => row.ns === BROWSER_SETTINGS_NAMESPACE)?.value)
+      .toMatchObject({ browserPermissions: { browsing: 'block', downloads: 'block', uploads: 'ask' } })
+    await settingsFiber.dispose()
+    await expect(ctx.browsers.perform({ ctx } as Agent, { method: 'get_browser_state' }))
+      .rejects.toMatchObject({ code: 'BROWSER_DISABLED' })
+    await browserFiber.dispose()
+    await ctx.fiber.dispose()
+  })
+
+  it('normalizes invalid permission values and retains legacy policies until an object is saved', async () => {
+    const { ctx, browserFiber } = await boot()
+    await ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, { navigationPolicy: 'allow', downloadPolicy: 'block' })
+    expect(ctx.settings.describe().find(row => row.ns === BROWSER_SETTINGS_NAMESPACE)?.value).toMatchObject({
+      browserPermissions: undefined, navigationPolicy: 'allow', downloadPolicy: 'block',
+    })
+    await ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, {
+      browserPermissions: { browsing: 'block', downloads: 'invalid', uploads: 'allow' },
+    })
+    expect(ctx.settings.describe().find(row => row.ns === BROWSER_SETTINGS_NAMESPACE)?.value).toMatchObject({
+      browserPermissions: { browsing: 'block', downloads: 'ask', uploads: 'allow' },
+      navigationPolicy: 'allow', downloadPolicy: 'block',
+    })
+    await browserFiber.dispose()
+    await ctx.fiber.dispose()
+  })
   it('registers a durable control policy and blocks actions when disabled', async () => {
     const { ctx, browserFiber } = await boot()
     const descriptor = ctx.settings.describe().find(row => row.ns === BROWSER_SETTINGS_NAMESPACE)
     const defaults = {
+      browserPermissions: undefined,
       controlEnabled: true,
       webDestination: 'hydra',
       localDestination: 'hydra',
@@ -103,6 +141,7 @@ describe('browser-electron settings', () => {
 
   it('pushes changed native preferences into an open Electron controller', async () => {
     const { ctx, browserFiber } = await boot()
+    await ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, { navigationPolicy: 'allow' })
     const child = new BrowserChildStub()
     ctx.browsers.spawnChild = () => child
     await ctx.browsers.perform({ ctx } as Agent, { method: 'get_browser_state' })
@@ -137,6 +176,7 @@ describe('browser-electron settings', () => {
 
   it('stops detached PageAgents and refuses their later model requests when disabled', async () => {
     const { ctx, browserFiber } = await boot()
+    await ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, { navigationPolicy: 'allow' })
     const child = new BrowserChildStub()
     ctx.browsers.spawnChild = () => child
     const owner = { ctx } as Agent

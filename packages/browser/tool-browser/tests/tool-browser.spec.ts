@@ -352,7 +352,7 @@ describe('browser tool calls', () => {
       + `${PAGE}\n[End of page]`,
     )
     expect(children).toHaveLength(1)
-    expect(children[0]?.requests[0]).toEqual({ method: 'navigate', args: { url: 'https://shop.test/order' } })
+    expect(children[0]?.requests[0]).toEqual({ method: 'navigate', args: { url: 'https://shop.test/order', navigationApproved: true } })
   })
 
   it('reads the page without claiming an action was taken', async () => {
@@ -519,7 +519,7 @@ describe('browser tool calls', () => {
       { method: 'forward', args: {} },
       { method: 'find_element', args: { query: 'Requester' } },
       { method: 'fill_fields', args: { fields: [{ name: 'who', text: 'Ada' }] } },
-      { method: 'open_new_tab', args: { url: 'https://shop.test/help' } },
+      { method: 'open_new_tab', args: { url: 'https://shop.test/help', navigationApproved: true } },
       { method: 'switch_to_tab', args: { tabId: 1 } },
       { method: 'close_tab', args: { tabId: 2 } },
     ])
@@ -568,12 +568,11 @@ describe('browser tool calls', () => {
     expect(children).toHaveLength(0)
   })
 
-  it('rejects an upload path the user did not name in the current turn', async () => {
+  it('uploads an approved local artifact without a user path literal', async () => {
     const { children, call } = await harness()
     const result = await call('browser_upload_file', { index: 1, path: UPLOAD_FIXTURE })
-    expect(result.isError).toBe(true)
-    expect(text(result.content)).toContain('direct user message in the current open turn')
-    expect(children).toHaveLength(0)
+    expect(result.isError).not.toBe(true)
+    expect(children[0]?.requests).toContainEqual(expect.objectContaining({ method: 'upload_file' }))
   })
 
   it('cuts a long element list and says so', async () => {
@@ -600,10 +599,10 @@ describe('browser tool calls', () => {
 })
 
 describe('browser navigation', () => {
-  it('opens any absolute http(s) origin without approval', async () => {
+  it('opens an absolute http(s) origin after browsing approval', async () => {
     const { children, call } = await harness()
     expect((await call('browser_navigate', { url: 'https://sso.test/login' })).isError).toBeFalsy()
-    expect(children[0]?.requests[0]).toEqual({ method: 'navigate', args: { url: 'https://sso.test/login' } })
+    expect(children[0]?.requests[0]).toEqual({ method: 'navigate', args: { url: 'https://sso.test/login', navigationApproved: true } })
   })
 
   it.each(['order.html', 'data:text/html,<p>hi</p>', 'ftp://files.test/'])('refuses an unsupported URL: %s', async (url) => {

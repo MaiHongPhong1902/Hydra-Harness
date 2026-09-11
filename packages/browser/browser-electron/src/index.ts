@@ -39,6 +39,16 @@ export const BROWSER_SETTINGS_NAMESPACE = settingsNamespace('browser-electron')
 /** Closed user decision used by native Browser permission checks. */
 export type BrowserDecision = 'allow' | 'ask' | 'block'
 
+/** Independent global permissions for Browser Use, shared by all agents and websites. */
+export interface BrowserPermissions {
+  /** Decision before browser navigation, page actions, and reads. */
+  browsing: BrowserDecision
+  /** Decision before Chromium writes downloaded files. */
+  downloads: BrowserDecision
+  /** Decision before selecting a local file for a website. */
+  uploads: BrowserDecision
+}
+
 /** Where a user-opened HTTP(S) URL leaves the desktop application. */
 export type BrowserDestination = 'hydra' | 'system'
 
@@ -47,6 +57,8 @@ export type BrowserAnnotationScreenshots = 'include' | 'ask' | 'never'
 
 /** User-controlled Browser settings consumed by Host and Electron operations. */
 export interface BrowserSettings {
+  /** Global action permissions; absent values inherit the existing saved policies. */
+  browserPermissions: BrowserPermissions | undefined
   /** Whether agents may control the embedded browser. */
   controlEnabled: boolean
   /** Destination for user-opened non-loopback web URLs. */
@@ -76,20 +88,26 @@ export type BrowserExecutionContext = Pick<ApprovalRequest, 'callId' | 'signal'>
 
 /** Schema for the small user-facing browser policy section. */
 const BrowserSettingsSchema: z<BrowserSettings> = z.object({
+  browserPermissions: z.union([z.const(undefined), z.object({
+    browsing: z.union(['allow', 'ask', 'block'] as const).default('ask').loose(),
+    downloads: z.union(['allow', 'ask', 'block'] as const).default('ask').loose(),
+    uploads: z.union(['allow', 'ask', 'block'] as const).default('ask').loose(),
+  })]).loose(),
   controlEnabled: z.boolean().default(true),
   webDestination: z.union(['hydra', 'system'] as const).default('hydra'),
   localDestination: z.union(['hydra', 'system'] as const).default('hydra'),
   annotationScreenshots: z.union(['include', 'ask', 'never'] as const).default('include'),
   downloadDirectory: z.string().default(''),
   askWhereToSave: z.boolean().default(false),
-  navigationPolicy: z.union(['allow', 'ask', 'block'] as const).default('ask'),
-  downloadPolicy: z.union(['allow', 'ask', 'block'] as const).default('ask'),
-  uploadPolicy: z.union(['allow', 'ask', 'block'] as const).default('ask'),
+  navigationPolicy: z.union(['allow', 'ask', 'block'] as const).default('ask').loose(),
+  downloadPolicy: z.union(['allow', 'ask', 'block'] as const).default('ask').loose(),
+  uploadPolicy: z.union(['allow', 'ask', 'block'] as const).default('ask').loose(),
   historyAccessPolicy: z.union(['allow', 'ask', 'block'] as const).default('ask'),
   fullCdpAccess: z.boolean().default(false),
 })
 
 const DEFAULT_BROWSER_SETTINGS: BrowserSettings = Object.freeze({
+  browserPermissions: undefined,
   controlEnabled: true,
   webDestination: 'hydra',
   localDestination: 'hydra',
@@ -148,6 +166,8 @@ export interface Config {
   allowFullCdpAccess?: boolean
   /** Explicit Electron binary; omitted resolves the optional `electron` package. */
   electronPath?: string
+  /** Optional composition default for browser permissions; user settings override it. */
+  browserPermissions?: BrowserPermissions | undefined
 }
 
 /** Config after schemastery's defaults, with the profile path resolved. */
@@ -161,34 +181,6 @@ function homeUrl(value: string | undefined): string | undefined {
     if (url.protocol === 'http:' || url.protocol === 'https:') return url.href
   } catch {}
   throw new Error('browser-electron: homeUrl must be an absolute http(s) URL')
-}
-
-/** Whether a direct user named this exact path in the current open turn. */
-function containsPathLiteral(text: string, filePath: string): boolean {
-  let offset = text.indexOf(filePath)
-  while (offset !== -1) {
-    const before = text[offset - 1]
-    const after = text[offset + filePath.length]
-    const isBoundary = (value: string | undefined) => value === undefined || /[\s"'`]/u.test(value)
-    if (isBoundary(before) && isBoundary(after)) return true
-    offset = text.indexOf(filePath, offset + 1)
-  }
-  return false
-}
-
-function userAuthorizedUpload(owner: Agent, filePath: string): boolean {
-  const events = owner.session.events
-  for (let index = events.length - 1; index >= 0; index -= 1) {
-    const event = events[index]
-    if (event?.type === 'turn/end') return false
-    if (event?.type !== 'turn/start') continue
-    return events.slice(index + 1).some(candidate =>
-      candidate.type === 'user/message'
-      && candidate.data.source.kind === 'user'
-      && candidate.data.content.some(block => block.type === 'text' && containsPathLiteral(block.text, filePath)),
-    )
-  }
-  return false
 }
 
 const MAX_HISTORY_SEARCH_RESULTS = 20
@@ -331,12 +323,9 @@ function boundedCdpEventPage(value: unknown): BrowserCdpEventPage {
   return page as unknown as BrowserCdpEventPage
 }
 
-/** Authorize, resolve, and validate the one host file an upload may expose. */
-async function prepareAction(owner: Agent, action: BrowserAction): Promise<BrowserAction> {
+/** Resolve and validate the file before the Uploads permission decision. */
+async function prepareAction(action: BrowserAction): Promise<BrowserAction> {
   if (action.method !== 'upload_file') return action
-  if (!userAuthorizedUpload(owner, action.filePath)) {
-    throw new Error('upload file path must appear literally in a direct user message in the current open turn')
-  }
   if (!isAbsolute(action.filePath)) throw new Error('upload file path must be absolute')
   try {
     const filePath = await realpath(action.filePath)
@@ -381,8 +370,8 @@ function nativeSettings(settings: BrowserSettings, fullCdpAccessAllowed: boolean
     annotationScreenshots: settings.annotationScreenshots,
     downloadDirectory: settings.downloadDirectory,
     askWhereToSave: settings.askWhereToSave,
-    navigationPolicy: settings.navigationPolicy,
-    downloadPolicy: settings.downloadPolicy,
+    navigationPolicy: settings.browserPermissions?.browsing ?? settings.navigationPolicy,
+    downloadPolicy: settings.browserPermissions?.downloads ?? settings.downloadPolicy,
     fullCdpAccess: settings.fullCdpAccess,
     fullCdpAccessAllowed,
   }
@@ -403,6 +392,11 @@ export class BrowserSessionService extends Service {
     experimentalScriptExecution: z.boolean().default(false),
     allowFullCdpAccess: z.boolean().default(true),
     electronPath: z.string(),
+    browserPermissions: z.union([z.const(undefined), z.object({
+      browsing: z.union(['allow', 'ask', 'block'] as const).default('ask'),
+      downloads: z.union(['allow', 'ask', 'block'] as const).default('ask'),
+      uploads: z.union(['allow', 'ask', 'block'] as const).default('ask'),
+    }).loose()]).loose(),
   })
 
   private readonly sessions = new Map<Agent, BrowserChild>()
@@ -438,17 +432,21 @@ export class BrowserSessionService extends Service {
       userDataDir: config.userDataDir ?? join(resolveHydraHome(), 'browser-profile'),
       ...initialUrl === undefined ? {} : { homeUrl: initialUrl },
     }
-    installSettingsSection(ctx, BROWSER_SETTINGS_NAMESPACE, BrowserSettingsSchema, DEFAULT_BROWSER_SETTINGS, {
+    const settingsEntry: BrowserSettings = config.browserPermissions === undefined
+      ? DEFAULT_BROWSER_SETTINGS
+      : { ...DEFAULT_BROWSER_SETTINGS, browserPermissions: config.browserPermissions }
+    this.browserSettings = () => settingsEntry
+    installSettingsSection(ctx, BROWSER_SETTINGS_NAMESPACE, BrowserSettingsSchema, settingsEntry, {
       validate: (value) => {
         if (value.fullCdpAccess && !this.settings.allowFullCdpAccess) {
           throw new Error('browser-electron: organization policy disables full CDP access')
         }
       },
       setSource: (source) => {
-        this.browserSettings = source() === DEFAULT_BROWSER_SETTINGS ? () => DISABLED_BROWSER_SETTINGS : source
+        this.browserSettings = source() === settingsEntry ? () => DISABLED_BROWSER_SETTINGS : source
       },
       onChange: () => {
-        if (!this.browserSettings().controlEnabled) this.stopPageAgents()
+        if (!this.browserSettings().controlEnabled || this.permissions().browsing !== 'allow') this.stopPageAgents()
         this.configureChildren()
         const fullCdpAccess = this.fullCdpAccess
         if (fullCdpAccess !== this.lastFullCdpAccess) {
@@ -482,15 +480,21 @@ export class BrowserSessionService extends Service {
       if (!this.browserSettings().controlEnabled) {
         throw new BrowserError('embedded browser control is disabled in settings', 'BROWSER_DISABLED')
       }
-      const prepared = await prepareAction(owner, action)
-      if (prepared.method === 'upload_file' && this.browserSettings().uploadPolicy === 'block') {
-        throw new BrowserError('browser uploads are blocked in settings', 'BROWSER_POLICY_DENIED')
+      if (action.method === 'upload_file') this.checkPermission('uploads')
+      const browsingApproval = this.permissions().browsing === 'ask'
+      if (action.method !== 'upload_file' && action.method !== 'page_agent_stop') {
+        await this.approveBrowserPermission(owner, 'browsing', action.method,
+          'url' in action ? action.url : undefined, execution)
       }
+      const prepared = await prepareAction(action)
       if (prepared.method === 'execute_javascript' && !this.settings.experimentalScriptExecution) {
         throw new Error('experimental browser JavaScript is disabled by the host')
       }
       const child = await this.session(owner, execution.signal)
       const { method, ...args } = prepared
+      if ((method === 'navigate' || method === 'open_new_tab') && browsingApproval) {
+        Object.assign(args, { navigationApproved: true })
+      }
       if (prepared.method === 'upload_file') {
         const target = await child.call('get_upload_target', {
           ...prepared.tabId === undefined ? {} : { tabId: prepared.tabId },
@@ -506,6 +510,7 @@ export class BrowserSessionService extends Service {
         execution.signal?.throwIfAborted()
         Object.assign(args, { expectedOrigin: target.origin, tabId: target.tabId })
       }
+      if (method !== 'page_agent_stop') this.checkPermission(method === 'upload_file' ? 'uploads' : 'browsing')
       const result = method === 'get_browser_state'
         ? undefined
         : await child.call(method, args, execution.signal) as ActionResult
@@ -534,16 +539,19 @@ export class BrowserSessionService extends Service {
    * Capture the selected controlled page's visible viewport as a bounded PNG.
    * The base64 is transient: callers must consume it before persisting output.
    * @param owner - agent whose selected controlled tab is captured.
+   * @param execution - tool-call identity and cancellation for the browsing approval.
    * @returns the bounded screenshot payload.
    */
-  async takeScreenshot(owner: Agent): Promise<BrowserScreenshot> {
+  async takeScreenshot(owner: Agent, execution: BrowserExecutionContext = {}): Promise<BrowserScreenshot> {
     return this.serialized(owner, undefined, async () => {
       if (this.disposing) throw new BrowserError('the embedded browser is shutting down', 'BROWSER_DISPOSING')
       if (!this.browserSettings().controlEnabled) {
         throw new BrowserError('embedded browser control is disabled in settings', 'BROWSER_DISABLED')
       }
-      const child = await this.session(owner)
-      return browserScreenshotOf(await child.call('browser_screenshot', {}))
+      await this.approveBrowserPermission(owner, 'browsing', 'browser_screenshot', undefined, execution)
+      const child = await this.session(owner, execution.signal)
+      this.checkPermission('browsing')
+      return browserScreenshotOf(await child.call('browser_screenshot', {}, execution.signal))
     })
   }
 
@@ -569,9 +577,11 @@ export class BrowserSessionService extends Service {
         throw new BrowserError('embedded browser control is disabled in settings', 'BROWSER_DISABLED')
       }
       execution.signal?.throwIfAborted()
+      await this.approveBrowserPermission(owner, 'browsing', 'browser_history_search', undefined, execution)
       await this.approveHistorySearch(owner, normalized, execution)
       execution.signal?.throwIfAborted()
       const child = await this.session(owner, execution.signal)
+      this.checkPermission('browsing')
       return historySearchResults(await child.call('search_browser_history', {
         query: normalized,
         limit: MAX_HISTORY_SEARCH_RESULTS,
@@ -607,6 +617,10 @@ export class BrowserSessionService extends Service {
       if (!this.fullCdpAccess) {
         throw new BrowserError('full browser CDP access is disabled by settings or organization policy', 'BROWSER_POLICY_DENIED')
       }
+      await this.approveBrowserPermission(owner, 'browsing', 'browser_cdp_command', undefined, execution)
+      if (method === 'DOM.setFileInputFiles' || method === 'Input.dispatchDragEvent') {
+        throw new BrowserError('Use browser_upload_file for local file transfers.', 'BROWSER_POLICY_DENIED')
+      }
       execution.signal?.throwIfAborted()
       const child = await this.session(owner, execution.signal)
       const target = await child.call('get_cdp_target', tabId === undefined ? {} : { tabId }) as {
@@ -623,6 +637,7 @@ export class BrowserSessionService extends Service {
         execution,
       )
       execution.signal?.throwIfAborted()
+      this.checkPermission('browsing')
       return boundedCdpResult(method, await child.call('cdp_command', {
         method,
         params: boundedParams,
@@ -666,6 +681,7 @@ export class BrowserSessionService extends Service {
       if (!this.fullCdpAccess) {
         throw new BrowserError('full browser CDP access is disabled by settings or organization policy', 'BROWSER_POLICY_DENIED')
       }
+      await this.approveBrowserPermission(owner, 'browsing', 'browser_cdp_read_events', undefined, execution)
       execution.signal?.throwIfAborted()
       const child = await this.session(owner, execution.signal)
       const target = await child.call('get_cdp_target', options.tabId === undefined ? {} : { tabId: options.tabId }) as {
@@ -682,6 +698,7 @@ export class BrowserSessionService extends Service {
         execution,
       )
       execution.signal?.throwIfAborted()
+      this.checkPermission('browsing')
       return boundedCdpEventPage(await child.call('cdp_read_events', {
         afterSequence,
         limit,
@@ -759,7 +776,18 @@ export class BrowserSessionService extends Service {
       ...this.settings,
       ...settingsAtLaunch,
       spawnChild: this.spawnChild,
-      onPermission: async ({ kind, origin }, signal) => {
+      onPermission: async ({ kind, origin, filename }, signal) => {
+        if (kind !== 'media') {
+          try {
+            await this.approveBrowserPermission(owner, kind === 'download' ? 'downloads' : 'browsing',
+              kind === 'download' ? 'browser_download' : 'browser_navigate',
+              filename === undefined ? origin : `${filename} from ${origin}`, { signal })
+            return 'once'
+          } catch {
+            // Policy denial, cancellation, and an unavailable answerer all deny this native request.
+            return undefined
+          }
+        }
         const questions = this.ctx.get('userQuestions')
         if (questions === undefined || !this.browserSettings().controlEnabled) return undefined
         const answer = await questions.ask({
@@ -767,10 +795,8 @@ export class BrowserSessionService extends Service {
           signal,
           questions: [{
             id: 'browser-permission',
-            header: kind === 'navigation' ? 'Website permission' : 'Camera and microphone',
-            question: kind === 'navigation'
-              ? `Allow the built-in Browser to open ${origin}?`
-              : `Allow ${origin} to use camera or microphone?`,
+            header: 'Camera and microphone',
+            question: `Allow ${origin} to use camera or microphone?`,
             options: [
               { label: 'Allow once', description: 'Allow only this request.' },
               { label: 'Always allow', description: 'Remember this exact website in Browser settings.' },
@@ -788,14 +814,17 @@ export class BrowserSessionService extends Service {
           default: return undefined
         }
       },
-      onPageAgentLlm: (request) => {
+      onPageAgentLlm: async (request) => {
         if (!this.browserSettings().controlEnabled) {
           return Promise.reject(new BrowserError(
             'embedded browser control is disabled in settings',
             'BROWSER_DISABLED',
           ))
         }
-        return executePageAgentLlm(owner, request)
+        await this.approveBrowserPermission(owner, 'browsing', 'page_agent_run', undefined, {})
+        const result = await executePageAgentLlm(owner, request)
+        this.checkPermission('browsing')
+        return result
       },
     }).then(async (child) => {
       if (this.launches.get(owner)?.ready !== ready) return child
@@ -848,32 +877,65 @@ export class BrowserSessionService extends Service {
     }
   }
 
-  /** Resolve the upload decision without weakening exact-path and file-input checks. */
+  private permissions(): BrowserPermissions {
+    const settings = this.browserSettings()
+    return settings.browserPermissions ?? {
+      browsing: settings.navigationPolicy,
+      downloads: settings.downloadPolicy,
+      uploads: settings.uploadPolicy,
+    }
+  }
+
+  /** Recheck revocation after asynchronous preparation and before dispatch. */
+  private checkPermission(capability: keyof BrowserPermissions): BrowserDecision {
+    if (!this.browserSettings().controlEnabled) {
+      throw new BrowserError('embedded browser control is disabled in settings', 'BROWSER_DISABLED')
+    }
+    const policy = this.permissions()[capability]
+    this.ctx.logger.debug('browser permission: capability=%s decision=%s source=general', capability, policy)
+    if (policy === 'block') {
+      throw new BrowserError(`${capability} is blocked by Browser permissions.`, 'BROWSER_POLICY_DENIED')
+    }
+    return policy
+  }
+
+  /** Global capability decisions never depend on a destination or create a site rule. */
+  private async approveBrowserPermission(
+    owner: Agent,
+    capability: keyof BrowserPermissions,
+    action: string,
+    context: string | undefined,
+    execution: BrowserExecutionContext,
+  ): Promise<void> {
+    execution.signal?.throwIfAborted()
+    const policy = this.checkPermission(capability)
+    this.ctx.logger.debug('browser permission: action=%s capability=%s decision=%s source=general', action, capability, policy)
+    if (policy === 'allow') return
+    const approval = this.ctx.get('approval')
+    if (approval === undefined) {
+      throw new BrowserError(`${capability} requires approval, but no approval service is available`, 'BROWSER_POLICY_DENIED')
+    }
+    const outcome = await approval.request({
+      agent: owner,
+      toolName: action,
+      reason: `Browser permissions: ${capability}. Action: ${action}.${context === undefined ? '' : ` ${context}`}`,
+      ...execution,
+    })
+    execution.signal?.throwIfAborted()
+    if (outcome !== 'allowed-once' || !this.browserSettings().controlEnabled || this.permissions()[capability] === 'block') {
+      throw new BrowserError(`${capability} was not approved (${outcome})`, 'BROWSER_POLICY_DENIED')
+    }
+  }
+
+  /** Bind upload approval to the resolved file and destination. */
   private async approveUpload(
     owner: Agent,
     filePath: string,
     target: { origin: string; tabId: number; index: number },
     execution: BrowserExecutionContext,
   ): Promise<void> {
-    const policy = this.browserSettings().uploadPolicy
-    if (policy === 'allow') return
-    if (policy === 'block') {
-      throw new BrowserError('browser uploads are blocked in settings', 'BROWSER_POLICY_DENIED')
-    }
-    const approval = this.ctx.get('approval')
-    if (approval === undefined) {
-      throw new BrowserError('browser upload requires approval, but no approval service is available', 'BROWSER_POLICY_DENIED')
-    }
-    const outcome = await approval.request({
-      agent: owner,
-      toolName: 'browser_upload_file',
-      reason: `Upload ${filePath} to ${target.origin} in tab [${target.tabId}] through input [${target.index}].`,
-      ...execution.callId === undefined ? {} : { callId: execution.callId },
-      ...execution.signal === undefined ? {} : { signal: execution.signal },
-    })
-    if (outcome !== 'allowed-once') {
-      throw new BrowserError(`browser upload was not approved (${outcome})`, 'BROWSER_POLICY_DENIED')
-    }
+    await this.approveBrowserPermission(owner, 'uploads', 'browser_upload_file',
+      `Upload ${filePath} to ${target.origin} in tab [${target.tabId}] through input [${target.index}].`, execution)
   }
 
   /** Apply the separate sensitive-history policy before any ledger row crosses to the model. */

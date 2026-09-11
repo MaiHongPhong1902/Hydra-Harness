@@ -48,6 +48,7 @@
     },
     "examples": {
       "entry": [
+        "acp-agent/browser-bench/run.ts",
         "headless-agent/tests/fixtures/cli-mock-llm.ts",
         "headless-agent/tests/fixtures/semantic-checkpoint-agent.ts",
         "headless-agent/tests/fixtures/subagent-diagnostic-agent.ts",

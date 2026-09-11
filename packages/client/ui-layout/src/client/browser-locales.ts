@@ -2,6 +2,11 @@
 
 /** English dictionary (the key-set source of truth). */
 export const en = {
+  'browser.globalPermissions': 'Browser permissions',
+  'browser.globalPermissionsDescription': 'Configure default permissions for browser actions.',
+  'browser.browsing': 'Browsing',
+  'browser.uploads': 'Uploads',
+  'browser.requiresApproval': 'Requires approval',
   'browser.nav': 'Browser',
   'browser.title': 'Browser',
   'browser.description': 'Manage the built-in browser, Web Search, and agent-control permission.',
@@ -67,7 +72,6 @@ export const en = {
   'browser.askWhereToSaveDescription': 'Show a save dialog for downloads you start in the built-in browser',
   'browser.downloadHistory': 'Download history',
   'browser.downloadHistoryDescription': 'View and manage files downloaded from the built-in browser',
-  'browser.permissions': 'Permissions',
   'browser.siteSettings': 'Site settings',
   'browser.siteSettingsDescription': 'Control website access, camera, and microphone permissions in the built-in browser',
   'browser.approval': 'Approval',
@@ -82,7 +86,7 @@ export const en = {
   'browser.uploadPolicy': 'Uploads',
   'browser.uploadPolicyDescription': 'Choose if Hydra harness asks before uploading files to websites',
   'browser.sitePermissions': 'Site permissions',
-  'browser.sitePermissionsDescription': 'Override the defaults above for specific sites',
+  'browser.sitePermissionsDescription': 'Manage saved website access and media exceptions.',
   'browser.add': 'Add',
   'browser.noSiteOverrides': 'Only sites with custom permissions appear here',
   'browser.developerMode': 'Developer mode',

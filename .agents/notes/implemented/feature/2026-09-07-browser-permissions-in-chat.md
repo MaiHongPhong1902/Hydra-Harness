@@ -8,9 +8,9 @@ Native website permission dialogs interrupt the conversation and block Electron 
 
 ## Decision
 
-Website navigation and camera/microphone requests use the owning agent's user-questions provider. The existing chat composer presents Allow once, Always allow, and Block. Electron retains authority over exact-origin policy and persisted decisions; missing answerers, skipped answers, custom text, disconnection, cancellation, and document replacement deny the pending operation.
+Camera/microphone requests use the owning agent's user-questions provider. The existing chat composer presents Allow once, Always allow, and Block. Electron retains authority over exact-origin media policy and persisted decisions; missing answerers, skipped answers, custom text, disconnection, cancellation, and document replacement deny the pending operation. [Global Browser permissions](2026-09-11-global-browser-permissions.md) supersedes the website navigation question flow with execution approvals and independently controls downloads and uploads.
 
-Electron holds the main-frame network callback while awaiting chat. This preserves the original request, including POST bodies, through links, redirects, and programmatic navigation. Reissuing an intercepted URL as a GET would change what the user approves. Action and startup deadlines pause only while a permission question is pending and resume after its resolution. Cancellation and owner disposal also stop startup while the home page awaits permission. Requests are not transferred to a different browser owner.
+Electron holds the main-frame network callback while awaiting navigation approval in chat. This preserves the original request, including POST bodies, through links, redirects, and programmatic navigation. Reissuing an intercepted URL as a GET would change what the user approves. Action and startup deadlines pause while a permission request is pending and resume after its resolution. Cancellation and owner disposal also stop startup while the home page awaits permission. Requests are not transferred to a different browser owner.
 
 The native toolbar adapts to narrow panels and scrolls overflowing tabs. PageController's numbered boxes are hidden in the isolated preload stylesheet; text indices, automation, the simulator cursor, and explicit annotation selection remain available. The gradient is visible only while browser commands are pending; completion and failure clear it after the last overlapping command ends. Manual browsing keeps the virtual cursor without the gradient or an input-blocking mask.
 
@@ -26,6 +26,6 @@ This extends the permission presentation described by [desktop browser settings]
 
 ## Consequences
 
-The browser remains responsive during human decisions. Unowned desktop browsing under an ask policy fails closed; users can configure exact-site access in Browser settings. Download prompts, screenshot prompts, and elevated-risk settings confirmations retain their existing behavior.
+The browser remains responsive during human decisions. Unowned desktop browsing under an ask policy fails closed; users can configure global Browser permissions in Settings. Downloads use the owning conversation's execution approval. Screenshot prompts and elevated-risk settings confirmations retain their native presentation.
 
 Real Electron checks cover request blocking, exact-site persistence, cancellation, narrow toolbar dimensions, and page viewport resizing. The assembled web scenario exercises the Browser service through its child protocol and answers the resulting question in chat. Child-process checks cover paused deadlines and missing or cancelled answerers.

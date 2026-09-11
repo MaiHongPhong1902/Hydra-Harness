@@ -338,8 +338,8 @@ const FILE_INPUT_MARK = 'data-hydra-host-file-input'
  */
 function markFileInput(controller, index) {
   const element = controller.selectorMap.get(index)?.ref
-  if (!(element instanceof HTMLInputElement) || element.type !== 'file') {
-    throw new Error('the indexed element is not an HTML file input')
+  if (!(element instanceof HTMLInputElement) || element.type !== 'file' || !element.isConnected || element.matches(':disabled')) {
+    throw new Error('the indexed element is not an enabled HTML file input')
   }
   const token = crypto.randomUUID()
   element.setAttribute(FILE_INPUT_MARK, token)
@@ -497,6 +497,36 @@ function rankElementList(content) {
     .sort((left, right) => left.rank - right.rank || left.order - right.order)
     .map(entry => entry.line)
     .join('\n')
+}
+
+/** Add file inputs that PageController omits because a site hides its chooser. */
+function includeFileInputs(controller, content) {
+  const known = new Set()
+  let nextIndex = 0
+  for (const [index, node] of controller.selectorMap) {
+    nextIndex = Math.max(nextIndex, index + 1)
+    if (node.ref instanceof HTMLInputElement && node.ref.type === 'file') known.add(node.ref)
+  }
+  const additions = []
+  for (const input of document.querySelectorAll('input[type="file"]')) {
+    if (known.has(input) || isHarnessOverlay(input) || input.closest('[inert], [data-page-agent-not-interactive]')) continue
+    const index = nextIndex++
+    controller.selectorMap.set(index, { ref: input })
+    const label = clippedText(input.getAttribute('aria-label') || input.labels?.[0]?.textContent || input.name || 'File upload', 120)
+    const attributes = [
+      'type=file',
+      input.id ? `id=${escapeHtml(clippedText(input.id, 120))}` : undefined,
+      input.name ? `name=${escapeHtml(clippedText(input.name, 120))}` : undefined,
+      input.accept ? `accept=${escapeHtml(clippedText(input.accept, 120))}` : undefined,
+      input.multiple ? 'multiple' : undefined,
+      input.matches(':disabled') ? 'disabled' : undefined,
+      `aria-label="${escapeHtml(label)}"`,
+    ].filter(Boolean).join(' ')
+    const line = `[${index}]<input ${attributes}/>`
+    controller.elementTextMap.set(index, line)
+    additions.push(line)
+  }
+  return additions.length === 0 ? content : `${content}\n${additions.join('\n')}`
 }
 
 function lineRank(line) {
@@ -713,6 +743,11 @@ const pageControllerReady = new Promise((resolve, reject) => {
         includeAttributes: ['disabled', 'aria-disabled', 'href'],
       })
       await pageController.showMask()
+      const updateTree = pageController.updateTree.bind(pageController)
+      pageController.updateTree = async () => {
+        pageController.simplifiedHTML = includeFileInputs(pageController, await updateTree())
+        return pageController.simplifiedHTML
+      }
       const getBrowserState = pageController.getBrowserState.bind(pageController)
       pageController.getBrowserState = async () => {
         const state = await getBrowserState()

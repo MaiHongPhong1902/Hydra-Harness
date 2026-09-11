@@ -309,7 +309,7 @@ function applyScreenshotTool(ctx: Context, timeoutMs: number): void {
       }
       await assertScreenshotRoute(ctx, exec)
       exec.signal.throwIfAborted()
-      const screenshot = await ctx.browsers.takeScreenshot(owner)
+      const screenshot = await ctx.browsers.takeScreenshot(owner, { callId: exec.callId, signal: exec.signal })
       exec.signal.throwIfAborted()
       const [image] = await attachments.saveImages([{
         data: Buffer.from(screenshot.data, 'base64'),
@@ -471,10 +471,10 @@ export function apply(ctx: Context, config: Config = {}): void {
 
   ctx.tools.register(defineTool({
     name: 'browser_upload_file',
-    description: 'Upload one existing readable local file through the HTML file input at the given index of the most recent element list. The user must have written the exact absolute path in the current turn, and the current page must use http(s). This selects the file only; submit separately.',
+    description: 'Select one existing readable local file through an indexed HTML file input, including hidden inputs. Use an absolute path and the most recent element list. Uploads permission controls execution and approval for the file and HTTP(S) destination. This selects the file only; submit separately.',
     parameters: {
-      index: { type: 'integer', required: true, description: 'Element index of the observed HTML file input.' },
-      path: { type: 'string', required: true, description: 'Absolute path of the local test artifact to upload.' },
+      index: { type: 'integer', required: true, description: 'Element index of the observed HTML file input, including a hidden chooser input.' },
+      path: { type: 'string', required: true, description: 'Absolute path of the local file to upload.' },
       tab_id: TAB_ID_PARAMETER,
     },
     output,

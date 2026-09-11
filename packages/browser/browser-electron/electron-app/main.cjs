@@ -431,11 +431,18 @@ function updateDownload(id, patch) {
   persistProfileStore()
 }
 
+/** Latest denied download per document, retained until navigation or another download. */
+const downloadDenials = new WeakMap()
+
 /** Enforce download policy before data reaches disk and retain a bounded ledger. */
-function beginDownload(event, item) {
+function beginDownload(event, item, contents) {
   const id = randomUUID()
   const directory = nativeSettings.downloadDirectory || app.getPath('downloads')
   const filename = basename(item.getFilename())
+  if (contents !== undefined) downloadDenials.delete(contents)
+  const deny = reason => {
+    if (contents !== undefined) downloadDenials.set(contents, `BROWSER_POLICY_DENIED: Download ${JSON.stringify(filename)} ${reason}.`)
+  }
   const proposedPath = uniqueDownloadPath(directory, filename)
   reservedDownloadPaths.add(proposedPath)
   const entry = {
@@ -449,26 +456,18 @@ function beginDownload(event, item) {
   profileStore.downloads.unshift(entry)
   profileStore.downloads.length = Math.min(profileStore.downloads.length, MAX_DOWNLOAD_ENTRIES)
 
-  let allowed = nativeSettings.downloadPolicy === 'allow'
-  if (nativeSettings.downloadPolicy === 'ask' && window !== undefined && !windowClosing) {
-    allowed = dialog.showMessageBoxSync(window, {
-      type: 'question',
-      title: 'Download permission',
-      message: `Download ${filename}?`,
-      detail: `Source: ${item.getURL()}`,
-      buttons: ['Download', 'Cancel'],
-      defaultId: 1,
-      cancelId: 1,
-      noLink: true,
-    }) === 0
-  }
-  if (!allowed) {
+  log(`browser permission: action=download capability=downloads decision=${nativeSettings.downloadPolicy} source=general`)
+  if (nativeSettings.downloadPolicy === 'block') {
+    deny('was blocked by Browser permissions')
     reservedDownloadPaths.delete(proposedPath)
     event.preventDefault()
     updateDownload(id, { state: 'cancelled', endedAt: new Date().toISOString() })
     return
   }
 
+  const requiresApproval = nativeSettings.downloadPolicy === 'ask'
+  if (requiresApproval) item.pause()
+  let finished = false
   if (nativeSettings.askWhereToSave) item.setSaveDialogOptions({ defaultPath: proposedPath })
   else item.setSavePath(proposedPath)
   persistProfileStore()
@@ -476,9 +475,21 @@ function beginDownload(event, item) {
     updateDownload(id, { state: item.getState(), path: item.getSavePath() || entry.path })
   })
   item.once('done', (_event, state) => {
+    finished = true
     reservedDownloadPaths.delete(proposedPath)
     updateDownload(id, { state, path: item.getSavePath() || entry.path, endedAt: new Date().toISOString() })
   })
+  if (requiresApproval) {
+    const origin = canonicalOrigin(item.getURL()) ?? canonicalOrigin(contents?.getURL())
+    const permission = contents === undefined || origin === undefined
+      ? Promise.resolve(false)
+      : requestPermission(contents, 'download', origin, filename)
+    void permission.then(allowed => {
+      if (finished) return
+      if (allowed && nativeSettings.downloadPolicy !== 'block') item.resume()
+      else { deny('was not approved'); item.cancel() }
+    }, () => { if (!finished) { deny('was not approved'); item.cancel() } })
+  }
 }
 
 const send = (message) => {
@@ -647,12 +658,16 @@ function siteNavigationBlocked(targetUrl) {
 }
 
 /** Decide one cross-origin navigation at the Electron boundary. */
+const approvedNavigations = new WeakMap()
+
 function navigationPolicy(contents, targetUrl) {
   if (targetUrl === 'about:blank') return true
   const origin = canonicalOrigin(targetUrl)
   if (origin === undefined) return false
+  if (nativeSettings.navigationPolicy === 'block') return false
   const existing = profileStore.sites[origin]
   if (siteNavigationBlocked(targetUrl)) return false
+  if (approvedNavigations.get(contents) === new URL(targetUrl).href) return true
   if (canonicalOrigin(contents.getURL()) === origin) return true
   const policy = existing?.access ?? nativeSettings.navigationPolicy
   if (policy === 'allow') return true
@@ -660,11 +675,16 @@ function navigationPolicy(contents, targetUrl) {
   return undefined
 }
 
-async function loadAllowedUrl(contents, targetUrl) {
+async function loadAllowedUrl(contents, targetUrl, navigationApproved = false) {
   if (navigationPolicy(contents, targetUrl) === false) {
     throw new Error(`navigation to ${targetUrl} was blocked by Browser settings`)
   }
-  await contents.loadURL(targetUrl)
+  if (navigationApproved) approvedNavigations.set(contents, new URL(targetUrl).href)
+  try {
+    await contents.loadURL(targetUrl)
+  } finally {
+    approvedNavigations.delete(contents)
+  }
 }
 
 function mediaPermissionAllowed(contents, origin) {
@@ -690,20 +710,21 @@ function cancelPermissions(contents) {
   }
 }
 
-async function requestPermission(contents, kind, origin) {
+async function requestPermission(contents, kind, origin, filename) {
   if (windowClosing || contents.isDestroyed() || !isControlledContents(contents)) return false
   const sourceUrl = contents.getURL()
   const id = ++nextPermissionId
   const choice = await new Promise(resolve => {
     pendingPermissions.set(id, { contents, resolve })
-    send({ event: 'browser:permission', id, request: { kind, origin } })
+    send({ event: 'browser:permission', id, request: { kind, origin, ...(filename === undefined ? {} : { filename }) } })
   })
   if (windowClosing || contents.isDestroyed() || contents.getURL() !== sourceUrl) return false
+  if (kind === 'download') return choice === 'once' && nativeSettings.downloadPolicy !== 'block'
   const field = kind === 'navigation' ? 'access' : 'media'
   const existing = profileStore.sites[origin]
   if (existing?.[field] === 'block') return false
   if (kind === 'navigation' && navigationPolicy(contents, origin) === false) return false
-  if (choice === 'always' || choice === 'block') {
+  if (kind === 'media' && (choice === 'always' || choice === 'block')) {
     profileStore.sites[origin] = { access: 'block', media: 'block', ...existing, [field]: choice === 'always' ? 'allow' : 'block' }
     await persistProfileStore()
   }
@@ -1720,6 +1741,8 @@ function completeState(tab, state, settled) {
   const inventory = tabStates()
   return {
     ...state,
+    ...(downloadDenials.has(tab.view.webContents)
+      ? { footer: `${state.footer}\n${downloadDenials.get(tab.view.webContents)}` } : {}),
     tabs: inventory,
     tabId: tab.id,
     activeTabId: activeTab?.id ?? tab.id,
@@ -2099,7 +2122,7 @@ async function handleCommand(method, args) {
     if (!opened || !selectTab) throw new Error('tab controls are unavailable')
     selectTab(opened)
     if (args.url !== undefined) {
-      try { await loadAllowedUrl(opened.view.webContents, args.url) }
+      try { await loadAllowedUrl(opened.view.webContents, args.url, args.navigationApproved === true) }
       catch (error) {
         closeTab(opened)
         throw error
@@ -2175,7 +2198,7 @@ async function handleCommand(method, args) {
     case 'navigate':
       // Resolves on did-finish-load, so a caller that awaits this is talking to
       // the preload of the page it asked for, not the one it is leaving.
-      await loadAllowedUrl(contents, args.url)
+      await loadAllowedUrl(contents, args.url, args.navigationApproved === true)
       return { success: true, message: `Navigated to ${contents.getURL()}` }
 
     case 'back': {
@@ -2407,6 +2430,7 @@ app.whenReady().then(async () => {
     // tab's indices; a background tab cannot cancel an active tab's action.
     contents.on('did-start-navigation', event => {
       if (!event.isMainFrame) return
+      downloadDenials.delete(contents)
       cancelPermissions(contents)
       detachTabDebugger(tab, true)
       cancelAnnotation(tab)

@@ -420,10 +420,25 @@ export interface Config {
   allowFullCdpAccess?: boolean
   /** Explicit Electron binary; omitted resolves the optional `electron` package. */
   electronPath?: string
+  /** Optional composition default for browser permissions; user settings override it. */
+  browserPermissions?: BrowserPermissions | undefined
 }
+
+/** Independent global permissions for Browser Use, shared by all agents and websites. */
+export interface BrowserPermissions {
+  /** Decision before browser navigation, page actions, and reads. */
+  browsing: BrowserDecision
+  /** Decision before Chromium writes downloaded files. */
+  downloads: BrowserDecision
+  /** Decision before selecting a local file for a website. */
+  uploads: BrowserDecision
+}
+
+/** Closed user decision used by native Browser permission checks. */
+export type BrowserDecision = 'allow' | 'ask' | 'block'
 ```
 
-Source: [`packages/browser/browser-electron/src/index.ts:126`](../packages/browser/browser-electron/src/index.ts)
+Source: [`packages/browser/browser-electron/src/index.ts:144`](../packages/browser/browser-electron/src/index.ts)
 
 <a id="hydraharness-client-connection"></a>
 

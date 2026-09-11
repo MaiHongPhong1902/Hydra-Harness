@@ -336,7 +336,7 @@ server.listen(0, '127.0.0.1', () => {
     assert.equal((await state()).url, target)
     assert.deepEqual(await controller.command('browser_sites'), [])
 
-    phase = 'remembering an exact website decision'
+    phase = 'an action approval does not create a website rule'
     await configureNavigation('allow')
     await controller.command('navigate', { url: `${address}/one` })
     await configureNavigation('ask')
@@ -344,7 +344,7 @@ server.listen(0, '127.0.0.1', () => {
     await waitFor(() => permissions.length === 2)
     await controller.request({ method: 'browser_permission_response', args: { id: permissions[1].id, choice: 'always' } })
     await remembered
-    assert.equal((await controller.command('browser_sites'))[0].access, 'allow')
+    assert.deepEqual(await controller.command('browser_sites'), [])
 
     phase = 'cancelled chat permission does not navigate'
     const denied = controller.command('navigate', { url: `${address}/three` }).then(() => false, () => true)
@@ -352,7 +352,7 @@ server.listen(0, '127.0.0.1', () => {
     controller.cancelPermissions()
     assert.equal(await denied, true)
     await controller.request({ method: 'browser_permission_response', args: { id: permissions[2].id, choice: 'always' } })
-    assert.equal((await controller.command('browser_sites')).length, 1)
+    assert.equal((await controller.command('browser_sites')).length, 0)
     phase = 'preserving a form POST while chat answers'
     await configureNavigation('allow')
     await controller.command('navigate', { url: `${address}/one` })
@@ -384,7 +384,8 @@ server.listen(0, '127.0.0.1', () => {
     })
     await controller.request({ method: 'browser_permission_response', args: { id: permissions[4].id, choice: 'block' } })
     assert.equal(await blocked, true)
-    assert.equal((await controller.command('browser_sites'))[0].access, 'block')
+    assert.deepEqual(await controller.command('browser_sites'), [])
+    await configureNavigation('block')
     await assert.rejects(controller.command('navigate', { url: target }), /blocked/)
     assert.equal(permissions.length, 5)
     phase = 'closing the last controlled tab'

@@ -2775,7 +2775,7 @@ Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-
 
 ### `browser_upload_file`
 
-Upload one existing readable local file through the HTML file input at the given index of the most recent element list. The user must have written the exact absolute path in the current turn, and the current page must use http(s). This selects the file only; submit separately.
+Select one existing readable local file through an indexed HTML file input, including hidden inputs. Use an absolute path and the most recent element list. Uploads permission controls execution and approval for the file and HTTP(S) destination. This selects the file only; submit separately.
 
 ```json
 {
@@ -2783,11 +2783,11 @@ Upload one existing readable local file through the HTML file input at the given
   "properties": {
     "index": {
       "type": "integer",
-      "description": "Element index of the observed HTML file input."
+      "description": "Element index of the observed HTML file input, including a hidden chooser input."
     },
     "path": {
       "type": "string",
-      "description": "Absolute path of the local test artifact to upload."
+      "description": "Absolute path of the local file to upload."
     },
     "tab_id": {
       "type": "integer",

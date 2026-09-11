@@ -523,9 +523,9 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'the action\'s report, omitted for a plain state read, plus the state.',
       },
       {
-        signature: 'async takeScreenshot(owner: Agent): Promise<BrowserScreenshot>',
+        signature: 'async takeScreenshot(owner: Agent, execution: BrowserExecutionContext = {}): Promise<BrowserScreenshot>',
         description: 'Capture the selected controlled page\'s visible viewport as a bounded PNG. The base64 is transient: callers must consume it before persisting output.',
-        parameters: [{ name: 'owner', description: 'agent whose selected controlled tab is captured.' }],
+        parameters: [{ name: 'owner', description: 'agent whose selected controlled tab is captured.' }, { name: 'execution', description: 'tool-call identity and cancellation for the browsing approval.' }],
         returns: 'the bounded screenshot payload.',
       },
       {

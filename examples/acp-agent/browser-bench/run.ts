@@ -51,7 +51,9 @@ try {
       await ctx.plugin(ToolRuntime)
       await ctx.plugin(TokenMeter)
       await ctx.plugin(ToolResultPruner)
-      await ctx.plugin(BrowserSessionService, { electronPath: '/scripted/electron', show: false })
+      await ctx.plugin(BrowserSessionService, { electronPath: '/scripted/electron', show: false,
+        browserPermissions: { browsing: 'allow', downloads: 'allow', uploads: 'allow' },
+      })
       ctx.browsers.spawnChild = () => child
       await ctx.plugin(plugin)
       const session = Session.create(SessionId(`bench-${scenario.name}`))

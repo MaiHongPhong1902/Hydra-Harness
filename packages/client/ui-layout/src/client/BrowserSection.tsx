@@ -17,6 +17,8 @@ import css from './BrowserSection.module.css'
 
 /** Durable values consumed by the Browser settings surface. */
 export interface BrowserSettings extends BrowserNativeSettings {
+  /** Global permissions; legacy policy fields remain the fallback for saved profiles. */
+  browserPermissions?: { browsing: BrowserPolicy; downloads: BrowserPolicy; uploads: BrowserPolicy }
   /** Whether agent browser actions are accepted by the Host. */
   controlEnabled: boolean
   /** Whether the agent may query the built-in browser history. */
@@ -135,9 +137,9 @@ function nativeSettings(settings: BrowserSettings): BrowserNativeSettings {
     annotationScreenshots: settings.annotationScreenshots,
     downloadDirectory: settings.downloadDirectory,
     askWhereToSave: settings.askWhereToSave,
-    navigationPolicy: settings.navigationPolicy,
-    downloadPolicy: settings.downloadPolicy,
-    uploadPolicy: settings.uploadPolicy,
+    navigationPolicy: settings.browserPermissions?.browsing ?? settings.navigationPolicy,
+    downloadPolicy: settings.browserPermissions?.downloads ?? settings.downloadPolicy,
+    uploadPolicy: settings.browserPermissions?.uploads ?? settings.uploadPolicy,
     fullCdpAccess: settings.fullCdpAccess,
   }
 }
@@ -165,6 +167,11 @@ function Toggle({ checked, disabled, onChange, a11y }: {
   )
 }
 
+/**
+ * Shared native dropdown using the Browser settings tokens.
+ * @param props - selected value, choices, accessibility labels, and mutation callback.
+ * @returns the labeled select control.
+ */
 function SelectControl<T extends string>({ value, choices, disabled, onChange, a11y }: {
   value: T
   choices: readonly Choice<T>[]
@@ -334,6 +341,15 @@ export function BrowserSection({
 
   const unavailable = snapshot.status !== 'ready' || !snapshot.writable
   const busy = pending !== undefined
+  const permissionId = useId()
+  const permissions = settings.browserPermissions ?? {
+    browsing: settings.navigationPolicy, downloads: settings.downloadPolicy, uploads: settings.uploadPolicy,
+  }
+  const permissionChoices: readonly Choice<BrowserPolicy>[] = [
+    { value: 'ask', label: t('browser.requiresApproval') },
+    { value: 'allow', label: t('browser.alwaysAllow') },
+    { value: 'block', label: t('browser.block') },
+  ]
   const autofillAvailable = typeof autofill.available === 'boolean' && autofill.available
   const autofillDescription = (description: string) => autofillAvailable
     ? description
@@ -426,7 +442,7 @@ export function BrowserSection({
   }, [
     configureNative, snapshot.status, settings.annotationScreenshots, settings.askWhereToSave,
     settings.downloadDirectory, settings.downloadPolicy, settings.fullCdpAccess,
-    settings.localDestination, settings.navigationPolicy, settings.uploadPolicy, settings.webDestination,
+    settings.localDestination, settings.navigationPolicy, settings.uploadPolicy, settings.webDestination, settings.browserPermissions,
   ])
 
   useEffect(() => {
@@ -737,6 +753,27 @@ export function BrowserSection({
       {busy && <p className={css.unavailable} role="status">{t('browser.saving')}</p>}
       {error !== undefined && <p className={css.error} role="alert">{error}</p>}
 
+      <section className={css.globalPermissions} aria-labelledby={`${permissionId}-title`}>
+        <div className={css.intro}>
+          <h3 className={css.groupTitle} id={`${permissionId}-title`}>{t('browser.globalPermissions')}</h3>
+          <p className={css.description} id={`${permissionId}-description`}>{t('browser.globalPermissionsDescription')}</p>
+        </div>
+        <div className={css.permissionsGrid}>
+          {(['browsing', 'downloads', 'uploads'] as const).map(capability => (
+            <div className={css.permissionItem} key={capability}>
+              <span id={`${permissionId}-${capability}`} className={css.rowTitle}>{t(`browser.${capability}`)}</span>
+              <SelectControl
+                value={permissions[capability]}
+                choices={permissionChoices}
+                disabled={unavailable || busy}
+                onChange={(value) => { void saveSetting('browserPermissions', { ...permissions, [capability]: value }) }}
+                a11y={{ labelledBy: `${permissionId}-${capability}`, describedBy: `${permissionId}-description` }}
+              />
+            </div>
+          ))}
+        </div>
+      </section>
+
       <div className={css.browserItems} role="list">
         {renderSlot('settings.browser.item', {})}
       </div>
@@ -877,7 +914,7 @@ export function BrowserSection({
         </Row>
       </Group>
 
-      <Group title={t('browser.permissions')}>
+      <div className={css.card}>
         <Row title={t('browser.siteSettings')} description={t('browser.siteSettingsDescription')} disabled={unavailable}>
           {a11y => (
             <Action
@@ -885,17 +922,6 @@ export function BrowserSection({
               a11y={a11y}
               disabled={unavailable || busy}
               onClick={() => { setManager('sites'); void loadSites() }}
-            />
-          )}
-        </Row>
-        <Row title={t('browser.approval')} description={t('browser.approvalDescription')} disabled={unavailable}>
-          {a11y => (
-            <SelectControl
-              value={settings.navigationPolicy}
-              choices={actionChoices}
-              disabled={unavailable || busy}
-              onChange={(value) => { void saveSetting('navigationPolicy', value) }}
-              a11y={a11y}
             />
           )}
         </Row>
@@ -910,29 +936,7 @@ export function BrowserSection({
             />
           )}
         </Row>
-        <Row title={t('browser.downloadPolicy')} description={t('browser.downloadPolicyDescription')} disabled={unavailable}>
-          {a11y => (
-            <SelectControl
-              value={settings.downloadPolicy}
-              choices={actionChoices}
-              disabled={unavailable || busy}
-              onChange={(value) => { void saveSetting('downloadPolicy', value) }}
-              a11y={a11y}
-            />
-          )}
-        </Row>
-        <Row title={t('browser.uploadPolicy')} description={t('browser.uploadPolicyDescription')} disabled={unavailable}>
-          {a11y => (
-            <SelectControl
-              value={settings.uploadPolicy}
-              choices={actionChoices}
-              disabled={unavailable || busy}
-              onChange={(value) => { void saveSetting('uploadPolicy', value) }}
-              a11y={a11y}
-            />
-          )}
-        </Row>
-      </Group>
+      </div>
 
       <section className={css.sitePermissions}>
         <div className={css.siteHeading}>

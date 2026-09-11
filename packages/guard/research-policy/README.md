@@ -6,7 +6,7 @@ Research admission policy for native and Code Mode tool calls. It charges search
 
 All limits are optional positive integers: `maxSearchCalls`, `maxQueries` (distinct queries in each admitted call), `maxFetches`, `maxBrowserCalls`, and `maxDurationMs`. The duration starts at the first research charge and includes idle time; a running cooperative tool receives the remaining deadline. A root session is the budget lifetime. Opening a new root session establishes a new budget; follow-ups and child resumes do not.
 
-The base bundle configures 4 search calls, 12 queries, 8 fetches, 30 browser calls, and 10 minutes. These are deployment limits, independent of provider-internal native search calls and token accounting. Calls outside an Agent are administrative service operations and are not charged. Exhaustion returns `RESEARCH_BUDGET_EXHAUSTED`; schemas remain visible.
+The base bundle mounts this policy without limits, so Browser Use and other research tools are not capped by an implicit application setting. Deployments may configure any limits explicitly; those limits are independent of provider-internal native search calls and token accounting. Calls outside an Agent are administrative service operations and are not charged. Exhaustion returns `RESEARCH_BUDGET_EXHAUSTED`; schemas remain visible.
 
 ## Model Experience
 

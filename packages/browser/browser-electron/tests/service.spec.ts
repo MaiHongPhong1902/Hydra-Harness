@@ -3,7 +3,7 @@ import { realpathSync } from 'node:fs'
 import { createInterface } from 'node:readline'
 import { PassThrough } from 'node:stream'
 import { fileURLToPath } from 'node:url'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Context } from '@hydra/cordis'
 import { CallId, createUserMessage } from '@hydra/harness-llm'
 import AgentRegistry, { Inbox } from '@hydra/harness-agent'
@@ -194,6 +194,7 @@ async function harness(options: HarnessOptions = {}) {
     show: false,
     ...options.allowFullCdpAccess === undefined ? {} : { allowFullCdpAccess: options.allowFullCdpAccess },
   })
+  await ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, { navigationPolicy: 'allow' })
   const spawned: ScriptedChild[] = []
   ctx.browsers.spawnChild = () => {
     const child = new ScriptedChild(`child-${spawned.length}`)
@@ -204,6 +205,74 @@ async function harness(options: HarnessOptions = {}) {
 }
 
 describe('BrowserSessionService', () => {
+  it.each(['browsing', 'downloads', 'uploads'] as const)('enforces all three global modes for %s', async (capability) => {
+    for (const mode of ['allow', 'ask', 'block'] as const) {
+      const decision = Promise.withResolvers<ApprovalOutcome>()
+      const approval = vi.fn(() => decision.promise)
+      const { ctx, spawned, dispose } = await harness({ approval })
+      const owner = stubAgent(ctx, 'permission-matrix')
+      owner.session.append('turn/start', { turn: 1 })
+      owner.session.append('user/message', createUserMessage({
+        content: [{ type: 'text', text: 'Upload the generated artifact.' }], source: { kind: 'user' },
+      }), { surfaceOp: 'append' })
+      if (capability === 'downloads') await ctx.browsers.perform(owner, { method: 'get_browser_state' })
+      const permissions = { browsing: 'allow', downloads: 'allow', uploads: 'allow', [capability]: mode }
+      await ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, { browserPermissions: permissions })
+      let result: Promise<unknown>
+      if (capability === 'downloads') {
+        const child = spawned[0]!
+        child.stdout.write(`${JSON.stringify({
+          event: 'browser:permission', id: 42,
+          request: { kind: 'download', origin: 'https://second.test', filename: 'report.zip' },
+        })}\n`)
+        result = vi.waitFor(() => {
+          const response = child.requests.find(request => request.method === 'browser_permission_response')
+          expect(response?.args.id).toBe(42)
+          expect(response?.args.choice).toBe(mode === 'block' ? undefined : 'once')
+        })
+      } else {
+        const action = ctx.browsers.perform(owner, capability === 'browsing'
+          ? { method: 'navigate', url: 'https://second.test' }
+          : { method: 'upload_file', index: 3, filePath: UPLOAD_FIXTURE })
+        result = mode === 'block'
+          ? expect(action).rejects.toMatchObject({ code: 'BROWSER_POLICY_DENIED' })
+          : action
+      }
+      if (mode === 'ask') {
+        await vi.waitFor(() => { expect(approval).toHaveBeenCalledOnce() })
+        expect(spawned.flatMap(child => child.seen)).not.toContain(capability === 'uploads' ? 'upload_file' : 'navigate')
+        if (capability === 'downloads') expect(spawned[0]!.seen).not.toContain('browser_permission_response')
+        decision.resolve('allowed-once')
+      }
+      await result
+      if (mode !== 'ask') expect(approval).not.toHaveBeenCalled()
+      expect(ctx.settings.describe().find(row => row.ns === BROWSER_SETTINGS_NAMESPACE)?.value)
+        .toMatchObject({ browserPermissions: permissions })
+      await dispose()
+    }
+  })
+  it('applies global capability modes independently before execution', async () => {
+    const { ctx, spawned, dispose } = await harness({ approval: false })
+    const owner = stubAgent(ctx, 'agent-a')
+    await ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, {
+      browserPermissions: { browsing: 'block', downloads: 'allow', uploads: 'ask' },
+    })
+    await expect(ctx.browsers.perform(owner, { method: 'navigate', url: 'https://example.test' }))
+      .rejects.toMatchObject({ code: 'BROWSER_POLICY_DENIED' })
+    expect(spawned).toHaveLength(0)
+
+    await ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, {
+      browserPermissions: { browsing: 'allow', downloads: 'allow', uploads: 'block' },
+    })
+    owner.session.append('turn/start', { turn: 1 })
+    owner.session.append('user/message', createUserMessage({
+      content: [{ type: 'text', text: `Use ${UPLOAD_FIXTURE}` }], source: { kind: 'user' },
+    }), { surfaceOp: 'append' })
+    await expect(ctx.browsers.perform(owner, { method: 'upload_file', index: 3, filePath: UPLOAD_FIXTURE }))
+      .rejects.toMatchObject({ code: 'BROWSER_POLICY_DENIED' })
+    expect(spawned).toHaveLength(0)
+    await dispose()
+  })
   it.each(['action', 'owner', 'service'])('cancels startup when its %s is stopped', async (stopped) => {
     const { ctx, dispose } = await harness()
     const owner = stubAgent(ctx, 'starting')
@@ -349,7 +418,7 @@ describe('BrowserSessionService', () => {
     ])
     expect(owner.session.events.find(event => event.type === 'approval/asked')?.data).toMatchObject({
       callId,
-      reason: `Upload ${realpathSync(UPLOAD_FIXTURE)} to https://child-0.test in tab [1] through input [3].`,
+      reason: `Browser permissions: uploads. Action: browser_upload_file. Upload ${realpathSync(UPLOAD_FIXTURE)} to https://child-0.test in tab [1] through input [3].`,
     })
     await expect(ctx.browsers.perform(owner, { method: 'upload_file', index: 3, filePath: missing }))
       .rejects.toThrow(/existing readable regular file/)
@@ -357,21 +426,28 @@ describe('BrowserSessionService', () => {
     await dispose()
   })
 
-  it('does not treat a longer user-named path as authorization for its prefix', async () => {
-    const { ctx, spawned, dispose } = await harness()
+  it('requires upload approval for a generated file even when its path is absent from the user message', async () => {
+    const decision = Promise.withResolvers<ApprovalOutcome>()
+    const approval = vi.fn((_request: ApprovalRequest) => decision.promise)
+    const { ctx, spawned, dispose } = await harness({ approval })
     const owner = stubAgent(ctx, 'agent-a')
     owner.session.append('turn/start', { turn: 1 })
     owner.session.append('user/message', createUserMessage({
-      content: [{ type: 'text', text: `Use ${UPLOAD_FIXTURE}.backup` }],
+      content: [{ type: 'text', text: 'Upload the generated artifact.' }],
       source: { kind: 'user' },
     }), { surfaceOp: 'append' })
-    await expect(ctx.browsers.perform(owner, { method: 'upload_file', index: 3, filePath: UPLOAD_FIXTURE }))
-      .rejects.toThrow(/must appear literally/)
-    expect(spawned).toHaveLength(0)
+    const upload = ctx.browsers.perform(owner, { method: 'upload_file', index: 3, filePath: UPLOAD_FIXTURE })
+    const denied = expect(upload).rejects.toMatchObject({ code: 'BROWSER_POLICY_DENIED' })
+    await vi.waitFor(() => { expect(approval).toHaveBeenCalledOnce() })
+    expect(approval.mock.calls[0]?.[0].reason).toContain(realpathSync(UPLOAD_FIXTURE))
+    expect(spawned.flatMap(child => child.seen)).not.toContain('upload_file')
+    decision.resolve('rejected')
+    await denied
+    expect(spawned.flatMap(child => child.seen)).not.toContain('upload_file')
     await dispose()
   })
 
-  it('enforces the upload decision after exact-path validation', async () => {
+  it('blocks uploads before exposing a file to Electron', async () => {
     const { ctx, spawned, dispose } = await harness()
     const owner = stubAgent(ctx, 'agent-a')
     owner.session.append('turn/start', { turn: 1 })

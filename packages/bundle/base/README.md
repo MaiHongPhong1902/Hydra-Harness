@@ -6,7 +6,7 @@ The patch gates both shell stacks by platform on its own rows: `bash-sandbox`/`t
 
 The row set and its rationale are documented inline in the patch file; the [generated composition graph](../../../apps/cli/composition.md) renders it.
 
-The base bundle mounts DeepSeek, Serper, and Other search providers with [explicit Settings selection](../../web/web/README.md#product-search-settings), public HTTP fetch, and shared research limits. Standard and Code presets expose fetch; private origins require an explicit operator grant in the [HTTP provider](../../web/web-fetch-http/README.md). The [research policy](../../guard/research-policy/README.md) defines the root-session budget lifetime.
+The base bundle mounts DeepSeek, Serper, and Other search providers with [explicit Settings selection](../../web/web/README.md#product-search-settings) and public HTTP fetch. Standard and Code presets expose fetch; private origins require an explicit operator grant in the [HTTP provider](../../web/web-fetch-http/README.md). The optional [research policy](../../guard/research-policy/README.md) can impose deployment limits when configured explicitly.
 
 ## Model Experience
 

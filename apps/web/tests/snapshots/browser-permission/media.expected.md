@@ -1,0 +1,20 @@
+- region "Allow https://vtv.vn to use camera or microphone?":
+  - text: Camera and microphone
+  - heading "Allow https://vtv.vn to use camera or microphone?" [level=2]
+  - button "Collapse the question card" [expanded]:
+    - img
+  - button "Dismiss all questions":
+    - img
+  - radiogroup:
+    - radio "Allow once": 1 Allow once Allow only this request.
+    - radio "Always allow": 2 Always allow Remember this exact website in Browser settings.
+    - radio "Block": 3 Block Block this permission for this website.
+    - textbox "Type your answer"
+  - button "Previous question" [disabled]:
+    - img
+  - text: 1 / 1
+  - button "Next question" [disabled]:
+    - img
+  - status
+  - button "Skip this question"
+  - button "Submit" [disabled]

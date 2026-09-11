@@ -461,12 +461,6 @@
     # selection is saved independently of the active chat model in Settings.
     - id: research-policy
       name: '@hydra/harness-research-policy'
-      config:
-        maxSearchCalls: 4
-        maxQueries: 12
-        maxFetches: 8
-        maxBrowserCalls: 30
-        maxDurationMs: 600000
 
     - id: web
       name: '@hydra/harness-web'

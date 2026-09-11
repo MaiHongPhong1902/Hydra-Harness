@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8" /><title>Hidden upload</title></head>
+  <body>
+    <label for="hidden-artifact">Attach artifact</label>
+    <input id="hidden-artifact" type="file" style="display:none" />
+    <p id="result"></p>
+    <script>
+      document.getElementById('hidden-artifact').addEventListener('change', async event => {
+        const file = event.target.files[0]
+        await fetch('/uploaded-artifact', { method: 'POST', body: file })
+        document.getElementById('result').textContent = `Uploaded ${file.name}`
+      })
+    </script>
+  </body>
+</html>
