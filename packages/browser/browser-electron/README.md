@@ -129,7 +129,7 @@ No direct invalidation; the named consumer owns request-prefix changes.
 
 ## Known Limitations and Deferred Work
 
-- Native pointer gestures require a visible foreground window; hidden or unfocused clicks use PageController. Alert and confirm dialogs are handled through CDP; Electron does not implement JavaScript prompt dialogs.
+- Playwright actions use the controlled tab debugger; the preload pointer fallback serves explicit PageAgent actions. Alert and confirm dialogs are handled through CDP; Electron does not implement JavaScript prompt dialogs.
 - Console and network diagnostics retain at most 1,000 CDP events or 4 MiB per tab, reset on navigation. Individual records are capped at 64 KiB; response bodies can expire from Chromium storage. Raw CDP commands are detached at navigation so their enabled domains do not cross an approved origin.
 
 An ask-policy agent browser action or download requires an open owning turn; native user navigation works without a chat owner. Media requests use the connected chat's question composer. Annotation-screenshot and elevated-risk settings prompts use native dialogs.
@@ -139,4 +139,5 @@ An ask-policy agent browser action or download requires an open owning turn; nat
 - File upload supports an observed HTML file input, including a hidden chooser input; a proxy button without a real file input is not addressable.
 - Sessions are process-local: a harness restart loses the window, though the profile keeps the login.
 - One agent owns one Chromium profile and window. Parallelism is across that window's isolated tabs; use separate agents when work requires independent browser profiles or windows.
+
 The embedded controller uses `playwright-core` directly through an in-process CDP transport attached to each Electron tab. Playwright supplies actionability and locator execution for clicks, hover, drag, text entry, selection, form filling, and find operations. Hydra still owns navigation and permission policy, tab lifecycle, accessibility snapshots, upload handling, and approval-gated raw CDP. The adapter does not open a TCP debugging port or start a Playwright MCP server.

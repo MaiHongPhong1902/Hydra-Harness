@@ -8,7 +8,7 @@ Agent clicks only dispatched synthetic DOM events and moved a decorative cursor.
 
 ## Decision
 
-The Electron preload resolves indexed target coordinates and animates the pointer; the owning main process dispatches native CDP mouse movement, press, and release events. The embedded preload wraps PageController actions and keeps the existing synthetic fallback when the native window is hidden or unfocused.
+The Electron preload resolves indexed target coordinates and animates the pointer; the owning main process dispatches native CDP mouse movement, press, and release events for explicit PageAgent actions. Ordinary Hydra actions use [native Playwright](../feature/2026-09-13-native-playwright-controls.md).
 
 ## Alternatives considered
 
@@ -26,4 +26,4 @@ The Electron regression records pointer and mouse events from a real fixture and
 
 ## Deferred
 
-Native drag and hover use the same foreground-window requirement; [the accessibility tools note](../feature/2026-09-12-browser-accessibility-snapshot.md) owns their semantics.
+The preload pointer fallback retains its foreground-window requirement. [Native Playwright](../feature/2026-09-13-native-playwright-controls.md) owns ordinary drag and hover execution.
