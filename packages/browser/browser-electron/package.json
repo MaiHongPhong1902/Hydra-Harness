@@ -30,6 +30,7 @@
     "lib/invariant.js",
     "electron-app/autofill-vault.cjs",
     "electron-app/main.cjs",
+    "electron-app/playwright.cjs",
     "electron-app/hydra.png",
     "electron-app/chrome.html",
     "electron-app/newtab.html",
@@ -42,13 +43,13 @@
     "build:preload": "vite build -c vite.preload.config.js"
   },
   "peerDependencies": {
+    "@hydra/cordis": "workspace:^",
     "@hydra/harness-agent": "workspace:^",
     "@hydra/harness-home-paths": "workspace:^",
     "@hydra/harness-invariants": "workspace:^",
     "@hydra/harness-settings": "workspace:^",
     "@hydra/harness-user-approval": "workspace:^",
     "@hydra/harness-user-questions": "workspace:^",
-    "@hydra/cordis": "workspace:^",
     "@hydra/schemastery": "workspace:^",
     "electron": "^43.4.1"
   },
@@ -58,18 +59,21 @@
     }
   },
   "devDependencies": {
+    "@hydra/cordis": "workspace:^",
     "@hydra/harness-agent": "workspace:^",
     "@hydra/harness-home-paths": "workspace:^",
     "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
     "@hydra/harness-settings": "workspace:^",
     "@hydra/harness-user-approval": "workspace:^",
     "@hydra/harness-user-questions": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/cordis": "workspace:^",
     "@hydra/schemastery": "workspace:^",
-    "electron": "^43.4.1",
     "@page-agent/core": "workspace:^",
     "@page-agent/page-controller": "workspace:^",
+    "electron": "^43.4.1",
     "vite": "^6.0.0"
+  },
+  "dependencies": {
+    "playwright-core": "1.61.1"
   }
 }

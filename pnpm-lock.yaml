@@ -1054,6 +1054,9 @@ importers:
       '@hydra/schemastery':
         specifier: link:../../../vendor/schemastery
         version: link:../../../vendor/schemastery
+      playwright-core:
+        specifier: 1.61.1
+        version: 1.61.1
     devDependencies:
       '@hydra/cordis':
         specifier: workspace:^

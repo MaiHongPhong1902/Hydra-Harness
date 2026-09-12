@@ -321,6 +321,21 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
     expect(events.message).toContain('click')
   }, 60_000)
 
+  it('waits for a disabled control and delivers a trusted Playwright click', async () => {
+    await child.call('navigate', { url: fixture })
+    await child.call('execute_javascript', { script: `
+      document.body.innerHTML = '<button disabled aria-label="Deferred action">Wait</button>';
+      const button = document.querySelector('button');
+      button.addEventListener('click', event => button.setAttribute('data-trusted', String(event.isTrusted)));
+      setTimeout(() => { button.disabled = false }, 500);
+    ` })
+    expect(await child.call('click_element', { name: 'Deferred action' })).toMatchObject({ success: true })
+    const result = await child.call('execute_javascript', {
+      script: "return document.querySelector('button').getAttribute('data-trusted')",
+    }) as ActionResult
+    expect(result.message).toContain('true')
+  }, 60_000)
+
   it('resolves named Hydra actions, fills fields, and goes forward', async () => {
     expect(await child.call('navigate', { url: fixture })).toMatchObject({ success: true })
     const found = await child.call('find_element', { query: 'Requester' }) as ActionResult

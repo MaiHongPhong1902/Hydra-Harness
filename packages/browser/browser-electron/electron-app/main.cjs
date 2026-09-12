@@ -19,6 +19,7 @@ const { basename, isAbsolute, join } = require('node:path')
 const { setTimeout: delay } = require('node:timers/promises')
 
 const { app, BrowserWindow, Menu, WebContentsView, clipboard, dialog, ipcMain, nativeImage, nativeTheme, safeStorage, session, shell } = require('electron')
+const { connectPlaywrightPage } = require('./playwright.cjs')
 
 const { createAutofillVault } = require('./autofill-vault.cjs')
 
@@ -592,8 +593,90 @@ function ensureTabDebugger(tab, persistent) {
   return true
 }
 
+/** Connect once to the tab's existing Electron debugger through native Playwright. */
+async function ensureNativePage(tab) {
+  if (tab.playwrightPage !== undefined) return tab.playwrightPage
+  if (!tab.cdp.owned || !tab.view.webContents.debugger.isAttached()) ensureTabDebugger(tab, true)
+  tab.playwrightPage = await connectPlaywrightPage(tab.contents, READINESS_TIMEOUT_MS)
+  // Hydra's dialog tool owns the response; Playwright must not auto-dismiss it.
+  tab.playwrightPage.on('dialog', () => {})
+  return tab.playwrightPage
+}
+
+function nativeLocator(page, args) {
+  if (args.index !== undefined) {
+    if (!Number.isSafeInteger(args.index) || args.index < 0) throw new Error('index must be a non-negative integer')
+    return page.locator(`[data-hydra-a11y-ref="e${args.index}"]`)
+  }
+  const name = typeof args.name === 'string' ? args.name.trim() : ''
+  if (!name) throw new Error('provide an index or a non-empty name')
+  const escapedId = [...name].map(character => `\\${character.codePointAt(0).toString(16)} `).join('')
+  return page.getByLabel(name, { exact: true })
+    .or(page.getByRole('button', { name, exact: true }))
+    .or(page.getByRole('link', { name, exact: true }))
+    .or(page.getByPlaceholder(name, { exact: true }))
+    .or(page.locator(`[id="${escapedId}"]`))
+}
+
+async function nativePageAction(tab, method, args) {
+  if (!['click_element', 'hover_element', 'drag_element', 'input_text', 'select_option', 'fill_fields', 'find_element'].includes(method)) return undefined
+  const page = await ensureNativePage(tab)
+  if (method === 'find_element') {
+    if (typeof args.query !== 'string' || !args.query.trim()) throw new Error('find query must be a non-empty string')
+    const locator = page.getByText(args.query, { exact: false }).or(nativeLocator(page, { name: args.query }))
+    const count = await locator.count()
+    if (count === 0) return { success: false, message: `No element matching "${args.query}" in the current page.` }
+    await locator.first().scrollIntoViewIfNeeded()
+    await pageControl(tab, 'get_browser_state', {})
+    const snippets = await locator.evaluateAll(elements => elements.slice(0, 8).map(element => {
+      const ref = element.getAttribute('data-hydra-a11y-ref')?.slice(1)
+      const text = (element.getAttribute('aria-label') || element.textContent || element.id).trim().slice(0, 200)
+      return `${ref === undefined ? '' : `[${ref}] `}${text}`
+    }).join('\n'))
+    return { success: true, message: `Found ${count} element${count === 1 ? '' : 's'} matching "${args.query}":\n${snippets}` }
+  }
+  if (method === 'fill_fields') {
+    if (!Array.isArray(args.fields) || args.fields.length === 0) throw new Error('fields must be a non-empty array')
+    for (const field of args.fields) {
+      const locator = nativeLocator(page, field)
+      const kind = await locator.evaluate(element => element.tagName === 'SELECT' ? 'select' : element.getAttribute('type'))
+      if (kind === 'checkbox' || kind === 'radio') {
+        if (!['true', 'false'].includes(field.text)) return { success: false, message: 'Checkbox and radio values must be true or false.' }
+        if (kind === 'radio' && field.text === 'false') return { success: false, message: 'Select another radio option to clear this one.' }
+        await locator.setChecked(field.text === 'true')
+      } else if (kind === 'select') {
+        await locator.selectOption({ label: field.text })
+      } else {
+        await locator.fill(field.text)
+      }
+    }
+    return { success: true, message: `Filled ${args.fields.length} browser field${args.fields.length === 1 ? '' : 's'}.` }
+  }
+  const locator = nativeLocator(page, method === 'drag_element' ? { index: args.startIndex } : args)
+  switch (method) {
+    case 'click_element': await locator.click(); return { success: true, message: 'Clicked browser control.' }
+    case 'hover_element': await locator.hover(); return { success: true, message: 'Hovered browser control.' }
+    case 'drag_element': {
+      const source = nativeLocator(page, { index: args.startIndex })
+      const target = nativeLocator(page, { index: args.endIndex })
+      await source.dragTo(target)
+      return { success: true, message: 'Dragged browser control.' }
+    }
+    case 'input_text': await locator.fill(args.text); return { success: true, message: 'Filled browser control.' }
+    case 'select_option': {
+      const value = await locator.locator('option').evaluateAll((options, text) =>
+        options.find(option => option.label === text || option.value === text)?.value, args.text)
+      if (value === undefined) throw new Error(`No option matching "${args.text}"`)
+      await locator.selectOption(value)
+      return { success: true, message: 'Selected browser option.' }
+    }
+    default: return undefined
+  }
+}
+
 /** Release only a debugger attachment owned by this controller. */
 function detachTabDebugger(tab, clear) {
+  tab.playwrightPage = undefined
   nativeMouseTabs.delete(tab)
   const contents = tab.contents
   const owned = tab.cdp.owned
@@ -2353,50 +2436,24 @@ async function handleCommand(method, args) {
     await contents.debugger.sendCommand('Runtime.enable')
     await contents.debugger.sendCommand('Network.enable', { maxTotalBufferSize: MAX_CDP_EVENT_RING_BYTES, maxResourceBufferSize: MAX_CDP_EVENT_BYTES })
   }
-  switch (method) {
-    case 'hover_element':
-    case 'drag_element': {
-      const nativeAvailable = config.show !== false && window?.isFocused() && activeTab === tab
-      if (!nativeAvailable) {
-        return { success: false, message: 'Native pointer gestures require the target tab in a visible foreground browser window.' }
-      }
-      contents.focus()
-      const start = await pageControl(tab, 'prepare_pointer', method === 'drag_element' ? { index: args.startIndex } : { ...args, click: method === 'click_element' })
-      if (start.success === false) return start
-      const end = method === 'drag_element' ? await pageControl(tab, 'prepare_pointer', { index: args.endIndex }) : start
-      if (end.success === false) return end
-      // Resolve both positions after scrolling the destination into view.
-      const source = method === 'drag_element' ? await pageControl(tab, 'get_element_center', { index: args.startIndex }) : start
-      const mouse = async (type, point, down) => {
-        let opened
-        const dialogOpened = new Promise(resolve => {
-          opened = (_event, method) => { if (method === 'Page.javascriptDialogOpening') resolve() }
-          contents.debugger.on('message', opened)
-        })
-        try {
-          await Promise.race([dialogOpened, contents.debugger.sendCommand('Input.dispatchMouseEvent', {
-            type, x: point.x, y: point.y, button: down || type === 'mouseReleased' ? 'left' : 'none', buttons: down ? 1 : 0,
-            ...type === 'mouseMoved' ? {} : { clickCount: 1 },
-          })])
-        } finally {
-          contents.debugger.removeListener('message', opened)
-        }
-      }
-      await mouse('mouseMoved', source, false)
-      if (method === 'drag_element') {
-        await mouse('mousePressed', source, true)
-        try {
-          for (let step = 1; step <= 12; step++) {
-            const point = { x: source.x + (end.x - source.x) * step / 12, y: source.y + (end.y - source.y) * step / 12 }
-            await mouse('mouseMoved', point, true)
-          }
-        } finally {
-          await mouse('mouseReleased', end, false)
-        }
-      }
-      return { success: true, message: method === 'drag_element' ? 'Dragged browser control.' : 'Hovered browser control.' }
+  let onNativeDialog
+  const nativeDialog = new Promise(resolve => {
+    onNativeDialog = (_event, eventMethod) => {
+      if (eventMethod === 'Page.javascriptDialogOpening') resolve({ success: true, message: 'Browser dialog opened.' })
     }
-
+    contents.debugger.on('message', onNativeDialog)
+  })
+  let nativeResult
+  try {
+    nativeResult = await Promise.race([nativePageAction(tab, method, args), nativeDialog])
+  } catch (error) {
+    if (error.name !== 'TimeoutError') throw error
+    nativeResult = { success: false, message: error.message }
+  } finally {
+    contents.debugger.removeListener('message', onNativeDialog)
+  }
+  if (nativeResult !== undefined) return nativeResult
+  switch (method) {
     case 'resize':
       if (![args.width, args.height].every(size => Number.isSafeInteger(size) && size >= 1 && size <= 8192)) throw new Error('viewport dimensions must be integers from 1 to 8192')
       await contents.debugger.sendCommand('Emulation.setDeviceMetricsOverride', { width: args.width, height: args.height, deviceScaleFactor: 1, mobile: false })
@@ -2734,6 +2791,7 @@ app.whenReady().then(async () => {
       if (method === 'Page.javascriptDialogClosed') tab.dialog = undefined
     })
     contents.debugger.on('detach', () => {
+      tab.playwrightPage = undefined
       tab.cdp.owned = false
       tab.cdp.persistent = false
       tab.cdp.events = []
