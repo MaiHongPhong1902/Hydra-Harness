@@ -10,6 +10,8 @@ Hydra's browser actions used PageController DOM helpers for ordinary clicks and 
 
 The Electron controller connects `playwright-core` directly to each controlled tab's existing Electron debugger through an in-process CDP transport. Indexed accessibility refs use Playwright locators, while named actions use accessible labels, roles, and placeholders. Navigation policy, tab ownership, snapshots, uploads, and raw CDP approval remain owned by Hydra.
 
+The transport preserves Chromium's `browserContextId` in target metadata because Playwright requires it when attaching a page. Select actions call `locator.selectOption` directly with the option label. Explicit navigation resolves an ask-policy decision before starting `loadURL`; cancellation rejects the action. A blocked request or download retains the current document's preload readiness; a committed replacement document resets it until `dom-ready`.
+
 ## Alternatives considered
 
 **Run Playwright MCP as a child server.** Rejected because it adds a second browser owner and loses Hydra's tab, policy, and session ownership.
@@ -24,7 +26,7 @@ The browser package owns one Playwright dependency and a bounded transport adapt
 
 ## Testing
 
-`node --check` covers both Electron JavaScript modules. The existing Electron interaction suite exercises the same click, drag, named-field, select, and navigation paths; it was not run in this change because the user requested no tests.
+The real Electron suite passes all 37 cases, including form entry and selection, native clicks, delayed enabled controls, drag, dialogs, uploads, navigation permissions, downloads, and embedded tab chrome. The child transport, browser service, and browser tool suites pass 105 cases. These checks cover local fixtures and the embedded controller; a packaged desktop session against live third-party websites remains unverified.
 
 ## Deferred
 

@@ -379,7 +379,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
 
     const result = await child.call('click_element', { index }) as ActionResult
     expect(result.success).toBe(false)
-    expect(result.message).toContain('covered by <div>')
+    expect(result.message).toContain('intercepts pointer events')
   }, 60_000)
 
   it('picks bounded page elements and regions and cancels interrupted selections', async () => {

@@ -13,8 +13,7 @@ const { chromium } = require('playwright-core')
  */
 async function connectPlaywrightPage(contents, timeout) {
   const debuggerApi = contents.debugger
-  const { targetInfo: info } = await debuggerApi.sendCommand('Target.getTargetInfo')
-  const targetInfo = { ...info, browserContextId: undefined }
+  const { targetInfo } = await debuggerApi.sendCommand('Target.getTargetInfo')
   const rootSession = `hydra-${contents.id}`
   let closed = false
   const transport = {

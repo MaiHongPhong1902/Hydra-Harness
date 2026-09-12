@@ -664,10 +664,7 @@ async function nativePageAction(tab, method, args) {
     }
     case 'input_text': await locator.fill(args.text); return { success: true, message: 'Filled browser control.' }
     case 'select_option': {
-      const value = await locator.locator('option').evaluateAll((options, text) =>
-        options.find(option => option.label === text || option.value === text)?.value, args.text)
-      if (value === undefined) throw new Error(`No option matching "${args.text}"`)
-      await locator.selectOption(value)
+      await locator.selectOption({ label: args.text })
       return { success: true, message: 'Selected browser option.' }
     }
     default: return undefined
@@ -765,14 +762,19 @@ function navigationPolicy(contents, targetUrl) {
 
 /** User browsing lasts until the next agent command; Host approval covers only its exact URL. */
 async function loadAllowedUrl(contents, targetUrl, navigationApproved = false) {
-  const approval = navigationApproved === 'user'
+  let approval = navigationApproved === 'user'
     ? { user: true }
     : navigationApproved === true ? { url: new URL(targetUrl).href } : undefined
   if (approval === undefined) approvedNavigations.delete(contents)
   else approvedNavigations.set(contents, approval)
   try {
-    if (navigationPolicy(contents, targetUrl) === false) {
+    const allowed = navigationPolicy(contents, targetUrl)
+    if (allowed === false || (allowed === undefined && !await requestPermission(contents, 'navigation', canonicalOrigin(targetUrl)))) {
       throw new Error(`navigation to ${targetUrl} was blocked by Browser settings`)
+    }
+    if (allowed === undefined) {
+      approval = { url: new URL(targetUrl).href }
+      approvedNavigations.set(contents, approval)
     }
     let settled = false
     let timer
@@ -783,6 +785,7 @@ async function loadAllowedUrl(contents, targetUrl, navigationApproved = false) {
         clearTimeout(timer)
         contents.removeListener('dom-ready', onReady)
         contents.removeListener('did-fail-load', onFailed)
+        contents.removeListener('did-fail-provisional-load', onFailed)
         contents.removeListener('destroyed', onDestroyed)
         contents.removeListener('render-process-gone', onDestroyed)
         if (error === undefined) resolve()
@@ -796,6 +799,7 @@ async function loadAllowedUrl(contents, targetUrl, navigationApproved = false) {
       timer = setTimeout(() => finish(new Error(`navigation to ${targetUrl} did not become ready within ${READINESS_TIMEOUT_MS}ms`)), READINESS_TIMEOUT_MS)
       contents.once('dom-ready', onReady)
       contents.on('did-fail-load', onFailed)
+      contents.on('did-fail-provisional-load', onFailed)
       contents.once('destroyed', onDestroyed)
       contents.once('render-process-gone', onDestroyed)
     })
@@ -2822,7 +2826,6 @@ app.whenReady().then(async () => {
     // tab's indices; a background tab cannot cancel an active tab's action.
     contents.on('did-start-navigation', event => {
       if (!event.isMainFrame || event.isSameDocument) return
-      tab.preloadReady = false
       downloadDenials.delete(contents)
       cancelPermissions(contents)
       if (tab.cdp.raw) detachTabDebugger(tab, true)
@@ -2834,7 +2837,12 @@ app.whenReady().then(async () => {
       abortPageCalls(tab, 'page navigated away before the action completed')
       abortPageAgentLlmCalls(tab, 'page navigated away before PageAgent received a model response')
     })
+    // A blocked request or download keeps the current document and its preload.
+    contents.on('did-frame-navigate', (_event, _url, _code, _status, isMainFrame) => {
+      if (isMainFrame) tab.preloadReady = false
+    })
     contents.on('render-process-gone', (_event, details) => {
+      tab.preloadReady = false
       cancelPermissions(contents)
       detachTabDebugger(tab, true)
       abortPageCalls(tab, `renderer gone: ${details.reason}`)

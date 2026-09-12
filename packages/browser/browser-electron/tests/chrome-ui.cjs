@@ -326,7 +326,7 @@ server.listen(0, '127.0.0.1', () => {
     })()`)
     await waitFor(async () => (await maskState()).gradient === 'hidden')
     assert.deepEqual(await maskState(), { gradient: 'hidden', cursor: 'visible', display: 'block', pointerEvents: 'none' })
-    const waiting = controller.command('wait', { seconds: 1 })
+    const waiting = controller.command('wait_for', { seconds: 1 })
     await waitFor(async () => (await maskState()).gradient === 'visible')
     await assert.rejects(controller.command('wait', { seconds: -1 }), /wait seconds/)
     assert.equal((await maskState()).gradient, 'visible')
