@@ -512,7 +512,10 @@ describe('Issue lifecycle workflow', () => {
     expect(lifecyclePullRequest.types).not.toContain('ready_for_review')
     expect(lifecyclePullRequest.types).toContain('review_requested')
     expect(lifecycleReview.types).toEqual(['submitted'])
-    const gated = "${{ github.event_name != 'pull_request_review' || github.event.review.state == 'changes_requested' }}"
+    // The App credentials are repository configuration this checkout does not
+    // carry, so the gate also requires them: an unset variable would otherwise
+    // fail `create-github-app-token` on an empty `client-id` and red the job.
+    const gated = "${{ (github.event_name != 'pull_request_review' || github.event.review.state == 'changes_requested') && vars.HYDRA_ISSUE_APP_CLIENT_ID != '' }}"
     const steps = lifecycleJob.steps.filter(isRecord)
     const tokenStep = steps.find(s => s.name === 'Create project token')
     const handleStep = steps.find(s => s.name === 'Handle repository event')

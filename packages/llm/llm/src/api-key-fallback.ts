@@ -69,7 +69,10 @@ export async function* streamWithApiKeys(
       continue
     }
     if (aborted || !failed || index === count - 1) {
-      yield* chunks
+      // Yielded one by one rather than by delegation: `yield*` over a plain
+      // array hands the consumer's `.throw()` to the array iterator, which has
+      // none, so a consumer error surfaces as a TypeError instead of itself.
+      for (const chunk of chunks) yield chunk
       return
     }
   }

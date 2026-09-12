@@ -102,6 +102,7 @@
       "@hydra/harness-plugin-runtime": ["./packages/host/plugin-runtime/src"],
       "@hydra/harness-plugin-runtime/types": ["./packages/host/plugin-runtime/src/types.ts"],
       "@hydra/harness-hooks-codex/config": ["./packages/hooks/hooks-codex/src/config.ts"],
+      "@hydra/harness-hooks-claude-code/config": ["./packages/hooks/hooks-claude-code/src/config.ts"],
       "@hydra/harness-personalization": ["./packages/context/personalization/src"],
       "@hydra/harness-api-remotes/types": ["./packages/api/remotes/src/types.ts"],
       "@hydra/harness-api-remotes/invariant": ["./packages/api/remotes/src/invariant.ts"],
