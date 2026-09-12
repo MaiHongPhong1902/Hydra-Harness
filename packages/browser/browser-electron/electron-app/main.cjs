@@ -664,10 +664,12 @@ function navigationPolicy(contents, targetUrl) {
   if (targetUrl === 'about:blank') return true
   const origin = canonicalOrigin(targetUrl)
   if (origin === undefined) return false
+  const approval = approvedNavigations.get(contents)
+  if (approval?.user === true) return true
   if (nativeSettings.navigationPolicy === 'block') return false
   const existing = profileStore.sites[origin]
   if (siteNavigationBlocked(targetUrl)) return false
-  if (approvedNavigations.get(contents) === new URL(targetUrl).href) return true
+  if (approval?.url === new URL(targetUrl).href) return true
   if (canonicalOrigin(contents.getURL()) === origin) return true
   const policy = existing?.access ?? nativeSettings.navigationPolicy
   if (policy === 'allow') return true
@@ -675,15 +677,20 @@ function navigationPolicy(contents, targetUrl) {
   return undefined
 }
 
+/** User browsing lasts until the next agent command; Host approval covers only its exact URL. */
 async function loadAllowedUrl(contents, targetUrl, navigationApproved = false) {
-  if (navigationPolicy(contents, targetUrl) === false) {
-    throw new Error(`navigation to ${targetUrl} was blocked by Browser settings`)
-  }
-  if (navigationApproved) approvedNavigations.set(contents, new URL(targetUrl).href)
+  const approval = navigationApproved === 'user'
+    ? { user: true }
+    : navigationApproved === true ? { url: new URL(targetUrl).href } : undefined
+  if (approval === undefined) approvedNavigations.delete(contents)
+  else approvedNavigations.set(contents, approval)
   try {
+    if (navigationPolicy(contents, targetUrl) === false) {
+      throw new Error(`navigation to ${targetUrl} was blocked by Browser settings`)
+    }
     await contents.loadURL(targetUrl)
   } finally {
-    approvedNavigations.delete(contents)
+    if (approval?.user !== true && approvedNavigations.get(contents) === approval) approvedNavigations.delete(contents)
   }
 }
 
@@ -738,14 +745,16 @@ function historyDestination(contents, offset) {
 
 function moveInHistory(contents, offset) {
   const targetUrl = historyDestination(contents, offset)
-  if (targetUrl === undefined || siteNavigationBlocked(targetUrl)) return false
+  if (targetUrl === undefined) return false
+  approvedNavigations.set(contents, { user: true })
   contents.navigationHistory.goToIndex(contents.navigationHistory.getActiveIndex() + offset)
   return true
 }
 
-function reloadAllowed(contents) {
-  if (siteNavigationBlocked(contents.getURL())) return false
-  contents.reload()
+function reloadAllowed(contents, ignoreCache = false, userInput = true) {
+  if (userInput) approvedNavigations.set(contents, { user: true })
+  if (ignoreCache) contents.reloadIgnoringCache()
+  else contents.reload()
   return true
 }
 
@@ -791,15 +800,10 @@ async function routeUserUrl(value) {
     return { success: true, destination, url: url.href }
   }
   if (!createTab || !selectTab) throw new Error('tab controls are unavailable')
-  // A browser the user closed has no tab to compare against; the fresh tab's own
-  // will-navigate and main-frame request checks then decide this destination.
-  if (activeTab !== undefined && navigationPolicy(activeTab.view.webContents, url.href) === false) {
-    throw new Error(`navigation to ${url.href} was blocked by Browser settings`)
-  }
   const opened = createTab()
   selectTab(opened)
   try {
-    await opened.view.webContents.loadURL(url.href)
+    await loadAllowedUrl(opened.view.webContents, url.href, 'user')
   } catch (error) {
     if (tabs.size > 1 && closeTab) closeTab(opened)
     throw error
@@ -1267,7 +1271,7 @@ async function openPageMenu(tab, params) {
           const opened = createTab?.()
           if (opened && selectTab) {
             selectTab(opened)
-            void loadAllowedUrl(opened.view.webContents, params.linkURL)
+            void loadAllowedUrl(opened.view.webContents, params.linkURL, 'user')
           }
         },
       },
@@ -1288,7 +1292,7 @@ async function openPageMenu(tab, params) {
           const opened = createTab?.()
           if (opened && selectTab) {
             selectTab(opened)
-            void loadAllowedUrl(opened.view.webContents, params.srcURL)
+            void loadAllowedUrl(opened.view.webContents, params.srcURL, 'user')
           }
         },
       },
@@ -1315,7 +1319,7 @@ async function openPageMenu(tab, params) {
           const opened = createTab?.()
           if (opened && selectTab) {
             selectTab(opened)
-            void loadAllowedUrl(opened.view.webContents, `https://www.google.com/search?q=${encodeURIComponent(trimmed)}`)
+            void loadAllowedUrl(opened.view.webContents, `https://www.google.com/search?q=${encodeURIComponent(trimmed)}`, 'user')
           }
         },
       },
@@ -1424,7 +1428,7 @@ function openTabMenu(tabId) {
         if (createTab && selectTab) {
           const dup = createTab()
           selectTab(dup)
-          void loadAllowedUrl(dup.view.webContents, tab.view.webContents.getURL())
+          void loadAllowedUrl(dup.view.webContents, tab.view.webContents.getURL(), 'user')
         }
       },
     },
@@ -1495,7 +1499,7 @@ function openChromeMenu() {
           ...profileStore.bookmarks.slice(0, 15).map(bm => ({
             label: bm.title || bm.url,
             click: () => {
-              if (activeTab) void loadAllowedUrl(activeTab.view.webContents, bm.url)
+              if (activeTab) void loadAllowedUrl(activeTab.view.webContents, bm.url, 'user')
             },
           })),
         ] : []),
@@ -1516,7 +1520,7 @@ function openChromeMenu() {
           ...profileStore.history.slice(0, 15).map(h => ({
             label: h.title || h.url,
             click: () => {
-              if (activeTab) void loadAllowedUrl(activeTab.view.webContents, h.url)
+              if (activeTab) void loadAllowedUrl(activeTab.view.webContents, h.url, 'user')
             },
           })),
         ] : []),
@@ -1625,8 +1629,7 @@ function handleKeyboardShortcuts(event, input, tab) {
     event.preventDefault()
     const target = tab?.view.webContents ?? activeTab?.view.webContents
     if (target) {
-      if (input.shift) target.reloadIgnoringCache()
-      else reloadAllowed(target)
+      reloadAllowed(target, input.shift, activeBrowserCalls === 0)
     }
     return
   }
@@ -1644,11 +1647,11 @@ function handleKeyboardShortcuts(event, input, tab) {
   } else if (key === 'r' && !input.shift && !input.alt) {
     event.preventDefault()
     const target = tab?.view.webContents ?? activeTab?.view.webContents
-    if (target) reloadAllowed(target)
+    if (target) reloadAllowed(target, false, activeBrowserCalls === 0)
   } else if (key === 'r' && input.shift && !input.alt) {
     event.preventDefault()
     const target = tab?.view.webContents ?? activeTab?.view.webContents
-    if (target) target.reloadIgnoringCache()
+    if (target) reloadAllowed(target, true, activeBrowserCalls === 0)
   } else if (key === 'f' && !input.shift && !input.alt) {
     event.preventDefault()
     chrome?.webContents.send('browser-chrome:show-find')
@@ -2031,6 +2034,8 @@ function readCdpEvents(tab, args) {
  */
 async function handle(method, args) {
   if (isProfileManagement(method)) return await handleCommand(method, args)
+  const target = args?.tabId === undefined ? activeTab : tabs.get(args.tabId)
+  if (target && approvedNavigations.get(target.contents)?.user === true) approvedNavigations.delete(target.contents)
   activeBrowserCalls += 1
   updateBrowserActivity()
   try {
@@ -2412,10 +2417,11 @@ app.whenReady().then(async () => {
     })
     contents.setWindowOpenHandler(({ url }) => {
       if (navigationPolicy(contents, url) === false) return { action: 'deny' }
+      const userNavigation = approvedNavigations.get(contents)?.user === true
       const opened = createTab?.()
       if (!opened || !selectTab) return { action: 'deny' }
       selectTab(opened)
-      void loadAllowedUrl(opened.view.webContents, url).catch(error => {
+      void loadAllowedUrl(opened.view.webContents, url, userNavigation ? 'user' : false).catch(error => {
         if (!windowClosing && tabs.has(opened.id)) closeTab(opened)
         log('new-tab navigation failed:', error)
       })
@@ -2461,7 +2467,11 @@ app.whenReady().then(async () => {
         chrome.webContents.send('browser-chrome:found-in-page', result)
       }
     })
+    contents.on('before-mouse-event', (_event, input) => {
+      if (input.type === 'mouseDown' && activeBrowserCalls === 0) approvedNavigations.set(contents, { user: true })
+    })
     contents.on('before-input-event', (event, input) => {
+      if (input.type === 'keyDown' && activeBrowserCalls === 0) approvedNavigations.set(contents, { user: true })
       handleKeyboardShortcuts(event, input, tab)
     })
     for (const event of [
@@ -2532,7 +2542,7 @@ app.whenReady().then(async () => {
       if (typeof value !== 'string' || !value.trim()) return
       const tab = activeTab
       if (!tab) return
-      void loadAllowedUrl(tab.view.webContents, resolveOmnibox(value.trim()))
+      void loadAllowedUrl(tab.view.webContents, resolveOmnibox(value.trim()), 'user')
         .catch(error => log('omnibox navigation failed:', error))
     })
     ipcMain.on('browser-chrome:back', event => {
@@ -2586,12 +2596,12 @@ app.whenReady().then(async () => {
     })
     ipcMain.on('browser-chrome:hard-reload', event => {
       if (event.sender !== chrome.webContents || !activeTab) return
-      activeTab.view.webContents.reloadIgnoringCache()
+      reloadAllowed(activeTab.view.webContents, true)
     })
     ipcMain.on('browser-chrome:home', event => {
       if (event.sender !== chrome.webContents || !activeTab) return
       const homeUrl = HOME_URL ?? 'https://www.google.com'
-      void loadAllowedUrl(activeTab.view.webContents, homeUrl)
+      void loadAllowedUrl(activeTab.view.webContents, homeUrl, 'user')
     })
     ipcMain.on('browser-chrome:toggle-mute', (event, id) => {
       if (event.sender !== chrome.webContents) return

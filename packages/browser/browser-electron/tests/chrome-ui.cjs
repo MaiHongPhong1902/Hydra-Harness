@@ -11,6 +11,7 @@ let phase = 'starting'
 const annotations = []
 const permissions = []
 const requests = []
+const transcript = []
 let opened = 0
 let closed = 0
 let resolveController
@@ -32,7 +33,7 @@ function finish(ok, error) {
   if (finished) return
   finished = true
   clearTimeout(deadline)
-  process.stdout.write(`${JSON.stringify({ event: 'chrome-ui-test', ok, error: error?.stack ?? error?.message })}\n`)
+  process.stdout.write(`${JSON.stringify({ event: 'chrome-ui-test', ok, transcript, error: error?.stack ?? error?.message })}\n`)
   server.close()
   app.exit(ok ? 0 : 1)
 }
@@ -44,6 +45,11 @@ server = createServer((request, response) => {
   const received = { host: request.headers.host, url: request.url, method: request.method, body: '' }
   requests.push(received)
   request.on('data', chunk => { received.body += chunk })
+  if (request.url === '/redirect') {
+    response.writeHead(302, { location: `http://localhost:${server.address().port}/redirect-target` })
+    response.end()
+    return
+  }
   const title = {
     '/one': 'One',
     '/two': 'Two',
@@ -115,7 +121,7 @@ server.listen(0, '127.0.0.1', () => {
       `)
       await waitFor(async () => {
         const current = await state()
-        return current.url === `${address}${path}` && current.active === titles[path]
+        return current.url === `${address}${path}` && current.active === titles[path] && !activePage().isLoading()
       }).catch(async error => {
         let diagnostic
         try { diagnostic = await state() } catch (stateError) { diagnostic = `state read failed: ${stateError.message}` }
@@ -191,7 +197,108 @@ server.listen(0, '127.0.0.1', () => {
       const current = await state()
       return current.theme === systemTheme && controller.getState().themeColors === null
     })
+    phase = 'searching from the omnibox without a chat owner'
+    await configureNavigation('ask')
+    const searchUrl = 'https://www.google.com/search?q=googlr'
+    const searchRequests = []
+    const browserSession = activePage().session
+    await browserSession.protocol.handle('https', request => {
+      searchRequests.push(request.url)
+      return new Response('<!doctype html><title>Search results</title><h1>googlr</h1>', {
+        headers: { 'content-type': 'text/html' },
+      })
+    })
+    await chrome.executeJavaScript(`
+      document.getElementById('omnibox').value = 'googlr'
+      document.getElementById('omnibox-form').requestSubmit()
+    `)
+    await waitFor(async () => permissions.length > 0 || (await state()).active === 'Search results')
+    assert.equal(permissions.length, 0, 'a user-entered search requested chat approval')
+    assert.equal((await state()).url, searchUrl)
+    assert.ok(searchRequests.includes(searchUrl))
+    transcript.push({ action: 'search', input: 'googlr', url: (await state()).url, title: (await state()).active, permissionRequests: permissions.length })
+    await waitFor(() => !activePage().isLoading())
+    browserSession.protocol.unhandle('https')
+
+    phase = 'opening an address from the omnibox without a chat owner'
     await navigate('/one')
+    assert.equal(permissions.length, 0, 'a user-entered address requested chat approval')
+    assert.deepEqual(await controller.command('browser_sites'), [])
+    transcript.push({ action: 'address', url: (await state()).url.replace(address, '<fixture>'), title: (await state()).active, permissionRequests: permissions.length })
+    if (config.navigationOnly) {
+      phase = 'user navigation and redirects ignore agent and website blocks'
+      const otherOrigin = `http://localhost:${server.address().port}`
+      const target = `${otherOrigin}/two`
+      await configureNavigation('block')
+      await controller.command('set_browser_site', { origin: otherOrigin, access: 'block', media: 'block' })
+      await chrome.executeJavaScript(`
+        document.getElementById('omnibox').value = ${JSON.stringify(`${address}/redirect`)}
+        document.getElementById('omnibox-form').requestSubmit()
+      `)
+      await waitFor(async () => (await state()).url === `${otherOrigin}/redirect-target` && !activePage().isLoading())
+      assert.equal(permissions.length, 0)
+      transcript.push({ action: 'user-redirect', url: (await state()).url.replace(otherOrigin, '<other-origin>'), permissionRequests: permissions.length })
+      await assert.rejects(controller.command('navigate', { url: target, navigationApproved: true }), /blocked/)
+
+      phase = 'native page input takes over without authorizing agent input'
+      const inputPage = activePage()
+      const point = await inputPage.executeJavaScript(`(() => {
+        const link = document.createElement('a')
+        link.href = ${JSON.stringify(`${address}/one`)}
+        link.textContent = 'Open One'
+        document.body.append(link)
+        link.focus()
+        const rect = link.getBoundingClientRect()
+        return { x: Math.round(rect.x + rect.width / 2), y: Math.round(rect.y + rect.height / 2) }
+      })()`)
+      const agentNavigationBlocked = new Promise(resolve => inputPage.once('will-navigate', event => resolve(event.defaultPrevented)))
+      await controller.command('press', { key: 'Enter' })
+      assert.equal(await agentNavigationBlocked, true)
+      inputPage.sendInputEvent({ type: 'mouseDown', button: 'left', clickCount: 1, ...point })
+      inputPage.sendInputEvent({ type: 'mouseUp', button: 'left', clickCount: 1, ...point })
+      await waitFor(async () => (await state()).active === 'One' && !inputPage.isLoading())
+      assert.equal(permissions.length, 0)
+      transcript.push({ action: 'user-click', title: (await state()).active, permissionRequests: permissions.length })
+
+      phase = 'user browsing continues across links and browser controls'
+      await inputPage.executeJavaScript(`(() => {
+        const link = document.createElement('a')
+        link.href = ${JSON.stringify(target)}
+        document.body.append(link)
+        link.click()
+      })()`)
+      await waitFor(async () => (await state()).active === 'Two' && !inputPage.isLoading())
+      await chrome.executeJavaScript("document.getElementById('back').click()")
+      await waitFor(async () => (await state()).active === 'One' && !inputPage.isLoading())
+      await chrome.executeJavaScript("document.getElementById('forward').click()")
+      await waitFor(async () => (await state()).active === 'Two' && !inputPage.isLoading())
+      for (const hard of [false, true]) {
+        const beforeReload = requests.filter(request => request.url === '/two').length
+        if (hard) inputPage.sendInputEvent({ type: 'keyDown', keyCode: 'F5', modifiers: ['shift'] })
+        else await chrome.executeJavaScript("document.getElementById('reload').click()")
+        await waitFor(() => requests.filter(request => request.url === '/two').length > beforeReload && !inputPage.isLoading())
+      }
+      assert.equal(permissions.length, 0)
+      await inputPage.executeJavaScript(`window.open(${JSON.stringify(target)}, '_blank')`)
+      await waitFor(async () => (await state()).count === 2 && (await state()).active === 'Two' && !activePage().isLoading())
+      await assert.rejects(controller.command('route_user_url', { url: 'javascript:alert(1)' }), /HTTP\(S\)/)
+      await assert.rejects(controller.command('route_user_url', { url: 'file:///secret.txt' }), /HTTP\(S\)/)
+      await controller.command('route_user_url', { url: `${address}/one` })
+      await waitFor(async () => (await state()).active === 'One' && !activePage().isLoading())
+      transcript.push({ action: 'user-controls', title: (await state()).active, permissionRequests: permissions.length })
+
+      phase = 'agent redirects still require permission after user browsing'
+      await configureNavigation('ask')
+      await controller.command('remove_browser_site', { origin: otherOrigin })
+      const redirected = controller.command('navigate', { url: `${address}/redirect`, navigationApproved: true }).then(() => false, () => true)
+      await waitFor(() => permissions.length === 1)
+      await controller.request({ method: 'browser_permission_response', args: { id: permissions[0].id } })
+      assert.equal(await redirected, true)
+      assert.equal(requests.filter(request => request.url === '/redirect-target').length, 1)
+      finish(true)
+      return
+    }
+    await configureNavigation('allow')
     phase = 'waiting for first tab title'
     await waitFor(async () => (await state()).history.some(entry => entry.label === 'One' && entry.value === `${address}/one`))
 
@@ -387,7 +494,24 @@ server.listen(0, '127.0.0.1', () => {
     assert.deepEqual(await controller.command('browser_sites'), [])
     await configureNavigation('block')
     await assert.rejects(controller.command('navigate', { url: target }), /blocked/)
+    await assert.rejects(controller.command('navigate', { url: target, navigationApproved: true }), /blocked/)
     assert.equal(permissions.length, 5)
+
+    phase = 'an exact URL approval cannot override a website block'
+    await configureNavigation('ask')
+    await controller.command('set_browser_site', { origin: new URL(target).origin, access: 'block', media: 'block' })
+    await assert.rejects(controller.command('navigate', { url: target, navigationApproved: true }), /blocked/)
+
+    await controller.command('remove_browser_site', { origin: new URL(target).origin })
+    await navigate('/one')
+
+    phase = 'an exact URL approval does not approve a redirect destination'
+    const redirected = controller.command('navigate', { url: `${address}/redirect`, navigationApproved: true }).then(() => false, () => true)
+    await waitFor(() => permissions.length === 6)
+    assert.equal(permissions[5].request.origin, new URL(target).origin)
+    await controller.request({ method: 'browser_permission_response', args: { id: permissions[5].id } })
+    assert.equal(await redirected, true)
+    assert.equal(requests.some(request => request.url === '/redirect-target'), false)
     phase = 'closing the last controlled tab'
     await configureNavigation('allow')
     const tabIds = () => controller.getState().tabs.map(tab => tab.id)
@@ -438,5 +562,5 @@ server.listen(0, '127.0.0.1', () => {
     phase = 'closing the browser window'
     app.once('window-all-closed', () => finish(true))
     BrowserWindow.getAllWindows()[0]?.close()
-  })().catch(error => finish(false, new Error(`${phase}: ${error.message}`)))
+  })().catch(error => finish(false, new Error(`${phase}: ${error.stack ?? error.message}`)))
 })

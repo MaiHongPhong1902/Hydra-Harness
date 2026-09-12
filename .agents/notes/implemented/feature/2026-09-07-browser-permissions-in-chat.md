@@ -26,6 +26,6 @@ This extends the permission presentation described by [desktop browser settings]
 
 ## Consequences
 
-The browser remains responsive during human decisions. Unowned desktop browsing under an ask policy fails closed; users can configure global Browser permissions in Settings. Downloads use the owning conversation's execution approval. Screenshot prompts and elevated-risk settings confirmations retain their native presentation.
+The browser remains responsive during human decisions. Unowned page navigation under an ask policy fails closed; [direct native chrome navigation](../bug-fix/2026-09-12-omnibox-navigation-without-chat-owner.md) remains under the user's control for its full navigation chain. Users can configure global Browser permissions in Settings. Downloads use the owning conversation's execution approval. Screenshot prompts and elevated-risk settings confirmations retain their native presentation.
 
 Real Electron checks cover request blocking, exact-site persistence, cancellation, narrow toolbar dimensions, and page viewport resizing. The assembled web scenario exercises the Browser service through its child protocol and answers the resulting question in chat. Child-process checks cover paused deadlines and missing or cancelled answerers.

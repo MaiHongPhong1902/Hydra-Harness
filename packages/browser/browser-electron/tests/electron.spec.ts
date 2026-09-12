@@ -33,14 +33,14 @@ const NEXT_FIXTURE_FILE = fileURLToPath(new URL('./fixtures/next.html', import.m
 const CHROME_UI_DRIVER = fileURLToPath(new URL('./chrome-ui.cjs', import.meta.url))
 
 /** Drive the native chrome in a separate real Electron process. */
-function runChromeUi(profile: string): Promise<void> {
+function runChromeUi(profile: string, navigationOnly = false): Promise<unknown> {
   return new Promise((resolve, reject) => {
     const child = spawn(resolveElectronPath(), [
       CHROME_UI_DRIVER,
-      JSON.stringify({ userDataDir: profile, width: 1024, height: 768, show: false }),
+      JSON.stringify({ userDataDir: profile, width: 1024, height: 768, show: false, navigationOnly }),
     ])
     let stderr = ''
-    let result: { ok: boolean; error?: string } | undefined
+    let result: { ok: boolean; transcript?: unknown; error?: string } | undefined
     const timeout = setTimeout(() => {
       child.kill()
       reject(new Error(`native chrome test timed out\n${stderr}`))
@@ -48,10 +48,10 @@ function runChromeUi(profile: string): Promise<void> {
     child.stderr.on('data', (chunk) => { stderr += String(chunk) })
     createInterface({ input: child.stdout }).on('line', (line) => {
       try {
-        const message = JSON.parse(line) as { event?: string; ok?: boolean; error?: string }
+        const message = JSON.parse(line) as { event?: string; ok?: boolean; transcript?: unknown; error?: string }
         if (message.event === 'chrome-ui-test') {
           result = message.error === undefined
-            ? { ok: message.ok === true }
+            ? { ok: message.ok === true, transcript: message.transcript }
             : { ok: message.ok === true, error: message.error }
           child.kill()
         }
@@ -63,7 +63,7 @@ function runChromeUi(profile: string): Promise<void> {
     })
     child.once('exit', (code) => {
       clearTimeout(timeout)
-      if (result?.ok) resolve()
+      if (result?.ok) resolve(result.transcript)
       else reject(new Error(`native chrome test failed (exit ${code}): ${result?.error ?? ''}\n${stderr}`))
     })
   })
@@ -1079,10 +1079,66 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
     }
   }, 60_000)
 
+  it('keeps user browsing independent from agent navigation policy', async () => {
+    const chromeProfile = mkdtempSync(join(tmpdir(), 'hydra-browser-user-navigation-'))
+    try {
+      expect(await runChromeUi(chromeProfile, true)).toMatchInlineSnapshot(`
+        [
+          {
+            "action": "search",
+            "input": "googlr",
+            "permissionRequests": 0,
+            "title": "Search results",
+            "url": "https://www.google.com/search?q=googlr",
+          },
+          {
+            "action": "address",
+            "permissionRequests": 0,
+            "title": "One",
+            "url": "<fixture>/one",
+          },
+          {
+            "action": "user-redirect",
+            "permissionRequests": 0,
+            "url": "<other-origin>/redirect-target",
+          },
+          {
+            "action": "user-click",
+            "permissionRequests": 0,
+            "title": "One",
+          },
+          {
+            "action": "user-controls",
+            "permissionRequests": 0,
+            "title": "One",
+          },
+        ]
+      `)
+    } finally {
+      rmSync(chromeProfile, { recursive: true, force: true, maxRetries: 30, retryDelay: 100 })
+    }
+  }, 60_000)
+
   it('adds, selects, closes, and navigates native tabs', async () => {
     const chromeProfile = mkdtempSync(join(tmpdir(), 'hydra-browser-chrome-'))
     try {
-      await runChromeUi(chromeProfile)
+      expect(await runChromeUi(chromeProfile)).toMatchInlineSnapshot(`
+        [
+          {
+            "action": "search",
+            "input": "googlr",
+            "permissionRequests": 0,
+            "title": "Search results",
+            "url": "https://www.google.com/search?q=googlr",
+          },
+          {
+            "action": "address",
+            "permissionRequests": 0,
+            "title": "One",
+            "url": "<fixture>/one",
+          },
+        ]
+      `)
     } finally {
       rmSync(chromeProfile, { recursive: true, force: true, maxRetries: 30, retryDelay: 100 })
     }
