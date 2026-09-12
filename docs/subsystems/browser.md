@@ -1,6 +1,6 @@
 # Embedded Browser
 
-The embedded-browser seam: one Electron window per `Agent`, started on that agent's first action and closed with it, driven through [page-agent](https://github.com/alibaba/page-agent)'s `PageController` running in each controlled tab's preload. Two packages — the seam and process owner ([@hydra/harness-browser-electron](../../packages/browser/browser-electron), `ctx.browsers`), and the Consumer ([@hydra/harness-tool-browser](../../packages/browser/tool-browser), the `browser_*` tool schemas and the DOM-format prompt section). Browsing is **one optional capability**, not part of the agent-loop spine, so its vocabulary lives here rather than in [core.md](core.md).
+The embedded-browser seam: one Electron window per `Agent`, started on that agent's first action and closed with it, driven through [page-agent](https://github.com/alibaba/page-agent)'s `PageController` running in each controlled tab's preload. Two packages — the seam and process owner ([@hydra/harness-browser-electron](../../packages/browser/browser-electron), `ctx.browsers`), and the Consumer ([@hydra/harness-tool-browser](../../packages/browser/tool-browser), the `browser_*` tool schemas and the accessibility-snapshot prompt section). Browsing is **one optional capability**, not part of the agent-loop spine, so its vocabulary lives here rather than in [core.md](core.md).
 
 Source: [`packages/browser/browser-electron/src/types.ts`](../../packages/browser/browser-electron/src/types.ts)
 
@@ -8,7 +8,7 @@ Source: [`packages/browser/browser-electron/src/types.ts`](../../packages/browse
 
 Unlike [web.md](web.md), this seam has exactly one implementation and names it in the package: `@hydra/harness-browser-electron` both defines `ctx.browsers` and owns the Electron process behind it. A single-purpose plugin stays one package until a second backend actually exists; splitting the definition out now would be an interface with one implementation.
 
-The page-control modality is text, not pixels. `PageController` turns a targeted live DOM into a numbered element list (`[12]<button>Save</button>`) and acts by index, so the control loop uses neither screenshots nor a vision model. A user-created Browser annotation is a separate composer path that may attach a bounded screenshot of a selected element or viewport region. The native chrome and the model share one controlled-tab inventory and a functional omnibox.
+The page-control modality is an accessibility snapshot, not pixels. Chromium Accessibility.getFullAXTree supplies roles, accessible names, and states, joined to private PageController action refs (`[12]<button>Save</button>`), while `PageController` acts on the underlying element by index. A user-created Browser annotation is a separate composer path that may attach a bounded screenshot of a selected element or viewport region. The native chrome and the model share one controlled-tab inventory and a functional omnibox.
 
 Website and media permission requests use the owning chat through `ctx.userQuestions`; the Electron owner enforces the answer before continuing. The [package README](../../packages/browser/browser-electron/README.md#security) defines the policy and cancellation behavior.
 
@@ -19,7 +19,7 @@ Ordinary browser actions keep a per-tab revision and return a structural diff wh
 ## Page state
 
 ```ts type-equiv
-/** Text-DOM snapshot of the controlled page, as PageController renders it. */
+/** Accessibility snapshot of the controlled page with stable action refs. */
 interface BrowserState {
   /** Address currently loaded in the controlled view. */
   url: string
@@ -27,7 +27,7 @@ interface BrowserState {
   title: string
   /** Page metrics and scroll position, above the element listing. */
   header: string
-  /** Indexed interactive elements, `[12]<button>Save</button>` per line. */
+  /** Indexed accessibility nodes, `[12]<button>Save</button>` per line. */
   content: string
   /** Scroll hint below the element listing. */
   footer: string
@@ -46,7 +46,7 @@ interface BrowserState {
 
 Each `BrowserTabState` in `tabs` has a stable `id`, `url`, `title`, `status` (`loading` or `complete`), and `active` flag.
 
-`header`, `content`, and `footer` arrive already formatted by `PageController`, configured by the Hydra preload to include `disabled`, `aria-disabled`, and `href` alongside its own default attributes (`role`, `checked`/`aria-checked`, `aria-expanded`, and others). The Hydra preload ranks `content` so newly appeared and typical form controls survive a later cap; `@hydra/harness-tool-browser` omits only explicitly ignored accessibility nodes, ranks again, then cuts only `content` to the full (`browser_state` / `browser_navigate`) or compact (~4k) budget. Indices stay PageController's because the model projection never renumbers the seam's selector map.
+`header`, `content`, and `footer` arrive already formatted by the Hydra preload. `content` starts from roles, accessible names, and selected states, retains bounded `id`/`href` compatibility metadata, and includes plain page text not represented by an indexed control. `@hydra/harness-tool-browser` omits only explicitly ignored accessibility nodes, ranks again, then cuts only `content` to the full (`browser_state` / `browser_navigate`) or compact (~4k) budget. Indices stay PageController's because the model projection never renumbers the seam's selector map.
 
 ## Actions
 
@@ -76,14 +76,24 @@ type BrowserAction =
     | { method: 'forward' }
     | { method: 'press'; key: string }
     | { method: 'click_element'; index?: number; name?: string }
+    | { method: 'hover_element'; index?: number; name?: string }
+    | { method: 'drag_element'; startIndex: number; endIndex: number }
+    | { method: 'drop'; index: number; filePaths: string[]; data: Record<string, string> }
+    | { method: 'resize'; width: number; height: number }
+    | { method: 'handle_dialog'; accept: boolean; promptText?: string }
+    | { method: 'console_messages'; level: 'error' | 'warning' | 'info' | 'debug' }
+    | { method: 'network_requests'; includeStatic: boolean }
+    | { method: 'network_request'; index: number; part?: 'request-headers' | 'request-body' | 'response-headers' | 'response-body' }
     | { method: 'upload_file'; index: number; filePath: string }
     | { method: 'input_text'; index?: number; name?: string; text: string }
     | { method: 'select_option'; index?: number; name?: string; text: string }
+    | { method: 'select_text'; index?: number; name?: string; startX?: number; startY?: number; endX?: number; endY?: number; duration?: number; start_x?: number; start_y?: number; end_x?: number; end_y?: number }
     | { method: 'find_element'; query: string }
     | { method: 'fill_fields'; fields: BrowserFillField[] }
     | { method: 'scroll'; down: boolean; numPages: number; pixels?: number; index?: number }
     | { method: 'scroll_horizontally'; right: boolean; pixels: number; index?: number }
     | { method: 'wait'; seconds: number }
+    | { method: 'wait_for'; seconds: number; text?: string; textGone?: string }
     | { method: 'execute_javascript'; script: string }
     | { method: 'page_agent_run'; task: string }
     | { method: 'page_agent_status' }
@@ -94,7 +104,7 @@ type BrowserAction =
   | { method: 'close_tab'; tabId: number }
 ```
 
-The wire names are page-agent's own where possible. `navigate`, `back`, `forward`, `press`, bounded `wait`, and tab actions are answered by the Electron main process; DOM actions — including Hydra-owned `find_element` and `fill_fields` — reach the targeted view's preload and land in `PageController`. Click, type, and select accept an index or a visible `name`. `execute_javascript` is host-gated and runs only in PageController's isolated document world. `page_agent_*` starts the vendored ReAct engine only when requested explicitly.
+The wire names are page-agent's own where possible. `navigate`, `back`, `forward`, `press`, bounded `wait`, and tab actions are answered by the Electron main process; Page actions — including Hydra-owned `find_element` and `fill_fields` — reach the targeted view's preload and land in `PageController`. Click, type, and select accept an index or a visible `name`. `execute_javascript` is host-gated and runs only in PageController's isolated document world. `page_agent_*` starts the vendored ReAct engine only when requested explicitly.
 
 An action without `tabId` is a window-wide barrier and captures the selected tab when Electron receives it. Explicit targets are serialized per tab and may overlap across different tabs; switching the visible tab does not retarget or cancel them. Navigation, renderer loss, or tab closure rejects only the affected tab's calls.
 

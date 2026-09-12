@@ -41,7 +41,7 @@ This table connects model-visible tool names to the plugin package and service s
 | `@hydra/harness-tool-todo` | `todo_write` | `ctx.tools`, `owning Agent session` | `tool/call`, `todo/write`, `tool/result` | - | todo_write is session-owned state; UIs render the latest todo/write event as a checklist. `allowParallelInProgress` is required with no default, so the catalog states its choice: `true`, whose description invites several `in_progress` items. A deployment choosing `false` receives the same tool with a description asking for exactly one active task. |
 | `@hydra/harness-tool-workflow` | `workflow` | `ctx.tools`, `ctx.workflowEngine`, `ctx.systemPrompt`, `a calling Agent (exec.agent parents the script children)` | `tool/call`, `tool/result` | - | - |
 | `@hydra/harness-tool-web` | `web_fetch`, `web_search` | `ctx.tools`, `ctx.web`, `ctx.systemPrompt` | `tool/call`, `tool/result` | - | web_search and web_fetch keep provider selection behind ctx.web so model-visible schemas stay stable across backend swaps. |
-| `@hydra/harness-tool-browser` | `browser_back`, `browser_click`, `browser_close_tab`, `browser_fill`, `browser_find`, `browser_forward`, `browser_history_search`, `browser_navigate`, `browser_open_tab`, `browser_page_agent_run`, `browser_page_agent_status`, `browser_page_agent_stop`, `browser_press`, `browser_scroll`, `browser_scroll_horizontally`, `browser_select_option`, `browser_state`, `browser_switch_tab`, `browser_type`, `browser_upload_file`, `browser_wait` | `ctx.tools`, `ctx.browsers`, `ctx.systemPrompt`, `a calling Agent (the window is owned per agent)` | `tool/call`, `tool/result` | - | The embedded browser window opens on the first browser_* call of an agent and closes with it. Without the optional electron package the tools still register and every call fails with BROWSER_UNAVAILABLE. |
+| `@hydra/harness-tool-browser` | `browser_back`, `browser_click`, `browser_close`, `browser_close_tab`, `browser_console_messages`, `browser_drag`, `browser_drop`, `browser_file_upload`, `browser_fill`, `browser_fill_form`, `browser_find`, `browser_forward`, `browser_handle_dialog`, `browser_history_search`, `browser_hover`, `browser_navigate`, `browser_navigate_back`, `browser_network_request`, `browser_network_requests`, `browser_open_tab`, `browser_page_agent_run`, `browser_page_agent_status`, `browser_page_agent_stop`, `browser_press`, `browser_press_key`, `browser_resize`, `browser_scroll`, `browser_scroll_horizontally`, `browser_select_option`, `browser_select_text`, `browser_snapshot`, `browser_state`, `browser_switch_tab`, `browser_tabs`, `browser_type`, `browser_upload_file`, `browser_wait`, `browser_wait_for` | `ctx.tools`, `ctx.browsers`, `ctx.systemPrompt`, `a calling Agent (the window is owned per agent)` | `tool/call`, `tool/result` | - | The embedded browser window opens on the first browser_* call of an agent and closes with it. Without the optional electron package the tools still register and every call fails with BROWSER_UNAVAILABLE. |
 
 <a id="hydraharness-tool-ask-user"></a>
 
@@ -2337,6 +2337,19 @@ Click a control from the latest snapshot by index or by visible name. Indexes ar
 
 Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
 
+### `browser_close`
+
+Close this agent's controlled browser and release its tabs. A later browser call opens a fresh controller.
+
+```json
+{
+  "type": "object",
+  "properties": {}
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
 ### `browser_close_tab`
 
 Close a controlled tab by id. The agent cannot close the last tab or the browser window.
@@ -2352,6 +2365,131 @@ Close a controlled tab by id. The agent cannot close the last tab or the browser
   },
   "required": [
     "tab_id"
+  ]
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_console_messages`
+
+Read retained console messages for this tab. Includes the selected level and more severe levels.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "level": {
+      "type": "string",
+      "description": "Minimum severity. Defaults to info.",
+      "enum": [
+        "error",
+        "warning",
+        "info",
+        "debug"
+      ]
+    },
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  }
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_drag`
+
+Drag from one observed accessibility ref to another with the native browser pointer held down.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "start_index": {
+      "type": "integer",
+      "description": "Source ref from the latest snapshot."
+    },
+    "end_index": {
+      "type": "integer",
+      "description": "Destination ref from the same snapshot."
+    },
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  },
+  "required": [
+    "start_index",
+    "end_index"
+  ]
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_drop`
+
+Drop local files or MIME-typed text onto an observed accessibility ref. Local files follow Browser Uploads permissions.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "index": {
+      "type": "integer",
+      "description": "Destination ref from the latest snapshot."
+    },
+    "paths": {
+      "type": "array",
+      "description": "Absolute paths of readable local files.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "data": {
+      "type": "object",
+      "description": "MIME type to text, for example text/plain.",
+      "additionalProperties": true
+    },
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  },
+  "required": [
+    "index"
+  ]
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_file_upload`
+
+Choose a local file through an accessibility ref, matching Playwright MCP semantics.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "index": {
+      "type": "integer",
+      "description": "Accessibility ref of the file input."
+    },
+    "path": {
+      "type": "string",
+      "description": "Absolute path of the readable local file."
+    },
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  },
+  "required": [
+    "index",
+    "path"
   ]
 }
 ```
@@ -2384,6 +2522,52 @@ Type several named or indexed fields in one call. Each field is re-resolved afte
           "text": {
             "type": "string",
             "description": "Text to put in the field."
+          }
+        },
+        "required": [
+          "text"
+        ]
+      }
+    },
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  },
+  "required": [
+    "fields"
+  ]
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_fill_form`
+
+Fill multiple form controls by accessibility ref or accessible name, matching Playwright MCP semantics.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "fields": {
+      "type": "array",
+      "description": "Fields to fill, each identified by index or accessible name.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "index": {
+            "type": "integer",
+            "description": "Element index from the latest browser result. Provide this or name."
+          },
+          "name": {
+            "type": "string",
+            "description": "Visible label, accessible name, placeholder, or id from the latest snapshot. Use instead of index when the control is named."
+          },
+          "text": {
+            "type": "string",
+            "description": "Value to put in the field."
           }
         },
         "required": [
@@ -2447,6 +2631,35 @@ Go forward to the next page in this window. Reports a failure when there is noth
 
 Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
 
+### `browser_handle_dialog`
+
+Accept or dismiss the current JavaScript alert, confirm, or prompt dialog.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "accept": {
+      "type": "boolean",
+      "description": "Accept when true; dismiss when false."
+    },
+    "promptText": {
+      "type": "string",
+      "description": "Text to enter in a prompt dialog."
+    },
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  },
+  "required": [
+    "accept"
+  ]
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
 ### `browser_history_search`
 
 Search the built-in Browser profile history after applying the user's sensitive-history access policy. Returns at most 20 matching pages; use browser_navigate to reopen one.
@@ -2463,6 +2676,32 @@ Search the built-in Browser profile history after applying the user's sensitive-
   "required": [
     "query"
   ]
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_hover`
+
+Move the native browser pointer onto an observed accessibility ref or named control and return the resulting snapshot.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "index": {
+      "type": "integer",
+      "description": "Element index from the latest browser result. Provide this or name."
+    },
+    "name": {
+      "type": "string",
+      "description": "Visible label, accessible name, placeholder, or id from the latest snapshot. Use instead of index when the control is named."
+    },
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  }
 }
 ```
 
@@ -2488,6 +2727,81 @@ Open a URL in the embedded browser and return the page as a numbered element lis
   "required": [
     "url"
   ]
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_navigate_back`
+
+Navigate back one page and return a fresh accessibility snapshot.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  }
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_network_request`
+
+Read headers or body for a retained network request from browser_network_requests. Bodies may expire from Chromium storage.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "index": {
+      "type": "integer",
+      "description": "Request index from browser_network_requests."
+    },
+    "part": {
+      "type": "string",
+      "description": "Omit for request and response headers.",
+      "enum": [
+        "request-headers",
+        "request-body",
+        "response-headers",
+        "response-body"
+      ]
+    },
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  },
+  "required": [
+    "index"
+  ]
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_network_requests`
+
+List retained network requests for this tab with stable request indexes for browser_network_request.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "static": {
+      "type": "boolean",
+      "description": "Include successful static resources. Defaults to false."
+    },
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  }
 }
 ```
 
@@ -2591,6 +2905,61 @@ Send one key to whatever the page has focused — Enter to submit a form, Tab to
   },
   "required": [
     "key"
+  ]
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_press_key`
+
+Press one keyboard key using the focused page control, matching Playwright MCP semantics.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Key name such as Enter, Tab, Escape, or Backspace."
+    },
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  },
+  "required": [
+    "key"
+  ]
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_resize`
+
+Set the controlled page viewport size in CSS pixels.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "width": {
+      "type": "integer",
+      "description": "Viewport width, from 1 to 8192 pixels."
+    },
+    "height": {
+      "type": "integer",
+      "description": "Viewport height, from 1 to 8192 pixels."
+    },
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  },
+  "required": [
+    "width",
+    "height"
   ]
 }
 ```
@@ -2701,6 +3070,66 @@ Choose a dropdown option by the control's index or visible name and the option's
 
 Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
 
+### `browser_select_text`
+
+Select text across an element by index or visible name, or between explicit coordinates, animating the virtual cursor and updating the native DOM selection.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "index": {
+      "type": "integer",
+      "description": "Element index from the latest browser result. Provide this or name."
+    },
+    "name": {
+      "type": "string",
+      "description": "Visible label, accessible name, placeholder, or id from the latest snapshot. Use instead of index when the control is named."
+    },
+    "start_x": {
+      "type": "number",
+      "description": "Start X coordinate in CSS pixels."
+    },
+    "start_y": {
+      "type": "number",
+      "description": "Start Y coordinate in CSS pixels."
+    },
+    "end_x": {
+      "type": "number",
+      "description": "End X coordinate in CSS pixels."
+    },
+    "end_y": {
+      "type": "number",
+      "description": "End Y coordinate in CSS pixels."
+    },
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  }
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_snapshot`
+
+Return the current page as a Playwright-style accessibility snapshot with numbered refs.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  }
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
 ### `browser_state`
 
 Re-read the current page of the embedded browser, with a bounded readiness wait for SPA or SSO transitions. Every other browser tool already returns fresh state.
@@ -2734,6 +3163,40 @@ Select a controlled tab by an id from the latest browser result, then return its
   },
   "required": [
     "tab_id"
+  ]
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_tabs`
+
+List, create, close, or select a controlled browser tab, matching Playwright MCP tab management.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": [
+        "list",
+        "new",
+        "close",
+        "select"
+      ]
+    },
+    "index": {
+      "type": "integer",
+      "description": "Tab id from the latest snapshot for close/select."
+    },
+    "url": {
+      "type": "string",
+      "description": "Absolute HTTP(S) URL for a new tab."
+    }
+  },
+  "required": [
+    "action"
   ]
 }
 ```
@@ -2823,6 +3286,36 @@ Wait up to 1–10 seconds for delayed page data, animation, or navigation, then 
   "required": [
     "seconds"
   ]
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
+### `browser_wait_for`
+
+Wait up to ten seconds for text to appear or disappear in the accessibility snapshot, or wait for the specified time.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "time": {
+      "type": "number",
+      "description": "Seconds to wait, from 1 through 10."
+    },
+    "text": {
+      "type": "string",
+      "description": "Optional text expected in the returned accessibility snapshot."
+    },
+    "text_gone": {
+      "type": "string",
+      "description": "Optional text expected to be absent from the returned snapshot."
+    },
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  }
 }
 ```
 

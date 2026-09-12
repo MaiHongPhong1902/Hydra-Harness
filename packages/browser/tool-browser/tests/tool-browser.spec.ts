@@ -67,6 +67,7 @@ class ScriptedChild extends EventEmitter implements BrowserChildProcess {
 
   constructor(private readonly content: string) {
     super()
+    this.stdin.on('finish', () => this.emit('exit'))
     createInterface({ input: this.stdin }).on('line', (line: string) => {
       const { id, method, args } = JSON.parse(line) as { id: number; method: string; args: Record<string, unknown> }
       this.requests.push({ method, args })
@@ -239,17 +240,17 @@ function text(content: readonly ContentBlock[]): string {
 }
 
 describe('tool-browser registration', () => {
-  it('registers the browser tools and the DOM-format prompt section', async () => {
+  it('registers the browser tools and the accessibility-snapshot prompt section', async () => {
     const { ctx } = await harness()
     expect(ctx.tools.schemas().map(tool => tool.name).filter(name => name.startsWith('browser_')).sort())
       .toEqual([
-        'browser_back', 'browser_click', 'browser_close_tab', 'browser_fill', 'browser_find', 'browser_forward',
-        'browser_history_search', 'browser_navigate',
+        'browser_back', 'browser_click', 'browser_close', 'browser_close_tab', 'browser_console_messages', 'browser_drag', 'browser_drop', 'browser_file_upload', 'browser_fill', 'browser_fill_form',
+        'browser_find', 'browser_forward', 'browser_history_search', 'browser_navigate', 'browser_navigate_back',
         'browser_open_tab', 'browser_page_agent_run', 'browser_page_agent_status', 'browser_page_agent_stop',
-        'browser_press', 'browser_screenshot', 'browser_scroll', 'browser_scroll_horizontally',
-        'browser_select_option', 'browser_state', 'browser_switch_tab', 'browser_type',
-        'browser_upload_file', 'browser_wait',
-      ])
+        'browser_press', 'browser_press_key', 'browser_screenshot', 'browser_scroll', 'browser_scroll_horizontally',
+        'browser_select_option', 'browser_select_text', 'browser_resize', 'browser_snapshot', 'browser_state', 'browser_switch_tab', 'browser_tabs',
+        'browser_take_screenshot', 'browser_type', 'browser_upload_file', 'browser_wait', 'browser_wait_for', 'browser_handle_dialog', 'browser_hover', 'browser_network_request', 'browser_network_requests',
+      ].sort())
     const assembly = await ctx.systemPrompt.assemble()
     const section = assembly.sections.find(entry => entry.name === BROWSER_PROMPT_NAME)
     expect(section?.text).toBe(BROWSER_PROMPT_TEXT)
@@ -267,6 +268,40 @@ describe('tool-browser registration', () => {
     expect((await call('browser_state', {})).isError).toBe(false)
     expect(JSON.stringify(ctx.tools.schemas())).toBe(beforeSchemas)
     expect(JSON.stringify(await ctx.systemPrompt.assemble())).toBe(beforePrompt)
+  })
+
+  it('routes accessibility actions and file drops through the browser permissions', async () => {
+    const { ctx, call, children } = await harness()
+    for (const [name, args] of [
+      ['browser_hover', { index: 1 }],
+      ['browser_drag', { start_index: 0, end_index: 1 }],
+      ['browser_resize', { width: 800, height: 600 }],
+      ['browser_handle_dialog', { accept: false }],
+      ['browser_console_messages', {}],
+      ['browser_network_requests', {}],
+      ['browser_network_request', { index: 1, part: 'response-body' }],
+      ['browser_wait_for', { text: 'Order' }],
+      ['browser_drop', { index: 1, paths: [UPLOAD_FIXTURE], data: { 'text/plain': 'Order' } }],
+    ] as const) expect((await call(name, args)).isError, name).toBe(false)
+    expect(children[0]?.requests).toContainEqual({ method: 'drop', args: { index: 1, filePaths: [realpathSync(UPLOAD_FIXTURE)], data: { 'text/plain': 'Order' }, expectedOrigin: 'https://shop.test', tabId: 1 } })
+    await ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, { browserPermissions: { browsing: 'allow', uploads: 'block', downloads: 'allow' } })
+    expect((await call('browser_drop', { index: 1, paths: [UPLOAD_FIXTURE] })).isError).toBe(true)
+    expect((await call('browser_drop', { index: 1, data: { 'text/plain': 'Allowed text' } })).isError).toBe(false)
+    expect((await call('browser_drop', { index: 1, data: { 'text/plain': 123 } })).isError).toBe(true)
+    expect((await call('browser_wait_for', { time: -1 })).isError).toBe(true)
+    expect((await call('browser_close', {})).isError).toBe(false)
+    expect((await call('browser_snapshot', {})).isError).toBe(false)
+    expect(children).toHaveLength(2)
+  })
+
+  it('routes MCP-shaped aliases through the existing browser seam', async () => {
+    const { call, children } = await harness()
+    expect((await call('browser_snapshot', {})).isError).toBe(false)
+    expect((await call('browser_fill_form', { fields: [{ index: 1, text: 'Ada' }] })).isError).toBe(false)
+    expect((await call('browser_press_key', { key: 'Enter' })).isError).toBe(false)
+    expect(children[0]?.requests.map(request => request.method)).toEqual([
+      'get_browser_state', 'fill_fields', 'get_browser_state', 'press', 'get_browser_state',
+    ])
   })
 
   it('refuses a non-positive character cap or timeout', () => {
@@ -485,6 +520,7 @@ describe('browser tool calls', () => {
     await call('browser_type', { index: 1, text: 'hello' })
     await call('browser_upload_file', { index: 3, path: UPLOAD_FIXTURE })
     await call('browser_select_option', { index: 2, text: 'Express' })
+    await call('browser_select_text', { index: 2 })
     await call('browser_scroll', { down: true })
     await call('browser_scroll', { down: false, num_pages: 3, pixels: 200, index: 4 })
     await call('browser_scroll_horizontally', { right: true, pixels: 300, index: 5 })
@@ -510,6 +546,7 @@ describe('browser tool calls', () => {
         },
       },
       { method: 'select_option', args: { index: 2, text: 'Express' } },
+      { method: 'select_text', args: { index: 2 } },
       { method: 'scroll', args: { down: true, numPages: 1 } },
       { method: 'scroll', args: { down: false, numPages: 3, pixels: 200, index: 4 } },
       { method: 'scroll_horizontally', args: { right: true, pixels: 300, index: 5 } },
@@ -549,6 +586,19 @@ describe('browser tool calls', () => {
     expect(unnamed.isError).toBe(true)
     expect(text(unnamed.content)).toContain('provide index or a non-empty name')
     expect(children).toHaveLength(0)
+  })
+
+  it('forwards select_text with explicit coordinates or named targets and rejects empty arguments', async () => {
+    const { children, call } = await harness()
+    await call('browser_select_text', { start_x: 10, start_y: 20, end_x: 100, end_y: 20 })
+    await call('browser_select_text', { name: 'Title' })
+    expect(children[0]?.requests.filter(request => request.method !== 'get_browser_state')).toEqual([
+      { method: 'select_text', args: { startX: 10, startY: 20, endX: 100, endY: 20 } },
+      { method: 'select_text', args: { name: 'Title' } },
+    ])
+    const empty = await call('browser_select_text', {})
+    expect(empty.isError).toBe(true)
+    expect(text(empty.content)).toContain('provide index, a non-empty name, or start and end coordinates')
   })
 
   it('rejects a blank key before touching the page', async () => {
@@ -634,6 +684,10 @@ describe('browser call presentation', () => {
       .toEqual({ card: 'generic', title: 'Upload file through [5]', kind: 'execute', rawInput: 'C:\\test\\artifact.json' })
     expect(present('browser_select_option', { index: 4, text: 'Express' }))
       .toEqual({ card: 'generic', title: 'Select "Express" in [4]', kind: 'execute' })
+    expect(present('browser_select_text', { index: 4 }))
+      .toEqual({ card: 'generic', title: 'Select text in [4]', kind: 'execute' })
+    expect(present('browser_select_text', { name: 'Title' }))
+      .toEqual({ card: 'generic', title: 'Select text in Title', kind: 'execute' })
     expect(present('browser_scroll', { down: true })).toEqual({ card: 'generic', title: 'Scroll down', kind: 'execute' })
     expect(present('browser_scroll', { down: false })).toEqual({ card: 'generic', title: 'Scroll up', kind: 'execute' })
     expect(present('browser_scroll_horizontally', { right: true, pixels: 100 })).toEqual({ card: 'generic', title: 'Scroll right', kind: 'execute' })
@@ -702,10 +756,12 @@ describe('browser snapshot ranking', () => {
       '\t*[11]<button>Save</button>',
       '[10]<span>hint</span>',
       '[8]<input id=who/>',
+      '[12]<textbox>Name</textbox>',
       'plain text',
     ].join('\n')).split('\n')).toEqual([
       '\t*[11]<button>Save</button>',
       '[8]<input id=who/>',
+      '[12]<textbox>Name</textbox>',
       '[9]<div>User form</div>',
       '[10]<span>hint</span>',
       'plain text',
@@ -834,15 +890,16 @@ describe('browser snapshot ranking', () => {
         title: 'Help',
         header: 'Current Page: [Help](https://shop.test/help)',
         content: '[0]<a>Home</a>',
-        footer: '[End of page]',
+        footer: 'Open confirm dialog: Continue?',
         tabs: [{ id: 2, url: 'https://shop.test/help', title: 'Help', status: 'complete', active: false }],
         tabId: 2,
         activeTabId: 1,
         settled: false,
         capturedAt: '2026-09-07T00:00:00.000Z',
       },
-    }, 16_000, { compact: true })
+    }, 16_000, { compact: true, previousElements: ['[0]<a>Home</a>'], previousContent: '[0]<a>Home</a>', previousRevision: 1, previousUrl: 'https://shop.test/help' })
     const inactiveText = formatBrowserOutput(inactive)
+    expect(inactiveText).toContain('Open confirm dialog: Continue?')
     expect(inactiveText).toContain('Tab [2] Help — https://shop.test/help')
     expect(inactiveText).not.toContain('(active)')
     expect(inactiveText).toContain('(background)')

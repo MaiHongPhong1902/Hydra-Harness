@@ -527,6 +527,7 @@ async function flushSessionCookies() {
 /** In-flight `page-control` requests, keyed by the id the preload echoes back. */
 const pendingPageCalls = new Map()
 let nextPageCallId = 1
+const nativeMouseTabs = new Set()
 
 /** In-flight PageAgent model requests awaiting the owning Hydra agent. */
 const pendingPageAgentLlmCalls = new Map()
@@ -575,7 +576,7 @@ function isControlledContents(contents) {
   return Array.from(tabs.values()).some(tab => tab.view.webContents === contents)
 }
 
-/** Attach the tab-scoped debugger once and retain it only for full CDP. */
+/** Share the owned debugger between accessibility, native input, and diagnostics. */
 function ensureTabDebugger(tab, persistent) {
   const devtools = tab.view.webContents.debugger
   if (tab.cdp.owned && devtools.isAttached()) {
@@ -593,10 +594,12 @@ function ensureTabDebugger(tab, persistent) {
 
 /** Release only a debugger attachment owned by this controller. */
 function detachTabDebugger(tab, clear) {
+  nativeMouseTabs.delete(tab)
   const contents = tab.contents
   const owned = tab.cdp.owned
   tab.cdp.owned = false
   tab.cdp.persistent = false
+  tab.cdp.raw = false
   if (clear) {
     tab.cdp.events = []
     tab.cdp.bytes = 0
@@ -688,7 +691,32 @@ async function loadAllowedUrl(contents, targetUrl, navigationApproved = false) {
     if (navigationPolicy(contents, targetUrl) === false) {
       throw new Error(`navigation to ${targetUrl} was blocked by Browser settings`)
     }
-    await contents.loadURL(targetUrl)
+    let settled = false
+    let timer
+    const ready = new Promise((resolve, reject) => {
+      const finish = error => {
+        if (settled) return
+        settled = true
+        clearTimeout(timer)
+        contents.removeListener('dom-ready', onReady)
+        contents.removeListener('did-fail-load', onFailed)
+        contents.removeListener('destroyed', onDestroyed)
+        contents.removeListener('render-process-gone', onDestroyed)
+        if (error === undefined) resolve()
+        else reject(error)
+      }
+      const onReady = () => finish()
+      const onFailed = (_event, errorCode, errorDescription, validatedURL, isMainFrame) => {
+        if (isMainFrame) finish(new Error(`navigation could not load ${validatedURL}: ${errorDescription} (${errorCode})`))
+      }
+      const onDestroyed = () => finish(new Error('browser tab closed during navigation'))
+      timer = setTimeout(() => finish(new Error(`navigation to ${targetUrl} did not become ready within ${READINESS_TIMEOUT_MS}ms`)), READINESS_TIMEOUT_MS)
+      contents.once('dom-ready', onReady)
+      contents.on('did-fail-load', onFailed)
+      contents.once('destroyed', onDestroyed)
+      contents.once('render-process-gone', onDestroyed)
+    })
+    await Promise.race([contents.loadURL(targetUrl), ready])
   } finally {
     if (approval?.user !== true && approvedNavigations.get(contents) === approval) approvedNavigations.delete(contents)
   }
@@ -1024,10 +1052,50 @@ async function pageControl(tab, action, args) {
   if (contents.getURL() === '' && !contents.isLoading()) {
     await contents.loadURL('about:blank')
   }
+  if (!tab.preloadReady) {
+    await new Promise((resolve, reject) => {
+      let settled = false
+      const finish = error => {
+        if (settled) return
+        settled = true
+        clearTimeout(timer)
+        contents.removeListener('dom-ready', ready)
+        contents.removeListener('did-fail-load', failed)
+        contents.removeListener('destroyed', destroyed)
+        contents.removeListener('render-process-gone', destroyed)
+        if (error === undefined) resolve()
+        else reject(error)
+      }
+      const ready = () => finish()
+      const destroyed = () => finish(new Error('page preload became unavailable before it was ready'))
+      const failed = (_event, errorCode, errorDescription, validatedURL, isMainFrame) => {
+        if (isMainFrame) finish(new Error(`page preload could not load ${validatedURL}: ${errorDescription} (${errorCode})`))
+      }
+      const timer = setTimeout(() => finish(new Error('page preload did not become ready before navigation timed out')), READINESS_TIMEOUT_MS)
+      contents.once('dom-ready', ready)
+      contents.on('did-fail-load', failed)
+      contents.once('destroyed', destroyed)
+      contents.once('render-process-gone', destroyed)
+    })
+  }
   return await new Promise((resolve, reject) => {
     const id = nextPageCallId++
-    pendingPageCalls.set(id, { resolve, reject, tab })
-    contents.send('page-control', { id, action, args })
+    const timer = setTimeout(() => {
+      pendingPageCalls.delete(id)
+      reject(new Error(`page preload did not answer ${action} within ${READINESS_TIMEOUT_MS}ms`))
+    }, READINESS_TIMEOUT_MS)
+    const pending = {
+      tab,
+      resolve(value) { clearTimeout(timer); resolve(value) },
+      reject(error) { clearTimeout(timer); reject(error) },
+    }
+    pendingPageCalls.set(id, pending)
+    try {
+      contents.send('page-control', { id, action, args })
+    } catch (error) {
+      pendingPageCalls.delete(id)
+      pending.reject(error)
+    }
   })
 }
 
@@ -1742,6 +1810,7 @@ function tabStates() {
 /** Add browser-window evidence that PageController cannot observe by itself. */
 function completeState(tab, state, settled) {
   const inventory = tabStates()
+  tab.lastState = state
   return {
     ...state,
     ...(downloadDenials.has(tab.view.webContents)
@@ -1766,6 +1835,12 @@ function isUsableState(state) {
  * transitions until Chromium is idle and PageController exposes usable content.
  */
 async function readBrowserState(tab, waitForReady, followActive) {
+  if (tab.dialog) {
+    return completeState(tab, {
+      ...(tab.lastState ?? { url: tab.contents.getURL(), title: tab.contents.getTitle(), header: '', content: '' }),
+      footer: `Open ${tab.dialog.type} dialog: ${tab.dialog.message}. Use browser_handle_dialog to continue.`,
+    }, false)
+  }
   const deadline = Date.now() + (waitForReady ? READINESS_TIMEOUT_MS : 0)
   let candidateSince
   let candidateUrl
@@ -1830,6 +1905,115 @@ ipcMain.handle('page-agent:llm', async (event, request) => {
   const tab = Array.from(tabs.values()).find(candidate => candidate.view.webContents === event.sender)
   if (!tab) throw new Error('PageAgent request did not originate from a controlled tab')
   return await pageAgentLlm(tab, request)
+})
+
+/** Serialize Chromium's accessibility tree, joined to the preload's action refs. */
+async function readAccessibilitySnapshot(tab) {
+  const devtools = tab.view.webContents.debugger
+  const attached = ensureTabDebugger(tab, false)
+  try {
+    const document = await devtools.sendCommand('DOM.getDocument', { depth: -1, pierce: true })
+    const refs = new Map()
+    const visit = node => {
+      const attrs = new Map()
+      for (let i = 0; i < (node.attributes?.length ?? 0); i += 2) attrs.set(node.attributes[i], node.attributes[i + 1])
+      const ref = attrs.get('data-hydra-a11y-ref')
+      if (/^e\d+$/u.test(ref ?? '')) refs.set(node.backendNodeId, { index: Number(ref.slice(1)), attrs })
+      for (const child of [...node.children ?? [], ...node.shadowRoots ?? []]) visit(child)
+      if (node.contentDocument) visit(node.contentDocument)
+    }
+    visit(document.root)
+    const { nodes } = await devtools.sendCommand('Accessibility.getFullAXTree')
+    const escaped = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;')
+    const lines = []
+    const emitted = new Set()
+    for (const node of nodes) {
+      if (node.ignored) continue
+      const matched = refs.get(node.backendDOMNodeId)
+      const role = String(node.role?.value ?? 'generic').toLowerCase()
+      const name = String(node.name?.value ?? '')
+      if (matched === undefined) {
+        if (role === 'statictext' && name.trim()) lines.push(escaped(name))
+        continue
+      }
+      const { index, attrs } = matched
+      if (emitted.has(index)) continue
+      emitted.add(index)
+      const properties = []
+      for (const property of node.properties ?? []) {
+        if (['checked', 'expanded', 'disabled', 'selected', 'pressed', 'level', 'required', 'readonly', 'invalid'].includes(property.name)) {
+          properties.push(`${property.name}="${escaped(property.value?.value)}"`)
+        }
+      }
+      if (attrs.has('id')) properties.push(`id=${escaped(attrs.get('id'))}`)
+      if (attrs.get('type') === 'file') properties.push('type=file')
+      if (attrs.has('href')) properties.push(`href="${escaped(attrs.get('href'))}"`)
+      const value = attrs.get('type') === 'password' ? '[redacted]' : node.value?.value
+      if (value !== undefined && value !== '') properties.push(`value=${escaped(value)}`)
+      const suffix = properties.length ? ` ${properties.join(' ')}` : ''
+      lines.push(`[${index}]<${role}${suffix}>${escaped(name)}</${role}>`)
+    }
+    // Hidden chooser inputs are absent from AX but remain an explicit upload target.
+    for (const { index, attrs } of refs.values()) {
+      if (emitted.has(index) || attrs.get('type') !== 'file' || attrs.has('disabled')) continue
+      const metadata = ['type=file']
+      for (const name of ['id', 'name']) {
+        if (attrs.has(name)) metadata.push(`${name}=${escaped(attrs.get(name))}`)
+      }
+      lines.push(`[${index}]<button ${metadata.join(' ')}>${escaped(attrs.get('aria-label') ?? 'Choose file')}</button>`)
+    }
+    return lines.join('\n')
+  } finally {
+    if (attached && !tab.cdp.persistent) detachTabDebugger(tab, false)
+  }
+}
+
+ipcMain.handle('browser:accessibility-snapshot', async event => {
+  const tab = Array.from(tabs.values()).find(candidate => candidate.view.webContents === event.sender)
+  if (!tab) throw new Error('accessibility request did not originate from a controlled tab')
+  return await readAccessibilitySnapshot(tab)
+})
+
+/** Forward agent mouse actions through Chromium's native input path. */
+ipcMain.handle('browser:native-mouse', async (event, input) => {
+  const tab = Array.from(tabs.values()).find(candidate => candidate.view.webContents === event.sender)
+  if (!tab) throw new Error('native mouse input did not originate from a controlled tab')
+  if (typeof input !== 'object' || input === null
+    || !['mouseMove', 'mouseDown', 'mouseUp'].includes(input.type)
+    || !Number.isFinite(input.x) || !Number.isFinite(input.y)) {
+    throw new Error('invalid native mouse input')
+  }
+  const nativeAvailable = config.show !== false && window?.isVisible() === true && window.isFocused() === true
+  let attached = nativeMouseTabs.has(tab)
+  if (!attached) {
+    attached = ensureTabDebugger(tab, false)
+    if (attached) nativeMouseTabs.add(tab)
+  }
+  try {
+    let dialogOpened
+    const opened = new Promise(resolve => {
+      dialogOpened = (_event, method) => { if (method === 'Page.javascriptDialogOpening') resolve() }
+      tab.contents.debugger.on('message', dialogOpened)
+    })
+    try {
+      await Promise.race([opened, tab.contents.debugger.sendCommand('Input.dispatchMouseEvent', {
+        type: { mouseMove: 'mouseMoved', mouseDown: 'mousePressed', mouseUp: 'mouseReleased' }[input.type],
+        x: input.x,
+        y: input.y,
+        ...(input.type === 'mouseMove'
+          ? { button: 'none', buttons: 0 }
+          : { button: 'left', buttons: input.type === 'mouseDown' ? 1 : 0, clickCount: 1 }),
+      })])
+    } finally {
+      tab.contents.debugger.removeListener('message', dialogOpened)
+    }
+  } finally {
+    if ((input.type === 'mouseUp' || !nativeAvailable) && attached) {
+      nativeMouseTabs.delete(tab)
+      if (!tab.cdp.persistent) detachTabDebugger(tab, true)
+    }
+  }
+  return nativeAvailable
 })
 
 /** The current HTTP(S) origin, or undefined for a non-web document. */
@@ -1946,6 +2130,7 @@ async function sendCdpCommand(tab, args) {
   }
   const devtools = contents.debugger
   ensureTabDebugger(tab, true)
+  tab.cdp.raw = true
   if (!nativeSettings.fullCdpAccessAllowed || !nativeSettings.fullCdpAccess
     || !tabs.has(tab.id) || contents.isDestroyed() || httpOrigin(contents.getURL()) !== expectedOrigin) {
     throw new Error('CDP target changed before the command could run')
@@ -2161,7 +2346,120 @@ async function handleCommand(method, args) {
     throw new Error(args.tabId === undefined ? 'active tab is unavailable' : `controlled tab [${args.tabId}] is unavailable`)
   }
   const contents = tab.view.webContents
+  const capturePageEvents = !['get_cdp_target', 'cdp_command', 'cdp_read_events'].includes(method)
+  if (capturePageEvents && !contents.getURL()) await contents.loadURL('about:blank')
+  if (capturePageEvents && ensureTabDebugger(tab, true)) {
+    await contents.debugger.sendCommand('Page.enable')
+    await contents.debugger.sendCommand('Runtime.enable')
+    await contents.debugger.sendCommand('Network.enable', { maxTotalBufferSize: MAX_CDP_EVENT_RING_BYTES, maxResourceBufferSize: MAX_CDP_EVENT_BYTES })
+  }
   switch (method) {
+    case 'hover_element':
+    case 'drag_element': {
+      const nativeAvailable = config.show !== false && window?.isFocused() && activeTab === tab
+      if (!nativeAvailable) {
+        return { success: false, message: 'Native pointer gestures require the target tab in a visible foreground browser window.' }
+      }
+      contents.focus()
+      const start = await pageControl(tab, 'prepare_pointer', method === 'drag_element' ? { index: args.startIndex } : { ...args, click: method === 'click_element' })
+      if (start.success === false) return start
+      const end = method === 'drag_element' ? await pageControl(tab, 'prepare_pointer', { index: args.endIndex }) : start
+      if (end.success === false) return end
+      // Resolve both positions after scrolling the destination into view.
+      const source = method === 'drag_element' ? await pageControl(tab, 'get_element_center', { index: args.startIndex }) : start
+      const mouse = async (type, point, down) => {
+        let opened
+        const dialogOpened = new Promise(resolve => {
+          opened = (_event, method) => { if (method === 'Page.javascriptDialogOpening') resolve() }
+          contents.debugger.on('message', opened)
+        })
+        try {
+          await Promise.race([dialogOpened, contents.debugger.sendCommand('Input.dispatchMouseEvent', {
+            type, x: point.x, y: point.y, button: down || type === 'mouseReleased' ? 'left' : 'none', buttons: down ? 1 : 0,
+            ...type === 'mouseMoved' ? {} : { clickCount: 1 },
+          })])
+        } finally {
+          contents.debugger.removeListener('message', opened)
+        }
+      }
+      await mouse('mouseMoved', source, false)
+      if (method === 'drag_element') {
+        await mouse('mousePressed', source, true)
+        try {
+          for (let step = 1; step <= 12; step++) {
+            const point = { x: source.x + (end.x - source.x) * step / 12, y: source.y + (end.y - source.y) * step / 12 }
+            await mouse('mouseMoved', point, true)
+          }
+        } finally {
+          await mouse('mouseReleased', end, false)
+        }
+      }
+      return { success: true, message: method === 'drag_element' ? 'Dragged browser control.' : 'Hovered browser control.' }
+    }
+
+    case 'resize':
+      if (![args.width, args.height].every(size => Number.isSafeInteger(size) && size >= 1 && size <= 8192)) throw new Error('viewport dimensions must be integers from 1 to 8192')
+      await contents.debugger.sendCommand('Emulation.setDeviceMetricsOverride', { width: args.width, height: args.height, deviceScaleFactor: 1, mobile: false })
+      return { success: true, message: `Resized viewport to ${args.width} × ${args.height}.` }
+
+    case 'drop': {
+      if (!Array.isArray(args.filePaths) || args.filePaths.some(path => typeof path !== 'string')
+        || typeof args.data !== 'object' || args.data === null || Array.isArray(args.data)
+        || Object.entries(args.data).some(([mimeType, data]) => !mimeType.includes('/') || typeof data !== 'string')
+        || Buffer.byteLength(JSON.stringify(args.data)) > MAX_CDP_PARAMS_BYTES) throw new Error('invalid drop files or MIME data')
+      const expectedOrigin = canonicalOrigin(args.expectedOrigin)
+      const allowed = () => args.filePaths.length === 0 || (args.tabId === tab.id && expectedOrigin !== undefined && httpOrigin(contents.getURL()) === expectedOrigin)
+      if (!allowed()) throw new Error('file drop requires a Host-bound tab and HTTP(S) origin')
+      const point = await pageControl(tab, 'prepare_pointer', { index: args.index })
+      if (point.success === false) return point
+      if (!allowed()) throw new Error('file drop target changed before the files could be transferred')
+      const data = { items: Object.entries(args.data).map(([mimeType, data]) => ({ mimeType, data })), files: args.filePaths, dragOperationsMask: 1 }
+      for (const type of ['dragEnter', 'dragOver', 'drop']) {
+        if (!allowed()) throw new Error('file drop target changed during the gesture')
+        await contents.debugger.sendCommand('Input.dispatchDragEvent', { type, x: point.x, y: point.y, data })
+      }
+      return { success: true, message: 'Dropped files or data onto browser control.' }
+    }
+
+    case 'handle_dialog':
+      if (typeof args.accept !== 'boolean' || (args.promptText !== undefined && typeof args.promptText !== 'string')) throw new Error('invalid dialog response')
+      if (!tab.dialog) return { success: false, message: 'No dialog visible.' }
+      await contents.debugger.sendCommand('Page.handleJavaScriptDialog', { accept: args.accept, ...args.promptText === undefined ? {} : { promptText: args.promptText } })
+      tab.dialog = undefined
+      return { success: true, message: args.accept ? 'Accepted browser dialog.' : 'Dismissed browser dialog.' }
+
+    case 'console_messages': {
+      const levels = { error: 0, assert: 0, warning: 1, warn: 1, info: 2, log: 2, debug: 3 }
+      if (!['error', 'warning', 'info', 'debug'].includes(args.level)) throw new Error('invalid console level')
+      const messages = tab.cdp.events.filter(event => event.method === 'Runtime.consoleAPICalled' && (levels[event.params.type] ?? 2) <= levels[args.level])
+        .map(event => `[${event.params.type}] ${(event.params.args ?? []).map(arg => String(arg.value ?? arg.description ?? arg.type)).join(' ')}`)
+      return { success: true, message: messages.join('\n').slice(0, MAX_CDP_EVENT_BYTES) || 'No retained console messages.' }
+    }
+
+    case 'network_requests': {
+      const lines = tab.cdp.events.filter(event => event.method === 'Network.requestWillBeSent').flatMap(event => {
+        const response = tab.cdp.events.find(candidate => candidate.method === 'Network.responseReceived' && candidate.params.requestId === event.params.requestId)?.params.response
+        if (!args.includeStatic && !['Fetch', 'XHR', 'Document'].includes(event.params.type) && response?.status < 400) return []
+        return `[${event.sequence}] ${event.params.request.method} ${event.params.request.url} ${response?.status ?? 'pending'}`
+      })
+      return { success: true, message: lines.join('\n').slice(0, MAX_CDP_EVENT_BYTES) || 'No retained network requests.' }
+    }
+
+    case 'network_request': {
+      const request = tab.cdp.events.find(event => event.sequence === args.index && event.method === 'Network.requestWillBeSent')?.params
+      if (!request) return { success: false, message: 'Request is unavailable or expired. Read browser_network_requests for current indexes.' }
+      const response = tab.cdp.events.find(event => event.method === 'Network.responseReceived' && event.params.requestId === request.requestId)?.params.response
+      let data
+      switch (args.part) {
+        case 'request-headers': data = request.request.headers; break
+        case 'response-headers': data = response?.headers ?? {}; break
+        case 'request-body': data = request.request.postData ?? (await contents.debugger.sendCommand('Network.getRequestPostData', { requestId: request.requestId })).postData; break
+        case 'response-body': data = await contents.debugger.sendCommand('Network.getResponseBody', { requestId: request.requestId }); break
+        case undefined: data = { request: request.request, response }; break
+        default: throw new Error('invalid network request part')
+      }
+      return { success: true, message: JSON.stringify(data).slice(0, MAX_CDP_EVENT_BYTES) }
+    }
     case 'get_upload_target': {
       const origin = httpOrigin(contents.getURL())
       if (origin === undefined) throw new Error('file upload requires a currently observed HTTP(S) page')
@@ -2254,14 +2552,19 @@ async function handleCommand(method, args) {
       return { success: true, message: `Reloaded ${contents.getURL()}` }
     }
 
-    case 'press':
-      // The full triple: Chromium drops the `char` event for keys that produce
-      // no text, and needs it for the ones that do — including Enter.
+    case 'press': {
+      if (typeof args.key !== 'string' || !args.key.trim()) throw new Error('key must be non-empty')
+      const parts = args.key === '+' ? ['+'] : args.key.split('+')
+      const keyCode = parts.pop()
+      const modifierNames = { Control: 'control', Ctrl: 'control', Alt: 'alt', Shift: 'shift', Meta: 'meta', ControlOrMeta: process.platform === 'darwin' ? 'meta' : 'control' }
+      if (!keyCode || parts.some(part => !Object.hasOwn(modifierNames, part))) throw new Error('invalid keyboard chord')
+      const modifiers = parts.map(part => modifierNames[part])
       contents.focus()
-      for (const type of ['keyDown', 'char', 'keyUp']) {
-        contents.sendInputEvent({ type, keyCode: args.key })
+      for (const type of modifiers.length === 0 ? ['keyDown', 'char', 'keyUp'] : ['keyDown', 'keyUp']) {
+        contents.sendInputEvent({ type, keyCode, modifiers })
       }
       return { success: true, message: `Pressed ${args.key}` }
+    }
 
     case 'wait': {
       if (!Number.isFinite(args.seconds) || args.seconds < 1 || args.seconds > 10) {
@@ -2271,6 +2574,26 @@ async function handleCommand(method, args) {
       const remaining = Math.max(0, args.seconds * 1_000 - (Date.now() - lastUpdate))
       await delay(remaining)
       return { success: true, message: `Waited up to ${args.seconds} second${args.seconds === 1 ? '' : 's'} for the page.` }
+    }
+
+    case 'wait_for': {
+      if (!Number.isFinite(args.seconds) || args.seconds <= 0 || args.seconds > 10) throw new Error('wait time must be greater than zero and at most 10 seconds')
+      for (const value of [args.text, args.textGone]) {
+        if (value !== undefined && (typeof value !== 'string' || value.length === 0)) throw new Error('wait text must be non-empty')
+      }
+      const deadline = Date.now() + args.seconds * 1000
+      if (args.text === undefined && args.textGone === undefined) {
+        await delay(args.seconds * 1000)
+        return { success: true, message: `Waited ${args.seconds} seconds.` }
+      }
+      do {
+        const state = await readBrowserState(tab, false, false)
+        if ((args.text === undefined || state.content.includes(args.text)) && (args.textGone === undefined || !state.content.includes(args.textGone))) {
+          return { success: true, message: 'The requested text condition is met.' }
+        }
+        await delay(Math.min(READINESS_POLL_MS, Math.max(0, deadline - Date.now())))
+      } while (Date.now() < deadline)
+      return { success: false, message: 'Timed out waiting for the requested text condition.' }
     }
 
     case 'execute_javascript':
@@ -2395,6 +2718,7 @@ app.whenReady().then(async () => {
     const tab = {
       id: nextTabId++,
       cdp: { owned: false, persistent: false, nextSequence: 1, events: [], bytes: 0 },
+      preloadReady: false,
       view,
       contents: view.webContents,
       favicon: '',
@@ -2404,7 +2728,11 @@ app.whenReady().then(async () => {
     tab.view.setVisible(false)
 
     const { contents } = tab
-    contents.debugger.on('message', (_event, method, params) => { recordCdpEvent(tab, method, params) })
+    contents.debugger.on('message', (_event, method, params) => {
+      recordCdpEvent(tab, method, params)
+      if (method === 'Page.javascriptDialogOpening') tab.dialog = params
+      if (method === 'Page.javascriptDialogClosed') tab.dialog = undefined
+    })
     contents.debugger.on('detach', () => {
       tab.cdp.owned = false
       tab.cdp.persistent = false
@@ -2435,10 +2763,15 @@ app.whenReady().then(async () => {
     // Both ends of a document's life invalidate only the preload holding that
     // tab's indices; a background tab cannot cancel an active tab's action.
     contents.on('did-start-navigation', event => {
-      if (!event.isMainFrame) return
+      if (!event.isMainFrame || event.isSameDocument) return
+      tab.preloadReady = false
       downloadDenials.delete(contents)
       cancelPermissions(contents)
-      detachTabDebugger(tab, true)
+      if (tab.cdp.raw) detachTabDebugger(tab, true)
+      tab.cdp.events = []
+      tab.cdp.bytes = 0
+      tab.lastState = undefined
+      tab.dialog = undefined
       cancelAnnotation(tab)
       abortPageCalls(tab, 'page navigated away before the action completed')
       abortPageAgentLlmCalls(tab, 'page navigated away before PageAgent received a model response')
@@ -2453,7 +2786,10 @@ app.whenReady().then(async () => {
       cancelPermissions(contents)
       closeTab(tab)
     })
-    contents.on('dom-ready', () => { contents.send('browser:activity', activeBrowserCalls > 0) })
+    contents.on('dom-ready', () => {
+      tab.preloadReady = true
+      contents.send('browser:activity', activeBrowserCalls > 0)
+    })
     contents.on('did-finish-load', () => { recordHistory(contents) })
     contents.on('did-navigate-in-page', () => { recordHistory(contents) })
     contents.on('page-favicon-updated', (_event, favicons) => {

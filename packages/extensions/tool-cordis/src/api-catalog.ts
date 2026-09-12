@@ -3385,7 +3385,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'BrowserAction',
-    declaration: 'export type BrowserAction = (({\n    method: \'get_browser_state\';\n} | {\n    method: \'navigate\';\n    url: string;\n} | {\n    method: \'back\';\n} | {\n    method: \'forward\';\n} | {\n    method: \'press\';\n    key: string;\n} | {\n    method: \'click_element\';\n    index?: number;\n    name?: string;\n} | {\n    method: \'upload_file\';\n    index: number;\n    filePath: string;\n} | {\n    method: \'input_text\';\n    index?: number;\n    name?: string;\n    text: string;\n} | {\n    method: \'select_option\';\n    index?: number;\n    name?: string;\n    text: string;\n} | {\n    method: \'find_element\';\n    query: string;\n} | {\n    method: \'fill_fields\';\n    fields: BrowserFillField[];\n} | {\n    method: \'scroll\';\n    down: boolean;\n    numPages: number;\n    pixels?: number;\n    index?: number;\n} | {\n    method: \'scroll_horizontally\';\n    right: boolean;\n    pixels: number;\n    index?: number;\n} | {\n    method: \'wait\';\n    seconds: number;\n} | {\n    method: \'execute_javascript\';\n    script: string;\n} | {\n    method: \'page_agent_run\';\n    task: string;\n} | {\n    method: \'page_agent_status\';\n} | {\n    method: \'page_agent_stop\';\n}) & {\n    tabId?: number;\n}) | {\n    method: \'open_new_tab\';\n    url?: string;\n} | {\n    method: \'switch_to_tab\';\n    tabId: number;\n} | {\n    method: \'close_tab\';\n    tabId: number;\n};',
+    declaration: 'export type BrowserAction = (({\n    method: \'get_browser_state\';\n} | {\n    method: \'navigate\';\n    url: string;\n} | {\n    method: \'back\';\n} | {\n    method: \'forward\';\n} | {\n    method: \'press\';\n    key: string;\n} | {\n    method: \'click_element\';\n    index?: number;\n    name?: string;\n} | {\n    method: \'hover_element\';\n    index?: number;\n    name?: string;\n} | {\n    method: \'drag_element\';\n    startIndex: number;\n    endIndex: number;\n} | {\n    method: \'drop\';\n    index: number;\n    filePaths: string[];\n    data: Record<string, string>;\n} | {\n    method: \'resize\';\n    width: number;\n    height: number;\n} | {\n    method: \'handle_dialog\';\n    accept: boolean;\n    promptText?: string;\n} | {\n    method: \'console_messages\';\n    level: \'error\' | \'warning\' | \'info\' | \'debug\';\n} | {\n    method: \'network_requests\';\n    includeStatic: boolean;\n} | {\n    method: \'network_request\';\n    index: number;\n    part?: \'request-headers\' | \'request-body\' | \'response-headers\' | \'response-body\';\n} | {\n    method: \'upload_file\';\n    index: number;\n    filePath: string;\n} | {\n    method: \'input_text\';\n    index?: number;\n    name?: string;\n    text: string;\n} | {\n    method: \'select_option\';\n    index?: number;\n    name?: string;\n    text: string;\n} | {\n    method: \'select_text\';\n    index?: number;\n    name?: string;\n    startX?: number;\n    startY?: number;\n    endX?: number;\n    endY?: number;\n    duration?: number;\n    start_x?: number;\n    start_y?: number;\n    end_x?: number;\n    end_y?: number /* …truncated — full shape in source */',
   },
   {
     name: 'BrowserCdpCommandResult',
@@ -3406,10 +3406,6 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'BrowserExecutionContext',
     declaration: 'export type BrowserExecutionContext = Pick<ApprovalRequest, \'callId\' | \'signal\'>;',
-  },
-  {
-    name: 'BrowserFillField',
-    declaration: 'export interface BrowserFillField {\n    index?: number;\n    name?: string;\n    text: string;\n}',
   },
   {
     name: 'BrowserHistorySearchEntry',

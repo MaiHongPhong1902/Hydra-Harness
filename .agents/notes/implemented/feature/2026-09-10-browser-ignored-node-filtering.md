@@ -16,6 +16,8 @@ The preload also asks PageController to include `disabled`, `aria-disabled`, and
 
 The filter is applied to every model-facing browser state, including full and compact results. Compact action results also retain a per-agent, per-tab normalized-content cache. When the normalized list is unchanged, the result sets `unchanged: true` and omits the repeated list; full reads and changed content still return the existing snapshot. A page that needs hidden content for an interaction can still be addressed through the existing named or indexed seam when that content is present in a later authoritative state; the projection only controls what the model sees.
 
+The model-facing source is now the accessibility-first projection described in [Accessibility-first browser snapshots and MCP-shaped tools](2026-09-12-browser-accessibility-snapshot.md). This note still owns the explicit ignored-node filter and its no-renumbering guarantee.
+
 ## Alternatives considered
 
 **Replace the snapshot with a complete accessibility-tree serializer.** This would remove more markup, but it would duplicate PageController's index and action semantics and would make non-compliant pages harder to operate. The current change keeps PageController as the source of element references and leaves broader projection work for measured follow-up.

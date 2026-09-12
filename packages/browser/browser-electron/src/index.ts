@@ -325,6 +325,14 @@ function boundedCdpEventPage(value: unknown): BrowserCdpEventPage {
 
 /** Resolve and validate the file before the Uploads permission decision. */
 async function prepareAction(action: BrowserAction): Promise<BrowserAction> {
+  if (action.method === 'drop') {
+    const filePaths: string[] = []
+    for (const filePath of action.filePaths) {
+      const file = await prepareAction({ method: 'upload_file', index: action.index, filePath })
+      if (file.method === 'upload_file') filePaths.push(file.filePath)
+    }
+    return { ...action, filePaths }
+  }
   if (action.method !== 'upload_file') return action
   if (!isAbsolute(action.filePath)) throw new Error('upload file path must be absolute')
   try {
@@ -480,9 +488,10 @@ export class BrowserSessionService extends Service {
       if (!this.browserSettings().controlEnabled) {
         throw new BrowserError('embedded browser control is disabled in settings', 'BROWSER_DISABLED')
       }
-      if (action.method === 'upload_file') this.checkPermission('uploads')
+      const uploads = action.method === 'upload_file' || (action.method === 'drop' && action.filePaths.length > 0)
+      if (uploads) this.checkPermission('uploads')
       const browsingApproval = this.permissions().browsing === 'ask'
-      if (action.method !== 'upload_file' && action.method !== 'page_agent_stop') {
+      if (!uploads && action.method !== 'page_agent_stop') {
         await this.approveBrowserPermission(owner, 'browsing', action.method,
           'url' in action ? action.url : undefined, execution)
       }
@@ -495,22 +504,24 @@ export class BrowserSessionService extends Service {
       if ((method === 'navigate' || method === 'open_new_tab') && browsingApproval) {
         Object.assign(args, { navigationApproved: true })
       }
-      if (prepared.method === 'upload_file') {
+      if (prepared.method === 'upload_file' || (prepared.method === 'drop' && prepared.filePaths.length > 0)) {
         const target = await child.call('get_upload_target', {
           ...prepared.tabId === undefined ? {} : { tabId: prepared.tabId },
         }) as { origin?: unknown; tabId?: unknown }
         if (typeof target.origin !== 'string' || !Number.isSafeInteger(target.tabId)) {
           throw new BrowserError('browser upload target is unavailable', 'BROWSER_POLICY_DENIED')
         }
-        await this.approveUpload(owner, prepared.filePath, {
-          origin: target.origin,
-          tabId: target.tabId as number,
-          index: prepared.index,
-        }, execution)
+        for (const filePath of prepared.method === 'upload_file' ? [prepared.filePath] : prepared.filePaths) {
+          await this.approveUpload(owner, filePath, {
+            origin: target.origin,
+            tabId: target.tabId as number,
+            index: prepared.index,
+          }, execution)
+        }
         execution.signal?.throwIfAborted()
         Object.assign(args, { expectedOrigin: target.origin, tabId: target.tabId })
       }
-      if (method !== 'page_agent_stop') this.checkPermission(method === 'upload_file' ? 'uploads' : 'browsing')
+      if (method !== 'page_agent_stop') this.checkPermission(uploads ? 'uploads' : 'browsing')
       const result = method === 'get_browser_state'
         ? undefined
         : await child.call(method, args, execution.signal) as ActionResult
@@ -526,6 +537,7 @@ export class BrowserSessionService extends Service {
         || prepared.method === 'open_new_tab'
         || prepared.method === 'switch_to_tab'
         || prepared.method === 'close_tab'
+        || prepared.method === 'select_text'
       const tabId = stateTabId(prepared)
       const state = await child.call('get_browser_state', {
         waitForReady,

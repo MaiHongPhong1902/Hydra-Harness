@@ -19,15 +19,15 @@ const PAGE = {
   header: 'Current Page: [Order form](https://shop.test/order)\nPage info: 1280x900px viewport, 1280x900px total page size',
   footer: '... end of page ...',
   before: [
-    'Interactive elements from top layer of the current page inside the viewport:',
-    '[0]<input id=who placeholder=Requester/>',
+    'Accessibility controls:',
+    '[0]<textbox id=who>Requester</textbox>',
     "\t[1]<button id=submit>Place order</button>",
   ].join('\n'),
   after: [
-    'Interactive elements from top layer of the current page inside the viewport:',
-    '[0]<input id=who placeholder=Requester/>',
+    'Accessibility controls:',
+    '[0]<textbox id=who>Requester</textbox>',
     "\t[1]<button id=submit>Place order</button>",
-    '*[2]<p id=result>Ordered l for Ada</p>',
+    'Ordered l for Ada',
   ].join('\n'),
 }
 

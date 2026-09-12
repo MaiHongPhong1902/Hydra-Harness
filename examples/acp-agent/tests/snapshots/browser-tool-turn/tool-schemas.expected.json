@@ -80,6 +80,14 @@
       }
     },
     {
+      "name": "browser_close",
+      "description": "Close this agent's controlled browser and release its tabs. A later browser call opens a fresh controller.",
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
       "name": "browser_close_tab",
       "description": "Close a controlled tab by id. The agent cannot close the last tab or the browser window.",
       "parameters": {
@@ -92,6 +100,111 @@
         },
         "required": [
           "tab_id"
+        ]
+      }
+    },
+    {
+      "name": "browser_console_messages",
+      "description": "Read retained console messages for this tab. Includes the selected level and more severe levels.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "level": {
+            "type": "string",
+            "description": "Minimum severity. Defaults to info.",
+            "enum": [
+              "error",
+              "warning",
+              "info",
+              "debug"
+            ]
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        }
+      }
+    },
+    {
+      "name": "browser_drag",
+      "description": "Drag from one observed accessibility ref to another with the native browser pointer held down.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "start_index": {
+            "type": "integer",
+            "description": "Source ref from the latest snapshot."
+          },
+          "end_index": {
+            "type": "integer",
+            "description": "Destination ref from the same snapshot."
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        },
+        "required": [
+          "start_index",
+          "end_index"
+        ]
+      }
+    },
+    {
+      "name": "browser_drop",
+      "description": "Drop local files or MIME-typed text onto an observed accessibility ref. Local files follow Browser Uploads permissions.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "description": "Destination ref from the latest snapshot."
+          },
+          "paths": {
+            "type": "array",
+            "description": "Absolute paths of readable local files.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "data": {
+            "type": "object",
+            "description": "MIME type to text, for example text/plain.",
+            "additionalProperties": true
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        },
+        "required": [
+          "index"
+        ]
+      }
+    },
+    {
+      "name": "browser_file_upload",
+      "description": "Choose a local file through an accessibility ref, matching Playwright MCP semantics.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "description": "Accessibility ref of the file input."
+          },
+          "path": {
+            "type": "string",
+            "description": "Absolute path of the readable local file."
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        },
+        "required": [
+          "index",
+          "path"
         ]
       }
     },
@@ -119,6 +232,47 @@
                 "text": {
                   "type": "string",
                   "description": "Text to put in the field."
+                }
+              },
+              "required": [
+                "text"
+              ]
+            }
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        },
+        "required": [
+          "fields"
+        ]
+      }
+    },
+    {
+      "name": "browser_fill_form",
+      "description": "Fill multiple form controls by accessibility ref or accessible name, matching Playwright MCP semantics.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "fields": {
+            "type": "array",
+            "description": "Fields to fill, each identified by index or accessible name.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "index": {
+                  "type": "integer",
+                  "description": "Element index from the latest browser result. Provide this or name."
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Visible label, accessible name, placeholder, or id from the latest snapshot. Use instead of index when the control is named."
+                },
+                "text": {
+                  "type": "string",
+                  "description": "Value to put in the field."
                 }
               },
               "required": [
@@ -170,6 +324,30 @@
       }
     },
     {
+      "name": "browser_handle_dialog",
+      "description": "Accept or dismiss the current JavaScript alert, confirm, or prompt dialog.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "accept": {
+            "type": "boolean",
+            "description": "Accept when true; dismiss when false."
+          },
+          "promptText": {
+            "type": "string",
+            "description": "Text to enter in a prompt dialog."
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        },
+        "required": [
+          "accept"
+        ]
+      }
+    },
+    {
       "name": "browser_history_search",
       "description": "Search the built-in Browser profile history after applying the user's sensitive-history access policy. Returns at most 20 matching pages; use browser_navigate to reopen one.",
       "parameters": {
@@ -183,6 +361,27 @@
         "required": [
           "query"
         ]
+      }
+    },
+    {
+      "name": "browser_hover",
+      "description": "Move the native browser pointer onto an observed accessibility ref or named control and return the resulting snapshot.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "description": "Element index from the latest browser result. Provide this or name."
+          },
+          "name": {
+            "type": "string",
+            "description": "Visible label, accessible name, placeholder, or id from the latest snapshot. Use instead of index when the control is named."
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        }
       }
     },
     {
@@ -203,6 +402,66 @@
         "required": [
           "url"
         ]
+      }
+    },
+    {
+      "name": "browser_navigate_back",
+      "description": "Navigate back one page and return a fresh accessibility snapshot.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        }
+      }
+    },
+    {
+      "name": "browser_network_request",
+      "description": "Read headers or body for a retained network request from browser_network_requests. Bodies may expire from Chromium storage.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "description": "Request index from browser_network_requests."
+          },
+          "part": {
+            "type": "string",
+            "description": "Omit for request and response headers.",
+            "enum": [
+              "request-headers",
+              "request-body",
+              "response-headers",
+              "response-body"
+            ]
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        },
+        "required": [
+          "index"
+        ]
+      }
+    },
+    {
+      "name": "browser_network_requests",
+      "description": "List retained network requests for this tab with stable request indexes for browser_network_request.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "static": {
+            "type": "boolean",
+            "description": "Include successful static resources. Defaults to false."
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        }
       }
     },
     {
@@ -281,6 +540,51 @@
         },
         "required": [
           "key"
+        ]
+      }
+    },
+    {
+      "name": "browser_press_key",
+      "description": "Press one keyboard key using the focused page control, matching Playwright MCP semantics.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Key name such as Enter, Tab, Escape, or Backspace."
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        },
+        "required": [
+          "key"
+        ]
+      }
+    },
+    {
+      "name": "browser_resize",
+      "description": "Set the controlled page viewport size in CSS pixels.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "width": {
+            "type": "integer",
+            "description": "Viewport width, from 1 to 8192 pixels."
+          },
+          "height": {
+            "type": "integer",
+            "description": "Viewport height, from 1 to 8192 pixels."
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        },
+        "required": [
+          "width",
+          "height"
         ]
       }
     },
@@ -374,6 +678,56 @@
       }
     },
     {
+      "name": "browser_select_text",
+      "description": "Select text across an element by index or visible name, or between explicit coordinates, animating the virtual cursor and updating the native DOM selection.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "description": "Element index from the latest browser result. Provide this or name."
+          },
+          "name": {
+            "type": "string",
+            "description": "Visible label, accessible name, placeholder, or id from the latest snapshot. Use instead of index when the control is named."
+          },
+          "start_x": {
+            "type": "number",
+            "description": "Start X coordinate in CSS pixels."
+          },
+          "start_y": {
+            "type": "number",
+            "description": "Start Y coordinate in CSS pixels."
+          },
+          "end_x": {
+            "type": "number",
+            "description": "End X coordinate in CSS pixels."
+          },
+          "end_y": {
+            "type": "number",
+            "description": "End Y coordinate in CSS pixels."
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        }
+      }
+    },
+    {
+      "name": "browser_snapshot",
+      "description": "Return the current page as a Playwright-style accessibility snapshot with numbered refs.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        }
+      }
+    },
+    {
       "name": "browser_state",
       "description": "Re-read the current page of the embedded browser, with a bounded readiness wait for SPA or SSO transitions. Every other browser tool already returns fresh state.",
       "parameters": {
@@ -399,6 +753,35 @@
         },
         "required": [
           "tab_id"
+        ]
+      }
+    },
+    {
+      "name": "browser_tabs",
+      "description": "List, create, close, or select a controlled browser tab, matching Playwright MCP tab management.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "list",
+              "new",
+              "close",
+              "select"
+            ]
+          },
+          "index": {
+            "type": "integer",
+            "description": "Tab id from the latest snapshot for close/select."
+          },
+          "url": {
+            "type": "string",
+            "description": "Absolute HTTP(S) URL for a new tab."
+          }
+        },
+        "required": [
+          "action"
         ]
       }
     },
@@ -473,6 +856,31 @@
         "required": [
           "seconds"
         ]
+      }
+    },
+    {
+      "name": "browser_wait_for",
+      "description": "Wait up to ten seconds for text to appear or disappear in the accessibility snapshot, or wait for the specified time.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "time": {
+            "type": "number",
+            "description": "Seconds to wait, from 1 through 10."
+          },
+          "text": {
+            "type": "string",
+            "description": "Optional text expected in the returned accessibility snapshot."
+          },
+          "text_gone": {
+            "type": "string",
+            "description": "Optional text expected to be absent from the returned snapshot."
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        }
       }
     },
     {

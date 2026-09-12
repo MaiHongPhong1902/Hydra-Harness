@@ -19,7 +19,7 @@ export type BrowserTabState = {
   active: boolean
 }
 
-/** Text-DOM snapshot of the controlled page, as PageController renders it. */
+/** Accessibility snapshot of the controlled page with stable action refs. */
 export interface BrowserState {
   /** Address currently loaded in the controlled view. */
   url: string
@@ -27,7 +27,7 @@ export interface BrowserState {
   title: string
   /** Page metrics and scroll position, above the element listing. */
   header: string
-  /** Indexed interactive elements, `[12]<button>Save</button>` per line. */
+  /** Indexed accessibility nodes, `[12]<button>Save</button>` per line. */
   content: string
   /** Scroll hint below the element listing. */
   footer: string
@@ -126,14 +126,24 @@ export type BrowserAction =
     | { method: 'forward' }
     | { method: 'press'; key: string }
     | { method: 'click_element'; index?: number; name?: string }
+    | { method: 'hover_element'; index?: number; name?: string }
+    | { method: 'drag_element'; startIndex: number; endIndex: number }
+    | { method: 'drop'; index: number; filePaths: string[]; data: Record<string, string> }
+    | { method: 'resize'; width: number; height: number }
+    | { method: 'handle_dialog'; accept: boolean; promptText?: string }
+    | { method: 'console_messages'; level: 'error' | 'warning' | 'info' | 'debug' }
+    | { method: 'network_requests'; includeStatic: boolean }
+    | { method: 'network_request'; index: number; part?: 'request-headers' | 'request-body' | 'response-headers' | 'response-body' }
     | { method: 'upload_file'; index: number; filePath: string }
     | { method: 'input_text'; index?: number; name?: string; text: string }
     | { method: 'select_option'; index?: number; name?: string; text: string }
+    | { method: 'select_text'; index?: number; name?: string; startX?: number; startY?: number; endX?: number; endY?: number; duration?: number; start_x?: number; start_y?: number; end_x?: number; end_y?: number }
     | { method: 'find_element'; query: string }
     | { method: 'fill_fields'; fields: BrowserFillField[] }
     | { method: 'scroll'; down: boolean; numPages: number; pixels?: number; index?: number }
     | { method: 'scroll_horizontally'; right: boolean; pixels: number; index?: number }
     | { method: 'wait'; seconds: number }
+    | { method: 'wait_for'; seconds: number; text?: string; textGone?: string }
     | { method: 'execute_javascript'; script: string }
     | { method: 'page_agent_run'; task: string }
     | { method: 'page_agent_status' }

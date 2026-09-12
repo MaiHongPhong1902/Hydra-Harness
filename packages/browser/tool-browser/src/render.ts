@@ -86,7 +86,7 @@ export interface BrowserValueOptions {
   baseRevision?: number
 }
 
-const INTERACTIVE_TAGS = new Set(['a', 'button', 'input', 'select', 'textarea'])
+const INTERACTIVE_TAGS = new Set(['a', 'button', 'input', 'select', 'textarea', 'link', 'textbox', 'searchbox', 'combobox', 'checkbox', 'radio', 'slider', 'spinbutton', 'switch', 'menuitem', 'tab', 'option', 'treeitem'])
 const INDEXED_LINE = /^(\t*)(\*)?\[(\d+)\]<([a-z0-9-]+)/iu
 
 /**
@@ -228,7 +228,7 @@ export function toValue(
     && revisionClaimMatches
   const content = unchanged ? '' : ranked.slice(0, budget)
   const previousElements = options.previousElements
-  const canDiff = compact && previousElements !== undefined && options.previousRevision !== undefined
+  const canDiff = compact && state.settled && previousElements !== undefined && options.previousRevision !== undefined
     && options.previousUrl === state.url
     && revisionClaimMatches
   const previousLines = previousElements ?? []

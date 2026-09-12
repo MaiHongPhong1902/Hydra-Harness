@@ -69,7 +69,17 @@ const HARNESS_OVERLAY_SELECTOR = [
 
 const cursorOverrideCss = `
 #page-agent-runtime_simulator-mask { cursor: default; display: block !important; pointer-events: none !important; }
-#page-agent-runtime_simulator-mask:not([data-hydra-active]) > :not([class*="cursor_"]) { visibility: hidden !important; }
+#page-agent-runtime_simulator-mask > :not([class*="cursor_"]) {
+  transition: opacity 350ms cubic-bezier(0.16, 1, 0.3, 1), visibility 350ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+#page-agent-runtime_simulator-mask:not([data-hydra-active]) > :not([class*="cursor_"]) {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+#page-agent-runtime_simulator-mask[data-hydra-active] > :not([class*="cursor_"]) {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
 #page-agent-runtime_simulator-mask [class*="cursor_"] {
   width: 1px;
   height: 1px;
@@ -87,6 +97,86 @@ const cursorOverrideCss = `
   height: 64px;
   margin: -32px;
 }
+#page-agent-runtime_simulator-mask [class*="cursor_"].clicking [class*="cursorFilling"] {
+  animation: hydra-cursor-squash 320ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  transform-origin: 29px 15px;
+}
+@keyframes hydra-cursor-squash {
+  0% { transform: translate(-29px, -15px) scale(1); }
+  25% { transform: translate(-29px, -15px) scale(0.82); }
+  60% { transform: translate(-29px, -15px) scale(1.08); }
+  85% { transform: translate(-29px, -15px) scale(0.97); }
+  100% { transform: translate(-29px, -15px) scale(1); }
+}
+#page-agent-runtime_simulator-mask [class*="cursor_"].clicking [class*="cursorRipple"]::after {
+  animation: hydra-cursor-ripple 420ms cubic-bezier(0.1, 0.7, 0.1, 1) forwards;
+}
+@keyframes hydra-cursor-ripple {
+  0% {
+    transform: scale(0.2);
+    opacity: 0.95;
+    border: 3px solid #38bdf8;
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.8);
+  }
+  40% {
+    opacity: 0.7;
+    border-color: #a855f7;
+    box-shadow: 0 0 16px rgba(168, 85, 247, 0.5);
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+    border-color: #ec4899;
+    box-shadow: 0 0 0px transparent;
+  }
+}
+#page-agent-runtime_simulator-mask [class*="cursor_"][data-mode="ibeam"] [class*="cursorFilling"] {
+  width: 24px;
+  height: 24px;
+  transform: translate(-12px, -12px) !important;
+  transform-origin: center center !important;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M7 4h10M7 20h10M12 4v16' stroke='%23000' stroke-width='2.8' stroke-linecap='round'/%3E%3Cpath d='M7 4h10M7 20h10M12 4v16' stroke='%2338bdf8' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat !important;
+}
+#page-agent-runtime_simulator-mask [class*="cursor_"][data-mode="ibeam"].clicking [class*="cursorFilling"] {
+  animation: hydra-ibeam-squash 300ms ease forwards;
+}
+@keyframes hydra-ibeam-squash {
+  0% { transform: translate(-12px, -12px) scale(1); }
+  30% { transform: translate(-12px, -12px) scale(0.85); }
+  70% { transform: translate(-12px, -12px) scale(1.1); }
+  100% { transform: translate(-12px, -12px) scale(1); }
+}
+#page-agent-runtime_simulator-mask [class*="scrollHud"],
+#page-agent-runtime_simulator-mask .hydra-scroll-hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translate(22px, -10px) scale(0.85);
+  opacity: 0;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  padding: 3px 6px;
+  border-radius: 9999px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 8px rgba(56, 189, 248, 0.2);
+  transition: opacity 200ms ease, transform 200ms ease;
+  color: #38bdf8;
+  z-index: 10001;
+}
+#page-agent-runtime_simulator-mask [class*="scrollHud"][class*="scrollActive"],
+#page-agent-runtime_simulator-mask [class*="scrollHud"].active,
+#page-agent-runtime_simulator-mask .hydra-scroll-hud.active {
+  opacity: 1;
+  transform: translate(22px, -10px) scale(1);
+}
+#page-agent-runtime_simulator-mask [class*="scrollHudIcon"],
+#page-agent-runtime_simulator-mask .hydra-scroll-hud-icon {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
 #playwright-highlight-container { display: none !important; }
 `
 
@@ -99,6 +189,51 @@ function installMaskStyles() {
   document.adoptedStyleSheets = [...document.adoptedStyleSheets, stylesheet]
 }
 
+/** Move and click through Chromium's input path when the host window is active. */
+async function installNativePointerActions(controller) {
+  const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds))
+  const moveTo = async index => {
+    const element = controller.selectorMap.get(index)?.ref
+    if (!(element instanceof HTMLElement)) return undefined
+    element.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'nearest' })
+    const frame = element.ownerDocument.defaultView?.frameElement
+    if (frame instanceof HTMLElement) frame.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'nearest' })
+    const rect = element.getBoundingClientRect()
+    const frameRect = frame?.getBoundingClientRect()
+    const point = {
+      x: rect.left + rect.width / 2 + (frameRect?.left ?? 0),
+      y: rect.top + rect.height / 2 + (frameRect?.top ?? 0),
+    }
+    window.dispatchEvent(new CustomEvent('PageAgent::MovePointerTo', { detail: point }))
+    const native = await ipcRenderer.invoke('browser:native-mouse', { type: 'mouseMove', ...point })
+    await wait(300)
+    return { element, point, native: native === true }
+  }
+  const click = controller.clickElement.bind(controller)
+  controller.clickElement = async index => {
+    const moved = await moveTo(index)
+    if (!moved?.native) return click(index)
+    let observed = false
+    const observeClick = () => { observed = true }
+    moved.element.addEventListener('click', observeClick, { once: true, capture: true })
+    window.dispatchEvent(new CustomEvent('PageAgent::ClickPointer'))
+    try {
+      await ipcRenderer.invoke('browser:native-mouse', { type: 'mouseDown', ...moved.point, button: 'left', clickCount: 1 })
+      await ipcRenderer.invoke('browser:native-mouse', { type: 'mouseUp', ...moved.point, button: 'left', clickCount: 1 })
+      await wait(200)
+      if (observed) return { success: true, message: `✅ Clicked element (${controller.elementTextMap.get(index) ?? index}).` }
+      return click(index)
+    } finally {
+      moved.element.removeEventListener('click', observeClick, { capture: true })
+    }
+  }
+  const input = controller.inputText.bind(controller)
+  controller.inputText = async (index, text) => {
+    await moveTo(index)
+    return input(index, text)
+  }
+}
+
 /** Normalize page-owned strings before they leave the isolated preload. */
 function clippedText(value, max) {
   return String(value ?? '').replace(/\s+/gu, ' ').trim().slice(0, max)
@@ -106,6 +241,21 @@ function clippedText(value, max) {
 
 function escapeHtml(value) {
   return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;')
+}
+
+let accessibilityRefElements = []
+
+/** Mark PageController refs so the host can join Chromium AX nodes to actions. */
+function markAccessibilityRefs(controller) {
+  for (const element of accessibilityRefElements) element.removeAttribute('data-hydra-a11y-ref')
+  accessibilityRefElements = []
+  for (const [index, entry] of controller.selectorMap) {
+    const element = entry?.ref
+    if (element instanceof Element) {
+      element.setAttribute('data-hydra-a11y-ref', `e${index}`)
+      accessibilityRefElements.push(element)
+    }
+  }
 }
 
 /** Current page address without credentials, query tokens, or fragments. */
@@ -324,7 +474,16 @@ function getElementCenter(controller, index) {
   if (!(element instanceof Element)) throw new Error(`No indexed element exists at [${index}].`)
   const rect = element.getBoundingClientRect()
   if (rect.width <= 0 || rect.height <= 0) throw new Error(`Indexed element [${index}] has no usable viewport position.`)
-  return { x: Math.round(rect.left + (rect.width / 2)), y: Math.round(rect.top + (rect.height / 2)) }
+  let x = rect.left + rect.width / 2
+  let y = rect.top + rect.height / 2
+  let frame = element.ownerDocument.defaultView?.frameElement
+  while (frame) {
+    const bounds = frame.getBoundingClientRect()
+    x += bounds.left + frame.clientLeft
+    y += bounds.top + frame.clientTop
+    frame = frame.ownerDocument.defaultView?.frameElement
+  }
+  return { x: Math.round(x), y: Math.round(y) }
 }
 
 const FILE_INPUT_MARK = 'data-hydra-host-file-input'
@@ -714,13 +873,66 @@ async function fillFields(controller, fields) {
       return { success: false, message: messages.join('\n') }
     }
     const element = controller.selectorMap.get(index)?.ref
-    const result = element instanceof HTMLSelectElement
+    const toggle = element instanceof HTMLInputElement && ['checkbox', 'radio'].includes(element.type)
+    if (toggle && !['true', 'false'].includes(field.text)) return { success: false, message: 'Checkbox and radio values must be true or false.' }
+    if (toggle && element.type === 'radio' && field.text === 'false') return { success: false, message: 'Select another radio option to clear this one.' }
+    const result = toggle
+      ? element.checked === (field.text === 'true')
+        ? { success: true, message: 'The control already has the requested checked state.' }
+        : await controller.clickElement(index)
+      : element instanceof HTMLSelectElement
       ? await controller.selectOption(index, field.text)
       : await controller.inputText(index, field.text)
     messages.push(result.message)
     if (!result.success) return { success: false, message: messages.join('\n') }
   }
   return { success: true, message: messages.join('\n') }
+}
+
+async function selectText(controller, args) {
+  await controller.updateTree()
+  let startX
+  let startY
+  let endX
+  let endY
+  const rawStartX = args.startX ?? args.start_x
+  const rawStartY = args.startY ?? args.start_y
+  const rawEndX = args.endX ?? args.end_x
+  const rawEndY = args.endY ?? args.end_y
+  if (typeof rawStartX === 'number' && typeof rawEndX === 'number') {
+    startX = rawStartX
+    startY = typeof rawStartY === 'number' ? rawStartY : 0
+    endX = rawEndX
+    endY = typeof rawEndY === 'number' ? rawEndY : startY
+  } else {
+    const index = await resolveNamedIndex(controller, args)
+    if (index === undefined) {
+      return { success: false, message: `No element named "${String(args.name ?? args.index).trim()}" in the current snapshot.` }
+    }
+    const element = controller.selectorMap.get(index)?.ref
+    if (!(element instanceof HTMLElement)) {
+      return { success: false, message: `Element [${index}] is not a valid HTMLElement.` }
+    }
+    element.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' })
+    const rect = element.getBoundingClientRect()
+    const frame = element.ownerDocument.defaultView?.frameElement
+    const frameRect = frame instanceof HTMLElement ? frame.getBoundingClientRect() : { left: 0, top: 0 }
+    startX = rect.left + 4 + (frameRect.left ?? 0)
+    startY = rect.top + rect.height / 2 + (frameRect.top ?? 0)
+    endX = rect.right - 4 + (frameRect.left ?? 0)
+    endY = startY
+  }
+  const duration = args.duration ?? 450
+  window.dispatchEvent(new CustomEvent('PageAgent::SelectText', {
+    detail: { startX, startY, endX, endY, duration },
+  }))
+  await new Promise(resolve => setTimeout(resolve, duration + 100))
+  const selectedText = window.getSelection()?.toString() ?? ''
+  return {
+    success: true,
+    message: `Selected text: "${selectedText}".`,
+    selectedText,
+  }
 }
 
 // Electron evaluates a preload before navigation creates <body>. Wait for a
@@ -743,6 +955,7 @@ const pageControllerReady = new Promise((resolve, reject) => {
         includeAttributes: ['disabled', 'aria-disabled', 'href'],
       })
       await pageController.showMask()
+      await installNativePointerActions(pageController)
       const updateTree = pageController.updateTree.bind(pageController)
       pageController.updateTree = async () => {
         pageController.simplifiedHTML = includeFileInputs(pageController, await updateTree())
@@ -751,10 +964,9 @@ const pageControllerReady = new Promise((resolve, reject) => {
       const getBrowserState = pageController.getBrowserState.bind(pageController)
       pageController.getBrowserState = async () => {
         const state = await getBrowserState()
-        return {
-          ...state,
-          content: rankElementList(maskPasswordValues(pageController, state.content)),
-        }
+        markAccessibilityRefs(pageController)
+        const content = await ipcRenderer.invoke('browser:accessibility-snapshot')
+        return { ...state, content }
       }
       resolve(pageController)
     } catch (error) {
@@ -822,6 +1034,18 @@ async function dispatch(action, args) {
       })
     case 'get_element_center':
       return getElementCenter(controller, args.index)
+    case 'prepare_pointer':
+      return await actOnNamed(controller, args, index => {
+        const element = controller.selectorMap.get(index)?.ref
+        if (!(element instanceof Element) || !element.isConnected || element.matches(':disabled')) return { success: false, message: `Element [${index}] is unavailable or disabled.` }
+        element.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' })
+        const covered = coveredClickFailure(controller, index)
+        if (covered !== undefined) return covered
+        const point = getElementCenter(controller, index)
+        window.dispatchEvent(new CustomEvent('PageAgent::MovePointerTo', { detail: point }))
+        if (args.click) window.dispatchEvent(new CustomEvent('PageAgent::ClickPointer'))
+        return point
+      })
     case 'mark_file_input':
       return markFileInput(controller, args.index)
     case 'unmark_file_input':
@@ -831,7 +1055,16 @@ async function dispatch(action, args) {
     case 'history_go':
       return historyGo(args.delta)
     case 'input_text':
-      return await actOnNamed(controller, args, index => controller.inputText(index, args.text))
+      return await actOnNamed(controller, args, async index => {
+        window.dispatchEvent(new CustomEvent('PageAgent::SetCursorMode', { detail: { mode: 'ibeam' } }))
+        const result = await controller.inputText(index, args.text)
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('PageAgent::SetCursorMode', { detail: { mode: 'default' } }))
+        }, 500)
+        return result
+      })
+    case 'select_text':
+      return await selectText(controller, args)
     case 'select_option':
       return await actOnNamed(controller, args, index => controller.selectOption(index, args.text))
     case 'find_element':
@@ -842,10 +1075,16 @@ async function dispatch(action, args) {
       return fillLogin(args)
     case 'autofill_contact':
       return fillContact(args)
-    case 'scroll':
+    case 'scroll': {
+      const deltaY = args.down ? (args.pixels ?? 300) : -(args.pixels ?? 300)
+      window.dispatchEvent(new CustomEvent('PageAgent::ScrollPointer', { detail: { deltaY } }))
       return await controller.scroll(args)
-    case 'scroll_horizontally':
+    }
+    case 'scroll_horizontally': {
+      const deltaX = args.right ? (args.pixels ?? 300) : -(args.pixels ?? 300)
+      window.dispatchEvent(new CustomEvent('PageAgent::ScrollPointer', { detail: { deltaX } }))
       return await controller.scrollHorizontally(args)
+    }
     case 'execute_javascript':
       return await controller.executeJavascript(args.script)
     case 'page_agent_run': {

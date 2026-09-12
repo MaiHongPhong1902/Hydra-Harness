@@ -1,6 +1,6 @@
 /**
  * Model-facing `browser_*` tools over the embedded-browser seam (`ctx.browsers`).
- * This package owns the schemas, the DOM-format prompt section, bounding, and
+ * This package owns the schemas, the accessibility-snapshot prompt section, bounding, and
  * presentation; the seam owns the window and the page.
  * @module @hydra/harness-tool-browser
  */
@@ -171,6 +171,27 @@ const CDP_EVENTS_OUTPUT = {
   }],
 }
 
+const TABS_OUTPUT = {
+  schema: {
+    type: 'array',
+    items: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        id: { type: 'integer', required: true },
+        url: { type: 'string', required: true },
+        title: { type: 'string', required: true },
+        status: { type: 'string', required: true, enum: ['loading', 'complete'] },
+        active: { type: 'boolean', required: true },
+      },
+    },
+  } as const,
+  render: (_args: unknown, value: BrowserToolValue['tabs']) => [{
+    type: 'text' as const,
+    text: value.map(tab => `[${tab.id}] ${tab.active ? '(active) ' : ''}${tab.title} — ${tab.url} (${tab.status})`).join('\n'),
+  }],
+}
+
 /** Durable value retained for a model-facing Browser screenshot result. */
 export interface BrowserScreenshotValue extends Pick<BrowserScreenshot, 'tabId' | 'url' | 'title' | 'capturedAt'> {
   image: {
@@ -294,8 +315,8 @@ async function assertScreenshotRoute(ctx: Context, exec: ToolExecution): Promise
 
 /** Register the attachment-backed visual read while a durable store is mounted. */
 function applyScreenshotTool(ctx: Context, timeoutMs: number): void {
-  ctx.tools.register(defineTool({
-    name: 'browser_screenshot',
+  const register = (name: string): void => { ctx.tools.register(defineTool({
+    name,
     description: 'Capture the visible viewport of the currently selected controlled HTTP(S) page and return it as an image. It cannot target a background tab or browser chrome.',
     parameters: {},
     output: SCREENSHOT_OUTPUT,
@@ -336,10 +357,12 @@ function applyScreenshotTool(ctx: Context, timeoutMs: number): void {
       }
     },
     presentCall: () => presentBrowserCall('Capture selected browser viewport'),
-  }))
+  })) }
+  register('browser_screenshot')
+  register('browser_take_screenshot')
 }
 
-/** Register the `browser_*` tools and the DOM-format prompt section. */
+/** Register the `browser_*` tools and the accessibility-snapshot prompt section. */
 export function apply(ctx: Context, config: Config = {}): void {
   const maxStateChars = config.maxStateChars ?? DEFAULT_MAX_STATE_CHARS
   const timeoutMs = config.timeoutMs ?? DEFAULT_BROWSER_TOOL_TIMEOUT_MS
@@ -404,6 +427,24 @@ export function apply(ctx: Context, config: Config = {}): void {
   })
 
   ctx.tools.register(defineTool({
+    name: 'browser_close',
+    description: 'Close this agent\'s controlled browser and release its tabs. A later browser call opens a fresh controller.',
+    parameters: {},
+    output: {
+      schema: { type: 'boolean' },
+      render: (_args: unknown, closed: boolean) => [{ type: 'text' as const, text: closed ? 'Browser closed.' : 'Browser was already closed.' }],
+    },
+    timeoutMs,
+    execute: async (_args, exec) => {
+      const owner = requireAgent(exec.agent)
+      const closed = await ctx.browsers.close(owner)
+      previousContent.delete(owner)
+      return closed
+    },
+    presentCall: () => presentBrowserCall('Close browser'),
+  }))
+
+  ctx.tools.register(defineTool({
     name: 'browser_navigate',
     description: 'Open a URL in the embedded browser and return the page as a numbered element list. Starts the browser window if it is not running yet.',
     parameters: {
@@ -433,6 +474,17 @@ export function apply(ctx: Context, config: Config = {}): void {
   }))
 
   ctx.tools.register(defineTool({
+    name: 'browser_snapshot',
+    description: 'Return the current page as a Playwright-style accessibility snapshot with numbered refs.',
+    parameters: { tab_id: TAB_ID_PARAMETER },
+    output,
+    timeoutMs,
+    execute: (args: TargetTabArgs, exec) => run(exec, { method: 'get_browser_state', ...tabTarget(args) }),
+    isConcurrencySafe: targetsTab,
+    presentCall: () => presentBrowserCall('Read accessibility snapshot'),
+  }))
+
+  ctx.tools.register(defineTool({
     name: 'browser_wait',
     description: 'Wait up to 1–10 seconds for delayed page data, animation, or navigation, then return a fresh settled page state. Use it instead of repeatedly polling browser_state.',
     parameters: {
@@ -449,6 +501,62 @@ export function apply(ctx: Context, config: Config = {}): void {
     },
     isConcurrencySafe: targetsTab,
     presentCall: (args: { seconds: number }) => presentBrowserCall(`Wait ${args.seconds}s for browser page`),
+  }))
+
+  ctx.tools.register(defineTool({
+    name: 'browser_wait_for',
+    description: 'Wait up to ten seconds for text to appear or disappear in the accessibility snapshot, or wait for the specified time.',
+    parameters: {
+      time: { type: 'number', description: 'Seconds to wait, from 1 through 10.' },
+      text: { type: 'string', description: 'Optional text expected in the returned accessibility snapshot.' },
+      text_gone: { type: 'string', description: 'Optional text expected to be absent from the returned snapshot.' },
+      tab_id: TAB_ID_PARAMETER,
+    },
+    output,
+    timeoutMs,
+    execute: async (args: { time?: number; text?: string; text_gone?: string; tab_id?: number }, exec) => {
+      const seconds = args.time ?? 10
+      if (!Number.isFinite(seconds) || seconds <= 0 || seconds > 10) throw new Error('time must be greater than zero and at most 10 seconds')
+      if (args.time === undefined && args.text === undefined && args.text_gone === undefined) throw new Error('provide time, text, or text_gone')
+      return run(exec, {
+        method: 'wait_for', seconds, ...tabTarget(args),
+        ...args.text === undefined ? {} : { text: args.text },
+        ...args.text_gone === undefined ? {} : { textGone: args.text_gone },
+      })
+    },
+    isConcurrencySafe: targetsTab,
+    presentCall: () => presentBrowserCall('Wait for browser state'),
+  }))
+
+  ctx.tools.register(defineTool({
+    name: 'browser_tabs',
+    description: 'List, create, close, or select a controlled browser tab, matching Playwright MCP tab management.',
+    parameters: {
+      action: { type: 'string', required: true, enum: ['list', 'new', 'close', 'select'] },
+      index: { type: 'integer', description: 'Tab id from the latest snapshot for close/select.' },
+      url: { type: 'string', description: 'Absolute HTTP(S) URL for a new tab.' },
+    },
+    output: TABS_OUTPUT,
+    timeoutMs,
+    execute: async (args: { action: 'list' | 'new' | 'close' | 'select'; index?: number; url?: string }, exec) => {
+      if ((args.action === 'close' || args.action === 'select')
+        && (!Number.isSafeInteger(args.index) || (args.index ?? 0) < 1)) {
+        throw new Error('index must be a positive tab id for close/select')
+      }
+      if (args.action === 'new' && args.url !== undefined && originOf(args.url) === undefined) {
+        throw new Error('url must be an absolute http(s) URL for a new tab')
+      }
+      const outcome = args.action === 'new'
+        ? await run(exec, { method: 'open_new_tab', ...args.url === undefined ? {} : { url: args.url } })
+        : args.action === 'close'
+          ? await run(exec, { method: 'close_tab', tabId: args.index ?? 0 })
+          : args.action === 'select'
+            ? await run(exec, { method: 'switch_to_tab', tabId: args.index ?? 0 })
+            : await run(exec, { method: 'get_browser_state' })
+      if (outcome.action?.success === false) throw new Error(outcome.action.message)
+      return outcome.tabs
+    },
+    presentCall: () => presentBrowserCall('List browser tabs'),
   }))
 
   ctx.tools.register(defineTool({
@@ -470,11 +578,159 @@ export function apply(ctx: Context, config: Config = {}): void {
   }))
 
   ctx.tools.register(defineTool({
+    name: 'browser_hover',
+    description: 'Move the native browser pointer onto an observed accessibility ref or named control and return the resulting snapshot.',
+    parameters: { index: INDEX_OR_NAME_INDEX, name: NAME_PARAMETER, tab_id: TAB_ID_PARAMETER },
+    output,
+    timeoutMs,
+    execute: (args: NamedTarget & TargetTabArgs, exec) => run(exec, { method: 'hover_element', ...namedTarget(args), ...tabTarget(args) }),
+    isConcurrencySafe: targetsTab,
+    presentCall: () => presentBrowserCall('Hover browser control'),
+  }))
+
+  ctx.tools.register(defineTool({
+    name: 'browser_drag',
+    description: 'Drag from one observed accessibility ref to another with the native browser pointer held down.',
+    parameters: {
+      start_index: { type: 'integer', required: true, description: 'Source ref from the latest snapshot.' },
+      end_index: { type: 'integer', required: true, description: 'Destination ref from the same snapshot.' },
+      tab_id: TAB_ID_PARAMETER,
+    },
+    output,
+    timeoutMs,
+    execute: (args: { start_index: number; end_index: number } & TargetTabArgs, exec) => {
+      if (![args.start_index, args.end_index].every(index => Number.isSafeInteger(index) && index >= 0)) throw new Error('drag refs must be non-negative integers')
+      return run(exec, { method: 'drag_element', startIndex: args.start_index, endIndex: args.end_index, ...tabTarget(args) })
+    },
+    isConcurrencySafe: targetsTab,
+    presentCall: () => presentBrowserCall('Drag browser control'),
+  }))
+
+  ctx.tools.register(defineTool({
+    name: 'browser_drop',
+    description: 'Drop local files or MIME-typed text onto an observed accessibility ref. Local files follow Browser Uploads permissions.',
+    parameters: {
+      index: { type: 'integer', required: true, description: 'Destination ref from the latest snapshot.' },
+      paths: { type: 'array', items: { type: 'string' }, description: 'Absolute paths of readable local files.' },
+      data: { type: 'object', additionalProperties: true, description: 'MIME type to text, for example text/plain.' },
+      tab_id: TAB_ID_PARAMETER,
+    },
+    output,
+    timeoutMs,
+    execute: (args: { index: number; paths?: string[]; data?: Record<string, string> } & TargetTabArgs, exec) => {
+      if (!Number.isSafeInteger(args.index) || args.index < 0) throw new Error('index must be a non-negative ref')
+      const filePaths = args.paths ?? []
+      const data = args.data ?? {}
+      if (Object.entries(data).some(([mimeType, value]) => !mimeType.includes('/') || typeof value !== 'string')) throw new Error('data must map MIME types to strings')
+      if (filePaths.length === 0 && Object.keys(data).length === 0) throw new Error('provide paths or MIME-typed data')
+      return run(exec, { method: 'drop', index: args.index, filePaths, data, ...tabTarget(args) })
+    },
+    isConcurrencySafe: targetsTab,
+    presentCall: () => presentBrowserCall('Drop files or data into browser'),
+  }))
+
+  ctx.tools.register(defineTool({
+    name: 'browser_resize',
+    description: 'Set the controlled page viewport size in CSS pixels.',
+    parameters: {
+      width: { type: 'integer', required: true, description: 'Viewport width, from 1 to 8192 pixels.' },
+      height: { type: 'integer', required: true, description: 'Viewport height, from 1 to 8192 pixels.' },
+      tab_id: TAB_ID_PARAMETER,
+    },
+    output,
+    timeoutMs,
+    execute: (args: { width: number; height: number } & TargetTabArgs, exec) => {
+      if (![args.width, args.height].every(size => Number.isSafeInteger(size) && size >= 1 && size <= 8192)) throw new Error('viewport dimensions must be integers from 1 to 8192')
+      return run(exec, { method: 'resize', width: args.width, height: args.height, ...tabTarget(args) })
+    },
+    isConcurrencySafe: targetsTab,
+    presentCall: (args: { width: number; height: number }) => presentBrowserCall(`Resize browser to ${args.width} × ${args.height}`),
+  }))
+
+  ctx.tools.register(defineTool({
+    name: 'browser_handle_dialog',
+    description: 'Accept or dismiss the current JavaScript alert, confirm, or prompt dialog.',
+    parameters: {
+      accept: { type: 'boolean', required: true, description: 'Accept when true; dismiss when false.' },
+      promptText: { type: 'string', description: 'Text to enter in a prompt dialog.' },
+      tab_id: TAB_ID_PARAMETER,
+    },
+    output,
+    timeoutMs,
+    execute: (args: { accept: boolean; promptText?: string } & TargetTabArgs, exec) => run(exec, {
+      method: 'handle_dialog', accept: args.accept, ...tabTarget(args),
+      ...args.promptText === undefined ? {} : { promptText: args.promptText },
+    }),
+    isConcurrencySafe: targetsTab,
+    presentCall: (args: { accept: boolean }) => presentBrowserCall(`${args.accept ? 'Accept' : 'Dismiss'} browser dialog`),
+  }))
+
+  ctx.tools.register(defineTool({
+    name: 'browser_console_messages',
+    description: 'Read retained console messages for this tab. Includes the selected level and more severe levels.',
+    parameters: {
+      level: { type: 'string', enum: ['error', 'warning', 'info', 'debug'], description: 'Minimum severity. Defaults to info.' },
+      tab_id: TAB_ID_PARAMETER,
+    },
+    output,
+    timeoutMs,
+    execute: (args: { level?: 'error' | 'warning' | 'info' | 'debug' } & TargetTabArgs, exec) => run(exec, { method: 'console_messages', level: args.level ?? 'info', ...tabTarget(args) }),
+    isConcurrencySafe: targetsTab,
+    presentCall: () => presentBrowserCall('Read browser console'),
+  }))
+
+  ctx.tools.register(defineTool({
+    name: 'browser_network_requests',
+    description: 'List retained network requests for this tab with stable request indexes for browser_network_request.',
+    parameters: { static: { type: 'boolean', description: 'Include successful static resources. Defaults to false.' }, tab_id: TAB_ID_PARAMETER },
+    output,
+    timeoutMs,
+    execute: (args: { static?: boolean } & TargetTabArgs, exec) => run(exec, { method: 'network_requests', includeStatic: args.static ?? false, ...tabTarget(args) }),
+    isConcurrencySafe: targetsTab,
+    presentCall: () => presentBrowserCall('Read browser network requests'),
+  }))
+
+  ctx.tools.register(defineTool({
+    name: 'browser_network_request',
+    description: 'Read headers or body for a retained network request from browser_network_requests. Bodies may expire from Chromium storage.',
+    parameters: {
+      index: { type: 'integer', required: true, description: 'Request index from browser_network_requests.' },
+      part: { type: 'string', enum: ['request-headers', 'request-body', 'response-headers', 'response-body'], description: 'Omit for request and response headers.' },
+      tab_id: TAB_ID_PARAMETER,
+    },
+    output,
+    timeoutMs,
+    execute: (args: { index: number; part?: 'request-headers' | 'request-body' | 'response-headers' | 'response-body' } & TargetTabArgs, exec) => {
+      if (!Number.isSafeInteger(args.index) || args.index < 1) throw new Error('index must be a positive request index')
+      return run(exec, { method: 'network_request', index: args.index, ...tabTarget(args), ...args.part === undefined ? {} : { part: args.part } })
+    },
+    isConcurrencySafe: targetsTab,
+    presentCall: (args: { index: number }) => presentBrowserCall(`Read browser request ${args.index}`),
+  }))
+
+  ctx.tools.register(defineTool({
     name: 'browser_upload_file',
     description: 'Select one existing readable local file through an indexed HTML file input, including hidden inputs. Use an absolute path and the most recent element list. Uploads permission controls execution and approval for the file and HTTP(S) destination. This selects the file only; submit separately.',
     parameters: {
       index: { type: 'integer', required: true, description: 'Element index of the observed HTML file input, including a hidden chooser input.' },
       path: { type: 'string', required: true, description: 'Absolute path of the local file to upload.' },
+      tab_id: TAB_ID_PARAMETER,
+    },
+    output,
+    timeoutMs,
+    execute: (args: { index: number; path: string; tab_id?: number }, exec) =>
+      run(exec, { method: 'upload_file', index: args.index, filePath: args.path, ...tabTarget(args) }),
+    isConcurrencySafe: targetsTab,
+    presentCall: (args: { index: number; path: string }) =>
+      presentBrowserCall(`Upload file through [${args.index}]`, args.path),
+  }))
+
+  ctx.tools.register(defineTool({
+    name: 'browser_file_upload',
+    description: 'Choose a local file through an accessibility ref, matching Playwright MCP semantics.',
+    parameters: {
+      index: { type: 'integer', required: true, description: 'Accessibility ref of the file input.' },
+      path: { type: 'string', required: true, description: 'Absolute path of the readable local file.' },
       tab_id: TAB_ID_PARAMETER,
     },
     output,
@@ -522,6 +778,42 @@ export function apply(ctx: Context, config: Config = {}): void {
     isConcurrencySafe: targetsTab,
     presentCall: (args: { index?: number; name?: string; text: string }) => presentBrowserCall(
       args.index === undefined ? `Select "${args.text}" in ${args.name}` : `Select "${args.text}" in [${args.index}]`,
+    ),
+  }))
+
+  ctx.tools.register(defineTool({
+    name: 'browser_select_text',
+    description: 'Select text across an element by index or visible name, or between explicit coordinates, animating the virtual cursor and updating the native DOM selection.',
+    parameters: {
+      index: INDEX_OR_NAME_INDEX,
+      name: NAME_PARAMETER,
+      start_x: { type: 'number', description: 'Start X coordinate in CSS pixels.' },
+      start_y: { type: 'number', description: 'Start Y coordinate in CSS pixels.' },
+      end_x: { type: 'number', description: 'End X coordinate in CSS pixels.' },
+      end_y: { type: 'number', description: 'End Y coordinate in CSS pixels.' },
+      tab_id: TAB_ID_PARAMETER,
+    },
+    output,
+    timeoutMs,
+    execute: (
+      args: { index?: number; name?: string; start_x?: number; start_y?: number; end_x?: number; end_y?: number; tab_id?: number },
+      exec,
+    ) => {
+      const hasCoords = typeof args.start_x === 'number' && typeof args.end_x === 'number'
+      if (!hasCoords && args.index === undefined && (args.name?.trim().length ?? 0) === 0) {
+        throw new Error('provide index, a non-empty name, or start and end coordinates')
+      }
+      return run(exec, {
+        method: 'select_text',
+        ...args.index === undefined ? {} : { index: args.index },
+        ...args.name === undefined || args.name.trim().length === 0 ? {} : { name: args.name.trim() },
+        ...hasCoords ? { startX: args.start_x, startY: args.start_y ?? 0, endX: args.end_x, endY: args.end_y ?? 0 } : {},
+        ...tabTarget(args),
+      })
+    },
+    isConcurrencySafe: targetsTab,
+    presentCall: (args: { index?: number; name?: string }) => presentBrowserCall(
+      args.index !== undefined ? `Select text in [${args.index}]` : args.name !== undefined ? `Select text in ${args.name}` : 'Select text across range',
     ),
   }))
 
@@ -593,6 +885,23 @@ export function apply(ctx: Context, config: Config = {}): void {
   }))
 
   ctx.tools.register(defineTool({
+    name: 'browser_press_key',
+    description: 'Press one keyboard key using the focused page control, matching Playwright MCP semantics.',
+    parameters: {
+      key: { type: 'string', required: true, description: 'Key name such as Enter, Tab, Escape, or Backspace.' },
+      tab_id: TAB_ID_PARAMETER,
+    },
+    output,
+    timeoutMs,
+    execute: (args: { key: string; tab_id?: number }, exec) => {
+      if (args.key.trim().length === 0) throw new Error('key must be a non-empty string')
+      return run(exec, { method: 'press', key: args.key, ...tabTarget(args) })
+    },
+    isConcurrencySafe: targetsTab,
+    presentCall: (args: { key: string }) => presentBrowserCall(`Press ${args.key}`),
+  }))
+
+  ctx.tools.register(defineTool({
     name: 'browser_back',
     description: 'Go back to the previous page in this window. Reports a failure when there is nothing to go back to.',
     parameters: { tab_id: TAB_ID_PARAMETER },
@@ -601,6 +910,17 @@ export function apply(ctx: Context, config: Config = {}): void {
     execute: (args: TargetTabArgs, exec) => run(exec, { method: 'back', ...tabTarget(args) }),
     isConcurrencySafe: targetsTab,
     presentCall: () => presentBrowserCall('Go back'),
+  }))
+
+  ctx.tools.register(defineTool({
+    name: 'browser_navigate_back',
+    description: 'Navigate back one page and return a fresh accessibility snapshot.',
+    parameters: { tab_id: TAB_ID_PARAMETER },
+    output,
+    timeoutMs,
+    execute: (args: TargetTabArgs, exec) => run(exec, { method: 'back', ...tabTarget(args) }),
+    isConcurrencySafe: targetsTab,
+    presentCall: () => presentBrowserCall('Navigate back'),
   }))
 
   ctx.tools.register(defineTool({
@@ -657,6 +977,40 @@ export function apply(ctx: Context, config: Config = {}): void {
       if (!Array.isArray(args.fields) || args.fields.length === 0) {
         throw new Error('fields must be a non-empty array')
       }
+      return run(exec, {
+        method: 'fill_fields',
+        fields: args.fields.map(field => ({ ...namedTarget(field), text: field.text })),
+        ...tabTarget(args),
+      })
+    },
+    isConcurrencySafe: targetsTab,
+    presentCall: (args: { fields: unknown[] }) => presentBrowserCall(`Fill ${args.fields.length} browser fields`),
+  }))
+
+  ctx.tools.register(defineTool({
+    name: 'browser_fill_form',
+    description: 'Fill multiple form controls by accessibility ref or accessible name, matching Playwright MCP semantics.',
+    parameters: {
+      fields: {
+        type: 'array',
+        required: true,
+        description: 'Fields to fill, each identified by index or accessible name.',
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {
+            index: INDEX_OR_NAME_INDEX,
+            name: NAME_PARAMETER,
+            text: { type: 'string', required: true, description: 'Value to put in the field.' },
+          },
+        },
+      },
+      tab_id: TAB_ID_PARAMETER,
+    },
+    output,
+    timeoutMs,
+    execute: (args: { fields: Array<NamedTarget & { text: string }>; tab_id?: number }, exec) => {
+      if (!Array.isArray(args.fields) || args.fields.length === 0) throw new Error('fields must be a non-empty array')
       return run(exec, {
         method: 'fill_fields',
         fields: args.fields.map(field => ({ ...namedTarget(field), text: field.text })),
@@ -785,6 +1139,22 @@ export function apply(ctx: Context, config: Config = {}): void {
       },
       isConcurrencySafe: targetsTab,
       presentCall: (args: { script: string }) => presentBrowserCall('Execute browser JavaScript', args.script),
+    }))
+    ctx.tools.register(defineTool({
+      name: 'browser_evaluate',
+      description: 'EXPERIMENTAL: evaluate JavaScript in the isolated browser document world, matching Playwright MCP naming.',
+      parameters: {
+        script: { type: 'string', required: true, description: 'JavaScript function body to evaluate.' },
+        tab_id: TAB_ID_PARAMETER,
+      },
+      output,
+      timeoutMs,
+      execute: (args: { script: string; tab_id?: number }, exec) => {
+        if (args.script.trim().length === 0) throw new Error('script must be a non-empty string')
+        return run(exec, { method: 'execute_javascript', script: args.script, ...tabTarget(args) })
+      },
+      isConcurrencySafe: targetsTab,
+      presentCall: (args: { script: string }) => presentBrowserCall('Evaluate browser JavaScript', args.script),
     }))
   }
 

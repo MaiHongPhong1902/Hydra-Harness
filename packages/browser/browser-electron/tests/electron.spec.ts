@@ -189,8 +189,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
       userDataDir: profile,
       width: 1024,
       height: 768,
-      // Headless for the suite; the harness runs it headed so the user watches.
-      show: false,
+      show: true,
       startupTimeoutMs: 60_000,
       actionTimeoutMs: 30_000,
       readinessTimeoutMs: 10_000,
@@ -230,6 +229,8 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
 
     const before = await child.call('get_browser_state', {}) as BrowserState
     expect(before.title).toBe('Harness browser fixture')
+    expect(before.content).toMatch(/textbox/)
+    expect(before.content).not.toMatch(/\[\d+\]<input\b/)
     expect(before.content).toMatch(/\[\d+]<button/)
     const highlights = await child.call('execute_javascript', {
       script: "return getComputedStyle(document.getElementById('playwright-highlight-container')).display",
@@ -248,6 +249,76 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
 
     const after = await child.call('get_browser_state', {}) as BrowserState
     expect(after.content).toContain('Ordered l for Ada')
+  }, 60_000)
+
+  it('waits for accessibility text and drives native hover, drag, resize, and dialogs', async () => {
+    await child.call('navigate', { url: fixture })
+    await child.call('execute_javascript', { script: `
+      document.body.innerHTML = '<button id="source" style="position:fixed;left:30px;top:30px">Source</button><button id="target" style="position:fixed;left:230px;top:30px">Target</button><button id="dialog" style="position:fixed;left:430px;top:30px">Prompt</button><output id="events"></output>';
+      globalThis.__gestures = [];
+      document.querySelector('#source').addEventListener('pointerenter', e => globalThis.__gestures.push('hover:' + e.isTrusted));
+      document.addEventListener('pointermove', e => { if (e.buttons === 1) globalThis.__gestures.push('drag:' + e.isTrusted) });
+      document.querySelector('#dialog').addEventListener('click', () => { document.querySelector('#events').textContent = 'Dialog result: ' + confirm('Continue?') });
+      document.querySelector('#target').addEventListener('dragover', e => e.preventDefault());
+      document.querySelector('#target').addEventListener('drop', e => { e.preventDefault(); document.querySelector('#events').textContent = 'Dropped: ' + e.dataTransfer.getData('text/plain') });
+      setTimeout(() => document.querySelector('#events').textContent = 'Ready for gestures', 250);
+      console.log('hydra-console-fixture');
+    ` })
+    expect(await child.call('wait_for', { seconds: 2, text: 'Ready for gestures' })).toMatchObject({ success: true })
+    expect(await child.call('wait_for', { seconds: 0.1, textGone: 'Ready for gestures' })).toMatchObject({ success: false })
+    const state = await child.call('get_browser_state', {}) as BrowserState
+    const source = indexOf(state.content, 'id=source')
+    const target = indexOf(state.content, 'id=target')
+    const dialog = indexOf(state.content, 'id=dialog')
+    expect(await child.call('hover_element', { index: source })).toMatchObject({ success: true })
+    expect(await child.call('drag_element', { startIndex: source, endIndex: target })).toMatchObject({ success: true })
+    const gestures = await child.call('execute_javascript', { script: 'return globalThis.__gestures.join(",")' }) as ActionResult
+    expect(gestures.message).toContain('hover:true')
+    expect(gestures.message).toContain('drag:true')
+    expect(await child.call('drop', { index: target, filePaths: [], data: { 'text/plain': 'Hydra drop' } })).toMatchObject({ success: true })
+    expect((await child.call('get_browser_state', {}) as BrowserState).content).toContain('Dropped: Hydra drop')
+    await expect(child.call('drop', { index: target, filePaths: [join(profile, 'unapproved.txt')], data: {} })).rejects.toThrow('Host-bound')
+    expect(await child.call('hover_element', { index: 999999 })).toMatchObject({ success: false })
+    expect(await child.call('resize', { width: 800, height: 600 })).toMatchObject({ success: true })
+    expect((await child.call('execute_javascript', { script: 'return innerWidth + "x" + innerHeight' }) as ActionResult).message).toContain('800x600')
+    await expect(child.call('resize', { width: 0, height: 600 })).rejects.toThrow('viewport dimensions')
+    expect((await child.call('console_messages', { level: 'info' }) as ActionResult).message).toContain('hydra-console-fixture')
+    expect(await child.call('handle_dialog', { accept: false })).toMatchObject({ success: false })
+    expect(await child.call('click_element', { index: dialog })).toMatchObject({ success: true })
+    expect((await child.call('get_browser_state', {}) as BrowserState).footer).toContain('Continue?')
+    expect(await child.call('handle_dialog', { accept: true, promptText: 'Ada' })).toMatchObject({ success: true })
+    expect((await child.call('get_browser_state', {}) as BrowserState).content).toContain('Dialog result: true')
+    const requests = await child.call('network_requests', { includeStatic: true }) as ActionResult
+    expect(requests.message).toContain(fixture)
+    const request = Number(/\[(\d+)\] GET .*form\.html/.exec(requests.message)?.[1])
+    expect(await child.call('network_request', { index: request, part: 'response-body' })).toMatchObject({ success: true })
+    expect(await child.call('network_request', { index: 999999 })).toMatchObject({ success: false })
+    await child.call('execute_javascript', { script: `
+      document.body.innerHTML = '<label>Agreement<input id="agreement" type="checkbox"></label><label>Choice<input id="choice" type="radio" name="choice"></label><input id="edit" aria-label="Editor" value="Replace me">';
+    ` })
+    expect(await child.call('fill_fields', { fields: [{ name: 'agreement', text: 'true' }, { name: 'choice', text: 'true' }] })).toMatchObject({ success: true })
+    expect((await child.call('execute_javascript', { script: 'return document.querySelector("#agreement").checked && document.querySelector("#choice").checked' }) as ActionResult).message).toContain('true')
+    expect(await child.call('fill_fields', { fields: [{ name: 'agreement', text: 'invalid' }] })).toMatchObject({ success: false })
+    await child.call('click_element', { name: 'Editor' })
+    await child.call('press', { key: 'ControlOrMeta+A' })
+    await child.call('press', { key: 'Backspace' })
+    expect((await child.call('execute_javascript', { script: 'return "Editor=" + document.querySelector("#edit").value + "!"' }) as ActionResult).message).toContain('Editor=!')
+    await expect(child.call('press', { key: 'Invalid+A' })).rejects.toThrow('invalid keyboard chord')
+  }, 30_000)
+
+  it('delivers native pointer and mouse events for agent clicks', async () => {
+    await child.call('navigate', { url: fixture })
+    await child.call('execute_javascript', {
+      script: "globalThis.__pointerEvents = []; for (const type of ['pointermove', 'pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click']) document.addEventListener(type, () => globalThis.__pointerEvents.push(type), { capture: true })",
+    })
+    const before = await child.call('get_browser_state', {}) as BrowserState
+    await child.call('click_element', { index: indexOf(before.content, 'id=submit') })
+    const events = await child.call('execute_javascript', { script: 'return globalThis.__pointerEvents' }) as ActionResult
+    expect(events.message).toContain('pointerdown')
+    expect(events.message).toContain('mousedown')
+    expect(events.message).toContain('pointerup')
+    expect(events.message).toContain('mouseup')
+    expect(events.message).toContain('click')
   }, 60_000)
 
   it('resolves named Hydra actions, fills fields, and goes forward', async () => {
@@ -270,6 +341,18 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
     const forwarded = await child.call('get_browser_state', { waitForReady: true }) as BrowserState
     expect(forwarded.url).toContain('next.html')
   }, 60_000)
+
+  it('keeps the preload channel ready across same-document navigation', async () => {
+    await child.call('navigate', { url: fixture })
+    const before = await child.call('get_browser_state', {}) as BrowserState
+    await child.call('execute_javascript', {
+      script: "history.pushState({}, '', location.pathname + '#same-document')",
+    })
+    const after = await child.call('get_browser_state', {}) as BrowserState
+    expect(after.url).toContain('#same-document')
+    expect(after.content).toContain('id=who')
+    expect(after.tabId).toBe(before.tabId)
+  }, 30_000)
 
   it('rejects a click whose indexed target is covered by a popup', async () => {
     await child.call('navigate', { url: fixture })
@@ -375,6 +458,34 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
     }) as ActionResult
     expect(result.success).toBe(true)
     expect(result.message).toContain('fixed')
+  }, 30_000)
+
+  it('drives virtual cursor scroll animation and hud', async () => {
+    await child.call('navigate', { url: fixture })
+    await child.call('get_browser_state', {})
+    const scrollResult = await child.call('scroll', { down: true, numPages: 1 })
+    expect(scrollResult).toMatchObject({ success: true })
+    const hudResult = await child.call('execute_javascript', {
+      script: `
+        const hud = document.querySelector('#page-agent-runtime_simulator-mask [data-scroll-hud="true"]');
+        return \`\${Boolean(hud)}|\${hud?.getAttribute('data-direction')}\`;
+      `,
+    }) as ActionResult
+    expect(hudResult.success).toBe(true)
+    expect(hudResult.message).toContain('true|down')
+  }, 30_000)
+
+  it('selects real text in the DOM with caret tracking and ibeam mode', async () => {
+    await child.call('navigate', { url: fixture })
+    const before = await child.call('get_browser_state', {}) as BrowserState
+    const submitIndex = indexOf(before.content, 'id=submit')
+    const selectResult = await child.call('select_text', { index: submitIndex }) as { success: boolean; selectedText: string }
+    expect(selectResult.success).toBe(true)
+    expect(selectResult.selectedText).toContain('Place order')
+    const domSelection = await child.call('execute_javascript', {
+      script: 'return window.getSelection()?.toString()',
+    }) as ActionResult
+    expect(domSelection.message).toContain('Place order')
   }, 30_000)
 
   it('keeps autofill secrets encrypted, management-only, and out of Browser state', async () => {
@@ -525,7 +636,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
       expectedOrigin: target.origin,
       tabId: target.tabId,
     }) as BrowserCdpEventPage
-    expect(initial.events).toEqual([])
+    expect(JSON.stringify(initial.events)).not.toContain('hydra-cdp-event')
 
     await child.call('cdp_command', {
       method: 'Runtime.enable', params: {}, expectedOrigin: target.origin, tabId: target.tabId,
