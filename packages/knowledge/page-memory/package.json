@@ -26,6 +26,7 @@
     "@hydra/harness-home-paths": "workspace:^",
     "@hydra/harness-invariants": "workspace:^",
     "@hydra/harness-llm": "workspace:^",
+    "@hydra/harness-settings": "workspace:^",
     "@hydra/harness-system-prompt": "workspace:^",
     "@hydra/harness-tools": "workspace:^"
   },
@@ -37,6 +38,7 @@
     "@hydra/harness-home-paths": "workspace:^",
     "@hydra/harness-invariants": "workspace:^",
     "@hydra/harness-llm": "workspace:^",
+    "@hydra/harness-settings": "workspace:^",
     "@hydra/harness-session": "workspace:^",
     "@hydra/harness-system-prompt": "workspace:^",
     "@hydra/harness-tools": "workspace:^",

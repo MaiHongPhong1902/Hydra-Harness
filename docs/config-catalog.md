@@ -864,7 +864,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/hooks/hooks-codex/src/index.ts:44`](../packages/hooks/hooks-codex/src/index.ts)
+Source: [`packages/hooks/hooks-codex/src/index.ts:47`](../packages/hooks/hooks-codex/src/index.ts)
 
 <a id="hydraharness-hooks-registry"></a>
 
@@ -1561,6 +1561,8 @@ export interface StreamableHttpConfig {
   url: string
   /** Additional headers attached to MCP requests. */
   headers: Record<string, string>
+  /** Optional environment variable resolved to a bearer token at connection time. */
+  bearerTokenEnvVar?: string
   /** Per-tool-call timeout in milliseconds. */
   toolCallTimeoutMs: number
   /** Fail plugin activation when the initial connection or tool synchronization fails. */
@@ -1582,7 +1584,7 @@ export interface ReconnectConfig {
 }
 ```
 
-Source: [`packages/mcp/mcp-client/src/index.ts:99`](../packages/mcp/mcp-client/src/index.ts)
+Source: [`packages/mcp/mcp-client/src/index.ts:101`](../packages/mcp/mcp-client/src/index.ts)
 
 <a id="hydraharness-message-feedback"></a>
 
@@ -1658,7 +1660,7 @@ export interface RouteRule {
 }
 ```
 
-Source: [`packages/knowledge/page-memory/src/index.ts:28`](../packages/knowledge/page-memory/src/index.ts)
+Source: [`packages/knowledge/page-memory/src/index.ts:53`](../packages/knowledge/page-memory/src/index.ts)
 
 <a id="hydraharness-permission-presets"></a>
 
@@ -1754,7 +1756,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/host/plugin-runtime/src/index.ts:44`](../packages/host/plugin-runtime/src/index.ts)
+Source: [`packages/host/plugin-runtime/src/index.ts:45`](../packages/host/plugin-runtime/src/index.ts)
 
 <a id="hydraharness-pwsh-local"></a>
 

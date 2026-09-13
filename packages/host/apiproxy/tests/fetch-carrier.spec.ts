@@ -610,7 +610,7 @@ describe('unary round trip (handler ⇄ client, no network)', () => {
     api.authorization.begin = async (request, signal) => {
       if (signal === undefined) throw new Error('carrier signal missing')
       started.resolve(signal)
-      await new Promise<void>(resolve => signal.addEventListener('abort', () => { resolve() }, { once: true }))
+      await new Promise<void>((resolve) => { signal.addEventListener('abort', () => { resolve() }, { once: true }) })
       return {
         rpcId: request.rpcId,
         result: { ok: true, value: { attemptId: '00000000-0000-4000-8000-000000000001' } },

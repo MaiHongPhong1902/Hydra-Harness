@@ -126,6 +126,11 @@
   overflow: auto;
 }
 
+.tree[data-drop-target='true'] {
+  outline: 1px dashed var(--dsw-alias-focus-ring);
+  outline-offset: -2px;
+}
+
 .createRow {
   min-width: 0;
   height: 28px;
@@ -185,6 +190,11 @@
 
 .row[data-selected] {
   background: var(--dsw-alias-interactive-bg-active);
+}
+
+.row[data-drop-target='true'] {
+  outline: 1px solid var(--dsw-alias-focus-ring);
+  background: var(--dsw-alias-interactive-bg-hover);
 }
 
 .row:focus-visible,

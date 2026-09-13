@@ -56,6 +56,7 @@ export const en = {
   marketplaceAddError: 'This source does not contain an OpenAI/Codex marketplace.json catalog.',
   marketplaceImportError: 'The marketplace was saved, but that plugin could not be installed. Check the plugin name against the catalog, or remove an installed plugin that already uses it, and try again.',
   marketplaceMutationError: 'The marketplace action failed. Check the source and try again.',
+  marketplacePendingPluginChanges: 'Save or discard pending plugin changes before changing a marketplace.',
   marketplaceEmpty: 'No marketplaces have been added.',
   marketplaceUnavailable: 'This source is currently unavailable.',
   marketplaceSourceReady: 'Available',
@@ -78,7 +79,14 @@ export const en = {
   importedPluginUnavailable: 'OpenAI/Codex plugin management is available from the local desktop app only.',
   importedPluginMutationError: 'The plugin action could not be completed.',
   skillsTab: 'Skills',
-  importedPluginNoSkills: 'No skills',
+  importedPluginNoSkills: 'No skills supplied by imported plugins.',
+  nativeSkillsTitle: 'Current session skills',
+  nativeSkillsLoading: 'Reading the current session skill catalog…',
+  nativeSkillsUnavailable: 'The current session skill catalog is unavailable in this deployment.',
+  nativeSkillsLoadError: 'The current session skill catalog could not be loaded.',
+  nativeSkillsNoSession: 'Open a session to inspect its native skills.',
+  nativeSkillsEmpty: 'The current session has no native skills.',
+  nativeSkillsEmptySearch: 'No current-session skills match this search.',
 } satisfies Record<string, string>
 
 /** Plugin inventory locale key union. */

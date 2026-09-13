@@ -78,6 +78,30 @@ async function fixture(): Promise<{ ctx: Context; pool: ReturnType<typeof create
 }
 
 describe('account pools', () => {
+  it('derives labels from provider identity when no label is supplied', async () => {
+    const { ctx, pool } = await fixture()
+    try {
+      const email = await pool.add(undefined, {
+        type: 'oauth', access: 'access-email', refresh: 'refresh-email', expires: 1,
+        email: 'user@example.test',
+      })
+      const payload = Buffer.from(JSON.stringify({
+        'https://api.openai.com/auth': { chatgpt_account_id: 'account-from-claim' },
+      })).toString('base64url')
+      const claim = await pool.add(undefined, {
+        type: 'oauth', access: `header.${payload}.signature`, refresh: 'refresh-claim', expires: 1,
+      })
+      const fallback = await pool.add(undefined, {
+        type: 'oauth', access: 'access-fallback', refresh: 'refresh-fallback', expires: 1,
+      })
+      expect([email.label, claim.label, fallback.label]).toEqual([
+        'user@example.test', 'account-from-claim', 'ChatGPT account 3',
+      ])
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
   it('persists labels, isolates account reads, and rotates selection', async () => {
     const { ctx, pool } = await fixture()
     try {

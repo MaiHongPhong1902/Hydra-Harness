@@ -7,13 +7,11 @@
         - text: Add server
       - paragraph: Saved in your settings file, so they come back the next time you start.
       - paragraph: You have not added any MCP servers.
-    - region "Obsidian MCP":
-      - heading "Obsidian MCP" [level=3]
-      - paragraph: The Obsidian MCP plugin is disabled or unavailable.
-      - strong: Obsidian MCP
-      - code: "@hydra/harness-obsidian-knowledge"
-      - text: Disabled
-      - switch "Enable Obsidian MCP"
+    - listitem:
+      - 'button "Show settings: Obsidian MCP"':
+        - text: Obsidian MCP Knowledge access through the local Obsidian MCP server at 127.0.0.1:27123.
+        - img
+      - text: Enabled
     - region "Imported OpenAI/Codex MCP servers":
       - heading "Imported OpenAI/Codex MCP servers" [level=3]
       - paragraph: No imported plugins provide MCP servers.

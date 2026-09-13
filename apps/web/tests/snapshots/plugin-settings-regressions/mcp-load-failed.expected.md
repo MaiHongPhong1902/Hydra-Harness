@@ -19,7 +19,6 @@
         - text: Obsidian MCP Knowledge access through the local Obsidian MCP server at 127.0.0.1:27123.
         - img
       - text: Enabled
-      - switch "Disable Obsidian MCP" [checked]
     - region "Imported OpenAI/Codex MCP servers":
       - heading "Imported OpenAI/Codex MCP servers" [level=3]
       - paragraph: No imported plugins provide MCP servers.

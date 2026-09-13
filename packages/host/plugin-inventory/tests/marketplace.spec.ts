@@ -124,6 +124,25 @@ describe('OpenAI/Codex marketplace sources', () => {
     await expect(inventory.removeMarketplace(root)).resolves.toEqual({ marketplaces: [] })
   })
 
+  it('accepts the API-key marketplace filename and Codex catalog metadata', async () => {
+    const root = await realpath(await mkdtemp(join(tmpdir(), 'hydra-openai-api-marketplace-')))
+    directories.push(root)
+    await mkdir(join(root, '.agents', 'plugins'), { recursive: true })
+    await writeFile(join(root, '.agents', 'plugins', 'api_marketplace.json'), JSON.stringify({
+      name: 'openai-api-curated',
+      interface: { displayName: 'Codex official' },
+      plugins: [
+        { name: 'first', source: { source: 'local', path: './plugins/first' }, policy: { installation: 'AVAILABLE' } },
+        { name: 'second', source: { source: 'local', path: './plugins/second' }, category: 'Developer Tools' },
+      ],
+    }))
+    const { inventory } = await harness()
+
+    await expect(inventory.addMarketplace({ source: root })).resolves.toMatchObject({
+      marketplaces: [{ status: 'ready', source: root, enabled: true }],
+    })
+  })
+
   it('requires a Codex marketplace document before it persists a source', async () => {
     const root = await mkdtemp(join(tmpdir(), 'hydra-openai-marketplace-empty-'))
     directories.push(root)

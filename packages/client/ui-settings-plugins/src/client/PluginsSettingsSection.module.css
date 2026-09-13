@@ -154,6 +154,11 @@
   font-size: 12px;
 }
 
+.nativeStatus {
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 12px;
+}
+
 /* The user's own MCP server and hook records: one card per registry. */
 
 .userMcp,

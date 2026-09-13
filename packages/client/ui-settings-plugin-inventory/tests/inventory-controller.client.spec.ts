@@ -1,7 +1,45 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { PluginInventorySnapshot } from '@hydra/harness-api-remotes/client'
+import type { ImportedPluginSnapshot, PluginInventorySnapshot } from '@hydra/harness-api-remotes/client'
 import { PluginInventoryController } from '../src/client/inventory-controller.ts'
-import type { NativePluginControls } from '../src/client/PluginInventorySettingsTab.tsx'
+import type { ImportedPluginControls, NativePluginControls } from '../src/client/PluginInventorySettingsTab.tsx'
+
+function importedFixture() {
+  const identity = 'toolkit@local' as never
+  let snapshot: ImportedPluginSnapshot = {
+    plugins: [{
+      identity,
+      name: 'Toolkit',
+      version: '1.0.0',
+      source: { kind: 'local', source: 'C:\\plugins\\toolkit', sourceId: 'local' },
+      pluginRoot: 'C:\\plugins\\toolkit',
+      dataPath: 'C:\\data\\toolkit',
+      enabled: false,
+      initialEnabled: false,
+      lifecycle: 'disabled',
+      hookTrustState: 'not-applicable',
+      skills: [],
+      mcpServers: [],
+      hooks: [],
+      installationStatus: 'installed',
+    }],
+  }
+  let finishRemove!: (next: ImportedPluginSnapshot) => void
+  const api: ImportedPluginControls = {
+    list: vi.fn(async () => snapshot),
+    import: vi.fn(async () => snapshot),
+    enable: vi.fn(async () => snapshot),
+    disable: vi.fn(async () => snapshot),
+    remove: vi.fn(() => new Promise<ImportedPluginSnapshot>((resolve) => { finishRemove = (next) => { snapshot = next; resolve(next) } })),
+  }
+  const controller = new PluginInventoryController(undefined, api)
+  return {
+    api,
+    controller,
+    controls: controller.importedPlugins!,
+    identity,
+    finishRemove: (next: ImportedPluginSnapshot) => { finishRemove(next) },
+  }
+}
 
 function fixture() {
   let snapshot: PluginInventorySnapshot = { entries: ['core', 'normal'].map(id => ({
@@ -23,6 +61,25 @@ function fixture() {
 }
 
 describe('plugin settings drafts', () => {
+  it('keeps startup highlights separate from a dirty imported draft', async () => {
+    const { controller, controls, identity } = importedFixture()
+    await controls.list()
+    await controls.enable(identity)
+
+    expect(controller.store.getSnapshot()).toMatchObject({ dirtyImported: [identity], changedImported: [] })
+  })
+
+  it('treats an imported removal in progress as a pending change', async () => {
+    const { controller, controls, identity, finishRemove } = importedFixture()
+    await controls.list()
+    const removing = controls.remove(identity)
+
+    expect(controller.hasPendingImportedChanges()).toBe(true)
+    finishRemove({ plugins: [] })
+    await removing
+    expect(controller.hasPendingImportedChanges()).toBe(false)
+  })
+
   it('can turn every member off when a group starts with mixed enablement', async () => {
     const { api, controller, controls } = fixture()
     const initial = await api.list()
@@ -56,6 +113,14 @@ describe('plugin settings drafts', () => {
     controller.discard()
     await controls.list()
     expect(controller.store.getSnapshot().changedNative).toEqual(['normal'])
+  })
+
+  it('marks a staged core change as restart-required before Save', async () => {
+    const { controls } = fixture()
+    await controls.list()
+    await controls.setEnabled('core' as never, false)
+
+    expect((await controls.list()).entries[0]).toMatchObject({ pendingEnabled: false, restartRequired: true })
   })
 
   it('retains failed edits and retries only the unsaved part of a mixed batch', async () => {

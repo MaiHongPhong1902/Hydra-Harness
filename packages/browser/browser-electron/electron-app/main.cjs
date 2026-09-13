@@ -123,6 +123,14 @@ function annotationPageUrl(value) {
   return url.href
 }
 
+/** Return whether the active tab can produce a page annotation. */
+function annotationEnabledFor(tab) {
+  if (typeof embedded?.onAnnotation !== 'function') return false
+  const contents = tab?.view.webContents
+  return contents !== undefined && !contents.isDestroyed()
+    && annotationPageUrl(contents.getURL()) !== undefined
+}
+
 function validDecision(value) {
   return DECISIONS.has(value) ? value : undefined
 }
@@ -1179,7 +1187,7 @@ function updateChrome() {
     bookmarks,
     isBookmarked: isBookmarked(url),
     zoomPercent: Math.round((contents?.getZoomFactor() ?? 1) * 100),
-    annotationEnabled: typeof embedded?.onAnnotation === 'function',
+    annotationEnabled: annotationEnabledFor(activeTab),
     loading: contents?.isLoading() ?? false,
     secure: url.startsWith('https:'),
     theme: chromeThemeOverride?.colorScheme ?? (nativeTheme.shouldUseDarkColors ? 'dark' : 'light'),
@@ -1514,7 +1522,7 @@ async function openPageMenu(tab, params) {
   const matchingLogins = logins.filter(login => login.origin === origin)
   const unavailableLabel = autofillVault === undefined ? 'Secure autofill storage unavailable' : undefined
   const history = contents.navigationHistory
-  const annotationEnabled = typeof embedded?.onAnnotation === 'function'
+  const annotationEnabled = annotationEnabledFor(tab)
 
   const template = []
 

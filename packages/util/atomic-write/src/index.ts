@@ -56,7 +56,7 @@ export async function writeFileAtomic(filename: string, content: string, options
   const temp = `${filename}.${randomBytes(6).toString('hex')}.tmp`
   try {
     await writeFile(temp, content, { mode: options.mode, flag: 'wx' })
-    await rename(temp, filename)
+    await renameWithRetry(temp, filename)
   } catch (error) {
     await rm(temp, { force: true })
     throw error
@@ -84,6 +84,33 @@ async function isLockContention(error: unknown, lockPath: string): Promise<boole
  */
 const LOCK_RETRY_INITIAL_MS = 20
 const LOCK_RETRY_MAX_MS = 200
+
+/**
+ * Windows can briefly deny replacing a file while an unrelated reader closes
+ * its handle. Keep the retry local to the publish step; the writer lock still
+ * owns application-level coordination.
+ */
+const RENAME_RETRY_INITIAL_MS = 20
+const RENAME_RETRY_MAX_MS = 200
+const RENAME_RETRY_WAIT_MS = 2_000
+
+/** Replace a file, absorbing only a transient Windows replacement denial. */
+async function renameWithRetry(source: string, target: string): Promise<void> {
+  const retryable = process.platform === 'win32'
+  const deadline = Date.now() + RENAME_RETRY_WAIT_MS
+  let delay = RENAME_RETRY_INITIAL_MS
+  for (;;) {
+    try {
+      await rename(source, target)
+      return
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException | null)?.code
+      if (!retryable || code !== 'EPERM' || Date.now() >= deadline) throw error
+    }
+    await new Promise(resolve => setTimeout(resolve, delay))
+    delay = Math.min(delay * 2, RENAME_RETRY_MAX_MS)
+  }
+}
 
 /**
  * How long a contender waits when the caller states no limit — sized for the
@@ -116,10 +143,12 @@ export interface FileLockOptions {
  * only writers contend. `EEXIST` is contention directly; an `EPERM` is
  * contention only when a fresh `lstat` confirms the lock path exists, covering
  * Windows exclusive-create behavior without hiding an unrelated permission
- * failure. Contention backs off exponentially and fails with a timed-out error
- * after the deadline. The contender never removes an existing lock because
- * file age cannot prove that its owner stopped; orphan recovery is an operator
- * action. The parent directory must exist.
+ * failure. One unconfirmed Windows `EPERM` gets one retry because a contender
+ * can observe the lock after its owner has already released it. Contention
+ * backs off exponentially and fails with a timed-out error after the deadline.
+ * The contender never removes an existing lock because file age cannot prove
+ * that its owner stopped; orphan recovery is an operator action. The parent
+ * directory must exist.
  * @param filename - the file whose writers this lock serializes.
  * @param operation - the read-render-commit cycle to run while holding the lock.
  * @param options - acquisition options; omitted waits {@link DEFAULT_LOCK_WAIT_MS}.
@@ -133,12 +162,17 @@ export async function withFileLock<T>(
   const lockPath = `${filename}.lock`
   const deadline = Date.now() + (options?.waitMs ?? DEFAULT_LOCK_WAIT_MS)
   let delay = LOCK_RETRY_INITIAL_MS
+  let unconfirmedWindowsEpermRetried = false
   for (;;) {
     try {
       await writeFile(lockPath, `${process.pid}\n`, { mode: 0o600, flag: 'wx' })
       break
     } catch (error) {
-      if (!await isLockContention(error, lockPath)) throw error
+      if (!await isLockContention(error, lockPath)) {
+        const code = (error as NodeJS.ErrnoException | null)?.code
+        if (process.platform !== 'win32' || code !== 'EPERM' || unconfirmedWindowsEpermRetried) throw error
+        unconfirmedWindowsEpermRetried = true
+      }
     }
     if (Date.now() >= deadline) {
       throw new Error(`atomic-write: timed out waiting for the writer lock at ${lockPath}`)

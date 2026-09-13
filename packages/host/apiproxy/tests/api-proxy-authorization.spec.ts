@@ -181,7 +181,7 @@ describe('authorization RPC bridge', () => {
       begin: async ({ signal }) => {
         if (signal === undefined) throw new Error('authorization signal missing')
         serviceSignal = signal
-        const aborted = new Promise<void>(resolve => signal.addEventListener('abort', () => { resolve() }, { once: true }))
+        const aborted = new Promise<void>((resolve) => { signal.addEventListener('abort', () => { resolve() }, { once: true }) })
         controller.abort()
         await aborted
         return { status: 'cancelled' }

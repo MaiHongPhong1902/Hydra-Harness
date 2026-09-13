@@ -30,6 +30,9 @@
       "path": "../../core/session"
     },
     {
+      "path": "../../subagent/subagent"
+    },
+    {
       "path": "../../session/session-persistence"
     },
     {

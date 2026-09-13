@@ -36,6 +36,17 @@ export type ImportedPluginLifecycle = 'installed' | 'disabled' | 'enabled' | 'lo
 /** Current review state for discovered hooks, independent of plugin enablement. */
 export type HookTrustState = 'not-applicable' | 'pending' | 'trusted'
 
+/** OpenAI skill/plugin presentation and invocation metadata from `agents/openai.yaml`. */
+export interface ImportedPluginAgentMetadata {
+  readonly displayName?: string
+  readonly shortDescription?: string
+  readonly iconSmall?: string
+  readonly iconLarge?: string
+  readonly brandColor?: string
+  readonly defaultPrompt?: string
+  readonly allowImplicitInvocation?: boolean
+}
+
 /** Per-server state projected even before an MCP process is mounted. */
 export interface ImportedMcpServerSnapshot {
   readonly name: string
@@ -66,6 +77,8 @@ export interface ImportedPluginEntry {
   readonly skills: readonly string[]
   readonly mcpServers: readonly ImportedMcpServerSnapshot[]
   readonly hooks: readonly string[]
+  /** OpenAI presentation metadata; it does not execute plugin code. */
+  readonly agentMetadata?: ImportedPluginAgentMetadata
   /** Registered app/MCP mapping names from inert `.app.json` metadata. */
   readonly appMappings?: readonly string[]
   readonly installationStatus: 'installed'
@@ -78,6 +91,8 @@ export interface ImportedPluginSnapshot {
 
 /** Manifest metadata that the importer understands without executing bundle code. */
 export interface PluginManifest {
+  /** Manifest format selected by the runtime. */
+  readonly format?: 'legacy' | 'portable' | 'claude'
   readonly name: string
   readonly version: string
   readonly description?: string

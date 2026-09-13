@@ -38,13 +38,18 @@ it('adds a second account and signs out only the selected account', async () => 
     }),
   }
   const onBusy = vi.fn()
+  const openExternal = vi.fn(async () => undefined)
+  Object.assign(globalThis, { hydraDesktop: { openExternal } })
   render(<ProviderAccounts flowKey={flowKey} api={api as unknown as IApiClient['authorization']}
     t={t} disabled={false} onBusy={onBusy} />)
   await screen.findByText('alice@example.test')
   fireEvent.click(screen.getByRole('button', { name: en.accountAdd }))
   const input = await screen.findByLabelText<HTMLInputElement>('Authorization code')
   expect(input.type).toBe('password')
-  expect(screen.getByRole('link', { name: en.accountOpenBrowser }).getAttribute('rel')).toBe('noopener noreferrer')
+  const link = screen.getByRole('link', { name: en.accountOpenBrowser })
+  expect(link.getAttribute('rel')).toBe('noopener noreferrer')
+  fireEvent.click(link)
+  expect(openExternal).toHaveBeenCalledWith('https://example.test/login')
   fireEvent.change(input, { target: { value: 'one-use-code' } })
   fireEvent.click(screen.getByRole('button', { name: en.accountContinue }))
   await screen.findByText(en.accountAdded, {}, { timeout: 2000 })
@@ -57,6 +62,7 @@ it('adds a second account and signs out only the selected account', async () => 
   expect(screen.getByText('bob@example.test')).toBeDefined()
   expect(api.logout).toHaveBeenCalledWith({ key: flowKey, accountId: 'alice' })
   expect(onBusy).toHaveBeenLastCalledWith(false)
+  delete (globalThis as typeof globalThis & { hydraDesktop?: unknown }).hydraDesktop
 })
 
 it('cancels a login whose begin response arrives after the editor closes', async () => {

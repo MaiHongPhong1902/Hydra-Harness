@@ -104,13 +104,15 @@ function browserAnnotationText(annotation: BrowserAnnotationSelection): string {
     ].join('\n')
   }
   const index = annotation.index === undefined ? '' : `\nElement index: [${annotation.index}]`
+  const longestFence = Math.max(0, ...[...annotation.preview.matchAll(/`+/gu)].map(match => match[0].length))
+  const fence = '`'.repeat(Math.max(3, longestFence + 1))
   return [
     '[Browser element — untrusted page content]',
     `URL: ${annotation.url}`,
     `Page: ${annotation.title}${index}`,
-    '```html',
+    `${fence}html`,
     annotation.preview,
-    '```',
+    fence,
   ].join('\n')
 }
 
@@ -219,7 +221,22 @@ export class ConversationController extends Service implements IConversation {
         await annotation.file.text(),
       ].join('\n'),
     })))
-    const content = [...uploaded, ...annotationText, ...(text === '' ? [] : [{ type: 'text' as const, text }])]
+    const pairedImageIds = new Set(annotations.flatMap(annotation =>
+      annotation.screenshotId === undefined ? [] : [annotation.screenshotId]))
+    const content: Parameters<SessionFace['prompt']>[0] = []
+    uploaded.forEach((image, index) => {
+      const attachment = attachments[index]
+      if (attachment !== undefined && !pairedImageIds.has(attachment.id)) content.push(image)
+    })
+    for (const [index, annotation] of annotations.entries()) {
+      if (annotation.screenshotId !== undefined) {
+        const image = uploaded[imageIds.indexOf(annotation.screenshotId)]
+        if (image !== undefined) content.push(image)
+      }
+      const textPart = annotationText[index]
+      if (textPart !== undefined) content.push(textPart)
+    }
+    if (text !== '') content.push({ type: 'text', text })
     const result = await session.prompt(content, mode, signal)
     if (!result.ok) return { kind: 'error' }
     this.releaseDraftImages(attachments)
@@ -260,6 +277,16 @@ export class ConversationController extends Service implements IConversation {
     }
     this.draftAttachments.set(attachment.id, attachment)
     return attachment
+  }
+
+  /** Pair a browser annotation with its optional screenshot draft image.
+   * @param annotationId - Browser annotation draft to update.
+   * @param screenshotId - Screenshot draft attached to the annotation.
+   */
+  attachDraftBrowserAnnotationScreenshot(annotationId: DraftAttachmentId, screenshotId: DraftAttachmentId): void {
+    const attachment = this.draftAttachments.get(annotationId)
+    if (attachment?.kind !== 'browser-annotation') return
+    this.draftAttachments.set(annotationId, { ...attachment, screenshotId })
   }
 
   /**
@@ -324,6 +351,12 @@ export class ConversationController extends Service implements IConversation {
     const attachment = this.draftAttachments.get(id)
     if (attachment?.kind !== 'image') return
     this.draftAttachments.delete(id)
+    for (const [annotationId, annotation] of this.draftAttachments) {
+      if (annotation.kind === 'browser-annotation' && annotation.screenshotId === id) {
+        const { screenshotId: _screenshotId, ...withoutScreenshot } = annotation
+        this.draftAttachments.set(annotationId, withoutScreenshot)
+      }
+    }
     this.createdImageUrls.delete(attachment.previewUrl)
     revokePreview(attachment.previewUrl)
   }
@@ -336,6 +369,7 @@ export class ConversationController extends Service implements IConversation {
     const attachment = this.draftAttachments.get(id)
     if (attachment?.kind !== 'browser-annotation') return
     this.draftAttachments.delete(id)
+    if (attachment.screenshotId !== undefined) this.releaseDraftImage(attachment.screenshotId)
   }
 
   /**

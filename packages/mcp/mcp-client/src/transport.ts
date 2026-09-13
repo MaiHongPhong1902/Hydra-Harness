@@ -22,6 +22,18 @@ function buildChildEnv(extra: Record<string, string>): Record<string, string> {
   return { ...scrubbedParentEnv(), ...extra }
 }
 
+/** Resolve a configured bearer environment variable without exposing its value to callers. */
+function httpHeaders(config: Extract<Config, { transport: 'streamable-http' }>): Record<string, string> {
+  const headers = { ...config.headers }
+  const envName = config.bearerTokenEnvVar
+  if (envName === undefined) return headers
+  const token = process.env[envName]?.trim()
+  if (token === undefined || token === '') return headers
+  if (/[\u0000-\u001F\u007F]/u.test(token)) throw new Error(`mcp-client: bearer token environment variable ${envName} contains control characters`)
+  headers.Authorization = `Bearer ${token}`
+  return headers
+}
+
 /**
  * Create an MCP transport from the resolved plugin config.
  *
@@ -44,7 +56,7 @@ export function createTransport(config: Config): Transport {
       // object, so the cast records only that widening.
       return new StreamableHTTPClientTransport(
         new URL(config.url),
-        { requestInit: { headers: config.headers } },
+        { requestInit: { headers: httpHeaders(config) } },
       ) as Transport
   }
 }

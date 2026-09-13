@@ -46,6 +46,7 @@
     "@hydra/harness-llm": "workspace:^",
     "@hydra/harness-session": "workspace:^",
     "@hydra/harness-session-persistence": "workspace:^",
+    "@hydra/harness-subagent": "workspace:^",
     "@hydra/harness-tools": "workspace:^",
     "@hydra/cordis": "workspace:^"
   },
@@ -62,6 +63,7 @@
     "@hydra/harness-session": "workspace:^",
     "@hydra/harness-session-persistence": "workspace:^",
     "@hydra/harness-session-persistence-jsonl": "workspace:^",
+    "@hydra/harness-subagent": "workspace:^",
     "@hydra/harness-tools": "workspace:^",
     "@hydra/cordis": "workspace:^"
   }

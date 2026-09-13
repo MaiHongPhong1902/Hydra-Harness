@@ -11,6 +11,7 @@
     { "path": "../../llm/llm" },
     { "path": "../../browser/browser-electron" },
     { "path": "../../util/home-paths" },
+    { "path": "../../settings/settings" },
     { "path": "../../runtime-diagnostics/invariants" }
   ]
 }

@@ -40,6 +40,7 @@ type BrowserAnnotation = {
   preview: string
   index?: number
   rect?: { x: number; y: number; width: number; height: number }
+  screenshot?: { mediaType: string; data: string }
 }
 
 type ChatInstance = ReturnType<ReturnType<typeof createChatStore>['create']>
@@ -141,7 +142,7 @@ async function bench(withBrowserAnnotation = false, readAttachment?: ISession['r
   const inputApi = (id: SessionId) => {
     const info = runtime.sessions.provideInfo(id)!
     const state = info.hooks['input'] as {
-      getSnapshot: () => { draft: string; browserAnnotationIds?: readonly DraftAttachmentId[] }
+      getSnapshot: () => { draft: string; imageIds?: readonly DraftAttachmentId[]; browserAnnotationIds?: readonly DraftAttachmentId[] }
       subscribe: (fn: () => void) => () => void
     }
     const actions = info.props['inputActions'] as {
@@ -257,17 +258,21 @@ describe('conversation slot inject API', () => {
     const composer = b.composerApi(ROOT)
     b.emitBrowserAnnotation({
       kind: 'browser-element',
-      url: 'https://example.test/page',
+      url: 'https://example.test/page?token=secret#frag',
       title: 'Example',
       index: 12,
-      preview: '<button id="save">Save</button>',
+      preview: '<button id="save">Save ```</button>',
     })
     expect(state.getSnapshot().draft).toBe('')
     const firstId = state.getSnapshot().browserAnnotationIds?.[0]
     expect(firstId).toBeDefined()
     const first = composer.draftBrowserAnnotations?.([firstId!])[0]
     expect(first?.file.name).toBe('browser-annotation.html.txt')
-    expect(await first?.file.text()).toContain('Element index: [12]')
+    const firstText = await first?.file.text()
+    expect(firstText).toContain('Element index: [12]')
+    expect(firstText).toContain('````html')
+    expect(firstText).toContain('URL: https://example.test/page')
+    expect(firstText).not.toContain('secret')
     composer.updateBrowserAnnotationComment?.(firstId!, 'Use this save button')
     expect(composer.draftBrowserAnnotations?.([firstId!])[0]?.comment).toBe('Use this save button')
     expect(b.sessionFake.prompt).not.toHaveBeenCalled()
@@ -300,6 +305,29 @@ describe('conversation slot inject API', () => {
     expect(state.getSnapshot().browserAnnotationIds).toBeUndefined()
     await b.runtime.dispose()
     delete (globalThis as typeof globalThis & { hydraDesktop?: unknown }).hydraDesktop
+  })
+
+  it('drops malformed annotations and removes paired screenshots with their text', async () => {
+    const b = await bench(true)
+    const { state } = b.inputApi(ROOT)
+    const composer = b.composerApi(ROOT)
+    b.emitBrowserAnnotation({ kind: 'browser-element', url: '', title: 'bad', preview: '' })
+    expect(state.getSnapshot().browserAnnotationIds).toBeUndefined()
+    expect(() => { b.emitBrowserAnnotation({
+      kind: 'browser-element', url: 'https://example.test/page', title: 'bad', preview: '<button />',
+      screenshot: null,
+    } as unknown as BrowserAnnotation) }).not.toThrow()
+    b.emitBrowserAnnotation({
+      kind: 'browser-element', url: 'https://example.test/page', title: 'Example', preview: '<button>Save</button>',
+      screenshot: { mediaType: 'image/png', data: 'iVBORw0KGgo=' },
+    })
+    const annotationId = state.getSnapshot().browserAnnotationIds?.[0]
+    expect(annotationId).toBeDefined()
+    expect(state.getSnapshot().imageIds).toHaveLength(1)
+    composer.removeBrowserAnnotation?.(annotationId!)
+    expect(state.getSnapshot().browserAnnotationIds).toBeUndefined()
+    expect(state.getSnapshot().imageIds).toHaveLength(0)
+    await b.runtime.dispose()
   })
 
   it('inject fails loud when the session resolves no binding or the scope lacks the service', async () => {

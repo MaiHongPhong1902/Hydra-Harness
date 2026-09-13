@@ -13,12 +13,15 @@ import { AgentLoopCard } from '../src/client/AgentLoopCard.tsx'
 import type { AgentLoopCardProps } from '../src/client/AgentLoopCard.tsx'
 import { BashCard } from '../src/client/BashCard.tsx'
 import type { BashCardProps } from '../src/client/BashCard.tsx'
+import { PageMemoryCard } from '../src/client/PageMemoryCard.tsx'
+import type { PageMemoryCardProps } from '../src/client/PageMemoryCard.tsx'
 import { ConfigurablePluginsTab } from '../src/client/ConfigurablePluginsTab.tsx'
 import type { ConfigurablePluginsTabProps } from '../src/client/ConfigurablePluginsTab.tsx'
 import { PluginsSettingsSection } from '../src/client/PluginsSettingsSection.tsx'
 import type { PluginsSettingsSectionProps, PluginsSettingsTabEntry } from '../src/client/PluginsSettingsSection.tsx'
 import type { AgentLoopCardState } from '../src/client/agent-loop-card-controller.ts'
 import type { BashCardState } from '../src/client/bash-card-controller.ts'
+import type { PageMemoryCardState } from '../src/client/page-memory-card-controller.ts'
 import type { CardFieldState, CardShell } from '../src/client/card-form.ts'
 import type { ConfigurablePluginsTabState } from '../src/client/tab-store.ts'
 import { en } from '../src/client/locales.ts'
@@ -62,10 +65,11 @@ function renderSection(rows: readonly PluginsSettingsTabEntry[]) {
  * standing in for the slot ledger: a key it names renders that text, and one
  * it does not renders nothing, exactly as an unclaimed key does.
  */
-function renderConfigurable(namespaces: string[], cards: Record<string, string> = {}, loaded = true) {
+function renderConfigurable(namespaces: string[], cards: Record<string, string> = {}, loaded = true, query = '') {
   const store = createSnapshotStore<ConfigurablePluginsTabState>({ loaded, namespaces })
   const props = {
     t,
+    query,
     useConfigurablePlugins: bindSnapshotSelector(store),
     renderSlot: (_name: string, _owner: object, opts?: { entryKey?: string }) => {
       const card = opts?.entryKey === undefined ? undefined : cards[opts.entryKey]
@@ -89,6 +93,20 @@ function renderBash(state: Partial<BashCardState> = {}) {
   const actions = cardActions()
   const props = { ...actions, t, useBashCard: bindSnapshotSelector(store) } as unknown as BashCardProps
   render(<BashCard {...props} />)
+  return actions
+}
+
+function renderPageMemory(state: Partial<PageMemoryCardState> = {}) {
+  const store = createSnapshotStore<PageMemoryCardState>({
+    ...settled,
+    role: field('operator'), locale: field('en-US'), storageDir: field(''),
+    maxRecordBytes: field('32768'), maxWorkflows: field('12'), maxPages: field('500'),
+    maxContextBytes: field('8192'), maxObservations: field('32'), verificationTimeoutMs: field('5000'),
+    ...state,
+  })
+  const actions = cardActions()
+  const props = { ...actions, t, usePageMemoryCard: bindSnapshotSelector(store) } as unknown as PageMemoryCardProps
+  render(<PageMemoryCard {...props} />)
   return actions
 }
 
@@ -200,6 +218,18 @@ describe('ConfigurablePluginsTab', () => {
     renderConfigurable(['bash', 'agent-loop'], { bash: 'shell', 'agent-loop': 'loop' })
 
     expect(screen.getAllByRole('listitem').map(item => item.textContent)).toEqual(['shell', 'loop'])
+    expect(screen.queryByText(en.empty)).toBeNull()
+  })
+
+  it('filters namespaces by the shared search and distinguishes no matches from no settings', () => {
+    renderConfigurable(['bash', 'agent-loop'], { bash: 'shell', 'agent-loop': 'loop' }, true, 'loop')
+
+    expect(screen.getByRole('listitem').textContent).toBe('loop')
+    expect(screen.queryByText('shell')).toBeNull()
+
+    cleanup()
+    renderConfigurable(['bash'], { bash: 'shell' }, true, 'missing')
+    expect(screen.getByText(en.emptySearch)).toBeTruthy()
     expect(screen.queryByText(en.empty)).toBeNull()
   })
 })
@@ -322,6 +352,18 @@ describe('BashCard', () => {
     fireEvent.click(screen.getByText(en.bashTitle))
 
     expect(screen.queryByLabelText(en.bashTimeoutMs)).toBeNull()
+  })
+})
+
+describe('PageMemoryCard', () => {
+  it('shows the page-memory settings and stages edits', () => {
+    const actions = renderPageMemory()
+    expect(screen.getByText(en.pageMemoryTitle)).toBeTruthy()
+    fireEvent.click(screen.getByText(en.pageMemoryTitle))
+    expect(screen.getByLabelText(en.pageMemoryRole)).toBeTruthy()
+    fireEvent.change(screen.getByLabelText(en.pageMemoryMaxWorkflows), { target: { value: '20' } })
+    expect(actions.edit).toHaveBeenCalledWith('maxWorkflows', '20')
+    expect(actions.save).not.toHaveBeenCalled()
   })
 })
 

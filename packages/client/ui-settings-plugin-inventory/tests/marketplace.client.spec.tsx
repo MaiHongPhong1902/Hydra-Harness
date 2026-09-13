@@ -63,6 +63,7 @@ function props(
     addMarketplace: vi.fn(async () => EMPTY),
     removeMarketplace: vi.fn(async () => EMPTY),
     setMarketplaceEnabled: vi.fn(async () => EMPTY),
+    hasPendingImportedChanges: () => false,
     query: '',
     active: true,
     ...overrides,
@@ -204,5 +205,37 @@ describe('MarketplaceSettingsTab', () => {
     await waitFor(() => {
       expect(setMarketplaceEnabled).toHaveBeenCalledWith({ source: SOURCE, enabled: false })
     })
+  })
+
+  it('blocks marketplace mutations while plugin enablement is pending', async () => {
+    const setMarketplaceEnabled = vi.fn(async () => EMPTY)
+    render(<MarketplaceSettingsTab {...props({
+      listMarketplaces: vi.fn(async () => READY),
+      setMarketplaceEnabled,
+      hasPendingImportedChanges: () => true,
+    })} />)
+
+    fireEvent.click(await screen.findByRole('switch', { name: `${en.marketplaceDisable} ${SOURCE} @ main` }))
+    expect(setMarketplaceEnabled).not.toHaveBeenCalled()
+    expect((await screen.findByRole('alert')).textContent).toBe(en.marketplacePendingPluginChanges)
+  })
+
+  it('blocks adding a marketplace while plugin enablement is pending', async () => {
+    const addMarketplace = vi.fn(async () => READY)
+    render(<MarketplaceSettingsTab {...props({
+      addMarketplace,
+      hasPendingImportedChanges: () => true,
+    })} />)
+
+    await screen.findByText(en.marketplaceEmpty)
+    fireEvent.click(screen.getByRole('button', { name: en.marketplaceAdd }))
+    const dialog = screen.getByRole('dialog', { name: en.marketplaceAddTitle })
+    fireEvent.change(within(dialog).getByRole('textbox', { name: en.marketplaceSource }), {
+      target: { value: SOURCE },
+    })
+    fireEvent.click(within(dialog).getByRole('button', { name: en.marketplaceSave }))
+
+    expect(addMarketplace).not.toHaveBeenCalled()
+    expect((await within(dialog).findByRole('alert')).textContent).toBe(en.marketplacePendingPluginChanges)
   })
 })

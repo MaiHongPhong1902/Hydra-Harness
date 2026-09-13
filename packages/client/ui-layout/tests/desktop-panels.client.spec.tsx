@@ -417,6 +417,27 @@ describe('DesktopFilesPanel', () => {
     })
   })
 
+  it('shows a create error when the desktop request is rejected', async () => {
+    const rootPath = 'C:\\workspace'
+    const files = {
+      root: vi.fn(async () => rootPath),
+      list: vi.fn(async () => []),
+      search: vi.fn(async () => []),
+      read: vi.fn(async (path: string) => ({ path, content: '', version: 'v1' })),
+      create: vi.fn(async () => { throw new Error('create failed') }),
+      save: vi.fn(),
+      format: vi.fn(),
+    }
+    window.hydraDesktop = { browser: { setBounds: vi.fn() }, files }
+    const view = render(<DesktopFilesPanel workspaceId="workspace" active focusSearch={1} />)
+    await view.findByRole('tree', { name: 'Workspace files' })
+    fireEvent.click(view.getByRole('button', { name: 'New file' }))
+    const input = view.getByRole('textbox', { name: 'New file name' })
+    fireEvent.change(input, { target: { value: 'failed.ts' } })
+    fireEvent.submit(input.closest('form')!)
+    expect((await view.findByRole('alert')).textContent).toContain('create failed')
+  })
+
   it('ignores an older directory request after a newer refresh starts', async () => {
     const rootPath = 'C:\\workspace'
     const listRequests: Array<{ resolve: (entries: Array<{ name: string; path: string; directory: boolean }>) => void }> = []
@@ -462,6 +483,66 @@ describe('DesktopFilesPanel', () => {
     })
     expect(view.getByRole('button', { name: 'current.txt' })).toBeTruthy()
     expect(view.queryByRole('button', { name: 'newest.txt' })).toBeNull()
+  })
+
+  it('keeps workspace entries predictable with folders first and natural name order', async () => {
+    const rootPath = 'C:\\workspace'
+    const files = {
+      root: vi.fn(async () => rootPath),
+      list: vi.fn(async () => [
+        { name: 'file10.ts', path: `${rootPath}\\file10.ts`, directory: false },
+        { name: 'zeta', path: `${rootPath}\\zeta`, directory: true },
+        { name: 'file2.ts', path: `${rootPath}\\file2.ts`, directory: false },
+        { name: 'Alpha', path: `${rootPath}\\Alpha`, directory: true },
+      ]),
+      search: vi.fn(async () => []),
+      read: vi.fn(async (path: string) => ({ path, content: '', version: 'v1' })),
+      create: vi.fn(),
+      save: vi.fn(),
+      format: vi.fn(),
+    }
+    window.hydraDesktop = { browser: { setBounds: vi.fn() }, files }
+    const view = render(<DesktopFilesPanel workspaceId="workspace" active focusSearch={1} />)
+    await view.findByRole('tree', { name: 'Workspace files' })
+
+    const items = within(view.getByRole('tree')).getAllByRole('treeitem')
+    expect(items.map(item => item.textContent?.trim())).toEqual(['Alpha', 'zeta', 'file2.ts', 'file10.ts'])
+  })
+
+  it('moves a file when dropped onto a folder', async () => {
+    const rootPath = 'C:\\workspace'
+    const folderPath = `${rootPath}\\src`
+    const moveFn = vi.fn(async (path: string) => ({
+      oldPath: path,
+      path: `${folderPath}\\file.ts`,
+      name: 'file.ts',
+      directory: false,
+    }))
+    const files = {
+      root: vi.fn(async () => rootPath),
+      list: vi.fn(async () => [
+        { name: 'file.ts', path: `${rootPath}\\file.ts`, directory: false },
+        { name: 'src', path: folderPath, directory: true },
+      ]),
+      search: vi.fn(async () => []),
+      read: vi.fn(async (path: string) => ({ path, content: '', version: 'v1' })),
+      create: vi.fn(),
+      move: moveFn,
+      save: vi.fn(),
+      format: vi.fn(),
+    }
+    window.hydraDesktop = { browser: { setBounds: vi.fn() }, files }
+    const view = render(<DesktopFilesPanel workspaceId="workspace" active focusSearch={1} />)
+    const tree = await view.findByRole('tree', { name: 'Workspace files' })
+    const file = within(tree).getByRole('button', { name: 'file.ts' })
+    const folder = within(tree).getByRole('button', { name: 'src' })
+    const dataTransfer = { effectAllowed: '', dropEffect: '', setData: vi.fn(), getData: vi.fn(() => `${rootPath}\\file.ts`) }
+    fireEvent.dragStart(file, { dataTransfer })
+    fireEvent.dragOver(folder, { dataTransfer })
+    fireEvent.drop(folder, { dataTransfer })
+    await waitFor(() => {
+      expect(moveFn).toHaveBeenCalledWith(`${rootPath}\\file.ts`, folderPath, 'workspace')
+    })
   })
 
   it('supports multi-document tabs, switching tabs, and closing tabs', async () => {

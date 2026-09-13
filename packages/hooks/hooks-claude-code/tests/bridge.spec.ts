@@ -315,6 +315,21 @@ describe('hooks-claude-code bridge — SubagentStart / SubagentStop (observe)', 
     await hooks.dispose()
   })
 
+  it('logs an unexpected SubagentStop failure instead of swallowing it', async () => {
+    const dir = writeConfig({ SubagentStop: [{ hooks: [{ type: 'command', command: 'true' }] }] })
+    const { ctx } = await harnessWithFiber(dir, new MockAdapter([]))
+    const warn = vi.fn()
+    ctx.logger.warn = warn as never
+
+    // A malformed runtime payload makes JSON serialization reject before the
+    // runner can normalize the failure; the detached bridge must still report it.
+    ctx.emit(subagentCarrier(ctx), 'subagent/end', {
+      runId: SubagentRunId('run-reject'), provider: 'inproc', id: 1n as unknown as SessionId, local: false, stopReason: 'completed',
+    })
+    await waitFor(() => warn.mock.calls.some(call => String(call[0]).includes('SubagentStop hook failed')))
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('SubagentStop hook failed'))
+  })
+
   it('disposing the bridge aborts a still-running hook and drains to quiescence', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'hydra-hooks-claude-'))
     dirs.push(dir)

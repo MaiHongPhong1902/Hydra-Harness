@@ -101,6 +101,8 @@ Seams are why one provider swap changes the whole product. Filesystem and subpro
 
 [Experimental Agent Teams](subsystems/agent-team.md) is a private opt-in coordination seam on `ctx.agentTeams`, with a durable roster, task board, and mailbox layered over continuable subagents.
 
+The cross-package ownership map for Settings > Plugins and the imported OpenAI/Codex bundle boundary lives in the [Settings Plugins ownership and Codex compatibility note](../.agents/notes/implemented/architecture/2026-09-14-settings-plugins-ownership-and-codex-compatibility.md).
+
 ## Where new behavior goes
 
 New behavior attaches to a documented extension point. Changing the loop itself updates this map.

@@ -1164,6 +1164,22 @@ describe('createTransport', () => {
     expect(transport).toHaveProperty('close')
   })
 
+  it('resolves a bearer token environment variable when creating each HTTP transport', () => {
+    const original = process.env.HYDRA_MCP_TEST_TOKEN
+    process.env.HYDRA_MCP_TEST_TOKEN = 'test-token'
+    try {
+      const config: Config = {
+        transport: 'streamable-http', serverName: 'srv', url: 'http://localhost:3000/mcp', headers: {},
+        bearerTokenEnvVar: 'HYDRA_MCP_TEST_TOKEN', toolCallTimeoutMs: 60_000, failOnStartupError: false,
+      }
+      const transport = createTransport(config) as unknown as { _requestInit?: { headers?: Record<string, string> } }
+      expect(transport._requestInit?.headers).toEqual({ Authorization: 'Bearer test-token' })
+    } finally {
+      if (original === undefined) delete process.env.HYDRA_MCP_TEST_TOKEN
+      else process.env.HYDRA_MCP_TEST_TOKEN = original
+    }
+  })
+
   it('scrubs sensitive env vars and forwards the rest', () => {
     const original = { ...process.env }
     try {

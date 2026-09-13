@@ -257,7 +257,7 @@ function runGit(cwd: string, args: readonly string[]): Promise<void> {
 }
 
 async function readMarketplaceDocument(root: string): Promise<MarketplaceDocument> {
-  for (const relativePath of ['.agents/plugins/marketplace.json', 'marketplace.json']) {
+  for (const relativePath of ['.agents/plugins/marketplace.json', '.agents/plugins/api_marketplace.json', 'marketplace.json']) {
     const filename = join(root, relativePath)
     try {
       const metadata = await lstat(filename)

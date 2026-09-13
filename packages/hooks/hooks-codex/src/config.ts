@@ -1,5 +1,5 @@
 /**
- * Parse Codex's five-event hook subset into shared {@link MatcherGroup}s. Only synchronous command
+ * Parse Codex's seven-event hook subset into shared {@link MatcherGroup}s. Only synchronous command
  * hooks run; other types and `async: true` commands are recorded as skipped. Codex performs no
  * command substitution.
  * @module @hydra/harness-hooks-codex/config
@@ -7,8 +7,10 @@
 
 import { matcherDiagnostic, type MatcherGroup } from '@hydra/harness-hook-protocol'
 
-/** The five Codex hook points this bridge supports. */
-export const CODEX_EVENTS = ['PreToolUse', 'PostToolUse', 'SessionStart', 'UserPromptSubmit', 'Stop'] as const
+/** The seven Codex hook points that have matching Hydra extension points. */
+export const CODEX_EVENTS = [
+  'PreToolUse', 'PostToolUse', 'SessionStart', 'UserPromptSubmit', 'Stop', 'SubagentStart', 'SubagentStop',
+] as const
 
 /** A parsed Codex config: event name → its matcher groups (command hooks only). */
 export type CodexHookConfig = Record<string, MatcherGroup[]>
@@ -34,7 +36,7 @@ function asObject(value: unknown): Record<string, unknown> | undefined {
 /**
  * Parse a wrapped or bare Codex event map. Unknown events and malformed entries are ignored rather
  * than failing boot; unsupported or asynchronous hooks are returned in `skipped`. Matcher fields on
- * UserPromptSubmit and Stop are discarded because those events have no matcher subject. A
+ * UserPromptSubmit and Stop are discarded because those events have no matcher subject in the bridge. A
  * matcher-bearing runnable group with an invalid regex throws a `SyntaxError`, allowing the bridge
  * to reject the complete config before listener registration.
  * @param raw - the parsed JSON config: a `{ hooks: … }` wrapper or the bare event map.

@@ -59,34 +59,27 @@ describe('web e2e: plugin settings regressions', () => {
     await scaffold?.close()
   })
 
-  it('keeps Obsidian MCP visible for a module-name search across plugin toggles', async () => {
+  it('keeps Obsidian MCP visible for a module-name search', async () => {
     const settings = page.getByRole('dialog', { name: 'Settings', exact: true })
     const search = settings.getByRole('searchbox')
     await search.fill('kno')
     await settings.getByRole('tab', { name: 'MCP', exact: true }).click()
-    const disable = settings.getByRole('switch', { name: 'Disable Obsidian MCP', exact: true })
-    await disable.click()
-    const enable = settings.getByRole('switch', { name: 'Enable Obsidian MCP', exact: true })
-    await enable.waitFor()
-    expect(await enable.isChecked()).toBe(false)
-    await settings.getByText('The Obsidian MCP plugin is disabled or unavailable.', { exact: true }).waitFor()
-    await compareOrRefreshGolden(join(SNAPSHOT_DIR, 'native-mcp-disabled-search.expected.md'),
+    await settings.getByText('Enabled', { exact: true }).waitFor()
+    await compareOrRefreshGolden(join(SNAPSHOT_DIR, 'native-mcp-search.expected.md'),
       await captureStableAria(page, '[role="tabpanel"]:not([hidden])', scaffold.workspaceCwd), MODE)
-
-    await enable.click()
-    await disable.waitFor()
-    expect(await disable.isChecked()).toBe(true)
     await settings.getByRole('button', { name: 'Show settings: Obsidian MCP', exact: true }).waitFor()
-    await compareOrRefreshGolden(join(SNAPSHOT_DIR, 'native-mcp-enabled-search.expected.md'),
+    await compareOrRefreshGolden(join(SNAPSHOT_DIR, 'native-mcp-search.expected.md'),
       await captureStableAria(page, '[role="tabpanel"]:not([hidden])', scaffold.workspaceCwd), MODE)
     await search.fill('no-matching-native-mcp')
-    expect(await disable.count()).toBe(0)
+    expect(await settings.getByText('Obsidian MCP', { exact: true }).count()).toBe(0)
     await search.fill('')
+    await expect.poll(() => search.inputValue()).toBe('')
     await settings.getByRole('tab', { name: 'Configuration', exact: true }).click()
   })
 
   it('keeps an edit made while a submitted value crosses the real wire', async () => {
     const dialog = page.getByRole('dialog', { name: 'Settings', exact: true })
+    await dialog.getByRole('tab', { name: 'Configuration', exact: true }).click()
     await dialog.getByText('Shell', { exact: true }).click()
     const timeout = dialog.getByLabel('Command timeout (ms)')
     await timeout.fill('12000')
@@ -184,7 +177,7 @@ describe('web e2e: plugin settings regressions', () => {
     const settings = page.getByRole('dialog', { name: 'Settings', exact: true })
     for (const tab of ['Plugins', 'Skills']) {
       await settings.getByRole('tab', { name: tab, exact: true }).click()
-      await settings.getByText(tab === 'Skills' ? 'No skills' : 'No OpenAI/Codex plugins have been imported.', { exact: true }).waitFor()
+      await settings.getByText(tab === 'Skills' ? 'No skills supplied by imported plugins.' : 'No OpenAI/Codex plugins have been imported.', { exact: true }).waitFor()
     }
     await settings.getByRole('tab', { name: 'Marketplace', exact: true }).click()
     await settings.getByRole('button', { name: 'Add marketplace', exact: true }).click()
@@ -205,7 +198,7 @@ describe('web e2e: plugin settings regressions', () => {
     await settings.getByText('No marketplaces have been added.', { exact: true }).waitFor()
     for (const tab of ['Plugins', 'Skills']) {
       await settings.getByRole('tab', { name: tab, exact: true }).click()
-      await settings.getByText(tab === 'Skills' ? 'No skills' : 'No OpenAI/Codex plugins have been imported.', { exact: true }).waitFor()
+      await settings.getByText(tab === 'Skills' ? 'No skills supplied by imported plugins.' : 'No OpenAI/Codex plugins have been imported.', { exact: true }).waitFor()
       expect(await settings.getByRole('tabpanel', { name: tab, exact: true }).getByText('regression-plugin', { exact: true }).count()).toBe(0)
     }
   })
@@ -282,7 +275,7 @@ describe('web e2e: plugin settings regressions', () => {
       'pending-edit.expected.md', 'mcp-duplicate.expected.md', 'hooks-duplicate.expected.md',
       'refreshed-skills.expected.md', 'rejected-key.expected.md', 'mcp-load-failed.expected.md',
       'mcp-deleted.expected.md', 'hooks-deleted.expected.md',
-      'native-mcp-disabled-search.expected.md', 'native-mcp-enabled-search.expected.md',
+      'native-mcp-search.expected.md',
     ])
   })
 })

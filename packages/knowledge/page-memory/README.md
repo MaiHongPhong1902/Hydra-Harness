@@ -17,6 +17,8 @@ Mount the plugin in a Hydra profile or patch with an explicit workspace and runt
 
 `workspaceDir`, `role`, and `locale` are required. The workspace path must be absolute and is canonicalized before use; only sessions with the same canonical working directory can read or write this namespace. Role and locale are configured labels and are never inferred from page content.
 
+When a Settings provider is mounted, the plugin registers the `page-memory` namespace for Settings → Plugins. Role, locale, storage directory, and retention limits can be staged there; the section declares `restart` applies, so saved changes take effect on the next restart.
+
 `storageDir` is an optional absolute parent directory. It defaults to the current user's Hydra home plus `page-memory`; the plugin creates one hashed namespace directory containing `page-memory.sqlite`, with private directory and database-file permissions. Namespaces include the canonical workspace, role, and locale.
 
 `routes` optionally names known route patterns. A path parameter occupies a complete `:name` segment, such as `/orders/:id`; route paths cannot contain a query or fragment. The page key retains the complete query and fragment, so `?tab=open#list` and `?tab=payments#list` remain separate records.

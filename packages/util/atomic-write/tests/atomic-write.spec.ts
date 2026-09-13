@@ -4,24 +4,32 @@ import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { withFileLock, writeFileAtomic } from '../src/index.ts'
 
-const state = vi.hoisted(() => ({ failLockCreateWithEPERM: false }))
+const state = vi.hoisted(() => ({ failLockCreateWithEPERM: 0, failRenameWithEPERM: 0 }))
 
 vi.mock('node:fs/promises', async (importOriginal) => {
   const actual = await importOriginal<typeof import('node:fs/promises')>()
   return {
     ...actual,
     writeFile: (async (path: unknown, ...rest: never[]) => {
-      if (state.failLockCreateWithEPERM && String(path).endsWith('.lock')) {
-        state.failLockCreateWithEPERM = false
+      if (state.failLockCreateWithEPERM > 0 && String(path).endsWith('.lock')) {
+        state.failLockCreateWithEPERM -= 1
         throw Object.assign(new Error('EPERM: injected exclusive-create failure'), { code: 'EPERM' })
       }
       return (actual.writeFile as (path: unknown, ...args: never[]) => Promise<void>)(path, ...rest)
     }) as typeof actual.writeFile,
+    rename: (async (source: unknown, target: unknown) => {
+      if (state.failRenameWithEPERM > 0) {
+        state.failRenameWithEPERM -= 1
+        throw Object.assign(new Error('EPERM: injected replacement failure'), { code: 'EPERM' })
+      }
+      return actual.rename(source as Parameters<typeof actual.rename>[0], target as Parameters<typeof actual.rename>[1])
+    }) as typeof actual.rename,
   }
 })
 
 afterEach(() => {
-  state.failLockCreateWithEPERM = false
+  state.failLockCreateWithEPERM = 0
+  state.failRenameWithEPERM = 0
 })
 
 async function scratch(): Promise<string> {
@@ -58,6 +66,17 @@ describe('writeFileAtomic', () => {
     if (process.platform !== 'win32') expect((await stat(target)).mode & 0o777).toBe(0o600)
   })
 
+  it.skipIf(process.platform !== 'win32')('retries a transient replacement EPERM on Windows', async () => {
+    const dir = await scratch()
+    const target = join(dir, 'doc.yaml')
+    await writeFile(target, 'old')
+    state.failRenameWithEPERM = 1
+
+    await writeFileAtomic(target, 'new', { mode: 0o600 })
+
+    expect(await readFile(target, 'utf8')).toBe('new')
+  })
+
   it('replaces a symlinked target itself without writing through to the referent', async () => {
     const dir = await scratch()
     const victim = join(dir, 'victim')
@@ -86,7 +105,7 @@ describe('withFileLock', () => {
     const lockPath = `${target}.lock`
     await writeFile(lockPath, 'holder\n')
     const release = setTimeout(() => { void rm(lockPath, { force: true }) }, 50)
-    state.failLockCreateWithEPERM = true
+    state.failLockCreateWithEPERM = 1
     let called = false
 
     try {
@@ -100,10 +119,18 @@ describe('withFileLock', () => {
   it('preserves EPERM when no lock path exists', async () => {
     const dir = await scratch()
     const operation = vi.fn(async () => {})
-    state.failLockCreateWithEPERM = true
+    state.failLockCreateWithEPERM = 2
 
     await expect(withFileLock(join(dir, 'document'), operation)).rejects.toMatchObject({ code: 'EPERM' })
     expect(operation).not.toHaveBeenCalled()
+  })
+
+  it.skipIf(process.platform !== 'win32')('retries one unconfirmed lock EPERM', async () => {
+    const dir = await scratch()
+    const target = join(dir, 'document')
+    state.failLockCreateWithEPERM = 1
+
+    await expect(withFileLock(target, async () => 'committed')).resolves.toBe('committed')
   })
 
   it('rejects an invalid parent hierarchy before running the operation', async () => {

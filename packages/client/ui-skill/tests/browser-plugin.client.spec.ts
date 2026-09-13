@@ -9,7 +9,7 @@
  * rejection, pick → plain-text outcome (the plain-text-reference decision:
  * .agents/notes/implemented/architecture/2026-07-25-web-input-machine-and-slash-pipeline.md),
  * the synchronous
- * lexicon reads over the settled cache, and the reference codec's two
+ * lexicon reads over the settled cache, fuzzy subsequence ranking, and the reference codec's two
  * projections. Direct driving is deliberate: this spec owns only the
  * source's own contract.
  */
@@ -174,6 +174,21 @@ describe('candidates: sessionId addressing', () => {
     }))
     await expect(source.candidates(proj('s1'), req('co')))
       .rejects.toThrow('skill.list failed: internal: boom')
+  })
+
+  it('matches case-insensitive subsequences and keeps prefixes ranked first', async () => {
+    const { source } = await bench(listOk([
+      { name: 'code-review', description: 'review flow', modelInvocable: true },
+      { name: 'commit-helper', description: 'commit flow', modelInvocable: true },
+      { name: 'deploy', description: 'deploy flow', modelInvocable: true },
+    ]))
+    await expect(source.candidates(proj('s1'), req('CH'))).resolves.toEqual([
+      { name: 'commit-helper', description: 'commit flow' },
+    ])
+    await expect(source.candidates(proj('s1'), req('co'))).resolves.toEqual([
+      { name: 'code-review', description: 'review flow' },
+      { name: 'commit-helper', description: 'commit flow' },
+    ])
   })
 
   it('does not fetch Agent-bound skills for an addressed child', async () => {

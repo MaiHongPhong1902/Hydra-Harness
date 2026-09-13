@@ -137,6 +137,9 @@ export function ProviderAccounts({ flowKey, api, t, disabled, onBusy }: Provider
   const prompt = running ? attempt.prompt : undefined
   const notice = attempt?.notice
   const safeUrl = notice?.url !== undefined && /^https?:\/\//i.test(notice.url) ? notice.url : undefined
+  const openExternal = (globalThis as typeof globalThis & {
+    hydraDesktop?: { openExternal?: (url: string) => Promise<void> }
+  }).hydraDesktop?.openExternal
   const unavailable = entry === undefined || !entry.methods.some(method => method.id === 'oauth')
   return (
     <div className={styles['field']}>
@@ -172,7 +175,11 @@ export function ProviderAccounts({ flowKey, api, t, disabled, onBusy }: Provider
       </div>
       <div role="status" aria-live="polite">
         {notice === undefined ? null : <p>{notice.message}</p>}
-        {safeUrl === undefined ? null : <a href={safeUrl} target="_blank" rel="noopener noreferrer">{t('accountOpenBrowser')}</a>}
+        {safeUrl === undefined ? null : <a href={safeUrl} target="_blank" rel="noopener noreferrer"
+          onClick={openExternal === undefined ? undefined : (event) => {
+            event.preventDefault()
+            void openExternal(safeUrl).catch((error: unknown) => { setFailure(messageOf(error)) })
+          }}>{t('accountOpenBrowser')}</a>}
         {notice?.code === undefined ? null : <p><code>{notice.code}</code></p>}
         {attempt?.status === 'authorized' ? <p>{t('accountAdded')}</p> : null}
         {attempt?.status === 'cancelled' ? <p>{t('accountCancelled')}</p> : null}

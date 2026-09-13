@@ -45,7 +45,11 @@ async function bench(isLoopback = true) {
   const trustPlugin = vi.fn<() => Promise<Result<typeof EMPTY_IMPORTED>>>().mockResolvedValue({ ok: true, value: EMPTY_IMPORTED })
   const untrustPlugin = vi.fn<() => Promise<Result<typeof EMPTY_IMPORTED>>>().mockResolvedValue({ ok: true, value: EMPTY_IMPORTED })
   const removePlugin = vi.fn<() => Promise<Result<typeof EMPTY_IMPORTED>>>().mockResolvedValue({ ok: true, value: EMPTY_IMPORTED })
-  ctx.provide('connection', { isLoopback, api: {} } as never)
+  ctx.provide('connection', { isLoopback, api: { skills: { list: vi.fn(async () => ({ result: { ok: true, value: { skills: [] } } })) } } } as never)
+  ctx.provide('sessions', {
+    list: { getSnapshot: () => ({ current: undefined }), subscribe: () => () => {} },
+    subagentAddress: vi.fn(() => undefined),
+  } as never)
   ctx.provide('remote.pluginInventory', { list, setEnabled, listMarketplaces, addMarketplace, removeMarketplace, listImportedPlugins, importPlugin, enablePlugin, disablePlugin, trustPlugin, untrustPlugin, removePlugin })
   return { ctx, slots: ctx.get('slots') as SlotRegistry, locale, list, setEnabled, listMarketplaces, addMarketplace, removeMarketplace, listImportedPlugins, importPlugin, enablePlugin }
 }
@@ -61,7 +65,7 @@ function declare(slots: SlotRegistry): () => void {
 
 describe('ui-settings-plugin-inventory browser plugin', () => {
   it('declares only the services used by the Settings Remote contribution', () => {
-    expect(inject).toEqual(['slots', 'locale', 'connection', 'remote', 'remote.pluginInventory'])
+    expect(inject).toEqual(['slots', 'locale', 'connection', 'sessions', 'remote', 'remote.pluginInventory'])
   })
 
   it('registers separate Plugins, Skills, and Marketplace tabs plus the Hooks child catalog', async () => {
@@ -89,6 +93,9 @@ describe('ui-settings-plugin-inventory browser plugin', () => {
     if (plugins.importedPlugins === undefined) throw new Error('expected local imported plugin controls')
     await expect(plugins.importedPlugins.list()).resolves.toEqual(EMPTY_IMPORTED)
     expect(b.listImportedPlugins).toHaveBeenCalledOnce()
+
+    const skills = (entries.find(entry => entry.options.id === 'skills')?.inject as unknown as () => { nativeSkills?: { list: () => Promise<unknown> } })()
+    await expect(skills.nativeSkills?.list()).resolves.toEqual({ skills: [] })
 
     const marketplaceInjected = marketplace?.inject as unknown as () => MarketplaceSettingsTabInjected
     const marketplaceControls = marketplaceInjected()

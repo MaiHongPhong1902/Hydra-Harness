@@ -3,17 +3,23 @@
 /** Locale keys these surfaces render. */
 export type PluginsSettingsLocaleKey =
   | 'userMcpNameTaken' | 'userHooksNameTaken' | 'mcpLoadError' | 'mcpRetry'
-  | 'nav' | 'title' | 'intro' | 'tabs' | 'search' | 'configurableTab' | 'mcpTab' | 'hooksTab' | 'empty'
+  | 'nav' | 'title' | 'intro' | 'tabs' | 'search' | 'configurableTab' | 'mcpTab' | 'hooksTab' | 'empty' | 'emptySearch'
   | 'overridden' | 'reset' | 'readOnly' | 'expand' | 'collapse'
   | 'save' | 'saving' | 'discard' | 'unsaved' | 'saveFailed' | 'invalidNumber'
   | 'bashTitle' | 'bashDescription' | 'bashTimeoutMs' | 'bashTimeoutMsHint'
   | 'bashMaxOutputBytes' | 'bashMaxOutputBytesHint'
   | 'agentLoopTitle' | 'agentLoopDescription' | 'agentLoopMaxParallel' | 'agentLoopMaxParallelHint'
+  | 'pageMemoryTitle' | 'pageMemoryDescription' | 'pageMemoryRole' | 'pageMemoryRoleHint'
+  | 'pageMemoryLocale' | 'pageMemoryLocaleHint' | 'pageMemoryStorageDir' | 'pageMemoryStorageDirHint'
+  | 'pageMemoryMaxRecordBytes' | 'pageMemoryMaxRecordBytesHint' | 'pageMemoryMaxWorkflows' | 'pageMemoryMaxWorkflowsHint'
+  | 'pageMemoryMaxPages' | 'pageMemoryMaxPagesHint' | 'pageMemoryMaxContextBytes' | 'pageMemoryMaxContextBytesHint'
+  | 'pageMemoryMaxObservations' | 'pageMemoryMaxObservationsHint' | 'pageMemoryVerificationTimeout' | 'pageMemoryVerificationTimeoutHint'
   | 'webSearchTitle' | 'webSearchDescription'
   | 'webSearchApiKey' | 'webSearchApiKeyHint' | 'webSearchApiKeySet' | 'webSearchApiKeyUnset'
   | 'webSearchBaseUrl' | 'webSearchBaseUrlHint' | 'webSearchMaxUses' | 'webSearchMaxUsesHint'
   | 'mcpTitle' | 'mcpDescription' | 'mcpUnavailable'
-  | 'mcpLoading' | 'mcpEnabled' | 'mcpToggleFailed' | 'importedMcpTitle' | 'importedMcpEmpty' | 'enable' | 'disable' | 'disabled'
+  | 'mcpLoading' | 'mcpEnabled' | 'mcpToggleFailed' | 'mcpServerNotStarted' | 'mcpServerStarting' | 'mcpServerConnected' | 'mcpServerFailed'
+  | 'importedMcpTitle' | 'importedMcpEmpty' | 'importedMcpEmptySearch' | 'enable' | 'disable' | 'disabled'
   | 'mcpApiKey' | 'mcpApiKeyHint' | 'mcpApiKeySet' | 'mcpApiKeyUnset'
   | 'userMcpTitle' | 'userMcpDescription' | 'userMcpAdd' | 'userMcpAddTitle' | 'userMcpEditTitle'
   | 'userMcpFormDescription' | 'userMcpEmpty' | 'userMcpEmptySearch' | 'userMcpLoadError' | 'userMcpRetry'
@@ -48,6 +54,7 @@ export const en: Record<PluginsSettingsLocaleKey, string> = {
   mcpTab: 'MCP',
   hooksTab: 'Hooks',
   empty: 'This deployment exposes no plugin settings.',
+  emptySearch: 'No plugin settings match this search.',
   overridden: 'Overridden',
   reset: 'Reset to default',
   readOnly: 'This deployment stores settings read-only.',
@@ -69,6 +76,26 @@ export const en: Record<PluginsSettingsLocaleKey, string> = {
   agentLoopDescription: 'How the agent dispatches tool calls.',
   agentLoopMaxParallel: 'Parallel tool calls',
   agentLoopMaxParallelHint: 'Upper bound on parallel-safe calls running at once within one step.',
+  pageMemoryTitle: 'Page Memory',
+  pageMemoryDescription: 'Verified task guidance for the current Browser page.',
+  pageMemoryRole: 'Application role',
+  pageMemoryRoleHint: 'Separates stored guidance by the role using this workspace.',
+  pageMemoryLocale: 'Locale',
+  pageMemoryLocaleHint: 'Separates stored guidance by language and regional formatting.',
+  pageMemoryStorageDir: 'Storage directory',
+  pageMemoryStorageDirHint: 'Absolute parent directory for private page-memory databases.',
+  pageMemoryMaxRecordBytes: 'Maximum record size (bytes)',
+  pageMemoryMaxRecordBytesHint: 'Largest workflow record that can be stored.',
+  pageMemoryMaxWorkflows: 'Maximum workflows',
+  pageMemoryMaxWorkflowsHint: 'Maximum workflows retained in one page-memory database.',
+  pageMemoryMaxPages: 'Maximum pages',
+  pageMemoryMaxPagesHint: 'Maximum page keys retained in one page-memory database.',
+  pageMemoryMaxContextBytes: 'Context limit (bytes)',
+  pageMemoryMaxContextBytesHint: 'Maximum recalled context sent to the agent.',
+  pageMemoryMaxObservations: 'Maximum observations',
+  pageMemoryMaxObservationsHint: 'Maximum targeted Browser observations retained in one turn.',
+  pageMemoryVerificationTimeout: 'Verification timeout (ms)',
+  pageMemoryVerificationTimeoutHint: 'Maximum time spent checking live page anchors.',
   webSearchTitle: 'Web Search',
   webSearchDescription: 'Search provider, credentials, and result limits.',
   webSearchApiKey: 'API key',
@@ -87,9 +114,14 @@ export const en: Record<PluginsSettingsLocaleKey, string> = {
   mcpToggleFailed: 'The MCP plugin state could not be changed.',
   importedMcpTitle: 'Imported OpenAI/Codex MCP servers',
   importedMcpEmpty: 'No imported plugins provide MCP servers.',
+  importedMcpEmptySearch: 'No imported MCP servers match this search.',
   enable: 'Enable',
   disable: 'Disable',
   disabled: 'Disabled',
+  mcpServerNotStarted: 'Not started',
+  mcpServerStarting: 'Connecting…',
+  mcpServerConnected: 'Connected',
+  mcpServerFailed: 'Connection failed',
   mcpApiKey: 'API key',
   mcpApiKeyHint: 'Stored outside the settings file. Leave blank to keep the current key.',
   mcpApiKeySet: 'A key is configured.',

@@ -350,6 +350,26 @@ describe('observation and disposal', () => {
     expect(bench.slots.entries('root')).toHaveLength(0)
   })
 
+  it('waits for an in-flight load before completing disposal', async () => {
+    const bench = await boot()
+    let release!: () => void
+    const gate = new Promise<void>((resolve) => { release = resolve })
+    ;(globalThis as { __dynamicRunnerGate?: Promise<void> }).__dynamicRunnerGate = gate
+    const loading = bench.runner.load(half({
+      code: 'await globalThis.__dynamicRunnerGate; return { apply() {} }',
+    }))
+    await bench.settle()
+
+    const disposing = bench.runner.dispose()
+    release()
+    await disposing
+    await loading
+
+    expect(bench.removed).toEqual(['entry-1'])
+    expect(bench.runner.getSnapshot()).toEqual([])
+    delete (globalThis as { __dynamicRunnerGate?: Promise<void> }).__dynamicRunnerGate
+  })
+
   it('routes host.call through the invoke seam it was given', async () => {
     const bench = await boot()
     await bench.runner.load(half({ code: 'return { apply: () => host.call("ping", 1) }' }))

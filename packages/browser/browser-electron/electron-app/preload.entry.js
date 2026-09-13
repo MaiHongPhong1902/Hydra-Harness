@@ -351,11 +351,14 @@ function pickElement(controller) {
     overlay.id = 'hydra-browser-annotation-overlay'
     highlight.id = 'hydra-browser-annotation-highlight'
     tip.id = 'hydra-browser-annotation-tip'
+    tip.setAttribute('role', 'status')
+    tip.setAttribute('aria-live', 'polite')
     tip.textContent = 'Click an element or drag an area · Esc to cancel'
     for (const node of [overlay, highlight, tip]) node.dataset.pageAgentIgnore = 'true'
 
     let current
     let dragStart
+    let ignoreClickUntil = 0
     const pointTo = (x, y) => {
       current = elementAt(overlay, x, y)
       if (current === undefined) {
@@ -427,6 +430,9 @@ function pickElement(controller) {
       const start = dragStart
       const rect = regionTo(event.clientX, event.clientY)
       dragStart = undefined
+      // Chromium dispatches a click after a pointerup. The pointerup path is
+      // authoritative, so consume that follow-up event to avoid two picks.
+      ignoreClickUntil = performance.now() + 250
       if (Math.hypot(event.clientX - start.x, event.clientY - start.y) >= 4) {
         finish({
           kind: 'browser-region',
@@ -445,6 +451,7 @@ function pickElement(controller) {
       if (dragStart !== undefined && event.pointerId === dragStart.pointerId) finish(undefined)
     })
     overlay.addEventListener('click', (event) => {
+      if (performance.now() < ignoreClickUntil) return
       event.preventDefault()
       event.stopPropagation()
       pointTo(event.clientX, event.clientY)

@@ -95,6 +95,8 @@ describe('materializeFromRealm', () => {
     expect(rejection(inRealm('[1, , 3]'))).toContain('sparse')
     expect(rejection(inRealm('(() => { const a = [1]; a.total = 3; return a })()')))
       .toContain('non-index')
+    expect(rejection(inRealm('(() => { const a = [1, 2]; a[\'01\'] = 3; return a })()')))
+      .toContain('value.01')
     expect(materializeFromRealm(inRealm('(() => { const a = [1]; Object.defineProperty(a, 0, { get: () => 7, enumerable: true }); return a })()')))
       .toEqual([7])
   })

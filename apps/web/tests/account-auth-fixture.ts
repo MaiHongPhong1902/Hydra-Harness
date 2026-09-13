@@ -121,15 +121,13 @@ function flowFor(ctx: Context, provider: (typeof ACCOUNT_AUTH_PROVIDERS)[number]
         message: `Continue signing in to ${provider.displayName} in your browser.`,
         url: `https://auth.example.test/${provider.provider}`,
       })
-      const label = (await session.prompt({
-        kind: 'text',
-        message: `${provider.displayName} account label`,
-        placeholder: 'name@example.test',
-      })).trim()
-      if (label.length === 0) throw new Error('account label is required')
       await ctx.credentials.modifyRecord(key, async (current) => {
         const accounts = entriesFromRecord(current)
         const id = `${provider.provider}-${String(accounts.length + 1)}`
+        const labels = provider.provider === 'chatgpt'
+          ? ['alice@example.test', 'bob@example.test']
+          : ['google@example.test']
+        const label = labels[accounts.length] ?? `${provider.provider}-${String(accounts.length + 1)}@example.test`
         return { kind: 'grant', payload: { accounts: [...accounts, { id, label }] } }
       })
     },

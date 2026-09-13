@@ -3,6 +3,7 @@
 const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('hydraDesktop', {
+  openExternal: url => ipcRenderer.invoke('hydra-desktop:open-external', { url }),
   browser: {
     setBounds: bounds => { ipcRenderer.send('hydra-desktop:browser-bounds', bounds) },
     setTheme: theme => { ipcRenderer.send('hydra-desktop:browser-theme', theme) },
@@ -57,6 +58,8 @@ contextBridge.exposeInMainWorld('hydraDesktop', {
       ipcRenderer.invoke('hydra-desktop:files-create', { parentPath, name, kind, workspaceId }),
     rename: (path, newName, workspaceId) =>
       ipcRenderer.invoke('hydra-desktop:files-rename', { path, newName, workspaceId }),
+    move: (path, destinationDirectory, workspaceId) =>
+      ipcRenderer.invoke('hydra-desktop:files-move', { path, destinationDirectory, workspaceId }),
     delete: (path, workspaceId) =>
       ipcRenderer.invoke('hydra-desktop:files-delete', { path, workspaceId }),
     reveal: (path, workspaceId) =>

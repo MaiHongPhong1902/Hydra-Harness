@@ -26,12 +26,14 @@ import { McpSettingsTab, type ImportedMcpSettingsFace, type NativeMcpSettingsFac
 import { PluginsSettingsSection } from './PluginsSettingsSection.tsx'
 import type { PluginsSettingsSectionInjected, PluginsSettingsTabEntry } from './PluginsSettingsSection.tsx'
 import { HooksSettingsTab, type HooksSettingsFace } from './HooksSettingsTab.tsx'
+import { PageMemoryCard } from './PageMemoryCard.tsx'
 import { WebSearchCard } from './WebSearchCard.tsx'
 import { AGENT_LOOP_NS, AgentLoopCardController } from './agent-loop-card-controller.ts'
 import { SHELL_NS, BashCardController } from './bash-card-controller.ts'
 import { ConfigurablePluginsTabController } from './tab-store.ts'
 import { MCP_SETTINGS_NS, McpSettingsController } from './mcp-settings-controller.ts'
 import { WEB_SEARCH_NS, WebSearchCardController } from './web-search-card-controller.ts'
+import { PAGE_MEMORY_NS, PageMemoryCardController } from './page-memory-card-controller.ts'
 import { en } from './locales.ts'
 
 export type { PluginsSettingsSectionInjected, PluginsSettingsSectionProps } from './PluginsSettingsSection.tsx'
@@ -46,6 +48,7 @@ export type {
 export type { AgentLoopCardFace, AgentLoopCardState } from './agent-loop-card-controller.ts'
 export type { BashCardFace, BashCardState } from './bash-card-controller.ts'
 export type { WebSearchCardFace, WebSearchCardState } from './web-search-card-controller.ts'
+export type { PageMemoryCardFace, PageMemoryCardState, PageMemorySettings } from './page-memory-card-controller.ts'
 export type { UserMcpControls } from './McpServerCatalog.tsx'
 export type { UserHookControls } from './HookRecordCatalog.tsx'
 export type { UserMcpSettingsFace } from './McpSettingsTab.tsx'
@@ -72,6 +75,7 @@ export function apply(ctx: ClientContext): void {
   const webSearch = new WebSearchCardController(
     ctx.settingsScope.bind({ namespace: WEB_SEARCH_NS }), api, namespace => ctx.settingsScope.bind({ namespace }),
   )
+  const pageMemory = new PageMemoryCardController(ctx.settingsScope.bind({ namespace: PAGE_MEMORY_NS }))
   const mcp = new McpSettingsController(ctx.settingsScope.bind({ namespace: MCP_SETTINGS_NS }), api)
   const importedMcp: ImportedMcpSettingsFace['importedMcp'] = connection.isLoopback ? {
     list: async () => {
@@ -89,11 +93,6 @@ export function apply(ctx: ClientContext): void {
     list: async () => {
       const result = await ctx.remote.pluginInventory.list()
       if (!result.ok) throw new Error(`pluginInventory.list failed: ${result.error.code}: ${result.error.message}`)
-      return result.value
-    },
-    setEnabled: async (entryId, enabled) => {
-      const result = await ctx.remote.pluginInventory.setEnabled({ entryId, enabled })
-      if (!result.ok) throw new Error(`pluginInventory.setEnabled failed: ${result.error.code}: ${result.error.message}`)
       return result.value
     },
   } : undefined
@@ -267,9 +266,16 @@ export function apply(ctx: ClientContext): void {
       locale: NS,
       inject: () => agentLoop.inject(),
     }, AgentLoopCard)
+    yield ctx.slots.register({
+      name: 'settings.plugin.item',
+      key: PAGE_MEMORY_NS,
+      locale: NS,
+      inject: () => pageMemory.inject(),
+    }, PageMemoryCard)
   })
 
   ctx.effect(() => () => { webSearch.dispose() }, 'ui-settings-plugins: search lifecycle')
+  ctx.effect(() => () => { pageMemory.dispose() }, 'ui-settings-plugins: page-memory lifecycle')
   ctx.slots.inject('settings.section', () => ctx.slots.register({
     name: 'settings.section', id: 'web-search', order: 11,
     label: () => t('webSearchTitle'), locale: NS,

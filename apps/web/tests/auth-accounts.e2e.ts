@@ -55,14 +55,11 @@ async function openAddEditor(dialog: Locator, provider: string): Promise<void> {
 
 async function addAccount(dialog: Locator, providerName: string, label: string): Promise<void> {
   await dialog.getByRole('button', { name: 'Add account', exact: true }).click()
-  const input = dialog.getByRole('textbox', { name: `${providerName} account label`, exact: true })
-  await input.waitFor({ timeout: 10_000 })
+  expect(await dialog.getByRole('textbox', { name: `${providerName} account label`, exact: true }).count()).toBe(0)
   const link = dialog.getByRole('link', { name: 'Open sign-in page', exact: true })
   expect(await link.getAttribute('href')).toBe(
     `https://auth.example.test/${providerName === 'ChatGPT' ? 'chatgpt' : 'antigravity'}`,
   )
-  await input.fill(label)
-  await dialog.getByRole('button', { name: 'Continue', exact: true }).click()
   await dialog.getByText('Account connected. Apply to make this provider available in the model selector.', { exact: true })
     .waitFor({ timeout: 10_000 })
   await expect.poll(() => dialog.getByText(label, { exact: true }).count(), { timeout: 10_000 }).toBe(1)
@@ -117,12 +114,6 @@ describe('web e2e: account-backed ChatGPT and Antigravity login', () => {
     const empty = dialog.getByText('No accounts connected.', { exact: true })
     await empty.waitFor({ timeout: 10_000 })
     expect(await empty.isVisible()).toBe(true)
-
-    await dialog.getByRole('button', { name: 'Add account', exact: true }).click()
-    await dialog.getByRole('textbox', { name: 'ChatGPT account label', exact: true }).waitFor({ timeout: 10_000 })
-    await dialog.getByRole('button', { name: 'Cancel sign-in', exact: true }).click()
-    await dialog.getByText('Sign-in cancelled.', { exact: true }).waitFor({ timeout: 10_000 })
-    expect(await dialog.getByText('No accounts connected.', { exact: true }).count()).toBe(1)
 
     await addAccount(dialog, 'ChatGPT', 'alice@example.test')
     await applyEditor(dialog, 'Edit ChatGPT (chatgpt)')

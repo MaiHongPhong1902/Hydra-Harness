@@ -12,13 +12,15 @@ import AgentLoop from '@hydra/harness-agent-loop'
 import { mountAgentLoopTestDependencies } from '@hydra/harness-agent-loop-testkit'
 import { LocalBashExecutor } from '@hydra/harness-bash-local'
 import LocalSubprocessRuntime from '@hydra/harness-subprocess-local'
+import { scopeTarget } from '@hydra/harness-scope'
+import SubagentRuntime, { SubagentRunId } from '@hydra/harness-subagent'
 import * as HooksCodex from '@hydra/harness-hooks-codex'
 import { MockAdapter, textResponse, toolCallResponse } from '../../../core/agent-loop/tests/mock-adapter.ts'
 
 /**
  * Full-loop Codex bridge tests with a mock model, the real loop and bash
  * executor, and shell hooks from a temporary config. Covers regex matching,
- * block-only decisions, and the five-event subset.
+ * block-only decisions, and the seven-event subset.
  */
 
 const dirs: string[] = []
@@ -55,6 +57,9 @@ function waitForIdle(_ctx: Context, agent: Agent): Promise<void> {
   return agent.whenIdle()
 }
 function events(agent: Agent): SessionEvent[] { return [...agent.session.events] }
+function subagentCarrier(ctx: Context) {
+  return scopeTarget(ctx as unknown as SubagentRuntime, undefined)
+}
 
 /** Poll `predicate` until true or the deadline passes (detached hook effects can't be awaited directly). */
 async function waitFor(predicate: () => boolean, timeout = 5000, interval = 10): Promise<void> {
@@ -130,10 +135,10 @@ describe('hooks-codex bridge', () => {
       .toEqual(['turn/start', 'hook/invoked', 'hook/result', 'turn/end'])
   })
 
-  it('only the five bridge-supported Codex events are honored — a SubagentStop entry is ignored', async () => {
+  it('keeps an unsupported Codex event inert when no matching Hydra seam exists', async () => {
     const dir = configDir()
     const s = script(dir, 'x.sh', '#!/usr/bin/env bash\nexit 2\n')
-    writeHooks(dir, { SubagentStop: [{ hooks: [{ type: 'command', command: s }] }] })
+    writeHooks(dir, { PermissionRequest: [{ hooks: [{ type: 'command', command: s }] }] })
 
     const adapter = new MockAdapter([textResponse('fine')])
     const ctx = await harness(dir, adapter)
@@ -141,6 +146,43 @@ describe('hooks-codex bridge', () => {
     agent.followup(createUserMessage({ content: [{ type: 'text', text: 'go' }], source: { kind: 'user' } }))
     await waitForIdle(ctx, agent)
     expect(adapter.requests).toHaveLength(1)
+  })
+
+  it('runs SubagentStart and SubagentStop hooks on the shared lifecycle seam', async () => {
+    const dir = configDir()
+    const startMarker = join(dir, 'start-ran')
+    const stopMarker = join(dir, 'stop-ran')
+    const start = script(dir, 'start.sh', `#!/usr/bin/env bash\ntouch "${startMarker}"\n`)
+    const stop = script(dir, 'stop.sh', `#!/usr/bin/env bash\ntouch "${stopMarker}"\n`)
+    writeHooks(dir, {
+      SubagentStart: [{ hooks: [{ type: 'command', command: start }] }],
+      SubagentStop: [{ hooks: [{ type: 'command', command: stop }] }],
+    })
+    const ctx = await harness(dir, new MockAdapter([]))
+    ctx.emit(subagentCarrier(ctx), 'subagent/start', {
+      runId: SubagentRunId('run-1'), provider: 'inproc', id: SessionId('child-1'), local: false,
+    })
+    ctx.emit(subagentCarrier(ctx), 'subagent/end', {
+      runId: SubagentRunId('run-1'), provider: 'inproc', id: SessionId('child-1'), local: false, stopReason: 'completed',
+    })
+    await waitFor(() => existsSync(startMarker) && existsSync(stopMarker))
+  })
+
+  it('logs an unexpected SubagentStop failure instead of swallowing it', async () => {
+    const dir = configDir()
+    const stop = script(dir, 'stop.sh', '#!/usr/bin/env bash\nexit 0\n')
+    writeHooks(dir, { SubagentStop: [{ hooks: [{ type: 'command', command: stop }] }] })
+    const ctx = await harness(dir, new MockAdapter([]))
+    const warn = vi.fn()
+    ctx.logger.warn = warn as never
+
+    // A malformed runtime payload makes JSON serialization reject before the
+    // runner can normalize the failure; the detached bridge must still report it.
+    ctx.emit(subagentCarrier(ctx), 'subagent/end', {
+      runId: SubagentRunId('run-reject'), provider: 'inproc', id: 1n as unknown as SessionId, local: false, stopReason: 'completed',
+    })
+    await waitFor(() => warn.mock.calls.some(call => String(call[0]).includes('SubagentStop hook failed')))
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('SubagentStop hook failed'))
   })
 
   it('a missing config registers no hooks and does not crash', async () => {

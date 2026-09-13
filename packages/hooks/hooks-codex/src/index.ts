@@ -1,8 +1,9 @@
 /**
  * Bridge for unmodified Codex command hooks on harness interception points. It
- * supports five points (SessionStart, prompt/tool pre/post, Stop), regex-only
- * matchers, snake_case payloads without a trailing newline, no hook environment
- * or command substitution, and no pre-tool approval or rewrite path; only
+ * supports seven points (SessionStart, prompt/tool pre/post, Stop, and
+ * subagent start/stop), regex-only
+ * matchers, snake_case payloads without a trailing newline, no config-time
+ * command substitution, and no pre-tool approval or rewrite path; only
  * blocking decisions are honored. Shared execution and parsing live in
  * `@hydra/harness-hook-protocol`; see the
  * [hook-bridges Agent Note](../../../../.agents/notes/implemented/feature/2026-06-30-hook-bridges.md).
@@ -20,6 +21,8 @@ import { createUserMessage } from '@hydra/harness-llm'
 import type { ContentBlock, MessageSource } from '@hydra/harness-llm'
 import type { UserMessage } from '@hydra/harness-session'
 import type {} from '@hydra/harness-session-persistence'
+// Pulls in the declaration-merged subagent events and their run identity.
+import type { SubagentRunId } from '@hydra/harness-subagent'
 import type { PostToolDecision, PreToolDecision, ToolExecution, ToolExecutionResult } from '@hydra/harness-tools'
 import {
   appendHookInvoked,
@@ -110,6 +113,7 @@ export function apply(ctx: Context, config: Config): void {
   // continuation (docs/defensive-patterns.md: dispose must reach quiescence).
   const detached = createDetachedRuns()
   ctx.effect(() => () => detached.drain(), 'hooks-codex: drain detached hook runs')
+  const subagentChildren = new Map<SubagentRunId, Agent>()
 
   /**
    * Run and fold one configured Codex hook point.
@@ -276,7 +280,30 @@ export function apply(ctx: Context, config: Config): void {
       agent.steer(createUserMessage({ content: [{ type: 'text', text }], source: PLUGIN_SOURCE }))
     }
   })
+
+  // SubagentStart may inject child context; SubagentStop is observe-only. The
+  // generic subagent seam carries no agent-type label, so both use a stable
+  // default matcher subject.
+  ctx.on('subagent/start', (info) => {
+    const child = ctx.get('agents')?.get(info.id)
+    if (child !== undefined) subagentChildren.set(info.runId, child)
+    detached.track(runPoint('SubagentStart', SUBAGENT_TYPE, subagentPayload(ctx, 'SubagentStart', info, child, model), { ...child ? { agent: child } : {}, signal: detached.signal })
+      .then((merged) => {
+        const context = contextFrom(merged)
+        if (context && child) child.inject(context)
+      })
+      .catch((error: unknown) => { ctx.logger.warn(`hooks-codex: SubagentStart hook failed: ${String(error)}`) }))
+  })
+  ctx.on('subagent/end', (info) => {
+    const child = subagentChildren.get(info.runId) ?? ctx.get('agents')?.get(info.id)
+    subagentChildren.delete(info.runId)
+    detached.track(runPoint('SubagentStop', SUBAGENT_TYPE, subagentPayload(ctx, 'SubagentStop', info, child, model), { ...child ? { agent: child } : {}, signal: detached.signal })
+      .catch((error: unknown) => { ctx.logger.warn(`hooks-codex: SubagentStop hook failed: ${String(error)}`) }))
+  })
 }
+
+/** The default matcher subject used for Codex subagent lifecycle hooks. */
+const SUBAGENT_TYPE = 'general-purpose'
 
 // --- Codex DIALECT payloads: snake_case, model on every event, turn_id on
 // turn-scoped events. ---
@@ -334,4 +361,14 @@ function preToolPayload(ctx: Context, exec: ToolExecution, model: string): Recor
 
 function postToolPayload(ctx: Context, exec: ToolExecution, result: ToolExecutionResult, model: string): Record<string, unknown> {
   return { ...turnBase(ctx, exec.agent, 'PostToolUse', model), tool_name: exec.name, tool_input: { command: commandOf(exec.arguments) }, tool_use_id: exec.callId, tool_response: blocksToText(result.content) }
+}
+
+/** Build the Codex-shaped lifecycle payload for a subagent event. */
+function subagentPayload(ctx: Context, event: 'SubagentStart' | 'SubagentStop', info: { id: string }, child: Agent | undefined, model: string): Record<string, unknown> {
+  return {
+    ...base(ctx, child, event, model),
+    agent_id: info.id,
+    agent_type: SUBAGENT_TYPE,
+    ...event === 'SubagentStop' ? { stop_hook_active: false } : {},
+  }
 }

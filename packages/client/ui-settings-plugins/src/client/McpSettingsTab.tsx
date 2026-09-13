@@ -1,7 +1,7 @@
 /** Obsidian and imported-plugin MCP controls in the dedicated Plugins tab. */
 
 import { useEffect, useState } from 'react'
-import type { ImportedPluginSnapshot, PluginEnablementResult, PluginInventorySnapshot } from '@hydra/harness-api-remotes/client'
+import type { ImportedPluginSnapshot, PluginInventorySnapshot } from '@hydra/harness-api-remotes/client'
 import { Switch } from '@hydra/harness-client-ui-primitives'
 import type { InjectFace, PropsLocale, PropsRuntime } from '@hydra/harness-client-ui-slots'
 import { SecretField } from './fields.tsx'
@@ -17,6 +17,21 @@ export type McpSettingsTabProps =
   & InjectFace<McpSettingsFace & ImportedMcpSettingsFace & NativeMcpSettingsFace & UserMcpSettingsFace>
 
 const OBSIDIAN_MCP_MODULE = '@hydra/harness-obsidian-knowledge'
+
+type ImportedMcpStartupState = ImportedPluginSnapshot['plugins'][number]['mcpServers'][number]['startupState']
+
+function importedMcpStatusLabel(
+  state: ImportedMcpStartupState,
+  t: McpSettingsTabProps['t'],
+): string {
+  switch (state) {
+    case 'not-started': return t('mcpServerNotStarted')
+    case 'starting': return t('mcpServerStarting')
+    case 'started': return t('mcpServerConnected')
+    case 'failed': return t('mcpServerFailed')
+    default: return state
+  }
+}
 
 /** Imported MCP controls that remain separate from the owning bundle lifecycle. */
 export interface ImportedMcpSettingsFace {
@@ -35,10 +50,6 @@ export interface UserMcpSettingsFace {
 export interface NativeMcpSettingsFace {
   nativeMcp?: {
     list: () => Promise<PluginInventorySnapshot>
-    setEnabled: (
-      entryId: PluginInventorySnapshot['entries'][number]['entryId'],
-      enabled: boolean,
-    ) => Promise<PluginEnablementResult>
   }
 }
 
@@ -49,8 +60,6 @@ export function McpSettingsTab(props: McpSettingsTabProps) {
   const [request, setRequest] = useState(0)
   const [imported, setImported] = useState<ImportedPluginSnapshot>()
   const [native, setNative] = useState<PluginInventorySnapshot>()
-  const [nativeMutating, setNativeMutating] = useState(false)
-  const [nativeFailed, setNativeFailed] = useState(false)
   const [importedMutating, setImportedMutating] = useState<string>()
   const [importedFailed, setImportedFailed] = useState(false)
   const [nativeLoadFailed, setNativeLoadFailed] = useState(false)
@@ -94,25 +103,8 @@ export function McpSettingsTab(props: McpSettingsTabProps) {
     || haystack.some(value => value.toLocaleLowerCase().includes(normalizedQuery))
   const nativeMatchesQuery = matchesQuery([t('mcpTitle'), OBSIDIAN_MCP_MODULE])
   const nativeEntry = native?.entries.find(entry => entry.moduleName === OBSIDIAN_MCP_MODULE)
-  const setNativeEnabled = (enabled: boolean): void => {
-    if (props.nativeMcp === undefined || nativeEntry === undefined) return
-    setNativeMutating(true)
-    setNativeFailed(false)
-    void props.nativeMcp.setEnabled(nativeEntry.entryId, enabled).then(
-      ({ snapshot }) => { setNative(snapshot) },
-      () => { setNativeFailed(true) },
-    ).finally(() => { setNativeMutating(false) })
-  }
   const nativeControl = nativeEntry === undefined ? null : (
-    <label className={css.switchControl}>
-      <span>{nativeEntry.enabled ? t('mcpEnabled') : t('disabled')}</span>
-      <Switch
-        checked={nativeEntry.enabled}
-        disabled={nativeMutating || !nativeEntry.toggleable}
-        aria-label={`${nativeEntry.enabled ? t('disable') : t('enable')} ${t('mcpTitle')}`}
-        onClick={() => { setNativeEnabled(!nativeEntry.enabled) }}
-      />
-    </label>
+    <span className={css.nativeStatus}>{nativeEntry.enabled ? t('mcpEnabled') : t('disabled')}</span>
   )
 
   const importedRows = imported?.plugins.flatMap(plugin => plugin.mcpServers.map(server => ({ plugin, server })))
@@ -149,7 +141,6 @@ export function McpSettingsTab(props: McpSettingsTabProps) {
           stateLabel={state.apiKeyConfigured ? t('mcpApiKeySet') : t('mcpApiKeyUnset')}
           onEdit={(text) => { props.edit('apiKey', text) }}
         />
-        {nativeFailed ? <p className={css.empty} role="alert">{t('mcpToggleFailed')}</p> : null}
       </PluginCard> : null}
       {!state.available && native === undefined && !nativeLoadFailed && props.nativeMcp !== undefined ? <p className={css.empty}>{t('mcpLoading')}</p> : null}
       {!state.available && nativeControl !== null && nativeMatchesQuery ? (
@@ -160,20 +151,23 @@ export function McpSettingsTab(props: McpSettingsTabProps) {
             <div><strong>{t('mcpTitle')}</strong><code>{nativeEntry?.moduleName}</code></div>
             {nativeControl}
           </div>
-          {nativeFailed ? <p className={css.empty} role="alert">{t('mcpToggleFailed')}</p> : null}
         </section>
       ) : null}
       {props.importedMcp !== undefined ? (
         <section className={css.importedMcp} aria-labelledby="imported-mcp-title">
           <h3 id="imported-mcp-title">{t('importedMcpTitle')}</h3>
           {imported === undefined && !importedLoadFailed ? <p className={css.empty}>{t('mcpLoading')}</p> : null}
-          {imported !== undefined && importedRows.length === 0 ? <p className={css.empty}>{t('importedMcpEmpty')}</p> : null}
+          {imported !== undefined && importedRows.length === 0
+            ? <p className={css.empty}>{imported.plugins.length === 0 ? t('importedMcpEmpty') : t('importedMcpEmptySearch')}</p>
+            : null}
           {importedFailed ? <p className={css.empty} role="alert">{t('mcpToggleFailed')}</p> : null}
           {importedRows.map(({ plugin, server }) => (
             <div className={css.importedMcpRow} key={`${plugin.identity}:${server.name}`}>
               <div><strong>{server.name}</strong><code>{plugin.name} · {plugin.identity}</code></div>
               <label className={css.switchControl}>
-                <span>{importedMutating === `${plugin.identity}:${server.name}` ? t('saving') : server.enabled ? server.startupState : t('disabled')}</span>
+                <span>{importedMutating === `${plugin.identity}:${server.name}`
+                  ? t('saving')
+                  : server.enabled ? importedMcpStatusLabel(server.startupState, t) : t('disabled')}</span>
                 <Switch
                   checked={server.enabled}
                   disabled={importedMutating !== undefined}

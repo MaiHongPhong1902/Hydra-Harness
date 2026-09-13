@@ -202,14 +202,6 @@ function restate(prompt: AuthPrompt): AuthorizationPrompt {
   }
 }
 
-async function accountLabel(session: AuthorizationSession): Promise<string> {
-  return session.prompt({
-    kind: 'text',
-    message: 'Name this ChatGPT account.',
-    placeholder: 'email or workspace',
-  })
-}
-
 /**
  * Register the ChatGPT OAuth flow without loading pi-ai until a login starts.
  * @param ctx - context whose authorization service owns the flow.
@@ -232,7 +224,6 @@ export function registerChatGptFlow(ctx: Context, pool: AccountPool): void {
  * @returns a promise that settles after the credential is durably stored.
  */
 export async function loginChatGpt(session: AuthorizationSession, pool: AccountPool): Promise<void> {
-  const label = await accountLabel(session)
   const provider = await loadProvider()
   const oauth = provider.auth.oauth
   if (oauth === undefined) throw new Error('ChatGPT provider does not offer OAuth login')
@@ -242,5 +233,5 @@ export async function loginChatGpt(session: AuthorizationSession, pool: AccountP
     prompt: prompt => session.prompt(restate(prompt)),
   }
   const credential = await oauth.login(interaction)
-  await pool.add(label, credential, session.signal)
+  await pool.add(undefined, credential, session.signal)
 }

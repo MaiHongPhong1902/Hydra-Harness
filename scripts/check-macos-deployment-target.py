@@ -24,7 +24,7 @@ def parse_version(value: str) -> tuple[int, ...]:
 
 def claimed_version(platform_tag: str) -> tuple[int, ...]:
     """Return the minimum macOS version encoded by a wheel platform tag."""
-    match = re.fullmatch(r"macosx_(\d+)_(\d+)_arm64", platform_tag)
+    match = re.fullmatch(r"macosx_(\d+)_(\d+)_(?:arm64|x86_64)", platform_tag)
     if match is None:
         raise ValueError(f"unsupported macOS wheel platform tag: {platform_tag!r}")
     return int(match.group(1)), int(match.group(2))

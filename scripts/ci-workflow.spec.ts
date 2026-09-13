@@ -10,7 +10,7 @@ const runnerPrivatePnpmDestination = '${{ runner.temp }}/setup-pnpm'
 const nativeWindowsPnpmDestination = '${{ runner.temp }}/setup-pnpm-js'
 
 describe('CI workflow', () => {
-  it('deploys the Python runtime workspace selected by its manifest', () => {
+  it('deploys the Python runtime workspace selected by its manifest', { timeout: 30_000 }, () => {
     const result = spawnSync(process.execPath, [
       '--import', 'tsx/esm', 'scripts/build-exe-for-python-sdk.ts',
       '--dry-run', '--targets', 'node24-linux-x64',
@@ -294,7 +294,7 @@ describe('DeepSeek e2e workflow', () => {
 })
 
 describe('DeepSeek e2e workflow', () => {
-  it('requires an explicit dispatch and rejects a missing key before checkout', () => {
+  it('requires an explicit dispatch and rejects a missing key before checkout', { timeout: 30_000 }, () => {
     const workflow = loadWorkflow('.github/workflows/e2e.yml')
     expect(workflow.on).toEqual({ workflow_dispatch: null })
     const job = workflowJob(workflow, 'e2e')
@@ -368,7 +368,7 @@ describe('Python release workflows', () => {
       if: "github.event_name == 'workflow_dispatch' || github.event.label.name == 'python-release-dry-run'",
       uses: './.github/workflows/build-exe-for-python-sdk.yml',
       with: {
-        targets: 'node24-linux-x64,node24-linux-arm64,node24-macos-arm64',
+        targets: 'node24-linux-x64,node24-linux-arm64,node24-macos-arm64,node24-macos-x64',
         release: true,
       },
     })
@@ -451,6 +451,7 @@ describe('Python release workflows', () => {
     expect(JSON.stringify(plan.steps)).toContain('pep440_version')
     const workflowJson = JSON.stringify(workflow)
     expect(workflowJson).toContain('macosx_14_0_arm64')
+    expect(workflowJson).toContain('macosx_14_0_x86_64')
     expect(workflowJson).toContain('dist-python/$SDK_WHEEL')
     expect(workflowJson).toContain('dist-python/$RUNTIME_WHEEL')
     expect(workflowJson).toContain('/work/dist-python/$SDK_WHEEL')

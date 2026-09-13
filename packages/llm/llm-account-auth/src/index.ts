@@ -135,7 +135,6 @@ export function apply(ctx: Context, config: Config): void {
             return
           }
           const { loginAntigravity } = await import('./antigravity-oauth.ts')
-          const label = await session.prompt({ kind: 'text', message: 'Name this Google Antigravity account.' })
           const profile = profiles().get(provider)
           const grant = await loginAntigravity(session, {
             ...profile?.callbackPort === undefined ? {} : { callbackPort: profile.callbackPort },
@@ -143,7 +142,7 @@ export function apply(ctx: Context, config: Config): void {
             ...profile?.onboardingAttempts === undefined ? {} : { onboardingAttempts: profile.onboardingAttempts },
             ...profile?.onboardingDelayMs === undefined ? {} : { onboardingDelayMs: profile.onboardingDelayMs },
           })
-          await pool.add(label, { type: 'oauth', ...grant }, session.signal)
+          await pool.add(undefined, { type: 'oauth', ...grant }, session.signal)
         },
       })
     }

@@ -118,7 +118,7 @@ describe('web e2e: settings modal and General preferences', () => {
     const mcpTab = dialog.getByRole('tab', { name: 'MCP', exact: true })
     await mcpTab.click()
     await dialog.getByText('Obsidian MCP', { exact: true }).waitFor({ timeout: 10_000 })
-    await dialog.getByRole('switch', { name: 'Disable Obsidian MCP', exact: true }).waitFor()
+    await dialog.getByText('Enabled', { exact: true }).waitFor()
     expect(await mcpTab.getAttribute('aria-selected')).toBe('true')
     const mcpSnapshot = await captureStableAria(
       page,

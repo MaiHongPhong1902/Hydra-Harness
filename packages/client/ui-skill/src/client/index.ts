@@ -53,6 +53,51 @@ interface CatalogFetch {
   settled?: readonly SkillEntry[]
 }
 
+/** Score the strongest case-insensitive ordered-subsequence match. */
+function fuzzyScore(name: string, query: string): number | undefined {
+  if (query === '') return 0
+  if (query.length > name.length) return undefined
+  const noMatch = Number.NEGATIVE_INFINITY
+  const boundary = (index: number): number =>
+    index === 0 || name.charAt(index - 1) === '-' || name.charAt(index - 1) === '_' ? 8 : 0
+  let previous = Array<number>(name.length).fill(noMatch)
+  for (let index = 0; index < name.length; index++) {
+    if (name.charAt(index) === query.charAt(0)) previous[index] = 1 + boundary(index) - index
+  }
+  for (let queryIndex = 1; queryIndex < query.length; queryIndex++) {
+    const current = Array<number>(name.length).fill(noMatch)
+    let bestGapped = noMatch
+    for (let index = 0; index < name.length; index++) {
+      const gappedIndex = index - 2
+      if (gappedIndex >= 0) {
+        const prior = previous[gappedIndex] ?? noMatch
+        if (prior !== noMatch) bestGapped = Math.max(bestGapped, prior + gappedIndex)
+      }
+      if (name.charAt(index) !== query.charAt(queryIndex)) continue
+      const bonus = 1 + boundary(index)
+      const adjacent = index > 0 ? previous[index - 1] ?? noMatch : noMatch
+      if (adjacent !== noMatch) current[index] = adjacent + bonus + 4
+      if (bestGapped !== noMatch) current[index] = Math.max(current[index] ?? noMatch, bestGapped + bonus + 1 - index)
+    }
+    previous = current
+  }
+  const score = Math.max(...previous)
+  return score === noMatch ? undefined : score
+}
+
+/** Filter and rank skill names while keeping source order for equal matches. */
+function fuzzySkills(skills: readonly SkillEntry[], rawQuery: string): readonly SkillEntry[] {
+  const query = rawQuery.toLowerCase()
+  if (query === '') return skills
+  return skills
+    .map((skill, index) => ({ skill, index, score: fuzzyScore(skill.name.toLowerCase(), query) }))
+    .filter((match): match is { skill: SkillEntry; index: number; score: number } => match.score !== undefined)
+    .sort((left, right) =>
+      Number(right.skill.name.toLowerCase().startsWith(query)) - Number(left.skill.name.toLowerCase().startsWith(query))
+      || right.score - left.score || left.index - right.index)
+    .map(match => match.skill)
+}
+
 /** Required services: reference source faces plus the tool-row and locale registries. */
 export const inject = ['inputTriggers', 'connection', 'sessions', 'slots', 'locale', 'remote']
 
@@ -138,8 +183,7 @@ export function apply(ctx: ClientContext): void {
       const skills = await fetchCatalog(session.sessionId)
       // Superseded keystroke: the shared fetch stays warm, this caller yields.
       if (signal.aborted) return []
-      return skills
-        .filter(skill => skill.name.startsWith(query))
+      return fuzzySkills(skills, query)
         .map(skill => ({
           name: skill.name,
           // The user-only marker rides the description (the menu's only

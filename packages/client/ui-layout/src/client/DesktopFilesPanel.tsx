@@ -43,6 +43,11 @@ export interface DesktopFilesApi {
     newName: string,
     workspaceId: string,
   ): Promise<{ oldPath: string; path: string; name: string; directory?: boolean }>
+  move?(
+    path: string,
+    destinationDirectory: string,
+    workspaceId: string,
+  ): Promise<{ oldPath: string; path: string; name: string; directory?: boolean }>
   delete?(path: string, workspaceId: string): Promise<{ path: string }>
   reveal?(path: string, workspaceId: string): Promise<boolean>
   save(
@@ -104,12 +109,31 @@ function parentDirectory(root: string, path: string): string {
   return parent.length < root.replace(/[/\\]+$/u, '').length ? root : parent
 }
 
+function samePath(left: string, right: string): boolean {
+  return left.replaceAll('\\', '/').toLocaleLowerCase() === right.replaceAll('\\', '/').toLocaleLowerCase()
+}
+
+function pathContains(parent: string, candidate: string): boolean {
+  const normalizedParent = parent.replaceAll('\\', '/').replace(/\/+$/u, '').toLocaleLowerCase()
+  const normalizedCandidate = candidate.replaceAll('\\', '/').toLocaleLowerCase()
+  return normalizedCandidate.startsWith(`${normalizedParent}/`)
+}
+
 function fileIconKind(path: string): FileIconKind {
   const extension = fileName(path).split('.').pop()?.toLocaleLowerCase()
   if (extension !== undefined && ['json', 'jsonc', 'yaml', 'yml', 'toml', 'xml', 'csv'].includes(extension)) return 'data'
   if (extension !== undefined && ['html', 'htm', 'css', 'scss', 'less', 'vue', 'svelte'].includes(extension)) return 'web'
   if (extension !== undefined && ['md', 'mdx', 'txt', 'rst'].includes(extension)) return 'text'
   return 'code'
+}
+
+const FILE_ENTRY_COLLATOR = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' })
+
+function sortFileEntries(entries: DesktopFileEntry[]): DesktopFileEntry[] {
+  return [...entries].sort((left, right) => {
+    if (left.directory !== right.directory) return left.directory ? -1 : 1
+    return FILE_ENTRY_COLLATOR.compare(left.name, right.name)
+  })
 }
 
 function documentIsDirty(document: EditorDocument | undefined): boolean {
@@ -290,6 +314,7 @@ export function DesktopFilesPanel(props: {
   const savingRef = useRef(false)
   const formattingRef = useRef(false)
   const creatingRef = useRef(false)
+  const movingRef = useRef(false)
   const mountedRef = useRef(true)
   const rootWorkspaceRef = useRef<string>()
   const documentRef = useRef<EditorDocument>()
@@ -344,6 +369,9 @@ export function DesktopFilesPanel(props: {
   const [creating, setCreating] = useState(false)
   const [saving, setSaving] = useState(false)
   const [formatting, setFormatting] = useState(false)
+  const [moving, setMoving] = useState(false)
+  const [draggedPath, setDraggedPath] = useState<string>()
+  const [dropTargetPath, setDropTargetPath] = useState<string>()
 
   const deferredDraft = useDeferredValue(document?.draft)
   const dirty = documentIsDirty(document)
@@ -627,7 +655,7 @@ export function DesktopFilesPanel(props: {
         await openFile(entry.path)
       }
     } catch (reason) {
-      if (mountedRef.current && listGeneration.current !== generation) setError(String(reason))
+      if (mountedRef.current && listGeneration.current === generation) setError(String(reason))
     } finally {
       creatingRef.current = false
       if (mountedRef.current) setCreating(false)
@@ -672,6 +700,50 @@ export function DesktopFilesPanel(props: {
       setError(String(reason))
     } finally {
       setRenamingPath(undefined)
+    }
+  }
+
+  const handleMove = async (sourcePath: string, destinationPath: string) => {
+    setDropTargetPath(undefined)
+    setDraggedPath(undefined)
+    if (api?.move === undefined || workspaceId === undefined || rootPath === undefined
+      || movingRef.current || samePath(sourcePath, destinationPath) || pathContains(sourcePath, destinationPath)) return
+    movingRef.current = true
+    setMoving(true)
+    setError(undefined)
+    try {
+      const result = await api.move(sourcePath, destinationPath, workspaceId)
+      const activePath = activePathRef.current
+      const activeNextPath = activePath !== undefined
+        && (samePath(activePath, sourcePath) || pathContains(sourcePath, activePath))
+        ? `${result.path}${activePath.slice(sourcePath.length)}`
+        : activePath
+      const nextList = openDocumentsRef.current.map((d) => {
+        if (d.path === sourcePath) return { ...d, path: result.path }
+        if (pathContains(sourcePath, d.path)) {
+          const suffix = d.path.slice(sourcePath.length)
+          return { ...d, path: `${result.path}${suffix}` }
+        }
+        return d
+      })
+      openDocumentsRef.current = nextList
+      setOpenDocuments(nextList)
+      if (activeNextPath !== activePath) {
+        activePathRef.current = activeNextPath
+        setActivePath(activeNextPath)
+        const nextDocument = nextList.find(d => d.path === activeNextPath)
+        documentRef.current = nextDocument
+        setDocument(nextDocument)
+      }
+      await Promise.all([
+        loadDirectory(parentDirectory(rootPath, sourcePath)),
+        loadDirectory(destinationPath),
+      ])
+    } catch (reason) {
+      setError(String(reason))
+    } finally {
+      movingRef.current = false
+      if (mountedRef.current) setMoving(false)
     }
   }
 
@@ -1000,8 +1072,10 @@ export function DesktopFilesPanel(props: {
     return closestLine
   }, [activeOutlineLine, cursorPos.line, outlineSymbols])
 
-  const renderDirectory = (path: string, depth: number): ReactNode => (
-    children[path]?.map((entry) => {
+  const renderDirectory = (path: string, depth: number): ReactNode => {
+    const entries = children[path]
+    if (entries === undefined) return null
+    return sortFileEntries(entries).map((entry) => {
       const open = entry.directory && expanded.has(entry.path)
       const isRenaming = renamingPath === entry.path
       return (
@@ -1042,6 +1116,8 @@ export function DesktopFilesPanel(props: {
             <button
               type="button"
               className={css.row}
+              draggable={!moving}
+              data-drop-target={dropTargetPath === entry.path ? 'true' : undefined}
               style={{ paddingLeft: 8 + depth * 14 }}
               data-selected={entry.directory
                 ? selectedDirectory === entry.path
@@ -1054,6 +1130,27 @@ export function DesktopFilesPanel(props: {
                 e.preventDefault()
                 e.stopPropagation()
                 setContextMenu({ x: e.clientX, y: e.clientY, entry })
+              }}
+              onDragStart={(event) => {
+                if (moving) return
+                setDraggedPath(entry.path)
+                event.dataTransfer.effectAllowed = 'move'
+                event.dataTransfer.setData('text/plain', entry.path)
+              }}
+              onDragEnd={() => { setDraggedPath(undefined); setDropTargetPath(undefined) }}
+              onDragOver={(event) => {
+                if (!entry.directory || draggedPath === undefined || samePath(draggedPath, entry.path)
+                  || pathContains(draggedPath, entry.path) || moving) return
+                event.preventDefault()
+                event.dataTransfer.dropEffect = 'move'
+                setDropTargetPath(entry.path)
+              }}
+              onDragLeave={() => { if (dropTargetPath === entry.path) setDropTargetPath(undefined) }}
+              onDrop={(event) => {
+                event.preventDefault()
+                const sourcePath = draggedPath ?? event.dataTransfer.getData('text/plain')
+                if (sourcePath !== '') void handleMove(sourcePath, entry.path)
+                else setDropTargetPath(undefined)
               }}
             >
               {entry.directory
@@ -1068,8 +1165,8 @@ export function DesktopFilesPanel(props: {
           {open && renderDirectory(entry.path, depth + 1)}
         </div>
       )
-    }) ?? null
-  )
+    })
+  }
 
   if (rootPath === undefined) {
     return (
@@ -1085,13 +1182,15 @@ export function DesktopFilesPanel(props: {
     ? 'Saving…'
     : formatting
       ? 'Formatting…'
-      : creating
-        ? 'Creating…'
-        : searching
-          ? 'Searching…'
-          : loading || reading
-            ? 'Loading…'
-            : undefined
+      : moving
+        ? 'Moving…'
+        : creating
+          ? 'Creating…'
+          : searching
+            ? 'Searching…'
+            : loading || reading
+              ? 'Loading…'
+              : undefined
   const highlightedDraft = document !== undefined && deferredDraft === document.draft
     && document.draft.length <= HIGHLIGHT_MAX_CHARS
     ? deferredDraft
@@ -1252,7 +1351,29 @@ export function DesktopFilesPanel(props: {
                   onChange={(event) => { setQuery(event.currentTarget.value); setError(undefined) }}
                 />
               </div>
-              <div className={css.tree} role="tree" aria-label="Workspace files" aria-busy={loading || searching || creating || undefined}>
+              <div
+                className={css.tree}
+                role="tree"
+                aria-label="Workspace files"
+                aria-busy={loading || searching || creating || moving || undefined}
+                data-drop-target={dropTargetPath === rootPath ? 'true' : undefined}
+                onDragOver={(event) => {
+                  if (event.target !== event.currentTarget || draggedPath === undefined || moving) return
+                  event.preventDefault()
+                  event.dataTransfer.dropEffect = 'move'
+                  setDropTargetPath(rootPath)
+                }}
+                onDragLeave={(event) => {
+                  if (event.target === event.currentTarget) setDropTargetPath(undefined)
+                }}
+                onDrop={(event) => {
+                  if (event.target !== event.currentTarget) return
+                  event.preventDefault()
+                  const sourcePath = draggedPath ?? event.dataTransfer.getData('text/plain')
+                  if (sourcePath !== '') void handleMove(sourcePath, rootPath)
+                  else setDropTargetPath(undefined)
+                }}
+              >
                 {createDraft !== undefined && (
                   <form
                     className={css.createRow}

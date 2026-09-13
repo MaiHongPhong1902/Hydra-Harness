@@ -52,8 +52,74 @@ type BrowserAnnotation = BrowserAnnotationSelection & {
 interface DesktopAnnotationBridge {
   hydraDesktop?: {
     browser?: {
-      onAnnotation?: (listener: (annotation: BrowserAnnotation) => void) => () => void
+      onAnnotation?: (listener: (annotation: unknown) => void) => () => void
     }
+  }
+}
+
+/** Keep page URLs private while retaining the internal terminal quote route. */
+function normalizedAnnotationUrl(value: string): string | undefined {
+  try {
+    const url = new URL(value)
+    if (url.protocol === 'terminal:') return url.href
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return undefined
+    url.username = ''
+    url.password = ''
+    url.search = ''
+    url.hash = ''
+    return url.href
+  } catch {
+    return undefined
+  }
+}
+
+/** Validate renderer-provided annotation data before it enters draft state. */
+function parseBrowserAnnotation(value: unknown): BrowserAnnotation | undefined {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return undefined
+  const candidate = value as Record<string, unknown>
+  const kind = candidate.kind
+  const url = candidate.url
+  const title = candidate.title
+  const preview = candidate.preview
+  const normalizedUrl = typeof url === 'string' ? normalizedAnnotationUrl(url) : undefined
+  if ((kind !== 'browser-element' && kind !== 'browser-region')
+    || normalizedUrl === undefined || typeof title !== 'string' || typeof preview !== 'string'
+    || normalizedUrl.length > 2_048 || title.length > 160 || preview.length > 1_024) return undefined
+  const index = candidate.index
+  if (index !== undefined && (!Number.isSafeInteger(index) || typeof index !== 'number' || index < 0)) return undefined
+  let rect: { x: number; y: number; width: number; height: number } | undefined
+  if (candidate.rect !== undefined) {
+    if (typeof candidate.rect !== 'object' || candidate.rect === null || Array.isArray(candidate.rect)) return undefined
+    const source = candidate.rect as Record<string, unknown>
+    const x = source.x
+    const y = source.y
+    const width = source.width
+    const height = source.height
+    if (typeof x !== 'number' || typeof y !== 'number' || typeof width !== 'number' || typeof height !== 'number'
+      || ![x, y, width, height].every(Number.isSafeInteger)
+      || x < 0 || y < 0 || width < 1 || height < 1 || width > 10_000 || height > 10_000) return undefined
+    rect = { x, y, width, height }
+  }
+  if (kind === 'browser-region' && (index !== undefined || rect === undefined)) return undefined
+  let screenshot: BrowserAnnotation['screenshot'] | undefined
+  if (candidate.screenshot !== undefined) {
+    if (typeof candidate.screenshot !== 'object' || candidate.screenshot === null || Array.isArray(candidate.screenshot)) return undefined
+    const image = candidate.screenshot as Record<string, unknown>
+    if (typeof image.mediaType !== 'string' || typeof image.data !== 'string') return undefined
+    screenshot = { mediaType: image.mediaType, data: image.data }
+  }
+  if (kind === 'browser-region') {
+    if (rect === undefined) return undefined
+    return {
+      kind, url: normalizedUrl, title, preview, rect,
+      ...(screenshot === undefined ? {} : { screenshot }),
+    }
+  }
+  return {
+    kind, url: normalizedUrl, title, preview,
+    ...(index === undefined ? {} : { index }),
+    ...(rect === undefined ? {} : { rect }),
+    ...(screenshot === undefined ? {} : { screenshot }),
   }
 }
 
@@ -225,7 +291,9 @@ export function apply(ctx: Context): void {
   const onBrowserAnnotation = (globalThis as typeof globalThis & DesktopAnnotationBridge)
     .hydraDesktop?.browser?.onAnnotation
   if (onBrowserAnnotation !== undefined) {
-    ctx.effect(() => onBrowserAnnotation((annotation) => {
+    ctx.effect(() => onBrowserAnnotation((raw) => {
+      const annotation = parseBrowserAnnotation(raw)
+      if (annotation === undefined) return
       const sessionId = sessions.list.getSnapshot().current
       if (sessionId === undefined) return
       const shell = inputHub.shell(sessionId)
@@ -234,6 +302,7 @@ export function apply(ctx: Context): void {
       const screenshot = annotationScreenshotFile(annotation.screenshot)
       const images = screenshot === undefined ? [] : conversation.createDraftImages([screenshot])
       const imageIds = images.map(image => image.id)
+      if (imageIds[0] !== undefined) conversation.attachDraftBrowserAnnotationScreenshot(attachment.id, imageIds[0])
       if (!shell.addBrowserAnnotations([attachment.id]) || !shell.addImages(imageIds)) {
         conversation.releaseDraftBrowserAnnotation(attachment.id)
         conversation.releaseDraftImages(images)
@@ -292,8 +361,11 @@ export function apply(ctx: Context): void {
           const from = inputHub.shell(sessionId)
           const draft = from.snapshot.draft
           const imageIds = from.snapshot.imageIds
+          const annotationIds = from.snapshot.browserAnnotationIds ?? []
           const next = inputHub.shell(nextId)
-          if (imageIds.length === 0 || next.addImages(imageIds)) {
+          const movedAnnotations = annotationIds.length === 0 || next.addBrowserAnnotations(annotationIds)
+          const movedImages = imageIds.length === 0 || next.addImages(imageIds)
+          if (movedAnnotations && movedImages) {
             if (draft !== '') {
               next.setDraft(draft)
               from.setDraft('')
@@ -301,6 +373,10 @@ export function apply(ctx: Context): void {
             if (imageIds.length > 0) {
               for (const id of imageIds) from.removeImage(id)
             }
+            for (const id of annotationIds) from.removeBrowserAnnotation(id)
+          } else {
+            if (movedAnnotations) for (const id of annotationIds) next.removeBrowserAnnotation(id)
+            if (movedImages) for (const id of imageIds) next.removeImage(id)
           }
         }
         sessions.open(nextId)
@@ -408,8 +484,10 @@ export function apply(ctx: Context): void {
         draftImages: ids => conversation.draftImages(ids),
         draftBrowserAnnotations: ids => conversation.draftBrowserAnnotations(ids),
         removeBrowserAnnotation: (id) => {
+          const screenshotId = conversation.draftBrowserAnnotations([id])[0]?.screenshotId
           conversation.releaseDraftBrowserAnnotation(id)
           shell.removeBrowserAnnotation(id)
+          if (screenshotId !== undefined) shell.removeImage(screenshotId)
         },
         updateBrowserAnnotationComment: (id, comment) => {
           shell.updateBrowserAnnotationComment(id, comment)

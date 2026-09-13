@@ -124,13 +124,12 @@ describe('ui-settings-plugins apply', () => {
 
     const mcp = slots.entries('settings.plugins.tab').find(entry => entry.options.id === 'mcp')!
     const mcpFace = (mcp.inject as unknown as () => {
-      nativeMcp?: { list: () => Promise<unknown>; setEnabled: (entryId: never, enabled: boolean) => Promise<unknown> }
+      nativeMcp?: { list: () => Promise<unknown> }
     })()
     if (mcpFace.nativeMcp === undefined) throw new Error('expected local native MCP controls')
     await expect(mcpFace.nativeMcp.list()).resolves.toEqual({ entries: [] })
-    await expect(mcpFace.nativeMcp.setEnabled('obsidian-knowledge' as never, false)).resolves.toEqual({ entries: [] })
     expect(listInventory).toHaveBeenCalledOnce()
-    expect(setInventoryEnabled).toHaveBeenCalledWith({ entryId: 'obsidian-knowledge', enabled: false })
+    expect(setInventoryEnabled).not.toHaveBeenCalled()
 
     const listener = vi.fn()
     const unsubscribe = sectionFace.hooks.tabs.subscribe(listener)
@@ -160,7 +159,7 @@ describe('ui-settings-plugins apply', () => {
     await ctx.plugin({ inject: [...inject], apply }).await()
 
     expect(slots.entries('settings.plugin.item').map(entry => entry.options.key))
-      .toEqual(['shell', 'agent-loop'])
+      .toEqual(['shell', 'agent-loop', 'page-memory'])
   })
 
   it('dispatches the served namespaces its cards claim, and no others', async () => {
@@ -258,7 +257,7 @@ describe('ui-settings-plugins apply', () => {
     declareRoot(slots)
     const fiber = ctx.plugin({ inject: [...inject], apply })
     await fiber.await()
-    expect(slots.entries('settings.plugin.item')).toHaveLength(2)
+    expect(slots.entries('settings.plugin.item')).toHaveLength(3)
 
     await fiber.dispose()
 

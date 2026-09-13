@@ -62,8 +62,14 @@ export interface AccountPool {
   readonly accounts: AuthorizationAccounts
   /** Request-local round-robin selection and account context. */
   readonly selector: AccountPoolSelector
-  /** Add or refresh one account under the credentials modify lock. */
-  add(label: string, credential: Credential, signal?: AbortSignal): Promise<AuthorizationAccount>
+  /**
+   * Add or refresh one account under the credentials modify lock.
+   * @param label - optional explicit label; undefined derives one from the credential.
+   * @param credential - provider credential to store.
+   * @param signal - cancellation for the durable write.
+   * @returns the stored account identity and label.
+   */
+  add(label: string | undefined, credential: Credential, signal?: AbortSignal): Promise<AuthorizationAccount>
   /** Run an operation whose unscoped store write adds an account with this label. */
   withLoginLabel<T>(label: string, operation: () => Promise<T>): Promise<T>
   /** Run an operation whose credential reads and writes address one account. */
@@ -256,8 +262,35 @@ function identityOf(credential: Credential): AuthorizationAccountId | undefined 
 
 function labelOf(providerLabel: string, credential: Credential, index: number): string {
   const record = credential as Credential & Record<string, unknown>
-  for (const field of ['email', 'emailAddress', 'accountId', 'userId']) {
+  const claims = credential.type === 'oauth' ? jwtPayload(credential.access) : undefined
+  const authClaims = objectRecord(claims?.['https://api.openai.com/auth'])
+  const profileClaims = objectRecord(claims?.['https://api.openai.com/profile'])
+  for (const field of ['email', 'emailAddress', 'name', 'preferred_username']) {
     const label = accountLabel(record[field])
+    if (label !== undefined) return label
+  }
+  for (const field of ['email', 'emailAddress', 'name', 'preferred_username']) {
+    const label = accountLabel(profileClaims?.[field])
+    if (label !== undefined) return label
+  }
+  for (const field of ['email', 'emailAddress', 'name', 'preferred_username']) {
+    const label = accountLabel(claims?.[field])
+    if (label !== undefined) return label
+  }
+  for (const field of ['email', 'emailAddress', 'name', 'preferred_username']) {
+    const label = accountLabel(authClaims?.[field])
+    if (label !== undefined) return label
+  }
+  for (const field of ['accountId', 'userId']) {
+    const label = accountLabel(record[field])
+    if (label !== undefined) return label
+  }
+  for (const field of ['accountId', 'userId', 'sub']) {
+    const label = accountLabel(claims?.[field])
+    if (label !== undefined) return label
+  }
+  for (const field of ['accountId', 'userId', 'chatgpt_account_id', 'chatgpt_user_id', 'sub']) {
+    const label = accountLabel(authClaims?.[field])
     if (label !== undefined) return label
   }
   return `${providerLabel} account ${String(index + 1)}`
@@ -302,9 +335,8 @@ export function createAccountPool(options: AccountStoreOptions): AccountPool {
     return parseAccountPool(stored, key)
   }
 
-  const add = async (label: string, value: Credential, signal?: AbortSignal): Promise<AuthorizationAccount> => {
-    const checkedLabel = accountLabel(label.trim())
-    if (checkedLabel === undefined) throw new LlmError('account label must be non-empty', 'INVALID_ACCOUNT')
+  const add = async (label: string | undefined, value: Credential, signal?: AbortSignal): Promise<AuthorizationAccount> => {
+    const explicitLabel = label === undefined ? undefined : accountLabel(label.trim())
     let result: AuthorizationAccount | undefined
     await mutate((pool) => {
       if (signal?.aborted) {
@@ -316,6 +348,7 @@ export function createAccountPool(options: AccountStoreOptions): AccountPool {
       const existing = known === undefined ? undefined : pool.accounts.find(account => account.id === known)
       const id = existing?.id ?? known ?? authorizationAccountId(randomUUID())
       const index = existing === undefined ? pool.accounts.length : pool.accounts.indexOf(existing)
+      const checkedLabel = explicitLabel ?? labelOf(providerLabel, value, index)
       const next: AccountGrant = {
         id,
         label: checkedLabel,

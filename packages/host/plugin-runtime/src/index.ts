@@ -1,4 +1,4 @@
-/** Shared, immutable runtime for imported OpenAI/Codex plugin bundles. */
+/** Shared, immutable runtime for imported OpenAI/Codex and Claude plugin bundles. */
 
 import { execFile } from 'node:child_process'
 import { createHash, randomUUID } from 'node:crypto'
@@ -24,8 +24,9 @@ import {
 } from '@hydra/harness-skill'
 import type { PreToolDecision, ToolExecution } from '@hydra/harness-tools'
 import { parse as parseToml } from 'smol-toml'
+import { parse as parseYaml } from 'yaml'
 import type {
-  HookTrustState, ImportedMcpServerSnapshot, ImportedPluginEntry, ImportedPluginIdentity,
+  HookTrustState, ImportedMcpServerSnapshot, ImportedPluginAgentMetadata, ImportedPluginEntry, ImportedPluginIdentity,
   ImportedPluginSnapshot, ImportedPluginSource, ImportPluginRequest, PluginImportSource, PluginManifest,
 } from './types.ts'
 
@@ -59,6 +60,8 @@ const COMMAND_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u
 const VERSION = /^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/u
 const GITHUB_SHORTHAND = /^([A-Za-z0-9][A-Za-z0-9._-]*)\/([A-Za-z0-9][A-Za-z0-9._-]*)$/u
 const SCP_GIT_SOURCE = /^[A-Za-z0-9._-]+@[A-Za-z0-9.-]+:[A-Za-z0-9._~/-]+$/u
+const AGENT_PLUGIN_SCHEMA_URI = 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json'
+const AGENT_PLUGIN_SCHEMA_PREFIX = 'https://agent-plugins.org/schemas/'
 const PLUGIN_COMMAND_HINT = '[list|import <folder-or-git-source>|install <plugin[@marketplace]|folder-or-git-source>|marketplace add <folder-or-git-source>|marketplace list|marketplace remove <source>|info <name>|enable <name>|disable <name>|trust <name>|untrust <name>|remove <name>]'
 
 /** Optional Host inventory used by `/plugin marketplace` without a package dependency. */
@@ -95,6 +98,7 @@ interface LoadedPlugin {
   readonly hooks: readonly HookDefinition[]
   readonly hookDigest?: string
   readonly apps?: Readonly<Record<string, unknown>>
+  readonly agentMetadata?: ImportedPluginAgentMetadata
 }
 
 interface LoadedSkill {
@@ -104,12 +108,15 @@ interface LoadedSkill {
   readonly invocation: SkillDocument['invocation']
   readonly path: string
   readonly directory: string
+  readonly agentMetadata?: ImportedPluginAgentMetadata
+  readonly openAiModelInvocable: boolean
 }
 
 interface LoadedCommand {
   readonly name: string
   readonly description: string
   readonly prompt: string
+  readonly inputHint?: string
 }
 
 interface StoredMcpState {
@@ -153,6 +160,9 @@ interface RuntimeComponent {
   mcpFibers: Map<string, Fiber>
 }
 
+type ManifestFormat = 'legacy' | 'portable' | 'claude'
+type ManifestLocation = { readonly path: string; readonly format: ManifestFormat }
+
 /** Plugin root resolver and manifest parser. It never executes plugin files. */
 export class PluginManifestLoader {
   /**
@@ -163,9 +173,14 @@ export class PluginManifestLoader {
    */
   async load(root: string, identity = 'plugin'): Promise<LoadedPlugin> {
     const checkedRoot = await validateBundleTree(root)
-    const manifestPath = await existingInside(checkedRoot, '.codex-plugin/plugin.json', 'plugin manifest')
-    const manifest = parseManifest(await readBoundedJson(manifestPath, MAX_MANIFEST_BYTES, 'plugin manifest'))
-    const skills = await discoverSkills(checkedRoot, manifest)
+    const manifestLocation = await pluginManifestPath(checkedRoot)
+    const manifest = parseManifest(
+      await readBoundedJson(manifestLocation.path, MAX_MANIFEST_BYTES, 'plugin manifest'),
+      manifestLocation.format,
+    )
+    if (manifest.format === 'claude') await rejectUnsupportedClaudeComponents(checkedRoot)
+    const agentMetadata = await discoverOpenAiMetadata(checkedRoot)
+    const skills = await discoverSkills(checkedRoot, manifest, agentMetadata)
     const commands = await discoverCommands(checkedRoot)
     const mcp = await discoverMcp(checkedRoot, manifest, identity)
     const hooks = await discoverHooks(checkedRoot, manifest)
@@ -179,6 +194,7 @@ export class PluginManifestLoader {
       hooks,
       ...hooks.length === 0 ? {} : { hookDigest: digest(hooks.map(hook => hook.raw)) },
       ...apps === undefined ? {} : { apps },
+      ...agentMetadata === undefined ? {} : { agentMetadata },
     }
   }
 }
@@ -694,7 +710,10 @@ export class ImportedPluginRuntime extends Service {
           name: candidate.name,
           description: parsed.description,
           ...parsed.whenToUse === undefined ? {} : { whenToUse: parsed.whenToUse },
-          invocation: parsed.invocation,
+          invocation: {
+            ...parsed.invocation,
+            modelInvocable: parsed.invocation.modelInvocable && skill.openAiModelInvocable,
+          },
           source: `codex-plugin:${identity}`,
           provider: `codex-plugin:${identity}`,
           resourceBase: { kind: 'directory', path: skill.directory },
@@ -712,7 +731,7 @@ export class ImportedPluginRuntime extends Service {
         disposes.push(this.owner.commands.register({
           name: command.name,
           description: command.description,
-          input: { hint: '[arguments]' },
+          input: { hint: command.inputHint ?? '[arguments]' },
           handler: ({ agent, rawInput }) => {
             agent.followup(createUserMessage({
               content: [{ type: 'text', text: renderCommandPrompt(command.prompt, rawInput) }],
@@ -814,6 +833,7 @@ export class ImportedPluginRuntime extends Service {
           .filter(name => name.startsWith(`mcp__${mcpServerName(identity, server.name)}__`)).sort(),
       })),
       hooks: loaded.hooks.map(hook => hook.label),
+      ...loaded.agentMetadata === undefined ? {} : { agentMetadata: loaded.agentMetadata },
       ...loaded.apps === undefined ? {} : { appMappings: Object.keys(loaded.apps).sort() },
       installationStatus: 'installed',
     }
@@ -1033,7 +1053,12 @@ function qualifiedSkillName(identity: string, name: string): string {
 }
 
 function renderCommandPrompt(prompt: string, rawInput: string): string {
-  return prompt.replaceAll('{{args}}', rawInput.trim()).replaceAll('$ARGUMENTS', rawInput.trim())
+  const argumentsText = rawInput.trim()
+  const positional = argumentsText === '' ? [] : argumentsText.split(/\s+/u)
+  return prompt
+    .replaceAll('{{args}}', argumentsText)
+    .replaceAll('$ARGUMENTS', argumentsText)
+    .replaceAll(/\$(\d+)\b/gu, (_match, index: string) => positional[Number(index) - 1] ?? '')
 }
 
 function mcpServerName(identity: string, name: string): string {
@@ -1142,12 +1167,12 @@ function runGit(cwd: string, args: string[], ref: string | undefined): Promise<v
 
 async function selectPluginRoot(root: string, request: ImportPluginRequest): Promise<string> {
   const candidate = request.path === undefined ? root : await existingInside(root, request.path, 'plugin path')
-  if (await exists(join(candidate, '.codex-plugin', 'plugin.json'))) return candidate
+  if (await hasPluginManifest(candidate)) return candidate
   const selected = await selectMarketplacePlugin(candidate, request.plugin)
   const location = marketplaceLocalPluginPath(selected)
   if (location === undefined) throw new Error('plugin runtime: marketplace plugin requires a relative path or source')
   const pluginRoot = await existingInside(candidate, location, 'marketplace plugin path')
-  if (!await exists(join(pluginRoot, '.codex-plugin', 'plugin.json'))) throw new Error('plugin runtime: marketplace entry is not a Codex plugin root')
+  if (!await hasPluginManifest(pluginRoot)) throw new Error('plugin runtime: marketplace entry is not a Codex plugin root')
   return pluginRoot
 }
 
@@ -1180,7 +1205,7 @@ async function materializeMarketplaceGitPlugin(
 
 async function marketplaceGitPlugin(root: string, request: ImportPluginRequest): Promise<MarketplaceGitPlugin | undefined> {
   const candidate = request.path === undefined ? root : await existingInside(root, request.path, 'plugin path')
-  if (await exists(join(candidate, '.codex-plugin', 'plugin.json'))) return undefined
+  if (await hasPluginManifest(candidate)) return undefined
   const marketplacePath = await optionalMarketplaceManifestPath(candidate)
   if (marketplacePath === undefined) return undefined
   const selected = await selectMarketplacePlugin(candidate, request.plugin, marketplacePath)
@@ -1229,19 +1254,65 @@ async function marketplaceManifestPath(root: string): Promise<string> {
 }
 
 async function optionalMarketplaceManifestPath(root: string): Promise<string | undefined> {
-  for (const path of ['.agents/plugins/marketplace.json', 'marketplace.json']) {
+  for (const path of ['.agents/plugins/marketplace.json', '.agents/plugins/api_marketplace.json', 'marketplace.json']) {
     if (await exists(join(root, path))) return await existingInside(root, path, 'marketplace manifest')
   }
 }
 
 async function isDirectPluginRoot(root: string, request: ImportPluginRequest): Promise<boolean> {
   const candidate = request.path === undefined ? root : resolveInside(root, request.path, 'plugin path')
-  return await exists(join(candidate, '.codex-plugin', 'plugin.json'))
+  return await hasPluginManifest(candidate)
 }
 
-function parseManifest(raw: unknown): PluginManifest {
+async function hasPluginManifest(root: string): Promise<boolean> {
+  return await findManifestLocation(root) !== undefined
+}
+
+async function pluginManifestPath(root: string): Promise<ManifestLocation> {
+  const location = await findManifestLocation(root)
+  if (location !== undefined) return location
+  throw new Error('plugin runtime: plugin manifest is missing (expected .codex-plugin/plugin.json, .claude-plugin/plugin.json, or plugin.json)')
+}
+
+async function findManifestLocation(root: string): Promise<ManifestLocation | undefined> {
+  const portablePath = join(root, 'plugin.json')
+  if (await exists(portablePath)) {
+    const info = await lstat(portablePath)
+    if (!info.isFile() || info.isSymbolicLink()) throw new Error('plugin runtime: root plugin.json must be a regular file')
+    let raw: unknown
+    try {
+      raw = JSON.parse(await readBoundedText(portablePath, MAX_MANIFEST_BYTES, 'plugin manifest')) as unknown
+    } catch (error) {
+      if (!await exists(join(root, '.codex-plugin', 'plugin.json'))) throw error
+      raw = undefined
+    }
+    const schema = isRecord(raw) && typeof raw.$schema === 'string' ? raw.$schema : undefined
+    if (schema === AGENT_PLUGIN_SCHEMA_URI) {
+      return { path: await existingInside(root, 'plugin.json', 'plugin manifest'), format: 'portable' }
+    }
+    if (schema?.startsWith(AGENT_PLUGIN_SCHEMA_PREFIX)) {
+      throw new Error(`plugin runtime: unsupported Agent Plugins schema ${JSON.stringify(schema)}`)
+    }
+  }
+  const legacyPath = join(root, '.codex-plugin', 'plugin.json')
+  if (await exists(legacyPath)) {
+    return { path: await existingInside(root, '.codex-plugin/plugin.json', 'plugin manifest'), format: 'legacy' }
+  }
+  const claudePath = join(root, '.claude-plugin', 'plugin.json')
+  if (await exists(claudePath)) {
+    return { path: await existingInside(root, '.claude-plugin/plugin.json', 'plugin manifest'), format: 'claude' }
+  }
+  if (await exists(join(root, '.claude-plugin'))) {
+    throw new Error('plugin runtime: Claude plugin manifest is missing (expected .claude-plugin/plugin.json)')
+  }
+  return undefined
+}
+
+function parseManifest(raw: unknown, format: ManifestFormat): PluginManifest {
+  if (format === 'portable') return parsePortableManifest(raw)
+  if (format === 'claude') return parseClaudeManifest(raw)
   if (!isRecord(raw) || !PLUGIN_NAME.test(string(raw.name)) || !VERSION.test(string(raw.version))) {
-    throw new Error('plugin runtime: .codex-plugin/plugin.json requires a valid name and semantic version')
+    throw new Error('plugin runtime: plugin manifest requires a valid name and semantic version')
   }
   for (const key of ['description', 'homepage', 'repository', 'license'] as const) {
     if (raw[key] !== undefined && typeof raw[key] !== 'string') throw new Error(`plugin runtime: manifest ${key} must be a string`)
@@ -1254,7 +1325,111 @@ function parseManifest(raw: unknown): PluginManifest {
   }
   if (raw.interface !== undefined && !isRecord(raw.interface)) throw new Error('plugin runtime: manifest interface must be an object')
   validateManifestPaths(raw)
-  return raw as unknown as PluginManifest
+  return { ...raw as unknown as PluginManifest, format: 'legacy' }
+}
+
+function parseClaudeManifest(raw: unknown): PluginManifest {
+  if (!isRecord(raw)) throw new Error('plugin runtime: Claude plugin manifest must be an object')
+  const name = string(raw.name).trim()
+  if (!/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/u.test(name)) {
+    throw new Error(`plugin runtime: invalid Claude plugin name ${JSON.stringify(name)}`)
+  }
+  const version = raw.version === undefined ? 'unknown' : string(raw.version).trim()
+  if (!isSafeVersionDirectory(version)) {
+    throw new Error('plugin runtime: Claude plugin version is not a safe directory name')
+  }
+  for (const key of ['displayName', 'description', 'homepage', 'repository', 'license'] as const) {
+    if (raw[key] !== undefined && typeof raw[key] !== 'string') throw new Error(`plugin runtime: Claude plugin manifest ${key} must be a string`)
+  }
+  if (raw.keywords !== undefined && (!Array.isArray(raw.keywords) || raw.keywords.some(value => typeof value !== 'string'))) {
+    throw new Error('plugin runtime: Claude plugin manifest keywords must be a string array')
+  }
+  if (raw.author !== undefined && !isRecord(raw.author)) {
+    throw new Error('plugin runtime: Claude plugin manifest author must be an object')
+  }
+  for (const key of ['commands', 'agents', 'lspServers', 'monitors', 'outputStyles', 'themes', 'settings', 'dependencies', 'bin', 'apps', 'interface']) {
+    if (raw[key] !== undefined) throw new Error(`plugin runtime: Claude plugin field ${key} is unsupported`)
+  }
+  validateManifestPaths(raw)
+  const components: {
+    skills?: NonNullable<PluginManifest['skills']>
+    mcpServers?: NonNullable<PluginManifest['mcpServers']>
+    hooks?: NonNullable<PluginManifest['hooks']>
+  } = {}
+  if (raw.skills !== undefined) components.skills = raw.skills as NonNullable<PluginManifest['skills']>
+  if (raw.mcpServers !== undefined) components.mcpServers = raw.mcpServers as NonNullable<PluginManifest['mcpServers']>
+  if (raw.hooks !== undefined) components.hooks = raw.hooks as NonNullable<PluginManifest['hooks']>
+  return {
+    format: 'claude', name, version,
+    ...typeof raw.description === 'string' ? { description: raw.description } : {},
+    ...isRecord(raw.author) ? { author: raw.author } : {},
+    ...typeof raw.homepage === 'string' ? { homepage: raw.homepage } : {},
+    ...typeof raw.repository === 'string' ? { repository: raw.repository } : {},
+    ...typeof raw.license === 'string' ? { license: raw.license } : {},
+    ...Array.isArray(raw.keywords) ? { keywords: raw.keywords as readonly string[] } : {},
+    ...components,
+  }
+}
+
+function parsePortableManifest(raw: unknown): PluginManifest {
+  if (!isRecord(raw) || typeof raw.$schema !== 'string' || raw.$schema !== AGENT_PLUGIN_SCHEMA_URI) {
+    throw new Error(`plugin runtime: root plugin.json requires Agent Plugins schema ${AGENT_PLUGIN_SCHEMA_URI}`)
+  }
+  const name = string(raw.name).trim()
+  if (!/^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/u.test(name) || name.includes('..') || name.includes('--')) {
+    throw new Error(`plugin runtime: invalid Agent Plugins name ${JSON.stringify(name)}`)
+  }
+  const version = raw.version === undefined ? '1.0.0' : string(raw.version).trim()
+  if (!isSafeVersionDirectory(version)) {
+    throw new Error('plugin runtime: portable plugin version is not a safe directory name')
+  }
+  for (const key of ['description', 'homepage', 'repository', 'license'] as const) {
+    if (raw[key] !== undefined && typeof raw[key] !== 'string') throw new Error(`plugin runtime: manifest ${key} must be a string`)
+  }
+  if (raw.keywords !== undefined && (!Array.isArray(raw.keywords) || raw.keywords.some(value => typeof value !== 'string'))) {
+    throw new Error('plugin runtime: manifest keywords must be a string array')
+  }
+  if (raw.author !== undefined && typeof raw.author !== 'string' && !isRecord(raw.author)) {
+    throw new Error('plugin runtime: manifest author must be a string or object')
+  }
+  const extension = isRecord(raw.extensions) && isRecord(raw.extensions['com.openai'])
+    ? raw.extensions['com.openai'] : undefined
+  const presentation = extension?.interface ?? raw.interface
+  if (presentation !== undefined && !isRecord(presentation)) throw new Error('plugin runtime: manifest interface must be an object')
+  // Agent Plugins keeps skills and MCP at the portable manifest root. Codex
+  // extensions add host-specific apps, hooks, and interface metadata.
+  const component = (key: 'apps' | 'hooks'): unknown => extension?.[key] ?? raw[key]
+  const optional: {
+    description?: string
+    author?: PluginManifest['author']
+    homepage?: string
+    repository?: string
+    license?: string
+    keywords?: readonly string[]
+  } = {}
+  if (typeof raw.description === 'string') optional.description = raw.description
+  if (typeof raw.author === 'string' || isRecord(raw.author)) optional.author = raw.author
+  if (typeof raw.homepage === 'string') optional.homepage = raw.homepage
+  if (typeof raw.repository === 'string') optional.repository = raw.repository
+  if (typeof raw.license === 'string') optional.license = raw.license
+  if (Array.isArray(raw.keywords)) optional.keywords = raw.keywords as readonly string[]
+  const skills = raw.skills === undefined ? './skills' : raw.skills as Exclude<PluginManifest['skills'], undefined>
+  const mcpServers = raw.mcpServers === undefined ? './mcp.json' : raw.mcpServers as Exclude<PluginManifest['mcpServers'], undefined>
+  const manifest: PluginManifest = {
+    format: 'portable', name, version, ...optional,
+    skills, mcpServers,
+    ...component('apps') === undefined ? {} : { apps: component('apps') as PluginManifest['apps'] },
+    ...component('hooks') === undefined ? {} : { hooks: component('hooks') as PluginManifest['hooks'] },
+    ...isRecord(presentation) ? { interface: presentation } : {},
+  } as unknown as PluginManifest
+  validateManifestPaths(manifest as unknown as Record<string, unknown>)
+  return manifest
+}
+
+function isSafeVersionDirectory(version: string): boolean {
+  return /^[a-z0-9][a-z0-9._+-]*$/iu.test(version)
+    && !version.endsWith('.')
+    && !/^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/iu.test(version)
 }
 
 function validateManifestPaths(manifest: Record<string, unknown>): void {
@@ -1273,11 +1448,73 @@ function validateManifestPaths(manifest: Record<string, unknown>): void {
   }
 }
 
-async function discoverSkills(root: string, manifest: PluginManifest): Promise<LoadedSkill[]> {
+async function rejectUnsupportedClaudeComponents(root: string): Promise<void> {
+  for (const path of ['agents', 'output-styles', 'themes', 'monitors', 'bin', '.lsp.json', 'settings.json']) {
+    if (await exists(join(root, path))) throw new Error(`plugin runtime: Claude plugin component ${path} is unsupported`)
+  }
+}
+
+/** Read the optional OpenAI presentation/policy document beside a plugin or skill. */
+async function discoverOpenAiMetadata(root: string): Promise<ImportedPluginAgentMetadata | undefined> {
+  const relativePath = 'agents/openai.yaml'
+  const path = join(root, relativePath)
+  if (!await exists(path)) return undefined
+  const info = await lstat(path)
+  if (!info.isFile() || info.isSymbolicLink()) throw new Error(`plugin runtime: ${relativePath} must be a regular file`)
+  let parsed: unknown
+  try {
+    parsed = parseYaml(await readBoundedText(path, MAX_MANIFEST_BYTES, relativePath))
+  } catch (error) {
+    throw new Error(`plugin runtime: ${relativePath} is invalid YAML`, { cause: error })
+  }
+  if (!isRecord(parsed)) throw new Error(`plugin runtime: ${relativePath} must contain a YAML object`)
+  const presentation = parsed.interface
+  if (presentation !== undefined && !isRecord(presentation)) {
+    throw new Error(`plugin runtime: ${relativePath} interface must be an object`)
+  }
+  const policy = parsed.policy
+  if (policy !== undefined && !isRecord(policy)) {
+    throw new Error(`plugin runtime: ${relativePath} policy must be an object`)
+  }
+  const values: Record<string, unknown> = {}
+  for (const [source, target] of [
+    ['display_name', 'displayName'],
+    ['short_description', 'shortDescription'],
+    ['icon_small', 'iconSmall'],
+    ['icon_large', 'iconLarge'],
+    ['brand_color', 'brandColor'],
+    ['default_prompt', 'defaultPrompt'],
+  ] as const) {
+    const value = presentation?.[source]
+    if (value === undefined) continue
+    if (typeof value !== 'string' || value.trim() === '') throw new Error(`plugin runtime: ${relativePath} interface.${source} must be a non-empty string`)
+    if (source === 'icon_small' || source === 'icon_large') assertRelativePluginPath(value, `${relativePath} interface.${source}`)
+    values[target] = value
+  }
+  const allowImplicitInvocation = policy?.allow_implicit_invocation
+  if (allowImplicitInvocation !== undefined) {
+    if (typeof allowImplicitInvocation !== 'boolean') throw new Error(`plugin runtime: ${relativePath} policy.allow_implicit_invocation must be a boolean`)
+    values.allowImplicitInvocation = allowImplicitInvocation
+  }
+  if (parsed.dependencies !== undefined && !isRecord(parsed.dependencies)) {
+    throw new Error(`plugin runtime: ${relativePath} dependencies must be an object`)
+  }
+  return Object.keys(values).length === 0 ? undefined : values
+}
+
+async function discoverSkills(
+  root: string,
+  manifest: PluginManifest,
+  pluginAgentMetadata?: ImportedPluginAgentMetadata,
+): Promise<LoadedSkill[]> {
   const paths = stringPaths(manifest.skills)
-  if (paths.length === 0 && await exists(join(root, 'skills'))) paths.push('skills')
+  if (paths.length === 0) {
+    if (await exists(join(root, 'skills'))) paths.push('skills')
+    else if (manifest.format === 'claude' && await exists(join(root, 'SKILL.md'))) paths.push('SKILL.md')
+  }
   const skills: LoadedSkill[] = []
   for (const path of paths) {
+    if (manifest.format === 'portable' && path === './skills' && !await exists(join(root, path))) continue
     const location = await existingInside(root, path, 'skill path')
     const info = await lstat(location)
     const files = info.isDirectory()
@@ -1287,10 +1524,20 @@ async function discoverSkills(root: string, manifest: PluginManifest): Promise<L
       if (basename(file) !== 'SKILL.md' || !await exists(file)) continue
       const resolved = await existingInside(root, relative(root, file), 'skill file')
       const parsed = parseSkillDocument(await readBoundedText(resolved, MAX_FILE_BYTES, 'skill file'))
+      const agentMetadata = await discoverOpenAiMetadata(dirname(resolved))
+      const openAiModelInvocable = pluginAgentMetadata?.allowImplicitInvocation !== false
+        && agentMetadata?.allowImplicitInvocation !== false
       skills.push({
-        rawName: parsed.name, description: parsed.description, invocation: parsed.invocation,
+        rawName: parsed.name,
+        description: parsed.description,
+        invocation: {
+          ...parsed.invocation,
+          modelInvocable: parsed.invocation.modelInvocable && openAiModelInvocable,
+        },
         ...parsed.whenToUse === undefined ? {} : { whenToUse: parsed.whenToUse },
         path: resolved, directory: dirname(resolved),
+        ...agentMetadata === undefined ? {} : { agentMetadata },
+        openAiModelInvocable,
       })
     }
   }
@@ -1303,11 +1550,24 @@ async function discoverCommands(root: string): Promise<LoadedCommand[]> {
   const info = await lstat(directory)
   if (!info.isDirectory() || info.isSymbolicLink()) throw new Error('plugin runtime: commands must be a real directory')
   const commands: LoadedCommand[] = []
-  for (const entry of await readdir(directory, { withFileTypes: true })) {
-    if (!entry.isFile() || extname(entry.name) !== '.toml') continue
-    const name = entry.name.slice(0, -'.toml'.length)
+  const entries = (await readdir(directory, { withFileTypes: true }))
+    .filter(entry => entry.isFile() && (extname(entry.name) === '.toml' || extname(entry.name) === '.md'))
+    .sort((left, right) => {
+      const name = left.name.localeCompare(right.name)
+      return name !== 0 ? name : extname(left.name) === '.toml' ? -1 : 1
+    })
+  const tomlNames = new Set(entries.filter(entry => extname(entry.name) === '.toml')
+    .map(entry => entry.name.slice(0, -'.toml'.length)))
+  for (const entry of entries) {
+    const extension = extname(entry.name)
+    const name = entry.name.slice(0, -extension.length)
+    if (extension === '.md' && tomlNames.has(name)) continue
     if (!COMMAND_NAME.test(name)) throw new Error(`plugin runtime: command filename "${entry.name}" must use lower kebab-case`)
     const path = await existingInside(root, join('commands', entry.name), 'command')
+    if (extension === '.md') {
+      commands.push(parseMarkdownCommand(name, await readBoundedText(path, MAX_FILE_BYTES, 'command'), entry.name))
+      continue
+    }
     let definition: unknown
     try {
       definition = parseToml(await readBoundedText(path, MAX_FILE_BYTES, 'command'))
@@ -1323,11 +1583,52 @@ async function discoverCommands(root: string): Promise<LoadedCommand[]> {
   return commands.sort((left, right) => left.name.localeCompare(right.name))
 }
 
+/** Parse one Codex/Claude-style Markdown command without executing metadata. */
+function parseMarkdownCommand(name: string, raw: string, filename: string): LoadedCommand {
+  const match = /^---\r?\n([\s\S]*?\r?\n)---(?:\r?\n|$)/u.exec(raw)
+  let metadata: Record<string, unknown> = {}
+  let prompt = raw
+  if (match !== null) {
+    try {
+      const parsed: unknown = parseYaml(match[1] ?? '')
+      if (!isRecord(parsed)) throw new Error('frontmatter must be a YAML object')
+      metadata = parsed
+    } catch (error) {
+      throw new Error(`plugin runtime: command "${filename}" has invalid YAML frontmatter`, { cause: error })
+    }
+    prompt = raw.slice(match[0].length)
+  }
+  prompt = prompt.trim()
+  if (prompt === '') throw new Error(`plugin runtime: command "${filename}" requires a non-empty Markdown body`)
+  const description = metadata.description === undefined
+    ? firstMarkdownLine(prompt)
+    : typeof metadata.description === 'string' ? metadata.description.trim() : ''
+  if (description === '') throw new Error(`plugin runtime: command "${filename}" requires a non-empty string description`)
+  const hint = metadata['argument-hint']
+  if (hint !== undefined && (typeof hint !== 'string' || hint.trim() === '')) {
+    throw new Error(`plugin runtime: command "${filename}" argument-hint must be a non-empty string`)
+  }
+  return {
+    name,
+    description,
+    prompt,
+    ...typeof hint === 'string' ? { inputHint: hint.trim() } : {},
+  }
+}
+
+function firstMarkdownLine(prompt: string): string {
+  const line = prompt.split(/\r?\n/u).find(value => value.trim() !== '')?.trim() ?? ''
+  return line.replace(/^#{1,6}\s+/u, '').trim()
+}
+
 async function discoverMcp(root: string, manifest: PluginManifest, identity: string): Promise<McpDefinition[]> {
   const documents: unknown[] = []
   const sources = stringPaths(manifest.mcpServers)
   if (manifest.mcpServers === undefined && await exists(join(root, '.mcp.json'))) sources.push('.mcp.json')
-  for (const path of sources) documents.push(await readBoundedJson(await existingInside(root, path, 'MCP configuration'), MAX_MANIFEST_BYTES, 'MCP configuration'))
+  for (const path of sources) {
+    if (manifest.format === 'portable' && path === './mcp.json' && !await exists(join(root, path))) continue
+    documents.push(await readBoundedJson(await existingInside(root, path, 'MCP configuration'), MAX_MANIFEST_BYTES, 'MCP configuration'))
+  }
   if (isRecord(manifest.mcpServers)) documents.push(manifest.mcpServers)
   const result: McpDefinition[] = []
   for (const document of documents) {
@@ -1354,11 +1655,28 @@ function normalizeMcpMap(raw: unknown): Record<string, unknown> {
 
 function normalizeMcpConfig(root: string, identity: string, name: string, raw: Record<string, unknown>): McpClientConfig {
   const serverName = mcpServerName(identity, name)
-  if (typeof raw.url === 'string') return {
-    transport: 'streamable-http', serverName, url: raw.url,
-    headers: stringRecord(raw.headers, `MCP ${name}.headers`), toolCallTimeoutMs: 60_000, failOnStartupError: true,
+  const type = raw.type === undefined ? undefined : string(raw.type).trim().toLowerCase()
+  if (raw.type !== undefined && type !== 'stdio' && type !== 'http' && type !== 'streamable_http' && type !== 'streamable-http') {
+    throw new Error(`plugin runtime: MCP server ${name} has unsupported transport type`)
+  }
+  const isHttp = type === 'http' || type === 'streamable_http' || type === 'streamable-http' || (type === undefined && typeof raw.url === 'string')
+  if (isHttp) {
+    if (typeof raw.url !== 'string' || raw.url.trim() === '') throw new Error(`plugin runtime: MCP server ${name} requires url for HTTP transport`)
+    if (raw.oauth !== undefined || raw.oauth_resource !== undefined) {
+      throw new Error(`plugin runtime: MCP server ${name} OAuth metadata is not supported by the local MCP client`)
+    }
+    const bearerTokenEnvVar = raw.bearer_token_env_var === undefined ? undefined : environmentVariableName(raw.bearer_token_env_var, `MCP ${name}.bearer_token_env_var`)
+    return {
+      transport: 'streamable-http', serverName, url: raw.url,
+      headers: stringRecord(raw.headers ?? raw.http_headers, `MCP ${name}.headers`),
+      ...bearerTokenEnvVar === undefined ? {} : { bearerTokenEnvVar },
+      toolCallTimeoutMs: 60_000, failOnStartupError: true,
+    }
   }
   if (typeof raw.command !== 'string' || raw.command.trim() === '') throw new Error(`plugin runtime: MCP server ${name} requires command or url`)
+  if (raw.bearer_token_env_var !== undefined || raw.oauth !== undefined || raw.oauth_resource !== undefined) {
+    throw new Error(`plugin runtime: MCP server ${name} authentication metadata requires HTTP transport`)
+  }
   const cwd = raw.cwd === undefined ? root : resolveInside(root, string(raw.cwd), `MCP ${name}.cwd`)
   return {
     transport: 'stdio', serverName, command: raw.command,
@@ -1369,8 +1687,11 @@ function normalizeMcpConfig(root: string, identity: string, name: string, raw: R
 
 async function discoverHooks(root: string, manifest: PluginManifest): Promise<HookDefinition[]> {
   const hooks: HookDefinition[] = []
-  if (manifest.hooks === undefined && await exists(join(root, 'hooks', 'hooks.json'))) {
-    hooks.push({ label: 'hooks/hooks.json', raw: record(await readBoundedJson(await existingInside(root, 'hooks/hooks.json', 'hooks configuration'), MAX_MANIFEST_BYTES, 'hooks configuration'), 'hooks configuration') })
+  if (manifest.hooks === undefined) {
+    for (const entry of ['hooks/hooks.json', 'hooks.json']) {
+      if (!await exists(join(root, entry))) continue
+      hooks.push({ label: entry, raw: record(await readBoundedJson(await existingInside(root, entry, 'hooks configuration'), MAX_MANIFEST_BYTES, 'hooks configuration'), 'hooks configuration') })
+    }
   }
   const value = manifest.hooks
   const entries = Array.isArray(value) ? value : value === undefined ? [] : [value]
@@ -1533,6 +1854,10 @@ function stringRecord(value: unknown, label: string): Record<string, string> {
   if (value === undefined) return {}
   if (!isRecord(value) || Object.values(value).some(item => typeof item !== 'string')) throw new Error(`plugin runtime: ${label} must be a string map`)
   return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, item as string]))
+}
+function environmentVariableName(value: unknown, label: string): string {
+  if (typeof value !== 'string' || value.length === 0 || /[=\u0000-\u001F\u007F]/u.test(value)) throw new Error(`plugin runtime: ${label} must be a valid environment variable name`)
+  return value
 }
 function stringPaths(value: unknown): string[] {
   if (value === undefined || isRecord(value)) return []

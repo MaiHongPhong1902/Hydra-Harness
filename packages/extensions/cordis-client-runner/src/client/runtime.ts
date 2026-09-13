@@ -178,6 +178,8 @@ export class DynamicCordisPackageRunner {
   private readonly live = new Map<CordisDynamicPluginId, LivePackage>()
   /** Serializes load/unload per package id (a second request can outrun a slow load). */
   private readonly queues = new Map<CordisDynamicPluginId, Promise<unknown>>()
+  private disposed = false
+  private disposal: Promise<void> | undefined
   private readonly changeListeners = new Set<() => void>()
   /** Page-local shadowing rank. A later registration receives a lower priority. */
   private nextPriority = 0
@@ -286,6 +288,7 @@ export class DynamicCordisPackageRunner {
    * @returns the outcome the run orchestration reports to the host.
    */
   load(half: DynamicCordisClientHalf): Promise<DynamicCordisLoadResult> {
+    if (this.disposed) return Promise.reject(new Error('cordis-client-runner is disposed'))
     return this.enqueue(half.pluginId, async () => {
       const current = this.live.get(half.pluginId)
       if (current !== undefined) {
@@ -307,6 +310,7 @@ export class DynamicCordisPackageRunner {
    * @param pluginRunId - exact activation being retracted; a newer run survives.
    */
   retract(pluginId: CordisDynamicPluginId, pluginRunId: CordisDynamicPluginRunId): void {
+    if (this.disposed) return
     void this.enqueue(pluginId, async () => {
       const current = this.live.get(pluginId)
       if (current === undefined || current.pkg.pluginRunId !== pluginRunId) return
@@ -317,7 +321,15 @@ export class DynamicCordisPackageRunner {
 
   /** Unload everything (plugin disposal path). */
   async dispose(): Promise<void> {
+    if (this.disposal !== undefined) return this.disposal
+    this.disposed = true
     this.unwatch()
+    this.disposal = this.finishDispose()
+    return this.disposal
+  }
+
+  private async finishDispose(): Promise<void> {
+    await Promise.all([...this.queues.values()])
     for (const current of [...this.live.values()]) {
       await this.teardown(current.pkg.pluginId, current.entryId, current.styles)
     }

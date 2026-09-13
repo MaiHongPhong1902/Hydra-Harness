@@ -117,7 +117,7 @@ function materializeArray(value: unknown[], path: string, seen: Set<object>): un
   // silently dropped by JSON — reject them instead.
   for (const key of Object.keys(value)) {
     const index = Number(key)
-    if (!Number.isInteger(index) || index < 0 || index >= value.length) {
+    if (key !== String(index) || !Number.isInteger(index) || index < 0 || index >= value.length) {
       throw new MaterializeError(`${path}.${key}`, 'arrays with non-index properties are not JSON data')
     }
   }

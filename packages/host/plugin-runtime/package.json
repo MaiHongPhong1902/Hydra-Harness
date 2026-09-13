@@ -50,7 +50,8 @@
     "@hydra/cordis": "workspace:^"
   },
   "dependencies": {
-    "smol-toml": "^1.7.1"
+    "smol-toml": "^1.7.1",
+    "yaml": "^2.9.0"
   },
   "devDependencies": {
     "@hydra/harness-atomic-write": "workspace:^",

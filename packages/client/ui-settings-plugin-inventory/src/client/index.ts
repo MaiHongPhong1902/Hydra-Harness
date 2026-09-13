@@ -1,11 +1,12 @@
 /** Host plugin inventory and enablement controls registered into Web Settings. */
 
 import type {} from '@hydra/harness-client-locale/client'
-import type { ClientContext } from '@hydra/harness-client-runtime/client'
+import type { ClientContext, ISessions } from '@hydra/harness-client-runtime/client'
 import type { ConnectionHandle } from '@hydra/harness-client-connection/client'
+import type { HostObservable } from '@hydra/harness-client-ui-slots'
 import type {} from '@hydra/harness-client-ui-settings/client'
 import { MarketplaceSettingsTab, type MarketplaceSettingsTabInjected } from './MarketplaceSettingsTab.tsx'
-import { ImportedPluginCapabilitiesTab, type ImportedPluginCapabilitiesTabInjected } from './ImportedPluginCapabilitiesTab.tsx'
+import { ImportedPluginCapabilitiesTab, type ImportedPluginCapabilitiesTabInjected, type NativeSkillControls } from './ImportedPluginCapabilitiesTab.tsx'
 import {
   PluginInventorySettingsTab,
   type ImportedPluginControls,
@@ -19,7 +20,7 @@ export type {
   NativePluginControls,
   PluginInventorySettingsTabProps,
 } from './PluginInventorySettingsTab.tsx'
-export type { ImportedPluginCapabilitiesTabInjected, ImportedPluginCapabilitiesTabProps } from './ImportedPluginCapabilitiesTab.tsx'
+export type { ImportedPluginCapabilitiesTabInjected, ImportedPluginCapabilitiesTabProps, NativeSkillControls } from './ImportedPluginCapabilitiesTab.tsx'
 export type { MarketplaceSettingsTabInjected, MarketplaceSettingsTabProps } from './MarketplaceSettingsTab.tsx'
 export type { PluginInventoryLocaleKey } from './locales.ts'
 
@@ -34,7 +35,7 @@ declare module '@hydra/harness-client-ui-slots' {
 export const NS = 'settings.pluginInventory'
 
 /** Services required by the Settings registration and generated Remote face. */
-export const inject = ['slots', 'locale', 'connection', 'remote', 'remote.pluginInventory']
+export const inject = ['slots', 'locale', 'connection', 'sessions', 'remote', 'remote.pluginInventory']
 
 /** Contribute the lazy plugin and marketplace tabs to the Plugins settings section. */
 export function apply(ctx: ClientContext): void {
@@ -42,8 +43,21 @@ export function apply(ctx: ClientContext): void {
 
   const t = ctx.locale.bind(NS)
   const connection = ctx.get('connection') as ConnectionHandle
+  const sessions = ctx.get('sessions') as ISessions
+  const currentSession: HostObservable<{ readonly current: string | undefined }> = sessions.list
+  const nativeSkills: NativeSkillControls = {
+    currentSession,
+    list: async () => {
+      const sessionId = sessions.list.getSnapshot().current
+      if (sessionId === undefined || sessions.subagentAddress(sessionId) !== undefined) return { skills: [] }
+      const { result } = await connection.api.skills.list({ sessionId })
+      if (!result.ok) throw new Error(`skill.list failed: ${result.error.code}: ${result.error.message}`)
+      return { sessionId, skills: result.value.skills }
+    },
+  }
   let nativePlugins: NativePluginControls | undefined
   let importedPluginsControls: ImportedPluginControls | undefined
+  const inventoryRef: { current?: PluginInventoryController } = {}
   if (connection.isLoopback) {
     const listPlugins: NativePluginControls['list'] = async () => {
       const result = await ctx.remote.pluginInventory.list()
@@ -131,6 +145,7 @@ export function apply(ctx: ClientContext): void {
       listMarketplaces,
       removeMarketplace,
       setMarketplaceEnabled,
+      hasPendingImportedChanges: () => inventoryRef.current?.hasPendingImportedChanges() ?? false,
     })
     ctx.slots.inject('settings.plugins.tab', () => ctx.slots.register({
       name: 'settings.plugins.tab',
@@ -143,6 +158,7 @@ export function apply(ctx: ClientContext): void {
     const capabilitiesInjected = (capability: ImportedPluginCapabilitiesTabInjected['capability']): ImportedPluginCapabilitiesTabInjected => ({
       capability,
       list: listImportedPlugins,
+      nativeSkills,
       trust: trustPlugin,
       untrust: untrustPlugin,
     })
@@ -169,14 +185,15 @@ export function apply(ctx: ClientContext): void {
     }, ImportedPluginCapabilitiesTab))
   }
 
-  const inventory = new PluginInventoryController(nativePlugins, importedPluginsControls)
-  ctx.effect(() => () => { inventory.dispose() }, 'ui-settings-plugin-inventory: drafts')
+  const pluginInventory = new PluginInventoryController(nativePlugins, importedPluginsControls)
+  inventoryRef.current = pluginInventory
+  ctx.effect(() => () => { pluginInventory.dispose() }, 'ui-settings-plugin-inventory: drafts')
   const injected = () => ({
-    hooks: { pluginDrafts: inventory.store },
-    savePlugins: () => inventory.save(),
-    discardPluginChanges: () => { inventory.discard() },
-    ...(inventory.nativePlugins === undefined ? {} : { nativePlugins: inventory.nativePlugins }),
-    ...(inventory.importedPlugins === undefined ? {} : { importedPlugins: inventory.importedPlugins }),
+    hooks: { pluginDrafts: pluginInventory.store },
+    savePlugins: () => pluginInventory.save(),
+    discardPluginChanges: () => { pluginInventory.discard() },
+    ...(pluginInventory.nativePlugins === undefined ? {} : { nativePlugins: pluginInventory.nativePlugins }),
+    ...(pluginInventory.importedPlugins === undefined ? {} : { importedPlugins: pluginInventory.importedPlugins }),
   })
   ctx.slots.inject('settings.plugins.tab', () => ctx.slots.register({
     name: 'settings.plugins.tab',

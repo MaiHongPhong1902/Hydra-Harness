@@ -130,7 +130,12 @@ export class PluginInventoryController {
   private projectNative(): PluginInventorySnapshot {
     return { entries: this.native.entries.map((entry) => {
       const pendingEnabled = this.nativeDrafts.get(entry.entryId)
-      return pendingEnabled === undefined ? entry : { ...entry, pendingEnabled, mixedEnabled: false }
+      return pendingEnabled === undefined ? entry : {
+        ...entry,
+        pendingEnabled,
+        mixedEnabled: false,
+        restartRequired: entry.restartRequired || entry.pluginType === 'core',
+      }
     }) }
   }
 
@@ -153,7 +158,8 @@ export class PluginInventoryController {
           ))
         .map(entry => entry.entryId)
       state.changedImported = this.projectImported().plugins
-        .filter(plugin => plugin.enabled !== (plugin.initialEnabled ?? this.importedInitial.get(plugin.identity)))
+        .filter(plugin => !this.importedDrafts.has(plugin.identity)
+          && plugin.enabled !== (plugin.initialEnabled ?? this.importedInitial.get(plugin.identity)))
         .map(plugin => plugin.identity)
     })
   }
@@ -196,6 +202,13 @@ export class PluginInventoryController {
     this.importedDrafts.clear()
     this.store.update((state) => { state.error = null; state.revision++ })
     this.publish()
+  }
+
+  /** Whether an imported plugin save would still write a pending enablement.
+   * @returns True when an imported plugin draft is pending.
+   */
+  hasPendingImportedChanges(): boolean {
+    return this.store.getSnapshot().saving || this.importedDrafts.size > 0
   }
 
   /** Suppress late publications after the plugin unloads. */

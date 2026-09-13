@@ -42,6 +42,11 @@ async function poolFixture() {
 
 const grant: OAuthCredential = { type: 'oauth', access: 'test-access', refresh: 'test-refresh', expires: 123456 }
 
+function fakeJwt(payload: Record<string, unknown>): string {
+  const encode = (value: unknown): string => Buffer.from(JSON.stringify(value)).toString('base64url')
+  return `${encode({ alg: 'none', typ: 'JWT' })}.${encode(payload)}.signature`
+}
+
 it('projects the SDK catalog onto the ChatGPT route', async () => {
   const profile = await buildChatGptProfile({})
   const models = profile.piProvider.getModels()
@@ -54,7 +59,7 @@ it('projects the SDK catalog onto the ChatGPT route', async () => {
 
 it('masks the manual code prompt and stores the returned OAuth grant', async () => {
   const pool = await poolFixture()
-  const prompt = vi.fn(async (request: AuthorizationPrompt) => request.kind === 'text' ? 'Personal' : 'test-code')
+  const prompt = vi.fn(async (_request: AuthorizationPrompt) => 'test-code')
   const session: AuthorizationSession = {
     method: 'oauth', signal: new AbortController().signal,
     notify: vi.fn(),
@@ -63,11 +68,29 @@ it('masks the manual code prompt and stores the returned OAuth grant', async () 
   oauth.login.mockImplementation(async (interaction: AuthInteraction) => {
     interaction.notify({ type: 'auth_url', url: 'https://auth.openai.com/test' })
     await interaction.prompt({ type: 'manual_code', message: 'Paste the callback' })
-    return grant
+    return { ...grant, email: 'chatgpt@example.test' }
   })
   await loginChatGpt(session, pool)
   expect(prompt).toHaveBeenCalledWith(expect.objectContaining({ kind: 'secret', message: 'Paste the callback' }))
-  expect(await pool.accounts.list()).toMatchObject([{ label: 'Personal' }])
+  expect(await pool.accounts.list()).toMatchObject([{ label: 'chatgpt@example.test' }])
+})
+
+it('uses the ChatGPT profile claim for the automatic account label', async () => {
+  const pool = await poolFixture()
+  const session: AuthorizationSession = {
+    method: 'oauth', signal: new AbortController().signal,
+    notify: vi.fn(), prompt: async () => 'test-code',
+  }
+  oauth.login.mockResolvedValue({
+    ...grant,
+    access: fakeJwt({
+      'https://api.openai.com/auth': { chatgpt_account_id: 'workspace-id' },
+      'https://api.openai.com/profile': { email: 'profile@example.test' },
+    }),
+    accountId: 'workspace-id',
+  })
+  await loginChatGpt(session, pool)
+  expect(await pool.accounts.list()).toMatchObject([{ label: 'profile@example.test' }])
 })
 
 it('rejects a late SDK login result after cancellation without storing an account', async () => {

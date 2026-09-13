@@ -36,6 +36,8 @@ export interface BrowserAnnotationAttachment {
   id: DraftAttachmentId
   file: File
   comment: string
+  /** Optional screenshot image kept paired with this annotation. */
+  screenshotId?: DraftAttachmentId
 }
 
 /** Input state handed to the optional attachment presentation plugin. */

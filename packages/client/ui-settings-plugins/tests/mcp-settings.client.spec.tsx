@@ -120,6 +120,24 @@ describe('McpSettingsController', () => {
     })
   })
 
+  it('accepts a credential write when status read-back is unavailable', async () => {
+    const host = stubSettingsScope<McpSettings>()
+    const credentials = credentialApi()
+    credentials.describe.mockImplementationOnce(credentials.describe.getMockImplementation()!)
+      .mockRejectedValueOnce(new Error('offline'))
+    const controller = new McpSettingsController(host.scope, credentials.api)
+    host.publish({ status: 'ready', writable: true, value: {}, base: {}, user: {} })
+    const face = controller.inject()
+
+    face.edit('apiKey', 'secret')
+    face.save()
+
+    await vi.waitFor(() => {
+      expect(credentials.set).toHaveBeenCalledWith({ ref: MCP_API_KEY_REF, value: 'secret' })
+      expect(face.hooks.mcpSettings.getSnapshot()).toMatchObject({ dirty: false, failed: false })
+    })
+  })
+
   it('refreshes only the Obsidian credential and keeps read failures non-blocking', async () => {
     const host = stubSettingsScope<McpSettings>()
     const credentials = credentialApi(true)
@@ -224,7 +242,7 @@ describe('McpSettingsTab', () => {
     } as never
     renderTab({}, { list: vi.fn(async () => snapshot), setEnabled: vi.fn() }, undefined, 'no-match')
 
-    expect(await screen.findByText(en.importedMcpEmpty)).toBeTruthy()
+    expect(await screen.findByText(en.importedMcpEmptySearch)).toBeTruthy()
     expect(screen.queryByText('toolkit-mcp')).toBeNull()
   })
 
@@ -233,35 +251,21 @@ describe('McpSettingsTab', () => {
       entryId: 'obsidian-knowledge' as never, moduleName: '@hydra/harness-obsidian-knowledge',
       enabled: false, restartRequired: false, toggleable: true, fiberPhase: null,
     }
-    renderTab({ available: false }, undefined, { list: vi.fn(async () => ({ entries: [entry] })), setEnabled: vi.fn() }, 'no-match')
+    renderTab({ available: false }, undefined, { list: vi.fn(async () => ({ entries: [entry] })) }, 'no-match')
 
     await vi.waitFor(() => { expect(screen.queryByText(en.mcpUnavailable)).toBeNull() })
   })
 
-  it('switches the native Obsidian MCP plugin and keeps a disabled plugin enableable', async () => {
+  it('reports the native Obsidian MCP plugin without mutating it', async () => {
     const entry: PluginInventorySnapshot['entries'][number] = {
       entryId: 'obsidian-knowledge' as never, moduleName: '@hydra/harness-obsidian-knowledge',
       enabled: true, restartRequired: false, toggleable: true, fiberPhase: 'active',
     }
     const enabled: PluginInventorySnapshot = { entries: [entry] }
-    const disable = vi.fn(async () => ({
-      snapshot: { entries: [{ ...entry, enabled: false, fiberPhase: null }] },
-      restartRequired: false,
-    }))
-    renderTab({}, undefined, { list: vi.fn(async () => enabled), setEnabled: disable })
+    renderTab({}, undefined, { list: vi.fn(async () => enabled) })
 
     fireEvent.click(screen.getByText(en.mcpTitle))
-    fireEvent.click(await screen.findByRole('switch', { name: `${en.disable} ${en.mcpTitle}` }))
-    await vi.waitFor(() => { expect(disable).toHaveBeenCalledWith('obsidian-knowledge', false) })
-
-    const enable = vi.fn(async () => ({ snapshot: enabled, restartRequired: false }))
-    cleanup()
-    renderTab({ available: false }, undefined, {
-      list: vi.fn(async () => ({ entries: [{ ...entry, enabled: false, fiberPhase: null }] })),
-      setEnabled: enable,
-    })
-    fireEvent.click(await screen.findByRole('switch', { name: `${en.enable} ${en.mcpTitle}` }))
-    await vi.waitFor(() => { expect(enable).toHaveBeenCalledWith('obsidian-knowledge', true) })
+    expect(await screen.findByText(en.mcpEnabled)).toBeTruthy()
   })
 
   it.each([true, false])('finds the native MCP plugin by module name with enabled=%s', async (enabled) => {
@@ -270,10 +274,10 @@ describe('McpSettingsTab', () => {
       enabled, restartRequired: false, toggleable: true, fiberPhase: enabled ? 'active' : null,
     }
     renderTab({ available: enabled }, undefined, {
-      list: vi.fn(async () => ({ entries: [entry] })), setEnabled: vi.fn(),
+      list: vi.fn(async () => ({ entries: [entry] })),
     }, 'kno')
 
-    const control = await screen.findByRole('switch', { name: `${enabled ? en.disable : en.enable} ${en.mcpTitle}` })
-    expect(control.getAttribute('aria-checked')).toBe(String(enabled))
+    const status = await screen.findByText(enabled ? en.mcpEnabled : en.disabled)
+    expect(status).toBeTruthy()
   })
 })

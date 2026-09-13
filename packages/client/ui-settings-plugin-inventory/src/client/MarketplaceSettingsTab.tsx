@@ -28,6 +28,8 @@ export interface MarketplaceSettingsTabInjected {
   removeMarketplace: (source: string) => Promise<PluginMarketplaceSnapshot>
   /** Enable or disable one marketplace slot; cascades to its imported plugins. */
   setMarketplaceEnabled: (request: SetPluginMarketplaceEnablementRequest) => Promise<PluginMarketplaceSnapshot>
+  /** Prevent marketplace mutations from racing the Plugins tab's staged saves. */
+  hasPendingImportedChanges: () => boolean
 }
 
 /** Full component props assembled by the Settings slot renderer. */
@@ -43,7 +45,7 @@ type ViewState =
   | { readonly status: 'error' }
   | { readonly status: 'ready'; readonly snapshot: PluginMarketplaceSnapshot }
 
-type MutationFailure = 'add' | 'import' | 'missing-catalog'
+type MutationFailure = 'add' | 'import' | 'missing-catalog' | 'pending-plugin'
 
 function marketplaceSourceLabel(marketplace: Marketplace): string {
   return marketplace.gitRef === undefined
@@ -66,6 +68,7 @@ export function MarketplaceSettingsTab({
   query,
   removeMarketplace,
   setMarketplaceEnabled,
+  hasPendingImportedChanges,
   t,
 }: MarketplaceSettingsTabProps): ReactNode {
   const [request, setRequest] = useState(0)
@@ -121,6 +124,10 @@ export function MarketplaceSettingsTab({
    */
   const add = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault()
+    if (hasPendingImportedChanges()) {
+      setMutationFailure('pending-plugin')
+      return
+    }
     const normalizedSource = source.trim()
     if (normalizedSource.length === 0) return
     const normalizedGitRef = gitRef.trim()
@@ -169,6 +176,10 @@ export function MarketplaceSettingsTab({
     : []
 
   const remove = (marketplace: Marketplace): void => {
+    if (hasPendingImportedChanges()) {
+      setMutationFailure('pending-plugin')
+      return
+    }
     setRemoving(marketplace.source)
     setMutationFailure(undefined)
     void removeMarketplace(marketplace.source).then(
@@ -178,6 +189,10 @@ export function MarketplaceSettingsTab({
   }
 
   const toggle = (marketplace: Marketplace): void => {
+    if (hasPendingImportedChanges()) {
+      setMutationFailure('pending-plugin')
+      return
+    }
     setToggling(marketplace.source)
     setMutationFailure(undefined)
     void setMarketplaceEnabled({ source: marketplace.source, enabled: !marketplace.enabled }).then(
@@ -195,6 +210,12 @@ export function MarketplaceSettingsTab({
           <button type="button" onClick={retry}>{t('retry')}</button>
         </div>
       ) : null}
+      {!addOpen && mutationFailure === 'pending-plugin'
+        ? <p className={css.mutationFailure} role="alert">{t('marketplacePendingPluginChanges')}</p>
+        : null}
+      {!addOpen && mutationFailure === 'add'
+        ? <p className={css.mutationFailure} role="alert">{t('marketplaceMutationError')}</p>
+        : null}
       {state.status === 'ready' ? (
         <div className={css.catalog}>
           <div className={css.catalogHeading}>
@@ -327,6 +348,8 @@ export function MarketplaceSettingsTab({
             <p className={css.mutationFailure} role="alert">{t('marketplaceImportError')}</p>
           ) : mutationFailure === 'add' ? (
             <p className={css.mutationFailure} role="alert">{t('marketplaceMutationError')}</p>
+          ) : mutationFailure === 'pending-plugin' ? (
+            <p className={css.mutationFailure} role="alert">{t('marketplacePendingPluginChanges')}</p>
           ) : null}
         </form>
       </Modal>

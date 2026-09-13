@@ -312,6 +312,32 @@ describe('ImportedPluginCapabilitiesTab', () => {
     expect(screen.getByText('toolkit-review')).toBeTruthy()
   })
 
+  it('shows current-session skills from the native catalog and omits imported duplicates', async () => {
+    const list = vi.fn(async () => MARKETPLACE_SNAPSHOT)
+    const nativeSkills = {
+      list: vi.fn(async () => ({
+        sessionId: 'session-1',
+        skills: [
+          { name: 'toolkit-lint', description: 'Imported duplicate', modelInvocable: true },
+          { name: 'local-review', description: 'Review local changes', whenToUse: 'When reviewing a diff', modelInvocable: true },
+        ],
+      })),
+    }
+    render(<ImportedPluginCapabilitiesTab {...({ active: true, t, list, nativeSkills, capability: 'skills', query: '' } as ImportedPluginCapabilitiesTabProps)} />)
+
+    expect(await screen.findByText(en.nativeSkillsTitle)).toBeTruthy()
+    expect(await screen.findByText('local-review')).toBeTruthy()
+    expect(screen.getAllByText('toolkit-lint')).toHaveLength(1)
+  })
+
+  it('explains that native skills need a selected session', async () => {
+    const list = vi.fn(async () => ({ plugins: [] }))
+    const nativeSkills = { list: vi.fn(async () => ({ skills: [] })) }
+    render(<ImportedPluginCapabilitiesTab {...({ active: true, t, list, nativeSkills, capability: 'skills', query: '' } as ImportedPluginCapabilitiesTabProps)} />)
+
+    expect(await screen.findByText(en.nativeSkillsNoSession)).toBeTruthy()
+  })
+
   it('groups a marketplace plugin\'s hooks under its owner and keeps the trust action', async () => {
     const list = vi.fn(async () => MARKETPLACE_SNAPSHOT)
     const trusted = { plugins: [{ ...MARKETPLACE_SNAPSHOT.plugins[0], hookTrustState: 'trusted' as const }] }

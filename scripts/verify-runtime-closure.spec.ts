@@ -21,6 +21,7 @@ const platforms = {
   'linux-x64': { tag: 'manylinux_2_28_x86_64', executable: 'runtime-linux-x64' },
   'linux-arm64': { tag: 'manylinux_2_28_aarch64', executable: 'runtime-linux-arm64' },
   'macos-arm64': { tag: 'macosx_14_0_arm64', executable: 'runtime-macos-arm64' },
+  'macos-x64': { tag: 'macosx_14_0_x86_64', executable: 'runtime-macos-x64' },
 }
 
 function workspace(root: string, name: string, manifest: Record<string, unknown>): void {
@@ -60,7 +61,7 @@ describe('verifyRuntimeClosure', () => {
     expect(result.presetCount).toBe(1)
     expect(result.failures).toEqual([
       'standard preset -> @scope/linux (linux-arm64, linux-x64)',
-      'standard preset -> @scope/macos (macos-arm64)',
+      'standard preset -> @scope/macos (macos-arm64, macos-x64)',
     ])
   })
 
@@ -78,7 +79,7 @@ describe('verifyRuntimeClosure', () => {
     const result = await verifyRuntimeClosure(root)
 
     expect(result.failures).toEqual([
-      'standard preset -> @scope/conditional (linux-arm64, linux-x64, macos-arm64)',
+      'standard preset -> @scope/conditional (linux-arm64, linux-x64, macos-arm64, macos-x64)',
     ])
   })
 
@@ -112,7 +113,7 @@ describe('verifyRuntimeClosure', () => {
     const result = await verifyRuntimeClosure(root)
 
     expect(result.failures).toEqual([
-      'standard preset -> @scope/plugin [runtime dependency is "1.2.3"; expected workspace:] (linux-arm64, linux-x64, macos-arm64)',
+      'standard preset -> @scope/plugin [runtime dependency is "1.2.3"; expected workspace:] (linux-arm64, linux-x64, macos-arm64, macos-x64)',
     ])
   })
 

@@ -100,12 +100,12 @@ describe('AuthorizationService registry', () => {
 
   it('reserves a key until account removal finishes', async () => {
     const ctx = await harness()
-    const removal = Promise.withResolvers<void>()
-    const started = Promise.withResolvers<void>()
+    const removal = Promise.withResolvers<undefined>()
+    const started = Promise.withResolvers<undefined>()
     ctx.authorization.registerFlow({ ...committingFlow(ctx), accounts: {
       list: async () => [{ id: ACCOUNT, label: 'Account One' }],
       remove: async () => {
-        started.resolve()
+        started.resolve(undefined)
         await removal.promise
       },
     } })
@@ -116,7 +116,7 @@ describe('AuthorizationService registry', () => {
     await expect(ctx.authorization.begin({ key: KEY, interaction: surface() }))
       .rejects.toMatchObject({ code: 'ALREADY_IN_FLIGHT' })
 
-    removal.resolve()
+    removal.resolve(undefined)
     await pending
     expect(ctx.authorization.describe(KEY)?.inFlight).toBe(false)
     await expect(ctx.authorization.begin({ key: KEY, interaction: surface() }))

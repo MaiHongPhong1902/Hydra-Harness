@@ -6,7 +6,7 @@ const { randomUUID } = require('node:crypto')
 const { existsSync } = require('node:fs')
 const { glob, mkdir, mkdtemp, open, readFile, readdir, realpath, rename, rm, stat, symlink, writeFile } = require('node:fs/promises')
 const { tmpdir } = require('node:os')
-const { dirname, isAbsolute, join, relative, resolve, sep } = require('node:path')
+const { basename, dirname, isAbsolute, join, relative, resolve, sep } = require('node:path')
 const { createInterface } = require('node:readline')
 const { setTimeout: delay } = require('node:timers/promises')
 const { stripVTControlCharacters } = require('node:util')
@@ -527,6 +527,24 @@ async function renameWorkspaceEntry(root, target, newName) {
   return { oldPath: currentPath, path: newConfined, name: newName, directory: targetStat.isDirectory() }
 }
 
+async function moveWorkspaceEntry(root, target, destinationTarget) {
+  const currentPath = await confinedPath(root, target)
+  const destinationDirectory = await confinedPath(root, destinationTarget)
+  const rootCanonical = await realpath(root)
+  if (currentPath === rootCanonical) throw new Error('cannot move workspace root')
+  if (!(await stat(destinationDirectory)).isDirectory()) throw new Error('destination path is not a directory')
+  const targetStat = await stat(currentPath)
+  if (targetStat.isDirectory() && (destinationDirectory === currentPath
+    || destinationDirectory.startsWith(`${currentPath}${sep}`))) {
+    throw new Error('cannot move a folder into itself')
+  }
+  const destination = join(destinationDirectory, basename(currentPath))
+  if (existsSync(destination)) throw new Error('a file or folder with this name already exists')
+  await rename(currentPath, destination)
+  const newConfined = await confinedPath(root, destination)
+  return { oldPath: currentPath, path: newConfined, name: basename(newConfined), directory: targetStat.isDirectory() }
+}
+
 async function deleteWorkspaceEntry(root, target) {
   const currentPath = await confinedPath(root, target)
   const rootCanonical = await realpath(root)
@@ -590,6 +608,16 @@ async function formatWorkspaceFile(root, target, content) {
 }
 
 function installRendererIpc() {
+  ipcMain.handle('hydra-desktop:open-external', async (event, value) => {
+    if (shuttingDown !== undefined || !validSender(event)) throw new Error('desktop is unavailable')
+    if (typeof value?.url !== 'string' || value.url.length > 2_048) throw new Error('external URL is invalid')
+    let url
+    try { url = new URL(value.url) } catch { throw new Error('external URL is invalid') }
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') throw new Error('external URL is invalid')
+    url.username = ''
+    url.password = ''
+    await shell.openExternal(url.href)
+  })
   const browserOperation = async (event, method, args = {}) => {
     if (shuttingDown !== undefined || !validSender(event)) throw new Error('browser management is unavailable')
     return await browser.command(method, args)
@@ -742,6 +770,14 @@ function installRendererIpc() {
       await registeredWorkspaceRoot(value?.workspaceId),
       value?.path,
       value?.newName,
+    )
+  })
+  ipcMain.handle('hydra-desktop:files-move', async (event, value) => {
+    if (shuttingDown !== undefined || !validSender(event)) throw new Error('files are unavailable')
+    return await moveWorkspaceEntry(
+      await registeredWorkspaceRoot(value?.workspaceId),
+      value?.path,
+      value?.destinationDirectory,
     )
   })
   ipcMain.handle('hydra-desktop:files-delete', async (event, value) => {

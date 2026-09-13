@@ -5472,6 +5472,9 @@ importers:
       '@hydra/harness-shell':
         specifier: workspace:^
         version: link:../../shell/shell
+      '@hydra/harness-subagent':
+        specifier: workspace:^
+        version: link:../../subagent/subagent
       '@hydra/harness-subprocess-local':
         specifier: workspace:^
         version: link:../../subprocess/subprocess-local
@@ -5802,6 +5805,9 @@ importers:
       smol-toml:
         specifier: ^1.7.1
         version: 1.7.1
+      yaml:
+        specifier: ^2.9.0
+        version: 2.9.0
     devDependencies:
       '@hydra/cordis':
         specifier: workspace:^
@@ -6174,6 +6180,9 @@ importers:
       '@hydra/harness-session':
         specifier: workspace:^
         version: link:../../core/session
+      '@hydra/harness-settings':
+        specifier: workspace:^
+        version: link:../../settings/settings
       '@hydra/harness-system-prompt':
         specifier: workspace:^
         version: link:../../core/system-prompt

@@ -40,9 +40,32 @@ async function plugin(root: string, version = '1.0.0', extra: Record<string, unk
   await writeFile(join(root, 'skills', 'hello', 'SKILL.md'), '---\nname: hello\ndescription: Say hello\n---\nHello.')
 }
 
+async function portablePlugin(root: string, version: string | undefined = '1.0.0', extra: Record<string, unknown> = {}): Promise<void> {
+  await mkdir(join(root, 'skills', 'hello'), { recursive: true })
+  await writeFile(join(root, 'plugin.json'), JSON.stringify({
+    $schema: 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json',
+    name: 'portable-plugin', version, description: 'fixture', ...extra,
+  }))
+  await writeFile(join(root, 'skills', 'hello', 'SKILL.md'), '---\nname: hello\ndescription: Say hello\n---\nHello.')
+}
+
+async function claudePlugin(root: string, extra: Record<string, unknown> = {}): Promise<void> {
+  await mkdir(join(root, '.claude-plugin'), { recursive: true })
+  await mkdir(join(root, 'skills', 'hello'), { recursive: true })
+  await writeFile(join(root, '.claude-plugin', 'plugin.json'), JSON.stringify({
+    name: 'claude-plugin', description: 'fixture', ...extra,
+  }))
+  await writeFile(join(root, 'skills', 'hello', 'SKILL.md'), '---\nname: hello\ndescription: Say hello\n---\nHello.')
+}
+
 async function command(root: string, name: string, source: string): Promise<void> {
   await mkdir(join(root, 'commands'), { recursive: true })
   await writeFile(join(root, 'commands', `${name}.toml`), source)
+}
+
+async function markdownCommand(root: string, name: string, source: string): Promise<void> {
+  await mkdir(join(root, 'commands'), { recursive: true })
+  await writeFile(join(root, 'commands', `${name}.md`), source)
 }
 
 async function runtime(home: string): Promise<{ ctx: Context; plugins: ImportedPluginRuntime }> {
@@ -61,6 +84,122 @@ afterEach(async () => {
 })
 
 describe('PluginStore', () => {
+  it('imports the portable root plugin.json format used by Codex', async () => {
+    const source = await temp('portable-plugin')
+    await portablePlugin(source)
+    const store = new PluginStore(await temp('portable-home'))
+    const identity = await store.install(source)
+    const installed = await store.get(identity)
+    expect(installed?.name).toBe('portable-plugin')
+    expect((await store.load(installed!, identity)).skills.map(skill => skill.rawName)).toEqual(['hello'])
+  })
+
+  it('imports the supported shared subset of a Claude plugin', async () => {
+    const source = await temp('claude-plugin')
+    await claudePlugin(source)
+    const store = new PluginStore(await temp('claude-home'))
+    const identity = await store.install(source)
+    const installed = await store.get(identity)
+    const loaded = await store.load(installed!, identity)
+    expect(loaded.manifest).toMatchObject({ format: 'claude', name: 'claude-plugin', version: 'unknown' })
+    expect(loaded.skills.map(skill => skill.rawName)).toEqual(['hello'])
+  })
+
+  it('reuses Claude default MCP and hook locations', async () => {
+    const source = await temp('claude-components')
+    await claudePlugin(source)
+    await writeFile(join(source, '.mcp.json'), JSON.stringify({ local: { command: 'node' } }))
+    await mkdir(join(source, 'hooks'), { recursive: true })
+    await writeFile(join(source, 'hooks', 'hooks.json'), JSON.stringify({ Stop: [{ hooks: [{ command: 'echo ready' }] }] }))
+    const loaded = await new PluginManifestLoader().load(source, 'claude-plugin@source')
+    expect(loaded.mcp.map(server => server.name)).toEqual(['local'])
+    expect(loaded.hooks.map(hook => hook.label)).toEqual(['hooks/hooks.json'])
+  })
+
+  it('loads Claude root Markdown commands and a single root skill', async () => {
+    const source = await temp('claude-command')
+    await mkdir(join(source, '.claude-plugin'), { recursive: true })
+    await writeFile(join(source, '.claude-plugin', 'plugin.json'), JSON.stringify({ name: 'claude-command' }))
+    await mkdir(join(source, 'commands'), { recursive: true })
+    await writeFile(join(source, 'commands', 'hello.md'), '---\ndescription: Say hello\n---\nHello $ARGUMENTS.')
+    await writeFile(join(source, 'SKILL.md'), '---\nname: root-skill\ndescription: Root skill\n---\nUse this skill.')
+    const loaded = await new PluginManifestLoader().load(source)
+    expect(loaded.commands).toMatchObject([{ name: 'hello', description: 'Say hello', prompt: 'Hello $ARGUMENTS.' }])
+    expect(loaded.skills.map(skill => skill.rawName)).toEqual(['root-skill'])
+  })
+
+  it.each(['agents', 'output-styles', 'themes', 'monitors', 'bin', '.lsp.json', 'settings.json'])('rejects unsupported Claude component %s', async (component) => {
+    const source = await temp(`claude-${component.replaceAll(/[/.]/gu, '-')}`)
+    await claudePlugin(source)
+    if (component.startsWith('.')) await writeFile(join(source, component), '{}')
+    else await mkdir(join(source, component), { recursive: true })
+    await expect(new PluginManifestLoader().load(source)).rejects.toThrow(`Claude plugin component ${component} is unsupported`)
+  })
+
+  it('rejects a Claude manifest field whose runtime has no equivalent', async () => {
+    const source = await temp('claude-field')
+    await claudePlugin(source, { agents: './agents' })
+    await expect(new PluginManifestLoader().load(source)).rejects.toThrow('Claude plugin field agents is unsupported')
+  })
+
+  it('defaults an omitted portable version and keeps Codex extension components scoped', async () => {
+    const source = await temp('portable-defaults')
+    await portablePlugin(source, undefined, {
+      extensions: { 'com.openai': { skills: './wrong-skills', mcpServers: './wrong-mcp.json' } },
+    })
+    const manifest = await new PluginManifestLoader().load(source)
+    expect(manifest.manifest).toMatchObject({ version: '1.0.0', skills: './skills', mcpServers: './mcp.json' })
+    expect(manifest.hooks).toEqual([])
+  })
+
+  it('accepts a portable non-semver version used by Codex development bundles', async () => {
+    const source = await temp('portable-version')
+    await portablePlugin(source, 'release-2026-07')
+    expect((await new PluginManifestLoader().load(source)).manifest.version).toBe('release-2026-07')
+  })
+
+  it.each(['..', 'release/2026', 'CON'])('rejects an unsafe portable version directory name %s', async (version) => {
+    const source = await temp(`portable-unsafe-${version.replaceAll(/[^a-z0-9]/giu, '-')}`)
+    await portablePlugin(source, version)
+    await expect(new PluginManifestLoader().load(source)).rejects.toThrow('portable plugin version is not a safe directory name')
+  })
+
+  it('reads OpenAI metadata and applies explicit-only policy to a skill', async () => {
+    const source = await temp('openai-metadata')
+    await portablePlugin(source)
+    await mkdir(join(source, 'agents'), { recursive: true })
+    await writeFile(join(source, 'agents', 'openai.yaml'), [
+      'interface:',
+      '  display_name: "Portable fixture"',
+      '  short_description: "Fixture metadata"',
+      '  default_prompt: "Use $hello for fixture work."',
+      'policy:',
+      '  allow_implicit_invocation: false',
+      '',
+    ].join('\n'))
+    const loaded = await new PluginManifestLoader().load(source)
+    expect(loaded.agentMetadata).toMatchObject({
+      displayName: 'Portable fixture', allowImplicitInvocation: false,
+    })
+    expect(loaded.skills[0]?.invocation.modelInvocable).toBe(false)
+  })
+
+  it('falls back to the legacy manifest when a root plugin.json is unrelated', async () => {
+    const source = await temp('portable-fallback')
+    await plugin(source)
+    await writeFile(join(source, 'plugin.json'), JSON.stringify({ name: 'unrelated-package', version: '1.0.0' }))
+    const manifest = await new PluginManifestLoader().load(source)
+    expect(manifest.manifest.format).toBe('legacy')
+  })
+
+  it('rejects an unsupported Agent Plugins schema', async () => {
+    const source = await temp('portable-schema')
+    await writeFile(join(source, 'plugin.json'), JSON.stringify({
+      $schema: 'https://agent-plugins.org/schemas/2.0.0/plugin.schema.json', name: 'portable-plugin',
+    }))
+    await expect(new PluginManifestLoader().load(source)).rejects.toThrow(/unsupported Agent Plugins schema/)
+  })
+
   it('uses inline MCP definitions instead of the default file', async () => {
     const root = await temp('inline-mcp')
     await plugin(root, '1.0.0', { mcpServers: { local: { command: 'node' } } })
@@ -80,6 +219,21 @@ describe('PluginStore', () => {
     const store = new PluginStore(home)
     await expect(store.install(source)).rejects.toThrow()
     expect((await store.list()).size).toBe(0)
+  })
+
+  it('discovers a root hooks.json and resolves an override path inside the plugin root', async () => {
+    const source = await temp('root-hooks')
+    await plugin(source)
+    await writeFile(join(source, 'hooks.json'), JSON.stringify({ hooks: { Stop: [{ hooks: [{ command: 'echo root' }] }] } }))
+    const loader = new PluginManifestLoader()
+    expect((await loader.load(source)).hooks.map(hook => hook.label)).toEqual(['hooks.json'])
+
+    await mkdir(join(source, 'config'), { recursive: true })
+    await writeFile(join(source, 'config', 'hooks.json'), JSON.stringify({ hooks: { Stop: [{ hooks: [{ command: 'echo override' }] }] } }))
+    await writeFile(join(source, '.codex-plugin', 'plugin.json'), JSON.stringify({
+      name: 'demo-plugin', version: '1.0.0', hooks: './config/hooks.json', skills: './skills/',
+    }))
+    expect((await loader.load(source)).hooks.map(hook => hook.label)).toEqual(['./config/hooks.json'])
   })
 
   it('parses folded YAML and keeps independent invocation policies on aliases and definitions', async () => {
@@ -184,10 +338,33 @@ describe('PluginStore', () => {
     }
   })
 
+  it('normalizes Codex HTTP type and bearer token environment metadata without storing the token', async () => {
+    const root = await temp('mcp-auth')
+    await portablePlugin(root, '1.0.0', { mcpServers: './mcp.json' })
+    await writeFile(join(root, 'mcp.json'), JSON.stringify({ mcpServers: {
+      remote: { type: 'http', url: 'https://example.test/mcp', bearer_token_env_var: 'MCP_TEST_TOKEN' },
+    } }))
+    const loaded = await new PluginManifestLoader().load(root, 'portable-plugin@source')
+    expect(loaded.mcp[0]?.config).toMatchObject({
+      transport: 'streamable-http', url: 'https://example.test/mcp', bearerTokenEnvVar: 'MCP_TEST_TOKEN', headers: {},
+    })
+    expect(loaded.mcp[0]?.config).not.toHaveProperty('Authorization')
+  })
+
+  it('rejects unsupported portable MCP OAuth metadata explicitly', async () => {
+    const root = await temp('mcp-oauth')
+    await portablePlugin(root, '1.0.0', { mcpServers: './mcp.json' })
+    await writeFile(join(root, 'mcp.json'), JSON.stringify({ mcpServers: {
+      remote: { type: 'http', url: 'https://example.test/mcp', oauth_resource: 'https://example.test/resource' },
+    } }))
+    await expect(new PluginManifestLoader().load(root, 'portable-plugin@source'))
+      .rejects.toThrow(/OAuth metadata is not supported/u)
+  })
+
   it('reads standard marketplace entries and lets a manifest hook override the default file', async () => {
     const marketplace = await temp('marketplace')
     const pluginRoot = join(marketplace, 'plugins', 'demo-plugin')
-    await plugin(pluginRoot, '1.0.0', { hooks: { Stop: [{ hooks: [{ command: 'echo reviewed' }] }] } })
+    await portablePlugin(pluginRoot, '1.0.0', { name: 'demo-plugin', hooks: { Stop: [{ hooks: [{ command: 'echo reviewed' }] }] } })
     await mkdir(join(pluginRoot, 'hooks'), { recursive: true })
     await writeFile(join(pluginRoot, 'hooks', 'hooks.json'), JSON.stringify({ hooks: { SessionStart: [] } }))
     await mkdir(join(marketplace, '.agents', 'plugins'), { recursive: true })
@@ -206,6 +383,27 @@ describe('PluginStore', () => {
     const installed = await store.get(identity)
     expect(installed?.source.kind).toBe('marketplace-local')
     expect((await store.load(installed!, identity)).hooks.map(hook => hook.label)).toEqual(['manifest hooks 1'])
+  })
+
+  it('reads the API-key marketplace filename without applying catalog policy', async () => {
+    const marketplace = await temp('api-marketplace')
+    const pluginRoot = join(marketplace, 'plugins', 'demo-plugin')
+    await plugin(pluginRoot, '1.0.0')
+    await mkdir(join(marketplace, '.agents', 'plugins'), { recursive: true })
+    await writeFile(join(marketplace, '.agents', 'plugins', 'api_marketplace.json'), JSON.stringify({
+      name: 'openai-api-curated',
+      interface: { displayName: 'Codex official' },
+      plugins: [{
+        name: 'demo-plugin',
+        source: { source: 'local', path: './plugins/demo-plugin' },
+        policy: { installation: 'AVAILABLE', authentication: 'ON_INSTALL', products: ['CODEX'] },
+        category: 'Developer Tools',
+      }],
+    }))
+
+    const store = new PluginStore(await temp('api-marketplace-home'))
+    const identity = await store.install({ source: marketplace, plugin: 'demo-plugin' })
+    expect((await store.get(identity))?.source.kind).toBe('marketplace-local')
   })
 
   it('resolves a standard Git-subdirectory marketplace entry', async () => {
@@ -398,6 +596,42 @@ describe('PluginStore', () => {
     }))
     await plugins.disable(identity)
     expect(ctx.commands.find({} as never, 'greet')).toBeUndefined()
+  })
+
+  it('loads Markdown commands with Codex frontmatter and positional arguments', async () => {
+    const home = await temp('markdown-command-home')
+    const source = await temp('markdown-command-source')
+    await plugin(source)
+    await markdownCommand(source, 'review', [
+      '---',
+      'description: Review the selected target',
+      'argument-hint: "[target] [mode]"',
+      '---',
+      'Review $1 in $2. All: $ARGUMENTS.',
+      '',
+    ].join('\n'))
+    expect((await new PluginManifestLoader().load(source)).commands).toEqual([{
+      name: 'review', description: 'Review the selected target', inputHint: '[target] [mode]',
+      prompt: 'Review $1 in $2. All: $ARGUMENTS.',
+    }])
+    const { ctx, plugins } = await runtime(home)
+    try {
+      const identity = (await plugins.import(source)).plugins[0]!.identity
+      await plugins.enable(identity)
+      const followup = vi.fn()
+      const definition = ctx.commands.find({} as never, 'review')
+      expect(definition?.input).toEqual({ hint: '[target] [mode]' })
+      expect(definition?.handler({
+        commandId: 'test-command' as never,
+        agent: { followup } as never,
+        rawInput: '  src/index.ts fast  ', attachments: [], signal: new AbortController().signal,
+      })).toEqual({ kind: 'success' })
+      expect(followup).toHaveBeenCalledWith(expect.objectContaining({
+        content: [{ type: 'text', text: 'Review src/index.ts in fast. All: src/index.ts fast.' }],
+      }))
+    } finally {
+      await ctx.fiber.dispose()
+    }
   })
 
   it('preserves earlier command registrations and rejects invalid command TOML', async () => {

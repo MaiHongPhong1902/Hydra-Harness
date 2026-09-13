@@ -322,15 +322,25 @@ window.addEventListener('DOMContentLoaded', () => {
   })
 
   // Annotate
+  const setAnnotationState = active => {
+    annotate.setAttribute('aria-pressed', active ? 'true' : 'false')
+    annotate.setAttribute('aria-label', active ? 'Cancel annotation' : 'Annotate page')
+    annotate.title = active ? 'Cancel annotation' : 'Select an element or drag a region'
+  }
   annotate.addEventListener('click', () => {
     if (annotate.getAttribute('aria-pressed') === 'true') {
       ipcRenderer.send('browser-chrome:cancel-annotation')
       return
     }
-    annotate.setAttribute('aria-pressed', 'true')
+    setAnnotationState(true)
     ipcRenderer.send('browser-chrome:annotate')
   })
-  ipcRenderer.on('browser-chrome:annotation-ended', () => { annotate.setAttribute('aria-pressed', 'false') })
+  window.addEventListener('keydown', event => {
+    if (event.key !== 'Escape' || annotate.getAttribute('aria-pressed') !== 'true') return
+    event.preventDefault()
+    ipcRenderer.send('browser-chrome:cancel-annotation')
+  }, true)
+  ipcRenderer.on('browser-chrome:annotation-ended', () => { setAnnotationState(false) })
 
   // State update
   ipcRenderer.on('browser-chrome:update', (_event, state) => {

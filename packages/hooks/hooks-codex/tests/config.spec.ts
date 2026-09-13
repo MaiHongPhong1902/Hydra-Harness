@@ -2,15 +2,15 @@ import { describe, expect, it } from 'vitest'
 import { parseCodexConfig, CODEX_EVENTS } from '@hydra/harness-hooks-codex/src/config.ts'
 
 describe('parseCodexConfig', () => {
-  it('honors only the five bridge-supported Codex events, dropping the rest', () => {
+  it('honors the seven bridge-supported Codex events, dropping the rest', () => {
     const { config } = parseCodexConfig({
       PreToolUse: [{ hooks: [{ type: 'command', command: 'a.sh' }] }],
-      SubagentStop: [{ hooks: [{ type: 'command', command: 'b.sh' }] }], // current Codex event, unsupported by this bridge
+      SubagentStop: [{ hooks: [{ type: 'command', command: 'b.sh' }] }],
       Notification: [{ hooks: [{ type: 'command', command: 'c.sh' }] }], // unknown to current Codex
     })
-    expect(Object.keys(config)).toEqual(['PreToolUse'])
+    expect(Object.keys(config)).toEqual(['PreToolUse', 'SubagentStop'])
     expect(CODEX_EVENTS).toContain('PreToolUse')
-    expect(CODEX_EVENTS).not.toContain('SubagentStop' as never)
+    expect(CODEX_EVENTS).toContain('SubagentStop')
   })
 
   it('accepts both timeout and the timeoutSec alias, no substitution', () => {
@@ -72,15 +72,19 @@ describe('parseCodexConfig', () => {
     })).toThrow('invalid codex regex matcher "[" on event "PreToolUse"')
   })
 
-  it('discards matcher fields on events without matcher subjects before validation', () => {
+  it('discards matcher fields only on events without matcher subjects before validation', () => {
     const { config } = parseCodexConfig({
       UserPromptSubmit: [{ matcher: '[', hooks: [{ type: 'command', command: 'prompt.sh' }] }],
       Stop: [{ matcher: '(', hooks: [{ type: 'command', command: 'stop.sh' }] }],
+      SubagentStart: [{ matcher: 'general-purpose', hooks: [{ type: 'command', command: 'start.sh' }] }],
+      SubagentStop: [{ matcher: 'general-purpose', hooks: [{ type: 'command', command: 'end.sh' }] }],
     })
 
     expect(config).toEqual({
       UserPromptSubmit: [{ hooks: [{ command: 'prompt.sh' }] }],
       Stop: [{ hooks: [{ command: 'stop.sh' }] }],
+      SubagentStart: [{ matcher: 'general-purpose', hooks: [{ command: 'start.sh' }] }],
+      SubagentStop: [{ matcher: 'general-purpose', hooks: [{ command: 'end.sh' }] }],
     })
   })
 })

@@ -95,6 +95,7 @@ server.listen(0, '127.0.0.1', () => {
       theme: document.documentElement.dataset.theme,
       loadingHidden: document.getElementById('loading').hidden,
       secureHidden: document.getElementById('secure').hidden,
+      annotationDisabled: document.getElementById('annotate').disabled,
     })`)
     const chromePalette = () => chrome.executeJavaScript(`(() => {
       const style = getComputedStyle(document.documentElement)
@@ -167,6 +168,7 @@ server.listen(0, '127.0.0.1', () => {
 
     phase = 'waiting for the initial tab'
     await waitFor(async () => (await state()).count === 1)
+    assert.equal((await state()).annotationDisabled, true)
     phase = 'syncing the app palette to native chrome'
     chrome.focus()
     await chrome.executeJavaScript("document.querySelector('.tab-close').focus()")
@@ -225,6 +227,7 @@ server.listen(0, '127.0.0.1', () => {
 
     phase = 'opening an address from the omnibox without a chat owner'
     await navigate('/one')
+    assert.equal((await state()).annotationDisabled, false)
     chrome.focus()
     await chrome.executeJavaScript("document.querySelector('.tab-close').focus()")
     activePage().focus()

@@ -3959,8 +3959,12 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface ImportedMcpServerSnapshot {\n    readonly name: string;\n    readonly enabled: boolean;\n    readonly startupState: \'not-started\' | \'starting\' | \'started\' | \'failed\';\n    readonly authenticationState: \'not-applicable\' | \'unknown\';\n    readonly defaultToolsApprovalMode: \'ask\' | \'allow\' | \'deny\';\n    readonly toolApproval: Readonly<Record<string, \'ask\' | \'allow\' | \'deny\'>>;\n    readonly tools: readonly string[];\n}',
   },
   {
+    name: 'ImportedPluginAgentMetadata',
+    declaration: 'export interface ImportedPluginAgentMetadata {\n    readonly displayName?: string;\n    readonly shortDescription?: string;\n    readonly iconSmall?: string;\n    readonly iconLarge?: string;\n    readonly brandColor?: string;\n    readonly defaultPrompt?: string;\n    readonly allowImplicitInvocation?: boolean;\n}',
+  },
+  {
     name: 'ImportedPluginEntry',
-    declaration: 'export interface ImportedPluginEntry {\n    readonly identity: ImportedPluginIdentity;\n    readonly name: string;\n    readonly version: string;\n    readonly source: ImportedPluginSource;\n    readonly pluginRoot: string;\n    readonly dataPath: string;\n    readonly enabled: boolean;\n    readonly initialEnabled?: boolean;\n    readonly lifecycle: ImportedPluginLifecycle;\n    readonly hookTrustState: HookTrustState;\n    readonly hookDefinitionDigest?: string;\n    readonly skills: readonly string[];\n    readonly mcpServers: readonly ImportedMcpServerSnapshot[];\n    readonly hooks: readonly string[];\n    readonly appMappings?: readonly string[];\n    readonly installationStatus: \'installed\';\n}',
+    declaration: 'export interface ImportedPluginEntry {\n    readonly identity: ImportedPluginIdentity;\n    readonly name: string;\n    readonly version: string;\n    readonly source: ImportedPluginSource;\n    readonly pluginRoot: string;\n    readonly dataPath: string;\n    readonly enabled: boolean;\n    readonly initialEnabled?: boolean;\n    readonly lifecycle: ImportedPluginLifecycle;\n    readonly hookTrustState: HookTrustState;\n    readonly hookDefinitionDigest?: string;\n    readonly skills: readonly string[];\n    readonly mcpServers: readonly ImportedMcpServerSnapshot[];\n    readonly hooks: readonly string[];\n    readonly agentMetadata?: ImportedPluginAgentMetadata;\n    readonly appMappings?: readonly string[];\n    readonly installationStatus: \'installed\';\n}',
   },
   {
     name: 'ImportedPluginIdentity',

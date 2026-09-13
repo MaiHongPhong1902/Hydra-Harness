@@ -41,6 +41,7 @@ The model sees `mcp__github__create_issue`, `mcp__web__search`, … — the same
 | `cwd` | stdio | no | Working directory for the child process |
 | `url` | http | yes | MCP server URL |
 | `headers` | http | no | Extra headers (e.g. auth tokens) |
+| `bearerTokenEnvVar` | http | no | Environment variable resolved to a bearer token when each HTTP connection starts; its value is never stored in the config |
 | `toolCallTimeoutMs` | both | no | Timeout per `callTool` invocation (default 60000) |
 | `failOnStartupError` | both | no | Reject plugin activation when initial connection or tool synchronization fails (default `false`) |
 | `reconnect.enabled` | both | no | Reconnect automatically after a lost connection (default `true`) |
