@@ -81,7 +81,8 @@ function fuzzyScore(name: string, query: string): number | undefined {
     }
     previous = current
   }
-  const score = Math.max(...previous)
+  let score = noMatch
+  for (const value of previous) score = Math.max(score, value)
   return score === noMatch ? undefined : score
 }
 
