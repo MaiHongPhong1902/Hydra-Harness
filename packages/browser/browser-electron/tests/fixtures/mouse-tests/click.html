@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hydra Agent - Mouse Click Test Suite</title>
+    <style>
+      :root {
+        --bg-primary: #0f172a;
+        --bg-secondary: #1e293b;
+        --bg-tertiary: #334155;
+        --text-primary: #f8fafc;
+        --text-secondary: #94a3b8;
+        --text-muted: #64748b;
+        --accent-sky: #38bdf8;
+        --accent-indigo: #818cf8;
+        --accent-emerald: #34d399;
+        --accent-rose: #fb7185;
+        --accent-amber: #fbbf24;
+        --border-color: #334155;
+        --radius: 12px;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        line-height: 1.5;
+        padding-bottom: 90px;
+      }
+      header {
+        background: rgba(30, 41, 59, 0.85);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border-color);
+        padding: 16px 24px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .logo-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .logo-badge {
+        background: linear-gradient(135deg, var(--accent-sky), var(--accent-indigo));
+        color: #0f172a;
+        font-weight: 800;
+        font-size: 13px;
+        padding: 4px 10px;
+        border-radius: 9999px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      h1 { font-size: 18px; font-weight: 700; }
+      nav.suite-nav {
+        display: flex;
+        gap: 8px;
+        background: var(--bg-secondary);
+        padding: 10px 24px;
+        border-bottom: 1px solid var(--border-color);
+        overflow-x: auto;
+      }
+      .nav-link {
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: 8px;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+        white-space: nowrap;
+      }
+      .nav-link:hover, .nav-link.active {
+        background: rgba(56, 189, 248, 0.15);
+        color: var(--accent-sky);
+        border-color: rgba(56, 189, 248, 0.3);
+      }
+      main {
+        max-width: 1080px;
+        margin: 28px auto;
+        padding: 0 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 20px;
+      }
+      .section-box {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .box-title {
+        font-size: 16px;
+        font-weight: 700;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .badge-test {
+        font-size: 11px;
+        padding: 3px 8px;
+        border-radius: 6px;
+        background: rgba(56, 189, 248, 0.15);
+        color: var(--accent-sky);
+        font-weight: 600;
+      }
+      .box-desc {
+        font-size: 13px;
+        color: var(--text-secondary);
+      }
+
+      /* Buttons & Controls */
+      .btn-primary {
+        background: var(--accent-sky);
+        color: #0f172a;
+        font-size: 14px;
+        font-weight: 700;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: transform 0.1s, background 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .btn-primary:active { transform: scale(0.96); }
+
+      .counter-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .counter-display {
+        font-size: 24px;
+        font-weight: 800;
+        font-family: monospace;
+        color: var(--accent-sky);
+        min-width: 48px;
+        text-align: center;
+      }
+      .btn-round {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s;
+      }
+      .btn-round:hover { background: var(--accent-sky); color: #0f172a; }
+
+      /* Double click box */
+      .dblclick-target {
+        padding: 24px;
+        text-align: center;
+        background: rgba(15, 23, 42, 0.5);
+        border: 2px dashed var(--border-color);
+        border-radius: 10px;
+        cursor: pointer;
+        user-select: none;
+        transition: all 0.25s;
+      }
+      .dblclick-target.unlocked {
+        background: rgba(52, 211, 153, 0.1);
+        border-color: var(--accent-emerald);
+        color: var(--accent-emerald);
+      }
+
+      /* Checkbox and Radio */
+      .choice-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .choice-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        cursor: pointer;
+      }
+      .choice-label input {
+        accent-color: var(--accent-sky);
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+      }
+
+      /* Dropdown Menu */
+      .dropdown-container {
+        position: relative;
+        display: inline-block;
+      }
+      .dropdown-btn {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        font-size: 13px;
+        font-weight: 600;
+        padding: 8px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        margin-top: 6px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        min-width: 160px;
+        display: none;
+        flex-direction: column;
+        z-index: 50;
+        overflow: hidden;
+      }
+      .dropdown-menu.open { display: flex; }
+      .dropdown-item {
+        padding: 8px 14px;
+        font-size: 13px;
+        color: var(--text-primary);
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .dropdown-item:hover {
+        background: rgba(56, 189, 248, 0.15);
+        color: var(--accent-sky);
+      }
+
+      /* Result telemetry */
+      .result-banner {
+        padding: 12px 16px;
+        border-radius: 8px;
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px solid var(--border-color);
+        font-family: monospace;
+        font-size: 13px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .status-pill {
+        font-weight: bold;
+        padding: 2px 8px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        font-size: 11px;
+      }
+      .status-idle { background: var(--bg-tertiary); color: var(--text-muted); }
+      .status-success { background: var(--accent-emerald); color: #0f172a; }
+
+      /* Live Event Dock */
+      .event-dock {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 56px;
+        background: rgba(15, 23, 42, 0.94);
+        backdrop-filter: blur(16px);
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        padding: 0 24px;
+        gap: 16px;
+        z-index: 1000;
+        font-family: monospace;
+        font-size: 12px;
+      }
+      .dock-label {
+        font-weight: 700;
+        color: var(--text-secondary);
+        white-space: nowrap;
+      }
+      .event-ticker {
+        flex: 1;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        color: var(--accent-sky);
+      }
+      .badge-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent-emerald);
+        margin-right: 6px;
+        box-shadow: 0 0 8px var(--accent-emerald);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo-group">
+        <span class="logo-badge">Click Suite</span>
+        <h1>Agent Mouse Click & Button Test Suite</h1>
+      </div>
+      <div style="font-family: monospace; font-size: 12px; color: var(--accent-sky);">
+        Click Accuracy: Ready
+      </div>
+    </header>
+
+    <nav class="suite-nav" aria-label="Mouse Test Pages">
+      <a class="nav-link" href="index.html">Dashboard Hub</a>
+      <a class="nav-link active" href="click.html">1. Click Suite</a>
+      <a class="nav-link" href="move.html">2. Move & Hover</a>
+      <a class="nav-link" href="scroll.html">3. Scroll Suite</a>
+      <a class="nav-link" href="select.html">4. Select Text</a>
+      <a class="nav-link" href="edit.html">5. Text Editing</a>
+      <a class="nav-link" href="drag.html">6. Drag & Sliders</a>
+    </nav>
+
+    <main>
+      <div class="grid-2">
+        <!-- 1. Single Click Button -->
+        <section class="section-box" id="sec-single-click">
+          <div class="box-title">
+            <span>1. Nút Bấm Đơn (Single Click)</span>
+            <span class="badge-test">click_element</span>
+          </div>
+          <p class="box-desc">Agent nhấp chuột vào nút chính bên dưới để kích hoạt hành động.</p>
+          <div>
+            <button type="button" class="btn-primary" id="btnPrimaryCta">
+              <span>Xác Nhận Đơn Hàng</span>
+            </button>
+          </div>
+          <div class="result-banner">
+            <span id="ctaResult">Trạng thái: Chờ click</span>
+            <span class="status-pill status-idle" id="ctaStatusPill">IDLE</span>
+          </div>
+        </section>
+
+        <!-- 2. Rapid Counter -->
+        <section class="section-box" id="sec-counter">
+          <div class="box-title">
+            <span>2. Bộ Đếm Click Nhanh (Rapid Counter)</span>
+            <span class="badge-test">multi-click</span>
+          </div>
+          <p class="box-desc">Kiểm thử độ nhạy và tính liên tục khi click nhiều lần vào nút tăng/giảm.</p>
+          <div class="counter-group">
+            <button type="button" class="btn-round" id="btnDecrement" aria-label="Giảm">-</button>
+            <span class="counter-display" id="counterVal">0</span>
+            <button type="button" class="btn-round" id="btnIncrement" aria-label="Tăng">+</button>
+            <span style="font-size: 13px; color: var(--text-secondary); margin-left: 8px;">Mục tiêu: Đạt 5 clicks</span>
+          </div>
+          <div class="result-banner">
+            <span id="counterResult">Số lần click: 0</span>
+            <span class="status-pill status-idle" id="counterStatusPill">IDLE</span>
+          </div>
+        </section>
+
+        <!-- 3. Double Click -->
+        <section class="section-box" id="sec-dblclick">
+          <div class="box-title">
+            <span>3. Nhấp Đúp Chuột (Double Click)</span>
+            <span class="badge-test">dblclick</span>
+          </div>
+          <p class="box-desc">Agent phải nhấp chuột hai lần liên tiếp trong khoảng 400ms để mở khóa.</p>
+          <div class="dblclick-target" id="dblClickBox" title="Nhấp đúp chuột vào đây">
+            <div style="font-weight: 700; font-size: 14px;" id="dblClickTitle">Ổ Khóa Đang Khóa</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">(Double-click để mở khóa)</div>
+          </div>
+          <div class="result-banner">
+            <span id="dblClickResult">Khóa: LOCKED</span>
+            <span class="status-pill status-idle" id="dblClickStatusPill">LOCKED</span>
+          </div>
+        </section>
+
+        <!-- 4. Radio & Checkbox -->
+        <section class="section-box" id="sec-choices">
+          <div class="box-title">
+            <span>4. Hộp Kiểm & Nút Chọn (Radio / Checkbox)</span>
+            <span class="badge-test">form choice</span>
+          </div>
+          <p class="box-desc">Kiểm thử việc nhấp trúng tâm điểm ngắm của checkbox và radio buttons.</p>
+          <div class="choice-list">
+            <label class="choice-label">
+              <input type="checkbox" id="chkTerms" name="terms" />
+              <span>Tôi đồng ý với các điều khoản tự động hóa</span>
+            </label>
+            <label class="choice-label">
+              <input type="radio" name="speedTier" id="radioFast" value="fast" checked />
+              <span>Chế độ: Tốc độ cao (Fast)</span>
+            </label>
+            <label class="choice-label">
+              <input type="radio" name="speedTier" id="radioPrecise" value="precise" />
+              <span>Chế độ: Độ chính xác tuyệt đối (Precise)</span>
+            </label>
+          </div>
+          <div class="result-banner">
+            <span id="choiceResult">Terms: Chưa chọn | Speed: fast</span>
+            <span class="status-pill status-idle" id="choiceStatusPill">PENDING</span>
+          </div>
+        </section>
+      </div>
+
+      <!-- 5. Dropdown Menu Trigger -->
+      <section class="section-box" id="sec-dropdown">
+        <div class="box-title">
+          <span>5. Trình Đơn Thả Xuống (Dropdown Trigger & Select)</span>
+          <span class="badge-test">popup interaction</span>
+        </div>
+        <p class="box-desc">Nhấp để mở menu, sau đó nhấp vào một tùy chọn con trong danh sách.</p>
+        <div>
+          <div class="dropdown-container">
+            <button type="button" class="dropdown-btn" id="btnDropdownToggle" aria-haspopup="true" aria-expanded="false">
+              <span id="dropdownCurrentText">Chọn mô hình AI</span> &darr;
+            </button>
+            <div class="dropdown-menu" id="dropdownMenu" role="menu">
+              <div class="dropdown-item" role="menuitem" data-val="Claude 3.5 Sonnet">Claude 3.5 Sonnet</div>
+              <div class="dropdown-item" role="menuitem" data-val="DeepSeek V3">DeepSeek V3</div>
+              <div class="dropdown-item" role="menuitem" data-val="Hydra Native Engine">Hydra Native Engine</div>
+            </div>
+          </div>
+        </div>
+        <div class="result-banner">
+          <span id="dropdownResult">Mô hình đã chọn: Chưa chọn</span>
+          <span class="status-pill status-idle" id="dropdownStatusPill">IDLE</span>
+        </div>
+      </section>
+    </main>
+
+    <!-- Live Event Dock -->
+    <div class="event-dock" aria-live="polite">
+      <span class="dock-label"><span class="badge-indicator"></span>LIVE EVENT DOCK:</span>
+      <span class="event-ticker" id="eventTicker">Sẵn sàng ghi nhận sự kiện click...</span>
+    </div>
+
+    <script>
+      const eventTicker = document.getElementById('eventTicker');
+      function logEvent(type, detail) {
+        eventTicker.textContent = `[${new Date().toLocaleTimeString()}] ${type.toUpperCase()} -> ${detail}`;
+      }
+
+      // 1. Single Click
+      const btnPrimaryCta = document.getElementById('btnPrimaryCta');
+      const ctaResult = document.getElementById('ctaResult');
+      const ctaStatusPill = document.getElementById('ctaStatusPill');
+      btnPrimaryCta.addEventListener('click', (e) => {
+        ctaResult.textContent = `Đã click thành công tại (${e.clientX}, ${e.clientY})!`;
+        ctaStatusPill.textContent = 'PASSED';
+        ctaStatusPill.className = 'status-pill status-success';
+        logEvent('click', `Primary CTA clicked at (${e.clientX}, ${e.clientY})`);
+      });
+
+      // 2. Counter
+      let count = 0;
+      const counterVal = document.getElementById('counterVal');
+      const counterResult = document.getElementById('counterResult');
+      const counterStatusPill = document.getElementById('counterStatusPill');
+      document.getElementById('btnIncrement').addEventListener('click', () => {
+        count++;
+        counterVal.textContent = count;
+        counterResult.textContent = `Số lần click: ${count}`;
+        if (count >= 5) {
+          counterStatusPill.textContent = 'PASSED';
+          counterStatusPill.className = 'status-pill status-success';
+        }
+        logEvent('click', `Incremented count to ${count}`);
+      });
+      document.getElementById('btnDecrement').addEventListener('click', () => {
+        count = Math.max(0, count - 1);
+        counterVal.textContent = count;
+        counterResult.textContent = `Số lần click: ${count}`;
+        logEvent('click', `Decremented count to ${count}`);
+      });
+
+      // 3. Double click
+      const dblClickBox = document.getElementById('dblClickBox');
+      const dblClickTitle = document.getElementById('dblClickTitle');
+      const dblClickResult = document.getElementById('dblClickResult');
+      const dblClickStatusPill = document.getElementById('dblClickStatusPill');
+      dblClickBox.addEventListener('dblclick', (e) => {
+        dblClickBox.classList.add('unlocked');
+        dblClickTitle.textContent = '🔓 Đã Mở Khóa Thành Công!';
+        dblClickResult.textContent = 'Khóa: UNLOCKED';
+        dblClickStatusPill.textContent = 'PASSED';
+        dblClickStatusPill.className = 'status-pill status-success';
+        logEvent('dblclick', `Box unlocked at (${e.clientX}, ${e.clientY})`);
+      });
+
+      // 4. Choice
+      const chkTerms = document.getElementById('chkTerms');
+      const choiceResult = document.getElementById('choiceResult');
+      const choiceStatusPill = document.getElementById('choiceStatusPill');
+      function updateChoices() {
+        const speed = document.querySelector('input[name="speedTier"]:checked')?.value;
+        const terms = chkTerms.checked ? 'Đã đồng ý' : 'Chưa chọn';
+        choiceResult.textContent = `Terms: ${terms} | Speed: ${speed}`;
+        if (chkTerms.checked) {
+          choiceStatusPill.textContent = 'PASSED';
+          choiceStatusPill.className = 'status-pill status-success';
+        }
+      }
+      chkTerms.addEventListener('change', updateChoices);
+      document.querySelectorAll('input[name="speedTier"]').forEach(r => r.addEventListener('change', updateChoices));
+
+      // 5. Dropdown
+      const btnDropdownToggle = document.getElementById('btnDropdownToggle');
+      const dropdownMenu = document.getElementById('dropdownMenu');
+      const dropdownCurrentText = document.getElementById('dropdownCurrentText');
+      const dropdownResult = document.getElementById('dropdownResult');
+      const dropdownStatusPill = document.getElementById('dropdownStatusPill');
+
+      btnDropdownToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdownMenu.classList.toggle('open');
+        logEvent('click', 'Toggled dropdown menu');
+      });
+
+      document.querySelectorAll('.dropdown-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const val = item.getAttribute('data-val');
+          dropdownCurrentText.textContent = val;
+          dropdownResult.textContent = `Mô hình đã chọn: ${val}`;
+          dropdownStatusPill.textContent = 'PASSED';
+          dropdownStatusPill.className = 'status-pill status-success';
+          dropdownMenu.classList.remove('open');
+          logEvent('click', `Selected item: ${val}`);
+        });
+      });
+
+      window.addEventListener('click', () => {
+        dropdownMenu.classList.remove('open');
+      });
+    </script>
+  </body>
+</html>

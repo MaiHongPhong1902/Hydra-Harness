@@ -256,7 +256,7 @@
     { "path": "./packages/web/tool-web" },
     { "path": "./packages/browser/browser-electron" },
     { "path": "./packages/browser/tool-browser" },
-    { "path": "./packages/browser/obsidian-knowledge" },
+    { "path": "./packages/knowledge/obsidian-knowledge" },
     { "path": "./packages/spill/spill" },
     { "path": "./packages/spill/spill-local" },
     { "path": "./packages/spill/spill-policy" },

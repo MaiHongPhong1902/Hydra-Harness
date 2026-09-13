@@ -1151,46 +1151,6 @@ importers:
 
   packages/browser/browser-electron/third-party/page-agent/packages/ui: {}
 
-  packages/browser/obsidian-knowledge:
-    dependencies:
-      '@hydra/schemastery':
-        specifier: link:../../../vendor/schemastery
-        version: link:../../../vendor/schemastery
-      '@modelcontextprotocol/sdk':
-        specifier: ^1.12.0
-        version: 1.29.0(zod@4.4.3)
-    devDependencies:
-      '@hydra/cordis':
-        specifier: workspace:^
-        version: link:../../../vendor/cordis
-      '@hydra/harness-agent':
-        specifier: workspace:^
-        version: link:../../core/agent
-      '@hydra/harness-atomic-write':
-        specifier: workspace:^
-        version: link:../../util/atomic-write
-      '@hydra/harness-credentials':
-        specifier: workspace:^
-        version: link:../../credentials/credentials
-      '@hydra/harness-invariants':
-        specifier: workspace:^
-        version: link:../../runtime-diagnostics/invariants
-      '@hydra/harness-llm':
-        specifier: workspace:^
-        version: link:../../llm/llm
-      '@hydra/harness-settings':
-        specifier: workspace:^
-        version: link:../../settings/settings
-      '@hydra/harness-tools':
-        specifier: workspace:^
-        version: link:../../core/tools
-      '@hydra/harness-user-approval':
-        specifier: workspace:^
-        version: link:../../interaction/user-approval
-      zod:
-        specifier: ^4.4.3
-        version: 4.4.3
-
   packages/browser/tool-browser:
     dependencies:
       '@hydra/schemastery':
@@ -1328,7 +1288,7 @@ importers:
         version: link:../../mcp/mcp-registry
       '@hydra/harness-obsidian-knowledge':
         specifier: workspace:^
-        version: link:../../browser/obsidian-knowledge
+        version: link:../../knowledge/obsidian-knowledge
       '@hydra/harness-permission-presets':
         specifier: workspace:^
         version: link:../../interaction/permission-presets
@@ -6110,6 +6070,46 @@ importers:
       '@hydra/harness-tools':
         specifier: workspace:^
         version: link:../../core/tools
+
+  packages/knowledge/obsidian-knowledge:
+    dependencies:
+      '@hydra/schemastery':
+        specifier: link:../../../vendor/schemastery
+        version: link:../../../vendor/schemastery
+      '@modelcontextprotocol/sdk':
+        specifier: ^1.12.0
+        version: 1.29.0(zod@4.4.3)
+    devDependencies:
+      '@hydra/cordis':
+        specifier: workspace:^
+        version: link:../../../vendor/cordis
+      '@hydra/harness-agent':
+        specifier: workspace:^
+        version: link:../../core/agent
+      '@hydra/harness-atomic-write':
+        specifier: workspace:^
+        version: link:../../util/atomic-write
+      '@hydra/harness-credentials':
+        specifier: workspace:^
+        version: link:../../credentials/credentials
+      '@hydra/harness-invariants':
+        specifier: workspace:^
+        version: link:../../runtime-diagnostics/invariants
+      '@hydra/harness-llm':
+        specifier: workspace:^
+        version: link:../../llm/llm
+      '@hydra/harness-settings':
+        specifier: workspace:^
+        version: link:../../settings/settings
+      '@hydra/harness-tools':
+        specifier: workspace:^
+        version: link:../../core/tools
+      '@hydra/harness-user-approval':
+        specifier: workspace:^
+        version: link:../../interaction/user-approval
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
 
   packages/llm/llm:
     dependencies:

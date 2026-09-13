@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hydra Agent - Mouse Scroll Test Suite</title>
+    <style>
+      :root {
+        --bg-primary: #0f172a;
+        --bg-secondary: #1e293b;
+        --bg-tertiary: #334155;
+        --text-primary: #f8fafc;
+        --text-secondary: #94a3b8;
+        --text-muted: #64748b;
+        --accent-sky: #38bdf8;
+        --accent-indigo: #818cf8;
+        --accent-emerald: #34d399;
+        --accent-rose: #fb7185;
+        --accent-amber: #fbbf24;
+        --border-color: #334155;
+        --radius: 12px;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        line-height: 1.6;
+        padding-bottom: 90px;
+      }
+      header {
+        background: rgba(30, 41, 59, 0.85);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border-color);
+        padding: 14px 24px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .header-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .logo-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .logo-badge {
+        background: linear-gradient(135deg, var(--accent-emerald), var(--accent-sky));
+        color: #0f172a;
+        font-weight: 800;
+        font-size: 13px;
+        padding: 4px 10px;
+        border-radius: 9999px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      h1 { font-size: 18px; font-weight: 700; }
+      .progress-bar-container {
+        width: 100%;
+        height: 4px;
+        background: rgba(148, 163, 184, 0.2);
+        border-radius: 9999px;
+        overflow: hidden;
+      }
+      .progress-fill {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, var(--accent-sky), var(--accent-emerald));
+        transition: width 0.1s ease-out;
+      }
+      nav.suite-nav {
+        display: flex;
+        gap: 8px;
+        background: var(--bg-secondary);
+        padding: 10px 24px;
+        border-bottom: 1px solid var(--border-color);
+        overflow-x: auto;
+      }
+      .nav-link {
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: 8px;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+        white-space: nowrap;
+      }
+      .nav-link:hover, .nav-link.active {
+        background: rgba(56, 189, 248, 0.15);
+        color: var(--accent-sky);
+        border-color: rgba(56, 189, 248, 0.3);
+      }
+      main {
+        max-width: 900px;
+        margin: 28px auto;
+        padding: 0 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 36px;
+      }
+      .section-chapter {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+        padding: 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .chapter-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 12px;
+      }
+      .chapter-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--accent-sky);
+      }
+      .badge-depth {
+        font-size: 12px;
+        font-family: monospace;
+        background: rgba(15, 23, 42, 0.6);
+        padding: 3px 8px;
+        border-radius: 6px;
+        color: var(--text-secondary);
+      }
+
+      /* Horizontal Gallery */
+      .horizontal-carousel {
+        display: flex;
+        gap: 16px;
+        overflow-x: auto;
+        padding: 12px 4px;
+        scroll-snap-type: x mandatory;
+      }
+      .horizontal-carousel::-webkit-scrollbar { height: 8px; }
+      .horizontal-carousel::-webkit-scrollbar-thumb {
+        background: var(--bg-tertiary);
+        border-radius: 9999px;
+      }
+      .carousel-card {
+        flex: 0 0 240px;
+        background: rgba(15, 23, 42, 0.7);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 16px;
+        scroll-snap-align: start;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .card-chip {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--accent-indigo);
+      }
+
+      /* Secret Vault at bottom */
+      .vault-box {
+        text-align: center;
+        padding: 32px;
+        background: radial-gradient(circle, rgba(52, 211, 153, 0.1) 0%, rgba(15, 23, 42, 0.6) 100%);
+        border: 2px dashed var(--accent-emerald);
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+      }
+      .btn-vault {
+        background: var(--accent-emerald);
+        color: #0f172a;
+        font-weight: 700;
+        font-size: 14px;
+        padding: 10px 24px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: transform 0.15s;
+      }
+      .btn-vault:active { transform: scale(0.96); }
+
+      /* Result telemetry */
+      .result-banner {
+        padding: 12px 16px;
+        border-radius: 8px;
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px solid var(--border-color);
+        font-family: monospace;
+        font-size: 13px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .status-pill {
+        font-weight: bold;
+        padding: 2px 8px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        font-size: 11px;
+      }
+      .status-idle { background: var(--bg-tertiary); color: var(--text-muted); }
+      .status-success { background: var(--accent-emerald); color: #0f172a; }
+
+      /* Live Event Dock */
+      .event-dock {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 56px;
+        background: rgba(15, 23, 42, 0.94);
+        backdrop-filter: blur(16px);
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        padding: 0 24px;
+        gap: 16px;
+        z-index: 1000;
+        font-family: monospace;
+        font-size: 12px;
+      }
+      .dock-label {
+        font-weight: 700;
+        color: var(--text-secondary);
+        white-space: nowrap;
+      }
+      .event-ticker {
+        flex: 1;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        color: var(--accent-emerald);
+      }
+      .badge-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent-emerald);
+        margin-right: 6px;
+        box-shadow: 0 0 8px var(--accent-emerald);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="header-top">
+        <div class="logo-group">
+          <span class="logo-badge">Scroll Suite</span>
+          <h1>Agent Vertical & Horizontal Scroll Test</h1>
+        </div>
+        <div id="scrollStats" style="font-family: monospace; font-size: 12px; color: var(--accent-emerald);">
+          Scroll Y: 0px (0%)
+        </div>
+      </div>
+      <div class="progress-bar-container">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </header>
+
+    <nav class="suite-nav" aria-label="Mouse Test Pages">
+      <a class="nav-link" href="index.html">Dashboard Hub</a>
+      <a class="nav-link" href="click.html">1. Click Suite</a>
+      <a class="nav-link" href="move.html">2. Move & Hover</a>
+      <a class="nav-link active" href="scroll.html">3. Scroll Suite</a>
+      <a class="nav-link" href="select.html">4. Select Text</a>
+      <a class="nav-link" href="edit.html">5. Text Editing</a>
+      <a class="nav-link" href="drag.html">6. Drag & Sliders</a>
+    </nav>
+
+    <main>
+      <!-- Chapter 1 -->
+      <section class="section-chapter" id="chapter-1">
+        <div class="chapter-header">
+          <h2 class="chapter-title">Chương 1: Khởi Đầu & Khung Nhìn (Top Viewport)</h2>
+          <span class="badge-depth">Y: 0px</span>
+        </div>
+        <p>
+          Trong tự động hóa trình duyệt, cuộn trang không chỉ đơn thuần là thay đổi tọa độ thanh cuộn, mà còn phải mô phỏng chuyển động tự nhiên của bánh xe chuột (Mouse Wheel). Hydra bổ sung thanh mini-HUD hiển thị hướng cuộn và độ nhún nhẹ theo quán tính vật lý.
+        </p>
+        <p style="color: var(--text-secondary);">
+          Hãy cuộn xuống bên dưới để khám phá các phân đoạn sâu hơn trong tài liệu (~2500px).
+        </p>
+      </section>
+
+      <!-- Chapter 2 -->
+      <section class="section-chapter" id="chapter-2" style="margin-top: 150px;">
+        <div class="chapter-header">
+          <h2 class="chapter-title">Chương 2: Động Cơ Chuyển Động Chuột Ảo</h2>
+          <span class="badge-depth">Y: ~600px</span>
+        </div>
+        <p>
+          Định luật Fitts chỉ ra rằng thời gian di chuyển con trỏ chuột đến một mục tiêu là một hàm số logarit theo khoảng cách và kích thước mục tiêu:
+          <code>T = a + b * log2(2D / W)</code>. Hydra áp dụng công thức thời lượng thích ứng kết hợp đường cong Bézier bậc 3 để tạo quỹ đạo uyển chuyển.
+        </p>
+      </section>
+
+      <!-- Chapter 3: Horizontal Gallery -->
+      <section class="section-chapter" id="chapter-3" style="margin-top: 150px;">
+        <div class="chapter-header">
+          <h2 class="chapter-title">Chương 3: Thử Thách Cuộn Ngang (Horizontal Scroll)</h2>
+          <span class="badge-depth">scroll_horizontally</span>
+        </div>
+        <p>
+          Agent sử dụng công cụ <code>scroll_horizontally(right: true, pixels: 350)</code> để cuộn ngang và tìm thẻ cuối cùng "Thẻ Bí Mật Zeta".
+        </p>
+
+        <div class="horizontal-carousel" id="hCarousel">
+          <div class="carousel-card" id="cCard1">
+            <span class="card-chip">CARD #1</span>
+            <strong>Thẻ Bắt Đầu</strong>
+            <p style="font-size: 12px; color: var(--text-secondary);">Vị trí đầu danh sách ngang.</p>
+          </div>
+          <div class="carousel-card" id="cCard2">
+            <span class="card-chip">CARD #2</span>
+            <strong>Thẻ Trung Gian</strong>
+            <p style="font-size: 12px; color: var(--text-secondary);">Đoạn giữa của chuỗi thẻ.</p>
+          </div>
+          <div class="carousel-card" id="cCard3">
+            <span class="card-chip">CARD #3</span>
+            <strong>Thẻ Chuyển Tiếp</strong>
+            <p style="font-size: 12px; color: var(--text-secondary);">Tiếp tục cuộn sang phải...</p>
+          </div>
+          <div class="carousel-card" id="cCardZeta" style="border-color: var(--accent-sky); background: rgba(56, 189, 248, 0.1);">
+            <span class="card-chip" style="color: var(--accent-sky);">MỤC TIÊU NGANG</span>
+            <strong>Thẻ Bí Mật Zeta</strong>
+            <button type="button" id="btnClaimZeta" style="margin-top: 4px; padding: 4px 8px; font-size: 11px; background: var(--accent-sky); color: #0f172a; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">Nhận Thẻ</button>
+          </div>
+        </div>
+
+        <div class="result-banner">
+          <span id="zetaResult">Thẻ Zeta: Chưa nhận</span>
+          <span class="status-pill status-idle" id="zetaStatusPill">PENDING</span>
+        </div>
+      </section>
+
+      <!-- Chapter 4 -->
+      <section class="section-chapter" id="chapter-4" style="margin-top: 200px;">
+        <div class="chapter-header">
+          <h2 class="chapter-title">Chương 4: Tích Hợp Đồng Bộ DOM Selection</h2>
+          <span class="badge-depth">Y: ~1600px</span>
+        </div>
+        <p>
+          Khi bôi đen văn bản trong tài liệu dài, con trỏ cần vừa điều hướng subpixel vừa cập nhật các node DOM trong phạm vi vùng chọn. Điều này đảm bảo nội dung được bôi thật chứ không chỉ là hoạt họa giả lập bề mặt.
+        </p>
+      </section>
+
+      <!-- Chapter 5: Vault at Deep Bottom -->
+      <section class="section-chapter" id="chapter-5" style="margin-top: 250px;">
+        <div class="chapter-header">
+          <h2 class="chapter-title">Chương 5: Hầm Bí Mật Đáy Trang (Deep Vault)</h2>
+          <span class="badge-depth">Y: ~2400px</span>
+        </div>
+
+        <div class="vault-box">
+          <h3 style="font-size: 18px; font-weight: 800; color: var(--accent-emerald);">Bạn Đã Đến Đáy Trang Web!</h3>
+          <p style="font-size: 13px; color: var(--text-secondary); max-width: 480px;">
+            Agent đã cuộn thành công qua toàn bộ chiều sâu của trang web. Nhấp nút bên dưới để giải mã kho báu.
+          </p>
+          <button type="button" class="btn-vault" id="btnUnlockVault">Mở Khóa Kho Báu Đáy Trang</button>
+          <div id="vaultSecretCode" style="display: none; font-family: monospace; font-size: 16px; font-weight: bold; color: var(--accent-emerald);">
+            MÃ XÁC THỰC: DEEP-SCROLL-998822
+          </div>
+        </div>
+
+        <div class="result-banner">
+          <span id="vaultResult">Kho báu đáy trang: Khóa</span>
+          <span class="status-pill status-idle" id="vaultStatusPill">LOCKED</span>
+        </div>
+      </section>
+    </main>
+
+    <!-- Live Event Dock -->
+    <div class="event-dock" aria-live="polite">
+      <span class="dock-label"><span class="badge-indicator"></span>LIVE EVENT DOCK:</span>
+      <span class="event-ticker" id="eventTicker">Sẵn sàng ghi nhận sự kiện cuộn trang...</span>
+    </div>
+
+    <script>
+      const eventTicker = document.getElementById('eventTicker');
+      const progressFill = document.getElementById('progressFill');
+      const scrollStats = document.getElementById('scrollStats');
+
+      function logEvent(type, detail) {
+        eventTicker.textContent = `[${new Date().toLocaleTimeString()}] ${type.toUpperCase()} -> ${detail}`;
+      }
+
+      window.addEventListener('scroll', () => {
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const scrolled = window.scrollY;
+        const pct = docHeight > 0 ? Math.min(100, Math.round((scrolled / docHeight) * 100)) : 0;
+
+        progressFill.style.width = `${pct}%`;
+        scrollStats.textContent = `Scroll Y: ${Math.round(scrolled)}px (${pct}%)`;
+      }, { passive: true });
+
+      window.addEventListener('wheel', (e) => {
+        logEvent('wheel', `deltaY: ${e.deltaY.toFixed(0)}, deltaX: ${e.deltaX.toFixed(0)}`);
+      }, { passive: true });
+
+      // Horizontal claim
+      const btnClaimZeta = document.getElementById('btnClaimZeta');
+      const zetaResult = document.getElementById('zetaResult');
+      const zetaStatusPill = document.getElementById('zetaStatusPill');
+      btnClaimZeta.addEventListener('click', () => {
+        zetaResult.textContent = 'Đã nhận thành công Thẻ Bí Mật Zeta!';
+        zetaStatusPill.textContent = 'PASSED';
+        zetaStatusPill.className = 'status-pill status-success';
+        logEvent('click', 'Claimed Zeta Card');
+      });
+
+      // Vault claim
+      const btnUnlockVault = document.getElementById('btnUnlockVault');
+      const vaultSecretCode = document.getElementById('vaultSecretCode');
+      const vaultResult = document.getElementById('vaultResult');
+      const vaultStatusPill = document.getElementById('vaultStatusPill');
+      btnUnlockVault.addEventListener('click', () => {
+        vaultSecretCode.style.display = 'block';
+        vaultResult.textContent = 'Đã mở khóa kho báu đáy trang!';
+        vaultStatusPill.textContent = 'PASSED';
+        vaultStatusPill.className = 'status-pill status-success';
+        logEvent('click', 'Vault Unlocked at Deep Bottom');
+      });
+    </script>
+  </body>
+</html>

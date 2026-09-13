@@ -1562,7 +1562,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/browser/obsidian-knowledge/src/index.ts:52`](../packages/browser/obsidian-knowledge/src/index.ts)
+Source: [`packages/knowledge/obsidian-knowledge/src/index.ts:52`](../packages/knowledge/obsidian-knowledge/src/index.ts)
 
 <a id="hydraharness-permission-presets"></a>
 
@@ -2720,12 +2720,20 @@ Requires: `browsers` · `tools` · `systemPrompt`
 export interface Config {
   /** Cap on the element-list characters one call returns. Defaults to 16000. */
   maxStateChars?: number
+  /** Include trailing page snapshots; explicit reads always return their snapshot. */
+  snapshotMode?: 'full' | 'none'
+  /** Return screenshot image blocks, or save evidence without sending image input. */
+  imageResponses?: 'allow' | 'omit'
+  /** Default minimum severity for browser_console_messages. */
+  consoleLevel?: 'error' | 'warning' | 'info' | 'debug'
+  /** Absolute directory for private per-call browser artifacts. */
+  outputDir?: string
   /** Cooperative tool-call budget (ms) per browser action. Defaults to 60000. */
   timeoutMs?: number
 }
 ```
 
-Source: [`packages/browser/tool-browser/src/index.ts:44`](../packages/browser/tool-browser/src/index.ts)
+Source: [`packages/browser/tool-browser/src/index.ts:47`](../packages/browser/tool-browser/src/index.ts)
 
 <a id="hydraharness-tool-fs"></a>
 

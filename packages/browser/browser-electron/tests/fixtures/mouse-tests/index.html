@@ -1,0 +1,629 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hydra Agent - Mouse Interaction Test Suite</title>
+    <style>
+      :root {
+        --bg-primary: #0f172a;
+        --bg-secondary: #1e293b;
+        --bg-tertiary: #334155;
+        --text-primary: #f8fafc;
+        --text-secondary: #94a3b8;
+        --text-muted: #64748b;
+        --accent-sky: #38bdf8;
+        --accent-indigo: #818cf8;
+        --accent-emerald: #34d399;
+        --accent-rose: #fb7185;
+        --accent-amber: #fbbf24;
+        --border-color: #334155;
+        --radius: 12px;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        line-height: 1.5;
+        padding-bottom: 90px;
+      }
+      header {
+        background: rgba(30, 41, 59, 0.85);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border-color);
+        padding: 16px 24px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .logo-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .logo-badge {
+        background: linear-gradient(135deg, var(--accent-sky), var(--accent-indigo));
+        color: #0f172a;
+        font-weight: 800;
+        font-size: 13px;
+        padding: 4px 10px;
+        border-radius: 9999px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      h1 { font-size: 18px; font-weight: 700; }
+      .header-telemetry {
+        font-family: monospace;
+        font-size: 12px;
+        color: var(--accent-sky);
+        background: rgba(15, 23, 42, 0.6);
+        padding: 6px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+      }
+      nav.suite-nav {
+        display: flex;
+        gap: 8px;
+        background: var(--bg-secondary);
+        padding: 10px 24px;
+        border-bottom: 1px solid var(--border-color);
+        overflow-x: auto;
+      }
+      .nav-link {
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: 8px;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+        white-space: nowrap;
+      }
+      .nav-link:hover, .nav-link.active {
+        background: rgba(56, 189, 248, 0.15);
+        color: var(--accent-sky);
+        border-color: rgba(56, 189, 248, 0.3);
+      }
+      main {
+        max-width: 1120px;
+        margin: 28px auto;
+        padding: 0 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+      }
+      .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 16px;
+      }
+      .action-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 12px;
+        transition: transform 0.2s, border-color 0.2s;
+      }
+      .action-card:hover {
+        transform: translateY(-2px);
+        border-color: var(--accent-sky);
+      }
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .card-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--text-primary);
+      }
+      .card-tag {
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 9999px;
+        text-transform: uppercase;
+      }
+      .tag-click { background: rgba(56, 189, 248, 0.15); color: var(--accent-sky); }
+      .tag-move { background: rgba(129, 140, 248, 0.15); color: var(--accent-indigo); }
+      .tag-scroll { background: rgba(52, 211, 153, 0.15); color: var(--accent-emerald); }
+      .tag-select { background: rgba(251, 191, 36, 0.15); color: var(--accent-amber); }
+      .tag-edit { background: rgba(52, 211, 153, 0.15); color: var(--accent-emerald); }
+      .tag-drag { background: rgba(251, 113, 133, 0.15); color: var(--accent-rose); }
+      .card-desc {
+        font-size: 12px;
+        color: var(--text-secondary);
+        line-height: 1.4;
+      }
+      .card-btn {
+        display: inline-block;
+        text-align: center;
+        text-decoration: none;
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
+        font-size: 12px;
+        font-weight: 600;
+        padding: 8px 12px;
+        border-radius: 8px;
+        transition: background 0.2s;
+      }
+      .card-btn:hover {
+        background: var(--accent-sky);
+        color: #0f172a;
+      }
+
+      /* Mission Control Section */
+      .mission-section {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .section-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .section-title {
+        font-size: 16px;
+        font-weight: 700;
+      }
+      .progress-counter {
+        font-size: 12px;
+        color: var(--accent-emerald);
+        font-weight: 600;
+      }
+      .mission-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .mission-item {
+        background: rgba(15, 23, 42, 0.5);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+      .mission-item.passed {
+        border-color: rgba(52, 211, 153, 0.5);
+        background: rgba(52, 211, 153, 0.05);
+      }
+      .mission-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .mission-name {
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .mission-detail {
+        font-size: 12px;
+        color: var(--text-secondary);
+      }
+      .mission-status {
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        background: var(--bg-tertiary);
+        color: var(--text-muted);
+      }
+      .mission-status.completed {
+        background: var(--accent-emerald);
+        color: #0f172a;
+      }
+      .interactive-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .btn {
+        background: var(--accent-sky);
+        color: #0f172a;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: transform 0.1s, background 0.2s;
+      }
+      .btn:active { transform: scale(0.96); }
+      .hover-chip {
+        padding: 6px 12px;
+        border-radius: 6px;
+        background: var(--bg-tertiary);
+        color: var(--text-secondary);
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .hover-chip.active {
+        background: var(--accent-indigo);
+        color: #fff;
+        font-weight: bold;
+      }
+      .scroll-box {
+        width: 100%;
+        max-width: 320px;
+        height: 70px;
+        overflow-y: auto;
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 12px;
+      }
+      .scroll-content-filler { height: 180px; }
+      .token-badge {
+        display: inline-block;
+        background: var(--accent-emerald);
+        color: #0f172a;
+        font-weight: bold;
+        padding: 2px 6px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      /* Live Event Dock */
+      .event-dock {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 56px;
+        background: rgba(15, 23, 42, 0.94);
+        backdrop-filter: blur(16px);
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        padding: 0 24px;
+        gap: 16px;
+        z-index: 1000;
+        font-family: monospace;
+        font-size: 12px;
+      }
+      .dock-label {
+        font-weight: 700;
+        color: var(--text-secondary);
+        white-space: nowrap;
+      }
+      .event-ticker {
+        flex: 1;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        color: var(--accent-sky);
+      }
+      .badge-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent-emerald);
+        margin-right: 6px;
+        box-shadow: 0 0 8px var(--accent-emerald);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <header>
+      <div class="logo-group">
+        <span class="logo-badge">Hydra Engine</span>
+        <h1>Mouse Interaction Test Suite</h1>
+      </div>
+      <div class="header-telemetry" id="headerCoords">Pointer: X: 0, Y: 0</div>
+    </header>
+
+    <!-- Navigation to specialized pages -->
+    <nav class="suite-nav" aria-label="Mouse Test Pages">
+      <a class="nav-link active" href="index.html">Dashboard Hub</a>
+      <a class="nav-link" href="click.html">1. Click Suite</a>
+      <a class="nav-link" href="move.html">2. Move & Hover</a>
+      <a class="nav-link" href="scroll.html">3. Scroll Suite</a>
+      <a class="nav-link" href="select.html">4. Select Text</a>
+      <a class="nav-link" href="edit.html">5. Text Editing</a>
+      <a class="nav-link" href="drag.html">6. Drag & Sliders</a>
+    </nav>
+
+    <main>
+      <!-- Quick Navigation Cards -->
+      <section class="card-grid" aria-label="Test Categories">
+        <div class="action-card">
+          <div class="card-header">
+            <h2 class="card-title">Click & Buttons</h2>
+            <span class="card-tag tag-click">Click</span>
+          </div>
+          <p class="card-desc">Kiểm thử click đơn, double-click, click liên tục (counter), radio/checkbox, và popup menu.</p>
+          <a class="card-btn" href="click.html">Mở trang Click Test &rarr;</a>
+        </div>
+
+        <div class="action-card">
+          <div class="card-header">
+            <h2 class="card-title">Move & Hover</h2>
+            <span class="card-tag tag-move">Move</span>
+          </div>
+          <p class="card-desc">Kiểm thử di chuyển theo đường bay Bézier, điểm ngắm chính xác Fitts, hover reveal cards và radar tọa độ.</p>
+          <a class="card-btn" href="move.html">Mở trang Move Test &rarr;</a>
+        </div>
+
+        <div class="action-card">
+          <div class="card-header">
+            <h2 class="card-title">Scroll & HUD</h2>
+            <span class="card-tag tag-scroll">Scroll</span>
+          </div>
+          <p class="card-desc">Kiểm thử cuộn dọc trang nội dung sâu (~2500px), cuộn ngang thẻ gallery và chỉ báo HUD ảo.</p>
+          <a class="card-btn" href="scroll.html">Mở trang Scroll Test &rarr;</a>
+        </div>
+
+        <div class="action-card">
+          <div class="card-header">
+            <h2 class="card-title">Select Text</h2>
+            <span class="card-tag tag-select">Select</span>
+          </div>
+          <p class="card-desc">Kiểm thử thao tác bôi đen text thật trên DOM (I-beam mode, selection range, clipboard copy).</p>
+          <a class="card-btn" href="select.html">Mở trang Select Test &rarr;</a>
+        </div>
+
+        <div class="action-card">
+          <div class="card-header">
+            <h2 class="card-title">Text Editing</h2>
+            <span class="card-tag tag-edit">Edit</span>
+          </div>
+          <p class="card-desc">Kiểm thử chỉnh sửa văn bản trong input/textarea, contenteditable rich editor, click-to-edit và editable table.</p>
+          <a class="card-btn" href="edit.html">Mở trang Edit Test &rarr;</a>
+        </div>
+
+        <div class="action-card">
+          <div class="card-header">
+            <h2 class="card-title">Drag & Sliders</h2>
+            <span class="card-tag tag-drag">Drag</span>
+          </div>
+          <p class="card-desc">Kiểm thử kéo thanh trượt range inputs, kéo thả phần tử tự do (custom draggable) và dropzone.</p>
+          <a class="card-btn" href="drag.html">Mở trang Drag Test &rarr;</a>
+        </div>
+      </section>
+
+      <!-- Mission Control Checklist -->
+      <section class="mission-section" aria-label="Agent Missions">
+        <div class="section-heading">
+          <h2 class="section-title">Nhiệm Vụ Kiểm Thử Tương Tác Trực Tiếp (Mission Control)</h2>
+          <span class="progress-counter" id="missionProgress">0 / 5 Hoàn Thành</span>
+        </div>
+
+        <div class="mission-list">
+          <!-- Mission 1: Click -->
+          <div class="mission-item" id="mission-1">
+            <div class="mission-info">
+              <span class="mission-name">Nhiệm vụ 1: Click nút kích hoạt</span>
+              <span class="mission-detail">Agent click vào nút "Kích hoạt đơn hàng" bên cạnh để xác nhận.</span>
+            </div>
+            <div class="interactive-row">
+              <button type="button" class="btn" id="btnMissionClick">Kích hoạt đơn hàng</button>
+              <span class="mission-status" id="statusMission1">PENDING</span>
+            </div>
+          </div>
+
+          <!-- Mission 2: Move & Hover -->
+          <div class="mission-item" id="mission-2">
+            <div class="mission-info">
+              <span class="mission-name">Nhiệm vụ 2: Di chuột qua 3 Waypoints</span>
+              <span class="mission-detail">Agent di chuyển con trỏ lướt tuần tự qua Thẻ A, Thẻ B và Thẻ C.</span>
+            </div>
+            <div class="interactive-row">
+              <span class="hover-chip" id="chipA">Thẻ A</span>
+              <span class="hover-chip" id="chipB">Thẻ B</span>
+              <span class="hover-chip" id="chipC">Thẻ C</span>
+              <span class="mission-status" id="statusMission2">PENDING</span>
+            </div>
+          </div>
+
+          <!-- Mission 3: Scroll -->
+          <div class="mission-item" id="mission-3">
+            <div class="mission-info">
+              <span class="mission-name">Nhiệm vụ 3: Cuộn tìm mã bí mật</span>
+              <span class="mission-detail">Agent cuộn xuống đáy khung bên cạnh để hiển thị mã xác thực `HYDRA-KEY-88`.</span>
+            </div>
+            <div class="interactive-row">
+              <div class="scroll-box" id="scrollBoxMission">
+                <p>Cuộn xuống dưới...</p>
+                <div class="scroll-content-filler"></div>
+                <p id="secretToken">Mã bí mật: <span class="token-badge">HYDRA-KEY-88</span></p>
+              </div>
+              <span class="mission-status" id="statusMission3">PENDING</span>
+            </div>
+          </div>
+
+          <!-- Mission 4: Select Text -->
+          <div class="mission-item" id="mission-4">
+            <div class="mission-info">
+              <span class="mission-name">Nhiệm vụ 4: Bôi đen văn bản chỉ định</span>
+              <span class="mission-detail">Agent sử dụng `browser_select_text` bôi đen chuỗi: <strong style="color: var(--accent-sky);">"Hydra Autonomous Browser Engine"</strong>.</span>
+              <p id="targetSentence" style="font-size: 13px; color: var(--text-primary); margin-top: 4px; padding: 6px; background: rgba(0,0,0,0.2); border-radius: 4px;">
+                Đang thử nghiệm nền tảng <span id="selectTargetSpan" style="color: var(--accent-sky); font-weight: bold; text-decoration: underline;">Hydra Autonomous Browser Engine</span> với độ chính xác cao.
+              </p>
+            </div>
+            <div class="interactive-row">
+              <span class="mission-status" id="statusMission4">PENDING</span>
+            </div>
+          </div>
+
+          <!-- Mission 5: Drag Slider -->
+          <div class="mission-item" id="mission-5">
+            <div class="mission-info">
+              <span class="mission-name">Nhiệm vụ 5: Kéo thanh trượt đến 75%</span>
+              <span class="mission-detail">Agent điều chỉnh thanh trượt đạt đúng mốc giá trị 75.</span>
+            </div>
+            <div class="interactive-row">
+              <input type="range" id="missionRange" min="0" max="100" value="20" style="accent-color: var(--accent-sky); cursor: pointer;" />
+              <span id="rangeVal" style="font-family: monospace; font-size: 13px; min-width: 36px;">20%</span>
+              <span class="mission-status" id="statusMission5">PENDING</span>
+            </div>
+          </div>
+
+          <!-- Mission 6: Text Editing -->
+          <div class="mission-item" id="mission-6">
+            <div class="mission-info">
+              <span class="mission-name">Nhiệm vụ 6: Chỉnh sửa văn bản trong ô nhập liệu</span>
+              <span class="mission-detail">Agent nhấp chuột vào ô bên cạnh và điền chuỗi: <strong style="color: var(--accent-sky);">"Agent Active 2026"</strong>.</span>
+            </div>
+            <div class="interactive-row">
+              <input type="text" id="missionTextInput" placeholder="Nhập vào đây..." style="width: 170px; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-primary); color: #fff; font-size: 13px;" />
+              <span class="mission-status" id="statusMission6">PENDING</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Live Event Dock -->
+    <div class="event-dock" aria-live="polite">
+      <span class="dock-label"><span class="badge-indicator"></span>LIVE EVENT DOCK:</span>
+      <span class="event-ticker" id="eventTicker">Sẵn sàng ghi nhận sự kiện chuột từ Agent...</span>
+    </div>
+
+    <script>
+      // --- Telemetry & Live Event Tracking ---
+      const headerCoords = document.getElementById('headerCoords');
+      const eventTicker = document.getElementById('eventTicker');
+
+      function logEvent(type, detail) {
+        eventTicker.textContent = `[${new Date().toLocaleTimeString()}] ${type.toUpperCase()} -> ${detail}`;
+      }
+
+      window.addEventListener('mousemove', (e) => {
+        headerCoords.textContent = `Pointer: X: ${e.clientX.toFixed(1)}, Y: ${e.clientY.toFixed(1)}`;
+      }, { passive: true });
+
+      ['click', 'dblclick', 'contextmenu', 'mousedown', 'mouseup'].forEach(evt => {
+        window.addEventListener(evt, (e) => {
+          const target = e.target.id ? `#${e.target.id}` : e.target.tagName.toLowerCase();
+          logEvent(evt, `target: ${target} (x: ${e.clientX}, y: ${e.clientY}, button: ${e.button})`);
+        });
+      });
+
+      window.addEventListener('wheel', (e) => {
+        logEvent('wheel', `deltaY: ${e.deltaY.toFixed(0)}, deltaX: ${e.deltaX.toFixed(0)}`);
+      }, { passive: true });
+
+      document.addEventListener('selectionchange', () => {
+        const sel = window.getSelection()?.toString().trim();
+        if (sel) logEvent('selectionchange', `selected: "${sel.substring(0, 32)}${sel.length > 32 ? '...' : ''}"`);
+      });
+
+      // --- Mission Checklist Logic ---
+      let completedCount = 0;
+      function updateProgress() {
+        document.getElementById('missionProgress').textContent = `${completedCount} / 6 Hoàn Thành`;
+      }
+
+      // Mission 1: Click
+      const btnMissionClick = document.getElementById('btnMissionClick');
+      const statusMission1 = document.getElementById('statusMission1');
+      btnMissionClick.addEventListener('click', () => {
+        if (!statusMission1.classList.contains('completed')) {
+          statusMission1.textContent = 'PASSED';
+          statusMission1.classList.add('completed');
+          document.getElementById('mission-1').classList.add('passed');
+          completedCount++;
+          updateProgress();
+        }
+      });
+
+      // Mission 2: Move & Hover Chips
+      const chipA = document.getElementById('chipA');
+      const chipB = document.getElementById('chipB');
+      const chipC = document.getElementById('chipC');
+      const statusMission2 = document.getElementById('statusMission2');
+      let chipsHovered = new Set();
+      [chipA, chipB, chipC].forEach(chip => {
+        chip.addEventListener('mouseenter', () => {
+          chip.classList.add('active');
+          chipsHovered.add(chip.id);
+          if (chipsHovered.size === 3 && !statusMission2.classList.contains('completed')) {
+            statusMission2.textContent = 'PASSED';
+            statusMission2.classList.add('completed');
+            document.getElementById('mission-2').classList.add('passed');
+            completedCount++;
+            updateProgress();
+          }
+        });
+      });
+
+      // Mission 3: Scroll Box
+      const scrollBoxMission = document.getElementById('scrollBoxMission');
+      const statusMission3 = document.getElementById('statusMission3');
+      scrollBoxMission.addEventListener('scroll', () => {
+        const atBottom = scrollBoxMission.scrollHeight - scrollBoxMission.scrollTop - scrollBoxMission.clientHeight < 15;
+        if (atBottom && !statusMission3.classList.contains('completed')) {
+          statusMission3.textContent = 'PASSED';
+          statusMission3.classList.add('completed');
+          document.getElementById('mission-3').classList.add('passed');
+          completedCount++;
+          updateProgress();
+        }
+      });
+
+      // Mission 4: Select Text
+      const statusMission4 = document.getElementById('statusMission4');
+      document.addEventListener('selectionchange', () => {
+        const text = window.getSelection()?.toString().trim();
+        if (text === 'Hydra Autonomous Browser Engine' && !statusMission4.classList.contains('completed')) {
+          statusMission4.textContent = 'PASSED';
+          statusMission4.classList.add('completed');
+          document.getElementById('mission-4').classList.add('passed');
+          completedCount++;
+          updateProgress();
+        }
+      });
+
+      // Mission 5: Range Slider
+      const missionRange = document.getElementById('missionRange');
+      const rangeVal = document.getElementById('rangeVal');
+      const statusMission5 = document.getElementById('statusMission5');
+      missionRange.addEventListener('input', (e) => {
+        rangeVal.textContent = `${e.target.value}%`;
+        if (parseInt(e.target.value, 10) === 75 && !statusMission5.classList.contains('completed')) {
+          statusMission5.textContent = 'PASSED';
+          statusMission5.classList.add('completed');
+          document.getElementById('mission-5').classList.add('passed');
+          completedCount++;
+          updateProgress();
+        }
+      });
+
+      // Mission 6: Text Editing
+      const missionTextInput = document.getElementById('missionTextInput');
+      const statusMission6 = document.getElementById('statusMission6');
+      missionTextInput.addEventListener('input', (e) => {
+        if (e.target.value.trim() === 'Agent Active 2026' && !statusMission6.classList.contains('completed')) {
+          statusMission6.textContent = 'PASSED';
+          statusMission6.classList.add('completed');
+          document.getElementById('mission-6').classList.add('passed');
+          completedCount++;
+          updateProgress();
+        }
+      });
+    </script>
+  </body>
+</html>

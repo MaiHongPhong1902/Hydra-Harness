@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hydra Agent - Mouse Movement & Hover Test Suite</title>
+    <style>
+      :root {
+        --bg-primary: #0f172a;
+        --bg-secondary: #1e293b;
+        --bg-tertiary: #334155;
+        --text-primary: #f8fafc;
+        --text-secondary: #94a3b8;
+        --text-muted: #64748b;
+        --accent-sky: #38bdf8;
+        --accent-indigo: #818cf8;
+        --accent-emerald: #34d399;
+        --accent-rose: #fb7185;
+        --accent-amber: #fbbf24;
+        --border-color: #334155;
+        --radius: 12px;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        line-height: 1.5;
+        padding-bottom: 90px;
+      }
+      header {
+        background: rgba(30, 41, 59, 0.85);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border-color);
+        padding: 16px 24px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .logo-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .logo-badge {
+        background: linear-gradient(135deg, var(--accent-indigo), var(--accent-sky));
+        color: #0f172a;
+        font-weight: 800;
+        font-size: 13px;
+        padding: 4px 10px;
+        border-radius: 9999px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      h1 { font-size: 18px; font-weight: 700; }
+      nav.suite-nav {
+        display: flex;
+        gap: 8px;
+        background: var(--bg-secondary);
+        padding: 10px 24px;
+        border-bottom: 1px solid var(--border-color);
+        overflow-x: auto;
+      }
+      .nav-link {
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: 8px;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+        white-space: nowrap;
+      }
+      .nav-link:hover, .nav-link.active {
+        background: rgba(56, 189, 248, 0.15);
+        color: var(--accent-sky);
+        border-color: rgba(56, 189, 248, 0.3);
+      }
+      main {
+        max-width: 1080px;
+        margin: 28px auto;
+        padding: 0 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+      .section-box {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .box-title {
+        font-size: 16px;
+        font-weight: 700;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .badge-test {
+        font-size: 11px;
+        padding: 3px 8px;
+        border-radius: 6px;
+        background: rgba(129, 140, 248, 0.15);
+        color: var(--accent-indigo);
+        font-weight: 600;
+      }
+      .box-desc {
+        font-size: 13px;
+        color: var(--text-secondary);
+      }
+
+      /* Waypoints Grid */
+      .waypoint-stage {
+        position: relative;
+        height: 220px;
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px dashed var(--border-color);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .waypoint {
+        position: absolute;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: var(--bg-tertiary);
+        border: 2px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 15px;
+        color: var(--text-primary);
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      .waypoint.active {
+        background: var(--accent-emerald);
+        border-color: #fff;
+        color: #0f172a;
+        transform: scale(1.1);
+        box-shadow: 0 0 20px rgba(52, 211, 153, 0.5);
+      }
+      #wpA { top: 20px; left: 30px; }
+      #wpB { top: 20px; right: 30px; }
+      #wpC { bottom: 20px; right: 40px; }
+      #wpD { bottom: 20px; left: 40px; }
+
+      /* Precision Bullseye Target */
+      .precision-box {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+      }
+      .bullseye-arena {
+        position: relative;
+        width: 160px;
+        height: 160px;
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px solid var(--border-color);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .ring {
+        position: absolute;
+        border-radius: 50%;
+        border: 1px dashed rgba(148, 163, 184, 0.25);
+      }
+      .ring-1 { width: 120px; height: 120px; }
+      .ring-2 { width: 70px; height: 70px; }
+      .center-target {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: var(--accent-rose);
+        border: 2px solid #fff;
+        cursor: crosshair;
+        z-index: 10;
+        transition: transform 0.15s;
+      }
+      .center-target:hover {
+        transform: scale(1.4);
+        background: var(--accent-emerald);
+      }
+
+      /* Hover Reveal Cards */
+      .hover-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 16px;
+      }
+      .hover-card {
+        background: rgba(15, 23, 42, 0.5);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 16px;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        transition: border-color 0.2s;
+      }
+      .hover-card:hover {
+        border-color: var(--accent-sky);
+      }
+      .hover-secret {
+        margin-top: 10px;
+        padding: 8px;
+        background: rgba(56, 189, 248, 0.1);
+        border-radius: 6px;
+        font-size: 12px;
+        color: var(--accent-sky);
+        display: none;
+      }
+      .hover-card:hover .hover-secret {
+        display: block;
+      }
+
+      /* Result telemetry */
+      .result-banner {
+        padding: 12px 16px;
+        border-radius: 8px;
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px solid var(--border-color);
+        font-family: monospace;
+        font-size: 13px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .status-pill {
+        font-weight: bold;
+        padding: 2px 8px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        font-size: 11px;
+      }
+      .status-idle { background: var(--bg-tertiary); color: var(--text-muted); }
+      .status-success { background: var(--accent-emerald); color: #0f172a; }
+
+      /* Live Event Dock */
+      .event-dock {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 56px;
+        background: rgba(15, 23, 42, 0.94);
+        backdrop-filter: blur(16px);
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        padding: 0 24px;
+        gap: 16px;
+        z-index: 1000;
+        font-family: monospace;
+        font-size: 12px;
+      }
+      .dock-label {
+        font-weight: 700;
+        color: var(--text-secondary);
+        white-space: nowrap;
+      }
+      .event-ticker {
+        flex: 1;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        color: var(--accent-indigo);
+      }
+      .badge-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent-emerald);
+        margin-right: 6px;
+        box-shadow: 0 0 8px var(--accent-emerald);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo-group">
+        <span class="logo-badge">Move & Hover</span>
+        <h1>Agent Pointer Movement & Hover Test Suite</h1>
+      </div>
+      <div id="liveRadar" style="font-family: monospace; font-size: 12px; color: var(--accent-indigo);">
+        Radar: X: 0, Y: 0
+      </div>
+    </header>
+
+    <nav class="suite-nav" aria-label="Mouse Test Pages">
+      <a class="nav-link" href="index.html">Dashboard Hub</a>
+      <a class="nav-link" href="click.html">1. Click Suite</a>
+      <a class="nav-link active" href="move.html">2. Move & Hover</a>
+      <a class="nav-link" href="scroll.html">3. Scroll Suite</a>
+      <a class="nav-link" href="select.html">4. Select Text</a>
+      <a class="nav-link" href="edit.html">5. Text Editing</a>
+      <a class="nav-link" href="drag.html">6. Drag & Sliders</a>
+    </nav>
+
+    <main>
+      <!-- 1. Waypoint Path Navigation -->
+      <section class="section-box" id="sec-waypoints">
+        <div class="box-title">
+          <span>1. Đường Bay Tuần Tự (Waypoint Flight Path)</span>
+          <span class="badge-test">fitts-curve</span>
+        </div>
+        <p class="box-desc">Agent di chuyển con trỏ lướt tuần tự qua 4 trạm theo thứ tự: A &rarr; B &rarr; C &rarr; D để hoàn thành nhiệm vụ.</p>
+
+        <div class="waypoint-stage" id="waypointArena">
+          <div class="waypoint" id="wpA">A</div>
+          <div class="waypoint" id="wpB">B</div>
+          <div class="waypoint" id="wpC">C</div>
+          <div class="waypoint" id="wpD">D</div>
+        </div>
+
+        <div class="result-banner">
+          <span id="waypointResult">Tiến độ: Chờ trạm A (0/4)</span>
+          <span class="status-pill status-idle" id="waypointStatusPill">PENDING</span>
+        </div>
+      </section>
+
+      <!-- 2. Precision Bullseye Target -->
+      <section class="section-box" id="sec-precision">
+        <div class="box-title">
+          <span>2. Điểm Ngắm Chính Xác Subpixel (Precision Landing Target)</span>
+          <span class="badge-test">subpixel landing</span>
+        </div>
+        <p class="box-desc">Kiểm thử hạ cánh chính xác vào tâm điểm đỏ 14x14px mà không bị sai số hay lệch hotspot.</p>
+
+        <div class="precision-box">
+          <div class="bullseye-arena" id="bullseyeArena">
+            <div class="ring ring-1"></div>
+            <div class="ring ring-2"></div>
+            <div class="center-target" id="targetBullseye" title="Tâm ngắm chính xác"></div>
+          </div>
+          <div style="flex: 1; font-size: 13px; line-height: 1.6;">
+            <div>Tọa độ tâm đích: <code id="bullseyeCoords">X: --, Y: --</code></div>
+            <div>Sai số khoảng cách: <strong id="bullseyeError" style="color: var(--accent-sky);">--</strong></div>
+            <div style="margin-top: 8px; color: var(--text-secondary);">
+              Di chuyển con trỏ vào đúng tâm điểm đỏ. Bảng sẽ tính toán khoảng cách Euclidean tức thời.
+            </div>
+          </div>
+        </div>
+
+        <div class="result-banner">
+          <span id="bullseyeResult">Trạng thái: Chưa chạm tâm ngắm</span>
+          <span class="status-pill status-idle" id="bullseyeStatusPill">IDLE</span>
+        </div>
+      </section>
+
+      <!-- 3. Hover Reveal Cards -->
+      <section class="section-box" id="sec-hover-cards">
+        <div class="box-title">
+          <span>3. Thẻ Khám Phá Khi Hover (Hover Reveal Cards)</span>
+          <span class="badge-test">hover cards</span>
+        </div>
+        <p class="box-desc">Di chuột vào từng thẻ để kích hoạt hiển thị nội dung bí mật và nút thao tác nhanh.</p>
+
+        <div class="hover-grid">
+          <div class="hover-card" id="hCard1">
+            <div style="font-weight: 700; font-size: 14px;">Thẻ Tác Vụ Alpha</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Rà chuột vào đây để xem chi tiết...</div>
+            <div class="hover-secret">Mã mở khóa: <strong>ALPHA-779</strong></div>
+          </div>
+
+          <div class="hover-card" id="hCard2">
+            <div style="font-weight: 700; font-size: 14px;">Thẻ Tác Vụ Beta</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Rà chuột vào đây để xem chi tiết...</div>
+            <div class="hover-secret">Mã mở khóa: <strong>BETA-412</strong></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Live Event Dock -->
+    <div class="event-dock" aria-live="polite">
+      <span class="dock-label"><span class="badge-indicator"></span>LIVE EVENT DOCK:</span>
+      <span class="event-ticker" id="eventTicker">Sẵn sàng ghi nhận sự kiện di chuột...</span>
+    </div>
+
+    <script>
+      const eventTicker = document.getElementById('eventTicker');
+      const liveRadar = document.getElementById('liveRadar');
+      function logEvent(type, detail) {
+        eventTicker.textContent = `[${new Date().toLocaleTimeString()}] ${type.toUpperCase()} -> ${detail}`;
+      }
+
+      window.addEventListener('mousemove', (e) => {
+        liveRadar.textContent = `Radar: X: ${e.clientX.toFixed(1)}, Y: ${e.clientY.toFixed(1)}`;
+      }, { passive: true });
+
+      // 1. Waypoints
+      const wps = ['wpA', 'wpB', 'wpC', 'wpD'];
+      let currentWpIndex = 0;
+      const waypointResult = document.getElementById('waypointResult');
+      const waypointStatusPill = document.getElementById('waypointStatusPill');
+
+      wps.forEach((id, idx) => {
+        const el = document.getElementById(id);
+        el.addEventListener('mouseenter', () => {
+          if (idx === currentWpIndex) {
+            el.classList.add('active');
+            currentWpIndex++;
+            logEvent('waypoint', `Reached ${id}`);
+            if (currentWpIndex < wps.length) {
+              waypointResult.textContent = `Tiến độ: Tiếp theo trạm ${wps[currentWpIndex].replace('wp', '')} (${currentWpIndex}/4)`;
+            } else {
+              waypointResult.textContent = `Tiến độ: ĐÃ HOÀN THÀNH TOÀN BỘ 4 TRẠM!`;
+              waypointStatusPill.textContent = 'PASSED';
+              waypointStatusPill.className = 'status-pill status-success';
+            }
+          }
+        });
+      });
+
+      // 2. Bullseye target
+      const targetBullseye = document.getElementById('targetBullseye');
+      const bullseyeCoords = document.getElementById('bullseyeCoords');
+      const bullseyeError = document.getElementById('bullseyeError');
+      const bullseyeResult = document.getElementById('bullseyeResult');
+      const bullseyeStatusPill = document.getElementById('bullseyeStatusPill');
+
+      function updateTargetMetrics() {
+        const r = targetBullseye.getBoundingClientRect();
+        const cx = r.left + r.width / 2;
+        const cy = r.top + r.height / 2;
+        bullseyeCoords.textContent = `X: ${cx.toFixed(1)}, Y: ${cy.toFixed(1)}`;
+        return { cx, cy };
+      }
+      setTimeout(updateTargetMetrics, 100);
+
+      window.addEventListener('mousemove', (e) => {
+        const { cx, cy } = updateTargetMetrics();
+        const dist = Math.hypot(e.clientX - cx, e.clientY - cy);
+        bullseyeError.textContent = `${dist.toFixed(2)}px`;
+
+        if (dist <= 7) {
+          bullseyeResult.textContent = `Trúng hồng tâm! Sai số: ${dist.toFixed(2)}px`;
+          bullseyeStatusPill.textContent = 'BULLSEYE';
+          bullseyeStatusPill.className = 'status-pill status-success';
+        }
+      }, { passive: true });
+
+      // 3. Hover cards
+      ['hCard1', 'hCard2'].forEach(id => {
+        const card = document.getElementById(id);
+        card.addEventListener('mouseenter', () => {
+          logEvent('hover', `Entered card #${id}`);
+        });
+      });
+    </script>
+  </body>
+</html>

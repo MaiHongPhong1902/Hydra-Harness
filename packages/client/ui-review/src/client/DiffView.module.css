@@ -15,7 +15,7 @@
   font-size: 12px;
   line-height: 22px;
   tab-size: 2;
-  white-space: pre;
+  white-space: normal;
 }
 
 .hunkHeader,
@@ -26,6 +26,7 @@
   padding: 0 12px;
   color: var(--dsw-alias-label-tertiary);
   font-style: italic;
+  white-space: pre;
 }
 
 .hunkHeader {
@@ -69,6 +70,7 @@
   min-width: 0;
   padding: 0 12px;
   overflow-wrap: normal;
+  white-space: pre;
 }
 
 .unifiedLine:hover,
@@ -110,11 +112,11 @@
   background: var(--dsw-alias-bg-layer-1);
 }
 
-.wordWrap .body,
-.wordWrap .unifiedLine,
-.wordWrap .splitRow,
 .wordWrap .sideText,
-.wordWrap .lineText {
+.wordWrap .lineText,
+.wordWrap .hunkHeader,
+.wordWrap .markerRow,
+.wordWrap .splitMarker {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   word-break: break-word;

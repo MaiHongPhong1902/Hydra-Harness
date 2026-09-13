@@ -56,6 +56,9 @@ async function connectPlaywrightPage(contents, timeout) {
   debuggerApi.on('detach', onDetach)
   contents.once('destroyed', onDetach)
   try {
+    // A prior diagnostic read may have enabled Runtime before this transport listened.
+    // Re-enable through Playwright so existing execution contexts are announced to it.
+    await debuggerApi.sendCommand('Runtime.disable')
     const browser = await chromium.connectOverCDP(transport, { noDefaults: true, timeout })
     const page = browser.contexts()[0]?.pages()[0]
     if (!page) throw new Error('Playwright did not attach to the controlled page')

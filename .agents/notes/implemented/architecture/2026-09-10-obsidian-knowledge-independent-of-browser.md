@@ -10,7 +10,7 @@ The coupling also ran one way only. `@hydra/harness-tool-browser` and `@hydra/ha
 
 ## Decision
 
-The two plugins are independent. Obsidian knowledge is a standalone vault-memory plugin; Browser tooling continues to operate through `tool-browser → browser-electron → PageController` with no knowledge of Obsidian.
+The two plugins are independent. Obsidian knowledge lives in the [knowledge package group](../../../../packages/knowledge/README.md), with no Browser package dependency or TypeScript project reference; Browser tooling continues to operate through `tool-browser → browser-electron → PageController` with no knowledge of Obsidian. The Obsidian package name, profile entry, credentials, and vault paths stay unchanged.
 
 Obsidian retains exactly three model-facing tools — `obsidian_knowledge_recall`, `obsidian_knowledge_read`, and `obsidian_knowledge_save_approved` — plus the host approval gate on the save tool, the MCP storage adapter, vault-identity verification, path containment, byte limits, and credential resolution. The save tool persists the approved title, content, and evidence; it no longer attaches browser observations.
 
@@ -28,6 +28,6 @@ Website navigation limits are now decided by the existing browser policies alone
 
 ## Consequences
 
-Enabling, disabling, misconfiguring, or losing the Obsidian MCP connection no longer affects browser control: no URL is blocked, no extra turn is forced, and no vault write happens as a side effect of browsing. Conversely, Obsidian recall, read, and approved saves work with no browser mounted at all. Both directions are covered by tests in `packages/browser/obsidian-knowledge/tests/obsidian-knowledge.spec.ts`, including a browser tool running unmodified with Obsidian mounted and no per-domain note directories appearing.
+Enabling, disabling, misconfiguring, or losing the Obsidian MCP connection no longer affects browser control: no URL is blocked, no extra turn is forced, and no vault write happens as a side effect of browsing. Conversely, Obsidian recall, read, and approved saves work with no browser mounted at all. Both directions are covered by [Obsidian knowledge tests](../../../../packages/knowledge/obsidian-knowledge/tests/obsidian-knowledge.spec.ts), including a browser tool running unmodified with Obsidian mounted and no per-domain note directories appearing.
 
 `BrowserToolValue.unchanged` — added to the browser result shape for compact-snapshot reuse — now has no consumer outside `tool-browser` itself; it remains a model-facing token-saving field. The removed `targetDomain` gate means a deployment that relied on Obsidian to constrain live verification must rely on the browser's own policy surface instead.

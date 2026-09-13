@@ -29,7 +29,7 @@ export type { BrowserChild, BrowserChildProcess, LaunchOptions, PageAgentLlmRequ
 export { BrowserError } from './types.ts'
 export type {
   ActionResult, BrowserAction, BrowserCdpCommandResult, BrowserCdpEvent, BrowserCdpEventPage, BrowserErrorCode,
-  BrowserFillField, BrowserHistorySearchEntry, BrowserJsonValue, BrowserOutcome, BrowserScreenshot, BrowserState,
+  BrowserSnapshotOptions, BrowserFillField, BrowserHistorySearchEntry, BrowserJsonValue, BrowserOutcome, BrowserScreenshot, BrowserState,
   BrowserTabState,
 } from './types.ts'
 
@@ -540,6 +540,7 @@ export class BrowserSessionService extends Service {
         || prepared.method === 'select_text'
       const tabId = stateTabId(prepared)
       const state = await child.call('get_browser_state', {
+        ...prepared.method === 'get_browser_state' && prepared.snapshot !== undefined ? { snapshot: prepared.snapshot } : {},
         waitForReady,
         ...tabId === undefined ? {} : { tabId },
       }, execution.signal) as BrowserState

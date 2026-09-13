@@ -603,7 +603,19 @@ async function ensureNativePage(tab) {
   return tab.playwrightPage
 }
 
+/** Parse model-supplied patterns once; stateful matching flags are unsupported. */
+function browserRegex(value) {
+  if (typeof value !== 'string' || !value.trim()) throw new Error('regex must be a non-empty string')
+  const literal = /^\/(.*)\/([imsu]*)$/su.exec(value)
+  return literal ? new RegExp(literal[1], literal[2]) : new RegExp(value)
+}
+
 function nativeLocator(page, args) {
+  if (args.target !== undefined) {
+    if (typeof args.target !== 'string' || !args.target.trim()) throw new Error('target must be an observed ref or unique CSS selector')
+    const target = args.target.trim()
+    return page.locator(/^(f\d+)?e\d+$/u.test(target) ? `aria-ref=${target}` : `css=${target}`)
+  }
   if (args.index !== undefined) {
     if (!Number.isSafeInteger(args.index) || args.index < 0) throw new Error('index must be a non-negative integer')
     return page.locator(`[data-hydra-a11y-ref="e${args.index}"]`)
@@ -618,56 +630,122 @@ function nativeLocator(page, args) {
     .or(page.locator(`[id="${escapedId}"]`))
 }
 
-async function nativePageAction(tab, method, args) {
-  if (!['click_element', 'hover_element', 'drag_element', 'input_text', 'select_option', 'fill_fields', 'find_element'].includes(method)) return undefined
+/** Animate the existing mask to the locator Playwright will act on. */
+async function moveNativePointer(tab, args, mode = 'default', click = false) {
+  await withNativeRef(tab, args, resolved => pageControl(tab, 'prepare_pointer', { ...resolved, mode, click }))
+}
+
+/** Resolve Playwright refs in their owning world before calling the isolated preload. */
+async function withNativeRef(tab, args, action) {
+  if (args.target === undefined || !/^(f\d+)?e\d+$/u.test(args.target)) return action(args)
   const page = await ensureNativePage(tab)
-  if (method === 'find_element') {
-    if (typeof args.query !== 'string' || !args.query.trim()) throw new Error('find query must be a non-empty string')
-    const locator = page.getByText(args.query, { exact: false }).or(nativeLocator(page, { name: args.query }))
-    const count = await locator.count()
-    if (count === 0) return { success: false, message: `No element matching "${args.query}" in the current page.` }
-    await locator.first().scrollIntoViewIfNeeded()
-    await pageControl(tab, 'get_browser_state', {})
-    const snippets = await locator.evaluateAll(elements => elements.slice(0, 8).map(element => {
-      const ref = element.getAttribute('data-hydra-a11y-ref')?.slice(1)
-      const text = (element.getAttribute('aria-label') || element.textContent || element.id).trim().slice(0, 200)
-      return `${ref === undefined ? '' : `[${ref}] `}${text}`
-    }).join('\n'))
-    return { success: true, message: `Found ${count} element${count === 1 ? '' : 's'} matching "${args.query}":\n${snippets}` }
+  const element = await nativeLocator(page, args).elementHandle()
+  if (!element) throw new Error('Accessibility ref is unavailable; find it again.')
+  const attribute = `data-hydra-target-${randomUUID()}`
+  try {
+    await element.evaluate((node, attribute) => node.setAttribute(attribute, ''), attribute)
+    return await action({ ...args, target: `[${attribute}]` })
+  } finally {
+    try {
+      await element.evaluate((node, attribute) => node.removeAttribute(attribute), attribute)
+    } catch {
+      // Navigation or tab teardown can destroy the element's execution context.
+    }
+    await element.dispose()
   }
-  if (method === 'fill_fields') {
-    if (!Array.isArray(args.fields) || args.fields.length === 0) throw new Error('fields must be a non-empty array')
-    for (const field of args.fields) {
-      const locator = nativeLocator(page, field)
-      const kind = await locator.evaluate(element => element.tagName === 'SELECT' ? 'select' : element.getAttribute('type'))
-      if (kind === 'checkbox' || kind === 'radio') {
-        if (!['true', 'false'].includes(field.text)) return { success: false, message: 'Checkbox and radio values must be true or false.' }
-        if (kind === 'radio' && field.text === 'false') return { success: false, message: 'Select another radio option to clear this one.' }
-        await locator.setChecked(field.text === 'true')
-      } else if (kind === 'select') {
-        await locator.selectOption({ label: field.text })
-      } else {
-        await locator.fill(field.text)
+}
+
+/** Diagnostic retention is bounded independently of the smaller model output budget. */
+function boundedDiagnostic(text) {
+  return text.length <= MAX_CDP_EVENT_BYTES ? text : `${text.slice(0, MAX_CDP_EVENT_BYTES)}\n(Output truncated at the diagnostic retention limit.)`
+}
+
+/** Preserve Hydra's password redaction in upstream distilled snapshots, including file output. */
+async function distilledSnapshot(page, options = {}) {
+  const source = options.target === undefined ? page : nativeLocator(page, { target: options.target })
+  const snapshot = await source.ariaSnapshot({ mode: 'ai', depth: options.depth, boxes: options.boxes })
+  const lines = snapshot.split('\n')
+  for (let index = 0; index < lines.length; index++) {
+    // Playwright keys have an optional JSON-quoted name, state brackets, and optional YAML quoting.
+    const key = /^(\s*- '?[\w-]+(?: "(?:[^"\\]|\\.)*")?(?: \[[^\]]+\])*'?):.+$/u.exec(lines[index])
+    if (!key) continue
+    const refs = [...key[1].matchAll(/\[ref=((?:f\d+)?e\d+)\]/gu)]
+    const ref = refs.at(-1)?.[1]
+    if (ref && await nativeLocator(page, { target: ref }).evaluate(node => node.tagName === 'INPUT' && node.type === 'password')) {
+      lines[index] = `${key[1]}: "[redacted]"`
+    }
+  }
+  return lines.join('\n')
+}
+
+async function nativePageAction(tab, method, args) {
+  if (!['click_element', 'hover_element', 'drag_element', 'input_text', 'select_option', 'fill_fields', 'find_element', 'select_text'].includes(method)
+    || (method === 'select_text' && args.target === undefined)) return undefined
+  // Playwright needs animation frames even when Windows occludes a focused tab.
+  const throttled = tab.contents.getBackgroundThrottling()
+  tab.contents.setBackgroundThrottling(false)
+  try {
+    if (method === 'select_text') return await withNativeRef(tab, args, resolved => pageControl(tab, method, resolved))
+    const page = await ensureNativePage(tab)
+    if (method === 'find_element') {
+      const text = args.text ?? args.query
+      if ((text === undefined) === (args.regex === undefined)) throw new Error('provide exactly one of text or regex')
+      if (text !== undefined && (typeof text !== 'string' || !text.trim())) throw new Error('text must be non-empty')
+      const pattern = args.regex === undefined ? undefined : browserRegex(args.regex)
+      const snapshot = await distilledSnapshot(page)
+      const lines = snapshot.split('\n')
+      const matches = lines.flatMap((line, index) => (pattern ? pattern.test(line) : line.toLowerCase().includes(text.toLowerCase())) ? [index] : [])
+      const selected = new Set()
+      for (const index of matches) {
+        for (let i = Math.max(0, index - 1); i <= Math.min(lines.length - 1, index + 1); i++) selected.add(i)
+        let indent = lines[index].search(/\S/u)
+        for (let i = index - 1; i >= 0 && indent > 0; i--) {
+          const parentIndent = lines[i].search(/\S/u)
+          if (parentIndent >= 0 && parentIndent < indent) { selected.add(i); indent = parentIndent }
+        }
       }
+      const snippets = [...selected].sort((a, b) => a - b).map(i => lines[i]).join('\n')
+      return { success: matches.length > 0, message: matches.length === 0 ? 'No matching accessibility nodes.' : boundedDiagnostic(`Found ${matches.length} matching nodes:\n${snippets}`) }
     }
-    return { success: true, message: `Filled ${args.fields.length} browser field${args.fields.length === 1 ? '' : 's'}.` }
-  }
-  const locator = nativeLocator(page, method === 'drag_element' ? { index: args.startIndex } : args)
-  switch (method) {
-    case 'click_element': await locator.click(); return { success: true, message: 'Clicked browser control.' }
-    case 'hover_element': await locator.hover(); return { success: true, message: 'Hovered browser control.' }
-    case 'drag_element': {
-      const source = nativeLocator(page, { index: args.startIndex })
-      const target = nativeLocator(page, { index: args.endIndex })
-      await source.dragTo(target)
-      return { success: true, message: 'Dragged browser control.' }
+    if (method === 'fill_fields') {
+      if (!Array.isArray(args.fields) || args.fields.length === 0) throw new Error('fields must be a non-empty array')
+      for (const field of args.fields) {
+        const locator = nativeLocator(page, field)
+        const kind = await locator.evaluate(element => element.tagName === 'SELECT' ? 'select' : element.getAttribute('type'))
+        await moveNativePointer(tab, field, ['select', 'checkbox', 'radio'].includes(kind) ? 'default' : 'ibeam')
+        if (kind === 'checkbox' || kind === 'radio') {
+          if (!['true', 'false'].includes(field.text)) return { success: false, message: 'Checkbox and radio values must be true or false.' }
+          if (kind === 'radio' && field.text === 'false') return { success: false, message: 'Select another radio option to clear this one.' }
+          await locator.setChecked(field.text === 'true')
+        } else if (kind === 'select') {
+          await locator.selectOption({ label: field.text })
+        } else {
+          await locator.fill(field.text)
+        }
+      }
+      return { success: true, message: `Filled ${args.fields.length} browser field${args.fields.length === 1 ? '' : 's'}.` }
     }
-    case 'input_text': await locator.fill(args.text); return { success: true, message: 'Filled browser control.' }
-    case 'select_option': {
-      await locator.selectOption({ label: args.text })
-      return { success: true, message: 'Selected browser option.' }
+    const locator = nativeLocator(page, method === 'drag_element' ? { index: args.startIndex } : args)
+    await moveNativePointer(tab, method === 'drag_element' ? { index: args.startIndex } : args, method === 'input_text' ? 'ibeam' : 'default', method === 'click_element')
+    switch (method) {
+      case 'click_element': await locator.click(); return { success: true, message: 'Clicked browser control.' }
+      case 'hover_element': await locator.hover(); return { success: true, message: 'Hovered browser control.' }
+      case 'drag_element': {
+        const source = nativeLocator(page, { index: args.startIndex })
+        const target = nativeLocator(page, { index: args.endIndex })
+        await source.dragTo(target)
+        await moveNativePointer(tab, { index: args.endIndex })
+        return { success: true, message: 'Dragged browser control.' }
+      }
+      case 'input_text': await locator.fill(args.text); return { success: true, message: 'Filled browser control.' }
+      case 'select_option': {
+        await locator.selectOption({ label: args.text })
+        return { success: true, message: 'Selected browser option.' }
+      }
+      default: return undefined
     }
-    default: return undefined
+  } finally {
+    if (!tab.contents.isDestroyed()) tab.contents.setBackgroundThrottling(throttled)
   }
 }
 
@@ -2088,7 +2166,7 @@ ipcMain.handle('browser:native-mouse', async (event, input) => {
         x: input.x,
         y: input.y,
         ...(input.type === 'mouseMove'
-          ? { button: 'none', buttons: 0 }
+          ? { button: input.dragging === true ? 'left' : 'none', buttons: input.dragging === true ? 1 : 0 }
           : { button: 'left', buttons: input.type === 'mouseDown' ? 1 : 0, clickCount: 1 }),
       })])
     } finally {
@@ -2494,16 +2572,18 @@ async function handleCommand(method, args) {
       if (!['error', 'warning', 'info', 'debug'].includes(args.level)) throw new Error('invalid console level')
       const messages = tab.cdp.events.filter(event => event.method === 'Runtime.consoleAPICalled' && (levels[event.params.type] ?? 2) <= levels[args.level])
         .map(event => `[${event.params.type}] ${(event.params.args ?? []).map(arg => String(arg.value ?? arg.description ?? arg.type)).join(' ')}`)
-      return { success: true, message: messages.join('\n').slice(0, MAX_CDP_EVENT_BYTES) || 'No retained console messages.' }
+      return { success: true, message: boundedDiagnostic(messages.join('\n')) || 'No retained console messages.' }
     }
 
     case 'network_requests': {
+      const filter = args.filter === undefined ? undefined : browserRegex(args.filter)
       const lines = tab.cdp.events.filter(event => event.method === 'Network.requestWillBeSent').flatMap(event => {
+        if (filter && !filter.test(event.params.request.url)) return []
         const response = tab.cdp.events.find(candidate => candidate.method === 'Network.responseReceived' && candidate.params.requestId === event.params.requestId)?.params.response
         if (!args.includeStatic && !['Fetch', 'XHR', 'Document'].includes(event.params.type) && response?.status < 400) return []
         return `[${event.sequence}] ${event.params.request.method} ${event.params.request.url} ${response?.status ?? 'pending'}`
       })
-      return { success: true, message: lines.join('\n').slice(0, MAX_CDP_EVENT_BYTES) || 'No retained network requests.' }
+      return { success: true, message: boundedDiagnostic(lines.join('\n')) || 'No retained network requests.' }
     }
 
     case 'network_request': {
@@ -2519,7 +2599,7 @@ async function handleCommand(method, args) {
         case undefined: data = { request: request.request, response }; break
         default: throw new Error('invalid network request part')
       }
-      return { success: true, message: JSON.stringify(data).slice(0, MAX_CDP_EVENT_BYTES) }
+      return { success: true, message: boundedDiagnostic(JSON.stringify(data)) }
     }
     case 'get_upload_target': {
       const origin = httpOrigin(contents.getURL())
@@ -2533,8 +2613,15 @@ async function handleCommand(method, args) {
       return { origin, tabId: tab.id }
     }
 
-    case 'get_browser_state':
-      return await readBrowserState(tab, args.waitForReady === true, args.tabId === undefined)
+    case 'get_browser_state': {
+      const state = await readBrowserState(tab, args.waitForReady === true, args.tabId === undefined)
+      if (args.snapshot === undefined) return state
+      const options = args.snapshot
+      if (options.depth !== undefined && (!Number.isSafeInteger(options.depth) || options.depth < 0)) throw new Error('snapshot depth must be a non-negative integer')
+      if (options.boxes !== undefined && typeof options.boxes !== 'boolean') throw new Error('snapshot boxes must be boolean')
+      const page = await ensureNativePage(tabs.get(state.tabId))
+      return { ...state, content: await distilledSnapshot(page, options) }
+    }
 
     case 'browser_screenshot': {
       if (Object.hasOwn(args, 'tabId')) throw new Error('browser_screenshot does not accept tabId')

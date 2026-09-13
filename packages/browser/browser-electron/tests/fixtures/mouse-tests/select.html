@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hydra Agent - Text Selection Test Suite</title>
+    <style>
+      :root {
+        --bg-primary: #0f172a;
+        --bg-secondary: #1e293b;
+        --bg-tertiary: #334155;
+        --text-primary: #f8fafc;
+        --text-secondary: #94a3b8;
+        --text-muted: #64748b;
+        --accent-sky: #38bdf8;
+        --accent-indigo: #818cf8;
+        --accent-emerald: #34d399;
+        --accent-rose: #fb7185;
+        --accent-amber: #fbbf24;
+        --border-color: #334155;
+        --radius: 12px;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        line-height: 1.6;
+        padding-bottom: 90px;
+      }
+      header {
+        background: rgba(30, 41, 59, 0.85);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border-color);
+        padding: 16px 24px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .logo-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .logo-badge {
+        background: linear-gradient(135deg, var(--accent-amber), var(--accent-rose));
+        color: #0f172a;
+        font-weight: 800;
+        font-size: 13px;
+        padding: 4px 10px;
+        border-radius: 9999px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      h1 { font-size: 18px; font-weight: 700; }
+      nav.suite-nav {
+        display: flex;
+        gap: 8px;
+        background: var(--bg-secondary);
+        padding: 10px 24px;
+        border-bottom: 1px solid var(--border-color);
+        overflow-x: auto;
+      }
+      .nav-link {
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: 8px;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+        white-space: nowrap;
+      }
+      .nav-link:hover, .nav-link.active {
+        background: rgba(56, 189, 248, 0.15);
+        color: var(--accent-sky);
+        border-color: rgba(56, 189, 248, 0.3);
+      }
+      main {
+        max-width: 1080px;
+        margin: 28px auto;
+        padding: 0 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+      .section-box {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .box-title {
+        font-size: 16px;
+        font-weight: 700;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .badge-test {
+        font-size: 11px;
+        padding: 3px 8px;
+        border-radius: 6px;
+        background: rgba(251, 191, 36, 0.15);
+        color: var(--accent-amber);
+        font-weight: 600;
+      }
+      .box-desc {
+        font-size: 13px;
+        color: var(--text-secondary);
+      }
+
+      /* Highlighted test paragraph */
+      .target-passage {
+        padding: 16px 20px;
+        background: rgba(15, 23, 42, 0.6);
+        border-left: 4px solid var(--accent-sky);
+        border-radius: 0 8px 8px 0;
+        font-size: 15px;
+        line-height: 1.7;
+        user-select: text;
+      }
+      .target-sentence {
+        background: rgba(56, 189, 248, 0.15);
+        color: var(--accent-sky);
+        padding: 2px 4px;
+        border-radius: 4px;
+        font-weight: 600;
+      }
+
+      /* Code block */
+      .code-snippet {
+        background: #090d16;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 14px 18px;
+        font-family: monospace;
+        font-size: 13px;
+        color: #e2e8f0;
+        user-select: text;
+      }
+
+      /* Table selection */
+      .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      .data-table th, .data-table td {
+        border: 1px solid var(--border-color);
+        padding: 10px 14px;
+        text-align: left;
+        user-select: text;
+      }
+      .data-table th { background: var(--bg-tertiary); color: var(--text-secondary); }
+
+      /* Live Inspector Dashboard */
+      .inspector-dashboard {
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid var(--accent-amber);
+        border-radius: var(--radius);
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .inspector-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .inspector-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--accent-amber);
+      }
+      .selection-preview-box {
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 12px 16px;
+        font-family: monospace;
+        font-size: 14px;
+        color: var(--text-primary);
+        min-height: 48px;
+        word-break: break-all;
+      }
+      .metrics-row {
+        display: flex;
+        gap: 20px;
+        font-size: 12px;
+        font-family: monospace;
+        color: var(--text-secondary);
+      }
+      .btn-copy {
+        background: var(--accent-amber);
+        color: #0f172a;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        width: fit-content;
+      }
+
+      /* Live Event Dock */
+      .event-dock {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 56px;
+        background: rgba(15, 23, 42, 0.94);
+        backdrop-filter: blur(16px);
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        padding: 0 24px;
+        gap: 16px;
+        z-index: 1000;
+        font-family: monospace;
+        font-size: 12px;
+      }
+      .dock-label {
+        font-weight: 700;
+        color: var(--text-secondary);
+        white-space: nowrap;
+      }
+      .event-ticker {
+        flex: 1;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        color: var(--accent-amber);
+      }
+      .badge-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent-emerald);
+        margin-right: 6px;
+        box-shadow: 0 0 8px var(--accent-emerald);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo-group">
+        <span class="logo-badge">Select Text</span>
+        <h1>Agent DOM Text Selection Test Suite</h1>
+      </div>
+      <div id="selectionLength" style="font-family: monospace; font-size: 12px; color: var(--accent-amber);">
+        Selected: 0 chars
+      </div>
+    </header>
+
+    <nav class="suite-nav" aria-label="Mouse Test Pages">
+      <a class="nav-link" href="index.html">Dashboard Hub</a>
+      <a class="nav-link" href="click.html">1. Click Suite</a>
+      <a class="nav-link" href="move.html">2. Move & Hover</a>
+      <a class="nav-link" href="scroll.html">3. Scroll Suite</a>
+      <a class="nav-link active" href="select.html">4. Select Text</a>
+      <a class="nav-link" href="edit.html">5. Text Editing</a>
+      <a class="nav-link" href="drag.html">6. Drag & Sliders</a>
+    </nav>
+
+    <main>
+      <!-- Live Selection Inspector Dashboard -->
+      <section class="inspector-dashboard" aria-label="Selection Inspector">
+        <div class="inspector-header">
+          <span class="inspector-title">Trình Kiểm Tra Vùng Chọn Trực Tiếp (Live Selection Inspector)</span>
+          <span id="targetStatusPill" class="badge-test" style="background: rgba(148, 163, 184, 0.2); color: var(--text-secondary);">NO SELECTION</span>
+        </div>
+        <div class="selection-preview-box" id="selectionDisplay">
+          (Chưa có văn bản nào được bôi đen...)
+        </div>
+        <div class="metrics-row">
+          <span>Ký tự: <strong id="metricChars" style="color: var(--accent-sky);">0</strong></span>
+          <span>Node đầu: <code id="metricStartNode">--</code></span>
+          <span>Offset: <code id="metricOffsets">--</code></span>
+        </div>
+        <button type="button" class="btn-copy" id="btnCopySelection">Sao Chép Vào Clipboard</button>
+      </section>
+
+      <!-- Section 1: Standard Article Selection -->
+      <section class="section-box" id="sec-passage">
+        <div class="box-title">
+          <span>1. Bôi Đen Đoạn Văn Bản (Paragraph Text Selection)</span>
+          <span class="badge-test">browser_select_text</span>
+        </div>
+        <p class="box-desc">Agent sử dụng công cụ <code>browser_select_text</code> để bôi đen chính xác câu trích dẫn màu xanh bên dưới.</p>
+
+        <div class="target-passage" id="passageMain">
+          Khi AI Agent tương tác với trình duyệt web, việc trích xuất thông tin đòi hỏi khả năng chọn vùng chữ thực tế.
+          <span class="target-sentence" id="targetSentence1">Hydra Engine delivers subpixel virtual cursor tracking.</span>
+          Thao tác bôi đen này kích hoạt đầy đủ Selection API của trình duyệt và cho phép clipboard sao chép dữ liệu chính xác.
+        </div>
+      </section>
+
+      <!-- Section 2: Code Snippet Selection -->
+      <section class="section-box" id="sec-code">
+        <div class="box-title">
+          <span>2. Bôi Đen Dòng Lệnh Mã Nguồn (Code Block Selection)</span>
+          <span class="badge-test">code range</span>
+        </div>
+        <p class="box-desc">Bôi đen câu lệnh kiểm thử bên dưới để thực thi qua CLI:</p>
+
+        <pre class="code-snippet" id="codeBlock"><span id="codeCommand">pnpm hydra --profile headless "inspect browser session"</span></pre>
+      </section>
+
+      <!-- Section 3: Data Table Cell Selection -->
+      <section class="section-box" id="sec-table">
+        <div class="box-title">
+          <span>3. Bôi Đen Ô Bảng Dữ Liệu (Table Cell Selection)</span>
+          <span class="badge-test">table cell</span>
+        </div>
+        <p class="box-desc">Kiểm thử bôi đen một ô cụ thể trong bảng dữ liệu đa cột.</p>
+
+        <table class="data-table" id="metricsTable">
+          <thead>
+            <tr>
+              <th>Tính Năng Chuột</th>
+              <th>Mục Tiêu Độ Trễ</th>
+              <th>Sai Số Tọa Độ (Error Delta)</th>
+              <th>Mã Xác Thực</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Di chuyển Bézier ($N=4$)</td>
+              <td>&lt; 650ms</td>
+              <td>0.00px</td>
+              <td><span id="targetTokenCell">TOKEN-BEZIER-99</span></td>
+            </tr>
+            <tr>
+              <td>Bôi chữ thực DOM</td>
+              <td>&lt; 450ms</td>
+              <td>0.00px</td>
+              <td>TOKEN-SELECT-88</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+
+    <!-- Live Event Dock -->
+    <div class="event-dock" aria-live="polite">
+      <span class="dock-label"><span class="badge-indicator"></span>LIVE EVENT DOCK:</span>
+      <span class="event-ticker" id="eventTicker">Sẵn sàng ghi nhận sự kiện bôi đen text...</span>
+    </div>
+
+    <script>
+      const eventTicker = document.getElementById('eventTicker');
+      const selectionDisplay = document.getElementById('selectionDisplay');
+      const selectionLength = document.getElementById('selectionLength');
+      const metricChars = document.getElementById('metricChars');
+      const metricStartNode = document.getElementById('metricStartNode');
+      const metricOffsets = document.getElementById('metricOffsets');
+      const targetStatusPill = document.getElementById('targetStatusPill');
+
+      function logEvent(type, detail) {
+        eventTicker.textContent = `[${new Date().toLocaleTimeString()}] ${type.toUpperCase()} -> ${detail}`;
+      }
+
+      document.addEventListener('selectionchange', () => {
+        const sel = window.getSelection();
+        const text = sel?.toString() ?? '';
+        const trimmed = text.trim();
+
+        if (text.length > 0) {
+          selectionDisplay.textContent = `"${text}"`;
+          selectionLength.textContent = `Selected: ${text.length} chars`;
+          metricChars.textContent = text.length;
+
+          if (sel.rangeCount > 0) {
+            const range = sel.getRangeAt(0);
+            metricStartNode.textContent = range.startContainer.nodeName;
+            metricOffsets.textContent = `${range.startOffset} -> ${range.endOffset}`;
+          }
+
+          if (trimmed === 'Hydra Engine delivers subpixel virtual cursor tracking.') {
+            targetStatusPill.textContent = 'TARGET #1 MATCHED';
+            targetStatusPill.style.background = 'rgba(52, 211, 153, 0.2)';
+            targetStatusPill.style.color = 'var(--accent-emerald)';
+          } else if (trimmed === 'pnpm hydra --profile headless "inspect browser session"') {
+            targetStatusPill.textContent = 'CODE COMMAND MATCHED';
+            targetStatusPill.style.background = 'rgba(52, 211, 153, 0.2)';
+            targetStatusPill.style.color = 'var(--accent-emerald)';
+          } else if (trimmed === 'TOKEN-BEZIER-99') {
+            targetStatusPill.textContent = 'TABLE TOKEN MATCHED';
+            targetStatusPill.style.background = 'rgba(52, 211, 153, 0.2)';
+            targetStatusPill.style.color = 'var(--accent-emerald)';
+          } else {
+            targetStatusPill.textContent = 'ACTIVE SELECTION';
+            targetStatusPill.style.background = 'rgba(56, 189, 248, 0.2)';
+            targetStatusPill.style.color = 'var(--accent-sky)';
+          }
+
+          logEvent('selectionchange', `Selected "${trimmed.substring(0, 32)}..." (${text.length} chars)`);
+        } else {
+          selectionDisplay.textContent = '(Chưa có văn bản nào được bôi đen...)';
+          selectionLength.textContent = 'Selected: 0 chars';
+          metricChars.textContent = '0';
+          metricStartNode.textContent = '--';
+          metricOffsets.textContent = '--';
+          targetStatusPill.textContent = 'NO SELECTION';
+          targetStatusPill.style.background = 'rgba(148, 163, 184, 0.2)';
+          targetStatusPill.style.color = 'var(--text-secondary)';
+        }
+      });
+
+      document.getElementById('btnCopySelection').addEventListener('click', async () => {
+        const text = window.getSelection()?.toString();
+        if (text) {
+          try {
+            await navigator.clipboard.writeText(text);
+            logEvent('clipboard_copy', `Copied "${text.substring(0, 24)}..." to clipboard`);
+            alert(`Đã sao chép vào clipboard:\n"${text}"`);
+          } catch (e) {
+            logEvent('clipboard_error', String(e));
+          }
+        } else {
+          alert('Chưa có văn bản nào được bôi đen để sao chép.');
+        }
+      });
+    </script>
+  </body>
+</html>

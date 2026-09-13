@@ -13,7 +13,7 @@ Mount the plugin in a Hydra profile or patch:
 
 Recall, exact reads, and approval-gated saves work with no user-facing settings. The settings document intentionally contains no vault path, MCP URL, or token.
 
-Earlier releases accepted an optional `targetDomain` setting that gated Browser-evidence capture into per-domain page/control/action notes. That capture path has been removed: Browser tools and Obsidian knowledge are independent plugins now, and `targetDomain` is no longer read from settings or composition config. If your settings document still has an `obsidian-knowledge.targetDomain` entry, it is ignored and can be deleted. Existing vault notes, including any previously captured page/control/action notes, are left untouched; nothing needs to be migrated.
+Existing vault notes, including page/control/action notes, remain untouched. Obsidian settings do not restrict browser navigation or trigger evidence capture.
 
 The Web app exposes the write-only `OBSIDIAN_API_KEY` credential under **Settings → Plugins → MCP**. The credential stays outside the settings document, and the MCP endpoint remains deployment configuration.
 

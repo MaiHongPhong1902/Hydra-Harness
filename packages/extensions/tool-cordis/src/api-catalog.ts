@@ -3201,7 +3201,7 @@ export const EVENT_API: readonly EventApiEntry[] = [
 export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'ActionResult',
-    declaration: 'export interface ActionResult {\n    success: boolean;\n    message: string;\n}',
+    declaration: 'export interface ActionResult {\n    success: boolean;\n    message: string;\n    selectedText?: string;\n}',
   },
   {
     name: 'AdapterRegistrationHandle',
@@ -3385,7 +3385,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'BrowserAction',
-    declaration: 'export type BrowserAction = (({\n    method: \'get_browser_state\';\n} | {\n    method: \'navigate\';\n    url: string;\n} | {\n    method: \'back\';\n} | {\n    method: \'forward\';\n} | {\n    method: \'press\';\n    key: string;\n} | {\n    method: \'click_element\';\n    index?: number;\n    name?: string;\n} | {\n    method: \'hover_element\';\n    index?: number;\n    name?: string;\n} | {\n    method: \'drag_element\';\n    startIndex: number;\n    endIndex: number;\n} | {\n    method: \'drop\';\n    index: number;\n    filePaths: string[];\n    data: Record<string, string>;\n} | {\n    method: \'resize\';\n    width: number;\n    height: number;\n} | {\n    method: \'handle_dialog\';\n    accept: boolean;\n    promptText?: string;\n} | {\n    method: \'console_messages\';\n    level: \'error\' | \'warning\' | \'info\' | \'debug\';\n} | {\n    method: \'network_requests\';\n    includeStatic: boolean;\n} | {\n    method: \'network_request\';\n    index: number;\n    part?: \'request-headers\' | \'request-body\' | \'response-headers\' | \'response-body\';\n} | {\n    method: \'upload_file\';\n    index: number;\n    filePath: string;\n} | {\n    method: \'input_text\';\n    index?: number;\n    name?: string;\n    text: string;\n} | {\n    method: \'select_option\';\n    index?: number;\n    name?: string;\n    text: string;\n} | {\n    method: \'select_text\';\n    index?: number;\n    name?: string;\n    startX?: number;\n    startY?: number;\n    endX?: number;\n    endY?: number;\n    duration?: number;\n    start_x?: number;\n    start_y?: number;\n    end_x?: number;\n    end_y?: number /* …truncated — full shape in source */',
+    declaration: 'export type BrowserAction = (({\n    method: \'get_browser_state\';\n    snapshot?: BrowserSnapshotOptions;\n} | {\n    method: \'navigate\';\n    url: string;\n} | {\n    method: \'back\';\n} | {\n    method: \'forward\';\n} | {\n    method: \'press\';\n    key: string;\n} | {\n    method: \'click_element\';\n    index?: number;\n    name?: string;\n    target?: string;\n} | {\n    method: \'hover_element\';\n    index?: number;\n    name?: string;\n    target?: string;\n} | {\n    method: \'drag_element\';\n    startIndex: number;\n    endIndex: number;\n} | {\n    method: \'drop\';\n    index: number;\n    filePaths: string[];\n    data: Record<string, string>;\n} | {\n    method: \'resize\';\n    width: number;\n    height: number;\n} | {\n    method: \'handle_dialog\';\n    accept: boolean;\n    promptText?: string;\n} | {\n    method: \'console_messages\';\n    level: \'error\' | \'warning\' | \'info\' | \'debug\';\n} | {\n    method: \'network_requests\';\n    includeStatic: boolean;\n    filter?: string;\n} | {\n    method: \'network_request\';\n    index: number;\n    part?: \'request-headers\' | \'request-body\' | \'response-headers\' | \'response-body\';\n} | {\n    method: \'upload_file\';\n    index: number;\n    filePath: string;\n} | {\n    method: \'input_text\';\n    index?: number;\n    name?: string;\n    target?: string;\n    text: string;\n} | {\n    method: \'select_option\';\n    index?: number;\n    name?: string;\n    target?: string;\n    text: string;\n} | {\n    method: \'select_text\';\n    index?: number;\n    name?: string;\n    target?: string;\n    startX?: number; /* …truncated — full shape in source */',
   },
   {
     name: 'BrowserCdpCommandResult',
@@ -3422,6 +3422,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'BrowserScreenshot',
     declaration: 'export interface BrowserScreenshot {\n    mediaType: \'image/png\';\n    data: string;\n    bytes: number;\n    width: number;\n    height: number;\n    tabId: number;\n    url: string;\n    title: string;\n    capturedAt: string;\n}',
+  },
+  {
+    name: 'BrowserSnapshotOptions',
+    declaration: 'export interface BrowserSnapshotOptions {\n    target?: string;\n    depth?: number;\n    boxes?: boolean;\n}',
   },
   {
     name: 'BrowserState',

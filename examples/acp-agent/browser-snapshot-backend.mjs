@@ -41,9 +41,9 @@ class ScriptedChild extends EventEmitter {
   constructor() {
     super()
     createInterface({ input: this.stdin }).on('line', line => {
-      const { id, method } = JSON.parse(line)
+      const { id, method, args } = JSON.parse(line)
       if (method === 'click_element') this.ordered = true
-      this.stdout.write(`${JSON.stringify({ id, ok: true, result: this.answer(method) })}\n`)
+      this.stdout.write(`${JSON.stringify({ id, ok: true, result: this.answer(method, args) })}\n`)
     })
     this.stdin.on('finish', () => this.emit('exit'))
     queueMicrotask(() => this.stdout.write(`${JSON.stringify({ event: 'ready' })}\n`))
@@ -52,13 +52,23 @@ class ScriptedChild extends EventEmitter {
   /**
    * What the Electron main process would reply to one protocol method.
    * @param {string} method - the protocol method name.
+   * @param {Record<string, unknown>} args - projected snapshot or action arguments.
    * @returns {Record<string, unknown>} a state object, or an action report.
    */
-  answer(method) {
+  answer(method, args) {
+    if (method === 'find_element') {
+      if (args.regex === '/Ordered l for Ada/') return { success: this.ordered, message: this.ordered ? 'Found 1 matching node:\n- paragraph [ref=e18]: Ordered l for Ada' : 'No matching accessibility nodes.' }
+      return { success: true, message: 'Found 1 matching node:\n- button "Place order" [ref=e17]' }
+    }
+    if (method === 'network_requests') return { success: true, message: '[3] POST https://shop.test/api/order 200' }
+    if (method === 'network_request') return { success: false, message: 'Request is unavailable or expired. Read browser_network_requests for current indexes.' }
+    if (method === 'select_text') {
+      return { success: true, message: 'Selected text: "Ada".', selectedText: 'Ada' }
+    }
     if (method === 'get_browser_state') {
       return {
         ...PAGE,
-        content: this.ordered ? PAGE.after : PAGE.before,
+        content: args.snapshot === undefined ? (this.ordered ? PAGE.after : PAGE.before) : args.snapshot.target === 'e18' ? '- paragraph [ref=e18]: Ordered l for Ada' : '- button "Place order" [ref=e17]',
         tabs: [{ id: 1, url: PAGE.url, title: PAGE.title, status: 'complete', active: true }],
         tabId: 1,
         activeTabId: 1,

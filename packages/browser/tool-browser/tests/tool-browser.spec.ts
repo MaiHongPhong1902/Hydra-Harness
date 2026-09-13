@@ -1,5 +1,9 @@
+import { saveBrowserArtifact } from '../src/artifact.ts'
 import { EventEmitter } from 'node:events'
 import { realpathSync } from 'node:fs'
+import { mkdtemp, readFile, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { createInterface } from 'node:readline'
 import { PassThrough } from 'node:stream'
 import { fileURLToPath } from 'node:url'
@@ -106,7 +110,9 @@ class ScriptedChild extends EventEmitter implements BrowserChildProcess {
                   ? { echo: args.params }
                   : method === 'cdp_read_events'
                     ? cdpEventPage(args)
-                    : { success: true, message: `did ${method}` }
+                    : method === 'select_text'
+                      ? { success: true, message: 'Selected text: "Ada".', selectedText: 'Ada' }
+                      : { success: true, message: `did ${method}` }
       this.stdout.write(`${JSON.stringify({ id, ok: true, result })}\n`)
     })
     queueMicrotask(() => this.stdout.write(`${JSON.stringify({ event: 'ready' })}\n`))
@@ -256,9 +262,11 @@ describe('tool-browser registration', () => {
     expect(section?.text).toBe(BROWSER_PROMPT_TEXT)
   })
 
-  it('registers screenshot only while a durable attachment store is mounted', async () => {
-    const { ctx } = await harness({}, {}, { attachments: false })
-    expect(ctx.tools.get('browser_screenshot')).toBeUndefined()
+  it('keeps file capture available without an attachment store but refuses image delivery', async () => {
+    const { ctx, call, children } = await harness({}, {}, { attachments: false })
+    expect(ctx.tools.get('browser_screenshot')).toBeDefined()
+    expect((await call('browser_screenshot', {})).isError).toBe(true)
+    expect(children).toHaveLength(0)
   })
 
   it('keeps prompt and schemas byte-stable across a browser call', async () => {
@@ -591,7 +599,9 @@ describe('browser tool calls', () => {
   it('forwards select_text with explicit coordinates or named targets and rejects empty arguments', async () => {
     const { children, call } = await harness()
     await call('browser_select_text', { start_x: 10, start_y: 20, end_x: 100, end_y: 20 })
-    await call('browser_select_text', { name: 'Title' })
+    const selection = await call('browser_select_text', { name: 'Title' })
+    expect(selection.isError).toBe(false)
+    expect(text(selection.content)).toContain('Selected text: "Ada".')
     expect(children[0]?.requests.filter(request => request.method !== 'get_browser_state')).toEqual([
       { method: 'select_text', args: { startX: 10, startY: 20, endX: 100, endY: 20 } },
       { method: 'select_text', args: { name: 'Title' } },
@@ -599,6 +609,11 @@ describe('browser tool calls', () => {
     const empty = await call('browser_select_text', {})
     expect(empty.isError).toBe(true)
     expect(text(empty.content)).toContain('provide index, a non-empty name, or start and end coordinates')
+    for (const coordinates of [{ start_x: 10, end_x: 100 }, { start_x: -1, start_y: 20, end_x: 100, end_y: 20 }]) {
+      const invalid = await call('browser_select_text', coordinates)
+      expect(invalid.isError).toBe(true)
+      expect(text(invalid.content)).toContain('all four finite, non-negative coordinates')
+    }
   })
 
   it('rejects a blank key before touching the page', async () => {
@@ -925,5 +940,85 @@ describe('browser snapshot ranking', () => {
     expect(formatBrowserOutput(multi)).toContain('Open tabs:')
     expect(multi.header).toContain('1.5 pages above')
     expect(multi.header).not.toContain('pages below')
+  })
+})
+
+
+describe('selective browser output', () => {
+  it('omits diagnostics snapshots, preserves targets, and resets unseen diff baselines', async () => {
+    const { call, children } = await harness()
+    try {
+      await call('browser_state', {})
+      const found = await call('browser_find', { regex: '/Order/i' })
+      expect(text(found.content)).toContain('did find_element')
+      expect(text(found.content)).not.toContain(PAGE)
+      expect(found.meta).not.toHaveProperty('browser')
+      const click = await call('browser_click', { target: 'e17' })
+      expect(children[0]?.requests).toContainEqual({ method: 'click_element', args: { target: 'e17' } })
+      expect(text(click.content)).toContain('id=submit')
+      expect(text(click.content)).not.toContain('unchanged')
+      await call('browser_snapshot', { target: '#form', depth: 2, boxes: true })
+      expect(children[0]?.requests).toContainEqual({ method: 'get_browser_state', args: { waitForReady: true, snapshot: { target: '#form', depth: 2, boxes: true } } })
+      await call('browser_tabs', { action: 'list' })
+      expect(text((await call('browser_click', { target: '#submit' })).content)).toContain('id=submit')
+      for (const args of [{ text: 'x', regex: 'x' }, { regex: '[' }, { text: '' }]) expect((await call('browser_find', args)).isError).toBe(true)
+      expect((await call('browser_click', { target: '#submit', index: 1 })).isError).toBe(true)
+      expect((await call('browser_snapshot', { depth: -1 })).isError).toBe(true)
+    } finally { await call('browser_close', {}) }
+  })
+
+  it('requires explicit observation with snapshotMode none while retaining failure and readiness evidence', async () => {
+    const { call } = await harness({ snapshotMode: 'none' })
+    try {
+      const action = text((await call('browser_click', { name: 'Order' })).content)
+      expect(action).toContain('Snapshot omitted')
+      expect(action).not.toContain('id=submit')
+      expect(text((await call('browser_state', {})).content)).toContain('id=submit')
+      const value = toValue({ action: { success: false, message: 'Control unavailable' }, state: {
+        url: 'https://test.invalid', title: 'Test', header: '', content: '', footer: 'Open confirm dialog: Continue?',
+        tabs: [], tabId: 1, activeTabId: 1, settled: false, capturedAt: 'now',
+      } }, 100)
+      expect(formatBrowserOutput({ ...value, response: 'none' })).toMatch(/transient evidence[\s\S]*Action failed[\s\S]*Open confirm dialog/)
+    } finally { await call('browser_close', {}) }
+  })
+
+  it('saves diagnostics and PNGs as private files for text-only models without image blocks', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'hydra-browser-output-test-'))
+    const { call, children } = await harness({ outputDir: directory, imageResponses: 'omit' }, {}, { attachments: false, imageInput: false })
+    try {
+      for (const [tool, args, expected] of [
+        ['browser_network_requests', { filter: '/api/i', filename: 'network.txt' }, 'did network_requests'],
+        ['browser_network_request', { index: 3, part: 'response-body', filename: 'body.json' }, 'did network_request'],
+        ['browser_snapshot', { filename: 'snapshot.txt' }, PAGE],
+        ['browser_console_messages', { filename: 'console.txt' }, 'did console_messages'],
+      ] as const) {
+        const result = await call(tool, args)
+        expect(result.isError).toBe(false)
+        const value = result.value as unknown as ToolBrowser.BrowserToolValue
+        expect(value.filename).toBeDefined()
+        expect(await readFile(value.filename ?? '', 'utf8')).toBe(expected)
+        expect(text(result.content)).not.toContain(expected)
+      }
+      expect(children[0]?.requests).toContainEqual({ method: 'console_messages', args: { level: 'error' } })
+      expect(children[0]?.requests).toContainEqual({ method: 'network_requests', args: { includeStatic: false, filter: '/api/i' } })
+      for (const args of [{ filename: 'evidence.png' }, {}]) {
+        const result = await call('browser_screenshot', args)
+        expect(result.isError).toBe(false)
+        const value = result.value as unknown as ToolBrowser.BrowserScreenshotValue
+        expect(await readFile(value.filename ?? '')).toEqual(PNG_1X1)
+        expect(result.content.some(block => block.type === 'image')).toBe(false)
+        expect(value.image.attachmentId).toBeUndefined()
+      }
+      const first = await saveBrowserArtifact(directory, 'same.txt', 'first', new AbortController().signal)
+      const second = await saveBrowserArtifact(directory, 'same.txt', 'second', new AbortController().signal)
+      expect(first).not.toBe(second)
+      expect(await readFile(first, 'utf8')).toBe('first')
+      const controller = new AbortController()
+      controller.abort()
+      await expect(saveBrowserArtifact(directory, 'aborted.txt', 'data', controller.signal)).rejects.toThrow()
+      for (const filename of ['../escape.txt', 'C:\\escape.txt', 'CON.txt', 'trailing.', '']) {
+        expect((await call('browser_snapshot', { filename })).isError).toBe(true)
+      }
+    } finally { await call('browser_close', {}); await rm(directory, { recursive: true, force: true }) }
   })
 })

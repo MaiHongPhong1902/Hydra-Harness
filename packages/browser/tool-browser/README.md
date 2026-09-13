@@ -6,9 +6,13 @@ The split is the usual consumer/seam one. Everything the model can see — schem
 
 ## What one call returns
 
+`browser_select_text` reports the completed selection in `action.selectedText` and the rendered action message. Element targets select their full contents; coordinate selection requires all four finite, non-negative CSS pixel coordinates.
+
 Page action tools answer with the same object, and the model reads it as one text block: what the action did, the controlled tab list, the snapshot tab, then the accessibility tree it left behind. The structured value uses `tabId` for that snapshot and its valid refs, `activeTabId` for the tab selected in the visible chrome, plus `settled`, `capturedAt`, `truncated`, and `compact`. An exhausted readiness wait is transient evidence, not a UI verdict.
 
-`browser_state`, `browser_snapshot`, and `browser_navigate` return a full snapshot, still bounded by `maxStateChars` (default 16,000). Every other browser result is compact: explicitly ignored accessibility nodes are omitted, then controls are ranked, the header is shortened, a one-line tab summary is used when only one tab is open, and the element-list budget is 4,000 characters. A small same-tab change is returned as a revision diff with added, changed, and removed indexed lines. An empty diff keeps the previous indexes valid; large changes and navigation return a full snapshot. Compact results still carry valid PageController indexes; omitted lines never renumber them.
+`browser_state` and navigation return a full numeric snapshot bounded by `maxStateChars` (default 16,000); ordinary actions return a compact 4,000-character snapshot or a smaller same-tab diff. Numeric indexes are preserved during filtering/ranking. `browser_snapshot` uses Playwright's distilled tree, with optional `target`, `depth`, and `boxes`. A positive `depth` limits tree depth; zero or omission means unlimited. Its `[ref=e17]` addresses `target:"e17"`; a numeric `[17]` addresses `index:17`. The namespaces are independent. Click, hover, type, option/text selection, and form filling also accept unique CSS selectors through `target`.
+
+`browser_find` accepts exactly one of `text`, `regex`, or the `query` text alias and returns snippets with observed Playwright refs. Find and console/network diagnostics omit trailing snapshots. Network lists accept a URL regex `filter`, keep stable request indexes, and feed `browser_network_request` for selected headers or bodies. Regex accepts a plain pattern or `/pattern/i`.
 
 ```
 did navigate
@@ -26,11 +30,13 @@ Interactive elements from top layer of the current page inside the viewport:
 ... 1500 pixels below - scroll to see more ...
 ```
 
-There is no separate "read the page" step after an action. `PageController` assigns element indices while it builds the tree, so an action that did not end with a fresh snapshot for the same tab would leave the model holding indices that no longer address anything. `browser_state` also waits boundedly for an empty SPA or SSO transition to become usable; use `browser_wait` once for later asynchronous changes.
+`snapshotMode:none` omits automatic snapshots while preserving internal capture and short verification guidance. Read `browser_state` before reusing numeric indexes; verify action effects with `browser_find` or scoped `browser_snapshot`. Suppressed, scoped, saved, truncated, and transient snapshots never establish an unseen diff baseline. Readiness and dialog notices survive omission.
 
 An action the page rejects — a missing index, a `select` that has no such option — comes back as `{success: false, message}` rendered into that same text block, not as a tool error. It is a fact the model can act on, and raising it as an error would only cost a retry.
 
-`browser_screenshot` is the one different result. It has no arguments and exists only while durable attachments are mounted. After confirming the current model route accepts image input, it captures the selected HTTP(S) tab's visible viewport, commits the bounded PNG through `ctx.attachments`, and returns attachment metadata plus an image block. Raw base64 never enters tool or session output. Switch tabs first when another tab is intended; screenshots cannot target a background tab, Browser chrome, a crop, or a full page and supply no action coordinates.
+`browser_screenshot` and `browser_take_screenshot` capture the selected HTTP(S) viewport. Without omission they require image-capable routing and save PNG attachments before returning an image block. Supplying `filename`, or configuring `imageResponses:omit`, writes PNG evidence without attachment admission or model image input. Screenshot metadata and the returned path are logged; raw base64 never enters the session. Background tabs, browser chrome, crops, and full pages are unsupported.
+
+`browser_snapshot`, console messages, and network list/detail also accept `filename`. A plain basename is saved in an exclusively created directory under `outputDir`; paths, reserved Windows names, and overwrite targets are rejected. The returned absolute path replaces the payload. Files retain the source output before the model's character cap; diagnostic retention still caps it at 64 Ki characters with an explicit notice. Failed diagnostics remain failures and create no file. Temporary artifacts are host-cleanable; copy required evidence into the final deliverable.
 
 ## Config
 
@@ -38,10 +44,14 @@ An action the page rejects — a missing index, a `select` that has no such opti
 | --- | --- | --- |
 | `maxStateChars` | `16000` | Cap on the element list one call returns, matching `tool-str-replace-editor`'s `maxOutputChars`. |
 | `timeoutMs` | `60000` | Cooperative tool-call budget for one browser action. |
+| `snapshotMode` | `full` | `none` omits automatic page snapshots; explicit reads remain available. |
+| `imageResponses` | `allow` | `omit` saves screenshots without image blocks. |
+| `consoleLevel` | `error` | Default diagnostic severity, overridable per call. |
+| `outputDir` | OS temp directory + `hydra-browser-output` | Absolute root for private per-call artifacts. |
 
 `experimentalScriptExecution` belongs to `@hydra/harness-browser-electron`, not this consumer. When the host enables it, `browser_execute_javascript` appears; it runs in PageController's isolated document world and is deliberately not a page-world scripting escape hatch.
 
-Only `content` is cut. The header and footer are short, fixed-shape, and are the only way the model learns there is more page below — cutting them to fit the cap would hide exactly the thing that makes the cut recoverable.
+The model cap bounds snapshot content and action/diagnostic messages; truncation includes recovery guidance. Headers, readiness, and dialog evidence remain visible. Find and diagnostics do not append the page tree.
 
 ## Navigation
 
@@ -49,13 +59,19 @@ Only `content` is cut. The header and footer are short, fixed-shape, and are the
 
 The same policy covers direct loads, links, cross-origin redirects, the omnibox, the configured home page, and `window.open()`. An allowed popup is adopted into a controlled tab; use `browser_switch_tab` with the returned id. Back, Forward, and Reload do not ask again for existing history entries, but a remembered exact-origin block still vetoes them. See [the seam's security section](../browser-electron/README.md#security) for the persistent-profile risk.
 
-Every page-local browser tool accepts optional `tab_id`. Omission uses the selected tab and stays exclusive; an explicit id keeps the action and trailing snapshot bound to that tab. The scheduler may overlap calls for different explicit tabs, while the seam preserves call order within each tab. `browser_open_tab`, `browser_switch_tab`, `browser_close_tab`, and argument-free `browser_screenshot` remain window-wide lifecycle barriers.
+Every page-local browser tool accepts optional `tab_id`. Omission uses the selected tab and stays exclusive; an explicit id keeps the action and trailing snapshot bound to that tab. The scheduler may overlap calls for different explicit tabs, while the seam preserves call order within each tab. `browser_open_tab`, `browser_switch_tab`, `browser_close_tab`, and `browser_screenshot` remain window-wide lifecycle barriers.
 
 ## Sensitive history and Full CDP
 
 `browser_history_search` returns at most 20 case-insensitive title/URL matches from the app-owned Browser ledger. The Browser owner applies the separate history-access policy first: `allow` proceeds, `block` denies, and `ask` requires an `allowed-once` approval bound to the exact query and tool call. This model path is separate from the user's history manager in Settings.
 
 `browser_cdp_command` and `browser_cdp_read_events` exist only while both the deployment ceiling and the user's Full CDP opt-in are enabled. Every call still requires a fresh approval bound to the selected controlled tab, its HTTP(S) origin, and the requested command or event read; cross-target domains are unavailable and values are bounded. Turning the effective setting off removes both schemas again.
+
+## Separate coding/test automation
+
+The default Browser uses Hydra's controlled Electron tabs and permissions. It produces no Playwright codegen text. Desktop rendering remains the default; viewport resize is available, while mobile emulation is not a token-saving preset.
+
+For an independently requested browser coding/test deliverable, Microsoft's [Playwright CLI + Skills](https://github.com/microsoft/playwright-cli) is a separate workflow: `npm install -g @playwright/cli@latest`, then `playwright-cli install --skills` in the intended project. Its sessions and cookies belong to that workflow, not `ctx.browsers`. Do not use it to bypass a Hydra Browser denial.
 
 ## Model Experience
 
@@ -68,59 +84,27 @@ One section, `tool:browser`, at order 115 — after the terminal guidance and be
 ##### Browser accessibility guidance
 
 ```markdown
-The browser tools drive one embedded browser window. It opens on your first browser call and closes when the session ends; browser_close releases it explicitly. When the host configures a browser home page, it loads before the first result. For a direct request about that website with no explicit URL, call `browser_state` first instead of asking the user to choose a page. Normal browser results represent the page as text; when `browser_screenshot` is available, it explicitly returns one visual snapshot.
+The browser tools drive Hydra's embedded browser, which opens on the first call and closes with the session or browser_close. When a home page is configured and the task concerns it without an explicit URL, call browser_state first. The embedded Browser is the default for interactive website work. A Browser-settings denial is a user security decision: report it and direct the user to Settings > Browser; never bypass it with Playwright, Puppeteer, Selenium, or another runtime. Use a separate browser testing stack only for an independently requested coding/testing deliverable.
 
-The embedded Browser is the default for interactive website work. A Browser-settings denial is a user security decision: report it and direct the user to Settings > Browser; never work around it by proposing or setting up Playwright, Puppeteer, Selenium, or another browser runtime. Create a separate browser test stack only when the user independently asks for that deliverable.
+Prefer browser_find with text or regex to locate controls: it returns matching accessibility snippets, ancestor context, and observed Playwright refs without a trailing snapshot. Text matching is case-insensitive; regex accepts a pattern or /pattern/i. Narrow broad searches when output is truncated. browser_snapshot returns Playwright's distilled accessibility tree and accepts target (ref or unique CSS selector), depth, boxes, and filename. Use a scoped snapshot when only one region matters.
 
-Hydra decides every browser action. The browser supplies a Playwright-style accessibility snapshot: roles, accessible names, and states carry the numbered refs used by click/type/select/scroll. PageController remains a private DOM execution fallback; do not treat an in-page engine as a second agent. Prefer `browser_find`, named click/type/select, and `browser_fill` for forms and labeled controls. Use `browser_snapshot` when you need the full accessibility tree. `browser_page_agent_run` is only for an explicit user request to run the upstream PageAgent engine; do not poll it for ordinary work.
+There are two independent ref formats. browser_state and ordinary trailing snapshots use numeric PageController indexes such as [12]<button>Save</button>, passed as index:12. browser_find and browser_snapshot use Playwright refs such as [ref=e17], passed unchanged as target:"e17". Never turn e17 into index:17. Click, hover, type, select-option, select-text, and fill accept target for an observed Playwright ref or a unique CSS selector, or index/name. name matches a label, accessible button/link name, placeholder, or id. Never guess refs; ref validity is local to the observed tab and document. If a target expires, find it again. CSS selectors must resolve uniquely.
 
-`browser_state`, `browser_snapshot`, and `browser_navigate` return a full snapshot. Other page action results are compact: ignored accessibility nodes are omitted, controls are ranked, the header is shorter, and the element-list budget is 4k. Small same-tab changes use a revision diff with added, changed, and removed lines; large changes and navigation return a full snapshot. An empty diff keeps previous indexes valid. Call `browser_state` when a control is missing.
+Numeric indexes are reassigned during state capture. Use only indexes from the latest visible state for that tab, or from its unchanged/diff baseline. Normal action snapshots are compact (4k characters); full reads and navigation use the configured full budget. Filtering and ranking preserve indexes. Small changes use added/changed/removed lines. Hidden, scoped, saved, truncated, or transient snapshots cannot establish an unseen diff baseline. When snapshotMode is none, actions return a short report and verification notice; internal capture still updates indexes, so read browser_state before using numeric indexes again. Verify effects with browser_find or browser_snapshot instead of assuming a successful click completed the task.
 
-Every browser result lists the controlled tabs and names the snapshot tab before the same three page blocks: the current URL and scroll position; the list of interactive elements; and a footer saying whether content continues below. The structured result carries `tabId` for the snapshot and its valid indices, `activeTabId` for the tab selected in the visible chrome, plus `settled` and `capturedAt`. A result with `settled: false` is transient evidence, never proof that a feature or control is absent; call `browser_wait` once before deciding.
+Results identify tabId, activeTabId, settled, and capturedAt. A readiness timeout is transient evidence, never proof a control is absent; use browser_wait once before deciding. Open dialogs remain visible even when snapshots are omitted; answer with browser_handle_dialog. An action rejection appears as a failure message: adapt instead of repeating it. browser_wait_for waits for text to appear/disappear; browser_wait pauses 1–10 seconds. Do not busy-poll browser_state.
 
-Elements are listed as [index]<type>text</type>:
+Use browser_open_tab, browser_switch_tab, and browser_close_tab with observed tab ids. A page-local tool's tab_id pins its target while other tabs are selected. Different explicitly targeted tabs may run concurrently; same-tab actions remain ordered. Adopted popups appear in Hydra's tab inventory. browser_tabs returns tab inventory only; read or find controls before acting on a newly selected page.
 
-[33]<textbox>Requester</textbox>
-[35]<button expanded="false">Submit form</button>
+browser_type replaces the entire field value and does not submit. browser_fill fills several fields and re-resolves each target; checkbox/radio values are "true" or "false". Submit with browser_click or browser_press Enter. browser_select_text selects a target's contents or a range using all four CSS pixel coordinates and reports the actual selectedText. Scroll vertically/horizontally to refresh numeric indexes for offscreen content. browser_hover and browser_drag perform pointer gestures.
 
-- Only elements with a numeric [index] can be acted on, and only indexes the most recent result for that same tab listed; when that result reported unchanged content, the indexes from the previous result for that tab are still the current ones.
-- Text without [] is page content, not something you can act on.
-- Compact snapshots rank `*[` lines first, then typical form controls, then the rest.
+browser_screenshot and browser_take_screenshot capture the selected HTTP(S) viewport; switch to the intended tab first. A filename, or imageResponses:omit, saves PNG evidence and returns a path without an image block, including with text-only models. Image delivery requires a mounted attachment store and an image-capable model. Screenshots cannot target background tabs, browser chrome, a crop, or a full page. Use them when layout matters; continue acting through observed refs, names, or selectors.
 
-Indexes are reassigned on every action. Never reuse an index from an earlier result — read the one the last call returned. Click, type, and select accept either that index or a `name` matching the control's visible label, accessible name, placeholder, or id. `browser_find` locates a query in the current snapshot and may scroll once to bring a match into view. `browser_fill` types several named or indexed fields in one call and re-resolves each field after the previous one.
+browser_console_messages uses the configured consoleLevel (error by default), with a per-call level override. browser_network_requests lists retained requests with optional URL regex filter; use its observed index with browser_network_request and select the needed headers/body part. Diagnostics have bounded retention and may expire. Their results omit trailing snapshots. These diagnostic tools and browser_snapshot accept filename to save output instead of placing it in context. Filenames are plain basenames; the returned absolute path is in a private per-call output directory. Read only the needed section of a saved file. Temporary output may be cleaned by the host; copy evidence into the intended deliverable when it must persist.
 
-Ordinary controls are listed inside the visible viewport; HTML file inputs are also listed when a site hides them. For other controls outside the viewport, use `browser_scroll` vertically or `browser_scroll_horizontally` for wide pages and tables, then act on the indexes the scroll returned. `browser_find` is the cheaper way to look for a named control before scrolling blindly.
+browser_upload_file selects an existing readable absolute local file through an indexed HTML file input, including hidden inputs. File selection can upload immediately; submission is separate. browser_drop accepts MIME text or local files. Uploads permissions apply to file selection/drop; never substitute a different file or bypass a denial. Use an artifact created for the task when appropriate, and inspect the result before continuing.
 
-Use `browser_open_tab`, `browser_switch_tab`, and `browser_close_tab` with ids from the latest tab list. Page-local tools accept an optional `tab_id`; provide it to keep the operation bound to that tab even while another tab is selected. Independent calls with different explicit `tab_id` values may run in parallel, but actions for one tab remain ordered because every result replaces that tab's valid element indices. A link that opens a new tab is adopted into this same controlled window; inspect the returned tab inventory instead of assuming the original tab changed.
-
-Use `browser_take_screenshot` when rendered appearance or spatial layout matters and the accessibility snapshot is insufficient. It captures only the visible viewport of the selected HTTP(S) tab; switch to the intended tab first. It cannot target background tabs, browser chrome, a crop, or a full page, and it does not provide coordinates for actions — continue to act through refs or names from the latest snapshot.
-
-`browser_type` replaces a field's contents rather than appending to them, so type the whole value you want. It does not submit: reach the submit control by index or name and `browser_click` it, or `browser_press` Enter while the field is focused.
-
-`browser_upload_file` selects one existing readable local file through an indexed HTML file input, including hidden inputs. Give it an index from the latest result and an absolute path to the intended file, which may be an artifact you created for the task. The Uploads Browser permission allows, requests approval for, or blocks the transfer. Do not ask the user to type a path solely to authorize an upload. Never substitute a different file or bypass a denial. File selection may start sending bytes immediately; form submission is a separate action. Inspect the returned page state before continuing.
-
-Use `browser_hover` and `browser_drag` for pointer gestures. `browser_drop` accepts local files or MIME-typed text; file drops follow Uploads permissions. An open alert or confirm appears in the snapshot footer; respond with `browser_handle_dialog`. `browser_console_messages` and `browser_network_requests` read bounded tab-local diagnostics, and `browser_network_request` reads a retained request.
-
-An action that the page rejects comes back as a failure message rather than an error; read it and adapt instead of repeating the same call. Use `browser_wait_for` to wait for text to appear or disappear, or `browser_wait` for a bounded 1–10 second pause; do not busy-poll `browser_state`. If the optional experimental JavaScript tool is present, use it only when indexed PageController actions cannot perform the requested inspection and never use it to bypass a user-confirmation or domain policy. If a captcha or a login you have no credentials for blocks the task, say so rather than guessing.
-- Only elements with a numeric [index] can be acted on, and only indexes the most recent result for that same tab listed; when that result reported unchanged content, the indexes from the previous result for that tab are still the current ones.
-- Text without [] is page content, not something you can act on.
-- Compact snapshots rank `*[` lines first, then typical form controls, then the rest.
-
-Indexes are reassigned on every action. Never reuse an index from an earlier result — read the one the last call returned. Click, type, and select accept either that index or a `name` matching the control's visible label, accessible name, placeholder, or id. `browser_find` locates a query in the current snapshot and may scroll once to bring a match into view. `browser_fill` types several named or indexed fields in one call and re-resolves each field after the previous one.
-
-Ordinary controls are listed inside the visible viewport; HTML file inputs are also listed when a site hides them. For other controls outside the viewport, use `browser_scroll` vertically or `browser_scroll_horizontally` for wide pages and tables, then act on the indexes the scroll returned. `browser_find` is the cheaper way to look for a named control before scrolling blindly.
-
-Use `browser_open_tab`, `browser_switch_tab`, and `browser_close_tab` with ids from the latest tab list. Page-local tools accept an optional `tab_id`; provide it to keep the operation bound to that tab even while another tab is selected. Independent calls with different explicit `tab_id` values may run in parallel, but actions for one tab remain ordered because every result replaces that tab's valid element indices. A link that opens a new tab is adopted into this same controlled window; inspect the returned tab inventory instead of assuming the original tab changed.
-
-Use `browser_take_screenshot` when rendered appearance or spatial layout matters and the accessibility snapshot is insufficient. It captures only the visible viewport of the selected HTTP(S) tab; switch to the intended tab first. It cannot target background tabs, browser chrome, a crop, or a full page, and it does not provide coordinates for actions — continue to act through refs or names from the latest snapshot.
-
-`browser_type` replaces a field's contents rather than appending to them, so type the whole value you want. It does not submit: reach the submit control by index or name and `browser_click` it, or `browser_press` Enter while the field is focused.
-
-`browser_upload_file` selects one existing readable local file through an indexed HTML file input, including hidden inputs. Give it an index from the latest result and an absolute path to the intended file, which may be an artifact you created for the task. The Uploads Browser permission allows, requests approval for, or blocks the transfer. Do not ask the user to type a path solely to authorize an upload. Never substitute a different file or bypass a denial. File selection may start sending bytes immediately; form submission is a separate action. Inspect the returned page state before continuing.
-
-Use `browser_hover` and `browser_drag` for pointer gestures. `browser_drop` accepts local files or MIME-typed text; file drops follow Uploads permissions. An open alert or confirm appears in the snapshot footer; respond with `browser_handle_dialog`. `browser_console_messages` and `browser_network_requests` read bounded tab-local diagnostics, and `browser_network_request` reads a retained request.
-
-An action that the page rejects comes back as a failure message rather than an error; read it and adapt instead of repeating the same call. Use `browser_wait_for` to wait for text to appear or disappear, or `browser_wait` for a bounded 1–10 second pause; do not busy-poll `browser_state`. If the optional experimental JavaScript tool is present, use it only when indexed PageController actions cannot perform the requested inspection and never use it to bypass a user-confirmation or domain policy. If a captcha or a login you have no credentials for blocks the task, say so rather than guessing.
+Hydra owns the reasoning loop. browser_page_agent_run starts the vendored PageAgent engine only when explicitly requested; do not poll it for ordinary browsing. Optional experimental JavaScript runs in an isolated document world; use it only when normal browser actions cannot perform the inspection, never to bypass confirmation or domain policy. If captcha or missing login credentials block the task, report the blocker instead of guessing.
 ```
 
 #### Token effect
@@ -189,7 +173,7 @@ Append-only; the error follows the reusable request prefix and does not invalida
 
 ## Known Limitations and Deferred Work
 
-- Tool names follow Playwright MCP 0.0.80, but schemas retain Hydra numeric refs and tab ids. Host-side `browser_run_code_unsafe`, locator strings, checkbox/radio form filling, multi-file chooser uploads, and the optional MCP capability groups are not implemented. `browser_evaluate` executes an isolated-world function body, not a Playwright callback.
+- Tool names follow Playwright MCP, with Hydra tab ids and independent numeric/Playwright refs. Host-side `browser_run_code_unsafe`, multi-file chooser uploads, and optional MCP capability groups are not implemented. `browser_evaluate` executes an isolated-world function body, not a Playwright callback.
 - Native pointer input requires a visible foreground Electron window. Hidden or unfocused clicks use PageController; hidden hover and drag cannot be treated as successful native gestures. Electron supports alert/confirm; its prompt dialogs are unavailable.
 
 - **Experimental JavaScript is host-gated.** It is absent by default, runs in the isolated document world when enabled, and cannot access page-world globals.

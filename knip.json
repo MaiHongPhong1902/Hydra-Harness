@@ -28,7 +28,7 @@
       "ignoreBinaries": ["electron"]
     },
     "packages/browser/browser-electron": {
-      "entry": ["tests/**/*.spec.ts", "electron-app/preload.entry.js"],
+      "entry": ["tests/**/*.spec.ts", "electron-app/preload.entry.js", "electron-app/playwright.cjs"],
       "project": ["src/**/*.ts", "tests/**/*.ts"]
     },
     ".": {

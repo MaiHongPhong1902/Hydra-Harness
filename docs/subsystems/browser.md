@@ -57,6 +57,8 @@ interface BrowserFillField {
   index?: number
   /** Visible label, accessible name, placeholder, or id when index is omitted. */
   name?: string
+  /** Observed Playwright ref or unique CSS selector instead of index/name. */
+  target?: string
   /** Text that replaces the field's current value. */
   text: string
 }
@@ -70,25 +72,25 @@ interface BrowserFillField {
  */
 type BrowserAction =
   | ((
-    | { method: 'get_browser_state' }
+    | { method: 'get_browser_state'; snapshot?: BrowserSnapshotOptions }
     | { method: 'navigate'; url: string }
     | { method: 'back' }
     | { method: 'forward' }
     | { method: 'press'; key: string }
-    | { method: 'click_element'; index?: number; name?: string }
-    | { method: 'hover_element'; index?: number; name?: string }
+    | { method: 'click_element'; index?: number; name?: string; target?: string }
+    | { method: 'hover_element'; index?: number; name?: string; target?: string }
     | { method: 'drag_element'; startIndex: number; endIndex: number }
     | { method: 'drop'; index: number; filePaths: string[]; data: Record<string, string> }
     | { method: 'resize'; width: number; height: number }
     | { method: 'handle_dialog'; accept: boolean; promptText?: string }
     | { method: 'console_messages'; level: 'error' | 'warning' | 'info' | 'debug' }
-    | { method: 'network_requests'; includeStatic: boolean }
+    | { method: 'network_requests'; includeStatic: boolean; filter?: string }
     | { method: 'network_request'; index: number; part?: 'request-headers' | 'request-body' | 'response-headers' | 'response-body' }
     | { method: 'upload_file'; index: number; filePath: string }
-    | { method: 'input_text'; index?: number; name?: string; text: string }
-    | { method: 'select_option'; index?: number; name?: string; text: string }
-    | { method: 'select_text'; index?: number; name?: string; startX?: number; startY?: number; endX?: number; endY?: number; duration?: number; start_x?: number; start_y?: number; end_x?: number; end_y?: number }
-    | { method: 'find_element'; query: string }
+    | { method: 'input_text'; index?: number; name?: string; target?: string; text: string }
+    | { method: 'select_option'; index?: number; name?: string; target?: string; text: string }
+    | { method: 'select_text'; index?: number; name?: string; target?: string; startX?: number; startY?: number; endX?: number; endY?: number; duration?: number; start_x?: number; start_y?: number; end_x?: number; end_y?: number }
+    | { method: 'find_element'; query?: string; text?: string; regex?: string }
     | { method: 'fill_fields'; fields: BrowserFillField[] }
     | { method: 'scroll'; down: boolean; numPages: number; pixels?: number; index?: number }
     | { method: 'scroll_horizontally'; right: boolean; pixels: number; index?: number }

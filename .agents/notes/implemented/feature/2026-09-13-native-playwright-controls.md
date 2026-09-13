@@ -30,4 +30,4 @@ The real Electron suite passes all 37 cases, including form entry and selection,
 
 ## Deferred
 
-Playwright locator diagnostics and regex snippet output for `browser_find` remain Hydra-owned presentation work; add them when model-visible find results need the full MCP diagnostic payload.
+The [selective output decision](2026-09-13-browser-selective-output.md) owns regex snippets, Playwright refs, CSS targets, and optional snapshot/image omission. Full MCP diagnostic payload parity is outside the embedded Browser API.
