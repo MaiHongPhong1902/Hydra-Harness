@@ -37,7 +37,7 @@ export interface BrowserState {
   tabId: number
   /** Tab currently selected in the visible browser chrome. */
   activeTabId: number
-  /** True when the requested bounded page-readiness wait completed. */
+  /** Whether the readiness wait completed; metadata-only reads report native loading/dialog state. */
   settled: boolean
   /** Host timestamp for evidence ordering. */
   capturedAt: string

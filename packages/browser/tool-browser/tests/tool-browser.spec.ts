@@ -968,12 +968,14 @@ describe('selective browser output', () => {
   })
 
   it('requires explicit observation with snapshotMode none while retaining failure and readiness evidence', async () => {
-    const { call } = await harness({ snapshotMode: 'none' })
+    const { call, children } = await harness({ snapshotMode: 'none' })
     try {
       const action = text((await call('browser_click', { name: 'Order' })).content)
       expect(action).toContain('Snapshot omitted')
       expect(action).not.toContain('id=submit')
+      expect(children[0]?.requests).toContainEqual({ method: 'get_browser_state', args: { metadataOnly: true, waitForReady: true } })
       expect(text((await call('browser_state', {})).content)).toContain('id=submit')
+      expect(children[0]?.requests.at(-1)).toEqual({ method: 'get_browser_state', args: { waitForReady: true } })
       const value = toValue({ action: { success: false, message: 'Control unavailable' }, state: {
         url: 'https://test.invalid', title: 'Test', header: '', content: '', footer: 'Open confirm dialog: Continue?',
         tabs: [], tabId: 1, activeTabId: 1, settled: false, capturedAt: 'now',

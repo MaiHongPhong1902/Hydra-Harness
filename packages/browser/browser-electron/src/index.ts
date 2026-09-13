@@ -469,21 +469,22 @@ export class BrowserSessionService extends Service {
   /**
    * Do one thing to an owner's page and report the page afterwards.
    *
-   * The trailing state read is not a convenience: PageController indexes
-   * elements while building the tree, so the snapshot both answers the caller
-   * and leaves the next action addressable. Explicit targets are ordered per
-   * tab and may overlap across tabs; implicit and lifecycle actions are barriers.
+   * A captured snapshot refreshes numeric element indexes. With captureState
+   * false, the trailing read contains only page identity, tabs, loading, and
+   * dialogs; callers must observe the page before reusing numeric indexes.
+   * Explicit targets are ordered per tab; implicit and lifecycle actions are barriers.
    * @param owner - agent whose window this is; its first call starts one.
    * @param action - what to do, in page-agent's own vocabulary.
-   * @param execution - tool-call identity and cancellation for browser actions and permissions.
+   * @param execution - tool-call identity, cancellation, and optional captureState (default true).
    * @returns the action's report, omitted for a plain state read, plus the state.
    */
   async perform(
     owner: Agent,
     action: BrowserAction,
-    execution: BrowserExecutionContext = {},
+    execution: BrowserExecutionContext & { captureState?: boolean } = {},
   ): Promise<BrowserOutcome> {
     return this.serialized(owner, queueTabId(action), async () => {
+      execution.signal?.throwIfAborted()
       if (this.disposing) throw new BrowserError('the embedded browser is shutting down', 'BROWSER_DISPOSING')
       if (!this.browserSettings().controlEnabled) {
         throw new BrowserError('embedded browser control is disabled in settings', 'BROWSER_DISABLED')
@@ -540,6 +541,7 @@ export class BrowserSessionService extends Service {
         || prepared.method === 'select_text'
       const tabId = stateTabId(prepared)
       const state = await child.call('get_browser_state', {
+        ...execution.captureState === false ? { metadataOnly: true } : {},
         ...prepared.method === 'get_browser_state' && prepared.snapshot !== undefined ? { snapshot: prepared.snapshot } : {},
         waitForReady,
         ...tabId === undefined ? {} : { tabId },

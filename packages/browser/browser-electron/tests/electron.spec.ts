@@ -130,7 +130,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
       } else if (request.url === '/sso-start') {
         response.end('<!doctype html><html><body><script>setTimeout(() => location.href = "/spa", 100)</script></body></html>')
       } else if (request.url === '/spa') {
-        response.end('<!doctype html><html><body><main id="app"></main><script>setTimeout(() => { document.title = "Ready SPA"; document.querySelector("#app").innerHTML = "<button id=ready>Ready</button>" }, 600)</script></body></html>')
+        response.end('<!doctype html><html><head><title>Loading SPA</title></head><body><main id="app"></main><script>setTimeout(() => { document.title = "Ready SPA"; document.querySelector("#app").innerHTML = "<button id=ready>Ready</button>" }, 600)</script></body></html>')
       } else if (request.url === '/transient-body') {
         response.end('<!doctype html><html><head><script>document.addEventListener("DOMContentLoaded", () => { document.body.remove(); setTimeout(() => { const body = document.createElement("body"); document.title = "Body restored"; body.innerHTML = "<button id=restored>Restored</button>"; document.documentElement.append(body) }, 600) })</script></head><body></body></html>')
       } else if (request.url === '/cookie-set') {
@@ -351,6 +351,54 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
     }) as ActionResult
     expect(result.message).toContain('true')
   }, 60_000)
+
+  it('cancels a pending native click without closing the tab or clicking later', async () => {
+    await child.call('navigate', { url: fixture })
+    await child.call('get_browser_state', { snapshot: {} })
+    await child.call('execute_javascript', { script: `
+      document.body.innerHTML = '<button id="deferred" disabled>Deferred</button><output>untouched</output>';
+      document.querySelector('button').addEventListener('click', () => document.querySelector('output').textContent = 'clicked');
+    ` })
+    const controller = new AbortController()
+    const pending = child.call('click_element', { target: '#deferred' }, controller.signal)
+    const cancelled = expect(pending).rejects.toThrow('stop browser action')
+    await new Promise(resolve => setTimeout(resolve, 150))
+    controller.abort(new Error('stop browser action'))
+    await cancelled
+    await child.call('execute_javascript', { script: "document.querySelector('button').disabled = false" })
+    const observed = await child.call('execute_javascript', {
+      script: "await new Promise(resolve => setTimeout(resolve, 300)); return document.querySelector('output').textContent",
+    }) as ActionResult
+    expect(observed.message).toContain('untouched')
+    expect(await child.call('click_element', { target: '#deferred' })).toMatchObject({ success: true })
+    expect((await child.call('get_browser_state', {}) as BrowserState).content).toContain('clicked')
+  }, 30_000)
+
+  it.each([{}, { text: 'Never present on this page' }])('cancels a native wait: %j', async (condition) => {
+    await child.call('navigate', { url: fixture })
+    const controller = new AbortController()
+    const pending = child.call('wait_for', { seconds: 10, ...condition }, controller.signal)
+    const cancelled = expect(pending).rejects.toThrow('stop waiting')
+    await new Promise(resolve => setTimeout(resolve, 150))
+    controller.abort(new Error('stop waiting'))
+    await cancelled
+  }, 5_000)
+
+  it('reads metadata without traversing the page or changing its numeric refs', async () => {
+    await child.call('navigate', { url: fixture })
+    await child.call('get_browser_state', {})
+    await child.call('execute_javascript', { script: `
+      document.querySelector('#who').setAttribute('data-hydra-a11y-ref', 'audit-ref');
+      document.body.insertAdjacentHTML('afterbegin', '<button>New control</button>');
+    ` })
+    const metadata = await child.call('get_browser_state', { metadataOnly: true, waitForReady: true }) as BrowserState
+    expect(metadata).toMatchObject({ url: fixture, content: '', settled: true })
+    expect(metadata.tabs).toHaveLength(1)
+    const ref = await child.call('execute_javascript', { script: "return document.querySelector('#who').getAttribute('data-hydra-a11y-ref')" }) as ActionResult
+    expect(ref.message).toContain('audit-ref')
+    expect((await child.call('get_browser_state', { waitForReady: true }) as BrowserState).content).toContain('New control')
+    await expect(child.call('get_browser_state', { metadataOnly: 'yes' })).rejects.toThrow('metadataOnly')
+  }, 30_000)
 
   it('resolves named Hydra actions, fills fields, and goes forward', async () => {
     expect(await child.call('navigate', { url: fixture })).toMatchObject({ success: true })
@@ -831,6 +879,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
   }, 60_000)
 
   it('navigates back to the page it left', async () => {
+    await child.call('navigate', { url: fixture })
     await child.call('navigate', { url: 'about:blank' })
     expect(await child.call('back', {})).toMatchObject({ success: true })
     const state = await child.call('get_browser_state', {}) as BrowserState
@@ -843,6 +892,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
   }, 30_000)
 
   it('lets the page follow a navigation of its own', async () => {
+    await child.call('navigate', { url: fixture })
     const before = await child.call('get_browser_state', {}) as BrowserState
     await expect(child.call('click_element', { index: indexOf(before.content, 'id=continue') }))
       .resolves.toMatchObject({ success: true })

@@ -49,6 +49,7 @@ function panelShortcut(input) {
 
 app.on('web-contents-created', (_event, contents) => {
   contents.on('before-input-event', (event, input) => {
+    if (contents !== mainWindow?.webContents) return
     const shortcut = panelShortcut(input)
     if (shortcut === undefined || mainWindow === undefined || mainWindow.isDestroyed()) return
     event.preventDefault()
@@ -76,12 +77,11 @@ async function handleBrowserMessage(message) {
   if (typeof message !== 'object' || message === null || !('type' in message)) return
   if (message.type === 'hydra-browser-connect') {
     if (typeof message.connectionId !== 'string') return
-    if (browserConnection !== undefined && browserConnection !== message.connectionId) {
-      try { browser?.cancelPermissions() } catch {}
-      postBrowser(browserConnection, 'hydra-browser-close')
-      browserConnection = undefined
-    }
+    const previous = browserConnection
     browserConnection = message.connectionId
+    await browser.cancelRequests()
+    if (previous !== undefined && previous !== message.connectionId) postBrowser(previous, 'hydra-browser-close')
+    if (browserConnection !== message.connectionId) return
     const settings = typeof message.settings === 'object' && message.settings !== null ? message.settings : {}
     try {
       await browser.command('configure_browser', settings)
@@ -103,8 +103,8 @@ async function handleBrowserMessage(message) {
   }
   if (message.type === 'hydra-browser-disconnect') {
     if (message.connectionId === browserConnection) {
-      browser.cancelPermissions()
       browserConnection = undefined
+      await browser.cancelRequests()
     }
     return
   }
@@ -1212,6 +1212,14 @@ async function smoke() {
     throw new Error(`desktop browser tab state is invalid: ${JSON.stringify(beforeClose)}`)
   }
   const nativeChrome = mainWindow.contentView.children.find(view => view.webContents.getURL().endsWith('/chrome.html'))
+  nativeChrome.webContents.focus()
+  nativeChrome.webContents.sendInputEvent({ type: 'keyDown', keyCode: 'T', modifiers: ['control'] })
+  nativeChrome.webContents.sendInputEvent({ type: 'keyUp', keyCode: 'T', modifiers: ['control'] })
+  const newTabDeadline = Date.now() + 5_000
+  while (browser.getState().tabs.length !== 2 && Date.now() < newTabDeadline) await delay(50)
+  if (browser.getState().tabs.length !== 2 || !browserBounds.visible) throw new Error('native Ctrl+T toggled a desktop panel instead of opening a browser tab')
+  await browser.command('close_tab', { tabId: browser.getState().activeTabId })
+  assertNativeViews(await waitForBounds('native tab shortcut', bounds => bounds.width < expanded.width))
   const themeSettings = (await hostRequest('settings.describe')).namespaces.find(item => item.ns === 'ui-theme')
   let themeRevision = themeSettings.revision
   const systemTheme = nativeTheme.themeSource

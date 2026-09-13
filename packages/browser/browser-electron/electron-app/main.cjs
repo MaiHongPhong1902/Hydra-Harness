@@ -678,15 +678,24 @@ async function distilledSnapshot(page, options = {}) {
   return lines.join('\n')
 }
 
-async function nativePageAction(tab, method, args) {
-  if (!['click_element', 'hover_element', 'drag_element', 'input_text', 'select_option', 'fill_fields', 'find_element', 'select_text'].includes(method)
-    || (method === 'select_text' && args.target === undefined)) return undefined
+async function nativePageAction(tab, method, args, signal) {
+  if (!['click_element', 'hover_element', 'drag_element', 'input_text', 'select_option', 'fill_fields', 'find_element', 'select_text'].includes(method)) return undefined
   // Playwright needs animation frames even when Windows occludes a focused tab.
   const throttled = tab.contents.getBackgroundThrottling()
   tab.contents.setBackgroundThrottling(false)
+  let page
+  let disconnect
+  const cancel = () => {
+    if (tab.playwrightPage === page) tab.playwrightPage = undefined
+    // Disconnect this tab's transport: pending locators stop, while its document stays open.
+    disconnect = page.context().browser().close({ reason: 'browser action cancelled' })
+  }
   try {
+    signal?.throwIfAborted()
     if (method === 'select_text') return await withNativeRef(tab, args, resolved => pageControl(tab, method, resolved))
-    const page = await ensureNativePage(tab)
+    page = await ensureNativePage(tab)
+    signal?.throwIfAborted()
+    signal?.addEventListener('abort', cancel, { once: true })
     if (method === 'find_element') {
       const text = args.text ?? args.query
       if ((text === undefined) === (args.regex === undefined)) throw new Error('provide exactly one of text or regex')
@@ -710,9 +719,11 @@ async function nativePageAction(tab, method, args) {
     if (method === 'fill_fields') {
       if (!Array.isArray(args.fields) || args.fields.length === 0) throw new Error('fields must be a non-empty array')
       for (const field of args.fields) {
+        signal?.throwIfAborted()
         const locator = nativeLocator(page, field)
         const kind = await locator.evaluate(element => element.tagName === 'SELECT' ? 'select' : element.getAttribute('type'))
         await moveNativePointer(tab, field, ['select', 'checkbox', 'radio'].includes(kind) ? 'default' : 'ibeam')
+        signal?.throwIfAborted()
         if (kind === 'checkbox' || kind === 'radio') {
           if (!['true', 'false'].includes(field.text)) return { success: false, message: 'Checkbox and radio values must be true or false.' }
           if (kind === 'radio' && field.text === 'false') return { success: false, message: 'Select another radio option to clear this one.' }
@@ -727,6 +738,7 @@ async function nativePageAction(tab, method, args) {
     }
     const locator = nativeLocator(page, method === 'drag_element' ? { index: args.startIndex } : args)
     await moveNativePointer(tab, method === 'drag_element' ? { index: args.startIndex } : args, method === 'input_text' ? 'ibeam' : 'default', method === 'click_element')
+    signal?.throwIfAborted()
     switch (method) {
       case 'click_element': await locator.click(); return { success: true, message: 'Clicked browser control.' }
       case 'hover_element': await locator.hover(); return { success: true, message: 'Hovered browser control.' }
@@ -745,6 +757,8 @@ async function nativePageAction(tab, method, args) {
       default: return undefined
     }
   } finally {
+    signal?.removeEventListener('abort', cancel)
+    await disconnect
     if (!tab.contents.isDestroyed()) tab.contents.setBackgroundThrottling(throttled)
   }
 }
@@ -839,7 +853,8 @@ function navigationPolicy(contents, targetUrl) {
 }
 
 /** User browsing lasts until the next agent command; Host approval covers only its exact URL. */
-async function loadAllowedUrl(contents, targetUrl, navigationApproved = false) {
+async function loadAllowedUrl(contents, targetUrl, navigationApproved = false, signal) {
+  signal?.throwIfAborted()
   let approval = navigationApproved === 'user'
     ? { user: true }
     : navigationApproved === true ? { url: new URL(targetUrl).href } : undefined
@@ -854,6 +869,7 @@ async function loadAllowedUrl(contents, targetUrl, navigationApproved = false) {
       approval = { url: new URL(targetUrl).href }
       approvedNavigations.set(contents, approval)
     }
+    signal?.throwIfAborted()
     let settled = false
     let timer
     const ready = new Promise((resolve, reject) => {
@@ -866,6 +882,7 @@ async function loadAllowedUrl(contents, targetUrl, navigationApproved = false) {
         contents.removeListener('did-fail-provisional-load', onFailed)
         contents.removeListener('destroyed', onDestroyed)
         contents.removeListener('render-process-gone', onDestroyed)
+        signal?.removeEventListener('abort', onAborted)
         if (error === undefined) resolve()
         else reject(error)
       }
@@ -874,12 +891,14 @@ async function loadAllowedUrl(contents, targetUrl, navigationApproved = false) {
         if (isMainFrame) finish(new Error(`navigation could not load ${validatedURL}: ${errorDescription} (${errorCode})`))
       }
       const onDestroyed = () => finish(new Error('browser tab closed during navigation'))
+      const onAborted = () => { contents.stop(); finish(signal.reason) }
       timer = setTimeout(() => finish(new Error(`navigation to ${targetUrl} did not become ready within ${READINESS_TIMEOUT_MS}ms`)), READINESS_TIMEOUT_MS)
       contents.once('dom-ready', onReady)
       contents.on('did-fail-load', onFailed)
       contents.on('did-fail-provisional-load', onFailed)
       contents.once('destroyed', onDestroyed)
       contents.once('render-process-gone', onDestroyed)
+      signal?.addEventListener('abort', onAborted, { once: true })
     })
     await Promise.race([contents.loadURL(targetUrl), ready])
   } finally {
@@ -1217,7 +1236,7 @@ async function pageControl(tab, action, args) {
   if (contents.getURL() === '' && !contents.isLoading()) {
     await contents.loadURL('about:blank')
   }
-  if (!tab.preloadReady) {
+  if (!tab.preloadReady || contents.isLoadingMainFrame()) {
     await new Promise((resolve, reject) => {
       let settled = false
       const finish = error => {
@@ -1225,6 +1244,7 @@ async function pageControl(tab, action, args) {
         settled = true
         clearTimeout(timer)
         contents.removeListener('dom-ready', ready)
+        contents.removeListener('did-stop-loading', stopped)
         contents.removeListener('did-fail-load', failed)
         contents.removeListener('destroyed', destroyed)
         contents.removeListener('render-process-gone', destroyed)
@@ -1232,12 +1252,14 @@ async function pageControl(tab, action, args) {
         else reject(error)
       }
       const ready = () => finish()
+      const stopped = () => { if (tab.preloadReady) finish() }
       const destroyed = () => finish(new Error('page preload became unavailable before it was ready'))
       const failed = (_event, errorCode, errorDescription, validatedURL, isMainFrame) => {
         if (isMainFrame) finish(new Error(`page preload could not load ${validatedURL}: ${errorDescription} (${errorCode})`))
       }
       const timer = setTimeout(() => finish(new Error('page preload did not become ready before navigation timed out')), READINESS_TIMEOUT_MS)
       contents.once('dom-ready', ready)
+      contents.once('did-stop-loading', stopped)
       contents.on('did-fail-load', failed)
       contents.once('destroyed', destroyed)
       contents.once('render-process-gone', destroyed)
@@ -1973,9 +1995,9 @@ function tabStates() {
 }
 
 /** Add browser-window evidence that PageController cannot observe by itself. */
-function completeState(tab, state, settled) {
+function completeState(tab, state, settled, captured = true) {
   const inventory = tabStates()
-  tab.lastState = state
+  if (settled && captured) tab.settledState = state
   return {
     ...state,
     ...(downloadDenials.has(tab.view.webContents)
@@ -1991,22 +2013,21 @@ function completeState(tab, state, settled) {
 /** A non-blank PageController observation, or the intentionally blank new tab. */
 function isUsableState(state) {
   if (state.url === 'about:blank') return true
-  return state.title.trim().length > 0
-    || (state.content.trim().length > 0 && state.content.trim() !== '<EMPTY>')
+  return state.content.trim().length > 0 && state.content.trim() !== '<EMPTY>'
 }
 
 /**
  * Read one document, optionally following selected-tab changes and SPA/SSO
  * transitions until Chromium is idle and PageController exposes usable content.
  */
-async function readBrowserState(tab, waitForReady, followActive) {
+async function readBrowserState(tab, waitForReady, followActive, signal) {
   if (tab.dialog) {
     return completeState(tab, {
       ...(tab.lastState ?? { url: tab.contents.getURL(), title: tab.contents.getTitle(), header: '', content: '' }),
       footer: `Open ${tab.dialog.type} dialog: ${tab.dialog.message}. Use browser_handle_dialog to continue.`,
     }, false)
   }
-  const deadline = Date.now() + (waitForReady ? READINESS_TIMEOUT_MS : 0)
+  const deadline = Date.now() + READINESS_TIMEOUT_MS
   let candidateSince
   let candidateUrl
   let lastState
@@ -2014,11 +2035,14 @@ async function readBrowserState(tab, waitForReady, followActive) {
   let lastError
 
   while (true) {
+    signal?.throwIfAborted()
     const current = followActive ? activeTab ?? lastTab : lastTab
     if (current.view.webContents.isDestroyed()) throw new Error(`controlled tab [${current.id}] is unavailable`)
     lastTab = current
     try {
       const state = await pageControl(current, 'get_browser_state', {})
+      signal?.throwIfAborted()
+      current.lastState = state
       if (followActive && activeTab !== undefined && activeTab !== current) {
         candidateSince = undefined
         candidateUrl = undefined
@@ -2027,9 +2051,12 @@ async function readBrowserState(tab, waitForReady, followActive) {
       lastState = state
       lastError = undefined
       const loading = current.view.webContents.isLoadingMainFrame()
-      if (!waitForReady) return completeState(current, state, !loading)
+      if (!waitForReady) return completeState(current, state, !loading && isUsableState(state))
 
       if (!loading && isUsableState(state)) {
+        if (current.settledState?.url === state.url && current.settledState.content === state.content) {
+          return completeState(current, state, true)
+        }
         if (candidateUrl !== state.url) {
           candidateUrl = state.url
           candidateSince = Date.now()
@@ -2042,7 +2069,7 @@ async function readBrowserState(tab, waitForReady, followActive) {
         candidateUrl = undefined
       }
     } catch (error) {
-      if (!isNavigationInterruption(error) && !(waitForReady && isTransientPageStateError(error))) throw error
+      if (!isNavigationInterruption(error) && !isTransientPageStateError(error)) throw error
       lastError = error
       candidateSince = undefined
       candidateUrl = undefined
@@ -2052,7 +2079,7 @@ async function readBrowserState(tab, waitForReady, followActive) {
       if (lastState !== undefined) return completeState(lastTab, lastState, false)
       throw lastError ?? new Error('page readiness timed out before a document could be observed')
     }
-    await delay(Math.min(READINESS_POLL_MS, Math.max(1, deadline - Date.now())))
+    await delay(Math.min(READINESS_POLL_MS, Math.max(1, deadline - Date.now())), undefined, { signal })
   }
 }
 
@@ -2382,21 +2409,28 @@ function readCdpEvents(tab, args) {
  * @param {Record<string, any>} args - JSON-safe method arguments.
  * @returns {Promise<unknown>} the JSON-safe result.
  */
-async function handle(method, args) {
-  if (isProfileManagement(method)) return await handleCommand(method, args)
+async function handle(method, args, signal) {
+  signal?.throwIfAborted()
+  if (isProfileManagement(method)) return await handleCommand(method, args, signal)
   const target = args?.tabId === undefined ? activeTab : tabs.get(args.tabId)
+  if (target && !['get_browser_state', 'find_element', 'console_messages', 'network_requests', 'network_request'].includes(method)) {
+    target.settledState = undefined
+  }
   if (target && approvedNavigations.get(target.contents)?.user === true) approvedNavigations.delete(target.contents)
+  const stopNavigation = () => target?.contents.stop()
+  if (['back', 'forward', 'reload'].includes(method)) signal?.addEventListener('abort', stopNavigation, { once: true })
   activeBrowserCalls += 1
   updateBrowserActivity()
   try {
-    return await handleCommand(method, args)
+    return await handleCommand(method, args, signal)
   } finally {
+    signal?.removeEventListener('abort', stopNavigation)
     activeBrowserCalls -= 1
     updateBrowserActivity()
   }
 }
 
-async function handleCommand(method, args) {
+async function handleCommand(method, args, signal) {
   noteAgentBrowser(method, args ?? {})
   if (method === 'autofill_login' || method === 'autofill_contact') {
     throw new Error(`unknown browser method: ${method}`)
@@ -2477,7 +2511,7 @@ async function handleCommand(method, args) {
     if (!opened || !selectTab) throw new Error('tab controls are unavailable')
     selectTab(opened)
     if (args.url !== undefined) {
-      try { await loadAllowedUrl(opened.view.webContents, args.url, args.navigationApproved === true) }
+      try { await loadAllowedUrl(opened.view.webContents, args.url, args.navigationApproved === true, signal) }
       catch (error) {
         closeTab(opened)
         throw error
@@ -2527,7 +2561,7 @@ async function handleCommand(method, args) {
   })
   let nativeResult
   try {
-    nativeResult = await Promise.race([nativePageAction(tab, method, args), nativeDialog])
+    nativeResult = await Promise.race([nativePageAction(tab, method, args, signal), nativeDialog])
   } catch (error) {
     if (error.name !== 'TimeoutError') throw error
     nativeResult = { success: false, message: error.message }
@@ -2535,6 +2569,7 @@ async function handleCommand(method, args) {
     contents.debugger.removeListener('message', onNativeDialog)
   }
   if (nativeResult !== undefined) return nativeResult
+  signal?.throwIfAborted()
   switch (method) {
     case 'resize':
       if (![args.width, args.height].every(size => Number.isSafeInteger(size) && size >= 1 && size <= 8192)) throw new Error('viewport dimensions must be integers from 1 to 8192')
@@ -2614,7 +2649,14 @@ async function handleCommand(method, args) {
     }
 
     case 'get_browser_state': {
-      const state = await readBrowserState(tab, args.waitForReady === true, args.tabId === undefined)
+      if (args.metadataOnly !== undefined && typeof args.metadataOnly !== 'boolean') throw new Error('metadataOnly must be a boolean')
+      if (args.metadataOnly === true) {
+        return completeState(tab, {
+          url: contents.getURL(), title: contents.getTitle(), header: '', content: '',
+          footer: tab.dialog ? `Open ${tab.dialog.type} dialog: ${tab.dialog.message}. Use browser_handle_dialog to continue.` : '',
+        }, !contents.isLoadingMainFrame() && !tab.dialog, false)
+      }
+      const state = await readBrowserState(tab, args.waitForReady === true, args.tabId === undefined, signal)
       if (args.snapshot === undefined) return state
       const options = args.snapshot
       if (options.depth !== undefined && (!Number.isSafeInteger(options.depth) || options.depth < 0)) throw new Error('snapshot depth must be a non-negative integer')
@@ -2649,12 +2691,12 @@ async function handleCommand(method, args) {
     case 'navigate':
       // Resolves on did-finish-load, so a caller that awaits this is talking to
       // the preload of the page it asked for, not the one it is leaving.
-      await loadAllowedUrl(contents, args.url, args.navigationApproved === true)
+      await loadAllowedUrl(contents, args.url, args.navigationApproved === true, signal)
       return { success: true, message: `Navigated to ${contents.getURL()}` }
 
     case 'back': {
       const history = contents.navigationHistory
-      const loaded = once(contents, 'did-finish-load')
+      const loaded = once(contents, 'did-finish-load', { signal })
       if (history.canGoBack()) {
         const targetUrl = historyDestination(contents, -1)
         if (targetUrl === undefined || siteNavigationBlocked(targetUrl)) {
@@ -2673,7 +2715,7 @@ async function handleCommand(method, args) {
 
     case 'forward': {
       const history = contents.navigationHistory
-      const loaded = once(contents, 'did-finish-load')
+      const loaded = once(contents, 'did-finish-load', { signal })
       if (history.canGoForward()) {
         const targetUrl = historyDestination(contents, 1)
         if (targetUrl === undefined || siteNavigationBlocked(targetUrl)) {
@@ -2694,7 +2736,7 @@ async function handleCommand(method, args) {
       if (siteNavigationBlocked(contents.getURL())) {
         throw new Error(`navigation to ${contents.getURL()} was blocked by Browser settings`)
       }
-      const loaded = once(contents, 'did-finish-load')
+      const loaded = once(contents, 'did-finish-load', { signal })
       contents.reload()
       await loaded
       return { success: true, message: `Reloaded ${contents.getURL()}` }
@@ -2720,7 +2762,7 @@ async function handleCommand(method, args) {
       }
       const lastUpdate = await pageControl(tab, 'get_last_update_time', {})
       const remaining = Math.max(0, args.seconds * 1_000 - (Date.now() - lastUpdate))
-      await delay(remaining)
+      await delay(remaining, undefined, { signal })
       return { success: true, message: `Waited up to ${args.seconds} second${args.seconds === 1 ? '' : 's'} for the page.` }
     }
 
@@ -2731,15 +2773,15 @@ async function handleCommand(method, args) {
       }
       const deadline = Date.now() + args.seconds * 1000
       if (args.text === undefined && args.textGone === undefined) {
-        await delay(args.seconds * 1000)
+        await delay(args.seconds * 1000, undefined, { signal })
         return { success: true, message: `Waited ${args.seconds} seconds.` }
       }
       do {
-        const state = await readBrowserState(tab, false, false)
+        const state = await readBrowserState(tab, false, false, signal)
         if ((args.text === undefined || state.content.includes(args.text)) && (args.textGone === undefined || !state.content.includes(args.textGone))) {
           return { success: true, message: 'The requested text condition is met.' }
         }
-        await delay(Math.min(READINESS_POLL_MS, Math.max(0, deadline - Date.now())))
+        await delay(Math.min(READINESS_POLL_MS, Math.max(0, deadline - Date.now())), undefined, { signal })
       } while (Date.now() < deadline)
       return { success: false, message: 'Timed out waiting for the requested text condition.' }
     }
@@ -2913,6 +2955,7 @@ app.whenReady().then(async () => {
     // tab's indices; a background tab cannot cancel an active tab's action.
     contents.on('did-start-navigation', event => {
       if (!event.isMainFrame || event.isSameDocument) return
+      tab.settledState = undefined
       downloadDenials.delete(contents)
       cancelPermissions(contents)
       if (tab.cdp.raw) detachTabDebugger(tab, true)
@@ -3141,8 +3184,15 @@ app.whenReady().then(async () => {
   }
 
   /** Run one NDJSON request from either stdio or the desktop utility bridge. */
+  const requests = new Map()
   const protocolRequest = async request => {
     const { id, method, args } = request
+    if (method === 'cancel_browser_call') {
+      if (!Number.isSafeInteger(args?.id)) return { id, ok: false, error: 'cancelled browser request id must be an integer' }
+      requests.get(args.id)?.controller.abort(new Error('browser action cancelled'))
+      cancelPermissions()
+      return undefined
+    }
     if (method === 'cancel_browser_permissions') {
       cancelPermissions()
       return undefined
@@ -3162,10 +3212,21 @@ app.whenReady().then(async () => {
       else pending.reject(new Error(args.error ?? 'Hydra could not complete the PageAgent model request'))
       return undefined
     }
+    const controller = new AbortController()
+    const operation = (async () => {
+      try {
+        const result = await handle(method, args ?? {}, controller.signal)
+        controller.signal.throwIfAborted()
+        return { id, ok: true, result }
+      } catch (error) {
+        return { id, ok: false, error: error instanceof Error ? error.message : String(error) }
+      }
+    })()
+    requests.set(id, { controller, operation })
     try {
-      return { id, ok: true, result: await handle(method, args ?? {}) }
-    } catch (error) {
-      return { id, ok: false, error: error instanceof Error ? error.message : String(error) }
+      return await operation
+    } finally {
+      requests.delete(id)
     }
   }
 
@@ -3175,6 +3236,12 @@ app.whenReady().then(async () => {
       getState() { return chromeState },
       async request(request) { return await protocolRequest(request) },
       cancelPermissions() { cancelPermissions() },
+      async cancelRequests() {
+        const pending = [...requests.values()]
+        for (const { controller } of pending) controller.abort(new Error('browser owner disconnected'))
+        cancelPermissions()
+        await Promise.all(pending.map(({ operation }) => operation))
+      },
       setTheme(value) { setChromeTheme(value) },
       setBounds(bounds) {
         if (windowClosing) return

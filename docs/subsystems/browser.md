@@ -37,7 +37,7 @@ interface BrowserState {
   tabId: number
   /** Tab currently selected in the visible browser chrome. */
   activeTabId: number
-  /** True when the requested bounded page-readiness wait completed. */
+  /** Whether the readiness wait completed; metadata-only reads report native loading/dialog state. */
   settled: boolean
   /** Host timestamp for evidence ordering. */
   capturedAt: string
@@ -192,16 +192,16 @@ One Electron window per agent, started lazily and closed with its owner.
 /**
  * Do one thing to an owner's page and report the page afterwards.
  *
- * The trailing state read is not a convenience: PageController indexes
- * elements while building the tree, so the snapshot both answers the caller
- * and leaves the next action addressable. Explicit targets are ordered per
- * tab and may overlap across tabs; implicit and lifecycle actions are barriers.
+ * A captured snapshot refreshes numeric element indexes. With captureState
+ * false, the trailing read contains only page identity, tabs, loading, and
+ * dialogs; callers must observe the page before reusing numeric indexes.
+ * Explicit targets are ordered per tab; implicit and lifecycle actions are barriers.
  * @param owner - agent whose window this is; its first call starts one.
  * @param action - what to do, in page-agent's own vocabulary.
- * @param execution - tool-call identity and cancellation for browser actions and permissions.
+ * @param execution - tool-call identity, cancellation, and optional captureState (default true).
  * @returns the action's report, omitted for a plain state read, plus the state.
  */
-async perform( owner: Agent, action: BrowserAction, execution: BrowserExecutionContext = {}, ): Promise<BrowserOutcome>
+async perform( owner: Agent, action: BrowserAction, execution: BrowserExecutionContext & { captureState?: boolean } = {}, ): Promise<BrowserOutcome>
 
 /**
  * Capture the selected controlled page's visible viewport as a bounded PNG.

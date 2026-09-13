@@ -421,13 +421,14 @@ export function apply(ctx: Context, config: Config = {}): void {
   const run = async (exec: ToolExecution, action: BrowserAction, filename?: string): Promise<BrowserToolValue> => {
     if (filename !== undefined) validateFilename(filename)
     const owner = requireAgent(exec.agent)
-    const outcome = await ctx.browsers.perform(owner, action, {
-      callId: exec.callId,
-      signal: exec.signal,
-    })
     const resultOnly = ['find_element', 'console_messages', 'network_requests', 'network_request'].includes(action.method)
     const explicitRead = action.method === 'get_browser_state'
     const omitted = resultOnly || (!explicitRead && snapshotMode === 'none')
+    const outcome = await ctx.browsers.perform(owner, action, {
+      callId: exec.callId,
+      signal: exec.signal,
+      ...omitted ? { captureState: false } : {},
+    })
     const projected = explicitRead && action.snapshot !== undefined
     const compact = !FULL_SNAPSHOT_METHODS.has(action.method)
     const perTab = previousContent.get(owner) ?? new Map<number, { url: string; content: string; revision: number; elements: string[] }>()
