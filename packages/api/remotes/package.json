@@ -58,6 +58,7 @@
     "@hydra/harness-typert-protocol": "workspace:^"
   },
   "peerDependencies": {
+    "@hydra/harness-authorization": "workspace:^",
     "@hydra/harness-agent": "workspace:^",
     "@hydra/harness-agent-presets": "workspace:^",
     "@hydra/harness-api-gateway": "workspace:^",
@@ -82,6 +83,7 @@
     "@hydra/harness-fs-review": "workspace:^"
   },
   "devDependencies": {
+    "@hydra/harness-authorization": "workspace:^",
     "@hydra/harness-agent": "workspace:^",
     "@hydra/harness-agent-presets": "workspace:^",
     "@hydra/harness-api-gateway": "workspace:^",

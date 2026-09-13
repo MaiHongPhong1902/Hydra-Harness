@@ -13,6 +13,7 @@ import type { GoalsApi } from './goals.ts'
 import type { ReviewApi } from './review.ts'
 import type { SettingsApi } from './settings.ts'
 import type { CredentialsApi } from './credentials.ts'
+import type { AuthorizationApi } from './authorization.ts'
 import type { WebSearchApi } from './web-search.ts'
 import type { LlmApi } from './llm.ts'
 import type { SubagentsApi } from './subagents.ts'
@@ -82,6 +83,12 @@ export interface RpcMethodMap {
   'credentials.describe': CredentialsApi['describe']
   'credentials.set': CredentialsApi['set']
   'credentials.unset': CredentialsApi['unset']
+  'authorization.list': AuthorizationApi['list']
+  'authorization.begin': AuthorizationApi['begin']
+  'authorization.state': AuthorizationApi['state']
+  'authorization.answer': AuthorizationApi['answer']
+  'authorization.cancel': AuthorizationApi['cancel']
+  'authorization.logout': AuthorizationApi['logout']
   'webSearch.providers': WebSearchApi['providers']
   'webSearch.testConnection': WebSearchApi['testConnection']
   'llm.providers': LlmApi['providers']

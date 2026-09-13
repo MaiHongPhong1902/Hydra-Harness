@@ -173,6 +173,8 @@ describe('connection node half', () => {
       'settings.describe', 'settings.openDocument', 'settings.update', 'settings.replace', 'settings.mutate',
       'settings.readInstructions', 'settings.writeInstructions', 'settings.listMemories', 'settings.removeMemory',
       'credentials.describe', 'credentials.set', 'credentials.unset',
+      'authorization.list', 'authorization.begin', 'authorization.state', 'authorization.answer',
+      'authorization.cancel', 'authorization.logout',
       'llm.discoverModels',
       // A composition names the plugins a session runs: reading one is
       // reconnaissance, and copy/remove/openDocument manage the roster and
@@ -541,6 +543,8 @@ describe('connection node half over a real HTTP server', () => {
         'settings.describe', 'settings.openDocument', 'settings.update', 'settings.replace', 'settings.mutate',
         'settings.readInstructions', 'settings.writeInstructions', 'settings.listMemories', 'settings.removeMemory',
         'credentials.describe', 'credentials.set', 'credentials.unset',
+        'authorization.list', 'authorization.begin', 'authorization.state', 'authorization.answer',
+        'authorization.cancel', 'authorization.logout',
         'host.pickDirectory', 'host.openPath',
         // Carries a draft credential and turns the host into a fetcher for a
         // URL the caller picked: an anonymous LAN caller must not reach it.

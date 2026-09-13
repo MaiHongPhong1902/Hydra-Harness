@@ -1019,6 +1019,58 @@ export interface Config {
 
 Source: [`packages/jobs/jobs-local/src/index.ts:31`](../packages/jobs/jobs-local/src/index.ts)
 
+<a id="hydraharness-llm-account-auth"></a>
+
+## `@hydra/harness-llm-account-auth`
+
+Requires: `llm`
+
+```ts config-catalog
+/** Plugin settings, keyed by the route names `chatgpt` and `antigravity`. */
+export interface Config {
+  /** Enabled account-backed routes. An empty map leaves both routes dormant. */
+  providers?: Record<string, AccountProviderProfile>
+}
+
+/** One account-backed provider's settings. */
+export interface AccountProviderProfile {
+  /** Optional replacement model catalog. */
+  models?: AccountModelProfile[]
+  /** Fallback context capacity for a model with no provider metadata. */
+  defaultContextWindow?: number
+  /** Fallback output capacity for a model with no provider metadata. */
+  defaultMaxTokens?: number
+  /** Maximum idle interval while one provider stream read is outstanding. */
+  streamIdleTimeoutMs?: number
+  /** Maximum base64-encoded image payload accepted in one request. */
+  maxRequestImageBytes?: number
+  /** Optional Cloud Code Assist endpoint used by Antigravity requests. */
+  endpoint?: string
+  /** Loopback callback port used by Antigravity OAuth; zero asks the OS for a free port. */
+  callbackPort?: number
+  /** Loopback callback path used by Antigravity OAuth. */
+  callbackPath?: string
+  /** Number of Antigravity onboarding attempts. */
+  onboardingAttempts?: number
+  /** Delay between incomplete Antigravity onboarding attempts. */
+  onboardingDelayMs?: number
+}
+
+/** One optional model override for an account-backed route. */
+export interface AccountModelProfile {
+  /** Provider model id sent on requests. */
+  id: string
+  /** Selector label; defaults to the provider catalog's name. */
+  name?: string
+  /** Combined input and output context capacity. */
+  contextWindow?: number
+  /** Maximum output token capability. */
+  maxTokens?: number
+}
+```
+
+Source: [`packages/llm/llm-account-auth/src/config.ts:43`](../packages/llm/llm-account-auth/src/config.ts)
+
 <a id="hydraharness-llm-deepseek"></a>
 
 ## `@hydra/harness-llm-deepseek`

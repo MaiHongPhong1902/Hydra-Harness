@@ -43,6 +43,10 @@ interface CredentialInfo {
 }
 ```
 
+## Account authorization
+
+An [authorization flow](../../packages/credentials/authorization/README.md) owns its credential record and may expose account inventory and removal through `AuthorizationAccounts`. `AuthorizationAccount` contains an opaque `AuthorizationAccountId` and a display label; it never contains access or refresh credentials. The generic service delegates `listAccounts(key)` and `removeAccount(key, id)` to that flow without decoding its stored payload. Removal is refused while the same flow is authorizing, and storage failures propagate to the caller.
+
 ## Change commits
 
 `credentials/reference-updated (ref)` fires after a committed change to a provider-managed source — a `set`, an `unset`, or an external edit observed in storage. Ambient process-environment changes are not observable and never emit. Consumers do not need the event (they re-resolve per operation); it exists for configuration surfaces refreshing a "configured" badge.
@@ -85,6 +89,26 @@ list(): readonly AuthorizationEntry[]
  * @returns the entry, or undefined when no flow claims that key.
  */
 describe(key: CredentialKey): AuthorizationEntry | undefined
+
+/**
+ * List the value-free account identities owned by one registered flow.
+ * @param key - the credential flow whose accounts should be listed.
+ * @returns provider-owned account identities, or an empty list for a flow
+ *   that has no account inventory.
+ * @throws {AuthorizationError} code `NO_FLOW` when nothing claims the key.
+ */
+async listAccounts(key: CredentialKey): Promise<readonly AuthorizationAccount[]>
+
+/**
+ * Remove one account through its owning flow.
+ * @param key - the credential flow that owns the account.
+ * @param accountId - the opaque account identity returned by `listAccounts`.
+ * @throws {AuthorizationError} code `NO_FLOW` when nothing claims the key, or
+ *   `NO_ACCOUNTS` when the flow has no account removal operation, or
+ *   `ALREADY_IN_FLIGHT` while a login or account removal is running for the
+ *   flow.
+ */
+async removeAccount(key: CredentialKey, accountId: AuthorizationAccountId): Promise<void>
 
 /**
  * Withdraw the attempt running for a key, if any. Separate from the
@@ -218,21 +242,21 @@ Source: [`packages/credentials/credentials/src/index.ts`](../../packages/credent
 
 #### `authorization/settled` — emit
 
-One authorization attempt has finished and released its key. Fires for every terminal outcome, failures included, so a surface watching a key it did not start (a second browser tab) learns the attempt is over.
+One authorization attempt has finished and released its key. The event carries no credential value, so remote configuration surfaces may use it to refresh account state.
 
 ```ts cordis-catalog
 /**
- * One authorization attempt has finished and released its key. Fires for
- * every terminal outcome, failures included, so a surface watching a key it
- * did not start (a second browser tab) learns the attempt is over.
+ * One authorization attempt has finished and released its key. The event
+ * carries no credential value, so remote configuration surfaces may use it
+ * to refresh account state.
+ * @param key - the credential flow key whose attempt finished.
+ * @param settlement - the public terminal outcome.
  * @mode emit
- * @param key - the credential record the finished attempt was authorizing.
- * @param settlement - how it ended, including the `failed` case its caller sees as a thrown error.
  */
 'authorization/settled'(key: CredentialKey, settlement: AuthorizationSettlement): void
 ```
 
-Source: [`packages/credentials/authorization/src/index.ts`](../../packages/credentials/authorization/src/index.ts)
+Source: [`packages/credentials/authorization/src/types.ts`](../../packages/credentials/authorization/src/types.ts)
 
 <a id="credentials-events"></a>
 

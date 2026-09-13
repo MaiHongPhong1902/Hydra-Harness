@@ -40,8 +40,12 @@ flowchart LR
   cfg --> plugin_hydra_base_settings
   plugin_hydra_base_credentials["credentials<br/>@hydra/harness-credentials-local"]
   cfg --> plugin_hydra_base_credentials
+  plugin_hydra_base_authorization["authorization<br/>@hydra/harness-authorization"]
+  cfg --> plugin_hydra_base_authorization
   plugin_hydra_base_llm_pi_ai["llm-pi-ai<br/>@hydra/harness-llm-pi-ai"]
   cfg --> plugin_hydra_base_llm_pi_ai
+  plugin_hydra_base_llm_account_auth["llm-account-auth<br/>@hydra/harness-llm-account-auth"]
+  cfg --> plugin_hydra_base_llm_account_auth
   plugin_hydra_base_session_persistence_jsonl["session-persistence-jsonl<br/>@hydra/harness-session-persistence-jsonl"]
   cfg --> plugin_hydra_base_session_persistence_jsonl
   plugin_hydra_base_attachment_local["attachment-local<br/>@hydra/harness-attachment-local"]
@@ -204,7 +208,9 @@ flowchart LR
 | `llm-retry` | `@hydra/harness-llm-retry` |
 | `settings` | `@hydra/harness-settings-file` |
 | `credentials` | `@hydra/harness-credentials-local` |
+| `authorization` | `@hydra/harness-authorization` |
 | `llm-pi-ai` | `@hydra/harness-llm-pi-ai` |
+| `llm-account-auth` | `@hydra/harness-llm-account-auth` |
 | `session-persistence-jsonl` | `@hydra/harness-session-persistence-jsonl` |
 | `attachment-local` | `@hydra/harness-attachment-local` |
 | `session-query-sqlite` | `@hydra/harness-session-query-sqlite` |

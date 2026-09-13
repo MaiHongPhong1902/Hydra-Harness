@@ -1,0 +1,62 @@
+{
+  "name": "@hydra/harness-llm-account-auth",
+  "description": "Native multi-account OAuth adapters for ChatGPT and Google Antigravity",
+  "version": "0.1.1-rc.1",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MaiHongPhong1902/Hydra-Harness.git",
+    "directory": "packages/llm/llm-account-auth"
+  },
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./invariant": {
+      "types": "./lib/types/invariant.d.ts",
+      "default": "./lib/invariant.js"
+    },
+    "./src/*": "./src/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/invariant.js",
+    "lib/*-*.js",
+    "lib/types/**/*.d.ts"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "@hydra/harness-attachment": "workspace:^",
+    "@hydra/harness-authorization": "workspace:^",
+    "@hydra/harness-credentials": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/harness-llm-pi-ai": "workspace:^",
+    "@hydra/harness-settings": "workspace:^",
+    "@hydra/harness-timeout": "workspace:^",
+    "@hydra/cordis": "workspace:^"
+  },
+  "dependencies": {
+    "@earendil-works/pi-ai": "^0.82.1",
+    "@hydra/schemastery": "workspace:^"
+  },
+  "devDependencies": {
+    "@hydra/harness-attachment": "workspace:^",
+    "@hydra/harness-authorization": "workspace:^",
+    "@hydra/harness-credentials": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/harness-llm-pi-ai": "workspace:^",
+    "@hydra/harness-session": "workspace:^",
+    "@hydra/harness-settings": "workspace:^",
+    "@hydra/harness-timeout": "workspace:^",
+    "@hydra/cordis": "workspace:^"
+  }
+}

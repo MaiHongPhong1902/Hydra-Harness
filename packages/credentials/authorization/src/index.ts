@@ -31,12 +31,14 @@ import type { CredentialKey } from '@hydra/harness-credentials'
 import { HarnessError } from '@hydra/harness-llm'
 
 import type {
-  AuthorizationEntry, AuthorizationMethod, AuthorizationNotice, AuthorizationOutcome, AuthorizationPrompt,
+  AuthorizationAccount, AuthorizationAccountId, AuthorizationAccounts, AuthorizationEntry,
+  AuthorizationMethod, AuthorizationNotice, AuthorizationOutcome, AuthorizationPrompt,
   AuthorizationSettlement,
 } from './types.ts'
 
 export type {
-  AuthorizationEntry, AuthorizationMethod, AuthorizationNotice, AuthorizationOutcome, AuthorizationPrompt,
+  AuthorizationAccount, AuthorizationAccountId, AuthorizationAccounts, AuthorizationEntry,
+  AuthorizationMethod, AuthorizationNotice, AuthorizationOutcome, AuthorizationPrompt,
   AuthorizationPromptOption, AuthorizationSettlement, AuthorizationStatus,
 } from './types.ts'
 
@@ -44,18 +46,15 @@ declare module '@hydra/cordis' {
   interface Context {
     authorization: AuthorizationService
   }
+}
 
-  interface Events {
-    /**
-     * One authorization attempt has finished and released its key. Fires for
-     * every terminal outcome, failures included, so a surface watching a key it
-     * did not start (a second browser tab) learns the attempt is over.
-     * @mode emit
-     * @param key - the credential record the finished attempt was authorizing.
-     * @param settlement - how it ended, including the `failed` case its caller sees as a thrown error.
-     */
-    'authorization/settled'(key: CredentialKey, settlement: AuthorizationSettlement): void
-  }
+/**
+ * Brand an account id after its provider or wire parser has admitted it.
+ * @param value - the provider-owned account identity.
+ * @returns the branded account id.
+ */
+export function authorizationAccountId(value: string): AuthorizationAccountId {
+  return value as AuthorizationAccountId
 }
 
 /** Stable error taxonomy for authorization failures. */
@@ -128,6 +127,11 @@ export interface AuthorizationFlow {
    */
   readonly methods: readonly [AuthorizationMethod, ...AuthorizationMethod[]]
   /**
+   * Optional provider-owned account operations. Flows without an account pool
+   * expose an empty account list and reject account removal.
+   */
+  readonly accounts?: AuthorizationAccounts
+  /**
    * Run one attempt to obtain and commit the credential.
    * @param session - the chosen method, the cancellation signal, and the interaction callbacks.
    * @returns once the record is committed.
@@ -185,6 +189,7 @@ export class AuthorizationService extends Service {
 
   private readonly flows = new Map<CredentialKey, AuthorizationFlow>()
   private readonly running = new Map<CredentialKey, InFlight>()
+  private readonly removing = new Set<CredentialKey>()
 
   constructor(ctx: Context) {
     super(ctx, 'authorization')
@@ -235,14 +240,63 @@ export class AuthorizationService extends Service {
     return flow === undefined ? undefined : this.entry(flow)
   }
 
+  /**
+   * List the value-free account identities owned by one registered flow.
+   * @param key - the credential flow whose accounts should be listed.
+   * @returns provider-owned account identities, or an empty list for a flow
+   *   that has no account inventory.
+   * @throws {AuthorizationError} code `NO_FLOW` when nothing claims the key.
+   */
+  async listAccounts(key: CredentialKey): Promise<readonly AuthorizationAccount[]> {
+    const flow = this.flows.get(key)
+    if (flow === undefined) {
+      throw new AuthorizationError(`no authorization flow is registered for "${key}"`, 'NO_FLOW')
+    }
+    return flow.accounts === undefined ? [] : [...await flow.accounts.list()]
+  }
+
+  /**
+   * Remove one account through its owning flow.
+   * @param key - the credential flow that owns the account.
+   * @param accountId - the opaque account identity returned by `listAccounts`.
+   * @throws {AuthorizationError} code `NO_FLOW` when nothing claims the key, or
+   *   `NO_ACCOUNTS` when the flow has no account removal operation, or
+   *   `ALREADY_IN_FLIGHT` while a login or account removal is running for the
+   *   flow.
+   */
+  async removeAccount(key: CredentialKey, accountId: AuthorizationAccountId): Promise<void> {
+    const flow = this.flows.get(key)
+    if (flow === undefined) {
+      throw new AuthorizationError(`no authorization flow is registered for "${key}"`, 'NO_FLOW')
+    }
+    if (flow.accounts === undefined) {
+      throw new AuthorizationError(
+        `authorization flow for "${key}" does not own an account pool`, 'NO_ACCOUNTS')
+    }
+    if (this.isBusy(key)) {
+      throw new AuthorizationError('cancel authorization before removing an account', 'ALREADY_IN_FLIGHT')
+    }
+    this.removing.add(key)
+    try {
+      await flow.accounts.remove(accountId)
+    } finally {
+      this.removing.delete(key)
+    }
+  }
+
   /** The public view of one registered flow. */
   private entry(flow: AuthorizationFlow): AuthorizationEntry {
     return {
       key: flow.key,
       label: flow.label,
       methods: flow.methods,
-      inFlight: this.running.has(flow.key),
+      inFlight: this.isBusy(flow.key),
     }
+  }
+
+  /** Whether a key is occupied by login or account removal. */
+  private isBusy(key: CredentialKey): boolean {
+    return this.running.has(key) || this.removing.has(key)
   }
 
   /**
@@ -283,7 +337,7 @@ export class AuthorizationService extends Service {
       throw new AuthorizationError(
         `authorization flow for "${key}" offers no method "${method}"`, 'UNKNOWN_METHOD')
     }
-    if (this.running.has(key)) {
+    if (this.isBusy(key)) {
       throw new AuthorizationError(
         `an authorization attempt for "${key}" is already running`, 'ALREADY_IN_FLIGHT')
     }

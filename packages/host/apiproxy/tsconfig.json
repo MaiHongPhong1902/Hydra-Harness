@@ -20,6 +20,9 @@
       "path": "../../credentials/credentials"
     },
     {
+      "path": "../../credentials/authorization"
+    },
+    {
       "path": "../../../vendor/cordis"
     },
     {

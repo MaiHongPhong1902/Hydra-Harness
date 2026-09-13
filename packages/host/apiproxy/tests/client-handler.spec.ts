@@ -27,6 +27,7 @@ function scriptedApi(overrides: {
   goals?: Partial<ApiProxy['goals']>
   settings?: Partial<ApiProxy['settings']>
   credentials?: Partial<ApiProxy['credentials']>
+  authorization?: Partial<ApiProxy['authorization']>
   llm?: Partial<ApiProxy['llm']>
   review?: Partial<ApiProxy['review']>
   respond?: ApiProxy['respond']
@@ -128,6 +129,15 @@ function scriptedApi(overrides: {
       set: err,
       unset: err,
       ...overrides.credentials,
+    },
+    authorization: {
+      list: r => ok(r, { entries: [] }),
+      begin: r => ok(r, { attemptId: '00000000-0000-4000-8000-000000000001' }),
+      state: r => ok(r, { attempt: { id: r.payload.attemptId, status: 'cancelled' as const } }),
+      answer: r => ok(r, {}),
+      cancel: r => ok(r, {}),
+      logout: r => ok(r, {}),
+      ...overrides.authorization,
     },
     webSearch: {
       providers: async request => ({ rpcId: request.rpcId, result: { ok: true, value: { providers: [] } } }),
@@ -725,6 +735,35 @@ describe('envelope tap', () => {
     await tapped.sessions.list({})
     await new Promise(resolve => setTimeout(resolve, 0))
     expect(batches).toEqual([])
+  })
+
+  it('redacts authorization answers for observers while forwarding the real value', async () => {
+    const secret = 'oauth-code-super-secret'
+    let received: string | undefined
+    const api = scriptedApi({
+      authorization: {
+        answer: (request) => {
+          received = request.payload.value
+          return ok(request, {})
+        },
+      },
+    })
+    const tapped = client(api)
+    const observed: RpcMessage[] = []
+    tapped.subscribeEnvelopes(batch => observed.push(...batch))
+
+    const response = await tapped.authorization.answer({
+      attemptId: '00000000-0000-4000-8000-000000000001',
+      promptId: '00000000-0000-4000-8000-000000000002',
+      value: secret,
+    })
+    expect(response.result).toEqual({ ok: true, value: {} })
+    expect(received).toBe(secret)
+    await vi.waitFor(() => {
+      const request = observed.find(message => message.type === 'client-request' && message.method === 'authorization.answer')
+      expect(request).toMatchObject({ payload: { value: '[redacted]' } })
+    })
+    expect(JSON.stringify(observed)).not.toContain(secret)
   })
 })
 

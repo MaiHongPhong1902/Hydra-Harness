@@ -3,6 +3,7 @@ import { Context } from '@hydra/cordis'
 import { credentialKey } from '@hydra/harness-credentials'
 import AuthorizationService, {
   AuthorizationDeclinedError,
+  authorizationAccountId,
   type AuthorizationFlow,
   type AuthorizationInteraction,
   type AuthorizationSession,
@@ -11,6 +12,7 @@ import { MemoryCredentials } from './memory.ts'
 
 const KEY = credentialKey('llm-pi-ai', 'openai-codex')
 const OTHER = credentialKey('llm-pi-ai', 'anthropic')
+const ACCOUNT = authorizationAccountId('account-one')
 
 /** A context with the record store the seam confirms commits against. */
 async function harness(): Promise<Context> {
@@ -57,6 +59,70 @@ function committingFlow(
 }
 
 describe('AuthorizationService registry', () => {
+  it('keeps account inventory and removal with the registered provider', async () => {
+    const ctx = await harness()
+    let accounts = [{ id: ACCOUNT, label: 'Account One' }]
+    const remove = vi.fn(async (id: typeof ACCOUNT) => { accounts = accounts.filter(account => account.id !== id) })
+    const dispose = ctx.authorization.registerFlow({ ...committingFlow(ctx), accounts: {
+      list: async () => accounts, remove,
+    } })
+    expect(await ctx.authorization.listAccounts(KEY)).toEqual(accounts)
+    await ctx.authorization.removeAccount(KEY, ACCOUNT)
+    expect(remove).toHaveBeenCalledWith(ACCOUNT)
+    expect(await ctx.authorization.listAccounts(KEY)).toEqual([])
+    dispose()
+    await expect(ctx.authorization.listAccounts(KEY)).rejects.toMatchObject({ code: 'NO_FLOW' })
+    await expect(ctx.authorization.removeAccount(KEY, ACCOUNT)).rejects.toMatchObject({ code: 'NO_FLOW' })
+    ctx.authorization.registerFlow(committingFlow(ctx))
+    expect(await ctx.authorization.listAccounts(KEY)).toEqual([])
+    await expect(ctx.authorization.removeAccount(KEY, ACCOUNT)).rejects.toMatchObject({ code: 'NO_ACCOUNTS' })
+  })
+
+  it('preserves account-store failures and rejects removal during login', async () => {
+    const ctx = await harness()
+    const remove = vi.fn(async () => {})
+    let entered!: () => void
+    const started = new Promise<void>((resolve) => { entered = resolve })
+    ctx.authorization.registerFlow({ ...committingFlow(ctx, KEY, (session) => {
+      entered()
+      return session.prompt({ kind: 'text', message: 'Code' }).then(() => {})
+    }), accounts: { list: async () => { throw new Error('record unreadable') }, remove } })
+    await expect(ctx.authorization.listAccounts(KEY)).rejects.toThrow('record unreadable')
+    const pending = ctx.authorization.begin({ key: KEY, interaction: {
+      notify: () => {}, prompt: () => new Promise(() => {}),
+    } })
+    await started
+    await expect(ctx.authorization.removeAccount(KEY, ACCOUNT)).rejects.toMatchObject({ code: 'ALREADY_IN_FLIGHT' })
+    expect(remove).not.toHaveBeenCalled()
+    ctx.authorization.cancel(KEY)
+    await expect(pending).resolves.toEqual({ status: 'cancelled' })
+  })
+
+  it('reserves a key until account removal finishes', async () => {
+    const ctx = await harness()
+    const removal = Promise.withResolvers<void>()
+    const started = Promise.withResolvers<void>()
+    ctx.authorization.registerFlow({ ...committingFlow(ctx), accounts: {
+      list: async () => [{ id: ACCOUNT, label: 'Account One' }],
+      remove: async () => {
+        started.resolve()
+        await removal.promise
+      },
+    } })
+
+    const pending = ctx.authorization.removeAccount(KEY, ACCOUNT)
+    await started.promise
+    expect(ctx.authorization.describe(KEY)?.inFlight).toBe(true)
+    await expect(ctx.authorization.begin({ key: KEY, interaction: surface() }))
+      .rejects.toMatchObject({ code: 'ALREADY_IN_FLIGHT' })
+
+    removal.resolve()
+    await pending
+    expect(ctx.authorization.describe(KEY)?.inFlight).toBe(false)
+    await expect(ctx.authorization.begin({ key: KEY, interaction: surface() }))
+      .resolves.toEqual({ status: 'authorized' })
+  })
+
   it('lists a registered flow and drops it when the registration is disposed', async () => {
     const ctx = await harness()
 

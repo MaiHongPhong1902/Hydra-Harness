@@ -482,6 +482,8 @@ export const LINK_MAP: Readonly<Record<string, string>> = {
   SettingsPathOp: 'settings.md',
   SettingsDescribeOptions: 'settings.md',
   SettingsUpdateSource: 'settings.md',
+  AuthorizationAccount: 'credentials.md',
+  AuthorizationAccountId: 'credentials.md',
   AuthorizationEntry: 'credentials.md',
   AuthorizationFlow: 'credentials.md',
   AuthorizationInteraction: 'credentials.md',

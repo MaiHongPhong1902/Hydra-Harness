@@ -4,6 +4,8 @@
 
 The Host owns the `/api` route and applies the loopback fence before a registered Typert Remote or API Proxy handles a request. Plugin inventory management is loopback-only: loader enablement, OpenAI/Codex marketplace-source changes, imported-plugin lifecycle, imported MCP-server enablement, and hook trust all expose installed code or mutate local configuration. A configured trusted host can invoke other application methods but cannot bypass this fence.
 
+Authorization methods are loopback-only as well: account inventories reveal provider identities, and begin/answer/logout can start an interactive login, carry its answer, or mutate the provider account pool. The connection keeps these methods behind the same local caller check while ordinary model and session reads remain available to a configured trusted host.
+
 ## Model Experience
 
 None, as this transport package neither assembles model input nor registers a model-facing capability.

@@ -53,6 +53,12 @@ A human's "no" is an outcome, not a breakage. An interaction that declines rejec
 
 `authorization/settled (key, settlement)` fires after the key is released, for every terminal outcome. `settlement` adds `failed` to the two statuses `begin()` can return: a failure reaches its own caller as a thrown error, so the event stream is the only place a watcher that did not start the attempt can tell a refusal from a breakage. Listener failures are contained: every listener runs, a throw or rejection is logged without changing the finished attempt's outcome, and only an `INVARIANT`-coded failure rethrows after the rest ran.
 
+## Multiple accounts
+
+A flow can supply `accounts.list()` and `accounts.remove(id)` for its own credential format. `listAccounts(key)` returns only opaque account ids and labels; `removeAccount(key, id)` delegates removal to that provider and refuses while its login is running. An unregistered key fails with `NO_FLOW`. A flow without account operations lists no accounts and rejects removal with `NO_ACCOUNTS`. Store failures propagate to callers instead of looking like an empty account list.
+
+Account identifiers use `AuthorizationAccountId`. Providers and wire parsers validate their external values before constructing the brand with `authorizationAccountId(value)`. The authorization service never inspects grant payloads or returns access and refresh tokens.
+
 ## The interaction vocabulary
 
 A notice is one-way and never carries a secret: a message, optionally the page the human must open and the code they must enter there. A prompt is a question the flow cannot answer — `text`, `secret`, or `select` — and `secret` differs from `text` only in presentation. A prompt carries its own `signal` so a flow that races a typed code against a browser callback can withdraw the losing question while the attempt continues; the request's signal withdraws the whole attempt instead.

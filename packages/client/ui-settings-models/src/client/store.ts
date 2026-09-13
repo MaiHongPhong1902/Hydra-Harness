@@ -42,6 +42,8 @@ export interface ProviderRow {
   credential: CredentialView | undefined
   /** Fallback references joined with their write-only credential state. */
   fallbackCredentials: Readonly<Record<string, CredentialView | undefined>>
+  /** Connected accounts for account-backed routes; absent for API-key routes. */
+  accountCount?: number
 }
 
 /** Page snapshot. */
@@ -84,6 +86,17 @@ export function messageOf(error: unknown): string {
  */
 export function deriveKeyRef(provider: string): string {
   return `${provider.toUpperCase().replace(/[^A-Z0-9]+/g, '_')}_API_KEY`
+}
+
+/**
+ * Account-backed routes offered by the provider editor.
+ * @param namespace - the adapter settings namespace.
+ * @param provider - the provider route id.
+ * @returns its authorization key, or undefined for API-key routes.
+ */
+export function providerAccountKey(namespace: string, provider: string): string | undefined {
+  return namespace === 'llm-account-auth' && (provider === 'chatgpt' || provider === 'antigravity')
+    ? `${namespace}/${provider}` : undefined
 }
 
 /**
@@ -176,7 +189,7 @@ export class ModelsSettingsStore {
    * @param describeFace - the shared mirror's describe face (namespace views and writability).
    */
   constructor(
-    private readonly api: Pick<IApiClient, 'settings' | 'credentials' | 'llm'>,
+    private readonly api: Pick<IApiClient, 'settings' | 'credentials' | 'llm' | 'authorization'>,
     private readonly schema: SettingsSchemaOperations,
     private readonly describeFace: SettingsDescribeFace,
   ) {}
@@ -257,6 +270,16 @@ export class ModelsSettingsStore {
         credentialError = messageOf(error)
       }
     }
+    const accounts = new Map<string, number>()
+    if (rows.some(row => providerAccountKey(row.entry.settingsNs, row.entry.provider) !== undefined)) {
+      try {
+        const response = await this.api.authorization.list({})
+        if (!response.result.ok) throw new Error(response.result.error.message)
+        for (const entry of response.result.value.entries) accounts.set(entry.key, entry.accounts.length)
+      } catch (error) {
+        credentialError = messageOf(error)
+      }
+    }
     if (generation !== this.generation) return
     this.store.update((s) => {
       s.status = 'ready'
@@ -265,6 +288,8 @@ export class ModelsSettingsStore {
       s.writable = writable
       s.rows = rows.map(row => ({
         ...row,
+        ...providerAccountKey(row.entry.settingsNs, row.entry.provider) === undefined ? {}
+          : { accountCount: accounts.get(`${row.entry.settingsNs}/${row.entry.provider}`) ?? 0 },
         fallbackCredentials: Object.fromEntries(Object.keys(row.fallbackCredentials).map(ref => [ref, credentials[ref]])),
         ...row.apiKeyEnv !== undefined && credentials[row.apiKeyEnv] !== undefined
           ? { credential: credentials[row.apiKeyEnv] }
@@ -288,6 +313,7 @@ export class ModelsSettingsStore {
  */
 export function providerUsable(row: ProviderRow): boolean {
   if (!row.entry.active) return false
+  if (row.accountCount !== undefined) return row.accountCount > 0
   if (row.apiKeyEnv === undefined && Object.keys(row.fallbackCredentials).length === 0) return true
   return row.credential?.configured === true || Object.values(row.fallbackCredentials).some(state => state?.configured === true)
 }

@@ -1,0 +1,58 @@
+- dialog "Settings":
+  - navigation:
+    - text: Settings
+    - button "General":
+      - img
+      - text: General
+    - button "Personalization":
+      - img
+      - text: Personalization
+    - button "Models":
+      - img
+      - text: Models
+    - button "Web Search":
+      - img
+      - text: Web Search
+    - button "Usage"
+    - button "Plugins":
+      - img
+      - text: Plugins
+    - button "Agent presets":
+      - img
+      - text: Agent presets
+  - button "Open configuration file"
+  - button "Close":
+    - img
+    - text: Close
+  - heading "Models" [level=2]
+  - paragraph: Sign in with your accounts or enter API keys to use models from these providers.
+  - list:
+    - listitem:
+      - text: ChatGPT
+      - img "Account connected"
+      - button "Edit ChatGPT (chatgpt)": Edit
+      - button "Delete ChatGPT (chatgpt)": Delete
+      - text: ChatGPT chatgpt Accounts
+      - paragraph: Requests rotate between accounts. Another account is tried when a request fails or reaches its quota.
+      - list "Accounts":
+        - listitem:
+          - text: alice@example.test
+          - button "Sign out alice@example.test": Sign out
+        - listitem:
+          - text: bob@example.test
+          - button "Sign out bob@example.test": Sign out
+      - button "Add account"
+      - status:
+        - paragraph: Continue signing in to ChatGPT in your browser.
+        - link "Open sign-in page":
+          - /url: https://auth.example.test/chatgpt
+        - paragraph: Account connected. Apply to make this provider available in the model selector.
+      - group: Customized settings
+      - button "Cancel"
+      - button "Apply"
+  - button "Add provider":
+    - img
+    - text: Add provider
+  - button "Add a custom provider":
+    - img
+    - text: Add a custom provider

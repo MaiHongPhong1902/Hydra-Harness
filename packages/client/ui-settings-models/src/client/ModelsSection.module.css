@@ -307,6 +307,26 @@
   gap: 8px;
 }
 
+.accountList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.accountRow,
+.accountActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.accountRow {
+  justify-content: space-between;
+  padding: 6px 0;
+  overflow-wrap: anywhere;
+}
+
 .addBlock {
   display: flex;
   flex-direction: column;

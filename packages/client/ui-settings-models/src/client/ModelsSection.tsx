@@ -33,7 +33,7 @@ export interface ModelsSectionInjected {
     snapshot: ModelsSettingsStore['store']
   }
   /** Wire faces the editor writes through. */
-  api: Pick<IApiClient, 'settings' | 'credentials' | 'llm'>
+  api: Pick<IApiClient, 'settings' | 'credentials' | 'llm' | 'authorization'>
   /** Settings schema and immutable path callbacks. */
   schema: SettingsSchemaOperations
   /** Section copy. */
@@ -329,10 +329,15 @@ function Loaded({ injected }: { injected: ModelsSectionFace }): ReactNode {
           /* v8 ignore next -- the join marks a row configured only when its namespace resolved */
           if (namespace === undefined) return null
           const open = !adding && editing?.provider === row.entry.provider
-          const credentialConfigured = row.credential?.configured === true
-            || Object.values(row.fallbackCredentials).some(state => state?.configured === true)
-          const credentialMissing = !credentialConfigured && (row.credential?.configured === false
-            || Object.values(row.fallbackCredentials).some(state => state?.configured === false))
+          const credentialConfigured = row.accountCount === undefined
+            ? row.credential?.configured === true || Object.values(row.fallbackCredentials).some(state => state?.configured === true)
+            : row.accountCount > 0
+          const credentialMissing = row.accountCount === undefined
+            ? !credentialConfigured && (row.credential?.configured === false
+              || Object.values(row.fallbackCredentials).some(state => state?.configured === false))
+            : row.accountCount === 0
+          const configuredLabel = t(row.accountCount === undefined ? 'credentialConfigured' : 'accountConfigured')
+          const missingLabel = t(row.accountCount === undefined ? 'credentialMissing' : 'accountMissing')
           return (
             <li key={row.entry.provider} className={styles['rowCard']}>
               <div className={styles['rowHead']}>
@@ -349,8 +354,8 @@ function Loaded({ injected }: { injected: ModelsSectionFace }): ReactNode {
                       <span
                         className={`${styles['credentialDot']} ${styles['credentialDotConfigured']}`}
                         role="img"
-                        aria-label={t('credentialConfigured')}
-                        title={t('credentialConfigured')}
+                        aria-label={configuredLabel}
+                        title={configuredLabel}
                       />
                     )
                     : credentialMissing
@@ -358,8 +363,8 @@ function Loaded({ injected }: { injected: ModelsSectionFace }): ReactNode {
                         <span
                           className={`${styles['credentialDot']} ${styles['credentialDotMissing']}`}
                           role="img"
-                          aria-label={t('credentialMissing')}
-                          title={t('credentialMissing')}
+                          aria-label={missingLabel}
+                          title={missingLabel}
                         />
                       )
                       : null}

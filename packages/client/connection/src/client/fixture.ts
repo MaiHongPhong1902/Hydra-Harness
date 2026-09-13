@@ -3058,6 +3058,14 @@ function createFixtureWorld(options: FixtureOptions): FixtureWorld {
         return ok(request, {})
       },
     },
+    authorization: {
+      list: request => ok(request, { entries: [] }),
+      begin: request => ok(request, { attemptId: '00000000-0000-4000-8000-000000000001' }),
+      state: request => ok(request, { attempt: { id: request.payload.attemptId, status: 'cancelled' as const } }),
+      answer: request => ok(request, {}),
+      cancel: request => ok(request, {}),
+      logout: request => ok(request, {}),
+    },
     webSearch: {
       providers: request => ok(request, { providers: [] }),
       testConnection: request => ok(request, { connected: false, provider: request.payload.provider, code: 'CONFIG_ERROR', message: 'No search provider configured.', retryable: false }),
@@ -3258,6 +3266,12 @@ export class FixtureApiClient extends AbstractApiClient {
       case 'credentials.describe': return this.api.credentials.describe(request)
       case 'credentials.set': return this.api.credentials.set(request)
       case 'credentials.unset': return this.api.credentials.unset(request)
+      case 'authorization.list': return this.api.authorization.list(request)
+      case 'authorization.begin': return this.api.authorization.begin(request)
+      case 'authorization.state': return this.api.authorization.state(request)
+      case 'authorization.answer': return this.api.authorization.answer(request)
+      case 'authorization.cancel': return this.api.authorization.cancel(request)
+      case 'authorization.logout': return this.api.authorization.logout(request)
       case 'webSearch.providers': return this.api.webSearch.providers(request)
       case 'webSearch.testConnection': return this.api.webSearch.testConnection(request)
       case 'llm.providers': return this.api.llm.providers(request)

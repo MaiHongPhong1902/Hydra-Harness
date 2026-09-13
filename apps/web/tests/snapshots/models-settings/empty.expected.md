@@ -25,10 +25,12 @@
     - img
     - text: Close
   - heading "Models" [level=2]
-  - paragraph: Enter your API keys to use models from the following providers.
+  - paragraph: Sign in with your accounts or enter API keys to use models from these providers.
   - list
   - text: Provider
   - combobox "Provider":
+    - option "ChatGPT"
+    - option "Google Antigravity"
     - option "amazon-bedrock"
     - option "ant-ling"
     - option "anthropic"

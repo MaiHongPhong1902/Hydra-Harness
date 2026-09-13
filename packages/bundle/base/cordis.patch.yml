@@ -97,6 +97,12 @@
       name: '@hydra/harness-credentials-local'
       pluginType: core
 
+    # Provider-owned login flows use the shared credential record store and
+    # expose browser-safe notices/prompts through the Host authorization API.
+    - id: authorization
+      name: '@hydra/harness-authorization'
+      pluginType: core
+
     # The pi-ai multi-provider twin, mounted dormant: zero routes (and no extra
     # models in the picker) until a `llm-pi-ai:` settings section supplies provider
     # profiles — then those routes register live, keys resolving per request
@@ -106,6 +112,11 @@
     # document.
     - id: llm-pi-ai
       name: '@hydra/harness-llm-pi-ai'
+      pluginType: core
+
+    # Account SDKs load only for login or requests on an enabled account route.
+    - id: llm-account-auth
+      name: '@hydra/harness-llm-account-auth'
       pluginType: core
 
     - id: session-persistence-jsonl
