@@ -13,14 +13,15 @@ import {
 import { FallbackKeysEditor, useFallbackKeys } from './FallbackKeysEditor.tsx'
 import { apiKeyFailure } from './apiKey.ts'
 import { EditorFooter } from './EditorFooter.tsx'
+import { ProviderAccounts } from './ProviderAccounts.tsx'
 import { ModelListEditor } from './ModelListEditor.tsx'
-import { deriveKeyRef, messageOf, protocolChoices } from './store.ts'
+import { deriveKeyRef, messageOf, protocolChoices, providerAccountKey } from './store.ts'
 import type { SettingsSchemaOperations } from './schema-operations.ts'
 import type { en } from './locales.ts'
 import styles from './ModelsSection.module.css'
 
 /** Per-adapter-family curated field sets (unknown namespaces get the hint alone). */
-type EditorLayout = 'deepseek' | 'pi-ai' | 'unknown'
+type EditorLayout = 'deepseek' | 'pi-ai' | 'accounts' | 'unknown'
 
 /** The public DeepSeek endpoint shown as the deepseek base-URL placeholder. */
 const DEEPSEEK_PUBLIC_BASE_URL = 'https://api.deepseek.com'
@@ -48,7 +49,7 @@ export interface ProviderEditorProps {
   /** Path from the section root to this provider's profile. */
   settingsPath: readonly string[]
   /** Wire faces for writes and for interrogating a provider endpoint. */
-  api: Pick<IApiClient, 'settings' | 'credentials' | 'llm'>
+  api: Pick<IApiClient, 'settings' | 'credentials' | 'llm' | 'authorization'>
   /** Section copy. */
   t: (key: keyof typeof en) => string
   /** Disable writes (read-only settings provider). */
@@ -101,6 +102,7 @@ export function pathOps(
 function layoutOf(ns: string): EditorLayout {
   if (ns === 'llm-deepseek') return 'deepseek'
   if (ns === 'llm-pi-ai') return 'pi-ai'
+  if (ns === 'llm-account-auth') return 'accounts'
   return 'unknown'
 }
 
@@ -129,6 +131,7 @@ export function ProviderEditor(props: ProviderEditorProps): ReactNode {
   const [keyDraft, setKeyDraft] = useState('')
   const [keyState, setKeyState] = useState<CredentialView | undefined>(undefined)
   const [busy, setBusy] = useState(false)
+  const [accountBusy, setAccountBusy] = useState(false)
   const [failure, setFailure] = useState<string | undefined>(undefined)
   // A settings success advances both retry baselines immediately. Keeping the
   // derived fields in the draft prevents a pushed namespace refresh from
@@ -143,6 +146,7 @@ export function ProviderEditor(props: ProviderEditorProps): ReactNode {
   const fallbackKeys = useFallbackKeys(fallback, props.provider, api)
   const disabled = props.readOnly || busy
   const layout = layoutOf(namespace.ns)
+  const accountKey = providerAccountKey(namespace.ns, props.provider)
   const keyRef = refFor(schema, namespace, settingsPath, props.provider)
   // The same schema read the create card makes, so the choices offered here
   // and there cannot drift apart: both come from the adapter's own `Config`.
@@ -156,6 +160,7 @@ export function ProviderEditor(props: ProviderEditorProps): ReactNode {
   useEffect(() => {
     let stale = false
     setKeyState(undefined)
+    if (layout === 'accounts') return
     // The key state is a placeholder hint, not a precondition for editing:
     // neither a business rejection nor a transport failure may reach the
     // browser as an unhandled rejection, so the card simply renders without
@@ -168,7 +173,7 @@ export function ProviderEditor(props: ProviderEditorProps): ReactNode {
       () => undefined,
     )
     return () => { stale = true }
-  }, [api.credentials, keyRef])
+  }, [api.credentials, keyRef, layout])
 
   const stringAt = (source: unknown, key: string): string | undefined => {
     const value = schema.getPath(source, [key])
@@ -244,7 +249,7 @@ export function ProviderEditor(props: ProviderEditorProps): ReactNode {
       const sectionError = schema.validate(node, next)
       if (sectionError !== undefined) return sectionError
     }
-    const materializesNativeProfile = layout === 'pi-ai'
+    const materializesNativeProfile = (layout === 'pi-ai' || layout === 'accounts')
       && fallback === undefined
       && committedOriginal === undefined
       && Object.keys(next).length === 0
@@ -480,7 +485,20 @@ export function ProviderEditor(props: ProviderEditorProps): ReactNode {
         )}
       {layout === 'unknown'
         ? <p className={styles['advancedHint']}>{`${t('advancedHint')} (${namespace.ns})`}</p>
-        : curatedFields(layout)}
+        : layout === 'accounts' && accountKey !== undefined
+          ? <>
+            <ProviderAccounts flowKey={accountKey} api={api.authorization} t={t}
+              disabled={disabled} onBusy={setAccountBusy} />
+            <details className={styles['customized']}>
+              <summary className={styles['customizedSummary']}>{t('customized')}</summary>
+              <ModelListEditor models={modelDrafts(schema.getPath(draft, ['models']) ?? inheritedModels())}
+                overridden={schema.hasPath(draft, ['models'])} disabled={disabled} t={t}
+                onChange={(models) => { setDraft(current => schema.setPath(current, ['models'], models)) }}
+                onReset={() => { setDraft(current => schema.deletePath(current, ['models'])) }}
+                probe={{ settingsNs: namespace.ns, provider: props.provider }} api={api} />
+            </details>
+          </>
+          : layout === 'accounts' ? null : curatedFields(layout)}
       {failure !== undefined ? <p className={styles['error']}>{failure}</p> : null}
       {modelFailure === undefined
         ? null
@@ -492,7 +510,7 @@ export function ProviderEditor(props: ProviderEditorProps): ReactNode {
       <EditorFooter
         t={t}
         busy={busy}
-        submitDisabled={disabled || layout === 'unknown'
+        submitDisabled={disabled || accountBusy || layout === 'unknown'
           || modelFailure !== undefined
           || keyFailure !== undefined}
         submitLabel="apply"

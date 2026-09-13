@@ -9,6 +9,8 @@ import { homedir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { z as zod } from 'zod'
 import type { Context } from '@hydra/cordis'
+import { AuthorizationDeclinedError, authorizationAccountId } from '@hydra/harness-authorization'
+import type { AuthorizationPrompt } from '@hydra/harness-authorization'
 import { USER_GLOBAL_FILE } from '@hydra/harness-agent-instructions'
 import { withFileLock, writeFileAtomic } from '@hydra/harness-atomic-write'
 import { resolveHydraHome } from '@hydra/harness-home-paths'
@@ -49,6 +51,7 @@ import type {
   ModelReasoning, MuxFrame, PromptContentPart, QuestionResponsePayload, SessionListMetadata, SessionProjectionsBlock, SessionSearchItem,
   ConversationRevision, QueuedInboxItem, SessionSummary, SettingsNamespaceView, SubagentAddress, JobView, ToolEventView,
   WorkspaceId, WorkspaceView,
+  AuthorizationAttemptView, AuthorizationPromptView,
 } from './api/index.ts'
 import {
   DEFAULT_SESSION_LOG_COMPRESSION_LEVEL,
@@ -89,10 +92,11 @@ import type {} from '@hydra/harness-skill/types'
 import { SettingsConflictError, settingsNamespace } from '@hydra/harness-settings'
 import type { SettingsDescriptor, SettingsNamespace, SettingsPathOp } from '@hydra/harness-settings'
 import { SearchProviderError } from '@hydra/harness-web'
-import { credentialRef } from '@hydra/harness-credentials'
+import { credentialRef, parseCredentialKey } from '@hydra/harness-credentials'
 // Value edge: the rename impl narrows the title service's validation failure; the import also resolves `ctx.get('sessionTitle')`.
 import { SessionTitleInvalidError } from '@hydra/harness-session-title'
 import type { CallId } from '@hydra/harness-llm/brand'
+import type { Branded } from '@hydra/harness-brand'
 import type { ScopeKey } from '@hydra/harness-scope'
 import type { ApprovalOutcome, ApprovalRequestId } from '@hydra/harness-user-approval'
 // Side-effect type import: resolves the `approval/request` waterfall and
@@ -126,6 +130,9 @@ const DEFAULT_MAX_MESSAGES = 50
 
 /** Provider work budget: at most 100 calls and 2,000 inspected hits. */
 const SESSION_SEARCH_PROVIDER_CALL_LIMIT = 100
+
+/** Terminal authorization state is short-lived and capped to prevent memory growth. */
+const MAX_RETAINED_AUTHORIZATION_ATTEMPTS = 128
 
 /** Bound cold-log stat fan-out and settle each started batch before cancellation returns. */
 const COLD_SUMMARY_BATCH_SIZE = 16
@@ -687,6 +694,78 @@ interface PendingQuestion {
   onAbort?: () => void
 }
 
+/** One browser-facing prompt owned by an authorization attempt. */
+type AuthorizationAttemptId = Branded<'AuthorizationAttemptId'>
+type AuthorizationPromptId = Branded<'AuthorizationPromptId'>
+
+function authorizationAttemptId(value: string): AuthorizationAttemptId {
+  return value as AuthorizationAttemptId
+}
+
+function authorizationPromptId(value: string): AuthorizationPromptId {
+  return value as AuthorizationPromptId
+}
+
+interface PendingAuthorizationPrompt {
+  readonly id: AuthorizationPromptId
+  readonly view: AuthorizationPromptView
+  readonly resolve: (value: string) => void
+  readonly reject: (error: Error) => void
+  readonly signal?: AbortSignal
+  onAbort?: () => void
+}
+
+/** Host-local state for one opaque browser authorization attempt id. */
+interface AuthorizationAttempt {
+  readonly id: AuthorizationAttemptId
+  readonly key: import('@hydra/harness-credentials').CredentialKey
+  status: AuthorizationAttemptView['status']
+  notice?: AuthorizationAttemptView['notice']
+  error?: string
+  readonly prompts: Map<AuthorizationPromptId, PendingAuthorizationPrompt>
+  cleanupTimer?: ReturnType<typeof setTimeout>
+  done?: Promise<void>
+}
+
+/** Keep provider notices safe and bounded before they cross into the browser. */
+function authorizationNoticeView(notice: { message: string; url?: string; code?: string }): NonNullable<AuthorizationAttemptView['notice']> {
+  let url: string | undefined
+  if (notice.url !== undefined) {
+    try {
+      const parsed = new URL(notice.url)
+      if (parsed.protocol === 'http:' || parsed.protocol === 'https:') url = parsed.toString()
+    } catch {
+      // Provider supplied an unusable link; the text notice remains useful.
+    }
+  }
+  return {
+    message: notice.message.slice(0, 4096) || 'Continue signing in.',
+    ...url === undefined ? {} : { url },
+    ...notice.code === undefined ? {} : { code: notice.code.slice(0, 1024) },
+  }
+}
+
+/** Strip an AuthorizationPrompt down to the JSON-safe, attempt-local view. */
+function authorizationPromptView(id: AuthorizationPromptId, prompt: AuthorizationPrompt): AuthorizationPromptView {
+  const base = { id, kind: prompt.kind, message: prompt.message.slice(0, 4096) || 'Input required.' }
+  if (prompt.kind === 'select') {
+    return {
+      ...base,
+      kind: 'select',
+      options: prompt.options.slice(0, 128).map(option => ({
+        id: option.id.slice(0, 256),
+        label: option.label.slice(0, 512),
+        ...option.description === undefined ? {} : { description: option.description.slice(0, 2048) },
+      })),
+    }
+  }
+  return {
+    ...base,
+    kind: prompt.kind,
+    ...prompt.placeholder === undefined ? {} : { placeholder: prompt.placeholder.slice(0, 1024) },
+  }
+}
+
 /** Validate one answer batch against the exact question request it resolves. */
 function matchesQuestions(payload: QuestionResponsePayload, pending: PendingQuestion): boolean {
   if (payload.sessionId !== pending.sessionId) return false
@@ -1114,6 +1193,10 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
   let workspaceCreationChain = Promise.resolve()
   const pendingQuestions = new Map<RpcId, PendingQuestion>()
   const pendingApprovals = new Map<RpcId, PendingApproval>()
+  const authorizationAttempts = new Map<AuthorizationAttemptId, AuthorizationAttempt>()
+  const retainedAuthorizationAttempts = new Set<AuthorizationAttempt>()
+  const authorizationByKey = new Map<import('@hydra/harness-credentials').CredentialKey, AuthorizationAttemptId>()
+  let authorizationDisposed = false
   const muxQueues = new Set<FrameQueue<RpcRequest<MuxFrame>>>()
   const imageAdmissionChains = new WeakMap<Agent, Promise<void>>()
 
@@ -1475,6 +1558,31 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
       })
     })
   }
+
+  // Authorization attempts are process-local like approval/question waits. A
+  // disposed gateway must release their prompts and the service's single-flight
+  // slots before its context can disappear.
+  ctx.effect(() => () => {
+    authorizationDisposed = true
+    const completions: Promise<void>[] = []
+    for (const attempt of authorizationAttempts.values()) {
+      if (attempt.status === 'running') cancelAuthorizationAttempt(attempt)
+      rejectAuthorizationPrompts(attempt, 'authorization gateway disposed')
+      if (attempt.cleanupTimer !== undefined) {
+        clearTimeout(attempt.cleanupTimer)
+        delete attempt.cleanupTimer
+      }
+      if (attempt.done !== undefined) completions.push(attempt.done)
+    }
+    for (const attempt of retainedAuthorizationAttempts) {
+      if (attempt.cleanupTimer !== undefined) clearTimeout(attempt.cleanupTimer)
+      delete attempt.cleanupTimer
+    }
+    retainedAuthorizationAttempts.clear()
+    authorizationAttempts.clear()
+    authorizationByKey.clear()
+    return Promise.allSettled(completions).then(() => undefined)
+  }, 'api-proxy: authorization attempts')
 
   type SessionReadState = {
     id: SessionId
@@ -1919,6 +2027,159 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
   /** Missing-service report shared by the credentials domain. */
   function credentialsAbsent(): RpcError {
     return { code: 'internal', message: 'credentials service is absent: this deployment does not mount a credential provider (e.g. @hydra/harness-credentials-local) in its composition', details: {} }
+  }
+
+  /** Safe, stable business error for authorization RPC failures. */
+  function authorizationFailure(request: RpcRequest<unknown>, message: string): RpcResponse<never> {
+    return err(request, { code: 'internal', message, details: {} })
+  }
+
+  /** End one attempt's pending prompts without leaking provider errors. */
+  function rejectAuthorizationPrompts(attempt: AuthorizationAttempt, message: string): void {
+    for (const prompt of attempt.prompts.values()) {
+      if (prompt.signal !== undefined && prompt.onAbort !== undefined) {
+        prompt.signal.removeEventListener('abort', prompt.onAbort)
+      }
+      prompt.reject(new Error(message))
+    }
+    attempt.prompts.clear()
+  }
+
+  /** Remove one retained terminal attempt and cancel its expiry timer. */
+  function releaseRetainedAuthorizationAttempt(attempt: AuthorizationAttempt): void {
+    retainedAuthorizationAttempts.delete(attempt)
+    if (attempt.cleanupTimer !== undefined) {
+      clearTimeout(attempt.cleanupTimer)
+      delete attempt.cleanupTimer
+    }
+    if (authorizationAttempts.get(attempt.id) === attempt) authorizationAttempts.delete(attempt.id)
+  }
+
+  /** Make a terminal attempt observable briefly, then release its bounded in-memory state. */
+  function retainAuthorizationAttempt(attempt: AuthorizationAttempt): void {
+    if (authorizationDisposed) return
+    if (attempt.cleanupTimer !== undefined) clearTimeout(attempt.cleanupTimer)
+    retainedAuthorizationAttempts.delete(attempt)
+    retainedAuthorizationAttempts.add(attempt)
+    attempt.cleanupTimer = setTimeout(() => {
+      releaseRetainedAuthorizationAttempt(attempt)
+    }, 5 * 60 * 1000)
+    const timer = attempt.cleanupTimer
+    timer.unref()
+    while (retainedAuthorizationAttempts.size > MAX_RETAINED_AUTHORIZATION_ATTEMPTS) {
+      const oldest = retainedAuthorizationAttempts.values().next().value
+      if (oldest === undefined) break
+      releaseRetainedAuthorizationAttempt(oldest)
+    }
+  }
+
+  /** Return the current public snapshot of an attempt. */
+  function authorizationAttemptView(attempt: AuthorizationAttempt): AuthorizationAttemptView {
+    const prompt = attempt.prompts.values().next().value
+    return {
+      id: attempt.id,
+      status: attempt.status,
+      ...attempt.notice === undefined ? {} : { notice: attempt.notice },
+      ...prompt === undefined ? {} : { prompt: prompt.view },
+      ...attempt.error === undefined ? {} : { error: attempt.error },
+    }
+  }
+
+  /** Cancel one local attempt and the shared authorization service slot. */
+  function cancelAuthorizationAttempt(attempt: AuthorizationAttempt): void {
+    if (attempt.status !== 'running') return
+    attempt.status = 'cancelled'
+    delete attempt.error
+    const authorization = ctx.get('authorization')
+    authorization?.cancel(attempt.key)
+    rejectAuthorizationPrompts(attempt, 'authorization attempt cancelled')
+    retainAuthorizationAttempt(attempt)
+  }
+
+  /** Complete one background begin call and hold only a safe public outcome. */
+  function runAuthorizationAttempt(
+    attempt: AuthorizationAttempt,
+    method: string | undefined,
+    signal?: AbortSignal,
+  ): void {
+    const authorization = ctx.get('authorization')
+    if (authorization === undefined) {
+      attempt.status = 'failed'
+      attempt.error = 'authorization is unavailable'
+      retainAuthorizationAttempt(attempt)
+      return
+    }
+    const interaction = {
+      notify: (notice: { message: string; url?: string; code?: string }): void => {
+        if (authorizationDisposed || attempt.status !== 'running') return
+        const next = authorizationNoticeView(notice)
+        attempt.notice = {
+          message: next.message,
+          ...next.url === undefined
+            ? attempt.notice?.url === undefined ? {} : { url: attempt.notice.url }
+            : { url: next.url },
+          ...next.code === undefined
+            ? attempt.notice?.code === undefined ? {} : { code: attempt.notice.code }
+            : { code: next.code },
+        }
+      },
+      prompt: (prompt: AuthorizationPrompt): Promise<string> => {
+        if (authorizationDisposed || attempt.status !== 'running') {
+          return Promise.reject(new Error('authorization attempt is no longer running'))
+        }
+        const promptId = authorizationPromptId(randomUUID())
+        const view = authorizationPromptView(promptId, prompt)
+        return new Promise<string>((resolve, reject) => {
+          const pending: PendingAuthorizationPrompt = {
+            id: promptId,
+            view,
+            resolve: (value) => {
+              attempt.prompts.delete(promptId)
+              if (pending.signal !== undefined && pending.onAbort !== undefined) {
+                pending.signal.removeEventListener('abort', pending.onAbort)
+              }
+              resolve(value)
+            },
+            reject: (error) => {
+              attempt.prompts.delete(promptId)
+              if (pending.signal !== undefined && pending.onAbort !== undefined) {
+                pending.signal.removeEventListener('abort', pending.onAbort)
+              }
+              reject(error)
+            },
+            ...prompt.signal === undefined ? {} : { signal: prompt.signal },
+          }
+          const onAbort = (): void => { pending.reject(new Error('authorization prompt withdrawn')) }
+          pending.onAbort = onAbort
+          attempt.prompts.set(promptId, pending)
+          prompt.signal?.addEventListener('abort', onAbort, { once: true })
+          if (prompt.signal?.aborted === true) onAbort()
+        })
+      },
+    }
+    attempt.done = authorization.begin({
+      key: attempt.key,
+      interaction,
+      ...method === undefined ? {} : { method },
+      ...signal === undefined ? {} : { signal },
+    }).then((outcome) => {
+      if (attempt.status === 'running') attempt.status = outcome.status
+      rejectAuthorizationPrompts(attempt, 'authorization attempt finished')
+      retainAuthorizationAttempt(attempt)
+    }).catch((error: unknown) => {
+      // Declining a browser prompt is a user outcome. All other provider
+      // failures stay deliberately generic; provider errors may contain token
+      // fragments or local paths and must never cross this API.
+      if (attempt.status === 'running') {
+        attempt.status = error instanceof AuthorizationDeclinedError ? 'cancelled' : 'failed'
+        if (attempt.status === 'failed') attempt.error = 'authorization failed'
+        else delete attempt.error
+      }
+      rejectAuthorizationPrompts(attempt, 'authorization attempt finished')
+      retainAuthorizationAttempt(attempt)
+    }).finally(() => {
+      if (authorizationByKey.get(attempt.key) === attempt.id) authorizationByKey.delete(attempt.key)
+    })
   }
 
   /** Map one redacted settings descriptor to its wire view. */
@@ -3510,6 +3771,125 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
       writeInstructions: request => writeInstructionsDocument(request, request.payload.content, request.payload.expectedRevision),
       listMemories: request => listLocalMemories(request),
       removeMemory: request => removeLocalMemory(request),
+    },
+
+    authorization: {
+      async list(request) {
+        const authorization = ctx.get('authorization')
+        if (authorization === undefined) return authorizationFailure(request, 'authorization is unavailable')
+        const entries = []
+        for (const entry of authorization.list()) {
+          let accounts: Awaited<ReturnType<typeof authorization.listAccounts>>
+          try {
+            accounts = await authorization.listAccounts(entry.key)
+          } catch {
+            return authorizationFailure(request, 'authorization accounts are unavailable')
+          }
+          entries.push({
+            key: String(entry.key),
+            label: entry.label,
+            methods: entry.methods.map(method => ({ id: method.id, label: method.label })),
+            inFlight: entry.inFlight,
+            accounts: [...accounts],
+          })
+        }
+        return ok(request, { entries })
+      },
+
+      async begin(request, signal) {
+        const carrierAborted = (): boolean => signal?.aborted === true
+        const authorization = ctx.get('authorization')
+        if (authorization === undefined) return authorizationFailure(request, 'authorization is unavailable')
+        if (authorizationDisposed) return authorizationFailure(request, 'authorization is unavailable')
+        let key: import('@hydra/harness-credentials').CredentialKey
+        try {
+          key = parseCredentialKey(request.payload.key)
+        } catch {
+          return authorizationFailure(request, 'authorization flow is unavailable')
+        }
+        const entry = authorization.describe(key)
+        if (entry === undefined) return authorizationFailure(request, 'authorization flow is unavailable')
+        if (request.payload.method !== undefined && !entry.methods.some(method => method.id === request.payload.method)) {
+          return authorizationFailure(request, 'authorization method is unavailable')
+        }
+        if (entry.inFlight || authorizationByKey.has(key)) {
+          return authorizationFailure(request, 'authorization attempt is already running')
+        }
+        if (carrierAborted()) {
+          return err(request, { code: 'cancelled', message: 'authorization begin was aborted', details: {} })
+        }
+        const attempt: AuthorizationAttempt = {
+          id: authorizationAttemptId(randomUUID()),
+          key,
+          status: 'running',
+          prompts: new Map(),
+        }
+        authorizationAttempts.set(attempt.id, attempt)
+        authorizationByKey.set(key, attempt.id)
+        const attemptController = signal === undefined ? undefined : new AbortController()
+        const onAbort = (): void => { attemptController?.abort(signal?.reason) }
+        signal?.addEventListener('abort', onAbort, { once: true })
+        try {
+          runAuthorizationAttempt(attempt, request.payload.method, attemptController?.signal)
+          // Keep the carrier signal attached through the response handoff. A
+          // disconnect before this turn cancels the service attempt; after it,
+          // the browser owns cancellation through authorization.cancel.
+          await Promise.resolve()
+          if (carrierAborted()) {
+            return err(request, { code: 'cancelled', message: 'authorization begin was aborted', details: {} })
+          }
+          return ok(request, { attemptId: attempt.id })
+        } finally {
+          signal?.removeEventListener('abort', onAbort)
+        }
+      },
+
+      state(request) {
+        const attempt = authorizationAttempts.get(authorizationAttemptId(request.payload.attemptId))
+        if (attempt === undefined) return Promise.resolve(authorizationFailure(request, 'authorization attempt is unavailable'))
+        return Promise.resolve(ok(request, { attempt: authorizationAttemptView(attempt) }))
+      },
+
+      answer(request) {
+        const attempt = authorizationAttempts.get(authorizationAttemptId(request.payload.attemptId))
+        if (attempt === undefined) return Promise.resolve(authorizationFailure(request, 'authorization attempt is unavailable'))
+        if (attempt.status !== 'running') return Promise.resolve(authorizationFailure(request, 'authorization attempt is no longer running'))
+        const prompt = attempt.prompts.get(authorizationPromptId(request.payload.promptId))
+        if (prompt === undefined) return Promise.resolve(authorizationFailure(request, 'authorization prompt is unavailable'))
+        if (prompt.view.kind === 'select'
+          && !prompt.view.options?.some(option => option.id === request.payload.value)) {
+          return Promise.resolve(authorizationFailure(request, 'authorization answer is invalid'))
+        }
+        prompt.resolve(request.payload.value)
+        return Promise.resolve(ok(request, {}))
+      },
+
+      cancel(request) {
+        const attempt = authorizationAttempts.get(authorizationAttemptId(request.payload.attemptId))
+        if (attempt === undefined) return Promise.resolve(authorizationFailure(request, 'authorization attempt is unavailable'))
+        if (attempt.status === 'running') cancelAuthorizationAttempt(attempt)
+        return Promise.resolve(ok(request, {}))
+      },
+
+      async logout(request) {
+        const authorization = ctx.get('authorization')
+        if (authorization === undefined) return authorizationFailure(request, 'authorization is unavailable')
+        let key: import('@hydra/harness-credentials').CredentialKey
+        try {
+          key = parseCredentialKey(request.payload.key)
+        } catch {
+          return authorizationFailure(request, 'authorization flow is unavailable')
+        }
+        if (authorizationByKey.has(key)) {
+          return authorizationFailure(request, 'cancel authorization before signing out')
+        }
+        try {
+          await authorization.removeAccount(key, authorizationAccountId(request.payload.accountId))
+        } catch {
+          return authorizationFailure(request, 'sign-out failed')
+        }
+        return ok(request, {})
+      },
     },
 
     credentials: {

@@ -70,6 +70,14 @@ export function fakeRemote(): SessionRemotes {
 }
 
 export class FakeApiClient implements IApiClient {
+  readonly authorization: IApiClient['authorization'] = {
+    list: async () => ok({ entries: [] }),
+    begin: async () => { throw new Error('authorization unavailable') },
+    state: async () => { throw new Error('authorization unavailable') },
+    answer: async () => { throw new Error('authorization unavailable') },
+    cancel: async () => ok({}),
+    logout: async () => ok({}),
+  }
   readonly review: IApiClient['review'] = {
     list: async () => ok({ changes: [] }),
     workspace: async request => ok({ workspace: '', repository: null, branch: null, branches: [], commits: [], mode: request.mode, baseRef: null, files: [], truncated: false }),

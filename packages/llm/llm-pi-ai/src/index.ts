@@ -71,6 +71,12 @@ import { registerPiAiFlows } from './login.ts'
 export { PiAiAdapter } from './adapter.ts'
 export type { PiAiAdapterOptions } from './adapter.ts'
 export { Config } from './config.ts'
+export {
+  DEFAULT_CONTEXT_WINDOW,
+  DEFAULT_MAX_REQUEST_IMAGE_BYTES,
+  DEFAULT_MAX_TOKENS,
+  DEFAULT_STREAM_IDLE_TIMEOUT_MS,
+} from './config.ts'
 export type {
   PiAiCompatProfile,
   PiAiModality,

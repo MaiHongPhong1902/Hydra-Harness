@@ -394,6 +394,9 @@ importers:
       '@hydra/cordis-plugin-group':
         specifier: workspace:^
         version: link:../../vendor/group
+      '@hydra/harness-authorization':
+        specifier: workspace:^
+        version: link:../../packages/credentials/authorization
       '@hydra/harness-client-modules':
         specifier: workspace:^
         version: link:../../packages/client/modules
@@ -409,9 +412,21 @@ importers:
       '@hydra/harness-cmdline':
         specifier: workspace:^
         version: link:../../packages/boot/cmdline
+      '@hydra/harness-credentials':
+        specifier: workspace:^
+        version: link:../../packages/credentials/credentials
+      '@hydra/harness-llm':
+        specifier: workspace:^
+        version: link:../../packages/llm/llm
       '@hydra/harness-pwsh-local':
         specifier: workspace:^
         version: link:../../packages/shell/pwsh-local
+      '@hydra/harness-settings':
+        specifier: workspace:^
+        version: link:../../packages/settings/settings
+      '@hydra/schemastery':
+        specifier: link:../../vendor/schemastery
+        version: link:../../vendor/schemastery
       '@types/node':
         specifier: ^22.0.0
         version: 22.20.0
@@ -902,6 +917,9 @@ importers:
       '@hydra/harness-api-gateway':
         specifier: workspace:^
         version: link:../gateway
+      '@hydra/harness-authorization':
+        specifier: workspace:^
+        version: link:../../credentials/authorization
       '@hydra/harness-commands':
         specifier: workspace:^
         version: link:../../interaction/commands
@@ -1251,6 +1269,9 @@ importers:
       '@hydra/harness-attachment-local':
         specifier: workspace:^
         version: link:../../attachment/attachment-local
+      '@hydra/harness-authorization':
+        specifier: workspace:^
+        version: link:../../credentials/authorization
       '@hydra/harness-bash-sandbox':
         specifier: workspace:^
         version: link:../../shell/bash-sandbox
@@ -1311,6 +1332,9 @@ importers:
       '@hydra/harness-llm':
         specifier: workspace:^
         version: link:../../llm/llm
+      '@hydra/harness-llm-account-auth':
+        specifier: workspace:^
+        version: link:../../llm/llm-account-auth
       '@hydra/harness-llm-deepseek':
         specifier: workspace:^
         version: link:../../llm/llm-deepseek
@@ -4243,6 +4267,9 @@ importers:
       '@hydra/cordis':
         specifier: workspace:^
         version: link:../../../vendor/cordis
+      '@hydra/harness-brand':
+        specifier: workspace:^
+        version: link:../../util/brand
       '@hydra/harness-credentials':
         specifier: workspace:^
         version: link:../credentials
@@ -5546,6 +5573,9 @@ importers:
       '@hydra/harness-attachment':
         specifier: workspace:^
         version: link:../../attachment/attachment
+      '@hydra/harness-authorization':
+        specifier: workspace:^
+        version: link:../../credentials/authorization
       '@hydra/harness-brand':
         specifier: workspace:^
         version: link:../../util/brand
@@ -6132,6 +6162,46 @@ importers:
       '@hydra/harness-invariants':
         specifier: workspace:^
         version: link:../../runtime-diagnostics/invariants
+      '@hydra/harness-timeout':
+        specifier: workspace:^
+        version: link:../../util/timeout
+
+  packages/llm/llm-account-auth:
+    dependencies:
+      '@earendil-works/pi-ai':
+        specifier: ^0.82.1
+        version: 0.82.1(patch_hash=1fbcde43a40aad09a2849be88b5ca0616783c0288010ec448a897a3febe52b27)(@modelcontextprotocol/sdk@1.29.0(zod@4.4.3))(ws@8.21.0)(zod@4.4.3)
+      '@hydra/schemastery':
+        specifier: link:../../../vendor/schemastery
+        version: link:../../../vendor/schemastery
+    devDependencies:
+      '@hydra/cordis':
+        specifier: workspace:^
+        version: link:../../../vendor/cordis
+      '@hydra/harness-attachment':
+        specifier: workspace:^
+        version: link:../../attachment/attachment
+      '@hydra/harness-authorization':
+        specifier: workspace:^
+        version: link:../../credentials/authorization
+      '@hydra/harness-credentials':
+        specifier: workspace:^
+        version: link:../../credentials/credentials
+      '@hydra/harness-invariants':
+        specifier: workspace:^
+        version: link:../../runtime-diagnostics/invariants
+      '@hydra/harness-llm':
+        specifier: workspace:^
+        version: link:../llm
+      '@hydra/harness-llm-pi-ai':
+        specifier: workspace:^
+        version: link:../llm-pi-ai
+      '@hydra/harness-session':
+        specifier: workspace:^
+        version: link:../../core/session
+      '@hydra/harness-settings':
+        specifier: workspace:^
+        version: link:../../settings/settings
       '@hydra/harness-timeout':
         specifier: workspace:^
         version: link:../../util/timeout

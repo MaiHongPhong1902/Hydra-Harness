@@ -15,6 +15,7 @@ import type { GoalsApi } from './goals.ts'
 import type { ReviewApi } from './review.ts'
 import type { SettingsApi } from './settings.ts'
 import type { CredentialsApi } from './credentials.ts'
+import type { AuthorizationApi } from './authorization.ts'
 import type { WebSearchApi } from './web-search.ts'
 import type { LlmApi } from './llm.ts'
 import type { DownloadsApi } from './downloads.ts'
@@ -33,6 +34,7 @@ export interface ApiProxy {
   review: ReviewApi
   settings: SettingsApi
   credentials: CredentialsApi
+  authorization: AuthorizationApi
   webSearch: WebSearchApi
   llm: LlmApi
   /** Host-only download surfaces (GET, no wire envelope); absent from IApiClient. */
@@ -65,6 +67,14 @@ export type { GoalsApi, GoalId, GoalRef } from './goals.ts'
 export type { ReviewApi } from './review.ts'
 export type { InstructionsDocumentView, MemoryEntryView, SettingsApi, SettingsNamespaceView, SettingsPathOpView, SettingsSecretView } from './settings.ts'
 export type { CredentialsApi, CredentialView } from './credentials.ts'
+export type {
+  AuthorizationAccountView,
+  AuthorizationApi,
+  AuthorizationAttemptView,
+  AuthorizationEntryView,
+  AuthorizationNoticeView,
+  AuthorizationPromptView,
+} from './authorization.ts'
 export type { ConfigurableProviderView, DiscoveredModelView, LlmApi } from './llm.ts'
 export type { WebSearchApi, WebSearchProviderDescriptor, SearchConfigField, SearchConnectionResult } from './web-search.ts'
 export type { DownloadsApi } from './downloads.ts'

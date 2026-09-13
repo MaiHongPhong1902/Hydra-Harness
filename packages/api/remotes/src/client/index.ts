@@ -56,6 +56,7 @@ export type { ApiRemoteForwardedEvent } from '../types.ts'
 export type {} from '@hydra/harness-commands/types'
 export type {} from '@hydra/harness-cordis-host-runner/types'
 export type {} from '@hydra/harness-credentials/types'
+export type {} from '@hydra/harness-authorization/types'
 export type {} from '@hydra/harness-llm/types'
 export type {} from '@hydra/harness-agent-presets/types'
 export type {} from '@hydra/harness-settings/types'
@@ -71,6 +72,8 @@ export type { ReviewMode, WorkspaceReview, WorkspaceReviewFile } from '@hydra/ha
 export type {
   ClientResponse, ConfigurableProviderView, ConnectionHandle, ConnectionSinks, ContentBlock,
   CredentialView, DirectoryListing, DiscoveredModelView, HistoryEntry, HostFrame, IApiClient,
+  AuthorizationAccountView, AuthorizationApi, AuthorizationAttemptView, AuthorizationEntryView,
+  AuthorizationNoticeView, AuthorizationPromptView,
   MessageId, ModelCatalogFailure, ModelProviderGroup, ModelReasoningEffort, ModelSelection,
   MuxFrame, PromptContentPart, QuestionResponsePayload, QueueAction, RpcError, RpcId, RpcReceipt,
   RpcRequest, RpcResponse, RpcResult, SessionId, SessionModels, SessionSearchItem,

@@ -199,6 +199,8 @@ export interface LaunchOptions {
    * ordering.
    */
   extraOverlayPath?: string
+  /** Runtime patch rows, for test plugins whose module URL is computed by the test. */
+  extraPatches?: PatchOptions[]
   /**
    * Replay fixture (session.jsonl) served by the inserted hydra-llm-replay row
    * in replay/refresh modes; ignored in record mode (the real adapter
@@ -396,7 +398,8 @@ export async function launchWebScaffold(options: LaunchOptions = {}): Promise<We
   const extraOverlayPatches = options.extraOverlayPath === undefined
     ? []
     : loadOverlayPatches('web e2e scaffold', options.extraOverlayPath)
-  const composedRows = composeEntries([basePatches, surfacePatches, extraOverlayPatches])
+  const extraPatches = options.extraPatches ?? []
+  const composedRows = composeEntries([basePatches, surfacePatches, extraOverlayPatches, extraPatches])
   const webRuntimeConfig = composedRows.find(row => row.id === 'web-runtime')?.config as {
     surfaceContext?: boolean
   } | undefined
@@ -405,6 +408,7 @@ export async function launchWebScaffold(options: LaunchOptions = {}): Promise<We
     ...basePatches,
     ...surfacePatches,
     ...extraOverlayPatches,
+    ...extraPatches,
     // The roster's `roots` is an assembly fact AppCLIEntry resolves and patches
     // in, exactly like `distIndex` on the webserver row — the shipped preset
     // directory sits beside the composition that names it, and no config author

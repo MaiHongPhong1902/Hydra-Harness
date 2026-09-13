@@ -63,6 +63,11 @@ import {
 import {
   credentialsDescribeValueSchema, credentialsSetValueSchema, credentialsUnsetValueSchema,
 } from '../api/credentials.schema.ts'
+import {
+  authorizationAnswerValueSchema, authorizationBeginValueSchema,
+  authorizationCancelValueSchema, authorizationListValueSchema,
+  authorizationLogoutValueSchema, authorizationStateValueSchema,
+} from '../api/authorization.schema.ts'
 import { webSearchProvidersValueSchema, webSearchTestConnectionValueSchema } from '../api/web-search.schema.ts'
 import { llmDiscoverModelsValueSchema, llmModelsValueSchema, llmProvidersValueSchema } from '../api/llm.schema.ts'
 import {
@@ -171,6 +176,14 @@ export interface IApiClient {
     set(payload: RequestPayload<'credentials.set'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'credentials.set'>>>
     unset(payload: RequestPayload<'credentials.unset'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'credentials.unset'>>>
   }
+  authorization: {
+    list(payload: RequestPayload<'authorization.list'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'authorization.list'>>>
+    begin(payload: RequestPayload<'authorization.begin'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'authorization.begin'>>>
+    state(payload: RequestPayload<'authorization.state'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'authorization.state'>>>
+    answer(payload: RequestPayload<'authorization.answer'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'authorization.answer'>>>
+    cancel(payload: RequestPayload<'authorization.cancel'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'authorization.cancel'>>>
+    logout(payload: RequestPayload<'authorization.logout'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'authorization.logout'>>>
+  }
   webSearch: {
     providers(payload: RequestPayload<'webSearch.providers'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'webSearch.providers'>>>
     testConnection(payload: RequestPayload<'webSearch.testConnection'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'webSearch.testConnection'>>>
@@ -247,6 +260,12 @@ const UNARY_VALUE_SCHEMAS: { [K in keyof RpcMethodMap]: z.ZodType<Wire<ResponseV
   'credentials.describe': credentialsDescribeValueSchema,
   'credentials.set': credentialsSetValueSchema,
   'credentials.unset': credentialsUnsetValueSchema,
+  'authorization.list': authorizationListValueSchema,
+  'authorization.begin': authorizationBeginValueSchema,
+  'authorization.state': authorizationStateValueSchema,
+  'authorization.answer': authorizationAnswerValueSchema,
+  'authorization.cancel': authorizationCancelValueSchema,
+  'authorization.logout': authorizationLogoutValueSchema,
   'webSearch.providers': webSearchProvidersValueSchema,
   'webSearch.testConnection': webSearchTestConnectionValueSchema,
   'llm.providers': llmProvidersValueSchema,
@@ -262,6 +281,16 @@ type UnaryTimeoutPolicy = 'default' | 'caller-signal-only'
 
 /** URL base for in-process handler injection (fake authority, opencode precedent). */
 const INTERNAL_BASE = 'http://hydra.internal'
+
+/** Remove interactive authorization answers from diagnostic envelope taps. */
+function observedEnvelope(message: RpcMessage): RpcMessage {
+  if (message.type !== 'client-request' || message.method !== 'authorization.answer') return message
+  if (typeof message.payload !== 'object' || message.payload === null || Array.isArray(message.payload)) return message
+  return {
+    ...message,
+    payload: { ...(message.payload as Record<string, unknown>), value: '[redacted]' },
+  }
+}
 
 /**
  * Abstract fetch-carrier client. Subclasses supply the transport (doFetch) and may refine the
@@ -285,6 +314,8 @@ export abstract class AbstractApiClient implements IApiClient {
 
   /**
    * Subscribe to batched envelope observation (diagnostics/logging consumers).
+   * Interactive authorization answer values are replaced with `[redacted]`
+   * before they reach observers.
    * Batches follow microtask boundaries; a listener throw is isolated (observation
    * must never break the carrier).
    * @param listener - receives each flushed batch in arrival order.
@@ -300,7 +331,7 @@ export abstract class AbstractApiClient implements IApiClient {
   /** Per-message tap: feeds the instance buffer. Subclasses may override to observe unbatched (call super to keep batching). */
   protected onEnvelope(message: RpcMessage): void {
     if (this.envelopeListeners.size === 0) return
-    this.envelopeBatch.push(message)
+    this.envelopeBatch.push(observedEnvelope(message))
     if (this.flushScheduled) return
     this.flushScheduled = true
     queueMicrotask(() => {
@@ -534,6 +565,15 @@ export abstract class AbstractApiClient implements IApiClient {
     describe: (payload, signal) => this.callUnary('credentials.describe', payload, signal),
     set: (payload, signal) => this.callUnary('credentials.set', payload, signal),
     unset: (payload, signal) => this.callUnary('credentials.unset', payload, signal),
+  }
+
+  readonly authorization: IApiClient['authorization'] = {
+    list: (payload, signal) => this.callUnary('authorization.list', payload, signal),
+    begin: (payload, signal) => this.callUnary('authorization.begin', payload, signal),
+    state: (payload, signal) => this.callUnary('authorization.state', payload, signal),
+    answer: (payload, signal) => this.callUnary('authorization.answer', payload, signal),
+    cancel: (payload, signal) => this.callUnary('authorization.cancel', payload, signal),
+    logout: (payload, signal) => this.callUnary('authorization.logout', payload, signal),
   }
 
   readonly webSearch: IApiClient['webSearch'] = {

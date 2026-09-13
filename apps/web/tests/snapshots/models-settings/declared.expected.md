@@ -25,7 +25,7 @@
     - img
     - text: Close
   - heading "Models" [level=2]
-  - paragraph: Enter your API keys to use models from the following providers.
+  - paragraph: Sign in with your accounts or enter API keys to use models from these providers.
   - list:
     - listitem:
       - text: minimax-cn

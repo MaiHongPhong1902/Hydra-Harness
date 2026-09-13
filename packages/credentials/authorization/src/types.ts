@@ -6,6 +6,7 @@
  */
 
 import type { CredentialKey } from '@hydra/harness-credentials/types'
+import type { Branded } from '@hydra/harness-brand'
 
 /** One way a flow can obtain its credential, named by the flow that offers it. */
 export interface AuthorizationMethod {
@@ -60,6 +61,45 @@ export type AuthorizationPrompt = {
   message: string
   options: readonly AuthorizationPromptOption[]
 })
+
+/** Opaque account identity within its owning authorization flow. */
+export type AuthorizationAccountId = Branded<'AuthorizationAccountId'>
+
+/** One provider-owned account identity, safe to show in a configuration surface. */
+export interface AuthorizationAccount {
+  /** Opaque provider-owned account id; this value never contains a token. */
+  id: AuthorizationAccountId
+  /** Human-readable label for the account. */
+  label: string
+}
+
+/** Account inventory and removal operations owned by an authorization flow. */
+export interface AuthorizationAccounts {
+  /**
+   * List account identities without returning credential payloads.
+   * @returns the current provider-owned accounts.
+   */
+  list(): Promise<readonly AuthorizationAccount[]>
+  /**
+   * Remove one provider-owned account.
+   * @param id - the opaque account id returned by {@link list}.
+   */
+  remove(id: AuthorizationAccountId): Promise<void>
+}
+
+declare module '@hydra/cordis' {
+  interface Events {
+    /**
+     * One authorization attempt has finished and released its key. The event
+     * carries no credential value, so remote configuration surfaces may use it
+     * to refresh account state.
+     * @param key - the credential flow key whose attempt finished.
+     * @param settlement - the public terminal outcome.
+     * @mode emit
+     */
+    'authorization/settled'(key: CredentialKey, settlement: AuthorizationSettlement): void
+  }
+}
 
 /** How one authorization attempt ended, as its own caller sees it. */
 export type AuthorizationStatus = 'authorized' | 'cancelled'

@@ -66,6 +66,11 @@ import {
 import {
   credentialsDescribeRequestSchema, credentialsSetRequestSchema, credentialsUnsetRequestSchema,
 } from '../api/credentials.schema.ts'
+import {
+  authorizationAnswerRequestSchema, authorizationBeginRequestSchema,
+  authorizationCancelRequestSchema, authorizationListRequestSchema,
+  authorizationLogoutRequestSchema, authorizationStateRequestSchema,
+} from '../api/authorization.schema.ts'
 import { webSearchProvidersRequestSchema, webSearchTestConnectionRequestSchema } from '../api/web-search.schema.ts'
 import { llmDiscoverModelsRequestSchema, llmModelsRequestSchema, llmProvidersRequestSchema } from '../api/llm.schema.ts'
 import {
@@ -150,6 +155,12 @@ const UNARY_ROUTES: UnaryRoutes = {
   'credentials.describe': { schema: credentialsDescribeRequestSchema, invoke: (api, r) => api.credentials.describe(r) },
   'credentials.set': { schema: credentialsSetRequestSchema, invoke: (api, r) => api.credentials.set(r) },
   'credentials.unset': { schema: credentialsUnsetRequestSchema, invoke: (api, r) => api.credentials.unset(r) },
+  'authorization.list': { schema: authorizationListRequestSchema, invoke: (api, r) => api.authorization.list(r) },
+  'authorization.begin': { schema: authorizationBeginRequestSchema, invoke: (api, r, signal) => api.authorization.begin(r, signal) },
+  'authorization.state': { schema: authorizationStateRequestSchema, invoke: (api, r) => api.authorization.state(r) },
+  'authorization.answer': { schema: authorizationAnswerRequestSchema, invoke: (api, r) => api.authorization.answer(r) },
+  'authorization.cancel': { schema: authorizationCancelRequestSchema, invoke: (api, r) => api.authorization.cancel(r) },
+  'authorization.logout': { schema: authorizationLogoutRequestSchema, invoke: (api, r) => api.authorization.logout(r) },
   'webSearch.providers': { schema: webSearchProvidersRequestSchema, invoke: (api, r) => api.webSearch.providers(r) },
   'webSearch.testConnection': { schema: webSearchTestConnectionRequestSchema, invoke: (api, r, signal) => api.webSearch.testConnection(r, signal) },
   'llm.providers': { schema: llmProvidersRequestSchema, invoke: (api, r) => api.llm.providers(r) },

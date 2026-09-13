@@ -120,6 +120,14 @@ const PRIVILEGED_METHODS = new Set([
   'credentials.describe',
   'credentials.set',
   'credentials.unset',
+  // Account inventories reveal provider identities; begin/answer carry login
+  // material, and cancel/logout mutate the provider's credential pool.
+  'authorization.list',
+  'authorization.begin',
+  'authorization.state',
+  'authorization.answer',
+  'authorization.cancel',
+  'authorization.logout',
   'llm.discoverModels',
   'pluginInventory/list',
   'pluginInventory/setEnabled',

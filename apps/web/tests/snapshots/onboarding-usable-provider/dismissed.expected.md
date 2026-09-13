@@ -10,6 +10,9 @@
     - button "Models":
       - img
       - text: Models
+    - button "Web Search":
+      - img
+      - text: Web Search
     - button "Usage"
     - button "Plugins":
       - img
@@ -22,7 +25,7 @@
     - img
     - text: Close
   - heading "Models" [level=2]
-  - paragraph: Enter your API keys to use models from the following providers.
+  - paragraph: Sign in with your accounts or enter API keys to use models from these providers.
   - list:
     - listitem:
       - text: DeepSeek
@@ -31,6 +34,8 @@
       - button "Delete DeepSeek (deepseek-official)": Delete
   - text: Provider
   - combobox "Provider":
+    - option "ChatGPT"
+    - option "Google Antigravity"
     - option "amazon-bedrock"
     - option "ant-ling"
     - option "anthropic"

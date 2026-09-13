@@ -24,6 +24,8 @@
   "exclude": [
     "tests/file-review.e2e.ts",
     "tests/scaffold.ts",
+    "tests/auth-accounts.e2e.ts",
+    "tests/account-auth-fixture.ts",
     "tests/brand-hover.e2e.ts",
     "tests/browser-permission.e2e.ts",
     "tests/web-citations.e2e.ts",

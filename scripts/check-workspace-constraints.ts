@@ -141,6 +141,8 @@ function workspaceManifests(): WorkspaceManifest[] {
 }
 
 const packageFileExtras: Readonly<Record<string, readonly string[]>> = {
+  // OAuth and provider modules are emitted as lazy chunks beside the plugin entry.
+  '@hydra/harness-llm-account-auth': ['lib/*-*.js'],
   // Statically linked client libraries keep their stylesheets next to the emitted
   // JavaScript, which imports them by relative path: the compile shell runs
   // them through its own CSS pipeline, so the sheets are published artifacts.

@@ -26,6 +26,11 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "@hydra/harness-authorization": "workspace:^",
+    "@hydra/harness-credentials": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/harness-settings": "workspace:^",
+    "@hydra/schemastery": "workspace:^",
     "@hydra/cordis-plugin-group": "workspace:^",
     "@hydra/harness-client-modules": "workspace:^",
     "@hydra/harness-client-ui-primitives": "workspace:^",

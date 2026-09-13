@@ -1,0 +1,8 @@
+# The assembled lane replaces the provider implementation with its deterministic
+# local authorization fixture; the shipped package is covered by its own tests.
+- id: llm-account-auth
+  disabled: true
+- id: agent-default-model
+  config:
+    provider: chatgpt
+    model: gpt-5-test

@@ -493,6 +493,19 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'the entry, or undefined when no flow claims that key.',
       },
       {
+        signature: 'async listAccounts(key: CredentialKey): Promise<readonly AuthorizationAccount[]>',
+        description: 'List the value-free account identities owned by one registered flow.',
+        parameters: [{ name: 'key', description: 'the credential flow whose accounts should be listed.' }],
+        returns: 'provider-owned account identities, or an empty list for a flow that has no account inventory.',
+        throws: ['{AuthorizationError} code `NO_FLOW` when nothing claims the key.'],
+      },
+      {
+        signature: 'async removeAccount(key: CredentialKey, accountId: AuthorizationAccountId): Promise<void>',
+        description: 'Remove one account through its owning flow.',
+        parameters: [{ name: 'key', description: 'the credential flow that owns the account.' }, { name: 'accountId', description: 'the opaque account identity returned by `listAccounts`.' }],
+        throws: ['{AuthorizationError} code `NO_FLOW` when nothing claims the key, or `NO_ACCOUNTS` when the flow has no account removal operation, or `ALREADY_IN_FLIGHT` while a login or account removal is running for the flow.'],
+      },
+      {
         signature: 'cancel(key: CredentialKey): void',
         description: 'Withdraw the attempt running for a key, if any. Separate from the request\'s own signal because a request/response transport answers a Cancel button on a second call, with no handle on the first one\'s signal.',
         parameters: [{ name: 'key', description: 'the credential record whose attempt should stop.' }],
@@ -2808,8 +2821,8 @@ export const EVENT_API: readonly EventApiEntry[] = [
     mode: 'emit',
     signature: '\'authorization/settled\'(key: CredentialKey, settlement: AuthorizationSettlement): void',
     summary: 'One authorization attempt has finished and released its key.',
-    description: 'One authorization attempt has finished and released its key. Fires for every terminal outcome, failures included, so a surface watching a key it did not start (a second browser tab) learns the attempt is over.',
-    parameters: [{ name: 'key', description: 'the credential record the finished attempt was authorizing.' }, { name: 'settlement', description: 'how it ended, including the `failed` case its caller sees as a thrown error.' }],
+    description: 'One authorization attempt has finished and released its key. The event carries no credential value, so remote configuration surfaces may use it to refresh account state.',
+    parameters: [{ name: 'key', description: 'the credential flow key whose attempt finished.' }, { name: 'settlement', description: 'the public terminal outcome.' }],
   },
   {
     name: 'browser/full-cdp-access',
@@ -3316,12 +3329,24 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type AttachmentId = Branded<\'AttachmentId\'>;',
   },
   {
+    name: 'AuthorizationAccount',
+    declaration: 'export interface AuthorizationAccount {\n    id: AuthorizationAccountId;\n    label: string;\n}',
+  },
+  {
+    name: 'AuthorizationAccountId',
+    declaration: 'export type AuthorizationAccountId = Branded<\'AuthorizationAccountId\'>;',
+  },
+  {
+    name: 'AuthorizationAccounts',
+    declaration: 'export interface AuthorizationAccounts {\n    list(): Promise<readonly AuthorizationAccount[]>;\n    remove(id: AuthorizationAccountId): Promise<void>;\n}',
+  },
+  {
     name: 'AuthorizationEntry',
     declaration: 'export interface AuthorizationEntry {\n    key: CredentialKey;\n    label: string;\n    methods: readonly AuthorizationMethod[];\n    inFlight: boolean;\n}',
   },
   {
     name: 'AuthorizationFlow',
-    declaration: 'export interface AuthorizationFlow {\n    readonly key: CredentialKey;\n    readonly label: string;\n    readonly methods: readonly [\n        AuthorizationMethod,\n        ...AuthorizationMethod[]\n    ];\n    run(session: AuthorizationSession): Promise<void>;\n}',
+    declaration: 'export interface AuthorizationFlow {\n    readonly key: CredentialKey;\n    readonly label: string;\n    readonly methods: readonly [\n        AuthorizationMethod,\n        ...AuthorizationMethod[]\n    ];\n    readonly accounts?: AuthorizationAccounts;\n    run(session: AuthorizationSession): Promise<void>;\n}',
   },
   {
     name: 'AuthorizationInteraction',

@@ -50,6 +50,7 @@
     "@hydra/harness-attachment": "workspace:^",
     "@hydra/harness-agent": "workspace:^",
     "@hydra/harness-agent-default-model": "workspace:^",
+    "@hydra/harness-authorization": "workspace:^",
     "@hydra/harness-api-remotes": "workspace:^",
     "@hydra/harness-brand": "workspace:^",
     "@hydra/harness-commands": "workspace:^",

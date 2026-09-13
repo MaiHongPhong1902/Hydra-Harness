@@ -290,6 +290,26 @@ function fakeApi(overrides: Partial<{ muxFrames: MuxFrame[]; hostFrames: HostFra
         return { rpcId: request.rpcId, result: { ok: true, value: {} } }
       },
     },
+    authorization: {
+      async list(request) {
+        return { rpcId: request.rpcId, result: { ok: true, value: { entries: [] } } }
+      },
+      async begin(request) {
+        return { rpcId: request.rpcId, result: { ok: true, value: { attemptId: '00000000-0000-4000-8000-000000000001' } } }
+      },
+      async state(request) {
+        return { rpcId: request.rpcId, result: { ok: true, value: { attempt: { id: request.payload.attemptId, status: 'cancelled' as const } } } }
+      },
+      async answer(request) {
+        return { rpcId: request.rpcId, result: { ok: true, value: {} } }
+      },
+      async cancel(request) {
+        return { rpcId: request.rpcId, result: { ok: true, value: {} } }
+      },
+      async logout(request) {
+        return { rpcId: request.rpcId, result: { ok: true, value: {} } }
+      },
+    },
     webSearch: {
       providers: async request => ({ rpcId: request.rpcId, result: { ok: true, value: { providers: [] } } }),
       testConnection: async request => ({
@@ -582,6 +602,38 @@ describe('unary round trip (handler ⇄ client, no network)', () => {
     }
     expect(parsed.rpcId).toBe('r-subagent-sig')
     expect(parsed.result.error?.code).toBe('cancelled')
+  })
+
+  it('propagates the carrier Request signal into authorization.begin', async () => {
+    const started = Promise.withResolvers<AbortSignal>()
+    const api = fakeApi()
+    api.authorization.begin = async (request, signal) => {
+      if (signal === undefined) throw new Error('carrier signal missing')
+      started.resolve(signal)
+      await new Promise<void>(resolve => signal.addEventListener('abort', () => { resolve() }, { once: true }))
+      return {
+        rpcId: request.rpcId,
+        result: { ok: true, value: { attemptId: '00000000-0000-4000-8000-000000000001' } },
+      }
+    }
+    const handler = toFetchHandler(api)
+    const controller = new AbortController()
+    const body = JSON.stringify({
+      type: 'client-request',
+      rpcId: 'r-auth-sig',
+      method: 'authorization.begin',
+      payload: { key: 'llm-account-auth/chatgpt' },
+    })
+    const pending = handler.fetch(new Request('http://x/api/authorization.begin', {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body, signal: controller.signal,
+    }))
+
+    const handlerSignal = await started.promise
+    expect(handlerSignal.aborted).toBe(false)
+    controller.abort()
+    const response = await pending
+    expect(handlerSignal.aborted).toBe(true)
+    expect((await response.json() as { result: { ok: boolean } }).result.ok).toBe(true)
   })
 
   it('propagates the carrier Request signal into host.pickDirectory', async () => {
