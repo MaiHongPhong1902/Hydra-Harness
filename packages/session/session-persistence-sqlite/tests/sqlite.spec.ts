@@ -445,7 +445,8 @@ describe('SessionPersistenceSqlite schema ownership', () => {
         : undefined
     })
 
-    const db = await openDatabase(BusyOnceDatabase, path, 'wal', 100)
+    const clock = vi.spyOn(performance, 'now').mockReturnValue(0)
+    const db = await openDatabase(BusyOnceDatabase, path, 'wal', 100).finally(() => { clock.mockRestore() })
     expect(attempts).toBe(2)
     expect(db.prepare(sql('journal-mode-wal')).get()).toEqual({ journal_mode: 'wal' })
     expect(db.prepare(sql('select-trusted-schema')).get()).toEqual({ trusted_schema: 0 })

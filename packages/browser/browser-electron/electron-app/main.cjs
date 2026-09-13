@@ -1037,6 +1037,7 @@ function isProfileManagement(method) {
     || method === 'set_browser_site'
     || method === 'remove_browser_site'
     || method === 'route_user_url'
+    || method === 'get_page_identity'
     || method === 'page_agent_llm_response'
 }
 
@@ -2503,6 +2504,23 @@ async function handleCommand(method, args, signal) {
     return { success: true }
   }
   if (method === 'route_user_url') return await routeUserUrl(args.url)
+  if (method === 'get_page_identity') {
+    if (args.tabId !== undefined && (!Number.isSafeInteger(args.tabId) || args.tabId < 1)) {
+      throw new Error('tabId must be a positive integer')
+    }
+    const tab = args.tabId === undefined ? activeTab : tabs.get(args.tabId)
+    if (!tab || tab.view.webContents.isDestroyed()) {
+      throw new Error(args.tabId === undefined ? 'active tab is unavailable' : `controlled tab [${args.tabId}] is unavailable`)
+    }
+    const contents = tab.view.webContents
+    return {
+      url: contents.getURL() || 'about:blank',
+      title: contents.getTitle() || 'New Tab',
+      tabId: tab.id,
+      activeTabId: activeTab?.id ?? tab.id,
+      settled: !contents.isLoadingMainFrame(),
+    }
+  }
   if (method === 'open_new_tab') {
     if (args.url !== undefined && activeTab !== undefined && navigationPolicy(activeTab.view.webContents, args.url) === false) {
       throw new Error(`navigation to ${args.url} was blocked by Browser settings`)

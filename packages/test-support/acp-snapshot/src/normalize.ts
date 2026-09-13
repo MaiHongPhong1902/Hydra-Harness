@@ -31,6 +31,9 @@ const PATH_TAG_RE = /(<path>)([^<]*)(<\/path>)/g
 const ADDITIONAL_INSTRUCTIONS_PATH_RE = /(Additional instructions from: )([^\r\n]+)/g
 const EMBEDDED_EVENT_TIME_RE = /^(  "time": )\d+(?=,\r?$)/gm
 const EVENT_READ_OMITTED_BYTES_RE = /(\r?\n\r?\n\(Omitted )\d+( bytes\.)/g
+/** Scrub page-memory verification timestamps while retaining the verified state. */
+const PAGE_MEMORY_VERIFIED_AT_RE = /("lastVerifiedAt":")\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z(")/g
+const PAGE_MEMORY_VERIFIED_AT_VALUE_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
 const EVENT_READ_TARGET_REGION_RE
   = /^Session [^\r\n]+ — [^\r\n]+\r?\nTarget event seq \d+:\r?\n```json\r?\n\{\r?\n[\s\S]*?(?=\r?\n```(?:\r?\n|$)|\r?\n\r?\n\(Omitted )/
 const PATH_TEXT_BOUNDARY_RE = /[\s<>'"`()\[\]{},;:!?=]/
@@ -176,6 +179,7 @@ function scrubString(value: string, ctx: NormalizeContext, cwdPathMode: CwdPathM
     )
     out = out.replace(EVENT_READ_OMITTED_BYTES_RE, `$1${EVENT_OMITTED_BYTES}$2`)
   }
+  out = out.replace(PAGE_MEMORY_VERIFIED_AT_RE, '$1{{verifiedAt}}$2')
   for (const id of ctx.sessionIds) out = out.split(id).join(SESSION_ID)
   out = out.replace(UUID_RE, SESSION_ID)
   return out
@@ -184,6 +188,7 @@ function scrubString(value: string, ctx: NormalizeContext, cwdPathMode: CwdPathM
 /** Recursively scrub a parsed JSON value (strings replaced; structure kept). */
 function scrubValue(value: unknown, ctx: NormalizeContext, cwdPathMode: CwdPathMode, key?: string): unknown {
   if (typeof value === 'string') {
+    if (key === 'lastVerifiedAt' && PAGE_MEMORY_VERIFIED_AT_VALUE_RE.test(value)) return '{{verifiedAt}}'
     const scrubbed = scrubString(value, ctx, cwdPathMode)
     return cwdPathMode === 'canonical' && key === 'path' ? scrubbed.replaceAll('\\', '/') : scrubbed
   }

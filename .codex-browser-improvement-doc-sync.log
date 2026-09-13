@@ -1,0 +1,56 @@
+$ tsx scripts/run-gates.ts doc-sync
+run-gates: doc-sync running 26 gate(s) with 4 worker(s) from 16 available CPU(s), doc-sync cap 4.
+run-gates: start doc-typecheck
+run-gates: start documentation build
+run-gates: start doc graphs
+run-gates: start markdown links
+run-gates: PASS markdown links (15.76s)
+run-gates: start type equivalence
+run-gates: PASS type equivalence (13.35s)
+run-gates: start cordis catalog
+run-gates: PASS documentation build (65.32s)
+run-gates: start verify-mermaid
+run-gates: PASS doc graphs (69.88s)
+run-gates: start scoped events
+run-gates: PASS cordis catalog (47.44s)
+run-gates: start markdown wrap
+run-gates: PASS verify-mermaid (15.51s)
+run-gates: start client catalog
+run-gates: PASS doc-typecheck (83.57s)
+run-gates: start export jsdoc
+run-gates: PASS markdown wrap (9.97s)
+run-gates: start tool catalog
+run-gates: PASS client catalog (5.89s)
+run-gates: start config catalog
+run-gates: PASS config catalog (3.04s)
+run-gates: start persistence catalog
+run-gates: PASS persistence catalog (3.98s)
+run-gates: start public repository links
+run-gates: PASS export jsdoc (12.86s)
+run-gates: start doc refs
+run-gates: PASS public repository links (6.21s)
+run-gates: start package paths
+run-gates: PASS doc refs (4.85s)
+run-gates: start config source ownership
+run-gates: PASS tool catalog (16.32s)
+run-gates: start package README model experience
+run-gates: PASS config source ownership (1.91s)
+run-gates: start agent note classification
+run-gates: PASS agent note classification (2.29s)
+run-gates: start agent note format
+run-gates: PASS scoped events (37.07s)
+run-gates: start archived agent notes
+run-gates: PASS agent note format (1.65s)
+run-gates: start skill invocation metadata
+run-gates: PASS package paths (7.44s)
+run-gates: start doc budgets
+run-gates: PASS skill invocation metadata (1.92s)
+run-gates: start documentation site checks
+run-gates: PASS doc budgets (1.76s)
+run-gates: start package README limitations
+run-gates: PASS archived agent notes (2.49s)
+run-gates: PASS package README model experience (7.95s)
+run-gates: PASS package README limitations (5.99s)
+run-gates: PASS documentation site checks (7.77s)
+
+run-gates: 26 passed, 0 failed, 0 skipped in 116.82s.

@@ -5,7 +5,7 @@ import { PassThrough } from 'node:stream'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it, vi } from 'vitest'
 import { Context } from '@hydra/cordis'
-import { CallId, createUserMessage } from '@hydra/harness-llm'
+import { CallId, createToolResultMessage, createUserMessage } from '@hydra/harness-llm'
 import AgentRegistry, { Inbox } from '@hydra/harness-agent'
 import type { Agent } from '@hydra/harness-agent'
 import { Session, SessionId } from '@hydra/harness-session'
@@ -141,19 +141,27 @@ class ScriptedChild extends EventEmitter implements BrowserChildProcess {
           settled: true,
           capturedAt: '2026-08-24T00:00:00.000Z',
         }
-        : method === 'browser_screenshot'
-          ? this.screenshotResult
-          : method === 'get_upload_target'
-            ? { origin: `https://${label}.test`, tabId: typeof args.tabId === 'number' ? args.tabId : 1 }
-            : method === 'search_browser_history'
-              ? [{ url: `https://${label}.test/history`, title: `History ${label}`, visitedAt: '2026-08-26T00:00:00.000Z' }]
-              : method === 'get_cdp_target'
-                ? { origin: `https://${label}.test`, tabId: typeof args.tabId === 'number' ? args.tabId : 1 }
-                : method === 'cdp_command'
-                  ? { echo: args.params }
-                  : method === 'cdp_read_events'
-                    ? cdpEventPage(label, args)
-                    : { success: true, message: `${method} on ${label}` }
+        : method === 'get_page_identity'
+          ? {
+            url: `https://${label}.test`,
+            title: label,
+            tabId: typeof args.tabId === 'number' ? args.tabId : 1,
+            activeTabId: 1,
+            settled: true,
+          }
+          : method === 'browser_screenshot'
+            ? this.screenshotResult
+            : method === 'get_upload_target'
+              ? { origin: `https://${label}.test`, tabId: typeof args.tabId === 'number' ? args.tabId : 1 }
+              : method === 'search_browser_history'
+                ? [{ url: `https://${label}.test/history`, title: `History ${label}`, visitedAt: '2026-08-26T00:00:00.000Z' }]
+                : method === 'get_cdp_target'
+                  ? { origin: `https://${label}.test`, tabId: typeof args.tabId === 'number' ? args.tabId : 1 }
+                  : method === 'cdp_command'
+                    ? { echo: args.params }
+                    : method === 'cdp_read_events'
+                      ? cdpEventPage(label, args)
+                      : { success: true, message: `${method} on ${label}` }
       void beforeReply(method, args).then(() => {
         this.stdout.write(`${JSON.stringify({ id, ok: true, result })}\n`)
       }, (error: unknown) => {
@@ -324,6 +332,100 @@ describe('BrowserSessionService', () => {
     const outcome = await ctx.browsers.perform(owner, { method: 'get_browser_state' })
     expect(outcome).not.toHaveProperty('action')
     expect(outcome.state.url).toBe('https://child-0.test')
+    await dispose()
+  })
+
+  it('returns no page without starting an owner browser', async () => {
+    const { ctx, spawned, dispose } = await harness()
+    const owner = stubAgent(ctx, 'agent-a')
+
+    await expect(ctx.browsers.currentPage(owner)).resolves.toBeUndefined()
+    expect(spawned).toHaveLength(0)
+    await dispose()
+  })
+
+  it('reads live page identity through the child without requesting browser state', async () => {
+    const { ctx, spawned, dispose } = await harness()
+    const owner = stubAgent(ctx, 'agent-a')
+    await ctx.browsers.perform(owner, { method: 'get_browser_state' })
+    spawned[0]?.requests.splice(0)
+
+    await expect(ctx.browsers.currentPage(owner)).resolves.toEqual({
+      url: 'https://child-0.test',
+      title: 'child-0',
+      tabId: 1,
+      activeTabId: 1,
+      settled: true,
+    })
+    expect(spawned[0]?.requests).toEqual([{ method: 'get_page_identity', args: {} }])
+    await dispose()
+  })
+
+  it('applies browsing policy to an existing page identity read', async () => {
+    const { ctx, spawned, dispose } = await harness({ approval: false })
+    const owner = stubAgent(ctx, 'agent-a')
+    await ctx.browsers.perform(owner, { method: 'get_browser_state' })
+    await ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, {
+      browserPermissions: { browsing: 'block', downloads: 'allow', uploads: 'allow' },
+    })
+
+    await expect(ctx.browsers.currentPage(owner)).rejects.toMatchObject({ code: 'BROWSER_POLICY_DENIED' })
+    expect(spawned[0]?.seen).not.toContain('get_page_identity')
+    await dispose()
+  })
+
+  it('does not prompt for a background page identity read under ask policy', async () => {
+    const approval = vi.fn(() => Promise.resolve<ApprovalOutcome>('allowed-once'))
+    const { ctx, spawned, dispose } = await harness({ approval })
+    const owner = stubAgent(ctx, 'agent-a')
+    await ctx.browsers.perform(owner, { method: 'get_browser_state' })
+    await ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, {
+      browserPermissions: { browsing: 'ask', downloads: 'allow', uploads: 'allow' },
+    })
+
+    await expect(ctx.browsers.currentPage(owner)).rejects.toMatchObject({ code: 'BROWSER_POLICY_DENIED' })
+    expect(approval).not.toHaveBeenCalled()
+    expect(spawned[0]?.seen).not.toContain('get_page_identity')
+    await dispose()
+  })
+
+  it('shares browsing approval within an active logged call while rechecking policy and reused ids', async () => {
+    const approval = vi.fn(() => Promise.resolve<ApprovalOutcome>('allowed-once'))
+    const { ctx, dispose } = await harness({ approval })
+    const owner = stubAgent(ctx, 'agent-a')
+    await ctx.browsers.perform(owner, { method: 'get_browser_state' })
+    await ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, {
+      browserPermissions: { browsing: 'ask', downloads: 'allow', uploads: 'allow' },
+    })
+    const callId = CallId('reused-id')
+    const execution = { callId, signal: new AbortController().signal }
+    const call = { turn: 1, step: 1, callId, name: 'browser_click', arguments: '{"target":"#save"}' }
+    owner.session.append('turn/start', { turn: 1 })
+    const callSeq = owner.session.events.length
+    owner.session.append('tool/call', call)
+    await ctx.browsers.currentPage(owner, execution)
+    await ctx.browsers.perform(owner, { method: 'get_browser_state', snapshot: { target: '#title' } }, execution)
+    await ctx.browsers.perform(owner, { method: 'click_element', target: '#save' }, execution)
+    expect(approval).toHaveBeenCalledTimes(1)
+    expect(approval).toHaveBeenLastCalledWith(expect.objectContaining({ toolName: 'browser_click' }))
+    await ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, {
+      browserPermissions: { browsing: 'block', downloads: 'allow', uploads: 'allow' },
+    })
+    await expect(ctx.browsers.currentPage(owner, execution)).rejects.toMatchObject({ code: 'BROWSER_POLICY_DENIED' })
+    await ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, {
+      browserPermissions: { browsing: 'ask', downloads: 'allow', uploads: 'allow' },
+    })
+    await expect(ctx.browsers.currentPage(owner, { callId, signal: AbortSignal.abort() })).rejects.toBeDefined()
+    owner.session.append('tool/result', {
+      turn: 1, step: 1, message: createToolResultMessage({ callId, content: [], isError: false }),
+    }, { surfaceOp: 'append', sourceEventSeqs: [callSeq] })
+    await ctx.browsers.currentPage(owner, execution)
+    expect(approval).toHaveBeenCalledTimes(2)
+    owner.session.append('tool/call', { ...call, step: 2 })
+    await ctx.browsers.currentPage(owner, execution)
+    expect(approval).toHaveBeenCalledTimes(3)
+    await ctx.browsers.currentPage(owner, execution)
+    expect(approval).toHaveBeenCalledTimes(3)
     await dispose()
   })
 

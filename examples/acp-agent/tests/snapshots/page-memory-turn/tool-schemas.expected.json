@@ -1,0 +1,1570 @@
+{
+  "initial": [
+    {
+      "name": "bash",
+      "description": "Execute a bash command (`bash -c`) and return its stdout/stderr. Each call runs in a fresh shell: no state (cwd, variables, functions) persists between calls — pass `workdir` instead of using `cd`. Non-zero exits are reported as `[exit code: N]`. Current harness environment facts are exposed through managed `$HYDRA_*` variables; inspect them when needed. Commands may run under a file sandbox; a blocked file operation is reported as `[sandbox: file access denied under <mode> mode]` — a policy denial, not a bug in the command; do not retry another way. Long output is truncated to its tail; the full output is saved to a file whose path is reported when available. Set `run_in_background: true` for long-running commands: the call returns a job id immediately; read its output with `job_output` and stop it with `job_kill`. Attempting a command the sandbox may deny is safe and expected: run it and read the marker rather than assuming the denial. When a command is denied and a wider mode would let it succeed, escalate immediately in the same turn — the one sanctioned exception to a denial: retry the exact same command once with `sandbox_permissions` (the narrowest wider mode that suffices) plus a one-sentence `justification`. Do not detour through chat to ask permission first — the approval prompt raised by that retry is how the user consents. If the session states approval prompts are disabled, there is no exception: a denial is final — do not set `sandbox_permissions`. Never escalate speculatively: ground the request in a real denial — normally the one this command just hit; escalating up front is fine only when this session already denied the same access. A rejected escalation is final for that command — stop and explain, never work around it — but it does not forbid attempting or escalating other commands later.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "description": "The bash command to execute."
+          },
+          "description": {
+            "type": "string",
+            "description": "Clear, concise description of what this command does in active voice, 5-10 words (shown in the UI). Examples: \"ls\" → \"List files in current directory\"; \"git status\" → \"Show working tree status\"; \"npm install\" → \"Install package dependencies\"."
+          },
+          "timeoutMs": {
+            "type": "number",
+            "description": "Timeout in milliseconds. The executor applies its configured default and cap, and kills the command on expiry."
+          },
+          "workdir": {
+            "type": "string",
+            "description": "Working directory for this command. Defaults to the session workspace; a relative path is resolved against it."
+          },
+          "run_in_background": {
+            "type": "boolean",
+            "description": "Run in the background and return a job id immediately (collect with job_output, stop with job_kill). No timeout applies."
+          },
+          "sandbox_permissions": {
+            "type": "string",
+            "description": "The wider sandbox mode this command needs. Only valid as a one-shot retry of a command the sandbox just denied; requires justification and user approval.",
+            "enum": [
+              "workspace-write",
+              "danger-full-access"
+            ]
+          },
+          "justification": {
+            "type": "string",
+            "description": "Required with sandbox_permissions: one sentence for the user explaining why this exact command needs the wider access."
+          }
+        },
+        "required": [
+          "command",
+          "description"
+        ]
+      }
+    },
+    {
+      "name": "browser_back",
+      "description": "Go back to the previous page in this window. Reports a failure when there is nothing to go back to.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        }
+      }
+    },
+    {
+      "name": "browser_click",
+      "description": "Click a control from the latest snapshot by index or by visible name. Indexes are reassigned after every action.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "description": "Element index from the latest browser result. Provide this or name."
+          },
+          "name": {
+            "type": "string",
+            "description": "Visible label, accessible name, placeholder, or id from the latest snapshot. Use instead of index when the control is named."
+          },
+          "target": {
+            "type": "string",
+            "description": "Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name."
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        }
+      }
+    },
+    {
+      "name": "browser_close",
+      "description": "Close this agent's controlled browser and release its tabs. A later browser call opens a fresh controller.",
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "browser_close_tab",
+      "description": "Close a controlled tab by id. The agent cannot close the last tab or the browser window.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "tab_id": {
+            "type": "integer",
+            "description": "Tab id from the latest browser result."
+          }
+        },
+        "required": [
+          "tab_id"
+        ]
+      }
+    },
+    {
+      "name": "browser_console_messages",
+      "description": "Read retained console messages for this tab. Includes the selected level and more severe levels.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "filename": {
+            "type": "string",
+            "description": "Plain filename for a private output artifact; returns its absolute path instead of the data."
+          },
+          "level": {
+            "type": "string",
+            "description": "Minimum severity; omission uses the deployment consoleLevel.",
+            "enum": [
+              "error",
+              "warning",
+              "info",
+              "debug"
+            ]
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        }
+      }
+    },
+    {
+      "name": "browser_drag",
+      "description": "Drag from one observed accessibility ref to another with the native browser pointer held down.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "start_index": {
+            "type": "integer",
+            "description": "Source ref from the latest snapshot."
+          },
+          "end_index": {
+            "type": "integer",
+            "description": "Destination ref from the same snapshot."
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        },
+        "required": [
+          "start_index",
+          "end_index"
+        ]
+      }
+    },
+    {
+      "name": "browser_drop",
+      "description": "Drop local files or MIME-typed text onto an observed accessibility ref. Local files follow Browser Uploads permissions.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "description": "Destination ref from the latest snapshot."
+          },
+          "paths": {
+            "type": "array",
+            "description": "Absolute paths of readable local files.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "data": {
+            "type": "object",
+            "description": "MIME type to text, for example text/plain.",
+            "additionalProperties": true
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        },
+        "required": [
+          "index"
+        ]
+      }
+    },
+    {
+      "name": "browser_file_upload",
+      "description": "Choose a local file through an accessibility ref, matching Playwright MCP semantics.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "description": "Accessibility ref of the file input."
+          },
+          "path": {
+            "type": "string",
+            "description": "Absolute path of the readable local file."
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        },
+        "required": [
+          "index",
+          "path"
+        ]
+      }
+    },
+    {
+      "name": "browser_fill",
+      "description": "Type several named or indexed fields in one call. Each field is re-resolved after the previous one so autocomplete cannot steal later indexes.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "fields": {
+            "type": "array",
+            "description": "Fields to fill, each identified by index or name.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "index": {
+                  "type": "integer",
+                  "description": "Element index from the latest browser result. Provide this or name."
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Visible label, accessible name, placeholder, or id from the latest snapshot. Use instead of index when the control is named."
+                },
+                "target": {
+                  "type": "string",
+                  "description": "Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name."
+                },
+                "text": {
+                  "type": "string",
+                  "description": "Text to put in the field."
+                }
+              },
+              "required": [
+                "text"
+              ]
+            }
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        },
+        "required": [
+          "fields"
+        ]
+      }
+    },
+    {
+      "name": "browser_fill_form",
+      "description": "Fill multiple form controls by accessibility ref or accessible name, matching Playwright MCP semantics.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "fields": {
+            "type": "array",
+            "description": "Fields to fill, each identified by index or accessible name.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "index": {
+                  "type": "integer",
+                  "description": "Element index from the latest browser result. Provide this or name."
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Visible label, accessible name, placeholder, or id from the latest snapshot. Use instead of index when the control is named."
+                },
+                "target": {
+                  "type": "string",
+                  "description": "Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name."
+                },
+                "text": {
+                  "type": "string",
+                  "description": "Value to put in the field."
+                }
+              },
+              "required": [
+                "text"
+              ]
+            }
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        },
+        "required": [
+          "fields"
+        ]
+      }
+    },
+    {
+      "name": "browser_find",
+      "description": "Search the accessibility tree for text or regex. Returns matching snippets with observed refs and ancestor context, without a trailing page snapshot.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "Case-insensitive text to find; provide text or regex."
+          },
+          "regex": {
+            "type": "string",
+            "description": "Regular expression, optionally /pattern/i."
+          },
+          "query": {
+            "type": "string",
+            "description": "Alias for text."
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        }
+      }
+    },
+    {
+      "name": "browser_forward",
+      "description": "Go forward to the next page in this window. Reports a failure when there is nothing to go forward to.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        }
+      }
+    },
+    {
+      "name": "browser_handle_dialog",
+      "description": "Accept or dismiss the current JavaScript alert, confirm, or prompt dialog.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "accept": {
+            "type": "boolean",
+            "description": "Accept when true; dismiss when false."
+          },
+          "promptText": {
+            "type": "string",
+            "description": "Text to enter in a prompt dialog."
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        },
+        "required": [
+          "accept"
+        ]
+      }
+    },
+    {
+      "name": "browser_history_search",
+      "description": "Search the built-in Browser profile history after applying the user's sensitive-history access policy. Returns at most 20 matching pages; use browser_navigate to reopen one.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Case-insensitive title or URL text, from 1 to 256 characters."
+          }
+        },
+        "required": [
+          "query"
+        ]
+      }
+    },
+    {
+      "name": "browser_hover",
+      "description": "Move the native browser pointer onto an observed accessibility ref or named control and return the resulting snapshot.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "description": "Element index from the latest browser result. Provide this or name."
+          },
+          "name": {
+            "type": "string",
+            "description": "Visible label, accessible name, placeholder, or id from the latest snapshot. Use instead of index when the control is named."
+          },
+          "target": {
+            "type": "string",
+            "description": "Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name."
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        }
+      }
+    },
+    {
+      "name": "browser_navigate",
+      "description": "Open a URL in the embedded browser and return the page as a numbered element list. Starts the browser window if it is not running yet.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "Absolute URL to open."
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        },
+        "required": [
+          "url"
+        ]
+      }
+    },
+    {
+      "name": "browser_navigate_back",
+      "description": "Navigate back one page and return a fresh accessibility snapshot.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        }
+      }
+    },
+    {
+      "name": "browser_network_request",
+      "description": "Read headers or body for a retained network request from browser_network_requests. Bodies may expire from Chromium storage.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "filename": {
+            "type": "string",
+            "description": "Plain filename for a private output artifact; returns its absolute path instead of the data."
+          },
+          "index": {
+            "type": "integer",
+            "description": "Request index from browser_network_requests."
+          },
+          "part": {
+            "type": "string",
+            "description": "Omit for request and response headers.",
+            "enum": [
+              "request-headers",
+              "request-body",
+              "response-headers",
+              "response-body"
+            ]
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        },
+        "required": [
+          "index"
+        ]
+      }
+    },
+    {
+      "name": "browser_network_requests",
+      "description": "List retained network requests for this tab with stable request indexes for browser_network_request.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "filename": {
+            "type": "string",
+            "description": "Plain filename for a private output artifact; returns its absolute path instead of the data."
+          },
+          "filter": {
+            "type": "string",
+            "description": "URL regular expression, optionally /pattern/i."
+          },
+          "static": {
+            "type": "boolean",
+            "description": "Include successful static resources. Defaults to false."
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        }
+      }
+    },
+    {
+      "name": "browser_open_tab",
+      "description": "Open and select a new controlled browser tab, optionally at an absolute HTTP(S) URL. Every browser result lists all tab ids.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "Optional absolute HTTP(S) URL; omitted opens a blank tab."
+          }
+        }
+      }
+    },
+    {
+      "name": "browser_page_agent_run",
+      "description": "Start the vendored PageAgent ReAct engine only when the user explicitly asks for that upstream engine. Ordinary browsing uses the indexed and named Hydra tools instead. It uses this Hydra agent's selected provider and model through a private host bridge; it never receives an API key or renders UI in the webpage.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "task": {
+            "type": "string",
+            "description": "Concrete browser task for PageAgent to perform."
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        },
+        "required": [
+          "task"
+        ]
+      }
+    },
+    {
+      "name": "browser_page_agent_status",
+      "description": "Read the status and latest result of the upstream PageAgent task running in the controlled page.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        }
+      }
+    },
+    {
+      "name": "browser_page_agent_stop",
+      "description": "Stop the active upstream PageAgent task in the controlled page.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        }
+      }
+    },
+    {
+      "name": "browser_press",
+      "description": "Send one key to whatever the page has focused — Enter to submit a form, Tab to move on, Escape to dismiss.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Key name, such as Enter, Tab, Escape, or Backspace."
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        },
+        "required": [
+          "key"
+        ]
+      }
+    },
+    {
+      "name": "browser_press_key",
+      "description": "Press one keyboard key using the focused page control, matching Playwright MCP semantics.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Key name such as Enter, Tab, Escape, or Backspace."
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        },
+        "required": [
+          "key"
+        ]
+      }
+    },
+    {
+      "name": "browser_resize",
+      "description": "Set the controlled page viewport size in CSS pixels.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "width": {
+            "type": "integer",
+            "description": "Viewport width, from 1 to 8192 pixels."
+          },
+          "height": {
+            "type": "integer",
+            "description": "Viewport height, from 1 to 8192 pixels."
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        },
+        "required": [
+          "width",
+          "height"
+        ]
+      }
+    },
+    {
+      "name": "browser_screenshot",
+      "description": "Capture the selected controlled HTTP(S) viewport. A filename saves PNG evidence without image input; otherwise imageResponses selects image delivery. Switch tabs before capture.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "filename": {
+            "type": "string",
+            "description": "Plain filename for a private output artifact; returns its absolute path instead of the data."
+          }
+        }
+      }
+    },
+    {
+      "name": "browser_scroll",
+      "description": "Scroll the page, or a scrollable element, to bring more of it into the element list. Only the visible viewport is ever listed.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "down": {
+            "type": "boolean",
+            "description": "True scrolls towards the end of the page, false towards the start."
+          },
+          "num_pages": {
+            "type": "number",
+            "description": "Viewport heights to scroll. Defaults to 1, and is ignored when pixels is given."
+          },
+          "pixels": {
+            "type": "number",
+            "description": "Exact distance to scroll, instead of whole viewports."
+          },
+          "index": {
+            "type": "integer",
+            "description": "Scroll this element instead of the page."
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        },
+        "required": [
+          "down"
+        ]
+      }
+    },
+    {
+      "name": "browser_scroll_horizontally",
+      "description": "Scroll the page, or one scrollable element, horizontally and return the newly visible indexed controls.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "right": {
+            "type": "boolean",
+            "description": "True scrolls right, false scrolls left."
+          },
+          "pixels": {
+            "type": "number",
+            "description": "Positive horizontal distance in pixels."
+          },
+          "index": {
+            "type": "integer",
+            "description": "Scroll this element instead of the page."
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        },
+        "required": [
+          "right",
+          "pixels"
+        ]
+      }
+    },
+    {
+      "name": "browser_select_option",
+      "description": "Choose a dropdown option by the control's index or visible name and the option's visible label.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "description": "Element index from the latest browser result. Provide this or name."
+          },
+          "name": {
+            "type": "string",
+            "description": "Visible label, accessible name, placeholder, or id from the latest snapshot. Use instead of index when the control is named."
+          },
+          "target": {
+            "type": "string",
+            "description": "Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name."
+          },
+          "text": {
+            "type": "string",
+            "description": "Visible label of the option to choose."
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        },
+        "required": [
+          "text"
+        ]
+      }
+    },
+    {
+      "name": "browser_select_text",
+      "description": "Select text across an element by index or visible name, or between explicit coordinates, animating the virtual cursor and updating the native DOM selection.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "description": "Element index from the latest browser result. Provide this or name."
+          },
+          "name": {
+            "type": "string",
+            "description": "Visible label, accessible name, placeholder, or id from the latest snapshot. Use instead of index when the control is named."
+          },
+          "target": {
+            "type": "string",
+            "description": "Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name."
+          },
+          "start_x": {
+            "type": "number",
+            "description": "Start X coordinate in CSS pixels."
+          },
+          "start_y": {
+            "type": "number",
+            "description": "Start Y coordinate in CSS pixels."
+          },
+          "end_x": {
+            "type": "number",
+            "description": "End X coordinate in CSS pixels."
+          },
+          "end_y": {
+            "type": "number",
+            "description": "End Y coordinate in CSS pixels."
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        }
+      }
+    },
+    {
+      "name": "browser_snapshot",
+      "description": "Read a distilled accessibility tree, optionally scoped to a ref/selector, depth, or output file.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          },
+          "target": {
+            "type": "string",
+            "description": "Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name."
+          },
+          "depth": {
+            "type": "integer",
+            "description": "Maximum tree depth, zero or greater."
+          },
+          "boxes": {
+            "type": "boolean"
+          },
+          "filename": {
+            "type": "string",
+            "description": "Plain filename for a private output artifact; returns its absolute path instead of the data."
+          }
+        }
+      }
+    },
+    {
+      "name": "browser_state",
+      "description": "Re-read the current page of the embedded browser, with a bounded readiness wait for SPA or SSO transitions. Explicitly read state after omitted output or when fresh numeric indexes are needed.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        }
+      }
+    },
+    {
+      "name": "browser_switch_tab",
+      "description": "Select a controlled tab by an id from the latest browser result, then return its fresh page state.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "tab_id": {
+            "type": "integer",
+            "description": "Tab id from the latest browser result."
+          }
+        },
+        "required": [
+          "tab_id"
+        ]
+      }
+    },
+    {
+      "name": "browser_tabs",
+      "description": "List, create, close, or select a controlled browser tab, matching Playwright MCP tab management.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "list",
+              "new",
+              "close",
+              "select"
+            ]
+          },
+          "index": {
+            "type": "integer",
+            "description": "Tab id from the latest snapshot for close/select."
+          },
+          "url": {
+            "type": "string",
+            "description": "Absolute HTTP(S) URL for a new tab."
+          }
+        },
+        "required": [
+          "action"
+        ]
+      }
+    },
+    {
+      "name": "browser_take_screenshot",
+      "description": "Capture the selected controlled HTTP(S) viewport. A filename saves PNG evidence without image input; otherwise imageResponses selects image delivery. Switch tabs before capture.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "filename": {
+            "type": "string",
+            "description": "Plain filename for a private output artifact; returns its absolute path instead of the data."
+          }
+        }
+      }
+    },
+    {
+      "name": "browser_type",
+      "description": "Type text into an input or textarea by index or visible name. Replaces whatever the field held; it does not append.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "description": "Element index from the latest browser result. Provide this or name."
+          },
+          "name": {
+            "type": "string",
+            "description": "Visible label, accessible name, placeholder, or id from the latest snapshot. Use instead of index when the control is named."
+          },
+          "target": {
+            "type": "string",
+            "description": "Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name."
+          },
+          "text": {
+            "type": "string",
+            "description": "Text to put in the field."
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        },
+        "required": [
+          "text"
+        ]
+      }
+    },
+    {
+      "name": "browser_upload_file",
+      "description": "Select one existing readable local file through an indexed HTML file input, including hidden inputs. Use an absolute path and the most recent element list. Uploads permission controls execution and approval for the file and HTTP(S) destination. This selects the file only; submit separately.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "description": "Element index of the observed HTML file input, including a hidden chooser input."
+          },
+          "path": {
+            "type": "string",
+            "description": "Absolute path of the local file to upload."
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        },
+        "required": [
+          "index",
+          "path"
+        ]
+      }
+    },
+    {
+      "name": "browser_wait",
+      "description": "Wait up to 1–10 seconds for delayed page data, animation, or navigation, then return a fresh settled page state. Use it instead of repeatedly polling browser_state.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "seconds": {
+            "type": "integer",
+            "description": "Whole seconds to wait, from 1 through 10."
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        },
+        "required": [
+          "seconds"
+        ]
+      }
+    },
+    {
+      "name": "browser_wait_for",
+      "description": "Wait up to ten seconds for text to appear or disappear in the accessibility snapshot, or wait for the specified time.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "time": {
+            "type": "number",
+            "description": "Seconds to wait, from 1 through 10."
+          },
+          "text": {
+            "type": "string",
+            "description": "Optional text expected in the returned accessibility snapshot."
+          },
+          "text_gone": {
+            "type": "string",
+            "description": "Optional text expected to be absent from the returned snapshot."
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        }
+      }
+    },
+    {
+      "name": "create_goal",
+      "description": "Create one persisted same-session completion goal when the current direct human request is a long-running objective that should continue across autonomous goal rounds. You may infer that intent without requiring the user to say \"create a goal\". Do not use this for trivial single-turn work. Execution rejects non-human and subagent authority.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "objective": {
+            "type": "string",
+            "description": "The concrete completion objective inferred from the direct human request."
+          },
+          "max_goal_rounds": {
+            "type": "number",
+            "description": "Optional positive safe-integer limit on automatic continuation rounds."
+          }
+        },
+        "required": [
+          "objective"
+        ]
+      }
+    },
+    {
+      "name": "edit",
+      "description": "Edit an existing UTF-8 text file by replacing literal text.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "file_path": {
+            "type": "string",
+            "description": "Path to edit, resolved by the filesystem backend."
+          },
+          "old_string": {
+            "type": "string",
+            "description": "Literal text to replace. Must match exactly."
+          },
+          "new_string": {
+            "type": "string",
+            "description": "Literal replacement text. Use an empty string to delete the match."
+          },
+          "replace_all": {
+            "type": "boolean",
+            "description": "Replace all matches. Defaults to false; when false, old_string must appear exactly once."
+          },
+          "sandbox_permissions": {
+            "type": "string",
+            "description": "The wider sandbox mode this file operation needs. Only valid as a one-shot retry of an operation the sandbox just denied; requires justification and user approval.",
+            "enum": [
+              "workspace-write",
+              "danger-full-access"
+            ]
+          },
+          "justification": {
+            "type": "string",
+            "description": "Required with sandbox_permissions: one sentence for the user explaining why this exact file operation needs the wider access."
+          }
+        },
+        "required": [
+          "file_path",
+          "old_string",
+          "new_string"
+        ]
+      }
+    },
+    {
+      "name": "get_goal",
+      "description": "Read the current same-session goal, including its exact id/revision, objective, phase, completed continuation rounds, round limit, blocker reason when present, and whether another continuation is armed. Call this before updating a goal.",
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "interrupt_agent",
+      "description": "Request cancellation of a background agent's current turn by its agent id. The target may be your direct child or a deeper agent created under you. Only the current turn stops: messages already queued for the agent stay parked until a later send_message, agents it started keep running, and the agent itself stays available for follow-ups. This call returns as soon as the stop request is accepted, so the target may keep running briefly; interrupting an agent that already finished is an accepted no-op.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "agent_id": {
+            "type": "string",
+            "description": "The agent id of the running agent to interrupt."
+          }
+        },
+        "required": [
+          "agent_id"
+        ]
+      }
+    },
+    {
+      "name": "job_kill",
+      "description": "Request cancellation of a running background job by its job id, not a continuable subagent id. Returns immediately; the job settles as killed once its work actually stops.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "description": "Background job id returned by the tool that started the work; do not pass a continuable subagent id."
+          },
+          "reason": {
+            "type": "string",
+            "description": "Optional short reason, recorded in the log and forwarded to the job."
+          }
+        },
+        "required": [
+          "job_id"
+        ]
+      }
+    },
+    {
+      "name": "job_list",
+      "description": "List your background jobs (running and finished) with their ids, kinds, and statuses.",
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "job_output",
+      "description": "Read a background job by its job id, not a continuable subagent id. Stream jobs return only output since the previous read; final-output jobs return their result after settlement. Every response ends with `[status: ...]`. Reads are non-blocking unless `wait: true`, which waits up to the configured cap.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "description": "Background job id returned by the tool that started the work; do not pass a continuable subagent id."
+          },
+          "wait": {
+            "type": "boolean",
+            "description": "Block until the job reaches a terminal status or the timeout expires. A timed-out wait returns [status: running] and leaves the job alive."
+          },
+          "timeout_ms": {
+            "type": "number",
+            "description": "Max wait in milliseconds (only meaningful with wait: true). Defaults to the configured wait timeout; capped by the configured maximum."
+          }
+        },
+        "required": [
+          "job_id"
+        ]
+      }
+    },
+    {
+      "name": "list_agents",
+      "description": "List your continuable background subagents by durable id and label. Use it to recall which ones you started, not to poll for completion — you are told when one finishes. Status comes from the live registry: running means the agent is working right now, idle means it is loaded but between turns (it may be waiting on agents it started), and ready means it exists only in storage — resumable, not terminal, and not a result waiting to be collected; a `send_message` starts a new turn on the same conversation, and a direct child remains a `send_message` candidate in every status. The snapshot is not a delivery promise — `send_message` performs the authoritative check and may still fail. Children that could not be read are reported as diagnostics instead of being silently dropped. Scope `descendants` walks the whole tree below you in stable pre-order, annotating each entry with its durable direct-parent session id and depth. You may use `send_message` only for depth-1 entries; deeper entries are candidates for `interrupt_agent` only.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "scope": {
+            "type": "string",
+            "description": "children (default) lists direct children only; descendants walks the complete tree below you.",
+            "enum": [
+              "children",
+              "descendants"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "page_memory_get",
+      "description": "Read verified guidance for the live page in this workspace/role/locale. Select an exact stable task name; omission reads the selected task, or lists task names if none is selected. No cross-page or namespace fallback.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "task": {
+            "type": "string",
+            "description": "Stable reusable workflow name, such as find_order; not an order/customer value."
+          }
+        }
+      }
+    },
+    {
+      "name": "page_memory_upsert",
+      "description": "Replace one verified page workflow after a successful Browser action and live outcome check. Anchors and locators must be observed unique CSS selectors. Use sourceUrl only for a source page observed with targeted snapshots during this turn; success is checked on the current page in the same tab.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "task": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "accountHint": {
+            "type": "string",
+            "description": "Optional account-type guidance, such as staff access; never a login identity, credential, or authorization."
+          },
+          "anchors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "target": {
+                  "type": "string",
+                  "description": "Observed unique CSS selector; no snapshot refs or code."
+                },
+                "text": {
+                  "type": "string",
+                  "description": "Reusable visible text expected in this region, without task-specific values."
+                }
+              },
+              "required": [
+                "target",
+                "text"
+              ]
+            }
+          },
+          "locators": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "successCheck": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "target": {
+                "type": "string",
+                "description": "Observed unique CSS selector; no snapshot refs or code."
+              },
+              "text": {
+                "type": "string",
+                "description": "Reusable visible text expected in this region, without task-specific values."
+              }
+            },
+            "required": [
+              "target",
+              "text"
+            ]
+          },
+          "pitfalls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sourceUrl": {
+            "type": "string",
+            "description": "Exact previously observed starting URL when the workflow ends on another page."
+          }
+        },
+        "required": [
+          "task",
+          "summary",
+          "anchors",
+          "locators",
+          "steps",
+          "successCheck",
+          "pitfalls"
+        ]
+      }
+    },
+    {
+      "name": "ralph",
+      "description": "Run a foreground fresh-agent Ralph loop toward one immutable objective. Use only when the direct human explicitly asks for Ralph or fresh-agent iteration. Each round opens a new child with no parent conversation or prior child session; the shared workspace is long-term memory, and only a bounded structured report crosses rounds. The call returns when a worker reports completion or a concrete blocker, or at the round limit. Ordinary long-running same-session work belongs to goal tools.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "objective": {
+            "type": "string",
+            "description": "The immutable completion objective for every fresh Ralph round."
+          },
+          "maxRounds": {
+            "type": "number",
+            "description": "Optional positive safe-integer round cap, bounded by the deployment ceiling."
+          }
+        },
+        "required": [
+          "objective"
+        ]
+      }
+    },
+    {
+      "name": "read",
+      "description": "Read a UTF-8 text file and return line-numbered content.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "file_path": {
+            "type": "string",
+            "description": "Path to read, resolved by the filesystem backend."
+          },
+          "offset": {
+            "type": "integer",
+            "description": "1-based first line to return. Defaults to 1.",
+            "minimum": 1
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Maximum number of lines to return. Defaults to 2000; values above 2000 are rejected.",
+            "minimum": 1,
+            "maximum": 2000
+          }
+        },
+        "required": [
+          "file_path"
+        ]
+      }
+    },
+    {
+      "name": "send_message",
+      "description": "Send a message to a background subagent by its subagent id, continuing the same conversation. It becomes the subagent's next turn: if it is still working, the message waits until its current turn finishes, so it cannot redirect work already underway. This call returns no answer from the subagent — only confirmation that the message was delivered — so use it to give it more work. A failure means the message was NOT delivered.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "subagent_id": {
+            "type": "string",
+            "description": "The subagent id returned when the background subagent was started."
+          },
+          "message": {
+            "type": "string",
+            "description": "The message to deliver to the subagent."
+          }
+        },
+        "required": [
+          "subagent_id",
+          "message"
+        ]
+      }
+    },
+    {
+      "name": "skill",
+      "description": "Load the full instructions for exactly one skill. Use only an exact name returned by `skill_search` for the current task or explicitly named by the user; do not guess names or reload an inline <skill_content> block.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The exact skill name returned by `skill_search` or explicitly named by the user."
+          }
+        },
+        "required": [
+          "name"
+        ]
+      }
+    },
+    {
+      "name": "skill_search",
+      "description": "Find a bounded shortlist of skills for a substantive user task before loading one. Search with concise task keywords; do not call this for greetings, thanks, acknowledgements, casual chat, meta questions, or vague requests. An empty result means load no skill.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Concise keywords describing the user task, not a greeting or conversational filler."
+          }
+        },
+        "required": [
+          "query"
+        ]
+      }
+    },
+    {
+      "name": "subagent",
+      "description": "Delegate a self-contained task to a subagent (a separate agent that works in its own context) to offload focused, independent work — research, a scoped implementation, an analysis — so it does not consume this conversation's context. The subagent returns its result, not its intermediate steps. Give it a complete, standalone prompt: it does not see this conversation. This tool runs in the background by default and immediately returns a durable continuable subagent id, not a background job id. Do not pass that id to `job_output` or `job_kill`. When the run settles, the runtime sends the parent a notice containing its outcome and any final assistant message; wait for that notice rather than starting a duplicate delegation. `send_message` starts a later turn in the same child conversation. Set `run_in_background: false` only when your next action depends on receiving the result.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "A short (3-5 word) description of the delegated task, for display."
+          },
+          "prompt": {
+            "type": "string",
+            "description": "The complete, self-contained task for the subagent. It does not share this conversation's context, so include everything it needs."
+          },
+          "run_in_background": {
+            "type": "boolean",
+            "description": "Whether to run in the background and return a durable continuable subagent id immediately. Defaults to true. This id is not a background job id; do not pass it to `job_output` or `job_kill`. Set false to wait for the result when your next action depends on it."
+          }
+        },
+        "required": [
+          "description",
+          "prompt"
+        ]
+      }
+    },
+    {
+      "name": "subagent_fork",
+      "description": "Delegate a task to a subagent that inherits this conversation: a child agent seeded with all completed turns so far (it does not see the current in-flight turn). Use this when the subtask builds on this conversation's context — a follow-up analysis, a review, a continuation — without consuming this conversation's context for the work itself. You receive its result, not its intermediate steps. This call waits for the subagent and returns its result.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "A short (3-5 word) description of the delegated task, for display."
+          },
+          "prompt": {
+            "type": "string",
+            "description": "The task for the subagent. It already sees this conversation's completed turns, so build on them freely and state only what is new."
+          }
+        },
+        "required": [
+          "description",
+          "prompt"
+        ]
+      }
+    },
+    {
+      "name": "todo_write",
+      "description": "Record and update a structured task list for the current work. Send the ENTIRE list every call — it REPLACES the previous list (there are no partial updates, no per-item edits). Use it to plan multi-step work and show progress: add one todo per concrete step before you start. Mark every todo being actively worked on `in_progress` — several at once when work genuinely runs in parallel (e.g. concurrent subagents or background commands), one for sequential work; while work remains, at least one task should be `in_progress`. Mark a todo `completed` the moment it is done (do not batch completions), and allow no `in_progress` item only once all work is complete. Skip the list for trivial single-step tasks. Statuses: `pending` (not started), `in_progress` (being worked on now), `completed` (finished).",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "todos": {
+            "type": "array",
+            "description": "The COMPLETE task list, replacing any previous list.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "content": {
+                  "type": "string",
+                  "description": "What the task is — a short imperative line."
+                },
+                "status": {
+                  "type": "string",
+                  "description": "pending (not started) | in_progress (now) | completed (done).",
+                  "enum": [
+                    "pending",
+                    "in_progress",
+                    "completed"
+                  ]
+                }
+              },
+              "required": [
+                "content",
+                "status"
+              ]
+            }
+          }
+        },
+        "required": [
+          "todos"
+        ]
+      }
+    },
+    {
+      "name": "update_goal",
+      "description": "Update the exact current goal revision. edit, pause, and resume require a direct top-level human request. During an automatic continuation of the current goal, complete and blocked are also allowed. blocked is rejected before the configured minimum round count; the model remains responsible for judging that the same condition persisted across those rounds and must explain it in blocked_reason.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "goal_id": {
+            "type": "string",
+            "description": "Exact id returned by get_goal."
+          },
+          "revision": {
+            "type": "number",
+            "description": "Exact positive revision returned by get_goal."
+          },
+          "action": {
+            "type": "string",
+            "description": "edit | pause | resume | complete | blocked",
+            "enum": [
+              "edit",
+              "pause",
+              "resume",
+              "complete",
+              "blocked"
+            ]
+          },
+          "objective": {
+            "type": "string",
+            "description": "Replacement objective; valid only with action edit."
+          },
+          "max_goal_rounds": {
+            "type": "number",
+            "description": "Replacement cap; valid only with action edit."
+          },
+          "blocked_reason": {
+            "type": "string",
+            "description": "Concrete blocking condition; required only with action blocked."
+          }
+        },
+        "required": [
+          "goal_id",
+          "revision",
+          "action"
+        ]
+      }
+    },
+    {
+      "name": "workflow",
+      "description": "Run a JavaScript workflow script that orchestrates subagents at scale. Use this for work that fans out across many independent pieces — an audit over many files, a migration, multi-angle research, adversarial verification of findings — where you write the orchestration as a script instead of delegating turn by turn.\n\nThe workflow's identity rides the `meta` parameter as JSON: required `name` (short kebab-case) and `description` strings, optional `whenToUse` string and `phases` array (`{title, detail?, provider?, model?}`). The `script` parameter is the plain JavaScript body ONLY (NOT TypeScript, and NO `export const meta` statement — meta is a parameter, not code), running with top-level await; end with `return <value>` — the value must be JSON-serializable and is this tool's result.\n\nScript-body hooks:\n- `agent(prompt, opts?): Promise<any>` — run one subagent to completion. Without `opts.schema` it resolves to the child's final text; with `opts.schema` (an object-rooted JSON Schema using ONLY type/properties/required/additionalProperties/items/enum/const/oneOf — no pattern/format/numeric bounds) it resolves to the validated object. Resolves `null` when the child fails (filter with `.filter(Boolean)`). Other opts: `label` (display), `phase` (progress group), and independent `provider`/`model` LLM target overrides (either may be provided alone). Anything else (`effort`/`isolation`/`agentType`) is rejected loudly.\n- `pipeline(items, ...stages): Promise<any[]>` — run each item through the stages independently with NO barrier between stages (prefer this for multi-stage work). Each stage receives `(prev, item, index)`. An ordinary stage throw drops that ITEM to `null` and skips its remaining stages.\n- `parallel(thunks): Promise<any[]>` — run zero-argument functions concurrently and await ALL of them (a barrier; use only when a stage genuinely needs every prior result together). A throwing thunk resolves to `null`.\n- `phase(title)` — start a progress phase; `log(message)` — narrate progress; `args` — the tool call's `args` input, verbatim.\n\nMisused hooks (bad arguments, unknown options, unsupported schemas, tripped caps) throw errors that ALWAYS kill the script — they never dissolve into a per-item `null`.\n\nConstraints: concurrency and total-agent caps apply; no filesystem, network, timers, or Node.js APIs are provided — the agents do the work, the script only coordinates them. The run executes in the foreground: this call returns when the whole script finishes.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "script": {
+            "type": "string",
+            "description": "The plain-JS workflow script body (top-level await allowed; NO `export const meta` statement; end with `return <json-value>`)."
+          },
+          "meta": {
+            "type": "object",
+            "description": "The workflow identity block (plain JSON — never code).",
+            "additionalProperties": true,
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Short kebab-case workflow name."
+              },
+              "description": {
+                "type": "string",
+                "description": "One-line description of what the workflow does."
+              },
+              "whenToUse": {
+                "type": "string",
+                "description": "Optional guidance on when this workflow applies."
+              },
+              "phases": {
+                "type": "array",
+                "description": "Optional phase declarations matched by phase() calls.",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "properties": {
+                    "title": {
+                      "type": "string",
+                      "description": "The phase title phase() calls match by exact string."
+                    },
+                    "detail": {
+                      "type": "string",
+                      "description": "Optional one-line description of the phase."
+                    },
+                    "provider": {
+                      "type": "string",
+                      "description": "Optional provider override this phase is expected to use."
+                    },
+                    "model": {
+                      "type": "string",
+                      "description": "Optional model override this phase is expected to use."
+                    }
+                  },
+                  "required": [
+                    "title"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "name",
+              "description"
+            ]
+          },
+          "args": {
+            "type": "object",
+            "description": "Optional JSON input exposed to the script as the `args` global (wrap a bare list as a field, e.g. {\"files\": [...]}).",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "script",
+          "meta"
+        ]
+      }
+    },
+    {
+      "name": "write",
+      "description": "Create or fully replace a UTF-8 text file.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "file_path": {
+            "type": "string",
+            "description": "Path to write, resolved by the filesystem backend."
+          },
+          "content": {
+            "type": "string",
+            "description": "Full UTF-8 text content to write."
+          },
+          "sandbox_permissions": {
+            "type": "string",
+            "description": "The wider sandbox mode this file operation needs. Only valid as a one-shot retry of an operation the sandbox just denied; requires justification and user approval.",
+            "enum": [
+              "workspace-write",
+              "danger-full-access"
+            ]
+          },
+          "justification": {
+            "type": "string",
+            "description": "Required with sandbox_permissions: one sentence for the user explaining why this exact file operation needs the wider access."
+          }
+        },
+        "required": [
+          "file_path",
+          "content"
+        ]
+      }
+    }
+  ],
+  "changes": []
+}

@@ -7,6 +7,8 @@
  */
 
 import { globSync, readFileSync, writeFileSync } from 'node:fs'
+import { mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import { basename, resolve } from 'node:path'
 import { Context } from '@hydra/cordis'
 import type { ToolSchema } from '@hydra/harness-llm'
@@ -65,6 +67,7 @@ import * as ToolSubagent from '@hydra/harness-tool-subagent'
 import * as ToolWeb from '@hydra/harness-tool-web'
 import BrowserSessionService from '@hydra/harness-browser-electron'
 import * as ToolBrowser from '@hydra/harness-tool-browser'
+import * as PageMemory from '@hydra/harness-page-memory'
 import VmWorkflowEngine from '@hydra/harness-workflow-worker-thread'
 import * as ToolRalph from '@hydra/harness-tool-ralph'
 import * as ToolWorkflow from '@hydra/harness-tool-workflow'
@@ -622,6 +625,21 @@ const TOOL_PACKAGES: ToolPackage[] = [
     },
     note:
       'The embedded browser window opens on the first browser_* call of an agent and closes with it. Without the optional electron package the tools still register and every call fails with BROWSER_UNAVAILABLE.',
+  },
+  {
+    pkg: '@hydra/harness-page-memory',
+    dir: 'page-memory',
+    source: 'packages/knowledge/page-memory/src/index.ts',
+    requires: ['ctx.tools', 'ctx.browsers', 'ctx.systemPrompt', 'a calling Agent in the configured workspace'],
+    writes: ['tool/call', 'tool/result', 'user/message', 'private page-memory SQLite database'],
+    async mount(ctx) {
+      const directory = await mkdtemp(resolve(tmpdir(), 'hydra-page-memory-catalog-'))
+      ctx.effect(() => () => rm(directory, { recursive: true, force: true }))
+      await ctx.plugin(BrowserSessionService)
+      await ctx.plugin(PageMemory, {
+        workspaceDir: directory, storageDir: directory, role: 'catalog', locale: 'en',
+      })
+    },
   },
 ]
 

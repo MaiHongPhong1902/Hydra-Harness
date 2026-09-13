@@ -1491,7 +1491,7 @@ async function existingInside(root: string, path: string, label: string): Promis
   const info = await lstat(candidate)
   if (info.isSymbolicLink()) throw new Error(`plugin runtime: ${label} must not be a symbolic link`)
   const actual = await realpath(candidate)
-  if (!isInside(root, actual)) throw new Error(`plugin runtime: ${label} escapes plugin root`)
+  if (!isInside(await realpath(root), actual)) throw new Error(`plugin runtime: ${label} escapes plugin root`)
   return actual
 }
 

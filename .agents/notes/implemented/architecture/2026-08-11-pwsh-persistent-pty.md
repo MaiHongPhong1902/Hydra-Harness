@@ -22,6 +22,8 @@ A model-facing persistent `pwsh` tool ships on Windows with the same contract as
 
 ### Shell dialect in `@hydra/harness-terminal-bash`
 
+The bootstrap is submitted once even if its first read is empty. Readiness requires the controlled prompt at the end of retained output; its occurrence inside the echoed setup command cannot release startup. Otherwise a slow shell can queue duplicate bootstrap commands or receive the consumer's first command before setup finishes.
+
 One backend, two dialects: `shellDialect: 'bash' | 'pwsh'` (default `'bash'`, existing deployments byte-identical). The effective `shellPath`/`shellArgs` resolve per dialect (bash `/bin/bash --noprofile --norc -i`; pwsh through the shared `@hydra/harness-pwsh-local` resolver with `-NoLogo -NoProfile`, keeping the interactive host for child REPLs). The child environment drops the bash-only `PS1`/`PROMPT_COMMAND` markers and adds `NO_COLOR` for pwsh. pwsh cannot install its prompt from the environment, so the backend writes the prompt function through the session at startup and waits until the controlled prompt is actually visible, looping over follow-up sends because the pwsh banner-to-prompt gap can outlast the silence bound; a `session_exit` or `timeout` wait rejects the spawn. Both dialects emit the same BEL-terminated OSC `133;D;` marker, so the sanitizer, `PROMPT_MARKER_PREFIX`, `CONTROLLED_PROMPT`, and the exact-tail readiness logic are reused untouched — the marker stays a readiness signal with an unconsumed payload, exactly as in the bash path, and no model-notification channel was added (aligned with the current implementation; the deferred BEL event channel stays deferred).
 
 ### `@hydra/harness-tool-pwsh-persistent`
@@ -36,7 +38,7 @@ The minimal preset gates its persistent shell stack by platform with the #2234 `
 
 ### Testing
 
-The Windows test surface follows master's exemption structure: terminal-bash and subprocess-local tests stay excluded on win32 (`windowsUnsupportedTests`) and their sources stay coverage-exempt there (`windowsUnsupportedCoveragePackages`), so the platform-gated fixtures and node-translated commands remain the win32 dev-lane evidence, while the koffi-backed inspector joins the windows-only coverage exclusions on Linux. `tool-pwsh-persistent` is not exempt: its suite runs and its sources are coverage-required on the windows-native lane, mirroring `tool-bash-persistent`'s stub-mode matrix plus an echo-stripping mode; the real-pwsh suites prove persistent cwd/env, secret scrubbing, multiline and here-string commands, large-output clipping, and exit/reset over real ConPTY sessions. The ACP keyless snapshot boots the persistent tool through a real Loader composition and pins its model-visible schema and result.
+The terminal-bash unit and real-pwsh suites run on Windows; only their real-bash scenarios skip there. Terminal-bash and tool-pwsh-persistent sources are coverage-required on the native Windows lane. Subprocess-local retains its platform exclusions, and the koffi-backed inspector is coverage-excluded on Linux. Real-pwsh suites prove persistent cwd/env, secret scrubbing, multiline and here-string commands, large-output clipping, and exit/reset over ConPTY sessions. The bootstrap regression supplies an empty read and echoed setup before the real prompt. The ACP keyless snapshot boots the persistent tool through a real Loader composition and pins its model-visible schema and result.
 
 ## Alternatives considered
 
@@ -52,7 +54,7 @@ The Windows test surface follows master's exemption structure: terminal-bash and
 
 **Windows became a first-class persistent-shell host.** The persistent pwsh stack runs and is coverage-gated on the windows-native lane; the one-shot/persistent shell split mirrors POSIX, and the preset spec pins exactly one shell stack per host on both platforms.
 
-**Windows coverage keeps master's exemption structure.** subprocess-local and terminal-bash sources stay coverage-exempt and their suites test-excluded on win32 exactly as on master; the Windows code paths are exercised through the win32 dev lane and the real-pwsh tool suites, and the new surface's coverage obligation on the windows-native lane sits on `tool-pwsh-persistent`.
+**Windows coverage includes the shared terminal backend.** The backend's portable unit tests and real-pwsh tests enforce its startup and send behavior in the native lane alongside the persistent tool. Subprocess-local retains its separate platform exclusions.
 
 **Windows readiness is weaker than Linux.** The pseudo-pgid marker fast path covers shell prompts, but a child without a prompt settles on the silence tier (~3 s), exactly like macOS; there is no exact stdin-wait tier.
 

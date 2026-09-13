@@ -10,7 +10,7 @@ const { execFileMock } = vi.hoisted(() => ({ execFileMock: vi.fn<ExecFileMock>()
 
 vi.mock('node:child_process', () => ({ execFile: execFileMock }))
 
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, realpath, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -110,7 +110,7 @@ describe('OpenAI/Codex marketplace sources', () => {
   })
 
   it('stores a standard marketplace source without treating its entries as Hydra packages', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'hydra-openai-marketplace-source-'))
+    const root = await realpath(await mkdtemp(join(tmpdir(), 'hydra-openai-marketplace-source-')))
     directories.push(root)
     await mkdir(join(root, '.agents', 'plugins'), { recursive: true })
     await writeFile(join(root, '.agents', 'plugins', 'marketplace.json'), JSON.stringify({
@@ -139,7 +139,7 @@ describe('marketplace slot cascade', () => {
     root: string
     runtime: ReturnType<typeof fakeImportedPluginsRuntime>
   }> {
-    const root = await mkdtemp(join(tmpdir(), 'hydra-openai-marketplace-cascade-'))
+    const root = await realpath(await mkdtemp(join(tmpdir(), 'hydra-openai-marketplace-cascade-')))
     directories.push(root)
     await mkdir(join(root, '.agents', 'plugins'), { recursive: true })
     await writeFile(join(root, '.agents', 'plugins', 'marketplace.json'), '{"plugins":[]}')
@@ -171,7 +171,7 @@ describe('marketplace slot cascade', () => {
 
   it('skips the cascade when no imported-plugin runtime is mounted', async () => {
     const { inventory } = await harness()
-    const root = await mkdtemp(join(tmpdir(), 'hydra-openai-marketplace-no-runtime-'))
+    const root = await realpath(await mkdtemp(join(tmpdir(), 'hydra-openai-marketplace-no-runtime-')))
     directories.push(root)
     await mkdir(join(root, '.agents', 'plugins'), { recursive: true })
     await writeFile(join(root, '.agents', 'plugins', 'marketplace.json'), '{"plugins":[]}')

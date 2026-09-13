@@ -30,23 +30,7 @@ export interface InputTarget {
 }
 
 /** Per-session input facade owned by the conversation wiring layer. */
-export interface SessionInput extends InputTarget {
-  /** Single write path for draft text (all mutation rides machine events). */
-  setDraft(text: string): void
-  /** Append ordered browser-owned image ids; busy admission phases refuse. */
-  addImages(ids: readonly DraftAttachmentId[]): boolean
-  /** Remove one browser-owned image id; busy admission phases refuse. */
-  removeImage(id: DraftAttachmentId): void
-  /** Drop ids whose browser-owned objects no longer exist. */
-  pruneImages(ids: readonly DraftAttachmentId[]): void
-  /** Append browser-selected text attachments without changing the draft. */
-  addBrowserAnnotations?(ids: readonly DraftAttachmentId[]): boolean
-  /** Remove one browser-selected text attachment; busy phases refuse. */
-  removeBrowserAnnotation?(id: DraftAttachmentId): void
-  /** Drop browser-selected text ids whose objects no longer exist. */
-  pruneBrowserAnnotations?(ids: readonly DraftAttachmentId[]): void
-  /** Update the optional user comment carried by one browser annotation. */
-  updateBrowserAnnotationComment?(id: DraftAttachmentId, comment: string): void
+export interface SessionInput extends InputTarget, InputActions {
   /**
    * THE complexity sink: enter adjudication, submit transaction, and the default sink live inside.
    * @param mode - delivery intent retained through asynchronous adjudication and serialization.

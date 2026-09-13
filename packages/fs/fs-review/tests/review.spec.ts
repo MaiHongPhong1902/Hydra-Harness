@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Context } from '@hydra/cordis'
 import { createHash } from 'node:crypto'
 import { execFileSync } from 'node:child_process'
-import { mkdir, mkdtemp, open, readFile, readdir, rename, rm, symlink, unlink, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, open, readFile, readdir, realpath, rename, rm, symlink, unlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import SessionStore, { SessionId, type Session } from '@hydra/harness-session'
@@ -60,7 +60,7 @@ function snapshotPath(id: ChangeId, file: string) {
 }
 
 beforeEach(async () => {
-  dir = await mkdtemp(join(tmpdir(), 'hydra-review-'))
+  dir = await realpath(await mkdtemp(join(tmpdir(), 'hydra-review-')))
   workspace = join(dir, 'workspace')
   await mkdir(workspace)
   await mount()

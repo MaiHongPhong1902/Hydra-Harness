@@ -20,6 +20,7 @@
     "@hydra/harness-bash-local": "workspace:*",
     "@hydra/harness-bash-sandbox": "workspace:*",
     "@hydra/harness-browser-electron": "workspace:*",
+    "@hydra/harness-page-memory": "workspace:*",
     "@hydra/harness-code-runtime-worker-thread": "workspace:*",
     "@hydra/harness-command-feedback": "workspace:*",
     "@hydra/harness-command-goal": "workspace:*",

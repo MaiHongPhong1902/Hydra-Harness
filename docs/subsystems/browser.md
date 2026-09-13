@@ -18,6 +18,24 @@ Ordinary browser actions keep a per-tab revision and return a structural diff wh
 
 ## Page state
 
+`currentPage` reads live metadata without refreshing the accessibility tree. It follows the Browsing policy; an `ask` policy requires an active tool call so background reads fail closed without opening an approval prompt.
+
+```ts type-equiv
+/** Live identity of one controlled page without an accessibility snapshot. */
+interface BrowserPageIdentity {
+  /** Address currently loaded in the page. */
+  url: string
+  /** Current document title. */
+  title: string
+  /** Controlled tab that supplied the identity. */
+  tabId: number
+  /** Tab selected in the visible browser chrome. */
+  activeTabId: number
+  /** Whether the tab's main frame is no longer loading. */
+  settled: boolean
+}
+```
+
 ```ts type-equiv
 /** Accessibility snapshot of the controlled page with stable action refs. */
 interface BrowserState {
@@ -202,6 +220,16 @@ One Electron window per agent, started lazily and closed with its owner.
  * @returns the action's report, omitted for a plain state read, plus the state.
  */
 async perform( owner: Agent, action: BrowserAction, execution: BrowserExecutionContext & { captureState?: boolean } = {}, ): Promise<BrowserOutcome>
+
+/**
+ * Read one live tab's URL, title, and selection without refreshing its page state.
+ * Background reads without a call id fail closed when Browsing approval is set to `ask`.
+ * @param owner - agent whose open browser owns the tab.
+ * @param execution - tool-call identity and cancellation for the browsing approval.
+ * @param tabId - optional positive controlled-tab id; omission uses the selected tab.
+ * @returns live page metadata, or `undefined` when the owner has no open browser.
+ */
+async currentPage( owner: Agent, execution: BrowserExecutionContext = {}, tabId?: number, ): Promise<BrowserPageIdentity | undefined>
 
 /**
  * Capture the selected controlled page's visible viewport as a bounded PNG.

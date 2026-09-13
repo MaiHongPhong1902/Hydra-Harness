@@ -370,6 +370,25 @@ describe('normalizeSessionLog', () => {
     expect(out).toContain('{{sessionId}}')
   })
 
+  it('scrubs page-memory verification timestamps while keeping verified state', () => {
+    const ev = JSON.stringify({
+      type: 'user/message',
+      seq: 2,
+      time: 5,
+      data: {
+        content: [{
+          type: 'text',
+          text: '{"status":"verified","workflow":{"lastVerifiedAt":"2026-09-13T04:18:37.797Z"}}',
+        }],
+        workflow: { lastVerifiedAt: '2026-09-13T04:18:37.797Z' },
+      },
+    })
+    const out = normalizeSessionLog(`${header({})}\n${ev}\n`, ctx)
+    expect(out.match(/\{\{verifiedAt\}\}/g)).toHaveLength(2)
+    expect(out).toContain('\\"status\\":\\"verified\\"')
+    expect(out).not.toContain('2026-09-13T04:18:37.797Z')
+  })
+
   it('zeroes a hook/result durationMs (run-to-run noise) but keeps its decision', () => {
     const ev = JSON.stringify({
       type: 'hook/result', seq: 2, time: 5,

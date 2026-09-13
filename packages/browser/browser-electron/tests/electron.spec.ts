@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { launchBrowser, resolveElectronPath } from '@hydra/harness-browser-electron'
 import type {
-  ActionResult, BrowserCdpEventPage, BrowserChild, BrowserScreenshot, BrowserState,
+  ActionResult, BrowserCdpEventPage, BrowserChild, BrowserPageIdentity, BrowserScreenshot, BrowserState,
 } from '@hydra/harness-browser-electron'
 
 /**
@@ -460,6 +460,29 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
     expect(after.url).toContain('#same-document')
     expect(after.content).toContain('id=who')
     expect(after.tabId).toBe(before.tabId)
+  }, 30_000)
+
+  it('reads live page identity across same-document navigation', async () => {
+    await child.call('navigate', { url: fixture })
+    const before = await child.call('get_page_identity', {}) as BrowserPageIdentity
+    expect(before).toMatchObject({
+      url: fixture,
+      title: 'Harness browser fixture',
+      tabId: 1,
+      activeTabId: 1,
+      settled: true,
+    })
+    await child.call('execute_javascript', {
+      script: "history.pushState({}, '', location.pathname + '#identity'); document.title = 'Identity SPA'",
+    })
+
+    await expect(child.call('get_page_identity', {})).resolves.toMatchObject({
+      url: `${fixture}#identity`,
+      title: 'Identity SPA',
+      tabId: before.tabId,
+      activeTabId: before.activeTabId,
+      settled: true,
+    })
   }, 30_000)
 
   it('rejects a click whose indexed target is covered by a popup', async () => {

@@ -517,10 +517,16 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         parameters: [],
       },
       {
-        signature: 'async perform( owner: Agent, action: BrowserAction, execution: BrowserExecutionContext = {}, ): Promise<BrowserOutcome>',
-        description: 'Do one thing to an owner\'s page and report the page afterwards.\n\nThe trailing state read is not a convenience: PageController indexes elements while building the tree, so the snapshot both answers the caller and leaves the next action addressable. Explicit targets are ordered per tab and may overlap across tabs; implicit and lifecycle actions are barriers.',
-        parameters: [{ name: 'owner', description: 'agent whose window this is; its first call starts one.' }, { name: 'action', description: 'what to do, in page-agent\'s own vocabulary.' }, { name: 'execution', description: 'tool-call identity and cancellation for browser actions and permissions.' }],
+        signature: 'async perform( owner: Agent, action: BrowserAction, execution: BrowserExecutionContext & { captureState?: boolean } = {}, ): Promise<BrowserOutcome>',
+        description: 'Do one thing to an owner\'s page and report the page afterwards.\n\nA captured snapshot refreshes numeric element indexes. With captureState false, the trailing read contains only page identity, tabs, loading, and dialogs; callers must observe the page before reusing numeric indexes. Explicit targets are ordered per tab; implicit and lifecycle actions are barriers.',
+        parameters: [{ name: 'owner', description: 'agent whose window this is; its first call starts one.' }, { name: 'action', description: 'what to do, in page-agent\'s own vocabulary.' }, { name: 'execution', description: 'tool-call identity, cancellation, and optional captureState (default true).' }],
         returns: 'the action\'s report, omitted for a plain state read, plus the state.',
+      },
+      {
+        signature: 'async currentPage( owner: Agent, execution: BrowserExecutionContext = {}, tabId?: number, ): Promise<BrowserPageIdentity | undefined>',
+        description: 'Read one live tab\'s URL, title, and selection without refreshing its page state. Background reads without a call id fail closed when Browsing approval is set to `ask`.',
+        parameters: [{ name: 'owner', description: 'agent whose open browser owns the tab.' }, { name: 'execution', description: 'tool-call identity and cancellation for the browsing approval.' }, { name: 'tabId', description: 'optional positive controlled-tab id; omission uses the selected tab.' }],
+        returns: 'live page metadata, or `undefined` when the owner has no open browser.',
       },
       {
         signature: 'async takeScreenshot(owner: Agent, execution: BrowserExecutionContext = {}): Promise<BrowserScreenshot>',
@@ -3418,6 +3424,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'BrowserOutcome',
     declaration: 'export interface BrowserOutcome {\n    action?: ActionResult;\n    state: BrowserState;\n}',
+  },
+  {
+    name: 'BrowserPageIdentity',
+    declaration: 'export interface BrowserPageIdentity {\n    url: string;\n    title: string;\n    tabId: number;\n    activeTabId: number;\n    settled: boolean;\n}',
   },
   {
     name: 'BrowserScreenshot',

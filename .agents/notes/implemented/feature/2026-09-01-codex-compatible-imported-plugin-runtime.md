@@ -14,6 +14,8 @@ The runtime validates the plugin manifest and every declared bundle path before 
 
 Plugin enablement, hook-digest trust, MCP-server enablement, MCP authentication state, default MCP tool approval, and per-tool approval are separate durable state. Hook definitions require review after their digest changes; enabling a plugin does not trust a hook or approve an MCP tool. The `/plugin` command and loopback Marketplace UI manage imported bundles without changing the native `hydra plugin` CLI contract. Catalog chat verbs (`marketplace add|list|remove` and `install`) are recorded in [`/plugin marketplace` and `/plugin install` slash verbs](2026-09-04-plugin-marketplace-slash-verbs.md).
 
+Containment compares the native realpath of both the root and the selected file. A Git checkout under a Windows short-name or aliased temporary parent is still inside its root; comparing its canonical descendant against the unexpanded root falsely rejects it. An aliased-temp Git-subdirectory fixture pins this behavior alongside the existing traversal and bundle-link rejection tests.
+
 ## Alternatives considered
 
 **Install OpenAI/Codex bundles through `hydra plugin`.** Rejected because native packages participate in the profile dependency graph and execute under a different package lifecycle; bundles need immutable staged files, source-qualified identity, and independent writable data.

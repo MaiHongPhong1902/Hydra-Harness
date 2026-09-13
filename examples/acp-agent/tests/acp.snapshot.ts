@@ -74,6 +74,7 @@ const LSP_CONFIG = fileURLToPath(new URL('./lsp.cordis.yml', import.meta.url))
 const WEB_CONFIG = fileURLToPath(new URL('../web.cordis.yml', import.meta.url))
 const BROWSER_SELECTIVE_CONFIG = fileURLToPath(new URL('../browser-selective.cordis.snapshot.yml', import.meta.url))
 const BROWSER_CONFIG = fileURLToPath(new URL('../browser.cordis.yml', import.meta.url))
+const PAGE_MEMORY_CONFIG = fileURLToPath(new URL('../page-memory.cordis.yml', import.meta.url))
 const FS_SEARCH_CONFIG = fileURLToPath(new URL('./fs-search.cordis.yml', import.meta.url))
 const PARTIAL_LANDLOCK_CONFIG = fileURLToPath(new URL('../partial-landlock.cordis.yml', import.meta.url))
 const PWSH_CONFIG = fileURLToPath(new URL('./pwsh.cordis.yml', import.meta.url))
@@ -375,6 +376,18 @@ const SCENARIOS: Scenario[] = [
     recorded: false,
     headerClass: 'browser',
     configPath: BROWSER_SELECTIVE_CONFIG,
+  },
+  // The page-memory scenario keeps the real Browser service, model-facing
+  // tools, live selector verification, and durable store. Its child and model
+  // are scripted so the fixture proves first-use learning, revisit, exact
+  // task selection, and automatic bounded recall without a live site/API.
+  {
+    name: 'page-memory-turn',
+    hasModelTurn: true,
+    recorded: false,
+    pinsHeader: true,
+    headerClass: 'page-memory',
+    configPath: PAGE_MEMORY_CONFIG,
   },
   {
     name: 'workspace-edit',

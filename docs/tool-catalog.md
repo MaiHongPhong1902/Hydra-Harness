@@ -42,6 +42,7 @@ This table connects model-visible tool names to the plugin package and service s
 | `@hydra/harness-tool-workflow` | `workflow` | `ctx.tools`, `ctx.workflowEngine`, `ctx.systemPrompt`, `a calling Agent (exec.agent parents the script children)` | `tool/call`, `tool/result` | - | - |
 | `@hydra/harness-tool-web` | `web_fetch`, `web_search` | `ctx.tools`, `ctx.web`, `ctx.systemPrompt` | `tool/call`, `tool/result` | - | web_search and web_fetch keep provider selection behind ctx.web so model-visible schemas stay stable across backend swaps. |
 | `@hydra/harness-tool-browser` | `browser_back`, `browser_click`, `browser_close`, `browser_close_tab`, `browser_console_messages`, `browser_drag`, `browser_drop`, `browser_file_upload`, `browser_fill`, `browser_fill_form`, `browser_find`, `browser_forward`, `browser_handle_dialog`, `browser_history_search`, `browser_hover`, `browser_navigate`, `browser_navigate_back`, `browser_network_request`, `browser_network_requests`, `browser_open_tab`, `browser_page_agent_run`, `browser_page_agent_status`, `browser_page_agent_stop`, `browser_press`, `browser_press_key`, `browser_resize`, `browser_screenshot`, `browser_scroll`, `browser_scroll_horizontally`, `browser_select_option`, `browser_select_text`, `browser_snapshot`, `browser_state`, `browser_switch_tab`, `browser_tabs`, `browser_take_screenshot`, `browser_type`, `browser_upload_file`, `browser_wait`, `browser_wait_for` | `ctx.tools`, `ctx.browsers`, `ctx.systemPrompt`, `a calling Agent (the window is owned per agent)` | `tool/call`, `tool/result` | - | The embedded browser window opens on the first browser_* call of an agent and closes with it. Without the optional electron package the tools still register and every call fails with BROWSER_UNAVAILABLE. |
+| `@hydra/harness-page-memory` | `page_memory_get`, `page_memory_upsert` | `ctx.tools`, `ctx.browsers`, `ctx.systemPrompt`, `a calling Agent in the configured workspace` | `tool/call`, `tool/result`, `user/message`, `private page-memory SQLite database` | - | - |
 
 <a id="hydraharness-tool-ask-user"></a>
 
@@ -3422,3 +3423,117 @@ Wait up to ten seconds for text to appear or disappear in the accessibility snap
 Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
 
 The embedded browser window opens on the first browser_* call of an agent and closes with it. Without the optional electron package the tools still register and every call fails with BROWSER_UNAVAILABLE.
+
+<a id="hydraharness-page-memory"></a>
+
+## `@hydra/harness-page-memory`
+
+### `page_memory_get`
+
+Read verified guidance for the live page in this workspace/role/locale. Select an exact stable task name; omission reads the selected task, or lists task names if none is selected. No cross-page or namespace fallback.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "description": "Stable reusable workflow name, such as find_order; not an order/customer value."
+    }
+  }
+}
+```
+
+Source: [`packages/knowledge/page-memory/src/index.ts`](../packages/knowledge/page-memory/src/index.ts)
+
+### `page_memory_upsert`
+
+Replace one verified page workflow after a successful Browser action and live outcome check. Anchors and locators must be observed unique CSS selectors. Use sourceUrl only for a source page observed with targeted snapshots during this turn; success is checked on the current page in the same tab.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "accountHint": {
+      "type": "string",
+      "description": "Optional account-type guidance, such as staff access; never a login identity, credential, or authorization."
+    },
+    "anchors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Observed unique CSS selector; no snapshot refs or code."
+          },
+          "text": {
+            "type": "string",
+            "description": "Reusable visible text expected in this region, without task-specific values."
+          }
+        },
+        "required": [
+          "target",
+          "text"
+        ]
+      }
+    },
+    "locators": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "successCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "target": {
+          "type": "string",
+          "description": "Observed unique CSS selector; no snapshot refs or code."
+        },
+        "text": {
+          "type": "string",
+          "description": "Reusable visible text expected in this region, without task-specific values."
+        }
+      },
+      "required": [
+        "target",
+        "text"
+      ]
+    },
+    "pitfalls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "sourceUrl": {
+      "type": "string",
+      "description": "Exact previously observed starting URL when the workflow ends on another page."
+    }
+  },
+  "required": [
+    "task",
+    "summary",
+    "anchors",
+    "locators",
+    "steps",
+    "successCheck",
+    "pitfalls"
+  ]
+}
+```
+
+Source: [`packages/knowledge/page-memory/src/index.ts`](../packages/knowledge/page-memory/src/index.ts)

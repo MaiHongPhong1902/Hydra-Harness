@@ -20,6 +20,8 @@ The dev server serves the same surface for navigations and header-less clients. 
 
 `verify-doc-site-fragments`, the post-build gate, fails the build when any route's twin or `llms.txt` is missing from the output, so deleting the `buildEnd` wiring cannot pass CI.
 
+MPA builds clear the owned final output directory before bundling because VitePress skips the client build pass that normally empties it. This lets consecutive builds regenerate twins while the emitter continues to reject collisions with files produced by the current build. Two consecutive `docs:build:mpa` runs validate the same 90 twins and `llms.txt` without treating stale output as a collision.
+
 ## Alternatives considered
 
 **`vitepress-plugin-llms`.** Actively maintained, MIT, used by the Vite, Vue, and Vitest sites; it generates per-page Markdown, `llms.txt`, `llms-full.txt`, and dev-server responses. Two hard-coded behaviors break this site. It flattens `dir/index.md` to `dir.md` with no opt-out while leaving in-page links unrewritten, which 404s every relative link into a section landing page — this site publishes seven index routes per locale. And it rewrites image references to root-absolute hashed bundle paths without the site base, which 404s on this subpath GitHub Pages deployment; its adopters deploy at domain roots and never hit either. Its `llms.txt` also reads sidebars only from the top-level theme config, not this site's per-locale ones. Correcting all that means a fork or a post-processing layer coupled to plugin internals — more owned surface than the small emitter reusing the tested projector.

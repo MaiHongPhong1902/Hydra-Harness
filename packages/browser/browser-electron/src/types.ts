@@ -19,6 +19,20 @@ export type BrowserTabState = {
   active: boolean
 }
 
+/** Live identity of one controlled page without an accessibility snapshot. */
+export interface BrowserPageIdentity {
+  /** Address currently loaded in the page. */
+  url: string
+  /** Current document title. */
+  title: string
+  /** Controlled tab that supplied the identity. */
+  tabId: number
+  /** Tab selected in the visible browser chrome. */
+  activeTabId: number
+  /** Whether the tab's main frame is no longer loading. */
+  settled: boolean
+}
+
 /** Accessibility snapshot of the controlled page with stable action refs. */
 export interface BrowserState {
   /** Address currently loaded in the controlled view. */

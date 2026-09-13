@@ -285,6 +285,14 @@ server.listen(0, '127.0.0.1', () => {
       inputPage.sendInputEvent({ type: 'mouseUp', button: 'left', clickCount: 1, ...point })
       await waitFor(async () => (await state()).active === 'One' && !inputPage.isLoading())
       assert.equal(permissions.length, 0)
+      const identity = await controller.command('get_page_identity', {})
+      assert.deepEqual(identity, {
+        url: `${address}/one`,
+        title: 'One',
+        tabId: 1,
+        activeTabId: 1,
+        settled: true,
+      })
       transcript.push({ action: 'user-click', title: (await state()).active, permissionRequests: permissions.length })
 
       phase = 'user browsing continues across links and browser controls'

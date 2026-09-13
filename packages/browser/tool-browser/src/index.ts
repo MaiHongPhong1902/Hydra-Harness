@@ -192,17 +192,7 @@ const CDP_EVENTS_OUTPUT = {
 const TABS_OUTPUT = {
   schema: {
     type: 'array',
-    items: {
-      type: 'object',
-      additionalProperties: false,
-      properties: {
-        id: { type: 'integer', required: true },
-        url: { type: 'string', required: true },
-        title: { type: 'string', required: true },
-        status: { type: 'string', required: true, enum: ['loading', 'complete'] },
-        active: { type: 'boolean', required: true },
-      },
-    },
+    items: OUTPUT_SCHEMA.properties.tabs.items,
   } as const,
   render: (_args: unknown, value: BrowserToolValue['tabs']) => [{
     type: 'text' as const,
@@ -782,39 +772,27 @@ export function apply(ctx: Context, config: Config = {}): void {
     presentCall: (args: { index: number }) => presentBrowserCall(`Read browser request ${args.index}`),
   }))
 
-  ctx.tools.register(defineTool({
-    name: 'browser_upload_file',
-    description: 'Select one existing readable local file through an indexed HTML file input, including hidden inputs. Use an absolute path and the most recent element list. Uploads permission controls execution and approval for the file and HTTP(S) destination. This selects the file only; submit separately.',
-    parameters: {
-      index: { type: 'integer', required: true, description: 'Element index of the observed HTML file input, including a hidden chooser input.' },
-      path: { type: 'string', required: true, description: 'Absolute path of the local file to upload.' },
-      tab_id: TAB_ID_PARAMETER,
-    },
-    output,
-    timeoutMs,
-    execute: (args: { index: number; path: string; tab_id?: number }, exec) =>
-      run(exec, { method: 'upload_file', index: args.index, filePath: args.path, ...tabTarget(args) }),
-    isConcurrencySafe: targetsTab,
-    presentCall: (args: { index: number; path: string }) =>
-      presentBrowserCall(`Upload file through [${args.index}]`, args.path),
-  }))
-
-  ctx.tools.register(defineTool({
-    name: 'browser_file_upload',
-    description: 'Choose a local file through an accessibility ref, matching Playwright MCP semantics.',
-    parameters: {
-      index: { type: 'integer', required: true, description: 'Accessibility ref of the file input.' },
-      path: { type: 'string', required: true, description: 'Absolute path of the readable local file.' },
-      tab_id: TAB_ID_PARAMETER,
-    },
-    output,
-    timeoutMs,
-    execute: (args: { index: number; path: string; tab_id?: number }, exec) =>
-      run(exec, { method: 'upload_file', index: args.index, filePath: args.path, ...tabTarget(args) }),
-    isConcurrencySafe: targetsTab,
-    presentCall: (args: { index: number; path: string }) =>
-      presentBrowserCall(`Upload file through [${args.index}]`, args.path),
-  }))
+  for (const { name, description, indexDescription, pathDescription } of [
+    { name: 'browser_upload_file', description: 'Select one existing readable local file through an indexed HTML file input, including hidden inputs. Use an absolute path and the most recent element list. Uploads permission controls execution and approval for the file and HTTP(S) destination. This selects the file only; submit separately.', indexDescription: 'Element index of the observed HTML file input, including a hidden chooser input.', pathDescription: 'Absolute path of the local file to upload.' },
+    { name: 'browser_file_upload', description: 'Choose a local file through an accessibility ref, matching Playwright MCP semantics.', indexDescription: 'Accessibility ref of the file input.', pathDescription: 'Absolute path of the readable local file.' },
+  ]) {
+    ctx.tools.register(defineTool({
+      name,
+      description,
+      parameters: {
+        index: { type: 'integer', required: true, description: indexDescription },
+        path: { type: 'string', required: true, description: pathDescription },
+        tab_id: TAB_ID_PARAMETER,
+      },
+      output,
+      timeoutMs,
+      execute: (args: { index: number; path: string; tab_id?: number }, exec) =>
+        run(exec, { method: 'upload_file', index: args.index, filePath: args.path, ...tabTarget(args) }),
+      isConcurrencySafe: targetsTab,
+      presentCall: (args: { index: number; path: string }) =>
+        presentBrowserCall(`Upload file through [${args.index}]`, args.path),
+    }))
+  }
 
   ctx.tools.register(defineTool({
     name: 'browser_type',
@@ -943,39 +921,27 @@ export function apply(ctx: Context, config: Config = {}): void {
     presentCall: (args: { right: boolean }) => presentBrowserCall(`Scroll ${args.right ? 'right' : 'left'}`),
   }))
 
-  ctx.tools.register(defineTool({
-    name: 'browser_press',
-    description: 'Send one key to whatever the page has focused — Enter to submit a form, Tab to move on, Escape to dismiss.',
-    parameters: {
-      key: { type: 'string', required: true, description: 'Key name, such as Enter, Tab, Escape, or Backspace.' },
-      tab_id: TAB_ID_PARAMETER,
-    },
-    output,
-    timeoutMs,
-    execute: (args: { key: string; tab_id?: number }, exec) => {
-      if (args.key.trim().length === 0) throw new Error('key must be a non-empty string')
-      return run(exec, { method: 'press', key: args.key, ...tabTarget(args) })
-    },
-    isConcurrencySafe: targetsTab,
-    presentCall: (args: { key: string }) => presentBrowserCall(`Press ${args.key}`),
-  }))
-
-  ctx.tools.register(defineTool({
-    name: 'browser_press_key',
-    description: 'Press one keyboard key using the focused page control, matching Playwright MCP semantics.',
-    parameters: {
-      key: { type: 'string', required: true, description: 'Key name such as Enter, Tab, Escape, or Backspace.' },
-      tab_id: TAB_ID_PARAMETER,
-    },
-    output,
-    timeoutMs,
-    execute: (args: { key: string; tab_id?: number }, exec) => {
-      if (args.key.trim().length === 0) throw new Error('key must be a non-empty string')
-      return run(exec, { method: 'press', key: args.key, ...tabTarget(args) })
-    },
-    isConcurrencySafe: targetsTab,
-    presentCall: (args: { key: string }) => presentBrowserCall(`Press ${args.key}`),
-  }))
+  for (const { name, description, keyDescription } of [
+    { name: 'browser_press', description: 'Send one key to whatever the page has focused — Enter to submit a form, Tab to move on, Escape to dismiss.', keyDescription: 'Key name, such as Enter, Tab, Escape, or Backspace.' },
+    { name: 'browser_press_key', description: 'Press one keyboard key using the focused page control, matching Playwright MCP semantics.', keyDescription: 'Key name such as Enter, Tab, Escape, or Backspace.' },
+  ]) {
+    ctx.tools.register(defineTool({
+      name,
+      description,
+      parameters: {
+        key: { type: 'string', required: true, description: keyDescription },
+        tab_id: TAB_ID_PARAMETER,
+      },
+      output,
+      timeoutMs,
+      execute: (args: { key: string; tab_id?: number }, exec) => {
+        if (args.key.trim().length === 0) throw new Error('key must be a non-empty string')
+        return run(exec, { method: 'press', key: args.key, ...tabTarget(args) })
+      },
+      isConcurrencySafe: targetsTab,
+      presentCall: (args: { key: string }) => presentBrowserCall(`Press ${args.key}`),
+    }))
+  }
 
   ctx.tools.register(defineTool({
     name: 'browser_back',

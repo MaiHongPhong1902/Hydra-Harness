@@ -1,0 +1,14 @@
+{
+  "steps": [
+    { "op": "initialize" },
+    { "op": "newSession" },
+    {
+      "op": "prompt",
+      "text": "Open the orders page, learn the place_order workflow, save verified page memory, then reply LEARNED."
+    },
+    {
+      "op": "prompt",
+      "text": "Revisit the orders page, select the saved place_order task, use its stable selectors to place another order, verify it, then reply REUSED."
+    }
+  ]
+}
