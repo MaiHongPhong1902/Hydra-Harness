@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Policy fixture</title>
+    <style>
+      :root {
+        --bg-primary: #0f172a;
+        --bg-secondary: #1e293b;
+        --bg-tertiary: #334155;
+        --text-primary: #f8fafc;
+        --text-secondary: #94a3b8;
+        --text-muted: #64748b;
+        --accent-sky: #38bdf8;
+        --accent-indigo: #818cf8;
+        --accent-emerald: #34d399;
+        --accent-rose: #fb7185;
+        --border-color: #334155;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      .card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 36px 32px;
+        width: 100%;
+        max-width: 460px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+        position: relative;
+        overflow: hidden;
+      }
+      .card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--accent-rose), var(--accent-indigo));
+      }
+      .card-tag {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--accent-rose);
+        margin-bottom: 6px;
+      }
+      h1 {
+        font-size: 22px;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+      .card-subtitle {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-bottom: 24px;
+        line-height: 1.5;
+      }
+      .actions-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      a {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-primary);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+      }
+      a:hover {
+        border-color: var(--accent-sky);
+        background: rgba(56, 189, 248, 0.05);
+        color: var(--accent-sky);
+      }
+      .link-badge {
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 4px;
+        background: rgba(251, 113, 133, 0.15);
+        color: var(--accent-rose);
+        border: 1px solid rgba(251, 113, 133, 0.3);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="card-tag">Origin Security Policy</div>
+      <h1>Policy fixture</h1>
+      <p class="card-subtitle">
+        Verifies agent origin boundary enforcement on same-tab navigation and target="_blank" popups.
+      </p>
+      <div class="actions-list">
+        <a id="cross" href="__CROSS_ORIGIN__/next.html">
+          <span>Cross origin</span>
+          <span class="link-badge">external</span>
+        </a>
+        <a id="popup" href="__CROSS_ORIGIN__/next.html" target="_blank">
+          <span>Popup</span>
+          <span class="link-badge">new tab</span>
+        </a>
+      </div>
+    </div>
+  </body>
+</html>

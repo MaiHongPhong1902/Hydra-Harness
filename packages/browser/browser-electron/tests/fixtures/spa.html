@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Loading SPA</title>
+    <style>
+      :root {
+        --bg-primary: #0f172a;
+        --bg-secondary: #1e293b;
+        --bg-tertiary: #334155;
+        --text-primary: #f8fafc;
+        --text-secondary: #94a3b8;
+        --text-muted: #64748b;
+        --accent-sky: #38bdf8;
+        --accent-indigo: #818cf8;
+        --accent-emerald: #34d399;
+        --border-color: #334155;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      .card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 36px 32px;
+        width: 100%;
+        max-width: 440px;
+        text-align: center;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+      }
+      .card-tag {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--accent-sky);
+        margin-bottom: 6px;
+      }
+      h1 {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 16px;
+      }
+      main#app {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 90px;
+        padding: 16px;
+        border-radius: 12px;
+        background: rgba(15, 23, 42, 0.5);
+        border: 1px dashed var(--border-color);
+      }
+      .loading-state {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--text-muted);
+        font-size: 13px;
+      }
+      .spinner {
+        width: 18px;
+        height: 18px;
+        border: 2px solid var(--border-color);
+        border-top-color: var(--accent-sky);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      button#ready {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 24px;
+        background: linear-gradient(135deg, var(--accent-emerald), #059669);
+        color: #0f172a;
+        font-weight: 700;
+        font-size: 14px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        box-shadow: 0 4px 14px rgba(52, 211, 153, 0.3);
+        transition: transform 0.15s ease;
+      }
+      button#ready:hover {
+        transform: scale(1.02);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="card-tag">Hydration Fixture</div>
+      <h1>SPA Dynamic Lifecycle</h1>
+      <main id="app">
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <span>Hydrating client state...</span>
+        </div>
+      </main>
+    </div>
+    <script>
+      setTimeout(() => {
+        document.title = "Ready SPA";
+        document.querySelector("#app").innerHTML = '<button id="ready">Ready</button>';
+      }, 600);
+    </script>
+  </body>
+</html>

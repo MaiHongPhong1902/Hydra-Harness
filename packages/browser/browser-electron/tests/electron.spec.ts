@@ -30,6 +30,10 @@ function browserRunnable(): boolean {
 const FIXTURE_FILE = fileURLToPath(new URL('./fixtures/form.html', import.meta.url))
 const HIDDEN_UPLOAD_FIXTURE_FILE = fileURLToPath(new URL('./fixtures/hidden-upload.html', import.meta.url))
 const NEXT_FIXTURE_FILE = fileURLToPath(new URL('./fixtures/next.html', import.meta.url))
+const AUTOFILL_FIXTURE_FILE = fileURLToPath(new URL('./fixtures/autofill.html', import.meta.url))
+const SELECTION_FIXTURE_FILE = fileURLToPath(new URL('./fixtures/selection.html', import.meta.url))
+const SPA_FIXTURE_FILE = fileURLToPath(new URL('./fixtures/spa.html', import.meta.url))
+const POLICY_FIXTURE_FILE = fileURLToPath(new URL('./fixtures/policy.html', import.meta.url))
 const CHROME_UI_DRIVER = fileURLToPath(new URL('./chrome-ui.cjs', import.meta.url))
 
 /** Drive the native chrome in a separate real Electron process. */
@@ -126,11 +130,11 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
         response.setHeader('content-security-policy', "default-src 'self'; style-src 'self'")
         response.end('<!doctype html><title>Strict CSP</title><button id="target">Target</button>')
       } else if (request.url === '/autofill') {
-        response.end('<!doctype html><title>Autofill fixture</title><form><input id="username" autocomplete="username"><input id="password" type="password" autocomplete="current-password" value="markup-password-secret"></form><form><input id="contact-name" autocomplete="name"><input id="implicit-city" name="city"></form>')
+        response.end(readFileSync(AUTOFILL_FIXTURE_FILE))
       } else if (request.url === '/sso-start') {
         response.end('<!doctype html><html><body><script>setTimeout(() => location.href = "/spa", 100)</script></body></html>')
       } else if (request.url === '/spa') {
-        response.end('<!doctype html><html><head><title>Loading SPA</title></head><body><main id="app"></main><script>setTimeout(() => { document.title = "Ready SPA"; document.querySelector("#app").innerHTML = "<button id=ready>Ready</button>" }, 600)</script></body></html>')
+        response.end(readFileSync(SPA_FIXTURE_FILE))
       } else if (request.url === '/transient-body') {
         response.end('<!doctype html><html><head><script>document.addEventListener("DOMContentLoaded", () => { document.body.remove(); setTimeout(() => { const body = document.createElement("body"); document.title = "Body restored"; body.innerHTML = "<button id=restored>Restored</button>"; document.documentElement.append(body) }, 600) })</script></head><body></body></html>')
       } else if (request.url === '/cookie-set') {
@@ -152,7 +156,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
         if (holdMediaFrameReload) releaseMediaFrameReload = finish
         else finish()
       } else if (request.url === '/policy') {
-        response.end(`<!doctype html><title>Policy fixture</title><a id="cross" href="${crossOrigin}/next.html">Cross origin</a><a id="popup" href="${crossOrigin}/next.html" target="_blank">Popup</a>`)
+        response.end(readFileSync(POLICY_FIXTURE_FILE, 'utf8').replaceAll('__CROSS_ORIGIN__', crossOrigin))
       } else if (request.url === '/redirect-cross') {
         response.writeHead(302, { location: `${crossOrigin}/next.html` }).end()
       } else if (request.url?.startsWith('/mouse-tests/')) {
@@ -160,15 +164,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
         if (existsSync(mouseFile)) response.end(readFileSync(mouseFile))
         else { response.writeHead(404); response.end('not found') }
       } else if (request.url === '/selection.html') {
-        response.end(`<!doctype html><style>
-          input, textarea, #text { position: absolute; left: 30px; width: 600px; font: 20px monospace; padding: 0; border: 0; margin: 0; }
-          #input { top: 30px; } #textarea { top: 80px; } #text { top: 160px; }
-          #multi { position: absolute; left: 30px; top: 230px; }
-          #empty { position: absolute; top: 350px; } #password { position: absolute; top: 390px; }
-          #number { position: absolute; top: 430px; }
-        </style><input id="input" value="ABCDEFGHIJKLMNOPQRSTUVWXYZ"><textarea id="textarea">ABCDEFGHIJKLMNOPQRSTUVWXYZ</textarea>
-        <div id="text">ABCDEFGHIJKLMNOPQRSTUVWXYZ</div><button id="multi">FIRST LINE<br>SECOND LINE<br>THIRD LINE</button>
-        <input id="empty"><input id="password" type="password" value="hidden"><input id="number" type="number" value="123">`)
+        response.end(readFileSync(SELECTION_FIXTURE_FILE))
       } else if (request.url === '/hidden-upload.html') {
         response.end(readFileSync(HIDDEN_UPLOAD_FIXTURE_FILE))
       } else if (request.url === '/uploaded-artifact') {

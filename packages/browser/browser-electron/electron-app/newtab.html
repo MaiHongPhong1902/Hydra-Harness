@@ -6,31 +6,20 @@
     <title>New Tab</title>
     <style>
       :root {
-        color-scheme: light dark;
-        --bg-color: #ffffff;
-        --text-color: #202124;
-        --subtext-color: #5f6368;
-        --card-bg: #f1f3f4;
-        --card-hover: #e8eaed;
-        --input-bg: #ffffff;
-        --input-border: #dfe1e5;
-        --input-shadow: rgba(32, 33, 36, 0.12);
-        --accent-color: #1a73e8;
+        --bg-primary: #0f172a;
+        --bg-secondary: #1e293b;
+        --bg-tertiary: #334155;
+        --text-primary: #f8fafc;
+        --text-secondary: #94a3b8;
+        --text-muted: #64748b;
+        --accent-sky: #38bdf8;
+        --accent-indigo: #818cf8;
+        --accent-emerald: #34d399;
+        --border-color: #334155;
+        --card-hover: rgba(56, 189, 248, 0.08);
+        --radius: 14px;
       }
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --bg-color: #202124;
-          --text-color: #e8eaed;
-          --subtext-color: #9aa0a6;
-          --card-bg: #303134;
-          --card-hover: #3c4043;
-          --input-bg: #303134;
-          --input-border: #5f6368;
-          --input-shadow: rgba(0, 0, 0, 0.3);
-          --accent-color: #8ab4f8;
-        }
-      }
-      * { box-sizing: border-box; }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
       body {
         margin: 0;
         min-height: 100vh;
@@ -38,155 +27,269 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        background-color: var(--bg-color);
-        color: var(--text-color);
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        padding: 24px 16px;
+        background-color: var(--bg-primary);
+        background-image:
+          radial-gradient(circle at 50% 15%, rgba(56, 189, 248, 0.07) 0%, transparent 60%),
+          radial-gradient(circle at 80% 80%, rgba(129, 140, 248, 0.05) 0%, transparent 50%);
+        color: var(--text-primary);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        padding: 32px 20px;
+        position: relative;
       }
-      .logo-container {
+      .container {
+        width: 100%;
+        max-width: 760px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .brand-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 36px;
+      }
+      .brand-icon-wrap {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(129, 140, 248, 0.2));
+        border: 1px solid rgba(56, 189, 248, 0.35);
         display: flex;
         align-items: center;
-        gap: 12px;
-        margin-bottom: 28px;
+        justify-content: center;
+        margin-bottom: 16px;
+        box-shadow: 0 8px 24px -4px rgba(56, 189, 248, 0.25);
       }
-      .logo-text {
-        font-size: 40px;
-        font-weight: 600;
-        letter-spacing: -0.5px;
+      .brand-title {
+        font-size: 32px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        background: linear-gradient(135deg, #f8fafc 30%, #38bdf8 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 6px;
+      }
+      .brand-subtitle {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-muted);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
       }
       .search-form {
         width: 100%;
-        max-width: 600px;
-        margin-bottom: 36px;
+        max-width: 620px;
+        margin-bottom: 40px;
       }
       .search-box {
         display: flex;
         align-items: center;
-        gap: 12px;
-        height: 48px;
-        padding: 0 16px;
-        background-color: var(--input-bg);
-        border: 1px solid var(--input-border);
-        border-radius: 24px;
-        box-shadow: 0 1px 6px var(--input-shadow);
-        transition: box-shadow 0.2s ease, border-color 0.2s ease;
+        gap: 14px;
+        height: 52px;
+        padding: 0 18px;
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 26px;
+        box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.35);
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
       }
       .search-box:focus-within {
-        border-color: var(--accent-color);
-        box-shadow: 0 2px 8px var(--input-shadow);
+        border-color: var(--accent-sky);
+        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2), 0 12px 30px -4px rgba(0, 0, 0, 0.45);
+        background-color: #1e293b;
       }
       .search-icon {
-        width: 18px;
-        height: 18px;
-        color: var(--subtext-color);
+        width: 20px;
+        height: 20px;
+        color: var(--text-muted);
         flex-shrink: 0;
+        transition: color 0.2s;
+      }
+      .search-box:focus-within .search-icon {
+        color: var(--accent-sky);
       }
       .search-input {
         flex: 1;
         border: 0;
         outline: 0;
         background: transparent;
-        color: var(--text-color);
-        font-size: 16px;
+        color: var(--text-primary);
+        font-size: 15px;
+      }
+      .search-input::placeholder {
+        color: var(--text-muted);
+      }
+      .search-badge {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 11px;
+        padding: 3px 8px;
+        border-radius: 6px;
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        color: var(--text-muted);
+      }
+      .shortcuts-section {
+        width: 100%;
+      }
+      .section-label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+        margin-bottom: 14px;
+        text-align: center;
       }
       .shortcuts-grid {
         display: grid;
-        grid-template-columns: repeat(4, 96px);
-        gap: 16px;
-        justify-content: center;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
       }
-      @media (max-width: 480px) {
-        .shortcuts-grid { grid-template-columns: repeat(2, 96px); }
+      @media (max-width: 600px) {
+        .shortcuts-grid { grid-template-columns: repeat(2, 1fr); }
       }
       .shortcut {
         display: flex;
         flex-direction: column;
         align-items: center;
         text-decoration: none;
-        color: var(--text-color);
-        padding: 12px 6px;
-        border-radius: 12px;
-        transition: background-color 0.15s ease;
+        color: var(--text-secondary);
+        padding: 16px 12px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+        transition: all 0.2s ease;
       }
       .shortcut:hover {
         background-color: var(--card-hover);
+        border-color: rgba(56, 189, 248, 0.4);
+        color: var(--accent-sky);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.3);
       }
       .shortcut-icon-wrapper {
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        background-color: var(--card-bg);
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid var(--border-color);
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-bottom: 8px;
+        margin-bottom: 10px;
         font-size: 20px;
+        transition: transform 0.2s;
+      }
+      .shortcut:hover .shortcut-icon-wrapper {
+        transform: scale(1.08);
+        border-color: rgba(56, 189, 248, 0.3);
       }
       .shortcut-label {
         font-size: 12px;
+        font-weight: 600;
         text-align: center;
-        max-width: 80px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        max-width: 100%;
+      }
+      footer {
+        margin-top: 48px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        font-size: 12px;
+        color: var(--text-muted);
+      }
+      .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: var(--accent-emerald);
+        display: inline-block;
+        box-shadow: 0 0 6px var(--accent-emerald);
+      }
+      .status-indicator {
+        display: flex;
+        align-items: center;
+        gap: 6px;
       }
     </style>
   </head>
   <body>
-    <div class="logo-container">
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"></circle>
-        <circle cx="12" cy="12" r="4"></circle>
-        <line x1="21.17" y1="8" x2="12" y2="8"></line>
-        <line x1="3.95" y1="6.06" x2="8.54" y2="14"></line>
-        <line x1="10.88" y1="21.94" x2="15.46" y2="14"></line>
-      </svg>
-      <div class="logo-text">Browser</div>
-    </div>
-
-    <form class="search-form" id="search-form">
-      <div class="search-box">
-        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="8"></circle>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        </svg>
-        <input class="search-input" id="search-input" placeholder="Search Google or type a URL" autofocus autocomplete="off" spellcheck="false" />
+    <div class="container">
+      <div class="brand-header">
+        <div class="brand-icon-wrap">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-sky);">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+        </div>
+        <h1 class="brand-title">HYDRA</h1>
+        <p class="brand-subtitle">Autonomous Browser Environment</p>
       </div>
-    </form>
 
-    <div class="shortcuts-grid">
-      <a class="shortcut" href="https://www.google.com">
-        <div class="shortcut-icon-wrapper">🔍</div>
-        <span class="shortcut-label">Google</span>
-      </a>
-      <a class="shortcut" href="https://github.com">
-        <div class="shortcut-icon-wrapper">🐙</div>
-        <span class="shortcut-label">GitHub</span>
-      </a>
-      <a class="shortcut" href="https://stackoverflow.com">
-        <div class="shortcut-icon-wrapper">📚</div>
-        <span class="shortcut-label">StackOverflow</span>
-      </a>
-      <a class="shortcut" href="https://wikipedia.org">
-        <div class="shortcut-icon-wrapper">📖</div>
-        <span class="shortcut-label">Wikipedia</span>
-      </a>
-      <a class="shortcut" href="https://youtube.com">
-        <div class="shortcut-icon-wrapper">▶️</div>
-        <span class="shortcut-label">YouTube</span>
-      </a>
-      <a class="shortcut" href="https://reddit.com">
-        <div class="shortcut-icon-wrapper">🤖</div>
-        <span class="shortcut-label">Reddit</span>
-      </a>
-      <a class="shortcut" href="https://news.ycombinator.com">
-        <div class="shortcut-icon-wrapper">📰</div>
-        <span class="shortcut-label">Hacker News</span>
-      </a>
-      <a class="shortcut" href="https://developer.mozilla.org">
-        <div class="shortcut-icon-wrapper">🌐</div>
-        <span class="shortcut-label">MDN</span>
-      </a>
+      <form class="search-form" id="search-form">
+        <div class="search-box">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input class="search-input" id="search-input" placeholder="Search Google or type a URL..." autofocus autocomplete="off" spellcheck="false" />
+          <span class="search-badge">↵ Enter</span>
+        </div>
+      </form>
+
+      <div class="shortcuts-section">
+        <div class="section-label">Quick Access & Test Suites</div>
+        <div class="shortcuts-grid">
+          <a class="shortcut" href="http://127.0.0.1:5173">
+            <div class="shortcut-icon-wrapper">⚡</div>
+            <span class="shortcut-label">Web GUI</span>
+          </a>
+          <a class="shortcut" href="/mouse-tests/index.html">
+            <div class="shortcut-icon-wrapper">🎯</div>
+            <span class="shortcut-label">Mouse Suite</span>
+          </a>
+          <a class="shortcut" href="/form.html">
+            <div class="shortcut-icon-wrapper">📝</div>
+            <span class="shortcut-label">Order Form</span>
+          </a>
+          <a class="shortcut" href="https://github.com">
+            <div class="shortcut-icon-wrapper">🐙</div>
+            <span class="shortcut-label">GitHub</span>
+          </a>
+          <a class="shortcut" href="https://www.google.com">
+            <div class="shortcut-icon-wrapper">🔍</div>
+            <span class="shortcut-label">Google</span>
+          </a>
+          <a class="shortcut" href="https://developer.mozilla.org">
+            <div class="shortcut-icon-wrapper">🌐</div>
+            <span class="shortcut-label">MDN Docs</span>
+          </a>
+          <a class="shortcut" href="https://stackoverflow.com">
+            <div class="shortcut-icon-wrapper">📚</div>
+            <span class="shortcut-label">StackOverflow</span>
+          </a>
+          <a class="shortcut" href="https://wikipedia.org">
+            <div class="shortcut-icon-wrapper">📖</div>
+            <span class="shortcut-label">Wikipedia</span>
+          </a>
+        </div>
+      </div>
+
+      <footer>
+        <div class="status-indicator">
+          <span class="status-dot"></span>
+          <span>Engine Online</span>
+        </div>
+        <span>•</span>
+        <span>Isolated Agent Sandbox</span>
+        <span>•</span>
+        <span>Hydra Harness</span>
+      </footer>
     </div>
 
     <script>
