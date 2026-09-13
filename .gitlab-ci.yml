@@ -60,8 +60,13 @@ sdk-wheel:
         docker run --rm -v "$PWD:/work" -w /work "$image" bash -euxo pipefail -c "/opt/python/cp310-cp310/bin/python -m venv /tmp/hydra-sdk && /tmp/hydra-sdk/bin/python -m pip install --find-links /work/release/$PLATFORM --find-links /work/release/sdk hydra-harness-sdk==$HYDRA_WHEEL_VERSION && /tmp/hydra-sdk/bin/python /work/scripts/smoke-python-runtime.py --scenario sdk-default && /tmp/hydra-sdk/bin/python /work/scripts/smoke-python-runtime.py --scenario sdk-mcp"
       fi
     - |
-      if [ "$PLATFORM" = macos-arm64 ]; then
-        python3 scripts/check-macos-deployment-target.py "$EXE" "$EXE-spawn-helper"
+      case "$PLATFORM" in
+        macos-arm64) MACOS_PLATFORM_TAG=macosx_14_0_arm64 ;;
+        macos-x64) MACOS_PLATFORM_TAG=macosx_14_0_x86_64 ;;
+        *) MACOS_PLATFORM_TAG= ;;
+      esac
+      if [ -n "$MACOS_PLATFORM_TAG" ]; then
+        python3 scripts/check-macos-deployment-target.py --platform-tag "$MACOS_PLATFORM_TAG" "$EXE" "$EXE-spawn-helper"
       fi
   artifacts:
     paths: [release/$PLATFORM/*.whl]

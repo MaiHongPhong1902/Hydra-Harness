@@ -84,11 +84,16 @@ def validate_deployment_targets(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--platform-tag",
+        default=MACOS_PLATFORM_TAG,
+        help=f"macOS wheel platform tag to enforce (default: {MACOS_PLATFORM_TAG})",
+    )
     parser.add_argument("executables", type=Path, nargs="+")
     args = parser.parse_args()
-    for executable, version in validate_deployment_targets(args.executables):
+    for executable, version in validate_deployment_targets(args.executables, args.platform_tag):
         rendered = ".".join(str(part) for part in version)
-        print(f"{executable}: macOS {rendered} <= {MACOS_PLATFORM_TAG}")
+        print(f"{executable}: macOS {rendered} <= {args.platform_tag}")
 
 
 if __name__ == "__main__":

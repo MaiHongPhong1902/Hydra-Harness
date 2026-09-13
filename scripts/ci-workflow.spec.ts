@@ -467,6 +467,7 @@ describe('Python release workflows', () => {
     expect(JSON.stringify(manylinuxAddon)).toContain('le 2.28')
     expect(macosCheck).toMatchObject({ if: "runner.os == 'macOS'" })
     expect(JSON.stringify(macosCheck)).toContain('scripts/check-macos-deployment-target.py')
+    expect(JSON.stringify(macosCheck)).toContain('--platform-tag')
     expect(JSON.stringify(macosCheck)).toContain('$EXE-spawn-helper')
     expect(manylinuxSmoke).toMatchObject({ if: "runner.os == 'Linux'" })
     expect(JSON.stringify(manylinuxSmoke)).toContain('-e HYDRA_TELEMETRY_DISABLED')
@@ -480,13 +481,15 @@ describe('Python release workflows', () => {
     }
     const runtimeScript: unknown[] = runtimeWheel.script
     const macosCheck = runtimeScript.find(
-      step => typeof step === 'string' && step.includes('PLATFORM" = macos-arm64'),
+      step => typeof step === 'string' && step.includes('macos-arm64) MACOS_PLATFORM_TAG='),
     )
     if (typeof macosCheck !== 'string') {
       throw new TypeError('GitLab CI must check the macOS deployment target')
     }
 
     expect(macosCheck).toContain('scripts/check-macos-deployment-target.py')
+    expect(macosCheck).toContain('macos-x64) MACOS_PLATFORM_TAG=macosx_14_0_x86_64')
+    expect(macosCheck).toContain('--platform-tag')
     expect(macosCheck).toContain('"$EXE" "$EXE-spawn-helper"')
   })
 })

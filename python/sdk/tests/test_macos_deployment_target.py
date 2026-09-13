@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import runpy
+import sys
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -36,3 +37,16 @@ def test_wheel_tag_rejects_a_newer_executable_target() -> None:
 
     with pytest.raises(RuntimeError, match="requires macOS 14.1"):
         checker.ensure_compatible(Path("spawn-helper"), (14, 1), "macosx_14_0_arm64")
+
+
+def test_cli_accepts_a_platform_tag_and_reports_it(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    monkeypatch.setitem(
+        checker.main.__globals__,
+        "validate_deployment_targets",
+        lambda executables, platform_tag: [(executables[0], (13, 5))],
+    )
+    monkeypatch.setattr(sys, "argv", [str(SCRIPT), "--platform-tag", "macosx_14_0_x86_64", "runtime"])
+
+    checker.main()
+
+    assert capsys.readouterr().out == "runtime: macOS 13.5 <= macosx_14_0_x86_64\n"
