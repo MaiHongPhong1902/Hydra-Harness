@@ -50,3 +50,16 @@ def test_cli_accepts_a_platform_tag_and_reports_it(monkeypatch: pytest.MonkeyPat
     checker.main()
 
     assert capsys.readouterr().out == "runtime: macOS 13.5 <= macosx_14_0_x86_64\n"
+
+
+def test_cli_defaults_to_the_arm64_platform_tag(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    monkeypatch.setitem(
+        checker.main.__globals__,
+        "validate_deployment_targets",
+        lambda executables, platform_tag: [(executables[0], (13, 5))],
+    )
+    monkeypatch.setattr(sys, "argv", [str(SCRIPT), "runtime"])
+
+    checker.main()
+
+    assert capsys.readouterr().out == f"runtime: macOS 13.5 <= {checker.MACOS_PLATFORM_TAG}\n"
