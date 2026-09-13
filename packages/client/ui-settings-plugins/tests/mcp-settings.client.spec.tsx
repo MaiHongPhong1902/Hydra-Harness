@@ -263,4 +263,17 @@ describe('McpSettingsTab', () => {
     fireEvent.click(await screen.findByRole('switch', { name: `${en.enable} ${en.mcpTitle}` }))
     await vi.waitFor(() => { expect(enable).toHaveBeenCalledWith('obsidian-knowledge', true) })
   })
+
+  it.each([true, false])('finds the native MCP plugin by module name with enabled=%s', async (enabled) => {
+    const entry: PluginInventorySnapshot['entries'][number] = {
+      entryId: 'obsidian-knowledge' as never, moduleName: '@hydra/harness-obsidian-knowledge',
+      enabled, restartRequired: false, toggleable: true, fiberPhase: enabled ? 'active' : null,
+    }
+    renderTab({ available: enabled }, undefined, {
+      list: vi.fn(async () => ({ entries: [entry] })), setEnabled: vi.fn(),
+    }, 'kno')
+
+    const control = await screen.findByRole('switch', { name: `${enabled ? en.disable : en.enable} ${en.mcpTitle}` })
+    expect(control.getAttribute('aria-checked')).toBe(String(enabled))
+  })
 })

@@ -26,77 +26,87 @@
     - text: Close
   - heading "Models" [level=2]
   - paragraph: Sign in with your accounts or enter API keys to use models from these providers.
-  - list:
-    - listitem:
-      - text: DeepSeek
-      - img "API key configured"
-      - button "Edit DeepSeek (deepseek-official)": Edit
-      - button "Delete DeepSeek (deepseek-official)": Delete
-      - text: DeepSeek deepseek-official API key
-      - textbox "API key":
-        - /placeholder: Configured — enter a new value to replace
-      - text: Fallback API key 1
-      - textbox "Fallback API key 1":
-        - /placeholder: Configured — enter a new value to replace
-      - button "Remove API key 1": Delete
-      - button "Add API key"
-      - paragraph: Keys are tried in order. If a request fails, the next key retries it. Stop cancels all retries.
-      - group:
-        - text: Customized settings Base URL
-        - textbox "Base URL":
-          - /placeholder: https://api.deepseek.com
-        - text: Proxy
-        - textbox "Proxy":
-          - /placeholder: Optional HTTP(S) proxy, e.g. http://127.0.0.1:3128
-        - region "Models":
-          - text: Models Customized model catalog
-          - button "Restore defaults"
-          - textbox "Model ID 1":
-            - /placeholder: Model ID
-            - text: deepseek-v4-pro
-          - textbox "Display name 1":
-            - /placeholder: Display name
-            - text: DeepSeek-V4-Pro
-          - button "Capacities 1":
-            - img
-          - button "Delete model 1":
-            - img
-          - textbox "Model ID 2":
-            - /placeholder: Model ID
-            - text: deepseek-v4-flash-vision-exp
-          - textbox "Display name 2":
-            - /placeholder: Display name
-            - text: DeepSeek-V4-Flash-Vision-Exp
-          - button "Capacities 2":
-            - img
-          - button "Delete model 2":
-            - img
-          - textbox "Model ID 3":
-            - /placeholder: Model ID
-            - text: private-preview
-          - textbox "Display name 3":
-            - /placeholder: Display name
-            - text: Private Preview
-          - button "Capacities 3" [expanded]:
-            - img
-          - button "Delete model 3":
-            - img
-          - text: Context window
-          - textbox "Context window 3":
-            - /placeholder: 1M
-            - text: "131072"
-          - text: Max output tokens
-          - textbox "Max output tokens 3":
-            - /placeholder: 256K
-            - text: 64K
-          - button "Add model":
-            - img
-            - text: Add model
-      - button "Cancel"
-      - button "Apply"
-  - button "Add provider":
-    - img
-    - text: Add provider
-  - button "Add a custom provider":
-    - img
-    - text: Add a custom provider
+  - region "API keys":
+    - heading "API keys" [level=3]
+    - paragraph: Configure provider API keys and optional fallback keys.
+    - list:
+      - listitem:
+        - text: DeepSeek
+        - img "API key configured"
+        - button "Edit DeepSeek (deepseek-official)": Edit
+        - button "Delete DeepSeek (deepseek-official)": Delete
+        - text: DeepSeek deepseek-official API key
+        - textbox "API key":
+          - /placeholder: Configured — enter a new value to replace
+        - text: Fallback API key 1
+        - textbox "Fallback API key 1":
+          - /placeholder: Configured — enter a new value to replace
+        - button "Remove API key 1": Delete
+        - button "Add API key"
+        - paragraph: Keys are tried in order. If a request fails, the next key retries it. Stop cancels all retries.
+        - group:
+          - text: Customized settings Base URL
+          - textbox "Base URL":
+            - /placeholder: https://api.deepseek.com
+          - text: Proxy
+          - textbox "Proxy":
+            - /placeholder: Optional HTTP(S) proxy, e.g. http://127.0.0.1:3128
+          - region "Models":
+            - text: Models Customized model catalog
+            - button "Restore defaults"
+            - textbox "Model ID 1":
+              - /placeholder: Model ID
+              - text: deepseek-v4-pro
+            - textbox "Display name 1":
+              - /placeholder: Display name
+              - text: DeepSeek-V4-Pro
+            - button "Capacities 1":
+              - img
+            - button "Delete model 1":
+              - img
+            - textbox "Model ID 2":
+              - /placeholder: Model ID
+              - text: deepseek-v4-flash-vision-exp
+            - textbox "Display name 2":
+              - /placeholder: Display name
+              - text: DeepSeek-V4-Flash-Vision-Exp
+            - button "Capacities 2":
+              - img
+            - button "Delete model 2":
+              - img
+            - textbox "Model ID 3":
+              - /placeholder: Model ID
+              - text: private-preview
+            - textbox "Display name 3":
+              - /placeholder: Display name
+              - text: Private Preview
+            - button "Capacities 3" [expanded]:
+              - img
+            - button "Delete model 3":
+              - img
+            - text: Context window
+            - textbox "Context window 3":
+              - /placeholder: 1M
+              - text: "131072"
+            - text: Max output tokens
+            - textbox "Max output tokens 3":
+              - /placeholder: 256K
+              - text: 64K
+            - button "Add model":
+              - img
+              - text: Add model
+        - button "Cancel"
+        - button "Apply"
+    - button "Add provider":
+      - img
+      - text: Add provider
+    - button "Add a custom provider":
+      - img
+      - text: Add a custom provider
+  - region "Account sign-in":
+    - heading "Account sign-in" [level=3]
+    - paragraph: Connect ChatGPT or Google Antigravity accounts independently of your API keys.
+    - list
+    - button "Add sign-in provider":
+      - img
+      - text: Add sign-in provider

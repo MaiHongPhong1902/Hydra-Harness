@@ -6,7 +6,7 @@ The account pool is resolved only when a login, account listing, removal, refres
 
 ## Configuration and account setup
 
-Enable the provider in Settings, open **Models**, choose **Add provider**, select **ChatGPT** or **Google Antigravity**, and choose **Add account**. Complete the provider login in the account flow, then repeat **Add account** for each account that should participate in rotation.
+Enable the provider in Settings, open **Models**, and use the **Account sign-in** section's **Add sign-in provider** action. Select **ChatGPT** or **Google Antigravity** there. API-key provider cards remain available independently; this account flow does not replace or reuse their API-key fields. Complete the provider login in the account flow, then repeat **Add account** for each account that should participate in rotation.
 
 Choose **Apply** after the accounts are saved. The model selector then lists the models available to the configured provider; selecting one sends later requests through the account pool. Removing an account takes effect on the next request.
 

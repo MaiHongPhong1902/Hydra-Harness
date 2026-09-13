@@ -26,33 +26,48 @@
     - text: Close
   - heading "Models" [level=2]
   - paragraph: Sign in with your accounts or enter API keys to use models from these providers.
-  - list:
-    - listitem:
-      - text: ChatGPT
-      - img "Account connected"
-      - button "Edit ChatGPT (chatgpt)": Edit
-      - button "Delete ChatGPT (chatgpt)": Delete
-      - text: ChatGPT chatgpt Accounts
-      - paragraph: Requests rotate between accounts. Another account is tried when a request fails or reaches its quota.
-      - list "Accounts":
-        - listitem:
-          - text: alice@example.test
-          - button "Sign out alice@example.test": Sign out
-        - listitem:
-          - text: bob@example.test
-          - button "Sign out bob@example.test": Sign out
-      - button "Add account"
-      - status:
-        - paragraph: Continue signing in to ChatGPT in your browser.
-        - link "Open sign-in page":
-          - /url: https://auth.example.test/chatgpt
-        - paragraph: Account connected. Apply to make this provider available in the model selector.
-      - group: Customized settings
-      - button "Cancel"
-      - button "Apply"
-  - button "Add provider":
-    - img
-    - text: Add provider
-  - button "Add a custom provider":
-    - img
-    - text: Add a custom provider
+  - region "API keys":
+    - heading "API keys" [level=3]
+    - paragraph: Configure provider API keys and optional fallback keys.
+    - list:
+      - listitem:
+        - text: minimax-cn
+        - img "API key configured"
+        - button "Edit minimax-cn": Edit
+        - button "Delete minimax-cn": Delete
+    - button "Add provider":
+      - img
+      - text: Add provider
+    - button "Add a custom provider":
+      - img
+      - text: Add a custom provider
+  - region "Account sign-in":
+    - heading "Account sign-in" [level=3]
+    - paragraph: Connect ChatGPT or Google Antigravity accounts independently of your API keys.
+    - list:
+      - listitem:
+        - text: ChatGPT
+        - img "Account connected"
+        - button "Edit ChatGPT (chatgpt)": Edit
+        - button "Delete ChatGPT (chatgpt)": Delete
+        - text: ChatGPT chatgpt Accounts
+        - paragraph: Requests rotate between accounts. Another account is tried when a request fails or reaches its quota.
+        - list "Accounts":
+          - listitem:
+            - text: alice@example.test
+            - button "Sign out alice@example.test": Sign out
+          - listitem:
+            - text: bob@example.test
+            - button "Sign out bob@example.test": Sign out
+        - button "Add account"
+        - status:
+          - paragraph: Continue signing in to ChatGPT in your browser.
+          - link "Open sign-in page":
+            - /url: https://auth.example.test/chatgpt
+          - paragraph: Account connected. Apply to make this provider available in the model selector.
+        - group: Customized settings
+        - button "Cancel"
+        - button "Apply"
+    - button "Add sign-in provider":
+      - img
+      - text: Add sign-in provider

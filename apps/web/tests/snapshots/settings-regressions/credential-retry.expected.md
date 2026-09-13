@@ -26,51 +26,61 @@
     - text: Close
   - heading "Models" [level=2]
   - paragraph: Sign in with your accounts or enter API keys to use models from these providers.
-  - list:
-    - listitem:
-      - text: settings-fixture Custom
-      - img "API key missing"
-      - button "Edit settings-fixture": Edit
-      - button "Delete settings-fixture": Delete
-  - text: Custom provider Provider ID
-  - textbox "Provider ID" [disabled]:
-    - /placeholder: acme-gateway
-    - text: settings-fixture
-  - paragraph: Lowercase identifier, starting with a letter, that uniquely names this provider in requests and as its credential name.
-  - text: Display name
-  - textbox "Display name" [disabled]:
-    - /placeholder: settings-fixture
-  - text: Base URL
-  - textbox "Base URL" [disabled]:
-    - /placeholder: https://gateway.example/v1
-    - text: https://old.invalid/v1
-  - text: Proxy
-  - textbox "Proxy" [disabled]:
-    - /placeholder: Optional HTTP(S) proxy, e.g. http://127.0.0.1:3128
-    - text: http://old.invalid:8080
-  - text: API protocol
-  - combobox "API protocol" [disabled]:
-    - option "openai-completions" [selected]
-    - option "openai-responses"
-    - option "anthropic-messages"
-    - option "azure-openai-completions"
-  - text: API key
-  - textbox "API key":
-    - /placeholder: Enter your API key
-    - text: fixture-key
-  - button "Add API key" [disabled]
-  - paragraph: Keys are tried in order. If a request fails, the next key retries it. Stop cancels all retries.
-  - region "Models":
-    - text: Models
-    - button "Fetch available models" [disabled]
-    - textbox "Model ID 1" [disabled]:
-      - /placeholder: Model ID
-      - text: fixture-model
-    - textbox "Display name 1" [disabled]:
-      - /placeholder: Display name
-    - button "Capacities 1"
-    - button "Delete model 1" [disabled]
-    - button "Add model" [disabled]
-  - paragraph: Fixture key write refused
-  - button "Cancel"
-  - button "Create provider"
+  - region "API keys":
+    - heading "API keys" [level=3]
+    - paragraph: Configure provider API keys and optional fallback keys.
+    - list:
+      - listitem:
+        - text: settings-fixture Custom
+        - img "API key missing"
+        - button "Edit settings-fixture": Edit
+        - button "Delete settings-fixture": Delete
+    - text: Custom provider Provider ID
+    - textbox "Provider ID" [disabled]:
+      - /placeholder: acme-gateway
+      - text: settings-fixture
+    - paragraph: Lowercase identifier, starting with a letter, that uniquely names this provider in requests and as its credential name.
+    - text: Display name
+    - textbox "Display name" [disabled]:
+      - /placeholder: settings-fixture
+    - text: Base URL
+    - textbox "Base URL" [disabled]:
+      - /placeholder: https://gateway.example/v1
+      - text: https://old.invalid/v1
+    - text: Proxy
+    - textbox "Proxy" [disabled]:
+      - /placeholder: Optional HTTP(S) proxy, e.g. http://127.0.0.1:3128
+      - text: http://old.invalid:8080
+    - text: API protocol
+    - combobox "API protocol" [disabled]:
+      - option "openai-completions" [selected]
+      - option "openai-responses"
+      - option "anthropic-messages"
+      - option "azure-openai-completions"
+    - text: API key
+    - textbox "API key":
+      - /placeholder: Enter your API key
+      - text: fixture-key
+    - button "Add API key" [disabled]
+    - paragraph: Keys are tried in order. If a request fails, the next key retries it. Stop cancels all retries.
+    - region "Models":
+      - text: Models
+      - button "Fetch available models" [disabled]
+      - textbox "Model ID 1" [disabled]:
+        - /placeholder: Model ID
+        - text: fixture-model
+      - textbox "Display name 1" [disabled]:
+        - /placeholder: Display name
+      - button "Capacities 1"
+      - button "Delete model 1" [disabled]
+      - button "Add model" [disabled]
+    - paragraph: Fixture key write refused
+    - button "Cancel"
+    - button "Create provider"
+  - region "Account sign-in":
+    - heading "Account sign-in" [level=3]
+    - paragraph: Connect ChatGPT or Google Antigravity accounts independently of your API keys.
+    - list
+    - button "Add sign-in provider":
+      - img
+      - text: Add sign-in provider

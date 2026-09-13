@@ -24,7 +24,7 @@ A pi-ai profile's `models` list is edited on the card: one row per model showing
 
 ## Account sign-in
 
-Choose **Add provider**, then **ChatGPT** or **Google Antigravity**, and select **Add account**. Open the sign-in page and complete the provider's instructions. Repeat to connect another account, then **Apply** to expose the provider in the model selector. Each account has its own **Sign out** action; removing a provider's settings keeps its accounts. Closing the editor cancels only the login that editor started, including a start response arriving after it closed.
+Use the **Account sign-in** section's **Add sign-in provider** action, then choose **ChatGPT** or **Google Antigravity**. API-key fields remain in the separate **API keys** section; account sign-in never replaces or reuses them. Open the sign-in page and complete the provider's instructions. Repeat to connect another account, then **Apply** to expose the provider in the model selector. Each account has its own **Sign out** action; removing a provider's settings keeps its accounts. Closing the editor cancels only the login that editor started, including a start response arriving after it closed.
 
 Account credentials are stored by the Host. The browser receives account names and transient login instructions, never access or refresh tokens. Requests rotate through the provider's accounts and try another account after a failed request, before visible output begins. The [account-auth adapter](../../llm/llm-account-auth/README.md) owns initialization, refresh, and request behavior. An account-backed route with no connected accounts remains unavailable for onboarding readiness.
 

@@ -12,7 +12,7 @@ import type { InjectFace } from '@hydra/harness-client-ui-slots'
 import { isManagedFallbackRef } from './FallbackKeysEditor.tsx'
 import { CustomProviderCard } from './CustomProviderCard.tsx'
 import {
-  deriveKeyRef, messageOf, protocolChoices,
+  deriveKeyRef, messageOf, protocolChoices, providerAccountKey,
 } from './store.ts'
 import type { ModelsSettingsStore, ProviderRow } from './store.ts'
 import type { SettingsSchemaOperations } from './schema-operations.ts'
@@ -301,10 +301,6 @@ function Loaded({ injected }: { injected: ModelsSectionFace }): ReactNode {
     ? savedTarget
     : { provider: savedRow.entry.provider, displayName: savedRow.entry.displayName }
 
-  const configured = state.rows.filter(row => row.configured)
-  const addable = state.rows.filter(row => !row.configured && row.entry.settingsNs !== '')
-  const addTarget = adding ? editing : undefined
-  const addNamespace = addTarget === undefined ? undefined : state.namespaces.get(addTarget.settingsNs)
   // Hand-declared routes live in the pi-ai namespace, which is also the only
   // one whose schema names the protocols one may speak; without it mounted
   // there is nothing to declare and the entry point stays disabled.
@@ -322,200 +318,212 @@ function Loaded({ injected }: { injected: ModelsSectionFace }): ReactNode {
             {providerCopy(t('savedProvider'), savedIdentity)}
           </p>
         )}
-      <ul className={styles['rows']}>
-        {configured.map((row) => {
-          const target = targetOf(row)
-          const namespace = state.namespaces.get(target.settingsNs)
-          /* v8 ignore next -- the join marks a row configured only when its namespace resolved */
-          if (namespace === undefined) return null
-          const open = !adding && editing?.provider === row.entry.provider
-          const credentialConfigured = row.accountCount === undefined
-            ? row.credential?.configured === true || Object.values(row.fallbackCredentials).some(state => state?.configured === true)
-            : row.accountCount > 0
-          const credentialMissing = row.accountCount === undefined
-            ? !credentialConfigured && (row.credential?.configured === false
-              || Object.values(row.fallbackCredentials).some(state => state?.configured === false))
-            : row.accountCount === 0
-          const configuredLabel = t(row.accountCount === undefined ? 'credentialConfigured' : 'accountConfigured')
-          const missingLabel = t(row.accountCount === undefined ? 'credentialMissing' : 'accountMissing')
-          return (
-            <li key={row.entry.provider} className={styles['rowCard']}>
-              <div className={styles['rowHead']}>
-                <span className={styles['rowIdentity']}>
-                  <span className={styles['rowName']}>{row.entry.displayName}</span>
-                  {/* Only the adapter can tell a hand-declared route from a
-                      shipped one it also has a stored profile for, so the tag
-                      follows its answer and stays off when it gives none. */}
-                  {row.entry.declared === true
-                    ? <span className={styles['rowTag']}>{t('customTag')}</span>
-                    : null}
-                  {credentialConfigured
-                    ? (
-                      <span
-                        className={`${styles['credentialDot']} ${styles['credentialDotConfigured']}`}
-                        role="img"
-                        aria-label={configuredLabel}
-                        title={configuredLabel}
-                      />
-                    )
-                    : credentialMissing
-                      ? (
-                        <span
-                          className={`${styles['credentialDot']} ${styles['credentialDotMissing']}`}
-                          role="img"
-                          aria-label={missingLabel}
-                          title={missingLabel}
-                        />
-                      )
+      {(['apiKeys', 'accountLogin'] as const).map((group) => {
+        const accountGroup = group === 'accountLogin'
+        const rows = state.rows.filter(row =>
+          (providerAccountKey(row.entry.settingsNs, row.entry.provider) !== undefined) === accountGroup)
+        if (accountGroup && rows.length === 0) return null
+        const configured = rows.filter(row => row.configured)
+        const addable = rows.filter(row => !row.configured && row.entry.settingsNs !== '')
+        const addTarget = adding && rows.some(row => row.entry.provider === editing?.provider) ? editing : undefined
+        const addNamespace = addTarget === undefined ? undefined : state.namespaces.get(addTarget.settingsNs)
+        return (
+          <section key={group} className={styles['providerGroup']} aria-label={t(group)}>
+            <h3 className={styles['title']}>{t(group)}</h3>
+            <p className={styles['intro']}>{t(accountGroup ? 'accountLoginHint' : 'apiKeysHint')}</p>
+            <ul className={styles['rows']}>
+              {configured.map((row) => {
+                const target = targetOf(row)
+                const namespace = state.namespaces.get(target.settingsNs)
+                /* v8 ignore next -- the join marks a row configured only when its namespace resolved */
+                if (namespace === undefined) return null
+                const open = !adding && editing?.provider === row.entry.provider
+                const credentialConfigured = row.accountCount === undefined
+                  ? row.credential?.configured === true || Object.values(row.fallbackCredentials).some(state => state?.configured === true)
+                  : row.accountCount > 0
+                const credentialMissing = row.accountCount === undefined
+                  ? !credentialConfigured && (row.credential?.configured === false
+                    || Object.values(row.fallbackCredentials).some(state => state?.configured === false))
+                  : row.accountCount === 0
+                const configuredLabel = t(row.accountCount === undefined ? 'credentialConfigured' : 'accountConfigured')
+                const missingLabel = t(row.accountCount === undefined ? 'credentialMissing' : 'accountMissing')
+                return (
+                  <li key={row.entry.provider} className={styles['rowCard']}>
+                    <div className={styles['rowHead']}>
+                      <span className={styles['rowIdentity']}>
+                        <span className={styles['rowName']}>{row.entry.displayName}</span>
+                        {/* Only the adapter can tell a hand-declared route from a
+                            shipped one it also has a stored profile for, so the tag
+                            follows its answer and stays off when it gives none. */}
+                        {row.entry.declared === true
+                          ? <span className={styles['rowTag']}>{t('customTag')}</span>
+                          : null}
+                        {credentialConfigured
+                          ? (
+                            <span
+                              className={`${styles['credentialDot']} ${styles['credentialDotConfigured']}`}
+                              role="img"
+                              aria-label={configuredLabel}
+                              title={configuredLabel}
+                            />
+                          )
+                          : credentialMissing
+                            ? (
+                              <span
+                                className={`${styles['credentialDot']} ${styles['credentialDotMissing']}`}
+                                role="img"
+                                aria-label={missingLabel}
+                                title={missingLabel}
+                              />
+                            )
+                            : null}
+                      </span>
+                      <span className={styles['rowActions']}>
+                        <button
+                          type="button"
+                          className={styles['secondaryButton']}
+                          aria-label={providerCopy(t('editProvider'), target)}
+                          onClick={() => {
+                            setSavedTarget(undefined)
+                            // One card at a time: leaving `declaring` set would show
+                            // the create card beside this editor, and closing either
+                            // one discards the other's draft.
+                            setDeclaring(false)
+                            setAdding(false)
+                            setEditing(open ? undefined : target)
+                          }}
+                        >
+                          {t('edit')}
+                        </button>
+                        {row.removable
+                          ? (
+                            <button
+                              type="button"
+                              className={styles['dangerButton']}
+                              aria-label={providerCopy(t('removeProvider'), target)}
+                              disabled={!state.writable}
+                              onClick={() => {
+                                setSavedTarget(undefined)
+                                setDeleteFailure(undefined)
+                                setDeleteTarget(target)
+                              }}
+                            >
+                              {t('remove')}
+                            </button>
+                          )
+                          : null}
+                      </span>
+                    </div>
+                    {open
+                      ? renderProviderEditor({
+                        target,
+                        namespace,
+                        schema,
+                        api,
+                        t,
+                        readOnly: !state.writable,
+                        onClose: (changed) => { closeEditor(changed, target) },
+                      })
                       : null}
-                </span>
-                <span className={styles['rowActions']}>
-                  <button
-                    type="button"
-                    className={styles['secondaryButton']}
-                    aria-label={providerCopy(t('editProvider'), target)}
-                    onClick={() => {
-                      setSavedTarget(undefined)
-                      // One card at a time: leaving `declaring` set would show
-                      // the create card beside this editor, and closing either
-                      // one discards the other's draft.
-                      setDeclaring(false)
-                      setAdding(false)
-                      setEditing(open ? undefined : target)
-                    }}
-                  >
-                    {t('edit')}
-                  </button>
-                  {row.removable
-                    ? (
-                      <button
-                        type="button"
-                        className={styles['dangerButton']}
-                        aria-label={providerCopy(t('removeProvider'), target)}
-                        disabled={!state.writable}
-                        onClick={() => {
-                          setSavedTarget(undefined)
-                          setDeleteFailure(undefined)
-                          setDeleteTarget(target)
+                  </li>
+                )
+              })}
+            </ul>
+            <div className={styles['addBlock']}>
+              {addTarget !== undefined && addNamespace !== undefined
+                ? (
+                  <div className={styles['addCard']}>
+                    <div className={styles['field']}>
+                      <span className={styles['fieldLabel']}>{t('provider')}</span>
+                      <select
+                        className={`${styles['input']} ${styles['selectInput']}`}
+                        value={addTarget.provider}
+                        aria-label={t('provider')}
+                        onChange={(event) => {
+                          const row = addable.find(candidate => candidate.entry.provider === event.target.value)
+                          /* v8 ignore next -- the select only lists addable rows */
+                          if (row === undefined) return
+                          setEditing(targetOf(row))
                         }}
                       >
-                        {t('remove')}
+                        {addable.map(row => (
+                          <option key={row.entry.provider} value={row.entry.provider}>{row.entry.displayName}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <ProviderEditor
+                      key={addTarget.provider}
+                      provider={addTarget.provider}
+                      displayName={addTarget.displayName}
+                      hideTitle
+                      namespace={addNamespace}
+                      schema={schema}
+                      settingsPath={addTarget.settingsPath}
+                      api={api}
+                      t={t}
+                      readOnly={!state.writable}
+                      onClose={(changed) => { closeEditor(changed, addTarget) }}
+                    />
+                  </div>
+                )
+                : declaring && !accountGroup
+                  ? (
+                    <div className={styles['addCard']}>
+                      <CustomProviderCard
+                        taken={state.rows.map(row => row.entry.provider)}
+                        protocols={protocols}
+                        /* v8 ignore next -- the card only opens from a button disabled without this namespace */
+                        revision={state.namespaces.get('llm-pi-ai')?.revision ?? 0}
+                        api={api}
+                        t={t}
+                        readOnly={!state.writable}
+                        onClose={(changed) => {
+                          setDeclaring(false)
+                          if (changed) void controller.load()
+                        }}
+                      />
+                    </div>
+                  )
+                  : (
+                    <div className={styles['addActions']}>
+                      <button
+                        type="button"
+                        className={styles['addButton']}
+                        disabled={addable.length === 0 || !state.writable}
+                        onClick={() => {
+                          const first = addable[0]
+                          /* v8 ignore next -- the button is disabled while nothing is addable */
+                          if (first === undefined) return
+                          setSavedTarget(undefined)
+                          setDeclaring(false)
+                          setAdding(true)
+                          setEditing(targetOf(first))
+                        }}
+                      >
+                        {/* Same glyph as the composer's attach button. */}
+                        <IconPlusOutline16 size={14} />
+                        {t(accountGroup ? 'accountProviderAdd' : 'add')}
                       </button>
-                    )
-                    : null}
-                </span>
-              </div>
-              {open
-                ? renderProviderEditor({
-                  target,
-                  namespace,
-                  schema,
-                  api,
-                  t,
-                  readOnly: !state.writable,
-                  onClose: (changed) => { closeEditor(changed, target) },
-                })
-                : null}
-            </li>
-          )
-        })}
-      </ul>
-      <div className={styles['addBlock']}>
-        {addTarget !== undefined && addNamespace !== undefined
-          ? (
-            <div className={styles['addCard']}>
-              <div className={styles['field']}>
-                <span className={styles['fieldLabel']}>{t('provider')}</span>
-                <select
-                  className={`${styles['input']} ${styles['selectInput']}`}
-                  value={addTarget.provider}
-                  aria-label={t('provider')}
-                  onChange={(event) => {
-                    const row = addable.find(candidate => candidate.entry.provider === event.target.value)
-                    /* v8 ignore next -- the select only lists addable rows */
-                    if (row === undefined) return
-                    setEditing(targetOf(row))
-                  }}
-                >
-                  {addable.map(row => (
-                    <option key={row.entry.provider} value={row.entry.provider}>{row.entry.displayName}</option>
-                  ))}
-                </select>
-              </div>
-              <ProviderEditor
-                key={addTarget.provider}
-                provider={addTarget.provider}
-                displayName={addTarget.displayName}
-                hideTitle
-                namespace={addNamespace}
-                schema={schema}
-                settingsPath={addTarget.settingsPath}
-                api={api}
-                t={t}
-                readOnly={!state.writable}
-                onClose={(changed) => { closeEditor(changed, addTarget) }}
-              />
+                      {accountGroup ? null : <button
+                        type="button"
+                        className={styles['addButton']}
+                        disabled={protocols.length === 0 || !state.writable}
+                        onClick={() => {
+                          setSavedTarget(undefined)
+                          setAdding(false)
+                          setEditing(undefined)
+                          setDeclaring(true)
+                        }}
+                      >
+                        <IconPlusOutline16 size={14} />
+                        {t('customAdd')}
+                      </button>}
+                    </div>
+                  )}
             </div>
-          )
-          : declaring
-            ? (
-              <div className={styles['addCard']}>
-                <CustomProviderCard
-                  taken={state.rows.map(row => row.entry.provider)}
-                  protocols={protocols}
-                  /* v8 ignore next -- the card only opens from a button disabled without this namespace */
-                  revision={state.namespaces.get('llm-pi-ai')?.revision ?? 0}
-                  api={api}
-                  t={t}
-                  readOnly={!state.writable}
-                  onClose={(changed) => {
-                    setDeclaring(false)
-                    if (changed) void controller.load()
-                  }}
-                />
-              </div>
-            )
-            : (
-              // One row for the two ways to gain a provider: adopt one the
-              // adapter already knows, or declare one it does not. Side by side
-              // and equal-width so they read as siblings and line up with the
-              // rows above, rather than two pills of different lengths.
-              <div className={styles['addActions']}>
-                <button
-                  type="button"
-                  className={styles['addButton']}
-                  disabled={addable.length === 0 || !state.writable}
-                  onClick={() => {
-                    const first = addable[0]
-                    /* v8 ignore next -- the button is disabled while nothing is addable */
-                    if (first === undefined) return
-                    setSavedTarget(undefined)
-                    setDeclaring(false)
-                    setAdding(true)
-                    setEditing(targetOf(first))
-                  }}
-                >
-                  {/* Same glyph as the composer's attach button. */}
-                  <IconPlusOutline16 size={14} />
-                  {t('add')}
-                </button>
-                <button
-                  type="button"
-                  className={styles['addButton']}
-                  disabled={protocols.length === 0 || !state.writable}
-                  onClick={() => {
-                    setSavedTarget(undefined)
-                    setAdding(false)
-                    setEditing(undefined)
-                    setDeclaring(true)
-                  }}
-                >
-                  <IconPlusOutline16 size={14} />
-                  {t('customAdd')}
-                </button>
-              </div>
-            )}
-      </div>
+          </section>
+        )
+      })}
       <Modal
         open={deleteTarget !== undefined}
         onClose={closeDelete}

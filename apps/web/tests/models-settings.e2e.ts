@@ -91,7 +91,7 @@ describe('web e2e: Models settings page configures a dormant provider', () => {
   it('refuses a key no HTTP header can carry before anything is written', async () => {
     onTestFailed(() => saveFailureShot(page, 'web-e2e-models-illegal-key'))
     const dialog = page.getByRole('dialog', { name: 'Settings' })
-    const key = dialog.getByLabel('API key')
+    const key = dialog.getByRole('textbox', { name: 'API key', exact: true })
     const save = dialog.getByRole('button', { name: 'Apply', exact: true })
 
     // A key no HTTP header can carry would save cleanly and fail the first

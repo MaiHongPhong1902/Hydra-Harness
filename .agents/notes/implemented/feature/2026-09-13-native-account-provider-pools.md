@@ -14,7 +14,7 @@ Each provider owns one credential record containing its account pool. The [crede
 
 The authorization service reserves a flow key for the full duration of account removal, so login and removal cannot overlap. A Host begin request keeps its carrier cancellation signal attached until the attempt id response is handed over; an earlier disconnect cancels the service attempt, while later cancellation uses the attempt API.
 
-The Models editor lists accounts individually. Adding an account preserves other accounts, and signing out removes only the selected identity. Provider configuration and account storage are separate writes: Apply enables the provider route, while removing its settings does not remove its accounts. A route with no connected account does not satisfy onboarding readiness.
+The Models editor keeps account sign-in in its own section with an **Add sign-in provider** action and lists accounts individually. API-key fields remain in the separate API-key section; account sign-in does not replace or reuse them. Adding an account preserves other accounts, and signing out removes only the selected identity. Provider configuration and account storage are separate writes: Apply enables the provider route, while removing its settings does not remove its accounts. A route with no connected account does not satisfy onboarding readiness.
 
 Requests rotate through the provider's accounts. A failed attempt can try the next account before any visible output is delivered. Cancellation ends the request instead of advancing to another account. Account selection does not add credentials or authorization answers to the session log or model messages.
 

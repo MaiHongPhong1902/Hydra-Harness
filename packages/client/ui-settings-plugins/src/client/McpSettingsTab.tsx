@@ -92,6 +92,7 @@ export function McpSettingsTab(props: McpSettingsTabProps) {
   const normalizedQuery = props.query.trim().toLocaleLowerCase()
   const matchesQuery = (haystack: readonly string[]): boolean => normalizedQuery.length === 0
     || haystack.some(value => value.toLocaleLowerCase().includes(normalizedQuery))
+  const nativeMatchesQuery = matchesQuery([t('mcpTitle'), OBSIDIAN_MCP_MODULE])
   const nativeEntry = native?.entries.find(entry => entry.moduleName === OBSIDIAN_MCP_MODULE)
   const setNativeEnabled = (enabled: boolean): void => {
     if (props.nativeMcp === undefined || nativeEntry === undefined) return
@@ -129,7 +130,7 @@ export function McpSettingsTab(props: McpSettingsTabProps) {
       {props.userMcp === undefined
         ? null
         : <McpServerCatalog active={active} controls={props.userMcp} query={props.query} t={t} />}
-      {state.available && matchesQuery([t('mcpTitle')]) ? <PluginCard
+      {state.available && nativeMatchesQuery ? <PluginCard
         t={t}
         titleKey="mcpTitle"
         descriptionKey="mcpDescription"
@@ -151,7 +152,7 @@ export function McpSettingsTab(props: McpSettingsTabProps) {
         {nativeFailed ? <p className={css.empty} role="alert">{t('mcpToggleFailed')}</p> : null}
       </PluginCard> : null}
       {!state.available && native === undefined && !nativeLoadFailed && props.nativeMcp !== undefined ? <p className={css.empty}>{t('mcpLoading')}</p> : null}
-      {!state.available && nativeControl !== null && matchesQuery([t('mcpTitle'), nativeEntry?.moduleName ?? '']) ? (
+      {!state.available && nativeControl !== null && nativeMatchesQuery ? (
         <section className={css.importedMcp} aria-labelledby="native-mcp-title">
           <h3 id="native-mcp-title">{t('mcpTitle')}</h3>
           <p className={css.empty}>{t('mcpUnavailable')}</p>

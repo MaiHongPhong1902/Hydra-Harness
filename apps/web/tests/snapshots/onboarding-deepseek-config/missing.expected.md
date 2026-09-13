@@ -26,15 +26,25 @@
     - text: Close
   - heading "Models" [level=2]
   - paragraph: Sign in with your accounts or enter API keys to use models from these providers.
-  - list:
-    - listitem:
-      - text: DeepSeek
-      - img "API key missing"
-      - button "Edit DeepSeek (deepseek-official)": Edit
-      - button "Delete DeepSeek (deepseek-official)": Delete
-  - button "Add provider":
-    - img
-    - text: Add provider
-  - button "Add a custom provider":
-    - img
-    - text: Add a custom provider
+  - region "API keys":
+    - heading "API keys" [level=3]
+    - paragraph: Configure provider API keys and optional fallback keys.
+    - list:
+      - listitem:
+        - text: DeepSeek
+        - img "API key missing"
+        - button "Edit DeepSeek (deepseek-official)": Edit
+        - button "Delete DeepSeek (deepseek-official)": Delete
+    - button "Add provider":
+      - img
+      - text: Add provider
+    - button "Add a custom provider":
+      - img
+      - text: Add a custom provider
+  - region "Account sign-in":
+    - heading "Account sign-in" [level=3]
+    - paragraph: Connect ChatGPT or Google Antigravity accounts independently of your API keys.
+    - list
+    - button "Add sign-in provider":
+      - img
+      - text: Add sign-in provider

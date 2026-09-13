@@ -59,6 +59,32 @@ describe('web e2e: plugin settings regressions', () => {
     await scaffold?.close()
   })
 
+  it('keeps Obsidian MCP visible for a module-name search across plugin toggles', async () => {
+    const settings = page.getByRole('dialog', { name: 'Settings', exact: true })
+    const search = settings.getByRole('searchbox')
+    await search.fill('kno')
+    await settings.getByRole('tab', { name: 'MCP', exact: true }).click()
+    const disable = settings.getByRole('switch', { name: 'Disable Obsidian MCP', exact: true })
+    await disable.click()
+    const enable = settings.getByRole('switch', { name: 'Enable Obsidian MCP', exact: true })
+    await enable.waitFor()
+    expect(await enable.isChecked()).toBe(false)
+    await settings.getByText('The Obsidian MCP plugin is disabled or unavailable.', { exact: true }).waitFor()
+    await compareOrRefreshGolden(join(SNAPSHOT_DIR, 'native-mcp-disabled-search.expected.md'),
+      await captureStableAria(page, '[role="tabpanel"]:not([hidden])', scaffold.workspaceCwd), MODE)
+
+    await enable.click()
+    await disable.waitFor()
+    expect(await disable.isChecked()).toBe(true)
+    await settings.getByRole('button', { name: 'Show settings: Obsidian MCP', exact: true }).waitFor()
+    await compareOrRefreshGolden(join(SNAPSHOT_DIR, 'native-mcp-enabled-search.expected.md'),
+      await captureStableAria(page, '[role="tabpanel"]:not([hidden])', scaffold.workspaceCwd), MODE)
+    await search.fill('no-matching-native-mcp')
+    expect(await disable.count()).toBe(0)
+    await search.fill('')
+    await settings.getByRole('tab', { name: 'Configuration', exact: true }).click()
+  })
+
   it('keeps an edit made while a submitted value crosses the real wire', async () => {
     const dialog = page.getByRole('dialog', { name: 'Settings', exact: true })
     await dialog.getByText('Shell', { exact: true }).click()
@@ -256,6 +282,7 @@ describe('web e2e: plugin settings regressions', () => {
       'pending-edit.expected.md', 'mcp-duplicate.expected.md', 'hooks-duplicate.expected.md',
       'refreshed-skills.expected.md', 'rejected-key.expected.md', 'mcp-load-failed.expected.md',
       'mcp-deleted.expected.md', 'hooks-deleted.expected.md',
+      'native-mcp-disabled-search.expected.md', 'native-mcp-enabled-search.expected.md',
     ])
   })
 })

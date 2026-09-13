@@ -26,27 +26,37 @@
     - text: Close
   - heading "Models" [level=2]
   - paragraph: Sign in with your accounts or enter API keys to use models from these providers.
-  - list:
-    - listitem:
-      - text: DeepSeek
-      - img "API key configured"
-      - button "Edit DeepSeek (deepseek-official)": Edit
-      - button "Delete DeepSeek (deepseek-official)": Delete
-      - text: DeepSeek deepseek-official API key
-      - textbox "API key":
-        - /placeholder: Configured — enter a new value to replace
-      - text: Fallback API key 1
-      - textbox "Fallback API key 1":
-        - /placeholder: Configured — enter a new value to replace
-      - button "Remove API key 1": Delete
-      - button "Add API key"
-      - paragraph: Keys are tried in order. If a request fails, the next key retries it. Stop cancels all retries.
-      - group: Customized settings
-      - button "Cancel"
-      - button "Apply"
-  - button "Add provider":
-    - img
-    - text: Add provider
-  - button "Add a custom provider":
-    - img
-    - text: Add a custom provider
+  - region "API keys":
+    - heading "API keys" [level=3]
+    - paragraph: Configure provider API keys and optional fallback keys.
+    - list:
+      - listitem:
+        - text: DeepSeek
+        - img "API key configured"
+        - button "Edit DeepSeek (deepseek-official)": Edit
+        - button "Delete DeepSeek (deepseek-official)": Delete
+        - text: DeepSeek deepseek-official API key
+        - textbox "API key":
+          - /placeholder: Configured — enter a new value to replace
+        - text: Fallback API key 1
+        - textbox "Fallback API key 1":
+          - /placeholder: Configured — enter a new value to replace
+        - button "Remove API key 1": Delete
+        - button "Add API key"
+        - paragraph: Keys are tried in order. If a request fails, the next key retries it. Stop cancels all retries.
+        - group: Customized settings
+        - button "Cancel"
+        - button "Apply"
+    - button "Add provider":
+      - img
+      - text: Add provider
+    - button "Add a custom provider":
+      - img
+      - text: Add a custom provider
+  - region "Account sign-in":
+    - heading "Account sign-in" [level=3]
+    - paragraph: Connect ChatGPT or Google Antigravity accounts independently of your API keys.
+    - list
+    - button "Add sign-in provider":
+      - img
+      - text: Add sign-in provider

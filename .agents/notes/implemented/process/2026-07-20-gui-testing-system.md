@@ -29,7 +29,7 @@ Inter-tier discipline: **each tier tests its own layer, upper tiers never re-tes
 
 | Scenario | Command | Content | When to run |
 |---|---|---|---|
-| Baseline | `pnpm run test:gui` | Tier 1+2 vitest (`packages/client packages/host`), seconds-fast, no browser, no server | Casually, after touching any GUI source |
+| Baseline | `pnpm run test:gui` | Tier 1+2 vitest (`packages/client packages/host`) with at most four workers, no browser, no server | Casually, after touching any GUI source |
 | Semantic snapshot | `HYDRA_EXAMPLE_MODE=lib pnpm run test:snapshot` | Keyless assembled-application semantics plus the repo's transport-specific expected outputs | After a human-visible GUI change; before delivery |
 | Browser end-to-end | `pnpm run test:web` | Rebuilds the front-end dist first, then runs the tier-3 browser set: the two-level smoke (fixture level + real-host level self-skip) plus the keyless replayed e2e scenarios (`HYDRA_SNAPSHOT=record`/`refresh` re-record fixtures / rewrite goldens) | After touching the build surface/boot/carriage; before delivery |
 | Browser expected-output gate | `HYDRA_SNAPSHOT=replay pnpm run test:web:built` | Reuses CI-built artifacts and compares every committed browser golden without writing | Every Linux pull request |
@@ -44,6 +44,8 @@ Inter-tier discipline: **each tier tests its own layer, upper tiers never re-tes
 - The code-on-disk-is-the-answer reconciliation workflow: when a behavior change lands and turns existing cases red, reconcile on the spot (fix the test or fix the code, with the RFC/contract as arbiter); no red left hanging.
 
 ## Consequences
+
+The GUI baseline caps Vitest at four worker processes because unrestricted local concurrency can make independent five-second tests time out. The cap trades peak throughput for reliable failure diagnosis without changing test deadlines.
 
 Each lane tests its own tier: touching any GUI source gets seconds-fast `test:gui` feedback, wire/object-layer semantics assert in milliseconds in Node, built-composition snapshots pin deterministic user-visible projection, and the browser carries wiring and carrier acceptance. Inter-tier discipline remains review-owned, while Linux CI mechanically enforces browser-golden freshness. Every new app snapshot must avoid unstable layout or clock output.
 

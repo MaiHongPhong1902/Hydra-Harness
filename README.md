@@ -1,28 +1,29 @@
 # Hydra harness
 
-Hydra harness (`hydra`) is an open-source agent harness originally developed by [DeepSeek AI](https://deepseek.com). This repository is a public fork of that work.
+Hydra harness (`hydra`) is an open-source workspace for working with AI agents through a Web UI, desktop app, or command line. **Hydra is a public fork of DeepSeek Harness, originally developed by [DeepSeek AI](https://deepseek.com).** The original project's code and design form the foundation of this fork.
 
-It uses an architecture where **everything is a plugin**, and is powered by [Cordis](https://github.com/cordiverse/cordis), whose design is described in [_A Programming Paradigm for Spatiotemporal Composability_](https://github.com/cordiverse/paper).
+Agents can read and edit project files, run commands, use browser tools, and delegate tasks. You choose the model provider, workspace, and permission policy.
+
+## Built around plugins
+
+Hydra follows DeepSeek Harness's **everything is a plugin** architecture, powered by [Cordis](https://github.com/cordiverse/cordis). Model adapters, tools, sessions, the user interface, and the agent loop are composed through plugins and configuration.
+
+- **Work in your projects:** give agents a workspace and manage their access through permissions and approvals.
+- **Choose your models:** configure DeepSeek, other catalog providers, or custom endpoints through [model settings](docs/user/guide/providers.md).
+- **Continue your work:** resume or fork sessions backed by a durable event log.
+- **Extend the runtime:** add tools, providers, and UI features with [your own plugins](docs/user/develop/basic/index.md).
+
+See the [architecture guide](docs/architecture.md) for how these pieces fit together. Cordis's underlying design is described in [_A Programming Paradigm for Spatiotemporal Composability_](https://github.com/cordiverse/paper).
 
 ## Developer preview
 
-Hydra harness is currently in _developer preview_ and is iterating rapidly. **THERE WILL BE COMPATIBILITY-BREAKING CHANGES.**
+Hydra is under active development. Expect breaking changes to APIs, configuration, and stored data during the developer preview.
 
 ## Run
 
-### Run from `npm`
-
-Install `Node.js`, then run:
-
-```sh
-npx @hydra/harness web
-```
-
-The command starts the Web UI at `http://127.0.0.1:3080` by default and opens it in the default browser for a local launch. An SSH launch only prints the host URL because the SSH client or editor owns the local forwarded address. Pass `--no-open` to run the server without opening a browser. See [Web UI guide](docs/user/guide/index.md).
+Use Node.js **22.19 or later in the 22.x line, or 24 and newer**. Building from source also requires Git and pnpm; the repository pins its pnpm version in [package.json](package.json).
 
 ### Run from source
-
-To run from a repository checkout:
 
 ```sh
 git clone --recurse-submodules https://github.com/MaiHongPhong1902/Hydra-Harness.git
@@ -30,29 +31,44 @@ cd Hydra-Harness
 pnpm install
 pnpm run build
 pnpm hydra web
-# for desktop:
+```
+
+The clone includes the PageAgent submodule required by `pnpm install`. For an existing checkout or a missing `@page-agent/core` / `@page-agent/page-controller` error, follow [Checking out PageAgent](packages/browser/browser-electron/README.md#checking-out-pageagent). Build after source changes; `pnpm hydra web` uses the built artifacts without rebuilding them.
+
+To open the desktop app after building:
+
+```sh
 pnpm run desktop
 ```
 
-`pnpm install` needs the PageAgent git submodule on disk. Clone with `--recurse-submodules`, or follow [Checking out PageAgent](packages/browser/browser-electron/README.md#checking-out-pageagent) if install reports `ERR_PNPM_WORKSPACE_PKG_NOT_FOUND` for `@page-agent/core` or `@page-agent/page-controller`. `pnpm run build` prepares the repository artifacts through the workspace `tsx`; `pnpm hydra web` uses those built artifacts without rebuilding.
+### Run from npm
 
-## Community and support
+```sh
+npx @hydra/harness web
+```
 
-- Feel free to submit feedback or bug reports through [GitHub Discussions](https://github.com/MaiHongPhong1902/Hydra-Harness/discussions).
-- Add the [`hydra-plugin`](https://github.com/topics/hydra-plugin) topic to your plugin repository for discoverability.
+The Web UI starts at `http://127.0.0.1:3080` by default. Local launches open your browser automatically; SSH launches print the host URL so your SSH client or editor can handle forwarding. Pass `--no-open` to start the server without opening a browser.
 
-## Contributing
+### Start your first task
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+1. Open **Settings → Models** and configure a provider.
+2. Select **Choose workspace** and add your project directory.
+3. Start a session and ask: **“Summarize this repository and identify its main packages.”**
 
-## Development
+The [Web UI guide](docs/user/guide/index.md) walks through setup and the first session.
 
-Start with the [development guide](docs/development.md) and [architecture documentation](docs/architecture.md).
+## Documentation
 
-For agents, follow [AGENTS.md](AGENTS.md).
+- [Development guide](docs/development.md) — contributor setup and local checks.
+- [Architecture](docs/architecture.md) — plugin composition and agent execution.
+- [Package map](packages/README.md) — the repository's capability groups.
+- [CLI reference](apps/cli/README.md) — headless runs and other CLI modes.
+- [Agent instructions](AGENTS.md) — repository rules for coding agents.
+
+## Community and contributing
+
+Share feedback and bug reports in [GitHub Discussions](https://github.com/MaiHongPhong1902/Hydra-Harness/discussions). Read [CONTRIBUTING.md](CONTRIBUTING.md) for the current contribution policy. If you publish a plugin, add the [`hydra-plugin`](https://github.com/topics/hydra-plugin) topic to help others find it.
 
 ## License
 
-[MIT](LICENSE)
-
-Third-party dependencies and their licenses are disclosed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+Released under the [MIT License](LICENSE), with the original DeepSeek copyright retained. Third-party dependencies and their licenses are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

@@ -3,6 +3,7 @@
 // authorization still crosses the real Host RPC and credentials services.
 import { fileURLToPath } from 'node:url'
 import { join } from 'node:path'
+import { readFile } from 'node:fs/promises'
 import type { Browser, Locator, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
@@ -43,9 +44,13 @@ async function openEditor(dialog: Locator, buttonName: string): Promise<void> {
 }
 
 async function openAddEditor(dialog: Locator, provider: string): Promise<void> {
-  await dialog.getByRole('button', { name: 'Add provider', exact: true }).click()
+  const section = dialog.getByRole('region', { name: 'Account sign-in', exact: true })
+  await section.getByRole('button', { name: 'Add sign-in provider', exact: true }).click()
   await dialog.getByLabel('Provider', { exact: true }).selectOption(provider)
   await dialog.getByText('Accounts', { exact: true }).waitFor({ timeout: 10_000 })
+  expect(await section.getByRole('textbox', { name: 'API key', exact: true }).count()).toBe(0)
+  expect(await section.getByLabel('Provider', { exact: true }).locator('option').allTextContents())
+    .not.toContain('minimax-cn')
 }
 
 async function addAccount(dialog: Locator, providerName: string, label: string): Promise<void> {
@@ -91,9 +96,22 @@ describe('web e2e: account-backed ChatGPT and Antigravity login', () => {
     await scaffold?.close()
   })
 
-  it('persists multiple accounts, signs out one, and keeps model selection available', async () => {
+  it('keeps API keys independent while adding, removing, and restoring multiple accounts', async () => {
     onTestFailed(() => saveFailureShot(page, 'web-e2e-auth-accounts'))
     const dialog = await openModels(page)
+
+    const apiKeys = dialog.getByRole('region', { name: 'API keys', exact: true })
+    await apiKeys.getByRole('button', { name: 'Add provider', exact: true }).click()
+    const apiProvider = apiKeys.getByLabel('Provider', { exact: true })
+    const options = await apiProvider.locator('option').allTextContents()
+    expect(options).not.toContain('ChatGPT')
+    expect(options).not.toContain('Google Antigravity')
+    await apiProvider.selectOption('minimax-cn')
+    await apiKeys.getByRole('textbox', { name: 'API key', exact: true }).fill('sk-e2e-independent-primary')
+    await apiKeys.getByRole('button', { name: 'Add API key', exact: true }).click()
+    await apiKeys.getByLabel('Fallback API key 1', { exact: true }).fill('sk-e2e-independent-fallback')
+    await applyEditor(dialog, 'Edit minimax-cn')
+    await apiKeys.getByRole('img', { name: 'API key configured', exact: true }).waitFor({ timeout: 10_000 })
 
     await openAddEditor(dialog, 'chatgpt')
     const empty = dialog.getByText('No accounts connected.', { exact: true })
@@ -142,6 +160,15 @@ describe('web e2e: account-backed ChatGPT and Antigravity login', () => {
     await page.reload({ waitUntil: 'load' })
     await page.waitForSelector('[class*="frame"]', { timeout: 30_000 })
     const reopened = await openModels(page)
+    const restoredApiKeys = reopened.getByRole('region', { name: 'API keys', exact: true })
+    await restoredApiKeys.getByRole('button', { name: 'Edit minimax-cn', exact: true }).click()
+    await restoredApiKeys.getByLabel('Fallback API key 1', { exact: true }).waitFor({ timeout: 10_000 })
+    expect(await restoredApiKeys.getByRole('textbox', { name: 'API key', exact: true }).inputValue()).toBe('')
+    expect(await restoredApiKeys.getByLabel('Fallback API key 1', { exact: true }).inputValue()).toBe('')
+    const storedKeys = await readFile(join(scaffold.harnessHome, '.credentials.yaml'), 'utf8')
+    expect(storedKeys).toContain('sk-e2e-independent-primary')
+    expect(storedKeys).toContain('sk-e2e-independent-fallback')
+    await restoredApiKeys.getByRole('button', { name: 'Cancel', exact: true }).click()
     await openEditor(reopened, 'Edit ChatGPT (chatgpt)')
     await expect.poll(() => reopened.getByText('bob@example.test', { exact: true }).count(), { timeout: 10_000 }).toBe(1)
     await reopened.getByRole('button', { name: 'Cancel', exact: true }).click()

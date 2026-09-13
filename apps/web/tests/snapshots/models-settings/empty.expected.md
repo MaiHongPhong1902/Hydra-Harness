@@ -26,53 +26,61 @@
     - text: Close
   - heading "Models" [level=2]
   - paragraph: Sign in with your accounts or enter API keys to use models from these providers.
-  - list
-  - text: Provider
-  - combobox "Provider":
-    - option "ChatGPT"
-    - option "Google Antigravity"
-    - option "amazon-bedrock"
-    - option "ant-ling"
-    - option "anthropic"
-    - option "azure-openai-responses"
-    - option "cerebras"
-    - option "cloudflare-ai-gateway"
-    - option "cloudflare-workers-ai"
-    - option "deepseek"
-    - option "fireworks"
-    - option "github-copilot"
-    - option "google"
-    - option "google-vertex"
-    - option "groq"
-    - option "huggingface"
-    - option "kimi-coding"
-    - option "minimax"
-    - option "minimax-cn" [selected]
-    - option "mistral"
-    - option "moonshotai"
-    - option "moonshotai-cn"
-    - option "nvidia"
-    - option "openai"
-    - option "openai-codex"
-    - option "opencode"
-    - option "opencode-go"
-    - option "openrouter"
-    - option "qwen-token-plan"
-    - option "qwen-token-plan-cn"
-    - option "together"
-    - option "vercel-ai-gateway"
-    - option "xai"
-    - option "xiaomi"
-    - option "xiaomi-token-plan-ams"
-    - option "xiaomi-token-plan-cn"
-    - option "xiaomi-token-plan-sgp"
-    - option "zai"
-    - option "zai-coding-cn"
-  - text: API key
-  - textbox "API key":
-    - /placeholder: Enter an API key, or leave blank to use environment authentication
-  - button "Add API key"
-  - paragraph: Keys are tried in order. If a request fails, the next key retries it. Stop cancels all retries.
-  - group: Customized settings
-  - button "Cancel"
-  - button "Apply"
+  - region "API keys":
+    - heading "API keys" [level=3]
+    - paragraph: Configure provider API keys and optional fallback keys.
+    - list
+    - text: Provider
+    - combobox "Provider":
+      - option "amazon-bedrock"
+      - option "ant-ling"
+      - option "anthropic"
+      - option "azure-openai-responses"
+      - option "cerebras"
+      - option "cloudflare-ai-gateway"
+      - option "cloudflare-workers-ai"
+      - option "deepseek"
+      - option "fireworks"
+      - option "github-copilot"
+      - option "google"
+      - option "google-vertex"
+      - option "groq"
+      - option "huggingface"
+      - option "kimi-coding"
+      - option "minimax"
+      - option "minimax-cn" [selected]
+      - option "mistral"
+      - option "moonshotai"
+      - option "moonshotai-cn"
+      - option "nvidia"
+      - option "openai"
+      - option "openai-codex"
+      - option "opencode"
+      - option "opencode-go"
+      - option "openrouter"
+      - option "qwen-token-plan"
+      - option "qwen-token-plan-cn"
+      - option "together"
+      - option "vercel-ai-gateway"
+      - option "xai"
+      - option "xiaomi"
+      - option "xiaomi-token-plan-ams"
+      - option "xiaomi-token-plan-cn"
+      - option "xiaomi-token-plan-sgp"
+      - option "zai"
+      - option "zai-coding-cn"
+    - text: API key
+    - textbox "API key":
+      - /placeholder: Enter an API key, or leave blank to use environment authentication
+    - button "Add API key"
+    - paragraph: Keys are tried in order. If a request fails, the next key retries it. Stop cancels all retries.
+    - group: Customized settings
+    - button "Cancel"
+    - button "Apply"
+  - region "Account sign-in":
+    - heading "Account sign-in" [level=3]
+    - paragraph: Connect ChatGPT or Google Antigravity accounts independently of your API keys.
+    - list
+    - button "Add sign-in provider":
+      - img
+      - text: Add sign-in provider

@@ -1,0 +1,18 @@
+- tabpanel "MCP":
+  - list:
+    - region "Your MCP servers":
+      - heading "Your MCP servers" [level=3]
+      - button "Add server":
+        - img
+        - text: Add server
+      - paragraph: Saved in your settings file, so they come back the next time you start.
+      - paragraph: You have not added any MCP servers.
+    - listitem:
+      - 'button "Show settings: Obsidian MCP"':
+        - text: Obsidian MCP Knowledge access through the local Obsidian MCP server at 127.0.0.1:27123.
+        - img
+      - text: Enabled
+      - switch "Disable Obsidian MCP" [checked]
+    - region "Imported OpenAI/Codex MCP servers":
+      - heading "Imported OpenAI/Codex MCP servers" [level=3]
+      - paragraph: No imported plugins provide MCP servers.

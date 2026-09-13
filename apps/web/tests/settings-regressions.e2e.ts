@@ -177,7 +177,7 @@ describe('web e2e: Settings drafts and dialog interaction', () => {
     await settings.getByLabel('Provider ID', { exact: true }).fill('settings-fixture')
     await settings.getByLabel('Base URL', { exact: true }).fill('https://old.invalid/v1')
     await settings.getByLabel('Proxy', { exact: true }).fill('http://old.invalid:8080')
-    await settings.getByLabel('API key', { exact: true }).fill('fixture-key')
+    await settings.getByRole('textbox', { name: 'API key', exact: true }).fill('fixture-key')
     await settings.getByRole('button', { name: 'Add model', exact: true }).click()
     await settings.getByLabel('Model ID 1', { exact: true }).fill('fixture-model')
     const credentialRoute = '**/api/credentials.set'

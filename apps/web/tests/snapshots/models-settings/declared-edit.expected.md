@@ -26,56 +26,66 @@
     - text: Close
   - heading "Models" [level=2]
   - paragraph: Sign in with your accounts or enter API keys to use models from these providers.
-  - list:
-    - listitem:
-      - text: minimax-cn
-      - img "API key configured"
-      - button "Edit minimax-cn": Edit
-      - button "Delete minimax-cn": Delete
-    - listitem:
-      - text: Acme Gateway Custom
-      - button "Edit Acme Gateway (acme-gateway)": Edit
-      - button "Delete Acme Gateway (acme-gateway)": Delete
-      - text: Acme Gateway acme-gateway API key
-      - textbox "API key":
-        - /placeholder: Enter an API key, or leave blank to use environment authentication
-      - button "Add API key"
-      - paragraph: Keys are tried in order. If a request fails, the next key retries it. Stop cancels all retries.
-      - group:
-        - text: Customized settings Display name
-        - textbox "Display name":
-          - /placeholder: acme-gateway
-          - text: Acme Gateway
-        - text: Base URL
-        - textbox "Base URL":
-          - /placeholder: Provider default
-          - text: https://gateway.acme.example/v1
-        - text: Proxy
-        - textbox "Proxy":
-          - /placeholder: Optional HTTP(S) proxy, e.g. http://127.0.0.1:3128
-        - text: API protocol
-        - combobox "API protocol":
-          - option "openai-completions" [selected]
-          - option "openai-responses"
-          - option "anthropic-messages"
-          - option "azure-openai-completions"
-        - region "Models":
-          - text: Models Customized model catalog
-          - button "Restore defaults"
-          - button "Fetch available models"
-          - textbox "Model ID 1":
-            - /placeholder: Model ID
-            - text: acme-large
-          - textbox "Display name 1":
-            - /placeholder: Display name
-          - button "Capacities 1"
-          - button "Delete model 1"
-          - button "Add model"
-      - button "Cancel"
-      - button "Apply"
-  - button "Add provider":
-    - img
-    - text: Add provider
-  - button "Add a custom provider":
-    - img
-    - text: Add a custom provider
+  - region "API keys":
+    - heading "API keys" [level=3]
+    - paragraph: Configure provider API keys and optional fallback keys.
+    - list:
+      - listitem:
+        - text: minimax-cn
+        - img "API key configured"
+        - button "Edit minimax-cn": Edit
+        - button "Delete minimax-cn": Delete
+      - listitem:
+        - text: Acme Gateway Custom
+        - button "Edit Acme Gateway (acme-gateway)": Edit
+        - button "Delete Acme Gateway (acme-gateway)": Delete
+        - text: Acme Gateway acme-gateway API key
+        - textbox "API key":
+          - /placeholder: Enter an API key, or leave blank to use environment authentication
+        - button "Add API key"
+        - paragraph: Keys are tried in order. If a request fails, the next key retries it. Stop cancels all retries.
+        - group:
+          - text: Customized settings Display name
+          - textbox "Display name":
+            - /placeholder: acme-gateway
+            - text: Acme Gateway
+          - text: Base URL
+          - textbox "Base URL":
+            - /placeholder: Provider default
+            - text: https://gateway.acme.example/v1
+          - text: Proxy
+          - textbox "Proxy":
+            - /placeholder: Optional HTTP(S) proxy, e.g. http://127.0.0.1:3128
+          - text: API protocol
+          - combobox "API protocol":
+            - option "openai-completions" [selected]
+            - option "openai-responses"
+            - option "anthropic-messages"
+            - option "azure-openai-completions"
+          - region "Models":
+            - text: Models Customized model catalog
+            - button "Restore defaults"
+            - button "Fetch available models"
+            - textbox "Model ID 1":
+              - /placeholder: Model ID
+              - text: acme-large
+            - textbox "Display name 1":
+              - /placeholder: Display name
+            - button "Capacities 1"
+            - button "Delete model 1"
+            - button "Add model"
+        - button "Cancel"
+        - button "Apply"
+    - button "Add provider":
+      - img
+      - text: Add provider
+    - button "Add a custom provider":
+      - img
+      - text: Add a custom provider
+  - region "Account sign-in":
+    - heading "Account sign-in" [level=3]
+    - paragraph: Connect ChatGPT or Google Antigravity accounts independently of your API keys.
+    - list
+    - button "Add sign-in provider":
+      - img
+      - text: Add sign-in provider

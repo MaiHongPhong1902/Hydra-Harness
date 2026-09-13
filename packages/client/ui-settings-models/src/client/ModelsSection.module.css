@@ -23,6 +23,17 @@
   color: var(--dsw-alias-label-primary);
 }
 
+.providerGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 16px;
+}
+
+.providerGroup + .providerGroup {
+  border-top: 1px solid var(--dsw-alias-border-l2);
+}
+
 .intro {
   margin: 0;
   font-size: 14px;

@@ -8,7 +8,7 @@ The configurable tab reads which settings namespaces the Host serves and dispatc
 
 The configuration cards cover the shell executor and agent loop. A separate **Web Search** section uses the backend provider directory for its dropdown and configuration fields. Search enablement, provider selection, and limits use `web-search`; provider settings remain in independent namespaces. Drafts survive provider and section switches. Save writes captured provider drafts and write-only credential replacements/removals before activating the captured selection; failures remain retryable and newer edits stay staged. Test Connection uses saved configuration and is disabled until drafts are saved. Credential status uses `credentials.describe`; raw keys are never returned or revealed. Search selection does not follow chat models. Country and language are inferred by the agent per search and are not Settings controls; Other retains advanced request-field mappings for these hints.
 
-The MCP tab enables or disables the shipped `obsidian-knowledge` plugin locally, and configures its optional Browser target hostname through that plugin's settings namespace. It writes `OBSIDIAN_API_KEY` through the credentials domain, so the stored key never rides a browser response. The local MCP endpoint remains the plugin-owned loopback default.
+The MCP tab enables or disables the shipped `obsidian-knowledge` plugin locally. Its card matches both the display title and module name in either state. It writes `OBSIDIAN_API_KEY` through the credentials domain, so the stored key never rides a browser response. The local MCP endpoint remains the plugin-owned loopback default.
 
 ## The user's own MCP servers and hooks
 
