@@ -9,6 +9,7 @@ const { tmpdir } = require('node:os')
 const { dirname, isAbsolute, join, relative, resolve, sep } = require('node:path')
 const { createInterface } = require('node:readline')
 const { setTimeout: delay } = require('node:timers/promises')
+const { stripVTControlCharacters } = require('node:util')
 const { app, BrowserWindow, dialog, ipcMain, nativeImage, nativeTheme, shell, utilityProcess } = require('electron')
 const nodePty = require('node-pty')
 
@@ -282,12 +283,14 @@ function releaseTerminal(id, instance) {
   for (const subscription of record.subscriptions) subscription.dispose()
 }
 
-async function startTerminal(id, size) {
+async function startTerminal(id, size, workspaceId) {
   const current = terminals.get(id)
   if (current !== undefined) {
+    if (current.workspaceId !== workspaceId) throw new Error('terminal belongs to another workspace')
     try { current.instance.resize(size.cols, size.rows) } catch {}
     return { running: true }
   }
+  const cwd = workspaceId === undefined ? process.cwd() : await registeredWorkspaceRoot(workspaceId)
   const { scrubbedParentEnv } = await import('@hydra/harness-subprocess')
   const env = scrubbedParentEnv()
   let shell = env.SHELL ?? '/bin/sh'
@@ -307,10 +310,10 @@ async function startTerminal(id, size) {
     name: 'xterm-256color',
     cols: size.cols,
     rows: size.rows,
-    cwd: process.cwd(),
+    cwd,
     env,
   })
-  const record = { instance, subscriptions: [], output: '', shellName }
+  const record = { instance, subscriptions: [], output: '', shellName, workspaceId }
   terminals.set(id, record)
   const data = instance.onData((value) => {
     record.output = (record.output + value).slice(-200_000)
@@ -669,7 +672,7 @@ function installRendererIpc() {
     const id = terminalId(value?.terminalId)
     const size = terminalSize(value?.size)
     if (id === undefined || size === undefined) throw new Error('terminal request is invalid')
-    return await queueTerminal(id, () => startTerminal(id, size))
+    return await queueTerminal(id, () => startTerminal(id, size, value?.workspaceId))
   })
   ipcMain.handle('hydra-desktop:terminal-stop', async (event, value) => {
     if (shuttingDown !== undefined || !validSender(event)) throw new Error('terminal is unavailable')
@@ -810,9 +813,10 @@ async function waitForHiddenBrowser(label) {
   throw new Error(`${label} did not hide native browser views: ${JSON.stringify(browserBounds)}`)
 }
 
-async function selectControl(label) {
+async function selectControl(label, scope) {
   const clicked = await mainWindow.webContents.executeJavaScript(`(() => {
-    const button = document.querySelector('[aria-label=${JSON.stringify(label)}]')
+    const parent = ${scope === undefined ? 'document' : `document.querySelector(${JSON.stringify(scope)})`}
+    const button = parent?.querySelector('[aria-label=${JSON.stringify(label)}]')
     if (!(button instanceof HTMLButtonElement)) return false
     button.click()
     return true
@@ -833,7 +837,7 @@ async function waitForTerminal(id, label, predicate) {
 async function waitForRenderer(label, expression) {
   const deadline = Date.now() + 15_000
   while (Date.now() < deadline) {
-    if (await mainWindow.webContents.executeJavaScript(`Boolean(${expression})`)) return
+    if (await mainWindow.webContents.executeJavaScript(`(async () => Boolean(await (${expression})))()`)) return
     await delay(100)
   }
   throw new Error(`${label} renderer check failed`)
@@ -848,11 +852,20 @@ async function prepareSmokeWorkspace() {
   await writeFile(join(root, 'bom-crlf.txt'), '\ufeffone\r\ntwo\r\n')
   await writeFile(join(outside, 'outside-only.txt'), 'must not be searchable\n')
   await symlink(outside, join(root, 'linked-outside'), process.platform === 'win32' ? 'junction' : 'dir')
+  const terminalWorkspaces = []
+  smokeWorkspace.terminalWorkspaces = terminalWorkspaces
+  for (const name of ['workspace B', 'workspace C']) {
+    const path = join(root, name)
+    await mkdir(path)
+    const created = await hostRequest('workspace.create', { path })
+    if (typeof created?.workspace?.workspaceId !== 'string') throw new Error('terminal smoke workspace is unavailable')
+    terminalWorkspaces.push({ workspaceId: created.workspace.workspaceId, path: await realpath(path) })
+  }
   const value = await hostRequest('workspace.create', { path: root })
   const workspaceId = value?.workspace?.workspaceId
   if (typeof workspaceId !== 'string') throw new Error('desktop smoke Workspace is unavailable')
   if (value?.created !== true) throw new Error('desktop smoke Workspace already exists')
-  smokeWorkspace = { root: await realpath(root), outside: await realpath(outside), workspaceId }
+  smokeWorkspace = { root: await realpath(root), outside: await realpath(outside), workspaceId, terminalWorkspaces }
 }
 
 async function cleanupSmokeWorkspace() {
@@ -860,8 +873,9 @@ async function cleanupSmokeWorkspace() {
   smokeWorkspace = undefined
   if (workspace === undefined) return
   let cleanupError
-  if (workspace.workspaceId !== undefined) {
-    try { await hostRequest('workspace.delete', { workspaceId: workspace.workspaceId }) } catch (error) { cleanupError = error }
+  for (const workspaceId of [workspace.workspaceId, ...(workspace.terminalWorkspaces ?? []).map(item => item.workspaceId)]) {
+    if (workspaceId === undefined) continue
+    try { await hostRequest('workspace.delete', { workspaceId }) } catch (error) { cleanupError = error }
   }
   for (const directory of [workspace.root, workspace.outside]) {
     if (directory === undefined) continue
@@ -894,6 +908,17 @@ async function smoke() {
     throw new Error('desktop panel shortcut mapping is invalid')
   }
   await selectControl('Toggle right panel')
+  const onboardingDeadline = Date.now() + 15_000
+  while (!browserBounds.visible && Date.now() < onboardingDeadline) {
+    await mainWindow.webContents.executeJavaScript(`(() => {
+      const dialog = document.querySelector('[role="dialog"][aria-modal="true"]')
+      if (!dialog) return
+      const title = dialog.getAttribute('aria-label') ?? document.getElementById(dialog.getAttribute('aria-labelledby'))?.textContent
+      const label = title === 'Internal Testing Notice' ? 'Continue' : title === 'Settings' ? 'Close' : undefined
+      if (label) [...dialog.querySelectorAll('button')].find(button => button.textContent.trim() === label)?.click()
+    })()`)
+    await delay(100)
+  }
   const right = await waitForBounds('right', bounds => bounds.x > 0 && bounds.width < mainWindow.getContentBounds().width)
   assertNativeViews(right)
   const panelOptions = await mainWindow.webContents.executeJavaScript(`(() =>
@@ -1009,29 +1034,53 @@ async function smoke() {
     return bottom instanceof HTMLElement && !bottom.hidden && right instanceof HTMLElement && !right.hidden
   })()`)
   if (!terminalsVisible) throw new Error('right and bottom Terminal panels did not open together')
-  await waitForTerminal('bottom', 'bottom startup', () => true)
+  await waitForTerminal('bottom-1-1', 'bottom startup', () => true)
+  const workspaceTranscript = []
+  const assertTerminalCwd = async (id, expected) => {
+    const command = process.platform === 'win32'
+      ? "Write-Output ('HYDRA_CWD:' + (Get-Location).Path)\r"
+      : "printf 'HYDRA_CWD:%s\\n' \"$PWD\"\r"
+    await mainWindow.webContents.executeJavaScript(`window.hydraDesktop.terminal.write(${JSON.stringify(id)}, ${JSON.stringify(command)})`)
+    await waitForTerminal(id, 'workspace cwd', terminal => terminal.output.includes(`HYDRA_CWD:${expected}`))
+    const output = stripVTControlCharacters(terminals.get(id).output)
+    const cwd = [...output.matchAll(/HYDRA_CWD:([^\r\n]+)/g)].at(-1)?.[1]
+    if (cwd !== expected) throw new Error(`unexpected terminal cwd: ${JSON.stringify(cwd)}`)
+    workspaceTranscript.push({ terminal: id, cwd: relative(smokeWorkspace.root, cwd).split(sep).join('/') || '.' })
+  }
+  await assertTerminalCwd('right', smokeWorkspace.root)
+  await assertTerminalCwd('bottom-1-1', smokeWorkspace.root)
   const marker = `HYDRA_TERMINAL_SMOKE_${Date.now()}`
   const rightMarker = `${marker}_RIGHT`
   const bottomMarker = `${marker}_BOTTOM`
+  // Shell history predictions must not contain the complete output marker.
+  const markerCommand = value => process.platform === 'win32'
+    ? `Write-Output ('HYDRA_' + '${value.slice(6)}')\r`
+    : `printf 'HYDRA_%s\\n' '${value.slice(6)}'\r`
   await mainWindow.webContents.executeJavaScript(`(() => {
-    window.hydraDesktop?.terminal?.write('right', ${JSON.stringify(`echo ${rightMarker}\r`)})
-    window.hydraDesktop?.terminal?.write('bottom', ${JSON.stringify(`echo ${bottomMarker}\r`)})
+    window.hydraDesktop?.terminal?.write('right', ${JSON.stringify(markerCommand(rightMarker))})
+    window.hydraDesktop?.terminal?.write('bottom-1-1', ${JSON.stringify(markerCommand(bottomMarker))})
   })()`)
   await waitForTerminal('right', 'right command output', terminal => terminal.output.includes(rightMarker))
-  await waitForTerminal('bottom', 'bottom command output', terminal => terminal.output.includes(bottomMarker))
-  if (terminals.get('right').output.includes(bottomMarker) || terminals.get('bottom').output.includes(rightMarker)) {
+  await waitForTerminal('bottom-1-1', 'bottom command output', terminal => terminal.output.includes(bottomMarker))
+  if (terminals.get('right').output.includes(bottomMarker) || terminals.get('bottom-1-1').output.includes(rightMarker)) {
     throw new Error('right and bottom Terminal output crossed PTY boundaries')
   }
   const firstTerminal = terminals.get('right').instance
   await selectControl('Terminal')
   await waitForRenderer('second Terminal tab', `document.querySelector('[aria-label="Right terminal 2"]:not([hidden])')`)
   await waitForTerminal('right-2', 'second right startup', () => true)
+  await assertTerminalCwd('right-2', smokeWorkspace.root)
   const secondMarker = `${marker}_SECOND`
-  await mainWindow.webContents.executeJavaScript(`window.hydraDesktop.terminal.write('right-2', ${JSON.stringify(`echo ${secondMarker}\r`)})`)
+  await mainWindow.webContents.executeJavaScript(`window.hydraDesktop.terminal.write('right-2', ${JSON.stringify(markerCommand(secondMarker))})`)
   await waitForTerminal('right-2', 'second right output', terminal => terminal.output.includes(secondMarker))
   if (terminals.get('right').instance !== firstTerminal || terminals.get('right').output.includes(secondMarker)
-    || terminals.get('right-2').output.includes(rightMarker) || terminals.get('bottom').output.includes(secondMarker)) {
-    throw new Error('Terminal tabs did not preserve independent PTYs')
+    || terminals.get('right-2').output.includes(rightMarker) || terminals.get('bottom-1-1').output.includes(secondMarker)) {
+    throw new Error(`Terminal tabs did not preserve independent PTYs: ${JSON.stringify({
+      firstPreserved: terminals.get('right')?.instance === firstTerminal,
+      firstHasSecond: terminals.get('right')?.output.includes(secondMarker),
+      secondHasFirst: terminals.get('right-2')?.output.includes(rightMarker),
+      bottomHasSecond: terminals.get('bottom-1-1')?.output.includes(secondMarker),
+    })}`)
   }
   if (process.platform === 'win32') {
     await mainWindow.webContents.executeJavaScript(`window.hydraDesktop.terminal.write('right-2', "Write-Output ('HYDRA_' + 'POWERSHELL:' + $PSVersionTable.PSVersion.Major)\\r")`)
@@ -1039,19 +1088,68 @@ async function smoke() {
   }
   await selectControl('Close Terminal 2')
   await waitForRenderer('second Terminal closed', `!document.querySelector('[aria-label="Close Terminal 2"]')`)
-  if (terminals.has('right-2') || terminals.get('right')?.instance !== firstTerminal || !terminals.has('bottom')) {
+  if (terminals.has('right-2') || terminals.get('right')?.instance !== firstTerminal || !terminals.has('bottom-1-1')) {
     throw new Error('closing the second Terminal affected another PTY')
+  }
+  const bottomPanel = 'section[aria-label="Terminal"]'
+  const firstBottom = terminals.get('bottom-1-1').instance
+  await selectControl('New Terminal', bottomPanel)
+  await waitForTerminal('bottom-1-2', 'second bottom tab startup', () => true)
+  await assertTerminalCwd('bottom-1-2', smokeWorkspace.root)
+  await waitForRenderer('bottom plus creates a tab without a split', `(() => {
+    const panel = document.querySelector(${JSON.stringify(bottomPanel)})
+    return panel.querySelectorAll('[role="tab"]').length === 2
+      && panel.querySelectorAll('[role="tabpanel"]:not([hidden]) [aria-label="Terminal output"]').length === 1
+  })()`)
+  await selectControl('Split Terminal', `${bottomPanel} [role="tabpanel"]:not([hidden])`)
+  await waitForTerminal('bottom-1-2-2', 'bottom split startup', () => true)
+  await assertTerminalCwd('bottom-1-2-2', smokeWorkspace.root)
+  const bottomTabs = await mainWindow.webContents.executeJavaScript(`(() => {
+    const tabs = [...document.querySelectorAll(${JSON.stringify(`${bottomPanel} [role="tab"]`)})]
+    return tabs.map(tab => ({ label: tab.textContent.trim(), selected: tab.getAttribute('aria-selected') === 'true' }))
+  })()`)
+  if (JSON.stringify(bottomTabs) !== JSON.stringify([{ label: 'Terminal', selected: false }, { label: 'Terminal 2', selected: true }])) {
+    throw new Error(`bottom terminal tabs are invalid: ${JSON.stringify(bottomTabs)}`)
+  }
+  await selectControl('Close Terminal 2', bottomPanel)
+  await waitForRenderer('bottom tab processes stopped', `window.hydraDesktop.terminal.list().then(items =>
+    !items.some(item => item.id === 'bottom-1-2' || item.id === 'bottom-1-2-2'))`)
+  if (terminals.get('bottom-1-1')?.instance !== firstBottom || terminals.get('right')?.instance !== firstTerminal) {
+    throw new Error('closing the bottom tab affected another terminal')
   }
   const rejectedTerminalId = await mainWindow.webContents.executeJavaScript(`window.hydraDesktop.terminal.start('right-0', { cols: 80, rows: 24 }).then(() => false, () => true)`)
   if (!rejectedTerminalId) throw new Error('invalid Terminal id was accepted')
   const rejectedSplitTerminalId = await mainWindow.webContents.executeJavaScript(`window.hydraDesktop.terminal.start('right-4-0', { cols: 80, rows: 24 }).then(() => false, () => true)`)
   if (!rejectedSplitTerminalId) throw new Error('invalid split Terminal id right-4-0 was accepted')
   const splitTerminalAccepted = await mainWindow.webContents.executeJavaScript(`(async () => {
-    const res = await window.hydraDesktop.terminal.start('right-4-2', { cols: 80, rows: 24 })
-    await window.hydraDesktop.terminal.stop('right-4-2')
+    const res = await window.hydraDesktop.terminal.start('right-4-2', { cols: 80, rows: 24 }, ${JSON.stringify(smokeWorkspace.workspaceId)})
     return res.running
   })()`)
   if (!splitTerminalAccepted) throw new Error('split terminal id right-4-2 was not accepted')
+  await assertTerminalCwd('right-4-2', smokeWorkspace.root)
+  await mainWindow.webContents.executeJavaScript("window.hydraDesktop.terminal.stop('right-4-2')")
+  const workspaceRejections = await mainWindow.webContents.executeJavaScript(`(async () => {
+    const api = window.hydraDesktop.terminal
+    const rejected = promise => promise.then(() => false, () => true)
+    return await Promise.all([
+      rejected(api.start('right-9001', { cols: 80, rows: 24 }, 'missing-workspace')),
+      rejected(api.start('right', { cols: 80, rows: 24 }, ${JSON.stringify(smokeWorkspace.terminalWorkspaces[0].workspaceId)})),
+    ])
+  })()`)
+  if (!workspaceRejections.every(Boolean) || terminals.has('right-9001')) throw new Error('invalid terminal workspace was accepted')
+  for (const workspace of smokeWorkspace.terminalWorkspaces) {
+    await mainWindow.webContents.executeJavaScript(`window.hydraDesktop.terminal.start('right-9001', { cols: 80, rows: 24 }, ${JSON.stringify(workspace.workspaceId)})`)
+    await assertTerminalCwd('right-9001', workspace.path)
+    await mainWindow.webContents.executeJavaScript("window.hydraDesktop.terminal.stop('right-9001')")
+  }
+  const workspaceGolden = join(__dirname, 'tests', 'snapshots', 'terminal-workspaces.expected.json')
+  const transcript = `${JSON.stringify(workspaceTranscript, null, 2)}\n`
+  if (process.env.HYDRA_SNAPSHOT === 'refresh') {
+    await mkdir(dirname(workspaceGolden), { recursive: true })
+    await writeFile(workspaceGolden, transcript)
+  } else if (await readFile(workspaceGolden, 'utf8') !== transcript) {
+    throw new Error(`terminal workspace snapshot mismatch:\n${transcript}`)
+  }
   await mainWindow.webContents.executeJavaScript(`(async () => {
     const api = window.hydraDesktop.terminal
     await Promise.all([
@@ -1146,11 +1244,9 @@ async function smoke() {
       }
       if (!matched) throw new Error(`Browser chrome does not match the ${colorScheme} app theme`)
       await waitForRenderer('terminal theme', `(() => {
-        const panels = [...document.querySelectorAll('[data-desktop-panel="terminal"], [data-desktop-panel="right-terminal"]')]
-        return panels.length === 2 && panels.every(panel => {
-          const viewport = panel.querySelector('.xterm-viewport')
-          return viewport && getComputedStyle(viewport).backgroundColor === getComputedStyle(panel).backgroundColor
-        })
+        const viewports = [...document.querySelectorAll('[data-desktop-panel] .xterm-viewport')]
+        return viewports.length === 2 && viewports.every(viewport =>
+          getComputedStyle(viewport).backgroundColor === getComputedStyle(viewport.closest('[data-desktop-panel]')).backgroundColor)
       })()`)
       const artifacts = join(__dirname, '..', '..', '.artifacts')
       await mkdir(artifacts, { recursive: true })
@@ -1186,7 +1282,7 @@ async function smoke() {
     ok: true,
     windows: 1,
     files: { root: files.root, shortcut: 'Ctrl+P', search: true, preview: true, confined: true },
-    terminal: { rightMarker, bottomMarker, secondMarker, simultaneous: true, isolated: true, appTheme: true, multipleTabs: true, powershell: process.platform === 'win32' },
+    terminal: { rightMarker, bottomMarker, secondMarker, bottomTabs, workspaceCwd: true, simultaneous: true, isolated: true, appTheme: true, multipleTabs: true, powershell: process.platform === 'win32' },
     browser: { lastTabClosesPanel: true, agentReopens: true, appTheme: true },
     bounds: { right, simultaneous, expanded, restored },
   })}\n`)

@@ -21,7 +21,7 @@ We redesigned DesktopTerminalPanel and extended desktop preload and IPC bridges:
 
 2. **Split Terminal Panes**:
    - SingleTerminalPane encapsulates individual xterm instances, PTY lifecycle, and FitAddon resizing.
-   - Header + button and process sidebar split buttons split the active terminal into independent side-by-side panes with unique monotonic IDs (`bottom-2`, `right-1-2`, `right-4-2`, etc.).
+   - Both panel placements share a tab host. The header + button creates an independent terminal tab; the process sidebar Split Terminal button divides that tab into side-by-side panes. Bottom IDs include workspace and tab ordinals before the split ordinal (`bottom-1-2-2`); right splits retain their tab ordinal (`right-1-2`, `right-4-2`).
    - main.cjs terminal ID validation supports multi-segment split IDs while rejecting zero/invalid ordinals, ensuring all processes run in independent, isolated PTY sessions without collisions across tabs.
 
 3. **Hydra Process Management Sidebar**:
@@ -31,6 +31,8 @@ We redesigned DesktopTerminalPanel and extended desktop preload and IPC bridges:
    - The sidebar can be shown or hidden via a header toggle button.
 
 ## Alternatives considered
+
+**Separate bottom tab implementation**: Reusing the right panel tab host keeps keyboard navigation, focus transfer, close failures, and PTY preservation consistent across placements.
 
 **External OS Process Management**: Scanning all OS processes using tasklist or ps. Rejected because security and scoping invariants dictate that Hydra only manages processes spawned by Hydra or by the user inside Hydra harness.
 

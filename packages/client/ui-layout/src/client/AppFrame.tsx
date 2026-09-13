@@ -12,7 +12,7 @@
  */
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
-import type { SessionId } from '@hydra/harness-client-runtime/client'
+import type { SessionId, WorkspaceId } from '@hydra/harness-client-runtime/client'
 import type { PropsRenderSlots, PropsRuntime, PropsStore } from '@hydra/harness-client-ui-slots'
 import {
   computeColumns, DETAILS_MAX, DETAILS_MIN,
@@ -20,7 +20,6 @@ import {
 } from './columns.ts'
 import type { createLayoutStore } from './stores.ts'
 import { DesktopBrowserPanel, DesktopPanelControls } from './DesktopBrowserPanel.tsx'
-import { DesktopTerminalPanel } from './DesktopTerminalPanel.tsx'
 import css from './AppFrame.module.css'
 
 const DESKTOP_BROWSER_MIN = 420
@@ -164,6 +163,7 @@ export function AppFrame({
   const terminalMax = Math.max(DESKTOP_TERMINAL_MIN, Math.floor(desktopViewport.height / 2))
   const [browserOpen, setBrowserOpen] = useState(false)
   const [terminalOpen, setTerminalOpen] = useState(false)
+  const [terminalWorkspaces, setTerminalWorkspaces] = useState<Array<WorkspaceId | undefined>>([])
   const [browserExpanded, setBrowserExpanded] = useState(false)
   const [browserWidth, setBrowserWidth] = useState(() =>
     clamp(Math.round(window.innerWidth * 0.42), DESKTOP_BROWSER_MIN, browserMax))
@@ -175,6 +175,11 @@ export function AppFrame({
   // window grows again.
   const renderedBrowserWidth = Math.min(browserWidth, browserMax)
   const renderedTerminalHeight = Math.min(terminalHeight, terminalMax)
+
+  useEffect(() => {
+    if (!terminalOpen) return
+    setTerminalWorkspaces(current => current.includes(workspaceId) ? current : [...current, workspaceId])
+  }, [terminalOpen, workspaceId])
 
   useEffect(() => {
     if (window.hydraDesktop === undefined) return
@@ -359,10 +364,16 @@ export function AppFrame({
         renderReview={() => renderSlot('review', {})}
         onOpen={() => { setBrowserOpen(true) }}
       />
-      <DesktopTerminalPanel
-        open={terminalOpen && !browserExpanded}
-        sessionTitle={currentSessionTitle}
-      />
+      {terminalWorkspaces.map((owner, index) => (
+        <DesktopBrowserPanel
+          key={owner ?? 'no-workspace'}
+          terminalGroup={index + 1}
+          workspaceId={owner}
+          open={terminalOpen && !browserExpanded && owner === workspaceId}
+          sessionTitle={currentSessionTitle}
+          onOpen={() => { setTerminalOpen(true) }}
+        />
+      ))}
       {browserOpen && !browserExpanded && (
         <DragHandle
           side="browser"

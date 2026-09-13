@@ -1,4 +1,4 @@
-/** Desktop-only tab host for Browser, Files, Review, Side chat, and Terminal surfaces. */
+/** Desktop tab host for workspace tools and per-workspace bottom terminals. */
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from 'react'
 import type { SessionId, WorkspaceId } from '@hydra/harness-client-runtime/client'
@@ -201,9 +201,17 @@ export type DesktopTerminalId =
   | 'right'
   | `${'bottom' | 'right' | 'term'}-${number}`
   | `${'bottom' | 'right' | 'term'}-${number}-${number}`
+  | `bottom-${number}-${number}-${number}`
 
 export interface DesktopTerminalApi {
-  start(terminalId: DesktopTerminalId, size: { cols: number; rows: number }): Promise<{ running: boolean }>
+  /**
+   * Start in the registered workspace root, or reattach to the same workspace's live PTY.
+   * @param terminalId - Independent terminal instance.
+   * @param size - Initial or updated character dimensions.
+   * @param workspaceId - Owning workspace; omitted for a workspace-free terminal in the desktop launch directory.
+   * @returns Running state; rejects an unavailable workspace or a different owner for a live terminal.
+   */
+  start(terminalId: DesktopTerminalId, size: { cols: number; rows: number }, workspaceId?: WorkspaceId): Promise<{ running: boolean }>
   stop(terminalId: DesktopTerminalId): Promise<void>
   write(terminalId: DesktopTerminalId, data: string): void
   resize(terminalId: DesktopTerminalId, size: { cols: number; rows: number }): void
@@ -238,6 +246,7 @@ type RightPanelTab = {
 } & ({
   kind: 'terminal'
   terminalId: DesktopTerminalId
+  workspaceId: WorkspaceId | undefined
 } | {
   kind: Exclude<RightPanelKind, 'terminal'>
   sessionId?: SessionId | undefined
@@ -258,11 +267,12 @@ function PanelOptions(props: {
   activeKind?: RightPanelKind | undefined
   creating: boolean
   cards?: boolean
+  terminalOnly?: boolean
   onSelect: (kind: RightPanelKind) => void
 }) {
   return (
     <div className={props.cards ? css.optionCards : css.options} role="group" aria-label="Open panel">
-      {PANEL_OPTIONS.map(option => (
+      {PANEL_OPTIONS.filter(option => !props.terminalOnly || option.kind === 'terminal').map(option => (
         <button
           key={option.kind}
           type="button"
@@ -341,24 +351,35 @@ export function DesktopPanelControls(props: {
   )
 }
 
-/** Desktop workspace tools; each Side chat tab owns a separate session surface. */
+/** Shared tab lifecycle for right workspace tools and bottom terminal groups. */
 export function DesktopBrowserPanel(props: {
   open: boolean
   workspaceId?: WorkspaceId | undefined
   sessionTitle?: string | undefined
+  onOpen: () => void
+} & ({
+  /** Stable bottom workspace ordinal; each terminal tab has its own ordinal within it. */
+  terminalGroup: number
+} | {
+  terminalGroup?: undefined
   createSideSession: () => Promise<SessionId>
   renderSideChat: (sessionId: SessionId) => ReactNode
   renderReview: () => ReactNode
-  onOpen: () => void
-}) {
-  const { createSideSession, onOpen } = props
-  const api = window.hydraDesktop?.browser
+})) {
+  const { onOpen, terminalGroup } = props
+  const createSideSession = terminalGroup === undefined ? props.createSideSession : undefined
+  const api = terminalGroup === undefined ? window.hydraDesktop?.browser : undefined
+  const panelKey = terminalGroup === undefined ? 'right' : `bottom-${terminalGroup}`
   const panelRef = useRef<HTMLElement | null>(null)
   const viewportRef = useRef<HTMLDivElement | null>(null)
   const sideChatNumber = useRef(0)
-  const terminalNumber = useRef(1)
-  const [{ tabs, activeId }, setPanel] = useState<{ tabs: RightPanelTab[]; activeId: string }>({
-    tabs: [INITIAL_TAB], activeId: INITIAL_TAB.id,
+  const terminalNumber = useRef(terminalGroup === undefined ? 1 : 2)
+  const [{ tabs, activeId }, setPanel] = useState<{ tabs: RightPanelTab[]; activeId: string }>(() => {
+    const first: RightPanelTab = terminalGroup === undefined ? INITIAL_TAB : {
+      id: 'terminal', kind: 'terminal', label: 'Terminal',
+      terminalId: `bottom-${terminalGroup}-1`, workspaceId: props.workspaceId,
+    }
+    return { tabs: [first], activeId: first.id }
   })
   const [creating, setCreating] = useState(false)
   const [closingTerminals, setClosingTerminals] = useState<ReadonlySet<DesktopTerminalId>>(new Set())
@@ -394,6 +415,7 @@ export function DesktopBrowserPanel(props: {
     const revision = ++selectionRevision.current
     if (kind === 'files') setFilesFocus(current => current + 1)
     if (kind === 'side-chat') {
+      if (createSideSession === undefined) return
       creatingRef.current = true
       setCreating(true)
       void createSideSession().then((sessionId) => {
@@ -424,7 +446,10 @@ export function DesktopBrowserPanel(props: {
         id: number === 1 ? 'terminal' : `terminal:${number}`,
         kind,
         label: number === 1 ? 'Terminal' : `Terminal ${number}`,
-        terminalId: number === 1 ? 'right' : `right-${number}`,
+        terminalId: terminalGroup === undefined
+          ? number === 1 ? 'right' : `right-${number}`
+          : `bottom-${terminalGroup}-${number}`,
+        workspaceId: props.workspaceId,
       }
       setPanel(current => ({ tabs: [...current.tabs, tab], activeId: tab.id }))
       return
@@ -434,11 +459,11 @@ export function DesktopBrowserPanel(props: {
         : [...current.tabs, { id: kind, kind, label: kind.charAt(0).toUpperCase() + kind.slice(1) }],
       activeId: kind,
     }))
-  }, [createSideSession, onOpen])
+  }, [createSideSession, onOpen, props.workspaceId, terminalGroup])
 
-  useEffect(() => window.hydraDesktop?.panels?.onShortcut((shortcut) => {
+  useEffect(() => terminalGroup === undefined ? window.hydraDesktop?.panels?.onShortcut((shortcut) => {
     selectPanel(shortcut)
-  }), [selectPanel])
+  }) : undefined, [selectPanel, terminalGroup])
 
   // Closing the active tab unmounts the control holding focus; the tab that
   // takes over receives it instead of the document body.
@@ -472,7 +497,8 @@ export function DesktopBrowserPanel(props: {
     }
     selectionRevision.current += 1
     const focused = document.activeElement
-    focusTabAfterClose.current = focused?.closest('[data-panel-tab]')?.getAttribute('data-panel-tab') === id
+    focusTabAfterClose.current = focused !== null && panelRef.current?.contains(focused) === true
+      && focused.closest('[data-panel-tab]')?.getAttribute('data-panel-tab') === id
     setPanel((current) => {
       const index = current.tabs.findIndex(tab => tab.id === id)
       if (index === -1) return current
@@ -487,9 +513,9 @@ export function DesktopBrowserPanel(props: {
   // The native browser closes its own panel when the user closes its last tab.
   const closePanel = useRef(closeTab)
   useEffect(() => { closePanel.current = closeTab })
-  useEffect(() => window.hydraDesktop?.panels?.onClose((kind) => {
+  useEffect(() => terminalGroup === undefined ? window.hydraDesktop?.panels?.onClose((kind) => {
     if (kind === 'browser') void closePanel.current('browser')
-  }), [])
+  }) : undefined, [terminalGroup])
 
   // Roving tabindex: the selected tab is the strip's one tab stop, and the
   // arrow keys move both the selection and focus (wraparound, Home/End jump).
@@ -571,28 +597,28 @@ export function DesktopBrowserPanel(props: {
     <section
       ref={panelRef}
       className={css.panel}
-      aria-label="Right panel"
-      data-desktop-panel="browser"
+      aria-label={terminalGroup === undefined ? 'Right panel' : 'Terminal'}
+      data-desktop-panel={terminalGroup === undefined ? 'browser' : 'terminal'}
       hidden={!props.open}
     >
       <header className={css.header}>
-        <div className={css.optionHeader}>
+        {terminalGroup === undefined && <div className={css.optionHeader}>
           {tabs.length > 0
             ? <PanelOptions activeKind={activeTab?.kind} creating={creating} onSelect={selectPanel} />
             : <span className={css.optionLabel}>Side panel</span>}
-        </div>
-        {tabs.length > 0 && <div className={css.tabs} role="tablist" aria-label="Right panel tabs">
+        </div>}
+        {tabs.length > 0 && <div className={css.tabs} role="tablist" aria-label={terminalGroup === undefined ? 'Right panel tabs' : 'Bottom terminal tabs'}>
           {tabs.map((tab, index) => (
             <div className={css.tab} data-panel-tab={tab.id} data-active={tab.id === activeId || undefined} key={tab.id}>
               <button
                 ref={(element) => { tabRefs.current[index] = element }}
-                id={`hydra-right-panel-tab-${tab.id}`}
+                id={`hydra-${panelKey}-panel-tab-${tab.id}`}
                 type="button"
                 className={css.tabSelect}
                 role="tab"
                 aria-selected={tab.id === activeId}
                 aria-description={tab.kind === 'files' && filesDirty ? 'Unsaved changes' : undefined}
-                aria-controls={`hydra-right-panel-surface-${tab.id}`}
+                aria-controls={`hydra-${panelKey}-panel-surface-${tab.id}`}
                 tabIndex={tab.id === activeId ? 0 : -1}
                 title={tab.label}
                 onClick={() => { selectTab(tab.id) }}
@@ -629,9 +655,9 @@ export function DesktopBrowserPanel(props: {
         {tabs.map(tab => (
           <div
             className={css.surface}
-            id={`hydra-right-panel-surface-${tab.id}`}
+            id={`hydra-${panelKey}-panel-surface-${tab.id}`}
             role="tabpanel"
-            aria-labelledby={`hydra-right-panel-tab-${tab.id}`}
+            aria-labelledby={`hydra-${panelKey}-panel-tab-${tab.id}`}
             hidden={tab.id !== activeId}
             data-panel-kind={tab.kind}
             key={tab.id}
@@ -647,25 +673,29 @@ export function DesktopBrowserPanel(props: {
                 onSavingChange={setFilesSaving}
               />
             )}
-            {tab.kind === 'side-chat' && tab.sessionId !== undefined && (
+            {tab.kind === 'side-chat' && tab.sessionId !== undefined && props.terminalGroup === undefined && (
               <div className={css.sideChat}>{props.renderSideChat(tab.sessionId)}</div>
             )}
             {tab.kind === 'terminal' && <DesktopTerminalPanel
               open={props.open && tab.id === activeId && !closingTerminals.has(tab.terminalId)}
               terminalId={tab.terminalId}
-              terminalLabel={tab.label.replace('Terminal', 'Right terminal')}
+              workspaceId={tab.workspaceId}
+              terminalLabel={tab.label.replace('Terminal', terminalGroup === undefined ? 'Right terminal' : 'Bottom terminal')}
               sessionTitle={props.sessionTitle}
               onNewTerminal={() => { selectPanel('terminal') }}
               embedded
             />}
-            {tab.kind === 'review' && props.renderReview()}
+            {tab.kind === 'review' && props.terminalGroup === undefined && props.renderReview()}
           </div>
         ))}
         {tabs.length === 0 && (
           <div className={css.emptyPanel}>
             <strong>Choose a panel</strong>
             <span>No panel is open.</span>
-            <PanelOptions cards activeKind={activeTab?.kind} creating={creating} onSelect={selectPanel} />
+            <PanelOptions
+              cards terminalOnly={terminalGroup !== undefined}
+              activeKind={activeTab?.kind} creating={creating} onSelect={selectPanel}
+            />
           </div>
         )}
       </div>

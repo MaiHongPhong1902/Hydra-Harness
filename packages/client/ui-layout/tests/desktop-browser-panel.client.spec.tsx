@@ -69,6 +69,33 @@ afterEach(() => {
 })
 
 describe('DesktopBrowserPanel', () => {
+  it('starts each terminal in its creation workspace, including splits after switching workspaces', async () => {
+    stubPanelObservers()
+    const start = vi.fn<DesktopTerminalApi['start']>(async () => ({ running: true }))
+    window.hydraDesktop = {
+      browser: { setBounds: vi.fn() },
+      terminal: { start, stop: vi.fn(async () => {}), write: vi.fn(), resize: vi.fn(), onEvent: () => () => {} },
+    }
+    const createSideSession = async () => 'side' as SessionId
+    const renderSideChat = () => null
+    const panel = (workspaceId: string) => (
+      <PanelHarness workspaceId={workspaceId as WorkspaceId} createSideSession={createSideSession} renderSideChat={renderSideChat} />
+    )
+    const view = render(panel('workspace-a'))
+    fireEvent.click(view.getByRole('button', { name: 'Terminal' }))
+    await waitFor(() => { expect(start).toHaveBeenCalledWith('right', { cols: 80, rows: 24 }, 'workspace-a') })
+    view.rerender(panel('workspace-b'))
+    fireEvent.click(view.getByRole('button', { name: 'Terminal' }))
+    await waitFor(() => { expect(start).toHaveBeenCalledWith('right-2', { cols: 80, rows: 24 }, 'workspace-b') })
+    view.rerender(panel('workspace-c'))
+    fireEvent.click(view.getByRole('button', { name: 'Terminal' }))
+    await waitFor(() => { expect(start).toHaveBeenCalledWith('right-3', { cols: 80, rows: 24 }, 'workspace-c') })
+    fireEvent.click(view.getByRole('tab', { name: 'Terminal' }))
+    fireEvent.click(view.getByRole('button', { name: 'Split Terminal' }))
+    await waitFor(() => { expect(start).toHaveBeenCalledWith('right-1-2', { cols: 80, rows: 24 }, 'workspace-a') })
+    expect(start.mock.calls.filter(call => call[0] === 'right').every(call => call[2] === 'workspace-a')).toBe(true)
+  })
+
   it('hides native bounds for overlays and non-Browser tabs, then restores them', async () => {
     const setBounds = vi.fn()
     const api: DesktopBrowserApi = { setBounds }
@@ -266,9 +293,9 @@ describe('DesktopBrowserPanel', () => {
     const view = render(<PanelHarness createSideSession={async () => 'side' as SessionId} renderSideChat={() => null} />)
 
     fireEvent.click(view.getByRole('button', { name: 'Terminal' }))
-    await waitFor(() => { expect(start).toHaveBeenCalledWith('right', expect.anything()) })
+    await waitFor(() => { expect(start).toHaveBeenCalledWith('right', expect.anything(), undefined) })
     fireEvent.click(view.getByRole('button', { name: 'Terminal' }))
-    await waitFor(() => { expect(start).toHaveBeenCalledWith('right-2', expect.anything()) })
+    await waitFor(() => { expect(start).toHaveBeenCalledWith('right-2', expect.anything(), undefined) })
     expect(view.getByRole('tab', { name: 'Terminal 2' })).toBeTruthy()
     expect(view.getByLabelText('Right terminal 2')).toBeTruthy()
 
@@ -300,7 +327,7 @@ describe('DesktopBrowserPanel', () => {
     expect(stop).toHaveBeenCalledWith('right')
     expect(stop).toHaveBeenCalledWith('right-2')
     create()
-    await waitFor(() => { expect(start).toHaveBeenCalledWith('right-3', expect.anything()) })
+    await waitFor(() => { expect(start).toHaveBeenCalledWith('right-3', expect.anything(), undefined) })
     expect(view.getByRole('region', { name: 'Right terminal 3' })).toBeTruthy()
     await act(async () => { firstStop.resolve(undefined); secondStop.reject(new Error('busy')) })
     expect(view.queryByRole('tab', { name: 'Terminal' })).toBeNull()

@@ -35,7 +35,7 @@ contextBridge.exposeInMainWorld('hydraDesktop', {
     },
   },
   terminal: {
-    start: (terminalId, size) => ipcRenderer.invoke('hydra-desktop:terminal-start', { terminalId, size }),
+    start: (terminalId, size, workspaceId) => ipcRenderer.invoke('hydra-desktop:terminal-start', { terminalId, size, workspaceId }),
     stop: terminalId => ipcRenderer.invoke('hydra-desktop:terminal-stop', { terminalId }),
     write: (terminalId, data) => { ipcRenderer.send('hydra-desktop:terminal-write', { terminalId, data }) },
     resize: (terminalId, size) => { ipcRenderer.send('hydra-desktop:terminal-resize', { terminalId, size }) },

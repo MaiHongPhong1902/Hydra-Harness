@@ -11,7 +11,7 @@
  * resizes are driven through the ResizeObserver stub.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { act, cleanup, fireEvent, render } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, within } from '@testing-library/react'
 import { useSyncExternalStore } from 'react'
 import { AppFrame } from '@hydra/harness-client-ui-layout/src/client/AppFrame.tsx'
 import type { AppFrameProps } from '@hydra/harness-client-ui-layout/src/client/AppFrame.tsx'
@@ -20,6 +20,14 @@ import { createLayoutStore } from '@hydra/harness-client-ui-layout/src/client/st
 import type {
   SessionId, SessionListState, WorkspaceId, WorkspaceListState,
 } from '@hydra/harness-client-runtime/client'
+
+vi.mock('@xterm/xterm', () => ({ Terminal: vi.fn(function () { return {
+  cols: 80, rows: 24, options: {},
+  loadAddon() {}, open() {}, write() {}, writeln() {}, focus() {}, dispose() {},
+  onData: () => ({ dispose() {} }), onSelectionChange: () => ({ dispose() {} }),
+  getSelection: () => '', attachCustomKeyEventHandler() {},
+} }) }))
+vi.mock('@xterm/addon-fit', () => ({ FitAddon: vi.fn(function () { return { fit() {} } }) }))
 
 // Session selection controls for the SessionProvider and useSessions stubs.
 const selectedSession = { current: 's-test' as SessionId | undefined }
@@ -158,6 +166,71 @@ afterEach(() => {
 })
 
 describe('AppFrame', () => {
+  it('adds bottom terminal tabs with the plus button and splits only with Split Terminal', async () => {
+    const start = vi.fn(async () => ({ running: true }))
+    const stop = vi.fn(async () => {})
+    window.hydraDesktop = {
+      browser: { setBounds: vi.fn() },
+      terminal: { start, stop, write: vi.fn(), resize: vi.fn(), onEvent: () => () => {} },
+    }
+    const view = mountFrame()
+    fireEvent.click(view.getByRole('button', { name: 'Toggle bottom terminal' }))
+    await act(async () => { await vi.advanceTimersByTimeAsync(20) })
+    fireEvent.click(view.getByRole('button', { name: 'New Terminal' }))
+    await act(async () => { await vi.advanceTimersByTimeAsync(20) })
+    const tabs = within(view.getByRole('tablist', { name: 'Bottom terminal tabs' }))
+    expect(tabs.getAllByRole('tab').map(tab => tab.textContent)).toEqual(['Terminal', 'Terminal 2'])
+    expect(tabs.getByRole('tab', { name: 'Terminal 2' }).getAttribute('aria-selected')).toBe('true')
+    expect(view.getAllByRole('button', { name: 'Split Terminal' })).toHaveLength(1)
+    expect(start).toHaveBeenLastCalledWith('bottom-1-2', { cols: 80, rows: 24 }, undefined)
+    fireEvent.click(view.getByRole('button', { name: 'Split Terminal' }))
+    await act(async () => { await vi.advanceTimersByTimeAsync(20) })
+    expect(start).toHaveBeenLastCalledWith('bottom-1-2-2', { cols: 80, rows: 24 }, undefined)
+    expect(view.getAllByRole('button', { name: 'Split Terminal' })).toHaveLength(2)
+    fireEvent.click(tabs.getByRole('tab', { name: 'Terminal' }))
+    await act(async () => { await vi.advanceTimersByTimeAsync(20) })
+    expect(view.getAllByRole('button', { name: 'Split Terminal' })).toHaveLength(1)
+    fireEvent.click(tabs.getByRole('tab', { name: 'Terminal 2' }))
+    await act(async () => { await vi.advanceTimersByTimeAsync(20) })
+    expect(view.getAllByRole('button', { name: 'Split Terminal' })).toHaveLength(2)
+    fireEvent.click(tabs.getByRole('button', { name: 'Close Terminal 2' }))
+    await act(async () => { await vi.advanceTimersByTimeAsync(20) })
+    expect(stop).toHaveBeenCalledWith('bottom-1-2')
+    expect(stop).toHaveBeenCalledWith('bottom-1-2-2')
+    expect(stop).not.toHaveBeenCalledWith('bottom-1-1')
+    expect(tabs.getAllByRole('tab')).toHaveLength(1)
+  })
+
+  it('preserves separate bottom terminals while switching among workspace sessions', async () => {
+    const start = vi.fn(async () => ({ running: true }))
+    const stop = vi.fn(async () => {})
+    window.hydraDesktop = {
+      browser: { setBounds: vi.fn() },
+      terminal: { start, stop, write: vi.fn(), resize: vi.fn(), onEvent: () => () => {} },
+    }
+    const items = ['a', 'b', 'c'].map(name => ({
+      workspaceId: `workspace-${name}` as WorkspaceId, path: `/workspaces/${name}`, title: name,
+      sessionIds: [`session-${name}` as SessionId], createdAt: '', updatedAt: '',
+    }))
+    selectedSession.current = 'session-a' as SessionId
+    const view = mountFrame({ items, recentWorkspaceId: items[2]!.workspaceId })
+    fireEvent.click(view.getByRole('button', { name: 'Toggle bottom terminal' }))
+    await act(async () => { await vi.advanceTimersByTimeAsync(20) })
+    expect(start).toHaveBeenLastCalledWith('bottom-1-1', { cols: 80, rows: 24 }, 'workspace-a')
+    fireEvent.click(view.getByRole('button', { name: 'Split Terminal' }))
+    await act(async () => { await vi.advanceTimersByTimeAsync(20) })
+    expect(start).toHaveBeenLastCalledWith('bottom-1-1-2', { cols: 80, rows: 24 }, 'workspace-a')
+    for (const [name, id] of [['b', 'bottom-2-1'], ['c', 'bottom-3-1'], ['a', 'bottom-1-1-2']]) {
+      selectedSession.current = `session-${name}` as SessionId
+      view.rerenderFrame()
+      await act(async () => { await vi.advanceTimersByTimeAsync(20) })
+      expect(start).toHaveBeenLastCalledWith(id, { cols: 80, rows: 24 }, `workspace-${name}`)
+      expect(view.getAllByRole('region', { name: 'Terminal' })).toHaveLength(1)
+    }
+    expect(view.getAllByRole('button', { name: 'Split Terminal' })).toHaveLength(2)
+    expect(stop).not.toHaveBeenCalled()
+  })
+
   it('opens Ctrl+P Files against the current registered workspace', async () => {
     const workspaceId = 'workspace-test' as WorkspaceId
     const rootPath = 'C:\\workspace'
@@ -243,7 +316,8 @@ describe('AppFrame', () => {
     expect(view.getByLabelText('Terminal', { selector: 'section' }).hasAttribute('hidden')).toBe(false)
 
     act(() => { shortcut?.('terminal') })
-    expect(view.getByRole('tab', { name: 'Terminal' }).getAttribute('aria-selected')).toBe('true')
+    expect(within(view.getByRole('tablist', { name: 'Right panel tabs' })).getByRole('tab', { name: 'Terminal' }).getAttribute('aria-selected')).toBe('true')
+    expect(within(view.getByRole('tablist', { name: 'Bottom terminal tabs' })).getAllByRole('tab')).toHaveLength(1)
     expect(view.getByLabelText('Right terminal').hasAttribute('hidden')).toBe(false)
     expect(view.getByLabelText('Terminal', { selector: 'section' }).hasAttribute('hidden')).toBe(false)
 
@@ -268,7 +342,7 @@ describe('AppFrame', () => {
     expect(providedSessions).toContain('s-side')
     expect(view.getByRole('tab', { name: 'Side chat' }).getAttribute('aria-selected')).toBe('true')
     expect(view.slotCalls.some(call => call.key === 'conversation' && JSON.stringify(call.props) === '{"secondary":true}')).toBe(true)
-    fireEvent.click(view.getByRole('tab', { name: 'Terminal' }))
+    fireEvent.click(within(view.getByRole('tablist', { name: 'Right panel tabs' })).getByRole('tab', { name: 'Terminal' }))
 
     const toggleRight = view.getByLabelText('Toggle right panel')
     fireEvent.click(toggleRight)
