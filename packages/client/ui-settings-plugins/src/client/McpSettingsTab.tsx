@@ -103,6 +103,12 @@ export function McpSettingsTab(props: McpSettingsTabProps) {
     || haystack.some(value => value.toLocaleLowerCase().includes(normalizedQuery))
   const nativeMatchesQuery = matchesQuery([t('mcpTitle'), OBSIDIAN_MCP_MODULE])
   const nativeEntry = native?.entries.find(entry => entry.moduleName === OBSIDIAN_MCP_MODULE)
+  // The plugin inventory remains available while a disabled plugin's settings
+  // namespace is absent. Its credential is independent, so keep the card
+  // editable whenever the Host confirms that the plugin is composed.
+  const nativeState = nativeEntry === undefined || state.available
+    ? state
+    : { ...state, available: true }
   const nativeControl = nativeEntry === undefined ? null : (
     <span className={css.nativeStatus}>{nativeEntry.enabled ? t('mcpEnabled') : t('disabled')}</span>
   )
@@ -122,11 +128,11 @@ export function McpSettingsTab(props: McpSettingsTabProps) {
       {props.userMcp === undefined
         ? null
         : <McpServerCatalog active={active} controls={props.userMcp} query={props.query} t={t} />}
-      {state.available && nativeMatchesQuery ? <PluginCard
+      {(state.available || nativeEntry !== undefined) && nativeMatchesQuery ? <PluginCard
         t={t}
         titleKey="mcpTitle"
         descriptionKey="mcpDescription"
-        state={state}
+        state={nativeState}
         onSave={props.save}
         onDiscard={props.discard}
         action={nativeControl}
@@ -143,16 +149,6 @@ export function McpSettingsTab(props: McpSettingsTabProps) {
         />
       </PluginCard> : null}
       {!state.available && native === undefined && !nativeLoadFailed && props.nativeMcp !== undefined ? <p className={css.empty}>{t('mcpLoading')}</p> : null}
-      {!state.available && nativeControl !== null && nativeMatchesQuery ? (
-        <section className={css.importedMcp} aria-labelledby="native-mcp-title">
-          <h3 id="native-mcp-title">{t('mcpTitle')}</h3>
-          <p className={css.empty}>{t('mcpUnavailable')}</p>
-          <div className={css.importedMcpRow}>
-            <div><strong>{t('mcpTitle')}</strong><code>{nativeEntry?.moduleName}</code></div>
-            {nativeControl}
-          </div>
-        </section>
-      ) : null}
       {props.importedMcp !== undefined ? (
         <section className={css.importedMcp} aria-labelledby="imported-mcp-title">
           <h3 id="imported-mcp-title">{t('importedMcpTitle')}</h3>

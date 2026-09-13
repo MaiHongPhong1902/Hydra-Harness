@@ -280,4 +280,21 @@ describe('McpSettingsTab', () => {
     const status = await screen.findByText(enabled ? en.mcpEnabled : en.disabled)
     expect(status).toBeTruthy()
   })
+
+  it('keeps the Obsidian credential editable while the plugin is disabled', async () => {
+    const entry: PluginInventorySnapshot['entries'][number] = {
+      entryId: 'obsidian-knowledge' as never, moduleName: '@hydra/harness-obsidian-knowledge',
+      enabled: false, restartRequired: false, toggleable: true, fiberPhase: null,
+    }
+    const actions = renderTab({ available: false }, undefined, {
+      list: vi.fn(async () => ({ entries: [entry] })),
+    })
+
+    await screen.findByText(en.disabled)
+    fireEvent.click(screen.getByText(en.mcpTitle))
+    const key = screen.getByLabelText(en.mcpApiKey)
+    expect(key).toHaveProperty('disabled', false)
+    fireEvent.change(key, { target: { value: 'replacement' } })
+    expect(actions.edit).toHaveBeenCalledWith('apiKey', 'replacement')
+  })
 })
