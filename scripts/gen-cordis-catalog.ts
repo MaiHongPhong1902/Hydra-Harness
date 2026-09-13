@@ -235,6 +235,7 @@ export const LINK_MAP: Readonly<Record<string, string>> = {
   BrowserExecutionContext: 'browser.md',
   BrowserHistorySearchEntry: 'browser.md',
   BrowserOutcome: 'browser.md',
+  BrowserPageIdentity: 'browser.md',
   BrowserScreenshot: 'browser.md',
   ContentBlock: 'llm-streaming.md',
   CreateAgentOptions: 'core.md',

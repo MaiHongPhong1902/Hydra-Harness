@@ -438,7 +438,7 @@ export interface BrowserPermissions {
 export type BrowserDecision = 'allow' | 'ask' | 'block'
 ```
 
-Source: [`packages/browser/browser-electron/src/index.ts:144`](../packages/browser/browser-electron/src/index.ts)
+Source: [`packages/browser/browser-electron/src/index.ts:145`](../packages/browser/browser-electron/src/index.ts)
 
 <a id="hydraharness-client-connection"></a>
 
@@ -1562,7 +1562,51 @@ export interface Config {
 }
 ```
 
-Source: [`packages/browser/obsidian-knowledge/src/index.ts:52`](../packages/browser/obsidian-knowledge/src/index.ts)
+Source: [`packages/knowledge/obsidian-knowledge/src/index.ts:52`](../packages/knowledge/obsidian-knowledge/src/index.ts)
+
+<a id="hydraharness-page-memory"></a>
+
+## `@hydra/harness-page-memory`
+
+Requires: `browsers` · `tools` · `systemPrompt`
+
+```ts config-catalog
+/** Host-owned namespace and retrieval limits. Tools cannot override the namespace. */
+export interface Config {
+  /** Absolute workspace directory; only sessions with this canonical cwd can access the store. */
+  workspaceDir: string
+  /** Current application role configured by the operator. */
+  role: string
+  /** Current application locale configured by the operator. */
+  locale: string
+  /** Private absolute storage parent; defaults to the current user's Hydra home. */
+  storageDir?: string
+  /** Known origin/path patterns; query strings and fragments remain exact. */
+  routes?: RouteRule[]
+  /** Complete serialized page-record byte limit. */
+  maxRecordBytes?: number
+  /** Maximum workflows stored for one page. */
+  maxWorkflows?: number
+  /** Maximum page records in this namespace. */
+  maxPages?: number
+  /** Complete model-facing memory message byte limit, including metadata. */
+  maxContextBytes?: number
+  /** Maximum targeted source observations retained during one turn. */
+  maxObservations?: number
+  /** Total time budget for one set of live anchor/locator checks. */
+  verificationTimeoutMs?: number
+}
+
+/** A known route pattern. Dynamic path segments must use an explicit `:name`. */
+export interface RouteRule {
+  /** HTTP(S) origin whose pathname uses this route pattern. */
+  readonly origin: string
+  /** Absolute pathname with complete `:name` segments for dynamic values. */
+  readonly path: string
+}
+```
+
+Source: [`packages/knowledge/page-memory/src/index.ts:28`](../packages/knowledge/page-memory/src/index.ts)
 
 <a id="hydraharness-permission-presets"></a>
 
@@ -2720,12 +2764,20 @@ Requires: `browsers` · `tools` · `systemPrompt`
 export interface Config {
   /** Cap on the element-list characters one call returns. Defaults to 16000. */
   maxStateChars?: number
+  /** Include trailing page snapshots; explicit reads always return their snapshot. */
+  snapshotMode?: 'full' | 'none'
+  /** Return screenshot image blocks, or save evidence without sending image input. */
+  imageResponses?: 'allow' | 'omit'
+  /** Default minimum severity for browser_console_messages. */
+  consoleLevel?: 'error' | 'warning' | 'info' | 'debug'
+  /** Absolute directory for private per-call browser artifacts. */
+  outputDir?: string
   /** Cooperative tool-call budget (ms) per browser action. Defaults to 60000. */
   timeoutMs?: number
 }
 ```
 
-Source: [`packages/browser/tool-browser/src/index.ts:44`](../packages/browser/tool-browser/src/index.ts)
+Source: [`packages/browser/tool-browser/src/index.ts:47`](../packages/browser/tool-browser/src/index.ts)
 
 <a id="hydraharness-tool-fs"></a>
 

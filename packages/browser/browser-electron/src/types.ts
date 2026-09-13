@@ -19,6 +19,20 @@ export type BrowserTabState = {
   active: boolean
 }
 
+/** Live identity of one controlled page without an accessibility snapshot. */
+export interface BrowserPageIdentity {
+  /** Address currently loaded in the page. */
+  url: string
+  /** Current document title. */
+  title: string
+  /** Controlled tab that supplied the identity. */
+  tabId: number
+  /** Tab selected in the visible browser chrome. */
+  activeTabId: number
+  /** Whether the tab's main frame is no longer loading. */
+  settled: boolean
+}
+
 /** Accessibility snapshot of the controlled page with stable action refs. */
 export interface BrowserState {
   /** Address currently loaded in the controlled view. */
@@ -37,10 +51,20 @@ export interface BrowserState {
   tabId: number
   /** Tab currently selected in the visible browser chrome. */
   activeTabId: number
-  /** True when the requested bounded page-readiness wait completed. */
+  /** Whether the readiness wait completed; metadata-only reads report native loading/dialog state. */
   settled: boolean
   /** Host timestamp for evidence ordering. */
   capturedAt: string
+}
+
+/** Optional projection controls for a model-facing accessibility snapshot. */
+export interface BrowserSnapshotOptions {
+  /** Exact accessibility ref (`e12`) or a unique CSS selector. */
+  target?: string
+  /** Maximum accessibility-tree depth below `target`. */
+  depth?: number
+  /** Include viewport-relative element boxes in indexed lines. */
+  boxes?: boolean
 }
 
 /** Transient PNG of the selected controlled page's visible viewport. */
@@ -69,6 +93,8 @@ export interface BrowserScreenshot {
 export interface ActionResult {
   success: boolean
   message: string
+  /** Actual text selected by select_text after the final native selection update. */
+  selectedText?: string
 }
 
 /** One bounded history-search result exposed to an approved model call. */
@@ -109,6 +135,8 @@ export interface BrowserFillField {
   index?: number
   /** Visible label, accessible name, placeholder, or id when index is omitted. */
   name?: string
+  /** Observed Playwright ref or unique CSS selector instead of index/name. */
+  target?: string
   /** Text that replaces the field's current value. */
   text: string
 }
@@ -120,25 +148,25 @@ export interface BrowserFillField {
  */
 export type BrowserAction =
   | ((
-    | { method: 'get_browser_state' }
+    | { method: 'get_browser_state'; snapshot?: BrowserSnapshotOptions }
     | { method: 'navigate'; url: string }
     | { method: 'back' }
     | { method: 'forward' }
     | { method: 'press'; key: string }
-    | { method: 'click_element'; index?: number; name?: string }
-    | { method: 'hover_element'; index?: number; name?: string }
+    | { method: 'click_element'; index?: number; name?: string; target?: string }
+    | { method: 'hover_element'; index?: number; name?: string; target?: string }
     | { method: 'drag_element'; startIndex: number; endIndex: number }
     | { method: 'drop'; index: number; filePaths: string[]; data: Record<string, string> }
     | { method: 'resize'; width: number; height: number }
     | { method: 'handle_dialog'; accept: boolean; promptText?: string }
     | { method: 'console_messages'; level: 'error' | 'warning' | 'info' | 'debug' }
-    | { method: 'network_requests'; includeStatic: boolean }
+    | { method: 'network_requests'; includeStatic: boolean; filter?: string }
     | { method: 'network_request'; index: number; part?: 'request-headers' | 'request-body' | 'response-headers' | 'response-body' }
     | { method: 'upload_file'; index: number; filePath: string }
-    | { method: 'input_text'; index?: number; name?: string; text: string }
-    | { method: 'select_option'; index?: number; name?: string; text: string }
-    | { method: 'select_text'; index?: number; name?: string; startX?: number; startY?: number; endX?: number; endY?: number; duration?: number; start_x?: number; start_y?: number; end_x?: number; end_y?: number }
-    | { method: 'find_element'; query: string }
+    | { method: 'input_text'; index?: number; name?: string; target?: string; text: string }
+    | { method: 'select_option'; index?: number; name?: string; target?: string; text: string }
+    | { method: 'select_text'; index?: number; name?: string; target?: string; startX?: number; startY?: number; endX?: number; endY?: number; duration?: number; start_x?: number; start_y?: number; end_x?: number; end_y?: number }
+    | { method: 'find_element'; query?: string; text?: string; regex?: string }
     | { method: 'fill_fields'; fields: BrowserFillField[] }
     | { method: 'scroll'; down: boolean; numPages: number; pixels?: number; index?: number }
     | { method: 'scroll_horizontally'; right: boolean; pixels: number; index?: number }

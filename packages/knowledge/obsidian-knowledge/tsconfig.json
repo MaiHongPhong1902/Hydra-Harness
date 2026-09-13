@@ -14,7 +14,6 @@
     { "path": "../../credentials/credentials" },
     { "path": "../../settings/settings" },
     { "path": "../../util/atomic-write" },
-    { "path": "../tool-browser" },
     { "path": "../../runtime-diagnostics/invariants" }
   ]
 }

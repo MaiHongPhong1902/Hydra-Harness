@@ -32,7 +32,8 @@ Groups hold `packages/<group>/<pkg>/`; names stay `@hydra/harness-<pkg>`. **Grou
 | [`experimental/`](experimental/README.md) | Private prototypes and internal-only plugins | Unreleased |
 | [`workflow/`](workflow/README.md) | Workflow seam, worker-thread engine, and model-facing `workflow`/`ralph` tools | Product — stable API |
 | [`web/`](web/README.md) | Web capability family: seam, search/fetch provider impls, and the model-facing web tools | Product — stable API |
-| [`browser/`](browser/README.md) | Embedded browser family: the owner-scoped Electron window and the model-facing `browser_*` tools | Product — stable API |
+| [`browser/`](browser/README.md) | Browser automation | Product — stable API |
+| [`knowledge/`](knowledge/README.md) | Persistent knowledge | Product — stable API |
 | [`attachment/`](attachment/README.md) | Durable attachment identity, validation, local content-addressed storage | Product — stable API |
 | [`spill/`](spill/README.md) | Spill capability family: storage seam, local impl, tool-result spill policy | Product — stable API |
 | [`todo/`](todo/README.md) | The model-facing `todo_write` tool | Product — stable API |

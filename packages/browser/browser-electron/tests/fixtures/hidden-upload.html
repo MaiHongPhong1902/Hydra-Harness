@@ -1,10 +1,226 @@
 <!doctype html>
 <html lang="en">
-  <head><meta charset="utf-8" /><title>Hidden upload</title></head>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hidden upload</title>
+    <style>
+      :root {
+        --bg-primary: #0f172a;
+        --bg-secondary: #1e293b;
+        --bg-tertiary: #334155;
+        --text-primary: #f8fafc;
+        --text-secondary: #94a3b8;
+        --text-muted: #64748b;
+        --accent-sky: #38bdf8;
+        --accent-indigo: #818cf8;
+        --accent-emerald: #34d399;
+        --border-color: #334155;
+        --radius: 12px;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        line-height: 1.5;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      header {
+        background: rgba(30, 41, 59, 0.85);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border-color);
+        padding: 14px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .brand-badge {
+        background: linear-gradient(135deg, var(--accent-sky), var(--accent-indigo));
+        color: #0f172a;
+        font-weight: 800;
+        font-size: 11px;
+        padding: 4px 10px;
+        border-radius: 9999px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .brand-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--text-primary);
+      }
+      .status-pill {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid var(--border-color);
+        padding: 5px 12px;
+        border-radius: 9999px;
+        font-size: 12px;
+        color: var(--text-secondary);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      }
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: var(--accent-emerald);
+        box-shadow: 0 0 8px var(--accent-emerald);
+      }
+      main {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 36px 20px;
+      }
+      .card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 32px;
+        width: 100%;
+        max-width: 500px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+        position: relative;
+        overflow: hidden;
+        text-align: center;
+      }
+      .card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--accent-indigo), var(--accent-sky));
+      }
+      .card-tag {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--accent-indigo);
+        margin-bottom: 6px;
+      }
+      h1 {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--text-primary);
+        letter-spacing: -0.02em;
+        margin-bottom: 6px;
+      }
+      .card-subtitle {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-bottom: 24px;
+      }
+      .upload-container {
+        margin: 20px 0;
+      }
+      label[for="hidden-artifact"] {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 36px 24px;
+        border: 2px dashed var(--border-color);
+        border-radius: 12px;
+        background: rgba(15, 23, 42, 0.5);
+        color: var(--text-primary);
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      label[for="hidden-artifact"]:hover {
+        border-color: var(--accent-sky);
+        background: rgba(56, 189, 248, 0.05);
+        color: var(--accent-sky);
+      }
+      .upload-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: rgba(56, 189, 248, 0.12);
+        color: var(--accent-sky);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+      }
+      .upload-hint {
+        font-size: 12px;
+        color: var(--text-muted);
+        font-weight: 400;
+      }
+      p#result {
+        display: none;
+        margin-top: 20px;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      }
+      p#result:not(:empty) {
+        display: block;
+        background: rgba(52, 211, 153, 0.12);
+        border: 1px solid rgba(52, 211, 153, 0.35);
+        color: var(--accent-emerald);
+      }
+      .info-box {
+        margin-top: 24px;
+        padding: 12px;
+        border-radius: 8px;
+        background: rgba(15, 23, 42, 0.4);
+        border: 1px solid var(--border-color);
+        font-size: 12px;
+        color: var(--text-muted);
+        text-align: left;
+      }
+    </style>
+  </head>
   <body>
-    <label for="hidden-artifact">Attach artifact</label>
-    <input id="hidden-artifact" type="file" style="display:none" />
-    <p id="result"></p>
+    <header>
+      <div class="brand">
+        <span class="brand-badge">Hydra</span>
+        <span class="brand-title">Browser Automation Fixture</span>
+      </div>
+      <div class="status-pill">
+        <span class="status-dot"></span>
+        <span>STANDBY</span>
+      </div>
+    </header>
+    <main>
+      <div class="card">
+        <span class="card-tag">Hidden Input Fixture</span>
+        <h1>Hidden Upload Test</h1>
+        <p class="card-subtitle">Automated verification of label-bound hidden file inputs.</p>
+        <div class="upload-container">
+          <label for="hidden-artifact">
+            <span class="upload-icon">📁</span>
+            Attach artifact
+            <span class="upload-hint">Simulates custom-styled dropzone with hidden file input</span>
+          </label>
+          <input id="hidden-artifact" type="file" style="display:none" />
+        </div>
+        <p id="result"></p>
+        <div class="info-box">
+          Input element <code>#hidden-artifact</code> is hidden (<code>display: none</code>). Tests target label association and synthetic file upload.
+        </div>
+      </div>
+    </main>
     <script>
       document.getElementById('hidden-artifact').addEventListener('change', async event => {
         const file = event.target.files[0]

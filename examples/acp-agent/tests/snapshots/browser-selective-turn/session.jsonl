@@ -1,0 +1,98 @@
+{"type":"session","version":0,"id":"{{sessionId}}","createdAt":0,"cwd":"{{cwd}}","delegationDepth":0}
+{"type":"agent/inbox/spliced","data":{"target":"next-turn","start":0,"inserted":[{"content":[{"type":"text","text":"Open the order page, put Ada in the requester field, place the order, then reply DONE."}],"source":{"kind":"user"},"role":"user","id":"2f6b1c04-7a1e-4c9d-9b3a-5d7e1f2a4c60"}]}}
+{"type":"turn/start","data":{"turn":1}}
+{"type":"agent/inbox/spliced","data":{"target":"next-turn","start":0,"removedCount":1,"inserted":[]}}
+{"type":"step/start","data":{"turn":1,"step":1}}
+{"type":"user/message","data":{"content":[{"type":"text","text":"Open the order page, put Ada in the requester field, place the order, then reply DONE."}],"source":{"kind":"user"},"role":"user","id":"2f6b1c04-7a1e-4c9d-9b3a-5d7e1f2a4c60"},"surfaceOp":"append"}
+{"type":"user/message","data":{"content":[{"type":"text","text":"Current runtime context. This snapshot supersedes earlier runtime-context snapshots.\n\nCurrent Hydra file policy: danger-full-access. The Hydra file sandbox does not restrict file modifications by available operations.\n\nApproval prompts are disabled in this session: actions that require approval are rejected automatically — do not request sandbox escalation (do not set `sandbox_permissions`)."}],"source":{"kind":"plugin","plugin":"@hydra/harness-system-prompt","form":"snapshot","sections":[{"name":"sandbox:policy","text":"Current Hydra file policy: danger-full-access. The Hydra file sandbox does not restrict file modifications by available operations."},{"name":"approval:policy","text":"Approval prompts are disabled in this session: actions that require approval are rejected automatically — do not request sandbox escalation (do not set `sandbox_permissions`)."}]},"role":"user","id":"1df428e4-46ca-454f-83d5-de8588c53432"},"surfaceOp":"append"}
+{"type":"session/title","data":{"title":"Open the order page, put","messageSeqs":[4],"source":{"kind":"fallback"}}}
+{"type":"request/header","data":{"header":{"config":{"provider":"deepseek-official","model":"deepseek-v4-pro"},"system":"{{system}}","tools":"{{tools}}"},"reason":"initial"}}
+{"type":"request/context","data":{"provider":"deepseek-official","model":"deepseek-v4-pro"}}
+{"type":"assistant/chunk","data":{"turn":1,"step":1,"chunk":{"type":"block-start","index":0,"blockType":"tool-call"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":1,"chunk":{"type":"tool-call-delta","index":0,"id":"browser-open","name":"browser_navigate","argumentsDelta":"{\"url\":\"https://shop.test/order\"}"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":1,"chunk":{"type":"block-end","index":0,"block":{"type":"tool-call","id":"browser-open","name":"browser_navigate","arguments":"{\"url\":\"https://shop.test/order\"}"}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":1,"chunk":{"type":"usage","usage":{"inputTokens":10,"outputTokens":5}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":1,"chunk":{"type":"finish","reason":{"kind":"tool-calls"}}}}
+{"type":"assistant/message","data":{"turn":1,"step":1,"message":{"role":"assistant","content":[{"type":"tool-call","id":"browser-open","name":"browser_navigate","arguments":"{\"url\":\"https://shop.test/order\"}"}],"source":{"kind":"model","provider":"deepseek-official","model":"deepseek-v4-pro"},"id":"4a9e7b31-62c8-4d05-8f1a-9c3e2d6b7048"},"usage":{"inputTokens":10,"outputTokens":5}},"sourceEventSeqs":[9,10,11,12,13],"surfaceOp":"append"}
+{"type":"tool/call","data":{"turn":1,"step":1,"callId":"browser-open","name":"browser_navigate","arguments":"{\"url\":\"https://shop.test/order\"}"}}
+{"type":"tool/result","data":{"turn":1,"step":1,"message":{"source":{"kind":"tool","callId":"browser-open"},"content":[{"type":"tool-result","toolCallId":"browser-open","content":[{"type":"text","text":"navigate succeeded\nTab [1] https://shop.test/order\nSnapshot omitted. Verify with browser_find or browser_snapshot before deciding the outcome."}],"isError":false}],"role":"user","id":"600077f4-662b-4155-968c-26a91661bad3"},"meta":{}},"sourceEventSeqs":[15],"surfaceOp":"append"}
+{"type":"step/end","data":{"turn":1,"step":1}}
+{"type":"step/start","data":{"turn":1,"step":2}}
+{"type":"assistant/chunk","data":{"turn":1,"step":2,"chunk":{"type":"block-start","index":0,"blockType":"tool-call"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":2,"chunk":{"type":"tool-call-delta","index":0,"id":"browser-type","name":"browser_type","argumentsDelta":"{\"text\":\"Ada\",\"name\":\"who\"}"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":2,"chunk":{"type":"block-end","index":0,"block":{"type":"tool-call","id":"browser-type","name":"browser_type","arguments":"{\"text\":\"Ada\",\"name\":\"who\"}"}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":2,"chunk":{"type":"usage","usage":{"inputTokens":10,"outputTokens":5}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":2,"chunk":{"type":"finish","reason":{"kind":"tool-calls"}}}}
+{"type":"assistant/message","data":{"turn":1,"step":2,"message":{"role":"assistant","content":[{"type":"tool-call","id":"browser-type","name":"browser_type","arguments":"{\"text\":\"Ada\",\"name\":\"who\"}"}],"source":{"kind":"model","provider":"deepseek-official","model":"deepseek-v4-pro"},"id":"1e8c5a94-3d76-4b20-a7f5-2c9d8e13640b"},"usage":{"inputTokens":10,"outputTokens":5}},"sourceEventSeqs":[19,20,21,22,23],"surfaceOp":"append"}
+{"type":"tool/call","data":{"turn":1,"step":2,"callId":"browser-type","name":"browser_type","arguments":"{\"text\":\"Ada\",\"name\":\"who\"}"}}
+{"type":"tool/result","data":{"turn":1,"step":2,"message":{"source":{"kind":"tool","callId":"browser-type"},"content":[{"type":"tool-result","toolCallId":"browser-type","content":[{"type":"text","text":"input_text succeeded\nTab [1] https://shop.test/order\nSnapshot omitted. Verify with browser_find or browser_snapshot before deciding the outcome."}],"isError":false}],"role":"user","id":"8658e427-07e8-4173-beb8-d4a80df5ccfa"},"meta":{}},"sourceEventSeqs":[25],"surfaceOp":"append"}
+{"type":"step/end","data":{"turn":1,"step":2}}
+{"type":"step/start","data":{"turn":1,"step":3}}
+{"type":"assistant/chunk","data":{"turn":1,"step":3,"chunk":{"type":"block-start","index":0,"blockType":"tool-call"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":3,"chunk":{"type":"tool-call-delta","index":0,"id":"browser-select","name":"browser_select_text","argumentsDelta":"{\"name\":\"who\"}"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":3,"chunk":{"type":"block-end","index":0,"block":{"type":"tool-call","id":"browser-select","name":"browser_select_text","arguments":"{\"name\":\"who\"}"}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":3,"chunk":{"type":"usage","usage":{"inputTokens":10,"outputTokens":5}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":3,"chunk":{"type":"finish","reason":{"kind":"tool-calls"}}}}
+{"type":"assistant/message","data":{"turn":1,"step":3,"message":{"role":"assistant","content":[{"type":"tool-call","id":"browser-select","name":"browser_select_text","arguments":"{\"name\":\"who\"}"}],"source":{"kind":"model","provider":"deepseek-official","model":"deepseek-v4-pro"},"id":"431c1b91-f4fb-4504-9d9d-52de01a548cb"},"usage":{"inputTokens":10,"outputTokens":5}},"sourceEventSeqs":[29,30,31,32,33],"surfaceOp":"append"}
+{"type":"tool/call","data":{"turn":1,"step":3,"callId":"browser-select","name":"browser_select_text","arguments":"{\"name\":\"who\"}"}}
+{"type":"tool/result","data":{"turn":1,"step":3,"message":{"source":{"kind":"tool","callId":"browser-select"},"content":[{"type":"tool-result","toolCallId":"browser-select","content":[{"type":"text","text":"Selected text: \"Ada\".\nTab [1] https://shop.test/order\nSnapshot omitted. Verify with browser_find or browser_snapshot before deciding the outcome."}],"isError":false}],"role":"user","id":"50089d8b-1db1-4baa-8dc9-d4323be712cc"},"meta":{}},"sourceEventSeqs":[35],"surfaceOp":"append"}
+{"type":"step/end","data":{"turn":1,"step":3}}
+{"type":"step/start","data":{"turn":1,"step":4}}
+{"type":"assistant/chunk","data":{"turn":1,"step":4,"chunk":{"type":"block-start","index":0,"blockType":"tool-call"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":4,"chunk":{"type":"tool-call-delta","index":0,"id":"browser-order","name":"browser_click","argumentsDelta":"{\"name\":\"Place order\"}"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":4,"chunk":{"type":"block-end","index":0,"block":{"type":"tool-call","id":"browser-order","name":"browser_click","arguments":"{\"name\":\"Place order\"}"}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":4,"chunk":{"type":"usage","usage":{"inputTokens":10,"outputTokens":5}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":4,"chunk":{"type":"finish","reason":{"kind":"tool-calls"}}}}
+{"type":"assistant/message","data":{"turn":1,"step":4,"message":{"role":"assistant","content":[{"type":"tool-call","id":"browser-order","name":"browser_click","arguments":"{\"name\":\"Place order\"}"}],"source":{"kind":"model","provider":"deepseek-official","model":"deepseek-v4-pro"},"id":"95b3e6c1-4f28-40da-8e17-2a6d5c9b0f38"},"usage":{"inputTokens":10,"outputTokens":5}},"sourceEventSeqs":[39,40,41,42,43],"surfaceOp":"append"}
+{"type":"tool/call","data":{"turn":1,"step":4,"callId":"browser-order","name":"browser_click","arguments":"{\"name\":\"Place order\"}"}}
+{"type":"tool/result","data":{"turn":1,"step":4,"message":{"source":{"kind":"tool","callId":"browser-order"},"content":[{"type":"tool-result","toolCallId":"browser-order","content":[{"type":"text","text":"click_element succeeded\nTab [1] https://shop.test/order\nSnapshot omitted. Verify with browser_find or browser_snapshot before deciding the outcome."}],"isError":false}],"role":"user","id":"c8de77d2-3ed9-4f33-be71-682e837c3ec3"},"meta":{}},"sourceEventSeqs":[45],"surfaceOp":"append"}
+{"type":"step/end","data":{"turn":1,"step":4}}
+{"type":"step/start","data":{"turn":1,"step":5}}
+{"type":"assistant/chunk","data":{"turn":1,"step":5,"chunk":{"type":"block-start","index":0,"blockType":"tool-call"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":5,"chunk":{"type":"tool-call-delta","index":0,"id":"browser-find","name":"browser_find","argumentsDelta":"{\"regex\":\"/Ordered l for Ada/\"}"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":5,"chunk":{"type":"block-end","index":0,"block":{"type":"tool-call","id":"browser-find","name":"browser_find","arguments":"{\"regex\":\"/Ordered l for Ada/\"}"}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":5,"chunk":{"type":"usage","usage":{"inputTokens":10,"outputTokens":5}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":5,"chunk":{"type":"finish","reason":{"kind":"tool-calls"}}}}
+{"type":"assistant/message","data":{"turn":1,"step":5,"message":{"role":"assistant","content":[{"type":"tool-call","id":"browser-find","name":"browser_find","arguments":"{\"regex\":\"/Ordered l for Ada/\"}"}],"source":{"kind":"model","provider":"deepseek-official","model":"deepseek-v4-pro"},"id":"931d7120-203a-469e-b038-478a115609ee"},"usage":{"inputTokens":10,"outputTokens":5}},"sourceEventSeqs":[49,50,51,52,53],"surfaceOp":"append"}
+{"type":"tool/call","data":{"turn":1,"step":5,"callId":"browser-find","name":"browser_find","arguments":"{\"regex\":\"/Ordered l for Ada/\"}"}}
+{"type":"tool/result","data":{"turn":1,"step":5,"message":{"source":{"kind":"tool","callId":"browser-find"},"content":[{"type":"tool-result","toolCallId":"browser-find","content":[{"type":"text","text":"Found 1 matching node:\n- paragraph [ref=e18]: Ordered l for Ada\nTab [1] https://shop.test/order"}],"isError":false}],"role":"user","id":"c8ee8477-83af-48c8-a560-a9af6f7165ba"},"meta":{}},"sourceEventSeqs":[55],"surfaceOp":"append"}
+{"type":"step/end","data":{"turn":1,"step":5}}
+{"type":"step/start","data":{"turn":1,"step":6}}
+{"type":"assistant/chunk","data":{"turn":1,"step":6,"chunk":{"type":"block-start","index":0,"blockType":"tool-call"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":6,"chunk":{"type":"tool-call-delta","index":0,"id":"browser-snapshot","name":"browser_snapshot","argumentsDelta":"{\"target\":\"e18\",\"depth\":1}"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":6,"chunk":{"type":"block-end","index":0,"block":{"type":"tool-call","id":"browser-snapshot","name":"browser_snapshot","arguments":"{\"target\":\"e18\",\"depth\":1}"}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":6,"chunk":{"type":"usage","usage":{"inputTokens":10,"outputTokens":5}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":6,"chunk":{"type":"finish","reason":{"kind":"tool-calls"}}}}
+{"type":"assistant/message","data":{"turn":1,"step":6,"message":{"role":"assistant","content":[{"type":"tool-call","id":"browser-snapshot","name":"browser_snapshot","arguments":"{\"target\":\"e18\",\"depth\":1}"}],"source":{"kind":"model","provider":"deepseek-official","model":"deepseek-v4-pro"},"id":"7e356169-ab88-4561-8692-56923dc6a117"},"usage":{"inputTokens":10,"outputTokens":5}},"sourceEventSeqs":[59,60,61,62,63],"surfaceOp":"append"}
+{"type":"tool/call","data":{"turn":1,"step":6,"callId":"browser-snapshot","name":"browser_snapshot","arguments":"{\"target\":\"e18\",\"depth\":1}"}}
+{"type":"tool/result","data":{"turn":1,"step":6,"message":{"source":{"kind":"tool","callId":"browser-snapshot"},"content":[{"type":"tool-result","toolCallId":"browser-snapshot","content":[{"type":"text","text":"Open tabs:\n- [1] (active) Order form — https://shop.test/order (complete)\nSnapshot tab: [1]\n\nCurrent Page: [Order form](https://shop.test/order)\nPage info: 1280x900px viewport, 1280x900px total page size\n- paragraph [ref=e18]: Ordered l for Ada\n... end of page ..."}],"isError":false}],"role":"user","id":"f4c81442-f37d-4f50-9010-f06912358bfa"},"meta":{"browser":{"tabId":1,"revision":1,"hash":"05bf24c6","mode":"full"}}},"sourceEventSeqs":[65],"surfaceOp":"append"}
+{"type":"step/end","data":{"turn":1,"step":6}}
+{"type":"step/start","data":{"turn":1,"step":7}}
+{"type":"assistant/chunk","data":{"turn":1,"step":7,"chunk":{"type":"block-start","index":0,"blockType":"tool-call"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":7,"chunk":{"type":"tool-call-delta","index":0,"id":"browser-network","name":"browser_network_requests","argumentsDelta":"{\"filter\":\"/api/\"}"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":7,"chunk":{"type":"block-end","index":0,"block":{"type":"tool-call","id":"browser-network","name":"browser_network_requests","arguments":"{\"filter\":\"/api/\"}"}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":7,"chunk":{"type":"usage","usage":{"inputTokens":10,"outputTokens":5}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":7,"chunk":{"type":"finish","reason":{"kind":"tool-calls"}}}}
+{"type":"assistant/message","data":{"turn":1,"step":7,"message":{"role":"assistant","content":[{"type":"tool-call","id":"browser-network","name":"browser_network_requests","arguments":"{\"filter\":\"/api/\"}"}],"source":{"kind":"model","provider":"deepseek-official","model":"deepseek-v4-pro"},"id":"a5a8788f-191c-4a18-80ec-a9dd5a31cf1f"},"usage":{"inputTokens":10,"outputTokens":5}},"sourceEventSeqs":[69,70,71,72,73],"surfaceOp":"append"}
+{"type":"tool/call","data":{"turn":1,"step":7,"callId":"browser-network","name":"browser_network_requests","arguments":"{\"filter\":\"/api/\"}"}}
+{"type":"tool/result","data":{"turn":1,"step":7,"message":{"source":{"kind":"tool","callId":"browser-network"},"content":[{"type":"tool-result","toolCallId":"browser-network","content":[{"type":"text","text":"[3] POST https://shop.test/api/order 200\nTab [1] https://shop.test/order"}],"isError":false}],"role":"user","id":"32f1ed96-6171-4482-a3ab-4b9983b73375"},"meta":{}},"sourceEventSeqs":[75],"surfaceOp":"append"}
+{"type":"step/end","data":{"turn":1,"step":7}}
+{"type":"step/start","data":{"turn":1,"step":8}}
+{"type":"assistant/chunk","data":{"turn":1,"step":8,"chunk":{"type":"block-start","index":0,"blockType":"tool-call"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":8,"chunk":{"type":"tool-call-delta","index":0,"id":"browser-expired","name":"browser_network_request","argumentsDelta":"{\"index\":999,\"filename\":\"expired.json\"}"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":8,"chunk":{"type":"block-end","index":0,"block":{"type":"tool-call","id":"browser-expired","name":"browser_network_request","arguments":"{\"index\":999,\"filename\":\"expired.json\"}"}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":8,"chunk":{"type":"usage","usage":{"inputTokens":10,"outputTokens":5}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":8,"chunk":{"type":"finish","reason":{"kind":"tool-calls"}}}}
+{"type":"assistant/message","data":{"turn":1,"step":8,"message":{"role":"assistant","content":[{"type":"tool-call","id":"browser-expired","name":"browser_network_request","arguments":"{\"index\":999,\"filename\":\"expired.json\"}"}],"source":{"kind":"model","provider":"deepseek-official","model":"deepseek-v4-pro"},"id":"7739013b-c929-472c-9551-9c005ce99bf6"},"usage":{"inputTokens":10,"outputTokens":5}},"sourceEventSeqs":[79,80,81,82,83],"surfaceOp":"append"}
+{"type":"tool/call","data":{"turn":1,"step":8,"callId":"browser-expired","name":"browser_network_request","arguments":"{\"index\":999,\"filename\":\"expired.json\"}"}}
+{"type":"tool/result","data":{"turn":1,"step":8,"message":{"source":{"kind":"tool","callId":"browser-expired"},"content":[{"type":"tool-result","toolCallId":"browser-expired","content":[{"type":"text","text":"Action failed: Request is unavailable or expired. Read browser_network_requests for current indexes.\nTab [1] https://shop.test/order"}],"isError":false}],"role":"user","id":"b6765b42-9a01-47d4-a733-83c88e844fd5"},"meta":{}},"sourceEventSeqs":[85],"surfaceOp":"append"}
+{"type":"step/end","data":{"turn":1,"step":8}}
+{"type":"step/start","data":{"turn":1,"step":9}}
+{"type":"assistant/chunk","data":{"turn":1,"step":9,"chunk":{"type":"block-start","index":0,"blockType":"text"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":9,"chunk":{"type":"text-delta","index":0,"text":"DONE"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":9,"chunk":{"type":"block-end","index":0,"block":{"type":"text","text":"DONE"}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":9,"chunk":{"type":"usage","usage":{"inputTokens":10,"outputTokens":3}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":9,"chunk":{"type":"finish","reason":{"kind":"stop"}}}}
+{"type":"assistant/message","data":{"turn":1,"step":9,"message":{"role":"assistant","content":[{"type":"text","text":"DONE"}],"source":{"kind":"model","provider":"deepseek-official","model":"deepseek-v4-pro"},"id":"7c2a9f65-0e34-4187-b9d2-53f81a6c4e09"},"usage":{"inputTokens":10,"outputTokens":3}},"sourceEventSeqs":[89,90,91,92,93],"surfaceOp":"append"}
+{"type":"step/end","data":{"turn":1,"step":9}}
+{"type":"turn/end","data":{"turn":1,"reason":{"kind":"completed"}}}

@@ -29,20 +29,70 @@
 {"type":"step/end","data":{"turn":1,"step":2}}
 {"type":"step/start","data":{"turn":1,"step":3}}
 {"type":"assistant/chunk","data":{"turn":1,"step":3,"chunk":{"type":"block-start","index":0,"blockType":"tool-call"}}}
-{"type":"assistant/chunk","data":{"turn":1,"step":3,"chunk":{"type":"tool-call-delta","index":0,"id":"browser-order","name":"browser_click","argumentsDelta":"{\"index\":1}"}}}
-{"type":"assistant/chunk","data":{"turn":1,"step":3,"chunk":{"type":"block-end","index":0,"block":{"type":"tool-call","id":"browser-order","name":"browser_click","arguments":"{\"index\":1}"}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":3,"chunk":{"type":"tool-call-delta","index":0,"id":"browser-select","name":"browser_select_text","argumentsDelta":"{\"index\":0}"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":3,"chunk":{"type":"block-end","index":0,"block":{"type":"tool-call","id":"browser-select","name":"browser_select_text","arguments":"{\"index\":0}"}}}}
 {"type":"assistant/chunk","data":{"turn":1,"step":3,"chunk":{"type":"usage","usage":{"inputTokens":10,"outputTokens":5}}}}
 {"type":"assistant/chunk","data":{"turn":1,"step":3,"chunk":{"type":"finish","reason":{"kind":"tool-calls"}}}}
-{"type":"assistant/message","data":{"turn":1,"step":3,"message":{"role":"assistant","content":[{"type":"tool-call","id":"browser-order","name":"browser_click","arguments":"{\"index\":1}"}],"source":{"kind":"model","provider":"deepseek-official","model":"deepseek-v4-pro"},"id":"95b3e6c1-4f28-40da-8e17-2a6d5c9b0f38"},"usage":{"inputTokens":10,"outputTokens":5}},"sourceEventSeqs":[29,30,31,32,33],"surfaceOp":"append"}
-{"type":"tool/call","data":{"turn":1,"step":3,"callId":"browser-order","name":"browser_click","arguments":"{\"index\":1}"}}
-{"type":"tool/result","data":{"turn":1,"step":3,"message":{"source":{"kind":"tool","callId":"browser-order"},"content":[{"type":"tool-result","toolCallId":"browser-order","content":[{"type":"text","text":"click_element succeeded\n\nTab [1] (active) Order form — https://shop.test/order\nSnapshot tab: [1]\n\nSnapshot revision: 1 → 2\nAdded:\nOrdered l for Ada\nChanged:\n\nRemoved:\n\n\n(Compact snapshot after the action. Call browser_state for the full element list.)"}],"isError":false}],"role":"user","id":"257cea28-4093-4545-a379-6274ac1c278c"},"meta":{"browser":{"tabId":1,"revision":2,"hash":"f3397a78","mode":"diff"}}},"sourceEventSeqs":[35],"surfaceOp":"append"}
+{"type":"assistant/message","data":{"turn":1,"step":3,"message":{"role":"assistant","content":[{"type":"tool-call","id":"browser-select","name":"browser_select_text","arguments":"{\"index\":0}"}],"source":{"kind":"model","provider":"deepseek-official","model":"deepseek-v4-pro"},"id":"431c1b91-f4fb-4504-9d9d-52de01a548cb"},"usage":{"inputTokens":10,"outputTokens":5}},"sourceEventSeqs":[29,30,31,32,33],"surfaceOp":"append"}
+{"type":"tool/call","data":{"turn":1,"step":3,"callId":"browser-select","name":"browser_select_text","arguments":"{\"index\":0}"}}
+{"type":"tool/result","data":{"turn":1,"step":3,"message":{"source":{"kind":"tool","callId":"browser-select"},"content":[{"type":"tool-result","toolCallId":"browser-select","content":[{"type":"text","text":"Selected text: \"Ada\".\n\nTab [1] (active) Order form — https://shop.test/order\nSnapshot tab: [1]\n\nSnapshot revision: 1 → 1\nAdded:\n\nChanged:\n\nRemoved:\n\n\n(Page content unchanged since the previous browser result. Existing element indexes remain valid.)\n(Compact snapshot after the action. Call browser_state for the full element list.)"}],"isError":false}],"role":"user","id":"a04a5828-abeb-4d49-8be0-53cc26ca8abb"},"meta":{"browser":{"tabId":1,"revision":1,"hash":"811c9dc5","mode":"diff"}}},"sourceEventSeqs":[35],"surfaceOp":"append"}
 {"type":"step/end","data":{"turn":1,"step":3}}
 {"type":"step/start","data":{"turn":1,"step":4}}
-{"type":"assistant/chunk","data":{"turn":1,"step":4,"chunk":{"type":"block-start","index":0,"blockType":"text"}}}
-{"type":"assistant/chunk","data":{"turn":1,"step":4,"chunk":{"type":"text-delta","index":0,"text":"DONE"}}}
-{"type":"assistant/chunk","data":{"turn":1,"step":4,"chunk":{"type":"block-end","index":0,"block":{"type":"text","text":"DONE"}}}}
-{"type":"assistant/chunk","data":{"turn":1,"step":4,"chunk":{"type":"usage","usage":{"inputTokens":10,"outputTokens":3}}}}
-{"type":"assistant/chunk","data":{"turn":1,"step":4,"chunk":{"type":"finish","reason":{"kind":"stop"}}}}
-{"type":"assistant/message","data":{"turn":1,"step":4,"message":{"role":"assistant","content":[{"type":"text","text":"DONE"}],"source":{"kind":"model","provider":"deepseek-official","model":"deepseek-v4-pro"},"id":"7c2a9f65-0e34-4187-b9d2-53f81a6c4e09"},"usage":{"inputTokens":10,"outputTokens":3}},"sourceEventSeqs":[39,40,41,42,43],"surfaceOp":"append"}
+{"type":"assistant/chunk","data":{"turn":1,"step":4,"chunk":{"type":"block-start","index":0,"blockType":"tool-call"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":4,"chunk":{"type":"tool-call-delta","index":0,"id":"browser-order","name":"browser_click","argumentsDelta":"{\"index\":1}"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":4,"chunk":{"type":"block-end","index":0,"block":{"type":"tool-call","id":"browser-order","name":"browser_click","arguments":"{\"index\":1}"}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":4,"chunk":{"type":"usage","usage":{"inputTokens":10,"outputTokens":5}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":4,"chunk":{"type":"finish","reason":{"kind":"tool-calls"}}}}
+{"type":"assistant/message","data":{"turn":1,"step":4,"message":{"role":"assistant","content":[{"type":"tool-call","id":"browser-order","name":"browser_click","arguments":"{\"index\":1}"}],"source":{"kind":"model","provider":"deepseek-official","model":"deepseek-v4-pro"},"id":"95b3e6c1-4f28-40da-8e17-2a6d5c9b0f38"},"usage":{"inputTokens":10,"outputTokens":5}},"sourceEventSeqs":[39,40,41,42,43],"surfaceOp":"append"}
+{"type":"tool/call","data":{"turn":1,"step":4,"callId":"browser-order","name":"browser_click","arguments":"{\"index\":1}"}}
+{"type":"tool/result","data":{"turn":1,"step":4,"message":{"source":{"kind":"tool","callId":"browser-order"},"content":[{"type":"tool-result","toolCallId":"browser-order","content":[{"type":"text","text":"click_element succeeded\n\nTab [1] (active) Order form — https://shop.test/order\nSnapshot tab: [1]\n\nSnapshot revision: 1 → 2\nAdded:\nOrdered l for Ada\nChanged:\n\nRemoved:\n\n\n(Compact snapshot after the action. Call browser_state for the full element list.)"}],"isError":false}],"role":"user","id":"257cea28-4093-4545-a379-6274ac1c278c"},"meta":{"browser":{"tabId":1,"revision":2,"hash":"f3397a78","mode":"diff"}}},"sourceEventSeqs":[45],"surfaceOp":"append"}
 {"type":"step/end","data":{"turn":1,"step":4}}
+{"type":"step/start","data":{"turn":1,"step":5}}
+{"type":"assistant/chunk","data":{"turn":1,"step":5,"chunk":{"type":"block-start","index":0,"blockType":"tool-call"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":5,"chunk":{"type":"tool-call-delta","index":0,"id":"browser-find","name":"browser_find","argumentsDelta":"{\"regex\":\"/Place order/i\"}"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":5,"chunk":{"type":"block-end","index":0,"block":{"type":"tool-call","id":"browser-find","name":"browser_find","arguments":"{\"regex\":\"/Place order/i\"}"}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":5,"chunk":{"type":"usage","usage":{"inputTokens":10,"outputTokens":5}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":5,"chunk":{"type":"finish","reason":{"kind":"tool-calls"}}}}
+{"type":"assistant/message","data":{"turn":1,"step":5,"message":{"role":"assistant","content":[{"type":"tool-call","id":"browser-find","name":"browser_find","arguments":"{\"regex\":\"/Place order/i\"}"}],"source":{"kind":"model","provider":"deepseek-official","model":"deepseek-v4-pro"},"id":"931d7120-203a-469e-b038-478a115609ee"},"usage":{"inputTokens":10,"outputTokens":5}},"sourceEventSeqs":[49,50,51,52,53],"surfaceOp":"append"}
+{"type":"tool/call","data":{"turn":1,"step":5,"callId":"browser-find","name":"browser_find","arguments":"{\"regex\":\"/Place order/i\"}"}}
+{"type":"tool/result","data":{"turn":1,"step":5,"message":{"source":{"kind":"tool","callId":"browser-find"},"content":[{"type":"tool-result","toolCallId":"browser-find","content":[{"type":"text","text":"Found 1 matching node:\n- button \"Place order\" [ref=e17]\nTab [1] https://shop.test/order"}],"isError":false}],"role":"user","id":"43c3c579-289f-4b08-9247-b93ca428dd22"},"meta":{}},"sourceEventSeqs":[55],"surfaceOp":"append"}
+{"type":"step/end","data":{"turn":1,"step":5}}
+{"type":"step/start","data":{"turn":1,"step":6}}
+{"type":"assistant/chunk","data":{"turn":1,"step":6,"chunk":{"type":"block-start","index":0,"blockType":"tool-call"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":6,"chunk":{"type":"tool-call-delta","index":0,"id":"browser-snapshot","name":"browser_snapshot","argumentsDelta":"{\"target\":\"e17\",\"depth\":1}"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":6,"chunk":{"type":"block-end","index":0,"block":{"type":"tool-call","id":"browser-snapshot","name":"browser_snapshot","arguments":"{\"target\":\"e17\",\"depth\":1}"}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":6,"chunk":{"type":"usage","usage":{"inputTokens":10,"outputTokens":5}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":6,"chunk":{"type":"finish","reason":{"kind":"tool-calls"}}}}
+{"type":"assistant/message","data":{"turn":1,"step":6,"message":{"role":"assistant","content":[{"type":"tool-call","id":"browser-snapshot","name":"browser_snapshot","arguments":"{\"target\":\"e17\",\"depth\":1}"}],"source":{"kind":"model","provider":"deepseek-official","model":"deepseek-v4-pro"},"id":"7e356169-ab88-4561-8692-56923dc6a117"},"usage":{"inputTokens":10,"outputTokens":5}},"sourceEventSeqs":[59,60,61,62,63],"surfaceOp":"append"}
+{"type":"tool/call","data":{"turn":1,"step":6,"callId":"browser-snapshot","name":"browser_snapshot","arguments":"{\"target\":\"e17\",\"depth\":1}"}}
+{"type":"tool/result","data":{"turn":1,"step":6,"message":{"source":{"kind":"tool","callId":"browser-snapshot"},"content":[{"type":"tool-result","toolCallId":"browser-snapshot","content":[{"type":"text","text":"Open tabs:\n- [1] (active) Order form — https://shop.test/order (complete)\nSnapshot tab: [1]\n\nCurrent Page: [Order form](https://shop.test/order)\nPage info: 1280x900px viewport, 1280x900px total page size\n- button \"Place order\" [ref=e17]\n... end of page ..."}],"isError":false}],"role":"user","id":"9b3cb136-ee6d-4003-9dbc-ddf4afb3fcfd"},"meta":{"browser":{"tabId":1,"revision":1,"hash":"6a06cab6","mode":"full"}}},"sourceEventSeqs":[65],"surfaceOp":"append"}
+{"type":"step/end","data":{"turn":1,"step":6}}
+{"type":"step/start","data":{"turn":1,"step":7}}
+{"type":"assistant/chunk","data":{"turn":1,"step":7,"chunk":{"type":"block-start","index":0,"blockType":"tool-call"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":7,"chunk":{"type":"tool-call-delta","index":0,"id":"browser-network","name":"browser_network_requests","argumentsDelta":"{\"filter\":\"/api/\"}"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":7,"chunk":{"type":"block-end","index":0,"block":{"type":"tool-call","id":"browser-network","name":"browser_network_requests","arguments":"{\"filter\":\"/api/\"}"}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":7,"chunk":{"type":"usage","usage":{"inputTokens":10,"outputTokens":5}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":7,"chunk":{"type":"finish","reason":{"kind":"tool-calls"}}}}
+{"type":"assistant/message","data":{"turn":1,"step":7,"message":{"role":"assistant","content":[{"type":"tool-call","id":"browser-network","name":"browser_network_requests","arguments":"{\"filter\":\"/api/\"}"}],"source":{"kind":"model","provider":"deepseek-official","model":"deepseek-v4-pro"},"id":"a5a8788f-191c-4a18-80ec-a9dd5a31cf1f"},"usage":{"inputTokens":10,"outputTokens":5}},"sourceEventSeqs":[69,70,71,72,73],"surfaceOp":"append"}
+{"type":"tool/call","data":{"turn":1,"step":7,"callId":"browser-network","name":"browser_network_requests","arguments":"{\"filter\":\"/api/\"}"}}
+{"type":"tool/result","data":{"turn":1,"step":7,"message":{"source":{"kind":"tool","callId":"browser-network"},"content":[{"type":"tool-result","toolCallId":"browser-network","content":[{"type":"text","text":"[3] POST https://shop.test/api/order 200\nTab [1] https://shop.test/order"}],"isError":false}],"role":"user","id":"32f1ed96-6171-4482-a3ab-4b9983b73375"},"meta":{}},"sourceEventSeqs":[75],"surfaceOp":"append"}
+{"type":"step/end","data":{"turn":1,"step":7}}
+{"type":"step/start","data":{"turn":1,"step":8}}
+{"type":"assistant/chunk","data":{"turn":1,"step":8,"chunk":{"type":"block-start","index":0,"blockType":"tool-call"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":8,"chunk":{"type":"tool-call-delta","index":0,"id":"browser-expired","name":"browser_network_request","argumentsDelta":"{\"index\":999,\"filename\":\"expired.json\"}"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":8,"chunk":{"type":"block-end","index":0,"block":{"type":"tool-call","id":"browser-expired","name":"browser_network_request","arguments":"{\"index\":999,\"filename\":\"expired.json\"}"}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":8,"chunk":{"type":"usage","usage":{"inputTokens":10,"outputTokens":5}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":8,"chunk":{"type":"finish","reason":{"kind":"tool-calls"}}}}
+{"type":"assistant/message","data":{"turn":1,"step":8,"message":{"role":"assistant","content":[{"type":"tool-call","id":"browser-expired","name":"browser_network_request","arguments":"{\"index\":999,\"filename\":\"expired.json\"}"}],"source":{"kind":"model","provider":"deepseek-official","model":"deepseek-v4-pro"},"id":"7739013b-c929-472c-9551-9c005ce99bf6"},"usage":{"inputTokens":10,"outputTokens":5}},"sourceEventSeqs":[79,80,81,82,83],"surfaceOp":"append"}
+{"type":"tool/call","data":{"turn":1,"step":8,"callId":"browser-expired","name":"browser_network_request","arguments":"{\"index\":999,\"filename\":\"expired.json\"}"}}
+{"type":"tool/result","data":{"turn":1,"step":8,"message":{"source":{"kind":"tool","callId":"browser-expired"},"content":[{"type":"tool-result","toolCallId":"browser-expired","content":[{"type":"text","text":"Action failed: Request is unavailable or expired. Read browser_network_requests for current indexes.\nTab [1] https://shop.test/order"}],"isError":false}],"role":"user","id":"b6765b42-9a01-47d4-a733-83c88e844fd5"},"meta":{}},"sourceEventSeqs":[85],"surfaceOp":"append"}
+{"type":"step/end","data":{"turn":1,"step":8}}
+{"type":"step/start","data":{"turn":1,"step":9}}
+{"type":"assistant/chunk","data":{"turn":1,"step":9,"chunk":{"type":"block-start","index":0,"blockType":"text"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":9,"chunk":{"type":"text-delta","index":0,"text":"DONE"}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":9,"chunk":{"type":"block-end","index":0,"block":{"type":"text","text":"DONE"}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":9,"chunk":{"type":"usage","usage":{"inputTokens":10,"outputTokens":3}}}}
+{"type":"assistant/chunk","data":{"turn":1,"step":9,"chunk":{"type":"finish","reason":{"kind":"stop"}}}}
+{"type":"assistant/message","data":{"turn":1,"step":9,"message":{"role":"assistant","content":[{"type":"text","text":"DONE"}],"source":{"kind":"model","provider":"deepseek-official","model":"deepseek-v4-pro"},"id":"7c2a9f65-0e34-4187-b9d2-53f81a6c4e09"},"usage":{"inputTokens":10,"outputTokens":3}},"sourceEventSeqs":[89,90,91,92,93],"surfaceOp":"append"}
+{"type":"step/end","data":{"turn":1,"step":9}}
 {"type":"turn/end","data":{"turn":1,"reason":{"kind":"completed"}}}

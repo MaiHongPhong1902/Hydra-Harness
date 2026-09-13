@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hydra Agent - Mouse Drag & Sliders Test Suite</title>
+    <style>
+      :root {
+        --bg-primary: #0f172a;
+        --bg-secondary: #1e293b;
+        --bg-tertiary: #334155;
+        --text-primary: #f8fafc;
+        --text-secondary: #94a3b8;
+        --text-muted: #64748b;
+        --accent-sky: #38bdf8;
+        --accent-indigo: #818cf8;
+        --accent-emerald: #34d399;
+        --accent-rose: #fb7185;
+        --accent-amber: #fbbf24;
+        --border-color: #334155;
+        --radius: 12px;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        line-height: 1.6;
+        padding-bottom: 90px;
+      }
+      header {
+        background: rgba(30, 41, 59, 0.85);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border-color);
+        padding: 16px 24px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .logo-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .logo-badge {
+        background: linear-gradient(135deg, var(--accent-rose), var(--accent-amber));
+        color: #0f172a;
+        font-weight: 800;
+        font-size: 13px;
+        padding: 4px 10px;
+        border-radius: 9999px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      h1 { font-size: 18px; font-weight: 700; }
+      nav.suite-nav {
+        display: flex;
+        gap: 8px;
+        background: var(--bg-secondary);
+        padding: 10px 24px;
+        border-bottom: 1px solid var(--border-color);
+        overflow-x: auto;
+      }
+      .nav-link {
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: 8px;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+        white-space: nowrap;
+      }
+      .nav-link:hover, .nav-link.active {
+        background: rgba(56, 189, 248, 0.15);
+        color: var(--accent-sky);
+        border-color: rgba(56, 189, 248, 0.3);
+      }
+      main {
+        max-width: 1080px;
+        margin: 28px auto;
+        padding: 0 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+      .section-box {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .box-title {
+        font-size: 16px;
+        font-weight: 700;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .badge-test {
+        font-size: 11px;
+        padding: 3px 8px;
+        border-radius: 6px;
+        background: rgba(251, 113, 133, 0.15);
+        color: var(--accent-rose);
+        font-weight: 600;
+      }
+      .box-desc {
+        font-size: 13px;
+        color: var(--text-secondary);
+      }
+
+      /* Sliders */
+      .slider-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .slider-label {
+        font-size: 13px;
+        font-weight: 600;
+        min-width: 120px;
+      }
+      input[type="range"] {
+        flex: 1;
+        height: 6px;
+        background: var(--bg-tertiary);
+        border-radius: 9999px;
+        appearance: none;
+        outline: none;
+        cursor: pointer;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--accent-sky);
+        box-shadow: 0 0 8px var(--accent-sky);
+        cursor: pointer;
+      }
+      .slider-value {
+        font-family: monospace;
+        font-size: 14px;
+        font-weight: 700;
+        min-width: 48px;
+        color: var(--accent-sky);
+      }
+
+      /* Draggable Arena */
+      .drag-arena {
+        position: relative;
+        height: 220px;
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px dashed var(--border-color);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .draggable-box {
+        position: absolute;
+        top: 60px;
+        left: 60px;
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, var(--accent-indigo), var(--accent-sky));
+        border-radius: 12px;
+        color: #0f172a;
+        font-weight: 800;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        cursor: grab;
+        user-select: none;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      }
+      .draggable-box:active {
+        cursor: grabbing;
+        transform: scale(1.05);
+      }
+
+      /* Drag and Drop zone */
+      .dnd-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      .dnd-source-box, .dnd-target-box {
+        background: rgba(15, 23, 42, 0.5);
+        border: 2px dashed var(--border-color);
+        border-radius: 10px;
+        padding: 16px;
+        min-height: 140px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .dnd-target-box.drag-over {
+        border-color: var(--accent-emerald);
+        background: rgba(52, 211, 153, 0.1);
+      }
+      .dnd-item {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: grab;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .dnd-item:active { cursor: grabbing; }
+
+      /* Result telemetry */
+      .result-banner {
+        padding: 12px 16px;
+        border-radius: 8px;
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px solid var(--border-color);
+        font-family: monospace;
+        font-size: 13px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .status-pill {
+        font-weight: bold;
+        padding: 2px 8px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        font-size: 11px;
+      }
+      .status-idle { background: var(--bg-tertiary); color: var(--text-muted); }
+      .status-success { background: var(--accent-emerald); color: #0f172a; }
+
+      /* Live Event Dock */
+      .event-dock {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 56px;
+        background: rgba(15, 23, 42, 0.94);
+        backdrop-filter: blur(16px);
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        padding: 0 24px;
+        gap: 16px;
+        z-index: 1000;
+        font-family: monospace;
+        font-size: 12px;
+      }
+      .dock-label {
+        font-weight: 700;
+        color: var(--text-secondary);
+        white-space: nowrap;
+      }
+      .event-ticker {
+        flex: 1;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        color: var(--accent-rose);
+      }
+      .badge-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent-emerald);
+        margin-right: 6px;
+        box-shadow: 0 0 8px var(--accent-emerald);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo-group">
+        <span class="logo-badge">Drag & Sliders</span>
+        <h1>Agent Mouse Drag & Sliders Test Suite</h1>
+      </div>
+      <div id="dragCoordsDisplay" style="font-family: monospace; font-size: 12px; color: var(--accent-rose);">
+        Drag Offset: X: 0, Y: 0
+      </div>
+    </header>
+
+    <nav class="suite-nav" aria-label="Mouse Test Pages">
+      <a class="nav-link" href="index.html">Dashboard Hub</a>
+      <a class="nav-link" href="click.html">1. Click Suite</a>
+      <a class="nav-link" href="move.html">2. Move & Hover</a>
+      <a class="nav-link" href="scroll.html">3. Scroll Suite</a>
+      <a class="nav-link" href="select.html">4. Select Text</a>
+      <a class="nav-link" href="edit.html">5. Text Editing</a>
+      <a class="nav-link active" href="drag.html">6. Drag & Sliders</a>
+    </nav>
+
+    <main>
+      <!-- 1. Native Range Sliders -->
+      <section class="section-box" id="sec-sliders">
+        <div class="box-title">
+          <span>1. Thanh Trượt Giá Trị (Range Sliders)</span>
+          <span class="badge-test">range-slider</span>
+        </div>
+        <p class="box-desc">Kiểm thử kéo thanh trượt điều chỉnh giá trị từ mức ban đầu đến mức mục tiêu.</p>
+
+        <div class="slider-row">
+          <span class="slider-label">Âm lượng (Volume):</span>
+          <input type="range" id="volumeSlider" min="0" max="100" value="25" />
+          <span class="slider-value" id="volumeVal">25%</span>
+          <span style="font-size: 12px; color: var(--text-muted);">(Mục tiêu: 80%)</span>
+        </div>
+
+        <div class="slider-row">
+          <span class="slider-label">Độ sáng (Brightness):</span>
+          <input type="range" id="brightnessSlider" min="0" max="100" value="50" style="accent-color: var(--accent-amber);" />
+          <span class="slider-value" id="brightnessVal" style="color: var(--accent-amber);">50%</span>
+        </div>
+
+        <div class="result-banner">
+          <span id="sliderResult">Âm lượng: 25% | Độ sáng: 50%</span>
+          <span class="status-pill status-idle" id="sliderStatusPill">PENDING</span>
+        </div>
+      </section>
+
+      <!-- 2. Custom Draggable Box -->
+      <section class="section-box" id="sec-draggable-box">
+        <div class="box-title">
+          <span>2. Hộp Kéo Thả Tự Do (Free Draggable Element)</span>
+          <span class="badge-test">mousedown + move</span>
+        </div>
+        <p class="box-desc">Giữ chuột trên hộp xanh và kéo đến vị trí bất kỳ trong khung kiểm thử.</p>
+
+        <div class="drag-arena" id="dragArena">
+          <div class="draggable-box" id="customDragBox">
+            KÉO TÔI
+          </div>
+        </div>
+
+        <div class="result-banner">
+          <span id="boxPositionResult">Tọa độ hộp: Left: 60px, Top: 60px</span>
+          <span class="status-pill status-idle" id="boxStatusPill">IDLE</span>
+        </div>
+      </section>
+
+      <!-- 3. Drag and Drop List -->
+      <section class="section-box" id="sec-dnd">
+        <div class="box-title">
+          <span>3. Kéo Thả Vào Khu Vực Đích (Drag & Drop Zone)</span>
+          <span class="badge-test">drag-and-drop</span>
+        </div>
+        <p class="box-desc">Kéo thẻ từ "Hàng Đợi Công Việc" và thả vào "Khu Vực Hoàn Thành".</p>
+
+        <div class="dnd-container">
+          <div class="dnd-source-box" id="sourceBucket">
+            <span style="font-size: 12px; font-weight: bold; color: var(--text-secondary);">Hàng Đợi Công Việc:</span>
+            <div class="dnd-item" draggable="true" id="item1"><span>#1 Task Alpha</span> &equiv;</div>
+            <div class="dnd-item" draggable="true" id="item2"><span>#2 Task Beta</span> &equiv;</div>
+          </div>
+
+          <div class="dnd-target-box" id="targetBucket">
+            <span style="font-size: 12px; font-weight: bold; color: var(--accent-emerald);">Khu Vực Hoàn Thành:</span>
+          </div>
+        </div>
+
+        <div class="result-banner">
+          <span id="dndResult">Đã hoàn thành: 0 / 2 tasks</span>
+          <span class="status-pill status-idle" id="dndStatusPill">PENDING</span>
+        </div>
+      </section>
+    </main>
+
+    <!-- Live Event Dock -->
+    <div class="event-dock" aria-live="polite">
+      <span class="dock-label"><span class="badge-indicator"></span>LIVE EVENT DOCK:</span>
+      <span class="event-ticker" id="eventTicker">Sẵn sàng ghi nhận sự kiện kéo thả...</span>
+    </div>
+
+    <script>
+      const eventTicker = document.getElementById('eventTicker');
+      const dragCoordsDisplay = document.getElementById('dragCoordsDisplay');
+      function logEvent(type, detail) {
+        eventTicker.textContent = `[${new Date().toLocaleTimeString()}] ${type.toUpperCase()} -> ${detail}`;
+      }
+
+      // 1. Sliders
+      const volumeSlider = document.getElementById('volumeSlider');
+      const volumeVal = document.getElementById('volumeVal');
+      const brightnessSlider = document.getElementById('brightnessSlider');
+      const brightnessVal = document.getElementById('brightnessVal');
+      const sliderResult = document.getElementById('sliderResult');
+      const sliderStatusPill = document.getElementById('sliderStatusPill');
+
+      function updateSliders() {
+        const v = parseInt(volumeSlider.value, 10);
+        const b = parseInt(brightnessSlider.value, 10);
+        volumeVal.textContent = `${v}%`;
+        brightnessVal.textContent = `${b}%`;
+        sliderResult.textContent = `Âm lượng: ${v}% | Độ sáng: ${b}%`;
+
+        if (v === 80) {
+          sliderStatusPill.textContent = 'PASSED';
+          sliderStatusPill.className = 'status-pill status-success';
+        }
+        logEvent('slider_change', `Volume: ${v}%, Brightness: ${b}%`);
+      }
+      volumeSlider.addEventListener('input', updateSliders);
+      brightnessSlider.addEventListener('input', updateSliders);
+
+      // 2. Custom Draggable Box
+      const dragArena = document.getElementById('dragArena');
+      const customDragBox = document.getElementById('customDragBox');
+      const boxPositionResult = document.getElementById('boxPositionResult');
+      const boxStatusPill = document.getElementById('boxStatusPill');
+
+      let isDragging = false;
+      let startMouseX = 0, startMouseY = 0;
+      let initialLeft = 60, initialTop = 60;
+
+      customDragBox.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startMouseX = e.clientX;
+        startMouseY = e.clientY;
+        initialLeft = customDragBox.offsetLeft;
+        initialTop = customDragBox.offsetTop;
+        logEvent('box_mousedown', `Grabbed at (${e.clientX}, ${e.clientY})`);
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const dx = e.clientX - startMouseX;
+        const dy = e.clientY - startMouseY;
+        const arenaRect = dragArena.getBoundingClientRect();
+
+        let newLeft = Math.max(0, Math.min(arenaRect.width - customDragBox.offsetWidth, initialLeft + dx));
+        let newTop = Math.max(0, Math.min(arenaRect.height - customDragBox.offsetHeight, initialTop + dy));
+
+        customDragBox.style.left = `${newLeft}px`;
+        customDragBox.style.top = `${newTop}px`;
+        boxPositionResult.textContent = `Tọa độ hộp: Left: ${Math.round(newLeft)}px, Top: ${Math.round(newTop)}px`;
+        dragCoordsDisplay.textContent = `Drag: (${Math.round(newLeft)}, ${Math.round(newTop)})`;
+
+        boxStatusPill.textContent = 'MOVED';
+        boxStatusPill.className = 'status-pill status-success';
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (isDragging) {
+          isDragging = false;
+          logEvent('box_mouseup', 'Released draggable box');
+        }
+      });
+
+      // 3. Drag and drop
+      let draggedItem = null;
+      document.querySelectorAll('.dnd-item').forEach(item => {
+        item.addEventListener('dragstart', (e) => {
+          draggedItem = item;
+          e.dataTransfer.setData('text/plain', item.id);
+          logEvent('dragstart', `Item #${item.id}`);
+        });
+      });
+
+      const targetBucket = document.getElementById('targetBucket');
+      const dndResult = document.getElementById('dndResult');
+      const dndStatusPill = document.getElementById('dndStatusPill');
+
+      targetBucket.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        targetBucket.classList.add('drag-over');
+      });
+
+      targetBucket.addEventListener('dragleave', () => {
+        targetBucket.classList.remove('drag-over');
+      });
+
+      targetBucket.addEventListener('drop', (e) => {
+        e.preventDefault();
+        targetBucket.classList.remove('drag-over');
+        if (draggedItem) {
+          targetBucket.appendChild(draggedItem);
+          const completedCount = targetBucket.querySelectorAll('.dnd-item').length;
+          dndResult.textContent = `Đã hoàn thành: ${completedCount} / 2 tasks`;
+          if (completedCount === 2) {
+            dndStatusPill.textContent = 'PASSED';
+            dndStatusPill.className = 'status-pill status-success';
+          }
+          logEvent('drop', `Dropped #${draggedItem.id} into completed bucket`);
+          draggedItem = null;
+        }
+      });
+    </script>
+  </body>
+</html>

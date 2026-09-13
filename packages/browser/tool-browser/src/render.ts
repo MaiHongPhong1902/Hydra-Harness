@@ -32,7 +32,7 @@ export const UNCHANGED_NOTICE
  */
 export interface BrowserToolValue {
   /** The action's own report, omitted by `browser_state`. */
-  action?: { success: boolean; message: string }
+  action?: { success: boolean; message: string; selectedText?: string }
   /** URL after the action. */
   url: string
   /** Document title after the action. */
@@ -62,6 +62,10 @@ export interface BrowserToolValue {
    * carry valid indices for the next call; `browser_state` is the full list.
    */
   compact: boolean
+  /** Whether the model receives page state, a diagnostic result, or an omission notice. */
+  response?: 'state' | 'result' | 'none'
+  /** Absolute artifact path when output was saved instead of rendered. */
+  filename?: string
   /** Snapshot revision and optional structural diff for compact actions. */
   mode?: 'full' | 'diff'
   revision?: number
@@ -246,7 +250,8 @@ export function toValue(
     const index = lineIndex(line)
     return index !== undefined && previousByIndex.get(index) !== undefined && previousByIndex.get(index) !== line
   }) : []
-  const diff = canDiff && added.length + removed.length + changed.length <= Math.max(1, ranked.length / 2)
+  const diffChars = [...added, ...changed, ...removed].join('\n').length
+  const diff = canDiff && diffChars <= budget && diffChars < Math.max(1, ranked.length / 2)
   const sameSnapshot = previousElements !== undefined
     && options.previousRevision !== undefined
     && options.previousUrl === state.url
@@ -295,6 +300,13 @@ function lineIndex(line: string): number | undefined {
  * @returns the action report, if any, above the page as text.
  */
 export function formatBrowserOutput(value: BrowserToolValue): string {
+  if (value.response === 'result' || value.response === 'none') {
+    const report = value.filename === undefined ? value.action?.message ?? 'Browser action completed.' : `Saved browser output: ${value.filename}`
+    const notice = value.response === 'none' ? '\nSnapshot omitted. Verify with browser_find or browser_snapshot before deciding the outcome.' : ''
+    const readiness = value.settled ? '' : 'Page readiness timed out; this result is transient evidence.\n'
+    const failure = value.action?.success === false ? 'Action failed: ' : ''
+    return `${readiness}${failure}${report}\nTab [${value.tabId}] ${value.url}${value.footer.includes('dialog:') ? `\n${value.footer}` : ''}${notice}`
+  }
   const tabs = formatTabs(value.tabs, value.compact)
   const target = `Snapshot tab: [${value.tabId}]${value.tabId === value.activeTabId ? '' : ' (background)'}`
   const page = value.mode === 'diff'

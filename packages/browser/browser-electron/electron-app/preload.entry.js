@@ -822,6 +822,13 @@ function coveredClickFailure(controller, index) {
 }
 
 async function resolveNamedIndex(controller, args) {
+  if (typeof args.target === 'string') {
+    await controller.updateTree()
+    const target = args.target.trim()
+    const elements = document.querySelectorAll(/^e\d+$/u.test(target) ? `[data-hydra-a11y-ref="${target}"]` : target)
+    if (elements.length !== 1) throw new Error('Target must match exactly one element.')
+    return indexOfElement(controller, elements[0])
+  }
   if (typeof args.index === 'number') return args.index
   const name = String(args.name ?? '').trim()
   if (name.length === 0) throw new Error('provide index or a non-empty name')
@@ -889,30 +896,48 @@ async function fillFields(controller, fields) {
   return { success: true, message: messages.join('\n') }
 }
 
+/** Select complete element contents or a viewport range; resolve with the final native selection. */
 async function selectText(controller, args) {
   await controller.updateTree()
   let startX
   let startY
   let endX
   let endY
+  let selectionElement
   const rawStartX = args.startX ?? args.start_x
   const rawStartY = args.startY ?? args.start_y
   const rawEndX = args.endX ?? args.end_x
   const rawEndY = args.endY ?? args.end_y
-  if (typeof rawStartX === 'number' && typeof rawEndX === 'number') {
+  const coordinates = [rawStartX, rawStartY, rawEndX, rawEndY]
+  const coordinateMode = coordinates.some(value => value !== undefined)
+  if (coordinateMode && !coordinates.every(value => Number.isFinite(value) && value >= 0)) {
+    throw new Error('Text selection requires four finite, non-negative viewport coordinates.')
+  }
+  if (coordinateMode) {
     startX = rawStartX
-    startY = typeof rawStartY === 'number' ? rawStartY : 0
+    startY = rawStartY
     endX = rawEndX
-    endY = typeof rawEndY === 'number' ? rawEndY : startY
+    endY = rawEndY
+    const hit = elementAt(undefined, startX, startY)
+    if (hit instanceof HTMLInputElement || hit instanceof HTMLTextAreaElement) selectionElement = hit
   } else {
-    const index = await resolveNamedIndex(controller, args)
-    if (index === undefined) {
-      return { success: false, message: `No element named "${String(args.name ?? args.index).trim()}" in the current snapshot.` }
+    let element
+    if (args.target !== undefined) {
+      const target = String(args.target).trim()
+      const matches = document.querySelectorAll(/^e\d+$/u.test(target) ? `[data-hydra-a11y-ref="${target}"]` : target)
+      if (matches.length !== 1) return { success: false, message: 'Text selection target must match exactly one element.' }
+      element = matches[0]
+    } else {
+      const index = await resolveNamedIndex(controller, args)
+      if (index === undefined) {
+        return { success: false, message: `No element named "${String(args.name ?? args.index).trim()}" in the current snapshot.` }
+      }
+      element = controller.selectorMap.get(index)?.ref
     }
-    const element = controller.selectorMap.get(index)?.ref
     if (!(element instanceof HTMLElement)) {
-      return { success: false, message: `Element [${index}] is not a valid HTMLElement.` }
+      return { success: false, message: 'Text selection target is not an HTML element.' }
     }
+    selectionElement = element
     element.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' })
     const rect = element.getBoundingClientRect()
     const frame = element.ownerDocument.defaultView?.frameElement
@@ -923,13 +948,52 @@ async function selectText(controller, args) {
     endY = startY
   }
   const duration = args.duration ?? 450
-  window.dispatchEvent(new CustomEvent('PageAgent::SelectText', {
-    detail: { startX, startY, endX, endY, duration },
-  }))
-  await new Promise(resolve => setTimeout(resolve, duration + 100))
-  const selectedText = window.getSelection()?.toString() ?? ''
+  if (!Number.isFinite(duration) || duration < 0) throw new Error('Selection duration must be a finite, non-negative number.')
+  const textInput = selectionElement instanceof HTMLInputElement || selectionElement instanceof HTMLTextAreaElement
+  if (textInput && (selectionElement.selectionStart === null || selectionElement.type === 'password')) {
+    return { success: false, message: `Input type "${selectionElement.type}" does not support readable text selection.` }
+  }
+  await controller.showMask()
+  const nativeInput = coordinateMode && textInput
+  if (nativeInput) {
+    window.dispatchEvent(new CustomEvent('PageAgent::EnablePassThrough'))
+  }
+  try {
+    if (nativeInput) await ipcRenderer.invoke('browser:native-mouse', { type: 'mouseDown', x: startX, y: startY })
+    await controller.mask.animateTextSelection({
+      startX, startY, endX, endY, duration,
+      ...(nativeInput ? {
+        updateSelection: (x, y) => ipcRenderer.invoke('browser:native-mouse', { type: 'mouseMove', x, y, dragging: true }),
+      } : {}),
+    })
+  } finally {
+    if (nativeInput) {
+      try {
+        await ipcRenderer.invoke('browser:native-mouse', { type: 'mouseUp', x: endX, y: endY })
+      } finally {
+        window.dispatchEvent(new CustomEvent('PageAgent::DisablePassThrough'))
+      }
+    }
+  }
+  let selectedText = window.getSelection()?.toString() ?? ''
+  if (selectionElement instanceof HTMLInputElement || selectionElement instanceof HTMLTextAreaElement) {
+    if (!nativeInput) {
+      selectionElement.focus()
+      selectionElement.setSelectionRange(0, selectionElement.value.length)
+    }
+    const start = selectionElement.selectionStart ?? 0
+    const end = selectionElement.selectionEnd ?? start
+    selectedText = selectionElement.value.slice(Math.min(start, end), Math.max(start, end))
+  } else if (selectionElement instanceof HTMLElement) {
+    const range = selectionElement.ownerDocument.createRange()
+    range.selectNodeContents(selectionElement)
+    const selection = selectionElement.ownerDocument.getSelection()
+    selection?.removeAllRanges()
+    selection?.addRange(range)
+    selectedText = selection?.toString() ?? ''
+  }
   return {
-    success: true,
+    success: selectedText.length > 0,
     message: `Selected text: "${selectedText}".`,
     selectedText,
   }
@@ -1035,14 +1099,17 @@ async function dispatch(action, args) {
     case 'get_element_center':
       return getElementCenter(controller, args.index)
     case 'prepare_pointer':
-      return await actOnNamed(controller, args, index => {
+      await controller.updateTree()
+      return await actOnNamed(controller, args, async index => {
         const element = controller.selectorMap.get(index)?.ref
         if (!(element instanceof Element) || !element.isConnected || element.matches(':disabled')) return { success: false, message: `Element [${index}] is unavailable or disabled.` }
         element.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' })
         const covered = coveredClickFailure(controller, index)
         if (covered !== undefined) return covered
         const point = getElementCenter(controller, index)
-        window.dispatchEvent(new CustomEvent('PageAgent::MovePointerTo', { detail: point }))
+        await controller.showMask()
+        controller.mask.setCursorMode(args.mode ?? 'default')
+        await controller.mask.moveCursorTo(point.x, point.y)
         if (args.click) window.dispatchEvent(new CustomEvent('PageAgent::ClickPointer'))
         return point
       })

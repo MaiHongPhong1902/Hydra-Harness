@@ -41,7 +41,8 @@ This table connects model-visible tool names to the plugin package and service s
 | `@hydra/harness-tool-todo` | `todo_write` | `ctx.tools`, `owning Agent session` | `tool/call`, `todo/write`, `tool/result` | - | todo_write is session-owned state; UIs render the latest todo/write event as a checklist. `allowParallelInProgress` is required with no default, so the catalog states its choice: `true`, whose description invites several `in_progress` items. A deployment choosing `false` receives the same tool with a description asking for exactly one active task. |
 | `@hydra/harness-tool-workflow` | `workflow` | `ctx.tools`, `ctx.workflowEngine`, `ctx.systemPrompt`, `a calling Agent (exec.agent parents the script children)` | `tool/call`, `tool/result` | - | - |
 | `@hydra/harness-tool-web` | `web_fetch`, `web_search` | `ctx.tools`, `ctx.web`, `ctx.systemPrompt` | `tool/call`, `tool/result` | - | web_search and web_fetch keep provider selection behind ctx.web so model-visible schemas stay stable across backend swaps. |
-| `@hydra/harness-tool-browser` | `browser_back`, `browser_click`, `browser_close`, `browser_close_tab`, `browser_console_messages`, `browser_drag`, `browser_drop`, `browser_file_upload`, `browser_fill`, `browser_fill_form`, `browser_find`, `browser_forward`, `browser_handle_dialog`, `browser_history_search`, `browser_hover`, `browser_navigate`, `browser_navigate_back`, `browser_network_request`, `browser_network_requests`, `browser_open_tab`, `browser_page_agent_run`, `browser_page_agent_status`, `browser_page_agent_stop`, `browser_press`, `browser_press_key`, `browser_resize`, `browser_scroll`, `browser_scroll_horizontally`, `browser_select_option`, `browser_select_text`, `browser_snapshot`, `browser_state`, `browser_switch_tab`, `browser_tabs`, `browser_type`, `browser_upload_file`, `browser_wait`, `browser_wait_for` | `ctx.tools`, `ctx.browsers`, `ctx.systemPrompt`, `a calling Agent (the window is owned per agent)` | `tool/call`, `tool/result` | - | The embedded browser window opens on the first browser_* call of an agent and closes with it. Without the optional electron package the tools still register and every call fails with BROWSER_UNAVAILABLE. |
+| `@hydra/harness-tool-browser` | `browser_back`, `browser_click`, `browser_close`, `browser_close_tab`, `browser_console_messages`, `browser_drag`, `browser_drop`, `browser_file_upload`, `browser_fill`, `browser_fill_form`, `browser_find`, `browser_forward`, `browser_handle_dialog`, `browser_history_search`, `browser_hover`, `browser_navigate`, `browser_navigate_back`, `browser_network_request`, `browser_network_requests`, `browser_open_tab`, `browser_page_agent_run`, `browser_page_agent_status`, `browser_page_agent_stop`, `browser_press`, `browser_press_key`, `browser_resize`, `browser_screenshot`, `browser_scroll`, `browser_scroll_horizontally`, `browser_select_option`, `browser_select_text`, `browser_snapshot`, `browser_state`, `browser_switch_tab`, `browser_tabs`, `browser_take_screenshot`, `browser_type`, `browser_upload_file`, `browser_wait`, `browser_wait_for` | `ctx.tools`, `ctx.browsers`, `ctx.systemPrompt`, `a calling Agent (the window is owned per agent)` | `tool/call`, `tool/result` | - | The embedded browser window opens on the first browser_* call of an agent and closes with it. Without the optional electron package the tools still register and every call fails with BROWSER_UNAVAILABLE. |
+| `@hydra/harness-page-memory` | `page_memory_get`, `page_memory_upsert` | `ctx.tools`, `ctx.browsers`, `ctx.systemPrompt`, `a calling Agent in the configured workspace` | `tool/call`, `tool/result`, `user/message`, `private page-memory SQLite database` | - | - |
 
 <a id="hydraharness-tool-ask-user"></a>
 
@@ -2327,6 +2328,10 @@ Click a control from the latest snapshot by index or by visible name. Indexes ar
       "type": "string",
       "description": "Visible label, accessible name, placeholder, or id from the latest snapshot. Use instead of index when the control is named."
     },
+    "target": {
+      "type": "string",
+      "description": "Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name."
+    },
     "tab_id": {
       "type": "integer",
       "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
@@ -2379,9 +2384,13 @@ Read retained console messages for this tab. Includes the selected level and mor
 {
   "type": "object",
   "properties": {
+    "filename": {
+      "type": "string",
+      "description": "Plain filename for a private output artifact; returns its absolute path instead of the data."
+    },
     "level": {
       "type": "string",
-      "description": "Minimum severity. Defaults to info.",
+      "description": "Minimum severity; omission uses the deployment consoleLevel.",
       "enum": [
         "error",
         "warning",
@@ -2519,6 +2528,10 @@ Type several named or indexed fields in one call. Each field is re-resolved afte
             "type": "string",
             "description": "Visible label, accessible name, placeholder, or id from the latest snapshot. Use instead of index when the control is named."
           },
+          "target": {
+            "type": "string",
+            "description": "Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name."
+          },
           "text": {
             "type": "string",
             "description": "Text to put in the field."
@@ -2565,6 +2578,10 @@ Fill multiple form controls by accessibility ref or accessible name, matching Pl
             "type": "string",
             "description": "Visible label, accessible name, placeholder, or id from the latest snapshot. Use instead of index when the control is named."
           },
+          "target": {
+            "type": "string",
+            "description": "Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name."
+          },
           "text": {
             "type": "string",
             "description": "Value to put in the field."
@@ -2590,24 +2607,29 @@ Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-
 
 ### `browser_find`
 
-Find controls matching a visible name, label, placeholder, or id in the current snapshot. Scrolls once if needed and returns matching indexes for the next action.
+Search the accessibility tree for text or regex. Returns matching snippets with observed refs and ancestor context, without a trailing page snapshot.
 
 ```json
 {
   "type": "object",
   "properties": {
+    "text": {
+      "type": "string",
+      "description": "Case-insensitive text to find; provide text or regex."
+    },
+    "regex": {
+      "type": "string",
+      "description": "Regular expression, optionally /pattern/i."
+    },
     "query": {
       "type": "string",
-      "description": "Visible label, accessible name, placeholder, or id to search for."
+      "description": "Alias for text."
     },
     "tab_id": {
       "type": "integer",
       "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
     }
-  },
-  "required": [
-    "query"
-  ]
+  }
 }
 ```
 
@@ -2697,6 +2719,10 @@ Move the native browser pointer onto an observed accessibility ref or named cont
       "type": "string",
       "description": "Visible label, accessible name, placeholder, or id from the latest snapshot. Use instead of index when the control is named."
     },
+    "target": {
+      "type": "string",
+      "description": "Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name."
+    },
     "tab_id": {
       "type": "integer",
       "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
@@ -2758,6 +2784,10 @@ Read headers or body for a retained network request from browser_network_request
 {
   "type": "object",
   "properties": {
+    "filename": {
+      "type": "string",
+      "description": "Plain filename for a private output artifact; returns its absolute path instead of the data."
+    },
     "index": {
       "type": "integer",
       "description": "Request index from browser_network_requests."
@@ -2793,6 +2823,14 @@ List retained network requests for this tab with stable request indexes for brow
 {
   "type": "object",
   "properties": {
+    "filename": {
+      "type": "string",
+      "description": "Plain filename for a private output artifact; returns its absolute path instead of the data."
+    },
+    "filter": {
+      "type": "string",
+      "description": "URL regular expression, optionally /pattern/i."
+    },
     "static": {
       "type": "boolean",
       "description": "Include successful static resources. Defaults to false."
@@ -2966,6 +3004,24 @@ Set the controlled page viewport size in CSS pixels.
 
 Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
 
+### `browser_screenshot`
+
+Capture the selected controlled HTTP(S) viewport. A filename saves PNG evidence without image input; otherwise imageResponses selects image delivery. Switch tabs before capture.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "filename": {
+      "type": "string",
+      "description": "Plain filename for a private output artifact; returns its absolute path instead of the data."
+    }
+  }
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
 ### `browser_scroll`
 
 Scroll the page, or a scrollable element, to bring more of it into the element list. Only the visible viewport is ever listed.
@@ -3053,6 +3109,10 @@ Choose a dropdown option by the control's index or visible name and the option's
       "type": "string",
       "description": "Visible label, accessible name, placeholder, or id from the latest snapshot. Use instead of index when the control is named."
     },
+    "target": {
+      "type": "string",
+      "description": "Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name."
+    },
     "text": {
       "type": "string",
       "description": "Visible label of the option to choose."
@@ -3086,6 +3146,10 @@ Select text across an element by index or visible name, or between explicit coor
       "type": "string",
       "description": "Visible label, accessible name, placeholder, or id from the latest snapshot. Use instead of index when the control is named."
     },
+    "target": {
+      "type": "string",
+      "description": "Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name."
+    },
     "start_x": {
       "type": "number",
       "description": "Start X coordinate in CSS pixels."
@@ -3114,7 +3178,7 @@ Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-
 
 ### `browser_snapshot`
 
-Return the current page as a Playwright-style accessibility snapshot with numbered refs.
+Read a distilled accessibility tree, optionally scoped to a ref/selector, depth, or output file.
 
 ```json
 {
@@ -3123,6 +3187,21 @@ Return the current page as a Playwright-style accessibility snapshot with number
     "tab_id": {
       "type": "integer",
       "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    },
+    "target": {
+      "type": "string",
+      "description": "Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name."
+    },
+    "depth": {
+      "type": "integer",
+      "description": "Maximum tree depth, zero or greater."
+    },
+    "boxes": {
+      "type": "boolean"
+    },
+    "filename": {
+      "type": "string",
+      "description": "Plain filename for a private output artifact; returns its absolute path instead of the data."
     }
   }
 }
@@ -3132,7 +3211,7 @@ Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-
 
 ### `browser_state`
 
-Re-read the current page of the embedded browser, with a bounded readiness wait for SPA or SSO transitions. Every other browser tool already returns fresh state.
+Re-read the current page of the embedded browser, with a bounded readiness wait for SPA or SSO transitions. Explicitly read state after omitted output or when fresh numeric indexes are needed.
 
 ```json
 {
@@ -3203,6 +3282,24 @@ List, create, close, or select a controlled browser tab, matching Playwright MCP
 
 Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
 
+### `browser_take_screenshot`
+
+Capture the selected controlled HTTP(S) viewport. A filename saves PNG evidence without image input; otherwise imageResponses selects image delivery. Switch tabs before capture.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "filename": {
+      "type": "string",
+      "description": "Plain filename for a private output artifact; returns its absolute path instead of the data."
+    }
+  }
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
 ### `browser_type`
 
 Type text into an input or textarea by index or visible name. Replaces whatever the field held; it does not append.
@@ -3218,6 +3315,10 @@ Type text into an input or textarea by index or visible name. Replaces whatever 
     "name": {
       "type": "string",
       "description": "Visible label, accessible name, placeholder, or id from the latest snapshot. Use instead of index when the control is named."
+    },
+    "target": {
+      "type": "string",
+      "description": "Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name."
     },
     "text": {
       "type": "string",
@@ -3322,3 +3423,117 @@ Wait up to ten seconds for text to appear or disappear in the accessibility snap
 Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
 
 The embedded browser window opens on the first browser_* call of an agent and closes with it. Without the optional electron package the tools still register and every call fails with BROWSER_UNAVAILABLE.
+
+<a id="hydraharness-page-memory"></a>
+
+## `@hydra/harness-page-memory`
+
+### `page_memory_get`
+
+Read verified guidance for the live page in this workspace/role/locale. Select an exact stable task name; omission reads the selected task, or lists task names if none is selected. No cross-page or namespace fallback.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "description": "Stable reusable workflow name, such as find_order; not an order/customer value."
+    }
+  }
+}
+```
+
+Source: [`packages/knowledge/page-memory/src/index.ts`](../packages/knowledge/page-memory/src/index.ts)
+
+### `page_memory_upsert`
+
+Replace one verified page workflow after a successful Browser action and live outcome check. Anchors and locators must be observed unique CSS selectors. Use sourceUrl only for a source page observed with targeted snapshots during this turn; success is checked on the current page in the same tab.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "accountHint": {
+      "type": "string",
+      "description": "Optional account-type guidance, such as staff access; never a login identity, credential, or authorization."
+    },
+    "anchors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "Observed unique CSS selector; no snapshot refs or code."
+          },
+          "text": {
+            "type": "string",
+            "description": "Reusable visible text expected in this region, without task-specific values."
+          }
+        },
+        "required": [
+          "target",
+          "text"
+        ]
+      }
+    },
+    "locators": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "successCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "target": {
+          "type": "string",
+          "description": "Observed unique CSS selector; no snapshot refs or code."
+        },
+        "text": {
+          "type": "string",
+          "description": "Reusable visible text expected in this region, without task-specific values."
+        }
+      },
+      "required": [
+        "target",
+        "text"
+      ]
+    },
+    "pitfalls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "sourceUrl": {
+      "type": "string",
+      "description": "Exact previously observed starting URL when the workflow ends on another page."
+    }
+  },
+  "required": [
+    "task",
+    "summary",
+    "anchors",
+    "locators",
+    "steps",
+    "successCheck",
+    "pitfalls"
+  ]
+}
+```
+
+Source: [`packages/knowledge/page-memory/src/index.ts`](../packages/knowledge/page-memory/src/index.ts)

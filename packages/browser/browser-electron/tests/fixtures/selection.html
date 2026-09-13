@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Selection fixture</title>
+    <style>
+      :root {
+        --bg-primary: #0f172a;
+        --bg-secondary: #1e293b;
+        --bg-tertiary: #334155;
+        --text-primary: #f8fafc;
+        --text-secondary: #94a3b8;
+        --text-muted: #64748b;
+        --accent-sky: #38bdf8;
+        --accent-indigo: #818cf8;
+        --accent-emerald: #34d399;
+        --border-color: #334155;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        min-height: 100vh;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      }
+      input, textarea, #text {
+        position: absolute;
+        left: 30px;
+        width: 600px;
+        font: 20px monospace;
+        padding: 0;
+        border: 0;
+        margin: 0;
+        background-color: #1e293b;
+        color: #f8fafc;
+        outline: none;
+      }
+      #input { top: 30px; height: 32px; line-height: 32px; }
+      #textarea { top: 80px; height: 60px; resize: none; }
+      #text { top: 160px; height: 32px; line-height: 32px; }
+      #multi {
+        position: absolute;
+        left: 30px;
+        top: 230px;
+        background: linear-gradient(135deg, var(--accent-sky), var(--accent-indigo));
+        color: #0f172a;
+        font-weight: 700;
+        font-size: 13px;
+        line-height: 1.4;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 18px;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(56, 189, 248, 0.25);
+      }
+      #empty {
+        position: absolute;
+        left: 30px;
+        top: 350px;
+        width: 200px;
+        padding: 8px 12px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        color: var(--text-primary);
+      }
+      #password {
+        position: absolute;
+        left: 30px;
+        top: 390px;
+        width: 200px;
+        padding: 8px 12px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        color: var(--text-primary);
+      }
+      #number {
+        position: absolute;
+        left: 30px;
+        top: 430px;
+        width: 200px;
+        padding: 8px 12px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        color: var(--text-primary);
+      }
+      .inspector-card {
+        position: absolute;
+        left: 660px;
+        top: 30px;
+        width: 320px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 20px;
+      }
+      .inspector-badge {
+        display: inline-block;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        background: rgba(56, 189, 248, 0.15);
+        color: var(--accent-sky);
+        padding: 3px 8px;
+        border-radius: 9999px;
+        margin-bottom: 8px;
+      }
+      .inspector-title {
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+      .inspector-desc {
+        font-size: 12px;
+        color: var(--text-muted);
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <input id="input" value="ABCDEFGHIJKLMNOPQRSTUVWXYZ" />
+    <textarea id="textarea">ABCDEFGHIJKLMNOPQRSTUVWXYZ</textarea>
+    <div id="text">ABCDEFGHIJKLMNOPQRSTUVWXYZ</div>
+    <button id="multi">FIRST LINE<br>SECOND LINE<br>THIRD LINE</button>
+    <input id="empty" placeholder="Empty input" />
+    <input id="password" type="password" value="hidden" />
+    <input id="number" type="number" value="123" />
+
+    <div class="inspector-card">
+      <span class="inspector-badge">Hydra Benchmark</span>
+      <div class="inspector-title">Selection Testing Ground</div>
+      <p class="inspector-desc">
+        Monospace 20px glyph boundary verification. Validates subpixel cursor caret tracking, I-beam transformation, multi-line selection endpoints, and DOM Selection API consistency.
+      </p>
+    </div>
+  </body>
+</html>

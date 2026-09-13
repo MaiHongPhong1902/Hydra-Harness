@@ -1,0 +1,45 @@
+{
+  "name": "@hydra/harness-page-memory",
+  "description": "Verified task-specific page guidance with automatic browser recall and private local storage",
+  "version": "0.1.1-rc.1",
+  "publishConfig": { "access": "public" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MaiHongPhong1902/Hydra-Harness.git",
+    "directory": "packages/knowledge/page-memory"
+  },
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/types/index.d.ts",
+  "exports": {
+    ".": { "types": "./lib/types/index.d.ts", "default": "./lib/index.js" },
+    "./invariant": { "types": "./lib/types/invariant.d.ts", "default": "./lib/invariant.js" },
+    "./src/*": "./src/*",
+    "./package.json": "./package.json"
+  },
+  "files": ["lib/index.js", "lib/invariant.js", "lib/types/**/*.d.ts"],
+  "license": "MIT",
+  "peerDependencies": {
+    "@hydra/cordis": "workspace:^",
+    "@hydra/harness-agent": "workspace:^",
+    "@hydra/harness-browser-electron": "workspace:^",
+    "@hydra/harness-home-paths": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/harness-system-prompt": "workspace:^",
+    "@hydra/harness-tools": "workspace:^"
+  },
+  "dependencies": { "@hydra/schemastery": "workspace:^", "zod": "^4.4.3" },
+  "devDependencies": {
+    "@hydra/cordis": "workspace:^",
+    "@hydra/harness-agent": "workspace:^",
+    "@hydra/harness-browser-electron": "workspace:^",
+    "@hydra/harness-home-paths": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-llm": "workspace:^",
+    "@hydra/harness-session": "workspace:^",
+    "@hydra/harness-system-prompt": "workspace:^",
+    "@hydra/harness-tools": "workspace:^",
+    "@hydra/harness-tool-browser": "workspace:^"
+  }
+}

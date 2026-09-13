@@ -1,0 +1,34 @@
+[
+  {
+    "terminal": "right",
+    "cwd": "."
+  },
+  {
+    "terminal": "bottom-1-1",
+    "cwd": "."
+  },
+  {
+    "terminal": "right-2",
+    "cwd": "."
+  },
+  {
+    "terminal": "bottom-1-2",
+    "cwd": "."
+  },
+  {
+    "terminal": "bottom-1-2-2",
+    "cwd": "."
+  },
+  {
+    "terminal": "right-4-2",
+    "cwd": "."
+  },
+  {
+    "terminal": "right-9001",
+    "cwd": "workspace B"
+  },
+  {
+    "terminal": "right-9001",
+    "cwd": "workspace C"
+  }
+]

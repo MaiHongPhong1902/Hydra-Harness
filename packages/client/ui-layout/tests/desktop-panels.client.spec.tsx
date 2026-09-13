@@ -98,7 +98,7 @@ describe('DesktopTerminalPanel', () => {
     }
     window.hydraDesktop = { browser: { setBounds: vi.fn() }, terminal: api }
 
-    const view = render(<DesktopTerminalPanel open terminalId="right" embedded />)
+    const view = render(<DesktopTerminalPanel onNewTerminal={() => {}} open terminalId="right" embedded />)
     await waitFor(() => { expect(api.start).toHaveBeenCalledOnce() })
     expect(view.getAllByText('Starting…')).toHaveLength(2)
     expect((view.getByRole('button', { name: 'Starting…' }) as HTMLButtonElement).disabled).toBe(true)
@@ -125,8 +125,8 @@ describe('DesktopTerminalPanel', () => {
     document.body.style.setProperty('--dsw-alias-label-primary', '#111111')
     const view = render(
       <>
-        <DesktopTerminalPanel open terminalId="bottom" />
-        <DesktopTerminalPanel open terminalId="right" embedded />
+        <DesktopTerminalPanel onNewTerminal={() => {}} open terminalId="bottom" />
+        <DesktopTerminalPanel onNewTerminal={() => {}} open terminalId="right" embedded />
       </>,
     )
     await waitFor(() => { expect(api.start).toHaveBeenCalledTimes(2) })
@@ -164,7 +164,7 @@ describe('DesktopTerminalPanel', () => {
     }
     window.hydraDesktop = { browser: { setBounds: vi.fn() }, terminal: api }
 
-    const view = render(<DesktopTerminalPanel open terminalId="bottom" sessionTitle="Sửa Lỗi Kỹ Thuật" />)
+    const view = render(<DesktopTerminalPanel onNewTerminal={() => {}} open terminalId="bottom" sessionTitle="Sửa Lỗi Kỹ Thuật" />)
     await waitFor(() => { expect(api.start).toHaveBeenCalledOnce() })
 
     // Header controls
@@ -226,7 +226,7 @@ describe('DesktopTerminalPanel', () => {
     }
     window.hydraDesktop = { browser: { setBounds: vi.fn() }, terminal: api }
 
-    const view = render(<DesktopTerminalPanel open terminalId="bottom" sessionTitle="Sửa Lỗi Kỹ Thuật" />)
+    const view = render(<DesktopTerminalPanel onNewTerminal={() => {}} open terminalId="bottom" sessionTitle="Sửa Lỗi Kỹ Thuật" />)
     await waitFor(() => { expect(api.start).toHaveBeenCalledTimes(1) })
 
     // Initial pane in sidebar
@@ -246,7 +246,7 @@ describe('DesktopTerminalPanel', () => {
     expect(killBtns).toHaveLength(2)
     fireEvent.click(killBtns[1]!)
 
-    expect(api.stop).toHaveBeenCalledWith('bottom-2')
+    expect(api.stop).toHaveBeenCalledWith('bottom-1-2')
     // After kill, only 1 pane remains
     expect(view.getAllByRole('button', { name: 'Split Terminal' })).toHaveLength(1)
   })
@@ -262,16 +262,16 @@ describe('DesktopTerminalPanel', () => {
     }
     window.hydraDesktop = { browser: { setBounds: vi.fn() }, terminal: api }
 
-    const view = render(<DesktopTerminalPanel open terminalId="right-4" embedded />)
-    await waitFor(() => { expect(api.start).toHaveBeenCalledWith('right-4', expect.any(Object)) })
+    const view = render(<DesktopTerminalPanel onNewTerminal={() => {}} open terminalId="right-4" embedded />)
+    await waitFor(() => { expect(api.start).toHaveBeenCalledWith('right-4', expect.any(Object), undefined) })
 
     const splitBtn = view.getByRole('button', { name: 'Split Terminal' })
     fireEvent.click(splitBtn)
-    await waitFor(() => { expect(api.start).toHaveBeenCalledWith('right-4-2', expect.any(Object)) })
+    await waitFor(() => { expect(api.start).toHaveBeenCalledWith('right-4-2', expect.any(Object), undefined) })
 
     const splitBtns = view.getAllByRole('button', { name: 'Split Terminal' })
     fireEvent.click(splitBtns[0]!)
-    await waitFor(() => { expect(api.start).toHaveBeenCalledWith('right-4-3', expect.any(Object)) })
+    await waitFor(() => { expect(api.start).toHaveBeenCalledWith('right-4-3', expect.any(Object), undefined) })
 
     // Kill the second pane (right-4-2)
     const killBtns = view.getAllByRole('button', { name: /Kill/ })
@@ -282,7 +282,7 @@ describe('DesktopTerminalPanel', () => {
     // Split again should generate next monotonic ID right-4-4 without colliding with right-4-3
     const remainingSplitBtns = view.getAllByRole('button', { name: 'Split Terminal' })
     fireEvent.click(remainingSplitBtns[0]!)
-    await waitFor(() => { expect(api.start).toHaveBeenCalledWith('right-4-4', expect.any(Object)) })
+    await waitFor(() => { expect(api.start).toHaveBeenCalledWith('right-4-4', expect.any(Object), undefined) })
 
     // Unmounting cleans up all open split panes
     view.unmount()
@@ -301,12 +301,12 @@ describe('DesktopTerminalPanel', () => {
     }
     window.hydraDesktop = { browser: { setBounds: vi.fn() }, terminal: api }
 
-    const view = render(<DesktopTerminalPanel open terminalId="right" embedded />)
-    await waitFor(() => { expect(api.start).toHaveBeenCalledWith('right', expect.any(Object)) })
+    const view = render(<DesktopTerminalPanel onNewTerminal={() => {}} open terminalId="right" embedded />)
+    await waitFor(() => { expect(api.start).toHaveBeenCalledWith('right', expect.any(Object), undefined) })
 
     const splitBtn = view.getByRole('button', { name: 'Split Terminal' })
     fireEvent.click(splitBtn)
-    await waitFor(() => { expect(api.start).toHaveBeenCalledWith('right-1-2', expect.any(Object)) })
+    await waitFor(() => { expect(api.start).toHaveBeenCalledWith('right-1-2', expect.any(Object), undefined) })
   })
 
   it('supports quoting selected terminal text into chat session', async () => {
@@ -329,6 +329,7 @@ describe('DesktopTerminalPanel', () => {
       <DesktopTerminalPanel
         open
         terminalId="bottom"
+        onNewTerminal={() => {}}
         sessionTitle="Sửa Lỗi Kỹ Thuật"
         onQuote={onQuote}
       />,

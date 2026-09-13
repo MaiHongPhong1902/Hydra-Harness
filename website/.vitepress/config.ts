@@ -1,6 +1,6 @@
 /** VitePress configuration for the locally projected documentation site. */
 
-import { readFileSync, writeFileSync } from 'node:fs'
+import { readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import type { DefaultTheme, PageData, SiteConfig } from 'vitepress'
 import type { ViteDevServer } from 'vite'
@@ -263,6 +263,12 @@ export default withMermaid({
     plugins: [
       {
         name: 'hydra-harness-doc-projector',
+        configResolved(config) {
+          // VitePress MPA skips the client pass that empties the final output directory.
+          if (config.command === 'build' && config.build.ssr && config.build.ssrEmitAssets) {
+            rmSync(resolve(import.meta.dirname, '../.dist'), { recursive: true, force: true })
+          }
+        },
         configureServer(server) {
           watchCanonicalDocs(server)
           serveRawMarkdown(server)

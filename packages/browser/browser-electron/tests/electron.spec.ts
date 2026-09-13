@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { launchBrowser, resolveElectronPath } from '@hydra/harness-browser-electron'
 import type {
-  ActionResult, BrowserCdpEventPage, BrowserChild, BrowserScreenshot, BrowserState,
+  ActionResult, BrowserCdpEventPage, BrowserChild, BrowserPageIdentity, BrowserScreenshot, BrowserState,
 } from '@hydra/harness-browser-electron'
 
 /**
@@ -30,6 +30,10 @@ function browserRunnable(): boolean {
 const FIXTURE_FILE = fileURLToPath(new URL('./fixtures/form.html', import.meta.url))
 const HIDDEN_UPLOAD_FIXTURE_FILE = fileURLToPath(new URL('./fixtures/hidden-upload.html', import.meta.url))
 const NEXT_FIXTURE_FILE = fileURLToPath(new URL('./fixtures/next.html', import.meta.url))
+const AUTOFILL_FIXTURE_FILE = fileURLToPath(new URL('./fixtures/autofill.html', import.meta.url))
+const SELECTION_FIXTURE_FILE = fileURLToPath(new URL('./fixtures/selection.html', import.meta.url))
+const SPA_FIXTURE_FILE = fileURLToPath(new URL('./fixtures/spa.html', import.meta.url))
+const POLICY_FIXTURE_FILE = fileURLToPath(new URL('./fixtures/policy.html', import.meta.url))
 const CHROME_UI_DRIVER = fileURLToPath(new URL('./chrome-ui.cjs', import.meta.url))
 
 /** Drive the native chrome in a separate real Electron process. */
@@ -113,6 +117,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
   let autofillFixture: string
   let policyFixture: string
   let redirectFixture: string
+  let mouseTestsFixture: string
   let crossOrigin: string
   let mediaFrameRequests = 0
   let holdMediaFrameReload = false
@@ -125,11 +130,11 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
         response.setHeader('content-security-policy', "default-src 'self'; style-src 'self'")
         response.end('<!doctype html><title>Strict CSP</title><button id="target">Target</button>')
       } else if (request.url === '/autofill') {
-        response.end('<!doctype html><title>Autofill fixture</title><form><input id="username" autocomplete="username"><input id="password" type="password" autocomplete="current-password" value="markup-password-secret"></form><form><input id="contact-name" autocomplete="name"><input id="implicit-city" name="city"></form>')
+        response.end(readFileSync(AUTOFILL_FIXTURE_FILE))
       } else if (request.url === '/sso-start') {
         response.end('<!doctype html><html><body><script>setTimeout(() => location.href = "/spa", 100)</script></body></html>')
       } else if (request.url === '/spa') {
-        response.end('<!doctype html><html><body><main id="app"></main><script>setTimeout(() => { document.title = "Ready SPA"; document.querySelector("#app").innerHTML = "<button id=ready>Ready</button>" }, 600)</script></body></html>')
+        response.end(readFileSync(SPA_FIXTURE_FILE))
       } else if (request.url === '/transient-body') {
         response.end('<!doctype html><html><head><script>document.addEventListener("DOMContentLoaded", () => { document.body.remove(); setTimeout(() => { const body = document.createElement("body"); document.title = "Body restored"; body.innerHTML = "<button id=restored>Restored</button>"; document.documentElement.append(body) }, 600) })</script></head><body></body></html>')
       } else if (request.url === '/cookie-set') {
@@ -151,9 +156,15 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
         if (holdMediaFrameReload) releaseMediaFrameReload = finish
         else finish()
       } else if (request.url === '/policy') {
-        response.end(`<!doctype html><title>Policy fixture</title><a id="cross" href="${crossOrigin}/next.html">Cross origin</a><a id="popup" href="${crossOrigin}/next.html" target="_blank">Popup</a>`)
+        response.end(readFileSync(POLICY_FIXTURE_FILE, 'utf8').replaceAll('__CROSS_ORIGIN__', crossOrigin))
       } else if (request.url === '/redirect-cross') {
         response.writeHead(302, { location: `${crossOrigin}/next.html` }).end()
+      } else if (request.url?.startsWith('/mouse-tests/')) {
+        const mouseFile = fileURLToPath(new URL(`./fixtures${request.url}`, import.meta.url))
+        if (existsSync(mouseFile)) response.end(readFileSync(mouseFile))
+        else { response.writeHead(404); response.end('not found') }
+      } else if (request.url === '/selection.html') {
+        response.end(readFileSync(SELECTION_FIXTURE_FILE))
       } else if (request.url === '/hidden-upload.html') {
         response.end(readFileSync(HIDDEN_UPLOAD_FIXTURE_FILE))
       } else if (request.url === '/uploaded-artifact') {
@@ -173,6 +184,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
     fixture = `http://127.0.0.1:${address.port}/form.html`
     hiddenUploadFixture = `http://127.0.0.1:${address.port}/hidden-upload.html`
     nextFixture = `http://127.0.0.1:${address.port}/next.html`
+    mouseTestsFixture = `http://127.0.0.1:${address.port}/mouse-tests/index.html`
     spaStart = `http://127.0.0.1:${address.port}/sso-start`
     transientBody = `http://127.0.0.1:${address.port}/transient-body`
     cookieSet = `http://127.0.0.1:${address.port}/cookie-set`
@@ -336,11 +348,59 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
     expect(result.message).toContain('true')
   }, 60_000)
 
+  it('cancels a pending native click without closing the tab or clicking later', async () => {
+    await child.call('navigate', { url: fixture })
+    await child.call('get_browser_state', { snapshot: {} })
+    await child.call('execute_javascript', { script: `
+      document.body.innerHTML = '<button id="deferred" disabled>Deferred</button><output>untouched</output>';
+      document.querySelector('button').addEventListener('click', () => document.querySelector('output').textContent = 'clicked');
+    ` })
+    const controller = new AbortController()
+    const pending = child.call('click_element', { target: '#deferred' }, controller.signal)
+    const cancelled = expect(pending).rejects.toThrow('stop browser action')
+    await new Promise(resolve => setTimeout(resolve, 150))
+    controller.abort(new Error('stop browser action'))
+    await cancelled
+    await child.call('execute_javascript', { script: "document.querySelector('button').disabled = false" })
+    const observed = await child.call('execute_javascript', {
+      script: "await new Promise(resolve => setTimeout(resolve, 300)); return document.querySelector('output').textContent",
+    }) as ActionResult
+    expect(observed.message).toContain('untouched')
+    expect(await child.call('click_element', { target: '#deferred' })).toMatchObject({ success: true })
+    expect((await child.call('get_browser_state', {}) as BrowserState).content).toContain('clicked')
+  }, 30_000)
+
+  it.each([{}, { text: 'Never present on this page' }])('cancels a native wait: %j', async (condition) => {
+    await child.call('navigate', { url: fixture })
+    const controller = new AbortController()
+    const pending = child.call('wait_for', { seconds: 10, ...condition }, controller.signal)
+    const cancelled = expect(pending).rejects.toThrow('stop waiting')
+    await new Promise(resolve => setTimeout(resolve, 150))
+    controller.abort(new Error('stop waiting'))
+    await cancelled
+  }, 5_000)
+
+  it('reads metadata without traversing the page or changing its numeric refs', async () => {
+    await child.call('navigate', { url: fixture })
+    await child.call('get_browser_state', {})
+    await child.call('execute_javascript', { script: `
+      document.querySelector('#who').setAttribute('data-hydra-a11y-ref', 'audit-ref');
+      document.body.insertAdjacentHTML('afterbegin', '<button>New control</button>');
+    ` })
+    const metadata = await child.call('get_browser_state', { metadataOnly: true, waitForReady: true }) as BrowserState
+    expect(metadata).toMatchObject({ url: fixture, content: '', settled: true })
+    expect(metadata.tabs).toHaveLength(1)
+    const ref = await child.call('execute_javascript', { script: "return document.querySelector('#who').getAttribute('data-hydra-a11y-ref')" }) as ActionResult
+    expect(ref.message).toContain('audit-ref')
+    expect((await child.call('get_browser_state', { waitForReady: true }) as BrowserState).content).toContain('New control')
+    await expect(child.call('get_browser_state', { metadataOnly: 'yes' })).rejects.toThrow('metadataOnly')
+  }, 30_000)
+
   it('resolves named Hydra actions, fills fields, and goes forward', async () => {
     expect(await child.call('navigate', { url: fixture })).toMatchObject({ success: true })
     const found = await child.call('find_element', { query: 'Requester' }) as ActionResult
     expect(found.success).toBe(true)
-    expect(found.message).toMatch(/\[\d+]/)
+    expect(found.message).toMatch(/\[ref=e\d+]/)
     expect(await child.call('input_text', { name: 'who', text: 'Ada' })).toMatchObject({ success: true })
     expect(await child.call('fill_fields', {
       fields: [{ name: 'size', text: 'Large' }],
@@ -357,6 +417,39 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
     expect(forwarded.url).toContain('next.html')
   }, 60_000)
 
+  it('uses distilled refs and CSS selectors without confusing numeric indexes', async () => {
+    await child.call('navigate', { url: fixture })
+    const snapshot = await child.call('get_browser_state', { snapshot: { depth: 4 } }) as BrowserState
+    expect(snapshot.content).toContain('[ref=e')
+    const found = await child.call('find_element', { regex: '/textbox "Requester"/i' }) as ActionResult
+    const ref = /textbox "Requester".*?\[ref=(e\d+)\]/u.exec(found.message)?.[1]
+    expect(ref).toBeDefined()
+    const typed = await child.call('input_text', { target: ref, text: 'Grace' }) as ActionResult
+    expect(typed, typed.message).toMatchObject({ success: true })
+    expect(await child.call('select_text', { target: ref })).toMatchObject({ success: true, selectedText: 'Grace' })
+    expect(await child.call('fill_fields', { fields: [{ target: '#size', text: 'Large' }] })).toMatchObject({ success: true })
+    const scoped = await child.call('get_browser_state', { snapshot: { target: '#submit', depth: 0, boxes: true } }) as BrowserState
+    expect(scoped.content).toContain('Place order')
+    expect(scoped.content).not.toContain('Requester')
+    const clicked = await child.call('click_element', { target: '#submit' }) as ActionResult
+    expect(clicked, clicked.message).toMatchObject({ success: true })
+    expect((await child.call('get_browser_state', {}) as BrowserState).content).toContain('Ordered l for Grace')
+    await child.call('execute_javascript', { script: "const secret = document.createElement('input'); secret.type = 'password'; secret.value = 'private-password-sentinel'; secret.setAttribute('aria-label', 'Secret: [ref=e999]'); secret.setAttribute('role', 'searchbox'); document.body.append(secret)" })
+    const privateSnapshot = await child.call('get_browser_state', { snapshot: {} }) as BrowserState
+    expect(privateSnapshot.content).not.toContain('private-password-sentinel')
+    expect(privateSnapshot.content).toContain('[redacted]')
+    expect(await child.call('find_element', { text: 'private-password-sentinel' })).toMatchObject({ success: false })
+    expect(await child.call('find_element', { text: 'Definitely missing' })).toMatchObject({ success: false })
+    await expect(child.call('find_element', { regex: '[' })).rejects.toThrow()
+    await expect(child.call('get_browser_state', { snapshot: { depth: -1 } })).rejects.toThrow()
+    const all = await child.call('network_requests', { includeStatic: true }) as ActionResult
+    expect(all.message).toContain('form.html')
+    const filtered = await child.call('network_requests', { includeStatic: true, filter: '/form\\.html/i' }) as ActionResult
+    expect(filtered.message).toContain('form.html')
+    expect(await child.call('network_requests', { includeStatic: true, filter: 'impossible-url' })).toMatchObject({ message: 'No retained network requests.' })
+    await expect(child.call('network_requests', { filter: '[' })).rejects.toThrow()
+  }, 60_000)
+
   it('keeps the preload channel ready across same-document navigation', async () => {
     await child.call('navigate', { url: fixture })
     const before = await child.call('get_browser_state', {}) as BrowserState
@@ -367,6 +460,29 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
     expect(after.url).toContain('#same-document')
     expect(after.content).toContain('id=who')
     expect(after.tabId).toBe(before.tabId)
+  }, 30_000)
+
+  it('reads live page identity across same-document navigation', async () => {
+    await child.call('navigate', { url: fixture })
+    const before = await child.call('get_page_identity', {}) as BrowserPageIdentity
+    expect(before).toMatchObject({
+      url: fixture,
+      title: 'Harness browser fixture',
+      tabId: 1,
+      activeTabId: 1,
+      settled: true,
+    })
+    await child.call('execute_javascript', {
+      script: "history.pushState({}, '', location.pathname + '#identity'); document.title = 'Identity SPA'",
+    })
+
+    await expect(child.call('get_page_identity', {})).resolves.toMatchObject({
+      url: `${fixture}#identity`,
+      title: 'Identity SPA',
+      tabId: before.tabId,
+      activeTabId: before.activeTabId,
+      settled: true,
+    })
   }, 30_000)
 
   it('rejects a click whose indexed target is covered by a popup', async () => {
@@ -475,6 +591,31 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
     expect(result.message).toContain('fixed')
   }, 30_000)
 
+  it('moves the virtual cursor for real Playwright hover, click, and fill actions', async () => {
+    await child.call('navigate', { url: new URL('/selection.html', fixture).href })
+    for (const [method, name, mode] of [
+      ['hover_element', 'multi', 'default'], ['input_text', 'input', 'ibeam'], ['click_element', 'multi', 'default'],
+    ] as const) {
+      await child.call('execute_javascript', {
+        script: `globalThis.__cursorPoints = new Set();
+          const cursor = document.querySelector('#page-agent-runtime_simulator-mask').lastElementChild;
+          globalThis.__cursorObserver = new MutationObserver(() => globalThis.__cursorPoints.add(cursor.style.left + '|' + cursor.style.top));
+          globalThis.__cursorObserver.observe(cursor, { attributes: true, attributeFilter: ['style'] });`,
+      })
+      const action = await child.call(method, { name, text: 'Ada' }) as ActionResult
+      expect(action, action.message).toMatchObject({ success: true })
+      const result = await child.call('execute_javascript', {
+        script: `const cursor = document.querySelector('#page-agent-runtime_simulator-mask').lastElementChild;
+          const rect = document.getElementById('${name}').getBoundingClientRect();
+          globalThis.__cursorObserver.disconnect();
+          return [Math.abs(parseFloat(cursor.style.left) - rect.left - rect.width / 2) < 1,
+            Math.abs(parseFloat(cursor.style.top) - rect.top - rect.height / 2) < 1,
+            cursor.dataset.mode, globalThis.__cursorPoints.size > 2].join('|')`,
+      }) as ActionResult
+      expect(result.message).toContain(`true|true|${mode}|true`)
+    }
+  }, 30_000)
+
   it('drives virtual cursor scroll animation and hud', async () => {
     await child.call('navigate', { url: fixture })
     await child.call('get_browser_state', {})
@@ -492,6 +633,9 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
 
   it('selects real text in the DOM with caret tracking and ibeam mode', async () => {
     await child.call('navigate', { url: fixture })
+    await child.call('input_text', { name: 'who', text: 'Ada Lovelace' })
+    const inputSelection = await child.call('select_text', { name: 'who' }) as { success: boolean; selectedText: string }
+    expect(inputSelection).toMatchObject({ success: true, selectedText: 'Ada Lovelace' })
     const before = await child.call('get_browser_state', {}) as BrowserState
     const submitIndex = indexOf(before.content, 'id=submit')
     const selectResult = await child.call('select_text', { index: submitIndex }) as { success: boolean; selectedText: string }
@@ -501,6 +645,43 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
       script: 'return window.getSelection()?.toString()',
     }) as ActionResult
     expect(domSelection.message).toContain('Place order')
+  }, 30_000)
+
+  it('completes partial DOM and input selections and keeps the cursor at the endpoint', async () => {
+    await child.call('navigate', { url: new URL('/selection.html', fixture).href })
+    const multi = await child.call('select_text', { name: 'multi' }) as { success: boolean; selectedText: string }
+    expect(multi).toMatchObject({ success: true, selectedText: 'FIRST LINE\nSECOND LINE\nTHIRD LINE' })
+    for (const id of ['input', 'textarea', 'text']) {
+      const metrics = await child.call('execute_javascript', {
+        script: `const element = document.getElementById('${id}');
+          const context = document.createElement('canvas').getContext('2d');
+          context.font = getComputedStyle(element).font;
+          const rect = element.getBoundingClientRect();
+          return JSON.stringify({ startX: rect.left + context.measureText('ABC').width,
+            endX: rect.left + context.measureText('ABCDEFGHI').width, y: rect.top + 10 })`,
+      }) as ActionResult
+      const { startX, endX, y } = JSON.parse(metrics.message.split('Result: ')[1] ?? '') as { startX: number; endX: number; y: number }
+      const result = await child.call('select_text', { startX, startY: y, endX, endY: y }) as { success: boolean; selectedText: string }
+      expect(result).toMatchObject({ success: true, selectedText: 'DEFGHI' })
+      const actual = await child.call('execute_javascript', {
+        script: `await new Promise(resolve => setTimeout(resolve, 250));
+          const element = document.getElementById('${id}');
+          const text = element.value === undefined ? window.getSelection().toString() : element.value.slice(element.selectionStart, element.selectionEnd);
+          const cursor = document.querySelector('#page-agent-runtime_simulator-mask').lastElementChild;
+          return [text, Math.abs(parseFloat(cursor.style.left) - ${endX}) < 0.01,
+            Math.abs(parseFloat(cursor.style.top) - ${y}) < 0.01, cursor.dataset.mode].join('|')`,
+      }) as ActionResult
+      expect(actual.message).toContain('DEFGHI|true|true|ibeam')
+      const reverse = await child.call('select_text', { startX: endX, startY: y, endX: startX, endY: y }) as { selectedText: string }
+      expect(reverse.selectedText).toBe('DEFGHI')
+    }
+    const textarea = await child.call('select_text', { name: 'textarea' }) as { selectedText: string }
+    expect(textarea.selectedText).toBe('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+    for (const name of ['empty', 'password', 'number']) {
+      expect(await child.call('select_text', { name })).toMatchObject({ success: false })
+    }
+    await expect(child.call('select_text', { startX: 30, endX: 100 })).rejects.toThrow('four finite')
+    await expect(child.call('select_text', { startX: -1, startY: 40, endX: 100, endY: 40 })).rejects.toThrow('four finite')
   }, 30_000)
 
   it('keeps autofill secrets encrypted, management-only, and out of Browser state', async () => {
@@ -717,6 +898,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
   }, 60_000)
 
   it('navigates back to the page it left', async () => {
+    await child.call('navigate', { url: fixture })
     await child.call('navigate', { url: 'about:blank' })
     expect(await child.call('back', {})).toMatchObject({ success: true })
     const state = await child.call('get_browser_state', {}) as BrowserState
@@ -729,6 +911,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
   }, 30_000)
 
   it('lets the page follow a navigation of its own', async () => {
+    await child.call('navigate', { url: fixture })
     const before = await child.call('get_browser_state', {}) as BrowserState
     await expect(child.call('click_element', { index: indexOf(before.content, 'id=continue') }))
       .resolves.toMatchObject({ success: true })
@@ -1269,4 +1452,28 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
       rmSync(chromeProfile, { recursive: true, force: true, maxRetries: 30, retryDelay: 100 })
     }
   }, 60_000)
+
+  it('interacts with the mouse test suite and completes missions', async () => {
+    await child.call('navigate', { url: mouseTestsFixture })
+    const state = await child.call('get_browser_state', { waitForReady: true }) as BrowserState
+    expect(state.content).toContain('Mouse Interaction Test Suite')
+
+    const clickBtnIndex = indexOf(state.content, 'id=btnMissionClick')
+    const clickResult = await child.call('click_element', { index: clickBtnIndex }) as ActionResult
+    expect(clickResult.success).toBe(true)
+
+    const textInputIndex = indexOf(state.content, 'id=missionTextInput')
+    const inputResult = await child.call('input_text', { index: textInputIndex, text: 'Agent Active 2026' }) as ActionResult
+    expect(inputResult.success).toBe(true)
+
+    const missionCheck = await child.call('execute_javascript', {
+      script: `
+        return [
+          document.getElementById('statusMission1')?.textContent,
+          document.getElementById('statusMission6')?.textContent,
+        ].join('|')
+      `,
+    }) as ActionResult
+    expect(missionCheck.message).toContain('PASSED|PASSED')
+  }, 30_000)
 })

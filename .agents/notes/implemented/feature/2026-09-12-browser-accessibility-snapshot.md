@@ -30,4 +30,4 @@ Real Electron tests cover trusted pointer events, text waits, resize, confirm di
 
 ## Deferred work
 
-This is not full Playwright MCP parity. Host-side unsafe code, locator-string targets, multi-file chooser semantics, full-page screenshots, prompt dialogs, and optional MCP capability groups remain unimplemented. Electron does not supply native JavaScript prompt dialogs. The package READMEs own these consumer limits.
+This is not full Playwright MCP parity. Host-side unsafe code, multi-file chooser semantics, full-page screenshots, prompt dialogs, and optional MCP capability groups remain unimplemented. Electron does not supply native JavaScript prompt dialogs. The package READMEs own these consumer limits. The [selective output decision](2026-09-13-browser-selective-output.md) owns explicit distilled snapshots, CSS targets, Playwright refs, and optional snapshot/image omission.

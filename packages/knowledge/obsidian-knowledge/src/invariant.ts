@@ -14,7 +14,7 @@ export const name = 'obsidian-knowledge-invariant'
 /** Service required before the companion can reserve package ownership. */
 export const inject = ['invariants']
 
-/** No runtime invariant: the graph is an external projection, and browser-result/settings tests own its checks. */
+/** No runtime invariant: vault contents are external state without an authoritative in-process event stream. */
 const install: InvariantInstaller = () => {}
 
 /** Register this package's invariant companion. */

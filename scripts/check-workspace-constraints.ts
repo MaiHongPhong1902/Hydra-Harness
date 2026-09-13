@@ -156,6 +156,7 @@ const packageFileExtras: Readonly<Record<string, readonly string[]>> = {
   '@hydra/harness-browser-electron': [
     'electron-app/autofill-vault.cjs',
     'electron-app/main.cjs',
+    'electron-app/playwright.cjs',
     'electron-app/hydra.png',
     'electron-app/chrome.html',
     'electron-app/newtab.html',

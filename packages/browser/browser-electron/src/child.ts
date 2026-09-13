@@ -38,7 +38,7 @@ export interface BrowserChild {
    * Send one request and await its reply.
    * @param method - protocol method the Electron main process understands.
    * @param args - JSON-safe arguments.
-   * @param signal - cancellation also withdraws pending browser permission questions.
+   * @param signal - cancels the native request and its permission questions; rejection waits for the child to finish it.
    * @returns the JSON-safe result.
    */
   call(method: string, args: Record<string, unknown>, signal?: AbortSignal): Promise<unknown>
@@ -410,26 +410,32 @@ export async function launchBrowser(options: LaunchOptions): Promise<BrowserChil
         return
       }
       const id = ++nextId
+      let cancellation: Error | undefined
       const expire = (): void => {
-        pending.delete(id)
-        call.reject(new BrowserError(
+        if (cancellation !== undefined) { void close(); return }
+        cancellation = new BrowserError(
           `the embedded browser did not answer ${method} within ${options.actionTimeoutMs}ms`,
           'BROWSER_TIMEOUT',
-        ))
+        )
+        child.stdin.write(`${JSON.stringify({ method: 'cancel_browser_call', args: { id } })}\n`)
+        // An unresponsive child must stop before another request can use its page.
+        call.timer = setTimeout(() => { void close() }, SHUTDOWN_GRACE_MS)
+        call.timer.unref()
       }
       const timer = setTimeout(expire, options.actionTimeoutMs)
       timer.unref()
       const cancel = (): void => {
-        pending.delete(id)
+        if (cancellation !== undefined) return
+        cancellation = signal?.reason instanceof Error ? signal.reason : new Error('browser action cancelled')
         clearTimeout(call.timer)
         for (const controller of permissions.values()) controller.abort()
-        if (ended === undefined) child.stdin.write(`${JSON.stringify({ method: 'cancel_browser_permissions' })}\n`)
-        reject(signal?.reason instanceof Error ? signal.reason : new Error('browser action cancelled'))
+        if (ended === undefined) child.stdin.write(`${JSON.stringify({ method: 'cancel_browser_call', args: { id } })}\n`)
+        call.resume()
       }
       const cleanup = (): void => { signal?.removeEventListener('abort', cancel) }
       const call: PendingCall = {
-        resolve(value) { cleanup(); resolve(value) },
-        reject(error) { cleanup(); reject(error) },
+        resolve(value) { cleanup(); if (cancellation !== undefined) reject(cancellation); else resolve(value) },
+        reject(error) { cleanup(); reject(cancellation ?? error) },
         timer, resume() {
           call.timer = setTimeout(expire, options.actionTimeoutMs)
           call.timer.unref()

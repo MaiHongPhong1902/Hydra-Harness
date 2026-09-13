@@ -168,6 +168,8 @@ server.listen(0, '127.0.0.1', () => {
     phase = 'waiting for the initial tab'
     await waitFor(async () => (await state()).count === 1)
     phase = 'syncing the app palette to native chrome'
+    chrome.focus()
+    await chrome.executeJavaScript("document.querySelector('.tab-close').focus()")
     const systemTheme = (await state()).theme
     const appTheme = {
       colorScheme: 'dark',
@@ -192,6 +194,7 @@ server.listen(0, '127.0.0.1', () => {
       return current.theme === 'dark' && JSON.stringify(controller.getState().themeColors) === JSON.stringify(appTheme.colors)
     })
     assert.deepEqual(await chromePalette(), { scheme: 'dark', ...appTheme.colors })
+    assert.equal(await chrome.executeJavaScript("document.activeElement.className"), 'tab-close')
     controller.setTheme(null)
     await waitFor(async () => {
       const current = await state()
@@ -222,6 +225,27 @@ server.listen(0, '127.0.0.1', () => {
 
     phase = 'opening an address from the omnibox without a chat owner'
     await navigate('/one')
+    chrome.focus()
+    await chrome.executeJavaScript("document.querySelector('.tab-close').focus()")
+    activePage().focus()
+    assert.equal(await chrome.executeJavaScript('document.hasFocus()'), false)
+    controller.setTheme(appTheme)
+    await waitFor(async () => JSON.stringify((await chromePalette())) === JSON.stringify({ scheme: 'dark', ...appTheme.colors }))
+    assert.equal(await chrome.executeJavaScript('document.hasFocus()'), false, 'a tab update stole page focus')
+    controller.setTheme(null)
+    phase = 'activating native controls with the keyboard'
+    chrome.focus()
+    await chrome.executeJavaScript("document.getElementById('find-toggle').focus()")
+    chrome.sendInputEvent({ type: 'keyDown', keyCode: 'Return' })
+    chrome.sendInputEvent({ type: 'char', keyCode: 'Return' })
+    chrome.sendInputEvent({ type: 'keyUp', keyCode: 'Return' })
+    await waitFor(async () => await chrome.executeJavaScript("!document.getElementById('find-bar').hidden"))
+    await chrome.executeJavaScript("document.getElementById('find-close').click(); document.getElementById('security-badge').focus()")
+    chrome.sendInputEvent({ type: 'keyDown', keyCode: 'Space' })
+    chrome.sendInputEvent({ type: 'char', keyCode: ' ' })
+    chrome.sendInputEvent({ type: 'keyUp', keyCode: 'Space' })
+    await waitFor(async () => await chrome.executeJavaScript("!document.getElementById('site-info-card').hidden"))
+    await chrome.executeJavaScript("document.getElementById('site-info-close').click()")
     assert.equal(permissions.length, 0, 'a user-entered address requested chat approval')
     assert.deepEqual(await controller.command('browser_sites'), [])
     transcript.push({ action: 'address', url: (await state()).url.replace(address, '<fixture>'), title: (await state()).active, permissionRequests: permissions.length })
@@ -242,6 +266,7 @@ server.listen(0, '127.0.0.1', () => {
 
       phase = 'native page input takes over without authorizing agent input'
       const inputPage = activePage()
+      inputPage.focus()
       const point = await inputPage.executeJavaScript(`(() => {
         const link = document.createElement('a')
         link.href = ${JSON.stringify(`${address}/one`)}
@@ -253,11 +278,21 @@ server.listen(0, '127.0.0.1', () => {
       })()`)
       const agentNavigationBlocked = new Promise(resolve => inputPage.once('will-navigate', event => resolve(event.defaultPrevented)))
       await controller.command('press', { key: 'Enter' })
+      phase = 'waiting for the agent keyboard navigation to be blocked'
       assert.equal(await agentNavigationBlocked, true)
+      phase = 'waiting for the user mouse navigation to finish'
       inputPage.sendInputEvent({ type: 'mouseDown', button: 'left', clickCount: 1, ...point })
       inputPage.sendInputEvent({ type: 'mouseUp', button: 'left', clickCount: 1, ...point })
       await waitFor(async () => (await state()).active === 'One' && !inputPage.isLoading())
       assert.equal(permissions.length, 0)
+      const identity = await controller.command('get_page_identity', {})
+      assert.deepEqual(identity, {
+        url: `${address}/one`,
+        title: 'One',
+        tabId: 1,
+        activeTabId: 1,
+        settled: true,
+      })
       transcript.push({ action: 'user-click', title: (await state()).active, permissionRequests: permissions.length })
 
       phase = 'user browsing continues across links and browser controls'
@@ -408,7 +443,7 @@ server.listen(0, '127.0.0.1', () => {
           const rect = element.getBoundingClientRect()
           return rect.left >= 0 && rect.right <= innerWidth && rect.width > 0
         }
-        const controls = [...document.querySelectorAll('.controls button, #omnibox, #new-tab')]
+        const controls = [...document.querySelectorAll('.controls button, #omnibox, #new-tab')].filter(element => element.checkVisibility())
         const tabs = document.getElementById('tabs')
         const last = tabs.lastElementChild
         last.scrollIntoView({ block: 'nearest', inline: 'nearest' })
@@ -429,6 +464,22 @@ server.listen(0, '127.0.0.1', () => {
       }, `browser layout at ${width}px`)
       assert.equal(await page.executeJavaScript('innerHeight'), 504)
     }
+    phase = 'joining commands when the desktop owner disconnects'
+    await controller.command('find_element', { text: 'One' })
+    await page.executeJavaScript(`
+      document.body.insertAdjacentHTML('beforeend', '<button id="cancel-pending" disabled>Deferred</button>');
+      document.getElementById('cancel-pending').onclick = () => document.body.dataset.lateClick = 'yes';
+      void 0;
+    `)
+    const cancelledClick = controller.request({ id: 71, method: 'click_element', args: { target: '#cancel-pending' } })
+    await sleep(150)
+    await controller.cancelRequests()
+    assert.equal((await cancelledClick).ok, false)
+    await page.executeJavaScript("document.getElementById('cancel-pending').disabled = false")
+    await sleep(200)
+    assert.equal(await page.executeJavaScript("document.body.dataset.lateClick"), undefined)
+    await page.executeJavaScript("document.getElementById('cancel-pending').remove()")
+    assert.equal((await controller.request({ id: 72, method: 'cancel_browser_call', args: { id: 'invalid' } })).ok, false)
     phase = 'waiting for chat permission before a network request'
     await configureNavigation('ask')
     const target = `http://localhost:${server.address().port}/two`

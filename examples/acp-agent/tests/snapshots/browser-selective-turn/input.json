@@ -1,0 +1,7 @@
+{
+  "steps": [
+    { "op": "initialize" },
+    { "op": "newSession" },
+    { "op": "prompt", "text": "Open the order page, put Ada in the requester field, place the order, then reply DONE." }
+  ]
+}

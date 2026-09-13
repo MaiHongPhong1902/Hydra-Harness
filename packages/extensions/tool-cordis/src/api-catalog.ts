@@ -517,10 +517,16 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         parameters: [],
       },
       {
-        signature: 'async perform( owner: Agent, action: BrowserAction, execution: BrowserExecutionContext = {}, ): Promise<BrowserOutcome>',
-        description: 'Do one thing to an owner\'s page and report the page afterwards.\n\nThe trailing state read is not a convenience: PageController indexes elements while building the tree, so the snapshot both answers the caller and leaves the next action addressable. Explicit targets are ordered per tab and may overlap across tabs; implicit and lifecycle actions are barriers.',
-        parameters: [{ name: 'owner', description: 'agent whose window this is; its first call starts one.' }, { name: 'action', description: 'what to do, in page-agent\'s own vocabulary.' }, { name: 'execution', description: 'tool-call identity and cancellation for browser actions and permissions.' }],
+        signature: 'async perform( owner: Agent, action: BrowserAction, execution: BrowserExecutionContext & { captureState?: boolean } = {}, ): Promise<BrowserOutcome>',
+        description: 'Do one thing to an owner\'s page and report the page afterwards.\n\nA captured snapshot refreshes numeric element indexes. With captureState false, the trailing read contains only page identity, tabs, loading, and dialogs; callers must observe the page before reusing numeric indexes. Explicit targets are ordered per tab; implicit and lifecycle actions are barriers.',
+        parameters: [{ name: 'owner', description: 'agent whose window this is; its first call starts one.' }, { name: 'action', description: 'what to do, in page-agent\'s own vocabulary.' }, { name: 'execution', description: 'tool-call identity, cancellation, and optional captureState (default true).' }],
         returns: 'the action\'s report, omitted for a plain state read, plus the state.',
+      },
+      {
+        signature: 'async currentPage( owner: Agent, execution: BrowserExecutionContext = {}, tabId?: number, ): Promise<BrowserPageIdentity | undefined>',
+        description: 'Read one live tab\'s URL, title, and selection without refreshing its page state. Background reads without a call id fail closed when Browsing approval is set to `ask`.',
+        parameters: [{ name: 'owner', description: 'agent whose open browser owns the tab.' }, { name: 'execution', description: 'tool-call identity and cancellation for the browsing approval.' }, { name: 'tabId', description: 'optional positive controlled-tab id; omission uses the selected tab.' }],
+        returns: 'live page metadata, or `undefined` when the owner has no open browser.',
       },
       {
         signature: 'async takeScreenshot(owner: Agent, execution: BrowserExecutionContext = {}): Promise<BrowserScreenshot>',
@@ -3201,7 +3207,7 @@ export const EVENT_API: readonly EventApiEntry[] = [
 export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'ActionResult',
-    declaration: 'export interface ActionResult {\n    success: boolean;\n    message: string;\n}',
+    declaration: 'export interface ActionResult {\n    success: boolean;\n    message: string;\n    selectedText?: string;\n}',
   },
   {
     name: 'AdapterRegistrationHandle',
@@ -3385,7 +3391,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'BrowserAction',
-    declaration: 'export type BrowserAction = (({\n    method: \'get_browser_state\';\n} | {\n    method: \'navigate\';\n    url: string;\n} | {\n    method: \'back\';\n} | {\n    method: \'forward\';\n} | {\n    method: \'press\';\n    key: string;\n} | {\n    method: \'click_element\';\n    index?: number;\n    name?: string;\n} | {\n    method: \'hover_element\';\n    index?: number;\n    name?: string;\n} | {\n    method: \'drag_element\';\n    startIndex: number;\n    endIndex: number;\n} | {\n    method: \'drop\';\n    index: number;\n    filePaths: string[];\n    data: Record<string, string>;\n} | {\n    method: \'resize\';\n    width: number;\n    height: number;\n} | {\n    method: \'handle_dialog\';\n    accept: boolean;\n    promptText?: string;\n} | {\n    method: \'console_messages\';\n    level: \'error\' | \'warning\' | \'info\' | \'debug\';\n} | {\n    method: \'network_requests\';\n    includeStatic: boolean;\n} | {\n    method: \'network_request\';\n    index: number;\n    part?: \'request-headers\' | \'request-body\' | \'response-headers\' | \'response-body\';\n} | {\n    method: \'upload_file\';\n    index: number;\n    filePath: string;\n} | {\n    method: \'input_text\';\n    index?: number;\n    name?: string;\n    text: string;\n} | {\n    method: \'select_option\';\n    index?: number;\n    name?: string;\n    text: string;\n} | {\n    method: \'select_text\';\n    index?: number;\n    name?: string;\n    startX?: number;\n    startY?: number;\n    endX?: number;\n    endY?: number;\n    duration?: number;\n    start_x?: number;\n    start_y?: number;\n    end_x?: number;\n    end_y?: number /* …truncated — full shape in source */',
+    declaration: 'export type BrowserAction = (({\n    method: \'get_browser_state\';\n    snapshot?: BrowserSnapshotOptions;\n} | {\n    method: \'navigate\';\n    url: string;\n} | {\n    method: \'back\';\n} | {\n    method: \'forward\';\n} | {\n    method: \'press\';\n    key: string;\n} | {\n    method: \'click_element\';\n    index?: number;\n    name?: string;\n    target?: string;\n} | {\n    method: \'hover_element\';\n    index?: number;\n    name?: string;\n    target?: string;\n} | {\n    method: \'drag_element\';\n    startIndex: number;\n    endIndex: number;\n} | {\n    method: \'drop\';\n    index: number;\n    filePaths: string[];\n    data: Record<string, string>;\n} | {\n    method: \'resize\';\n    width: number;\n    height: number;\n} | {\n    method: \'handle_dialog\';\n    accept: boolean;\n    promptText?: string;\n} | {\n    method: \'console_messages\';\n    level: \'error\' | \'warning\' | \'info\' | \'debug\';\n} | {\n    method: \'network_requests\';\n    includeStatic: boolean;\n    filter?: string;\n} | {\n    method: \'network_request\';\n    index: number;\n    part?: \'request-headers\' | \'request-body\' | \'response-headers\' | \'response-body\';\n} | {\n    method: \'upload_file\';\n    index: number;\n    filePath: string;\n} | {\n    method: \'input_text\';\n    index?: number;\n    name?: string;\n    target?: string;\n    text: string;\n} | {\n    method: \'select_option\';\n    index?: number;\n    name?: string;\n    target?: string;\n    text: string;\n} | {\n    method: \'select_text\';\n    index?: number;\n    name?: string;\n    target?: string;\n    startX?: number; /* …truncated — full shape in source */',
   },
   {
     name: 'BrowserCdpCommandResult',
@@ -3420,8 +3426,16 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface BrowserOutcome {\n    action?: ActionResult;\n    state: BrowserState;\n}',
   },
   {
+    name: 'BrowserPageIdentity',
+    declaration: 'export interface BrowserPageIdentity {\n    url: string;\n    title: string;\n    tabId: number;\n    activeTabId: number;\n    settled: boolean;\n}',
+  },
+  {
     name: 'BrowserScreenshot',
     declaration: 'export interface BrowserScreenshot {\n    mediaType: \'image/png\';\n    data: string;\n    bytes: number;\n    width: number;\n    height: number;\n    tabId: number;\n    url: string;\n    title: string;\n    capturedAt: string;\n}',
+  },
+  {
+    name: 'BrowserSnapshotOptions',
+    declaration: 'export interface BrowserSnapshotOptions {\n    target?: string;\n    depth?: number;\n    boxes?: boolean;\n}',
   },
   {
     name: 'BrowserState',

@@ -21,21 +21,15 @@ export function registerChatNodeRenderers(
   editMessage: (sessionId: SessionId, node: UserMessageNode, text: string, options: PromptEditOptions) => Promise<void>,
   retryRevision: (sessionId: SessionId, idempotencyKey: string) => Promise<void>,
 ): void {
-  ctx.slots.inject('conversation.chat.node', () => ctx.slots.register(
-    {
-      name: 'conversation.chat.node', key: 'user', locale: NS,
-      inject: (sessionId: SessionId) => ({
-        editMessage: (node: UserMessageNode, text: string, options: PromptEditOptions) => editMessage(sessionId, node, text, options),
-        openVersion: (id: SessionId) => { ctx.sessions.open(id) },
-      }),
-    }, UserMessageNodeView))
-  ctx.slots.inject('conversation.chat.node', () => ctx.slots.register(
-    { name: 'conversation.chat.node', key: 'steering', locale: NS,
-      inject: (sessionId: SessionId) => ({
-        editMessage: (node: UserMessageNode, text: string, options: PromptEditOptions) => editMessage(sessionId, node, text, options),
-        openVersion: (id: SessionId) => { ctx.sessions.open(id) },
-      }),
-    }, UserMessageNodeView))
+  for (const key of ['user', 'steering'] as const) {
+    ctx.slots.inject('conversation.chat.node', () => ctx.slots.register(
+      { name: 'conversation.chat.node', key, locale: NS,
+        inject: (sessionId: SessionId) => ({
+          editMessage: (node: UserMessageNode, text: string, options: PromptEditOptions) => editMessage(sessionId, node, text, options),
+          openVersion: (id: SessionId) => { ctx.sessions.open(id) },
+        }),
+      }, UserMessageNodeView))
+  }
   ctx.slots.inject('conversation.chat.node', () => ctx.slots.register(
     { name: 'conversation.chat.node', key: 'context', locale: NS }, ContextMessageNodeView))
   ctx.slots.inject('conversation.chat.node', () => ctx.slots.register(

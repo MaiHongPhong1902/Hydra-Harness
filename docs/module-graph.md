@@ -79,7 +79,6 @@ flowchart TD
   end
   subgraph group_browser["packages/browser"]
     pkg_browser_electron["browser-electron"]
-    pkg_obsidian_knowledge["obsidian-knowledge"]
     pkg_tool_browser["tool-browser"]
   end
   subgraph group_spill["packages/spill"]
@@ -248,6 +247,10 @@ flowchart TD
     pkg_jobs["jobs"]
     pkg_jobs_local["jobs-local"]
     pkg_tool_jobs["tool-jobs"]
+  end
+  subgraph group_knowledge["packages/knowledge"]
+    pkg_obsidian_knowledge["obsidian-knowledge"]
+    pkg_page_memory["page-memory"]
   end
   subgraph group_lsp["packages/lsp"]
     pkg_lsp["lsp"]
@@ -838,13 +841,6 @@ flowchart TD
   pkg_tool_web --> pkg_system_prompt
   pkg_tool_web --> pkg_tools
   pkg_tool_web --> pkg_web
-  pkg_obsidian_knowledge --> pkg_agent
-  pkg_obsidian_knowledge --> pkg_atomic_write
-  pkg_obsidian_knowledge --> pkg_credentials
-  pkg_obsidian_knowledge --> pkg_invariants
-  pkg_obsidian_knowledge --> pkg_llm
-  pkg_obsidian_knowledge --> pkg_settings
-  pkg_obsidian_knowledge --> pkg_tools
   pkg_tool_browser --> pkg_agent
   pkg_tool_browser --> pkg_attachment
   pkg_tool_browser --> pkg_browser_electron
@@ -939,6 +935,20 @@ flowchart TD
   pkg_tool_jobs --> pkg_output_retention
   pkg_tool_jobs --> pkg_system_prompt
   pkg_tool_jobs --> pkg_tools
+  pkg_obsidian_knowledge --> pkg_agent
+  pkg_obsidian_knowledge --> pkg_atomic_write
+  pkg_obsidian_knowledge --> pkg_credentials
+  pkg_obsidian_knowledge --> pkg_invariants
+  pkg_obsidian_knowledge --> pkg_llm
+  pkg_obsidian_knowledge --> pkg_settings
+  pkg_obsidian_knowledge --> pkg_tools
+  pkg_page_memory --> pkg_agent
+  pkg_page_memory --> pkg_browser_electron
+  pkg_page_memory --> pkg_home_paths
+  pkg_page_memory --> pkg_invariants
+  pkg_page_memory --> pkg_llm
+  pkg_page_memory --> pkg_system_prompt
+  pkg_page_memory --> pkg_tools
   pkg_tool_lsp --> pkg_invariants
   pkg_tool_lsp --> pkg_llm
   pkg_tool_lsp --> pkg_lsp
@@ -1702,7 +1712,6 @@ flowchart TD
 | [`tool-skill`](../packages/skill/tool-skill) | `skill` | [`agent`](../packages/core/agent), [`invariants`](../packages/runtime-diagnostics/invariants), [`llm`](../packages/llm/llm), [`skill`](../packages/skill/skill), [`tools`](../packages/core/tools) |
 | [`subagent`](../packages/subagent/subagent) | `subagent` | [`agent`](../packages/core/agent), [`agent-presets`](../packages/preset/agent-presets), [`brand`](../packages/util/brand), [`invariants`](../packages/runtime-diagnostics/invariants), [`jobs`](../packages/jobs/jobs), [`llm`](../packages/llm/llm), [`sandbox`](../packages/sandbox/sandbox), [`sandbox-policy`](../packages/sandbox/sandbox-policy), [`scope`](../packages/core/scope), [`session`](../packages/core/session), [`session-persistence`](../packages/session/session-persistence), [`session-projection`](../packages/session/session-projection), [`session-projection-cache`](../packages/session/session-projection-cache), [`tools`](../packages/core/tools), [`user-approval`](../packages/interaction/user-approval) |
 | [`tool-web`](../packages/web/tool-web) | `web` | [`invariants`](../packages/runtime-diagnostics/invariants), [`llm`](../packages/llm/llm), [`system-prompt`](../packages/core/system-prompt), [`tools`](../packages/core/tools), [`web`](../packages/web/web) |
-| [`obsidian-knowledge`](../packages/browser/obsidian-knowledge) | `browser` | [`agent`](../packages/core/agent), [`atomic-write`](../packages/util/atomic-write), [`credentials`](../packages/credentials/credentials), [`invariants`](../packages/runtime-diagnostics/invariants), [`llm`](../packages/llm/llm), [`settings`](../packages/settings/settings), [`tools`](../packages/core/tools) |
 | [`tool-browser`](../packages/browser/tool-browser) | `browser` | [`agent`](../packages/core/agent), [`attachment`](../packages/attachment/attachment), [`browser-electron`](../packages/browser/browser-electron), [`invariants`](../packages/runtime-diagnostics/invariants), [`llm`](../packages/llm/llm), [`system-prompt`](../packages/core/system-prompt), [`tools`](../packages/core/tools) |
 | [`spill-policy`](../packages/spill/spill-policy) | `spill` | [`invariants`](../packages/runtime-diagnostics/invariants), [`llm`](../packages/llm/llm), [`output-retention`](../packages/util/output-retention), [`session`](../packages/core/session), [`spill`](../packages/spill/spill), [`tools`](../packages/core/tools) |
 | [`tool-todo`](../packages/todo/tool-todo) | `todo` | [`agent`](../packages/core/agent), [`invariants`](../packages/runtime-diagnostics/invariants), [`session`](../packages/core/session), [`session-projection`](../packages/session/session-projection), [`tools`](../packages/core/tools) |
@@ -1719,6 +1728,8 @@ flowchart TD
 | [`tool-call-timeout-policy`](../packages/guard/timeout-policy) | `guard` | [`invariants`](../packages/runtime-diagnostics/invariants), [`llm`](../packages/llm/llm), [`timeout`](../packages/util/timeout), [`tools`](../packages/core/tools) |
 | [`tool-ask-user`](../packages/interaction/tool-ask-user) | `interaction` | [`agent`](../packages/core/agent), [`invariants`](../packages/runtime-diagnostics/invariants), [`tools`](../packages/core/tools), [`user-questions`](../packages/interaction/user-questions) |
 | [`tool-jobs`](../packages/jobs/tool-jobs) | `jobs` | [`agent`](../packages/core/agent), [`invariants`](../packages/runtime-diagnostics/invariants), [`jobs`](../packages/jobs/jobs), [`llm`](../packages/llm/llm), [`output-retention`](../packages/util/output-retention), [`system-prompt`](../packages/core/system-prompt), [`tools`](../packages/core/tools) |
+| [`obsidian-knowledge`](../packages/knowledge/obsidian-knowledge) | `knowledge` | [`agent`](../packages/core/agent), [`atomic-write`](../packages/util/atomic-write), [`credentials`](../packages/credentials/credentials), [`invariants`](../packages/runtime-diagnostics/invariants), [`llm`](../packages/llm/llm), [`settings`](../packages/settings/settings), [`tools`](../packages/core/tools) |
+| [`page-memory`](../packages/knowledge/page-memory) | `knowledge` | [`agent`](../packages/core/agent), [`browser-electron`](../packages/browser/browser-electron), [`home-paths`](../packages/util/home-paths), [`invariants`](../packages/runtime-diagnostics/invariants), [`llm`](../packages/llm/llm), [`system-prompt`](../packages/core/system-prompt), [`tools`](../packages/core/tools) |
 | [`tool-lsp`](../packages/lsp/tool-lsp) | `lsp` | [`invariants`](../packages/runtime-diagnostics/invariants), [`llm`](../packages/llm/llm), [`lsp`](../packages/lsp/lsp), [`system-prompt`](../packages/core/system-prompt), [`timeout`](../packages/util/timeout), [`tools`](../packages/core/tools) |
 | [`mcp-client`](../packages/mcp/mcp-client) | `mcp` | [`attachment`](../packages/attachment/attachment), [`invariants`](../packages/runtime-diagnostics/invariants), [`llm`](../packages/llm/llm), [`subprocess`](../packages/subprocess/subprocess), [`timeout`](../packages/util/timeout), [`tools`](../packages/core/tools) |
 | [`schedule`](../packages/schedule/schedule) | `schedule` | [`agent`](../packages/core/agent), [`brand`](../packages/util/brand), [`invariants`](../packages/runtime-diagnostics/invariants), [`llm`](../packages/llm/llm), [`session`](../packages/core/session), [`session-persistence`](../packages/session/session-persistence), [`tools`](../packages/core/tools) |

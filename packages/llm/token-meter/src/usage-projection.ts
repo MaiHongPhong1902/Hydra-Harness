@@ -54,12 +54,7 @@ const routeSchema = z.object({
   model: z.string().min(1),
 }).strict()
 
-const modelUsageSchema = routeSchema.extend({
-  uncachedInputTokens: z.number().int().nonnegative(),
-  outputTokens: z.number().int().nonnegative(),
-  cacheReadTokens: z.number().int().nonnegative(),
-  cacheWriteTokens: z.number().int().nonnegative(),
-}).strict()
+const modelUsageSchema = projectionSchema.extend(routeSchema.shape)
 
 const modelUsageProjectionSchema: z.ZodType<ModelTokenUsageProjection> = z.array(modelUsageSchema)
 

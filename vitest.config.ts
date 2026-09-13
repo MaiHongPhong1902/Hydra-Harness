@@ -36,7 +36,6 @@ const windowsUnsupportedPackages = process.platform === 'win32'
       'packages/hooks/hook-protocol',
       'packages/hooks/hooks-claude-code',
       'packages/hooks/hooks-codex',
-      'packages/terminal/terminal-bash',
       'packages/sandbox/sandbox-local',
     ]
   : []

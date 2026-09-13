@@ -379,7 +379,7 @@ describe('BashTerminalBackend startup rollback', () => {
     expect(spawned?.env?.PROMPT_COMMAND).toBeUndefined()
   })
 
-  it('keeps waiting for the marker prompt when the first send settles on silence', async () => {
+  it('does not mistake the echoed pwsh bootstrap for a ready prompt', async () => {
     const ctx = new Context()
     await ctx.plugin(EmptySandbox)
     await ctx.plugin(SandboxPolicyService, { mode: 'danger-full-access', workspaceRoot: '/workspace' })
@@ -388,10 +388,10 @@ describe('BashTerminalBackend startup rollback', () => {
       motd: '',
       startSend: (request: TerminalSendRequest) => {
         sends.push(request)
-        const second = sends.length > 1
+        const viewport = ['', `PowerShell 7.6.4\n${PWSH_PROMPT_SETUP}\n`, 'hh> '][sends.length - 1]
         return {
           done: Promise.resolve({
-            viewport: second ? 'hh> ' : 'PowerShell 7.6.4\n',
+            viewport,
             waitReason: 'inferred_idle' as const,
             sessionStatus: { kind: 'running' as const }, truncated: false,
           }),
@@ -399,7 +399,7 @@ describe('BashTerminalBackend startup rollback', () => {
           cancel: () => false,
         }
       },
-      read: () => ({ text: '', totalLines: 0, lineBegin: 0, lineEnd: 0, truncated: false }),
+      read: () => ({ text: `${PWSH_PROMPT_SETUP}\n`, totalLines: 1, lineBegin: 0, lineEnd: 1, truncated: false }),
     } as unknown as LocalPtySession
     const backend = new BashTerminalBackend(
       ctx,
@@ -408,8 +408,9 @@ describe('BashTerminalBackend startup rollback', () => {
       () => session,
     )
     await backend.spawn(spec(agent(ctx)))
-    expect(sends).toHaveLength(2)
+    expect(sends).toHaveLength(3)
     expect(sends[1]).toMatchObject({ text: '', submit: false })
+    expect(sends[2]).toMatchObject({ text: '', submit: false })
     expect(session.motd).toBe('hh> ')
   })
 

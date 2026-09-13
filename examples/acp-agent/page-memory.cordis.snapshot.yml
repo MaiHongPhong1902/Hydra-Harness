@@ -1,0 +1,42 @@
+# Keyless counterpart to page-memory.cordis.yml. Browser protocol, tools, and
+# page-memory verification remain real; only Electron and the model are replayed.
+- id: base
+  name: '@hydra/cordis-plugin-include'
+  config:
+    path: ./cordis.yml
+    patches:
+      - id: llm-deepseek
+        name: '@hydra/harness-llm-deepseek'
+        disabled: true
+      - insert:
+          - id: browser-electron
+            name: '@hydra/harness-browser-electron'
+            config:
+              show: false
+              browserPermissions:
+                browsing: allow
+                downloads: allow
+                uploads: allow
+              electronPath: /snapshot/electron
+          - id: page-memory-snapshot-backend
+            name: './page-memory-backend.mjs'
+          - id: page-memory
+            name: '@hydra/harness-page-memory'
+            config:
+              workspaceDir: !!js process.cwd()
+              role: order-operator
+              locale: en-US
+              storageDir: !!js process.cwd()
+              routes:
+                - origin: https://shop.test
+                  path: /orders
+          - id: tool-browser
+            name: '@hydra/harness-tool-browser'
+          - id: llm-replay
+            name: '@hydra/harness-llm-replay'
+            config:
+              providers:
+                - id: deepseek-official
+                  name: DeepSeek
+                  models:
+                    - id: deepseek-v4-pro

@@ -1,0 +1,2371 @@
+$ npm run build:lib:host && npm run lint:contracts-ready
+
+> @hydra/harness-root@0.1.1-rc.1 build:lib:host
+> tsc -b tsconfig.host.json && tsdown --env.HYDRA_BUILD_FACE host
+
+ℹ tsdown v0.22.2 powered by rolldown v1.1.1
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\apps\cli\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\vendor\logger-console\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\vendor\schemastery\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\vendor\loader\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\api\remotes\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\api\gateway\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\compaction\compaction\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\boot\app-boot\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\context\time-context\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\core\agent-default-model\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\core\agent\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\core\scope\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\core\session\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\core\agent-loop\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\hmr\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\connection\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\examples\jsonrpc-demo\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\locale\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-agent-preset\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-attachment\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-brand-official\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\examples\acp-demo\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-commands\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-conversation\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-deliverables\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-directory-picker-browse\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-directory-picker-native\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\runtime\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-jobs\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\modules\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-layout\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-message-feedback\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-model-selection\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-input-trigger\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-goal\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-permission-presets\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-renderer\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-reference\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-review\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-primitives\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-settings\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-plan\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-settings-general\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-settings-plugins\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-settings-models\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-skill\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-settings-plugin-inventory\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-settings-personalization\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-sidebar\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-theme\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-tool\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-slots\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-user-questions\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-workflow-run\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-workspace\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-trajectory\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\web\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\experimental\agent-team\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\extensions\cordis-client-runner\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\client\ui-subagent\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\extensions\ui-cordis\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\code-runtime\code-runtime-worker-thread\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\code-runtime\code-runtime-python\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\fs\fs-review\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\goal\goal\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\goal\goal-round-driver\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\host\directory-picker-browse\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\host\directory-picker-native\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\interaction\user-approval\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\llm\llm-retry\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\sandbox\sandbox-policy\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\schedule\schedule\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\settings\settings\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\sandbox\sandbox-windows-acl\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\test-support\client-runtime\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\test-support\llm-mock-server\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\session-query\session-log-export\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\typert\registry\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\workflow\workflow-worker-thread\tsdown.config.ts 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\vendor\cordis\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\vendor\cosmokit\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\vendor\include\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\vendor\hmr\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\vendor\group\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\acp\acp\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\boot\cmdline\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\attachment\attachment\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\attachment\attachment-local\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\vendor\timer\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\browser\tool-browser\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\browser\browser-electron\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\bundle\headless\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\bundle\base\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\compaction\command-compact\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\bundle\web-app\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\compaction\compaction-basic\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\compaction\compaction-tool-result-pruner\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\context\file-reference-local\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\context\personalization\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\context\session-reference\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\context\file-reference\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\credentials\authorization\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\context\tmux-context\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\credentials\credentials\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\credentials\credentials-local\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\context\agent-instructions\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\core\agent-tool-presentation\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\e2b\fs-e2b\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\core\tools\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\e2b\e2b\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\e2b\subprocess-e2b\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\core\system-prompt\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\examples\agent-spine-demo\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\experimental\tool-agent-team\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\extensions\tool-cordis\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\feedback\command-feedback\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\extensions\cordis-host-runner\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\fs\fs\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\fs\fs-local\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\feedback\message-feedback\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\fs\fs-sandbox\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\fs\tool-fs\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\fs\fs-observation-policy\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\fs\tool-fs-search\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\fs\tool-str-replace-editor\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\goal\tool-goal\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\goal\command-goal\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\code-runtime\code-runtime\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\guard\research-policy\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\guard\timeout-policy\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\hooks\hooks-claude-code\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\hooks\hooks-codex\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\guard\repeat-tool-reminder\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\hooks\hooks-registry\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\hooks\hook-protocol\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\host\apiproxy\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\host\directory-picker\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\host\directory-picker-auto\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\host\plugin-inventory\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\host\frontend-static\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\host\plugin-runtime\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\interaction\commands\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\host\webserver\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\interaction\permission-presets\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\interaction\tool-ask-user\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\interaction\user-questions\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\jobs\jobs\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\knowledge\obsidian-knowledge\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\knowledge\page-memory\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\llm\llm\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\jobs\jobs-local\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\llm\llm-deepseek\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\llm\llm-pi-ai\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\lsp\lsp\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\jobs\tool-jobs\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\llm\token-meter\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\lsp\lsp-stdio\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\identity\anonymous-user-id\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\lsp\tool-lsp\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\mcp\mcp-registry\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\mcp\mcp-client\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\plan\plan-mode\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\runtime-diagnostics\invariants\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\sandbox\sandbox-local\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\sandbox\sandbox\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\preset\agent-presets\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\preset\persona\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\sdk\client\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\sdk\server\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\sdk\protocol\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\session\session-persistence-jsonl\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\session\session-checkpoint-policy\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\session\session-persistence\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\session\session-persistence-sqlite\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\session\session-projection\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\session\session-stats\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\session\session-telemetry\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\session\session-title\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\session\session-projection-cache\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\session\session-telemetry-otel\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\session\session-title-all-prompts-llm\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\session\session-title-first-prompt-llm\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\session\session-title-llm\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\shell\bash-local\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\shell\bash-sandbox\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\shell\pwsh-local\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\shell\shell-env\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\shell\shell\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\shell\tool-pwsh-persistent\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\shell\tool-bash-persistent\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\shell\tool-bash\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\shell\pwsh-sandbox\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\shell\tool-pwsh\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\settings\settings-file\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\skill\skill\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\skill\skill-badge\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\skill\skill-filesystem\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\skill\tool-skill\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\spill\spill\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\spill\spill-local\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\spill\spill-policy\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\storage\storage\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\storage\storage-sqlite\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\storage\storage-domain\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\subagent\subagent-acp\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\storage\storage-json\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\subagent\subagent\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\subagent\subagent-codex\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\subagent\subagent-fork-in-process\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\subagent\subagent-in-process-driver\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\subagent\subagent-claude-code\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\subagent\subagent-spawn-in-process\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\subagent\subagent-sdk\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\subagent\tool-subagent\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\subagent\tool-subagent-control\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\subprocess\subprocess\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\subagent\tool-subagent-report\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\session-query\session-query-sqlite\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\session-query\session-query\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\test-support\acp-snapshot\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\session-query\tool-session-query\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\subprocess\subprocess-local\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\test-support\agent-loop-testkit\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\test-support\llm-replay\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\terminal\terminal\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\terminal\tool-terminal\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\test-support\loader-smoke\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\util\brand\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\terminal\terminal-bash\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\util\atomic-write\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\todo\tool-todo\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\util\home-paths\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\util\launch-environment\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\util\timeout\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\util\native-command\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\util\output-retention\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\typert\loader\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\typert\generator\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\web\tool-web\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\web\web\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\web\web-fetch-http\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\typert\protocol\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\web\web-search-exa\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\web\web-search-deepseek\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\web\web-search-http\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\workspace\workspace\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\workflow\tool-ralph\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\web\web-search-perplexity\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\workflow\tool-workflow\package.json 
+ℹ config file: C:\Users\phong\Desktop\HH\Hydra-Harness\packages\workflow\workflow\package.json 
+ℹ [@hydra/harness] entry: lib/types/bin.js
+ℹ [@hydra/harness] target: es2024
+ℹ [@hydra/harness] tsconfig: tsconfig.json
+ℹ [@hydra/cordis-plugin-loader] entry: lib/types/index.js
+ℹ [@hydra/cordis-plugin-loader] target: es2024
+ℹ [@hydra/cordis-plugin-loader] tsconfig: tsconfig.json
+ℹ [@hydra/cordis-plugin-logger-console] entry: lib/types/browser.js
+ℹ [@hydra/cordis-plugin-logger-console] target: es2024
+ℹ [@hydra/cordis-plugin-logger-console] tsconfig: tsconfig.json
+ℹ [@hydra/schemastery] entry: lib/types/index.js
+ℹ [@hydra/schemastery] target: es2024
+ℹ [@hydra/schemastery] tsconfig: tsconfig.json
+ℹ [@hydra/cordis-plugin-logger-console] entry: lib/types/index.js
+ℹ [@hydra/cordis-plugin-logger-console] target: es2024
+ℹ [@hydra/cordis-plugin-logger-console] tsconfig: tsconfig.json
+ℹ [@hydra/harness-api-remotes] entry: lib/types/index.js, lib/types/invariant.js
+ℹ [@hydra/harness-api-remotes] target: es2024
+ℹ [@hydra/harness-api-remotes] tsconfig: tsconfig.json
+ℹ [@hydra/harness-app-boot] entry: lib/types/index.js, lib/types/invariant.js
+ℹ [@hydra/harness-app-boot] target: es2024
+ℹ [@hydra/harness-app-boot] tsconfig: tsconfig.json
+ℹ [@hydra/harness-compaction] entry: lib/types/index.js
+ℹ [@hydra/harness-compaction] target: es2024
+ℹ [@hydra/harness-compaction] tsconfig: tsconfig.json
+ℹ [@hydra/harness-compaction] entry: lib/types/invariant.js
+ℹ [@hydra/harness-compaction] target: es2024
+ℹ [@hydra/harness-compaction] tsconfig: tsconfig.json
+ℹ [@hydra/harness-time-context] entry: lib/types/index.js
+ℹ [@hydra/harness-time-context] target: es2024
+ℹ [@hydra/harness-time-context] tsconfig: tsconfig.json
+ℹ [@hydra/harness-time-context] entry: lib/types/invariant.js
+ℹ [@hydra/harness-time-context] target: es2024
+ℹ [@hydra/harness-time-context] tsconfig: tsconfig.json
+ℹ [@hydra/harness-agent] entry: lib/types/index.js
+ℹ [@hydra/harness-agent] target: es2024
+ℹ [@hydra/harness-agent] tsconfig: tsconfig.json
+ℹ [@hydra/harness-agent] entry: lib/types/invariant.js
+ℹ [@hydra/harness-agent] target: es2024
+ℹ [@hydra/harness-agent] tsconfig: tsconfig.json
+ℹ [@hydra/harness-agent-default-model] entry: lib/types/index.js
+ℹ [@hydra/harness-agent-default-model] target: es2024
+ℹ [@hydra/harness-agent-default-model] tsconfig: tsconfig.json
+ℹ [@hydra/harness-agent-default-model] entry: lib/types/invariant.js
+ℹ [@hydra/harness-agent-default-model] target: es2024
+ℹ [@hydra/harness-agent-default-model] tsconfig: tsconfig.json
+ℹ [@hydra/harness-agent-loop] entry: lib/types/index.js
+ℹ [@hydra/harness-agent-loop] target: es2024
+ℹ [@hydra/harness-agent-loop] tsconfig: tsconfig.json
+ℹ [@hydra/harness-agent-loop] entry: lib/types/invariant.js
+ℹ [@hydra/harness-agent-loop] target: es2024
+ℹ [@hydra/harness-agent-loop] tsconfig: tsconfig.json
+ℹ [@hydra/harness-scope] entry: lib/types/index.js
+ℹ [@hydra/harness-scope] target: es2024
+ℹ [@hydra/harness-scope] tsconfig: tsconfig.json
+ℹ [@hydra/harness-session] entry: lib/types/index.js
+ℹ [@hydra/harness-session] target: es2024
+ℹ [@hydra/harness-session] tsconfig: tsconfig.json
+ℹ [@hydra/harness-scope] entry: lib/types/invariant.js
+ℹ [@hydra/harness-scope] target: es2024
+ℹ [@hydra/harness-scope] tsconfig: tsconfig.json
+ℹ [@hydra/harness-session] entry: lib/types/invariant.js
+ℹ [@hydra/harness-session] target: es2024
+ℹ [@hydra/harness-session] tsconfig: tsconfig.json
+ℹ [@hydra/harness-acp-demo] entry: lib/types/index.js, lib/types/invariant.js, lib/types/bin.js
+ℹ [@hydra/harness-acp-demo] target: es2024
+ℹ [@hydra/harness-acp-demo] tsconfig: tsconfig.json
+ℹ [@hydra/harness-sdk-jsonrpc-demo] entry: lib/types/index.js
+ℹ [@hydra/harness-sdk-jsonrpc-demo] target: es2024
+ℹ [@hydra/harness-sdk-jsonrpc-demo] tsconfig: tsconfig.json
+ℹ [@hydra/harness-sdk-jsonrpc-demo] entry: lib/types/invariant.js
+ℹ [@hydra/harness-sdk-jsonrpc-demo] target: es2024
+ℹ [@hydra/harness-sdk-jsonrpc-demo] tsconfig: tsconfig.json
+ℹ [@hydra/harness-sdk-jsonrpc-demo] entry: lib/types/bin.js
+ℹ [@hydra/harness-sdk-jsonrpc-demo] target: es2024
+ℹ [@hydra/harness-sdk-jsonrpc-demo] tsconfig: tsconfig.json
+ℹ [@hydra/harness-sdk-jsonrpc-demo] entry: lib/types/packaged-bin.js
+ℹ [@hydra/harness-sdk-jsonrpc-demo] target: es2024
+ℹ [@hydra/harness-sdk-jsonrpc-demo] tsconfig: tsconfig.json
+ℹ [@hydra/harness-experimental-agent-team] entry: lib/types/invariant.js
+ℹ [@hydra/harness-experimental-agent-team] target: es2024
+ℹ [@hydra/harness-experimental-agent-team] tsconfig: tsconfig.json
+ℹ [@hydra/harness-experimental-agent-team] entry: lib/types/index.js
+ℹ [@hydra/harness-experimental-agent-team] target: es2024
+ℹ [@hydra/harness-experimental-agent-team] tsconfig: tsconfig.json
+ℹ [@hydra/harness-code-runtime-python] entry: lib/types/index.js, lib/types/invariant.js
+ℹ [@hydra/harness-code-runtime-python] target: es2024
+ℹ [@hydra/harness-code-runtime-python] tsconfig: tsconfig.json
+ℹ [@hydra/harness-code-runtime-worker-thread] entry: lib/types/index.js, lib/types/invariant.js
+ℹ [@hydra/harness-code-runtime-worker-thread] target: es2024
+ℹ [@hydra/harness-code-runtime-worker-thread] tsconfig: tsconfig.json
+ℹ [@hydra/harness-code-runtime-worker-thread] entry: lib/types/worker.js
+ℹ [@hydra/harness-code-runtime-worker-thread] target: es2024
+ℹ [@hydra/harness-code-runtime-worker-thread] tsconfig: tsconfig.json
+ℹ [@hydra/harness-fs-review] entry: lib/types/index.js, lib/types/invariant.js, lib/types/client.js
+ℹ [@hydra/harness-fs-review] target: es2024
+ℹ [@hydra/harness-fs-review] tsconfig: tsconfig.json
+ℹ [@hydra/harness-goal] entry: lib/types/index.js
+ℹ [@hydra/harness-goal] target: es2024
+ℹ [@hydra/harness-goal] tsconfig: tsconfig.json
+ℹ [@hydra/harness-goal-round-driver] entry: lib/types/index.js
+ℹ [@hydra/harness-goal-round-driver] target: es2024
+ℹ [@hydra/harness-goal-round-driver] tsconfig: tsconfig.json
+ℹ [@hydra/harness-goal] entry: lib/types/invariant.js
+ℹ [@hydra/harness-goal] target: es2024
+ℹ [@hydra/harness-goal] tsconfig: tsconfig.json
+ℹ [@hydra/harness-goal-round-driver] entry: lib/types/invariant.js
+ℹ [@hydra/harness-goal-round-driver] target: es2024
+ℹ [@hydra/harness-goal-round-driver] tsconfig: tsconfig.json
+ℹ [@hydra/harness-host-directory-picker-browse] entry: lib/types/index.js, lib/types/invariant.js
+ℹ [@hydra/harness-host-directory-picker-browse] target: es2024
+ℹ [@hydra/harness-host-directory-picker-browse] tsconfig: tsconfig.json
+ℹ [@hydra/harness-host-directory-picker-native] entry: lib/types/index.js, lib/types/invariant.js
+ℹ [@hydra/harness-host-directory-picker-native] target: es2024
+ℹ [@hydra/harness-host-directory-picker-native] tsconfig: tsconfig.json
+ℹ [@hydra/harness-host-directory-picker-native] entry: lib/types/win32-dialog-worker.js
+ℹ [@hydra/harness-host-directory-picker-native] target: es2024
+ℹ [@hydra/harness-host-directory-picker-native] tsconfig: tsconfig.json
+ℹ [@hydra/harness-user-approval] entry: lib/types/index.js
+ℹ [@hydra/harness-user-approval] target: es2024
+ℹ [@hydra/harness-user-approval] tsconfig: tsconfig.json
+ℹ [@hydra/harness-user-approval] entry: lib/types/invariant.js
+ℹ [@hydra/harness-user-approval] target: es2024
+ℹ [@hydra/harness-user-approval] tsconfig: tsconfig.json
+ℹ [@hydra/harness-llm-retry] entry: lib/types/index.js
+ℹ [@hydra/harness-llm-retry] target: es2024
+ℹ [@hydra/harness-llm-retry] tsconfig: tsconfig.json
+ℹ [@hydra/harness-llm-retry] entry: lib/types/invariant.js
+ℹ [@hydra/harness-llm-retry] target: es2024
+ℹ [@hydra/harness-llm-retry] tsconfig: tsconfig.json
+ℹ [@hydra/harness-sandbox-policy] entry: lib/types/index.js
+ℹ [@hydra/harness-sandbox-policy] target: es2024
+ℹ [@hydra/harness-sandbox-policy] tsconfig: tsconfig.json
+ℹ [@hydra/harness-sandbox-windows-acl] entry: lib/types/index.js, lib/types/invariant.js, lib/types/runner.js
+ℹ [@hydra/harness-sandbox-windows-acl] target: es2024
+ℹ [@hydra/harness-sandbox-windows-acl] tsconfig: tsconfig.json
+ℹ [@hydra/harness-sandbox-policy] entry: lib/types/invariant.js
+ℹ [@hydra/harness-sandbox-policy] target: es2024
+ℹ [@hydra/harness-sandbox-policy] tsconfig: tsconfig.json
+ℹ [@hydra/harness-schedule] entry: lib/types/index.js
+ℹ [@hydra/harness-schedule] target: es2024
+ℹ [@hydra/harness-schedule] tsconfig: tsconfig.json
+ℹ [@hydra/harness-schedule] entry: lib/types/invariant.js
+ℹ [@hydra/harness-schedule] target: es2024
+ℹ [@hydra/harness-schedule] tsconfig: tsconfig.json
+ℹ [@hydra/harness-settings] entry: lib/types/index.js
+ℹ [@hydra/harness-settings] target: es2024
+ℹ [@hydra/harness-settings] tsconfig: tsconfig.json
+ℹ [@hydra/harness-settings] entry: lib/types/invariant.js
+ℹ [@hydra/harness-settings] target: es2024
+ℹ [@hydra/harness-settings] tsconfig: tsconfig.json
+ℹ [@hydra/harness-llm-mock-server] entry: lib/types/index.js
+ℹ [@hydra/harness-llm-mock-server] target: es2024
+ℹ [@hydra/harness-llm-mock-server] tsconfig: tsconfig.json
+ℹ [@hydra/harness-llm-mock-server] entry: lib/types/invariant.js
+ℹ [@hydra/harness-llm-mock-server] target: es2024
+ℹ [@hydra/harness-llm-mock-server] tsconfig: tsconfig.json
+ℹ [@hydra/harness-workflow-worker-thread] entry: lib/types/index.js, lib/types/invariant.js
+ℹ [@hydra/harness-workflow-worker-thread] target: es2024
+ℹ [@hydra/harness-workflow-worker-thread] tsconfig: tsconfig.json
+ℹ [@hydra/harness-workflow-worker-thread] entry: lib/types/worker.js
+ℹ [@hydra/harness-workflow-worker-thread] target: es2024
+ℹ [@hydra/harness-workflow-worker-thread] tsconfig: tsconfig.json
+ℹ [@hydra/cordis] entry: lib\types\index.js
+ℹ [@hydra/cordis] target: es2024
+ℹ [@hydra/cordis] tsconfig: tsconfig.json
+ℹ [@hydra/cosmokit] entry: lib\types\index.js
+ℹ [@hydra/cosmokit] target: es2024
+ℹ [@hydra/cosmokit] tsconfig: tsconfig.json
+ℹ [@hydra/cordis-plugin-group] entry: lib\types\index.js
+ℹ [@hydra/cordis-plugin-group] target: es2024
+ℹ [@hydra/cordis-plugin-group] tsconfig: tsconfig.json
+ℹ [@hydra/cordis-plugin-hmr] entry: lib\types\index.js
+ℹ [@hydra/cordis-plugin-hmr] target: es2024
+ℹ [@hydra/cordis-plugin-hmr] tsconfig: tsconfig.json
+ℹ [@hydra/cordis-plugin-include] entry: lib\types\index.js
+ℹ [@hydra/cordis-plugin-include] target: es2024
+ℹ [@hydra/cordis-plugin-include] tsconfig: tsconfig.json
+ℹ [@hydra/cordis-plugin-timer] entry: lib\types\index.js
+ℹ [@hydra/cordis-plugin-timer] target: es2024
+ℹ [@hydra/cordis-plugin-timer] tsconfig: tsconfig.json
+ℹ [@hydra/harness-acp] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-acp] target: es2024
+ℹ [@hydra/harness-acp] tsconfig: tsconfig.json
+ℹ [@hydra/harness-cmdline] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-cmdline] target: es2024
+ℹ [@hydra/harness-cmdline] tsconfig: tsconfig.json
+ℹ [@hydra/harness-attachment] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-attachment] target: es2024
+ℹ [@hydra/harness-attachment] tsconfig: tsconfig.json
+ℹ [@hydra/harness-attachment-local] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-attachment-local] target: es2024
+ℹ [@hydra/harness-attachment-local] tsconfig: tsconfig.json
+ℹ [@hydra/harness-browser-electron] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-browser-electron] target: es2024
+ℹ [@hydra/harness-browser-electron] tsconfig: tsconfig.json
+ℹ [@hydra/harness-tool-browser] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-tool-browser] target: es2024
+ℹ [@hydra/harness-tool-browser] tsconfig: tsconfig.json
+ℹ [@hydra/harness-base] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-base] target: es2024
+ℹ [@hydra/harness-base] tsconfig: tsconfig.json
+ℹ [@hydra/harness-headless] entry: lib\types\index.js, lib\types\invariant.js, lib\types\startup.js
+ℹ [@hydra/harness-headless] target: es2024
+ℹ [@hydra/harness-headless] tsconfig: tsconfig.json
+ℹ [@hydra/harness-command-compact] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-command-compact] target: es2024
+ℹ [@hydra/harness-command-compact] tsconfig: tsconfig.json
+ℹ [@hydra/harness-web-app] entry: lib\types\index.js, lib\types\invariant.js, lib\types\startup.js
+ℹ [@hydra/harness-web-app] target: es2024
+ℹ [@hydra/harness-web-app] tsconfig: tsconfig.json
+ℹ [@hydra/harness-compaction-basic] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-compaction-basic] target: es2024
+ℹ [@hydra/harness-compaction-basic] tsconfig: tsconfig.json
+ℹ [@hydra/harness-compaction-tool-result-pruner] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-compaction-tool-result-pruner] target: es2024
+ℹ [@hydra/harness-compaction-tool-result-pruner] tsconfig: tsconfig.json
+ℹ [@hydra/harness-agent-instructions] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-agent-instructions] target: es2024
+ℹ [@hydra/harness-agent-instructions] tsconfig: tsconfig.json
+ℹ [@hydra/harness-file-reference] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-file-reference] target: es2024
+ℹ [@hydra/harness-file-reference] tsconfig: tsconfig.json
+ℹ [@hydra/harness-personalization] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-personalization] target: es2024
+ℹ [@hydra/harness-personalization] tsconfig: tsconfig.json
+ℹ [@hydra/harness-file-reference-local] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-file-reference-local] target: es2024
+ℹ [@hydra/harness-file-reference-local] tsconfig: tsconfig.json
+ℹ [@hydra/harness-session-reference] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-session-reference] target: es2024
+ℹ [@hydra/harness-session-reference] tsconfig: tsconfig.json
+ℹ [@hydra/harness-tmux-context] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-tmux-context] target: es2024
+ℹ [@hydra/harness-tmux-context] tsconfig: tsconfig.json
+ℹ [@hydra/harness-authorization] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-authorization] target: es2024
+ℹ [@hydra/harness-authorization] tsconfig: tsconfig.json
+ℹ [@hydra/harness-credentials] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-credentials] target: es2024
+ℹ [@hydra/harness-credentials] tsconfig: tsconfig.json
+ℹ [@hydra/harness-credentials-local] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-credentials-local] target: es2024
+ℹ [@hydra/harness-credentials-local] tsconfig: tsconfig.json
+ℹ [@hydra/harness-agent-tool-presentation] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-agent-tool-presentation] target: es2024
+ℹ [@hydra/harness-agent-tool-presentation] tsconfig: tsconfig.json
+ℹ [@hydra/harness-system-prompt] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-system-prompt] target: es2024
+ℹ [@hydra/harness-system-prompt] tsconfig: tsconfig.json
+ℹ [@hydra/harness-tools] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-tools] target: es2024
+ℹ [@hydra/harness-tools] tsconfig: tsconfig.json
+ℹ [@hydra/harness-e2b] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-e2b] target: es2024
+ℹ [@hydra/harness-e2b] tsconfig: tsconfig.json
+ℹ [@hydra/harness-fs-e2b] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-fs-e2b] target: es2024
+ℹ [@hydra/harness-fs-e2b] tsconfig: tsconfig.json
+ℹ [@hydra/harness-subprocess-e2b] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-subprocess-e2b] target: es2024
+ℹ [@hydra/harness-subprocess-e2b] tsconfig: tsconfig.json
+ℹ [@hydra/harness-agent-spine-demo] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-agent-spine-demo] target: es2024
+ℹ [@hydra/harness-agent-spine-demo] tsconfig: tsconfig.json
+ℹ [@hydra/harness-experimental-tool-agent-team] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-experimental-tool-agent-team] target: es2024
+ℹ [@hydra/harness-experimental-tool-agent-team] tsconfig: tsconfig.json
+ℹ [@hydra/harness-cordis-host-runner] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-cordis-host-runner] target: es2024
+ℹ [@hydra/harness-cordis-host-runner] tsconfig: tsconfig.json
+ℹ [@hydra/harness-tool-cordis] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-tool-cordis] target: es2024
+ℹ [@hydra/harness-tool-cordis] tsconfig: tsconfig.json
+ℹ [@hydra/harness-command-feedback] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-command-feedback] target: es2024
+ℹ [@hydra/harness-command-feedback] tsconfig: tsconfig.json
+ℹ [@hydra/harness-message-feedback] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-message-feedback] target: es2024
+ℹ [@hydra/harness-message-feedback] tsconfig: tsconfig.json
+ℹ [@hydra/harness-code-runtime] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-code-runtime] target: es2024
+ℹ [@hydra/harness-code-runtime] tsconfig: tsconfig.json
+ℹ [@hydra/harness-fs] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-fs] target: es2024
+ℹ [@hydra/harness-fs] tsconfig: tsconfig.json
+ℹ [@hydra/harness-fs-local] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-fs-local] target: es2024
+ℹ [@hydra/harness-fs-local] tsconfig: tsconfig.json
+ℹ [@hydra/harness-fs-observation-policy] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-fs-observation-policy] target: es2024
+ℹ [@hydra/harness-fs-observation-policy] tsconfig: tsconfig.json
+ℹ [@hydra/harness-fs-sandbox] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-fs-sandbox] target: es2024
+ℹ [@hydra/harness-fs-sandbox] tsconfig: tsconfig.json
+ℹ [@hydra/harness-tool-fs] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-tool-fs] target: es2024
+ℹ [@hydra/harness-tool-fs] tsconfig: tsconfig.json
+ℹ [@hydra/harness-tool-fs-search] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-tool-fs-search] target: es2024
+ℹ [@hydra/harness-tool-fs-search] tsconfig: tsconfig.json
+ℹ [@hydra/harness-tool-str-replace-editor] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-tool-str-replace-editor] target: es2024
+ℹ [@hydra/harness-tool-str-replace-editor] tsconfig: tsconfig.json
+ℹ [@hydra/harness-command-goal] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-command-goal] target: es2024
+ℹ [@hydra/harness-command-goal] tsconfig: tsconfig.json
+ℹ [@hydra/harness-tool-goal] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-tool-goal] target: es2024
+ℹ [@hydra/harness-tool-goal] tsconfig: tsconfig.json
+ℹ [@hydra/harness-repeat-tool-reminder] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-repeat-tool-reminder] target: es2024
+ℹ [@hydra/harness-repeat-tool-reminder] tsconfig: tsconfig.json
+ℹ [@hydra/harness-research-policy] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-research-policy] target: es2024
+ℹ [@hydra/harness-research-policy] tsconfig: tsconfig.json
+ℹ [@hydra/harness-tool-call-timeout-policy] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-tool-call-timeout-policy] target: es2024
+ℹ [@hydra/harness-tool-call-timeout-policy] tsconfig: tsconfig.json
+ℹ [@hydra/harness-hooks-claude-code] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-hooks-claude-code] target: es2024
+ℹ [@hydra/harness-hooks-claude-code] tsconfig: tsconfig.json
+ℹ [@hydra/harness-hook-protocol] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-hook-protocol] target: es2024
+ℹ [@hydra/harness-hook-protocol] tsconfig: tsconfig.json
+ℹ [@hydra/harness-hooks-codex] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-hooks-codex] target: es2024
+ℹ [@hydra/harness-hooks-codex] tsconfig: tsconfig.json
+ℹ [@hydra/harness-hooks-registry] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-hooks-registry] target: es2024
+ℹ [@hydra/harness-hooks-registry] tsconfig: tsconfig.json
+ℹ [@hydra/harness-host-apiproxy] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-host-apiproxy] target: es2024
+ℹ [@hydra/harness-host-apiproxy] tsconfig: tsconfig.json
+ℹ [@hydra/harness-host-directory-picker] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-host-directory-picker] target: es2024
+ℹ [@hydra/harness-host-directory-picker] tsconfig: tsconfig.json
+ℹ [@hydra/harness-host-directory-picker-auto] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-host-directory-picker-auto] target: es2024
+ℹ [@hydra/harness-host-directory-picker-auto] tsconfig: tsconfig.json
+ℹ [@hydra/harness-host-frontend-static] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-host-frontend-static] target: es2024
+ℹ [@hydra/harness-host-frontend-static] tsconfig: tsconfig.json
+ℹ [@hydra/harness-plugin-runtime] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-plugin-runtime] target: es2024
+ℹ [@hydra/harness-plugin-runtime] tsconfig: tsconfig.json
+ℹ [@hydra/harness-host-plugin-inventory] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-host-plugin-inventory] target: es2024
+ℹ [@hydra/harness-host-plugin-inventory] tsconfig: tsconfig.json
+ℹ [@hydra/harness-commands] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-commands] target: es2024
+ℹ [@hydra/harness-commands] tsconfig: tsconfig.json
+ℹ [@hydra/harness-anonymous-user-id] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-anonymous-user-id] target: es2024
+ℹ [@hydra/harness-anonymous-user-id] tsconfig: tsconfig.json
+ℹ [@hydra/harness-tool-ask-user] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-tool-ask-user] target: es2024
+ℹ [@hydra/harness-tool-ask-user] tsconfig: tsconfig.json
+ℹ [@hydra/harness-permission-presets] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-permission-presets] target: es2024
+ℹ [@hydra/harness-permission-presets] tsconfig: tsconfig.json
+ℹ [@hydra/harness-host-webserver] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-host-webserver] target: es2024
+ℹ [@hydra/harness-host-webserver] tsconfig: tsconfig.json
+ℹ [@hydra/harness-user-questions] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-user-questions] target: es2024
+ℹ [@hydra/harness-user-questions] tsconfig: tsconfig.json
+ℹ [@hydra/harness-obsidian-knowledge] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-obsidian-knowledge] target: es2024
+ℹ [@hydra/harness-obsidian-knowledge] tsconfig: tsconfig.json
+ℹ [@hydra/harness-page-memory] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-page-memory] target: es2024
+ℹ [@hydra/harness-page-memory] tsconfig: tsconfig.json
+ℹ [@hydra/harness-jobs] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-jobs] target: es2024
+ℹ [@hydra/harness-jobs] tsconfig: tsconfig.json
+ℹ [@hydra/harness-jobs-local] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-jobs-local] target: es2024
+ℹ [@hydra/harness-jobs-local] tsconfig: tsconfig.json
+ℹ [@hydra/harness-llm] entry: lib\types\index.js, lib\types\invariant.js, lib\types\proxy.js
+ℹ [@hydra/harness-llm] target: es2024
+ℹ [@hydra/harness-llm] tsconfig: tsconfig.json
+ℹ [@hydra/harness-tool-jobs] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-tool-jobs] target: es2024
+ℹ [@hydra/harness-tool-jobs] tsconfig: tsconfig.json
+ℹ [@hydra/harness-llm-deepseek] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-llm-deepseek] target: es2024
+ℹ [@hydra/harness-llm-deepseek] tsconfig: tsconfig.json
+ℹ [@hydra/harness-llm-pi-ai] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-llm-pi-ai] target: es2024
+ℹ [@hydra/harness-llm-pi-ai] tsconfig: tsconfig.json
+ℹ [@hydra/harness-token-meter] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-token-meter] target: es2024
+ℹ [@hydra/harness-token-meter] tsconfig: tsconfig.json
+ℹ [@hydra/harness-lsp] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-lsp] target: es2024
+ℹ [@hydra/harness-lsp] tsconfig: tsconfig.json
+ℹ [@hydra/harness-lsp-stdio] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-lsp-stdio] target: es2024
+ℹ [@hydra/harness-lsp-stdio] tsconfig: tsconfig.json
+ℹ [@hydra/harness-tool-lsp] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-tool-lsp] target: es2024
+ℹ [@hydra/harness-tool-lsp] tsconfig: tsconfig.json
+ℹ [@hydra/harness-mcp-registry] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-mcp-registry] target: es2024
+ℹ [@hydra/harness-mcp-registry] tsconfig: tsconfig.json
+ℹ [@hydra/harness-mcp-client] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-mcp-client] target: es2024
+ℹ [@hydra/harness-mcp-client] tsconfig: tsconfig.json
+ℹ [@hydra/harness-plan-mode] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-plan-mode] target: es2024
+ℹ [@hydra/harness-plan-mode] tsconfig: tsconfig.json
+ℹ [@hydra/harness-invariants] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-invariants] target: es2024
+ℹ [@hydra/harness-invariants] tsconfig: tsconfig.json
+ℹ [@hydra/harness-sandbox-local] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-sandbox-local] target: es2024
+ℹ [@hydra/harness-sandbox-local] tsconfig: tsconfig.json
+ℹ [@hydra/harness-sandbox] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-sandbox] target: es2024
+ℹ [@hydra/harness-sandbox] tsconfig: tsconfig.json
+ℹ [@hydra/harness-agent-presets] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-agent-presets] target: es2024
+ℹ [@hydra/harness-agent-presets] tsconfig: tsconfig.json
+ℹ [@hydra/harness-persona] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-persona] target: es2024
+ℹ [@hydra/harness-persona] tsconfig: tsconfig.json
+ℹ [@hydra/harness-sdk-protocol] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-sdk-protocol] target: es2024
+ℹ [@hydra/harness-sdk-protocol] tsconfig: tsconfig.json
+ℹ [@hydra/harness-sdk-jsonrpc-server] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-sdk-jsonrpc-server] target: es2024
+ℹ [@hydra/harness-sdk-jsonrpc-server] tsconfig: tsconfig.json
+ℹ [@hydra/harness-sdk-client] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-sdk-client] target: es2024
+ℹ [@hydra/harness-sdk-client] tsconfig: tsconfig.json
+ℹ [@hydra/harness-session-checkpoint-policy] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-session-checkpoint-policy] target: es2024
+ℹ [@hydra/harness-session-checkpoint-policy] tsconfig: tsconfig.json
+ℹ [@hydra/harness-session-persistence-jsonl] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-session-persistence-jsonl] target: es2024
+ℹ [@hydra/harness-session-persistence-jsonl] tsconfig: tsconfig.json
+ℹ [@hydra/harness-session-persistence] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-session-persistence] target: es2024
+ℹ [@hydra/harness-session-persistence] tsconfig: tsconfig.json
+ℹ [@hydra/harness-session-persistence-sqlite] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-session-persistence-sqlite] target: es2024
+ℹ [@hydra/harness-session-persistence-sqlite] tsconfig: tsconfig.json
+ℹ [@hydra/harness-session-projection-cache] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-session-projection-cache] target: es2024
+ℹ [@hydra/harness-session-projection-cache] tsconfig: tsconfig.json
+ℹ [@hydra/harness-session-stats] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-session-stats] target: es2024
+ℹ [@hydra/harness-session-stats] tsconfig: tsconfig.json
+ℹ [@hydra/harness-session-telemetry] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-session-telemetry] target: es2024
+ℹ [@hydra/harness-session-telemetry] tsconfig: tsconfig.json
+ℹ [@hydra/harness-session-telemetry-otel] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-session-telemetry-otel] target: es2024
+ℹ [@hydra/harness-session-telemetry-otel] tsconfig: tsconfig.json
+ℹ [@hydra/harness-session-projection] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-session-projection] target: es2024
+ℹ [@hydra/harness-session-projection] tsconfig: tsconfig.json
+ℹ [@hydra/harness-session-title-all-prompts-llm] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-session-title-all-prompts-llm] target: es2024
+ℹ [@hydra/harness-session-title-all-prompts-llm] tsconfig: tsconfig.json
+ℹ [@hydra/harness-session-title] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-session-title] target: es2024
+ℹ [@hydra/harness-session-title] tsconfig: tsconfig.json
+ℹ [@hydra/harness-session-title-first-prompt-llm] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-session-title-first-prompt-llm] target: es2024
+ℹ [@hydra/harness-session-title-first-prompt-llm] tsconfig: tsconfig.json
+ℹ [@hydra/harness-session-title-llm] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-session-title-llm] target: es2024
+ℹ [@hydra/harness-session-title-llm] tsconfig: tsconfig.json
+ℹ [@hydra/harness-bash-local] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-bash-local] target: es2024
+ℹ [@hydra/harness-bash-local] tsconfig: tsconfig.json
+ℹ [@hydra/harness-bash-sandbox] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-bash-sandbox] target: es2024
+ℹ [@hydra/harness-bash-sandbox] tsconfig: tsconfig.json
+ℹ [@hydra/harness-pwsh-local] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-pwsh-local] target: es2024
+ℹ [@hydra/harness-pwsh-local] tsconfig: tsconfig.json
+ℹ [@hydra/harness-pwsh-sandbox] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-pwsh-sandbox] target: es2024
+ℹ [@hydra/harness-pwsh-sandbox] tsconfig: tsconfig.json
+ℹ [@hydra/harness-shell] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-shell] target: es2024
+ℹ [@hydra/harness-shell] tsconfig: tsconfig.json
+ℹ [@hydra/harness-shell-env] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-shell-env] target: es2024
+ℹ [@hydra/harness-shell-env] tsconfig: tsconfig.json
+ℹ [@hydra/harness-tool-bash] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-tool-bash] target: es2024
+ℹ [@hydra/harness-tool-bash] tsconfig: tsconfig.json
+ℹ [@hydra/harness-tool-bash-persistent] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-tool-bash-persistent] target: es2024
+ℹ [@hydra/harness-tool-bash-persistent] tsconfig: tsconfig.json
+ℹ [@hydra/harness-tool-pwsh-persistent] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-tool-pwsh-persistent] target: es2024
+ℹ [@hydra/harness-tool-pwsh-persistent] tsconfig: tsconfig.json
+ℹ [@hydra/harness-tool-pwsh] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-tool-pwsh] target: es2024
+ℹ [@hydra/harness-tool-pwsh] tsconfig: tsconfig.json
+ℹ [@hydra/harness-skill] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-skill] target: es2024
+ℹ [@hydra/harness-skill] tsconfig: tsconfig.json
+ℹ [@hydra/harness-settings-file] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-settings-file] target: es2024
+ℹ [@hydra/harness-settings-file] tsconfig: tsconfig.json
+ℹ [@hydra/harness-skill-badge] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-skill-badge] target: es2024
+ℹ [@hydra/harness-skill-badge] tsconfig: tsconfig.json
+ℹ [@hydra/harness-skill-filesystem] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-skill-filesystem] target: es2024
+ℹ [@hydra/harness-skill-filesystem] tsconfig: tsconfig.json
+ℹ [@hydra/harness-tool-skill] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-tool-skill] target: es2024
+ℹ [@hydra/harness-tool-skill] tsconfig: tsconfig.json
+ℹ [@hydra/harness-spill] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-spill] target: es2024
+ℹ [@hydra/harness-spill] tsconfig: tsconfig.json
+ℹ [@hydra/harness-spill-local] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-spill-local] target: es2024
+ℹ [@hydra/harness-spill-local] tsconfig: tsconfig.json
+ℹ [@hydra/harness-spill-policy] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-spill-policy] target: es2024
+ℹ [@hydra/harness-spill-policy] tsconfig: tsconfig.json
+ℹ [@hydra/harness-storage] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-storage] target: es2024
+ℹ [@hydra/harness-storage] tsconfig: tsconfig.json
+ℹ [@hydra/harness-storage-domain] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-storage-domain] target: es2024
+ℹ [@hydra/harness-storage-domain] tsconfig: tsconfig.json
+ℹ [@hydra/harness-storage-json] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-storage-json] target: es2024
+ℹ [@hydra/harness-storage-json] tsconfig: tsconfig.json
+ℹ [@hydra/harness-storage-sqlite] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-storage-sqlite] target: es2024
+ℹ [@hydra/harness-storage-sqlite] tsconfig: tsconfig.json
+ℹ [@hydra/harness-subagent-acp] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-subagent-acp] target: es2024
+ℹ [@hydra/harness-subagent-acp] tsconfig: tsconfig.json
+ℹ [@hydra/harness-subagent-claude-code] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-subagent-claude-code] target: es2024
+ℹ [@hydra/harness-subagent-claude-code] tsconfig: tsconfig.json
+ℹ [@hydra/harness-subagent-codex] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-subagent-codex] target: es2024
+ℹ [@hydra/harness-subagent-codex] tsconfig: tsconfig.json
+ℹ [@hydra/harness-subagent] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-subagent] target: es2024
+ℹ [@hydra/harness-subagent] tsconfig: tsconfig.json
+ℹ [@hydra/harness-subagent-fork-in-process] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-subagent-fork-in-process] target: es2024
+ℹ [@hydra/harness-subagent-fork-in-process] tsconfig: tsconfig.json
+ℹ [@hydra/harness-subagent-sdk] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-subagent-sdk] target: es2024
+ℹ [@hydra/harness-subagent-sdk] tsconfig: tsconfig.json
+ℹ [@hydra/harness-subagent-in-process-driver] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-subagent-in-process-driver] target: es2024
+ℹ [@hydra/harness-subagent-in-process-driver] tsconfig: tsconfig.json
+ℹ [@hydra/harness-subagent-spawn-in-process] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-subagent-spawn-in-process] target: es2024
+ℹ [@hydra/harness-subagent-spawn-in-process] tsconfig: tsconfig.json
+ℹ [@hydra/harness-tool-subagent] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-tool-subagent] target: es2024
+ℹ [@hydra/harness-tool-subagent] tsconfig: tsconfig.json
+ℹ [@hydra/harness-tool-subagent-control] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-tool-subagent-control] target: es2024
+ℹ [@hydra/harness-tool-subagent-control] tsconfig: tsconfig.json
+ℹ [@hydra/harness-subprocess] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-subprocess] target: es2024
+ℹ [@hydra/harness-subprocess] tsconfig: tsconfig.json
+ℹ [@hydra/harness-tool-subagent-report] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-tool-subagent-report] target: es2024
+ℹ [@hydra/harness-tool-subagent-report] tsconfig: tsconfig.json
+ℹ [@hydra/harness-subprocess-local] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-subprocess-local] target: es2024
+ℹ [@hydra/harness-subprocess-local] tsconfig: tsconfig.json
+ℹ [@hydra/harness-session-query] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-session-query] target: es2024
+ℹ [@hydra/harness-session-query] tsconfig: tsconfig.json
+ℹ [@hydra/harness-session-query-sqlite] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-session-query-sqlite] target: es2024
+ℹ [@hydra/harness-session-query-sqlite] tsconfig: tsconfig.json
+ℹ [@hydra/harness-acp-snapshot] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-acp-snapshot] target: es2024
+ℹ [@hydra/harness-acp-snapshot] tsconfig: tsconfig.json
+ℹ [@hydra/harness-agent-loop-testkit] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-agent-loop-testkit] target: es2024
+ℹ [@hydra/harness-agent-loop-testkit] tsconfig: tsconfig.json
+ℹ [@hydra/harness-tool-session-query] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-tool-session-query] target: es2024
+ℹ [@hydra/harness-tool-session-query] tsconfig: tsconfig.json
+ℹ [@hydra/harness-llm-replay] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-llm-replay] target: es2024
+ℹ [@hydra/harness-llm-replay] tsconfig: tsconfig.json
+ℹ [@hydra/harness-loader-smoke] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-loader-smoke] target: es2024
+ℹ [@hydra/harness-loader-smoke] tsconfig: tsconfig.json
+ℹ [@hydra/harness-terminal] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-terminal] target: es2024
+ℹ [@hydra/harness-terminal] tsconfig: tsconfig.json
+ℹ [@hydra/harness-terminal-bash] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-terminal-bash] target: es2024
+ℹ [@hydra/harness-terminal-bash] tsconfig: tsconfig.json
+ℹ [@hydra/harness-tool-terminal] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-tool-terminal] target: es2024
+ℹ [@hydra/harness-tool-terminal] tsconfig: tsconfig.json
+ℹ [@hydra/harness-tool-todo] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-tool-todo] target: es2024
+ℹ [@hydra/harness-tool-todo] tsconfig: tsconfig.json
+ℹ [@hydra/harness-atomic-write] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-atomic-write] target: es2024
+ℹ [@hydra/harness-atomic-write] tsconfig: tsconfig.json
+ℹ [@hydra/harness-brand] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-brand] target: es2024
+ℹ [@hydra/harness-brand] tsconfig: tsconfig.json
+ℹ [@hydra/harness-home-paths] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-home-paths] target: es2024
+ℹ [@hydra/harness-home-paths] tsconfig: tsconfig.json
+ℹ [@hydra/harness-launch-environment] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-launch-environment] target: es2024
+ℹ [@hydra/harness-launch-environment] tsconfig: tsconfig.json
+ℹ [@hydra/harness-native-command] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-native-command] target: es2024
+ℹ [@hydra/harness-native-command] tsconfig: tsconfig.json
+ℹ [@hydra/harness-output-retention] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-output-retention] target: es2024
+ℹ [@hydra/harness-output-retention] tsconfig: tsconfig.json
+ℹ [@hydra/harness-timeout] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-timeout] target: es2024
+ℹ [@hydra/harness-timeout] tsconfig: tsconfig.json
+ℹ [@hydra/harness-typert-generator] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-typert-generator] target: es2024
+ℹ [@hydra/harness-typert-generator] tsconfig: tsconfig.json
+ℹ [@hydra/harness-typert-loader] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-typert-loader] target: es2024
+ℹ [@hydra/harness-typert-loader] tsconfig: tsconfig.json
+ℹ [@hydra/harness-typert-protocol] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-typert-protocol] target: es2024
+ℹ [@hydra/harness-typert-protocol] tsconfig: tsconfig.json
+ℹ [@hydra/harness-tool-web] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-tool-web] target: es2024
+ℹ [@hydra/harness-tool-web] tsconfig: tsconfig.json
+ℹ [@hydra/harness-web] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-web] target: es2024
+ℹ [@hydra/harness-web] tsconfig: tsconfig.json
+ℹ [@hydra/harness-web-fetch-http] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-web-fetch-http] target: es2024
+ℹ [@hydra/harness-web-fetch-http] tsconfig: tsconfig.json
+ℹ [@hydra/harness-web-search-deepseek] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-web-search-deepseek] target: es2024
+ℹ [@hydra/harness-web-search-deepseek] tsconfig: tsconfig.json
+ℹ [@hydra/harness-web-search-exa] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-web-search-exa] target: es2024
+ℹ [@hydra/harness-web-search-exa] tsconfig: tsconfig.json
+ℹ [@hydra/harness-web-search-http] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-web-search-http] target: es2024
+ℹ [@hydra/harness-web-search-http] tsconfig: tsconfig.json
+ℹ [@hydra/harness-workspace] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-workspace] target: es2024
+ℹ [@hydra/harness-workspace] tsconfig: tsconfig.json
+ℹ [@hydra/harness-web-search-perplexity] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-web-search-perplexity] target: es2024
+ℹ [@hydra/harness-web-search-perplexity] tsconfig: tsconfig.json
+ℹ [@hydra/harness-tool-ralph] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-tool-ralph] target: es2024
+ℹ [@hydra/harness-tool-ralph] tsconfig: tsconfig.json
+ℹ [@hydra/harness-tool-workflow] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-tool-workflow] target: es2024
+ℹ [@hydra/harness-tool-workflow] tsconfig: tsconfig.json
+ℹ [@hydra/harness-workflow] entry: lib\types\index.js, lib\types\invariant.js
+ℹ [@hydra/harness-workflow] target: es2024
+ℹ [@hydra/harness-workflow] tsconfig: tsconfig.json
+ℹ Build start
+ℹ [@hydra/harness-sandbox-policy] lib\invariant.js  2.68 kB │ gzip: 1.35 kB
+ℹ [@hydra/harness-sandbox-policy] 1 files, total: 2.68 kB
+ℹ [@hydra/cordis-plugin-group] lib\index.js  0.16 kB │ gzip: 0.14 kB
+ℹ [@hydra/cordis-plugin-group] 1 files, total: 0.16 kB
+ℹ [@hydra/schemastery] [CJS] lib\index.cjs  21.64 kB │ gzip: 5.32 kB
+ℹ [@hydra/schemastery] [CJS] 1 files, total: 21.64 kB
+ℹ [@hydra/cordis-plugin-include] lib\index.js  9.94 kB │ gzip: 3.75 kB
+ℹ [@hydra/cordis-plugin-include] 1 files, total: 9.94 kB
+ℹ [@hydra/harness-sdk-jsonrpc-demo] lib\invariant.js  0.91 kB │ gzip: 0.49 kB
+ℹ [@hydra/harness-sdk-jsonrpc-demo] 1 files, total: 0.91 kB
+ℹ [@hydra/schemastery] [ESM] lib\index.mjs  21.06 kB │ gzip: 5.30 kB
+ℹ [@hydra/schemastery] [ESM] 1 files, total: 21.06 kB
+ℹ [@hydra/cosmokit] lib\index.js  13.34 kB │ gzip: 4.13 kB
+ℹ [@hydra/cosmokit] 1 files, total: 13.34 kB
+ℹ [@hydra/harness-sdk-jsonrpc-demo] lib\index.js  0.01 kB │ gzip: 0.03 kB
+ℹ [@hydra/harness-sdk-jsonrpc-demo] 1 files, total: 0.01 kB
+ℹ [@hydra/cordis-plugin-timer] lib\index.js  3.96 kB │ gzip: 1.17 kB
+ℹ [@hydra/cordis-plugin-timer] 1 files, total: 3.96 kB
+ℹ [@hydra/harness-llm-mock-server] lib\invariant.js  0.95 kB │ gzip: 0.51 kB
+ℹ [@hydra/harness-llm-mock-server] 1 files, total: 0.95 kB
+ℹ [@hydra/harness-sdk-jsonrpc-demo] Granting execute permission to lib\packaged-bin.js
+ℹ [@hydra/harness-code-runtime] lib\index.js      4.78 kB │ gzip: 2.18 kB
+ℹ [@hydra/harness-code-runtime] lib\invariant.js  0.90 kB │ gzip: 0.48 kB
+ℹ [@hydra/harness-code-runtime] 2 files, total: 5.68 kB
+ℹ [@hydra/harness-command-compact] lib\index.js      3.42 kB │ gzip: 1.40 kB
+ℹ [@hydra/harness-command-compact] lib\invariant.js  0.96 kB │ gzip: 0.49 kB
+ℹ [@hydra/harness-command-compact] 2 files, total: 4.38 kB
+ℹ [@hydra/harness-experimental-tool-agent-team] lib\index.js      17.90 kB │ gzip: 5.10 kB
+ℹ [@hydra/harness-experimental-tool-agent-team] lib\invariant.js   0.61 kB │ gzip: 0.37 kB
+ℹ [@hydra/harness-experimental-tool-agent-team] 2 files, total: 18.51 kB
+ℹ [@hydra/harness-fs-observation-policy] lib\index.js      3.98 kB │ gzip: 1.66 kB
+ℹ [@hydra/harness-fs-observation-policy] lib\invariant.js  0.93 kB │ gzip: 0.49 kB
+ℹ [@hydra/harness-fs-observation-policy] 2 files, total: 4.91 kB
+ℹ [@hydra/harness-command-goal] lib\index.js      7.06 kB │ gzip: 2.41 kB
+ℹ [@hydra/harness-command-goal] lib\invariant.js  0.94 kB │ gzip: 0.50 kB
+ℹ [@hydra/harness-command-goal] 2 files, total: 8.01 kB
+ℹ [@hydra/harness-host-directory-picker] lib\index.js      1.84 kB │ gzip: 0.94 kB
+ℹ [@hydra/harness-host-directory-picker] lib\invariant.js  0.92 kB │ gzip: 0.48 kB
+ℹ [@hydra/harness-host-directory-picker] 2 files, total: 2.75 kB
+ℹ [@hydra/harness-jobs-local] lib\index.js      18.20 kB │ gzip: 5.89 kB
+ℹ [@hydra/harness-jobs-local] lib\invariant.js   1.21 kB │ gzip: 0.64 kB
+ℹ [@hydra/harness-jobs-local] 2 files, total: 19.41 kB
+ℹ [@hydra/harness-authorization] lib\index.js      10.01 kB │ gzip: 3.70 kB
+ℹ [@hydra/harness-authorization] lib\invariant.js   1.59 kB │ gzip: 0.81 kB
+ℹ [@hydra/harness-authorization] 2 files, total: 11.60 kB
+ℹ [@hydra/harness-invariants] lib\index.js      4.84 kB │ gzip: 1.72 kB
+ℹ [@hydra/harness-invariants] lib\invariant.js  0.93 kB │ gzip: 0.48 kB
+ℹ [@hydra/harness-invariants] 2 files, total: 5.77 kB
+ℹ [@hydra/harness-tool-ask-user] lib\index.js      6.41 kB │ gzip: 2.51 kB
+ℹ [@hydra/harness-tool-ask-user] lib\invariant.js  0.90 kB │ gzip: 0.49 kB
+ℹ [@hydra/harness-tool-ask-user] 2 files, total: 7.31 kB
+ℹ [@hydra/harness-base] lib\invariant.js  0.70 kB │ gzip: 0.39 kB
+ℹ [@hydra/harness-base] lib\index.js      0.01 kB │ gzip: 0.03 kB
+ℹ [@hydra/harness-base] 2 files, total: 0.71 kB
+ℹ [@hydra/harness-host-frontend-static] lib\index.js      3.49 kB │ gzip: 1.57 kB
+ℹ [@hydra/harness-host-frontend-static] lib\invariant.js  1.31 kB │ gzip: 0.68 kB
+ℹ [@hydra/harness-host-frontend-static] 2 files, total: 4.80 kB
+ℹ [@hydra/harness-user-questions] lib\index.js      3.83 kB │ gzip: 1.56 kB
+ℹ [@hydra/harness-user-questions] lib\invariant.js  0.94 kB │ gzip: 0.50 kB
+ℹ [@hydra/harness-user-questions] 2 files, total: 4.77 kB
+ℹ [@hydra/harness-host-directory-picker-browse] lib\index.js      9.30 kB │ gzip: 3.58 kB
+ℹ [@hydra/harness-host-directory-picker-browse] lib\invariant.js  0.94 kB │ gzip: 0.48 kB
+ℹ [@hydra/harness-host-directory-picker-browse] 2 files, total: 10.24 kB
+ℹ [@hydra/harness-system-prompt] lib\index.js      15.16 kB │ gzip: 4.77 kB
+ℹ [@hydra/harness-system-prompt] lib\invariant.js   2.49 kB │ gzip: 0.95 kB
+ℹ [@hydra/harness-system-prompt] 2 files, total: 17.65 kB
+ℹ [@hydra/harness-research-policy] lib\index.js      5.11 kB │ gzip: 1.91 kB
+ℹ [@hydra/harness-research-policy] lib\invariant.js  0.71 kB │ gzip: 0.40 kB
+ℹ [@hydra/harness-research-policy] 2 files, total: 5.82 kB
+ℹ [@hydra/harness-fs-e2b] lib\index.js      18.95 kB │ gzip: 4.80 kB
+ℹ [@hydra/harness-fs-e2b] lib\invariant.js   0.85 kB │ gzip: 0.47 kB
+ℹ [@hydra/harness-fs-e2b] 2 files, total: 19.81 kB
+ℹ [@hydra/harness-anonymous-user-id] lib\index.js      3.15 kB │ gzip: 1.46 kB
+ℹ [@hydra/harness-anonymous-user-id] lib\invariant.js  0.99 kB │ gzip: 0.52 kB
+ℹ [@hydra/harness-anonymous-user-id] 2 files, total: 4.14 kB
+ℹ [@hydra/harness-launch-environment] lib\index.js      2.48 kB │ gzip: 1.19 kB
+ℹ [@hydra/harness-launch-environment] lib\invariant.js  0.97 kB │ gzip: 0.50 kB
+ℹ [@hydra/harness-launch-environment] 2 files, total: 3.45 kB
+ℹ [@hydra/harness-tool-str-replace-editor] lib\index.js      16.92 kB │ gzip: 5.03 kB
+ℹ [@hydra/harness-tool-str-replace-editor] lib\invariant.js   0.94 kB │ gzip: 0.49 kB
+ℹ [@hydra/harness-tool-str-replace-editor] 2 files, total: 17.86 kB
+ℹ [@hydra/harness-tool-call-timeout-policy] lib\index.js      4.97 kB │ gzip: 2.02 kB
+ℹ [@hydra/harness-tool-call-timeout-policy] lib\invariant.js  0.93 kB │ gzip: 0.49 kB
+ℹ [@hydra/harness-tool-call-timeout-policy] 2 files, total: 5.90 kB
+ℹ [@hydra/harness-spill-policy] lib\index.js      7.33 kB │ gzip: 2.85 kB
+ℹ [@hydra/harness-spill-policy] lib\invariant.js  0.90 kB │ gzip: 0.48 kB
+ℹ [@hydra/harness-spill-policy] 2 files, total: 8.22 kB
+ℹ [@hydra/harness-persona] lib\index.js      1.83 kB │ gzip: 0.88 kB
+ℹ [@hydra/harness-persona] lib\invariant.js  0.94 kB │ gzip: 0.50 kB
+ℹ [@hydra/harness-persona] 2 files, total: 2.76 kB
+ℹ [@hydra/harness-shell-env] lib\index.js      6.25 kB │ gzip: 2.16 kB
+ℹ [@hydra/harness-shell-env] lib\invariant.js  0.93 kB │ gzip: 0.50 kB
+ℹ [@hydra/harness-shell-env] 2 files, total: 7.18 kB
+ℹ [@hydra/harness-acp-demo] Granting execute permission to lib\bin.js
+ℹ [@hydra/harness-sdk-jsonrpc-demo] Granting execute permission to lib\bin.js
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `hydra-typert-generator`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `hydra-typert-generator`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+ℹ [@hydra/harness-agent-loop] lib\invariant.js  2.60 kB │ gzip: 1.01 kB
+ℹ [@hydra/harness-agent-loop] 1 files, total: 2.60 kB
+ℹ [@hydra/cordis-plugin-logger-console] lib\browser.js  2.56 kB │ gzip: 1.06 kB
+ℹ [@hydra/cordis-plugin-logger-console] 1 files, total: 2.56 kB
+ℹ [@hydra/harness-scope] lib\invariant.js  3.41 kB │ gzip: 1.23 kB
+ℹ [@hydra/harness-scope] 1 files, total: 3.41 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `hydra-typert-generator`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `hydra-typert-generator`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `hydra-typert-generator`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `hydra-typert-generator`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `hydra-typert-generator`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `hydra-typert-generator`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `hydra-typert-generator`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `hydra-typert-generator`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+ℹ [@hydra/harness-headless] lib\index.js      3.91 kB │ gzip: 1.65 kB
+ℹ [@hydra/harness-headless] lib\startup.js    1.92 kB │ gzip: 0.93 kB
+ℹ [@hydra/harness-headless] lib\invariant.js  1.00 kB │ gzip: 0.55 kB
+ℹ [@hydra/harness-headless] 3 files, total: 6.83 kB
+ℹ [@hydra/harness-agent] lib\invariant.js  1.01 kB │ gzip: 0.55 kB
+ℹ [@hydra/harness-agent] 1 files, total: 1.01 kB
+ℹ [@hydra/harness-schedule] lib\invariant.js  12.72 kB │ gzip: 3.73 kB
+ℹ [@hydra/harness-schedule] 1 files, total: 12.72 kB
+ℹ [@hydra/harness-goal-round-driver] lib\invariant.js  3.93 kB │ gzip: 1.71 kB
+ℹ [@hydra/harness-goal-round-driver] 1 files, total: 3.93 kB
+ℹ [@hydra/harness-sandbox-policy] lib\index.js  7.42 kB │ gzip: 2.98 kB
+ℹ [@hydra/harness-sandbox-policy] 1 files, total: 7.42 kB
+ℹ [@hydra/harness-llm-mock-server] lib\index.js  17.97 kB │ gzip: 5.16 kB
+ℹ [@hydra/harness-llm-mock-server] 1 files, total: 17.97 kB
+ℹ [@hydra/harness-scope] lib\index.js  12.15 kB │ gzip: 3.99 kB
+ℹ [@hydra/harness-scope] 1 files, total: 12.15 kB
+ℹ [@hydra/harness-compaction] lib\index.js  7.70 kB │ gzip: 2.76 kB
+ℹ [@hydra/harness-compaction] 1 files, total: 7.70 kB
+ℹ [@hydra/harness-goal-round-driver] lib\index.js  13.58 kB │ gzip: 3.71 kB
+ℹ [@hydra/harness-goal-round-driver] 1 files, total: 13.58 kB
+ℹ [@hydra/harness-sdk-jsonrpc-demo] lib\packaged-bin.js  2.30 kB │ gzip: 1.07 kB
+ℹ [@hydra/harness-sdk-jsonrpc-demo] 1 files, total: 2.30 kB
+ℹ [@hydra/harness-settings] lib\index.js  27.27 kB │ gzip: 8.55 kB
+ℹ [@hydra/harness-settings] 1 files, total: 27.27 kB
+ℹ [@hydra/harness-llm-retry] lib\index.js  8.15 kB │ gzip: 2.72 kB
+ℹ [@hydra/harness-llm-retry] 1 files, total: 8.15 kB
+ℹ [@hydra/harness-llm-retry] lib\invariant.js  8.00 kB │ gzip: 2.39 kB
+ℹ [@hydra/harness-llm-retry] 1 files, total: 8.00 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+ℹ [@hydra/harness-tool-subagent-control] lib\index.js      3.81 kB │ gzip: 1.47 kB
+ℹ [@hydra/harness-tool-subagent-control] lib\invariant.js  0.95 kB │ gzip: 0.50 kB
+ℹ [@hydra/harness-tool-subagent-control] 2 files, total: 4.76 kB
+ℹ [@hydra/harness-agent-tool-presentation] lib\index.js      2.03 kB │ gzip: 1.01 kB
+ℹ [@hydra/harness-agent-tool-presentation] lib\invariant.js  1.08 kB │ gzip: 0.56 kB
+ℹ [@hydra/harness-agent-tool-presentation] 2 files, total: 3.10 kB
+ℹ [@hydra/harness-plan-mode] lib\index.js      15.60 kB │ gzip: 5.25 kB
+ℹ [@hydra/harness-plan-mode] lib\invariant.js   1.79 kB │ gzip: 0.88 kB
+ℹ [@hydra/harness-plan-mode] 2 files, total: 17.39 kB
+ℹ [@hydra/harness-tool-bash-persistent] lib\index.js      15.72 kB │ gzip: 4.88 kB
+ℹ [@hydra/harness-tool-bash-persistent] lib\invariant.js   0.98 kB │ gzip: 0.52 kB
+ℹ [@hydra/harness-tool-bash-persistent] 2 files, total: 16.70 kB
+ℹ [@hydra/harness-timeout] lib\index.js      5.42 kB │ gzip: 2.08 kB
+ℹ [@hydra/harness-timeout] lib\invariant.js  0.86 kB │ gzip: 0.47 kB
+ℹ [@hydra/harness-timeout] 2 files, total: 6.28 kB
+ℹ [@hydra/harness-skill-badge] lib\index.js      1.75 kB │ gzip: 0.85 kB
+ℹ [@hydra/harness-skill-badge] lib\invariant.js  0.90 kB │ gzip: 0.47 kB
+ℹ [@hydra/harness-skill-badge] 2 files, total: 2.65 kB
+ℹ [@hydra/harness-native-command] lib\index.js      1.14 kB │ gzip: 0.65 kB
+ℹ [@hydra/harness-native-command] lib\invariant.js  0.92 kB │ gzip: 0.49 kB
+ℹ [@hydra/harness-native-command] 2 files, total: 2.06 kB
+ℹ [@hydra/harness-session-telemetry-otel] lib\index.js      9.48 kB │ gzip: 3.50 kB
+ℹ [@hydra/harness-session-telemetry-otel] lib\invariant.js  1.02 kB │ gzip: 0.53 kB
+ℹ [@hydra/harness-session-telemetry-otel] 2 files, total: 10.50 kB
+ℹ [@hydra/harness-tool-ralph] lib\index.js      17.28 kB │ gzip: 5.12 kB
+ℹ [@hydra/harness-tool-ralph] lib\invariant.js   0.92 kB │ gzip: 0.50 kB
+ℹ [@hydra/harness-tool-ralph] 2 files, total: 18.20 kB
+ℹ [@hydra/harness-session-checkpoint-policy] lib\index.js      2.66 kB │ gzip: 1.13 kB
+ℹ [@hydra/harness-session-checkpoint-policy] lib\invariant.js  0.97 kB │ gzip: 0.50 kB
+ℹ [@hydra/harness-session-checkpoint-policy] 2 files, total: 3.63 kB
+ℹ [@hydra/harness-output-retention] lib\index.js      11.18 kB │ gzip: 4.27 kB
+ℹ [@hydra/harness-output-retention] lib\invariant.js   0.90 kB │ gzip: 0.48 kB
+ℹ [@hydra/harness-output-retention] 2 files, total: 12.08 kB
+ℹ [@hydra/harness-tool-subagent-report] lib\index.js      4.14 kB │ gzip: 1.75 kB
+ℹ [@hydra/harness-tool-subagent-report] lib\invariant.js  0.91 kB │ gzip: 0.48 kB
+ℹ [@hydra/harness-tool-subagent-report] 2 files, total: 5.06 kB
+ℹ [@hydra/harness-atomic-write] lib\index.js      5.00 kB │ gzip: 2.21 kB
+ℹ [@hydra/harness-atomic-write] lib\invariant.js  0.90 kB │ gzip: 0.48 kB
+ℹ [@hydra/harness-atomic-write] 2 files, total: 5.91 kB
+ℹ [@hydra/harness-agent-default-model] lib\invariant.js  1.09 kB │ gzip: 0.57 kB
+ℹ [@hydra/harness-agent-default-model] 1 files, total: 1.09 kB
+ℹ [@hydra/harness-host-directory-picker-native] [CJS] lib\worker.cjs  9.09 kB │ gzip: 3.51 kB
+ℹ [@hydra/harness-host-directory-picker-native] [CJS] 1 files, total: 9.09 kB
+ℹ [@hydra/harness-schedule] lib\index.js  53.16 kB │ gzip: 13.44 kB
+ℹ [@hydra/harness-schedule] 1 files, total: 53.16 kB
+ℹ [@hydra/harness-settings] lib\invariant.js  6.90 kB │ gzip: 2.55 kB
+ℹ [@hydra/harness-settings] 1 files, total: 6.90 kB
+ℹ [@hydra/harness-agent-default-model] lib\index.js  2.67 kB │ gzip: 1.03 kB
+ℹ [@hydra/harness-agent-default-model] 1 files, total: 2.67 kB
+ℹ [@hydra/harness-experimental-agent-team] lib\invariant.js  13.03 kB │ gzip: 3.83 kB
+ℹ [@hydra/harness-experimental-agent-team] 1 files, total: 13.03 kB
+ℹ [@hydra/harness-user-approval] lib\index.js  8.94 kB │ gzip: 3.45 kB
+ℹ [@hydra/harness-user-approval] 1 files, total: 8.94 kB
+ℹ [@hydra/harness-compaction] lib\invariant.js  10.98 kB │ gzip: 3.02 kB
+ℹ [@hydra/harness-compaction] 1 files, total: 10.98 kB
+ℹ [@hydra/harness-user-approval] lib\invariant.js  12.63 kB │ gzip: 4.42 kB
+ℹ [@hydra/harness-user-approval] 1 files, total: 12.63 kB
+✔ [@hydra/cordis-plugin-include] Build complete in 52260ms
+✔ [@hydra/harness-sdk-jsonrpc-demo] Build complete in 52260ms
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@hydra/cosmokit] Build complete in 52279ms
+✔ [@hydra/schemastery] Build complete in 52279ms
+✔ [@hydra/schemastery] Build complete in 52279ms
+✔ [@hydra/harness-sdk-jsonrpc-demo] Build complete in 52280ms
+✔ [@hydra/cordis-plugin-timer] Build complete in 52280ms
+✔ [@hydra/harness-llm-mock-server] Build complete in 52280ms
+ℹ [@hydra/harness-typert-protocol] lib\index.js      5.70 kB │ gzip: 2.08 kB
+ℹ [@hydra/harness-typert-protocol] lib\invariant.js  0.91 kB │ gzip: 0.49 kB
+ℹ [@hydra/harness-typert-protocol] 2 files, total: 6.61 kB
+ℹ [@hydra/harness-session-title-first-prompt-llm] lib\index.js      1.35 kB │ gzip: 0.60 kB
+ℹ [@hydra/harness-session-title-first-prompt-llm] lib\invariant.js  0.99 kB │ gzip: 0.50 kB
+ℹ [@hydra/harness-session-title-first-prompt-llm] 2 files, total: 2.34 kB
+ℹ [@hydra/harness-cmdline] lib\index.js      5.44 kB │ gzip: 2.22 kB
+ℹ [@hydra/harness-cmdline] lib\invariant.js  0.97 kB │ gzip: 0.52 kB
+ℹ [@hydra/harness-cmdline] 2 files, total: 6.41 kB
+ℹ [@hydra/harness-code-runtime-python] lib\index.js      16.41 kB │ gzip: 5.88 kB
+ℹ [@hydra/harness-code-runtime-python] lib\invariant.js   1.02 kB │ gzip: 0.53 kB
+ℹ [@hydra/harness-code-runtime-python] 2 files, total: 17.43 kB
+ℹ [@hydra/harness-tool-skill] lib\index.js      15.59 kB │ gzip: 4.79 kB
+ℹ [@hydra/harness-tool-skill] lib\invariant.js   0.89 kB │ gzip: 0.49 kB
+ℹ [@hydra/harness-tool-skill] 2 files, total: 16.48 kB
+ℹ [@hydra/harness-hook-protocol] lib\index.js      15.75 kB │ gzip: 5.60 kB
+ℹ [@hydra/harness-hook-protocol] lib\invariant.js   4.17 kB │ gzip: 1.51 kB
+ℹ [@hydra/harness-hook-protocol] 2 files, total: 19.92 kB
+ℹ [@hydra/harness-command-feedback] lib\index.js      3.72 kB │ gzip: 1.55 kB
+ℹ [@hydra/harness-command-feedback] lib\invariant.js  0.90 kB │ gzip: 0.48 kB
+ℹ [@hydra/harness-command-feedback] 2 files, total: 4.62 kB
+ℹ [@hydra/harness-tool-jobs] lib\index.js      12.82 kB │ gzip: 4.17 kB
+ℹ [@hydra/harness-tool-jobs] lib\invariant.js   0.89 kB │ gzip: 0.48 kB
+ℹ [@hydra/harness-tool-jobs] 2 files, total: 13.71 kB
+ℹ [@hydra/harness-code-runtime-worker-thread] [ESM] lib\index.js      36.83 kB │ gzip: 10.36 kB
+ℹ [@hydra/harness-code-runtime-worker-thread] [ESM] lib\invariant.js   0.95 kB │ gzip:  0.49 kB
+ℹ [@hydra/harness-code-runtime-worker-thread] [ESM] 2 files, total: 37.78 kB
+ℹ [@hydra/harness-credentials-local] lib\index.js      33.02 kB │ gzip: 10.03 kB
+ℹ [@hydra/harness-credentials-local] lib\invariant.js   1.01 kB │ gzip:  0.53 kB
+ℹ [@hydra/harness-credentials-local] 2 files, total: 34.02 kB
+ℹ [@hydra/harness-subagent-spawn-in-process] lib\index.js      1.50 kB │ gzip: 0.79 kB
+ℹ [@hydra/harness-subagent-spawn-in-process] lib\invariant.js  0.95 kB │ gzip: 0.49 kB
+ℹ [@hydra/harness-subagent-spawn-in-process] 2 files, total: 2.44 kB
+ℹ [@hydra/harness-tool-todo] lib\index.js      7.20 kB │ gzip: 2.81 kB
+ℹ [@hydra/harness-tool-todo] lib\invariant.js  2.56 kB │ gzip: 1.22 kB
+ℹ [@hydra/harness-tool-todo] 2 files, total: 9.76 kB
+ℹ [@hydra/harness-tool-subagent] lib\index.js      14.13 kB │ gzip: 4.65 kB
+ℹ [@hydra/harness-tool-subagent] lib\invariant.js   0.90 kB │ gzip: 0.49 kB
+ℹ [@hydra/harness-tool-subagent] 2 files, total: 15.03 kB
+ℹ [@hydra/harness-spill] lib\index.js      2.43 kB │ gzip: 1.17 kB
+ℹ [@hydra/harness-spill] lib\invariant.js  0.87 kB │ gzip: 0.47 kB
+ℹ [@hydra/harness-spill] 2 files, total: 3.30 kB
+ℹ [@hydra/harness-agent-loop-testkit] lib\index.js      1.49 kB │ gzip: 0.67 kB
+ℹ [@hydra/harness-agent-loop-testkit] lib\invariant.js  0.92 kB │ gzip: 0.48 kB
+ℹ [@hydra/harness-agent-loop-testkit] 2 files, total: 2.41 kB
+ℹ [@hydra/harness-sdk-protocol] lib\index.js      7.33 kB │ gzip: 2.54 kB
+ℹ [@hydra/harness-sdk-protocol] lib\invariant.js  0.94 kB │ gzip: 0.50 kB
+ℹ [@hydra/harness-sdk-protocol] 2 files, total: 8.27 kB
+ℹ [@hydra/harness-session-title-all-prompts-llm] lib\index.js      1.20 kB │ gzip: 0.53 kB
+ℹ [@hydra/harness-session-title-all-prompts-llm] lib\invariant.js  0.98 kB │ gzip: 0.50 kB
+ℹ [@hydra/harness-session-title-all-prompts-llm] 2 files, total: 2.19 kB
+ℹ [@hydra/harness-lsp] lib\index.js      5.24 kB │ gzip: 2.20 kB
+ℹ [@hydra/harness-lsp] lib\invariant.js  0.91 kB │ gzip: 0.50 kB
+ℹ [@hydra/harness-lsp] 2 files, total: 6.15 kB
+ℹ [@hydra/harness-skill-filesystem] lib\index.js      26.01 kB │ gzip: 7.06 kB
+ℹ [@hydra/harness-skill-filesystem] lib\invariant.js   0.91 kB │ gzip: 0.48 kB
+ℹ [@hydra/harness-skill-filesystem] 2 files, total: 26.92 kB
+ℹ [@hydra/harness-subagent-fork-in-process] lib\index.js      2.33 kB │ gzip: 1.14 kB
+ℹ [@hydra/harness-subagent-fork-in-process] lib\invariant.js  0.94 kB │ gzip: 0.49 kB
+ℹ [@hydra/harness-subagent-fork-in-process] 2 files, total: 3.27 kB
+ℹ [@hydra/harness-session-projection] lib\index.js      14.36 kB │ gzip: 4.78 kB
+ℹ [@hydra/harness-session-projection] lib\invariant.js   1.51 kB │ gzip: 0.78 kB
+ℹ [@hydra/harness-session-projection] 2 files, total: 15.87 kB
+ℹ [@hydra/harness-subprocess] lib\index.js      4.45 kB │ gzip: 2.13 kB
+ℹ [@hydra/harness-subprocess] lib\invariant.js  0.85 kB │ gzip: 0.46 kB
+ℹ [@hydra/harness-subprocess] 2 files, total: 5.30 kB
+ℹ [@hydra/harness-commands] lib\index.js      17.48 kB │ gzip: 5.67 kB
+ℹ [@hydra/harness-commands] lib\invariant.js   2.30 kB │ gzip: 0.97 kB
+ℹ [@hydra/harness-commands] 2 files, total: 19.79 kB
+ℹ [@hydra/harness-tool-pwsh-persistent] lib\index.js      17.34 kB │ gzip: 5.50 kB
+ℹ [@hydra/harness-tool-pwsh-persistent] lib\invariant.js   0.98 kB │ gzip: 0.52 kB
+ℹ [@hydra/harness-tool-pwsh-persistent] 2 files, total: 18.32 kB
+ℹ [@hydra/harness-session-title] lib\index.js      24.73 kB │ gzip: 7.05 kB
+ℹ [@hydra/harness-session-title] lib\invariant.js   1.75 kB │ gzip: 0.88 kB
+ℹ [@hydra/harness-session-title] 2 files, total: 26.48 kB
+ℹ [@hydra/harness-sdk-jsonrpc-demo] lib\bin.js  2.18 kB │ gzip: 1.02 kB
+ℹ [@hydra/harness-sdk-jsonrpc-demo] 1 files, total: 2.18 kB
+✔ [@hydra/harness-code-runtime] Build complete in 52307ms
+✔ [@hydra/cordis-plugin-group] Build complete in 52309ms
+✔ [@hydra/harness-sandbox-policy] Build complete in 52308ms
+✔ [@hydra/harness-command-compact] Build complete in 52309ms
+✔ [@hydra/harness-experimental-tool-agent-team] Build complete in 52309ms
+✔ [@hydra/harness-fs-observation-policy] Build complete in 52309ms
+✔ [@hydra/harness-command-goal] Build complete in 52309ms
+✔ [@hydra/harness-host-directory-picker] Build complete in 52310ms
+✔ [@hydra/harness-jobs-local] Build complete in 52310ms
+✔ [@hydra/harness-invariants] Build complete in 52310ms
+✔ [@hydra/harness-authorization] Build complete in 52310ms
+✔ [@hydra/harness-tool-ask-user] Build complete in 52310ms
+✔ [@hydra/harness-base] Build complete in 52311ms
+✔ [@hydra/harness-host-frontend-static] Build complete in 52311ms
+✔ [@hydra/harness-user-questions] Build complete in 52311ms
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@hydra/harness-fs-e2b] Build complete in 52312ms
+✔ [@hydra/harness-launch-environment] Build complete in 52312ms
+✔ [@hydra/harness-tool-call-timeout-policy] Build complete in 52312ms
+✔ [@hydra/harness-anonymous-user-id] Build complete in 52312ms
+✔ [@hydra/harness-spill-policy] Build complete in 52312ms
+✔ [@hydra/harness-tool-str-replace-editor] Build complete in 52313ms
+✔ [@hydra/harness-persona] Build complete in 52313ms
+ℹ [@hydra/harness-workflow] lib\invariant.js  5.02 kB │ gzip: 1.62 kB
+ℹ [@hydra/harness-workflow] lib\index.js      3.54 kB │ gzip: 1.54 kB
+ℹ [@hydra/harness-workflow] 2 files, total: 8.56 kB
+ℹ [@hydra/harness-host-directory-picker-auto] lib\index.js      6.54 kB │ gzip: 2.66 kB
+ℹ [@hydra/harness-host-directory-picker-auto] lib\invariant.js  0.94 kB │ gzip: 0.48 kB
+ℹ [@hydra/harness-host-directory-picker-auto] 2 files, total: 7.49 kB
+ℹ [@hydra/harness-tool-workflow] lib\index.js      11.51 kB │ gzip: 4.33 kB
+ℹ [@hydra/harness-tool-workflow] lib\invariant.js   6.04 kB │ gzip: 1.96 kB
+ℹ [@hydra/harness-tool-workflow] 2 files, total: 17.55 kB
+ℹ [@hydra/harness-llm-replay] lib\index.js      24.78 kB │ gzip: 7.68 kB
+ℹ [@hydra/harness-llm-replay] lib\invariant.js   0.90 kB │ gzip: 0.48 kB
+ℹ [@hydra/harness-llm-replay] 2 files, total: 25.68 kB
+ℹ [@hydra/harness-host-webserver] lib\index.js      10.99 kB │ gzip: 3.88 kB
+ℹ [@hydra/harness-host-webserver] lib\invariant.js   1.89 kB │ gzip: 0.88 kB
+ℹ [@hydra/harness-host-webserver] 2 files, total: 12.88 kB
+ℹ [@hydra/harness-session-title-llm] lib\index.js      10.82 kB │ gzip: 3.59 kB
+ℹ [@hydra/harness-session-title-llm] lib\invariant.js   0.98 kB │ gzip: 0.53 kB
+ℹ [@hydra/harness-session-title-llm] 2 files, total: 11.80 kB
+ℹ [@hydra/harness-file-reference] lib\index.js      5.81 kB │ gzip: 2.32 kB
+ℹ [@hydra/harness-file-reference] lib\invariant.js  0.90 kB │ gzip: 0.48 kB
+ℹ [@hydra/harness-file-reference] 2 files, total: 6.71 kB
+ℹ [@hydra/harness-e2b] lib\index.js      4.29 kB │ gzip: 1.77 kB
+ℹ [@hydra/harness-e2b] lib\invariant.js  0.86 kB │ gzip: 0.48 kB
+ℹ [@hydra/harness-e2b] 2 files, total: 5.14 kB
+ℹ [@hydra/harness-bash-local] lib\index.js      12.81 kB │ gzip: 4.54 kB
+ℹ [@hydra/harness-bash-local] lib\invariant.js   0.89 kB │ gzip: 0.48 kB
+ℹ [@hydra/harness-bash-local] 2 files, total: 13.70 kB
+ℹ [@hydra/harness-terminal] lib\index.js      13.60 kB │ gzip: 3.95 kB
+ℹ [@hydra/harness-terminal] lib\invariant.js   0.92 kB │ gzip: 0.49 kB
+ℹ [@hydra/harness-terminal] 2 files, total: 14.52 kB
+ℹ [@hydra/harness-storage] lib\index.js      5.02 kB │ gzip: 1.90 kB
+ℹ [@hydra/harness-storage] lib\invariant.js  1.00 kB │ gzip: 0.56 kB
+ℹ [@hydra/harness-storage] 2 files, total: 6.02 kB
+ℹ [@hydra/harness-brand] lib\invariant.js  0.85 kB │ gzip: 0.47 kB
+ℹ [@hydra/harness-brand] lib\index.js      0.01 kB │ gzip: 0.03 kB
+ℹ [@hydra/harness-brand] 2 files, total: 0.86 kB
+ℹ [@hydra/harness-host-plugin-inventory] lib\index.js      45.79 kB │ gzip: 10.45 kB
+ℹ [@hydra/harness-host-plugin-inventory] lib\invariant.js   0.69 kB │ gzip:  0.38 kB
+ℹ [@hydra/harness-host-plugin-inventory] 2 files, total: 46.48 kB
+ℹ [@hydra/harness-credentials] lib\index.js      7.05 kB │ gzip: 2.70 kB
+ℹ [@hydra/harness-credentials] lib\invariant.js  1.36 kB │ gzip: 0.71 kB
+ℹ [@hydra/harness-credentials] 2 files, total: 8.42 kB
+ℹ [@hydra/harness-home-paths] lib\index.js      4.43 kB │ gzip: 1.77 kB
+ℹ [@hydra/harness-home-paths] lib\invariant.js  0.87 kB │ gzip: 0.47 kB
+ℹ [@hydra/harness-home-paths] 2 files, total: 5.31 kB
+ℹ [@hydra/harness-settings-file] lib\index.js      10.20 kB │ gzip: 3.79 kB
+ℹ [@hydra/harness-settings-file] lib\invariant.js   0.98 kB │ gzip: 0.52 kB
+ℹ [@hydra/harness-settings-file] 2 files, total: 11.18 kB
+ℹ [@hydra/harness-session-telemetry] lib\index.js      11.93 kB │ gzip: 4.51 kB
+ℹ [@hydra/harness-session-telemetry] lib\invariant.js   1.05 kB │ gzip: 0.55 kB
+ℹ [@hydra/harness-session-telemetry] 2 files, total: 12.98 kB
+ℹ [@hydra/harness-permission-presets] lib\index.js      13.71 kB │ gzip: 4.47 kB
+ℹ [@hydra/harness-permission-presets] lib\invariant.js   1.50 kB │ gzip: 0.72 kB
+ℹ [@hydra/harness-permission-presets] 2 files, total: 15.22 kB
+ℹ [@hydra/harness-mcp-registry] lib\index.js      14.25 kB │ gzip: 4.60 kB
+ℹ [@hydra/harness-mcp-registry] lib\invariant.js   1.46 kB │ gzip: 0.71 kB
+ℹ [@hydra/harness-mcp-registry] 2 files, total: 15.70 kB
+ℹ [@hydra/cordis] lib\index.js  60.37 kB │ gzip: 16.74 kB
+ℹ [@hydra/cordis] 1 files, total: 60.37 kB
+ℹ [@hydra/harness-goal] lib\invariant.js  14.84 kB │ gzip: 4.12 kB
+ℹ [@hydra/harness-goal] 1 files, total: 14.84 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@hydra/harness-shell-env] Build complete in 52339ms
+✔ [@hydra/harness-host-directory-picker-browse] Build complete in 52339ms
+✔ [@hydra/harness-system-prompt] Build complete in 52339ms
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@hydra/harness-research-policy] Build complete in 52339ms
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+ℹ [@hydra/harness-jobs] lib\index.js      3.13 kB │ gzip: 1.48 kB
+ℹ [@hydra/harness-jobs] lib\invariant.js  2.35 kB │ gzip: 1.01 kB
+ℹ [@hydra/harness-jobs] 2 files, total: 5.47 kB
+ℹ [@hydra/harness-hooks-registry] lib\index.js      16.53 kB │ gzip: 5.22 kB
+ℹ [@hydra/harness-hooks-registry] lib\invariant.js   1.48 kB │ gzip: 0.72 kB
+ℹ [@hydra/harness-hooks-registry] 2 files, total: 18.01 kB
+ℹ [@hydra/harness-plugin-runtime] lib\index.js      59.23 kB │ gzip: 14.38 kB
+ℹ [@hydra/harness-plugin-runtime] lib\invariant.js   0.67 kB │ gzip:  0.37 kB
+ℹ [@hydra/harness-plugin-runtime] 2 files, total: 59.91 kB
+ℹ [@hydra/cordis-plugin-hmr] lib\index.js  15.52 kB │ gzip: 4.84 kB
+ℹ [@hydra/cordis-plugin-hmr] 1 files, total: 15.52 kB
+ℹ [@hydra/cordis-plugin-loader] lib\index.js  25.76 kB │ gzip: 7.50 kB
+ℹ [@hydra/cordis-plugin-loader] 1 files, total: 25.76 kB
+ℹ [@hydra/cordis-plugin-logger-console] lib\index.js  2.76 kB │ gzip: 1.15 kB
+ℹ [@hydra/cordis-plugin-logger-console] 1 files, total: 2.76 kB
+✔ [@hydra/harness-agent-loop] Build complete in 52351ms
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@hydra/cordis-plugin-logger-console] Build complete in 52365ms
+✔ [@hydra/harness-scope] Build complete in 52365ms
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+ℹ [@hydra/harness-web-app] lib\index.js      12.76 kB │ gzip: 5.19 kB
+ℹ [@hydra/harness-web-app] lib\startup.js     2.77 kB │ gzip: 1.29 kB
+ℹ [@hydra/harness-web-app] lib\invariant.js   0.99 kB │ gzip: 0.53 kB
+ℹ [@hydra/harness-web-app] 3 files, total: 16.52 kB
+ℹ [@hydra/harness-typert-generator] lib\index.js      194.16 kB │ gzip: 44.38 kB
+ℹ [@hydra/harness-typert-generator] lib\invariant.js    0.98 kB │ gzip:  0.52 kB
+ℹ [@hydra/harness-typert-generator] 2 files, total: 195.14 kB
+ℹ [@hydra/harness-goal] lib\index.js  34.10 kB │ gzip: 8.68 kB
+ℹ [@hydra/harness-goal] 1 files, total: 34.10 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:report`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@hydra/harness-goal-round-driver] Build complete in 52454ms
+✔ [@hydra/harness-llm-retry] Build complete in 52455ms
+✔ [@hydra/harness-sandbox-policy] Build complete in 52455ms
+✔ [@hydra/harness-llm-mock-server] Build complete in 52455ms
+✔ [@hydra/harness-schedule] Build complete in 52456ms
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - hydra-typert-generator (58%)
+  - tsdown:deps (40%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@hydra/harness-agent-tool-presentation] Build complete in 52462ms
+✔ [@hydra/harness-tool-subagent-control] Build complete in 52462ms
+✔ [@hydra/harness-plan-mode] Build complete in 52463ms
+✔ [@hydra/harness-native-command] Build complete in 52463ms
+ℹ [@hydra/harness-session] lib\invariant.js  6.63 kB │ gzip: 2.13 kB
+ℹ [@hydra/harness-session] 1 files, total: 6.63 kB
+ℹ [@hydra/harness-acp-demo] lib\index.js      3.76 kB │ gzip: 1.51 kB
+ℹ [@hydra/harness-acp-demo] lib\bin.js        1.45 kB │ gzip: 0.83 kB
+ℹ [@hydra/harness-acp-demo] lib\invariant.js  0.88 kB │ gzip: 0.48 kB
+ℹ [@hydra/harness-acp-demo] 3 files, total: 6.08 kB
+ℹ [@hydra/harness-typert-loader] lib\index.js      17.22 kB │ gzip: 4.95 kB
+ℹ [@hydra/harness-typert-loader] lib\invariant.js   0.90 kB │ gzip: 0.47 kB
+ℹ [@hydra/harness-typert-loader] 2 files, total: 18.12 kB
+ℹ [@hydra/harness-attachment] lib\index.js      5.16 kB │ gzip: 2.14 kB
+ℹ [@hydra/harness-attachment] lib\invariant.js  0.80 kB │ gzip: 0.43 kB
+ℹ [@hydra/harness-attachment] 2 files, total: 5.95 kB
+ℹ [@hydra/harness-pwsh-sandbox] lib\index.js      9.80 kB │ gzip: 3.40 kB
+ℹ [@hydra/harness-pwsh-sandbox] lib\invariant.js  0.90 kB │ gzip: 0.48 kB
+ℹ [@hydra/harness-pwsh-sandbox] 2 files, total: 10.70 kB
+ℹ [@hydra/harness-fs] lib\index.js      4.20 kB │ gzip: 1.82 kB
+ℹ [@hydra/harness-fs] lib\invariant.js  1.63 kB │ gzip: 0.76 kB
+ℹ [@hydra/harness-fs] 2 files, total: 5.83 kB
+ℹ [@hydra/harness-tool-bash] lib\index.js      18.67 kB │ gzip: 6.24 kB
+ℹ [@hydra/harness-tool-bash] lib\invariant.js   0.92 kB │ gzip: 0.50 kB
+ℹ [@hydra/harness-tool-bash] 2 files, total: 19.59 kB
+✔ [@hydra/harness-experimental-agent-team] Build complete in 52469ms
+✔ [@hydra/harness-agent] Build complete in 52469ms
+✔ [@hydra/harness-scope] Build complete in 52470ms
+✔ [@hydra/harness-user-approval] Build complete in 52470ms
+✔ [@hydra/harness-tool-bash-persistent] Build complete in 52470ms
+✔ [@hydra/harness-session-telemetry-otel] Build complete in 52470ms
+✔ [@hydra/harness-headless] Build complete in 52470ms
+✔ [@hydra/harness-compaction] Build complete in 52470ms
+✔ [@hydra/harness-atomic-write] Build complete in 52470ms
+✔ [@hydra/harness-settings] Build complete in 52470ms
+✔ [@hydra/harness-user-approval] Build complete in 52471ms
+✔ [@hydra/harness-agent-default-model] Build complete in 52471ms
+✔ [@hydra/harness-compaction] Build complete in 52471ms
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - hydra-typert-generator (74%)
+  - tsdown:deps (21%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - tsdown:deps (56%)
+  - hydra-typert-generator (41%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - tsdown:deps (63%)
+  - hydra-typert-generator (35%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - hydra-typert-generator (62%)
+  - tsdown:deps (37%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@hydra/harness-tool-subagent-report] Build complete in 52472ms
+✔ [@hydra/harness-output-retention] Build complete in 52472ms
+✔ [@hydra/harness-host-directory-picker-native] Build complete in 52472ms
+✔ [@hydra/harness-agent-default-model] Build complete in 52472ms
+✔ [@hydra/harness-schedule] Build complete in 52472ms
+✔ [@hydra/harness-sdk-jsonrpc-demo] Build complete in 52473ms
+✔ [@hydra/harness-tool-ralph] Build complete in 52472ms
+✔ [@hydra/harness-timeout] Build complete in 52472ms
+✔ [@hydra/harness-goal-round-driver] Build complete in 52473ms
+✔ [@hydra/harness-llm-retry] Build complete in 52473ms
+✔ [@hydra/harness-settings] Build complete in 52473ms
+✔ [@hydra/harness-session-checkpoint-policy] Build complete in 52473ms
+✔ [@hydra/harness-skill-badge] Build complete in 52473ms
+✔ [@hydra/harness-tool-jobs] Build complete in 52475ms
+✔ [@hydra/harness-command-feedback] Build complete in 52475ms
+✔ [@hydra/harness-session-title-all-prompts-llm] Build complete in 52475ms
+✔ [@hydra/harness-code-runtime-worker-thread] Build complete in 52475ms
+✔ [@hydra/harness-credentials-local] Build complete in 52475ms
+✔ [@hydra/harness-lsp] Build complete in 52475ms
+✔ [@hydra/harness-subagent-spawn-in-process] Build complete in 52475ms
+✔ [@hydra/harness-skill-filesystem] Build complete in 52475ms
+✔ [@hydra/harness-tool-todo] Build complete in 52476ms
+✔ [@hydra/harness-session-projection] Build complete in 52476ms
+✔ [@hydra/harness-subagent-fork-in-process] Build complete in 52476ms
+✔ [@hydra/harness-spill] Build complete in 52476ms
+✔ [@hydra/harness-tool-subagent] Build complete in 52476ms
+✔ [@hydra/harness-subprocess] Build complete in 52476ms
+✔ [@hydra/harness-agent-loop-testkit] Build complete in 52476ms
+✔ [@hydra/harness-tool-pwsh-persistent] Build complete in 52476ms
+✔ [@hydra/harness-commands] Build complete in 52476ms
+✔ [@hydra/harness-session-title] Build complete in 52476ms
+✔ [@hydra/harness-sdk-protocol] Build complete in 52476ms
+✔ [@hydra/harness-sdk-jsonrpc-demo] Build complete in 52477ms
+ℹ [@hydra/harness-shell] lib\index.js      4.29 kB │ gzip: 1.96 kB
+ℹ [@hydra/harness-shell] lib\invariant.js  0.83 kB │ gzip: 0.46 kB
+ℹ [@hydra/harness-shell] 2 files, total: 5.12 kB
+ℹ [@hydra/harness-tool-pwsh] lib\index.js      20.47 kB │ gzip: 6.85 kB
+ℹ [@hydra/harness-tool-pwsh] lib\invariant.js   0.88 kB │ gzip: 0.48 kB
+ℹ [@hydra/harness-tool-pwsh] 2 files, total: 21.35 kB
+ℹ [@hydra/harness-sandbox-local] lib\index.js      21.51 kB │ gzip: 7.26 kB
+ℹ [@hydra/harness-sandbox-local] lib\invariant.js   0.90 kB │ gzip: 0.48 kB
+ℹ [@hydra/harness-sandbox-local] 2 files, total: 22.41 kB
+ℹ [@hydra/harness-tool-browser] lib\index.js      76.04 kB │ gzip: 18.88 kB
+ℹ [@hydra/harness-tool-browser] lib\invariant.js   0.86 kB │ gzip:  0.47 kB
+ℹ [@hydra/harness-tool-browser] 2 files, total: 76.91 kB
+ℹ [@hydra/harness-tool-goal] lib\index.js      16.65 kB │ gzip: 4.95 kB
+ℹ [@hydra/harness-tool-goal] lib\invariant.js   0.92 kB │ gzip: 0.50 kB
+ℹ [@hydra/harness-tool-goal] 2 files, total: 17.57 kB
+ℹ [@hydra/harness-hooks-claude-code] lib\index.js      15.68 kB │ gzip: 5.26 kB
+ℹ [@hydra/harness-hooks-claude-code] lib\invariant.js   0.91 kB │ gzip: 0.48 kB
+ℹ [@hydra/harness-hooks-claude-code] 2 files, total: 16.58 kB
+ℹ [@hydra/harness-skill] lib\index.js      27.30 kB │ gzip: 7.86 kB
+ℹ [@hydra/harness-skill] lib\invariant.js   0.91 kB │ gzip: 0.50 kB
+ℹ [@hydra/harness-skill] 2 files, total: 28.21 kB
+ℹ [@hydra/harness-session-stats] lib\index.js      6.93 kB │ gzip: 2.46 kB
+ℹ [@hydra/harness-session-stats] lib\invariant.js  1.23 kB │ gzip: 0.64 kB
+ℹ [@hydra/harness-session-stats] 2 files, total: 8.16 kB
+ℹ [@hydra/harness-loader-smoke] lib\index.js      8.46 kB │ gzip: 3.44 kB
+ℹ [@hydra/harness-loader-smoke] lib\invariant.js  0.89 kB │ gzip: 0.48 kB
+ℹ [@hydra/harness-loader-smoke] 2 files, total: 9.36 kB
+ℹ [@hydra/harness-api-remotes] lib\index.js      7.75 kB │ gzip: 2.55 kB
+ℹ [@hydra/harness-api-remotes] lib\invariant.js  0.79 kB │ gzip: 0.44 kB
+ℹ [@hydra/harness-api-remotes] 2 files, total: 8.54 kB
+ℹ [@hydra/harness-session-query] lib\index.js      37.18 kB │ gzip: 9.15 kB
+ℹ [@hydra/harness-session-query] lib\invariant.js   0.94 kB │ gzip: 0.50 kB
+ℹ [@hydra/harness-session-query] 2 files, total: 38.12 kB
+ℹ [@hydra/harness-session] lib\index.js  79.42 kB │ gzip: 23.73 kB
+ℹ [@hydra/harness-session] 1 files, total: 79.42 kB
+ℹ [@hydra/harness-obsidian-knowledge] lib\index.js      33.30 kB │ gzip: 9.39 kB
+ℹ [@hydra/harness-obsidian-knowledge] lib\invariant.js   0.74 kB │ gzip: 0.40 kB
+ℹ [@hydra/harness-obsidian-knowledge] 2 files, total: 34.04 kB
+ℹ [@hydra/harness-agent] lib\index.js  31.53 kB │ gzip: 9.74 kB
+ℹ [@hydra/harness-agent] 1 files, total: 31.53 kB
+ℹ [@hydra/harness] Granting execute permission to lib\bin.js
+✔ [@hydra/harness-typert-protocol] Build complete in 52481ms
+✔ [@hydra/harness-session-title-first-prompt-llm] Build complete in 52481ms
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - hydra-typert-generator (50%)
+  - tsdown:deps (48%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@hydra/harness-cmdline] Build complete in 52484ms
+✔ [@hydra/harness-tool-skill] Build complete in 52484ms
+✔ [@hydra/harness-hook-protocol] Build complete in 52485ms
+✔ [@hydra/harness-code-runtime-python] Build complete in 52485ms
+✔ [@hydra/harness-session-title-llm] Build complete in 52489ms
+✔ [@hydra/harness-tool-workflow] Build complete in 52489ms
+✔ [@hydra/harness-file-reference] Build complete in 52489ms
+✔ [@hydra/harness-workflow] Build complete in 52489ms
+✔ [@hydra/harness-e2b] Build complete in 52490ms
+✔ [@hydra/harness-terminal] Build complete in 52489ms
+✔ [@hydra/harness-bash-local] Build complete in 52489ms
+✔ [@hydra/harness-host-plugin-inventory] Build complete in 52490ms
+✔ [@hydra/harness-brand] Build complete in 52490ms
+✔ [@hydra/harness-storage] Build complete in 52490ms
+✔ [@hydra/harness-credentials] Build complete in 52490ms
+✔ [@hydra/harness-session-telemetry] Build complete in 52490ms
+✔ [@hydra/harness-settings-file] Build complete in 52490ms
+✔ [@hydra/harness-mcp-registry] Build complete in 52490ms
+✔ [@hydra/harness-llm-replay] Build complete in 52491ms
+✔ [@hydra/harness-goal] Build complete in 52491ms
+✔ [@hydra/harness-permission-presets] Build complete in 52492ms
+✔ [@hydra/harness-home-paths] Build complete in 52492ms
+✔ [@hydra/harness-host-webserver] Build complete in 52492ms
+✔ [@hydra/harness-host-directory-picker-auto] Build complete in 52492ms
+✔ [@hydra/cordis] Build complete in 52498ms
+ℹ [@hydra/harness-spill-local] lib\index.js      5.41 kB │ gzip: 2.42 kB
+ℹ [@hydra/harness-spill-local] lib\invariant.js  0.89 kB │ gzip: 0.48 kB
+ℹ [@hydra/harness-spill-local] 2 files, total: 6.30 kB
+ℹ [@hydra/harness-storage-domain] lib\index.js      15.79 kB │ gzip: 5.45 kB
+ℹ [@hydra/harness-storage-domain] lib\invariant.js   2.20 kB │ gzip: 0.98 kB
+ℹ [@hydra/harness-storage-domain] 2 files, total: 18.00 kB
+ℹ [@hydra/harness-cordis-host-runner] lib\index.js      104.78 kB │ gzip: 25.56 kB
+ℹ [@hydra/harness-cordis-host-runner] lib\invariant.js    1.07 kB │ gzip:  0.56 kB
+ℹ [@hydra/harness-cordis-host-runner] 2 files, total: 105.85 kB
+ℹ [@hydra/harness-compaction-tool-result-pruner] lib\index.js      8.49 kB │ gzip: 2.98 kB
+ℹ [@hydra/harness-compaction-tool-result-pruner] lib\invariant.js  0.91 kB │ gzip: 0.46 kB
+ℹ [@hydra/harness-compaction-tool-result-pruner] 2 files, total: 9.40 kB
+ℹ [@hydra/harness-fs-sandbox] lib\index.js      8.66 kB │ gzip: 3.26 kB
+ℹ [@hydra/harness-fs-sandbox] lib\invariant.js  0.83 kB │ gzip: 0.45 kB
+ℹ [@hydra/harness-fs-sandbox] 2 files, total: 9.49 kB
+ℹ [@hydra/harness-experimental-agent-team] lib\index.js  68.17 kB │ gzip: 17.02 kB
+ℹ [@hydra/harness-experimental-agent-team] 1 files, total: 68.17 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - tsdown:deps (57%)
+  - hydra-typert-generator (40%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - hydra-typert-generator (71%)
+  - tsdown:deps (25%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:shebang`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - hydra-typert-generator (59%)
+  - tsdown:deps (35%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `hydra-typert-generator`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@hydra/cordis-plugin-hmr] Build complete in 52516ms
+✔ [@hydra/cordis-plugin-loader] Build complete in 52516ms
+✔ [@hydra/harness-jobs] Build complete in 52516ms
+✔ [@hydra/cordis-plugin-logger-console] Build complete in 52516ms
+✔ [@hydra/harness-hooks-registry] Build complete in 52516ms
+✔ [@hydra/harness-plugin-runtime] Build complete in 52516ms
+ℹ [@hydra/harness-agent-spine-demo] lib\index.js      8.26 kB │ gzip: 2.43 kB
+ℹ [@hydra/harness-agent-spine-demo] lib\invariant.js  0.91 kB │ gzip: 0.48 kB
+ℹ [@hydra/harness-agent-spine-demo] 2 files, total: 9.17 kB
+ℹ [@hydra/harness-subagent-acp] lib\index.js      13.61 kB │ gzip: 5.03 kB
+ℹ [@hydra/harness-subagent-acp] lib\invariant.js   0.90 kB │ gzip: 0.48 kB
+ℹ [@hydra/harness-subagent-acp] 2 files, total: 14.50 kB
+ℹ [@hydra/harness-session-projection-cache] lib\index.js      13.12 kB │ gzip: 4.70 kB
+ℹ [@hydra/harness-session-projection-cache] lib\invariant.js   1.28 kB │ gzip: 0.67 kB
+ℹ [@hydra/harness-session-projection-cache] 2 files, total: 14.40 kB
+ℹ [@hydra/harness-acp] lib\index.js      22.25 kB │ gzip: 6.66 kB
+ℹ [@hydra/harness-acp] lib\invariant.js   0.84 kB │ gzip: 0.47 kB
+ℹ [@hydra/harness-acp] 2 files, total: 23.09 kB
+ℹ [@hydra/harness-web] lib\index.js      16.14 kB │ gzip: 5.20 kB
+ℹ [@hydra/harness-web] lib\invariant.js   0.90 kB │ gzip: 0.49 kB
+ℹ [@hydra/harness-web] 2 files, total: 17.03 kB
+ℹ [@hydra/harness-sandbox] lib\index.js      10.69 kB │ gzip: 4.17 kB
+ℹ [@hydra/harness-sandbox] lib\invariant.js   0.88 kB │ gzip: 0.47 kB
+ℹ [@hydra/harness-sandbox] 2 files, total: 11.57 kB
+ℹ [@hydra/harness-session-query-sqlite] lib\index.js      45.63 kB │ gzip: 11.75 kB
+ℹ [@hydra/harness-session-query-sqlite] lib\invariant.js   0.92 kB │ gzip:  0.48 kB
+ℹ [@hydra/harness-session-query-sqlite] 2 files, total: 46.55 kB
+ℹ [@hydra/harness-session-reference] lib\index.js      24.49 kB │ gzip: 7.66 kB
+ℹ [@hydra/harness-session-reference] lib\invariant.js   0.96 kB │ gzip: 0.51 kB
+ℹ [@hydra/harness-session-reference] 2 files, total: 25.44 kB
+ℹ [@hydra/harness-terminal-bash] lib\index.js      29.05 kB │ gzip: 8.29 kB
+ℹ [@hydra/harness-terminal-bash] lib\invariant.js   0.95 kB │ gzip: 0.51 kB
+ℹ [@hydra/harness-terminal-bash] 2 files, total: 29.99 kB
+ℹ [@hydra/harness-sdk-jsonrpc-server] lib\index.js      9.64 kB │ gzip: 3.36 kB
+ℹ [@hydra/harness-sdk-jsonrpc-server] lib\invariant.js  0.92 kB │ gzip: 0.49 kB
+ℹ [@hydra/harness-sdk-jsonrpc-server] 2 files, total: 10.56 kB
+ℹ [@hydra/harness-compaction-basic] lib\index.js      44.81 kB │ gzip: 12.40 kB
+ℹ [@hydra/harness-compaction-basic] lib\invariant.js   0.91 kB │ gzip:  0.48 kB
+ℹ [@hydra/harness-compaction-basic] 2 files, total: 45.72 kB
+ℹ [@hydra/harness-tool-lsp] lib\index.js      15.51 kB │ gzip: 5.05 kB
+ℹ [@hydra/harness-tool-lsp] lib\invariant.js   0.92 kB │ gzip: 0.50 kB
+ℹ [@hydra/harness-tool-lsp] 2 files, total: 16.43 kB
+ℹ [@hydra/harness-personalization] lib\index.js      14.18 kB │ gzip: 4.66 kB
+ℹ [@hydra/harness-personalization] lib\invariant.js   0.98 kB │ gzip: 0.50 kB
+ℹ [@hydra/harness-personalization] 2 files, total: 15.15 kB
+ℹ [@hydra/harness-storage-sqlite] lib\index.js      11.75 kB │ gzip: 4.20 kB
+ℹ [@hydra/harness-storage-sqlite] lib\invariant.js   1.04 kB │ gzip: 0.55 kB
+ℹ [@hydra/harness-storage-sqlite] 2 files, total: 12.79 kB
+ℹ [@hydra/harness-web-search-perplexity] lib\index.js      6.31 kB │ gzip: 2.36 kB
+ℹ [@hydra/harness-web-search-perplexity] lib\invariant.js  0.93 kB │ gzip: 0.49 kB
+ℹ [@hydra/harness-web-search-perplexity] 2 files, total: 7.24 kB
+ℹ [@hydra/harness-web-search-deepseek] lib\index.js      15.65 kB │ gzip: 5.45 kB
+ℹ [@hydra/harness-web-search-deepseek] lib\invariant.js   0.98 kB │ gzip: 0.51 kB
+ℹ [@hydra/harness-web-search-deepseek] 2 files, total: 16.63 kB
+ℹ [@hydra/harness-hooks-codex] lib\index.js      12.74 kB │ gzip: 4.39 kB
+ℹ [@hydra/harness-hooks-codex] lib\invariant.js   0.88 kB │ gzip: 0.47 kB
+ℹ [@hydra/harness-hooks-codex] 2 files, total: 13.62 kB
+ℹ [@hydra/harness-tool-web] lib\index.js      37.00 kB │ gzip: 11.26 kB
+ℹ [@hydra/harness-tool-web] lib\invariant.js   0.88 kB │ gzip:  0.48 kB
+ℹ [@hydra/harness-tool-web] 2 files, total: 37.89 kB
+ℹ [@hydra/harness-session-persistence] lib\index.js      56.66 kB │ gzip: 14.98 kB
+ℹ [@hydra/harness-session-persistence] lib\invariant.js   0.94 kB │ gzip:  0.49 kB
+ℹ [@hydra/harness-session-persistence] 2 files, total: 57.61 kB
+ℹ [@hydra/harness-tool-fs-search] lib\index.js      55.68 kB │ gzip: 16.29 kB
+ℹ [@hydra/harness-tool-fs-search] lib\invariant.js   0.91 kB │ gzip:  0.49 kB
+ℹ [@hydra/harness-tool-fs-search] 2 files, total: 56.59 kB
+ℹ [@hydra/harness-code-runtime-worker-thread] [CJS] lib\worker.cjs  34.94 kB │ gzip: 9.41 kB
+ℹ [@hydra/harness-code-runtime-worker-thread] [CJS] 1 files, total: 34.94 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - hydra-typert-generator (58%)
+  - tsdown:deps (37%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - tsdown:deps (61%)
+  - hydra-typert-generator (37%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - tsdown:deps (56%)
+  - hydra-typert-generator (40%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - hydra-typert-generator (62%)
+  - tsdown:deps (35%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - hydra-typert-generator (59%)
+  - tsdown:deps (38%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - tsdown:deps (51%)
+  - hydra-typert-generator (44%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - tsdown:deps (63%)
+  - hydra-typert-generator (31%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `hydra-typert-generator`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - tsdown:deps (53%)
+  - hydra-typert-generator (42%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - tsdown:deps (51%)
+  - hydra-typert-generator (46%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - hydra-typert-generator (57%)
+  - tsdown:deps (40%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - hydra-typert-generator (61%)
+  - tsdown:deps (36%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@hydra/harness-web-app] Build complete in 52528ms
+✔ [@hydra/harness-typert-generator] Build complete in 52528ms
+✔ [@hydra/harness-goal] Build complete in 52528ms
+ℹ [@hydra/harness-lsp-stdio] lib\index.js      47.62 kB │ gzip: 14.07 kB
+ℹ [@hydra/harness-lsp-stdio] lib\invariant.js   0.92 kB │ gzip:  0.51 kB
+ℹ [@hydra/harness-lsp-stdio] 2 files, total: 48.54 kB
+ℹ [@hydra/harness-subagent] lib\index.js      119.36 kB │ gzip: 34.13 kB
+ℹ [@hydra/harness-subagent] lib\invariant.js    3.65 kB │ gzip:  1.20 kB
+ℹ [@hydra/harness-subagent] 2 files, total: 123.01 kB
+ℹ [@hydra/harness-sdk-client] lib\index.js      26.12 kB │ gzip: 7.92 kB
+ℹ [@hydra/harness-sdk-client] lib\invariant.js   0.92 kB │ gzip: 0.49 kB
+ℹ [@hydra/harness-sdk-client] 2 files, total: 27.04 kB
+ℹ [@hydra/harness-workflow-worker-thread] [ESM] lib\index.js      38.19 kB │ gzip: 11.97 kB
+ℹ [@hydra/harness-workflow-worker-thread] [ESM] lib\invariant.js   0.94 kB │ gzip:  0.49 kB
+ℹ [@hydra/harness-workflow-worker-thread] [ESM] 2 files, total: 39.13 kB
+ℹ [@hydra/harness-bash-sandbox] lib\index.js      9.35 kB │ gzip: 3.24 kB
+ℹ [@hydra/harness-bash-sandbox] lib\invariant.js  0.90 kB │ gzip: 0.48 kB
+ℹ [@hydra/harness-bash-sandbox] 2 files, total: 10.24 kB
+✔ [@hydra/harness-tool-bash] Build complete in 52542ms
+✔ [@hydra/harness-session] Build complete in 52543ms
+✔ [@hydra/harness-acp-demo] Build complete in 52543ms
+✔ [@hydra/harness-typert-loader] Build complete in 52543ms
+✔ [@hydra/harness-attachment] Build complete in 52543ms
+✔ [@hydra/harness-pwsh-sandbox] Build complete in 52543ms
+✔ [@hydra/harness-fs] Build complete in 52543ms
+ℹ [@hydra/harness-app-boot] lib\index.js      53.52 kB │ gzip: 17.09 kB
+ℹ [@hydra/harness-app-boot] lib\invariant.js   0.88 kB │ gzip:  0.48 kB
+ℹ [@hydra/harness-app-boot] 2 files, total: 54.40 kB
+ℹ [@hydra/harness-acp-snapshot] lib\index.js      99.08 kB │ gzip: 25.32 kB
+ℹ [@hydra/harness-acp-snapshot] lib\invariant.js   0.89 kB │ gzip:  0.48 kB
+ℹ [@hydra/harness-acp-snapshot] 2 files, total: 99.97 kB
+ℹ [@hydra/harness-page-memory] lib\index.js      40.73 kB │ gzip: 11.82 kB
+ℹ [@hydra/harness-page-memory] lib\invariant.js   0.53 kB │ gzip:  0.33 kB
+ℹ [@hydra/harness-page-memory] 2 files, total: 41.26 kB
+ℹ [@hydra/harness-message-feedback] lib\index.js      17.37 kB │ gzip: 5.33 kB
+ℹ [@hydra/harness-message-feedback] lib\invariant.js   0.94 kB │ gzip: 0.51 kB
+ℹ [@hydra/harness-message-feedback] 2 files, total: 18.31 kB
+ℹ [@hydra/harness-tool-terminal] lib\index.js      18.59 kB │ gzip: 5.10 kB
+ℹ [@hydra/harness-tool-terminal] lib\invariant.js   0.93 kB │ gzip: 0.51 kB
+ℹ [@hydra/harness-tool-terminal] 2 files, total: 19.52 kB
+ℹ [@hydra/harness-subagent-sdk] lib\index.js      8.63 kB │ gzip: 3.29 kB
+ℹ [@hydra/harness-subagent-sdk] lib\invariant.js  0.94 kB │ gzip: 0.50 kB
+ℹ [@hydra/harness-subagent-sdk] 2 files, total: 9.57 kB
+ℹ [@hydra/harness-web-search-exa] lib\index.js      6.38 kB │ gzip: 2.45 kB
+ℹ [@hydra/harness-web-search-exa] lib\invariant.js  0.90 kB │ gzip: 0.48 kB
+ℹ [@hydra/harness-web-search-exa] 2 files, total: 7.28 kB
+ℹ [@hydra/harness-workflow-worker-thread] [CJS] lib\worker.cjs  32.06 kB │ gzip: 9.87 kB
+ℹ [@hydra/harness-workflow-worker-thread] [CJS] 1 files, total: 32.06 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - tsdown:deps (57%)
+  - hydra-typert-generator (39%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - hydra-typert-generator (51%)
+  - tsdown:deps (42%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - hydra-typert-generator (60%)
+  - tsdown:deps (37%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - hydra-typert-generator (70%)
+  - tsdown:deps (27%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - hydra-typert-generator (65%)
+  - tsdown:deps (32%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `hydra-typert-generator`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - tsdown:deps (62%)
+  - hydra-typert-generator (33%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - hydra-typert-generator (56%)
+  - tsdown:deps (42%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - hydra-typert-generator (60%)
+  - tsdown:deps (36%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - tsdown:deps (64%)
+  - hydra-typert-generator (31%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - hydra-typert-generator (67%)
+  - tsdown:deps (30%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - hydra-typert-generator (51%)
+  - tsdown:deps (46%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `hydra-typert-generator`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `hydra-typert-generator`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@hydra/harness-shell] Build complete in 52568ms
+✔ [@hydra/harness-sandbox-local] Build complete in 52568ms
+✔ [@hydra/harness-tool-browser] Build complete in 52569ms
+✔ [@hydra/harness-tool-pwsh] Build complete in 52569ms
+✔ [@hydra/harness-hooks-claude-code] Build complete in 52569ms
+✔ [@hydra/harness-tool-goal] Build complete in 52569ms
+✔ [@hydra/harness-skill] Build complete in 52569ms
+✔ [@hydra/harness-loader-smoke] Build complete in 52569ms
+✔ [@hydra/harness-api-remotes] Build complete in 52569ms
+✔ [@hydra/harness-session-query] Build complete in 52569ms
+✔ [@hydra/harness-session-stats] Build complete in 52569ms
+✔ [@hydra/harness-obsidian-knowledge] Build complete in 52569ms
+✔ [@hydra/harness-session] Build complete in 52569ms
+✔ [@hydra/harness-agent] Build complete in 52569ms
+✔ [@hydra/harness-spill-local] Build complete in 52569ms
+ℹ [@hydra/harness-llm] lib\index.js      67.79 kB │ gzip: 20.23 kB
+ℹ [@hydra/harness-llm] lib\invariant.js   3.39 kB │ gzip:  1.34 kB
+ℹ [@hydra/harness-llm] lib\proxy.js       2.67 kB │ gzip:  1.06 kB
+ℹ [@hydra/harness-llm] 3 files, total: 73.85 kB
+ℹ [@hydra/harness-time-context] lib\invariant.js  15.28 kB │ gzip: 5.51 kB
+ℹ [@hydra/harness-time-context] 1 files, total: 15.28 kB
+ℹ [@hydra/harness-time-context] lib\index.js  17.05 kB │ gzip: 6.06 kB
+ℹ [@hydra/harness-time-context] 1 files, total: 17.05 kB
+✔ [@hydra/harness-storage-domain] Build complete in 52571ms
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - tsdown:deps (61%)
+  - hydra-typert-generator (36%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `hydra-typert-generator`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@hydra/harness-cordis-host-runner] Build complete in 52577ms
+✔ [@hydra/harness-compaction-tool-result-pruner] Build complete in 52577ms
+✔ [@hydra/harness-fs-sandbox] Build complete in 52577ms
+ℹ [@hydra/harness-tools] lib\index.js      151.90 kB │ gzip: 44.46 kB
+ℹ [@hydra/harness-tools] lib\invariant.js    4.75 kB │ gzip:  1.45 kB
+ℹ [@hydra/harness-tools] 2 files, total: 156.64 kB
+ℹ [@hydra/harness-fs-review] lib\index.js      13.46 kB │ gzip: 4.31 kB
+ℹ [@hydra/harness-fs-review] lib\client.js      1.42 kB │ gzip: 0.64 kB
+ℹ [@hydra/harness-fs-review] lib\invariant.js   0.46 kB │ gzip: 0.29 kB
+ℹ [@hydra/harness-fs-review] 3 files, total: 15.34 kB
+ℹ [@hydra/harness-agent-loop] lib\index.js  47.97 kB │ gzip: 13.46 kB
+ℹ [@hydra/harness-agent-loop] 1 files, total: 47.97 kB
+ℹ [@hydra/harness-storage-json] lib\index.js      10.55 kB │ gzip: 3.50 kB
+ℹ [@hydra/harness-storage-json] lib\invariant.js   1.00 kB │ gzip: 0.54 kB
+ℹ [@hydra/harness-storage-json] 2 files, total: 11.55 kB
+ℹ [@hydra/harness-tool-fs] lib\index.js      46.99 kB │ gzip: 13.73 kB
+ℹ [@hydra/harness-tool-fs] lib\invariant.js   0.88 kB │ gzip:  0.48 kB
+ℹ [@hydra/harness-tool-fs] 2 files, total: 47.87 kB
+ℹ [@hydra/harness-session-persistence-sqlite] lib\index.js      45.32 kB │ gzip: 12.23 kB
+ℹ [@hydra/harness-session-persistence-sqlite] lib\invariant.js   0.95 kB │ gzip:  0.50 kB
+ℹ [@hydra/harness-session-persistence-sqlite] 2 files, total: 46.26 kB
+ℹ [@hydra/harness-subagent-in-process-driver] lib\index.js      10.31 kB │ gzip: 3.86 kB
+ℹ [@hydra/harness-subagent-in-process-driver] lib\invariant.js   0.95 kB │ gzip: 0.49 kB
+ℹ [@hydra/harness-subagent-in-process-driver] 2 files, total: 11.26 kB
+ℹ [@hydra/harness-token-meter] lib\index.js      29.38 kB │ gzip: 8.09 kB
+ℹ [@hydra/harness-token-meter] lib\invariant.js   1.44 kB │ gzip: 0.77 kB
+ℹ [@hydra/harness-token-meter] 2 files, total: 30.82 kB
+ℹ [@hydra/harness-attachment-local] lib\index.js      13.73 kB │ gzip: 4.51 kB
+ℹ [@hydra/harness-attachment-local] lib\invariant.js   0.83 kB │ gzip: 0.45 kB
+ℹ [@hydra/harness-attachment-local] 2 files, total: 14.57 kB
+ℹ [@hydra/harness-session-persistence-jsonl] lib\index.js      57.30 kB │ gzip: 16.02 kB
+ℹ [@hydra/harness-session-persistence-jsonl] lib\invariant.js   0.97 kB │ gzip:  0.49 kB
+ℹ [@hydra/harness-session-persistence-jsonl] 2 files, total: 58.27 kB
+ℹ [@hydra/harness-pwsh-local] lib\index.js      16.05 kB │ gzip: 5.76 kB
+ℹ [@hydra/harness-pwsh-local] lib\invariant.js   0.89 kB │ gzip: 0.48 kB
+ℹ [@hydra/harness-pwsh-local] 2 files, total: 16.94 kB
+✔ [@hydra/harness-experimental-agent-team] Build complete in 52581ms
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `hydra-typert-generator`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@hydra/harness-subagent-acp] Build complete in 52584ms
+✔ [@hydra/harness-session-projection-cache] Build complete in 52584ms
+✔ [@hydra/harness-acp] Build complete in 52585ms
+✔ [@hydra/harness-sandbox] Build complete in 52585ms
+✔ [@hydra/harness-agent-spine-demo] Build complete in 52585ms
+✔ [@hydra/harness-session-query-sqlite] Build complete in 52585ms
+✔ [@hydra/harness-session-reference] Build complete in 52585ms
+✔ [@hydra/harness-sdk-jsonrpc-server] Build complete in 52585ms
+✔ [@hydra/harness-compaction-basic] Build complete in 52585ms
+✔ [@hydra/harness-tool-lsp] Build complete in 52585ms
+✔ [@hydra/harness-personalization] Build complete in 52585ms
+✔ [@hydra/harness-web] Build complete in 52585ms
+✔ [@hydra/harness-storage-sqlite] Build complete in 52585ms
+✔ [@hydra/harness-web-search-perplexity] Build complete in 52585ms
+✔ [@hydra/harness-web-search-deepseek] Build complete in 52585ms
+✔ [@hydra/harness-terminal-bash] Build complete in 52585ms
+✔ [@hydra/harness-hooks-codex] Build complete in 52586ms
+✔ [@hydra/harness-tool-web] Build complete in 52586ms
+✔ [@hydra/harness-tool-fs-search] Build complete in 52586ms
+✔ [@hydra/harness-session-persistence] Build complete in 52586ms
+✔ [@hydra/harness-code-runtime-worker-thread] Build complete in 52586ms
+ℹ [@hydra/harness-subagent-codex] lib\index.js      32.35 kB │ gzip: 9.25 kB
+ℹ [@hydra/harness-subagent-codex] lib\invariant.js   0.88 kB │ gzip: 0.46 kB
+ℹ [@hydra/harness-subagent-codex] 2 files, total: 33.23 kB
+ℹ [@hydra/harness-sandbox-windows-acl] lib\runner.js           7.47 kB │ gzip:  2.88 kB
+ℹ [@hydra/harness-sandbox-windows-acl] lib\invariant.js        0.95 kB │ gzip:  0.51 kB
+ℹ [@hydra/harness-sandbox-windows-acl] lib\index.js            0.31 kB │ gzip:  0.19 kB
+ℹ [@hydra/harness-sandbox-windows-acl] lib\types-BGPptF0W.js  70.68 kB │ gzip: 20.32 kB
+ℹ [@hydra/harness-sandbox-windows-acl] 4 files, total: 79.42 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - hydra-typert-generator (65%)
+  - tsdown:deps (32%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `hydra-typert-generator`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `hydra-typert-generator`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@hydra/harness-lsp-stdio] Build complete in 52599ms
+✔ [@hydra/harness-subagent] Build complete in 52600ms
+✔ [@hydra/harness-sdk-client] Build complete in 52600ms
+✔ [@hydra/harness-workflow-worker-thread] Build complete in 52600ms
+✔ [@hydra/harness-bash-sandbox] Build complete in 52600ms
+ℹ [@hydra/harness-subagent-claude-code] lib\index.js      20.25 kB │ gzip: 6.21 kB
+ℹ [@hydra/harness-subagent-claude-code] lib\invariant.js   0.91 kB │ gzip: 0.46 kB
+ℹ [@hydra/harness-subagent-claude-code] 2 files, total: 21.15 kB
+ℹ [@hydra/harness-subprocess-local] lib\index.js      49.30 kB │ gzip: 14.87 kB
+ℹ [@hydra/harness-subprocess-local] lib\invariant.js   0.91 kB │ gzip:  0.48 kB
+ℹ [@hydra/harness-subprocess-local] 2 files, total: 50.21 kB
+ℹ [@hydra/harness-tool-cordis] lib\index.js      440.20 kB │ gzip: 99.31 kB
+ℹ [@hydra/harness-tool-cordis] lib\invariant.js    0.90 kB │ gzip:  0.48 kB
+ℹ [@hydra/harness-tool-cordis] 2 files, total: 441.10 kB
+ℹ [@hydra/harness-repeat-tool-reminder] lib\index.js      13.19 kB │ gzip: 5.20 kB
+ℹ [@hydra/harness-repeat-tool-reminder] lib\invariant.js   0.95 kB │ gzip: 0.49 kB
+ℹ [@hydra/harness-repeat-tool-reminder] 2 files, total: 14.15 kB
+ℹ [@hydra/harness-tmux-context] lib\index.js      14.23 kB │ gzip: 5.58 kB
+ℹ [@hydra/harness-tmux-context] lib\invariant.js   0.94 kB │ gzip: 0.51 kB
+ℹ [@hydra/harness-tmux-context] 2 files, total: 15.16 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `hydra-typert-generator`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `hydra-typert-generator`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - hydra-typert-generator (50%)
+  - tsdown:deps (50%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `hydra-typert-generator`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `hydra-typert-generator`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@hydra/harness-acp-snapshot] Build complete in 52604ms
+✔ [@hydra/harness-app-boot] Build complete in 52604ms
+✔ [@hydra/harness-page-memory] Build complete in 52604ms
+✔ [@hydra/harness-message-feedback] Build complete in 52605ms
+✔ [@hydra/harness-subagent-sdk] Build complete in 52604ms
+✔ [@hydra/harness-web-search-exa] Build complete in 52605ms
+✔ [@hydra/harness-workflow-worker-thread] Build complete in 52605ms
+✔ [@hydra/harness-tool-terminal] Build complete in 52605ms
+ℹ [@hydra/harness-web-fetch-http] lib\index.js      20.53 kB │ gzip: 7.02 kB
+ℹ [@hydra/harness-web-fetch-http] lib\invariant.js   0.90 kB │ gzip: 0.48 kB
+ℹ [@hydra/harness-web-fetch-http] 2 files, total: 21.43 kB
+ℹ [@hydra/harness-subprocess-e2b] lib\index.js      55.60 kB │ gzip: 13.94 kB
+ℹ [@hydra/harness-subprocess-e2b] lib\invariant.js   0.88 kB │ gzip:  0.48 kB
+ℹ [@hydra/harness-subprocess-e2b] 2 files, total: 56.48 kB
+ℹ [@hydra/harness-mcp-client] lib\index.js      33.17 kB │ gzip: 10.71 kB
+ℹ [@hydra/harness-mcp-client] lib\invariant.js   0.91 kB │ gzip:  0.49 kB
+ℹ [@hydra/harness-mcp-client] 2 files, total: 34.08 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `hydra-typert-generator`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - hydra-typert-generator (52%)
+  - tsdown:deps (44%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@hydra/harness-time-context] Build complete in 52610ms
+✔ [@hydra/harness-llm] Build complete in 52610ms
+✔ [@hydra/harness-time-context] Build complete in 52611ms
+ℹ [@hydra/harness-workspace] lib\index.js      29.44 kB │ gzip: 7.98 kB
+ℹ [@hydra/harness-workspace] lib\invariant.js   4.36 kB │ gzip: 1.76 kB
+ℹ [@hydra/harness-workspace] 2 files, total: 33.80 kB
+ℹ [@hydra/harness] lib\bin.js                     8.62 kB │ gzip: 3.10 kB
+ℹ [@hydra/harness] lib\profile-boot-f0iOl98O.js  12.08 kB │ gzip: 4.37 kB
+ℹ [@hydra/harness] lib\plugin-CxwNv1oB.js         5.93 kB │ gzip: 2.38 kB
+ℹ [@hydra/harness] lib\dump-config-aNu1UWsO.js    2.26 kB │ gzip: 0.98 kB
+ℹ [@hydra/harness] lib\profile-boot-VqzmPysD.js   0.09 kB │ gzip: 0.09 kB
+ℹ [@hydra/harness] 5 files, total: 28.98 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - hydra-typert-generator (69%)
+  - tsdown:deps (27%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `hydra-typert-generator`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@hydra/harness-tools] Build complete in 52618ms
+✔ [@hydra/harness-agent-loop] Build complete in 52618ms
+✔ [@hydra/harness-fs-review] Build complete in 52618ms
+✔ [@hydra/harness-storage-json] Build complete in 52618ms
+✔ [@hydra/harness-tool-fs] Build complete in 52619ms
+✔ [@hydra/harness-session-persistence-sqlite] Build complete in 52618ms
+✔ [@hydra/harness-subagent-in-process-driver] Build complete in 52619ms
+✔ [@hydra/harness-token-meter] Build complete in 52619ms
+✔ [@hydra/harness-attachment-local] Build complete in 52619ms
+✔ [@hydra/harness-session-persistence-jsonl] Build complete in 52619ms
+✔ [@hydra/harness-pwsh-local] Build complete in 52619ms
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `hydra-typert-generator`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@hydra/harness-subagent-codex] Build complete in 52621ms
+✔ [@hydra/harness-sandbox-windows-acl] Build complete in 52621ms
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@hydra/harness-subprocess-local] Build complete in 52621ms
+✔ [@hydra/harness-subagent-claude-code] Build complete in 52621ms
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `hydra-typert-generator`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@hydra/harness-tool-cordis] Build complete in 52622ms
+✔ [@hydra/harness-repeat-tool-reminder] Build complete in 52623ms
+✔ [@hydra/harness-tmux-context] Build complete in 52623ms
+✔ [@hydra/harness-web-fetch-http] Build complete in 52623ms
+✔ [@hydra/harness-subprocess-e2b] Build complete in 52624ms
+✔ [@hydra/harness-mcp-client] Build complete in 52623ms
+✔ [@hydra/harness-workspace] Build complete in 52624ms
+✔ [@hydra/harness] Build complete in 52625ms
+ℹ [@hydra/harness-host-directory-picker-native] [ESM] lib\index.js      10.87 kB │ gzip: 4.02 kB
+ℹ [@hydra/harness-host-directory-picker-native] [ESM] lib\invariant.js   0.93 kB │ gzip: 0.48 kB
+ℹ [@hydra/harness-host-directory-picker-native] [ESM] 2 files, total: 11.80 kB
+ℹ [@hydra/harness-fs-local] lib\index.js      40.58 kB │ gzip: 11.34 kB
+ℹ [@hydra/harness-fs-local] lib\invariant.js   0.88 kB │ gzip:  0.48 kB
+ℹ [@hydra/harness-fs-local] 2 files, total: 41.46 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `hydra-typert-generator`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@hydra/harness-host-directory-picker-native] Build complete in 52644ms
+ℹ [@hydra/harness-browser-electron] lib\index.js      69.83 kB │ gzip: 18.48 kB
+ℹ [@hydra/harness-browser-electron] lib\invariant.js   0.94 kB │ gzip:  0.50 kB
+ℹ [@hydra/harness-browser-electron] 2 files, total: 70.77 kB
+ℹ [@hydra/harness-host-apiproxy] lib\index.js      255.59 kB │ gzip: 62.46 kB
+ℹ [@hydra/harness-host-apiproxy] lib\invariant.js    1.14 kB │ gzip:  0.61 kB
+ℹ [@hydra/harness-host-apiproxy] 2 files, total: 256.73 kB
+✔ [@hydra/harness-fs-local] Build complete in 52681ms
+ℹ [@hydra/harness-file-reference-local] lib\index.js      13.65 kB │ gzip: 4.27 kB
+ℹ [@hydra/harness-file-reference-local] lib\invariant.js   0.93 kB │ gzip: 0.49 kB
+ℹ [@hydra/harness-file-reference-local] 2 files, total: 14.58 kB
+ℹ [@hydra/harness-llm-pi-ai] lib\index.js      104.57 kB │ gzip: 30.91 kB
+ℹ [@hydra/harness-llm-pi-ai] lib\invariant.js    0.88 kB │ gzip:  0.48 kB
+ℹ [@hydra/harness-llm-pi-ai] 2 files, total: 105.46 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - tsdown:deps (67%)
+  - hydra-typert-generator (33%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - tsdown:deps (78%)
+  - hydra-typert-generator (22%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@hydra/harness-host-apiproxy] Build complete in 52694ms
+✔ [@hydra/harness-browser-electron] Build complete in 52695ms
+✔ [@hydra/harness-llm-pi-ai] Build complete in 52695ms
+✔ [@hydra/harness-file-reference-local] Build complete in 52696ms
+ℹ [@hydra/harness-llm-deepseek] lib\index.js      38.67 kB │ gzip: 11.57 kB
+ℹ [@hydra/harness-llm-deepseek] lib\invariant.js   0.90 kB │ gzip:  0.48 kB
+ℹ [@hydra/harness-llm-deepseek] 2 files, total: 39.57 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `hydra-typert-generator`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@hydra/harness-llm-deepseek] Build complete in 52699ms
+ℹ [@hydra/harness-tool-session-query] lib\index.js      38.61 kB │ gzip: 9.26 kB
+ℹ [@hydra/harness-tool-session-query] lib\invariant.js   0.93 kB │ gzip: 0.49 kB
+ℹ [@hydra/harness-tool-session-query] 2 files, total: 39.54 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@hydra/harness-tool-session-query] Build complete in 52704ms
+ℹ [@hydra/harness-agent-presets] lib\index.js      55.41 kB │ gzip: 17.49 kB
+ℹ [@hydra/harness-agent-presets] lib\invariant.js  55.14 kB │ gzip: 17.30 kB
+ℹ [@hydra/harness-agent-presets] 2 files, total: 110.55 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@hydra/harness-agent-presets] Build complete in 52709ms
+ℹ [@hydra/harness-web-search-http] lib\index.js      14.95 kB │ gzip: 4.73 kB
+ℹ [@hydra/harness-web-search-http] lib\invariant.js   0.90 kB │ gzip: 0.47 kB
+ℹ [@hydra/harness-web-search-http] 2 files, total: 15.85 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+ℹ [@hydra/harness-agent-instructions] lib\index.js      52.80 kB │ gzip: 13.13 kB
+ℹ [@hydra/harness-agent-instructions] lib\invariant.js   0.94 kB │ gzip:  0.51 kB
+ℹ [@hydra/harness-agent-instructions] 2 files, total: 53.74 kB
+✔ [@hydra/harness-web-search-http] Build complete in 52822ms
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@hydra/harness-agent-instructions] Build complete in 52824ms
+
+> @hydra/harness-root@0.1.1-rc.1 lint:contracts-ready
+> tsx scripts/run-oxlint.ts .
+

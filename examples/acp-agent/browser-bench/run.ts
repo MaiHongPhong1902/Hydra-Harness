@@ -108,7 +108,7 @@ try {
         const message = createToolResultMessage({ callId, content: result.content, isError: result.isError })
         session.append('tool/result', { turn: 1, step, message, ...result.meta === undefined ? {} : { meta: result.meta } }, { surfaceOp: 'append' })
         session.append('step/end', { turn: 1, step })
-        calls.push({ tool: name, tabId: value.tabId, rawChars: outcome.state.header.length + outcome.state.content.length + outcome.state.footer.length, deliveredChars: value.header.length + value.content.length + value.footer.length, tokens: ctx.tokenMeter.estimateMessage(message), compact: value.compact, truncated: value.truncated, unchanged: 'unchanged' in value ? value.unchanged : value.mode === 'diff' && value.baseRevision === value.revision, isError: result.isError })
+        calls.push({ tool: name, tabId: value.tabId, rawChars: outcome.state.header.length + outcome.state.content.length + outcome.state.footer.length, deliveredChars: delivered.length, tokens: ctx.tokenMeter.estimateMessage(message), compact: value.compact, truncated: value.truncated, unchanged: 'unchanged' in value ? value.unchanged : value.mode === 'diff' && value.baseRevision === value.revision, isError: result.isError })
         assert.equal(JSON.stringify({ system: await ctx.systemPrompt.assemble(), tools: ctx.tools.schemas() }), prefix, `${scenario.name}: prefix changed`)
       }
       const tokensBeforePruning = ctx.tokenMeter.measure(session).totalTokens

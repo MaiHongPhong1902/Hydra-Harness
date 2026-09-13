@@ -12,10 +12,19 @@
 // styles as a constructed stylesheet because a sandboxed preload cannot load
 // Vite's emitted CSS asset.
 import { dirname, resolve } from 'node:path'
+import { execFileSync, spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 
 const here = dirname(fileURLToPath(import.meta.url))
+const pageAgent = resolve(here, 'third-party/page-agent')
+const patch = resolve(here, 'page-agent.patch')
+const gitOptions = { cwd: pageAgent, windowsHide: true }
+
+// The pinned upstream source needs Hydra's versioned cursor changes before bundling.
+if (spawnSync('git', ['apply', '--reverse', '--check', patch], gitOptions).status !== 0) {
+  execFileSync('git', ['apply', patch], gitOptions)
+}
 
 export default defineConfig({
   clearScreen: false,

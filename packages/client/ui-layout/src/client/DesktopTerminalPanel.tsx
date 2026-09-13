@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { FitAddon } from '@xterm/addon-fit'
 import { Terminal } from '@xterm/xterm'
+import type { WorkspaceId } from '@hydra/harness-client-runtime/client'
 import {
   IconChevronDownOutline14,
   IconChevronRightOutline14,
@@ -85,6 +86,7 @@ interface TerminalPaneItem {
 /** Individual split terminal pane running an independent xterm instance. */
 function SingleTerminalPane({
   id,
+  workspaceId,
   open,
   name,
   active,
@@ -95,6 +97,7 @@ function SingleTerminalPane({
   restartCount,
 }: {
   id: DesktopTerminalId
+  workspaceId: WorkspaceId | undefined
   open: boolean
   name: string
   active: boolean
@@ -124,7 +127,7 @@ function SingleTerminalPane({
     const attempt = ++startAttemptRef.current
     onStatusChange(id, { status: 'starting', exitCode: null })
     fit.fit()
-    void (async () => api.start(id, terminalSize(terminal)))().then((state) => {
+    void (async () => api.start(id, terminalSize(terminal), workspaceId))().then((state) => {
       if (!mountedRef.current || startAttemptRef.current !== attempt) return
       startingRef.current = false
       onStatusChange(id, { status: state.running ? 'running' : 'exited', exitCode: null })
@@ -136,7 +139,7 @@ function SingleTerminalPane({
       onStatusChange(id, { status: 'error', exitCode: null, error: message })
       terminal.writeln(`\r\n${message}`)
     })
-  }, [api, id, onStatusChange])
+  }, [api, id, onStatusChange, workspaceId])
 
   useEffect(() => {
     if (active && openRef.current) {
@@ -267,6 +270,7 @@ function SingleTerminalPane({
 export function DesktopTerminalPanel({
   open,
   terminalId = 'bottom',
+  workspaceId,
   terminalLabel,
   sessionTitle,
   embedded = false,
@@ -275,13 +279,14 @@ export function DesktopTerminalPanel({
 }: {
   open: boolean
   terminalId?: DesktopTerminalId
+  workspaceId?: WorkspaceId | undefined
   terminalLabel?: string | undefined
   sessionTitle?: string | undefined
   embedded?: boolean
   onQuote?: (text: string) => void
-  onNewTerminal?: () => void
+  onNewTerminal: () => void
 }) {
-  const isRight = terminalId !== 'bottom'
+  const isRight = !terminalId.startsWith('bottom')
   const api = window.hydraDesktop?.terminal
   const defaultShell = defaultShellName()
 
@@ -326,7 +331,7 @@ export function DesktopTerminalPanel({
 
   const handleSplit = (sourceId: DesktopTerminalId) => {
     const nextIndex = ++splitCounterRef.current
-    const base = terminalId === 'right' ? 'right-1' : terminalId
+    const base = terminalId === 'right' || terminalId === 'bottom' ? `${terminalId}-1` : terminalId
     const newId = `${base}-${nextIndex}` as DesktopTerminalId
     const newPane: TerminalPaneItem = { id: newId, name: defaultShell }
     setPanes(prev => [...prev, newPane])
@@ -441,13 +446,7 @@ export function DesktopTerminalPanel({
             className={css.headerIconButton}
             title="New Terminal"
             aria-label="New Terminal"
-            onClick={() => {
-              if (onNewTerminal !== undefined) {
-                onNewTerminal()
-              } else {
-                handleSplit(activePaneId)
-              }
-            }}
+            onClick={onNewTerminal}
           >
             <IconPlusOutline16 size={14} />
           </button>
@@ -474,6 +473,7 @@ export function DesktopTerminalPanel({
             >
               <SingleTerminalPane
                 id={pane.id}
+                workspaceId={workspaceId}
                 open={open}
                 name={pane.name}
                 active={pane.id === activePaneId}

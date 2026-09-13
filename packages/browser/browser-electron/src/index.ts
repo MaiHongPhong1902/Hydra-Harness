@@ -21,7 +21,7 @@ import { executePageAgentLlm } from './page-agent-llm.ts'
 import { BrowserError } from './types.ts'
 import type {
   ActionResult, BrowserAction, BrowserCdpCommandResult, BrowserCdpEventPage, BrowserHistorySearchEntry,
-  BrowserJsonValue, BrowserOutcome, BrowserScreenshot, BrowserState,
+  BrowserJsonValue, BrowserOutcome, BrowserPageIdentity, BrowserScreenshot, BrowserState,
 } from './types.ts'
 
 export { launchBrowser, resolveElectronPath } from './child.ts'
@@ -29,7 +29,8 @@ export type { BrowserChild, BrowserChildProcess, LaunchOptions, PageAgentLlmRequ
 export { BrowserError } from './types.ts'
 export type {
   ActionResult, BrowserAction, BrowserCdpCommandResult, BrowserCdpEvent, BrowserCdpEventPage, BrowserErrorCode,
-  BrowserFillField, BrowserHistorySearchEntry, BrowserJsonValue, BrowserOutcome, BrowserScreenshot, BrowserState,
+  BrowserSnapshotOptions, BrowserFillField, BrowserHistorySearchEntry, BrowserJsonValue,
+  BrowserOutcome, BrowserPageIdentity, BrowserScreenshot, BrowserState,
   BrowserTabState,
 } from './types.ts'
 
@@ -269,6 +270,22 @@ function historySearchResults(value: unknown): BrowserHistorySearchEntry[] {
   })
 }
 
+function browserPageIdentityOf(value: unknown): BrowserPageIdentity {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    throw new Error('embedded browser returned an invalid page identity')
+  }
+  const identity = value as Record<string, unknown>
+  if (typeof identity.url !== 'string' || identity.url.length === 0 || identity.url.length > 2_048
+    || typeof identity.title !== 'string' || identity.title.length > 512
+    || !Number.isSafeInteger(identity.tabId) || (identity.tabId as number) < 1
+    || !Number.isSafeInteger(identity.activeTabId) || (identity.activeTabId as number) < 1
+    || typeof identity.settled !== 'boolean') {
+    throw new Error('embedded browser returned an invalid page identity')
+  }
+  if (!URL.canParse(identity.url)) throw new Error('embedded browser returned an invalid page URL')
+  return identity as unknown as BrowserPageIdentity
+}
+
 function boundedCdpParams(method: string, params: unknown): Record<string, unknown> {
   if (method.length > 128 || !CDP_METHOD.test(method)) throw new Error('CDP method must use Domain.command syntax')
   if (CROSS_TARGET_CDP_DOMAINS.has(method.slice(0, method.indexOf('.')))) {
@@ -408,6 +425,7 @@ export class BrowserSessionService extends Service {
   })
 
   private readonly sessions = new Map<Agent, BrowserChild>()
+  private readonly browsingApprovals = new WeakMap<Agent, object>()
   private readonly launches = new Map<Agent, { ready: Promise<BrowserChild>; controller: AbortController }>()
   private readonly queues = new WeakMap<Agent, OwnerQueue>()
   private readonly ownerCleanups = new Map<Agent, () => Promise<void> | void>()
@@ -469,21 +487,22 @@ export class BrowserSessionService extends Service {
   /**
    * Do one thing to an owner's page and report the page afterwards.
    *
-   * The trailing state read is not a convenience: PageController indexes
-   * elements while building the tree, so the snapshot both answers the caller
-   * and leaves the next action addressable. Explicit targets are ordered per
-   * tab and may overlap across tabs; implicit and lifecycle actions are barriers.
+   * A captured snapshot refreshes numeric element indexes. With captureState
+   * false, the trailing read contains only page identity, tabs, loading, and
+   * dialogs; callers must observe the page before reusing numeric indexes.
+   * Explicit targets are ordered per tab; implicit and lifecycle actions are barriers.
    * @param owner - agent whose window this is; its first call starts one.
    * @param action - what to do, in page-agent's own vocabulary.
-   * @param execution - tool-call identity and cancellation for browser actions and permissions.
+   * @param execution - tool-call identity, cancellation, and optional captureState (default true).
    * @returns the action's report, omitted for a plain state read, plus the state.
    */
   async perform(
     owner: Agent,
     action: BrowserAction,
-    execution: BrowserExecutionContext = {},
+    execution: BrowserExecutionContext & { captureState?: boolean } = {},
   ): Promise<BrowserOutcome> {
     return this.serialized(owner, queueTabId(action), async () => {
+      execution.signal?.throwIfAborted()
       if (this.disposing) throw new BrowserError('the embedded browser is shutting down', 'BROWSER_DISPOSING')
       if (!this.browserSettings().controlEnabled) {
         throw new BrowserError('embedded browser control is disabled in settings', 'BROWSER_DISABLED')
@@ -540,10 +559,54 @@ export class BrowserSessionService extends Service {
         || prepared.method === 'select_text'
       const tabId = stateTabId(prepared)
       const state = await child.call('get_browser_state', {
+        ...execution.captureState === false ? { metadataOnly: true } : {},
+        ...prepared.method === 'get_browser_state' && prepared.snapshot !== undefined ? { snapshot: prepared.snapshot } : {},
         waitForReady,
         ...tabId === undefined ? {} : { tabId },
       }, execution.signal) as BrowserState
       return result === undefined ? { state } : { action: result, state }
+    })
+  }
+
+  /**
+   * Read one live tab's URL, title, and selection without refreshing its page state.
+   * Background reads without a call id fail closed when Browsing approval is set to `ask`.
+   * @param owner - agent whose open browser owns the tab.
+   * @param execution - tool-call identity and cancellation for the browsing approval.
+   * @param tabId - optional positive controlled-tab id; omission uses the selected tab.
+   * @returns live page metadata, or `undefined` when the owner has no open browser.
+   */
+  async currentPage(
+    owner: Agent,
+    execution: BrowserExecutionContext = {},
+    tabId?: number,
+  ): Promise<BrowserPageIdentity | undefined> {
+    if (tabId !== undefined && (!Number.isSafeInteger(tabId) || tabId < 1)) {
+      throw new Error('tabId must be a positive integer')
+    }
+    return this.serialized(owner, tabId, async () => {
+      execution.signal?.throwIfAborted()
+      const child = this.sessions.get(owner)
+      if (child === undefined) return undefined
+      if (this.disposing) throw new BrowserError('the embedded browser is shutting down', 'BROWSER_DISPOSING')
+      if (!this.browserSettings().controlEnabled) {
+        throw new BrowserError('embedded browser control is disabled in settings', 'BROWSER_DISABLED')
+      }
+      if (this.permissions().browsing === 'ask' && execution.callId === undefined) {
+        throw new BrowserError('reading the current page requires an active Browser call when browsing approval is enabled', 'BROWSER_POLICY_DENIED')
+      }
+      await this.approveBrowserPermission(owner, 'browsing', 'browser_current_page', undefined, execution)
+      execution.signal?.throwIfAborted()
+      this.checkPermission('browsing')
+      const identity = browserPageIdentityOf(await child.call(
+        'get_page_identity',
+        tabId === undefined ? {} : { tabId },
+        execution.signal,
+      ))
+      if (tabId !== undefined && identity.tabId !== tabId) {
+        throw new Error('embedded browser returned a page identity for the wrong tab')
+      }
+      return identity
     })
   }
 
@@ -622,13 +685,7 @@ export class BrowserSessionService extends Service {
       throw new Error('tabId must be a positive integer')
     }
     return this.serialized(owner, tabId, async () => {
-      if (this.disposing) throw new BrowserError('the embedded browser is shutting down', 'BROWSER_DISPOSING')
-      if (!this.browserSettings().controlEnabled) {
-        throw new BrowserError('embedded browser control is disabled in settings', 'BROWSER_DISABLED')
-      }
-      if (!this.fullCdpAccess) {
-        throw new BrowserError('full browser CDP access is disabled by settings or organization policy', 'BROWSER_POLICY_DENIED')
-      }
+      this.assertCdpAccess()
       await this.approveBrowserPermission(owner, 'browsing', 'browser_cdp_command', undefined, execution)
       if (method === 'DOM.setFileInputFiles' || method === 'Input.dispatchDragEvent') {
         throw new BrowserError('Use browser_upload_file for local file transfers.', 'BROWSER_POLICY_DENIED')
@@ -686,13 +743,7 @@ export class BrowserSessionService extends Service {
       throw new Error('tabId must be a positive integer')
     }
     return this.serialized(owner, options.tabId, async () => {
-      if (this.disposing) throw new BrowserError('the embedded browser is shutting down', 'BROWSER_DISPOSING')
-      if (!this.browserSettings().controlEnabled) {
-        throw new BrowserError('embedded browser control is disabled in settings', 'BROWSER_DISABLED')
-      }
-      if (!this.fullCdpAccess) {
-        throw new BrowserError('full browser CDP access is disabled by settings or organization policy', 'BROWSER_POLICY_DENIED')
-      }
+      this.assertCdpAccess()
       await this.approveBrowserPermission(owner, 'browsing', 'browser_cdp_read_events', undefined, execution)
       execution.signal?.throwIfAborted()
       const child = await this.session(owner, execution.signal)
@@ -744,6 +795,16 @@ export class BrowserSessionService extends Service {
     }
     await Promise.all([...children].map(async current => current.close()))
     return true
+  }
+
+  private assertCdpAccess(): void {
+    if (this.disposing) throw new BrowserError('the embedded browser is shutting down', 'BROWSER_DISPOSING')
+    if (!this.browserSettings().controlEnabled) {
+      throw new BrowserError('embedded browser control is disabled in settings', 'BROWSER_DISABLED')
+    }
+    if (!this.fullCdpAccess) {
+      throw new BrowserError('full browser CDP access is disabled by settings or organization policy', 'BROWSER_POLICY_DENIED')
+    }
   }
 
   /** Serialize one tab while letting different explicit tab targets overlap. */
@@ -923,20 +984,30 @@ export class BrowserSessionService extends Service {
     const policy = this.checkPermission(capability)
     this.ctx.logger.debug('browser permission: action=%s capability=%s decision=%s source=general', action, capability, policy)
     if (policy === 'allow') return
+    const related = capability === 'browsing' && execution.callId !== undefined
+      ? owner.session.events.findLast(event => event.type === 'tool/call'
+        ? event.data.callId === execution.callId
+        : event.type === 'tool/result' && event.data.message.source.callId === execution.callId)
+      : undefined
+    const call = related?.type === 'tool/call' ? related : undefined
+    // The logged invocation, rather than a reusable model id, owns this approval.
+    if (call !== undefined && this.browsingApprovals.get(owner) === call) return
+    const requestedAction = call?.data.name ?? action
     const approval = this.ctx.get('approval')
     if (approval === undefined) {
       throw new BrowserError(`${capability} requires approval, but no approval service is available`, 'BROWSER_POLICY_DENIED')
     }
     const outcome = await approval.request({
       agent: owner,
-      toolName: action,
-      reason: `Browser permissions: ${capability}. Action: ${action}.${context === undefined ? '' : ` ${context}`}`,
+      toolName: requestedAction,
+      reason: `Browser permissions: ${capability}. Action: ${requestedAction}.${context === undefined ? '' : ` ${context}`}`,
       ...execution,
     })
     execution.signal?.throwIfAborted()
     if (outcome !== 'allowed-once' || !this.browserSettings().controlEnabled || this.permissions()[capability] === 'block') {
       throw new BrowserError(`${capability} was not approved (${outcome})`, 'BROWSER_POLICY_DENIED')
     }
+    if (call !== undefined) this.browsingApprovals.set(owner, call)
   }
 
   /** Bind upload approval to the resolved file and destination. */

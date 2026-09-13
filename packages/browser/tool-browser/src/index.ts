@@ -6,6 +6,9 @@
  */
 
 import { Buffer } from 'node:buffer'
+import { isAbsolute, join } from 'node:path'
+import { tmpdir } from 'node:os'
+import { saveBrowserArtifact, validateFilename } from './artifact.ts'
 import type { Context } from '@hydra/cordis'
 import z from '@hydra/schemastery'
 import type { Agent } from '@hydra/harness-agent'
@@ -44,6 +47,14 @@ export const DEFAULT_BROWSER_TOOL_TIMEOUT_MS = 60_000
 export interface Config {
   /** Cap on the element-list characters one call returns. Defaults to 16000. */
   maxStateChars?: number
+  /** Include trailing page snapshots; explicit reads always return their snapshot. */
+  snapshotMode?: 'full' | 'none'
+  /** Return screenshot image blocks, or save evidence without sending image input. */
+  imageResponses?: 'allow' | 'omit'
+  /** Default minimum severity for browser_console_messages. */
+  consoleLevel?: 'error' | 'warning' | 'info' | 'debug'
+  /** Absolute directory for private per-call browser artifacts. */
+  outputDir?: string
   /** Cooperative tool-call budget (ms) per browser action. Defaults to 60000. */
   timeoutMs?: number
 }
@@ -51,6 +62,10 @@ export interface Config {
 export const Config: z<Config> = z.object({
   maxStateChars: z.number().step(1).min(1).default(DEFAULT_MAX_STATE_CHARS),
   timeoutMs: z.number().step(1).min(1).default(DEFAULT_BROWSER_TOOL_TIMEOUT_MS),
+  snapshotMode: z.union(['full', 'none'] as const).default('full'),
+  imageResponses: z.union(['allow', 'omit'] as const).default('allow'),
+  consoleLevel: z.union(['error', 'warning', 'info', 'debug'] as const).default('error'),
+  outputDir: z.string(),
 })
 
 /**
@@ -67,6 +82,7 @@ const OUTPUT_SCHEMA = {
       properties: {
         success: { type: 'boolean', required: true },
         message: { type: 'string', required: true },
+        selectedText: { type: 'string' },
       },
     },
     url: { type: 'string', required: true },
@@ -97,6 +113,8 @@ const OUTPUT_SCHEMA = {
     compact: { type: 'boolean', required: true },
     unchanged: { type: 'boolean', required: true },
     mode: { type: 'string', enum: ['full', 'diff'] },
+    response: { type: 'string', enum: ['state', 'result', 'none'] },
+    filename: { type: 'string' },
     revision: { type: 'integer' },
     baseRevision: { type: 'integer' },
     added: { type: 'array', items: { type: 'string' } },
@@ -174,17 +192,7 @@ const CDP_EVENTS_OUTPUT = {
 const TABS_OUTPUT = {
   schema: {
     type: 'array',
-    items: {
-      type: 'object',
-      additionalProperties: false,
-      properties: {
-        id: { type: 'integer', required: true },
-        url: { type: 'string', required: true },
-        title: { type: 'string', required: true },
-        status: { type: 'string', required: true, enum: ['loading', 'complete'] },
-        active: { type: 'boolean', required: true },
-      },
-    },
+    items: OUTPUT_SCHEMA.properties.tabs.items,
   } as const,
   render: (_args: unknown, value: BrowserToolValue['tabs']) => [{
     type: 'text' as const,
@@ -194,8 +202,10 @@ const TABS_OUTPUT = {
 
 /** Durable value retained for a model-facing Browser screenshot result. */
 export interface BrowserScreenshotValue extends Pick<BrowserScreenshot, 'tabId' | 'url' | 'title' | 'capturedAt'> {
+  filename?: string
+  omitImage?: boolean
   image: {
-    attachmentId: string
+    attachmentId?: string
     mediaType: 'image/png'
     bytes: number
     width: number
@@ -208,9 +218,9 @@ function screenshotContent(value: BrowserScreenshotValue): ContentBlock[] {
   return [
     {
       type: 'text',
-      text: `Browser screenshot of tab [${value.tabId}] — ${value.title || value.url}\n${value.url}\n${value.image.width}x${value.image.height} px, ${value.image.bytes} bytes`,
+      text: `${value.filename === undefined ? '' : `Saved screenshot: ${value.filename}\n`}Browser screenshot of tab [${value.tabId}] — ${value.title || value.url}\n${value.url}\n${value.image.width}x${value.image.height} px, ${value.image.bytes} bytes`,
     },
-    { type: 'image', attachment: { ...value.image, attachmentId: AttachmentId(value.image.attachmentId) } },
+    ...value.image.attachmentId === undefined || value.omitImage === true ? [] : [{ type: 'image' as const, attachment: { ...value.image, attachmentId: AttachmentId(value.image.attachmentId) } }],
   ]
 }
 
@@ -223,12 +233,14 @@ const SCREENSHOT_OUTPUT = {
       url: { type: 'string', required: true },
       title: { type: 'string', required: true },
       capturedAt: { type: 'string', required: true },
+      filename: { type: 'string' },
+      omitImage: { type: 'boolean' },
       image: {
         type: 'object',
         additionalProperties: false,
         required: true,
         properties: {
-          attachmentId: { type: 'string', required: true },
+          attachmentId: { type: 'string' },
           mediaType: { type: 'string', enum: ['image/png'], required: true },
           bytes: { type: 'integer', required: true },
           width: { type: 'integer', required: true },
@@ -269,15 +281,22 @@ const NAME_PARAMETER = {
   description: 'Visible label, accessible name, placeholder, or id from the latest snapshot. Use instead of index when the control is named.',
 } as const
 
+const TARGET_PARAMETER = { type: 'string', description: 'Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name.' } as const
+const FILENAME_PARAMETER = { type: 'string', description: 'Plain filename for a private output artifact; returns its absolute path instead of the data.' } as const
+
 const INDEX_OR_NAME_INDEX = {
   type: 'integer',
   description: 'Element index from the latest browser result. Provide this or name.',
 } as const
 
-type NamedTarget = { index?: number; name?: string }
+type NamedTarget = { index?: number; name?: string; target?: string }
 
 function namedTarget(args: NamedTarget): NamedTarget {
   const name = args.name?.trim()
+  if (args.target !== undefined) {
+    if (!args.target.trim() || args.index !== undefined || name !== undefined) throw new Error('provide target alone, or index/name')
+    return { target: args.target.trim() }
+  }
   if (args.index === undefined && (name === undefined || name.length === 0)) {
     throw new Error('provide index or a non-empty name')
   }
@@ -313,34 +332,40 @@ async function assertScreenshotRoute(ctx: Context, exec: ToolExecution): Promise
   }
 }
 
-/** Register the attachment-backed visual read while a durable store is mounted. */
-function applyScreenshotTool(ctx: Context, timeoutMs: number): void {
+/** Register viewport capture with optional durable image delivery. */
+function applyScreenshotTool(ctx: Context, timeoutMs: number, outputDir: string, imageResponses: 'allow' | 'omit'): void {
   const register = (name: string): void => { ctx.tools.register(defineTool({
     name,
-    description: 'Capture the visible viewport of the currently selected controlled HTTP(S) page and return it as an image. It cannot target a background tab or browser chrome.',
-    parameters: {},
+    description: 'Capture the selected controlled HTTP(S) viewport. A filename saves PNG evidence without image input; otherwise imageResponses selects image delivery. Switch tabs before capture.',
+    parameters: { filename: FILENAME_PARAMETER },
     output: SCREENSHOT_OUTPUT,
     timeoutMs,
-    async execute(_args, exec): Promise<BrowserScreenshotValue> {
+    async execute(args: { filename?: string }, exec): Promise<BrowserScreenshotValue> {
+      if (args.filename !== undefined) validateFilename(args.filename)
+      const omitImage = imageResponses === 'omit' || args.filename !== undefined
       const owner = requireAgent(exec.agent)
       const attachments = ctx.get('attachments')
-      if (attachments === undefined) throw new Error('cannot take a browser screenshot: no attachment service is mounted')
-      if (!attachments.imageLimits.mediaTypes.includes('image/png')) {
+      if (!omitImage && attachments === undefined) throw new Error('cannot take a browser screenshot: no attachment service is mounted; provide filename to save PNG evidence')
+      if (!omitImage && attachments !== undefined && !attachments.imageLimits.mediaTypes.includes('image/png')) {
         throw new Error('cannot take a browser screenshot: PNG images are not accepted by this deployment')
       }
-      await assertScreenshotRoute(ctx, exec)
+      if (!omitImage) await assertScreenshotRoute(ctx, exec)
       exec.signal.throwIfAborted()
       const screenshot = await ctx.browsers.takeScreenshot(owner, { callId: exec.callId, signal: exec.signal })
       exec.signal.throwIfAborted()
-      const [image] = await attachments.saveImages([{
-        data: Buffer.from(screenshot.data, 'base64'),
-        mediaType: 'image/png',
-        name: `browser-tab-${screenshot.tabId}.png`,
-      }])
-      if (image === undefined) throw new Error('cannot take a browser screenshot: attachment store returned no image')
-      if (image.mediaType !== 'image/png') {
-        throw new Error('cannot take a browser screenshot: attachment store returned a non-PNG image')
+      if (omitImage) {
+        const filename = await saveBrowserArtifact(outputDir, args.filename ?? 'screenshot.png', Buffer.from(screenshot.data, 'base64'), exec.signal)
+        return {
+          filename, omitImage: true, tabId: screenshot.tabId, url: screenshot.url,
+          title: screenshot.title, capturedAt: screenshot.capturedAt,
+          image: { mediaType: 'image/png', bytes: screenshot.bytes, width: screenshot.width, height: screenshot.height },
+        }
       }
+      if (attachments === undefined) throw new Error('attachment service was unmounted during capture')
+      const [image] = await attachments.saveImages([{
+        data: Buffer.from(screenshot.data, 'base64'), mediaType: 'image/png', name: `browser-tab-${screenshot.tabId}.png`,
+      }])
+      if (image === undefined || image.mediaType !== 'image/png') throw new Error('attachment store did not return a PNG image')
       return {
         tabId: screenshot.tabId,
         url: screenshot.url,
@@ -373,23 +398,56 @@ export function apply(ctx: Context, config: Config = {}): void {
     throw new Error('tool-browser: timeoutMs must be a positive integer')
   }
 
+  const outputDir = config.outputDir ?? join(tmpdir(), 'hydra-browser-output')
+  if (!isAbsolute(outputDir)) throw new Error('tool-browser: outputDir must be absolute')
+  const snapshotMode = config.snapshotMode ?? 'full'
+  const imageResponses = config.imageResponses ?? 'allow'
+  const consoleLevel = config.consoleLevel ?? 'error'
+  if (!['full', 'none'].includes(snapshotMode) || !['allow', 'omit'].includes(imageResponses)
+    || !['error', 'warning', 'info', 'debug'].includes(consoleLevel)) throw new Error('invalid browser output configuration')
+
   const previousContent = new WeakMap<Agent, Map<number, { url: string; content: string; revision: number; elements: string[] }>>()
 
-  const run = async (exec: ToolExecution, action: BrowserAction): Promise<BrowserToolValue> => {
+  const run = async (exec: ToolExecution, action: BrowserAction, filename?: string): Promise<BrowserToolValue> => {
+    if (filename !== undefined) validateFilename(filename)
     const owner = requireAgent(exec.agent)
+    const resultOnly = ['find_element', 'console_messages', 'network_requests', 'network_request'].includes(action.method)
+    const explicitRead = action.method === 'get_browser_state'
+    const omitted = resultOnly || (!explicitRead && snapshotMode === 'none')
     const outcome = await ctx.browsers.perform(owner, action, {
       callId: exec.callId,
       signal: exec.signal,
+      ...omitted ? { captureState: false } : {},
     })
+    const projected = explicitRead && action.snapshot !== undefined
     const compact = !FULL_SNAPSHOT_METHODS.has(action.method)
     const perTab = previousContent.get(owner) ?? new Map<number, { url: string; content: string; revision: number; elements: string[] }>()
-    const previous = perTab.get(outcome.state.tabId)
+    const previous = omitted || projected ? undefined : perTab.get(outcome.state.tabId)
     const value = toValue(outcome, maxStateChars, {
       compact,
       ...previous === undefined ? {} : { previousContent: previous.content, previousUrl: previous.url },
       ...previous === undefined ? {} : { previousElements: previous.elements, previousRevision: previous.revision },
     })
-    perTab.set(outcome.state.tabId, {
+    if (omitted) {
+      value.response = resultOnly ? 'result' : 'none'
+      value.content = ''
+      value.header = ''
+      value.mode = 'full'
+      value.truncated = false
+    }
+    if (filename !== undefined && outcome.action?.success !== false) {
+      const data = resultOnly ? outcome.action?.message ?? '' : outcome.state.content
+      value.filename = await saveBrowserArtifact(outputDir, filename, data, exec.signal)
+      value.response = 'result'
+      value.content = ''
+      value.header = ''
+      if (value.action !== undefined) value.action = { success: value.action.success, message: 'Browser output saved.' }
+    }
+    if (value.action !== undefined && value.action.message.length > maxStateChars) {
+      value.action = { ...value.action, message: `${value.action.message.slice(0, maxStateChars)}\n(Output truncated. Narrow the search or use filename for diagnostic output.)` }
+    }
+    if (omitted || projected || filename !== undefined || value.truncated || !value.settled) perTab.delete(outcome.state.tabId)
+    else perTab.set(outcome.state.tabId, {
       url: outcome.state.url,
       content: rankElementList(dropIgnoredNodes(outcome.state.content)),
       elements: rankElementList(dropIgnoredNodes(outcome.state.content)).split('\n').filter(Boolean),
@@ -406,7 +464,7 @@ export function apply(ctx: Context, config: Config = {}): void {
     schema: OUTPUT_SCHEMA,
     render: (_args: unknown, value: BrowserToolValue) =>
       [{ type: 'text' as const, text: formatBrowserOutput(value) }],
-    presentationMeta: (_args: unknown, value: BrowserToolValue) => ({
+    presentationMeta: (_args: unknown, value: BrowserToolValue) => value.response === 'result' || value.response === 'none' ? {} : ({
       browser: {
         tabId: value.tabId,
         revision: value.revision ?? 1,
@@ -422,9 +480,7 @@ export function apply(ctx: Context, config: Config = {}): void {
     text: BROWSER_PROMPT_TEXT,
   })
 
-  ctx.inject(['attachments'], (screenshotCtx) => {
-    applyScreenshotTool(screenshotCtx, timeoutMs)
-  })
+  applyScreenshotTool(ctx, timeoutMs, outputDir, imageResponses)
 
   ctx.tools.register(defineTool({
     name: 'browser_close',
@@ -464,7 +520,7 @@ export function apply(ctx: Context, config: Config = {}): void {
 
   ctx.tools.register(defineTool({
     name: 'browser_state',
-    description: 'Re-read the current page of the embedded browser, with a bounded readiness wait for SPA or SSO transitions. Every other browser tool already returns fresh state.',
+    description: 'Re-read the current page of the embedded browser, with a bounded readiness wait for SPA or SSO transitions. Explicitly read state after omitted output or when fresh numeric indexes are needed.',
     parameters: { tab_id: TAB_ID_PARAMETER },
     output,
     timeoutMs,
@@ -475,11 +531,16 @@ export function apply(ctx: Context, config: Config = {}): void {
 
   ctx.tools.register(defineTool({
     name: 'browser_snapshot',
-    description: 'Return the current page as a Playwright-style accessibility snapshot with numbered refs.',
-    parameters: { tab_id: TAB_ID_PARAMETER },
+    description: 'Read a distilled accessibility tree, optionally scoped to a ref/selector, depth, or output file.',
+    parameters: { tab_id: TAB_ID_PARAMETER, target: TARGET_PARAMETER, depth: { type: 'integer', description: 'Maximum tree depth, zero or greater.' }, boxes: { type: 'boolean' }, filename: FILENAME_PARAMETER },
     output,
     timeoutMs,
-    execute: (args: TargetTabArgs, exec) => run(exec, { method: 'get_browser_state', ...tabTarget(args) }),
+    execute: (args: TargetTabArgs & { target?: string; depth?: number; boxes?: boolean; filename?: string }, exec) => {
+      if (args.depth !== undefined && (!Number.isSafeInteger(args.depth) || args.depth < 0)) throw new Error('depth must be a non-negative integer')
+      if (args.target !== undefined && !args.target.trim()) throw new Error('target must be non-empty')
+      const { tab_id: _tab, filename, ...snapshot } = args
+      return run(exec, { method: 'get_browser_state', snapshot, ...tabTarget(args) }, filename)
+    },
     isConcurrencySafe: targetsTab,
     presentCall: () => presentBrowserCall('Read accessibility snapshot'),
   }))
@@ -553,6 +614,7 @@ export function apply(ctx: Context, config: Config = {}): void {
           : args.action === 'select'
             ? await run(exec, { method: 'switch_to_tab', tabId: args.index ?? 0 })
             : await run(exec, { method: 'get_browser_state' })
+      previousContent.delete(requireAgent(exec.agent))
       if (outcome.action?.success === false) throw new Error(outcome.action.message)
       return outcome.tabs
     },
@@ -564,23 +626,23 @@ export function apply(ctx: Context, config: Config = {}): void {
     description: 'Click a control from the latest snapshot by index or by visible name. Indexes are reassigned after every action.',
     parameters: {
       index: INDEX_OR_NAME_INDEX,
-      name: NAME_PARAMETER,
+      name: NAME_PARAMETER, target: TARGET_PARAMETER,
       tab_id: TAB_ID_PARAMETER,
     },
     output,
     timeoutMs,
-    execute: (args: { index?: number; name?: string; tab_id?: number }, exec) =>
+    execute: (args: { index?: number; name?: string; target?: string; tab_id?: number }, exec) =>
       run(exec, { method: 'click_element', ...namedTarget(args), ...tabTarget(args) }),
     isConcurrencySafe: targetsTab,
-    presentCall: (args: { index?: number; name?: string }) => presentBrowserCall(
-      args.index === undefined ? `Click ${args.name}` : `Click [${args.index}]`,
+    presentCall: (args: { index?: number; name?: string; target?: string }) => presentBrowserCall(
+      args.index === undefined ? `Click ${args.name ?? args.target}` : `Click [${args.index}]`,
     ),
   }))
 
   ctx.tools.register(defineTool({
     name: 'browser_hover',
     description: 'Move the native browser pointer onto an observed accessibility ref or named control and return the resulting snapshot.',
-    parameters: { index: INDEX_OR_NAME_INDEX, name: NAME_PARAMETER, tab_id: TAB_ID_PARAMETER },
+    parameters: { index: INDEX_OR_NAME_INDEX, name: NAME_PARAMETER, target: TARGET_PARAMETER, tab_id: TAB_ID_PARAMETER },
     output,
     timeoutMs,
     execute: (args: NamedTarget & TargetTabArgs, exec) => run(exec, { method: 'hover_element', ...namedTarget(args), ...tabTarget(args) }),
@@ -669,12 +731,13 @@ export function apply(ctx: Context, config: Config = {}): void {
     name: 'browser_console_messages',
     description: 'Read retained console messages for this tab. Includes the selected level and more severe levels.',
     parameters: {
-      level: { type: 'string', enum: ['error', 'warning', 'info', 'debug'], description: 'Minimum severity. Defaults to info.' },
+      filename: FILENAME_PARAMETER,
+      level: { type: 'string', enum: ['error', 'warning', 'info', 'debug'], description: 'Minimum severity; omission uses the deployment consoleLevel.' },
       tab_id: TAB_ID_PARAMETER,
     },
     output,
     timeoutMs,
-    execute: (args: { level?: 'error' | 'warning' | 'info' | 'debug' } & TargetTabArgs, exec) => run(exec, { method: 'console_messages', level: args.level ?? 'info', ...tabTarget(args) }),
+    execute: (args: { filename?: string; level?: 'error' | 'warning' | 'info' | 'debug' } & TargetTabArgs, exec) => run(exec, { method: 'console_messages', level: args.level ?? consoleLevel, ...tabTarget(args) }, args.filename),
     isConcurrencySafe: targetsTab,
     presentCall: () => presentBrowserCall('Read browser console'),
   }))
@@ -682,10 +745,10 @@ export function apply(ctx: Context, config: Config = {}): void {
   ctx.tools.register(defineTool({
     name: 'browser_network_requests',
     description: 'List retained network requests for this tab with stable request indexes for browser_network_request.',
-    parameters: { static: { type: 'boolean', description: 'Include successful static resources. Defaults to false.' }, tab_id: TAB_ID_PARAMETER },
+    parameters: { filename: FILENAME_PARAMETER, filter: { type: 'string', description: 'URL regular expression, optionally /pattern/i.' }, static: { type: 'boolean', description: 'Include successful static resources. Defaults to false.' }, tab_id: TAB_ID_PARAMETER },
     output,
     timeoutMs,
-    execute: (args: { static?: boolean } & TargetTabArgs, exec) => run(exec, { method: 'network_requests', includeStatic: args.static ?? false, ...tabTarget(args) }),
+    execute: (args: { static?: boolean; filter?: string; filename?: string } & TargetTabArgs, exec) => run(exec, { method: 'network_requests', includeStatic: args.static ?? false, ...args.filter === undefined ? {} : { filter: args.filter }, ...tabTarget(args) }, args.filename),
     isConcurrencySafe: targetsTab,
     presentCall: () => presentBrowserCall('Read browser network requests'),
   }))
@@ -694,70 +757,59 @@ export function apply(ctx: Context, config: Config = {}): void {
     name: 'browser_network_request',
     description: 'Read headers or body for a retained network request from browser_network_requests. Bodies may expire from Chromium storage.',
     parameters: {
+      filename: FILENAME_PARAMETER,
       index: { type: 'integer', required: true, description: 'Request index from browser_network_requests.' },
       part: { type: 'string', enum: ['request-headers', 'request-body', 'response-headers', 'response-body'], description: 'Omit for request and response headers.' },
       tab_id: TAB_ID_PARAMETER,
     },
     output,
     timeoutMs,
-    execute: (args: { index: number; part?: 'request-headers' | 'request-body' | 'response-headers' | 'response-body' } & TargetTabArgs, exec) => {
+    execute: (args: { filename?: string; index: number; part?: 'request-headers' | 'request-body' | 'response-headers' | 'response-body' } & TargetTabArgs, exec) => {
       if (!Number.isSafeInteger(args.index) || args.index < 1) throw new Error('index must be a positive request index')
-      return run(exec, { method: 'network_request', index: args.index, ...tabTarget(args), ...args.part === undefined ? {} : { part: args.part } })
+      return run(exec, { method: 'network_request', index: args.index, ...tabTarget(args), ...args.part === undefined ? {} : { part: args.part } }, args.filename)
     },
     isConcurrencySafe: targetsTab,
     presentCall: (args: { index: number }) => presentBrowserCall(`Read browser request ${args.index}`),
   }))
 
-  ctx.tools.register(defineTool({
-    name: 'browser_upload_file',
-    description: 'Select one existing readable local file through an indexed HTML file input, including hidden inputs. Use an absolute path and the most recent element list. Uploads permission controls execution and approval for the file and HTTP(S) destination. This selects the file only; submit separately.',
-    parameters: {
-      index: { type: 'integer', required: true, description: 'Element index of the observed HTML file input, including a hidden chooser input.' },
-      path: { type: 'string', required: true, description: 'Absolute path of the local file to upload.' },
-      tab_id: TAB_ID_PARAMETER,
-    },
-    output,
-    timeoutMs,
-    execute: (args: { index: number; path: string; tab_id?: number }, exec) =>
-      run(exec, { method: 'upload_file', index: args.index, filePath: args.path, ...tabTarget(args) }),
-    isConcurrencySafe: targetsTab,
-    presentCall: (args: { index: number; path: string }) =>
-      presentBrowserCall(`Upload file through [${args.index}]`, args.path),
-  }))
-
-  ctx.tools.register(defineTool({
-    name: 'browser_file_upload',
-    description: 'Choose a local file through an accessibility ref, matching Playwright MCP semantics.',
-    parameters: {
-      index: { type: 'integer', required: true, description: 'Accessibility ref of the file input.' },
-      path: { type: 'string', required: true, description: 'Absolute path of the readable local file.' },
-      tab_id: TAB_ID_PARAMETER,
-    },
-    output,
-    timeoutMs,
-    execute: (args: { index: number; path: string; tab_id?: number }, exec) =>
-      run(exec, { method: 'upload_file', index: args.index, filePath: args.path, ...tabTarget(args) }),
-    isConcurrencySafe: targetsTab,
-    presentCall: (args: { index: number; path: string }) =>
-      presentBrowserCall(`Upload file through [${args.index}]`, args.path),
-  }))
+  for (const { name, description, indexDescription, pathDescription } of [
+    { name: 'browser_upload_file', description: 'Select one existing readable local file through an indexed HTML file input, including hidden inputs. Use an absolute path and the most recent element list. Uploads permission controls execution and approval for the file and HTTP(S) destination. This selects the file only; submit separately.', indexDescription: 'Element index of the observed HTML file input, including a hidden chooser input.', pathDescription: 'Absolute path of the local file to upload.' },
+    { name: 'browser_file_upload', description: 'Choose a local file through an accessibility ref, matching Playwright MCP semantics.', indexDescription: 'Accessibility ref of the file input.', pathDescription: 'Absolute path of the readable local file.' },
+  ]) {
+    ctx.tools.register(defineTool({
+      name,
+      description,
+      parameters: {
+        index: { type: 'integer', required: true, description: indexDescription },
+        path: { type: 'string', required: true, description: pathDescription },
+        tab_id: TAB_ID_PARAMETER,
+      },
+      output,
+      timeoutMs,
+      execute: (args: { index: number; path: string; tab_id?: number }, exec) =>
+        run(exec, { method: 'upload_file', index: args.index, filePath: args.path, ...tabTarget(args) }),
+      isConcurrencySafe: targetsTab,
+      presentCall: (args: { index: number; path: string }) =>
+        presentBrowserCall(`Upload file through [${args.index}]`, args.path),
+    }))
+  }
 
   ctx.tools.register(defineTool({
     name: 'browser_type',
     description: 'Type text into an input or textarea by index or visible name. Replaces whatever the field held; it does not append.',
     parameters: {
       index: INDEX_OR_NAME_INDEX,
-      name: NAME_PARAMETER,
+      name: NAME_PARAMETER, target: TARGET_PARAMETER,
       text: { type: 'string', required: true, description: 'Text to put in the field.' },
       tab_id: TAB_ID_PARAMETER,
     },
     output,
     timeoutMs,
-    execute: (args: { index?: number; name?: string; text: string; tab_id?: number }, exec) =>
+    execute: (args: { index?: number; name?: string; target?: string; text: string; tab_id?: number }, exec) =>
       run(exec, { method: 'input_text', ...namedTarget(args), text: args.text, ...tabTarget(args) }),
     isConcurrencySafe: targetsTab,
-    presentCall: (args: { index?: number; name?: string; text: string }) => presentBrowserCall(
-      args.index === undefined ? `Type into ${args.name}` : `Type into [${args.index}]`,
+    presentCall: (args: { index?: number; name?: string; target?: string; text: string }) => presentBrowserCall(
+      args.index === undefined ? `Type into ${args.name ?? args.target}` : `Type into [${args.index}]`,
       args.text,
     ),
   }))
@@ -767,17 +819,17 @@ export function apply(ctx: Context, config: Config = {}): void {
     description: 'Choose a dropdown option by the control\'s index or visible name and the option\'s visible label.',
     parameters: {
       index: INDEX_OR_NAME_INDEX,
-      name: NAME_PARAMETER,
+      name: NAME_PARAMETER, target: TARGET_PARAMETER,
       text: { type: 'string', required: true, description: 'Visible label of the option to choose.' },
       tab_id: TAB_ID_PARAMETER,
     },
     output,
     timeoutMs,
-    execute: (args: { index?: number; name?: string; text: string; tab_id?: number }, exec) =>
+    execute: (args: { index?: number; name?: string; target?: string; text: string; tab_id?: number }, exec) =>
       run(exec, { method: 'select_option', ...namedTarget(args), text: args.text, ...tabTarget(args) }),
     isConcurrencySafe: targetsTab,
-    presentCall: (args: { index?: number; name?: string; text: string }) => presentBrowserCall(
-      args.index === undefined ? `Select "${args.text}" in ${args.name}` : `Select "${args.text}" in [${args.index}]`,
+    presentCall: (args: { index?: number; name?: string; target?: string; text: string }) => presentBrowserCall(
+      args.index === undefined ? `Select "${args.text}" in ${args.name ?? args.target}` : `Select "${args.text}" in [${args.index}]`,
     ),
   }))
 
@@ -786,7 +838,7 @@ export function apply(ctx: Context, config: Config = {}): void {
     description: 'Select text across an element by index or visible name, or between explicit coordinates, animating the virtual cursor and updating the native DOM selection.',
     parameters: {
       index: INDEX_OR_NAME_INDEX,
-      name: NAME_PARAMETER,
+      name: NAME_PARAMETER, target: TARGET_PARAMETER,
       start_x: { type: 'number', description: 'Start X coordinate in CSS pixels.' },
       start_y: { type: 'number', description: 'Start Y coordinate in CSS pixels.' },
       end_x: { type: 'number', description: 'End X coordinate in CSS pixels.' },
@@ -796,24 +848,26 @@ export function apply(ctx: Context, config: Config = {}): void {
     output,
     timeoutMs,
     execute: (
-      args: { index?: number; name?: string; start_x?: number; start_y?: number; end_x?: number; end_y?: number; tab_id?: number },
+      args: NamedTarget & { start_x?: number; start_y?: number; end_x?: number; end_y?: number; tab_id?: number },
       exec,
     ) => {
-      const hasCoords = typeof args.start_x === 'number' && typeof args.end_x === 'number'
-      if (!hasCoords && args.index === undefined && (args.name?.trim().length ?? 0) === 0) {
+      const coordinates = [args.start_x, args.start_y, args.end_x, args.end_y]
+      const hasCoords = coordinates.some(value => value !== undefined)
+      if (!hasCoords && args.index === undefined && args.target === undefined && (args.name?.trim().length ?? 0) === 0) {
         throw new Error('provide index, a non-empty name, or start and end coordinates')
       }
-      return run(exec, {
-        method: 'select_text',
-        ...args.index === undefined ? {} : { index: args.index },
-        ...args.name === undefined || args.name.trim().length === 0 ? {} : { name: args.name.trim() },
-        ...hasCoords ? { startX: args.start_x, startY: args.start_y ?? 0, endX: args.end_x, endY: args.end_y ?? 0 } : {},
-        ...tabTarget(args),
-      })
+      if (hasCoords) {
+        if (args.start_x === undefined || args.start_y === undefined || args.end_x === undefined || args.end_y === undefined
+          || !coordinates.every(value => value !== undefined && Number.isFinite(value) && value >= 0)) {
+          throw new Error('provide all four finite, non-negative coordinates')
+        }
+        return run(exec, { method: 'select_text', startX: args.start_x, startY: args.start_y, endX: args.end_x, endY: args.end_y, ...tabTarget(args) })
+      }
+      return run(exec, { method: 'select_text', ...namedTarget(args), ...tabTarget(args) })
     },
     isConcurrencySafe: targetsTab,
-    presentCall: (args: { index?: number; name?: string }) => presentBrowserCall(
-      args.index !== undefined ? `Select text in [${args.index}]` : args.name !== undefined ? `Select text in ${args.name}` : 'Select text across range',
+    presentCall: (args: { index?: number; name?: string; target?: string }) => presentBrowserCall(
+      args.index !== undefined ? `Select text in [${args.index}]` : args.name !== undefined ? `Select text in ${args.name}` : args.target !== undefined ? `Select text in ${args.target}` : 'Select text across range',
     ),
   }))
 
@@ -867,39 +921,27 @@ export function apply(ctx: Context, config: Config = {}): void {
     presentCall: (args: { right: boolean }) => presentBrowserCall(`Scroll ${args.right ? 'right' : 'left'}`),
   }))
 
-  ctx.tools.register(defineTool({
-    name: 'browser_press',
-    description: 'Send one key to whatever the page has focused — Enter to submit a form, Tab to move on, Escape to dismiss.',
-    parameters: {
-      key: { type: 'string', required: true, description: 'Key name, such as Enter, Tab, Escape, or Backspace.' },
-      tab_id: TAB_ID_PARAMETER,
-    },
-    output,
-    timeoutMs,
-    execute: (args: { key: string; tab_id?: number }, exec) => {
-      if (args.key.trim().length === 0) throw new Error('key must be a non-empty string')
-      return run(exec, { method: 'press', key: args.key, ...tabTarget(args) })
-    },
-    isConcurrencySafe: targetsTab,
-    presentCall: (args: { key: string }) => presentBrowserCall(`Press ${args.key}`),
-  }))
-
-  ctx.tools.register(defineTool({
-    name: 'browser_press_key',
-    description: 'Press one keyboard key using the focused page control, matching Playwright MCP semantics.',
-    parameters: {
-      key: { type: 'string', required: true, description: 'Key name such as Enter, Tab, Escape, or Backspace.' },
-      tab_id: TAB_ID_PARAMETER,
-    },
-    output,
-    timeoutMs,
-    execute: (args: { key: string; tab_id?: number }, exec) => {
-      if (args.key.trim().length === 0) throw new Error('key must be a non-empty string')
-      return run(exec, { method: 'press', key: args.key, ...tabTarget(args) })
-    },
-    isConcurrencySafe: targetsTab,
-    presentCall: (args: { key: string }) => presentBrowserCall(`Press ${args.key}`),
-  }))
+  for (const { name, description, keyDescription } of [
+    { name: 'browser_press', description: 'Send one key to whatever the page has focused — Enter to submit a form, Tab to move on, Escape to dismiss.', keyDescription: 'Key name, such as Enter, Tab, Escape, or Backspace.' },
+    { name: 'browser_press_key', description: 'Press one keyboard key using the focused page control, matching Playwright MCP semantics.', keyDescription: 'Key name such as Enter, Tab, Escape, or Backspace.' },
+  ]) {
+    ctx.tools.register(defineTool({
+      name,
+      description,
+      parameters: {
+        key: { type: 'string', required: true, description: keyDescription },
+        tab_id: TAB_ID_PARAMETER,
+      },
+      output,
+      timeoutMs,
+      execute: (args: { key: string; tab_id?: number }, exec) => {
+        if (args.key.trim().length === 0) throw new Error('key must be a non-empty string')
+        return run(exec, { method: 'press', key: args.key, ...tabTarget(args) })
+      },
+      isConcurrencySafe: targetsTab,
+      presentCall: (args: { key: string }) => presentBrowserCall(`Press ${args.key}`),
+    }))
+  }
 
   ctx.tools.register(defineTool({
     name: 'browser_back',
@@ -936,19 +978,30 @@ export function apply(ctx: Context, config: Config = {}): void {
 
   ctx.tools.register(defineTool({
     name: 'browser_find',
-    description: 'Find controls matching a visible name, label, placeholder, or id in the current snapshot. Scrolls once if needed and returns matching indexes for the next action.',
+    description: 'Search the accessibility tree for text or regex. Returns matching snippets with observed refs and ancestor context, without a trailing page snapshot.',
     parameters: {
-      query: { type: 'string', required: true, description: 'Visible label, accessible name, placeholder, or id to search for.' },
+      text: { type: 'string', description: 'Case-insensitive text to find; provide text or regex.' },
+      regex: { type: 'string', description: 'Regular expression, optionally /pattern/i.' },
+      query: { type: 'string', description: 'Alias for text.' },
       tab_id: TAB_ID_PARAMETER,
     },
     output,
     timeoutMs,
-    execute: (args: { query: string; tab_id?: number }, exec) => {
-      if (args.query.trim().length === 0) throw new Error('query must be a non-empty string')
-      return run(exec, { method: 'find_element', query: args.query.trim(), ...tabTarget(args) })
+    execute: (args: { text?: string; query?: string; regex?: string; tab_id?: number }, exec) => {
+      if ([args.text, args.query, args.regex].filter(value => value !== undefined).length !== 1) throw new Error('provide exactly one of text, regex, or query')
+      const text = args.text ?? args.query
+      if (text !== undefined && !text.trim()) throw new Error('query must be a non-empty string')
+      if (args.regex !== undefined) {
+        const literal = /^\/(.*)\/([imsu]*)$/su.exec(args.regex)
+        if (!args.regex.trim()) throw new Error('regex must be non-empty')
+        new RegExp(literal?.[1] ?? args.regex, literal?.[2])
+      }
+      if (args.regex !== undefined) return run(exec, { method: 'find_element', regex: args.regex, ...tabTarget(args) })
+      if (text === undefined) throw new Error('provide exactly one of text, regex, or query')
+      return run(exec, { method: 'find_element', ...args.query === undefined ? { text } : { query: args.query }, ...tabTarget(args) })
     },
     isConcurrencySafe: targetsTab,
-    presentCall: (args: { query: string }) => presentBrowserCall('Find browser control', args.query),
+    presentCall: (args: { text?: string; query?: string; regex?: string }) => presentBrowserCall('Find browser control', args.text ?? args.regex ?? args.query),
   }))
 
   ctx.tools.register(defineTool({
@@ -964,7 +1017,7 @@ export function apply(ctx: Context, config: Config = {}): void {
           additionalProperties: false,
           properties: {
             index: INDEX_OR_NAME_INDEX,
-            name: NAME_PARAMETER,
+            name: NAME_PARAMETER, target: TARGET_PARAMETER,
             text: { type: 'string', required: true, description: 'Text to put in the field.' },
           },
         },
@@ -1000,7 +1053,7 @@ export function apply(ctx: Context, config: Config = {}): void {
           additionalProperties: false,
           properties: {
             index: INDEX_OR_NAME_INDEX,
-            name: NAME_PARAMETER,
+            name: NAME_PARAMETER, target: TARGET_PARAMETER,
             text: { type: 'string', required: true, description: 'Value to put in the field.' },
           },
         },

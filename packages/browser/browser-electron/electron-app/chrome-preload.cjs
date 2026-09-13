@@ -56,10 +56,14 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   const renderTabs = state => {
+    const focused = document.hasFocus() && tabs.contains(document.activeElement) ? document.activeElement : undefined
+    const focusedTab = focused?.closest('.tab')?.dataset.tabId
+    const focusedControl = focused?.className
     tabs.replaceChildren()
     for (const { id, title, favicon, isAudible, isMuted, isLoading } of state.tabs) {
       const tab = document.createElement('div')
       tab.className = 'tab'
+      tab.dataset.tabId = String(id)
       tab.setAttribute('aria-selected', String(id === state.activeTabId))
 
       // Tab icon / spinner
@@ -125,8 +129,13 @@ window.addEventListener('DOMContentLoaded', () => {
       })
 
       tabs.append(tab)
+      if (String(id) === focusedTab) {
+        Array.from(tab.children).find(element => element.className === focusedControl)?.focus({ preventScroll: true })
+      }
     }
-    tabs.querySelector('.tab[aria-selected="true"]')?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+    const selected = tabs.querySelector('.tab[aria-selected="true"]')
+    if (focused && !tabs.contains(document.activeElement)) selected?.querySelector('.tab-select')?.focus({ preventScroll: true })
+    selected?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
   }
 
   const renderBookmarks = (bookmarks = []) => {

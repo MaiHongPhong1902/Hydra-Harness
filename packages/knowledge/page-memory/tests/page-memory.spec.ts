@@ -1,0 +1,239 @@
+import { mkdtemp, readdir, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { afterEach, describe, expect, it } from 'vitest'
+import { Context } from '@hydra/cordis'
+import AgentRegistry, { Inbox, agentEvents } from '@hydra/harness-agent'
+import type { Agent } from '@hydra/harness-agent'
+import type { BrowserAction, BrowserPageIdentity } from '@hydra/harness-browser-electron'
+import { BrowserError } from '@hydra/harness-browser-electron'
+import { CallId, createToolResultMessage, createUserMessage } from '@hydra/harness-llm'
+import { Session, SessionId } from '@hydra/harness-session'
+import SystemPrompt from '@hydra/harness-system-prompt'
+import ToolRuntime from '@hydra/harness-tools'
+import * as ToolBrowser from '@hydra/harness-tool-browser'
+import * as PageMemory from '../src/index.ts'
+
+const cleanup: (() => Promise<void>)[] = []
+afterEach(async () => { for (const dispose of cleanup.splice(0).reverse()) await dispose() })
+
+const workflow = {
+  task: 'save_form', summary: 'Save the form.',
+  accountHint: 'Use a staff account with order-management access.',
+  anchors: [{ target: '#title', text: 'Orders' }],
+  locators: { search: '#search' },
+  steps: ['Fill the search field with the requested value.', 'Save the form.'],
+  successCheck: { target: '#status', text: 'Saved' },
+  pitfalls: ['Read dynamic order values from the live page.'],
+}
+
+async function harness(config: Partial<PageMemory.Config> = {}) {
+  const workspace = await mkdtemp(join(tmpdir(), 'hydra-page-memory-test-'))
+  cleanup.push(() => rm(workspace, { recursive: true, force: true }))
+  const root = new Context().plugin(() => {})
+  const ctx = root.ctx
+  cleanup.push(() => root.dispose())
+  await ctx.plugin(AgentRegistry)
+  await ctx.plugin(SystemPrompt)
+  await ctx.plugin(ToolRuntime)
+  let page: BrowserPageIdentity | undefined = {
+    url: 'https://shop.test/orders?tab=open#list', title: 'Orders', tabId: 1, activeTabId: 1, settled: true,
+  }
+  const regions = new Map([['#title', '- heading "Orders"'], ['#search', '- textbox "Search"'], ['#status', '- status: Pending']])
+  const reads: string[] = []
+  let explicitReadsOnly = false
+  const browser = {
+    experimentalScriptExecution: false, fullCdpAccess: false,
+    currentPage: (_agent: Agent, execution: { callId?: string } = {}) => {
+      if (explicitReadsOnly && execution.callId === undefined) throw new BrowserError('Approval requires an explicit call', 'BROWSER_POLICY_DENIED')
+      return Promise.resolve(page === undefined ? undefined : { ...page })
+    },
+    async perform(_agent: Agent, action: BrowserAction) {
+      if (page === undefined) throw new Error('No page')
+      if (action.method === 'navigate') page.url = action.url
+      if (action.method === 'click_element') regions.set('#status', '- status: Saved')
+      let content = [...regions.values()].join('\n')
+      if (action.method === 'get_browser_state' && action.snapshot?.target !== undefined) {
+        reads.push(action.snapshot.target)
+        const region = regions.get(action.snapshot.target)
+        if (region === undefined) throw new Error('Locator did not match exactly one element')
+        content = region
+      }
+      const state = {
+        ...page, content, header: '', footer: '', capturedAt: '2026-09-13T00:00:00.000Z',
+        tabs: [{ id: page.tabId, url: page.url, title: page.title, active: true, status: 'complete' as const }],
+      }
+      return action.method === 'get_browser_state' ? { state } : { state, action: { success: true, message: 'Action completed' } }
+    },
+    close: () => { page = undefined; return Promise.resolve(true) },
+  }
+  ctx.reflect.provide('browsers', browser)
+  await ctx.plugin(ToolBrowser)
+  const options = { workspaceDir: workspace, storageDir: join(workspace, 'memory'), role: 'operator', locale: 'en-US', ...config }
+  const fiber = ctx.plugin(PageMemory, options)
+  await fiber
+  const id = SessionId('page-memory-test')
+  const session = Session.create(id, undefined, { id, version: 0, createdAt: 0, cwd: workspace })
+  session.append('turn/start', { turn: 1 })
+  const agent: Agent = {
+    id, options: {}, session, ctx: ctx.plugin(() => {}).ctx, status: 'idle',
+    inbox: new Inbox(session, { inserted() {}, discarded() {}, claimed() {} }),
+    send() {}, followup() {}, inject() {}, cancel() {},
+    steer: () => ({ outcome: Promise.resolve({ status: 'rejected' }) }),
+    runMaintenance: task => task(new AbortController().signal), whenIdle: () => Promise.resolve(),
+  }
+  ctx.get('agents')!.register(agent)
+  let callIndex = 0
+  const call = (name: string, args: Record<string, unknown> = {}) => ctx.get('tools')!.execute({
+    signal: new AbortController().signal, callId: CallId(`call-${++callIndex}`), name, arguments: args, agent,
+  })
+  async function admit() {
+    const decision = await agentEvents(ctx, agent).waterfall('agent/pre-step', {
+      messages: [], turn: 1, step: callIndex + 1, signal: new AbortController().signal,
+    }, () => Promise.resolve({ kind: 'enter', messages: [] }))
+    if (decision.kind === 'enter') {
+      for (const message of decision.messages) session.append('user/message', message, { surfaceOp: 'append' })
+      return decision.messages
+    }
+    return []
+  }
+  return {
+    ctx, fiber, agent, session, workspace, options, reads, regions, call, admit,
+    requireExplicitReads: () => { explicitReadsOnly = true },
+    page: () => page!, setPage: (next: BrowserPageIdentity | undefined) => { page = next },
+  }
+}
+
+function context(result: Awaited<ReturnType<Awaited<ReturnType<typeof harness>>['call']>>) {
+  expect(result.isError, JSON.stringify(result.content)).toBe(false)
+  return result.content.filter(block => block.type === 'text').map(block => block.text).join('\n')
+}
+
+describe('verified page-memory integration', () => {
+  it('verifies a workflow, persists SQLite, recalls only its task, and logs each changed context once', async () => {
+    const h = await harness()
+    expect(context(await h.call('page_memory_get', { task: workflow.task }))).toContain('"status":"missing"')
+    await h.admit()
+    expect((await h.call('page_memory_upsert', workflow)).isError).toBe(true)
+    context(await h.call('browser_click', { target: '#save' }))
+    expect(context(await h.call('page_memory_upsert', workflow))).toContain('Page memory verified: save_form')
+    expect(h.reads).toEqual(expect.arrayContaining(['#title', '#search', '#status']))
+    const entered = await h.admit()
+    expect(JSON.stringify(entered)).toContain('Fill the search field')
+    expect(await h.admit()).toEqual([])
+    const scopes = await readdir(join(h.workspace, 'memory'))
+    expect(await readdir(join(h.workspace, 'memory', scopes[0]!))).toEqual(expect.arrayContaining(['page-memory.sqlite']))
+    expect(context(await h.call('page_memory_get', { task: 'another_task' }))).not.toContain('Fill the search field')
+    await h.fiber.dispose()
+    expect(h.ctx.get('tools')!.schemas().some(tool => tool.name === 'page_memory_get')).toBe(false)
+    await h.ctx.plugin(PageMemory, h.options)
+    expect(context(await h.call('page_memory_get', { task: workflow.task }))).toContain('"status":"verified"')
+    expect(context(await h.call('page_memory_get'))).toContain(workflow.accountHint)
+  })
+
+  it('rechecks manual tab/SPA changes, separates query routes, and hides stale instructions', async () => {
+    const h = await harness({ routes: [{ origin: 'https://shop.test', path: '/orders/:id' }] })
+    await h.call('page_memory_get', { task: workflow.task })
+    await h.admit()
+    await h.call('browser_click', { target: '#save' })
+    context(await h.call('page_memory_upsert', workflow))
+    await h.admit()
+    h.setPage({ ...h.page(), url: 'https://shop.test/orders?tab=payments#list', tabId: 2, activeTabId: 2 })
+    expect((await h.call('browser_click', { target: '#save' })).isError).toBe(true)
+    expect(JSON.stringify(await h.admit())).toContain('payments')
+    expect(context(await h.call('page_memory_get'))).toContain('"status":"missing"')
+    h.setPage({ ...h.page(), url: 'https://shop.test/orders?tab=open#list', tabId: 1, activeTabId: 1 })
+    h.regions.set('#title', '- heading "Invoices"')
+    const stale = context(await h.call('page_memory_get'))
+    expect(stale).toContain('"status":"stale"')
+    expect(stale).not.toContain('Fill the search field')
+    h.setPage(undefined)
+    expect(context(await h.call('page_memory_get'))).toContain('"status":"inactive"')
+  })
+
+  it('requires observed same-tab source anchors when saving a workflow ending on another route', async () => {
+    const h = await harness()
+    const sourceUrl = h.page().url
+    await h.call('page_memory_get', { task: workflow.task })
+    await h.admit()
+    context(await h.call('browser_snapshot', { target: '#title', depth: 1 }))
+    context(await h.call('browser_snapshot', { target: '#search', depth: 1 }))
+    h.page().url = 'https://shop.test/saved'
+    await h.admit()
+    context(await h.call('browser_click', { target: '#save' }))
+    expect((await h.call('page_memory_upsert', { ...workflow, sourceUrl: 'https://other.test/orders' })).isError).toBe(true)
+    context(await h.call('page_memory_upsert', { ...workflow, sourceUrl }))
+    h.page().url = sourceUrl
+    expect(context(await h.call('page_memory_get', { task: workflow.task }))).toContain('"status":"verified"')
+  })
+
+  it('rejects unverified success, transient refs, foreign workspaces, and oversized whole messages', async () => {
+    const h = await harness({ maxContextBytes: 256 })
+    await h.call('page_memory_get', { task: workflow.task })
+    await h.admit()
+    await h.call('browser_click', { target: '#save' })
+    h.regions.set('#status', '- status: Pending')
+    expect((await h.call('page_memory_upsert', workflow)).isError).toBe(true)
+    h.regions.set('#status', '- status: Saved')
+    expect((await h.call('page_memory_upsert', { ...workflow, locators: { save: 'e17' } })).isError).toBe(true)
+    expect((await h.call('page_memory_upsert', workflow)).isError).toBe(true)
+    expect(Buffer.byteLength(context(await h.call('page_memory_get', { task: 'a'.repeat(128) })))).toBeLessThanOrEqual(256)
+    const foreign = Session.create(SessionId('foreign'), undefined, { id: SessionId('foreign'), version: 0, createdAt: 0, cwd: tmpdir() })
+    const result = await h.ctx.get('tools')!.execute({ name: 'page_memory_get', arguments: {}, callId: CallId('foreign'), signal: new AbortController().signal, agent: { ...h.agent, session: foreign } })
+    expect(result.isError).toBe(true)
+  })
+
+  it('reinjects guidance removed by compaction and preserves verified records after a transient read failure', async () => {
+    const h = await harness()
+    await h.call('page_memory_get', { task: workflow.task })
+    await h.admit()
+    await h.call('browser_click', { target: '#save' })
+    context(await h.call('page_memory_upsert', workflow))
+    await h.admit()
+    const replaced = [...h.session.surface.nodes]
+    h.session.append('user/message', createUserMessage({
+      content: [{ type: 'text', text: 'Compacted task summary.' }], source: { kind: 'plugin', plugin: 'test-compaction' },
+    }), { surfaceOp: { op: 'replace', start: replaced[0]!, end: replaced.at(-1)! }, sourceEventSeqs: replaced })
+    expect(JSON.stringify(await h.admit())).toContain('Fill the search field')
+    h.regions.delete('#title')
+    expect(context(await h.call('page_memory_get'))).toContain('"status":"unavailable"')
+    h.regions.set('#title', '- heading "Orders"')
+    expect(context(await h.call('page_memory_get'))).toContain('"status":"verified"')
+  })
+
+  it('binds successful action evidence to the selected task and requires source observations before that action', async () => {
+    const h = await harness()
+    const sourceUrl = h.page().url
+    await h.call('page_memory_get', { task: workflow.task })
+    await h.admit()
+    context(await h.call('browser_click', { target: '#save' }))
+    expect((await h.call('page_memory_upsert', { ...workflow, task: 'different_task' })).isError).toBe(true)
+    h.page().url = 'https://shop.test/saved'
+    await h.admit()
+    context(await h.call('browser_click', { target: '#save' }))
+    h.page().url = sourceUrl
+    context(await h.call('browser_snapshot', { target: '#title' }))
+    context(await h.call('browser_snapshot', { target: '#search' }))
+    h.page().url = 'https://shop.test/saved'
+    expect((await h.call('page_memory_upsert', { ...workflow, sourceUrl })).isError).toBe(true)
+  })
+
+  it('uses a logged explicit read when background browsing requires approval, and still rechecks page changes', async () => {
+    const h = await harness()
+    h.requireExplicitReads()
+    expect(JSON.stringify(await h.admit())).toContain('unavailable')
+    const result = await h.call('page_memory_get', { task: workflow.task })
+    context(result)
+    const callId = CallId('approved-read')
+    const callSeq = h.session.events.length
+    h.session.append('tool/call', { turn: 1, step: 1, callId, name: 'page_memory_get', arguments: JSON.stringify({ task: workflow.task }) })
+    h.session.append('tool/result', {
+      turn: 1, step: 1, message: createToolResultMessage({ callId, content: result.content, isError: false }),
+    }, { surfaceOp: 'append', sourceEventSeqs: [callSeq] })
+    expect((await h.call('browser_click', { target: '#save' })).isError).toBe(true)
+    expect(JSON.stringify(await h.admit())).toContain('missing')
+    context(await h.call('browser_click', { target: '#save' }))
+    h.page().url = 'https://shop.test/other'
+    expect((await h.call('browser_click', { target: '#save' })).isError).toBe(true)
+  })
+})

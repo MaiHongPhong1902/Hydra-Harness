@@ -297,17 +297,39 @@ describe('launchBrowser requests', () => {
     expect(await call).toEqual({ url: 'about:blank' })
   })
 
-  it('times out a request the child never answers', async () => {
+  it('awaits cancellation of a timed-out request before reusing the child', async () => {
     const { fake, child } = await started({ actionTimeoutMs: 20 })
     const call = child.call('get_browser_state', {})
-    await fake.next()
-    await expect(call).rejects.toMatchObject({ code: 'BROWSER_TIMEOUT' })
-    // A late reply for an abandoned id must not disturb the next call.
+    const request = await fake.next()
+    const rejected = expect(call).rejects.toMatchObject({ code: 'BROWSER_TIMEOUT' })
+    expect(await fake.next()).toMatchObject({ method: 'cancel_browser_call', args: { id: request.id } })
+    fake.say({ id: request.id, ok: false, error: 'cancelled' })
+    await rejected
     fake.say({ id: 1, ok: true, result: 'late' })
     const next = child.call('back', {})
-    const request = await fake.next()
-    fake.say({ id: request.id, ok: true, result: 'fine' })
+    const nextRequest = await fake.next()
+    fake.say({ id: nextRequest.id, ok: true, result: 'fine' })
     expect(await next).toBe('fine')
+  })
+
+  it('stops an unresponsive child before rejecting its timed-out request', async () => {
+    vi.useFakeTimers()
+    try {
+      const { fake, child } = await started({ actionTimeoutMs: 20 })
+      fake.exitOnStdinEnd = false
+      const call = child.call('click_element', {})
+      const rejected = expect(call).rejects.toMatchObject({ code: 'BROWSER_TIMEOUT' })
+      const request = await fake.next()
+      await vi.advanceTimersByTimeAsync(20)
+      expect(await fake.next()).toMatchObject({ method: 'cancel_browser_call', args: { id: request.id } })
+      expect(fake.killed).toBe(false)
+      await vi.advanceTimersByTimeAsync(10_000)
+      await rejected
+      expect(fake.killed).toBe(true)
+      await expect(child.call('get_browser_state', {})).rejects.toMatchObject({ code: 'BROWSER_GONE' })
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('routes an upstream PageAgent model request through the host callback', async () => {
@@ -367,13 +389,14 @@ describe('launchBrowser requests', () => {
     const controller = new AbortController()
     const action = child.call('navigate', {}, controller.signal)
     const rejected = expect(action).rejects.toThrow('stopped')
-    await fake.next()
+    const request = await fake.next()
     fake.say({ event: 'browser:permission', id: 1, request: { kind: 'navigation', origin: 'https://example.test' } })
     controller.abort(new Error('stopped'))
-    await rejected
-    expect((await fake.next()).method).toBe('cancel_browser_permissions')
+    expect(await fake.next()).toMatchObject({ method: 'cancel_browser_call', args: { id: request.id } })
     answer.resolve('always')
     expect((await fake.next()).args).toEqual({ id: 1 })
+    fake.say({ id: request.id, ok: false, error: 'cancelled' })
+    await rejected
     await child.close()
   })
 

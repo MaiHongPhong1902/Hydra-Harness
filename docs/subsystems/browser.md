@@ -18,6 +18,24 @@ Ordinary browser actions keep a per-tab revision and return a structural diff wh
 
 ## Page state
 
+`currentPage` reads live metadata without refreshing the accessibility tree. It follows the Browsing policy; an `ask` policy requires an active tool call so background reads fail closed without opening an approval prompt.
+
+```ts type-equiv
+/** Live identity of one controlled page without an accessibility snapshot. */
+interface BrowserPageIdentity {
+  /** Address currently loaded in the page. */
+  url: string
+  /** Current document title. */
+  title: string
+  /** Controlled tab that supplied the identity. */
+  tabId: number
+  /** Tab selected in the visible browser chrome. */
+  activeTabId: number
+  /** Whether the tab's main frame is no longer loading. */
+  settled: boolean
+}
+```
+
 ```ts type-equiv
 /** Accessibility snapshot of the controlled page with stable action refs. */
 interface BrowserState {
@@ -37,7 +55,7 @@ interface BrowserState {
   tabId: number
   /** Tab currently selected in the visible browser chrome. */
   activeTabId: number
-  /** True when the requested bounded page-readiness wait completed. */
+  /** Whether the readiness wait completed; metadata-only reads report native loading/dialog state. */
   settled: boolean
   /** Host timestamp for evidence ordering. */
   capturedAt: string
@@ -57,6 +75,8 @@ interface BrowserFillField {
   index?: number
   /** Visible label, accessible name, placeholder, or id when index is omitted. */
   name?: string
+  /** Observed Playwright ref or unique CSS selector instead of index/name. */
+  target?: string
   /** Text that replaces the field's current value. */
   text: string
 }
@@ -70,25 +90,25 @@ interface BrowserFillField {
  */
 type BrowserAction =
   | ((
-    | { method: 'get_browser_state' }
+    | { method: 'get_browser_state'; snapshot?: BrowserSnapshotOptions }
     | { method: 'navigate'; url: string }
     | { method: 'back' }
     | { method: 'forward' }
     | { method: 'press'; key: string }
-    | { method: 'click_element'; index?: number; name?: string }
-    | { method: 'hover_element'; index?: number; name?: string }
+    | { method: 'click_element'; index?: number; name?: string; target?: string }
+    | { method: 'hover_element'; index?: number; name?: string; target?: string }
     | { method: 'drag_element'; startIndex: number; endIndex: number }
     | { method: 'drop'; index: number; filePaths: string[]; data: Record<string, string> }
     | { method: 'resize'; width: number; height: number }
     | { method: 'handle_dialog'; accept: boolean; promptText?: string }
     | { method: 'console_messages'; level: 'error' | 'warning' | 'info' | 'debug' }
-    | { method: 'network_requests'; includeStatic: boolean }
+    | { method: 'network_requests'; includeStatic: boolean; filter?: string }
     | { method: 'network_request'; index: number; part?: 'request-headers' | 'request-body' | 'response-headers' | 'response-body' }
     | { method: 'upload_file'; index: number; filePath: string }
-    | { method: 'input_text'; index?: number; name?: string; text: string }
-    | { method: 'select_option'; index?: number; name?: string; text: string }
-    | { method: 'select_text'; index?: number; name?: string; startX?: number; startY?: number; endX?: number; endY?: number; duration?: number; start_x?: number; start_y?: number; end_x?: number; end_y?: number }
-    | { method: 'find_element'; query: string }
+    | { method: 'input_text'; index?: number; name?: string; target?: string; text: string }
+    | { method: 'select_option'; index?: number; name?: string; target?: string; text: string }
+    | { method: 'select_text'; index?: number; name?: string; target?: string; startX?: number; startY?: number; endX?: number; endY?: number; duration?: number; start_x?: number; start_y?: number; end_x?: number; end_y?: number }
+    | { method: 'find_element'; query?: string; text?: string; regex?: string }
     | { method: 'fill_fields'; fields: BrowserFillField[] }
     | { method: 'scroll'; down: boolean; numPages: number; pixels?: number; index?: number }
     | { method: 'scroll_horizontally'; right: boolean; pixels: number; index?: number }
@@ -190,16 +210,26 @@ One Electron window per agent, started lazily and closed with its owner.
 /**
  * Do one thing to an owner's page and report the page afterwards.
  *
- * The trailing state read is not a convenience: PageController indexes
- * elements while building the tree, so the snapshot both answers the caller
- * and leaves the next action addressable. Explicit targets are ordered per
- * tab and may overlap across tabs; implicit and lifecycle actions are barriers.
+ * A captured snapshot refreshes numeric element indexes. With captureState
+ * false, the trailing read contains only page identity, tabs, loading, and
+ * dialogs; callers must observe the page before reusing numeric indexes.
+ * Explicit targets are ordered per tab; implicit and lifecycle actions are barriers.
  * @param owner - agent whose window this is; its first call starts one.
  * @param action - what to do, in page-agent's own vocabulary.
- * @param execution - tool-call identity and cancellation for browser actions and permissions.
+ * @param execution - tool-call identity, cancellation, and optional captureState (default true).
  * @returns the action's report, omitted for a plain state read, plus the state.
  */
-async perform( owner: Agent, action: BrowserAction, execution: BrowserExecutionContext = {}, ): Promise<BrowserOutcome>
+async perform( owner: Agent, action: BrowserAction, execution: BrowserExecutionContext & { captureState?: boolean } = {}, ): Promise<BrowserOutcome>
+
+/**
+ * Read one live tab's URL, title, and selection without refreshing its page state.
+ * Background reads without a call id fail closed when Browsing approval is set to `ask`.
+ * @param owner - agent whose open browser owns the tab.
+ * @param execution - tool-call identity and cancellation for the browsing approval.
+ * @param tabId - optional positive controlled-tab id; omission uses the selected tab.
+ * @returns live page metadata, or `undefined` when the owner has no open browser.
+ */
+async currentPage( owner: Agent, execution: BrowserExecutionContext = {}, tabId?: number, ): Promise<BrowserPageIdentity | undefined>
 
 /**
  * Capture the selected controlled page's visible viewport as a bounded PNG.

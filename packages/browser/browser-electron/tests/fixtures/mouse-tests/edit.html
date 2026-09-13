@@ -1,0 +1,617 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hydra Agent - Text Editing Test Suite</title>
+    <style>
+      :root {
+        --bg-primary: #0f172a;
+        --bg-secondary: #1e293b;
+        --bg-tertiary: #334155;
+        --text-primary: #f8fafc;
+        --text-secondary: #94a3b8;
+        --text-muted: #64748b;
+        --accent-sky: #38bdf8;
+        --accent-indigo: #818cf8;
+        --accent-emerald: #34d399;
+        --accent-rose: #fb7185;
+        --accent-amber: #fbbf24;
+        --border-color: #334155;
+        --radius: 12px;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        line-height: 1.5;
+        padding-bottom: 90px;
+      }
+      header {
+        background: rgba(30, 41, 59, 0.85);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border-color);
+        padding: 16px 24px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .logo-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .logo-badge {
+        background: linear-gradient(135deg, var(--accent-emerald), var(--accent-sky));
+        color: #0f172a;
+        font-weight: 800;
+        font-size: 13px;
+        padding: 4px 10px;
+        border-radius: 9999px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      h1 { font-size: 18px; font-weight: 700; }
+      nav.suite-nav {
+        display: flex;
+        gap: 8px;
+        background: var(--bg-secondary);
+        padding: 10px 24px;
+        border-bottom: 1px solid var(--border-color);
+        overflow-x: auto;
+      }
+      .nav-link {
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: 8px;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+        white-space: nowrap;
+      }
+      .nav-link:hover, .nav-link.active {
+        background: rgba(56, 189, 248, 0.15);
+        color: var(--accent-sky);
+        border-color: rgba(56, 189, 248, 0.3);
+      }
+      main {
+        max-width: 1080px;
+        margin: 28px auto;
+        padding: 0 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+      .section-box {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .box-title {
+        font-size: 16px;
+        font-weight: 700;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .badge-test {
+        font-size: 11px;
+        padding: 3px 8px;
+        border-radius: 6px;
+        background: rgba(56, 189, 248, 0.15);
+        color: var(--accent-sky);
+        font-weight: 600;
+      }
+      .box-desc {
+        font-size: 13px;
+        color: var(--text-secondary);
+      }
+
+      /* Form inputs */
+      .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+      input[type="text"], textarea {
+        width: 100%;
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 10px 14px;
+        color: var(--text-primary);
+        font-size: 14px;
+        font-family: inherit;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+      }
+      input[type="text"]:focus, textarea:focus {
+        border-color: var(--accent-sky);
+        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+      }
+      .helper-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+
+      /* Rich Editor */
+      .editor-toolbar {
+        display: flex;
+        gap: 6px;
+        background: var(--bg-tertiary);
+        padding: 8px 12px;
+        border-radius: 8px 8px 0 0;
+        border: 1px solid var(--border-color);
+        border-bottom: none;
+      }
+      .tool-btn {
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        font-size: 12px;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .tool-btn:hover {
+        background: var(--accent-sky);
+        color: #0f172a;
+      }
+      .tool-btn.active {
+        background: var(--accent-indigo);
+        color: #fff;
+      }
+      .rich-editor-box {
+        min-height: 140px;
+        background: rgba(15, 23, 42, 0.7);
+        border: 1px solid var(--border-color);
+        border-radius: 0 0 8px 8px;
+        padding: 14px;
+        font-size: 14px;
+        color: var(--text-primary);
+        outline: none;
+        line-height: 1.6;
+        cursor: text;
+      }
+      .rich-editor-box:focus {
+        border-color: var(--accent-sky);
+        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+      }
+
+      /* Inline Click to Edit */
+      .inline-edit-container {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        background: rgba(15, 23, 42, 0.5);
+        border-radius: 8px;
+        border: 1px dashed var(--border-color);
+      }
+      .editable-text {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--accent-sky);
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 4px;
+        transition: background 0.2s;
+      }
+      .editable-text:hover {
+        background: rgba(56, 189, 248, 0.15);
+      }
+      .btn-small {
+        font-size: 12px;
+        padding: 6px 12px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .btn-save { background: var(--accent-emerald); color: #0f172a; }
+      .btn-cancel { background: var(--bg-tertiary); color: var(--text-secondary); }
+
+      /* Editable Table */
+      .edit-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      .edit-table th, .edit-table td {
+        border: 1px solid var(--border-color);
+        padding: 10px 14px;
+        text-align: left;
+      }
+      .edit-table th {
+        background: var(--bg-tertiary);
+        color: var(--text-secondary);
+        font-weight: 600;
+      }
+      .edit-table td.editable-cell {
+        cursor: text;
+        transition: background 0.15s;
+      }
+      .edit-table td.editable-cell:hover {
+        background: rgba(56, 189, 248, 0.1);
+      }
+      .edit-table td.editing {
+        padding: 4px;
+        background: rgba(56, 189, 248, 0.15);
+      }
+      .cell-input {
+        width: 100%;
+        padding: 6px;
+        background: var(--bg-primary);
+        border: 1px solid var(--accent-sky);
+        border-radius: 4px;
+        color: #fff;
+        font-size: 13px;
+        outline: none;
+      }
+
+      /* Live Result Output */
+      .result-banner {
+        padding: 12px 16px;
+        border-radius: 8px;
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px solid var(--border-color);
+        font-family: monospace;
+        font-size: 13px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .status-pill {
+        font-weight: bold;
+        padding: 2px 8px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        font-size: 11px;
+      }
+      .status-idle { background: var(--bg-tertiary); color: var(--text-muted); }
+      .status-success { background: var(--accent-emerald); color: #0f172a; }
+
+      /* Live Event Dock */
+      .event-dock {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 56px;
+        background: rgba(15, 23, 42, 0.94);
+        backdrop-filter: blur(16px);
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        padding: 0 24px;
+        gap: 16px;
+        z-index: 1000;
+        font-family: monospace;
+        font-size: 12px;
+      }
+      .dock-label {
+        font-weight: 700;
+        color: var(--text-secondary);
+        white-space: nowrap;
+      }
+      .event-ticker {
+        flex: 1;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        color: var(--accent-emerald);
+      }
+      .badge-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent-emerald);
+        margin-right: 6px;
+        box-shadow: 0 0 8px var(--accent-emerald);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo-group">
+        <span class="logo-badge">Text Editing</span>
+        <h1>Agent Text Editing & Input Test Suite</h1>
+      </div>
+      <div style="font-family: monospace; font-size: 12px; color: var(--accent-emerald);">
+        Caret Mode: Active
+      </div>
+    </header>
+
+    <nav class="suite-nav" aria-label="Mouse Test Pages">
+      <a class="nav-link" href="index.html">Dashboard Hub</a>
+      <a class="nav-link" href="click.html">1. Click Suite</a>
+      <a class="nav-link" href="move.html">2. Move & Hover</a>
+      <a class="nav-link" href="scroll.html">3. Scroll Suite</a>
+      <a class="nav-link" href="select.html">4. Select Text</a>
+      <a class="nav-link active" href="edit.html">5. Text Editing</a>
+      <a class="nav-link" href="drag.html">6. Drag & Sliders</a>
+    </nav>
+
+    <main>
+      <!-- Section 1: Standard Input & Textarea -->
+      <section class="section-box" id="sec-standard-input">
+        <div class="box-title">
+          <span>1. Ô Nhập Liệu Tiêu Chuẩn (Standard Input & Textarea)</span>
+          <span class="badge-test">input_text</span>
+        </div>
+        <p class="box-desc">Agent có thể định vị con trỏ chuột, nhấp vào ô nhập liệu và điền văn bản hoặc xóa văn bản cũ.</p>
+
+        <div class="input-group">
+          <label for="usernameInput">Tên người dùng (Username):</label>
+          <input type="text" id="usernameInput" name="username" placeholder="Nhập tên đăng nhập vào đây..." autocomplete="off" />
+          <div class="helper-row">
+            <span id="charCount">0 ký tự</span>
+            <span id="usernameStatus" style="color: var(--accent-amber);">Chờ nhập liệu</span>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label for="bioTextarea">Tiểu sử mô tả (Bio description):</label>
+          <textarea id="bioTextarea" name="bio" rows="3" placeholder="Nhập đoạn văn bản mô tả..."></textarea>
+        </div>
+
+        <div class="result-banner">
+          <span id="inputEcho">Dữ liệu đã nhập: (trống)</span>
+          <span class="status-pill status-idle" id="inputStatusPill">IDLE</span>
+        </div>
+      </section>
+
+      <!-- Section 2: Rich Text / ContentEditable Editor -->
+      <section class="section-box" id="sec-rich-editor">
+        <div class="box-title">
+          <span>2. Trình Soạn Thảo Văn Bản Phong Phú (ContentEditable WYSIWYG)</span>
+          <span class="badge-test">select_text + format</span>
+        </div>
+        <p class="box-desc">Agent có thể bôi đen một cụm từ bằng `browser_select_text` rồi nhấp vào thanh công cụ để định dạng, hoặc gõ văn bản mới đè lên.</p>
+
+        <div class="editor-toolbar" role="toolbar" aria-label="Format Toolbar">
+          <button type="button" class="tool-btn" id="btnBold" title="Bold (Ctrl+B)"><b>B</b> Bold</button>
+          <button type="button" class="tool-btn" id="btnItalic" title="Italic (Ctrl+I)"><i>I</i> Italic</button>
+          <button type="button" class="tool-btn" id="btnUnderline" title="Underline"><u>U</u> Underline</button>
+          <button type="button" class="tool-btn" id="btnCode" title="Inline Code">&lt;/&gt; Code</button>
+          <button type="button" class="tool-btn" id="btnClear" title="Xóa nội dung">Clear</button>
+        </div>
+
+        <div class="rich-editor-box" id="richEditor" contenteditable="true" spellcheck="false" aria-label="Rich Text Editor">
+          Trí tuệ nhân tạo Hydra có khả năng tự động hóa tác vụ trình duyệt thông minh. Bạn có thể bôi đen từ khóa <b id="keywordBold">Hydra</b> để đổi định dạng hoặc chỉnh sửa trực tiếp tại đây.
+        </div>
+
+        <div class="result-banner">
+          <span id="richEditorEcho">HTML: (Chờ chỉnh sửa)</span>
+          <span class="status-pill status-idle" id="editorStatusPill">CLEAN</span>
+        </div>
+      </section>
+
+      <!-- Section 3: Click-to-Edit Inline Field -->
+      <section class="section-box" id="sec-inline-edit">
+        <div class="box-title">
+          <span>3. Chỉnh Sửa Trực Tiếp Tại Chỗ (Click-to-Edit Inline Field)</span>
+          <span class="badge-test">click + replace</span>
+        </div>
+        <p class="box-desc">Nhấp chuột vào tiêu đề bên dưới để chuyển đổi sang ô nhập, chỉnh sửa rồi nhấp "Lưu" để cập nhật.</p>
+
+        <div class="inline-edit-container" id="inlineEditRow">
+          <span style="font-size: 13px; color: var(--text-secondary);">Tên dự án:</span>
+          <span class="editable-text" id="displayProjectName" title="Nhấp đúp hoặc nhấp chuột để chỉnh sửa">Hydra Agent Harness 2.0</span>
+
+          <div id="inlineInputGroup" style="display: none; align-items: center; gap: 8px;">
+            <input type="text" id="inlineProjectInput" style="width: 240px; padding: 6px 10px; font-size: 13px;" />
+            <button type="button" class="btn-small btn-save" id="btnSaveInline">Lưu</button>
+            <button type="button" class="btn-small btn-cancel" id="btnCancelInline">Hủy</button>
+          </div>
+          <span id="inlineSavedBadge" class="status-pill status-idle" style="margin-left: auto;">SAVED</span>
+        </div>
+      </section>
+
+      <!-- Section 4: Editable Spreadsheet / Table Grid -->
+      <section class="section-box" id="sec-table-edit">
+        <div class="box-title">
+          <span>4. Chỉnh Sửa Ô Bảng Dữ Liệu (Editable Table Grid Cells)</span>
+          <span class="badge-test">table cell edit</span>
+        </div>
+        <p class="box-desc">Nhấp đúp chuột vào bất kỳ ô nào trong cột "Giá Trị Cấu Hình" để chỉnh sửa dữ liệu, nhấn Enter để xác nhận.</p>
+
+        <table class="edit-table" id="configTable">
+          <thead>
+            <tr>
+              <th style="width: 80px;">Mã</th>
+              <th style="width: 260px;">Tham Số Cấu Hình</th>
+              <th>Giá Trị Cấu Hình (Nhấp để sửa)</th>
+              <th style="width: 120px;">Trạng Thái</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>01</code></td>
+              <td>browser.virtualCursor.speed</td>
+              <td class="editable-cell" data-row="1" id="cell-speed">650ms</td>
+              <td><span class="status-pill status-success">DEFAULT</span></td>
+            </tr>
+            <tr>
+              <td><code>02</code></td>
+              <td>browser.mask.glowRadius</td>
+              <td class="editable-cell" data-row="2" id="cell-glow">160px</td>
+              <td><span class="status-pill status-success">DEFAULT</span></td>
+            </tr>
+            <tr>
+              <td><code>03</code></td>
+              <td>browser.selection.realDomSync</td>
+              <td class="editable-cell" data-row="3" id="cell-sync">ENABLED</td>
+              <td><span class="status-pill status-success">ACTIVE</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+
+    <!-- Live Event Dock -->
+    <div class="event-dock" aria-live="polite">
+      <span class="dock-label"><span class="badge-indicator"></span>LIVE EVENT DOCK:</span>
+      <span class="event-ticker" id="eventTicker">Sẵn sàng ghi nhận sự kiện bàn phím & chuột khi chỉnh sửa văn bản...</span>
+    </div>
+
+    <script>
+      const eventTicker = document.getElementById('eventTicker');
+      function logEvent(type, detail) {
+        eventTicker.textContent = `[${new Date().toLocaleTimeString()}] ${type.toUpperCase()} -> ${detail}`;
+      }
+
+      // --- Section 1: Standard Input ---
+      const usernameInput = document.getElementById('usernameInput');
+      const charCount = document.getElementById('charCount');
+      const usernameStatus = document.getElementById('usernameStatus');
+      const inputEcho = document.getElementById('inputEcho');
+      const inputStatusPill = document.getElementById('inputStatusPill');
+
+      usernameInput.addEventListener('input', (e) => {
+        const val = e.target.value;
+        charCount.textContent = `${val.length} ký tự`;
+        inputEcho.textContent = `Dữ liệu đã nhập: "${val}"`;
+        logEvent('input', `text: "${val}"`);
+
+        if (val.length > 0) {
+          usernameStatus.textContent = 'Đã nhận dữ liệu';
+          usernameStatus.style.color = 'var(--accent-emerald)';
+          inputStatusPill.textContent = 'VALID';
+          inputStatusPill.className = 'status-pill status-success';
+        } else {
+          usernameStatus.textContent = 'Chờ nhập liệu';
+          usernameStatus.style.color = 'var(--accent-amber)';
+          inputStatusPill.textContent = 'IDLE';
+          inputStatusPill.className = 'status-pill status-idle';
+        }
+      });
+
+      // --- Section 2: Rich Editor ---
+      const richEditor = document.getElementById('richEditor');
+      const richEditorEcho = document.getElementById('richEditorEcho');
+      const editorStatusPill = document.getElementById('editorStatusPill');
+
+      function formatDoc(cmd, value = null) {
+        document.execCommand(cmd, false, value);
+        richEditor.focus();
+      }
+
+      document.getElementById('btnBold').addEventListener('click', () => { formatDoc('bold'); logEvent('click', 'Command: Bold'); });
+      document.getElementById('btnItalic').addEventListener('click', () => { formatDoc('italic'); logEvent('click', 'Command: Italic'); });
+      document.getElementById('btnUnderline').addEventListener('click', () => { formatDoc('underline'); logEvent('click', 'Command: Underline'); });
+      document.getElementById('btnCode').addEventListener('click', () => {
+        const sel = window.getSelection();
+        if (sel && !sel.isCollapsed) {
+          const range = sel.getRangeAt(0);
+          const code = document.createElement('code');
+          code.style.background = 'rgba(56, 189, 248, 0.2)';
+          code.style.color = 'var(--accent-sky)';
+          code.style.padding = '2px 4px';
+          code.style.borderRadius = '4px';
+          code.textContent = sel.toString();
+          range.deleteContents();
+          range.insertNode(code);
+          logEvent('format', 'Applied inline code tag');
+        }
+      });
+      document.getElementById('btnClear').addEventListener('click', () => {
+        richEditor.innerHTML = '';
+        richEditor.focus();
+        logEvent('click', 'Cleared editor content');
+      });
+
+      richEditor.addEventListener('input', () => {
+        richEditorEcho.textContent = `Text: "${richEditor.textContent.trim().substring(0, 40)}..."`;
+        editorStatusPill.textContent = 'MODIFIED';
+        editorStatusPill.className = 'status-pill status-success';
+        logEvent('contenteditable_input', `len: ${richEditor.textContent.length}`);
+      });
+
+      // --- Section 3: Click to Edit Inline ---
+      const displayProjectName = document.getElementById('displayProjectName');
+      const inlineInputGroup = document.getElementById('inlineInputGroup');
+      const inlineProjectInput = document.getElementById('inlineProjectInput');
+      const btnSaveInline = document.getElementById('btnSaveInline');
+      const btnCancelInline = document.getElementById('btnCancelInline');
+      const inlineSavedBadge = document.getElementById('inlineSavedBadge');
+
+      function startInlineEdit() {
+        inlineProjectInput.value = displayProjectName.textContent;
+        displayProjectName.style.display = 'none';
+        inlineInputGroup.style.display = 'flex';
+        inlineProjectInput.focus();
+        inlineProjectInput.select();
+        logEvent('click_to_edit', 'Opened inline input');
+      }
+
+      displayProjectName.addEventListener('click', startInlineEdit);
+
+      btnSaveInline.addEventListener('click', () => {
+        const newVal = inlineProjectInput.value.trim();
+        if (newVal) displayProjectName.textContent = newVal;
+        displayProjectName.style.display = 'inline';
+        inlineInputGroup.style.display = 'none';
+        inlineSavedBadge.textContent = 'UPDATED';
+        inlineSavedBadge.className = 'status-pill status-success';
+        logEvent('inline_save', `New value: "${newVal}"`);
+      });
+
+      btnCancelInline.addEventListener('click', () => {
+        displayProjectName.style.display = 'inline';
+        inlineInputGroup.style.display = 'none';
+        logEvent('inline_cancel', 'Canceled edit');
+      });
+
+      // --- Section 4: Editable Table ---
+      document.querySelectorAll('.editable-cell').forEach(cell => {
+        cell.addEventListener('dblclick', () => {
+          if (cell.classList.contains('editing')) return;
+          const currentText = cell.textContent.trim();
+          cell.classList.add('editing');
+          cell.innerHTML = `<input type="text" class="cell-input" value="${currentText}" />`;
+          const input = cell.querySelector('input');
+          input.focus();
+          input.select();
+          logEvent('cell_dblclick', `Editing cell #${cell.id}`);
+
+          function finishEdit() {
+            const val = input.value.trim() || currentText;
+            cell.classList.remove('editing');
+            cell.textContent = val;
+            logEvent('cell_saved', `Cell #${cell.id} updated to "${val}"`);
+          }
+
+          input.addEventListener('blur', finishEdit);
+          input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') finishEdit();
+            if (e.key === 'Escape') {
+              cell.classList.remove('editing');
+              cell.textContent = currentText;
+            }
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

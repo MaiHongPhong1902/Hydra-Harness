@@ -1,4 +1,4 @@
-import { cp, mkdtemp, mkdir, readFile, rm, symlink, writeFile } from 'node:fs/promises'
+import { cp, mkdtemp, mkdir, readFile, realpath, rm, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -26,7 +26,7 @@ vi.mock('node:child_process', async importOriginal => ({
 const roots: string[] = []
 
 async function temp(label: string): Promise<string> {
-  const root = await mkdtemp(join(tmpdir(), `hydra-plugin-runtime-${label}-`))
+  const root = await realpath(await mkdtemp(join(tmpdir(), `hydra-plugin-runtime-${label}-`)))
   roots.push(root)
   return root
 }
@@ -238,6 +238,30 @@ describe('PluginStore', () => {
       expect.any(Object),
       expect.any(Function),
     )
+  })
+
+  it('imports a Git subdirectory through an aliased temporary directory', async () => {
+    const repository = await temp('aliased-git-source')
+    await plugin(join(repository, 'plugins', 'demo-plugin'))
+    const temporary = await temp('aliased-temp')
+    const target = join(temporary, 'real')
+    const alias = join(temporary, 'alias')
+    await mkdir(target)
+    await symlink(target, alias, 'junction')
+    execFileMock.mockImplementation((_command, args, _options, callback) => {
+      void cp(repository, String(args.at(-1)), { recursive: true }).then(
+        () => { callback(null, '', '') },
+        (error: unknown) => { callback(error as Error, '', '') },
+      )
+    })
+    const store = new PluginStore(await temp('aliased-git-home'))
+    try {
+      for (const variable of ['TEMP', 'TMP', 'TMPDIR']) vi.stubEnv(variable, alias)
+      const identity = await store.install({ source: 'https://example.test/plugins.git', path: 'plugins/demo-plugin' })
+      expect((await store.get(identity))?.name).toBe('demo-plugin')
+    } finally {
+      vi.unstubAllEnvs()
+    }
   })
 
   it('rejects traversal, Windows absolute paths, and symbolic-link escapes', async () => {
