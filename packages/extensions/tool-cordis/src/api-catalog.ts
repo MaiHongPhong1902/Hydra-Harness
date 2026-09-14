@@ -466,6 +466,30 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'the verified bytes and canonical reference.',
         throws: ['the signal reason when aborted, or a storage error when verification fails.'],
       },
+      {
+        signature: 'saveFile(input: SaveFileAttachment): Promise<FileAttachmentRef>',
+        description: 'Persist one file verbatim and return its durable reference.',
+        parameters: [{ name: 'input', description: 'complete file bytes and optional display name.' }],
+        returns: 'the content-addressed durable reference.',
+      },
+      {
+        signature: 'saveFileStream(input: SaveFileStreamAttachment): Promise<FileAttachmentRef>',
+        description: 'Persist streamed file bytes without requiring one complete input buffer.',
+        parameters: [{ name: 'input', description: 'ordered byte chunks, cancellation, and optional display name.' }],
+        returns: 'the content-addressed durable reference.',
+      },
+      {
+        signature: 'async *readFileStream(ref: FileAttachmentRef, signal?: AbortSignal): AsyncIterable<Uint8Array>',
+        description: 'Read one durable file as verified byte chunks.',
+        parameters: [{ name: 'ref', description: 'durable file reference to verify.' }, { name: 'signal', description: 'optional cancellation signal.' }],
+        returns: 'an async sequence of exact file bytes.',
+      },
+      {
+        signature: 'fileHostPath(ref: FileAttachmentRef): string | undefined',
+        description: 'Resolve a durable file to a host path when this provider is host-backed.',
+        parameters: [{ name: 'ref', description: 'durable file reference.' }],
+        returns: 'an absolute host path, or undefined when unavailable.',
+      },
     ],
   },
   {
@@ -871,6 +895,12 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'an absolute path in the backend\'s execution world.',
       },
       {
+        signature: 'processPathFromHostPath(hostPath: string): string | undefined',
+        description: 'Map an absolute host path into this filesystem\'s execution world. Host-backed or explicitly shared providers may override this mapping.',
+        parameters: [{ name: 'hostPath', description: 'absolute path in the harness host filesystem.' }],
+        returns: 'the process path for the same file, or undefined when unavailable.',
+      },
+      {
         signature: 'abstract fileUrl(target: FsTarget): string',
         description: 'Return the canonical `file:` URI for a target in this filesystem\'s execution world. Backends own URI encoding because the host platform may differ from the execution platform.',
         parameters: [{ name: 'target', description: 'the resolved target to encode.' }],
@@ -1248,6 +1278,12 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'detached model metadata in adapter-preferred order.',
       },
       {
+        signature: 'fileRequestText(ref: FileAttachmentRef): string',
+        description: 'Resolve the exact text sent for one durable file reference.',
+        parameters: [{ name: 'ref', description: 'durable file reference from model history.' }],
+        returns: 'deterministic provider-facing handle text.',
+      },
+      {
         signature: 'async resolveModelInfo( provider: string, model: string, signal?: AbortSignal, ): Promise<LlmResolvedModelInfo>',
         description: 'Resolve and validate all metadata from the adapter that owns one exact route. The result is detached from adapter-owned objects; catalog membership remains advisory and does not control request routing.',
         parameters: [{ name: 'provider', description: 'registered provider route to inspect.' }, { name: 'model', description: 'exact model id passed to the adapter.' }, { name: 'signal', description: 'optional cancellation for adapter-owned asynchronous lookup.' }],
@@ -1505,6 +1541,28 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         signature: 'abstract create(meta: SessionHeader): Promise<void>',
         description: 'Register a new session\'s metadata. A backend MAY defer the physical write until the first append (lazy materialization), in which case a created-but-never-appended session is absent from list — abandoned sessions leave nothing behind.',
         parameters: [{ name: 'meta', description: 'the immutable header (id, version, cwd, lineage) to record.' }],
+      },
+      {
+        signature: 'async open(id: SessionId, access: SessionAccess = \'read\', options?: { readonly signal?: AbortSignal }): Promise<SessionHandle>',
+        description: 'Open one read channel or claim the single in-process write owner.',
+        parameters: [{ name: 'id', description: 'persisted session identifier.' }, { name: 'access', description: 'read-only or exclusive write access.' }, { name: 'options', description: 'optional cancellation signal.' }],
+        returns: 'a lifecycle-owned session handle.',
+      },
+      {
+        signature: 'async flush(): Promise<void>',
+        description: 'Flush all active write handles. Legacy append is already durable.',
+        parameters: [],
+      },
+      {
+        signature: 'releaseHandle(handle: SessionHandle): void',
+        description: 'Release ownership and remove a closed handle.',
+        parameters: [{ name: 'handle', description: 'handle that has completed its close operation.' }],
+      },
+      {
+        signature: 'hasWriteOwner(id: SessionId): boolean',
+        description: 'Report whether a session currently has an active write handle.',
+        parameters: [{ name: 'id', description: 'persisted session identifier.' }],
+        returns: 'whether this backend instance owns the write slot.',
       },
       {
         signature: 'abstract append(id: SessionId, events: readonly SessionEvent[]): Promise<void>',
@@ -3580,7 +3638,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ContentBlockMap',
-    declaration: 'export interface ContentBlockMap {\n    \'text\': TextBlock;\n    \'reasoning\': ReasoningBlock;\n    \'image\': ImageBlock;\n    \'tool-call\': ToolCallBlock;\n    \'tool-result\': ToolResultBlock;\n}',
+    declaration: 'export interface ContentBlockMap {\n    \'text\': TextBlock;\n    \'reasoning\': ReasoningBlock;\n    \'image\': ImageBlock;\n    \'file\': FileBlock;\n    \'tool-call\': ToolCallBlock;\n    \'tool-result\': ToolResultBlock;\n}',
   },
   {
     name: 'ContentBlockType',
@@ -3797,6 +3855,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'EpochHeader',
     declaration: 'export interface EpochHeader {\n    config: LlmCallConfig;\n    adapterDefaults?: LlmCallConfigAdapterDefaults;\n    system?: string;\n    tools?: ToolSchema[];\n}',
+  },
+  {
+    name: 'FileAttachmentRef',
+    declaration: 'export interface FileAttachmentRef {\n    attachmentId: AttachmentId;\n    name: string;\n    bytes: number;\n}',
+  },
+  {
+    name: 'FileBlock',
+    declaration: 'export interface FileBlock {\n    type: \'file\';\n    attachment: FileAttachmentRef;\n}',
   },
   {
     name: 'FileDiff',
@@ -4176,7 +4242,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'LlmRuntime',
-    declaration: 'export class LlmRuntime extends Service {\n    constructor(ctx: Context);\n    registerAdapter(providers: string[], adapter: LlmAdapter): AdapterRegistrationHandle;\n    listProviders(): LlmProviderInfo[];\n    registerConfigurableProviders(entries: readonly LlmConfigurableProvider[]): DirectoryRegistrationHandle;\n    listConfigurableProviders(): LlmConfigurableProvider[];\n    registerModelDiscovery(settingsNs: string, discover: (request: LlmModelDiscoveryRequest) => Promise<readonly LlmDiscoveredModel[]>): () => void;\n    async discoverModels(settingsNs: string, request: LlmModelDiscoveryRequest): Promise<LlmDiscoveredModel[]>;\n    providerRetryPolicy(provider: string): ResolvedRetryPolicy;\n    async listModels(provider: string): Promise<LlmModelInfo[]>;\n    async resolveModelInfo(provider: string, model: string, signal?: AbortSignal): Promise<LlmResolvedModelInfo>;\n    async resolveCallConfig(config: LlmCallConfig, signal?: AbortSignal): Promise<LlmCallConfig>;\n    async prepareCall(config: LlmCallConfig, signal?: AbortSignal): Promise<PreparedLlmCall>;\n    stream(options: GenerateOptions): AsyncIterable<StreamChunk>;\n}',
+    declaration: 'export class LlmRuntime extends Service {\n    constructor(ctx: Context);\n    registerAdapter(providers: string[], adapter: LlmAdapter): AdapterRegistrationHandle;\n    listProviders(): LlmProviderInfo[];\n    registerConfigurableProviders(entries: readonly LlmConfigurableProvider[]): DirectoryRegistrationHandle;\n    listConfigurableProviders(): LlmConfigurableProvider[];\n    registerModelDiscovery(settingsNs: string, discover: (request: LlmModelDiscoveryRequest) => Promise<readonly LlmDiscoveredModel[]>): () => void;\n    async discoverModels(settingsNs: string, request: LlmModelDiscoveryRequest): Promise<LlmDiscoveredModel[]>;\n    providerRetryPolicy(provider: string): ResolvedRetryPolicy;\n    async listModels(provider: string): Promise<LlmModelInfo[]>;\n    fileRequestText(ref: FileAttachmentRef): string;\n    async resolveModelInfo(provider: string, model: string, signal?: AbortSignal): Promise<LlmResolvedModelInfo>;\n    async resolveCallConfig(config: LlmCallConfig, signal?: AbortSignal): Promise<LlmCallConfig>;\n    async prepareCall(config: LlmCallConfig, signal?: AbortSignal): Promise<PreparedLlmCall>;\n    stream(options: GenerateOptions): AsyncIterable<StreamChunk>;\n}',
   },
   {
     name: 'LspHover',
@@ -4599,6 +4665,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface SandboxPolicyRequest {\n    session?: Session;\n    mode?: SandboxMode;\n}',
   },
   {
+    name: 'SaveFileAttachment',
+    declaration: 'export interface SaveFileAttachment {\n    data: Uint8Array;\n    name?: string;\n}',
+  },
+  {
+    name: 'SaveFileStreamAttachment',
+    declaration: 'export interface SaveFileStreamAttachment {\n    data: AsyncIterable<Uint8Array>;\n    signal?: AbortSignal;\n    name?: string;\n}',
+  },
+  {
     name: 'SaveImageAttachment',
     declaration: 'export interface SaveImageAttachment {\n    data: Uint8Array;\n    mediaType: ImageMediaType;\n    name?: string;\n}',
   },
@@ -4657,6 +4731,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'ServerResponse',
     declaration: 'export interface ServerResponse {\n    type: \'server-response\';\n    rpcId: RpcId;\n    result: RpcResult<unknown>;\n}',
+  },
+  {
+    name: 'SessionAccess',
+    declaration: 'export type SessionAccess = \'read\' | \'write\';',
   },
   {
     name: 'SessionAvailability',
@@ -4729,6 +4807,26 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'SessionForkSource',
     declaration: 'export type SessionForkSource = Session | SessionId;',
+  },
+  {
+    name: 'SessionHandle',
+    declaration: 'export interface SessionHandle extends AsyncDisposable {\n    readonly id: SessionId;\n    readonly header: SessionHeader;\n    readonly access: SessionAccess;\n    read(offset?: number, length?: number, options?: SessionHandleReadOptions): Promise<SessionHandleReadResult>;\n    append(events: readonly SessionEvent[], options?: SessionHandleAppendOptions): Promise<void>;\n    flush(options?: SessionHandleFlushOptions): Promise<void>;\n    close(): Promise<void>;\n}',
+  },
+  {
+    name: 'SessionHandleAppendOptions',
+    declaration: 'export interface SessionHandleAppendOptions {\n    readonly signal?: AbortSignal;\n}',
+  },
+  {
+    name: 'SessionHandleFlushOptions',
+    declaration: 'export interface SessionHandleFlushOptions {\n    readonly signal?: AbortSignal;\n}',
+  },
+  {
+    name: 'SessionHandleReadOptions',
+    declaration: 'export interface SessionHandleReadOptions {\n    readonly signal?: AbortSignal;\n}',
+  },
+  {
+    name: 'SessionHandleReadResult',
+    declaration: 'export interface SessionHandleReadResult {\n    readonly events: readonly SessionEvent[];\n}',
   },
   {
     name: 'SessionHeader',

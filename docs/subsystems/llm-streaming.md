@@ -830,6 +830,13 @@ providerRetryPolicy(provider: string): ResolvedRetryPolicy
 async listModels(provider: string): Promise<LlmModelInfo[]>
 
 /**
+ * Resolve the exact text sent for one durable file reference.
+ * @param ref - durable file reference from model history.
+ * @returns deterministic provider-facing handle text.
+ */
+fileRequestText(ref: FileAttachmentRef): string
+
+/**
  * Resolve and validate all metadata from the adapter that owns one exact
  * route. The result is detached from adapter-owned objects; catalog
  * membership remains advisory and does not control request routing.
@@ -875,6 +882,8 @@ async prepareCall(config: LlmCallConfig, signal?: AbortSignal): Promise<Prepared
  */
 stream(options: GenerateOptions): AsyncIterable<StreamChunk>
 ```
+
+Types: [FileAttachmentRef](attachment.md)
 
 Source: [`packages/llm/llm/src/index.ts`](../../packages/llm/llm/src/index.ts)
 
