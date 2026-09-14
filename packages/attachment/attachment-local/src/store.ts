@@ -1,7 +1,7 @@
 /** Content-addressed, owner-private local attachment storage. */
 
 import { createHash, randomUUID } from 'node:crypto'
-import { constants } from 'node:fs'
+import { constants, createReadStream } from 'node:fs'
 import { chmod, link, mkdir, open, readFile, unlink } from 'node:fs/promises'
 import { dirname, join, parse, resolve } from 'node:path'
 import {
@@ -190,6 +190,110 @@ export async function saveImageFile(root: string, input: SaveImageAttachment, li
     attachmentId: AttachmentId(`sha256:${sha256}`),
     ...metadata,
     ...(name !== undefined ? { name } : {}),
+  }
+}
+
+export interface StreamedImmutableObject { readonly sha256: string; readonly bytes: number }
+interface StagedImmutableObject extends StreamedImmutableObject { readonly path: string; readonly boundary: string }
+
+async function removeTemporary(path: string): Promise<void> {
+  await unlink(path).catch((error) => {
+    if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error
+  })
+}
+
+async function digestFile(path: string): Promise<string> {
+  const hash = createHash('sha256')
+  for await (const chunk of createReadStream(path)) hash.update(chunk)
+  return hash.digest('hex')
+}
+
+async function stageImmutableObject(
+  root: string,
+  data: AsyncIterable<Uint8Array> | Iterable<Uint8Array>,
+  signal?: AbortSignal,
+): Promise<StagedImmutableObject> {
+  const boundary = await ensureDurableHome(dirname(dirname(resolve(root))))
+  const staging = join(root, 'tmp')
+  await ensureDurableDirectory(staging, boundary)
+  const path = join(staging, randomUUID())
+  let handle: Awaited<ReturnType<typeof open>> | undefined
+  try {
+    handle = await open(path, constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY, 0o600)
+    const hash = createHash('sha256')
+    let bytes = 0
+    for await (const chunk of data) {
+      signal?.throwIfAborted()
+      await handle.writeFile(chunk)
+      hash.update(chunk)
+      bytes += chunk.byteLength
+    }
+    signal?.throwIfAborted()
+    await handle.sync()
+    await handle.close(); handle = undefined
+    return { path, boundary, sha256: hash.digest('hex'), bytes }
+  } catch (error) {
+    await handle?.close().catch(() => {})
+    await removeTemporary(path)
+    throw error
+  }
+}
+
+async function publishStagedObject(root: string, target: string, staged: StagedImmutableObject): Promise<void> {
+  const parent = dirname(target)
+  try {
+    await ensureDurableDirectory(parent, staged.boundary)
+    try { await link(staged.path, target) } catch (error) {
+      if (!(error instanceof Error && 'code' in error && error.code === 'EEXIST')) throw error
+      if (await digestFile(target) !== staged.sha256) throw new AttachmentError('Stored attachment failed integrity verification.', 'ATTACHMENT_CORRUPT')
+    }
+    await removeTemporary(staged.path)
+    await chmod(target, 0o400)
+    for (let level = parent; level !== resolve(root); level = dirname(level)) await syncDirectory(level)
+  } catch (error) {
+    await removeTemporary(staged.path)
+    if (error instanceof AttachmentError) throw error
+    throw new AttachmentError('Unable to persist attachment.', 'ATTACHMENT_WRITE_FAILED', { cause: error })
+  }
+}
+
+export async function publishImmutableObject(root: string, target: string, data: Uint8Array, sha256: string): Promise<void> {
+  const staged = await stageImmutableObject(root, [data])
+  if (staged.sha256 !== sha256) { await removeTemporary(staged.path); throw new AttachmentError('Attachment bytes do not match their publication digest.', 'ATTACHMENT_CORRUPT') }
+  await publishStagedObject(root, target, staged)
+}
+
+export async function publishImmutableObjectStream(
+  root: string,
+  data: AsyncIterable<Uint8Array>,
+  targetFor: (sha256: string, bytes: number) => string,
+  signal?: AbortSignal,
+): Promise<StreamedImmutableObject> {
+  try {
+    const staged = await stageImmutableObject(root, data, signal)
+    await publishStagedObject(root, targetFor(staged.sha256, staged.bytes), staged)
+    return { sha256: staged.sha256, bytes: staged.bytes }
+  } catch (error) {
+    if (signal?.aborted) throw signal.reason
+    if (error instanceof AttachmentError) throw error
+    throw new AttachmentError('Unable to persist attachment.', 'ATTACHMENT_WRITE_FAILED', { cause: error })
+  }
+}
+
+export async function publishImmutableAlias(root: string, source: string, target: string, sha256: string): Promise<void> {
+  try {
+    const parent = dirname(target)
+    const boundary = await ensureDurableHome(dirname(dirname(resolve(root))))
+    await ensureDurableDirectory(parent, boundary)
+    try { await link(source, target) } catch (error) {
+      if (!(error instanceof Error && 'code' in error && error.code === 'EEXIST')) throw error
+      if (await digestFile(target) !== sha256) throw new AttachmentError('Stored attachment failed integrity verification.', 'ATTACHMENT_CORRUPT')
+    }
+    await chmod(target, 0o400)
+    for (let level = parent; level !== resolve(root); level = dirname(level)) await syncDirectory(level)
+  } catch (error) {
+    if (error instanceof AttachmentError) throw error
+    throw new AttachmentError('Unable to persist attachment.', 'ATTACHMENT_WRITE_FAILED', { cause: error })
   }
 }
 

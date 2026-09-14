@@ -14,6 +14,7 @@ import { reviewListRequestSchema, reviewActionRequestSchema, reviewWorkspaceRequ
 import type { RequestPayload, ResponseValue, RpcMethodMap } from '../api/rpc-map.ts'
 import type { ClientRequest, RpcError, RpcRequest, RpcResponse, ServerRequest, ServerResponse } from '../api/rpc.ts'
 import { RpcId } from '../api/rpc.ts'
+import { handleFileUploadHttp, type FileUploadRouteService } from '../file-upload-route.ts'
 import type { Wire } from '../api/rpc.schema.ts'
 import { clientRequestSchema, clientResponseSchema } from '../api/rpc.schema.ts'
 import {
@@ -264,9 +265,10 @@ function sseResponse(frames: AsyncIterable<RpcRequest<MuxFrame | HostFrame>>): R
 /**
  * Wraps an ApiProxy into a pure fetch function (isomorphic point: feed the returned fetch straight to InProcessApiClient).
  * @param api - the host-side ApiProxy implementation.
+ * @param fileUpload - optional authenticated raw-byte upload service.
  * @returns an object holding `fetch(Request)`; paths outside /api/ return 404.
  */
-export function toFetchHandler(api: ApiProxy): { fetch: typeof fetch } {
+export function toFetchHandler(api: ApiProxy, fileUpload?: FileUploadRouteService): { fetch: typeof fetch } {
   return {
     // Signature matches global fetch: the isomorphic point hands this function to InProcessApiClient as its transport aspect,
     // Clients call in (url, init) form — normalize to Request before handling.
@@ -294,6 +296,9 @@ export function toFetchHandler(api: ApiProxy): { fetch: typeof fetch } {
         if (req.method === 'GET') return response
         await response.body?.cancel()
         return new Response(null, { status: response.status, headers: response.headers })
+      }
+      if (path === '/api/session/uploadFileBinary' && fileUpload !== undefined) {
+        return handleFileUploadHttp(fileUpload, req)
       }
 
       if (req.method !== 'POST' || !path.startsWith('/api/')) {

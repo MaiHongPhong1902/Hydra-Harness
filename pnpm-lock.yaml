@@ -1543,6 +1543,9 @@ importers:
       '@hydra/harness-client-connection':
         specifier: workspace:^
         version: link:../../client/connection
+      '@hydra/harness-client-file-upload':
+        specifier: workspace:^
+        version: link:../../client/file-upload
       '@hydra/harness-client-hmr':
         specifier: workspace:^
         version: link:../../client/hmr
@@ -1809,6 +1812,15 @@ importers:
       '@types/ws':
         specifier: ^8.18.1
         version: 8.18.1
+
+  packages/client/file-upload:
+    devDependencies:
+      '@hydra/cordis':
+        specifier: workspace:^
+        version: link:../../../vendor/cordis
+      '@hydra/harness-invariants':
+        specifier: workspace:^
+        version: link:../../runtime-diagnostics/invariants
 
   packages/client/hmr:
     dependencies:

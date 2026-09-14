@@ -48,6 +48,7 @@
     "@hydra/harness-api-remotes": "workspace:^",
     "@hydra/harness-app-boot": "workspace:^",
     "@hydra/harness-client-connection": "workspace:^",
+    "@hydra/harness-client-file-upload": "workspace:^",
     "@hydra/harness-client-hmr": "workspace:^",
     "@hydra/harness-client-locale": "workspace:^",
     "@hydra/harness-client-modules": "workspace:^",

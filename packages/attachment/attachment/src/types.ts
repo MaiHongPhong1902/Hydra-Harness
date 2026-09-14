@@ -23,6 +23,15 @@ export interface ImageAttachmentRef {
   name?: string
 }
 
+/** Durable reference to verbatim stored file bytes. */
+export interface FileAttachmentRef { attachmentId: AttachmentId; name: string; bytes: number }
+/** Base64-encoded file upload. */
+export interface EncodedFileAttachment { data: string; name?: string }
+/** Request to persist exact file bytes. */
+export interface SaveFileAttachment { data: Uint8Array; name?: string }
+/** Streamed request to persist exact file bytes. */
+export interface SaveFileStreamAttachment { data: AsyncIterable<Uint8Array>; signal?: AbortSignal; name?: string }
+
 /** Deployment-resolved limits used by upload admission and request buffering. */
 export interface ImageAttachmentLimits {
   maxImageBytes: number

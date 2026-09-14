@@ -7,6 +7,7 @@
  */
 
 import type { ContentBlock, Message } from '@hydra/harness-llm'
+type FileText = (ref: Extract<ContentBlock, { type: 'file' }>['attachment']) => string
 import type { EpochHeader } from '@hydra/harness-session'
 
 /** Fixed text-density estimate used until exact tokenization is needed. */
@@ -23,7 +24,7 @@ export const ROLE_OVERHEAD = 4
  * @param blocks - content blocks to price without mutation.
  * @returns heuristic tokens including per-block structural overhead.
  */
-export function estimateContent(blocks: readonly ContentBlock[]): number {
+export function estimateContent(blocks: readonly ContentBlock[], fileText?: FileText): number {
   let tokens = 0
   for (const block of blocks) {
     switch (block.type) {
@@ -37,7 +38,12 @@ export function estimateContent(blocks: readonly ContentBlock[]): number {
           + BLOCK_OVERHEAD
         break
       case 'tool-result':
-        tokens += estimateContent(block.content) + BLOCK_OVERHEAD
+        tokens += estimateContent(block.content, fileText) + BLOCK_OVERHEAD
+        break
+      case 'file':
+        tokens += fileText === undefined
+          ? BLOCK_OVERHEAD + Math.ceil(JSON.stringify(block).length / CHARS_PER_TOKEN)
+          : Math.ceil(fileText(block.attachment).length / CHARS_PER_TOKEN) + BLOCK_OVERHEAD
         break
       default:
         // ContentBlockMap is merge-extensible; unknown blocks retain a
@@ -53,8 +59,8 @@ export function estimateContent(blocks: readonly ContentBlock[]): number {
  * @param message - message to price without mutation.
  * @returns content and role-framing tokens under the fixed heuristic.
  */
-export function estimateMessage(message: Message): number {
-  return estimateContent(message.content) + ROLE_OVERHEAD
+export function estimateMessage(message: Message, fileText?: FileText): number {
+  return estimateContent(message.content, fileText) + ROLE_OVERHEAD
 }
 
 /**

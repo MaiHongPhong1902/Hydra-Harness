@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { AttachmentId } from '@hydra/harness-attachment'
-import { CallId, createUserMessage, OFFLOADED_IMAGE_TEXT, offloadRequestImages } from '../src/index.ts'
+import { CallId, contentHasFile, createUserMessage, fileHandleText, OFFLOADED_IMAGE_TEXT, offloadRequestImages, projectFilesToText } from '../src/index.ts'
 import type { ContentBlock } from '../src/index.ts'
 
 const source = { kind: 'plugin' as const, plugin: 'test' }
@@ -85,5 +85,82 @@ describe('offloadRequestImages', () => {
       nested,
       { type: 'text', text: OFFLOADED_IMAGE_TEXT },
     ])
+  })
+})
+
+describe('file projection', () => {
+  function fileBlock(name: string): Extract<ContentBlock, { type: 'file' }> {
+    return {
+      type: 'file',
+      attachment: {
+        attachmentId: AttachmentId(`sha256:${'ab'.repeat(32)}`),
+        name,
+        bytes: 42,
+      },
+    }
+  }
+
+  it('detects file blocks at the top level and inside nested tool results', () => {
+    expect(contentHasFile([{ type: 'text', text: 'x' }])).toBe(false)
+    expect(contentHasFile([fileBlock('a.txt')])).toBe(true)
+    expect(contentHasFile([{
+      type: 'tool-result',
+      toolCallId: CallId('call-1'),
+      content: [{
+        type: 'tool-result',
+        toolCallId: CallId('call-2'),
+        content: [fileBlock('deep.txt')],
+      }],
+    }])).toBe(true)
+  })
+
+  it('renders the handle with the read path or the explicit no-path fallback', () => {
+    const withPath = fileHandleText(fileBlock('notes.pdf').attachment, '/home/.hydra/attachments/v1/files/ab/x/notes.pdf')
+    expect(withPath).toContain('"notes.pdf"')
+    expect(withPath).toContain('42 bytes')
+    expect(withPath).toContain('sha256:abababab')
+    expect(withPath).toContain('"/home/.hydra/attachments/v1/files/ab/x/notes.pdf"')
+    expect(withPath).toContain('include this saved path in the delegation prompt')
+    expect(withPath).toContain('only subagents sharing this execution environment can read it')
+    const withoutPath = fileHandleText(fileBlock('notes.pdf').attachment, undefined)
+    expect(withoutPath).toContain('current execution environment cannot access a readable path')
+    expect(withoutPath).toContain('do not claim to have read it')
+  })
+
+  it('replaces every file occurrence with handle text and keeps file-free history identical', () => {
+    const plain = [createUserMessage({ content: [{ type: 'text', text: 'hi' }], source })]
+    expect(projectFilesToText(plain, () => '/p')).toBe(plain)
+    const unchangedTool = {
+      type: 'tool-result' as const,
+      toolCallId: CallId('call-plain'),
+      content: [{ type: 'text' as const, text: 'unchanged result' }],
+    }
+    const messages = [plain[0]!, createUserMessage({
+      content: [
+        fileBlock('top.csv'),
+        { type: 'text', text: 'keep' },
+        unchangedTool,
+        {
+          type: 'tool-result',
+          toolCallId: CallId('call-3'),
+          content: [fileBlock('nested.csv')],
+        },
+      ],
+      source,
+    })]
+    const projected = projectFilesToText(messages, ref => `/copies/${ref.name}`)
+    expect(projected).not.toBe(messages)
+    expect(projected[0]).toBe(messages[0])
+    const content = projected[1]!.content
+    expect(content[0]).toEqual({ type: 'text', text: fileHandleText(fileBlock('top.csv').attachment, '/copies/top.csv') })
+    expect(content[1]).toEqual({ type: 'text', text: 'keep' })
+    expect(content[2]).toBe(messages[1]!.content[2])
+    const nested = content[3] as Extract<ContentBlock, { type: 'tool-result' }>
+    expect(nested.content[0]).toEqual({
+      type: 'text',
+      text: fileHandleText(fileBlock('nested.csv').attachment, '/copies/nested.csv'),
+    })
+    // The durable message is untouched: projection returns shallow copies.
+    expect(messages[1]!.content[0]!.type).toBe('file')
   })
 })

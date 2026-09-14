@@ -29,6 +29,8 @@ import type { LlmCallConfig, LlmCallConfigAdapterDefaults } from './call-config.
 import { HarnessError, INVALID_CREDENTIAL_CODE } from './error.ts'
 import { normalizeLlmFailure } from './adapter-failure.ts'
 import { normalizeApiKey } from './api-key.ts'
+import type { FileAttachmentRef } from '@hydra/harness-attachment'
+import { contentHasFile, fileHandleText, projectFilesToText } from './content.ts'
 
 export * from './attribution.ts'
 export * from './brand.ts'
@@ -609,6 +611,15 @@ export class LlmRuntime extends Service {
   }
 
   /**
+   * Resolve the exact text sent for one durable file reference.
+   * @param ref - durable file reference from model history.
+   * @returns deterministic provider-facing handle text.
+   */
+  fileRequestText(ref: FileAttachmentRef): string {
+    return fileHandleText(ref, this.fileReadPath(ref))
+  }
+
+  /**
    * Resolve and validate all metadata from the adapter that owns one exact
    * route. The result is detached from adapter-owned objects; catalog
    * membership remains advisory and does not control request routing.
@@ -837,6 +848,26 @@ export class LlmRuntime extends Service {
   }
 
   /**
+   * Resolve the current execution-world read path of one durable file
+   * reference through the mounted attachment and filesystem providers.
+   */
+  private fileReadPath(ref: FileAttachmentRef): string | undefined {
+    let hostPath: string | undefined
+    try {
+      hostPath = this.ctx.get('attachments')?.fileHostPath(ref)
+    } catch {
+      // A malformed durable reference degrades this occurrence to the no-path
+      // handle instead of failing every later request over the same log.
+      return undefined
+    }
+    if (hostPath === undefined) return undefined
+    // Structural face: llm cannot depend on the filesystem package, and
+    // only this one mapping method is consumed.
+    const fs = this.ctx.get('fs') as { processPathFromHostPath(hostPath: string): string | undefined } | undefined
+    return fs?.processPathFromHostPath(hostPath)
+  }
+
+  /**
    * Final adapter boundary. Adapter selection, dispatch, iterator construction,
    * and iteration failures become one terminal failure chunk. Middleware and
    * downstream consumer failures remain thrown plugin or consumer errors.
@@ -863,7 +894,12 @@ export class LlmRuntime extends Service {
           ? deepFreeze({ ...options, ...resolvedConfig })
           : { ...options, ...resolvedConfig }
       const adapter = registration.adapter
-      const stream = adapter.stream(this.forAdapter(resolvedOptions, adapter))
+      let projected = resolvedOptions.messages
+      if (projected.some(message => contentHasFile(message.content))) {
+        projected = [...projectFilesToText(projected, ref => this.fileReadPath(ref))]
+      }
+      const request = projected === resolvedOptions.messages ? resolvedOptions : { ...resolvedOptions, messages: projected }
+      const stream = adapter.stream(this.forAdapter(request, adapter))
       iterator = stream[Symbol.asyncIterator]()
     } catch (error: unknown) {
       yield adapterFailureChunk(error, options.signal)

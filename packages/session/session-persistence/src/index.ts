@@ -9,7 +9,19 @@ import { Context, Service } from '@hydra/cordis'
 import { SessionPreparation } from '@hydra/harness-session'
 import type { SessionEvent, SessionId, SessionHeader } from '@hydra/harness-session'
 import type { SessionPersistenceRevision } from './revision.ts'
+import type {
+  SessionAccess, SessionHandle, SessionHandleAppendOptions, SessionHandleFlushOptions,
+  SessionHandleReadOptions, SessionHandleReadResult,
+} from './handle.ts'
+import {
+  SessionAlreadyOwnedError, SessionHandleClosedError, SessionOwnershipLostError, SessionReadOnlyError,
+} from './handle-errors.ts'
 
+export type {
+  SessionAccess, SessionHandle, SessionHandleAppendOptions, SessionHandleFlushOptions,
+  SessionHandleReadOptions, SessionHandleReadResult,
+} from './handle.ts'
+export { SessionAlreadyOwnedError, SessionHandleClosedError, SessionOwnershipLostError, SessionReadOnlyError } from './handle-errors.ts'
 // Re-export the metadata vocabulary so Consumers import it from the Service Definition.
 export type { SessionHeader } from '@hydra/harness-session'
 export { SessionPersistenceRevision } from './revision.ts'
@@ -82,6 +94,9 @@ export interface SessionLocation {
  * rewriting committed events.
  */
 export abstract class SessionPersistence extends Service {
+  private readonly writeOwners = new Set<SessionId>()
+  private readonly handles = new Set<SessionHandle>()
+
   constructor(ctx: Context) {
     super(ctx, 'sessionPersistence')
   }
@@ -131,6 +146,55 @@ export abstract class SessionPersistence extends Service {
    * @param meta - the immutable header (id, version, cwd, lineage) to record.
    */
   abstract create(meta: SessionHeader): Promise<void>
+
+  /**
+   * Open one read channel or claim the single in-process write owner.
+   * @param id - persisted session identifier.
+   * @param access - read-only or exclusive write access.
+   * @param options - optional cancellation signal.
+   * @returns a lifecycle-owned session handle.
+   */
+  async open(id: SessionId, access: SessionAccess = 'read', options?: { readonly signal?: AbortSignal }): Promise<SessionHandle> {
+    options?.signal?.throwIfAborted()
+    if (access === 'write' && this.writeOwners.has(id)) throw new SessionAlreadyOwnedError(id)
+    const inspected = await this.inspect(id, options?.signal)
+    options?.signal?.throwIfAborted()
+    if (access === 'write') this.writeOwners.add(id)
+    const handle = new LegacySessionHandle(this, inspected.meta, access, inspected.events)
+    this.handles.add(handle)
+    return handle
+  }
+
+  /**
+   * Claim a write channel immediately after a legacy `create` call. The old
+   * create method remains available for callers that only use append(id,...).
+   */
+  protected createHandle(meta: SessionHeader): SessionHandle {
+    if (this.writeOwners.has(meta.id)) throw new SessionAlreadyOwnedError(meta.id)
+    this.writeOwners.add(meta.id)
+    const handle = new LegacySessionHandle(this, meta, 'write', [])
+    this.handles.add(handle)
+    return handle
+  }
+
+  /** Flush all active write handles. Legacy append is already durable. */
+  async flush(): Promise<void> {
+    await Promise.all([...this.handles].filter(handle => handle.access === 'write').map(handle => handle.flush()))
+  }
+
+  /** Release ownership and remove a closed handle.
+   * @param handle - handle that has completed its close operation.
+   */
+  releaseHandle(handle: SessionHandle): void {
+    this.handles.delete(handle)
+    if (handle.access === 'write') this.writeOwners.delete(handle.id)
+  }
+
+  /** Report whether a session currently has an active write handle.
+   * @param id - persisted session identifier.
+   * @returns whether this backend instance owns the write slot.
+   */
+  hasWriteOwner(id: SessionId): boolean { return this.writeOwners.has(id) }
 
   /**
    * Durably persist a batch of events. Honors the append-only and contiguous-
@@ -241,3 +305,64 @@ export abstract class SessionPersistence extends Service {
 }
 
 export default SessionPersistence
+
+/** Compatibility adapter over the original id-based persistence methods. */
+class LegacySessionHandle implements SessionHandle {
+  private closed = false
+  private observed: readonly SessionEvent[]
+
+  constructor(
+    private readonly persistence: SessionPersistence,
+    readonly header: SessionHeader,
+    readonly access: SessionAccess,
+    initial: readonly SessionEvent[],
+  ) {
+    this.observed = initial
+  }
+
+  get id(): SessionId { return this.header.id }
+
+  async read(
+    offset: number = 0,
+    length: number = Number.POSITIVE_INFINITY,
+    options?: SessionHandleReadOptions,
+  ): Promise<SessionHandleReadResult> {
+    this.assertOpen('read')
+    options?.signal?.throwIfAborted()
+    const loaded = await this.persistence.readFrom(this.id, offset, options?.signal)
+    options?.signal?.throwIfAborted()
+    const events = loaded.events.slice(0, length)
+    this.observed = loaded.events
+    return { events }
+  }
+
+  async append(events: readonly SessionEvent[], options?: SessionHandleAppendOptions): Promise<void> {
+    this.assertOpen('append')
+    if (this.access !== 'write') throw new SessionReadOnlyError(this.id, 'append')
+    options?.signal?.throwIfAborted()
+    await this.persistence.append(this.id, events)
+    options?.signal?.throwIfAborted()
+    this.observed = [...this.observed, ...events]
+  }
+
+  async flush(options?: SessionHandleFlushOptions): Promise<void> {
+    this.assertOpen('flush')
+    if (this.access !== 'write') throw new SessionReadOnlyError(this.id, 'flush')
+    options?.signal?.throwIfAborted()
+  }
+
+  async close(): Promise<void> {
+    if (this.closed) return
+    this.closed = true
+    this.persistence.releaseHandle(this)
+  }
+
+  async [Symbol.asyncDispose](): Promise<void> { await this.close() }
+
+  private assertOpen(operation: string): void {
+    if (this.closed) throw new SessionHandleClosedError(this.id, operation)
+    if (this.access === 'write' && !(this.persistence as SessionPersistence).hasWriteOwner(this.id)) {
+      throw new SessionOwnershipLostError(this.id)
+    }
+  }
+}

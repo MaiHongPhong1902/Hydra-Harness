@@ -219,6 +219,10 @@
         # its literals, for example: ['app.internal', ...ctx.webRuntime.trustedHosts].
         trustedHosts: !!js ctx.webRuntime.trustedHosts
 
+    - id: file-upload
+      name: '@hydra/harness-client-file-upload'
+      pluginType: core
+
     - id: api-remotes
       name: '@hydra/harness-api-remotes'
       pluginType: core

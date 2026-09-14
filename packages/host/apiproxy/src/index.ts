@@ -26,6 +26,8 @@ import {
 export type * from './api/index.ts'
 export { RpcId } from './api/rpc.ts'
 export { toFetchHandler } from './fetch/handler.ts'
+export { handleFileUploadHttp } from './file-upload-route.ts'
+export type { FileUploadRouteService } from './file-upload-route.ts'
 export { AbstractApiClient, InProcessApiClient } from './fetch/client.ts'
 export type { IApiClient } from './fetch/client.ts'
 export { createApiProxy } from './api-proxy.ts'

@@ -3,7 +3,7 @@
 import { Buffer } from 'node:buffer'
 import { AttachmentError } from './error.ts'
 import type { AttachmentStore } from './index.ts'
-import type { EncodedImageAttachment, ImageAttachmentRef, SaveImageAttachment } from './types.ts'
+import type { EncodedFileAttachment, EncodedImageAttachment, FileAttachmentRef, ImageAttachmentRef, SaveImageAttachment } from './types.ts'
 
 /** Decode one upload payload while rejecting non-canonical base64 forms. */
 function decodeBase64(data: string): Uint8Array {
@@ -12,6 +12,15 @@ function decodeBase64(data: string): Uint8Array {
     throw new AttachmentError('Image upload is not canonical base64.', 'INVALID_IMAGE_BASE64')
   }
   return new Uint8Array(decoded)
+}
+
+/** Admit one generic file upload, including zero-byte files. */
+export async function admitEncodedFile(attachments: AttachmentStore, file: EncodedFileAttachment): Promise<FileAttachmentRef> {
+  const decoded = Buffer.from(file.data, 'base64')
+  if ((file.data.length > 0 && decoded.toString('base64') !== file.data)) {
+    throw new AttachmentError('File upload is not canonical base64.', 'INVALID_FILE_BASE64')
+  }
+  return attachments.saveFile({ data: new Uint8Array(decoded), ...(file.name === undefined ? {} : { name: file.name }) })
 }
 
 /** Store input for one decoded upload. */

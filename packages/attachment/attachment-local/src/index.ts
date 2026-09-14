@@ -4,9 +4,10 @@ import { join, resolve } from 'node:path'
 import { Context } from '@hydra/cordis'
 import z from '@hydra/schemastery'
 import { AttachmentStore } from '@hydra/harness-attachment'
-import type { ImageAttachmentLimits, ImageAttachmentRef, SaveImageAttachment, StoredImageAttachment } from '@hydra/harness-attachment'
+import type { FileAttachmentRef, ImageAttachmentLimits, ImageAttachmentRef, SaveFileAttachment, SaveFileStreamAttachment, SaveImageAttachment, StoredImageAttachment } from '@hydra/harness-attachment'
 import { resolveHydraHome } from '@hydra/harness-home-paths'
 import { readImageFile, saveImageFile, validateImageFile } from './store.ts'
+import { readFileStreamVerbatim, saveFileStreamVerbatim, saveFileVerbatim, storedFilePath } from './file-store.ts'
 
 export { readImageFile, saveImageFile, validateImageFile } from './store.ts'
 
@@ -82,6 +83,13 @@ export class LocalAttachmentStore extends AttachmentStore {
   async readImage(ref: ImageAttachmentRef, signal?: AbortSignal): Promise<StoredImageAttachment> {
     return readImageFile(this.root, ref, signal)
   }
+
+  override saveFile(input: SaveFileAttachment): Promise<FileAttachmentRef> { return saveFileVerbatim(this.root, input) }
+  override saveFileStream(input: SaveFileStreamAttachment): Promise<FileAttachmentRef> { return saveFileStreamVerbatim(this.root, input) }
+  override readFileStream(ref: FileAttachmentRef, signal?: AbortSignal): AsyncIterable<Uint8Array> {
+    return readFileStreamVerbatim(this.root, ref, signal)
+  }
+  override fileHostPath(ref: FileAttachmentRef): string { return storedFilePath(this.root, ref) }
 }
 
 export default LocalAttachmentStore

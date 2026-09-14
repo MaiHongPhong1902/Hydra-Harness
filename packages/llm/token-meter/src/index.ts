@@ -24,6 +24,9 @@ import {
 } from './usage-projection.ts'
 import { estimateContent, estimateHeader, estimateMessage, ROLE_OVERHEAD } from './estimate.ts'
 import { foldSurfaceTokens } from './surface-fold.ts'
+import type { ContentBlock } from '@hydra/harness-llm'
+
+type FileText = (ref: Extract<ContentBlock, { type: 'file' }>['attachment']) => string
 
 export type * from './types.ts'
 
@@ -159,6 +162,12 @@ export class TokenMeter extends Service {
     return estimateMessage(message)
   }
 
+  /** Resolve the model-facing text used to price durable file blocks. */
+  private fileText(): FileText | undefined {
+    const llm = this.ctx.get('llm')
+    return llm === undefined ? undefined : ref => llm.fileRequestText(ref)
+  }
+
   /** Catch one session's fold up to the current durable tail. */
   private _sync(session: Session): ReplayState {
     let state = this.states.get(session)
@@ -218,7 +227,7 @@ export class TokenMeter extends Service {
     }
 
     const surface = isSurfaceEvent(event)
-      ? foldSurfaceTokens(state.surface, event)
+      ? foldSurfaceTokens(state.surface, event, this.fileText())
       : undefined
 
     if (event.type === 'assistant/message') {

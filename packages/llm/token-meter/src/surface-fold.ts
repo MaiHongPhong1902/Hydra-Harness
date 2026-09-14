@@ -15,6 +15,9 @@ import { deriveEventMessage } from '@hydra/harness-session'
 import type { SurfaceEvent } from '@hydra/harness-session'
 import type { TokenSurfaceNode } from './types.ts'
 import { estimateMessage } from './estimate.ts'
+import type { ContentBlock } from '@hydra/harness-llm'
+
+type FileText = (ref: Extract<ContentBlock, { type: 'file' }>['attachment']) => string
 
 /** One surface event's placement and cost against the surface preceding it. */
 export interface SurfaceTokenFold {
@@ -42,9 +45,10 @@ export interface SurfaceTokenFold {
 export function foldSurfaceTokens(
   nodes: readonly TokenSurfaceNode[],
   event: SurfaceEvent,
+  fileText?: FileText,
 ): SurfaceTokenFold {
   const message = deriveEventMessage(event)
-  const tokens = message === null ? 0 : estimateMessage(message)
+  const tokens = message === null ? 0 : estimateMessage(message, fileText)
   const op = event.surfaceOp
   if (op === 'append') {
     return { tokens, nodes: [...nodes, { seq: event.seq, tokens }], deltaTokens: tokens }
