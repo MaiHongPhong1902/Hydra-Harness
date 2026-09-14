@@ -30,7 +30,9 @@ Providers sharing mutable storage override `withWriteTransaction(operation)`: ac
 
 `settings/document-updated (ns, revision)` fires whenever the RAW user section changes, whether or not the resolved value did. Configuration surfaces need this one: storing an override equal to the composition base leaves the resolved value alone but changes what the document says (the field is now overridden, not inherited) and moves the revision every open editor is holding. Listener containment matches `settings/updated`.
 
-Both declarations live in the client-safe `./types` subpath export, together with the `SettingsNamespace` and `SettingsUpdateSource` types their signatures name; the package root re-exports those types. A consumer outside the Host compilation face therefore reads the very signature the Host emits instead of restating it.
+`settings/registry-updated (ns)` fires when a plugin registers or removes a settings namespace. Configuration surfaces use it to refresh their served namespace list after plugin lifecycle changes that do not modify the settings document.
+
+These declarations live in the client-safe `./types` subpath export, together with the `SettingsNamespace` and `SettingsUpdateSource` types their signatures name; the package root re-exports those types. A consumer outside the Host compilation face therefore reads the very signature the Host emits instead of restating it.
 
 ## Model Experience
 

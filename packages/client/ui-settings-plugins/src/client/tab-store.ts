@@ -50,7 +50,7 @@ export class ConfigurablePluginsTabController {
 
   /**
    * @param describeFace - the shared mirror's describe face; its refreshes
-   * (document commits, reconnects) are what keep the served set current.
+   * (document commits, namespace registration changes, reconnects) are what keep the served set current.
    * @param entries - reads the cards currently registered into the section's slot.
    */
   constructor(
