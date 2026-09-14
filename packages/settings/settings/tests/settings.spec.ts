@@ -206,6 +206,19 @@ describe('registration', () => {
     const again = ctx.settings.register(settingsNamespace('ui-theme'), ThemeSchema)
     expect(again.get()).toEqual({ theme: 'light', fontSize: 14 })
   })
+
+  it('announces namespace registration changes for configuration consumers', async () => {
+    const { ctx } = await boot()
+    const changes: string[] = []
+    ctx.on('settings/registry-updated', (ns) => { changes.push(String(ns)) })
+    const fiber = ctx.plugin({
+      inject: ['settings'],
+      apply: (child: Context) => { child.settings.register(settingsNamespace('ui-theme'), ThemeSchema) },
+    })
+    await fiber
+    await fiber.dispose()
+    expect(changes).toEqual(['ui-theme', 'ui-theme'])
+  })
 })
 
 describe('update', () => {

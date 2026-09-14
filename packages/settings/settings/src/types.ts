@@ -46,5 +46,14 @@ declare module '@hydra/cordis' {
      * @mode emit
      */
     'settings/document-updated'(ns: SettingsNamespace, revision: number): void
+
+    /**
+     * A settings namespace was registered or removed with its owning plugin.
+     * Configuration surfaces use this to refresh their served-namespace list
+     * after plugin lifecycle changes that do not modify the settings file.
+     * @param ns - the namespace whose registration changed.
+     * @mode emit
+     */
+    'settings/registry-updated'(ns: SettingsNamespace): void
   }
 }

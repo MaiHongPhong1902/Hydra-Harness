@@ -464,9 +464,12 @@ export abstract class SettingsProvider extends Service {
     }
     this.ctx.effect(() => {
       this.registrations.set(ns, registration)
+      this.ctx.emit('settings/registry-updated', ns)
       // TODO(settings-registration-quiescence): Deactivate every watcher and await
       // its tail on disposal so callbacks cannot outlive the registrant fiber.
-      return () => this.registrations.delete(ns)
+      return () => {
+        if (this.registrations.delete(ns)) this.ctx.emit('settings/registry-updated', ns)
+      }
     }, `settings.register(${JSON.stringify(String(ns))})`)
     return {
       get revision() { return registration.revision },
