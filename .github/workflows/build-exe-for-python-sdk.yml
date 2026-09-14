@@ -237,15 +237,16 @@ jobs:
           exe="$PWD/dist-exe/hydra-jsonrpc-agent-pkg-$platform"
           [ -x "$exe" ] || { echo "::error::$exe missing or not executable"; exit 1; }
           case "$platform" in
-            linux-x64) wheel=hydra_harness_runtime_bin-$VERSION-py3-none-manylinux_2_28_x86_64.whl ;;
-            linux-arm64) wheel=hydra_harness_runtime_bin-$VERSION-py3-none-manylinux_2_28_aarch64.whl ;;
-            macos-arm64) wheel=hydra_harness_runtime_bin-$VERSION-py3-none-macosx_14_0_arm64.whl ;;
-            macos-x64) wheel=hydra_harness_runtime_bin-$VERSION-py3-none-macosx_14_0_x86_64.whl ;;
+            linux-x64) wheel=hydra_harness_runtime_bin-$VERSION-py3-none-manylinux_2_28_x86_64.whl; tag=manylinux_2_28_x86_64 ;;
+            linux-arm64) wheel=hydra_harness_runtime_bin-$VERSION-py3-none-manylinux_2_28_aarch64.whl; tag=manylinux_2_28_aarch64 ;;
+            macos-arm64) wheel=hydra_harness_runtime_bin-$VERSION-py3-none-macosx_14_0_arm64.whl; tag=macosx_14_0_arm64 ;;
+            macos-x64) wheel=hydra_harness_runtime_bin-$VERSION-py3-none-macosx_14_0_x86_64.whl; tag=macosx_14_0_x86_64 ;;
             *) echo "::error::Unsupported runtime platform $platform"; exit 1 ;;
           esac
           echo "platform=$platform" >> "$GITHUB_OUTPUT"
           echo "exe=$exe" >> "$GITHUB_OUTPUT"
           echo "wheel=$wheel" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
 
       - name: Full-turn SDK, executable snapshot, and direct-binary smoke
         run: >-
@@ -298,8 +299,10 @@ jobs:
         if: runner.os == 'macOS'
         env:
           EXE: ${{ steps.runtime.outputs.exe }}
+          PLATFORM_TAG: ${{ steps.runtime.outputs.tag }}
         run: >-
           python3 scripts/check-macos-deployment-target.py
+          --platform-tag "$PLATFORM_TAG"
           "$EXE" "$EXE-spawn-helper"
 
       - name: Run wheel in a manylinux 2.28 container
