@@ -54,6 +54,6 @@
     "@hydra/harness-tools": "workspace:^",
     "@hydra/cordis": "workspace:^",
     "@hydra/cordis-plugin-loader": "workspace:^",
-    "@modelcontextprotocol/sdk": "^1.12.0"
+    "@modelcontextprotocol/sdk": "^1.30.0"
   }
 }
