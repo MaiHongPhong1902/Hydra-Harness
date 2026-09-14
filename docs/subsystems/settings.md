@@ -281,6 +281,25 @@ One registered namespace's RAW user section changed, whether or not the resolved
 
 Source: [`packages/settings/settings/src/types.ts`](../../packages/settings/settings/src/types.ts)
 
+<a id="settingsregistry-updated--emit"></a>
+
+#### `settings/registry-updated` — emit
+
+A settings namespace was registered or removed with its owning plugin. Configuration surfaces use this to refresh their served-namespace list after plugin lifecycle changes that do not modify the settings file.
+
+```ts cordis-catalog
+/**
+ * A settings namespace was registered or removed with its owning plugin.
+ * Configuration surfaces use this to refresh their served-namespace list
+ * after plugin lifecycle changes that do not modify the settings file.
+ * @param ns - the namespace whose registration changed.
+ * @mode emit
+ */
+'settings/registry-updated'(ns: SettingsNamespace): void
+```
+
+Source: [`packages/settings/settings/src/types.ts`](../../packages/settings/settings/src/types.ts)
+
 <a id="settingsupdated--emit"></a>
 
 #### `settings/updated` — emit

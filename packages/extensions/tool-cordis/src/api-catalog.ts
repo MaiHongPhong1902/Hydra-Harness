@@ -3047,6 +3047,14 @@ export const EVENT_API: readonly EventApiEntry[] = [
     parameters: [{ name: 'ns', description: 'the namespace whose stored section changed.' }, { name: 'revision', description: 'the namespace\'s new revision.' }],
   },
   {
+    name: 'settings/registry-updated',
+    mode: 'emit',
+    signature: '\'settings/registry-updated\'(ns: SettingsNamespace): void',
+    summary: 'A settings namespace was registered or removed with its owning plugin.',
+    description: 'A settings namespace was registered or removed with its owning plugin. Configuration surfaces use this to refresh their served-namespace list after plugin lifecycle changes that do not modify the settings file.',
+    parameters: [{ name: 'ns', description: 'the namespace whose registration changed.' }],
+  },
+  {
     name: 'settings/updated',
     mode: 'emit',
     signature: '\'settings/updated\'(ns: SettingsNamespace, next: unknown, prev: unknown, source: SettingsUpdateSource): void',
