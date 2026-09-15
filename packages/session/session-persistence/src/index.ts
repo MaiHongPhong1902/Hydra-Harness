@@ -345,12 +345,14 @@ class LegacySessionHandle implements SessionHandle {
     this.observed = [...this.observed, ...events]
   }
 
+  // oxlint-disable-next-line typescript/require-await -- The async handle rejects validation failures instead of throwing synchronously.
   async flush(options?: SessionHandleFlushOptions): Promise<void> {
     this.assertOpen('flush')
     if (this.access !== 'write') throw new SessionReadOnlyError(this.id, 'flush')
     options?.signal?.throwIfAborted()
   }
 
+  // oxlint-disable-next-line typescript/require-await -- The async disposal API preserves rejection semantics for release failures.
   async close(): Promise<void> {
     if (this.closed) return
     this.closed = true
@@ -361,7 +363,7 @@ class LegacySessionHandle implements SessionHandle {
 
   private assertOpen(operation: string): void {
     if (this.closed) throw new SessionHandleClosedError(this.id, operation)
-    if (this.access === 'write' && !(this.persistence as SessionPersistence).hasWriteOwner(this.id)) {
+    if (this.access === 'write' && !this.persistence.hasWriteOwner(this.id)) {
       throw new SessionOwnershipLostError(this.id)
     }
   }

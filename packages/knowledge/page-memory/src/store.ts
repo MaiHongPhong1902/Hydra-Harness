@@ -4,8 +4,9 @@ import { lstat, mkdir, open as openFile } from 'node:fs/promises'
 import { DatabaseSync } from 'node:sqlite'
 import { resolve, join } from 'node:path'
 import { z } from 'zod'
+import type { MemoryTraceOutcome, WorkflowTrace } from './types.ts'
 
-const FORMAT_VERSION = 1
+const FORMAT_VERSION = 3
 const APPLICATION_ID = 0x48594d31
 const DATABASE_NAME = 'page-memory.sqlite'
 const SQLITE_BUSY_TIMEOUT_MS = 5_000
@@ -81,6 +82,7 @@ const WorkflowInputSchema = z.object({
 export type WorkflowInput = z.infer<typeof WorkflowInputSchema>
 
 const StoredWorkflowSchema = WorkflowInputSchema.extend({
+  revision: z.number().int().min(1).max(Number.MAX_SAFE_INTEGER),
   lastVerifiedAt: z.string().refine(isCanonicalTimestamp, 'invalid verification timestamp'),
   status: z.enum(['verified', 'stale']),
 }).strict()
@@ -106,6 +108,17 @@ interface PageCountRow {
   readonly count: number
 }
 
+interface HistoryRow {
+  readonly id: number
+  readonly page_key: string
+  readonly task: string
+  readonly payload: string
+  readonly outcome: string
+  readonly recorded_at: string
+  readonly source: string
+  readonly duration_ms: number | null
+}
+
 /** Limits enforced by one page-memory database. */
 export interface PageMemoryStoreLimits {
   /** Maximum complete serialized page record size in bytes. */
@@ -114,6 +127,8 @@ export interface PageMemoryStoreLimits {
   readonly maxWorkflows: number
   /** Maximum number of page keys retained in the database. */
   readonly maxPages: number
+  /** Maximum workflow observations retained for offline replay. */
+  readonly maxHistory: number
 }
 
 /** Parse and validate one untrusted workflow before any browser work.
@@ -181,7 +196,7 @@ export class PageMemoryStore {
 
   /**
    * @param directory - Private directory owning this scoped page-memory database.
-   * @param limits - Complete-record, per-page, and page-count limits.
+   * @param limits - Complete-record, per-page, page-count, and history limits.
    */
   constructor(directory: string, limits: PageMemoryStoreLimits) {
     if (typeof directory !== 'string' || directory.trim().length === 0) {
@@ -223,10 +238,12 @@ export class PageMemoryStore {
   /** Insert or replace one exact task and return its verified durable value.
    * @param key - Exact page key.
    * @param input - Untrusted workflow input.
+   * @param durationMs - Elapsed live verification time in milliseconds; omission records an unmeasured duration.
    * @returns The persisted verified workflow.
    */
-  async upsert(key: string, input: unknown): Promise<StoredWorkflow> {
+  async upsert(key: string, input: unknown, durationMs?: number): Promise<StoredWorkflow> {
     assertPageKey(key)
+    if (durationMs !== undefined) assertDuration(durationMs)
     const workflow = parseWorkflow(input)
     const db = await this.database()
     this.begin(db, 'write')
@@ -246,9 +263,11 @@ export class PageMemoryStore {
       }
       const stored: StoredWorkflow = {
         ...workflow,
+        revision: (workflows[index]?.revision ?? 0) + 1,
         lastVerifiedAt: new Date().toISOString(),
         status: 'verified',
       }
+      if (!Number.isSafeInteger(stored.revision)) throw new Error('page-memory: workflow revision exhausted')
       const payload = JSON.stringify(stored)
       const nextWorkflows = index < 0
         ? [...workflows, stored]
@@ -258,6 +277,7 @@ export class PageMemoryStore {
         INSERT INTO workflows (page_key, task, payload) VALUES (?, ?, ?)
         ON CONFLICT(page_key, task) DO UPDATE SET payload = excluded.payload
       `).run(key, workflow.task, payload)
+      this.appendHistory(db, key, stored, 'verified', 'save', durationMs ?? null)
       db.exec('COMMIT')
       return stored
     } catch (error) {
@@ -266,41 +286,62 @@ export class PageMemoryStore {
     }
   }
 
-  /** Mark one exact task stale while retaining its last verified timestamp.
+  /** Record live anchor verification only if the inspected workflow is still current.
    * @param key - Exact page key.
-   * @param task - Exact task name.
-   * @returns Completion after the update.
+   * @param inspected - Workflow whose anchors were inspected.
+   * @param outcome - Host-observed verification result; unavailable does not invalidate instructions.
+   * @param durationMs - Elapsed Browser verification time in milliseconds.
+   * @returns False when a concurrent replacement invalidates the observation; true after the atomic write.
    */
-  async markStale(key: string, task: string): Promise<void> {
+  async recordVerification(key: string, inspected: StoredWorkflow, outcome: MemoryTraceOutcome, durationMs: number): Promise<boolean> {
     assertPageKey(key)
-    if (typeof task !== 'string' || task.trim().length === 0) throw new Error('page-memory: task must not be blank')
+    assertDuration(durationMs)
     const db = await this.database()
     this.begin(db, 'write')
     try {
-      const workflows = this.readWithinTransaction(db, key)
-      if (workflows === undefined) {
+      const current = this.readWithinTransaction(db, key)?.find(workflow => workflow.task === inspected.task)
+      if (current === undefined || JSON.stringify(current) !== JSON.stringify(inspected)) {
         db.exec('COMMIT')
-        return
+        return false
       }
-      const index = workflows.findIndex(candidate => candidate.task === task)
-      if (index < 0) {
-        db.exec('COMMIT')
-        return
+      if (outcome === 'stale') {
+        const stale: StoredWorkflow = { ...current, status: 'stale' }
+        db.prepare('UPDATE workflows SET payload = ? WHERE page_key = ? AND task = ?')
+          .run(JSON.stringify(stale), key, current.task)
       }
-      const workflow = workflows[index]
-      if (workflow === undefined) {
-        db.exec('COMMIT')
-        return
-      }
-      if (workflow.status === 'stale') {
-        db.exec('COMMIT')
-        return
-      }
-      const stale: StoredWorkflow = { ...workflow, status: 'stale' }
-      const payload = JSON.stringify(stale)
-      this.assertRecordBytes(key, workflows.map((candidate, candidateIndex) => candidateIndex === index ? stale : candidate))
-      db.prepare('UPDATE workflows SET payload = ? WHERE page_key = ? AND task = ?').run(payload, key, task)
+      this.appendHistory(db, key, current, outcome, 'recall', durationMs)
       db.exec('COMMIT')
+      return true
+    } catch (error) {
+      rollback(db)
+      throw error
+    }
+  }
+
+  /** Read retained observations for one exact page and optional task.
+   * @param key - Exact page key.
+   * @param task - Optional exact workflow task filter.
+   * @returns Validated observations in insertion order; older rows may have expired under maxHistory.
+   */
+  async history(key: string, task?: string): Promise<WorkflowTrace[]> {
+    assertPageKey(key)
+    if (task !== undefined) nonblank(MAX_TASK_CHARS, 'task').parse(task)
+    const db = await this.database()
+    this.begin(db, 'read')
+    try {
+      const columns = 'id, page_key, task, payload, outcome, recorded_at, source, duration_ms'
+      const filter = task === undefined ? 'page_key = ?' : 'page_key = ? AND task = ?'
+      const parameters = task === undefined ? [key] : [key, task]
+      const bounds = db.prepare(`SELECT COUNT(*) AS count, COALESCE(MAX(length(CAST(payload AS BLOB))), 0) AS bytes FROM workflow_history WHERE ${filter}`)
+        .get(...parameters) as unknown as CountRow
+      if (bounds.count > this.limits.maxHistory || bounds.bytes > this.limits.maxRecordBytes) throw new Error('page-memory: history exceeds configured bounds')
+      const rows = (task === undefined
+        ? db.prepare(`SELECT ${columns} FROM workflow_history WHERE page_key = ? ORDER BY id LIMIT ?`).all(key, this.limits.maxHistory + 1)
+        : db.prepare(`SELECT ${columns} FROM workflow_history WHERE page_key = ? AND task = ? ORDER BY id LIMIT ?`).all(key, task, this.limits.maxHistory + 1)) as unknown as HistoryRow[]
+      if (rows.length > this.limits.maxHistory) throw new Error('page-memory: history exceeds maxHistory')
+      const entries = rows.map(decodeHistoryRow)
+      db.exec('COMMIT')
+      return entries
     } catch (error) {
       rollback(db)
       throw error
@@ -369,6 +410,16 @@ export class PageMemoryStore {
     const workflows = rows.map(row => decodeWorkflowRow(row))
     assertUniqueTasks(workflows)
     return workflows
+  }
+
+  private appendHistory(db: DatabaseSync, key: string, workflow: StoredWorkflow, outcome: MemoryTraceOutcome, source: 'save' | 'recall', durationMs: number | null): void {
+    db.prepare(`
+      INSERT INTO workflow_history (page_key, task, payload, outcome, recorded_at, source, duration_ms)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(key, workflow.task, JSON.stringify(workflow), outcome, new Date().toISOString(), source, durationMs)
+    db.prepare(`DELETE FROM workflow_history WHERE id NOT IN (
+      SELECT id FROM workflow_history ORDER BY id DESC LIMIT ?
+    )`).run(this.limits.maxHistory)
   }
 }
 
@@ -446,12 +497,23 @@ function initializeOrValidateSchema(db: DatabaseSync, path: string): void {
           payload TEXT NOT NULL,
           PRIMARY KEY (page_key, task)
         ) STRICT;
+        CREATE TABLE workflow_history (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          page_key TEXT NOT NULL REFERENCES pages(page_key) ON DELETE CASCADE,
+          task TEXT NOT NULL,
+          payload TEXT NOT NULL,
+          outcome TEXT NOT NULL CHECK(outcome IN ('verified', 'stale', 'unavailable')),
+          recorded_at TEXT NOT NULL,
+          source TEXT NOT NULL CHECK(source IN ('save', 'recall')),
+          duration_ms REAL CHECK(duration_ms >= 0)
+        ) STRICT;
+        CREATE INDEX workflow_history_page_task ON workflow_history(page_key, task, id);
         PRAGMA application_id = ${APPLICATION_ID};
         PRAGMA user_version = ${FORMAT_VERSION};
       `)
     }
     else if (version !== FORMAT_VERSION) {
-      throw new Error(`page-memory: database schema version ${version} is incompatible with ${FORMAT_VERSION}`)
+      throw new Error(`page-memory: database schema version ${version} is incompatible with ${FORMAT_VERSION} at "${path}". Back up this namespace and select a new storageDir.`)
     } else if (applicationId !== APPLICATION_ID) {
       throw new Error(`page-memory: database application id ${applicationId} is not owned by page memory`)
     }
@@ -466,13 +528,15 @@ function initializeOrValidateSchema(db: DatabaseSync, path: string): void {
 
 function validateSchema(db: DatabaseSync, path: string): void {
   const rows = db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name").all() as unknown as Array<{ name: string }>
-  if (rows.map(row => row.name).join(',') !== 'pages,workflows') {
+  if (rows.map(row => row.name).join(',') !== 'pages,workflow_history,workflows') {
     throw new Error(`page-memory: database at "${path}" has an unsupported schema`)
   }
   const pages = db.prepare('PRAGMA table_info(pages)').all() as unknown as Array<{ name: string; type: string }>
   const workflows = db.prepare('PRAGMA table_info(workflows)').all() as unknown as Array<{ name: string; type: string }>
+  const history = db.prepare('PRAGMA table_info(workflow_history)').all() as unknown as Array<{ name: string; type: string }>
   if (pages.map(row => `${row.name}:${row.type}`).join(',') !== 'page_key:TEXT'
-    || workflows.map(row => `${row.name}:${row.type}`).join(',') !== 'page_key:TEXT,task:TEXT,payload:TEXT') {
+    || workflows.map(row => `${row.name}:${row.type}`).join(',') !== 'page_key:TEXT,task:TEXT,payload:TEXT'
+    || history.map(row => `${row.name}:${row.type}`).join(',') !== 'id:INTEGER,page_key:TEXT,task:TEXT,payload:TEXT,outcome:TEXT,recorded_at:TEXT,source:TEXT,duration_ms:REAL') {
     throw new Error(`page-memory: database at "${path}" has a corrupt schema`)
   }
 }
@@ -489,6 +553,30 @@ function decodeWorkflowRow(row: WorkflowRow): StoredWorkflow {
   assertSafeWorkflow(parsed)
   if (parsed.task !== row.task) throw new Error('page-memory: workflow task index does not match payload')
   return parsed
+}
+
+function decodeHistoryRow(row: HistoryRow): WorkflowTrace {
+  if (!Number.isSafeInteger(row.id) || row.id < 1
+    || !isCanonicalTimestamp(row.recorded_at)
+    || !['save', 'recall'].includes(row.source)
+    || !['verified', 'stale', 'unavailable'].includes(row.outcome)) {
+    throw new Error('page-memory: corrupt history row')
+  }
+  assertPageKey(row.page_key)
+  if (row.duration_ms !== null) assertDuration(row.duration_ms)
+  const workflow = decodeWorkflowRow(row)
+  if (row.source === 'save' && (row.outcome !== 'verified' || workflow.status !== 'verified')) {
+    throw new Error('page-memory: invalid saved workflow history')
+  }
+  return {
+    id: row.id, pageKey: row.page_key, task: row.task, workflow,
+    outcome: row.outcome as MemoryTraceOutcome,
+    source: row.source as 'save' | 'recall', recordedAt: row.recorded_at, durationMs: row.duration_ms,
+  }
+}
+
+function assertDuration(value: number): void {
+  if (!Number.isFinite(value) || value < 0) throw new Error('page-memory: verification duration must be finite and non-negative')
 }
 
 function assertUniqueTasks(workflows: readonly StoredWorkflow[]): void {
@@ -647,6 +735,7 @@ function validateLimits(limits: PageMemoryStoreLimits): void {
     ['maxRecordBytes', limits.maxRecordBytes],
     ['maxWorkflows', limits.maxWorkflows],
     ['maxPages', limits.maxPages],
+    ['maxHistory', limits.maxHistory],
   ] as const) {
     if (!Number.isSafeInteger(value) || value < 1) {
       throw new Error(`page-memory: ${name} must be a positive safe integer`)

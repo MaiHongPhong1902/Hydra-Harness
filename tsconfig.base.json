@@ -30,6 +30,7 @@
     "paths": {
       "@hydra/harness-client-ui-review": ["./packages/client/ui-review/src/index.ts"],
       "@hydra/harness-client-ui-review/client": ["./packages/client/ui-review/src/client/index.ts"],
+      "@hydra/harness-client-file-upload": ["./packages/client/file-upload/src/index.ts"],
       "@hydra/harness-fs-review": ["./packages/fs/fs-review/src/index.ts"],
       "@hydra/harness-fs-review/client": ["./packages/fs/fs-review/src/client.ts"],
       "@hydra/harness-fs-review/*": ["./packages/fs/fs-review/src/*"],

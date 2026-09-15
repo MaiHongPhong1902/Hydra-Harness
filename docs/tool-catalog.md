@@ -2330,7 +2330,7 @@ Click a control from the latest snapshot by index or by visible name. Indexes ar
     },
     "target": {
       "type": "string",
-      "description": "Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name."
+      "description": "Observed Playwright ref (e17) or a unique CSS selector. To reach inside an <iframe> (including cross-origin), chain selectors with \" >> \": \"iframeSelector >> innerSelector\" (repeat to nest further). Use instead of index/name."
     },
     "tab_id": {
       "type": "integer",
@@ -2530,7 +2530,7 @@ Type several named or indexed fields in one call. Each field is re-resolved afte
           },
           "target": {
             "type": "string",
-            "description": "Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name."
+            "description": "Observed Playwright ref (e17) or a unique CSS selector. To reach inside an <iframe> (including cross-origin), chain selectors with \" >> \": \"iframeSelector >> innerSelector\" (repeat to nest further). Use instead of index/name."
           },
           "text": {
             "type": "string",
@@ -2580,7 +2580,7 @@ Fill multiple form controls by accessibility ref or accessible name, matching Pl
           },
           "target": {
             "type": "string",
-            "description": "Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name."
+            "description": "Observed Playwright ref (e17) or a unique CSS selector. To reach inside an <iframe> (including cross-origin), chain selectors with \" >> \": \"iframeSelector >> innerSelector\" (repeat to nest further). Use instead of index/name."
           },
           "text": {
             "type": "string",
@@ -2721,7 +2721,7 @@ Move the native browser pointer onto an observed accessibility ref or named cont
     },
     "target": {
       "type": "string",
-      "description": "Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name."
+      "description": "Observed Playwright ref (e17) or a unique CSS selector. To reach inside an <iframe> (including cross-origin), chain selectors with \" >> \": \"iframeSelector >> innerSelector\" (repeat to nest further). Use instead of index/name."
     },
     "tab_id": {
       "type": "integer",
@@ -3111,7 +3111,7 @@ Choose a dropdown option by the control's index or visible name and the option's
     },
     "target": {
       "type": "string",
-      "description": "Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name."
+      "description": "Observed Playwright ref (e17) or a unique CSS selector. To reach inside an <iframe> (including cross-origin), chain selectors with \" >> \": \"iframeSelector >> innerSelector\" (repeat to nest further). Use instead of index/name."
     },
     "text": {
       "type": "string",
@@ -3148,7 +3148,7 @@ Select text across an element by index or visible name, or between explicit coor
     },
     "target": {
       "type": "string",
-      "description": "Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name."
+      "description": "Observed Playwright ref (e17) or a unique CSS selector. To reach inside an <iframe> (including cross-origin), chain selectors with \" >> \": \"iframeSelector >> innerSelector\" (repeat to nest further). Use instead of index/name."
     },
     "start_x": {
       "type": "number",
@@ -3190,7 +3190,7 @@ Read a distilled accessibility tree, optionally scoped to a ref/selector, depth,
     },
     "target": {
       "type": "string",
-      "description": "Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name."
+      "description": "Observed Playwright ref (e17) or a unique CSS selector. To reach inside an <iframe> (including cross-origin), chain selectors with \" >> \": \"iframeSelector >> innerSelector\" (repeat to nest further). Use instead of index/name."
     },
     "depth": {
       "type": "integer",
@@ -3318,7 +3318,7 @@ Type text into an input or textarea by index or visible name. Replaces whatever 
     },
     "target": {
       "type": "string",
-      "description": "Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name."
+      "description": "Observed Playwright ref (e17) or a unique CSS selector. To reach inside an <iframe> (including cross-origin), chain selectors with \" >> \": \"iframeSelector >> innerSelector\" (repeat to nest further). Use instead of index/name."
     },
     "text": {
       "type": "string",

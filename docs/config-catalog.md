@@ -1653,6 +1653,8 @@ export interface Config {
   maxContextBytes?: number
   /** Maximum targeted source observations retained during one turn. */
   maxObservations?: number
+  /** Maximum durable verification traces retained for offline replay. */
+  maxHistory?: number
   /** Total time budget for one set of live anchor/locator checks. */
   verificationTimeoutMs?: number
 }
@@ -1666,7 +1668,7 @@ export interface RouteRule {
 }
 ```
 
-Source: [`packages/knowledge/page-memory/src/index.ts:53`](../packages/knowledge/page-memory/src/index.ts)
+Source: [`packages/knowledge/page-memory/src/index.ts:57`](../packages/knowledge/page-memory/src/index.ts)
 
 <a id="hydraharness-permission-presets"></a>
 

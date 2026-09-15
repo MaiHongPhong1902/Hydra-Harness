@@ -1,4 +1,4 @@
-import { mkdtemp, readdir, rm } from 'node:fs/promises'
+import { mkdtemp, readdir, realpath, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -13,6 +13,7 @@ import SystemPrompt from '@hydra/harness-system-prompt'
 import ToolRuntime from '@hydra/harness-tools'
 import * as ToolBrowser from '@hydra/harness-tool-browser'
 import * as PageMemory from '../src/index.ts'
+import { PageMemoryStore, pageKey } from '../src/store.ts'
 
 const cleanup: (() => Promise<void>)[] = []
 afterEach(async () => { for (const dispose of cleanup.splice(0).reverse()) await dispose() })
@@ -42,6 +43,7 @@ async function harness(config: Partial<PageMemory.Config> = {}) {
   const regions = new Map([['#title', '- heading "Orders"'], ['#search', '- textbox "Search"'], ['#status', '- status: Pending']])
   const reads: string[] = []
   let explicitReadsOnly = false
+  let beforeSnapshot: (() => Promise<void>) | undefined
   const browser = {
     experimentalScriptExecution: false, fullCdpAccess: false,
     currentPage: (_agent: Agent, execution: { callId?: string } = {}) => {
@@ -54,6 +56,9 @@ async function harness(config: Partial<PageMemory.Config> = {}) {
       if (action.method === 'click_element') regions.set('#status', '- status: Saved')
       let content = [...regions.values()].join('\n')
       if (action.method === 'get_browser_state' && action.snapshot?.target !== undefined) {
+        const callback = beforeSnapshot
+        beforeSnapshot = undefined
+        await callback?.()
         reads.push(action.snapshot.target)
         const region = regions.get(action.snapshot.target)
         if (region === undefined) throw new Error('Locator did not match exactly one element')
@@ -100,6 +105,7 @@ async function harness(config: Partial<PageMemory.Config> = {}) {
   return {
     ctx, fiber, agent, session, workspace, options, reads, regions, call, admit,
     requireExplicitReads: () => { explicitReadsOnly = true },
+    beforeNextSnapshot: (callback: () => Promise<void>) => { beforeSnapshot = callback },
     page: () => page!, setPage: (next: BrowserPageIdentity | undefined) => { page = next },
   }
 }
@@ -110,6 +116,26 @@ function context(result: Awaited<ReturnType<Awaited<ReturnType<typeof harness>>[
 }
 
 describe('verified page-memory integration', () => {
+  it('does not publish or invalidate an old workflow when another writer replaces it during verification', async () => {
+    const h = await harness()
+    await h.call('page_memory_get', { task: workflow.task })
+    await h.admit()
+    context(await h.call('browser_click', { target: '#save' }))
+    context(await h.call('page_memory_upsert', workflow))
+    const scopes = await readdir(join(h.workspace, 'memory'))
+    const store = new PageMemoryStore(join(h.workspace, 'memory', scopes[0]!), { maxRecordBytes: 32768, maxWorkflows: 12, maxPages: 500, maxHistory: 256 })
+    cleanup.push(() => store.close())
+    const key = pageKey(h.page().url, { workspace: await realpath(h.workspace), role: 'operator', locale: 'en-US' }, [])
+    h.regions.set('#title', 'Changed old anchor')
+    h.beforeNextSnapshot(async () => { await store.upsert(key, { ...workflow, summary: 'Replacement instructions.', anchors: [{ target: '#status', text: 'Saved' }] }) })
+    const result = context(await h.call('page_memory_get'))
+    expect(result).toContain('"status":"changed"')
+    expect(result).not.toContain('Save the form.')
+    expect(await store.read(key)).toEqual([expect.objectContaining({ status: 'verified', summary: 'Replacement instructions.' })])
+    expect((await store.history(key)).some(trace => trace.outcome === 'stale')).toBe(false)
+    expect(context(await h.call('page_memory_get'))).toContain('Replacement instructions.')
+  })
+
   it('verifies a workflow, persists SQLite, recalls only its task, and logs each changed context once', async () => {
     const h = await harness()
     expect(context(await h.call('page_memory_get', { task: workflow.task }))).toContain('"status":"missing"')

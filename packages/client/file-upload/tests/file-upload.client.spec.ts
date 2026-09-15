@@ -124,6 +124,7 @@ describe('file upload worker body', () => {
     fileUploadWorker(
       scope,
       () => { throw new Error('unused') },
+      // oxlint-disable-next-line typescript/prefer-promise-reject-errors -- arbitrary rejection values are the worker contract under test.
       () => Promise.reject('offline'),
     )
     scope.onmessage?.({ data: { url: '/upload', body, headers: {} } } as never)
@@ -190,9 +191,10 @@ describe('file upload service', () => {
     const ctx = new Context()
     const fiber = ctx.plugin({ apply })
     await fiber
-    await ctx.fileUpload.post({ path: '/fallback', body: new Blob() })
+    const body = new Blob()
+    await ctx.fileUpload.post({ path: '/fallback', body })
     expect(fetch).toHaveBeenCalledWith(new URL('http://hydra.internal/fallback'), {
-      method: 'POST', body: expect.any(Blob),
+      method: 'POST', body,
     })
     await fiber.dispose()
   })

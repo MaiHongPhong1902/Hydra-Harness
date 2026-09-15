@@ -30,6 +30,7 @@ When a Settings provider is mounted, the plugin registers the `page-memory` name
 | `maxPages` | `500` | Maximum page records in this namespace. |
 | `maxContextBytes` | `8192` | Complete model-facing memory message limit, including its prefix and metadata. |
 | `maxObservations` | `32` | Maximum targeted source snapshots retained during one turn. |
+| `maxHistory` | `256` | Maximum retained verification observations for replay auditing. |
 | `verificationTimeoutMs` | `5000` | Total budget for one set of live anchor and locator checks. |
 
 ## Behavior
@@ -37,6 +38,10 @@ When a Settings provider is mounted, the plugin registers the `page-memory` name
 `page_memory_get` selects an exact stable `task` for the current turn and reads only that workflow on the current page. Omitting `task` reads the selected task, or lists available task names when none is selected. There is no fuzzy task matching, cross-page fallback, or cross-namespace fallback.
 
 `page_memory_upsert` replaces the selected task after a successful Browser action in the same turn, task, tab, and current URL, followed by a live success check. Its workflow contains a summary, reusable steps, pitfalls, observed anchor text, a success check, and unique CSS selectors in `locators`. The store validates complete records before a transactional SQLite write and marks the saved workflow `verified`.
+
+Each verified save and live recall appends a bounded SQLite observation with its outcome and measured verification time. The store compares the inspected workflow before recording a recall result, so a concurrent replacement cannot be marked stale by an older read. Schema version 3 adds this history and per-task revisions; older databases are rejected. Back up the old namespace and choose a new `storageDir` when upgrading.
+
+`examples/acp-agent/page-memory-replay.mjs` reads an existing session JSONL log and replays only observed sequential prefixes. It compares the untouched baseline with stopping policies using a chronological holdout, reports unknown and unsupported runs separately, and always reports `baseline` as the runtime policy. Browser calls are never issued and no unobserved alternative outcome is inferred.
 
 Optional `accountHint` adds account-type guidance, for example `"Use a staff account with order-management access."` It is saved and recalled with the workflow, does not partition storage, and supplies neither a login identity nor authorization.
 

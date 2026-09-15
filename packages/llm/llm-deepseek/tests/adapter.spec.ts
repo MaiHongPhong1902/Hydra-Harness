@@ -118,6 +118,7 @@ describe('DeepSeek model discovery', () => {
       .resolves.toEqual([{ id: 'fresh-model', name: 'Fresh model' }, { id: 'another-model' }])
     expect(fetch).toHaveBeenCalledWith('https://models.test/v1/models', expect.objectContaining({
       method: 'GET',
+      // oxlint-disable-next-line typescript/no-unsafe-assignment -- Vitest's asymmetric matcher is intentionally untyped.
       headers: expect.objectContaining({ authorization: 'Bearer test-key' }),
     }))
   })

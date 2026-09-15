@@ -6,6 +6,7 @@
 import { createHash } from 'node:crypto'
 import { realpath } from 'node:fs/promises'
 import { isAbsolute, join } from 'node:path'
+import { performance } from 'node:perf_hooks'
 import type { Context } from '@hydra/cordis'
 import z from '@hydra/schemastery'
 import { settingsNamespace, type SettingsScope } from '@hydra/harness-settings'
@@ -19,6 +20,7 @@ import { defineTool } from '@hydra/harness-tools'
 import type { ToolExecution } from '@hydra/harness-tools'
 import { PageMemoryStore, pageKey, parseWorkflow } from './store.ts'
 import type { RouteRule, StoredWorkflow } from './store.ts'
+import type { MemoryTraceOutcome } from './types.ts'
 
 /** Cordis plugin name. */
 export const name = 'page-memory'
@@ -38,6 +40,7 @@ export interface PageMemorySettings {
   maxPages?: number
   maxContextBytes?: number
   maxObservations?: number
+  maxHistory?: number
   verificationTimeoutMs?: number
 }
 
@@ -47,6 +50,7 @@ export const PageMemorySettingsSchema: z<PageMemorySettings> = z.object({
   maxRecordBytes: z.number().step(1).min(512), maxWorkflows: z.number().step(1).min(1),
   maxPages: z.number().step(1).min(1), maxContextBytes: z.number().step(1).min(256),
   maxObservations: z.number().step(1).min(1), verificationTimeoutMs: z.number().step(1).min(1),
+  maxHistory: z.number().step(1).min(1),
 })
 
 /** Host-owned namespace and retrieval limits. Tools cannot override the namespace. */
@@ -71,6 +75,8 @@ export interface Config {
   maxContextBytes?: number
   /** Maximum targeted source observations retained during one turn. */
   maxObservations?: number
+  /** Maximum durable verification traces retained for offline replay. */
+  maxHistory?: number
   /** Total time budget for one set of live anchor/locator checks. */
   verificationTimeoutMs?: number
 }
@@ -86,6 +92,7 @@ export const Config: z<Config> = z.object({
   maxPages: z.number().step(1).min(1).default(500),
   maxContextBytes: z.number().step(1).min(256).default(8192),
   maxObservations: z.number().step(1).min(1).default(32),
+  maxHistory: z.number().step(1).min(1).default(256),
   verificationTimeoutMs: z.number().step(1).min(1).default(5000),
 })
 
@@ -168,6 +175,7 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
     maxRecordBytes: config.maxRecordBytes, maxWorkflows: config.maxWorkflows,
     maxPages: config.maxPages, maxContextBytes: config.maxContextBytes,
     maxObservations: config.maxObservations, verificationTimeoutMs: config.verificationTimeoutMs,
+    maxHistory: config.maxHistory,
   }).filter(([, value]) => value !== undefined)) as Partial<PageMemorySettings>
   const settingsScope: SettingsScope<PageMemorySettings> | undefined = settings?.register(
     PAGE_MEMORY_SETTINGS_NAMESPACE, PageMemorySettingsSchema, {
@@ -189,6 +197,7 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
     maxPages: config.maxPages ?? 500,
     maxContextBytes: config.maxContextBytes ?? 8192,
     maxObservations: config.maxObservations ?? 32,
+    maxHistory: config.maxHistory ?? 256,
     verificationTimeoutMs: config.verificationTimeoutMs ?? 5000,
   }
   for (const [field, limit] of Object.entries(limits)) {
@@ -240,7 +249,7 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
       if (!live.content.trim() || !live.content.includes(observation.text)) throw new AnchorMismatchError('Expected anchor changed; observe the relevant region again')
     }
     const current = await ctx.browsers.currentPage(agent, { ...execution, signal }, page.tabId)
-    if (current?.url !== page.url || !current.settled) throw new Error('Page changed during verification')
+    if (current?.url !== page.url || current.tabId !== page.tabId || !current.settled) throw new Error('Page changed during verification')
   }
 
   async function recall(agent: Agent, execution: Pick<ToolExecution, 'signal'> & Partial<Pick<ToolExecution, 'callId'>>, tabId?: number): Promise<string | undefined> {
@@ -256,14 +265,18 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
     if (workflow === undefined) return render({ status: 'missing', url: page.url, tabId: page.tabId, task })
     if (workflow.status === 'stale') return render({ status: 'stale', url: page.url, tabId: page.tabId, task })
     if (!page.settled) return render({ status: 'loading', url: page.url, tabId: page.tabId, task })
-    try {
-      await observe(agent, page, workflow.anchors, execution)
-    } catch (error) {
+    const started = performance.now()
+    let outcome: MemoryTraceOutcome = 'verified'
+    try { await observe(agent, page, workflow.anchors, execution) } catch (error) {
       signal.throwIfAborted()
-      if (!(error instanceof AnchorMismatchError)) return render({ status: 'unavailable', url: page.url, tabId: page.tabId, task, message: 'Verification could not complete. Use current Browser observations.' })
-      await store.markStale(key, task)
-      return render({ status: 'stale', url: page.url, tabId: page.tabId, task, message: 'Live anchors did not match. Inspect the relevant region before reusing instructions.' })
+      outcome = error instanceof AnchorMismatchError ? 'stale' : 'unavailable'
     }
+    signal.throwIfAborted()
+    if (!await store.recordVerification(key, workflow, outcome, performance.now() - started)) {
+      return render({ status: 'changed', url: page.url, tabId: page.tabId, task, message: 'Workflow changed during verification. Read current page memory.' })
+    }
+    if (outcome === 'unavailable') return render({ status: outcome, url: page.url, tabId: page.tabId, task, message: 'Verification could not complete. Use current Browser observations.' })
+    if (outcome === 'stale') return render({ status: outcome, url: page.url, tabId: page.tabId, task, message: 'Live anchors did not match. Inspect the relevant region before reusing instructions.' })
     return render({ status: 'verified', url: page.url, tabId: page.tabId, workflow })
   }
 
@@ -371,9 +384,11 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
         || turn.task !== workflow.task || turn.action.task !== workflow.task) {
         throw new Error('Complete a successful Browser action in this turn before saving page memory')
       }
+      const action = turn.action
       const source = sourceUrl ?? page.url
       const key = pageKey(source, namespace, routes)
       const checks = [...workflow.anchors, ...Object.values(workflow.locators).map(target => ({ target, text: '' }))]
+      const started = performance.now()
       if (source === page.url) await observe(exec.agent, page, checks, exec)
       else {
         for (const check of checks) {
@@ -382,12 +397,17 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
         }
       }
       await observe(exec.agent, page, [workflow.successCheck], exec)
-      const candidate: StoredWorkflow = { ...workflow, lastVerifiedAt: new Date().toISOString(), status: 'verified' }
+      const candidate: StoredWorkflow = {
+        ...workflow, revision: Number.MAX_SAFE_INTEGER, lastVerifiedAt: new Date().toISOString(), status: 'verified',
+      }
       if (Buffer.byteLength(`${PREFIX}${JSON.stringify({ status: 'verified', url: source, tabId: page.tabId, workflow: candidate })}`) > limits.maxContextBytes) {
         throw new Error('Workflow exceeds maxContextBytes; shorten it before saving')
       }
       exec.signal.throwIfAborted()
-      await store.upsert(key, workflow)
+      if (state(exec.agent) !== turn || turn.action !== action || turn.task !== workflow.task) {
+        throw new Error('Browser action evidence changed during verification; verify the current task again')
+      }
+      await store.upsert(key, workflow, performance.now() - started)
       turn.task = workflow.task
       turn.action = undefined
       turn.observations.clear()

@@ -198,14 +198,14 @@ export interface StreamedImmutableObject { readonly sha256: string; readonly byt
 interface StagedImmutableObject extends StreamedImmutableObject { readonly path: string; readonly boundary: string }
 
 async function removeTemporary(path: string): Promise<void> {
-  await unlink(path).catch((error) => {
+  await unlink(path).catch((error: unknown) => {
     if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error
   })
 }
 
 async function digestFile(path: string): Promise<string> {
   const hash = createHash('sha256')
-  for await (const chunk of createReadStream(path)) hash.update(chunk)
+  for await (const chunk of createReadStream(path) as AsyncIterable<Uint8Array>) hash.update(chunk)
   return hash.digest('hex')
 }
 

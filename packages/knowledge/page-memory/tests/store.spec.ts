@@ -130,7 +130,7 @@ describe('parseWorkflow', () => {
 describe('PageMemoryStore', () => {
   it('replaces by exact task, marks stale, and isolates page keys', async () => {
     const directory = await scratch()
-    const store = new PageMemoryStore(directory, { maxRecordBytes: 32_768, maxWorkflows: 12, maxPages: 500 })
+    const store = new PageMemoryStore(directory, { maxRecordBytes: 32_768, maxWorkflows: 12, maxPages: 500, maxHistory: 32 })
     const first = key()
     const second = key('https://shop.test/orders/123?tab=open#list')
     await expect(store.read(first)).resolves.toEqual([])
@@ -144,7 +144,8 @@ describe('PageMemoryStore', () => {
       expect.objectContaining({ task: 'save', summary: 'Replacement.', status: 'verified', accountHint: 'Use an order-manager account.' }),
       expect.objectContaining({ task: 'find' }),
     ]))
-    await store.markStale(first, 'save')
+    const inspected = (await store.read(first)).find(candidate => candidate.task === 'save')!
+    await store.recordVerification(first, inspected, 'stale', 1)
     await expect(store.read(first)).resolves.toEqual(expect.arrayContaining([
       expect.objectContaining({ task: 'save', summary: 'Replacement.', status: 'stale' }),
     ]))
@@ -154,7 +155,7 @@ describe('PageMemoryStore', () => {
 
   it('keeps concurrent task updates and enforces workflow/page bounds', async () => {
     const directory = await scratch()
-    const store = new PageMemoryStore(directory, { maxRecordBytes: 32_768, maxWorkflows: 2, maxPages: 1 })
+    const store = new PageMemoryStore(directory, { maxRecordBytes: 32_768, maxWorkflows: 2, maxPages: 1, maxHistory: 32 })
     const first = key()
     await Promise.all([store.upsert(first, workflow('a')), store.upsert(first, workflow('b'))])
     await expect(store.read(first)).resolves.toHaveLength(2)
@@ -165,7 +166,7 @@ describe('PageMemoryStore', () => {
 
   it('allows concurrent first opens of one database', async () => {
     const directory = await scratch()
-    const limits = { maxRecordBytes: 32_768, maxWorkflows: 12, maxPages: 500 }
+    const limits = { maxRecordBytes: 32_768, maxWorkflows: 12, maxPages: 500, maxHistory: 32 }
     const first = new PageMemoryStore(directory, limits)
     const second = new PageMemoryStore(directory, limits)
     await expect(Promise.all([first.open(), second.open()])).resolves.toBeDefined()
@@ -176,7 +177,7 @@ describe('PageMemoryStore', () => {
 
   it('rejects oversized records, malformed rows, unsupported schema, and database symlinks', async () => {
     const directory = await scratch()
-    const store = new PageMemoryStore(directory, { maxRecordBytes: 512, maxWorkflows: 12, maxPages: 500 })
+    const store = new PageMemoryStore(directory, { maxRecordBytes: 512, maxWorkflows: 12, maxPages: 500, maxHistory: 32 })
     await expect(store.upsert(key(), workflow('large', 'x'.repeat(400)))).rejects.toThrow(/maxRecordBytes/)
     await store.close()
 
@@ -185,18 +186,18 @@ describe('PageMemoryStore', () => {
     corrupt.prepare('INSERT INTO pages (page_key) VALUES (?)').run('corrupt')
     corrupt.prepare('INSERT INTO workflows (page_key, task, payload) VALUES (?, ?, ?)').run('corrupt', 'bad', '{not json')
     corrupt.close()
-    const reader = new PageMemoryStore(directory, { maxRecordBytes: 32_768, maxWorkflows: 12, maxPages: 500 })
+    const reader = new PageMemoryStore(directory, { maxRecordBytes: 32_768, maxWorkflows: 12, maxPages: 500, maxHistory: 32 })
     await expect(reader.read('corrupt')).rejects.toThrow(/corrupt|JSON/i)
     await reader.close()
 
     const versionDirectory = await scratch()
-    const versionStore = new PageMemoryStore(versionDirectory, { maxRecordBytes: 32_768, maxWorkflows: 12, maxPages: 500 })
+    const versionStore = new PageMemoryStore(versionDirectory, { maxRecordBytes: 32_768, maxWorkflows: 12, maxPages: 500, maxHistory: 32 })
     await versionStore.open()
     await versionStore.close()
     const versionDb = new DatabaseSync(join(versionDirectory, 'page-memory.sqlite'))
     versionDb.exec('PRAGMA user_version = 99')
     versionDb.close()
-    const incompatible = new PageMemoryStore(versionDirectory, { maxRecordBytes: 32_768, maxWorkflows: 12, maxPages: 500 })
+    const incompatible = new PageMemoryStore(versionDirectory, { maxRecordBytes: 32_768, maxWorkflows: 12, maxPages: 500, maxHistory: 32 })
     await expect(incompatible.open()).rejects.toThrow(/schema version/i)
     await incompatible.close()
 
@@ -208,6 +209,7 @@ describe('PageMemoryStore', () => {
         maxRecordBytes: 32_768,
         maxWorkflows: 12,
         maxPages: 500,
+        maxHistory: 32,
       })
       await expect(linkedStore.open()).rejects.toThrow(/regular file|symlink/i)
     }
@@ -216,11 +218,27 @@ describe('PageMemoryStore', () => {
   it('creates owner-only database and directory modes on POSIX', async () => {
     if (process.platform === 'win32') return
     const directory = await scratch()
-    const store = new PageMemoryStore(directory, { maxRecordBytes: 32_768, maxWorkflows: 12, maxPages: 500 })
+    const store = new PageMemoryStore(directory, { maxRecordBytes: 32_768, maxWorkflows: 12, maxPages: 500, maxHistory: 32 })
     await store.open()
     const { stat } = await import('node:fs/promises')
     expect((await stat(directory)).mode & 0o777).toBe(0o700)
     expect((await stat(join(directory, 'page-memory.sqlite'))).mode & 0o777).toBe(0o600)
+    await store.close()
+  })
+
+  it('retains bounded verification history and rejects an obsolete observation', async () => {
+    const directory = await scratch()
+    const store = new PageMemoryStore(directory, { maxRecordBytes: 32_768, maxWorkflows: 12, maxPages: 500, maxHistory: 2 })
+    const page = key()
+    const saved = await store.upsert(page, workflow('save'), 12.5)
+    expect((await store.history(page, 'save'))).toEqual([expect.objectContaining({ source: 'save', outcome: 'verified', durationMs: 12.5 })])
+    expect(await store.recordVerification(page, saved, 'verified', 3)).toBe(true)
+    await store.upsert(page, { ...workflow('save'), summary: 'Replacement.' }, 4)
+    expect(await store.recordVerification(page, saved, 'stale', 9)).toBe(false)
+    const traces = await store.history(page, 'save')
+    expect(traces).toHaveLength(2)
+    expect(traces.at(-1)?.workflow.summary).toBe('Replacement.')
+    expect(traces.every(trace => trace.durationMs !== null && trace.durationMs >= 0)).toBe(true)
     await store.close()
   })
 })
