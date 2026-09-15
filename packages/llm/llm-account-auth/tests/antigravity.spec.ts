@@ -154,38 +154,68 @@ describe('Antigravity request serialization', () => {
     expect(request.request.generationConfig).toBeUndefined()
   })
 
-  it('rewrites the harness tool schema into the shape Gemini validates', async () => {
+  it('rewrites a tool schema literal into the shape Gemini validates', async () => {
+    // The shape here is the one the wire actually carries, taken from a
+    // shipped tool: `required` is already a list of names, while `const`
+    // survives compilation inside oneOf branches.
     const request = await buildAntigravityRequest(options([
-      user('u1', [{ type: 'text', text: 'Run echo hi.' }]),
+      user('u1', [{ type: 'text', text: 'Define a package.' }]),
     ], {
       tools: [{
-        name: 'bash',
-        description: 'Run a shell command',
+        name: 'cordis_define',
+        description: 'Define a Cordis package',
         parameters: {
           type: 'object',
           properties: {
-            command: { type: 'string', required: true, description: 'Command to run' },
-            mode: { type: 'string', required: true, const: 'foreground' },
-            env: {
-              type: 'object',
-              properties: { name: { type: 'string', required: true } },
+            plugin: {
+              oneOf: [
+                {
+                  type: 'object',
+                  additionalProperties: false,
+                  properties: { kind: { type: 'string', const: 'new' } },
+                  required: ['kind'],
+                },
+                {
+                  type: 'object',
+                  additionalProperties: false,
+                  properties: { kind: { type: 'string', const: 'existing' }, pluginId: { type: 'string' } },
+                  required: ['kind'],
+                },
+              ],
             },
+            name: { type: 'string' },
           },
+          required: ['plugin', 'name'],
         },
       }],
     }), credentials)
-    // A property's boolean `required` becomes the parent's list of names, the
-    // only spelling Gemini's Schema takes — it refuses the boolean outright —
-    // and a literal it does not know at all becomes the one-value enum that
-    // means the same. Both refusals reach the caller as HTTP 400.
+    // Gemini has no `const` field and refuses a whole request that carries one
+    // ("Unknown name \"const\""), so a literal becomes the one-value enum that
+    // says the same. Everything else the enforced subset allows — the name
+    // list, oneOf, nested objects, additionalProperties — is Gemini's own
+    // vocabulary and travels untouched.
     expect(request.request.tools?.[0]?.functionDeclarations[0]?.parameters).toEqual({
       type: 'object',
       properties: {
-        command: { type: 'string', description: 'Command to run' },
-        mode: { type: 'string', enum: ['foreground'] },
-        env: { type: 'object', properties: { name: { type: 'string' } }, required: ['name'] },
+        plugin: {
+          oneOf: [
+            {
+              type: 'object',
+              additionalProperties: false,
+              properties: { kind: { type: 'string', enum: ['new'] } },
+              required: ['kind'],
+            },
+            {
+              type: 'object',
+              additionalProperties: false,
+              properties: { kind: { type: 'string', enum: ['existing'] }, pluginId: { type: 'string' } },
+              required: ['kind'],
+            },
+          ],
+        },
+        name: { type: 'string' },
       },
-      required: ['command', 'mode'],
+      required: ['plugin', 'name'],
     })
   })
 
