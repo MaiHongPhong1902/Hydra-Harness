@@ -33,6 +33,22 @@ export interface BrowserPageIdentity {
   settled: boolean
 }
 
+/** Bounded semantic changes observed between two settled page states. */
+export interface BrowserUiChanges {
+  /** Controls or surfaces newly exposed in the accessibility tree. */
+  shown: string[]
+  /** Controls or surfaces no longer exposed in the accessibility tree. */
+  hidden: string[]
+  /** Controls whose disclosure state changed to expanded. */
+  expanded: string[]
+  /** Controls whose disclosure state changed to collapsed. */
+  collapsed: string[]
+  /** Existing semantic nodes whose accessible state changed. */
+  changed: string[]
+  /** Newly focused semantic node, when focus changed. */
+  focused?: string
+}
+
 /** Accessibility snapshot of the controlled page with stable action refs. */
 export interface BrowserState {
   /** Address currently loaded in the controlled view. */
@@ -55,6 +71,8 @@ export interface BrowserState {
   settled: boolean
   /** Host timestamp for evidence ordering. */
   capturedAt: string
+  /** Semantic DOM changes since the previous settled state, when any. */
+  uiChanges?: BrowserUiChanges
 }
 
 /** Optional projection controls for a model-facing accessibility snapshot. */

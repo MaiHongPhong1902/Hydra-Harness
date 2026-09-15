@@ -193,6 +193,7 @@ export async function saveImageFile(root: string, input: SaveImageAttachment, li
   }
 }
 
+/** Result of streaming an immutable object into local attachment storage. */
 export interface StreamedImmutableObject { readonly sha256: string; readonly bytes: number }
 interface StagedImmutableObject extends StreamedImmutableObject { readonly path: string; readonly boundary: string }
 
@@ -257,12 +258,28 @@ async function publishStagedObject(root: string, target: string, staged: StagedI
   }
 }
 
+/**
+ * Publish one byte buffer at the caller-provided content digest path.
+ * @param root - absolute attachment root used for staging and durability.
+ * @param target - destination path for the immutable object.
+ * @param data - bytes to persist.
+ * @param sha256 - expected SHA-256 digest of `data`.
+ * @returns completion after durable publication.
+ */
 export async function publishImmutableObject(root: string, target: string, data: Uint8Array, sha256: string): Promise<void> {
   const staged = await stageImmutableObject(root, [data])
   if (staged.sha256 !== sha256) { await removeTemporary(staged.path); throw new AttachmentError('Attachment bytes do not match their publication digest.', 'ATTACHMENT_CORRUPT') }
   await publishStagedObject(root, target, staged)
 }
 
+/**
+ * Publish an async byte stream after computing its content digest.
+ * @param root - absolute attachment root used for staging and durability.
+ * @param data - bytes to consume once and persist.
+ * @param targetFor - destination resolver receiving the digest and byte count.
+ * @param signal - optional cancellation signal checked while consuming the stream.
+ * @returns the published digest and byte count.
+ */
 export async function publishImmutableObjectStream(
   root: string,
   data: AsyncIterable<Uint8Array>,
@@ -280,6 +297,14 @@ export async function publishImmutableObjectStream(
   }
 }
 
+/**
+ * Publish a hard-link alias for an already stored immutable object.
+ * @param root - absolute attachment root used for durability.
+ * @param source - existing immutable object path.
+ * @param target - alias path to create.
+ * @param sha256 - expected digest when the alias already exists.
+ * @returns completion after durable publication.
+ */
 export async function publishImmutableAlias(root: string, source: string, target: string, sha256: string): Promise<void> {
   try {
     const parent = dirname(target)

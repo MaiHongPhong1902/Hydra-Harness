@@ -22,6 +22,7 @@ export const ROLE_OVERHEAD = 4
 /**
  * Price content blocks recursively under the fixed density heuristic.
  * @param blocks - content blocks to price without mutation.
+ * @param fileText - optional resolver for file attachment text.
  * @returns heuristic tokens including per-block structural overhead.
  */
 export function estimateContent(blocks: readonly ContentBlock[], fileText?: FileText): number {
@@ -57,6 +58,7 @@ export function estimateContent(blocks: readonly ContentBlock[], fileText?: File
 /**
  * Heuristically price one model-visible message.
  * @param message - message to price without mutation.
+ * @param fileText - optional resolver for file attachment text.
  * @returns content and role-framing tokens under the fixed heuristic.
  */
 export function estimateMessage(message: Message, fileText?: FileText): number {

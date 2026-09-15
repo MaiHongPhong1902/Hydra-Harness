@@ -263,6 +263,44 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
     expect(after.content).toContain('Ordered l for Ada')
   }, 60_000)
 
+  it('reports settled same-document UI changes', async () => {
+    await child.call('navigate', { url: fixture })
+    await child.call('execute_javascript', { script: `
+      document.body.innerHTML = '<div id="panel" role="dialog" aria-label="Details" hidden><button id="inside">Inside</button></div><button id="toggle" aria-expanded="false">Open</button><div id="decoration">Rotating</div>';
+      document.querySelector('#toggle').onclick = () => {
+        document.querySelector('#toggle').setAttribute('aria-expanded', 'true');
+        document.querySelector('#panel').hidden = false;
+        document.querySelector('#inside').focus();
+      };
+    ` })
+    await child.call('get_browser_state', {})
+    await child.call('click_element', { name: 'Open' })
+    const state = await child.call('get_browser_state', { waitForReady: true }) as BrowserState
+    expect(state.url).toBe(fixture)
+    expect(state.settled).toBe(true)
+    expect(state.uiChanges?.shown.join('\n')).toContain('<dialog')
+    expect(state.uiChanges?.shown.join('\n')).toContain('Inside')
+    expect(state.uiChanges?.expanded.join('\n')).toContain('expanded="true"')
+    expect(state.uiChanges?.focused).toContain('Inside')
+    expect(state.uiChanges?.shown.join('\n')).not.toContain('id=toggle')
+    await child.call('execute_javascript', { script: `
+      document.querySelector('#panel').hidden = true;
+      document.querySelector('#toggle').setAttribute('aria-expanded', 'false');
+    ` })
+    const hidden = await child.call('get_browser_state', { waitForReady: true }) as BrowserState
+    expect(hidden.uiChanges?.hidden.join('\n')).toContain('Inside')
+    expect(hidden.uiChanges?.collapsed.join('\n')).toContain('id=toggle')
+    await child.call('execute_javascript', { script: `
+      globalThis.__decorationTimer = setInterval(() => document.querySelector('#decoration').classList.toggle('rotating'), 15);
+    ` })
+    try {
+      const quiet = await child.call('get_browser_state', { waitForReady: true }) as BrowserState
+      expect(quiet.uiChanges).toBeUndefined()
+    } finally {
+      await child.call('execute_javascript', { script: 'clearInterval(globalThis.__decorationTimer)' })
+    }
+  }, 60_000)
+
   it('waits for accessibility text and drives native hover, drag, resize, and dialogs', async () => {
     await child.call('navigate', { url: fixture })
     await child.call('execute_javascript', { script: `

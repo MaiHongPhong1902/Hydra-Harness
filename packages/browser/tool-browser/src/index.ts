@@ -120,6 +120,18 @@ const OUTPUT_SCHEMA = {
     added: { type: 'array', items: { type: 'string' } },
     changed: { type: 'array', items: { type: 'string' } },
     removed: { type: 'array', items: { type: 'string' } },
+    uiChanges: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        shown: { type: 'array', items: { type: 'string' }, required: true },
+        hidden: { type: 'array', items: { type: 'string' }, required: true },
+        expanded: { type: 'array', items: { type: 'string' }, required: true },
+        collapsed: { type: 'array', items: { type: 'string' }, required: true },
+        changed: { type: 'array', items: { type: 'string' }, required: true },
+        focused: { type: 'string' },
+      },
+    },
   },
 } as const
 
@@ -468,7 +480,8 @@ export function apply(ctx: Context, config: Config = {}): void {
       browser: {
         tabId: value.tabId,
         revision: value.revision ?? 1,
-        hash: contentHash([value.content, ...(value.added ?? []), ...(value.changed ?? []), ...(value.removed ?? [])].join('\n')),
+        hash: contentHash([value.content, ...(value.added ?? []), ...(value.changed ?? []), ...(value.removed ?? []),
+          ...value.uiChanges === undefined ? [] : [JSON.stringify(value.uiChanges)]].join('\n')),
         mode: value.mode ?? 'full',
       },
     }),

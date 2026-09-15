@@ -1357,6 +1357,11 @@
     },
     {
       "doc": "docs/subsystems/browser.md",
+      "symbol": "BrowserUiChanges",
+      "source": "packages/browser/browser-electron/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/browser.md",
       "symbol": "BrowserState",
       "source": "packages/browser/browser-electron/src/types.ts"
     },

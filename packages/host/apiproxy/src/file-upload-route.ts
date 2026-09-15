@@ -9,7 +9,12 @@ export interface FileUploadRouteService<TResult = unknown> {
   }): Promise<TResult>
 }
 
-/** Handle one authenticated streamed upload. Authentication and session ownership belong to the service. */
+/**
+ * Handle one authenticated streamed upload. Authentication and session ownership belong to the service.
+ * @param service - authenticated upload implementation.
+ * @param request - incoming HTTP request with an octet-stream body.
+ * @returns an HTTP response describing upload success or failure.
+ */
 export async function handleFileUploadHttp<TResult>(
   service: FileUploadRouteService<TResult>, request: Request,
 ): Promise<Response> {

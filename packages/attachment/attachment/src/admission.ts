@@ -14,7 +14,12 @@ function decodeBase64(data: string): Uint8Array {
   return new Uint8Array(decoded)
 }
 
-/** Admit one generic file upload, including zero-byte files. */
+/**
+ * Admit one generic file upload, including zero-byte files.
+ * @param attachments - attachment store that owns durable file storage.
+ * @param file - canonical base64 upload and optional display name.
+ * @returns the durable file reference.
+ */
 export async function admitEncodedFile(attachments: AttachmentStore, file: EncodedFileAttachment): Promise<FileAttachmentRef> {
   const decoded = Buffer.from(file.data, 'base64')
   if ((file.data.length > 0 && decoded.toString('base64') !== file.data)) {

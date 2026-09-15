@@ -131,6 +131,35 @@ abstract saveImage(input: SaveImageAttachment): Promise<ImageAttachmentRef>
  * @throws the signal reason when aborted, or a storage error when verification fails.
  */
 abstract readImage(ref: ImageAttachmentRef, signal?: AbortSignal): Promise<StoredImageAttachment>
+
+/**
+ * Persist one file verbatim and return its durable reference.
+ * @param input - complete file bytes and optional display name.
+ * @returns the content-addressed durable reference.
+ */
+saveFile(input: SaveFileAttachment): Promise<FileAttachmentRef>
+
+/**
+ * Persist streamed file bytes without requiring one complete input buffer.
+ * @param input - ordered byte chunks, cancellation, and optional display name.
+ * @returns the content-addressed durable reference.
+ */
+saveFileStream(input: SaveFileStreamAttachment): Promise<FileAttachmentRef>
+
+/**
+ * Read one durable file as verified byte chunks.
+ * @param ref - durable file reference to verify.
+ * @param signal - optional cancellation signal.
+ * @returns an async sequence of exact file bytes.
+ */
+async *readFileStream(ref: FileAttachmentRef, signal?: AbortSignal): AsyncIterable<Uint8Array>
+
+/**
+ * Resolve a durable file to a host path when this provider is host-backed.
+ * @param ref - durable file reference.
+ * @returns an absolute host path, or undefined when unavailable.
+ */
+fileHostPath(ref: FileAttachmentRef): string | undefined
 ```
 
 Source: [`packages/attachment/attachment/src/index.ts`](../../packages/attachment/attachment/src/index.ts)

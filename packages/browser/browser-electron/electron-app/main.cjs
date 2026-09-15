@@ -2037,6 +2037,7 @@ async function readBrowserState(tab, waitForReady, followActive, signal) {
     }, false)
   }
   const deadline = Date.now() + READINESS_TIMEOUT_MS
+  const observationId = randomUUID()
   let candidateSince
   let candidateUrl
   let lastState
@@ -2049,7 +2050,11 @@ async function readBrowserState(tab, waitForReady, followActive, signal) {
     if (current.view.webContents.isDestroyed()) throw new Error(`controlled tab [${current.id}] is unavailable`)
     lastTab = current
     try {
-      const state = await pageControl(current, 'get_browser_state', {})
+      const state = await pageControl(current, 'get_browser_state', {
+        observationId,
+        quietMs: Math.min(READINESS_POLL_MS, READINESS_TIMEOUT_MS),
+        timeoutMs: Math.min(READINESS_SETTLE_MS, READINESS_TIMEOUT_MS),
+      })
       signal?.throwIfAborted()
       current.lastState = state
       if (followActive && activeTab !== undefined && activeTab !== current) {

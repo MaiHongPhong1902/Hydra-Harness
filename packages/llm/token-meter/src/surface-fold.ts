@@ -37,6 +37,7 @@ export interface SurfaceTokenFold {
  * the same malformed event fails identically on every retry.
  * @param nodes - the priced surface preceding this event, in model-visible order.
  * @param event - the surface event to place.
+ * @param fileText - optional resolver for file attachment text.
  * @returns the event's price, the next surface, and the signed total delta.
  * @throws when a replacement names a range absent from `nodes` — committed
  *   logs are surface-validated at append time, so an unresolvable range is log

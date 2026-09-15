@@ -848,6 +848,40 @@ describe('browser snapshot ranking', () => {
     expect(formatBrowserOutput(value)).toContain('Snapshot revision: 3 → 4')
   })
 
+  it('renders observer changes for action prioritization', () => {
+    const value = toValue({
+      action: { success: true, message: 'did click' },
+      state: {
+        url: 'https://shop.test/order', title: 'Order', header: 'Current Page: Order',
+        content: '[1]<button expanded="true">More</button>\n[2]<dialog>Details</dialog>', footer: '[End of page]',
+        uiChanges: {
+          shown: ['[2]<dialog>Details</dialog>'], hidden: [],
+          expanded: ['[1]<button expanded="true">More</button>'], collapsed: [],
+          changed: ['[1]<button expanded="true">More</button>'],
+        },
+        tabs: [{ id: 1, url: 'https://shop.test/order', title: 'Order', status: 'complete', active: true }],
+        tabId: 1, activeTabId: 1, settled: true, capturedAt: '2026-09-07T00:00:00.000Z',
+      },
+    }, 16_000, {
+      compact: true, previousUrl: 'https://shop.test/order', previousRevision: 1,
+      previousElements: ['[1]<button expanded="false">More</button>'],
+    })
+    expect(value.uiChanges).toEqual({
+      shown: ['[2]<dialog>Details</dialog>'], hidden: [],
+      expanded: ['[1]<button expanded="true">More</button>'], collapsed: [],
+      changed: ['[1]<button expanded="true">More</button>'],
+    })
+    expect(formatBrowserOutput(value)).toContain('Shown:\n[2]<dialog>Details</dialog>')
+    expect(formatBrowserOutput(value)).toContain('Expanded:\n[1]<button expanded="true">More</button>')
+    const outcome = { state: value }
+    expect(toValue(outcome, 16_000).uiChanges).toBeUndefined()
+    const bounded = toValue(outcome, 20, { previousUrl: value.url, previousRevision: 1 })
+    expect(bounded.uiChanges?.shown[0]).toHaveLength(20)
+    expect(bounded.uiChanges).toMatchObject({ hidden: [], expanded: [], collapsed: [], changed: [] })
+    const unsettled = toValue({ state: { ...value, settled: false } }, 16_000, { previousUrl: value.url, previousRevision: 1 })
+    expect(unsettled.uiChanges).toBeUndefined()
+  })
+
   it('falls back to a full snapshot when the claimed revision is stale', () => {
     const value = toValue({
       action: { success: true, message: 'did click' },

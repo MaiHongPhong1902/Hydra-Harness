@@ -314,6 +314,29 @@ readRaw(_id: SessionId, signal?: AbortSignal): Promise<SessionRawArtifact | unde
 abstract create(meta: SessionHeader): Promise<void>
 
 /**
+ * Open one read channel or claim the single in-process write owner.
+ * @param id - persisted session identifier.
+ * @param access - read-only or exclusive write access.
+ * @param options - optional cancellation signal.
+ * @returns a lifecycle-owned session handle.
+ */
+async open(id: SessionId, access: SessionAccess = 'read', options?: { readonly signal?: AbortSignal }): Promise<SessionHandle>
+
+/** Flush all active write handles. Legacy append is already durable. */
+async flush(): Promise<void>
+
+/** Release ownership and remove a closed handle.
+ * @param handle - handle that has completed its close operation.
+ */
+releaseHandle(handle: SessionHandle): void
+
+/** Report whether a session currently has an active write handle.
+ * @param id - persisted session identifier.
+ * @returns whether this backend instance owns the write slot.
+ */
+hasWriteOwner(id: SessionId): boolean
+
+/**
  * Durably persist a batch of events. Honors the append-only and contiguous-
  * seq contracts: the first event's `seq` MUST equal the stored next-seq
  * (after `load` has durably closed any interrupted turn). Rejects non-JSON-

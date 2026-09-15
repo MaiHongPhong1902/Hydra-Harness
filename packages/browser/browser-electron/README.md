@@ -23,6 +23,8 @@ Owner-scoped embedded browser. `BrowserSessionService` registers as `ctx.browser
 
 `get_browser_state.snapshot` requests Playwright's distilled accessibility tree with optional target, depth, and boxes, preserving password-value redaction. `find_element` searches that tree for text or regex and returns snippets. Diagnostic URL filtering preserves retained event indexes. The Playwright transport refreshes Runtime announcements on connection so prior diagnostic capture cannot hide existing execution contexts. Native action waits temporarily disable renderer throttling so occluded tabs continue producing animation frames.
 
+Each document owns one `MutationObserver` for child, visibility, disclosure, role, and style changes. It ignores Hydra overlays and waits for a short quiet period before comparing accessibility entries by DOM identity. The optional `uiChanges` reports at most 20 shown, hidden, expanded, collapsed, or changed entries per category plus newly focused content. Readiness reads retain these deltas until returning the final state.
+
 The seam contains no tool schema, prompt, or model-facing rendering policy. It owns durable browser settings, native policy enforcement, and Host approvals for browsing, downloads, uploads, sensitive-history searches, and Full CDP operations; `@hydra/harness-tool-browser` owns everything the model sees.
 
 ## Settings and browser management

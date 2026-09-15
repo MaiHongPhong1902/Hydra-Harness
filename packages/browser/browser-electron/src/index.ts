@@ -30,7 +30,7 @@ export { BrowserError } from './types.ts'
 export type {
   ActionResult, BrowserAction, BrowserCdpCommandResult, BrowserCdpEvent, BrowserCdpEventPage, BrowserErrorCode,
   BrowserSnapshotOptions, BrowserFillField, BrowserHistorySearchEntry, BrowserJsonValue,
-  BrowserOutcome, BrowserPageIdentity, BrowserScreenshot, BrowserState,
+  BrowserOutcome, BrowserPageIdentity, BrowserScreenshot, BrowserState, BrowserUiChanges,
   BrowserTabState,
 } from './types.ts'
 

@@ -67,6 +67,92 @@ const HARNESS_OVERLAY_SELECTOR = [
   '#hydra-browser-annotation-tip',
 ].join(', ')
 
+// Keep one small semantic baseline per document. MutationObserver is only the
+// wake-up signal; the accessibility text remains the source of truth, so
+// animation churn and layout-only mutations never become model-visible.
+function createUiChangeTracker() {
+  let lastMutationAt = -Infinity
+  let previousLines
+  let previousFocus
+  let latestLines
+  let latestFocus
+  let lastObservationId
+  const observer = new MutationObserver(mutations => {
+    if (mutations.some(mutation => {
+      const target = mutation.target instanceof Element
+        ? mutation.target
+        : mutation.target.parentElement
+      if (isHarnessOverlay(target)) return false
+      if (mutation.type !== 'childList') return true
+      return [...mutation.addedNodes, ...mutation.removedNodes].some(node => !isHarnessOverlay(node))
+    })) {
+      lastMutationAt = performance.now()
+    }
+  })
+  const start = () => observer.observe(document.documentElement ?? document, {
+    subtree: true,
+    childList: true,
+    characterData: true,
+    attributes: true,
+    attributeFilter: ['hidden', 'aria-hidden', 'aria-expanded', 'style', 'class', 'role', 'open', 'inert', 'aria-label', 'aria-selected', 'aria-checked', 'aria-disabled', 'disabled'],
+  })
+  const waitForSettled = async (quietMs, timeoutMs) => {
+    const deadline = performance.now() + timeoutMs
+    while (true) {
+      const remaining = Math.min(quietMs - (performance.now() - lastMutationAt), deadline - performance.now())
+      if (remaining <= 0) return
+      await new Promise(resolve => setTimeout(resolve, remaining))
+    }
+  }
+  const lineIndex = line => {
+    const match = /^\s*\[(\d+)\]/u.exec(line)
+    return match === null ? undefined : Number(match[1])
+  }
+  const isSurface = line => /\[(?:\d+|ref=[^\]]+)\]<(?:button|link|input|select|textarea|dialog|alertdialog|menu|menuitem|tab|tabpanel|listbox|form|alert|checkbox|radio|switch|combobox|textbox|searchbox)/iu.test(line)
+  const focusedLine = content => {
+    const active = document.activeElement
+    const ref = active instanceof Element ? active.getAttribute('data-hydra-a11y-ref') : null
+    return ref === null ? undefined : content.split('\n').find(line => line.startsWith(`[${ref.slice(1)}]`))
+  }
+  const capture = (content, controller, observationId) => {
+    // Readiness polls share a baseline, so only the final net change escapes.
+    if (observationId !== lastObservationId) {
+      previousLines = latestLines
+      previousFocus = latestFocus
+      lastObservationId = observationId
+    }
+    const lines = String(content).split('\n').filter(Boolean)
+    const focus = focusedLine(content)
+    const entries = lines.map(line => {
+      const index = lineIndex(line)
+      return { key: index === undefined ? line : controller.selectorMap.get(index)?.ref ?? line, line }
+    })
+    latestLines = entries
+    latestFocus = document.activeElement
+    if (previousLines === undefined) {
+      return undefined
+    }
+    const before = new Map(previousLines.map(entry => [entry.key, entry.line]))
+    const after = new Map(entries.map(entry => [entry.key, entry.line]))
+    const shown = entries.filter(entry => !before.has(entry.key) && isSurface(entry.line)).map(entry => entry.line).slice(0, 20)
+    const hidden = previousLines.filter(entry => !after.has(entry.key) && isSurface(entry.line)).map(entry => entry.line).slice(0, 20)
+    const semanticText = line => line.replace(/^\s*\[\d+\]/u, '')
+    const changedEntries = entries.filter(entry => before.has(entry.key) && semanticText(before.get(entry.key)) !== semanticText(entry.line))
+    const changed = changedEntries.map(entry => entry.line).slice(0, 20)
+    const expanded = changedEntries.filter(entry => /\bexpanded\s*=\s*["']?true\b/iu.test(entry.line)
+      && !/\bexpanded\s*=\s*["']?true\b/iu.test(before.get(entry.key) ?? '')).map(entry => entry.line).slice(0, 20)
+    const collapsed = changedEntries.filter(entry => /\bexpanded\s*=\s*["']?false\b/iu.test(entry.line)
+      && !/\bexpanded\s*=\s*["']?false\b/iu.test(before.get(entry.key) ?? '')).map(entry => entry.line).slice(0, 20)
+    const focusChanged = focus !== undefined && latestFocus !== previousFocus
+    const result = shown.length || hidden.length || changed.length || expanded.length || collapsed.length || focusChanged
+      ? { shown, hidden, expanded, collapsed, changed, ...focusChanged ? { focused: focus } : {} }
+      : undefined
+    return result
+  }
+  start()
+  return { capture, waitForSettled }
+}
+
 const cursorOverrideCss = `
 #page-agent-runtime_simulator-mask { cursor: default; display: block !important; pointer-events: none !important; }
 #page-agent-runtime_simulator-mask > :not([class*="cursor_"]) {
@@ -249,6 +335,13 @@ let accessibilityRefElements = []
 function markAccessibilityRefs(controller) {
   for (const element of accessibilityRefElements) element.removeAttribute('data-hydra-a11y-ref')
   accessibilityRefElements = []
+  const indexed = new Set([...controller.selectorMap.values()].map(entry => entry.ref))
+  let nextIndex = Math.max(-1, ...controller.selectorMap.keys()) + 1
+  for (const element of document.querySelectorAll('dialog, [role="dialog"], [role="alertdialog"], [role="alert"], [role="menu"], [role="tabpanel"], [role="listbox"]')) {
+    if (indexed.has(element) || isHarnessOverlay(element) || !element.checkVisibility()
+      || element.closest('[hidden], [aria-hidden="true"], [inert]')) continue
+    controller.selectorMap.set(nextIndex++, { ref: element })
+  }
   for (const [index, entry] of controller.selectorMap) {
     const element = entry?.ref
     if (element instanceof Element) {
@@ -1028,16 +1121,19 @@ const pageControllerReady = new Promise((resolve, reject) => {
       await pageController.showMask()
       await installNativePointerActions(pageController)
       const updateTree = pageController.updateTree.bind(pageController)
+      const uiChangeTracker = createUiChangeTracker()
       pageController.updateTree = async () => {
         pageController.simplifiedHTML = includeFileInputs(pageController, await updateTree())
         return pageController.simplifiedHTML
       }
       const getBrowserState = pageController.getBrowserState.bind(pageController)
-      pageController.getBrowserState = async () => {
+      pageController.getBrowserState = async ({ observationId = Symbol(), quietMs = 0, timeoutMs = 0 } = {}) => {
+        await uiChangeTracker.waitForSettled(quietMs, timeoutMs)
         const state = await getBrowserState()
         markAccessibilityRefs(pageController)
         const content = await ipcRenderer.invoke('browser:accessibility-snapshot')
-        return { ...state, content }
+        const uiChanges = uiChangeTracker.capture(content, pageController, observationId)
+        return { ...state, content, ...(uiChanges === undefined ? {} : { uiChanges }) }
       }
       resolve(pageController)
     } catch (error) {
@@ -1078,7 +1174,7 @@ async function dispatch(action, args) {
   const controller = await pageControllerReady
   switch (action) {
     case 'get_browser_state':
-      return await controller.getBrowserState()
+      return await controller.getBrowserState(args)
     case 'get_current_url':
       return await controller.getCurrentUrl()
     case 'get_last_update_time':

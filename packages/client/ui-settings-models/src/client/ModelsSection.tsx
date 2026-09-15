@@ -324,7 +324,12 @@ function Loaded({ injected }: { injected: ModelsSectionFace }): ReactNode {
           (providerAccountKey(row.entry.settingsNs, row.entry.provider) !== undefined) === accountGroup)
         if (accountGroup && rows.length === 0) return null
         const configured = rows.filter(row => row.configured)
-        const addable = rows.filter(row => !row.configured && row.entry.settingsNs !== '')
+        // Account providers remain selectable after their profile exists: the
+        // editor is also where a second account is added.
+        const selectable = accountGroup
+          ? rows
+          : rows.filter(row => (!row.configured && row.entry.settingsNs !== '')
+            || row.entry.provider === editing?.provider)
         const addTarget = adding && rows.some(row => row.entry.provider === editing?.provider) ? editing : undefined
         const addNamespace = addTarget === undefined ? undefined : state.namespaces.get(addTarget.settingsNs)
         return (
@@ -440,13 +445,13 @@ function Loaded({ injected }: { injected: ModelsSectionFace }): ReactNode {
                         value={addTarget.provider}
                         aria-label={t('provider')}
                         onChange={(event) => {
-                          const row = addable.find(candidate => candidate.entry.provider === event.target.value)
+                          const row = selectable.find(candidate => candidate.entry.provider === event.target.value)
                           /* v8 ignore next -- the select only lists addable rows */
                           if (row === undefined) return
                           setEditing(targetOf(row))
                         }}
                       >
-                        {addable.map(row => (
+                        {selectable.map(row => (
                           <option key={row.entry.provider} value={row.entry.provider}>{row.entry.displayName}</option>
                         ))}
                       </select>
@@ -489,9 +494,9 @@ function Loaded({ injected }: { injected: ModelsSectionFace }): ReactNode {
                       <button
                         type="button"
                         className={styles['addButton']}
-                        disabled={addable.length === 0 || !state.writable}
+                        disabled={selectable.length === 0 || !state.writable}
                         onClick={() => {
-                          const first = addable[0]
+                          const first = selectable[0]
                           /* v8 ignore next -- the button is disabled while nothing is addable */
                           if (first === undefined) return
                           setSavedTarget(undefined)

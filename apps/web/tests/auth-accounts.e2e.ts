@@ -135,6 +135,12 @@ describe('web e2e: account-backed ChatGPT and Antigravity login', () => {
     await addAccount(dialog, 'Google Antigravity', 'google@example.test')
     await applyEditor(dialog, 'Edit Google Antigravity (antigravity)')
 
+    // The entry point stays usable after both provider profiles exist so the
+    // editor can add another account to either provider.
+    await openAddEditor(dialog, 'chatgpt')
+    await expect.poll(() => dialog.getByText('bob@example.test', { exact: true }).count(), { timeout: 10_000 }).toBe(1)
+    await dialog.getByRole('button', { name: 'Cancel', exact: true }).click()
+
     const chatgptRecord = await scaffold.ctx.credentials.readRecord(credentialKey('llm-account-auth', 'chatgpt'))
     expect(chatgptRecord).toMatchObject({
       kind: 'grant',

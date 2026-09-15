@@ -28,6 +28,8 @@ const PAGE = {
     '[0]<textbox id=who>Requester</textbox>',
     "\t[1]<button id=submit>Place order</button>",
     'Ordered l for Ada',
+    '[2]<dialog>Order confirmed</dialog>',
+    '[3]<button>Close confirmation</button>',
   ].join('\n'),
 }
 
@@ -37,6 +39,7 @@ class ScriptedChild extends EventEmitter {
   stdout = new PassThrough()
   stderr = new PassThrough()
   ordered = false
+  observedOrder = false
 
   constructor() {
     super()
@@ -66,6 +69,11 @@ class ScriptedChild extends EventEmitter {
       return { success: true, message: 'Selected text: "Ada".', selectedText: 'Ada' }
     }
     if (method === 'get_browser_state') {
+      const uiChanges = this.ordered && !this.observedOrder ? {
+        shown: ['[2]<dialog>Order confirmed</dialog>', '[3]<button>Close confirmation</button>'],
+        hidden: [], expanded: [], collapsed: [], changed: [], focused: '[3]<button>Close confirmation</button>',
+      } : undefined
+      if (args.metadataOnly !== true) this.observedOrder = this.ordered
       return {
         ...PAGE,
         content: args.snapshot === undefined ? (this.ordered ? PAGE.after : PAGE.before) : args.snapshot.target === 'e18' ? '- paragraph [ref=e18]: Ordered l for Ada' : '- button "Place order" [ref=e17]',
@@ -74,6 +82,7 @@ class ScriptedChild extends EventEmitter {
         activeTabId: 1,
         settled: true,
         capturedAt: '2026-08-24T00:00:00.000Z',
+        ...uiChanges === undefined ? {} : { uiChanges },
       }
     }
     return { success: true, message: `${method} succeeded` }

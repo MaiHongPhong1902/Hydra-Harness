@@ -12,6 +12,11 @@ The attachment service stores file bytes content-addressably and records a `File
 
 `SessionPersistence.open()` returns a read or exclusive write `SessionHandle`. Handles own close and cancellation checks; a backend instance rejects a second write owner for the same session and releases ownership on close.
 
+## Alternatives considered
+
+- **Store encoded bytes in session events** — rejected: durable logs and provider requests would carry unbounded binary payloads.
+- **Leave session ownership to callers of separate backend methods** — rejected: close, cancellation, and exclusive writes need one session-scoped owner.
+
 ## Consequences
 
 - Session history remains JSON-safe and replayable while large bytes stay outside the log.

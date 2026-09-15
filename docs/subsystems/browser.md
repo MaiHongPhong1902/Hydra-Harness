@@ -37,6 +37,24 @@ interface BrowserPageIdentity {
 ```
 
 ```ts type-equiv
+/** Bounded semantic changes observed between two settled page states. */
+interface BrowserUiChanges {
+  /** Controls or surfaces newly exposed in the accessibility tree. */
+  shown: string[]
+  /** Controls or surfaces no longer exposed in the accessibility tree. */
+  hidden: string[]
+  /** Controls whose disclosure state changed to expanded. */
+  expanded: string[]
+  /** Controls whose disclosure state changed to collapsed. */
+  collapsed: string[]
+  /** Existing semantic nodes whose accessible state changed. */
+  changed: string[]
+  /** Newly focused semantic node, when focus changed. */
+  focused?: string
+}
+```
+
+```ts type-equiv
 /** Accessibility snapshot of the controlled page with stable action refs. */
 interface BrowserState {
   /** Address currently loaded in the controlled view. */
@@ -59,12 +77,14 @@ interface BrowserState {
   settled: boolean
   /** Host timestamp for evidence ordering. */
   capturedAt: string
+  /** Semantic DOM changes since the previous settled state, when any. */
+  uiChanges?: BrowserUiChanges
 }
 ```
 
 Each `BrowserTabState` in `tabs` has a stable `id`, `url`, `title`, `status` (`loading` or `complete`), and `active` flag.
 
-`header`, `content`, and `footer` arrive already formatted by the Hydra preload. `content` starts from roles, accessible names, and selected states, retains bounded `id`/`href` compatibility metadata, and includes plain page text not represented by an indexed control. `@hydra/harness-tool-browser` omits only explicitly ignored accessibility nodes, ranks again, then cuts only `content` to the full (`browser_state` / `browser_navigate`) or compact (~4k) budget. Indices stay PageController's because the model projection never renumbers the seam's selector map.
+`header`, `content`, and `footer` arrive already formatted by the Hydra preload. `content` starts from roles, accessible names, and selected states, retains bounded `id`/`href` compatibility metadata, and includes plain page text not represented by an indexed control. The preload's `MutationObserver` waits for a short quiet period after semantic DOM mutations, then compares accessibility lines and reports bounded shown, hidden, expanded, collapsed, changed, and focused entries in `uiChanges`. `@hydra/harness-tool-browser` omits only explicitly ignored accessibility nodes, ranks again, then cuts only `content` to the full (`browser_state` / `browser_navigate`) or compact (~4k) budget. Indices stay PageController's because the model projection never renumbers the seam's selector map.
 
 ## Actions
 

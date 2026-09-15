@@ -121,7 +121,7 @@ Implementation screenshot: `C:\Users\map7hc\AppData\Local\Temp\hydra-right-panel
 Combined comparison: `C:\Users\map7hc\AppData\Local\Temp\hydra-right-panel-comparison.png`
 
 State: Hydra harness Electron desktop, light theme, 1920 × 1032 window. Files was
-active with the `deepseek-harness` workspace tree and `package.json` preview;
+active with the `Hydra-Harness` workspace tree and `package.json` preview;
 Browser, two independent Side chat sessions, and right Terminal remained in the
 tab strip while the bottom Terminal was open.
 

@@ -4,7 +4,7 @@
  * no browser exists.
  */
 
-import type { BrowserOutcome, BrowserTabState } from '@hydra/harness-browser-electron'
+import type { BrowserOutcome, BrowserTabState, BrowserUiChanges } from '@hydra/harness-browser-electron'
 import type { GenericCallView } from '@hydra/harness-tools'
 
 /** Default cap on the element list one full state or navigate call returns. */
@@ -73,6 +73,8 @@ export interface BrowserToolValue {
   added?: string[]
   changed?: string[]
   removed?: string[]
+  /** Bounded semantic changes since the previous settled snapshot. */
+  uiChanges?: BrowserUiChanges
 }
 
 /** Options that select the full or compact trailing snapshot. */
@@ -250,6 +252,8 @@ export function toValue(
     const index = lineIndex(line)
     return index !== undefined && previousByIndex.get(index) !== undefined && previousByIndex.get(index) !== line
   }) : []
+  const uiChanges = state.settled && options.previousUrl === state.url && options.previousRevision !== undefined
+    ? boundUiChanges(state.uiChanges, budget) : undefined
   const diffChars = [...added, ...changed, ...removed].join('\n').length
   const diff = canDiff && diffChars <= budget && diffChars < Math.max(1, ranked.length / 2)
   const sameSnapshot = previousElements !== undefined
@@ -276,6 +280,7 @@ export function toValue(
     mode: diff ? 'diff' : 'full',
     revision,
     ...diff ? { baseRevision: options.previousRevision ?? 1, added, changed, removed } : {},
+    ...uiChanges === undefined ? {} : { uiChanges },
   }
 }
 
@@ -294,6 +299,26 @@ function lineIndex(line: string): number | undefined {
   return match === null ? undefined : Number(match[3])
 }
 
+/** UI hints share a bounded text allowance; newly exposed content has priority. */
+function boundUiChanges(changes: BrowserUiChanges | undefined, budget: number): BrowserUiChanges | undefined {
+  if (changes === undefined) return undefined
+  let remaining = budget
+  const take = (lines: string[]): string[] => lines.slice(0, 20).flatMap((line) => {
+    if (remaining <= 0) return []
+    const text = line.slice(0, remaining)
+    remaining -= text.length
+    return [text]
+  })
+  const focused = take(changes.focused === undefined ? [] : [changes.focused])[0]
+  const shown = take(changes.shown)
+  const expanded = take(changes.expanded)
+  const changed = take(changes.changed)
+  const collapsed = take(changes.collapsed)
+  const hidden = take(changes.hidden)
+  if (remaining === budget) return undefined
+  return { shown, hidden, expanded, collapsed, changed, ...focused === undefined ? {} : { focused } }
+}
+
 /**
  * Format one browser value as the model-facing text block.
  * @param value - the bounded tool output.
@@ -309,9 +334,18 @@ export function formatBrowserOutput(value: BrowserToolValue): string {
   }
   const tabs = formatTabs(value.tabs, value.compact)
   const target = `Snapshot tab: [${value.tabId}]${value.tabId === value.activeTabId ? '' : ' (background)'}`
+  const changes = value.uiChanges === undefined ? '' : [
+    'UI changes since the previous snapshot:',
+    `Shown:\n${value.uiChanges.shown.join('\n')}`,
+    `Hidden:\n${value.uiChanges.hidden.join('\n')}`,
+    `Expanded:\n${value.uiChanges.expanded.join('\n')}`,
+    `Collapsed:\n${value.uiChanges.collapsed.join('\n')}`,
+    `Changed:\n${value.uiChanges.changed.join('\n')}`,
+    ...(value.uiChanges.focused === undefined ? [] : [`Focused:\n${value.uiChanges.focused}`]),
+  ].join('\n')
   const page = value.mode === 'diff'
-    ? `${tabs}\n${target}\n\nSnapshot revision: ${value.baseRevision ?? value.revision ?? 1} → ${value.revision ?? 1}\nAdded:\n${value.added?.join('\n') ?? ''}\nChanged:\n${value.changed?.join('\n') ?? ''}\nRemoved:\n${value.removed?.join('\n') ?? ''}`
-    : `${tabs}\n${target}\n\n${value.header}\n${value.content}\n${value.footer}`
+    ? `${tabs}\n${target}\n\n${changes}${changes.length > 0 ? '\n\n' : ''}Snapshot revision: ${value.baseRevision ?? value.revision ?? 1} → ${value.revision ?? 1}\nAdded:\n${value.added?.join('\n') ?? ''}\nChanged:\n${value.changed?.join('\n') ?? ''}\nRemoved:\n${value.removed?.join('\n') ?? ''}`
+    : `${tabs}\n${target}\n\n${changes}${changes.length > 0 ? '\n\n' : ''}${value.header}\n${value.content}\n${value.footer}`
   const notices = [
     ...value.truncated ? [TRUNCATION_NOTICE] : [],
     ...value.unchanged ? [UNCHANGED_NOTICE] : [],
