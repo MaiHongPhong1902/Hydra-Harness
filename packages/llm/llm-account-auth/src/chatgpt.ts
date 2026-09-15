@@ -39,6 +39,15 @@ interface ChatGptModelRow {
 }
 
 /**
+ * Client version the model listing is asked for. The endpoint requires the
+ * field — it answers a missing one with HTTP 400 rather than a default — and
+ * serves the catalog that version was released against: an older one is
+ * answered with an empty list instead of an error, so this value names the
+ * catalog era the harness reads, not the identity of the caller.
+ */
+export const CHATGPT_MODELS_CLIENT_VERSION = '1.0.0'
+
+/**
  * Fetch the models enabled for one ChatGPT account.
  * @param request - account token, account id, endpoint, and optional cancellation.
  * @returns deduplicated model metadata in endpoint order.
@@ -52,17 +61,20 @@ export async function discoverChatGptModels(request: {
   const baseURL = request.baseURL ?? 'https://chatgpt.com/backend-api'
   let response: Response
   try {
-    response = await fetch(`${baseURL.replace(/\/+$/u, '')}/codex/models`, {
-      method: 'GET',
-      headers: {
-        accept: 'application/json',
-        authorization: `Bearer ${request.accessToken}`,
-        'chatgpt-account-id': request.accountId,
-        originator: 'pi',
-        ...attributionHeaders(),
+    response = await fetch(
+      `${baseURL.replace(/\/+$/u, '')}/codex/models?client_version=${CHATGPT_MODELS_CLIENT_VERSION}`,
+      {
+        method: 'GET',
+        headers: {
+          accept: 'application/json',
+          authorization: `Bearer ${request.accessToken}`,
+          'chatgpt-account-id': request.accountId,
+          originator: 'pi',
+          ...attributionHeaders(),
+        },
+        ...(request.signal === undefined ? {} : { signal: request.signal }),
       },
-      ...(request.signal === undefined ? {} : { signal: request.signal }),
-    })
+    )
   } catch (error: unknown) {
     if (request.signal?.aborted) throw new LlmError('ChatGPT model discovery was aborted', 'ABORTED', { cause: error })
     throw new LlmError('ChatGPT model discovery request failed', 'TRANSPORT', { cause: error })

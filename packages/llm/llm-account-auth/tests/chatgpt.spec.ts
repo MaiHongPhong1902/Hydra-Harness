@@ -8,7 +8,9 @@ import type { AuthorizationPrompt, AuthorizationSession } from '@hydra/harness-a
 import type { AuthInteraction, OAuthCredential } from '@earendil-works/pi-ai'
 import { afterEach, expect, it, vi } from 'vitest'
 import { accountRecordKey, createAccountPool } from '../src/accounts.ts'
-import { buildChatGptProfile, discoverChatGptModels, loginChatGpt } from '../src/chatgpt.ts'
+import {
+  buildChatGptProfile, CHATGPT_MODELS_CLIENT_VERSION, discoverChatGptModels, loginChatGpt,
+} from '../src/chatgpt.ts'
 
 const oauth = vi.hoisted(() => ({ login: vi.fn() }))
 vi.mock('@earendil-works/pi-ai/providers/openai-codex', async (load) => {
@@ -57,6 +59,12 @@ it('projects the SDK catalog onto the ChatGPT route', async () => {
   expect(custom.piProvider.getModels()).toMatchObject([{ id: model.id, name: 'My model', maxTokens: 2048 }])
 })
 
+it('asks for the account model catalog with a client version the endpoint accepts', async () => {
+  // A partial version ("0.85") is refused outright and a stale one is answered
+  // with an empty catalog, so the value has to be a full release version.
+  expect(CHATGPT_MODELS_CLIENT_VERSION).toMatch(/^\d+\.\d+\.\d+$/u)
+})
+
 it('fetches the account model catalog from ChatGPT', async () => {
   const fetch = vi.spyOn(globalThis, 'fetch').mockResolvedValue(Response.json({ models: [
     { slug: 'live-model', display_name: 'Live model', context_window: 128000 },
@@ -69,7 +77,12 @@ it('fetches the account model catalog from ChatGPT', async () => {
     { id: 'live-model', name: 'Live model', contextWindow: 128000 },
     { id: 'second-model', maxTokens: 4096 },
   ])
-  expect(fetch).toHaveBeenCalledWith('https://chatgpt.com/backend-api/codex/models', expect.objectContaining({ method: 'GET' }))
+  // The endpoint requires the client version and answers a missing one with
+  // HTTP 400; the version also selects the catalog it serves.
+  expect(fetch).toHaveBeenCalledWith(
+    `https://chatgpt.com/backend-api/codex/models?client_version=${CHATGPT_MODELS_CLIENT_VERSION}`,
+    expect.objectContaining({ method: 'GET' }),
+  )
   const init = fetch.mock.calls[0]?.[1]
   const headers = new Headers(init?.headers)
   expect(headers.get('authorization')).toBe('Bearer access-token')
