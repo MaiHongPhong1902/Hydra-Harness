@@ -93,7 +93,7 @@ Then rerun `pnpm install`. The licence is in [THIRD_PARTY_NOTICES.md](../../../T
 pnpm --filter @hydra/harness-browser-electron run build:preload
 ```
 
-Populate the submodule before that rebuild; see [Checking out PageAgent](#checking-out-pageagent). The build applies the versioned `page-agent.patch` to the pinned upstream source, accepts an already applied patch, and rejects conflicting local source changes. Cursor changes belong in that patch together with the rebuilt preload.
+Populate the submodule before that rebuild; see [Checking out PageAgent](#checking-out-pageagent). The build reads the versioned `page-agent.patch` through a temporary Git index, leaves the submodule worktree and index unchanged, and rejects conflicting local source changes. Cursor changes belong in that patch together with the rebuilt preload.
 
 ## Installing the Electron binary behind a proxy
 
