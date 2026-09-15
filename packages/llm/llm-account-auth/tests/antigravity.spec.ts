@@ -154,6 +154,41 @@ describe('Antigravity request serialization', () => {
     expect(request.request.generationConfig).toBeUndefined()
   })
 
+  it('rewrites the harness tool schema into the shape Gemini validates', async () => {
+    const request = await buildAntigravityRequest(options([
+      user('u1', [{ type: 'text', text: 'Run echo hi.' }]),
+    ], {
+      tools: [{
+        name: 'bash',
+        description: 'Run a shell command',
+        parameters: {
+          type: 'object',
+          properties: {
+            command: { type: 'string', required: true, description: 'Command to run' },
+            mode: { type: 'string', required: true, const: 'foreground' },
+            env: {
+              type: 'object',
+              properties: { name: { type: 'string', required: true } },
+            },
+          },
+        },
+      }],
+    }), credentials)
+    // A property's boolean `required` becomes the parent's list of names, the
+    // only spelling Gemini's Schema takes — it refuses the boolean outright —
+    // and a literal it does not know at all becomes the one-value enum that
+    // means the same. Both refusals reach the caller as HTTP 400.
+    expect(request.request.tools?.[0]?.functionDeclarations[0]?.parameters).toEqual({
+      type: 'object',
+      properties: {
+        command: { type: 'string', description: 'Command to run' },
+        mode: { type: 'string', enum: ['foreground'] },
+        env: { type: 'object', properties: { name: { type: 'string' } }, required: ['name'] },
+      },
+      required: ['command', 'mode'],
+    })
+  })
+
   it('bypasses Gemini signature validation only for the first unsigned parallel tool call', async () => {
     const serialized = await serializeAntigravityMessages([
       assistant('a1', [

@@ -393,13 +393,52 @@ function systemInstruction(options: AntigravityGenerateOptions): AntigravityCont
   return parts.length === 0 ? undefined : { role: 'user', parts }
 }
 
+/**
+ * Translate one harness JSON-Schema node into the shape Gemini's `Schema`
+ * takes. The harness dialect marks a property required with a boolean beside
+ * it — Gemini reads that field as a list of names and refuses a boolean — and
+ * spells a literal as `const`, which Gemini does not know at all. Both are
+ * rewritten here; everything else is passed through, since the subset the
+ * harness enforces is otherwise Gemini's own vocabulary.
+ * @param node - one schema node from a tool's parameters.
+ * @returns the same node in Gemini's vocabulary.
+ */
+function geminiParameters(node: unknown): Record<string, unknown> {
+  if (typeof node !== 'object' || node === null || Array.isArray(node)) return {}
+  const { const: literal, required, properties, items, oneOf, ...rest } = node as Record<string, unknown>
+  const converted: Record<string, unknown> = { ...rest }
+  // Gemini has no `const`: an enum of one value says the same thing.
+  if (literal !== undefined) converted.enum = [literal]
+  const marked: string[] = []
+  if (typeof properties === 'object' && properties !== null && !Array.isArray(properties)) {
+    const rewritten: Record<string, unknown> = {}
+    for (const [name, value] of Object.entries(properties as Record<string, unknown>)) {
+      if (typeof value !== 'object' || value === null || Array.isArray(value)) continue
+      const { required: marker, ...property } = value as Record<string, unknown>
+      if (marker === true) marked.push(name)
+      rewritten[name] = geminiParameters(property)
+    }
+    converted.properties = rewritten
+  }
+  const declared = Array.isArray(required)
+    ? required.filter((name): name is string => typeof name === 'string')
+    : []
+  const merged = [...declared, ...marked.filter(name => !declared.includes(name))]
+  if (merged.length > 0) converted.required = merged
+  if (items !== undefined) {
+    converted.items = Array.isArray(items) ? items.map(item => geminiParameters(item)) : geminiParameters(items)
+  }
+  if (Array.isArray(oneOf)) converted.oneOf = oneOf.map(branch => geminiParameters(branch))
+  return converted
+}
+
 function toolDeclarations(tools: readonly ToolSchema[] | undefined): AntigravityTool[] | undefined {
   if (tools === undefined || tools.length === 0) return undefined
   return [{
     functionDeclarations: tools.map(tool => ({
       name: externalToolName(tool.name),
       description: tool.description,
-      parameters: tool.parameters,
+      parameters: geminiParameters(tool.parameters),
     })),
   }]
 }
