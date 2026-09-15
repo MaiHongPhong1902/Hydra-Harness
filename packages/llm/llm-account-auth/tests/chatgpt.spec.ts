@@ -8,7 +8,7 @@ import type { AuthorizationPrompt, AuthorizationSession } from '@hydra/harness-a
 import type { AuthInteraction, OAuthCredential } from '@earendil-works/pi-ai'
 import { afterEach, expect, it, vi } from 'vitest'
 import { accountRecordKey, createAccountPool } from '../src/accounts.ts'
-import { buildChatGptProfile, loginChatGpt } from '../src/chatgpt.ts'
+import { buildChatGptProfile, discoverChatGptModels, loginChatGpt } from '../src/chatgpt.ts'
 
 const oauth = vi.hoisted(() => ({ login: vi.fn() }))
 vi.mock('@earendil-works/pi-ai/providers/openai-codex', async (load) => {
@@ -55,6 +55,25 @@ it('projects the SDK catalog onto the ChatGPT route', async () => {
   const model = models[0]!
   const custom = await buildChatGptProfile({ models: [{ id: model.id, name: 'My model', maxTokens: 2048 }] })
   expect(custom.piProvider.getModels()).toMatchObject([{ id: model.id, name: 'My model', maxTokens: 2048 }])
+})
+
+it('fetches the account model catalog from ChatGPT', async () => {
+  const fetch = vi.spyOn(globalThis, 'fetch').mockResolvedValue(Response.json({ models: [
+    { slug: 'live-model', display_name: 'Live model', context_window: 128000 },
+    { id: 'live-model' },
+    { id: 'second-model', max_output_tokens: 4096 },
+  ] }))
+  await expect(discoverChatGptModels({
+    accessToken: 'access-token', accountId: 'account-id',
+  })).resolves.toEqual([
+    { id: 'live-model', name: 'Live model', contextWindow: 128000 },
+    { id: 'second-model', maxTokens: 4096 },
+  ])
+  expect(fetch).toHaveBeenCalledWith('https://chatgpt.com/backend-api/codex/models', expect.objectContaining({ method: 'GET' }))
+  const init = fetch.mock.calls[0]?.[1]
+  const headers = new Headers(init?.headers)
+  expect(headers.get('authorization')).toBe('Bearer access-token')
+  expect(headers.get('chatgpt-account-id')).toBe('account-id')
 })
 
 it('masks the manual code prompt and stores the returned OAuth grant', async () => {

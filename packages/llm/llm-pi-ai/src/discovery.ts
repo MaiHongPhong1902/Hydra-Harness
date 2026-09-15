@@ -2,11 +2,10 @@
  * Answering "which models can this provider serve?" for the configuration
  * surface's "fetch available models" action.
  *
- * A route the installed pi-ai catalog ships is answered **from that catalog**,
- * with no network call at all: pi-ai's registry is the authoritative list for
- * its own providers, and it carries the capacities a listing endpoint would
- * not disclose. Only a route the catalog does not describe — a gateway, a
- * self-hosted server — is interrogated over the wire.
+ * A draft with a base URL is interrogated over the wire even when pi-ai ships
+ * a catalog for that route, so the result reflects the deployment. A catalog
+ * route with no base URL may use pi-ai's installed metadata as an offline
+ * fallback. Only OpenAI-compatible protocols are interrogated.
  *
  * Neither path is a catalog refresh. Nothing here is stored: the request
  * carries a draft the user is still editing, and the reply is candidate
@@ -197,9 +196,15 @@ export async function discoverModels(
   request: LlmModelDiscoveryRequest,
   storedApiKey?: () => Promise<string | undefined>,
 ): Promise<readonly LlmDiscoveredModel[]> {
-  // A catalog route already has its answer, and a better one: the installed
-  // entries carry context windows and output caps no listing endpoint reports.
-  if (request.provider !== undefined) {
+  // A catalog is only an offline fallback. Once an endpoint is supplied, the
+  // user asked for the deployment's live models and its listing wins.
+  if (request.baseURL === undefined || request.baseURL.length === 0) {
+    if (request.provider === undefined) {
+      throw new LlmError(
+        'set a baseURL to fetch models from this provider endpoint',
+        'DISCOVERY_FAILED',
+      )
+    }
     const installed = catalogModels(request.provider)
     if (installed.size > 0) {
       return [...installed.values()].map(model => ({
@@ -209,13 +214,7 @@ export async function discoverModels(
         maxTokens: model.maxTokens,
       }))
     }
-  }
-  if (request.baseURL === undefined || request.baseURL.length === 0) {
-    throw new LlmError(
-      `pi-ai ships no catalog for provider "${request.provider ?? ''}", so its models can only come from its`
-      + " endpoint; set a baseURL, or enter this provider's models by hand",
-      'DISCOVERY_FAILED',
-    )
+    throw new LlmError("set a baseURL, or enter this provider's models by hand", 'DISCOVERY_FAILED')
   }
   // A draft that has not chosen a protocol yet is asked as OpenAI Chat
   // Completions: it is the shape a gateway is overwhelmingly likely to speak,

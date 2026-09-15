@@ -27,6 +27,7 @@ import {
   DEFAULT_MAX_TOKENS,
   DEFAULT_STREAM_IDLE_TIMEOUT_MS,
   DeepSeekAdapter,
+  discoverDeepSeekModels,
 } from './adapter.ts'
 import type { DeepSeekCatalogModel, DeepSeekConnectionOptions } from './adapter.ts'
 
@@ -295,6 +296,16 @@ export function apply(ctx: Context, config: Config): void {
     resolveApiKey,
     resolveUserId,
     resolveAttachments: () => ctx.get('attachments'),
+  })
+  ctx.llm.registerModelDiscovery(NS, async (request) => {
+    const connection = options()
+    const apiKey = request.apiKey ?? await resolveApiKey(connection)
+    return discoverDeepSeekModels({
+      baseURL: request.baseURL ?? connection.baseURL,
+      apiKey,
+      ...(request.proxy ?? connection.proxy) === undefined ? {} : { proxy: request.proxy ?? connection.proxy },
+      ...(request.signal === undefined ? {} : { signal: request.signal }),
+    })
   })
   ctx.llm.registerConfigurableProviders([
     { provider: PROVIDER, displayName: 'DeepSeek', settingsNs: NS, settingsPath: [] },

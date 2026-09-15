@@ -211,8 +211,8 @@ export function ProviderEditor(props: ProviderEditorProps): ReactNode {
   const probeProxy = stringAt(draft, 'proxy') ?? inheritedString('proxy')
   const probe = {
     settingsNs: namespace.ns,
-    // Naming the route lets an adapter that already describes it answer from
-    // its own registry — better metadata, no network call, no endpoint needed.
+    // Naming the route lets an adapter select its endpoint or installed
+    // catalog, while preserving the draft fields used for a live probe.
     provider: props.provider,
     ...probeBaseURL === undefined ? {} : { baseURL: probeBaseURL },
     ...probeProxy === undefined ? {} : { proxy: probeProxy },

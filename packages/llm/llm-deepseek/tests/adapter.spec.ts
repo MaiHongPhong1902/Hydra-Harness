@@ -21,7 +21,7 @@ import { getOrCreateAnonymousUserId, type AnonymousUserId } from '@hydra/harness
 import { SessionId } from '@hydra/harness-session'
 import * as LlmDeepSeek from '@hydra/harness-llm-deepseek'
 import { DeepSeekAdapter, resolveAdapterOptions } from '@hydra/harness-llm-deepseek'
-import { httpErrorCode } from '../src/adapter.ts'
+import { discoverDeepSeekModels, httpErrorCode } from '../src/adapter.ts'
 import { assemble } from './assemble.ts'
 import { closeMockServers, mockServer, textEvents } from './mock-server.ts'
 import type { Behavior } from './mock-server.ts'
@@ -66,6 +66,7 @@ afterEach(async () => {
     server.close(() => { resolve() })
   })))
   vi.unstubAllEnvs()
+  vi.restoreAllMocks()
   vi.useRealTimers()
   rmSync(testHome, { recursive: true, force: true })
 })
@@ -105,6 +106,28 @@ const imageRef: ImageAttachmentRef = {
   width: 1,
   height: 1,
 }
+
+describe('DeepSeek model discovery', () => {
+  it('fetches current ids from the endpoint instead of returning a built-in catalog', async () => {
+    const fetch = vi.spyOn(globalThis, 'fetch').mockResolvedValue(Response.json({ data: [
+      { id: 'fresh-model', name: 'Fresh model' },
+      { id: 'fresh-model' },
+      { id: 'another-model' },
+    ] }))
+    await expect(discoverDeepSeekModels({ baseURL: 'https://models.test/v1/', apiKey: 'test-key' }))
+      .resolves.toEqual([{ id: 'fresh-model', name: 'Fresh model' }, { id: 'another-model' }])
+    expect(fetch).toHaveBeenCalledWith('https://models.test/v1/models', expect.objectContaining({
+      method: 'GET',
+      headers: expect.objectContaining({ authorization: 'Bearer test-key' }),
+    }))
+  })
+
+  it('reports discovery failures without exposing credentials', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('test-key', { status: 401 }))
+    await expect(discoverDeepSeekModels({ baseURL: 'https://models.test', apiKey: 'test-key' }))
+      .rejects.toMatchObject({ code: 'AUTH', failure: { status: 401 } })
+  })
+})
 
 describe('DeepSeekAdapter against a mock server', () => {
   it('streams a text generation end to end through the assembler', async () => {

@@ -4,7 +4,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Context } from '@hydra/cordis'
 import LlmRuntime, { userAgent } from '@hydra/harness-llm'
 import * as LlmPiAi from '@hydra/harness-llm-pi-ai'
-import { getBuiltinModels } from '@earendil-works/pi-ai/providers/all'
 import { discoverModels } from '../src/discovery.ts'
 
 const servers: Server[] = []
@@ -73,18 +72,14 @@ async function harness(): Promise<Context> {
 }
 
 describe('catalog-route model discovery', () => {
-  it('answers from the installed registry, with capacities and no network call', async () => {
+  it('fetches a supplied endpoint instead of returning the installed catalog', async () => {
     const server = await listingServer({ body: JSON.stringify({ data: [{ id: 'from-the-endpoint' }] }) })
     const ctx = await harness()
 
     const models = await ctx.llm.discoverModels('llm-pi-ai', { provider: 'deepseek', baseURL: server.url })
 
-    // pi-ai's own registry is the authority for its own providers, and it
-    // carries what a listing endpoint would not disclose.
-    expect(models.map(model => model.id).sort())
-      .toEqual(getBuiltinModels('deepseek').map(model => model.id).sort())
-    expect(models.every(model => (model.contextWindow ?? 0) > 0 && (model.maxTokens ?? 0) > 0)).toBe(true)
-    expect(server.paths).toEqual([])
+    expect(models).toEqual([{ id: 'from-the-endpoint' }])
+    expect(server.paths).toEqual(['/models'])
   })
 
   it('needs no endpoint for a route the catalog describes', async () => {
@@ -95,7 +90,7 @@ describe('catalog-route model discovery', () => {
   it('says where a route the catalog does not describe must get its models', async () => {
     const ctx = await harness()
     await expect(ctx.llm.discoverModels('llm-pi-ai', { provider: 'acme-gateway' }))
-      .rejects.toThrow(/ships no catalog for provider "acme-gateway".*set a baseURL/s)
+      .rejects.toThrow(/set a baseURL/)
     // A form that cleared the field says the same thing as one that never had it.
     await expect(ctx.llm.discoverModels('llm-pi-ai', { provider: 'acme-gateway', baseURL: '' }))
       .rejects.toThrow(/set a baseURL/)

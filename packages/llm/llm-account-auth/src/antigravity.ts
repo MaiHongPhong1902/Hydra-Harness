@@ -376,10 +376,8 @@ export async function serializeAntigravityMessages(
     }
     const parts = await contentParts(message.content, context)
     if (parts.length === 0) parts.push({ text: '' })
-    const role = message.content.length > 0 && message.content.every(block => block.type === 'tool-result')
-      ? 'model'
-      : 'user'
-    contents.push({ role, parts })
+    // Gemini requires function responses in a user content turn.
+    contents.push({ role: 'user', parts })
   }
   return contents
 }

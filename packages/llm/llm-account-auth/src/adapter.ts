@@ -2,6 +2,7 @@
 
 import type { Credential } from '@earendil-works/pi-ai'
 import type { AntigravityCredentials } from './antigravity-oauth.ts'
+import { discoverChatGptModels } from './chatgpt.ts'
 import { emptyAuthContext, type AccountPool } from './accounts.ts'
 import type { AccountModelProfile, AccountProviderProfile, AccountProvider } from './config.ts'
 import {
@@ -219,18 +220,25 @@ export class ChatGptAccountAdapter extends LlmAdapter {
    */
   async discoverModels(signal?: AbortSignal): Promise<LlmDiscoveredModel[]> {
     signal?.throwIfAborted()
-    const delegate = await this.ensureDelegate()
-    const models = await delegate.listModels('chatgpt')
-    return Promise.all(models.map(async (model) => {
+    const accounts = await this.config.pool.accounts.list()
+    const account = accounts[0]
+    if (account === undefined) throw new LlmError('chatgpt has no connected account', 'MISSING_CREDENTIAL')
+    return this.config.pool.withAccount(account.id, async () => {
       signal?.throwIfAborted()
-      const resolved = await delegate.resolveModel('chatgpt', model.id, signal)
-      return {
-        id: model.id,
-        name: model.name,
-        ...(resolved.context?.contextWindow === undefined ? {} : { contextWindow: resolved.context.contextWindow }),
-        ...(resolved.defaultMaxTokens === undefined ? {} : { maxTokens: resolved.defaultMaxTokens }),
+      const stored = await this.config.pool.credentials.read('chatgpt')
+      if (stored?.type !== 'oauth' || typeof stored.access !== 'string' || stored.access.length === 0) {
+        throw new LlmError('chatgpt account has invalid credentials', 'INVALID_CREDENTIAL')
       }
-    }))
+      const accountId = (stored as Credential & { accountId?: unknown }).accountId
+      if (typeof accountId !== 'string' || accountId.length === 0) {
+        throw new LlmError('chatgpt account has no account id', 'INVALID_CREDENTIAL')
+      }
+      return discoverChatGptModels({
+        accessToken: stored.access,
+        accountId,
+        ...(signal === undefined ? {} : { signal }),
+      })
+    })
   }
 
   override async resolveModel(provider: string, model: string, signal?: AbortSignal): Promise<LlmResolvedModelInfo> {

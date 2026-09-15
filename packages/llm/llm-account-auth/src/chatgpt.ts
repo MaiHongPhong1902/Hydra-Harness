@@ -21,8 +21,92 @@ import {
   DEFAULT_MAX_TOKENS,
   DEFAULT_STREAM_IDLE_TIMEOUT_MS,
 } from '@hydra/harness-llm-pi-ai'
-import { resolveRetryPolicy } from '@hydra/harness-llm'
+import { attributionHeaders, LlmError, resolveRetryPolicy } from '@hydra/harness-llm'
 import type { ResolvedPiAiProviderProfile } from '@hydra/harness-llm-pi-ai'
+
+/** One model row returned by ChatGPT's account-scoped model endpoint. */
+interface ChatGptModelRow {
+  id?: unknown
+  slug?: unknown
+  name?: unknown
+  display_name?: unknown
+  context_window?: unknown
+  context_length?: unknown
+  max_tokens?: unknown
+  max_output_tokens?: unknown
+  supported_in_api?: unknown
+  visibility?: unknown
+}
+
+/**
+ * Fetch the models enabled for one ChatGPT account.
+ * @param request - account token, account id, endpoint, and optional cancellation.
+ * @returns deduplicated model metadata in endpoint order.
+ */
+export async function discoverChatGptModels(request: {
+  accessToken: string
+  accountId: string
+  baseURL?: string
+  signal?: AbortSignal
+}): Promise<Array<{ id: string; name?: string; contextWindow?: number; maxTokens?: number }>> {
+  const baseURL = request.baseURL ?? 'https://chatgpt.com/backend-api'
+  let response: Response
+  try {
+    response = await fetch(`${baseURL.replace(/\/+$/u, '')}/codex/models`, {
+      method: 'GET',
+      headers: {
+        accept: 'application/json',
+        authorization: `Bearer ${request.accessToken}`,
+        'chatgpt-account-id': request.accountId,
+        originator: 'pi',
+        ...attributionHeaders(),
+      },
+      ...(request.signal === undefined ? {} : { signal: request.signal }),
+    })
+  } catch (error: unknown) {
+    if (request.signal?.aborted) throw new LlmError('ChatGPT model discovery was aborted', 'ABORTED', { cause: error })
+    throw new LlmError('ChatGPT model discovery request failed', 'TRANSPORT', { cause: error })
+  }
+  if (!response.ok) {
+    await response.body?.cancel()
+    const code = response.status === 401 || response.status === 403 ? 'AUTH'
+      : response.status === 429 ? 'RATE_LIMIT' : response.status >= 500 ? 'SERVER' : 'INVALID_REQUEST'
+    throw new LlmError(`ChatGPT model discovery failed with HTTP ${String(response.status)}`, code, {
+      status: response.status,
+    })
+  }
+  let payload: unknown
+  try {
+    payload = await response.json()
+  } catch (error: unknown) {
+    throw new LlmError('ChatGPT model discovery returned malformed JSON', 'MALFORMED_RESPONSE', { cause: error })
+  }
+  const object = typeof payload === 'object' && payload !== null && !Array.isArray(payload)
+    ? payload as { data?: unknown; models?: unknown }
+    : undefined
+  const rows = Array.isArray(object?.data) ? object.data : object?.models
+  if (!Array.isArray(rows)) throw new LlmError('ChatGPT model discovery returned no model list', 'MALFORMED_RESPONSE')
+  const seen = new Set<string>()
+  return rows.flatMap((raw): Array<{ id: string; name?: string; contextWindow?: number; maxTokens?: number }> => {
+    if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) return []
+    const row = raw as ChatGptModelRow
+    if (row.supported_in_api === false || row.visibility === 'hidden') return []
+    const id = [row.id, row.slug].find(value => typeof value === 'string' && value.length > 0) as string | undefined
+    if (id === undefined || seen.has(id)) return []
+    seen.add(id)
+    const name = [row.name, row.display_name].find(value => typeof value === 'string' && value.length > 0) as string | undefined
+    const capacity = (...values: unknown[]): number | undefined => values.find(value =>
+      typeof value === 'number' && Number.isSafeInteger(value) && value > 0) as number | undefined
+    const contextWindow = capacity(row.context_window, row.context_length)
+    const maxTokens = capacity(row.max_output_tokens, row.max_tokens)
+    return [{
+      id,
+      ...(name === undefined ? {} : { name }),
+      ...(contextWindow === undefined ? {} : { contextWindow }),
+      ...(maxTokens === undefined ? {} : { maxTokens }),
+    }]
+  })
+}
 
 /** Provider route owned by the ChatGPT account flow. */
 export const CHATGPT_PROVIDER = 'chatgpt'

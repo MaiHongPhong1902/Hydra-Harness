@@ -15,6 +15,8 @@ import type {
   LlmModelInfo,
   LlmProviderInfo,
   LlmResolvedModelInfo,
+  LlmDiscoveredModel,
+  LlmModelDiscoveryRequest,
   ModelModality,
   ResolvedRetryPolicy,
   StreamChunk,
@@ -96,6 +98,70 @@ export interface DeepSeekAdapterOptions {
   resolveUserId: () => AnonymousUserId
   /** Resolve the current durable attachment service; absence rejects image input. */
   resolveAttachments?: () => AttachmentStore | undefined
+}
+
+/**
+ * Fetch the OpenAI-compatible model catalog exposed by a DeepSeek endpoint.
+ * @param request - endpoint, credential, proxy, and cancellation for this discovery.
+ * @returns deduplicated model ids and provider-supplied names.
+ */
+export async function discoverDeepSeekModels(
+  request: Pick<LlmModelDiscoveryRequest, 'baseURL' | 'apiKey' | 'proxy' | 'signal'>,
+): Promise<LlmDiscoveredModel[]> {
+  const baseURL = request.baseURL?.trim()
+  if (baseURL === undefined || baseURL.length === 0) {
+    throw new LlmError('DeepSeek model discovery needs a baseURL', 'INVALID_DISCOVERY')
+  }
+  const apiKey = request.apiKey?.trim()
+  if (apiKey === undefined || apiKey.length === 0) {
+    throw new LlmError('DeepSeek model discovery needs an API key', 'INVALID_CREDENTIAL')
+  }
+  let response: Response
+  try {
+    response = await fetchWithHttpProxy(`${baseURL.replace(/\/+$/u, '')}/models`, {
+      method: 'GET',
+      headers: {
+        accept: 'application/json',
+        authorization: `Bearer ${apiKey}`,
+        ...attributionHeaders(),
+      },
+      ...(request.signal === undefined ? {} : { signal: request.signal }),
+    }, request.proxy)
+  } catch {
+    if (request.signal?.aborted) throw new LlmError('DeepSeek model discovery was aborted', 'ABORTED')
+    throw new LlmError('DeepSeek model discovery request failed', 'TRANSPORT')
+  }
+  if (!response.ok) {
+    await response.body?.cancel()
+    const code = response.status === 401 || response.status === 403
+      ? 'AUTH'
+      : response.status === 429
+        ? 'RATE_LIMIT'
+        : response.status >= 500 ? 'SERVER' : 'INVALID_REQUEST'
+    throw new LlmError(`DeepSeek model discovery failed with HTTP ${String(response.status)}`, code, {
+      status: response.status,
+    })
+  }
+  let payload: unknown
+  try {
+    payload = await response.json()
+  } catch {
+    throw new LlmError('DeepSeek model discovery returned malformed JSON', 'MALFORMED_RESPONSE')
+  }
+  if (typeof payload !== 'object' || payload === null || Array.isArray(payload)) {
+    throw new LlmError('DeepSeek model discovery returned no model list', 'MALFORMED_RESPONSE')
+  }
+  const rows = (payload as { data?: unknown }).data
+  if (!Array.isArray(rows)) throw new LlmError('DeepSeek model discovery returned no model list', 'MALFORMED_RESPONSE')
+  const seen = new Set<string>()
+  return rows.flatMap((row): LlmDiscoveredModel[] => {
+    if (typeof row !== 'object' || row === null || Array.isArray(row)) return []
+    const id = (row as { id?: unknown }).id
+    if (typeof id !== 'string' || id.length === 0 || seen.has(id)) return []
+    seen.add(id)
+    const name = (row as { name?: unknown }).name
+    return [{ id, ...(typeof name === 'string' && name.length > 0 ? { name } : {}) }]
+  })
 }
 
 /** Default maximum idle interval while an adapter stream read is outstanding. */

@@ -45,5 +45,5 @@ Recorded response content appends to the next request. Account-backed requests d
 ## Known Limitations and Deferred Work
 
 - **Live provider compatibility depends on account entitlement** — this package has focused transport coverage, but live ChatGPT and Google Antigravity compatibility remains unverified for every account entitlement and model catalog.
-- **ChatGPT uses the SDK's current model list unless a profile supplies `models`** — Antigravity discovers its account's live Cloud Code Assist catalog when a profile omits `models`; discovery refreshes an expired access token while holding that account's credential record lock. A profile-supplied `models` list avoids discovery.
+- **The model picker uses live discovery when requested** — ChatGPT reads `/backend-api/codex/models` with the connected account token, and Antigravity reads its Cloud Code Assist catalog. The reply is adopted only when the user selects the returned models.
 - **The plugin performs no background refresh or workload** — expired access tokens refresh only during the account operation that needs them.

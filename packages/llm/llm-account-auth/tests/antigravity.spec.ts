@@ -107,7 +107,7 @@ describe('Antigravity request serialization', () => {
         }],
       },
       {
-        role: 'model',
+        role: 'user',
         parts: [{
           functionResponse: {
             name: 'external_read_file',
@@ -404,7 +404,7 @@ describe('Antigravity SSE transport', () => {
         }],
       },
       {
-        role: 'model',
+        role: 'user',
         parts: [{
           functionResponse: {
             name: 'external_read_file',

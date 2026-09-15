@@ -54,10 +54,10 @@ export interface LlmApi {
    *
    * The payload is the draft, not a stored route: `settingsNs` selects the
    * adapter family that answers, and the rest comes from the form. `provider`
-   * names the route being edited when there is one — an adapter that already
-   * describes that route answers from its own registry, with better metadata
-   * and no network call, and needs no endpoint. A route it does not describe is
-   * asked over the wire, which is what `baseURL`, `api`, `proxy`, and `apiKey` are for.
+   * names the route being edited when there is one. Supplying `baseURL` asks
+   * the adapter to read the deployment's live listing; omitting it permits an
+   * installed catalog fallback. A route it does not describe is asked over the
+   * wire, which is what `baseURL`, `api`, `proxy`, and `apiKey` are for.
    *
    * Nothing is written — the reply is candidates, and only a later
    * `settings.mutate` decides what a route serves. `apiKey` is accepted here
