@@ -622,7 +622,14 @@ function nativeLocator(page, args) {
   if (args.target !== undefined) {
     if (typeof args.target !== 'string' || !args.target.trim()) throw new Error('target must be an observed ref or unique CSS selector')
     const target = args.target.trim()
-    return page.locator(/^(f\d+)?e\d+$/u.test(target) ? `aria-ref=${target}` : `css=${target}`)
+    if (/^(f\d+)?e\d+$/u.test(target)) return page.locator(`aria-ref=${target}`)
+    // "iframeSelector >> innerSelector" descends into an <iframe> (repeat to
+    // nest further); each segment but the last selects one frame via
+    // Playwright's own frameLocator, unaffected by the top document's origin.
+    const segments = target.split(/\s*>>\s*/u)
+    let scope = page
+    for (const segment of segments.slice(0, -1)) scope = scope.frameLocator(`css=${segment}`)
+    return scope.locator(`css=${segments.at(-1)}`)
   }
   if (args.index !== undefined) {
     if (!Number.isSafeInteger(args.index) || args.index < 0) throw new Error('index must be a non-negative integer')
@@ -638,9 +645,17 @@ function nativeLocator(page, args) {
     .or(page.locator(`[id="${escapedId}"]`))
 }
 
-/** Animate the existing mask to the locator Playwright will act on. */
+/**
+ * Animate the existing mask to the locator Playwright will act on. Cosmetic
+ * only: the isolated PageController world it redispatches into cannot follow
+ * an element across a frame boundary (a cross-origin iframe's document is
+ * unreachable from the top frame's page-JS by construction), so a resolution
+ * failure here must never block the real native action that follows.
+ */
 async function moveNativePointer(tab, args, mode = 'default', click = false) {
-  await withNativeRef(tab, args, resolved => pageControl(tab, 'prepare_pointer', { ...resolved, mode, click }))
+  try {
+    await withNativeRef(tab, args, resolved => pageControl(tab, 'prepare_pointer', { ...resolved, mode, click }))
+  } catch {}
 }
 
 /** Resolve Playwright refs in their owning world before calling the isolated preload. */

@@ -293,7 +293,7 @@ const NAME_PARAMETER = {
   description: 'Visible label, accessible name, placeholder, or id from the latest snapshot. Use instead of index when the control is named.',
 } as const
 
-const TARGET_PARAMETER = { type: 'string', description: 'Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name.' } as const
+const TARGET_PARAMETER = { type: 'string', description: 'Observed Playwright ref (e17) or a unique CSS selector. To reach inside an <iframe> (including cross-origin), chain selectors with " >> ": "iframeSelector >> innerSelector" (repeat to nest further). Use instead of index/name.' } as const
 const FILENAME_PARAMETER = { type: 'string', description: 'Plain filename for a private output artifact; returns its absolute path instead of the data.' } as const
 
 const INDEX_OR_NAME_INDEX = {
@@ -798,7 +798,10 @@ export function apply(ctx: Context, config: Config = {}): void {
         tab_id: TAB_ID_PARAMETER,
       },
       output,
-      timeoutMs,
+      // ponytail: no cooperative deadline — uploads can require human approval
+      // (unbounded wait), and the shared tool-call timeout was firing mid-wait,
+      // auto-cancelling the pending approval as if the user had said no. Upgrade
+      // to a deadline that pauses across the approval wait if hung uploads matter.
       execute: (args: { index: number; path: string; tab_id?: number }, exec) =>
         run(exec, { method: 'upload_file', index: args.index, filePath: args.path, ...tabTarget(args) }),
       isConcurrencySafe: targetsTab,
@@ -1094,7 +1097,8 @@ export function apply(ctx: Context, config: Config = {}): void {
       query: { type: 'string', required: true, description: 'Case-insensitive title or URL text, from 1 to 256 characters.' },
     },
     output: HISTORY_OUTPUT,
-    timeoutMs,
+    // ponytail: no cooperative deadline — this can require human approval
+    // (unbounded wait); see the upload registration above for why.
     execute: async (args: { query: string }, exec) => {
       const query = args.query.trim()
       if (query.length === 0 || query.length > 256) throw new Error('query must contain 1 to 256 characters')
@@ -1242,7 +1246,8 @@ export function apply(ctx: Context, config: Config = {}): void {
         tab_id: TAB_ID_PARAMETER,
       },
       output: CDP_OUTPUT,
-      timeoutMs,
+      // ponytail: no cooperative deadline — every call requires human approval
+      // (unbounded wait); see the upload registration above for why.
       execute: async (args: { method: string; params?: Record<string, unknown>; tab_id?: number }, exec) =>
         await ctx.browsers.sendCdpCommand(
           requireAgent(exec.agent),
@@ -1264,7 +1269,8 @@ export function apply(ctx: Context, config: Config = {}): void {
         tab_id: TAB_ID_PARAMETER,
       },
       output: CDP_EVENTS_OUTPUT,
-      timeoutMs,
+      // ponytail: no cooperative deadline — every call requires human approval
+      // (unbounded wait); see the upload registration above for why.
       execute: async (args: {
         after_sequence?: number
         limit?: number

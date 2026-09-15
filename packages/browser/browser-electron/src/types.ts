@@ -153,7 +153,7 @@ export interface BrowserFillField {
   index?: number
   /** Visible label, accessible name, placeholder, or id when index is omitted. */
   name?: string
-  /** Observed Playwright ref or unique CSS selector instead of index/name. */
+  /** Observed Playwright ref or unique CSS selector instead of index/name; chain with " >> " to reach inside an iframe. */
   target?: string
   /** Text that replaces the field's current value. */
   text: string
