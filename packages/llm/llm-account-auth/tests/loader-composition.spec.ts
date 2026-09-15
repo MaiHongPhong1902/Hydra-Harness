@@ -104,6 +104,31 @@ it('boots without network work and enables only the account routes saved in sett
   expect(loaded.chatgpt).toHaveBeenCalledOnce()
   expect(loaded.oauth).not.toHaveBeenCalled()
 
+  // The profile the settings editor saves carries no model list of its own:
+  // its catalog comes from the adapter, or from the fetch action on the page.
+  // An empty list means the same thing, so neither may refuse the document —
+  // refusing it here is what left the sign-in button inert on a saved profile.
+  const LISTED = [
+    'llm-account-auth:', '  providers:', '    chatgpt:', '      models:',
+    '        - id: gpt-test', '          name: Test ChatGPT', '          contextWindow: 128000', '',
+  ].join('\n')
+  const served = async (listed: boolean): Promise<void> => {
+    await vi.waitFor(async () => {
+      const models = await ctx.llm.listModels('chatgpt')
+      expect(models.length).toBeGreaterThan(0)
+      expect(models.some(model => model.id === 'gpt-test')).toBe(listed)
+    }, { timeout: 5000 })
+  }
+  for (const saved of ['    chatgpt:', '    chatgpt:\n      models: []']) {
+    await writeFile(settingsPath, LISTED)
+    await served(true)
+    await writeFile(settingsPath, ['llm-account-auth:', '  providers:', saved, ''].join('\n'))
+    // Only a non-empty list replaces the route's own catalog, so the document
+    // saved without one serves the adapter's models instead of nothing.
+    await served(false)
+    expect(fetch).not.toHaveBeenCalled()
+  }
+
   await writeFile(settingsPath, '{}\n')
   await vi.waitFor(() => { expect(ctx.llm.listProviders()).toEqual([]) }, { timeout: 5000 })
   expect(ctx.authorization.list().map(entry => entry.key)).toEqual([

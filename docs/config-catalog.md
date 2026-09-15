@@ -1034,7 +1034,13 @@ export interface Config {
 
 /** One account-backed provider's settings. */
 export interface AccountProviderProfile {
-  /** Optional replacement model catalog. */
+  /**
+   * Replacement model catalog. Omission and an empty list are the same
+   * request, as they are for a pi-ai route: the route then serves its live
+   * catalog — the adapter's installed models, or the ones discovered from the
+   * signed-in account — so a profile left to "Fetch available models" needs no
+   * list stored here.
+   */
   models?: AccountModelProfile[]
   /** Fallback context capacity for a model with no provider metadata. */
   defaultContextWindow?: number
@@ -1069,7 +1075,7 @@ export interface AccountModelProfile {
 }
 ```
 
-Source: [`packages/llm/llm-account-auth/src/config.ts:43`](../packages/llm/llm-account-auth/src/config.ts)
+Source: [`packages/llm/llm-account-auth/src/config.ts:49`](../packages/llm/llm-account-auth/src/config.ts)
 
 <a id="hydraharness-llm-deepseek"></a>
 

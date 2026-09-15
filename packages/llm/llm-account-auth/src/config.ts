@@ -17,7 +17,13 @@ export interface AccountModelProfile {
 
 /** One account-backed provider's settings. */
 export interface AccountProviderProfile {
-  /** Optional replacement model catalog. */
+  /**
+   * Replacement model catalog. Omission and an empty list are the same
+   * request, as they are for a pi-ai route: the route then serves its live
+   * catalog — the adapter's installed models, or the ones discovered from the
+   * signed-in account — so a profile left to "Fetch available models" needs no
+   * list stored here.
+   */
   models?: AccountModelProfile[]
   /** Fallback context capacity for a model with no provider metadata. */
   defaultContextWindow?: number
@@ -135,9 +141,15 @@ export function resolveProfiles(
       && (!Number.isSafeInteger(profile.maxRequestImageBytes) || profile.maxRequestImageBytes <= 0)) {
       throw new Error(`llm-account-auth: provider "${provider}" maxRequestImageBytes must be a positive integer`)
     }
-    const models = profile.models
-    if (models === undefined) {
-      resolved.set(provider as AccountProvider, { ...profile })
+    const { models, ...rest } = profile
+    // An absent list and an empty one are the same request: the schema
+    // materializes `[]` for the absent case, and a route with no catalog of
+    // its own is served its live one — the adapter's installed models, or what
+    // the signed-in account discovers. Only a non-empty list replaces that, so
+    // the key is detached rather than stored empty, which the adapters read as
+    // a deliberate empty catalog.
+    if (models === undefined || models.length === 0) {
+      resolved.set(provider as AccountProvider, { ...rest })
       continue
     }
     const seen = new Set<string>()
@@ -163,9 +175,8 @@ export function resolveProfiles(
         ...model.maxTokens === undefined ? {} : { maxTokens: model.maxTokens },
       }
     })
-    if (detached.length === 0) throw new Error(`llm-account-auth: provider "${provider}" has no models`)
     resolved.set(provider as AccountProvider, {
-      ...profile,
+      ...rest,
       models: detached,
     })
   }
