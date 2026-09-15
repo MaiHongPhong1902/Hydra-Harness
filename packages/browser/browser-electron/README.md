@@ -74,11 +74,11 @@ From the repository root:
 git submodule update --init packages/browser/browser-electron/third-party/page-agent
 ```
 
-When GitHub does not advertise the gitlink SHA (`not our ref`), check out the public tag that matches the lockfile (`v1.12.2`):
+When GitHub does not advertise the gitlink SHA (`not our ref`), check out the public tag that matches the lockfile (`v1.12.4`):
 
 ```sh
 rm -rf packages/browser/browser-electron/third-party/page-agent
-git clone --branch v1.12.2 --depth 1 https://github.com/alibaba/page-agent.git packages/browser/browser-electron/third-party/page-agent
+git clone --branch v1.12.4 --depth 1 https://github.com/alibaba/page-agent.git packages/browser/browser-electron/third-party/page-agent
 ```
 
 Then rerun `pnpm install`. The licence is in [THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md).

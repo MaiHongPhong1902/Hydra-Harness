@@ -4,7 +4,8 @@
  * empty-root composition, and the installation module-fallback healing.
  */
 
-import { lstatSync, mkdirSync, mkdtempSync, readFileSync, readlinkSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
+import { lstatSync, mkdirSync, mkdtempSync, readFileSync, readlinkSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -123,7 +124,7 @@ describe('resolveBundleDir', () => {
     }))
     writeFileSync(join(dir, 'index.js'), '')
     writeFileSync(join(dir, 'cordis.patch.yml'), '[]\n')
-    expect(resolveBundleDir('t', 'sealed-bundle', anchor, profileDir)).toBe(dir)
+    expect(resolveBundleDir('t', 'sealed-bundle', anchor, profileDir)).toBe(realpathSync(dir))
   })
 })
 
@@ -222,6 +223,28 @@ describe('composeEntries', () => {
 })
 
 describe('healProfilesModuleFallback', () => {
+  it('resolves dependencies from the real directory of a linked bundle', () => {
+    const anchor = stageInstallation({})
+    const store = tmp()
+    const bundle = join(store, 'bundle')
+    const plugin = join(store, 'node_modules', 'linked-plugin')
+    mkdirSync(bundle, { recursive: true })
+    mkdirSync(plugin, { recursive: true })
+    writeFileSync(join(bundle, 'package.json'), JSON.stringify({
+      name: 'linked-bundle', dependencies: { 'linked-plugin': '0.0.0' },
+    }))
+    writeFileSync(join(plugin, 'package.json'), JSON.stringify({ name: 'linked-plugin', main: 'index.cjs' }))
+    writeFileSync(join(plugin, 'index.cjs'), 'module.exports = "loaded"\n')
+    symlinkSync(bundle, join(anchor, '..', 'node_modules', 'linked-bundle'), 'junction')
+    writeFileSync(anchor, JSON.stringify({ name: 'hydra-app', dependencies: { 'linked-bundle': '0.0.0' } }))
+    const home = tmp()
+
+    healProfilesModuleFallback(anchor, home)
+
+    const profileRequire = createRequire(join(home, 'profiles', 'web', 'package.json'))
+    expect(profileRequire('linked-plugin')).toBe('loaded')
+  })
+
   it('links the app and bundle dependency surface flat under profiles/node_modules', () => {
     const anchor = stageInstallation({
       'bundle-a': { patch: '[]\n', deps: { 'dep-of-a': '0.0.0', 'ghost-dep': '0.0.0' } },

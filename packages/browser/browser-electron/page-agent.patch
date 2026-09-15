@@ -1,5 +1,5 @@
 diff --git a/packages/page-controller/src/mask/SimulatorMask.ts b/packages/page-controller/src/mask/SimulatorMask.ts
-index d507f6e..6ce5fee 100644
+index 11e28cc..03d5e8f 100644
 --- a/packages/page-controller/src/mask/SimulatorMask.ts
 +++ b/packages/page-controller/src/mask/SimulatorMask.ts
 @@ -1,4 +1,4 @@
@@ -304,7 +304,7 @@ index d507f6e..6ce5fee 100644
  		this.#cursor.classList.remove(cursorStyles.clicking)
 +		this.#cursor.classList.remove('clicking')
  		// Force reflow to restart animation
- 		void this.#cursor.offsetHeight
+ 		this.#cursor.getBoundingClientRect()
  		this.#cursor.classList.add(cursorStyles.clicking)
 +		this.#cursor.classList.add('clicking')
 +	}
