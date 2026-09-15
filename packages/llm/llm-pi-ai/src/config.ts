@@ -54,11 +54,11 @@ export const DEFAULT_STREAM_IDLE_TIMEOUT_MS = 300_000
  */
 export const DEFAULT_MAX_REQUEST_IMAGE_BYTES = 20 * 1024 * 1024
 
-/** Context capacity assumed for a model neither configuration nor the catalog sizes. */
-export const DEFAULT_CONTEXT_WINDOW = 262_144
+/** Context fallback for a model neither configuration nor the catalog sizes. */
+export const DEFAULT_CONTEXT_WINDOW = 131_072
 
-/** Output capability assumed for a model neither configuration nor the catalog sizes. */
-export const DEFAULT_MAX_TOKENS = 32_768
+/** Output fallback for a model neither configuration nor the catalog sizes. */
+export const DEFAULT_MAX_TOKENS = 16_384
 
 /**
  * Modalities assumed for a model neither configuration nor the catalog
@@ -124,14 +124,14 @@ export interface PiAiProviderProfile {
   compat?: PiAiCompatProfile
   /**
    * Context capacity for a model this route lists that neither the entry nor
-   * the installed catalog sizes (default 262,144). A guess by construction, so
-   * a deployment whose gateway serves smaller models corrects it here.
+   * the installed catalog sizes (default 131,072). Deployments must set this
+   * to a capacity their models support when exact metadata is unavailable.
    */
   defaultContextWindow?: number
   /**
    * Output capability for a model this route lists that neither the entry nor
-   * the installed catalog sizes (default 32,768). This sizes the model; it
-   * never becomes a per-request cap on its own.
+   * the installed catalog sizes (default 16,384). pi-ai uses this value when
+   * the request omits an output cap.
    */
   defaultMaxTokens?: number
   /**

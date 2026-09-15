@@ -65,8 +65,8 @@ Configure credentials, the model catalog, and deployment-specific transport sett
             maxTokens: 4096
           - id: acme-think
             name: Acme Think
-            contextWindow: 262144
-            maxTokens: 32768
+            contextWindow: 131072
+            maxTokens: 16384
             # key = selectable level, value = its wire spelling; only off may
             # leave the value empty (supported, send nothing).
             reasoningEfforts:
@@ -131,7 +131,7 @@ Each switch belongs to the protocols whose pi-ai compat type declares it, and gr
 
 Three kinds of key are refused rather than dropped: one no protocol declares (a misspelling), one pi-ai's installed catalog owns for a named vendor (`openRouterRouting`, `zaiToolStream`, `deferredToolsMode`, `sessionAffinityFormat`, `supportsOpenAIGrammarTools`, `supportsToolSearch`, `supportsExplicitPromptCacheMode`, `supportsToolReferences`, `vercelGatewayRouting`, `sendSessionAffinityHeaders`) — a route needing a vendor's own switch is a catalog route that should be named as such — and one written with no value at all (`supportsDeveloperRole:`), which schemastery passes through as null and which would otherwise replace the installed catalog's value with nothing. The offered set is pinned to pi-ai's four compat types by drift gates, the protocols carrying them are derived from `Model.compat` itself, and each field's type is derived from upstream rather than restated, so an upgrade that adds a field, gives a further protocol a compat type, or widens a value union fails the build until someone classifies it.
 
-A model neither the entry nor the installed catalog sizes takes the route's `defaultContextWindow` (262,144) and `defaultMaxTokens` (32,768), so a listing that discloses nothing but ids still yields a serviceable route. Both fallbacks are guesses by construction, which is why they are route fields a deployment whose gateway serves smaller models corrects once rather than constants buried in the adapter; the fallback sizes the model and never becomes a per-request cap.
+A model neither the entry nor the installed catalog sizes takes the route's `defaultContextWindow` (131,072) and `defaultMaxTokens` (16,384). These assumptions are configurable per route; deployments must choose limits their gateway supports when exact metadata is unavailable. pi-ai uses the model's output capacity when the request omits an output cap.
 
 Request modalities resolve entry `input` → installed catalog entry → route `defaultInput` (default `[text]`), the same order and the same fallback role the capacities above use. So a catalog model keeps the modalities the catalog records for it, and a narrower route default never strips them; a gateway whose *undescribed* models all take images declares `[text, image]` once at the route instead of on every entry. An entry's empty list means the same as an absent one — it describes a model accepting nothing, so it states no answer and resolution continues past it, which is what keeps a catalog model's own modalities when a `models` entry names it without declaring any. The route's may not be empty, since nothing sits below it to answer instead.
 

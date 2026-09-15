@@ -127,13 +127,13 @@ type CapacityField = 'contextWindow' | 'maxTokens'
  * The magnitudes are the adapter's own route-level fallbacks (`llm-pi-ai`'s
  * `defaultContextWindow` and `defaultMaxTokens`), spelled the way a person
  * would say them. They are a hint, not a mirror: this page counts `K` as 1000,
- * so typing `256K` stores 256000 while leaving the field blank keeps the
- * adapter's 262144. A deployment that overrides those defaults is not
+ * so typing `128K` stores 128000 while leaving the field blank keeps the
+ * adapter's 131072. A deployment that overrides those defaults is not
  * reflected here — nothing on this page can read them.
  */
 const CAPACITY_HINT: Readonly<Record<CapacityField, string>> = {
-  contextWindow: '256K',
-  maxTokens: '32K',
+  contextWindow: '128K',
+  maxTokens: '16K',
 }
 
 /**

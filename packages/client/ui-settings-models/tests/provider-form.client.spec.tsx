@@ -432,7 +432,7 @@ describe('capacity spellings', () => {
 
 describe('endpoint interrogation', () => {
   it('asks the endpoint the form shows, with a key that is not yet stored', async () => {
-    const discover = vi.fn(() => Promise.resolve(ok({ models: [{ id: 'acme-large', contextWindow: 65_536 }] })))
+    const discover = vi.fn(() => Promise.resolve(ok({ models: [{ id: 'acme-large', contextWindow: 65_536, maxTokens: 4096 }] })))
     await mountSection({ discover })
     openEditor('openai')
 
@@ -487,7 +487,7 @@ describe('endpoint interrogation', () => {
 
   it('adopts only the picked candidates, keeping a row the user already tuned', async () => {
     const discover = vi.fn(() => Promise.resolve(ok({
-      models: [{ id: 'kept', contextWindow: 999 }, { id: 'fresh', contextWindow: 4096, name: 'Fresh' }],
+      models: [{ id: 'kept', contextWindow: 999, maxTokens: 4096 }, { id: 'fresh', contextWindow: 4096, maxTokens: 1024, name: 'Fresh' }],
     })))
     const { mutate } = await mountSection({
       discover,
@@ -506,7 +506,7 @@ describe('endpoint interrogation', () => {
     await waitFor(() => { expect(mutate).toHaveBeenCalled() })
     expect(firstMutate(mutate).ops[0]?.value).toEqual([
       { id: 'kept', contextWindow: 111 },
-      { id: 'fresh', contextWindow: 4096, name: 'Fresh' },
+      { id: 'fresh', contextWindow: 4096, maxTokens: 1024, name: 'Fresh' },
     ])
   })
 
@@ -1503,7 +1503,7 @@ it('tries unsaved fallback keys when fetching models', async () => {
 })
 
 it('creates a custom provider with fallback keys and stops probing after success', async () => {
-  const { face, mutate, set, discover } = scriptedFace({ discover: vi.fn(() => Promise.resolve(ok({ models: [{ id: 'found' }] }))) })
+  const { face, mutate, set, discover } = scriptedFace({ discover: vi.fn(() => Promise.resolve(ok({ models: [{ id: 'found', contextWindow: 65536, maxTokens: 4096 }] }))) })
   const onClose = vi.fn()
   render(<CustomProviderCard taken={[]} protocols={PROTOCOLS} revision={3} api={face as never} t={t} readOnly={false} onClose={onClose} />)
   fireEvent.change(screen.getByLabelText(en.customRoute), { target: { value: 'custom' } })
