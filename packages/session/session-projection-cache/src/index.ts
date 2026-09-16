@@ -75,6 +75,7 @@ export class SessionProjectionCache extends Service {
 
   private table?: KvTable<SessionId, CheckpointRecord>
   private readonly dirty = new Map<Session, DirtyState>()
+  private readonly deleted = new Set<SessionId>()
 
   constructor(ctx: Context, public config: Config) {
     super(ctx, 'sessionProjectionCache')
@@ -85,6 +86,11 @@ export class SessionProjectionCache extends Service {
     const domain = await this.ctx.storageDomain.open(projectionCacheDomainSpec)
     this.ctx.effect(() => () => domain.close(), 'sessionProjectionCache.domainClose')
     this.table = domain.table('sessions')
+    this.ctx.on('session-persistence/deleted', async (id) => {
+      this.deleted.add(id)
+      await this.requireTable().delete(id)
+    })
+    this.ctx.on('session/created', (session) => { this.deleted.delete(session.id) })
     this.installWritePath()
   }
 
@@ -281,6 +287,7 @@ export class SessionProjectionCache extends Service {
 
   /** Replace one session's stored record with its log identity and a detached snapshot of `rows`. */
   private async put(id: SessionId, identity: CheckpointIdentity, rows: ProjectionCheckpoint): Promise<void> {
+    if (this.deleted.has(id)) return
     const detached = snapshotJsonValue(rows)
     if (detached === undefined) {
       throw new TypeError('projection checkpoint is not losslessly JSON-serializable (a unit state violates the plain-JSON contract)')

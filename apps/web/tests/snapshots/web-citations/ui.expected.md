@@ -26,6 +26,7 @@
 - banner:
   - navigation "Session hierarchy":
     - button "Use the web_fetch tool exactly" [disabled]
+  - button "Session summary"
   - button "Session log":
     - text: Session log
     - img

@@ -4,6 +4,10 @@ Native account-backed OAuth routes for ChatGPT and Google Antigravity. The plugi
 
 The account pool is resolved only when a login, account listing, removal, refresh, or model request needs it. Requests select accounts in round-robin order and retry a later account only when the earlier attempt fails before visible output. Cancellation stops that selection immediately. Access and refresh tokens stay in the Host credential store; authorization surfaces receive account labels and transient login instructions only.
 
+ChatGPT account profiles accept the pi-ai reasoning, cache, transport, timeout, and retry controls. Session-title calls force the provider's cheapest non-thinking mode where the route supports it. Antigravity uses the same stream-idle timeout setting and omits thinking for title calls; ordinary conversation reasoning remains configurable per request.
+
+Provider performance changes follow the [account request policy and verification requirements](../../../.agents/notes/implemented/feature/2026-09-16-account-model-performance.md), including effective setting propagation and the distinction between SDK tests and live latency evidence.
+
 ## Configuration and account setup
 
 Enable the provider in Settings, open **Models**, and use the **Account sign-in** section's **Add sign-in provider** action. Select **ChatGPT** or **Google Antigravity** there. API-key provider cards remain available independently; this account flow does not replace or reuse their API-key fields. Complete the provider login in the account flow, then repeat **Add account** for each account that should participate in rotation. Account labels come from the provider identity returned by OAuth, with a stable provider-account fallback when no identity is available.

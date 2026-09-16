@@ -33,6 +33,9 @@
       "path": "../ui-conversation"
     },
     {
+      "path": "../ui-settings"
+    },
+    {
       "path": "../../runtime-diagnostics/invariants"
     }
   ]

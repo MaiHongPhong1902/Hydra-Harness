@@ -87,6 +87,7 @@
       "@hydra/harness-llm/brand": ["./packages/llm/llm/src/brand.ts"],
       "@hydra/harness-llm/proxy": ["./packages/llm/llm/src/proxy.ts"],
       "@hydra/harness-llm-retry/types": ["./packages/llm/llm-retry/src/types.ts"],
+      "@hydra/harness-llm-call-log/types": ["./packages/llm/llm-call-log/src/types.ts"],
       "@hydra/harness-workflow/types": ["./packages/workflow/workflow/src/types.ts"],
       "@hydra/harness-tool-workflow/types": ["./packages/workflow/tool-workflow/src/types.ts"],
       "@hydra/harness-llm/message": ["./packages/llm/llm/src/message.ts"],

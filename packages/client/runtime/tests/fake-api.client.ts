@@ -152,6 +152,9 @@ export class FakeApiClient implements IApiClient {
   // Parameters carry local structural annotations: the CI lint lane runs
   // without built lib/, so IApiClient's indexed-access types collapse to any
   // and inferred parameters would trip no-unsafe-argument.
+  onDelete: (payload: { sessionId: SessionId }) => Promise<RpcResponse<{ deleted: true; sessionIds: SessionId[] }>> =
+    payload => Promise.resolve(ok({ deleted: true as const, sessionIds: [payload.sessionId] }))
+
   readonly sessions: IApiClient['sessions'] = {
     list: (payload: unknown) => this.record('session.list', payload, this.onList(payload)),
     search: (payload: unknown, signal?: AbortSignal) => {
@@ -159,6 +162,7 @@ export class FakeApiClient implements IApiClient {
       return this.record('session.search', payload, this.onSearch(payload))
     },
     create: (payload: unknown) => this.record('session.create', payload, this.onCreate(payload)),
+    delete: (payload: { sessionId: SessionId }) => this.record('session.delete', payload, this.onDelete(payload)),
     history: (payload: { sessionId: SessionId; beforeSeq?: number; maxMessages?: number }) =>
       this.record('session.history', payload, this.onHistory(payload)),
     models: (payload: unknown) => this.record('session.models', payload, this.onModels(payload)),
@@ -220,6 +224,9 @@ export class FakeApiClient implements IApiClient {
   onWorkspaceArchiveSession: (payload: unknown) => Promise<RpcResponse<{ archivedSessionIds: SessionId[] }>> =
     payload => Promise.resolve(ok({ archivedSessionIds: [(payload as { sessionId: SessionId }).sessionId] }))
 
+  onWorkspaceUnarchiveSession: (payload: unknown) => Promise<RpcResponse<{ archivedSessionIds: SessionId[] }>> =
+    () => Promise.resolve(ok({ archivedSessionIds: [] }))
+
   readonly workspace: IApiClient['workspace'] = {
     list: (payload: unknown) => this.record('workspace.list', payload, this.onWorkspaceList(payload).then(response => (
       response.result.ok
@@ -235,6 +242,8 @@ export class FakeApiClient implements IApiClient {
       this.record('workspace.insertSessionBefore', payload, this.onWorkspaceInsertSessionBefore(payload)),
     archiveSession: (payload: unknown) =>
       this.record('workspace.archiveSession', payload, this.onWorkspaceArchiveSession(payload)),
+    unarchiveSession: (payload: unknown) =>
+      this.record('workspace.unarchiveSession', payload, this.onWorkspaceUnarchiveSession(payload)),
   }
 
   // Payloads stay `unknown` (lint-lane note above); response rows are the real

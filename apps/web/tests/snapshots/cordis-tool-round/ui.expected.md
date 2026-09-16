@@ -3,6 +3,7 @@
     - button "Use only Cordis tools. First" [disabled]
   - img
   - text: Standard mode
+  - button "Session summary"
   - button "Session log":
     - text: Session log
     - img

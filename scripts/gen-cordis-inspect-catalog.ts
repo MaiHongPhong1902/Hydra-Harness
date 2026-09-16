@@ -18,6 +18,7 @@ const CLIENT_SERVICES: Readonly<Record<string, readonly string[]>> = {
   workspaces: [
     'connectWorkspace', 'startSession', 'create', 'pickDirectory', 'listDirectory', 'createDirectory',
     'openPath', 'rename', 'delete', 'insertSessionBefore', 'archiveSession',
+    'unarchiveSession',
   ],
 }
 

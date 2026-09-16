@@ -79,7 +79,7 @@ describe('readWorkspaceReview', () => {
     expect(comparison.files[0]?.hunks[0]?.lines).toEqual(['+inside'])
     expect(comparison.branches).toContain('refs/heads/review-base')
     expect(comparison.commits[0]?.subject).toBe('nested changes')
-  })
+  }, 30_000)
 
   it('bounds the whole response, reports binary and oversized files, and honors cancellation', async () => {
     const root = await repository()

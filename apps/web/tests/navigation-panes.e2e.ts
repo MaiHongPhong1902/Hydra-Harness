@@ -26,6 +26,8 @@ const SEED = join(SNAPSHOT_DIR, 'seed.jsonl')
 const TRAJECTORY_EXPECTED = join(SNAPSHOT_DIR, 'trajectory.expected.md')
 const SEARCH_EXPECTED = join(SNAPSHOT_DIR, 'search-results.expected.md')
 const TERMINAL_EXPECTED = join(SNAPSHOT_DIR, 'terminal-card.expected.md')
+const SUMMARY_EXPECTED = join(SNAPSHOT_DIR, 'summary.expected.md')
+const SESSION_SUMMARY_ARTIFACT_DIR = fileURLToPath(new URL('../../../.artifacts/session-summary', import.meta.url))
 const MODE = webSnapshotMode()
 const SEED_ID = 'navigation-panes-web-e2e'
 
@@ -291,6 +293,11 @@ describe('web e2e: navigation & panes over a rich seeded session', () => {
   it.skipIf(MODE === 'record')('downloads through the Session Header and /export with one dialog', async () => {
     onTestFailed(() => saveFailureShot(page, 'web-e2e-navigation-export'))
     await ensureSeedOpen(page)
+    const summaryButton = page.getByRole('button', { name: 'Session summary' })
+    await summaryButton.click()
+    await page.getByRole('dialog', { name: 'Session summary' }).waitFor({ timeout: 10_000 })
+    await page.keyboard.press('Escape')
+    await page.getByRole('dialog', { name: 'Session summary' }).waitFor({ state: 'detached' })
     const exportButton = page.getByRole('button', { name: 'Session log' })
     expect(await exportButton.isDisabled()).toBe(false)
     const header = exportButton.locator('xpath=ancestor::header[1]')
@@ -376,6 +383,69 @@ describe('web e2e: navigation & panes over a rich seeded session', () => {
       await observer.close()
     }
   }, 120_000)
+
+  it.skipIf(MODE === 'record')('renders and dismisses the anchored Session summary popover', async () => {
+    onTestFailed(() => saveFailureShot(page, 'web-e2e-navigation-session-summary'))
+    await ensureSeedOpen(page)
+    const summaryButton = page.getByRole('button', { name: 'Session summary', exact: true })
+    await summaryButton.click()
+    const dialog = page.getByRole('dialog', { name: 'Session summary', exact: true })
+    await dialog.waitFor({ timeout: 10_000 })
+    expect(await dialog.getByRole('heading', { name: 'Environment', exact: true }).count()).toBe(1)
+    expect(await dialog.getByRole('heading', { name: 'Sources', exact: true }).count()).toBe(1)
+    expect(await dialog.getByText('No attached sources', { exact: true }).count()).toBe(1)
+
+    const changes = dialog.getByRole('button', { name: 'Changes', exact: true })
+    expect(await changes.getAttribute('aria-expanded')).toBe('false')
+    await changes.click()
+    expect(await changes.getAttribute('aria-expanded')).toBe('true')
+    await dialog.getByText('Session edits', { exact: true }).waitFor()
+
+    const local = dialog.getByRole('button', { name: 'Local', exact: true })
+    await local.click()
+    expect(await local.getAttribute('aria-expanded')).toBe('true')
+    expect(await dialog.getByText('Host version', { exact: true }).count()).toBe(1)
+    expect(await dialog.getByText('Default provider', { exact: true }).count()).toBe(1)
+    expect(await dialog.getByText('Default model', { exact: true }).count()).toBe(1)
+
+    const branch = dialog.getByRole('button', { name: /^(?:No Git repository|Branch unavailable|Detached HEAD)$/u })
+    await branch.waitFor({ timeout: 30_000 })
+    await branch.click()
+    expect(await branch.getAttribute('aria-expanded')).toBe('true')
+    expect(await dialog.getByText(
+      /(?:Repository information is unavailable|This workspace is not a Git repository|Recent commits)/u,
+    ).count()).toBe(1)
+
+    const snapshot = await captureStableAria(page, '[role="dialog"][aria-label="Session summary"]', scaffold.workspaceCwd)
+    expect(snapshot).toContain('dialog "Session summary"')
+    expect(snapshot).toContain('button "Changes"')
+    expect(snapshot).toContain('button "Local"')
+    expect(snapshot).toContain('button "Commit or push" [disabled]')
+    await compareOrRefreshGolden(SUMMARY_EXPECTED, snapshot, MODE)
+    await mkdir(SESSION_SUMMARY_ARTIFACT_DIR, { recursive: true })
+    await dialog.screenshot({ path: join(SESSION_SUMMARY_ARTIFACT_DIR, 'session-summary.png') })
+
+    await page.setViewportSize({ width: 420, height: 850 })
+    const layout = await dialog.evaluate((element) => {
+      const rect = element.getBoundingClientRect()
+      return {
+        left: rect.left,
+        right: rect.right,
+        viewport: document.documentElement.clientWidth,
+        scrollWidth: element.scrollWidth,
+        clientWidth: element.clientWidth,
+      }
+    })
+    expect(layout.left).toBeGreaterThanOrEqual(0)
+    expect(layout.right).toBeLessThanOrEqual(layout.viewport)
+    expect(layout.scrollWidth).toBeLessThanOrEqual(layout.clientWidth)
+    await dialog.screenshot({ path: join(SESSION_SUMMARY_ARTIFACT_DIR, 'session-summary-narrow.png') })
+
+    await page.keyboard.press('Escape')
+    await dialog.waitFor({ state: 'detached' })
+    expect(await summaryButton.evaluate(element => element === document.activeElement)).toBe(true)
+    expect(await summaryButton.getAttribute('aria-expanded')).toBe('false')
+  }, 60_000)
 
   it.skipIf(MODE === 'record')('focuses the ledger by dragging an overview interval', async () => {
     onTestFailed(() => saveFailureShot(page, 'web-e2e-navigation-timeline'))
@@ -516,7 +586,7 @@ describe('web e2e: navigation & panes over a rich seeded session', () => {
   it.skipIf(MODE === 'record')('keeps the recorded fixture inventory exact', async () => {
     await assertFixtureInventory(SNAPSHOT_DIR, [
       'seed.jsonl', 'search-results.expected.md', 'trajectory.expected.md',
-      'terminal-card.expected.md',
+      'terminal-card.expected.md', 'summary.expected.md',
     ])
   })
 })

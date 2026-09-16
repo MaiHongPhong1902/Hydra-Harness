@@ -54,6 +54,52 @@ async function tempDir(prefix: string): Promise<string> {
 }
 
 describe('HydraHarness', () => {
+  it('preserves model call diagnostics without including them in the final response', async () => {
+    const result = await harnessWith({ FAKE_MODEL_CALL_LOG: '1', FAKE_TEXT: 'answer' }).run('hello')
+    const events = result.events.filter(event => event.type.startsWith('llm/call-'))
+    expect(events.map(event => ({ type: event.type, data: event.data }))).toMatchInlineSnapshot(`
+      [
+        {
+          "data": {
+            "messageCount": 1,
+            "model": "model-a",
+            "provider": "mock",
+            "purpose": "conversation",
+            "step": 0,
+            "systemChars": 0,
+            "tools": [],
+            "turn": 0,
+          },
+          "type": "llm/call-start",
+        },
+        {
+          "data": {
+            "callSeq": 2,
+            "elapsedMs": 12,
+            "kind": "text",
+            "model": "model-a",
+            "provider": "mock",
+          },
+          "type": "llm/call-first-output",
+        },
+        {
+          "data": {
+            "callSeq": 2,
+            "elapsedMs": 20,
+            "firstOutputMs": 12,
+            "firstTextMs": 12,
+            "model": "model-a",
+            "outcome": "stop",
+            "provider": "mock",
+            "toolCalls": [],
+          },
+          "type": "llm/call-end",
+        },
+      ]
+    `)
+    expect(result.finalResponse).toBe('answer')
+  })
+
   it('ignores notifications that precede the submitted message receipt', async () => {
     const notifications = [
       { method: 'session.status', params: { sessionId: 'owned', status: 'running' } },

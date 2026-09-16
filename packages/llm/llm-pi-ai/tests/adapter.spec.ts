@@ -14,6 +14,7 @@ import LlmRuntime, { createUserMessage, CONTEXT_WINDOW_EXCEEDED_CODE, LlmError, 
 import * as LlmPiAi from '@hydra/harness-llm-pi-ai'
 import { PiAiAdapter } from '@hydra/harness-llm-pi-ai'
 import { MAX_TIMER_DELAY_MS } from '@hydra/harness-timeout'
+import type { Api, AssistantMessage, AssistantMessageEvent, Model } from '@earendil-works/pi-ai'
 import { getBuiltinModels } from '@earendil-works/pi-ai/providers/all'
 import { DEFAULT_MAX_REQUEST_IMAGE_BYTES, resolveProfiles } from '../src/config.ts'
 import { memoryAuth } from './auth-double.ts'
@@ -60,6 +61,26 @@ const IMAGE_REF: ImageAttachmentRef = {
   bytes: 1,
   width: 1,
   height: 1,
+}
+
+/** Complete pi-ai event stream returned by the provider spy in routing tests. */
+function completePiStream(model: Model<Api>): AsyncGenerator<AssistantMessageEvent> {
+  const usage = {
+    input: 0, output: 1, cacheRead: 0, cacheWrite: 0, totalTokens: 1,
+    cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
+  }
+  const partial: AssistantMessage = {
+    role: 'assistant', content: [], api: model.api, provider: model.provider, model: model.id,
+    usage, stopReason: 'stop', timestamp: 0,
+  }
+  const message: AssistantMessage = { ...partial, content: [{ type: 'text', text: 'hello' }] }
+  return (async function* (): AsyncGenerator<AssistantMessageEvent> {
+    yield { type: 'start', partial }
+    yield { type: 'text_start', contentIndex: 0, partial }
+    yield { type: 'text_delta', contentIndex: 0, delta: 'hello', partial: message }
+    yield { type: 'text_end', contentIndex: 0, content: 'hello', partial: message }
+    yield { type: 'done', reason: 'stop', message }
+  })()
 }
 
 async function harness(baseURL: string, overrides: Record<string, unknown> = {}): Promise<Context> {
@@ -216,6 +237,54 @@ describe('PiAiAdapter provider routing', () => {
       failure: { code: 'UNSUPPORTED_REASONING_EFFORT' },
     })
     expect(server.requests).toHaveLength(2)
+  })
+
+  it('disables Codex reasoning for titles while preserving conversation and compaction defaults', async () => {
+    const resolved = resolveProfiles({
+      'openai-codex': {
+        apiKeyEnv: 'PI_TEST_KEY',
+        reasoning: 'high',
+      },
+    }).get('openai-codex')
+    if (resolved === undefined) throw new Error('openai-codex profile is missing')
+
+    const model = resolved.piProvider.getModels()[0]
+    if (model === undefined) throw new Error('openai-codex test catalog is empty')
+    const stream = vi.spyOn(resolved.piProvider, 'stream')
+      .mockImplementation(() => completePiStream(model) as never)
+    const streamSimple = vi.spyOn(resolved.piProvider, 'streamSimple')
+      .mockImplementation(() => completePiStream(model) as never)
+    const profiles = new Map([['openai-codex', resolved]])
+    const adapter = new PiAiAdapter({
+      profiles: () => profiles,
+      resolveApiKey: () => Promise.resolve('test-key'),
+      auth: memoryAuth(),
+    })
+    const ctx = new Context()
+    await ctx.plugin(LlmRuntime)
+    ctx.llm.registerAdapter(['openai-codex'], adapter)
+
+    const request = (purpose?: 'compaction' | 'session-title'): Promise<unknown> => assemble(ctx, {
+      provider: 'openai-codex',
+      model: model.id,
+      ...(purpose === undefined ? {} : { purpose }),
+      messages: [],
+    })
+    const title = await request('session-title')
+    const compaction = await request('compaction')
+    const conversation = await request()
+    expect(title).toMatchObject({ finish: { kind: 'stop' } })
+    expect(compaction).toMatchObject({ finish: { kind: 'stop' } })
+    expect(conversation).toMatchObject({ finish: { kind: 'stop' } })
+
+    expect(stream).toHaveBeenCalledOnce()
+    expect(streamSimple).toHaveBeenCalledTimes(2)
+    expect(stream.mock.calls[0]?.[2]).toMatchObject({
+      reasoningEffort: 'none',
+      reasoningSummary: 'off',
+    })
+    expect(streamSimple.mock.calls[0]?.[2]).toMatchObject({ reasoning: 'high' })
+    expect(streamSimple.mock.calls[1]?.[2]).toMatchObject({ reasoning: 'high' })
   })
 
   it('preserves omitted profile options when constructing the adapter directly', async () => {

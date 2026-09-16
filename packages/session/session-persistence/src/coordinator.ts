@@ -627,6 +627,23 @@ export class PersistenceCoordinator<TornMarker = unknown> {
   // --- Public API (the backend's service methods delegate here) ---
 
   /**
+   * Delete an unowned log after its final write-behind drain.
+   * @param id - session identity to remove.
+   * @param remove - backend-owned durable removal.
+   */
+  async delete(id: SessionId, remove: () => Promise<void>): Promise<void> {
+    await this.waitForRetirement(id)
+    await this.serialize(id, async () => {
+      if (this.ctx.sessions.get(id) !== undefined) throw new Error(`cannot delete live session "${id}"`)
+      this.preparations.assertWritable(id)
+      await remove()
+      this.preparations.invalidate(id)
+      this.states.delete(id)
+    })
+    await this.ctx.serial('session-persistence/deleted', id)
+  }
+
+  /**
    * Register detached session metadata for lazy creation on the first append.
    * @param meta - header to snapshot; duplicate tracked or persisted ids reject.
    */

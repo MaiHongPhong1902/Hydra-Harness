@@ -144,6 +144,17 @@ export const sessionCreateValueSchema = z.object({
   agentPreset: z.string().optional(),
 }) satisfies z.ZodType<Wire<ResponseValue<'session.create'>>>
 
+/** session.delete request payload. */
+export const sessionDeleteRequestSchema = z.object({
+  sessionId: sessionIdSchema,
+}) satisfies z.ZodType<Wire<RequestPayload<'session.delete'>>>
+
+/** session.delete response value. */
+export const sessionDeleteValueSchema = z.object({
+  deleted: z.literal(true),
+  sessionIds: z.array(sessionIdSchema),
+}) satisfies z.ZodType<Wire<ResponseValue<'session.delete'>>>
+
 /** session.rename request payload (raw title; host-side normalization decides acceptance). */
 export const sessionRenameRequestSchema = z.object({
   sessionId: sessionIdSchema,

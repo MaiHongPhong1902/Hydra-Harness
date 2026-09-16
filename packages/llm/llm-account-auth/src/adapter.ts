@@ -19,6 +19,7 @@ import {
   type Message,
   type ResolvedRetryPolicy,
   type StreamChunk,
+  resolveRetryPolicy,
 } from '@hydra/harness-llm'
 import type { PiAiAdapter, ResolvedPiAiProviderProfile } from '@hydra/harness-llm-pi-ai'
 
@@ -308,8 +309,10 @@ export class AntigravityAccountAdapter extends LlmAdapter {
     return { id: provider, name: 'Google Antigravity' }
   }
 
-  override providerRetryPolicy(_provider: string): ResolvedRetryPolicy | undefined {
-    return undefined
+  override providerRetryPolicy(provider: string): ResolvedRetryPolicy | undefined {
+    const profile = this.config.profile()
+    if (profile === undefined) return undefined
+    return resolveRetryPolicy(profile.retryPolicy, `llm-account-auth: ${provider} retryPolicy`)
   }
 
   override async listModels(provider: string): Promise<readonly LlmModelInfo[]> {
@@ -372,6 +375,7 @@ export class AntigravityAccountAdapter extends LlmAdapter {
       resolveCredentials: () => Promise.resolve(credentials),
       ...(profile.models === undefined ? {} : { models: profile.models }),
       ...(profile.endpoint === undefined ? {} : { endpoint: profile.endpoint }),
+      ...(profile.streamIdleTimeoutMs === undefined ? {} : { streamIdleTimeoutMs: profile.streamIdleTimeoutMs }),
       ...(this.config.resolveAttachments === undefined
         ? {}
         : { resolveAttachments: this.config.resolveAttachments }),

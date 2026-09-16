@@ -2266,6 +2266,21 @@ function createFixtureWorld(options: FixtureOptions): FixtureWorld {
   const api: ApiProxy = {
     sessions: {
       list: request => ok(request, { items: [...sessions].sort((a, b) => b.updatedAt - a.updatedAt) }),
+      delete: (request) => {
+        const { sessionId } = request.payload
+        const index = sessions.findIndex(session => session.sessionId === sessionId)
+        if (index !== -1) sessions.splice(index, 1)
+        logs.delete(sessionId)
+        for (const workspace of workspaces) {
+          workspace.sessionIds = workspace.sessionIds.filter(id => id !== sessionId)
+          emitHost({ type: 'host/workspace-changed', workspace: { ...workspace } })
+        }
+        const archived = archivedSessionIds.indexOf(sessionId)
+        if (archived !== -1) archivedSessionIds.splice(archived, 1)
+        emitHost({ type: 'host/archived-sessions-changed', archivedSessionIds: [...archivedSessionIds] })
+        emitHost({ type: 'host/session-removed', sessionId })
+        return ok(request, { deleted: true as const, sessionIds: [sessionId] })
+      },
       search: (request, signal) => {
         if (signal.aborted) {
           return err(request, {
@@ -2789,6 +2804,15 @@ function createFixtureWorld(options: FixtureOptions): FixtureWorld {
         }
         return ok(request, { archivedSessionIds: [...archivedSessionIds] })
       },
+      unarchiveSession: (request) => {
+        const { sessionId } = request.payload
+        const index = archivedSessionIds.indexOf(sessionId)
+        if (index !== -1) {
+          archivedSessionIds.splice(index, 1)
+          emitHost({ type: 'host/archived-sessions-changed', archivedSessionIds: [...archivedSessionIds] })
+        }
+        return ok(request, { archivedSessionIds: [...archivedSessionIds] })
+      },
     },
     agentPresets: {
       // Both trusts appear, because a surface must present a locally authored
@@ -3211,6 +3235,7 @@ export class FixtureApiClient extends AbstractApiClient {
       case 'session.list': return this.api.sessions.list(request)
       case 'session.search': return this.api.sessions.search(request, signal)
       case 'session.create': return this.api.sessions.create(request)
+      case 'session.delete': return this.api.sessions.delete(request)
       case 'session.history': return this.api.sessions.history(request)
       case 'session.models': return this.api.sessions.models(request)
       case 'session.selectModel': return this.api.sessions.selectModel(request)
@@ -3237,6 +3262,7 @@ export class FixtureApiClient extends AbstractApiClient {
       case 'workspace.insertBefore': return this.api.workspace.insertBefore(request)
       case 'workspace.insertSessionBefore': return this.api.workspace.insertSessionBefore(request)
       case 'workspace.archiveSession': return this.api.workspace.archiveSession(request)
+      case 'workspace.unarchiveSession': return this.api.workspace.unarchiveSession(request)
       case 'skill.list': return this.api.skills.list(request)
       case 'agentPreset.list': return this.api.agentPresets.list(request)
       case 'agentPreset.select': return this.api.agentPresets.select(request)

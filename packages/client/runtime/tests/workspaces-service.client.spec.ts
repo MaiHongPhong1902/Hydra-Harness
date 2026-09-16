@@ -517,6 +517,27 @@ describe('WorkspaceRuntime', () => {
     expect(workspaces.list.getSnapshot().archivedSessionIds).toEqual(['s-open'])
   })
 
+  it('unarchives a session and keeps its original Workspace account', async () => {
+    const ctx = new Context()
+    const api = new FakeApiClient()
+    const sessions = new SessionRuntime(ctx, api, fakeRemote())
+    const workspaces = new WorkspaceRuntime(ctx, api, sessions)
+    api.onWorkspaceList = () => Promise.resolve(ok({
+      items: [workspace('alpha', [sid('s-idle')])] as never[],
+      archivedSessionIds: [sid('s-idle')],
+    }) as never)
+    api.onList = () => Promise.resolve(ok({
+      items: [{ sessionId: sid('s-idle'), updatedAt: 1, running: false, blank: false }],
+    }) as never)
+    await Promise.all([workspaces.refresh(), sessions.refresh()])
+    api.onWorkspaceUnarchiveSession = () => Promise.resolve(ok({ archivedSessionIds: [] }))
+
+    await expect(workspaces.unarchiveSession(sid('s-idle'))).resolves.toBeUndefined()
+    expect(api.callsOf('workspace.unarchiveSession')).toEqual([{ sessionId: 's-idle' }])
+    expect(workspaces.list.getSnapshot().archivedSessionIds).toEqual([])
+    expect(workspaces.list.getSnapshot().items[0]?.sessionIds).toEqual(['s-idle'])
+  })
+
   it('clears a current archived by a remote frame and shields the set from a stale in-flight baseline', async () => {
     const ctx = new Context()
     const api = new FakeApiClient()

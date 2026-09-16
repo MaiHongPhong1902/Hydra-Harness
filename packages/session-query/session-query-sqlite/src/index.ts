@@ -246,6 +246,22 @@ export class SqliteSessionQueryEngine extends SessionQueryEngine {
       return () => this._optionalPersistenceFiber.dispose()
     }, 'sessionQuerySqlite.optionalPersistence')
     ctx.effect(() => async () => this.close(), 'sessionQuerySqlite.close')
+    ctx.on('session-persistence/deleted', id => this._serialized(undefined, async () => {
+      await this._ensureReady(undefined)
+      const db = this._requireDb()
+      db.exec('BEGIN IMMEDIATE')
+      try {
+        this._deleteSession('persisted', id)
+        this._deleteSession('live', id)
+        db.prepare('UPDATE search_state SET global_generation = global_generation + 1 WHERE singleton = 1').run()
+        db.exec('COMMIT')
+        this._globalGeneration = this._mainGeneration()
+        this._localGeneration = Math.max(this._localGeneration, this._globalGeneration) + 1
+      } catch (error: unknown) {
+        db.exec('ROLLBACK')
+        throw error
+      }
+    }))
   }
 
   /** Open eagerly only when activation owns the configured readiness boundary. */

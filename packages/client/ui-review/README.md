@@ -6,6 +6,10 @@ The object layer coalesces history reads and shares action state across the pane
 
 The scope selector also reads uncommitted, unstaged, staged, committed and branch diffs from the session host. Branch and commit choices come from that repository. The file tree, search, single-file navigation, unified/split layout, word highlighting, whitespace filtering and full-file context apply to these comparisons. Copy patch exports complete text patches; binary or limited previews disable it. Refresh preserves the selected comparison. Git comparisons never offer Keep or Undo.
 
+The Session summary utility beside Session log opens a compact, anchored, nonmodal popover for the selected session. Environment provides refresh; Changes starts collapsed with colored additions and deletions, then exposes the active comparison, file and line totals, and session edits. Local exposes the workspace, session, status, agent preset, and host metadata; the branch row exposes the repository and recent commits. Commit or push and Create pull request remain disabled because Hydra has no Git mutation API. Sources previews the first three attached files or images and offers `View all (N)` for the loaded history; an incomplete history is identified as partial. A Subagents row appears when child sessions exist. The summary uses the shared ReviewHistory active comparison and framework-bound session, workspace, and host hooks.
+
+Loading, unavailable, and error states stay explicit. Repository and branch details show loading or unavailable text, a Git-free workspace says so, and change counts remain absent until review data is ready; missing data never becomes a zero count.
+
 ## Model Experience
 
 None, as this plugin renders stored review evidence without modifying model requests.
@@ -18,4 +22,4 @@ None; no model request is assembled here.
 
 - The panel includes child-session records by runtime metadata. Inline entries show changes for their exact session/tool calls. Shell/external-editor changes do not produce review records.
 - Binary and large-file previews follow the host limits; incomplete snapshots cannot offer Undo.
-- The aggregated panel mounts only in the desktop right panel; the browser-only frame keeps the inline rows. Git comparisons require Git on the session host. A plain folder still supports persisted agent evidence. Commit, push, staging, rich previews and review comments are not implemented in this panel.
+- The Review panel mounts in the desktop right panel and the browser-only frame keeps the inline rows; Session summary is a session-header utility. Git comparisons require Git on the session host. A plain folder still supports persisted agent evidence. Commit, push, staging, rich previews and review comments are not implemented in this panel.

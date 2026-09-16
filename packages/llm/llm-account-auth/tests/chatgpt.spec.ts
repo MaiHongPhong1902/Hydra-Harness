@@ -59,6 +59,34 @@ it('projects the SDK catalog onto the ChatGPT route', async () => {
   expect(custom.piProvider.getModels()).toMatchObject([{ id: model.id, name: 'My model', maxTokens: 2048 }])
 })
 
+it('carries pi-ai performance controls into the ChatGPT route', async () => {
+  const profile = await buildChatGptProfile({
+    reasoning: 'low',
+    cacheRetention: 'long',
+    transport: 'sse',
+    timeoutMs: 7_000,
+    websocketConnectTimeoutMs: 3_000,
+    retryPolicy: {
+      mode: 'always',
+      backoff: { initialDelayMs: 25, maxDelayMs: 100, jitterRatio: 0.2 },
+    },
+  })
+
+  expect(profile).toMatchObject({
+    reasoning: 'low',
+    cacheRetention: 'long',
+    transport: 'sse',
+    timeoutMs: 7_000,
+    websocketConnectTimeoutMs: 3_000,
+    retryPolicy: {
+      mode: 'always',
+      initialDelayMs: 25,
+      maxDelayMs: 100,
+      jitterRatio: 0.2,
+    },
+  })
+})
+
 it('asks for the account model catalog with a client version the endpoint accepts', async () => {
   // A partial version ("0.85") is refused outright and a stale one is answered
   // with an empty catalog, so the value has to be a full release version.

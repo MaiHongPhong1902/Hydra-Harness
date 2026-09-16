@@ -574,6 +574,9 @@ importers:
       '@hydra/harness-llm':
         specifier: workspace:*
         version: link:../packages/llm/llm
+      '@hydra/harness-llm-call-log':
+        specifier: workspace:*
+        version: link:../packages/llm/llm-call-log
       '@hydra/harness-llm-deepseek':
         specifier: workspace:*
         version: link:../packages/llm/llm-deepseek
@@ -1298,6 +1301,9 @@ importers:
       '@hydra/harness-llm-account-auth':
         specifier: workspace:^
         version: link:../../llm/llm-account-auth
+      '@hydra/harness-llm-call-log':
+        specifier: workspace:^
+        version: link:../../llm/llm-call-log
       '@hydra/harness-llm-deepseek':
         specifier: workspace:^
         version: link:../../llm/llm-deepseek
@@ -2862,9 +2868,15 @@ importers:
       '@hydra/harness-client-test-runtime':
         specifier: workspace:^
         version: link:../../test-support/client-runtime
+      '@hydra/harness-client-ui-conversation':
+        specifier: workspace:^
+        version: link:../ui-conversation
       '@hydra/harness-client-ui-layout':
         specifier: workspace:^
         version: link:../ui-layout
+      '@hydra/harness-client-ui-primitives':
+        specifier: workspace:^
+        version: link:../ui-primitives
       '@hydra/harness-client-ui-slots':
         specifier: workspace:^
         version: link:../ui-slots
@@ -2880,9 +2892,15 @@ importers:
       '@types/react':
         specifier: ~18.3.1
         version: 18.3.31
+      '@types/react-dom':
+        specifier: ~18.3.0
+        version: 18.3.7(@types/react@18.3.31)
       react:
         specifier: ^18.2.0
         version: 18.3.1
+      react-dom:
+        specifier: ^18.2.0
+        version: 18.3.1(react@18.3.1)
 
   packages/client/ui-settings:
     dependencies:
@@ -3564,6 +3582,9 @@ importers:
       '@hydra/harness-client-ui-primitives':
         specifier: workspace:^
         version: link:../ui-primitives
+      '@hydra/harness-client-ui-settings':
+        specifier: workspace:^
+        version: link:../ui-settings
       '@hydra/harness-client-ui-sidebar':
         specifier: workspace:^
         version: link:../ui-sidebar
@@ -6269,6 +6290,21 @@ importers:
       '@hydra/harness-timeout':
         specifier: workspace:^
         version: link:../../util/timeout
+
+  packages/llm/llm-call-log:
+    devDependencies:
+      '@hydra/cordis':
+        specifier: workspace:^
+        version: link:../../../vendor/cordis
+      '@hydra/harness-invariants':
+        specifier: workspace:^
+        version: link:../../runtime-diagnostics/invariants
+      '@hydra/harness-llm':
+        specifier: workspace:^
+        version: link:../llm
+      '@hydra/harness-session':
+        specifier: workspace:^
+        version: link:../../core/session
 
   packages/llm/llm-deepseek:
     dependencies:

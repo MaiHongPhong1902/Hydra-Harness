@@ -82,6 +82,9 @@
     - id: llm-retry
       name: '@hydra/harness-llm-retry'
 
+    - id: llm-call-log
+      name: '@hydra/harness-llm-call-log'
+
     # User-settings document (`$HYDRA_HOME/settings.yaml`, hot-reloaded): a
     # `llm-deepseek:` or `llm-pi-ai:` section there overrides the adapter entries
     # below without a restart, and is what the web Models page writes.

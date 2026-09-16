@@ -31,6 +31,8 @@ Each stored row carries the inspected Session header identity `{createdAt, cwd}`
 
 After initial validation, `put` establishes a durability barrier before writing the sidecar. A matching live Session commits through the canonical `ctx.sessions.flush` checkpoint, then both live and cold paths are physically read from sequence zero through `SessionPersistence.readFrom`. The resulting observation's header identity and target are validated again. A missing flush participant, changed identity, vanished target, or physical-read failure prevents the sidecar commit, so durable feedback never precedes the durable target message.
 
+`session-persistence/deleted` removes the sidecar row after the durable Session log is gone. Cleanup uses the same per-Session queue as `put` and `delete`, so an in-flight sidecar mutation finishes before cleanup; repeated deletion events are idempotent because deleting an absent row is a no-op.
+
 Message feedback is not Session-log content or a Session projection. It emits no `feedback/record` event, does not enter model history, and does not trigger `FEEDBACK_ONLY` telemetry release.
 
 ## Service and Host Remote contract
@@ -75,7 +77,6 @@ Independent. Listing or mutating message feedback does not touch a model request
 
 - **Client aggregate and UI are absent** — the Host Remote contract ships, but the Client Remote aggregate contribution and any UI consumer are separately owned and deferred.
 - **Compare-and-set is single-process** — the per-Session queue serializes one service instance only; multiple Host processes writing one storage root can still lose updates because storage-domain exposes no cross-process conditional write.
-- **No durable Session deletion cascade** — Session persistence has no deletion API, and `session/disposed`/`host/session-removed` mean detach rather than durable deletion. The service therefore retains empty rows and may leave orphan rows after out-of-band log removal instead of deleting valid feedback on detach.
 - **Detach/catalog retirement window** — a request in the narrow interval after live detach but before the persistence catalog materializes the header can receive `session-not-found`; callers retry after retirement materialization.
 - **Header identity is not a content fingerprint** — `{createdAt, cwd}` detects reuse only when those fields differ; a cloned log retaining the same header identity is indistinguishable.
 - **Trusted caller boundary** — `list`/`put`/`delete` carry no authenticated actor or audit identity. A deployment must expose the Host gateway only through its trusted or separately authenticated boundary until authorization and attribution are added.

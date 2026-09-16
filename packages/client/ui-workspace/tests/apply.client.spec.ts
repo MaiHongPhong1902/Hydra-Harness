@@ -6,6 +6,8 @@ import { apply, inject } from '@hydra/harness-client-ui-workspace/client'
 import type { WorkspaceBrowserInjected, WorkspacePickerInjected } from '@hydra/harness-client-ui-workspace/client'
 import { WorkspaceBrowser } from '../src/client/WorkspaceBrowser.tsx'
 import { WorkspacePicker } from '../src/client/WorkspacePicker.tsx'
+import { ArchivedSessionsSection } from '../src/client/ArchivedSessionsSection.tsx'
+import type { ArchivedSessionsSectionInjected } from '../src/client/ArchivedSessionsSection.tsx'
 
 async function bench() {
   const ctx = new Context()
@@ -18,6 +20,7 @@ async function bench() {
   const startSession = vi.fn()
   const rename = vi.fn(async () => ({}))
   const insertSessionBefore = vi.fn(async () => ({}))
+  const unarchiveSession = vi.fn(async () => {})
   const open = vi.fn()
   const clear = vi.fn()
   const search = vi.fn(async () => ({
@@ -28,7 +31,7 @@ async function bench() {
   const binding = vi.fn(() => ({ session: { rename: renameSession } }))
   const fork = vi.fn(async () => 'forked' as never)
   ctx.provide('workspaces', {
-    create, startSession, rename, insertSessionBefore,
+    create, startSession, rename, insertSessionBefore, unarchiveSession,
   } as never)
   ctx.provide('sessions', { open, clear, search, searchResultLimit: 20, binding, fork } as never)
   ctx.provide('connection', {
@@ -41,11 +44,11 @@ async function bench() {
   ctx.provide('locale', locale)
   return {
     ctx, slots: ctx.get('slots') as SlotRegistry, locale, create, startSession, rename,
-    insertSessionBefore, open, clear, search, renameSession, binding, fork,
+    insertSessionBefore, unarchiveSession, open, clear, search, renameSession, binding, fork,
   }
 }
 
-type HoleName = 'sidebar.workspaces' | 'conversation.hero.workspace' | 'conversation.empty.workspace'
+type HoleName = 'sidebar.workspaces' | 'conversation.hero.workspace' | 'conversation.empty.workspace' | 'settings.section'
 
 /** Declare any subset of the holes with a single root registration ('root' is a single slot). */
 function declare(slots: SlotRegistry, ...names: HoleName[]): () => void {
@@ -114,6 +117,17 @@ describe('ui-workspace apply', () => {
     const picker = (b.slots.entries('conversation.hero.workspace')[0]!.inject as () => WorkspacePickerInjected)()
     await picker.createWorkspace({ path: '/tmp/project' })
     expect(b.create).toHaveBeenCalledWith({ path: '/tmp/project' })
+  })
+
+  it('registers Archived sessions in Settings and routes Restore to the runtime', async () => {
+    const b = await bench()
+    declare(b.slots, 'settings.section')
+    await b.ctx.plugin({ inject: [...inject], apply }).await()
+    const entry = b.slots.entries('settings.section').find(e => e.component === ArchivedSessionsSection)
+    expect(entry?.options).toMatchObject({ id: 'archived-sessions', order: 40 })
+    const injected = (entry?.inject as unknown as () => ArchivedSessionsSectionInjected)()
+    await injected.restoreSession('s1' as never)
+    expect(b.unarchiveSession).toHaveBeenCalledWith('s1')
   })
 
   it('declares the two directory-flow holes and reports their occupancy per surface', async () => {

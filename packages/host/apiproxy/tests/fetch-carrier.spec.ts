@@ -23,6 +23,7 @@ function fakeApi(overrides: Partial<{ muxFrames: MuxFrame[]; hostFrames: HostFra
       undo: async r => ({ rpcId: r.rpcId, result: { ok: false, error: { code: 'internal', message: 'unavailable', details: {} } } }),
     },
     sessions: {
+      delete: async r => ({ rpcId: r.rpcId, result: { ok: true, value: { deleted: true, sessionIds: [r.payload.sessionId] } } }),
       revise: r => Promise.resolve({ rpcId: r.rpcId, result: { ok: false, error: { code: 'fork-unavailable', message: 'not configured', details: { sessionId: r.payload.sessionId } } } }),
       async list(request) {
         if (overrides.crashOn === 'session.list') throw new Error('impl crashed')
@@ -197,6 +198,9 @@ function fakeApi(overrides: Partial<{ muxFrames: MuxFrame[]; hostFrames: HostFra
       },
       async archiveSession(request) {
         return { rpcId: request.rpcId, result: { ok: true, value: { archivedSessionIds: [request.payload.sessionId] } } }
+      },
+      async unarchiveSession(request) {
+        return { rpcId: request.rpcId, result: { ok: true, value: { archivedSessionIds: [] } } }
       },
     },
     agentPresets: {

@@ -1,6 +1,9 @@
 - id: cli-mock-llm
   name: './cli-mock-llm.ts'
 
+- id: llm-call-log
+  name: '@hydra/harness-llm-call-log'
+
 - id: base
   name: '@hydra/cordis-plugin-include'
   config:

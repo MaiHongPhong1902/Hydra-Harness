@@ -31,6 +31,8 @@ function eventLog(text = 'hello'): SessionEvent[] {
 class TestPersistence extends SessionPersistence {
   override readonly supportsRawArtifacts = false
 
+  async delete(id: SessionIdType): Promise<void> { TestPersistence.entries.delete(id) }
+
   static entries = new Map<SessionIdType, { meta: SessionHeader; events: SessionEvent[] }>()
   static listFailure: unknown
   static listOverride: ((signal?: AbortSignal) => Promise<SessionHeader[]>) | undefined

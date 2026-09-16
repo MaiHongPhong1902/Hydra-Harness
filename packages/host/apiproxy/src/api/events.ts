@@ -136,7 +136,7 @@ export type HostFrame =
     cwd?: string
     agentPreset?: string
   }
-  | { type: 'host/session-removed'; sessionId: SessionId }
+  | { type: 'host/session-removed'; sessionId: SessionId; deleted?: true }
   | { type: 'host/session-status'; sessionId: SessionId; running: boolean }
   | { type: 'host/agent-error'; sessionId: SessionId; message: string }
   | { type: 'host/workspace-changed'; workspace: WorkspaceView }

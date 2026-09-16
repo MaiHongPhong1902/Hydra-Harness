@@ -10,6 +10,7 @@
  */
 
 import { CallId, EMPTY_RESPONSE_CODE, LlmAdapter, LlmError, QUOTA_EXCEEDED_CODE, type ContentBlock, type FinishReason, type GenerateOptions, type LlmModelInfo, type LlmProviderInfo, type LlmResolvedModelInfo, type ReplayEnvelope, type StreamChunk, type TokenUsage, type ToolSchema } from '@hydra/harness-llm'
+import { idleWatchdog, timeoutOf } from '@hydra/harness-timeout'
 import type { AttachmentStore } from '@hydra/harness-attachment'
 import type { Message } from '@hydra/harness-llm/message'
 import {
@@ -87,6 +88,8 @@ export interface AntigravityTransportOptions {
   attachments?: AttachmentStore
   /** Override the request id generator for deterministic tests. */
   requestId?: string
+  /** Maximum idle interval while one provider stream read is outstanding. */
+  streamIdleTimeoutMs?: number
 }
 
 /** A model advertised by the account's current Cloud Code Assist catalog. */
@@ -158,7 +161,12 @@ export interface AntigravityAdapterOptions {
   fetch?: AntigravityFetch
   /** Durable image resolver. */
   resolveAttachments?: () => AttachmentStore | undefined
+  /** Maximum idle interval while one provider stream read is outstanding. */
+  streamIdleTimeoutMs?: number
 }
+
+const DEFAULT_STREAM_IDLE_TIMEOUT_MS = 300_000
+const STREAM_IDLE_TIMEOUT_CODE = 'LLM_STREAM_IDLE_TIMEOUT'
 
 const ANTIGRAVITY_SANDBOX_ENDPOINT = 'https://daily-cloudcode-pa.sandbox.googleapis.com'
 const ANTIGRAVITY_GEMINI_THOUGHT_SIGNATURE_BYPASS = 'skip_thought_signature_validator'
@@ -543,7 +551,8 @@ export async function buildAntigravityRequest(
     ...(options.temperature === undefined ? {} : { temperature: options.temperature }),
     ...(options.maxTokens === undefined ? {} : { maxOutputTokens: options.maxTokens }),
     ...(options.stop === undefined ? {} : { stopSequences: options.stop }),
-    ...(options.reasoningEffort === undefined || options.reasoningEffort === 'none'
+    ...(options.purpose === 'session-title'
+      || options.reasoningEffort === undefined || options.reasoningEffort === 'none'
       ? {}
       : { thinkingConfig: { includeThoughts: true } }),
   }
@@ -829,8 +838,29 @@ export async function* streamAntigravity(
       : { type: 'reasoning', text: active.text } }
     active = undefined
   }
+  const consumer = new AbortController()
+  const upstream = options.signal === undefined
+    ? consumer.signal
+    : AbortSignal.any([options.signal, consumer.signal])
+  using watchdog = idleWatchdog(
+    upstream,
+    transport.streamIdleTimeoutMs ?? DEFAULT_STREAM_IDLE_TIMEOUT_MS,
+    STREAM_IDLE_TIMEOUT_CODE,
+  )
+  const events = parseAntigravitySse(response.body, watchdog.signal)[Symbol.asyncIterator]()
   try {
-    for await (const event of parseAntigravitySse(response.body, options.signal)) {
+    while (true) {
+      const next = await watchdog.next(events)
+      if (timeoutOf(watchdog.signal, STREAM_IDLE_TIMEOUT_CODE) !== undefined) {
+        throw new LlmError(
+          `Antigravity stream idle timeout after ${transport.streamIdleTimeoutMs ?? DEFAULT_STREAM_IDLE_TIMEOUT_MS}ms`,
+          'TIMEOUT',
+        )
+      }
+      if (next.done) {
+        break
+      }
+      const event = next.value
       if (event === '[DONE]') {
         sawTerminal = true
         if (providerFinish === undefined) providerFinish = 'STOP'
@@ -932,7 +962,21 @@ export async function* streamAntigravity(
         sawTerminal = true
       }
     }
+  } catch (error: unknown) {
+    if (timeoutOf(watchdog.signal, STREAM_IDLE_TIMEOUT_CODE) !== undefined) {
+      throw new LlmError(
+        `Antigravity stream idle timeout after ${transport.streamIdleTimeoutMs ?? DEFAULT_STREAM_IDLE_TIMEOUT_MS}ms`,
+        'TIMEOUT',
+        { cause: error },
+      )
+    }
+    if (options.signal?.aborted) {
+      throw new LlmError('Antigravity stream was aborted', 'ABORTED', { cause: error })
+    }
+    throw error
   } finally {
+    consumer.abort('Antigravity stream consumer stopped')
+    try { await events.return(undefined) } catch { /* abort owns transport teardown */ }
     // parseAntigravitySse owns reader cancellation on early generator return.
   }
   yield* closeActive()
@@ -1011,6 +1055,7 @@ export class AntigravityAdapter extends LlmAdapter {
       this.config.fetch,
       {
         ...(this.config.endpoint === undefined ? {} : { endpoint: this.config.endpoint }),
+        ...(this.config.streamIdleTimeoutMs === undefined ? {} : { streamIdleTimeoutMs: this.config.streamIdleTimeoutMs }),
         ...(() => {
           const attachments = this.config.resolveAttachments?.()
           return attachments === undefined ? {} : { attachments }

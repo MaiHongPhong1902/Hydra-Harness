@@ -171,6 +171,17 @@ function resolveReasoningLevel(
   )
 }
 
+/** Pick the cheapest reasoning mode the exact model advertises for a title. */
+function resolveTitleReasoningLevel(model: Model<Api>): ModelThinkingLevel {
+  const supported = getSupportedThinkingLevels(model)
+  if (supported.includes('off')) return 'off'
+  if (supported.includes('minimal')) return 'minimal'
+  throw new LlmError(
+    `pi-ai provider "${model.provider}" model "${model.id}" has no low-reasoning mode for session titles`,
+    'UNSUPPORTED_REASONING_EFFORT',
+  )
+}
+
 /**
  * Selectable reasoning efforts for one model, or nothing at all.
  *
@@ -332,10 +343,9 @@ export class PiAiAdapter extends LlmAdapter {
     profile: ResolvedPiAiProviderProfile,
   ): AsyncIterable<StreamChunk> {
     const model = this.modelOf(snapshot, options.provider, options.model)
-    const reasoning = resolveReasoningLevel(
-      model,
-      options.reasoningEffort ?? profile.reasoning,
-    )
+    const reasoning = options.purpose === 'session-title'
+      ? resolveTitleReasoningLevel(model)
+      : resolveReasoningLevel(model, options.reasoningEffort ?? profile.reasoning)
     const apiKey = await this.config.resolveApiKey(options.provider, profile)
 
     const consumer = new AbortController()
@@ -363,7 +373,7 @@ export class PiAiAdapter extends LlmAdapter {
       // pi-ai starts its lazy setup synchronously here. Keep that setup in the
       // route context so an SDK that captures fetch during client creation
       // inherits this profile's proxy for the whole request.
-      const events = withHttpProxy(profile.proxy, () => snapshot.models.streamSimple(model, context, {
+      const streamOptions = {
         ...profileOptions(profile, reasoning, apiKey),
         ...options.temperature === undefined ? {} : { temperature: options.temperature },
         ...options.maxTokens === undefined ? {} : { maxTokens: options.maxTokens },
@@ -372,7 +382,22 @@ export class PiAiAdapter extends LlmAdapter {
         // Profile headers are deployment-owned; attribution names are
         // Harness-owned and therefore win collisions.
         headers: requestHeaders(profile.headers),
-      }))
+      }
+      const events = withHttpProxy(profile.proxy, () => {
+        // pi-ai's simple Codex adapter omits reasoning for `off`, while the
+        // Codex endpoint defaults omitted reasoning to model-selected effort.
+        // Its typed API exposes `none`, so use that explicit control for titles.
+        if (options.purpose === 'session-title'
+          && model.api === 'openai-codex-responses'
+          && reasoning === 'off') {
+          return snapshot.models.stream(model, context, {
+            ...streamOptions,
+            reasoningEffort: 'none',
+            reasoningSummary: 'off',
+          })
+        }
+        return snapshot.models.streamSimple(model, context, streamOptions)
+      })
       const iterator = toStreamChunks(events, model.contextWindow)[Symbol.asyncIterator]()
       let exhausted = false
       try {

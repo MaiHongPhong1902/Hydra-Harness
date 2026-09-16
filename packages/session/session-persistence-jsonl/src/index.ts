@@ -121,6 +121,9 @@ function isENOENT(error: unknown): boolean {
 export class JsonlSessionPersistence extends SessionPersistence implements PersistenceBackend<JsonlTornMarker> {
   override readonly supportsRawArtifacts = true
 
+  /** Plugin configuration retained for this backend instance. */
+  readonly config: Config
+
   static inject = ['sessions']
 
   static Config: z<Config> = z.object({
@@ -145,8 +148,9 @@ export class JsonlSessionPersistence extends SessionPersistence implements Persi
   private coordinator: PersistenceCoordinator<JsonlTornMarker>
   private rootEncodingCheck: Promise<void> | undefined
 
-  constructor(ctx: Context, public config: Config) {
+  constructor(ctx: Context, config: Config) {
     super(ctx)
+    this.config = config
     // Resolve once so later process.cwd() changes cannot split one backend across roots.
     this.root = resolve(config.root)
     // Programmatic wrappers may construct the backend without Schemastery normalization.
@@ -175,6 +179,14 @@ export class JsonlSessionPersistence extends SessionPersistence implements Persi
 
   create(meta: SessionHeader): Promise<void> {
     return this.coordinator.create(meta)
+  }
+
+  async delete(id: SessionId): Promise<void> {
+    if (this.hasWriteOwner(id)) throw new Error(`cannot delete session "${id}" with an open write handle`)
+    await this.coordinator.delete(id, async () => {
+      const path = await this.findLog(id)
+      if (path !== undefined) await rm(path, { force: true })
+    })
   }
 
   append(id: SessionId, events: readonly SessionEvent[]): Promise<void> {

@@ -110,6 +110,9 @@ export class FakeApiClient implements IApiClient {
   // Parameter annotations below are local structural types on purpose: the CI
   // lint lane runs without built artifacts, where IApiClient's wire types
   // (apiproxy subpath) resolve to any and inferred params trip no-unsafe-argument.
+  onDelete: (payload: { sessionId: SessionId }) => Promise<RpcResponse<{ deleted: true; sessionIds: SessionId[] }>> =
+    payload => Promise.resolve(ok({ deleted: true as const, sessionIds: [payload.sessionId] }))
+
   readonly sessions: IApiClient['sessions'] = {
     list: (payload: unknown) => this.record('session.list', payload, this.onList(payload)),
     search: (payload: unknown, signal?: AbortSignal) => {
@@ -117,6 +120,7 @@ export class FakeApiClient implements IApiClient {
       return this.record('session.search', payload, this.onSearch(payload))
     },
     create: (payload: unknown) => this.record('session.create', payload, this.onCreate(payload)),
+    delete: (payload: { sessionId: SessionId }) => this.record('session.delete', payload, this.onDelete(payload)),
     history: (payload: { sessionId: SessionId; beforeSeq?: number; maxMessages?: number }) =>
       this.record('session.history', payload, this.onHistory(payload)),
     models: (payload: unknown) => this.record('session.models', payload, this.onModels(payload)),
@@ -174,6 +178,9 @@ export class FakeApiClient implements IApiClient {
     }))),
     archiveSession: (payload: unknown) => this.record('workspace.archiveSession', payload, Promise.resolve(ok({
       archivedSessionIds: [(payload as { sessionId: SessionId }).sessionId],
+    }))),
+    unarchiveSession: (payload: unknown) => this.record('workspace.unarchiveSession', payload, Promise.resolve(ok({
+      archivedSessionIds: [],
     }))),
   }
 

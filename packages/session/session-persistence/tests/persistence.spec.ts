@@ -70,6 +70,8 @@ interface CoordinatorInternals {
 class MemoryPersistence extends SessionPersistence implements PersistenceBackend<never> {
   override readonly supportsRawArtifacts = false
 
+  async delete(id: SessionId): Promise<void> { await this.coordinator.delete(id, async () => { this.store.delete(id) }) }
+
   static inject = ['sessions']
 
   override readonly name = 'session-persistence-memory'
@@ -1772,6 +1774,72 @@ describe('PersistenceCoordinator retirement', () => {
       appendGate.resolve(true)
       await Promise.all([append, teardown])
       expect(backend.lifecycle).toEqual(['append-started', 'append-committed', 'close'])
+    } finally {
+      appendGate.resolve(true)
+      await fiber.dispose()
+      await ctx.fiber.dispose()
+    }
+  })
+})
+
+describe('PersistenceCoordinator deletion', () => {
+  it('emits one deletion event per call, including retries for an absent log', async () => {
+    const ctx = new Context()
+    await ctx.plugin(SessionStore)
+    const fiber = await ctx.plugin(MemoryPersistence)
+    const id = SessionId('deleted-event')
+    const deleted: SessionId[] = []
+    ctx.on('session-persistence/deleted', (sessionId) => { deleted.push(sessionId) })
+
+    try {
+      await ctx.sessionPersistence.delete(id)
+      await ctx.sessionPersistence.delete(id)
+      expect(deleted).toEqual([id, id])
+    } finally {
+      await fiber.dispose()
+    }
+  })
+
+  it('waits for an in-flight append and emits after physical removal', async () => {
+    const ctx = new Context()
+    await ctx.plugin(SessionStore)
+    const backend = new ControlledBackend()
+    let coordinator!: PersistenceCoordinator<never>
+    const fiber = await ctx.plugin(Object.assign((inner: Context) => {
+      coordinator = new PersistenceCoordinator(inner, backend)
+    }, { inject: ['sessions'] }))
+    const id = SessionId('delete-after-append')
+    const order: string[] = []
+    const appendGate = Promise.withResolvers<boolean>()
+    backend.beforeAppend = async () => {
+      order.push('append-start')
+      await appendGate.promise
+      order.push('append-commit')
+    }
+    ctx.on('session-persistence/deleted', (deletedId) => {
+      if (deletedId === id) order.push('deleted')
+    })
+
+    try {
+      await coordinator.create(meta(id))
+      const append = coordinator.append(id, [{
+        type: 'turn/start',
+        seq: 0,
+        time: 1,
+        data: { turn: 1 },
+      }])
+      await vi.waitFor(() => { expect(order).toEqual(['append-start']) })
+
+      const deletion = coordinator.delete(id, async () => {
+        order.push('remove')
+        backend.store.delete(id)
+      })
+      await Promise.resolve()
+      expect(order).toEqual(['append-start'])
+
+      appendGate.resolve(true)
+      await Promise.all([append, deletion])
+      expect(order).toEqual(['append-start', 'append-commit', 'remove', 'deleted'])
     } finally {
       appendGate.resolve(true)
       await fiber.dispose()

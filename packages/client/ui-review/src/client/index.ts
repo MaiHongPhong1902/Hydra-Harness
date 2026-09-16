@@ -4,8 +4,10 @@ import type { ConnectionHandle } from '@hydra/harness-client-connection/client'
 import type {} from '@hydra/harness-api-remotes/client'
 import type {} from '@hydra/harness-client-ui-layout/client'
 import type {} from '@hydra/harness-client-ui-tool/client'
+import type {} from '@hydra/harness-client-ui-conversation/client'
 import { ReviewHistory } from './history.ts'
 import { InlineReview, ReviewPanel, type ReviewInjected } from './Review.tsx'
+import { SessionSummaryAction, type SessionSummaryInjected } from './SessionSummary.tsx'
 
 /** Slot and transport dependencies used by the review plugin. */
 export const inject = ['slots', 'connection', 'remote']
@@ -39,4 +41,11 @@ export function apply(ctx: ClientContext): void {
   ctx.slots.inject('tool.call.review', () => ctx.slots.register({
     name: 'tool.call.review', id: 'review', inject: injected,
   }, InlineReview))
+  ctx.slots.inject('conversation.session.header.utilities', () => ctx.slots.register({
+    name: 'conversation.session.header.utilities', id: 'session-summary', order: -1,
+    inject: (id: SessionId): SessionSummaryInjected => {
+      const review = injected(id)
+      return { ...review, hooks: { ...review.hooks, hostDescription: connection.hostDescription } }
+    },
+  }, SessionSummaryAction))
 }

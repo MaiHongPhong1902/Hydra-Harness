@@ -6,6 +6,10 @@ The conversation and streaming types from [`packages/llm`](../../packages/llm/RE
 
 Source: [`packages/llm/llm/src/types.ts`](../../packages/llm/llm/src/types.ts)
 
+## Model call diagnostics
+
+[`llm-call-log`](../../packages/llm/llm-call-log/README.md) observes session-associated streams. Its [`LlmCallStart`, `LlmCallFirstOutput`, and `LlmCallEnd` records](../../packages/llm/llm-call-log/src/types.ts) preserve provider/model attribution, call purpose, monotonic timings, token usage, and requested tool identities; the [persistence catalog](../persistence-catalog.md) lists their session events. These diagnostics do not contribute to model history or control retries.
+
 <a id="content-blocks-and-messages"></a>
 
 ## Content blocks and messages

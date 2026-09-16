@@ -277,6 +277,41 @@ export function runPersistenceContract(name: string, make: () => Promise<Contrac
       }
     })
 
+    it('delete() removes a materialized log and permits reusing its id', async () => {
+      const { persistence, dispose } = await make()
+      try {
+        const original = meta('deleted-then-recreated', '/work')
+        await persistence.create(original)
+        await persistence.append(original.id, oneTurnLog())
+
+        await persistence.delete(original.id)
+        await expect(persistence.load(original.id)).rejects.toThrow(/not found/u)
+        expect((await persistence.list()).map(header => header.id)).not.toContain(original.id)
+
+        const replacement = { ...original, createdAt: original.createdAt + 1 }
+        await persistence.create(replacement)
+        await persistence.append(replacement.id, oneTurnLog())
+        expect((await persistence.load(replacement.id)).meta).toMatchObject(replacement)
+      } finally {
+        await dispose()
+      }
+    })
+
+    it('delete() removes a zero-event reservation and treats a missing id as a no-op', async () => {
+      const { persistence, dispose } = await make()
+      try {
+        const id = SessionId('deleted-reservation')
+        await persistence.create(meta(id))
+        await persistence.delete(id)
+        await persistence.create(meta(id))
+        await persistence.append(id, oneTurnLog())
+        expect((await persistence.load(id)).events).toEqual(oneTurnLog())
+        await persistence.delete(SessionId('already-missing'))
+      } finally {
+        await dispose()
+      }
+    })
+
     it('rejects pre-aborted observation reads with the exact cancellation reason', async () => {
       const { persistence, dispose } = await make()
       try {

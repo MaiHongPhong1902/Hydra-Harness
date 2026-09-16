@@ -34,6 +34,8 @@ In-package relative imports use explicit `.ts` specifiers.
 - Client tsc runs `tsc -b` against `tsconfig.client.json` after Host Typert has generated the Remote Client declarations; Client tsdown then reads the JavaScript emitted by the Client graph and produces the Client packages' Node loader entries and browser bundles.
 - The Web build starts only after both lib phases complete.
 
+The root package scripts launch each TypeScript aggregate with Node's `--max-old-space-size=4096`. Clean Host compilation exceeds the roughly 2 GiB default heap on hosted runners; the compiler-specific allowance applies to build, typecheck, and release callers without increasing every test worker's heap.
+
 `tsdown` is no longer the owner of TypeScript compilation or declaration output.
 
 `pnpm run typecheck` first runs the Host lib phase to generate the Remote declarations required by Client typechecking, then runs `tsc -b` against `tsconfig.client.json`. The two aggregates themselves check their respective examples, tests, and scripts with `noEmit`; referenced package/vendor projects retain the same emit behavior as the build.
@@ -68,6 +70,7 @@ The source-mode demos run through their declared TypeScript launchers and the ro
 - **Keep `tsdown`/oxc as the TypeScript transformer** — oxc's transform is not `tsc` behavior (decorator transform differs, bundled JS differs from per-file emit), and its bundled `.d.ts` conflicts with Cordis' internal relative module augmentation shape.
 - **One root strict program over packages, vendor, examples, tests, and scripts** — vendor source triggers type errors outside this project's ownership under the root strict flags; project references with per-project strictness are the boundary that works.
 - **Clean before every build** — this would discard the incremental state owned by `tsc` and the bundler even when the workspace layout is unchanged.
+- **Set a workflow-wide `NODE_OPTIONS` heap override** — this also enlarges concurrent test workers and leaves local and other workflow callers dependent on their ambient Node defaults.
 - **Remove every package-level `node_modules`** — valid package dependency links do not cause the workspace-discovery failure, and deleting them would turn build cleanup into dependency reinstallation.
 
 ## Consequences

@@ -1,0 +1,107 @@
+// @vitest-environment jsdom
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import type {
+  SessionId, SessionListState, WorkspaceId, WorkspaceListState, WorkspaceView,
+} from '@hydra/harness-client-runtime/client'
+import type { ArchivedSessionsSectionProps } from '../src/client/ArchivedSessionsSection.tsx'
+import { ArchivedSessionsSection } from '../src/client/ArchivedSessionsSection.tsx'
+import { en } from '../src/client/locales.ts'
+
+afterEach(cleanup)
+
+const sid = (value: string): SessionId => value as SessionId
+const wid = (value: string): WorkspaceId => value as WorkspaceId
+
+function hook<T>(value: T) {
+  return <S,>(selector: (state: T) => S): S => selector(value)
+}
+
+function sessions(): SessionListState {
+  return {
+    ids: [sid('s-two'), sid('s-one')],
+    byId: {
+      [sid('s-one')]: {
+        id: sid('s-one'), displayTitle: 'First chat', blank: false, running: false, updatedAt: 1,
+      },
+      [sid('s-two')]: {
+        id: sid('s-two'), displayTitle: 'Second chat', blank: false, running: false, updatedAt: 2,
+      },
+    },
+    current: undefined,
+    phase: 'ready',
+    subagentsByParent: {},
+    jobsBySession: {},
+    currentAddress: undefined,
+  }
+}
+
+function workspaceState(archivedSessionIds: readonly SessionId[]): WorkspaceListState {
+  const workspace: WorkspaceView = {
+    workspaceId: wid('project'), title: 'Project', path: '/projects/project',
+    sessionIds: [sid('s-one'), sid('s-two')], createdAt: '1', updatedAt: '2',
+  }
+  return {
+    items: [workspace], archivedSessionIds, state: 'idle', phase: 'ready', error: null,
+    baselinesReady: true, recentWorkspaceId: workspace.workspaceId,
+  }
+}
+
+const t: ArchivedSessionsSectionProps['t'] = (key, params) => {
+  let text = (en as Record<string, string>)[key] ?? key
+  for (const [name, value] of Object.entries(params ?? {})) text = text.replace(`{${name}}`, String(value))
+  return text
+}
+
+function mount(
+  archivedSessionIds: readonly SessionId[] = [sid('s-two'), sid('s-one')],
+  restoreSession = vi.fn(async () => {}),
+) {
+  const props = {
+    useSessions: hook(sessions()),
+    useWorkspaces: hook(workspaceState(archivedSessionIds)),
+    restoreSession,
+    deleteSession: vi.fn(async () => {}),
+    t,
+    close: vi.fn(),
+  } as unknown as ArchivedSessionsSectionProps
+  return { ...render(<ArchivedSessionsSection {...props} />), restoreSession }
+}
+
+describe('ArchivedSessionsSection', () => {
+  it('keeps archive order and shows the retained Workspace path', () => {
+    mount()
+    const rows = screen.getAllByRole('listitem')
+    expect(rows[0]?.textContent).toContain('Second chat')
+    expect(rows[1]?.textContent).toContain('First chat')
+    expect(screen.getAllByText('/projects/project')).toHaveLength(2)
+  })
+
+  it('restores the selected session and prevents duplicate clicks while pending', async () => {
+    let resolve!: () => void
+    const restoreSession = vi.fn(() => new Promise<void>((r) => { resolve = r }))
+    mount([sid('s-one')], restoreSession)
+    const button = screen.getByRole('button', { name: 'Restore session First chat' })
+    fireEvent.click(button)
+    expect(restoreSession).toHaveBeenCalledWith(sid('s-one'))
+    expect(button.hasAttribute('disabled')).toBe(true)
+    fireEvent.click(button)
+    expect(restoreSession).toHaveBeenCalledOnce()
+    resolve()
+    await waitFor(() => { expect(button.hasAttribute('disabled')).toBe(false) })
+  })
+
+  it('reports a restore failure and remains usable', async () => {
+    const restoreSession = vi.fn(async () => { throw new Error('session unavailable') })
+    mount([sid('s-one')], restoreSession)
+    fireEvent.click(screen.getByRole('button', { name: 'Restore session First chat' }))
+    expect((await screen.findByRole('alert')).textContent).toBe('Could not restore session: session unavailable')
+    expect(screen.getByRole('button', { name: 'Restore session First chat' }).hasAttribute('disabled')).toBe(false)
+  })
+
+  it('shows an empty state when the archive set is empty', () => {
+    mount([])
+    expect(screen.getByText('No archived sessions')).toBeTruthy()
+    expect(screen.queryByRole('list')).toBeNull()
+  })
+})

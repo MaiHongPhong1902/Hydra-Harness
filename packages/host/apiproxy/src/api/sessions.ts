@@ -323,6 +323,9 @@ export interface SessionsApi {
   }>):
   Promise<RpcResponse<{ sessionId: SessionId; agentPreset?: string }>>
 
+  /** Permanently deletes a session log and removes its Workspace membership. */
+  delete(request: RpcRequest<{ sessionId: SessionId }>): Promise<RpcResponse<{ deleted: true; sessionIds: SessionId[] }>>
+
   /**
    * Reads a window of history events; page boundaries align to append-origin message
    * boundaries: one page = all raw events owned by a whole number of such messages (including

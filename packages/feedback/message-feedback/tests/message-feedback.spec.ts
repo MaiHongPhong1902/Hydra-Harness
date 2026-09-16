@@ -512,6 +512,81 @@ describe('MessageFeedbackService item concurrency', () => {
   })
 })
 
+describe('MessageFeedbackService durable Session deletion cleanup', () => {
+  it('clears a written row, tolerates repeated deletion, and leaves a recreated lifecycle clean', async () => {
+    const { ctx, persistence } = await harness()
+    const fixture = messageFixture('feedback-session-delete')
+    persistence.persist(fixture.session)
+    const messageId = fixture.assistantMessageIds[0]
+
+    expectItem(await ctx.messageFeedback.put({
+      sessionId: fixture.session.id,
+      messageId,
+      rating: 'positive',
+      ifVersion: null,
+    }))
+    await ctx.sessionPersistence.delete(fixture.session.id)
+
+    persistence.persist(fixture.session)
+    await expect(ctx.messageFeedback.list({ sessionId: fixture.session.id })).resolves.toEqual({
+      ok: true,
+      value: { items: [] },
+    })
+
+    expectItem(await ctx.messageFeedback.put({
+      sessionId: fixture.session.id,
+      messageId,
+      rating: 'negative',
+      ifVersion: null,
+    }))
+    await ctx.sessionPersistence.delete(fixture.session.id)
+    await ctx.sessionPersistence.delete(fixture.session.id)
+
+    persistence.persist(fixture.session)
+    await expect(ctx.messageFeedback.list({ sessionId: fixture.session.id })).resolves.toEqual({
+      ok: true,
+      value: { items: [] },
+    })
+  })
+
+  it('queues deletion cleanup behind an in-flight sidecar mutation', async () => {
+    const { ctx, persistence } = await harness()
+    const fixture = messageFixture('feedback-delete-race')
+    persistence.persist(fixture.session)
+    const messageId = fixture.assistantMessageIds[0]
+    const created = expectItem(await ctx.messageFeedback.put({
+      sessionId: fixture.session.id,
+      messageId,
+      rating: 'positive',
+      ifVersion: null,
+    }))
+    const inspected = Promise.withResolvers<undefined>()
+    const release = Promise.withResolvers<undefined>()
+    persistence.onInspect = async () => {
+      inspected.resolve(undefined)
+      await release.promise
+    }
+
+    const mutation = ctx.messageFeedback.delete({
+      sessionId: fixture.session.id,
+      messageId,
+      ifVersion: created.version,
+    })
+    await inspected.promise
+    const deletion = ctx.sessionPersistence.delete(fixture.session.id)
+    await vi.waitFor(() => { expect(persistence.durable.has(fixture.session.id)).toBe(false) })
+    release.resolve(undefined)
+
+    await expect(mutation).resolves.toEqual({ ok: true, value: { absent: true } })
+    await deletion
+    persistence.persist(fixture.session)
+    await expect(ctx.messageFeedback.list({ sessionId: fixture.session.id })).resolves.toEqual({
+      ok: true,
+      value: { items: [] },
+    })
+  })
+})
+
 describe('MessageFeedbackService durability ordering', () => {
   it('rejects a logical target missing from the cold physical durable prefix', async () => {
     const { ctx, persistence } = await harness()

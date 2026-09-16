@@ -5,6 +5,7 @@
     - 'button "Switch subagent: event-sourcing researcher"': event-sourcing researcher
   - img
   - text: Standard mode
+  - button "Session summary"
   - button "Session log":
     - text: Session log
     - img

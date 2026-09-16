@@ -476,6 +476,39 @@ Source: [`packages/hooks/hook-protocol/src/types.ts:31`](../packages/hooks/hook-
 
 ### `llm/*`
 
+<a id="llmcall-end--log-only"></a>
+
+#### `llm/call-end` — log-only
+
+```ts persistence-catalog
+/** Model stream outcome, timing, usage, and requested tool identities. */
+'llm/call-end': LlmCallEnd
+```
+
+Source: [`packages/llm/llm-call-log/src/types.ts:57`](../packages/llm/llm-call-log/src/types.ts)
+
+<a id="llmcall-first-output--log-only"></a>
+
+#### `llm/call-first-output` — log-only
+
+```ts persistence-catalog
+/** First meaningful output observed from that stream. */
+'llm/call-first-output': LlmCallFirstOutput
+```
+
+Source: [`packages/llm/llm-call-log/src/types.ts:55`](../packages/llm/llm-call-log/src/types.ts)
+
+<a id="llmcall-start--log-only"></a>
+
+#### `llm/call-start` — log-only
+
+```ts persistence-catalog
+/** Diagnostic start of a session-associated model stream. */
+'llm/call-start': LlmCallStart
+```
+
+Source: [`packages/llm/llm-call-log/src/types.ts:53`](../packages/llm/llm-call-log/src/types.ts)
+
 <a id="llmretry--log-only"></a>
 
 #### `llm/retry` — log-only

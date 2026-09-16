@@ -1,0 +1,97 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 122px;
+  height: 32px;
+  padding: 6px 12px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 18px;
+  color: var(--dsw-alias-label-primary);
+  background: transparent;
+  font: 400 13px/20px var(--dsw-font-family);
+  cursor: pointer;
+}
+
+.button:hover,
+.button[aria-expanded="true"] { background: var(--dsw-alias-interactive-bg-hover); }
+
+.popover {
+  position: fixed;
+  z-index: 1100;
+  box-sizing: border-box;
+  width: 304px;
+  max-width: calc(100vw - 24px);
+  max-height: min(640px, calc(100dvh - 24px));
+  overflow: auto;
+  padding: 10px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 16px;
+  background: var(--dsw-specific-menu);
+  box-shadow: var(--dsw-shadow-lv3);
+  color: var(--dsw-alias-label-primary);
+  font: 400 13px/20px var(--dsw-font-family);
+  text-align: left;
+  --hydra-scrollbar-thumb: var(--dsw-alias-scrollbar-bg-l2);
+  --hydra-scrollbar-thumb-hover: var(--dsw-alias-scrollbar-hover-l2);
+}
+
+/* A viewport resize can happen before the anchored hook's next layout pass.
+   Keep the compact surface inside a narrow window even during that frame. */
+@media (max-width: 640px) {
+  .popover { left: auto !important; right: 12px; }
+}
+
+.popover:focus { outline: none; }
+.section + .section { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--dsw-alias-border-l2); }
+.heading { display: flex; align-items: center; justify-content: space-between; min-height: 28px; padding: 0 5px 4px; }
+.heading h3 { margin: 0; color: var(--dsw-alias-label-secondary); font: 400 12px/18px var(--dsw-font-family); }
+
+.item,
+.sources li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+  min-width: 0;
+  width: 100%;
+  min-height: 32px;
+  padding: 6px;
+  border: 0;
+  border-radius: 7px;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+}
+
+.item { cursor: pointer; }
+.item:hover:not(:disabled),
+.item[aria-expanded="true"],
+.iconButton:hover:not(:disabled) { background: var(--dsw-alias-interactive-bg-hover); }
+.item:disabled { color: var(--dsw-alias-label-tertiary); cursor: not-allowed; }
+.icon { display: inline-flex; flex: 0 0 16px; align-items: center; justify-content: center; color: var(--dsw-alias-label-secondary); }
+.item:disabled .icon { color: inherit; }
+.label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.meta { flex: none; color: var(--dsw-alias-label-secondary); font-size: 12px; line-height: 18px; }
+.stats { display: flex; flex: none; gap: 5px; font-variant-numeric: tabular-nums; font-size: 12px; line-height: 18px; }
+.additions { color: var(--dsw-alias-state-success-primary); }
+.deletions { color: var(--dsw-alias-state-error-primary); }
+.chevron { flex: none; color: var(--dsw-alias-label-secondary); }
+.item[aria-expanded="true"] .chevron { transform: rotate(180deg); }
+.iconButton { display: grid; place-items: center; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 5px; color: var(--dsw-alias-label-secondary); background: transparent; cursor: pointer; }
+.iconButton:disabled { opacity: .5; cursor: default; }
+.button:focus-visible, .item:focus-visible, .iconButton:focus-visible { outline: 2px solid var(--dsw-alias-label-primary); outline-offset: 2px; }
+
+.details { margin: 4px 6px 8px 34px; padding: 4px 0 4px 10px; border-left: 1px solid var(--dsw-alias-border-l2); color: var(--dsw-alias-label-secondary); font-size: 12px; line-height: 18px; overflow-wrap: anywhere; }
+.details dl, .details p { margin: 0; }
+.details p + dl, .details dl + p { margin-top: 8px; }
+.details h4 { margin: 10px 0 6px; font: 500 12px/18px var(--dsw-font-family); }
+.detailRow { display: grid; gap: 2px; padding-block: 4px; }
+.detailRow dt { color: var(--dsw-alias-label-tertiary); }
+.detailRow dd { margin: 0; color: var(--dsw-alias-label-primary); user-select: text; }
+.commits { margin: 0; padding: 0; list-style: none; }
+.commits li + li { margin-top: 6px; }
+.commits code { color: var(--dsw-alias-label-tertiary); font-size: 11px; }
+.sources { margin: 0; padding: 0; list-style: none; color: var(--dsw-alias-label-secondary); }
+.empty { margin: 4px 6px; color: var(--dsw-alias-label-tertiary); font-size: 12px; line-height: 18px; }

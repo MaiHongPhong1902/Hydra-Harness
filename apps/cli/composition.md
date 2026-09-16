@@ -36,6 +36,8 @@ flowchart LR
   cfg --> plugin_hydra_base_jobs
   plugin_hydra_base_llm_retry["llm-retry<br/>@hydra/harness-llm-retry"]
   cfg --> plugin_hydra_base_llm_retry
+  plugin_hydra_base_llm_call_log["llm-call-log<br/>@hydra/harness-llm-call-log"]
+  cfg --> plugin_hydra_base_llm_call_log
   plugin_hydra_base_settings["settings<br/>@hydra/harness-settings-file"]
   cfg --> plugin_hydra_base_settings
   plugin_hydra_base_credentials["credentials<br/>@hydra/harness-credentials-local"]
@@ -206,6 +208,7 @@ flowchart LR
 | `agent-default-model` | `@hydra/harness-agent-default-model` |
 | `jobs` | `@hydra/harness-jobs-local` |
 | `llm-retry` | `@hydra/harness-llm-retry` |
+| `llm-call-log` | `@hydra/harness-llm-call-log` |
 | `settings` | `@hydra/harness-settings-file` |
 | `credentials` | `@hydra/harness-credentials-local` |
 | `authorization` | `@hydra/harness-authorization` |

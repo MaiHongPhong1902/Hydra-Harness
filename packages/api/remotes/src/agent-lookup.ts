@@ -1,7 +1,7 @@
 /** Host BFF policy for resolving Remote Agent and Session identities. */
 
 import type { Context } from '@hydra/cordis'
-import type { Agent, AgentOptions, AgentSetup } from '@hydra/harness-agent'
+import type { Agent, AgentHandle, AgentOptions, AgentSetup } from '@hydra/harness-agent'
 import type { Session, SessionEvent, SessionHeader, SessionId } from '@hydra/harness-session'
 import type {} from '@hydra/harness-session-persistence'
 import { TypertLookupFailure } from '@hydra/harness-typert-protocol'
@@ -18,8 +18,20 @@ export type ApiRemoteAgentResult =
   | { readonly agent: Agent }
   | { readonly error: ApiRemoteLookupError }
 
+/** Shared resolver with a drain for Host lifecycle mutations. */
+export interface ApiRemoteAgentResolver {
+  /** Resolve an ordinary session to its live Agent. */
+  (sessionId: SessionId): Promise<ApiRemoteAgentResult>
+  /** Wait for an already-started resume to settle; does not start one. */
+  settle(sessionId: SessionId): Promise<void>
+}
+
 /** Resume configuration supplied by the owning Host composition. */
 export interface ApiRemoteAgentOptions {
+  /** Retain the owned lifecycle when a cold session resumes. */
+  readonly onResume?: (handle: AgentHandle) => void
+  /** Reject routing while an owning Host mutation is in progress. */
+  readonly unavailable?: (sessionId: SessionId) => ApiRemoteLookupError | undefined
   /** Read the per-Agent defaults when a cold identity must resume. */
   readonly agentOptions?: () => AgentOptions
   /**
@@ -121,7 +133,7 @@ export async function inspectApiRemoteSession(
 export function createApiRemoteAgentResolver(
   ctx: Context,
   options: ApiRemoteAgentOptions,
-): (sessionId: SessionId) => Promise<ApiRemoteAgentResult> {
+): ApiRemoteAgentResolver {
   const resumes = new Map<SessionId, Promise<Agent>>()
 
   const fencedLiveAgent = (sessionId: SessionId): ApiRemoteAgentResult | undefined => {
@@ -134,6 +146,8 @@ export function createApiRemoteAgentResolver(
   }
 
   const agentFor = async (sessionId: SessionId): Promise<ApiRemoteAgentResult> => {
+    const unavailable = options.unavailable?.(sessionId)
+    if (unavailable !== undefined) return { error: unavailable }
     const fenced = fencedLiveAgent(sessionId)
     if (fenced !== undefined) return fenced
     const attached = ctx.sessions.get(sessionId)
@@ -164,6 +178,7 @@ export function createApiRemoteAgentResolver(
             ...options.agentOptions === undefined ? {} : { agentOptions: options.agentOptions() },
             ...setup === undefined ? {} : { setup },
           })
+          options.onResume?.(handle)
           return handle.agent
         } finally {
           resumes.delete(sessionId)
@@ -207,5 +222,10 @@ export function createApiRemoteAgentResolver(
     typeCtx.typert.contexts.configureHost('agent', async sessionId => (await resolveAgent(sessionId)).ctx)
   })
 
-  return agentFor
+  return Object.assign(agentFor, {
+    async settle(sessionId: SessionId): Promise<void> {
+      const pending = resumes.get(sessionId)
+      if (pending !== undefined) await Promise.allSettled([pending])
+    },
+  })
 }

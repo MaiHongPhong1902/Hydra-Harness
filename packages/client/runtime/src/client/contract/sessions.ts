@@ -44,6 +44,8 @@ export interface ISessions {
     sessionId?: SessionId
     reuseWorkspaceBlank?: true
   }): Promise<SessionId>
+  /** Permanently delete a session after the UI confirmation step. */
+  delete(sessionId: SessionId): Promise<void>
   /**
    * Select a session as current.
    * @param id - session id (must exist in the list; unknown ids fail loud).

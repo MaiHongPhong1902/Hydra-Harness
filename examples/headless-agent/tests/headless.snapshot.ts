@@ -502,7 +502,7 @@ describe('headless stream-json snapshots', () => {
     expect(normalized).not.toContain('ByteString')
   }, LOADER_SMOKE_TEST_TIMEOUT_MS)
 
-  it('logs the model default and a dynamic next-step reasoning effort', async () => {
+  it('logs each model call, its tools, and a dynamic next-step reasoning effort', async () => {
     const result = await runLoaderSmoke({
       label: 'reasoning effort headless stream-json snapshot',
       tempDirPrefix: 'headless-snapshot-reasoning-effort-',
@@ -541,6 +541,72 @@ describe('headless stream-json snapshots', () => {
         },
       ]
     `)
+    const events = parseJsonl(result.stdout).map(record => record.event)
+      .filter((event): event is JsonObject => event !== null && typeof event === 'object' && !Array.isArray(event))
+    const calls = events.filter(event => event.type === 'llm/call-end').map((event) => {
+      const end = event.data as JsonObject
+      const startEvent = events.find(candidate => candidate.seq === end.callSeq)
+      expect(startEvent?.type).toBe('llm/call-start')
+      const start = startEvent?.data as JsonObject
+      const first = events.find(candidate => candidate.type === 'llm/call-first-output'
+        && (candidate.data as JsonObject).callSeq === end.callSeq)?.data as JsonObject
+      expect(end.provider).toBe(start.provider)
+      expect(end.model).toBe(start.model)
+      expect(end.elapsedMs).toEqual(expect.any(Number))
+      expect(end.firstOutputMs).toBe(first.elapsedMs)
+      expect(end.elapsedMs as number).toBeGreaterThanOrEqual(end.firstOutputMs as number)
+      return { provider: end.provider, model: end.model, purpose: start.purpose, step: start.step,
+        reasoningEffort: start.reasoningEffort, firstOutput: first.kind, outcome: end.outcome,
+        toolCalls: end.toolCalls, usage: end.usage }
+    })
+    expect(calls).toMatchInlineSnapshot(`
+      [
+        {
+          "firstOutput": "tool-call",
+          "model": "cli-mock",
+          "outcome": "tool-calls",
+          "provider": "cli-mock",
+          "purpose": "conversation",
+          "reasoningEffort": "high",
+          "step": 1,
+          "toolCalls": [
+            {
+              "callId": "cli-smoke-call",
+              "name": "bash",
+            },
+          ],
+          "usage": {
+            "cacheReadTokens": 2,
+            "inputTokens": 11,
+            "outputTokens": 3,
+          },
+        },
+        {
+          "firstOutput": "text",
+          "model": "cli-mock",
+          "outcome": "stop",
+          "provider": "cli-mock",
+          "purpose": "conversation",
+          "reasoningEffort": "off",
+          "step": 2,
+          "toolCalls": [],
+          "usage": {
+            "inputTokens": 7,
+            "outputTokens": 5,
+            "reasoningTokens": 1,
+          },
+        },
+      ]
+    `)
+    const requested = calls.flatMap(call => call.toolCalls as JsonObject[])
+    expect(requested).toEqual([{ callId: 'cli-smoke-call', name: 'bash' }])
+    expect(events.some(event => event.type === 'tool/call'
+      && (event.data as JsonObject).callId === 'cli-smoke-call')).toBe(true)
+    const toolResult = events.find(event => event.type === 'tool/result')?.data as JsonObject
+    expect(toolResult.message).toMatchObject({
+      source: { kind: 'tool', callId: 'cli-smoke-call' },
+      content: [{ type: 'tool-result', isError: false }],
+    })
   }, LOADER_SMOKE_TEST_TIMEOUT_MS)
 
   it('keeps provider comments alive and sends DeepSeek defaults through the one-shot app', async () => {

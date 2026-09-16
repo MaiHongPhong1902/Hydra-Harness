@@ -578,6 +578,25 @@ export class SessionManager {
   }
 
   /**
+   * Permanently delete a session and remove it from the local projection.
+   * @param sessionId - session and conversation identity to delete.
+   * @returns the Host result, including every affected session id.
+   */
+  async delete(sessionId: SessionId): Promise<RpcResult<{ deleted: true; sessionIds: SessionId[] }>> {
+    try {
+      const { result } = await this.api.sessions.delete({ sessionId })
+      if (result.ok) {
+        for (const id of result.value.sessionIds) this.handleHostFrame({ type: 'host/session-removed', sessionId: id, deleted: true })
+      } else {
+        await this.refreshList()
+      }
+      return result
+    } catch (error: unknown) {
+      return transportError(error)
+    }
+  }
+
+  /**
    * Contract session.fork; on success merge the child into summaries
    * immediately (same synchronous-addressability guarantee as create). The
    * child carries the source's history, so it is never blank; lineage rides
@@ -824,7 +843,10 @@ export class SessionManager {
    * @param envelope - the frame with its wire rpcId.
    */
   handleHostEnvelope(envelope: RpcRequest<HostFrame>): void {
-    const frame = envelope.payload
+    this.handleHostFrame(envelope.payload)
+  }
+
+  private handleHostFrame(frame: HostFrame): void {
     switch (frame.type) {
       case 'host/session-added': {
         this.mergeSummary({
@@ -847,7 +869,12 @@ export class SessionManager {
       }
       case 'host/session-removed': {
         const summary = this.summaries.find(candidate => candidate.sessionId === frame.sessionId)
-        const durableSubagent = summary?.origin === 'subagent' || this.addresses.has(frame.sessionId)
+        const durableSubagent = frame.deleted !== true && (summary?.origin === 'subagent' || this.addresses.has(frame.sessionId))
+        if (frame.deleted === true) {
+          if (this.selected === frame.sessionId) this.selected = undefined
+          this.addresses.delete(frame.sessionId)
+          this.catalogs.delete(frame.sessionId)
+        }
         this.recordMutation(durableSubagent
           ? { kind: 'status', sessionId: frame.sessionId, running: false }
           : { kind: 'remove', sessionId: frame.sessionId })

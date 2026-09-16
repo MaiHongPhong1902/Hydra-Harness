@@ -5,6 +5,7 @@
   "type": "module",
   "description": "Workspace umbrella for runnable demos and example-owned test compositions: declares their cordis.yml packages so plain Node resolves real exports→lib. Not a build target.",
   "dependencies": {
+    "@hydra/harness-llm-call-log": "workspace:*",
     "@hydra/cordis-plugin-hmr": "workspace:*",
     "@hydra/cordis-plugin-include": "workspace:*",
     "@hydra/cordis-plugin-logger-console": "workspace:*",

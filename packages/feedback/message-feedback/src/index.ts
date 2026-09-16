@@ -178,6 +178,9 @@ export class MessageFeedbackService extends TypertRemoteService {
       await domain.close()
     }, 'message-feedback.domainClose')
     this.table = domain.table('sessions')
+    this.ctx.on('session-persistence/deleted', sessionId => this.enqueue(sessionId, async () => {
+      await this.requireTable().delete(sessionId)
+    }))
   }
 
   /**

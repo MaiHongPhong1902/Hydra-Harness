@@ -42,6 +42,7 @@ const NO_MODEL_EXPERIENCE_SECTION: Readonly<Record<string, string>> = {
  * blocks. A package moves on or off this list with its context behavior.
  */
 const SENTENCE_MODEL_EXPERIENCE: Readonly<Record<string, SentenceContract>> = {
+  'packages/llm/llm-call-log': { kind: 'none', reason: 'Diagnostic session events do not change model requests or output.' },
   'packages/fs/fs-review': { kind: 'none', reason: 'Snapshot evidence and human review actions add no model-visible input or output.' },
   'packages/client/ui-review': { kind: 'none', reason: 'The browser renders host review evidence without changing model requests.' },
   'packages/attachment/attachment': { kind: 'indirect', reason: 'The storage seam delegates model request rendering to provider adapters.' },

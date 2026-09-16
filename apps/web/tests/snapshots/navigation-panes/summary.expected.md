@@ -1,0 +1,18 @@
+- dialog "Session summary":
+  - region "Environment":
+    - heading "Environment" [level=3]
+    - button "Refresh summary":
+      - img
+    - button "Changes": Changes No Git
+    - button "Local":
+      - text: Local
+      - img
+    - button "No Git repository" [expanded]:
+      - text: No Git repository
+      - img
+    - paragraph: This workspace is not a Git repository.
+    - button "Commit or push" [disabled]
+    - button "Create pull request" [disabled]
+  - region "Sources":
+    - heading "Sources" [level=3]
+    - paragraph: No attached sources

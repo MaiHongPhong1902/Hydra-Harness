@@ -35,6 +35,7 @@
         "@hydra/harness-api-remotes",
         "@hydra/harness-client-connection",
         "@hydra/harness-client-runtime",
+        "@hydra/harness-client-ui-conversation",
         "@hydra/harness-client-ui-layout",
         "@hydra/harness-client-ui-tool"
       ],
@@ -52,6 +53,7 @@
     "@hydra/harness-api-remotes": "workspace:^",
     "@hydra/harness-client-connection": "workspace:^",
     "@hydra/harness-client-runtime": "workspace:^",
+    "@hydra/harness-client-ui-conversation": "workspace:^",
     "@hydra/harness-client-ui-layout": "workspace:^",
     "@hydra/harness-client-ui-tool": "workspace:^",
     "@hydra/cordis": "workspace:^",
@@ -61,15 +63,19 @@
     "@hydra/harness-api-remotes": "workspace:^",
     "@hydra/harness-client-connection": "workspace:^",
     "@hydra/harness-client-runtime": "workspace:^",
+    "@hydra/harness-client-ui-conversation": "workspace:^",
     "@hydra/harness-client-ui-layout": "workspace:^",
     "@hydra/harness-client-ui-tool": "workspace:^",
     "@hydra/cordis": "workspace:^",
     "@hydra/harness-invariants": "workspace:^",
     "@hydra/harness-fs-review": "workspace:^",
     "@hydra/harness-client-ui-slots": "workspace:^",
+    "@hydra/harness-client-ui-primitives": "workspace:^",
     "@hydra/harness-client-test-runtime": "workspace:^",
     "@types/react": "~18.3.1",
-    "react": "^18.2.0"
+    "@types/react-dom": "~18.3.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "files": [
     "lib/index.js",

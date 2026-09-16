@@ -531,7 +531,13 @@ export function ReviewPanel({ useReview, act, refresh, ownerSessionId, useWorksp
   )
 }
 
-function sameWorkspace(left: string, right: string): boolean {
+/**
+ * Compare workspace paths with Windows drive case folding and trailing separator normalization.
+ * @param left - first recorded workspace path.
+ * @param right - second recorded workspace path.
+ * @returns whether both paths identify the same workspace spelling.
+ */
+export function sameWorkspace(left: string, right: string): boolean {
   const normalize = (value: string) => {
     const normalized = value.replace(/\\/gu, '/').replace(/\/$/u, '')
     return /^[a-z]:\//iu.test(normalized) ? normalized.toLowerCase() : normalized

@@ -24,6 +24,8 @@ export interface AnchoredPositionOptions {
   gap: number
   /** Distance kept between the panel and each viewport edge. */
   margin: number
+  /** Align the panel's start or end edge with the trigger; defaults to start. */
+  align?: 'start' | 'end'
 }
 
 /**
@@ -32,7 +34,7 @@ export interface AnchoredPositionOptions {
  * @returns `left`/`top` for the panel, or `null` before the first measurement.
  */
 export function useAnchoredPosition(options: AnchoredPositionOptions): CSSProperties | null {
-  const { open, anchorRef, panelRef, gap, margin } = options
+  const { open, anchorRef, panelRef, gap, margin, align = 'start' } = options
   const [position, setPosition] = useState<CSSProperties | null>(null)
   useLayoutEffect(() => {
     if (!open) {
@@ -48,7 +50,7 @@ export function useAnchoredPosition(options: AnchoredPositionOptions): CSSProper
       const panel = panelRef.current
       const width = panel?.offsetWidth ?? 0
       const height = panel?.offsetHeight ?? 0
-      let left = rect.left
+      let left = align === 'end' ? rect.right - width : rect.left
       let top = rect.bottom + gap
       if (width > 0) left = Math.min(Math.max(left, margin), window.innerWidth - width - margin)
       if (height > 0) top = Math.min(Math.max(top, margin), window.innerHeight - height - margin)
@@ -76,6 +78,6 @@ export function useAnchoredPosition(options: AnchoredPositionOptions): CSSProper
       window.removeEventListener('scroll', place, true)
       window.removeEventListener('resize', place)
     }
-  }, [open, anchorRef, panelRef, gap, margin])
+  }, [open, anchorRef, panelRef, gap, margin, align])
   return position
 }

@@ -26,6 +26,7 @@ import {
   workspaceInsertBeforeRequestSchema, workspaceInsertBeforeValueSchema,
   workspaceInsertSessionBeforeRequestSchema, workspaceInsertSessionBeforeValueSchema,
   workspaceListRequestSchema, workspaceListValueSchema,
+  workspaceUnarchiveSessionRequestSchema, workspaceUnarchiveSessionValueSchema,
   workspaceRenameRequestSchema, workspaceRenameValueSchema, workspaceViewSchema,
 } from '../src/api/workspace.schema.ts'
 import { skillEntrySchema, skillListRequestSchema, skillListValueSchema } from '../src/api/skills.schema.ts'
@@ -385,6 +386,14 @@ describe('workspace domain schemas', () => {
     expect(workspaceArchiveSessionValueSchema.parse({ archivedSessionIds: ['s1', 's2'] }).archivedSessionIds)
       .toEqual(['s1', 's2'])
     expect(() => workspaceArchiveSessionValueSchema.parse({ archivedSessionIds: 's1' })).toThrow()
+  })
+
+  it('unarchiveSession request/value carry the id and the full updated set', () => {
+    expect(workspaceUnarchiveSessionRequestSchema.parse({ sessionId: 's1' }).sessionId).toBe('s1')
+    expect(() => workspaceUnarchiveSessionRequestSchema.parse({})).toThrow()
+    expect(workspaceUnarchiveSessionValueSchema.parse({ archivedSessionIds: ['s2'] }).archivedSessionIds)
+      .toEqual(['s2'])
+    expect(() => workspaceUnarchiveSessionValueSchema.parse({ archivedSessionIds: 's2' })).toThrow()
   })
 
   it('insertSessionBefore accepts an anchored and an anchorless move', () => {

@@ -2,6 +2,9 @@
 
 import z from '@hydra/schemastery'
 import { MAX_TIMER_DELAY_MS } from '@hydra/harness-timeout'
+import type { CacheRetention, ModelThinkingLevel, ThinkingBudgets, Transport } from '@earendil-works/pi-ai'
+import type { RetryPolicyConfig } from '@hydra/harness-llm'
+import { RetryPolicySchema } from '@hydra/harness-llm'
 
 /** One optional model override for an account-backed route. */
 export interface AccountModelProfile {
@@ -31,6 +34,20 @@ export interface AccountProviderProfile {
   defaultMaxTokens?: number
   /** Maximum idle interval while one provider stream read is outstanding. */
   streamIdleTimeoutMs?: number
+  /** Default provider-neutral reasoning level for ChatGPT requests. */
+  reasoning?: ModelThinkingLevel
+  /** Token budgets for reasoning levels supported by the provider. */
+  thinkingBudgets?: ThinkingBudgets
+  /** Prompt-cache retention preference for ChatGPT requests. */
+  cacheRetention?: CacheRetention
+  /** Streaming transport preference for ChatGPT requests. */
+  transport?: Transport
+  /** Provider SDK request timeout in milliseconds. */
+  timeoutMs?: number
+  /** WebSocket connection timeout in milliseconds. */
+  websocketConnectTimeoutMs?: number
+  /** Retry policy for provider request failures. */
+  retryPolicy?: RetryPolicyConfig
   /** Maximum base64-encoded image payload accepted in one request. */
   maxRequestImageBytes?: number
   /** Optional Cloud Code Assist endpoint used by Antigravity requests. */
@@ -63,6 +80,13 @@ const providerProfile: z<AccountProviderProfile> = z.object({
   defaultContextWindow: z.number().step(1).min(1),
   defaultMaxTokens: z.number().step(1).min(1),
   streamIdleTimeoutMs: z.number().min(Number.MIN_VALUE).max(MAX_TIMER_DELAY_MS),
+  reasoning: z.union(['off', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max']),
+  thinkingBudgets: z.object({ minimal: z.number(), low: z.number(), medium: z.number(), high: z.number() }),
+  cacheRetention: z.union(['none', 'short', 'long']),
+  transport: z.union(['sse', 'websocket', 'websocket-cached', 'auto']),
+  timeoutMs: z.natural(),
+  websocketConnectTimeoutMs: z.natural(),
+  retryPolicy: RetryPolicySchema,
   maxRequestImageBytes: z.number().step(1).min(1),
   endpoint: z.string(),
   callbackPort: z.natural().max(65535),

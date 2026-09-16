@@ -17,7 +17,7 @@ The group-by menu offers two modes, WorkSpace / In one list. WorkSpace mode rend
 ### Row interactions
 
 - Session rows show a detail card after a 500ms hover dwell (full title / relative time / status line; the status line has only running/idle until the wire grows a status field). The card and the row menu are mutually exclusive: no card while a menu is open or a drag is in flight.
-- Session-row … menu: Rename / Fork session / Delete session; Rename and Fork are wired, while Delete remains visual-only. The workspace-header … menu's Rename / Delete workspace actions are both wired. Menus close when the pointer leaves them.
+- Session-row … menu: Rename / Fork session / Archive session / Delete session; every action is wired, with Delete guarded by the shared permanent-deletion confirmation. The workspace-header … menu's Rename / Delete workspace actions are both wired. Menus close when the pointer leaves them.
 - Supporting primitives: `Menu` gains label entries, danger rows, and `closeOnPointerLeave`; a new `HoverCard` (portaled placement, open delay, disabled guard).
 
 ### workspace.rename
@@ -42,16 +42,16 @@ ui-sidebar shrinks to the column-geometry shell: brand row, fold state machine, 
 
 **Optimistic reordering on drop** — client-first reordering needs failure rollback, one more entangled state in the object layer; local/LAN round-trips are millisecond-scale, so waiting for the host response is imperceptible. With a single order authority (trust the host completely), the frontend never invents an order.
 
-**Keep the rename dialog in ui-sidebar (smallest change)** — that is the problem itself: workspace-domain dialogs scattered in a borrowed slot, with each addition (the Delete confirmation is coming) repeating the cross-package wiring. Moving only the rename modal would repeat that wiring on the next dialog; the whole browsing region goes to ui-workspace and the shell stays geometry-only.
+**Keep the rename dialog in ui-sidebar (smallest change)** — that is the problem itself: workspace-domain dialogs scattered in a borrowed slot, with each addition repeating the cross-package wiring. Moving only the rename modal would repeat that wiring on the next dialog; the whole browsing region goes to ui-workspace and the shell stays geometry-only.
 
 **Nest sessions by fork lineage in WorkSpace mode** — nesting makes the current child visible only while its ancestors are expanded and limits in-group manual ordering to root nodes; `parentId` is lineage data, not a list-navigation structure. Flattening all sessions into peer rows lets each row be opened, searched, and ordered independently; In one list still disables drag because it has no workspace persistence carrier.
 
 ## Consequences
 
 - Manual order is the sole authority over the Host workspace account: activity never mutates `WorkspaceView.sessionIds`. A later browser-local recent-update view may promote active rows without changing that account; its separate semantics are defined in [Workspace Sidebar Order and Folding](2026-08-11-workspace-sidebar-order-and-folding.md).
-- The two-fact shell/region contract funnels every future workspace-domain feature (Delete confirmation, cross-group moves, Ungrouped adoption) into the single ui-workspace package; ui-sidebar no longer evolves with session-list features.
+- The two-fact shell/region contract funnels every future workspace-domain feature (cross-group moves, Ungrouped adoption, and later dialogs) into the single ui-workspace package; ui-sidebar no longer evolves with session-list features.
 - Flat mode supports neither reordering nor a create-in-workspace entry point (switching back to grouped view is required) — an accepted scope reduction.
-- Wiring session Delete and growing the wire status enum remain future iterations.
+- Growing the wire status enum remains a future iteration.
 
 ## Testing
 

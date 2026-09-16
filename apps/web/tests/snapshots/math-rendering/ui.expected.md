@@ -1,6 +1,7 @@
 - banner:
   - navigation "Session hierarchy":
     - button "Math rendering" [disabled]
+  - button "Session summary"
   - button "Session log":
     - text: Session log
     - img

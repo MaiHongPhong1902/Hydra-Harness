@@ -69,6 +69,7 @@
     "@hydra/harness-llm-pi-ai": "workspace:^",
     "@hydra/harness-llm-account-auth": "workspace:^",
     "@hydra/harness-llm-retry": "workspace:^",
+    "@hydra/harness-llm-call-log": "workspace:^",
     "@hydra/harness-mcp-client": "workspace:^",
     "@hydra/harness-mcp-registry": "workspace:^",
     "@hydra/harness-obsidian-knowledge": "workspace:^",

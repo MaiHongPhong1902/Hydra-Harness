@@ -98,6 +98,11 @@ export class SqliteSessionPersistence extends SessionPersistence {
     return this.coordinator.create(meta)
   }
 
+  async delete(id: SessionId): Promise<void> {
+    if (this.hasWriteOwner(id)) throw new Error(`cannot delete session "${id}" with an open write handle`)
+    await this.coordinator.delete(id, () => this.store.delete(id))
+  }
+
   append(id: SessionId, events: readonly SessionEvent[]): Promise<void> {
     return this.coordinator.append(id, events)
   }

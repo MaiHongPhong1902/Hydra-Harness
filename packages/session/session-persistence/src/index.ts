@@ -73,6 +73,14 @@ declare module '@hydra/cordis' {
   interface Context {
     sessionPersistence: SessionPersistence
   }
+  interface Events {
+    /**
+     * Remove derived data after a durable session log has been deleted.
+     * @mode serial
+     * @param id - deleted session identity.
+     */
+    'session-persistence/deleted'(id: SessionId): Promise<void> | void
+  }
 }
 
 /**
@@ -146,6 +154,14 @@ export abstract class SessionPersistence extends Service {
    * @param meta - the immutable header (id, version, cwd, lineage) to record.
    */
   abstract create(meta: SessionHeader): Promise<void>
+
+  /**
+   * Permanently remove a stored session and its events. Missing sessions are
+   * treated as a successful no-op so retries are safe. Rejects while a live
+   * session, write handle, or unpublished reservation owns the identity.
+   * @param id - the persisted session to remove.
+   */
+  abstract delete(id: SessionId): Promise<void>
 
   /**
    * Open one read channel or claim the single in-process write owner.

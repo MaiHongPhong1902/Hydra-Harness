@@ -1543,6 +1543,11 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         parameters: [{ name: 'meta', description: 'the immutable header (id, version, cwd, lineage) to record.' }],
       },
       {
+        signature: 'abstract delete(id: SessionId): Promise<void>',
+        description: 'Permanently remove a stored session and its events. Missing sessions are treated as a successful no-op so retries are safe. Rejects while a live session, write handle, or unpublished reservation owns the identity.',
+        parameters: [{ name: 'id', description: 'the persisted session to remove.' }],
+      },
+      {
         signature: 'async open(id: SessionId, access: SessionAccess = \'read\', options?: { readonly signal?: AbortSignal }): Promise<SessionHandle>',
         description: 'Open one read channel or claim the single in-process write owner.',
         parameters: [{ name: 'id', description: 'persisted session identifier.' }, { name: 'access', description: 'read-only or exclusive write access.' }, { name: 'options', description: 'optional cancellation signal.' }],
@@ -2749,6 +2754,17 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'resolution after durability.',
       },
       {
+        signature: 'unarchiveSession(sessionId: SessionId): Promise<void>',
+        description: 'Restore one session from the registry-global archive set. The session\'s workspace accounting is retained while archived, so removing the id from the set restores it to its previous workspace and position. An id that is not archived resolves without writing.',
+        parameters: [{ name: 'sessionId', description: 'The session to restore.' }],
+        returns: 'resolution after durability.',
+      },
+      {
+        signature: 'removeSession(sessionId: SessionId): Promise<void>',
+        description: 'Remove a deleted session from every Workspace and the archive set.',
+        parameters: [{ name: 'sessionId', description: 'permanently deleted session identity.' }],
+      },
+      {
         signature: 'async resolveByPath(path: string): Promise<Workspace | undefined>',
         description: 'Resolve by canonical directory path without creating or mutating a workspace. A missing path rejects during `realpath`; an existing unowned directory returns `undefined`.',
         parameters: [{ name: 'path', description: 'Existing directory path in any spelling.' }],
@@ -3055,6 +3071,14 @@ export const EVENT_API: readonly EventApiEntry[] = [
     summary: 'The mounted server set now matches the stored records.',
     description: 'The mounted server set now matches the stored records. Emitted after each reconciliation settles — including the one at startup and the ones a document change triggers — so an observer never reads the projection between a committed record change and the mount that follows it.',
     parameters: [{ name: 'snapshot', description: 'the projection as of this reconciliation.' }],
+  },
+  {
+    name: 'session-persistence/deleted',
+    mode: 'serial',
+    signature: '\'session-persistence/deleted\'(id: SessionId): Promise<void> | void',
+    summary: 'Remove derived data after a durable session log has been deleted.',
+    description: 'Remove derived data after a durable session log has been deleted.',
+    parameters: [{ name: 'id', description: 'deleted session identity.' }],
   },
   {
     name: 'session-telemetry/record',

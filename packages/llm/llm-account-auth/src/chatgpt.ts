@@ -239,9 +239,17 @@ export async function buildChatGptProfile(
     api: 'openai-codex-responses',
     apiKeyFallbackEnvs: [],
     ...(base.baseUrl === undefined ? {} : { baseURL: base.baseUrl }),
+    ...(source.reasoning === undefined ? {} : { reasoning: source.reasoning }),
+    ...(source.thinkingBudgets === undefined ? {} : { thinkingBudgets: source.thinkingBudgets }),
+    ...(source.cacheRetention === undefined ? {} : { cacheRetention: source.cacheRetention }),
+    ...(source.transport === undefined ? {} : { transport: source.transport }),
+    ...(source.timeoutMs === undefined ? {} : { timeoutMs: source.timeoutMs }),
+    ...(source.websocketConnectTimeoutMs === undefined
+      ? {}
+      : { websocketConnectTimeoutMs: source.websocketConnectTimeoutMs }),
     streamIdleTimeoutMs: source.streamIdleTimeoutMs ?? DEFAULT_STREAM_IDLE_TIMEOUT_MS,
     maxRequestImageBytes: source.maxRequestImageBytes ?? DEFAULT_MAX_REQUEST_IMAGE_BYTES,
-    retryPolicy: resolveRetryPolicy(undefined, 'llm-account-auth: chatgpt retryPolicy'),
+    retryPolicy: resolveRetryPolicy(source.retryPolicy, 'llm-account-auth: chatgpt retryPolicy'),
     configuredMaxTokens,
     piProvider,
   }

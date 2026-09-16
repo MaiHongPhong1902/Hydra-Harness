@@ -1,0 +1,7 @@
+- dialog "Delete session":
+  - heading "Delete session" [level=2]
+  - button "Close":
+    - img
+  - paragraph: Permanently delete “Use the read tool twice” and its session log? This cannot be undone. Workspace files will be kept.
+  - button "Cancel"
+  - button "Delete session"

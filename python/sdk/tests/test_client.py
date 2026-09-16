@@ -42,6 +42,14 @@ for line in sys.stdin:
         print(json.dumps({"jsonrpc": "2.0", "method": "session.event", "params": {"sessionId": params["sessionId"], "event": {"type": "agent/inbox/spliced", "data": {"target": "next-turn", "start": 0, "inserted": [{"id": "message-1"}]}}}}), flush=True)
         print(json.dumps({"jsonrpc": "2.0", "method": "session.status", "params": {"sessionId": params["sessionId"], "status": "running"}}), flush=True)
         print(json.dumps({"jsonrpc": "2.0", "id": msg["id"], "result": {"messageId": "message-1"}}), flush=True)
+        route = {"provider": "mock", "model": "model-a"}
+        diagnostics = [
+            ("llm/call-start", {**route, "purpose": "conversation", "messageCount": 1, "systemChars": 0, "tools": []}),
+            ("llm/call-first-output", {**route, "callSeq": 1, "kind": "text", "elapsedMs": 12}),
+            ("llm/call-end", {**route, "callSeq": 1, "outcome": "stop", "elapsedMs": 20, "firstOutputMs": 12, "firstTextMs": 12, "toolCalls": []}),
+        ]
+        for event_type, data in diagnostics:
+            print(json.dumps({"jsonrpc": "2.0", "method": "session.event", "params": {"sessionId": params["sessionId"], "event": {"type": event_type, "data": data}}}), flush=True)
         print(json.dumps({
             "jsonrpc": "2.0",
             "method": "session.event",
@@ -110,6 +118,12 @@ for line in sys.stdin:
     assert result.final_response == "hello from runtime"
     assert result.finish_reason == "max-tokens"
     assert result.events[-1]["type"] == "turn/end"
+    call_events = [event for event in result.events if event["type"].startswith("llm/call-")]
+    assert [event["type"] for event in call_events] == ["llm/call-start", "llm/call-first-output", "llm/call-end"]
+    assert call_events[-1]["data"] == {
+        "provider": "mock", "model": "model-a", "callSeq": 1, "outcome": "stop",
+        "elapsedMs": 20, "firstOutputMs": 12, "firstTextMs": 12, "toolCalls": [],
+    }
     dumped_env = json.loads(env_dump.read_text())
     assert dumped_env["DEEPSEEK_API_KEY"] == "env-key"
     assert dumped_env["DEEPSEEK_BASE_URL"] == "http://127.0.0.1:4321"

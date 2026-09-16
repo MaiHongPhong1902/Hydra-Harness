@@ -111,6 +111,12 @@ export function messageFixture(
 class TestPersistence extends SessionPersistence {
   override readonly supportsRawArtifacts = false
 
+  async delete(id: SessionId): Promise<void> {
+    this.durable.delete(id)
+    this.logical.delete(id)
+    await this.ctx.serial('session-persistence/deleted', id)
+  }
+
   static inject = ['sessions']
 
   readonly durable = new Map<SessionId, SessionInspection>()
@@ -118,6 +124,7 @@ class TestPersistence extends SessionPersistence {
   inspectFailure: Error | undefined
   inspectCalls = 0
   readFromCalls = 0
+  onInspect: (() => void | Promise<void>) | undefined
   onReadFrom: (() => void | Promise<void>) | undefined
   onListSnapshots: (() => void | Promise<void>) | undefined
 
@@ -129,17 +136,18 @@ class TestPersistence extends SessionPersistence {
     return this.readFrom(id, 0)
   }
 
-  inspect(id: SessionId): Promise<SessionInspection> {
+  async inspect(id: SessionId): Promise<SessionInspection> {
     this.inspectCalls += 1
-    if (this.inspectFailure !== undefined) return Promise.reject(this.inspectFailure)
+    if (this.inspectFailure !== undefined) throw this.inspectFailure
     const explicit = this.logical.get(id)
-    if (explicit !== undefined) return Promise.resolve(explicit)
     const live = this.ctx.sessions.get(id)
-    if (live !== undefined) return Promise.resolve({ meta: live.header, events: live.events })
     const stored = this.durable.get(id)
-    return stored === undefined
-      ? Promise.reject(new Error(`test persistence: session '${id}' not found`))
-      : Promise.resolve(stored)
+    const inspection = explicit ?? (live !== undefined
+      ? { meta: live.header, events: live.events }
+      : stored)
+    if (inspection === undefined) throw new Error(`test persistence: session '${id}' not found`)
+    await this.onInspect?.()
+    return inspection
   }
 
   async readFrom(

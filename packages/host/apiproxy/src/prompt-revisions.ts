@@ -1,7 +1,7 @@
 /** Immutable prompt revisions and generation attempts over the existing session log. */
 import { createHash } from 'node:crypto'
 import type { Context } from '@hydra/cordis'
-import type { Agent, AgentOptions, CreateAgentOptions } from '@hydra/harness-agent'
+import type { Agent, AgentHandle, AgentOptions, CreateAgentOptions } from '@hydra/harness-agent'
 import { createUserMessage } from '@hydra/harness-llm'
 import type { SessionEvent, SessionHeader, SessionId } from '@hydra/harness-session'
 import { interruptedTurnClosers } from '@hydra/harness-session'
@@ -14,6 +14,7 @@ type Receipt = { sessionId: SessionId; revision: ConversationRevision }
 
 /** Dependencies owned by the Host's session visibility and preset composition. */
 interface PromptRevisionDependencies {
+  retain(handle: AgentHandle): void
   read(id: SessionId): Promise<Source>
   find(id: SessionId): Promise<Source | undefined>
   compose(source: Source): Promise<Pick<CreateAgentOptions, 'setup'> & { agentOptions: AgentOptions; agentPreset?: string }>
@@ -153,6 +154,7 @@ export function createPromptReviser(ctx: Context, deps: PromptRevisionDependenci
       agentOptions: composition.agentOptions,
       ...composition.setup === undefined ? {} : { setup: composition.setup },
     })
+    deps.retain(handle)
     await start(handle.agent, revision, workspace)
     return { sessionId: childId, revision }
   }

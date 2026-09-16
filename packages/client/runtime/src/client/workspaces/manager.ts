@@ -232,6 +232,18 @@ export class WorkspaceManager {
   }
 
   /**
+   * Restore one session from the registry-global archive set, then install
+   * the returned full set without waiting for the changed frame.
+   * @param sessionId - session to restore.
+   * @returns the wire result.
+   */
+  async unarchiveSession(sessionId: SessionId): Promise<RpcResult<{ archivedSessionIds: SessionId[] }>> {
+    const { result } = await this.api.workspace.unarchiveSession({ sessionId })
+    if (result.ok) this.installArchived(result.value.archivedSessionIds)
+    return result
+  }
+
+  /**
    * Prepend a session onto a materialized Workspace account without waiting
    * for the Host changed frame. `session.create({ workspaceId })` has already
    * attached; New Session reads this list in the same turn for reuse and the

@@ -13,10 +13,14 @@ import type { HostObservable } from '@hydra/harness-client-ui-slots'
 import type { ClientContext } from '@hydra/harness-client-runtime/client'
 // Type-only: pulls the locale plugin's Context merge (ctx.locale).
 import type {} from '@hydra/harness-client-locale/client'
+// Type-only: pulls the settings section SlotMap merge into this plugin.
+import type {} from '@hydra/harness-client-ui-settings/client'
 import type { WorkspaceBrowserInjected, WorkspacePickerInjected } from './contract/slots.ts'
 import { createWorkspaceViewStore } from './stores.ts'
 import { WorkspaceBrowser } from './WorkspaceBrowser.tsx'
 import { WorkspacePicker } from './WorkspacePicker.tsx'
+import { ArchivedSessionsSection } from './ArchivedSessionsSection.tsx'
+import type { ArchivedSessionsSectionInjected } from './ArchivedSessionsSection.tsx'
 import { en, type WorkspaceKey } from './locales.ts'
 
 export type {
@@ -55,6 +59,7 @@ export function apply(ctx: ClientContext): void {
   const connection = ctx.get('connection') as ConnectionHandle
   const hostDescription = connection.hostDescription
   ctx.effect(() => ctx.locale.register(NS, { en }), 'ui-workspace: dictionaries')
+  const t = ctx.locale.bind(NS)
 
   const searchSessions: WorkspaceBrowserInjected['searchSessions'] = async (query, signal) => {
     const result = await ctx.sessions.search(query, signal)
@@ -98,6 +103,7 @@ export function apply(ctx: ClientContext): void {
       await ctx.workspaces.insertBefore(workspaceId, beforeWorkspaceId)
     },
     archiveSession: async (sessionId) => { await ctx.workspaces.archiveSession(sessionId) },
+    deleteSession: sessionId => ctx.sessions.delete(sessionId),
     insertSessionBefore: async (workspaceId, sessionId, beforeSessionId) => {
       await ctx.workspaces.insertSessionBefore(workspaceId, sessionId, beforeSessionId)
     },
@@ -107,6 +113,10 @@ export function apply(ctx: ClientContext): void {
   const pickerInjected = (): WorkspacePickerInjected => ({
     createWorkspace: input => ctx.workspaces.create(input),
     hooks: { directoryFlow: pickerFlowSource },
+  })
+  const archivedSessionsInjected = (): ArchivedSessionsSectionInjected => ({
+    restoreSession: sessionId => ctx.workspaces.unarchiveSession(sessionId),
+    deleteSession: sessionId => ctx.sessions.delete(sessionId),
   })
   // Each registration declares its directory-flow child in the same call;
   // slot injection follows both the owner and declaration HMR lifetimes.
@@ -129,4 +139,12 @@ export function apply(ctx: ClientContext): void {
     },
     WorkspacePicker,
   ))
+  ctx.slots.inject('settings.section', () => ctx.slots.register({
+    name: 'settings.section',
+    id: 'archived-sessions',
+    order: 40,
+    label: () => t('section.archived'),
+    locale: NS,
+    inject: archivedSessionsInjected,
+  }, ArchivedSessionsSection))
 }

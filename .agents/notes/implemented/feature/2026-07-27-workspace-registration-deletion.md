@@ -6,7 +6,7 @@ Status: implemented
 
 A Workspace registers an existing code directory so the GUI can name it and order its Sessions. That record does not say that Harness created or owns the directory, and the Session log is an independent persistence object. Treating the row's Delete action as recursive source deletion or Session deletion would destroy data outside the record's ownership boundary.
 
-The existing visual-only menu row also left deletion semantics undefined across durable order, the Workspace table, Host streams, concurrent browser tabs, reconnect baselines, and a list request racing the mutation.
+The existing Workspace-row menu also left deletion semantics undefined across durable order, the Workspace table, Host streams, concurrent browser tabs, reconnect baselines, and a list request racing the mutation.
 
 ## Decision
 
@@ -32,7 +32,7 @@ The delete confirmation remains pending until the React Workspace projection has
 
 The existing Workspace row menu opens a shared `Modal` before deletion. The text states all three consequences: the Workspace leaves the list, the folder and session logs remain, and its Sessions appear under Ungrouped. While the request is pending, the confirm and Cancel controls are disabled, duplicate confirmation is ignored, and Escape or Close cannot dismiss the operation. Failure keeps the Modal open with the error; Cancel, Escape, and Close before submission never delete.
 
-The menu, Modal, and buttons retain their existing structure and design tokens. Session deletion remains visual-only and outside this decision.
+The menu, Modal, and buttons retain their existing structure and design tokens. [Permanent Session deletion](2026-09-16-session-delete.md) is the separate lifecycle for deleting Session logs; this decision still removes only the Workspace registration.
 
 ## Alternatives considered
 

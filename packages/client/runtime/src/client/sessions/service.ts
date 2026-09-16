@@ -501,6 +501,14 @@ export class SessionRuntime implements ISessions {
     return result.value.sessionId
   }
 
+  /** Permanently delete a session after its caller has confirmed the action. */
+  async delete(sessionId: SessionId): Promise<void> {
+    const result = await this.manager.delete(sessionId)
+    if (!result.ok) throw new Error(`${result.error.code}: ${result.error.message}`)
+    if (this.selection.getSnapshot().sessionId === sessionId) this.clear()
+    this.projectList()
+  }
+
   /**
    * Fork a session from a completed-turn prefix of the source (same
    * synchronous-addressability guarantee as {@link SessionRuntime.create}:

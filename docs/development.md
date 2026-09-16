@@ -69,6 +69,8 @@ Host and Client stay two aggregate programs because both sides declaration-merge
 
 The root build follows the generated dependency order:
 
+Package scripts give each TypeScript compiler process a 4 GiB old-space heap allowance; see the [compiler ownership note](../.agents/notes/implemented/process/2026-06-17-ts-build-config.md).
+
 ```sh
 tsc -b tsconfig.host.json
 tsdown --env.HYDRA_BUILD_FACE host

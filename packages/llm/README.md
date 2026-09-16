@@ -7,6 +7,7 @@ The LLM seam and its provider adapters. The `llm` package owns both the Service 
 | [`llm/`](llm/README.md) | LLM service and shared streaming vocabulary | `ctx.llm` |
 | [`token-meter/`](token-meter/README.md) | Replay-aware token measurement | `ctx.tokenMeter` |
 | [`llm-retry/`](llm-retry/README.md) | Provider-scoped retry policy | listens to `agent/request-error` |
+| [`llm-call-log/`](llm-call-log/README.md) | Session-local model call diagnostics | listens to `llm/stream` |
 | [`llm-deepseek/`](llm-deepseek/README.md) | Direct DeepSeek adapter | registers on `ctx.llm` |
 | [`llm-pi-ai/`](llm-pi-ai/README.md) | Multi-provider pi-ai adapter | registers on `ctx.llm` |
 | [`llm-account-auth/`](llm-account-auth/README.md) | ChatGPT and Antigravity account login and rotation | registers on `ctx.llm` and `ctx.authorization` |

@@ -1048,6 +1048,20 @@ export interface AccountProviderProfile {
   defaultMaxTokens?: number
   /** Maximum idle interval while one provider stream read is outstanding. */
   streamIdleTimeoutMs?: number
+  /** Default provider-neutral reasoning level for ChatGPT requests. */
+  reasoning?: ModelThinkingLevel
+  /** Token budgets for reasoning levels supported by the provider. */
+  thinkingBudgets?: ThinkingBudgets
+  /** Prompt-cache retention preference for ChatGPT requests. */
+  cacheRetention?: CacheRetention
+  /** Streaming transport preference for ChatGPT requests. */
+  transport?: Transport
+  /** Provider SDK request timeout in milliseconds. */
+  timeoutMs?: number
+  /** WebSocket connection timeout in milliseconds. */
+  websocketConnectTimeoutMs?: number
+  /** Retry policy for provider request failures. */
+  retryPolicy?: RetryPolicyConfig
   /** Maximum base64-encoded image payload accepted in one request. */
   maxRequestImageBytes?: number
   /** Optional Cloud Code Assist endpoint used by Antigravity requests. */
@@ -1075,7 +1089,9 @@ export interface AccountModelProfile {
 }
 ```
 
-Source: [`packages/llm/llm-account-auth/src/config.ts:49`](../packages/llm/llm-account-auth/src/config.ts)
+Depends on: `CacheRetention` (`@earendil-works/pi-ai`) · `ModelThinkingLevel` (`@earendil-works/pi-ai`) · [`RetryPolicyConfig`](../packages/llm/llm/src/index.ts) · `ThinkingBudgets` (`@earendil-works/pi-ai`) · `Transport` (`@earendil-works/pi-ai`)
+
+Source: [`packages/llm/llm-account-auth/src/config.ts:66`](../packages/llm/llm-account-auth/src/config.ts)
 
 <a id="hydraharness-llm-deepseek"></a>
 
@@ -3654,6 +3670,7 @@ These load from a `cordis.yml` entry with no `config:` block; they declare no co
 - `@hydra/harness-host-directory-picker-auto` — requires `webServer` · `loader` ([`packages/host/directory-picker-auto/src/index.ts`](../packages/host/directory-picker-auto/src/index.ts))
 - `@hydra/harness-host-directory-picker-native` ([`packages/host/directory-picker-native/src/index.ts`](../packages/host/directory-picker-native/src/index.ts))
 - `@hydra/harness-llm` ([`packages/llm/llm/src/index.ts`](../packages/llm/llm/src/index.ts))
+- `@hydra/harness-llm-call-log` — requires `llm` · `sessions` ([`packages/llm/llm-call-log/src/index.ts`](../packages/llm/llm-call-log/src/index.ts))
 - `@hydra/harness-lsp` ([`packages/lsp/lsp/src/index.ts`](../packages/lsp/lsp/src/index.ts))
 - `@hydra/harness-mcp-registry` — requires `settings` · `tools` ([`packages/mcp/mcp-registry/src/index.ts`](../packages/mcp/mcp-registry/src/index.ts))
 - `@hydra/harness-personalization` — requires `systemPrompt` ([`packages/context/personalization/src/index.ts`](../packages/context/personalization/src/index.ts))

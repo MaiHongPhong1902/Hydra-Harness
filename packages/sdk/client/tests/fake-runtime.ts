@@ -8,6 +8,7 @@
  *
  * Script vocabulary (all optional):
  * - `FAKE_TEXT`: assistant text for each turn (default `hello from fake runtime`).
+ * - `FAKE_MODEL_CALL_LOG`: include model attribution and timing events.
  * - `FAKE_STATUS`: the `session.finished` status (default `ok`).
  * - `FAKE_REASON_KIND`: the `session.finished` reason kind (default `completed`; `none` omits the reason).
  * - `FAKE_SUBAGENT`: also emit a child session (subagent.started + child event + subagent.finished).
@@ -95,6 +96,13 @@ function runTurn(sessionId: string): void {
     return
   }
   event(sessionId, 'turn/start', { turn: 0 })
+  if (env.FAKE_MODEL_CALL_LOG !== undefined) {
+    const callSeq = seq
+    const route = { provider: 'mock', model: 'model-a' }
+    event(sessionId, 'llm/call-start', { ...route, purpose: 'conversation', turn: 0, step: 0, messageCount: 1, systemChars: 0, tools: [] })
+    event(sessionId, 'llm/call-first-output', { ...route, callSeq, kind: 'text', elapsedMs: 12 })
+    event(sessionId, 'llm/call-end', { ...route, callSeq, outcome: 'stop', elapsedMs: 20, firstOutputMs: 12, firstTextMs: 12, toolCalls: [] })
+  }
   event(sessionId, 'assistant/chunk', { turn: 0, step: 0, chunk: { type: 'text-delta', index: 0, text } })
   if (env.FAKE_MALFORMED_MESSAGE !== undefined) {
     event(sessionId, 'assistant/message', {

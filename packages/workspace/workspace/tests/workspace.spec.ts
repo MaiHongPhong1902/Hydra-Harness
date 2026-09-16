@@ -911,6 +911,26 @@ describe('registry-global session archive', () => {
     expect(storedState(result.pool).archivedSessionIds).toEqual(['stray', 'live-only'])
   })
 
+  it('restores an archived session to its original account and is idempotent', async () => {
+    const dir = await makeDir('unarchive-home')
+    const result = await harness({ sessions: [header('first', dir, 100), header('second', dir, 200)] })
+    const workspace = result.registry.list()[0]!
+    const originalSessionIds = [...workspace.sessionIds]
+
+    await result.registry.archiveSession(SessionId('second'))
+    const changesAfterArchive = result.changes.filter(change => change.table === '').length
+    await result.registry.unarchiveSession(SessionId('second'))
+
+    expect(result.registry.archivedSessionIds).toEqual([])
+    expect(workspace.sessionIds).toEqual(originalSessionIds)
+    expect(storedState(result.pool).archivedSessionIds).toEqual([])
+
+    const changesAfterUnarchive = result.changes.filter(change => change.table === '').length
+    await result.registry.unarchiveSession(SessionId('second'))
+    expect(result.changes.filter(change => change.table === '').length).toBe(changesAfterUnarchive)
+    expect(changesAfterArchive).toBeLessThan(changesAfterUnarchive)
+  })
+
   it('propagates a persistence-listing failure instead of reporting an unknown session', async () => {
     const result = await harness({ sessions: [] })
     result.list.mockRejectedValueOnce(new Error('persistence backend down'))

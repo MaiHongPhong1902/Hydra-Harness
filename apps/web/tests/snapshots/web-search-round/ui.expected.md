@@ -3,6 +3,7 @@
     - button "Use web_search once with queries" [disabled]
   - img
   - text: Standard mode
+  - button "Session summary"
   - button "Session log":
     - text: Session log
     - img

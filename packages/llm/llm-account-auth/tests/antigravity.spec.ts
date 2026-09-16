@@ -4,6 +4,7 @@ import { CallId, MessageId, ReasoningEffortId, errorChain } from '@hydra/harness
 import type { ContentBlock, GenerateOptions, Message } from '@hydra/harness-llm'
 import { SessionId } from '@hydra/harness-session'
 import {
+  AntigravityAdapter,
   buildAntigravityRequest,
   discoverAntigravityModels,
   parseAntigravitySse,
@@ -151,6 +152,13 @@ describe('Antigravity request serialization', () => {
     const request = await buildAntigravityRequest(options([
       user('u1', [{ type: 'text', text: 'Hello' }]),
     ], { reasoningEffort: ReasoningEffortId('none') }), credentials)
+    expect(request.request.generationConfig).toBeUndefined()
+  })
+
+  it('does not enable thinking for session-title requests', async () => {
+    const request = await buildAntigravityRequest(options([
+      user('u1', [{ type: 'text', text: 'Hello' }]),
+    ], { purpose: 'session-title', reasoningEffort: ReasoningEffortId('high') }), credentials)
     expect(request.request.generationConfig).toBeUndefined()
   })
 
@@ -539,6 +547,24 @@ describe('Antigravity SSE transport', () => {
     await expect(async () => {
       for await (const _chunk of streamAntigravity(options([user('u1', [{ type: 'text', text: 'Hello' }])], { signal: controller.signal }), credentials, fetch, { endpoint: 'https://fixture.test' })) { /* empty */ }
     }).rejects.toMatchObject({ code: 'ABORTED' })
+  })
+
+  it('honors the adapter idle timeout and cancels its response reader', async () => {
+    const cancel = vi.fn()
+    const body = new ReadableStream<Uint8Array>({ cancel })
+    const fetch = vi.fn<typeof globalThis.fetch>(async () => new Response(body, { status: 200 }))
+    const adapter = new AntigravityAdapter({
+      resolveCredentials: () => Promise.resolve(credentials),
+      fetch,
+      endpoint: 'https://fixture.test',
+      streamIdleTimeoutMs: 5,
+    })
+    await expect(async () => {
+      for await (const _chunk of adapter.stream(
+        options([user('u1', [{ type: 'text', text: 'Hello' }])]),
+      )) { /* empty */ }
+    }).rejects.toMatchObject({ code: 'TIMEOUT' })
+    expect(cancel).toHaveBeenCalledOnce()
   })
 
   it('cancels an open reader after the terminal DONE event', async () => {
