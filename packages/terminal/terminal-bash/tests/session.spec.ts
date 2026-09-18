@@ -148,6 +148,94 @@ async function initialize(session: LocalPtySession, terminal: FakeTerminal): Pro
 }
 
 describe('LocalPtySession readiness and output', () => {
+  it.each(['cancel', 'timeout', 'close'] as const)('does not write a pending PowerShell bootstrap after %s', async (stop) => {
+    vi.useFakeTimers()
+    const terminal = new FakeTerminal()
+    const session = new LocalPtySession(terminal, config({ shellDialect: 'pwsh' }))
+    const operation = session.startSend({ text: 'bootstrap', submit: true })
+    await vi.advanceTimersByTimeAsync(0)
+    expect(terminal.writes).toEqual([])
+
+    if (stop === 'cancel') operation.cancel()
+    else if (stop === 'timeout') await vi.advanceTimersByTimeAsync(100)
+    else await session.close('test complete')
+    terminal.emitData('late output')
+    await vi.advanceTimersByTimeAsync(100)
+    await operation.done
+    expect(terminal.writes).toEqual([])
+    await session.close('test complete')
+  })
+
+  it('answers a split cursor query before writing the PowerShell bootstrap', async () => {
+    vi.useFakeTimers()
+    const terminal = new FakeTerminal()
+    const session = new LocalPtySession(terminal, config({ shellDialect: 'pwsh' }))
+    const operation = session.startSend({ text: 'bootstrap', submit: true })
+    await vi.advanceTimersByTimeAsync(0)
+    terminal.emitData('\x1b[')
+    await vi.advanceTimersByTimeAsync(0)
+    expect(terminal.writes).toEqual([])
+    terminal.emitData('6n')
+    await vi.advanceTimersByTimeAsync(0)
+    expect(terminal.writes).toEqual(['\x1b[1;1R', 'bootstrap\r'])
+    await session.close('test complete')
+    await operation.done
+  })
+
+  it('answers PowerShell cursor-position queries, including split terminal chunks', async () => {
+    const terminal = new FakeTerminal()
+    const session = new LocalPtySession(terminal, config({ shellDialect: 'pwsh' }))
+
+    terminal.emitData('\x1b[')
+    expect(terminal.writes).toEqual([])
+    terminal.emitData('6n')
+    terminal.emitData('noise\x1b[6n')
+    expect(terminal.writes).toEqual(['\x1b[1;1R', '\x1b[1;1R'])
+
+    await session.close('test complete')
+  })
+
+  it('waits for output before submitting an empty first PowerShell line', async () => {
+    vi.useFakeTimers()
+    const terminal = new FakeTerminal()
+    const session = new LocalPtySession(terminal, config({ shellDialect: 'pwsh' }))
+    const operation = session.startSend({ text: '', submit: true })
+    await vi.advanceTimersByTimeAsync(0)
+    expect(terminal.writes).toEqual([])
+    terminal.emitData('prompt')
+    await vi.advanceTimersByTimeAsync(0)
+    expect(terminal.writes).toEqual(['\r'])
+    await session.close('test complete')
+    await operation.done
+  })
+
+  it('fails the session when a cursor response cannot be written', async () => {
+    const terminal = new FakeTerminal()
+    terminal.throwWrite = true
+    const session = new LocalPtySession(terminal, config({ shellDialect: 'pwsh' }))
+    const operation = session.startSend({ text: 'bootstrap', submit: true })
+    const failed = expect(operation.done).rejects.toThrow('write failed')
+    terminal.emitData('\x1b[6n')
+    await failed
+    expect(terminal.writes).toEqual([])
+    await expect(session.close('test complete')).rejects.toThrow('write failed')
+  })
+
+  it('ignores queries and late cursor-response failures while closing', async () => {
+    const terminal = new FakeTerminal()
+    terminal.autoExitOnKill = false
+    const write = Promise.withResolvers<undefined>()
+    const spy = vi.spyOn(terminal, 'write').mockReturnValue(write.promise)
+    const session = new LocalPtySession(terminal, config({ shellDialect: 'pwsh' }))
+    terminal.emitData('\x1b[6n')
+    const closing = session.close('test complete')
+    terminal.emitData('\x1b[6n')
+    write.reject(new Error('closed'))
+    terminal.emitExit()
+    await closing
+    expect(spy).toHaveBeenCalledExactlyOnceWith('\x1b[1;1R')
+  })
+
   it('lets queued terminal output run before the first post-write readiness poll', async () => {
     vi.useFakeTimers()
     const terminal = new FakeTerminal()

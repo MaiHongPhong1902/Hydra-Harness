@@ -215,7 +215,9 @@ wine_node() {
   local log="$1"
   shift
   local status=0
-  "$wine_bin" "$node_win" "$@" < /dev/null > "$log" 2>&1 || status=$?
+  # The Windows Node binary defaults to a 2 GiB heap under Wine; the
+  # TypeScript workspace needs a larger ceiling during the combined build.
+  "$wine_bin" "$node_win" --max-old-space-size=4096 "$@" < /dev/null > "$log" 2>&1 || status=$?
   return "$status"
 }
 

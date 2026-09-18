@@ -23,6 +23,9 @@ import type {
 import type { ResolvedConfig } from './config.ts'
 import { CONTROLLED_PROMPT, TerminalSanitizer } from './sanitize.ts'
 
+const CURSOR_POSITION_QUERY = '\x1b[6n'
+const CURSOR_POSITION_RESPONSE = '\x1b[1;1R'
+
 function utf8Tail(text: string, maxBytes: number): { text: string; truncated: boolean } {
   if (Buffer.byteLength(text) <= maxBytes) return { text, truncated: false }
   const chars = Array.from(text)
@@ -158,7 +161,10 @@ export class LocalPtySession implements TerminalBackendSession {
   readonly pid: number
   private readonly decoder = new TextDecoder()
   private readonly sanitizer: TerminalSanitizer
+  private cursorQueryTail = ''
   private readonly scrollback: BoundedTextBuffer
+  private readonly firstOutput = Promise.withResolvers<void>()
+  private firstWrite = true
   private readonly outputEnded = Promise.withResolvers<void>()
   private readonly completion: Promise<void>
   private statusValue: TerminalSessionStatus = { kind: 'running' }
@@ -274,6 +280,10 @@ export class LocalPtySession implements TerminalBackendSession {
       return
     }
     try {
+      // PSReadLine needs its initial cursor response before accepting shell input.
+      if (this.config.shellDialect === 'pwsh' && this.firstWrite && (request.text.length > 0 || request.submit)) {
+        await Promise.race([this.firstOutput.promise, operation.done])
+      }
       if (this.active !== operation || this.closing || this.interrupting === operation) return
       operation.setInitialForeground(foreground)
       const input = `${request.text}${request.submit ? '\r' : ''}`
@@ -286,6 +296,7 @@ export class LocalPtySession implements TerminalBackendSession {
         } finally {
           this.activeWrite = undefined
         }
+        this.firstWrite = false
       }
       // Cancellation owns post-write signalling and reservation release.
       if (operation.cancelRequested) return
@@ -367,17 +378,21 @@ export class LocalPtySession implements TerminalBackendSession {
   }
 
   private readonly onTerminalEnd = (): void => {
+    this.firstOutput.resolve()
     this.onData(this.decoder.decode())
     this.appendOutput(this.sanitizer.flush())
     this.outputEnded.resolve()
   }
 
   private readonly onTerminalError = (error: Error): void => {
+    this.firstOutput.resolve()
     this.onTransportFailure(error)
     this.outputEnded.resolve()
   }
 
   private onData(data: string): void {
+    this.respondToCursorQueries(data)
+    if (this.cursorQueryTail.length === 0) this.firstOutput.resolve()
     const sanitized = this.sanitizer.push(data)
     this.appendOutput(sanitized.text)
     if (sanitized.prompt) {
@@ -398,6 +413,28 @@ export class LocalPtySession implements TerminalBackendSession {
     }
   }
 
+  private respondToCursorQueries(data: string): void {
+    const input = this.cursorQueryTail + data
+    let offset = 0
+    while (true) {
+      const query = input.indexOf(CURSOR_POSITION_QUERY, offset)
+      if (query < 0) break
+      offset = query + CURSOR_POSITION_QUERY.length
+      if (!this.closing && this.statusValue.kind === 'running') {
+        void this.terminal.write(CURSOR_POSITION_RESPONSE).catch((error: unknown) => {
+          if (!this.closing) this.onTransportFailure(error)
+        })
+      }
+    }
+    this.cursorQueryTail = ''
+    for (let length = Math.min(CURSOR_POSITION_QUERY.length - 1, input.length); length > 0; length -= 1) {
+      if (input.endsWith(CURSOR_POSITION_QUERY.slice(0, length))) {
+        this.cursorQueryTail = input.slice(-length)
+        break
+      }
+    }
+  }
+
   private async onExit(outcome: SubprocessOutcome): Promise<void> {
     await this.outputEnded.promise
     if (this.transportFailure !== undefined) return
@@ -406,6 +443,7 @@ export class LocalPtySession implements TerminalBackendSession {
   }
 
   private onTransportFailure(error: unknown): void {
+    this.firstOutput.resolve()
     const failure = error instanceof Error ? error : new Error(String(error))
     this.transportFailure ??= failure
     this.statusValue = { kind: 'exited', exitCode: null, signal: null }

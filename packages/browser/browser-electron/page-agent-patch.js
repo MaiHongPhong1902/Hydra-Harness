@@ -1,7 +1,7 @@
 // @ts-check
 // Applies Hydra's PageAgent patch for Vite without changing the submodule's files or index.
 import { execFileSync } from 'node:child_process'
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { mkdtempSync, readFileSync, realpathSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { normalizePath } from 'vite'
@@ -35,7 +35,8 @@ export function pageAgentPatch(sourceDir, patchPath) {
           if (current !== patched && current !== git(['show', `HEAD:${file}`])) {
             throw new Error(`PageAgent patch conflicts with local edits in ${file}; update page-agent.patch first`)
           }
-          sources.set(normalizePath(join(sourceDir, file)), patched)
+          // Vite resolves imports to physical paths, including Windows short names.
+          sources.set(normalizePath(realpathSync.native(join(sourceDir, file))), patched)
         }
       } finally {
         rmSync(temporary, { recursive: true, force: true })

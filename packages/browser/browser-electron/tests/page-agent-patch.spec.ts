@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process'
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { build } from 'vite'
@@ -10,9 +10,16 @@ const { pageAgentPatch } = await import(new URL('../page-agent-patch.js', import
   pageAgentPatch: (sourceDir: string, patchPath: string) => Plugin
 }
 
-it('bundles patched TypeScript and inline CSS without changing source or the real Git index', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'page-agent-patch-test-'))
-  onTestFinished(() => { rmSync(root, { recursive: true, force: true }) })
+it.each([false, true])('bundles patched TypeScript and inline CSS without changing source or the real Git index (alias: %s)', async (alias) => {
+  const temporary = mkdtempSync(join(tmpdir(), 'page-agent-patch-test-'))
+  const root = join(temporary, 'source')
+  mkdirSync(root)
+  const sourceDir = alias ? join(temporary, 'alias') : root
+  if (alias) symlinkSync(root, sourceDir, process.platform === 'win32' ? 'junction' : 'dir')
+  onTestFinished(() => {
+    if (alias) unlinkSync(sourceDir)
+    rmSync(temporary, { recursive: true, force: true })
+  })
   const git = (...args: string[]) => execFileSync('git', args, { cwd: root, windowsHide: true, encoding: 'utf8' })
   const source = join(root, 'mask.ts')
   const css = join(root, 'cursor.module.css')
@@ -38,7 +45,7 @@ it('bundles patched TypeScript and inline CSS without changing source or the rea
   const originalSource = readFileSync(source)
   const originalCss = readFileSync(css)
   const bundle = (extra: Plugin[] = []) => build({
-    root, configFile: false, logLevel: 'silent', plugins: [pageAgentPatch(root, patch), ...extra],
+    root, configFile: false, logLevel: 'silent', plugins: [pageAgentPatch(sourceDir, patch), ...extra],
     build: { write: false, minify: false, lib: { entry: join(root, 'entry.ts'), formats: ['es'], fileName: 'fixture' } },
   })
   const assertUntouched = () => {
