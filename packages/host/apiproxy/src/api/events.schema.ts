@@ -68,6 +68,7 @@ export const muxFrameSchema = z.discriminatedUnion('type', [
 
 /** HostFrame union (payload slot of a host-stream ServerRequest). */
 export const hostFrameSchema = z.discriminatedUnion('type', [
+  /* jscpd:ignore-start -- session-added payload mirrors the public session summary schema. */
   z.object({
     type: z.literal('host/session-added'),
     sessionId: sessionIdSchema,
@@ -78,6 +79,7 @@ export const hostFrameSchema = z.discriminatedUnion('type', [
     cwd: z.string().optional(),
     agentPreset: z.string().optional(),
   }),
+  /* jscpd:ignore-end */
   z.object({ type: z.literal('host/session-removed'), sessionId: sessionIdSchema, deleted: z.literal(true).optional() }),
   z.object({ type: z.literal('host/session-status'), sessionId: sessionIdSchema, running: z.boolean() }),
   z.object({ type: z.literal('host/agent-error'), sessionId: sessionIdSchema, message: z.string() }),

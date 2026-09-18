@@ -83,6 +83,22 @@ export function appendLog(session: Session, events: readonly SessionEvent[]): vo
  */
 export function runPersistenceContract(name: string, make: () => Promise<ContractBackend>): void {
   describe(`SessionPersistence contract: ${name}`, () => {
+    it('preserves a current user-aborted turn during reload', async () => {
+      const { persistence, dispose } = await make()
+      try {
+        const m = meta('user-aborted')
+        const log: SessionEvent[] = [
+          { type: 'turn/start', seq: 0, time: 1, data: { turn: 1 } },
+          { type: 'turn/end', seq: 1, time: 2, data: { turn: 1, reason: { kind: 'aborted', reason: { kind: 'user' } } } },
+        ]
+        await persistence.create(m)
+        await persistence.append(m.id, log)
+        expect((await persistence.load(m.id)).events).toEqual(log)
+      } finally {
+        await dispose()
+      }
+    })
+
     it('round-trips a session: create + append → load returns identical meta and byte-identical events', async () => {
       const { persistence, dispose } = await make()
       try {
@@ -272,6 +288,28 @@ export function runPersistenceContract(name: string, make: () => Promise<Contrac
         expect((await persistence.list()).map(m => m.id)).not.toContain(SessionId('empty'))
         expect((await persistence.listSnapshots()).map(snapshot => snapshot.header.id))
           .not.toContain(SessionId('empty'))
+      } finally {
+        await dispose()
+      }
+    })
+
+    it('delete() preserves a log while a pending or open write handle owns it', async () => {
+      const { persistence, dispose } = await make()
+      try {
+        const m = meta('owned-delete', '/work')
+        const log = oneTurnLog()
+        await persistence.create(m)
+        await persistence.append(m.id, log)
+        const opening = persistence.open(m.id, 'write')
+        await expect(persistence.delete(m.id)).rejects.toThrow('open write handle')
+        const writer = await opening
+        await expect(persistence.delete(m.id)).rejects.toThrow('open write handle')
+        expect((await writer.read()).events).toEqual(log)
+        await writer.close()
+        const reader = await persistence.open(m.id)
+        await persistence.delete(m.id)
+        expect(await persistence.list()).toEqual([])
+        await reader.close()
       } finally {
         await dispose()
       }

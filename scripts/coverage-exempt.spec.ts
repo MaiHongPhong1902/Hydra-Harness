@@ -6,6 +6,7 @@
  */
 
 import { globSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { coverageExemptHeavySuites } from './coverage-exempt.ts'
@@ -33,6 +34,23 @@ function filterMatches(filter: string): string[] {
 }
 
 describe('coverage-exempt roster', () => {
+  it.each(['', '1'])('selects native Electron independently of host source coverage with exemption mode %j', (mode) => {
+    const output = execFileSync(process.execPath, ['--import', 'tsx/esm', '--input-type=module', '--eval', `
+      import config from './vitest.config.ts';
+      console.log(JSON.stringify({
+        projects: config.test.projects.map(project => project.test.exclude),
+        coverageExcludes: config.test.coverage.exclude,
+      }));
+    `], { cwd: root, env: { ...process.env, HYDRA_COVERAGE_EXEMPT_HEAVY: mode }, encoding: 'utf8', windowsHide: true })
+    const config = JSON.parse(output) as { projects: string[][]; coverageExcludes: string[] }
+    const nativeSuite = 'packages/browser/browser-electron/tests/electron.spec.ts'
+    expect(config.projects).toHaveLength(2)
+    for (const excludes of config.projects) {
+      expect(excludes.includes(nativeSuite)).toBe(mode === '1')
+    }
+    expect(config.coverageExcludes).not.toContain('packages/browser/browser-electron/src/**/*.ts')
+  })
+
   it.each(coverageExemptHeavySuites.map(suite => [suite.filter, suite] as const))(
     'filter and exclude select the same non-empty spec set for %s',
     (_filter, suite) => {

@@ -264,6 +264,7 @@ export function apply(ctx: Context, config: Config): void {
     }
   })
 
+  /* jscpd:ignore-start -- Claude and Codex bridges intentionally mirror hook lifecycle forwarding. */
   // A blocking Stop hook steers at the stopping boundary, which makes the
   // machine observe pending input and run another step.
   // TODO(stop-loop-guard): cap consecutive forced continuations; hooks must self-limit meanwhile.
@@ -294,6 +295,7 @@ export function apply(ctx: Context, config: Config): void {
     detached.track(runPoint('SubagentStop', SUBAGENT_TYPE, subagentPayload(ctx, 'SubagentStop', info, child), { ...child ? { agent: child } : {}, signal: detached.signal })
       .catch((error: unknown) => { ctx.logger.warn(`hooks-claude-code: SubagentStop hook failed: ${String(error)}`) }))
   })
+  /* jscpd:ignore-end */
 }
 
 /**

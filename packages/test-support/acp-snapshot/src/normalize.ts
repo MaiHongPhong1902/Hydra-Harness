@@ -1,6 +1,6 @@
 /**
  * Pure ACP transcript and session-log normalizers. They scrub session ids, run cwd, RPC ids,
- * timestamps and hook duration while preserving event payloads.
+ * timestamps, hook duration, and LLM diagnostic latency while preserving other payloads.
  * Request-header scrubbers stay composable so one scenario per header class can pin prompt and
  * tool-schema sidecars.
  * @module @hydra/harness-acp-snapshot/normalize
@@ -47,7 +47,7 @@ const LOCAL_SPILL_PATH_RE = new RegExp(
   'g',
 )
 const SNAPSHOT_SPILL_PATH_RE = new RegExp(
-  String.raw`(?:[A-Za-z]:)?[\\/](?:tmp|t)[\\/](?:hydra-acp-snap-[0-9a-f]{9}|hydra-acp-snapshot-spill)[\\/]session-[0-9a-f]{12}[\\/][0-9a-f]{12}-([A-Za-z0-9._~-]+?)`
+  String.raw`(?:[A-Za-z]:)?[\\/]{1,2}(?:tmp|t)[\\/]{1,2}(?:hydra-acp-snap-[0-9a-f]{9}|hydra-acp-snapshot-spill)[\\/]{1,2}session-[0-9a-f]{12}[\\/]{1,2}[0-9a-f]{12}-([A-Za-z0-9._~-]+?)`
   + String.raw`(?=\. Use read with offset/limit|[\s)]|$)`,
   'g',
 )
@@ -64,7 +64,9 @@ export function extractSnapshotSpillPaths(content: string): Map<string, string> 
     const name = match[1]
     /* v8 ignore next -- the filename capture is required and non-empty whenever the spill regex matches */
     if (name === undefined) continue
-    result.set(name, match[0])
+    // Raw JSONL doubles Windows separators inside string values. Return the
+    // decoded path so fixture replacements can escape it exactly once.
+    result.set(name, match[0].replaceAll('\\\\', '\\'))
   }
   return result
 }
@@ -146,7 +148,14 @@ function replaceCwdSpelling(value: string, spelling: string, replacement: string
 /** Replace every known cwd spelling with one stable token. */
 function replaceCwd(value: string, ctx: NormalizeContext, replacement: string): string {
   let out = value
-  for (const spelling of cwdSpellings(ctx)) out = replaceCwdSpelling(out, spelling, replacement)
+  for (const spelling of cwdSpellings(ctx)) {
+    out = replaceCwdSpelling(out, spelling, replacement)
+    // Tool results can carry a JSON document as text. Its Windows path is
+    // escaped once more, so scrub that representation before path projection.
+    if (spelling.includes('\\')) {
+      out = replaceCwdSpelling(out, spelling.replaceAll('\\', '\\\\'), replacement)
+    }
+  }
   return out
 }
 
@@ -164,7 +173,7 @@ function scrubString(value: string, ctx: NormalizeContext, cwdPathMode: CwdPathM
   if (cwdPathMode === 'canonical') {
     // Restrict separator conversion to paths rooted at the cwd token. A global
     // backslash rewrite would corrupt regexes, commands, and model-authored text.
-    out = out.replace(CWD_ROOTED_PATH_RE, path => path.replaceAll('\\', '/'))
+    out = out.replace(CWD_ROOTED_PATH_RE, path => path.replace(/\\{1,2}/g, '/'))
     out = canonicalizeEmbeddedPaths(out)
   }
   out = out.replace(LOCAL_SPILL_PATH_RE, (_match, name: string) => `{{spillLocator:${name}}}`)
@@ -301,7 +310,8 @@ export function normalizeStdout(
  * Normalize a session JSONL log into a stable expected output: the header line's
  * volatile fields (`createdAt`, `id`, `cwd`) are zeroed/scrubbed, ordinary
  * event `time` and packed-row `time0` values are zeroed, and all volatile
- * strings are scrubbed. Projected inputs remain projected. Packed `data.dt`
+ * strings are scrubbed. Hook durations and LLM first-output/end latencies are
+ * zeroed only on their owning event types. Projected inputs remain projected. Packed `data.dt`
  * gaps are normalized even when the projected row omits its `time0` anchor.
  * Output is JSONL in the same shape as the input — one compact record per
  * line.
@@ -334,6 +344,13 @@ export function normalizeSessionLog(
     if (record.type === 'hook/result' && record.data !== null && typeof record.data === 'object') {
       const data = record.data as Record<string, unknown>
       if ('durationMs' in data) data.durationMs = 0
+    }
+    if ((record.type === 'llm/call-first-output' || record.type === 'llm/call-end')
+      && record.data !== null && typeof record.data === 'object') {
+      const data = record.data as Record<string, unknown>
+      for (const key of ['elapsedMs', 'firstOutputMs', 'firstTextMs']) {
+        if (key in data) data[key] = 0
+      }
     }
     return scrubValue(record, ctx, cwdPathMode) as Record<string, unknown>
   })

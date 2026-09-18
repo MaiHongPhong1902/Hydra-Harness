@@ -61,6 +61,8 @@ The example also ships a `cordis.snapshot.yml` replay overlay next to its `cordi
 
 Constraints: `suite.ts` and `harness.ts` import vitest (the harness polls its durable-boundary waits through `vi.waitFor`), so the package entry is importable only inside a vitest run (the launcher and normalizers have no such dependency but ship from the same entry). The launcher and suite factory are ACP-specific by design — the launcher speaks the SDK's `ClientSideConnection` — while the normalizers are transport-neutral session-log/text helpers also consumed by the JSON-RPC and Web snapshot recorders. Input scripts cover initialization, fresh-session creation, shorthand text prompts, exact structured ACP prompt blocks, cancellation, expected RPC failures, and durable turn-boundary waits. Permission round-trips are a FIFO queue of option-kind selections (`allow_once`, `reject_once`, …) mapped to the agent-issued `optionId`; an absent or exhausted queue answers `cancelled`, and an unoffered kind rejects the run.
 
+Session normalization zeroes `elapsedMs`, `firstOutputMs`, and `firstTextMs` only on `llm/call-first-output` and `llm/call-end`; absent fields, outcomes, and call references remain intact. Cwd replacement recognizes JSON-escaped Windows paths inside tool-result text. Refresh escapes replacement values for their JSONL representation so inserted events retain portable paths even when the old record layout cannot be reused.
+
 ## Model Experience
 
 None, as this test-only harness records, normalizes, and compares ACP transcripts without changing the agent's assembled model request.

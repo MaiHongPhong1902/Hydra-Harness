@@ -74,7 +74,7 @@
           },
           "target": {
             "type": "string",
-            "description": "Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name."
+            "description": "Observed Playwright ref (e17) or a unique CSS selector. To reach inside an <iframe> (including cross-origin), chain selectors with \" >> \": \"iframeSelector >> innerSelector\" (repeat to nest further). Use instead of index/name."
           },
           "tab_id": {
             "type": "integer",
@@ -239,7 +239,7 @@
                 },
                 "target": {
                   "type": "string",
-                  "description": "Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name."
+                  "description": "Observed Playwright ref (e17) or a unique CSS selector. To reach inside an <iframe> (including cross-origin), chain selectors with \" >> \": \"iframeSelector >> innerSelector\" (repeat to nest further). Use instead of index/name."
                 },
                 "text": {
                   "type": "string",
@@ -284,7 +284,7 @@
                 },
                 "target": {
                   "type": "string",
-                  "description": "Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name."
+                  "description": "Observed Playwright ref (e17) or a unique CSS selector. To reach inside an <iframe> (including cross-origin), chain selectors with \" >> \": \"iframeSelector >> innerSelector\" (repeat to nest further). Use instead of index/name."
                 },
                 "text": {
                   "type": "string",
@@ -400,7 +400,7 @@
           },
           "target": {
             "type": "string",
-            "description": "Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name."
+            "description": "Observed Playwright ref (e17) or a unique CSS selector. To reach inside an <iframe> (including cross-origin), chain selectors with \" >> \": \"iframeSelector >> innerSelector\" (repeat to nest further). Use instead of index/name."
           },
           "tab_id": {
             "type": "integer",
@@ -715,7 +715,7 @@
           },
           "target": {
             "type": "string",
-            "description": "Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name."
+            "description": "Observed Playwright ref (e17) or a unique CSS selector. To reach inside an <iframe> (including cross-origin), chain selectors with \" >> \": \"iframeSelector >> innerSelector\" (repeat to nest further). Use instead of index/name."
           },
           "text": {
             "type": "string",
@@ -747,7 +747,7 @@
           },
           "target": {
             "type": "string",
-            "description": "Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name."
+            "description": "Observed Playwright ref (e17) or a unique CSS selector. To reach inside an <iframe> (including cross-origin), chain selectors with \" >> \": \"iframeSelector >> innerSelector\" (repeat to nest further). Use instead of index/name."
           },
           "start_x": {
             "type": "number",
@@ -784,7 +784,7 @@
           },
           "target": {
             "type": "string",
-            "description": "Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name."
+            "description": "Observed Playwright ref (e17) or a unique CSS selector. To reach inside an <iframe> (including cross-origin), chain selectors with \" >> \": \"iframeSelector >> innerSelector\" (repeat to nest further). Use instead of index/name."
           },
           "depth": {
             "type": "integer",
@@ -887,7 +887,7 @@
           },
           "target": {
             "type": "string",
-            "description": "Observed Playwright ref (e17) or a unique CSS selector. Use instead of index/name."
+            "description": "Observed Playwright ref (e17) or a unique CSS selector. To reach inside an <iframe> (including cross-origin), chain selectors with \" >> \": \"iframeSelector >> innerSelector\" (repeat to nest further). Use instead of index/name."
           },
           "text": {
             "type": "string",

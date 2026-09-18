@@ -192,12 +192,14 @@ export function resolveProfiles(
           throw new Error(`llm-account-auth: provider "${provider}" model "${model.id}" ${field} must be a positive integer`)
         }
       }
+      /* jscpd:ignore-start -- account profile and runtime discovery use the same normalized model row. */
       return {
         id: model.id,
         ...model.name === undefined ? {} : { name: model.name },
         ...model.contextWindow === undefined ? {} : { contextWindow: model.contextWindow },
         ...model.maxTokens === undefined ? {} : { maxTokens: model.maxTokens },
       }
+      /* jscpd:ignore-end */
     })
     resolved.set(provider as AccountProvider, {
       ...rest,

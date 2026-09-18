@@ -95,6 +95,7 @@ function antigravityOAuthOptions(profile: AccountProviderProfile): {
   }
 }
 
+/* jscpd:ignore-start -- account routing reuses the core replay sanitization intentionally. */
 function withoutAccountReplay(options: GenerateOptions): GenerateOptions {
   const messages = options.messages.map((message): Message => {
     const source = message.source
@@ -108,6 +109,7 @@ function withoutAccountReplay(options: GenerateOptions): GenerateOptions {
   const filtered = { ...options, messages }
   return Object.isFrozen(options) ? deepFreeze(filtered) : filtered
 }
+/* jscpd:ignore-end */
 
 /**
  * Run one account order and retry only failures seen before visible output.

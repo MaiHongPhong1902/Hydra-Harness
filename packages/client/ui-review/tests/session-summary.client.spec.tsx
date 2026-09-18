@@ -111,10 +111,13 @@ const host = {
 
 type RenderOptions = {
   review?: ReviewSnapshot
-  historyNodes?: typeof nodes
+  historyNodes?: readonly unknown[]
   hasMore?: boolean
   hostDescription?: unknown
   sessionValue?: unknown
+  relatedSessions?: SessionListState['byId']
+  workspaceItems?: WorkspaceListState['items']
+  refreshWorkspace?: (() => Promise<void>) | undefined
 }
 
 function renderSummary(options: RenderOptions = {}) {
@@ -122,24 +125,28 @@ function renderSummary(options: RenderOptions = {}) {
     review = baseReview,
     historyNodes = nodes,
     hasMore = true,
-    sessionValue = session,
   } = options
+  const sessionValue = 'sessionValue' in options ? options.sessionValue : session
   const hostDescription = 'hostDescription' in options ? options.hostDescription : host
   const refreshWorkspace = vi.fn()
-  const sessions = { byId: { [sessionId]: sessionValue } } as unknown as SessionListState
-  const workspaces = { items: [workspace] } as unknown as WorkspaceListState
+  const refresh = vi.fn()
+  const sessions = {
+    byId: { ...options.relatedSessions, ...sessionValue === undefined ? {} : { [sessionId]: sessionValue } },
+  } as unknown as SessionListState
+  const workspaces = { items: options.workspaceItems ?? [workspace] } as unknown as WorkspaceListState
   const props = {
     sessionId,
     useSession: hook({ chat: { legacy: { nodes: historyNodes } }, hasMore }),
     useSessions: hook(sessions),
     useWorkspaces: hook(workspaces),
     useReview: hook(review),
-    refreshWorkspace,
+    refreshWorkspace: 'refreshWorkspace' in options ? options.refreshWorkspace : refreshWorkspace,
+    refresh,
     useHostDescription: <T,>(selector: (description: unknown) => T) => selector(hostDescription),
   } as unknown as ComponentProps<typeof SessionSummaryAction>
   const ui = render(<SessionSummaryAction {...props} />)
   const trigger = screen.getByRole('button', { name: 'Session summary' })
-  return { ui, trigger, refreshWorkspace }
+  return { ui, trigger, refreshWorkspace, refresh }
 }
 
 function openSummary() {
@@ -150,6 +157,121 @@ function openSummary() {
 }
 
 describe('SessionSummaryAction', () => {
+  it.each(['unstaged', 'staged', 'committed', 'branch'] as const)('labels the %s comparison and refreshes it', (mode) => {
+    const { refresh } = renderSummary({ review: { ...baseReview, workspace: { ...baseReview.workspace!, mode } } })
+    const { dialog } = openSummary()
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Refresh summary' }))
+    expect(refresh).toHaveBeenCalledOnce()
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Changes' }))
+    expect(within(dialog).getByText(mode === 'committed' ? 'Commit' : `${mode[0]!.toUpperCase()}${mode.slice(1)}`)).toBeTruthy()
+  })
+
+  it.each(['workspace', 'file'] as const)('reports incomplete counts when the %s diff is truncated', (level) => {
+    renderSummary({ review: { ...baseReview, workspace: {
+      ...baseReview.workspace!, branch: null, commits: [], truncated: level === 'workspace',
+      files: level === 'file' ? [{ ...gitFiles[0]!, truncated: true }] : [],
+    } } })
+    const { dialog } = openSummary()
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Changes' }))
+    expect(dialog.textContent).toContain('counts may be incomplete')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Detached HEAD' }))
+    expect(within(dialog).getByText('Branch')).toBeTruthy()
+    expect(within(dialog).queryByText('Recent commits')).toBeNull()
+  })
+
+  it.each(['loading', 'unavailable', 'non-git', 'error'] as const)('keeps expanded review details readable when %s', (state) => {
+    renderSummary({ review: {
+      ...baseReview,
+      workspace: state === 'non-git' ? { ...baseReview.workspace!, repository: null } : null,
+      workspaceLoading: state === 'loading', loading: state === 'loading',
+      workspaceError: state === 'error' ? 'Git failed' : null,
+    } })
+    const { dialog } = openSummary()
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Changes' }))
+    const changesText = { loading: 'Loading changes', unavailable: 'Workspace review is unavailable', 'non-git': 'not a Git repository', error: 'Git failed' }
+    expect(dialog.textContent).toContain(changesText[state])
+    if (state === 'loading') expect(dialog.textContent).toContain('Loading session edits')
+    const branchLabel = state === 'loading' ? 'Loading branch…' : state === 'non-git' ? 'No Git repository' : 'Branch unavailable'
+    fireEvent.click(within(dialog).getByRole('button', { name: branchLabel }))
+    const gitText = { loading: 'Loading repository', unavailable: 'Repository information is unavailable', 'non-git': 'not a Git repository', error: 'Git failed' }
+    expect(dialog.textContent).toContain(gitText[state])
+  })
+
+  it.each([true, false])('falls back to session cwd and reports running=%s without a registered workspace', (running) => {
+    renderSummary({ sessionValue: { ...session, running, completed: false }, workspaceItems: [{ ...workspace, path: '/elsewhere', sessionIds: [] }] })
+    const { dialog } = openSummary()
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Local' }))
+    expect(within(dialog).getByText('/work')).toBeTruthy()
+    expect(within(dialog).getByText(running ? 'Running' : 'Idle')).toBeTruthy()
+  })
+
+  it('matches an unassigned workspace by cwd and tolerates absent session metadata', () => {
+    renderSummary({ workspaceItems: [{ ...workspace, sessionIds: [] }] })
+    let dialog = openSummary().dialog
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Local' }))
+    expect(within(dialog).getByText('/work')).toBeTruthy()
+    cleanup()
+    renderSummary({
+      sessionValue: undefined,
+      workspaceItems: [{ ...workspace, sessionIds: [] }],
+      refreshWorkspace: undefined,
+      hostDescription: undefined,
+    })
+    dialog = openSummary().dialog
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Local' }))
+    expect(within(dialog).getAllByText('Unavailable')).toHaveLength(7)
+    expect(within(dialog).getByText('Idle')).toBeTruthy()
+  })
+
+  it.each([1, 3])('lists %s child agents with their current statuses', (count) => {
+    const children = [
+      { ...session, id: 'running-child', displayTitle: 'Active child', parentId: sessionId, running: true },
+      { ...session, id: 'done-child', displayTitle: 'Done child', parentId: sessionId },
+      { ...session, id: 'idle-child', displayTitle: 'Idle child', parentId: sessionId, completed: false },
+    ].slice(0, count)
+    renderSummary({ relatedSessions: Object.fromEntries(children.map(child => [child.id, child])) as unknown as SessionListState['byId'] })
+    const { dialog } = openSummary()
+    const toggle = within(dialog).getByRole('button', { name: new RegExp(`^${count} ${count === 1 ? 'subagent' : 'subagents'}.*1 running$`) })
+    fireEvent.click(toggle)
+    expect(dialog.textContent).toContain('Active child · Running')
+    if (count === 3) {
+      expect(dialog.textContent).toContain('Done child · Completed')
+      expect(dialog.textContent).toContain('Idle child · Idle')
+    }
+    fireEvent.click(toggle)
+    expect(toggle.getAttribute('aria-expanded')).toBe('false')
+  })
+
+  it('collects sources only from input nodes and uses the image fallback name', () => {
+    renderSummary({ historyNodes: [
+      { kind: 'assistant', content: [file('ignored', 'ignored.txt')] },
+      { kind: 'user', content: [{ type: 'text', text: 'No attachment' }] },
+      { kind: 'steering', content: [file('source', 'notes.md')] },
+      { kind: 'context', content: [{ type: 'image', attachment: { attachmentId: 'image' } }] },
+    ] })
+    const { dialog } = openSummary()
+    expect(within(dialog).queryByText('ignored.txt')).toBeNull()
+    expect(within(dialog).getByText('notes.md')).toBeTruthy()
+    expect(within(dialog).getByText('Image')).toBeTruthy()
+  })
+
+  it('keeps inside interactions open and dismisses only when focus leaves both panel and trigger', () => {
+    const { trigger } = renderSummary()
+    const { dialog } = openSummary()
+    fireEvent.pointerDown(dialog)
+    fireEvent.pointerDown(trigger)
+    fireEvent.keyDown(document, { key: 'ArrowDown' })
+    const escape = new KeyboardEvent('keydown', { key: 'Escape', cancelable: true, bubbles: true })
+    escape.preventDefault()
+    fireEvent(document, escape)
+    fireEvent.blur(dialog, { relatedTarget: null })
+    fireEvent.blur(dialog, { relatedTarget: within(dialog).getByRole('button', { name: 'Local' }) })
+    fireEvent.blur(dialog, { relatedTarget: trigger })
+    expect(screen.getByRole('dialog')).toBe(dialog)
+    fireEvent.blur(dialog, { relatedTarget: document.body })
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
   it('opens an anchored overview and expands changes, local details, Git, and sources', () => {
     const { refreshWorkspace } = renderSummary()
     const { dialog, trigger } = openSummary()
@@ -194,8 +316,8 @@ describe('SessionSummaryAction', () => {
     expect(within(dialog).queryByRole('button', { name: /View all/u })).toBeNull()
     expect(dialog.textContent).toContain('Only loaded messages are included.')
 
-    expect(within(dialog).getByRole('button', { name: 'Commit or push' }).disabled).toBe(true)
-    expect(within(dialog).getByRole('button', { name: 'Create pull request' }).disabled).toBe(true)
+    expect(within(dialog).getByRole('button', { name: 'Commit or push' }).hasAttribute('disabled')).toBe(true)
+    expect(within(dialog).getByRole('button', { name: 'Create pull request' }).hasAttribute('disabled')).toBe(true)
   })
 
   it('keeps loading, errors, and absent workspace data distinguishable', () => {

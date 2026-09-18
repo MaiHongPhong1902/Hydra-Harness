@@ -1351,6 +1351,7 @@ export function BrowserSection({
         className={css.managerDialog ?? ''}
         contentClassName={css.managerContent ?? ''}
       >
+        {/* jscpd:ignore-start -- inline and modal site managers intentionally mirror the same controls. */}
         <div className={css.managerHeading}>
           <p>{t('browser.sitePermissionsDescription')}</p>
           <Action label={`+ ${t('browser.add')}`} disabled={unavailable || busy} onClick={() => { openSiteEditor() }} />
@@ -1380,6 +1381,7 @@ export function BrowserSection({
           />
         ) : null}
       </Modal>
+      {/* jscpd:ignore-end */}
 
       <Modal
         open={siteDraft !== undefined}

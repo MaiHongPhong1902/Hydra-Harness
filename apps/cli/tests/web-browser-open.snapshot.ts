@@ -83,8 +83,8 @@ describe.skipIf(!builtArtifactsExist)('hydra web browser-open assembled snapshot
       {
         "apiKeyPresent": false,
         "bootManifest": true,
-        "hydraHomePresent": false,
         "exitCode": 0,
+        "hydraHomePresent": false,
         "openedUrl": "http://127.0.0.1:{{port}}",
         "opening": true,
         "readyUrl": "http://127.0.0.1:{{port}}",

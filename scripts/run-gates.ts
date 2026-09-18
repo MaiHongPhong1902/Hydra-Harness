@@ -580,6 +580,21 @@ function coverageGates(): Gate[] {
     ], {
       label: 'test:coverage-exempt-heavy',
     }),
+    pnpmExec('electron-correctness', [
+      'vitest',
+      'run',
+      'packages/browser/browser-electron/tests/electron.spec.ts',
+      '--pool=forks',
+      '--maxWorkers=1',
+    ], {
+      label: 'Electron browser correctness',
+      // Native Chromium timing is sensitive to the instrumented and compiler
+      // workers. Run it after both coverage lanes so readiness observes the
+      // page's actual hydration window instead of a CPU-starved one. `after`
+      // preserves that ordering while still reporting native failures when a
+      // separate coverage lane fails.
+      after: ['coverage', 'coverage-exempt-heavy'],
+    }),
   ]
 }
 

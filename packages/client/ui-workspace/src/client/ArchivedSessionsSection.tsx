@@ -68,7 +68,6 @@ export function ArchivedSessionsSection({
   const [deleteTarget, setDeleteTarget] = useState<{ id: SessionId; title: string } | null>(null)
 
   const restore = async (sessionId: SessionId): Promise<void> => {
-    if (restoring !== undefined) return
     setRestoring(sessionId)
     setError(undefined)
     try {

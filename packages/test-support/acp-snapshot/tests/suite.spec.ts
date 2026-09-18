@@ -863,6 +863,20 @@ describe('refreshFixtureReplacements', () => {
     ])
   })
 
+  it('stabilizes JSON-escaped Windows snapshot spill paths', () => {
+    const fresh = String.raw`C:\t\hydra-acp-snap-012345678\session-aaaaaaaaaaaa\bbbbbbbbbbbb-bash.txt`
+    const existing = '/tmp/hydra-acp-snap-012345678/session-cccccccccccc/dddddddddddd-bash.txt'
+    const log = (spill: string): HarvestedLog => ({
+      id: 'diagnostic',
+      createdAt: 1,
+      content: `${JSON.stringify({ type: 'session', id: 'same', cwd: '/same' })}\n`
+        + `${JSON.stringify({ type: 'tool/result', data: { text: `stored at: ${spill} ` } })}\n`,
+    })
+    expect(refreshFixtureReplacements([log(fresh)], [log(existing).content])).toEqual([
+      { from: fresh, to: existing },
+    ])
+  })
+
   it('leaves complete message ids out of the literal refresh replacement list', () => {
     const freshMessageId = '11111111-1111-4111-8111-111111111111'
     const existingMessageId = '22222222-2222-4222-8222-222222222222'
@@ -1209,6 +1223,21 @@ describe('stabilizeRefreshLog', () => {
         },
       },
     ])
+  })
+
+  it('replaces JSON-escaped cwd paths even when a new event changes the fixture layout', () => {
+    const cwd = String.raw`C:\Users\runner\Temp\acp-snap-new`
+    const fresh = [
+      JSON.stringify({ type: 'session', id: 'same', cwd }),
+      JSON.stringify({ type: 'user/message', data: { text: `Skill base: ${cwd}\\skills\\example` } }),
+      '',
+    ].join('\n')
+    const existing = '{"type":"session","id":"same","cwd":"{{cwd}}"}\n'
+    expect(stabilize(fresh, existing, [{ from: cwd, to: '{{cwd}}' }])).toBe([
+      existing.trim(),
+      JSON.stringify({ type: 'user/message', data: { text: String.raw`Skill base: {{cwd}}\skills\example` } }),
+      '',
+    ].join('\n'))
   })
 
   it('normalizes fresh cwd aliases before reusing existing paths', () => {

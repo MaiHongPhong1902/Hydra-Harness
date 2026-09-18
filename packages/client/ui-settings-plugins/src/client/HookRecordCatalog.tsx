@@ -124,6 +124,7 @@ function statusLabel(record: HookRecord, t: (key: PluginsSettingsLocaleKey) => s
   }
 }
 
+/* jscpd:ignore-start -- hook and MCP catalogs intentionally mirror lifecycle controls. */
 /**
  * Render the user's own hook records with their write controls.
  * @param props.controls - the Host record operations.
@@ -395,3 +396,4 @@ export function HookRecordCatalog({ active = true, controls, query, t }: {
     </section>
   )
 }
+/* jscpd:ignore-end */

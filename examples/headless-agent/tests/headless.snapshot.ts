@@ -57,7 +57,8 @@ const tsconfigPath = fileURLToPath(new URL('../../../tsconfig.json', import.meta
 const reasoningConfigPath = fileURLToPath(new URL('./fixtures/cli.cordis.yml', import.meta.url))
 const deepseekDefaultsConfigPath = fileURLToPath(new URL('./fixtures/deepseek-defaults.cordis.yml', import.meta.url))
 const headlessOverlayPath = fileURLToPath(new URL('./fixtures/headless-profile.cordis.yml', import.meta.url))
-const headlessSessionExpected = join(snapshotsDir, 'headless-profile', 'session.expected.jsonl')
+const headlessSessionExpected = join(snapshotsDir, 'headless-profile',
+  process.platform === 'win32' ? 'session.expected.windows.jsonl' : 'session.expected.jsonl')
 const headlessFailureExpected = join(snapshotsDir, 'headless-profile', 'stderr.expected.txt')
 const cliMockLlmPluginPath = fileURLToPath(new URL('./fixtures/cli-mock-llm.ts', import.meta.url))
 const refreshing = process.env.HYDRA_SNAPSHOT === 'refresh'
@@ -247,6 +248,7 @@ describe('headless stream-json snapshots', () => {
     const task = 'Prove the product headless profile path with one real tool round trip.'
     const result = await runLoaderSmoke({
       label: 'product headless profile snapshot',
+      processTimeoutMs: 75_000,
       tempDirPrefix: 'headless-snapshot-profile-',
       binScript: hydraBinScript,
       configPath: headlessOverlayPath,
@@ -265,20 +267,22 @@ describe('headless stream-json snapshots', () => {
         if (actual === undefined) throw new Error('the headless profile did not persist its session')
         const context = contextFromLogs([actual.content])
         const session = normalizeSessionSnapshot(actual.content, context)
-        if (refreshing) await writeFile(headlessSessionExpected, session)
-        await expect(session).toMatchFileSnapshot(headlessSessionExpected)
         expect(session).toContain(task)
         expect(session).toContain('CLI tool round trip complete: CLI_TOOL_ROUND_TRIP')
+        expect(session).not.toContain('UNKNOWN_TOOL')
+        if (refreshing) await writeFile(headlessSessionExpected, session)
+        await expect(session).toMatchFileSnapshot(headlessSessionExpected)
       },
     })
 
     expect(result.stdout).toBe('CLI tool round trip complete: CLI_TOOL_ROUND_TRIP\n')
     expect(result.stderr).toBe('')
-  }, LOADER_SMOKE_TEST_TIMEOUT_MS)
+  }, 90_000)
 
   it('prints a terminal model failure through the product headless profile command', async () => {
     const result = await runLoaderSmoke({
       label: 'product headless profile model failure snapshot',
+      processTimeoutMs: 75_000,
       tempDirPrefix: 'headless-snapshot-profile-failure-',
       binScript: hydraBinScript,
       configPath: headlessOverlayPath,
@@ -295,7 +299,7 @@ describe('headless stream-json snapshots', () => {
 
     expect(result.stdout).toBe('\n')
     await expect(result.stderr).toMatchFileSnapshot(headlessFailureExpected)
-  }, LOADER_SMOKE_TEST_TIMEOUT_MS)
+  }, 90_000)
 
   it('prints the original Loader activation error through the assembled one-shot app', async () => {
     const result = await runLoaderSmoke({

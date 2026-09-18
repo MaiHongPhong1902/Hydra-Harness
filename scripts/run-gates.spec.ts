@@ -145,6 +145,14 @@ describe('gate graph validation', () => {
     expect(byId.get('coverage')?.allowFailure).not.toBe(true)
     expect(byId.get('coverage-exempt-heavy')?.allowFailure).not.toBe(true)
     expect(byId.get('coverage-exempt-heavy')?.needs).toContain('build')
+    expect(byId.get('electron-correctness')?.args).toEqual(expect.arrayContaining([
+      'vitest',
+      'run',
+      'packages/browser/browser-electron/tests/electron.spec.ts',
+      '--pool=forks',
+      '--maxWorkers=1',
+    ]))
+    expect(byId.get('electron-correctness')?.after).toEqual(['coverage', 'coverage-exempt-heavy'])
     expect(observational).not.toHaveLength(0)
     for (const gate of observational) {
       const completeGate = byId.get(gate.id)
@@ -167,6 +175,21 @@ describe('gate graph validation', () => {
         '--expect.poll.timeout=15000',
       ]))
     }
+  })
+
+  it.each(['passed', 'failed'] as const)('runs native Electron only after both %s coverage lanes settle', async (status) => {
+    const graph = withPnpmEntrypoint(() => gatesForMode('ci-coverage'))
+    const settled = new Set<string>()
+    const results = await runGates(graph, graph.length, async (subject) => {
+      if (subject.id === 'electron-correctness') {
+        expect(settled).toEqual(new Set(['coverage', 'coverage-exempt-heavy']))
+        return resultFor(subject)
+      }
+      await new Promise(resolve => setImmediate(resolve))
+      settled.add(subject.id)
+      return resultFor(subject, status)
+    })
+    expect(results.find(result => result.gate.id === 'electron-correctness')?.status).toBe('passed')
   })
 
   it('keeps Vitest timeout defaults when the coverage override is absent', () => {

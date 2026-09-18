@@ -201,6 +201,7 @@ function renderUnifiedLine(line: DiffLine, pair: DiffLine | undefined, props: Di
   ))]
 }
 
+/* jscpd:ignore-start -- unified and split renderers intentionally share diff-run pairing. */
 function splitRows(lines: DiffLine[]): SplitRow[] {
   const rows: SplitRow[] = []
   let index = 0
@@ -229,6 +230,7 @@ function splitRows(lines: DiffLine[]): SplitRow[] {
   }
   return rows
 }
+/* jscpd:ignore-end */
 
 function renderSide(line: DiffLine | null, side: 'old' | 'new', pair: DiffLine | undefined, props: DiffViewProps): ReactNode {
   if (line === null) return <span className={`${css.sideCell ?? ''} ${css.emptySide ?? ''}`} data-side={side} aria-hidden="true" />

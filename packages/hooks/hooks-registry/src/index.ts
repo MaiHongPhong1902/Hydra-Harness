@@ -314,6 +314,7 @@ export class HookRecordRegistry extends Service {
     })
   }
 
+  /* jscpd:ignore-start -- hook and MCP registries intentionally share serialized reconciliation. */
   /** Serialize every mutation and reconciliation on one chain. */
   private enqueue<T>(task: () => Promise<T>): Promise<T> {
     const run = this.tail.then(task, task)
@@ -346,6 +347,7 @@ export class HookRecordRegistry extends Service {
     // observer cannot read a record whose bridge is still loading.
     this.ctx.emit('hooks-registry/reconciled', this.list())
   }
+  /* jscpd:ignore-end */
 
   /**
    * Materialize the record's document when it is inline, then start its
@@ -456,6 +458,7 @@ export class HookRecordRegistry extends Service {
     }
   }
 
+  /* jscpd:ignore-start -- hook and MCP shutdowns intentionally share teardown semantics. */
   /** Refuse new work, then unmount every live record. */
   private async shutdown(): Promise<void> {
     this.stopped = true
@@ -466,6 +469,7 @@ export class HookRecordRegistry extends Service {
       await disposeQuietly(mount.fiber)
     }
   }
+  /* jscpd:ignore-end */
 }
 
 /**

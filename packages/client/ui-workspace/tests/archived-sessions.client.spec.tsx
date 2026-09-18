@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type {
   SessionId, SessionListState, WorkspaceId, WorkspaceListState, WorkspaceView,
 } from '@hydra/harness-client-runtime/client'
@@ -56,6 +56,7 @@ const t: ArchivedSessionsSectionProps['t'] = (key, params) => {
 function mount(
   archivedSessionIds: readonly SessionId[] = [sid('s-two'), sid('s-one')],
   restoreSession = vi.fn(async () => {}),
+  overrides: Partial<ArchivedSessionsSectionProps> = {},
 ) {
   const props = {
     useSessions: hook(sessions()),
@@ -64,8 +65,9 @@ function mount(
     deleteSession: vi.fn(async () => {}),
     t,
     close: vi.fn(),
+    ...overrides,
   } as unknown as ArchivedSessionsSectionProps
-  return { ...render(<ArchivedSessionsSection {...props} />), restoreSession }
+  return { ...render(<ArchivedSessionsSection {...props} />), restoreSession, deleteSession: props.deleteSession }
 }
 
 describe('ArchivedSessionsSection', () => {
@@ -91,8 +93,8 @@ describe('ArchivedSessionsSection', () => {
     await waitFor(() => { expect(button.hasAttribute('disabled')).toBe(false) })
   })
 
-  it('reports a restore failure and remains usable', async () => {
-    const restoreSession = vi.fn(async () => { throw new Error('session unavailable') })
+  it.each([new Error('session unavailable'), 'session unavailable'])('reports a restore failure and remains usable: %s', async (reason) => {
+    const restoreSession = vi.fn(async () => { throw reason })
     mount([sid('s-one')], restoreSession)
     fireEvent.click(screen.getByRole('button', { name: 'Restore session First chat' }))
     expect((await screen.findByRole('alert')).textContent).toBe('Could not restore session: session unavailable')
@@ -103,5 +105,43 @@ describe('ArchivedSessionsSection', () => {
     mount([])
     expect(screen.getByText('No archived sessions')).toBeTruthy()
     expect(screen.queryByRole('list')).toBeNull()
+  })
+
+  it.each(['sessions', 'workspaces'])('waits for pending %s before showing archived rows', (pending) => {
+    mount(undefined, undefined, {
+      useSessions: hook({ ...sessions(), phase: pending === 'sessions' ? 'pending' : 'ready' }),
+      useWorkspaces: hook({ ...workspaceState([sid('s-one')]), phase: pending === 'workspaces' ? 'pending' : 'ready' }),
+    })
+    expect(screen.getByText(t('archive.loading'))).toBeTruthy()
+    expect(screen.queryByRole('list')).toBeNull()
+  })
+
+  it('keeps unknown archived ids visible and uses session cwd when no workspace remains', () => {
+    const state = sessions()
+    const id = sid('s-one')
+    state.byId[id] = { ...state.byId[id]!, cwd: '/previous/workspace' }
+    mount(undefined, undefined, {
+      useSessions: hook(state),
+      useWorkspaces: hook({ ...workspaceState([id, sid('unknown')]), items: [] }),
+    })
+    const rows = screen.getAllByRole('listitem')
+    expect(rows[0]?.textContent).toContain('/previous/workspace')
+    expect(rows[1]?.textContent).toContain('unknown')
+    expect(screen.getAllByText(t('archive.unknownWorkspace'))).toHaveLength(2)
+  })
+
+  it('requires confirmation to delete an archived session and closes the dialog after success', async () => {
+    const { deleteSession } = mount([sid('s-one')])
+    fireEvent.click(screen.getByRole('button', { name: 'Delete session First chat' }))
+    let dialog = screen.getByRole('dialog')
+    expect(dialog.textContent).toContain('First chat')
+    fireEvent.click(within(dialog).getByRole('button', { name: t('cancel') }))
+    expect(deleteSession).not.toHaveBeenCalled()
+    expect(screen.queryByRole('dialog')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Delete session First chat' }))
+    dialog = screen.getByRole('dialog')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Delete session' }))
+    await waitFor(() => { expect(screen.queryByRole('dialog')).toBeNull() })
+    expect(deleteSession).toHaveBeenCalledExactlyOnceWith(sid('s-one'))
   })
 })

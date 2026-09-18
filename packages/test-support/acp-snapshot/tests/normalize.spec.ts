@@ -112,6 +112,17 @@ describe('normalizeStdout', () => {
     })
   })
 
+  it('scrubs cwd inside an embedded JSON tool-result string', () => {
+    const windowsCtx: NormalizeContext = {
+      sessionIds: [],
+      cwd: String.raw`C:\Users\runner\AppData\Local\Temp\acp-snapshot`,
+    }
+    const embedded = JSON.stringify({ path: `${windowsCtx.cwd}\\nested\\proof.txt` })
+    const raw = JSON.stringify({ type: 'tool/result', data: { content: [{ type: 'text', text: embedded }] } })
+    const output = JSON.parse(normalizeSessionLog(raw, windowsCtx)) as { data: { content: { text: string }[] } }
+    expect(output.data.content[0]?.text).toBe('{"path":"{{cwd}}/nested/proof.txt"}')
+  })
+
   it('canonicalizes generated relative path fields and text markers without rewriting other text', () => {
     const raw = JSON.stringify({
       path: String.raw`nested\AGENTS.md`,
@@ -398,6 +409,24 @@ describe('normalizeSessionLog', () => {
     expect(out).toContain('"durationMs":0')
     expect(out).not.toContain('37')
     expect(out).toContain('"decision":"block"') // the decision is the behavior — kept
+  })
+
+  it('zeroes only LLM diagnostic timing while retaining outcomes, references, and field presence', () => {
+    const records = [
+      { type: 'llm/call-first-output', data: { callStartSeq: 7, elapsedMs: 12, kind: 'text' } },
+      { type: 'llm/call-end', data: { callStartSeq: 7, elapsedMs: 32, firstOutputMs: 12, firstTextMs: 15, outcome: 'completed' } },
+      { type: 'llm/call-end', data: { callStartSeq: 8, elapsedMs: 9, outcome: 'error' } },
+      { type: 'llm/call-end', data: null },
+      { type: 'llm/call-end' },
+      { type: 'tool/result', data: { elapsedMs: 32, firstOutputMs: 12, firstTextMs: 15 } },
+    ]
+    const normalized = normalizeSessionLog(records.map(record => JSON.stringify(record)).join('\n'), ctx)
+    expect(normalized.trim().split('\n').map(line => JSON.parse(line) as unknown)).toEqual([
+      { type: 'llm/call-first-output', data: { callStartSeq: 7, elapsedMs: 0, kind: 'text' } },
+      { type: 'llm/call-end', data: { callStartSeq: 7, elapsedMs: 0, firstOutputMs: 0, firstTextMs: 0, outcome: 'completed' } },
+      { type: 'llm/call-end', data: { callStartSeq: 8, elapsedMs: 0, outcome: 'error' } },
+      ...records.slice(3),
+    ])
   })
 
   it('preserves a packed chunk row\'s sequence, zeroes time, and zeroes volatile dt gaps', () => {

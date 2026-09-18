@@ -322,7 +322,8 @@ abstract create(meta: SessionHeader): Promise<void>
 abstract delete(id: SessionId): Promise<void>
 
 /**
- * Open one read channel or claim the single in-process write owner.
+ * Open one read channel or claim the single in-process write owner. Write
+ * ownership includes pending inspection; a failed or cancelled open releases it.
  * @param id - persisted session identifier.
  * @param access - read-only or exclusive write access.
  * @param options - optional cancellation signal.

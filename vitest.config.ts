@@ -110,6 +110,13 @@ const coverageExemptExcludes = coverageExemptRaw === '1'
   ? coverageExemptHeavySuites.map(suite => suite.exclude)
   : []
 
+// Native Electron correctness runs in its own uninstrumented gate. Keeping
+// its suite out of the instrumented lane avoids starting Chromium while V8
+// coverage workers are compiling the workspace.
+const coverageInstrumentedExcludes = coverageExemptRaw === '1'
+  ? ['packages/browser/browser-electron/tests/electron.spec.ts']
+  : []
+
 const coveragePartitionRaw = process.env[COVERAGE_PARTITION_MODE_ENV]
 if (coveragePartitionRaw !== undefined && coveragePartitionRaw !== '' && coveragePartitionRaw !== '1') {
   throw new Error(`vitest config: ${COVERAGE_PARTITION_MODE_ENV} must be '1' or unset, got ${JSON.stringify(coveragePartitionRaw)}.`)
@@ -155,6 +162,7 @@ export default defineConfig({
             ...windowsUnsupportedTests,
             ...processBoundTests,
             ...coverageExemptExcludes,
+            ...coverageInstrumentedExcludes,
           ],
         },
       },
@@ -169,6 +177,7 @@ export default defineConfig({
           exclude: [
             ...windowsUnsupportedTests,
             ...coverageExemptExcludes,
+            ...coverageInstrumentedExcludes,
           ],
         },
       },

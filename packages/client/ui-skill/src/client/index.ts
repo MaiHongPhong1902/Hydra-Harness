@@ -53,6 +53,7 @@ interface CatalogFetch {
   settled?: readonly SkillEntry[]
 }
 
+/* jscpd:ignore-start -- skill search mirrors command search with a local dependency boundary. */
 /** Score the strongest case-insensitive ordered-subsequence match. */
 function fuzzyScore(name: string, query: string): number | undefined {
   if (query === '') return 0
@@ -85,6 +86,7 @@ function fuzzyScore(name: string, query: string): number | undefined {
   for (const value of previous) score = Math.max(score, value)
   return score === noMatch ? undefined : score
 }
+/* jscpd:ignore-end */
 
 /** Filter and rank skill names while keeping source order for equal matches. */
 function fuzzySkills(skills: readonly SkillEntry[], rawQuery: string): readonly SkillEntry[] {

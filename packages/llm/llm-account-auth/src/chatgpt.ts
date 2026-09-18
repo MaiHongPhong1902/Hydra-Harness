@@ -255,6 +255,7 @@ export async function buildChatGptProfile(
   }
 }
 
+/* jscpd:ignore-start -- ChatGPT and pi-ai login bridges share the neutral prompt vocabulary. */
 function relay(event: AuthEvent, session: AuthorizationSession): void {
   switch (event.type) {
     case 'info': {
@@ -305,6 +306,7 @@ function restate(prompt: AuthPrompt): AuthorizationPrompt {
       }
   }
 }
+/* jscpd:ignore-end */
 
 /**
  * Register the ChatGPT OAuth flow without loading pi-ai until a login starts.

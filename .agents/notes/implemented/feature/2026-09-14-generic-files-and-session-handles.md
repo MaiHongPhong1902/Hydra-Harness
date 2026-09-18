@@ -10,7 +10,7 @@ Binary files need durable storage and model-visible history without placing thei
 
 The attachment service stores file bytes content-addressably and records a `FileAttachmentRef` in the session event. LLM request assembly replaces each file block with deterministic read-only handle text, resolving a process path only when the mounted filesystem can read the host object. The browser upload carrier streams `Blob` or `ReadableStream` bodies to an authenticated raw-byte route.
 
-`SessionPersistence.open()` returns a read or exclusive write `SessionHandle`. Handles own close and cancellation checks; a backend instance rejects a second write owner for the same session and releases ownership on close.
+`SessionPersistence.open()` returns a read or exclusive write `SessionHandle`. Handles own close and cancellation checks; a backend instance rejects a second write owner for the same session and releases ownership on close. A pending write open claims ownership before asynchronous inspection, preventing concurrent opens from sharing a write slot; inspection failure or cancellation releases that claim.
 
 ## Alternatives considered
 

@@ -841,6 +841,7 @@ it('pins native DeepSeek image offload in the request sent by the assembled app'
     )))]
     let toolContent = toolMessage.content
     for (const cwd of cwdSpellings) toolContent = toolContent.replaceAll(cwd, '{{cwd}}')
+    toolContent = toolContent.replaceAll('{{cwd}}\\', '{{cwd}}/')
     toolMessage.content = toolContent
     expect(followup).toEqual([
       {

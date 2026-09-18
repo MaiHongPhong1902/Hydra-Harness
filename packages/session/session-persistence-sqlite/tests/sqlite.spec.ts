@@ -663,6 +663,26 @@ describe('SessionPersistenceSqlite schema ownership', () => {
 })
 
 describe('SessionPersistenceSqlite edge behavior', () => {
+  it('rolls back deletion when schema ownership changes and permits retry after repair', async () => {
+    const path = await freshDbPath('hydra-sqlite-delete-rollback-')
+    const store = new SqliteStore({ path, journalMode: 'wal', busyTimeoutMs: DEFAULT_BUSY_TIMEOUT_MS })
+    const header = meta('delete-rollback')
+    const events = [chunk(0)]
+    await store.appendBatch(header, events, false)
+    const db = new DatabaseSync(path)
+    try {
+      db.exec(testSql('set-user-version-16'))
+      await expect(store.delete(header.id)).rejects.toThrow(/schema changed before mutation/)
+      db.exec(sql('set-user-version-17'))
+      expect((await store.loadStored(header.id))?.events).toEqual(events)
+      await store.delete(header.id)
+      expect(await store.loadStored(header.id)).toBeUndefined()
+    } finally {
+      db.close()
+      await store.close()
+    }
+  })
+
   it('keeps a fresh database unopened until the first persistence operation', async () => {
     const path = await freshDbPath('hydra-sqlite-lazy-')
     const ctx = new Context()

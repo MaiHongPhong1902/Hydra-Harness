@@ -16,7 +16,6 @@ export function DeleteSessionDialog({ target, deleteSession, onClose, t }: {
   const [error, setError] = useState<string>()
   const close = () => { if (!busy) onClose() }
   const confirm = async () => {
-    if (busy) return
     setBusy(true)
     setError(undefined)
     try {

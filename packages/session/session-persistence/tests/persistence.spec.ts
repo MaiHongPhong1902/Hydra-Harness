@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { Context } from '@hydra/cordis'
 import SessionStore, { Session, SessionId, isJsonValue } from '@hydra/harness-session'
 import type { SessionEvent, SessionHeader } from '@hydra/harness-session'
@@ -70,7 +70,10 @@ interface CoordinatorInternals {
 class MemoryPersistence extends SessionPersistence implements PersistenceBackend<never> {
   override readonly supportsRawArtifacts = false
 
-  async delete(id: SessionId): Promise<void> { await this.coordinator.delete(id, async () => { this.store.delete(id) }) }
+  async delete(id: SessionId): Promise<void> {
+    if (this.hasWriteOwner(id)) throw new Error(`cannot delete session "${id}" with an open write handle`)
+    await this.coordinator.delete(id, async () => { this.store.delete(id) })
+  }
 
   static inject = ['sessions']
 
@@ -1783,6 +1786,30 @@ describe('PersistenceCoordinator retirement', () => {
 })
 
 describe('PersistenceCoordinator deletion', () => {
+  it('keeps a live session and does not emit deletion until its owner is disposed', async () => {
+    const ctx = new Context()
+    await ctx.plugin(SessionStore)
+    await ctx.plugin(MemoryPersistence)
+    const deleted = vi.fn()
+    ctx.on('session-persistence/deleted', deleted)
+    const id = SessionId('live-delete')
+    const owner = await ctx.plugin(Object.assign((inner: Context) => {
+      const session = inner.sessions.create(id)
+      session.append('turn/start', { turn: 1 })
+      session.append('turn/end', { turn: 1, reason: { kind: 'completed' } })
+    }, { inject: ['sessions'] }))
+    try {
+      await expect(ctx.sessionPersistence.delete(id)).rejects.toThrow('cannot delete live session')
+      expect(deleted).not.toHaveBeenCalled()
+      expect(ctx.sessions.get(id)).toBeDefined()
+      await owner.dispose()
+      await ctx.sessionPersistence.delete(id)
+      expect(deleted).toHaveBeenCalledExactlyOnceWith(id)
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
   it('emits one deletion event per call, including retries for an absent log', async () => {
     const ctx = new Context()
     await ctx.plugin(SessionStore)
@@ -1848,7 +1875,182 @@ describe('PersistenceCoordinator deletion', () => {
   })
 })
 
+describe('SessionPersistence handles', () => {
+  class HandlePersistence extends MemoryPersistence {
+    override createHandle(header: SessionHeader) { return super.createHandle(header) }
+  }
+
+  async function setup() {
+    const ctx = new Context()
+    onTestFinished(() => ctx.fiber.dispose())
+    await ctx.plugin(SessionStore)
+    await ctx.plugin(HandlePersistence)
+    const persistence = ctx.sessionPersistence as HandlePersistence
+    const header = meta('handles')
+    const events = oneTurnLog()
+    await persistence.create(header)
+    await persistence.append(header.id, events)
+    return { persistence, header, events }
+  }
+
+  it('reads bounded suffixes and rejects mutations on a read channel', async () => {
+    const { persistence, header, events } = await setup()
+    const handle = await persistence.open(header.id)
+    expect(handle).toMatchObject({ id: header.id, header, access: 'read' })
+    expect(await handle.read()).toEqual({ events })
+    const result = await handle.read(1, 2, { signal: new AbortController().signal })
+    expect(result.events).toEqual(events.slice(1, 3))
+    expect(await handle.read(events.length)).toEqual({ events: [] })
+    for (const operation of ['append', 'flush'] as const) {
+      const promise = operation === 'append' ? handle.append([]) : handle.flush()
+      await expect(promise).rejects.toMatchObject({
+        name: 'SessionReadOnlyError', sessionId: header.id,
+      })
+      await expect(promise).rejects.toThrow(operation)
+    }
+    await handle[Symbol.asyncDispose]()
+    await handle.close()
+    for (const promise of [handle.read(), handle.append([]), handle.flush()]) {
+      await expect(promise).rejects.toMatchObject({ name: 'SessionHandleClosedError', sessionId: header.id })
+    }
+  })
+
+  it('appends durably, flushes only writers, and reopens after close', async () => {
+    const { persistence, header, events } = await setup()
+    const reader = await persistence.open(header.id)
+    const writer = await persistence.open(header.id, 'write')
+    expect(persistence.hasWriteOwner(header.id)).toBe(true)
+    await expect(persistence.open(header.id, 'write')).rejects.toMatchObject({ name: 'SessionAlreadyOwnedError' })
+    const next = oneTurnLog().map(event => ({ ...event, seq: event.seq + events.length }))
+    const append = vi.spyOn(persistence, 'append')
+    await writer.append(next, { signal: new AbortController().signal })
+    expect(append).toHaveBeenCalledWith(header.id, next)
+    expect((await reader.read()).events).toEqual([...events, ...next])
+    const flush = vi.spyOn(writer, 'flush')
+    await persistence.flush()
+    expect(flush).toHaveBeenCalledOnce()
+    await reader.close()
+    expect(persistence.hasWriteOwner(header.id)).toBe(true)
+    await writer.close()
+    expect(persistence.hasWriteOwner(header.id)).toBe(false)
+    const replacement = await persistence.open(header.id, 'write', {})
+    await writer.close()
+    expect(persistence.hasWriteOwner(header.id)).toBe(true)
+    await replacement.flush({ signal: new AbortController().signal })
+    await replacement.close()
+    await persistence.flush()
+    expect(flush).toHaveBeenCalledOnce()
+  })
+
+  it('claims a newly created log before materialization', async () => {
+    const { persistence, events } = await setup()
+    const header = meta('created-handle')
+    await persistence.create(header)
+    const handle = persistence.createHandle(header)
+    expect(handle.header).toEqual(header)
+    expect(() => persistence.createHandle(header)).toThrow(/already owned/)
+    await handle.append(events)
+    expect(await handle.read()).toEqual({ events })
+    await handle.close()
+    expect(persistence.hasWriteOwner(header.id)).toBe(false)
+  })
+
+  it('reports lost ownership before reading or writing', async () => {
+    const { persistence, header } = await setup()
+    const handle = await persistence.open(header.id, 'write')
+    persistence.releaseHandle(handle)
+    await expect(handle.read()).rejects.toMatchObject({ name: 'SessionOwnershipLostError', sessionId: header.id })
+    await expect(handle.append([])).rejects.toMatchObject({ name: 'SessionOwnershipLostError' })
+    await expect(handle.flush()).rejects.toMatchObject({ name: 'SessionOwnershipLostError' })
+    await handle.close()
+  })
+
+  it.each(['read', 'write'] as const)('releases a failed %s open for retry', async (access) => {
+    const { persistence, header } = await setup()
+    const failure = new Error('inspection failed')
+    vi.spyOn(persistence, 'inspect').mockRejectedValueOnce(failure)
+    await expect(persistence.open(header.id, access)).rejects.toBe(failure)
+    expect(persistence.hasWriteOwner(header.id)).toBe(false)
+    const handle = await persistence.open(header.id, 'write')
+    await handle.close()
+  })
+
+  it('honors cancellation before and after inspection without retaining ownership', async () => {
+    const { persistence, header } = await setup()
+    const reason = new Error('cancelled inspection')
+    const inspect = vi.spyOn(persistence, 'inspect')
+    await expect(persistence.open(header.id, 'write', { signal: AbortSignal.abort(reason) })).rejects.toBe(reason)
+    expect(inspect).not.toHaveBeenCalled()
+    expect(persistence.hasWriteOwner(header.id)).toBe(false)
+    const controller = new AbortController()
+    const original = persistence.inspect.bind(persistence)
+    inspect.mockImplementationOnce(async (id, signal) => {
+      expect(persistence.hasWriteOwner(id)).toBe(true)
+      const inspected = await original(id, signal)
+      controller.abort(reason)
+      return inspected
+    })
+    await expect(persistence.open(header.id, 'write', { signal: controller.signal })).rejects.toBe(reason)
+    expect(persistence.hasWriteOwner(header.id)).toBe(false)
+    const handle = await persistence.open(header.id, 'write')
+    await handle.close()
+  })
+
+  it('checks cancellation around backend reads and appends', async () => {
+    const { persistence, header, events } = await setup()
+    const handle = await persistence.open(header.id, 'write')
+    const reason = new Error('cancelled operation')
+    const signal = AbortSignal.abort(reason)
+    const read = vi.spyOn(persistence, 'readFrom')
+    const append = vi.spyOn(persistence, 'append')
+    await expect(handle.read(0, 1, { signal })).rejects.toBe(reason)
+    await expect(handle.append([], { signal })).rejects.toBe(reason)
+    await expect(handle.flush({ signal })).rejects.toBe(reason)
+    expect(read).not.toHaveBeenCalled()
+    expect(append).not.toHaveBeenCalled()
+    const readAbort = new AbortController()
+    read.mockImplementationOnce((id, offset, readSignal) => {
+      expect([id, offset, readSignal]).toEqual([header.id, 1, readAbort.signal])
+      readAbort.abort(reason)
+      return Promise.resolve({ meta: header, events: events.slice(1) })
+    })
+    await expect(handle.read(1, 1, { signal: readAbort.signal })).rejects.toBe(reason)
+    const appendAbort = new AbortController()
+    append.mockImplementationOnce(() => {
+      appendAbort.abort(reason)
+      return Promise.resolve()
+    })
+    await expect(handle.append([], { signal: appendAbort.signal })).rejects.toBe(reason)
+    await handle.close()
+  })
+})
+
 describe('SessionPersistence service registration', () => {
+  it('grants only one writer across concurrent opens', async () => {
+    const ctx = new Context()
+    await ctx.plugin(SessionStore)
+    await ctx.plugin(MemoryPersistence)
+    const m = meta('concurrent-handles')
+    const persistence = ctx.sessionPersistence
+    await persistence.create(m)
+    await persistence.append(m.id, oneTurnLog())
+
+    try {
+      const results = await Promise.allSettled([
+        persistence.open(m.id, 'write'),
+        persistence.open(m.id, 'write'),
+      ])
+      expect(results.map(result => result.status).sort()).toEqual(['fulfilled', 'rejected'])
+      for (const result of results) {
+        if (result.status === 'fulfilled') await result.value.close()
+        else expect(result.reason).toMatchObject({ name: 'SessionAlreadyOwnedError', sessionId: m.id })
+      }
+      expect(persistence.hasWriteOwner(m.id)).toBe(false)
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
   it('provides a cancellation-aware default preparation for simple backends', async () => {
     const ctx = new Context()
     await ctx.plugin(SessionStore)

@@ -248,6 +248,7 @@ export async function runScenario(input: InputScript, opts: RunOptions): Promise
     await opts.prepareWorkspace?.(cwd)
     const env: NodeJS.ProcessEnv = {
       ...opts.env,
+      NODE_OPTIONS: [process.env.NODE_OPTIONS, '--disable-warning=ExperimentalWarning'].filter(Boolean).join(' '),
       HYDRA_SNAPSHOT: opts.mode,
       HYDRA_SNAPSHOT_FILE: opts.fixtureFile,
       HYDRA_SNAPSHOT_SESSIONS_ROOT: sessionsRoot,

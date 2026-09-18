@@ -164,7 +164,8 @@ export abstract class SessionPersistence extends Service {
   abstract delete(id: SessionId): Promise<void>
 
   /**
-   * Open one read channel or claim the single in-process write owner.
+   * Open one read channel or claim the single in-process write owner. Write
+   * ownership includes pending inspection; a failed or cancelled open releases it.
    * @param id - persisted session identifier.
    * @param access - read-only or exclusive write access.
    * @param options - optional cancellation signal.
@@ -173,12 +174,17 @@ export abstract class SessionPersistence extends Service {
   async open(id: SessionId, access: SessionAccess = 'read', options?: { readonly signal?: AbortSignal }): Promise<SessionHandle> {
     options?.signal?.throwIfAborted()
     if (access === 'write' && this.writeOwners.has(id)) throw new SessionAlreadyOwnedError(id)
-    const inspected = await this.inspect(id, options?.signal)
-    options?.signal?.throwIfAborted()
     if (access === 'write') this.writeOwners.add(id)
-    const handle = new LegacySessionHandle(this, inspected.meta, access, inspected.events)
-    this.handles.add(handle)
-    return handle
+    try {
+      const inspected = await this.inspect(id, options?.signal)
+      options?.signal?.throwIfAborted()
+      const handle = new LegacySessionHandle(this, inspected.meta, access, inspected.events)
+      this.handles.add(handle)
+      return handle
+    } catch (error) {
+      if (access === 'write') this.writeOwners.delete(id)
+      throw error
+    }
   }
 
   /**

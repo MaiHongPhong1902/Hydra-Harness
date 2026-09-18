@@ -1549,7 +1549,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       },
       {
         signature: 'async open(id: SessionId, access: SessionAccess = \'read\', options?: { readonly signal?: AbortSignal }): Promise<SessionHandle>',
-        description: 'Open one read channel or claim the single in-process write owner.',
+        description: 'Open one read channel or claim the single in-process write owner. Write ownership includes pending inspection; a failed or cancelled open releases it.',
         parameters: [{ name: 'id', description: 'persisted session identifier.' }, { name: 'access', description: 'read-only or exclusive write access.' }, { name: 'options', description: 'optional cancellation signal.' }],
         returns: 'a lifecycle-owned session handle.',
       },

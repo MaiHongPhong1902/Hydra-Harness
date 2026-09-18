@@ -1221,6 +1221,31 @@ describe('SQLite reconciliation and source lifecycle', () => {
 })
 
 describe('SQLite schema, cancellation, and real persistence integration', () => {
+  it('retries index cleanup after durable deletion when the index transaction fails', async () => {
+    const ctx = await liveContext()
+    await ctx.plugin(SqliteSessionPersistence, { path: ':memory:' })
+    const durable = header('deleted-search')
+    try {
+      await ctx.sessionPersistence.create(durable)
+      await ctx.sessionPersistence.append(durable.id, messageEvents('needle'))
+      expect((await ctx.sessionQuery.searchSessions({ query: 'needle' })).items).toHaveLength(1)
+      const db = (ctx.sessionQuery as unknown as { _db: DatabaseSync })._db
+      const generation = db.prepare('SELECT global_generation FROM search_state').get()
+      db.exec("CREATE TEMP TRIGGER reject_generation_update BEFORE UPDATE ON main.search_state BEGIN SELECT RAISE(ABORT, 'index deletion failed'); END")
+      await expect(ctx.sessionPersistence.delete(durable.id)).rejects.toThrow('index deletion failed')
+      expect(await ctx.sessionPersistence.list()).toEqual([])
+      expect(db.prepare('SELECT id FROM persisted_sessions').all()).toEqual([{ id: durable.id }])
+      expect(db.prepare('SELECT global_generation FROM search_state').get()).toEqual(generation)
+      db.exec('DROP TRIGGER reject_generation_update')
+      await ctx.sessionPersistence.delete(durable.id)
+      expect(db.prepare('SELECT id FROM persisted_sessions').all()).toEqual([])
+      expect(db.prepare('SELECT global_generation FROM search_state').get()).not.toEqual(generation)
+      expect((await ctx.sessionQuery.searchSessions({ query: 'needle' })).items).toEqual([])
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
   it('creates a new database and WAL sidecars owner-only without changing its parent mode', async () => {
     if (process.platform === 'win32') return
     const path = await temporaryPath()
