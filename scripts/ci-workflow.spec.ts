@@ -1,4 +1,5 @@
-import { readFileSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { spawnSync } from 'node:child_process'
 import { resolve } from 'node:path'
 import * as yaml from 'js-yaml'
@@ -10,6 +11,53 @@ const runnerPrivatePnpmDestination = '${{ runner.temp }}/setup-pnpm'
 const nativeWindowsPnpmDestination = '${{ runner.temp }}/setup-pnpm-js'
 
 describe('CI workflow', () => {
+  it.each([
+    ['ci.yml', 'node-24'],
+    ['ci-master.yml', 'serial-linux-selfhosted'],
+  ])('fetches the exact archive predecessor after a rewrite in %s', { timeout: 30_000 }, (file, jobName) => {
+    const job = workflowJob(loadWorkflow(`.github/workflows/${file}`), jobName)
+    if (!Array.isArray(job.steps)) throw new TypeError('archive job must define steps')
+    const step: unknown = job.steps.find(step => isRecord(step) && step.id === 'archive-baseline')
+    if (!isRecord(step) || typeof step.run !== 'string') throw new TypeError('archive baseline step is missing')
+    expect(step.shell).toBe('bash')
+    const directory = mkdtempSync(resolve(tmpdir(), 'hydra-archive-baseline-'))
+    const upstream = resolve(directory, 'upstream')
+    const checkout = resolve(directory, 'checkout')
+    const output = resolve(directory, 'output')
+    const git = (cwd: string, ...args: string[]): string => {
+      const result = spawnSync('git', ['-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.test',
+        '-c', 'commit.gpgsign=false', ...args], { cwd, encoding: 'utf8' })
+      expect(result.status, result.stderr).toBe(0)
+      return result.stdout.trim()
+    }
+    try {
+      mkdirSync(upstream)
+      mkdirSync(checkout)
+      git(upstream, 'init', '-b', 'main')
+      git(upstream, 'commit', '--allow-empty', '-m', 'before')
+      const before = git(upstream, 'rev-parse', 'HEAD')
+      git(upstream, 'commit', '--allow-empty', '--amend', '-m', 'after')
+      git(checkout, 'init')
+      git(checkout, 'remote', 'add', 'origin', upstream)
+      git(checkout, 'fetch', 'origin', 'main')
+      expect(spawnSync('git', ['cat-file', '-e', before], { cwd: checkout }).status).not.toBe(0)
+      const bash = process.platform === 'win32'
+        ? resolve(process.env.ProgramFiles ?? 'C:/Program Files', 'Git/bin/bash.exe') : 'bash'
+      for (const [ref, status] of [[before, 0], [before, 0], ['1'.repeat(40), 128]] as const) {
+        writeFileSync(output, '')
+        const result = spawnSync(bash, ['--noprofile', '--norc', '-e', '-c', step.run], {
+          cwd: checkout, encoding: 'utf8',
+          env: { ...process.env, REQUESTED_REF: ref, GITHUB_OUTPUT: output },
+        })
+        expect(result.error).toBeUndefined()
+        expect(result.status, result.stderr).toBe(status)
+        expect(readFileSync(output, 'utf8')).toBe(status === 0 ? `ref=${before}\n` : '')
+      }
+    } finally {
+      rmSync(directory, { recursive: true, force: true })
+    }
+  })
+
   it('deploys the Python runtime workspace selected by its manifest', { timeout: 30_000 }, () => {
     const result = spawnSync(process.execPath, [
       '--import', 'tsx/esm', 'scripts/build-exe-for-python-sdk.ts',

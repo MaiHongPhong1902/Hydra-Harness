@@ -64,8 +64,8 @@ it('keeps scenario-owned snapshot spill root length stable across platforms', ()
   const fixtureFile = '/fixtures/scenario/session.jsonl'
   const posix = snapshotSpillRoot(fixtureFile, 'linux')
   const windows = snapshotSpillRoot(fixtureFile, 'win32')
-  expect(posix).toMatch(/^\/tmp\/hydra-acp-snap-[0-9a-f]{9}$/)
-  expect(windows).toMatch(/^\/t\/hydra-acp-snap-[0-9a-f]{9}$/)
+  expect(posix).toMatch(/^\/tmp\/hydra-acp-[0-9a-f]{12}$/)
+  expect(windows).toMatch(/^\/t\/hydra-acp-[0-9a-f]{12}$/)
   expect(windows.length + 2).toBe(posix.length)
 })
 

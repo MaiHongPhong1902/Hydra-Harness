@@ -47,8 +47,12 @@ const LOCAL_SPILL_PATH_RE = new RegExp(
   'g',
 )
 const SNAPSHOT_SPILL_PATH_RE = new RegExp(
-  String.raw`(?:[A-Za-z]:)?[\\/]{1,2}(?:tmp|t)[\\/]{1,2}(?:hydra-acp-snap-[0-9a-f]{9}|hydra-acp-snapshot-spill)[\\/]{1,2}session-[0-9a-f]{12}[\\/]{1,2}[0-9a-f]{12}-([A-Za-z0-9._~-]+?)`
+  String.raw`(?:[A-Za-z]:)?[\\/]{1,2}(?:tmp|t)[\\/]{1,2}(?:hydra-acp-[0-9a-f]{12}|hydra-acp-snap-[0-9a-f]{9}|hydra-acp-snapshot-spill)[\\/]{1,2}session-[0-9a-f]{12}[\\/]{1,2}[0-9a-f]{12}-([A-Za-z0-9._~-]+?)`
   + String.raw`(?=\. Use read with offset/limit|[\s)]|$)`,
+  'g',
+)
+const SNAPSHOT_SPILL_ROOT_RE = new RegExp(
+  String.raw`(?:[A-Za-z]:)?[\\/]{1,2}(?:tmp|t)[\\/]{1,2}(?:hydra-acp-[0-9a-f]{12}|hydra-acp-snap-[0-9a-f]{9}|hydra-acp-snapshot-spill)`,
   'g',
 )
 
@@ -178,6 +182,7 @@ function scrubString(value: string, ctx: NormalizeContext, cwdPathMode: CwdPathM
   }
   out = out.replace(LOCAL_SPILL_PATH_RE, (_match, name: string) => `{{spillLocator:${name}}}`)
   out = out.replace(SNAPSHOT_SPILL_PATH_RE, (_match, name: string) => `{{spillLocator:${name}}}`)
+  out = out.replace(SNAPSHOT_SPILL_ROOT_RE, '{{spillRoot}}')
   // Exact event-read results render the target as pretty JSON inside a
   // distinctive envelope. Restrict time scrubbing to that fenced target so
   // neighbor, model, bash, and unrelated tool text remains regression-visible.

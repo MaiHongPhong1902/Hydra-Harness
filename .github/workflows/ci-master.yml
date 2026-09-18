@@ -78,8 +78,8 @@ jobs:
     runs-on: [self-hosted, linux, x64, vm-backup]
     steps:
       # HYDRA_ARCHIVE_BASE_REF below compares the frozen-archive gate against
-      # github.event.before when it remains reachable. Force-pushed refs fall
-      # back to HEAD^ below; full fetch is still cheap on the VM's local mirror.
+      # github.event.before; a force-pushed predecessor is fetched explicitly
+      # below because it may be absent from the advertised branch history.
       - uses: actions/checkout@v6
         with:
           submodules: true
@@ -109,15 +109,15 @@ jobs:
 
       - name: Resolve archive baseline
         id: archive-baseline
+        shell: bash
         env:
           REQUESTED_REF: ${{ github.event.before }}
         run: |
-          if [[ -n "$REQUESTED_REF" ]] && git cat-file -e "${REQUESTED_REF}^{commit}" 2>/dev/null; then
-            baseline="$REQUESTED_REF"
-          else
-            baseline="$(git rev-parse HEAD^)"
+          if ! git cat-file -e "${REQUESTED_REF}^{commit}" 2>/dev/null; then
+            git fetch --no-tags origin "$REQUESTED_REF"
           fi
-          echo "ref=$baseline" >> "$GITHUB_OUTPUT"
+          git cat-file -e "${REQUESTED_REF}^{commit}"
+          echo "ref=$REQUESTED_REF" >> "$GITHUB_OUTPUT"
 
       - name: Run complete unsharded primary Node CI serially
         env:

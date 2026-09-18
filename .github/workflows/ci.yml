@@ -87,15 +87,15 @@ jobs:
 
       - name: Resolve archive baseline
         id: archive-baseline
+        shell: bash
         env:
           REQUESTED_REF: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
         run: |
-          if [[ -n "$REQUESTED_REF" ]] && git cat-file -e "${REQUESTED_REF}^{commit}" 2>/dev/null; then
-            baseline="$REQUESTED_REF"
-          else
-            baseline="$(git rev-parse HEAD^)"
+          if ! git cat-file -e "${REQUESTED_REF}^{commit}" 2>/dev/null; then
+            git fetch --no-tags origin "$REQUESTED_REF"
           fi
-          echo "ref=$baseline" >> "$GITHUB_OUTPUT"
+          git cat-file -e "${REQUESTED_REF}^{commit}"
+          echo "ref=$REQUESTED_REF" >> "$GITHUB_OUTPUT"
 
       - name: Run static gates
         env:

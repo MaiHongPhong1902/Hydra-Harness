@@ -364,6 +364,16 @@ describe('normalizeSessionLog', () => {
     expect(out).not.toContain('C:\\t\\hydra-acp-snap-012345678')
   })
 
+  it('scrubs scenario-owned spill roots inside model-authored commands', () => {
+    const ev = JSON.stringify({
+      type: 'tool/call', seq: 2, time: 5,
+      data: { arguments: 'find /tmp/hydra-acp-0123456789ab -name "*-session_event_read.txt"' },
+    })
+    const out = normalizeSessionLog(`${header({ cwd: ctx.cwd })}\n${ev}\n`, ctx)
+    expect(out).toContain('find {{spillRoot}} -name')
+    expect(out).not.toContain('/tmp/hydra-acp-0123456789ab')
+  })
+
   it('shares cwd-rooted path handling with stdout normalization', () => {
     const windowsCtx: NormalizeContext = { sessionIds: [], cwd: String.raw`C:\work\snapshot` }
     const ev = JSON.stringify({
