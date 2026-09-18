@@ -1173,6 +1173,9 @@ def build_snapshot_files(
         replacements.append((agent_id, f"{{{{agent-{index}}}}}"))
     replacements.sort(key=lambda pair: len(pair[0]), reverse=True)
 
+    session_root = result.session_root
+    if isinstance(session_root, str):
+        session_root = session_root.replace(str(cwd), "{{cwd}}").replace("\\", "/")
     result_value = {
         "session_id": result.session_id,
         "final_response": result.final_response,
@@ -1181,7 +1184,7 @@ def build_snapshot_files(
             {"method": notification.method, "payload": notification.payload}
             for notification in result.notifications
         ],
-        "session_root": result.session_root,
+        "session_root": session_root,
     }
     normalized_result = normalize_snapshot_value(result_value, replacements)
     files = {

@@ -4486,5 +4486,5 @@
       }
     }
   ],
-  "session_root": "{{cwd}}\\sessions"
+  "session_root": "{{cwd}}/sessions"
 }

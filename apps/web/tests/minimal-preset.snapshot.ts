@@ -111,6 +111,9 @@ describe('minimal agent preset', () => {
         "prompt": "You are a helpful software engineer assistant.",
         "tools": [
           "bash",
+          "obsidian_knowledge_read",
+          "obsidian_knowledge_recall",
+          "obsidian_knowledge_save_approved",
           "str_replace_editor",
         ],
       }
