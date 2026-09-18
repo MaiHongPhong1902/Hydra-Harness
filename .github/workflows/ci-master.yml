@@ -78,9 +78,8 @@ jobs:
     runs-on: [self-hosted, linux, x64, vm-backup]
     steps:
       # HYDRA_ARCHIVE_BASE_REF below compares the frozen-archive gate against
-      # github.event.before, so full history is required: depth 2 would miss it
-      # on multi-commit or force pushes; full fetch is cheap here because
-      # checkout resolves against the VM's local mirror.
+      # github.event.before when it remains reachable. Force-pushed refs fall
+      # back to HEAD^ below; full fetch is still cheap on the VM's local mirror.
       - uses: actions/checkout@v6
         with:
           submodules: true
@@ -108,9 +107,21 @@ jobs:
       - name: Prepare bubblewrap (unrestrict userns)
         run: bash scripts/prepare-ci-bubblewrap.sh
 
+      - name: Resolve archive baseline
+        id: archive-baseline
+        env:
+          REQUESTED_REF: ${{ github.event.before }}
+        run: |
+          if [[ -n "$REQUESTED_REF" ]] && git cat-file -e "${REQUESTED_REF}^{commit}" 2>/dev/null; then
+            baseline="$REQUESTED_REF"
+          else
+            baseline="$(git rev-parse HEAD^)"
+          fi
+          echo "ref=$baseline" >> "$GITHUB_OUTPUT"
+
       - name: Run complete unsharded primary Node CI serially
         env:
-          HYDRA_ARCHIVE_BASE_REF: ${{ github.event.before }}
+          HYDRA_ARCHIVE_BASE_REF: ${{ steps.archive-baseline.outputs.ref }}
           HYDRA_COVERAGE_MAX_WORKERS: '1'
           HYDRA_E2E_MAX_WORKERS: '1'
           HYDRA_GATE_CONCURRENCY: '1'

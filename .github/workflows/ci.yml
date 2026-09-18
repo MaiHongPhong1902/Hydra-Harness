@@ -85,9 +85,21 @@ jobs:
       - name: Install (immutable)
         run: pnpm install --frozen-lockfile
 
+      - name: Resolve archive baseline
+        id: archive-baseline
+        env:
+          REQUESTED_REF: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
+        run: |
+          if [[ -n "$REQUESTED_REF" ]] && git cat-file -e "${REQUESTED_REF}^{commit}" 2>/dev/null; then
+            baseline="$REQUESTED_REF"
+          else
+            baseline="$(git rev-parse HEAD^)"
+          fi
+          echo "ref=$baseline" >> "$GITHUB_OUTPUT"
+
       - name: Run static gates
         env:
-          HYDRA_ARCHIVE_BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
+          HYDRA_ARCHIVE_BASE_REF: ${{ steps.archive-baseline.outputs.ref }}
         run: pnpm run check:ci:static
 
   node-24-coverage:
