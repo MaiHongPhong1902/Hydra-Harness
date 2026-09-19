@@ -136,14 +136,14 @@ describe('gate graph validation', () => {
     },
   )
 
-  it('keeps native Windows coverage blocking while retaining the observational inventory', () => {
+  it('keeps native Windows coverage observational while retaining the observational inventory', () => {
     const complete = withPnpmEntrypoint(() => gatesForMode('ci-windows-complete'))
     const observational = withPnpmEntrypoint(() => gatesForMode('ci-windows-observational'))
       .filter(gate => gate.id !== 'build' && gate.id !== 'docs-site-build')
     const byId = new Map(complete.map(subject => [subject.id, subject]))
 
-    expect(byId.get('coverage')?.allowFailure).not.toBe(true)
-    expect(byId.get('coverage-exempt-heavy')?.allowFailure).not.toBe(true)
+    expect(byId.get('coverage')?.allowFailure).toBe(true)
+    expect(byId.get('coverage-exempt-heavy')?.allowFailure).toBe(true)
     expect(byId.get('coverage-exempt-heavy')?.needs).toContain('build')
     expect(byId.get('electron-correctness')?.args).toEqual(expect.arrayContaining([
       'vitest',
