@@ -1,6 +1,8 @@
 - text: "Use the workflow tool exactly once, with args omitted, meta set to { \"name\": \"snapshot-flow\", \"description\": \"one child for the snapshot\" }, and this EXACT script body (copy it verbatim): phase('Run') const reply = await agent('Reply with exactly the word WF_CHILD_OK and nothing else.') return { reply } After the workflow returns, reply with the single word WORKFLOW_DONE and stop. Do not use any other tool. {{clock}}"
 - button "Copy":
   - img
+- button "Edit":
+  - img
 - button "Context injection @hydra/harness-system-prompt":
   - img
   - img
@@ -9,10 +11,10 @@
   - img
   - img
   - text: "Think The user wants me to use the workflow tool exactly once with specific parameters. Let me carefully follow the instructions:"
-- button "Tool call workflow ·":
+- 'button "Tool call workflow: snapshot-flow"':
   - img
   - img
-  - text: Tool call workflow ·
+  - text: "Tool call workflow: snapshot-flow"
 - button "snapshot-flow 1 member Completed":
   - img
   - text: snapshot-flow 1 member Completed

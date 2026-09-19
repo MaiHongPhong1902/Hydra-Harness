@@ -13,6 +13,8 @@
 - text: Use the ask_user_question tool to ask me exactly one question with id "checkpoint", question "Ready to continue?", header "Checkpoint", and options labeled "Yes" and "No". After I answer, reply with one short sentence acknowledging my answer and stop. {{clock}}
 - button "Copy":
   - img
+- button "Edit":
+  - img
 - button "Context injection @hydra/harness-system-prompt":
   - img
   - img
@@ -28,8 +30,12 @@
 - text: "Interjection: include the word BANANA in your final reply. {{clock}}"
 - button "Copy":
   - img
+- button "Edit":
+  - img
 - text: "Interjection: include the word ORANGE in your final reply. {{clock}}"
 - button "Copy":
+  - img
+- button "Edit":
   - img
 - paragraph: "Got it: BANANA and ORANGE."
 - button "Copy":

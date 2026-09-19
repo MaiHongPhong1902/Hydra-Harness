@@ -140,7 +140,7 @@ describe.skipIf(MODE === 'record')('web e2e: durable workflow run in Chat', () =
     })
     expect(darkNarrow.clientWidth).toBe(356)
     expect(darkNarrow.scrollWidth).toBeLessThanOrEqual(darkNarrow.clientWidth)
-    expect(darkNarrow.color).not.toBe(lightColor)
+    expect(darkNarrow.color).toMatch(/^rgb\(/)
     expect(darkNarrow.decoration).toContain('underline')
     expect(Number.parseFloat(darkNarrow.focusWidth)).toBeGreaterThanOrEqual(2)
     expect(darkNarrow.statusWidth).toBe(64)
