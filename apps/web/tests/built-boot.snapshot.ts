@@ -42,9 +42,10 @@ it('boots the built plugin graph and renders a fixture session end to end', asyn
 
   // The sidebar renders from the boot graph: every inject layer activated.
   const tree = await screen.findByRole('tree', { name: 'Sessions' }, { timeout: 10_000 })
-  const brand = screen.getByText('Hydra harness').closest('svg')!
-  expect(brand.querySelector('image')?.getAttribute('href')).toMatch(/\.png(?:\?.*)?$/)
-  const mark = brand.querySelector('svg')!
+  screen.getByText('Hydra harness')
+  const mark = document.querySelector('svg[viewBox="0 0 256 256"]')
+  if (mark === null) throw new Error('Hydra brand mark missing from the assembled sidebar')
+  expect(mark.querySelector('image')?.getAttribute('href')).toMatch(/\.png(?:\?.*)?$/)
   fireEvent.mouseEnter(mark)
   expect(mark.querySelectorAll('image')[1]?.getAttribute('href')).toMatch(/\.webp(?:\?.*)?$/)
   fireEvent.mouseLeave(mark)
