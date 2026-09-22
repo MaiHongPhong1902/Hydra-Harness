@@ -41,7 +41,6 @@
     "@hydra/harness-api-remotes": "workspace:^",
     "@hydra/harness-client-runtime": "workspace:^",
     "@hydra/harness-client-ui-settings": "workspace:^",
-    "@hydra/harness-client-test-runtime": "workspace:^",
     "@hydra/harness-client-ui-settings-models": "workspace:^",
     "@hydra/harness-client-ui-slots": "workspace:^",
     "@hydra/harness-invariants": "workspace:^",

@@ -23,14 +23,12 @@
     "@hydra/harness-invariants": "workspace:^",
     "@hydra/harness-tools": "workspace:^",
     "@hydra/harness-jev": "workspace:^",
-    "@hydra/cordis": "workspace:^",
-    "@hydra/schemastery": "workspace:^"
+    "@hydra/cordis": "workspace:^"
   },
   "devDependencies": {
     "@hydra/harness-invariants": "workspace:^",
     "@hydra/harness-tools": "workspace:^",
     "@hydra/harness-jev": "workspace:^",
-    "@hydra/cordis": "workspace:^",
-    "@hydra/schemastery": "workspace:^"
+    "@hydra/cordis": "workspace:^"
   }
 }

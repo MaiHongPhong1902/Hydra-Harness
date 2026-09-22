@@ -1074,10 +1074,6 @@ importers:
         version: 15.0.0
 
   packages/browser/browser-decisions:
-    dependencies:
-      '@hydra/schemastery':
-        specifier: link:../../../vendor/schemastery
-        version: link:../../../vendor/schemastery
     devDependencies:
       '@hydra/cordis':
         specifier: workspace:^
@@ -2478,9 +2474,6 @@ importers:
       '@hydra/harness-client-runtime':
         specifier: workspace:^
         version: link:../runtime
-      '@hydra/harness-client-test-runtime':
-        specifier: workspace:^
-        version: link:../../test-support/client-runtime
       '@hydra/harness-client-ui-settings':
         specifier: workspace:^
         version: link:../ui-settings
