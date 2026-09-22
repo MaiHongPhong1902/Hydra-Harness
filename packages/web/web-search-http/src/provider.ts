@@ -156,13 +156,11 @@ export class HttpSearchProvider implements WebSearchProvider {
       const headers = new Headers({ 'Content-Type': 'application/json', Accept: 'application/json' })
       const keyFor = async (ref: string): Promise<string> => {
         bounded.throwIfAborted()
-        let onAbort = () => {}
-        const cancelled = new Promise<never>((_resolve, reject) => {
-          onAbort = () => { reject(new SearchProviderError(this.id, 'TIMEOUT')) }
-          bounded.addEventListener('abort', onAbort, { once: true })
-        })
+        const cancelled = Promise.withResolvers<never>()
+        const onAbort = () => { cancelled.reject(new SearchProviderError(this.id, 'TIMEOUT')) }
+        bounded.addEventListener('abort', onAbort, { once: true })
         let key: string | undefined
-        try { key = await Promise.race([this.resolveKey(ref), cancelled]) }
+        try { key = await Promise.race([this.resolveKey(ref), cancelled.promise]) }
         catch { throw new SearchProviderError(this.id, 'CONFIG_ERROR') }
         finally { bounded.removeEventListener('abort', onAbort) }
         if (!key) throw new SearchProviderError(this.id, 'CONFIG_ERROR')

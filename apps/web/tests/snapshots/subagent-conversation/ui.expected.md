@@ -18,6 +18,8 @@
 - text: Explain event sourcing in one sentence. {{clock}}
 - button "Copy":
   - img
+- button "Edit":
+  - img
 - button "Context injection @hydra/harness-system-prompt":
   - img
   - img

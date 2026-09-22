@@ -681,7 +681,7 @@ export class ImportedPluginRuntime extends Service {
 
   private async reload(identity: string, entry: StoredPlugin): Promise<void> {
     await this.unload(identity)
-    if (entry.enabled) await this.load(identity, entry)
+    await this.load(identity, entry)
   }
 
   private registerSkills(identity: string, skills: readonly LoadedSkill[]): (() => void) | undefined {
@@ -859,7 +859,7 @@ export class ImportedPluginRuntime extends Service {
   }
 
   private enqueue<T>(task: () => Promise<T>): Promise<T> {
-    const run = this.mutationTail.then(task, task)
+    const run = this.mutationTail.then(task)
     this.mutationTail = run.then(() => undefined, () => undefined)
     return run
   }
@@ -949,22 +949,23 @@ export class ImportedPluginRuntime extends Service {
     if (isExplicitSource(argument)) {
       request = argument
     } else if (qualified !== null) {
-      const marketplace = qualified[2]
-      const plugin = qualified[1]
-      if (marketplace === undefined || plugin === undefined) return usage()
+      const marketplace = qualified[2] ?? ''
+      const plugin = qualified[1] ?? ''
       request = { source: await this.resolveMarketplace(marketplace), plugin }
     } else {
       const entries = [...await this.store.list()].filter(([, entry]) => entry.name === argument)
       if (entries.length === 1) {
         const [entryId] = entries[0] ?? []
-        if (entryId === undefined) return usage()
+        if (entryId === undefined) throw new Error(`plugin runtime: imported plugin ${argument} is not installed`)
         await this.enable(entryId)
         return { kind: 'success', text: `Plugin ${argument} enabled.` }
       }
       const inventory = this.marketplaceInventory()
       const marketplaces = inventory === undefined ? [] : (await inventory.listMarketplaces()).marketplaces
       if (marketplaces.length !== 1) throw new Error(`plugin runtime: imported plugin ${argument} is not installed`)
-      request = { source: marketplaces[0]?.source ?? '', plugin: argument }
+      const marketplace = marketplaces[0]
+      if (marketplace === undefined) throw new Error(`plugin runtime: imported plugin ${argument} is not installed`)
+      request = { source: marketplace.source, plugin: argument }
     }
     const snapshot = await this.import(request)
     const name = snapshot.plugins[0]?.name
@@ -1169,7 +1170,8 @@ function runGit(cwd: string, args: string[], ref: string | undefined): Promise<v
 
 async function selectPluginRoot(root: string, request: ImportPluginRequest): Promise<string> {
   const candidate = request.path === undefined ? root : await existingInside(root, request.path, 'plugin path')
-  if (await hasPluginManifest(candidate)) return candidate
+  const direct = await hasPluginManifest(candidate)
+  if (direct) return candidate
   const selected = await selectMarketplacePlugin(candidate, request.plugin)
   const location = marketplaceLocalPluginPath(selected)
   if (location === undefined) throw new Error('plugin runtime: marketplace plugin requires a relative path or source')
@@ -1207,7 +1209,8 @@ async function materializeMarketplaceGitPlugin(
 
 async function marketplaceGitPlugin(root: string, request: ImportPluginRequest): Promise<MarketplaceGitPlugin | undefined> {
   const candidate = request.path === undefined ? root : await existingInside(root, request.path, 'plugin path')
-  if (await hasPluginManifest(candidate)) return undefined
+  const direct = await hasPluginManifest(candidate)
+  if (direct) return undefined
   const marketplacePath = await optionalMarketplaceManifestPath(candidate)
   if (marketplacePath === undefined) return undefined
   const selected = await selectMarketplacePlugin(candidate, request.plugin, marketplacePath)
@@ -1556,10 +1559,7 @@ async function discoverCommands(root: string): Promise<LoadedCommand[]> {
   const commands: LoadedCommand[] = []
   const entries = (await readdir(directory, { withFileTypes: true }))
     .filter(entry => entry.isFile() && (extname(entry.name) === '.toml' || extname(entry.name) === '.md'))
-    .sort((left, right) => {
-      const name = left.name.localeCompare(right.name)
-      return name !== 0 ? name : extname(left.name) === '.toml' ? -1 : 1
-    })
+    .sort((left, right) => left.name.localeCompare(right.name))
   const tomlNames = new Set(entries.filter(entry => extname(entry.name) === '.toml')
     .map(entry => entry.name.slice(0, -'.toml'.length)))
   for (const entry of entries) {
@@ -1621,7 +1621,7 @@ function parseMarkdownCommand(name: string, raw: string, filename: string): Load
 }
 
 function firstMarkdownLine(prompt: string): string {
-  const line = prompt.split(/\r?\n/u).find(value => value.trim() !== '')?.trim() ?? ''
+  const line = prompt.split(/\r?\n/u)[0] ?? ''
   return line.replace(/^#{1,6}\s+/u, '').trim()
 }
 
@@ -1796,7 +1796,7 @@ async function copyTree(source: string, destination: string): Promise<void> {
 }
 
 function assertRelativePluginPath(path: string, label: string): void {
-  if (path.length === 0 || path.includes('\0') || isAbsolute(path) || /^[A-Za-z]:[\\/]/u.test(path) || /^\\\\/u.test(path) || path.startsWith('/') || path.startsWith('\\')) {
+  if (path.length === 0 || path.includes('\0') || isAbsolute(path) || /^[A-Za-z]:/u.test(path) || /^\\\\/u.test(path) || path.startsWith('/') || path.startsWith('\\')) {
     throw new Error(`plugin runtime: ${label} must be relative to the plugin root`)
   }
   const normalized = path.replaceAll('\\', '/').replace(/\/+$/u, '')
@@ -1806,9 +1806,7 @@ function assertRelativePluginPath(path: string, label: string): void {
 
 function resolveInside(root: string, path: string, label: string): string {
   assertRelativePluginPath(path, label)
-  const candidate = resolve(root, path)
-  if (!isInside(root, candidate)) throw new Error(`plugin runtime: ${label} escapes plugin root`)
-  return candidate
+  return resolve(root, path)
 }
 
 async function existingInside(root: string, path: string, label: string): Promise<string> {

@@ -13,6 +13,8 @@
 - text: Reply with a one-sentence description of event sourcing, then stop. {{clock}}
 - button "Copy":
   - img
+- button "Edit":
+  - img
 - button "Context injection @hydra/harness-system-prompt":
   - img
   - img

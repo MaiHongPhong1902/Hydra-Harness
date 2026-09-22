@@ -1,4 +1,5 @@
-import { cp, mkdtemp, mkdir, readFile, realpath, rm, symlink, writeFile } from 'node:fs/promises'
+import { cp, mkdtemp, mkdir, readFile, readdir, realpath, rm, symlink, truncate, writeFile } from 'node:fs/promises'
+import * as filesystem from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -22,6 +23,8 @@ vi.mock('node:child_process', async importOriginal => ({
   ...await importOriginal<typeof import('node:child_process')>(),
   execFile: execFileMock,
 }))
+
+vi.mock('node:fs/promises', async importOriginal => ({ ...await importOriginal<typeof import('node:fs/promises')>() }))
 
 const roots: string[] = []
 
@@ -79,11 +82,631 @@ async function runtime(home: string): Promise<{ ctx: Context; plugins: ImportedP
 }
 
 afterEach(async () => {
+  vi.restoreAllMocks()
   await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true })))
   execFileMock.mockReset()
 })
 
 describe('PluginStore', () => {
+  it('projects independent bundles, empty capabilities, and missing persisted MCP defaults', async () => {
+    const home = await temp('views-home')
+    const empty = await temp('empty-plugin')
+    await mkdir(join(empty, '.codex-plugin'))
+    await writeFile(join(empty, '.codex-plugin', 'plugin.json'), JSON.stringify({ name: 'empty', version: '1.0.0' }))
+    const other = await temp('other-plugin')
+    await portablePlugin(other, '1.0.0', {
+      apps: { browser: {} }, mcpServers: { remote: { url: 'https://example.test/mcp' } },
+      extensions: { 'com.openai': { hooks: { Stop: [{ hooks: [{ command: 'echo ready' }] }] } } },
+    })
+    await mkdir(join(other, 'agents'))
+    await writeFile(join(other, 'agents', 'openai.yaml'), 'interface:\n  display_name: Portable')
+    const { ctx, plugins } = await runtime(home)
+    try {
+      const emptyId = (await plugins.import(empty)).plugins[0]!.identity
+      await plugins.enable(emptyId)
+      await plugins.import(other)
+      expect((await plugins.list()).plugins.map(entry => entry.name)).toEqual(['empty', 'portable-plugin'])
+      expect((await pluginCommand(ctx, 'info empty')).text).toContain('skills: none')
+      const registryPath = new PluginStore(home).registryPath
+      const registry = JSON.parse(await readFile(registryPath, 'utf8')) as { plugins: Record<string, { mcp: object }> }
+      const identity = (await plugins.info('portable-plugin')).identity
+      registry.plugins[identity]!.mcp = {}
+      await writeFile(registryPath, JSON.stringify(registry))
+      expect(await plugins.info(identity)).toMatchObject({
+        agentMetadata: { displayName: 'Portable' }, appMappings: ['browser'],
+        mcpServers: [{ enabled: true, defaultToolsApprovalMode: 'ask', toolApproval: {}, authenticationState: 'unknown' }],
+      })
+      expect((await pluginCommand(ctx, 'info portable-plugin')).text).toContain('MCP: remote=not-started')
+      registry.plugins[identity]!.mcp = { remote: { enabled: false, defaultToolsApprovalMode: 'ask', toolApproval: {} } }
+      await writeFile(registryPath, JSON.stringify(registry))
+      expect((await pluginCommand(ctx, 'info portable-plugin')).text).toContain('MCP: remote=disabled')
+      await expect(plugins.info('unknown')).rejects.toThrow('not installed')
+      const duplicate = { ...registry.plugins[emptyId]!, name: 'empty' }
+      registry.plugins['empty@duplicate'] = duplicate
+      await writeFile(registryPath, JSON.stringify(registry))
+      await expect(plugins.info('empty')).rejects.toThrow('exists in multiple sources')
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('reports a record removed between installation and projection', async () => {
+    const { ctx, plugins } = await runtime(await temp('missing-record'))
+    vi.spyOn(PluginStore.prototype, 'install').mockResolvedValueOnce('missing')
+    try {
+      await expect(plugins.import('fixture')).rejects.toThrow('missing is not installed')
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('delegates ordinary tools and MCP tools without an imported owner', async () => {
+    const source = await temp('tool-delegation')
+    await plugin(source)
+    const { ctx, plugins } = await runtime(await temp('tool-delegation-home'))
+    try {
+      await plugins.enable((await plugins.import(source)).plugins[0]!.identity)
+      const next = vi.fn(async () => ({ kind: 'allow' as const }))
+      for (const name of ['ordinary', 'mcp__external__tool']) {
+        expect(await ctx.waterfall('tools/pre-execute', { name } as never, next)).toEqual({ kind: 'allow' })
+      }
+      expect(next).toHaveBeenCalledTimes(2)
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('prefers TOML over Markdown, sorts commands, and fills absent positional arguments', async () => {
+    const source = await temp('command-precedence')
+    await plugin(source)
+    await markdownCommand(source, 'hello', 'Markdown companion')
+    await command(source, 'hello', 'description = "TOML"\nprompt = "Hello $1 $3"')
+    await markdownCommand(source, 'another', '# Another command\nDetails')
+    const loader = new PluginManifestLoader()
+    expect((await loader.load(source)).commands.map(command => [command.name, command.description]))
+      .toEqual([['another', 'Another command'], ['hello', 'TOML']])
+    const { ctx, plugins } = await runtime(await temp('command-precedence-home'))
+    try {
+      await plugins.enable((await plugins.import(source)).plugins[0]!.identity)
+      const followup = vi.fn()
+      void ctx.commands.find({} as never, 'hello')!.handler({
+        commandId: 'empty-args' as never, agent: { followup } as never, rawInput: '', attachments: [], signal: new AbortController().signal,
+      })
+      expect(followup).toHaveBeenCalledWith(expect.objectContaining({ content: [{ type: 'text', text: 'Hello  ' }] }))
+    } finally {
+      await ctx.fiber.dispose()
+    }
+    await command(source, 'hello', 'broken = [')
+    await expect(loader.load(source)).rejects.toThrow('invalid TOML')
+    await rm(join(source, 'commands', 'hello.toml'))
+    await markdownCommand(source, 'Invalid Name', 'Invalid filename')
+    await expect(loader.load(source)).rejects.toThrow('lower kebab-case')
+  })
+
+  it.each(['directory', 'source'])('accepts marketplace local %s entry paths', async (key) => {
+    const source = await catalog('local-path-variant')
+    await writeFile(join(source, '.agents', 'plugins', 'marketplace.json'), JSON.stringify({
+      plugins: [{ name: 'demo-plugin', [key]: './plugins/demo-plugin' }],
+    }))
+    const store = new PluginStore(await temp('local-path-home'))
+    const identity = await store.install({ source, path: '.' })
+    expect((await store.get(identity))?.source).toMatchObject({ kind: 'marketplace-local', path: '.' })
+  })
+
+  it('imports a remote marketplace with a local entry and a nested Git entry without a ref', async () => {
+    const source = await catalog('remote-local-entry')
+    execFileMock.mockImplementation((_command, args, _options, callback) => {
+      void cp(source, String(args.at(-1)), { recursive: true }).then(
+        () => { callback(null, '', '') }, (error: unknown) => { callback(error as Error, '', '') },
+      )
+    })
+    const store = new PluginStore(await temp('remote-local-home'))
+    const identity = await store.install('owner/catalog')
+    expect((await store.get(identity))?.source.kind).toBe('marketplace-git')
+    const nested = await catalog('remote-no-ref')
+    await writeFile(join(nested, '.agents', 'plugins', 'marketplace.json'), JSON.stringify({
+      plugins: [{ name: 'demo-plugin', source: { url: 'https://example.test/catalog.git' } }],
+    }))
+    const nestedStore = new PluginStore(await temp('remote-no-ref-home'))
+    expect((await nestedStore.get(await nestedStore.install(nested)))?.source.kind).toBe('marketplace-local')
+  })
+
+  it('accepts explicit Claude components and metadata overrides in portable bundles', async () => {
+    const source = await temp('claude-explicit')
+    const hooks = { Stop: [{ hooks: [{ command: 'echo ready' }] }] }
+    await claudePlugin(source, { skills: ['./skills'], hooks, mcpServers: { local: { command: 'node' } } })
+    const loader = new PluginManifestLoader()
+    expect((await loader.load(source)).manifest).toMatchObject({ skills: ['./skills'], hooks })
+    await portablePlugin(source, '1.0.0', { skills: ['./skills'], apps: { one: {} }, extensions: { 'com.openai': { interface: { logo: 'logo.svg' } } } })
+    await mkdir(join(source, 'skills', 'another'))
+    await writeFile(join(source, 'skills', 'another', 'SKILL.md'), '---\nname: another\ndescription: Another\n---\nBody')
+    expect((await loader.load(source)).skills.map(skill => skill.rawName)).toEqual(['another', 'hello'])
+    expect((await loader.load(source)).manifest.interface).toEqual({ logo: 'logo.svg' })
+  })
+
+  it('rejects directory-shaped manifest and OpenAI metadata files', async () => {
+    const source = await temp('directory-manifest')
+    await mkdir(join(source, 'plugin.json'))
+    const loader = new PluginManifestLoader()
+    await expect(loader.load(source)).rejects.toThrow('root plugin.json must be a regular file')
+    await rm(join(source, 'plugin.json'), { recursive: true })
+    await plugin(source)
+    await mkdir(join(source, 'agents', 'openai.yaml'), { recursive: true })
+    await expect(loader.load(source)).rejects.toThrow('openai.yaml must be a regular file')
+  })
+
+  it('reports filesystem permission failures rather than treating them as missing files', async () => {
+    const source = await temp('filesystem-errors')
+    await plugin(source)
+    const original = filesystem.lstat
+    const failure = Object.assign(new Error('permission denied'), { code: 'EACCES' })
+    vi.spyOn(filesystem, 'lstat').mockImplementation((...args) => {
+      if (args[0] === join(source, 'plugin.json')) return Promise.reject(failure)
+      return original(...args)
+    })
+    await expect(new PluginManifestLoader().load(source)).rejects.toBe(failure)
+    vi.spyOn(filesystem, 'stat').mockRejectedValueOnce(failure)
+    await expect(new PluginStore(await temp('stat-errors')).install(source)).rejects.toBe(failure)
+  })
+
+  it('rejects changed identity between source validation and staging', async () => {
+    const source = await temp('changed-manifest')
+    await plugin(source)
+    const original = PluginManifestLoader.prototype.load.bind(PluginManifestLoader.prototype)
+    vi.spyOn(PluginManifestLoader.prototype, 'load').mockImplementationOnce(async function (this: PluginManifestLoader, ...args) {
+      const loaded = await original.apply(this, args)
+      await plugin(source, '2.0.0')
+      return loaded
+    })
+    const store = new PluginStore(await temp('changed-home'))
+    await expect(store.install(source)).rejects.toThrow('manifest changed while staging')
+    expect((await store.list()).size).toBe(0)
+  })
+
+  it('enforces manifest, file, package, and file-count bounds', async () => {
+    const source = await temp('bounded-package')
+    await plugin(source)
+    const loader = new PluginManifestLoader()
+    const large = join(source, 'large.bin')
+    await writeFile(large, '')
+    await truncate(large, 8 * 1024 * 1024 + 1)
+    await expect(loader.load(source)).rejects.toThrow('file exceeds')
+    await truncate(large, 8 * 1024 * 1024)
+    for (let index = 0; index < 8; index += 1) {
+      const file = join(source, `part-${index}.bin`)
+      await writeFile(file, '')
+      await truncate(file, 8 * 1024 * 1024)
+    }
+    await expect(loader.load(source)).rejects.toThrow('package exceeds')
+    await Promise.all((await readdir(source)).filter(name => name.endsWith('.bin')).map(name => rm(join(source, name))))
+    await truncate(join(source, '.codex-plugin', 'plugin.json'), 256 * 1024 + 1)
+    await expect(loader.load(source)).rejects.toThrow('plugin manifest is invalid or too large')
+    await plugin(source)
+    await Promise.all(Array.from({ length: 4001 }, async (_, index) => writeFile(join(source, `empty-${index}`), '')))
+    await expect(loader.load(source)).rejects.toThrow('more than 4000 files')
+  })
+
+  it.each([false, true])('rejects unsupported filesystem entries while validating and copying a bundle (symlink=%s)', async (symbolic) => {
+    const source = await temp('unsupported-entry')
+    await plugin(source)
+    const original = filesystem.lstat
+    vi.spyOn(filesystem, 'lstat').mockImplementation(async (...args) => {
+      if (String(args[0]).endsWith('skills\\hello\\SKILL.md') || String(args[0]).endsWith('skills/hello/SKILL.md')) {
+        return { isDirectory: () => false, isFile: () => false, isSymbolicLink: () => false, size: 0 } as never
+      }
+      return await original(...args)
+    })
+    await expect(new PluginManifestLoader().load(source)).rejects.toThrow('unsupported filesystem entry')
+
+    vi.restoreAllMocks()
+    let copying = false
+    const load = PluginManifestLoader.prototype.load.bind(PluginManifestLoader.prototype)
+    vi.spyOn(PluginManifestLoader.prototype, 'load').mockImplementationOnce(async function (this: PluginManifestLoader, ...args) {
+      const result = await load.apply(this, args)
+      copying = true
+      return result
+    })
+    vi.spyOn(filesystem, 'lstat').mockImplementation(async (...args) => {
+      const path = args[0] as string
+      if (path.endsWith('skills\\hello\\SKILL.md') || path.endsWith('skills/hello/SKILL.md')) {
+        if (copying) return { isDirectory: () => false, isFile: () => false, isSymbolicLink: () => symbolic, size: 0 } as never
+      }
+      return await original(...args)
+    })
+    await expect(new PluginStore(await temp('unsupported-entry-home')).install(source))
+      .rejects.toThrow(symbolic ? 'symbolic links are not allowed' : 'unsupported filesystem entry')
+  })
+
+  it('rejects a file as the plugin root and a directory redirected during traversal', async () => {
+    const source = await temp('root-validation')
+    await plugin(source)
+    const loader = new PluginManifestLoader()
+    await expect(loader.load(join(source, '.codex-plugin', 'plugin.json'))).rejects.toThrow('root must be a real directory')
+    const outside = await temp('walk-outside')
+    const original = filesystem.realpath
+    vi.spyOn(filesystem, 'realpath').mockImplementation(async (...args) => {
+      if (String(args[0]) === join(source, 'skills')) return outside
+      return await original(...args)
+    })
+    await expect(loader.load(source)).rejects.toThrow('junction escapes plugin root')
+  })
+
+  it('rejects a manifest replaced by a symbolic link after tree validation', async () => {
+    const source = await temp('changed-link')
+    await plugin(source)
+    const manifest = join(source, '.codex-plugin', 'plugin.json')
+    const original = filesystem.lstat
+    let inspections = 0
+    vi.spyOn(filesystem, 'lstat').mockImplementation(async (...args) => {
+      if (String(args[0]) === manifest && ++inspections === 3) return { isSymbolicLink: () => true } as never
+      return await original(...args)
+    })
+    await expect(new PluginManifestLoader().load(source)).rejects.toThrow('must not be a symbolic link')
+  })
+
+  it('refuses to remove a registry path outside its store', async () => {
+    const source = await temp('registry-escape-source')
+    await plugin(source)
+    const store = new PluginStore(await temp('registry-escape-home'))
+    const identity = await store.install(source)
+    const sentinel = join(store.home, 'keep.txt')
+    await writeFile(sentinel, 'keep')
+    await store.update(identity, (entry) => { entry.source = { ...entry.source, sourceId: '../../../outside' } })
+    await expect(store.remove(identity)).rejects.toThrow('refusing to remove outside the plugin store')
+    expect(await readFile(sentinel, 'utf8')).toBe('keep')
+  })
+
+  it('rejects a realpath that escapes the requested plugin root', async () => {
+    const source = await temp('realpath-escape')
+    const nested = join(source, 'nested')
+    await mkdir(nested)
+    await plugin(nested)
+    const outside = await temp('realpath-outside')
+    const original = filesystem.realpath
+    vi.spyOn(filesystem, 'realpath').mockImplementation(async (...args) => {
+      if (String(args[0]) === nested) return outside
+      return await original(...args)
+    })
+    await expect(new PluginStore(await temp('realpath-escape-home')).install({ source, path: 'nested' }))
+      .rejects.toThrow('escapes plugin root')
+  })
+
+  it('rejects a bounded text response whose encoded bytes exceed its limit', async () => {
+    const source = await temp('bounded-bytes')
+    await plugin(source)
+    vi.spyOn(Buffer, 'byteLength').mockReturnValue(8 * 1024 * 1024)
+    await expect(new PluginManifestLoader().load(source)).rejects.toThrow('plugin manifest is too large')
+  })
+
+  it('reuses an installed version and reloads an enabled upgrade with durable approval state', async () => {
+    const source = await temp('enabled-upgrade')
+    const home = await temp('enabled-upgrade-home')
+    await plugin(source, '1.0.0', { mcpServers: { disabled: { command: 'node' } } })
+    const { ctx, plugins } = await runtime(home)
+    try {
+      const identity = (await plugins.import(source)).plugins[0]!.identity
+      await plugins.setMcpServerEnabled(identity, 'disabled', false)
+      await plugins.setMcpToolApproval(identity, 'disabled', 'hello', 'deny')
+      await plugins.lifecycle.enable(identity)
+      await plugins.lifecycle.enable(identity)
+      expect((await plugins.registry.get(identity))?.enabled).toBe(true)
+      expect((await plugins.registry.list()).size).toBe(1)
+      await plugins.import(source)
+      await plugin(source, '1.1.0', { mcpServers: { disabled: { command: 'node' } } })
+      const upgraded = (await plugins.import(source)).plugins[0]!
+      expect(upgraded).toMatchObject({ version: '1.1.0', enabled: true, lifecycle: 'loaded', mcpServers: [{ enabled: false, toolApproval: { hello: 'deny' } }] })
+      await plugins.lifecycle.unload(identity)
+      expect((await plugins.info(identity)).lifecycle).toBe('enabled')
+      await plugins.lifecycle.disable(identity)
+      expect((await plugins.info(identity)).lifecycle).toBe('disabled')
+      await expect(plugins.trustHooks(identity)).rejects.toThrow('no hooks to trust')
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('mounts trusted hooks, refreshes trust, and unloads them when trust is revoked', async () => {
+    const source = await temp('trusted-hooks')
+    await plugin(source, '1.0.0', { hooks: [
+      { hooks: { Stop: [{ hooks: [{ command: 'echo ${PLUGIN_ROOT}' }] }] } },
+      { Stop: [{ hooks: [{ command: 'echo ${CLAUDE_PLUGIN_DATA}' }] }] },
+    ] })
+    const { ctx, plugins } = await runtime(await temp('trusted-hooks-home'))
+    ctx.provide('shell', {} as never)
+    try {
+      const identity = (await plugins.import(source)).plugins[0]!.identity
+      await plugins.enable(identity)
+      const trusted = (await plugins.trustHooks(identity)).plugins[0]!
+      expect(trusted).toMatchObject({ hookTrustState: 'trusted', lifecycle: 'loaded' })
+      const text = await readFile(join(trusted.dataPath, `hooks-${trusted.hookDefinitionDigest}.json`), 'utf8')
+      expect(JSON.parse(text)).toEqual({ hooks: { Stop: [{ hooks: [{ command: process.platform === 'win32' ? 'echo ${env:PLUGIN_ROOT}' : 'echo ${PLUGIN_ROOT}' }] },
+        { hooks: [{ command: process.platform === 'win32' ? 'echo ${env:CLAUDE_PLUGIN_DATA}' : 'echo ${CLAUDE_PLUGIN_DATA}' }] }] } })
+      expect((await plugins.untrustHooks(identity)).plugins[0]?.hookTrustState).toBe('pending')
+      await plugins.trustHooks(identity)
+      await plugins.remove(identity)
+      expect((await plugins.list()).plugins).toEqual([])
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('unwinds earlier registrations when a later command registration fails', async () => {
+    const source = await temp('command-failure')
+    await plugin(source)
+    await command(source, 'hello', 'description = "Hello"\nprompt = "Hello"')
+    const { ctx, plugins } = await runtime(await temp('command-failure-home'))
+    try {
+      const identity = (await plugins.import(source)).plugins[0]!.identity
+      vi.spyOn(ctx.commands, 'register').mockImplementationOnce(() => { throw new Error('registration failed') })
+      await expect(plugins.enable(identity)).rejects.toThrow('registration failed')
+      expect(await ctx.skills.list()).toEqual([])
+      expect((await plugins.info(identity)).lifecycle).toBe('enabled')
+      await plugins.disable(identity)
+      expect((await plugins.info(identity)).lifecycle).toBe('disabled')
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it.each(['', 'a'.repeat(2049), 'bad\nsource', 'http://example.test/demo.git', 'https://user:pass@example.test/demo.git',
+    'https://example.test/demo.git?query', 'https://example.test/demo.git#fragment'])('refuses unsafe source %j', async (source) => {
+    await expect(new PluginStore(await temp('invalid-source')).install(source)).rejects.toThrow(/source/)
+    expect(execFileMock).not.toHaveBeenCalled()
+  })
+
+  it.each(['', '-option', 'with space', 'a'.repeat(256)])('refuses unsafe Git ref %j', async (ref) => {
+    await expect(new PluginStore(await temp('invalid-ref')).install({ source: 'owner/repo', ref })).rejects.toThrow('Git ref is invalid')
+    expect(execFileMock).not.toHaveBeenCalled()
+  })
+
+  it('reports Git failure and removes the incomplete checkout', async () => {
+    execFileMock.mockImplementation((_command, _args, _options, callback) => { callback(new Error('offline'), '', '') })
+    await expect(new PluginStore(await temp('git-failure')).install('owner/repo')).rejects.toThrow('Git import failed')
+    const destination = String(execFileMock.mock.calls[0]?.[1].at(-1))
+    await expect(readFile(join(destination, 'plugin.json'))).rejects.toMatchObject({ code: 'ENOENT' })
+  })
+
+  it('rejects unsupported registry documents and reports absent updates and removals', async () => {
+    const store = new PluginStore(await temp('registry-errors'))
+    expect(await store.remove('missing')).toBeUndefined()
+    await expect(store.update('missing', () => {})).rejects.toThrow('not installed')
+    for (const document of [null, { version: 2, plugins: {} }, { version: 1, plugins: [] }]) {
+      await writeFile(store.registryPath, JSON.stringify(document))
+      await expect(store.list()).rejects.toThrow('unsupported format')
+    }
+    await writeFile(store.registryPath, '{broken')
+    await expect(store.list()).rejects.toThrow(SyntaxError)
+  })
+
+  it.each([
+    [{}, 'requires a plugins array'], [{ plugins: [] }, 'select a marketplace plugin'],
+    [{ plugins: [{ name: 'one' }, { name: 'two' }] }, 'select a marketplace plugin'],
+    [{ plugins: [{ name: 'one' }] }, 'requires a relative path or source'],
+    [{ plugins: [{ name: 'one', source: { source: 'git-subdir' } }] }, 'requires source.url'],
+    [{ plugins: [{ name: 'one', path: './empty' }] }, 'not a Codex plugin root'],
+  ])('rejects incomplete marketplace %j', async (document, error) => {
+    const source = await temp('marketplace-errors')
+    await mkdir(join(source, 'empty'))
+    await writeFile(join(source, 'marketplace.json'), JSON.stringify(document))
+    await expect(new PluginStore(await temp('marketplace-home')).install(source)).rejects.toThrow(error)
+  })
+
+  it('requires a manifest and falls back from invalid unrelated root JSON to Codex', async () => {
+    const source = await temp('manifest-locations')
+    const loader = new PluginManifestLoader()
+    await expect(loader.load(source)).rejects.toThrow('plugin manifest is missing')
+    await expect(new PluginStore(await temp('empty-marketplace-home')).install(source)).rejects.toThrow('marketplace.json is missing')
+    await mkdir(join(source, '.claude-plugin'))
+    await expect(loader.load(source)).rejects.toThrow('Claude plugin manifest is missing')
+    await writeFile(join(source, 'plugin.json'), '{broken')
+    await expect(loader.load(source)).rejects.toThrow(SyntaxError)
+    await plugin(source)
+    expect((await loader.load(source)).manifest.format).toBe('legacy')
+  })
+
+  it('imports a remote marketplace whose selected entry has a separate Git source', async () => {
+    const source = await catalog('nested-git-catalog')
+    const target = await temp('nested-git-plugin')
+    await plugin(target)
+    await writeFile(join(source, '.agents', 'plugins', 'marketplace.json'), JSON.stringify({ plugins: [{
+      id: 'demo', source: { source: 'owner/plugin', sha: 'release' },
+    }] }))
+    execFileMock.mockImplementation((_command, args, _options, callback) => {
+      const directory = args.includes('https://github.com/owner/catalog.git') ? source : target
+      void cp(directory, String(args.at(-1)), { recursive: true }).then(
+        () => { callback(null, '', '') }, (error: unknown) => { callback(error as Error, '', '') },
+      )
+    })
+    const store = new PluginStore(await temp('nested-git-home'))
+    const identity = await store.install({ source: 'owner/catalog', plugin: 'demo' })
+    expect((await store.get(identity))?.source).toMatchObject({ kind: 'marketplace-git', ref: 'release' })
+    expect(execFileMock.mock.calls[1]?.[1]).toContain('--branch')
+    for (const call of execFileMock.mock.calls) await expect(realpath(String(call[1].at(-1)))).rejects.toMatchObject({ code: 'ENOENT' })
+  })
+
+  it('loads empty portable bundles and filters unrelated skill and command files', async () => {
+    const source = await temp('empty-components')
+    await writeFile(join(source, 'plugin.json'), JSON.stringify({
+      $schema: 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json', name: 'empty',
+    }))
+    const loader = new PluginManifestLoader()
+    expect((await loader.load(source)).skills).toEqual([])
+    await mkdir(join(source, 'skills', 'empty'), { recursive: true })
+    await writeFile(join(source, 'skills', 'README.md'), 'Not a skill')
+    await mkdir(join(source, 'commands'))
+    await writeFile(join(source, 'commands', 'README.txt'), 'Not a command')
+    expect((await loader.load(source)).commands).toEqual([])
+    await plugin(source, '1.0.0', { skills: './README.md' })
+    await rm(join(source, 'plugin.json'))
+    await writeFile(join(source, 'README.md'), 'Not a skill')
+    expect((await loader.load(source)).skills).toEqual([])
+  })
+
+  it('merges app mapping documents and rejects duplicate or non-object MCP documents', async () => {
+    const source = await temp('component-documents')
+    await plugin(source, '1.0.0', { apps: ['apps.json'], mcpServers: ['one.json', 'two.json'] })
+    await writeFile(join(source, '.app.json'), JSON.stringify({ one: {} }))
+    await writeFile(join(source, 'apps.json'), JSON.stringify({ two: {} }))
+    await writeFile(join(source, 'one.json'), JSON.stringify({ local: { type: 'stdio', command: 'node', args: [], env: { FIXTURE: 'value' }, cwd: '.' } }))
+    await writeFile(join(source, 'two.json'), '{}')
+    const loader = new PluginManifestLoader()
+    expect((await loader.load(source)).apps).toEqual({ one: {}, two: {} })
+    await writeFile(join(source, 'two.json'), JSON.stringify({ local: { command: 'node' } }))
+    await expect(loader.load(source)).rejects.toThrow('duplicate MCP server local')
+    await writeFile(join(source, 'two.json'), '[]')
+    await expect(loader.load(source)).rejects.toThrow('MCP configuration must be an object')
+    await writeFile(join(source, 'two.json'), '{}')
+    await writeFile(join(source, 'apps.json'), '[]')
+    await expect(loader.load(source)).rejects.toThrow('app mapping must be an object')
+  })
+
+  it.each([42, [42]])('rejects invalid component path lists %j', async (skills) => {
+    const source = await temp('component-paths')
+    await plugin(source, '1.0.0', { skills })
+    await expect(new PluginManifestLoader().load(source)).rejects.toThrow('string array')
+  })
+
+  it('rejects invalid hook entries and non-directory commands', async () => {
+    const source = await temp('invalid-components')
+    await plugin(source, '1.0.0', { hooks: [42] })
+    await expect(new PluginManifestLoader().load(source)).rejects.toThrow('hooks must be paths or objects')
+    await plugin(source)
+    await writeFile(join(source, 'commands'), 'not a directory')
+    await expect(new PluginManifestLoader().load(source)).rejects.toThrow('commands must be a real directory')
+  })
+
+  it.each(['legacy', 'portable', 'claude'] as const)('validates optional metadata in %s manifests', async (format) => {
+    const source = await temp(`metadata-${format}`)
+    const create = (extra: Record<string, unknown>) => format === 'claude' ? claudePlugin(source, extra)
+      : format === 'portable' ? portablePlugin(source, '1.0.0', extra) : plugin(source, '1.0.0', extra)
+    const loader = new PluginManifestLoader()
+    const metadata = {
+      description: 'Metadata fixture', homepage: 'https://example.test', repository: 'example/plugin',
+      license: 'MIT', keywords: ['fixture'], author: { name: 'Fixture author' },
+    }
+    await create(metadata)
+    expect((await loader.load(source)).manifest).toMatchObject(metadata)
+    for (const key of ['description', 'homepage', 'repository', 'license']) {
+      await create({ [key]: 42 })
+      await expect(loader.load(source)).rejects.toThrow(`manifest ${key} must be a string`)
+    }
+    for (const keywords of ['fixture', ['fixture', 42]]) {
+      await create({ keywords })
+      await expect(loader.load(source)).rejects.toThrow('manifest keywords must be a string array')
+    }
+    await create({ author: 42 })
+    await expect(loader.load(source)).rejects.toThrow('manifest author must be')
+    if (format !== 'claude') {
+      await create({ author: 'Fixture author', interface: { logo: 'logo.svg', composerIcon: 'icon.svg', screenshots: ['screen.png'] } })
+      expect((await loader.load(source)).manifest.author).toBe('Fixture author')
+      await create({ interface: [] })
+      await expect(loader.load(source)).rejects.toThrow('manifest interface must be an object')
+    }
+  })
+
+  it.each([
+    ['legacy', null, 'valid name and semantic version'],
+    ['legacy', { name: 'bad name', version: '1.0.0' }, 'valid name and semantic version'],
+    ['legacy', { name: 'demo', version: 'release' }, 'valid name and semantic version'],
+    ['claude', null, 'must be an object'],
+    ['claude', { name: 'Upper-Case' }, 'invalid Claude plugin name'],
+    ['claude', { name: 'demo', version: 'release.' }, 'not a safe directory name'],
+    ['portable', { name: 'two..dots' }, 'invalid Agent Plugins name'],
+    ['portable', { name: 'two--dashes' }, 'invalid Agent Plugins name'],
+    ['portable', { name: 42 }, 'invalid Agent Plugins name'],
+  ])('rejects malformed %s identity %j', async (format, manifest, error) => {
+    const source = await temp('invalid-manifest')
+    const directory = format === 'portable' ? source : join(source, format === 'claude' ? '.claude-plugin' : '.codex-plugin')
+    await mkdir(directory, { recursive: true })
+    await writeFile(join(directory, 'plugin.json'), JSON.stringify(format === 'portable'
+      ? { $schema: 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json', ...manifest as object }
+      : manifest))
+    await expect(new PluginManifestLoader().load(source)).rejects.toThrow(error)
+  })
+
+  it.each([
+    ['', 'relative'], ['bad\0path', 'relative'], ['/absolute', 'relative'], ['\\absolute', 'relative'],
+    ['\\\\host\\share', 'relative'], ['C:\\absolute', 'relative'], ['a//b', 'traverse'], ['../escape', 'traverse'],
+  ])('rejects unsafe component path %j', async (path, error) => {
+    const source = await temp('unsafe-component')
+    await plugin(source, '1.0.0', { skills: [path] })
+    await expect(new PluginManifestLoader().load(source)).rejects.toThrow(error)
+  })
+
+  it.each([
+    ['[broken', 'invalid YAML'], ['[]', 'YAML object'], ['interface: []', 'interface must be an object'],
+    ['policy: []', 'policy must be an object'], ['interface:\n  display_name: 3', 'non-empty string'],
+    ['interface:\n  display_name: " "', 'non-empty string'],
+    ['policy:\n  allow_implicit_invocation: yes', 'must be a boolean'],
+    ['dependencies: []', 'dependencies must be an object'],
+  ])('rejects malformed OpenAI metadata %j', async (document, error) => {
+    const source = await temp('invalid-openai')
+    await plugin(source)
+    await mkdir(join(source, 'agents'))
+    await writeFile(join(source, 'agents', 'openai.yaml'), document)
+    await expect(new PluginManifestLoader().load(source)).rejects.toThrow(error)
+  })
+
+  it('reads skill-level OpenAI metadata and omits empty plugin metadata', async () => {
+    const source = await temp('skill-openai')
+    await plugin(source)
+    await mkdir(join(source, 'agents'))
+    await writeFile(join(source, 'agents', 'openai.yaml'), '{}')
+    await mkdir(join(source, 'skills', 'hello', 'agents'))
+    await writeFile(join(source, 'skills', 'hello', 'agents', 'openai.yaml'), [
+      'interface:', '  display_name: Hello', '  short_description: Greeting', '  icon_small: ./icon.svg',
+      '  icon_large: ./logo.svg', '  brand_color: "#abcdef"', '  default_prompt: Say hello',
+      'policy:', '  allow_implicit_invocation: true', 'dependencies: {}', '',
+    ].join('\n'))
+    const loaded = await new PluginManifestLoader().load(source)
+    expect(loaded.agentMetadata).toBeUndefined()
+    expect(loaded.skills[0]?.agentMetadata).toEqual({
+      displayName: 'Hello', shortDescription: 'Greeting', iconSmall: './icon.svg', iconLarge: './logo.svg',
+      brandColor: '#abcdef', defaultPrompt: 'Say hello', allowImplicitInvocation: true,
+    })
+  })
+
+  it.each([
+    [{ type: 'sse' }, 'unsupported transport'], [{ type: 'http' }, 'requires url'],
+    [{ type: 'http', url: ' ' }, 'requires url'], [{ command: '' }, 'requires command or url'],
+    [{ command: 'node', bearer_token_env_var: 'TOKEN' }, 'requires HTTP transport'],
+    [{ command: 'node', oauth: {} }, 'requires HTTP transport'],
+    [{ command: 'node', oauth_resource: 'resource' }, 'requires HTTP transport'],
+    [{ url: 'https://example.test', oauth_resource: 'resource' }, 'OAuth metadata is not supported'],
+    [{ url: 'https://example.test', bearer_token_env_var: '' }, 'valid environment variable name'],
+    [{ url: 'https://example.test', bearer_token_env_var: 42 }, 'valid environment variable name'],
+    [{ url: 'https://example.test', bearer_token_env_var: 'INVALID=NAME' }, 'valid environment variable name'],
+    [{ command: 'node', args: 'args' }, 'string array'], [{ command: 'node', args: [42] }, 'string array'],
+    [{ command: 'node', env: [] }, 'string map'], [{ command: 'node', env: { NAME: 42 } }, 'string map'],
+    [null, 'must be an object'],
+  ])('rejects invalid MCP server %j', async (definition, error) => {
+    const source = await temp('invalid-mcp')
+    await plugin(source, '1.0.0', { mcpServers: { fixture: definition } })
+    await expect(new PluginManifestLoader().load(source)).rejects.toThrow(error)
+  })
+
+  it.each(['http', 'streamable_http', 'streamable-http'])('normalizes HTTP transport %s and headers', async (type) => {
+    const source = await temp('http-alias')
+    await plugin(source, '1.0.0', { mcpServers: { fixture: { type, url: 'https://example.test', http_headers: { Accept: 'application/json' } } } })
+    expect((await new PluginManifestLoader().load(source)).mcp[0]?.config).toMatchObject({
+      transport: 'streamable-http', url: 'https://example.test', headers: { Accept: 'application/json' },
+    })
+  })
+
+  it.each([
+    ['---\n[broken\n---\nBody', 'invalid YAML'], ['---\n[]\n---\nBody', 'invalid YAML'],
+    ['---\ndescription: Greeting\n---\n ', 'non-empty Markdown body'],
+    ['---\ndescription: 3\n---\nBody', 'non-empty string description'],
+    ['---\ndescription: " "\n---\nBody', 'non-empty string description'],
+    ['---\nargument-hint: 3\n---\nBody', 'argument-hint'],
+    ['---\nargument-hint: " "\n---\nBody', 'argument-hint'],
+  ])('rejects invalid Markdown command %j', async (document, error) => {
+    const source = await temp('invalid-markdown')
+    await plugin(source)
+    await markdownCommand(source, 'hello', document)
+    await expect(new PluginManifestLoader().load(source)).rejects.toThrow(error)
+  })
+
   it('imports the portable root plugin.json format used by Codex', async () => {
     const source = await temp('portable-plugin')
     await portablePlugin(source)
@@ -198,6 +821,37 @@ describe('PluginStore', () => {
       $schema: 'https://agent-plugins.org/schemas/2.0.0/plugin.schema.json', name: 'portable-plugin',
     }))
     await expect(new PluginManifestLoader().load(source)).rejects.toThrow(/unsupported Agent Plugins schema/)
+  })
+
+  it('rejects a portable manifest whose schema changes during discovery', async () => {
+    const source = await temp('portable-schema-missing')
+    await portablePlugin(source)
+    const original = filesystem.readFile
+    let reads = 0
+    vi.spyOn(filesystem, 'readFile').mockImplementation(async (...args) => {
+      const path = args[0] as string
+      if (path === join(source, 'plugin.json') && ++reads > 1) return '{}'
+      return await original(...args)
+    })
+    await expect(new PluginManifestLoader().load(source)).rejects.toThrow(/requires Agent Plugins schema/)
+  })
+
+  it('ignores non-array hook groups while merging supported definitions', async () => {
+    const source = await temp('hook-groups')
+    await plugin(source, '1.0.0', { hooks: { Stop: [{ hooks: [{ command: 'echo ready' }] }], Ignore: 'invalid' } })
+    const loaded = await new PluginManifestLoader().load(source)
+    expect(loaded.hooks).toHaveLength(1)
+    const home = await temp('hook-groups-home')
+    const { ctx, plugins } = await runtime(home)
+    try {
+      const identity = (await plugins.import(source)).plugins[0]!.identity
+      await plugins.enable(identity)
+      await plugins.trustHooks(identity)
+      const stored = await plugins.info(identity)
+      expect(stored.hookDefinitionDigest).toBeDefined()
+    } finally {
+      await ctx.fiber.dispose()
+    }
   })
 
   it('uses inline MCP definitions instead of the default file', async () => {
@@ -468,8 +1122,10 @@ describe('PluginStore', () => {
     await expect(new PluginStore(await temp('home')).install(traversal)).rejects.toThrow('traverse')
 
     const absolute = await temp('absolute')
-    await plugin(absolute, '1.0.0', { hooks: 'C:\\outside\\hooks.json' })
-    await expect(new PluginStore(await temp('home')).install(absolute)).rejects.toThrow('relative')
+    for (const hooks of ['C:\\outside\\hooks.json', 'C:hooks.json', 'D:hooks.json']) {
+      await plugin(absolute, '1.0.0', { hooks })
+      await expect(new PluginStore(await temp('home')).install(absolute)).rejects.toThrow('relative')
+    }
 
     const interfaceEscape = await temp('interface-escape')
     await plugin(interfaceEscape, '1.0.0', { interface: { logo: '../outside.png' } })
@@ -533,6 +1189,40 @@ describe('PluginStore', () => {
     expect((await second.plugins.list()).plugins[0]).toMatchObject({ enabled: true, initialEnabled: true })
     expect((await second.plugins.disable(identity)).plugins[0]).toMatchObject({ enabled: false, initialEnabled: true })
     await second.ctx.fiber.dispose()
+  })
+
+  it('leaves a stored disabled plugin unloaded at startup', async () => {
+    const home = await temp('startup-enabled-home')
+    const source = await temp('startup-enabled-source')
+    await plugin(source)
+    const store = new PluginStore(home)
+    const identity = await store.install(source)
+    const { ctx, plugins } = await runtime(home)
+    try {
+      expect((await plugins.info(identity)).lifecycle).toBe('disabled')
+      expect(await ctx.skills.list()).toEqual([])
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('swallows an already-failed component wait during unload', async () => {
+    const home = await temp('unload-failure-home')
+    const source = await temp('unload-failure-source')
+    await plugin(source, '1.0.0', { hooks: { Stop: [{ hooks: [{ command: 'echo ready' }] }] } })
+    const { ctx, plugins } = await runtime(home)
+    ctx.provide('shell', {} as never)
+    try {
+      const identity = (await plugins.import(source)).plugins[0]!.identity
+      await plugins.enable(identity)
+      await plugins.trustHooks(identity)
+      const component = (plugins as unknown as { live: Map<string, { hookFiber?: { await: () => Promise<void> } }> }).live.get(identity)
+      expect(component?.hookFiber).toBeDefined()
+      vi.spyOn(component!.hookFiber!, 'await').mockRejectedValue(new Error('already failed'))
+      await expect(plugins.unload(identity)).resolves.toBeUndefined()
+    } finally {
+      await ctx.fiber.dispose()
+    }
   })
 
   it('keeps imported registrations owned by the service after an API caller is disposed', async () => {
@@ -699,6 +1389,11 @@ describe('PluginStore', () => {
       expect(ctx.tools.schemas()).toEqual([])
       await plugins.setMcpServerEnabled(identity, 'local', true)
       expect((await execute('admin__reset')).isError).toBe(true)
+      const store = new PluginStore(home)
+      await store.update(identity, (entry) => { entry.mcp = {} })
+      await expect(ctx.waterfall('tools/pre-execute', {
+        name: publicToolName(serverName, 'admin__reset'),
+      } as never, async () => ({ kind: 'allow' as const }))).resolves.toMatchObject({ kind: 'ask' })
       await plugins.disable(identity)
       expect(ctx.tools.schemas()).toEqual([])
     } finally {
@@ -822,6 +1517,8 @@ describe('/plugin command', () => {
     expect(unknownVerb.kind).toBe('error')
     expect(unknownVerb.text).toContain('Usage: /plugin')
     expect(await pluginCommand(ctx, 'import missing-source')).toMatchObject({ kind: 'error' })
+    vi.spyOn(PluginStore.prototype, 'install').mockRejectedValueOnce('storage unavailable')
+    expect(await pluginCommand(ctx, 'import some-source')).toEqual({ kind: 'error', text: 'storage unavailable' })
     ctx.provide('pluginInventory' as never, {
       addMarketplace: vi.fn(async () => Promise.reject(new Error('catalog boom'))),
       listMarketplaces: vi.fn(async () => ({ marketplaces: [] })),

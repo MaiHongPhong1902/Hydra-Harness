@@ -11,6 +11,8 @@
 - text: m1 7/25 {{clock}}
 - button "Copy":
   - img
+- button "Edit":
+  - img
 - paragraph: r1
 - button "Copy":
   - img

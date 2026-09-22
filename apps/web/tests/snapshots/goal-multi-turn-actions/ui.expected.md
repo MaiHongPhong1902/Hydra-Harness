@@ -82,6 +82,8 @@
 - paragraph: 这是一个很典型的轻量 TypeScript 包结构：入口 + 实现 + 测试。这一轮到此结束，等系统开启下一个 turn。
 - button "Copy":
   - img
+- button "Edit":
+  - img
 - button "Good response":
   - img
 - button "Bad response":

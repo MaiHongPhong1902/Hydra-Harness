@@ -117,10 +117,13 @@ export async function readWorkspaceReview(
   const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !/KEY|SECRET|TOKEN|PASSWORD|^GIT_/iu.test(key)))
   const git = async (args: string[], allowedCode?: number): Promise<string> => {
     abort.throwIfAborted()
+    const pending = execute('git', ['--no-pager', '--no-optional-locks', '--literal-pathspecs', '-c', 'core.fsmonitor=false', '-C', workspace, ...args], {
+      encoding: 'utf8', env, windowsHide: true, maxBuffer: limits.reviewMaxBytes, signal: abort,
+    })
+    // execFile can reject on abort before the child releases its working directory.
+    const closed = new Promise<void>(resolve => pending.child.once('close', () => { resolve() }))
     try {
-      const { stdout } = await execute('git', ['--no-pager', '--no-optional-locks', '--literal-pathspecs', '-c', 'core.fsmonitor=false', '-C', workspace, ...args], {
-        encoding: 'utf8', env, windowsHide: true, maxBuffer: limits.reviewMaxBytes, signal: abort,
-      })
+      const { stdout } = await pending
       return stdout
     } catch (error: unknown) {
       abort.throwIfAborted()
@@ -130,6 +133,8 @@ export async function readWorkspaceReview(
       if (failure.code === 'ENOENT') throw new Error('Git is not installed on the session host')
       if (failure.stderr?.includes('not a git repository')) return ''
       throw new Error(`Git could not read this comparison (${String(failure.code)}). Check the selected reference and repository access.`)
+    } finally {
+      await closed
     }
   }
   const repository = (await git(['rev-parse', '--show-toplevel'])).trim() || null

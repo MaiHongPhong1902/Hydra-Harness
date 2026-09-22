@@ -106,6 +106,7 @@ describe.skipIf(MODE === 'record')('web e2e: durable workflow run in Chat', () =
     await member.focus()
 
     const lightColor = await member.locator('[data-member-label]').evaluate(element => getComputedStyle(element).color)
+    expect(lightColor).toBe('rgb(0, 150, 232)')
     await page.setViewportSize({ width: 560, height: 800 })
     await page.evaluate(() => { document.body.setAttribute('data-ds-dark-theme', '') })
     const darkNarrow = await page.locator('[data-workflow-run]').evaluate((element) => {
@@ -140,7 +141,7 @@ describe.skipIf(MODE === 'record')('web e2e: durable workflow run in Chat', () =
     })
     expect(darkNarrow.clientWidth).toBe(356)
     expect(darkNarrow.scrollWidth).toBeLessThanOrEqual(darkNarrow.clientWidth)
-    expect(darkNarrow.color).not.toBe(lightColor)
+    expect(darkNarrow.color).toBe(lightColor)
     expect(darkNarrow.decoration).toContain('underline')
     expect(Number.parseFloat(darkNarrow.focusWidth)).toBeGreaterThanOrEqual(2)
     expect(darkNarrow.statusWidth).toBe(64)

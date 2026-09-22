@@ -499,19 +499,21 @@ describe('SessionPersistenceSqlite schema ownership', () => {
   })
 
   it('paces repeated busy journal-mode attempts', async () => {
-    let attempts = 0
+    const attempts: number[] = []
     const BusyDatabase = databaseWithJournalFailure(() => {
-      attempts += 1
-      return Object.assign(new Error('database is locked'), { errcode: 5 })
+      attempts.push(performance.now())
+      return attempts.length < 4 ? Object.assign(new Error('database is locked'), { errcode: 5 }) : undefined
     })
-    await expect(openDatabase(
+    const db = await openDatabase(
       BusyDatabase,
       await freshDbPath('hydra-sqlite-journal-paced-'),
       'wal',
-      50,
-    )).rejects.toThrow('database is locked')
-    expect(attempts).toBeGreaterThan(1)
-    expect(attempts).toBeLessThanOrEqual(6)
+      DEFAULT_BUSY_TIMEOUT_MS,
+    )
+    db.close()
+    expect(attempts).toHaveLength(4)
+    // Real timers may fire early by one millisecond; each retry must still yield.
+    expect(attempts.slice(1).every((time, index) => time - attempts[index]! >= 8)).toBe(true)
   })
 
   it('rejects unversioned, incompatible, and foreign-application databases', async () => {

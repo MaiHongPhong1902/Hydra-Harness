@@ -35,7 +35,8 @@ export function pageAgentPatch(sourceDir, patchPath) {
           if (current !== patched && current !== git(['show', `HEAD:${file}`])) {
             throw new Error(`PageAgent patch conflicts with local edits in ${file}; update page-agent.patch first`)
           }
-          // Vite resolves imports to physical paths, including Windows short names.
+          // Vite can retain Windows short names or resolve a symlink to its physical path.
+          sources.set(normalizePath(join(sourceDir, file)), patched)
           sources.set(normalizePath(realpathSync.native(join(sourceDir, file))), patched)
         }
       } finally {

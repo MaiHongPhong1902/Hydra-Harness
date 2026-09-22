@@ -39,6 +39,19 @@ async function boot(initial: Record<string, unknown> = {}) {
 function response(body: unknown, status = 200) { return new Response(JSON.stringify(body), { status }) }
 
 describe('search provider selection', () => {
+  it('uses operator defaults without settings and resolves the credential service', async () => {
+    const ctx = new Context()
+    contexts.push(ctx)
+    await ctx.plugin(WebRuntime)
+    const resolve = vi.fn(async () => ({ value: 'service-secret' }))
+    ctx.provide('credentials', { resolve } as never)
+    http.apply(ctx, {})
+    const fetch = vi.spyOn(globalThis, 'fetch').mockResolvedValue(response({ organic: [] }))
+    await ctx.web.testSearchProvider('serper')
+    expect(resolve).toHaveBeenCalledWith('SERPER_API_KEY')
+    expect(new Headers(fetch.mock.calls[0]?.[1]?.headers).get('X-API-KEY')).toBe('service-secret')
+  })
+
   it('keeps a fresh installation unselected even with a chat credential', async () => {
     vi.stubEnv('DEEPSEEK_API_KEY', 'chat-key')
     const ctx = await boot()
@@ -110,6 +123,85 @@ describe('search provider selection', () => {
 })
 
 describe('custom JSON provider', () => {
+  it.each([
+    { endpoint: 'broken' }, { endpoint: 'https://example.test/#fragment' },
+    { endpoint: 'https://example.test/?token=secret' },
+    { staticBody: '{' }, { staticBody: 'null' }, { staticBody: '[]' },
+    { staticBody: '{"nested":{"constructor":{}}}' },
+    { headerRefs: '{"Host":"KEY"}' }, { headerRefs: '{"X-Token":42}' },
+  ])('rejects unsafe provider settings %j', (patch) => {
+    expect(() => { http.validateSearchConfig(http.CustomConfig(patch)) }).toThrow()
+  })
+
+  it('maps nested request fields and custom credential headers without mutating saved JSON', async () => {
+    vi.stubEnv('CUSTOM_HEADER_KEY', 'header-secret')
+    const ctx = await boot({ 'web-search': { provider: 'custom' } })
+    const staticBody = JSON.stringify({ request: { keep: true }, limits: [], locale: null })
+    await ctx.settings.update(customNs, {
+      endpoint: 'https://custom.test/search', auth: 'none', queryField: 'request.query', limitField: 'limits.count',
+      countryField: 'locale.country', languageField: 'locale.language', typeField: 'kind', dateField: 'date',
+      headerRefs: '{"X-Token":"CUSTOM_HEADER_KEY"}', staticBody,
+      publishedAtField: 'date', positionField: 'rank', scoreField: 'score',
+    })
+    const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => response({ results: [{
+      url: 'https://example.test/', title: null, snippet: null, date: '2026-09-23', rank: 1, score: 0,
+    }] }))
+    await expect(ctx.web.search({ query: 'q', maxResults: 2, country: 'vn', language: 'vi', date: 'week' }))
+      .resolves.toMatchObject({ sources: [{ publishedAt: '2026-09-23', position: 1, score: 0 }] })
+    expect(new Headers(fetch.mock.calls[0]?.[1]?.headers).get('X-Token')).toBe('header-secret')
+    expect(JSON.parse(fetch.mock.calls[0]?.[1]?.body as string)).toEqual({
+      request: { keep: true, query: 'q' }, limits: { count: 2 }, locale: { country: 'vn', language: 'vi' }, kind: 'web', date: 'week',
+    })
+    expect(ctx.settings.get(customNs)).toMatchObject({ staticBody })
+  })
+
+  it.each([
+    { url: 1 }, { url: 'broken' }, { url: 'file:///tmp/file' },
+    { url: 'https://example.test/', title: 1 },
+    { url: 'https://example.test/', score: 'high' },
+  ])('rejects malformed search results %j', async (item) => {
+    const ctx = await boot({ 'web-search': { provider: 'custom' }, 'web-search-custom': {
+      endpoint: 'https://custom.test/search', auth: 'none', scoreField: 'score',
+    } })
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(response({ results: [item] }))
+    await expect(ctx.web.search({ query: 'q' })).rejects.toMatchObject({ code: 'INVALID_RESPONSE' })
+  })
+
+  it.each([null, '{'])('rejects an empty or malformed response body %j', async (body) => {
+    const ctx = await boot({ 'web-search': { provider: 'custom' }, 'web-search-custom': {
+      endpoint: 'https://custom.test/search', auth: 'none',
+    } })
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(body))
+    await expect(ctx.web.search({ query: 'q' })).rejects.toMatchObject({ code: 'INVALID_RESPONSE' })
+  })
+
+  it.each([
+    [new DOMException('Deadline', 'TimeoutError'), 'TIMEOUT'],
+    [new Error('User cancelled'), 'WEB_ABORTED'],
+  ] as const)('preserves cancellation reason %s', async (reason, code) => {
+    const config = http.CustomConfig({ endpoint: 'https://custom.test/search', auth: 'none' })
+    const provider = new http.HttpSearchProvider({
+      id: 'custom', displayName: 'Other', configurable: true, settingsNs: customNs, credentialRef: 'KEY', fields: [],
+      capabilities: { web: true, images: false, news: false, videos: false, academic: false },
+    }, () => config, async () => undefined)
+    vi.spyOn(globalThis, 'fetch').mockRejectedValue(reason)
+    await expect(provider.search({ query: 'q' }, AbortSignal.abort(reason))).rejects.toMatchObject({ code })
+  })
+
+  it('rejects unconfigured endpoints and unsupported types at direct execution', async () => {
+    let config = http.CustomConfig({ auth: 'none' })
+    const provider = new http.HttpSearchProvider({
+      id: 'custom', displayName: 'Other', configurable: true, settingsNs: customNs, credentialRef: 'KEY', fields: [],
+      capabilities: { web: true, images: false, news: false, videos: false, academic: false },
+    }, () => config, async () => undefined)
+    const fetch = vi.spyOn(globalThis, 'fetch')
+    expect(provider.available()).toBe(false)
+    await expect(provider.search({ query: 'q' })).rejects.toMatchObject({ code: 'CONFIG_ERROR' })
+    config = http.CustomConfig({ endpoint: 'https://custom.test/search', auth: 'none' })
+    expect(provider.available()).toBe(true)
+    await expect(provider.search({ query: 'q', type: 'news' })).rejects.toMatchObject({ code: 'CONFIG_ERROR' })
+    expect(fetch).not.toHaveBeenCalled()
+  })
   it.each(['POST', 'GET'] as const)('maps %s requests and nested results without passing raw fields', async (method) => {
     const ctx = await boot({ 'web-search': { provider: 'custom' } })
     await ctx.settings.update(customNs, { endpoint: 'https://custom.test/search', auth: 'none', method, queryField: 'query', limitField: 'limit',

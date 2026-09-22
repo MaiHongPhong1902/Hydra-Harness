@@ -22,11 +22,11 @@ interface PromptRevisionDependencies {
   validateModel(source: Source, images: boolean): Promise<void>
 }
 
-function ownRevision(source: Source): ConversationRevision | undefined {
-  const data = source.events.findLast(event => event.type === 'session/revision')?.data
-  if (data === undefined) return undefined
-  const revision = conversationRevisionSchema.parse(data)
-  return revision.sessionId === source.id ? revision : undefined
+function ownRevision(source: Source): { revision: ConversationRevision; seq: number } | undefined {
+  const event = source.events.findLast(event => event.type === 'session/revision')
+  if (event === undefined) return undefined
+  const revision = conversationRevisionSchema.parse(event.data)
+  return revision.sessionId === source.id ? { revision, seq: event.seq } : undefined
 }
 
 function digest(value: unknown): string {
@@ -50,17 +50,18 @@ export function createPromptReviser(ctx: Context, deps: PromptRevisionDependenci
     if ((workspace?.id ?? null) !== input.workspaceId) throw new Error('The message does not belong to the addressed workspace.')
     const existing = await deps.find(childId)
     if (existing !== undefined) {
-      const revision = ownRevision(existing)
+      const revision = ownRevision(existing)?.revision
       if (existing.header.parentSession !== source.id || revision?.admission?.fingerprint !== fingerprint) {
         throw new Error('This idempotency key has already been used for a different edit.')
       }
       await workspace?.attachSession(childId)
       const attempted = existing.events.some(event => event.type === 'turn/start' && event.seq >= (existing.header.seedLength ?? 0))
-      if (!attempted) await start(ctx.agents.get(childId) ?? await deps.resume(childId), revision, workspace)
+      if (!attempted) await start(ctx.agents.get(childId) ?? await deps.resume(childId), revision.admission.message, workspace)
       return { sessionId: childId, revision }
     }
 
-    const previous = ownRevision(source)
+    const receipt = ownRevision(source)
+    const previous = receipt?.revision
     let seed: SessionEvent[]
     let message: RevisionMessage
     let turn: number
@@ -98,10 +99,10 @@ export function createPromptReviser(ctx: Context, deps: PromptRevisionDependenci
       seed = source.events.slice(0, steering ? messageSeq : opening.seq)
       if (steering) seed.push(...interruptedTurnClosers(seed))
     } else {
-      if (previous?.admission === undefined) throw new Error('This session has no admitted prompt revision to retry.')
+      if (receipt?.revision.admission === undefined) throw new Error('This session has no admitted prompt revision to retry.')
       const latestUser = source.events.findLast(event => event.type === 'user/message' && event.data.source.kind === 'user')
       if (latestUser?.type === 'user/message' && latestUser.seq >= (source.header.seedLength ?? 0)
-        && latestUser.data.id !== previous.admission.messageId) {
+        && latestUser.data.id !== receipt.revision.admission.messageId) {
         throw new Error('A later user prompt has already continued this revision.')
       }
       const tail = source.events.findLast(event => event.type === 'turn/end')
@@ -111,12 +112,10 @@ export function createPromptReviser(ctx: Context, deps: PromptRevisionDependenci
         && tail.data.reason.kind !== 'interrupted' && tail.data.reason.kind !== 'blocked')) {
         throw new Error('Only a failed or interrupted revision can be retried.')
       }
-      message = previous.admission.message
+      message = receipt.revision.admission.message
       await deps.validateModel(source, message.content.some(block => block.type === 'image'))
       await Promise.all(message.content.flatMap(block => block.type === 'image' ? [ctx.attachments.readImage(block.attachment)] : []))
-      turn = previous.turn
-      const receipt = source.events.findLast(event => event.type === 'session/revision' && event.data.sessionId === source.id)
-      if (receipt === undefined) throw new Error('The prompt revision receipt is missing.')
+      turn = receipt.revision.turn
       seed = source.events.slice(0, receipt.seq)
     }
 
@@ -155,17 +154,14 @@ export function createPromptReviser(ctx: Context, deps: PromptRevisionDependenci
       ...composition.setup === undefined ? {} : { setup: composition.setup },
     })
     deps.retain(handle)
-    await start(handle.agent, revision, workspace)
+    await start(handle.agent, message, workspace)
     return { sessionId: childId, revision }
   }
 
-  async function start(agent: Agent, revision: ConversationRevision, workspace: Workspace | undefined): Promise<void> {
-    const admission = revision.admission
-    if (admission === undefined) throw new Error('The prompt revision admission is missing.')
+  async function start(agent: Agent, message: RevisionMessage, workspace: Workspace | undefined): Promise<void> {
     const attempted = agent.session.events.some(event => event.type === 'turn/start'
       && event.seq >= (agent.session.header.seedLength ?? 0))
     if (attempted) return
-    const message = admission.message
     if (!agent.inbox.nextTurn.some(item => item.id === message.id)) agent.send(message, 'next-turn', false)
     await ctx.sessions.flush(agent.session)
     await workspace?.attachSession(agent.id)

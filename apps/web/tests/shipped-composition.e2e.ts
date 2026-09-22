@@ -25,14 +25,7 @@ const FILE_REFERENCE_PROMPT = fileURLToPath(new URL(
   './snapshots/web-runtime-context/file-reference-prompt.expected.md', import.meta.url,
 ))
 
-/**
- * The catalog the shipped Web composition puts in front of the model, minus the
- * ripgrep-dependent pair below. The absences are deliberate, not incidental
- * gaps: the `cordis_*` toolset executes model-written JavaScript that no
- * sandbox row confines, `web_fetch` chooses its own request target, and
- * `mcp_*` servers spawn outside `ctx.shell`. The composition Agent Note owns the
- * rationale and its sources.
- */
+/** Shipped agent tools, including bounded Obsidian access and public HTTP fetch. */
 const EXPECTED_TOOLS = [
   'ask_user_question',
   'bash',
@@ -45,6 +38,9 @@ const EXPECTED_TOOLS = [
   'job_list',
   'job_output',
   'list_agents',
+  'obsidian_knowledge_read',
+  'obsidian_knowledge_recall',
+  'obsidian_knowledge_save_approved',
   'ralph',
   'read',
   'read_image',
@@ -55,6 +51,7 @@ const EXPECTED_TOOLS = [
   'subagent_fork',
   'todo_write',
   'update_goal',
+  'web_fetch',
   'web_search',
   'workflow',
   'write',
@@ -135,19 +132,18 @@ it('assembles the shipped Web catalog, file-reference guidance, retry policy, an
       "mode": "always",
     }
   `)
-  // The catalog belongs to an AGENT, not to the process: every model-facing row
-  // now lives in a preset mounted under one session's scope, so the global
-  // layer holds nothing and a caller must name the agent to see anything. This
-  // composes from the deployment default — what a session that names no preset
-  // gets — which is the shape this test has always been about.
-  expect(ctx.tools.schemas().map(schema => schema.name)).toEqual([])
+  expect(ctx.tools.schemas().map(schema => schema.name).sort()).toEqual([
+    'obsidian_knowledge_read', 'obsidian_knowledge_recall', 'obsidian_knowledge_save_approved',
+  ])
   const handle = await ctx.agents.create({
     sessionId: SessionId('shipped-composition'),
     setup: agentCtx => ctx.agentPresets.mount(agentCtx).then(() => undefined),
   })
   try {
     const names = ctx.tools.schemas(handle.agent).map(schema => schema.name).sort()
-    expect(names.filter(name => !RIPGREP_TOOLS.includes(name))).toEqual(EXPECTED_TOOLS)
+    const browserTools = names.filter(name => name.startsWith('browser_'))
+    expect(browserTools.length).toBeGreaterThan(0)
+    expect(names.filter(name => !RIPGREP_TOOLS.includes(name) && !name.startsWith('browser_'))).toEqual(EXPECTED_TOOLS)
     // The packaged ripgrep binary ships with the dependency, so the pair is a
     // fixed roster member on every host.
     expect(names.filter(name => RIPGREP_TOOLS.includes(name))).toEqual(RIPGREP_TOOLS)

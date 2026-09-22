@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Context } from '@hydra/cordis'
+import { SettingsProvider, settingsNamespace, type SettingsNamespace } from '@hydra/harness-settings'
 import WebRuntime, {
   WebError,
   SearchProviderError,
@@ -232,6 +233,22 @@ describe('WebError', () => {
 
 
 describe('configured search fallback', () => {
+  it('rejects a pre-aborted request without invoking either provider', async () => {
+    const { web } = await mountWeb({ searchProvider: 'primary', searchFallbackProviders: ['backup'] })
+    const search = vi.fn(async () => searchResult('unused'))
+    for (const id of ['primary', 'backup']) web.registerSearchProvider(makeSearchProvider(id, true, search))
+    await expect(web.search({ query: 'q' }, AbortSignal.abort())).rejects.toMatchObject({ code: 'WEB_ABORTED' })
+    expect(search).not.toHaveBeenCalled()
+  })
+
+  it('reports the last unavailable provider when the entire chain is unavailable', async () => {
+    const { web } = await mountWeb({ searchProvider: 'primary', searchFallbackProviders: ['backup'] })
+    const search = vi.fn(async () => searchResult('unused'))
+    for (const id of ['primary', 'backup']) web.registerSearchProvider(makeSearchProvider(id, false, search))
+    await expect(web.search({ query: 'q' })).rejects.toThrow('"backup" is unavailable')
+    expect(search).not.toHaveBeenCalled()
+  })
+
   it('tries each configured provider once and caps the successful result', async () => {
     const { web } = await mountWeb({ searchProvider: 'primary', searchFallbackProviders: ['backup'] })
     const calls: string[] = []
@@ -277,5 +294,105 @@ describe('configured search fallback', () => {
     web.registerSearchProvider(makeSearchProvider('a', true, async () => { calls++; return searchResult('a') }))
     await expect(web.search({ query: 'q' })).rejects.toMatchObject({ code: 'WEB_PROVIDER_CONFIGURED_MISSING' })
     expect(calls).toBe(0)
+  })
+})
+
+class SearchMemorySettings extends SettingsProvider {
+  readonly writable = true
+  protected async load() { return {} }
+  protected async persist(_ns: SettingsNamespace, _section: Record<string, unknown>) {}
+}
+
+describe('product search selection', () => {
+  const contexts: Context[] = []
+  afterEach(async () => {
+    vi.restoreAllMocks()
+    await Promise.all(contexts.splice(0).map(ctx => ctx.fiber.dispose()))
+  })
+
+  async function boot() {
+    const ctx = new Context()
+    contexts.push(ctx)
+    await ctx.plugin(SearchMemorySettings)
+    await ctx.plugin(WebRuntime, { requireSearchSelection: true })
+    return ctx
+  }
+
+  it('does not migrate a standalone or unavailable settings service', async () => {
+    const standalone = await mountWeb()
+    contexts.push(standalone.ctx)
+    expect(standalone.web.searchPreferences()).toBeUndefined()
+    await expect(standalone.web.migrateSearchSelection('legacy', true)).resolves.toBeUndefined()
+    const product = await mountWeb({ requireSearchSelection: true })
+    contexts.push(product.ctx)
+    expect(product.web.searchPreferences()).toMatchObject({ provider: '', enabled: true })
+    await expect(product.web.migrateSearchSelection('legacy', true)).resolves.toBeUndefined()
+  })
+
+  it('selects the explicitly configured fetch provider', async () => {
+    const { ctx, web } = await mountWeb({ fetchProvider: 'selected' })
+    contexts.push(ctx)
+    web.registerFetchProvider(makeFetchProvider('other', true, fetchResult('other')))
+    web.registerFetchProvider(makeFetchProvider('selected', true, fetchResult('selected')))
+    await expect(web.fetch({ url: 'https://example.com' })).resolves.toMatchObject({ body: { content: 'selected' } })
+  })
+
+  it('evaluates the initial product settings before a settings provider attaches', async () => {
+    const { ctx, web } = await mountWeb({ requireSearchSelection: true })
+    contexts.push(ctx)
+    expect(web.searchPreferences()).toMatchObject({ provider: '', enabled: true })
+  })
+
+  it('supports constructing the service with its optional config omitted', async () => {
+    const ctx = new Context()
+    contexts.push(ctx)
+    await ctx.plugin({ apply(scope) { new WebRuntime(scope) } })
+    expect(ctx.web.searchPreferences()).toBeUndefined()
+    ctx.web.registerSearchProvider(makeSearchProvider('plain', true, async () => searchResult('plain')))
+    await expect(ctx.web.search({ query: 'q' })).resolves.toMatchObject({ content: 'plain' })
+  })
+
+  it('does not migrate through a read-only settings provider', async () => {
+    const ctx = await boot()
+    vi.spyOn(ctx.settings, 'writable', 'get').mockReturnValue(false)
+    const update = vi.spyOn(ctx.settings, 'update')
+    await ctx.web.migrateSearchSelection('legacy', true)
+    expect(update).not.toHaveBeenCalled()
+  })
+
+  it('lists descriptorless providers without adding a Settings entry', async () => {
+    const ctx = await boot()
+    ctx.web.registerSearchProvider(makeSearchProvider('plain', true, async () => searchResult('plain')))
+    expect(ctx.web.listSearchProviders()).toEqual([])
+    await expect(ctx.web.testSearchProvider('plain')).resolves.toMatchObject({ provider: 'plain', content: 'plain' })
+  })
+
+  it.each(['missing', 'unavailable'])('rejects an %s provider before searching', async (id) => {
+    const ctx = await boot()
+    const search = vi.fn(async () => searchResult('unused'))
+    ctx.web.registerSearchProvider(makeSearchProvider('unavailable', false, search))
+    await expect(ctx.web.testSearchProvider(id)).rejects.toMatchObject({ code: 'CONFIG_ERROR' })
+    expect(search).not.toHaveBeenCalled()
+  })
+
+  it('limits descriptorless providers to web searches', async () => {
+    const ctx = await boot()
+    const search = vi.fn(async () => searchResult('plain'))
+    ctx.web.registerSearchProvider(makeSearchProvider('plain', true, search))
+    await ctx.settings.update(settingsNamespace('web-search'), { provider: 'plain' })
+    await expect(ctx.web.search({ query: 'q', type: 'news' })).rejects.toThrow('does not support news')
+    expect(search).not.toHaveBeenCalled()
+  })
+
+  it('deduplicates results and distinguishes cancellation from unknown provider failures', async () => {
+    const ctx = await boot()
+    const search = vi.fn(async () => searchResult('plain', {
+      sources: [{ url: 'https://example.com/#first' }, { url: 'https://example.com/#second' }],
+    }))
+    ctx.web.registerSearchProvider(makeSearchProvider('plain', true, search))
+    await expect(ctx.web.testSearchProvider('plain')).resolves.toMatchObject({ sources: [{ url: 'https://example.com/#first', provider: 'plain' }] })
+    search.mockRejectedValue(new Error('provider internals'))
+    await expect(ctx.web.testSearchProvider('plain')).rejects.toMatchObject({ code: 'UNKNOWN' })
+    await expect(ctx.web.testSearchProvider('plain', AbortSignal.abort())).rejects.toMatchObject({ code: 'WEB_ABORTED' })
   })
 })

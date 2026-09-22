@@ -267,6 +267,7 @@ const cursorOverrideCss = `
 `
 
 let cancelActiveAnnotation
+let hydraBrowserActive = false
 
 /** A constructed stylesheet works when the page's CSP blocks inline style tags. */
 function installMaskStyles() {
@@ -1119,6 +1120,7 @@ const pageControllerReady = new Promise((resolve, reject) => {
         includeAttributes: ['disabled', 'aria-disabled', 'href'],
       })
       await pageController.showMask()
+      document.querySelector('#page-agent-runtime_simulator-mask')?.toggleAttribute('data-hydra-active', hydraBrowserActive)
       await installNativePointerActions(pageController)
       const updateTree = pageController.updateTree.bind(pageController)
       const uiChangeTracker = createUiChangeTracker()
@@ -1288,9 +1290,11 @@ async function dispatch(action, args) {
 }
 
 ipcRenderer.on('browser:activity', (_event, active) => {
+  const nextActive = active === true
+  hydraBrowserActive = nextActive
   void pageControllerReady.then(async controller => {
-    document.querySelector('#page-agent-runtime_simulator-mask')?.toggleAttribute('data-hydra-active', active)
-    if (active) await controller.showMask()
+    document.querySelector('#page-agent-runtime_simulator-mask')?.toggleAttribute('data-hydra-active', nextActive)
+    if (nextActive) await controller.showMask()
   })
 })
 
