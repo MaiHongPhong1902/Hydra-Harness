@@ -8,7 +8,7 @@ Native pointer actions could dispatch PageAgent pointer events without keeping t
 
 ## Decision
 
-The preload controller installs the PageAgent mask before native action dispatch and keeps the pass-through transition scoped to text selection, with cleanup in `finally`; the generated `preload.cjs` remains synchronized with the source entry. Coverage keeps the per-file 100% threshold and excludes native Electron, external-provider, host-backed Settings, filesystem/provider paths, and shared adapter files whose blocking correctness suites run outside aggregate V8 instrumentation. The exclusions are file-scoped; the remaining source files still carry the 100% gate.
+The preload controller installs the PageAgent mask before native action dispatch and keeps the pass-through transition scoped to text selection, with cleanup in `finally`; the generated `preload.cjs` remains synchronized with the source entry. Coverage keeps the per-file 100% threshold and excludes native Electron, external-provider, host-backed Settings, filesystem/provider paths, and shared adapter files whose blocking correctness suites run outside aggregate V8 instrumentation. The exclusions are file-scoped; the remaining source files still carry the 100% gate. Hydra release-pack checkouts fetch the PageAgent submodule so npm packing can resolve its workspace packages.
 
 ## Alternatives considered
 
