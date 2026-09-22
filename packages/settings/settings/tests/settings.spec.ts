@@ -227,7 +227,9 @@ describe('update', () => {
     const scope = ctx.settings.register(settingsNamespace('ui-theme'), ThemeSchema, {
       base: { fontSize: 16 },
     })
+    expect(scope.revision).toBe(0)
     await scope.update({ theme: 'dark' })
+    expect(scope.revision).toBe(1)
     expect(provider.persisted).toEqual([
       { ns: 'ui-theme', section: { theme: 'dark' } },
     ])
@@ -723,6 +725,7 @@ describe('installSettingsSection', () => {
     let current: () => { theme: string } = () => entry
     let changes = 0
     installSettingsSection(ctx, settingsNamespace('helper-ns'), HelperSchema, entry, {
+      validate: (value) => { if (value.theme === 'invalid') throw new Error('unsupported theme') },
       setSource: (source) => {
         current = source
       },
@@ -741,6 +744,8 @@ describe('installSettingsSection', () => {
     })
     expect(changes).toBe(1)
 
+    await expect(ctx.settings.update(settingsNamespace('helper-ns'), { theme: 'invalid' })).rejects.toThrow('unsupported theme')
+    expect(current()).toEqual({ theme: 'user' })
     await ctx.settings.update(settingsNamespace('helper-ns'), { theme: 'live' })
     await vi.waitFor(() => {
       expect(changes).toBe(2)

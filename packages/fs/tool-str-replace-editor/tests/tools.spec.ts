@@ -469,6 +469,8 @@ describe('tool-str-replace-editor', () => {
       { command: 'str_replace', path: ambiguous, old_str: 'same same', new_str: null },
       { command: 'str_replace', path: ambiguous, old_str: '', new_str: 'x' },
       { command: 'insert', path: ambiguous, new_str: 'x' },
+      { command: 'insert', path: ambiguous, insert_line: 0 },
+      { command: 'insert', path: ambiguous, insert_line: 0, new_str: null },
       { command: 'insert', path: ambiguous, insert_line: null, new_str: 'x' },
       { command: 'insert', path: ambiguous, insert_line: -1, new_str: 'x' },
       { command: 'insert', path: ambiguous, insert_line: 1.5, new_str: 'x' },

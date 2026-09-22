@@ -159,6 +159,16 @@ describe('ToolResultPruner content transform', () => {
 })
 
 describe('ToolResultPruner session transaction', () => {
+  it.each([
+    null, [], 'invalid', {}, { tabId: '1', revision: 1, hash: 'a' },
+    { tabId: 1, revision: '1', hash: 'a' }, { tabId: 1, revision: 1, hash: 1 },
+  ])('prunes results whose browser metadata cannot identify a snapshot: %j', (browser) => {
+    const session = Session.create(SessionId('invalid-browser-meta'))
+    appendToolStep(session, 1, 'invalid', [{ type: 'text', text: 'x'.repeat(100) }], { meta: { browser } })
+    session.append('turn/start', { turn: 2 })
+    expect(service().pruneSession(session).pruned.map(entry => entry.callId)).toEqual([CallId('invalid')])
+  })
+
   it('prunes a stable snapshot, preserves all data, and cites the replaced result', () => {
     const session = Session.create(SessionId('preserve'))
     const originalSeq = appendToolStep(session, 1, 'one', [{

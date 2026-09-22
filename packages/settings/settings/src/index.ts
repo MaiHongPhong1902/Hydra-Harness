@@ -468,7 +468,8 @@ export abstract class SettingsProvider extends Service {
       // TODO(settings-registration-quiescence): Deactivate every watcher and await
       // its tail on disposal so callbacks cannot outlive the registrant fiber.
       return () => {
-        if (this.registrations.delete(ns)) this.ctx.emit('settings/registry-updated', ns)
+        this.registrations.delete(ns)
+        this.ctx.emit('settings/registry-updated', ns)
       }
     }, `settings.register(${JSON.stringify(String(ns))})`)
     return {

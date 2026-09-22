@@ -873,6 +873,22 @@ describe('workspace mutation and status', () => {
 })
 
 describe('registry-global session archive', () => {
+  it('removes session membership with and without an archive entry, idempotently', async () => {
+    const dir = await makeDir('delete-membership')
+    const result = await harness({ sessions: [header('first', dir, 100), header('second', dir, 200)] })
+    const workspace = result.registry.list()[0]!
+    await result.registry.archiveSession(SessionId('first'))
+    await result.registry.removeSession(SessionId('second'))
+    expect(workspace.sessionIds).toEqual(['first'])
+    expect(result.registry.archivedSessionIds).toEqual(['first'])
+    await result.registry.removeSession(SessionId('first'))
+    expect(workspace.sessionIds).toEqual([])
+    expect(storedState(result.pool).archivedSessionIds).toEqual([])
+    const count = result.changes.length
+    await result.registry.removeSession(SessionId('first'))
+    expect(result.changes).toHaveLength(count)
+  })
+
   it('archives durably in order, idempotently skips repeats, and leaves accounting untouched', async () => {
     const dir = await makeDir('archive-home')
     const result = await harness({ sessions: [header('kept', dir, 100), header('gone', dir, 200)] })

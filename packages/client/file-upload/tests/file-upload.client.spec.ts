@@ -1,8 +1,9 @@
-import { Context } from '@hydra/cordis'
+import { Context, FiberState } from '@hydra/cordis'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { apply } from '../src/client/index.ts'
 import { fileUploadWorker, FileUploadRuntime } from '../src/client/runtime.ts'
 import type { ClientFileUploadHooks, FileUploadBody } from '../src/client/contract.ts'
+import * as Host from '../src/index.ts'
 
 interface UploadGlobal {
   __HYDRA_FILE_UPLOAD__?: ClientFileUploadHooks
@@ -15,6 +16,24 @@ afterEach(() => {
 })
 
 describe('file upload worker body', () => {
+  it('uses global fetch for streams and forwards cancellation to the input', async () => {
+    const posted: unknown[] = []
+    const scope = {
+      onmessage: null as ((event: MessageEvent) => void) | null,
+      postMessage: (message: unknown) => { posted.push(message) },
+    }
+    const cancel = vi.fn()
+    const body = new ReadableStream<Uint8Array>({ cancel })
+    vi.stubGlobal('fetch', vi.fn(async (_url: string, init: RequestInit) => {
+      await (init.body as ReadableStream<Uint8Array>).cancel('request ended')
+      return new Response('cancelled', { status: 202 })
+    }))
+    fileUploadWorker(scope)
+    scope.onmessage?.({ data: { url: '/stream', body, headers: {} } } as MessageEvent)
+    await vi.waitFor(() => { expect(posted).toEqual([{ kind: 'complete', status: 202, body: 'cancelled' }]) })
+    expect(cancel).toHaveBeenCalledWith('request ended')
+  })
+
   it('sends a Blob with credentials and reports progress, completion, and failure', () => {
     const posted: unknown[] = []
     const scope: {
@@ -159,6 +178,16 @@ describe('file upload worker body', () => {
 })
 
 describe('file upload service', () => {
+  it('loads its Host entry without installing the browser transport', async () => {
+    const ctx = new Context()
+    try {
+      const fiber = ctx.plugin(Host)
+      await fiber.await()
+      expect(fiber.state).toBe(FiberState.ACTIVE)
+      expect(ctx.get('fileUpload')).toBeUndefined()
+    } finally { await ctx.fiber.dispose() }
+  })
+
   it('uses a page-owned Host fetch for Blob and ReadableStream bodies', async () => {
     vi.stubGlobal('location', { origin: 'https://preview.test' })
     const fetch = vi.fn((_url: URL, _init?: RequestInit) =>
@@ -247,10 +276,12 @@ describe('file upload service', () => {
       url: 'https://harness.test/api/upload', body: blob, headers: {},
     })
     worker.onmessage?.({ data: { kind: 'progress', loaded: 4, total: 5 } } as MessageEvent)
+    worker.onmessage?.({ data: { kind: 'progress', loaded: 5 } } as MessageEvent)
     worker.onmessage?.({ data: { kind: 'complete', status: 200, body: 'done' } } as MessageEvent)
     worker.onmessage?.({ data: { kind: 'complete', status: 500, body: 'late' } } as MessageEvent)
     await expect(pending).resolves.toEqual({ status: 200, body: 'done' })
     expect(progress).toHaveBeenCalledWith({ loaded: 4, total: 5 })
+    expect(progress).toHaveBeenCalledWith({ loaded: 5 })
     expect(worker.terminate).toHaveBeenCalledOnce()
     await fiber.dispose()
   })
@@ -271,10 +302,11 @@ describe('file upload service', () => {
     const fiber = ctx.plugin(FileUploadRuntime)
     await fiber
     const stream = new ReadableStream<Uint8Array>({ start(controller) { controller.close() } })
-    const pending = ctx.fileUpload.post({ path: '/stream', body: stream })
+    const pending = ctx.fileUpload.post({ path: '/stream', body: stream, headers: { 'x-stream': 'bytes' } })
     const worker = FakeWorker.last
     if (worker === undefined) throw new Error('worker missing')
-    expect(worker.postMessage).toHaveBeenCalledWith(expect.objectContaining({ body: stream }), [stream])
+    expect(worker.postMessage).toHaveBeenCalledWith(expect.objectContaining({ body: stream, headers: { 'x-stream': 'bytes' } }), [stream])
+    worker.onmessage?.({ data: { kind: 'progress', loaded: 0 } } as MessageEvent)
     worker.onmessage?.({ data: { kind: 'complete', status: 200, body: 'done' } } as MessageEvent)
     await expect(pending).resolves.toEqual({ status: 200, body: 'done' })
     await fiber.dispose()

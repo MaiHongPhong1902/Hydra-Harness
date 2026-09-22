@@ -2,10 +2,22 @@
 /** Credential acknowledgement and draft isolation in the optional provider card. */
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
+import { Context, FiberState } from '@hydra/cordis'
 import { JevProviderOption } from '../src/client/JevProviderOption.tsx'
 import { apply } from '../src/client/index.ts'
+import * as Host from '../src/index.ts'
 
 afterEach(cleanup)
+
+it('boots the Host entry without browser services', async () => {
+  const ctx = new Context()
+  try {
+    const fiber = ctx.plugin(Host)
+    await fiber.await()
+    expect(fiber.state).toBe(FiberState.ACTIVE)
+    expect(ctx.get('slots')).toBeUndefined()
+  } finally { await ctx.fiber.dispose() }
+})
 
 it('contributes a native option for the Models provider select', () => {
   render(<JevProviderOption

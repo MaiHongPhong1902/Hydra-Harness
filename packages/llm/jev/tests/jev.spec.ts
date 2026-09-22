@@ -1,8 +1,15 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Context } from '@hydra/cordis'
+import { SettingsProvider, settingsNamespace } from '@hydra/harness-settings'
 import * as Jev from '../src/index.ts'
 
 let context: Context | undefined
+
+class MemorySettings extends SettingsProvider {
+  readonly writable = true
+  protected load(): Promise<Record<string, unknown>> { return Promise.resolve({}) }
+  protected persist(): Promise<void> { return Promise.resolve() }
+}
 
 afterEach(async () => {
   await context?.fiber.dispose()
@@ -23,6 +30,118 @@ describe('jev capability', () => {
       allowed: { type: 'noul', noul: 0.7 }, rating: { type: 'score', score: 0.8, confidence: 0.9 },
     }, usage: { input_tokens: 4, output_tokens: 2 },
   }
+
+  it('uses composition defaults and preserves an explicit error cause', async () => {
+    vi.stubEnv('JEV_API_KEY', 'test-key')
+    const fetch = vi.fn(async () => Response.json(response))
+    vi.stubGlobal('fetch', fetch)
+    context = new Context()
+    await context.plugin({ apply: (ctx: Context) => { Jev.apply(ctx) } }).await()
+    await expect(context.jev.systemOne(request)).resolves.toEqual(response)
+    expect(fetch).toHaveBeenCalledWith('https://www.jevai.org/api/v1/decisions', expect.any(Object))
+    const cause = new Error('inner')
+    expect(new Jev.JevError('safe', 'TRANSPORT', { cause }).cause).toBe(cause)
+  })
+
+  it.each<[Jev.Config, string]>([
+    [{ apiKeyEnv: 'bad-key' }, 'credential reference'], [{ model: ' ' }, 'non-empty'],
+    [{ baseURL: '/relative' }, 'absolute URL'], [{ baseURL: 'http://jev.test' }, 'HTTPS'],
+    ...['https://user@jev.test', 'https://:secret@jev.test', 'https://jev.test?x', 'https://jev.test#x']
+      .map(baseURL => [{ baseURL }, 'credentials, query, or fragment'] as [Jev.Config, string]),
+    ...[0, 1.5, 2_147_483_648].map(timeoutMs => [{ timeoutMs }, 'timer interval'] as [Jev.Config, string]),
+  ])('rejects unusable configuration before publishing the service: %j', (config, message) => {
+    context = new Context()
+    expect(() => { Jev.apply(context!, config) }).toThrow(message)
+    expect(context.get('jev')).toBeUndefined()
+  })
+
+  it('observes settings changes per call and reverts to composition when settings unload', async () => {
+    vi.stubEnv('JEV_API_KEY', 'test-key')
+    const fetch = vi.fn(async () => Response.json(response))
+    vi.stubGlobal('fetch', fetch)
+    context = new Context()
+    const settings = context.plugin(MemorySettings)
+    await settings.await()
+    await context.plugin(Jev, { model: 'composed' }).await()
+    const ns = settingsNamespace('jev')
+    await context.settings.update(ns, { model: 'updated', baseURL: 'https://updated.test/' })
+    await context.jev.systemOne(request)
+    expect(fetch).toHaveBeenLastCalledWith('https://updated.test/api/v1/decisions', expect.objectContaining({
+      body: JSON.stringify({ ...request, model: 'updated' }),
+    }))
+    await expect(context.settings.update(ns, { baseURL: 'http://bad.test' })).rejects.toThrow('HTTPS')
+    await settings.dispose()
+    await context.jev.systemOne(request)
+    expect(fetch).toHaveBeenLastCalledWith('https://www.jevai.org/api/v1/decisions', expect.objectContaining({
+      body: JSON.stringify({ ...request, model: 'composed' }),
+    }))
+  })
+
+  it('passes nested JSON and boolean criteria, retaining the per-call model override', async () => {
+    vi.stubEnv('JEV_API_KEY', 'test-key')
+    const fetch = vi.fn(async (_input: string, _init?: RequestInit) => Response.json({ model: '', answers: response.answers }))
+    vi.stubGlobal('fetch', fetch)
+    context = new Context()
+    await context.plugin(Jev).await()
+    for (const criteria of [null, { true: { nested: [true, null, 2] }, false: 'no' }] as const) {
+      const result = await context.jev.systemOne({ ...request, model: 'override', state: [false, { depth: [1] }],
+        questions: { ...request.questions, allowed: { ...request.questions.allowed!, type: 'noul', criteria: criteria as never } },
+      })
+      expect(result.model).toBe('override')
+      expect(JSON.parse(fetch.mock.calls.at(-1)![1]!.body as string)).toMatchObject({ model: 'override' })
+    }
+  })
+
+  it('refuses calls cancelled before admission or after disposal without transport', async () => {
+    const fetch = vi.fn()
+    vi.stubGlobal('fetch', fetch)
+    context = new Context()
+    const fiber = context.plugin(Jev)
+    await fiber.await()
+    const service = context.jev
+    await expect(service.systemOne(request, { signal: AbortSignal.abort() })).rejects.toMatchObject({ code: 'CANCELLED' })
+    await fiber.dispose()
+    await expect(service.systemOne(request)).rejects.toMatchObject({ code: 'CANCELLED' })
+    expect(fetch).not.toHaveBeenCalled()
+  })
+
+  it.each([0, 1.5, 2_147_483_648])('refuses timeout %s before transport', async (timeoutMs) => {
+    vi.stubEnv('JEV_API_KEY', 'test-key')
+    const fetch = vi.fn()
+    vi.stubGlobal('fetch', fetch)
+    context = new Context()
+    await context.plugin(Jev).await()
+    await expect(context.jev.systemOne(request, { timeoutMs })).rejects.toMatchObject({ code: 'TIMEOUT' })
+    expect(fetch).not.toHaveBeenCalled()
+  })
+
+  it('refuses non-header credential characters before transport', async () => {
+    vi.stubEnv('JEV_API_KEY', 'key\nsecond')
+    const fetch = vi.fn()
+    vi.stubGlobal('fetch', fetch)
+    context = new Context()
+    await context.plugin(Jev).await()
+    await expect(context.jev.systemOne(request)).rejects.toMatchObject({ code: 'MISSING_CREDENTIAL' })
+    expect(fetch).not.toHaveBeenCalled()
+  })
+
+  it('contains network failures without exposing transport diagnostics', async () => {
+    vi.stubEnv('JEV_API_KEY', 'test-key')
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('secret transport text')))
+    context = new Context()
+    await context.plugin(Jev).await()
+    await expect(context.jev.systemOne(request)).rejects.toMatchObject({ code: 'TRANSPORT', message: 'jev: provider request failed' })
+  })
+
+  it.each([
+    [null, 'INVALID_RESPONSE'], [{ code: 3 }, 'TRANSPORT'], [{ code: 0, data: null }, 'INVALID_RESPONSE'],
+  ])('rejects invalid provider envelopes: %j', async (body, code) => {
+    vi.stubEnv('JEV_API_KEY', 'test-key')
+    vi.stubGlobal('fetch', vi.fn(async () => Response.json(body)))
+    context = new Context()
+    await context.plugin(Jev).await()
+    await expect(context.jev.systemOne(request)).rejects.toMatchObject({ code })
+  })
 
   it('accepts all three decision types and removes its service on disposal', async () => {
     vi.stubEnv('JEV_API_KEY', 'test-key')
@@ -136,6 +255,10 @@ describe('jev capability', () => {
     { state: 'visible', questions: {} },
     { state: 'visible', questions: { action: { type: 'score', criteria: ['only'] } } },
     { state: 'visible', questions: { action: { type: 'unknown' } } },
+    { ...request, model: 7 }, { ...request, model: ' ' },
+    ...[[], { other: 'no' }, { true: undefined }].map(criteria => ({ state: [], questions: {
+      action: { type: 'noul', instructions: 'yes?', criteria },
+    } })),
   ])('rejects invalid request input before transport', async (invalid) => {
     vi.stubEnv('JEV_API_KEY', 'test-key')
     const fetch = vi.fn()

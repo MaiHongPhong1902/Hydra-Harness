@@ -3,6 +3,8 @@ import { Context } from '@hydra/cordis'
 import WebRuntime, {
   WebError,
   SearchProviderError,
+  normalizedSearchUrl,
+  searchHttpError,
   type WebFetchProvider,
   type WebFetchResult,
   type WebSearchProvider,
@@ -208,6 +210,19 @@ describe('WebRuntime fetch capability', () => {
 })
 
 describe('WebError', () => {
+  it.each([
+    [401, 'AUTH_ERROR'], [403, 'AUTH_ERROR'], [429, 'RATE_LIMITED'],
+    [500, 'NETWORK_ERROR'], [400, 'CONFIG_ERROR'],
+  ])('classifies HTTP %s without retaining an upstream body', (status, code) => {
+    expect(searchHttpError('provider', status)).toMatchObject({ provider: 'provider', code, statusCode: status })
+  })
+
+  it('normalizes tracking URLs and preserves malformed provider URLs', () => {
+    expect(normalizedSearchUrl('https://example.com/page?utm_source=ad&fbclid=id&q=kept#section'))
+      .toBe('https://example.com/page?q=kept')
+    expect(normalizedSearchUrl('not a URL')).toBe('not a URL')
+  })
+
   it('is a HarnessError carrying its code', () => {
     const error = new WebError('boom', 'WEB_INVALID_URL')
     expect(error.code).toBe('WEB_INVALID_URL')
