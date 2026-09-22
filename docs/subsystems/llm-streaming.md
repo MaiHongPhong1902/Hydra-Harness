@@ -756,6 +756,25 @@ declare abstract class LlmAdapter {
 
 Generated from source by `scripts/gen-cordis-catalog.ts` (verified fresh by `pnpm run verify-cordis-catalog` in doc-sync; regenerate with `pnpm run gen-cordis-catalog`) — the language sides differ only in locale-specific paired document paths. Signature blocks use a `ts cordis-catalog` fence and keep the original source JSDoc; dispatch modes are defined in the [primer](../cordis-primer.md#dispatch-modes), and the framework-inherited `ctx` API lives in [cordis-api/inherited.md](../cordis-api/inherited.md).
 
+<a id="ctxjev--jevservice"></a>
+
+### `ctx.jev` — `JevService`
+
+Service exposed as `ctx.jev` while the plugin is mounted.
+
+```ts cordis-catalog
+/**
+ * Ask TypeSafe Jev named questions about one state; failures reject with JevError.
+ * Consumers own logging model-visible inputs and results through their session events.
+ * @param request - state, named questions, and optional model override.
+ * @param options - cancellation and timeout for this call.
+ * @returns validated answers and usage from the independent Jev request.
+ */
+systemOne(request: JevSystemOneRequest, options?: JevRequestOptions): Promise<JevSystemOneResult>
+```
+
+Source: [`packages/llm/jev/src/index.ts`](../../packages/llm/jev/src/index.ts)
+
 <a id="ctxllm--llmruntime"></a>
 
 ### `ctx.llm` — `LlmRuntime`

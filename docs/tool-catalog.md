@@ -15,6 +15,7 @@ This table connects model-visible tool names to the plugin package and service s
 
 | Tool package | Model-visible names | Requires | Writes / affects | Shipped aliases | Deployment note |
 | --- | --- | --- | --- | --- | --- |
+| `@hydra/harness-browser-decisions` | `browser_decide` | `ctx.tools`, `ctx.jev (optional, execution time)` | `tool/call`, `tool/result` | - | Advisory candidate selection only; unavailable Jev returns available:false and ordinary browser execution remains independent. |
 | `@hydra/harness-tool-ask-user` | `ask_user_question` | `ctx.tools`, `ctx.userQuestions` | `tool/call`, `tool/result after a UI/provider answers the question` | - | ask_user_question pauses the tool call until the active UI provider returns a human answer. |
 | `@hydra/harness-tools` | `run_code` | `ctx.tools`, `ctx.codeRuntime (execution time)`, `ctx.systemPrompt` | `tool/call`, `one tool/code-dispatch-start + tool/code-dispatch pair per bridged sub-call`, `tool/result` | - | Owned by the tool registry as a reserved transport outside filterable capability layers under `mode: code` / `mode: both` (see the Code Mode Agent Note). Under `code` it is the registry's only wire contribution; the other visible capabilities are declared in a generated SDK section in the loaded runtime's language, and a program calls them through bindings scheduled under the native concurrency contract (submission-ordered starts and policy; concurrency-safe bodies overlap up to `maxParallelSubCalls`) that re-enter the complete guarded tool pipeline and link each nested execution to this outer result. |
 | `@hydra/harness-plan-mode` | `exit_plan_mode` | `ctx.tools`, `ctx.systemPrompt`, `ctx.userQuestions (execution time, opportunistic)` | `tool/call`, `plan/mode inactive on an approved review`, `tool/result` | - | exit_plan_mode stays in the model-facing schema while planning is inactive so transitions add no tool-catalog churn on top of the plan-policy change. Its execute path rejects calls outside plan mode; in plan mode it presents the plan over the user-questions seam (approve / keep planning with feedback), and approval logs plan mode inactive at the step boundary. |
@@ -43,6 +44,45 @@ This table connects model-visible tool names to the plugin package and service s
 | `@hydra/harness-tool-web` | `web_fetch`, `web_search` | `ctx.tools`, `ctx.web`, `ctx.systemPrompt` | `tool/call`, `tool/result` | - | web_search and web_fetch keep provider selection behind ctx.web so model-visible schemas stay stable across backend swaps. |
 | `@hydra/harness-tool-browser` | `browser_back`, `browser_click`, `browser_close`, `browser_close_tab`, `browser_console_messages`, `browser_drag`, `browser_drop`, `browser_file_upload`, `browser_fill`, `browser_fill_form`, `browser_find`, `browser_forward`, `browser_handle_dialog`, `browser_history_search`, `browser_hover`, `browser_navigate`, `browser_navigate_back`, `browser_network_request`, `browser_network_requests`, `browser_open_tab`, `browser_page_agent_run`, `browser_page_agent_status`, `browser_page_agent_stop`, `browser_press`, `browser_press_key`, `browser_resize`, `browser_screenshot`, `browser_scroll`, `browser_scroll_horizontally`, `browser_select_option`, `browser_select_text`, `browser_snapshot`, `browser_state`, `browser_switch_tab`, `browser_tabs`, `browser_take_screenshot`, `browser_type`, `browser_upload_file`, `browser_wait`, `browser_wait_for` | `ctx.tools`, `ctx.browsers`, `ctx.systemPrompt`, `a calling Agent (the window is owned per agent)` | `tool/call`, `tool/result` | - | The embedded browser window opens on the first browser_* call of an agent and closes with it. Without the optional electron package the tools still register and every call fails with BROWSER_UNAVAILABLE. |
 | `@hydra/harness-page-memory` | `page_memory_get`, `page_memory_upsert` | `ctx.tools`, `ctx.browsers`, `ctx.systemPrompt`, `a calling Agent in the configured workspace` | `tool/call`, `tool/result`, `user/message`, `private page-memory SQLite database` | - | - |
+
+<a id="hydraharness-browser-decisions"></a>
+
+## `@hydra/harness-browser-decisions`
+
+### `browser_decide`
+
+Ask the optional Jev decision provider to choose one candidate action from the current browser state. This tool only returns advice; it never navigates, clicks, or changes permissions.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "state": {
+      "type": "string",
+      "description": "Observed browser state relevant to the choice."
+    },
+    "question": {
+      "type": "string",
+      "description": "The decision to make."
+    },
+    "choices": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "state",
+    "question",
+    "choices"
+  ]
+}
+```
+
+Source: [`packages/browser/browser-decisions/src/index.ts`](../packages/browser/browser-decisions/src/index.ts)
+
+Advisory candidate selection only; unavailable Jev returns available:false and ordinary browser execution remains independent.
 
 <a id="hydraharness-tool-ask-user"></a>
 

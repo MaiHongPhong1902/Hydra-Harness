@@ -35,6 +35,20 @@ declare module '@hydra/harness-client-ui-slots' {
     /** The Models page + product-onboarding copy. */
     'settings.models': ModelsKey
   }
+
+  interface SlotMap {
+    /** Optional provider entries and editor card owned by a settings plugin. */
+    'settings.models.provider-option': { kind: 'list'; scope: 'root'; owner: ModelsProviderOptionOwnerProps }
+  }
+}
+
+/** Owner props for one optional provider entry in the Models add card. */
+export type ModelsProviderOptionOwnerProps = { mode: 'option' } | {
+  mode: 'editor'
+  /** Whether the host settings provider is read-only. */
+  readOnly: boolean
+  /** Close the editor and report whether it committed a change. */
+  onClose: (changed: boolean) => void
 }
 
 /** Dictionary namespace owned by this plugin. */
@@ -75,7 +89,13 @@ export function apply(ctx: ClientContext): void {
   const t = ctx.locale.bind(NS) as ModelsSectionInjected['t']
   const injected = (): ModelsSectionInjected => ({
     controller,
-    hooks: { snapshot: controller.store },
+    hooks: {
+      snapshot: controller.store,
+      providerOptions: {
+        getSnapshot: () => ctx.slots.entries('settings.models.provider-option').length,
+        subscribe: listener => ctx.slots.subscribe('settings.models.provider-option', listener),
+      },
+    },
     api: connection.api,
     schema,
     t,
@@ -122,6 +142,7 @@ export function apply(ctx: ClientContext): void {
     order: 10,
     label: () => t('nav'),
     inject: injected,
+    children: { 'settings.models.provider-option': { kind: 'list', scope: 'root' } },
   }, ModelsSection))
   ctx.slots.inject('settings.onboarding', () => ctx.slots.register({
     name: 'settings.onboarding',

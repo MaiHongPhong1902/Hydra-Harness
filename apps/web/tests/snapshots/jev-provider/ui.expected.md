@@ -1,0 +1,89 @@
+- dialog "Settings":
+  - navigation:
+    - text: Settings
+    - button "General":
+      - img
+      - text: General
+    - button "Personalization":
+      - img
+      - text: Personalization
+    - button "Models":
+      - img
+      - text: Models
+    - button "Web Search":
+      - img
+      - text: Web Search
+    - button "Usage"
+    - button "Plugins":
+      - img
+      - text: Plugins
+    - button "Agent presets":
+      - img
+      - text: Agent presets
+    - button "Archived sessions":
+      - img
+      - text: Archived sessions
+  - button "Open configuration file"
+  - button "Close":
+    - img
+    - text: Close
+  - heading "Models" [level=2]
+  - paragraph: Sign in with your accounts or enter API keys to use models from these providers.
+  - region "API keys":
+    - heading "API keys" [level=3]
+    - paragraph: Configure provider API keys and optional fallback keys.
+    - list
+    - text: Provider
+    - combobox "Provider":
+      - option "amazon-bedrock"
+      - option "ant-ling"
+      - option "anthropic"
+      - option "azure-openai-responses"
+      - option "cerebras"
+      - option "cloudflare-ai-gateway"
+      - option "cloudflare-workers-ai"
+      - option "deepseek"
+      - option "fireworks"
+      - option "github-copilot"
+      - option "google"
+      - option "google-vertex"
+      - option "groq"
+      - option "huggingface"
+      - option "kimi-coding"
+      - option "minimax"
+      - option "minimax-cn"
+      - option "mistral"
+      - option "moonshotai"
+      - option "moonshotai-cn"
+      - option "nvidia"
+      - option "openai"
+      - option "openai-codex"
+      - option "opencode"
+      - option "opencode-go"
+      - option "openrouter"
+      - option "qwen-token-plan"
+      - option "qwen-token-plan-cn"
+      - option "together"
+      - option "vercel-ai-gateway"
+      - option "xai"
+      - option "xiaomi"
+      - option "xiaomi-token-plan-ams"
+      - option "xiaomi-token-plan-cn"
+      - option "xiaomi-token-plan-sgp"
+      - option "zai"
+      - option "zai-coding-cn"
+      - option "Jev" [selected]
+    - heading "Jev" [level=4]
+    - paragraph: Decision provider for choices, scores, and yes/no questions. Browser decisions is enabled separately in Plugins.
+    - text: API key
+    - textbox "API key"
+    - paragraph: "Model: typesafe-ai/jev"
+    - button "Apply"
+    - button "Cancel"
+  - region "Account sign-in":
+    - heading "Account sign-in" [level=3]
+    - paragraph: Connect ChatGPT or Google Antigravity accounts independently of your API keys.
+    - list
+    - button "Add sign-in provider":
+      - img
+      - text: Add sign-in provider

@@ -190,6 +190,10 @@ flowchart LR
   cfg --> plugin_hydra_base_fs_sandbox
   plugin_hydra_base_llm_deepseek["llm-deepseek<br/>@hydra/harness-llm-deepseek"]
   cfg --> plugin_hydra_base_llm_deepseek
+  plugin_hydra_base_jev["jev<br/>@hydra/harness-jev"]
+  cfg --> plugin_hydra_base_jev
+  plugin_hydra_base_browser_decisions["browser-decisions<br/>@hydra/harness-browser-decisions"]
+  cfg --> plugin_hydra_base_browser_decisions
 ```
 
 | Plugin id | Package / module |
@@ -285,6 +289,8 @@ flowchart LR
 | `agent-loop` | `@hydra/harness-agent-loop` |
 | `fs-sandbox` | `@hydra/harness-fs-sandbox` |
 | `llm-deepseek` | `@hydra/harness-llm-deepseek` |
+| `jev` | `@hydra/harness-jev` |
+| `browser-decisions` | `@hydra/harness-browser-decisions` |
 
 Source config: [`packages/bundle/base/cordis.patch.yml`](../../packages/bundle/base/cordis.patch.yml).
 

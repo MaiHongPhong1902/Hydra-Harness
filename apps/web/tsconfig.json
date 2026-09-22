@@ -46,6 +46,8 @@
     "tests/details-session-lifecycle.e2e.ts",
     "tests/plugin-config.e2e.ts",
     "tests/plugin-settings-regressions.e2e.ts",
+    "tests/browser-decisions-optional.e2e.ts",
+    "tests/jev-provider.e2e.ts",
     "tests/settings-regressions.e2e.ts",
     "tests/settings-chrome.e2e.ts",
     "tests/models-settings.e2e.ts",

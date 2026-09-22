@@ -38,6 +38,7 @@ export const en = {
   deleting: 'Deleting {provider}…',
   add: 'Add provider',
   provider: 'Provider',
+  providerUnavailable: 'This provider plugin is unavailable.',
   close: 'Close',
   cancel: 'Cancel',
   apply: 'Apply',

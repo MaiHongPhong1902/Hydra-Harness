@@ -1,0 +1,3 @@
+# Mount the advisory consumer without its optional Jev provider.
+- id: browser-decisions
+  disabled: false

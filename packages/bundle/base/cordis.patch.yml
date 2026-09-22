@@ -554,3 +554,15 @@
     - id: llm-deepseek
       name: '@hydra/harness-llm-deepseek'
       pluginType: core
+
+    # Optional TypeSafe Jev decision capability. It is dormant by default;
+    # enabling it never changes the LLM provider catalog.
+    - id: jev
+      name: '@hydra/harness-jev'
+      pluginGroup: jev
+      disabled: true
+
+    # Optional consumer that asks Jev for candidate browser-action decisions.
+    - id: browser-decisions
+      name: '@hydra/harness-browser-decisions'
+      disabled: true

@@ -68,6 +68,7 @@
     "@hydra/harness-client-ui-layout": "workspace:^",
     "@hydra/harness-client-ui-model-selection": "workspace:^",
     "@hydra/harness-client-ui-settings-models": "workspace:^",
+    "@hydra/harness-client-ui-jev": "workspace:^",
     "@hydra/harness-client-ui-settings-personalization": "workspace:^",
     "@hydra/harness-client-ui-settings-plugin-inventory": "workspace:^",
     "@hydra/harness-client-ui-permission-presets": "workspace:^",

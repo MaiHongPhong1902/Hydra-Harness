@@ -67,6 +67,7 @@ import * as ToolSubagent from '@hydra/harness-tool-subagent'
 import * as ToolWeb from '@hydra/harness-tool-web'
 import BrowserSessionService from '@hydra/harness-browser-electron'
 import * as ToolBrowser from '@hydra/harness-tool-browser'
+import * as BrowserDecisions from '../packages/browser/browser-decisions/src/index.ts'
 import * as PageMemory from '@hydra/harness-page-memory'
 import VmWorkflowEngine from '@hydra/harness-workflow-worker-thread'
 import * as ToolRalph from '@hydra/harness-tool-ralph'
@@ -191,6 +192,15 @@ export interface ToolPackage {
  * guard proves it is exhaustive against the on-disk glob.
  */
 const TOOL_PACKAGES: ToolPackage[] = [
+  {
+    pkg: '@hydra/harness-browser-decisions',
+    dir: 'browser-decisions',
+    source: 'packages/browser/browser-decisions/src/index.ts',
+    requires: ['ctx.tools', 'ctx.jev (optional, execution time)'],
+    writes: ['tool/call', 'tool/result'],
+    async mount(ctx) { await ctx.plugin(BrowserDecisions) },
+    note: 'Advisory candidate selection only; unavailable Jev returns available:false and ordinary browser execution remains independent.',
+  },
   {
     pkg: '@hydra/harness-tool-ask-user',
     dir: 'tool-ask-user',

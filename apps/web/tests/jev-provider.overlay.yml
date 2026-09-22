@@ -1,0 +1,9 @@
+# Enable the optional Host capability and its matching Models contribution for
+# the assembled, keyless provider-settings snapshot.
+- id: jev
+  disabled: false
+  config:
+    apiKeyEnv: HYDRA_JEV_UI_TEST_KEY
+
+- id: ui-jev
+  disabled: false

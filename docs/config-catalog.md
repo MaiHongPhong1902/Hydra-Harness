@@ -1002,6 +1002,26 @@ export interface Config {
 
 Source: [`packages/runtime-diagnostics/invariants/src/index.ts:15`](../packages/runtime-diagnostics/invariants/src/index.ts)
 
+<a id="hydraharness-jev"></a>
+
+## `@hydra/harness-jev`
+
+```ts config-catalog
+/** Plugin configuration. The credential is a reference, never a secret value. */
+export interface Config {
+  /** Credential reference resolved at request time. */
+  apiKeyEnv?: string
+  /** Jev model id. */
+  model?: string
+  /** API root, useful for tests or a compatible gateway. */
+  baseURL?: string
+  /** Per-attempt request timeout. */
+  timeoutMs?: number
+}
+```
+
+Source: [`packages/llm/jev/src/index.ts:84`](../packages/llm/jev/src/index.ts)
+
 <a id="hydraharness-jobs-local"></a>
 
 ## `@hydra/harness-jobs-local`
@@ -3620,6 +3640,7 @@ These load from a `cordis.yml` entry with no `config:` block; they declare no co
 - `@hydra/harness-api-gateway` — requires `typert` ([`packages/api/gateway/src/index.ts`](../packages/api/gateway/src/index.ts))
 - `@hydra/harness-api-remotes` ([`packages/api/remotes/src/index.ts`](../packages/api/remotes/src/index.ts))
 - `@hydra/harness-authorization` — requires `credentials` ([`packages/credentials/authorization/src/index.ts`](../packages/credentials/authorization/src/index.ts))
+- `@hydra/harness-browser-decisions` — requires `tools` ([`packages/browser/browser-decisions/src/index.ts`](../packages/browser/browser-decisions/src/index.ts))
 - `@hydra/harness-client-file-upload` ([`packages/client/file-upload/src/index.ts`](../packages/client/file-upload/src/index.ts))
 - `@hydra/harness-client-locale` ([`packages/client/locale/src/index.ts`](../packages/client/locale/src/index.ts))
 - `@hydra/harness-client-modules` — requires `webServer` · `loader` ([`packages/client/modules/src/index.ts`](../packages/client/modules/src/index.ts))
@@ -3635,6 +3656,7 @@ These load from a `cordis.yml` entry with no `config:` block; they declare no co
 - `@hydra/harness-client-ui-directory-picker-native` ([`packages/client/ui-directory-picker-native/src/index.ts`](../packages/client/ui-directory-picker-native/src/index.ts))
 - `@hydra/harness-client-ui-goal` ([`packages/client/ui-goal/src/index.ts`](../packages/client/ui-goal/src/index.ts))
 - `@hydra/harness-client-ui-input-trigger` ([`packages/client/ui-input-trigger/src/index.ts`](../packages/client/ui-input-trigger/src/index.ts))
+- `@hydra/harness-client-ui-jev` ([`packages/client/ui-jev/src/index.ts`](../packages/client/ui-jev/src/index.ts))
 - `@hydra/harness-client-ui-jobs` ([`packages/client/ui-jobs/src/index.ts`](../packages/client/ui-jobs/src/index.ts))
 - `@hydra/harness-client-ui-layout` ([`packages/client/ui-layout/src/index.ts`](../packages/client/ui-layout/src/index.ts))
 - `@hydra/harness-client-ui-message-feedback` ([`packages/client/ui-message-feedback/src/index.ts`](../packages/client/ui-message-feedback/src/index.ts))

@@ -270,6 +270,13 @@
       pluginType: core
       pluginGroup: settings-ui
 
+    # One inventory toggle enables the Jev capability and its Models card.
+    - id: ui-jev
+      name: '@hydra/harness-client-ui-jev'
+      pluginType: core
+      pluginGroup: jev
+      disabled: true
+
     - id: ui-settings-personalization
       name: '@hydra/harness-client-ui-settings-personalization'
       pluginType: core

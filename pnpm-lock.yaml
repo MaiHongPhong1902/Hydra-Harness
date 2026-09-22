@@ -1073,6 +1073,25 @@ importers:
         specifier: ^15.0.0
         version: 15.0.0
 
+  packages/browser/browser-decisions:
+    dependencies:
+      '@hydra/schemastery':
+        specifier: link:../../../vendor/schemastery
+        version: link:../../../vendor/schemastery
+    devDependencies:
+      '@hydra/cordis':
+        specifier: workspace:^
+        version: link:../../../vendor/cordis
+      '@hydra/harness-invariants':
+        specifier: workspace:^
+        version: link:../../runtime-diagnostics/invariants
+      '@hydra/harness-jev':
+        specifier: workspace:^
+        version: link:../../llm/jev
+      '@hydra/harness-tools':
+        specifier: workspace:^
+        version: link:../../core/tools
+
   packages/browser/browser-electron:
     dependencies:
       '@hydra/schemastery':
@@ -1241,6 +1260,9 @@ importers:
       '@hydra/harness-bash-sandbox':
         specifier: workspace:^
         version: link:../../shell/bash-sandbox
+      '@hydra/harness-browser-decisions':
+        specifier: workspace:^
+        version: link:../../browser/browser-decisions
       '@hydra/harness-browser-electron':
         specifier: workspace:^
         version: link:../../browser/browser-electron
@@ -1292,6 +1314,9 @@ importers:
       '@hydra/harness-hooks-registry':
         specifier: workspace:^
         version: link:../../hooks/hooks-registry
+      '@hydra/harness-jev':
+        specifier: workspace:^
+        version: link:../../llm/jev
       '@hydra/harness-jobs-local':
         specifier: workspace:^
         version: link:../../jobs/jobs-local
@@ -1597,6 +1622,9 @@ importers:
       '@hydra/harness-client-ui-input-trigger':
         specifier: workspace:^
         version: link:../../client/ui-input-trigger
+      '@hydra/harness-client-ui-jev':
+        specifier: workspace:^
+        version: link:../../client/ui-jev
       '@hydra/harness-client-ui-jobs':
         specifier: workspace:^
         version: link:../../client/ui-jobs
@@ -2429,6 +2457,39 @@ importers:
       '@hydra/harness-file-reference':
         specifier: workspace:^
         version: link:../../context/file-reference
+      '@hydra/harness-invariants':
+        specifier: workspace:^
+        version: link:../../runtime-diagnostics/invariants
+      '@types/react':
+        specifier: ~18.3.1
+        version: 18.3.31
+      react:
+        specifier: ^18.2.0
+        version: 18.3.1
+
+  packages/client/ui-jev:
+    devDependencies:
+      '@hydra/cordis':
+        specifier: workspace:^
+        version: link:../../../vendor/cordis
+      '@hydra/harness-api-remotes':
+        specifier: workspace:^
+        version: link:../../api/remotes
+      '@hydra/harness-client-runtime':
+        specifier: workspace:^
+        version: link:../runtime
+      '@hydra/harness-client-test-runtime':
+        specifier: workspace:^
+        version: link:../../test-support/client-runtime
+      '@hydra/harness-client-ui-settings':
+        specifier: workspace:^
+        version: link:../ui-settings
+      '@hydra/harness-client-ui-settings-models':
+        specifier: workspace:^
+        version: link:../ui-settings-models
+      '@hydra/harness-client-ui-slots':
+        specifier: workspace:^
+        version: link:../ui-slots
       '@hydra/harness-invariants':
         specifier: workspace:^
         version: link:../../runtime-diagnostics/invariants
@@ -6225,6 +6286,27 @@ importers:
       '@hydra/harness-tools':
         specifier: workspace:^
         version: link:../../core/tools
+
+  packages/llm/jev:
+    devDependencies:
+      '@hydra/cordis':
+        specifier: workspace:^
+        version: link:../../../vendor/cordis
+      '@hydra/harness-credentials':
+        specifier: workspace:^
+        version: link:../../credentials/credentials
+      '@hydra/harness-invariants':
+        specifier: workspace:^
+        version: link:../../runtime-diagnostics/invariants
+      '@hydra/harness-launch-environment':
+        specifier: workspace:^
+        version: link:../../util/launch-environment
+      '@hydra/harness-settings':
+        specifier: workspace:^
+        version: link:../../settings/settings
+      '@hydra/schemastery':
+        specifier: link:../../../vendor/schemastery
+        version: link:../../../vendor/schemastery
 
   packages/llm/llm:
     dependencies:

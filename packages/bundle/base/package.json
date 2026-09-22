@@ -66,6 +66,8 @@
     "@hydra/harness-jobs-local": "workspace:^",
     "@hydra/harness-llm": "workspace:^",
     "@hydra/harness-llm-deepseek": "workspace:^",
+    "@hydra/harness-jev": "workspace:^",
+    "@hydra/harness-browser-decisions": "workspace:^",
     "@hydra/harness-llm-pi-ai": "workspace:^",
     "@hydra/harness-llm-account-auth": "workspace:^",
     "@hydra/harness-llm-retry": "workspace:^",

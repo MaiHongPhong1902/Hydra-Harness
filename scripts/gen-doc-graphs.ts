@@ -99,6 +99,15 @@ const GROUP_ORDER = [
 
 const SERVICE_ROLES: ServiceRole[] = [
   {
+    key: 'jev',
+    pkg: 'jev',
+    title: 'Optional unary Jev decision capability',
+    mode: 'seam',
+    implementations: ['jev'],
+    consumers: ['browser-decisions'],
+    note: 'The provider evaluates structured choice, score, and yes/no questions independently from the chat LLM adapter registry.',
+  },
+  {
     key: 'attachments',
     pkg: 'attachment',
     title: 'Durable binary attachment storage',

@@ -1,0 +1,37 @@
+{
+  "name": "@hydra/harness-jev",
+  "description": "Optional TypeSafe Jev decision capability for the Hydra harness",
+  "version": "0.1.1-rc.1",
+  "publishConfig": { "access": "public" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MaiHongPhong1902/Hydra-Harness.git",
+    "directory": "packages/llm/jev"
+  },
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/types/index.d.ts",
+  "exports": {
+    ".": { "types": "./lib/types/index.d.ts", "default": "./lib/index.js" },
+    "./invariant": { "types": "./lib/types/invariant.d.ts", "default": "./lib/invariant.js" },
+    "./src/*": "./src/*",
+    "./package.json": "./package.json"
+  },
+  "files": ["lib/index.js", "lib/invariant.js", "lib/types/**/*.d.ts"],
+  "license": "MIT",
+  "peerDependencies": {
+    "@hydra/harness-credentials": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-launch-environment": "workspace:^",
+    "@hydra/harness-settings": "workspace:^",
+    "@hydra/cordis": "workspace:^"
+  },
+  "devDependencies": {
+    "@hydra/harness-credentials": "workspace:^",
+    "@hydra/harness-invariants": "workspace:^",
+    "@hydra/harness-launch-environment": "workspace:^",
+    "@hydra/harness-settings": "workspace:^",
+    "@hydra/cordis": "workspace:^",
+    "@hydra/schemastery": "workspace:^"
+  }
+}

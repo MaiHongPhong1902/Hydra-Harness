@@ -1420,6 +1420,51 @@ export const CLIENT_SLOT_API: readonly ClientSlotEntry[] = [
     source: 'packages/client/ui-settings/src/client/contract/slots.ts:29',
   },
   {
+    key: 'settings.models.provider-option',
+    kind: 'list',
+    scope: 'root',
+    summary: 'Optional provider entries and editor card owned by a settings plugin.',
+    doc: 'Optional provider entries and editor card owned by a settings plugin.',
+    registerOptions: [
+      {
+        name: 'id',
+        requirement: 'required',
+        type: 'string',
+        doc: 'Your cell key. Use an id of your own: a fresh id is added beside the shipped entries, while reusing a shipped id puts you in THAT cell and replaces it. Owners that filter by id address you by it.',
+      },
+      {
+        name: 'order',
+        requirement: 'optional',
+        type: 'number',
+        doc: 'Position among the entries, ascending (default 0).',
+      },
+      {
+        name: 'label',
+        requirement: 'optional',
+        type: 'string | (() => string)',
+        doc: 'Display text where the owner projects one (nav rows, tabs). A thunk is re-read on every projection, so localized text follows the active locale without re-registering.',
+      },
+    ],
+    ownerProps: [
+      '/** Owner props for one optional provider entry in the Models add card. */\nexport type ModelsProviderOptionOwnerProps = { mode: \'option\' } | {\n  mode: \'editor\'\n  /** Whether the host settings provider is read-only. */\n  readOnly: boolean\n  /** Close the editor and report whether it committed a change. */\n  onClose: (changed: boolean) => void\n}',
+    ],
+    ownerPropsReferences: [],
+    standardProps: [
+      'useSessions: SnapshotSelectorHook<SessionListState>',
+      'useWorkspaces: SnapshotSelectorHook<import(\'./workspaces/service.ts\').WorkspaceListState>',
+    ],
+    keyDomain: '',
+    hookContext: '',
+    slotInject: '',
+    declaredBy: 'an entry in \'settings.section\' (client-ui-settings-models), so it exists while that entry is mounted',
+    occupants: [
+      'client-ui-jev JevProviderOption id \'jev\'',
+    ],
+    replaceRisk: 'none',
+    example: 'return {\n  inject: [\'slots\'],\n  apply(ctx) {\n    ctx.slots.inject(\'settings.models.provider-option\', () => ctx.slots.register(\n      { name: \'settings.models.provider-option\', id: \'my-entry\', order: 100, label: \'My entry\' },\n      () => React.createElement(\'div\', null, \'hello\'),\n    ))\n  },\n}',
+    source: 'packages/client/ui-settings-models/src/client/index.ts:41',
+  },
+  {
     key: 'settings.onboarding',
     kind: 'list',
     scope: 'root',

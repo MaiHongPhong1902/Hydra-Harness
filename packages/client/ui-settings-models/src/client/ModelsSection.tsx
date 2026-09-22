@@ -8,7 +8,7 @@ import { useState } from 'react'
 import type { ReactNode } from 'react'
 import type { IApiClient } from '@hydra/harness-api-remotes/client'
 import { Button, IconPlusOutline16, Modal } from '@hydra/harness-client-ui-primitives'
-import type { InjectFace } from '@hydra/harness-client-ui-slots'
+import type { HostObservable, InjectFace, PropsRenderSlots } from '@hydra/harness-client-ui-slots'
 import { isManagedFallbackRef } from './FallbackKeysEditor.tsx'
 import { CustomProviderCard } from './CustomProviderCard.tsx'
 import {
@@ -31,6 +31,8 @@ export interface ModelsSectionInjected {
   hooks: {
     /** Page snapshot bound by the UI renderer as useSnapshot. */
     snapshot: ModelsSettingsStore['store']
+    /** Live count of optional provider contributions. */
+    providerOptions: HostObservable<number>
   }
   /** Wire faces the editor writes through. */
   api: Pick<IApiClient, 'settings' | 'credentials' | 'llm' | 'authorization'>
@@ -44,9 +46,9 @@ export interface ModelsSectionInjected {
  * Props delivered by the slot outlet: the inject face spread flat (the
  * renderer erases the share boundary at the render call).
  */
-export type ModelsSectionProps = Partial<InjectFace<ModelsSectionInjected>>
+export type ModelsSectionProps = Partial<InjectFace<ModelsSectionInjected> & PropsRenderSlots<'settings.models.provider-option'>>
 
-type ModelsSectionFace = InjectFace<ModelsSectionInjected>
+type ModelsSectionFace = Omit<InjectFace<ModelsSectionInjected>, 'useProviderOptions'> & Partial<Pick<InjectFace<ModelsSectionInjected>, 'useProviderOptions'>> & PropsRenderSlots<'settings.models.provider-option'>
 
 /** Provider identity shared by row actions and confirmation copy. */
 export interface ProviderIdentity {
@@ -211,19 +213,23 @@ export function providerCopy(template: string, target: ProviderIdentity): string
  * @returns the section, or null while the shell has not injected yet.
  */
 export function ModelsSection(props: ModelsSectionProps): ReactNode {
-  const { controller, useSnapshot, api, schema, t } = props
-  if (
-    controller === undefined || useSnapshot === undefined || api === undefined
-    || schema === undefined || t === undefined
-  ) return null
-  return <Loaded injected={{ controller, useSnapshot, api, schema, t }} />
+  const { controller, useSnapshot, useProviderOptions, api, schema, t, renderSlot } = props
+  if (controller === undefined || useSnapshot === undefined || api === undefined
+    || schema === undefined || t === undefined) return null
+  const optionalRenderSlot = renderSlot ?? (() => null) as ModelsSectionFace['renderSlot']
+  return <Loaded injected={{
+    controller, useSnapshot, api, schema, t, renderSlot: optionalRenderSlot,
+    ...useProviderOptions === undefined ? {} : { useProviderOptions },
+  }} />
 }
 
 function Loaded({ injected }: { injected: ModelsSectionFace }): ReactNode {
-  const { controller, api, schema, t } = injected
+  const { controller, api, schema, t, renderSlot } = injected
   const state = injected.useSnapshot(snapshot => snapshot)
+  const providerOptionCount = injected.useProviderOptions?.(count => count) ?? 0
   const [editing, setEditing] = useState<EditorTarget | undefined>(undefined)
   const [adding, setAdding] = useState(false)
+  const [addingOption, setAddingOption] = useState<string | undefined>(undefined)
   const [deleteTarget, setDeleteTarget] = useState<EditorTarget | undefined>(undefined)
   const [deleting, setDeleting] = useState(false)
   const [deleteFailure, setDeleteFailure] = useState<string | undefined>(undefined)
@@ -250,6 +256,7 @@ function Loaded({ injected }: { injected: ModelsSectionFace }): ReactNode {
   const closeEditor = (changed: boolean, target: ProviderIdentity): void => {
     setEditing(undefined)
     setAdding(false)
+    setAddingOption(undefined)
     setDeclaring(false)
     persistSaved(changed, target)
   }
@@ -332,6 +339,7 @@ function Loaded({ injected }: { injected: ModelsSectionFace }): ReactNode {
             || row.entry.provider === editing?.provider)
         const addTarget = adding && rows.some(row => row.entry.provider === editing?.provider) ? editing : undefined
         const addNamespace = addTarget === undefined ? undefined : state.namespaces.get(addTarget.settingsNs)
+        const showAdd = addTarget !== undefined || (!accountGroup && adding && editing === undefined)
         return (
           <section key={group} className={styles['providerGroup']} aria-label={t(group)}>
             <h3 className={styles['title']}>{t(group)}</h3>
@@ -390,6 +398,7 @@ function Loaded({ injected }: { injected: ModelsSectionFace }): ReactNode {
                           aria-label={providerCopy(t('editProvider'), target)}
                           onClick={() => {
                             setSavedTarget(undefined)
+                            setAddingOption(undefined)
                             // One card at a time: leaving `declaring` set would show
                             // the create card beside this editor, and closing either
                             // one discards the other's draft.
@@ -435,40 +444,61 @@ function Loaded({ injected }: { injected: ModelsSectionFace }): ReactNode {
               })}
             </ul>
             <div className={styles['addBlock']}>
-              {addTarget !== undefined && addNamespace !== undefined
+              {showAdd
                 ? (
                   <div className={styles['addCard']}>
                     <div className={styles['field']}>
                       <span className={styles['fieldLabel']}>{t('provider')}</span>
                       <select
                         className={`${styles['input']} ${styles['selectInput']}`}
-                        value={addTarget.provider}
+                        value={addingOption === undefined ? addTarget?.provider ?? '' : `plugin:${addingOption}`}
                         aria-label={t('provider')}
                         onChange={(event) => {
+                          const optionalId = event.currentTarget.selectedOptions[0]?.dataset['hydraProviderOption']
+                          if (optionalId !== undefined) {
+                            setSavedTarget(undefined)
+                            setEditing(undefined)
+                            setAdding(true)
+                            setDeclaring(false)
+                            setAddingOption(optionalId)
+                            return
+                          }
                           const row = selectable.find(candidate => candidate.entry.provider === event.target.value)
                           /* v8 ignore next -- the select only lists addable rows */
                           if (row === undefined) return
+                          setAddingOption(undefined)
                           setEditing(targetOf(row))
                         }}
                       >
                         {selectable.map(row => (
                           <option key={row.entry.provider} value={row.entry.provider}>{row.entry.displayName}</option>
                         ))}
+                        {addTarget === undefined && addingOption === undefined ? <option value="" disabled>{t('provider')}</option> : null}
+                        {accountGroup ? null : renderSlot('settings.models.provider-option', { mode: 'option' })}
                       </select>
                     </div>
-                    <ProviderEditor
-                      key={addTarget.provider}
-                      provider={addTarget.provider}
-                      displayName={addTarget.displayName}
-                      hideTitle
-                      namespace={addNamespace}
-                      schema={schema}
-                      settingsPath={addTarget.settingsPath}
-                      api={api}
-                      t={t}
-                      readOnly={!state.writable}
-                      onClose={(changed) => { closeEditor(changed, addTarget) }}
-                    />
+                    {addingOption !== undefined && !accountGroup
+                      ? renderSlot('settings.models.provider-option', {
+                        mode: 'editor', readOnly: !state.writable,
+                        onClose: (changed) => {
+                          setAdding(false)
+                          setAddingOption(undefined)
+                          if (changed) announceSaved({ provider: addingOption, displayName: addingOption })
+                        },
+                      }, { only: addingOption, fallback: <p role="status">{t('providerUnavailable')}</p> })
+                      : addTarget !== undefined && addNamespace !== undefined ? <ProviderEditor
+                        key={addTarget.provider}
+                        provider={addTarget.provider}
+                        displayName={addTarget.displayName}
+                        hideTitle
+                        namespace={addNamespace}
+                        schema={schema}
+                        settingsPath={addTarget.settingsPath}
+                        api={api}
+                        t={t}
+                        readOnly={!state.writable}
+                        onClose={(changed) => { closeEditor(changed, addTarget) }}
+                      /> : null}
                   </div>
                 )
                 : declaring && !accountGroup
@@ -494,15 +524,14 @@ function Loaded({ injected }: { injected: ModelsSectionFace }): ReactNode {
                       <button
                         type="button"
                         className={styles['addButton']}
-                        disabled={selectable.length === 0 || !state.writable}
+                        disabled={(selectable.length === 0 && (accountGroup || providerOptionCount === 0)) || !state.writable}
                         onClick={() => {
                           const first = selectable[0]
-                          /* v8 ignore next -- the button is disabled while nothing is addable */
-                          if (first === undefined) return
                           setSavedTarget(undefined)
+                          setAddingOption(undefined)
                           setDeclaring(false)
                           setAdding(true)
-                          setEditing(targetOf(first))
+                          setEditing(first === undefined ? undefined : targetOf(first))
                         }}
                       >
                         {/* Same glyph as the composer's attach button. */}

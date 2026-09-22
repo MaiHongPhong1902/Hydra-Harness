@@ -250,6 +250,7 @@
       "@hydra/harness-client-ui-settings-general": ["./packages/client/ui-settings-general/src"],
       "@hydra/harness-client-ui-settings-personalization": ["./packages/client/ui-settings-personalization/src"],
       "@hydra/harness-client-ui-settings-models": ["./packages/client/ui-settings-models/src"],
+      "@hydra/harness-client-ui-jev": ["./packages/client/ui-jev/src"],
       "@hydra/harness-client-ui-settings-plugin-inventory": ["./packages/client/ui-settings-plugin-inventory/src"],
       "@hydra/harness-client-locale": ["./packages/client/locale/src"],
       "@hydra/harness-client-web": ["./packages/client/web/src"],
