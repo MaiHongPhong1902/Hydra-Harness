@@ -5,7 +5,7 @@ import { join } from 'node:path'
 import { Context } from '@hydra/cordis'
 import Credentials from '@hydra/harness-credentials-local'
 import type { AuthorizationPrompt, AuthorizationSession } from '@hydra/harness-authorization'
-import type { AuthInteraction, OAuthCredential } from '@earendil-works/pi-ai'
+import type { AuthEvent, AuthInteraction, AuthPrompt, OAuthCredential } from '@earendil-works/pi-ai'
 import { afterEach, expect, it, vi } from 'vitest'
 import { accountRecordKey, createAccountPool } from '../src/accounts.ts'
 import {
@@ -32,6 +32,7 @@ afterEach(async () => {
   if (root !== undefined) await rm(root, { recursive: true, force: true })
   root = undefined
   oauth.login.mockReset()
+  vi.restoreAllMocks()
 })
 
 async function poolFixture() {
@@ -117,6 +118,54 @@ it('fetches the account model catalog from ChatGPT', async () => {
   expect(headers.get('chatgpt-account-id')).toBe('account-id')
 })
 
+it('filters hidden, unsupported, and malformed model rows and reads alternate metadata fields', async () => {
+  const signal = new AbortController().signal
+  const fetch = vi.spyOn(globalThis, 'fetch').mockResolvedValue(Response.json({ data: [
+    null, [], 'model', {}, { id: 'hidden', visibility: 'hidden' }, { id: 'unsupported', supported_in_api: false },
+    { id: '', slug: 'visible', name: 'Visible', context_window: 0, context_length: 8192, max_output_tokens: 1.5, max_tokens: 1024 },
+    { id: 'bare', context_window: '4096', max_tokens: -1 },
+  ] }))
+  await expect(discoverChatGptModels({ accessToken: 'token', accountId: 'account', baseURL: 'https://fixture.test///', signal }))
+    .resolves.toEqual([{ id: 'visible', name: 'Visible', contextWindow: 8192, maxTokens: 1024 }, { id: 'bare' }])
+  expect(fetch).toHaveBeenCalledWith(
+    expect.stringMatching(/^https:\/\/fixture.test\/codex\/models\?/u), expect.objectContaining({ signal }),
+  )
+})
+
+it.each([[401, 'AUTH'], [403, 'AUTH'], [429, 'RATE_LIMIT'], [500, 'SERVER'], [400, 'INVALID_REQUEST']] as const)(
+  'classifies model discovery HTTP %s and cancels the error body', async (status, code) => {
+    const response = new Response('failure', { status })
+    const cancel = vi.spyOn(response.body!, 'cancel')
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(response)
+    await expect(discoverChatGptModels({ accessToken: 'token', accountId: 'account' }))
+      .rejects.toMatchObject({ code, failure: { status } })
+    expect(cancel).toHaveBeenCalledOnce()
+  },
+)
+
+it('handles HTTP failures without a response body', async () => {
+  vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 503 }))
+  await expect(discoverChatGptModels({ accessToken: 'token', accountId: 'account' }))
+    .rejects.toMatchObject({ code: 'SERVER' })
+})
+
+it.each([null, [], 1, {}, { models: {} }])('rejects discovery payload without a model list: %j', async (payload) => {
+  vi.spyOn(globalThis, 'fetch').mockResolvedValue(Response.json(payload))
+  await expect(discoverChatGptModels({ accessToken: 'token', accountId: 'account' }))
+    .rejects.toMatchObject({ code: 'MALFORMED_RESPONSE' })
+})
+
+it('distinguishes invalid JSON, transport failure, and caller cancellation', async () => {
+  const fetch = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{'))
+  const request = { accessToken: 'token', accountId: 'account' }
+  await expect(discoverChatGptModels(request)).rejects.toMatchObject({ code: 'MALFORMED_RESPONSE' })
+  const cause = new Error('connection reset')
+  fetch.mockRejectedValue(cause)
+  await expect(discoverChatGptModels(request)).rejects.toMatchObject({ code: 'TRANSPORT', cause })
+  await expect(discoverChatGptModels({ ...request, signal: AbortSignal.abort() }))
+    .rejects.toMatchObject({ code: 'ABORTED', cause })
+})
+
 it('masks the manual code prompt and stores the returned OAuth grant', async () => {
   const pool = await poolFixture()
   const prompt = vi.fn(async (_request: AuthorizationPrompt) => 'test-code')
@@ -133,6 +182,48 @@ it('masks the manual code prompt and stores the returned OAuth grant', async () 
   await loginChatGpt(session, pool)
   expect(prompt).toHaveBeenCalledWith(expect.objectContaining({ kind: 'secret', message: 'Paste the callback' }))
   expect(await pool.accounts.list()).toMatchObject([{ label: 'chatgpt@example.test' }])
+})
+
+it('relays SDK notices and prompt kinds without losing withdrawal signals', async () => {
+  const pool = await poolFixture()
+  const signal = new AbortController().signal
+  const notify = vi.fn<(event: unknown) => void>()
+  const prompt = vi.fn(async (_request: unknown): Promise<string> => 'answer')
+  const events: AuthEvent[] = [
+    { type: 'info', message: 'Help', links: [{ url: 'https://fixture.test/help' }] },
+    { type: 'info', message: 'Wait' },
+    { type: 'auth_url', url: 'https://fixture.test/login', instructions: 'Log in' },
+    { type: 'device_code', userCode: '1234', verificationUri: 'https://fixture.test/device' },
+    { type: 'progress', message: 'Connected' },
+    { type: 'future-sdk-event' } as unknown as AuthEvent,
+  ]
+  const prompts: AuthPrompt[] = [
+    { type: 'select', message: 'Account', options: [{ id: 'work', label: 'Work' }] },
+    { type: 'secret', message: 'Token', placeholder: 'token', signal },
+    { type: 'text', message: 'Workspace', placeholder: 'name' },
+    { type: 'text', message: 'Label' },
+  ]
+  oauth.login.mockImplementation(async (interaction: AuthInteraction) => {
+    expect(interaction.signal).toBe(signal)
+    for (const event of events) interaction.notify(event)
+    for (const item of prompts) await interaction.prompt(item)
+    return grant
+  })
+  await loginChatGpt({ method: 'oauth', signal, notify, prompt }, pool)
+  expect(notify.mock.calls.map(([notice]) => notice)).toEqual([
+    { message: 'Help', url: 'https://fixture.test/help' },
+    { message: 'Wait' },
+    { message: 'Log in', url: 'https://fixture.test/login' },
+    { message: 'Enter this code on the verification page to finish signing in.', url: 'https://fixture.test/device', code: '1234' },
+    { message: 'Connected' },
+    { message: 'Signing in…' },
+  ])
+  expect(prompt.mock.calls.map(([request]) => request)).toEqual([
+    { kind: 'select', message: 'Account', options: [{ id: 'work', label: 'Work' }] },
+    { kind: 'secret', message: 'Token', placeholder: 'token', signal },
+    { kind: 'text', message: 'Workspace', placeholder: 'name' },
+    { kind: 'text', message: 'Label' },
+  ])
 })
 
 it('uses the ChatGPT profile claim for the automatic account label', async () => {

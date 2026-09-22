@@ -1,13 +1,13 @@
 import { createHash } from 'node:crypto'
 import { constants } from 'node:fs'
-import { chmod, mkdir, readFile, stat, writeFile } from 'node:fs/promises'
+import { chmod, link, mkdir, open, readFile, readdir, stat, unlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join, parse, resolve } from 'node:path'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import sharp from 'sharp'
 import type { ImageAttachmentLimits } from '@hydra/harness-attachment'
-import { readImageFile, saveImageFile } from '../src/store.ts'
+import { publishImmutableObject, publishImmutableObjectStream, readImageFile, saveImageFile } from '../src/store.ts'
 
 const fsControl = vi.hoisted(() => ({
   readSignals: [] as AbortSignal[],
@@ -26,10 +26,12 @@ vi.mock('node:fs/promises', async (importOriginal) => {
       }
       return actual.readFile(...args)
     },
-    async open(...args: Parameters<typeof actual.open>): ReturnType<typeof actual.open> {
+    link: vi.fn(actual.link),
+    unlink: vi.fn(actual.unlink),
+    open: vi.fn(async (...args: Parameters<typeof actual.open>): ReturnType<typeof actual.open> => {
       if (args[1] === constants.O_RDONLY) fsControl.syncedDirectories.push(String(args[0]))
       return actual.open(...args)
-    },
+    }),
   }
 })
 
@@ -67,7 +69,86 @@ function parentChainToRoot(path: string): string[] {
 }
 
 afterEach(async () => {
+  vi.restoreAllMocks()
+  vi.clearAllMocks()
   await Promise.all(roots.splice(0).map(path => rm(path, { recursive: true, force: true })))
+})
+
+describe('immutable attachment publication', () => {
+  it('rejects a mismatched digest without publishing or retaining staged bytes', async () => {
+    const storageRoot = await root()
+    await expect(publishImmutableObject(storageRoot, join(storageRoot, 'object'), PNG, '0'.repeat(64)))
+      .rejects.toMatchObject({ code: 'ATTACHMENT_CORRUPT' })
+    expect(await readdir(join(storageRoot, 'tmp'))).toEqual([])
+    await expect(stat(join(storageRoot, 'object'))).rejects.toMatchObject({ code: 'ENOENT' })
+  })
+
+  it('wraps a publication failure and removes the staged object', async () => {
+    const storageRoot = await root()
+    const cause = Object.assign(new Error('link denied'), { code: 'EPERM' })
+    vi.mocked(link).mockRejectedValueOnce(cause)
+    await expect(publishImmutableObject(storageRoot, join(storageRoot, 'object'), PNG, createHash('sha256').update(PNG).digest('hex')))
+      .rejects.toMatchObject({ code: 'ATTACHMENT_WRITE_FAILED', cause })
+    expect(await readdir(join(storageRoot, 'tmp'))).toEqual([])
+  })
+
+  it('preserves integrity failures while publishing a stream', async () => {
+    const storageRoot = await root()
+    await mkdir(storageRoot, { recursive: true })
+    const target = join(storageRoot, 'object')
+    await writeFile(target, 'conflicting bytes')
+    await expect(publishImmutableObjectStream(storageRoot, (async function* () { yield PNG })(), () => target))
+      .rejects.toMatchObject({ code: 'ATTACHMENT_CORRUPT' })
+    expect(await readdir(join(storageRoot, 'tmp'))).toEqual([])
+    await expect(readFile(target, 'utf8')).resolves.toBe('conflicting bytes')
+  })
+
+  it('tolerates staging files already removed before cleanup', async () => {
+    const storageRoot = await root()
+    const actual = await vi.importActual<typeof import('node:fs/promises')>('node:fs/promises')
+    vi.mocked(unlink).mockImplementationOnce(async (path) => {
+      await actual.unlink(path)
+      throw Object.assign(new Error('already removed'), { code: 'ENOENT' })
+    })
+    const target = join(storageRoot, 'object')
+    await publishImmutableObject(storageRoot, target, PNG, createHash('sha256').update(PNG).digest('hex'))
+    await expect(readFile(target)).resolves.toEqual(Buffer.from(PNG))
+  })
+
+  it.each(['unlink failed', new Error('unlink failed'), Object.assign(new Error('unlink denied'), { code: 'EACCES' })])(
+    'reports cleanup failure %s without returning a durable reference', async (cause) => {
+      const storageRoot = await root()
+      vi.mocked(unlink).mockRejectedValueOnce(cause)
+      await expect(publishImmutableObject(storageRoot, join(storageRoot, 'object'), PNG, createHash('sha256').update(PNG).digest('hex')))
+        .rejects.toMatchObject({ code: 'ATTACHMENT_WRITE_FAILED', cause })
+      expect(await readdir(join(storageRoot, 'tmp'))).toEqual([])
+    },
+  )
+
+  it('preserves a source failure when closing its staging handle also fails', async () => {
+    const storageRoot = await root()
+    const actual = await vi.importActual<typeof import('node:fs/promises')>('node:fs/promises')
+    const openOriginal = vi.mocked(open).getMockImplementation()!
+    vi.mocked(open).mockImplementation(async (...args) => {
+      const handle = await actual.open(...args)
+      if (args[1] !== constants.O_RDONLY) {
+        const close = handle.close.bind(handle)
+        vi.spyOn(handle, 'close').mockImplementationOnce(async () => {
+          await close()
+          throw new Error('close failed')
+        })
+      }
+      return handle
+    })
+    const cause = new Error('source failed')
+    try {
+      await expect(publishImmutableObjectStream(storageRoot, (async function* () { yield PNG; throw cause })(), () => join(storageRoot, 'object')))
+        .rejects.toMatchObject({ code: 'ATTACHMENT_WRITE_FAILED', cause })
+      expect(await readdir(join(storageRoot, 'tmp'))).toEqual([])
+    } finally {
+      vi.mocked(open).mockImplementation(openOriginal)
+    }
+  })
 })
 
 describe('local attachment store', () => {

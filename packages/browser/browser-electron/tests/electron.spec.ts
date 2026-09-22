@@ -36,7 +36,7 @@ const SPA_FIXTURE_FILE = fileURLToPath(new URL('./fixtures/spa.html', import.met
 const POLICY_FIXTURE_FILE = fileURLToPath(new URL('./fixtures/policy.html', import.meta.url))
 const CHROME_UI_DRIVER = fileURLToPath(new URL('./chrome-ui.cjs', import.meta.url))
 
-/** Drive the native chrome in a separate real Electron process. */
+/** Drive native chrome and await Electron shutdown before the caller removes its profile. */
 function runChromeUi(profile: string, navigationOnly = false): Promise<unknown> {
   return new Promise((resolve, reject) => {
     const child = spawn(resolveElectronPath(), [
@@ -57,7 +57,6 @@ function runChromeUi(profile: string, navigationOnly = false): Promise<unknown> 
           result = message.error === undefined
             ? { ok: message.ok === true, transcript: message.transcript }
             : { ok: message.ok === true, error: message.error }
-          child.kill()
         }
       } catch {}
     })
@@ -65,9 +64,9 @@ function runChromeUi(profile: string, navigationOnly = false): Promise<unknown> 
       clearTimeout(timeout)
       reject(error)
     })
-    child.once('exit', (code) => {
+    child.once('close', (code) => {
       clearTimeout(timeout)
-      if (result?.ok) resolve(result.transcript)
+      if (code === 0 && result?.ok) resolve(result.transcript)
       else reject(new Error(`native chrome test failed (exit ${code}): ${result?.error ?? ''}\n${stderr}`))
     })
   })

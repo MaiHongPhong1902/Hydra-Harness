@@ -338,6 +338,10 @@ describe('DeepSeek e2e workflow', () => {
       run: 'bash scripts/prepare-ci-bubblewrap.sh',
     })
     expect(JSON.stringify(steps)).not.toContain('apt-get')
+
+    const script = readFileSync(resolve(root, 'scripts/prepare-ci-bubblewrap.sh'), 'utf8')
+    expect(script).toContain('https://snapshot.ubuntu.com/ubuntu/20260722T000000Z/pool/main/b/bubblewrap/')
+    expect(script).not.toContain('https://archive.ubuntu.com/ubuntu/pool/main/b/bubblewrap/')
   })
 })
 

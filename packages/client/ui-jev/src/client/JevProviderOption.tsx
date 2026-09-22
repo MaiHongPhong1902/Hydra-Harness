@@ -30,6 +30,7 @@ export function JevProviderOption(props: Props): ReactNode {
   const ready = settings.error === null && typeof config?.['apiKeyEnv'] === 'string' && typeof config['model'] === 'string'
   const disabled = props.readOnly || saving || !ready
   const save = async (): Promise<void> => {
+    /* v8 ignore next -- the native disabled button prevents user invocation. */
     if (disabled) return
     const value = key.trim()
     if (value === '') { setError('Enter a Jev API key.'); return }

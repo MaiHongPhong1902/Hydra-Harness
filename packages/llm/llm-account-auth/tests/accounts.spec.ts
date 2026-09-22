@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Context } from '@hydra/cordis'
 import { CredentialProvider, credentialKey } from '@hydra/harness-credentials'
 import type { Credential } from '@earendil-works/pi-ai'
@@ -11,7 +11,10 @@ import type {
   CredentialRef,
   ResolvedCredential,
 } from '@hydra/harness-credentials'
-import { createAccountPool } from '../src/accounts.ts'
+import { createAccountPool, emptyAuthContext, parseAccountPool } from '../src/accounts.ts'
+import type { StreamChunk } from '@hydra/harness-llm'
+
+afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals() })
 
 class MemoryCredentials extends CredentialProvider {
   private readonly records = new Map<CredentialKey, CredentialRecord>()
@@ -78,6 +81,123 @@ async function fixture(): Promise<{ ctx: Context; pool: ReturnType<typeof create
 }
 
 describe('account pools', () => {
+  it('has no ambient credential access and fails without a credentials provider', async () => {
+    await expect(emptyAuthContext.env('TOKEN')).resolves.toBeUndefined()
+    await expect(emptyAuthContext.fileExists('file')).resolves.toBe(false)
+    const pool = createAccountPool({ ctx: new Context(), key: credentialKey('test', 'test'), providerId: 'test', providerLabel: 'Test' })
+    await expect(pool.accounts.list()).rejects.toMatchObject({ code: 'NO_CREDENTIAL_STORE' })
+  })
+
+  it('rejects a credential provider that never invokes its write callback', async () => {
+    const { ctx, pool } = await fixture()
+    try {
+      vi.spyOn(ctx.credentials, 'modifyRecord').mockResolvedValue(undefined)
+      await expect(pool.add(undefined, { type: 'api_key', key: 'key' })).rejects.toThrow('did not commit')
+    } finally { await ctx.fiber.dispose() }
+  })
+
+  it('isolates unknown providers, unselected reads, refreshes, and selected deletions', async () => {
+    const { ctx, pool } = await fixture()
+    try {
+      await expect(pool.selector.ordered('other')).resolves.toEqual([])
+      await expect(pool.selector.ordered('chatgpt')).resolves.toEqual([])
+      await expect(pool.credentials.list()).resolves.toEqual([])
+      await expect(pool.credentials.read('other')).resolves.toBeUndefined()
+      const key = { type: 'api_key', key: 'secret', accountId: 'first' } as const
+      await expect(pool.credentials.modify('other', async current => current)).resolves.toBeUndefined()
+      await pool.withLoginLabel(' First ', () => pool.credentials.modify('chatgpt', async () => key))
+      const first = (await pool.accounts.list())[0]!
+      await expect(pool.credentials.list()).resolves.toEqual([{ providerId: 'chatgpt', type: 'api_key' }])
+      await expect(pool.credentials.read('chatgpt')).resolves.toBeUndefined()
+      await pool.credentials.modify('chatgpt', async () => ({ ...key, key: 'replaced' }))
+      await pool.credentials.modify('chatgpt', async () => ({ type: 'api_key', key: 'generated' }))
+      await pool.credentials.modify('chatgpt', async () => ({ ...key, key: 'duplicate' }))
+      await pool.withAccount(first.id, async () => {
+        await expect(pool.credentials.read('chatgpt')).resolves.toMatchObject({ key: 'duplicate' })
+        await expect(pool.credentials.modify('chatgpt', async () => undefined)).resolves.toBeUndefined()
+        await expect(pool.credentials.read('chatgpt')).resolves.toMatchObject({ key: 'duplicate' })
+      })
+      await pool.add(undefined, { ...key, accountId: 'second' } as Credential & Record<string, unknown>)
+      await pool.withAccount(first.id, () => pool.credentials.modify('chatgpt', async () => ({ ...key, key: 'refreshed' })))
+      await pool.credentials.delete('other')
+      expect(await pool.accounts.list()).toHaveLength(3)
+      await pool.withAccount(first.id, () => pool.credentials.delete('chatgpt'))
+      expect(await pool.accounts.list()).toHaveLength(2)
+      await expect(pool.accounts.remove(first.id)).rejects.toMatchObject({ code: 'ACCOUNT_GONE' })
+      await pool.credentials.delete('chatgpt')
+      expect(await pool.accounts.list()).toEqual([])
+    } finally { await ctx.fiber.dispose() }
+  })
+
+  it('keeps account selection active through stream iteration and early cleanup', async () => {
+    const { ctx, pool } = await fixture()
+    try {
+      const first = await pool.add('First', { type: 'api_key', key: 'first' })
+      const reads: unknown[] = []
+      const source = async function* (): AsyncIterable<StreamChunk> {
+        try {
+          reads.push(await pool.credentials.read('chatgpt'))
+          yield { type: 'text', text: 'first' } as unknown as StreamChunk
+          reads.push(await pool.credentials.read('chatgpt'))
+        } finally { reads.push(await pool.credentials.read('chatgpt')) }
+      }
+      for await (const _chunk of pool.selector.stream('chatgpt', first.id, source)) { /* consume to completion */ }
+      expect(reads).toEqual(Array.from({ length: 3 }, () => ({ type: 'api_key', key: 'first' })))
+      reads.length = 0
+      for await (const _chunk of pool.selector.stream('chatgpt', first.id, source)) break
+      expect(reads).toEqual(Array.from({ length: 2 }, () => ({ type: 'api_key', key: 'first' })))
+      const iterator = pool.selector.stream('other', first.id, source)[Symbol.asyncIterator]()
+      await expect(iterator.next()).rejects.toMatchObject({ code: 'ACCOUNT_PROVIDER' })
+      const cleanupFailure = async function* (): AsyncIterable<StreamChunk> {
+        try { yield { type: 'text', text: 'first' } as unknown as StreamChunk }
+        finally { throw new Error('cleanup failed') }
+      }
+      for await (const _chunk of pool.selector.stream('chatgpt', first.id, cleanupFailure)) break
+      const noReturn: AsyncIterable<StreamChunk> = {
+        [Symbol.asyncIterator]: () => ({ next: async () => ({ done: false, value: { type: 'text', text: 'first' } as unknown as StreamChunk }) }),
+      }
+      for await (const _chunk of pool.selector.stream('chatgpt', first.id, () => noReturn)) break
+      await expect(pool.credentials.read('chatgpt')).resolves.toBeUndefined()
+    } finally { await ctx.fiber.dispose() }
+  })
+
+  it.each([
+    [{ workspaceId: 'workspace', userId: 'user' }, 'workspace:user'],
+    [{ workspaceId: 'workspace' }, 'workspace'],
+    [{ userId: 'user' }, 'user'],
+    [{ emailAddress: 'user@example.test' }, 'user@example.test'],
+    [{ id: 'id' }, 'id'],
+  ])('uses credential identity fields %j', async (fields, identity) => {
+    const { ctx, pool } = await fixture()
+    try {
+      await expect(pool.add(undefined, { type: 'api_key', key: 'key', ...fields }))
+        .resolves.toMatchObject({ id: identity })
+    } finally { await ctx.fiber.dispose() }
+  })
+
+  it.each([
+    [{ email: 'token@example.test', sub: 'user' }, 'token@example.test'],
+    [{ userId: 'user' }, 'user'],
+    [{ 'https://api.openai.com/auth': { email: 'auth@example.test' } }, 'auth@example.test'],
+    [{ 'https://api.openai.com/auth': { userId: 'auth-user' } }, 'auth-user'],
+    [{ 'https://api.openai.com/profile': { name: 'Profile name' } }, 'Profile name'],
+  ])('uses token labels and identities %j without browser globals', async (claims, label) => {
+    const { ctx, pool } = await fixture()
+    try {
+      vi.stubGlobal('atob', undefined)
+      const access = `header.${Buffer.from(JSON.stringify(claims)).toString('base64url')}.signature`
+      await expect(pool.add(undefined, { type: 'oauth', access, refresh: 'refresh', expires: 1 })).resolves.toMatchObject({ label })
+    } finally { await ctx.fiber.dispose() }
+  })
+
+  it('ignores malformed access-token claims when deriving a display label', async () => {
+    const { ctx, pool } = await fixture()
+    try {
+      await expect(pool.add(undefined, { type: 'oauth', access: 'header.invalid.signature', refresh: 'refresh', expires: 1 }))
+        .resolves.toMatchObject({ label: 'ChatGPT account 1' })
+    } finally { await ctx.fiber.dispose() }
+  })
+
   it('derives labels from provider identity when no label is supplied', async () => {
     const { ctx, pool } = await fixture()
     try {
@@ -170,5 +290,44 @@ describe('account pools', () => {
     } finally {
       await ctx.fiber.dispose()
     }
+  })
+})
+
+describe('stored account pool validation', () => {
+  const valid = { id: 'account', label: 'Account', credential: { type: 'oauth', access: 'access', refresh: 'refresh', expires: 1 } }
+  const record = (accounts: unknown): CredentialRecord => ({ kind: 'grant', payload: { version: 1, accounts } })
+
+  it.each([undefined, null, [], 'entry', { ...valid, id: '' }, { ...valid, id: 'x'.repeat(257) },
+    { ...valid, label: '' }, { ...valid, label: 'x'.repeat(513) },
+  ])('rejects a malformed persisted account: %j', (entry) => {
+    expect(() => parseAccountPool(record([entry]))).toThrow('invalid account entry')
+  })
+
+  it.each([undefined, null, [], {}, { type: 'other' },
+    { ...valid.credential, access: '' }, { ...valid.credential, access: 1 },
+    { ...valid.credential, refresh: '' }, { ...valid.credential, refresh: 1 },
+    { ...valid.credential, expires: '1' }, { ...valid.credential, expires: Infinity },
+    { type: 'api_key', key: '' }, { type: 'api_key', key: 1 },
+    { type: 'api_key', env: [] }, { type: 'api_key', env: { KEY: 1 } },
+  ])('rejects malformed stored credentials: %j', (credential) => {
+    expect(() => parseAccountPool(record([{ ...valid, credential }]))).toThrow('invalid account entry')
+  })
+
+  it('rejects invalid envelopes, duplicate identities, and non-cloneable credentials', () => {
+    expect(() => parseAccountPool({ kind: 'secret', value: 'key' } as never)).toThrow('grant record')
+    for (const payload of [null, [], { version: 2, accounts: [] }, { version: 1, accounts: {} }]) {
+      expect(() => parseAccountPool({ kind: 'grant', payload })).toThrow('invalid account-pool payload')
+    }
+    expect(() => parseAccountPool(record([valid, valid]))).toThrow('duplicate account ids')
+    expect(() => parseAccountPool(record([{ ...valid, credential: { ...valid.credential, callback() {} } }])))
+      .toThrow('invalid account entry')
+  })
+
+  it('accepts OAuth and environment-backed credentials and detaches stored data', () => {
+    const input = record([valid, { ...valid, id: 'api', credential: { type: 'api_key', env: { KEY: 'value' } } }])
+    const parsed = parseAccountPool(input)
+    expect(parsed.accounts).toHaveLength(2)
+    expect(parsed.accounts[0]?.credential).toEqual(valid.credential)
+    expect(parsed.accounts[0]?.credential).not.toBe(valid.credential)
   })
 })

@@ -108,3 +108,22 @@ describe('isImageAdmissionError', () => {
     expect(isImageAdmissionError(new Error('unknown failure'))).toBe(false)
   })
 })
+
+describe('image-only attachment providers', () => {
+  it('rejects file writes and reads and exposes no host path', async () => {
+    const store = new RecordingStore(new Context())
+    const ref = { attachmentId: AttachmentId(`sha256:${'0'.repeat(64)}`), bytes: 0, name: 'empty' }
+    const unsupported = { code: 'ATTACHMENT_FILES_UNSUPPORTED' }
+    await expect(store.saveFile({ data: new Uint8Array() })).rejects.toMatchObject(unsupported)
+    await expect(store.saveFileStream({ data: (async function* () { yield new Uint8Array() })() }))
+      .rejects.toMatchObject(unsupported)
+    for (const signal of [undefined, new AbortController().signal]) {
+      await expect(store.readFileStream(ref, signal)[Symbol.asyncIterator]().next())
+        .rejects.toMatchObject(unsupported)
+    }
+    const reason = new Error('read cancelled')
+    await expect(store.readFileStream(ref, AbortSignal.abort(reason))[Symbol.asyncIterator]().next())
+      .rejects.toBe(reason)
+    expect(store.fileHostPath(ref)).toBeUndefined()
+  })
+})

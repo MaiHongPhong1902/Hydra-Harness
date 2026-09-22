@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { AttachmentStore } from '@hydra/harness-attachment'
-import { admitEncodedImages } from '@hydra/harness-attachment'
+import { admitEncodedFile, admitEncodedImages, AttachmentId } from '@hydra/harness-attachment'
 import type { ImageAttachmentRef, SaveImageAttachment } from '@hydra/harness-attachment/types'
 
 const PNG = 'AAAA' // canonical base64, 3 bytes
@@ -62,5 +62,24 @@ describe('admitEncodedImages', () => {
     const refused = Object.assign(new Error('Image batch exceeds the configured image-count limit.'), { code: 'TOO_MANY_IMAGES' })
     mocks.saveImages.mockRejectedValueOnce(refused)
     await expect(admitEncodedImages(store, [{ mediaType: 'image/png', data: PNG }])).rejects.toBe(refused)
+  })
+})
+
+describe('admitEncodedFile', () => {
+  it('preserves decoded bytes and optional names, including empty files', async () => {
+    const ref = { attachmentId: AttachmentId('sha256:fixture'), bytes: 3, name: 'file.bin' }
+    const saveFile = vi.fn().mockResolvedValue(ref)
+    const store = { saveFile } as unknown as AttachmentStore
+    await expect(admitEncodedFile(store, { data: 'AAEC', name: 'file.bin' })).resolves.toBe(ref)
+    expect(saveFile).toHaveBeenLastCalledWith({ data: Uint8Array.of(0, 1, 2), name: 'file.bin' })
+    await admitEncodedFile(store, { data: '' })
+    expect(saveFile).toHaveBeenLastCalledWith({ data: new Uint8Array() })
+  })
+
+  it.each(['AAA', '!!!!', 'AAEC\n', 'AB=='])('rejects non-canonical base64 %j before saving', async (data) => {
+    const saveFile = vi.fn()
+    await expect(admitEncodedFile({ saveFile } as unknown as AttachmentStore, { data }))
+      .rejects.toMatchObject({ code: 'INVALID_FILE_BASE64' })
+    expect(saveFile).not.toHaveBeenCalled()
   })
 })

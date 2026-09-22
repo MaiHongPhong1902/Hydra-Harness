@@ -1,6 +1,6 @@
 import { Context } from '@hydra/cordis'
 import { existsSync } from 'node:fs'
-import { mkdtemp, rm } from 'node:fs/promises'
+import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -13,6 +13,26 @@ import LocalAttachmentStore, {
 } from '../src/index.ts'
 
 describe('local attachment service', () => {
+  it('persists and streams files through the mounted service', async () => {
+    const hydraHome = await mkdtemp(join(tmpdir(), 'hydra-attachment-files-'))
+    try {
+      const service = new LocalAttachmentStore(new Context(), { hydraHome })
+      const data = Uint8Array.of(0, 1, 2)
+      const saved = await service.saveFile({ data, name: 'bytes.bin' })
+      const streamed = await service.saveFileStream({ data: (async function* () { yield data })(), name: 'bytes.bin' })
+      expect(streamed).toEqual(saved)
+      const chunks: Uint8Array[] = []
+      for await (const chunk of service.readFileStream(saved)) chunks.push(chunk)
+      expect(Buffer.concat(chunks)).toEqual(Buffer.from(data))
+      await expect(readFile(service.fileHostPath(saved))).resolves.toEqual(Buffer.from(data))
+      const reason = new Error('read cancelled')
+      await expect(service.readFileStream(saved, AbortSignal.abort(reason))[Symbol.asyncIterator]().next())
+        .rejects.toBe(reason)
+    } finally {
+      await rm(hydraHome, { recursive: true, force: true })
+    }
+  })
+
   it('resolves every omitted admission limit explicitly', () => {
     const service = new LocalAttachmentStore(new Context(), {})
     expect(DEFAULT_MAX_IMAGE_BYTES).toBe(3.5 * 1024 * 1024)
