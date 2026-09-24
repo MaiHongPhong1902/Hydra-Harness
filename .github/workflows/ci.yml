@@ -55,7 +55,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           dest: ${{ runner.temp }}/setup-pnpm
 
@@ -122,7 +122,7 @@ jobs:
           submodules: true
           persist-credentials: false
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           dest: ${{ runner.temp }}/setup-pnpm
 
@@ -184,7 +184,7 @@ jobs:
           submodules: true
           persist-credentials: false
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           dest: ${{ runner.temp }}/setup-pnpm
 
@@ -273,7 +273,7 @@ jobs:
         with:
           submodules: true
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           dest: ${{ runner.temp }}/setup-pnpm
 
@@ -338,7 +338,7 @@ jobs:
           submodules: true
           persist-credentials: false
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           dest: ${{ runner.temp }}/setup-pnpm
 
@@ -446,7 +446,7 @@ jobs:
           reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock"
           /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           dest: ${{ runner.temp }}/setup-pnpm-js
 
