@@ -49,7 +49,7 @@ jobs:
       HYDRA_GATE_CONCURRENCY: '1'
     steps:
       # Fetch complete history so the archive gate can read the trusted PR base from a reused shallow checkout.
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: true
           fetch-depth: 0
@@ -117,7 +117,7 @@ jobs:
       HYDRA_COVERAGE_TEST_TIMEOUT_MS: '30000'
       HYDRA_GATE_CONCURRENCY: '1'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: true
           persist-credentials: false
@@ -179,7 +179,7 @@ jobs:
       HYDRA_PUBLINT_CONCURRENCY: '2'
       HYDRA_SNAPSHOT_MAX_CONCURRENCY: '2'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: true
           persist-credentials: false
@@ -269,7 +269,7 @@ jobs:
             runner: ubuntu-latest
             gate_concurrency: '1'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: true
 
@@ -294,7 +294,7 @@ jobs:
     runs-on: ubuntu-latest
     name: python 3.10 / keyless SDK
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-python@v6.3.0
         with:
@@ -333,7 +333,7 @@ jobs:
     name: windows node 24 / wine blocking
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: true
           persist-credentials: false
@@ -435,7 +435,7 @@ jobs:
       HYDRA_GATE_CONCURRENCY: '1'
       HYDRA_PUBLINT_CONCURRENCY: '2'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: true
           persist-credentials: false

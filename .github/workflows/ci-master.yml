@@ -80,7 +80,7 @@ jobs:
       # HYDRA_ARCHIVE_BASE_REF below compares the frozen-archive gate against
       # github.event.before; a force-pushed predecessor is fetched explicitly
       # below because it may be absent from the advertised branch history.
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: true
           fetch-depth: 0
@@ -139,7 +139,7 @@ jobs:
     name: serial / macos
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: true
 
@@ -180,7 +180,7 @@ jobs:
     runs-on: [self-hosted, hydra-win-ci, windows]
     timeout-minutes: 120
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: true
 
@@ -276,7 +276,7 @@ jobs:
             runner: hydra-windows-2025-96core
             workload: production-site
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: true
 
@@ -369,7 +369,7 @@ jobs:
             runner: hydra-windows-2025-96core
             workers: '2'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: true
 
