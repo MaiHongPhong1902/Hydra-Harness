@@ -36,7 +36,7 @@
     "@hydra/cordis": "workspace:^"
   },
   "dependencies": {
-    "e2b": "2.29.1",
+    "e2b": "2.45.0",
     "@hydra/schemastery": "workspace:^"
   },
   "devDependencies": {
