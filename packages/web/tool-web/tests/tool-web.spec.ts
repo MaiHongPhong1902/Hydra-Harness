@@ -5,7 +5,7 @@ import TurndownService from 'turndown'
 import { CallId } from '@hydra/harness-llm'
 import SystemPrompt from '@hydra/harness-system-prompt'
 import ToolRuntime, { type ToolExecutionResult } from '@hydra/harness-tools'
-import WebRuntime from '@hydra/harness-web'
+import WebRuntime, { SearchProviderError } from '@hydra/harness-web'
 import type { WebSearchProvider, WebSearchResult } from '@hydra/harness-web'
 import * as ToolWeb from '@hydra/harness-tool-web'
 import {
@@ -113,6 +113,26 @@ function toolResult(meta: unknown, text = 'body', isError = false): ToolResult {
 }
 
 describe('web_search presentation meta and result view', () => {
+  it('retains provider attribution and ranking in replayable search meta', () => {
+    const source = { url: 'https://result.test', provider: 'search-provider', position: 1, score: 0.75 }
+    expect(searchMetaFromValue({ sources: [source], truncated: false }))
+      .toEqual({ sources: [source], truncated: false })
+  })
+
+  it.each([429, undefined])('preserves structured provider errors (HTTP %s)', async (status) => {
+    const error = new SearchProviderError('stub-search', 'RATE_LIMITED', status)
+    const { ctx, call } = await mountTools({ search: {
+      id: 'stub-search', available: () => true, search: async () => { throw error },
+    } })
+    try {
+      const result = await call('web_search', { queries: ['q'] })
+      expect(result.isError).toBe(true)
+      expect(result.error?.info?.code).toBe('RATE_LIMITED')
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
   it('projects sources, answer, and truncation into meta, omitting absent optional fields', () => {
     const meta = searchMetaFromValue({
       content: 'an answer', truncated: true,

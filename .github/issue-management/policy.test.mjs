@@ -1,5 +1,13 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
+import { execFile } from 'node:child_process'
+import { mkdtemp, writeFile, unlink, rmdir } from 'node:fs/promises'
+import { createServer } from 'node:http'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { promisify } from 'node:util'
+import config from './config.json' with { type: 'json' }
 
 import {
   countVisibleUnits,
@@ -36,6 +44,72 @@ const canonicalKinds = [
   'kind/cleanup',
   'kind/dependency',
 ]
+
+test('PR checks respect repository support for custom Issue fields', async (t) => {
+  const dir = await mkdtemp(join(tmpdir(), 'hydra-issue-policy-'))
+  const eventPath = join(dir, 'event.json')
+  await writeFile(eventPath, JSON.stringify({ pull_request: { number: 16 } }))
+  t.after(async () => { await unlink(eventPath); await rmdir(dir) })
+  const base = `/repos/${config.organization}/${config.repository}`
+  for (const scenario of [
+    { owner: 'User', fieldsStatus: 404, success: true },
+    { owner: 'Organization', fieldsStatus: 200, success: true },
+    { owner: 'Organization', fieldsStatus: 200, priority: 'P1', error: 'PR Priority should be p1' },
+    { owner: 'Organization', fieldsStatus: 404, error: '404' },
+    { owner: 'Organization', fieldsStatus: 403, error: '403' },
+    { owner: 'User', repositoryStatus: 403, error: '403' },
+  ]) {
+    await t.test(JSON.stringify(scenario), async (t) => {
+      const requests = []
+      const server = createServer((request, response) => {
+        requests.push(request.url)
+        let status = 200
+        let body
+        switch (request.url) {
+          case base:
+            status = scenario.repositoryStatus ?? 200
+            body = { owner: { type: scenario.owner } }
+            break
+          case `${base}/pulls/16`:
+            body = { body: 'Closes #17', user: { type: 'User' }, draft: false, labels: [{ name: 'kind/bug-fix' }, { name: 'area/ci' }] }
+            break
+          case `${base}/pulls/16/requested_reviewers`:
+            body = { users: [{ login: 'reviewer' }], teams: [] }
+            break
+          case `${base}/pulls/16/reviews?per_page=100`:
+            body = []
+            break
+          case `${base}/issues/17`:
+            body = { title: 'CI', body: '', assignees: [], labels: [], state: 'open' }
+            break
+          case `${base}/issues/17/issue-field-values?per_page=100`:
+            status = scenario.fieldsStatus
+            body = scenario.priority ? [{ issue_field_name: config.priorityField, single_select_option: { name: scenario.priority } }] : []
+            break
+          default:
+            status = 500
+            body = { message: `Unexpected request: ${request.url}` }
+        }
+        response.writeHead(status, { 'Content-Type': 'application/json' })
+        response.end(JSON.stringify(body))
+      })
+      await new Promise(resolve => server.listen(0, '127.0.0.1', resolve))
+      t.after(() => new Promise(resolve => server.close(resolve)))
+      const result = await promisify(execFile)(process.execPath, [fileURLToPath(new URL('./policy.mjs', import.meta.url)), 'pr'], {
+        env: { ...process.env, GH_TOKEN: 'local-fixture', GITHUB_TOKEN: '', GITHUB_API_URL: `http://127.0.0.1:${server.address().port}`, GITHUB_EVENT_PATH: eventPath },
+        timeout: 10000,
+      }).then(value => ({ ...value, code: 0 }), error => error)
+      if (scenario.success) {
+        assert.equal(result.code, 0, result.stderr)
+        assert.match(result.stdout, /Issue policy passed/)
+      } else {
+        assert.equal(result.code, 1)
+        assert.ok(`${result.stdout}${result.stderr}`.includes(scenario.error))
+      }
+      assert.equal(requests.some(path => path.includes('/issue-field-values')), scenario.owner === 'Organization')
+    })
+  }
+})
 
 // Keep an independent oracle rather than importing the implementation's reserved set.
 const legacyLabels = [

@@ -157,8 +157,10 @@ describe('DeepSeekSearchProvider availability', () => {
     expect(searchProvider(options).available()).toBe(true)
   })
 
-  it('is misconfigured when the base URL is unparseable', () => {
+  it('is misconfigured when the base URL is unparseable', async () => {
     expect(searchProvider({ ...options, baseURL: 'not a url' }).available()).toBe(false)
+    await expect(searchProvider({ ...options, baseURL: 'not a url' }).search({ query: 'q' }))
+      .rejects.toMatchObject({ code: 'CONFIG_ERROR' })
   })
 
   it('is misconfigured when request limits are not positive integers', () => {
@@ -176,7 +178,7 @@ class LegacySearchSettings extends SettingsProvider {
 }
 
 describe('DeepSeek credential isolation', () => {
-  it('moves a legacy user-layer key to Credentials before removing plaintext settings', async () => {
+  it.each([false, true])('moves a legacy user-layer key to Credentials before removing plaintext settings (credential exists=%s)', async (exists) => {
     const dir = await mkdtemp(join(tmpdir(), 'hydra-search-migration-'))
     const ctx = new Context()
     try {
@@ -189,21 +191,27 @@ describe('DeepSeek credential isolation', () => {
       expect(ctx.settings.get(settingsNamespace('web-search-deepseek'))).toMatchObject({ apiKey: 'legacy-search-secret' })
       await first.dispose()
       failed.mockRestore()
-      await ctx.plugin(deepseekPlugin, {})
+      if (exists) await ctx.credentials.set(credentialRef('HYDRA_DEEPSEEK_SEARCH_API_KEY'), 'legacy-search-secret')
+      const migrated = await ctx.plugin(deepseekPlugin, {})
       expect(ctx.web.searchPreferences()?.provider).toBe('deepseek-official')
       await vi.waitFor(() => { expect(JSON.stringify((ctx.settings as LegacySearchSettings).doc)).not.toContain('legacy-search-secret') })
       expect(ctx.settings.get(settingsNamespace('web-search-deepseek'))).toMatchObject({ apiKeyEnv: 'HYDRA_DEEPSEEK_SEARCH_API_KEY' })
       expect(await ctx.credentials.resolve(credentialRef('HYDRA_DEEPSEEK_SEARCH_API_KEY'))).toMatchObject({ value: 'legacy-search-secret' })
-      const fetch = vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(searchResponse()))
+      const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => jsonResponse(searchResponse()))
       await ctx.web.search({ query: 'migrated' })
       expect(new Headers(fetch.mock.calls[0]?.[1]?.headers).get('x-api-key')).toBe('legacy-search-secret')
+      await migrated.dispose()
+      const write = vi.spyOn(ctx.credentials, 'set')
+      await ctx.plugin(deepseekPlugin, {})
+      await ctx.web.search({ query: 'after reload' })
+      expect(write).not.toHaveBeenCalled()
     } finally {
       await ctx.fiber.dispose()
       await rm(dir, { recursive: true, force: true })
     }
   })
 
-  it.each(['https://user:secret@example.com', 'https://example.com?api_key=secret', 'https://example.com#secret', 'file:///secret'])(
+  it.each(['https://user:secret@example.com', 'https://:secret@example.com', 'https://example.com?api_key=secret', 'https://example.com#secret', 'file:///secret'])(
     'rejects credential-bearing or non-HTTP endpoints before logging %s', async (baseURL) => {
       const recordRequest = vi.fn()
       const resolveApiKey = vi.fn(async () => 'key')
@@ -216,6 +224,29 @@ describe('DeepSeek credential isolation', () => {
 })
 
 describe('DeepSeekSearchProvider request mapping', () => {
+  it('rejects a search result that echoes the credential', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({
+      content: [{ type: 'web_search_tool_result', content: [{ type: 'web_search_result', url: `https://example.test/${options.apiKey}` }] }],
+    }))
+    await expect(searchProvider(options).search({ query: 'q' })).rejects.toMatchObject({ code: 'INVALID_RESPONSE' })
+  })
+
+  it('reports a caller deadline as a timeout', async () => {
+    const signal = AbortSignal.abort(new DOMException('deadline', 'TimeoutError'))
+    await expect(searchProvider(options).search({ query: 'q' }, signal)).rejects.toMatchObject({ code: 'TIMEOUT' })
+  })
+
+  it.each(['news', 'images'] as const)('rejects unsupported %s search before dispatch', async (type) => {
+    const fetch = vi.spyOn(globalThis, 'fetch')
+    await expect(searchProvider(options).search({ query: 'q', type })).rejects.toMatchObject({ code: 'CONFIG_ERROR' })
+    expect(fetch).not.toHaveBeenCalled()
+  })
+
+  it('accepts an explicit web search type', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(searchResponse()))
+    await expect(searchProvider(options).search({ query: 'q', type: 'web' })).resolves.toMatchObject({ truncated: false })
+  })
+
   it('includes prompt locale hints in the logged auxiliary search request', async () => {
     const recordRequest = vi.fn()
     const fetch = vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(searchResponse()))

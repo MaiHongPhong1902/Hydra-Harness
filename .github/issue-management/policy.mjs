@@ -418,7 +418,9 @@ async function graphql(query, variables) {
 async function issueSnapshot(number, status = undefined) {
   const issue = await api(`/repos/${config.organization}/${config.repository}/issues/${number}`)
   if (issue.pull_request) return null
-  const values = await api(
+  const repository = await api(`/repos/${config.organization}/${config.repository}`)
+  // GitHub exposes custom Issue fields only for organization-owned repositories.
+  const values = repository.owner.type === 'User' ? [] : await api(
     `/repos/${config.organization}/${config.repository}/issues/${number}/issue-field-values?per_page=100`,
   )
   const field = (name) => values.find((value) => value.issue_field_name === name)

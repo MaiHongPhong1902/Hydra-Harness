@@ -12,6 +12,8 @@ Primary CI runs on pull requests, pushes to main, master, or chore/rebrand-hydra
 
 Automated provider tests follow the [keyless-test policy](../simplification/2026-09-23-remove-keyed-e2e-smokes.md); no workflow consumes external provider credentials.
 
+Issue policy reads the repository owner type before requesting custom Issue fields. Personal repositories have no custom priority field; organization repositories retain priority validation and propagate API failures, including 403 and 404 responses.
+
 The page-agent submodule uses upstream commit 9eb6b6646500264d9034dd466a4270cb9fc1ef1e (v1.12.4). A parent-repository push must publish an upstream-resolvable gitlink; changing dependency-update exclusions cannot repair a clone that fails before manifest discovery.
 
 Node jobs check out workspace submodules before installing. Knip analyzes the authored Electron preload entry and excludes the upstream PageAgent workspace, whose maintenance belongs to its pinned repository; the desktop's optional Electron binary remains an explicit scoped exemption. The Python deploy filter names the runtime workspace and fails immediately if no workspace matches. Serial Web snapshots leave HYDRA_WEB_SNAPSHOT_WORKERS unset; explicit values select parallel execution and require at least two workers. Coverage uses two single-worker partitions and a 30-second default test budget; explicit fixture deadlines still apply. The missing-turn regression allows 200 milliseconds for its asynchronous log read to produce the expected timeout diagnostic.
@@ -21,6 +23,8 @@ Static TypeScript programs resolve registry and personalization imports through 
 ## Alternatives considered
 
 Keeping unavailable enterprise labels leaves jobs queued. Silently accepting an empty API key produces a false green. Disabling Dependabot hides dependency updates without repairing fresh clones.
+
+Treating every custom-field 404 as an empty priority would conceal authorization or configuration failures on organization repositories.
 
 ## Consequences
 

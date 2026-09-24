@@ -44,7 +44,11 @@ function credentialApi(configured = false) {
     rpcId: 'mcp-read' as never,
     result: {
       ok: true as const,
-      value: { credentials: { [MCP_API_KEY_REF]: { configured: hasKey, writable: true } } },
+      value: {
+        credentials: {
+          [MCP_API_KEY_REF]: { configured: hasKey, writable: true },
+        } as Record<string, { configured: boolean; writable: boolean }>,
+      },
     },
   }))
   const set = vi.fn(() => {
@@ -88,7 +92,7 @@ describe('McpSettingsController', () => {
     const store = controller.inject().hooks.mcpSettings
     await vi.waitFor(() => { expect(store.getSnapshot().apiKeyConfigured).toBe(true) })
     credentials.describe.mockResolvedValueOnce({
-      rpcId: 'mcp-read' as never, result: { ok: true, value: { credentials: {} } as never },
+      rpcId: 'mcp-read' as never, result: { ok: true, value: { credentials: {} } },
     })
     controller.refreshCredential(MCP_API_KEY_REF)
     await vi.waitFor(() => { expect(store.getSnapshot()).toMatchObject({ apiKeyConfigured: false, apiKeyWritable: true }) })
