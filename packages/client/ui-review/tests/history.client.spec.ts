@@ -14,6 +14,31 @@ function bench() {
 }
 
 describe('shared review history', () => {
+  it('reports hosts without workspace review support', async () => {
+    const { history } = bench()
+    await history.refreshWorkspace()
+    expect(history.getSnapshot()).toMatchObject({ workspaceLoading: false, workspaceError: 'Workspace review is unavailable on this host.' })
+  })
+
+  it('uses the default comparison and retains the latest failure when older requests reject', async () => {
+    const { api } = bench()
+    const older = Promise.withResolvers<Awaited<ReturnType<IApiClient['review']['workspace']>>>()
+    const workspace = vi.fn<IApiClient['review']['workspace']>().mockReturnValueOnce(older.promise)
+    const history = new ReviewHistory('owner' as never, { ...api, workspace })
+    const read = history.refreshWorkspace()
+    expect(workspace).toHaveBeenCalledWith({ sessionId: 'owner', mode: 'uncommitted', fullContext: false })
+    workspace.mockResolvedValueOnce({ rpcId: 'rpc' as never, result: {
+      ok: false, error: { code: 'internal', message: 'Git failed', details: {} },
+    } })
+    await history.refreshWorkspace('staged')
+    older.reject(new Error('stale failure'))
+    await read
+    expect(history.getSnapshot().workspaceError).toBe('Git failed')
+    workspace.mockRejectedValueOnce('disconnected')
+    await history.refreshWorkspace()
+    expect(history.getSnapshot().workspaceError).toBe('disconnected')
+  })
+
   it('keeps the latest comparison when requests finish out of order and refreshes it after host changes', async () => {
     const { api } = bench()
     const older = Promise.withResolvers<Awaited<ReturnType<IApiClient['review']['workspace']>>>()
