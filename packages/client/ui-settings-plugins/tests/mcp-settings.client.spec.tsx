@@ -81,6 +81,18 @@ function renderTab(
 }
 
 describe('McpSettingsController', () => {
+  it('treats an absent credential entry as writable and unconfigured', async () => {
+    const host = stubSettingsScope<McpSettings>()
+    const credentials = credentialApi(true)
+    const controller = new McpSettingsController(host.scope, credentials.api)
+    const store = controller.inject().hooks.mcpSettings
+    await vi.waitFor(() => { expect(store.getSnapshot().apiKeyConfigured).toBe(true) })
+    credentials.describe.mockResolvedValueOnce({
+      rpcId: 'mcp-read' as never, result: { ok: true, value: { credentials: {} } as never },
+    })
+    controller.refreshCredential(MCP_API_KEY_REF)
+    await vi.waitFor(() => { expect(store.getSnapshot()).toMatchObject({ apiKeyConfigured: false, apiKeyWritable: true }) })
+  })
   it.each(['rejected', 'error-result'])('retains a failed key rotation even when an older key exists: %s', async (failure) => {
     const host = stubSettingsScope<McpSettings>()
     const credentials = credentialApi(true)

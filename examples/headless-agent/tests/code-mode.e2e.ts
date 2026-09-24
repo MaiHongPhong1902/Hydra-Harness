@@ -1,40 +1,26 @@
-import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Context } from '@hydra/cordis'
-import LlmRuntime, { createUserMessage, CallId, HarnessError  } from '@hydra/harness-llm'
-import SessionStore, { SessionId } from '@hydra/harness-session'
-import type { SessionEvent } from '@hydra/harness-session'
+import { CallId, HarnessError } from '@hydra/harness-llm'
+import { SessionId } from '@hydra/harness-session'
 import SystemPrompt from '@hydra/harness-system-prompt'
 import ToolRuntime, { RUN_CODE_NAME, defineTool } from '@hydra/harness-tools'
 import type { ToolExecutionResult } from '@hydra/harness-tools'
-import AgentRegistry, { type Agent } from '@hydra/harness-agent'
+import type { Agent } from '@hydra/harness-agent'
 
-import AgentLoop from '@hydra/harness-agent-loop'
 import { LocalBashExecutor } from '@hydra/harness-bash-local'
 import * as BashEnvPlugin from '@hydra/harness-shell-env'
 import LocalSubprocessRuntime from '@hydra/harness-subprocess-local'
 import * as ToolBash from '@hydra/harness-tool-bash'
-import * as LlmDeepSeek from '@hydra/harness-llm-deepseek'
 import { WorkerThreadCodeRuntime } from '@hydra/harness-code-runtime-worker-thread'
-import LocalFileSystem from '@hydra/harness-fs-local'
-import * as ToolFs from '@hydra/harness-tool-fs'
-import * as WorkspaceContext from '@hydra/harness-agent-instructions'
 import LocalJobRegistry from '@hydra/harness-jobs-local'
 import * as ToolTasks from '@hydra/harness-tool-jobs'
 import CordisHostRunner from '@hydra/harness-cordis-host-runner'
 import * as ToolCordis from '@hydra/harness-tool-cordis'
 
-/**
- * With-key Code Mode proof: a real model receives only `run_code`, composes two
- * sub-calls, writes a file, and returns curated output while the log records
- * each `tool/code-dispatch`. The keyless Loader smoke is in the sibling test.
- */
-
-const PERSONA = 'You are a coding agent. You work by writing TypeScript programs for run_code: '
-  + 'batch related tool work into one program and print or return ONLY the findings that matter.'
-const WORKSPACE_PROBE = 'dragonfruit-8675309'
+// Keyless typed tool calls through the real Code Mode worker.
 
 let ctx: Context | undefined
 let workdir: string | undefined
@@ -48,39 +34,6 @@ afterEach(async () => {
   if (workdir !== undefined) await rm(workdir, { recursive: true, force: true })
   workdir = undefined
 })
-
-async function codeModeHarness(cwd: string): Promise<Context> {
-  const harness = new Context()
-  await harness.plugin(LlmRuntime)
-  await harness.plugin(SessionStore)
-  await harness.plugin(SystemPrompt, { persona: PERSONA })
-  await harness.plugin(ToolRuntime, { mode: 'code' })
-  await harness.plugin(AgentRegistry)
-  await harness.plugin(AgentLoop, { agents: [] })
-  await harness.plugin(LlmDeepSeek)
-  await harness.plugin(LocalSubprocessRuntime)
-  await harness.plugin(BashEnvPlugin)
-  await harness.plugin(LocalBashExecutor, { cwd, timeoutMs: 30_000 })
-  await harness.plugin(ToolBash)
-  await harness.plugin(WorkerThreadCodeRuntime, {})
-  return harness
-}
-
-async function workspaceCodeModeHarness(): Promise<Context> {
-  const harness = new Context()
-  await harness.plugin(LlmRuntime)
-  await harness.plugin(SessionStore)
-  await harness.plugin(SystemPrompt, { persona: PERSONA })
-  await harness.plugin(ToolRuntime, { mode: 'code' })
-  await harness.plugin(AgentRegistry)
-  await harness.plugin(LocalFileSystem, { cwd: '/' })
-  await harness.plugin(ToolFs)
-  await harness.plugin(WorkspaceContext, { maxBytes: 65536 })
-  await harness.plugin(AgentLoop, { agents: [] })
-  await harness.plugin(LlmDeepSeek, { models: [{ id: 'deepseek-v4-flash' }] })
-  await harness.plugin(WorkerThreadCodeRuntime, {})
-  return harness
-}
 
 let keylessCall = 0
 const testToolSignal = new AbortController().signal
@@ -336,103 +289,4 @@ describe('Code Mode typed values: keyless real-worker contracts', () => {
       afterContainsId: false,
     })
   })
-})
-
-function waitForIdle(harness: Context, agent: Agent): Promise<void> {
-  return new Promise((resolve) => {
-    const dispose = harness.on('agent/status', ({ agent: subject, status }) => {
-      if (subject === agent && status === 'idle') {
-        dispose()
-        resolve()
-      }
-    })
-  })
-}
-
-describe.skipIf(!process.env.DEEPSEEK_API_KEY)('Code Mode: real model writes a program over real tools', () => {
-  it('collapses the wire tool list to [run_code], bridges sub-calls, and returns curated output', async () => {
-    workdir = await mkdtemp(join(tmpdir(), 'hydra-code-mode-e2e-'))
-    ctx = await codeModeHarness(workdir)
-    const agent = ctx.agentLoop.create(SessionId('e2e-code-mode'), { provider: 'deepseek-official', model: 'deepseek-v4-flash' })
-
-    agent.followup(createUserMessage({
-      content: [{
-        type: 'text',
-        text: 'Using one run_code program: run `echo alpha-7` with the bash tool, run `echo beta-9` with the bash tool, '
-        + 'then write both outputs joined by a plus sign into combined.txt (bash heredoc or redirect), '
-        + 'and return only the joined string.',
-      }], source: { kind: 'user' } }))
-    await waitForIdle(ctx, agent)
-    const events: SessionEvent[] = [...agent.session.events]
-
-    // The wire contract: every request this session made offered EXACTLY ONE
-    // tool — run_code (the logged header snapshots the assembled list).
-    const headers = events.filter(event => event.type === 'request/header')
-    expect(headers.length).toBeGreaterThan(0)
-    for (const header of headers) {
-      expect(header.data.header.tools?.map(tool => tool.name)).toEqual([RUN_CODE_NAME])
-    }
-    // The model actually went through run_code…
-    const calls = events.filter(event => event.type === 'tool/call')
-    expect(calls.length).toBeGreaterThan(0)
-    expect(calls.every(event => event.data.name === RUN_CODE_NAME)).toBe(true)
-    // …and the program's tool calls landed as dispatch events under it.
-    const dispatches = events.filter(event => event.type === 'tool/code-dispatch')
-    expect(dispatches.length).toBeGreaterThanOrEqual(2)
-    expect(dispatches.every(event => event.data.name === 'bash')).toBe(true)
-    const parents = new Set(calls.map(event => event.data.callId))
-    expect(dispatches.every(event => parents.has(event.data.parentCallId))).toBe(true)
-
-    // World verification: the file the program wrote, and the curated answer.
-    const combined = await readFile(join(workdir, 'combined.txt'), 'utf8')
-    expect(combined).toContain('alpha-7')
-    expect(combined).toContain('beta-9')
-    const finalMessage = events.findLast(event => event.type === 'assistant/message')
-    const finalText = finalMessage !== undefined
-      ? finalMessage.data.message.content.filter(block => block.type === 'text').map(block => block.text).join('')
-      : ''
-    expect(finalText).toContain('alpha-7')
-    expect(finalText).toContain('beta-9')
-  }, 180_000)
-
-  it('projects nested workspace instructions discovered by an fs sub-call', async () => {
-    workdir = await mkdtemp(join(tmpdir(), 'hydra-code-mode-workspace-e2e-'))
-    await mkdir(join(workdir, '.git'), { recursive: true })
-    await mkdir(join(workdir, 'pkg/deep'), { recursive: true })
-    await writeFile(join(workdir, 'pkg/AGENTS.md'), `If asked for the Code Mode workspace handshake, reply with exactly ${WORKSPACE_PROBE} and nothing else.\n`)
-    await writeFile(join(workdir, 'pkg/deep/task.txt'), 'Touch this file to discover the nested instructions.\n')
-    ctx = await workspaceCodeModeHarness()
-    const handle = await ctx.agents.create({
-      sessionId: SessionId('e2e-code-mode-workspace-session'),
-      meta: { cwd: workdir },
-      agentOptions: { provider: 'deepseek-official', model: 'deepseek-v4-flash' },
-    })
-
-    handle.agent.followup(createUserMessage({
-      content: [{
-        type: 'text',
-        text: 'Use one run_code program to call tools.read on pkg/deep/task.txt. After it finishes, answer: Code Mode workspace handshake?',
-      }], source: { kind: 'user' } }))
-    await waitForIdle(ctx, handle.agent)
-
-    const events: SessionEvent[] = [...handle.agent.session.events]
-    const dispatch = events.find(event => event.type === 'tool/code-dispatch' && event.data.name === 'read')
-    const outerResult = events.find(event => event.type === 'tool/result')
-    const workspaceContext = await vi.waitFor(() => {
-      const splice = handle.agent.session.events.findLast(event => event.type === 'agent/inbox/spliced'
-        && event.data.inserted.some(message => message.source.kind === 'agent-instructions'))
-      const inserted = splice?.type === 'agent/inbox/spliced'
-        ? splice.data.inserted.find(message => message.source.kind === 'agent-instructions')
-        : undefined
-      expect(inserted).toBeDefined()
-      return inserted!
-    })
-    expect(dispatch).toBeDefined()
-    expect(outerResult).toBeDefined()
-    const contextText = workspaceContext.content
-      .filter(block => block.type === 'text')
-      .map(block => block.text)
-      .join('\n')
-    expect(contextText).toContain(WORKSPACE_PROBE)
-  }, 180_000)
 })

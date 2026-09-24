@@ -98,7 +98,7 @@ function responseObject(text: string): Record<string, unknown> {
  * @param text - exact assistant answer.
  * @returns ordered response lifecycle events.
  */
-export function completeResponsesEvents(text: string): Record<string, unknown>[] {
+function completeResponsesEvents(text: string): Record<string, unknown>[] {
   const completed = responseObject(text)
   const message = (completed.output as Record<string, unknown>[])[0]!
   const part = (message.content as Record<string, unknown>[])[0]!

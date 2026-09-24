@@ -357,12 +357,14 @@ describe('BashCard', () => {
 
 describe('PageMemoryCard', () => {
   it('shows the page-memory settings and stages edits', () => {
-    const actions = renderPageMemory()
+    const actions = renderPageMemory({ maxWorkflows: field('12', { overridden: true }) })
     expect(screen.getByText(en.pageMemoryTitle)).toBeTruthy()
     fireEvent.click(screen.getByText(en.pageMemoryTitle))
     expect(screen.getByLabelText(en.pageMemoryRole)).toBeTruthy()
     fireEvent.change(screen.getByLabelText(en.pageMemoryMaxWorkflows), { target: { value: '20' } })
     expect(actions.edit).toHaveBeenCalledWith('maxWorkflows', '20')
+    fireEvent.click(screen.getByRole('button', { name: en.reset }))
+    expect(actions.resetField).toHaveBeenCalledWith('maxWorkflows')
     expect(actions.save).not.toHaveBeenCalled()
   })
 })

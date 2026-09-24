@@ -269,6 +269,7 @@ server.listen(0, '127.0.0.1', () => {
 
       phase = 'native page input takes over without authorizing agent input'
       const inputPage = activePage()
+      BrowserWindow.getAllWindows()[0].focus()
       inputPage.focus()
       const point = await inputPage.executeJavaScript(`(() => {
         const link = document.createElement('a')
@@ -279,6 +280,7 @@ server.listen(0, '127.0.0.1', () => {
         const rect = link.getBoundingClientRect()
         return { x: Math.round(rect.x + rect.width / 2), y: Math.round(rect.y + rect.height / 2) }
       })()`)
+      await waitFor(() => inputPage.executeJavaScript("document.hasFocus() && document.activeElement.tagName === 'A'"))
       const agentNavigationBlocked = new Promise(resolve => inputPage.once('will-navigate', event => resolve(event.defaultPrevented)))
       await controller.command('press', { key: 'Enter' })
       phase = 'waiting for the agent keyboard navigation to be blocked'

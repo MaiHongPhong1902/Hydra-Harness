@@ -838,6 +838,22 @@ describe('coverage seams', () => {
     }
   })
 
+  it('marks child processes launched from Electron as Node processes', () => {
+    const descriptor = Object.getOwnPropertyDescriptor(process.versions, 'electron')
+    Object.defineProperty(process.versions, 'electron', { configurable: true, value: '1.0.0' })
+    try {
+      vi.stubEnv('ELECTRON_RUN_AS_NODE', undefined)
+      expect(childEnv().ELECTRON_RUN_AS_NODE).toBe('1')
+      expect(childEnv({ ELECTRON_RUN_AS_NODE: '0' }).ELECTRON_RUN_AS_NODE).toBe('0')
+      vi.stubEnv('ELECTRON_RUN_AS_NODE', '0')
+      expect(childEnv().ELECTRON_RUN_AS_NODE).toBe('0')
+    } finally {
+      vi.unstubAllEnvs()
+      if (descriptor === undefined) delete (process.versions as Record<string, unknown>).electron
+      else Object.defineProperty(process.versions, 'electron', descriptor)
+    }
+  })
+
   it('settles through the pipe-drain timer when a descendant holds a collected pipe', async () => {
     // The leader spawns a detached grandchild inheriting the collected stdout
     // pipe, then exits: `close` cannot settle while the grandchild holds the

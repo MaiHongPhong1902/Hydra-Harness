@@ -83,6 +83,18 @@ class FakeFileSystem extends FileSystem {
 }
 
 describe('FileSystem provider seam', () => {
+  it('rejects snapshots and rollback when the provider does not implement them', async () => {
+    const ctx = new Context()
+    await ctx.plugin(FakeFileSystem)
+    const fs = ctx.fs as FakeFileSystem
+    fs.files.set('a.txt', 'original')
+    const target = await fs.resolve('a.txt')
+    await expect(fs.snapshot(target, 1024)).rejects.toMatchObject({ code: 'FS_IO_ERROR', message: 'filesystem snapshots are unavailable' })
+    await expect(fs.restoreSnapshot(target, null, null)).rejects.toMatchObject({ code: 'FS_IO_ERROR', message: 'filesystem rollback is unavailable' })
+    expect(await fs.readText(target)).toBe('original')
+    await ctx.fiber.dispose()
+  })
+
   it('registers as ctx.fs and serves the primitives', async () => {
     const ctx = new Context()
     await ctx.plugin(FakeFileSystem)

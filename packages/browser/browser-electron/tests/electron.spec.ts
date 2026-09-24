@@ -37,10 +37,10 @@ const POLICY_FIXTURE_FILE = fileURLToPath(new URL('./fixtures/policy.html', impo
 const CHROME_UI_DRIVER = fileURLToPath(new URL('./chrome-ui.cjs', import.meta.url))
 
 /** Drive native chrome and await Electron shutdown before the caller removes its profile. */
-function runChromeUi(profile: string, navigationOnly = false): Promise<unknown> {
+function runChromeUi(profile: string, navigationOnly = false, driver = CHROME_UI_DRIVER): Promise<unknown> {
   return new Promise((resolve, reject) => {
     const child = spawn(resolveElectronPath(), [
-      CHROME_UI_DRIVER,
+      driver,
       JSON.stringify({ userDataDir: profile, width: 1024, height: 768, show: false, navigationOnly }),
     ])
     let stderr = ''
@@ -606,6 +606,17 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
     expect(result.success).toBe(true)
     expect(result.message).toContain('false|true')
   }, 30_000)
+
+  it('retains activity received before the controller is ready and clears it when idle', async () => {
+    const startupProfile = mkdtempSync(join(tmpdir(), 'hydra-mask-startup-'))
+    try {
+      const driver = fileURLToPath(new URL('./mask-startup.cjs', import.meta.url))
+      await expect(runChromeUi(startupProfile, false, driver))
+        .resolves.toEqual({ active: true, cursor: true, motion: true })
+    } finally {
+      rmSync(startupProfile, { recursive: true, force: true, maxRetries: 30, retryDelay: 100 })
+    }
+  }, 45_000)
 
   it('keeps the native cursor visible beside a styled virtual cursor', async () => {
     await child.call('navigate', { url: fixture })

@@ -185,6 +185,51 @@ describe('hooks-codex bridge', () => {
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('SubagentStop hook failed'))
   })
 
+  it('injects start context into a registered child and retains its stop payload', async () => {
+    const dir = configDir()
+    const stopPayload = join(dir, 'stop.json')
+    const start = script(dir, 'start.sh', '#!/usr/bin/env bash\necho \'{"hookSpecificOutput":{"hookEventName":"SubagentStart","additionalContext":"child guidance"}}\'\n')
+    const stop = script(dir, 'stop.sh', `#!/usr/bin/env bash\ncat > "${stopPayload}"\n`)
+    writeHooks(dir, {
+      SubagentStart: [{ hooks: [{ type: 'command', command: start }] }],
+      SubagentStop: [{ hooks: [{ type: 'command', command: stop }] }],
+    })
+    const adapter = new MockAdapter([textResponse('done')])
+    const ctx = await harness(dir, adapter)
+    const handle = await ctx.agentLoop.createAgent(ctx, {
+      sessionId: SessionId('registered-child'), agentOptions: { provider: 'mock', model: 'mock' },
+    })
+    const child = handle.agent
+    const inject = vi.spyOn(child, 'inject')
+    const info = { runId: SubagentRunId('registered-run'), provider: 'inproc', id: child.id, local: true }
+    ctx.emit(subagentCarrier(ctx), 'subagent/start', info)
+    await waitFor(() => inject.mock.calls.length === 1)
+    child.followup(createUserMessage({ content: [{ type: 'text', text: 'go' }], source: { kind: 'user' } }))
+    await child.whenIdle()
+    expect(JSON.stringify(adapter.requests[0]!.messages)).toContain('child guidance')
+    await handle.dispose()
+    ctx.emit(subagentCarrier(ctx), 'subagent/end', { ...info, stopReason: 'completed' })
+    await waitFor(() => existsSync(stopPayload) && readFileSync(stopPayload, 'utf8').length > 0)
+    expect(JSON.parse(readFileSync(stopPayload, 'utf8'))).toMatchObject({
+      hook_event_name: 'SubagentStop', session_id: child.id, agent_id: child.id, stop_hook_active: false,
+    })
+  })
+
+  it('reports a child context injection failure without rejecting lifecycle dispatch', async () => {
+    const dir = configDir()
+    const start = script(dir, 'start.sh', '#!/usr/bin/env bash\necho \'{"hookSpecificOutput":{"hookEventName":"SubagentStart","additionalContext":"child guidance"}}\'\n')
+    writeHooks(dir, { SubagentStart: [{ hooks: [{ type: 'command', command: start }] }] })
+    const ctx = await harness(dir, new MockAdapter([]))
+    const child = ctx.agentLoop.create(SessionId('failed-child'), { provider: 'mock', model: 'mock' })
+    vi.spyOn(child, 'inject').mockImplementation(() => { throw new Error('injection failed') })
+    const warn = vi.spyOn(ctx.logger, 'warn').mockImplementation(() => {})
+    ctx.emit(subagentCarrier(ctx), 'subagent/start', {
+      runId: SubagentRunId('failed-run'), provider: 'inproc', id: child.id, local: true,
+    })
+    await waitFor(() => warn.mock.calls.some(call => String(call[0]).includes('SubagentStart hook failed')))
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('injection failed'))
+  })
+
   it('a missing config registers no hooks and does not crash', async () => {
     const dir = configDir() // no hooks.json written
     const adapter = new MockAdapter([textResponse('ok')])

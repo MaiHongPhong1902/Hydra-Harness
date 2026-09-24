@@ -1,13 +1,71 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Context } from '@hydra/cordis'
 import type { Agent } from '@hydra/harness-agent'
 import Sessions, { SessionId } from '@hydra/harness-session'
 import SystemPrompt from '@hydra/harness-system-prompt'
 import ToolRuntime, { defineTool } from '@hydra/harness-tools'
 import { CallId } from '@hydra/harness-llm'
+import InvariantRegistry from '@hydra/harness-invariants'
 import * as Policy from '../src/index.ts'
+import * as PolicyInvariant from '../src/invariant.ts'
 
 describe('shared research budgets', () => {
+  it('charges browser tools, bypasses unrelated or agentless tools, and preserves downstream errors', async () => {
+    const ctx = new Context()
+    await ctx.plugin(Sessions)
+    await ctx.plugin(SystemPrompt)
+    await ctx.plugin(ToolRuntime)
+    try {
+      const session = ctx.sessions.create(SessionId('browser-budget'))
+      for (const name of ['browser_state', 'unrelated', 'web_fetch']) {
+        ctx.tools.register(defineTool({ name, description: 'test', parameters: {},
+          output: { schema: { type: 'string' }, render: (_args, value) => [{ type: 'text', text: value }] },
+          async execute() { return 'ok' },
+        }))
+      }
+      await ctx.plugin(Policy, { maxBrowserCalls: 1, maxDurationMs: 30_000 })
+      ctx.on('tools/execute', (execution, next) => {
+        if (execution.name === 'web_fetch') throw new Error('provider unavailable')
+        return next()
+      })
+      const call = (name: string, agent?: Agent) => ctx.tools.execute({ name, arguments: {},
+        callId: CallId(name), signal: new AbortController().signal, ...agent === undefined ? {} : { agent } })
+      const agent = { id: session.id, session } as Agent
+      expect((await call('unrelated', agent)).isError).toBe(false)
+      expect((await call('browser_state')).isError).toBe(false)
+      expect(session.events.filter(event => event.type === 'research/charge')).toHaveLength(0)
+      expect((await call('browser_state', agent)).isError).toBe(false)
+      expect((await call('browser_state', agent)).error?.info?.code).toBe('RESEARCH_BUDGET_EXHAUSTED')
+      expect(JSON.stringify(await call('web_fetch', agent))).toContain('provider unavailable')
+      expect(session.events.filter(event => event.type === 'research/charge').map(event => event.data.kind))
+        .toEqual(['browser', 'fetch'])
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('reports corrupt research accounting records and accepts unrelated session events', async () => {
+    const ctx = new Context()
+    await ctx.plugin(Sessions)
+    await ctx.plugin(InvariantRegistry)
+    await ctx.plugin(PolicyInvariant)
+    const warn = vi.spyOn(ctx.logger, 'warn').mockImplementation(() => {})
+    try {
+      const session = ctx.sessions.create(SessionId('accounting'))
+      session.append('sandbox/mode', { mode: 'read-only' })
+      for (const [kind, queries] of [['search', -1], ['search', 0.5], ['fetch', 1], ['browser', 2]] as const) {
+        session.append('research/charge', { owner: session.id, kind, queries })
+      }
+      expect(() => session.append('research/charge', { owner: session.id, kind: 'search', queries: 2 })).not.toThrow()
+      expect(() => session.append('research/charge', { owner: session.id, kind: 'fetch', queries: 0 })).not.toThrow()
+      expect(warn).toHaveBeenCalledTimes(4)
+      expect(warn.mock.calls.every(call => String(call[0]).includes('invalid query units'))).toBe(true)
+    } finally {
+      warn.mockRestore()
+      await ctx.fiber.dispose()
+    }
+  })
+
   it('charges concurrent children and retains the charge through policy reload and root resume', async () => {
     const ctx = new Context()
     await ctx.plugin(Sessions)

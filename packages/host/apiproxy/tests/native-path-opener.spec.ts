@@ -134,14 +134,15 @@ describe('native path opener', () => {
     expect(run.mock.calls[0]?.[0]).toBe(expected)
   })
 
-  it('samples ambient WSL markers and kernel release when no fact overrides are supplied', async () => {
-    const ambientWsl = [process.env.WSL_DISTRO_NAME, process.env.WSL_INTEROP]
+  it.each([undefined, {}])('samples the kernel release alongside environment markers %j', async (env) => {
+    const markers: NodeJS.ProcessEnv = env ?? process.env
+    const ambientWsl = [markers.WSL_DISTRO_NAME, markers.WSL_INTEROP]
       .some(value => value !== undefined && value !== '')
       || osRelease().toLowerCase().includes('microsoft')
     const run = vi.fn<PathOpenerRunner>(async command => command === 'wslpath'
       ? { stdout: 'C:\\settings.yaml\n', stderr: '' }
       : { stdout: '', stderr: '' })
-    await openNativePath('/tmp/ambient-facts.yaml', signal(), { platform: 'linux', run })
+    await openNativePath('/tmp/ambient-facts.yaml', signal(), { platform: 'linux', run, ...env === undefined ? {} : { env } })
     expect(run.mock.calls[0]?.[0]).toBe(ambientWsl ? 'wslpath' : 'xdg-open')
   })
 
@@ -317,5 +318,8 @@ describe('canOpenNativePath', () => {
       || marked(env.DISPLAY) || marked(env.WAYLAND_DISPLAY)
 
     expect(canOpenNativePath({ platform: 'linux', osRelease: '6.8.0-generic' })).toBe(expected)
+    expect(canOpenNativePath()).toBe(process.platform === 'linux'
+      ? expected || osRelease().toLowerCase().includes('microsoft')
+      : process.platform === 'win32' || process.platform === 'darwin')
   })
 })

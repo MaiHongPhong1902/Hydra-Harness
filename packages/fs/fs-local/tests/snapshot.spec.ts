@@ -26,6 +26,7 @@ beforeEach(async () => {
 })
 
 afterEach(async () => {
+  vi.mocked(open).mockReset()
   vi.restoreAllMocks()
   await fiber.dispose()
   await rm(dir, { recursive: true, force: true })
@@ -39,6 +40,7 @@ describe('raw snapshots and guarded restoration', () => {
     expect(await snapshotFile(path, 0)).toEqual({ hash: hash(Buffer.alloc(0)), bytes: Buffer.alloc(0) })
     const bytes = Buffer.alloc(130_000, 255)
     await writeFile(path, bytes)
+    expect(await fs.snapshot(await fs.resolve('file'), bytes.length)).toEqual({ hash: hash(bytes), bytes })
     expect(await snapshotFile(path, bytes.length)).toEqual({ hash: hash(bytes), bytes })
     expect(await snapshotFile(path, bytes.length - 1)).toEqual({ hash: hash(bytes), bytes: null })
     expect(await snapshotFile(path, 0)).toEqual({ hash: hash(bytes), bytes: null })
@@ -66,6 +68,47 @@ describe('raw snapshots and guarded restoration', () => {
     })
     await expect(snapshotFile(path, 10)).rejects.toMatchObject({ code: 'FS_STALE_VERSION' })
     expect(await readFile(path, 'utf8')).toBe('new')
+  })
+
+  it('rejects a non-file handle even when the path was a file before opening', async () => {
+    const path = join(dir, 'file')
+    await writeFile(path, 'old')
+    const actual = await vi.importActual<typeof import('node:fs/promises')>('node:fs/promises')
+    vi.mocked(open).mockImplementation(async (target, flags, mode) => {
+      const handle = await actual.open(target, flags, mode)
+      const info = await handle.stat({ bigint: true })
+      vi.spyOn(handle, 'stat').mockResolvedValue(Object.assign(info, { isFile: () => false }))
+      return handle
+    })
+    await expect(snapshotFile(path, 10)).rejects.toMatchObject({ code: 'FS_NOT_REGULAR_FILE' })
+  })
+
+  it('keeps an intervening edit when rolling back a creation', async () => {
+    const target = await fs.resolve('file')
+    const path = join(dir, 'file')
+    await fs.writeText(target, 'after')
+    const actual = await vi.importActual<typeof import('node:fs/promises')>('node:fs/promises')
+    vi.mocked(open).mockImplementationOnce(async (target, flags, mode) => {
+      const handle = await actual.open(target, flags, mode)
+      const close = handle.close.bind(handle)
+      vi.spyOn(handle, 'close').mockImplementation(async () => {
+        await close()
+        await writeFile(path, 'external')
+      })
+      return handle
+    })
+    expect(await fs.restoreSnapshot(target, null, hash(Buffer.from('after')))).toBe(false)
+    expect(await readFile(path, 'utf8')).toBe('external')
+  })
+
+  it('keeps a competing creation at the atomic publication step', async () => {
+    const target = await fs.resolve('file')
+    fs.internals.linkFile = async () => {
+      await writeFile(join(dir, 'file'), 'external')
+      throw Object.assign(new Error('already exists'), { code: 'EEXIST' })
+    }
+    expect(await fs.restoreSnapshot(target, Buffer.from('before'), null)).toBe(false)
+    expect(await readFile(join(dir, 'file'), 'utf8')).toBe('external')
   })
 
   it('restores exact binary bytes and deleted files without generating another mutation event', async () => {

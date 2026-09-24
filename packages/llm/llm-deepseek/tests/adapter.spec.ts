@@ -183,6 +183,7 @@ describe('DeepSeekAdapter against a mock server', () => {
     expect(resolveAdapterOptions({ proxy: ' http://127.0.0.1:3128 ' }).proxy).toBe('http://127.0.0.1:3128')
     expect(resolveAdapterOptions({ proxy: '   ' }).proxy).toBeUndefined()
     expect(() => resolveAdapterOptions({ proxy: 'socks5://127.0.0.1:1080' })).toThrow('must use http or https')
+    expect(() => resolveAdapterOptions({ proxy: 'invalid-private-proxy' })).toThrow('proxy must be a valid HTTP(S) URL')
   })
 
   it('sends a durable image as a base64 data URL for the vision model', async () => {

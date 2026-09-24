@@ -73,8 +73,9 @@ describe('web e2e: startup auto-selection', () => {
     const fish = fishHitbox.locator('svg')
     expect(await fish.evaluate(node => getComputedStyle(node).color))
       .toBe(await headline.evaluate(node => getComputedStyle(node).color))
-    await fishHitbox.hover()
-    expect(await fish.evaluate(node => getComputedStyle(node).animationName)).not.toBe('none')
+    await fish.hover()
+    await expect.poll(() => fish.locator('image').count()).toBe(2)
+    expect(await fish.locator('image').first().evaluate(node => getComputedStyle(node).visibility)).toBe('hidden')
     await page.evaluate(() => {
       const refs = {
         root: document.querySelector('div[data-phase="hero"]'),

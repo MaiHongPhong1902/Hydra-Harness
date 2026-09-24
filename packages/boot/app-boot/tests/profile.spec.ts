@@ -91,6 +91,11 @@ describe('manifest round-trip', () => {
     expect(() => profilePluginEnablement({
       hydra: { profile: { pluginEnablement: { 'typert-loader': 'false' } } },
     } as never)).toThrow('values must be booleans')
+    for (const pluginEnablement of [null, [], 'false']) {
+      expect(() => profilePluginEnablement({
+        hydra: { profile: { pluginEnablement } },
+      } as never)).toThrow('must be a map of entry ids to booleans')
+    }
   })
 })
 

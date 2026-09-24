@@ -45,16 +45,11 @@
     "@hydra/harness-agent": "workspace:^",
     "@hydra/harness-agent-loop": "workspace:^",
     "@hydra/harness-agent-loop-testkit": "workspace:^",
-    "@hydra/harness-bash-local": "workspace:^",
-    "@hydra/harness-subprocess-local": "workspace:^",
     "@hydra/harness-invariants": "workspace:^",
     "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-llm-deepseek": "workspace:^",
     "@hydra/harness-session": "workspace:^",
     "@hydra/harness-subagent": "workspace:^",
     "@hydra/harness-subagent-in-process-driver": "workspace:^",
-    "@hydra/harness-tool-bash": "workspace:^",
-    "@hydra/harness-tool-subagent": "workspace:^",
     "@hydra/cordis": "workspace:^"
   }
 }

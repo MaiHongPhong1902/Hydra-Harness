@@ -39,6 +39,44 @@ function stubAgent(ctx: Context, session: Session): Agent {
 }
 
 describe('API Remote Agent resolver races', () => {
+  it('rejects routing during a Host mutation without resuming the session', async () => {
+    const ctx = await createContext()
+    const sessionId = sid('deleting')
+    const error = { code: 'agent-busy', message: 'Session deletion in progress', details: { reason: 'deleting' } } as const
+    const resume = vi.spyOn(ctx.agents, 'resume')
+    const unavailable = vi.fn(() => error)
+    const resolver = createApiRemoteAgentResolver(ctx, { unavailable })
+    expect(await resolver(sessionId)).toEqual({ error })
+    expect(unavailable).toHaveBeenCalledWith(sessionId)
+    expect(resume).not.toHaveBeenCalled()
+    await resolver.settle(sessionId)
+    await ctx.fiber.dispose()
+  })
+
+  it.each([false, true])('drains a pending resume before mutation, failed=%s', async (failed) => {
+    const ctx = await createContext()
+    const sessionId = sid('drain-resume')
+    const meta = header(sessionId)
+    const inspected = Promise.withResolvers<{ meta: SessionHeader; events: SessionEvent[] }>()
+    provideSession(ctx, meta, () => inspected.promise)
+    vi.spyOn(ctx.agents, 'resume').mockImplementation(async () => {
+      const session = ctx.sessions.create(sessionId, { meta: { cwd: '/proj' } })
+      return { agent: stubAgent(ctx, session), dispose: () => Promise.resolve() }
+    })
+    const resolver = createApiRemoteAgentResolver(ctx, {})
+    const resolving = resolver(sessionId)
+    const drained = vi.fn()
+    const settling = resolver.settle(sessionId).then(drained)
+    await Promise.resolve()
+    expect(drained).not.toHaveBeenCalled()
+    if (failed) inspected.reject(new Error('persistence unavailable'))
+    else inspected.resolve({ meta, events: [] })
+    expect(await resolving).toMatchObject(failed ? { error: { code: 'internal' } } : { agent: { id: sessionId } })
+    await settling
+    expect(drained).toHaveBeenCalledOnce()
+    await ctx.fiber.dispose()
+  })
+
   it('maps an inspected session without a cwd to session-not-found', async () => {
     const ctx = await createContext()
     const sessionId = sid('missing-after-inspect')

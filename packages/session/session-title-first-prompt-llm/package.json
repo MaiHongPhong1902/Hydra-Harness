@@ -24,7 +24,11 @@
     },
     "./package.json": "./package.json"
   },
-  "files": ["lib/index.js", "lib/invariant.js", "lib/types/**/*.d.ts"],
+  "files": [
+    "lib/index.js",
+    "lib/invariant.js",
+    "lib/types/**/*.d.ts"
+  ],
   "license": "MIT",
   "peerDependencies": {
     "@hydra/harness-invariants": "workspace:^",
@@ -42,7 +46,6 @@
     "@hydra/cordis-plugin-loader": "workspace:^",
     "@hydra/harness-invariants": "workspace:^",
     "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-llm-deepseek": "workspace:^",
     "@hydra/harness-session": "workspace:^",
     "@hydra/harness-session-title": "workspace:^",
     "@hydra/harness-session-title-llm": "workspace:^",

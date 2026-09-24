@@ -23,10 +23,10 @@
   - img
   - img
   - text: Think I will inspect the current Session's dynamic Cordis Plugins before defining the snapshot Package.
-- 'button "Tool call cordis_inspect_self · {}"':
+- button "Tool call Inspect dynamic Cordis Plugins":
   - img
   - img
-  - text: "Tool call cordis_inspect_self · {}"
+  - text: Tool call Inspect dynamic Cordis Plugins
 - button "Think No dynamic Plugins are present, so I will define the requested Host and Client Package.":
   - img
   - img
@@ -80,6 +80,8 @@
   - img
 - text: {{clock}} Ran for {{duration}} Use only Cordis tools. Call cordis_stop with pluginId "snap-1". After it succeeds, reply exactly CORDIS_UI_DONE and stop. {{clock}}
 - button "Copy":
+  - img
+- button "Edit":
   - img
 - img
 - text: Stop Cordis Plugin snap-1

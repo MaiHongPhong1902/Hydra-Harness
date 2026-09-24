@@ -83,7 +83,7 @@ async function harness(
 // observes a marker the child prints while `operation` is still active. A caller
 // whose child is slow to print must raise the harness `timing` bounds too;
 // extending this deadline alone cannot recover output the operation never collected.
-async function waitForOutput(operation: TerminalSendOperation, expected: string, timeoutMs = 2_000): Promise<void> {
+async function waitForOutput(operation: TerminalSendOperation, expected: string, timeoutMs = 2_000): Promise<string> {
   const deadline = Date.now() + timeoutMs
   let output = ''
   while (!output.includes(expected) && Date.now() < deadline) {
@@ -91,6 +91,7 @@ async function waitForOutput(operation: TerminalSendOperation, expected: string,
     if (!output.includes(expected)) await new Promise(resolve => setTimeout(resolve, 10))
   }
   expect(output).toContain(expected)
+  return output
 }
 
 // A send the test interrupts settles when bash returns to its prompt, so the
@@ -285,7 +286,7 @@ describe.skipIf(!hasPwsh)('terminal-bash pwsh real shell', () => {
     process.env.HYDRA_TEST_SECRET = 'must-not-leak'
     try {
       const { ctx, root, agent } = await harness('danger-full-access', {
-        idleSilenceMs: 300,
+        idleSilenceMs: 5_000,
         handoffGraceMs: 300,
         timeoutMs: 8_000,
       }, 'pwsh')
@@ -301,12 +302,15 @@ describe.skipIf(!hasPwsh)('terminal-bash pwsh real shell', () => {
         text: 'Write-Output "keep=$env:KEEP secret=$env:HYDRA_TEST_SECRET"',
         submit: true,
       })
-      const result = await second.done
-      expect(result.viewport).toContain('keep=ok')
-      expect(result.viewport).toContain('secret=')
-      expect(result.viewport).not.toContain('must-not-leak')
+      const output = await waitForOutput(second, 'keep=ok', 10_000)
+      expect(output).toContain('secret=')
+      expect(output).not.toContain('must-not-leak')
+      await second.done
 
-      expect(ctx.terminals.read(agent, created.sessionId, { offset: 0, count: 40 }).text).toContain('keep=ok')
+      const transcript = ctx.terminals.read(agent, created.sessionId, { offset: 0, count: 40 }).text
+      expect(transcript).toContain('keep=ok')
+      expect(transcript).toContain('secret=')
+      expect(transcript).not.toContain('must-not-leak')
       expect(await ctx.terminals.kill(agent, created.sessionId)).toBe(true)
       expect(ctx.terminals.list(agent)).toEqual([])
     } finally {

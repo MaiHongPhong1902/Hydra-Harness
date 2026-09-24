@@ -28,6 +28,21 @@ function acceptWrites<T>(host: StubSettingsScope<T>): void {
 }
 
 describe('CardForm', () => {
+  it('keeps a rejected credential draft retryable and discards blank secrets', async () => {
+    const host = stubSettingsScope<Record<string, unknown>>()
+    const write = vi.fn<() => Promise<boolean>>().mockRejectedValue(new Error('offline'))
+    const subject = new CardForm(host.scope, [], [{ field: 'token', write }])
+    host.publish({ status: 'ready', writable: true, value: {} })
+    subject.actions().edit('token', 'draft')
+    await subject.save()
+    expect(subject.shell()).toMatchObject({ dirty: true, failed: true, saving: false })
+    expect(subject.field('token').text).toBe('draft')
+    subject.actions().edit('token', '   ')
+    await subject.save()
+    expect(subject.shell().dirty).toBe(false)
+    expect(write).toHaveBeenCalledOnce()
+    subject.dispose()
+  })
   function form() {
     const host = stubSettingsScope<Record<string, unknown>>()
     const subject = new CardForm(host.scope, [numberField('timeoutMs'), textField('baseURL')])

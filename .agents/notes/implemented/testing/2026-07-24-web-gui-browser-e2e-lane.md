@@ -56,7 +56,7 @@ Surveyed AI-chat/agent web UIs and mocking layers (LibreChat, vercel/ai-chatbot 
 
 **Browser-network SSE interception (`page.route`).** Rejected: `route.fulfill` cannot stream, so incremental token rendering is unexercisable and the server-side SSE/backpressure/close path — where both confirmed P0s hid — goes untested.
 
-**Mock HTTP provider at `DEEPSEEK_BASE_URL`.** Rejected as the lane's mechanism (kept for the one existing workspace-probe smoke): fixtures become hand-authored OpenAI SSE byte scripts, a second fixture format that drifts from the session-log format the rest of the repo records and replays; the adapter's real HTTP path is with-key e2e's job.
+**Mock HTTP provider at `DEEPSEEK_BASE_URL`.** Rejected as the lane's mechanism (kept for the one existing workspace-probe smoke): fixtures become hand-authored OpenAI SSE byte scripts, a second fixture format that drifts from the session-log format the rest of the repo records and replays; local HTTP adapter tests cover its protocol behavior.
 
 **Growing the `?fixture` client.** Rejected: tier separation — `FixtureApiClient` exists to test the client shell without a server; everything below the client API boundary stays untested by construction.
 
@@ -70,7 +70,7 @@ Surveyed AI-chat/agent web UIs and mocking layers (LibreChat, vercel/ai-chatbot 
 
 **Changing the wire protocol for testability.** Rejected: the contract already has a first-class keyless in-process path (`InProcessApiClient(toFetchHandler(api))`), the per-event unbatched SSE is exactly what makes replay observable in a browser, and testing a wire we no longer ship would invert the tier's purpose.
 
-**Real-model browser tests as the keyless lane.** Rejected: nondeterministic by construction; the surveyed cautionary case (open-webui) grew unbounded timeouts and was deleted. The with-key real-host smoke stays as the live-model complement.
+**Real-model browser tests as the keyless lane.** Rejected: nondeterministic by construction; the surveyed cautionary case (open-webui) grew unbounded timeouts and was deleted. Live-provider availability is outside automated coverage under the [keyless-test policy](../simplification/2026-09-23-remove-keyed-e2e-smokes.md).
 
 **Running the high-cardinality performance case in the required browser gate.** Rejected: its fixture setup and full-history render add tens of seconds, while wall-clock and memory values vary with the host and cannot supply a stable correctness threshold. The required lane keeps deterministic behavior assertions; contributors run the diagnostic case when investigating or changing large-list and long-history rendering.
 

@@ -125,6 +125,7 @@ describe('web e2e: lifecycle & chrome (workspace flow / reload / dark mode)', ()
         const probe = document.createElement('span')
         probe.style.color = 'var(--dsw-alias-state-warn-label)'
         probe.style.backgroundColor = 'var(--dsw-alias-state-warn-tertiary)'
+        probe.style.borderRadius = 'var(--dsw-radius-control)'
         document.body.append(probe)
         const actual = getComputedStyle(element)
         const reference = getComputedStyle(probe)
@@ -135,13 +136,14 @@ describe('web e2e: lifecycle & chrome (workspace flow / reload / dark mode)', ()
           fontSize: actual.fontSize,
           referenceColor: reference.color,
           referenceBackgroundColor: reference.backgroundColor,
+          referenceBorderRadius: reference.borderRadius,
         }
         probe.remove()
         return result
       })
       expect(planStyle.color).toBe(planStyle.referenceColor)
       expect(planStyle.backgroundColor).toBe(planStyle.referenceBackgroundColor)
-      expect(planStyle.borderRadius).toBe('999px')
+      expect(planStyle.borderRadius).toBe(planStyle.referenceBorderRadius)
       expect(planStyle.fontSize).toBe('13px')
       await planButton.click()
       await expect.poll(() => planButton.count()).toBe(0)

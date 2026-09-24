@@ -31,7 +31,7 @@ The direct-open path carries the busy rule the menu entry states: while a pick i
 
 `connectFreshWorkspace` — the helper every web e2e scenario boots through — stages `<root>/workspace` and adopts it through the dialog's path editor, so the produced session cwd stays identical to what create-by-name produced and scenario goldens stay valid. Staging rather than creating in-dialog keeps the helper idempotent across the repeated connects a scenario may make (a second create of the same folder fails, and the create dialog holds the flow open on that failure). Creating a folder from inside the chooser — the other half of the same route — is covered by `workspace-management.e2e.ts`, which owns the focused coverage: two workspaces added on folders the dialog creates, distinct same-basename directories adopted independently, a deleted title reused on a different directory, and the browser-dialog aria golden.
 
-`smoke-real.e2e.ts` is the one scenario booting the unpatched shipped tree, where the `-auto` row resolves per host; it now pins `-browse` through a `--config` overlay so the developer's display environment cannot decide whether the picker is drivable at all.
+Keyless Web scenarios pin the browser-operable directory picker through their owning overlay when they exercise workspace selection. CLI smokes exercise the shipped host with local provider responses.
 
 ## Alternatives considered
 

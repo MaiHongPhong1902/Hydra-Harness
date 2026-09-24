@@ -129,7 +129,7 @@ describe('PiAiAdapter provider routing', () => {
   })
 
   it('routes a configured provider through its own proxy', async () => {
-    const server = await mockServer([{ events: textEvents }])
+    const server = await mockServer([{ events: textEvents }, { events: textEvents }])
     const proxy = await forwardingProxy()
     const ctx = await harness(server.url, { proxy: proxy.url })
 
@@ -137,8 +137,10 @@ describe('PiAiAdapter provider routing', () => {
 
     expect(result.finish).toEqual({ kind: 'stop' })
     expect(result.message.content).toEqual([{ type: 'text', text: 'hello' }])
-    expect(proxy.requests).toEqual([new URL(server.url).host])
-    expect(server.paths).toEqual(['/chat/completions'])
+    expect((await assemble(ctx, { model: 'deepseek-v4-flash', messages: [] })).finish).toEqual({ kind: 'stop' })
+    expect(proxy.requests.length).toBeGreaterThan(0)
+    expect(new Set(proxy.requests)).toEqual(new Set([new URL(server.url).host]))
+    expect(server.paths).toEqual(['/chat/completions', '/chat/completions'])
   })
 
   it('keeps a blank proxy direct', async () => {

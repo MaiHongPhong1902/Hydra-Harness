@@ -76,10 +76,11 @@ describe('browser permission in chat', () => {
       await input.fill(prompt)
       await input.press('Enter')
       const composer = page.locator('[data-approval-key]')
-      for (const action of ['navigate', 'input_text', 'click_element']) {
+      for (const action of ['browser_navigate', 'browser_type', 'browser_select_text', 'browser_click',
+        'browser_find', 'browser_snapshot', 'browser_network_requests', 'browser_network_request']) {
         await composer.getByText(`Browser permissions: browsing. Action: ${action}.`).waitFor({ timeout: 10_000 })
         expect(await page.getByRole('dialog').count()).toBe(0)
-        if (action === 'navigate') {
+        if (action === 'browser_navigate') {
           const snapshot = await captureStableAria(page, '[data-approval-key]', scaffold.workspaceCwd)
           await compareOrRefreshGolden(EXPECTED, snapshot, MODE)
         }
@@ -89,7 +90,7 @@ describe('browser permission in chat', () => {
       const owner = scaffold.ctx.agents.get(sessionId)
       if (owner === undefined) throw new Error('the conversation has no live agent')
       const results = owner.session.events.filter(event => event.type === 'tool/result')
-      expect(results).toHaveLength(3)
+      expect(results).toHaveLength(8)
       expect(results.filter(event => event.data.message.content[0].isError)).toEqual([])
       expect(scaffold.ctx.settings.get(settingsNamespace('browser-electron'))).toMatchObject({
         browserPermissions: { browsing: 'ask', downloads: 'ask', uploads: 'ask' },

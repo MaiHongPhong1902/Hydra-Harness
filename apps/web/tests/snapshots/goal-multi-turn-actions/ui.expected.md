@@ -27,14 +27,18 @@
   - img
   - img
   - text: "Think The user's goal is: \"做两个turn，每个turn输出随机一个包的文件结构。注意你做完一个turn之后，直接输出内容，停止，我们的系统会帮你再开一个turn，你看着做一个类似的\" — which translates to: \"Do two turns, each turn output the file structure of a random package. Note that after you finish one turn, directly output the content and stop; our system will help you open another turn, and you just do something similar.\""
+- button "Ran commands" [expanded]:
+  - img
+  - text: Ran commands
+  - img
 - button "Bash Show working directory and its contents":
   - img
   - img
   - text: Bash Show working directory and its contents
-- 'button "Tool call get_goal · {}"':
+- button "Tool call Read current goal":
   - img
   - img
-  - text: "Tool call get_goal · {}"
+  - text: Tool call Read current goal
 - 'button "Think There''s a `packages` directory. Let me look inside to see what packages are available."':
   - img
   - img
@@ -82,8 +86,6 @@
 - paragraph: 这是一个很典型的轻量 TypeScript 包结构：入口 + 实现 + 测试。这一轮到此结束，等系统开启下一个 turn。
 - button "Copy":
   - img
-- button "Edit":
-  - img
 - button "Good response":
   - img
 - button "Bad response":
@@ -107,6 +109,10 @@
   - img
   - img
   - text: "Think The random pick returned the same package as turn 1. Since turn 1 already covered `session-reference`, it would be better to pick a different one for variety. Let me re-roll, excluding the already-covered package."
+- button "Ran commands" [expanded]:
+  - img
+  - text: Ran commands
+  - img
 - button "Bash Re-roll excluding the package from turn 1":
   - img
   - img
@@ -134,15 +140,15 @@
   - text: ，turn 2：
   - code: token-meter
   - text: ）。这一轮到此结束。
-- 'button "Tool call get_goal · {}"':
+- button "Tool call Read current goal":
   - img
   - img
-  - text: "Tool call get_goal · {}"
+  - text: Tool call Read current goal
 - paragraph: 两个 turn 均已完成，目标达成，标记 goal 为完成。
-- button "Tool call update_goal · goal-{{uuid}}":
+- button "Tool call Complete goal":
   - img
   - img
-  - text: Tool call update_goal · goal-{{uuid}}
+  - text: Tool call Complete goal
 - 'button "Context injection tool-goal complete: 做两个turn，每个turn输出随机一个包的文件结构。注意你做完一个turn之后，直接输出内容，停止，我们的系统会帮你再开一个turn，你看着做一个类似的"':
   - img
   - img

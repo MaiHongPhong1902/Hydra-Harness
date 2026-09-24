@@ -3901,9 +3901,6 @@ importers:
       '@hydra/harness-llm':
         specifier: workspace:^
         version: link:../../llm/llm
-      '@hydra/harness-llm-deepseek':
-        specifier: workspace:^
-        version: link:../../llm/llm-deepseek
       '@hydra/harness-session':
         specifier: workspace:^
         version: link:../../core/session
@@ -4388,12 +4385,6 @@ importers:
       '@hydra/harness-invariants':
         specifier: workspace:^
         version: link:../../runtime-diagnostics/invariants
-      '@hydra/harness-loader-smoke':
-        specifier: workspace:^
-        version: link:../../test-support/loader-smoke
-      '@hydra/harness-sandbox-policy':
-        specifier: workspace:^
-        version: link:../../sandbox/sandbox-policy
 
   packages/e2b/fs-e2b:
     devDependencies:
@@ -5095,12 +5086,6 @@ importers:
       '@hydra/harness-agent':
         specifier: workspace:^
         version: link:../../core/agent
-      '@hydra/harness-agent-loop':
-        specifier: workspace:^
-        version: link:../../core/agent-loop
-      '@hydra/harness-agent-loop-testkit':
-        specifier: workspace:^
-        version: link:../../test-support/agent-loop-testkit
       '@hydra/harness-attachment':
         specifier: workspace:^
         version: link:../../attachment/attachment
@@ -5119,9 +5104,6 @@ importers:
       '@hydra/harness-llm':
         specifier: workspace:^
         version: link:../../llm/llm
-      '@hydra/harness-llm-deepseek':
-        specifier: workspace:^
-        version: link:../../llm/llm-deepseek
       '@hydra/harness-sandbox':
         specifier: workspace:^
         version: link:../../sandbox/sandbox
@@ -6448,9 +6430,6 @@ importers:
       '@hydra/harness-llm':
         specifier: workspace:^
         version: link:../llm
-      '@hydra/harness-llm-deepseek':
-        specifier: workspace:^
-        version: link:../llm-deepseek
       '@hydra/harness-settings':
         specifier: workspace:^
         version: link:../../settings/settings
@@ -7535,9 +7514,6 @@ importers:
       '@hydra/harness-llm':
         specifier: workspace:^
         version: link:../../llm/llm
-      '@hydra/harness-llm-deepseek':
-        specifier: workspace:^
-        version: link:../../llm/llm-deepseek
       '@hydra/harness-session':
         specifier: workspace:^
         version: link:../../core/session
@@ -8598,18 +8574,12 @@ importers:
       '@hydra/harness-agent-loop-testkit':
         specifier: workspace:^
         version: link:../../test-support/agent-loop-testkit
-      '@hydra/harness-bash-local':
-        specifier: workspace:^
-        version: link:../../shell/bash-local
       '@hydra/harness-invariants':
         specifier: workspace:^
         version: link:../../runtime-diagnostics/invariants
       '@hydra/harness-llm':
         specifier: workspace:^
         version: link:../../llm/llm
-      '@hydra/harness-llm-deepseek':
-        specifier: workspace:^
-        version: link:../../llm/llm-deepseek
       '@hydra/harness-session':
         specifier: workspace:^
         version: link:../../core/session
@@ -8619,15 +8589,6 @@ importers:
       '@hydra/harness-subagent-in-process-driver':
         specifier: workspace:^
         version: link:../subagent-in-process-driver
-      '@hydra/harness-subprocess-local':
-        specifier: workspace:^
-        version: link:../../subprocess/subprocess-local
-      '@hydra/harness-tool-bash':
-        specifier: workspace:^
-        version: link:../../shell/tool-bash
-      '@hydra/harness-tool-subagent':
-        specifier: workspace:^
-        version: link:../tool-subagent
 
   packages/subagent/tool-subagent:
     dependencies:

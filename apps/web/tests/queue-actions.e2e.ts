@@ -229,18 +229,25 @@ describe('web e2e: queue row actions', () => {
     await compareOrRefreshGolden(LAYOUT_EXPECTED, layoutSnapshot, MODE)
 
     const expectAlignedContextPanels = async () => {
-      const queuePanelBox = await page.locator('[data-queue-dock] > div').boundingBox()
-      const todoBox = await page.locator('[data-testid="todo-panel"]').boundingBox()
-      const goalBox = await page.locator('[data-goal-bar] > div').boundingBox()
-      expect(queuePanelBox).not.toBeNull()
-      expect(todoBox).not.toBeNull()
-      expect(goalBox).not.toBeNull()
-      expect(todoBox!.y).toBeLessThan(goalBox!.y)
-      expect(goalBox!.y).toBeLessThan(queuePanelBox!.y)
-      expect(todoBox!.x).toBeCloseTo(goalBox!.x, 1)
-      expect(todoBox!.x).toBeCloseTo(queuePanelBox!.x, 1)
-      expect(todoBox!.width).toBeCloseTo(goalBox!.width, 1)
-      expect(todoBox!.width).toBeCloseTo(queuePanelBox!.width, 1)
+      await expect.poll(() => page.evaluate(() => {
+        const todo = document.querySelector('[data-testid="todo-panel"]')?.getBoundingClientRect()
+        const goal = document.querySelector('[data-goal-bar] > div')?.getBoundingClientRect()
+        const queue = document.querySelector('[data-queue-dock] > div')?.getBoundingClientRect()
+        if (todo === undefined || goal === undefined || queue === undefined) return null
+        return {
+          ordered: todo.y < goal.y && goal.y < queue.y,
+          goalAligned: Math.abs(goal.x - todo.x) < 0.05,
+          queueAligned: Math.abs(queue.x - todo.x) < 0.05,
+          goalWidthMatches: Math.abs(goal.width - todo.width) < 0.05,
+          queueWidthMatches: Math.abs(queue.width - todo.width) < 0.05,
+        }
+      })).toEqual({
+        ordered: true,
+        goalAligned: true,
+        queueAligned: true,
+        goalWidthMatches: true,
+        queueWidthMatches: true,
+      })
     }
     await expectAlignedContextPanels()
     await page.setViewportSize({ width: 640, height: 1000 })

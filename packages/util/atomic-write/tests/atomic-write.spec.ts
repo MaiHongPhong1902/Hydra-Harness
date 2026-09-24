@@ -30,6 +30,7 @@ vi.mock('node:fs/promises', async (importOriginal) => {
 afterEach(() => {
   state.failLockCreateWithEPERM = 0
   state.failRenameWithEPERM = 0
+  vi.restoreAllMocks()
 })
 
 async function scratch(): Promise<string> {
@@ -52,7 +53,7 @@ describe('writeFileAtomic', () => {
   it('creates the file and its parents with exactly the stated mode', async () => {
     const dir = await scratch()
     const target = join(dir, 'nested', 'deep', 'doc.yaml')
-    await writeFileAtomic(target, 'a: 1\n', { mode: 0o600 })
+    await writeFileAtomic(target, 'a: 1\n', { mode: 0o600, dirMode: 0o700 })
     expect(await readFile(target, 'utf8')).toBe('a: 1\n')
     if (process.platform !== 'win32') expect((await stat(target)).mode & 0o777).toBe(0o600)
   })
@@ -66,15 +67,28 @@ describe('writeFileAtomic', () => {
     if (process.platform !== 'win32') expect((await stat(target)).mode & 0o777).toBe(0o600)
   })
 
-  it.skipIf(process.platform !== 'win32')('retries a transient replacement EPERM on Windows', async () => {
+  it('retries a transient replacement EPERM on Windows', async () => {
     const dir = await scratch()
     const target = join(dir, 'doc.yaml')
     await writeFile(target, 'old')
+    vi.spyOn(process, 'platform', 'get').mockReturnValue('win32')
     state.failRenameWithEPERM = 1
 
     await writeFileAtomic(target, 'new', { mode: 0o600 })
 
     expect(await readFile(target, 'utf8')).toBe('new')
+  })
+
+  it.each(['linux', 'win32'] as const)('preserves the destination after a permanent replacement denial on %s', async (platform) => {
+    const dir = await scratch()
+    const target = join(dir, 'doc.yaml')
+    await writeFile(target, 'old')
+    vi.spyOn(process, 'platform', 'get').mockReturnValue(platform)
+    vi.spyOn(Date, 'now').mockReturnValueOnce(0).mockReturnValue(2_001)
+    state.failRenameWithEPERM = 1
+    await expect(writeFileAtomic(target, 'new', { mode: 0o600 })).rejects.toMatchObject({ code: 'EPERM' })
+    expect(await readFile(target, 'utf8')).toBe('old')
+    expect(await readdir(dir)).toEqual(['doc.yaml'])
   })
 
   it('replaces a symlinked target itself without writing through to the referent', async () => {
@@ -116,19 +130,21 @@ describe('withFileLock', () => {
     expect(called).toBe(true)
   })
 
-  it('preserves EPERM when no lock path exists', async () => {
+  it.each(['linux', 'win32'] as const)('preserves repeated EPERM when no lock path exists on %s', async (platform) => {
     const dir = await scratch()
     const operation = vi.fn(async () => {})
     state.failLockCreateWithEPERM = 2
+    vi.spyOn(process, 'platform', 'get').mockReturnValue(platform)
 
     await expect(withFileLock(join(dir, 'document'), operation)).rejects.toMatchObject({ code: 'EPERM' })
     expect(operation).not.toHaveBeenCalled()
   })
 
-  it.skipIf(process.platform !== 'win32')('retries one unconfirmed lock EPERM', async () => {
+  it('retries one unconfirmed lock EPERM on Windows', async () => {
     const dir = await scratch()
     const target = join(dir, 'document')
     state.failLockCreateWithEPERM = 1
+    vi.spyOn(process, 'platform', 'get').mockReturnValue('win32')
 
     await expect(withFileLock(target, async () => 'committed')).resolves.toBe('committed')
   })

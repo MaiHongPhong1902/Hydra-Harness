@@ -41,8 +41,6 @@
   },
   "devDependencies": {
     "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-loader-smoke": "workspace:^",
-    "@hydra/harness-sandbox-policy": "workspace:^",
     "@hydra/cordis": "workspace:^"
   }
 }

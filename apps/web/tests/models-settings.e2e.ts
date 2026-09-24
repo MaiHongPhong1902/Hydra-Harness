@@ -190,6 +190,8 @@ describe('web e2e: Models settings page configures a dormant provider', () => {
     const settingsDialog = page.getByRole('dialog', { name: 'Settings' })
     await settingsDialog.getByRole('button', { name: 'Edit minimax-cn' }).click()
     await settingsDialog.getByText('Customized settings').click()
+    // A blank draft endpoint asks for the installed catalog without contacting the saved example URL.
+    await settingsDialog.getByLabel('Base URL').fill('')
     await settingsDialog.getByRole('button', { name: 'Fetch available models' }).click()
 
     const picker = page.getByRole('dialog', { name: 'Choose models to add' })

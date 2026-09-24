@@ -17,6 +17,10 @@
   - img
   - img
   - text: Context injection @hydra/harness-system-prompt
+- button "Ran commands" [expanded]:
+  - img
+  - text: Ran commands
+  - img
 - 'button "Failed Bash Error: tool call aborted" [expanded]':
   - img
   - text: "Failed Bash Error: tool call aborted"

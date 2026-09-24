@@ -1,6 +1,6 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { Context } from '@hydra/cordis'
-import { createUserMessage, CallId, createMessage } from '@hydra/harness-llm'
+import LlmRuntime, { createUserMessage, CallId, createMessage } from '@hydra/harness-llm'
 import type { ContentBlock, Message, TokenUsage } from '@hydra/harness-llm'
 import SessionStore, { Session, SessionId, canonicalHeader } from '@hydra/harness-session'
 import type { EpochHeader, SessionEvent } from '@hydra/harness-session'
@@ -129,6 +129,26 @@ describe('TokenMeter configuration and registration', () => {
 })
 
 describe('TokenMeter pricing', () => {
+  it.each([false, true])('prices durable files with the available LLM text resolver: %s', async (withLlm) => {
+    const ctx = new Context()
+    await ctx.plugin(SessionProjectionRegistry)
+    if (withLlm) await ctx.plugin(LlmRuntime)
+    await ctx.plugin(TokenMeter)
+    const block: Extract<ContentBlock, { type: 'file' }> = {
+      type: 'file',
+      attachment: {
+        attachmentId: `sha256:${'a'.repeat(64)}` as Extract<ContentBlock, { type: 'file' }>['attachment']['attachmentId'],
+        name: 'report.txt',
+        bytes: 42,
+      },
+    }
+    const session = Session.create(SessionId(`file-${withLlm}`))
+    session.append('user/message', createUserMessage({ content: [block], source: { kind: 'user' } }), { surfaceOp: 'append' })
+    const text = withLlm ? ctx.llm.fileRequestText(block.attachment) : JSON.stringify(block)
+    expect(ctx.tokenMeter.measure(session).surfaceTokens).toBe(Math.ceil(text.length / 4) + 8)
+    await ctx.fiber.dispose()
+  })
+
   it('prices every built-in content shape and merge-extended blocks with one fixed heuristic', () => {
     const service = meter()
     const blocks: ContentBlock[] = [

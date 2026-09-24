@@ -46,6 +46,8 @@ describe('deriveGroups', () => {
     expect(conversationVersions(sessions, first.id).map(version => version.id)).toEqual(['original', 'first', 'latest'])
     expect(deriveGroups(sessions, workspaces, noArchive, view(['project']))[0]!.sessions.map(row => row.id))
       .toEqual(['branch', 'latest'])
+    expect(deriveGroups(sessions, [workspace('project', ['original', 'first'])], noArchive, view(['project']))[0]!.sessions.map(row => row.id))
+      .toEqual(['latest'])
     workspaces[0]!.sessionIds = [latest.id, sid('branch'), original.id, first.id]
     expect(deriveGroups(sessions, workspaces, noArchive, view(['project']))[0]!.sessions.map(row => row.id))
       .toEqual(['latest', 'branch'])

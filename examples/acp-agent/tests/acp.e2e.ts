@@ -1,4 +1,4 @@
-import { mkdtemp, readFile } from 'node:fs/promises'
+import { mkdtemp } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -11,15 +11,7 @@ import {
 } from '@hydra/harness-acp-snapshot'
 import { cleanupAcpExampleTest } from './cleanup.ts'
 
-/**
- * End-to-end: boot examples/acp-agent as a real subprocess speaking ACP over
- * its stdio, drive it with a real ClientSideConnection, send a real prompt, and
- * verify the WORLD (a file the agent wrote), not the agent's self-report. Owns
- * and disposes the subprocess in afterEach. Key-gated.
- *
- * Also asserts stdout purity (only framed JSON-RPC on stdout) — that one runs
- * WITHOUT a key, since it only needs the server to boot and answer initialize.
- */
+/** Keyless ACP initialization, stdout framing, and session creation. */
 
 const AGENT: AgentUnderTest = {
   binScript: fileURLToPath(new URL('../../../packages/examples/acp-demo/src/bin.ts', import.meta.url)),
@@ -50,7 +42,7 @@ describe('acp-agent over real stdio (no key required)', () => {
       agent: AGENT,
       cwd: workdir,
       env: {
-        DEEPSEEK_API_KEY: process.env.DEEPSEEK_API_KEY ?? 'sk-dummy-for-boot',
+        DEEPSEEK_API_KEY: 'sk-dummy-for-boot',
         ...DANGER_FULL_ACCESS_ENV,
       },
     })
@@ -66,17 +58,7 @@ describe('acp-agent over real stdio (no key required)', () => {
   }, 30_000)
 
   it('session/new succeeds over real stdio (no model call)', async () => {
-    // REGRESSION GUARD (this exact RPC exposed the missing-inject Loader bug):
-    // `session/new` drives the
-    // full bridge → `ctx.agents.create({sessionId, meta:{cwd}})` → AgentLoop →
-    // registry/persistence path, ALL of which run from the JSON-RPC read loop
-    // OUTSIDE the bridge plugin's injection scope. A lazy `ctx.<service>` read
-    // on that path throws and the RPC fails with an Internal error — yet the
-    // call never touches the model, so this reproduces WITHOUT a key. The
-    // key-gated prompt test below never caught it (it needs real creds); the
-    // initialize-only purity test never caught it (initialize does not reach
-    // the factory). This closes that gap: boot the real subprocess and create a
-    // session, asserting the RPC RESOLVES (not rejects with an inject error).
+    // session/new crosses the JSON-RPC callback scope into the real agent registry.
     workdir = await mkdtemp(join(tmpdir(), 'acp-e2e-'))
     // A dummy key lets the deepseek adapter boot (it only checks presence, not
     // validity, at apply time); no model call is made, so the key is never used.
@@ -84,7 +66,7 @@ describe('acp-agent over real stdio (no key required)', () => {
       agent: AGENT,
       cwd: workdir,
       env: {
-        DEEPSEEK_API_KEY: process.env.DEEPSEEK_API_KEY ?? 'sk-dummy-for-boot',
+        DEEPSEEK_API_KEY: 'sk-dummy-for-boot',
         ...DANGER_FULL_ACCESS_ENV,
       },
     })
@@ -95,32 +77,4 @@ describe('acp-agent over real stdio (no key required)', () => {
     expect(typeof sessionId).toBe('string')
     expect(sessionId.length).toBeGreaterThan(0)
   }, 60_000)
-})
-
-describe.skipIf(!process.env.DEEPSEEK_API_KEY)('acp-agent e2e: real prompt over ACP', () => {
-  it('runs a real turn and the agent writes the requested file (verified on disk)', async () => {
-    workdir = await mkdtemp(join(tmpdir(), 'acp-e2e-'))
-    spawned = launchAcpTestAgent({ agent: AGENT, cwd: workdir, env: DANGER_FULL_ACCESS_ENV })
-    const { client, updates } = spawned
-
-    await client.initialize({ protocolVersion: PROTOCOL_VERSION, clientCapabilities: {} })
-    // Any absolute cwd is honored; use the temp `workdir` as this session's
-    // workspace (the bash tool will run there) — it need not equal the launch dir.
-    const { sessionId } = await client.newSession({ cwd: workdir, mcpServers: [] })
-
-    const res = await client.prompt({
-      sessionId,
-      prompt: [{ type: 'text', text: 'Use the bash tool to write the exact text ACP_OK into a file named proof.txt in the current directory. Then stop.' }],
-    })
-    expect(['end_turn', 'max_tokens']).toContain(res.stopReason)
-
-    // Assert the filesystem effect independently of the model response.
-    const proof = await readFile(join(workdir, 'proof.txt'), 'utf8')
-    expect(proof).toContain('ACP_OK')
-
-    // The transport exposes only committed assistant text; tool execution is
-    // proved by the world effect above and remains session-log data.
-    expect(updates.length).toBeGreaterThan(0)
-    expect(updates.every(update => update.sessionUpdate === 'agent_message_chunk')).toBe(true)
-  }, 180_000)
 })

@@ -4,6 +4,8 @@
   - option "export Download this Session log as a ZIP archive"
   - option "feedback record feedback about this session"
   - option "goal set or view the goal for a long-running task"
+  - option "memories View and control local memories for this chat"
   - option "permission Switch the permission preset (sandbox mode + approval policy)"
   - option "plan Enter or leave plan mode"
+  - option "plugin Manage imported OpenAI/Codex-compatible plugin bundles"
   - option "model Select the model for this conversation"

@@ -10,7 +10,7 @@ import type {
   ContextPressureProjection, ModelTokenUsageProjection, TokenUsageProjection,
 } from '@hydra/harness-token-meter/client'
 import { CompactionId } from '@hydra/harness-compaction'
-import type {} from '../src/usage-projection.ts'
+import { modelTokenUsageProjectionDefinition } from '../src/usage-projection.ts'
 
 const ZERO: TokenUsageProjection = {
   uncachedInputTokens: 0,
@@ -258,6 +258,37 @@ describe('tokenUsage session projection', () => {
 })
 
 describe('modelTokenUsage session projection', () => {
+  it('recovers a checkpoint whose last sample has no retained route total', async () => {
+    const { ctx, session } = await harness()
+    const route = { provider: 'fixture', model: 'model-a' }
+    const state = modelTokenUsageProjectionDefinition.stateSchema.parse({
+      route, totals: {}, last: { turn: 1, step: 1, routeKey: JSON.stringify(['fixture', 'model-a']), buckets: ZERO },
+    })
+    const event = session.append('assistant/chunk', {
+      turn: 1, step: 1, chunk: { type: 'usage', usage: { inputTokens: 10, outputTokens: 2 } },
+    })
+    const updated = modelTokenUsageProjectionDefinition.apply(state, event)
+    expect(modelTokenUsageProjectionDefinition.wire.view(updated)).toEqual([
+      { ...route, ...ZERO, uncachedInputTokens: 10, outputTokens: 2 },
+    ])
+    await ctx.fiber.dispose()
+  })
+
+  it('ignores a repeated usage sample for the same route and step', async () => {
+    const { ctx, session } = await harness()
+    startStep(session, 1, 1)
+    recordRoute(session, 'fixture', 'model-a', 'initial')
+    const usage = { inputTokens: 10, outputTokens: 2 }
+    const source = usageChunk(session, usage, 1, 1)
+    const before = projectedByModel(ctx, session)
+    const changed: string[] = []
+    ctx.sessionProjections.onChanged((_session, key) => { changed.push(key) })
+    finalUsage(session, usage, 1, 1, [source])
+    expect(projectedByModel(ctx, session)).toEqual(before)
+    expect(changed).not.toContain('modelTokenUsage')
+    await ctx.fiber.dispose()
+  })
+
   it('attributes replacement samples and later steps to their exact model', async () => {
     const { ctx, session } = await harness()
     startStep(session, 1, 1)

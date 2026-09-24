@@ -1166,7 +1166,7 @@ describe('createTransport', () => {
 
   it('resolves a bearer token environment variable when creating each HTTP transport', () => {
     const original = process.env.HYDRA_MCP_TEST_TOKEN
-    process.env.HYDRA_MCP_TEST_TOKEN = 'test-token'
+    process.env.HYDRA_MCP_TEST_TOKEN = '  test-token  '
     try {
       const config: Config = {
         transport: 'streamable-http', serverName: 'srv', url: 'http://localhost:3000/mcp', headers: {},
@@ -1174,6 +1174,14 @@ describe('createTransport', () => {
       }
       const transport = createTransport(config) as unknown as { _requestInit?: { headers?: Record<string, string> } }
       expect(transport._requestInit?.headers).toEqual({ Authorization: 'Bearer test-token' })
+      for (const token of [undefined, '', '   ']) {
+        if (token === undefined) delete process.env.HYDRA_MCP_TEST_TOKEN
+        else process.env.HYDRA_MCP_TEST_TOKEN = token
+        const anonymous = createTransport(config) as unknown as { _requestInit?: { headers?: Record<string, string> } }
+        expect(anonymous._requestInit?.headers).toEqual({})
+      }
+      process.env.HYDRA_MCP_TEST_TOKEN = 'secret\nvalue'
+      expect(() => createTransport(config)).toThrow('HYDRA_MCP_TEST_TOKEN contains control characters')
     } finally {
       if (original === undefined) delete process.env.HYDRA_MCP_TEST_TOKEN
       else process.env.HYDRA_MCP_TEST_TOKEN = original

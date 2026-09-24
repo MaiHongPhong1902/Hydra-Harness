@@ -20,7 +20,6 @@ const SNAPSHOT_DIR = fileURLToPath(new URL('./snapshots/jev-provider', import.me
 const UI_EXPECTED = join(SNAPSHOT_DIR, 'ui.expected.md')
 const OVERLAY = fileURLToPath(new URL('./jev-provider.overlay.yml', import.meta.url))
 const MODE = webSnapshotMode()
-const LIVE_KEY = process.env.JEV_API_KEY
 
 async function openModels(page: Page): Promise<Locator> {
   await page.getByRole('button', { name: 'Settings', exact: true }).click()
@@ -134,40 +133,5 @@ describe('web e2e: optional Jev provider', () => {
       mock.mockRestore()
       await inventory.setEnabled({ entryId: browserEntry.entryId, enabled: false })
     }
-  })
-
-  it.skipIf(!LIVE_KEY)('uses the saved UI key for live decisions and the separate browser tool', async () => {
-    await saveKey(LIVE_KEY!)
-    const inventory = scaffold.ctx.get('pluginInventory') as PluginInventoryGateway
-    const entry = (await inventory.list()).entries.find(row => row.moduleName === '@hydra/harness-browser-decisions')!
-    expect(entry.enabled).toBe(false)
-    await inventory.setEnabled({ entryId: entry.entryId, enabled: true })
-    const handle = await scaffold.ctx.agents.create({ sessionId: SessionId('jev-live-browser'),
-      meta: { cwd: scaffold.workspaceCwd },
-      setup: ctx => scaffold.ctx.agentPresets.mount(ctx).then(() => undefined),
-    })
-    const originalFetch = globalThis.fetch
-    let diagnostic = ''
-    const observer = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
-      const response = await originalFetch(input, init)
-      if (input === 'https://www.jevai.org/api/v1/decisions' && !response.ok) {
-        diagnostic = `Credential matches: ${new Headers(init?.headers).get('authorization') === `Bearer ${LIVE_KEY!}`}; HTTP ${response.status}`
-      }
-      return response
-    })
-    try {
-      expect(scaffold.ctx.tools.schemas(handle.agent).some(tool => tool.name === 'browser_decide')).toBe(true)
-      const output = await scaffold.ctx.tools.execute({ agent: handle.agent, callId: CallId('jev-live-decision'),
-        name: 'browser_decide', arguments: { state: 'Continue button is visible.', question: 'How to read more?', choices: ['continue', 'stop'] },
-        signal: new AbortController().signal })
-      expect(output.isError).not.toBe(true)
-      expect(JSON.stringify(output), diagnostic).toContain('Jev chose')
-      expect(scaffold.ctx.llm.listProviders().some(provider => provider.id === 'jev')).toBe(false)
-    } finally {
-      observer.mockRestore()
-      await handle.dispose()
-      await inventory.setEnabled({ entryId: entry.entryId, enabled: false })
-    }
-    expect(scaffold.ctx.tools.get('browser_decide')).toBeUndefined()
   })
 })

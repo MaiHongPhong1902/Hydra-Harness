@@ -122,6 +122,8 @@ describe('hydra-tool-subagent', () => {
       kind: 'other',
       rawInput: 'Check packages/client',
     })
+    expect(tool?.presentCall?.({ description: '', prompt: 'Continue research' }))
+      .toMatchObject({ title: 'Subagent', rawInput: 'Continue research' })
   })
 
   it('omits run_in_background entirely when the instance disables it (schema and capability never disagree)', async () => {

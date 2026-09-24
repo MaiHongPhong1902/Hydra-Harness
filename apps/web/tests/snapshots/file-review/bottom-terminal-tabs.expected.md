@@ -27,8 +27,8 @@
         - text: Write review.txt with A then
         - list:
           - listitem:
-            - text: powershell.exe
+            - text: bash
             - button "Split Terminal"
-            - button "Kill powershell.exe":
+            - button "Kill bash":
               - img
       - status: Desktop terminal is unavailable.

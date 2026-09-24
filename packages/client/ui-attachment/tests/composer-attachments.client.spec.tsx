@@ -191,4 +191,11 @@ describe('ComposerAttachments', () => {
     fireEvent.click(view.getByRole('button', { name: 'Remove browser annotation browser-annotation.html.txt' }))
     expect(onRemove).toHaveBeenCalledWith(item.id)
   })
+
+  it('labels unnamed browser annotations and keeps comments read-only without an editor', () => {
+    const view = render(<ComposerAttachments {...props({ browserAnnotations: [annotation('unnamed', '')] })} />)
+    const comment = view.getByRole('textbox', { name: 'Add a comment…: Pending browser annotations' })
+    expect(comment).toHaveProperty('readOnly', true)
+    expect(view.getByTitle('Pending browser annotations')).toBeTruthy()
+  })
 })

@@ -9,8 +9,8 @@
 - scrollbar-width: auto
 - scrollbar-color: auto
 - ::-webkit-scrollbar-thumb:hover declarations: var(--hydra-scrollbar-thumb-hover)
-- --hydra-scrollbar-thumb, pointer over the list: rgb(229, 229, 229)
-- --hydra-scrollbar-thumb-hover, pointer over the list: rgb(212, 212, 212)
+- --hydra-scrollbar-thumb, pointer over the list: rgb(211, 211, 207)
+- --hydra-scrollbar-thumb-hover, pointer over the list: rgb(184, 184, 179)
 - list overflows: true
 - reserved band: 8px
 - scrollbar inset from the sidebar edge: 2px
@@ -28,8 +28,8 @@
 - scrollbar-width: auto
 - scrollbar-color: auto
 - ::-webkit-scrollbar-thumb:hover declarations: var(--hydra-scrollbar-thumb-hover)
-- --hydra-scrollbar-thumb, pointer over the list: rgb(84, 85, 87)
-- --hydra-scrollbar-thumb-hover, pointer over the list: rgb(101, 103, 107)
+- --hydra-scrollbar-thumb, pointer over the list: rgb(70, 70, 66)
+- --hydra-scrollbar-thumb-hover, pointer over the list: rgb(94, 94, 88)
 - list overflows: true
 - reserved band: 8px
 - scrollbar inset from the sidebar edge: 2px

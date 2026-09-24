@@ -30,8 +30,12 @@
 - text: "Interjection: include the word BANANA in your final reply. {{clock}}"
 - button "Copy":
   - img
+- button "Edit":
+  - img
 - text: "Interjection: include the word ORANGE in your final reply. {{clock}}"
 - button "Copy":
+  - img
+- button "Edit":
   - img
 - paragraph: "Got it: BANANA and ORANGE."
 - button "Copy":

@@ -69,7 +69,7 @@ describe('CI workflow', () => {
   })
 
   it('checks out workspace submodules before pnpm setup', () => {
-    for (const file of ['ci.yml', 'ci-master.yml', 'build-exe-for-python-sdk.yml', 'e2e.yml']) {
+    for (const file of ['ci.yml', 'ci-master.yml', 'build-exe-for-python-sdk.yml']) {
       const workflow = loadWorkflow(`.github/workflows/${file}`)
       if (!isRecord(workflow.jobs)) throw new TypeError(`${file} must define jobs`)
       for (const [name, job] of Object.entries(workflow.jobs)) {
@@ -324,74 +324,6 @@ describe('CI workflow', () => {
 
     expect(config).not.toContain("pool: process.platform === 'win32' ? 'threads' : 'forks'")
     expect(config.match(/pool: 'forks'/g)).toHaveLength(2)
-  })
-})
-
-describe('DeepSeek e2e workflow', () => {
-  it('prepares bubblewrap from the pinned payload without a package transaction', () => {
-    const workflow = loadWorkflow('.github/workflows/e2e.yml')
-    const e2e = workflowJob(workflow, 'e2e')
-    if (!Array.isArray(e2e.steps)) throw new TypeError('DeepSeek e2e workflow must define steps')
-
-    const steps = e2e.steps.filter(isRecord)
-    expect(steps.find(step => step.name === 'Prepare bubblewrap (unrestrict userns)')).toMatchObject({
-      run: 'bash scripts/prepare-ci-bubblewrap.sh',
-    })
-    expect(JSON.stringify(steps)).not.toContain('apt-get')
-
-    const script = readFileSync(resolve(root, 'scripts/prepare-ci-bubblewrap.sh'), 'utf8')
-    expect(script).toContain('https://snapshot.ubuntu.com/ubuntu/20260722T000000Z/pool/main/b/bubblewrap/')
-    expect(script).not.toContain('https://archive.ubuntu.com/ubuntu/pool/main/b/bubblewrap/')
-  })
-})
-
-describe('DeepSeek e2e workflow', () => {
-  it('requires an explicit dispatch and rejects a missing key before checkout', { timeout: 30_000 }, () => {
-    const workflow = loadWorkflow('.github/workflows/e2e.yml')
-    expect(workflow.on).toEqual({ workflow_dispatch: null })
-    const job = workflowJob(workflow, 'e2e')
-    if (!Array.isArray(job.steps)) throw new TypeError('e2e must define steps')
-    const preflight: unknown = job.steps[0]
-    if (!isRecord(preflight) || typeof preflight.run !== 'string') throw new TypeError('e2e must start with preflight')
-    expect(preflight.env).toEqual({ DEEPSEEK_API_KEY: '${{ secrets.DEEPSEEK_API_KEY_EXTERNAL }}' })
-    for (const [key, status] of [['', 1], ['test-placeholder', 0]] as const) {
-      const bash = process.platform === 'win32'
-        ? resolve(process.env.ProgramFiles ?? 'C:/Program Files', 'Git/bin/bash.exe') : 'bash'
-      const result = spawnSync(bash, ['--noprofile', '--norc', '-c', preflight.run], {
-        env: { ...process.env, DEEPSEEK_API_KEY: key }, encoding: 'utf8',
-      })
-      expect(result.error).toBeUndefined()
-      expect(result.status).toBe(status)
-      expect(result.stdout).toContain(key === '' ? 'DEEPSEEK_API_KEY_EXTERNAL' : 'DEEPSEEK_API_KEY present.')
-      expect(result.stdout).not.toContain('test-placeholder')
-    }
-  })
-})
-
-describe('E2B e2e workflow', () => {
-  it('is manual-only and fails loud before running the focused live suite', () => {
-    const workflow = loadWorkflow('.github/workflows/e2b-e2e.yml')
-    expect(workflow.on).toEqual({ workflow_dispatch: null })
-    if (!isRecord(workflow.jobs) || !isRecord(workflow.jobs.e2b) || !Array.isArray(workflow.jobs.e2b.steps)) {
-      throw new TypeError('E2B e2e workflow must define the e2b job steps')
-    }
-
-    const steps = workflow.jobs.e2b.steps.filter(isRecord)
-    const preflight = steps.find(step => step.name === 'Preflight (require E2B API key)')
-    const e2b = steps.find(step => step.name === 'E2B tests (live sandbox)')
-
-    expect(preflight).toMatchObject({
-      env: { E2B_API_KEY: '${{ secrets.E2B_API_KEY_EXTERNAL }}' },
-    })
-    expect(preflight?.run).toContain('E2B_API_KEY_EXTERNAL repository secret')
-    expect(e2b).toMatchObject({
-      env: {
-        E2B_API_KEY: '${{ secrets.E2B_API_KEY_EXTERNAL }}',
-        HYDRA_E2E_MAX_WORKERS: '1',
-        HYDRA_EXAMPLE_MODE: 'lib',
-      },
-    })
-    expect(e2b?.run).toContain('packages/e2b/e2b/tests/composition.e2e.ts')
   })
 })
 

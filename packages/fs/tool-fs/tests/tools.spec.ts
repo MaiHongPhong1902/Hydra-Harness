@@ -24,7 +24,7 @@ import type {
 } from '@hydra/harness-fs'
 import * as FsPolicy from '@hydra/harness-fs-observation-policy'
 import * as ToolFs from '@hydra/harness-tool-fs'
-import { STREAM_MIN_SIZE } from '../src/read.ts'
+import { parseReadArgs, STREAM_MIN_SIZE } from '../src/read.ts'
 import { formatReadOutput } from '../src/read-render.ts'
 import type { FileReadOutcome } from '../src/read-render.ts'
 import { sessionCwd } from '../src/session-cwd.ts'
@@ -33,6 +33,15 @@ import type { SandboxExecutionPolicy, SandboxMode } from '@hydra/harness-sandbox
 import SandboxPolicyService from '@hydra/harness-sandbox-policy'
 
 const testToolSignal = new AbortController().signal
+
+it('rejects invalid read windows before resolving a file', () => {
+  for (const value of [0, -1, 1.5, Number.NaN, Number.POSITIVE_INFINITY]) {
+    for (const key of ['offset', 'limit']) {
+      expect(() => parseReadArgs({ file_path: 'a.txt', [key]: value }, 20)).toThrow(`${key} must be a positive integer`)
+    }
+  }
+  expect(() => parseReadArgs({ file_path: 'a.txt', limit: 21 }, 20)).toThrow('limit must be less than or equal to 20')
+})
 
 /** An in-memory fake provider; a test can arm a rejection on any primitive. */
 class FakeFs extends FileSystem {

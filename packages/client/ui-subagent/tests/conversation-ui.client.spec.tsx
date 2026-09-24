@@ -98,6 +98,25 @@ function hoverCatalog(trigger: HTMLElement): void {
 }
 
 describe('SubagentHeaderLineage', () => {
+  it('repositions an open catalog when its trigger moves on scroll or resize', () => {
+    render(<SubagentHeaderLineage {...props(catalog())} />)
+    const trigger = screen.getByRole('button', { name: /2 subagents/ })
+    const rect = vi.spyOn(trigger, 'getBoundingClientRect')
+      .mockReturnValue({ left: 40, bottom: 60 } as DOMRect)
+    hoverCatalog(trigger)
+    const menu = screen.getByRole('tree')
+    expect(menu.style.top).toBe('65px')
+    expect(menu.style.left).toBe('40px')
+    rect.mockReturnValue({ left: 80, bottom: 100 } as DOMRect)
+    fireEvent.scroll(document)
+    expect(menu.style.top).toBe('105px')
+    expect(menu.style.left).toBe('80px')
+    rect.mockReturnValue({ left: 100, bottom: 120 } as DOMRect)
+    fireEvent.resize(window)
+    expect(menu.style.top).toBe('125px')
+    expect(menu.style.left).toBe('100px')
+  })
+
   it('aggregates live descendant activity onto the closed trigger', () => {
     const summaries: Record<SessionId, SessionSummary> = {
       [CHILD]: {

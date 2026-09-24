@@ -6,6 +6,7 @@ import Schema from '@hydra/schemastery'
 import type { RpcResponse, SettingsNamespaceView } from '@hydra/harness-api-remotes/client'
 import { bindSnapshotSelector } from '@hydra/harness-client-test-runtime'
 import { ProviderOnboarding } from '../src/client/ProviderOnboarding.tsx'
+import { OnboardingModal } from '../src/client/OnboardingModal.tsx'
 import type { ProviderOnboardingProps } from '../src/client/ProviderOnboarding.tsx'
 import { SettingsDescribeMirror } from '@hydra/harness-client-ui-settings/src/client/settings-mirror.ts'
 import { ModelsSettingsStore } from '../src/client/store.ts'
@@ -162,6 +163,12 @@ function harness(options: {
 }
 
 describe('ProviderOnboarding', () => {
+  it('renders a form modal without an application root or forced title focus', () => {
+    render(<OnboardingModal title="Setup"><input aria-label="Provider" autoFocus /></OnboardingModal>)
+    expect(screen.getByRole('dialog', { name: 'Setup' })).toBeTruthy()
+    expect(screen.getByRole('heading').getAttribute('tabindex')).toBeNull()
+    expect(document.activeElement).toBe(screen.getByRole('textbox', { name: 'Provider' }))
+  })
   it('opens Models without rendering a key dialog or writing configuration', async () => {
     const h = harness()
     render(<ProviderOnboarding {...h.props} />)

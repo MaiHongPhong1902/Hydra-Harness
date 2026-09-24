@@ -52,7 +52,6 @@
     "@hydra/harness-fs-local": "workspace:^",
     "@hydra/harness-invariants": "workspace:^",
     "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-llm-deepseek": "workspace:^",
     "@hydra/harness-home-paths": "workspace:^",
     "@hydra/harness-session": "workspace:^",
     "@hydra/harness-system-prompt": "workspace:^",

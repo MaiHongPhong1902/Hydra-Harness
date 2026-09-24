@@ -6,7 +6,7 @@ import { fetch as undiciFetch, ProxyAgent } from 'undici'
 const proxyContext = new AsyncLocalStorage<string | undefined>()
 // Provider routes are user-owned and few; add bounded eviction when profile churn becomes measurable.
 const agents = new Map<string, ProxyAgent>()
-let nativeFetch: typeof fetch | undefined
+let nativeFetch = globalThis.fetch
 
 /**
  * Validate and trim an optional HTTP(S) proxy URL.
@@ -42,9 +42,7 @@ function agentFor(proxy: string): ProxyAgent {
 const proxyFetch: typeof fetch = (input, init) => {
   const proxy = proxyContext.getStore()
   if (proxy === undefined) {
-    const direct = nativeFetch
-    if (direct === undefined) throw new Error('HTTP proxy fetch interceptor is not initialized')
-    return direct(input, init)
+    return nativeFetch(input, init)
   }
   return undiciFetch(input as Parameters<typeof undiciFetch>[0], {
     ...init,

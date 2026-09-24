@@ -136,6 +136,21 @@ async function loopHarness(adapter: ScriptedAdapter, doc: Record<string, unknown
 }
 
 describe('personalization: real agent-loop request history', () => {
+  it('keeps the logged default when a completed chat resumes after the global personality changes', async () => {
+    const ctx = await loopHarness(new ScriptedAdapter([textResponse('ack')]))
+    try {
+      const agent = ctx.agentLoop.create(SessionId('existing-default'), { provider: 'mock', model: 'mock' })
+      agent.followup(createUserMessage({ content: [{ type: 'text', text: 'hi' }], source: { kind: 'user' } }))
+      await agent.whenIdle()
+      await ctx.settings.update(settingsNamespace('personalization'), { personality: 'friendly' })
+      agentEvents(ctx, agent).emit('agent/session-start', { source: 'resume' })
+      expect(hasLoggedPersonality(agent.session)).toBe(false)
+      expect(resolveSessionPersonality(agent.session)).toBe('pragmatic')
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
   it('provides opt-in defaults when no settings provider is mounted', async () => {
     const ctx = new Context()
     await mountAgentLoopTestDependencies(ctx)

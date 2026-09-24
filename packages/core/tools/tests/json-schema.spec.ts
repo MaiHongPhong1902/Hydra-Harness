@@ -152,6 +152,8 @@ describe('the enforced raw JSON Schema subset', () => {
       .toEqual(['schema.minimum is not supported on type "string"'])
     expect(violationsOf({ type: 'number', minimum: Number.NaN }))
       .toEqual(['schema.minimum must be a finite JSON number'])
+    expect(violationsOf({ type: 'number', maximum: Number.POSITIVE_INFINITY }))
+      .toEqual(['schema.maximum must be a finite JSON number'])
     expect(violationsOf({ oneOf: [{ type: 'number' }, { type: 'null' }], maximum: 1 }))
       .toEqual(['schema.maximum is not supported beside oneOf'])
   })

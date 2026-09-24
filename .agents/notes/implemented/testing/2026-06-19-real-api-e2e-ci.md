@@ -8,13 +8,11 @@ The default CI gate carries no provider secret and must work for contributors wi
 
 ## Decision
 
-[The DeepSeek workflow](../../../../.github/workflows/e2e.yml) runs the full real-API suite separately from keyless CI. The [portable Actions policy](../process/2026-09-06-portable-github-actions.md) owns its manual-only trigger while this repository lacks a provider key; it supersedes the automatic schedule and trusted-PR trigger policy. Dispatch requires a writer to choose the code ref and configure DEEPSEEK_API_KEY_EXTERNAL. Restoring automatic runs requires an explicit workflow change after configuring that secret.
+The [keyless-test policy](../simplification/2026-09-23-remove-keyed-e2e-smokes.md) supersedes live-suite execution. The following credential-isolation constraints remain required if live automation is reintroduced.
 
-The first step rejects an empty key with exit 1 and names the required secret. This prevents a self-skipped suite from masquerading as successful live validation, and avoids installing dependencies or building when the run cannot proceed.
+A live run must reject an empty key before checkout or build, rather than treating skipped tests as validation. Scope secrets to preflight and provider calls; checkout, installation, and build receive none. Print presence only, never values or lengths, and pin the intended provider endpoint.
 
-The secret maps to DEEPSEEK_API_KEY only in preflight and the test step. Checkout, setup, dependency installation, and build receive no provider key. Preflight prints presence only, never the value or length. The test step pins DEEPSEEK_BASE_URL to https://api.deepseek.com. The workflow has contents: read permission, builds official artifacts, and runs the example bins from lib under Node 24 with bounded workers and a job timeout.
-
-The workflow must never run untrusted PR code through pull_request_target. GitHub withholds secrets from ordinary fork and Dependabot pull_request events; a maintainer rerunning a Dependabot PR does not change its author or credential eligibility. Any future PR trigger must preserve those distinctions. Repository writers can author secret-consuming workflows, so membership and ref selection remain part of credential access control. Making a repository public also makes logs public; secret values must remain absent from logs.
+Never run untrusted PR code through `pull_request_target`. Fork and Dependabot runs do not gain secret eligibility from a maintainer rerun. Repository writers control secret-consuming workflows, so membership and ref selection remain access controls.
 
 ## Alternatives considered
 
@@ -22,4 +20,4 @@ Combining live tests with keyless CI couples contributor checks to credentials. 
 
 ## Consequences
 
-Keyless checks and real-provider validation report independently. A manual E2E result proves only the selected ref and configured provider at that run; no scheduled or pre-merge live signal exists under the manual policy. The native web_search probe remains skipped because a successful endpoint response does not reliably contain structured source blocks; unit parsing checks do not establish that live behavior.
+Keyless checks do not prove live-provider behavior. A future live result would prove only the selected ref and configured provider at that run. Native search response parsing remains deterministic coverage, not evidence that an external endpoint supplies structured source blocks.

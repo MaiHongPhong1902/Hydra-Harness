@@ -394,16 +394,17 @@ describe('workspace browser rows', () => {
     }
   })
 
-  it('session row menu opens without opening the session and dispatches rename, fork, and archive', () => {
+  it('session row menu dispatches rename, fork, archive, and delete without opening the session', () => {
     const onOpen = vi.fn()
     const onRename = vi.fn()
     const onFork = vi.fn()
     const onArchive = vi.fn()
+    const onDelete = vi.fn()
     const node: SessionNode = {
       id: sid('s1'), title: 'One', blank: false, running: false,
       runningSubagentCount: 0, completed: false, updatedAt: 0,
     }
-    render(<SessionNodeItem onDelete={vi.fn()} node={node} currentId={undefined} now={0} onOpen={onOpen}
+    render(<SessionNodeItem onDelete={onDelete} node={node} currentId={undefined} now={0} onOpen={onOpen}
       onRename={onRename} onFork={onFork} onArchive={onArchive} t={t} />)
     fireEvent.click(screen.getByRole('button', { name: 'Session actions for One' }))
     expect(onOpen).not.toHaveBeenCalled()
@@ -421,6 +422,9 @@ describe('workspace browser rows', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Session actions for One' }))
     fireEvent.click(screen.getByRole('menuitem', { name: 'Archive session' }))
     expect(onArchive).toHaveBeenCalledWith(node.id)
+    fireEvent.click(screen.getByRole('button', { name: 'Session actions for One' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Delete session' }))
+    expect(onDelete).toHaveBeenCalledWith(node.id, 'One')
     expect(onRename).toHaveBeenCalledOnce()
     expect(onOpen).not.toHaveBeenCalled()
     // Escape closes without selecting (Menu onClose path).

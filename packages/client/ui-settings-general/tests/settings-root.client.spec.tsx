@@ -179,19 +179,19 @@ describe('SettingsPanel navigation', () => {
         { id: 'usage', order: 12, label: 'Usage' },
         { id: 'agent-presets', order: 20, label: 'Agent presets' },
         { id: 'plugins', order: 30, label: 'Plugins' },
+        { id: 'personalization', order: 31, label: 'Personalization' },
+        { id: 'archived-sessions', order: 32, label: 'Archived sessions' },
         { id: 'contributed', order: 40, label: 'Contributed' },
       ],
     })
     openPanel()
     // Glyphs carry no id of their own, so the drawn paths are what tells them apart.
-    const glyphs = ['General', 'Browser', 'Models', 'Usage', 'Agent presets', 'Plugins', 'Contributed']
+    const glyphs = ['General', 'Browser', 'Models', 'Usage', 'Agent presets', 'Plugins', 'Personalization', 'Archived sessions', 'Contributed']
       .map(name => screen.getByRole('button', { name }).querySelector('svg')?.innerHTML)
 
     expect(glyphs.every(glyph => glyph !== undefined && glyph !== '')).toBe(true)
-    // The five ids the shell names get their own glyph; every other section —
-    // including one this package never heard of — shares the gear.
-    expect(new Set(glyphs.slice(0, 6)).size).toBe(6)
-    expect(glyphs[6]).toBe(glyphs[0])
+    expect(new Set(glyphs.slice(0, 8)).size).toBe(8)
+    expect(glyphs[8]).toBe(glyphs[0])
   })
 
   it('switches the rendered section on nav click', () => {

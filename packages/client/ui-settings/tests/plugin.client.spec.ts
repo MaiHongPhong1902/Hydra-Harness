@@ -35,7 +35,7 @@ describe('settings domain base plugin', () => {
     await vi.waitFor(() => { expect(describeCall).toHaveBeenCalledTimes(1) })
   })
 
-  it('refreshes the mirror on document commits and connection resets, once each', async () => {
+  it('refreshes the mirror on document commits, registry updates, and connection resets', async () => {
     const { ctx, describeCall, fiber } = bench()
     await fiber.await()
     await vi.waitFor(() => { expect(describeCall).toHaveBeenCalledTimes(1) })
@@ -43,6 +43,8 @@ describe('settings domain base plugin', () => {
     await vi.waitFor(() => { expect(describeCall).toHaveBeenCalledTimes(2) })
     ctx.emit('connection/reset')
     await vi.waitFor(() => { expect(describeCall).toHaveBeenCalledTimes(3) })
+    ctx.remote.$dispatch('settings/registry-updated', [])
+    await vi.waitFor(() => { expect(describeCall).toHaveBeenCalledTimes(4) })
   })
 
   it('fiber disposal retires the service and its invalidation subscriptions', async () => {

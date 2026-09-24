@@ -44,7 +44,15 @@
 - complementary "Event details":
   - separator "Resize event details"
   - text: TOOL Turn 1 · Step 1
-  - button "Close details"
+  - group "Event details layout":
+    - button "Expand event details":
+      - img
+    - button "Dock event details at bottom":
+      - img
+    - button "Dock event details at right" [pressed]:
+      - img
+  - button "Close details":
+    - img
   - tablist "Event details":
     - tab "Summary"
     - tab "Payload"

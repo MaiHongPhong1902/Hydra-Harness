@@ -1,4 +1,4 @@
 - text: Waiting for approval
-- group "Approval details": "Browser permissions: browsing. Action: navigate. https://shop.test/order"
+- group "Approval details": "Browser permissions: browsing. Action: browser_navigate. https://shop.test/order"
 - button "Reject"
 - button "Allow once"

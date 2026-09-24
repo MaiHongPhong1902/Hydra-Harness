@@ -285,6 +285,9 @@ describe('SkillRegistry registry', () => {
       { patch: { rank: '1' as unknown as number }, expected: 'invalid rank' },
       { patch: { provider: { value: 'provider' } as unknown as string }, expected: 'non-string provider' },
       { patch: { path: 1 as unknown as string }, expected: 'non-string path' },
+      { patch: { aliases: 'alias' as unknown as string[] }, expected: 'non-array aliases' },
+      { patch: { aliases: [1 as unknown as string] }, expected: 'non-string alias' },
+      { patch: { aliases: ['Bad_Alias'] }, expected: 'invalid alias' },
     ]
     for (const [index, { patch, expected }] of cases.entries()) {
       const ctx = new Context()
