@@ -107,7 +107,7 @@ export function ComposerAttachments({
                 </span>
                 <div className={css.annotationMeta}>
                   <span className={css.annotationName} title={name}>{name}</span>
-                  <input
+                  <input data-hydra-control="compact"
                     className={css.annotationComment}
                     type="text"
                     value={annotation.comment}

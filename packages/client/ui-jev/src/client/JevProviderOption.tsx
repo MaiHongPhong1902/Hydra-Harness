@@ -3,6 +3,7 @@ import { useState, type ReactNode } from 'react'
 import type { InjectFace, PropsRuntime } from '@hydra/harness-client-ui-slots'
 import type { SettingsDescribeFace } from '@hydra/harness-client-ui-settings/client'
 import type {} from '@hydra/harness-client-ui-settings-models/client'
+import styles from './JevProviderOption.module.css'
 
 /** Settings supply configuration; credential writes return acknowledgement only. */
 export interface JevProviderInjected {
@@ -13,9 +14,9 @@ export interface JevProviderInjected {
 type Props = PropsRuntime<'settings.models.provider-option'> & InjectFace<JevProviderInjected>
 
 /**
- * Render the provider option or its write-only key editor.
+ * Render the provider option, saved credential row, or write-only key editor.
  * @param props - slot selection and Host settings access.
- * @returns the option or credential form.
+ * @returns the selected view, or no row without a confirmed credential.
  */
 export function JevProviderOption(props: Props): ReactNode {
   const [key, setKey] = useState('')
@@ -28,6 +29,16 @@ export function JevProviderOption(props: Props): ReactNode {
   const rawConfig = settings.view?.namespaces.find(row => row.ns === 'jev')?.value
   const config = typeof rawConfig === 'object' && rawConfig !== null ? rawConfig as Record<string, unknown> : undefined
   const ready = settings.error === null && typeof config?.['apiKeyEnv'] === 'string' && typeof config['model'] === 'string'
+  if (props.mode === 'row') {
+    if (!ready || props.credentials[config['apiKeyEnv'] as string]?.configured !== true) return null
+    return (
+      <li className={styles['row']}>
+        <span>Jev</span>
+        <span className={styles['configured']} role="img" aria-label="API key configured" title="API key configured" />
+        <button type="button" className={styles['edit']} aria-label="Edit Jev" onClick={() => { props.onEdit('jev') }}>Edit</button>
+      </li>
+    )
+  }
   const disabled = props.readOnly || saving || !ready
   const save = async (): Promise<void> => {
     /* v8 ignore next -- the native disabled button prevents user invocation. */
@@ -49,20 +60,22 @@ export function JevProviderOption(props: Props): ReactNode {
     } finally { setSaving(false) }
   }
   return (
-    <div>
-      <h4>Jev</h4>
-      <p>Decision provider for choices, scores, and yes/no questions. Browser decisions is enabled separately in Plugins.</p>
-      {!ready ? <p role="status">{settings.status === 'loading' || settings.status === 'idle'
+    <div className={styles['editor']}>
+      <h4 className={styles['heading']}>Jev</h4>
+      <p className={styles['description']}>Decision provider for choices, scores, and yes/no questions. Browser decisions is enabled separately in Plugins.</p>
+      {!ready ? <p className={styles['description']} role="status">{settings.status === 'loading' || settings.status === 'idle'
         ? 'Loading Jev settings…' : 'Jev provider settings are unavailable. Check Plugins.'}</p> : null}
-      <label>
+      <label className={styles['field']}>
         <span>API key</span>
-        <input type="password" value={key} autoComplete="off" disabled={disabled}
+        <input data-hydra-control="field" type="password" value={key} autoComplete="off" disabled={disabled}
           onChange={(event) => { setKey(event.target.value); setError(undefined) }} />
       </label>
-      {ready ? <p>Model: {String(config['model'])}</p> : null}
-      {error === undefined ? null : <p role="alert">{error}</p>}
-      <button type="button" disabled={disabled} onClick={() => { void save() }}>{saving ? 'Saving…' : 'Apply'}</button>
-      <button type="button" disabled={saving} onClick={() => { props.onClose(false) }}>Cancel</button>
+      {ready ? <p className={styles['description']}>Model: {String(config['model'])}</p> : null}
+      {error === undefined ? null : <p className={styles['error']} role="alert">{error}</p>}
+      <div className={styles['actions']}>
+        <button type="button" className={styles['edit']} disabled={disabled} onClick={() => { void save() }}>{saving ? 'Saving…' : 'Apply'}</button>
+        <button type="button" className={styles['edit']} disabled={saving} onClick={() => { props.onClose(false) }}>Cancel</button>
+      </div>
     </div>
   )
 }

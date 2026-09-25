@@ -1,0 +1,99 @@
+/* Native form controls and value-picker buttons share this chrome. Feature
+ * modules own width and layout; editors and composite interiors opt out. */
+:where([data-hydra-control='field'], [data-hydra-control='compact']) {
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 32px;
+  padding: 4px 10px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: var(--dsw-radius-control);
+  background: var(--dsw-alias-bg-layer-1);
+  color: var(--dsw-alias-label-primary);
+  font-family: var(--dsw-font-family);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  outline: none;
+  transition: border-color var(--ds-transition-duration-fast) var(--ds-ease-in-out),
+    background-color var(--ds-transition-duration-fast) var(--ds-ease-in-out);
+}
+
+:where([data-hydra-control='compact']) {
+  min-height: 28px;
+  padding: 4px 8px;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+:where(button[data-hydra-control='field'], button[data-hydra-control='compact']) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+:where(button[data-hydra-control='field'], button[data-hydra-control='compact'])[aria-expanded='true'] {
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+:where(select, button):is([data-hydra-control='field'], [data-hydra-control='compact']) {
+  cursor: pointer;
+}
+
+:where(select[data-hydra-control]) {
+  appearance: auto;
+}
+
+:where(select[data-hydra-control] option) {
+  background: var(--dsw-alias-bg-layer-1);
+  color: var(--dsw-alias-label-primary);
+}
+
+:where(textarea[data-hydra-control='field'], textarea[data-hydra-control='compact']) {
+  min-height: 72px;
+  resize: vertical;
+}
+
+:where([data-hydra-control='field'], [data-hydra-control='compact']):hover:not(:disabled):not([readonly]):not(:has([data-hydra-control='embedded']:disabled)) {
+  border-color: var(--dsw-alias-border-l4);
+}
+
+:where([data-hydra-control='field'], [data-hydra-control='compact']):focus-within {
+  border-color: var(--dsw-alias-brand-primary);
+}
+
+:where([data-hydra-control='field'], [data-hydra-control='compact']):focus-visible,
+:where([data-hydra-control='field'], [data-hydra-control='compact']):has([data-hydra-control='embedded']:focus-visible) {
+  outline: 2px solid var(--dsw-alias-focus-ring);
+  outline-offset: 2px;
+}
+
+:where([data-hydra-control='field'], [data-hydra-control='compact'], [data-hydra-control='embedded'])::placeholder {
+  color: var(--dsw-alias-label-dimmed);
+  opacity: 1;
+}
+
+:where([data-hydra-control='field'], [data-hydra-control='compact']):disabled,
+:where([data-hydra-control='field'], [data-hydra-control='compact']):has([data-hydra-control='embedded']:disabled) {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+:where([data-hydra-control='field'], [data-hydra-control='compact'])[aria-invalid='true'],
+:where([data-hydra-control='field'], [data-hydra-control='compact']):has([data-hydra-control='embedded'][aria-invalid='true']) {
+  border-color: var(--dsw-alias-state-error-primary);
+  outline-color: var(--dsw-alias-state-error-primary);
+}
+
+:where([data-hydra-control='embedded']) {
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+:where([data-hydra-control='embedded']):focus-visible {
+  outline: none;
+}

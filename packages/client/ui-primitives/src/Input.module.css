@@ -1,17 +1,7 @@
 .wrap {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  height: 32px;
-  padding: 0 8px;
-  border: 1px solid var(--dsw-alias-border-l2);
-  border-radius: var(--dsw-radius-control);
-  background: var(--dsw-alias-bg-layer-1);
-}
-
-.wrap:focus-within {
-  border-color: var(--dsw-alias-brand-primary);
-  box-shadow: 0 0 0 3px var(--dsw-alias-focus-ring);
+  gap: 8px;
 }
 
 .icon {
@@ -26,14 +16,4 @@
 .input {
   flex: 1;
   min-width: 0;
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: 14px;
-  line-height: 22px;
-  color: var(--dsw-alias-label-primary);
-}
-
-.input::placeholder {
-  color: var(--dsw-alias-label-dimmed);
 }

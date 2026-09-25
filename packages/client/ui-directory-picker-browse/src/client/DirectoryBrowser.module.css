@@ -49,29 +49,11 @@
   color: var(--dsw-alias-label-primary);
 }
 
-/* The bar IS the editor's box in both modes: it carries the rounded outline
- * and the inner padding, the crumbs and the input sit inside it, and hovering
- * the edit zone lights the whole row rather than the remainder right of the
- * crumbs. The negative left margin pays back the border and padding, so the
- * crumb (and input) text keeps the column the title sits in. */
 .crumbBar {
   display: flex;
   align-items: center;
   gap: 4px;
-  box-sizing: border-box;
-  min-height: 24px;
   margin-left: -9px;
-  padding: 0 8px;
-  border: 1px solid transparent;
-  border-radius: 8px;
-}
-
-/* Lit by the affordance the row belongs to, never by a crumb: a crumb's hover
- * offers navigation, not path entry. Editing keeps the outline standing. */
-.crumbBar:has(.crumbEditZone:enabled:hover),
-.crumbBar:has(.crumbEditZone:focus-visible),
-.crumbBar:has(.pathInput) {
-  border-color: var(--dsw-alias-border-l2);
 }
 
 /* Deep chains scroll inside the trail (the effect pins the tail into view)
@@ -172,19 +154,9 @@
   color: var(--dsw-alias-label-caption);
 }
 
-/* Chrome-free: the bar around it draws the box (border, radius, padding). */
 .pathInput {
-  box-sizing: border-box;
   flex: 1 1 0;
   min-width: 0;
-  height: 22px;
-  padding: 0;
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: 13px;
-  line-height: 20px;
-  color: var(--dsw-alias-label-primary);
 }
 
 /* Miller content: symmetric 16px vertical padding so the divider clears the
@@ -402,21 +374,7 @@
 }
 
 .createInput {
-  box-sizing: border-box;
   width: 100%;
-  height: 44px;
-  padding: 7px 14px;
-  border: 1px solid var(--dsw-alias-border-l2);
-  border-radius: 22px;
-  outline: none;
-  background: transparent;
-  font-size: 14px;
-  line-height: 22px;
-  color: var(--dsw-alias-label-primary);
-}
-
-.createInput::placeholder {
-  color: var(--dsw-alias-label-caption);
 }
 
 .createActions {

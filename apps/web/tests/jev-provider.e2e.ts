@@ -18,6 +18,7 @@ import { saveFailureShot } from './support.ts'
 
 const SNAPSHOT_DIR = fileURLToPath(new URL('./snapshots/jev-provider', import.meta.url))
 const UI_EXPECTED = join(SNAPSHOT_DIR, 'ui.expected.md')
+const SAVED_EXPECTED = join(SNAPSHOT_DIR, 'saved.expected.md')
 const OVERLAY = fileURLToPath(new URL('./jev-provider.overlay.yml', import.meta.url))
 const MODE = webSnapshotMode()
 
@@ -81,6 +82,7 @@ describe('web e2e: optional Jev provider', () => {
     await region.getByLabel('API key', { exact: true }).fill(key)
     await region.getByRole('button', { name: 'Apply', exact: true }).click()
     await expect.poll(() => region.getByRole('heading', { name: 'Jev', exact: true }).count()).toBe(0)
+    await region.getByRole('button', { name: 'Edit Jev', exact: true }).waitFor()
     const resolved = await scaffold.ctx.credentials.resolve(credentialRef('HYDRA_JEV_UI_TEST_KEY'))
     expect(resolved?.value === key).toBe(true)
     expect((await readFile(join(scaffold.harnessHome, 'settings.yaml'), 'utf8')).includes(key)).toBe(false)
@@ -103,6 +105,28 @@ describe('web e2e: optional Jev provider', () => {
       expect(result.answers.visible).toEqual({ type: 'noul', noul: 0.99 })
       expect(sent).toBe(true)
     } finally { mock.mockRestore() }
+  })
+
+  it('keeps the configured Jev row after reload and opens a write-only editor from it', async () => {
+    await saveKey('jev-reload-fixture')
+    await page.reload({ waitUntil: 'load' })
+    await page.waitForSelector('[class*="frame"]', { timeout: 30_000 })
+    const dialog = await openModels(page)
+    const region = dialog.getByRole('region', { name: 'API keys', exact: true })
+    const edit = region.getByRole('button', { name: 'Edit Jev', exact: true })
+    await edit.waitFor()
+    expect(await region.getByRole('img', { name: 'API key configured' }).count()).toBe(1)
+    await compareOrRefreshGolden(
+      SAVED_EXPECTED,
+      await captureStableAria(page, '[role="dialog"]', scaffold.workspaceCwd),
+      MODE,
+    )
+    await edit.click()
+    expect(await region.getByLabel('Provider', { exact: true }).inputValue()).toBe('plugin:jev')
+    expect(await region.getByLabel('API key', { exact: true }).inputValue()).toBe('')
+    await region.getByRole('button', { name: 'Cancel', exact: true }).click()
+    await scaffold.ctx.credentials.unset(credentialRef('HYDRA_JEV_UI_TEST_KEY'))
+    await expect.poll(() => edit.count()).toBe(0)
   })
 
   it('routes the saved credential through the separate browser-decisions plugin', async () => {

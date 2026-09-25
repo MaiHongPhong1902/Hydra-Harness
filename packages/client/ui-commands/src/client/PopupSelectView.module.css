@@ -83,21 +83,6 @@
 
 .search {
   margin: 2px 2px 4px;
-  padding: 6px 8px;
-  border: 1px solid var(--dsw-alias-border-inverted);
-  border-radius: var(--dsw-radius-control);
-  background: transparent;
-  font-size: 13px;
-  color: var(--dsw-alias-label-primary);
-  outline: none;
-  transition:
-    border-color var(--ds-transition-duration-fast) var(--ds-ease-in-out),
-    box-shadow var(--ds-transition-duration-fast) var(--ds-ease-in-out);
-}
-
-.search:focus-visible {
-  border-color: var(--dsw-alias-brand-primary);
-  box-shadow: 0 0 0 2px var(--dsw-alias-focus-ring);
 }
 
 .error {

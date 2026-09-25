@@ -356,7 +356,7 @@ export function ModelListEditor(props: ModelListEditorProps): ReactNode {
       {models.map((model, index) => (
         <div key={index} className={styles['modelEntry']}>
           <div className={styles['modelRow']}>
-            <input
+            <input data-hydra-control="field"
               className={styles['input']}
               type="text"
               value={textOf(model, 'id')}
@@ -365,7 +365,7 @@ export function ModelListEditor(props: ModelListEditorProps): ReactNode {
               disabled={disabled}
               onChange={(event) => { patch(index, { id: event.target.value }) }}
             />
-            <input
+            <input data-hydra-control="field"
               className={styles['input']}
               type="text"
               value={textOf(model, 'name')}
@@ -415,7 +415,7 @@ export function ModelListEditor(props: ModelListEditorProps): ReactNode {
               <div className={styles['modelAdvanced']}>
                 <label className={styles['modelField']}>
                   <span className={styles['modelFieldLabel']}>{t('modelContextWindow')}</span>
-                  <input
+                  <input data-hydra-control="field"
                     className={styles['input']}
                     type="text"
                     inputMode="numeric"
@@ -428,7 +428,7 @@ export function ModelListEditor(props: ModelListEditorProps): ReactNode {
                 </label>
                 <label className={styles['modelField']}>
                   <span className={styles['modelFieldLabel']}>{t('modelMaxTokens')}</span>
-                  <input
+                  <input data-hydra-control="field"
                     className={styles['input']}
                     type="text"
                     inputMode="numeric"

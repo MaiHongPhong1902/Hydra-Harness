@@ -50,7 +50,7 @@ export function LanguageRow({ t, setLocale, useStore }: LanguageRowComponentProp
         align="end"
         portal
         anchor={(
-          <button
+          <button data-hydra-control="field"
             type="button"
             className={css.selector}
             aria-haspopup="menu"

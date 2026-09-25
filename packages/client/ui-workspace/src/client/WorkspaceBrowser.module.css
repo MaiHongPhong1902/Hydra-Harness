@@ -138,32 +138,24 @@
   align-items: center;
   gap: 0;
   width: 100%;
-  height: 28px;
   margin: 0;
+  cursor: text;
+}
+
+.search:not(.searchExpanded) {
+  height: 28px;
   padding: 0;
   box-sizing: border-box;
   border: none;
   border-radius: 50%;
   background: transparent;
-  cursor: text;
   color: var(--dsw-alias-label-secondary);
   overflow: hidden;
-  transition:
-    width 180ms var(--ds-ease-in-out),
-    padding 180ms var(--ds-ease-in-out),
-    border-color 180ms var(--ds-ease-in-out),
-    background-color 180ms var(--ds-ease-in-out);
 }
 
 .searchExpanded {
   width: calc(100% + 4px);
-  height: 30px;
   margin-inline: -2px;
-  padding: 0 4px 0 0;
-  border: 1px solid var(--dsw-alias-border-l2);
-  border-radius: var(--dsw-radius-control);
-  background: transparent;
-  color: var(--dsw-alias-label-caption);
 }
 
 .searchButton {
@@ -182,8 +174,8 @@
 }
 
 .searchExpanded .searchButton {
-  width: 28px;
-  height: 30px;
+  width: 18px;
+  height: 18px;
 }
 
 .searchButton:hover {
@@ -198,25 +190,14 @@
   flex: 1;
   width: 0;
   min-width: 0;
-  border: none;
-  outline: none;
-  background: transparent;
   opacity: 0;
   pointer-events: none;
-  font-size: 13px;
-  line-height: 18px;
-  color: var(--dsw-alias-label-primary);
-  transition: opacity 120ms var(--ds-ease-in-out);
 }
 
 .searchExpanded .searchInput {
-  margin-left: -2px;
+  margin-left: 6px;
   opacity: 1;
   pointer-events: auto;
-}
-
-.searchInput::placeholder {
-  color: var(--dsw-alias-label-tertiary);
 }
 
 .clearButton {
@@ -224,8 +205,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 18px;
+  height: 18px;
   border: none;
   border-radius: 50%;
   padding: 0;
@@ -454,24 +435,8 @@
   font-size: 13px;
 }
 
-/* Rename dialog form (same figma dialog family as the create modals). */
 .renameInput {
-  box-sizing: border-box;
   width: 100%;
-  height: 44px;
-  padding: 7px 14px;
-  border: 1px solid var(--dsw-alias-border-l2);
-  border-radius: 22px;
-  outline: none;
-  background: transparent;
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 22px;
-  color: var(--dsw-alias-label-primary);
-}
-
-.renameInput:disabled {
-  color: var(--dsw-alias-label-dimmed);
 }
 
 .renameError {
@@ -496,11 +461,10 @@
     animation: none;
   }
 
-  .search,
-  .sectionLabel,
-  .searchSlot,
-  .searchInput,
-  .headerActions {
+.search,
+.sectionLabel,
+.searchSlot,
+.headerActions {
     transition: none;
   }
 }

@@ -3,45 +3,12 @@
   min-width: 0;
 }
 
-/* Figma 313:14108 ToggleButton: 13/20 medium secondary label, 4px gap,
-   12px caption chevron; 28px chip height matches the sibling Plan /
-   Read-only selects in the same tool row. */
 .trigger {
   display: flex;
   align-items: center;
-  gap: 4px;
   min-width: 0;
-  /* Legacy fallback, then a row-relative cap that grants long names more
-     room without letting this trailing control consume the composer. */
   max-width: 220px;
   max-width: min(360px, 45cqw);
-  height: 28px;
-  padding: 0 4px 0 8px;
-  border: none;
-  border-radius: var(--dsw-radius-control);
-  outline: none;
-  background: transparent;
-  color: var(--dsw-alias-label-secondary);
-  font-size: 13px;
-  line-height: 20px;
-  font-weight: 500;
-  cursor: pointer;
-  transition:
-    background var(--ds-transition-duration-fast) var(--ds-ease-in-out),
-    color var(--ds-transition-duration-fast) var(--ds-ease-in-out);
-}
-
-.trigger:hover:not(:disabled) {
-  background: var(--dsw-alias-interactive-bg-hover);
-}
-
-.trigger:focus-visible {
-  box-shadow: 0 0 0 2px var(--dsw-alias-focus-ring);
-}
-
-.trigger:disabled {
-  color: var(--dsw-alias-label-dimmed);
-  cursor: default;
 }
 
 .triggerLabel {

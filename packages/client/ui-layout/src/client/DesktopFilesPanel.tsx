@@ -1092,7 +1092,7 @@ export function DesktopFilesPanel(props: {
               }}
             >
               {entry.directory ? <IconFolderClose16 size={15} /> : <FileIcon path={entry.path} />}
-              <input
+              <input data-hydra-control="compact"
                 autoFocus
                 className={css.renameInput}
                 aria-label={`Rename ${entry.name}`}
@@ -1344,7 +1344,7 @@ export function DesktopFilesPanel(props: {
           {!workspaceTreeCollapsed && (
             <>
               <div className={css.filter}>
-                <input
+                <input data-hydra-control="compact"
                   ref={searchRef}
                   type="search"
                   aria-label="Filter workspace files"
@@ -1383,7 +1383,7 @@ export function DesktopFilesPanel(props: {
                     onSubmit={(event) => { event.preventDefault(); void submitCreate() }}
                   >
                     {createDraft.kind === 'directory' ? <IconFolderClose16 size={15} /> : <FileIcon path={createName} />}
-                    <input
+                    <input data-hydra-control="compact"
                       ref={createRef}
                       aria-label={createDraft.kind === 'directory' ? 'New folder name' : 'New file name'}
                       value={createName}
@@ -1669,7 +1669,7 @@ export function DesktopFilesPanel(props: {
         {showGotoLine && (
           <div className={css.gotoLineDialog} role="dialog" aria-label="Go to line">
             <span className={css.gotoLineLabel}>Go to line:</span>
-            <input
+            <input data-hydra-control="compact"
               autoFocus
               type="number"
               min={1}
@@ -1722,7 +1722,7 @@ export function DesktopFilesPanel(props: {
 
         {showFind && document !== undefined && (
           <div className={css.findWidget} role="search" aria-label="Find in file">
-            <input
+            <input data-hydra-control="compact"
               ref={findInputRef}
               type="search"
               className={css.findInput}
@@ -1859,7 +1859,7 @@ export function DesktopFilesPanel(props: {
                       />
                     )}
                 </div>
-                <textarea
+                <textarea data-hydra-control="editor"
                   ref={editorTextareaRef}
                   className={css.code}
                   aria-label={`Editor for ${fileName(document.path)}`}

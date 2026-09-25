@@ -272,18 +272,6 @@
 }
 
 .userMcpForm textarea,
-.userHooksForm textarea,
-.userMcpForm select,
-.userHooksForm select {
-  border: 1px solid var(--dsw-alias-border-l2);
-  border-radius: 6px;
-  padding: 8px 10px;
-  background: var(--dsw-alias-bg-layer-1);
-  color: var(--dsw-alias-label-primary);
-  font: inherit;
-}
-
-.userMcpForm textarea,
 .userHooksForm textarea {
   min-height: 72px;
   resize: vertical;

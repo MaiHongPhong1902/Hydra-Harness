@@ -54,6 +54,27 @@ it('uses the Host credential reference and closes only after successful acknowle
   expect(screen.getByLabelText<HTMLInputElement>('API key').value).toBe('')
 })
 
+it('shows a saved provider only for its confirmed Host credential and reopens its editor', () => {
+  const onEdit = vi.fn()
+  const props = {
+    mode: 'row' as const, onEdit, saveKey: vi.fn(),
+    useSessions: (() => { throw new Error('unused') }) as never,
+    useWorkspaces: (() => { throw new Error('unused') }) as never,
+    useSettings: (() => ({ status: 'ready', error: null, view: {
+      namespaces: [{ ns: 'jev', value: { apiKeyEnv: 'CUSTOM_JEV_KEY', model: 'jev-test' } }],
+    } })) as never,
+  }
+  const { rerender } = render(<JevProviderOption {...props} credentials={{}} />)
+  expect(screen.queryByRole('listitem')).toBeNull()
+  rerender(<JevProviderOption {...props} credentials={{ CUSTOM_JEV_KEY: { configured: true, writable: true } }} />)
+  expect(screen.getByRole('listitem').textContent).toContain('Jev')
+  expect(screen.getByRole('img', { name: 'API key configured' })).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: 'Edit Jev' }))
+  expect(onEdit).toHaveBeenCalledWith('jev')
+  rerender(<JevProviderOption {...props} credentials={{ CUSTOM_JEV_KEY: { configured: false, writable: true } }} />)
+  expect(screen.queryByRole('listitem')).toBeNull()
+})
+
 it('registers the provider slot and saves through the connection API', async () => {
   const register = vi.fn()
   const inject = vi.fn((_: string, factory: () => unknown) => factory())

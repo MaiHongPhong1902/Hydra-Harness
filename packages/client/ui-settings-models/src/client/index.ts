@@ -7,7 +7,7 @@
  * packages/client/AGENTS.md.
  */
 import type { ClientContext } from '@hydra/harness-client-runtime/client'
-import type { ConnectionHandle } from '@hydra/harness-api-remotes/client'
+import type { ConnectionHandle, CredentialView } from '@hydra/harness-api-remotes/client'
 // Type-only: pulls the shell's SlotMap merge (the 'settings.section' entry).
 import type {} from '@hydra/harness-client-ui-settings/client'
 // Type-only: pulls the locale plugin's Context merge (ctx.locale).
@@ -37,13 +37,19 @@ declare module '@hydra/harness-client-ui-slots' {
   }
 
   interface SlotMap {
-    /** Optional provider entries and editor card owned by a settings plugin. */
+    /** Optional provider options, configured rows, and editors owned by settings plugins. */
     'settings.models.provider-option': { kind: 'list'; scope: 'root'; owner: ModelsProviderOptionOwnerProps }
   }
 }
 
-/** Owner props for one optional provider entry in the Models add card. */
+/** Owner props for an optional provider's selection, saved row, or editor. */
 export type ModelsProviderOptionOwnerProps = { mode: 'option' } | {
+  mode: 'row'
+  /** Value-free states from the page's refreshed credential describe. */
+  credentials: Readonly<Record<string, CredentialView>>
+  /** Open the editor for this contribution's registered id. */
+  onEdit: (id: string) => void
+} | {
   mode: 'editor'
   /** Whether the host settings provider is read-only. */
   readOnly: boolean

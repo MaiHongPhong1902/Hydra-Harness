@@ -99,7 +99,7 @@ export function FallbackKeysEditor(props: {
       return <div className={styles['field']} key={row.ref}>
         <span className={styles['fieldLabel']}>{label}</span>
         <div className={styles['keyRow']}>
-          <input className={styles['input']} type="password" autoComplete="off"
+          <input data-hydra-control="field" className={styles['input']} type="password" autoComplete="off"
             aria-label={label} aria-invalid={failure !== undefined}
             disabled={disabled || state?.writable === false} value={row.value}
             placeholder={state?.writable === false ? t('keyEnvLocked') : state?.configured || keys.saved.has(row.ref) ? t('keyStored') : t('keyPlaceholder')}

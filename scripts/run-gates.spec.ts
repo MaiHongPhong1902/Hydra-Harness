@@ -84,6 +84,11 @@ describe('gate graph validation', () => {
     expect(ids).toContain('public-repository-links')
   })
 
+  it.each(['doc-sync', 'ci-primary', 'check-all'] as const)('enforces native control roles in %s', (mode) => {
+    const ids = withPnpmEntrypoint(() => gatesForMode(mode).map(subject => subject.id))
+    expect(ids).toContain('ui-controls')
+  })
+
   it('keeps the hygiene aggregate aligned with the package script checks', () => {
     const ids = withPnpmEntrypoint(() => gatesForMode('hygiene').map(subject => subject.id))
 

@@ -755,7 +755,7 @@ export function InputBar({
             >
               {backdrop}
             </div>
-            <textarea
+            <textarea data-hydra-control="editor"
               ref={inputRef}
               className={css.input}
               value={draft}
@@ -791,7 +791,7 @@ export function InputBar({
         <div className={css.row}>
           <div className={css.tools}>
             <Tooltip label={t('input.commands')} side="top" delayMs={500}>
-              <button
+              <button data-hydra-control="action"
                 type="button"
                 className={css.add}
                 aria-label={t('input.commands')}

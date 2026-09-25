@@ -59,7 +59,7 @@ export function EnterBehaviorRow({ useBusyEnter, setBusyEnter, t }: EnterBehavio
         align="end"
         portal
         anchor={(
-          <button
+          <button data-hydra-control="field"
             type="button"
             className={css.selector}
             aria-haspopup="menu"

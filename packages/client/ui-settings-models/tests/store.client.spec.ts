@@ -77,6 +77,27 @@ function api(overrides: {
 }
 
 describe('ModelsSettingsStore', () => {
+  it('describes non-chat provider credentials without adding LLM directory rows', async () => {
+    let configured = false
+    const { face, mirror, seenRefs } = api({
+      describeSettings: () => Promise.resolve(ok({ writable: true, hasDocument: true, namespaces: [
+        ...NAMESPACES,
+        { ns: 'jev', schema: {}, value: { apiKeyEnv: 'CUSTOM_JEV_KEY' }, applies: 'live', secrets: [], revision: 0 },
+      ] })),
+      describeCredentials: refs => Promise.resolve(ok({
+        credentials: Object.fromEntries(refs.map(ref => [ref, { configured, writable: true }])),
+      })),
+    })
+    const store = new ModelsSettingsStore(face, settingsSchema, mirror)
+    await store.load()
+    expect(seenRefs[0]).toContain('CUSTOM_JEV_KEY')
+    expect(store.store.getSnapshot().credentials['CUSTOM_JEV_KEY']?.configured).toBe(false)
+    configured = true
+    await store.load()
+    expect(store.store.getSnapshot().credentials['CUSTOM_JEV_KEY']?.configured).toBe(true)
+    expect(store.store.getSnapshot().rows.map(row => row.entry.provider)).toEqual(DIRECTORY.map(row => row.provider))
+  })
+
   it('joins rows with configured, removable, and credential state', async () => {
     const { face, mirror, seenRefs } = api()
     const store = new ModelsSettingsStore(face, settingsSchema, mirror)

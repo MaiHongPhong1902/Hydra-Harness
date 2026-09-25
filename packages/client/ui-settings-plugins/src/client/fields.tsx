@@ -69,9 +69,9 @@ export function ValueField(props: FieldProps & {
           )
           : null}
       </div>
-      <input
+      <input data-hydra-control="field"
         id={props.id}
-        className={props.invalid ? css.inputInvalid : css.input}
+        className={css.input}
         type="text"
         {...props.numeric === true ? { inputMode: 'numeric' as const } : {}}
         {...props.invalid ? { 'aria-invalid': true } : {}}
@@ -108,7 +108,7 @@ export function SecretField(props: Pick<FieldProps, 'id' | 'label' | 'hint' | 't
           <span className={props.configured ? css.badge : css.badgeMuted}>{props.stateLabel}</span>
         </span>
       </div>
-      <input
+      <input data-hydra-control="field"
         id={props.id}
         className={css.input}
         type="password"

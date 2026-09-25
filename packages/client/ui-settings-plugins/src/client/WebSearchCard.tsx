@@ -28,13 +28,13 @@ export function WebSearchCard(props: WebSearchCardProps) {
       <div className={css.field} key={id}>
         <label htmlFor={id}>{field.label}</label>
         {field.kind === 'select' ? (
-          <select id={id} value={value?.text ?? ''} disabled={disabled} onChange={(event) => { edit(event.target.value) }}>
+          <select data-hydra-control="field" id={id} value={value?.text ?? ''} disabled={disabled} onChange={(event) => { edit(event.target.value) }}>
             {field.options?.map(option => <option key={option} value={option}>{option}</option>)}
           </select>
         ) : field.kind === 'json' ? (
-          <textarea id={id} value={value?.text ?? ''} disabled={disabled} rows={3} onChange={(event) => { edit(event.target.value) }} />
+          <textarea data-hydra-control="field" id={id} value={value?.text ?? ''} disabled={disabled} rows={3} onChange={(event) => { edit(event.target.value) }} />
         ) : (
-          <input id={id} type={field.kind === 'number' ? 'number' : 'text'} min={field.kind === 'number' ? 1 : undefined}
+          <input data-hydra-control="field" id={id} type={field.kind === 'number' ? 'number' : 'text'} min={field.kind === 'number' ? 1 : undefined}
             value={value?.text ?? ''} disabled={disabled} aria-invalid={value?.invalid || undefined}
             onChange={(event) => { edit(event.target.value) }} />
         )}
@@ -55,7 +55,7 @@ export function WebSearchCard(props: WebSearchCardProps) {
       </label>
       <div className={css.field}>
         <label htmlFor="search-provider">Search Provider</label>
-        <select id="search-provider" value={state.provider} disabled={disabled}
+        <select data-hydra-control="field" id="search-provider" value={state.provider} disabled={disabled}
           onChange={(event) => { setReplacing(false); props.edit('provider', event.target.value) }}>
           <option value="">Select provider…</option>
           {state.providers.map(provider => <option key={provider.id} value={provider.id}>{provider.displayName}</option>)}
@@ -68,7 +68,7 @@ export function WebSearchCard(props: WebSearchCardProps) {
             <div className={css.field}>
               <label htmlFor="search-api-key">API Key / Header Value</label>
               <span>{state.apiKey.cleared ? 'Removal pending Save' : state.apiKeyConfigured ? 'Configured' : 'Not configured'}</span>
-              <input id="search-api-key" type="password" autoComplete="off" placeholder={state.apiKeyConfigured ? '••••••••••••••••' : ''}
+              <input data-hydra-control="field" id="search-api-key" type="password" autoComplete="off" placeholder={state.apiKeyConfigured ? '••••••••••••••••' : ''}
                 value={state.apiKey.text} disabled={!state.enabled || !state.apiKeyWritable || (state.apiKeyConfigured && !replacing)}
                 onChange={(event) => { props.editProvider('apiKey', event.target.value) }} />
               <div className={css.actions}>

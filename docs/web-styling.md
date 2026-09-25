@@ -18,6 +18,24 @@ Global style sheets belong in `ui-theme/src/styles/`. Component styles live besi
 - Put presentation in CSS. Inline React styles may pass component-local custom-property values but must not encode theme branches.
 - Preserve keyboard focus visibility and reduced-motion behavior when adding transitions or hover-only controls.
 
+## Form controls and dropdowns
+
+Native text inputs, selects, textareas, and value-picker buttons declare `data-hydra-control`. [`controls.css`](../packages/client/ui-theme/src/styles/controls.css) owns their border, fill, radius, typography, and interaction states. Feature CSS owns width, flex layout, textarea extent, and space reserved for an adjacent icon; it must not redefine the shared chrome.
+
+| Value | Use |
+|---|---|
+| `field` | Settings and dialogs: minimum 32px height, 14px/22px text. |
+| `compact` | Toolbars, composer pickers, and panel filters: minimum 28px height, 12px/18px text. |
+| `embedded` | An input inside a `field` or `compact` wrapper, including the shared `Input` primitive. The wrapper owns focus, disabled, and invalid styling. |
+| `editor` | Textareas whose editor owns glyph measurement, mirrored highlights, or bubble layout. Preserve their editor styling and keyboard behavior. |
+| `action` | A menu trigger that performs actions rather than selecting a value. Keep its button styling and accessible name. |
+
+Checkboxes, radios, file pickers, sliders, color pickers, hidden inputs, and submit/reset buttons keep their native or existing primitive styling. Every other native field must choose a supported role; `pnpm run verify-ui-controls` checks production TSX during `doc-sync` and CI. The gate checks declarations, while review checks that `editor`, `embedded`, and `action` match the control's actual purpose.
+
+Use native `select` for simple choices. Keep its native arrow and platform popup; do not draw a second arrow. Rich menus use the shared `Menu` or an existing specialized picker, with `aria-haspopup`, `aria-expanded`, Escape dismissal, and keyboard-operable items. Popup surfaces consume the menu fill, panel radius, inverted border, and level-three shadow tokens.
+
+Associate each field with a label or accessible name. Link explanatory or error text with `aria-describedby` when needed; report invalid values through `aria-invalid` and visible text, not color alone. Shared controls retain a visible keyboard focus ring, use native `disabled` for unavailable input, and keep read-only values legible. Validate both themes and narrow layouts with the real assembled browser UI; do not replace native editing behavior to achieve visual consistency.
+
 ## Changing the system
 
 Add or change a shared token in the owning `ui-theme` sheet, then consume its semantic alias from feature packages. Update the owning package reference when a public styling contract changes. Visual behavior follows the [testing policy](testing.md); the [styling-system Agent Note](../.agents/notes/implemented/process/2026-07-19-web-styling-system.md) records framework rationale.

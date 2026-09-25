@@ -729,7 +729,7 @@ function CatalogDropdown({
       onMouseLeave={scheduleHoverClose}
     >
       {separator && <span className={css.separator}>/</span>}
-      <button
+      <button data-hydra-control="compact"
         ref={triggerRef}
         type="button"
         className={variant === 'switcher'

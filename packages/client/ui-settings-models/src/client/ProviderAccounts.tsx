@@ -194,12 +194,12 @@ export function ProviderAccounts({ flowKey, api, t, disabled, onBusy }: Provider
       }}>
         <label className={styles['fieldLabel']} htmlFor={`auth-${prompt.id}`}>{prompt.message}</label>
         {prompt.kind === 'select'
-          ? <select id={`auth-${prompt.id}`} className={`${styles['input']} ${styles['selectInput']}`} value={answer} disabled={busy}
+          ? <select data-hydra-control="field" id={`auth-${prompt.id}`} className={styles['input']} value={answer} disabled={busy}
             onChange={(event) => { setAnswer(event.target.value) }}>
             <option value="">{t('accountChoose')}</option>
             {prompt.options?.map(option => <option key={option.id} value={option.id}>{option.label}</option>)}
           </select>
-          : <input id={`auth-${prompt.id}`} className={styles['input']} type={prompt.kind === 'secret' ? 'password' : 'text'}
+          : <input data-hydra-control="field" id={`auth-${prompt.id}`} className={styles['input']} type={prompt.kind === 'secret' ? 'password' : 'text'}
             autoComplete="off" value={answer} placeholder={prompt.placeholder} disabled={busy}
             onChange={(event) => { setAnswer(event.target.value) }} />}
         <button type="submit" className={styles['secondaryButton']} disabled={busy || answer.trim().length === 0}>{t('accountContinue')}</button>

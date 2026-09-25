@@ -1,0 +1,52 @@
+- dialog "Settings":
+  - navigation:
+    - text: Settings
+    - button "General":
+      - img
+      - text: General
+    - button "Personalization":
+      - img
+      - text: Personalization
+    - button "Models":
+      - img
+      - text: Models
+    - button "Web Search":
+      - img
+      - text: Web Search
+    - button "Usage"
+    - button "Plugins":
+      - img
+      - text: Plugins
+    - button "Agent presets":
+      - img
+      - text: Agent presets
+    - button "Archived sessions":
+      - img
+      - text: Archived sessions
+  - button "Open configuration file"
+  - button "Close":
+    - img
+    - text: Close
+  - heading "Models" [level=2]
+  - paragraph: Sign in with your accounts or enter API keys to use models from these providers.
+  - region "API keys":
+    - heading "API keys" [level=3]
+    - paragraph: Configure provider API keys and optional fallback keys.
+    - list:
+      - listitem:
+        - text: Jev
+        - img "API key configured"
+        - button "Edit Jev": Edit
+    - button "Add provider":
+      - img
+      - text: Add provider
+    - button "Add a custom provider":
+      - img
+      - text: Add a custom provider
+  - region "Account sign-in":
+    - heading "Account sign-in" [level=3]
+    - paragraph: Connect ChatGPT or Google Antigravity accounts independently of your API keys.
+    - list
+    - button "Add sign-in provider":
+      - img
+      - text: Add sign-in provider

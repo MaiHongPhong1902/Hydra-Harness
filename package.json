@@ -105,6 +105,7 @@
     "rescope-vendor": "tsx scripts/rescope-vendor.ts",
     "rescope-vendor:check": "tsx scripts/rescope-vendor.ts --check",
     "verify-client-domain-graph": "tsx scripts/verify-client-domain-graph.ts",
+    "verify-ui-controls": "tsx scripts/verify-ui-controls.ts",
     "gen-cordis-catalog": "tsx scripts/gen-cordis-catalog.ts",
     "verify-cordis-catalog": "tsx scripts/gen-cordis-catalog.ts --check",
     "gen-cordis-api": "tsx scripts/gen-cordis-api.ts",

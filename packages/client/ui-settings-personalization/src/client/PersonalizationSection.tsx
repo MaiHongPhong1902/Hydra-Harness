@@ -153,7 +153,7 @@ export function PersonalizationSection(props: PersonalizationSectionProps): Reac
                 {saving ? t('saving') : t('save')}
               </button>
             </div>
-            <textarea
+            <textarea data-hydra-control="field"
               aria-label={t('instructionsTitle')}
               className={css.textarea}
               value={instructions.draft}
@@ -186,7 +186,7 @@ export function PersonalizationSection(props: PersonalizationSectionProps): Reac
           <div className={css.group}>
             <p className={css.groupDesc}>{t('personalityDescription')}</p>
             <div className={css.personalityRow}>
-              <select
+              <select data-hydra-control="field"
                 aria-label={t('personalityTitle')}
                 className={css.select}
                 value={selectedPersonality}

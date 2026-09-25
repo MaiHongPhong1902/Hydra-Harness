@@ -244,15 +244,7 @@
 }
 
 .versionPicker select {
-  min-width: 0;
   flex: 1;
-  height: 26px;
-  padding: 0 8px;
-  border: 1px solid var(--dsw-alias-border-l2);
-  border-radius: 7px;
-  background: transparent;
-  color: var(--dsw-alias-label-secondary);
-  font: inherit;
 }
 
 .rowPurpose {

@@ -1029,6 +1029,7 @@ export function WorkspaceBrowser({
           <div className={clsx(css.searchSlot, searchExpanded && css.searchSlotExpanded)}>
             <div
               ref={searchRoot}
+              data-hydra-control={searchExpanded ? 'compact' : undefined}
               className={clsx(css.search, searchExpanded && css.searchExpanded)}
               onClick={() => {
                 setWsPickerOpen(false)
@@ -1050,7 +1051,7 @@ export function WorkspaceBrowser({
                   <IconSearchOutline16 size={searchExpanded ? 11 : 14} />
                 </button>
               </Tooltip>
-              <input
+              <input data-hydra-control="embedded"
                 ref={searchInput}
                 className={css.searchInput}
                 type="text"
@@ -1232,7 +1233,7 @@ export function WorkspaceBrowser({
           </>
         )}
       >
-        <input
+        <input data-hydra-control="field"
           className={css.renameInput}
           value={renameDraft}
           aria-label={t('field.workspaceName')}
@@ -1267,7 +1268,7 @@ export function WorkspaceBrowser({
           </>
         )}
       >
-        <input
+        <input data-hydra-control="field"
           className={css.renameInput}
           value={sessionRenameDraft}
           aria-label={t('field.sessionName')}

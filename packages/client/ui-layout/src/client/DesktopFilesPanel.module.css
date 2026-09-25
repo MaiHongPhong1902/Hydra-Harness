@@ -106,18 +106,6 @@
 .filter input {
   width: 100%;
   min-width: 0;
-  height: 25px;
-  padding: 0 8px;
-  border: 1px solid var(--dsw-alias-border-l1);
-  border-radius: 5px;
-  outline: none;
-  color: var(--dsw-alias-label-primary);
-  background: var(--dsw-alias-bg-base);
-  font: var(--dsw-font-xxs-12);
-}
-
-.filter input:focus-visible {
-  border-color: var(--dsw-alias-focus-ring);
 }
 
 .tree {
@@ -144,14 +132,6 @@
 
 .createRow input {
   min-width: 0;
-  height: 24px;
-  padding: 0 5px;
-  border: 1px solid var(--dsw-alias-focus-ring);
-  border-radius: 3px;
-  outline: none;
-  color: var(--dsw-alias-label-primary);
-  background: var(--dsw-alias-bg-base);
-  font: var(--dsw-font-xxs-12);
 }
 
 .createRow button {
@@ -810,14 +790,6 @@
 .renameRow input {
   flex: 1;
   min-width: 0;
-  height: 22px;
-  padding: 0 4px;
-  border: 1px solid var(--dsw-alias-focus-ring);
-  border-radius: 3px;
-  color: var(--dsw-alias-label-primary);
-  background: var(--dsw-alias-bg-base);
-  font: var(--dsw-font-xxs-12);
-  outline: none;
 }
 
 .renameRow button {
@@ -1197,18 +1169,6 @@
 
 .gotoLineInput {
   width: 70px;
-  height: 22px;
-  padding: 0 5px;
-  border: 1px solid var(--dsw-alias-border-l1);
-  border-radius: 3px;
-  background: var(--dsw-alias-bg-base);
-  color: var(--dsw-alias-label-primary);
-  font: 11px/1.55 monospace;
-  outline: none;
-}
-
-.gotoLineInput:focus {
-  border-color: var(--dsw-alias-focus-ring);
 }
 
 .gotoLineBtn {
@@ -1247,18 +1207,6 @@
 
 .findInput {
   width: 140px;
-  height: 22px;
-  padding: 0 6px;
-  border: 1px solid var(--dsw-alias-border-l1);
-  border-radius: 3px;
-  background: var(--dsw-alias-bg-base);
-  color: var(--dsw-alias-label-primary);
-  font: 11px/1.55 monospace;
-  outline: none;
-}
-
-.findInput:focus {
-  border-color: var(--dsw-alias-focus-ring);
 }
 
 .findMatchesCount {

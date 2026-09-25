@@ -376,7 +376,7 @@ export const UserMessageNodeView = memo(function UserMessageNodeView({
         <form aria-label={t('message.editPrompt')} aria-busy={sending}
           onSubmit={(event) => { event.preventDefault(); void send() }}>
           <div className={css.editHeading}>{t('message.editPrompt')}</div>
-          <textarea
+          <textarea data-hydra-control="editor"
             ref={textarea}
             className={css.editText}
             aria-label={t('message.editPrompt')}

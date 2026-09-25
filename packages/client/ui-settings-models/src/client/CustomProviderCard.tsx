@@ -202,7 +202,7 @@ export function CustomProviderCard(props: CustomProviderCardProps): ReactNode {
       </div>
       <div className={styles['field']}>
         <span className={styles['fieldLabel']}>{t('customRoute')}</span>
-        <input
+        <input data-hydra-control="field"
           className={styles['input']}
           type="text"
           value={route}
@@ -219,7 +219,7 @@ export function CustomProviderCard(props: CustomProviderCardProps): ReactNode {
         : <p className={styles['advancedHint']}>{t('customRouteHint')}</p>}
       <div className={styles['field']}>
         <span className={styles['fieldLabel']}>{t('customDisplayName')}</span>
-        <input
+        <input data-hydra-control="field"
           className={styles['input']}
           type="text"
           value={displayName}
@@ -231,7 +231,7 @@ export function CustomProviderCard(props: CustomProviderCardProps): ReactNode {
       </div>
       <div className={styles['field']}>
         <span className={styles['fieldLabel']}>{t('baseUrl')}</span>
-        <input
+        <input data-hydra-control="field"
           className={styles['input']}
           type="text"
           value={baseURL}
@@ -243,7 +243,7 @@ export function CustomProviderCard(props: CustomProviderCardProps): ReactNode {
       </div>
       <div className={styles['field']}>
         <span className={styles['fieldLabel']}>{t('proxy')}</span>
-        <input
+        <input data-hydra-control="field"
           className={styles['input']}
           type="text"
           value={proxy}
@@ -255,8 +255,8 @@ export function CustomProviderCard(props: CustomProviderCardProps): ReactNode {
       </div>
       <div className={styles['field']}>
         <span className={styles['fieldLabel']}>{t('customApi')}</span>
-        <select
-          className={`${styles['input']} ${styles['selectInput']}`}
+        <select data-hydra-control="field"
+          className={styles['input']}
           value={protocol}
           aria-label={t('customApi')}
           disabled={profileDisabled}
@@ -267,7 +267,7 @@ export function CustomProviderCard(props: CustomProviderCardProps): ReactNode {
       </div>
       <div className={styles['field']}>
         <span className={styles['fieldLabel']}>{t('keyInput')}</span>
-        <input
+        <input data-hydra-control="field"
           className={styles['input']}
           type="password"
           autoComplete="off"

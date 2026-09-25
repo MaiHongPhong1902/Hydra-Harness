@@ -111,7 +111,7 @@ function CopyDialog({ state, t, actions }: CopyDialogProps): ReactNode {
           <div className={css.dialogFields}>
             <label className={css.field}>
               <span className={css.fieldLabel}>{t('presetId')}</span>
-              <input
+              <input data-hydra-control="field"
                 className={css.input}
                 value={draft.id}
                 autoFocus
@@ -122,7 +122,7 @@ function CopyDialog({ state, t, actions }: CopyDialogProps): ReactNode {
             </label>
             <label className={css.field}>
               <span className={css.fieldLabel}>{t('displayName')}</span>
-              <input
+              <input data-hydra-control="field"
                 className={css.input}
                 value={draft.name}
                 spellCheck={false}

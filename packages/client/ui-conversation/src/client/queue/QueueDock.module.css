@@ -122,12 +122,16 @@
   box-shadow: inset 0 1px 0 var(--dsw-alias-border-l1);
 }
 
-.preview,
-.editor {
+.preview {
   flex: 1 1 auto;
   min-width: 0;
   font: var(--dsw-font-xs-13);
   font-family: Inter, var(--dsw-font-family);
+}
+
+.editor {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .preview {
@@ -136,21 +140,6 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   word-break: break-word;
-}
-
-.editor {
-  box-sizing: border-box;
-  height: 28px;
-  padding: 0 8px;
-  border: 1px solid var(--dsw-alias-border-l2);
-  border-radius: 6px;
-  outline: none;
-  background: var(--dsw-alias-bg-base);
-  color: var(--dsw-alias-label-primary);
-}
-
-.editor:focus {
-  border-color: var(--dsw-alias-state-business-primary);
 }
 
 .actions {

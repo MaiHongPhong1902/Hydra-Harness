@@ -350,7 +350,7 @@ export function ProviderEditor(props: ProviderEditorProps): ReactNode {
       <>
         <div className={styles['field']}>
           <span className={styles['fieldLabel']}>{t('keyInput')}</span>
-          <input
+          <input data-hydra-control="field"
             className={styles['input']}
             type="password"
             autoComplete="off"
@@ -374,7 +374,7 @@ export function ProviderEditor(props: ProviderEditorProps): ReactNode {
               ? (
                 <div className={styles['field']}>
                   <span className={styles['fieldLabel']}>{t('customDisplayName')}</span>
-                  <input
+                  <input data-hydra-control="field"
                     className={styles['input']}
                     type="text"
                     value={stringAt(draft, 'displayName') ?? ''}
@@ -396,7 +396,7 @@ export function ProviderEditor(props: ProviderEditorProps): ReactNode {
               : null}
             <div className={styles['field']}>
               <span className={styles['fieldLabel']}>{t('baseUrl')}</span>
-              <input
+              <input data-hydra-control="field"
                 className={styles['input']}
                 type="text"
                 value={stringAt(draft, 'baseURL') ?? ''}
@@ -412,7 +412,7 @@ export function ProviderEditor(props: ProviderEditorProps): ReactNode {
             </div>
             <div className={styles['field']}>
               <span className={styles['fieldLabel']}>{t('proxy')}</span>
-              <input
+              <input data-hydra-control="field"
                 className={styles['input']}
                 type="text"
                 value={stringAt(draft, 'proxy') ?? ''}
@@ -430,8 +430,8 @@ export function ProviderEditor(props: ProviderEditorProps): ReactNode {
               ? (
                 <div className={styles['field']}>
                   <span className={styles['fieldLabel']}>{t('customApi')}</span>
-                  <select
-                    className={`${styles['input']} ${styles['selectInput']}`}
+                  <select data-hydra-control="field"
+                    className={styles['input']}
                     value={probeApi ?? ''}
                     aria-label={t('customApi')}
                     disabled={disabled}

@@ -113,7 +113,7 @@ export function PopupSelectView({ popup, t }: PopupSelectViewProps) {
           aria-label={t('overlay.aria', { command: String(state.command) })}
           onKeyDown={onKeyDown}
         >
-          <input
+          <input data-hydra-control="field"
             ref={searchRef}
             className={css.search}
             type="text"

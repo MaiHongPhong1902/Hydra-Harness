@@ -49,24 +49,6 @@
 .annotationComment {
   min-width: 0;
   width: 100%;
-  padding: 0;
-  border: none;
-  outline: none;
-  background: transparent;
-  color: var(--dsw-alias-label-secondary);
-  font: inherit;
-  font-size: 12px;
-  line-height: 16px;
-}
-
-.annotationComment::placeholder {
-  color: var(--dsw-alias-label-tertiary);
-}
-
-.annotationComment:focus-visible {
-  outline: 2px solid var(--dsw-alias-focus-ring);
-  outline-offset: 2px;
-  border-radius: 3px;
 }
 
 .annotationRemove {

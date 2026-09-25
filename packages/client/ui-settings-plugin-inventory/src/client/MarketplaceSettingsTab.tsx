@@ -325,7 +325,7 @@ export function MarketplaceSettingsTab({
             onChange={(event) => { setGitRef(event.currentTarget.value) }}
           />
           <label htmlFor="marketplace-sparse-paths">{t('marketplaceSparsePaths')}</label>
-          <textarea
+          <textarea data-hydra-control="field"
             id="marketplace-sparse-paths"
             rows={4}
             value={sparsePaths}

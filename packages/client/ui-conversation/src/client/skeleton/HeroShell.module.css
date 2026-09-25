@@ -98,33 +98,14 @@
   padding-left: 8px;
 }
 
-/* Folder + label + chevron — transparent at rest; fill only on hover / open. */
 .workspace {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
   max-width: min(100%, 360px);
-  min-height: 28px;
-  padding: 0 8px;
-  border: none;
-  border-radius: 16px;
-  background: transparent;
-  color: var(--dsw-alias-label-primary);
-  font-size: 13px;
-  line-height: 20px;
-  font-weight: 500;
-  cursor: pointer;
 }
 
-.workspace:not(:disabled):hover,
 .workspace[aria-expanded='true'] {
   background: var(--dsw-alias-interactive-bg-hover);
-}
-
-/* Locked form (bound guidance state): a static echo — no hover feedback, no
-   pointer affordance; label keeps full contrast. */
-.workspace:disabled {
-  cursor: default;
 }
 
 .folder {

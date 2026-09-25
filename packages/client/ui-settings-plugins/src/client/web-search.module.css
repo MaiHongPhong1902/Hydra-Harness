@@ -4,8 +4,17 @@
 .section p, .section small { color: var(--dsw-alias-label-secondary); line-height: 1.5; }
 .field { display: flex; flex-direction: column; gap: 8px; padding: 12px 0; min-width: 0; }
 .field label { font-size: 13px; font-weight: 500; }
-.field input, .field select, .field textarea { box-sizing: border-box; min-width: 0; width: 100%; border: 1px solid var(--dsw-alias-border-l2); border-radius: 8px; background: var(--dsw-alias-bg-layer-3); color: inherit; font: inherit; padding: 8px 12px; }
-.field textarea { resize: vertical; }
+
+.field input,
+.field select,
+.field textarea {
+  min-width: 0;
+  width: 100%;
+}
+
+.field textarea {
+  resize: vertical;
+}
 .field :focus-visible, .actions button:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: 2px; }
 .toggle, .actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
 .actions button { border: 1px solid var(--dsw-alias-border-l2); border-radius: 8px; background: var(--dsw-alias-bg-layer-3); color: inherit; padding: 8px 14px; cursor: pointer; }

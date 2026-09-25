@@ -62,7 +62,6 @@
   transition: border-color .16s, background .16s;
 }
 
-
 .card:hover:not(.cardActive) {
   border-color: var(--dsw-alias-label-dimmed);
 }
@@ -288,7 +287,6 @@
   cursor: pointer;
 }
 
-
 .secondaryButton:hover:not(:disabled) {
   background: var(--dsw-alias-bg-layer-1);
 }
@@ -308,26 +306,6 @@
   font-size: 12px;
   font-weight: 500;
   color: var(--dsw-alias-label-secondary);
-}
-
-.input {
-  box-sizing: border-box;
-  padding: 9px 12px;
-  border: 1px solid var(--dsw-alias-border-l2);
-  border-radius: 10px;
-  font: inherit;
-  font-size: 13px;
-  background: var(--dsw-alias-bg-layer-1);
-  color: var(--dsw-alias-label-primary);
-}
-
-.input:focus {
-  outline: none;
-  border-color: var(--dsw-alias-brand-primary);
-}
-
-.input::placeholder {
-  color: var(--dsw-alias-label-dimmed);
 }
 
 .dialog {
@@ -406,4 +384,7 @@
 .creatorButton:disabled {
   opacity: 0.4;
   cursor: default;
+}
+.input {
+  width: 100%;
 }

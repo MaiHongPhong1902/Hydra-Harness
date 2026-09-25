@@ -1423,8 +1423,8 @@ export const CLIENT_SLOT_API: readonly ClientSlotEntry[] = [
     key: 'settings.models.provider-option',
     kind: 'list',
     scope: 'root',
-    summary: 'Optional provider entries and editor card owned by a settings plugin.',
-    doc: 'Optional provider entries and editor card owned by a settings plugin.',
+    summary: 'Optional provider options, configured rows, and editors owned by settings plugins.',
+    doc: 'Optional provider options, configured rows, and editors owned by settings plugins.',
     registerOptions: [
       {
         name: 'id',
@@ -1446,9 +1446,11 @@ export const CLIENT_SLOT_API: readonly ClientSlotEntry[] = [
       },
     ],
     ownerProps: [
-      '/** Owner props for one optional provider entry in the Models add card. */\nexport type ModelsProviderOptionOwnerProps = { mode: \'option\' } | {\n  mode: \'editor\'\n  /** Whether the host settings provider is read-only. */\n  readOnly: boolean\n  /** Close the editor and report whether it committed a change. */\n  onClose: (changed: boolean) => void\n}',
+      '/** Owner props for an optional provider\'s selection, saved row, or editor. */\nexport type ModelsProviderOptionOwnerProps = { mode: \'option\' } | {\n  mode: \'row\'\n  /** Value-free states from the page\'s refreshed credential describe. */\n  credentials: Readonly<Record<string, CredentialView>>\n  /** Open the editor for this contribution\'s registered id. */\n  onEdit: (id: string) => void\n} | {\n  mode: \'editor\'\n  /** Whether the host settings provider is read-only. */\n  readOnly: boolean\n  /** Close the editor and report whether it committed a change. */\n  onClose: (changed: boolean) => void\n}',
     ],
-    ownerPropsReferences: [],
+    ownerPropsReferences: [
+      'CredentialView',
+    ],
     standardProps: [
       'useSessions: SnapshotSelectorHook<SessionListState>',
       'useWorkspaces: SnapshotSelectorHook<import(\'./workspaces/service.ts\').WorkspaceListState>',

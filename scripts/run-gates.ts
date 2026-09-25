@@ -677,6 +677,7 @@ function docSyncLeafGates(options: {
     pnpmScript('scoped-events', 'verify-scoped-events', { label: 'scoped events' }),
     pnpmScript('markdown-wrap', 'verify-md-wrap', { label: 'markdown wrap' }),
     pnpmScript('client-catalog', 'verify-client-catalog', { label: 'client catalog' }),
+    pnpmScript('ui-controls', 'verify-ui-controls', { label: 'UI controls' }),
     pnpmScript('export-jsdoc', 'verify-export-jsdoc', { label: 'export jsdoc' }),
     pnpmScript('tool-catalog', 'verify-tool-catalog', { label: 'tool catalog' }),
     pnpmScript('config-catalog', 'verify-config-catalog', { label: 'config catalog' }),

@@ -47,7 +47,7 @@ export function WorkspaceChip({ buttonRef, label, menuOpen = false, disabled = f
   t: HeroTranslate
 }) {
   return (
-    <button
+    <button data-hydra-control="compact"
       ref={buttonRef}
       type="button"
       className={css.workspace}

@@ -340,7 +340,7 @@ export function McpServerCatalog({ active = true, controls, query, t }: {
               onChange={(event) => { setDraft({ ...draft, name: event.currentTarget.value }) }}
             />
             <label htmlFor="user-mcp-transport">{t('userMcpTransport')}</label>
-            <select
+            <select data-hydra-control="field"
               id="user-mcp-transport"
               value={draft.transport}
               disabled={saving}
@@ -364,7 +364,7 @@ export function McpServerCatalog({ active = true, controls, query, t }: {
                   onChange={(event) => { setDraft({ ...draft, command: event.currentTarget.value }) }}
                 />
                 <label htmlFor="user-mcp-args">{t('userMcpArgs')}</label>
-                <textarea
+                <textarea data-hydra-control="field"
                   id="user-mcp-args"
                   rows={3}
                   value={draft.args}
@@ -381,7 +381,7 @@ export function McpServerCatalog({ active = true, controls, query, t }: {
                   onChange={(event) => { setDraft({ ...draft, cwd: event.currentTarget.value }) }}
                 />
                 <label htmlFor="user-mcp-env">{t('userMcpEnv')}</label>
-                <textarea
+                <textarea data-hydra-control="field"
                   id="user-mcp-env"
                   rows={3}
                   value={draft.env}
@@ -404,7 +404,7 @@ export function McpServerCatalog({ active = true, controls, query, t }: {
                   onChange={(event) => { setDraft({ ...draft, url: event.currentTarget.value }) }}
                 />
                 <label htmlFor="user-mcp-headers">{t('userMcpHeaders')}</label>
-                <textarea
+                <textarea data-hydra-control="field"
                   id="user-mcp-headers"
                   rows={3}
                   value={draft.headers}

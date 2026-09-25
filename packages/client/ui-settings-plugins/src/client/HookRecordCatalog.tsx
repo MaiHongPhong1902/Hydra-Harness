@@ -317,7 +317,7 @@ export function HookRecordCatalog({ active = true, controls, query, t }: {
               onChange={(event) => { setDraft({ ...draft, name: event.currentTarget.value }) }}
             />
             <label htmlFor="user-hooks-dialect">{t('userHooksDialect')}</label>
-            <select
+            <select data-hydra-control="field"
               id="user-hooks-dialect"
               value={draft.dialect}
               disabled={saving}
@@ -329,7 +329,7 @@ export function HookRecordCatalog({ active = true, controls, query, t }: {
               <option value="codex">{t('userHooksDialectCodex')}</option>
             </select>
             <label htmlFor="user-hooks-source">{t('userHooksSource')}</label>
-            <select
+            <select data-hydra-control="field"
               id="user-hooks-source"
               value={draft.source}
               disabled={saving}
@@ -356,7 +356,7 @@ export function HookRecordCatalog({ active = true, controls, query, t }: {
             ) : (
               <>
                 <label htmlFor="user-hooks-config">{t('userHooksConfig')}</label>
-                <textarea
+                <textarea data-hydra-control="field"
                   id="user-hooks-config"
                   rows={8}
                   value={draft.config}

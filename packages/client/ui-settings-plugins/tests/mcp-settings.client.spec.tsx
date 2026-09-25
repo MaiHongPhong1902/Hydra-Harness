@@ -40,17 +40,18 @@ function acceptWrites(host: StubSettingsScope<McpSettings>): void {
 
 function credentialApi(configured = false) {
   let hasKey = configured
-  const describe = vi.fn(() => Promise.resolve({
-    rpcId: 'mcp-read' as never,
-    result: {
-      ok: true as const,
-      value: {
-        credentials: {
-          [MCP_API_KEY_REF]: { configured: hasKey, writable: true },
-        } as Record<string, { configured: boolean; writable: boolean }>,
+  const describe = vi.fn(() => {
+    const credentials: Record<string, { configured: boolean; writable: boolean }> = {
+      [MCP_API_KEY_REF]: { configured: hasKey, writable: true },
+    }
+    return Promise.resolve({
+      rpcId: 'mcp-read' as never,
+      result: {
+        ok: true as const,
+        value: { credentials },
       },
-    },
-  }))
+    })
+  })
   const set = vi.fn(() => {
     hasKey = true
     return Promise.resolve({ rpcId: 'mcp-write' as never, result: { ok: true as const, value: {} } })

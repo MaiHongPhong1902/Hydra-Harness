@@ -15,30 +15,11 @@
 .switcherTrigger {
   display: inline-flex;
   align-items: center;
-  min-height: 28px;
-  padding: 3px 2px;
-  border: 0;
-  border-radius: var(--dsw-radius-control);
-  background: transparent;
-  color: var(--dsw-alias-label-tertiary);
-  font-size: 12px;
-  line-height: 18px;
-  cursor: pointer;
-  transition:
-    background var(--ds-transition-duration-fast) var(--ds-ease-in-out),
-    color var(--ds-transition-duration-fast) var(--ds-ease-in-out);
-}
-
-.trigger {
-  gap: 4px;
 }
 
 .switcherTrigger {
-  gap: 4px;
   min-width: 0;
   max-width: 244px;
-  color: var(--dsw-alias-label-primary);
-  font-weight: 500;
 }
 
 .ancestorSwitcherTrigger {
@@ -69,16 +50,6 @@
   flex: none;
   width: 10px;
   height: 10px;
-}
-
-.trigger:hover,
-.trigger:focus-visible {
-  color: var(--dsw-alias-label-secondary);
-}
-
-.switcherTrigger:hover,
-.switcherTrigger:focus-visible {
-  color: var(--dsw-alias-label-primary);
 }
 
 .ancestorSwitcherTrigger:hover,

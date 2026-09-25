@@ -442,6 +442,16 @@ function Loaded({ injected }: { injected: ModelsSectionFace }): ReactNode {
                   </li>
                 )
               })}
+              {accountGroup ? null : renderSlot('settings.models.provider-option', {
+                mode: 'row', credentials: state.credentials,
+                onEdit: (id) => {
+                  setSavedTarget(undefined)
+                  setEditing(undefined)
+                  setDeclaring(false)
+                  setAdding(true)
+                  setAddingOption(id)
+                },
+              })}
             </ul>
             <div className={styles['addBlock']}>
               {showAdd
@@ -449,8 +459,8 @@ function Loaded({ injected }: { injected: ModelsSectionFace }): ReactNode {
                   <div className={styles['addCard']}>
                     <div className={styles['field']}>
                       <span className={styles['fieldLabel']}>{t('provider')}</span>
-                      <select
-                        className={`${styles['input']} ${styles['selectInput']}`}
+                      <select data-hydra-control="field"
+                        className={styles['input']}
                         value={addingOption === undefined ? addTarget?.provider ?? '' : `plugin:${addingOption}`}
                         aria-label={t('provider')}
                         onChange={(event) => {

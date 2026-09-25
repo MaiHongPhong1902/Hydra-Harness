@@ -293,7 +293,7 @@ export function MessageFeedbackActions({ messageId, ensure, rate, toggle, clearN
           aria-label={t('note.dialog')}
           style={pos ?? MEASURE_STYLE}
         >
-          <textarea
+          <textarea data-hydra-control="field"
             ref={inputRef}
             className={css.noteInput}
             aria-label={t('note.aria')}

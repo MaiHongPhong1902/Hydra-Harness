@@ -67,7 +67,7 @@ export function PresetMenu({
       align="end"
       portal
       anchor={(
-        <button
+        <button data-hydra-control="field"
           type="button"
           className={buttonClassName}
           aria-haspopup="menu"

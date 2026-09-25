@@ -88,7 +88,7 @@ export function PermissionRow({ load, select, usePermission, t }: PermissionRowP
           align="end"
           portal
           anchor={(
-            <button
+            <button data-hydra-control="field"
               type="button"
               className={css.selector}
               aria-haspopup="menu"

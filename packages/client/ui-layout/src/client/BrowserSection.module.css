@@ -152,14 +152,12 @@
 }
 
 .action:focus-visible,
-.selectWrap select:focus-visible,
 .toggle:focus-visible {
   outline: none;
   box-shadow: 0 0 0 2px var(--dsw-alias-focus-ring);
 }
 
 .action:disabled,
-.selectWrap select:disabled,
 .toggle:disabled {
   opacity: 0.55;
   cursor: default;
@@ -175,32 +173,8 @@
   min-width: 126px;
 }
 
-.selectWrap::after {
-  position: absolute;
-  top: 50%;
-  right: 10px;
-  width: 6px;
-  height: 6px;
-  border-right: 1.5px solid currentcolor;
-  border-bottom: 1.5px solid currentcolor;
-  color: var(--dsw-alias-label-secondary);
-  content: '';
-  pointer-events: none;
-  transform: translateY(-65%) rotate(45deg);
-}
-
 .selectWrap select {
   width: 100%;
-  height: 32px;
-  padding: 0 28px 0 12px;
-  border: 1px solid var(--dsw-alias-border-l2);
-  border-radius: var(--dsw-radius-control);
-  appearance: none;
-  background: var(--dsw-alias-bg-layer-2);
-  color: var(--dsw-alias-label-primary);
-  font: inherit;
-  font-size: 12px;
-  line-height: 18px;
 }
 
 .toggle {
@@ -298,21 +272,9 @@
 .siteForm input,
 .siteForm select,
 .contactForm input {
-  box-sizing: border-box;
   width: 100%;
-  min-height: 34px;
-  padding: 6px 10px;
-  border: 1px solid var(--dsw-alias-border-l2);
-  border-radius: var(--dsw-radius-control);
-  background: var(--dsw-alias-bg-layer-2);
-  color: var(--dsw-alias-label-primary);
-  font: inherit;
 }
 
-.search input:focus-visible,
-.siteForm input:focus-visible,
-.siteForm select:focus-visible,
-.contactForm input:focus-visible,
 .managerList button:focus-visible,
 .listActions button:focus-visible,
 .managerError button:focus-visible {

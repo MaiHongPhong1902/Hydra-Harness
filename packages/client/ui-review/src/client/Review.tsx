@@ -432,15 +432,15 @@ export function ReviewPanel({ useReview, act, refresh, ownerSessionId, useWorksp
           </div>
         </div>
         <div className={css.subBar}>
-          <select aria-label="Review scope" className={css.branchSelect} value={scope} onChange={(event) => { setScope(event.target.value as typeof scope); setReference(''); setSelectedPath(undefined); setNotice(null) }}>
+          <select data-hydra-control="compact" aria-label="Review scope" className={css.branchSelect} value={scope} onChange={(event) => { setScope(event.target.value as typeof scope); setReference(''); setSelectedPath(undefined); setNotice(null) }}>
             <option value="session">Session changes</option><option value="uncommitted">Uncommitted changes</option>
             <option value="unstaged">Unstaged changes</option><option value="staged">Staged changes</option>
             <option value="committed">Commit</option><option value="branch">Branch comparison</option>
           </select>
-          {scope === 'branch' && <select aria-label="Base branch" className={css.branchSelect} value={reference} onChange={(event) => { setReference(event.target.value) }}>
+          {scope === 'branch' && <select data-hydra-control="compact" aria-label="Base branch" className={css.branchSelect} value={reference} onChange={(event) => { setReference(event.target.value) }}>
             <option value="">Select base branch</option>{workspace?.branches.map(branch => <option key={branch} value={branch}>{branch.replace(/^refs\/(heads|remotes)\//u, '')}</option>)}
           </select>}
-          {scope === 'committed' && <select aria-label="Commit" className={css.branchSelect} value={reference} onChange={(event) => { setReference(event.target.value) }}>
+          {scope === 'committed' && <select data-hydra-control="compact" aria-label="Commit" className={css.branchSelect} value={reference} onChange={(event) => { setReference(event.target.value) }}>
             <option value="">Latest commit</option>{workspace?.commits.map(item => <option key={item.oid} value={item.oid}>{item.oid.slice(0, 7)} {item.subject}</option>)}
           </select>}
           {workspace?.branch && <span className={css.subBarBranch}>{workspace.branch}</span>}
@@ -454,7 +454,7 @@ export function ReviewPanel({ useReview, act, refresh, ownerSessionId, useWorksp
             <div className={css.popover}>
               <label className={css.prefRow}>
                 <span>Diff layout</span>
-                <select className={css.select} aria-label="Diff layout" value={diffMode} onChange={(event) => { setDiffMode(event.target.value as typeof diffMode) }}>
+                <select data-hydra-control="compact" aria-label="Diff layout" value={diffMode} onChange={(event) => { setDiffMode(event.target.value as typeof diffMode) }}>
                   <option value="unified">Unified</option>
                   <option value="split">Split</option>
                 </select>
@@ -497,7 +497,7 @@ export function ReviewPanel({ useReview, act, refresh, ownerSessionId, useWorksp
                   <path d="M10.5 10.5L14 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </span>
-              <input type="search" className={css.searchBox} placeholder="Filter files..." aria-label="Filter changes by file" value={search} onChange={(event) => { setSearch(event.target.value) }} />
+              <input data-hydra-control="compact" type="search" className={css.searchBox} placeholder="Filter files..." aria-label="Filter changes by file" value={search} onChange={(event) => { setSearch(event.target.value) }} />
             </div>
             {scope === 'session' && <div className={css.filterTabs} role="tablist" aria-label="Filter status" onKeyDown={(event) => {
               const tabs = [...event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]')]

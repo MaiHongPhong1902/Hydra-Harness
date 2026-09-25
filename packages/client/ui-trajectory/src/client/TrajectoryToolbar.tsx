@@ -111,9 +111,9 @@ export function TrajectoryToolbar({
             {t('toolbar.calls')}
           </button>
         </div>
-        <div className={css.search}>
+        <div data-hydra-control="compact" className={css.search}>
           <IconSearchOutline16 size={11} className={css.searchIcon} />
-          <input
+          <input data-hydra-control="embedded"
             type="search"
             className={css.searchInput}
             aria-label={t('toolbar.search')}

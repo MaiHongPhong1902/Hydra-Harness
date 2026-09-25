@@ -110,6 +110,8 @@ One UI feature = one plugin package (`src/client/` browser half). A multi-domain
 
 [docs/web-styling.md](../../docs/web-styling.md) is authoritative. Shared `--dsw-*` tokens and global sheets live in `ui-theme/src/styles/`; feature components consume semantic aliases through CSS Modules and `clsx`, with no literal colors, component library, or Tailwind. Product copy and code comments are English.
 
+Fields and dropdown triggers follow the [form-control rules](../../docs/web-styling.md#form-controls-and-dropdowns); `pnpm run verify-ui-controls` enforces their explicit styling roles.
+
 ## Testing and coverage
 
 The GUI test structure (three tiers, lane map) is settled in the [GUI testing system note](../../.agents/notes/implemented/process/2026-07-20-gui-testing-system.md); repo-wide policy in [docs/testing.md](../../docs/testing.md).

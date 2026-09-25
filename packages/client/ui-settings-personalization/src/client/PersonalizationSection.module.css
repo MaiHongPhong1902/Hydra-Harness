@@ -76,40 +76,9 @@
 }
 
 .textarea {
-  box-sizing: border-box;
   width: 100%;
   min-height: 160px;
   resize: vertical;
-  padding: 9px 12px;
-  border: 1px solid var(--dsw-alias-border-l2);
-  border-radius: 10px;
-  font: inherit;
-  font-size: 13px;
-  background: var(--dsw-alias-bg-layer-1);
-  color: var(--dsw-alias-label-primary);
-}
-
-.textarea:focus {
-  outline: none;
-  border-color: var(--dsw-alias-brand-primary);
-}
-
-.textarea:disabled {
-  opacity: 0.6;
-}
-
-.select {
-  padding: 6px 10px;
-  border: 1px solid var(--dsw-alias-border-l2);
-  border-radius: 8px;
-  font: inherit;
-  font-size: 13px;
-  background: var(--dsw-alias-bg-layer-1);
-  color: var(--dsw-alias-label-primary);
-}
-
-.select:disabled {
-  opacity: 0.6;
 }
 
 .primaryButton {
@@ -207,4 +176,7 @@
   font: inherit;
   font-size: 12px;
   cursor: pointer;
+}
+.select {
+  max-width: 240px;
 }

@@ -48,6 +48,7 @@ function state(overrides: Partial<ModelsSettingsState> = {}): ModelsSettingsStat
     status: 'ready',
     error: null,
     credentialError: null,
+    credentials: {},
     writable: true,
     rows: [row()],
     namespaces: new Map([['llm-deepseek', { ns: 'llm-deepseek' } as SettingsNamespaceView]]),

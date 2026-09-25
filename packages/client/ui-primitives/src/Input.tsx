@@ -15,9 +15,9 @@ export function Input({ icon, className, ...rest }: {
   className?: string
 } & InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <span className={clsx(css.wrap, className)}>
+    <span data-hydra-control="field" className={clsx(css.wrap, className)}>
       {icon != null && <span className={css.icon}>{icon}</span>}
-      <input className={css.input} {...rest} />
+      <input data-hydra-control="embedded" className={css.input} {...rest} />
     </span>
   )
 }

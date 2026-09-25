@@ -101,7 +101,7 @@ export function QueueDock({ useSession, updateQueue, notify, t }: QueueDockProps
               {queue.length === 1 && <span className={css.lead} aria-hidden><IconQueueOutline14 /></span>}
               {editing?.id === row.id
                 ? (
-                  <input
+                  <input data-hydra-control="compact"
                     autoFocus
                     className={css.editor}
                     aria-label={t('queue.edit')}

@@ -181,7 +181,7 @@ function SelectControl<T extends string>({ value, choices, disabled, onChange, a
 }) {
   return (
     <label className={css.selectWrap}>
-      <select
+      <select data-hydra-control="field"
         aria-labelledby={a11y.labelledBy}
         aria-describedby={a11y.describedBy}
         value={value}
@@ -1021,7 +1021,7 @@ export function BrowserSection({
       >
         <label className={css.search}>
           <span>{t('browser.searchHistory')}</span>
-          <input
+          <input data-hydra-control="field"
             type="search"
             value={historyQuery}
             onChange={(event) => { setHistoryQuery(event.currentTarget.value) }}
@@ -1082,7 +1082,7 @@ export function BrowserSection({
       >
         <label className={css.search}>
           <span>{t('browser.searchDownloads')}</span>
-          <input
+          <input data-hydra-control="field"
             type="search"
             value={downloadQuery}
             onChange={(event) => { setDownloadQuery(event.currentTarget.value) }}
@@ -1196,7 +1196,7 @@ export function BrowserSection({
         <form id="browser-login-form" className={css.siteForm} onSubmit={(event) => { void submitLogin(event) }}>
           <label>
             <span>{t('browser.loginOrigin')}</span>
-            <input
+            <input data-hydra-control="field"
               type="url"
               value={loginDraft?.origin ?? ''}
               disabled={busy}
@@ -1209,7 +1209,7 @@ export function BrowserSection({
           </label>
           <label>
             <span>{t('browser.loginUsername')}</span>
-            <input
+            <input data-hydra-control="field"
               value={loginDraft?.username ?? ''}
               disabled={busy}
               autoComplete="off"
@@ -1221,7 +1221,7 @@ export function BrowserSection({
           </label>
           <label>
             <span>{t('browser.loginPassword')}</span>
-            <input
+            <input data-hydra-control="field"
               name="password"
               type="password"
               value={loginDraft?.password ?? ''}
@@ -1314,7 +1314,7 @@ export function BrowserSection({
         <form id="browser-contact-form" className={css.contactForm} onSubmit={(event) => { void submitContact(event) }}>
           <label className={css.fullField}>
             <span>{t('browser.contactLabel')}</span>
-            <input
+            <input data-hydra-control="field"
               value={contactDraft?.label ?? ''}
               disabled={busy}
               onChange={(event) => {
@@ -1326,7 +1326,7 @@ export function BrowserSection({
           {contactFields.map(([field, key]) => (
             <label key={field}>
               <span>{t(key)}</span>
-              <input
+              <input data-hydra-control="field"
                 value={contactDraft?.fields[field] ?? ''}
                 disabled={busy}
                 maxLength={field === 'countryCode' ? 2 : undefined}
@@ -1408,7 +1408,7 @@ export function BrowserSection({
         <form id="browser-site-form" className={css.siteForm} onSubmit={(event) => { void saveSite(event) }}>
           <label>
             <span>{t('browser.siteOrigin')}</span>
-            <input
+            <input data-hydra-control="field"
               value={siteDraft?.origin ?? ''}
               disabled={unavailable || busy || siteDraft?.mode === 'edit'}
               placeholder="https://example.com"
@@ -1420,7 +1420,7 @@ export function BrowserSection({
           </label>
           <label>
             <span>{t('browser.siteAccess')}</span>
-            <select
+            <select data-hydra-control="field"
               value={siteDraft?.access ?? 'block'}
               disabled={unavailable || busy}
               onChange={(event) => {
@@ -1434,7 +1434,7 @@ export function BrowserSection({
           </label>
           <label>
             <span>{t('browser.siteMedia')}</span>
-            <select
+            <select data-hydra-control="field"
               value={siteDraft?.media ?? 'block'}
               disabled={unavailable || busy}
               onChange={(event) => {

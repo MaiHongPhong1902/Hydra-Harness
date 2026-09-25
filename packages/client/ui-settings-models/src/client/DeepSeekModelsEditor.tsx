@@ -242,7 +242,7 @@ export function DeepSeekModelsEditor(props: DeepSeekModelsEditorProps): ReactNod
   ): ReactNode => (
     <label className={styles['modelField']}>
       <span className={styles['modelFieldLabel']}>{props.t(field === 'contextWindow' ? 'contextWindow' : 'maxTokens')}</span>
-      <input
+      <input data-hydra-control="field"
         className={styles['input']}
         type="text"
         inputMode="numeric"
@@ -291,7 +291,7 @@ export function DeepSeekModelsEditor(props: DeepSeekModelsEditorProps): ReactNod
             {props.models.map((model, index) => (
               <div className={styles['modelEntry']} key={index}>
                 <div className={styles['modelRow']}>
-                  <input
+                  <input data-hydra-control="field"
                     className={styles['input']}
                     type="text"
                     value={typeof model['id'] === 'string' ? model['id'] : ''}
@@ -306,7 +306,7 @@ export function DeepSeekModelsEditor(props: DeepSeekModelsEditorProps): ReactNod
                       if (trimmed !== event.target.value) update(index, 'id', trimmed)
                     }}
                   />
-                  <input
+                  <input data-hydra-control="field"
                     className={styles['input']}
                     type="text"
                     value={typeof model['name'] === 'string' ? model['name'] : ''}

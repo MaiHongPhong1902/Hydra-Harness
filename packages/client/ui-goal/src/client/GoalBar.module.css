@@ -69,28 +69,9 @@
   white-space: nowrap;
 }
 
-/* ---- Inline edit form ---- */
-
 .objectiveInput {
   flex: 1;
   min-width: 0;
-  height: 26px;
-  padding: 0 8px;
-  border: 1px solid var(--dsw-alias-border-l2);
-  border-radius: 6px;
-  background: var(--dsw-alias-bg-base);
-  font-size: 13px;
-  line-height: 20px;
-  color: var(--dsw-alias-label-primary);
-  outline: none;
-}
-
-.objectiveInput:focus {
-  border-color: var(--dsw-alias-state-business-primary);
-}
-
-.objectiveInput::placeholder {
-  color: var(--dsw-alias-label-caption);
 }
 
 /* ---- Icon actions ---- */

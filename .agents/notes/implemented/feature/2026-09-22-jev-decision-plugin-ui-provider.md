@@ -14,6 +14,8 @@ TypeSafe Jev answers unary choice, score, and yes/no questions. It does not impl
 
 `@hydra/harness-client-ui-jev` registers the `settings.models.provider-option` slot. The Models page renders `Jev` in its Add provider dropdown only while this contribution is mounted. Its editor writes the key through the existing Credentials API and keeps the key out of settings, session state, and browser-readable configuration. The option is outside `ctx.llm`, `session.models`, and the conversation model picker. Host JEV and the UI contribution use the shared `pluginGroup: jev`; `browser-decisions` remains an independent plugin.
 
+The provider-option slot also renders configured rows from value-free credential states. The Models page describes whole-section provider credential references alongside LLM references, and Jev contributes a row only when its configured reference is confirmed present. The shared page refresh handles credential events and reloads; Edit selects the contribution's existing write-only editor. No browser-local saved flag or LLM adapter registration establishes presence.
+
 The Jev provider and Models contribution share one inventory group, so enabling that group mounts both after the normal core-plugin restart. The browser-decisions consumer remains an independent optional row. Disabling either removes its service, tool, or UI slot through normal Cordis disposal. Existing browser tools and model routes remain unchanged in the disabled and keyless states.
 
 ## Alternatives considered
@@ -28,8 +30,8 @@ The Jev provider and Models contribution share one inventory group, so enabling 
 
 ## Consequences
 
-Jev is available to future consumers through one small capability while the normal LLM route and replay contracts stay stable. The Models page owns dropdown selection and lifecycle, while the Jev card owns only its credential write. The decision tool can abstain, so missing optional infrastructure preserves the existing agent path. The provider's direct `fetch` keeps the dependency closure small, but the API response validator must track the TypeSafe wire fields used by consumers.
+Jev is available to future consumers through one small capability while the normal LLM route and replay contracts stay stable. The Models page owns selection, credential refresh, and lifecycle, while the Jev contribution owns its credential row and write-only editor. The decision tool can abstain, so missing optional infrastructure preserves the existing agent path. The provider's direct `fetch` keeps the dependency closure small, but the API response validator must track the TypeSafe wire fields used by consumers.
 
 ## Testing
 
-The new Host and consumer packages compile in the Host aggregate, the UI contribution compiles in the Client aggregate, and existing Models component/form suites continue to pass with the optional slot absent. The focused provider and browser-consumer tests cover successful response projection and missing-service abstention; live provider calls remain opt-in.
+The Host and consumer packages compile in the Host aggregate, and the UI contribution compiles in the Client aggregate. Focused component and store tests cover non-chat credential state and configured rows. The assembled Web scenario saves a key through the real Host, verifies the row after page reload, reopens the editor without exposing the key, and observes removal after credential deletion. Provider and browser-consumer tests cover successful response projection and missing-service abstention; live provider calls remain opt-in.

@@ -218,7 +218,7 @@ export function ModelSelect(
 
   return (
     <div ref={rootRef} className={css.root} onKeyDown={onRootKeyDown} onBlur={onBlur}>
-      <button
+      <button data-hydra-control="compact"
         ref={triggerRef}
         type="button"
         className={css.trigger}

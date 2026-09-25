@@ -81,7 +81,7 @@ export function GoalBar({ goal, onEdit, onPause, onResume, onClear, t }: GoalBar
     return (
       <div className={css.dock} data-goal-bar>
         <div className={css.bar}>
-          <input
+          <input data-hydra-control="compact"
             className={css.objectiveInput}
             type="text"
             aria-label={t('objective.aria')}

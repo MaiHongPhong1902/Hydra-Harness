@@ -251,7 +251,7 @@ export function CordisPanel({
         {listed !== undefined && listed.packages.length > 1 && selectedPackageId !== undefined && (
           <label className={css.versionPicker}>
             <span>{t('panel.version')}</span>
-            <select
+            <select data-hydra-control="compact"
               value={selectedPackageId}
               disabled={busy}
               onChange={(event) => {

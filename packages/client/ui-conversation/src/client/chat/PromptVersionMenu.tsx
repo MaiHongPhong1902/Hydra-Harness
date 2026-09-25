@@ -66,7 +66,7 @@ export function PromptVersionMenu({ versions, sessionId, openVersion, children, 
             </span>,
           }
         })}
-        anchor={<button ref={trigger} type="button" className={className} aria-label={t('message.seeVersions')}
+        anchor={<button data-hydra-control="action" ref={trigger} type="button" className={className} aria-label={t('message.seeVersions')}
           title={t('message.seeVersions')} aria-haspopup="menu" aria-expanded={open} onClick={() => { setOpen(!open) }}>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
             strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">

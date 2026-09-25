@@ -53,6 +53,8 @@ export interface ModelsSettingsState {
   error: string | null
   /** Credential enrichment failure; provider/settings rows remain usable. */
   credentialError: string | null
+  /** Value-free credential states, including whole-section non-chat providers. */
+  credentials: Readonly<Record<string, CredentialView>>
   /** Whether the settings provider accepts writes. */
   writable: boolean
   /** Every configurable provider joined with its configured/credential state. */
@@ -175,6 +177,7 @@ export class ModelsSettingsStore {
     status: 'idle',
     error: null,
     credentialError: null,
+    credentials: {},
     writable: false,
     rows: [],
     namespaces: new Map(),
@@ -253,9 +256,15 @@ export class ModelsSettingsStore {
           fallbackKeyRefs(this.schema.getPath(namespace?.value, entry.settingsPath)).map(ref => [ref, undefined])),
       }
     })
-    const refs = [...new Set(rows.flatMap(row => [
-      ...row.apiKeyEnv === undefined ? [] : [row.apiKeyEnv], ...Object.keys(row.fallbackCredentials),
-    ]))]
+    const refs = [...new Set([
+      ...rows.flatMap(row => [
+        ...row.apiKeyEnv === undefined ? [] : [row.apiKeyEnv], ...Object.keys(row.fallbackCredentials),
+      ]),
+      ...views.flatMap((view) => {
+        const ref = apiKeyEnvOf(view, [], this.schema)
+        return ref === undefined ? [] : [ref]
+      }),
+    ])]
     let credentials: Record<string, CredentialView> = {}
     let credentialError: string | null = null
     if (refs.length > 0) {
@@ -285,6 +294,7 @@ export class ModelsSettingsStore {
       s.status = 'ready'
       s.error = null
       s.credentialError = credentialError
+      s.credentials = credentials
       s.writable = writable
       s.rows = rows.map(row => ({
         ...row,

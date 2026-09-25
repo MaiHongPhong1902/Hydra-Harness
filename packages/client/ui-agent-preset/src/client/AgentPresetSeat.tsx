@@ -151,7 +151,7 @@ export function AgentPresetSeat({ load, select, introduced, useAgentPresetSeat, 
       align="start"
       portal
       anchor={(
-        <button
+        <button data-hydra-control="compact"
           type="button"
           className={css.seat}
           aria-haspopup="menu"

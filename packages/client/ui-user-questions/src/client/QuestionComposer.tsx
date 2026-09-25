@@ -85,7 +85,7 @@ function AnswerField(props: AnswerFieldProps) {
   return (
     <div className={clsx(css.field, props.variant === 'inline' ? css.customInline : css.customBlock)}>
       <div aria-hidden className={css.fieldMirror}>{`${props.value}\n`}</div>
-      <textarea
+      <textarea data-hydra-control="editor"
         autoFocus={props.autoFocus}
         className={css.fieldInput}
         value={props.value}

@@ -807,7 +807,7 @@ export function DirectoryBrowser({ open, listDirectory, createDirectory, onOpen,
       >
         <div className={css.header}>
           <h2 className={css.title}>{t('browser.title')}</h2>
-          <div className={css.crumbBar}>
+          <div data-hydra-control="compact" className={css.crumbBar}>
             {pathDraft === null
               ? (
                 <>
@@ -867,7 +867,7 @@ export function DirectoryBrowser({ open, listDirectory, createDirectory, onOpen,
                 </>
               )
               : (
-                <input
+                <input data-hydra-control="embedded"
                   className={css.pathInput}
                   value={pathDraft}
                   aria-label={t('browser.editPath')}
@@ -1004,7 +1004,7 @@ export function DirectoryBrowser({ open, listDirectory, createDirectory, onOpen,
         <div className={css.createBody}>
           <h3 className={css.createTitle}>{t('browser.newFolder')}</h3>
           <p className={css.createIn}>{t('browser.createIn', { name: targetName })}</p>
-          <input
+          <input data-hydra-control="field"
             className={css.createInput}
             value={folderDraft ?? ''}
             aria-label={t('browser.folderName')}
