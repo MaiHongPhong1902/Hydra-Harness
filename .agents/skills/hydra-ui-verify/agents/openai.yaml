@@ -1,0 +1,3 @@
+interface:
+  display_name: "Hydra UI Verify"
+  short_description: "Verify Hydra UI in real browser and desktop flows"

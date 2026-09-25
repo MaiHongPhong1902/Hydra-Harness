@@ -1,0 +1,3 @@
+interface:
+  display_name: "Hydra UI Design"
+  short_description: "Design Hydra screens with shared native controls"
