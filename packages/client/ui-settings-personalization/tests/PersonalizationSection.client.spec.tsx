@@ -4,13 +4,13 @@
  * conflict affordance), local-memory controls, and the personality selector.
  */
 
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { bindSnapshotSelector } from '@hydra/harness-client-test-runtime'
 import { createSnapshotStore } from '@hydra/harness-client-runtime/client'
 import type { SettingsScopeSnapshot } from '@hydra/harness-client-runtime/client'
 import { PersonalizationSection } from '../src/client/PersonalizationSection.tsx'
-import type { MemorySettings, PersonalityDraft, PersonalitySettings, PersonalizationSectionProps } from '../src/client/PersonalizationSection.tsx'
+import type { MemorySettings, PersonalityDraft, PersonalitySettings, PersonalizationSectionInjected, PersonalizationSectionProps } from '../src/client/PersonalizationSection.tsx'
 import type { InstructionsState } from '../src/client/instructions-store.ts'
 import { en } from '../src/client/locales.ts'
 
@@ -33,6 +33,7 @@ function renderSection(
   personality: Partial<SettingsScopeSnapshot<PersonalitySettings>> = {},
   memory: Partial<SettingsScopeSnapshot<MemorySettings>> = {},
   expand = true,
+  overrides: Partial<PersonalizationSectionInjected> = {},
 ) {
   const instructionsStore = createSnapshotStore<InstructionsState>({ ...INSTRUCTIONS_READY, ...instructions })
   const personalityStore = createSnapshotStore<SettingsScopeSnapshot<PersonalitySettings>>({ ...PERSONALITY_READY, ...personality })
@@ -48,8 +49,9 @@ function renderSection(
     loadMemories: vi.fn(() => Promise.resolve([])),
     removeMemory: vi.fn(() => Promise.resolve(true)),
     setMemory: vi.fn(() => Promise.resolve()),
+    ...overrides,
   }
-  render(<PersonalizationSection {...({
+  const view = render(<PersonalizationSection {...({
     ...actions,
     close: () => {},
     useInstructions: bindSnapshotSelector(instructionsStore),
@@ -59,10 +61,59 @@ function renderSection(
     t: (key: keyof typeof en) => en[key],
   } as unknown as PersonalizationSectionProps)} />)
   if (expand) fireEvent.click(screen.getByText('Custom instructions', { selector: 'summary' }))
-  return { actions, instructionsStore, personalityStore, memoryStore }
+  return { actions, instructionsStore, personalityStore, memoryStore, personalityDraft, view }
 }
 
 describe('PersonalizationSection', () => {
+  it('deletes only memories confirmed removed and reports deletion errors', async () => {
+    const removeMemory = vi.fn<PersonalizationSectionInjected['removeMemory']>()
+      .mockResolvedValueOnce(false).mockRejectedValueOnce(new Error('locked')).mockRejectedValueOnce('offline').mockResolvedValueOnce(true)
+    renderSection({}, {}, {}, true, {
+      loadMemories: async () => [
+        { id: 'a', text: 'First memory', createdAt: 1, updatedAt: 1 },
+        { id: 'b', text: 'Second memory', createdAt: 1, updatedAt: 1 },
+      ], removeMemory,
+    })
+    await screen.findByText('First memory')
+    const remove = () => fireEvent.click(within(screen.getByText('First memory').closest('li')!).getByRole('button'))
+    await act(async () => { remove() })
+    expect(screen.getByText('First memory')).not.toBeNull()
+    await act(async () => { remove() })
+    expect(screen.getByRole('alert').textContent).toBe('locked')
+    await act(async () => { remove() })
+    expect(screen.getByRole('alert').textContent).toBe('offline')
+    await act(async () => { remove() })
+    expect(screen.queryByText('First memory')).toBeNull()
+    expect(screen.getByText('Second memory')).not.toBeNull()
+  })
+
+  it.each([new Error('read failed'), 'read failed'])('shows memory-load failures: %s', async (error) => {
+    renderSection({}, {}, {}, true, { loadMemories: async () => { throw error } })
+    expect((await screen.findByRole('alert')).textContent).toBe('read failed')
+  })
+
+  it.each([false, true])('ignores a memory response after unmount (rejected: %s)', async (reject) => {
+    const pending = Promise.withResolvers<Awaited<ReturnType<PersonalizationSectionInjected['loadMemories']>>>()
+    const { view } = renderSection({}, {}, {}, true, { loadMemories: () => pending.promise })
+    view.unmount()
+    await act(async () => {
+      if (reject) pending.reject(new Error('disconnected'))
+      else pending.resolve([])
+    })
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it('shows memory defaults while unavailable and tone save status', async () => {
+    const { memoryStore, personalityDraft } = renderSection({}, { value: undefined }, { status: 'unavailable' })
+    expect(screen.getByRole<HTMLInputElement>('checkbox', { name: 'Enable memories' }).disabled).toBe(true)
+    await act(async () => { memoryStore.update((state) => { state.status = 'ready'; state.value = undefined }) })
+    expect(screen.getByRole<HTMLInputElement>('checkbox', { name: 'Enable memories' }).checked).toBe(false)
+    fireEvent.click(screen.getByText('Personality', { selector: 'summary' }))
+    await act(async () => { personalityDraft.update((state) => { state.value = 'friendly'; state.saving = true; state.failed = true }) })
+    expect(screen.getByRole<HTMLButtonElement>('button', { name: 'Saving…' }).disabled).toBe(true)
+    expect(screen.getByRole('alert').textContent).toBe(en.saveFailed)
+  })
+
   it('starts prompt editors collapsed and keeps typing separate from Save', () => {
     const { actions } = renderSection({}, {}, {}, false)
     expect(screen.getByText('Custom instructions', { selector: 'summary' }).closest('details')?.open).toBe(false)
@@ -136,6 +187,11 @@ describe('PersonalizationSection', () => {
 
     const enabled = screen.getByRole('checkbox', { name: 'Enable memories' }) as HTMLInputElement
     expect(enabled.checked).toBe(true)
+    const checkboxes = screen.getAllByRole('checkbox')
+    fireEvent.click(checkboxes[1]!)
+    fireEvent.click(checkboxes[2]!)
+    expect(actions.setMemory).toHaveBeenCalledWith('useMemories', false)
+    expect(actions.setMemory).toHaveBeenCalledWith('generateMemories', false)
     fireEvent.click(enabled)
     expect(actions.setMemory).toHaveBeenCalledWith('enabled', false)
     expect(screen.getByText('No saved local memories.')).not.toBeNull()

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { PluginMarketplaceSnapshot } from '@hydra/harness-api-remotes/client'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { MarketplaceSettingsTab } from '../src/client/MarketplaceSettingsTab.tsx'
@@ -71,6 +71,71 @@ function props(
 }
 
 describe('MarketplaceSettingsTab', () => {
+  it.each([false, true])('loads only when active and ignores late replies (reject: %s)', async (reject) => {
+    const pending = Promise.withResolvers<PluginMarketplaceSnapshot>()
+    const face = props({ listMarketplaces: vi.fn(() => pending.promise) })
+    const view = render(<MarketplaceSettingsTab {...face} active={false} />)
+    expect(face.listMarketplaces).not.toHaveBeenCalled()
+    view.rerender(<MarketplaceSettingsTab {...face} active />)
+    await waitFor(() => { expect(face.listMarketplaces).toHaveBeenCalledOnce() })
+    view.unmount()
+    await act(async () => { if (reject) pending.reject(new Error('closed')); else pending.resolve(EMPTY) })
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it('retries a failed listing and removes an unavailable source', async () => {
+    const unavailable: PluginMarketplaceSnapshot = { marketplaces: [{ source: SOURCE, status: 'unavailable', enabled: false, sparsePaths: [] }] }
+    const listMarketplaces = vi.fn().mockRejectedValueOnce(new Error('offline')).mockResolvedValue(unavailable)
+    const removeMarketplace = vi.fn().mockRejectedValueOnce(new Error('refused')).mockResolvedValue(EMPTY)
+    const setMarketplaceEnabled = vi.fn().mockRejectedValue(new Error('refused'))
+    render(<MarketplaceSettingsTab {...props({ listMarketplaces, removeMarketplace, setMarketplaceEnabled })} />)
+    await screen.findByText(en.marketplaceLoadError)
+    fireEvent.click(screen.getByRole('button', { name: en.retry }))
+    await screen.findByText(en.marketplaceUnavailable)
+    fireEvent.click(screen.getByRole('switch', { name: `${en.marketplaceEnable} ${SOURCE}` }))
+    await screen.findByText(en.marketplaceMutationError)
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: en.marketplaceRemove })) })
+    expect(screen.getByRole('alert').textContent).toBe(en.marketplaceMutationError)
+    fireEvent.click(screen.getByRole('button', { name: en.marketplaceRemove }))
+    await screen.findByText(en.marketplaceEmpty)
+    expect(removeMarketplace).toHaveBeenCalledWith(SOURCE)
+  })
+
+  it('blocks source removal while imported plugin changes are pending', async () => {
+    const face = props({ listMarketplaces: async () => READY, hasPendingImportedChanges: () => true })
+    render(<MarketplaceSettingsTab {...face} />)
+    fireEvent.click(await screen.findByRole('button', { name: en.marketplaceRemove }))
+    expect(screen.getByRole('alert').textContent).toBe(en.marketplacePendingPluginChanges)
+    expect(face.removeMarketplace).not.toHaveBeenCalled()
+  })
+
+  it('holds the dialog during Add and rejects an empty source', async () => {
+    const pending = Promise.withResolvers<PluginMarketplaceSnapshot>()
+    const face = props({ addMarketplace: vi.fn(() => pending.promise) })
+    render(<MarketplaceSettingsTab {...face} />)
+    await screen.findByText(en.marketplaceEmpty)
+    fireEvent.click(screen.getByRole('button', { name: en.marketplaceAdd }))
+    fireEvent.submit(document.getElementById('marketplace-add-form')!)
+    expect(face.addMarketplace).not.toHaveBeenCalled()
+    fireEvent.change(screen.getByLabelText(en.marketplaceSource), { target: { value: SOURCE } })
+    fireEvent.change(screen.getByLabelText(en.marketplacePluginName), { target: { value: 'toolkit' } })
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: en.marketplaceSave }))
+    fireEvent.click(screen.getByRole('button', { name: en.marketplaceClose }))
+    expect(screen.getByRole('dialog')).not.toBeNull()
+    await act(async () => { pending.resolve(READY) })
+    expect(face.importedPlugins.import).toHaveBeenCalledWith({ source: SOURCE, plugin: 'toolkit' })
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it.each(['failed', new Error('ENOENT: missing config.json')])('reports an ordinary Add failure without missing-catalog advice: %s', async (error) => {
+    render(<MarketplaceSettingsTab {...props({ addMarketplace: async () => { throw error } })} />)
+    await screen.findByText(en.marketplaceEmpty)
+    fireEvent.click(screen.getByRole('button', { name: en.marketplaceAdd }))
+    fireEvent.change(screen.getByLabelText(en.marketplaceSource), { target: { value: SOURCE } })
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: en.marketplaceSave }))
+    expect((await screen.findByRole('alert')).textContent).toBe(en.marketplaceMutationError)
+  })
+
   it('adds a Git marketplace and imports its selected plugin', async () => {
     const addMarketplace = vi.fn<MarketplaceSettingsTabInjected['addMarketplace']>()
       .mockRejectedValueOnce(new Error('private catalog detail'))

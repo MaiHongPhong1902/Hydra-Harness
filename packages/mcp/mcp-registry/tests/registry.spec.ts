@@ -258,6 +258,8 @@ describe('stored records', () => {
       .rejects.toThrow('server name must match')
     await expect(registry.define({ mode: 'create', name: 'blank', transport: 'stdio', command: '  ' }))
       .rejects.toThrow('requires a command')
+    await expect(registry.define({ mode: 'create', name: 'missing', transport: 'stdio' }))
+      .rejects.toThrow('requires a command')
     await expect(registry.define({ mode: 'create', name: 'remote', transport: 'streamable-http', url: 'ftp://mcp.example.test' }))
       .rejects.toThrow('must use HTTP or HTTPS')
     await expect(registry.define({ mode: 'create', name: 'remote', transport: 'streamable-http', url: 'not-a-url' }))
@@ -282,6 +284,70 @@ describe('stored records', () => {
 })
 
 describe('mount reconciliation', () => {
+  it('refuses a fifty-first server and preserves omitted definition fields on replacement', async () => {
+    const { ctx, registry } = await harness()
+    const reconciled = nextReconciliation(ctx)
+    await ctx.settings.replace(MCP_SERVERS_SETTINGS_NAMESPACE, {
+      servers: Array.from({ length: 50 }, (_, index) => ({ name: `server-${index}`, transport: 'stdio', command: 'node' })),
+    })
+    await reconciled
+    await expect(registry.define({ ...STDIO, name: 'overflow' })).rejects.toThrow('at most 50 servers')
+    const snapshot = await registry.define({ mode: 'replace', name: 'server-0', transport: 'stdio', command: 'python' })
+    expect(snapshot.servers[0]).toMatchObject({ command: 'python', args: [], enabled: false })
+    expect(snapshot.servers).toHaveLength(50)
+  })
+
+  it('keeps a completed settings write stopped when the registry disposes before its acknowledgment', async () => {
+    primeSdk()
+    const root = await mkdtemp(join(tmpdir(), 'hydra-mcp-disposing-'))
+    directories.push(root)
+    const ctx = new Context()
+    contexts.push(ctx)
+    await ctx.plugin(SystemPrompt)
+    await ctx.plugin(ToolRuntime)
+    await ctx.plugin(FileSettingsProvider, { path: join(root, 'settings.yaml'), watch: false })
+    const fiber = ctx.plugin(McpServerRegistry)
+    await fiber
+    const registry = ctx.mcpServers
+    const entered: PromiseWithResolvers<void> = Promise.withResolvers()
+    const release: PromiseWithResolvers<void> = Promise.withResolvers()
+    const update = ctx.settings.update.bind(ctx.settings)
+    vi.spyOn(ctx.settings, 'update').mockImplementationOnce(async (...args) => {
+      await update(...args)
+      entered.resolve()
+      await release.promise
+    })
+    const pending = registry.define({ ...STDIO, enabled: true })
+    await entered.promise
+    const disposing = fiber.dispose()
+    release.resolve()
+    await pending
+    await disposing
+    expect(registry.list().servers).toMatchObject([{ name: 'notes', enabled: true, status: 'stopped' }])
+    expect(mockConnect).not.toHaveBeenCalled()
+  })
+
+  it('mounts HTTP servers with headers and projects their discovered tools', async () => {
+    const { registry } = await harness()
+    const snapshot = await registry.define({ mode: 'create', name: 'remote', transport: 'streamable-http',
+      url: 'http://mcp.example.test/v1', headers: { Authorization: 'Bearer private' }, enabled: true })
+    expect(snapshot.servers).toMatchObject([{ name: 'remote', status: 'started', headerNames: ['Authorization'], tools: ['mcp__remote__read'] }])
+  })
+
+  it.each([
+    { transport: 'stdio', command: 'node', url: 'https://example.test' },
+    { transport: 'streamable-http', command: 'node', url: 'https://example.test' },
+    { transport: 'stdio', command: 'node', env: { ' ': 'value' } },
+    { transport: 'stdio', command: 'node', env: { NAME: 'x'.repeat(4097) } },
+  ])('reports an unmountable persisted record: %j', async (record) => {
+    const { ctx, registry } = await harness()
+    const reconciled = nextReconciliation(ctx)
+    await ctx.settings.replace(MCP_SERVERS_SETTINGS_NAMESPACE, { servers: [{ ...record, name: 'invalid', enabled: true }] })
+    await reconciled
+    expect(registry.list().servers).toMatchObject([{ name: 'invalid', status: 'invalid' }])
+    expect(mockConnect).not.toHaveBeenCalled()
+  })
+
   it('mounts an enabled record, registers its tools, and unmounts it again on disable', async () => {
     const { ctx, registry } = await harness()
     await registry.define(STDIO)
@@ -362,9 +428,9 @@ describe('mount reconciliation', () => {
     expect(notes).toMatchObject({ name: 'notes', status: 'started' })
   })
 
-  it('reports a record whose connection failed without unmounting the others', async () => {
+  it.each([new Error('connection refused'), 'connection refused'])('reports a record whose connection failed: %s', async (error) => {
     const { registry } = await harness()
-    mockConnect.mockRejectedValue(new Error('connection refused'))
+    mockConnect.mockRejectedValue(error)
 
     await registry.define({ ...STDIO, enabled: true })
 

@@ -1,9 +1,15 @@
 import { EventEmitter } from 'node:events'
+import { spawn } from 'node:child_process'
 import { createInterface } from 'node:readline'
 import { PassThrough } from 'node:stream'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { BrowserError, launchBrowser, resolveElectronPath } from '@hydra/harness-browser-electron'
 import type { BrowserChild, BrowserChildProcess } from '@hydra/harness-browser-electron'
+
+vi.mock('node:child_process', async importOriginal => ({
+  ...await importOriginal<typeof import('node:child_process')>(), spawn: vi.fn(),
+}))
+afterEach(() => { vi.restoreAllMocks(); vi.unstubAllEnvs(); vi.useRealTimers() })
 
 interface Request {
   id: number
@@ -141,6 +147,7 @@ describe('launchBrowser startup', () => {
     const fake = new FakeElectron()
     const seen: { command: string; args: string[] } = { command: '', args: [] }
     const launching = launchBrowser(options(fake, {
+      homeUrl: 'https://example.test', persistSessionCookies: true,
       spawnChild: (command: string, args: string[]) => {
         seen.command = command
         seen.args = args
@@ -155,6 +162,7 @@ describe('launchBrowser startup', () => {
     expect(seen.args[0]).toMatch(/main\.cjs$/)
     expect(JSON.parse(seen.args[1] ?? '')).toEqual({
       userDataDir: '/tmp/profile',
+      homeUrl: 'https://example.test', persistSessionCookies: true,
       width: 800,
       height: 600,
       show: false,
@@ -207,6 +215,13 @@ describe('launchBrowser startup', () => {
         spawnChild: undefined,
         electronPath: undefined,
       }))
+      for (const message of [null, 'noise', {}, { connectionId: 'another' },
+        { connectionId: port.activeConnectionId },
+        { type: 'hydra-browser-error', connectionId: port.activeConnectionId },
+        { type: 'hydra-browser-error', connectionId: port.activeConnectionId, error: 2 },
+        { type: 'hydra-browser-error', connectionId: port.activeConnectionId, error: 'desktop stderr' },
+        { type: 'hydra-browser-line', connectionId: port.activeConnectionId, line: '{}' },
+      ]) port.emit('message', message)
       await expect(child.call('navigate', { url: 'https://example.test' }))
         .resolves.toEqual({ url: 'https://example.test' })
       await child.close()
@@ -252,6 +267,164 @@ describe('launchBrowser startup', () => {
       if (previousPort === undefined) Reflect.deleteProperty(process, 'parentPort')
       else Object.defineProperty(process, 'parentPort', previousPort)
     }
+  })
+})
+
+describe('launchBrowser lifecycle edges', () => {
+  it('resolves the installed Electron binary and spawns it when no overrides are supplied', async () => {
+    const fake = new FakeElectron()
+    vi.mocked(spawn).mockReturnValueOnce(fake as never)
+    const launching = launchBrowser(options(fake, { spawnChild: undefined, electronPath: undefined }))
+    fake.say({ event: 'ready' })
+    const child = await launching
+    expect(spawn).toHaveBeenCalledWith(resolveElectronPath(), expect.any(Array))
+    await child.close()
+  })
+
+  it('rejects a desktop bridge without a parent port', async () => {
+    vi.stubEnv('HYDRA_DESKTOP_BROWSER_BRIDGE', 'parent-port')
+    const descriptor = Object.getOwnPropertyDescriptor(process, 'parentPort')
+    Object.defineProperty(process, 'parentPort', { configurable: true, value: undefined })
+    try {
+      await expect(launchBrowser(options(new FakeElectron()))).rejects.toThrow('desktop browser bridge is unavailable')
+    } finally {
+      if (descriptor === undefined) Reflect.deleteProperty(process, 'parentPort')
+      else Object.defineProperty(process, 'parentPort', descriptor)
+    }
+  })
+
+  it('disconnects a desktop bridge that never becomes ready', async () => {
+    vi.useFakeTimers()
+    vi.stubEnv('HYDRA_DESKTOP_BROWSER_BRIDGE', 'parent-port')
+    const port = new FakeParentPort()
+    vi.spyOn(port, 'postMessage').mockImplementation((message) => { port.sent.push(message) })
+    const descriptor = Object.getOwnPropertyDescriptor(process, 'parentPort')
+    Object.defineProperty(process, 'parentPort', { configurable: true, value: port })
+    try {
+      const launching = launchBrowser(options(new FakeElectron()))
+      const rejected = expect(launching).rejects.toMatchObject({ code: 'BROWSER_LAUNCH_FAILED' })
+      await vi.advanceTimersByTimeAsync(1_000)
+      await rejected
+      expect(port.listenerCount('message')).toBe(0)
+      expect(port.sent).toContainEqual(expect.objectContaining({ type: 'hydra-browser-disconnect' }))
+    } finally {
+      if (descriptor === undefined) Reflect.deleteProperty(process, 'parentPort')
+      else Object.defineProperty(process, 'parentPort', descriptor)
+    }
+  })
+
+  it('observes cancellation during process creation', async () => {
+    const fake = new FakeElectron()
+    const controller = new AbortController()
+    await expect(launchBrowser(options(fake, { signal: controller.signal, spawnChild: () => {
+      controller.abort(new Error('startup stopped'))
+      return fake
+    } }))).rejects.toThrow('startup stopped')
+    expect(fake.stdin.writableEnded).toBe(true)
+  })
+
+  it('denies a rejected startup permission and resumes the startup deadline', async () => {
+    vi.useFakeTimers()
+    const fake = new FakeElectron()
+    const launching = launchBrowser(options(fake, { onPermission: () => Promise.reject(new Error('unavailable')) }))
+    const rejected = expect(launching).rejects.toMatchObject({ code: 'BROWSER_LAUNCH_FAILED' })
+    fake.say({ event: 'browser:permission', id: 1, request: { kind: 'navigation', origin: 'https://example.test' } })
+    expect((await fake.next()).args).toEqual({ id: 1 })
+    await vi.advanceTimersByTimeAsync(1_000)
+    await rejected
+  })
+
+  it('keeps deadlines paused until every permission is withdrawn', async () => {
+    vi.useFakeTimers()
+    const signals: AbortSignal[] = []
+    const { fake, child } = await started({ onPermission: (_request: unknown, signal: AbortSignal) => {
+      signals.push(signal)
+      return new Promise(() => {})
+    } })
+    for (const id of [1, 2]) fake.say({ event: 'browser:permission', id, request: { kind: 'download', origin: 'https://example.test', filename: 'a.txt' } })
+    const action = child.call('navigate', {})
+    const rejected = expect(action).rejects.toMatchObject({ code: 'BROWSER_TIMEOUT' })
+    const request = await fake.next()
+    fake.say({ event: 'browser:permission-cancelled' })
+    fake.say({ event: 'browser:permission-cancelled', id: 77 })
+    fake.say({ event: 'browser:permission-cancelled', id: 1 })
+    expect((await fake.next()).args).toEqual({ id: 1 })
+    await vi.advanceTimersByTimeAsync(10_000)
+    expect(signals.map(signal => signal.aborted)).toEqual([true, false])
+    fake.say({ event: 'browser:permission-cancelled', id: 2 })
+    expect((await fake.next()).args).toEqual({ id: 2 })
+    await vi.advanceTimersByTimeAsync(1_000)
+    expect(await fake.next()).toMatchObject({ method: 'cancel_browser_call', args: { id: request.id } })
+    fake.say({ id: request.id, ok: false })
+    await rejected
+    await child.close()
+  })
+
+  it('aborts unanswered permissions when the process exits unexpectedly', async () => {
+    const onPermission = vi.fn(() => new Promise(() => {}))
+    const { fake, child } = await started({ onPermission })
+    fake.say({ event: 'browser:permission', id: 1, request: { kind: 'media', origin: 'https://example.test' } })
+    await vi.waitFor(() => { expect(onPermission).toHaveBeenCalledOnce() })
+    fake.emit('exit')
+    await child.closed
+  })
+
+  it.each([{}, { id: 1 }, { id: 1, tabId: 'x' }, { id: 1, tabId: 1.1 }, { id: 1, tabId: 1 }])(
+    'rejects an unavailable or malformed PageAgent request %j', async (request) => {
+      const { fake, child } = await started()
+      fake.say({ event: 'page-agent:llm', ...request })
+      expect((await fake.next()).args).toMatchObject({ ok: false, error: 'PageAgent model bridge is unavailable' })
+      await child.close()
+    },
+  )
+
+  it.each([new Error('model failed'), 'model failed'])('reports PageAgent rejection %s', async (error) => {
+    // oxlint-disable-next-line typescript/prefer-promise-reject-errors -- External bridge callbacks can reject with non-Error payloads.
+    const { fake, child } = await started({ onPageAgentLlm: () => Promise.reject(error) })
+    fake.say({ event: 'page-agent:llm', id: 1, tabId: 1 })
+    expect((await fake.next()).args).toEqual({ callId: 1, ok: false, error: 'model failed' })
+    await child.close()
+  })
+
+  it('discards a model response after the child exits', async () => {
+    const response = Promise.withResolvers<unknown>()
+    const { fake, child } = await started({ onPageAgentLlm: () => response.promise })
+    fake.say({ event: 'page-agent:llm', id: 1, tabId: 1 })
+    await child.close()
+    const write = vi.spyOn(fake.stdin, 'write')
+    response.resolve({ choices: [] })
+    await Promise.resolve()
+    expect(write).not.toHaveBeenCalled()
+  })
+
+  it.each([true, false])('settles a cancelled action after native completion=%s', async (reply) => {
+    vi.useFakeTimers()
+    const { fake, child } = await started()
+    const controller = new AbortController()
+    const action = child.call('navigate', {}, controller.signal)
+    const rejected = expect(action).rejects.toThrow('browser action cancelled')
+    const request = await fake.next()
+    controller.abort('stopped')
+    expect((await fake.next()).method).toBe('cancel_browser_call')
+    if (reply) fake.say({ id: request.id, ok: true, result: 'late result' })
+    else await vi.advanceTimersByTimeAsync(1_000)
+    await rejected
+    await child.close()
+  })
+
+  it('ignores a second cancellation after the action deadline', async () => {
+    vi.useFakeTimers()
+    const { fake, child } = await started()
+    const controller = new AbortController()
+    const action = child.call('navigate', {}, controller.signal)
+    const rejected = expect(action).rejects.toMatchObject({ code: 'BROWSER_TIMEOUT' })
+    const request = await fake.next()
+    await vi.advanceTimersByTimeAsync(1_000)
+    expect((await fake.next()).method).toBe('cancel_browser_call')
+    controller.abort()
+    fake.say({ id: request.id, ok: false })
+    await rejected
+    await child.close()
   })
 })
 

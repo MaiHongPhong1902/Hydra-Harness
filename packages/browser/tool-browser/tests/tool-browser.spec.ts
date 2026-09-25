@@ -1,13 +1,14 @@
 import { saveBrowserArtifact } from '../src/artifact.ts'
 import { EventEmitter } from 'node:events'
 import { realpathSync } from 'node:fs'
-import { mkdtemp, readFile, rm } from 'node:fs/promises'
+import * as fs from 'node:fs/promises'
+import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createInterface } from 'node:readline'
 import { PassThrough } from 'node:stream'
 import { fileURLToPath } from 'node:url'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Context } from '@hydra/cordis'
 import { AttachmentId, AttachmentStore } from '@hydra/harness-attachment'
 import type {
@@ -29,6 +30,8 @@ import {
   BROWSER_PROMPT_NAME, BROWSER_PROMPT_TEXT, COMPACT_NOTICE, compactHeader, dropIgnoredNodes, formatBrowserOutput,
   rankElementList, toValue,
 } from '@hydra/harness-tool-browser'
+
+vi.mock('node:fs/promises', async importOriginal => ({ ...await importOriginal<typeof import('node:fs/promises')>() }))
 
 function cdpEventPage(args: Record<string, unknown>) {
   const retained = [
@@ -68,6 +71,7 @@ class ScriptedChild extends EventEmitter implements BrowserChildProcess {
   readonly stdout = new PassThrough()
   readonly stderr = new PassThrough()
   readonly requests: { method: string; args: Record<string, unknown> }[] = []
+  readonly responses = new Map<string, unknown>()
 
   constructor(private readonly content: string) {
     super()
@@ -75,7 +79,7 @@ class ScriptedChild extends EventEmitter implements BrowserChildProcess {
     createInterface({ input: this.stdin }).on('line', (line: string) => {
       const { id, method, args } = JSON.parse(line) as { id: number; method: string; args: Record<string, unknown> }
       this.requests.push({ method, args })
-      const result = method === 'get_browser_state'
+      const result = this.responses.has(method) ? this.responses.get(method) : method === 'get_browser_state'
         ? {
           url: 'https://shop.test/order',
           title: 'Order',
@@ -127,16 +131,29 @@ const PAGE = '[0]<input id=who/>\n[1]<button id=submit>Order</button>'
 const UPLOAD_FIXTURE = fileURLToPath(new URL('../../browser-electron/tests/fixtures/form.html', import.meta.url))
 const PNG_1X1 = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC', 'base64')
 
+it('removes an allocated artifact directory when writing fails', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'browser-artifact-failure-'))
+  const failure = new Error('disk full')
+  const write = vi.spyOn(fs, 'writeFile').mockRejectedValueOnce(failure)
+  try {
+    await expect(saveBrowserArtifact(directory, 'capture.txt', 'data', new AbortController().signal)).rejects.toBe(failure)
+    expect(await readdir(directory)).toEqual([])
+  } finally {
+    write.mockRestore()
+    await rm(directory, { recursive: true, force: true })
+  }
+})
+
 class TestAttachmentStore extends AttachmentStore {
   readonly saved: SaveImageAttachment[] = []
-  readonly imageLimits: ImageAttachmentLimits = Object.freeze({
+  get imageLimits(): ImageAttachmentLimits { return Object.freeze({
     maxImageBytes: 3_500_000,
     maxImagesPerMessage: 1,
     maxMessageImageBytes: 3_500_000,
     maxImagePixels: 4_000_000,
     maxImageDimension: 2_000,
     mediaTypes: Object.freeze(['image/png'] as const),
-  })
+  }) }
 
   validateImage(_input: SaveImageAttachment): Promise<void> {
     return Promise.resolve()
@@ -172,7 +189,7 @@ class MemorySettings extends SettingsProvider {
 async function harness(
   config: ToolBrowser.Config = {},
   browserConfig: { experimentalScriptExecution?: boolean; allowFullCdpAccess?: boolean } = {},
-  options: { attachments?: boolean; imageInput?: boolean } = {},
+  options: { attachments?: boolean; imageInput?: boolean | 'unknown'; llm?: boolean; direct?: boolean } = {},
 ) {
   const ctx = new Context()
   await ctx.plugin(AgentRegistry)
@@ -182,12 +199,12 @@ async function harness(
   ctx.reflect.provide('approval', {
     request: () => Promise.resolve('allowed-once'),
   })
-  ctx.reflect.provide('llm', {
+  if (options.llm !== false) ctx.reflect.provide('llm', {
     resolveModelInfo: () => Promise.resolve({
       provider: 'visual',
       id: 'vision-model',
       name: 'Vision model',
-      inputModalities: options.imageInput === false ? ['text'] : ['text', 'image'],
+      ...options.imageInput === 'unknown' ? {} : { inputModalities: options.imageInput === false ? ['text'] : ['text', 'image'] },
     }),
   })
   if (options.attachments !== false) await ctx.plugin(TestAttachmentStore)
@@ -198,7 +215,9 @@ async function harness(
     children.push(child)
     return child
   }
-  await ctx.plugin(ToolBrowser, config)
+  await ctx.plugin(options.direct === true
+    ? { inject: ToolBrowser.inject, apply: (scope) => { ToolBrowser.apply(scope) } }
+    : ToolBrowser, config)
 
   const id = SessionId('browser-tools')
   const session = Session.create(id)
@@ -246,6 +265,143 @@ function text(content: readonly ContentBlock[]): string {
 }
 
 describe('tool-browser registration', () => {
+  it('validates output configuration even when apply is called directly', async () => {
+    const { ctx } = await harness({}, {}, { direct: true })
+    for (const config of [{ outputDir: 'relative' }, { snapshotMode: 'invalid' }, { imageResponses: 'invalid' }, { consoleLevel: 'invalid' }]) {
+      expect(() =>{  ToolBrowser.apply(ctx, config as ToolBrowser.Config) }).toThrow(/absolute|configuration/)
+    }
+    await ctx.fiber.dispose()
+  })
+
+  it.each([{ llm: false }, { imageInput: 'unknown' as const }])('refuses capture without a declared image route %j', async (options) => {
+    const { call, children } = await harness({}, {}, options)
+    expect((await call('browser_screenshot', {})).isError).toBe(true)
+    expect(children).toHaveLength(0)
+  })
+
+  it('requires a complete model route and deployment PNG support', async () => {
+    const { ctx, call, agent, children } = await harness()
+    expect((await call('browser_screenshot', {}, { ...agent, options: {} })).isError).toBe(true)
+    const limits = vi.spyOn(TestAttachmentStore.prototype, 'imageLimits', 'get')
+      .mockReturnValue({ ...ctx.attachments.imageLimits, mediaTypes: ['image/jpeg'] })
+    try {
+      expect(text((await call('browser_screenshot', {})).content)).toContain('PNG images are not accepted')
+      expect(children).toHaveLength(0)
+    } finally { limits.mockRestore() }
+  })
+
+  it('handles attachment stores returning no image, a different format, or an unnamed PNG', async () => {
+    const { call, ctx } = await harness()
+    const save = vi.spyOn(TestAttachmentStore.prototype, 'saveImages')
+    try {
+      for (const images of [[], [{ attachmentId: AttachmentId('image'), mediaType: 'image/jpeg' as const, bytes: 1, width: 1, height: 1 }]]) {
+        save.mockResolvedValueOnce(images)
+        expect(text((await call('browser_screenshot', {})).content)).toContain('did not return a PNG')
+      }
+      save.mockResolvedValueOnce([{ attachmentId: AttachmentId('image'), mediaType: 'image/png', bytes: 1, width: 1, height: 1 }])
+      const captured = await call('browser_screenshot', {})
+      expect(captured.isError).toBe(false)
+      expect(captured.content.find(block => block.type === 'image')?.attachment).not.toHaveProperty('name')
+    } finally { save.mockRestore(); await ctx.fiber.dispose() }
+  })
+
+  it('rejects invalid tool JSON before performing an action', async () => {
+    const { call, children, ctx } = await harness({}, { experimentalScriptExecution: true })
+    const cases: [string, Record<string, unknown>][] = [
+      ['browser_snapshot', { target: ' ' }], ['browser_wait', { seconds: 0 }],
+      ['browser_wait_for', {}], ['browser_wait_for', { time: 11 }],
+      ['browser_tabs', { action: 'close' }], ['browser_tabs', { action: 'select', index: 0 }], ['browser_tabs', { action: 'new', url: 'file:///x' }],
+      ['browser_drag', { start_index: -1, end_index: 1 }], ['browser_drop', { index: -1 }],
+      ['browser_drop', { index: 1 }], ['browser_drop', { index: 1, data: { invalid: 'text' } }],
+      ['browser_drop', { index: 1, data: { 'text/plain': 1 } }],
+      ['browser_resize', { width: 0, height: 1 }], ['browser_resize', { width: 1, height: 8193 }],
+      ['browser_network_request', { index: 0 }], ['browser_scroll_horizontally', { right: true, pixels: 0 }],
+      ['browser_find', { regex: ' ' }], ['browser_fill_form', { fields: [] }],
+      ['browser_history_search', { query: ' ' }], ['browser_history_search', { query: 'x'.repeat(257) }],
+      ['browser_open_tab', { url: ' ' }], ['browser_open_tab', { url: 'file:///x' }],
+      ['browser_page_agent_run', { task: ' ' }], ['browser_execute_javascript', { script: ' ' }], ['browser_evaluate', { script: ' ' }],
+    ]
+    for (const [name, args] of cases) expect((await call(name, args)).isError, `${name}: ${JSON.stringify(args)}`).toBe(true)
+    expect(children).toHaveLength(0)
+    await ctx.fiber.dispose()
+  })
+
+  it('forwards optional actions and renders tab lifecycle failures', async () => {
+    const { call, children, ctx } = await harness({}, { experimentalScriptExecution: true })
+    await ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, { navigationPolicy: 'allow' })
+    for (const [name, args, method, expected] of [
+      ['browser_wait_for', { text: 'loaded', text_gone: 'loading' }, 'wait_for', { seconds: 10, text: 'loaded', textGone: 'loading' }],
+      ['browser_wait_for', { time: 1 }, 'wait_for', { seconds: 1 }],
+      ['browser_tabs', { action: 'new' }, 'open_new_tab', {}],
+      ['browser_tabs', { action: 'new', url: 'https://example.test' }, 'open_new_tab', { url: 'https://example.test' }],
+      ['browser_tabs', { action: 'close', index: 2 }, 'close_tab', { tabId: 2 }],
+      ['browser_tabs', { action: 'select', index: 1 }, 'switch_to_tab', { tabId: 1 }],
+      ['browser_handle_dialog', { accept: false }, 'handle_dialog', { accept: false }],
+      ['browser_handle_dialog', { accept: true, promptText: 'Ada' }, 'handle_dialog', { accept: true, promptText: 'Ada' }],
+      ['browser_network_request', { index: 1 }, 'network_request', { index: 1 }],
+      ['browser_scroll_horizontally', { right: false, pixels: 10 }, 'scroll_horizontally', { right: false, pixels: 10 }],
+      ['browser_find', { text: 'Order' }, 'find_element', { text: 'Order' }],
+      ['browser_find', { regex: 'Order' }, 'find_element', { regex: 'Order' }],
+      ['browser_open_tab', {} , 'open_new_tab', {}],
+      ['browser_navigate_back', {}, 'back', {}], ['browser_evaluate', { script: 'return 1' }, 'execute_javascript', { script: 'return 1' }],
+    ] as const) {
+      expect((await call(name, args)).isError, name).toBe(false)
+      expect(children[0]!.requests).toContainEqual({ method, args: expected })
+    }
+    children[0]!.responses.set('close_tab', { success: false, message: 'last tab' })
+    expect(text((await call('browser_tabs', { action: 'close', index: 1 })).content)).toContain('last tab')
+    await ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, { fullCdpAccess: true })
+    ctx.emit('browser/full-cdp-access', true)
+    expect((await call('browser_cdp_command', { method: 'Runtime.enable' })).isError).toBe(false)
+    const events = await call('browser_cdp_read_events', {})
+    expect(events.isError).toBe(false)
+    expect(text((await call('browser_cdp_read_events', { after_sequence: 12 })).content)).toContain('No matching CDP events')
+    expect(text((await call('browser_close', {})).content)).toBe('Browser closed.')
+    expect(text((await call('browser_close', {})).content)).toBe('Browser was already closed.')
+    await ctx.fiber.dispose()
+  })
+
+  it('renders history without titles and an empty result list', async () => {
+    const { call, children, ctx } = await harness()
+    await call('browser_state', {})
+    children[0]!.responses.set('search_browser_history', [{ url: 'https://example.test', title: '', visitedAt: 'today' }])
+    expect(text((await call('browser_history_search', { query: 'page' })).content)).toContain('- https://example.test')
+    children[0]!.responses.set('search_browser_history', [])
+    expect(text((await call('browser_history_search', { query: 'page' })).content)).toBe('No matching Browser history entries.')
+    await ctx.fiber.dispose()
+  })
+
+  it('renders inactive tabs, untitled screenshots and legacy snapshot metadata', async () => {
+    const { call, ctx, children } = await harness()
+    const state = { url: 'https://example.test', title: '', header: '', content: '[1]<button>Save</button>', footer: '',
+      tabs: [{ id: 1, url: 'https://example.test', title: 'One', status: 'complete', active: true },
+        { id: 2, url: 'https://example.test/two', title: 'Two', status: 'complete', active: false }],
+      tabId: 1, activeTabId: 1, settled: true, capturedAt: '2026-09-01', truncated: false, compact: false, unchanged: false }
+    const output = ctx.tools.get('browser_state')!.output
+    expect(output.presentationMeta?.({}, state)).toHaveProperty('browser', { tabId: 1, revision: 1, mode: 'full', hash: ToolBrowser.contentHash(state.content) })
+    const changes = { shown: [], hidden: [], expanded: [], collapsed: [], changed: [] }
+    expect(output.presentationMeta?.({}, { ...state, uiChanges: changes })).toHaveProperty('browser.hash', ToolBrowser.contentHash(`${state.content}\n${JSON.stringify(changes)}`))
+    await call('browser_state', {})
+    children[0]!.responses.set('get_browser_state', state)
+    expect(text((await call('browser_tabs', { action: 'list' })).content)).toContain('[2] Two')
+    children[0]!.responses.set('browser_screenshot', { mediaType: 'image/png', data: PNG_1X1.toString('base64'), bytes: PNG_1X1.length,
+      width: 1, height: 1, tabId: 1, url: state.url, title: '', capturedAt: '2026-09-01' })
+    expect(text((await call('browser_screenshot', {})).content)).toContain('— https://example.test')
+    await ctx.fiber.dispose()
+  })
+
+  it('bounds diagnostics and saves an empty reply without retaining an obsolete tab snapshot', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'browser-diagnostics-'))
+    const { call, children, ctx } = await harness({ maxStateChars: 10, outputDir: directory })
+    try {
+      await call('browser_state', {})
+      expect(text((await call('browser_console_messages', {})).content)).toContain('Output truncated')
+      children[0]!.responses.set('console_messages', undefined)
+      const empty = (await call('browser_console_messages', { filename: 'empty.txt' })).value as unknown as ToolBrowser.BrowserToolValue
+      expect(await readFile(empty.filename!, 'utf8')).toBe('')
+    } finally { await ctx.fiber.dispose(); await rm(directory, { recursive: true, force: true }) }
+  })
+
   it('registers the browser tools and the accessibility-snapshot prompt section', async () => {
     const { ctx } = await harness()
     expect(ctx.tools.schemas().map(tool => tool.name).filter(name => name.startsWith('browser_')).sort())
@@ -680,6 +836,32 @@ describe('browser navigation', () => {
 })
 
 describe('browser call presentation', () => {
+  it('titles aliases, optional targets and elevated tools before execution', async () => {
+    const { ctx } = await harness({}, { experimentalScriptExecution: true })
+    await ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, { fullCdpAccess: true })
+    for (const [name, args, title] of [
+      ['browser_screenshot', {}, 'Capture selected browser viewport'], ['browser_close', {}, 'Close browser'],
+      ['browser_snapshot', {}, 'Read accessibility snapshot'], ['browser_wait_for', {}, 'Wait for browser state'],
+      ['browser_tabs', { action: 'list' }, 'List browser tabs'], ['browser_click', { target: '#save' }, 'Click #save'],
+      ['browser_hover', {}, 'Hover browser control'], ['browser_drag', { start_index: 1, end_index: 2 }, 'Drag browser control'],
+      ['browser_drop', { index: 1 }, 'Drop files or data into browser'], ['browser_resize', { width: 800, height: 600 }, 'Resize browser to 800 × 600'],
+      ['browser_handle_dialog', { accept: true }, 'Accept browser dialog'], ['browser_handle_dialog', { accept: false }, 'Dismiss browser dialog'],
+      ['browser_console_messages', {}, 'Read browser console'], ['browser_network_requests', {}, 'Read browser network requests'],
+      ['browser_network_request', { index: 3 }, 'Read browser request 3'], ['browser_type', { target: '#name', text: 'Ada' }, 'Type into #name'],
+      ['browser_select_option', { name: 'Color', text: 'Red' }, 'Select "Red" in Color'],
+      ['browser_select_option', { target: '#color', text: 'Red' }, 'Select "Red" in #color'],
+      ['browser_select_text', { target: '#title' }, 'Select text in #title'], ['browser_select_text', {}, 'Select text across range'],
+      ['browser_scroll_horizontally', { right: false, pixels: 10 }, 'Scroll left'], ['browser_navigate_back', {}, 'Navigate back'],
+      ['browser_find', { text: 'Ada' }, 'Find browser control'], ['browser_find', { regex: 'Ada' }, 'Find browser control'],
+      ['browser_fill_form', { fields: [] }, 'Fill 0 browser fields'], ['browser_open_tab', {}, 'Open browser tab'],
+      ['browser_page_agent_run', { task: 'Inspect' }, 'Run upstream PageAgent'], ['browser_page_agent_status', {}, 'Read upstream PageAgent status'],
+      ['browser_page_agent_stop', {}, 'Stop upstream PageAgent'], ['browser_execute_javascript', { script: 'return 1' }, 'Execute browser JavaScript'],
+      ['browser_evaluate', { script: 'return 1' }, 'Evaluate browser JavaScript'], ['browser_cdp_command', { method: 'Runtime.enable' }, 'Run CDP Runtime.enable'],
+      ['browser_cdp_read_events', {}, 'Read Browser CDP events'],
+    ] as const) expect(ctx.tools.get(name)?.presentCall?.(args)).toMatchObject({ title })
+    await ctx.fiber.dispose()
+  })
+
   it('titles each pending call from its arguments alone', async () => {
     const { ctx } = await harness()
     const present = (name: string, args: Record<string, unknown>) =>
@@ -727,6 +909,7 @@ describe('browser snapshot ranking', () => {
     expect(dropIgnoredNodes([
       '[4]<div aria-hidden="true">decoration</div>',
       '[7]<div role="presentation">layout</div>',
+      '[9]<div role="none">layout</div>',
       '[8]<div inert>inactive</div>',
       '[12]<button>Save</button>',
     ].join('\n'))).toBe('[12]<button>Save</button>')
@@ -763,6 +946,7 @@ describe('browser snapshot ranking', () => {
   it('drops empty non-indexed containers but keeps indexed empty controls', () => {
     expect(dropIgnoredNodes('<div></div>\n[4]<div></div>\n[5]<input/>'))
       .toBe('[4]<div></div>\n[5]<input/>')
+    expect(dropIgnoredNodes('Page text\n[6]<input inert')).toBe('Page text')
   })
 
   it('keeps newly appeared and typical form controls ahead of other indexed lines', () => {
@@ -848,6 +1032,16 @@ describe('browser snapshot ranking', () => {
     expect(formatBrowserOutput(value)).toContain('Snapshot revision: 3 → 4')
   })
 
+  it('retains plain page text alongside indexed controls', () => {
+    const value = toValue({ state: {
+      url: 'https://example.test', title: 'Page', header: 'Page', content: 'Page text\n[1]<input/>', footer: '',
+      tabs: [], settled: true, capturedAt: '2026-09-07T00:00:00.000Z',
+      tabId: 1, activeTabId: 1,
+    } }, 1000)
+    expect(value.content).toContain('Page text')
+    expect(value.content).toContain('[1]<input/>')
+  })
+
   it('renders observer changes for action prioritization', () => {
     const value = toValue({
       action: { success: true, message: 'did click' },
@@ -880,6 +1074,16 @@ describe('browser snapshot ranking', () => {
     expect(bounded.uiChanges).toMatchObject({ hidden: [], expanded: [], collapsed: [], changed: [] })
     const unsettled = toValue({ state: { ...value, settled: false } }, 16_000, { previousUrl: value.url, previousRevision: 1 })
     expect(unsettled.uiChanges).toBeUndefined()
+    const emptyChanges = { shown: [], hidden: [], expanded: [], collapsed: [], changed: [] }
+    expect(toValue({ state: { ...value, uiChanges: emptyChanges } }, 16_000,
+      { previousUrl: value.url, previousRevision: 1 }).uiChanges).toBeUndefined()
+    const focused = toValue({ state: { ...value, uiChanges: { ...emptyChanges, focused: '[1]<button>More</button>' } } },
+      16_000, { previousUrl: value.url, previousRevision: 1 })
+    expect(formatBrowserOutput(focused)).toContain('Focused:\n[1]<button>More</button>')
+    expect(formatBrowserOutput({ ...focused, mode: 'diff' })).toContain('Focused:\n[1]<button>More</button>\n\nSnapshot revision: 2 → 2')
+    const { action: _action, revision: _revision, ...legacy } = value
+    expect(formatBrowserOutput({ ...legacy, response: 'result' })).toContain('Browser action completed.')
+    expect(formatBrowserOutput({ ...legacy, mode: 'diff' })).toContain('Snapshot revision: 1 → 1\nAdded:\n\nChanged:\n\nRemoved:\n')
   })
 
   it('falls back to a full snapshot when the claimed revision is stale', () => {

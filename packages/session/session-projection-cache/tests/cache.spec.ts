@@ -136,6 +136,27 @@ afterEach(async () => {
 })
 
 describe('SessionProjectionCache write policy', () => {
+  it('deletes checkpoints and ignores late writes until the session id is recreated', async () => {
+    const { ctx, cache, pool } = await harness()
+    const id = SessionId('deleted')
+    let session: Session | undefined
+    const owner = await ctx.plugin({ inject: ['sessions'], apply(inner: Context) { session = inner.sessions.create(id) } })
+    if (session === undefined) throw new Error('session was not created')
+    mark(session, ['old'])
+    await cache.write(session)
+    expect(storedRows(pool, id)).toBeDefined()
+    await ctx.parallel('session-persistence/deleted', id)
+    expect(storedRows(pool, id)).toBeUndefined()
+    await cache.write(session)
+    expect(storedRows(pool, id)).toBeUndefined()
+    await owner.dispose()
+    await settle()
+    const recreated = ctx.sessions.create(id)
+    mark(recreated, ['new'])
+    await cache.write(recreated)
+    expect(storedRows(pool, id)?.['cache-test/marks']?.val).toEqual({ marks: ['new'] })
+  })
+
   it('writes a durable checkpoint at turn/end (mandatory point)', async () => {
     const { ctx, pool } = await harness()
     const session = ctx.sessions.create(SessionId('turn-end'))
@@ -396,6 +417,7 @@ describe('SessionProjectionCache cold read', () => {
     await ctx.plugin(SessionProjectionRegistry)
     ctx.provide('sessionPersistence', fakePersistence(logs) as never)
     await ctx.plugin(SessionProjectionCache, { writeEveryEvents: 100, writeIntervalMs: 60_000 })
+    await expect(ctx.sessionProjectionCache.listSnapshot(headerOf(SessionId('empty')))).resolves.toBeUndefined()
     await expect(ctx.sessionProjectionCache.coldSnapshot(SessionId('empty')))
       .resolves.toEqual({ asOfSeq: -1, values: {} })
   })

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { bindSnapshotSelector, stubSettingsScope, type StubSettingsScope } from '@hydra/harness-client-test-runtime'
 import { createSnapshotStore } from '@hydra/harness-client-runtime/client'
@@ -64,6 +64,7 @@ function renderTab(
   importedMcp?: McpSettingsTabProps['importedMcp'],
   nativeMcp?: McpSettingsTabProps['nativeMcp'],
   query = '',
+  overrides: Partial<McpSettingsTabProps> = {},
 ) {
   const store = createSnapshotStore<McpSettingsState>({
     ...settled,
@@ -81,6 +82,7 @@ function renderTab(
     useMcpSettings: bindSnapshotSelector(store),
     ...(importedMcp === undefined ? {} : { importedMcp }),
     ...(nativeMcp === undefined ? {} : { nativeMcp }),
+    ...overrides,
   } as unknown as McpSettingsTabProps} />)
   return actions
 }
@@ -195,6 +197,41 @@ describe('McpSettingsController', () => {
 })
 
 describe('McpSettingsTab', () => {
+  it.each([false, true])('ignores native and imported replies after unmount (reject: %s)', async (reject) => {
+    const pending = Promise.withResolvers<undefined>()
+    const imported = { list: vi.fn(async () => { await pending.promise; return { plugins: [] } }), setEnabled: vi.fn() }
+    const native = { list: vi.fn(async () => { await pending.promise; return { entries: [] } }) }
+    renderTab({}, imported, native, '', { active: false })
+    expect(imported.list).not.toHaveBeenCalled()
+    expect(native.list).not.toHaveBeenCalled()
+    cleanup()
+    renderTab({}, imported, native)
+    cleanup()
+    await act(async () => { if (reject) pending.reject(new Error('offline')); else pending.resolve(undefined) })
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it.each([
+    ['not-started', 'mcpServerNotStarted'], ['starting', 'mcpServerStarting'], ['failed', 'mcpServerFailed'],
+  ] as const)('shows imported server state %s and refreshes after a failed toggle', async (status, label) => {
+    const snapshot = { plugins: [{ identity: 'tools', name: 'Tools', mcpServers: [
+      { name: 'server', enabled: true, startupState: status }, { name: 'off', enabled: false, startupState: 'not-started' },
+    ] }] } as never
+    const list = vi.fn(async () => snapshot)
+    renderTab({}, { list, setEnabled: vi.fn(async () => { throw new Error('refused') }) })
+    await screen.findByText(en[label])
+    fireEvent.click(screen.getByRole('switch', { name: `${en.enable} off` }))
+    await screen.findByText(en.mcpToggleFailed)
+    expect(list).toHaveBeenCalledTimes(2)
+  })
+
+  it('includes the user server catalog when its controls are available', async () => {
+    renderTab({ available: false }, undefined, undefined, '', { userMcp: {
+      list: async () => ({ servers: [] }), define: vi.fn(), setEnabled: vi.fn(), remove: vi.fn(),
+    } })
+    expect(await screen.findByText(en.userMcpEmpty)).not.toBeNull()
+  })
+
   it.each(['native', 'imported'] as const)('offers retry when the %s MCP inventory cannot load', async (kind) => {
     const list = vi.fn(async () => { throw new Error('offline') })
     const controls = { list, setEnabled: vi.fn() }

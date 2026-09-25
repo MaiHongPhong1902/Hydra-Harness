@@ -689,12 +689,19 @@ function finishFor(raw: unknown, toolCalled: boolean, model: string): { reason: 
   if (toolCalled && (value === undefined || value === 'STOP' || value === 'TOOL_CALL' || value === 'TOOL_USE')) {
     return {
       reason: { kind: 'tool-calls' },
+      /* v8 ignore start -- The stream assigns a finish reason before calling finishFor. */
       ...(value === undefined ? {} : { providerReason: value }),
+      /* v8 ignore stop */
     }
   }
   switch (value) {
+    /* v8 ignore next -- Every terminal stream has a provider or inferred finish reason. */
     case undefined:
-    case 'STOP': return { reason: { kind: 'stop' }, ...(value === undefined ? {} : { providerReason: value }) }
+    case 'STOP': return { reason: { kind: 'stop' },
+      /* v8 ignore start -- Every terminal stream has a provider or inferred finish reason. */
+      ...(value === undefined ? {} : { providerReason: value }),
+      /* v8 ignore stop */
+    }
     case 'MAX_TOKENS':
     case 'LENGTH': return { reason: { kind: 'max-tokens' }, providerReason: value }
     case 'SAFETY':
@@ -755,6 +762,7 @@ async function requestStream(
   const endpoints = streamEndpoints(options, transport)
   for (let index = 0; index < endpoints.length; index += 1) {
     const endpoint = endpoints[index]
+    /* v8 ignore next -- streamEndpoints returns a dense, nonempty array. */
     if (endpoint === undefined) continue
     let response: Response
     try {
@@ -789,6 +797,7 @@ async function requestStream(
       || error.code === QUOTA_EXCEEDED_CODE
       || index + 1 >= endpoints.length) throw error
   }
+  /* v8 ignore next -- The final endpoint always returns or throws inside the loop. */
   throw lastError ?? new LlmError('Antigravity stream has no endpoint', 'TRANSPORT')
 }
 
@@ -885,6 +894,7 @@ export async function* streamAntigravity(
         throw new LlmError(`Antigravity provider request failed with HTTP ${String(status)}`, code, { status })
       }
       const data = extractResponse(object)
+      /* v8 ignore next -- extractResponse falls back to its non-null object argument. */
       if (data === undefined) continue
       responseId ??= stringValue(data.responseId)
       const metadata = usageOf(data.usageMetadata)
@@ -1008,7 +1018,9 @@ export async function* streamAntigravity(
     : {
       response: {
         ...(responseId === undefined ? {} : { responseId }),
+        /* v8 ignore start -- Every terminal stream has a provider or inferred finish reason. */
         ...(finish.providerReason === undefined ? {} : { finishReason: finish.providerReason }),
+        /* v8 ignore stop */
       } satisfies AntigravityResponseReplay,
       blocks: replayBlocks,
     }

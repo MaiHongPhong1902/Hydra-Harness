@@ -291,6 +291,7 @@ const INTERNAL_BASE = 'http://hydra.internal'
 /** Remove interactive authorization answers from diagnostic envelope taps. */
 function observedEnvelope(message: RpcMessage): RpcMessage {
   if (message.type !== 'client-request' || message.method !== 'authorization.answer') return message
+  /* v8 ignore if -- authorization.answer is emitted only by callUnary with its typed object payload. */
   if (typeof message.payload !== 'object' || message.payload === null || Array.isArray(message.payload)) return message
   return {
     ...message,

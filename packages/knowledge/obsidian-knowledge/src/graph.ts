@@ -178,6 +178,7 @@ export function relatedKnowledgeNotes(
   for (const note of notes) {
     for (const match of note.markdown.matchAll(/\[\[([^\]\n]+)\]\]/g)) {
       const body = match[1]
+      /* v8 ignore next -- the wikilink expression always captures its non-empty body. */
       if (body === undefined) continue
       const [target = '', alias] = body.split('|', 2)
       const path = knowledgeLinkPath(note, target)
@@ -280,6 +281,7 @@ class LocalVaultStorage implements ObsidianKnowledgeStorage {
   private async markdownFiles(root: string, limit: number): Promise<string[]> {
     const files: string[] = []
     const visit = async (directory: string): Promise<void> => {
+      /* v8 ignore next -- the initial count is zero and every recursive call follows the loop's limit check. */
       if (files.length >= limit) return
       let entries
       try {

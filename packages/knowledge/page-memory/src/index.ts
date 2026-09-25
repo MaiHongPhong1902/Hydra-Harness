@@ -139,6 +139,7 @@ function record(value: unknown): Record<string, unknown> | undefined {
 function latestRecall(agent: Agent): string | undefined {
   for (const sequence of [...agent.session.surface.nodes].reverse()) {
     const event = agent.session.events[sequence]
+    /* v8 ignore next -- Session appends and compacts surface pointers together with their owning events. */
     if (event === undefined) throw new Error('Session surface references a missing event')
     if (event.type !== 'user/message') continue
     const message = event.data

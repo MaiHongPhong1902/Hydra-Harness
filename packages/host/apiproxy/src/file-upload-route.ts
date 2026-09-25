@@ -25,7 +25,13 @@ export async function handleFileUploadHttp<TResult>(
   const sessionId = url.searchParams.get('sessionId')
   if (!sessionId) return new Response('sessionId is required', { status: 400 })
   try {
-    const value = await service.uploadStream({ sessionId, data: bodyChunks(request.body), signal: request.signal, ...(url.searchParams.has('name') ? { name: url.searchParams.get('name') ?? '' } : {}) })
+    const value = await service.uploadStream({
+      sessionId, data: bodyChunks(request.body), signal: request.signal,
+      ...(url.searchParams.has('name') ? {
+        /* v8 ignore next -- has(name) guarantees a string from get(name). */
+        name: url.searchParams.get('name') ?? '',
+      } : {}),
+    })
     return Response.json({ ok: true, value }, { headers: { 'cache-control': 'no-store' } })
   } catch (error) {
     return Response.json({ ok: false, error: { code: 'gateway/internal', message: error instanceof Error ? error.message : String(error), details: {} } }, { headers: { 'cache-control': 'no-store' } })

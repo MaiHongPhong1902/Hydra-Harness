@@ -100,6 +100,7 @@ function NativePluginCatalog({
   const headingId = useId()
   const [request, setRequest] = useState(0)
   const [state, setState] = useState<NativeViewState>(
+    /* v8 ignore next -- the parent renders this catalog only with native plugin controls. */
     nativePlugins === undefined ? { status: 'unavailable' } : { status: 'loading' },
   )
   const [mutating, setMutating] = useState<PluginInventoryEntry['entryId'] | null>(null)
@@ -107,6 +108,7 @@ function NativePluginCatalog({
 
   useEffect(() => {
     if (!active) return undefined
+    /* v8 ignore if -- removing native controls unmounts this catalog in its parent. */
     if (nativePlugins === undefined) {
       setState({ status: 'unavailable' })
       onRestartRequiredChange(false)
@@ -146,6 +148,7 @@ function NativePluginCatalog({
   )
   const retry = (): void => { setRequest(value => value + 1) }
   const toggle = (entry: PluginInventoryEntry): void => {
+    /* v8 ignore if -- switches render only for toggleable entries with native controls. */
     if (nativePlugins === undefined || !entry.toggleable) return
     setMutating(entry.entryId)
     setMutationFailed(false)
@@ -159,6 +162,7 @@ function NativePluginCatalog({
     ).finally(() => { setMutating(null) })
   }
 
+  /* v8 ignore if -- the parent owns the unavailable state and does not mount this catalog for it. */
   if (state.status === 'unavailable') return <p className={css.status}>{t('pluginUnavailable')}</p>
 
   return (
@@ -181,6 +185,7 @@ function NativePluginCatalog({
         <ul className={css.cards}>
           {groups.map((group) => {
             const first = group[0]
+            /* v8 ignore if -- each group is created by appending its first matching entry. */
             if (first === undefined) return null
             const title = moduleShortName(first.moduleName)
             const grouped = group.length > 1

@@ -145,6 +145,7 @@ export function apply(ctx: ClientContext): void {
       listMarketplaces,
       removeMarketplace,
       setMarketplaceEnabled,
+      /* v8 ignore next -- apply initializes the controller before consumers receive the injected face. */
       hasPendingImportedChanges: () => inventoryRef.current?.hasPendingImportedChanges() ?? false,
     })
     ctx.slots.inject('settings.plugins.tab', () => ctx.slots.register({

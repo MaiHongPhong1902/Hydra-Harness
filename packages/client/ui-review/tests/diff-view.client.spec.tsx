@@ -25,6 +25,30 @@ function hunk(lines: string[], header = '@@ -1,3 +1,3 @@'): ReviewHunk {
 }
 
 describe('DiffView', () => {
+  it.each(['unified', 'split'] as const)('renders unpaired lines, raw context and markers in %s layout', (mode) => {
+    const ui = view([hunk(['\\ orphan', 'raw context', '-removed', '\\ old marker', ' context', '+added', '\\ new marker'], 'invalid header')],
+      { mode, hideWhitespace: true, wordDiffs: true })
+    expect(ui.container.textContent).not.toContain('orphan')
+    expect(ui.container.textContent).toContain('raw context')
+    expect(ui.container.textContent).toContain('-removed')
+    expect(ui.container.textContent).toContain('+added')
+    expect(ui.container.querySelectorAll('[data-no-newline]')).toHaveLength(2)
+    expect(ui.container.querySelector('[data-old-line]')?.getAttribute('data-old-line')).toBe('1')
+    if (mode === 'split') expect(ui.container.querySelectorAll('[data-side][aria-hidden]')).toHaveLength(2)
+  })
+
+  it('keeps unequal replacement runs and trims only trailing horizontal whitespace', () => {
+    const ui = view([hunk([' context  ', '-same', '-extra', '+same', ' tail', '-prefix', '+prefix and suffix  '])],
+      { hideWhitespace: true, wordDiffs: true })
+    expect(ui.container.textContent).toContain(' context\n-extra\n tail\n-prefix\n+prefix and suffix')
+    expect([...ui.container.querySelectorAll('[data-word-diff]')].map(mark => mark.textContent)).toEqual([' and suffix'])
+  })
+
+  it('leaves identical paired lines unmarked and highlights complete Unicode characters', () => {
+    const ui = view([hunk(['-same', '+same', ' context', '-🙂 before', '+🙃 before'])], { wordDiffs: true })
+    expect([...ui.container.querySelectorAll('[data-word-diff]')].map(mark => mark.textContent)).toEqual(['🙂', '🙃'])
+  })
+
   it('keeps reordered lines visible when hiding whitespace changes', () => {
     const ui = view([hunk(['-first()', '-second()', '+second()', '+first()'])], { hideWhitespace: true })
     expect(ui.getByRole('region').textContent).toContain('-first()\n-second()\n+second()\n+first()')

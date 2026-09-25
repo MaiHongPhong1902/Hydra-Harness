@@ -89,6 +89,7 @@ export function extractReplayRuns(records: readonly unknown[], maxSteps: number)
   }
   function result(id: string, isError: boolean, content: unknown[], time?: number): void {
     const call = pending.get(id)
+    /* v8 ignore next -- Both event dispatchers check pending.has(id) before calling result. */
     if (call === undefined) throw new Error('page-memory replay: result has no matching call')
     pending.delete(id)
     if (call.name === 'page_memory_get' && !isError) {
@@ -190,6 +191,7 @@ export function compareReplayPolicies(
   const ordered = [...results].sort((a, b) => b.training.verified - a.training.verified || a.training.calls - b.training.calls)
   const selected = ordered[0]
   const baseline = results.find(result => result.name === 'baseline')
+  /* v8 ignore next -- The local policy map always includes baseline, producing at least one result. */
   if (selected === undefined || baseline === undefined) throw new Error('page-memory replay: no policy results')
   return {
     selected: selected.name,

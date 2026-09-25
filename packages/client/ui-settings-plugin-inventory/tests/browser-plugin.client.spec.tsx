@@ -3,11 +3,12 @@ import { Context, Service } from '@hydra/cordis'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup } from '@testing-library/react'
 import { LocaleRuntime } from '@hydra/harness-client-locale/client'
-import { SlotRegistry } from '@hydra/harness-client-runtime/client'
+import { createSnapshotStore, SlotRegistry, type ISessions } from '@hydra/harness-client-runtime/client'
+import type { ConnectionHandle, ImportedPluginSnapshot, PluginInventorySnapshot } from '@hydra/harness-api-remotes/client'
 import { resolveSlotLabel } from '@hydra/harness-client-ui-slots'
 import { usePinnedBrowserLanguages } from '@hydra/harness-client-test-runtime'
 import { apply, inject } from '../src/client/index.ts'
-import { ImportedPluginCapabilitiesTab } from '../src/client/ImportedPluginCapabilitiesTab.tsx'
+import { ImportedPluginCapabilitiesTab, type ImportedPluginCapabilitiesTabInjected } from '../src/client/ImportedPluginCapabilitiesTab.tsx'
 import { MarketplaceSettingsTab } from '../src/client/MarketplaceSettingsTab.tsx'
 import type { MarketplaceSettingsTabInjected } from '../src/client/MarketplaceSettingsTab.tsx'
 import { PluginInventorySettingsTab } from '../src/client/PluginInventorySettingsTab.tsx'
@@ -17,8 +18,8 @@ usePinnedBrowserLanguages('en-US')
 afterEach(cleanup)
 
 const EMPTY_MARKETPLACES = { marketplaces: [] }
-const EMPTY_IMPORTED = { plugins: [] }
-const EMPTY_NATIVE = { entries: [] }
+const EMPTY_IMPORTED: ImportedPluginSnapshot = { plugins: [] }
+const EMPTY_NATIVE: PluginInventorySnapshot = { entries: [] }
 type Result<T> =
   | { readonly ok: true; readonly value: T }
   | { readonly ok: false; readonly error: { readonly code: string; readonly message: string } }
@@ -31,12 +32,15 @@ async function bench(isLoopback = true) {
   class RemoteService extends Service { constructor(serviceCtx: Context) { super(serviceCtx, 'remote') } }
   new RemoteService(ctx)
   const list = vi.fn<() => Promise<Result<typeof EMPTY_NATIVE>>>().mockResolvedValue({ ok: true, value: EMPTY_NATIVE })
-  const setEnabled = vi.fn<() => Promise<Result<typeof EMPTY_NATIVE>>>().mockResolvedValue({ ok: true, value: EMPTY_NATIVE })
+  const setEnabled = vi.fn<() => Promise<Result<{ snapshot: PluginInventorySnapshot; restartRequired: boolean }>>>()
+    .mockResolvedValue({ ok: true, value: { snapshot: EMPTY_NATIVE, restartRequired: false } })
   const listMarketplaces = vi.fn<() => Promise<Result<typeof EMPTY_MARKETPLACES>>>()
     .mockResolvedValue({ ok: true, value: EMPTY_MARKETPLACES })
   const addMarketplace = vi.fn<() => Promise<Result<typeof EMPTY_MARKETPLACES>>>()
     .mockResolvedValue({ ok: true, value: EMPTY_MARKETPLACES })
   const removeMarketplace = vi.fn<() => Promise<Result<typeof EMPTY_MARKETPLACES>>>()
+    .mockResolvedValue({ ok: true, value: EMPTY_MARKETPLACES })
+  const setMarketplaceEnabled = vi.fn<() => Promise<Result<typeof EMPTY_MARKETPLACES>>>()
     .mockResolvedValue({ ok: true, value: EMPTY_MARKETPLACES })
   const listImportedPlugins = vi.fn<() => Promise<Result<typeof EMPTY_IMPORTED>>>().mockResolvedValue({ ok: true, value: EMPTY_IMPORTED })
   const importPlugin = vi.fn<() => Promise<Result<typeof EMPTY_IMPORTED>>>().mockResolvedValue({ ok: true, value: EMPTY_IMPORTED })
@@ -50,8 +54,10 @@ async function bench(isLoopback = true) {
     list: { getSnapshot: () => ({ current: undefined }), subscribe: () => () => {} },
     subagentAddress: vi.fn(() => undefined),
   } as never)
-  ctx.provide('remote.pluginInventory', { list, setEnabled, listMarketplaces, addMarketplace, removeMarketplace, listImportedPlugins, importPlugin, enablePlugin, disablePlugin, trustPlugin, untrustPlugin, removePlugin })
-  return { ctx, slots: ctx.get('slots') as SlotRegistry, locale, list, setEnabled, listMarketplaces, addMarketplace, removeMarketplace, listImportedPlugins, importPlugin, enablePlugin }
+  const remote = { list, setEnabled, listMarketplaces, addMarketplace, removeMarketplace, setMarketplaceEnabled,
+    listImportedPlugins, importPlugin, enablePlugin, disablePlugin, trustPlugin, untrustPlugin, removePlugin }
+  ctx.provide('remote.pluginInventory', remote)
+  return { ctx, slots: ctx.get('slots') as SlotRegistry, locale, ...remote }
 }
 
 function declare(slots: SlotRegistry): () => void {
@@ -64,6 +70,84 @@ function declare(slots: SlotRegistry): () => void {
 }
 
 describe('ui-settings-plugin-inventory browser plugin', () => {
+  it.each([false, true])('routes marketplace and imported-plugin controls (failure: %s)', async (failure) => {
+    const b = await bench()
+    declare(b.slots)
+    let earlyPending: boolean | undefined
+    const stop = b.slots.subscribe('settings.plugins.tab', () => {
+      const entry = b.slots.entries('settings.plugins.tab').find(entry => entry.options.id === 'marketplace')
+      if (entry !== undefined) {
+        earlyPending = (entry.inject as unknown as () => MarketplaceSettingsTabInjected)().hasPendingImportedChanges?.()
+      }
+    })
+    await b.ctx.plugin({ inject: [...inject], apply }).await()
+    stop()
+    const market = (b.slots.entries('settings.plugins.tab').find(entry => entry.options.id === 'marketplace')!.inject as unknown as () => MarketplaceSettingsTabInjected)()
+    const hooks = (b.slots.entries('settings.plugins.hooks.item')[0]!.inject as unknown as () => ImportedPluginCapabilitiesTabInjected)()
+    expect(earlyPending).toBe(false)
+    expect(market.hasPendingImportedChanges?.()).toBe(false)
+    const requests: Array<[() => Promise<unknown>, keyof typeof b, unknown]> = [
+      [() => market.listMarketplaces(), 'listMarketplaces', undefined],
+      [() => market.addMarketplace({ source: 'owner/repo' }), 'addMarketplace', { source: 'owner/repo' }],
+      [() => market.removeMarketplace('owner/repo'), 'removeMarketplace', 'owner/repo'],
+      [() => market.setMarketplaceEnabled({ source: 'owner/repo', enabled: false }), 'setMarketplaceEnabled', { source: 'owner/repo', enabled: false }],
+      [() => market.importedPlugins.list(), 'listImportedPlugins', undefined],
+      [() => market.importedPlugins.import('owner/repo'), 'importPlugin', 'owner/repo'],
+      [() => market.importedPlugins.enable('plugin'), 'enablePlugin', 'plugin'],
+      [() => market.importedPlugins.disable('plugin'), 'disablePlugin', 'plugin'],
+      [() => market.importedPlugins.remove('plugin'), 'removePlugin', 'plugin'],
+      [() => hooks.trust!('plugin'), 'trustPlugin', 'plugin'],
+      [() => hooks.untrust!('plugin'), 'untrustPlugin', 'plugin'],
+    ]
+    for (const [call, key, payload] of requests) {
+      const method = b[key]
+      if (!vi.isMockFunction(method)) throw new Error(`missing mock ${key}`)
+      if (failure) method.mockResolvedValueOnce({ ok: false, error: { code: 'unavailable', message: 'Host unavailable' } })
+      if (failure) await expect(call()).rejects.toThrow(`pluginInventory.${key} failed: unavailable: Host unavailable`)
+      else await expect(call()).resolves.toBeDefined()
+      if (payload === undefined) expect(method).toHaveBeenCalledWith()
+      else expect(method).toHaveBeenCalledWith(payload)
+    }
+    await b.ctx.fiber.dispose()
+  })
+
+  it.each([false, true])('saves native drafts through the Host and exposes failures (failure: %s)', async (failure) => {
+    const b = await bench()
+    b.list.mockResolvedValue({ ok: true, value: { entries: [{ entryId: 'native' as never, moduleName: 'native',
+      enabled: true, toggleable: true, restartRequired: false, fiberPhase: 'active' }] } })
+    declare(b.slots)
+    await b.ctx.plugin({ inject: [...inject], apply }).await()
+    const face = (b.slots.entries('settings.plugins.tab').find(entry => entry.options.id === 'all')!.inject as unknown as () => PluginInventorySettingsTabInjected)()
+    await face.nativePlugins!.list()
+    await face.nativePlugins!.setEnabled('native' as never, false)
+    if (failure) b.setEnabled.mockResolvedValueOnce({ ok: false, error: { code: 'unavailable', message: 'Host unavailable' } })
+    await face.savePlugins()
+    expect(b.setEnabled).toHaveBeenCalledWith({ entryId: 'native', enabled: false })
+    expect(face.hooks.pluginDrafts.getSnapshot().error).toBe(failure ? 'pluginInventory.setEnabled failed: unavailable: Host unavailable' : null)
+    face.discardPluginChanges()
+    b.list.mockResolvedValueOnce({ ok: false, error: { code: 'unavailable', message: 'Host unavailable' } })
+    await expect(face.nativePlugins!.list()).rejects.toThrow('pluginInventory.list failed')
+    await b.ctx.fiber.dispose()
+  })
+
+  it('loads native skills only for a selected root session and propagates RPC failures', async () => {
+    const b = await bench()
+    const sessions = b.ctx.get('sessions') as ISessions
+    const selection = createSnapshotStore({ current: 's' as never })
+    Object.assign(sessions, { list: selection })
+    const api = (b.ctx.get('connection') as ConnectionHandle).api
+    const skills = vi.spyOn(api.skills, 'list').mockResolvedValue({ rpcId: 'r' as never, result: { ok: true, value: { skills: [{ name: 'test', description: 'Test', modelInvocable: true }] } } })
+    declare(b.slots)
+    await b.ctx.plugin({ inject: [...inject], apply }).await()
+    const face = (b.slots.entries('settings.plugins.tab').find(entry => entry.options.id === 'skills')!.inject as unknown as () => ImportedPluginCapabilitiesTabInjected)()
+    expect(await face.nativeSkills!.list()).toMatchObject({ sessionId: 's', skills: [{ name: 'test' }] })
+    skills.mockResolvedValueOnce({ rpcId: 'r' as never, result: { ok: false, error: { code: 'internal', message: 'unavailable', details: {} } } })
+    await expect(face.nativeSkills!.list()).rejects.toThrow('skill.list failed: internal: unavailable')
+    vi.spyOn(sessions, 'subagentAddress').mockReturnValue({ parentSessionId: 'p' as never, childSessionId: 's' as never, mode: 'one-shot' })
+    expect(await face.nativeSkills!.list()).toEqual({ skills: [] })
+    await b.ctx.fiber.dispose()
+  })
+
   it('declares only the services used by the Settings Remote contribution', () => {
     expect(inject).toEqual(['slots', 'locale', 'connection', 'sessions', 'remote', 'remote.pluginInventory'])
   })
@@ -80,6 +164,8 @@ describe('ui-settings-plugin-inventory browser plugin', () => {
     const marketplace = entries.find(entry => entry.options.id === 'marketplace')
     expect(marketplace?.component).toBe(MarketplaceSettingsTab)
     expect(resolveSlotLabel(entries[0]?.options.label)).toBe('Plugins')
+    expect(resolveSlotLabel(entries.find(entry => entry.options.id === 'skills')?.options.label)).toBe('Skills')
+    expect(resolveSlotLabel(marketplace?.options.label)).toBe('Marketplace')
 
     // The imported hooks catalog contributes to the Hooks tab's child slot.
     const hookItems = b.slots.entries('settings.plugins.hooks.item')
@@ -114,6 +200,9 @@ describe('ui-settings-plugin-inventory browser plugin', () => {
     await vi.waitFor(() => { expect(b.slots.entries('settings.plugins.tab')).toHaveLength(1) })
     expect(b.slots.entries('settings.plugins.tab')[0]?.options.id).toBe('all')
     expect(resolveSlotLabel(b.slots.entries('settings.plugins.tab')[0]?.options.label)).toBe('Plugins')
+    const face = (b.slots.entries('settings.plugins.tab')[0]!.inject as unknown as () => PluginInventorySettingsTabInjected)()
+    expect(face.nativePlugins).toBeUndefined()
+    expect(face.importedPlugins).toBeUndefined()
     stop()
     await fiber.dispose()
     await b.ctx.fiber.dispose()

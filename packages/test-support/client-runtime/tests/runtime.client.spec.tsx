@@ -81,6 +81,29 @@ describe('root declaration and rendering', () => {
 })
 
 describe('sessions', () => {
+  it('creates blank sessions idempotently and records refresh, revision, and deletion', async () => {
+    const runtime = await runtimeWithFrame()
+    try {
+      const sessions = runtime.sessions
+      const first = await sessions.create()
+      const second = await sessions.create({ sessionId: 'named' as SessionId, cwd: '/project' })
+      expect(await sessions.create({ sessionId: second })).toBe(second)
+      expect(sessions.list.getSnapshot()).toMatchObject({
+        ids: [first, second], current: undefined,
+        byId: { [first]: { blank: true }, [second]: { blank: true, cwd: '/project' } },
+      })
+      await sessions.refresh()
+      const revision = { sessionId: second, workspaceId: 'workspace' as WorkspaceId, idempotencyKey: 'revision' as never }
+      expect(await sessions.revise(revision)).toBe(second)
+      expect(sessions.list.getSnapshot().ids).toEqual([first, second])
+      await sessions.delete(second)
+      expect(sessions.list.getSnapshot().ids).toEqual([first])
+      expect(sessions.calls.slice(-3)).toEqual([
+        { method: 'refresh', args: [] }, { method: 'revise', args: [revision] }, { method: 'delete', args: [second] },
+      ])
+    } finally { await runtime.dispose() }
+  })
+
   it('drives SessionProvider: empty state, current session, switch, live snapshot updates', async () => {
     const runtime = await runtimeWithFrame()
     runtime.slots.register({ name: 'trt.chat' }, (props: SessionStandardProps) => {
@@ -611,6 +634,9 @@ describe('workspaces action face', () => {
     // The stub replaces the default set mutation: the set stays as-is.
     await ws.archiveSession('s2' as SessionId)
     expect(ws.list.getSnapshot().archivedSessionIds).toEqual([])
+    await ws.update((draft) => { draft.archivedSessionIds = ['s2' as SessionId] })
+    await ws.unarchiveSession('s2' as SessionId)
+    expect(ws.list.getSnapshot().archivedSessionIds).toEqual(['s2'])
     await runtime.dispose()
   })
 })

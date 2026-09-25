@@ -3,8 +3,8 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context, type Plugin } from '@hydra/cordis'
-import Loader from '@hydra/cordis-plugin-loader'
+import { Context, type Fiber, type Plugin } from '@hydra/cordis'
+import Loader, { EntryTree, type EntryOptions } from '@hydra/cordis-plugin-loader'
 import Include from '@hydra/cordis-plugin-include'
 import { resolveProfileDir } from '@hydra/harness-app-boot'
 import { settingsNamespace } from '@hydra/harness-settings'
@@ -17,6 +17,7 @@ const contexts: Context[] = []
 const tempDirs: string[] = []
 
 afterEach(async () => {
+  vi.restoreAllMocks()
   vi.unstubAllEnvs()
   await Promise.all(contexts.splice(0).map(ctx => ctx.fiber.dispose()))
   await Promise.all(tempDirs.splice(0).map(path => rm(path, { recursive: true, force: true })))
@@ -28,9 +29,24 @@ const pendingPlugin: Plugin.Object = {
   apply() {},
 }
 
+async function profile(entries: Partial<EntryOptions>[]) {
+  const { ctx, inventory, gatewayFiber } = await harness()
+  const directory = await mkdtemp(join(tmpdir(), 'hydra-inventory-profile-'))
+  tempDirs.push(directory)
+  const filename = join(directory, 'cordis.yml')
+  await writeFile(filename, JSON.stringify(entries))
+  ctx.loader.builtins.include = Include
+  ctx.loader.builtins.second = () => {}
+  const includeId = await ctx.loader.create({ name: 'cordis:include', config: { path: pathToFileURL(filename).href } })
+  await ctx.loader.await()
+  return { ctx, inventory, gatewayFiber, includeId, directory,
+    entry: (id: string) => ctx.loader.resolve(`${includeId}:${id}`) }
+}
+
 async function harness(): Promise<{
   ctx: Context
   inventory: PluginInventoryGateway
+  gatewayFiber: Fiber
 }> {
   const ctx = new Context()
   contexts.push(ctx)
@@ -40,12 +56,149 @@ async function harness(): Promise<{
   await ctx.plugin(FileSettingsProvider, { path: join(dir, 'settings.yaml'), watch: false })
   ctx.loader.builtins.active = activePlugin
   ctx.loader.builtins.pending = pendingPlugin
-  await ctx.plugin(PluginInventoryGateway)
+  const gatewayFiber = ctx.plugin(PluginInventoryGateway)
+  await gatewayFiber
   const inventory = ctx.get('pluginInventory') as PluginInventoryGateway
-  return { ctx, inventory }
+  return { ctx, inventory, gatewayFiber }
 }
 
 describe('PluginInventoryGateway', () => {
+  it.each([1, 2])('reports %s failures while applying changed plugin settings', async (count) => {
+    const h = await profile([{ id: 'one', name: 'cordis:active' }, { id: 'two', name: 'cordis:second' }])
+    await h.gatewayFiber.dispose()
+    await h.ctx.plugin(PluginInventoryGateway).await()
+    const warn = vi.spyOn(h.ctx.logger, 'warn').mockImplementation(() => {})
+    vi.spyOn(h.entry('one'), 'update').mockRejectedValueOnce(new Error('first unload failed'))
+    if (count === 2) vi.spyOn(h.entry('two'), 'update').mockRejectedValueOnce(new Error('second unload failed'))
+    await h.ctx.settings.update(settingsNamespace('plugins'), { enabled: { 'cordis:active': false, 'cordis:second': false } })
+    await vi.waitFor(() => {
+      const error = warn.mock.calls.flat().find(value => value instanceof Error)
+      expect(error?.message).toContain(count === 1 ? 'first unload failed' : 'failed to apply plugin settings')
+    })
+  })
+
+  it('restores defaults after a persisted switch is removed and applies switches for newly added entries', async () => {
+    const h = await profile([{ id: 'one', name: 'cordis:active' }])
+    await h.gatewayFiber.dispose()
+    await h.ctx.plugin(PluginInventoryGateway).await()
+    const settings = h.ctx.settings
+    const external = await h.ctx.loader.create({ name: 'cordis:pending' })
+    await settings.update(settingsNamespace('plugins'), { enabled: { 'cordis:active': false, 'cordis:pending': false, missing: false } })
+    expect(h.entry('one').disabled).toBe(true)
+    expect(h.ctx.loader.resolve(external).disabled).toBe(false)
+    await settings.replace(settingsNamespace('plugins'), { enabled: {} })
+    expect(h.entry('one').disabled).toBe(false)
+    const lateId = await h.ctx.loader.create({ name: 'cordis:second' }, h.includeId)
+    await settings.update(settingsNamespace('plugins'), { enabled: { 'cordis:second': false } })
+    await settings.replace(settingsNamespace('plugins'), { enabled: {} })
+    expect(h.ctx.loader.resolve(lateId).disabled).toBe(true)
+  })
+
+  it('prefers the restart-only representative for duplicate modules outside a profile', async () => {
+    const { ctx, inventory } = await harness()
+    await ctx.loader.create({ name: 'cordis:active' })
+    const core = await ctx.loader.create({ name: 'cordis:active', pluginType: 'core' })
+    expect((await inventory.list()).entries.find(entry => entry.moduleName === 'cordis:active')?.entryId).toBe(core)
+  })
+
+  it('rejects missing preset controls and preserves preset no-ops before the first listing', async () => {
+    const { ctx, inventory } = await harness()
+    const entryId = 'agent-preset:standard:tool' as PluginEntryId
+    await expect(inventory.setEnabled({ entryId, enabled: false })).rejects.toThrow('unavailable')
+    const presets = { listPluginEntries: vi.fn(async () => [{ entryId, presetId: 'standard', moduleName: 'tool', enabled: true }]),
+      setPluginEnabled: vi.fn(async () => {}) }
+    ctx.provide('agentPresets', presets)
+    await inventory.setEnabled({ entryId, enabled: true })
+    expect(presets.setPluginEnabled).not.toHaveBeenCalled()
+    await expect(inventory.setEnabled({ entryId: 'agent-preset:missing' as PluginEntryId, enabled: false }))
+      .rejects.toThrow('cannot be toggled')
+  })
+
+  it('reports mixed grouped defaults and retains no-op switches', async () => {
+    const h = await profile([
+      { id: 'one', name: 'cordis:active', pluginGroup: 'pair' },
+      { id: 'two', name: 'cordis:second', pluginGroup: 'pair', disabled: true },
+    ])
+    const row = (await h.inventory.list()).entries.find(entry => entry.moduleName === 'cordis:active')!
+    expect(row).toMatchObject({ initialEnabled: null, mixedEnabled: true })
+    await h.inventory.setEnabled({ entryId: row.entryId, enabled: true })
+    expect(h.entry('two').disabled).toBe(false)
+    const update = vi.spyOn(h.entry('one'), 'update')
+    await h.inventory.setEnabled({ entryId: row.entryId, enabled: true })
+    expect(update).not.toHaveBeenCalled()
+  })
+
+  it('keeps the first of duplicate profile entries and restores a never-enabled entry after a save error', async () => {
+    const h = await profile([{ id: 'one', name: 'cordis:active', disabled: true },
+      { id: 'two', name: 'cordis:active', disabled: true }])
+    const row = (await h.inventory.list()).entries.find(entry => entry.moduleName === 'cordis:active')!
+    expect(row.entryId).toBe(h.entry('one').id)
+    vi.spyOn(h.ctx.settings, 'update').mockRejectedValueOnce(new Error('disk full'))
+    await expect(h.inventory.setEnabled({ entryId: row.entryId, enabled: true })).rejects.toThrow('disk full')
+    expect(h.entry('one').disabled).toBe(true)
+    expect(h.entry('two').disabled).toBe(true)
+  })
+
+  it('prefers an editable member when a related module was mounted outside the profile', async () => {
+    const { ctx, inventory } = await harness()
+    await ctx.loader.create({ name: 'cordis:pending', pluginGroup: 'pair' })
+    const directory = await mkdtemp(join(tmpdir(), 'hydra-inventory-group-'))
+    tempDirs.push(directory)
+    const filename = join(directory, 'cordis.yml')
+    await writeFile(filename, JSON.stringify([{ id: 'active', name: 'cordis:active', pluginGroup: 'pair' }]))
+    ctx.loader.builtins.include = Include
+    await ctx.loader.create({ name: 'cordis:include', config: { path: pathToFileURL(filename).href } })
+    await ctx.loader.await()
+    expect((await inventory.list()).entries.find(entry => entry.moduleName === 'cordis:active'))
+      .toMatchObject({ toggleable: true, relatedModules: ['cordis:pending'] })
+  })
+
+  it('rejects restart-only updates outside a managed profile', async () => {
+    const h = await profile([{ id: 'one', name: 'cordis:active', pluginType: 'core' }])
+    await expect(h.inventory.setEnabled({ entryId: h.entry('one').id as PluginEntryId, enabled: false }))
+      .rejects.toThrow('not a managed hydra profile')
+    expect(h.entry('one').disabled).toBe(false)
+  })
+
+  it('restores entries when persistence fails and reports rollback failure separately', async () => {
+    const h = await profile([{ id: 'one', name: 'cordis:active' }])
+    const request = { entryId: h.entry('one').id as PluginEntryId, enabled: false }
+    vi.spyOn(h.ctx.settings, 'update').mockRejectedValue(new Error('disk full'))
+    await expect(h.inventory.setEnabled(request)).rejects.toThrow('disk full')
+    expect(h.entry('one').disabled).toBe(false)
+    const original = h.entry('one').update.bind(h.entry('one'))
+    vi.spyOn(h.entry('one'), 'update').mockImplementationOnce(original).mockRejectedValueOnce(new Error('rollback failed'))
+    await expect(h.inventory.setEnabled(request)).rejects.toThrow('failed to persist and roll back')
+  })
+
+  it('reports both update and rollback failures while leaving the mutation queue usable', async () => {
+    const h = await profile([{ id: 'one', name: 'cordis:active' }])
+    const update = vi.spyOn(h.entry('one'), 'update').mockRejectedValue(new Error('unload failed'))
+    const request = { entryId: h.entry('one').id as PluginEntryId, enabled: false }
+    await expect(h.inventory.setEnabled(request)).rejects.toThrow('failed to update and roll back')
+    update.mockRestore()
+    await expect(h.inventory.setEnabled(request)).resolves.toMatchObject({ restartRequired: false })
+  })
+
+  it.each([false, true])('keeps disabled HMR watch-only with initial roots %s', async (watchOnly) => {
+    // oxlint-disable-next-line typescript/unbound-method -- The spy calls this implementation with the original EntryTree receiver.
+    const original = EntryTree.prototype.import
+    vi.spyOn(EntryTree.prototype, 'import').mockImplementation(function (this: EntryTree, name, stack) {
+      return name === '@hydra/cordis-plugin-hmr' ? activePlugin : original.call(this, name, stack) as unknown
+    })
+    const h = await profile([{ id: 'hmr', name: '@hydra/cordis-plugin-hmr', config: watchOnly ? { root: [] } : {} }])
+    await h.gatewayFiber.dispose()
+    await h.ctx.plugin(PluginInventoryGateway).await()
+    const inventory = h.ctx.get('pluginInventory') as PluginInventoryGateway
+    const entryId = h.entry('hmr').id as PluginEntryId
+    await inventory.setEnabled({ entryId, enabled: true })
+    await inventory.setEnabled({ entryId, enabled: false })
+    expect(h.entry('hmr').options.config).toEqual({ root: [] })
+    await inventory.setEnabled({ entryId, enabled: true })
+    expect(h.entry('hmr').options.config).toEqual({})
+    expect(h.entry('hmr').disabled).toBe(false)
+  })
+
   it('rejects invalid lifecycle declarations before exposing plugin controls', async () => {
     for (const metadata of [{ pluginType: 'critical' }, { pluginGroup: '' }, { plugin_type: 'core' }]) {
       const { ctx, inventory } = await harness()

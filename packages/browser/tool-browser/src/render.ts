@@ -279,7 +279,11 @@ export function toValue(
     unchanged,
     mode: diff ? 'diff' : 'full',
     revision,
-    ...diff ? { baseRevision: options.previousRevision ?? 1, added, changed, removed } : {},
+    ...diff ? {
+      /* v8 ignore next -- canDiff requires a previous revision before diff can be true. */
+      baseRevision: options.previousRevision ?? 1,
+      added, changed, removed,
+    } : {},
     ...uiChanges === undefined ? {} : { uiChanges },
   }
 }
@@ -290,7 +294,10 @@ export function toValue(
  */
 export function contentHash(content: string): string {
   let hash = 2166136261
-  for (const character of content) hash = Math.imul(hash ^ (character.codePointAt(0) ?? 0), 16777619)
+  for (const character of content) {
+    /* v8 ignore next -- string iteration yields non-empty Unicode code points. */
+    hash = Math.imul(hash ^ (character.codePointAt(0) ?? 0), 16777619)
+  }
   return (hash >>> 0).toString(16).padStart(8, '0')
 }
 

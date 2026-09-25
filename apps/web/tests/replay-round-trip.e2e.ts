@@ -140,7 +140,7 @@ describe('web e2e: fresh round trip through the real assembly', () => {
     onTestFailed(() => saveFailureShot(page, 'web-e2e-round-trip-aria'))
     // Anchor assertions survive a semantics-preserving component rewrite even
     // while the whole-region golden churns.
-    await expect(page.getByRole('textbox').first().isVisible()).resolves.toBe(true)
+    await page.getByRole('textbox', { name: 'Message the agent', exact: true }).waitFor({ timeout: 10_000 })
     expect(await page.getByText('WEB_E2E_OK', { exact: false }).count()).toBeGreaterThanOrEqual(1)
     await page.getByRole('button', {
       name: 'Select model, current DeepSeek-V4-Flash',

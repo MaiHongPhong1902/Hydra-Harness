@@ -172,6 +172,7 @@ export class PluginInventoryController {
     try {
       if (this.nativeApi !== undefined) for (const [id, enabled] of this.nativeDrafts) {
         const entry = this.native.entries.find(candidate => candidate.entryId === id)
+        /* v8 ignore if -- receiveNative removes absent ids from nativeDrafts before any save can iterate them. */
         if (entry === undefined) throw new Error(`Plugin ${id} is no longer available.`)
         const result = await this.nativeApi.setEnabled(entry.entryId, enabled)
         if (this.isDisposed()) return

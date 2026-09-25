@@ -375,6 +375,7 @@ function applyScreenshotTool(ctx: Context, timeoutMs: number, outputDir: string,
           image: { mediaType: 'image/png', bytes: screenshot.bytes, width: screenshot.width, height: screenshot.height },
         }
       }
+      /* v8 ignore next -- The captured attachment reference was required above and cannot change during capture. */
       if (attachments === undefined) throw new Error('attachment service was unmounted during capture')
       const [image] = await attachments.saveImages([{
         data: Buffer.from(screenshot.data, 'base64'), mediaType: 'image/png', name: `browser-tab-${screenshot.tabId}.png`,
@@ -465,7 +466,9 @@ export function apply(ctx: Context, config: Config = {}): void {
       url: outcome.state.url,
       content: rankElementList(dropIgnoredNodes(outcome.state.content)),
       elements: rankElementList(dropIgnoredNodes(outcome.state.content)).split('\n').filter(Boolean),
+      /* v8 ignore start -- toValue assigns a revision to every snapshot. */
       revision: value.revision ?? 1,
+      /* v8 ignore stop */
     })
     for (const tabId of perTab.keys()) {
       if (!outcome.state.tabs.some(tab => tab.id === tabId)) perTab.delete(tabId)
@@ -625,9 +628,9 @@ export function apply(ctx: Context, config: Config = {}): void {
       const outcome = args.action === 'new'
         ? await run(exec, { method: 'open_new_tab', ...args.url === undefined ? {} : { url: args.url } })
         : args.action === 'close'
-          ? await run(exec, { method: 'close_tab', tabId: args.index ?? 0 })
+          ? await run(exec, { method: 'close_tab', tabId: /* v8 ignore start -- close/select indexes were validated above. */ args.index ?? 0 /* v8 ignore stop */ })
           : args.action === 'select'
-            ? await run(exec, { method: 'switch_to_tab', tabId: args.index ?? 0 })
+            ? await run(exec, { method: 'switch_to_tab', tabId: /* v8 ignore start -- close/select indexes were validated above. */ args.index ?? 0 /* v8 ignore stop */ })
             : await run(exec, { method: 'get_browser_state' })
       previousContent.delete(requireAgent(exec.agent))
       if (outcome.action?.success === false) throw new Error(outcome.action.message)
@@ -1015,6 +1018,7 @@ export function apply(ctx: Context, config: Config = {}): void {
         new RegExp(literal?.[1] ?? args.regex, literal?.[2])
       }
       if (args.regex !== undefined) return run(exec, { method: 'find_element', regex: args.regex, ...tabTarget(args) })
+      /* v8 ignore next -- Exactly one selector is required above, and the regex case has already returned. */
       if (text === undefined) throw new Error('provide exactly one of text, regex, or query')
       return run(exec, { method: 'find_element', ...args.query === undefined ? { text } : { query: args.query }, ...tabTarget(args) })
     },

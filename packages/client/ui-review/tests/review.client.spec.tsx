@@ -3,13 +3,119 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, within } from '@testing-library/react'
 import type { ReviewChange, WorkspaceReview } from '@hydra/harness-fs-review/client'
 import { bindSnapshotSelector } from '@hydra/harness-client-test-runtime'
-import { ChangeRow, InlineReview, ReviewPanel } from '../src/client/Review.tsx'
-import { ReviewHistory } from '../src/client/history.ts'
+import { ChangeRow, InlineReview, ReviewPanel, sameWorkspace } from '../src/client/Review.tsx'
+import { ReviewHistory, type ReviewSnapshot } from '../src/client/history.ts'
 import { change, ok } from './fixture.ts'
 
-afterEach(cleanup)
+const originalClipboard = Object.getOwnPropertyDescriptor(navigator, 'clipboard')
+afterEach(() => {
+  cleanup(); vi.restoreAllMocks(); vi.useRealTimers()
+  if (originalClipboard) Object.defineProperty(navigator, 'clipboard', originalClipboard)
+  else Reflect.deleteProperty(navigator, 'clipboard')
+})
+
+function snapshotPanel(overrides: Partial<ReviewSnapshot> = {}) {
+  const snapshot: ReviewSnapshot = { changes: [], pending: new Set(), loading: false, error: null,
+    workspace: null, workspaceLoading: false, workspaceError: null, ...overrides }
+  const props = { ownerSessionId: 'owner', useReview: (select: (value: ReviewSnapshot) => unknown) => select(snapshot),
+    act: vi.fn(async () => true), refresh: vi.fn(async () => {}) } as Parameters<typeof ReviewPanel>[0]
+  return { ...render(<ReviewPanel {...props} />), snapshot, props }
+}
+
+function workspaceReview(files: WorkspaceReview['files'] = []): WorkspaceReview {
+  return { workspace: '/workspace', repository: '/workspace', branch: null, branches: [], commits: [],
+    mode: 'uncommitted', baseRef: null, truncated: false, files }
+}
 
 describe('review evidence and actions', () => {
+  it('normalizes Windows drive spelling while retaining POSIX case sensitivity', () => {
+    expect(sameWorkspace('C:\\Work\\Project\\', 'c:/work/project')).toBe(true)
+    expect(sameWorkspace('/Work/Project', '/work/project')).toBe(false)
+  })
+
+  it('renders an inline call without an error and an unavailable workspace comparison', () => {
+    const ui = snapshotPanel({ changes: [change()] })
+    ui.rerender(<InlineReview {...ui.props as Parameters<typeof InlineReview>[0]} callId="call" />)
+    expect(ui.getByRole('region', { name: 'a.txt active' })).toBeTruthy()
+    ui.rerender(<ReviewPanel {...ui.props} />)
+    fireEvent.change(ui.getByLabelText('Review scope'), { target: { value: 'uncommitted' } })
+    expect(ui.getByText('No changes in this comparison.')).toBeTruthy()
+  })
+
+  it('copies recorded hunks, resets its status and surfaces clipboard rejection', async () => {
+    vi.useFakeTimers()
+    const writeText = vi.fn(async () => {})
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } })
+    const ui = render(<ChangeRow change={change({ status: 'deleted' })} pending={false} act={vi.fn()} />)
+    fireEvent.click(ui.getByRole('button', { name: 'Copy diff' }))
+    await act(async () => { await Promise.resolve() })
+    expect(writeText).toHaveBeenCalledWith('@@ -1,1 +1,1 @@\n-A\n+B')
+    expect(ui.getByRole('button', { name: 'Copied!' })).toBeTruthy()
+    await act(() => vi.advanceTimersByTimeAsync(1500))
+    writeText.mockRejectedValueOnce(new Error('denied'))
+    fireEvent.click(ui.getByRole('button', { name: 'Copy diff' }))
+    await act(async () => { await Promise.resolve() })
+    expect(ui.getByRole('alert').textContent).toBe('Clipboard access failed.')
+  })
+
+  it('navigates status tabs with arrows, Home and End and preserves unrelated keys', () => {
+    const ui = snapshotPanel({ changes: [change({ path: 'a/b/deleted.ts', status: 'deleted', state: 'rolledBack' }),
+      change({ id: 'kept' as never, path: 'a/kept.ts', state: 'kept' })] })
+    for (const [key, name] of [['End', 'Undone'], ['ArrowLeft', 'Kept'], ['Home', 'All'], ['ArrowLeft', 'Undone']]) {
+      fireEvent.keyDown(ui.getByRole('tab', { selected: true }), { key })
+      expect(ui.getByRole('tab', { selected: true }).textContent).toContain(name)
+    }
+    fireEvent.keyDown(ui.getByRole('tab', { selected: true }), { key: 'Escape' })
+    expect(ui.getByRole('tab', { selected: true }).textContent).toContain('Undone')
+    fireEvent.change(ui.getByRole('searchbox'), { target: { value: 'missing' } })
+    expect(ui.getByText('No changes match the selected filters.')).toBeTruthy()
+    fireEvent.click(ui.getByRole('button', { name: 'Toggle view mode' }))
+    expect(ui.queryByRole('button', { name: 'Next file' })).toBeNull()
+  })
+
+  it('renders workspace binary, truncated and empty previews and disables incomplete patch copy', () => {
+    const file = { path: 'src/base.ts', status: 'modified' as const, additions: 0, deletions: 0,
+      hunks: [], binary: false, truncated: false, patch: '' }
+    const ui = snapshotPanel({ workspace: workspaceReview([
+      { ...file, path: 'src/binary', status: 'added', binary: true, patch: null },
+      { ...file, path: 'src/large', status: 'deleted', truncated: true }, file,
+    ]) })
+    fireEvent.change(ui.getByLabelText('Review scope'), { target: { value: 'staged' } })
+    fireEvent.click(ui.getByRole('button', { name: 'Expand all diffs' }))
+    expect(ui.getByText('Binary file — text diff unavailable.')).toBeTruthy()
+    expect(ui.getByText('Diff exceeds the preview limit.')).toBeTruthy()
+    expect(ui.getByText('No line changes.')).toBeTruthy()
+    expect(ui.getByRole('button', { name: 'Copy patch' }).hasAttribute('disabled')).toBe(true)
+    fireEvent.click(ui.getByRole('button', { name: 'Collapse all diffs' }))
+    expect([...ui.container.querySelectorAll('details')].every(node => !node.open)).toBe(true)
+    fireEvent.click(ui.getByText('Diff preferences'))
+    for (const name of ['Word diffs', 'Hide whitespace changes', 'Full file context']) {
+      fireEvent.click(ui.getByRole('checkbox', { name }))
+    }
+    expect(ui.getByRole('checkbox', { name: 'Full file context' }).matches(':checked')).toBe(true)
+  })
+
+  it.each(['loading', 'error', 'non-git', 'empty', 'limited'] as const)('explains the %s workspace comparison', (kind) => {
+    const ui = snapshotPanel({ workspaceLoading: kind === 'loading', workspaceError: kind === 'error' ? 'Git failed' : null,
+      workspace: { ...workspaceReview(), repository: kind === 'non-git' ? null : '/workspace', truncated: kind === 'limited' } })
+    fireEvent.change(ui.getByLabelText('Review scope'), { target: { value: 'branch' } })
+    expect(ui.container.textContent).toContain({ loading: 'Loading changes…', error: 'Git failed',
+      'non-git': 'not a Git repository', empty: 'No changes in this comparison', limited: 'Showing a limited number of files' }[kind])
+    fireEvent.change(ui.getByLabelText('Review scope'), { target: { value: 'committed' } })
+    expect(ui.getByLabelText('Commit')).toBeTruthy()
+  })
+
+  it.each([false, true])('copies the selected workspace patch and reports clipboard failure (%s)', async (reject) => {
+    const writeText = vi.fn(async () => { if (reject) throw new Error('denied') })
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } })
+    const ui = snapshotPanel({ workspace: workspaceReview([{ path: 'a', status: 'added', additions: 1, deletions: 0,
+      hunks: change().hunks, binary: false, truncated: false, patch: '+A\n' }]) })
+    fireEvent.change(ui.getByLabelText('Review scope'), { target: { value: 'uncommitted' } })
+    fireEvent.click(ui.getByRole('button', { name: 'Copy patch' }))
+    expect(await ui.findByRole('status')).toHaveProperty('textContent', reject ? 'Clipboard access failed.' : 'Patch copied.')
+    expect(writeText).toHaveBeenCalledWith('+A\n')
+  })
+
   it('counts sequential changes to one file once and surfaces inline read errors', async () => {
     const list = vi.fn(async () => ok({ changes: [change(), change({ id: 'second' as never })] }))
     const history = new ReviewHistory('owner' as never, { list, keep: vi.fn(), undo: vi.fn() })
@@ -246,6 +352,9 @@ describe('review evidence and actions', () => {
     fireEvent.click(nextBtn)
     expect((nextBtn as HTMLButtonElement).disabled).toBe(true)
     expect((prevBtn as HTMLButtonElement).disabled).toBe(false)
+    fireEvent.click(prevBtn)
+    expect((prevBtn as HTMLButtonElement).disabled).toBe(true)
+    fireEvent.click(nextBtn)
 
     // Test selecting a file directly from tree
     fireEvent.click(panel.getByText('seam.md'))

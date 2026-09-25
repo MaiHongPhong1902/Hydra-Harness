@@ -19,7 +19,7 @@ import AgentRegistry from '@hydra/harness-agent'
 import AgentLoop from '@hydra/harness-agent-loop'
 import FileSettingsProvider from '@hydra/harness-settings-file'
 import { settingsNamespace } from '@hydra/harness-settings'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import AgentPresets, { COMPOSITION_FILE, SETTINGS_NAMESPACE } from '@hydra/harness-agent-presets'
 
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), 'fixtures')
@@ -57,6 +57,52 @@ const toolNames = (ctx: Context, agent?: unknown): string[] =>
   ctx.tools.schemas(agent as never).map(schema => schema.name).sort()
 
 describe('the default preset as a user setting', () => {
+  it('lists nested leaves, skips broken presets, and restores inherited enablement', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'hydra-preset-leaves-'))
+    await mkdir(join(root, 'grouped'))
+    await mkdir(join(root, 'broken'))
+    await writeFile(join(root, 'grouped', COMPOSITION_FILE), [
+      '- name: group', '  group: true', '  config:',
+      '    - id: nested', '      name: fixture', '      disabled: true',
+      '    - name: anonymous', '',
+    ].join('\n'))
+    const { ctx } = await harness([{ path: root, trust: 'user' }])
+    try {
+      const leaves = await ctx.agentPresets.listPluginEntries()
+      expect(leaves.filter(entry => entry.presetId === 'grouped')).toEqual([
+        { entryId: 'agent-preset:grouped:nested', presetId: 'grouped', rowId: 'nested', moduleName: 'fixture', enabled: false },
+      ])
+      await ctx.agentPresets.setPluginEnabled('agent-preset:grouped:nested', false)
+      await expect(ctx.agentPresets.setPluginEnabled('missing', true)).rejects.toThrow('was not found')
+      await ctx.agentPresets.setPluginEnabled('agent-preset:grouped:nested', true)
+      await ctx.settings.update(NS, { default: 'minimal' })
+      await ctx.settings.replace(NS, {})
+      expect((await ctx.agentPresets.listPluginEntries()).find(entry => entry.rowId === 'nested')?.enabled).toBe(false)
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it.each(['{}\n', ': invalid: ['])('omits a composition changed after discovery: %s', async (content) => {
+    const root = await mkdtemp(join(tmpdir(), 'hydra-preset-race-'))
+    await mkdir(join(root, 'changing'))
+    const path = join(root, 'changing', COMPOSITION_FILE)
+    await writeFile(path, '- id: leaf\n  name: fixture\n')
+    const { ctx } = await harness([{ path: root, trust: 'user' }])
+    const list = ctx.agentPresets.list.bind(ctx.agentPresets)
+    vi.spyOn(ctx.agentPresets, 'list').mockImplementationOnce(async () => {
+      const entries = await list()
+      await writeFile(path, content)
+      return entries
+    })
+    try {
+      expect((await ctx.agentPresets.listPluginEntries()).some(entry => entry.presetId === 'changing')).toBe(false)
+    } finally {
+      vi.restoreAllMocks()
+      await ctx.fiber.dispose()
+    }
+  })
+
   it('falls back to the composition default while the user set none', async () => {
     const { ctx } = await harness()
 
@@ -190,5 +236,8 @@ describe('a settings provider that goes away', () => {
     await settingsFiber.dispose()
 
     expect(ctx.agentPresets.defaultId).toBe('standard')
+    const entries = await ctx.agentPresets.listPluginEntries()
+    expect(entries.find(entry => entry.rowId === 'alpha')).toMatchObject({ enabled: true })
+    await expect(ctx.agentPresets.setPluginEnabled('agent-preset:standard:alpha', false)).rejects.toThrow('settings are unavailable')
   })
 })

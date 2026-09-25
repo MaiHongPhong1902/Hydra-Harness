@@ -10,6 +10,7 @@ import {
   revealOfficialDeepSeek,
 } from '../src/client/ModelsSection.tsx'
 import type { ModelsSectionInjected, ModelsSectionProps } from '../src/client/ModelsSection.tsx'
+import type { ModelsProviderOptionOwnerProps } from '../src/client/index.ts'
 import { pathOps } from '../src/client/ProviderEditor.tsx'
 import {
   DeepSeekModelsEditor, formatCapacity, modelDrafts, parseCapacity, validateDeepSeekModels,
@@ -203,7 +204,7 @@ function scriptedFace(overrides: {
 
 type WireFace = ConstructorParameters<typeof ModelsSettingsStore>[0]
 
-async function mountFace(scripted: ReturnType<typeof scriptedFace>) {
+async function mountFace(scripted: ReturnType<typeof scriptedFace>, overrides: Partial<ModelsSectionProps> = {}) {
   const { face, update, replace, mutate, set, unset } = scripted
   const mirror = new SettingsDescribeMirror(face as never)
   const controller = new ModelsSettingsStore(face as unknown as WireFace, settingsSchema, mirror)
@@ -214,6 +215,7 @@ async function mountFace(scripted: ReturnType<typeof scriptedFace>) {
     api: face as never,
     schema: settingsSchema,
     t,
+    ...overrides,
   }
   const view = render(<ModelsSection {...injected} />)
   return { view, face, update, replace, mutate, set, unset, controller, mirror }
@@ -248,6 +250,51 @@ async function mountDeepSeekCard(overrides: Parameters<typeof scriptedFace>[0] =
 }
 
 describe('ModelsSection', () => {
+  it('opens optional providers from their rows and the Add selector', async () => {
+    const renderSlot = ((_name: string, props: ModelsProviderOptionOwnerProps) => {
+      if (props.mode === 'row') return <button onClick={() => { props.onEdit('optional') }}>Edit optional</button>
+      if (props.mode === 'option') return <option value="plugin:optional" data-hydra-provider-option="optional">Optional provider</option>
+      return <>
+        <button onClick={() => { props.onClose(false) }}>Cancel optional</button>
+        <button onClick={() => { props.onClose(true) }}>Save optional</button>
+      </>
+    }) as NonNullable<ModelsSectionProps['renderSlot']>
+    const scripted = scriptedFace()
+    scripted.face.llm.providers.mockResolvedValue(ok({ providers: [] }))
+    const { controller } = await mountFace(scripted, { renderSlot, useProviderOptions: selector => selector(1) })
+    fireEvent.click(screen.getByRole('button', { name: en.add }))
+    expect(screen.getByRole<HTMLSelectElement>('combobox', { name: en.provider }).value).toBe('')
+    fireEvent.change(screen.getByRole('combobox', { name: en.provider }), { target: { value: 'plugin:optional' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel optional' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Edit optional' }))
+    const refresh = vi.spyOn(controller, 'load')
+    fireEvent.click(screen.getByRole('button', { name: 'Save optional' }))
+    await waitFor(() => { expect(screen.getByRole('status').textContent).toContain('optional') })
+    expect(refresh).toHaveBeenCalledOnce()
+  })
+
+  it.each([0, 1])('keeps account providers selectable with %s connected accounts', async (count) => {
+    const scripted = scriptedFace()
+    const accountNamespace = {
+      ns: 'llm-account-auth', schema: Schema.object({ providers: Schema.dict(Schema.object({})) }).toJSON(),
+      value: { providers: { chatgpt: {} } }, user: { providers: { chatgpt: {} } }, applies: 'live' as const, secrets: [], revision: 0,
+    }
+    scripted.face.settings.describe.mockResolvedValue(ok({
+      writable: true, hasDocument: false, namespaces: [...wireNamespaces(), accountNamespace],
+    }))
+    scripted.face.llm.providers.mockResolvedValue(ok({ providers: [{
+      provider: 'chatgpt', displayName: 'ChatGPT', settingsNs: 'llm-account-auth', settingsPath: ['providers', 'chatgpt'], active: count > 0 }] }))
+    Object.assign(scripted.face, { authorization: { list: async () => ok({ entries: [{
+      key: 'llm-account-auth/chatgpt', label: 'ChatGPT', methods: [{ id: 'oauth', label: 'Sign in' }], inFlight: false,
+      accounts: count === 0 ? [] : [{ id: 'a', label: 'Alice' }],
+    }] }) } })
+    await mountFace(scripted)
+    expect(screen.getByRole('img', { name: count === 0 ? en.accountMissing : en.accountConfigured })).not.toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: en.accountProviderAdd }))
+    await screen.findByRole('button', { name: en.accountAdd })
+    expect(screen.getByRole<HTMLSelectElement>('combobox', { name: en.provider }).value).toBe('chatgpt')
+  })
+
   it('renders nothing before the slot injects its dependencies', () => {
     const uninjected = {} as ModelsSectionProps
     render(<ModelsSection {...uninjected} />)

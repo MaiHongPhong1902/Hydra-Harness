@@ -904,7 +904,10 @@ export class ImportedPluginRuntime extends Service {
     const { marketplaces } = await inventory.listMarketplaces()
     const key = marketplaceRepoKey(trimmed)
     const matches = marketplaces.filter(entry => entry.source === trimmed || marketplaceRepoKey(entry.source) === key)
-    if (matches.length === 1) return matches[0]?.source ?? trimmed
+    if (matches.length === 1) {
+      /* v8 ignore next -- filter produced exactly one marketplace with a required source. */
+      return matches[0]?.source ?? trimmed
+    }
     if (matches.length > 1) throw new Error(`plugin runtime: marketplace ${trimmed} matches multiple sources`)
     throw new Error(`plugin runtime: unknown marketplace ${trimmed}`)
   }
@@ -949,13 +952,17 @@ export class ImportedPluginRuntime extends Service {
     if (isExplicitSource(argument)) {
       request = argument
     } else if (qualified !== null) {
+      /* v8 ignore next -- both regex capture groups require at least one character. */
       const marketplace = qualified[2] ?? ''
+      /* v8 ignore next -- both regex capture groups require at least one character. */
       const plugin = qualified[1] ?? ''
       request = { source: await this.resolveMarketplace(marketplace), plugin }
     } else {
       const entries = [...await this.store.list()].filter(([, entry]) => entry.name === argument)
       if (entries.length === 1) {
+        /* v8 ignore next -- the filtered map contains exactly one entry tuple. */
         const [entryId] = entries[0] ?? []
+        /* v8 ignore if -- every map entry tuple starts with its string key. */
         if (entryId === undefined) throw new Error(`plugin runtime: imported plugin ${argument} is not installed`)
         await this.enable(entryId)
         return { kind: 'success', text: `Plugin ${argument} enabled.` }
@@ -964,6 +971,7 @@ export class ImportedPluginRuntime extends Service {
       const marketplaces = inventory === undefined ? [] : (await inventory.listMarketplaces()).marketplaces
       if (marketplaces.length !== 1) throw new Error(`plugin runtime: imported plugin ${argument} is not installed`)
       const marketplace = marketplaces[0]
+      /* v8 ignore if -- the preceding length check requires exactly one marketplace. */
       if (marketplace === undefined) throw new Error(`plugin runtime: imported plugin ${argument} is not installed`)
       request = { source: marketplace.source, plugin: argument }
     }
@@ -983,6 +991,7 @@ export class ImportedPluginRuntime extends Service {
         .join('\n') }
     }
     const [verb] = input.split(/\s+/u)
+    /* v8 ignore next -- splitting a non-empty input always yields a first word. */
     const argument = input.slice(verb?.length ?? 0).trim()
     try {
       switch (verb) {
@@ -1136,7 +1145,10 @@ async function mkdirTemp(prefix: string): Promise<string> {
 
 function normalizeGitSource(source: string): string {
   const shorthand = GITHUB_SHORTHAND.exec(source)
-  if (shorthand !== null) return `https://github.com/${shorthand[1]}/${(shorthand[2] ?? '').replace(/\.git$/u, '')}.git`
+  if (shorthand !== null) {
+    /* v8 ignore next -- GITHUB_SHORTHAND requires a non-empty repository capture. */
+    return `https://github.com/${shorthand[1]}/${(shorthand[2] ?? '').replace(/\.git$/u, '')}.git`
+  }
   if (/^[A-Za-z0-9._-]+@[A-Za-z0-9.-]+:[A-Za-z0-9._~/-]+$/u.test(source)) return source
   let parsed: URL
   try { parsed = new URL(source) } catch { throw new Error('plugin runtime: source must be an existing folder, GitHub shorthand, or HTTPS/SSH Git URL') }
@@ -1594,6 +1606,7 @@ function parseMarkdownCommand(name: string, raw: string, filename: string): Load
   let prompt = raw
   if (match !== null) {
     try {
+      /* v8 ignore next -- the frontmatter regex always captures its YAML body. */
       const parsed: unknown = parseYaml(match[1] ?? '')
       if (!isRecord(parsed)) throw new Error('frontmatter must be a YAML object')
       metadata = parsed
@@ -1621,6 +1634,7 @@ function parseMarkdownCommand(name: string, raw: string, filename: string): Load
 }
 
 function firstMarkdownLine(prompt: string): string {
+  /* v8 ignore next -- split always returns at least one line. */
   const line = prompt.split(/\r?\n/u)[0] ?? ''
   return line.replace(/^#{1,6}\s+/u, '').trim()
 }

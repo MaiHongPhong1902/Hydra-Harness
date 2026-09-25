@@ -64,10 +64,16 @@ function parseGitDiff(output: string, maxFiles: number): { files: WorkspaceRevie
   const files: WorkspaceReviewFile[] = []
   if (metadata.length !== chunks.length * 2) throw new Error('Resolve merge conflicts before reviewing this comparison')
   for (let index = 0; index < Math.min(chunks.length, maxFiles); index++) {
+    /* v8 ignore next -- Metadata length is checked against twice the chunk count before indexing. @preserve */
     const record = metadata[index * 2] ?? ''
+    /* v8 ignore next -- Metadata length is checked against twice the chunk count before indexing. @preserve */
     const path = metadata[index * 2 + 1] ?? ''
     const kind = record.slice(-1)
-    files.push(parsePatch(path, kind === 'A' ? 'added' : kind === 'D' ? 'deleted' : 'modified', `diff --git ${chunks[index] ?? ''}`))
+    files.push(parsePatch(path, kind === 'A' ? 'added' : kind === 'D' ? 'deleted' : 'modified', `diff --git ${(
+      /* v8 ignore start -- index is bounded by the dense chunks array length. */
+      chunks[index] ?? ''
+      /* v8 ignore stop */
+    )}`))
   }
   return { files, truncated: chunks.length > maxFiles }
 }
@@ -103,6 +109,7 @@ async function addedFile(cwd: string, path: string, maxBytes: number): Promise<W
 
 /**
  * Read a local Git comparison without acquiring an agent or changing the index/worktree.
+ * A branch comparison without a ref uses the current branch's upstream; detached HEAD requires an explicit ref.
  * @param cwd - recorded session workspace; never a client-supplied path.
  * @param request - comparison and optional branch/commit, resolved to an object id before use.
  * @param limits - deployment output/file/time budgets.
@@ -167,7 +174,8 @@ export async function readWorkspaceReview(
     command = parents[1] === undefined ? ['diff-tree', '--root', '--no-commit-id', '-r', commit] : ['diff', parents[1], commit]
   } else if (request.mode === 'branch') {
     if (head === '') throw new Error('This repository has no commits to compare')
-    const reference = request.ref ?? (await git(['for-each-ref', '--format=%(upstream)', `refs/heads/${result.branch ?? ''}`])).trim()
+    const reference = request.ref ?? (result.branch === null ? ''
+      : (await git(['for-each-ref', '--format=%(upstream)', `refs/heads/${result.branch}`])).trim())
     if (reference === '') throw new Error('Select a base branch for this comparison')
     const base = await resolveRef(reference)
     const mergeBase = (await git(['merge-base', base, head])).trim()

@@ -155,6 +155,9 @@ describe('ui-settings-personalization apply', () => {
     expect(calls).toContain('readInstructions')
     expect(calls).toContain('writeInstructions:be concise')
     expect(section.hooks.instructions.getSnapshot()).toMatchObject({ status: 'ready', savedContent: 'be concise' })
+    section.setDraft('unsaved')
+    await section.reload()
+    expect(section.hooks.instructions.getSnapshot().draft).toBe('be concise')
   })
 
   it('routes a personality change through the settings-mutate transport', async () => {
@@ -229,6 +232,38 @@ describe('ui-settings-personalization apply', () => {
     expect(section.hooks.personalityDraft.getSnapshot()).toEqual({ value: 'friendly', saving: false, failed: true })
     await section.savePersonality()
     expect(section.hooks.personalityDraft.getSnapshot()).toEqual({ value: undefined, saving: false, failed: false })
+    await ctx.fiber.dispose()
+  })
+
+  it.each(['resolve', 'reject', 'reject-after-dispose'] as const)('handles a pending tone write: %s', async (outcome) => {
+    const { ctx, slots } = await bench()
+    declareRoot(slots)
+    await ctx.plugin({ inject: [...inject], apply }).await()
+    const section = (slots.entries('settings.section')[0]!.inject as unknown as () => PersonalizationSectionInjected)()
+    await vi.waitFor(() => { expect(section.hooks.personality.getSnapshot().status).toBe('ready') })
+    const pending = Promise.withResolvers<undefined>()
+    vi.spyOn(section.hooks.personality, 'set').mockReturnValueOnce(pending.promise)
+    section.setPersonality('friendly')
+    const saving = section.savePersonality()
+    if (outcome !== 'reject') await ctx.fiber.dispose()
+    if (outcome === 'resolve') pending.resolve(undefined)
+    else pending.reject(new Error('write failed'))
+    await saving
+    expect(section.hooks.personalityDraft.getSnapshot().failed).toBe(outcome === 'reject')
+    if (outcome === 'reject') await ctx.fiber.dispose()
+  })
+
+  it('propagates memory RPC business errors to the section', async () => {
+    const { ctx, slots } = await bench()
+    declareRoot(slots)
+    await ctx.plugin({ inject: [...inject], apply }).await()
+    const section = (slots.entries('settings.section')[0]!.inject as unknown as () => PersonalizationSectionInjected)()
+    const api = (ctx.get('connection') as ConnectionHandle).api.settings
+    const failure = { rpcId: 'r' as never, result: { ok: false as const, error: { code: 'internal' as const, message: 'memory unavailable', details: {} } } }
+    vi.spyOn(api, 'listMemories').mockResolvedValueOnce(failure)
+    vi.spyOn(api, 'removeMemory').mockResolvedValueOnce(failure)
+    await expect(section.loadMemories()).rejects.toThrow('memory unavailable')
+    await expect(section.removeMemory('missing')).rejects.toThrow('memory unavailable')
     await ctx.fiber.dispose()
   })
 })

@@ -37,6 +37,18 @@ function renderNodes(nodes: Md.RootContent[], context = makeContext()): HTMLElem
 const text = (value: string): Md.Text => ({ type: 'text', value })
 
 describe('renderBlocks over hand-built trees', () => {
+  it('resolves a citation without an optional quotation as an empty quote', () => {
+    const context = makeContext()
+    const quotes: string[] = []
+    context.citations = { resolve: (_id, quote) => { quotes.push(quote); return undefined } }
+    const container = renderNodes([{ type: 'paragraph', children: [
+      { type: 'link', url: 'hydra-cite://source', children: [text('source')] },
+    ] }], context)
+    expect(quotes).toEqual([''])
+    expect(container.textContent).toBe('source')
+    expect(container.querySelector('a')).toBeNull()
+  })
+
   it('reverts unresolved references to their bracketed source', () => {
     const container = renderNodes([
       {

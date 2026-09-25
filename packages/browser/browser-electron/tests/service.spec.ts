@@ -12,9 +12,11 @@ import { Session, SessionId } from '@hydra/harness-session'
 import { SettingsProvider } from '@hydra/harness-settings'
 import type { SettingsNamespace } from '@hydra/harness-settings'
 import ApprovalService from '@hydra/harness-user-approval'
+import UserQuestionService from '@hydra/harness-user-questions'
+import LlmRuntime, { LlmAdapter, type StreamChunk } from '@hydra/harness-llm'
 import type { ApprovalOutcome, ApprovalRequest } from '@hydra/harness-user-approval'
 import BrowserSessionService, { BROWSER_SETTINGS_NAMESPACE } from '@hydra/harness-browser-electron'
-import type { BrowserChildProcess } from '@hydra/harness-browser-electron'
+import type { BrowserChildProcess, Config } from '@hydra/harness-browser-electron'
 
 const agentScopeDisposers = new WeakMap<Agent, () => Promise<void>>()
 const UPLOAD_FIXTURE = fileURLToPath(new URL('./fixtures/form.html', import.meta.url))
@@ -111,6 +113,7 @@ class ScriptedChild extends EventEmitter implements BrowserChildProcess {
   readonly stdout = new PassThrough()
   readonly stderr = new PassThrough()
   readonly requests: { method: string; args: Record<string, unknown> }[] = []
+  readonly responses = new Map<string, unknown>()
   killed = false
 
   /** Method names in arrival order. */
@@ -128,7 +131,7 @@ class ScriptedChild extends EventEmitter implements BrowserChildProcess {
     createInterface({ input: this.stdin }).on('line', (line: string) => {
       const { id, method, args } = JSON.parse(line) as { id: number; method: string; args: Record<string, unknown> }
       this.requests.push({ method, args })
-      const result = method === 'get_browser_state'
+      const result = this.responses.has(method) ? this.responses.get(method) : method === 'get_browser_state'
         ? {
           url: `https://${label}.test`,
           title: label,
@@ -185,6 +188,7 @@ class ScriptedChild extends EventEmitter implements BrowserChildProcess {
 interface HarnessOptions {
   approval?: ApprovalOutcome | false | ((request: ApprovalRequest) => Promise<ApprovalOutcome>)
   allowFullCdpAccess?: boolean
+  config?: Config
 }
 
 async function harness(options: HarnessOptions = {}) {
@@ -201,6 +205,7 @@ async function harness(options: HarnessOptions = {}) {
     electronPath: '/fake/electron',
     show: false,
     ...options.allowFullCdpAccess === undefined ? {} : { allowFullCdpAccess: options.allowFullCdpAccess },
+    ...options.config,
   })
   await ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, { navigationPolicy: 'allow' })
   const spawned: ScriptedChild[] = []
@@ -213,6 +218,284 @@ async function harness(options: HarnessOptions = {}) {
 }
 
 describe('BrowserSessionService', () => {
+  it.each(['relative', 'file:///private'])('rejects an invalid initial page %s', (homeUrl) => {
+    expect(() => new BrowserSessionService(new Context(), { homeUrl })).toThrow('absolute http(s) URL')
+  })
+
+  it.each(['http://example.test', 'https://example.test'])('passes the normalized home page %s', async (homeUrl) => {
+    const { ctx, dispose } = await harness({ config: { homeUrl, userDataDir: '/custom/profile' } })
+    const spawn = vi.fn(() => new ScriptedChild('home'))
+    ctx.browsers.spawnChild = spawn
+    await ctx.browsers.perform(stubAgent(ctx, 'home'), { method: 'get_browser_state' })
+    const args = vi.mocked(ctx.browsers.spawnChild).mock.calls[0]!
+    expect(JSON.parse(args[1][1]!)).toMatchObject({ homeUrl: `${homeUrl}/`, userDataDir: '/custom/profile' })
+    await dispose()
+  })
+
+  it('rejects malformed screenshot metadata and timestamps from Electron', async () => {
+    const { ctx, spawned, dispose } = await harness()
+    const owner = stubAgent(ctx, 'screenshot')
+    await ctx.browsers.perform(owner, { method: 'get_browser_state' })
+    for (const value of [null, [], { ...screenshot('bad'), mediaType: 'image/jpeg' },
+      { ...screenshot('bad'), capturedAt: 'invalid' }]) {
+      spawned[0]!.responses.set('browser_screenshot', value)
+      await expect(ctx.browsers.takeScreenshot(owner)).rejects.toThrow('invalid screenshot')
+    }
+    await dispose()
+  })
+
+  it('rejects malformed child history, page identity, and CDP replies', async () => {
+    const { ctx, spawned, dispose } = await harness()
+    const owner = stubAgent(ctx, 'wire')
+    owner.session.append('turn/start', { turn: 1 })
+    await ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, { historyAccessPolicy: 'allow', fullCdpAccess: true })
+    await ctx.browsers.perform(owner, { method: 'get_browser_state' })
+    const child = spawned[0]!
+    const history = { url: 'https://example.test', title: 'Page', visitedAt: '2026-09-01' }
+    for (const value of [null, Array.from({ length: 21 }, () => history), [null], [{}],
+      [{ ...history, url: 'invalid' }], [{ ...history, url: 'file:///private' }]]) {
+      child.responses.set('search_browser_history', value)
+      await expect(ctx.browsers.searchHistory(owner, 'page')).rejects.toThrow('invalid history')
+    }
+    const identity = { url: 'https://example.test', title: 'Page', tabId: 1, activeTabId: 1, settled: true }
+    for (const value of [null, [], {}, { ...identity, url: 'invalid' }, { ...identity, tabId: 2 }]) {
+      child.responses.set('get_page_identity', value)
+      await expect(ctx.browsers.currentPage(owner, {}, 1)).rejects.toThrow(/invalid page|wrong tab/)
+    }
+    child.responses.set('get_page_identity', identity)
+    await expect(ctx.browsers.currentPage(owner, {}, 1)).resolves.toEqual(identity)
+    for (const value of [null, [], { data: 'x'.repeat(1_048_576) }]) {
+      child.responses.set('cdp_command', value)
+      await expect(ctx.browsers.sendCdpCommand(owner, 'Runtime.evaluate', {}, undefined)).rejects.toThrow(/CDP result/)
+    }
+    for (const value of [null, [], {}, { nextSequence: 0, events: [], data: 'x'.repeat(1_048_576) },
+      { nextSequence: 0, events: [null] }, { nextSequence: 0, events: [{}] }]) {
+      child.responses.set('cdp_read_events', value)
+      await expect(ctx.browsers.readCdpEvents(owner, {})).rejects.toThrow(/CDP event/)
+    }
+    for (const method of ['get_cdp_target', 'get_upload_target']) {
+      child.responses.set(method, {})
+      if (method === 'get_upload_target') {
+        await expect(ctx.browsers.perform(owner, { method: 'upload_file', filePath: UPLOAD_FIXTURE, index: 1 }))
+          .rejects.toThrow('upload target is unavailable')
+      } else {
+        await expect(ctx.browsers.sendCdpCommand(owner, 'Runtime.evaluate', {}, undefined)).rejects.toThrow('CDP target is unavailable')
+        await expect(ctx.browsers.readCdpEvents(owner, {})).rejects.toThrow('CDP target is unavailable')
+      }
+    }
+    await dispose()
+  })
+
+  it('validates file, query and CDP inputs before dispatch', async () => {
+    const { ctx, spawned, dispose } = await harness()
+    const owner = stubAgent(ctx, 'inputs')
+    for (const tabId of [0, 1.5]) {
+      await expect(ctx.browsers.currentPage(owner, {}, tabId)).rejects.toThrow('tabId')
+      await expect(ctx.browsers.sendCdpCommand(owner, 'Runtime.evaluate', {}, tabId)).rejects.toThrow('tabId')
+    }
+    for (const query of [' ', 'x'.repeat(257)]) await expect(ctx.browsers.searchHistory(owner, query)).rejects.toThrow('query')
+    for (const method of ['Runtime', `${'x'.repeat(129)}.evaluate`]) {
+      await expect(ctx.browsers.sendCdpCommand(owner, method, {}, undefined)).rejects.toThrow('syntax')
+    }
+    for (const params of [null, []]) {
+      await expect(ctx.browsers.sendCdpCommand(owner, 'Runtime.evaluate', params, undefined)).rejects.toThrow('JSON object')
+    }
+    await expect(ctx.browsers.perform(owner, { method: 'upload_file', index: 1, filePath: 'relative.txt' })).rejects.toThrow('absolute')
+    await expect(ctx.browsers.perform(owner, { method: 'upload_file', index: 1, filePath: fileURLToPath(new URL('.', import.meta.url)) }))
+      .rejects.toThrow('regular file')
+    expect(spawned).toHaveLength(0)
+    await ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, { fullCdpAccess: true })
+    for (const method of ['DOM.setFileInputFiles', 'Input.dispatchDragEvent']) {
+      await expect(ctx.browsers.sendCdpCommand(owner, method, {}, undefined)).rejects.toThrow('Use browser_upload_file')
+    }
+    await dispose()
+  })
+
+  it('binds every dropped file to the explicit approved tab', async () => {
+    const { ctx, spawned, dispose } = await harness()
+    const owner = stubAgent(ctx, 'drop')
+    owner.session.append('turn/start', { turn: 1 })
+    await ctx.browsers.perform(owner, { method: 'drop', index: 1, filePaths: [UPLOAD_FIXTURE], data: {}, tabId: 2 })
+    expect(spawned[0]!.requests).toContainEqual({
+      method: 'drop', args: { index: 1, filePaths: [realpathSync(UPLOAD_FIXTURE)], data: {}, tabId: 2, expectedOrigin: 'https://child-0.test' },
+    })
+    await dispose()
+  })
+
+  it('rejects reads, screenshots and CDP after control is disabled or the service is disposed', async () => {
+    const { ctx, dispose } = await harness()
+    const owner = stubAgent(ctx, 'disabled')
+    const service = ctx.browsers
+    await service.perform(owner, { method: 'get_browser_state' })
+    await ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, { controlEnabled: false })
+    const calls = [() => service.takeScreenshot(owner), () => service.searchHistory(owner, 'page'),
+      () => service.sendCdpCommand(owner, 'Runtime.evaluate', {}, undefined)]
+    await expect(service.currentPage(owner)).rejects.toMatchObject({ code: 'BROWSER_DISABLED' })
+    for (const call of calls) await expect(call()).rejects.toMatchObject({ code: 'BROWSER_DISABLED' })
+    await dispose()
+    for (const call of calls) await expect(call()).rejects.toMatchObject({ code: 'BROWSER_DISPOSING' })
+  })
+
+  it('requires the approval service even after CDP is enabled', async () => {
+    const { ctx, dispose } = await harness({ approval: false })
+    const owner = stubAgent(ctx, 'approval')
+    await ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, { fullCdpAccess: true })
+    await expect(ctx.browsers.sendCdpCommand(owner, 'Runtime.evaluate', {}, undefined)).rejects.toThrow('no approval service')
+    await ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, { navigationPolicy: 'ask' })
+    await expect(ctx.browsers.perform(owner, { method: 'get_browser_state' })).rejects.toThrow('no approval service')
+    await dispose()
+  })
+
+  it.each(['disabled', 'blocked'])('rechecks browsing after approval becomes %s', async (change) => {
+    const decision = Promise.withResolvers<ApprovalOutcome>()
+    const approval = vi.fn(() => decision.promise)
+    const { ctx, spawned, dispose } = await harness({ approval })
+    await ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, { navigationPolicy: 'ask' })
+    const owner = stubAgent(ctx, 'revoked')
+    owner.session.append('turn/start', { turn: 1 })
+    const action = ctx.browsers.perform(owner, { method: 'get_browser_state' })
+    const rejected = expect(action).rejects.toThrow('was not approved')
+    await vi.waitFor(() => { expect(approval).toHaveBeenCalledOnce() })
+    await ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, change === 'disabled' ? { controlEnabled: false } : { navigationPolicy: 'block' })
+    decision.resolve('allowed-once')
+    await rejected
+    expect(spawned).toHaveLength(0)
+    await dispose()
+  })
+
+  it('denies native media without a question provider and routes download filenames to approval', async () => {
+    const approval = vi.fn((_request: ApprovalRequest) => Promise.resolve<ApprovalOutcome>('allowed-once'))
+    const { ctx, spawned, dispose } = await harness({ approval })
+    const owner = stubAgent(ctx, 'native')
+    owner.session.append('turn/start', { turn: 1 })
+    await ctx.browsers.perform(owner, { method: 'get_browser_state' })
+    const child = spawned[0]!
+    for (const [id, request] of [
+      [1, { kind: 'media', origin: 'https://example.test' }],
+      [2, { kind: 'download', origin: 'https://example.test', filename: 'report.pdf' }],
+      [3, { kind: 'navigation', origin: 'https://example.test' }],
+    ] as const) {
+      child.stdout.write(`${JSON.stringify({ event: 'browser:permission', id, request })}\n`)
+      await vi.waitFor(() => { expect(child.requests.find(row => row.method === 'browser_permission_response' && row.args.id === id))
+        .toMatchObject({ args: id === 1 ? { id } : { id, choice: 'once' } }) })
+    }
+    expect(approval.mock.calls[0]?.[0].reason).toContain('report.pdf from https://example.test')
+    await dispose()
+  })
+
+  it.each([
+    { selected: ['Allow once'], choice: 'once' }, { selected: ['Always allow'], choice: 'always' },
+    { selected: ['Block'], choice: 'block' }, { selected: ['unexpected'] },
+    { selected: [] }, { selected: ['Allow once', 'Block'] }, { selected: ['Allow once'], custom: 'typed' },
+  ])('maps media permission answers %j', async ({ selected, choice, ...answer }) => {
+    const { ctx, spawned, dispose } = await harness()
+    await ctx.plugin(UserQuestionService)
+    ctx.userQuestions.registerProvider({ ask: async () => ({ answers: [{ id: 'browser-permission', selected, ...answer }] }) })
+    const owner = stubAgent(ctx, 'media')
+    ctx.agents.register(owner)
+    await ctx.browsers.perform(owner, { method: 'get_browser_state' })
+    const child = spawned[0]!
+    child.stdout.write(`${JSON.stringify({ event: 'browser:permission', id: 1, request: { kind: 'media', origin: 'https://example.test' } })}\n`)
+    await vi.waitFor(() => { expect(child.requests.find(row => row.method === 'browser_permission_response')?.args)
+      .toEqual(choice === undefined ? { id: 1 } : { id: 1, choice }) })
+    await dispose()
+  })
+
+  it('uses the selected Hydra model for a native PageAgent request', async () => {
+    const { ctx, spawned, dispose } = await harness()
+    await ctx.plugin(LlmRuntime)
+    class Model extends LlmAdapter {
+      async * stream(): AsyncIterable<StreamChunk> { yield { type: 'finish', reason: { kind: 'stop' } } }
+    }
+    ctx.llm.registerAdapter(['test'], new Model())
+    const scope = ctx.plugin({ inject: ['llm'], apply() {} })
+    await scope.await()
+    const owner = { ...stubAgent(ctx, 'model'), ctx: scope.ctx, options: { provider: 'test', model: 'test' } }
+    await ctx.browsers.perform(owner, { method: 'get_browser_state' })
+    const child = spawned[0]!
+    child.stdout.write(`${JSON.stringify({ event: 'page-agent:llm', id: 1, tabId: 1, request: { messages: [{ role: 'user', content: 'Inspect' }] } })}\n`)
+    await vi.waitFor(() => { expect(child.requests.find(row => row.method === 'page_agent_llm_response')).toBeDefined() })
+    const response = child.requests.find(row => row.method === 'page_agent_llm_response')!.args
+    expect(response.error).toBeUndefined()
+    expect(response).toMatchObject({ callId: 1, ok: true })
+    await dispose()
+  })
+
+  it('applies settings changed during startup and fails closed when control is revoked', async () => {
+    const { ctx, dispose } = await harness()
+    const spawned = Promise.withResolvers<ScriptedChild>()
+    ctx.browsers.spawnChild = () => {
+      const child = new ScriptedChild('starting', undefined, undefined, false)
+      spawned.resolve(child)
+      return child
+    }
+    const action = ctx.browsers.perform(stubAgent(ctx, 'starting'), { method: 'get_browser_state' })
+    const rejected = expect(action).rejects.toMatchObject({ code: 'BROWSER_DISABLED' })
+    const child = await spawned.promise
+    await ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, { controlEnabled: false, webDestination: 'system' })
+    child.stdout.write('{"event":"ready"}\n')
+    await rejected
+    expect(child.requests).toContainEqual(expect.objectContaining({ method: 'configure_browser' }))
+    await dispose()
+  })
+
+  it.each(['owner', 'service'])('closes a browser that becomes ready while its %s is ending', async (scope) => {
+    const { ctx, dispose } = await harness()
+    const owner = stubAgent(ctx, 'ready-race')
+    const spawned = Promise.withResolvers<ScriptedChild>()
+    ctx.browsers.spawnChild = () => {
+      const child = new ScriptedChild('ready', undefined, undefined, false)
+      spawned.resolve(child)
+      return child
+    }
+    const service = ctx.browsers
+    const action = service.perform(owner, { method: 'get_browser_state' })
+    const settled = Promise.allSettled([action])
+    const child = await spawned.promise
+    child.stdout.write('{"event":"ready"}\n')
+    if (scope === 'owner') await service.close(owner)
+    else await dispose()
+    await settled
+    expect(child.stdin.writableEnded).toBe(true)
+    if (scope === 'owner') await dispose()
+  })
+
+  it.each([false, true])('reports settings dispatch failures unless disposal is in progress (%s)', async (ending) => {
+    const { ctx, dispose } = await harness()
+    const failure = Promise.withResolvers<undefined>()
+    const requests: string[] = []
+    ctx.browsers.spawnChild = () => new ScriptedChild('failed', async (method) => {
+      if (method === 'configure_browser' || method === 'page_agent_stop') {
+        requests.push(method)
+        await failure.promise
+      }
+    })
+    await ctx.browsers.perform(stubAgent(ctx, 'failed'), { method: 'get_browser_state' })
+    const warn = vi.spyOn(ctx.logger, 'warn').mockImplementation(() => {})
+    await ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, { controlEnabled: false })
+    await vi.waitFor(() => { expect(requests).toHaveLength(2) })
+    const disposal = ending ? dispose() : undefined
+    failure.reject(new Error('child failed'))
+    await disposal
+    if (!ending) {
+      await vi.waitFor(() => { expect(warn).toHaveBeenCalledTimes(2) })
+      await dispose()
+    }
+    warn.mockRestore()
+  })
+
+  it('serializes tab lifecycle actions and lets stop run after browsing is blocked', async () => {
+    const { ctx, dispose } = await harness()
+    const owner = stubAgent(ctx, 'tabs')
+    for (const method of ['open_new_tab', 'switch_to_tab', 'close_tab'] as const) {
+      await ctx.browsers.perform(owner, { method, tabId: 1 }, { captureState: false })
+    }
+    expect(ctx.browsers.experimentalScriptExecution).toBe(false)
+    await ctx.settings.update(BROWSER_SETTINGS_NAMESPACE, { navigationPolicy: 'block' })
+    await expect(ctx.browsers.perform(owner, { method: 'page_agent_stop' })).resolves.toHaveProperty('action.success', true)
+    await dispose()
+  })
+
   it.each(['browsing', 'downloads', 'uploads'] as const)('enforces all three global modes for %s', async (capability) => {
     for (const mode of ['allow', 'ask', 'block'] as const) {
       const decision = Promise.withResolvers<ApprovalOutcome>()

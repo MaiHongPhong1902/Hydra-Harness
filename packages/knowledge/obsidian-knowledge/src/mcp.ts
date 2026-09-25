@@ -116,6 +116,7 @@ async function withClient<Value>(
 
 function logicalNotePath(path: string): string {
   const [logicalPath] = validateKnowledgeNotePaths([path])
+  /* v8 ignore next -- validating one path returns that path or throws. */
   if (logicalPath === undefined) throw new Error(`invalid Obsidian knowledge note path: ${path}`)
   return logicalPath
 }
@@ -131,6 +132,7 @@ async function readMcpNote(
 }
 
 function isMcpNoteNotFound(result: unknown): boolean {
+  /* v8 ignore next -- Client.callTool validates the result object before returning. */
   if (result === null || typeof result !== 'object') return false
   const record = result as Record<string, unknown>
   if (record['isError'] !== true || !Array.isArray(record['content'])) return false
@@ -138,7 +140,10 @@ function isMcpNoteNotFound(result: unknown): boolean {
     && typeof block === 'object'
     && (block as Record<string, unknown>)['type'] === 'text'
     && typeof (block as Record<string, unknown>)['text'] === 'string'
-    && /\bnot found\b/i.test((block as Record<string, string>)['text'] ?? ''))
+    && /\bnot found\b/i.test(
+      /* v8 ignore next -- the preceding guard requires a string text field. */
+      (block as Record<string, string>)['text'] ?? '',
+    ))
 }
 
 async function maybeReadMcpNote(
@@ -198,6 +203,7 @@ function validateWritableMcpNote(note: KnowledgeNote): KnowledgeNote {
   if (path === OBSIDIAN_MCP_VAULT_MARKER_PATH) {
     throw new Error('Obsidian MCP refuses to overwrite the vault identity marker')
   }
+  /* v8 ignore next -- KnowledgeNote requires a string; tool arguments are validated before this typed call. */
   if (typeof note.markdown !== 'string') throw new Error(`invalid Obsidian knowledge note content for ${path}`)
   const validated = { path, markdown: note.markdown }
   assertKnowledgeNoteBytes([validated])
@@ -226,6 +232,7 @@ async function writeMcpNote(
 }
 
 function toolJson(result: unknown, toolName: string): unknown {
+  /* v8 ignore next -- Client.callTool validates the result object before returning. */
   if (result === null || typeof result !== 'object') {
     throw new Error(`Obsidian MCP ${toolName} returned an invalid result`)
   }
@@ -242,6 +249,7 @@ function toolJson(result: unknown, toolName: string): unknown {
     throw new Error(`Obsidian MCP ${toolName} returned non-text content`)
   }
   try {
+    /* v8 ignore next -- the preceding guard requires a string text field. */
     return JSON.parse((block as Record<string, string>)['text'] ?? '') as unknown
   } catch {
     throw new Error(`Obsidian MCP ${toolName} returned invalid JSON text`)
@@ -254,6 +262,7 @@ function searchExcerpt(value: unknown): string {
     const serialized: unknown = JSON.stringify(value)
     compact = typeof serialized === 'string' ? serialized.replace(/\s+/g, ' ').trim() : ''
   } catch {
+    /* v8 ignore next -- search matches come from JSON.parse and cannot contain cycles or BigInts. */
     compact = ''
   }
   return compact.slice(0, 240)

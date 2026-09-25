@@ -1,6 +1,7 @@
 /** Page-store join: directory × namespaces × credentials, with last-good rows on failure. */
 import { describe, expect, it } from 'vitest'
 import type { RpcResponse, SettingsNamespaceView } from '@hydra/harness-api-remotes/client'
+import type { IApiClient } from '@hydra/harness-api-remotes/client'
 import { SettingsDescribeMirror } from '@hydra/harness-client-ui-settings/src/client/settings-mirror.ts'
 import { settingsSchema } from './settings-schema.client.ts'
 import { isOfficialDeepSeekEntry, messageOf, ModelsSettingsStore } from '../src/client/store.ts'
@@ -49,6 +50,7 @@ function api(overrides: {
     namespaces: SettingsNamespaceView[]
   }>>
   describeCredentials?: (refs: string[]) => Promise<RpcResponse<{ credentials: Record<string, unknown> }>>
+  accounts?: IApiClient['authorization']['list']
 } = {}) {
   const seenRefs: string[][] = []
   const face = {
@@ -61,6 +63,7 @@ function api(overrides: {
       update: () => Promise.resolve(fail('unused')),
       replace: () => Promise.resolve(fail('unused')),
     },
+    authorization: { list: overrides.accounts ?? (() => Promise.resolve(ok({ entries: [] }))) },
     credentials: {
       describe: (payload: { refs: string[] }) => {
         seenRefs.push(payload.refs)
@@ -77,6 +80,25 @@ function api(overrides: {
 }
 
 describe('ModelsSettingsStore', () => {
+  it.each(['accounts', 'missing', 'denied', 'transport'])('enriches account routes with %s authorization state', async (outcome) => {
+    const { face, mirror } = api({
+      providers: async () => ok({ providers: [{ provider: 'chatgpt', displayName: 'ChatGPT',
+        settingsNs: 'llm-account-auth', settingsPath: ['providers', 'chatgpt'], active: true }] }),
+      accounts: async () => {
+        if (outcome === 'denied') return fail('authorization unavailable')
+        if (outcome === 'transport') throw new Error('connection closed')
+        return ok({ entries: outcome === 'missing' ? [] : [{ key: 'llm-account-auth/chatgpt', label: 'ChatGPT', methods: [],
+          inFlight: false, accounts: [{ id: 'one', label: 'One' }, { id: 'two', label: 'Two' }] }] })
+      },
+    })
+    const store = new ModelsSettingsStore(face, settingsSchema, mirror)
+    await store.load()
+    expect(store.store.getSnapshot()).toMatchObject({
+      status: 'ready', rows: [{ accountCount: outcome === 'accounts' ? 2 : 0 }],
+      credentialError: outcome === 'denied' ? 'authorization unavailable' : outcome === 'transport' ? 'connection closed' : null,
+    })
+  })
+
   it('describes non-chat provider credentials without adding LLM directory rows', async () => {
     let configured = false
     const { face, mirror, seenRefs } = api({

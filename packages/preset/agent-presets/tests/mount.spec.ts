@@ -466,6 +466,8 @@ describe('replacing a composition', () => {
     })
 
     agent.session.append('agent-preset/selected', { agentPreset: 'minimal' })
+    agent.session.append('turn/start', { turn: 1 })
+    agent.session.append('turn/end', { turn: 1, reason: { kind: 'completed' } })
 
     expect(selected).toEqual([[SessionId('sess-selected'), 'minimal']])
   })

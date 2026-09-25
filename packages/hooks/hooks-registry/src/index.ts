@@ -362,6 +362,7 @@ export class HookRecordRegistry extends Service {
       configPath = await this.materialize(record)
       summary = summarize(record.dialect, await this.readDefinitions(record))
     } catch (error) {
+      /* v8 ignore next -- validation, JSON parsing, and local filesystem operations throw Error instances. */
       this.invalid.set(record.name, error instanceof Error ? error.message : String(error))
       return
     }
@@ -396,6 +397,7 @@ export class HookRecordRegistry extends Service {
       await fiber
     } catch (error) {
       mount.status = 'failed'
+      /* v8 ignore next -- Cordis normalizes plugin failures to Error before fiber.await rejects. */
       mount.detail = error instanceof Error ? error.message : String(error)
     }
   }
@@ -462,6 +464,7 @@ export class HookRecordRegistry extends Service {
   /** Refuse new work, then unmount every live record. */
   private async shutdown(): Promise<void> {
     this.stopped = true
+    /* v8 ignore next -- enqueue stores a fulfilled tail after either task outcome. */
     await this.tail.catch(() => undefined)
     this.invalid.clear()
     for (const [name, mount] of [...this.live]) {

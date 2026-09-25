@@ -169,7 +169,9 @@ function normalizeSparsePaths(values: readonly string[] | undefined): string[] {
 function normalizeGitSource(source: string): string {
   const shorthand = GITHUB_SHORTHAND_PATTERN.exec(source)
   if (shorthand !== null) {
+    /* v8 ignore next -- A successful shorthand match contains both required captures. */
     const owner = shorthand[1] ?? ''
+    /* v8 ignore next -- A successful shorthand match contains both required captures. */
     const repository = (shorthand[2] ?? '').replace(/\.git$/u, '')
     return `https://github.com/${owner}/${repository}.git`
   }
@@ -488,7 +490,9 @@ export class PluginInventoryGateway extends TypertRemoteService {
   /** Resolve the active root Include to the profile directory the launcher owns. */
   private profileDir(): string {
     const filename = this.rootInclude()?.filename
+    /* v8 ignore next -- Restart updates only follow a synchronous rootInclude-backed toggleability check. */
     if (typeof filename !== 'string') throw new Error('pluginInventory: active profile root is unavailable')
+    /* v8 ignore next -- The root Include stores filename as the filesystem path returned by fileURLToPath. */
     const path = filename.startsWith('file:') ? fileURLToPath(filename) : filename
     const actual = resolve(dirname(path))
     const expected = resolve(resolveProfileDir(basename(actual)))

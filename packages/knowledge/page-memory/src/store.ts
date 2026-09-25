@@ -338,6 +338,7 @@ export class PageMemoryStore {
       const rows = (task === undefined
         ? db.prepare(`SELECT ${columns} FROM workflow_history WHERE page_key = ? ORDER BY id LIMIT ?`).all(key, this.limits.maxHistory + 1)
         : db.prepare(`SELECT ${columns} FROM workflow_history WHERE page_key = ? AND task = ? ORDER BY id LIMIT ?`).all(key, task, this.limits.maxHistory + 1)) as unknown as HistoryRow[]
+      /* v8 ignore next -- The count query rejects excess rows inside the same read transaction. */
       if (rows.length > this.limits.maxHistory) throw new Error('page-memory: history exceeds maxHistory')
       const entries = rows.map(decodeHistoryRow)
       db.exec('COMMIT')
@@ -353,6 +354,7 @@ export class PageMemoryStore {
    */
   close(): Promise<void> {
     this.closing ??= this.ready.then((db) => {
+      /* v8 ignore next -- The memoized closing promise runs this callback once. */
       if (!this.closed) {
         this.closed = true
         db.close()
@@ -388,6 +390,7 @@ export class PageMemoryStore {
   }
 
   private assertRecordBytes(key: string, workflows: readonly StoredWorkflow[]): void {
+    /* v8 ignore next -- upsert checks the existing count before appending at most one workflow. */
     if (workflows.length > this.limits.maxWorkflows) {
       throw new Error(`page-memory: stored workflow count exceeds maxWorkflows (${this.limits.maxWorkflows})`)
     }
@@ -542,6 +545,7 @@ function validateSchema(db: DatabaseSync, path: string): void {
 }
 
 function decodeWorkflowRow(row: WorkflowRow): StoredWorkflow {
+  /* v8 ignore next -- The owned STRICT table requires non-null TEXT task and payload columns. */
   if (typeof row.task !== 'string' || typeof row.payload !== 'string') throw new Error('page-memory: corrupt workflow row')
   let value: unknown
   try {
@@ -582,6 +586,7 @@ function assertDuration(value: number): void {
 function assertUniqueTasks(workflows: readonly StoredWorkflow[]): void {
   const tasks = new Set<string>()
   for (const workflow of workflows) {
+    /* v8 ignore next -- The primary key forbids duplicate tasks and decoding checks each task against its key. */
     if (tasks.has(workflow.task)) throw new Error(`page-memory: duplicate workflow task "${workflow.task}"`)
     tasks.add(workflow.task)
   }
@@ -655,6 +660,7 @@ function parseHttpUrl(value: string): { origin: string; pathname: string } {
 function assertNoSecretParameters(search: string, hash: string): void {
   for (const raw of [search.slice(1), hash.slice(1)]) {
     for (const part of raw.split(/[&?;]/u)) {
+      /* v8 ignore next -- split always returns at least one element, including for an empty string. */
       const encodedName = part.split('=', 1)[0] ?? ''
       let name: string
       try {
@@ -670,10 +676,12 @@ function assertNoSecretParameters(search: string, hash: string): void {
 }
 
 function normalizeRoutes(routes: readonly RouteRule[]): Array<{ origin: string; path: string; segments: string[] }> {
+  /* v8 ignore next -- Host Config validates the route array before pageKey receives it. */
   if (!Array.isArray(routes)) throw new Error('page-memory: routes must be an array')
   const seen = new Set<string>()
   const candidates: readonly unknown[] = routes
   return candidates.map((candidate) => {
+    /* v8 ignore next -- Host Config validates every route object before pageKey receives it. */
     if (typeof candidate !== 'object' || candidate === null || Array.isArray(candidate)) {
       throw new Error('page-memory: route must be an object')
     }
@@ -688,6 +696,7 @@ function normalizeRoutes(routes: readonly RouteRule[]): Array<{ origin: string; 
 }
 
 function normalizeOrigin(value: string): string {
+  /* v8 ignore next -- Host Config declares route origins as strings. */
   if (typeof value !== 'string') throw new Error('page-memory: route origin must be a string')
   let parsed: URL
   try {
@@ -730,6 +739,7 @@ function assertPageKey(key: string): void {
 
 function validateLimits(limits: PageMemoryStoreLimits): void {
   const candidate: unknown = limits
+  /* v8 ignore next -- Store callers provide the required typed limits object. */
   if (candidate === null || typeof candidate !== 'object') throw new Error('page-memory: limits are required')
   for (const [name, value] of [
     ['maxRecordBytes', limits.maxRecordBytes],

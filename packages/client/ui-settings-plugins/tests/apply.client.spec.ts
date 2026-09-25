@@ -9,14 +9,15 @@ import { TestRemote } from '@hydra/harness-client-test-runtime'
 import { apply as settingsApply, inject as settingsInject } from '@hydra/harness-client-ui-settings/client'
 import { apply, inject } from '@hydra/harness-client-ui-settings-plugins/client'
 import type {
-  ConfigurablePluginsTabFace, PluginsSettingsSectionInjected,
+  ConfigurablePluginsTabFace, PluginsSettingsSectionInjected, HooksSettingsFace,
 } from '@hydra/harness-client-ui-settings-plugins/client'
+import type { ImportedMcpSettingsFace, NativeMcpSettingsFace, UserMcpSettingsFace } from '../src/client/McpSettingsTab.tsx'
 
 /**
  * @param served - namespaces the Host describes; omitted answers a failed read,
  * which is what most of these specs want (no card has anything to render).
  */
-async function bench(served?: string[]) {
+async function bench(served?: string[], isLoopback = true) {
   const ctx = new Context()
   await ctx.plugin(SlotRegistry).await()
   const locale = new LocaleRuntime(ctx)
@@ -52,12 +53,20 @@ async function bench(served?: string[]) {
     setEnabled: setInventoryEnabled,
     listImportedPlugins: listImported,
     setPluginMcpServerEnabled: setImportedEnabled,
+    listMcpServers: vi.fn(async () => ({ ok: true as const, value: { servers: [] } })),
+    defineMcpServer: vi.fn(async () => ({ ok: true as const, value: { servers: [] } })),
+    setMcpServerEnabled: vi.fn(async () => ({ ok: true as const, value: { servers: [] } })),
+    removeMcpServer: vi.fn(async () => ({ ok: true as const, value: { servers: [] } })),
+    listHookRecords: vi.fn(async () => ({ ok: true as const, value: { records: [] } })),
+    defineHookRecord: vi.fn(async () => ({ ok: true as const, value: { records: [] } })),
+    setHookRecordEnabled: vi.fn(async () => ({ ok: true as const, value: { records: [] } })),
+    removeHookRecord: vi.fn(async () => ({ ok: true as const, value: { records: [] } })),
   }
   ctx.provide('remote.pluginInventory', pluginInventory as never)
   const remote = ctx.get('remote') as unknown as { pluginInventory?: typeof pluginInventory }
   remote.pluginInventory = pluginInventory
   ctx.provide('connection', {
-    isLoopback: true,
+    isLoopback,
     api: {
       settings: { describe: describeSettings },
       credentials: { describe: describeCredentials },
@@ -68,6 +77,7 @@ async function bench(served?: string[]) {
   return {
     ctx, slots: ctx.get('slots') as SlotRegistry, describeCredentials, describeSettings,
     listInventory, setInventoryEnabled,
+    pluginInventory,
   }
 }
 
@@ -79,6 +89,49 @@ function declareRoot(slots: SlotRegistry): () => void {
 }
 
 describe('ui-settings-plugins apply', () => {
+  it.each([false, true])('routes local registry controls and preserves Host errors (failure: %s)', async (failure) => {
+    const { ctx, slots, pluginInventory } = await bench()
+    declareRoot(slots)
+    await ctx.plugin({ inject: [...inject], apply }).await()
+    const mcp = (slots.entries('settings.plugins.tab').find(entry => entry.options.id === 'mcp')!.inject as unknown as
+      () => ImportedMcpSettingsFace & NativeMcpSettingsFace & UserMcpSettingsFace)()
+    const hooks = (slots.entries('settings.plugins.tab').find(entry => entry.options.id === 'hooks')!.inject as unknown as () => HooksSettingsFace)()
+    if (failure) for (const method of Object.values(pluginInventory)) method.mockResolvedValue({ ok: false, error: { code: 'unavailable', message: 'Host unavailable' } } as never)
+    const requests: Array<[() => Promise<unknown>, keyof typeof pluginInventory, unknown]> = [
+      [() => mcp.importedMcp!.list(), 'listImportedPlugins', undefined],
+      [() => mcp.importedMcp!.setEnabled('plugin', 'server', true), 'setPluginMcpServerEnabled', { identity: 'plugin', server: 'server', enabled: true }],
+      [() => mcp.nativeMcp!.list(), 'list', undefined],
+      [() => mcp.userMcp!.list(), 'listMcpServers', undefined],
+      [() => mcp.userMcp!.define({ mode: 'create', name: 'server', transport: 'stdio', command: 'node' }), 'defineMcpServer', { mode: 'create', name: 'server', transport: 'stdio', command: 'node' }],
+      [() => mcp.userMcp!.setEnabled('server', true), 'setMcpServerEnabled', { name: 'server', enabled: true }],
+      [() => mcp.userMcp!.remove('server'), 'removeMcpServer', 'server'],
+      [() => hooks.userHooks!.list(), 'listHookRecords', undefined],
+      [() => hooks.userHooks!.define({ mode: 'create', name: 'hook', dialect: 'codex', config: {} }), 'defineHookRecord', { mode: 'create', name: 'hook', dialect: 'codex', config: {} }],
+      [() => hooks.userHooks!.setEnabled('hook', false), 'setHookRecordEnabled', { name: 'hook', enabled: false }],
+      [() => hooks.userHooks!.remove('hook'), 'removeHookRecord', 'hook'],
+    ]
+    for (const [call, method, payload] of requests) {
+      if (failure) await expect(call()).rejects.toThrow(`pluginInventory.${method} failed: unavailable: Host unavailable`)
+      else await expect(call()).resolves.toBeDefined()
+      if (payload === undefined) expect(pluginInventory[method]).toHaveBeenCalledWith()
+      else expect(pluginInventory[method]).toHaveBeenCalledWith(payload)
+    }
+    await ctx.fiber.dispose()
+  })
+
+  it('withholds local MCP and hook management on remote connections', async () => {
+    const { ctx, slots } = await bench(undefined, false)
+    declareRoot(slots)
+    await ctx.plugin({ inject: [...inject], apply }).await()
+    const mcp = (slots.entries('settings.plugins.tab').find(entry => entry.options.id === 'mcp')!.inject as unknown as () => UserMcpSettingsFace)()
+    const hooks = (slots.entries('settings.plugins.tab').find(entry => entry.options.id === 'hooks')!.inject as unknown as () => HooksSettingsFace)()
+    expect(mcp).not.toHaveProperty('userMcp')
+    expect(mcp).not.toHaveProperty('nativeMcp')
+    expect(mcp).not.toHaveProperty('importedMcp')
+    expect(hooks.userHooks).toBeUndefined()
+    await ctx.fiber.dispose()
+  })
+
   it('declares the services it uses', () => {
     expect(inject).toEqual(['slots', 'locale', 'connection', 'remote', 'remote.pluginInventory', 'settingsScope'])
   })
@@ -104,6 +157,12 @@ describe('ui-settings-plugins apply', () => {
     // The Hooks tab declares and renders the imported catalogs' child slot.
     expect(slots.spec('settings.plugins.hooks.item')).toMatchObject({ kind: 'list', scope: 'root' })
     expect(slots.spec('settings.plugin.item')).toMatchObject({ kind: 'keyed', scope: 'root' })
+    const search = slots.entries('settings.section').find(entry => entry.options.id === 'web-search')!
+    expect(resolveSlotLabel(search.options.label)).toBe('Web Search')
+    expect((search.inject as unknown as () => { hooks: object })().hooks).toHaveProperty('webSearchCard')
+    slots.register({ name: 'settings.plugins.tab', id: 'unordered' } as never, () => null)
+    const face = (section.inject as unknown as () => PluginsSettingsSectionInjected)()
+    expect(face.hooks.tabs.getSnapshot()).toContainEqual({ id: 'unordered', order: 0, label: '' })
   })
 
 

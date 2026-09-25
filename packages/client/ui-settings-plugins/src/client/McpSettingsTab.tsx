@@ -29,6 +29,7 @@ function importedMcpStatusLabel(
     case 'starting': return t('mcpServerStarting')
     case 'started': return t('mcpServerConnected')
     case 'failed': return t('mcpServerFailed')
+    /* v8 ignore next -- every ImportedMcpStartupState member is handled above. */
     default: return state
   }
 }
@@ -89,6 +90,7 @@ export function McpSettingsTab(props: McpSettingsTabProps) {
   }, [active, props.nativeMcp, request])
 
   const setImportedEnabled = (identity: string, server: string, enabled: boolean): void => {
+    /* v8 ignore if -- server switches render only while importedMcp is supplied. */
     if (props.importedMcp === undefined) return
     setImportedMutating(`${identity}:${server}`)
     setImportedFailed(false)

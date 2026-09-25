@@ -348,6 +348,7 @@ export class McpServerRegistry extends Service {
       } catch (error) {
         // A hand-edited document must not take the process down; the record's
         // own status is where its owner learns the definition was refused.
+        /* v8 ignore next -- assertMountable only throws Error instances. */
         this.invalid.set(record.name, error instanceof Error ? error.message : String(error))
         continue
       }
@@ -380,6 +381,7 @@ export class McpServerRegistry extends Service {
       mount.status = 'started'
     } catch (error) {
       mount.status = 'failed'
+      /* v8 ignore next -- Cordis normalizes plugin failures to Error before fiber.await rejects. */
       mount.detail = error instanceof Error ? error.message : String(error)
     }
   }
@@ -412,6 +414,7 @@ export class McpServerRegistry extends Service {
   /** Refuse new work, then unmount every live record. */
   private async shutdown(): Promise<void> {
     this.stopped = true
+    /* v8 ignore next -- enqueue stores a fulfilled tail after either task outcome. */
     await this.tail.catch(() => undefined)
     this.invalid.clear()
     for (const [name, mount] of [...this.live]) {

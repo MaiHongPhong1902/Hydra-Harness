@@ -10,6 +10,8 @@ Review needs to show changes in the selected session workspace, including extern
 
 The host resolves `review.workspace` from the recorded session cwd and reads local Git metadata and comparisons. Clients cannot supply a filesystem path. Branch/commit selectors use repository results, and nested workspaces show only files below their cwd. Output and subprocess time have configurable limits; stale client responses cannot replace a newer comparison.
 
+Automatic branch comparison uses only the current branch's upstream. A detached HEAD requires an explicit base reference: other local branches' upstreams do not identify the intended comparison.
+
 The [Review UI](../../../../packages/client/ui-review/README.md) renders live Git files and [persisted agent records](2026-09-08-agent-file-review.md) through the same diff renderer and file tree. Keep and hash-guarded Undo use only persisted records. UI labels identify session history separately from Git comparisons. Refresh, host review notifications and reconnects preserve the chosen comparison.
 
 ## Alternatives considered

@@ -4,7 +4,7 @@
  * save sends, what a refused document reads as, and what the tab shows when the
  * connection is not local.
  */
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { HookRecordSnapshot } from '@hydra/harness-api-remotes/client'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { HookRecordCatalog, type UserHookControls } from '../src/client/HookRecordCatalog.tsx'
@@ -42,6 +42,58 @@ function controls(overrides: Partial<UserHookControls> = {}): UserHookControls {
 }
 
 describe('HookRecordCatalog', () => {
+  it.each([false, true])('loads only while active and ignores late responses (reject: %s)', async (reject) => {
+    const pending = Promise.withResolvers<HookRecordSnapshot>()
+    const face = controls({ list: vi.fn(() => pending.promise) })
+    const view = render(<HookRecordCatalog active={false} controls={face} query="" t={t} />)
+    expect(face.list).not.toHaveBeenCalled()
+    view.rerender(<HookRecordCatalog active controls={face} query="" t={t} />)
+    expect(face.list).toHaveBeenCalledOnce()
+    view.unmount()
+    await act(async () => { if (reject) pending.reject(new Error('closed')); else pending.resolve(EMPTY) })
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it('retries loading, filters file and inline records, and reports a refused mutation', async () => {
+    const snapshot: HookRecordSnapshot = { records: [...STORED.records, { ...STORED.records[0]!, name: 'project', status: 'failed',
+      source: 'file', configPath: '/project/hooks.json', pluginRoot: '/plugin', projectDir: '/project' }] }
+    const face = controls({ list: vi.fn().mockRejectedValueOnce(new Error('offline')).mockResolvedValue(snapshot),
+      remove: vi.fn().mockRejectedValue(new Error('refused')) })
+    const view = render(<HookRecordCatalog controls={face} query="" t={t} />)
+    await screen.findByText(en.userHooksLoadError)
+    fireEvent.click(screen.getByRole('button', { name: en.userHooksRetry }))
+    await screen.findByText('project')
+    view.rerender(<HookRecordCatalog controls={face} query="hooks.json" t={t} />)
+    expect(screen.queryByText('guardrails')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: en.userHooksEdit }))
+    expect(screen.getByLabelText(en.userHooksPluginRoot)).toHaveProperty('value', '/plugin')
+    fireEvent.change(screen.getByLabelText(en.userHooksPluginRoot), { target: { value: '/replacement' } })
+    fireEvent.click(screen.getByRole('button', { name: en.userHooksCancel }))
+    fireEvent.click(screen.getByRole('button', { name: en.userHooksRemove }))
+    await screen.findByText(en.userHooksMutationError)
+    view.rerender(<HookRecordCatalog controls={face} query="absent" t={t} />)
+    expect(screen.getByText(en.userHooksEmptySearch)).not.toBeNull()
+  })
+
+  it('keeps a pending save open and rejects an empty form submission', async () => {
+    const pending = Promise.withResolvers<HookRecordSnapshot>()
+    const face = controls({ define: vi.fn(() => pending.promise) })
+    render(<HookRecordCatalog controls={face} query="" t={t} />)
+    await screen.findByText(en.userHooksEmpty)
+    fireEvent.click(screen.getByRole('button', { name: en.userHooksAdd }))
+    fireEvent.submit(document.getElementById('user-hooks-form')!)
+    expect(face.define).not.toHaveBeenCalled()
+    fireEvent.change(screen.getByLabelText(en.userHooksName), { target: { value: 'new' } })
+    fireEvent.change(screen.getByLabelText(en.userHooksConfig), { target: { value: '{}' } })
+    fireEvent.change(screen.getByLabelText(en.userHooksPluginRoot), { target: { value: '/plugin' } })
+    fireEvent.click(screen.getByRole('button', { name: en.userHooksSave }))
+    fireEvent.click(screen.getByRole('button', { name: en.userHooksClose }))
+    expect(screen.getByRole('dialog')).not.toBeNull()
+    await act(async () => { pending.resolve(STORED) })
+    expect(face.define).toHaveBeenCalledWith(expect.objectContaining({ pluginRoot: '/plugin' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
   it('keeps an existing active hook untouched when Add repeats its name', async () => {
     const face = controls({ list: vi.fn(async () => ACTIVE) })
     render(<HookRecordCatalog controls={face} query="" t={t} />)
@@ -109,7 +161,7 @@ describe('HookRecordCatalog', () => {
     })
   })
 
-  it('blocks the save when the inline document is not a JSON object', async () => {
+  it.each(['[1,2]', 'null', '{bad'])('blocks a non-object hook document: %s', async (document) => {
     const face = controls()
     render(<HookRecordCatalog controls={face} query="" t={t} />)
 
@@ -117,7 +169,7 @@ describe('HookRecordCatalog', () => {
     fireEvent.click(screen.getByRole('button', { name: en.userHooksAdd }))
     const dialog = screen.getByRole('dialog', { name: en.userHooksAddTitle })
     fireEvent.change(within(dialog).getByRole('textbox', { name: en.userHooksName }), { target: { value: 'guardrails' } })
-    fireEvent.change(within(dialog).getByRole('textbox', { name: en.userHooksConfig }), { target: { value: '[1,2]' } })
+    fireEvent.change(within(dialog).getByRole('textbox', { name: en.userHooksConfig }), { target: { value: document } })
     fireEvent.click(within(dialog).getByRole('button', { name: en.userHooksSave }))
 
     expect((await within(dialog).findByRole('alert')).textContent).toBe(en.userHooksConfigInvalid)
@@ -174,6 +226,9 @@ describe('HookRecordCatalog', () => {
     const dialog = screen.getByRole('dialog', { name: en.userHooksEditTitle })
     expect(within(dialog).getByRole<HTMLInputElement>('textbox', { name: en.userHooksName }).disabled).toBe(true)
     expect(within(dialog).getByRole<HTMLTextAreaElement>('textbox', { name: en.userHooksConfig }).value).toBe('')
+    fireEvent.change(within(dialog).getByLabelText(en.userHooksConfig), { target: { value: '{}' } })
+    fireEvent.click(within(dialog).getByRole('button', { name: en.userHooksSave }))
+    await waitFor(() => { expect(face.define).toHaveBeenCalledWith({ mode: 'replace', name: 'guardrails', dialect: 'claude-code', config: {} }) })
   })
 })
 

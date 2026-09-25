@@ -216,6 +216,7 @@ export class AgentPresets extends Service {
         })
         return () => {
           stop()
+          /* v8 ignore else -- Cordis disposes this settings injection before replacing it. */
           if (this.settings === settings) this.settings = undefined
           this.settingsService = undefined
         }

@@ -83,6 +83,7 @@ async function runtime(home: string): Promise<{ ctx: Context; plugins: ImportedP
 
 afterEach(async () => {
   vi.restoreAllMocks()
+  vi.unstubAllEnvs()
   await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true })))
   execFileMock.mockReset()
 })
@@ -405,7 +406,7 @@ describe('PluginStore', () => {
     }
   })
 
-  it('mounts trusted hooks, refreshes trust, and unloads them when trust is revoked', async () => {
+  it.each(['win32', 'linux'])('mounts trusted hooks for %s, refreshes trust, and unloads them when trust is revoked', async (platform) => {
     const source = await temp('trusted-hooks')
     await plugin(source, '1.0.0', { hooks: [
       { hooks: { Stop: [{ hooks: [{ command: 'echo ${PLUGIN_ROOT}' }] }] } },
@@ -416,11 +417,18 @@ describe('PluginStore', () => {
     try {
       const identity = (await plugins.import(source)).plugins[0]!.identity
       await plugins.enable(identity)
-      const trusted = (await plugins.trustHooks(identity)).plugins[0]!
+      const actualPlatform = process.platform
+      let trusted
+      try {
+        Object.defineProperty(process, 'platform', { value: platform })
+        trusted = (await plugins.trustHooks(identity)).plugins[0]!
+      } finally {
+        Object.defineProperty(process, 'platform', { value: actualPlatform })
+      }
       expect(trusted).toMatchObject({ hookTrustState: 'trusted', lifecycle: 'loaded' })
       const text = await readFile(join(trusted.dataPath, `hooks-${trusted.hookDefinitionDigest}.json`), 'utf8')
-      expect(JSON.parse(text)).toEqual({ hooks: { Stop: [{ hooks: [{ command: process.platform === 'win32' ? 'echo ${env:PLUGIN_ROOT}' : 'echo ${PLUGIN_ROOT}' }] },
-        { hooks: [{ command: process.platform === 'win32' ? 'echo ${env:CLAUDE_PLUGIN_DATA}' : 'echo ${CLAUDE_PLUGIN_DATA}' }] }] } })
+      expect(JSON.parse(text)).toEqual({ hooks: { Stop: [{ hooks: [{ command: platform === 'win32' ? 'echo ${env:PLUGIN_ROOT}' : 'echo ${PLUGIN_ROOT}' }] },
+        { hooks: [{ command: platform === 'win32' ? 'echo ${env:CLAUDE_PLUGIN_DATA}' : 'echo ${CLAUDE_PLUGIN_DATA}' }] }] } })
       expect((await plugins.untrustHooks(identity)).plugins[0]?.hookTrustState).toBe('pending')
       await plugins.trustHooks(identity)
       await plugins.remove(identity)
@@ -460,9 +468,11 @@ describe('PluginStore', () => {
   })
 
   it('reports Git failure and removes the incomplete checkout', async () => {
+    vi.stubEnv('HYDRA_PLUGIN_TEST_TOKEN', 'fixture-secret')
     execFileMock.mockImplementation((_command, _args, _options, callback) => { callback(new Error('offline'), '', '') })
     await expect(new PluginStore(await temp('git-failure')).install('owner/repo')).rejects.toThrow('Git import failed')
     const destination = String(execFileMock.mock.calls[0]?.[1].at(-1))
+    expect(execFileMock.mock.calls[0]?.[2]).not.toHaveProperty('env.HYDRA_PLUGIN_TEST_TOKEN')
     await expect(readFile(join(destination, 'plugin.json'))).rejects.toMatchObject({ code: 'ENOENT' })
   })
 

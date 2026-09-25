@@ -13,6 +13,7 @@ import { join } from 'node:path'
 import { PassThrough } from 'node:stream'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Context } from '@hydra/cordis'
+import type { Agent, PreStepDecision } from '@hydra/harness-agent'
 import { createLaunchEnvironmentSnapshot, HYDRA_LAUNCH_ENVIRONMENT_KEY } from '@hydra/harness-launch-environment'
 import { createUserMessage } from '@hydra/harness-llm'
 import SystemPrompt from '@hydra/harness-system-prompt'
@@ -96,6 +97,27 @@ interface BashContribution {
 }
 
 describe('web-app runtime glue', () => {
+  it('appends improvement instructions to an admitted first step and preserves downstream rejection', async () => {
+    stageDist()
+    const ctx = new Context()
+    ctx.provide('webServer', fakeHttpServer().server)
+    apply(ctx, new Config({ openBrowser: false, printUrl: false, surfaceContext: true, trustedHosts: [] }))
+    await ctx.plugin(SystemPrompt, { persona: '' })
+    await new Promise(resolve => setTimeout(resolve, 0))
+    const direct = createUserMessage({ content: [{ type: 'text', text: 'Improve the agent' }], source: { kind: 'user' } })
+    const payload = { agent: {} as Agent, messages: [direct], turn: 1, step: 1, signal: new AbortController().signal }
+    const enter: PreStepDecision = { kind: 'enter', messages: [direct] }
+    const next = vi.fn(async () => enter)
+    expect(await ctx.waterfall('agent/pre-step', payload, next)).toEqual({
+      kind: 'enter', messages: [direct, expect.objectContaining({ source: { kind: 'plugin', plugin: 'web-app', form: 'instructions' } })],
+    })
+    expect(next).toHaveBeenCalledOnce()
+    expect(await ctx.waterfall('agent/pre-step', { ...payload, step: 2 }, next)).toBe(enter)
+    const rejection: PreStepDecision = { kind: 'reject' }
+    expect(await ctx.waterfall('agent/pre-step', payload, async () => rejection)).toBe(rejection)
+    await ctx.fiber.dispose()
+  })
+
   it('builds an evidence-first contract only for a direct agent-improvement request', () => {
     const direct = createUserMessage({
       content: [{ type: 'text', text: 'Tôi muốn cải thiện agent' }],

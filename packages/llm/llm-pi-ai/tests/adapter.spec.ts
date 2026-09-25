@@ -289,6 +289,22 @@ describe('PiAiAdapter provider routing', () => {
     expect(streamSimple.mock.calls[1]?.[2]).toMatchObject({ reasoning: 'high' })
   })
 
+  it.each([true, false])('requires a supported low-cost title effort when off is unavailable: minimal=%s', async (minimal) => {
+    const server = await mockServer([{ events: textEvents }])
+    const ctx = await harness(server.url, { models: [{
+      id: 'title-model', reasoningEfforts: minimal ? { minimal: 'low', high: 'high' } : { high: 'high' },
+    }] })
+    const result = await assemble(ctx, { model: 'title-model', purpose: 'session-title', messages: [] })
+    if (minimal) {
+      expect(result.finish.kind).toBe('stop')
+      expect(server.requests[0]).toMatchObject({ reasoning_effort: 'low' })
+    } else {
+      expect(result.finish).toMatchObject({ kind: 'error', failure: { code: 'UNSUPPORTED_REASONING_EFFORT' } })
+      expect(server.requests).toEqual([])
+    }
+    await ctx.fiber.dispose()
+  })
+
   it('preserves omitted profile options when constructing the adapter directly', async () => {
     const server = await mockServer([{ events: textEvents }])
     const ctx = new Context()

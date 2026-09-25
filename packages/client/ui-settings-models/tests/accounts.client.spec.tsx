@@ -71,7 +71,7 @@ it('cancels a login whose begin response arrives after the editor closes', async
     list: async () => ok({ entries: [{ key: flowKey, label: 'ChatGPT', methods: [{ id: 'oauth', label: 'Sign in' }],
       inFlight: false, accounts: [] }] }),
     begin: vi.fn(() => new Promise<RpcResponse<{ attemptId: string }>>((resolve) => { finishBegin = resolve })),
-    cancel: vi.fn(async () => ok({})),
+    cancel: vi.fn(async () => { throw new Error('connection closed') }),
   }
   const view = render(<ProviderAccounts flowKey={flowKey} api={api as unknown as IApiClient['authorization']}
     t={t} disabled={false} onBusy={vi.fn()} />)
@@ -92,24 +92,32 @@ it('requires a connected account for an active account-backed provider', () => {
   expect(providerUsable({ ...row, entry: { ...row.entry, active: false }, accountCount: 2 })).toBe(false)
 })
 
-it('saves an account provider without requiring or storing an API key', async () => {
+it.each(['chatgpt', 'future-provider'])('saves %s without requiring or storing an API key', async (provider) => {
   const config = Schema.object({ providers: Schema.dict(Schema.object({ models: Schema.array(Schema.object({ id: Schema.string() })) })) })
   const mutate = vi.fn(async () => ok({ revision: 2, user: { providers: { chatgpt: {} } } }))
   const set = vi.fn()
   const describe = vi.fn(async () => ok({ credentials: {} }))
   const onClose = vi.fn()
-  render(<ProviderEditor provider="chatgpt" displayName="ChatGPT" settingsPath={['providers', 'chatgpt']}
+  render(<ProviderEditor provider={provider} displayName="ChatGPT" settingsPath={['providers', provider]}
     namespace={{ ns: 'llm-account-auth', schema: config.toJSON(), revision: 1, applies: 'live', secrets: [],
       value: { providers: {} }, base: {}, user: {} }} schema={settingsSchema} t={t} readOnly={false} onClose={onClose}
     api={{ settings: { mutate }, credentials: { describe, set },
       authorization: { list: async () => ok({ entries: [{ key: flowKey, label: 'ChatGPT', methods: [{ id: 'oauth', label: 'Sign in' }],
         inFlight: false, accounts: [] }] }) } } as never} />)
-  await screen.findByText(en.accountsEmpty)
   expect(screen.queryByLabelText(en.keyInput)).toBeNull()
+  if (provider === 'chatgpt') {
+    await screen.findByText(en.accountsEmpty)
+    fireEvent.click(screen.getByText(en.customized))
+    fireEvent.click(screen.getByRole('button', { name: en.addModel }))
+    fireEvent.change(screen.getByLabelText(`${en.modelId} 1`), { target: { value: 'custom-model' } })
+    expect(screen.getByDisplayValue('custom-model')).toBeDefined()
+    fireEvent.click(screen.getByRole('button', { name: en.resetModels }))
+    expect(screen.queryByDisplayValue('custom-model')).toBeNull()
+  } else expect(screen.queryByRole('button', { name: en.accountAdd })).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: en.apply }))
   await waitFor(() => { expect(onClose).toHaveBeenCalledWith(true) })
   expect(mutate).toHaveBeenCalledWith({ ns: 'llm-account-auth', expectedRevision: 1,
-    ops: [{ op: 'set', path: ['providers', 'chatgpt'], value: {} }] })
+    ops: [{ op: 'set', path: ['providers', provider], value: {} }] })
   expect(set).not.toHaveBeenCalled()
   expect(describe).not.toHaveBeenCalled()
 })

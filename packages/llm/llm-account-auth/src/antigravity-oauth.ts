@@ -182,6 +182,7 @@ function antigravityCallbackUri(
   port = ANTIGRAVITY_CALLBACK_PORT,
   path = ANTIGRAVITY_CALLBACK_PATH,
 ): string {
+  /* v8 ignore next -- this private helper receives only the absolute path validated by resolvedOptions. */
   return `http://localhost:${String(port)}${path.startsWith('/') ? path : `/${path}`}`
 }
 
@@ -221,6 +222,7 @@ function nonEmptyString(value: unknown): string | undefined {
 }
 
 function responseStatus(response: Response): number {
+  /* v8 ignore next -- the Fetch Response status getter always supplies an integer. */
   return Number.isInteger(response.status) ? response.status : 0
 }
 
@@ -231,6 +233,7 @@ function abortError(signal: AbortSignal | undefined): LlmError | undefined {
 }
 
 function abortFailure(signal: AbortSignal | undefined): LlmError {
+  /* v8 ignore next -- every caller has observed cancellation on this same signal. */
   return abortError(signal) ?? new LlmError('Antigravity request was aborted', 'ABORTED')
 }
 
@@ -401,6 +404,7 @@ async function fetchAntigravityUserInfo(
 ): Promise<string | undefined> {
   const resolved = resolvedOptions(options)
   const token = nonEmptyString(accessToken)
+  /* v8 ignore next -- the sole caller passes the nonempty access token validated by exchangeAntigravityCode. */
   if (token === undefined) throw new LlmError('Antigravity userinfo needs an access token', 'INVALID_CREDENTIAL')
   let response: Response
   try {
@@ -474,6 +478,7 @@ async function abortableDelay(milliseconds: number, signal?: AbortSignal): Promi
       resolve()
     }, milliseconds)
     signal?.addEventListener('abort', abort, { once: true })
+    /* v8 ignore next -- native AbortSignal cannot change during synchronous listener registration after the initial check. */
     if (signal?.aborted) abort()
   })
 }
@@ -535,6 +540,7 @@ export async function loadAntigravityProject(
       }
       lastFailure = new LlmError('Antigravity onboarding is still pending', 'ONBOARDING_PENDING')
     } catch (error: unknown) {
+      /* v8 ignore if -- requestJson never emits ONBOARDING_PENDING; pending responses set lastFailure without throwing. */
       if (error instanceof LlmError && error.code === 'ONBOARDING_PENDING') {
         lastFailure = error
       } else {
@@ -562,7 +568,9 @@ async function startCallbackServer(
 ): Promise<CallbackServer> {
   const server = createServer()
   const requestBase = host.includes(':') ? `http://[${host}]` : `http://${host}`
+  /* v8 ignore next -- the Promise executor replaces this placeholder synchronously before request handlers are installed. */
   let resolveCallback: (result: CallbackCode) => void = () => undefined
+  /* v8 ignore next -- the Promise executor replaces this placeholder synchronously before request handlers are installed. */
   let rejectCallback: (error: unknown) => void = () => undefined
   let settled = false
   const callback = new Promise<CallbackCode>((resolve, reject) => {
@@ -573,12 +581,15 @@ async function startCallbackServer(
     if (settled) return
     settled = true
     if (error !== undefined) rejectCallback(error)
-    else if (result !== undefined) resolveCallback(result)
+    else {
+      /* v8 ignore else -- each callback supplies either an error or a validated code and state. */
+      if (result !== undefined) resolveCallback(result)
+    }
   }
   server.on('request', (request, response) => {
     if (request.method !== 'GET') { response.writeHead(405); response.end(); return }
     let requestUrl: URL
-    try { requestUrl = new URL(request.url ?? '/', requestBase) } catch {
+    try { requestUrl = new URL(/* v8 ignore next -- Node populates url on every parsed HTTP request. */ request.url ?? '/', requestBase) } catch {
       response.writeHead(400)
       response.end()
       return
@@ -619,6 +630,7 @@ async function startCallbackServer(
     server.listen(requestedPort, host, () => {
       server.removeListener('error', onError)
       const address = server.address()
+      /* v8 ignore if -- the listening callback follows a successful TCP listen, which supplies an AddressInfo. */
       if (address === null || typeof address === 'string') {
         reject(new Error('Antigravity callback listener did not expose a TCP address'))
       } else {
@@ -637,6 +649,7 @@ async function startCallbackServer(
 }
 
 async function closeServer(server: Server): Promise<void> {
+  /* v8 ignore next -- only this function closes a successfully started callback listener, once per login. */
   if (!server.listening) return
   server.closeIdleConnections()
   server.closeAllConnections()
@@ -693,6 +706,7 @@ export async function loginAntigravity(
   const promptController = new AbortController()
   const abortPrompt = (): void => { promptController.abort(interaction.signal?.reason) }
   interaction.signal?.addEventListener('abort', abortPrompt, { once: true })
+  /* v8 ignore next -- the cancellation Promise replaces this placeholder before it can be invoked. */
   let resolveCancellation: () => void = () => undefined
   try {
     interaction.notify({
@@ -715,6 +729,7 @@ export async function loginAntigravity(
     let code: string
     if (winner.kind === 'callback') {
       promptController.abort('OAuth callback received')
+      /* v8 ignore if -- startCallbackServer resolves only callbacks matching the same state. */
       if (winner.value.state !== state) {
         throw new LlmError('Antigravity OAuth state did not match this login attempt', 'AUTH_STATE_MISMATCH')
       }

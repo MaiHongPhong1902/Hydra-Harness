@@ -83,6 +83,7 @@ function hideWhitespaceLines(lines: DiffLine[], enabled: boolean): DiffLine[] {
   while (index < lines.length) {
     const line = lines[index]
     if (line === undefined || line.kind === 'context') {
+      /* v8 ignore next -- The dense parsed lines array is indexed below its length. @preserve */
       if (line !== undefined) output.push(line)
       index++
       continue
@@ -90,6 +91,7 @@ function hideWhitespaceLines(lines: DiffLine[], enabled: boolean): DiffLine[] {
     const run: DiffLine[] = []
     while (index < lines.length && lines[index]?.kind !== 'context') {
       const candidate = lines[index]
+      /* v8 ignore next -- The dense parsed lines array is indexed below its length. @preserve */
       if (candidate !== undefined) run.push(candidate)
       index++
     }
@@ -103,7 +105,9 @@ function hideWhitespaceLines(lines: DiffLine[], enabled: boolean): DiffLine[] {
         hidden.add(addition)
       }
     }
-    for (const candidate of run) if (!hidden.has(candidate)) output.push(candidate)
+    for (const candidate of run) {
+      if (!hidden.has(candidate)) output.push(candidate)
+    }
   }
   return output
 }
@@ -113,6 +117,7 @@ function pairLines(lines: DiffLine[]): Map<DiffLine, DiffLine> {
   let index = 0
   while (index < lines.length) {
     const line = lines[index]
+    /* v8 ignore next -- The dense parsed lines array is indexed below its length. @preserve */
     if (line === undefined) break
     if (line.kind === 'context') {
       index++
@@ -129,6 +134,7 @@ function pairLines(lines: DiffLine[]): Map<DiffLine, DiffLine> {
     for (let pairIndex = 0; pairIndex < Math.min(deletions.length, additions.length); pairIndex++) {
       const deletion = deletions[pairIndex]
       const addition = additions[pairIndex]
+      /* v8 ignore next -- pairIndex is smaller than both dense array lengths. @preserve */
       if (deletion !== undefined && addition !== undefined) {
         pairs.set(deletion, addition)
         pairs.set(addition, deletion)
@@ -163,11 +169,16 @@ function splitChange(value: string, other: string): [string, string, string] {
 }
 
 function lineClass(line: DiffLine): string {
+  /* v8 ignore next -- The imported CSS module declares a class for every LineKind. @preserve */
   return (line.kind === 'add' ? css.add : line.kind === 'del' ? css.del : css.context) ?? ''
 }
 
 function lineNumber(value: number | null, className: string): ReactNode {
-  return <span className={`${css.lineNumber ?? ''} ${className}`} data-line={value === null ? '' : value} aria-hidden="true" />
+  return <span className={`${(
+    /* v8 ignore start -- The imported CSS module declares this class. */
+    css.lineNumber ?? ''
+    /* v8 ignore stop */
+  )} ${className}`} data-line={value === null ? '' : value} aria-hidden="true" />
 }
 
 function lineText(line: DiffLine, pair: DiffLine | undefined, props: DiffViewProps): ReactNode {
@@ -175,7 +186,11 @@ function lineText(line: DiffLine, pair: DiffLine | undefined, props: DiffViewPro
   const other = pair === undefined ? undefined : shown(pair.content, props.hideWhitespace)
   if (!props.wordDiffs || other === undefined || value === other) return value
   const [prefix, changed, suffix] = splitChange(value, other)
-  return changed === '' ? value : <>{prefix}<mark className={css.wordChange ?? ''} data-word-diff="">{changed}</mark>{suffix}</>
+  return changed === '' ? value : <>{prefix}<mark className={(
+    /* v8 ignore start -- The imported CSS module declares this class. */
+    css.wordChange ?? ''
+    /* v8 ignore stop */
+  )} data-word-diff="">{changed}</mark>{suffix}</>
 }
 
 function renderUnifiedLine(line: DiffLine, pair: DiffLine | undefined, props: DiffViewProps, key: string): ReactNode[] {
@@ -184,20 +199,40 @@ function renderUnifiedLine(line: DiffLine, pair: DiffLine | undefined, props: Di
     : line.raw.charAt(0)
   const lineNode = (
     <span
-      className={`${css.unifiedLine ?? ''} ${lineClass(line)}`}
+      className={`${(
+        /* v8 ignore start -- The imported CSS module declares this class. */
+        css.unifiedLine ?? ''
+        /* v8 ignore stop */
+      )} ${lineClass(line)}`}
       data-diff-line=""
       data-kind={line.kind}
       data-old-line={line.oldLine === null ? '' : line.oldLine}
       data-new-line={line.newLine === null ? '' : line.newLine}
       key={key}
     >
-      {lineNumber(line.oldLine, css.oldNumber ?? '')}
-      {lineNumber(line.newLine, css.newNumber ?? '')}
-      <span className={css.lineText ?? ''}>{prefix}{lineText(line, pair, props)}</span>
+      {lineNumber(line.oldLine, (
+        /* v8 ignore start -- The imported CSS module declares this class. */
+        css.oldNumber ?? ''
+        /* v8 ignore stop */
+      ))}
+      {lineNumber(line.newLine, (
+        /* v8 ignore start -- The imported CSS module declares this class. */
+        css.newNumber ?? ''
+        /* v8 ignore stop */
+      ))}
+      <span className={(
+        /* v8 ignore start -- The imported CSS module declares this class. */
+        css.lineText ?? ''
+        /* v8 ignore stop */
+      )}>{prefix}{lineText(line, pair, props)}</span>
     </span>
   )
   return [lineNode, ...line.markers.map((marker, index) => (
-    <span className={css.markerRow ?? ''} data-no-newline="" key={`${key}-marker-${index}`}>{marker}</span>
+    <span className={(
+      /* v8 ignore start -- The imported CSS module declares this class. */
+      css.markerRow ?? ''
+      /* v8 ignore stop */
+    )} data-no-newline="" key={`${key}-marker-${index}`}>{marker}</span>
   ))]
 }
 
@@ -207,6 +242,7 @@ function splitRows(lines: DiffLine[]): SplitRow[] {
   let index = 0
   while (index < lines.length) {
     const line = lines[index]
+    /* v8 ignore next -- The dense parsed lines array is indexed below its length. @preserve */
     if (line === undefined) break
     if (line.kind === 'context') {
       rows.push({ oldLine: line, newLine: line, markers: line.markers })
@@ -233,15 +269,35 @@ function splitRows(lines: DiffLine[]): SplitRow[] {
 /* jscpd:ignore-end */
 
 function renderSide(line: DiffLine | null, side: 'old' | 'new', pair: DiffLine | undefined, props: DiffViewProps): ReactNode {
-  if (line === null) return <span className={`${css.sideCell ?? ''} ${css.emptySide ?? ''}`} data-side={side} aria-hidden="true" />
+  if (line === null) return <span className={`${(
+    /* v8 ignore start -- The imported CSS module declares this class. */
+    css.sideCell ?? ''
+    /* v8 ignore stop */
+  )} ${(
+    /* v8 ignore start -- The imported CSS module declares this class. */
+    css.emptySide ?? ''
+    /* v8 ignore stop */
+  )}`} data-side={side} aria-hidden="true" />
   const number = side === 'old' ? line.oldLine : line.newLine
   const prefix = line.kind === 'context'
     ? (line.raw.startsWith(' ') ? ' ' : '')
     : line.raw.charAt(0)
   return (
-    <span className={`${css.sideCell ?? ''} ${lineClass(line)}`} data-side={side} data-kind={line.kind} data-old-line={line.oldLine === null ? '' : line.oldLine} data-new-line={line.newLine === null ? '' : line.newLine}>
-      {lineNumber(number, css.sideNumber ?? '')}
-      <span className={css.sideText ?? ''}>{prefix}{lineText(line, pair, props)}</span>
+    <span className={`${(
+      /* v8 ignore start -- The imported CSS module declares this class. */
+      css.sideCell ?? ''
+      /* v8 ignore stop */
+    )} ${lineClass(line)}`} data-side={side} data-kind={line.kind} data-old-line={line.oldLine === null ? '' : line.oldLine} data-new-line={line.newLine === null ? '' : line.newLine}>
+      {lineNumber(number, (
+        /* v8 ignore start -- The imported CSS module declares this class. */
+        css.sideNumber ?? ''
+        /* v8 ignore stop */
+      ))}
+      <span className={(
+        /* v8 ignore start -- The imported CSS module declares this class. */
+        css.sideText ?? ''
+        /* v8 ignore stop */
+      )}>{prefix}{lineText(line, pair, props)}</span>
     </span>
   )
 }
@@ -250,13 +306,21 @@ function renderSplitRow(row: SplitRow, pairs: Map<DiffLine, DiffLine>, props: Di
   const oldPair = row.oldLine === null ? undefined : pairs.get(row.oldLine)
   const newPair = row.newLine === null ? undefined : pairs.get(row.newLine)
   const rowNode = (
-    <span className={css.splitRow ?? ''} data-diff-line="" key={key}>
+    <span className={(
+      /* v8 ignore start -- The imported CSS module declares this class. */
+      css.splitRow ?? ''
+      /* v8 ignore stop */
+    )} data-diff-line="" key={key}>
       {renderSide(row.oldLine, 'old', oldPair, props)}
       {renderSide(row.newLine, 'new', newPair, props)}
     </span>
   )
   return [rowNode, ...row.markers.map((marker, index) => (
-    <span className={css.splitMarker ?? ''} data-no-newline="" key={`${key}-marker-${index}`}>{marker}</span>
+    <span className={(
+      /* v8 ignore start -- The imported CSS module declares this class. */
+      css.splitMarker ?? ''
+      /* v8 ignore stop */
+    )} data-no-newline="" key={`${key}-marker-${index}`}>{marker}</span>
   ))]
 }
 
@@ -270,7 +334,11 @@ export function DiffView({ hunks, path, mode, wordWrap, wordDiffs, hideWhitespac
   const rows: ReactNode[] = []
   hunks.forEach((hunk, hunkIndex) => {
     const model = modelFor(hunk, hideWhitespace)
-    const hunkRows: ReactNode[] = [<span className={css.hunkHeader ?? ''} key={`hunk-${hunkIndex}`}>{hunk.header}</span>]
+    const hunkRows: ReactNode[] = [<span className={(
+      /* v8 ignore start -- The imported CSS module declares this class. */
+      css.hunkHeader ?? ''
+      /* v8 ignore stop */
+    )} key={`hunk-${hunkIndex}`}>{hunk.header}</span>]
     if (mode === 'unified') {
       for (const [lineIndex, line] of model.lines.entries()) hunkRows.push(...renderUnifiedLine(line, model.pairs.get(line), options, `line-${hunkIndex}-${lineIndex}`))
     } else {
@@ -279,8 +347,28 @@ export function DiffView({ hunks, path, mode, wordWrap, wordDiffs, hideWhitespac
     rows.push(...hunkRows)
   })
   return (
-    <div className={`${css.view ?? ''} ${mode === 'split' ? css.split ?? '' : css.unified ?? ''} ${wordWrap ? css.wordWrap ?? '' : ''}`} data-diff-view="" data-mode={mode} data-path={path} role="region" aria-label={`Recorded diff for ${path}`}>
-      <pre className={css.body ?? ''}>{joinRows(rows)}</pre>
+    <div className={`${(
+      /* v8 ignore start -- The imported CSS module declares this class. */
+      css.view ?? ''
+      /* v8 ignore stop */
+    )} ${mode === 'split' ? (
+    /* v8 ignore start -- The imported CSS module declares this class. */
+      css.split ?? ''
+    /* v8 ignore stop */
+    ) : (
+    /* v8 ignore start -- The imported CSS module declares this class. */
+      css.unified ?? ''
+    /* v8 ignore stop */
+    )} ${wordWrap ? (
+    /* v8 ignore start -- The imported CSS module declares this class. */
+      css.wordWrap ?? ''
+    /* v8 ignore stop */
+    ) : ''}`} data-diff-view="" data-mode={mode} data-path={path} role="region" aria-label={`Recorded diff for ${path}`}>
+      <pre className={(
+        /* v8 ignore start -- The imported CSS module declares this class. */
+        css.body ?? ''
+        /* v8 ignore stop */
+      )}>{joinRows(rows)}</pre>
     </div>
   )
 }

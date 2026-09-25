@@ -212,7 +212,11 @@ for (const backend of backends) {
         delivery: 'wakeup',
         signal: SIGNAL,
       })
-      expect(receipt.status).toBe('accepted')
+      // Startup recovery may own delivery while sendMessage returns queued.
+      await vi.waitFor(() => {
+        expect(foldTeam(activeHandle.agent.id, activeHandle.agent.session.events)
+          .delivered.has(receipt.messageId)).toBe(true)
+      }, { timeout: 5_000 })
       await vi.waitFor(() => { expect(second.ctx.agents.get(childId)).toBeUndefined() }, { timeout: 5_000 })
       await vi.waitFor(() => { expect(durable(activeHandle.agent).pendingMessages).toEqual([]) })
 

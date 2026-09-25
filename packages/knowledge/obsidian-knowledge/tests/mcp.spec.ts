@@ -1,8 +1,11 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
+import { Client } from '@modelcontextprotocol/sdk/client/index.js'
+import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js'
+import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js'
 import { z } from 'zod'
 import {
   createObsidianMcpStorage,
@@ -15,6 +18,7 @@ import {
 } from '../src/mcp.ts'
 
 describe('Obsidian MCP read backend', () => {
+  afterEach(() => { vi.restoreAllMocks() })
   let httpServer: Server
   let url: string
   const seenAuth: Array<string | undefined> = []
@@ -28,6 +32,10 @@ describe('Obsidian MCP read backend', () => {
   ])
   const seenReads: string[] = []
   const seenWrites: Array<{ path: string; content: string }> = []
+  const searchResults = new Map<string, CallToolResult>()
+  const readPayloads = new Map<string, unknown>()
+  let writeAcknowledgment: unknown = { message: 'OK' }
+  let preserveWrite = true
   const rankingPayload = [
     {
       filename: 'Hydra Website Knowledge/Imported/Test Cases/TC-0000.md',
@@ -58,7 +66,7 @@ describe('Obsidian MCP read backend', () => {
     )
     server.registerTool('search_simple', {
       inputSchema: { query: z.string(), contextLength: z.number().optional() },
-    }, async ({ query }) => ({
+    }, async ({ query }) => searchResults.get(query) ?? ({
       content: [{
         type: 'text',
         text: query === 'invalid response'
@@ -79,6 +87,7 @@ describe('Obsidian MCP read backend', () => {
       inputSchema: { path: z.string() },
     }, async ({ path }) => {
       seenReads.push(path)
+      if (readPayloads.has(path)) return { content: [{ type: 'text', text: JSON.stringify(readPayloads.get(path)) }] }
       const content = notes.get(path)
       if (content === undefined) throw new Error(`File not found: ${path}`)
       return {
@@ -89,8 +98,8 @@ describe('Obsidian MCP read backend', () => {
       inputSchema: { path: z.string(), content: z.string() },
     }, async ({ path, content }) => {
       seenWrites.push({ path, content })
-      notes.set(path, content)
-      return { content: [{ type: 'text', text: JSON.stringify({ message: 'OK' }) }] }
+      notes.set(path, preserveWrite ? content : 'changed content')
+      return { content: [{ type: 'text', text: JSON.stringify(writeAcknowledgment) }] }
     })
     const transport = new StreamableHTTPServerTransport({})
     res.on('close', () => { void transport.close(); void server.close() })
@@ -205,5 +214,78 @@ describe('Obsidian MCP read backend', () => {
     expect(normalizeObsidianMcpUrl(url)).toBe(url)
     expect(() => normalizeObsidianMcpUrl('https://example.com/mcp/')).toThrow(/loopback/)
     expect(() => normalizeObsidianMcpUrl('http://127.0.0.1:27123/api/')).toThrow(/loopback/)
+    expect(() => normalizeObsidianMcpUrl('not a URL')).toThrow('absolute HTTP(S) URL')
+  })
+
+  it.each([
+    [{ isError: true, content: [{ type: 'text', text: 'provider failed' }] }, 'failed'],
+    [{ content: [] }, 'invalid content batch'],
+    [{ content: [{ type: 'text', text: '[]' }, { type: 'text', text: '[]' }] }, 'invalid content batch'],
+    [{ content: [{ type: 'image', data: 'AA==', mimeType: 'image/png' }] }, 'non-text content'],
+    [{ content: [{ type: 'text', text: 'not JSON' }] }, 'invalid JSON text'],
+  ] satisfies Array<[CallToolResult, string]>)('rejects a malformed search result: %j', async (result, message) => {
+    searchResults.set('malformed reply', result)
+    await expect(searchObsidianMcp(options(), 'malformed reply')).rejects.toThrow(message)
+  })
+
+  it.each([null, {}])('rejects malformed search hits: %j', async (hit) => {
+    searchResults.set('malformed hits', { content: [{ type: 'text', text: JSON.stringify([hit]) }] })
+    await expect(searchObsidianMcp(options(), 'malformed hits')).rejects.toThrow(/invalid hit|without filename/)
+  })
+
+  it('filters unsafe paths, vault identity, and duplicates, allowing absent match excerpts', async () => {
+    searchResults.set('safe paths', { content: [{ type: 'text', text: JSON.stringify([
+      { filename: `${OBSIDIAN_MCP_VAULT_MARKER_PATH}.md` },
+      { filename: 'Hydra Website Knowledge/../outside.md' },
+      { filename: 'Hydra Website Knowledge/valid.txt' },
+      { filename: 'Hydra Website Knowledge/safe.md' },
+      { filename: 'Hydra Website Knowledge/safe.md' },
+    ]) }] })
+    expect(await searchObsidianMcp(options(), 'safe paths')).toEqual([{ path: 'Hydra Website Knowledge/safe', title: 'safe', excerpt: '' }])
+  })
+
+  it.each([null, 'metadata', {}, { path: 'wrong.md', content: 'body' }])('refuses mismatched note metadata: %j', async (payload) => {
+    const path = 'Hydra Website Knowledge/invalid'
+    readPayloads.set(`${path}.md`, payload)
+    await expect(readObsidianMcpNotes(options(), [path])).rejects.toThrow(/invalid metadata|mismatched content/)
+  })
+
+  it('refuses an empty vault identity marker', async () => {
+    notes.set(`${vaultMarker.path}.md`, '  ')
+    try {
+      await expect(searchObsidianMcp(options(), 'Payroll')).rejects.toThrow('vault identity marker is empty')
+    } finally { notes.set(`${vaultMarker.path}.md`, vaultMarker.markdown) }
+  })
+
+  it.each([null, 'OK', {}, { message: 'failed' }])('refuses an invalid write acknowledgment: %j', async (acknowledgment) => {
+    writeAcknowledgment = acknowledgment
+    try {
+      await expect(writeObsidianMcpNote(options(), { path: 'Hydra Website Knowledge/proposal', markdown: 'approved' }))
+        .rejects.toThrow('invalid acknowledgement')
+    } finally { writeAcknowledgment = { message: 'OK' } }
+  })
+
+  it('requires exact readback after an acknowledged write', async () => {
+    preserveWrite = false
+    try {
+      await expect(writeObsidianMcpNote(options(), { path: 'Hydra Website Knowledge/proposal', markdown: 'approved' }))
+        .rejects.toThrow('did not preserve exact content')
+    } finally { preserveWrite = true }
+  })
+
+  it('classifies timeout and aggregate connection failures without recursing through cyclic causes', async () => {
+    const cycle = new Error('cyclic failure')
+    cycle.cause = cycle
+    for (const error of [cycle, 'opaque failure']) {
+      vi.spyOn(Client.prototype, 'connect').mockRejectedValueOnce(error)
+      await expect(searchObsidianMcp(options(), 'Payroll')).rejects.toBe(error)
+    }
+    for (const error of [
+      new McpError(ErrorCode.RequestTimeout, 'request timed out'),
+      new AggregateError([new Error('unknown'), Object.assign(new Error('refused'), { code: 'ECONNREFUSED' })]),
+    ]) {
+      vi.spyOn(Client.prototype, 'connect').mockRejectedValueOnce(error)
+      await expect(searchObsidianMcp(options(), 'Payroll')).resolves.toBeUndefined()
+    }
   })
 })

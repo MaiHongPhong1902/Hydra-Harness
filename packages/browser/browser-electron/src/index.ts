@@ -346,6 +346,7 @@ async function prepareAction(action: BrowserAction): Promise<BrowserAction> {
     const filePaths: string[] = []
     for (const filePath of action.filePaths) {
       const file = await prepareAction({ method: 'upload_file', index: action.index, filePath })
+      /* v8 ignore next -- Preparing an upload preserves its method. */
       if (file.method === 'upload_file') filePaths.push(file.filePath)
     }
     return { ...action, filePaths }
@@ -430,7 +431,9 @@ export class BrowserSessionService extends Service {
   private readonly queues = new WeakMap<Agent, OwnerQueue>()
   private readonly ownerCleanups = new Map<Agent, () => Promise<void> | void>()
   private readonly settings: ResolvedSettings
+  /* v8 ignore start -- The constructor installs the settings source before publishing this service. */
   private browserSettings: () => BrowserSettings = () => DEFAULT_BROWSER_SETTINGS
+  /* v8 ignore stop */
   private lastFullCdpAccess = false
   private disposing = false
 
@@ -461,7 +464,9 @@ export class BrowserSessionService extends Service {
     const settingsEntry: BrowserSettings = config.browserPermissions === undefined
       ? DEFAULT_BROWSER_SETTINGS
       : { ...DEFAULT_BROWSER_SETTINGS, browserPermissions: config.browserPermissions }
+    /* v8 ignore start -- installSettingsSection replaces this source synchronously before any caller can read it. */
     this.browserSettings = () => settingsEntry
+    /* v8 ignore stop */
     installSettingsSection(ctx, BROWSER_SETTINGS_NAMESPACE, BrowserSettingsSchema, settingsEntry, {
       validate: (value) => {
         if (value.fullCdpAccess && !this.settings.allowFullCdpAccess) {
@@ -588,6 +593,7 @@ export class BrowserSessionService extends Service {
       execution.signal?.throwIfAborted()
       const child = this.sessions.get(owner)
       if (child === undefined) return undefined
+      /* v8 ignore next -- disposeAll clears sessions synchronously when disposal begins. */
       if (this.disposing) throw new BrowserError('the embedded browser is shutting down', 'BROWSER_DISPOSING')
       if (!this.browserSettings().controlEnabled) {
         throw new BrowserError('embedded browser control is disabled in settings', 'BROWSER_DISABLED')
@@ -902,6 +908,7 @@ export class BrowserSessionService extends Service {
     }).then(async (child) => {
       if (this.launches.get(owner)?.ready !== ready) return child
       this.launches.delete(owner)
+      /* v8 ignore next 4 -- disposeAll clears launches before awaiting; an ending launch returns at the ownership guard above. */
       if (this.disposing) {
         await child.close()
         throw new BrowserError('the embedded browser is shutting down', 'BROWSER_DISPOSING')

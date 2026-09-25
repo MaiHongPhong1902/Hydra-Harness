@@ -5,7 +5,7 @@ import { JsonBlock, MarkdownText, MessageText } from '@hydra/harness-client-ui-p
 import { cjkFriendlyStrong } from '../src/markdown/cjkFriendlyStrong.ts'
 import { mathCompatibility } from '../src/markdown/mathCompatibility.ts'
 
-afterEach(cleanup)
+afterEach(() => { cleanup(); vi.useRealTimers() })
 
 describe('MessageText', () => {
   it('renders the text verbatim', () => {
@@ -240,6 +240,7 @@ describe('MarkdownText', () => {
   })
 
   it('copies every Markdown table as TSV', async () => {
+    vi.useFakeTimers()
     const writeText = vi.fn().mockResolvedValue(undefined)
     Object.defineProperty(navigator, 'clipboard', {
       configurable: true,
@@ -253,6 +254,20 @@ describe('MarkdownText', () => {
       await Promise.resolve()
     })
     expect(screen.getByRole('button', { name: 'Copied' })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Copied' }))
+    expect(writeText).toHaveBeenCalledOnce()
+    await act(async () => { await vi.advanceTimersByTimeAsync(1000) })
+    expect(screen.getByRole('button', { name: 'Copy table' })).toBeTruthy()
+  })
+
+  it('keeps the table copy action available when clipboard permission is denied', async () => {
+    const writeText = vi.fn().mockRejectedValue(new Error('permission denied'))
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } })
+    render(<MarkdownText text={'| Name |\n| --- |\n| alpha |'} />)
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Copy' })) })
+    expect(screen.queryByRole('button', { name: 'Copied' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Copy' })).toBeTruthy()
+    expect(writeText).toHaveBeenCalledWith('Name\nalpha')
   })
 
   it('renders attribute-free table breaks without enabling arbitrary raw HTML', () => {

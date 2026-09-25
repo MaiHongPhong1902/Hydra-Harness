@@ -1,13 +1,22 @@
 import { DatabaseSync } from 'node:sqlite'
-import { mkdtemp, rm, symlink } from 'node:fs/promises'
+import { lstat, mkdir, mkdtemp, open as openFile, rm, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { PageMemoryStore, pageKey, parseWorkflow, type PageKeyContext } from '../src/store.ts'
 
+vi.mock('node:fs/promises', async (original) => {
+  const fs = await original<typeof import('node:fs/promises')>()
+  return { ...fs, lstat: vi.fn(fs.lstat), open: vi.fn(fs.open) }
+})
+
 const directories: string[] = []
+const stores: PageMemoryStore[] = []
+const limits = { maxRecordBytes: 32_768, maxWorkflows: 12, maxPages: 500, maxHistory: 32 }
 
 afterEach(async () => {
+  vi.restoreAllMocks()
+  await Promise.all(stores.splice(0).map(store => store.close()))
   await Promise.all(directories.splice(0).map(directory => rm(directory, { recursive: true, force: true })))
 })
 
@@ -41,7 +50,39 @@ function key(url = 'https://shop.test/orders/123?tab=payments&sort=%2F#row%2F1')
   return pageKey(url, context, routes)
 }
 
+async function seeded() {
+  const directory = await scratch()
+  const store = new PageMemoryStore(directory, limits)
+  stores.push(store)
+  const saved = await store.upsert(key(), workflow('save'))
+  const edit = (sql: string) => {
+    const db = new DatabaseSync(join(directory, 'page-memory.sqlite'))
+    try { db.exec(sql) } finally { db.close() }
+  }
+  return { directory, store, saved, edit }
+}
+
 describe('pageKey', () => {
+  it.each(['', '\u0001', 'not a URL', 'https://shop.test/?%=bad'])('rejects malformed URL %j', (url) => {
+    expect(() => pageKey(url, context, [])).toThrow(/invalid|encoding/)
+  })
+
+  it('bounds serialized namespace and complete key bytes', () => {
+    expect(() => pageKey('https://shop.test', { workspace: '\u0001'.repeat(2048), role: '界'.repeat(512), locale: '界'.repeat(128) }, []))
+      .toThrow('context exceeds')
+    expect(() => pageKey(`https://shop.test/?q=${'x'.repeat(16300)}`, context, [])).toThrow('page key exceeds')
+    expect(pageKey('https://shop.test/other', context, [{ origin: 'https://other.test', path: '/other' }])).toContain('/other')
+  })
+
+  it.each(['invalid', 'ftp://shop.test', 'https://user@shop.test', 'https://shop.test/path',
+    'https://shop.test/?query', 'https://shop.test/#fragment'])('rejects route origin %s', (origin) => {
+    expect(() => pageKey('https://shop.test', context, [{ origin, path: '/' }])).toThrow('route origin')
+  })
+
+  it.each(['', 'relative', '/query?', '/hash#', '/back\\slash', '/:123', '/prefix:id'])('rejects route path %j', (path) => {
+    expect(() => pageKey('https://shop.test', context, [{ origin: 'https://shop.test', path }])).toThrow('route')
+  })
+
   it('uses explicit route parameters and keeps exact query and fragment text', () => {
     const parsed = JSON.parse(key()) as Record<string, unknown>
     expect(parsed).toEqual({
@@ -94,6 +135,16 @@ describe('pageKey', () => {
 })
 
 describe('parseWorkflow', () => {
+  it.each(['javascript:alert(1)', 'a\u0000b', 'bearer sensitive-value', 'AKIA1234567890123456',
+    'eyJ1234567890123456.abcdefgh.abcdefgh', '-----BEGIN PRIVATE KEY-----', '[ 2 ]'])('rejects unsafe text %j', (summary) => {
+    expect(() => parseWorkflow(workflow('save', summary))).toThrow()
+  })
+
+  it('bounds a complete workflow independently of each field', () => {
+    expect(() => parseWorkflow({ ...workflow('save'), steps: Array.from({ length: 6 }, () => 'x'.repeat(3000)) }))
+      .toThrow('workflow exceeds')
+  })
+
   it('returns a strict normalized workflow and accepts stable CSS selectors', () => {
     const parsed = parseWorkflow({ ...workflow('save'), locators: { z: '.z', a: '.a' } })
     expect(parsed.locators).toEqual({ a: '.a', z: '.z' })
@@ -128,6 +179,141 @@ describe('parseWorkflow', () => {
 })
 
 describe('PageMemoryStore', () => {
+  it('rejects a directory replaced during creation and propagates database create errors', async () => {
+    const directory = await scratch()
+    const file = join(directory, 'file')
+    await writeFile(file, '')
+    const info = await lstat(file)
+    vi.mocked(lstat).mockRejectedValueOnce(Object.assign(new Error('missing'), { code: 'ENOENT' })).mockResolvedValueOnce(info)
+    const raced = new PageMemoryStore(join(directory, 'nested'), limits)
+    stores.push(raced)
+    await expect(raced.open()).rejects.toThrow('not a directory')
+    vi.mocked(openFile).mockRejectedValueOnce(Object.assign(new Error('permission denied'), { code: 'EACCES' }))
+    const denied = new PageMemoryStore(directory, limits)
+    stores.push(denied)
+    await expect(denied.open()).rejects.toThrow('permission denied')
+  })
+
+  it('closes a database when its schema transaction cannot start', async () => {
+    const directory = await scratch()
+    // oxlint-disable-next-line typescript/unbound-method -- The spy retains the original database receiver with call().
+    const execute = DatabaseSync.prototype.exec
+    vi.spyOn(DatabaseSync.prototype, 'exec').mockImplementation(function (this: DatabaseSync, sql) {
+      if (sql === 'BEGIN IMMEDIATE') throw new Error('database is busy')
+      execute.call(this, sql)
+    })
+    const store = new PageMemoryStore(directory, limits)
+    stores.push(store)
+    await expect(store.open()).rejects.toThrow('database is busy')
+  })
+
+  it('rejects blank directories, invalid limits, keys and verification durations', async () => {
+    expect(() => new PageMemoryStore(' ', limits)).toThrow('directory')
+    expect(() => new PageMemoryStore('unused', { ...limits, maxHistory: 0 })).toThrow('maxHistory')
+    const { store, saved } = await seeded()
+    for (const invalid of ['', 'x'.repeat(16385)]) await expect(store.read(invalid)).rejects.toThrow('page key')
+    for (const duration of [-1, NaN, Infinity]) {
+      await expect(store.upsert(key(), workflow('save'), duration)).rejects.toThrow('duration')
+      await expect(store.recordVerification(key(), saved, 'verified', duration)).rejects.toThrow('duration')
+    }
+    await expect(store.history(key(), '')).rejects.toThrow()
+    expect(await store.recordVerification('missing', saved, 'verified', 0)).toBe(false)
+    expect(await store.history(key())).toHaveLength(1)
+    expect(store.close()).toBe(store.close())
+    await store.close()
+    await expect(store.read(key())).rejects.toThrow('closed')
+  })
+
+  it('creates nested directories and rejects file/directory collisions', async () => {
+    const directory = await scratch()
+    const nested = new PageMemoryStore(join(directory, 'nested'), limits)
+    stores.push(nested)
+    await nested.open()
+    await writeFile(join(directory, 'file'), '')
+    const file = new PageMemoryStore(join(directory, 'file'), limits)
+    stores.push(file)
+    await expect(file.open()).rejects.toThrow('private directory')
+    await mkdir(join(directory, 'page-memory.sqlite'))
+    const collision = new PageMemoryStore(directory, limits)
+    stores.push(collision)
+    await expect(collision.open()).rejects.toThrow('regular file')
+  })
+
+  it.each([
+    ['PRAGMA user_version = 0; PRAGMA application_id = 1', 'not empty'],
+    ['PRAGMA user_version = 0; PRAGMA application_id = 0', 'not empty'],
+    ['PRAGMA application_id = 1', 'application id'],
+    ['CREATE TABLE foreign_table (value TEXT)', 'unsupported schema'],
+    ['ALTER TABLE pages ADD COLUMN extra TEXT', 'corrupt schema'],
+    ['ALTER TABLE workflows ADD COLUMN extra TEXT', 'corrupt schema'],
+    ['ALTER TABLE workflow_history ADD COLUMN extra TEXT', 'corrupt schema'],
+  ])('fails closed on database metadata %s', async (sql, message) => {
+    const { directory, store, edit } = await seeded()
+    await store.close()
+    edit(sql)
+    const reader = new PageMemoryStore(directory, limits)
+    stores.push(reader)
+    await expect(reader.open()).rejects.toThrow(message)
+  })
+
+  it.each([
+    ["UPDATE workflows SET payload = json_set(payload, '$.task', 'other')", 'task index'],
+    ["UPDATE workflows SET payload = json_set(payload, '$.lastVerifiedAt', 'invalid')", 'timestamp'],
+    ["UPDATE workflows SET payload = json_set(payload, '$.lastVerifiedAt', '2026-02-31T00:00:00.000Z')", 'timestamp'],
+    ["UPDATE workflows SET payload = json_set(payload, '$.lastVerifiedAt', '2026-13-01T00:00:00.000Z')", 'timestamp'],
+    ["UPDATE workflows SET payload = json_set(payload, '$.summary', 'password=secret')", 'secret'],
+  ])('rejects corrupt persisted workflow data %s', async (sql, message) => {
+    const { store, edit } = await seeded()
+    edit(sql)
+    await expect(store.read(key())).rejects.toThrow(message)
+  })
+
+  it('rejects exhausted revisions and oversized stored data without replacing evidence', async () => {
+    const { store, edit } = await seeded()
+    edit("UPDATE workflows SET payload = json_set(payload, '$.revision', 9007199254740991)")
+    await expect(store.upsert(key(), workflow('save'))).rejects.toThrow('revision exhausted')
+    edit("UPDATE workflows SET payload = '" + 'x'.repeat(33000) + "'")
+    await expect(store.read(key())).rejects.toThrow('record exceeds')
+  })
+
+  it('enforces reduced read limits on existing workflows and history', async () => {
+    const { directory, store } = await seeded()
+    await store.upsert(key(), workflow('other'))
+    await store.close()
+    const narrow = new PageMemoryStore(directory, { ...limits, maxWorkflows: 1, maxHistory: 1 })
+    stores.push(narrow)
+    await expect(narrow.read(key())).rejects.toThrow('maxWorkflows')
+    await expect(narrow.history(key())).rejects.toThrow('history exceeds')
+  })
+
+  it.each([
+    ['UPDATE workflow_history SET id = -1', 'corrupt history'],
+    ["UPDATE workflow_history SET recorded_at = 'invalid'", 'corrupt history'],
+    ["PRAGMA ignore_check_constraints = ON; UPDATE workflow_history SET source = 'unknown'", 'corrupt history'],
+    ["PRAGMA ignore_check_constraints = ON; UPDATE workflow_history SET outcome = 'unknown'", 'corrupt history'],
+    ['PRAGMA ignore_check_constraints = ON; UPDATE workflow_history SET duration_ms = -1', 'duration'],
+    ["UPDATE workflow_history SET outcome = 'stale'", 'invalid saved'],
+    ["UPDATE workflow_history SET payload = json_set(payload, '$.status', 'stale')", 'invalid saved'],
+  ])('rejects corrupt verification history %s', async (sql, message) => {
+    const { store, edit } = await seeded()
+    edit(sql)
+    await expect(store.history(key())).rejects.toThrow(message)
+  })
+
+  it('rolls back failed verification writes and reports SQLite transaction failures', async () => {
+    const { store, saved, edit } = await seeded()
+    edit("CREATE TRIGGER reject_history BEFORE INSERT ON workflow_history BEGIN SELECT RAISE(ABORT, 'write failed'); END")
+    await expect(store.recordVerification(key(), saved, 'stale', 1)).rejects.toThrow('write failed')
+    expect((await store.read(key()))[0]?.status).toBe('verified')
+    // oxlint-disable-next-line typescript/unbound-method -- The spy retains the original database receiver with call().
+    const execute = DatabaseSync.prototype.exec
+    vi.spyOn(DatabaseSync.prototype, 'exec').mockImplementation(function (this: DatabaseSync, sql) {
+      if (sql === 'BEGIN') throw new Error('unavailable')
+      execute.call(this, sql)
+    })
+    await expect(store.read(key())).rejects.toThrow('SQLite read transaction failed')
+  })
+
   it('replaces by exact task, marks stale, and isolates page keys', async () => {
     const directory = await scratch()
     const store = new PageMemoryStore(directory, { maxRecordBytes: 32_768, maxWorkflows: 12, maxPages: 500, maxHistory: 32 })

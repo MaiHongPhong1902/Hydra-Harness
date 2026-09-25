@@ -210,6 +210,50 @@ describe('ask_user_question tool', () => {
     expect(ask).not.toHaveBeenCalled()
   })
 
+  it.each([
+    null, 'question', {}, { questions: null }, { questions: [null] }, { questions: ['question'] },
+    { questions: [{ id: 'a', question: 3, options: [null, 'choice', { label: 4 }] }] },
+  ])('leaves malformed model arguments to schema validation: %j', async (args) => {
+    const ctx = await setup()
+    const ask = vi.fn()
+    ctx.userQuestions.registerProvider({ ask })
+    const result = await ctx.tools.execute({
+      signal: testToolSignal, callId: CallId('invalid-question'), name: 'ask_user_question',
+      agent: stubAgent('improve-agent', 0, 'Improve the agent'), arguments: args,
+    })
+    expect(result.isError).toBe(true)
+    expect(JSON.stringify(result)).not.toContain('generic improvement-category menu')
+    expect(ask).not.toHaveBeenCalled()
+    await ctx.fiber.dispose()
+  })
+
+  it('uses the latest direct user text across plugin messages and non-text attachments', async () => {
+    const ctx = await setup()
+    const ask = vi.fn(async () => ({ answers: [{ id: 'target', selected: [] }] }))
+    ctx.userQuestions.registerProvider({ ask })
+    const agent = stubAgent('history')
+    ctx.agents.enter(agent, undefined)
+    Object.assign(agent.session, { events: [
+      { type: 'user/message', data: { source: { kind: 'user' }, content: [
+        { type: 'image', source: { type: 'base64', mediaType: 'image/png', data: 'AA==' } },
+        { type: 'text', text: 'Read the README' },
+      ] } },
+      { type: 'user/message', data: { source: { kind: 'plugin', plugin: 'context', form: 'instructions' }, content: [{ type: 'text', text: 'Improve the agent' }] } },
+      { type: 'step/open', data: { turn: 1, step: 1 } },
+    ] })
+    const result = await ctx.tools.execute({
+      signal: testToolSignal, callId: CallId('history-question'), name: 'ask_user_question', agent,
+      arguments: { questions: [{ id: 'target', question: 'Which repository contains the README?' }] },
+    })
+    expect(result, JSON.stringify(result)).toMatchObject({ isError: false })
+    expect(ask).toHaveBeenCalledOnce()
+    const unknown = await ctx.tools.execute({
+      signal: testToolSignal, callId: CallId('unrelated'), name: 'unregistered', arguments: {}, agent,
+    })
+    expect(unknown.error?.info).toMatchObject({ code: 'UNKNOWN_TOOL' })
+    await ctx.fiber.dispose()
+  })
+
   it('projects custom answers and multi-select choices', async () => {
     const ctx = await setup()
     ctx.userQuestions.registerProvider({

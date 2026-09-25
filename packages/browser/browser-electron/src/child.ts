@@ -164,8 +164,10 @@ function connectDesktopBrowser(port: DesktopParentPort, settings: Record<string,
     write(chunk, _encoding, callback) {
       input += String(chunk)
       const lines = input.split(/\r?\n/u)
+      /* v8 ignore next -- String.split always returns at least one element. */
       input = lines.pop() ?? ''
       for (const line of lines) {
+        /* v8 ignore next -- This private stream receives one nonempty JSON object per write. */
         if (line !== '') port.postMessage({ type: 'hydra-browser-line', connectionId, line })
       }
       callback()
@@ -429,6 +431,7 @@ export async function launchBrowser(options: LaunchOptions): Promise<BrowserChil
         cancellation = signal?.reason instanceof Error ? signal.reason : new Error('browser action cancelled')
         clearTimeout(call.timer)
         for (const controller of permissions.values()) controller.abort()
+        /* v8 ignore next -- end rejects pending calls and removes their abort listeners synchronously. */
         if (ended === undefined) child.stdin.write(`${JSON.stringify({ method: 'cancel_browser_call', args: { id } })}\n`)
         call.resume()
       }

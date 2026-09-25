@@ -3,7 +3,7 @@
  * The user's own MCP records as the Plugins MCP tab renders them: what a save
  * sends, what an edit withholds, and what each live state reads as.
  */
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { McpServerSnapshot } from '@hydra/harness-api-remotes/client'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { McpServerCatalog, type UserMcpControls } from '../src/client/McpServerCatalog.tsx'
@@ -43,6 +43,58 @@ function controls(overrides: Partial<UserMcpControls> = {}): UserMcpControls {
 }
 
 describe('McpServerCatalog', () => {
+  it.each([false, true])('loads only while active and ignores late responses (reject: %s)', async (reject) => {
+    const pending = Promise.withResolvers<McpServerSnapshot>()
+    const face = controls({ list: vi.fn(() => pending.promise) })
+    const view = render(<McpServerCatalog active={false} controls={face} query="" t={t} />)
+    expect(face.list).not.toHaveBeenCalled()
+    view.rerender(<McpServerCatalog active controls={face} query="" t={t} />)
+    view.unmount()
+    await act(async () => { if (reject) pending.reject(new Error('closed')); else pending.resolve(EMPTY) })
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it('retries loading and edits a failed HTTP server without exposing stored headers', async () => {
+    const { command: _command, args: _args, ...stored } = STORED.servers[0]!
+    const snapshot: McpServerSnapshot = { servers: [{ ...stored, transport: 'streamable-http',
+      url: 'https://example.test/mcp', status: 'failed', headerNames: ['Authorization'], envNames: [] }] }
+    const face = controls({ list: vi.fn().mockRejectedValueOnce(new Error('offline')).mockResolvedValue(snapshot),
+      remove: vi.fn().mockRejectedValue(new Error('refused')) })
+    const view = render(<McpServerCatalog controls={face} query="" t={t} />)
+    await screen.findByText(en.userMcpLoadError)
+    fireEvent.click(screen.getByRole('button', { name: en.userMcpRetry }))
+    await screen.findByText(en.userMcpFailed)
+    view.rerender(<McpServerCatalog controls={face} query="example.test" t={t} />)
+    fireEvent.click(screen.getByRole('button', { name: en.userMcpEdit }))
+    expect(screen.getByLabelText(en.userMcpHeaders)).toHaveProperty('value', '')
+    fireEvent.change(screen.getByLabelText(en.userMcpHeaders), { target: { value: 'missing-equals' } })
+    fireEvent.click(screen.getByRole('button', { name: en.userMcpSave }))
+    expect(screen.getByRole('alert').textContent).toBe(en.userMcpHeadersInvalid)
+    fireEvent.click(screen.getByRole('button', { name: en.userMcpCancel }))
+    fireEvent.click(screen.getByRole('button', { name: en.userMcpRemove }))
+    await screen.findByText(en.userMcpMutationError)
+  })
+
+  it('keeps a pending save open, rejects empty submission, and displays starting servers', async () => {
+    const pending = Promise.withResolvers<McpServerSnapshot>()
+    const face = controls({ define: vi.fn(() => pending.promise) })
+    render(<McpServerCatalog controls={face} query="" t={t} />)
+    await screen.findByText(en.userMcpEmpty)
+    fireEvent.click(screen.getByRole('button', { name: en.userMcpAdd }))
+    fireEvent.submit(document.getElementById('user-mcp-form')!)
+    expect(face.define).not.toHaveBeenCalled()
+    fireEvent.change(screen.getByLabelText(en.userMcpName), { target: { value: 'new' } })
+    fireEvent.change(screen.getByLabelText(en.userMcpCommand), { target: { value: 'node' } })
+    fireEvent.change(screen.getByLabelText(en.userMcpCwd), { target: { value: '/project' } })
+    fireEvent.click(screen.getByRole('button', { name: en.userMcpSave }))
+    fireEvent.click(screen.getByRole('button', { name: en.userMcpClose }))
+    expect(screen.getByRole('dialog')).not.toBeNull()
+    const { args: _args, ...server } = STORED.servers[0]!
+    await act(async () => { pending.resolve({ servers: [{ ...server, status: 'starting' }] }) })
+    expect(screen.getByText(en.userMcpStarting)).not.toBeNull()
+    expect(face.define).toHaveBeenCalledWith(expect.objectContaining({ cwd: '/project' }))
+  })
+
   it('keeps an existing running server untouched when Add repeats its name', async () => {
     const face = controls({ list: vi.fn(async () => RUNNING) })
     render(<McpServerCatalog controls={face} query="" t={t} />)

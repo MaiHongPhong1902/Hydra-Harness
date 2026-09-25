@@ -357,6 +357,46 @@ async function collect<F>(stream: AsyncIterable<RpcRequest<F>>): Promise<RpcRequ
 }
 
 describe('unary round trip (handler ⇄ client, no network)', () => {
+  it('routes deletion, revision, authorization and search-provider requests', async () => {
+    const c = client()
+    expect((await c.sessions.delete({ sessionId: 's' as never })).result)
+      .toEqual({ ok: true, value: { deleted: true, sessionIds: ['s'] } })
+    expect((await c.sessions.revise({ sessionId: 's' as never, workspaceId: null, idempotencyKey: 'edit-1' })).result)
+      .toMatchObject({ ok: false, error: { code: 'fork-unavailable', details: { sessionId: 's' } } })
+    const attemptId = '00000000-0000-4000-8000-000000000001'
+    const key = 'llm-account-auth/chatgpt'
+    expect((await c.authorization.list({})).result).toEqual({ ok: true, value: { entries: [] } })
+    expect((await c.authorization.begin({ key })).result).toEqual({ ok: true, value: { attemptId } })
+    expect((await c.authorization.state({ attemptId })).result)
+      .toEqual({ ok: true, value: { attempt: { id: attemptId, status: 'cancelled' } } })
+    const observed: RpcMessage[] = []
+    c.subscribeEnvelopes(batch => observed.push(...batch))
+    expect((await c.authorization.answer({ attemptId, promptId: attemptId, value: 'secret-code' })).result.ok).toBe(true)
+    expect(JSON.stringify(observed)).not.toContain('secret-code')
+    expect(observed.find(message => message.type === 'client-request' && message.method === 'authorization.answer'))
+      .toMatchObject({ payload: { value: '[redacted]' } })
+    expect((await c.authorization.cancel({ attemptId })).result.ok).toBe(true)
+    expect((await c.authorization.logout({ key, accountId: 'primary' })).result.ok).toBe(true)
+    expect((await c.webSearch.providers({})).result).toEqual({ ok: true, value: { providers: [] } })
+    expect((await c.webSearch.testConnection({ provider: 'tavily' })).result)
+      .toEqual({ ok: true, value: { connected: true, provider: 'tavily', resultCount: 1 } })
+  })
+
+  it('dispatches binary uploads to the supplied streaming service', async () => {
+    const bytes: number[] = []
+    const handler = toFetchHandler(fakeApi(), {
+      async uploadStream(input) {
+        for await (const chunk of input.data) bytes.push(...chunk)
+        return { name: input.name, bytes: bytes.length }
+      },
+    })
+    const response = await handler.fetch(new Request('http://hydra.test/api/session/uploadFileBinary?sessionId=s&name=a.txt', {
+      method: 'POST', headers: { 'content-type': 'application/octet-stream' }, body: new Uint8Array([1, 2]),
+    }))
+    expect(await response.json()).toEqual({ ok: true, value: { name: 'a.txt', bytes: 2 } })
+    expect(bytes).toEqual([1, 2])
+  })
+
   it('carries a success result and echoes the minted rpcId', async () => {
     const response = await client().sessions.list({})
     expect(response.result).toEqual({ ok: true, value: { items: [] } })

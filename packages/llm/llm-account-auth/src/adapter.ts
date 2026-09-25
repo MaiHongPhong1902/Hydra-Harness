@@ -275,6 +275,7 @@ export class ChatGptAccountAdapter extends LlmAdapter {
     this.delegatePromise ??= import('@hydra/harness-llm-pi-ai').then(({ PiAiAdapter }) => new PiAiAdapter({
       profiles: () => {
         const profile = this.config.profile() ?? this.loadedProfile
+        /* v8 ignore next -- ensureProfile stores a profile before creating the delegate and loadedProfile is never cleared. */
         return profile === undefined
           ? new Map<string, ResolvedPiAiProviderProfile>()
           : new Map([[profile.provider, profile]])

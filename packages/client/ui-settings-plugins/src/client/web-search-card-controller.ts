@@ -85,7 +85,10 @@ export class WebSearchCardController {
     const shells = [this.global.shell(), ...[...this.providers.values()].map(item => item.form.shell())]
     const fields = Object.fromEntries(['maxQueries', 'maxResults', 'timeoutMs'].map(key => [key, this.global.field(key)]))
     const providerFields: Record<string, CardFieldState> = {}
-    for (const field of selected?.descriptor.fields ?? []) providerFields[field.key] = selected?.form.field(field.key) as CardFieldState
+    for (const field of selected?.descriptor.fields ?? []) {
+      /* v8 ignore next -- fields are iterated only when their selected provider exists. */
+      providerFields[field.key] = selected?.form.field(field.key) as CardFieldState
+    }
     return {
       ...this.global.shell(), dirty: shells.some(shell => shell.dirty), invalid: shells.some(shell => shell.invalid),
       failed: shells.some(shell => shell.failed), saving: this.saving,
@@ -157,6 +160,7 @@ export class WebSearchCardController {
 
   private async writeCredential(id: string, value?: string): Promise<boolean> {
     const provider = this.providers.get(id) as ProviderForm
+    /* v8 ignore next -- save captures every provider's credential reference before invoking its form writes. */
     const ref = provider.saveRef ?? this.credentialRef(provider)
     try {
       const response = value === undefined ? await this.api.credentials.unset({ ref }) : await this.api.credentials.set({ ref, value })

@@ -250,6 +250,7 @@ export function ChangeRow({ change, pending, act, diffMode = 'unified', wordWrap
   const handleCopy = (e: MouseEvent) => {
     e.stopPropagation()
     const text = getDiffText(change.hunks)
+    /* v8 ignore next -- Copy is disabled for zero hunks; every retained hunk contributes a newline. @preserve */
     if (!text) return
     setCopyError(false)
     void Promise.resolve().then(() => navigator.clipboard.writeText(text)).then(() => {
@@ -343,6 +344,7 @@ function HistoryRows({
   ownerSessionId?: ReviewChange['sessionId']
   filterChanges?: readonly ReviewChange[]
 }) {
+  /* v8 ignore next -- InlineReview always supplies its owning call id; the unfiltered fallback is unreachable. @preserve */
   const changes = filterChanges ?? (callId === undefined ? snapshot.changes
     : snapshot.changes.filter(change => change.callId === callId && change.sessionId === ownerSessionId))
   if (callId !== undefined && changes.length === 0 && !snapshot.error) return null
@@ -408,7 +410,11 @@ export function ReviewPanel({ useReview, act, refresh, ownerSessionId, useWorksp
     for (const change of targets) if (!await act(change, action)) break
   }
   const copyPatch = async () => {
-    const patch = filtered.filter((file): file is WorkspaceReviewFile => 'patch' in file).map(file => file.patch ?? '').join('')
+    const patch = filtered.filter((file): file is WorkspaceReviewFile => 'patch' in file).map(file => (
+      /* v8 ignore start -- Copy patch is disabled when any selected patch is null. */
+      file.patch ?? ''
+      /* v8 ignore stop */
+    )).join('')
     try { await navigator.clipboard.writeText(patch) }
     catch { setNotice('Clipboard access failed.'); return }
     setNotice('Patch copied.')

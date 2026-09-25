@@ -7,6 +7,7 @@ import { Context } from '@hydra/cordis'
 import type { Agent } from '@hydra/harness-agent'
 import { CallId } from '@hydra/harness-llm'
 import SystemPrompt from '@hydra/harness-system-prompt'
+import SettingsProvider from '@hydra/harness-settings'
 import ApprovalService, { type ApprovalOutcome } from '@hydra/harness-user-approval'
 import ToolRuntime, { defineTool, type JsonValue, type ToolExecutionResult } from '@hydra/harness-tools'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
@@ -21,6 +22,12 @@ const roots: string[] = []
 const fixtureServers: FixtureMcp[] = []
 const FIXTURE_MARKER_PATH = 'Hydra Website Knowledge/Hydra MCP Vault Identity.md'
 const FIXTURE_MARKER_MARKDOWN = '# Fixture vault identity\n'
+
+class ReadOnlySettings extends SettingsProvider {
+  readonly writable = false
+  protected load(): Promise<Record<string, unknown>> { return Promise.resolve({}) }
+  protected persist(): Promise<void> { throw new Error('read-only settings') }
+}
 
 interface FixtureMcp {
   readonly url: string
@@ -211,12 +218,15 @@ describe('Obsidian knowledge graph', () => {
     const notePath = 'Hydra Website Knowledge/Team Decisions/release-policy'
     await mkdir(join(vaultPath, 'Hydra Website Knowledge', 'Team Decisions'), { recursive: true })
     await writeFile(join(vaultPath, 'Hydra Website Knowledge', 'Hydra MCP Vault Identity.md'), FIXTURE_MARKER_MARKDOWN)
-    await writeFile(join(vaultPath, `${notePath}.md`), '# Release policy\n\nDeploy only after smoke tests pass.\n')
+    await writeFile(join(vaultPath, `${notePath}.md`), '# Release policy\n\nDeploy only after smoke tests pass. See [[Hydra Website Knowledge/Team Decisions/testing]].\n')
     const target = await pluginHarness(vaultPath)
 
     const recall = await target.call('obsidian_knowledge_recall', { query: 'release policy' })
     expect(recall.isError).toBe(false)
     expect(firstText(recall)).toContain(notePath)
+    expect(firstText(recall)).toContain('- Hydra Website Knowledge/Team Decisions/testing (from')
+    const empty = await target.call('obsidian_knowledge_recall', { query: 'unrelated phrase' })
+    expect(firstText(empty)).toContain('No Obsidian knowledge matched via obsidian-mcp')
     const read = await target.call('obsidian_knowledge_read', { paths: [notePath] })
     expect(read.isError).toBe(false)
     expect(firstText(read)).toContain('Deploy only after smoke tests pass.')
@@ -224,6 +234,21 @@ describe('Obsidian knowledge graph', () => {
       .find(section => section.name === 'memory:obsidian-knowledge')?.text
     expect(prompt).toContain('Use obsidian_knowledge_recall once per distinct intent')
     await target.dispose()
+  })
+
+  it.each([false, true])('reports unavailable credentials with a mounted resolver: %s', async (provideCredentials) => {
+    const ctx = new Context()
+    await ctx.plugin(SystemPrompt)
+    await ctx.plugin(ToolRuntime)
+    if (provideCredentials) ctx.provide('credentials', { resolve: async () => undefined } as never)
+    ObsidianKnowledge.apply(ctx)
+    const result = await ctx.tools.execute({
+      name: 'obsidian_knowledge_recall', callId: CallId('no-credentials'),
+      arguments: { query: 'release policy' }, signal: new AbortController().signal,
+    })
+    expect(result.isError).toBe(true)
+    expect(firstText(result)).toContain('Obsidian MCP is unavailable')
+    await ctx.fiber.dispose()
   })
 
   it('runs Browser tools unmodified when Obsidian is mounted alongside them', async () => {
@@ -363,6 +388,16 @@ describe('Obsidian knowledge graph', () => {
     const vaultPath = await mkdtemp(join(tmpdir(), 'hydra-obsidian-knowledge-prompt-'))
     roots.push(vaultPath)
     const target = await pluginHarness(vaultPath)
+    await target.ctx.plugin(ReadOnlySettings)
+    expect(target.ctx.tools.get('obsidian_knowledge_recall')?.presentCall?.({ query: 'release policy' }))
+      .toMatchObject({ title: 'Recall Obsidian knowledge: release policy', kind: 'read' })
+    for (const paths of [['one'], ['one', 'two']]) {
+      expect(target.ctx.tools.get('obsidian_knowledge_read')?.presentCall?.({ paths }))
+        .toMatchObject({ title: `Read ${paths.length} Obsidian note${paths.length === 1 ? '' : 's'}`, kind: 'read' })
+    }
+    expect(target.ctx.tools.get('obsidian_knowledge_save_approved')?.presentCall?.({
+      title: 'Release policy', approval: 'approved-by-user', content: 'Approved policy', evidence: 'User request',
+    })).toMatchObject({ title: 'Save approved knowledge: Release policy', kind: 'execute' })
     const section = (await target.ctx.systemPrompt.assemble()).sections
       .find(item => item.name === 'memory:obsidian-knowledge')
     expect(section?.text).toContain('Use obsidian_knowledge_recall once per distinct intent')

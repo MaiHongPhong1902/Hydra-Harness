@@ -1,7 +1,7 @@
 import { mkdtemp, readdir, realpath, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Context } from '@hydra/cordis'
 import AgentRegistry, { Inbox, agentEvents } from '@hydra/harness-agent'
 import type { Agent } from '@hydra/harness-agent'
@@ -11,12 +11,19 @@ import { CallId, createToolResultMessage, createUserMessage } from '@hydra/harne
 import { Session, SessionId } from '@hydra/harness-session'
 import SystemPrompt from '@hydra/harness-system-prompt'
 import ToolRuntime from '@hydra/harness-tools'
+import SettingsProvider from '@hydra/harness-settings'
 import * as ToolBrowser from '@hydra/harness-tool-browser'
 import * as PageMemory from '../src/index.ts'
 import { PageMemoryStore, pageKey } from '../src/store.ts'
 
 const cleanup: (() => Promise<void>)[] = []
-afterEach(async () => { for (const dispose of cleanup.splice(0).reverse()) await dispose() })
+afterEach(async () => { vi.restoreAllMocks(); vi.unstubAllEnvs(); for (const dispose of cleanup.splice(0).reverse()) await dispose() })
+
+class TestSettings extends SettingsProvider {
+  readonly writable = true
+  protected load() { return Promise.resolve({}) }
+  protected persist() { return Promise.resolve() }
+}
 
 const workflow = {
   task: 'save_form', summary: 'Save the form.',
@@ -28,7 +35,7 @@ const workflow = {
   pitfalls: ['Read dynamic order values from the live page.'],
 }
 
-async function harness(config: Partial<PageMemory.Config> = {}) {
+async function harness(config: Partial<PageMemory.Config> = {}, direct = false, withSettings = false) {
   const workspace = await mkdtemp(join(tmpdir(), 'hydra-page-memory-test-'))
   cleanup.push(() => rm(workspace, { recursive: true, force: true }))
   const root = new Context().plugin(() => {})
@@ -37,6 +44,7 @@ async function harness(config: Partial<PageMemory.Config> = {}) {
   await ctx.plugin(AgentRegistry)
   await ctx.plugin(SystemPrompt)
   await ctx.plugin(ToolRuntime)
+  if (withSettings) await ctx.plugin(TestSettings).await()
   let page: BrowserPageIdentity | undefined = {
     url: 'https://shop.test/orders?tab=open#list', title: 'Orders', tabId: 1, activeTabId: 1, settled: true,
   }
@@ -75,7 +83,8 @@ async function harness(config: Partial<PageMemory.Config> = {}) {
   ctx.reflect.provide('browsers', browser)
   await ctx.plugin(ToolBrowser)
   const options = { workspaceDir: workspace, storageDir: join(workspace, 'memory'), role: 'operator', locale: 'en-US', ...config }
-  const fiber = ctx.plugin(PageMemory, options)
+  const fiber = direct ? ctx.plugin({ name: PageMemory.name, inject: PageMemory.inject, apply: ctx => PageMemory.apply(ctx, options) })
+    : ctx.plugin(PageMemory, options)
   await fiber
   const id = SessionId('page-memory-test')
   const session = Session.create(id, undefined, { id, version: 0, createdAt: 0, cwd: workspace })
@@ -103,7 +112,7 @@ async function harness(config: Partial<PageMemory.Config> = {}) {
     return []
   }
   return {
-    ctx, fiber, agent, session, workspace, options, reads, regions, call, admit,
+    ctx, fiber, agent, session, workspace, options, reads, regions, browser, call, admit,
     requireExplicitReads: () => { explicitReadsOnly = true },
     beforeNextSnapshot: (callback: () => Promise<void>) => { beforeSnapshot = callback },
     page: () => page!, setPage: (next: BrowserPageIdentity | undefined) => { page = next },
@@ -116,6 +125,160 @@ function context(result: Awaited<ReturnType<Awaited<ReturnType<typeof harness>>[
 }
 
 describe('verified page-memory integration', () => {
+  it('uses direct defaults and validates persisted settings before accepting them', async () => {
+    const h = await harness({}, true, true)
+    const settings = h.ctx.get('settings')!
+    for (const value of [{ role: ' ' }, { locale: 'x'.repeat(129) }, { storageDir: 'relative' }]) {
+      await expect(settings.update(PageMemory.PAGE_MEMORY_SETTINGS_NAMESPACE, value)).rejects.toThrow()
+    }
+    await expect(settings.update(PageMemory.PAGE_MEMORY_SETTINGS_NAMESPACE, { role: 'operator', locale: 'en-US' }))
+      .resolves.toBeUndefined()
+    expect(context(await h.call('page_memory_get'))).toContain('select-task')
+  })
+
+  it('uses the configured Hydra home and allows reads before the first turn', async () => {
+    const h = await harness()
+    await h.fiber.dispose()
+    vi.stubEnv('HYDRA_HOME', join(h.workspace, 'home'))
+    const { storageDir: _storageDir, ...options } = h.options
+    await h.ctx.plugin({ name: PageMemory.name, inject: PageMemory.inject, apply: ctx => PageMemory.apply(ctx, options) }).await()
+    const id = SessionId('before-turn')
+    const session = Session.create(id, undefined, { id, version: 0, createdAt: 0, cwd: h.workspace })
+    const result = await h.ctx.get('tools')!.execute({ name: 'page_memory_get', arguments: {}, callId: CallId('initial'),
+      signal: new AbortController().signal, agent: { ...h.agent, session } })
+    expect(context(result)).toContain('select-task')
+    expect(await readdir(join(h.workspace, 'home', 'page-memory'))).toHaveLength(1)
+  })
+
+  it('does not inject or guard another workspace and rejects foreign saves', async () => {
+    const h = await harness()
+    const id = SessionId('foreign')
+    const session = Session.create(id, undefined, { id, version: 0, createdAt: 0 })
+    const agent = { ...h.agent, session }
+    const decision = await agentEvents(h.ctx, agent).waterfall('agent/pre-step', {
+      messages: [], turn: 1, step: 1, signal: new AbortController().signal,
+    }, () => Promise.resolve({ kind: 'enter', messages: [] }))
+    expect(decision).toEqual({ kind: 'enter', messages: [] })
+    const execution = { name: 'browser_click', arguments: { target: '#save' }, callId: CallId('foreign'),
+      signal: new AbortController().signal, agent }
+    expect((await h.ctx.get('tools')!.execute(execution)).isError).toBe(false)
+    expect((await h.ctx.get('tools')!.execute({ ...execution, name: 'page_memory_upsert', arguments: workflow })).isError).toBe(true)
+    expect((await h.ctx.get('tools')!.execute({ name: 'page_memory_upsert', arguments: workflow,
+      callId: CallId('no-agent'), signal: new AbortController().signal })).isError).toBe(true)
+  })
+
+  it('preserves downstream rejection and cancellation before automatic recall', async () => {
+    const h = await harness()
+    const execution = { messages: [], turn: 1, step: 1, signal: new AbortController().signal }
+    const rejected = await agentEvents(h.ctx, h.agent).waterfall('agent/pre-step', execution,
+      () => Promise.resolve({ kind: 'reject' }))
+    expect(rejected).toEqual({ kind: 'reject' })
+    const aborted = await agentEvents(h.ctx, h.agent).waterfall('agent/pre-step', { ...execution, signal: AbortSignal.abort() },
+      () => Promise.resolve({ kind: 'enter', messages: [] }))
+    expect(aborted).toEqual({ kind: 'enter', messages: [] })
+  })
+
+  it('presents both memory tools and ignores failed or unrelated explicit recall records', async () => {
+    const h = await harness()
+    expect(h.ctx.get('tools')!.get('page_memory_get')?.presentCall?.({})).toMatchObject({ title: 'Read page memory' })
+    expect(h.ctx.get('tools')!.get('page_memory_upsert')?.presentCall?.(workflow)).toMatchObject({ title: 'Save verified page memory' })
+    h.requireExplicitReads()
+    h.session.append('user/message', createUserMessage({ content: [{ type: 'text', text: 'Continue' }], source: { kind: 'user' } }),
+      { surfaceOp: 'append' })
+    for (const [name, isError] of [['echo', false], ['page_memory_get', true]] as const) {
+      const callId = CallId(name)
+      const seq = h.session.events.length
+      h.session.append('tool/call', { turn: 1, step: 1, callId, name, arguments: '{}' })
+      h.session.append('tool/result', { turn: 1, step: 1,
+        message: createToolResultMessage({ callId, isError, content: [{ type: 'text', text: 'unusable' }] }),
+      }, { surfaceOp: 'append', sourceEventSeqs: [seq] })
+    }
+    expect(JSON.stringify(await h.admit())).toContain('unavailable')
+  })
+
+  it('clears action evidence after a failed browser action and ignores close results without page state', async () => {
+    const h = await harness()
+    await h.call('page_memory_get', { task: workflow.task }); await h.admit()
+    const perform = h.browser.perform.bind(h.browser)
+    vi.spyOn(h.browser, 'perform').mockImplementation(async (agent, action) => {
+      const result = await perform(agent, action)
+      return { ...result, action: { success: false, message: 'Action refused' } }
+    })
+    await h.call('browser_click', { target: '#save' })
+    expect((await h.call('page_memory_upsert', workflow)).isError).toBe(true)
+    await h.call('browser_close')
+    expect(h.page()).toBeUndefined()
+  })
+
+
+  it.each([
+    { workspaceDir: 'relative' }, { role: '' }, { locale: 'x'.repeat(129) }, { maxPages: 0 },
+    { maxContextBytes: 255 }, { storageDir: 'relative' },
+  ])('rejects invalid direct configuration %j', async (config) => {
+    await expect(harness(config, true)).rejects.toThrow()
+  })
+
+  it('returns inactive without a page and lists stored tasks in a fresh turn', async () => {
+    const h = await harness()
+    const page = h.page()
+    h.setPage(undefined)
+    expect(await h.admit()).toEqual([])
+    expect(context(await h.call('page_memory_get'))).toContain('inactive')
+    h.setPage(page)
+    expect((await h.call('browser_click', { target: '#save' })).isError).toBe(true)
+    for (const task of [' ', 'x'.repeat(129)]) expect((await h.call('page_memory_get', { task })).isError).toBe(true)
+    await h.call('page_memory_get', { task: workflow.task })
+    await h.admit()
+    await h.call('browser_click', { target: '#save', tab_id: 1 })
+    context(await h.call('page_memory_upsert', workflow))
+    h.session.append('turn/end', { turn: 1, reason: { kind: 'interrupted' } })
+    h.session.append('turn/start', { turn: 2 })
+    expect(context(await h.call('page_memory_get'))).toContain(workflow.task)
+    expect(context(await h.call('page_memory_get', { task: workflow.task }))).toContain('verified')
+    h.page().settled = false
+    expect(context(await h.call('page_memory_get'))).toContain('loading')
+  })
+
+  it.each(['url', 'settled', 'final-page', 'action'] as const)('rejects changed %s during workflow verification', async (kind) => {
+    const h = await harness()
+    await h.call('page_memory_get', { task: workflow.task })
+    await h.admit()
+    await h.call('browser_click', { target: '#save' })
+    h.beforeNextSnapshot(async () => {
+      if (kind === 'url') h.page().url = 'https://shop.test/changed'
+      if (kind === 'settled') h.page().settled = false
+      if (kind === 'final-page') vi.spyOn(h.browser, 'currentPage').mockResolvedValue(undefined)
+      if (kind === 'action') await h.call('page_memory_get', { task: 'different' })
+    })
+    const result = await h.call('page_memory_upsert', workflow)
+    expect(result.isError).toBe(true)
+    expect(JSON.stringify(result.content)).toMatch(/Page changed|action evidence changed/)
+  })
+
+  it('evicts old source observations and rejects mismatched source text', async () => {
+    const h = await harness({ maxObservations: 1 })
+    const sourceUrl = h.page().url
+    await h.call('page_memory_get', { task: workflow.task })
+    await h.admit()
+    await h.call('browser_snapshot', { target: '#title' })
+    await h.call('browser_snapshot', { target: '#search' })
+    h.page().url = 'https://shop.test/done'
+    await h.admit()
+    await h.call('browser_click', { target: '#save' })
+    expect((await h.call('page_memory_upsert', { ...workflow, sourceUrl })).isError).toBe(true)
+  })
+
+  it('keeps stale workflows hidden on subsequent recalls and reports unexpected browser errors', async () => {
+    const h = await harness()
+    await h.call('page_memory_get', { task: workflow.task }); await h.admit()
+    await h.call('browser_click', { target: '#save' }); await h.call('page_memory_upsert', workflow)
+    h.regions.set('#title', '')
+    expect(context(await h.call('page_memory_get'))).toContain('stale')
+    expect(context(await h.call('page_memory_get'))).toContain('stale')
+    vi.spyOn(h.browser, 'currentPage').mockRejectedValue(new Error('disconnected'))
+    expect(JSON.stringify(await h.admit())).toContain('unavailable')
+  })
+
   it('does not publish or invalidate an old workflow when another writer replaces it during verification', async () => {
     const h = await harness()
     await h.call('page_memory_get', { task: workflow.task })

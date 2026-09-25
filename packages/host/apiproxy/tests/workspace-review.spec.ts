@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { execFile } from 'node:child_process'
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { chmod, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { promisify } from 'node:util'
@@ -26,6 +26,66 @@ async function repository(): Promise<string> {
 }
 
 describe('readWorkspaceReview', () => {
+  it('reviews an unborn repository and rejects comparisons that require commits', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'hydra-review-'))
+    roots.push(root)
+    await git(root, 'init', '-q')
+    await writeFile(join(root, 'empty'), '')
+    await writeFile(join(root, 'no-newline'), 'content')
+    await writeFile(join(root, 'invalid'), Buffer.from([0xff]))
+    await git(root, 'add', 'empty')
+    const result = await readWorkspaceReview(root, { mode: 'uncommitted' }, resolveReviewLimits({}))
+    expect(result.files.find(file => file.path === 'empty')?.hunks).toEqual([])
+    expect(result.files.find(file => file.path === 'no-newline')?.hunks[0]?.lines).toEqual(['+content', '\\ No newline at end of file'])
+    expect(result.files.find(file => file.path === 'invalid')?.binary).toBe(true)
+    for (const mode of ['branch', 'committed'] as const) {
+      await expect(readWorkspaceReview(root, { mode }, resolveReviewLimits({}))).rejects.toThrow('no commits')
+    }
+  })
+
+  it('compares non-root commits, uses configured upstream and reads detached HEAD', async () => {
+    const root = await repository()
+    await git(root, 'branch', 'review-base')
+    await git(root, 'branch', '--set-upstream-to=review-base')
+    await writeFile(join(root, 'tracked.txt'), 'after\n')
+    await git(root, 'commit', '-qam', 'second')
+    const limits = resolveReviewLimits({})
+    const commit = await readWorkspaceReview(root, { mode: 'committed', ref: 'HEAD', fullContext: true }, limits)
+    expect(commit.baseRef).toBe('HEAD')
+    expect(commit.files[0]).toMatchObject({ additions: 1, deletions: 1 })
+    expect((await readWorkspaceReview(root, { mode: 'branch' }, limits)).baseRef).toBe('refs/heads/review-base')
+    await git(root, 'checkout', '--detach', '-q')
+    expect((await readWorkspaceReview(root, { mode: 'committed' }, limits)).branch).toBeNull()
+    await expect(readWorkspaceReview(root, { mode: 'branch' }, limits)).rejects.toThrow('Select a base branch')
+    const detached = await readWorkspaceReview(root, { mode: 'branch', ref: 'refs/heads/review-base' }, limits)
+    expect(detached).toMatchObject({ branch: null, baseRef: 'refs/heads/review-base' })
+    expect(detached.files[0]).toMatchObject({ additions: 1, deletions: 1 })
+    await expect(readWorkspaceReview(root, { mode: 'committed', ref: 'missing' }, limits)).rejects.toThrow('Git could not read')
+  }, 30_000)
+
+  it('counts deleted and binary tracked files and bounds tracked comparisons', async () => {
+    const root = await repository()
+    await writeFile(join(root, 'binary'), Buffer.from([0, 1]))
+    await git(root, 'add', '.')
+    await git(root, 'commit', '-qm', 'binary')
+    await writeFile(join(root, 'binary'), Buffer.from([0, 2]))
+    await rm(join(root, 'tracked.txt'))
+    const result = await readWorkspaceReview(root, { mode: 'uncommitted' }, resolveReviewLimits({}))
+    expect(result.files.find(file => file.path === 'binary')).toMatchObject({ binary: true, patch: null })
+    expect(result.files.find(file => file.path === 'tracked.txt')).toMatchObject({ status: 'deleted', deletions: 1 })
+    const limited = await readWorkspaceReview(root, { mode: 'uncommitted' }, resolveReviewLimits({ reviewMaxFiles: 1 }))
+    expect(limited.files).toHaveLength(1)
+    expect(limited.truncated).toBe(true)
+  })
+
+  it.skipIf(process.platform === 'win32')('preserves executable mode for untracked files', async () => {
+    const root = await repository()
+    await writeFile(join(root, 'run.sh'), 'echo yes\n')
+    await chmod(join(root, 'run.sh'), 0o755)
+    const result = await readWorkspaceReview(root, { mode: 'unstaged' }, resolveReviewLimits({}))
+    expect(result.files[0]?.patch).toContain('new file mode 100755')
+  })
+
   it('rejects client-supplied paths and invalid budgets', () => {
     expect(reviewWorkspaceRequestSchema.safeParse({ sessionId: 'owner', mode: 'unstaged', cwd: '/another-project' }).success).toBe(false)
     for (const key of ['reviewMaxBytes', 'reviewMaxFiles', 'reviewTimeoutMs']) {

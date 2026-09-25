@@ -6,12 +6,18 @@
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Context, Service } from '@hydra/cordis'
 import FileSettingsProvider from '@hydra/harness-settings-file'
 import { SettingsConflictError } from '@hydra/harness-settings'
 import HookRecordRegistry, { HOOKS_SETTINGS_NAMESPACE } from '@hydra/harness-hooks-registry/src/index.ts'
 import type { HookRecordSnapshot } from '@hydra/harness-hooks-registry/src/types.ts'
+import * as CodexHooks from '@hydra/harness-hooks-codex'
+
+vi.mock('@hydra/harness-hooks-codex', async (importOriginal) => {
+  const original = await importOriginal<typeof import('@hydra/harness-hooks-codex')>()
+  return { ...original, apply: vi.fn(original.apply) }
+})
 
 const contexts: Context[] = []
 const directories: string[] = []
@@ -68,6 +74,18 @@ function nextReconciliation(ctx: Context): Promise<HookRecordSnapshot> {
 }
 
 describe('stored records', () => {
+  it('rejects a fifty-first record before updating the document', async () => {
+    const { ctx, registry } = await harness()
+    const reconciled = nextReconciliation(ctx)
+    await ctx.settings.replace(HOOKS_SETTINGS_NAMESPACE, {
+      records: Array.from({ length: 50 }, (_, index) => ({ name: `record-${index}`, dialect: 'claude-code', config: CLAUDE_HOOKS })),
+    })
+    await reconciled
+    await expect(registry.define({ mode: 'create', name: 'overflow', dialect: 'claude-code', config: CLAUDE_HOOKS }))
+      .rejects.toThrow('at most 50 records')
+    expect(registry.list().records).toHaveLength(50)
+  })
+
   it.each(['create', 'replace', 'setEnabled', 'remove'] as const)(
     'refuses a stale %s without restoring another deleted hook, then accepts a refreshed retry', async (mode) => {
       const { registry, root } = await harness()
@@ -204,6 +222,53 @@ describe('stored records', () => {
 })
 
 describe('mount reconciliation', () => {
+  it('mounts Codex hooks and retains Claude substitution roots in the projection', async () => {
+    const { registry, root } = await harness()
+    await registry.define({ mode: 'create', name: 'codex', dialect: 'codex',
+      config: { Stop: [{ hooks: [{ command: 'echo stopped' }] }] }, enabled: true })
+    await registry.define({ mode: 'create', name: 'claude', dialect: 'claude-code',
+      config: CLAUDE_HOOKS, pluginRoot: root, projectDir: root, enabled: true })
+    expect(registry.list().records).toMatchObject([
+      { name: 'codex', status: 'started', events: ['Stop'] },
+      { name: 'claude', status: 'started', pluginRoot: root, projectDir: root },
+    ])
+  })
+
+  it('does not mount a pending write after the registry starts disposing', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'hydra-hooks-disposing-'))
+    directories.push(root)
+    const ctx = new Context()
+    contexts.push(ctx)
+    await ctx.plugin(StubShell)
+    await ctx.plugin(FileSettingsProvider, { path: join(root, 'settings.yaml'), watch: false })
+    const fiber = ctx.plugin(HookRecordRegistry, { hydraHome: root })
+    await fiber
+    const registry = ctx.hookRecords
+    const entered: PromiseWithResolvers<void> = Promise.withResolvers()
+    const release: PromiseWithResolvers<void> = Promise.withResolvers()
+    const update = ctx.settings.update.bind(ctx.settings)
+    vi.spyOn(ctx.settings, 'update').mockImplementationOnce(async (...args) => {
+      await update(...args)
+      entered.resolve()
+      await release.promise
+    })
+    const pending = registry.define({ mode: 'create', name: 'pending', dialect: 'claude-code', config: CLAUDE_HOOKS, enabled: true })
+    await entered.promise
+    const disposing = fiber.dispose()
+    release.resolve()
+    await pending
+    await disposing
+    expect(registry.list().records).toMatchObject([{ name: 'pending', enabled: true, status: 'stopped' }])
+  })
+
+  it.each([new Error('bridge failed'), 'bridge failed'])('reports a bridge startup rejection: %s', async (error) => {
+    const { registry } = await harness()
+    vi.mocked(CodexHooks.apply).mockImplementationOnce(function () { throw error })
+    await registry.define({ mode: 'create', name: 'failed', dialect: 'codex',
+      config: { Stop: [{ hooks: [{ command: 'echo stopped' }] }] }, enabled: true })
+    expect(registry.list().records).toMatchObject([{ name: 'failed', status: 'failed', detail: 'bridge failed' }])
+  })
+
   it('mounts an enabled record and reports what its definitions cover', async () => {
     const { registry } = await harness()
     await registry.define({ mode: 'create', name: 'guardrails', dialect: 'claude-code', config: CLAUDE_HOOKS })

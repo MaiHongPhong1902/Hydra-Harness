@@ -1,7 +1,10 @@
 // @vitest-environment jsdom
 import { useState, useSyncExternalStore } from 'react'
+import { createSnapshotStore } from '@hydra/harness-client-runtime/client'
+import { bindSnapshotSelector } from '@hydra/harness-client-test-runtime'
+import type { ImportedPluginSnapshot, PluginInventorySnapshot } from '@hydra/harness-api-remotes/client'
 import { PluginInventoryController } from '../src/client/inventory-controller.ts'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ImportedPluginCapabilitiesTab, type ImportedPluginCapabilitiesTabProps } from '../src/client/ImportedPluginCapabilitiesTab.tsx'
 import {
@@ -93,6 +96,85 @@ function PluginInventorySettingsTab(props: PluginInventorySettingsTabProps) {
 }
 
 describe('PluginInventorySettingsTab', () => {
+  it.each([false, true])('drops native and imported listings after unmount (reject: %s)', async (reject) => {
+    const pending = Promise.withResolvers<undefined>()
+    const native = { ...nativeControls(), list: async () => { await pending.promise; return NATIVE_SNAPSHOT } }
+    const imported = { ...importedControls(), list: async () => { await pending.promise; return SNAPSHOT } }
+    const view = render(<PluginInventorySettingsTab {...({ active: true, t, nativePlugins: native, importedPlugins: imported, query: '' } as PluginInventorySettingsTabProps)} />)
+    view.unmount()
+    await act(async () => { if (reject) pending.reject(new Error('closed')); else pending.resolve(undefined) })
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it('retries failed catalogs and reports refused native and imported changes', async () => {
+    const native = nativeControls()
+    const imported = importedControls()
+    vi.mocked(native.list).mockRejectedValueOnce(new Error('offline'))
+    vi.mocked(imported.list).mockRejectedValueOnce(new Error('offline'))
+    vi.mocked(native.setEnabled).mockRejectedValueOnce(new Error('refused'))
+    vi.mocked(imported.enable).mockRejectedValueOnce(new Error('refused'))
+    const drafts = createSnapshotStore({ saving: false, error: 'disk full', revision: 0,
+      dirtyNative: ['browser'], dirtyImported: ['toolkit@local'], changedNative: ['browser'], changedImported: ['toolkit@local'] })
+    const savePlugins = vi.fn(async () => {})
+    const discardPluginChanges = vi.fn()
+    render(<InventoryTab {...({ active: true, t, nativePlugins: native, importedPlugins: imported, query: '',
+      usePluginDrafts: bindSnapshotSelector(drafts), savePlugins, discardPluginChanges } as PluginInventorySettingsTabProps)} />)
+    await screen.findByText(en.error)
+    await screen.findByText(en.importedPluginLoadError)
+    fireEvent.click(screen.getByRole('button', { name: en.retry }))
+    fireEvent.click(screen.getByRole('button', { name: en.importedPluginRetry }))
+    fireEvent.click(await screen.findByRole('switch', { name: `${en.enablePlugin} browser-electron` }))
+    await screen.findByText(en.toggleError)
+    fireEvent.click(await screen.findByRole('switch', { name: `${en.importedPluginEnable} Toolkit` }))
+    await screen.findByText(en.importedPluginMutationError)
+    fireEvent.click(screen.getByRole('button', { name: en.discard }))
+    fireEvent.click(screen.getByRole('button', { name: en.saveAll }))
+    expect(discardPluginChanges).toHaveBeenCalledOnce()
+    expect(savePlugins).toHaveBeenCalledOnce()
+    await act(async () => { drafts.update((state) => { state.saving = true }) })
+    expect(screen.getByRole('button', { name: en.saving })).toHaveProperty('disabled', true)
+  })
+
+  it('shows grouped deployment rows, related modules, mixed state and unobserved fibers', async () => {
+    const native = nativeControls()
+    const entries: PluginInventorySnapshot['entries'] = [
+      { ...NATIVE_SNAPSHOT.entries[0], moduleName: 'cordis:group', enabled: true, mixedEnabled: true, relatedModules: ['related'], fiberPhase: null },
+      { ...NATIVE_SNAPSHOT.entries[0], entryId: 'second' as never, moduleName: 'cordis:group', enabled: false, toggleable: false },
+    ]
+    vi.mocked(native.list).mockResolvedValue({ entries })
+    render(<PluginInventorySettingsTab {...({ active: true, t, nativePlugins: native, query: '' } as PluginInventorySettingsTabProps)} />)
+    await screen.findByText('group')
+    expect(screen.getByText(en.mixedEnabled)).not.toBeNull()
+    expect(screen.getByText(`${en.cordis}: ${en.unobserved}`)).not.toBeNull()
+    expect(screen.getByText('related')).not.toBeNull()
+  })
+
+  it('shows an empty native catalog and explains an unavailable inventory', async () => {
+    const native = nativeControls()
+    vi.mocked(native.list).mockResolvedValue({ entries: [] })
+    render(<PluginInventorySettingsTab {...({ active: true, t, nativePlugins: native, query: '' } as PluginInventorySettingsTabProps)} />)
+    await screen.findByText(en.empty)
+    cleanup()
+    render(<PluginInventorySettingsTab {...({ active: true, t, query: '' } as PluginInventorySettingsTabProps)} />)
+    expect(screen.getByText(en.pluginUnavailable)).not.toBeNull()
+  })
+
+  it('sorts imported siblings, stages disablement and reports an empty search', async () => {
+    const imported = importedControls()
+    vi.mocked(imported.list).mockResolvedValue({ plugins: [
+      { ...SNAPSHOT.plugins[0], enabled: true }, { ...SNAPSHOT.plugins[0], identity: 'alpha@local' as never, name: 'Alpha' },
+    ] })
+    const props = { active: true, t, nativePlugins: nativeControls(), importedPlugins: imported, query: '' } as PluginInventorySettingsTabProps
+    const view = render(<PluginInventorySettingsTab {...props} />)
+    fireEvent.click(await screen.findByRole('switch', { name: `${en.importedPluginDisable} Toolkit` }))
+    expect(imported.disable).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: en.saveAll }))
+    await waitFor(() => { expect(imported.disable).toHaveBeenCalledWith('toolkit@local') })
+    view.rerender(<PluginInventorySettingsTab {...props} query="absent" />)
+    await waitFor(() => { expect(screen.queryByText('Toolkit')).toBeNull() })
+    expect(screen.getAllByText(en.emptySearch).length).toBeGreaterThan(0)
+  })
+
   it('refreshes imported plugins when a retained tab is selected again', async () => {
     const native = nativeControls()
     const imported = importedControls()
@@ -303,6 +385,67 @@ const MARKETPLACE_SNAPSHOT = {
 } as const
 
 describe('ImportedPluginCapabilitiesTab', () => {
+  it('renders a stable native-skill placeholder before hydration', async () => {
+    const { renderToString } = await vi.importActual<{ renderToString: (element: React.ReactElement) => string }>('react-dom/server')
+    const html = renderToString(<ImportedPluginCapabilitiesTab {...({ active: true, t, list: async () => SNAPSHOT,
+      capability: 'skills', query: '' } as ImportedPluginCapabilitiesTabProps)} />)
+    expect(html).toContain(en.nativeSkillsUnavailable)
+  })
+
+  it.each([false, true])('ignores capability responses after closing an inactive tab (reject: %s)', async (reject) => {
+    const pending = Promise.withResolvers<undefined>()
+    const list = vi.fn(async () => { await pending.promise; return SNAPSHOT })
+    const nativeSkills = { list: vi.fn(async () => { await pending.promise; return { skills: [] } }) }
+    const props = { t, list, nativeSkills, capability: 'skills', query: '' } as ImportedPluginCapabilitiesTabProps
+    const view = render(<ImportedPluginCapabilitiesTab {...props} active={false} />)
+    expect(list).not.toHaveBeenCalled()
+    expect(nativeSkills.list).not.toHaveBeenCalled()
+    view.rerender(<ImportedPluginCapabilitiesTab {...props} active />)
+    view.unmount()
+    await act(async () => { if (reject) pending.reject(new Error('closed')); else pending.resolve(undefined) })
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it('retries imported and native skill failures and filters native descriptions', async () => {
+    const list = vi.fn().mockRejectedValueOnce(new Error('offline')).mockResolvedValue({ plugins: [] })
+    const nativeList = vi.fn().mockRejectedValueOnce(new Error('offline')).mockResolvedValue({ sessionId: 's', skills: [] })
+    const props = { active: true, t, list, nativeSkills: { list: nativeList }, capability: 'skills', query: '' } as ImportedPluginCapabilitiesTabProps
+    const view = render(<ImportedPluginCapabilitiesTab {...props} />)
+    await screen.findByText(en.importedPluginLoadError)
+    await screen.findByText(en.nativeSkillsLoadError)
+    fireEvent.click(screen.getAllByRole('button', { name: en.retry })[0]!)
+    await screen.findByText(en.nativeSkillsEmpty)
+    nativeList.mockResolvedValue({ sessionId: 's', skills: [{ name: 'local', description: 'Local skill', modelInvocable: true }] })
+    view.rerender(<ImportedPluginCapabilitiesTab {...props} active={false} />)
+    view.rerender(<ImportedPluginCapabilitiesTab {...props} active />)
+    await screen.findByText('Local skill')
+    view.rerender(<ImportedPluginCapabilitiesTab {...props} query="absent" />)
+    expect(screen.getByText(en.nativeSkillsEmptySearch)).not.toBeNull()
+  })
+
+  it('retries native skills independently of a successful imported listing', async () => {
+    const list = vi.fn().mockRejectedValueOnce(new Error('offline')).mockResolvedValue({ sessionId: 's', skills: [] })
+    render(<ImportedPluginCapabilitiesTab {...({ active: true, t, list: async () => SNAPSHOT,
+      nativeSkills: { list }, capability: 'skills', query: '' } as ImportedPluginCapabilitiesTabProps)} />)
+    await screen.findByText(en.nativeSkillsLoadError)
+    fireEvent.click(screen.getByRole('button', { name: en.retry }))
+    await screen.findByText(en.nativeSkillsEmpty)
+    expect(list).toHaveBeenCalledTimes(2)
+  })
+
+  it('refreshes hook trust after a failed mutation and renders an empty hooks catalog', async () => {
+    const list = vi.fn<() => Promise<ImportedPluginSnapshot>>().mockResolvedValue(SNAPSHOT)
+    const trust = vi.fn().mockRejectedValue(new Error('refused'))
+    const props = { active: true, t, list, trust, capability: 'hooks', query: '' } as ImportedPluginCapabilitiesTabProps
+    const view = render(<ImportedPluginCapabilitiesTab {...props} />)
+    fireEvent.click(await screen.findByRole('button', { name: en.importedPluginTrust }))
+    await waitFor(() => { expect(list).toHaveBeenCalledTimes(2) })
+    list.mockResolvedValue({ plugins: [] })
+    view.rerender(<ImportedPluginCapabilitiesTab {...props} active={false} />)
+    view.rerender(<ImportedPluginCapabilitiesTab {...props} active />)
+    await screen.findByText(en.importedPluginNoHooks)
+  })
+
   it('groups a marketplace plugin\'s skills under its owner, example-labs', async () => {
     const list = vi.fn(async () => MARKETPLACE_SNAPSHOT)
     render(<ImportedPluginCapabilitiesTab {...({ active: true, t, list, capability: 'skills', query: '' } as ImportedPluginCapabilitiesTabProps)} />)
@@ -351,6 +494,8 @@ describe('ImportedPluginCapabilitiesTab', () => {
     fireEvent.click(screen.getByRole('button', { name: en.importedPluginTrust }))
     await waitFor(() => { expect(trust).toHaveBeenCalledWith('toolkit@ex1') })
     expect(await screen.findByRole('button', { name: en.importedPluginUntrust })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: en.importedPluginUntrust }))
+    await waitFor(() => { expect(untrust).toHaveBeenCalledWith('toolkit@ex1') })
   })
   it('keeps skills and hook trust in their own catalogs', async () => {
     const list = vi.fn(async () => SNAPSHOT)

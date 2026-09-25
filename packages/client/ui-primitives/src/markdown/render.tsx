@@ -466,6 +466,7 @@ function MarkdownTable({
   const onCopy = useCallback(() => {
     if (copied) return
     const table = tableRef.current
+    /* v8 ignore next -- React dispatches this handler from the mounted table's copy button, before clearing its ref. */
     if (table === null) return
     const tsv = [...table.rows].map(row => (
       [...row.cells].map(tableCellTsv).join('\t')

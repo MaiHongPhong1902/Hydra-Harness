@@ -207,11 +207,13 @@ export class LocaleRuntime {
   setLocale(id: string): void {
     const match = this.snapshot.locales.find(l => l.id === id)
     if (match === undefined) throw new Error(`locale "${id}" is not registered`)
+    /* v8 ignore start -- en is the only shipped locale, so validated selections cannot change the active id. */
     /* oxlint-disable-next-line typescript/no-unnecessary-condition --
      * One locale ships today, so the literal types collapse this comparison;
      * the guard is load-bearing for the multi-locale registry this class
      * implements (republishing an unchanged locale would churn subscribers). */
     if (this.snapshot.active !== match.id) this.publish(match.id, true)
+    /* v8 ignore stop */
     void this.host?.set(LOCALE_PREFERENCE_FIELD, match.id)
   }
 
@@ -229,6 +231,7 @@ export class LocaleRuntime {
      * locale a shipped build registers; the literal types collapse while one
      * locale ships, but the churn guard must stay for the multi-locale case. */
     if (this.snapshot.active === target) return
+    /* v8 ignore next -- the Host schema and provisional selection both admit only en. */
     this.publish(target, true)
   }
 
@@ -339,6 +342,7 @@ export class LocaleRuntime {
       locales: this.snapshot.locales,
       revision: this.snapshot.revision + 1,
     })
+    /* v8 ignore next -- active-locale changes require a second shipped locale; dictionary publication passes false. */
     if (localeChanged) this.ctx.emit('locale/change', this.snapshot)
     for (const fn of [...this.listeners]) {
       try {

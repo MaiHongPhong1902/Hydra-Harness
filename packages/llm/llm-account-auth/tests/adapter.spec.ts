@@ -81,7 +81,7 @@ function accountPool(options: TestPoolOptions): AccountPool {
   }
 }
 
-function credentials(access: string, expires = Date.now() + 60_000): Credential {
+function credentials(access: string, expires = Date.now() + 60_000): Extract<Credential, { type: 'oauth' }> {
   return {
     type: 'oauth',
     access,
@@ -110,8 +110,108 @@ afterEach(() => {
 })
 
 describe('account-backed Antigravity adapter', () => {
+  it('resolves configured and missing model metadata without account discovery', async () => {
+    const pool = accountPool({ accounts: [] })
+    const adapter = new AntigravityAccountAdapter({ pool, profile: () => ({ models: [
+      { id: 'plain' }, { id: 'rich', name: 'Rich', contextWindow: 1000, maxTokens: 200 },
+    ] }) })
+    expect(adapter.providerInfo('antigravity')).toEqual({ id: 'antigravity', name: 'Google Antigravity' })
+    expect(adapter.providerRetryPolicy('antigravity')).toBeDefined()
+    expect(await adapter.listModels('antigravity')).toEqual([
+      { provider: 'antigravity', id: 'plain', name: 'plain' },
+      { provider: 'antigravity', id: 'rich', name: 'Rich' },
+    ])
+    expect(await adapter.discoverModels()).toEqual([
+      { id: 'plain', name: 'plain' }, { id: 'rich', name: 'Rich', contextWindow: 1000, maxTokens: 200 },
+    ])
+    expect(await adapter.resolveModel('antigravity', 'rich')).toMatchObject({
+      name: 'Rich', context: { contextWindow: 1000 }, defaultMaxTokens: 200,
+    })
+    expect(await adapter.resolveModel('antigravity', 'unknown')).toEqual({
+      provider: 'antigravity', id: 'unknown', name: 'unknown',
+    })
+    const disabled = new AntigravityAccountAdapter({ pool, profile: () => undefined })
+    expect(disabled.providerRetryPolicy('antigravity')).toBeUndefined()
+    await expect(disabled.listModels('antigravity')).rejects.toMatchObject({ code: 'NO_ADAPTER' })
+    await expect(disabled.stream(request())[Symbol.asyncIterator]().next()).rejects.toMatchObject({ code: 'NO_ADAPTER' })
+    const empty = new AntigravityAccountAdapter({ pool, profile: () => ({}) })
+    expect(await empty.listModels('antigravity')).toEqual([])
+    await expect(empty.stream(request())[Symbol.asyncIterator]().next()).rejects.toMatchObject({ code: 'MISSING_CREDENTIAL' })
+  })
+
+  it.each([
+    { type: 'api_key', key: 'fixture' },
+    { type: 'oauth', access: '', refresh: 'r', expires: 1, projectId: 'p' },
+    { type: 'oauth', access: 'a', refresh: '', expires: 1, projectId: 'p' },
+    { type: 'oauth', access: 'a', refresh: 'r', expires: Number.NaN, projectId: 'p' },
+    { type: 'oauth', access: 'a', refresh: 'r', expires: 1, projectId: '' },
+  ] satisfies Credential[])('rejects unusable stored grants before discovery: %j', async (credential) => {
+    const adapter = new AntigravityAccountAdapter({
+      pool: accountPool({ accounts: [{ id: 'invalid', credential }] }), profile: () => ({}),
+    })
+    await expect(adapter.discoverModels()).rejects.toMatchObject({ code: 'INVALID_CREDENTIAL' })
+  })
+
+  it('rejects a credential store that never invokes its modifier', async () => {
+    const pool = accountPool({ accounts: [{ id: 'first', credential: credentials('valid') }] })
+    vi.spyOn(pool.credentials, 'modify').mockResolvedValue(undefined)
+    const adapter = new AntigravityAccountAdapter({ pool, profile: () => ({}) })
+    await expect(adapter.discoverModels()).rejects.toMatchObject({ code: 'MISSING_CREDENTIAL' })
+  })
+
+  it.each([
+    ['empty', [], 'STREAM_CLOSED'],
+    ['unfinished visible output', [{ type: 'text-delta', index: 0, text: 'partial' }], 'STREAM_CLOSED'],
+    ['provider failure', [{ type: 'finish', reason: { kind: 'error', failure: { code: 'AUTH', message: 'denied' } } }], undefined],
+    ['aborted finish', [{ type: 'usage', usage: { inputTokens: 1, outputTokens: 0 } }, { type: 'finish', reason: { kind: 'aborted', failure: { code: 'ABORTED', message: 'cancelled' } } }], undefined],
+    ['invisible success', [{ type: 'usage', usage: { inputTokens: 1, outputTokens: 0 } }, { type: 'finish', reason: { kind: 'stop' } }], undefined],
+  ] satisfies [string, StreamChunk[], string | undefined][])('preserves the outcome of %s', async (_label, chunks, errorCode) => {
+    const pool = accountPool({
+      accounts: [{ id: 'first', credential: credentials('access') }],
+      stream: async function* () { yield* chunks },
+    })
+    const adapter = new AntigravityAccountAdapter({ pool, profile: () => ({}) })
+    const seen: StreamChunk[] = []
+    const consume = async () => {
+      for await (const chunk of adapter.stream(request())) seen.push(chunk)
+    }
+    if (errorCode === undefined) await consume()
+    else await expect(consume()).rejects.toMatchObject({ code: errorCode })
+    expect(seen).toEqual(chunks)
+  })
+
+  it.each([new Error('transport failure'), 'transport failure', undefined])(
+    'surfaces the final thrown account error: %j', async (failure) => {
+      const pool = accountPool({
+        accounts: [{ id: 'first', credential: credentials('access') }],
+        stream: async function* () { throw failure },
+      })
+      const adapter = new AntigravityAccountAdapter({ pool, profile: () => ({}) })
+      const first = adapter.stream(request())[Symbol.asyncIterator]().next()
+      if (failure instanceof Error) await expect(first).rejects.toBe(failure)
+      else await expect(first).rejects.toMatchObject({ code: 'TRANSPORT' })
+    },
+  )
+
+  it('never rotates accounts after visible output or cancellation', async () => {
+    const failure = new Error('after visible output')
+    const pool = accountPool({
+      accounts: [{ id: 'first', credential: credentials('access') }],
+      stream: async function* () {
+        yield { type: 'text-delta', index: 0, text: 'partial' }
+        throw failure
+      },
+    })
+    const adapter = new AntigravityAccountAdapter({ pool, profile: () => ({}) })
+    const stream = adapter.stream(request())[Symbol.asyncIterator]()
+    expect((await stream.next()).value).toMatchObject({ text: 'partial' })
+    await expect(stream.next()).rejects.toBe(failure)
+    await expect(adapter.stream(request({ signal: AbortSignal.abort() }))[Symbol.asyncIterator]().next())
+      .rejects.toMatchObject({ code: 'ABORTED' })
+  })
+
   it('refreshes one expired account, preserves siblings, and caches its catalog', async () => {
-    const first: TestAccount = { id: 'first', credential: credentials('old-access', 0) }
+    const first: TestAccount = { id: 'first', credential: { ...credentials('old-access', 0), email: 'user@example.test' } }
     const sibling: TestAccount = { id: 'sibling', credential: credentials('sibling-access') }
     const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
       const url = requestUrl(input)
@@ -126,7 +226,10 @@ describe('account-backed Antigravity adapter', () => {
       } })
     })
     const pool = accountPool({ accounts: [first, sibling] })
-    const profile = { endpoint: 'https://fixture.test' }
+    const profile = {
+      endpoint: 'https://fixture.test', callbackPort: 0, callbackPath: '/callback',
+      onboardingAttempts: 1, onboardingDelayMs: 0,
+    }
     const adapter = new AntigravityAccountAdapter({ pool, profile: () => profile })
 
     await expect(adapter.discoverModels()).resolves.toEqual([{
@@ -136,6 +239,7 @@ describe('account-backed Antigravity adapter', () => {
       provider: 'antigravity', id: 'gemini', name: 'Gemini', inputModalities: ['text', 'image'],
     }])
     expect(fetch).toHaveBeenCalledTimes(2)
+    expect(await adapter.resolveModel('antigravity', 'gemini')).toMatchObject({ inputModalities: ['text', 'image'] })
     expect(first.credential).toMatchObject({ access: 'new-access' })
     expect(sibling.credential).toMatchObject({ access: 'sibling-access' })
   })
@@ -161,6 +265,49 @@ describe('account-backed Antigravity adapter', () => {
     expect(fetch).toHaveBeenCalledTimes(2)
   })
 
+  it.each([false, true])('shares pending discovery and preserves a newer catalog after replacement: %s', async (changeProfile) => {
+    const accounts: TestAccount[] = [
+      { id: 'first', credential: { ...credentials('first'), email: '' } },
+      { id: 'second', credential: credentials('second') },
+    ]
+    let profile = {}
+    const responses = [Promise.withResolvers<Response>(), Promise.withResolvers<Response>()]
+    const fetch = vi.spyOn(globalThis, 'fetch')
+      .mockImplementationOnce(async () => responses[0]!.promise)
+      .mockImplementationOnce(async () => responses[1]!.promise)
+    const adapter = new AntigravityAccountAdapter({ pool: accountPool({ accounts }), profile: () => profile })
+    const signal = new AbortController().signal
+    const first = adapter.discoverModels(signal)
+    const shared = adapter.discoverModels(signal)
+    await vi.waitFor(() => { expect(fetch).toHaveBeenCalledOnce() })
+    if (changeProfile) profile = {}
+    else accounts.reverse()
+    const next = adapter.discoverModels(signal)
+    await vi.waitFor(() => { expect(fetch).toHaveBeenCalledTimes(2) })
+    responses[0]!.resolve(Response.json({ models: { old: {} } }))
+    expect(await first).toMatchObject([{ id: 'old' }])
+    expect(await shared).toMatchObject([{ id: 'old' }])
+    responses[1]!.resolve(Response.json({ models: { latest: { supportsImages: false } } }))
+    expect(await next).toMatchObject([{ id: 'latest' }])
+    expect(await adapter.listModels('antigravity')).toMatchObject([{ id: 'latest', inputModalities: ['text'] }])
+    expect(await adapter.resolveModel('antigravity', 'latest')).toMatchObject({ inputModalities: ['text'] })
+    expect(fetch).toHaveBeenCalledTimes(2)
+  })
+
+  it('streams a configured model through the default endpoint and attachment resolver', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response([
+      'data: {"response":{"candidates":[{"content":{"parts":[{"text":"ok"}]},"finishReason":"STOP"}]}}', '', '',
+    ].join('\n')))
+    const adapter = new AntigravityAccountAdapter({
+      pool: accountPool({ accounts: [{ id: 'first', credential: credentials('access') }] }),
+      profile: () => ({ models: [{ id: 'gemini-test' }], streamIdleTimeoutMs: 1000 }),
+      resolveAttachments: () => undefined,
+    })
+    const chunks: StreamChunk[] = []
+    for await (const chunk of adapter.stream(request())) chunks.push(chunk)
+    expect(chunks.at(-1)).toMatchObject({ type: 'finish', reason: { kind: 'stop' } })
+  })
+
   it('fails over before visible output and strips replay state on every account request', async () => {
     const first: TestAccount = { id: 'first', credential: credentials('first-access') }
     const second: TestAccount = { id: 'second', credential: credentials('second-access') }
@@ -184,7 +331,7 @@ describe('account-backed Antigravity adapter', () => {
         '',
       ].join('\n\n'), { status: 200, headers: { 'content-type': 'text/event-stream' } })
     })
-    const replaying = request({ messages: [{
+    const replaying = Object.freeze(request({ messages: [{
       id: 'assistant-1' as never,
       role: 'assistant',
       content: [{ type: 'text', text: 'prior' }],
@@ -194,7 +341,7 @@ describe('account-backed Antigravity adapter', () => {
         model: 'gemini-test',
         replayState: { response: { responseId: 'prior' }, blocks: [{ thoughtSignature: 'AQ==' }] },
       },
-    }] })
+    }] }))
     const chunks: StreamChunk[] = []
     for await (const chunk of new AntigravityAccountAdapter({
       pool,
