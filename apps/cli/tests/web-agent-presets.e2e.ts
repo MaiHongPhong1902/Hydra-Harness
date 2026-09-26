@@ -230,6 +230,9 @@ describe('the shipped Web composition', () => {
       setup: agentCtx => ctx.agentPresets.mount(agentCtx, 'standard').then(() => undefined),
     })
     try {
+      const assembly = await ctx.systemPrompt.assemble({ scope: handle.agent })
+      expect(assembly.sections.find(section => section.name === 'deployment:persona')?.text)
+        .toContain('For coding work, complete the loop: edit the smallest owning files, run the narrowest focused check, inspect the resulting diff, and report changed files and exact checks')
       // The EXACT catalog, not a spot-check: an omission is this design's
       // quietest failure mode, because a row that registers into the wrong
       // layer mounts cleanly and simply contributes nothing. `glob`/`grep` are
@@ -330,6 +333,8 @@ describe('the shipped Web composition', () => {
       // this agent is unchanged — a code mode collapses the presentation, not
       // the capabilities — so the assembly is what carries the claim.
       const assembly = await ctx.systemPrompt.assemble({ scope: coded.agent })
+      expect(assembly.sections.find(section => section.name === 'deployment:persona')?.text)
+        .toContain('For coding work, complete the loop: edit the smallest owning files, run the narrowest focused check, inspect the resulting diff, and report changed files and exact checks')
       expect(assembly.tools.map(tool => tool.name)).toEqual(['run_code'])
       expect(toolNames(ctx, coded.agent)).not.toContain('str_replace_editor')
       const sdk = assembly.sections.find(section => section.name === 'tools:sdk')?.text ?? ''

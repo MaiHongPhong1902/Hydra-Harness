@@ -32,7 +32,7 @@
   name: '@hydra/harness-persona'
   config:
     text: >-
-      You are a coding agent powered by the {{model}} model. Your working directory is {{cwd}}.
+      You are a coding agent powered by the {{model}} model. Your working directory is {{cwd}}. For coding work, complete the loop: edit the smallest owning files, run the narrowest focused check, inspect the resulting diff, and report changed files and exact checks, including failures or unverified surfaces.
 
 - id: agent-instructions
   name: '@hydra/harness-agent-instructions'
