@@ -130,9 +130,10 @@ describe('web-app runtime glue', () => {
     const first = contract?.content[0]
     expect(first).toMatchObject({ type: 'text' })
     expect(first).toHaveProperty('text')
-    expect(String((first as { text?: unknown }).text)).toContain('inspect exactly that one with one read-only tool call')
-    expect(String((first as { text?: unknown }).text)).toContain('no directly relevant observable decision failure')
-    expect(String((first as { text?: unknown }).text)).toContain('do not scan or open arbitrary workspace files')
+    expect(String((first as { text?: unknown }).text)).toContain('inspect the smallest set of relevant files')
+    expect(String((first as { text?: unknown }).text)).toContain('implement the confirmed root-cause fix')
+    expect(String((first as { text?: unknown }).text)).toContain('run one focused check')
+    expect(String((first as { text?: unknown }).text)).not.toContain('inspect exactly that one with one read-only tool call')
     const ordinary = createUserMessage({
       content: [{ type: 'text', text: 'Read the README' }],
       source: { kind: 'user' },
@@ -190,7 +191,7 @@ describe('web-app runtime glue', () => {
     expect(section?.text).toContain('Treat a stated goal as a task even when high-level')
     expect(section?.text).toContain('never a generic action, task, or tool menu')
     expect(section?.text).toContain('An unbounded but inspectable goal is not a blocker')
-    expect(section?.text).toContain('do not ask the user to choose a broad category')
+    expect(section?.text).toMatch(/do not ask the user to choose a broad category/i)
     // The single update contract: the receiver is always on; no-refresh
     // reloads additionally need the rebuild watcher.
     expect(section?.text).toContain('pnpm run dev:web')
