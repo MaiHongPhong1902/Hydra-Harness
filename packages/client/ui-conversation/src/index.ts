@@ -1,7 +1,7 @@
 /** Host registration for browser conversation preferences. */
 
-import type { Context } from '@hydra/cordis'
-import { settingsNamespace } from '@hydra/harness-settings'
+import type { Context } from '@hydra1902/cordis'
+import { settingsNamespace } from '@hydra1902/harness-settings'
 import { CONVERSATION_SETTINGS_NAMESPACE, ConversationSettingsSchema } from './submission-settings.ts'
 
 export {

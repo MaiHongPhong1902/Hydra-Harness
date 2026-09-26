@@ -1,5 +1,5 @@
 {
-  "name": "@hydra/harness-jobs-local",
+  "name": "@hydra1902/harness-jobs-local",
   "description": "Process-local implementation of the Hydra harness background job registry seam",
   "hydra": {
     "plugin": {
@@ -37,26 +37,26 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra/harness-agent": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-scope": "workspace:^",
-    "@hydra/harness-jobs": "workspace:^",
-    "@hydra/harness-timeout": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-agent": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-scope": "workspace:^",
+    "@hydra1902/harness-jobs": "workspace:^",
+    "@hydra1902/harness-timeout": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "dependencies": {
-    "@hydra/schemastery": "workspace:^"
+    "@hydra1902/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/cordis-plugin-include": "workspace:^",
-    "@hydra/cordis-plugin-loader": "workspace:^",
-    "@hydra/harness-agent": "workspace:^",
-    "@hydra/harness-brand": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-scope": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-jobs": "workspace:^",
-    "@hydra/harness-timeout": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/cordis-plugin-include": "workspace:^",
+    "@hydra1902/cordis-plugin-loader": "workspace:^",
+    "@hydra1902/harness-agent": "workspace:^",
+    "@hydra1902/harness-brand": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-scope": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-jobs": "workspace:^",
+    "@hydra1902/harness-timeout": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   }
 }

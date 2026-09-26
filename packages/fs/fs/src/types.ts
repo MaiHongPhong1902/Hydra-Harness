@@ -2,11 +2,11 @@
  * Vocabulary for the filesystem Service Definition (`ctx.fs`): the opaque target/version
  * identities, the metadata `stat` returns, the write-intent and outcome shapes, the
  * literal-edit request/outcome, and the typed error taxonomy.
- * @module @hydra/harness-fs/types
+ * @module @hydra1902/harness-fs/types
  */
 
-import { HarnessError } from '@hydra/harness-llm'
-import type { Branded } from '@hydra/harness-brand'
+import { HarnessError } from '@hydra1902/harness-llm'
+import type { Branded } from '@hydra1902/harness-brand'
 
 /**
  * Opaque key for stale guards and target lookup. The local backend uses a
@@ -197,7 +197,7 @@ export type FsErrorCode =
 
 /**
  * Typed filesystem error. Extends {@link HarnessError} so it carries a stable
- * {@link FsErrorCode} and chains `cause`. `@hydra/harness-fs` owns this vocabulary so
+ * {@link FsErrorCode} and chains `cause`. `@hydra1902/harness-fs` owns this vocabulary so
  * backends and the policy layer raise the same codes instead of each inventing
  * message strings.
  */

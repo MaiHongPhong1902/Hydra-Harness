@@ -8,7 +8,7 @@
  * DOM writes, no React involvement; the presenter only ever retracts what it
  * wrote itself, so foreign attributes, metadata, and inline styles survive.
  */
-import type { ThemeSnapshot } from '@hydra/harness-client-ui-theme/client'
+import type { ThemeSnapshot } from '@hydra1902/harness-client-ui-theme/client'
 import type { DesktopBrowserTheme } from './DesktopBrowserPanel.tsx'
 
 /** Body attribute selecting the dark base palette in the token stylesheets. */

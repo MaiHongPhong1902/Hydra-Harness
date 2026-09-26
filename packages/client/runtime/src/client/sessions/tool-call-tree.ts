@@ -1,5 +1,5 @@
-import type { SessionEvent } from '@hydra/harness-session/types'
-import type {} from '@hydra/harness-tools/types'
+import type { SessionEvent } from '@hydra1902/harness-session/types'
+import type {} from '@hydra1902/harness-tools/types'
 import type {
   ConversationNode, RunningToolCall, ToolCallBlock, ToolResultNode,
 } from './conversation.ts'

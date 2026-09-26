@@ -1,20 +1,20 @@
 /**
  * Log-backed session title service, deterministic fallback, and provider contract.
- * @module @hydra/harness-session-title
+ * @module @hydra1902/harness-session-title
  */
 
-import { Context, FiberState, Service, type Fiber } from '@hydra/cordis'
-import z from '@hydra/schemastery'
+import { Context, FiberState, Service, type Fiber } from '@hydra1902/cordis'
+import z from '@hydra1902/schemastery'
 import { z as zod } from 'zod'
-import type { Branded } from '@hydra/harness-brand'
-import { assertNever, deepFreeze, isAgentLoopRequest } from '@hydra/harness-llm'
-import type { GenerateOptions } from '@hydra/harness-llm'
+import type { Branded } from '@hydra1902/harness-brand'
+import { assertNever, deepFreeze, isAgentLoopRequest } from '@hydra1902/harness-llm'
+import type { GenerateOptions } from '@hydra1902/harness-llm'
 import type {
   Session,
   SessionEvent,
-} from '@hydra/harness-session'
+} from '@hydra1902/harness-session'
 // Type-only: resolves ctx.sessionProjections for the optional unit child.
-import type {} from '@hydra/harness-session-projection'
+import type {} from '@hydra1902/harness-session-projection'
 // The `title` projection-key declaration lives in src/types.ts (its one home);
 // this re-export projects the type face onto the package root AND keeps the
 // module edge in the emitted index.d.ts, so aggregate programs consuming the
@@ -85,13 +85,13 @@ export interface Config {
   readonly maxTitleBytes: number
 }
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Context {
     sessionTitle: SessionTitleService
   }
 }
 
-declare module '@hydra/harness-session/types' {
+declare module '@hydra1902/harness-session/types' {
   interface SessionEventMap {
     /**
      * Latest-wins session title snapshot. Log-only: it never enters the model

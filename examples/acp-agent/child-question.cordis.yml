@@ -1,14 +1,14 @@
 # Snapshot-only human-interaction composition. The provider is a tripwire: the
 # runtime-owned child must be rejected by the seam before any UI wait begins.
 - id: base
-  name: '@hydra/cordis-plugin-include'
+  name: '@hydra1902/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - insert:
           - id: user-questions
-            name: '@hydra/harness-user-questions'
+            name: '@hydra1902/harness-user-questions'
           - id: tool-ask-user
-            name: '@hydra/harness-tool-ask-user'
+            name: '@hydra1902/harness-tool-ask-user'
           - id: child-question-tripwire
             name: './tests/fixtures/child-question-tripwire.ts'

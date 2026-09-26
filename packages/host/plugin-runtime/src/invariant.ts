@@ -1,9 +1,9 @@
-/** Package-owned invariant companion. @module @hydra/harness-plugin-runtime/invariant */
+/** Package-owned invariant companion. @module @hydra1902/harness-plugin-runtime/invariant */
 
-import type { Context } from '@hydra/cordis'
-import type { InvariantInstaller } from '@hydra/harness-invariants'
+import type { Context } from '@hydra1902/cordis'
+import type { InvariantInstaller } from '@hydra1902/harness-invariants'
 
-const PACKAGE_NAME = '@hydra/harness-plugin-runtime'
+const PACKAGE_NAME = '@hydra1902/harness-plugin-runtime'
 
 /** Cordis companion plugin name. */
 export const name = 'plugin-runtime-invariant'

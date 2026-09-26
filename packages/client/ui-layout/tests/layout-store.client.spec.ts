@@ -6,11 +6,11 @@
  * real engine instance (same create path as production).
  */
 import { beforeEach, describe, expect, it } from 'vitest'
-import { createLayoutStore } from '@hydra/harness-client-ui-layout/src/client/stores.ts'
+import { createLayoutStore } from '@hydra1902/harness-client-ui-layout/src/client/stores.ts'
 import {
   DETAILS_DEFAULT, DETAILS_MAX, DETAILS_MIN,
   SIDEBAR_DEFAULT, SIDEBAR_MAX, SIDEBAR_MIN,
-} from '@hydra/harness-client-ui-layout/src/client/columns.ts'
+} from '@hydra1902/harness-client-ui-layout/src/client/columns.ts'
 
 const PERSIST_KEY = 'hydra.layout.panels'
 

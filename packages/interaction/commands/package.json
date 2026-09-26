@@ -1,5 +1,5 @@
 {
-  "name": "@hydra/harness-commands",
+  "name": "@hydra1902/harness-commands",
   "description": "Plugin-owned human command registry for Hydra harness UIs",
   "hydra": {
     "plugin": {
@@ -58,28 +58,28 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra/harness-agent": "workspace:^",
-    "@hydra/harness-attachment": "workspace:^",
-    "@hydra/harness-brand": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-scope": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-typert-protocol": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-agent": "workspace:^",
+    "@hydra1902/harness-attachment": "workspace:^",
+    "@hydra1902/harness-brand": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-scope": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-typert-protocol": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "dependencies": {
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@hydra/harness-agent": "workspace:^",
-    "@hydra/harness-attachment": "workspace:^",
-    "@hydra/harness-brand": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-scope": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-typert-protocol": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-agent": "workspace:^",
+    "@hydra1902/harness-attachment": "workspace:^",
+    "@hydra1902/harness-brand": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-scope": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-typert-protocol": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   }
 }

@@ -1,16 +1,16 @@
 /**
  * Same-session goal-round driver over public agent, session, and goal services.
- * @module @hydra/harness-goal-round-driver
+ * @module @hydra1902/harness-goal-round-driver
  */
 
 import { isDeepStrictEqual } from 'node:util'
-import { FiberState } from '@hydra/cordis'
-import type { Context } from '@hydra/cordis'
-import type { Agent, PreStepDecision } from '@hydra/harness-agent'
-import type { GoalMessageSource, GoalRef, GoalView } from '@hydra/harness-goal'
-import { createUserMessage } from '@hydra/harness-llm'
-import type { ContentBlock, MessageId, MessageSource } from '@hydra/harness-llm'
-import type { Session, SessionEvent, UserMessage } from '@hydra/harness-session'
+import { FiberState } from '@hydra1902/cordis'
+import type { Context } from '@hydra1902/cordis'
+import type { Agent, PreStepDecision } from '@hydra1902/harness-agent'
+import type { GoalMessageSource, GoalRef, GoalView } from '@hydra1902/harness-goal'
+import { createUserMessage } from '@hydra1902/harness-llm'
+import type { ContentBlock, MessageId, MessageSource } from '@hydra1902/harness-llm'
+import type { Session, SessionEvent, UserMessage } from '@hydra1902/harness-session'
 import { renderGoalRoundPrompt } from './prompt.ts'
 
 export { renderGoalRoundPrompt } from './prompt.ts'

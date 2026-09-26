@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createServer } from 'node:http'
-import { Context } from '@hydra/cordis'
-import { CredentialProvider, credentialKey } from '@hydra/harness-credentials'
+import { Context } from '@hydra1902/cordis'
+import { CredentialProvider, credentialKey } from '@hydra1902/harness-credentials'
 import type { Credential } from '@earendil-works/pi-ai'
 import type {
   CredentialInfo,
@@ -11,10 +11,10 @@ import type {
   CredentialRecordInfo,
   CredentialRef,
   ResolvedCredential,
-} from '@hydra/harness-credentials'
+} from '@hydra1902/harness-credentials'
 import { createAccountPool, emptyAuthContext, parseAccountPool } from '../src/accounts.ts'
 import { readAccountUsage } from '../src/usage.ts'
-import type { StreamChunk } from '@hydra/harness-llm'
+import type { StreamChunk } from '@hydra1902/harness-llm'
 
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals() })
 

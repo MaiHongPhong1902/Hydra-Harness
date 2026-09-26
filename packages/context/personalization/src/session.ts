@@ -8,10 +8,10 @@
  * rebuilds the personality its history was produced under, not whatever the
  * global preference has since become. Reconstruction reads
  * {@link resolveSessionPersonality}, never the live settings value alone.
- * @module @hydra/harness-personalization/session
+ * @module @hydra1902/harness-personalization/session
  */
 
-import type { SessionEvent } from '@hydra/harness-session'
+import type { SessionEvent } from '@hydra1902/harness-session'
 
 /** The closed set of personality values a session may run under. */
 export const PERSONALITIES = ['friendly', 'pragmatic', 'none'] as const
@@ -42,7 +42,7 @@ export const DEFAULT_MEMORY_POLICY: MemoryPolicy = {
   generateMemories: true,
 }
 
-declare module '@hydra/harness-session/types' {
+declare module '@hydra1902/harness-session/types' {
   interface SessionEventMap {
     /**
      * The session's personality preference took effect, newest selection

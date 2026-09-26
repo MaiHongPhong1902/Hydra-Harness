@@ -2,15 +2,15 @@
  * Tests for the spill Service Definition: a minimal concrete subclass registers as
  * `ctx.spillStore`, a second load throws (duplicate service), and disposal
  * releases the service. The storage behavior is the implementation's concern
- * (`@hydra/harness-spill-local`); here we only pin the seam contract.
+ * (`@hydra1902/harness-spill-local`); here we only pin the seam contract.
  */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import { CallId } from '@hydra/harness-llm'
-import { SessionId } from '@hydra/harness-session'
-import { SpillLocator, SpillStore } from '@hydra/harness-spill'
-import type { SaveTextSpill, SpillRef } from '@hydra/harness-spill'
+import { Context } from '@hydra1902/cordis'
+import { CallId } from '@hydra1902/harness-llm'
+import { SessionId } from '@hydra1902/harness-session'
+import { SpillLocator, SpillStore } from '@hydra1902/harness-spill'
+import type { SaveTextSpill, SpillRef } from '@hydra1902/harness-spill'
 
 /** Minimal concrete backend: records the last request, returns a fixed ref. */
 class StubStore extends SpillStore {

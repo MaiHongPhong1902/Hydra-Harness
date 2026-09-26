@@ -1,5 +1,5 @@
 - id: base
-  name: '@hydra/cordis-plugin-include'
+  name: '@hydra1902/cordis-plugin-include'
   config:
     path: ../../cordis.yml
     patches:

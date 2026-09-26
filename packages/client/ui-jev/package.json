@@ -1,5 +1,5 @@
 {
-  "name": "@hydra/harness-client-ui-jev",
+  "name": "@hydra1902/harness-client-ui-jev",
   "description": "Models settings option and write-only credential card for TypeSafe Jev",
   "version": "0.1.1-rc.1",
   "publishConfig": { "access": "public" },
@@ -24,7 +24,7 @@
     },
     "client": {
       "inject": [
-        "@hydra/harness-client-ui-settings-models"
+        "@hydra1902/harness-client-ui-settings-models"
       ],
       "platform": "web"
     }
@@ -32,21 +32,21 @@
   "scripts": { "bundle": "tsdown", "watch": "tsdown --watch" },
   "license": "MIT",
   "peerDependencies": {
-    "@hydra/cordis": "workspace:^",
-    "@hydra/harness-api-remotes": "workspace:^",
-    "@hydra/harness-client-runtime": "workspace:^",
-    "@hydra/harness-client-ui-settings": "workspace:^",
-    "@hydra/harness-client-ui-settings-models": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^"
+    "@hydra1902/cordis": "workspace:^",
+    "@hydra1902/harness-api-remotes": "workspace:^",
+    "@hydra1902/harness-client-runtime": "workspace:^",
+    "@hydra1902/harness-client-ui-settings": "workspace:^",
+    "@hydra1902/harness-client-ui-settings-models": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/cordis": "workspace:^",
-    "@hydra/harness-api-remotes": "workspace:^",
-    "@hydra/harness-client-runtime": "workspace:^",
-    "@hydra/harness-client-ui-settings": "workspace:^",
-    "@hydra/harness-client-ui-settings-models": "workspace:^",
-    "@hydra/harness-client-ui-slots": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
+    "@hydra1902/cordis": "workspace:^",
+    "@hydra1902/harness-api-remotes": "workspace:^",
+    "@hydra1902/harness-client-runtime": "workspace:^",
+    "@hydra1902/harness-client-ui-settings": "workspace:^",
+    "@hydra1902/harness-client-ui-settings-models": "workspace:^",
+    "@hydra1902/harness-client-ui-slots": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
     "@types/react": "~18.3.1",
     "react": "^18.2.0"
   },

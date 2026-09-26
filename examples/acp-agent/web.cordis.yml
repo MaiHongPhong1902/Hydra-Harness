@@ -4,24 +4,24 @@
 # fixture server the scenario prompt fetches — deterministic content, no
 # external network, in recording and replay alike.
 - id: base
-  name: '@hydra/cordis-plugin-include'
+  name: '@hydra1902/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - insert:
           - id: web
-            name: '@hydra/harness-web'
+            name: '@hydra1902/harness-web'
           - id: web-fetch-http
-            name: '@hydra/harness-web-fetch-http'
+            name: '@hydra1902/harness-web-fetch-http'
             config:
               allowedOrigins: ['http://127.0.0.1:43117']
           - id: web-fetch-fixture
             name: './web-fetch-fixture-server.mjs'
           - id: research-policy
-            name: '@hydra/harness-research-policy'
+            name: '@hydra1902/harness-research-policy'
             config:
               maxFetches: 1
           - id: tool-web
-            name: '@hydra/harness-tool-web'
+            name: '@hydra1902/harness-tool-web'
             config:
               search: false

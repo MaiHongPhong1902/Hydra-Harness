@@ -2,7 +2,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, render } from '@testing-library/react'
 import type { ComponentProps } from 'react'
-import type { ReviewHunk } from '@hydra/harness-fs-review/client'
+import type { ReviewHunk } from '@hydra1902/harness-fs-review/client'
 import { DiffView } from '../src/client/DiffView.tsx'
 
 afterEach(cleanup)

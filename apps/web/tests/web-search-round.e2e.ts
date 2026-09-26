@@ -9,9 +9,9 @@ import { fileURLToPath } from 'node:url'
 import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
-import { credentialRef } from '@hydra/harness-credentials'
-import type { SessionEvent } from '@hydra/harness-session'
-import { WEB_SEARCH_MAX_RESULTS } from '@hydra/harness-tool-web'
+import { credentialRef } from '@hydra1902/harness-credentials'
+import type { SessionEvent } from '@hydra1902/harness-session'
+import { WEB_SEARCH_MAX_RESULTS } from '@hydra1902/harness-tool-web'
 import {
   assertFixtureInventory, captureStableAria, compareOrRefreshGolden, fixtureUserPrompts,
   launchWebScaffold, recordFixture, watchConsole, webSnapshotMode, type WebScaffold,

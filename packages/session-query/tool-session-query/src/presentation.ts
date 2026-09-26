@@ -1,7 +1,7 @@
 /**
  * Model text rendering and generic tool-call presentation.
  *
- * @module @hydra/harness-tool-session-query/presentation
+ * @module @hydra1902/harness-tool-session-query/presentation
  */
 
 import {
@@ -12,12 +12,12 @@ import {
   type SessionLineageTrace,
   type SessionRecord,
   type SessionSearchHit,
-} from '@hydra/harness-session-query'
+} from '@hydra1902/harness-session-query'
 import type {
   SessionEvent,
   SessionId,
-} from '@hydra/harness-session'
-import type { GenericCallView } from '@hydra/harness-tools'
+} from '@hydra1902/harness-session'
+import type { GenericCallView } from '@hydra1902/harness-tools'
 import { workspaceAccess } from './workspace-access.ts'
 
 type TitleView = Awaited<ReturnType<typeof workspaceAccess.readTitle>>

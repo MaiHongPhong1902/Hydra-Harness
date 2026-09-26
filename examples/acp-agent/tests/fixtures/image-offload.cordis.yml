@@ -2,12 +2,12 @@
 # local provider endpoint is supplied by the snapshot test; the real attachment
 # store and ACP bridge carry two uploaded images into one model request.
 - id: base
-  name: '@hydra/cordis-plugin-include'
+  name: '@hydra1902/cordis-plugin-include'
   config:
     path: ../../cordis.yml
     patches:
       - id: llm-deepseek
-        name: '@hydra/harness-llm-deepseek'
+        name: '@hydra1902/harness-llm-deepseek'
         config:
           apiKeyEnv: HYDRA_SNAPSHOT_API_KEY
           baseURL: !!js process.env.HYDRA_SNAPSHOT_BASE_URL
@@ -19,7 +19,7 @@
               maxTokens: 1024
               inputModalities: [text, image]
       - id: acp-agent
-        name: '@hydra/harness-acp-demo'
+        name: '@hydra1902/harness-acp-demo'
         config:
           provider: deepseek-official
           model: deepseek-v4-flash-vision-exp
@@ -33,4 +33,4 @@
             Keep answers brief and factual.
       - insert:
           - id: attachment-local
-            name: '@hydra/harness-attachment-local'
+            name: '@hydra1902/harness-attachment-local'

@@ -1,8 +1,8 @@
-import type { Context } from '@hydra/cordis'
+import type { Context } from '@hydra1902/cordis'
 import type {
   ConversationNodeDefinition, ConversationPreviousContext,
-} from '@hydra/harness-client-runtime/client'
-import type { InboxTarget } from '@hydra/harness-agent/types'
+} from '@hydra1902/harness-client-runtime/client'
+import type { InboxTarget } from '@hydra1902/harness-agent/types'
 
 interface InboxIdentity {
   readonly id: string

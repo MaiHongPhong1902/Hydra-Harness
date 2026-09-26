@@ -1,21 +1,21 @@
 /**
  * Six model-facing persistent terminal tools. Owner identity comes from the exact
  * tool execution Agent; generic `ctx.jobs` owns background ids and collection.
- * @module @hydra/harness-tool-terminal
+ * @module @hydra1902/harness-tool-terminal
  */
 
-import { Context } from '@hydra/cordis'
-import z from '@hydra/schemastery'
-import type { Agent } from '@hydra/harness-agent'
-import type { ContentBlock } from '@hydra/harness-llm'
-import { TerminalSessionId } from '@hydra/harness-terminal'
-import type { TerminalSendResult, TerminalSessionId as TerminalSessionIdType, TerminalSignal } from '@hydra/harness-terminal'
-import type {} from '@hydra/harness-jobs'
-import { defineTool } from '@hydra/harness-tools'
-import type { ToolDefinition } from '@hydra/harness-tools'
+import { Context } from '@hydra1902/cordis'
+import z from '@hydra1902/schemastery'
+import type { Agent } from '@hydra1902/harness-agent'
+import type { ContentBlock } from '@hydra1902/harness-llm'
+import { TerminalSessionId } from '@hydra1902/harness-terminal'
+import type { TerminalSendResult, TerminalSessionId as TerminalSessionIdType, TerminalSignal } from '@hydra1902/harness-terminal'
+import type {} from '@hydra1902/harness-jobs'
+import { defineTool } from '@hydra1902/harness-tools'
+import type { ToolDefinition } from '@hydra1902/harness-tools'
 import { boundTerminalText, renderList, renderRead, renderSend, renderSendRead, renderSpawn } from './render.ts'
 
-declare module '@hydra/harness-jobs' {
+declare module '@hydra1902/harness-jobs' {
   interface JobKindMap {
     'pty-send': 'pty-send'
   }
@@ -250,7 +250,7 @@ export function apply(ctx: Context, config: Config = {}): void {
       if (args.run_in_background === true) {
         if (!enableRunInBackground) throw new Error('background terminal sends are disabled by tool-terminal configuration')
         const jobs = ctx.get('jobs')
-        if (jobs === undefined) throw new Error('background terminal sends require @hydra/harness-jobs and @hydra/harness-tool-jobs')
+        if (jobs === undefined) throw new Error('background terminal sends require @hydra1902/harness-jobs and @hydra1902/harness-tool-jobs')
         let cancelRequested = false
         const jobId = jobs.start({
           kind: 'pty-send',

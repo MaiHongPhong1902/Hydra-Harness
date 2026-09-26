@@ -1,7 +1,7 @@
 /** Official Hydra harness occupants for the generic browser-brand slots. */
-import type { ClientContext } from '@hydra/harness-client-runtime/client'
-import type {} from '@hydra/harness-client-ui-conversation/client'
-import type {} from '@hydra/harness-client-ui-sidebar/client'
+import type { ClientContext } from '@hydra1902/harness-client-runtime/client'
+import type {} from '@hydra1902/harness-client-ui-conversation/client'
+import type {} from '@hydra1902/harness-client-ui-sidebar/client'
 import { OfficialBrandMark, OfficialBrandName } from './Brand.tsx'
 
 /** Required service: the UI slot registry. */

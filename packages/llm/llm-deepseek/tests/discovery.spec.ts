@@ -1,14 +1,14 @@
 /** Model discovery through the registered provider and its HTTP endpoint. */
 import { createServer, type IncomingHttpHeaders } from 'node:http'
 import { afterEach, expect, it, vi } from 'vitest'
-import { Context } from '@hydra/cordis'
-import LlmRuntime from '@hydra/harness-llm'
-import { fetchWithHttpProxy } from '@hydra/harness-llm/proxy'
+import { Context } from '@hydra1902/cordis'
+import LlmRuntime from '@hydra1902/harness-llm'
+import { fetchWithHttpProxy } from '@hydra1902/harness-llm/proxy'
 import * as DeepSeek from '../src/index.ts'
 import { discoverDeepSeekModels } from '../src/adapter.ts'
 
-vi.mock('@hydra/harness-llm/proxy', async importOriginal => ({
-  ...await importOriginal<typeof import('@hydra/harness-llm/proxy')>(),
+vi.mock('@hydra1902/harness-llm/proxy', async importOriginal => ({
+  ...await importOriginal<typeof import('@hydra1902/harness-llm/proxy')>(),
   fetchWithHttpProxy: vi.fn((url: string, init: RequestInit) => fetch(url, init)),
 }))
 

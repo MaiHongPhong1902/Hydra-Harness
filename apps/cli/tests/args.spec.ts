@@ -50,8 +50,8 @@ describe('parseHydraArgs', () => {
       .toEqual({ mode: 'plugin', profile: 'tui', args: ['add', 'turtle-ui'] })
     expect(parse(['plugin', '--profile', 'tui', 'remove', 'turtle-ui']))
       .toEqual({ mode: 'plugin', profile: 'tui', args: ['remove', 'turtle-ui'] })
-    expect(parse(['plugin', '--profile', 'tui', 'why', '@hydra/cordis']))
-      .toEqual({ mode: 'plugin', profile: 'tui', args: ['why', '@hydra/cordis'] })
+    expect(parse(['plugin', '--profile', 'tui', 'why', '@hydra1902/cordis']))
+      .toEqual({ mode: 'plugin', profile: 'tui', args: ['why', '@hydra1902/cordis'] })
     // Unknown pnpm flags forward verbatim.
     expect(parse(['plugin', '--profile', 'tui', 'add', '--save-dev', 'x']))
       .toEqual({ mode: 'plugin', profile: 'tui', args: ['add', '--save-dev', 'x'] })

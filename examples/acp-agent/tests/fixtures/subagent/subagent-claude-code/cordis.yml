@@ -4,26 +4,26 @@
   name: './fixture.ts'
 
 - id: subagent
-  name: '@hydra/harness-subagent'
+  name: '@hydra1902/harness-subagent'
 
 - id: subprocess
-  name: '@hydra/harness-subprocess-local'
+  name: '@hydra1902/harness-subprocess-local'
 
 - id: subagent-codex
-  name: '@hydra/harness-subagent-codex'
+  name: '@hydra1902/harness-subagent-codex'
 
 - id: subagent-claude-primary
-  name: '@hydra/harness-subagent-claude-code'
+  name: '@hydra1902/harness-subagent-claude-code'
   config:
     providerName: claude-primary
 
 - id: subagent-claude-secondary
-  name: '@hydra/harness-subagent-claude-code'
+  name: '@hydra1902/harness-subagent-claude-code'
   config:
     providerName: claude-secondary
 
 - id: tool-subagent-codex
-  name: '@hydra/harness-tool-subagent'
+  name: '@hydra1902/harness-tool-subagent'
   config:
     provider: codex
     toolName: subagent_codex
@@ -31,7 +31,7 @@
     maxDepth: 'provider-managed'
 
 - id: tool-subagent-claude-code
-  name: '@hydra/harness-tool-subagent'
+  name: '@hydra1902/harness-tool-subagent'
   config:
     provider: claude-code
     toolName: subagent_claude_code
@@ -39,7 +39,7 @@
     maxDepth: 'provider-managed'
 
 - id: tool-subagent-claude-primary
-  name: '@hydra/harness-tool-subagent'
+  name: '@hydra1902/harness-tool-subagent'
   config:
     provider: claude-primary
     toolName: subagent_claude_primary
@@ -47,7 +47,7 @@
     maxDepth: 'provider-managed'
 
 - id: tool-subagent-claude-secondary
-  name: '@hydra/harness-tool-subagent'
+  name: '@hydra1902/harness-tool-subagent'
   config:
     provider: claude-secondary
     toolName: subagent_claude_secondary
@@ -55,7 +55,7 @@
     maxDepth: 'provider-managed'
 
 - id: agent-spine
-  name: '@hydra/harness-agent-spine-demo'
+  name: '@hydra1902/harness-agent-spine-demo'
   config:
     agents:
       - id: main
@@ -66,9 +66,9 @@
     workspaceContext: false
 
 - id: persistence
-  name: '@hydra/harness-session-persistence-jsonl'
+  name: '@hydra1902/harness-session-persistence-jsonl'
   config:
     root: './.sessions'
 
 - id: checkpoint-policy
-  name: '@hydra/harness-session-checkpoint-policy'
+  name: '@hydra1902/harness-session-checkpoint-policy'

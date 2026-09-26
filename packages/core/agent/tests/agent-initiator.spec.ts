@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
+import { Context } from '@hydra1902/cordis'
 import { runInNewContext } from 'node:vm'
-import AgentRegistry from '@hydra/harness-agent'
-import type { Agent } from '@hydra/harness-agent'
-import { SessionId } from '@hydra/harness-session'
+import AgentRegistry from '@hydra1902/harness-agent'
+import type { Agent } from '@hydra1902/harness-agent'
+import { SessionId } from '@hydra1902/harness-session'
 
 function agent(id: string): Agent {
   return { id: SessionId(id) } as Agent

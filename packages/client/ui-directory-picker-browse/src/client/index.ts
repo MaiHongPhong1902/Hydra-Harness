@@ -7,9 +7,9 @@
  * cordis.yml row; no client code branches on a capability kind. The dialog's
  * copy is locale-registered here — the flow package owns its own strings.
  */
-import type { ClientContext } from '@hydra/harness-client-runtime/client'
+import type { ClientContext } from '@hydra1902/harness-client-runtime/client'
 // Type-only: pulls the SlotMap merge declaring the directory-flow holes.
-import type {} from '@hydra/harness-client-ui-workspace/client'
+import type {} from '@hydra1902/harness-client-ui-workspace/client'
 import type { BrowseFlowInjected } from './flow.ts'
 import { BrowseDirectoryFlow } from './flow.ts'
 

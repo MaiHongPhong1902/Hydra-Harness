@@ -2,9 +2,9 @@
  * Pure subagent-lineage aggregation over the retained session-list mirror.
  * Ordinary forks terminate propagation so each visible session owns only its
  * uninterrupted subagent subtree.
- * @module @hydra/harness-client-runtime/client/sessions/subagent-lineage
+ * @module @hydra1902/harness-client-runtime/client/sessions/subagent-lineage
  */
-import type { SessionId } from '@hydra/harness-api-remotes/client'
+import type { SessionId } from '@hydra1902/harness-api-remotes/client'
 import type { SessionSummary } from './service.ts'
 
 /** Descendant counts projected for one possible parent session. */

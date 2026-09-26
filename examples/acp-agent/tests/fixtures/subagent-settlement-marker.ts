@@ -1,7 +1,7 @@
 import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import type { Context } from '@hydra/cordis'
-import type {} from '@hydra/harness-subagent'
+import type { Context } from '@hydra1902/cordis'
+import type {} from '@hydra1902/harness-subagent'
 
 export const name = 'subagent-settlement-marker'
 

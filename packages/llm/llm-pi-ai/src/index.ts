@@ -11,7 +11,7 @@
  *
  * ```yaml
  * - id: llm
- *   name: '@hydra/harness-llm-pi-ai'
+ *   name: '@hydra1902/harness-llm-pi-ai'
  *   config:
  *     providers:
  *       # Catalog route: everything but the credential comes from pi-ai.
@@ -52,14 +52,14 @@
  *               max: ultra
  * ```
  *
- * @module @hydra/harness-llm-pi-ai
+ * @module @hydra1902/harness-llm-pi-ai
  */
 
-import type { Context } from '@hydra/cordis'
-import { launchEnvironmentOf } from '@hydra/harness-launch-environment'
-import { assertUsableApiKey, LlmError } from '@hydra/harness-llm'
-import type { AdapterRegistrationHandle, DirectoryRegistrationHandle, LlmConfigurableProvider } from '@hydra/harness-llm'
-import { deepEqualJson, installSettingsSection, settingsNamespace } from '@hydra/harness-settings'
+import type { Context } from '@hydra1902/cordis'
+import { launchEnvironmentOf } from '@hydra1902/harness-launch-environment'
+import { assertUsableApiKey, LlmError } from '@hydra1902/harness-llm'
+import type { AdapterRegistrationHandle, DirectoryRegistrationHandle, LlmConfigurableProvider } from '@hydra1902/harness-llm'
+import { deepEqualJson, installSettingsSection, settingsNamespace } from '@hydra1902/harness-settings'
 import { PiAiAdapter } from './adapter.ts'
 import { authContextFrom, credentialStoreFrom } from './auth.ts'
 import { catalogProviderIds } from './catalog.ts'

@@ -1,5 +1,5 @@
-import { Context } from '@hydra/cordis'
-import { SlotRegistry } from '@hydra/harness-client-runtime/client'
+import { Context } from '@hydra1902/cordis'
+import { SlotRegistry } from '@hydra1902/harness-client-runtime/client'
 import { expect, it, vi } from 'vitest'
 import { apply, inject } from '../src/client/index.ts'
 import { apply as applyHost } from '../src/index.ts'

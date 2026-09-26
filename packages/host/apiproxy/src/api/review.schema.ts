@@ -1,6 +1,6 @@
 /** Review wire request and response validation. @module */
 import { z } from 'zod'
-import { reviewChangeSchema } from '@hydra/harness-fs-review/client'
+import { reviewChangeSchema } from '@hydra1902/harness-fs-review/client'
 import type { Wire } from './rpc.schema.ts'
 import type { RequestPayload } from './rpc-map.ts'
 

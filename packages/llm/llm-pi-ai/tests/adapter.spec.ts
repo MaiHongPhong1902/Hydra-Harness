@@ -2,18 +2,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createServer } from 'node:http'
 import type { Server } from 'node:http'
 import { connect as connectSocket } from 'node:net'
-import { Context } from '@hydra/cordis'
-import { AttachmentId, AttachmentStore } from '@hydra/harness-attachment'
+import { Context } from '@hydra1902/cordis'
+import { AttachmentId, AttachmentStore } from '@hydra1902/harness-attachment'
 import type {
   ImageAttachmentLimits,
   ImageAttachmentRef,
   SaveImageAttachment,
   StoredImageAttachment,
-} from '@hydra/harness-attachment'
-import LlmRuntime, { createUserMessage, CONTEXT_WINDOW_EXCEEDED_CODE, LlmError, ReasoningEffortId, userAgent } from '@hydra/harness-llm'
-import * as LlmPiAi from '@hydra/harness-llm-pi-ai'
-import { PiAiAdapter } from '@hydra/harness-llm-pi-ai'
-import { MAX_TIMER_DELAY_MS } from '@hydra/harness-timeout'
+} from '@hydra1902/harness-attachment'
+import LlmRuntime, { createUserMessage, CONTEXT_WINDOW_EXCEEDED_CODE, LlmError, ReasoningEffortId, userAgent } from '@hydra1902/harness-llm'
+import * as LlmPiAi from '@hydra1902/harness-llm-pi-ai'
+import { PiAiAdapter } from '@hydra1902/harness-llm-pi-ai'
+import { MAX_TIMER_DELAY_MS } from '@hydra1902/harness-timeout'
 import type { Api, AssistantMessage, AssistantMessageEvent, Model } from '@earendil-works/pi-ai'
 import { getBuiltinModels } from '@earendil-works/pi-ai/providers/all'
 import { DEFAULT_MAX_REQUEST_IMAGE_BYTES, resolveProfiles } from '../src/config.ts'

@@ -22,13 +22,13 @@ import { fileURLToPath } from 'node:url'
 import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
-import { createMessage, createUserMessage } from '@hydra/harness-llm'
+import { createMessage, createUserMessage } from '@hydra1902/harness-llm'
 import {
   SESSION_FORMAT_VERSION,
   Session,
   SessionId,
-} from '@hydra/harness-session'
-import type {} from '@hydra/harness-session-title'
+} from '@hydra1902/harness-session'
+import type {} from '@hydra1902/harness-session-title'
 import {
   assertFixtureInventory,
   compareOrRefreshGolden,

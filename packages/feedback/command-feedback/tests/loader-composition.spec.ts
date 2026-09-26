@@ -3,15 +3,15 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra/cordis'
-import Loader from '@hydra/cordis-plugin-loader'
-import Include from '@hydra/cordis-plugin-include'
-import AgentRegistry, { Inbox } from '@hydra/harness-agent'
-import type { Agent, AgentStatus } from '@hydra/harness-agent'
-import CommandRuntime from '@hydra/harness-commands'
-import SessionStore, { SessionId } from '@hydra/harness-session'
-import * as CommandFeedback from '@hydra/harness-command-feedback'
-import { getOrCreateAnonymousUserId } from '@hydra/harness-anonymous-user-id'
+import { Context } from '@hydra1902/cordis'
+import Loader from '@hydra1902/cordis-plugin-loader'
+import Include from '@hydra1902/cordis-plugin-include'
+import AgentRegistry, { Inbox } from '@hydra1902/harness-agent'
+import type { Agent, AgentStatus } from '@hydra1902/harness-agent'
+import CommandRuntime from '@hydra1902/harness-commands'
+import SessionStore, { SessionId } from '@hydra1902/harness-session'
+import * as CommandFeedback from '@hydra1902/harness-command-feedback'
+import { getOrCreateAnonymousUserId } from '@hydra1902/harness-anonymous-user-id'
 
 let root: string | undefined
 let context: Context | undefined
@@ -56,10 +56,10 @@ describe('/feedback real Loader composition through cordis.yml', () => {
     vi.stubEnv('HYDRA_HOME', root)
     const configPath = join(root, 'cordis.yml')
     await writeFile(configPath, [
-      "- name: '@hydra/harness-agent'",
-      "- name: '@hydra/harness-session'",
-      "- name: '@hydra/harness-commands'",
-      "- name: '@hydra/harness-command-feedback'",
+      "- name: '@hydra1902/harness-agent'",
+      "- name: '@hydra1902/harness-session'",
+      "- name: '@hydra1902/harness-commands'",
+      "- name: '@hydra1902/harness-command-feedback'",
       '',
     ].join('\n'))
 
@@ -68,10 +68,10 @@ describe('/feedback real Loader composition through cordis.yml', () => {
     await context.plugin(Loader)
     context.loader.builtins.include = Include
     const modules = new Map<string, unknown>([
-      ['@hydra/harness-agent', AgentRegistry],
-      ['@hydra/harness-session', SessionStore],
-      ['@hydra/harness-commands', CommandRuntime],
-      ['@hydra/harness-command-feedback', CommandFeedback],
+      ['@hydra1902/harness-agent', AgentRegistry],
+      ['@hydra1902/harness-session', SessionStore],
+      ['@hydra1902/harness-commands', CommandRuntime],
+      ['@hydra1902/harness-command-feedback', CommandFeedback],
     ])
     context.loader.internal = {
       version: 'v2',

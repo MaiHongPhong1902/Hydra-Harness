@@ -1,16 +1,16 @@
 /** What the browser half registers, and that it all leaves with the fiber. */
 
-import { Context } from '@hydra/cordis'
+import { Context } from '@hydra1902/cordis'
 import { describe, expect, it, vi } from 'vitest'
-import { resolveSlotLabel } from '@hydra/harness-client-ui-slots'
-import { SlotRegistry } from '@hydra/harness-client-runtime/client'
-import { LocaleRuntime } from '@hydra/harness-client-locale/client'
-import { TestRemote } from '@hydra/harness-client-test-runtime'
-import { apply as settingsApply, inject as settingsInject } from '@hydra/harness-client-ui-settings/client'
-import { apply, inject } from '@hydra/harness-client-ui-settings-plugins/client'
+import { resolveSlotLabel } from '@hydra1902/harness-client-ui-slots'
+import { SlotRegistry } from '@hydra1902/harness-client-runtime/client'
+import { LocaleRuntime } from '@hydra1902/harness-client-locale/client'
+import { TestRemote } from '@hydra1902/harness-client-test-runtime'
+import { apply as settingsApply, inject as settingsInject } from '@hydra1902/harness-client-ui-settings/client'
+import { apply, inject } from '@hydra1902/harness-client-ui-settings-plugins/client'
 import type {
   ConfigurablePluginsTabFace, PluginsSettingsSectionInjected, HooksSettingsFace,
-} from '@hydra/harness-client-ui-settings-plugins/client'
+} from '@hydra1902/harness-client-ui-settings-plugins/client'
 import type { ImportedMcpSettingsFace, NativeMcpSettingsFace, UserMcpSettingsFace } from '../src/client/McpSettingsTab.tsx'
 
 /**

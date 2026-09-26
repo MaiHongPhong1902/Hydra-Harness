@@ -8,22 +8,22 @@
  */
 
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra/cordis'
+import { Context } from '@hydra1902/cordis'
 import { z } from 'zod'
-import AgentRegistry, { Inbox } from '@hydra/harness-agent'
-import { AttachmentStore } from '@hydra/harness-attachment'
-import type { Agent } from '@hydra/harness-agent'
-import { createUserMessage } from '@hydra/harness-llm'
-import SessionStore, { SessionId } from '@hydra/harness-session'
-import type { Session } from '@hydra/harness-session'
-import SessionProjectionRegistry from '@hydra/harness-session-projection'
-import type { ProjectionDefinition } from '@hydra/harness-session-projection'
-import UserQuestionService from '@hydra/harness-user-questions'
-import type { MuxFrame, RpcRequest } from '@hydra/harness-host-apiproxy/api'
-import { RpcId } from '@hydra/harness-host-apiproxy/api/rpc'
-import { createApiProxy } from '@hydra/harness-host-apiproxy'
+import AgentRegistry, { Inbox } from '@hydra1902/harness-agent'
+import { AttachmentStore } from '@hydra1902/harness-attachment'
+import type { Agent } from '@hydra1902/harness-agent'
+import { createUserMessage } from '@hydra1902/harness-llm'
+import SessionStore, { SessionId } from '@hydra1902/harness-session'
+import type { Session } from '@hydra1902/harness-session'
+import SessionProjectionRegistry from '@hydra1902/harness-session-projection'
+import type { ProjectionDefinition } from '@hydra1902/harness-session-projection'
+import UserQuestionService from '@hydra1902/harness-user-questions'
+import type { MuxFrame, RpcRequest } from '@hydra1902/harness-host-apiproxy/api'
+import { RpcId } from '@hydra1902/harness-host-apiproxy/api/rpc'
+import { createApiProxy } from '@hydra1902/harness-host-apiproxy'
 
-declare module '@hydra/harness-session-projection/types' {
+declare module '@hydra1902/harness-session-projection/types' {
   interface SessionProjectionStateMap {
     'test/last-user': LastUserState
     'test/internal-count': number

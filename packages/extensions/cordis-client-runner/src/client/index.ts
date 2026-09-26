@@ -10,13 +10,13 @@
  * it until asked again.
  */
 
-import type { Context } from '@hydra/cordis'
+import type { Context } from '@hydra1902/cordis'
 import type {
   ApprovalRequestId, CordisDynamicPluginId, DynamicCordisInvokeResult, JsonValue,
   DynamicCordisInventoryRow,
-} from '@hydra/harness-api-remotes/client'
-import type { ClientModuleSystem } from '@hydra/harness-client-modules/client'
-import type { SlotRegistry } from '@hydra/harness-client-runtime/client'
+} from '@hydra1902/harness-api-remotes/client'
+import type { ClientModuleSystem } from '@hydra1902/harness-client-modules/client'
+import type { SlotRegistry } from '@hydra1902/harness-client-runtime/client'
 // The Client Remote assembly is the one place the two planes meet: it mounts the
 // `dynamicCordisRunner` namespace and re-exports its payload vocabulary, so this
 // package names what it sends without importing a Host package.
@@ -54,7 +54,7 @@ export { ClientTimerService } from './timer.ts'
 export type {
   ApprovalRequestId, CordisDynamicPackageId, CordisDynamicPluginId, CordisDynamicPluginRunId,
   DynamicCordisPackage,
-} from '@hydra/harness-api-remotes/client'
+} from '@hydra1902/harness-api-remotes/client'
 
 
 /**
@@ -122,7 +122,7 @@ export interface CordisRunnerFace {
   isLoaded(pluginId: CordisDynamicPluginId): boolean
 }
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Context {
     /** Run orchestration and page-local load state: what run surfaces read and call. */
     dynamicCordisRunner: CordisRunnerFace

@@ -8,12 +8,12 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import type { Context } from '@hydra/cordis'
-import type { PatchOptions } from '@hydra/cordis-plugin-include'
-import { boot, loadOverlayPatches } from '@hydra/harness-app-boot'
-import SystemPrompt from '@hydra/harness-system-prompt'
-import ToolRuntime from '@hydra/harness-tools'
-import * as McpClient from '@hydra/harness-mcp-client/src/index.ts'
+import type { Context } from '@hydra1902/cordis'
+import type { PatchOptions } from '@hydra1902/cordis-plugin-include'
+import { boot, loadOverlayPatches } from '@hydra1902/harness-app-boot'
+import SystemPrompt from '@hydra1902/harness-system-prompt'
+import ToolRuntime from '@hydra1902/harness-tools'
+import * as McpClient from '@hydra1902/harness-mcp-client/src/index.ts'
 
 interface ExampleContract {
   file: string
@@ -87,7 +87,7 @@ describe('third-party memory MCP example overlays', () => {
     const row = insertedRow(loadOverlayPatches('memory-mcp-config-test', file))
 
     expect(row.id).toBe(contract.id)
-    expect(row.name).toBe('@hydra/harness-mcp-client')
+    expect(row.name).toBe('@hydra1902/harness-mcp-client')
     expect(row.config?.serverName).toBe(contract.serverName)
     expect(row.config?.transport).toBe(contract.transport)
     expect(source.split('\n', 1)[0]).toContain(contract.pin)

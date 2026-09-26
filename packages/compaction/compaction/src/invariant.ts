@@ -1,15 +1,15 @@
-/** Package-owned compaction log-stream invariants. @module @hydra/harness-compaction/invariant */
+/** Package-owned compaction log-stream invariants. @module @hydra1902/harness-compaction/invariant */
 
-import type { Context } from '@hydra/cordis'
-import { isReplacementSurfaceEvent } from '@hydra/harness-session'
-import type { Session, SessionEvent } from '@hydra/harness-session'
-import type { InvariantFailure, InvariantInstaller } from '@hydra/harness-invariants'
+import type { Context } from '@hydra1902/cordis'
+import { isReplacementSurfaceEvent } from '@hydra1902/harness-session'
+import type { Session, SessionEvent } from '@hydra1902/harness-session'
+import type { InvariantFailure, InvariantInstaller } from '@hydra1902/harness-invariants'
 import type { CompactionId } from './brand.ts'
 import { isCompactCheckpointSource } from './checkpoint.ts'
 import type { CompactionCheckpointSource } from './checkpoint.ts'
 import type {} from './types.ts'
 
-const PACKAGE_NAME = '@hydra/harness-compaction'
+const PACKAGE_NAME = '@hydra1902/harness-compaction'
 
 /** Cordis companion plugin name. */
 export const name = 'compaction-invariant'

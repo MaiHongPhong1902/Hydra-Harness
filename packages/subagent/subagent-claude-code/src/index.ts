@@ -3,12 +3,12 @@
  * invokes the official Agent SDK in the delegating Session's workspace and
  * places the SDK-spawned real CLI under the shared subprocess owner.
  *
- * @module @hydra/harness-subagent-claude-code
+ * @module @hydra1902/harness-subagent-claude-code
  */
 
-import type { Context } from '@hydra/cordis'
-import z from '@hydra/schemastery'
-import { MAX_TIMER_DELAY_MS } from '@hydra/harness-timeout'
+import type { Context } from '@hydra1902/cordis'
+import z from '@hydra1902/schemastery'
+import { MAX_TIMER_DELAY_MS } from '@hydra1902/harness-timeout'
 import {
   assertPositiveFinite,
   NO_START_CAPABILITIES,
@@ -16,7 +16,7 @@ import {
   type ResolvedSubagentStartRequest,
   type SubagentCapabilities,
   type SubagentProvider,
-} from '@hydra/harness-subagent'
+} from '@hydra1902/harness-subagent'
 import {
   CLAUDE_CODE_PERMISSION_MODES,
   DEFAULT_CLAUDE_CODE_PERMISSION_MODE,

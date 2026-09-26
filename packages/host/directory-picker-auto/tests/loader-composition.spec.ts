@@ -13,13 +13,13 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra/cordis'
-import Loader from '@hydra/cordis-plugin-loader'
-import Include from '@hydra/cordis-plugin-include'
-import HttpServer from '@hydra/harness-host-webserver'
-import type { DirectoryPicker } from '@hydra/harness-host-directory-picker'
-import BrowseDirectoryPicker from '@hydra/harness-host-directory-picker-browse'
-import NativeDirectoryPicker from '@hydra/harness-host-directory-picker-native'
+import { Context } from '@hydra1902/cordis'
+import Loader from '@hydra1902/cordis-plugin-loader'
+import Include from '@hydra1902/cordis-plugin-include'
+import HttpServer from '@hydra1902/harness-host-webserver'
+import type { DirectoryPicker } from '@hydra1902/harness-host-directory-picker'
+import BrowseDirectoryPicker from '@hydra1902/harness-host-directory-picker-browse'
+import NativeDirectoryPicker from '@hydra1902/harness-host-directory-picker-native'
 import * as DirectoryPickerAuto from '../src/index.ts'
 
 const renameControl = vi.hoisted(() => ({
@@ -45,11 +45,11 @@ vi.mock('node:fs/promises', async (importOriginal) => {
   }
 })
 
-const AUTO = '@hydra/harness-host-directory-picker-auto'
-const NATIVE = '@hydra/harness-host-directory-picker-native'
-const BROWSE = '@hydra/harness-host-directory-picker-browse'
-const NATIVE_SURFACE = '@hydra/harness-client-ui-directory-picker-native'
-const BROWSE_SURFACE = '@hydra/harness-client-ui-directory-picker-browse'
+const AUTO = '@hydra1902/harness-host-directory-picker-auto'
+const NATIVE = '@hydra1902/harness-host-directory-picker-native'
+const BROWSE = '@hydra1902/harness-host-directory-picker-browse'
+const NATIVE_SURFACE = '@hydra1902/harness-client-ui-directory-picker-native'
+const BROWSE_SURFACE = '@hydra1902/harness-client-ui-directory-picker-browse'
 
 /**
  * Loader-visible stand-in for a client surface package: the surfaces belong to
@@ -95,7 +95,7 @@ async function loadComposition(
   root = await mkdtemp(join(tmpdir(), 'hydra-directory-picker-auto-'))
   const configPath = join(root, 'cordis.yml')
   await writeFile(configPath, [
-    "- name: '@hydra/harness-host-webserver'",
+    "- name: '@hydra1902/harness-host-webserver'",
     '  config:',
     `    host: '${bindHost}'`,
     '    port: 0',
@@ -108,7 +108,7 @@ async function loadComposition(
   await context.plugin(Loader)
   context.loader.builtins.include = Include
   const modules = new Map<string, unknown>([
-    ['@hydra/harness-host-webserver', HttpServer],
+    ['@hydra1902/harness-host-webserver', HttpServer],
     [AUTO, DirectoryPickerAuto],
     [NATIVE, NativeDirectoryPicker],
     [BROWSE, BrowseDirectoryPicker],

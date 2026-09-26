@@ -9,9 +9,9 @@
 // no web card (the tools keep a generic pending view), so a running row is the
 // summary line alone.
 
-import type { Context } from '@hydra/cordis'
-import { IconBrowseOutline16, IconGlobeOutline14 } from '@hydra/harness-client-ui-primitives'
-import type { PropsLocale } from '@hydra/harness-client-ui-slots'
+import type { Context } from '@hydra1902/cordis'
+import { IconBrowseOutline16, IconGlobeOutline14 } from '@hydra1902/harness-client-ui-primitives'
+import type { PropsLocale } from '@hydra1902/harness-client-ui-slots'
 import type { ToolCallViewProps } from '../../contract/slots.ts'
 import { webCardModel } from '../models/web-card-model.ts'
 import { toolRowModel } from '../models/tool-call-model.ts'

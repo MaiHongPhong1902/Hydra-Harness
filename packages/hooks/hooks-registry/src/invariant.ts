@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra/harness-hooks-registry`.
- * @module @hydra/harness-hooks-registry/invariant
+ * Package-owned invariant companion for `@hydra1902/harness-hooks-registry`.
+ * @module @hydra1902/harness-hooks-registry/invariant
  */
 
-import type { Context } from '@hydra/cordis'
-import type { InvariantFailure, InvariantInstaller } from '@hydra/harness-invariants'
+import type { Context } from '@hydra1902/cordis'
+import type { InvariantFailure, InvariantInstaller } from '@hydra1902/harness-invariants'
 import type { HookRecordSnapshot } from './types.ts'
 
-const PACKAGE_NAME = '@hydra/harness-hooks-registry'
+const PACKAGE_NAME = '@hydra1902/harness-hooks-registry'
 
 /** Cordis companion plugin name. */
 export const name = 'hooks-registry-invariant'

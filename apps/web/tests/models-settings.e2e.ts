@@ -19,10 +19,10 @@ import { join } from 'node:path'
 import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
-import { Context } from '@hydra/cordis'
-import { Config as PiAiConfig } from '@hydra/harness-llm-pi-ai'
-import { settingsNamespace } from '@hydra/harness-settings'
-import FileSettingsProvider from '@hydra/harness-settings-file'
+import { Context } from '@hydra1902/cordis'
+import { Config as PiAiConfig } from '@hydra1902/harness-llm-pi-ai'
+import { settingsNamespace } from '@hydra1902/harness-settings'
+import FileSettingsProvider from '@hydra1902/harness-settings-file'
 import {
   assertFixtureInventory, captureStableAria, compareOrRefreshGolden,
   launchWebScaffold, watchConsole, webSnapshotMode, type WebScaffold,

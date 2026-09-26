@@ -8,43 +8,43 @@ import { mkdir, readFile, stat } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { z as zod } from 'zod'
-import type { Context } from '@hydra/cordis'
-import { AuthorizationDeclinedError, authorizationAccountId } from '@hydra/harness-authorization'
-import type { AuthorizationPrompt } from '@hydra/harness-authorization'
-import { USER_GLOBAL_FILE } from '@hydra/harness-agent-instructions'
-import { withFileLock, writeFileAtomic } from '@hydra/harness-atomic-write'
-import { resolveHydraHome } from '@hydra/harness-home-paths'
-import type {} from '@hydra/harness-fs-review'
-import { installModelSelection } from '@hydra/harness-agent'
-import type { Agent, AgentHandle, ModelSelection, ModelSelectionRef, AgentOptions, AgentStatus } from '@hydra/harness-agent'
-import type {} from '@hydra/harness-agent-presets/types'
-import { AttachmentError, admitEncodedImages } from '@hydra/harness-attachment'
-import type { ImageAttachmentRef } from '@hydra/harness-attachment'
-import { contentHasImage, createUserMessage, freezeMessage, ReasoningEffortId } from '@hydra/harness-llm'
-import { errorChain } from '@hydra/harness-llm'
-import type { ContentBlock, MessageSource } from '@hydra/harness-llm'
-import { isAppendSurfaceEvent, isJsonValue } from '@hydra/harness-session'
-import type { JsonValue, Session, SessionEvent, SessionEventMap, SessionHeader, SessionId, UserMessage } from '@hydra/harness-session'
-import type { SessionPersistence } from '@hydra/harness-session-persistence'
+import type { Context } from '@hydra1902/cordis'
+import { AuthorizationDeclinedError, authorizationAccountId } from '@hydra1902/harness-authorization'
+import type { AuthorizationPrompt } from '@hydra1902/harness-authorization'
+import { USER_GLOBAL_FILE } from '@hydra1902/harness-agent-instructions'
+import { withFileLock, writeFileAtomic } from '@hydra1902/harness-atomic-write'
+import { resolveHydraHome } from '@hydra1902/harness-home-paths'
+import type {} from '@hydra1902/harness-fs-review'
+import { installModelSelection } from '@hydra1902/harness-agent'
+import type { Agent, AgentHandle, ModelSelection, ModelSelectionRef, AgentOptions, AgentStatus } from '@hydra1902/harness-agent'
+import type {} from '@hydra1902/harness-agent-presets/types'
+import { AttachmentError, admitEncodedImages } from '@hydra1902/harness-attachment'
+import type { ImageAttachmentRef } from '@hydra1902/harness-attachment'
+import { contentHasImage, createUserMessage, freezeMessage, ReasoningEffortId } from '@hydra1902/harness-llm'
+import { errorChain } from '@hydra1902/harness-llm'
+import type { ContentBlock, MessageSource } from '@hydra1902/harness-llm'
+import { isAppendSurfaceEvent, isJsonValue } from '@hydra1902/harness-session'
+import type { JsonValue, Session, SessionEvent, SessionEventMap, SessionHeader, SessionId, UserMessage } from '@hydra1902/harness-session'
+import type { SessionPersistence } from '@hydra1902/harness-session-persistence'
 // Type-only: resolves the optional permission-default owner notified after
 // the Web proposes and the Host verifies a Workspace blank reuse target.
-import type {} from '@hydra/harness-permission-presets'
-import { SessionQueryError, type SessionSearchCursor } from '@hydra/harness-session-query'
-import { SubagentError } from '@hydra/harness-subagent'
-import type { SubagentListEntry as CatalogSubagentListEntry } from '@hydra/harness-subagent'
-import { isUserInvocable } from '@hydra/harness-skill'
-import type { Workspace, WorkspaceRecord } from '@hydra/harness-workspace'
+import type {} from '@hydra1902/harness-permission-presets'
+import { SessionQueryError, type SessionSearchCursor } from '@hydra1902/harness-session-query'
+import { SubagentError } from '@hydra1902/harness-subagent'
+import type { SubagentListEntry as CatalogSubagentListEntry } from '@hydra1902/harness-subagent'
+import { isUserInvocable } from '@hydra1902/harness-skill'
+import type { Workspace, WorkspaceRecord } from '@hydra1902/harness-workspace'
 import {
   workspaceDomainState, workspaceRecord, WorkspaceId as brandWorkspaceId,
   WorkspaceMoveInvalidError, WorkspaceOrderInvalidError, WorkspaceUnknownSessionError,
-} from '@hydra/harness-workspace'
+} from '@hydra1902/harness-workspace'
 // Type-only: brings the `ctx.tools` Context merge into this program (viewFor reads presenters).
 import {
   InvalidPresetIdError, PresetExistsError, PresetMountError,
   PresetNotWritableError, resolveSessionPreset, UnknownPresetError,
-} from '@hydra/harness-agent-presets'
-import type { PresetBearingSession } from '@hydra/harness-agent-presets'
-import type {} from '@hydra/harness-tools'
+} from '@hydra1902/harness-agent-presets'
+import type { PresetBearingSession } from '@hydra1902/harness-agent-presets'
+import type {} from '@hydra1902/harness-tools'
 import type {
   ApiProxy, ConfigurableProviderView, CredentialView, GoalRef, HistoryEntry, HostFrame,
   InstructionsDocumentView, MemoryEntryView, ModelCatalogFailure, ModelProviderGroup,
@@ -62,46 +62,46 @@ import {
   type SessionLogExportReady,
   type SessionLogCompressionLevel,
 } from './session-export.ts'
-import type { SessionRawArtifact } from '@hydra/harness-session-persistence'
+import type { SessionRawArtifact } from '@hydra1902/harness-session-persistence'
 import {
   SESSION_SEARCH_RESULT_LIMIT,
   SESSION_SEARCH_SNIPPET_MAX_CODE_POINTS,
   truncateUnicodeCodePoints,
 } from './api/session-search.ts'
 // Type-only: resolves `ctx.get('sessionProjections')` to the projection registry.
-import type {} from '@hydra/harness-session-projection'
+import type {} from '@hydra1902/harness-session-projection'
 // Type-only: resolves `ctx.get('tasks')` to the background job registry.
-import type {} from '@hydra/harness-jobs'
-import type { JobSnapshot } from '@hydra/harness-jobs'
+import type {} from '@hydra1902/harness-jobs'
+import type { JobSnapshot } from '@hydra1902/harness-jobs'
 // Type-only: resolves `ctx.get('sessionProjectionCache')` (the cold listing column).
-import type {} from '@hydra/harness-session-projection-cache'
+import type {} from '@hydra1902/harness-session-projection-cache'
 // GoalError narrows domain rejections to their stable codes at the wire boundary.
-import { GoalError } from '@hydra/harness-goal'
-import type { GoalRef as CoreGoalRef } from '@hydra/harness-goal'
+import { GoalError } from '@hydra1902/harness-goal'
+import type { GoalRef as CoreGoalRef } from '@hydra1902/harness-goal'
 // Type-only edges: resolve the command-change stream and `ctx.get('skills')`.
-import type {} from '@hydra/harness-commands'
+import type {} from '@hydra1902/harness-commands'
 // Type-only: the dynamic-package runner's forwarded-event declarations. Its
 // client-safe `./types` subpath deliberately, not the package root — the root
 // merges `ctx.dynamicCordisRunner`, and a dependency on that package would
 // rebuild the api-remotes cycle this direction exists to avoid.
-import type {} from '@hydra/harness-cordis-host-runner/types'
-import type {} from '@hydra/harness-skill/types'
+import type {} from '@hydra1902/harness-cordis-host-runner/types'
+import type {} from '@hydra1902/harness-skill/types'
 // The settings/credentials seams: brand guards run at this wire boundary; the
 // service reads stay optional (`ctx.get`) so a composition without either
 // provider still serves every other domain.
-import { SettingsConflictError, settingsNamespace } from '@hydra/harness-settings'
-import type { SettingsDescriptor, SettingsNamespace, SettingsPathOp } from '@hydra/harness-settings'
-import { SearchProviderError } from '@hydra/harness-web'
-import { credentialRef, parseCredentialKey } from '@hydra/harness-credentials'
+import { SettingsConflictError, settingsNamespace } from '@hydra1902/harness-settings'
+import type { SettingsDescriptor, SettingsNamespace, SettingsPathOp } from '@hydra1902/harness-settings'
+import { SearchProviderError } from '@hydra1902/harness-web'
+import { credentialRef, parseCredentialKey } from '@hydra1902/harness-credentials'
 // Value edge: the rename impl narrows the title service's validation failure; the import also resolves `ctx.get('sessionTitle')`.
-import { SessionTitleInvalidError } from '@hydra/harness-session-title'
-import type { CallId } from '@hydra/harness-llm/brand'
-import type { Branded } from '@hydra/harness-brand'
-import type { ScopeKey } from '@hydra/harness-scope'
-import type { ApprovalOutcome, ApprovalRequestId } from '@hydra/harness-user-approval'
+import { SessionTitleInvalidError } from '@hydra1902/harness-session-title'
+import type { CallId } from '@hydra1902/harness-llm/brand'
+import type { Branded } from '@hydra1902/harness-brand'
+import type { ScopeKey } from '@hydra1902/harness-scope'
+import type { ApprovalOutcome, ApprovalRequestId } from '@hydra1902/harness-user-approval'
 // Side-effect type import: resolves the `approval/request` waterfall and
 // `ctx.get('approval')` without a value dependency on the seam (optional composition).
-import type {} from '@hydra/harness-user-approval'
+import type {} from '@hydra1902/harness-user-approval'
 import { approvalResponsePayloadSchema } from './api/approvals.schema.ts'
 import { conversationRevisionSchema, imageLimitsProjectionSchema, sessionListMetadataProjectionSchema, sessionReviseRequestSchema } from './api/sessions.schema.ts'
 import { questionResponsePayloadSchema } from './api/questions.schema.ts'
@@ -109,9 +109,9 @@ import type { ClientResponse, RpcError, RpcReceipt, RpcRequest, RpcResponse } fr
 import { RpcId } from './api/rpc.ts'
 import type {
   AskUserQuestionAnswer, AskUserQuestionItem, AskUserQuestionRequest,
-} from '@hydra/harness-user-questions'
-import { UserQuestionError } from '@hydra/harness-user-questions'
-import { DirectoryPickerError } from '@hydra/harness-host-directory-picker'
+} from '@hydra1902/harness-user-questions'
+import { UserQuestionError } from '@hydra1902/harness-user-questions'
+import { DirectoryPickerError } from '@hydra1902/harness-host-directory-picker'
 import {
   ApiRemoteSessionNotFound as SessionNotFound,
   ApiRemoteSubagentSessionOwnership as SubagentSessionOwnership,
@@ -120,7 +120,7 @@ import {
   createApiRemoteAgentResolver,
   hasApiRemoteSubagentOwner,
   inspectApiRemoteSession,
-} from '@hydra/harness-api-remotes'
+} from '@hydra1902/harness-api-remotes'
 import { canOpenNativePath, openNativePath, openNativeTextFile } from './native-path-opener.ts'
 import { createPromptReviser } from './prompt-revisions.ts'
 import { readWorkspaceReview, resolveReviewLimits } from './workspace-review.ts'
@@ -718,7 +718,7 @@ interface PendingAuthorizationPrompt {
 /** Host-local state for one opaque browser authorization attempt id. */
 interface AuthorizationAttempt {
   readonly id: AuthorizationAttemptId
-  readonly key: import('@hydra/harness-credentials').CredentialKey
+  readonly key: import('@hydra1902/harness-credentials').CredentialKey
   status: AuthorizationAttemptView['status']
   notice?: AuthorizationAttemptView['notice']
   error?: string
@@ -1006,7 +1006,7 @@ function subagentPromptError(
 function projectionsUnavailableError(): RpcError {
   return {
     code: 'internal',
-    message: 'subagent catalog is unavailable: this deployment does not mount the sessionProjections registry (load @hydra/harness-session-projection)',
+    message: 'subagent catalog is unavailable: this deployment does not mount the sessionProjections registry (load @hydra1902/harness-session-projection)',
     details: {},
   }
 }
@@ -1197,7 +1197,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
   const pendingApprovals = new Map<RpcId, PendingApproval>()
   const authorizationAttempts = new Map<AuthorizationAttemptId, AuthorizationAttempt>()
   const retainedAuthorizationAttempts = new Set<AuthorizationAttempt>()
-  const authorizationByKey = new Map<import('@hydra/harness-credentials').CredentialKey, AuthorizationAttemptId>()
+  const authorizationByKey = new Map<import('@hydra1902/harness-credentials').CredentialKey, AuthorizationAttemptId>()
   let authorizationDisposed = false
   const muxQueues = new Set<FrameQueue<RpcRequest<MuxFrame>>>()
   const imageAdmissionChains = new WeakMap<Agent, Promise<void>>()
@@ -1381,7 +1381,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
   // same state reference for every event, so no change frames are ever
   // pushed — baselines alone carry the value — and clients pre-check intake
   // and label upload affordances from it. Registered here, not in the
-  // attachment Service Definition: @hydra/harness-llm depends on @hydra/harness-attachment, so the
+  // attachment Service Definition: @hydra1902/harness-llm depends on @hydra1902/harness-attachment, so the
   // seam package cannot reference the projection registry without a cycle,
   // and the per-message rules the value describes are this proxy's own
   // admission checks. The child activates only while both seams are composed.
@@ -1904,7 +1904,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
     const presets = ctx.get('agentPresets')
     const goals = presets?.serviceFor(agent, 'goals') ?? ctx.get('goals')
     if (goals === undefined) {
-      return { error: { code: 'internal', message: 'goal service is absent: neither this session\'s agent preset nor the host composition mounts @hydra/harness-goal', details: {} } }
+      return { error: { code: 'internal', message: 'goal service is absent: neither this session\'s agent preset nor the host composition mounts @hydra1902/harness-goal', details: {} } }
     }
     return goals
   }
@@ -1983,7 +1983,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
 
   /** Missing-service report shared by the settings domain (skills-domain stance). */
   function settingsAbsent(): RpcError {
-    return { code: 'internal', message: 'settings service is absent: this deployment does not mount a settings provider (e.g. @hydra/harness-settings-file) in its composition', details: {} }
+    return { code: 'internal', message: 'settings service is absent: this deployment does not mount a settings provider (e.g. @hydra1902/harness-settings-file) in its composition', details: {} }
   }
 
   /** Open one Host-resolved target and map native failures onto the wire vocabulary. */
@@ -2037,7 +2037,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
 
   /** Missing-service report shared by the credentials domain. */
   function credentialsAbsent(): RpcError {
-    return { code: 'internal', message: 'credentials service is absent: this deployment does not mount a credential provider (e.g. @hydra/harness-credentials-local) in its composition', details: {} }
+    return { code: 'internal', message: 'credentials service is absent: this deployment does not mount a credential provider (e.g. @hydra1902/harness-credentials-local) in its composition', details: {} }
   }
 
   /** Safe, stable business error for authorization RPC failures. */
@@ -2401,7 +2401,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
         if (sessionQuery === undefined) {
           return err(request, {
             code: 'internal',
-            message: 'session search is unavailable: this deployment does not mount @hydra/harness-session-query',
+            message: 'session search is unavailable: this deployment does not mount @hydra1902/harness-session-query',
             details: {},
           })
         }
@@ -3679,7 +3679,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
         }
       },
 
-      // Authoring is privileged (see PRIVILEGED_METHODS in @hydra/harness-client-connection):
+      // Authoring is privileged (see PRIVILEGED_METHODS in @hydra1902/harness-client-connection):
       // a composition names the plugins a session runs, so reading one is
       // reconnaissance, and copy/remove/openDocument manage the roster and
       // drive the host desktop.
@@ -3777,12 +3777,12 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
         const presets = ctx.get('agentPresets')
         const scoped = live === undefined ? undefined : presets?.serviceFor(live, 'skills')
         // Same stance as the commands domain: a missing service means no
-        // composition mounts @hydra/harness-skill, not an empty catalog. `ctx.get` also
+        // composition mounts @hydra1902/harness-skill, not an empty catalog. `ctx.get` also
         // keeps this handler independent of the gateway plugin's inject list
         // (an undeclared `ctx.skills` property read fails the reflect proxy).
         const skillRegistry = scoped ?? ctx.get('skills')
         if (skillRegistry === undefined) {
-          return err(request, { code: 'internal', message: 'skill registry is absent: neither this session\'s agent preset nor the host composition mounts @hydra/harness-skill', details: {} })
+          return err(request, { code: 'internal', message: 'skill registry is absent: neither this session\'s agent preset nor the host composition mounts @hydra1902/harness-skill', details: {} })
         }
         // The scope presenters resolve in — the live agent, else the recorded
         // preset's standing key, else the global layer — so a cold session's
@@ -3894,7 +3894,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
         const authorization = ctx.get('authorization')
         if (authorization === undefined) return authorizationFailure(request, 'authorization is unavailable')
         if (authorizationDisposed) return authorizationFailure(request, 'authorization is unavailable')
-        let key: import('@hydra/harness-credentials').CredentialKey
+        let key: import('@hydra1902/harness-credentials').CredentialKey
         try {
           key = parseCredentialKey(request.payload.key)
         } catch {
@@ -3967,7 +3967,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
       async logout(request) {
         const authorization = ctx.get('authorization')
         if (authorization === undefined) return authorizationFailure(request, 'authorization is unavailable')
-        let key: import('@hydra/harness-credentials').CredentialKey
+        let key: import('@hydra1902/harness-credentials').CredentialKey
         try {
           key = parseCredentialKey(request.payload.key)
         } catch {
@@ -3987,7 +3987,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
       async usage(request, signal) {
         const authorization = ctx.get('authorization')
         if (authorization === undefined) return authorizationFailure(request, 'authorization is unavailable')
-        let key: import('@hydra/harness-credentials').CredentialKey
+        let key: import('@hydra1902/harness-credentials').CredentialKey
         try {
           key = parseCredentialKey(request.payload.key)
         } catch {

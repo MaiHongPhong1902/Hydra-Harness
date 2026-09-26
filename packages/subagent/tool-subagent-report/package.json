@@ -1,5 +1,5 @@
 {
-  "name": "@hydra/harness-tool-subagent-report",
+  "name": "@hydra1902/harness-tool-subagent-report",
   "description": "Child-scoped report tool over ctx.subagents continuations",
   "hydra": {
     "plugin": {
@@ -37,30 +37,30 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-subagent": "workspace:^",
-    "@hydra/harness-system-prompt": "workspace:^",
-    "@hydra/harness-tools": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-subagent": "workspace:^",
+    "@hydra1902/harness-system-prompt": "workspace:^",
+    "@hydra1902/harness-tools": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "dependencies": {
-    "@hydra/schemastery": "workspace:^"
+    "@hydra1902/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/harness-agent": "workspace:^",
-    "@hydra/harness-agent-loop": "workspace:^",
-    "@hydra/harness-agent-loop-testkit": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-session-persistence": "workspace:^",
-    "@hydra/harness-session-persistence-jsonl": "workspace:^",
-    "@hydra/harness-subagent": "workspace:^",
-    "@hydra/harness-subagent-spawn-in-process": "workspace:^",
-    "@hydra/harness-system-prompt": "workspace:^",
-    "@hydra/harness-tool-subagent-control": "workspace:^",
-    "@hydra/harness-tools": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-agent": "workspace:^",
+    "@hydra1902/harness-agent-loop": "workspace:^",
+    "@hydra1902/harness-agent-loop-testkit": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-session-persistence": "workspace:^",
+    "@hydra1902/harness-session-persistence-jsonl": "workspace:^",
+    "@hydra1902/harness-subagent": "workspace:^",
+    "@hydra1902/harness-subagent-spawn-in-process": "workspace:^",
+    "@hydra1902/harness-system-prompt": "workspace:^",
+    "@hydra1902/harness-tool-subagent-control": "workspace:^",
+    "@hydra1902/harness-tools": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   }
 }

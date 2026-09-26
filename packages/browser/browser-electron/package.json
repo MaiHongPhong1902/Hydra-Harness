@@ -1,5 +1,5 @@
 {
-  "name": "@hydra/harness-browser-electron",
+  "name": "@hydra1902/harness-browser-electron",
   "description": "Embedded browser seam for the Hydra harness — an owner-scoped Electron child process running the upstream PageAgent engine behind Hydra controls",
   "hydra": {
     "plugin": {
@@ -48,14 +48,14 @@
     "build:preload": "vite build -c vite.preload.config.js"
   },
   "peerDependencies": {
-    "@hydra/cordis": "workspace:^",
-    "@hydra/harness-agent": "workspace:^",
-    "@hydra/harness-home-paths": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-settings": "workspace:^",
-    "@hydra/harness-user-approval": "workspace:^",
-    "@hydra/harness-user-questions": "workspace:^",
-    "@hydra/schemastery": "workspace:^",
+    "@hydra1902/cordis": "workspace:^",
+    "@hydra1902/harness-agent": "workspace:^",
+    "@hydra1902/harness-home-paths": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-settings": "workspace:^",
+    "@hydra1902/harness-user-approval": "workspace:^",
+    "@hydra1902/harness-user-questions": "workspace:^",
+    "@hydra1902/schemastery": "workspace:^",
     "electron": "^43.4.1"
   },
   "peerDependenciesMeta": {
@@ -64,15 +64,15 @@
     }
   },
   "devDependencies": {
-    "@hydra/cordis": "workspace:^",
-    "@hydra/harness-agent": "workspace:^",
-    "@hydra/harness-home-paths": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-settings": "workspace:^",
-    "@hydra/harness-user-approval": "workspace:^",
-    "@hydra/harness-user-questions": "workspace:^",
-    "@hydra/schemastery": "workspace:^",
+    "@hydra1902/cordis": "workspace:^",
+    "@hydra1902/harness-agent": "workspace:^",
+    "@hydra1902/harness-home-paths": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-settings": "workspace:^",
+    "@hydra1902/harness-user-approval": "workspace:^",
+    "@hydra1902/harness-user-questions": "workspace:^",
+    "@hydra1902/schemastery": "workspace:^",
     "@page-agent/core": "workspace:^",
     "@page-agent/page-controller": "workspace:^",
     "electron": "^43.4.1",

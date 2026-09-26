@@ -4,12 +4,12 @@
  * `unit_globals` table. Each primitive is a single statement, so atomicity
  * comes from SQLite itself — no explicit transactions, and no write queue
  * (write ordering is the caller's responsibility per the KV contract).
- * @module @hydra/harness-storage-sqlite/unit
+ * @module @hydra1902/harness-storage-sqlite/unit
  */
 
 import type { DatabaseSync, StatementSync } from 'node:sqlite'
-import { StorageError } from '@hydra/harness-storage'
-import type { KvUnit, KvUnitDescriptor } from '@hydra/harness-storage'
+import { StorageError } from '@hydra1902/harness-storage'
+import type { KvUnit, KvUnitDescriptor } from '@hydra1902/harness-storage'
 import { recordTableName } from './schema.ts'
 
 /** Prepared statements for one declared table. */

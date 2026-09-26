@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, within } from '@testing-library/react'
-import type { ReviewChange, WorkspaceReview } from '@hydra/harness-fs-review/client'
-import { bindSnapshotSelector } from '@hydra/harness-client-test-runtime'
+import type { ReviewChange, WorkspaceReview } from '@hydra1902/harness-fs-review/client'
+import { bindSnapshotSelector } from '@hydra1902/harness-client-test-runtime'
 import { ChangeRow, InlineReview, ReviewPanel, sameWorkspace } from '../src/client/Review.tsx'
 import { ReviewHistory, type ReviewSnapshot } from '../src/client/history.ts'
 import { change, ok } from './fixture.ts'

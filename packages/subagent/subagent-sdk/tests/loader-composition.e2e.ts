@@ -14,8 +14,8 @@ import { readFile, readdir } from 'node:fs/promises'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { type SessionEvent } from '@hydra/harness-session'
-import { resolveExampleLaunch, runLoaderSmoke } from '@hydra/harness-loader-smoke'
+import { type SessionEvent } from '@hydra1902/harness-session'
+import { resolveExampleLaunch, runLoaderSmoke } from '@hydra1902/harness-loader-smoke'
 
 const fixtureDir = new URL('../../../../examples/jsonrpc-agent/tests/fixtures/subagent/subagent-sdk/', import.meta.url)
 const driver = fileURLToPath(new URL('driver.ts', fixtureDir))

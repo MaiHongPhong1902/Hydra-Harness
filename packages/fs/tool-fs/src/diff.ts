@@ -1,11 +1,11 @@
 /**
  * Result-time contextual diff presentation for write and edit. Storage returns before/after
  * text; this model-facing layer derives one three-line-context card per applied hunk.
- * @module @hydra/harness-tool-fs/src/diff
+ * @module @hydra1902/harness-tool-fs/src/diff
  */
 
 import { structuredPatch } from 'diff'
-import type { FileDiff } from '@hydra/harness-tools'
+import type { FileDiff } from '@hydra1902/harness-tools'
 
 /** Context lines shown on each side of an applied hunk. */
 export const DIFF_CONTEXT = 3

@@ -11,7 +11,7 @@
  * — so each renders only what it owns.
  */
 
-import type { InjectFace, PropsLocale, PropsRenderSlots, PropsRuntime } from '@hydra/harness-client-ui-slots'
+import type { InjectFace, PropsLocale, PropsRenderSlots, PropsRuntime } from '@hydra1902/harness-client-ui-slots'
 import { HookRecordCatalog, type UserHookControls } from './HookRecordCatalog.tsx'
 import css from './PluginsSettingsSection.module.css'
 

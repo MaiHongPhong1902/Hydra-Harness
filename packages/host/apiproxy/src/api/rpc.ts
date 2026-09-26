@@ -7,9 +7,9 @@
 
 import type { z as zCore } from 'zod'
 type ZodIssue = zCore.core.$ZodIssue
-import type { Branded } from '@hydra/harness-brand'
-import type { MessageId } from '@hydra/harness-llm/brand'
-import type { SessionId } from '@hydra/harness-session/types'
+import type { Branded } from '@hydra1902/harness-brand'
+import type { MessageId } from '@hydra1902/harness-llm/brand'
+import type { SessionId } from '@hydra1902/harness-session/types'
 
 /**
  * Message correlation id: the initiator mints it on a request; a response

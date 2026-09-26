@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import { createMessage, createUserMessage } from '@hydra/harness-llm'
-import type { TokenUsage } from '@hydra/harness-llm'
-import SessionStore from '@hydra/harness-session'
-import type { Session } from '@hydra/harness-session'
-import SessionProjectionRegistry from '@hydra/harness-session-projection'
-import TokenMeter from '@hydra/harness-token-meter'
+import { Context } from '@hydra1902/cordis'
+import { createMessage, createUserMessage } from '@hydra1902/harness-llm'
+import type { TokenUsage } from '@hydra1902/harness-llm'
+import SessionStore from '@hydra1902/harness-session'
+import type { Session } from '@hydra1902/harness-session'
+import SessionProjectionRegistry from '@hydra1902/harness-session-projection'
+import TokenMeter from '@hydra1902/harness-token-meter'
 import type {
   ContextPressureProjection, ModelTokenUsageProjection, TokenUsageProjection,
-} from '@hydra/harness-token-meter/client'
-import { CompactionId } from '@hydra/harness-compaction'
+} from '@hydra1902/harness-token-meter/client'
+import { CompactionId } from '@hydra1902/harness-compaction'
 import { modelTokenUsageProjectionDefinition } from '../src/usage-projection.ts'
 
 const ZERO: TokenUsageProjection = {

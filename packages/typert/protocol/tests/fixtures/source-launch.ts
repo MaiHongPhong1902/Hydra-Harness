@@ -1,10 +1,10 @@
-import { Context } from '@hydra/cordis'
+import { Context } from '@hydra1902/cordis'
 import {
   TypertRemoteService,
   Remote,
   RemoteScope,
   remoteMethods,
-} from '@hydra/harness-typert-protocol'
+} from '@hydra1902/harness-typert-protocol'
 
 class Goals extends TypertRemoteService {
   constructor(ctx: Context) {

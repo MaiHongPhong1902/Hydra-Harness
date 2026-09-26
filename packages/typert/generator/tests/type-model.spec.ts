@@ -834,7 +834,7 @@ describe('WorkspaceAnalyzer', { timeout: 60_000 }, () => {
     writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`)
     writeFileSync(join(hostRoot, 'src/index.ts'), [
       'export {}',
-      "declare module '@hydra/cordis' {",
+      "declare module '@hydra1902/cordis' {",
       '  interface Context {}',
       '  interface Events {}',
       '  interface Ignored {}',
@@ -1237,10 +1237,10 @@ function configureDualRuntimeClient(root: string, splitProjects: boolean): void 
   }
   writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`)
   writeFileSync(join(packageRoot, 'src/client.ts'), [
-    "import { Service } from '@hydra/cordis'",
+    "import { Service } from '@hydra1902/cordis'",
     'export interface ClientOnlyMarker { readonly client: true }',
     'export class BrowserBridge extends Service {}',
-    "declare module '@hydra/cordis' { interface Context { browserBridge: BrowserBridge } }",
+    "declare module '@hydra1902/cordis' { interface Context { browserBridge: BrowserBridge } }",
     '',
   ].join('\n'))
   const indexPath = join(packageRoot, 'src/index.ts')
@@ -1338,14 +1338,14 @@ function addExplicitServicePackage(root: string, annotation: string, withProtoco
       '  /** Report protocol readiness. */',
       '  ready(): boolean',
       '}',
-      "declare module '@hydra/cordis' {",
+      "declare module '@hydra1902/cordis' {",
       '  interface Context { detached: DetachedProtocol }',
       '}',
       '',
     ].join('\n'))
   }
   writeFileSync(join(packageRoot, 'src/index.ts'), [
-    "import { Service } from '@hydra/cordis'",
+    "import { Service } from '@hydra1902/cordis'",
     ...(withProtocol ? ["export type { DetachedProtocol } from './types.ts'"] : []),
     '/**',
     ' * Service implementation discovered independently of its protocol package.',

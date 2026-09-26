@@ -1,7 +1,7 @@
 /** Desktop tab host for workspace tools and per-workspace bottom terminals. */
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from 'react'
-import type { SessionId, WorkspaceId } from '@hydra/harness-client-runtime/client'
+import type { SessionId, WorkspaceId } from '@hydra1902/harness-client-runtime/client'
 import {
   IconApiOutline14,
   IconChecklistOutline14,
@@ -9,7 +9,7 @@ import {
   IconFolderOpenOutline16,
   IconGlobeOutline14,
   IconNewChatOutline16,
-} from '@hydra/harness-client-ui-primitives'
+} from '@hydra1902/harness-client-ui-primitives'
 import { DesktopFilesPanel, type DesktopFilesApi } from './DesktopFilesPanel.tsx'
 import { DesktopTerminalPanel } from './DesktopTerminalPanel.tsx'
 import css from './DesktopBrowserPanel.module.css'

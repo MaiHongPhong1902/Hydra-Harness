@@ -13,13 +13,13 @@
  * projections. Direct driving is deliberate: this spec owns only the
  * source's own contract.
  */
-import { Context } from '@hydra/cordis'
+import { Context } from '@hydra1902/cordis'
 import { describe, expect, it, vi } from 'vitest'
-import type { SessionId } from '@hydra/harness-client-runtime/client'
-import { SlotRegistry } from '@hydra/harness-client-runtime/client'
-import { InputTriggerService } from '@hydra/harness-client-ui-input-trigger/client'
-import { TestRemote } from '@hydra/harness-client-test-runtime'
-import type { ClientSessionContext, InputTriggerSource } from '@hydra/harness-client-ui-input-trigger/client'
+import type { SessionId } from '@hydra1902/harness-client-runtime/client'
+import { SlotRegistry } from '@hydra1902/harness-client-runtime/client'
+import { InputTriggerService } from '@hydra1902/harness-client-ui-input-trigger/client'
+import { TestRemote } from '@hydra1902/harness-client-test-runtime'
+import type { ClientSessionContext, InputTriggerSource } from '@hydra1902/harness-client-ui-input-trigger/client'
 import { apply, inject } from '../src/client/index.ts'
 import { en } from '../src/client/locales.ts'
 import { SkillRow as SkillToolRow } from '../src/client/SkillRow.tsx'

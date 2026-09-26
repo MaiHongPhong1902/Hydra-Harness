@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup } from '@testing-library/react'
-import { Context } from '@hydra/cordis'
-import { SlotRegistry } from '@hydra/harness-client-runtime/client'
-import { TestSessions, TestWorkspaces } from '@hydra/harness-client-test-runtime'
-import type { Stabilizer } from '@hydra/harness-client-test-runtime'
-import { apply as nodeApply } from '@hydra/harness-client-ui-renderer'
+import { Context } from '@hydra1902/cordis'
+import { SlotRegistry } from '@hydra1902/harness-client-runtime/client'
+import { TestSessions, TestWorkspaces } from '@hydra1902/harness-client-test-runtime'
+import type { Stabilizer } from '@hydra1902/harness-client-test-runtime'
+import { apply as nodeApply } from '@hydra1902/harness-client-ui-renderer'
 import * as UiRenderer from '../src/client/index.ts'
 
 const mounted: (() => void)[] = []

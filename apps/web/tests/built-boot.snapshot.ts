@@ -132,7 +132,7 @@ it('boots the built plugin graph and renders a fixture session end to end', asyn
   // Every bundle injected its plugin-owned style tag (the loader's CSS path).
   const styleOwners = [...document.head.querySelectorAll('style[data-plugin]')]
     .map(style => style.getAttribute('data-plugin'))
-  for (const plugin of ['@hydra/harness-client-ui-layout', '@hydra/harness-client-ui-sidebar', '@hydra/harness-client-ui-conversation', '@hydra/harness-client-ui-tool']) {
+  for (const plugin of ['@hydra1902/harness-client-ui-layout', '@hydra1902/harness-client-ui-sidebar', '@hydra1902/harness-client-ui-conversation', '@hydra1902/harness-client-ui-tool']) {
     expect(styleOwners).toContain(plugin)
   }
 })

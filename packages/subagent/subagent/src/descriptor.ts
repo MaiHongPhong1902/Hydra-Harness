@@ -18,14 +18,14 @@
  * durable descriptor, so it neither restores the prior budget nor inherits
  * the parent's current one; the resumed route's defaults apply instead.
  *
- * @module @hydra/harness-subagent/descriptor
+ * @module @hydra1902/harness-subagent/descriptor
  */
 
-import { snapshotJsonValue } from '@hydra/harness-session'
-import type { SessionEvent } from '@hydra/harness-session'
-import type { ToolRestriction } from '@hydra/harness-tools'
+import { snapshotJsonValue } from '@hydra1902/harness-session'
+import type { SessionEvent } from '@hydra1902/harness-session'
+import type { ToolRestriction } from '@hydra1902/harness-tools'
 
-declare module '@hydra/harness-session/types' {
+declare module '@hydra1902/harness-session/types' {
   interface SessionEventMap {
     /**
      * Durable identity and lifecycle mode of a session-backed subagent child,

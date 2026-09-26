@@ -5,7 +5,7 @@
  * serve it — `./types` for host consumers, `./client` for client aggregates —
  * with zero content duplication.
  *
- * @module @hydra/harness-session-stats/types
+ * @module @hydra1902/harness-session-stats/types
  */
 
 // Marks this file a module so the declaration below AUGMENTS the projection
@@ -38,7 +38,7 @@ export interface SessionStatsProjection {
   decodeTokens: number
 }
 
-declare module '@hydra/harness-session-projection/types' {
+declare module '@hydra1902/harness-session-projection/types' {
   interface SessionProjectionMap {
     /** Whole-log turn/step counts and wall times; see {@link SessionStatsProjection}. */
     sessionStats: SessionStatsProjection

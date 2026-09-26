@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import { scopeTarget } from '@hydra/harness-scope'
-import { CallId } from '@hydra/harness-llm'
-import SessionStore, { Session, SessionId } from '@hydra/harness-session'
-import type { ToolExecution, ToolExecutionResult, ToolExecutionToken } from '@hydra/harness-tools'
-import * as ToolsInvariant from '@hydra/harness-tools/invariant'
-import InvariantRegistry from '@hydra/harness-invariants'
+import { Context } from '@hydra1902/cordis'
+import { scopeTarget } from '@hydra1902/harness-scope'
+import { CallId } from '@hydra1902/harness-llm'
+import SessionStore, { Session, SessionId } from '@hydra1902/harness-session'
+import type { ToolExecution, ToolExecutionResult, ToolExecutionToken } from '@hydra1902/harness-tools'
+import * as ToolsInvariant from '@hydra1902/harness-tools/invariant'
+import InvariantRegistry from '@hydra1902/harness-invariants'
 
 const testToolSignal = new AbortController().signal
 

@@ -1,5 +1,5 @@
 {
-  "name": "@hydra/harness-session-title",
+  "name": "@hydra1902/harness-session-title",
   "description": "Log-backed session title service and provider registry for the Hydra harness",
   "hydra": {
     "plugin": {
@@ -46,25 +46,25 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra/harness-brand": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-session-projection": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-brand": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-session-projection": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "dependencies": {
-    "@hydra/schemastery": "workspace:^",
+    "@hydra1902/schemastery": "workspace:^",
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@hydra/harness-brand": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-session-persistence-jsonl": "workspace:^",
-    "@hydra/harness-session-persistence-sqlite": "workspace:^",
-    "@hydra/harness-session-projection": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-brand": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-session-persistence-jsonl": "workspace:^",
+    "@hydra1902/harness-session-persistence-sqlite": "workspace:^",
+    "@hydra1902/harness-session-projection": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   }
 }

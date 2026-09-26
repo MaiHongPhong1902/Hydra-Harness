@@ -6,7 +6,7 @@ import {
   type Omitted,
   type RetentionNotice,
   TextRetainer,
-} from '@hydra/harness-output-retention'
+} from '@hydra1902/harness-output-retention'
 
 /** Decode a RetainedText via a round-trip helper for readable UTF-8 assertions. */
 const utf8 = (s: string): Uint8Array => new TextEncoder().encode(s)

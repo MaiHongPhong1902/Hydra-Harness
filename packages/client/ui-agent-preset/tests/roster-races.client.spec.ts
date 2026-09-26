@@ -1,6 +1,6 @@
 /** Preset mutation refreshes that overlap an older directory read. */
 import { expect, it, vi } from 'vitest'
-import type { RpcResponse } from '@hydra/harness-api-remotes/client'
+import type { RpcResponse } from '@hydra1902/harness-api-remotes/client'
 import { AgentPresetSectionController } from '../src/client/section-store.ts'
 import { AgentPresetSettingsController, type RosterValue } from '../src/client/settings-store.ts'
 

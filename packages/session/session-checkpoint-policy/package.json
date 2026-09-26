@@ -1,5 +1,5 @@
 {
-  "name": "@hydra/harness-session-checkpoint-policy",
+  "name": "@hydra1902/harness-session-checkpoint-policy",
   "description": "Semantic session durability checkpoints before model requests and tool side effects",
   "hydra": {
     "plugin": {
@@ -37,26 +37,26 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra/harness-agent": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-session-persistence": "workspace:^",
-    "@hydra/harness-tools": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-agent": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-session-persistence": "workspace:^",
+    "@hydra1902/harness-tools": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/cordis-plugin-loader": "workspace:^",
-    "@hydra/harness-agent": "workspace:^",
-    "@hydra/harness-agent-loop": "workspace:^",
-    "@hydra/harness-agent-loop-testkit": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-session-persistence": "workspace:^",
-    "@hydra/harness-session-persistence-jsonl": "workspace:^",
-    "@hydra/harness-system-prompt": "workspace:^",
-    "@hydra/harness-tools": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/cordis-plugin-loader": "workspace:^",
+    "@hydra1902/harness-agent": "workspace:^",
+    "@hydra1902/harness-agent-loop": "workspace:^",
+    "@hydra1902/harness-agent-loop-testkit": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-session-persistence": "workspace:^",
+    "@hydra1902/harness-session-persistence-jsonl": "workspace:^",
+    "@hydra1902/harness-system-prompt": "workspace:^",
+    "@hydra1902/harness-tools": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   }
 }

@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra/harness-typert-registry`.
- * @module @hydra/harness-typert-registry/invariant
+ * Package-owned invariant companion for `@hydra1902/harness-typert-registry`.
+ * @module @hydra1902/harness-typert-registry/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra/cordis'
-import type { InvariantInstaller } from '@hydra/harness-invariants'
+import type { Context } from '@hydra1902/cordis'
+import type { InvariantInstaller } from '@hydra1902/harness-invariants'
 
-const PACKAGE_NAME = '@hydra/harness-typert-registry'
+const PACKAGE_NAME = '@hydra1902/harness-typert-registry'
 
 /** Cordis companion plugin name. */
 export const name = 'typert-registry-invariant'

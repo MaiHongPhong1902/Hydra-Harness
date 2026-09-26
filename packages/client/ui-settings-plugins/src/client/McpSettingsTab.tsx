@@ -1,9 +1,9 @@
 /** Obsidian and imported-plugin MCP controls in the dedicated Plugins tab. */
 
 import { useEffect, useState } from 'react'
-import type { ImportedPluginSnapshot, PluginInventorySnapshot } from '@hydra/harness-api-remotes/client'
-import { Switch } from '@hydra/harness-client-ui-primitives'
-import type { InjectFace, PropsLocale, PropsRuntime } from '@hydra/harness-client-ui-slots'
+import type { ImportedPluginSnapshot, PluginInventorySnapshot } from '@hydra1902/harness-api-remotes/client'
+import { Switch } from '@hydra1902/harness-client-ui-primitives'
+import type { InjectFace, PropsLocale, PropsRuntime } from '@hydra1902/harness-client-ui-slots'
 import { SecretField } from './fields.tsx'
 import { McpServerCatalog, type UserMcpControls } from './McpServerCatalog.tsx'
 import { PluginCard } from './PluginCard.tsx'
@@ -16,7 +16,7 @@ export type McpSettingsTabProps =
   & PropsLocale<'settings.plugins'>
   & InjectFace<McpSettingsFace & ImportedMcpSettingsFace & NativeMcpSettingsFace & UserMcpSettingsFace>
 
-const OBSIDIAN_MCP_MODULE = '@hydra/harness-obsidian-knowledge'
+const OBSIDIAN_MCP_MODULE = '@hydra1902/harness-obsidian-knowledge'
 
 type ImportedMcpStartupState = ImportedPluginSnapshot['plugins'][number]['mcpServers'][number]['startupState']
 

@@ -1,5 +1,5 @@
 // Source of `preload.cjs` — do not load this file directly; Electron loads the
-// bundle. Rebuild with `pnpm --filter @hydra/harness-browser-electron run build:preload`.
+// bundle. Rebuild with `pnpm --filter @hydra1902/harness-browser-electron run build:preload`.
 //
 // This is the Electron counterpart of PageAgent's content script. It runs
 // PageController in the isolated world of every document the controlled view

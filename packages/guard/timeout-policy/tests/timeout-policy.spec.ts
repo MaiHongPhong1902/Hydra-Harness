@@ -1,5 +1,5 @@
 /**
- * Unit + real-load-path coverage for @hydra/harness-tool-call-timeout-policy. The
+ * Unit + real-load-path coverage for @hydra1902/harness-tool-call-timeout-policy. The
  * timeout-wins cases drive the deadline under fake timers (deterministic — no
  * wall-clock race) and use a COOPERATIVE tool that settles only when its
  * `exec.signal` aborts, mirroring how a real capability forwards the signal and
@@ -7,13 +7,13 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra/cordis'
-import Loader from '@hydra/cordis-plugin-loader'
-import { CallId, HarnessError } from '@hydra/harness-llm'
-import SystemPrompt from '@hydra/harness-system-prompt'
-import ToolRuntime, { defineContentToolFixture, TOOL_ABORTED, type ToolExecutionInput, type PostToolDecision } from '@hydra/harness-tools'
-import * as timeoutPolicy from '@hydra/harness-tool-call-timeout-policy'
-import { TOOL_TIMEOUT } from '@hydra/harness-tool-call-timeout-policy'
+import { Context } from '@hydra1902/cordis'
+import Loader from '@hydra1902/cordis-plugin-loader'
+import { CallId, HarnessError } from '@hydra1902/harness-llm'
+import SystemPrompt from '@hydra1902/harness-system-prompt'
+import ToolRuntime, { defineContentToolFixture, TOOL_ABORTED, type ToolExecutionInput, type PostToolDecision } from '@hydra1902/harness-tools'
+import * as timeoutPolicy from '@hydra1902/harness-tool-call-timeout-policy'
+import { TOOL_TIMEOUT } from '@hydra1902/harness-tool-call-timeout-policy'
 
 const testToolSignal = new AbortController().signal
 

@@ -1,5 +1,5 @@
 {
-  "name": "@hydra/harness-session-telemetry-otel",
+  "name": "@hydra1902/harness-session-telemetry-otel",
   "description": "OpenTelemetry backend for the Hydra harness telemetry seam: hands captured session records to the OTel JS SDK's log pipeline",
   "hydra": {
     "plugin": {
@@ -43,25 +43,25 @@
     "@opentelemetry/otlp-exporter-base": "^0.220.0",
     "@opentelemetry/resources": "^2.9.0",
     "@opentelemetry/sdk-logs": "^0.220.0",
-    "@hydra/schemastery": "workspace:^"
+    "@hydra1902/schemastery": "workspace:^"
   },
   "peerDependencies": {
-    "@hydra/harness-command-feedback": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-session-telemetry": "workspace:^",
-    "@hydra/harness-anonymous-user-id": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-command-feedback": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-session-telemetry": "workspace:^",
+    "@hydra1902/harness-anonymous-user-id": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/cordis-plugin-loader": "workspace:^",
-    "@hydra/harness-command-feedback": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-session-telemetry": "workspace:^",
-    "@hydra/harness-anonymous-user-id": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/cordis-plugin-loader": "workspace:^",
+    "@hydra1902/harness-command-feedback": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-session-telemetry": "workspace:^",
+    "@hydra1902/harness-anonymous-user-id": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   }
 }

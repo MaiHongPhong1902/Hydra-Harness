@@ -1,23 +1,23 @@
 /** Test-only account-backed providers for the assembled authorization browser lane. */
-import type { Context } from '@hydra/cordis'
-import Schema from '@hydra/schemastery'
-import { credentialKey } from '@hydra/harness-credentials'
-import { authorizationAccountId } from '@hydra/harness-authorization'
+import type { Context } from '@hydra1902/cordis'
+import Schema from '@hydra1902/schemastery'
+import { credentialKey } from '@hydra1902/harness-credentials'
+import { authorizationAccountId } from '@hydra1902/harness-authorization'
 import type {
   AuthorizationAccount,
   AuthorizationAccounts,
   AuthorizationFlow,
   AuthorizationUsage,
-} from '@hydra/harness-authorization'
-import { LlmAdapter } from '@hydra/harness-llm'
+} from '@hydra1902/harness-authorization'
+import { LlmAdapter } from '@hydra1902/harness-llm'
 import type {
   GenerateOptions,
   LlmModelInfo,
   LlmProviderInfo,
   LlmResolvedModelInfo,
   StreamChunk,
-} from '@hydra/harness-llm'
-import { settingsNamespace } from '@hydra/harness-settings'
+} from '@hydra1902/harness-llm'
+import { settingsNamespace } from '@hydra1902/harness-settings'
 
 /** Loader identity of the deterministic account-auth replacement plugin. */
 export const name = 'llm-account-auth-fixture'

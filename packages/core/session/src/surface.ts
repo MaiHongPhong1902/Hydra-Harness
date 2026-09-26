@@ -5,10 +5,10 @@
  * Browser-safe: web clients consume this subpath export, so it must stay free
  * of `node:` imports (they break the vite bundle).
  *
- * @module @hydra/harness-session/surface
+ * @module @hydra1902/harness-session/surface
  */
 
-import type { Message } from '@hydra/harness-llm'
+import type { Message } from '@hydra1902/harness-llm'
 import type { SessionEvent, SurfaceEvent, SurfaceEventType, SurfaceOp } from './types.ts'
 
 /** Runtime counterpart of the message-producing event union. */

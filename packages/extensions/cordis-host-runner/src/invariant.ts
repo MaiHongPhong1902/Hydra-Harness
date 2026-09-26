@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra/harness-cordis-host-runner`.
- * @module @hydra/harness-cordis-host-runner/invariant
+ * Package-owned invariant companion for `@hydra1902/harness-cordis-host-runner`.
+ * @module @hydra1902/harness-cordis-host-runner/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra/cordis'
-import type { InvariantInstaller } from '@hydra/harness-invariants'
+import type { Context } from '@hydra1902/cordis'
+import type { InvariantInstaller } from '@hydra1902/harness-invariants'
 
-const PACKAGE_NAME = '@hydra/harness-cordis-host-runner'
+const PACKAGE_NAME = '@hydra1902/harness-cordis-host-runner'
 
 /** Cordis companion plugin name. */
 export const name = 'cordis-host-runner-invariant'

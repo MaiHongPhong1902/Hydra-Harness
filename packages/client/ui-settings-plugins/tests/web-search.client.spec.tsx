@@ -2,9 +2,9 @@
 /** Explicit search saves retain provider drafts, credentials, and in-flight edits. */
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { stubSettingsScope, bindSnapshotSelector } from '@hydra/harness-client-test-runtime'
-import type { IApiClient } from '@hydra/harness-client-connection/client'
-import type { WebSearchProviderDescriptor } from '@hydra/harness-host-apiproxy/api'
+import { stubSettingsScope, bindSnapshotSelector } from '@hydra1902/harness-client-test-runtime'
+import type { IApiClient } from '@hydra1902/harness-client-connection/client'
+import type { WebSearchProviderDescriptor } from '@hydra1902/harness-host-apiproxy/api'
 import { WebSearchCardController } from '../src/client/web-search-card-controller.ts'
 import { WebSearchCard, type WebSearchCardProps } from '../src/client/WebSearchCard.tsx'
 import { en } from '../src/client/locales.ts'

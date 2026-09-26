@@ -9,27 +9,27 @@ import { createInterface } from 'node:readline'
 import { PassThrough } from 'node:stream'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra/cordis'
-import { AttachmentId, AttachmentStore } from '@hydra/harness-attachment'
+import { Context } from '@hydra1902/cordis'
+import { AttachmentId, AttachmentStore } from '@hydra1902/harness-attachment'
 import type {
   ImageAttachmentLimits, ImageAttachmentRef, SaveImageAttachment, StoredImageAttachment,
-} from '@hydra/harness-attachment'
-import { CallId, createUserMessage } from '@hydra/harness-llm'
-import type { ContentBlock } from '@hydra/harness-llm'
-import { Session, SessionId } from '@hydra/harness-session'
-import AgentRegistry, { Inbox } from '@hydra/harness-agent'
-import type { Agent } from '@hydra/harness-agent'
-import SystemPrompt from '@hydra/harness-system-prompt'
-import ToolRuntime from '@hydra/harness-tools'
-import { SettingsProvider } from '@hydra/harness-settings'
-import type { SettingsNamespace } from '@hydra/harness-settings'
-import BrowserSessionService, { BROWSER_SETTINGS_NAMESPACE } from '@hydra/harness-browser-electron'
-import type { BrowserChildProcess } from '@hydra/harness-browser-electron'
-import * as ToolBrowser from '@hydra/harness-tool-browser'
+} from '@hydra1902/harness-attachment'
+import { CallId, createUserMessage } from '@hydra1902/harness-llm'
+import type { ContentBlock } from '@hydra1902/harness-llm'
+import { Session, SessionId } from '@hydra1902/harness-session'
+import AgentRegistry, { Inbox } from '@hydra1902/harness-agent'
+import type { Agent } from '@hydra1902/harness-agent'
+import SystemPrompt from '@hydra1902/harness-system-prompt'
+import ToolRuntime from '@hydra1902/harness-tools'
+import { SettingsProvider } from '@hydra1902/harness-settings'
+import type { SettingsNamespace } from '@hydra1902/harness-settings'
+import BrowserSessionService, { BROWSER_SETTINGS_NAMESPACE } from '@hydra1902/harness-browser-electron'
+import type { BrowserChildProcess } from '@hydra1902/harness-browser-electron'
+import * as ToolBrowser from '@hydra1902/harness-tool-browser'
 import {
   BROWSER_PROMPT_NAME, BROWSER_PROMPT_TEXT, COMPACT_NOTICE, compactHeader, dropIgnoredNodes, formatBrowserOutput,
   rankElementList, toValue,
-} from '@hydra/harness-tool-browser'
+} from '@hydra1902/harness-tool-browser'
 
 vi.mock('node:fs/promises', async importOriginal => ({ ...await importOriginal<typeof import('node:fs/promises')>() }))
 

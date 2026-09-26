@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import { CallId } from '@hydra/harness-llm'
-import { Session, SessionId } from '@hydra/harness-session'
-import AgentRegistry, { Inbox } from '@hydra/harness-agent'
-import type { Agent } from '@hydra/harness-agent'
-import TerminalSessionService from '@hydra/harness-terminal'
+import { Context } from '@hydra1902/cordis'
+import { CallId } from '@hydra1902/harness-llm'
+import { Session, SessionId } from '@hydra1902/harness-session'
+import AgentRegistry, { Inbox } from '@hydra1902/harness-agent'
+import type { Agent } from '@hydra1902/harness-agent'
+import TerminalSessionService from '@hydra1902/harness-terminal'
 import type {
   TerminalBackend,
   TerminalBackendSession,
@@ -14,10 +14,10 @@ import type {
   TerminalSessionStatus,
   TerminalSignal,
   TerminalWaitReason,
-} from '@hydra/harness-terminal'
-import SystemPrompt from '@hydra/harness-system-prompt'
-import ToolRegistry from '@hydra/harness-tools'
-import * as ToolPwshPersistent from '@hydra/harness-tool-pwsh-persistent'
+} from '@hydra1902/harness-terminal'
+import SystemPrompt from '@hydra1902/harness-system-prompt'
+import ToolRegistry from '@hydra1902/harness-tools'
+import * as ToolPwshPersistent from '@hydra1902/harness-tool-pwsh-persistent'
 
 const contexts: Context[] = []
 let callNumber = 0

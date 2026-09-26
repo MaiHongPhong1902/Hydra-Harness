@@ -1,9 +1,9 @@
 import { useEffect, useId, useMemo, useState, type KeyboardEvent, type ReactNode } from 'react'
 import type {
   ImportedPluginSnapshot, PluginEnablementResult, PluginImportSource, PluginInventorySnapshot,
-} from '@hydra/harness-api-remotes/client'
-import { Button, Modal, Switch } from '@hydra/harness-client-ui-primitives'
-import type { HostObservable, InjectFace, PropsLocale, PropsRuntime } from '@hydra/harness-client-ui-slots'
+} from '@hydra1902/harness-api-remotes/client'
+import { Button, Modal, Switch } from '@hydra1902/harness-client-ui-primitives'
+import type { HostObservable, InjectFace, PropsLocale, PropsRuntime } from '@hydra1902/harness-client-ui-slots'
 import type { InventoryDraftState } from './inventory-controller.ts'
 import { groupByOwner, matchesQuery } from './marketplace-owner.ts'
 import type { PluginInventoryLocaleKey } from './locales.ts'

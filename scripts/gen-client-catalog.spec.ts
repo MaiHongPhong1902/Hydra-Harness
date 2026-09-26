@@ -18,7 +18,7 @@ function declaration(over: Partial<SlotDeclaration> = {}): SlotDeclaration {
     kind: 'single',
     scope: 'root',
     jsDoc: '/** A seat. Registering here replaces the shipped entry. */',
-    package: '@hydra/harness-client-demo',
+    package: '@hydra1902/harness-client-demo',
     source: 'packages/client/demo/src/client/contract/slots.ts:1',
     ...over,
   }
@@ -28,7 +28,7 @@ function declaration(over: Partial<SlotDeclaration> = {}): SlotDeclaration {
 function registration(over: Partial<SlotRegistration> = {}): SlotRegistration {
   return {
     key: 'demo.seat',
-    package: '@hydra/harness-client-demo',
+    package: '@hydra1902/harness-client-demo',
     component: 'DemoSeat',
     children: [],
     source: 'packages/client/demo/src/client/index.ts:10',

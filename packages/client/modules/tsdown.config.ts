@@ -1,6 +1,6 @@
 import { clientBundle } from '../tsdown.client.ts'
 
 export default clientBundle(
-  '@hydra/harness-client-modules',
+  '@hydra1902/harness-client-modules',
   ['lib/types/index.js', 'lib/types/invariant.js'],
 )

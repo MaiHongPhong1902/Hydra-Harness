@@ -3,14 +3,14 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import Loader from '@hydra/cordis-plugin-loader'
-import Include from '@hydra/cordis-plugin-include'
-import LlmRuntime from '@hydra/harness-llm'
-import SessionStore from '@hydra/harness-session'
-import TokenMeter from '@hydra/harness-token-meter'
-import BasicCompactionEngine from '@hydra/harness-compaction-basic'
-import ToolResultPruner from '@hydra/harness-compaction-tool-result-pruner'
+import { Context } from '@hydra1902/cordis'
+import Loader from '@hydra1902/cordis-plugin-loader'
+import Include from '@hydra1902/cordis-plugin-include'
+import LlmRuntime from '@hydra1902/harness-llm'
+import SessionStore from '@hydra1902/harness-session'
+import TokenMeter from '@hydra1902/harness-token-meter'
+import BasicCompactionEngine from '@hydra1902/harness-compaction-basic'
+import ToolResultPruner from '@hydra1902/harness-compaction-tool-result-pruner'
 
 let root: string | undefined
 let context: Context | undefined
@@ -32,11 +32,11 @@ async function loadYaml(lines: readonly string[]): Promise<Context> {
   await context.plugin(Loader)
   context.loader.builtins.include = Include
   const modules = new Map<string, unknown>([
-    ['@hydra/harness-llm', LlmRuntime],
-    ['@hydra/harness-session', SessionStore],
-    ['@hydra/harness-token-meter', TokenMeter],
-    ['@hydra/harness-compaction-tool-result-pruner', ToolResultPruner],
-    ['@hydra/harness-compaction-basic', BasicCompactionEngine],
+    ['@hydra1902/harness-llm', LlmRuntime],
+    ['@hydra1902/harness-session', SessionStore],
+    ['@hydra1902/harness-token-meter', TokenMeter],
+    ['@hydra1902/harness-compaction-tool-result-pruner', ToolResultPruner],
+    ['@hydra1902/harness-compaction-basic', BasicCompactionEngine],
   ])
   context.loader.internal = {
     version: 'v2',
@@ -56,15 +56,15 @@ async function loadYaml(lines: readonly string[]): Promise<Context> {
 describe('real Loader composition', () => {
   it('loads the shipped token-meter, pruning, and compaction-basic YAML order', async () => {
     const loaded = await loadYaml([
-      "- name: '@hydra/harness-llm'",
-      "- name: '@hydra/harness-session'",
-      "- name: '@hydra/harness-token-meter'",
-      "- name: '@hydra/harness-compaction-tool-result-pruner'",
+      "- name: '@hydra1902/harness-llm'",
+      "- name: '@hydra1902/harness-session'",
+      "- name: '@hydra1902/harness-token-meter'",
+      "- name: '@hydra1902/harness-compaction-tool-result-pruner'",
       '  config:',
       '    thresholdChars: 100',
       '    headChars: 20',
       '    tailChars: 10',
-      "- name: '@hydra/harness-compaction-basic'",
+      "- name: '@hydra1902/harness-compaction-basic'",
       '  config:',
       '    thresholdRatio: 0.5',
       '    retainRatio: 0.125',

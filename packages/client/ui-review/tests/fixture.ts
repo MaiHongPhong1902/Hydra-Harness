@@ -1,4 +1,4 @@
-import type { ReviewChange } from '@hydra/harness-fs-review/client'
+import type { ReviewChange } from '@hydra1902/harness-fs-review/client'
 
 export const change = (overrides: Partial<ReviewChange> = {}): ReviewChange => ({
   version: 1, id: 'a7c57a31-4134-4880-85e5-cb2d2626d281' as never,

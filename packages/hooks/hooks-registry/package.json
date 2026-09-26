@@ -1,5 +1,5 @@
 {
-  "name": "@hydra/harness-hooks-registry",
+  "name": "@hydra1902/harness-hooks-registry",
   "description": "Settings-backed hook records that mount and unmount Claude Code and Codex hook bridges",
   "hydra": {
     "plugin": {
@@ -42,26 +42,26 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@hydra/harness-atomic-write": "workspace:^",
-    "@hydra/harness-home-paths": "workspace:^",
-    "@hydra/schemastery": "workspace:^"
+    "@hydra1902/harness-atomic-write": "workspace:^",
+    "@hydra1902/harness-home-paths": "workspace:^",
+    "@hydra1902/schemastery": "workspace:^"
   },
   "peerDependencies": {
-    "@hydra/harness-hooks-claude-code": "workspace:^",
-    "@hydra/harness-hooks-codex": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-settings": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-hooks-claude-code": "workspace:^",
+    "@hydra1902/harness-hooks-codex": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-settings": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/harness-hooks-claude-code": "workspace:^",
-    "@hydra/harness-hooks-codex": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-settings": "workspace:^",
-    "@hydra/harness-settings-file": "workspace:^",
-    "@hydra/cordis": "workspace:^",
-    "@hydra/cordis-plugin-loader": "workspace:^"
+    "@hydra1902/harness-hooks-claude-code": "workspace:^",
+    "@hydra1902/harness-hooks-codex": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-settings": "workspace:^",
+    "@hydra1902/harness-settings-file": "workspace:^",
+    "@hydra1902/cordis": "workspace:^",
+    "@hydra1902/cordis-plugin-loader": "workspace:^"
   }
 }

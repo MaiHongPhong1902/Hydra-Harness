@@ -2,8 +2,8 @@
 // The input order is authoritative; lineage only makes each child adjacent to its parent.
 // Orphaned lineage degrades to root level; cycles fail soft and emit as roots.
 
-import type { ConversationRevision, SessionId, SessionSummary } from '@hydra/harness-api-remotes/client'
-import type { SessionProjectionMap } from '@hydra/harness-session-projection/types'
+import type { ConversationRevision, SessionId, SessionSummary } from '@hydra1902/harness-api-remotes/client'
+import type { SessionProjectionMap } from '@hydra1902/harness-session-projection/types'
 import type { PendingInteractionStatus } from './pending.ts'
 
 /** Host list summary enriched with the latest mux-projected durable title. */

@@ -10,16 +10,16 @@ import {
   FileNotFoundError,
   SandboxNotFoundError,
   quoteE2BShellArg,
-} from '@hydra/harness-e2b'
-import type { CommandHandle, CommandResult, Sandbox } from '@hydra/harness-e2b'
+} from '@hydra1902/harness-e2b'
+import type { CommandHandle, CommandResult, Sandbox } from '@hydra1902/harness-e2b'
 import type {
   SubprocessOutcome,
   SubprocessTerminalForeground,
   SubprocessTerminalHandle,
   SubprocessTerminalSignal,
   SubprocessTerminalSpawnSpec,
-} from '@hydra/harness-subprocess'
-import type E2BRuntime from '@hydra/harness-e2b'
+} from '@hydra1902/harness-subprocess'
+import type E2BRuntime from '@hydra1902/harness-e2b'
 import {
   bootstrapEnvironment,
   readRemoteEnvironment,

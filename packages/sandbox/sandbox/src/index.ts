@@ -2,12 +2,12 @@
  * Service Definition for the same-world process-confinement capability seam: wrap exact subprocess argv under a
  * host-path file policy. Containers, microVMs, and remote execution replace the
  * surrounding capability seam instead; this service shares the host kernel and filesystem.
- * @module @hydra/harness-sandbox
+ * @module @hydra1902/harness-sandbox
  */
 
-import { Context, Service } from '@hydra/cordis'
-import { HarnessError } from '@hydra/harness-llm'
-import type { SessionId } from '@hydra/harness-session'
+import { Context, Service } from '@hydra1902/cordis'
+import { HarnessError } from '@hydra1902/harness-llm'
+import type { SessionId } from '@hydra1902/harness-session'
 
 export {
   ESCALATION_TARGETS,
@@ -42,7 +42,7 @@ export interface SandboxExecutionPolicy {
   /** Absolute root directory `workspace-write` may write under. */
   workspaceRoot: string
   /**
-   * Opaque identity of the calling session (the branded `@hydra/harness-session`
+   * Opaque identity of the calling session (the branded `@hydra1902/harness-session`
    * SessionId). Backends key per-session state off it (e.g. windows-acl gives
    * each live session/workspace pair a random private temp directory and SID,
    * while the workspace SID and standing grant remain per-workspace); absent
@@ -143,7 +143,7 @@ export class SandboxUnavailableError extends HarnessError {
   }
 }
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Context {
     sandbox: SandboxProvider
   }

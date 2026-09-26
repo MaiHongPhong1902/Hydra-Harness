@@ -1,5 +1,5 @@
 {
-  "name": "@hydra/harness-typert-loader",
+  "name": "@hydra1902/harness-typert-loader",
   "description": "Loader integration for generated Typert package contributions",
   "hydra": {
     "plugin": {
@@ -37,19 +37,19 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra/cordis-plugin-loader": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-typert-registry": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/cordis-plugin-loader": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-typert-registry": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "dependencies": {
-    "@hydra/schemastery": "workspace:^"
+    "@hydra1902/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/cordis-plugin-loader": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-typert-registry": "workspace:^",
-    "@hydra/cordis": "workspace:^",
+    "@hydra1902/cordis-plugin-loader": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-typert-registry": "workspace:^",
+    "@hydra1902/cordis": "workspace:^",
     "zod": "^4.4.3"
   }
 }

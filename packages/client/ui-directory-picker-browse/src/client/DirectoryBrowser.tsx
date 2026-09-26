@@ -39,10 +39,10 @@ import clsx from 'clsx'
 import {
   Button, IconCheckOutline16, IconChevronRightOutline14, IconEditOutline16, IconFolderClose16, IconFolderOpen16,
   IconPlusOutline16, Modal,
-} from '@hydra/harness-client-ui-primitives'
-import type { DirectoryEntry, DirectoryListing } from '@hydra/harness-client-runtime/client'
-import { DirectoryBrowseError } from '@hydra/harness-client-runtime/client'
-import type { Translate } from '@hydra/harness-client-locale/client'
+} from '@hydra1902/harness-client-ui-primitives'
+import type { DirectoryEntry, DirectoryListing } from '@hydra1902/harness-client-runtime/client'
+import { DirectoryBrowseError } from '@hydra1902/harness-client-runtime/client'
+import type { Translate } from '@hydra1902/harness-client-locale/client'
 import css from './DirectoryBrowser.module.css'
 
 /** Owner-supplied browser props: browse calls, pick semantics, and copy. */

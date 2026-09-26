@@ -1,7 +1,7 @@
 /** Shared per-session review object; disk-backed host records own all business data. @module */
-import type { IApiClient, SessionId } from '@hydra/harness-api-remotes/client'
-import type { ChangeId, ReviewChange } from '@hydra/harness-fs-review/client'
-import type { ReviewMode, WorkspaceReview } from '@hydra/harness-fs-review/client'
+import type { IApiClient, SessionId } from '@hydra1902/harness-api-remotes/client'
+import type { ChangeId, ReviewChange } from '@hydra1902/harness-fs-review/client'
+import type { ReviewMode, WorkspaceReview } from '@hydra1902/harness-fs-review/client'
 
 /** Immutable UI read face for one owning session and its subagents. */
 export interface ReviewSnapshot {

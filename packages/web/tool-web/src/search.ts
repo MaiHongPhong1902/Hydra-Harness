@@ -5,16 +5,16 @@
  * never provider selection or network access.
  */
 
-import type { Context } from '@hydra/cordis'
-import { defineTool } from '@hydra/harness-tools'
-import type { GenericCallView, JsonValue, ToolResult, WebSearchResultView, WebSource } from '@hydra/harness-tools'
-import type { WebSearchResult, WebSearchSource } from '@hydra/harness-web'
-import { normalizedSearchUrl, SearchProviderError } from '@hydra/harness-web'
-import type {} from '@hydra/harness-system-prompt'
+import type { Context } from '@hydra1902/cordis'
+import { defineTool } from '@hydra1902/harness-tools'
+import type { GenericCallView, JsonValue, ToolResult, WebSearchResultView, WebSource } from '@hydra1902/harness-tools'
+import type { WebSearchResult, WebSearchSource } from '@hydra1902/harness-web'
+import { normalizedSearchUrl, SearchProviderError } from '@hydra1902/harness-web'
+import type {} from '@hydra1902/harness-system-prompt'
 
 /**
  * Default upper bound on returned sources (the `searchMaxResults` config).
- * Owned by the consumer (not the provider or model), mirroring `@hydra/harness-tool-fs`'s
+ * Owned by the consumer (not the provider or model), mirroring `@hydra1902/harness-tool-fs`'s
  * `READ_LIMIT`. The model just asks a question; the product controls how much
  * context returns. The default `8` aligns with OpenCode's Exa default.
  */
@@ -326,7 +326,7 @@ function mergeSearchResults(
  *   request's `maxResults`.
  * @param maxQueries - the deployment's query cap enforced before provider calls.
  * @param timeoutMs - the cooperative tool-call budget (ms) attached as the tool's
- *   `ToolDefinition.timeoutMs` for `@hydra/harness-tool-call-timeout-policy` to enforce.
+ *   `ToolDefinition.timeoutMs` for `@hydra1902/harness-tool-call-timeout-policy` to enforce.
  * @param fetchEnabled - whether the same composition exposes `web_fetch`, which
  *   controls whether search guidance may recommend that follow-up tool.
  */

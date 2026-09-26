@@ -4,8 +4,8 @@
  * component stubs cannot prove per-session identity or disposal.
  */
 import { beforeEach, describe, expect, it } from 'vitest'
-import type { SessionId } from '@hydra/harness-client-runtime/client'
-import { SlotTestRuntime } from '@hydra/harness-client-test-runtime'
+import type { SessionId } from '@hydra1902/harness-client-runtime/client'
+import { SlotTestRuntime } from '@hydra1902/harness-client-test-runtime'
 import { createChatStore } from '../src/client/stores.ts'
 
 const sid = (s: string): SessionId => s as SessionId

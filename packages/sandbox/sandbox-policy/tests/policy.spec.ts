@@ -8,11 +8,11 @@ import { mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync } from 'node:
 import { tmpdir } from 'node:os'
 import { join, resolve, sep } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import type { Agent } from '@hydra/harness-agent'
-import { Session, SessionId } from '@hydra/harness-session'
-import SandboxPolicyService, { SANDBOX_MODES, effectiveSandboxMode, setSandboxMode } from '@hydra/harness-sandbox-policy'
-import SystemPrompt, { renderContextSnapshot, renderPrompt } from '@hydra/harness-system-prompt'
+import { Context } from '@hydra1902/cordis'
+import type { Agent } from '@hydra1902/harness-agent'
+import { Session, SessionId } from '@hydra1902/harness-session'
+import SandboxPolicyService, { SANDBOX_MODES, effectiveSandboxMode, setSandboxMode } from '@hydra1902/harness-sandbox-policy'
+import SystemPrompt, { renderContextSnapshot, renderPrompt } from '@hydra1902/harness-system-prompt'
 
 async function mounted(config: { mode?: 'read-only' | 'workspace-write' | 'danger-full-access'; workspaceRoot?: string } = {}) {
   const ctx = new Context()

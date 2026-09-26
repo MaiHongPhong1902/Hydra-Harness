@@ -1,6 +1,6 @@
-/** Attachment identifier brand. @module @hydra/harness-attachment/brand */
+/** Attachment identifier brand. @module @hydra1902/harness-attachment/brand */
 
-import type { Branded } from '@hydra/harness-brand'
+import type { Branded } from '@hydra1902/harness-brand'
 
 /** Opaque content-addressed identifier for one immutable attachment object. */
 export type AttachmentId = Branded<'AttachmentId'>

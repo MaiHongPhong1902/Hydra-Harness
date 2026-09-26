@@ -1,6 +1,6 @@
 /** Background browser upload implementation for Blob and byte-stream bodies. */
 
-import { Service, type Context } from '@hydra/cordis'
+import { Service, type Context } from '@hydra1902/cordis'
 import type {
   ClientFileUploadHooks,
   FileUploadBody,

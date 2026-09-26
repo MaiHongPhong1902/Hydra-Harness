@@ -1,8 +1,8 @@
 /** Serialized Team transactions over the exact live Lead Session log. */
 
-import type { Agent } from '@hydra/harness-agent'
-import type { Context } from '@hydra/cordis'
-import type { SessionEventMap, SessionId } from '@hydra/harness-session'
+import type { Agent } from '@hydra1902/harness-agent'
+import type { Context } from '@hydra1902/cordis'
+import type { SessionEventMap, SessionId } from '@hydra1902/harness-session'
 import { foldTeam } from './fold.ts'
 import type { TeamEventType, TeamFoldState } from './fold.ts'
 

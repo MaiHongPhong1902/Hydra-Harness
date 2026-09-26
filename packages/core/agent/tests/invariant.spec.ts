@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import type { Agent } from '@hydra/harness-agent'
-import * as AgentInvariant from '@hydra/harness-agent/invariant'
-import { scopeTarget } from '@hydra/harness-scope'
-import InvariantRegistry from '@hydra/harness-invariants'
+import { Context } from '@hydra1902/cordis'
+import type { Agent } from '@hydra1902/harness-agent'
+import * as AgentInvariant from '@hydra1902/harness-agent/invariant'
+import { scopeTarget } from '@hydra1902/harness-scope'
+import InvariantRegistry from '@hydra1902/harness-invariants'
 
 async function setup(): Promise<Context> {
   const ctx = new Context()

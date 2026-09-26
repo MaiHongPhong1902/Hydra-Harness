@@ -7,24 +7,24 @@
  * `permissions` session projection; the write side ships as the
  * `/permission` command — both optional children over the same service.
  *
- * @module @hydra/harness-permission-presets
+ * @module @hydra1902/harness-permission-presets
  */
 
-import { Context, Service } from '@hydra/cordis'
-import z from '@hydra/schemastery'
+import { Context, Service } from '@hydra1902/cordis'
+import z from '@hydra1902/schemastery'
 import { z as zod } from 'zod'
-import type { Session, SessionEvent } from '@hydra/harness-session'
-import type { SandboxMode } from '@hydra/harness-sandbox'
-import { SANDBOX_MODES, effectiveSandboxMode, setSandboxMode } from '@hydra/harness-sandbox-policy'
+import type { Session, SessionEvent } from '@hydra1902/harness-session'
+import type { SandboxMode } from '@hydra1902/harness-sandbox'
+import { SANDBOX_MODES, effectiveSandboxMode, setSandboxMode } from '@hydra1902/harness-sandbox-policy'
 // Side-effect type import: declaration-merges `ctx.shell` (the capability fact
 // `sandboxMode` this service reads), without a value dependency on the seam.
-import type {} from '@hydra/harness-shell'
-import type { ApprovalPolicy } from '@hydra/harness-user-approval'
-import { APPROVAL_POLICIES, effectiveApprovalPolicy, setApprovalPolicy } from '@hydra/harness-user-approval'
-import { installSettingsSection, settingsNamespace } from '@hydra/harness-settings'
+import type {} from '@hydra1902/harness-shell'
+import type { ApprovalPolicy } from '@hydra1902/harness-user-approval'
+import { APPROVAL_POLICIES, effectiveApprovalPolicy, setApprovalPolicy } from '@hydra1902/harness-user-approval'
+import { installSettingsSection, settingsNamespace } from '@hydra1902/harness-settings'
 // Type-only: resolves ctx.sessionProjections / ctx.commands for the optional children.
-import type {} from '@hydra/harness-session-projection'
-import type {} from '@hydra/harness-commands'
+import type {} from '@hydra1902/harness-session-projection'
+import type {} from '@hydra1902/harness-commands'
 import type { PermissionSelect, PresetOption } from './types.ts'
 
 // The `permissions` projection-key declaration lives in src/types.ts (its one
@@ -33,13 +33,13 @@ import type { PermissionSelect, PresetOption } from './types.ts'
 // consuming the declarations still receive the SessionProjectionMap merge.
 export type * from './types.ts'
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Context {
     permissionPresets: PermissionPresetService
   }
 }
 
-declare module '@hydra/harness-session/types' {
+declare module '@hydra1902/harness-session/types' {
   interface SessionEventMap {
     /**
      * Records the selected preset and whether it came from the session
@@ -103,7 +103,7 @@ export interface KnobState {
   approval: ApprovalPolicy | null
 }
 
-declare module '@hydra/harness-session-projection/types' {
+declare module '@hydra1902/harness-session-projection/types' {
   interface SessionProjectionStateMap {
     permissions: KnobState
   }

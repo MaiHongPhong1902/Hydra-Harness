@@ -1,10 +1,10 @@
 /**
  * Client-safe wire vocabulary of the dynamic Cordis plugin runner.
- * @module @hydra/harness-cordis-host-runner/types
+ * @module @hydra1902/harness-cordis-host-runner/types
  */
 
-import type { Branded } from '@hydra/harness-brand'
-import type { JsonValue, SessionId } from '@hydra/harness-session/types'
+import type { Branded } from '@hydra1902/harness-brand'
+import type { JsonValue, SessionId } from '@hydra1902/harness-session/types'
 
 /** Stable identity of one dynamic plugin instance. */
 export type CordisDynamicPluginId = Branded<'CordisDynamicPluginId'>
@@ -357,7 +357,7 @@ export type DynamicCordisInvokeResult =
   | { ok: true; value: JsonValue }
   | ({ ok: false; code: 'plugin-not-running' | 'stale-run' | 'method-not-found' | 'handler-error' } & CordisErrorDetails)
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Events {
     /**
      * A Client-bearing activation needs a browser page, and may require a user decision.

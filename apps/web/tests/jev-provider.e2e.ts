@@ -5,10 +5,10 @@ import { readFile } from 'node:fs/promises'
 import type { Browser, Locator, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed, vi } from 'vitest'
-import { credentialRef } from '@hydra/harness-credentials'
-import { CallId } from '@hydra/harness-llm'
-import { SessionId } from '@hydra/harness-session'
-import type {} from '@hydra/harness-jev'
+import { credentialRef } from '@hydra1902/harness-credentials'
+import { CallId } from '@hydra1902/harness-llm'
+import { SessionId } from '@hydra1902/harness-session'
+import type {} from '@hydra1902/harness-jev'
 import {
   captureStableAria, compareOrRefreshGolden, launchWebScaffold, watchConsole,
   webSnapshotMode, type WebScaffold,

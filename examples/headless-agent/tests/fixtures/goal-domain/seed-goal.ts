@@ -1,7 +1,7 @@
 /** Test-only Loader plugin that creates a goal at the first real step edge. */
 
-import type { Context } from '@hydra/cordis'
-import type {} from '@hydra/harness-goal'
+import type { Context } from '@hydra1902/cordis'
+import type {} from '@hydra1902/harness-goal'
 
 export const name = 'seed-goal'
 export const inject = ['goals']

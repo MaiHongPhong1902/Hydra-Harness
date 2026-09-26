@@ -3,16 +3,16 @@
  * becomes `content`; sources prefer structured `search_results[]` and fall back to URL-only
  * `citations[]`. The wire format and native `fetch` client are provider-private and do not use
  * `ctx.llm`.
- * @module @hydra/harness-web-search-perplexity/provider
+ * @module @hydra1902/harness-web-search-perplexity/provider
  */
 
-import { WebError } from '@hydra/harness-web'
+import { WebError } from '@hydra1902/harness-web'
 import type {
   WebSearchProvider,
   WebSearchRequest,
   WebSearchResult,
   WebSearchSource,
-} from '@hydra/harness-web'
+} from '@hydra1902/harness-web'
 import type { PerplexityError, PerplexityResponse, PerplexitySearchResult } from './types.ts'
 
 /** Stable id this provider registers under. */

@@ -1,5 +1,5 @@
 {
-  "name": "@hydra/harness-host-directory-picker-auto",
+  "name": "@hydra1902/harness-host-directory-picker-auto",
   "description": "Adaptive chooser of the directory-picker seam: resolves the host situation at boot and mounts the native or browse backend for the Hydra harness web GUI host",
   "hydra": {
     "plugin": {
@@ -37,25 +37,25 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra/cordis": "workspace:^",
-    "@hydra/cordis-plugin-loader": "workspace:^",
-    "@hydra/harness-client-ui-directory-picker-browse": "workspace:^",
-    "@hydra/harness-client-ui-directory-picker-native": "workspace:^",
-    "@hydra/harness-host-directory-picker-browse": "workspace:^",
-    "@hydra/harness-host-directory-picker-native": "workspace:^",
-    "@hydra/harness-host-webserver": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^"
+    "@hydra1902/cordis": "workspace:^",
+    "@hydra1902/cordis-plugin-loader": "workspace:^",
+    "@hydra1902/harness-client-ui-directory-picker-browse": "workspace:^",
+    "@hydra1902/harness-client-ui-directory-picker-native": "workspace:^",
+    "@hydra1902/harness-host-directory-picker-browse": "workspace:^",
+    "@hydra1902/harness-host-directory-picker-native": "workspace:^",
+    "@hydra1902/harness-host-webserver": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/cordis": "workspace:^",
-    "@hydra/cordis-plugin-include": "workspace:^",
-    "@hydra/cordis-plugin-loader": "workspace:^",
-    "@hydra/harness-client-ui-directory-picker-browse": "workspace:^",
-    "@hydra/harness-client-ui-directory-picker-native": "workspace:^",
-    "@hydra/harness-host-directory-picker": "workspace:^",
-    "@hydra/harness-host-directory-picker-browse": "workspace:^",
-    "@hydra/harness-host-directory-picker-native": "workspace:^",
-    "@hydra/harness-host-webserver": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^"
+    "@hydra1902/cordis": "workspace:^",
+    "@hydra1902/cordis-plugin-include": "workspace:^",
+    "@hydra1902/cordis-plugin-loader": "workspace:^",
+    "@hydra1902/harness-client-ui-directory-picker-browse": "workspace:^",
+    "@hydra1902/harness-client-ui-directory-picker-native": "workspace:^",
+    "@hydra1902/harness-host-directory-picker": "workspace:^",
+    "@hydra1902/harness-host-directory-picker-browse": "workspace:^",
+    "@hydra1902/harness-host-directory-picker-native": "workspace:^",
+    "@hydra1902/harness-host-webserver": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^"
   }
 }

@@ -23,7 +23,7 @@
 
 import { useState } from 'react'
 import type { ReactNode } from 'react'
-import type { IApiClient } from '@hydra/harness-api-remotes/client'
+import type { IApiClient } from '@hydra1902/harness-api-remotes/client'
 import { FallbackKeysEditor, useFallbackKeys } from './FallbackKeysEditor.tsx'
 import { apiKeyFailure } from './apiKey.ts'
 import { EditorFooter } from './EditorFooter.tsx'

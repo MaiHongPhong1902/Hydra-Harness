@@ -1,12 +1,12 @@
 /**
  * workspace domain contract. Wire projection of the host-side workspace
- * entity (@hydra/harness-workspace): a stable id over a directory path,
+ * entity (@hydra1902/harness-workspace): a stable id over a directory path,
  * a display title, and the ordered session account. Method signatures are the
  * source of truth, same as the sessions domain.
  */
 
-import type { SessionId } from '@hydra/harness-session/types'
-import type { Branded } from '@hydra/harness-brand'
+import type { SessionId } from '@hydra1902/harness-session/types'
+import type { Branded } from '@hydra1902/harness-brand'
 import type { RpcRequest, RpcResponse } from './rpc.ts'
 
 /**

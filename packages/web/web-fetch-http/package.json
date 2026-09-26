@@ -1,5 +1,5 @@
 {
-  "name": "@hydra/harness-web-fetch-http",
+  "name": "@hydra1902/harness-web-fetch-http",
   "description": "Anonymous public HTTP(S) fetch provider for the Hydra harness web capability seam (ctx.web)",
   "hydra": {
     "plugin": {
@@ -37,19 +37,19 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-timeout": "workspace:^",
-    "@hydra/harness-web": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-timeout": "workspace:^",
+    "@hydra1902/harness-web": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "dependencies": {
     "undici": "^7.28.0",
-    "@hydra/schemastery": "workspace:^"
+    "@hydra1902/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-timeout": "workspace:^",
-    "@hydra/harness-web": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-timeout": "workspace:^",
+    "@hydra1902/harness-web": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   }
 }

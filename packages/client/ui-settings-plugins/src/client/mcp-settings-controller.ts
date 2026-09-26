@@ -1,7 +1,7 @@
 /** Obsidian MCP settings and credential state for the Plugins MCP tab. */
 
-import type { IApiClient } from '@hydra/harness-client-connection/client'
-import type { SettingsScope, SnapshotStore } from '@hydra/harness-client-runtime/client'
+import type { IApiClient } from '@hydra1902/harness-client-connection/client'
+import type { SettingsScope, SnapshotStore } from '@hydra1902/harness-client-runtime/client'
 import {
   CardForm,
   type CardActions, type CardFieldState, type CardShell,

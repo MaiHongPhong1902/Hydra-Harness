@@ -9,12 +9,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { stubSettingsScope } from '../src/settings-scope.ts'
 import { cleanup } from '@testing-library/react'
-import { defineStore } from '@hydra/harness-client-runtime/client'
-import type { SessionId, WorkspaceId } from '@hydra/harness-client-runtime/client'
-import type { PropsRenderSlots, SessionStandardProps } from '@hydra/harness-client-ui-slots'
-import { SlotTestRuntime } from '@hydra/harness-client-test-runtime'
+import { defineStore } from '@hydra1902/harness-client-runtime/client'
+import type { SessionId, WorkspaceId } from '@hydra1902/harness-client-runtime/client'
+import type { PropsRenderSlots, SessionStandardProps } from '@hydra1902/harness-client-ui-slots'
+import { SlotTestRuntime } from '@hydra1902/harness-client-test-runtime'
 
-declare module '@hydra/harness-client-ui-slots' {
+declare module '@hydra1902/harness-client-ui-slots' {
   interface SlotMap {
     'trt.panel': { kind: 'single'; scope: 'root'; owner: { label?: string } }
     'trt.chat': { kind: 'single'; scope: 'session' }

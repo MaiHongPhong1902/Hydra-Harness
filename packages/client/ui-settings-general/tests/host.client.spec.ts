@@ -1,6 +1,6 @@
-import { Context } from '@hydra/cordis'
+import { Context } from '@hydra1902/cordis'
 import { describe, expect, it } from 'vitest'
-import { SettingsProvider, settingsNamespace, type SettingsNamespace } from '@hydra/harness-settings'
+import { SettingsProvider, settingsNamespace, type SettingsNamespace } from '@hydra1902/harness-settings'
 import { apply } from '../src/index.ts'
 
 /** Mirrors the module-local namespace id in src/index.ts. */

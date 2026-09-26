@@ -8,8 +8,8 @@
  * @module hydra-llm-pi-ai/replay
  */
 
-import { LlmError } from '@hydra/harness-llm'
-import type { Message, ModelMessageSource, ReplayEnvelope } from '@hydra/harness-llm'
+import { LlmError } from '@hydra1902/harness-llm'
+import type { Message, ModelMessageSource, ReplayEnvelope } from '@hydra1902/harness-llm'
 import type { Api, AssistantMessage, Usage as PiUsage } from '@earendil-works/pi-ai'
 
 /** Per-block half of the pi-ai replay envelope, one entry per content block. */

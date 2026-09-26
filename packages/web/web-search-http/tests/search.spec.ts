@@ -1,10 +1,10 @@
 /** HTTP normalization, credential isolation, and hot provider selection. */
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createServer, type Server } from 'node:http'
-import { Context } from '@hydra/cordis'
-import WebRuntime, { normalizedSearchUrl } from '@hydra/harness-web'
-import { SettingsProvider, settingsNamespace, type SettingsNamespace } from '@hydra/harness-settings'
-import * as deepseek from '@hydra/harness-web-search-deepseek'
+import { Context } from '@hydra1902/cordis'
+import WebRuntime, { normalizedSearchUrl } from '@hydra1902/harness-web'
+import { SettingsProvider, settingsNamespace, type SettingsNamespace } from '@hydra1902/harness-settings'
+import * as deepseek from '@hydra1902/harness-web-search-deepseek'
 import * as http from '../src/index.ts'
 
 class MemorySettings extends SettingsProvider {

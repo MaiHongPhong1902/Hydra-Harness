@@ -32,19 +32,19 @@
  * as the user's environment layer; a store that doubled as the environment
  * layer would shadow non-secret entries behind its precedence, making them
  * silently unreachable.
- * @module @hydra/harness-credentials-local
+ * @module @hydra1902/harness-credentials-local
  */
 
-import { Context, Service } from '@hydra/cordis'
-import z from '@hydra/schemastery'
+import { Context, Service } from '@hydra1902/cordis'
+import z from '@hydra1902/schemastery'
 import { watch as chokidarWatch } from 'chokidar'
 import { mkdir, readFile, stat } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
 import { Document, isMap, isScalar, parseDocument, type YAMLError } from 'yaml'
-import { withFileLock, writeFileAtomic } from '@hydra/harness-atomic-write'
-import { canonicalizeWatchPath, resolveHydraHome } from '@hydra/harness-home-paths'
-import { launchEnvironmentOf } from '@hydra/harness-launch-environment'
-import { CredentialProvider, credentialRef, parseCredentialKey } from '@hydra/harness-credentials'
+import { withFileLock, writeFileAtomic } from '@hydra1902/harness-atomic-write'
+import { canonicalizeWatchPath, resolveHydraHome } from '@hydra1902/harness-home-paths'
+import { launchEnvironmentOf } from '@hydra1902/harness-launch-environment'
+import { CredentialProvider, credentialRef, parseCredentialKey } from '@hydra1902/harness-credentials'
 import type {
   ApiKeyRecord,
   CredentialInfo,
@@ -54,8 +54,8 @@ import type {
   CredentialRecordInfo,
   CredentialRef,
   ResolvedCredential,
-} from '@hydra/harness-credentials'
-import type { LaunchEnvironmentEntry } from '@hydra/harness-launch-environment'
+} from '@hydra1902/harness-credentials'
+import type { LaunchEnvironmentEntry } from '@hydra1902/harness-launch-environment'
 
 /** Basename of the credentials document inside the harness home. */
 export const CREDENTIALS_FILENAME = '.credentials.yaml'
@@ -105,7 +105,7 @@ const GROUP_OTHER_BITS = 0o077
  * wait is sized by the longest holder it can meet, and refs and records share
  * one file and one lock, so every writer of this document — reference writes
  * and record deletes included — waits this long, not only the mutation that
- * holds it. Like the retry cadence in `@hydra/harness-atomic-write`, this is a
+ * holds it. Like the retry cadence in `@hydra1902/harness-atomic-write`, this is a
  * robustness bound of the write protocol rather than a deployment choice: it
  * is sized by what a provider request costs, which no deployment varies.
  */

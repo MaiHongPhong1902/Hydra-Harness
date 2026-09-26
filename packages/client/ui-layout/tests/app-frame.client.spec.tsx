@@ -13,13 +13,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, within } from '@testing-library/react'
 import { useSyncExternalStore } from 'react'
-import { AppFrame } from '@hydra/harness-client-ui-layout/src/client/AppFrame.tsx'
-import type { AppFrameProps } from '@hydra/harness-client-ui-layout/src/client/AppFrame.tsx'
-import { SIDEBAR_COLLAPSED } from '@hydra/harness-client-ui-layout/src/client/columns.ts'
-import { createLayoutStore } from '@hydra/harness-client-ui-layout/src/client/stores.ts'
+import { AppFrame } from '@hydra1902/harness-client-ui-layout/src/client/AppFrame.tsx'
+import type { AppFrameProps } from '@hydra1902/harness-client-ui-layout/src/client/AppFrame.tsx'
+import { SIDEBAR_COLLAPSED } from '@hydra1902/harness-client-ui-layout/src/client/columns.ts'
+import { createLayoutStore } from '@hydra1902/harness-client-ui-layout/src/client/stores.ts'
 import type {
   SessionId, SessionListState, WorkspaceId, WorkspaceListState,
-} from '@hydra/harness-client-runtime/client'
+} from '@hydra1902/harness-client-runtime/client'
 
 vi.mock('@xterm/xterm', () => ({ Terminal: vi.fn(function () { return {
   cols: 80, rows: 24, options: {},

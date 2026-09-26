@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { LOADER_SMOKE_TEST_TIMEOUT_MS, runLoaderSmoke } from '@hydra/harness-loader-smoke'
+import { LOADER_SMOKE_TEST_TIMEOUT_MS, runLoaderSmoke } from '@hydra1902/harness-loader-smoke'
 const binScript = fileURLToPath(new URL('./fixtures/hydra-badge/snapshot.ts', import.meta.url))
 const configPath = fileURLToPath(new URL('./fixtures/hydra-badge/cordis.yml', import.meta.url))
 const defaultConfigPath = fileURLToPath(new URL('./fixtures/hydra-badge/default.cordis.yml', import.meta.url))

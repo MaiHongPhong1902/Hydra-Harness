@@ -1,16 +1,16 @@
 /**
  * Bounded skill routing, model-facing search, and exact loading.
  *
- * @module @hydra/harness-tool-skill
+ * @module @hydra1902/harness-tool-skill
  */
 
 import { Buffer } from 'node:buffer'
-import type { Context } from '@hydra/cordis'
-import z from '@hydra/schemastery'
-import type { PreStepDecision } from '@hydra/harness-agent'
-import { defineTool } from '@hydra/harness-tools'
-import { createUserMessage } from '@hydra/harness-llm'
-import type { UserMessage } from '@hydra/harness-session'
+import type { Context } from '@hydra1902/cordis'
+import z from '@hydra1902/schemastery'
+import type { PreStepDecision } from '@hydra1902/harness-agent'
+import { defineTool } from '@hydra1902/harness-tools'
+import { createUserMessage } from '@hydra1902/harness-llm'
+import type { UserMessage } from '@hydra1902/harness-session'
 import {
   escapeText,
   isModelInvocable,
@@ -19,7 +19,7 @@ import {
   renderSkillContent,
   type SkillInvocationSource,
   type SkillSummary,
-} from '@hydra/harness-skill'
+} from '@hydra1902/harness-skill'
 
 export const name = 'tool-skill'
 export const inject = ['agents', 'tools', 'skills']

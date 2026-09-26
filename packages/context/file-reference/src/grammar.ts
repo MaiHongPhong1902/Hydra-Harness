@@ -1,7 +1,7 @@
 /**
  * Browser-safe `@file` token grammar shared by terminal and web clients.
  *
- * @module @hydra/harness-file-reference/grammar
+ * @module @hydra1902/harness-file-reference/grammar
  */
 
 import type { FileReferenceCandidate } from './types.ts'

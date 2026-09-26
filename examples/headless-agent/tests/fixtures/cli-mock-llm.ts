@@ -1,4 +1,4 @@
-import type { Context } from '@hydra/cordis'
+import type { Context } from '@hydra1902/cordis'
 import {
   CallId,
   LlmAdapter,
@@ -8,7 +8,7 @@ import {
   type LlmResolvedModelInfo,
   type ResolvedRetryPolicy,
   type StreamChunk,
-} from '@hydra/harness-llm'
+} from '@hydra1902/harness-llm'
 
 const HIGH = ReasoningEffortId('high')
 const OFF = ReasoningEffortId('off')

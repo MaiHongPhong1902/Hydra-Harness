@@ -12,10 +12,10 @@
  * separate chain entry per shape would race the same carrier, so the shape
  * choice lives inside this entry — see QuestionComposer.
  */
-import type { ClientContext } from '@hydra/harness-client-runtime/client'
-import type { ComposerChainProps } from '@hydra/harness-client-ui-conversation/client'
+import type { ClientContext } from '@hydra1902/harness-client-runtime/client'
+import type { ComposerChainProps } from '@hydra1902/harness-client-ui-conversation/client'
 // Type-only: pulls the locale plugin's Context merge (ctx.locale).
-import type {} from '@hydra/harness-client-locale/client'
+import type {} from '@hydra1902/harness-client-locale/client'
 import type { QuestionWait } from './contract/slots.ts'
 import { QuestionComposer } from './QuestionComposer.tsx'
 import { en, type QuestionKey } from './locales.ts'
@@ -26,7 +26,7 @@ export type {
 } from './contract/slots.ts'
 export type { QuestionKey } from './locales.ts'
 
-declare module '@hydra/harness-client-ui-slots' {
+declare module '@hydra1902/harness-client-ui-slots' {
   interface LocaleNamespaceMap {
     /** The question composer's copy. */
     question: QuestionKey

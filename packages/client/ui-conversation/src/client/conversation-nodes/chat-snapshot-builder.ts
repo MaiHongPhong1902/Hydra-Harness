@@ -1,11 +1,11 @@
-import type { Context } from '@hydra/cordis'
+import type { Context } from '@hydra1902/cordis'
 import type {
   ChatConversationViewNode, ChatLocationNodeIndex, ChatNodeStore, ChatSnapshot,
   ConversationLocation, ConversationNode, ConversationTimelineSnapshot,
   ConversationViewBuilder, ConversationViewDefinition, LegacyConversationSlice,
   PartialAssistant, RunningToolCall,
-} from '@hydra/harness-client-runtime/client'
-import { sessionRecallLabels } from '@hydra/harness-client-runtime/client'
+} from '@hydra1902/harness-client-runtime/client'
+import { sessionRecallLabels } from '@hydra1902/harness-client-runtime/client'
 import type { ChatNode } from '../contract/chat-nodes.ts'
 import { isRunningTool } from '../contract/chat-nodes.ts'
 

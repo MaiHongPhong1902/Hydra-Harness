@@ -1,8 +1,8 @@
 /** Translate PageAgent's private OpenAI-shaped call into the owning Hydra model route. */
 
-import { BlockAssembler, createMessage } from '@hydra/harness-llm'
-import type { GenerateOptions, Message, ToolSchema } from '@hydra/harness-llm'
-import type { Agent } from '@hydra/harness-agent'
+import { BlockAssembler, createMessage } from '@hydra1902/harness-llm'
+import type { GenerateOptions, Message, ToolSchema } from '@hydra1902/harness-llm'
+import type { Agent } from '@hydra1902/harness-agent'
 import type { PageAgentLlmRequest } from './child.ts'
 
 type JsonRecord = Record<string, unknown>

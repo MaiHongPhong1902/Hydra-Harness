@@ -3,15 +3,15 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type {
   ConversationSnapshot, SessionId, SessionListState, WorkspaceListState,
-} from '@hydra/harness-client-runtime/client'
-import { PendingWait } from '@hydra/harness-client-runtime/client'
-import type { RpcReceipt } from '@hydra/harness-api-remotes/client'
-import { RpcId } from '@hydra/harness-client-connection/client'
-import type { SnapshotSelectorHook } from '@hydra/harness-client-ui-slots'
+} from '@hydra1902/harness-client-runtime/client'
+import { PendingWait } from '@hydra1902/harness-client-runtime/client'
+import type { RpcReceipt } from '@hydra1902/harness-api-remotes/client'
+import { RpcId } from '@hydra1902/harness-client-connection/client'
+import type { SnapshotSelectorHook } from '@hydra1902/harness-client-ui-slots'
 import { PendingQuestion, type QuestionComposerProps } from '../src/client/contract/slots.ts'
 import { QuestionComposer, parseRecommendedLabel } from '../src/client/QuestionComposer.tsx'
 import { en } from '../src/client/locales.ts'
-import { en as commonEn } from '@hydra/harness-client-locale/src/locales/en.ts'
+import { en as commonEn } from '@hydra1902/harness-client-locale/src/locales/en.ts'
 
 afterEach(cleanup)
 

@@ -13,8 +13,8 @@ const { stripVTControlCharacters } = require('node:util')
 const { app, BrowserWindow, dialog, ipcMain, nativeImage, nativeTheme, shell, utilityProcess } = require('electron')
 const nodePty = require('node-pty')
 
-const CLI_ENTRY = join(require.resolve('@hydra/harness/package.json'), '..', 'lib', 'bin.js')
-const BROWSER_ENTRY = join(require.resolve('@hydra/harness-browser-electron/package.json'), '..', 'electron-app', 'main.cjs')
+const CLI_ENTRY = join(require.resolve('@hydra1902/harness/package.json'), '..', 'lib', 'bin.js')
+const BROWSER_ENTRY = join(require.resolve('@hydra1902/harness-browser-electron/package.json'), '..', 'electron-app', 'main.cjs')
 const DESKTOP_ICON = join(__dirname, 'assets', process.platform === 'win32' ? 'hydra.ico' : 'hydra.png')
 const SMOKE = process.argv.includes('--smoke')
 const HOST_READY_TIMEOUT_MS = 90_000
@@ -311,7 +311,7 @@ async function startTerminal(id, size, workspaceId) {
     return { running: true }
   }
   const cwd = workspaceId === undefined ? process.cwd() : await registeredWorkspaceRoot(workspaceId)
-  const { scrubbedParentEnv } = await import('@hydra/harness-subprocess')
+  const { scrubbedParentEnv } = await import('@hydra1902/harness-subprocess')
   const env = scrubbedParentEnv()
   let shell = env.SHELL ?? '/bin/sh'
   let shellName = shell.split('/').pop() || 'sh'
@@ -604,7 +604,7 @@ async function saveWorkspaceFile(root, target, content, expectedVersion) {
     const body = current.lineEnding === 'CRLF' ? normalized.replaceAll('\n', '\r\n') : normalized
     const output = current.bom ? `\ufeff${body}` : body
     if (Buffer.byteLength(output, 'utf8') > MAX_EDITABLE_FILE_BYTES) throw new Error('file is larger than 1 MB')
-    const { writeFileAtomic } = await import('@hydra/harness-atomic-write')
+    const { writeFileAtomic } = await import('@hydra1902/harness-atomic-write')
     const publicationPath = await confinedPath(root, current.path)
     await writeFileAtomic(publicationPath, output, { mode: current.mode })
     const saved = await readWorkspaceText(root, publicationPath)

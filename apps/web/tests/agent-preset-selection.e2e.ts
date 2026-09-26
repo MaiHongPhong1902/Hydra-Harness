@@ -18,8 +18,8 @@ import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
 import {
   SESSION_FORMAT_VERSION, SessionId as sessionId, type SessionEvent, type SessionId,
-} from '@hydra/harness-session'
-import { snapshotSubagentDescriptor } from '@hydra/harness-subagent'
+} from '@hydra1902/harness-session'
+import { snapshotSubagentDescriptor } from '@hydra1902/harness-subagent'
 import {
   captureStableAria, compareOrRefreshGolden, launchWebScaffold, seedSession, watchConsole,
   webSnapshotMode, type WebScaffold,

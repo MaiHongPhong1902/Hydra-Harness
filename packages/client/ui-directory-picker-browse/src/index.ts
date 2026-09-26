@@ -3,7 +3,7 @@
  * apply exists so the plugin appears in the host cordis.yml / Loader; the
  * browser half ships via exports["./client"], discovered through the
  * package.json hydra.client declaration. The listing and creation primitives it
- * drives live in `@hydra/harness-host-directory-picker-browse`.
+ * drives live in `@hydra1902/harness-host-directory-picker-browse`.
  */
 
 /** Host plugin body — no host-side behavior for this surface plugin. */

@@ -1,7 +1,7 @@
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
-import { Context } from '@hydra/cordis'
-import SessionStore, { Session, SessionId, isJsonValue } from '@hydra/harness-session'
-import type { SessionEvent, SessionHeader } from '@hydra/harness-session'
+import { Context } from '@hydra1902/cordis'
+import SessionStore, { Session, SessionId, isJsonValue } from '@hydra1902/harness-session'
+import type { SessionEvent, SessionHeader } from '@hydra1902/harness-session'
 import {
   DEFAULT_PREPARED_SESSION_CACHE_SIZE, DEFAULT_WRITE_BATCH_MAX_DELAY_MS, MAX_WRITE_BATCH_DELAY_MS,
   SessionPersistence, SessionPersistenceRevision, PersistenceCoordinator,

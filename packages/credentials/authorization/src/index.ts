@@ -23,12 +23,12 @@
  * })
  * ```
  *
- * @module @hydra/harness-authorization
+ * @module @hydra1902/harness-authorization
  */
 
-import { Context, Service } from '@hydra/cordis'
-import type { CredentialKey } from '@hydra/harness-credentials'
-import { HarnessError } from '@hydra/harness-llm'
+import { Context, Service } from '@hydra1902/cordis'
+import type { CredentialKey } from '@hydra1902/harness-credentials'
+import { HarnessError } from '@hydra1902/harness-llm'
 
 import type {
   AuthorizationAccount, AuthorizationAccountId, AuthorizationAccounts, AuthorizationEntry,
@@ -43,7 +43,7 @@ export type {
   AuthorizationUsageWindow,
 } from './types.ts'
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Context {
     authorization: AuthorizationService
   }

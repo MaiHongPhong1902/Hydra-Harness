@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { Config } from '@hydra/harness-terminal-bash/src/config.ts'
-import { resolveConfig, validateConfig } from '@hydra/harness-terminal-bash/src/config.ts'
+import type { Config } from '@hydra1902/harness-terminal-bash/src/config.ts'
+import { resolveConfig, validateConfig } from '@hydra1902/harness-terminal-bash/src/config.ts'
 
 function config(overrides: Partial<Config> = {}): Config {
   return {

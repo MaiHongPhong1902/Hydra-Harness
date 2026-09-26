@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { SessionEvent, SurfaceEvent, SurfaceEventType } from '@hydra/harness-session'
+import type { SessionEvent, SurfaceEvent, SurfaceEventType } from '@hydra1902/harness-session'
 import {
   Session,
   SessionId,
@@ -8,8 +8,8 @@ import {
   isReplacementSurfaceEvent,
   isSurfaceEligibleType,
   isSurfaceEvent,
-} from '@hydra/harness-session'
-import { SurfaceManager } from '@hydra/harness-session/surface'
+} from '@hydra1902/harness-session'
+import { SurfaceManager } from '@hydra1902/harness-session/surface'
 import {
   createMessage,
   createToolResultMessage,
@@ -17,7 +17,7 @@ import {
   freezeMessage,
   CallId,
   MessageId,
-} from '@hydra/harness-llm'
+} from '@hydra1902/harness-llm'
 
 /** Build a minimal session with turn boundaries and a single user message. */
 function surfaceSession(): Session {

@@ -14,8 +14,8 @@
  * more than the row it targeted.
  */
 
-import type { IApiClient } from '@hydra/harness-api-remotes/client'
-import { createSnapshotStore, type SnapshotStore } from '@hydra/harness-client-runtime/client'
+import type { IApiClient } from '@hydra1902/harness-api-remotes/client'
+import { createSnapshotStore, type SnapshotStore } from '@hydra1902/harness-client-runtime/client'
 import { createRosterLoader, messageOf, writeDefaultPreset } from './settings-store.ts'
 import type { RosterValue } from './settings-store.ts'
 

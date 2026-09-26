@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra/harness-tool-fs-search`.
- * @module @hydra/harness-tool-fs-search/invariant
+ * Package-owned invariant companion for `@hydra1902/harness-tool-fs-search`.
+ * @module @hydra1902/harness-tool-fs-search/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra/cordis'
-import type { InvariantInstaller } from '@hydra/harness-invariants'
+import type { Context } from '@hydra1902/cordis'
+import type { InvariantInstaller } from '@hydra1902/harness-invariants'
 
-const PACKAGE_NAME = '@hydra/harness-tool-fs-search'
+const PACKAGE_NAME = '@hydra1902/harness-tool-fs-search'
 
 /** Cordis companion plugin name. */
 export const name = 'tool-fs-search-invariant'

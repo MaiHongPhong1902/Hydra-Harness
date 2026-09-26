@@ -6,22 +6,22 @@
  */
 
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra/cordis'
-import AgentRegistry, { agentEvents } from '@hydra/harness-agent'
-import type { Agent } from '@hydra/harness-agent'
-import AttachmentStore from '@hydra/harness-attachment'
-import LlmRuntime, { LlmAdapter, ReasoningEffortId } from '@hydra/harness-llm'
+import { Context } from '@hydra1902/cordis'
+import AgentRegistry, { agentEvents } from '@hydra1902/harness-agent'
+import type { Agent } from '@hydra1902/harness-agent'
+import AttachmentStore from '@hydra1902/harness-attachment'
+import LlmRuntime, { LlmAdapter, ReasoningEffortId } from '@hydra1902/harness-llm'
 import type {
   GenerateOptions, LlmCallConfig, LlmModelInfo, LlmModelReasoningInfo, LlmProviderInfo,
   LlmResolvedModelInfo, StreamChunk,
   UserMessage,
-} from '@hydra/harness-llm'
-import SessionStore from '@hydra/harness-session'
-import type { SessionId } from '@hydra/harness-session'
-import SystemPrompt from '@hydra/harness-system-prompt'
-import UserQuestionService from '@hydra/harness-user-questions'
-import type { RpcRequest } from '@hydra/harness-host-apiproxy/api/rpc'
-import { RpcId } from '@hydra/harness-host-apiproxy/api/rpc'
+} from '@hydra1902/harness-llm'
+import SessionStore from '@hydra1902/harness-session'
+import type { SessionId } from '@hydra1902/harness-session'
+import SystemPrompt from '@hydra1902/harness-system-prompt'
+import UserQuestionService from '@hydra1902/harness-user-questions'
+import type { RpcRequest } from '@hydra1902/harness-host-apiproxy/api/rpc'
+import { RpcId } from '@hydra1902/harness-host-apiproxy/api/rpc'
 import { createApiProxy } from '../src/api-proxy.ts'
 
 let nextRpc = 1

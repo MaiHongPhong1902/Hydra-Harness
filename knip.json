@@ -97,13 +97,13 @@
         "**/*.ts"
       ],
       "ignoreDependencies": [
-        "@hydra/.+"
+        "@hydra1902/.+"
       ]
     },
     "packages/host/directory-picker-auto": {
       "ignoreDependencies": [
-        "@hydra/harness-client-ui-directory-picker-browse",
-        "@hydra/harness-client-ui-directory-picker-native"
+        "@hydra1902/harness-client-ui-directory-picker-browse",
+        "@hydra1902/harness-client-ui-directory-picker-native"
       ]
     },
     "packages/extensions/cordis-host-runner": {
@@ -137,7 +137,7 @@
         "tests/**/*.ts"
       ],
       "ignoreDependencies": [
-        "@hydra/harness-api-gateway"
+        "@hydra1902/harness-api-gateway"
       ]
     },
     "packages/client/ui-primitives": {
@@ -650,8 +650,8 @@
         "tests/**/*.ts"
       ],
       "ignoreDependencies": [
-        "@hydra/harness-client-ui-primitives",
-        "@hydra/harness-client-ui-slots",
+        "@hydra1902/harness-client-ui-primitives",
+        "@hydra1902/harness-client-ui-slots",
         "@types/react",
         "@types/react-dom",
         "react",
@@ -669,7 +669,7 @@
         "tests/**/*.ts"
       ],
       "ignoreDependencies": [
-        "@hydra/.+"
+        "@hydra1902/.+"
       ]
     },
     "packages/subagent/subagent-sdk": {
@@ -684,17 +684,17 @@
     },
     "packages/bundle/base": {
       "ignoreDependencies": [
-        "@hydra/.+"
+        "@hydra1902/.+"
       ]
     },
     "packages/bundle/headless": {
       "ignoreDependencies": [
-        "@hydra/harness-code-runtime-worker-thread"
+        "@hydra1902/harness-code-runtime-worker-thread"
       ]
     },
     "packages/bundle/web-app": {
       "ignoreDependencies": [
-        "@hydra/.+"
+        "@hydra1902/.+"
       ]
     }
   }

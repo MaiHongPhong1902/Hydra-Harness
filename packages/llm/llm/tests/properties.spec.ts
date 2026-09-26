@@ -9,9 +9,9 @@
 
 import { describe, expect, it } from 'vitest'
 import fc from 'fast-check'
-import { BlockAssembler } from '@hydra/harness-llm'
-import type { StreamChunk } from '@hydra/harness-llm'
-import { CallId } from '@hydra/harness-llm'
+import { BlockAssembler } from '@hydra1902/harness-llm'
+import type { StreamChunk } from '@hydra1902/harness-llm'
+import { CallId } from '@hydra1902/harness-llm'
 
 // A small pool of indices so collisions (duplicate-index bugs) are common.
 const indexArb = fc.integer({ min: 0, max: 4 })

@@ -1,27 +1,27 @@
 # Minimal tool-pwsh composition: real app boot path, real pwsh executor, real
 # foreground + background tool calls; driven by the package's loader.spec.ts.
 - id: system-prompt
-  name: '@hydra/harness-system-prompt'
+  name: '@hydra1902/harness-system-prompt'
 
 - id: tools
-  name: '@hydra/harness-tools'
+  name: '@hydra1902/harness-tools'
 
 - id: subprocess
-  name: '@hydra/harness-subprocess-local'
+  name: '@hydra1902/harness-subprocess-local'
 
 - id: bash
-  name: '@hydra/harness-pwsh-local'
+  name: '@hydra1902/harness-pwsh-local'
   config:
     graceMs: 200
 
 - id: shell-env
-  name: '@hydra/harness-shell-env'
+  name: '@hydra1902/harness-shell-env'
 
 - id: tasks
-  name: '@hydra/harness-jobs-local'
+  name: '@hydra1902/harness-jobs-local'
 
 - id: tool-jobs
-  name: '@hydra/harness-tool-jobs'
+  name: '@hydra1902/harness-tool-jobs'
 
 - id: tool-pwsh
-  name: '@hydra/harness-tool-pwsh'
+  name: '@hydra1902/harness-tool-pwsh'

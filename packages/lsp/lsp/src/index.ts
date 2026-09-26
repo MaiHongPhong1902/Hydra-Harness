@@ -8,11 +8,11 @@
  * invalid or conflicting registration publishes nothing, and its disposer releases every
  * reservation together. Selection routes a query by the file's final extension; it never depends on
  * registration order. The seam exposes exactly the four operations and no JSON-RPC escape hatch.
- * @module @hydra/harness-lsp
+ * @module @hydra1902/harness-lsp
  */
 
-import { Context, Service } from '@hydra/cordis'
-import { HarnessError } from '@hydra/harness-llm'
+import { Context, Service } from '@hydra1902/cordis'
+import { HarnessError } from '@hydra1902/harness-llm'
 import type { LspProviderId } from './brand.ts'
 import type {
   LspProvider,
@@ -35,7 +35,7 @@ export type {
   LspService,
 } from './types.ts'
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Context {
     lsp: LspService
   }

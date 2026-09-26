@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
-import type { CredentialView, IApiClient, RpcResponse } from '@hydra/harness-api-remotes/client'
+import type { CredentialView, IApiClient, RpcResponse } from '@hydra1902/harness-api-remotes/client'
 import { FallbackKeysEditor, useFallbackKeys } from '../src/client/FallbackKeysEditor.tsx'
 import { en } from '../src/client/locales.ts'
 

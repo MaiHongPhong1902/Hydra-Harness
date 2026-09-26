@@ -4,21 +4,21 @@
  * parent's session log — so the child inherits the parent's conversation context instead of
  * starting fresh. The seed ends at the last `turn/end`: the current tool-call turn is
  * unbalanced and cannot be replayed as a valid child session.
- * @module @hydra/harness-subagent-fork-in-process
+ * @module @hydra1902/harness-subagent-fork-in-process
  */
 
-import type { Context } from '@hydra/cordis'
-import z from '@hydra/schemastery'
-import type { SessionEvent } from '@hydra/harness-session'
-import type { Agent } from '@hydra/harness-agent'
+import type { Context } from '@hydra1902/cordis'
+import z from '@hydra1902/schemastery'
+import type { SessionEvent } from '@hydra1902/harness-session'
+import type { Agent } from '@hydra1902/harness-agent'
 import type {
   ContinuableCreateRequest,
   ContinuableCreateSpec,
   ResolvedSubagentStartRequest,
   SubagentCapabilities,
   SubagentProvider,
-} from '@hydra/harness-subagent'
-import { startInProcessRun } from '@hydra/harness-subagent-in-process-driver'
+} from '@hydra1902/harness-subagent'
+import { startInProcessRun } from '@hydra1902/harness-subagent-in-process-driver'
 
 export const name = 'subagent-fork-in-process'
 // `tools` is deliberately NOT injected — same rationale as subagent-spawn-in-process: the

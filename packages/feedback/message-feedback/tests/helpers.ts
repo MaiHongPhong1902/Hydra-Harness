@@ -1,25 +1,25 @@
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { Context } from '@hydra/cordis'
-import { createAssistantMessage, createUserMessage } from '@hydra/harness-llm'
-import type { MessageId } from '@hydra/harness-llm/brand'
+import { Context } from '@hydra1902/cordis'
+import { createAssistantMessage, createUserMessage } from '@hydra1902/harness-llm'
+import type { MessageId } from '@hydra1902/harness-llm/brand'
 import SessionStore, {
   SESSION_FORMAT_VERSION,
   Session,
   SessionId,
   type SessionEvent,
   type SessionHeader,
-} from '@hydra/harness-session'
+} from '@hydra1902/harness-session'
 import SessionPersistence, {
   SessionPersistenceRevision,
   type SessionInspection,
   type SessionLocation,
   type SessionPersistenceSnapshot,
-} from '@hydra/harness-session-persistence'
-import Storage from '@hydra/harness-storage'
-import * as StorageDomain from '@hydra/harness-storage-domain'
-import * as StorageJson from '@hydra/harness-storage-json'
+} from '@hydra1902/harness-session-persistence'
+import Storage from '@hydra1902/harness-storage'
+import * as StorageDomain from '@hydra1902/harness-storage-domain'
+import * as StorageJson from '@hydra1902/harness-storage-json'
 import MessageFeedbackService from '../src/index.ts'
 
 export interface MessageFixture {

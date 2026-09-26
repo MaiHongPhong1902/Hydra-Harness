@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import type { PromptAssembly } from '@hydra/harness-system-prompt'
-import * as SystemPromptInvariant from '@hydra/harness-system-prompt/invariant'
-import InvariantRegistry from '@hydra/harness-invariants'
+import { Context } from '@hydra1902/cordis'
+import type { PromptAssembly } from '@hydra1902/harness-system-prompt'
+import * as SystemPromptInvariant from '@hydra1902/harness-system-prompt/invariant'
+import InvariantRegistry from '@hydra1902/harness-invariants'
 
 async function setup(): Promise<Context> {
   const ctx = new Context()

@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest'
 import {
   resolveRetryPolicy,
   RetryPolicySchema,
-} from '@hydra/harness-llm'
-import type { RetryPolicyConfig } from '@hydra/harness-llm'
-import { MAX_TIMER_DELAY_MS } from '@hydra/harness-timeout'
+} from '@hydra1902/harness-llm'
+import type { RetryPolicyConfig } from '@hydra1902/harness-llm'
+import { MAX_TIMER_DELAY_MS } from '@hydra1902/harness-timeout'
 
 describe('provider retry policy', () => {
   it('resolves immutable normal defaults', () => {

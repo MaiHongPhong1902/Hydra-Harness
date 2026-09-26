@@ -1,15 +1,15 @@
 /** locale apply wiring: service + dictionaries provision, declaration-aware
  * Language row registration, snapshot projection into the row store, and
  * recovery after an HMR collapse of the declaring entry. */
-import { Context } from '@hydra/cordis'
+import { Context } from '@hydra1902/cordis'
 import { describe, expect, it, vi } from 'vitest'
-import { SlotRegistry } from '@hydra/harness-client-runtime/client'
-import { apply as settingsApply, inject as settingsInject } from '@hydra/harness-client-ui-settings/client'
-import { TestRemote } from '@hydra/harness-client-test-runtime'
+import { SlotRegistry } from '@hydra1902/harness-client-runtime/client'
+import { apply as settingsApply, inject as settingsInject } from '@hydra1902/harness-client-ui-settings/client'
+import { TestRemote } from '@hydra1902/harness-client-test-runtime'
 import {
   apply, inject, SETTINGS_NS,
-} from '@hydra/harness-client-locale/client'
-import type { LanguageRowInjected, LocaleRuntime } from '@hydra/harness-client-locale/client'
+} from '@hydra1902/harness-client-locale/client'
+import type { LanguageRowInjected, LocaleRuntime } from '@hydra1902/harness-client-locale/client'
 import { LOCALE_SETTINGS_NAMESPACE, LocaleSettingsSchema } from '../src/locale-settings.ts'
 import { LanguageRow } from '../src/client/LanguageRow.tsx'
 import type { createLanguageRowStore } from '../src/client/settings-store.ts'

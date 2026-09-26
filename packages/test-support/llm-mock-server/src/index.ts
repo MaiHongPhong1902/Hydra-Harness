@@ -3,7 +3,7 @@
  * semantic-empty LLM recovery tests. Each accepted chat-completions request
  * consumes one behavior; the server never retries or interprets harness policy.
  *
- * @module @hydra/harness-llm-mock-server
+ * @module @hydra1902/harness-llm-mock-server
  */
 
 import { createServer } from 'node:http'

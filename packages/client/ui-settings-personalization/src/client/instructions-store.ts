@@ -4,9 +4,9 @@
  * section can offer a reload affordance instead of a plain retry.
  */
 
-import { createSnapshotStore } from '@hydra/harness-client-runtime/client'
-import type { SnapshotStore } from '@hydra/harness-client-runtime/client'
-import type { IApiClient } from '@hydra/harness-api-remotes/client'
+import { createSnapshotStore } from '@hydra1902/harness-client-runtime/client'
+import type { SnapshotStore } from '@hydra1902/harness-client-runtime/client'
+import type { IApiClient } from '@hydra1902/harness-api-remotes/client'
 
 type InstructionsFace = Pick<IApiClient, 'settings'>
 

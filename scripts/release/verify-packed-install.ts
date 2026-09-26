@@ -102,7 +102,7 @@ function main(): void {
     // Optional dependencies are omitted: the Landlock platform packages behind
     // them need a musl toolchain and one build per architecture, and a consumer
     // that cannot install them must still start — which is what optional means
-    // here. Their entry package is a plain dependency of @hydra/harness-sandbox-local, so
+    // here. Their entry package is a plain dependency of @hydra1902/harness-sandbox-local, so
     // its tarball is supplied through --from.
     capture('npm', ['install', '--no-audit', '--no-fund', '--package-lock=false', '--omit=optional'],
       { cwd: consumerRoot, env: environment })

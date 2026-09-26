@@ -3,25 +3,25 @@ import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { z } from 'zod'
-import { Context } from '@hydra/cordis'
-import { createUserMessage } from '@hydra/harness-llm'
-import AgentLoop from '@hydra/harness-agent-loop'
-import { mountAgentLoopTestDependencies } from '@hydra/harness-agent-loop-testkit'
-import SessionStore, { SESSION_FORMAT_VERSION, SessionId } from '@hydra/harness-session'
-import type { SessionEvent, SessionHeader } from '@hydra/harness-session'
-import JsonlSessionPersistence from '@hydra/harness-session-persistence-jsonl'
-import SessionProjectionRegistry from '@hydra/harness-session-projection'
-import type { ProjectionDefinition } from '@hydra/harness-session-projection'
-import SessionProjectionCache from '@hydra/harness-session-projection-cache'
-import Storage from '@hydra/harness-storage'
-import { DomainFacility } from '@hydra/harness-storage-domain'
+import { Context } from '@hydra1902/cordis'
+import { createUserMessage } from '@hydra1902/harness-llm'
+import AgentLoop from '@hydra1902/harness-agent-loop'
+import { mountAgentLoopTestDependencies } from '@hydra1902/harness-agent-loop-testkit'
+import SessionStore, { SESSION_FORMAT_VERSION, SessionId } from '@hydra1902/harness-session'
+import type { SessionEvent, SessionHeader } from '@hydra1902/harness-session'
+import JsonlSessionPersistence from '@hydra1902/harness-session-persistence-jsonl'
+import SessionProjectionRegistry from '@hydra1902/harness-session-projection'
+import type { ProjectionDefinition } from '@hydra1902/harness-session-projection'
+import SessionProjectionCache from '@hydra1902/harness-session-projection-cache'
+import Storage from '@hydra1902/harness-storage'
+import { DomainFacility } from '@hydra1902/harness-storage-domain'
 import { MemoryMediaPool, MemoryStorageBackend } from '../../../storage/storage-domain/tests/helpers/memory-backend.ts'
 import SubagentRuntime, {
   SUBAGENT_DESCRIPTOR_VERSION,
   SubagentError,
-} from '@hydra/harness-subagent'
-import * as SubagentSpawn from '@hydra/harness-subagent-spawn-in-process'
-import * as SubagentFork from '@hydra/harness-subagent-fork-in-process'
+} from '@hydra1902/harness-subagent'
+import * as SubagentSpawn from '@hydra1902/harness-subagent-spawn-in-process'
+import * as SubagentFork from '@hydra1902/harness-subagent-fork-in-process'
 import { MockAdapter, textResponse } from '../../../core/agent-loop/tests/mock-adapter.ts'
 
 type Script = ConstructorParameters<typeof MockAdapter>[0]
@@ -117,7 +117,7 @@ function descriptorPayload(label: string, version = SUBAGENT_DESCRIPTOR_VERSION)
   return { version, mode: 'continuable' as const, provider: 'spawn', label }
 }
 
-declare module '@hydra/harness-session-projection/types' {
+declare module '@hydra1902/harness-session-projection/types' {
   interface SessionProjectionStateMap {
     subagentListHostileProbe: { poisoned?: boolean | undefined }
   }

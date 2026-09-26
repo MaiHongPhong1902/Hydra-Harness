@@ -44,7 +44,7 @@ pnpm run desktop
 ### Run from npm
 
 ```sh
-npx @hydra/harness web
+npx @hydra1902/harness web
 ```
 
 The Web UI starts at `http://127.0.0.1:3080` by default. Local launches open your browser automatically; SSH launches print the host URL so your SSH client or editor can handle forwarding. Pass `--no-open` to start the server without opening a browser.

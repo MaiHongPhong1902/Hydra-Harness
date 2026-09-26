@@ -2,11 +2,11 @@
  * Wire-safe authorization types, free of cordis/service imports so browser type
  * chains (apiproxy api → client) can consume them without loading this
  * package's Context augmentation.
- * @module @hydra/harness-authorization/types
+ * @module @hydra1902/harness-authorization/types
  */
 
-import type { CredentialKey } from '@hydra/harness-credentials/types'
-import type { Branded } from '@hydra/harness-brand'
+import type { CredentialKey } from '@hydra1902/harness-credentials/types'
+import type { Branded } from '@hydra1902/harness-brand'
 
 /** One way a flow can obtain its credential, named by the flow that offers it. */
 export interface AuthorizationMethod {
@@ -118,7 +118,7 @@ export interface AuthorizationAccounts {
   usage?(id: AuthorizationAccountId, signal?: AbortSignal): Promise<AuthorizationUsage | undefined>
 }
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Events {
     /**
      * One authorization attempt has finished and released its key. The event

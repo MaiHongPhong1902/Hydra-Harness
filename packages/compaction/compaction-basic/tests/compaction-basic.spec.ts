@@ -1,18 +1,18 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
-import { Context } from '@hydra/cordis'
-import { AttachmentId } from '@hydra/harness-attachment'
-import BasicCompactionEngine from '@hydra/harness-compaction-basic'
-import type { BasicCompactionConfig } from '@hydra/harness-compaction-basic'
-import { selectCompactableRange } from '@hydra/harness-compaction-basic/src/region.ts'
-import type { SummarizationInput, SummaryResult } from '@hydra/harness-compaction-basic/src/summarizer.ts'
-import { CompactionId, toolPairingBalancedAfter, toolPairingBalancedBefore } from '@hydra/harness-compaction'
+import { Context } from '@hydra1902/cordis'
+import { AttachmentId } from '@hydra1902/harness-attachment'
+import BasicCompactionEngine from '@hydra1902/harness-compaction-basic'
+import type { BasicCompactionConfig } from '@hydra1902/harness-compaction-basic'
+import { selectCompactableRange } from '@hydra1902/harness-compaction-basic/src/region.ts'
+import type { SummarizationInput, SummaryResult } from '@hydra1902/harness-compaction-basic/src/summarizer.ts'
+import { CompactionId, toolPairingBalancedAfter, toolPairingBalancedBefore } from '@hydra1902/harness-compaction'
 import {
   resolveCompactSpec,
   resolveConfig,
   resolveTargetPolicy,
-} from '@hydra/harness-compaction-basic/src/config.ts'
-import type { CompactionResult } from '@hydra/harness-compaction'
-import LlmRuntime, { createUserMessage, CallId, CONTEXT_WINDOW_EXCEEDED_CODE, createToolResultMessage, LlmAdapter , createMessage } from '@hydra/harness-llm'
+} from '@hydra1902/harness-compaction-basic/src/config.ts'
+import type { CompactionResult } from '@hydra1902/harness-compaction'
+import LlmRuntime, { createUserMessage, CallId, CONTEXT_WINDOW_EXCEEDED_CODE, createToolResultMessage, LlmAdapter , createMessage } from '@hydra1902/harness-llm'
 import type {
   ContentBlock,
   GenerateOptions,
@@ -21,11 +21,11 @@ import type {
   Message,
   StreamChunk,
   TokenUsage,
-} from '@hydra/harness-llm'
-import SessionStore, { Session, SessionId } from '@hydra/harness-session'
-import TokenMeter from '@hydra/harness-token-meter'
-import { agentEvents, type Agent, type RequestErrorAction } from '@hydra/harness-agent'
-import ToolResultPruner from '@hydra/harness-compaction-tool-result-pruner'
+} from '@hydra1902/harness-llm'
+import SessionStore, { Session, SessionId } from '@hydra1902/harness-session'
+import TokenMeter from '@hydra1902/harness-token-meter'
+import { agentEvents, type Agent, type RequestErrorAction } from '@hydra1902/harness-agent'
+import ToolResultPruner from '@hydra1902/harness-compaction-tool-result-pruner'
 
 const SIGNAL = new AbortController().signal
 const MODEL = 'test-model'

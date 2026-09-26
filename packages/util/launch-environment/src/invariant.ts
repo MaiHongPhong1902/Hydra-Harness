@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra/harness-launch-environment`.
- * @module @hydra/harness-launch-environment/invariant
+ * Package-owned invariant companion for `@hydra1902/harness-launch-environment`.
+ * @module @hydra1902/harness-launch-environment/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra/cordis'
-import type { InvariantInstaller } from '@hydra/harness-invariants'
+import type { Context } from '@hydra1902/cordis'
+import type { InvariantInstaller } from '@hydra1902/harness-invariants'
 
-const PACKAGE_NAME = '@hydra/harness-launch-environment'
+const PACKAGE_NAME = '@hydra1902/harness-launch-environment'
 
 /** Cordis companion plugin name. */
 export const name = 'launch-environment-invariant'

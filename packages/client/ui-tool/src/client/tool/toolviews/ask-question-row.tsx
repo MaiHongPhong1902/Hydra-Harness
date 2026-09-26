@@ -6,9 +6,9 @@
 // when the user dismissed the whole set — because the questions themselves
 // render in the composer takeover.
 
-import { IconQuestionOutline14 } from '@hydra/harness-client-ui-primitives'
-import type { Context } from '@hydra/cordis'
-import type { PropsLocale } from '@hydra/harness-client-ui-slots'
+import { IconQuestionOutline14 } from '@hydra1902/harness-client-ui-primitives'
+import type { Context } from '@hydra1902/cordis'
+import type { PropsLocale } from '@hydra1902/harness-client-ui-slots'
 import type { ToolCallViewProps } from '../../contract/slots.ts'
 import { toolRowModel } from '../models/tool-call-model.ts'
 import { ToolRow } from '../components/ToolRow.tsx'

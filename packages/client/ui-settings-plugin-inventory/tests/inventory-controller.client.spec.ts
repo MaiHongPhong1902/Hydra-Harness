@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { ImportedPluginSnapshot, PluginInventorySnapshot } from '@hydra/harness-api-remotes/client'
+import type { ImportedPluginSnapshot, PluginInventorySnapshot } from '@hydra1902/harness-api-remotes/client'
 import { PluginInventoryController } from '../src/client/inventory-controller.ts'
 import type { ImportedPluginControls, NativePluginControls } from '../src/client/PluginInventorySettingsTab.tsx'
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { mergeHookOutputs } from '@hydra/harness-hook-protocol'
-import type { HookOutput } from '@hydra/harness-hook-protocol'
+import { mergeHookOutputs } from '@hydra1902/harness-hook-protocol'
+import type { HookOutput } from '@hydra1902/harness-hook-protocol'
 
 function out(over: Partial<HookOutput> = {}): HookOutput {
   return { exitCode: 0, stderr: '', stdout: '', ...over }

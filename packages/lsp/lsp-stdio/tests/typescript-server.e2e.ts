@@ -9,11 +9,11 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { mkdtemp, mkdir, rm, writeFile, realpath } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { Context } from '@hydra/cordis'
-import LocalSubprocessRuntime from '@hydra/harness-subprocess-local'
-import LocalFileSystem from '@hydra/harness-fs-local'
-import Lsp, { type LspQueryRequest, type LspQueryResult } from '@hydra/harness-lsp'
-import * as LspLocal from '@hydra/harness-lsp-stdio'
+import { Context } from '@hydra1902/cordis'
+import LocalSubprocessRuntime from '@hydra1902/harness-subprocess-local'
+import LocalFileSystem from '@hydra1902/harness-fs-local'
+import Lsp, { type LspQueryRequest, type LspQueryResult } from '@hydra1902/harness-lsp'
+import * as LspLocal from '@hydra1902/harness-lsp-stdio'
 
 // The server binary is a dev dependency of this package; resolve its pnpm-hoisted .bin path.
 const serverBin = join(

@@ -5,26 +5,26 @@
  * provider driver and the continuation manager compose children this way, so
  * depth accounting, lineage stamping, and delegation policy have one home.
  *
- * @module @hydra/harness-subagent/child-agent
+ * @module @hydra1902/harness-subagent/child-agent
  */
 
-import type { Context } from '@hydra/cordis'
-import type { Agent, AgentOptions, CreateAgentOptions } from '@hydra/harness-agent'
-import type { SandboxMode } from '@hydra/harness-sandbox'
-import type { Session, SessionId } from '@hydra/harness-session'
-import type { ToolRestriction } from '@hydra/harness-tools'
+import type { Context } from '@hydra1902/cordis'
+import type { Agent, AgentOptions, CreateAgentOptions } from '@hydra1902/harness-agent'
+import type { SandboxMode } from '@hydra1902/harness-sandbox'
+import type { Session, SessionId } from '@hydra1902/harness-session'
+import type { ToolRestriction } from '@hydra1902/harness-tools'
 // Type-only: make `ctx.get('sandboxPolicy')` / `ctx.get('approval')` resolve
 // to the policy services when composed — delegation consumes both
 // opportunistically (the documented `ctx.get` pattern), never as a hard dep —
 // and merge the `sandbox/mode` / `approval/policy` session-event payloads.
-import type {} from '@hydra/harness-sandbox-policy'
-import type {} from '@hydra/harness-user-approval'
+import type {} from '@hydra1902/harness-sandbox-policy'
+import type {} from '@hydra1902/harness-user-approval'
 // Type-only: make `ctx.get('agentPresets')` resolve to the preset roster when
 // composed — a child inherits its parent's composition opportunistically (the
 // documented `ctx.get` pattern), never as a hard dep. A rosterless deployment
 // keeps its model-facing rows on the host plane, where the child already sees
 // them through the tool registry's global layer.
-import type {} from '@hydra/harness-agent-presets'
+import type {} from '@hydra1902/harness-agent-presets'
 import { delegationDepthOf } from './depth.ts'
 
 /** Thrown when starting a child would exceed the requested depth cap. */

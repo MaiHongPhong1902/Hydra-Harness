@@ -10,8 +10,8 @@
  */
 import { describe, expect, it } from 'vitest'
 import { act, render } from '@testing-library/react'
-import type { SessionMaybeProvideInfo, StoredEntry } from '@hydra/harness-client-ui-slots'
-import type { SlotRendererHost } from '@hydra/harness-client-ui-renderer/client'
+import type { SessionMaybeProvideInfo, StoredEntry } from '@hydra1902/harness-client-ui-slots'
+import type { SlotRendererHost } from '@hydra1902/harness-client-ui-renderer/client'
 import { createSlotRenderer } from '../src/client/scoped-slots.tsx'
 
 function observable<T>(initial: T) {

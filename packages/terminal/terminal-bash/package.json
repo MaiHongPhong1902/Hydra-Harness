@@ -1,5 +1,5 @@
 {
-  "name": "@hydra/harness-terminal-bash",
+  "name": "@hydra1902/harness-terminal-bash",
   "description": "Persistent shell PTY backend over the Hydra harness subprocess terminal primitive",
   "hydra": {
     "plugin": {
@@ -37,28 +37,28 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra/harness-agent": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-terminal": "workspace:^",
-    "@hydra/harness-sandbox": "workspace:^",
-    "@hydra/harness-sandbox-policy": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-subprocess": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-agent": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-terminal": "workspace:^",
+    "@hydra1902/harness-sandbox": "workspace:^",
+    "@hydra1902/harness-sandbox-policy": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-subprocess": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "dependencies": {
-    "@hydra/harness-pwsh-local": "workspace:^",
-    "@hydra/schemastery": "workspace:^"
+    "@hydra1902/harness-pwsh-local": "workspace:^",
+    "@hydra1902/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/harness-agent": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-terminal": "workspace:^",
-    "@hydra/harness-sandbox": "workspace:^",
-    "@hydra/harness-sandbox-policy": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-subprocess": "workspace:^",
-    "@hydra/harness-subprocess-local": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-agent": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-terminal": "workspace:^",
+    "@hydra1902/harness-sandbox": "workspace:^",
+    "@hydra1902/harness-sandbox-policy": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-subprocess": "workspace:^",
+    "@hydra1902/harness-subprocess-local": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   }
 }

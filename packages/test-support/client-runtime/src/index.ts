@@ -8,14 +8,14 @@
  * Not part of the product plugin graph (no `hydra.client`); feature packages
  * depend on it in devDependencies only. It copies no SlotCore/renderer/store
  * machinery — everything mounts the production implementations.
- * @module @hydra/harness-client-test-runtime
+ * @module @hydra1902/harness-client-test-runtime
  */
 /* oxlint-disable typescript/no-redundant-type-constituents --
  * `keyof SlotMap & string` is the declare-merge key pattern (see ui-slots):
  * this compilation unit sees only the runtime's 'root' row, but consumer
  * programs merge their own keys in; the rule fires on the narrow-map view. */
-import { Context, Inject } from '@hydra/cordis'
-import type { Fiber, Plugin } from '@hydra/cordis'
+import { Context, Inject } from '@hydra1902/cordis'
+import type { Fiber, Plugin } from '@hydra1902/cordis'
 import { createElement, Fragment, useSyncExternalStore } from 'react'
 import type { ReactNode } from 'react'
 import { act, render, within } from '@testing-library/react'
@@ -24,19 +24,19 @@ import type { queries } from '@testing-library/dom'
 import type { BoundFunctions } from '@testing-library/dom'
 import {
   ConversationEventRegistry, ConversationViewRegistry, SlotRegistry,
-} from '@hydra/harness-client-runtime/client'
-import { bindSnapshotSelector as bindRendererSnapshotSelector } from '@hydra/harness-client-ui-renderer/src/client/bind.ts'
-import { createSlotRenderer as createRenderer } from '@hydra/harness-client-ui-renderer/src/client/scoped-slots.tsx'
+} from '@hydra1902/harness-client-runtime/client'
+import { bindSnapshotSelector as bindRendererSnapshotSelector } from '@hydra1902/harness-client-ui-renderer/src/client/bind.ts'
+import { createSlotRenderer as createRenderer } from '@hydra1902/harness-client-ui-renderer/src/client/scoped-slots.tsx'
 import type {
   ChildrenDecl, ComposedProps, HostObservable, OwnerOf, SlotComponent, SlotMap, SlotRenderer,
   SlotRendererHost, SnapshotSelectorHook, StoreInstanceLike,
-} from '@hydra/harness-client-ui-slots'
+} from '@hydra1902/harness-client-ui-slots'
 import { registerDomSnapshotSerializer } from './snapshot.ts'
 import { TestSessions } from './sessions.ts'
 import { TestWorkspaces } from './workspaces.ts'
 import type { Stabilizer } from './fixtures.ts'
 
-export type { UseSession } from '@hydra/harness-client-ui-renderer/client'
+export type { UseSession } from '@hydra1902/harness-client-ui-renderer/client'
 export { domSnapshotSerializer, registerDomSnapshotSerializer } from './snapshot.ts'
 export { FixtureSession, TestSessions } from './sessions.ts'
 export { stubSettingsScope } from './settings-scope.ts'

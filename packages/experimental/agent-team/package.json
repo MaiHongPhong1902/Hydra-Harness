@@ -1,5 +1,5 @@
 {
-  "name": "@hydra/harness-experimental-agent-team",
+  "name": "@hydra1902/harness-experimental-agent-team",
   "description": "Implicit-root Agent Teams roster, durable peer mailbox, and shared task DAG",
   "version": "0.1.1-rc.1",
   "private": true,
@@ -30,33 +30,33 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@hydra/schemastery": "workspace:^",
+    "@hydra1902/schemastery": "workspace:^",
     "zod": "^4.4.3"
   },
   "peerDependencies": {
-    "@hydra/harness-agent": "workspace:^",
-    "@hydra/harness-brand": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-session-persistence": "workspace:^",
-    "@hydra/harness-subagent": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-agent": "workspace:^",
+    "@hydra1902/harness-brand": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-session-persistence": "workspace:^",
+    "@hydra1902/harness-subagent": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/harness-agent": "workspace:^",
-    "@hydra/harness-agent-loop": "workspace:^",
-    "@hydra/harness-agent-loop-testkit": "workspace:^",
-    "@hydra/harness-brand": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-session-persistence": "workspace:^",
-    "@hydra/harness-session-persistence-jsonl": "workspace:^",
-    "@hydra/harness-session-persistence-sqlite": "workspace:^",
-    "@hydra/harness-subagent": "workspace:^",
-    "@hydra/harness-subagent-fork-in-process": "workspace:^",
-    "@hydra/harness-subagent-spawn-in-process": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-agent": "workspace:^",
+    "@hydra1902/harness-agent-loop": "workspace:^",
+    "@hydra1902/harness-agent-loop-testkit": "workspace:^",
+    "@hydra1902/harness-brand": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-session-persistence": "workspace:^",
+    "@hydra1902/harness-session-persistence-jsonl": "workspace:^",
+    "@hydra1902/harness-session-persistence-sqlite": "workspace:^",
+    "@hydra1902/harness-subagent": "workspace:^",
+    "@hydra1902/harness-subagent-fork-in-process": "workspace:^",
+    "@hydra1902/harness-subagent-spawn-in-process": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   }
 }

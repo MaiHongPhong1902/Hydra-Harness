@@ -2,8 +2,8 @@
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import type { ComponentProps } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { SessionListState } from '@hydra/harness-client-runtime/client'
-import type { WorkspaceListState } from '@hydra/harness-client-runtime/client'
+import type { SessionListState } from '@hydra1902/harness-client-runtime/client'
+import type { WorkspaceListState } from '@hydra1902/harness-client-runtime/client'
 import type { ReviewSnapshot } from '../src/client/history.ts'
 import { SessionSummaryAction } from '../src/client/SessionSummary.tsx'
 

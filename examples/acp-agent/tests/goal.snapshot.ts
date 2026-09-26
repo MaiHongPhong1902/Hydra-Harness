@@ -8,9 +8,9 @@ import {
   type AgentUnderTest,
   type InputScript,
   type NormalizeContext,
-} from '@hydra/harness-acp-snapshot'
-import { foldGoal } from '@hydra/harness-goal'
-import type { SessionEvent } from '@hydra/harness-session'
+} from '@hydra1902/harness-acp-snapshot'
+import { foldGoal } from '@hydra1902/harness-goal'
+import type { SessionEvent } from '@hydra1902/harness-session'
 import { describe, expect, it } from 'vitest'
 
 // This lifecycle proof has goal-specific timestamp normalization and semantic

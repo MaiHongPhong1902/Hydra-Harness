@@ -4,16 +4,16 @@
  * surface events; a separate replacement `user/message` carries the summary.
  * Backend packages own configuration and retention policy; see
  * `.agents/notes/implemented/feature/2026-06-18-compaction-capability-seam.md`.
- * @module @hydra/harness-compaction/types
+ * @module @hydra1902/harness-compaction/types
  */
 
-import type { ContentBlock, TokenUsage } from '@hydra/harness-llm'
-import type { CommandId } from '@hydra/harness-commands/brand'
+import type { ContentBlock, TokenUsage } from '@hydra1902/harness-llm'
+import type { CommandId } from '@hydra1902/harness-commands/brand'
 import type { CompactionId } from './brand.ts'
 
 export type { CompactionId }
 
-declare module '@hydra/harness-session/types' {
+declare module '@hydra1902/harness-session/types' {
   interface SessionEventMap {
     /**
      * Marks the start of a compaction — log-only, holds the lock until

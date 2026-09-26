@@ -2,13 +2,13 @@
  * Browser trajectory plugin contributing one entry to the conversation view
  * slot without defining a service.
  */
-import type { Context } from '@hydra/cordis'
-import type { SessionId } from '@hydra/harness-client-runtime/client'
+import type { Context } from '@hydra1902/cordis'
+import type { SessionId } from '@hydra1902/harness-client-runtime/client'
 // Type-only: pulls the locale plugin's Context merge (ctx.locale).
-import type {} from '@hydra/harness-client-locale/client'
+import type {} from '@hydra1902/harness-client-locale/client'
 // Type-only: the 'conversation.view' SlotMap row (declared by the slot's
 // owning package) must be in the program for the register calls to type.
-import type {} from '@hydra/harness-client-ui-conversation/client'
+import type {} from '@hydra1902/harness-client-ui-conversation/client'
 import { createTrajectoryDurationStore } from './duration-store.ts'
 import { en, NS } from './locales.ts'
 import { registerTrajectoryAssistantDefinition } from './trajectory-assistant-definition.ts'

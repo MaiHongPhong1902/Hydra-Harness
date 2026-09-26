@@ -1,9 +1,9 @@
 /** Provider discovery and a real, saved-configuration search probe for Settings. */
 
-import type { WebSearchProviderDescriptor, SearchErrorCode } from '@hydra/harness-web'
+import type { WebSearchProviderDescriptor, SearchErrorCode } from '@hydra1902/harness-web'
 import type { RpcRequest, RpcResponse } from './rpc.ts'
 
-export type { WebSearchProviderDescriptor, SearchConfigField } from '@hydra/harness-web'
+export type { WebSearchProviderDescriptor, SearchConfigField } from '@hydra1902/harness-web'
 
 /** Safe probe result; upstream responses and credentials never cross this API. */
 export type SearchConnectionResult =

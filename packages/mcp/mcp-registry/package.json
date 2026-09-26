@@ -1,5 +1,5 @@
 {
-  "name": "@hydra/harness-mcp-registry",
+  "name": "@hydra1902/harness-mcp-registry",
   "description": "Settings-backed MCP server records that mount and unmount mcp-client fibers",
   "hydra": {
     "plugin": {
@@ -42,23 +42,23 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-mcp-client": "workspace:^",
-    "@hydra/harness-settings": "workspace:^",
-    "@hydra/harness-tools": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-mcp-client": "workspace:^",
+    "@hydra1902/harness-settings": "workspace:^",
+    "@hydra1902/harness-tools": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "dependencies": {
-    "@hydra/schemastery": "workspace:^"
+    "@hydra1902/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-mcp-client": "workspace:^",
-    "@hydra/harness-settings": "workspace:^",
-    "@hydra/harness-settings-file": "workspace:^",
-    "@hydra/harness-tools": "workspace:^",
-    "@hydra/cordis": "workspace:^",
-    "@hydra/cordis-plugin-loader": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-mcp-client": "workspace:^",
+    "@hydra1902/harness-settings": "workspace:^",
+    "@hydra1902/harness-settings-file": "workspace:^",
+    "@hydra1902/harness-tools": "workspace:^",
+    "@hydra1902/cordis": "workspace:^",
+    "@hydra1902/cordis-plugin-loader": "workspace:^",
     "@modelcontextprotocol/sdk": "^1.12.0"
   }
 }

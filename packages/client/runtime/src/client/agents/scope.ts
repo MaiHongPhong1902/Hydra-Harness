@@ -1,6 +1,6 @@
 /**
  * Client Agent-scope primitive: mint a Cordis context tagged with the owning
- * Agent's identity. The mechanism mirrors the host `@hydra/harness-scope` architecture
+ * Agent's identity. The mechanism mirrors the host `@hydra1902/harness-scope` architecture
  * (no-op plugin fiber + context tag + `Context.filter` routing predicate);
  * the shape deliberately diverges: the filter lives on the actx itself
  * instead of a separate carrier object, so scoped dispatch is plain cordis —
@@ -15,10 +15,10 @@
  * — a cold session's host Agent is already disposed while its client actx
  * stays alive for history viewing.
  */
-import { Context as CordisContext } from '@hydra/cordis'
-import type { Context, Fiber } from '@hydra/cordis'
-import type { SessionId } from '@hydra/harness-api-remotes/client'
-import type { TypertClientRemote, TypertRemoteScopeApi } from '@hydra/harness-typert-protocol'
+import { Context as CordisContext } from '@hydra1902/cordis'
+import type { Context, Fiber } from '@hydra1902/cordis'
+import type { SessionId } from '@hydra1902/harness-api-remotes/client'
+import type { TypertClientRemote, TypertRemoteScopeApi } from '@hydra1902/harness-typert-protocol'
 
 /** Client Cordis Context carrying one Agent identity and its scoped Remote namespaces. */
 export type AgentContext = Omit<Context, 'remote'> & {

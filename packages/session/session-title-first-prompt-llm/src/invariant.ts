@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra/harness-session-title-first-prompt-llm`.
- * @module @hydra/harness-session-title-first-prompt-llm/invariant
+ * Package-owned invariant companion for `@hydra1902/harness-session-title-first-prompt-llm`.
+ * @module @hydra1902/harness-session-title-first-prompt-llm/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra/cordis'
-import type { InvariantInstaller } from '@hydra/harness-invariants'
+import type { Context } from '@hydra1902/cordis'
+import type { InvariantInstaller } from '@hydra1902/harness-invariants'
 
-const PACKAGE_NAME = '@hydra/harness-session-title-first-prompt-llm'
+const PACKAGE_NAME = '@hydra1902/harness-session-title-first-prompt-llm'
 
 /** Cordis companion plugin name. */
 export const name = 'session-title-first-prompt-llm-invariant'

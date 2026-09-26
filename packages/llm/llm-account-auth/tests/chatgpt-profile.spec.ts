@@ -1,12 +1,12 @@
 import { afterEach, expect, it, vi } from 'vitest'
 import type { Model, Provider } from '@earendil-works/pi-ai'
-import type { Context } from '@hydra/cordis'
-import type { AuthorizationFlow, AuthorizationSession } from '@hydra/harness-authorization'
+import type { Context } from '@hydra1902/cordis'
+import type { AuthorizationFlow, AuthorizationSession } from '@hydra1902/harness-authorization'
 import { buildChatGptProfile, loginChatGpt, registerChatGptFlow } from '../src/chatgpt.ts'
 import type { AccountPool } from '../src/accounts.ts'
 import {
   DEFAULT_CONTEXT_WINDOW, DEFAULT_MAX_TOKENS,
-} from '@hydra/harness-llm-pi-ai'
+} from '@hydra1902/harness-llm-pi-ai'
 
 const base = vi.hoisted(() => ({
   id: 'openai-codex', name: 'SDK provider',

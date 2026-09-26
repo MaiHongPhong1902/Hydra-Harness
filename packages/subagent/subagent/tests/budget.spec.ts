@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra/cordis'
-import type { Agent } from '@hydra/harness-agent'
-import Sessions, { SessionId } from '@hydra/harness-session'
+import { Context } from '@hydra1902/cordis'
+import type { Agent } from '@hydra1902/harness-agent'
+import Sessions, { SessionId } from '@hydra1902/harness-session'
 import { delegationAdmission, delegationRoot } from '../src/budget.ts'
 
 describe('delegation tree admission', () => {

@@ -3,10 +3,10 @@
  * provider — the pure, network-free half. The provider's `fetch()` composes
  * these with transport (redirect following, byte caps, decoding).
  *
- * @module @hydra/harness-web-fetch-http/policy
+ * @module @hydra1902/harness-web-fetch-http/policy
  */
 
-import { WebError } from '@hydra/harness-web'
+import { WebError } from '@hydra1902/harness-web'
 
 /** The body kinds this provider decodes. */
 export type FetchableKind = 'html' | 'text'

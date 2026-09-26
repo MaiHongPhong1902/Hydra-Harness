@@ -3,11 +3,11 @@
  * per-namespace sections; plugins register a namespace schema and read the
  * resolved value, which layers schema defaults, the registrant's composition
  * `base`, and the user document section, in that order.
- * @module @hydra/harness-settings
+ * @module @hydra1902/harness-settings
  */
 
-import { Context, Service } from '@hydra/cordis'
-import type z from '@hydra/schemastery'
+import { Context, Service } from '@hydra1902/cordis'
+import type z from '@hydra1902/schemastery'
 import { redactSecrets } from './redact.ts'
 import type { RedactedSecret } from './redact.ts'
 import type { SettingsNamespace, SettingsUpdateSource } from './types.ts'
@@ -130,7 +130,7 @@ export interface SettingsScope<T> {
   replace(section: object): Promise<void>
 }
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Context {
     settings: SettingsProvider
   }

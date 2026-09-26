@@ -2,16 +2,16 @@
  * Workspace entity registry (`ctx.workspaceRegistry`): durable workspace records,
  * stable registry order, and header-validated session membership over the
  * domain data form.
- * @module @hydra/harness-workspace
+ * @module @hydra1902/harness-workspace
  */
 
 import { randomUUID } from 'node:crypto'
 import { stat } from 'node:fs/promises'
 import { basename } from 'node:path'
-import { Context, Service } from '@hydra/cordis'
-import type { SessionHeader, SessionId } from '@hydra/harness-session'
-import type {} from '@hydra/harness-session-persistence'
-import type { DomainGlobal, KvTable } from '@hydra/harness-storage-domain'
+import { Context, Service } from '@hydra1902/cordis'
+import type { SessionHeader, SessionId } from '@hydra1902/harness-session'
+import type {} from '@hydra1902/harness-session-persistence'
+import type { DomainGlobal, KvTable } from '@hydra1902/harness-storage-domain'
 import { WorkspaceEntity } from './entity.ts'
 import type { WorkspaceEntityHost } from './entity.ts'
 
@@ -64,7 +64,7 @@ export class WorkspaceOrderInvalidError extends Error {
 }
 
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Context {
     workspaceRegistry: WorkspaceRegistry
   }

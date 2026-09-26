@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { zstdCompressSync } from 'node:zlib'
-import type { SessionEvent } from '@hydra/harness-session'
-import { CallId, type StreamChunk } from '@hydra/harness-llm'
+import type { SessionEvent } from '@hydra1902/harness-session'
+import { CallId, type StreamChunk } from '@hydra1902/harness-llm'
 import {
   decodeStorageRecord,
   MAX_PACKED_DATA_BYTES,

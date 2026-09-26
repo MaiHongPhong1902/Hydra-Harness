@@ -4,14 +4,14 @@
  * compaction calls, then binds fresh live sessions to parent/child scripts by
  * first-call order. Throw and hang cases require an explicit override because
  * a session log cannot reconstruct them alone.
- * @module @hydra/harness-llm-replay
+ * @module @hydra1902/harness-llm-replay
  */
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { delimiter as pathDelimiter } from 'node:path'
-import type { Context } from '@hydra/cordis'
-import type {} from '@hydra/harness-compaction'
-import { decodeStorageRecord, type SessionEvent } from '@hydra/harness-session'
+import type { Context } from '@hydra1902/cordis'
+import type {} from '@hydra1902/harness-compaction'
+import { decodeStorageRecord, type SessionEvent } from '@hydra1902/harness-session'
 import type {
   ContentBlock,
   GenerateOptions,
@@ -23,8 +23,8 @@ import type {
   RetryPolicyConfig,
   StreamChunk,
   TokenUsage,
-} from '@hydra/harness-llm'
-import { LlmAdapter, LlmError, ReasoningEffortId, assertNever, resolveRetryPolicy } from '@hydra/harness-llm'
+} from '@hydra1902/harness-llm'
+import { LlmAdapter, LlmError, ReasoningEffortId, assertNever, resolveRetryPolicy } from '@hydra1902/harness-llm'
 
 const PACKED_CHUNK_ROW_TYPES = new Set(['text-chunks', 'reasoning-chunks', 'tool-call-chunks'])
 

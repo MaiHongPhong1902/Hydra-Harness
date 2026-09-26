@@ -1,23 +1,23 @@
 /**
  * Exact page/workflow recall with live Browser verification and private local storage.
  * Recalled guidance enters the existing user/message log through agent/pre-step.
- * @module @hydra/harness-page-memory
+ * @module @hydra1902/harness-page-memory
  */
 import { createHash } from 'node:crypto'
 import { realpath } from 'node:fs/promises'
 import { isAbsolute, join } from 'node:path'
 import { performance } from 'node:perf_hooks'
-import type { Context } from '@hydra/cordis'
-import z from '@hydra/schemastery'
-import { settingsNamespace, type SettingsScope } from '@hydra/harness-settings'
-import type { Agent } from '@hydra/harness-agent'
-import type { BrowserPageIdentity } from '@hydra/harness-browser-electron'
-import { BrowserError } from '@hydra/harness-browser-electron'
-import { resolveHydraHome } from '@hydra/harness-home-paths'
-import { createUserMessage } from '@hydra/harness-llm'
-import type {} from '@hydra/harness-system-prompt'
-import { defineTool } from '@hydra/harness-tools'
-import type { ToolExecution } from '@hydra/harness-tools'
+import type { Context } from '@hydra1902/cordis'
+import z from '@hydra1902/schemastery'
+import { settingsNamespace, type SettingsScope } from '@hydra1902/harness-settings'
+import type { Agent } from '@hydra1902/harness-agent'
+import type { BrowserPageIdentity } from '@hydra1902/harness-browser-electron'
+import { BrowserError } from '@hydra1902/harness-browser-electron'
+import { resolveHydraHome } from '@hydra1902/harness-home-paths'
+import { createUserMessage } from '@hydra1902/harness-llm'
+import type {} from '@hydra1902/harness-system-prompt'
+import { defineTool } from '@hydra1902/harness-tools'
+import type { ToolExecution } from '@hydra1902/harness-tools'
 import { PageMemoryStore, pageKey, parseWorkflow } from './store.ts'
 import type { RouteRule, StoredWorkflow } from './store.ts'
 import type { MemoryTraceOutcome } from './types.ts'

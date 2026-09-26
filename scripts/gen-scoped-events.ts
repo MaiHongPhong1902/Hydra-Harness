@@ -84,7 +84,7 @@ class ScopedEventGenerator {
       ' * Generated scoped-event routing-subject resolvers for hydra-scope invariants.',
       ' * Do not edit by hand; run `pnpm run gen-scoped-events`.',
       ' *',
-      ' * @module @hydra/harness-scope/scoped-events.generated',
+      ' * @module @hydra1902/harness-scope/scoped-events.generated',
       ' */',
       '',
       'type ScopedSubjectResolver = (args: readonly unknown[]) => unknown',
@@ -309,14 +309,14 @@ class ScopedEventGenerator {
   }
 }
 
-/** Return whether an Events interface is inside declare module '@hydra/cordis'. */
+/** Return whether an Events interface is inside declare module '@hydra1902/cordis'. */
 function isCordisModuleInterface(node: ts.InterfaceDeclaration): boolean {
   const block = node.parent
   const declaration = block.parent
   return ts.isModuleBlock(block)
     && ts.isModuleDeclaration(declaration)
     && ts.isStringLiteral(declaration.name)
-    && declaration.name.text === '@hydra/cordis'
+    && declaration.name.text === '@hydra1902/cordis'
 }
 
 /** Return whether a parameter is the explicit TypeScript this receiver. */

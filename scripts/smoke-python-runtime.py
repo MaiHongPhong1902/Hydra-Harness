@@ -84,9 +84,9 @@ MINIMAL_SNAPSHOT_FILENAMES = ("model-visible.json",)
 RUNTIME_CONTEXT_PREFIX = "Current runtime context"
 CUSTOM_CORDIS = """\
 - id: sdk-jsonrpc-server
-  name: '@hydra/harness-sdk-jsonrpc-server'
+  name: '@hydra1902/harness-sdk-jsonrpc-server'
 - id: agent-core
-  name: '@hydra/harness-agent-spine-demo'
+  name: '@hydra1902/harness-agent-spine-demo'
   config:
     workspaceContext: false
     skills:
@@ -95,43 +95,43 @@ CUSTOM_CORDIS = """\
     tools:
       mode: both
 - id: sessions
-  name: '@hydra/harness-session-persistence-jsonl'
+  name: '@hydra1902/harness-session-persistence-jsonl'
   config:
     root: !!js process.env.HYDRA_SESSION_ROOT
     compression: 'none'
 - id: session-checkpoints
-  name: '@hydra/harness-session-checkpoint-policy'
+  name: '@hydra1902/harness-session-checkpoint-policy'
 - id: code-runtime
-  name: '@hydra/harness-code-runtime-worker-thread'
+  name: '@hydra1902/harness-code-runtime-worker-thread'
 - id: subagents
-  name: '@hydra/harness-subagent'
+  name: '@hydra1902/harness-subagent'
   config:
     maxActivePerTree: 4
     maxChildrenPerTree: 8
 - id: subagent-spawn-in-process
-  name: '@hydra/harness-subagent-spawn-in-process'
+  name: '@hydra1902/harness-subagent-spawn-in-process'
   config:
     providerName: spawn
 - id: subagent-tool
-  name: '@hydra/harness-tool-subagent'
+  name: '@hydra1902/harness-tool-subagent'
   config:
     provider: spawn
 - id: workflow-engine
-  name: '@hydra/harness-workflow-worker-thread'
+  name: '@hydra1902/harness-workflow-worker-thread'
   config:
     provider: spawn
 - id: workflow-tool
-  name: '@hydra/harness-tool-workflow'
+  name: '@hydra1902/harness-tool-workflow'
 - id: cordis-host-runner
-  name: '@hydra/harness-cordis-host-runner'
+  name: '@hydra1902/harness-cordis-host-runner'
 - id: cordis-tool
-  name: '@hydra/harness-tool-cordis'
+  name: '@hydra1902/harness-tool-cordis'
 """
 FS_SEARCH_CORDIS = """\
 - id: sdk-jsonrpc-server
-  name: '@hydra/harness-sdk-jsonrpc-server'
+  name: '@hydra1902/harness-sdk-jsonrpc-server'
 - id: agent-core
-  name: '@hydra/harness-agent-spine-demo'
+  name: '@hydra1902/harness-agent-spine-demo'
   config:
     workspaceContext: false
     skills:
@@ -139,14 +139,14 @@ FS_SEARCH_CORDIS = """\
     toolBash: false
     toolJobs: false
 - id: sessions
-  name: '@hydra/harness-session-persistence-jsonl'
+  name: '@hydra1902/harness-session-persistence-jsonl'
   config:
     root: !!js process.env.HYDRA_SESSION_ROOT
     compression: 'none'
 - id: subprocess
-  name: '@hydra/harness-subprocess-local'
+  name: '@hydra1902/harness-subprocess-local'
 - id: fs-search
-  name: '@hydra/harness-tool-fs-search'
+  name: '@hydra1902/harness-tool-fs-search'
   config:
     sampleOverCapGlobResults: false
 """
@@ -233,11 +233,11 @@ def mcp_cordis(server_script: Path) -> str:
     return json.dumps([
         {
             "id": "sdk-jsonrpc-server",
-            "name": "@hydra/harness-sdk-jsonrpc-server",
+            "name": "@hydra1902/harness-sdk-jsonrpc-server",
         },
         {
             "id": "agent-core",
-            "name": "@hydra/harness-agent-spine-demo",
+            "name": "@hydra1902/harness-agent-spine-demo",
             "config": {
                 "workspaceContext": False,
                 "skills": {"enabled": False},
@@ -246,12 +246,12 @@ def mcp_cordis(server_script: Path) -> str:
         },
         {
             "id": "sessions",
-            "name": "@hydra/harness-session-persistence-jsonl",
+            "name": "@hydra1902/harness-session-persistence-jsonl",
             "config": {"root": "./sessions", "compression": "none"},
         },
         {
             "id": "mcp-fixture",
-            "name": "@hydra/harness-mcp-client",
+            "name": "@hydra1902/harness-mcp-client",
             "config": {
                 "serverName": "fixture",
                 "transport": "stdio",

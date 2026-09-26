@@ -5,8 +5,8 @@
  * stays process-local here.
  */
 
-import type { SettingsScope, SnapshotStore } from '@hydra/harness-client-runtime/client'
-import { createSnapshotStore } from '@hydra/harness-client-runtime/client'
+import type { SettingsScope, SnapshotStore } from '@hydra1902/harness-client-runtime/client'
+import { createSnapshotStore } from '@hydra1902/harness-client-runtime/client'
 import {
   WELCOME_NOTICE_ACK_FIELD, WELCOME_NOTICE_VERSION,
 } from '../onboarding-copy.ts'

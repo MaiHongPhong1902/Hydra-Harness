@@ -2,13 +2,13 @@
 // history fold derive AssistantTiming from the same step/start -> first token
 // delta -> assistant/message sequence.
 
-import { isTokenDelta } from '@hydra/harness-llm/message'
-import type { SessionEvent } from '@hydra/harness-session/types'
+import { isTokenDelta } from '@hydra1902/harness-llm/message'
+import type { SessionEvent } from '@hydra1902/harness-session/types'
 import type { AssistantTiming } from './conversation.ts'
 
-// The first-token predicate lives beside the StreamChunk type in @hydra/harness-llm;
+// The first-token predicate lives beside the StreamChunk type in @hydra1902/harness-llm;
 // re-exported here so Chat Definitions keep their client-runtime import.
-export { isTokenDelta } from '@hydra/harness-llm/message'
+export { isTokenDelta } from '@hydra1902/harness-llm/message'
 
 /** Pre-finalize timing boundaries for one assistant step (start + first token). */
 export interface AssistantStepMetadata {

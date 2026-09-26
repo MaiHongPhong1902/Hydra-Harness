@@ -1,6 +1,6 @@
 /** First-run navigation to the shared provider configuration page. */
 import { useEffect } from 'react'
-import type { InjectFace, PropsRuntime } from '@hydra/harness-client-ui-slots'
+import type { InjectFace, PropsRuntime } from '@hydra1902/harness-client-ui-slots'
 import type { ModelsSettingsStore } from './store.ts'
 import { onboardingReadiness } from './store.ts'
 

@@ -13,10 +13,10 @@ import {
   type InputScript,
   type Scenario,
   type SnapshotSuiteOptions,
-} from '@hydra/harness-acp-snapshot'
-import { resolvePwshPath } from '@hydra/harness-pwsh-local'
-import { parseSessionLog } from '@hydra/harness-llm-replay'
-import { OFFLOADED_IMAGE_TEXT } from '@hydra/harness-llm'
+} from '@hydra1902/harness-acp-snapshot'
+import { resolvePwshPath } from '@hydra1902/harness-pwsh-local'
+import { parseSessionLog } from '@hydra1902/harness-llm-replay'
+import { OFFLOADED_IMAGE_TEXT } from '@hydra1902/harness-llm'
 
 /**
  * The acp-agent example's snapshot suite: the scenario table for

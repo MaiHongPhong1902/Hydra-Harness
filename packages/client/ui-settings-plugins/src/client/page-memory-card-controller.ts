@@ -1,6 +1,6 @@
 /** Staged form for the page-memory Host settings namespace. */
 
-import type { SettingsScope, SnapshotStore } from '@hydra/harness-client-runtime/client'
+import type { SettingsScope, SnapshotStore } from '@hydra1902/harness-client-runtime/client'
 import { CardForm, numberField, textField, type CardActions, type CardFieldState, type CardShell } from './card-form.ts'
 
 /** Host settings namespace owned by the page-memory plugin. */

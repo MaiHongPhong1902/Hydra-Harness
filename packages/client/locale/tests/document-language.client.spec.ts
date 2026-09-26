@@ -9,12 +9,12 @@
  * than merely looking untidy.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra/cordis'
-import { SlotRegistry } from '@hydra/harness-client-runtime/client'
-import { apply as settingsApply, inject as settingsInject } from '@hydra/harness-client-ui-settings/client'
-import { TestRemote } from '@hydra/harness-client-test-runtime'
-import { apply, inject } from '@hydra/harness-client-locale/client'
-import type { LocaleRuntime } from '@hydra/harness-client-locale/client'
+import { Context } from '@hydra1902/cordis'
+import { SlotRegistry } from '@hydra1902/harness-client-runtime/client'
+import { apply as settingsApply, inject as settingsInject } from '@hydra1902/harness-client-ui-settings/client'
+import { TestRemote } from '@hydra1902/harness-client-test-runtime'
+import { apply, inject } from '@hydra1902/harness-client-locale/client'
+import type { LocaleRuntime } from '@hydra1902/harness-client-locale/client'
 import { LOCALE_SETTINGS_NAMESPACE, LocaleSettingsSchema } from '../src/locale-settings.ts'
 
 /** Boot the plugin over a stub Host settings document. */

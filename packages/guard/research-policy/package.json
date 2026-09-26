@@ -1,5 +1,5 @@
 {
-  "name": "@hydra/harness-research-policy",
+  "name": "@hydra1902/harness-research-policy",
   "description": "Durable research budgets shared by a session and its delegated agents",
   "hydra": {
     "plugin": {
@@ -37,27 +37,27 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra/cordis": "workspace:^",
-    "@hydra/harness-agent": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-subagent": "workspace:^",
-    "@hydra/harness-tools": "workspace:^",
-    "@hydra/harness-timeout": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^"
+    "@hydra1902/cordis": "workspace:^",
+    "@hydra1902/harness-agent": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-subagent": "workspace:^",
+    "@hydra1902/harness-tools": "workspace:^",
+    "@hydra1902/harness-timeout": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/cordis": "workspace:^",
-    "@hydra/harness-agent": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-subagent": "workspace:^",
-    "@hydra/harness-tools": "workspace:^",
-    "@hydra/harness-timeout": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-system-prompt": "workspace:^"
+    "@hydra1902/cordis": "workspace:^",
+    "@hydra1902/harness-agent": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-subagent": "workspace:^",
+    "@hydra1902/harness-tools": "workspace:^",
+    "@hydra1902/harness-timeout": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-system-prompt": "workspace:^"
   },
   "dependencies": {
-    "@hydra/schemastery": "workspace:^"
+    "@hydra1902/schemastery": "workspace:^"
   }
 }

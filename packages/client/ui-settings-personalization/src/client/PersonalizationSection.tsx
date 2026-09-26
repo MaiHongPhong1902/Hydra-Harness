@@ -5,13 +5,13 @@
 
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import type { SettingsScope, SettingsScopeSnapshot, SnapshotStore } from '@hydra/harness-client-runtime/client'
-import type { InjectFace, PropsLocale, PropsRuntime } from '@hydra/harness-client-ui-slots'
+import type { SettingsScope, SettingsScopeSnapshot, SnapshotStore } from '@hydra1902/harness-client-runtime/client'
+import type { InjectFace, PropsLocale, PropsRuntime } from '@hydra1902/harness-client-ui-slots'
 import type { InstructionsState } from './instructions-store.ts'
 import type { PersonalizationKey } from './locales.ts'
 import css from './PersonalizationSection.module.css'
 
-/** The closed set of personality values (mirrors `@hydra/harness-personalization`'s `Personality`). */
+/** The closed set of personality values (mirrors `@hydra1902/harness-personalization`'s `Personality`). */
 export type Personality = 'friendly' | 'pragmatic' | 'none'
 
 /** The personalization settings-namespace shape. */

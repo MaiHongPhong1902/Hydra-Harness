@@ -2878,7 +2878,7 @@
             ],
             "source": {
               "kind": "plugin",
-              "plugin": "@hydra/harness-system-prompt",
+              "plugin": "@hydra1902/harness-system-prompt",
               "form": "snapshot",
               "sections": [
                 {
@@ -3614,7 +3614,7 @@
             ],
             "source": {
               "kind": "plugin",
-              "plugin": "@hydra/harness-system-prompt",
+              "plugin": "@hydra1902/harness-system-prompt",
               "form": "snapshot",
               "sections": [
                 {

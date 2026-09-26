@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import AgentLoop from '@hydra/harness-agent-loop'
-import { renderPrompt } from '@hydra/harness-system-prompt'
+import { Context } from '@hydra1902/cordis'
+import AgentLoop from '@hydra1902/harness-agent-loop'
+import { renderPrompt } from '@hydra1902/harness-system-prompt'
 import { mountAgentLoopTestDependencies } from '../src/index.ts'
 
 describe('hydra-agent-loop-testkit', () => {

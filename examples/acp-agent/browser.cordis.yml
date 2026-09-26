@@ -1,14 +1,14 @@
 # Embedded-browser composition for the browser snapshot scenario: the seam that
 # owns the Electron window and the model-facing `browser_*` tools.
 - id: base
-  name: '@hydra/cordis-plugin-include'
+  name: '@hydra1902/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - insert:
           - id: browser-electron
-            name: '@hydra/harness-browser-electron'
+            name: '@hydra1902/harness-browser-electron'
             config:
               show: false
           - id: tool-browser
-            name: '@hydra/harness-tool-browser'
+            name: '@hydra1902/harness-tool-browser'

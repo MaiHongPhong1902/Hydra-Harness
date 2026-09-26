@@ -1,5 +1,5 @@
 {
-  "name": "@hydra/harness-storage",
+  "name": "@hydra1902/harness-storage",
   "description": "Storage hub (ctx.storage): named backend registry plus mounted data-form facilities for the Hydra harness",
   "hydra": {
     "plugin": {
@@ -37,11 +37,11 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   }
 }

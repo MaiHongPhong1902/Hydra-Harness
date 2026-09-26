@@ -1,7 +1,7 @@
 /**
  * Shared filesystem path helpers for Hydra harness user data.
  *
- * @module @hydra/harness-home-paths
+ * @module @hydra1902/harness-home-paths
  */
 
 import { opendir, realpath } from 'node:fs/promises'

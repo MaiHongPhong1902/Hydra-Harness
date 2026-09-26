@@ -7,8 +7,8 @@
 
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { bindSnapshotSelector } from '@hydra/harness-client-test-runtime'
-import { createSnapshotStore } from '@hydra/harness-client-runtime/client'
+import { bindSnapshotSelector } from '@hydra1902/harness-client-test-runtime'
+import { createSnapshotStore } from '@hydra1902/harness-client-runtime/client'
 import { AgentLoopCard } from '../src/client/AgentLoopCard.tsx'
 import type { AgentLoopCardProps } from '../src/client/AgentLoopCard.tsx'
 import { BashCard } from '../src/client/BashCard.tsx'

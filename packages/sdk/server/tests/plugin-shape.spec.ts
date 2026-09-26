@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import Loader from '@hydra/cordis-plugin-loader'
+import Loader from '@hydra1902/cordis-plugin-loader'
 import * as jsonrpc from '../src/index.ts'
 
 /**

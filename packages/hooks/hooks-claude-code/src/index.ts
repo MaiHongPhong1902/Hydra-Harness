@@ -2,22 +2,22 @@
  * Bridge for unmodified Claude Code command hooks on harness interception
  * extension points. It supports SessionStart, prompt/tool pre/post, Stop, and subagent
  * start/stop. It owns Claude payloads, environment, substitution, and decision
- * mapping; shared execution and parsing live in `@hydra/harness-hook-protocol`.
+ * mapping; shared execution and parsing live in `@hydra1902/harness-hook-protocol`.
  * `updatedInput` is logged and warned but not honored. Bespoke behavior should
  * use typed native plugins on the same extension points; see the
  * [hook-bridges Agent Note](../../../../.agents/notes/implemented/feature/2026-06-30-hook-bridges.md).
- * @module @hydra/harness-hooks-claude-code
+ * @module @hydra1902/harness-hooks-claude-code
  */
 
 import { readFileSync } from 'node:fs'
-import type { Context } from '@hydra/cordis'
-import z from '@hydra/schemastery'
-import type { Agent, PreStepDecision } from '@hydra/harness-agent'
-import { createUserMessage } from '@hydra/harness-llm'
-import type { ContentBlock, MessageSource } from '@hydra/harness-llm'
-import type { UserMessage } from '@hydra/harness-session'
-import type {} from '@hydra/harness-session-persistence'
-import type { PostToolDecision, PreToolDecision, ToolExecution, ToolExecutionResult } from '@hydra/harness-tools'
+import type { Context } from '@hydra1902/cordis'
+import z from '@hydra1902/schemastery'
+import type { Agent, PreStepDecision } from '@hydra1902/harness-agent'
+import { createUserMessage } from '@hydra1902/harness-llm'
+import type { ContentBlock, MessageSource } from '@hydra1902/harness-llm'
+import type { UserMessage } from '@hydra1902/harness-session'
+import type {} from '@hydra1902/harness-session-persistence'
+import type { PostToolDecision, PreToolDecision, ToolExecution, ToolExecutionResult } from '@hydra1902/harness-tools'
 import {
   appendHookInvoked,
   appendHookResult,
@@ -30,10 +30,10 @@ import {
   type HookOutput,
   type MatcherGroup,
   type MergedHookOutcome,
-} from '@hydra/harness-hook-protocol'
+} from '@hydra1902/harness-hook-protocol'
 // Pulls in the declaration-merged subagent events and the identity pairing their
 // start/end edges.
-import type { SubagentRunId } from '@hydra/harness-subagent'
+import type { SubagentRunId } from '@hydra1902/harness-subagent'
 import { parseClaudeCodeConfig, type ClaudeCodeHookConfig } from './config.ts'
 
 export const name = 'hooks-claude-code'

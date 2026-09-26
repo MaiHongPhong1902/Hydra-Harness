@@ -9,9 +9,9 @@
 
 import { tmpdir } from 'node:os'
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra/cordis'
-import type { SandboxPolicy } from '@hydra/harness-sandbox'
-import { LocalSandboxProvider } from '@hydra/harness-sandbox-local'
+import { Context } from '@hydra1902/cordis'
+import type { SandboxPolicy } from '@hydra1902/harness-sandbox'
+import { LocalSandboxProvider } from '@hydra1902/harness-sandbox-local'
 
 const RO: SandboxPolicy = { mode: 'read-only', workspaceRoot: '/ws' }
 const WW: SandboxPolicy = { mode: 'workspace-write', workspaceRoot: '/ws' }

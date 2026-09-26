@@ -8,14 +8,14 @@
   name: './mock-delegating-llm.ts'
 
 - id: subagent
-  name: '@hydra/harness-subagent'
+  name: '@hydra1902/harness-subagent'
 
 # The out-of-process ACP backend spawns its child through the subprocess seam.
 - id: subprocess
-  name: '@hydra/harness-subprocess-local'
+  name: '@hydra1902/harness-subprocess-local'
 
 - id: subagent-acp
-  name: '@hydra/harness-subagent-acp'
+  name: '@hydra1902/harness-subagent-acp'
   config:
     providerName: acp
     command: !!js process.execPath
@@ -26,7 +26,7 @@
       MOCK_ECHO_CWD: '1'
 
 - id: tool-subagent
-  name: '@hydra/harness-tool-subagent'
+  name: '@hydra1902/harness-tool-subagent'
   config:
     provider: acp
     toolName: subagent
@@ -35,7 +35,7 @@
     maxDepth: 'provider-managed'
 
 - id: agent-spine
-  name: '@hydra/harness-agent-spine-demo'
+  name: '@hydra1902/harness-agent-spine-demo'
   config:
     agents:
       - id: main
@@ -46,10 +46,10 @@
     workspaceContext: false
 
 - id: persistence
-  name: '@hydra/harness-session-persistence-jsonl'
+  name: '@hydra1902/harness-session-persistence-jsonl'
   config:
     root: './.sessions'
     compression: 'none'
 
 - id: checkpoint-policy
-  name: '@hydra/harness-session-checkpoint-policy'
+  name: '@hydra1902/harness-session-checkpoint-policy'

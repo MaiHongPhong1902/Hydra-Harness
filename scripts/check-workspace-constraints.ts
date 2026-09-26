@@ -22,24 +22,24 @@ const workspaceGlobs = [
   { dir: 'apps', depth: 1 },
 ] as const
 const vendoredPackages = new Set([
-  '@hydra/cordis',
-  '@hydra/cosmokit',
-  '@hydra/schemastery',
-  '@hydra/cordis-plugin-loader',
-  '@hydra/cordis-plugin-include',
-  '@hydra/cordis-plugin-group',
-  '@hydra/cordis-plugin-timer',
-  '@hydra/cordis-plugin-hmr',
-  '@hydra/cordis-plugin-logger-console',
+  '@hydra1902/cordis',
+  '@hydra1902/cosmokit',
+  '@hydra1902/schemastery',
+  '@hydra1902/cordis-plugin-loader',
+  '@hydra1902/cordis-plugin-include',
+  '@hydra1902/cordis-plugin-group',
+  '@hydra1902/cordis-plugin-timer',
+  '@hydra1902/cordis-plugin-hmr',
+  '@hydra1902/cordis-plugin-logger-console',
 ])
 const publicLandlockPackages = new Set([
-  '@hydra/node-addon-landlock-run',
-  '@hydra/node-addon-landlock-run-linux-arm64',
-  '@hydra/node-addon-landlock-run-linux-x64',
+  '@hydra1902/node-addon-landlock-run',
+  '@hydra1902/node-addon-landlock-run-linux-arm64',
+  '@hydra1902/node-addon-landlock-run-linux-x64',
 ])
 /** Deliberate source payloads whose exact bytes are part of the package's audit surface. */
 const publicationSourceAllowlist: Readonly<Record<string, readonly string[]>> = {
-  '@hydra/node-addon-landlock-run': ['src/main.c'],
+  '@hydra1902/node-addon-landlock-run': ['src/main.c'],
 }
 const repositoryUrl = 'git+https://github.com/MaiHongPhong1902/Hydra-Harness.git'
 /**
@@ -50,17 +50,17 @@ const publishedRepositoryUrl = 'git+https://github.com/MaiHongPhong1902/Hydra-Ha
 /** Private packages that participate in workspace checks but not releases. */
 const experimentalPackageDirectory = /^packages\/experimental\/[^/]+$/
 /** npm namespace reserved for private experimental packages. */
-const experimentalPackageNamePrefix = '@hydra/harness-experimental-'
+const experimentalPackageNamePrefix = '@hydra1902/harness-experimental-'
 /** Directories whose packages this repository publishes: one release member each. */
 const releaseMemberDirectory = /^(?:packages\/(?!experimental\/)[^/]+\/[^/]+|apps\/[^/]+|vendor\/[^/]+)$/
 
 const localArtifactDirs = new Set(['node_modules'])
 const appPackageFiles: Readonly<Record<string, readonly string[]>> = {
-  '@hydra/harness': ['lib/*.js', 'config'],
-  '@hydra/harness-desktop': ['main.cjs', 'preload.cjs', 'assets'],
+  '@hydra1902/harness': ['lib/*.js', 'config'],
+  '@hydra1902/harness-desktop': ['main.cjs', 'preload.cjs', 'assets'],
   // The Web build emits sourcemaps for browser debugging; publishing them is
   // what the payload policy forbids, so the bundle ships without them.
-  '@hydra/harness-web-frontend': ['dist', '!dist/**/*.map'],
+  '@hydra1902/harness-web-frontend': ['dist', '!dist/**/*.map'],
 }
 
 /** The subset of package.json fields this constraint check cares about. */
@@ -142,20 +142,20 @@ function workspaceManifests(): WorkspaceManifest[] {
 
 const packageFileExtras: Readonly<Record<string, readonly string[]>> = {
   // OAuth and provider modules are emitted as lazy chunks beside the plugin entry.
-  '@hydra/harness-llm-account-auth': ['lib/*-*.js'],
+  '@hydra1902/harness-llm-account-auth': ['lib/*-*.js'],
   // Statically linked client libraries keep their stylesheets next to the emitted
   // JavaScript, which imports them by relative path: the compile shell runs
   // them through its own CSS pipeline, so the sheets are published artifacts.
   // The glob covers whichever sheets a package emits; sourcemaps stay
   // unpublished, as everywhere else in the repository.
-  '@hydra/harness-client-ui-primitives': ['lib/**/*.css', 'lib/**/*.png', 'lib/**/*.webp'],
-  '@hydra/harness-client-web': ['lib/**/*.css'],
-  '@hydra/harness-client-ui-theme': ['lib/styles'],
+  '@hydra1902/harness-client-ui-primitives': ['lib/**/*.css', 'lib/**/*.png', 'lib/**/*.webp'],
+  '@hydra1902/harness-client-web': ['lib/**/*.css'],
+  '@hydra1902/harness-client-ui-theme': ['lib/styles'],
   // The CPython side ships as source .py files, published as-is rather than built.
-  '@hydra/harness-code-runtime-python': ['py/**/*.py'],
+  '@hydra1902/harness-code-runtime-python': ['py/**/*.py'],
   // The Electron half runs in Electron, not Node: its main process, native
   // chrome, and committed preload bundle ship as-is rather than through tsdown.
-  '@hydra/harness-browser-electron': [
+  '@hydra1902/harness-browser-electron': [
     'electron-app/autofill-vault.cjs',
     'electron-app/main.cjs',
     'electron-app/playwright.cjs',
@@ -167,16 +167,16 @@ const packageFileExtras: Readonly<Record<string, readonly string[]>> = {
   ],
   // The Python runtime uses a distinct closed-resolution bin; the public CLI
   // keeps config-owned bare-package resolution through lib/bin.js.
-  '@hydra/harness-sdk-jsonrpc-demo': ['lib/packaged-bin.js'],
+  '@hydra1902/harness-sdk-jsonrpc-demo': ['lib/packaged-bin.js'],
   // The argv-prefix runner entry ships beside the lib as its own bundle;
   // sandbox-local resolves it through the package's ./runner export. tsdown
   // also shares its generated FFI code through a hashed runtime chunk.
-  '@hydra/harness-sandbox-windows-acl': ['lib/runner.js', 'lib/types-*.js'],
+  '@hydra1902/harness-sandbox-windows-acl': ['lib/runner.js', 'lib/types-*.js'],
   // SQLite loads every statement from immutable package resources at runtime.
-  '@hydra/harness-session-persistence-sqlite': ['resources/sql/**/*.sql'],
-  '@hydra/harness-skill-badge': ['assets'],
-  '@hydra/harness-subprocess-local': ['scripts/ensure-spawn-helper.mjs'],
-  '@hydra/harness-llm': ['lib/proxy.js'],
+  '@hydra1902/harness-session-persistence-sqlite': ['resources/sql/**/*.sql'],
+  '@hydra1902/harness-skill-badge': ['assets'],
+  '@hydra1902/harness-subprocess-local': ['scripts/ensure-spawn-helper.mjs'],
+  '@hydra1902/harness-llm': ['lib/proxy.js'],
 }
 
 function sameStringList(actual: readonly string[] | undefined, expected: readonly string[]): boolean {
@@ -276,8 +276,8 @@ export function checkExperimentalManifest({ dir, manifest }: WorkspaceManifest):
  */
 export function checkPackageNamespace({ dir, manifest }: WorkspaceManifest): string[] {
   const pattern = /^(?:packages|apps)\//.test(dir)
-    ? /^@hydra\/harness(?:-[a-z0-9-]+)?$/
-    : /^@hydra\/[a-z0-9-]+$/
+    ? /^@hydra1902\/harness(?:-[a-z0-9-]+)?$/
+    : /^@hydra1902\/[a-z0-9-]+$/
   return pattern.test(manifest.name ?? '') ? [] : [`${dir}: package name must match ${String(pattern)}`]
 }
 
@@ -332,7 +332,7 @@ function checkWorkspace({ dir, manifest }: WorkspaceManifest): string[] {
     return errors
   }
 
-  if (manifest.name?.startsWith('@hydra/')) {
+  if (manifest.name?.startsWith('@hydra1902/')) {
     const allowedSources = publicationSourceAllowlist[manifest.name] ?? []
     for (const file of manifest.files ?? []) {
       if (isForbiddenPublicationFile(file) && !allowedSources.includes(file)) {
@@ -341,7 +341,7 @@ function checkWorkspace({ dir, manifest }: WorkspaceManifest): string[] {
     }
   }
 
-  if (dir.startsWith('apps/') && manifest.name?.startsWith('@hydra/')) {
+  if (dir.startsWith('apps/') && manifest.name?.startsWith('@hydra1902/')) {
     const expectedFiles = appPackageFiles[manifest.name]
     if (expectedFiles === undefined) {
       errors.push(`${label}: app package has no publication files policy`)
@@ -359,14 +359,14 @@ function checkWorkspace({ dir, manifest }: WorkspaceManifest): string[] {
     }
   }
 
-  if (dir.startsWith('packages/') && manifest.name?.startsWith('@hydra/harness-')) {
-    const peer = manifest.peerDependencies?.['@hydra/cordis']
-    const dev = manifest.devDependencies?.['@hydra/cordis']
+  if (dir.startsWith('packages/') && manifest.name?.startsWith('@hydra1902/harness-')) {
+    const peer = manifest.peerDependencies?.['@hydra1902/cordis']
+    const dev = manifest.devDependencies?.['@hydra1902/cordis']
 
-    if (!peer) errors.push(`${label}: @hydra/cordis must be a peerDependency`)
-    if (!dev) errors.push(`${label}: @hydra/cordis must also be a devDependency`)
+    if (!peer) errors.push(`${label}: @hydra1902/cordis must be a peerDependency`)
+    if (!dev) errors.push(`${label}: @hydra1902/cordis must also be a devDependency`)
     if (peer && dev && peer !== dev) {
-      errors.push(`${label}: @hydra/cordis peer (${peer}) and dev (${dev}) ranges must match`)
+      errors.push(`${label}: @hydra1902/cordis peer (${peer}) and dev (${dev}) ranges must match`)
     }
     if (manifest.version !== repositoryVersion) {
       errors.push(`${label}: package.json version must match root version ${repositoryVersion ?? '(missing)'}`)

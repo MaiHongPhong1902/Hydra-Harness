@@ -1,5 +1,5 @@
 {
-  "name": "@hydra/harness-bash-sandbox",
+  "name": "@hydra1902/harness-bash-sandbox",
   "description": "Sandbox-consuming implementation of the Hydra harness bash executor seam (confines every command via ctx.sandbox, reports denial/enforcement result facts)",
   "hydra": {
     "plugin": {
@@ -37,22 +37,22 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra/harness-shell": "workspace:^",
-    "@hydra/harness-bash-local": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-sandbox": "workspace:^",
-    "@hydra/harness-sandbox-policy": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-shell": "workspace:^",
+    "@hydra1902/harness-bash-local": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-sandbox": "workspace:^",
+    "@hydra1902/harness-sandbox-policy": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/harness-shell": "workspace:^",
-    "@hydra/harness-bash-local": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-subprocess-local": "workspace:^",
-    "@hydra/harness-sandbox": "workspace:^",
-    "@hydra/harness-sandbox-local": "workspace:^",
-    "@hydra/harness-sandbox-policy": "workspace:^",
-    "@hydra/cordis": "workspace:^",
-    "@hydra/node-addon-landlock-run": "workspace:^"
+    "@hydra1902/harness-shell": "workspace:^",
+    "@hydra1902/harness-bash-local": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-subprocess-local": "workspace:^",
+    "@hydra1902/harness-sandbox": "workspace:^",
+    "@hydra1902/harness-sandbox-local": "workspace:^",
+    "@hydra1902/harness-sandbox-policy": "workspace:^",
+    "@hydra1902/cordis": "workspace:^",
+    "@hydra1902/node-addon-landlock-run": "workspace:^"
   }
 }

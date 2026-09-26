@@ -1,5 +1,5 @@
 {
-  "name": "@hydra/harness-subagent-sdk",
+  "name": "@hydra1902/harness-subagent-sdk",
   "description": "Out-of-process SDK subagent backend: drives a child Hydra harness runtime subprocess over stdio JSON-RPC through the TypeScript SDK client",
   "version": "0.1.1-rc.1",
   "publishConfig": {
@@ -32,29 +32,29 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra/harness-agent": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-sdk-client": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-subagent": "workspace:^",
-    "@hydra/harness-subprocess": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-agent": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-sdk-client": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-subagent": "workspace:^",
+    "@hydra1902/harness-subprocess": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "dependencies": {
-    "@hydra/schemastery": "workspace:^"
+    "@hydra1902/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/cordis-plugin-loader": "workspace:^",
-    "@hydra/harness-agent": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-loader-smoke": "workspace:^",
-    "@hydra/harness-sdk-client": "workspace:^",
-    "@hydra/harness-sdk-protocol": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-subagent": "workspace:^",
-    "@hydra/harness-subprocess": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/cordis-plugin-loader": "workspace:^",
+    "@hydra1902/harness-agent": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-loader-smoke": "workspace:^",
+    "@hydra1902/harness-sdk-client": "workspace:^",
+    "@hydra1902/harness-sdk-protocol": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-subagent": "workspace:^",
+    "@hydra1902/harness-subprocess": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   }
 }

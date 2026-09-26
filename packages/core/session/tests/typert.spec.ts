@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import SessionStore, { SessionId } from '@hydra/harness-session'
-import TypertRegistry from '@hydra/harness-typert-registry'
+import { Context } from '@hydra1902/cordis'
+import SessionStore, { SessionId } from '@hydra1902/harness-session'
+import TypertRegistry from '@hydra1902/harness-typert-registry'
 
 describe('Session Typert provider', () => {
   it('contributes live Session lookup in either service load order', async () => {
@@ -15,8 +15,8 @@ describe('Session Typert provider', () => {
     expect(lookup).toMatchObject({
       parameter: 'session',
       wire: 'sessionId',
-      hostTypeSymbol: '@hydra/harness-session#Session',
-      wireTypeSymbol: '@hydra/harness-session/types#SessionId',
+      hostTypeSymbol: '@hydra1902/harness-session#Session',
+      wireTypeSymbol: '@hydra1902/harness-session/types#SessionId',
     })
     expect(lookup?.resolve(session.id)).toBe(session)
 

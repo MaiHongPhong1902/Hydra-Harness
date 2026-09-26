@@ -2,7 +2,7 @@
  * Wire vocabulary shared by the service, the Electron child, and consumers.
  * Low-level method names remain PageAgent's own; its upstream engine runs in
  * the controlled preload while Hydra owns its controls.
- * @module @hydra/harness-browser-electron/types
+ * @module @hydra1902/harness-browser-electron/types
  */
 
 /** One controlled tab exposed to the model. */

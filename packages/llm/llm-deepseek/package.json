@@ -1,5 +1,5 @@
 {
-  "name": "@hydra/harness-llm-deepseek",
+  "name": "@hydra1902/harness-llm-deepseek",
   "description": "DeepSeek chat-completions adapter for the Hydra harness LLM seam",
   "hydra": {
     "plugin": {
@@ -37,29 +37,29 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra/harness-attachment": "workspace:^",
-    "@hydra/harness-credentials": "workspace:^",
-    "@hydra/harness-launch-environment": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-settings": "workspace:^",
-    "@hydra/harness-timeout": "workspace:^",
-    "@hydra/harness-anonymous-user-id": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-attachment": "workspace:^",
+    "@hydra1902/harness-credentials": "workspace:^",
+    "@hydra1902/harness-launch-environment": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-settings": "workspace:^",
+    "@hydra1902/harness-timeout": "workspace:^",
+    "@hydra1902/harness-anonymous-user-id": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "dependencies": {
     "eventsource-parser": "^3.1.0",
-    "@hydra/schemastery": "workspace:^"
+    "@hydra1902/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/harness-attachment": "workspace:^",
-    "@hydra/harness-credentials": "workspace:^",
-    "@hydra/harness-launch-environment": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-settings": "workspace:^",
-    "@hydra/harness-timeout": "workspace:^",
-    "@hydra/harness-anonymous-user-id": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-attachment": "workspace:^",
+    "@hydra1902/harness-credentials": "workspace:^",
+    "@hydra1902/harness-launch-environment": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-settings": "workspace:^",
+    "@hydra1902/harness-timeout": "workspace:^",
+    "@hydra1902/harness-anonymous-user-id": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   }
 }

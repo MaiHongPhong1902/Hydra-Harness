@@ -8,12 +8,12 @@
  * Activation disposal, so no installation outlives either owner and no removed
  * contribution can be installed after revocation reports completion.
  *
- * @module @hydra/harness-subagent/activation-setup-registry
+ * @module @hydra1902/harness-subagent/activation-setup-registry
  */
 
-import type { Context } from '@hydra/cordis'
-import type { AgentSetupCommit } from '@hydra/harness-agent'
-import { errorChain } from '@hydra/harness-llm'
+import type { Context } from '@hydra1902/cordis'
+import type { AgentSetupCommit } from '@hydra1902/harness-agent'
+import { errorChain } from '@hydra1902/harness-llm'
 import { SubagentError } from './error.ts'
 
 /**

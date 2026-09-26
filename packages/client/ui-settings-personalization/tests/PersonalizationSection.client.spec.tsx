@@ -6,9 +6,9 @@
 
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { bindSnapshotSelector } from '@hydra/harness-client-test-runtime'
-import { createSnapshotStore } from '@hydra/harness-client-runtime/client'
-import type { SettingsScopeSnapshot } from '@hydra/harness-client-runtime/client'
+import { bindSnapshotSelector } from '@hydra1902/harness-client-test-runtime'
+import { createSnapshotStore } from '@hydra1902/harness-client-runtime/client'
+import type { SettingsScopeSnapshot } from '@hydra1902/harness-client-runtime/client'
 import { PersonalizationSection } from '../src/client/PersonalizationSection.tsx'
 import type { MemorySettings, PersonalityDraft, PersonalitySettings, PersonalizationSectionInjected, PersonalizationSectionProps } from '../src/client/PersonalizationSection.tsx'
 import type { InstructionsState } from '../src/client/instructions-store.ts'

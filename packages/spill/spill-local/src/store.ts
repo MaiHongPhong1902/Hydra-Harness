@@ -2,10 +2,10 @@
  * Cordis-free storage mechanics for the local spill backend: private
  * session-scoped directory selection, safe-name derivation, path-traversal
  * protection, and the exclusive owner-only write. Kept out of the service class
- * (like `@hydra/harness-bash-local`'s `run.ts`) so the filesystem behavior is unit-testable
+ * (like `@hydra1902/harness-bash-local`'s `run.ts`) so the filesystem behavior is unit-testable
  * without a `ctx` and without the OS temp dir.
  *
- * @module @hydra/harness-spill-local/store
+ * @module @hydra1902/harness-spill-local/store
  */
 
 import { createHash, randomBytes } from 'node:crypto'

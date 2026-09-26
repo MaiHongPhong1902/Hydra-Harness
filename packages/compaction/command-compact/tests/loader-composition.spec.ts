@@ -3,11 +3,11 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import Loader from '@hydra/cordis-plugin-loader'
-import Include from '@hydra/cordis-plugin-include'
-import type { Agent } from '@hydra/harness-agent'
-import CommandRuntime from '@hydra/harness-commands'
+import { Context } from '@hydra1902/cordis'
+import Loader from '@hydra1902/cordis-plugin-loader'
+import Include from '@hydra1902/cordis-plugin-include'
+import type { Agent } from '@hydra1902/harness-agent'
+import CommandRuntime from '@hydra1902/harness-commands'
 import {
   CompactionId,
   CompactionEngine,
@@ -15,9 +15,9 @@ import {
   type CompactionResult,
   type CompactionTrigger,
   type ManualCompactAgentContext,
-} from '@hydra/harness-compaction'
-import * as commandCompact from '@hydra/harness-command-compact'
-import { Session, SessionId } from '@hydra/harness-session'
+} from '@hydra1902/harness-compaction'
+import * as commandCompact from '@hydra1902/harness-command-compact'
+import { Session, SessionId } from '@hydra1902/harness-session'
 
 const COMPACTION_ID = CompactionId('loader-command-compact-test')
 
@@ -84,9 +84,9 @@ describe('command-compact real Loader composition', () => {
     root = await mkdtemp(join(tmpdir(), 'hydra-command-compact-loader-'))
     const configPath = join(root, 'cordis.yml')
     await writeFile(configPath, [
-      "- name: '@hydra/harness-commands'",
+      "- name: '@hydra1902/harness-commands'",
       "- name: '@test/compact-backend'",
-      "- name: '@hydra/harness-command-compact'",
+      "- name: '@hydra1902/harness-command-compact'",
       '',
     ].join('\n'))
 
@@ -95,9 +95,9 @@ describe('command-compact real Loader composition', () => {
     await context.plugin(Loader)
     context.loader.builtins.include = Include
     const modules = new Map<string, unknown>([
-      ['@hydra/harness-commands', CommandRuntime],
+      ['@hydra1902/harness-commands', CommandRuntime],
       ['@test/compact-backend', LoaderCompactionEngine],
-      ['@hydra/harness-command-compact', commandCompact],
+      ['@hydra1902/harness-command-compact', commandCompact],
     ])
     context.loader.internal = {
       version: 'v2',

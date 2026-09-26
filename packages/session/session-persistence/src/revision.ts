@@ -1,6 +1,6 @@
 /** Opaque revision identity for lightweight persistence observations. */
 
-import type { Branded } from '@hydra/harness-brand'
+import type { Branded } from '@hydra1902/harness-brand'
 
 /**
  * Backend-owned token that identifies both one storage source and one revision

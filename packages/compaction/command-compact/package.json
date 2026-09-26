@@ -1,5 +1,5 @@
 {
-  "name": "@hydra/harness-command-compact",
+  "name": "@hydra1902/harness-command-compact",
   "description": "Human-facing slash command for explicit session compaction",
   "hydra": {
     "plugin": {
@@ -37,20 +37,20 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra/harness-commands": "workspace:^",
-    "@hydra/harness-compaction": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-commands": "workspace:^",
+    "@hydra1902/harness-compaction": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/cordis-plugin-include": "workspace:^",
-    "@hydra/cordis-plugin-loader": "workspace:^",
-    "@hydra/harness-agent": "workspace:^",
-    "@hydra/harness-commands": "workspace:^",
-    "@hydra/harness-compaction": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/cordis-plugin-include": "workspace:^",
+    "@hydra1902/cordis-plugin-loader": "workspace:^",
+    "@hydra1902/harness-agent": "workspace:^",
+    "@hydra1902/harness-commands": "workspace:^",
+    "@hydra1902/harness-compaction": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   }
 }

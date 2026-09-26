@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import Loader from '@hydra/cordis-plugin-loader'
-import type { Agent } from '@hydra/harness-agent'
-import CommandRuntime, { type CommandResult } from '@hydra/harness-commands'
+import { Context } from '@hydra1902/cordis'
+import Loader from '@hydra1902/cordis-plugin-loader'
+import type { Agent } from '@hydra1902/harness-agent'
+import CommandRuntime, { type CommandResult } from '@hydra1902/harness-commands'
 import {
   CompactionId,
   CompactionEngine,
@@ -11,9 +11,9 @@ import {
   type CompactionResult,
   type CompactionTrigger,
   type ManualCompactAgentContext,
-} from '@hydra/harness-compaction'
-import { Session, SessionId } from '@hydra/harness-session'
-import * as commandCompact from '@hydra/harness-command-compact'
+} from '@hydra1902/harness-compaction'
+import { Session, SessionId } from '@hydra1902/harness-session'
+import * as commandCompact from '@hydra1902/harness-command-compact'
 
 const COMPACTION_ID = CompactionId('command-compact-test')
 
@@ -153,7 +153,7 @@ function expectLastLifecycle(
   return runEvent.data.commandId
 }
 
-describe('@hydra/harness-command-compact registration', () => {
+describe('@hydra1902/harness-command-compact registration', () => {
   it('registers one argument-free command with Loader-safe exports and disposes it', async () => {
     const test = await harness()
     expect(commandCompact.name).toBe('command-compact')

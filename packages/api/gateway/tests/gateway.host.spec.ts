@@ -1,10 +1,10 @@
 import { createServer } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import { describe, expect, it } from 'vitest'
-import { Context, Service, symbols } from '@hydra/cordis'
+import { Context, Service, symbols } from '@hydra1902/cordis'
 import { z } from 'zod'
-import { apply as applyConnection, inject as connectionInject } from '@hydra/harness-client-connection'
-import type { WebServer, WebRoute } from '@hydra/harness-host-webserver'
+import { apply as applyConnection, inject as connectionInject } from '@hydra1902/harness-client-connection'
+import type { WebServer, WebRoute } from '@hydra1902/harness-host-webserver'
 import {
   bindTypertRemote,
   Remote,
@@ -14,9 +14,9 @@ import {
   type TypertContext,
   type TypertLookup,
   type TypertLookupProvider,
-} from '@hydra/harness-typert-protocol'
-import TypertRegistry, { type TypertContribution } from '@hydra/harness-typert-registry'
-import TypertGatewayService, { TypertGatewayError } from '@hydra/harness-api-gateway'
+} from '@hydra1902/harness-typert-protocol'
+import TypertRegistry, { type TypertContribution } from '@hydra1902/harness-typert-registry'
+import TypertGatewayService, { TypertGatewayError } from '@hydra1902/harness-api-gateway'
 
 interface FixtureAgent {
   readonly id: string
@@ -26,7 +26,7 @@ interface MarkedContext extends Context {
   readonly fixtureScope?: string
 }
 
-declare module '@hydra/harness-typert-protocol' {
+declare module '@hydra1902/harness-typert-protocol' {
   interface TypertLookupMap {
     gatewayFixture: TypertLookup<FixtureAgent, string>
     gatewayFixtureAlias: TypertLookup<FixtureAgent, string>

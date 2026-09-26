@@ -1,6 +1,6 @@
 /**
  * Dependency-free CLI parsing for the standalone mock LLM server.
- * @module @hydra/harness-llm-mock-server/cli
+ * @module @hydra1902/harness-llm-mock-server/cli
  */
 
 import { parseArgs } from 'node:util'
@@ -25,7 +25,7 @@ export interface MockLlmCliConfig {
   readonly startsUnavailable: boolean
 }
 
-/** Result of parsing `@hydra/harness-llm-mock-server` arguments. */
+/** Result of parsing `@hydra1902/harness-llm-mock-server` arguments. */
 export type MockLlmCliParseResult =
   | { readonly kind: 'help' }
   | { readonly kind: 'run'; readonly config: MockLlmCliConfig }

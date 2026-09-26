@@ -7,17 +7,17 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import AgentRegistry from '@hydra/harness-agent'
-import type { Agent } from '@hydra/harness-agent'
-import SessionStore from '@hydra/harness-session'
-import SystemPrompt from '@hydra/harness-system-prompt'
-import UserQuestionService from '@hydra/harness-user-questions'
-import ApprovalService from '@hydra/harness-user-approval'
-import type { ApprovalRequestId } from '@hydra/harness-user-approval'
-import type { ApiProxy, MuxFrame, RpcRequest } from '@hydra/harness-host-apiproxy/api'
-import type { RpcId } from '@hydra/harness-host-apiproxy/api/rpc'
-import { RpcId as mintRpcId } from '@hydra/harness-host-apiproxy/api/rpc'
+import { Context } from '@hydra1902/cordis'
+import AgentRegistry from '@hydra1902/harness-agent'
+import type { Agent } from '@hydra1902/harness-agent'
+import SessionStore from '@hydra1902/harness-session'
+import SystemPrompt from '@hydra1902/harness-system-prompt'
+import UserQuestionService from '@hydra1902/harness-user-questions'
+import ApprovalService from '@hydra1902/harness-user-approval'
+import type { ApprovalRequestId } from '@hydra1902/harness-user-approval'
+import type { ApiProxy, MuxFrame, RpcRequest } from '@hydra1902/harness-host-apiproxy/api'
+import type { RpcId } from '@hydra1902/harness-host-apiproxy/api/rpc'
+import { RpcId as mintRpcId } from '@hydra1902/harness-host-apiproxy/api/rpc'
 import { createApiProxy } from '../src/api-proxy.ts'
 
 async function harness(): Promise<{ ctx: Context; api: ApiProxy }> {

@@ -7,10 +7,10 @@
  */
 
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra/cordis'
-import { CallId } from '@hydra/harness-llm'
-import type { ToolExecution } from '@hydra/harness-tools'
-import { resolveRgPath, runRipgrep } from '@hydra/harness-tool-fs-search'
+import { Context } from '@hydra1902/cordis'
+import { CallId } from '@hydra1902/harness-llm'
+import type { ToolExecution } from '@hydra1902/harness-tools'
+import { resolveRgPath, runRipgrep } from '@hydra1902/harness-tool-fs-search'
 
 // Any access to the mocked module's surface throws — the shape a missing
 // platform package produces at module evaluation.

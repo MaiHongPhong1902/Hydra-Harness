@@ -1,11 +1,11 @@
 /**
  * Load-time validation and routed-model policy resolution for compaction-basic.
  *
- * @module @hydra/harness-compaction-basic/config
+ * @module @hydra1902/harness-compaction-basic/config
  */
 
-import { deepFreeze } from '@hydra/harness-llm'
-import type { LlmCallConfig } from '@hydra/harness-llm'
+import { deepFreeze } from '@hydra1902/harness-llm'
+import type { LlmCallConfig } from '@hydra1902/harness-llm'
 import type {
   BasicCompactionConfig,
   CompactionPolicyConfig,

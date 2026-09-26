@@ -1,4 +1,4 @@
-import type { Context } from '@hydra/cordis'
+import type { Context } from '@hydra1902/cordis'
 import base from '../styles/base.css?inline'
 import designPlatform from '../styles/design-platform.css?inline'
 import controls from '../styles/controls.css?inline'
@@ -6,7 +6,7 @@ import scrollbar from '../styles/scrollbar.css?inline'
 import gradientShadowText from '../styles/gradient-shadow-text.css?inline'
 import shiki from '../styles/shiki.css?inline'
 
-const PLUGIN_ID = '@hydra/harness-client-ui-theme'
+const PLUGIN_ID = '@hydra1902/harness-client-ui-theme'
 
 const STYLES = [
   ['base.css', base],

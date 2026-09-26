@@ -1,13 +1,13 @@
 import { describe, expectTypeOf, it } from 'vitest'
-import type { Context } from '@hydra/cordis'
-import { CallId } from '@hydra/harness-llm'
-import { defineTool } from '@hydra/harness-tools'
+import type { Context } from '@hydra1902/cordis'
+import { CallId } from '@hydra1902/harness-llm'
+import { defineTool } from '@hydra1902/harness-tools'
 import type {
   ToolDispatchExecution,
   ToolExecution,
   ToolExecutionInput,
   ToolRunContext,
-} from '@hydra/harness-tools'
+} from '@hydra1902/harness-tools'
 
 function inputAndExecutionContracts(
   input: ToolExecutionInput,

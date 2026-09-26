@@ -7,18 +7,18 @@
  */
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra/cordis'
+import { Context } from '@hydra1902/cordis'
 import { z } from 'zod'
-import Storage from '@hydra/harness-storage'
-import { DomainFacility } from '@hydra/harness-storage-domain'
-import SessionStore, { SessionId } from '@hydra/harness-session'
-import type { Session, SessionEvent } from '@hydra/harness-session'
-import SessionProjectionRegistry from '@hydra/harness-session-projection'
-import type { ProjectionDefinition } from '@hydra/harness-session-projection'
+import Storage from '@hydra1902/harness-storage'
+import { DomainFacility } from '@hydra1902/harness-storage-domain'
+import SessionStore, { SessionId } from '@hydra1902/harness-session'
+import type { Session, SessionEvent } from '@hydra1902/harness-session'
+import SessionProjectionRegistry from '@hydra1902/harness-session-projection'
+import type { ProjectionDefinition } from '@hydra1902/harness-session-projection'
 import { MemoryMediaPool, MemoryStorageBackend } from '../../../storage/storage-domain/tests/helpers/memory-backend.ts'
 import SessionProjectionCache from '../src/index.ts'
 
-declare module '@hydra/harness-session-projection/types' {
+declare module '@hydra1902/harness-session-projection/types' {
   interface SessionProjectionStateMap {
     'cache-test/marks': MarksState
     'cache-test/marks2': Map<string, string>
@@ -30,7 +30,7 @@ declare module '@hydra/harness-session-projection/types' {
   }
 }
 
-declare module '@hydra/harness-session/types' {
+declare module '@hydra1902/harness-session/types' {
   interface SessionEventMap {
     'cache-test/mark': { marks: string[] }
   }

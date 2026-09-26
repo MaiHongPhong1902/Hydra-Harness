@@ -4,7 +4,7 @@
  * stdout tee, SDK client, update collection, permission fallback, and process
  * shutdown so e2e and snapshot suites do not each reconstruct that boundary.
  *
- * @module @hydra/harness-acp-snapshot/launcher
+ * @module @hydra1902/harness-acp-snapshot/launcher
  */
 
 import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process'
@@ -19,7 +19,7 @@ import {
   type RequestPermissionResponse,
   type SessionNotification,
 } from '@agentclientprotocol/sdk'
-import { resolveExampleLaunch } from '@hydra/harness-loader-smoke'
+import { resolveExampleLaunch } from '@hydra1902/harness-loader-smoke'
 
 const EXIT_MARKER_GRACE_MS = 250
 

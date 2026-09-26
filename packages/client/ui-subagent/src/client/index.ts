@@ -1,16 +1,16 @@
 /** Web subagent catalog, navigation, and addressed-session composer owner. */
 import type {
   ClientContext, SessionId, SubagentAddress,
-} from '@hydra/harness-client-runtime/client'
-import type { ComposerChainProps } from '@hydra/harness-client-ui-conversation/client'
+} from '@hydra1902/harness-client-runtime/client'
+import type { ComposerChainProps } from '@hydra1902/harness-client-ui-conversation/client'
 import { SubagentHeaderLineage, type SubagentCatalogInjected } from './SubagentHeaderLineage.tsx'
 import {
   SubagentReadOnlyComposer, type SubagentReadOnlyMatch,
 } from './SubagentReadOnlyComposer.tsx'
-import type {} from '@hydra/harness-client-locale/client'
+import type {} from '@hydra1902/harness-client-locale/client'
 import { en, NS, type SubagentKey } from './locales.ts'
 
-declare module '@hydra/harness-client-ui-slots' {
+declare module '@hydra1902/harness-client-ui-slots' {
   interface LocaleNamespaceMap {
     /** Subagent catalog and read-only composer copy. */
     'subagent': SubagentKey

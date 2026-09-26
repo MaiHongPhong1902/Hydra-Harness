@@ -1,7 +1,7 @@
 /** Ordered write-only fallback keys shared by provider creation and editing. */
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import type { CredentialView, IApiClient } from '@hydra/harness-api-remotes/client'
+import type { CredentialView, IApiClient } from '@hydra1902/harness-api-remotes/client'
 import { apiKeyFailure } from './apiKey.ts'
 import { deriveKeyRef, fallbackKeyRefs } from './store.ts'
 import type { en } from './locales.ts'

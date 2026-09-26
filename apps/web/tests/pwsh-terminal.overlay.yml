@@ -9,22 +9,22 @@
 # the composition must boot the pwsh executor, so the lane skips on hosts
 # without a usable `pwsh`.
 - id: bash-sandbox
-  name: '@hydra/harness-bash-sandbox'
+  name: '@hydra1902/harness-bash-sandbox'
   disabled: true
 - id: pwsh-sandbox
-  name: '@hydra/harness-pwsh-sandbox'
+  name: '@hydra1902/harness-pwsh-sandbox'
   disabled: true
 - id: permission
-  name: '@hydra/harness-permission-presets'
+  name: '@hydra1902/harness-permission-presets'
   disabled: true
 - insert:
     - id: pwsh-local
-      name: '@hydra/harness-pwsh-local'
+      name: '@hydra1902/harness-pwsh-local'
 
 # tool-pwsh already exists in the shipped composition: the base bundle declares
 # it platform-gated on every platform, and the web-app overlay disables it for
 # surfaces that use presets. So this lane enables it by id rather than
 # inserting a second row to the same id.
 - id: tool-pwsh
-  name: '@hydra/harness-tool-pwsh'
+  name: '@hydra1902/harness-tool-pwsh'
   disabled: false

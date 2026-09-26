@@ -2,9 +2,9 @@
 
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { bindSnapshotSelector, stubSettingsScope, type StubSettingsScope } from '@hydra/harness-client-test-runtime'
-import { createSnapshotStore } from '@hydra/harness-client-runtime/client'
-import type { PluginInventorySnapshot } from '@hydra/harness-api-remotes/client'
+import { bindSnapshotSelector, stubSettingsScope, type StubSettingsScope } from '@hydra1902/harness-client-test-runtime'
+import { createSnapshotStore } from '@hydra1902/harness-client-runtime/client'
+import type { PluginInventorySnapshot } from '@hydra1902/harness-api-remotes/client'
 import { McpSettingsTab, type McpSettingsTabProps } from '../src/client/McpSettingsTab.tsx'
 import {
   MCP_API_KEY_REF,
@@ -302,7 +302,7 @@ describe('McpSettingsTab', () => {
 
   it('hides the unavailable native MCP fallback section when the query does not match it', async () => {
     const entry: PluginInventorySnapshot['entries'][number] = {
-      entryId: 'obsidian-knowledge' as never, moduleName: '@hydra/harness-obsidian-knowledge',
+      entryId: 'obsidian-knowledge' as never, moduleName: '@hydra1902/harness-obsidian-knowledge',
       enabled: false, restartRequired: false, toggleable: true, fiberPhase: null,
     }
     renderTab({ available: false }, undefined, { list: vi.fn(async () => ({ entries: [entry] })) }, 'no-match')
@@ -312,7 +312,7 @@ describe('McpSettingsTab', () => {
 
   it('reports the native Obsidian MCP plugin without mutating it', async () => {
     const entry: PluginInventorySnapshot['entries'][number] = {
-      entryId: 'obsidian-knowledge' as never, moduleName: '@hydra/harness-obsidian-knowledge',
+      entryId: 'obsidian-knowledge' as never, moduleName: '@hydra1902/harness-obsidian-knowledge',
       enabled: true, restartRequired: false, toggleable: true, fiberPhase: 'active',
     }
     const enabled: PluginInventorySnapshot = { entries: [entry] }
@@ -324,7 +324,7 @@ describe('McpSettingsTab', () => {
 
   it.each([true, false])('finds the native MCP plugin by module name with enabled=%s', async (enabled) => {
     const entry: PluginInventorySnapshot['entries'][number] = {
-      entryId: 'obsidian-knowledge' as never, moduleName: '@hydra/harness-obsidian-knowledge',
+      entryId: 'obsidian-knowledge' as never, moduleName: '@hydra1902/harness-obsidian-knowledge',
       enabled, restartRequired: false, toggleable: true, fiberPhase: enabled ? 'active' : null,
     }
     renderTab({ available: enabled }, undefined, {
@@ -337,7 +337,7 @@ describe('McpSettingsTab', () => {
 
   it('keeps the Obsidian credential editable while the plugin is disabled', async () => {
     const entry: PluginInventorySnapshot['entries'][number] = {
-      entryId: 'obsidian-knowledge' as never, moduleName: '@hydra/harness-obsidian-knowledge',
+      entryId: 'obsidian-knowledge' as never, moduleName: '@hydra1902/harness-obsidian-knowledge',
       enabled: false, restartRequired: false, toggleable: true, fiberPhase: null,
     }
     const actions = renderTab({ available: false }, undefined, {

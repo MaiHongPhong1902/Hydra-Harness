@@ -4,13 +4,13 @@
 
 # Managed child-process groups for the bash executor (spawn/kill/output plumbing).
 - id: subprocess
-  name: '@hydra/harness-subprocess-local'
+  name: '@hydra1902/harness-subprocess-local'
 
 - id: bash
-  name: '@hydra/harness-bash-local'
+  name: '@hydra1902/harness-bash-local'
 
 - id: goal
-  name: '@hydra/harness-goal'
+  name: '@hydra1902/harness-goal'
   config:
     defaultMaxGoalRounds: 11
 
@@ -18,7 +18,7 @@
   name: './seed-goal.ts'
 
 - id: agent-spine
-  name: '@hydra/harness-agent-spine-demo'
+  name: '@hydra1902/harness-agent-spine-demo'
   config:
     agents:
       - id: main
@@ -29,10 +29,10 @@
     workspaceContext: false
 
 - id: persistence
-  name: '@hydra/harness-session-persistence-jsonl'
+  name: '@hydra1902/harness-session-persistence-jsonl'
   config:
     root: './.sessions'
     compression: none
 
 - id: checkpoint-policy
-  name: '@hydra/harness-session-checkpoint-policy'
+  name: '@hydra1902/harness-session-checkpoint-policy'

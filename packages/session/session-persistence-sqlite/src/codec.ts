@@ -1,11 +1,11 @@
 /**
  * Schema-17 physical chunk-row codec. This package owns the durable tags,
  * validation, and row-size limits independently from other persistence formats.
- * @module @hydra/harness-session-persistence-sqlite/codec
+ * @module @hydra1902/harness-session-persistence-sqlite/codec
  */
 
-import type { StreamChunk } from '@hydra/harness-llm'
-import type { SessionEvent } from '@hydra/harness-session'
+import type { StreamChunk } from '@hydra1902/harness-llm'
+import type { SessionEvent } from '@hydra1902/harness-session'
 
 /* jscpd:ignore-start -- schema 17 deliberately owns a frozen physical codec;
  * importing or sharing the JSONL codec would let that format mutate this database interpreter. */

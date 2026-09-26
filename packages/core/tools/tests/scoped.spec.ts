@@ -1,15 +1,15 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
-import { Context } from '@hydra/cordis'
-import type { Events } from '@hydra/cordis'
-import { bindScopeParent, createScope } from '@hydra/harness-scope'
-import type { Scope } from '@hydra/harness-scope'
-import SystemPrompt from '@hydra/harness-system-prompt'
-import ToolRuntime from '@hydra/harness-tools'
-import type { PreToolDecision, ToolDefinition, ToolExecution, ToolExecutionInput, ToolExecutionToken } from '@hydra/harness-tools'
-import type { Agent } from '@hydra/harness-agent'
+import { Context } from '@hydra1902/cordis'
+import type { Events } from '@hydra1902/cordis'
+import { bindScopeParent, createScope } from '@hydra1902/harness-scope'
+import type { Scope } from '@hydra1902/harness-scope'
+import SystemPrompt from '@hydra1902/harness-system-prompt'
+import ToolRuntime from '@hydra1902/harness-tools'
+import type { PreToolDecision, ToolDefinition, ToolExecution, ToolExecutionInput, ToolExecutionToken } from '@hydra1902/harness-tools'
+import type { Agent } from '@hydra1902/harness-agent'
 
-import { CallId } from '@hydra/harness-llm'
-import type { SessionId } from '@hydra/harness-session'
+import { CallId } from '@hydra1902/harness-llm'
+import type { SessionId } from '@hydra1902/harness-session'
 
 const testToolSignal = new AbortController().signal
 

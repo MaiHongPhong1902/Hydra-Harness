@@ -1,13 +1,13 @@
 /** Browser plugin for durable workflow-run Conversation Nodes. */
 
-import type { ClientContext, SessionId } from '@hydra/harness-client-runtime/client'
-import type {} from '@hydra/harness-client-locale/client'
-import type {} from '@hydra/harness-client-ui-conversation/client'
+import type { ClientContext, SessionId } from '@hydra1902/harness-client-runtime/client'
+import type {} from '@hydra1902/harness-client-locale/client'
+import type {} from '@hydra1902/harness-client-ui-conversation/client'
 import { WorkflowRunPanel, type WorkflowRunInjected } from './WorkflowRunPanel.tsx'
 import { en, NS, type WorkflowRunKey } from './locales.ts'
 import { workflowRunDefinition } from './workflow-definition.ts'
 
-declare module '@hydra/harness-client-ui-slots' {
+declare module '@hydra1902/harness-client-ui-slots' {
   interface LocaleNamespaceMap {
     /** Durable workflow-run node copy. */
     workflowRun: WorkflowRunKey

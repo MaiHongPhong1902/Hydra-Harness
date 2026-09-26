@@ -8,13 +8,13 @@
  * fiber (HMR safety). The node half and the invariant companion are exercised
  * over the same Context.
  */
-import { Context, Service } from '@hydra/cordis'
+import { Context, Service } from '@hydra1902/cordis'
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup } from '@testing-library/react'
-import { SlotRegistry, type SessionId } from '@hydra/harness-client-runtime/client'
-import { LocaleRuntime } from '@hydra/harness-client-locale/client'
-import type { MessageId } from '@hydra/harness-client-connection/client'
-import type { MessageFeedbackItem, MessageFeedbackVersion } from '@hydra/harness-message-feedback/types'
+import { SlotRegistry, type SessionId } from '@hydra1902/harness-client-runtime/client'
+import { LocaleRuntime } from '@hydra1902/harness-client-locale/client'
+import type { MessageId } from '@hydra1902/harness-client-connection/client'
+import type { MessageFeedbackItem, MessageFeedbackVersion } from '@hydra1902/harness-message-feedback/types'
 import type { MessageFeedbackInjected } from '../src/client/slots.ts'
 import { apply, inject } from '../src/client/index.ts'
 import { apply as nodeApply } from '../src/index.ts'

@@ -1,7 +1,7 @@
 /** Offline Page Memory prefix replay. Reads a session log and prints aggregate metrics only. */
 import { readFile, stat } from 'node:fs/promises'
 import { parseArgs } from 'node:util'
-import { compareReplayPolicies, extractReplayRuns } from '@hydra/harness-page-memory/src/replay.ts'
+import { compareReplayPolicies, extractReplayRuns } from '@hydra1902/harness-page-memory/src/replay.ts'
 
 const { values, positionals } = parseArgs({
   allowPositionals: true,

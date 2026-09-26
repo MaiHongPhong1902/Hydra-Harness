@@ -2,12 +2,12 @@
  * Fixed physical-record compression for SQLite. Schema-owned functions
  * encode logical events and decode tagged rows before persistence consumers
  * observe them.
- * @module @hydra/harness-session-persistence-sqlite/compression
+ * @module @hydra1902/harness-session-persistence-sqlite/compression
  */
 
 import { TextDecoder } from 'node:util'
 import { constants, zstdCompressSync, zstdDecompressSync } from 'node:zlib'
-import type { SessionEvent, SurfaceEventType } from '@hydra/harness-session'
+import type { SessionEvent, SurfaceEventType } from '@hydra1902/harness-session'
 import {
   decodeSerializedChunkRow,
   type ChunkRow,

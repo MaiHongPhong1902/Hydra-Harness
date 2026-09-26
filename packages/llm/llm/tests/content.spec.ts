@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { AttachmentId } from '@hydra/harness-attachment'
+import { AttachmentId } from '@hydra1902/harness-attachment'
 import { CallId, contentHasFile, createUserMessage, fileHandleText, OFFLOADED_IMAGE_TEXT, offloadRequestImages, projectFilesToText } from '../src/index.ts'
 import type { ContentBlock } from '../src/index.ts'
 

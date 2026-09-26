@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { AttachmentStore } from '@hydra/harness-attachment'
-import { admitEncodedFile, admitEncodedImages, AttachmentId } from '@hydra/harness-attachment'
-import type { ImageAttachmentRef, SaveImageAttachment } from '@hydra/harness-attachment/types'
+import type { AttachmentStore } from '@hydra1902/harness-attachment'
+import { admitEncodedFile, admitEncodedImages, AttachmentId } from '@hydra1902/harness-attachment'
+import type { ImageAttachmentRef, SaveImageAttachment } from '@hydra1902/harness-attachment/types'
 
 const PNG = 'AAAA' // canonical base64, 3 bytes
 

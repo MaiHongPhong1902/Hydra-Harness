@@ -1,23 +1,23 @@
 /**
  * Fresh-process SDK subagent client. Drives one child Hydra harness
- * runtime over stdio JSON-RPC through `@hydra/harness-sdk-client` and owns
+ * runtime over stdio JSON-RPC through `@hydra1902/harness-sdk-client` and owns
  * cancellation and quiescent disposal. Structure mirrors the ACP backend
- * (`@hydra/harness-subagent-acp`): publish after the child handshake,
+ * (`@hydra1902/harness-subagent-acp`): publish after the child handshake,
  * flatten child failures into stop reasons, tear down to quiescence. The
  * child is spawned BY the SDK client rather than through `ctx.subprocess` —
  * the subprocess seam's documented exception for SDK-managed transports —
  * so this driver applies the seam's shared env scrub itself.
  *
- * @module @hydra/harness-subagent-sdk/run
+ * @module @hydra1902/harness-subagent-sdk/run
  */
 
 import { randomUUID } from 'node:crypto'
-import { HydraHarness, type HarnessNotification } from '@hydra/harness-sdk-client'
-import type { ContentBlock } from '@hydra/harness-llm'
-import { SessionId, type SessionEvent, type TurnEndReason } from '@hydra/harness-session'
-import type { SubagentResult, SubagentRun, SubagentStartRequest, SubagentStopReason } from '@hydra/harness-subagent'
-import { AssistantOutputFold, settleRunResult, subprocessRunHandle } from '@hydra/harness-subagent'
-import { scrubbedParentEnv } from '@hydra/harness-subprocess'
+import { HydraHarness, type HarnessNotification } from '@hydra1902/harness-sdk-client'
+import type { ContentBlock } from '@hydra1902/harness-llm'
+import { SessionId, type SessionEvent, type TurnEndReason } from '@hydra1902/harness-session'
+import type { SubagentResult, SubagentRun, SubagentStartRequest, SubagentStopReason } from '@hydra1902/harness-subagent'
+import { AssistantOutputFold, settleRunResult, subprocessRunHandle } from '@hydra1902/harness-subagent'
+import { scrubbedParentEnv } from '@hydra1902/harness-subprocess'
 
 /** Resolved spawn spec for an SDK runtime child process (no defaults — see Config). */
 export interface SdkRunSpec {

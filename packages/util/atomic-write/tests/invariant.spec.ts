@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import InvariantRegistry from '@hydra/harness-invariants'
+import { Context } from '@hydra1902/cordis'
+import InvariantRegistry from '@hydra1902/harness-invariants'
 import * as AtomicWriteInvariant from '../src/invariant.ts'
 
 describe('atomic-write invariant companion', () => {
@@ -10,7 +10,7 @@ describe('atomic-write invariant companion', () => {
     const fiber = await ctx.plugin(AtomicWriteInvariant)
 
     expect(() => {
-      ctx.invariants.register('@hydra/harness-atomic-write', () => {})
+      ctx.invariants.register('@hydra1902/harness-atomic-write', () => {})
     }).toThrow(/already registered/)
     await fiber.dispose()
     await ctx.fiber.dispose()

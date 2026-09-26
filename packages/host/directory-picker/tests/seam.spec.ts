@@ -1,7 +1,7 @@
 /** Contract behavior the seam itself owns: registration identity and typed failures. */
 
 import { describe, expect, it } from 'vitest'
-import { Context } from '@hydra/cordis'
+import { Context } from '@hydra1902/cordis'
 import { DirectoryPicker, DirectoryPickerError } from '../src/index.ts'
 import type { DirectoryPickerCapability } from '../src/index.ts'
 

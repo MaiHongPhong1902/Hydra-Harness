@@ -3,12 +3,12 @@
  * children. Kept apart from the service so composition helpers can read it
  * without importing the registry.
  *
- * @module @hydra/harness-subagent/depth
+ * @module @hydra1902/harness-subagent/depth
  */
 
-import type { Agent } from '@hydra/harness-agent'
+import type { Agent } from '@hydra1902/harness-agent'
 
-declare module '@hydra/harness-agent' {
+declare module '@hydra1902/harness-agent' {
   interface AgentOptions {
     /** Delegation depth: zero for a top-level agent and parent depth + 1 for a child. */
     subagentDepth?: number

@@ -1,5 +1,5 @@
 {
-  "name": "@hydra/harness-session-title-first-prompt-llm",
+  "name": "@hydra1902/harness-session-title-first-prompt-llm",
   "description": "First-message LLM provider plugin for Hydra harness session titles",
   "hydra": {
     "plugin": {
@@ -36,24 +36,24 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-session-title": "workspace:^",
-    "@hydra/harness-session-title-llm": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-session-title": "workspace:^",
+    "@hydra1902/harness-session-title-llm": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "dependencies": {
-    "@hydra/schemastery": "workspace:^"
+    "@hydra1902/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/cordis-plugin-include": "workspace:^",
-    "@hydra/cordis-plugin-loader": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-session-title": "workspace:^",
-    "@hydra/harness-session-title-llm": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/cordis-plugin-include": "workspace:^",
+    "@hydra1902/cordis-plugin-loader": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-session-title": "workspace:^",
+    "@hydra1902/harness-session-title-llm": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   }
 }

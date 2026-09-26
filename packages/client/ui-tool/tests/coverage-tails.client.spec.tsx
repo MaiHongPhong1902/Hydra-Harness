@@ -3,15 +3,15 @@
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, render } from '@testing-library/react'
-import { createSnapshotStore } from '@hydra/harness-client-runtime/client'
-import { bindSnapshotSelector } from '@hydra/harness-client-test-runtime'
-import type { RunningToolCall, SessionId, SessionListState, ToolResultNode } from '@hydra/harness-client-runtime/client'
-import { makeTranslate } from '@hydra/harness-client-test-runtime'
-import { en as commonEn } from '@hydra/harness-client-locale/src/locales/en.ts'
+import { createSnapshotStore } from '@hydra1902/harness-client-runtime/client'
+import { bindSnapshotSelector } from '@hydra1902/harness-client-test-runtime'
+import type { RunningToolCall, SessionId, SessionListState, ToolResultNode } from '@hydra1902/harness-client-runtime/client'
+import { makeTranslate } from '@hydra1902/harness-client-test-runtime'
+import { en as commonEn } from '@hydra1902/harness-client-locale/src/locales/en.ts'
 import { GenericToolCard, type GenericToolCardProps } from '../src/client/tool/toolviews/GenericToolCard.tsx'
 import { ToolRow } from '../src/client/tool/components/ToolRow.tsx'
 import { BashRow } from '../src/client/tool/toolviews/bash-sample.tsx'
-import { en } from '@hydra/harness-client-ui-conversation/src/client/locales.ts'
+import { en } from '@hydra1902/harness-client-ui-conversation/src/client/locales.ts'
 
 type BashRowProps = Parameters<typeof BashRow>[0]
 

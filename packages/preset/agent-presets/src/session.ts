@@ -10,12 +10,12 @@
  * preset decides the tool schemas and prompt sections the model sees.
  *
  * Reconstruction reads {@link resolveSessionPreset}, never the header alone.
- * @module @hydra/harness-agent-presets/session
+ * @module @hydra1902/harness-agent-presets/session
  */
 
-import type { SessionEvent, SessionHeader } from '@hydra/harness-session'
+import type { SessionEvent, SessionHeader } from '@hydra1902/harness-session'
 
-declare module '@hydra/harness-session/types' {
+declare module '@hydra1902/harness-session/types' {
   interface SessionEventMap {
     /**
      * The session's agent preset was chosen after creation, while the session

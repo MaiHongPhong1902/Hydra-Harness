@@ -1,8 +1,8 @@
 /** Saved provider selection with independent, retained provider and credential drafts. */
 
-import type { IApiClient } from '@hydra/harness-client-connection/client'
-import type { SettingsScope, SnapshotStore } from '@hydra/harness-client-runtime/client'
-import type { SearchConfigField, WebSearchProviderDescriptor } from '@hydra/harness-host-apiproxy/api'
+import type { IApiClient } from '@hydra1902/harness-client-connection/client'
+import type { SettingsScope, SnapshotStore } from '@hydra1902/harness-client-runtime/client'
+import type { SearchConfigField, WebSearchProviderDescriptor } from '@hydra1902/harness-host-apiproxy/api'
 import { CardForm, numberField, type CardFieldState, type CardShell } from './card-form.ts'
 
 /** Settings namespace owning product search selection and limits. */

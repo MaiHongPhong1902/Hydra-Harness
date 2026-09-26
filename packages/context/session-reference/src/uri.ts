@@ -1,6 +1,6 @@
 /** Canonical session URI and inline mention encoding. */
 
-import { SessionId, type SessionId as SessionIdType } from '@hydra/harness-session'
+import { SessionId, type SessionId as SessionIdType } from '@hydra1902/harness-session'
 import { SessionReferenceError } from './config.ts'
 import type { SessionReferenceInput } from './types.ts'
 

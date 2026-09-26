@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { AttachmentStore } from '@hydra/harness-attachment'
-import { CallId, MessageId, ReasoningEffortId, errorChain } from '@hydra/harness-llm'
-import type { ContentBlock, GenerateOptions, Message } from '@hydra/harness-llm'
-import { SessionId } from '@hydra/harness-session'
+import type { AttachmentStore } from '@hydra1902/harness-attachment'
+import { CallId, MessageId, ReasoningEffortId, errorChain } from '@hydra1902/harness-llm'
+import type { ContentBlock, GenerateOptions, Message } from '@hydra1902/harness-llm'
+import { SessionId } from '@hydra1902/harness-session'
 import {
   AntigravityAdapter,
   buildAntigravityRequest,

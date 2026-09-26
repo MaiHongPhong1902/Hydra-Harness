@@ -6,12 +6,12 @@
  * the storage-domain routing decides the medium (the shipped composition's
  * json backend lands it at `<root>/session_projcache.json`, beside
  * `workspace.json`).
- * @module @hydra/harness-session-projection-cache/src/spec
+ * @module @hydra1902/harness-session-projection-cache/src/spec
  */
 
 import { z } from 'zod'
-import { SessionId } from '@hydra/harness-session'
-import { defineDomain, domainTable } from '@hydra/harness-storage-domain'
+import { SessionId } from '@hydra1902/harness-session'
+import { defineDomain, domainTable } from '@hydra1902/harness-storage-domain'
 
 /**
  * One persisted checkpoint row (the RFC's `(sessionId, key, ver, seq, val)`

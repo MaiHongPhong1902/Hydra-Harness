@@ -3,7 +3,7 @@
 
 - insert:
     - id: time-context
-      name: '@hydra/harness-time-context'
+      name: '@hydra1902/harness-time-context'
 
     - id: schedule
-      name: '@hydra/harness-schedule'
+      name: '@hydra1902/harness-schedule'

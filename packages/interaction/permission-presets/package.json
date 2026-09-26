@@ -1,5 +1,5 @@
 {
-  "name": "@hydra/harness-permission-presets",
+  "name": "@hydra1902/harness-permission-presets",
   "description": "User-facing permission presets (ctx.permissionPresets) for the Hydra harness: one product-level Permissions select bundling the sandbox-mode and approval-policy knobs, written through to their own session events",
   "hydra": {
     "plugin": {
@@ -46,31 +46,31 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra/harness-shell": "workspace:^",
-    "@hydra/harness-commands": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-sandbox": "workspace:^",
-    "@hydra/harness-sandbox-policy": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-session-projection": "workspace:^",
-    "@hydra/harness-settings": "workspace:^",
-    "@hydra/harness-user-approval": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-shell": "workspace:^",
+    "@hydra1902/harness-commands": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-sandbox": "workspace:^",
+    "@hydra1902/harness-sandbox-policy": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-session-projection": "workspace:^",
+    "@hydra1902/harness-settings": "workspace:^",
+    "@hydra1902/harness-user-approval": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "dependencies": {
-    "@hydra/schemastery": "workspace:^",
+    "@hydra1902/schemastery": "workspace:^",
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@hydra/harness-shell": "workspace:^",
-    "@hydra/harness-commands": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-sandbox": "workspace:^",
-    "@hydra/harness-sandbox-policy": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-session-projection": "workspace:^",
-    "@hydra/harness-settings": "workspace:^",
-    "@hydra/harness-user-approval": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-shell": "workspace:^",
+    "@hydra1902/harness-commands": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-sandbox": "workspace:^",
+    "@hydra1902/harness-sandbox-policy": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-session-projection": "workspace:^",
+    "@hydra1902/harness-settings": "workspace:^",
+    "@hydra1902/harness-user-approval": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   }
 }

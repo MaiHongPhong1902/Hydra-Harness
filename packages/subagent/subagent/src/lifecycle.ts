@@ -11,15 +11,15 @@
  * between this module and one in-package caller, not something a plugin may
  * depend on.
  *
- * @module @hydra/harness-subagent/lifecycle
+ * @module @hydra1902/harness-subagent/lifecycle
  */
 
 import { randomUUID } from 'node:crypto'
-import type { Context } from '@hydra/cordis'
-import type { Agent } from '@hydra/harness-agent'
-import type { ContentBlock } from '@hydra/harness-llm'
-import { foldConsumedWork } from '@hydra/harness-agent'
-import type { SessionEvent, SessionId } from '@hydra/harness-session'
+import type { Context } from '@hydra1902/cordis'
+import type { Agent } from '@hydra1902/harness-agent'
+import type { ContentBlock } from '@hydra1902/harness-llm'
+import { foldConsumedWork } from '@hydra1902/harness-agent'
+import type { SessionEvent, SessionId } from '@hydra1902/harness-session'
 import { finalAssistantOutput } from './assistant-output.ts'
 import { SubagentRunId } from './types.ts'
 import type { SubagentResult, SubagentRun, SubagentRunEndInfo, SubagentRunInfo } from './types.ts'

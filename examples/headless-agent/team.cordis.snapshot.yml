@@ -1,27 +1,27 @@
 # Keyless Agent Teams composition over the real headless app and deterministic fixture adapter.
 - id: base
-  name: '@hydra/cordis-plugin-include'
+  name: '@hydra1902/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - id: llm-deepseek
-        name: '@hydra/harness-llm-deepseek'
+        name: '@hydra1902/harness-llm-deepseek'
         disabled: true
       - id: tool-subagent-control
-        name: '@hydra/harness-tool-subagent-control'
+        name: '@hydra1902/harness-tool-subagent-control'
         disabled: true
       - id: tool-subagent-report
-        name: '@hydra/harness-tool-subagent-report'
+        name: '@hydra1902/harness-tool-subagent-report'
         disabled: true
       - id: tool-subagent
-        name: '@hydra/harness-tool-subagent'
+        name: '@hydra1902/harness-tool-subagent'
         config:
           provider: spawn
           toolName: subagent
           backgroundMode: one-shot
           maxDepth: 1
       - id: tool-subagent-fork
-        name: '@hydra/harness-tool-subagent'
+        name: '@hydra1902/harness-tool-subagent'
         config:
           provider: fork
           toolName: subagent_fork
@@ -29,8 +29,8 @@
           maxDepth: 1
       - insert:
           - id: agent-team
-            name: '@hydra/harness-experimental-agent-team'
+            name: '@hydra1902/harness-experimental-agent-team'
           - id: tool-agent-team
-            name: '@hydra/harness-experimental-tool-agent-team'
+            name: '@hydra1902/harness-experimental-tool-agent-team'
           - id: team-fixture-llm
             name: './tests/fixtures/team-llm.mjs'

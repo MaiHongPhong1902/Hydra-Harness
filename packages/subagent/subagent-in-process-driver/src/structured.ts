@@ -7,13 +7,13 @@
  * Capture commits only after the authoritative `tools/result` succeeds; Code Mode capture also
  * waits for the enclosing `run_code` result. The terminal result marker and monotonic tool
  * guard prevent later calls from reopening a completed structured run.
- * @module @hydra/harness-subagent-in-process-driver/structured
+ * @module @hydra1902/harness-subagent-in-process-driver/structured
  */
 
-import type { Context } from '@hydra/cordis'
-import type { ToolSchema } from '@hydra/harness-llm'
-import type { ToolExecution, ToolRunContext } from '@hydra/harness-tools'
-import { ToolArgsError, validateJsonSchemaValue, type ObjectJsonSchema } from '@hydra/harness-tools'
+import type { Context } from '@hydra1902/cordis'
+import type { ToolSchema } from '@hydra1902/harness-llm'
+import type { ToolExecution, ToolRunContext } from '@hydra1902/harness-tools'
+import { ToolArgsError, validateJsonSchemaValue, type ObjectJsonSchema } from '@hydra1902/harness-tools'
 
 /** The model-facing tool name a structured child must call to finish. */
 export const STRUCTURED_OUTPUT_TOOL = 'structured_output'
@@ -43,7 +43,7 @@ export interface StructuredAttachment {
  * its creation window. Child disposal removes every registration.
  * @param childCtx - the child agent's scope context (`setup`'s argument).
  * @param schema - the trusted, already-asserted schema subset to enforce (see
- *   `assertObjectJsonSchema` in @hydra/harness-tools).
+ *   `assertObjectJsonSchema` in @hydra1902/harness-tools).
  * @returns the attachment handle (read `captured()` after the child settles).
  */
 export function attachStructuredRuntime(childCtx: Context, schema: ObjectJsonSchema): StructuredAttachment {

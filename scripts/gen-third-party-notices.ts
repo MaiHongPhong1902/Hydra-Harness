@@ -41,9 +41,9 @@ const DEV_ONLY_AREAS = [
 
 /** First-party public native packages: reachable at runtime but not third-party. */
 const FIRST_PARTY = new Set([
-  '@hydra/node-addon-landlock-run',
-  '@hydra/node-addon-landlock-run-linux-arm64',
-  '@hydra/node-addon-landlock-run-linux-x64',
+  '@hydra1902/node-addon-landlock-run',
+  '@hydra1902/node-addon-landlock-run-linux-arm64',
+  '@hydra1902/node-addon-landlock-run-linux-x64',
 ])
 
 /** Official SDK identity covered by the project's narrow owner authorization. */
@@ -755,7 +755,7 @@ The complete npm transitive closure, including the Landlock launcher workspace, 
 
 ## Vendored source (\`vendor/\`)
 
-The Cordis framework and its foundation libraries are source-vendored into this repository rather than consumed from npm, and republished under the \`@hydra\` scope. All are MIT-licensed; each directory preserves its upstream \`LICENSE\` file. Exact upstream commits and local modifications are recorded in [\`vendor/README.md\`](vendor/README.md).
+The Cordis framework and its foundation libraries are source-vendored into this repository rather than consumed from npm, and republished under the \`@hydra1902\` scope. All are MIT-licensed; each directory preserves its upstream \`LICENSE\` file. Exact upstream commits and local modifications are recorded in [\`vendor/README.md\`](vendor/README.md).
 
 | Package | Upstream name | Upstream | License |
 | --- | --- | --- | --- |
@@ -763,7 +763,7 @@ ${vendored.map(row => `| \`${row.npmName}\` | \`${row.upstreamName}\` | [${row.u
 
 ## Vendored source in packages (\`third-party/\`)
 
-Source kept as an upstream-pinned git submodule rather than republished under the \`@hydra\` scope, because it must be bundled into the sandboxed preload. Each directory preserves its upstream \`LICENSE\`; its gitlink records the exact upstream commit.
+Source kept as an upstream-pinned git submodule rather than republished under the \`@hydra1902\` scope, because it must be bundled into the sandboxed preload. Each directory preserves its upstream \`LICENSE\`; its gitlink records the exact upstream commit.
 
 | Directory | Upstream name | Upstream | License | Role |
 | --- | --- | --- | --- | --- |
@@ -803,7 +803,7 @@ ${BUILD_TIME_TOOLS.map(tool => `| [\`${tool.name}\`](${tool.repo}) | ${tool.lice
 
 ## First-party native packages
 
-\`@hydra/node-addon-landlock-run\` (and its platform packages) is built and released from this repository under BSD 3-Clause. It is listed here for completeness; it is first-party, not third-party.
+\`@hydra1902/node-addon-landlock-run\` (and its platform packages) is built and released from this repository under BSD 3-Clause. It is listed here for completeness; it is first-party, not third-party.
 `
 }
 

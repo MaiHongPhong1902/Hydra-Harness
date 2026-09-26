@@ -1,5 +1,5 @@
 {
-  "name": "@hydra/harness-session-reference",
+  "name": "@hydra1902/harness-session-reference",
   "description": "Cross-session snapshot references and durable untrusted model context (ctx.sessionReferenceResolver)",
   "hydra": {
     "plugin": {
@@ -54,29 +54,29 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@hydra/schemastery": "workspace:^",
+    "@hydra1902/schemastery": "workspace:^",
     "zod": "^4.4.3"
   },
   "peerDependencies": {
-    "@hydra/harness-agent": "workspace:^",
-    "@hydra/harness-compaction": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-output-retention": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-session-query": "workspace:^",
-    "@hydra/harness-typert-protocol": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-agent": "workspace:^",
+    "@hydra1902/harness-compaction": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-output-retention": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-session-query": "workspace:^",
+    "@hydra1902/harness-typert-protocol": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/harness-agent": "workspace:^",
-    "@hydra/harness-compaction": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/harness-output-retention": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-session-query": "workspace:^",
-    "@hydra/harness-typert-protocol": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-agent": "workspace:^",
+    "@hydra1902/harness-compaction": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/harness-output-retention": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-session-query": "workspace:^",
+    "@hydra1902/harness-typert-protocol": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   }
 }

@@ -7,7 +7,7 @@
  * (0xC0000142) — verified empirically, see win32-abi.ts. Console window
  * flashing is suppressed via STARTF_USESHOWWINDOW with SW_HIDE instead.
  * Stdio redirection is pipe-based and unaffected; the child shares the host console.
- * @module @hydra/harness-sandbox-windows-acl/spawn
+ * @module @hydra1902/harness-sandbox-windows-acl/spawn
  */
 
 import { allocPtrSlot, allocProcessInfo, allocStartupInfo, allocUint32, decodePtr, decodeProcessInfo, decodeUint32, encodeStartupInfo, isNullPtr, throwLastError, throwWin32 } from './ffi.ts'

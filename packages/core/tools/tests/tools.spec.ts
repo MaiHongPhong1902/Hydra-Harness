@@ -1,15 +1,15 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { Context } from '@hydra/cordis'
-import { createUserMessage, CallId, HarnessError, type ContentBlock  } from '@hydra/harness-llm'
-import SystemPrompt from '@hydra/harness-system-prompt'
-import type { Agent } from '@hydra/harness-agent'
-import ApprovalService, { type ApprovalOutcome, type ApprovalRequest } from '@hydra/harness-user-approval'
+import { Context } from '@hydra1902/cordis'
+import { createUserMessage, CallId, HarnessError, type ContentBlock  } from '@hydra1902/harness-llm'
+import SystemPrompt from '@hydra1902/harness-system-prompt'
+import type { Agent } from '@hydra1902/harness-agent'
+import ApprovalService, { type ApprovalOutcome, type ApprovalRequest } from '@hydra1902/harness-user-approval'
 import ToolRuntime, {
   defineContentToolFixture, defineTool, JsonSchemaError, parameterSchemaSpecToJsonSchema, validateArgs, ToolArgsError, ToolNotFoundError,
   TOOL_ABORTED, TOOL_ABORTED_BEFORE_DISPATCH,
   type InferArgs, type JsonValue, type ParameterSchemaSpec, type PreToolDecision, type PostToolDecision,
   type JsonSchemaNode, type ToolDefinition, type ToolDispatchExecution, type ToolExecutionResult, type ToolExecutionToken,
-} from '@hydra/harness-tools'
+} from '@hydra1902/harness-tools'
 
 const testToolSignal = new AbortController().signal
 
@@ -665,7 +665,7 @@ describe('ToolRuntime', () => {
   })
 
   it('ToolNotFoundError carries a stable message and code', async () => {
-    const { HarnessError } = await import('@hydra/harness-llm')
+    const { HarnessError } = await import('@hydra1902/harness-llm')
     const err = new ToolNotFoundError('ghost')
     expect(err).toBeInstanceOf(HarnessError)
     expect(err.name).toBe('ToolNotFoundError')
@@ -2631,7 +2631,7 @@ describe('defineTool validation (the runtime-validation Agent Note, part 1)', ()
   })
 
   it('a tool throwing a HarnessError surfaces its name and code', async () => {
-    const { HarnessError } = await import('@hydra/harness-llm')
+    const { HarnessError } = await import('@hydra1902/harness-llm')
     const ctx = await setup()
     ctx.tools.register({
       ...echoTool,

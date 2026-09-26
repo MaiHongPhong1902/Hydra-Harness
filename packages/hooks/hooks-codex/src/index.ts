@@ -5,25 +5,25 @@
  * matchers, snake_case payloads without a trailing newline, no config-time
  * command substitution, and no pre-tool approval or rewrite path; only
  * blocking decisions are honored. Shared execution and parsing live in
- * `@hydra/harness-hook-protocol`; see the
+ * `@hydra1902/harness-hook-protocol`; see the
  * [hook-bridges Agent Note](../../../../.agents/notes/implemented/feature/2026-06-30-hook-bridges.md).
- * @module @hydra/harness-hooks-codex
+ * @module @hydra1902/harness-hooks-codex
  */
 
 // Each dialect bridge keeps its complete dependency list visible at the entry
 // point; a cross-package facade for imports alone would add indirection.
 /* jscpd:ignore-start */
 import { readFileSync } from 'node:fs'
-import type { Context } from '@hydra/cordis'
-import z from '@hydra/schemastery'
-import type { Agent, PreStepDecision } from '@hydra/harness-agent'
-import { createUserMessage } from '@hydra/harness-llm'
-import type { ContentBlock, MessageSource } from '@hydra/harness-llm'
-import type { UserMessage } from '@hydra/harness-session'
-import type {} from '@hydra/harness-session-persistence'
+import type { Context } from '@hydra1902/cordis'
+import z from '@hydra1902/schemastery'
+import type { Agent, PreStepDecision } from '@hydra1902/harness-agent'
+import { createUserMessage } from '@hydra1902/harness-llm'
+import type { ContentBlock, MessageSource } from '@hydra1902/harness-llm'
+import type { UserMessage } from '@hydra1902/harness-session'
+import type {} from '@hydra1902/harness-session-persistence'
 // Pulls in the declaration-merged subagent events and their run identity.
-import type { SubagentRunId } from '@hydra/harness-subagent'
-import type { PostToolDecision, PreToolDecision, ToolExecution, ToolExecutionResult } from '@hydra/harness-tools'
+import type { SubagentRunId } from '@hydra1902/harness-subagent'
+import type { PostToolDecision, PreToolDecision, ToolExecution, ToolExecutionResult } from '@hydra1902/harness-tools'
 import {
   appendHookInvoked,
   appendHookResult,
@@ -36,7 +36,7 @@ import {
   type HookOutput,
   type MatcherGroup,
   type MergedHookOutcome,
-} from '@hydra/harness-hook-protocol'
+} from '@hydra1902/harness-hook-protocol'
 import { parseCodexConfig, type CodexHookConfig } from './config.ts'
 /* jscpd:ignore-end */
 

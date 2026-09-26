@@ -1,6 +1,6 @@
 # Minimal keyless composition: real app, pwsh executor, and pwsh tool; replayed model.
 - id: llm-replay
-  name: '@hydra/harness-llm-replay'
+  name: '@hydra1902/harness-llm-replay'
   config:
     providers:
       - id: deepseek-official
@@ -9,16 +9,16 @@
           - id: deepseek-v4-pro
 
 - id: subprocess
-  name: '@hydra/harness-subprocess-local'
+  name: '@hydra1902/harness-subprocess-local'
 
 - id: bash
-  name: '@hydra/harness-pwsh-local'
+  name: '@hydra1902/harness-pwsh-local'
 
 - id: shell-env
-  name: '@hydra/harness-shell-env'
+  name: '@hydra1902/harness-shell-env'
 
 - id: acp-agent
-  name: '@hydra/harness-acp-demo'
+  name: '@hydra1902/harness-acp-demo'
   config:
     provider: deepseek-official
     model: deepseek-v4-pro
@@ -35,4 +35,4 @@
     persona: You are a concise snapshot agent working in {{cwd}}.
 
 - id: tool-pwsh
-  name: '@hydra/harness-tool-pwsh'
+  name: '@hydra1902/harness-tool-pwsh'

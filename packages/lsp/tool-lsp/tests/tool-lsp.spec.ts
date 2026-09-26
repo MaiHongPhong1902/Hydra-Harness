@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { Context } from '@hydra/cordis'
-import SystemPrompt from '@hydra/harness-system-prompt'
-import ToolRuntime from '@hydra/harness-tools'
-import Lsp, { LspProviderId, type LspProvider, type LspProviderQuery, type LspQueryResult } from '@hydra/harness-lsp'
-import * as ToolLsp from '@hydra/harness-tool-lsp'
-import { DEFAULT_LSP_TOOL_TIMEOUT_MS, LSP_PROMPT_TEXT } from '@hydra/harness-tool-lsp'
-import { MAX_TIMER_DELAY_MS } from '@hydra/harness-timeout'
+import { Context } from '@hydra1902/cordis'
+import SystemPrompt from '@hydra1902/harness-system-prompt'
+import ToolRuntime from '@hydra1902/harness-tools'
+import Lsp, { LspProviderId, type LspProvider, type LspProviderQuery, type LspQueryResult } from '@hydra1902/harness-lsp'
+import * as ToolLsp from '@hydra1902/harness-tool-lsp'
+import { DEFAULT_LSP_TOOL_TIMEOUT_MS, LSP_PROMPT_TEXT } from '@hydra1902/harness-tool-lsp'
+import { MAX_TIMER_DELAY_MS } from '@hydra1902/harness-timeout'
 
 /** A scripted provider recording queries; `respond` yields the result or throws. */
 function stubProvider(

@@ -1,13 +1,13 @@
 import { createHash } from 'node:crypto'
 import { describe, expect, it, vi } from 'vitest'
-import { Context } from '@hydra/cordis'
+import { Context } from '@hydra1902/cordis'
 import TurndownService from 'turndown'
-import { CallId } from '@hydra/harness-llm'
-import SystemPrompt from '@hydra/harness-system-prompt'
-import ToolRuntime, { type ToolExecutionResult } from '@hydra/harness-tools'
-import WebRuntime, { SearchProviderError } from '@hydra/harness-web'
-import type { WebSearchProvider, WebSearchResult } from '@hydra/harness-web'
-import * as ToolWeb from '@hydra/harness-tool-web'
+import { CallId } from '@hydra1902/harness-llm'
+import SystemPrompt from '@hydra1902/harness-system-prompt'
+import ToolRuntime, { type ToolExecutionResult } from '@hydra1902/harness-tools'
+import WebRuntime, { SearchProviderError } from '@hydra1902/harness-web'
+import type { WebSearchProvider, WebSearchResult } from '@hydra1902/harness-web'
+import * as ToolWeb from '@hydra1902/harness-tool-web'
 import {
   formatSearchOutput,
   formatFetchOutput,
@@ -22,9 +22,9 @@ import {
   fetchMetaFromResult,
   WEB_SEARCH_MAX_QUERIES,
   WEB_SEARCH_MAX_RESULTS,
-} from '@hydra/harness-tool-web'
-import type { ContentBlock } from '@hydra/harness-llm'
-import type { ToolResult } from '@hydra/harness-tools'
+} from '@hydra1902/harness-tool-web'
+import type { ContentBlock } from '@hydra1902/harness-llm'
+import type { ToolResult } from '@hydra1902/harness-tools'
 import { parseSearchArgs } from '../src/search.ts'
 
 const testToolSignal = new AbortController().signal
@@ -40,7 +40,7 @@ async function mountTools(opts: {
   config?: ToolWeb.Config
   webConfig?: ConstructorParameters<typeof WebRuntime>[1]
   search?: WebSearchProvider
-  fetchProvider?: import('@hydra/harness-web').WebFetchProvider
+  fetchProvider?: import('@hydra1902/harness-web').WebFetchProvider
 } = {}): Promise<{ ctx: Context; fiber: Awaited<ReturnType<Context['plugin']>>; call: (name: string, args: unknown) => Promise<ToolExecutionResult> }> {
   const ctx = new Context()
   await ctx.plugin(SystemPrompt)

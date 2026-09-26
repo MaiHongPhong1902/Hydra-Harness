@@ -1,4 +1,4 @@
-import { TypertRemoteService, Remote, RemoteScope } from '@hydra/harness-typert-protocol'
+import { TypertRemoteService, Remote, RemoteScope } from '@hydra1902/harness-typert-protocol'
 import type { Agent } from '@fixture/domain'
 import type {
   CreateGoalRequest,

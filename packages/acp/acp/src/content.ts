@@ -1,11 +1,11 @@
 /** ACP wire-content admission and projection owned by the ACP adapter. @module */
 
 import type { ContentBlock as AcpContentBlock } from '@agentclientprotocol/sdk'
-import type { Context } from '@hydra/cordis'
-import { isImageAdmissionError } from '@hydra/harness-attachment'
-import type { ImageAttachmentRef, ImageMediaType, SaveImageAttachment } from '@hydra/harness-attachment'
-import type { Agent } from '@hydra/harness-agent'
-import type { ContentBlock } from '@hydra/harness-llm'
+import type { Context } from '@hydra1902/cordis'
+import { isImageAdmissionError } from '@hydra1902/harness-attachment'
+import type { ImageAttachmentRef, ImageMediaType, SaveImageAttachment } from '@hydra1902/harness-attachment'
+import type { Agent } from '@hydra1902/harness-agent'
+import type { ContentBlock } from '@hydra1902/harness-llm'
 
 /** Raster formats shared by ACP image blocks and the core attachment vocabulary. */
 const IMAGE_MEDIA_TYPES: readonly ImageMediaType[] = [

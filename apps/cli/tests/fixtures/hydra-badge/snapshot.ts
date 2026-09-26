@@ -1,8 +1,8 @@
 import { fileURLToPath } from 'node:url'
-import { CallId } from '@hydra/harness-llm'
-import { boot, loadOverlayPatches } from '@hydra/harness-app-boot'
-import type {} from '@hydra/harness-skill'
-import type {} from '@hydra/harness-tools'
+import { CallId } from '@hydra1902/harness-llm'
+import { boot, loadOverlayPatches } from '@hydra1902/harness-app-boot'
+import type {} from '@hydra1902/harness-skill'
+import type {} from '@hydra1902/harness-tools'
 
 const overlayPath = process.argv[2]
 if (overlayPath === undefined) throw new Error('hydra-badge snapshot requires an overlay path')

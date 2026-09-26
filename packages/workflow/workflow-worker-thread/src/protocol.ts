@@ -4,10 +4,10 @@
  * unions derived from them. Payloads are plain JSON by construction for structured clone. Both
  * directions are closed engine protocols whose receivers use `assertNever`; generic typed senders
  * make tag/payload mismatches compile-time errors rather than silently skipped messages.
- * @module @hydra/harness-workflow-worker-thread/protocol
+ * @module @hydra1902/harness-workflow-worker-thread/protocol
  */
 
-import type { WorkflowAgentEndInfo, WorkflowAgentInfo, WorkflowResult } from '@hydra/harness-workflow'
+import type { WorkflowAgentEndInfo, WorkflowAgentInfo, WorkflowResult } from '@hydra1902/harness-workflow'
 import type { ChildResult, ChildStartRequest } from './types.ts'
 
 /** Message tags the worker sends the host (the wire values are the tag strings). */

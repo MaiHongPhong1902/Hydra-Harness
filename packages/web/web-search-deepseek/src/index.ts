@@ -2,17 +2,17 @@
  * Register a DeepSeek-backed provider in `ctx.web`. It calls the Anthropic-compatible Messages API
  * with native `web_search_20250305`. The provider reuses `DEEPSEEK_API_KEY` but not
  * `DEEPSEEK_BASE_URL`, because search and chat-completions use different bases.
- * @module @hydra/harness-web-search-deepseek
+ * @module @hydra1902/harness-web-search-deepseek
  */
 
-import type { Context } from '@hydra/cordis'
-import z from '@hydra/schemastery'
-import type {} from '@hydra/harness-agent'
-import { credentialRef } from '@hydra/harness-credentials'
-import { installSettingsSection, settingsNamespace } from '@hydra/harness-settings'
-import { launchEnvironmentOf } from '@hydra/harness-launch-environment'
-import type {} from '@hydra/harness-session'
-import type {} from '@hydra/harness-web'
+import type { Context } from '@hydra1902/cordis'
+import z from '@hydra1902/schemastery'
+import type {} from '@hydra1902/harness-agent'
+import { credentialRef } from '@hydra1902/harness-credentials'
+import { installSettingsSection, settingsNamespace } from '@hydra1902/harness-settings'
+import { launchEnvironmentOf } from '@hydra1902/harness-launch-environment'
+import type {} from '@hydra1902/harness-session'
+import type {} from '@hydra1902/harness-web'
 import {
   DeepSeekSearchProvider,
   DEEPSEEK_DEFAULT_API_VERSION,

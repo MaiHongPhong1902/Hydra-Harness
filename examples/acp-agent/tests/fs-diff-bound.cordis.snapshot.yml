@@ -3,15 +3,15 @@
 # entries behind a nested include; the acp-agent restatement keeps the recorded
 # deepseek-v4-flash model and raw JSONL persistence for the harness's harvest.
 - id: base
-  name: '@hydra/cordis-plugin-include'
+  name: '@hydra1902/cordis-plugin-include'
   config:
     path: ../cordis.yml
     patches:
       - id: llm-deepseek
-        name: '@hydra/harness-llm-deepseek'
+        name: '@hydra1902/harness-llm-deepseek'
         disabled: true
       - id: acp-agent
-        name: '@hydra/harness-acp-demo'
+        name: '@hydra1902/harness-acp-demo'
         config:
           provider: deepseek-official
           model: deepseek-v4-flash
@@ -24,13 +24,13 @@
 
             Verify your work by running the code or tests. Keep answers brief and factual.
       - id: fs-sandbox
-        name: '@hydra/harness-fs-sandbox'
+        name: '@hydra1902/harness-fs-sandbox'
         config:
           cwd: !!js process.cwd()
           diffBasisMaxBytes: 64
       - insert:
           - id: llm-replay
-            name: '@hydra/harness-llm-replay'
+            name: '@hydra1902/harness-llm-replay'
             config:
               providers:
                 - id: deepseek-official

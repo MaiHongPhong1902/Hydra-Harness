@@ -4,7 +4,7 @@
  * sends, what an edit withholds, and what each live state reads as.
  */
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import type { McpServerSnapshot } from '@hydra/harness-api-remotes/client'
+import type { McpServerSnapshot } from '@hydra1902/harness-api-remotes/client'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { McpServerCatalog, type UserMcpControls } from '../src/client/McpServerCatalog.tsx'
 import { en, type PluginsSettingsLocaleKey } from '../src/client/locales.ts'

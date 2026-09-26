@@ -2,7 +2,7 @@
 /** Credential acknowledgement and draft isolation in the optional provider card. */
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
-import { Context, FiberState } from '@hydra/cordis'
+import { Context, FiberState } from '@hydra1902/cordis'
 import { JevProviderOption } from '../src/client/JevProviderOption.tsx'
 import { apply } from '../src/client/index.ts'
 import * as Host from '../src/index.ts'

@@ -8,8 +8,8 @@
  * @module hydra-llm-deepseek/adapter
  */
 
-import { streamWithApiKeys, attributionHeaders, contentHasImage, CONTEXT_WINDOW_EXCEEDED_CODE, isContextWindowExceededError, isQuotaExceededError, LlmAdapter, LlmError, ProviderRequestId, QUOTA_EXCEEDED_CODE, ReasoningEffortId } from '@hydra/harness-llm'
-import { fetchWithHttpProxy } from '@hydra/harness-llm/proxy'
+import { streamWithApiKeys, attributionHeaders, contentHasImage, CONTEXT_WINDOW_EXCEEDED_CODE, isContextWindowExceededError, isQuotaExceededError, LlmAdapter, LlmError, ProviderRequestId, QUOTA_EXCEEDED_CODE, ReasoningEffortId } from '@hydra1902/harness-llm'
+import { fetchWithHttpProxy } from '@hydra1902/harness-llm/proxy'
 import type {
   GenerateOptions,
   LlmModelInfo,
@@ -20,11 +20,11 @@ import type {
   ModelModality,
   ResolvedRetryPolicy,
   StreamChunk,
-} from '@hydra/harness-llm'
-import type { AttachmentStore } from '@hydra/harness-attachment'
-import type { CredentialRef } from '@hydra/harness-credentials'
-import { idleWatchdog, timeoutOf } from '@hydra/harness-timeout'
-import type { AnonymousUserId } from '@hydra/harness-anonymous-user-id'
+} from '@hydra1902/harness-llm'
+import type { AttachmentStore } from '@hydra1902/harness-attachment'
+import type { CredentialRef } from '@hydra1902/harness-credentials'
+import { idleWatchdog, timeoutOf } from '@hydra1902/harness-timeout'
+import type { AnonymousUserId } from '@hydra1902/harness-anonymous-user-id'
 import { serializeRequest, serializeRequestWithImages } from './serialize.ts'
 import type { RequestDefaults } from './serialize.ts'
 import { parseSse } from './sse.ts'

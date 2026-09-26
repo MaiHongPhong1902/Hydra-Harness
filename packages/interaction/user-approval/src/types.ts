@@ -2,10 +2,10 @@
  * Wire-safe approval identifiers and outcome vocabulary, free of
  * cordis/service imports so browser type chains (apiproxy api → client) can
  * consume them without loading this package's Context augmentation.
- * @module @hydra/harness-user-approval/types
+ * @module @hydra1902/harness-user-approval/types
  */
 
-import type { Branded } from '@hydra/harness-brand'
+import type { Branded } from '@hydra1902/harness-brand'
 
 /**
  * Pairs one `approval/asked` audit event with its `approval/decided`.

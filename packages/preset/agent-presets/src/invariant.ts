@@ -1,20 +1,20 @@
 /**
- * Package-owned invariant companion for `@hydra/harness-agent-presets`.
- * @module @hydra/harness-agent-presets/invariant
+ * Package-owned invariant companion for `@hydra1902/harness-agent-presets`.
+ * @module @hydra1902/harness-agent-presets/invariant
  */
 
-import type { Context } from '@hydra/cordis'
-import type { InvariantInstaller } from '@hydra/harness-invariants'
+import type { Context } from '@hydra1902/cordis'
+import type { InvariantInstaller } from '@hydra1902/harness-invariants'
 // Type-only: resolves the `system-prompt/assemble` waterfall this companion
-// joins, and the `agent` field `@hydra/harness-agent` merges into its context.
-import type {} from '@hydra/harness-system-prompt'
-import type {} from '@hydra/harness-agent'
+// joins, and the `agent` field `@hydra1902/harness-agent` merges into its context.
+import type {} from '@hydra1902/harness-system-prompt'
+import type {} from '@hydra1902/harness-agent'
 // Imported through the package name, not `./mount.ts`: a module shared between
 // the two build entry points becomes a third chunk that the published `files`
 // list does not carry, which `verify-built-package-invariants` rejects.
-import { leakedServices, livePresetMounts } from '@hydra/harness-agent-presets'
+import { leakedServices, livePresetMounts } from '@hydra1902/harness-agent-presets'
 
-const PACKAGE_NAME = '@hydra/harness-agent-presets'
+const PACKAGE_NAME = '@hydra1902/harness-agent-presets'
 
 /** Cordis companion plugin name. */
 export const name = 'agent-presets-invariant'

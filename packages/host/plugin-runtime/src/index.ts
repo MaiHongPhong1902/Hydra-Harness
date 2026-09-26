@@ -7,22 +7,22 @@ import {
 } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node:path'
-import { Service, type Context, type Fiber } from '@hydra/cordis'
-import { withFileLock, writeFileAtomic } from '@hydra/harness-atomic-write'
-import type {} from '@hydra/harness-commands'
-import type { CommandResult } from '@hydra/harness-commands'
-import { resolveHydraHome } from '@hydra/harness-home-paths'
-import { apply as applyCodexHooks, inject as codexHooksInject } from '@hydra/harness-hooks-codex'
-import { parseCodexConfig } from '@hydra/harness-hooks-codex/config'
-import { createUserMessage } from '@hydra/harness-llm'
-import { apply as applyMcpClient, inject as mcpClientInject, publicToolName, type Config as McpClientConfig } from '@hydra/harness-mcp-client'
+import { Service, type Context, type Fiber } from '@hydra1902/cordis'
+import { withFileLock, writeFileAtomic } from '@hydra1902/harness-atomic-write'
+import type {} from '@hydra1902/harness-commands'
+import type { CommandResult } from '@hydra1902/harness-commands'
+import { resolveHydraHome } from '@hydra1902/harness-home-paths'
+import { apply as applyCodexHooks, inject as codexHooksInject } from '@hydra1902/harness-hooks-codex'
+import { parseCodexConfig } from '@hydra1902/harness-hooks-codex/config'
+import { createUserMessage } from '@hydra1902/harness-llm'
+import { apply as applyMcpClient, inject as mcpClientInject, publicToolName, type Config as McpClientConfig } from '@hydra1902/harness-mcp-client'
 import {
   BUNDLED_SKILL_RANK,
   parseSkillDocument,
   type SkillDocument,
   type SkillCandidate, type SkillDefinition, type SkillLookupOptions, type SkillProvider,
-} from '@hydra/harness-skill'
-import type { PreToolDecision, ToolExecution } from '@hydra/harness-tools'
+} from '@hydra1902/harness-skill'
+import type { PreToolDecision, ToolExecution } from '@hydra1902/harness-tools'
 import { parse as parseToml } from 'smol-toml'
 import { parse as parseYaml } from 'yaml'
 import type {
@@ -32,7 +32,7 @@ import type {
 
 export type * from './types.ts'
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Context {
     importedPlugins: ImportedPluginRuntime
   }
@@ -443,7 +443,7 @@ export class PluginLifecycleManager {
   unload(identity: string): Promise<void> { return this.runtime.unload(identity) }
 }
 
-/** Shared `@hydra/harness-base` service for every imported bundle, not a Web-only facility. */
+/** Shared `@hydra1902/harness-base` service for every imported bundle, not a Web-only facility. */
 export class ImportedPluginRuntime extends Service {
   static inject = inject
   /** Component effects belong to the Host service, independent of a method caller's context. */

@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { Context, Service } from '@hydra/cordis'
-import Loader from '@hydra/cordis-plugin-loader'
-import { agentEvents } from '@hydra/harness-agent'
-import AgentLoop from '@hydra/harness-agent-loop'
-import { mountAgentLoopTestDependencies } from '@hydra/harness-agent-loop-testkit'
-import { CallId } from '@hydra/harness-llm'
-import { SessionId } from '@hydra/harness-session'
+import { Context, Service } from '@hydra1902/cordis'
+import Loader from '@hydra1902/cordis-plugin-loader'
+import { agentEvents } from '@hydra1902/harness-agent'
+import AgentLoop from '@hydra1902/harness-agent-loop'
+import { mountAgentLoopTestDependencies } from '@hydra1902/harness-agent-loop-testkit'
+import { CallId } from '@hydra1902/harness-llm'
+import { SessionId } from '@hydra1902/harness-session'
 import * as toolSchedule from '../src/index.ts'
 
 class PersistenceProbe extends Service {

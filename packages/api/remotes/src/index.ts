@@ -1,21 +1,21 @@
 /** Host BFF entry and Loader shell for the Remote contribution assembly. */
 
-import type { TypertForwardableEvent } from '@hydra/harness-typert-protocol'
+import type { TypertForwardableEvent } from '@hydra1902/harness-typert-protocol'
 import { API_REMOTE_FORWARDED_EVENTS } from './remote-events.ts'
 
 // The owner packages' client-safe `./types` exports carry the cordis `Events`
 // declarations for every allowlisted event. Pulling them into this face is what
 // makes the shape assertion below judge real signatures rather than an empty
 // event vocabulary.
-import type {} from '@hydra/harness-commands/types'
-import type {} from '@hydra/harness-cordis-host-runner/types'
-import type {} from '@hydra/harness-credentials/types'
-import type {} from '@hydra/harness-authorization/types'
-import type {} from '@hydra/harness-llm/types'
-import type {} from '@hydra/harness-agent-presets/types'
-import type {} from '@hydra/harness-settings/types'
-import type {} from '@hydra/harness-skill/types'
-import type {} from '@hydra/harness-fs-review/client'
+import type {} from '@hydra1902/harness-commands/types'
+import type {} from '@hydra1902/harness-cordis-host-runner/types'
+import type {} from '@hydra1902/harness-credentials/types'
+import type {} from '@hydra1902/harness-authorization/types'
+import type {} from '@hydra1902/harness-llm/types'
+import type {} from '@hydra1902/harness-agent-presets/types'
+import type {} from '@hydra1902/harness-settings/types'
+import type {} from '@hydra1902/harness-skill/types'
+import type {} from '@hydra1902/harness-fs-review/client'
 
 export {
   ApiRemoteSessionNotFound,

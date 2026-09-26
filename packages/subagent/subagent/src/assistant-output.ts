@@ -7,11 +7,11 @@
  * select the accumulated assistant text. Selection is independent of the
  * run's stop reason.
  *
- * @module @hydra/harness-subagent/assistant-output
+ * @module @hydra1902/harness-subagent/assistant-output
  */
 
-import type { ContentBlock } from '@hydra/harness-llm'
-import type { SessionEvent } from '@hydra/harness-session'
+import type { ContentBlock } from '@hydra1902/harness-llm'
+import type { SessionEvent } from '@hydra1902/harness-session'
 
 /**
  * Incremental fold of the selection rule, for backends that observe a child's

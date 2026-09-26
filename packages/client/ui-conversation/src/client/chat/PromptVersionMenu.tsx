@@ -1,7 +1,7 @@
 /** Conversation history picker shared by the header and edited prompt actions. */
 import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
-import type { SessionId, SessionSummary } from '@hydra/harness-client-runtime/client'
-import { Menu } from '@hydra/harness-client-ui-primitives'
+import type { SessionId, SessionSummary } from '@hydra1902/harness-client-runtime/client'
+import { Menu } from '@hydra1902/harness-client-ui-primitives'
 import type { ChatViewSlotProps } from '../contract/slots.ts'
 import css from './MessageItem.module.css'
 

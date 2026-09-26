@@ -1,14 +1,14 @@
-import { createUserMessage } from '@hydra/harness-llm'
-import { Context } from '@hydra/cordis'
+import { createUserMessage } from '@hydra1902/harness-llm'
+import { Context } from '@hydra1902/cordis'
 import { describe, expect, it } from 'vitest'
-import SessionStore, { Session, SessionId } from '@hydra/harness-session'
+import SessionStore, { Session, SessionId } from '@hydra1902/harness-session'
 import SessionTitleService, {
   SessionTitleProviderId,
   fallbackSessionTitle,
   foldSessionTitle,
   normalizeSessionTitle,
   truncateTitleUtf8,
-} from '@hydra/harness-session-title'
+} from '@hydra1902/harness-session-title'
 
 const CONFIG = {
   fallbackMaxWords: 5,

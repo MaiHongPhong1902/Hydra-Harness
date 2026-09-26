@@ -1,9 +1,9 @@
-/** Package-owned invariant companion for `@hydra/harness-llm-account-auth`. */
+/** Package-owned invariant companion for `@hydra1902/harness-llm-account-auth`. */
 
-import type { Context } from '@hydra/cordis'
-import type { InvariantInstaller } from '@hydra/harness-invariants'
+import type { Context } from '@hydra1902/cordis'
+import type { InvariantInstaller } from '@hydra1902/harness-invariants'
 
-const PACKAGE_NAME = '@hydra/harness-llm-account-auth'
+const PACKAGE_NAME = '@hydra1902/harness-llm-account-auth'
 
 /** Cordis companion plugin name. */
 export const name = 'llm-account-auth-invariant'

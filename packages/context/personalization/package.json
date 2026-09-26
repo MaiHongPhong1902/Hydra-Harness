@@ -1,5 +1,5 @@
 {
-  "name": "@hydra/harness-personalization",
+  "name": "@hydra1902/harness-personalization",
   "description": "Local personality and explicit local memories with durable session provenance",
   "hydra": {
     "plugin": {
@@ -37,28 +37,28 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra/harness-agent": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-settings": "workspace:^",
-    "@hydra/harness-system-prompt": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-agent": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-settings": "workspace:^",
+    "@hydra1902/harness-system-prompt": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "dependencies": {
-    "@hydra/harness-atomic-write": "workspace:^",
-    "@hydra/harness-commands": "workspace:^",
-    "@hydra/harness-home-paths": "workspace:^",
-    "@hydra/harness-llm": "workspace:^",
-    "@hydra/schemastery": "workspace:^"
+    "@hydra1902/harness-atomic-write": "workspace:^",
+    "@hydra1902/harness-commands": "workspace:^",
+    "@hydra1902/harness-home-paths": "workspace:^",
+    "@hydra1902/harness-llm": "workspace:^",
+    "@hydra1902/schemastery": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/harness-agent": "workspace:^",
-    "@hydra/harness-agent-loop": "workspace:^",
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-session": "workspace:^",
-    "@hydra/harness-settings": "workspace:^",
-    "@hydra/harness-system-prompt": "workspace:^",
-    "@hydra/cordis": "workspace:^",
-    "@hydra/cordis-plugin-loader": "workspace:^"
+    "@hydra1902/harness-agent": "workspace:^",
+    "@hydra1902/harness-agent-loop": "workspace:^",
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-session": "workspace:^",
+    "@hydra1902/harness-settings": "workspace:^",
+    "@hydra1902/harness-system-prompt": "workspace:^",
+    "@hydra1902/cordis": "workspace:^",
+    "@hydra1902/cordis-plugin-loader": "workspace:^"
   }
 }

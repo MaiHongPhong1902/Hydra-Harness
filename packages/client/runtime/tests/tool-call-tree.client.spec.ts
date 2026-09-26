@@ -1,4 +1,4 @@
-import type { SessionEvent } from '@hydra/harness-session/types'
+import type { SessionEvent } from '@hydra1902/harness-session/types'
 import { describe, expect, it } from 'vitest'
 import type { RunningToolCall, ToolCallBlock } from '../src/client/sessions/conversation.ts'
 import {

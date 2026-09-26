@@ -1,15 +1,15 @@
 # Keyless replay counterpart of code-mode-workspace-context.cordis.yml. It adds
 # Code Mode to the default filesystem suite and swaps in replay.
 - id: base
-  name: '@hydra/cordis-plugin-include'
+  name: '@hydra1902/cordis-plugin-include'
   config:
     path: ./cordis.yml
     patches:
       - id: llm-deepseek
-        name: '@hydra/harness-llm-deepseek'
+        name: '@hydra1902/harness-llm-deepseek'
         disabled: true
       - id: acp-agent
-        name: '@hydra/harness-acp-demo'
+        name: '@hydra1902/harness-acp-demo'
         config:
           provider: deepseek-official
           model: deepseek-v4-flash
@@ -25,6 +25,6 @@
             Verify your work by running the code or tests. Keep answers brief and factual.
       - insert:
           - id: code-runtime
-            name: '@hydra/harness-code-runtime-worker-thread'
+            name: '@hydra1902/harness-code-runtime-worker-thread'
           - id: llm-replay
-            name: '@hydra/harness-llm-replay'
+            name: '@hydra1902/harness-llm-replay'

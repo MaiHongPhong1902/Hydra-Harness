@@ -1,4 +1,4 @@
-/** Durable attachment vocabulary. @module @hydra/harness-attachment/types */
+/** Durable attachment vocabulary. @module @hydra1902/harness-attachment/types */
 
 import type { AttachmentId } from './brand.ts'
 

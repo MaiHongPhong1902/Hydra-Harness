@@ -3,8 +3,8 @@
  * @module workspace-context-resume-agent
  */
 
-import type { Context } from '@hydra/cordis'
-import type { SessionId } from '@hydra/harness-session'
+import type { Context } from '@hydra1902/cordis'
+import type { SessionId } from '@hydra1902/harness-session'
 
 /** Fixture plugin name. */
 export const name = 'workspace-context-resume-agent'

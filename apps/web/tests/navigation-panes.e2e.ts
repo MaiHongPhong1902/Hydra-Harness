@@ -13,8 +13,8 @@ import type { Browser, Page, Response } from 'playwright'
 import { chromium } from 'playwright'
 import { strFromU8, unzipSync } from 'fflate'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, onTestFailed, vi } from 'vitest'
-import { parseSessionLog } from '@hydra/harness-llm-replay'
-import type { SessionEvent } from '@hydra/harness-session'
+import { parseSessionLog } from '@hydra1902/harness-llm-replay'
+import type { SessionEvent } from '@hydra1902/harness-session'
 import {
   assertFixtureInventory, captureStableAria, compareOrRefreshGolden, fixtureUserPrompts,
   launchWebScaffold, recordFixture, seedSession, watchConsole, webSnapshotMode, type WebScaffold,

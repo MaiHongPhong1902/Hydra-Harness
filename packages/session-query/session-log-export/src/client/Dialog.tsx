@@ -1,6 +1,6 @@
-import type { ObservableSnapshot, SessionId } from '@hydra/harness-client-runtime/client'
-import { Button, Modal } from '@hydra/harness-client-ui-primitives'
-import type { InjectFace, PropsLocale, PropsRuntime } from '@hydra/harness-client-ui-slots'
+import type { ObservableSnapshot, SessionId } from '@hydra1902/harness-client-runtime/client'
+import { Button, Modal } from '@hydra1902/harness-client-ui-primitives'
+import type { InjectFace, PropsLocale, PropsRuntime } from '@hydra1902/harness-client-ui-slots'
 import type { SessionLogDownloadState } from './controller.ts'
 import { NS } from './locales.ts'
 

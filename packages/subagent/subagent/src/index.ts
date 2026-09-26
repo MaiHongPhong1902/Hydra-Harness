@@ -10,8 +10,8 @@
  * (`LlmRuntime.registerAdapter`), not the single-service bash executor.
  *
  * This package owns the Service Definition role of the capability seam. Service Providers
- * (`@hydra/harness-subagent-spawn-in-process`, `-fork`, `-acp`) and the model-facing
- * consumer (`@hydra/harness-tool-subagent`) are separate packages.
+ * (`@hydra1902/harness-subagent-spawn-in-process`, `-fork`, `-acp`) and the model-facing
+ * consumer (`@hydra1902/harness-tool-subagent`) are separate packages.
  *
  * Public operations express caller intent: `start` returns one published owned
  * one-shot run, `startContinuable` establishes a durable continuable child, and
@@ -28,20 +28,20 @@
  * serialization and hostile-input validation belong at real process, worker,
  * persistence, and model boundaries.
  *
- * @module @hydra/harness-subagent
+ * @module @hydra1902/harness-subagent
  */
 
-import { Context, Service } from '@hydra/cordis'
-import z from '@hydra/schemastery'
+import { Context, Service } from '@hydra1902/cordis'
+import z from '@hydra1902/schemastery'
 import { delegationAdmission, type DelegationLimits } from './budget.ts'
 export { delegationRoot } from './budget.ts'
 export type { DelegationLimits } from './budget.ts'
-import { scopeTarget } from '@hydra/harness-scope'
-import type { Scoped } from '@hydra/harness-scope'
-import { assertObjectJsonSchema } from '@hydra/harness-tools'
-import type { ContentBlock, MessageId } from '@hydra/harness-llm'
-import type { Agent } from '@hydra/harness-agent'
-import type { SessionId } from '@hydra/harness-session'
+import { scopeTarget } from '@hydra1902/harness-scope'
+import type { Scoped } from '@hydra1902/harness-scope'
+import { assertObjectJsonSchema } from '@hydra1902/harness-tools'
+import type { ContentBlock, MessageId } from '@hydra1902/harness-llm'
+import type { Agent } from '@hydra1902/harness-agent'
+import type { SessionId } from '@hydra1902/harness-session'
 import type {
   ContinuableCreateRequest,
   ContinuableCreateSpec,
@@ -130,7 +130,7 @@ export type { SubagentDescendantListEntry, SubagentListEntry } from './list-chil
 export type { SubagentRunEndInfo, SubagentRunInfo } from './types.ts'
 export type { SubagentIdentityProjection, SubagentTimingProjection } from './projection-types.ts'
 
-declare module '@hydra/cordis' {
+declare module '@hydra1902/cordis' {
   interface Context {
     subagents: SubagentRuntime
   }

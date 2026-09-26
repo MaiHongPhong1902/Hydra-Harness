@@ -1,5 +1,5 @@
 {
-  "name": "@hydra/harness-browser-decisions",
+  "name": "@hydra1902/harness-browser-decisions",
   "description": "Optional model-facing browser decision tool backed by Jev",
   "hydra": {
     "plugin": {
@@ -25,15 +25,15 @@
   "files": ["lib/index.js", "lib/invariant.js", "lib/types/**/*.d.ts"],
   "license": "MIT",
   "peerDependencies": {
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-tools": "workspace:^",
-    "@hydra/harness-jev": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-tools": "workspace:^",
+    "@hydra1902/harness-jev": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   },
   "devDependencies": {
-    "@hydra/harness-invariants": "workspace:^",
-    "@hydra/harness-tools": "workspace:^",
-    "@hydra/harness-jev": "workspace:^",
-    "@hydra/cordis": "workspace:^"
+    "@hydra1902/harness-invariants": "workspace:^",
+    "@hydra1902/harness-tools": "workspace:^",
+    "@hydra1902/harness-jev": "workspace:^",
+    "@hydra1902/cordis": "workspace:^"
   }
 }

@@ -14,9 +14,9 @@ import type {
   InboxTarget,
   PreStepDecision,
   RequestErrorAction,
-} from '@hydra/harness-agent'
-import { Inbox, agentEvents, assembleContextFor } from '@hydra/harness-agent'
-import type { GenerateOptions, LlmCallConfig, Message, PreparedLlmCall } from '@hydra/harness-llm'
+} from '@hydra1902/harness-agent'
+import { Inbox, agentEvents, assembleContextFor } from '@hydra1902/harness-agent'
+import type { GenerateOptions, LlmCallConfig, Message, PreparedLlmCall } from '@hydra1902/harness-llm'
 import {
   BlockAssembler,
   LlmError,
@@ -24,14 +24,14 @@ import {
   deepFreeze,
   errorChain,
   markAgentLoopRequest,
-} from '@hydra/harness-llm'
-import type { Scope } from '@hydra/harness-scope'
-import { createScope } from '@hydra/harness-scope'
-import type { EpochHeader, RequestContext, Session, SessionId, TurnEndReason, UserMessage } from '@hydra/harness-session'
-import { canonicalHeader, headerEquals } from '@hydra/harness-session'
-import { joinContextSections, renderContextSections, renderPrompt } from '@hydra/harness-system-prompt'
-import type { PromptAssembly } from '@hydra/harness-system-prompt'
-import type { Context } from '@hydra/cordis'
+} from '@hydra1902/harness-llm'
+import type { Scope } from '@hydra1902/harness-scope'
+import { createScope } from '@hydra1902/harness-scope'
+import type { EpochHeader, RequestContext, Session, SessionId, TurnEndReason, UserMessage } from '@hydra1902/harness-session'
+import { canonicalHeader, headerEquals } from '@hydra1902/harness-session'
+import { joinContextSections, renderContextSections, renderPrompt } from '@hydra1902/harness-system-prompt'
+import type { PromptAssembly } from '@hydra1902/harness-system-prompt'
+import type { Context } from '@hydra1902/cordis'
 import { RuntimeContextProjection } from './runtime-context.ts'
 import { executeToolCalls } from './tool-calls.ts'
 

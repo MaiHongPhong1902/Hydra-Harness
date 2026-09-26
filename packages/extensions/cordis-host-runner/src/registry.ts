@@ -1,10 +1,10 @@
 /**
  * Process-local dynamic Plugin registry and its opaque identity mints.
- * @module @hydra/harness-cordis-host-runner/registry
+ * @module @hydra1902/harness-cordis-host-runner/registry
  */
 
-import type { Fiber } from '@hydra/cordis'
-import type { SessionId } from '@hydra/harness-session/types'
+import type { Fiber } from '@hydra1902/cordis'
+import type { SessionId } from '@hydra1902/harness-session/types'
 import type {
   ApprovalRequestId, CordisDynamicPackageId, CordisDynamicPluginId, CordisDynamicPluginRunId,
   CordisDynamicRunMode, DynamicCordisRenderFailure, DynamicCordisRunAttempt,

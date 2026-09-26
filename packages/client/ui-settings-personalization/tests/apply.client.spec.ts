@@ -4,16 +4,16 @@
  * instructions and personality actions to their own transports.
  */
 
-import { Context } from '@hydra/cordis'
-import type { ConnectionHandle } from '@hydra/harness-api-remotes/client'
+import { Context } from '@hydra1902/cordis'
+import type { ConnectionHandle } from '@hydra1902/harness-api-remotes/client'
 import { describe, expect, it, vi } from 'vitest'
-import z from '@hydra/schemastery'
-import { resolveSlotLabel } from '@hydra/harness-client-ui-slots'
-import { SlotRegistry } from '@hydra/harness-client-runtime/client'
-import { LocaleRuntime } from '@hydra/harness-client-locale/client'
-import { TestRemote } from '@hydra/harness-client-test-runtime'
-import { apply as settingsApply, inject as settingsInject } from '@hydra/harness-client-ui-settings/client'
-import { apply, inject } from '@hydra/harness-client-ui-settings-personalization/client'
+import z from '@hydra1902/schemastery'
+import { resolveSlotLabel } from '@hydra1902/harness-client-ui-slots'
+import { SlotRegistry } from '@hydra1902/harness-client-runtime/client'
+import { LocaleRuntime } from '@hydra1902/harness-client-locale/client'
+import { TestRemote } from '@hydra1902/harness-client-test-runtime'
+import { apply as settingsApply, inject as settingsInject } from '@hydra1902/harness-client-ui-settings/client'
+import { apply, inject } from '@hydra1902/harness-client-ui-settings-personalization/client'
 import { PersonalizationSection } from '../src/client/PersonalizationSection.tsx'
 import type { PersonalizationSectionInjected } from '../src/client/PersonalizationSection.tsx'
 

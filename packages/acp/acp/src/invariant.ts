@@ -1,13 +1,13 @@
 /**
- * Package-owned invariant companion for `@hydra/harness-acp`.
- * @module @hydra/harness-acp/invariant
+ * Package-owned invariant companion for `@hydra1902/harness-acp`.
+ * @module @hydra1902/harness-acp/invariant
  */
 
 /* jscpd:ignore-start */
-import type { Context } from '@hydra/cordis'
-import type { InvariantInstaller } from '@hydra/harness-invariants'
+import type { Context } from '@hydra1902/cordis'
+import type { InvariantInstaller } from '@hydra1902/harness-invariants'
 
-const PACKAGE_NAME = '@hydra/harness-acp'
+const PACKAGE_NAME = '@hydra1902/harness-acp'
 
 /** Cordis companion plugin name. */
 export const name = 'acp-invariant'
