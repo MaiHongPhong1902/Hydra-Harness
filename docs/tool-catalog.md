@@ -245,6 +245,13 @@ Execute a bash command (`bash -c`) and return its stdout/stderr. Each call runs 
       "type": "string",
       "description": "Working directory for this command. Defaults to the session workspace; a relative path is resolved against it."
     },
+    "changed_paths": {
+      "type": "array",
+      "description": "Foreground files this command changed, declared explicitly for workspace instruction refresh.",
+      "items": {
+        "type": "string"
+      }
+    },
     "run_in_background": {
       "type": "boolean",
       "description": "Run in the background and return a job id immediately (collect with job_output, stop with job_kill). No timeout applies."
@@ -288,6 +295,13 @@ Execute a PowerShell command (`pwsh -Command`) and return its stdout/stderr. Eac
     "workdir": {
       "type": "string",
       "description": "Working directory for this command. Defaults to the session workspace; a relative path is resolved against it."
+    },
+    "changed_paths": {
+      "type": "array",
+      "description": "Foreground files this command changed, declared explicitly for workspace instruction refresh.",
+      "items": {
+        "type": "string"
+      }
     },
     "run_in_background": {
       "type": "boolean",

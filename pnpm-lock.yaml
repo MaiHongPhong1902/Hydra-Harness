@@ -9758,6 +9758,12 @@ importers:
       '@hydra/harness-llm-retry':
         specifier: workspace:^
         version: link:../../packages/llm/llm-retry
+      '@hydra/harness-lsp':
+        specifier: workspace:^
+        version: link:../../packages/lsp/lsp
+      '@hydra/harness-lsp-stdio':
+        specifier: workspace:^
+        version: link:../../packages/lsp/lsp-stdio
       '@hydra/harness-mcp-client':
         specifier: workspace:^
         version: link:../../packages/mcp/mcp-client
@@ -9914,6 +9920,9 @@ importers:
       '@hydra/harness-tool-jobs':
         specifier: workspace:^
         version: link:../../packages/jobs/tool-jobs
+      '@hydra/harness-tool-lsp':
+        specifier: workspace:^
+        version: link:../../packages/lsp/tool-lsp
       '@hydra/harness-tool-ralph':
         specifier: workspace:^
         version: link:../../packages/workflow/tool-ralph

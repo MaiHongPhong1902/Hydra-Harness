@@ -60,6 +60,10 @@ flowchart LR
   cfg --> plugin_hydra_base_session_telemetry_otel
   plugin_hydra_base_subprocess["subprocess<br/>@hydra/harness-subprocess-local"]
   cfg --> plugin_hydra_base_subprocess
+  plugin_hydra_base_lsp["lsp<br/>@hydra/harness-lsp"]
+  cfg --> plugin_hydra_base_lsp
+  plugin_hydra_base_lsp_stdio["lsp-stdio<br/>@hydra/harness-lsp-stdio"]
+  cfg --> plugin_hydra_base_lsp_stdio
   plugin_hydra_base_sandbox["sandbox<br/>@hydra/harness-sandbox-local"]
   cfg --> plugin_hydra_base_sandbox
   plugin_hydra_base_sandbox_policy["sandbox-policy<br/>@hydra/harness-sandbox-policy"]
@@ -224,6 +228,8 @@ flowchart LR
 | `session-projection` | `@hydra/harness-session-projection` |
 | `session-telemetry-otel` | `@hydra/harness-session-telemetry-otel` |
 | `subprocess` | `@hydra/harness-subprocess-local` |
+| `lsp` | `@hydra/harness-lsp` |
+| `lsp-stdio` | `@hydra/harness-lsp-stdio` |
 | `sandbox` | `@hydra/harness-sandbox-local` |
 | `sandbox-policy` | `@hydra/harness-sandbox-policy` |
 | `bash-sandbox` | `@hydra/harness-bash-sandbox` |
