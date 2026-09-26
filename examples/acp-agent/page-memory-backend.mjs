@@ -82,6 +82,8 @@ class ScriptedChild extends EventEmitter {
   url = 'about:blank'
   requester = ''
   ordered = false
+  visitedHelp = false
+  partialAnchor = false
 
   constructor() {
     super()
@@ -107,7 +109,14 @@ class ScriptedChild extends EventEmitter {
     if (method === 'navigate') {
       this.url = String(args.url)
       this.ordered = false
-      if (this.url === HELP_URL) assertPersistedWorkflow()
+      if (this.url === HELP_URL) {
+        assertPersistedWorkflow()
+        this.visitedHelp = true
+      }
+      if (this.url === ORDER_URL && this.visitedHelp) {
+        this.partialAnchor = true
+        this.visitedHelp = false
+      }
       return { success: true, message: 'navigate succeeded' }
     }
     if (method === 'input_text') {
@@ -136,7 +145,12 @@ class ScriptedChild extends EventEmitter {
       if (this.url === ORDER_URL && this.ordered) content += `\n[3]<paragraph id=order-result>Order placed for ${this.requester}</paragraph>`
       if (snapshot !== undefined && typeof snapshot === 'object' && snapshot !== null) {
         const target = String(snapshot.target ?? '')
-        if (target === '#order-form') content = '- heading [ref=e10]: Order form'
+        if (target === '#order-form') {
+          content = this.partialAnchor
+            ? '- heading [ref=e10]: ArchivedOrder form'
+            : '- heading [ref=e10]: Order\u200b\nform'
+          this.partialAnchor = false
+        }
         else if (target === '#requester') content = '- textbox [ref=e11]: Requester'
         else if (target === 'button[type="submit"]') content = '- button [ref=e12]: Place order'
         else if (target === '#order-result') content = this.ordered ? `- paragraph [ref=e18]: Order placed for ${this.requester}` : ''

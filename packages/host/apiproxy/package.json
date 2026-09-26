@@ -1,6 +1,11 @@
 {
   "name": "@hydra/harness-host-apiproxy",
   "description": "API gateway: the ApiProxy contract (api/), the fetch carrier pair (fetch/), and the host-side gateway plugin providing ctx.apiProxy",
+  "hydra": {
+    "plugin": {
+      "application": "Connect the app to Host-owned conversations, uploads, and local file operations."
+    }
+  },
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"

@@ -1,6 +1,11 @@
 {
   "name": "@hydra/harness-browser-electron",
   "description": "Embedded browser seam for the Hydra harness — an owner-scoped Electron child process running the upstream PageAgent engine behind Hydra controls",
+  "hydra": {
+    "plugin": {
+      "application": "Open browser tabs for an agent to inspect and interact with websites through browser tools."
+    }
+  },
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"

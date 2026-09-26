@@ -22,6 +22,16 @@ const HOST_REQUEST_TIMEOUT_MS = 15_000
 const HOST_SHUTDOWN_TIMEOUT_MS = 7_000
 const MAX_EDITABLE_FILE_BYTES = 1_000_000
 const HOST_URL = /^hydra web: (http:\/\/127\.0\.0\.1:\d+)$/u
+const CHROME_EXECUTE_ACTIONS = new Set([
+  'undo', 'redo', 'cut', 'copy', 'paste', 'delete', 'selectAll',
+  'zoomIn', 'zoomOut', 'resetZoom', 'fullscreen', 'close', 'quit',
+])
+const CHROME_DISPATCH_ACTIONS = new Set([
+  'new-chat', 'open-folder', 'settings', 'sidebar', 'bottom-panel', 'terminal', 'browser',
+  'back', 'forward', 'shortcuts',
+])
+const TITLEBAR_OVERLAY_SUPPORTED = process.platform === 'win32' || process.platform === 'linux'
+const TITLEBAR_HEIGHT = 36
 
 app.setName('Hydra harness')
 app.setPath('userData', join(process.env.HYDRA_HOME || join(app.getPath('home'), '.hydra'), 'desktop-electron'))
@@ -125,6 +135,10 @@ function createWindow() {
     minHeight: 700,
     show: false,
     autoHideMenuBar: true,
+    ...(TITLEBAR_OVERLAY_SUPPORTED ? {
+      titleBarStyle: 'hidden',
+      titleBarOverlay: { color: '#1b2026', symbolColor: '#c7ccd4', height: TITLEBAR_HEIGHT },
+    } : {}),
     backgroundColor: '#111315',
     title: 'Hydra harness',
     icon: DESKTOP_ICON,
@@ -239,6 +253,12 @@ function startHost() {
 
 function validSender(event) {
   return mainWindow !== undefined && event.sender === mainWindow.webContents
+}
+
+function overlayColor(value) {
+  if (typeof value !== 'string' || value.length > 128) return undefined
+  if (/^#[\da-f]{3,8}$/iu.test(value) || /^rgba?\([^\r\n()]+\)$/u.test(value)) return value
+  return undefined
 }
 
 function terminalSize(value) {
@@ -618,6 +638,67 @@ function installRendererIpc() {
     url.password = ''
     await shell.openExternal(url.href)
   })
+  ipcMain.handle('hydra-desktop:chrome-action', async (event, value) => {
+    if (shuttingDown !== undefined || !validSender(event)) throw new Error('desktop is unavailable')
+    if (typeof value !== 'string') throw new Error('desktop action is invalid')
+    const nativeAction = {
+      undo: 'undo',
+      redo: 'redo',
+      cut: 'cut',
+      copy: 'copy',
+      paste: 'paste',
+      delete: 'delete',
+      'select-all': 'selectAll',
+      'zoom-in': 'zoomIn',
+      'zoom-out': 'zoomOut',
+      'reset-zoom': 'resetZoom',
+      'toggle-fullscreen': 'fullscreen',
+      close: 'close',
+      quit: 'quit',
+    }[value]
+    if (nativeAction !== undefined && CHROME_EXECUTE_ACTIONS.has(nativeAction)) {
+      if (nativeAction === 'undo' || nativeAction === 'redo' || nativeAction === 'cut' || nativeAction === 'copy'
+        || nativeAction === 'paste' || nativeAction === 'delete' || nativeAction === 'selectAll') {
+        mainWindow.webContents[nativeAction]()
+      }
+      else if (nativeAction === 'zoomIn') mainWindow.webContents.setZoomLevel(mainWindow.webContents.getZoomLevel() + 1)
+      else if (nativeAction === 'zoomOut') mainWindow.webContents.setZoomLevel(mainWindow.webContents.getZoomLevel() - 1)
+      else if (nativeAction === 'resetZoom') mainWindow.webContents.setZoomLevel(0)
+      else if (nativeAction === 'fullscreen') mainWindow.setFullScreen(!mainWindow.isFullScreen())
+      else if (nativeAction === 'close') mainWindow.close()
+      else if (nativeAction === 'quit') app.quit()
+      return
+    }
+    const dispatchAction = {
+      'new-chat': 'new-chat',
+      'open-folder': 'open-folder',
+      settings: 'settings',
+      'toggle-sidebar': 'sidebar',
+      'toggle-bottom-panel': 'bottom-panel',
+      'open-terminal': 'terminal',
+      'open-browser': 'browser',
+      back: 'back',
+      forward: 'forward',
+      'keyboard-shortcuts': 'shortcuts',
+    }[value]
+    if (dispatchAction !== undefined && CHROME_DISPATCH_ACTIONS.has(dispatchAction)) {
+      mainWindow.webContents.send('hydra-desktop:chrome-dispatch', dispatchAction)
+      return
+    }
+    throw new Error('desktop action is unavailable')
+  })
+  ipcMain.on('hydra-desktop:chrome-theme', (event, value) => {
+    if (shuttingDown !== undefined || !validSender(event) || !TITLEBAR_OVERLAY_SUPPORTED) return
+    if (value === null) {
+      mainWindow.setTitleBarOverlay({ color: '#1b2026', symbolColor: '#c7ccd4', height: TITLEBAR_HEIGHT })
+      return
+    }
+    if (typeof value !== 'object' || value === null) return
+    const color = overlayColor(value.color)
+    const symbolColor = overlayColor(value.symbolColor)
+    if (color === undefined || symbolColor === undefined) return
+    mainWindow.setTitleBarOverlay({ color, symbolColor, height: TITLEBAR_HEIGHT })
+  })
   const browserOperation = async (event, method, args = {}) => {
     if (shuttingDown !== undefined || !validSender(event)) throw new Error('browser management is unavailable')
     return await browser.command(method, args)
@@ -673,6 +754,8 @@ function installRendererIpc() {
     browserOperation(event, 'browser_downloads'))
   ipcMain.handle('hydra-desktop:browser-remove-download', (event, value) =>
     browserOperation(event, 'remove_browser_download', value))
+  ipcMain.handle('hydra-desktop:browser-open-download', (event, value) =>
+    browserOperation(event, 'open_browser_download', value))
   ipcMain.handle('hydra-desktop:browser-sites', event =>
     browserOperation(event, 'browser_sites'))
   ipcMain.handle('hydra-desktop:browser-set-site', (event, value) =>
@@ -934,6 +1017,14 @@ async function smoke() {
     return panel instanceof HTMLElement && panel.hidden
   })()`)
   if (!panelStartsClosed) throw new Error('desktop browser panel opens by default')
+  const titleBarReady = await mainWindow.webContents.executeJavaScript(`(() => {
+    const bar = document.querySelector('[data-desktop-titlebar]')
+    return bar instanceof HTMLElement
+      && bar.querySelector('[aria-label="Back"]') instanceof HTMLButtonElement
+      && bar.querySelector('[aria-label="Forward"]') instanceof HTMLButtonElement
+      && [...bar.querySelectorAll('button[aria-haspopup="menu"]')].map(button => button.textContent).join('|') === 'File|Edit|View|Help'
+  })()`)
+  if (!titleBarReady) throw new Error('desktop title bar controls are unavailable')
   if (mainWindow.getTitle() !== 'Hydra harness') throw new Error(`unexpected desktop title: ${mainWindow.getTitle()}`)
   if (panelShortcut({ type: 'keyDown', control: true, alt: false, meta: false, shift: false, key: 'p' }) !== 'files'
     || panelShortcut({ type: 'keyUp', control: true, alt: false, meta: false, shift: false, key: 'p' }) !== undefined

@@ -17,7 +17,7 @@ const t: WorkspaceBrowserProps['t'] = (key, params) => {
 
 function mount(deleteSession = vi.fn<(id: SessionId) => Promise<void>>().mockResolvedValue(undefined)) {
   const onClose = vi.fn()
-  render(<DeleteSessionDialog target={target} deleteSession={deleteSession} onClose={onClose} t={t} />)
+  render(<DeleteSessionDialog targets={[target]} deleteSession={deleteSession} onClose={onClose} t={t} />)
   return { deleteSession, onClose }
 }
 
@@ -64,4 +64,18 @@ describe('DeleteSessionDialog', () => {
       expect(deleteSession).toHaveBeenCalledTimes(2)
     },
   )
+
+  it('retains only failed sessions when a bulk deletion partially fails', async () => {
+    const second = { id: 'delete-target-2' as SessionId, title: 'Another conversation' }
+    const deleteSession = vi.fn<(id: SessionId) => Promise<void>>()
+      .mockRejectedValueOnce(new Error('storage unavailable')).mockResolvedValue(undefined)
+    const onClose = vi.fn()
+    render(<DeleteSessionDialog targets={[target, second]} deleteSession={deleteSession} onClose={onClose} t={t} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Delete selected sessions (2)' }))
+    expect((await screen.findByRole('alert')).textContent).toBe('Saved conversation: storage unavailable')
+    expect(deleteSession.mock.calls.map(([id]) => id)).toEqual([target.id, second.id])
+    fireEvent.click(screen.getByRole('button', { name: 'Delete selected sessions (1)' }))
+    await waitFor(() => { expect(onClose).toHaveBeenCalledOnce() })
+    expect(deleteSession).toHaveBeenCalledTimes(3)
+  })
 })

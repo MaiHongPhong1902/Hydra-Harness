@@ -1,6 +1,11 @@
 {
   "name": "@hydra/harness-commands",
   "description": "Plugin-owned human command registry for Hydra harness UIs",
+  "hydra": {
+    "plugin": {
+      "application": "Make plugin-provided slash commands available to the user."
+    }
+  },
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"

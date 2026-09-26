@@ -1,6 +1,11 @@
 {
   "name": "@hydra/harness-llm-pi-ai",
   "description": "pi-ai-backed DeepSeek adapter for the Hydra harness LLM seam (design-verification twin of hydra-llm-deepseek)",
+  "hydra": {
+    "plugin": {
+      "application": "Use the pi-ai adapter for provider model discovery and model requests."
+    }
+  },
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"

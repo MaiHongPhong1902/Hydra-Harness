@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Find, group, and switch between conversations and their child sessions."
+    },
     "client": {
       "inject": [
         "@hydra/harness-client-runtime",

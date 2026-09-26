@@ -1,6 +1,11 @@
 {
   "name": "@hydra/harness-tool-pwsh",
   "description": "Model-facing pwsh tool over the bash executor seam",
+  "hydra": {
+    "plugin": {
+      "application": "Let the agent run PowerShell commands and collect their output."
+    }
+  },
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"

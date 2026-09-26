@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Show attached files and image previews in conversation input and messages."
+    },
     "client": {
       "inject": [
         "@hydra/harness-client-ui-conversation"

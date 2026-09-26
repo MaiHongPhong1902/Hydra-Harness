@@ -15,10 +15,14 @@
 - insert:
     - id: timer
       name: '@hydra/cordis-plugin-timer'
+      description: Schedules Cordis tasks and timers used by other plugins.
+      application: Run delayed and recurring Host work when a plugin registers a timer.
       pluginType: core
 
     - id: hmr
       name: '@hydra/cordis-plugin-hmr'
+      description: Reloads changed plugin modules during development.
+      application: Apply local plugin edits without restarting the entire Host.
       config:
         root: ['.']
 
@@ -562,7 +566,9 @@
       pluginGroup: jev
       disabled: true
 
-    # Optional consumer that asks Jev for candidate browser-action decisions.
+    # Jev's bounded consumer: the model may ask for a candidate browser-action
+    # decision, while the existing browser executor retains authority.
     - id: browser-decisions
       name: '@hydra/harness-browser-decisions'
+      pluginGroup: jev
       disabled: true

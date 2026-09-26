@@ -42,6 +42,7 @@ export interface BrowserSectionInjected {
   removeHistory(id: string): Promise<void>
   downloads(): Promise<BrowserDownloadEntry[]>
   removeDownload(id: string): Promise<void>
+  openDownload?(id: string): Promise<void>
   sites(): Promise<BrowserSitePermission[]>
   setSite(site: BrowserSitePermission): Promise<void>
   removeSite(origin: string): Promise<void>
@@ -297,7 +298,7 @@ const policyValues = ['allow', 'ask', 'block'] as const satisfies readonly Brows
 export function BrowserSection({
   renderSlot, setSetting, configureNative, pickDownloadDirectory, clearData,
   openUrl,
-  history: listHistory, removeHistory, downloads: listDownloads, removeDownload,
+  history: listHistory, removeHistory, downloads: listDownloads, removeDownload, openDownload,
   sites: listSites, setSite, removeSite, autofillStatus, logins: listLogins, saveLogin, removeLogin,
   contacts: listContacts, getContact, saveContact, removeContact, useSnapshot, t,
 }: BrowserSectionProps) {
@@ -1108,6 +1109,16 @@ export function BrowserSection({
                   <span>{entry.state}</span>
                   <time dateTime={entry.startedAt}>{entry.endedAt ?? entry.startedAt}</time>
                 </div>
+                {openDownload !== undefined && entry.path.length > 0 ? (
+                  <button
+                    type="button"
+                    disabled={busy}
+                    aria-label={`${t('browser.open')} ${entry.filename}`}
+                    onClick={() => { void openDownload(entry.id).catch((reason: unknown) => { setDownloadState(current => ({ status: 'error', entries: current.entries, error: String(reason) })) }) }}
+                  >
+                    {t('browser.open')}
+                  </button>
+                ) : null}
                 <button
                   type="button"
                   disabled={busy}

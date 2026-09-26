@@ -1,6 +1,11 @@
 {
   "name": "@hydra/harness-llm-retry",
   "description": "Provider-routed LLM request retry policy for the Hydra harness",
+  "hydra": {
+    "plugin": {
+      "application": "Retry eligible model request failures according to the selected provider's retry policy."
+    }
+  },
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"

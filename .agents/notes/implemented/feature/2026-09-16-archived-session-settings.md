@@ -8,7 +8,7 @@ Archiving hides a Session from every Workspace browsing surface while retaining 
 
 ## Decision
 
-The `ui-workspace` plugin contributes an `Archived sessions` page to the Settings section ledger. The page reads `useWorkspaces().archivedSessionIds` in Host order, enriches each id from `useSessions()` and retained Workspace `sessionIds`, and calls `ctx.workspaces.unarchiveSession` through its injected action. The runtime removes only the archive marker, so the retained `sessionIds` slot restores the Session to its original Workspace. Missing metadata remains visible by id and can still be restored.
+The `ui-workspace` plugin contributes an `Archived sessions` page to the Settings section ledger. The page reads `useWorkspaces().archivedSessionIds` in Host order, enriches each id from `useSessions()` and retained Workspace `sessionIds`, and supports checkbox selection with bulk restore and permanent deletion. Restore calls `ctx.workspaces.unarchiveSession` in archive order through the injected action. The runtime removes only the archive marker, so the retained `sessionIds` slot restores the Session to its original Workspace. Missing metadata remains visible by id and can still be restored. Bulk deletion reuses the permanent deletion dialog and retries only failed ids.
 
 ## Alternatives considered
 
@@ -18,4 +18,4 @@ The `ui-workspace` plugin contributes an `Archived sessions` page to the Setting
 
 ## Consequences
 
-The Settings page remains available even when no Sessions are archived and reports restore failures without removing the row. The page depends on the runtime unarchive verb and cannot restore a Session when the Host rejects that request.
+The Settings page remains available even when no Sessions are archived and reports restore failures without removing the row. Selection is local UI state; each successful bulk operation removes its id from selection after the Host acknowledgement. The page depends on the runtime unarchive and delete verbs and cannot restore or delete a Session when the Host rejects that request.

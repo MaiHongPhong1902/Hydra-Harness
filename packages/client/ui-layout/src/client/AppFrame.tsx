@@ -20,6 +20,8 @@ import {
 } from './columns.ts'
 import type { createLayoutStore } from './stores.ts'
 import { DesktopBrowserPanel, DesktopPanelControls } from './DesktopBrowserPanel.tsx'
+import { DesktopTitleBar } from './DesktopTitleBar.tsx'
+import type { DesktopTitleBarAction } from './DesktopTitleBar.tsx'
 import css from './AppFrame.module.css'
 
 const DESKTOP_BROWSER_MIN = 420
@@ -34,7 +36,7 @@ export type AppFrameProps =
   & PropsRuntime<'root'>
   & PropsRenderSlots<'sidebar' | 'conversation' | 'details' | 'review' | 'shell.overlay'>
   & PropsStore<ReturnType<typeof createLayoutStore>>
-  & { createSideSession: () => Promise<SessionId> }
+  & { createSideSession: () => Promise<SessionId>; startSession?: () => void; openFolder?: () => Promise<void> }
 
 /** Center column grid item (session-body building block). */
 function CenterColumn(props: { children?: ReactNode }) {
@@ -137,6 +139,8 @@ export function AppFrame({
   renderSlot,
   SessionProvider,
   createSideSession,
+  startSession,
+  openFolder,
 }: AppFrameProps) {
   const panels = useStore(s => s)
   const currentSessionId = useSessions(s => s.current)
@@ -338,6 +342,22 @@ export function AppFrame({
     if (!browserOpen) setBrowserOpen(true)
     setBrowserExpanded(!browserExpanded)
   }
+  const onTitleBarAction = useCallback((action: DesktopTitleBarAction) => {
+    switch (action) {
+      case 'new-chat': startSession?.(); return
+      case 'open-folder': void openFolder?.(); return
+      case 'toggle-sidebar': actions.toggleSidebar(); return
+      case 'toggle-bottom-panel': setTerminalOpen(open => !open); return
+      case 'open-terminal': setTerminalOpen(true); return
+      case 'open-browser': setBrowserOpen(true); return
+      case 'settings': document.querySelector<HTMLButtonElement>('button[aria-haspopup="dialog"]')?.click(); return
+      case 'undo': case 'redo': case 'cut': case 'copy': case 'paste': case 'delete': case 'select-all':
+      case 'zoom-in': case 'zoom-out': case 'reset-zoom': case 'toggle-fullscreen': case 'close': case 'quit':
+        void window.hydraDesktop?.chrome?.dispatch(action)
+        return
+      default: return
+    }
+  }, [actions, openFolder, startSession])
 
   return (
     <div
@@ -350,7 +370,8 @@ export function AppFrame({
       data-terminal-open={terminalOpen || undefined}
       data-browser-expanded={browserExpanded || undefined}
     >
-      <div className={css.desktopApp}>{frame}</div>
+      <DesktopTitleBar onAction={onTitleBarAction} sidebarOpen={!sidebarCollapsed} />
+      <div className={css.desktopApp} data-desktop-shell>{frame}</div>
       <DesktopBrowserPanel
         open={browserOpen}
         workspaceId={workspaceId}

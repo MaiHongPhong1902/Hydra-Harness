@@ -34,6 +34,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Route client requests to the Host services that own conversations and settings."
+    },
     "client": {
       "inject": [
         "@hydra/harness-typert-registry",

@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Apply the saved interface language and supply translations to interface plugins."
+    },
     "client": {
       "inject": [
         "@hydra/harness-client-connection",

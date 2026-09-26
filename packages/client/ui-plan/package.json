@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Switch the conversation between planning and execution from the composer."
+    },
     "client": {
       "inject": [
         "@hydra/harness-api-remotes",

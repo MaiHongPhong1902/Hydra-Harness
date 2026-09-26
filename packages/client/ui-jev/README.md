@@ -10,7 +10,7 @@ The contribution uses the Models page's `settings.models.provider-option` slot a
 
 #### What the model sees
 
-The UI registers no model-facing text. It configures the independent `ctx.jev` capability; the separate browser-decisions plugin owns its model-facing tool.
+The UI registers no model-facing text. It configures the independent `ctx.jev` capability; the separately packaged browser-decisions consumer is enabled with the same `jev` group.
 
 #### Token effect
 

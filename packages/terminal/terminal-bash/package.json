@@ -1,6 +1,11 @@
 {
   "name": "@hydra/harness-terminal-bash",
   "description": "Persistent shell PTY backend over the Hydra harness subprocess terminal primitive",
+  "hydra": {
+    "plugin": {
+      "application": "Provide a persistent shell terminal for commands that need an interactive process."
+    }
+  },
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"

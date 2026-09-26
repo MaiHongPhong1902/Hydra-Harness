@@ -1,6 +1,11 @@
 {
   "name": "@hydra/harness-obsidian-knowledge",
   "description": "Token-bounded Obsidian graph memory with approval-gated knowledge saves",
+  "hydra": {
+    "plugin": {
+      "application": "Connect an Obsidian vault through its configured MCP bridge for knowledge retrieval and related tools."
+    }
+  },
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"

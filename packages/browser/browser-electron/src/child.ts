@@ -99,7 +99,7 @@ export interface LaunchOptions {
   /** Route PageAgent's private model request to the owning Hydra agent. */
   readonly onPageAgentLlm?: ((request: PageAgentLlmRequest) => Promise<unknown>) | undefined
   /** Ask in the owning chat; cancellation or an unavailable answerer denies access. */
-  readonly onPermission?: ((request: { kind: 'navigation' | 'media' | 'download'; origin: string; filename?: string }, signal: AbortSignal) => Promise<'once' | 'always' | 'block' | undefined>) | undefined
+  readonly onPermission?: ((request: { kind: 'navigation' | 'media' | 'geolocation' | 'notifications' | 'download'; origin: string; filename?: string }, signal: AbortSignal) => Promise<'once' | 'always' | 'block' | undefined>) | undefined
 }
 
 interface Reply {
@@ -296,11 +296,12 @@ export async function launchBrowser(options: LaunchOptions): Promise<BrowserChil
       const id = reply.id
       const onPermission = options.onPermission
       const request = reply.request as { kind?: unknown; origin?: unknown; filename?: unknown } | undefined
+      const requestKind = request?.kind
       const respond = (choice?: string): void => {
         if (ended === undefined && !closing) child.stdin.write(`${JSON.stringify({ method: 'browser_permission_response', args: { id, choice } })}\n`)
       }
       if (typeof id !== 'number' || !Number.isSafeInteger(id) || permissions.has(id)
-        || (request?.kind !== 'navigation' && request?.kind !== 'media' && request?.kind !== 'download') || typeof request.origin !== 'string'
+        || !['navigation', 'media', 'geolocation', 'notifications', 'download'].includes(requestKind as string) || typeof request?.origin !== 'string'
         || (request.filename !== undefined && (typeof request.filename !== 'string' || request.filename.length > 512))
         || !URL.canParse(request.origin) || !['http:', 'https:'].includes(new URL(request.origin).protocol)
         || new URL(request.origin).origin !== request.origin || onPermission === undefined) {
@@ -314,7 +315,7 @@ export async function launchBrowser(options: LaunchOptions): Promise<BrowserChil
       const cancelled = new Promise<undefined>((resolve) => {
         controller.signal.addEventListener('abort', () => { resolve(undefined) }, { once: true })
       })
-      const kind = request.kind
+      const kind = requestKind as 'navigation' | 'media' | 'geolocation' | 'notifications' | 'download'
       const origin = request.origin
       const filename = request.filename
       void Promise.race([cancelled, Promise.resolve().then(() => onPermission({ kind, origin,

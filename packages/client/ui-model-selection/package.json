@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Change the current session's model with the /model selector."
+    },
     "client": {
       "inject": [
         "@hydra/harness-client-locale",

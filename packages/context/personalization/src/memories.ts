@@ -10,6 +10,8 @@ import type { MemoryEntry } from './session.ts'
 const MEMORY_FILE_VERSION = 1
 const MAX_MEMORY_ENTRIES = 100
 const MAX_MEMORY_CHARS = 2_000
+const MAX_MEMORY_ID_CHARS = 128
+const MAX_MEMORY_DOCUMENT_BYTES = 32 * 1024
 
 /** On-disk memory document. */
 interface MemoryDocument {
@@ -24,7 +26,14 @@ interface MemoryDocument {
  */
 export function redactMemorySecrets(text: string): string {
   return text
-    .replace(/\bsk-[A-Za-z0-9_-]{16,}\b/g, '[redacted]')
+    .replace(/-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g, '[redacted]')
+    .replace(/\bBearer\s+\S{16,}/giu, 'Bearer [redacted]')
+    .replace(/\beyJ[\w-]{10,}\.[\w-]{10,}\.[\w-]{10,}\b/g, '[redacted]')
+    .replace(/\b(?:AKIA|ASIA)[A-Z0-9]{16}\b/g, '[redacted]')
+    .replace(/\b(?:rk|pk)-[\w-]{16,}\b/giu, '[redacted]')
+    .replace(/\bsk-[\w-]{16,}\b/g, '[redacted]')
+    .replace(/\b(aws[_-]?(?:access[_-]?key[_-]?id|secret[_-]?access[_-]?key))\s*([=:])\s*[^\s,;]+/giu,
+      (_match, name: string, separator: string) => `${name}${separator} [redacted]`)
     .replace(/\b(api[_-]?key|access[_-]?token|token|secret|password)\s*([=:])\s*[^\s,;]+/giu,
       (_match, name: string, separator: string) => `${name}${separator} [redacted]`)
 }
@@ -33,22 +42,36 @@ export function redactMemorySecrets(text: string): string {
 function isMemoryEntry(entry: unknown): entry is MemoryEntry {
   if (typeof entry !== 'object' || entry === null) return false
   const candidate = entry as Partial<MemoryEntry>
-  return typeof candidate.id === 'string' && typeof candidate.text === 'string'
-    && Number.isSafeInteger(candidate.createdAt) && Number.isSafeInteger(candidate.updatedAt)
+  const { id, text, createdAt, updatedAt } = candidate
+  return typeof id === 'string' && id.length > 0
+    && id.length <= MAX_MEMORY_ID_CHARS && id.trim() === id
+    && typeof text === 'string' && text.length > 0
+    && text.length <= MAX_MEMORY_CHARS && text.trim().length > 0
+    && typeof createdAt === 'number' && Number.isSafeInteger(createdAt) && createdAt >= 0
+    && typeof updatedAt === 'number' && Number.isSafeInteger(updatedAt) && updatedAt >= createdAt
 }
 
 /** Validate the persisted document before it can influence a prompt. */
 function parseDocument(raw: string): MemoryDocument {
+  if (Buffer.byteLength(raw, 'utf8') > MAX_MEMORY_DOCUMENT_BYTES) {
+    throw new Error(`memory document exceeds ${String(MAX_MEMORY_DOCUMENT_BYTES)} bytes`)
+  }
   const value: unknown = JSON.parse(raw)
   if (typeof value !== 'object' || value === null || Array.isArray(value)) throw new Error('memory document must be an object')
   const document = value as Partial<MemoryDocument>
   if (document.version !== MEMORY_FILE_VERSION || !Array.isArray(document.entries)) {
     throw new Error('memory document has an unsupported format')
   }
+  if (document.entries.length > MAX_MEMORY_ENTRIES) {
+    throw new Error(`memory document exceeds ${String(MAX_MEMORY_ENTRIES)} entries`)
+  }
   // The element type is a parse claim over the durable file boundary; the
   // loop validates every entry's runtime shape before the spread trusts it.
+  const ids = new Set<string>()
   for (const entry of document.entries as unknown[]) {
     if (!isMemoryEntry(entry)) throw new Error('memory document contains an invalid entry')
+    if (ids.has(entry.id)) throw new Error('memory document contains a duplicate entry id')
+    ids.add(entry.id)
   }
   return { version: MEMORY_FILE_VERSION, entries: document.entries.map(entry => ({ ...entry })) }
 }
@@ -122,6 +145,11 @@ export class LocalMemoryStore {
   }
 
   private async write(document: MemoryDocument): Promise<void> {
-    await writeFileAtomic(this.path, `${JSON.stringify(document, null, 2)}\n`, { mode: 0o600, dirMode: 0o700 })
+    const serialized = JSON.stringify(document, null, 2)
+    const content = `${serialized}\n`
+    if (Buffer.byteLength(content, 'utf8') > MAX_MEMORY_DOCUMENT_BYTES) {
+      throw new Error(`memory document exceeds ${String(MAX_MEMORY_DOCUMENT_BYTES)} bytes`)
+    }
+    await writeFileAtomic(this.path, content, { mode: 0o600, dirMode: 0o700 })
   }
 }

@@ -21,6 +21,7 @@ import type { ContentBlock } from '@hydra/harness-llm'
 import { defineTool } from '@hydra/harness-tools'
 import type { ToolExecution } from '@hydra/harness-tools'
 import type {} from '@hydra/harness-system-prompt'
+import type {} from '@hydra/harness-user-approval'
 import { BROWSER_PROMPT_NAME, BROWSER_PROMPT_ORDER, BROWSER_PROMPT_TEXT } from './prompt.ts'
 import {
   DEFAULT_MAX_STATE_CHARS, contentHash, dropIgnoredNodes, formatBrowserOutput, presentBrowserCall, rankElementList, toValue,
@@ -57,6 +58,10 @@ export interface Config {
   outputDir?: string
   /** Cooperative tool-call budget (ms) per browser action. Defaults to 60000. */
   timeoutMs?: number
+  /** Register elevated CDP tools when the browser service grants access. */
+  enableCdpTools?: boolean
+  /** Auto-approve only browser CDP requests in this scoped plugin composition. */
+  autoApproveCdp?: boolean
 }
 
 export const Config: z<Config> = z.object({
@@ -66,6 +71,8 @@ export const Config: z<Config> = z.object({
   imageResponses: z.union(['allow', 'omit'] as const).default('allow'),
   consoleLevel: z.union(['error', 'warning', 'info', 'debug'] as const).default('error'),
   outputDir: z.string(),
+  enableCdpTools: z.boolean().default(true),
+  autoApproveCdp: z.boolean().default(false),
 })
 
 /**
@@ -213,7 +220,7 @@ const TABS_OUTPUT = {
 }
 
 /** Durable value retained for a model-facing Browser screenshot result. */
-export interface BrowserScreenshotValue extends Pick<BrowserScreenshot, 'tabId' | 'url' | 'title' | 'capturedAt'> {
+export interface BrowserScreenshotValue extends Pick<BrowserScreenshot, 'tabId' | 'url' | 'title' | 'capturedAt' | 'mode'> {
   filename?: string
   omitImage?: boolean
   image: {
@@ -230,7 +237,7 @@ function screenshotContent(value: BrowserScreenshotValue): ContentBlock[] {
   return [
     {
       type: 'text',
-      text: `${value.filename === undefined ? '' : `Saved screenshot: ${value.filename}\n`}Browser screenshot of tab [${value.tabId}] — ${value.title || value.url}\n${value.url}\n${value.image.width}x${value.image.height} px, ${value.image.bytes} bytes`,
+      text: `${value.filename === undefined ? '' : `Saved screenshot: ${value.filename}\n`}Browser screenshot of tab [${value.tabId}] — ${value.title || value.url}\n${value.url}\nMode: ${value.mode}, ${value.image.width}x${value.image.height} px, ${value.image.bytes} bytes`,
     },
     ...value.image.attachmentId === undefined || value.omitImage === true ? [] : [{ type: 'image' as const, attachment: { ...value.image, attachmentId: AttachmentId(value.image.attachmentId) } }],
   ]
@@ -245,6 +252,7 @@ const SCREENSHOT_OUTPUT = {
       url: { type: 'string', required: true },
       title: { type: 'string', required: true },
       capturedAt: { type: 'string', required: true },
+      mode: { type: 'string', enum: ['viewport', 'full-page', 'clip'], required: true },
       filename: { type: 'string' },
       omitImage: { type: 'boolean' },
       image: {
@@ -350,11 +358,28 @@ async function assertScreenshotRoute(ctx: Context, exec: ToolExecution): Promise
 function applyScreenshotTool(ctx: Context, timeoutMs: number, outputDir: string, imageResponses: 'allow' | 'omit'): void {
   const register = (name: string): void => { ctx.tools.register(defineTool({
     name,
-    description: 'Capture the selected controlled HTTP(S) viewport. A filename saves PNG evidence without image input; otherwise imageResponses selects image delivery. Switch tabs before capture.',
-    parameters: { filename: FILENAME_PARAMETER },
+    description: 'Capture the selected controlled HTTP(S) page. Use full_page for the complete document or clip for a CSS-pixel rectangle.',
+    parameters: {
+      filename: FILENAME_PARAMETER,
+      full_page: { type: 'boolean', description: 'Capture the complete document instead of the visible viewport.' },
+      clip: { type: 'object', additionalProperties: false, properties: {
+        x: { type: 'integer', required: true }, y: { type: 'integer', required: true },
+        width: { type: 'integer', required: true }, height: { type: 'integer', required: true },
+      } },
+    },
     output: SCREENSHOT_OUTPUT,
     timeoutMs,
-    async execute(args: { filename?: string }, exec): Promise<BrowserScreenshotValue> {
+    async execute(
+      args: { filename?: string; full_page?: boolean; clip?: { x: number; y: number; width: number; height: number } },
+      exec,
+    ): Promise<BrowserScreenshotValue> {
+      if (args.full_page !== undefined && typeof args.full_page !== 'boolean') throw new Error('full_page must be a boolean')
+      if (args.clip !== undefined && (args.full_page === true
+        || ![args.clip.x, args.clip.y, args.clip.width, args.clip.height].every(Number.isSafeInteger)
+        || args.clip.x < 0 || args.clip.y < 0 || args.clip.width < 1 || args.clip.height < 1
+        || args.clip.width > 10_000 || args.clip.height > 10_000)) {
+        throw new Error('clip must be a non-negative integer rectangle up to 10000 pixels')
+      }
       if (args.filename !== undefined) validateFilename(args.filename)
       const omitImage = imageResponses === 'omit' || args.filename !== undefined
       const owner = requireAgent(exec.agent)
@@ -365,13 +390,16 @@ function applyScreenshotTool(ctx: Context, timeoutMs: number, outputDir: string,
       }
       if (!omitImage) await assertScreenshotRoute(ctx, exec)
       exec.signal.throwIfAborted()
-      const screenshot = await ctx.browsers.takeScreenshot(owner, { callId: exec.callId, signal: exec.signal })
+      const screenshot = await ctx.browsers.takeScreenshot(owner,
+        { fullPage: args.full_page === true, ...args.clip === undefined ? {} : { clip: args.clip } },
+        { callId: exec.callId, signal: exec.signal })
       exec.signal.throwIfAborted()
       if (omitImage) {
         const filename = await saveBrowserArtifact(outputDir, args.filename ?? 'screenshot.png', Buffer.from(screenshot.data, 'base64'), exec.signal)
         return {
           filename, omitImage: true, tabId: screenshot.tabId, url: screenshot.url,
           title: screenshot.title, capturedAt: screenshot.capturedAt,
+          mode: screenshot.mode,
           image: { mediaType: 'image/png', bytes: screenshot.bytes, width: screenshot.width, height: screenshot.height },
         }
       }
@@ -386,6 +414,7 @@ function applyScreenshotTool(ctx: Context, timeoutMs: number, outputDir: string,
         url: screenshot.url,
         title: screenshot.title,
         capturedAt: screenshot.capturedAt,
+        mode: screenshot.mode,
         image: {
           attachmentId: image.attachmentId,
           mediaType: image.mediaType,
@@ -418,8 +447,17 @@ export function apply(ctx: Context, config: Config = {}): void {
   const snapshotMode = config.snapshotMode ?? 'full'
   const imageResponses = config.imageResponses ?? 'allow'
   const consoleLevel = config.consoleLevel ?? 'error'
+  const enableCdpTools = config.enableCdpTools ?? true
+  const autoApproveCdp = config.autoApproveCdp ?? false
   if (!['full', 'none'].includes(snapshotMode) || !['allow', 'omit'].includes(imageResponses)
-    || !['error', 'warning', 'info', 'debug'].includes(consoleLevel)) throw new Error('invalid browser output configuration')
+    || !['error', 'warning', 'info', 'debug'].includes(consoleLevel)
+    || typeof enableCdpTools !== 'boolean' || typeof autoApproveCdp !== 'boolean') throw new Error('invalid browser output configuration')
+
+  if (autoApproveCdp) {
+    ctx.on('approval/request', (request, next) => request.toolName.startsWith('browser_cdp_')
+      ? Promise.resolve<'allowed-once'>('allowed-once')
+      : next(), { prepend: true })
+  }
 
   const previousContent = new WeakMap<Agent, Map<number, { url: string; content: string; revision: number; elements: string[] }>>()
 
@@ -655,6 +693,25 @@ export function apply(ctx: Context, config: Config = {}): void {
     presentCall: (args: { index?: number; name?: string; target?: string }) => presentBrowserCall(
       args.index === undefined ? `Click ${args.name ?? args.target}` : `Click [${args.index}]`,
     ),
+  }))
+
+  ctx.tools.register(defineTool({
+    name: 'browser_click_at',
+    description: 'Click CSS-pixel coordinates in the selected browser viewport using a screenshot as the visual reference.',
+    parameters: {
+      x: { type: 'number', required: true }, y: { type: 'number', required: true },
+      button: { type: 'string', enum: ['left', 'middle', 'right'] },
+      click_count: { type: 'integer', description: '1 through 3; defaults to 1.' }, tab_id: TAB_ID_PARAMETER,
+    },
+    output,
+    timeoutMs,
+    execute: (args: { x: number; y: number; button?: 'left' | 'middle' | 'right'; click_count?: number } & TargetTabArgs, exec) => {
+      if (![args.x, args.y].every(Number.isFinite) || args.x < 0 || args.y < 0) throw new Error('click coordinates must be non-negative numbers')
+      if (args.click_count !== undefined && (!Number.isSafeInteger(args.click_count) || args.click_count < 1 || args.click_count > 3)) throw new Error('click_count must be an integer from 1 through 3')
+      return run(exec, { method: 'click_at', x: args.x, y: args.y, ...args.button === undefined ? {} : { button: args.button }, ...args.click_count === undefined ? {} : { clickCount: args.click_count }, ...tabTarget(args) })
+    },
+    isConcurrencySafe: targetsTab,
+    presentCall: (args: { x: number; y: number }) => presentBrowserCall(`Click browser viewport at (${args.x}, ${args.y})`),
   }))
 
   ctx.tools.register(defineTool({
@@ -1235,13 +1292,26 @@ export function apply(ctx: Context, config: Config = {}): void {
       isConcurrencySafe: targetsTab,
       presentCall: (args: { script: string }) => presentBrowserCall('Evaluate browser JavaScript', args.script),
     }))
+    ctx.tools.register(defineTool({
+      name: 'browser_execute_page_javascript',
+      description: 'EXPERIMENTAL and elevated: execute JavaScript in the page world, where page-defined globals are visible.',
+      parameters: { script: { type: 'string', required: true }, tab_id: TAB_ID_PARAMETER },
+      output,
+      timeoutMs,
+      execute: (args: { script: string; tab_id?: number }, exec) => {
+        if (args.script.trim().length === 0) throw new Error('script must be a non-empty string')
+        return run(exec, { method: 'execute_javascript_page', script: args.script, ...tabTarget(args) })
+      },
+      isConcurrencySafe: targetsTab,
+      presentCall: (args: { script: string }) => presentBrowserCall('Execute page-world JavaScript', args.script),
+    }))
     /* jscpd:ignore-end */
   }
 
 
   let disposeCdp: (() => void) | undefined
   const syncCdpTool = (enabled = ctx.browsers.fullCdpAccess): void => {
-    if (!enabled) {
+    if (!enableCdpTools || !enabled) {
       disposeCdp?.()
       disposeCdp = undefined
       return

@@ -1,10 +1,33 @@
-- listitem:
-  - strong: ui-settings
-  - text: Disabled
-  - switch "Enable plugin ui-settings"
-  - code: "@hydra/harness-client-ui-settings"
-  - group: Included plugins (5)
-  - paragraph: Core plugin — changes require an app restart and may affect app availability.
+- dialog "ui-settings":
+  - heading "ui-settings" [level=2]
+  - button "Close plugin details":
+    - img
+  - paragraph: "@hydra/harness-client-ui-settings"
+  - table:
+    - rowgroup:
+      - 'row "Description Settings domain base plugin: the settings-namespace scope service and the canonical settings slot-type contract"':
+        - rowheader "Description"
+        - 'cell "Settings domain base plugin: the settings-namespace scope service and the canonical settings slot-type contract"'
+      - row "Usage Provide the shared settings sections used by preference and provider plugins.":
+        - rowheader "Usage"
+        - cell "Provide the shared settings sections used by preference and provider plugins."
+      - row "Scope All sessions":
+        - rowheader "Scope"
+        - cell "All sessions"
+      - row "Cordis status Mounted":
+        - rowheader "Cordis status"
+        - cell "Mounted"
+  - strong: Included plugins
+  - list:
+    - listitem:
+      - code: "@hydra/harness-client-ui-settings-general"
+    - listitem:
+      - code: "@hydra/harness-client-ui-settings-models"
+    - listitem:
+      - code: "@hydra/harness-client-ui-settings-personalization"
+    - listitem:
+      - code: "@hydra/harness-client-ui-settings-plugin-inventory"
+    - listitem:
+      - code: "@hydra/harness-client-ui-settings-plugins"
   - paragraph: Changed since app start
-  - text: "Cordis status: Mounted"
   - paragraph: This change will apply after restart.

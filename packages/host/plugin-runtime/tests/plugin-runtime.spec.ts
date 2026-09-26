@@ -591,12 +591,12 @@ describe('PluginStore', () => {
       : format === 'portable' ? portablePlugin(source, '1.0.0', extra) : plugin(source, '1.0.0', extra)
     const loader = new PluginManifestLoader()
     const metadata = {
-      description: 'Metadata fixture', homepage: 'https://example.test', repository: 'example/plugin',
+      description: 'Metadata fixture', application: 'Use this plugin to greet a person.', homepage: 'https://example.test', repository: 'example/plugin',
       license: 'MIT', keywords: ['fixture'], author: { name: 'Fixture author' },
     }
     await create(metadata)
     expect((await loader.load(source)).manifest).toMatchObject(metadata)
-    for (const key of ['description', 'homepage', 'repository', 'license']) {
+    for (const key of ['description', 'application', 'homepage', 'repository', 'license']) {
       await create({ [key]: 42 })
       await expect(loader.load(source)).rejects.toThrow(`manifest ${key} must be a string`)
     }
@@ -611,6 +611,22 @@ describe('PluginStore', () => {
       expect((await loader.load(source)).manifest.author).toBe('Fixture author')
       await create({ interface: [] })
       await expect(loader.load(source)).rejects.toThrow('manifest interface must be an object')
+    }
+  })
+
+  it.each(['legacy', 'portable', 'claude'] as const)('projects %s manifest descriptions and usage into installed plugin details', async (format) => {
+    const source = await temp(`details-${format}`)
+    const metadata = { description: 'Greeting plugin', application: 'Use hello to greet a person.' }
+    if (format === 'claude') await claudePlugin(source, metadata)
+    else if (format === 'portable') await portablePlugin(source, '1.0.0', metadata)
+    else await plugin(source, '1.0.0', metadata)
+    const { ctx, plugins } = await runtime(await temp('details-home'))
+    try {
+      const entry = (await plugins.import(source)).plugins[0]!
+      expect(entry).toMatchObject(metadata)
+      expect(await plugins.info(entry.identity)).toMatchObject(metadata)
+    } finally {
+      await ctx.fiber.dispose()
     }
   })
 

@@ -1,6 +1,7 @@
 - listitem:
-  - strong: session-stats
+  - button "session-stats @hydra/harness-session-stats Extension Running":
+    - strong: session-stats
+    - code: "@hydra/harness-session-stats"
+    - text: Extension Running
   - text: Enabled
   - switch "Disable plugin session-stats" [checked]
-  - code: "@hydra/harness-session-stats"
-  - text: "Cordis status: Mounted"

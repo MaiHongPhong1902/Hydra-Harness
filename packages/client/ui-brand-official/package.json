@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Display the Hydra logo and welcome branding in the sidebar and empty conversation."
+    },
     "client": {
       "inject": [
         "@hydra/harness-client-runtime",

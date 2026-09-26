@@ -536,12 +536,15 @@ function Loaded({ injected }: { injected: ModelsSectionFace }): ReactNode {
                         className={styles['addButton']}
                         disabled={(selectable.length === 0 && (accountGroup || providerOptionCount === 0)) || !state.writable}
                         onClick={() => {
-                          const first = selectable[0]
                           setSavedTarget(undefined)
                           setAddingOption(undefined)
                           setDeclaring(false)
                           setAdding(true)
-                          setEditing(first === undefined ? undefined : targetOf(first))
+                          // API-key providers require an explicit choice; the
+                          // account flow keeps its repeat-sign-in shortcut.
+                          setEditing(accountGroup && selectable[0] !== undefined
+                            ? targetOf(selectable[0])
+                            : undefined)
                         }}
                       >
                         {/* Same glyph as the composer's attach button. */}

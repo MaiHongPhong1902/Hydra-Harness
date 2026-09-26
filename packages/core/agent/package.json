@@ -1,6 +1,11 @@
 {
   "name": "@hydra/harness-agent",
   "description": "Agent interface, registry, initiator scope, and event vocabulary for the Hydra harness",
+  "hydra": {
+    "plugin": {
+      "application": "Create and track the agent that handles each conversation and its child tasks."
+    }
+  },
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"

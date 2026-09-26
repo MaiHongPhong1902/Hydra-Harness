@@ -64,6 +64,10 @@ export interface ImportedMcpServerSnapshot {
 export interface ImportedPluginEntry {
   readonly identity: ImportedPluginIdentity
   readonly name: string
+  /** Summary supplied by the installed plugin manifest. */
+  readonly description?: string
+  /** Usage guidance supplied by the installed plugin manifest. */
+  readonly application?: string
   readonly version: string
   readonly source: ImportedPluginSource
   readonly pluginRoot: string
@@ -96,6 +100,8 @@ export interface PluginManifest {
   readonly name: string
   readonly version: string
   readonly description?: string
+  /** Optional usage guidance shown by plugin information dialogs. */
+  readonly application?: string
   readonly author?: string | Readonly<Record<string, unknown>>
   readonly homepage?: string
   readonly repository?: string

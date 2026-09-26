@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Inspect an agent-created plugin and start or stop it from its tool result."
+    },
     "client": {
       "inject": [
         "@hydra/harness-client-runtime",

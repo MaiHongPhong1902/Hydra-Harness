@@ -13,7 +13,8 @@ export type PluginsSettingsLocaleKey =
   | 'pageMemoryLocale' | 'pageMemoryLocaleHint' | 'pageMemoryStorageDir' | 'pageMemoryStorageDirHint'
   | 'pageMemoryMaxRecordBytes' | 'pageMemoryMaxRecordBytesHint' | 'pageMemoryMaxWorkflows' | 'pageMemoryMaxWorkflowsHint'
   | 'pageMemoryMaxPages' | 'pageMemoryMaxPagesHint' | 'pageMemoryMaxContextBytes' | 'pageMemoryMaxContextBytesHint'
-  | 'pageMemoryMaxObservations' | 'pageMemoryMaxObservationsHint' | 'pageMemoryVerificationTimeout' | 'pageMemoryVerificationTimeoutHint'
+  | 'pageMemoryMaxObservations' | 'pageMemoryMaxObservationsHint' | 'pageMemoryMaxHistory' | 'pageMemoryMaxHistoryHint'
+  | 'pageMemoryVerificationTimeout' | 'pageMemoryVerificationTimeoutHint'
   | 'webSearchTitle' | 'webSearchDescription'
   | 'webSearchApiKey' | 'webSearchApiKeyHint' | 'webSearchApiKeySet' | 'webSearchApiKeyUnset'
   | 'webSearchBaseUrl' | 'webSearchBaseUrlHint' | 'webSearchMaxUses' | 'webSearchMaxUsesHint'
@@ -94,6 +95,8 @@ export const en: Record<PluginsSettingsLocaleKey, string> = {
   pageMemoryMaxContextBytesHint: 'Maximum recalled context sent to the agent.',
   pageMemoryMaxObservations: 'Maximum observations',
   pageMemoryMaxObservationsHint: 'Maximum targeted Browser observations retained in one turn.',
+  pageMemoryMaxHistory: 'Maximum history',
+  pageMemoryMaxHistoryHint: 'Maximum durable verification traces retained for offline replay.',
   pageMemoryVerificationTimeout: 'Verification timeout (ms)',
   pageMemoryVerificationTimeoutHint: 'Maximum time spent checking live page anchors.',
   webSearchTitle: 'Web Search',

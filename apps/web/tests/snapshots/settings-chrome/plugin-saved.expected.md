@@ -1,6 +1,20 @@
-- listitem:
-  - strong: session-stats
-  - text: Disabled
-  - switch "Enable plugin session-stats"
-  - code: "@hydra/harness-session-stats"
+- dialog "session-stats":
+  - heading "session-stats" [level=2]
+  - button "Close plugin details":
+    - img
+  - paragraph: "@hydra/harness-session-stats"
+  - table:
+    - rowgroup:
+      - row "Description Whole-log conversation counts and wall times projection (sessionStats) for the Hydra harness":
+        - rowheader "Description"
+        - cell "Whole-log conversation counts and wall times projection (sessionStats) for the Hydra harness"
+      - row "Usage Show conversation counts and elapsed times derived from the session history.":
+        - rowheader "Usage"
+        - cell "Show conversation counts and elapsed times derived from the session history."
+      - row "Scope All sessions":
+        - rowheader "Scope"
+        - cell "All sessions"
+      - row "Cordis status Not mounted":
+        - rowheader "Cordis status"
+        - cell "Not mounted"
   - paragraph: Changed since app start

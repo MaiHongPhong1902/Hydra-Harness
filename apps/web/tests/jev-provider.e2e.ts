@@ -9,7 +9,6 @@ import { credentialRef } from '@hydra/harness-credentials'
 import { CallId } from '@hydra/harness-llm'
 import { SessionId } from '@hydra/harness-session'
 import type {} from '@hydra/harness-jev'
-import type { PluginInventoryGateway } from '@hydra/harness-host-plugin-inventory'
 import {
   captureStableAria, compareOrRefreshGolden, launchWebScaffold, watchConsole,
   webSnapshotMode, type WebScaffold,
@@ -129,11 +128,8 @@ describe('web e2e: optional Jev provider', () => {
     await expect.poll(() => edit.count()).toBe(0)
   })
 
-  it('routes the saved credential through the separate browser-decisions plugin', async () => {
+  it('routes the saved credential through the bundled browser decision consumer', async () => {
     await saveKey('jev-browser-fixture')
-    const inventory = scaffold.ctx.get('pluginInventory') as PluginInventoryGateway
-    const browserEntry = (await inventory.list()).entries.find(row => row.moduleName === '@hydra/harness-browser-decisions')!
-    await inventory.setEnabled({ entryId: browserEntry.entryId, enabled: true })
     const originalFetch = globalThis.fetch
     const mock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
       if (input !== 'https://www.jevai.org/api/v1/decisions') return originalFetch(input, init)
@@ -155,7 +151,6 @@ describe('web e2e: optional Jev provider', () => {
     } finally {
       await handle.dispose()
       mock.mockRestore()
-      await inventory.setEnabled({ entryId: browserEntry.entryId, enabled: false })
     }
   })
 })

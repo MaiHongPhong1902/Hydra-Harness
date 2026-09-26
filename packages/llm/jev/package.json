@@ -1,6 +1,11 @@
 {
   "name": "@hydra/harness-jev",
   "description": "Optional TypeSafe Jev decision capability for the Hydra harness",
+  "hydra": {
+    "plugin": {
+      "application": "Provide TypeSafe Jev decisions to enabled consumers after configuring its credential."
+    }
+  },
   "version": "0.1.1-rc.1",
   "publishConfig": { "access": "public" },
   "repository": {

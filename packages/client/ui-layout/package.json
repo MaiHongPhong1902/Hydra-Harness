@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Arrange the sidebar, conversation, and browser, Files, terminal, or review panels."
+    },
     "client": {
       "inject": [
         "@hydra/harness-client-runtime",

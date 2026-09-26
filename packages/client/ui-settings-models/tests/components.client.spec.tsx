@@ -898,8 +898,9 @@ describe('ModelsSection', () => {
     const { mutate, set } = await mountSection()
     fireEvent.click(screen.getByText(en.add))
     const pick = await screen.findByLabelText<HTMLSelectElement>(en.provider)
-    expect([...pick.options].map(option => option.value)).toEqual(['anthropic', 'broken', 'plain'])
-    expect(pick.value).toBe('anthropic')
+    expect([...pick.options].map(option => option.value)).toEqual(['anthropic', 'broken', 'plain', ''])
+    expect(pick.value).toBe('')
+    fireEvent.change(pick, { target: { value: 'anthropic' } })
     // A dormant profile has no endpoint anywhere: the pi-ai placeholder
     // falls back to the provider-default wording.
     fireEvent.click(screen.getByText(en.customized))
@@ -920,7 +921,8 @@ describe('ModelsSection', () => {
   it('keeps pi-ai provider-native authentication when no key is entered', async () => {
     const { mutate, set } = await mountSection()
     fireEvent.click(screen.getByText(en.add))
-    await screen.findByLabelText(en.provider)
+    const pick = await screen.findByLabelText<HTMLSelectElement>(en.provider)
+    fireEvent.change(pick, { target: { value: 'anthropic' } })
     fireEvent.click(screen.getByText(en.apply))
     await waitFor(() => { expect(mutate).toHaveBeenCalledOnce() })
     expect(mutate.mock.calls[0]?.[0]).toEqual({
@@ -951,7 +953,8 @@ describe('ModelsSection', () => {
       .mockResolvedValueOnce(ok({}))
     const { face, controller, mirror } = await mountSection({ mutate, set })
     fireEvent.click(screen.getByText(en.add))
-    await screen.findByLabelText(en.provider)
+    const pick = await screen.findByLabelText<HTMLSelectElement>(en.provider)
+    fireEvent.change(pick, { target: { value: 'anthropic' } })
     fireEvent.change(screen.getByLabelText<HTMLInputElement>(en.keyInput), { target: { value: 'sk-ant' } })
     fireEvent.click(screen.getByText(en.apply))
     await screen.findByText('credential store unavailable')
@@ -994,7 +997,8 @@ describe('ModelsSection', () => {
       mutate: vi.fn(() => Promise.resolve(fail('llm-pi-ai: unknown pi-ai provider "bogus"'))),
     })
     fireEvent.click(screen.getByText(en.add))
-    await screen.findByLabelText(en.provider)
+    const pick = await screen.findByLabelText<HTMLSelectElement>(en.provider)
+    fireEvent.change(pick, { target: { value: 'anthropic' } })
     fireEvent.change(screen.getByLabelText<HTMLInputElement>(en.keyInput), { target: { value: 'sk-x' } })
     fireEvent.click(screen.getByText(en.apply))
     await screen.findByText(/unknown pi-ai provider/)
@@ -1203,7 +1207,8 @@ describe('ModelsSection', () => {
   it('cancels the add card back to the add button', async () => {
     await mountSection()
     fireEvent.click(screen.getByText(en.add))
-    await screen.findByLabelText(en.provider)
+    const pick = await screen.findByLabelText<HTMLSelectElement>(en.provider)
+    fireEvent.change(pick, { target: { value: 'anthropic' } })
     fireEvent.click(screen.getByText(en.cancel))
     await screen.findByText(en.add)
     expect(screen.queryByLabelText(en.provider)).toBeNull()
@@ -1415,7 +1420,9 @@ describe('ModelsSection', () => {
     expect(screen.queryByRole('button', { name: deepSeekCopy(en.editProvider) })).toBeNull()
     fireEvent.click(screen.getByText(en.add))
     const select = await screen.findByLabelText<HTMLSelectElement>(en.provider)
-    expect(select.value).toBe(OFFICIAL_DEEPSEEK_PROVIDER)
+    expect(select.value).toBe('')
+    expect(screen.queryByLabelText(en.keyInput)).toBeNull()
+    fireEvent.change(select, { target: { value: OFFICIAL_DEEPSEEK_PROVIDER } })
     fireEvent.change(screen.getByLabelText(en.keyInput), { target: { value: 'sk-live' } })
     fireEvent.click(screen.getByText(en.apply))
     await waitFor(() => {

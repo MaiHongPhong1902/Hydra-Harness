@@ -16,6 +16,7 @@ export interface PageMemorySettings {
   maxPages?: number
   maxContextBytes?: number
   maxObservations?: number
+  maxHistory?: number
   verificationTimeoutMs?: number
 }
 
@@ -29,6 +30,7 @@ export interface PageMemoryCardState extends CardShell {
   maxPages: CardFieldState
   maxContextBytes: CardFieldState
   maxObservations: CardFieldState
+  maxHistory: CardFieldState
   verificationTimeoutMs: CardFieldState
 }
 
@@ -47,7 +49,8 @@ export class PageMemoryCardController {
     this.form = new CardForm(scope, [
       textField('role'), textField('locale'), textField('storageDir'),
       numberField('maxRecordBytes'), numberField('maxWorkflows'), numberField('maxPages'),
-      numberField('maxContextBytes'), numberField('maxObservations'), numberField('verificationTimeoutMs'),
+      numberField('maxContextBytes'), numberField('maxObservations'), numberField('maxHistory'),
+      numberField('verificationTimeoutMs'),
     ])
     this.store = this.form.bind(() => this.projection())
   }
@@ -61,7 +64,8 @@ export class PageMemoryCardController {
       role: this.form.field('role'), locale: this.form.field('locale'), storageDir: this.form.field('storageDir'),
       maxRecordBytes: this.form.field('maxRecordBytes'), maxWorkflows: this.form.field('maxWorkflows'),
       maxPages: this.form.field('maxPages'), maxContextBytes: this.form.field('maxContextBytes'),
-      maxObservations: this.form.field('maxObservations'), verificationTimeoutMs: this.form.field('verificationTimeoutMs'),
+      maxObservations: this.form.field('maxObservations'), maxHistory: this.form.field('maxHistory'),
+      verificationTimeoutMs: this.form.field('verificationTimeoutMs'),
     }
   }
 

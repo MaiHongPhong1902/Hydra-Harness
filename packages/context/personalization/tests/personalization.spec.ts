@@ -66,7 +66,22 @@ describe('LocalMemoryStore', () => {
       await mkdir(join(home, 'memories'))
       for (const value of [null, [], 1, { version: 2, entries: [] }, { version: 1 },
         ...[null, 1, {}, { id: '', text: '' }, { id: '', text: '', createdAt: 1.5, updatedAt: 1 },
-          { id: '', text: '', createdAt: 1, updatedAt: 1.5 }].map(entry => ({ version: 1, entries: [entry] })),
+          { id: '', text: '', createdAt: 1, updatedAt: 1.5 },
+          { id: ' ', text: 'valid', createdAt: 1, updatedAt: 1 },
+          { id: 'valid', text: ' ', createdAt: 1, updatedAt: 1 },
+          { id: 'valid', text: 'valid', createdAt: -1, updatedAt: 1 },
+          { id: 'valid', text: 'valid', createdAt: 2, updatedAt: 1 },
+          { id: 'valid', text: 'a'.repeat(2001), createdAt: 1, updatedAt: 1 },
+        ].map(entry => ({ version: 1, entries: [entry] })),
+        { version: 1, entries: Array.from({ length: 101 }, (_, index) => ({
+          id: String(index), text: 'entry', createdAt: index, updatedAt: index,
+        })) },
+        { version: 1, entries: [{ id: 'duplicate', text: 'first', createdAt: 1, updatedAt: 1 }, {
+          id: 'duplicate', text: 'second', createdAt: 2, updatedAt: 2,
+        }] },
+        { version: 1, entries: Array.from({ length: 20 }, (_, index) => ({
+          id: String(index), text: 'a'.repeat(2000), createdAt: index, updatedAt: index,
+        })) },
       ]) {
         await writeFile(path, JSON.stringify(value))
         await expect(store.list()).rejects.toThrow('memory document')
@@ -99,6 +114,21 @@ describe('LocalMemoryStore', () => {
     } finally {
       await rm(home, { recursive: true, force: true })
     }
+  })
+
+  it('redacts common token and private-key formats before persistence', () => {
+    const value = personalization.redactMemorySecrets([
+      'Bearer abcdefghijklmnop',
+      `eyJ${'a'.repeat(10)}.${'b'.repeat(10)}.${'c'.repeat(10)}`,
+      'AKIA1234567890ABCDEF',
+      'rk-abcdefghijklmnop',
+      'AWS_SECRET_ACCESS_KEY=secret-value',
+      '-----BEGIN PRIVATE KEY-----secret-----END PRIVATE KEY-----',
+    ].join(' '))
+    expect(value).not.toContain('abcdefghijklmnop')
+    expect(value).not.toContain('AKIA1234567890ABCDEF')
+    expect(value).not.toContain('secret-value')
+    expect(value).not.toContain('BEGIN PRIVATE KEY-----secret')
   })
 })
 

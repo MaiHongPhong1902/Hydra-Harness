@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Render the app and the interface contributions supplied by installed plugins."
+    },
     "client": {
       "inject": [
         "@hydra/harness-client-runtime"

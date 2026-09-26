@@ -1,6 +1,11 @@
 {
   "name": "@hydra/harness-fs-local",
   "description": "Local-filesystem implementation of the Hydra harness filesystem seam (ctx.fs)",
+  "hydra": {
+    "plugin": {
+      "application": "Read and modify files on the local machine through Hydra's filesystem tools."
+    }
+  },
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"

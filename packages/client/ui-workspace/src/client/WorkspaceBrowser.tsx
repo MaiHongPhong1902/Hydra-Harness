@@ -1215,7 +1215,7 @@ export function WorkspaceBrowser({
 
       {sessionDeleteTarget === null ? null : (
         <DeleteSessionDialog
-          target={sessionDeleteTarget}
+          targets={[sessionDeleteTarget]}
           deleteSession={deleteSession}
           onClose={() => { setSessionDeleteTarget(null) }}
           t={t}

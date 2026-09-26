@@ -30,6 +30,7 @@ function screenshot(label: string): Record<string, unknown> {
     width: 1,
     height: 1,
     tabId: 1,
+    mode: 'viewport',
     url: `https://${label}.test`,
     title: label,
     capturedAt: '2026-08-27T00:00:00.000Z',

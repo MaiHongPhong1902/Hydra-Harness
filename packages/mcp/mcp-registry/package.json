@@ -1,6 +1,11 @@
 {
   "name": "@hydra/harness-mcp-registry",
   "description": "Settings-backed MCP server records that mount and unmount mcp-client fibers",
+  "hydra": {
+    "plugin": {
+      "application": "Save MCP server connections and control which servers expose tools to agents."
+    }
+  },
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"

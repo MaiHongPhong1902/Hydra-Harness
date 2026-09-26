@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Choose light, dark, or system appearance and apply a consistent palette throughout the app."
+    },
     "client": {
       "inject": [
         "@hydra/harness-client-connection",

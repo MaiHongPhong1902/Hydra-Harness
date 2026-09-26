@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Keep the interface's session and workspace state synchronized with Host updates."
+    },
     "client": {
       "inject": [
         "@hydra/harness-client-connection",

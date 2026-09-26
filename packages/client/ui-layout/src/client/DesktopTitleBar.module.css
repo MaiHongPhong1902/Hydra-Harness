@@ -1,0 +1,81 @@
+.bar {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  height: 36px;
+  box-sizing: border-box;
+  padding: 0 8px;
+  padding-right: max(8px, env(titlebar-area-width, 0px));
+  gap: 4px;
+  color: var(--dsw-alias-fg-primary);
+  background: var(--dsw-specific-sidebar-fill);
+  border-bottom: 1px solid var(--dsw-alias-border-l1);
+  -webkit-app-region: drag;
+  user-select: none;
+  z-index: 5;
+}
+
+.navigation,
+.menus {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  -webkit-app-region: no-drag;
+}
+
+.menus { margin-left: 2px; }
+
+.iconButton,
+.menuTrigger {
+  height: 28px;
+  border: 0;
+  border-radius: 7px;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+
+.iconButton {
+  display: grid;
+  width: 28px;
+  place-items: center;
+}
+
+.menuTrigger { padding: 0 10px; }
+
+.iconButton:hover:not(:disabled),
+.iconButton[aria-pressed='true'],
+.menuTrigger:hover,
+.menuTrigger[data-open='true'] {
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+.iconButton:disabled,
+.menuTrigger:disabled { cursor: default; opacity: .42; }
+
+.iconButton:focus-visible,
+.menuTrigger:focus-visible {
+  outline: 2px solid var(--dsw-alias-focus-ring);
+  outline-offset: -2px;
+}
+
+.menu :global([role='menu']) {
+  min-width: 220px;
+}
+
+.shortcut {
+  margin-left: auto;
+  padding-left: 24px;
+  color: var(--dsw-alias-fg-tertiary);
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .bar { padding-left: 4px; }
+  .menuTrigger { padding: 0 7px; }
+  .menus { gap: 0; }
+}

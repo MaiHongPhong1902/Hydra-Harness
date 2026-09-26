@@ -953,7 +953,7 @@ function cancelPermissions(contents) {
 }
 
 async function requestPermission(contents, kind, origin, filename) {
-  if (windowClosing || contents.isDestroyed() || !isControlledContents(contents)) return false
+  if (windowClosing || contents.isDestroyed() || !isControlledContents(contents) || typeof origin !== 'string') return false
   const sourceUrl = contents.getURL()
   const id = ++nextPermissionId
   const choice = await new Promise(resolve => {
@@ -962,9 +962,9 @@ async function requestPermission(contents, kind, origin, filename) {
   })
   if (windowClosing || contents.isDestroyed() || contents.getURL() !== sourceUrl) return false
   if (kind === 'download') return choice === 'once' && nativeSettings.downloadPolicy !== 'block'
-  const field = kind === 'navigation' ? 'access' : 'media'
+  const field = kind === 'navigation' ? 'access' : kind === 'media' ? 'media' : undefined
   const existing = profileStore.sites[origin]
-  if (existing?.[field] === 'block') return false
+  if (field !== undefined && existing?.[field] === 'block') return false
   if (kind === 'navigation' && navigationPolicy(contents, origin) === false) return false
   if (kind === 'media' && (choice === 'always' || choice === 'block')) {
     profileStore.sites[origin] = { access: 'block', media: 'block', ...existing, [field]: choice === 'always' ? 'allow' : 'block' }
@@ -1056,6 +1056,7 @@ function isProfileManagement(method) {
     || method === 'remove_browser_history'
     || method === 'browser_downloads'
     || method === 'remove_browser_download'
+    || method === 'open_browser_download'
     || method === 'browser_sites'
     || method === 'set_browser_site'
     || method === 'remove_browser_site'
@@ -1348,21 +1349,22 @@ function annotationOf(value) {
  * @param {{ x: number, y: number, width: number, height: number } | undefined} rect
  * @returns {Promise<Electron.NativeImage | undefined>}
  */
-async function captureViaCdp(contents, rect) {
+async function captureViaCdp(contents, rect, captureBeyondViewport = false, scale = undefined) {
   const debug = contents.debugger
   const attached = debug.isAttached()
   try {
     if (!attached) debug.attach('1.3')
-    const params = { format: 'png', fromSurface: false }
+    const params = { format: 'png', fromSurface: captureBeyondViewport, captureBeyondViewport }
     if (rect !== undefined) {
       params.clip = {
         x: rect.x,
         y: rect.y,
         width: rect.width,
         height: rect.height,
-        scale: 1,
+        scale: scale ?? 1,
       }
     }
+    if (rect === undefined && scale !== undefined) params.captureBeyondViewport = true
     const result = await debug.sendCommand('Page.captureScreenshot', params)
     if (typeof result?.data !== 'string' || result.data.length === 0) return undefined
     const image = nativeImage.createFromBuffer(Buffer.from(result.data, 'base64'))
@@ -1382,7 +1384,41 @@ async function captureViaCdp(contents, rect) {
 }
 
 /** Capture one viewport/region as a bounded PNG; callers decide whether refusal is fatal. */
-async function boundedPng(contents, rect) {
+async function pageContentRect(contents) {
+  const debug = contents.debugger
+  const attached = debug.isAttached()
+  try {
+    if (!attached) debug.attach('1.3')
+    const metrics = await debug.sendCommand('Page.getLayoutMetrics')
+    const size = metrics?.cssContentSize ?? metrics?.contentSize
+    if (!size || !Number.isFinite(size.width) || !Number.isFinite(size.height)
+      || size.width < 1 || size.height < 1 || size.width > 100_000 || size.height > 100_000) {
+      throw new Error('page content bounds are unavailable or too large')
+    }
+    return { x: 0, y: 0, width: Math.ceil(size.width), height: Math.ceil(size.height) }
+  } finally {
+    if (!attached && debug.isAttached()) {
+      try { debug.detach() } catch {}
+    }
+  }
+}
+
+async function boundedPng(contents, rect, fullPage = false) {
+  if (fullPage) {
+    const fullRect = rect ?? await pageContentRect(contents)
+    const scale = Math.min(1, MAX_SCREENSHOT_EDGE / Math.max(fullRect.width, fullRect.height))
+    let image = await captureViaCdp(contents, fullRect, true, scale)
+    if (image === undefined || image.isEmpty()) return undefined
+    let size = image.getSize()
+    if (Math.max(size.width, size.height) > MAX_SCREENSHOT_EDGE) {
+      const resizeScale = MAX_SCREENSHOT_EDGE / Math.max(size.width, size.height)
+      image = image.resize({ width: Math.max(1, Math.round(size.width * resizeScale)), height: Math.max(1, Math.round(size.height * resizeScale)) })
+      size = image.getSize()
+    }
+    const png = image.toPNG()
+    if (png.length > MAX_SCREENSHOT_BYTES) return undefined
+    return { data: png.toString('base64'), bytes: png.length, width: size.width, height: size.height }
+  }
   const capture = stayHidden => (rect === undefined
     ? contents.capturePage({ stayHidden })
     : contents.capturePage(rect, { stayHidden }))
@@ -2521,6 +2557,14 @@ async function handleCommand(method, args, signal) {
     await persistProfileStore()
     return { success: true }
   }
+  if (method === 'open_browser_download') {
+    if (typeof args.id !== 'string') throw new Error('download id must be a string')
+    const entry = profileStore.downloads.find(item => item.id === args.id)
+    if (!entry || typeof entry.path !== 'string' || entry.path.length === 0) throw new Error('download file is unavailable')
+    const error = await shell.openPath(entry.path)
+    if (error) throw new Error(error)
+    return { success: true }
+  }
   if (method === 'browser_sites') return listSites()
   if (method === 'set_browser_site') {
     await setSite(args)
@@ -2617,6 +2661,20 @@ async function handleCommand(method, args, signal) {
   if (nativeResult !== undefined) return nativeResult
   signal?.throwIfAborted()
   switch (method) {
+    case 'click_at': {
+      if (![args.x, args.y].every(Number.isFinite) || args.x < 0 || args.y < 0
+        || !['left', 'middle', 'right'].includes(args.button ?? 'left')
+        || !Number.isSafeInteger(args.clickCount ?? 1) || (args.clickCount ?? 1) < 1 || (args.clickCount ?? 1) > 3) {
+        throw new Error('click coordinates or button are invalid')
+      }
+      const button = args.button ?? 'left'
+      const clickCount = args.clickCount ?? 1
+      await contents.debugger.sendCommand('Input.dispatchMouseEvent', { type: 'mouseMoved', x: args.x, y: args.y, button: 'none', buttons: 0 })
+      await contents.debugger.sendCommand('Input.dispatchMouseEvent', { type: 'mousePressed', x: args.x, y: args.y, button, buttons: 1, clickCount })
+      await contents.debugger.sendCommand('Input.dispatchMouseEvent', { type: 'mouseReleased', x: args.x, y: args.y, button, buttons: 0, clickCount })
+      return { success: true, message: `Clicked browser viewport at (${args.x}, ${args.y}).` }
+    }
+
     case 'resize':
       if (![args.width, args.height].every(size => Number.isSafeInteger(size) && size >= 1 && size <= 8192)) throw new Error('viewport dimensions must be integers from 1 to 8192')
       await contents.debugger.sendCommand('Emulation.setDeviceMetricsOverride', { width: args.width, height: args.height, deviceScaleFactor: 1, mobile: false })
@@ -2713,11 +2771,18 @@ async function handleCommand(method, args, signal) {
 
     case 'browser_screenshot': {
       if (Object.hasOwn(args, 'tabId')) throw new Error('browser_screenshot does not accept tabId')
+      if (args.fullPage !== undefined && typeof args.fullPage !== 'boolean') throw new Error('fullPage must be a boolean')
+      const clip = args.clip
+      if (clip !== undefined && (args.fullPage === true || typeof clip !== 'object' || clip === null || Array.isArray(clip)
+        || !['x', 'y', 'width', 'height'].every(key => Number.isSafeInteger(clip[key]))
+        || clip.x < 0 || clip.y < 0 || clip.width < 1 || clip.height < 1 || clip.width > 10_000 || clip.height > 10_000)) {
+        throw new Error('clip must be a non-negative integer rectangle up to 10000 pixels')
+      }
       const url = contents.getURL()
       if (httpOrigin(url) === undefined) {
         throw new Error('browser screenshot requires the selected tab to show an HTTP(S) page')
       }
-      const screenshot = await boundedPng(contents)
+      const screenshot = await boundedPng(contents, clip, args.fullPage === true)
       if (screenshot === undefined) {
         throw new Error(`browser screenshot is empty or exceeds the ${MAX_SCREENSHOT_BYTES}-byte PNG limit`)
       }
@@ -2728,6 +2793,8 @@ async function handleCommand(method, args, signal) {
         mediaType: 'image/png',
         ...screenshot,
         tabId: tab.id,
+        mode: args.fullPage === true ? 'full-page' : clip === undefined ? 'viewport' : 'clip',
+        ...clip === undefined ? {} : { clip },
         url,
         title: contents.getTitle(),
         capturedAt: new Date().toISOString(),
@@ -2838,6 +2905,15 @@ async function handleCommand(method, args, signal) {
       }
       return await pageControl(tab, method, args)
 
+    case 'execute_javascript_page': {
+      if (config.experimentalScriptExecution !== true) throw new Error('experimental browser JavaScript is disabled by the host')
+      if (typeof args.script !== 'string' || args.script.trim().length === 0) throw new Error('script must be a non-empty string')
+      const value = await contents.executeJavaScript(`(async () => { ${args.script}\n })()`, true)
+      let result
+      try { result = value === undefined ? 'undefined' : JSON.stringify(value) } catch { result = String(value) }
+      return { success: true, message: boundedDiagnostic(result ?? 'undefined') }
+    }
+
     case 'upload_file':
       return await uploadFile(tab, args)
 
@@ -2879,15 +2955,17 @@ app.whenReady().then(async () => {
       .then(approved => { callback({ cancel: !approved }) }, () => { callback({ cancel: true }) })
   })
   browserSession.on('will-download', beginDownload)
-  browserSession.setPermissionCheckHandler((contents, permission, requestingOrigin) =>
-    contents !== null && permission === 'media'
-      ? mediaPermissionAllowed(contents, requestingOrigin) === true
-      : false)
+  browserSession.setPermissionCheckHandler((contents, permission, requestingOrigin) => {
+    if (contents === null) return false
+    if (permission === 'media') return mediaPermissionAllowed(contents, requestingOrigin) === true
+    return permission === 'geolocation' || permission === 'notifications'
+  })
   browserSession.setPermissionRequestHandler((contents, permission, callback, details) => {
     const origin = details.requestingUrl ?? contents.getURL()
-    const allowed = permission === 'media' ? mediaPermissionAllowed(contents, origin) : false
+    if (!['media', 'geolocation', 'notifications'].includes(permission)) { callback(false); return }
+    const allowed = permission === 'media' ? mediaPermissionAllowed(contents, origin) : undefined
     if (allowed !== undefined) { callback(allowed); return }
-    void requestPermission(contents, 'media', canonicalOrigin(origin)).then(callback, () => { callback(false) })
+    void requestPermission(contents, permission, canonicalOrigin(origin)).then(callback, () => { callback(false) })
   })
   browserSession.setDevicePermissionHandler(() => false)
   browserSession.setDisplayMediaRequestHandler((_request, callback) => { callback({}) })

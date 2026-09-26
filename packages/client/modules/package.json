@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Load the browser plugins declared by the active profile and serve their built code."
+    },
     "client": {
       "platform": "web",
       "inject": [],

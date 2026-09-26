@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Read messages, compose prompts, and inspect conversation details."
+    },
     "client": {
       "inject": [
         "@hydra/harness-client-connection",

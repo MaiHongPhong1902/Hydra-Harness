@@ -67,6 +67,10 @@ export class ThemePresenter {
       },
     }
     window.hydraDesktop?.browser.setTheme?.(browserTheme)
+    window.hydraDesktop?.chrome?.setTheme?.({
+      color: browserTheme.colors.shell,
+      symbolColor: browserTheme.colors.text,
+    })
     this.themeColorMeta.content = getComputedStyle(body).backgroundColor
     if (!this.themeColorMeta.isConnected) document.head.append(this.themeColorMeta)
   }
@@ -79,6 +83,7 @@ export class ThemePresenter {
     for (const name of this.appliedTokens) body.style.removeProperty(name)
     this.appliedTokens = []
     window.hydraDesktop?.browser.setTheme?.(null)
+    window.hydraDesktop?.chrome?.setTheme?.(null)
     this.themeColorMeta.remove()
   }
 }

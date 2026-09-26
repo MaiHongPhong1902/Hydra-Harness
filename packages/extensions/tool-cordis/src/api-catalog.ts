@@ -524,6 +524,13 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         throws: ['{AuthorizationError} code `NO_FLOW` when nothing claims the key.'],
       },
       {
+        signature: 'async getUsage(key: CredentialKey, accountId: AuthorizationAccountId, signal?: AbortSignal): Promise<AuthorizationUsage | undefined>',
+        description: 'Fetch provider usage for a connected account; credentials remain with its flow.',
+        parameters: [{ name: 'key', description: 'owning authorization flow.' }, { name: 'accountId', description: 'connected account identity.' }, { name: 'signal', description: 'cancellation for provider work.' }],
+        returns: 'usage, or undefined when the flow does not support usage reports.',
+        throws: ['when the flow or account is absent, or the provider request fails.'],
+      },
+      {
         signature: 'async removeAccount(key: CredentialKey, accountId: AuthorizationAccountId): Promise<void>',
         description: 'Remove one account through its owning flow.',
         parameters: [{ name: 'key', description: 'the credential flow that owns the account.' }, { name: 'accountId', description: 'the opaque account identity returned by `listAccounts`.' }],
@@ -566,9 +573,9 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'live page metadata, or `undefined` when the owner has no open browser.',
       },
       {
-        signature: 'async takeScreenshot(owner: Agent, execution: BrowserExecutionContext = {}): Promise<BrowserScreenshot>',
+        signature: 'async takeScreenshot( owner: Agent, optionsOrExecution: BrowserScreenshotOptions | BrowserExecutionContext = {}, execution: BrowserExecutionContext = {}, ): Promise<BrowserScreenshot>',
         description: 'Capture the selected controlled page\'s visible viewport as a bounded PNG. The base64 is transient: callers must consume it before persisting output.',
-        parameters: [{ name: 'owner', description: 'agent whose selected controlled tab is captured.' }, { name: 'execution', description: 'tool-call identity and cancellation for the browsing approval.' }],
+        parameters: [{ name: 'owner', description: 'agent whose selected controlled tab is captured.' }, { name: 'optionsOrExecution', description: 'screenshot options, or the legacy execution context for the two-argument form.' }, { name: 'execution', description: 'tool-call identity and cancellation when screenshot options are supplied.' }],
         returns: 'the bounded screenshot payload.',
       },
       {
@@ -3447,7 +3454,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'AuthorizationAccounts',
-    declaration: 'export interface AuthorizationAccounts {\n    list(): Promise<readonly AuthorizationAccount[]>;\n    remove(id: AuthorizationAccountId): Promise<void>;\n}',
+    declaration: 'export interface AuthorizationAccounts {\n    list(): Promise<readonly AuthorizationAccount[]>;\n    remove(id: AuthorizationAccountId): Promise<void>;\n    usage?(id: AuthorizationAccountId, signal?: AbortSignal): Promise<AuthorizationUsage | undefined>;\n}',
   },
   {
     name: 'AuthorizationEntry',
@@ -3498,6 +3505,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type AuthorizationStatus = \'authorized\' | \'cancelled\';',
   },
   {
+    name: 'AuthorizationUsage',
+    declaration: 'export interface AuthorizationUsage {\n    planType?: string;\n    limits: AuthorizationUsageWindow[];\n    bankedResetCount?: number;\n    fetchedAt: number;\n}',
+  },
+  {
+    name: 'AuthorizationUsageWindow',
+    declaration: 'export interface AuthorizationUsageWindow {\n    name: string;\n    windowMinutes?: number;\n    usedPercent: number;\n    resetsAt?: number;\n}',
+  },
+  {
     name: 'BackendRegistry',
     declaration: 'export class BackendRegistry {\n    register(name: string, backend: StorageBackend): () => void;\n    get(name: string): StorageBackend;\n    names(): string[];\n}',
   },
@@ -3519,7 +3534,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'BrowserAction',
-    declaration: 'export type BrowserAction = (({\n    method: \'get_browser_state\';\n    snapshot?: BrowserSnapshotOptions;\n} | {\n    method: \'navigate\';\n    url: string;\n} | {\n    method: \'back\';\n} | {\n    method: \'forward\';\n} | {\n    method: \'press\';\n    key: string;\n} | {\n    method: \'click_element\';\n    index?: number;\n    name?: string;\n    target?: string;\n} | {\n    method: \'hover_element\';\n    index?: number;\n    name?: string;\n    target?: string;\n} | {\n    method: \'drag_element\';\n    startIndex: number;\n    endIndex: number;\n} | {\n    method: \'drop\';\n    index: number;\n    filePaths: string[];\n    data: Record<string, string>;\n} | {\n    method: \'resize\';\n    width: number;\n    height: number;\n} | {\n    method: \'handle_dialog\';\n    accept: boolean;\n    promptText?: string;\n} | {\n    method: \'console_messages\';\n    level: \'error\' | \'warning\' | \'info\' | \'debug\';\n} | {\n    method: \'network_requests\';\n    includeStatic: boolean;\n    filter?: string;\n} | {\n    method: \'network_request\';\n    index: number;\n    part?: \'request-headers\' | \'request-body\' | \'response-headers\' | \'response-body\';\n} | {\n    method: \'upload_file\';\n    index: number;\n    filePath: string;\n} | {\n    method: \'input_text\';\n    index?: number;\n    name?: string;\n    target?: string;\n    text: string;\n} | {\n    method: \'select_option\';\n    index?: number;\n    name?: string;\n    target?: string;\n    text: string;\n} | {\n    method: \'select_text\';\n    index?: number;\n    name?: string;\n    target?: string;\n    startX?: number; /* …truncated — full shape in source */',
+    declaration: 'export type BrowserAction = (({\n    method: \'get_browser_state\';\n    snapshot?: BrowserSnapshotOptions;\n} | {\n    method: \'navigate\';\n    url: string;\n} | {\n    method: \'back\';\n} | {\n    method: \'forward\';\n} | {\n    method: \'press\';\n    key: string;\n} | {\n    method: \'click_element\';\n    index?: number;\n    name?: string;\n    target?: string;\n} | {\n    method: \'click_at\';\n    x: number;\n    y: number;\n    button?: \'left\' | \'middle\' | \'right\';\n    clickCount?: number;\n} | {\n    method: \'hover_element\';\n    index?: number;\n    name?: string;\n    target?: string;\n} | {\n    method: \'drag_element\';\n    startIndex: number;\n    endIndex: number;\n} | {\n    method: \'drop\';\n    index: number;\n    filePaths: string[];\n    data: Record<string, string>;\n} | {\n    method: \'resize\';\n    width: number;\n    height: number;\n} | {\n    method: \'handle_dialog\';\n    accept: boolean;\n    promptText?: string;\n} | {\n    method: \'console_messages\';\n    level: \'error\' | \'warning\' | \'info\' | \'debug\';\n} | {\n    method: \'network_requests\';\n    includeStatic: boolean;\n    filter?: string;\n} | {\n    method: \'network_request\';\n    index: number;\n    part?: \'request-headers\' | \'request-body\' | \'response-headers\' | \'response-body\';\n} | {\n    method: \'upload_file\';\n    index: number;\n    filePath: string;\n} | {\n    method: \'input_text\';\n    index?: number;\n    name?: string;\n    target?: string;\n    text: string;\n} | {\n    method: \'select_option\';\n    index?: number;\n    name?: string;\n    target?: string;\n     /* …truncated — full shape in source */',
   },
   {
     name: 'BrowserCdpCommandResult',
@@ -3559,7 +3574,15 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'BrowserScreenshot',
-    declaration: 'export interface BrowserScreenshot {\n    mediaType: \'image/png\';\n    data: string;\n    bytes: number;\n    width: number;\n    height: number;\n    tabId: number;\n    url: string;\n    title: string;\n    capturedAt: string;\n}',
+    declaration: 'export interface BrowserScreenshot {\n    mediaType: \'image/png\';\n    data: string;\n    bytes: number;\n    width: number;\n    height: number;\n    tabId: number;\n    mode: \'viewport\' | \'full-page\' | \'clip\';\n    clip?: BrowserScreenshotClip;\n    url: string;\n    title: string;\n    capturedAt: string;\n}',
+  },
+  {
+    name: 'BrowserScreenshotClip',
+    declaration: 'export interface BrowserScreenshotClip {\n    x: number;\n    y: number;\n    width: number;\n    height: number;\n}',
+  },
+  {
+    name: 'BrowserScreenshotOptions',
+    declaration: 'export interface BrowserScreenshotOptions {\n    fullPage?: boolean;\n    clip?: BrowserScreenshotClip;\n}',
   },
   {
     name: 'BrowserSnapshotOptions',
@@ -4079,7 +4102,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ImportedPluginEntry',
-    declaration: 'export interface ImportedPluginEntry {\n    readonly identity: ImportedPluginIdentity;\n    readonly name: string;\n    readonly version: string;\n    readonly source: ImportedPluginSource;\n    readonly pluginRoot: string;\n    readonly dataPath: string;\n    readonly enabled: boolean;\n    readonly initialEnabled?: boolean;\n    readonly lifecycle: ImportedPluginLifecycle;\n    readonly hookTrustState: HookTrustState;\n    readonly hookDefinitionDigest?: string;\n    readonly skills: readonly string[];\n    readonly mcpServers: readonly ImportedMcpServerSnapshot[];\n    readonly hooks: readonly string[];\n    readonly agentMetadata?: ImportedPluginAgentMetadata;\n    readonly appMappings?: readonly string[];\n    readonly installationStatus: \'installed\';\n}',
+    declaration: 'export interface ImportedPluginEntry {\n    readonly identity: ImportedPluginIdentity;\n    readonly name: string;\n    readonly description?: string;\n    readonly application?: string;\n    readonly version: string;\n    readonly source: ImportedPluginSource;\n    readonly pluginRoot: string;\n    readonly dataPath: string;\n    readonly enabled: boolean;\n    readonly initialEnabled?: boolean;\n    readonly lifecycle: ImportedPluginLifecycle;\n    readonly hookTrustState: HookTrustState;\n    readonly hookDefinitionDigest?: string;\n    readonly skills: readonly string[];\n    readonly mcpServers: readonly ImportedMcpServerSnapshot[];\n    readonly hooks: readonly string[];\n    readonly agentMetadata?: ImportedPluginAgentMetadata;\n    readonly appMappings?: readonly string[];\n    readonly installationStatus: \'installed\';\n}',
   },
   {
     name: 'ImportedPluginIdentity',

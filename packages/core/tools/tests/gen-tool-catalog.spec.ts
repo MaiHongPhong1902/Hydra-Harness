@@ -27,7 +27,7 @@ describe('gen-tool-catalog collectToolCatalog', () => {
     const names = catalog.flatMap(entry => entry.schemas.map(s => s.name)).sort()
     expect(names).toEqual([
       'ask_user_question', 'bash', 'bash',
-      'browser_back', 'browser_click', 'browser_close', 'browser_close_tab',
+      'browser_back', 'browser_click', 'browser_click_at', 'browser_close', 'browser_close_tab',
       'browser_console_messages', 'browser_decide', 'browser_drag', 'browser_drop', 'browser_file_upload',
       'browser_fill', 'browser_fill_form', 'browser_find', 'browser_forward',
       'browser_handle_dialog', 'browser_history_search', 'browser_hover',

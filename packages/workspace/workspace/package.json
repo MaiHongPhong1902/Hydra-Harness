@@ -1,6 +1,11 @@
 {
   "name": "@hydra/harness-workspace",
   "description": "Workspace entity registry (ctx.workspaceRegistry): durable workspace records with validated session attachment over the domain data form for the Hydra harness",
+  "hydra": {
+    "plugin": {
+      "application": "Organize sessions under saved workspace folders and validate session attachment to those workspaces."
+    }
+  },
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"

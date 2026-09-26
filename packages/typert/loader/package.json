@@ -1,6 +1,11 @@
 {
   "name": "@hydra/harness-typert-loader",
   "description": "Loader integration for generated Typert package contributions",
+  "hydra": {
+    "plugin": {
+      "application": "Load the runtime API definitions published by configured plugin packages."
+    }
+  },
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"

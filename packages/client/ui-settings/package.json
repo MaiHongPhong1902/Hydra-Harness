@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Provide the shared settings sections used by preference and provider plugins."
+    },
     "client": {
       "inject": [
         "@hydra/harness-client-connection",

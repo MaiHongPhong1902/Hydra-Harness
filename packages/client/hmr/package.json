@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Refresh rebuilt interface plugins during development without restarting the entire app."
+    },
     "client": {
       "inject": [],
       "platform": "web",

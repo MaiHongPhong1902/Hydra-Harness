@@ -42,7 +42,7 @@ This table connects model-visible tool names to the plugin package and service s
 | `@hydra/harness-tool-todo` | `todo_write` | `ctx.tools`, `owning Agent session` | `tool/call`, `todo/write`, `tool/result` | - | todo_write is session-owned state; UIs render the latest todo/write event as a checklist. `allowParallelInProgress` is required with no default, so the catalog states its choice: `true`, whose description invites several `in_progress` items. A deployment choosing `false` receives the same tool with a description asking for exactly one active task. |
 | `@hydra/harness-tool-workflow` | `workflow` | `ctx.tools`, `ctx.workflowEngine`, `ctx.systemPrompt`, `a calling Agent (exec.agent parents the script children)` | `tool/call`, `tool/result` | - | - |
 | `@hydra/harness-tool-web` | `web_fetch`, `web_search` | `ctx.tools`, `ctx.web`, `ctx.systemPrompt` | `tool/call`, `tool/result` | - | web_search and web_fetch keep provider selection behind ctx.web so model-visible schemas stay stable across backend swaps. |
-| `@hydra/harness-tool-browser` | `browser_back`, `browser_click`, `browser_close`, `browser_close_tab`, `browser_console_messages`, `browser_drag`, `browser_drop`, `browser_file_upload`, `browser_fill`, `browser_fill_form`, `browser_find`, `browser_forward`, `browser_handle_dialog`, `browser_history_search`, `browser_hover`, `browser_navigate`, `browser_navigate_back`, `browser_network_request`, `browser_network_requests`, `browser_open_tab`, `browser_page_agent_run`, `browser_page_agent_status`, `browser_page_agent_stop`, `browser_press`, `browser_press_key`, `browser_resize`, `browser_screenshot`, `browser_scroll`, `browser_scroll_horizontally`, `browser_select_option`, `browser_select_text`, `browser_snapshot`, `browser_state`, `browser_switch_tab`, `browser_tabs`, `browser_take_screenshot`, `browser_type`, `browser_upload_file`, `browser_wait`, `browser_wait_for` | `ctx.tools`, `ctx.browsers`, `ctx.systemPrompt`, `a calling Agent (the window is owned per agent)` | `tool/call`, `tool/result` | - | The embedded browser window opens on the first browser_* call of an agent and closes with it. Without the optional electron package the tools still register and every call fails with BROWSER_UNAVAILABLE. |
+| `@hydra/harness-tool-browser` | `browser_back`, `browser_click`, `browser_click_at`, `browser_close`, `browser_close_tab`, `browser_console_messages`, `browser_drag`, `browser_drop`, `browser_file_upload`, `browser_fill`, `browser_fill_form`, `browser_find`, `browser_forward`, `browser_handle_dialog`, `browser_history_search`, `browser_hover`, `browser_navigate`, `browser_navigate_back`, `browser_network_request`, `browser_network_requests`, `browser_open_tab`, `browser_page_agent_run`, `browser_page_agent_status`, `browser_page_agent_stop`, `browser_press`, `browser_press_key`, `browser_resize`, `browser_screenshot`, `browser_scroll`, `browser_scroll_horizontally`, `browser_select_option`, `browser_select_text`, `browser_snapshot`, `browser_state`, `browser_switch_tab`, `browser_tabs`, `browser_take_screenshot`, `browser_type`, `browser_upload_file`, `browser_wait`, `browser_wait_for` | `ctx.tools`, `ctx.browsers`, `ctx.systemPrompt`, `a calling Agent (the window is owned per agent)` | `tool/call`, `tool/result` | - | The embedded browser window opens on the first browser_* call of an agent and closes with it. Without the optional electron package the tools still register and every call fails with BROWSER_UNAVAILABLE. |
 | `@hydra/harness-page-memory` | `page_memory_get`, `page_memory_upsert` | `ctx.tools`, `ctx.browsers`, `ctx.systemPrompt`, `a calling Agent in the configured workspace` | `tool/call`, `tool/result`, `user/message`, `private page-memory SQLite database` | - | - |
 
 <a id="hydraharness-browser-decisions"></a>
@@ -2382,6 +2382,46 @@ Click a control from the latest snapshot by index or by visible name. Indexes ar
 
 Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
 
+### `browser_click_at`
+
+Click CSS-pixel coordinates in the selected browser viewport using a screenshot as the visual reference.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "x": {
+      "type": "number"
+    },
+    "y": {
+      "type": "number"
+    },
+    "button": {
+      "type": "string",
+      "enum": [
+        "left",
+        "middle",
+        "right"
+      ]
+    },
+    "click_count": {
+      "type": "integer",
+      "description": "1 through 3; defaults to 1."
+    },
+    "tab_id": {
+      "type": "integer",
+      "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+    }
+  },
+  "required": [
+    "x",
+    "y"
+  ]
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-browser/src/index.ts)
+
 ### `browser_close`
 
 Close this agent's controlled browser and release its tabs. A later browser call opens a fresh controller.
@@ -3046,7 +3086,7 @@ Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-
 
 ### `browser_screenshot`
 
-Capture the selected controlled HTTP(S) viewport. A filename saves PNG evidence without image input; otherwise imageResponses selects image delivery. Switch tabs before capture.
+Capture the selected controlled HTTP(S) page. Use full_page for the complete document or clip for a CSS-pixel rectangle.
 
 ```json
 {
@@ -3055,6 +3095,34 @@ Capture the selected controlled HTTP(S) viewport. A filename saves PNG evidence 
     "filename": {
       "type": "string",
       "description": "Plain filename for a private output artifact; returns its absolute path instead of the data."
+    },
+    "full_page": {
+      "type": "boolean",
+      "description": "Capture the complete document instead of the visible viewport."
+    },
+    "clip": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "type": "integer"
+        },
+        "y": {
+          "type": "integer"
+        },
+        "width": {
+          "type": "integer"
+        },
+        "height": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "width",
+        "height"
+      ]
     }
   }
 }
@@ -3324,7 +3392,7 @@ Source: [`packages/browser/tool-browser/src/index.ts`](../packages/browser/tool-
 
 ### `browser_take_screenshot`
 
-Capture the selected controlled HTTP(S) viewport. A filename saves PNG evidence without image input; otherwise imageResponses selects image delivery. Switch tabs before capture.
+Capture the selected controlled HTTP(S) page. Use full_page for the complete document or clip for a CSS-pixel rectangle.
 
 ```json
 {
@@ -3333,6 +3401,34 @@ Capture the selected controlled HTTP(S) viewport. A filename saves PNG evidence 
     "filename": {
       "type": "string",
       "description": "Plain filename for a private output artifact; returns its absolute path instead of the data."
+    },
+    "full_page": {
+      "type": "boolean",
+      "description": "Capture the complete document instead of the visible viewport."
+    },
+    "clip": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "type": "integer"
+        },
+        "y": {
+          "type": "integer"
+        },
+        "width": {
+          "type": "integer"
+        },
+        "height": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "width",
+        "height"
+      ]
     }
   }
 }

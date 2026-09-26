@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Run the interface half of dynamic plugins created by the agent."
+    },
     "client": {
       "inject": [
         "@hydra/harness-client-runtime",

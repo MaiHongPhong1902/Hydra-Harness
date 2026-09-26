@@ -1,6 +1,11 @@
 {
   "name": "@hydra/harness-browser-decisions",
   "description": "Optional model-facing browser decision tool backed by Jev",
+  "hydra": {
+    "plugin": {
+      "application": "Ask Jev for optional browser action guidance when the browser_decide tool is enabled and configured."
+    }
+  },
   "version": "0.1.1-rc.1",
   "publishConfig": { "access": "public" },
   "repository": {

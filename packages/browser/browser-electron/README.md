@@ -138,14 +138,15 @@ No direct invalidation; the named consumer owns request-prefix changes.
 
 ## Known Limitations and Deferred Work
 
-- Playwright actions use the controlled tab debugger; the preload pointer fallback serves explicit PageAgent actions. Alert and confirm dialogs are handled through CDP; Electron does not implement JavaScript prompt dialogs.
+- Playwright actions use the controlled tab debugger; the preload pointer fallback serves explicit PageAgent actions. Alert, confirm, and prompt dialogs are handled through CDP.
 - Console and network diagnostics retain at most 1,000 CDP events or 4 MiB per tab, reset on navigation. Individual records are capped at 64 KiB; response bodies can expire from Chromium storage. Raw CDP commands are detached at navigation so their enabled domains do not cross an approved origin.
 
 An ask-policy agent browser action or download requires an open owning turn; native user navigation works without a chat owner. Media requests use the connected chat's question composer. Annotation-screenshot and elevated-risk settings prompts use native dialogs.
 
-- No screenshot-based page control, full-page capture, crop, or iframe traversal. The visual read captures only the selected tab's viewport and supplies no coordinates; actions use the numbered accessibility refs.
-- `execute_javascript` is experimental and host-gated by `experimentalScriptExecution`; it runs in PageAgent's isolated document world, cannot access page-world JavaScript globals, and can mutate the current page.
-- File upload supports an observed HTML file input, including a hidden chooser input; a proxy button without a real file input is not addressable.
+- Screenshot control supports viewport coordinates, full-page capture, and CSS-pixel clips; iframe selectors are supported for explicit named or ref actions, while visual iframe discovery remains unavailable.
+- `execute_javascript` is experimental and host-gated by `experimentalScriptExecution`; it runs in PageAgent's isolated document world. `browser_execute_page_javascript` is also experimental and uses Electron's page world when page-defined globals are required.
+- File upload supports an observed HTML file input, including a hidden chooser input, and drag/drop targets through `browser_drop`; a proxy button without either surface remains unsupported.
+- Website media, geolocation, and notification requests can be approved through the owning chat; device permissions and display capture remain fail-closed. Download history can open completed files, but active-download cancel/retry controls are still deferred.
 - Sessions are process-local: a harness restart loses the window, though the profile keeps the login.
 - One agent owns one Chromium profile and window. Parallelism is across that window's isolated tabs; use separate agents when work requires independent browser profiles or windows.
 

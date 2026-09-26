@@ -1,6 +1,11 @@
 {
   "name": "@hydra/harness-tool-call-timeout-policy",
   "description": "Tool-call timeout policy: a tools/execute wrapper that arms a per-tool deadline on exec.signal and returns TOOL_TIMEOUT when it wins",
+  "hydra": {
+    "plugin": {
+      "application": "Stop tool calls when their configured execution deadline is reached."
+    }
+  },
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"

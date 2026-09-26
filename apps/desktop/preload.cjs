@@ -4,6 +4,10 @@ const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('hydraDesktop', {
   openExternal: url => ipcRenderer.invoke('hydra-desktop:open-external', { url }),
+  chrome: {
+    dispatch: action => ipcRenderer.invoke('hydra-desktop:chrome-action', action),
+    setTheme: theme => { ipcRenderer.send('hydra-desktop:chrome-theme', theme) },
+  },
   browser: {
     setBounds: bounds => { ipcRenderer.send('hydra-desktop:browser-bounds', bounds) },
     setTheme: theme => { ipcRenderer.send('hydra-desktop:browser-theme', theme) },
@@ -15,6 +19,7 @@ contextBridge.exposeInMainWorld('hydraDesktop', {
     removeHistory: id => ipcRenderer.invoke('hydra-desktop:browser-remove-history', { id }),
     downloads: () => ipcRenderer.invoke('hydra-desktop:browser-downloads'),
     removeDownload: id => ipcRenderer.invoke('hydra-desktop:browser-remove-download', { id }),
+    openDownload: id => ipcRenderer.invoke('hydra-desktop:browser-open-download', { id }),
     sites: () => ipcRenderer.invoke('hydra-desktop:browser-sites'),
     setSite: value => ipcRenderer.invoke('hydra-desktop:browser-set-site', value),
     removeSite: origin => ipcRenderer.invoke('hydra-desktop:browser-remove-site', { origin }),

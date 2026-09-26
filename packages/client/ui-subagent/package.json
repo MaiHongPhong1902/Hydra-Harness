@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Navigate delegated conversations, continue child tasks, and reference subagents."
+    },
     "client": {
       "inject": [
         "@hydra/harness-client-locale",

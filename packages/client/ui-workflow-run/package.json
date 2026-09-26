@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Inspect workflow runs and the child tasks they execute from the conversation."
+    },
     "client": {
       "inject": [
         "@hydra/harness-client-locale",

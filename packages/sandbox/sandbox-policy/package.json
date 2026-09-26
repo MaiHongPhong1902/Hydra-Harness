@@ -1,6 +1,11 @@
 {
   "name": "@hydra/harness-sandbox-policy",
   "description": "Per-call sandbox policy resolver and current model context: deployment fallbacks plus each session's mode and workspace root, shared by every enforcing capability family",
+  "hydra": {
+    "plugin": {
+      "application": "Resolve the current session's sandbox mode and allowed workspace for each protected operation."
+    }
+  },
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"

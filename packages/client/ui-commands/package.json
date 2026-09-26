@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Find and invoke available slash commands from conversation input."
+    },
     "client": {
       "inject": [
         "@hydra/harness-api-remotes",

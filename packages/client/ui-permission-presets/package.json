@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Set default permissions for new sessions or change the current session's permission preset."
+    },
     "client": {
       "inject": [
         "@hydra/harness-client-connection",

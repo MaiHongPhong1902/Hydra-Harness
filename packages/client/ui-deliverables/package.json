@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Open files produced by an agent from the end of a turn or a final-response link."
+    },
     "client": {
       "inject": [
         "@hydra/harness-client-connection",

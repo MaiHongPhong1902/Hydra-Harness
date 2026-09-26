@@ -19,6 +19,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Configure the Jev decision provider and its credential from Models settings."
+    },
     "client": {
       "inject": [
         "@hydra/harness-client-ui-settings-models"

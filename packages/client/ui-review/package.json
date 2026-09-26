@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Inspect agent-made file changes and choose which changes to keep or undo."
+    },
     "client": {
       "inject": [
         "@hydra/harness-api-remotes",

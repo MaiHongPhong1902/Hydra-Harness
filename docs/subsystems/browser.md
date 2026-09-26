@@ -116,6 +116,7 @@ type BrowserAction =
     | { method: 'forward' }
     | { method: 'press'; key: string }
     | { method: 'click_element'; index?: number; name?: string; target?: string }
+    | { method: 'click_at'; x: number; y: number; button?: 'left' | 'middle' | 'right'; clickCount?: number }
     | { method: 'hover_element'; index?: number; name?: string; target?: string }
     | { method: 'drag_element'; startIndex: number; endIndex: number }
     | { method: 'drop'; index: number; filePaths: string[]; data: Record<string, string> }
@@ -135,6 +136,7 @@ type BrowserAction =
     | { method: 'wait'; seconds: number }
     | { method: 'wait_for'; seconds: number; text?: string; textGone?: string }
     | { method: 'execute_javascript'; script: string }
+    | { method: 'execute_javascript_page'; script: string }
     | { method: 'page_agent_run'; task: string }
     | { method: 'page_agent_status' }
     | { method: 'page_agent_stop' }
@@ -255,10 +257,11 @@ async currentPage( owner: Agent, execution: BrowserExecutionContext = {}, tabId?
  * Capture the selected controlled page's visible viewport as a bounded PNG.
  * The base64 is transient: callers must consume it before persisting output.
  * @param owner - agent whose selected controlled tab is captured.
- * @param execution - tool-call identity and cancellation for the browsing approval.
+ * @param optionsOrExecution - screenshot options, or the legacy execution context for the two-argument form.
+ * @param execution - tool-call identity and cancellation when screenshot options are supplied.
  * @returns the bounded screenshot payload.
  */
-async takeScreenshot(owner: Agent, execution: BrowserExecutionContext = {}): Promise<BrowserScreenshot>
+async takeScreenshot( owner: Agent, optionsOrExecution: BrowserScreenshotOptions | BrowserExecutionContext = {}, execution: BrowserExecutionContext = {}, ): Promise<BrowserScreenshot>
 
 /**
  * Search only the bounded app-owned history after applying the model-access policy.

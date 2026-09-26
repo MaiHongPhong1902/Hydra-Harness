@@ -39,6 +39,9 @@
   ],
   "license": "MIT",
   "hydra": {
+    "plugin": {
+      "application": "Run a single task from the command line and exit after the final answer."
+    },
     "bundle": {
       "patch": "./cordis.patch.yml"
     }

@@ -1,6 +1,11 @@
 {
   "name": "@hydra/harness-tool-pwsh-persistent",
   "description": "Model-facing owner-scoped persistent PowerShell tool backed by the Harness PTY service",
+  "hydra": {
+    "plugin": {
+      "application": "Let the agent reuse a persistent PowerShell terminal across commands."
+    }
+  },
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"

@@ -1,6 +1,11 @@
 {
   "name": "@hydra/harness-spill-policy",
   "description": "Tool-result spill policy for the Hydra harness — replaces oversized plain-text tool results with a retained preview plus a spill-file path (no service API)",
+  "hydra": {
+    "plugin": {
+      "application": "Replace oversized tool output with a preview and a path to the retained full content."
+    }
+  },
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"

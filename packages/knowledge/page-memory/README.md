@@ -17,7 +17,7 @@ Mount the plugin in a Hydra profile or patch with an explicit workspace and runt
 
 `workspaceDir`, `role`, and `locale` are required. The workspace path must be absolute and is canonicalized before use; only sessions with the same canonical working directory can read or write this namespace. Role and locale are configured labels and are never inferred from page content.
 
-When a Settings provider is mounted, the plugin registers the `page-memory` namespace for Settings → Plugins. Role, locale, storage directory, and retention limits can be staged there; the section declares `restart` applies, so saved changes take effect on the next restart.
+When a Settings provider is mounted, the plugin registers the `page-memory` namespace for Settings → Plugins. Role, locale, storage directory, and retention and verification limits, including durable history, can be staged there; the section declares `restart` applies, so saved changes take effect on the next restart.
 
 `storageDir` is an optional absolute parent directory. It defaults to the current user's Hydra home plus `page-memory`; the plugin creates one hashed namespace directory containing `page-memory.sqlite`, with private directory and database-file permissions. Namespaces include the canonical workspace, role, and locale.
 
@@ -31,7 +31,9 @@ When a Settings provider is mounted, the plugin registers the `page-memory` name
 | `maxContextBytes` | `8192` | Complete model-facing memory message limit, including its prefix and metadata. |
 | `maxObservations` | `32` | Maximum targeted source snapshots retained during one turn. |
 | `maxHistory` | `256` | Maximum retained verification observations for replay auditing. |
-| `verificationTimeoutMs` | `5000` | Total budget for one set of live anchor and locator checks. |
+| `verificationTimeoutMs` | `5000` | Total budget for one set of live anchor and locator checks; at most `2147483647` ms. |
+
+All numeric limits are positive safe integers. `verificationTimeoutMs` also stays within Node's `AbortSignal.timeout` limit of `2147483647` ms.
 
 ## Behavior
 
@@ -45,7 +47,7 @@ Each verified save and live recall appends a bounded SQLite observation with its
 
 Optional `accountHint` adds account-type guidance, for example `"Use a staff account with order-management access."` It is saved and recalled with the workflow, does not partition storage, and supplies neither a login identity nor authorization.
 
-The plugin recalls the selected workflow automatically at `agent/pre-step`. It rechecks each saved anchor with a targeted Browser state read and requires the page URL, tab, settled state, and expected text to match. A text mismatch on a settled page marks the workflow `stale`; timeouts and Browser failures return `unavailable` without changing stored status. Changed guidance blocks other Browser actions until the next logged page-memory context is visible; navigation, tab lifecycle, and observation tools remain available for recovery. Identical recall text is omitted while it remains on the active session context; compaction can trigger reinjection.
+The plugin recalls the selected workflow automatically at `agent/pre-step`. It rechecks every saved anchor and CSS locator with targeted Browser state reads and requires the page URL, tab, settled state, unique locator resolution, and expected text to match. Recall messages expose only the URL origin and path; exact query and fragment text stays in the private page key. Anchor checks remove zero-width characters and soft hyphens, collapse whitespace, and reject matches adjacent to letters, numbers, combining marks, connector punctuation, or join controls; the same matching rule applies to source-page snapshots used by workflows with `sourceUrl`. A text mismatch on a settled page marks the workflow `stale`; timeouts and Browser failures return `unavailable` without changing stored status. Changed guidance blocks other Browser actions until the next logged page-memory context is visible; navigation, tab lifecycle, and observation tools remain available for recovery. Identical recall text is omitted while it remains on the active session context; compaction can trigger reinjection.
 
 When Browsing requires approval, background recall opens no approval dialog. It can reuse an explicitly approved `page_memory_get` result still visible in the current turn; otherwise it reports unavailable. Browser actions still verify current guidance through the existing Browser approval flow.
 

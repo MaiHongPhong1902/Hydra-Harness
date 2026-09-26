@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Show command and reference suggestions when typing / or @ in the composer."
+    },
     "client": {
       "inject": [
         "@hydra/harness-client-runtime",

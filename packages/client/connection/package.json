@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Send interface actions to the Host and receive live updates, including after a reconnect."
+    },
     "client": {
       "inject": [],
       "platform": "web",

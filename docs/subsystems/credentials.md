@@ -100,6 +100,16 @@ describe(key: CredentialKey): AuthorizationEntry | undefined
 async listAccounts(key: CredentialKey): Promise<readonly AuthorizationAccount[]>
 
 /**
+ * Fetch provider usage for a connected account; credentials remain with its flow.
+ * @param key - owning authorization flow.
+ * @param accountId - connected account identity.
+ * @param signal - cancellation for provider work.
+ * @returns usage, or undefined when the flow does not support usage reports.
+ * @throws when the flow or account is absent, or the provider request fails.
+ */
+async getUsage(key: CredentialKey, accountId: AuthorizationAccountId, signal?: AbortSignal): Promise<AuthorizationUsage | undefined>
+
+/**
  * Remove one account through its owning flow.
  * @param key - the credential flow that owns the account.
  * @param accountId - the opaque account identity returned by `listAccounts`.

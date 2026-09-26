@@ -6,6 +6,8 @@ The Settings UI exposes a global preference. At session start, a session without
 
 The `none` value contributes no prompt text; `friendly` and `pragmatic` each contribute a short tone fragment through `ctx.systemPrompt.section()` (order `10`, just after `deployment:persona` at order `0`).
 
+Explicit local memories are limited to 100 entries, 2,000 characters per entry, and a 32 KiB UTF-8 document; malformed or oversized files fail closed before prompt recall.
+
 ## Model Experience
 
 ### Personality tone fragment
@@ -39,3 +41,4 @@ Prefix-stable within a session: the resolved personality is fixed by the session
 - **The `minimal` preset's `complete: true` persona removes this section** — `apps/cli/config/agent-presets/minimal/agent.cordis.yml` marks its persona row `complete: true`, which makes `SystemPrompt.assemble()` discard every other section, including `personalization:personality`, after the waterfall runs. Personality has no effect under that preset (or any composition with an effective `complete: true` section); a deployment that needs both must not mark its persona complete.
 - **Personality is a default for unstarted chats** — changing it does not alter the tone of a chat that has entered a model step, including resumed or forked chats.
 - **The Settings UI cannot target one running session** — `settings.section` registers at global (`root`) scope (see [the slot system standard](../../../.agents/notes/implemented/architecture/2026-07-22-slot-type-chain-implementation.md)), so a personality change never writes to "the current conversation" directly; it always goes through the global settings namespace, adopted by sessions at their own next start.
+- **Local memories are Hydra-home global** — every top-level chat under one Hydra home reads the same bounded file; workspace and account partitioning is not provided.

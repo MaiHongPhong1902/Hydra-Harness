@@ -1,0 +1,56 @@
+- listitem:
+  - 'button "Hide settings: Page Memory" [expanded]':
+    - text: Page Memory Verified task guidance for the current Browser page.
+    - img
+  - text: Application role
+  - textbox "Application role":
+    - /placeholder: ""
+    - text: order-operator
+  - paragraph: Separates stored guidance by the role using this workspace.
+  - text: Locale
+  - textbox "Locale":
+    - /placeholder: ""
+    - text: en-US
+  - paragraph: Separates stored guidance by language and regional formatting.
+  - text: Storage directory
+  - textbox "Storage directory":
+    - /placeholder: ""
+    - text: {{cwd}}
+  - paragraph: Absolute parent directory for private page-memory databases.
+  - text: Maximum workflows
+  - textbox "Maximum workflows":
+    - /placeholder: ""
+    - text: "12"
+  - paragraph: Maximum workflows retained in one page-memory database.
+  - text: Maximum pages
+  - textbox "Maximum pages":
+    - /placeholder: ""
+    - text: "500"
+  - paragraph: Maximum page keys retained in one page-memory database.
+  - text: Context limit (bytes)
+  - textbox "Context limit (bytes)":
+    - /placeholder: ""
+    - text: "8192"
+  - paragraph: Maximum recalled context sent to the agent.
+  - text: Maximum observations
+  - textbox "Maximum observations":
+    - /placeholder: ""
+    - text: "32"
+  - paragraph: Maximum targeted Browser observations retained in one turn.
+  - text: Maximum history
+  - textbox "Maximum history":
+    - /placeholder: ""
+    - text: "256"
+  - paragraph: Maximum durable verification traces retained for offline replay.
+  - text: Verification timeout (ms)
+  - textbox "Verification timeout (ms)":
+    - /placeholder: ""
+    - text: "5000"
+  - paragraph: Maximum time spent checking live page anchors.
+  - text: Maximum record size (bytes)
+  - textbox "Maximum record size (bytes)":
+    - /placeholder: ""
+    - text: "32768"
+  - paragraph: Largest workflow record that can be stored.
+  - button "Discard" [disabled]
+  - button "Save" [disabled]

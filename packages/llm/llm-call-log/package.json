@@ -1,6 +1,11 @@
 {
   "name": "@hydra/harness-llm-call-log",
   "description": "Session-local model call identity, timing, and tool diagnostics",
+  "hydra": {
+    "plugin": {
+      "application": "Record model-call timing and tool diagnostics for inspecting a session."
+    }
+  },
   "version": "0.1.1-rc.1",
   "publishConfig": { "access": "public" },
   "repository": {

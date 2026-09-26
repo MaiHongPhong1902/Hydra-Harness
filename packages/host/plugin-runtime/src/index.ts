@@ -814,6 +814,8 @@ export class ImportedPluginRuntime extends Service {
     return {
       identity: identity as ImportedPluginIdentity,
       name: entry.name,
+      ...loaded.manifest.description === undefined ? {} : { description: loaded.manifest.description },
+      ...loaded.manifest.application === undefined ? {} : { application: loaded.manifest.application },
       version: entry.activeVersion,
       source: entry.source,
       pluginRoot: loaded.root,
@@ -1332,7 +1334,7 @@ function parseManifest(raw: unknown, format: ManifestFormat): PluginManifest {
     throw new Error('plugin runtime: plugin manifest requires a valid name and semantic version')
   }
   /* jscpd:ignore-start -- portable and legacy manifests share metadata validation. */
-  for (const key of ['description', 'homepage', 'repository', 'license'] as const) {
+  for (const key of ['description', 'application', 'homepage', 'repository', 'license'] as const) {
     if (raw[key] !== undefined && typeof raw[key] !== 'string') throw new Error(`plugin runtime: manifest ${key} must be a string`)
   }
   if (raw.keywords !== undefined && (!Array.isArray(raw.keywords) || raw.keywords.some(value => typeof value !== 'string'))) {
@@ -1357,7 +1359,7 @@ function parseClaudeManifest(raw: unknown): PluginManifest {
   if (!isSafeVersionDirectory(version)) {
     throw new Error('plugin runtime: Claude plugin version is not a safe directory name')
   }
-  for (const key of ['displayName', 'description', 'homepage', 'repository', 'license'] as const) {
+  for (const key of ['displayName', 'description', 'application', 'homepage', 'repository', 'license'] as const) {
     if (raw[key] !== undefined && typeof raw[key] !== 'string') throw new Error(`plugin runtime: Claude plugin manifest ${key} must be a string`)
   }
   if (raw.keywords !== undefined && (!Array.isArray(raw.keywords) || raw.keywords.some(value => typeof value !== 'string'))) {
@@ -1381,6 +1383,7 @@ function parseClaudeManifest(raw: unknown): PluginManifest {
   return {
     format: 'claude', name, version,
     ...typeof raw.description === 'string' ? { description: raw.description } : {},
+    ...typeof raw.application === 'string' ? { application: raw.application } : {},
     ...isRecord(raw.author) ? { author: raw.author } : {},
     ...typeof raw.homepage === 'string' ? { homepage: raw.homepage } : {},
     ...typeof raw.repository === 'string' ? { repository: raw.repository } : {},
@@ -1402,7 +1405,7 @@ function parsePortableManifest(raw: unknown): PluginManifest {
   if (!isSafeVersionDirectory(version)) {
     throw new Error('plugin runtime: portable plugin version is not a safe directory name')
   }
-  for (const key of ['description', 'homepage', 'repository', 'license'] as const) {
+  for (const key of ['description', 'application', 'homepage', 'repository', 'license'] as const) {
     if (raw[key] !== undefined && typeof raw[key] !== 'string') throw new Error(`plugin runtime: manifest ${key} must be a string`)
   }
   if (raw.keywords !== undefined && (!Array.isArray(raw.keywords) || raw.keywords.some(value => typeof value !== 'string'))) {
@@ -1420,6 +1423,7 @@ function parsePortableManifest(raw: unknown): PluginManifest {
   const component = (key: 'apps' | 'hooks'): unknown => extension?.[key] ?? raw[key]
   const optional: {
     description?: string
+    application?: string
     author?: PluginManifest['author']
     homepage?: string
     repository?: string
@@ -1427,6 +1431,7 @@ function parsePortableManifest(raw: unknown): PluginManifest {
     keywords?: readonly string[]
   } = {}
   if (typeof raw.description === 'string') optional.description = raw.description
+  if (typeof raw.application === 'string') optional.application = raw.application
   if (typeof raw.author === 'string' || isRecord(raw.author)) optional.author = raw.author
   if (typeof raw.homepage === 'string') optional.homepage = raw.homepage
   if (typeof raw.repository === 'string') optional.repository = raw.repository

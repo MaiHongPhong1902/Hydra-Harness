@@ -21,7 +21,7 @@ import { executePageAgentLlm } from './page-agent-llm.ts'
 import { BrowserError } from './types.ts'
 import type {
   ActionResult, BrowserAction, BrowserCdpCommandResult, BrowserCdpEventPage, BrowserHistorySearchEntry,
-  BrowserJsonValue, BrowserOutcome, BrowserPageIdentity, BrowserScreenshot, BrowserState,
+  BrowserJsonValue, BrowserOutcome, BrowserPageIdentity, BrowserScreenshot, BrowserScreenshotOptions, BrowserState,
 } from './types.ts'
 
 export { launchBrowser, resolveElectronPath } from './child.ts'
@@ -30,7 +30,7 @@ export { BrowserError } from './types.ts'
 export type {
   ActionResult, BrowserAction, BrowserCdpCommandResult, BrowserCdpEvent, BrowserCdpEventPage, BrowserErrorCode,
   BrowserSnapshotOptions, BrowserFillField, BrowserHistorySearchEntry, BrowserJsonValue,
-  BrowserOutcome, BrowserPageIdentity, BrowserScreenshot, BrowserState, BrowserUiChanges,
+  BrowserOutcome, BrowserPageIdentity, BrowserScreenshot, BrowserScreenshotClip, BrowserScreenshotOptions, BrowserState, BrowserUiChanges,
   BrowserTabState,
 } from './types.ts'
 
@@ -211,8 +211,16 @@ function browserScreenshotOf(value: unknown): BrowserScreenshot {
     || !Number.isSafeInteger(screenshot.tabId) || (screenshot.tabId as number) < 1
     || typeof screenshot.url !== 'string' || screenshot.url.length > 2_048
     || typeof screenshot.title !== 'string' || screenshot.title.length > 512
+    || !['viewport', 'full-page', 'clip'].includes(screenshot.mode as string)
     || typeof screenshot.capturedAt !== 'string' || screenshot.capturedAt.length > 64) {
     throw new Error('embedded browser returned an invalid screenshot')
+  }
+  if (screenshot.clip !== undefined) {
+    const clip = screenshot.clip
+    if (typeof clip !== 'object' || clip === null || Array.isArray(clip)
+      || !['x', 'y', 'width', 'height'].every(key => Number.isSafeInteger((clip as Record<string, unknown>)[key]))) {
+      throw new Error('embedded browser returned an invalid screenshot clip')
+    }
   }
   try {
     const url = new URL(screenshot.url)
@@ -520,7 +528,8 @@ export class BrowserSessionService extends Service {
           'url' in action ? action.url : undefined, execution)
       }
       const prepared = await prepareAction(action)
-      if (prepared.method === 'execute_javascript' && !this.settings.experimentalScriptExecution) {
+      if ((prepared.method === 'execute_javascript' || prepared.method === 'execute_javascript_page')
+        && !this.settings.experimentalScriptExecution) {
         throw new Error('experimental browser JavaScript is disabled by the host')
       }
       const child = await this.session(owner, execution.signal)
@@ -554,6 +563,7 @@ export class BrowserSessionService extends Service {
         || prepared.method === 'back'
         || prepared.method === 'forward'
         || prepared.method === 'click_element'
+        || prepared.method === 'click_at'
         || prepared.method === 'fill_fields'
         || prepared.method === 'find_element'
         || prepared.method === 'press'
@@ -620,19 +630,27 @@ export class BrowserSessionService extends Service {
    * Capture the selected controlled page's visible viewport as a bounded PNG.
    * The base64 is transient: callers must consume it before persisting output.
    * @param owner - agent whose selected controlled tab is captured.
-   * @param execution - tool-call identity and cancellation for the browsing approval.
+   * @param optionsOrExecution - screenshot options, or the legacy execution context for the two-argument form.
+   * @param execution - tool-call identity and cancellation when screenshot options are supplied.
    * @returns the bounded screenshot payload.
    */
-  async takeScreenshot(owner: Agent, execution: BrowserExecutionContext = {}): Promise<BrowserScreenshot> {
+  async takeScreenshot(
+    owner: Agent,
+    optionsOrExecution: BrowserScreenshotOptions | BrowserExecutionContext = {},
+    execution: BrowserExecutionContext = {},
+  ): Promise<BrowserScreenshot> {
+    const legacyExecution = 'callId' in optionsOrExecution || 'signal' in optionsOrExecution
+    const options = legacyExecution ? {} : optionsOrExecution
+    const actualExecution = legacyExecution ? optionsOrExecution : execution
     return this.serialized(owner, undefined, async () => {
       if (this.disposing) throw new BrowserError('the embedded browser is shutting down', 'BROWSER_DISPOSING')
       if (!this.browserSettings().controlEnabled) {
         throw new BrowserError('embedded browser control is disabled in settings', 'BROWSER_DISABLED')
       }
-      await this.approveBrowserPermission(owner, 'browsing', 'browser_screenshot', undefined, execution)
-      const child = await this.session(owner, execution.signal)
+      await this.approveBrowserPermission(owner, 'browsing', 'browser_screenshot', undefined, actualExecution)
+      const child = await this.session(owner, actualExecution.signal)
       this.checkPermission('browsing')
-      return browserScreenshotOf(await child.call('browser_screenshot', {}, execution.signal))
+      return browserScreenshotOf(await child.call('browser_screenshot', { ...options }, actualExecution.signal))
     })
   }
 

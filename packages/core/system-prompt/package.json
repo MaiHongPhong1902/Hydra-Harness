@@ -1,6 +1,11 @@
 {
   "name": "@hydra/harness-system-prompt",
   "description": "System prompt assembly registry for the Hydra harness",
+  "hydra": {
+    "plugin": {
+      "application": "Assemble the instructions contributed by the current agent's plugins before each model request."
+    }
+  },
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"

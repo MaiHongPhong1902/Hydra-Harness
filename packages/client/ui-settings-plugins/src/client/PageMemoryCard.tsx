@@ -29,6 +29,7 @@ export function PageMemoryCard(props: PageMemoryCardProps) {
       {field('maxPages', 'plugin-config-page-memory-pages', t('pageMemoryMaxPages'), t('pageMemoryMaxPagesHint'), true)}
       {field('maxContextBytes', 'plugin-config-page-memory-context', t('pageMemoryMaxContextBytes'), t('pageMemoryMaxContextBytesHint'), true)}
       {field('maxObservations', 'plugin-config-page-memory-observations', t('pageMemoryMaxObservations'), t('pageMemoryMaxObservationsHint'), true)}
+      {field('maxHistory', 'plugin-config-page-memory-history', t('pageMemoryMaxHistory'), t('pageMemoryMaxHistoryHint'), true)}
       {field('verificationTimeoutMs', 'plugin-config-page-memory-timeout', t('pageMemoryVerificationTimeout'), t('pageMemoryVerificationTimeoutHint'), true)}
       {field('maxRecordBytes', 'plugin-config-page-memory-record', t('pageMemoryMaxRecordBytes'), t('pageMemoryMaxRecordBytesHint'), true)}
     </PluginCard>

@@ -1,6 +1,6 @@
 # `@hydra/harness-browser-decisions`
 
-Optional model-facing `browser_decide` tool over `ctx.jev`. It receives observed browser text, a question, and at least two candidate labels, then returns Jev's selected label and confidence. When Jev is disabled, unconfigured, cancelled, or unavailable, the tool returns `available: false` so the agent can continue with its existing browser tools.
+Optional model-facing `browser_decide` tool over `ctx.jev`. The base bundle places it in the `jev` plugin group, so enabling Jev exposes one bounded consumer with the provider and Models card. It receives observed browser text, a question, and at least two candidate labels, then returns Jev's selected label and confidence. When Jev is disabled, unconfigured, cancelled, or unavailable, the tool returns `available: false` so the agent can continue with its existing browser tools.
 
 The tool is advisory. It never navigates, clicks, fills, executes JavaScript or CDP commands, changes permissions, or bypasses the browser executor and policy.
 

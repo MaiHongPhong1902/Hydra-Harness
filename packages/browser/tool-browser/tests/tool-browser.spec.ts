@@ -100,6 +100,7 @@ class ScriptedChild extends EventEmitter implements BrowserChildProcess {
             width: 1,
             height: 1,
             tabId: 1,
+            mode: 'viewport',
             url: 'https://shop.test/order',
             title: 'Order',
             capturedAt: '2026-08-27T00:00:00.000Z',
@@ -265,6 +266,15 @@ function text(content: readonly ContentBlock[]): string {
 }
 
 describe('tool-browser registration', () => {
+  it('can auto-approve only CDP requests in the configured composition', async () => {
+    const { ctx, agent } = await harness({ autoApproveCdp: true })
+    await expect(ctx.waterfall('approval/request', { agent, toolName: 'browser_cdp_command' }, () => Promise.resolve('unavailable' as const)))
+      .resolves.toBe('allowed-once')
+    await expect(ctx.waterfall('approval/request', { agent, toolName: 'bash' }, () => Promise.resolve('unavailable' as const)))
+      .resolves.toBe('unavailable')
+    await ctx.fiber.dispose()
+  })
+
   it('validates output configuration even when apply is called directly', async () => {
     const { ctx } = await harness({}, {}, { direct: true })
     for (const config of [{ outputDir: 'relative' }, { snapshotMode: 'invalid' }, { imageResponses: 'invalid' }, { consoleLevel: 'invalid' }]) {
@@ -385,7 +395,7 @@ describe('tool-browser registration', () => {
     children[0]!.responses.set('get_browser_state', state)
     expect(text((await call('browser_tabs', { action: 'list' })).content)).toContain('[2] Two')
     children[0]!.responses.set('browser_screenshot', { mediaType: 'image/png', data: PNG_1X1.toString('base64'), bytes: PNG_1X1.length,
-      width: 1, height: 1, tabId: 1, url: state.url, title: '', capturedAt: '2026-09-01' })
+      width: 1, height: 1, tabId: 1, mode: 'viewport', url: state.url, title: '', capturedAt: '2026-09-01' })
     expect(text((await call('browser_screenshot', {})).content)).toContain('— https://example.test')
     await ctx.fiber.dispose()
   })
@@ -406,7 +416,7 @@ describe('tool-browser registration', () => {
     const { ctx } = await harness()
     expect(ctx.tools.schemas().map(tool => tool.name).filter(name => name.startsWith('browser_')).sort())
       .toEqual([
-        'browser_back', 'browser_click', 'browser_close', 'browser_close_tab', 'browser_console_messages', 'browser_drag', 'browser_drop', 'browser_file_upload', 'browser_fill', 'browser_fill_form',
+        'browser_back', 'browser_click', 'browser_click_at', 'browser_close', 'browser_close_tab', 'browser_console_messages', 'browser_drag', 'browser_drop', 'browser_file_upload', 'browser_fill', 'browser_fill_form',
         'browser_find', 'browser_forward', 'browser_history_search', 'browser_navigate', 'browser_navigate_back',
         'browser_open_tab', 'browser_page_agent_run', 'browser_page_agent_status', 'browser_page_agent_stop',
         'browser_press', 'browser_press_key', 'browser_screenshot', 'browser_scroll', 'browser_scroll_horizontally',
@@ -574,7 +584,7 @@ describe('browser tool calls', () => {
     const result = await call('browser_screenshot', {})
 
     expect(result.isError).toBe(false)
-    expect(children[0]?.requests).toEqual([{ method: 'browser_screenshot', args: {} }])
+    expect(children[0]?.requests).toEqual([{ method: 'browser_screenshot', args: { fullPage: false } }])
     expect((ctx.attachments as TestAttachmentStore).saved[0]).toMatchObject({
       mediaType: 'image/png',
       name: 'browser-tab-1.png',

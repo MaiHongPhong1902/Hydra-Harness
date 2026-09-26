@@ -39,6 +39,9 @@
   ],
   "license": "MIT",
   "hydra": {
+    "plugin": {
+      "application": "Start the Hydra web interface and connect it to the shared local runtime."
+    },
     "bundle": {
       "patch": "./cordis.patch.yml"
     }

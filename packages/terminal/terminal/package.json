@@ -1,6 +1,11 @@
 {
   "name": "@hydra/harness-terminal",
   "description": "Persistent PTY session seam for the Hydra harness — owner-scoped ids, backend registry, interactive sends, reads, signals, and awaited cleanup",
+  "hydra": {
+    "plugin": {
+      "application": "Keep interactive terminal sessions available for later input and output reads."
+    }
+  },
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"

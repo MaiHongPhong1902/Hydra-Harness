@@ -26,13 +26,14 @@ function themeColorMeta(): HTMLMetaElement | null {
   return document.head.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
 }
 
-function browserThemeSpy(): { setTheme: ReturnType<typeof vi.fn> } {
+function browserThemeSpy(): { setTheme: ReturnType<typeof vi.fn>; setChromeTheme: ReturnType<typeof vi.fn> } {
   const setTheme = vi.fn<(theme: DesktopBrowserTheme | null) => void>()
+  const setChromeTheme = vi.fn()
   Object.defineProperty(window, 'hydraDesktop', {
     configurable: true,
-    value: { browser: { setBounds: vi.fn(), setTheme } },
+    value: { browser: { setBounds: vi.fn(), setTheme }, chrome: { setTheme: setChromeTheme } },
   })
-  return { setTheme }
+  return { setTheme, setChromeTheme }
 }
 
 beforeEach(() => {
@@ -79,7 +80,7 @@ describe('ThemePresenter', () => {
   })
 
   it('sends the initial resolved token palette to the desktop browser', () => {
-    const { setTheme } = browserThemeSpy()
+    const { setTheme, setChromeTheme } = browserThemeSpy()
     const presenter = new ThemePresenter()
     presenter.apply(snapshot('dark', {
       '--dsw-specific-sidebar-fill': '#101114',
@@ -108,6 +109,7 @@ describe('ThemePresenter', () => {
         status: '#25272b',
       },
     })
+    expect(setChromeTheme).toHaveBeenCalledWith({ color: '#101114', symbolColor: '#f5f6f7' })
   })
 
   it('refreshes the desktop browser theme on scheme switches', () => {

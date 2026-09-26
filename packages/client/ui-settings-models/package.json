@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Configure model providers, credentials, and account connections."
+    },
     "client": {
       "inject": [
         "@hydra/harness-client-runtime",

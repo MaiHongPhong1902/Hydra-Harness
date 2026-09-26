@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Select skills in conversation input and inspect skill-loading tool results."
+    },
     "client": {
       "inject": [
         "@hydra/harness-client-runtime",

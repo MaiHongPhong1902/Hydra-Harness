@@ -1,6 +1,11 @@
 {
   "name": "@hydra/harness-session-query-sqlite",
   "description": "Concrete ctx.sessionQuery backend with SQLite FTS5 search",
+  "hydra": {
+    "plugin": {
+      "application": "Index and search saved conversations when session search is enabled in the profile."
+    }
+  },
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"

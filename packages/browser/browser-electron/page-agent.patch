@@ -126,7 +126,7 @@ index 11e28cc..03d5e8f 100644
  
  		// Create ripple effect container
  		const rippleContainer = document.createElement('div')
-@@ -127,52 +186,262 @@ export class SimulatorMask extends EventTarget {
+@@ -127,52 +186,260 @@ export class SimulatorMask extends EventTarget {
  		borderLayer.className = cursorStyles.cursorBorder
  		this.#cursor.appendChild(borderLayer)
  
@@ -375,12 +375,10 @@ index 11e28cc..03d5e8f 100644
 +		if (this.#disposed) throw new Error('Selection mask is disposed')
 +		const { startX, startY, endX, endY, duration = 450, updateSelection } = options
 +		this.setCursorMode('ibeam')
-+		this.setCursorPosition(startX, startY, 150)
-+		await new Promise((resolve) => setTimeout(resolve, 160))
-+		this.#activeMove = null
-+		this.#cursor.style.transform = ''
++		await this.moveCursorTo(startX, startY)
++		const caretAtPoint = (x: number, y: number) => document.caretRangeFromPoint?.(x, y) ?? null
 +		const selection = updateSelection ? null : window.getSelection()
-+		const startRange = selection ? document.caretRangeFromPoint(startX, startY) : null
++		const startRange = selection ? caretAtPoint(startX, startY) : null
 +		selection?.removeAllRanges()
 +		const startTime = performance.now()
 +		for (;;) {
@@ -395,7 +393,7 @@ index 11e28cc..03d5e8f 100644
 +			this.#cursor.style.top = `${y}px`
 +			if (updateSelection) await updateSelection(x, y)
 +			else if (selection && startRange) {
-+				const caret = document.caretRangeFromPoint(x, y)
++				const caret = caretAtPoint(x, y)
 +				if (caret) selection.setBaseAndExtent(startRange.startContainer, startRange.startOffset, caret.startContainer, caret.startOffset)
 +			}
 +			if (progress === 1) break
@@ -405,7 +403,7 @@ index 11e28cc..03d5e8f 100644
  	}
  
  	show() {
-@@ -201,6 +470,7 @@ export class SimulatorMask extends EventTarget {
+@@ -201,6 +468,7 @@ export class SimulatorMask extends EventTarget {
  		this.motion?.pause()
  
  		this.#cursor.classList.remove(cursorStyles.clicking)
@@ -413,7 +411,7 @@ index 11e28cc..03d5e8f 100644
  
  		setTimeout(() => {
  			this.wrapper.classList.remove(styles.visible)
-@@ -209,6 +479,7 @@ export class SimulatorMask extends EventTarget {
+@@ -209,6 +477,7 @@ export class SimulatorMask extends EventTarget {
  
  	dispose() {
  		this.#disposed = true

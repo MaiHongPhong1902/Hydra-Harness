@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Inspect the event timeline and timing of an agent run."
+    },
     "client": {
       "inject": [
         "@hydra/harness-client-locale",

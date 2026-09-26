@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Record feedback on an assistant message from its action controls."
+    },
     "client": {
       "inject": [
         "@hydra/harness-client-runtime",

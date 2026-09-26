@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Open General settings to adjust common preferences and view onboarding guidance."
+    },
     "client": {
       "inject": [
         "@hydra/harness-client-runtime",

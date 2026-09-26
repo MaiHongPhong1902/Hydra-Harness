@@ -1,6 +1,11 @@
 {
   "name": "@hydra/harness-user-questions",
   "description": "Abstract user-questions seam (ctx.userQuestions) for asking the human during agent runs",
+  "hydra": {
+    "plugin": {
+      "application": "Deliver questions from running agents to the user and return their answers."
+    }
+  },
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"

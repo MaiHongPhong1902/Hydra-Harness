@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Attach a workspace file or another session as context using @ references."
+    },
     "client": {
       "inject": [
         "@hydra/harness-client-runtime",

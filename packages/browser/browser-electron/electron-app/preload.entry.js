@@ -997,6 +997,34 @@ async function fillFields(controller, fields) {
   return { success: true, message: messages.join('\n') }
 }
 
+/** Keep a word selection from swallowing the blank immediately after it. */
+function trimTrailingInputSelection(element) {
+  const start = element.selectionStart
+  const end = element.selectionEnd
+  if (start === null || end === null || end <= start) return false
+  const selected = element.value.slice(start, end)
+  const trailing = /\s+$/u.exec(selected)?.[0]
+  if (trailing === undefined || trailing.length === selected.length || /\s/u.test(selected.slice(0, -trailing.length))) return false
+  element.setSelectionRange(start, end - trailing.length, element.selectionDirection)
+  return true
+}
+
+/** Position the visible caret at a single-line input's selection focus. */
+function inputCaretPoint(element, index) {
+  if (!(element instanceof HTMLInputElement)) return undefined
+  const style = getComputedStyle(element)
+  const context = document.createElement('canvas').getContext('2d')
+  if (context === null) return undefined
+  context.font = style.font
+  const text = element.value.slice(0, index)
+  const letterSpacing = Number.parseFloat(style.letterSpacing) || 0
+  const textWidth = context.measureText(text).width + Math.max(0, text.length - 1) * letterSpacing
+  const left = element.getBoundingClientRect().left + (Number.parseFloat(style.borderLeftWidth) || 0)
+    + (Number.parseFloat(style.paddingLeft) || 0) + (Number.parseFloat(style.textIndent) || 0) + textWidth - element.scrollLeft
+  const rect = element.getBoundingClientRect()
+  return { x: Math.max(rect.left, Math.min(rect.right, left)), y: rect.top + rect.height / 2 }
+}
+
 /** Select complete element contents or a viewport range; resolve with the final native selection. */
 async function selectText(controller, args) {
   await controller.updateTree()
@@ -1074,6 +1102,17 @@ async function selectText(controller, args) {
       } finally {
         window.dispatchEvent(new CustomEvent('PageAgent::DisablePassThrough'))
       }
+    }
+  }
+  if (nativeInput) {
+    const input = selectionElement
+    const trimmed = trimTrailingInputSelection(input)
+    const backward = input.selectionDirection === 'backward'
+    const focus = backward ? input.selectionStart ?? 0 : input.selectionEnd ?? 0
+    const adjacent = backward ? input.value[focus - 1] : input.value[focus]
+    if (trimmed || /\s/u.test(adjacent ?? '')) {
+      const point = inputCaretPoint(input, focus)
+      if (point !== undefined) controller.mask.setCursorPosition(point.x, point.y, 0)
     }
   }
   let selectedText = window.getSelection()?.toString() ?? ''

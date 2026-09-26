@@ -6,7 +6,7 @@ Configure `apiKeyEnv`, `model`, `baseURL`, and `timeoutMs` in the `jev` entry. T
 
 The provider validates the response, honors cancellation and timeout, and normalizes authentication, rate-limit, transport, and invalid-response failures. It does not retry requests or log response bodies.
 
-Enable `jev` in Plugins and save; the Web bundle groups its UI contribution with it. Enable `browser-decisions` separately to expose the advisory browser tool. All rows ship disabled. Without the UI, set `disabled: false` on the desired rows in a profile patch and supply the key through Credentials or `JEV_API_KEY`.
+Enable the `jev` group in Plugins and save; the Web bundle enables the Host capability, its Models card, and the advisory `browser_decide` consumer together. The main model can call that tool when it needs a bounded choice, while browser execution and policy remain authoritative. All rows ship disabled. Without the UI, set `disabled: false` on the `jev`, `browser-decisions`, and (when present) `ui-jev` rows in a profile patch and supply the key through Credentials or `JEV_API_KEY`.
 
 `JevSystemOneRequest` carries JSON `state`, named `questions`, and an optional Jev model override. Questions discriminate on `type`: `choice` maps labels to criteria, `score` supplies an ordered rubric of at least two entries, and `noul` optionally describes true/false outcomes. `JevRequestOptions` accepts `signal` and `timeoutMs`. The provider unwraps Jev's `{ code, message, data }` response and validates answers keyed by the requested question names; usage is preserved when the API supplies it. Unloading the plugin cancels and drains pending requests.
 

@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Answer structured questions from an agent in the conversation composer."
+    },
     "client": {
       "inject": [
         "@hydra/harness-client-locale",

@@ -190,6 +190,9 @@ export function apply(ctx: ClientContext): void {
     )
     const t = ctx.locale.bind('settings.browser')
     const scope = ctx.settingsScope.bind<BrowserSettings>({ namespace: BROWSER_SETTINGS_NAMESPACE })
+    const openDownload = browser.openDownload === undefined
+      ? undefined
+      : (id: string) => browser.openDownload?.(id) ?? Promise.resolve()
     const injected = (): BrowserSectionInjected => ({
       setSetting: (key, value) => scope.set(key, value),
       configureNative: settings => browser.configure(settings),
@@ -200,6 +203,7 @@ export function apply(ctx: ClientContext): void {
       removeHistory: id => browser.removeHistory(id),
       downloads: () => browser.downloads(),
       removeDownload: id => browser.removeDownload(id),
+      ...(openDownload === undefined ? {} : { openDownload: (id: string) => openDownload(id) }),
       sites: () => browser.sites(),
       setSite: site => browser.setSite(site),
       removeSite: origin => browser.removeSite(origin),
@@ -244,6 +248,13 @@ export function apply(ctx: ClientContext): void {
       inject: (actions: PanelActions) => {
         layout.attachPanels(actions)
         return {
+          startSession: () => { ctx.workspaces.startSession() },
+          openFolder: async () => {
+            const path = await ctx.workspaces.pickDirectory()
+            if (path === null) return
+            const workspace = await ctx.workspaces.create({ path })
+            ctx.workspaces.startSession(workspace.workspaceId)
+          },
           createSideSession: async () => {
             const sessions = ctx.sessions.list.getSnapshot()
             const workspaces = ctx.workspaces.list.getSnapshot()

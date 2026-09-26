@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Edit custom instructions, personality, and memory preferences."
+    },
     "client": {
       "inject": [
         "@hydra/harness-client-connection",

@@ -1,6 +1,11 @@
 {
   "name": "@hydra/harness-tool-subagent-report",
   "description": "Child-scoped report tool over ctx.subagents continuations",
+  "hydra": {
+    "plugin": {
+      "application": "Let a child agent report its progress or findings to its parent."
+    }
+  },
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"

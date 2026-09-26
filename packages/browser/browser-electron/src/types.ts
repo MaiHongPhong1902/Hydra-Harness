@@ -85,7 +85,21 @@ export interface BrowserSnapshotOptions {
   boxes?: boolean
 }
 
-/** Transient PNG of the selected controlled page's visible viewport. */
+/** Rectangle captured from a controlled page in CSS pixels. */
+export interface BrowserScreenshotClip {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+/** Optional capture mode for a controlled-page screenshot. */
+export interface BrowserScreenshotOptions {
+  fullPage?: boolean
+  clip?: BrowserScreenshotClip
+}
+
+/** Transient PNG of a controlled page capture. */
 export interface BrowserScreenshot {
   /** Declared image type; Electron always encodes PNG. */
   mediaType: 'image/png'
@@ -99,6 +113,8 @@ export interface BrowserScreenshot {
   height: number
   /** Selected tab captured by Electron. */
   tabId: number
+  mode: 'viewport' | 'full-page' | 'clip'
+  clip?: BrowserScreenshotClip
   /** HTTP(S) page address captured by Electron. */
   url: string
   /** Document title at capture completion. */
@@ -172,6 +188,7 @@ export type BrowserAction =
     | { method: 'forward' }
     | { method: 'press'; key: string }
     | { method: 'click_element'; index?: number; name?: string; target?: string }
+    | { method: 'click_at'; x: number; y: number; button?: 'left' | 'middle' | 'right'; clickCount?: number }
     | { method: 'hover_element'; index?: number; name?: string; target?: string }
     | { method: 'drag_element'; startIndex: number; endIndex: number }
     | { method: 'drop'; index: number; filePaths: string[]; data: Record<string, string> }
@@ -191,6 +208,7 @@ export type BrowserAction =
     | { method: 'wait'; seconds: number }
     | { method: 'wait_for'; seconds: number; text?: string; textGone?: string }
     | { method: 'execute_javascript'; script: string }
+    | { method: 'execute_javascript_page'; script: string }
     | { method: 'page_agent_run'; task: string }
     | { method: 'page_agent_status' }
     | { method: 'page_agent_stop' }

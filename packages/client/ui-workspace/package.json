@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Choose a workspace, browse its sessions, and manage archived conversations."
+    },
     "client": {
       "inject": [
         "@hydra/harness-client-connection",

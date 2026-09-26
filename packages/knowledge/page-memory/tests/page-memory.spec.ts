@@ -35,7 +35,7 @@ const workflow = {
   pitfalls: ['Read dynamic order values from the live page.'],
 }
 
-async function harness(config: Partial<PageMemory.Config> = {}, direct = false, withSettings = false) {
+async function harness(config: Partial<PageMemory.Config> = {}, direct = false, withSettings = false, experimentalScriptExecution = false) {
   const workspace = await mkdtemp(join(tmpdir(), 'hydra-page-memory-test-'))
   cleanup.push(() => rm(workspace, { recursive: true, force: true }))
   const root = new Context().plugin(() => {})
@@ -53,7 +53,7 @@ async function harness(config: Partial<PageMemory.Config> = {}, direct = false, 
   let explicitReadsOnly = false
   let beforeSnapshot: (() => Promise<void>) | undefined
   const browser = {
-    experimentalScriptExecution: false, fullCdpAccess: false,
+    experimentalScriptExecution, fullCdpAccess: false,
     currentPage: (_agent: Agent, execution: { callId?: string } = {}) => {
       if (explicitReadsOnly && execution.callId === undefined) throw new BrowserError('Approval requires an explicit call', 'BROWSER_POLICY_DENIED')
       return Promise.resolve(page === undefined ? undefined : { ...page })
@@ -128,12 +128,29 @@ describe('verified page-memory integration', () => {
   it('uses direct defaults and validates persisted settings before accepting them', async () => {
     const h = await harness({}, true, true)
     const settings = h.ctx.get('settings')!
+    const namespace = PageMemory.PAGE_MEMORY_SETTINGS_NAMESPACE
     for (const value of [{ role: ' ' }, { locale: 'x'.repeat(129) }, { storageDir: 'relative' }]) {
-      await expect(settings.update(PageMemory.PAGE_MEMORY_SETTINGS_NAMESPACE, value)).rejects.toThrow()
+      await expect(settings.update(namespace, value)).rejects.toThrow()
     }
-    await expect(settings.update(PageMemory.PAGE_MEMORY_SETTINGS_NAMESPACE, { role: 'operator', locale: 'en-US' }))
+    const beforeInvalidNumbers = settings.get(namespace)
+    for (const value of [{ maxPages: Number.MAX_SAFE_INTEGER + 1 }, { verificationTimeoutMs: 2_147_483_648 }]) {
+      await expect(settings.update(namespace, value)).rejects.toThrow()
+      expect(settings.get(namespace)).toEqual(beforeInvalidNumbers)
+    }
+    await expect(settings.update(namespace, { role: 'operator', locale: 'en-US' }))
       .resolves.toBeUndefined()
     expect(context(await h.call('page_memory_get'))).toContain('select-task')
+  })
+
+  it('rejects numeric overflow at the config and settings schema boundary', () => {
+    expect(() => PageMemory.Config({ workspaceDir: '/workspace', role: 'operator', locale: 'en-US', maxPages: Number.MAX_SAFE_INTEGER + 1 }))
+      .toThrow()
+    expect(() => PageMemory.Config({ workspaceDir: '/workspace', role: 'operator', locale: 'en-US', verificationTimeoutMs: 2_147_483_648 }))
+      .toThrow()
+    expect(() => PageMemory.PageMemorySettingsSchema({ maxPages: Number.MAX_SAFE_INTEGER + 1 }))
+      .toThrow()
+    expect(() => PageMemory.PageMemorySettingsSchema({ verificationTimeoutMs: 2_147_483_648 }))
+      .toThrow()
   })
 
   it('uses the configured Hydra home and allows reads before the first turn', async () => {
@@ -210,12 +227,30 @@ describe('verified page-memory integration', () => {
     expect(h.page()).toBeUndefined()
   })
 
+  it.each([
+    ['browser_click_at', { x: 10, y: 10 }],
+    ['browser_execute_javascript', { script: 'document.body.dataset.memory = "saved"' }],
+    ['browser_page_agent_run', { task: 'save the form' }],
+  ] as Array<[string, Record<string, unknown>]>)('accepts %s as successful save evidence', async (name, args) => {
+    const h = await harness({}, false, false, true)
+    await h.call('page_memory_get', { task: workflow.task }); await h.admit()
+    h.regions.set('#status', '- status: Saved')
+    expect((await h.call(name, args)).isError).toBe(false)
+    expect((await h.call('page_memory_upsert', workflow)).isError).toBe(false)
+  })
+
 
   it.each([
     { workspaceDir: 'relative' }, { role: '' }, { locale: 'x'.repeat(129) }, { maxPages: 0 },
-    { maxContextBytes: 255 }, { storageDir: 'relative' },
+    { maxContextBytes: 255 }, { maxPages: Number.MAX_SAFE_INTEGER + 1 },
+    { verificationTimeoutMs: 2_147_483_648 }, { storageDir: 'relative' },
   ])('rejects invalid direct configuration %j', async (config) => {
     await expect(harness(config, true)).rejects.toThrow()
+  })
+
+  it('rejects a direct verification timeout above the AbortSignal limit', async () => {
+    await expect(harness({ verificationTimeoutMs: 2_147_483_648 }, true))
+      .rejects.toThrow('verificationTimeoutMs must be at most 2147483647')
   })
 
   it('returns inactive without a page and lists stored tasks in a fresh turn', async () => {
@@ -237,6 +272,15 @@ describe('verified page-memory integration', () => {
     expect(context(await h.call('page_memory_get', { task: workflow.task }))).toContain('verified')
     h.page().settled = false
     expect(context(await h.call('page_memory_get'))).toContain('loading')
+  })
+
+  it('omits query and fragment values from model-visible recall', async () => {
+    const h = await harness()
+    h.page().url = 'https://shop.test/callback?state=opaque-secret#view'
+    const text = context(await h.call('page_memory_get', { task: workflow.task }))
+    expect(text).toContain('https://shop.test/callback')
+    expect(text).not.toContain('opaque-secret')
+    expect(text).not.toContain('#view')
   })
 
   it.each(['url', 'settled', 'final-page', 'action'] as const)('rejects changed %s during workflow verification', async (kind) => {
@@ -277,6 +321,33 @@ describe('verified page-memory integration', () => {
     expect(context(await h.call('page_memory_get'))).toContain('stale')
     vi.spyOn(h.browser, 'currentPage').mockRejectedValue(new Error('disconnected'))
     expect(JSON.stringify(await h.admit())).toContain('unavailable')
+  })
+
+  it('rechecks saved locators before returning workflow instructions', async () => {
+    const h = await harness()
+    await h.call('page_memory_get', { task: workflow.task }); await h.admit()
+    await h.call('browser_click', { target: '#save' }); await h.call('page_memory_upsert', workflow)
+    h.regions.delete('#search')
+    expect(context(await h.call('page_memory_get'))).toContain('"status":"unavailable"')
+    expect(h.reads.at(-1)).toBe('#search')
+    h.regions.set('#search', '- textbox "Search"')
+    expect(context(await h.call('page_memory_get'))).toContain('"status":"verified"')
+  })
+
+  it('rejects partial anchor text matches during live verification', async () => {
+    const h = await harness()
+    await h.call('page_memory_get', { task: workflow.task }); await h.admit()
+    await h.call('browser_click', { target: '#save' }); await h.call('page_memory_upsert', workflow)
+    h.regions.set('#title', '- heading "ArchivedOrders"')
+    expect(context(await h.call('page_memory_get'))).toContain('"status":"stale"')
+  })
+
+  it('keeps combining marks attached to anchor words during live verification', async () => {
+    const h = await harness()
+    await h.call('page_memory_get', { task: workflow.task }); await h.admit()
+    await h.call('browser_click', { target: '#save' }); await h.call('page_memory_upsert', workflow)
+    h.regions.set('#title', '- heading "Orders\u0301archive"')
+    expect(context(await h.call('page_memory_get'))).toContain('"status":"stale"')
   })
 
   it('does not publish or invalidate an old workflow when another writer replaces it during verification', async () => {
@@ -329,7 +400,9 @@ describe('verified page-memory integration', () => {
     await h.admit()
     h.setPage({ ...h.page(), url: 'https://shop.test/orders?tab=payments#list', tabId: 2, activeTabId: 2 })
     expect((await h.call('browser_click', { target: '#save' })).isError).toBe(true)
-    expect(JSON.stringify(await h.admit())).toContain('payments')
+    const changedPage = JSON.stringify(await h.admit())
+    expect(changedPage).toContain('https://shop.test/orders')
+    expect(changedPage).not.toContain('payments')
     expect(context(await h.call('page_memory_get'))).toContain('"status":"missing"')
     h.setPage({ ...h.page(), url: 'https://shop.test/orders?tab=open#list', tabId: 1, activeTabId: 1 })
     h.regions.set('#title', '- heading "Invoices"')
@@ -354,6 +427,18 @@ describe('verified page-memory integration', () => {
     context(await h.call('page_memory_upsert', { ...workflow, sourceUrl }))
     h.page().url = sourceUrl
     expect(context(await h.call('page_memory_get', { task: workflow.task }))).toContain('"status":"verified"')
+  })
+
+  it('rejects partial source anchor text before saving a cross-route workflow', async () => {
+    const h = await harness()
+    const sourceUrl = h.page().url
+    await h.call('page_memory_get', { task: workflow.task }); await h.admit()
+    h.regions.set('#title', '- heading "ArchivedOrders"')
+    context(await h.call('browser_snapshot', { target: '#title', depth: 1 }))
+    context(await h.call('browser_snapshot', { target: '#search', depth: 1 }))
+    h.page().url = 'https://shop.test/saved'; await h.admit()
+    context(await h.call('browser_click', { target: '#save' }))
+    expect((await h.call('page_memory_upsert', { ...workflow, sourceUrl })).isError).toBe(true)
   })
 
   it('rejects unverified success, transient refs, foreign workspaces, and oversized whole messages', async () => {

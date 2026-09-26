@@ -1,6 +1,11 @@
 {
   "name": "@hydra/harness-tool-todo",
   "description": "Model-facing todo_write tool over the Hydra harness event-sourced session log",
+  "hydra": {
+    "plugin": {
+      "application": "Let the agent maintain a visible task list within the conversation."
+    }
+  },
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"

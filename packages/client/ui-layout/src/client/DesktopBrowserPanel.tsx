@@ -178,6 +178,7 @@ export interface DesktopBrowserApi {
   removeHistory?(id: string): Promise<void>
   downloads?(): Promise<BrowserDownloadEntry[]>
   removeDownload?(id: string): Promise<void>
+  openDownload?(id: string): Promise<void>
   sites?(): Promise<BrowserSitePermission[]>
   setSite?(site: BrowserSitePermission): Promise<void>
   removeSite?(origin: string): Promise<void>
@@ -227,6 +228,11 @@ export interface DesktopPanelApi {
   onClose(listener: (kind: DesktopPanelShortcut) => void): () => void
 }
 
+export interface DesktopChromeApi {
+  dispatch(action: 'undo' | 'redo' | 'cut' | 'copy' | 'paste' | 'delete' | 'select-all' | 'zoom-in' | 'zoom-out' | 'reset-zoom' | 'toggle-fullscreen' | 'close' | 'quit'): Promise<void>
+  setTheme?(theme: { color: string; symbolColor: string } | null): void
+}
+
 declare global {
   interface Window {
     hydraDesktop?: {
@@ -234,6 +240,7 @@ declare global {
       terminal?: DesktopTerminalApi
       files?: DesktopFilesApi
       panels?: DesktopPanelApi
+      chrome?: DesktopChromeApi
     }
   }
 }

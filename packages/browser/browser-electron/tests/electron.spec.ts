@@ -723,6 +723,27 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
       const reverse = await child.call('select_text', { startX: endX, startY: y, endX: startX, endY: y }) as { selectedText: string }
       expect(reverse.selectedText).toBe('DEFGHI')
     }
+    await child.call('input_text', { name: 'input', text: 'Mai Hồng Phong' })
+    const wordMetrics = await child.call('execute_javascript', {
+      script: `const element = document.getElementById('input');
+        const style = getComputedStyle(element);
+        const context = document.createElement('canvas').getContext('2d');
+        context.font = [style.fontStyle, style.fontVariant, style.fontWeight, style.fontSize, style.fontFamily].join(' ');
+        const rect = element.getBoundingClientRect();
+        const left = rect.left + parseFloat(style.borderLeftWidth) + parseFloat(style.paddingLeft);
+        const startX = left + context.measureText('Mai ').width;
+        const endX = startX + context.measureText('Hồng').width + 4;
+        return JSON.stringify({ startX, endX, y: rect.top + rect.height / 2, caretX: left + context.measureText('Mai Hồng').width });`,
+    }) as ActionResult
+    const { startX, endX, y, caretX } = JSON.parse(wordMetrics.message.split('Result: ')[1] ?? '') as { startX: number; endX: number; y: number; caretX: number }
+    const wordSelection = await child.call('select_text', { startX, startY: y, endX, endY: y }) as { success: boolean; selectedText: string }
+    expect(wordSelection).toMatchObject({ success: true, selectedText: 'Hồng' })
+    const wordCursor = await child.call('execute_javascript', {
+      script: `const element = document.getElementById('input');
+        const cursor = document.querySelector('#page-agent-runtime_simulator-mask').lastElementChild;
+        return [element.selectionStart, element.selectionEnd, Math.abs(parseFloat(cursor.style.left) - ${caretX}) < 1.5].join('|')`,
+    }) as ActionResult
+    expect(wordCursor.message).toContain('4|8|true')
     const textarea = await child.call('select_text', { name: 'textarea' }) as { selectedText: string }
     expect(textarea.selectedText).toBe('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
     for (const name of ['empty', 'password', 'number']) {
@@ -1409,7 +1430,7 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
         startupTimeoutMs: 60_000,
         actionTimeoutMs: 30_000,
         readinessTimeoutMs: 10_000,
-        experimentalScriptExecution: false,
+        experimentalScriptExecution: true,
       })
       await visible.call('navigate', { url: spaStart })
       const background = await visible.call('get_browser_state', { waitForReady: true }) as BrowserState
@@ -1428,6 +1449,19 @@ describe.skipIf(!browserRunnable())('embedded browser against real Electron', ()
       expect(screenshot.tabId).not.toBe(background.tabId)
       expect([screenshot.width, screenshot.height].every(edge => edge > 0 && edge <= 2_000)).toBe(true)
       expect(png.subarray(0, 8)).toEqual(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))
+      const fullPage = await visible.call('browser_screenshot', { fullPage: true }) as BrowserScreenshot
+      expect(fullPage.mode).toBe('full-page')
+      expect(fullPage.height).toBeGreaterThanOrEqual(screenshot.height)
+      const clipped = await visible.call('browser_screenshot', { clip: { x: 0, y: 0, width: 120, height: 80 } }) as BrowserScreenshot
+      expect(clipped).toMatchObject({ mode: 'clip', clip: { x: 0, y: 0, width: 120, height: 80 } })
+      await visible.call('execute_javascript_page', { script: `
+        globalThis.__hydraPageWorld = 'ready';
+        document.querySelector('#submit').addEventListener('click', () => { globalThis.__hydraPageWorld = 'clicked' });
+      ` })
+      expect((await visible.call('execute_javascript_page', { script: 'return globalThis.__hydraPageWorld' }) as ActionResult).message).toContain('ready')
+      const rect = JSON.parse((await visible.call('execute_javascript_page', { script: 'const r = document.querySelector("#submit").getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }' }) as ActionResult).message) as { x: number; y: number }
+      await visible.call('click_at', rect)
+      expect((await visible.call('execute_javascript_page', { script: 'return globalThis.__hydraPageWorld' }) as ActionResult).message).toContain('clicked')
       await expect(visible.call('browser_screenshot', { tabId: background.tabId }))
         .rejects.toThrow('browser_screenshot does not accept tabId')
     } finally {

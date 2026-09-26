@@ -101,7 +101,8 @@ function renderPageMemory(state: Partial<PageMemoryCardState> = {}) {
     ...settled,
     role: field('operator'), locale: field('en-US'), storageDir: field(''),
     maxRecordBytes: field('32768'), maxWorkflows: field('12'), maxPages: field('500'),
-    maxContextBytes: field('8192'), maxObservations: field('32'), verificationTimeoutMs: field('5000'),
+    maxContextBytes: field('8192'), maxObservations: field('32'), maxHistory: field('256'),
+    verificationTimeoutMs: field('5000'),
     ...state,
   })
   const actions = cardActions()
@@ -361,6 +362,9 @@ describe('PageMemoryCard', () => {
     expect(screen.getByText(en.pageMemoryTitle)).toBeTruthy()
     fireEvent.click(screen.getByText(en.pageMemoryTitle))
     expect(screen.getByLabelText(en.pageMemoryRole)).toBeTruthy()
+    expect(screen.getByLabelText(en.pageMemoryMaxHistory)).toBeTruthy()
+    fireEvent.change(screen.getByLabelText(en.pageMemoryMaxHistory), { target: { value: '64' } })
+    expect(actions.edit).toHaveBeenCalledWith('maxHistory', '64')
     fireEvent.change(screen.getByLabelText(en.pageMemoryMaxWorkflows), { target: { value: '20' } })
     expect(actions.edit).toHaveBeenCalledWith('maxWorkflows', '20')
     fireEvent.click(screen.getByRole('button', { name: en.reset }))

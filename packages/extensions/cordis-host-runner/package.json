@@ -1,6 +1,11 @@
 {
   "name": "@hydra/harness-cordis-host-runner",
   "description": "Dynamic package definition registry, host-half sandbox lifecycle, and invoke handler table for model-mounted dual-half packages",
+  "hydra": {
+    "plugin": {
+      "application": "Register and run the Host half of dynamic plugins created by the agent."
+    }
+  },
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"

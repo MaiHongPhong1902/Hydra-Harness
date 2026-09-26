@@ -1,6 +1,11 @@
 {
   "name": "@hydra/harness-session-projection-cache",
   "description": "Persisted projection cache (ctx.sessionProjectionCache): durable per-session projection checkpoints over the domain data form, throttled write-behind, and the cold-read ladder (cache row + persistence tail replay)",
+  "hydra": {
+    "plugin": {
+      "application": "Cache derived session views to reduce work when reopening long conversations."
+    }
+  },
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"

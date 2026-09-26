@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Upload files selected or dropped into the conversation before sending them as attachments."
+    },
     "client": {
       "inject": [],
       "platform": "web",

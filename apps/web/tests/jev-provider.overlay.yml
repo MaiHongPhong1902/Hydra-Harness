@@ -7,3 +7,6 @@
 
 - id: ui-jev
   disabled: false
+
+- id: browser-decisions
+  disabled: false

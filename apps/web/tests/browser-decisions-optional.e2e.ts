@@ -31,7 +31,7 @@ describe('web e2e: browser decisions without Jev', () => {
     expect(result).toEqual({ available: false, reason: 'Jev provider is disabled or unavailable.' })
   })
 
-  it('finishes an agent turn after an unavailable decision and after removing the consumer', async () => {
+  it('finishes an agent turn after an unavailable decision', async () => {
     class DecisionAdapter extends LlmAdapter {
       requests: GenerateOptions[] = []
       override async *stream(request: GenerateOptions): AsyncIterable<StreamChunk> {
@@ -64,25 +64,26 @@ describe('web e2e: browser decisions without Jev', () => {
       expect(adapter.requests).toHaveLength(2)
       expect(JSON.stringify(adapter.requests[1]?.messages)).toContain('Jev provider is disabled or unavailable')
       expect(handle.agent.session.events.some(event => event.type === 'tool/result')).toBe(true)
-      const inventory = scaffold.ctx.get('pluginInventory') as PluginInventoryGateway
-      const entry = (await inventory.list()).entries.find(row => row.moduleName === '@hydra/harness-browser-decisions')!
-      await inventory.setEnabled({ entryId: entry.entryId, enabled: false })
-      expect(scaffold.ctx.tools.schemas(handle.agent).some(tool => tool.name === 'browser_decide')).toBe(false)
-      await run()
-      expect(adapter.requests).toHaveLength(3)
     } finally { await handle.dispose() }
   })
 
-  it('saves Jev and its UI together for restart while keeping browser decisions independent', async () => {
+  it('saves Jev, its UI, and its bounded consumer together for restart', async () => {
     const inventory = scaffold.ctx.get('pluginInventory') as PluginInventoryGateway
     const entry = (await inventory.list()).entries.find(row => row.moduleName === '@hydra/harness-jev')!
-    expect(entry).toMatchObject({ enabled: false, toggleable: true, relatedModules: ['@hydra/harness-client-ui-jev'] })
+    expect(entry).toMatchObject({ enabled: false, toggleable: true })
+    expect(entry.relatedModules).toEqual(expect.arrayContaining([
+      '@hydra/harness-browser-decisions', '@hydra/harness-client-ui-jev',
+    ]))
     const result = await inventory.setEnabled({ entryId: entry.entryId, enabled: true })
     expect(result.restartRequired).toBe(true)
     expect(scaffold.ctx.get('jev')).toBeUndefined()
     expect(result.snapshot.entries.find(row => row.entryId === entry.entryId)).toMatchObject({ pendingEnabled: true })
     const manifest: unknown = JSON.parse(await readFile(join(scaffold.harnessHome, 'profiles/scaffold/package.json'), 'utf8'))
-    expect(manifest).toMatchObject({ hydra: { profile: { pluginEnablement: { jev: true, 'ui-jev': true } } } })
-    expect(result.snapshot.entries.find(row => row.moduleName === '@hydra/harness-browser-decisions')?.enabled).toBe(false)
+    expect(manifest).toMatchObject({ hydra: { profile: { pluginEnablement: {
+      jev: true, 'ui-jev': true, 'browser-decisions': true,
+    } } } })
+    const jevEntry = result.snapshot.entries.find(row => row.moduleName === '@hydra/harness-jev')
+    expect(jevEntry).toMatchObject({ enabled: false, pendingEnabled: true, restartRequired: true })
+    expect(jevEntry?.relatedModules).toContain('@hydra/harness-browser-decisions')
   })
 })

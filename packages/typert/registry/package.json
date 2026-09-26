@@ -34,6 +34,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Keep the type and validation definitions used by plugin APIs and Remote calls."
+    },
     "client": {
       "inject": [],
       "platform": "web",

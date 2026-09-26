@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Manage plugin configuration, MCP connections, hooks, and marketplaces from Settings."
+    },
     "client": {
       "inject": [
         "@hydra/harness-client-connection",

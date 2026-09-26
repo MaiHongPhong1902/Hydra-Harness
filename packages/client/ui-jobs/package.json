@@ -22,6 +22,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Inspect running background jobs from the session header."
+    },
     "client": {
       "inject": [
         "@hydra/harness-client-locale",

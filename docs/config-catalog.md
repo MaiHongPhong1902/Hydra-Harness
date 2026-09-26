@@ -966,7 +966,7 @@ export interface Config {
 }
 ```
 
-Source: [`packages/host/plugin-inventory/src/index.ts:326`](../packages/host/plugin-inventory/src/index.ts)
+Source: [`packages/host/plugin-inventory/src/index.ts:372`](../packages/host/plugin-inventory/src/index.ts)
 
 <a id="hydraharness-host-webserver"></a>
 
@@ -1706,7 +1706,7 @@ export interface RouteRule {
 }
 ```
 
-Source: [`packages/knowledge/page-memory/src/index.ts:57`](../packages/knowledge/page-memory/src/index.ts)
+Source: [`packages/knowledge/page-memory/src/index.ts:63`](../packages/knowledge/page-memory/src/index.ts)
 
 <a id="hydraharness-permission-presets"></a>
 
@@ -2874,10 +2874,14 @@ export interface Config {
   outputDir?: string
   /** Cooperative tool-call budget (ms) per browser action. Defaults to 60000. */
   timeoutMs?: number
+  /** Register elevated CDP tools when the browser service grants access. */
+  enableCdpTools?: boolean
+  /** Auto-approve only browser CDP requests in this scoped plugin composition. */
+  autoApproveCdp?: boolean
 }
 ```
 
-Source: [`packages/browser/tool-browser/src/index.ts:47`](../packages/browser/tool-browser/src/index.ts)
+Source: [`packages/browser/tool-browser/src/index.ts:48`](../packages/browser/tool-browser/src/index.ts)
 
 <a id="hydraharness-tool-fs"></a>
 

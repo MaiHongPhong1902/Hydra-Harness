@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Follow the active session goal and its progress above the composer."
+    },
     "client": {
       "inject": [
         "@hydra/harness-client-runtime",

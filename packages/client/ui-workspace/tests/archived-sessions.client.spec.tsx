@@ -55,7 +55,7 @@ const t: ArchivedSessionsSectionProps['t'] = (key, params) => {
 
 function mount(
   archivedSessionIds: readonly SessionId[] = [sid('s-two'), sid('s-one')],
-  restoreSession = vi.fn(async () => {}),
+  restoreSession = vi.fn<(id: SessionId) => Promise<void>>().mockResolvedValue(undefined),
   overrides: Partial<ArchivedSessionsSectionProps> = {},
 ) {
   const props = {
@@ -143,5 +143,29 @@ describe('ArchivedSessionsSection', () => {
     fireEvent.click(within(dialog).getByRole('button', { name: 'Delete session' }))
     await waitFor(() => { expect(screen.queryByRole('dialog')).toBeNull() })
     expect(deleteSession).toHaveBeenCalledExactlyOnceWith(sid('s-one'))
+  })
+
+  it('restores the selected archived sessions in archive order', async () => {
+    const restoreSession = vi.fn<(id: SessionId) => Promise<void>>().mockResolvedValue(undefined)
+    mount(undefined, restoreSession)
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Select session Second chat' }))
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Select session First chat' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Restore selected' }))
+    await waitFor(() => { expect(restoreSession).toHaveBeenCalledTimes(2) })
+    expect(restoreSession.mock.calls.map(([id]) => id)).toEqual([sid('s-two'), sid('s-one')])
+    expect(screen.getByRole('status').textContent).toBe('0 selected')
+  })
+
+  it('confirms and deletes multiple selected archived sessions', async () => {
+    const deleteSession = vi.fn<(id: SessionId) => Promise<void>>()
+    mount(undefined, undefined, { deleteSession })
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Select all' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Delete selected' }))
+    const dialog = screen.getByRole('dialog')
+    expect(dialog.textContent).toContain('Second chat')
+    expect(dialog.textContent).toContain('First chat')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Delete selected sessions (2)' }))
+    await waitFor(() => { expect(deleteSession).toHaveBeenCalledTimes(2) })
+    expect(deleteSession.mock.calls.map(([id]) => id)).toEqual([sid('s-two'), sid('s-one')])
   })
 })

@@ -1,6 +1,11 @@
 {
   "name": "@hydra/harness-attachment-local",
   "description": "Private content-addressed HYDRA_HOME attachment storage",
+  "hydra": {
+    "plugin": {
+      "application": "Store uploaded attachments privately so later turns can refer to the same files."
+    }
+  },
   "version": "0.1.1-rc.1",
   "publishConfig": {
     "access": "public"
