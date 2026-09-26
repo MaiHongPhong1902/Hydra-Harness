@@ -73,6 +73,7 @@ import {
   authorizationAnswerRequestSchema, authorizationBeginRequestSchema,
   authorizationCancelRequestSchema, authorizationListRequestSchema,
   authorizationLogoutRequestSchema, authorizationStateRequestSchema,
+  authorizationUsageRequestSchema,
 } from '../api/authorization.schema.ts'
 import { webSearchProvidersRequestSchema, webSearchTestConnectionRequestSchema } from '../api/web-search.schema.ts'
 import { llmDiscoverModelsRequestSchema, llmModelsRequestSchema, llmProvidersRequestSchema } from '../api/llm.schema.ts'
@@ -166,6 +167,10 @@ const UNARY_ROUTES: UnaryRoutes = {
   'authorization.answer': { schema: authorizationAnswerRequestSchema, invoke: (api, r) => api.authorization.answer(r) },
   'authorization.cancel': { schema: authorizationCancelRequestSchema, invoke: (api, r) => api.authorization.cancel(r) },
   'authorization.logout': { schema: authorizationLogoutRequestSchema, invoke: (api, r) => api.authorization.logout(r) },
+  'authorization.usage': {
+    schema: authorizationUsageRequestSchema,
+    invoke: (api, r, signal) => api.authorization.usage(r, signal),
+  },
   'webSearch.providers': { schema: webSearchProvidersRequestSchema, invoke: (api, r) => api.webSearch.providers(r) },
   'webSearch.testConnection': { schema: webSearchTestConnectionRequestSchema, invoke: (api, r, signal) => api.webSearch.testConnection(r, signal) },
   'llm.providers': { schema: llmProvidersRequestSchema, invoke: (api, r) => api.llm.providers(r) },

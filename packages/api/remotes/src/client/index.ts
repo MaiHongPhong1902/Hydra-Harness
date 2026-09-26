@@ -74,6 +74,7 @@ export type {
   CredentialView, DirectoryListing, DiscoveredModelView, HistoryEntry, HostFrame, IApiClient,
   AuthorizationAccountView, AuthorizationApi, AuthorizationAttemptView, AuthorizationEntryView,
   AuthorizationNoticeView, AuthorizationPromptView,
+  AuthorizationUsageView,
   MessageId, ModelCatalogFailure, ModelProviderGroup, ModelReasoningEffort, ModelSelection,
   MuxFrame, PromptContentPart, QuestionResponsePayload, QueueAction, RpcError, RpcId, RpcReceipt,
   RpcRequest, RpcResponse, RpcResult, SessionId, SessionModels, SessionSearchItem,

@@ -57,10 +57,12 @@
         - paragraph: Requests rotate between accounts. Another account is tried when a request fails or reaches its quota.
         - list "Accounts":
           - listitem:
-            - text: alice@example.test
+            - text: "alice@example.test fixture · 5h 25% used (resets 1/15/2027, {{clock}}) · Banked resets: 1"
+            - button "Refresh usage for alice@example.test": ↻
             - button "Sign out alice@example.test": Sign out
           - listitem:
-            - text: bob@example.test
+            - text: "bob@example.test fixture · 5h 25% used (resets 1/15/2027, {{clock}}) · Banked resets: 1"
+            - button "Refresh usage for bob@example.test": ↻
             - button "Sign out bob@example.test": Sign out
         - button "Add account"
         - status:

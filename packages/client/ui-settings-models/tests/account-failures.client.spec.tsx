@@ -20,6 +20,7 @@ function apiFixture() {
     answer: vi.fn<AuthorizationApi['answer']>().mockResolvedValue(ok({})),
     cancel: vi.fn<AuthorizationApi['cancel']>().mockResolvedValue(ok({})),
     logout: vi.fn<AuthorizationApi['logout']>().mockResolvedValue(ok({})),
+    usage: vi.fn<AuthorizationApi['usage']>().mockResolvedValue(ok({})),
   }
 }
 

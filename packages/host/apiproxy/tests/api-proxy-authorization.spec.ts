@@ -7,6 +7,7 @@ import type {
   AuthorizationEntry,
   AuthorizationOutcome,
   AuthorizationService,
+  AuthorizationUsage,
 } from '@hydra/harness-authorization'
 import { credentialKey, type CredentialKey } from '@hydra/harness-credentials'
 import type { ApiProxy, RpcRequest, RpcResponse } from '../src/api/index.ts'
@@ -42,7 +43,7 @@ function entry(key: CredentialKey = KEY): AuthorizationEntry {
   }
 }
 
-type MockAuthorization = Pick<AuthorizationService, 'list' | 'describe' | 'begin' | 'cancel' | 'listAccounts' | 'removeAccount'>
+type MockAuthorization = Pick<AuthorizationService, 'list' | 'describe' | 'begin' | 'cancel' | 'listAccounts' | 'removeAccount' | 'getUsage'>
 
 function install(ctx: Context, overrides: Partial<MockAuthorization> = {}): MockAuthorization {
   const service: MockAuthorization = {
@@ -52,6 +53,7 @@ function install(ctx: Context, overrides: Partial<MockAuthorization> = {}): Mock
     cancel: () => {},
     listAccounts: async (): Promise<readonly AuthorizationAccount[]> => [],
     removeAccount: async (): Promise<void> => {},
+    getUsage: async (): Promise<AuthorizationUsage | undefined> => undefined,
     ...overrides,
   }
   ctx.provide('authorization', service)
@@ -102,6 +104,25 @@ describe('authorization RPC bridge', () => {
       }],
     })
     expect(JSON.stringify(value)).not.toContain('token')
+  })
+
+  it('returns provider usage for the selected account', async () => {
+    const ctx = new Context()
+    let selected: AuthorizationAccountId | undefined
+    install(ctx, {
+      listAccounts: async () => [{ id: authorizationAccountId('account-1'), label: 'user@example.com' }],
+      getUsage: async (_key, accountId) => {
+        selected = accountId
+        return { planType: 'plus', limits: [
+          { name: '5h', windowMinutes: 300, usedPercent: 25, resetsAt: 1_800_000_000 },
+          { name: 'weekly', windowMinutes: 10_080, usedPercent: 50, resetsAt: 1_800_500_000 },
+        ], bankedResetCount: 2, fetchedAt: 1_700_000_000 }
+      },
+    })
+    const value = expectOk(await apiFor(ctx).authorization.usage(request({ key: String(KEY), accountId: 'account-1' })))
+    expect(selected).toBe('account-1')
+    expect(value.usage?.bankedResetCount).toBe(2)
+    expect(value.usage?.limits.map(limit => limit.name)).toEqual(['5h', 'weekly'])
   })
 
   it('bridges notices, prompts, select validation, and terminal state', async () => {

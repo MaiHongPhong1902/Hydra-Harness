@@ -33,13 +33,14 @@ import { HarnessError } from '@hydra/harness-llm'
 import type {
   AuthorizationAccount, AuthorizationAccountId, AuthorizationAccounts, AuthorizationEntry,
   AuthorizationMethod, AuthorizationNotice, AuthorizationOutcome, AuthorizationPrompt,
-  AuthorizationSettlement,
+  AuthorizationSettlement, AuthorizationUsage,
 } from './types.ts'
 
 export type {
   AuthorizationAccount, AuthorizationAccountId, AuthorizationAccounts, AuthorizationEntry,
   AuthorizationMethod, AuthorizationNotice, AuthorizationOutcome, AuthorizationPrompt,
-  AuthorizationPromptOption, AuthorizationSettlement, AuthorizationStatus,
+  AuthorizationPromptOption, AuthorizationSettlement, AuthorizationStatus, AuthorizationUsage,
+  AuthorizationUsageWindow,
 } from './types.ts'
 
 declare module '@hydra/cordis' {
@@ -253,6 +254,26 @@ export class AuthorizationService extends Service {
       throw new AuthorizationError(`no authorization flow is registered for "${key}"`, 'NO_FLOW')
     }
     return flow.accounts === undefined ? [] : [...await flow.accounts.list()]
+  }
+
+  /**
+   * Fetch provider usage for a connected account; credentials remain with its flow.
+   * @param key - owning authorization flow.
+   * @param accountId - connected account identity.
+   * @param signal - cancellation for provider work.
+   * @returns usage, or undefined when the flow does not support usage reports.
+   * @throws when the flow or account is absent, or the provider request fails.
+   */
+  async getUsage(key: CredentialKey, accountId: AuthorizationAccountId, signal?: AbortSignal): Promise<AuthorizationUsage | undefined> {
+    const flow = this.flows.get(key)
+    if (flow === undefined) {
+      throw new AuthorizationError(`no authorization flow is registered for "${key}"`, 'NO_FLOW')
+    }
+    signal?.throwIfAborted()
+    if (!flow.accounts || !(await flow.accounts.list()).some(account => account.id === accountId)) {
+      throw new AuthorizationError('account is unavailable', 'NO_ACCOUNT')
+    }
+    return flow.accounts.usage?.(accountId, signal)
   }
 
   /**

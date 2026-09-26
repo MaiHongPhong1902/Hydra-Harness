@@ -77,6 +77,7 @@ export class FakeApiClient implements IApiClient {
     answer: async () => { throw new Error('authorization unavailable') },
     cancel: async () => ok({}),
     logout: async () => ok({}),
+    usage: async () => ok({}),
   }
   readonly review: IApiClient['review'] = {
     list: async () => ok({ changes: [] }),

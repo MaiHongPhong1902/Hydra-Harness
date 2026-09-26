@@ -64,6 +64,8 @@ export interface AccountProviderProfile {
 
 /** Plugin settings, keyed by the route names `chatgpt` and `antigravity`. */
 export interface Config {
+  /** Maximum time for one account usage request, including credential refresh. */
+  usageTimeoutMs?: number
   /** Enabled account-backed routes. An empty map leaves both routes dormant. */
   providers?: Record<string, AccountProviderProfile>
 }
@@ -97,6 +99,7 @@ const providerProfile: z<AccountProviderProfile> = z.object({
 
 /** Schema used by the settings section and composition loader. */
 export const Config: z<Config> = z.object({
+  usageTimeoutMs: z.number().step(1).min(1).max(MAX_TIMER_DELAY_MS).default(15_000),
   providers: z.dict(providerProfile).default({}),
 })
 

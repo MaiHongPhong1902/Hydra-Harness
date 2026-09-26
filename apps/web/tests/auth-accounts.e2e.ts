@@ -63,6 +63,8 @@ async function addAccount(dialog: Locator, providerName: string, label: string):
   await dialog.getByText('Account connected. Apply to make this provider available in the model selector.', { exact: true })
     .waitFor({ timeout: 10_000 })
   await expect.poll(() => dialog.getByText(label, { exact: true }).count(), { timeout: 10_000 }).toBe(1)
+  const row = dialog.getByRole('listitem').filter({ hasText: label })
+  await expect.poll(() => row.locator('small').filter({ hasText: 'fixture' }).count(), { timeout: 10_000 }).toBeGreaterThan(0)
 }
 
 async function applyEditor(dialog: Locator, buttonName: string): Promise<void> {

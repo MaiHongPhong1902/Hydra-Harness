@@ -313,6 +313,9 @@ function fakeApi(overrides: Partial<{ muxFrames: MuxFrame[]; hostFrames: HostFra
       async logout(request) {
         return { rpcId: request.rpcId, result: { ok: true, value: {} } }
       },
+      async usage(request) {
+        return { rpcId: request.rpcId, result: { ok: true, value: {} } }
+      },
     },
     webSearch: {
       providers: async request => ({ rpcId: request.rpcId, result: { ok: true, value: { providers: [] } } }),

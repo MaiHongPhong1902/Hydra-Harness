@@ -74,6 +74,7 @@ export type {
   AuthorizationEntryView,
   AuthorizationNoticeView,
   AuthorizationPromptView,
+  AuthorizationUsageView,
 } from './authorization.ts'
 export type { ConfigurableProviderView, DiscoveredModelView, LlmApi } from './llm.ts'
 export type { WebSearchApi, WebSearchProviderDescriptor, SearchConfigField, SearchConnectionResult } from './web-search.ts'

@@ -139,6 +139,7 @@ function scriptedApi(overrides: {
       answer: r => ok(r, {}),
       cancel: r => ok(r, {}),
       logout: r => ok(r, {}),
+      usage: r => ok(r, {}),
       ...overrides.authorization,
     },
     webSearch: {

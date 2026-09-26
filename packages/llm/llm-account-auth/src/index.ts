@@ -126,7 +126,15 @@ export function apply(ctx: Context, config: Config): void {
   ctx.inject(['authorization'], (authorized) => {
     for (const { provider, key, pool } of routes) {
       authorized.authorization.registerFlow({
-        key, label: ACCOUNT_PROVIDER_LABELS[provider], accounts: pool.accounts,
+        key, label: ACCOUNT_PROVIDER_LABELS[provider],
+        accounts: {
+          ...pool.accounts,
+          async usage(id, signal) {
+            const { readAccountUsage } = await import('./usage.ts')
+            return readAccountUsage(pool, id, provider, profiles().get(provider) ?? emptyProfile,
+              source().usageTimeoutMs ?? 15_000, signal)
+          },
+        },
         methods: [{ id: 'oauth', label: 'Sign in with ' + ACCOUNT_PROVIDER_LABELS[provider] }],
         async run(session) {
           if (provider === 'chatgpt') {

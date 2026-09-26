@@ -338,6 +338,20 @@
   overflow-wrap: anywhere;
 }
 
+.accountIdentity {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.accountRow small {
+  display: block;
+  margin: 0;
+  color: var(--dsw-alias-label-tertiary);
+}
+
 .addBlock {
   display: flex;
   flex-direction: column;

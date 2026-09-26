@@ -1,7 +1,9 @@
 /** Account login and per-account sign-out through the Host authorization flows. */
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import type { AuthorizationAttemptView, AuthorizationEntryView, IApiClient } from '@hydra/harness-api-remotes/client'
+import type {
+  AuthorizationAttemptView, AuthorizationEntryView, AuthorizationUsageView, IApiClient,
+} from '@hydra/harness-api-remotes/client'
 import { messageOf } from './store.ts'
 import type { en } from './locales.ts'
 import styles from './ModelsSection.module.css'
@@ -22,6 +24,23 @@ interface ProviderAccountsProps {
   onBusy: (busy: boolean) => void
 }
 
+function usageText(value: AuthorizationUsageView | undefined, t: ProviderAccountsProps['t']): string {
+  if (value === undefined) return ''
+  const limits = value.limits.map((limit) => {
+    const window = limit.windowMinutes === 300 ? t('accountUsageWindow5h')
+      : limit.windowMinutes === 10_080 ? t('accountUsageWindowWeekly') : limit.name
+    const name = limit.name === 'Codex' ? window : limit.name === window ? window : `${limit.name} ${window}`
+    const reset = limit.resetsAt === undefined ? ''
+      : ` (${t('accountResetAt').replace('{time}', new Date(limit.resetsAt * 1000).toLocaleString())})`
+    const percent = t('accountUsagePercent')
+      .replace('{name}', name).replace('{percent}', String(Math.round(limit.usedPercent)))
+    return ` · ${percent}${reset}`
+  }).join('')
+  const banked = value.bankedResetCount === undefined ? ` · ${t('accountBankedResetsUnavailable')}`
+    : ` · ${t('accountBankedResets').replace('{count}', String(value.bankedResetCount))}`
+  return `${value.planType ?? 'Account'}${limits}${banked}`
+}
+
 /**
  * Render all accounts, the active login instructions, and account actions.
  * Closing the editor cancels the attempt it owns, including a late begin response.
@@ -34,8 +53,12 @@ export function ProviderAccounts({ flowKey, api, t, disabled, onBusy }: Provider
   const [answer, setAnswer] = useState('')
   const [busy, setBusy] = useState(false)
   const [failure, setFailure] = useState<string>()
+  const [usage, setUsage] = useState<Record<string, AuthorizationUsageView | undefined>>({})
+  const [usageFailure, setUsageFailure] = useState<Record<string, boolean>>({})
   const lifetime = useRef<object | undefined>(undefined)
   const activeAttempt = useRef<string | undefined>(undefined)
+  const usageSequence = useRef(new Map<string, number>())
+  const usageControllers = useRef(new Map<string, AbortController>())
   useEffect(() => { setAnswer('') }, [attempt?.prompt?.id])
 
   useEffect(() => {
@@ -58,6 +81,48 @@ export function ProviderAccounts({ flowKey, api, t, disabled, onBusy }: Provider
       onBusy(false)
     }
   }, [api, flowKey, onBusy, t])
+
+  const requestUsage = useCallback((accountId: string): void => {
+    const token = lifetime.current
+    if (token === undefined) return
+    const sequence = (usageSequence.current.get(accountId) ?? 0) + 1
+    usageSequence.current.set(accountId, sequence)
+    usageControllers.current.get(accountId)?.abort()
+    const controller = new AbortController()
+    usageControllers.current.set(accountId, controller)
+    setUsage(current => ({ ...current, [accountId]: undefined }))
+    setUsageFailure(current => ({ ...current, [accountId]: false }))
+    void api.usage({ key: flowKey, accountId }, controller.signal).then((response) => {
+      if (lifetime.current !== token || usageSequence.current.get(accountId) !== sequence) return
+      const value = response.result
+      if (!value.ok) throw new Error(value.error.message)
+      if (value.value.usage === undefined) {
+        setUsageFailure(current => ({ ...current, [accountId]: true }))
+      } else {
+        setUsage(current => ({ ...current, [accountId]: value.value.usage }))
+      }
+    }).catch(() => {
+      if (lifetime.current === token && usageSequence.current.get(accountId) === sequence) {
+        setUsageFailure(current => ({ ...current, [accountId]: true }))
+      }
+    }).finally(() => {
+      if (usageControllers.current.get(accountId) === controller) usageControllers.current.delete(accountId)
+    })
+  }, [api, flowKey])
+
+  useEffect(() => {
+    const accounts = entry?.accounts ?? []
+    setUsage(() => Object.fromEntries(accounts.map(account => [account.id, undefined])))
+    setUsageFailure({})
+    for (const account of accounts) requestUsage(account.id)
+    return () => {
+      for (const account of accounts) {
+        usageControllers.current.get(account.id)?.abort()
+        usageControllers.current.delete(account.id)
+        usageSequence.current.set(account.id, (usageSequence.current.get(account.id) ?? 0) + 1)
+      }
+    }
+  }, [entry?.accounts, requestUsage])
 
   const attemptId = attempt?.status === 'running' ? attempt.id : undefined
   useEffect(() => {
@@ -148,7 +213,15 @@ export function ProviderAccounts({ flowKey, api, t, disabled, onBusy }: Provider
       <ul className={styles['accountList']} aria-label={t('accounts')}>
         {entry?.accounts.map(account => (
           <li key={account.id} className={styles['accountRow']}>
-            <span>{account.label}</span>
+            <div className={styles['accountIdentity']}>
+              <span>{account.label}</span>
+              {usage[account.id] === undefined
+                ? <small>{usageFailure[account.id] ? t('accountUsageUnavailable') : t('accountUsageLoading')}</small>
+                : <small>{usageText(usage[account.id], t)}</small>}
+            </div>
+            <button type="button" className={styles['secondaryButton']} disabled={disabled || busy || running}
+              aria-label={t('accountUsageRefresh').replace('{account}', account.label)}
+              onClick={() => { requestUsage(account.id) }}>↻</button>
             <button type="button" className={styles['secondaryButton']} disabled={disabled || busy || running}
               aria-label={t('accountSignOutLabel').replace('{account}', account.label)}
               onClick={() => { void act(async () => {

@@ -3089,6 +3089,7 @@ function createFixtureWorld(options: FixtureOptions): FixtureWorld {
       answer: request => ok(request, {}),
       cancel: request => ok(request, {}),
       logout: request => ok(request, {}),
+      usage: request => ok(request, {}),
     },
     webSearch: {
       providers: request => ok(request, { providers: [] }),
@@ -3298,6 +3299,7 @@ export class FixtureApiClient extends AbstractApiClient {
       case 'authorization.answer': return this.api.authorization.answer(request)
       case 'authorization.cancel': return this.api.authorization.cancel(request)
       case 'authorization.logout': return this.api.authorization.logout(request)
+      case 'authorization.usage': return this.api.authorization.usage(request, signal)
       case 'webSearch.providers': return this.api.webSearch.providers(request)
       case 'webSearch.testConnection': return this.api.webSearch.testConnection(request)
       case 'llm.providers': return this.api.llm.providers(request)

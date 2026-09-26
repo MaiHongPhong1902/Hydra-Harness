@@ -244,6 +244,7 @@ export class FakeApiClient implements IApiClient {
     answer: payload => this.record('authorization.answer', payload, Promise.resolve(ok({}))),
     cancel: payload => this.record('authorization.cancel', payload, Promise.resolve(ok({}))),
     logout: payload => this.record('authorization.logout', payload, Promise.resolve(ok({}))),
+    usage: payload => this.record('authorization.usage', payload, Promise.resolve(ok({}))),
   }
 
   readonly webSearch: IApiClient['webSearch'] = {

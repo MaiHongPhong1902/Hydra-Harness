@@ -7,6 +7,7 @@ import type {
   AuthorizationAccount,
   AuthorizationAccounts,
   AuthorizationFlow,
+  AuthorizationUsage,
 } from '@hydra/harness-authorization'
 import { LlmAdapter } from '@hydra/harness-llm'
 import type {
@@ -72,6 +73,14 @@ function accountStore(ctx: Context, key: ReturnType<typeof credentialKey>): Auth
         const accounts = entriesFromRecord(current).filter(account => account.id !== id)
         return { kind: 'grant', payload: { accounts } }
       })
+    },
+    async usage(): Promise<AuthorizationUsage> {
+      return {
+        planType: 'fixture',
+        limits: [{ name: '5h', windowMinutes: 300, usedPercent: 25, resetsAt: 1_800_000_000 }],
+        bankedResetCount: 1,
+        fetchedAt: 1_800_000_000,
+      }
     },
   }
 }

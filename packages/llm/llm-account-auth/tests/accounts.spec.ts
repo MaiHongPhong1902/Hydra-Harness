@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { createServer } from 'node:http'
 import { Context } from '@hydra/cordis'
 import { CredentialProvider, credentialKey } from '@hydra/harness-credentials'
 import type { Credential } from '@earendil-works/pi-ai'
@@ -12,6 +13,7 @@ import type {
   ResolvedCredential,
 } from '@hydra/harness-credentials'
 import { createAccountPool, emptyAuthContext, parseAccountPool } from '../src/accounts.ts'
+import { readAccountUsage } from '../src/usage.ts'
 import type { StreamChunk } from '@hydra/harness-llm'
 
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals() })
@@ -66,16 +68,16 @@ class MemoryCredentials extends CredentialProvider {
   }
 }
 
-async function fixture(): Promise<{ ctx: Context; pool: ReturnType<typeof createAccountPool> }> {
+async function fixture(provider: 'chatgpt' | 'antigravity' = 'chatgpt'): Promise<{ ctx: Context; pool: ReturnType<typeof createAccountPool> }> {
   const ctx = new Context()
   await ctx.plugin(MemoryCredentials)
   return {
     ctx,
     pool: createAccountPool({
       ctx,
-      key: credentialKey('llm-account-auth', 'chatgpt'),
-      providerId: 'chatgpt',
-      providerLabel: 'ChatGPT',
+      key: credentialKey('llm-account-auth', provider),
+      providerId: provider,
+      providerLabel: provider === 'chatgpt' ? 'ChatGPT' : 'Antigravity',
     }),
   }
 }
@@ -260,6 +262,154 @@ describe('account pools', () => {
     } finally {
       await ctx.fiber.dispose()
     }
+  })
+
+  it('normalizes the official ChatGPT windows and banked reset credits', async () => {
+    const { ctx, pool } = await fixture()
+    try {
+      const account = await pool.add('ChatGPT', {
+        type: 'oauth', access: 'access', refresh: 'refresh', expires: Date.now() + 60_000,
+        accountId: 'account-1',
+      })
+      const requests: Array<{ url: string; init?: RequestInit }> = []
+      vi.stubGlobal('fetch', vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
+        const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
+        requests.push({ url, ...(init === undefined ? {} : { init }) })
+        return new Response(JSON.stringify(url.endsWith('/usage')
+          ? { plan_type: 'plus', rate_limit: {
+            primary_window: { used_percent: 25, limit_window_seconds: 18_000, reset_at: 1_800_000_000 },
+            secondary_window: { used_percent: 50, limit_window_seconds: 604_800, reset_at: 1_800_500_000 },
+          } } : { available_count: 2 }), { status: 200, headers: { 'content-type': 'application/json' } })
+      }))
+      const usage = await readAccountUsage(pool, account.id, 'chatgpt', {}, 5_000)
+      expect(usage.planType).toBe('plus')
+      expect(usage.limits.map(limit => [limit.name, limit.windowMinutes, limit.usedPercent])).toEqual([
+        ['Codex', 300, 25], ['Codex', 10_080, 50],
+      ])
+      expect(usage.bankedResetCount).toBe(2)
+      expect(requests.map(request => request.url)).toEqual([
+        'https://chatgpt.com/backend-api/wham/usage',
+        'https://chatgpt.com/backend-api/wham/rate-limit-reset-credits',
+      ])
+      expect(requests[0]?.init?.headers).toMatchObject({
+        accept: 'application/json', authorization: 'Bearer access', 'chatgpt-account-id': 'account-1',
+      })
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('keeps usage when the optional banked reset endpoint is unavailable', async () => {
+    const { ctx, pool } = await fixture()
+    try {
+      const account = await pool.add('ChatGPT', {
+        type: 'oauth', access: 'access', refresh: 'refresh', expires: Date.now() + 60_000,
+        accountId: 'account-2',
+      })
+      vi.stubGlobal('fetch', vi.fn(async (input: string | URL | Request) => {
+        const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
+        return url.endsWith('/usage')
+          ? Response.json({ plan_type: 'plus', rate_limit: { primary_window: { used_percent: 0 } } })
+          : new Response('missing', { status: 404 })
+      }))
+      const usage = await readAccountUsage(pool, account.id, 'chatgpt', {}, 5_000)
+      expect(usage.limits).toEqual([{ name: 'Codex', usedPercent: 0 }])
+      expect(usage.bankedResetCount).toBeUndefined()
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('reads Antigravity quota and tier through the configured endpoint', async () => {
+    const { ctx, pool } = await fixture('antigravity')
+    const server = createServer((request, response) => {
+      const chunks: Buffer[] = []
+      request.on('data', chunk => chunks.push(Buffer.from(String(chunk))))
+      request.on('end', () => {
+        const body = Buffer.concat(chunks).toString()
+        if (request.url === '/v1internal:fetchAvailableModels') {
+          expect(request.method).toBe('POST')
+          expect(request.headers.authorization).toBe('Bearer access')
+          expect(JSON.parse(body)).toEqual({ project: 'project-1' })
+          response.setHeader('content-type', 'application/json')
+          response.end(JSON.stringify({ models: {
+            gemini: { displayName: 'Gemini', quotaInfo: { remainingFraction: 0.75, resetTime: '2026-09-27T00:00:00Z' } },
+            internal: { isInternal: true, quotaInfo: { remainingFraction: 0.1 } },
+          } }))
+          return
+        }
+        expect(request.url).toBe('/v1internal:loadCodeAssist')
+        expect(request.method).toBe('POST')
+        expect(request.headers.authorization).toBe('Bearer access')
+        expect(JSON.parse(body)).toMatchObject({ cloudaicompanionProject: 'project-1' })
+        response.setHeader('content-type', 'application/json')
+        response.end(JSON.stringify({ paidTier: { name: 'Pro' } }))
+      })
+    })
+    await new Promise<void>((resolve, reject) => {
+      server.once('error', reject)
+      server.listen(0, '127.0.0.1', resolve)
+    })
+    try {
+      const address = server.address()
+      if (address === null || typeof address === 'string') throw new Error('test server did not expose a port')
+      const account = await pool.add('Antigravity', {
+        type: 'oauth', access: 'access', refresh: 'refresh', expires: Date.now() + 60_000,
+        projectId: 'project-1',
+      })
+      const usage = await readAccountUsage(pool, account.id, 'antigravity', {
+        endpoint: `http://127.0.0.1:${address.port}`,
+      }, 5_000)
+      expect(usage.planType).toBe('Pro')
+      expect(usage.limits).toEqual([{
+        name: 'Gemini', usedPercent: 25, resetsAt: Math.floor(Date.parse('2026-09-27T00:00:00Z') / 1000),
+      }])
+    } finally {
+      await new Promise<void>((resolve, reject) => server.close((error) => {
+        if (error === undefined) resolve()
+        else reject(error)
+      }))
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('reports unavailable Antigravity quotas and rejects invalid fractions', async () => {
+    const read = async (models: Record<string, unknown>) => {
+      const { ctx, pool } = await fixture('antigravity')
+      const server = createServer((request, response) => {
+        request.resume()
+        request.on('end', () => {
+          response.setHeader('content-type', 'application/json')
+          response.end(JSON.stringify(request.url?.endsWith(':fetchAvailableModels')
+            ? { models } : {}))
+        })
+      })
+      await new Promise<void>((resolve, reject) => {
+        server.once('error', reject)
+        server.listen(0, '127.0.0.1', resolve)
+      })
+      try {
+        const address = server.address()
+        if (address === null || typeof address === 'string') throw new Error('test server did not expose a port')
+        const account = await pool.add('Antigravity', {
+          type: 'oauth', access: 'access', refresh: 'refresh', expires: Date.now() + 60_000,
+          projectId: 'project-2',
+        })
+        return await readAccountUsage(pool, account.id, 'antigravity', {
+          endpoint: `http://127.0.0.1:${address.port}`,
+        }, 5_000)
+      } finally {
+        await new Promise<void>((resolve, reject) => server.close((error) => {
+          if (error === undefined) resolve()
+          else reject(error)
+        }))
+        await ctx.fiber.dispose()
+      }
+    }
+    const unavailable = await read({ gemini: { displayName: 'Gemini' } })
+    expect(unavailable.limits).toEqual([])
+    expect(unavailable.planType).toBeUndefined()
+    await expect(read({ gemini: { quotaInfo: { remainingFraction: 2 } } })).rejects.toMatchObject({ code: 'MALFORMED_RESPONSE' })
   })
 
   it('hashes oversized combined token identities without collapsing users', async () => {

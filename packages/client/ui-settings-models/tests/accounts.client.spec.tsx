@@ -36,6 +36,7 @@ it('adds a second account and signs out only the selected account', async () => 
       accounts = accounts.filter(account => account.id !== accountId)
       return ok({})
     }),
+    usage: vi.fn(async () => ok({})),
   }
   const onBusy = vi.fn()
   const openExternal = vi.fn(async () => undefined)
@@ -72,6 +73,7 @@ it('cancels a login whose begin response arrives after the editor closes', async
       inFlight: false, accounts: [] }] }),
     begin: vi.fn(() => new Promise<RpcResponse<{ attemptId: string }>>((resolve) => { finishBegin = resolve })),
     cancel: vi.fn(async () => { throw new Error('connection closed') }),
+    usage: vi.fn(async () => ok({})),
   }
   const view = render(<ProviderAccounts flowKey={flowKey} api={api as unknown as IApiClient['authorization']}
     t={t} disabled={false} onBusy={vi.fn()} />)
@@ -80,6 +82,26 @@ it('cancels a login whose begin response arrives after the editor closes', async
   view.unmount()
   finishBegin(ok({ attemptId: 'late' }))
   await waitFor(() => { expect(api.cancel).toHaveBeenCalledWith({ attemptId: 'late' }) })
+})
+
+it('shows provider-reported windows and banked resets per account', async () => {
+  const usage = vi.fn(async () => ok({ usage: {
+    planType: 'plus', limits: [
+      { name: 'Codex', windowMinutes: 300, usedPercent: 25, resetsAt: 1_800_000_000 },
+      { name: 'Codex', windowMinutes: 10_080, usedPercent: 50, resetsAt: 1_800_500_000 },
+    ], bankedResetCount: 2, fetchedAt: 1_700_000_000,
+  } }))
+  const api = {
+    list: async () => ok({ entries: [{ key: flowKey, label: 'ChatGPT', methods: [{ id: 'oauth', label: 'Sign in' }],
+      inFlight: false, accounts: [{ id: 'alice', label: 'alice@example.test' }] }] }),
+    usage,
+  }
+  render(<ProviderAccounts flowKey={flowKey} api={api as unknown as IApiClient['authorization']} t={t} disabled={false} onBusy={vi.fn()} />)
+  await screen.findByText(/5h 25% used/)
+  expect(screen.getByText(/weekly 50% used/)).toBeDefined()
+  expect(screen.getByText(/Banked resets: 2/)).toBeDefined()
+  fireEvent.click(screen.getByRole('button', { name: en.accountUsageRefresh.replace('{account}', 'alice@example.test') }))
+  await waitFor(() => { expect(usage).toHaveBeenCalledTimes(2) })
 })
 
 it('requires a connected account for an active account-backed provider', () => {
@@ -103,7 +125,7 @@ it.each(['chatgpt', 'future-provider'])('saves %s without requiring or storing a
       value: { providers: {} }, base: {}, user: {} }} schema={settingsSchema} t={t} readOnly={false} onClose={onClose}
     api={{ settings: { mutate }, credentials: { describe, set },
       authorization: { list: async () => ok({ entries: [{ key: flowKey, label: 'ChatGPT', methods: [{ id: 'oauth', label: 'Sign in' }],
-        inFlight: false, accounts: [] }] }) } } as never} />)
+        inFlight: false, accounts: [] }] }), usage: async () => ok({}) } } as never} />)
   expect(screen.queryByLabelText(en.keyInput)).toBeNull()
   if (provider === 'chatgpt') {
     await screen.findByText(en.accountsEmpty)

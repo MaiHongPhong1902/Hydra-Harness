@@ -287,7 +287,7 @@ describe('ModelsSection', () => {
     Object.assign(scripted.face, { authorization: { list: async () => ok({ entries: [{
       key: 'llm-account-auth/chatgpt', label: 'ChatGPT', methods: [{ id: 'oauth', label: 'Sign in' }], inFlight: false,
       accounts: count === 0 ? [] : [{ id: 'a', label: 'Alice' }],
-    }] }) } })
+    }] }), usage: async () => ok({}) } })
     await mountFace(scripted)
     expect(screen.getByRole('img', { name: count === 0 ? en.accountMissing : en.accountConfigured })).not.toBeNull()
     fireEvent.click(screen.getByRole('button', { name: en.accountProviderAdd }))

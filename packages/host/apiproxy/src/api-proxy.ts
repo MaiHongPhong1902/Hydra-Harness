@@ -3983,6 +3983,23 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
         }
         return ok(request, {})
       },
+
+      async usage(request, signal) {
+        const authorization = ctx.get('authorization')
+        if (authorization === undefined) return authorizationFailure(request, 'authorization is unavailable')
+        let key: import('@hydra/harness-credentials').CredentialKey
+        try {
+          key = parseCredentialKey(request.payload.key)
+        } catch {
+          return authorizationFailure(request, 'authorization flow is unavailable')
+        }
+        try {
+          const usage = await authorization.getUsage(key, authorizationAccountId(request.payload.accountId), signal)
+          return ok(request, usage === undefined ? {} : { usage })
+        } catch {
+          return authorizationFailure(request, 'Account usage could not be loaded. Try again or sign in again.')
+        }
+      },
     },
 
     credentials: {

@@ -16,6 +16,8 @@ Choose **Apply** after the accounts are saved. The model selector then lists the
 
 The account flow stores provider credentials in the Host credential service and does not start a sidecar or background refresh process. Expired Antigravity access tokens refresh only when a model request or live model discovery needs that account.
 
+The **Account sign-in** list can request provider-reported usage for each account. ChatGPT reports its five-hour and weekly windows plus any banked reset credits when the official usage endpoints return them; Antigravity reports model quotas and the account tier when its Cloud Code Assist response includes them. Missing provider fields remain unavailable instead of being guessed, and credentials stay in the Host.
+
 ## Model Experience
 
 ### Provider request

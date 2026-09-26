@@ -73,6 +73,30 @@ export interface AuthorizationAccount {
   label: string
 }
 
+/** One provider-reported rate-limit window. Percentages are used values. */
+export interface AuthorizationUsageWindow {
+  /** Provider feature or model whose allowance this measures. */
+  name: string
+  /** Provider window duration in minutes when supplied. */
+  windowMinutes?: number
+  /** Percentage consumed in this window. */
+  usedPercent: number
+  /** Unix timestamp at which this window resets. */
+  resetsAt?: number
+}
+
+/** Provider-reported usage for one connected account. */
+export interface AuthorizationUsage {
+  /** Provider subscription or account tier. */
+  planType?: string
+  /** Only windows supplied by the provider; an empty list means unreported. */
+  limits: AuthorizationUsageWindow[]
+  /** Number of banked resets currently available. */
+  bankedResetCount?: number
+  /** Unix timestamp in seconds when this report was fetched successfully. */
+  fetchedAt: number
+}
+
 /** Account inventory and removal operations owned by an authorization flow. */
 export interface AuthorizationAccounts {
   /**
@@ -85,6 +109,13 @@ export interface AuthorizationAccounts {
    * @param id - the opaque account id returned by {@link list}.
    */
   remove(id: AuthorizationAccountId): Promise<void>
+  /**
+   * Fetch usage from the provider without returning credentials.
+   * @param id - connected account identity.
+   * @param signal - cancellation for refresh and provider requests.
+   * @returns reported usage, or undefined when unsupported.
+   */
+  usage?(id: AuthorizationAccountId, signal?: AbortSignal): Promise<AuthorizationUsage | undefined>
 }
 
 declare module '@hydra/cordis' {

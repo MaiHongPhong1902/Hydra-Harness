@@ -7,6 +7,7 @@ import type {
   AuthorizationMethod,
   AuthorizationNotice,
   AuthorizationPromptOption,
+  AuthorizationUsage,
 } from '@hydra/harness-authorization/types'
 import type { RpcRequest, RpcResponse } from './rpc.ts'
 
@@ -15,6 +16,9 @@ export interface AuthorizationAccountView {
   id: string
   label: string
 }
+
+/** Provider usage view returned for one connected account. */
+export type AuthorizationUsageView = AuthorizationUsage
 
 /** One login flow and its value-free account inventory. */
 export interface AuthorizationEntryView {
@@ -65,4 +69,9 @@ export interface AuthorizationApi {
 
   /** Remove one provider-owned account from a flow's credential pool. */
   logout(request: RpcRequest<{ key: string; accountId: string }>): Promise<RpcResponse<{}>>
+
+  /** Fetch live provider usage for one connected account. */
+  usage(
+    request: RpcRequest<{ key: string; accountId: string }>, signal?: AbortSignal,
+  ): Promise<RpcResponse<{ usage?: AuthorizationUsageView }>>
 }

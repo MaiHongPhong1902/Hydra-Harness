@@ -68,7 +68,7 @@ import {
 import {
   authorizationAnswerValueSchema, authorizationBeginValueSchema,
   authorizationCancelValueSchema, authorizationListValueSchema,
-  authorizationLogoutValueSchema, authorizationStateValueSchema,
+  authorizationLogoutValueSchema, authorizationStateValueSchema, authorizationUsageValueSchema,
 } from '../api/authorization.schema.ts'
 import { webSearchProvidersValueSchema, webSearchTestConnectionValueSchema } from '../api/web-search.schema.ts'
 import { llmDiscoverModelsValueSchema, llmModelsValueSchema, llmProvidersValueSchema } from '../api/llm.schema.ts'
@@ -187,6 +187,7 @@ export interface IApiClient {
     answer(payload: RequestPayload<'authorization.answer'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'authorization.answer'>>>
     cancel(payload: RequestPayload<'authorization.cancel'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'authorization.cancel'>>>
     logout(payload: RequestPayload<'authorization.logout'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'authorization.logout'>>>
+    usage(payload: RequestPayload<'authorization.usage'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'authorization.usage'>>>
   }
   webSearch: {
     providers(payload: RequestPayload<'webSearch.providers'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'webSearch.providers'>>>
@@ -272,6 +273,7 @@ const UNARY_VALUE_SCHEMAS: { [K in keyof RpcMethodMap]: z.ZodType<Wire<ResponseV
   'authorization.answer': authorizationAnswerValueSchema,
   'authorization.cancel': authorizationCancelValueSchema,
   'authorization.logout': authorizationLogoutValueSchema,
+  'authorization.usage': authorizationUsageValueSchema,
   'webSearch.providers': webSearchProvidersValueSchema,
   'webSearch.testConnection': webSearchTestConnectionValueSchema,
   'llm.providers': llmProvidersValueSchema,
@@ -583,6 +585,7 @@ export abstract class AbstractApiClient implements IApiClient {
     answer: (payload, signal) => this.callUnary('authorization.answer', payload, signal),
     cancel: (payload, signal) => this.callUnary('authorization.cancel', payload, signal),
     logout: (payload, signal) => this.callUnary('authorization.logout', payload, signal),
+    usage: (payload, signal) => this.callUnary('authorization.usage', payload, signal),
   }
 
   readonly webSearch: IApiClient['webSearch'] = {

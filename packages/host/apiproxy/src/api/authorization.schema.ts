@@ -8,6 +8,7 @@ import type {
   AuthorizationAttemptView,
   AuthorizationEntryView,
   AuthorizationPromptView,
+  AuthorizationUsageView,
 } from './authorization.ts'
 
 const identifierSchema = z.string().min(1).max(256)
@@ -27,6 +28,19 @@ const accountSchema = z.object({
   id: identifierSchema,
   label: z.string().min(1).max(512),
 }) satisfies z.ZodType<Wire<AuthorizationAccountView>>
+
+const usageWindowSchema = z.object({
+  name: z.string().min(1).max(256),
+  windowMinutes: z.number().int().positive().optional(),
+  usedPercent: z.number().min(0).max(100),
+  resetsAt: z.number().int().min(0).max(8_640_000_000_000).optional(),
+})
+const usageSchema = z.object({
+  planType: z.string().max(128).optional(),
+  limits: z.array(usageWindowSchema).max(256),
+  bankedResetCount: z.number().int().min(0).optional(),
+  fetchedAt: z.number().nonnegative(),
+}) satisfies z.ZodType<Wire<AuthorizationUsageView>>
 
 const noticeSchema = z.object({
   message: z.string().min(1).max(4096),
@@ -119,3 +133,14 @@ export const authorizationLogoutRequestSchema = z.object({
 
 /** authorization.logout response value. */
 export const authorizationLogoutValueSchema = z.object({}) satisfies z.ZodType<Wire<ResponseValue<'authorization.logout'>>>
+
+/** authorization.usage request payload. */
+export const authorizationUsageRequestSchema = z.object({
+  key: authorizationKeySchema,
+  accountId: identifierSchema,
+}) satisfies z.ZodType<Wire<RequestPayload<'authorization.usage'>>>
+
+/** authorization.usage response value. */
+export const authorizationUsageValueSchema = z.object({
+  usage: usageSchema.optional(),
+}) satisfies z.ZodType<Wire<ResponseValue<'authorization.usage'>>>

@@ -91,6 +91,7 @@ export interface RpcMethodMap {
   'authorization.answer': AuthorizationApi['answer']
   'authorization.cancel': AuthorizationApi['cancel']
   'authorization.logout': AuthorizationApi['logout']
+  'authorization.usage': AuthorizationApi['usage']
   'webSearch.providers': WebSearchApi['providers']
   'webSearch.testConnection': WebSearchApi['testConnection']
   'llm.providers': LlmApi['providers']

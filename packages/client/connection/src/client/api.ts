@@ -19,6 +19,7 @@ export type {
   CredentialsApi, CredentialView, ConfigurableProviderView, DiscoveredModelView, LlmApi,
   AuthorizationAccountView, AuthorizationApi, AuthorizationAttemptView, AuthorizationEntryView,
   AuthorizationNoticeView, AuthorizationPromptView,
+  AuthorizationUsageView,
   SubagentsApi, SubagentAddress, SubagentCatalog, SubagentListEntry, SubagentPromptReceipt,
   JobView,
 } from '@hydra/harness-host-apiproxy/api'

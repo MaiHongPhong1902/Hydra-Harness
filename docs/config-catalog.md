@@ -1048,6 +1048,8 @@ Requires: `llm`
 ```ts config-catalog
 /** Plugin settings, keyed by the route names `chatgpt` and `antigravity`. */
 export interface Config {
+  /** Maximum time for one account usage request, including credential refresh. */
+  usageTimeoutMs?: number
   /** Enabled account-backed routes. An empty map leaves both routes dormant. */
   providers?: Record<string, AccountProviderProfile>
 }
