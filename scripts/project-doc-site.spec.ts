@@ -245,16 +245,16 @@ describe('rewriteMarkdown', () => {
 })
 
 describe('docsPages routes', () => {
-  it('redirects the site root to the quick-start page', () => {
+  it('publishes a capability overview at the site root', () => {
     const homes = docsPages.filter(page => page.sidebar === null)
     expect(homes.map(page => page.route)).toEqual(['index.md'])
     for (const page of homes) {
       const source = readFileSync(resolve(repositoryRoot, page.source), 'utf8')
       const projected = projectedPageContent(source, page)
       expect(projected).toContain('layout: false')
-      expect(projected).toContain('http-equiv: refresh')
-      expect(projected).toContain('content: 0; url=./guide/quickstart')
-      expect(projected).not.toContain('# Hydra harness')
+      expect(projected).not.toContain('http-equiv: refresh')
+      expect(projected).toContain('# Hydra harness')
+      expect(projected).toContain('## What Hydra can do')
     }
   })
 
@@ -407,11 +407,9 @@ describe('projectedPageContent', () => {
     order: 0,
   })
 
-  it('omits the source-only body from the home page', () => {
-    expect(projectedPageContent(
-      '---\nlayout: false\nhead:\n  - - meta\n    - http-equiv: refresh\n      content: 0; url=./guide/quickstart\n---\n\n# Harness\n\nBody.\n',
-      page(null),
-    )).toBe('---\nlayout: false\nhead:\n  - - meta\n    - http-equiv: refresh\n      content: 0; url=./guide/quickstart\n---\n')
+  it('keeps the full body for the home page', () => {
+    const markdown = '---\nlayout: false\n---\n\n# Harness\n\nBody.\n'
+    expect(projectedPageContent(markdown, page(null))).toBe(markdown)
   })
 
   it('keeps the full body for ordinary pages', () => {

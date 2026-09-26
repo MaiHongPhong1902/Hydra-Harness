@@ -227,7 +227,7 @@ function withoutRepositoryChrome(markdown: string): string {
  *
  * @param markdown Rewritten canonical Markdown content.
  * @param page Publication manifest entry for the content.
- * @returns Full Markdown for ordinary pages or frontmatter-only Markdown for the home page.
+ * @returns The full Markdown page, including any source frontmatter.
  */
 export function projectedPageContent(markdown: string, page: DocsPage): string {
   if (page.sidebar !== null) return withoutRepositoryChrome(markdown)
@@ -239,7 +239,7 @@ export function projectedPageContent(markdown: string, page: DocsPage): string {
   if (closing === -1) {
     throw new Error(`project-doc-site: home source ${JSON.stringify(page.source)} has unclosed YAML frontmatter.`)
   }
-  return markdown.slice(0, closing + closingDelimiter.length)
+  return markdown
 }
 
 /**
@@ -415,8 +415,7 @@ function withoutFrontmatter(markdown: string, source: string): string {
  * The raw-Markdown twin of one published page.
  *
  * Frontmatter is VitePress rendering configuration and is dropped. The home
- * page therefore keeps its body here, while the rendered site truncates it to
- * the frontmatter redirect.
+ * page keeps its body here just like every other published page.
  *
  * @param markdown Rewritten canonical Markdown content.
  * @param source Repository-relative page source, named by frontmatter failures.
