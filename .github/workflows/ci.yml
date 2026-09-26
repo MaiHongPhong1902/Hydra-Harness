@@ -235,15 +235,20 @@ jobs:
           if (( install_status != 0 )); then exit "$install_status"; fi
           exit "$sandbox_status"
 
-      - name: Install Playwright Chromium and hosted dependencies
-        if: vars.HYDRA_CI_FAILOVER_LINUX != 'selfhosted' || github.event.pull_request.user.login == 'dependabot[bot]'
-        run: pnpm --filter @hydra/harness-web-frontend exec playwright install --with-deps chromium
-
-      # The persistent VM image owns Playwright's Linux system packages; do
-      # not mutate the shared host with apt on every failover run.
-      - name: Install Playwright Chromium on the failover VM
-        if: vars.HYDRA_CI_FAILOVER_LINUX == 'selfhosted' && github.event.pull_request.user.login != 'dependabot[bot]'
-        run: pnpm --filter @hydra/harness-web-frontend exec playwright install chromium
+      # Hosted runners need Playwright's system packages; the persistent
+      # failover VM already owns them and only needs the browser binary.
+      - name: Install Playwright Chromium
+        env:
+          HYDRA_PLAYWRIGHT_FAILOVER: >-
+            ${{ vars.HYDRA_CI_FAILOVER_LINUX == 'selfhosted'
+                && github.event.pull_request.user.login != 'dependabot[bot]'
+                && 'true' || 'false' }}
+        run: |
+          if [[ "$HYDRA_PLAYWRIGHT_FAILOVER" == 'true' ]]; then
+            pnpm --filter @hydra/harness-web-frontend exec playwright install chromium
+          else
+            pnpm --filter @hydra/harness-web-frontend exec playwright install --with-deps chromium
+          fi
 
       - name: Run compatibility, snapshot, and artifact gates
         run: pnpm run check:ci:consumers

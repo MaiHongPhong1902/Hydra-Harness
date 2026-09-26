@@ -98,6 +98,16 @@ describe('CI workflow', () => {
     }
   })
 
+  it('always runs the Playwright install step and selects runner-specific dependencies', () => {
+    const consumer = workflowJob(loadWorkflow('.github/workflows/ci.yml'), 'node-24-consumers')
+    if (!Array.isArray(consumer.steps)) throw new TypeError('consumer job must define steps')
+    const step: unknown = consumer.steps.find(step => isRecord(step) && step.name === 'Install Playwright Chromium')
+    if (!isRecord(step) || typeof step.run !== 'string') throw new TypeError('Playwright install step is missing')
+    expect(step.if).toBeUndefined()
+    expect(step.run).toContain('playwright install chromium')
+    expect(step.run).toContain('playwright install --with-deps chromium')
+  })
+
   it('isolates every pnpm action setup destination per runner', () => {
     const files = ['.github/workflows/ci.yml', '.github/workflows/ci-master.yml']
     const setups: Array<{ jobName: string; step: unknown }> = []
