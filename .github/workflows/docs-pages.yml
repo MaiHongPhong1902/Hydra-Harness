@@ -1,15 +1,10 @@
-# Publish the documentation website to GitHub Pages. This workflow is manual-only
-# (workflow_dispatch) and intentionally does not listen to pull_request or push:
-# the site presents a released snapshot, so publication is an explicit act from a
-# hydra-v* tag and must never appear as a PR check. `release:verify` rejects every
-# other ref, and the github-pages environment repeats that restriction as a
-# deployment tag policy with required reviewers.
-#
-# The build signal does not depend on this workflow. Every pull request builds
-# the production site through `check:ci:static`.
+# Publish the documentation website to GitHub Pages from the repository default
+# branch. Pull requests still build the production site through `check:ci:static`.
 name: Deploy documentation
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
@@ -37,10 +32,10 @@ jobs:
       contents: read
       pages: read
     steps:
-      # Complete history: the release scripts read tags.
+      # The generated documentation reads vendored sources from the submodules.
       - uses: actions/checkout@v6
         with:
-          fetch-depth: 0
+          fetch-depth: 1
           submodules: true
           persist-credentials: false
 
@@ -53,14 +48,6 @@ jobs:
 
       - name: Install (immutable)
         run: pnpm install --frozen-lockfile
-
-      # One definition of "released" for the site and the npm sequence: this
-      # rejects every ref that is not a hydra-v* tag naming the version this tree
-      # carries.
-      - name: Verify release version
-        env:
-          RELEASE_PUBLISH: 'true'
-        run: pnpm run release:verify --family hydra
 
       - name: Configure Pages
         id: pages

@@ -8,7 +8,7 @@ The repository default branch is `main`, while the release pack trigger and docu
 
 ## Decision
 
-The Hydra release pack workflow listens to `main`, and the documentation deployment uses `main` for projected repository links. The Pages checkout includes PageAgent submodules so package-path verification sees the same tree as a developer checkout. Release publication remains an explicit `hydra-v*` tag dispatch, so pushing the default branch does not publish packages or deploy Pages by itself.
+The Hydra release pack workflow listens to `main`, and the documentation deployment listens to `main` as well as manual dispatch while using `main` for projected repository links. The Pages checkout includes PageAgent submodules so package-path verification sees the same tree as a developer checkout. Release publication remains an explicit `hydra-v*` tag dispatch, so pushing the default branch publishes documentation but not packages.
 
 ## Alternatives considered
 
@@ -18,4 +18,4 @@ The Hydra release pack workflow listens to `main`, and the documentation deploym
 
 ## Consequences
 
-Main pushes now exercise the release packing path, and documentation links resolve against the public repository. The Pages gate also validates submodule-owned package references. Package publication and Pages deployment still require their explicit workflows and release tag.
+Main pushes now exercise the release packing path and publish the documentation site, and documentation links resolve against the public repository. The Pages gate also validates submodule-owned package references. Package publication still requires its explicit workflow and release tag.
