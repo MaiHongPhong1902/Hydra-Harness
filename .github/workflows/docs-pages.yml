@@ -6,8 +6,7 @@
 # deployment tag policy with required reviewers.
 #
 # The build signal does not depend on this workflow. Every pull request builds
-# the production site through `check:ci:static`, and ci-master.yml builds it
-# again on master.
+# the production site through `check:ci:static`.
 name: Deploy documentation
 
 on:
@@ -23,12 +22,10 @@ permissions:
 env:
   PRIMARY_NODE_VERSION: '24'
   # Projected source links target the public repository, whose history can
-  # differ from this workflow's source repository. This stays on master rather
-  # than following the dispatched tag: that repository advances only to each
-  # release commit, so its master never carries unreleased work, and it retains
-  # only the most recent tags — following the tag would leave every projected
-  # source link on an older deploy unresolvable.
-  DOCS_REPOSITORY_REF: master
+  # differ from this workflow's source repository. This stays on main rather
+  # than following the dispatched tag, so projected source links resolve on the
+  # public repository's default branch.
+  DOCS_REPOSITORY_REF: main
   # CI runs must never report to the production telemetry endpoint baked
   # into apps/cli/cordis.yml (AppCLIEntry disables the row when set).
   HYDRA_TELEMETRY_DISABLED: '1'
