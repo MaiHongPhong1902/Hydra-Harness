@@ -1,8 +1,70 @@
 ---
-layout: false
+layout: page
+title: Hydra harness
+description: Open-source agent workspace for Web UI, desktop, CLI, browser tools, durable sessions, and Cordis plugins.
 ---
 
-# Hydra harness
+<section class="hydra-home-hero" aria-labelledby="hydra-home-title">
+  <div class="hydra-home-copy">
+    <p class="hydra-home-eyebrow">OPEN-SOURCE AGENT WORKSPACE</p>
+    <h1 id="hydra-home-title">Build with agents that can act.</h1>
+    <p class="hydra-home-lede">Run useful AI work across the Web UI, desktop app, command line, browser tools, and durable project sessions.</p>
+    <div class="hydra-home-actions">
+      <a class="hydra-home-button hydra-home-button-primary" href="https://maihongphong1902.github.io/Hydra-Harness/guide/quickstart">Open the guide</a>
+      <a class="hydra-home-button" href="https://github.com/MaiHongPhong1902/Hydra-Harness">View on GitHub</a>
+    </div>
+    <p class="hydra-home-install"><span>Try it now</span><code>npx @hydra/harness web</code></p>
+  </div>
+  <div class="hydra-home-mark">
+    <img src="https://maihongphong1902.github.io/Hydra-Harness/hydra.png" width="256" height="256" alt="Hydra three-headed dragon logo" />
+  </div>
+</section>
+
+<section class="hydra-home-wiki" aria-labelledby="hydra-wiki-index">
+  <div class="hydra-section-heading">
+    <p class="hydra-section-kicker">WIKI INDEX</p>
+    <h2 id="hydra-wiki-index">Explore Hydra</h2>
+    <p>Start from the path that matches your work. Each page points to the runnable guide, reference, or package source behind it.</p>
+  </div>
+  <div class="hydra-feature-grid">
+    <a class="hydra-feature-card" href="https://maihongphong1902.github.io/Hydra-Harness/guide/quickstart">
+      <span class="hydra-feature-number">01 / RUN</span>
+      <h3>Use the runtime</h3>
+      <p>Launch Hydra in the browser, desktop app, CLI, ACP, JSON-RPC, or Python SDK.</p>
+      <span class="hydra-feature-link">Read the guide →</span>
+    </a>
+    <a class="hydra-feature-card" href="https://maihongphong1902.github.io/Hydra-Harness/guide/providers">
+      <span class="hydra-feature-number">02 / MODEL</span>
+      <h3>Connect a model</h3>
+      <p>Configure DeepSeek or another compatible endpoint with explicit profiles and permissions.</p>
+      <span class="hydra-feature-link">Configure providers →</span>
+    </a>
+    <a class="hydra-feature-card" href="https://maihongphong1902.github.io/Hydra-Harness/reference/subsystems/web">
+      <span class="hydra-feature-number">03 / WEB</span>
+      <h3>Control the web</h3>
+      <p>Give agents browser navigation, page inspection, screenshots, search, and fetch tools.</p>
+      <span class="hydra-feature-link">Open browser docs →</span>
+    </a>
+    <a class="hydra-feature-card" href="https://maihongphong1902.github.io/Hydra-Harness/reference/subsystems/session">
+      <span class="hydra-feature-number">04 / CONTEXT</span>
+      <h3>Keep context</h3>
+      <p>Resume, fork, compact, and reconstruct model-visible work from durable session logs.</p>
+      <span class="hydra-feature-link">Learn about sessions →</span>
+    </a>
+    <a class="hydra-feature-card" href="https://maihongphong1902.github.io/Hydra-Harness/develop/basic/">
+      <span class="hydra-feature-number">05 / EXTEND</span>
+      <h3>Build plugins</h3>
+      <p>Add tools, providers, storage, UI modules, skills, workflows, and hooks through Cordis.</p>
+      <span class="hydra-feature-link">Develop a plugin →</span>
+    </a>
+    <a class="hydra-feature-card" href="https://maihongphong1902.github.io/Hydra-Harness/reference/">
+      <span class="hydra-feature-number">06 / REFERENCE</span>
+      <h3>Inspect every capability</h3>
+      <p>Trace the package map, API contracts, configuration, and runtime composition in one place.</p>
+      <span class="hydra-feature-link">Browse reference →</span>
+    </a>
+  </div>
+</section>
 
 Hydra is an open-source agent workspace for running useful AI work across the Web UI, desktop app, and command line.
 

@@ -2,7 +2,7 @@
 
 import { readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import type { DefaultTheme, PageData, SiteConfig } from 'vitepress'
+import type { DefaultTheme, HeadConfig, PageData, SiteConfig } from 'vitepress'
 import type { ViteDevServer } from 'vite'
 import { withMermaid } from 'vitepress-plugin-mermaid'
 import { collections, landingLink, orderedPages, routeLink, sectionSpec, type DocsPage, type DocsSidebar } from '../docs.ts'
@@ -143,9 +143,11 @@ function escapeVueInterpolation(html: string): string {
 const base = process.env.DOCS_BASE ?? '/'
 
 /** Site identity shared by the VitePress configuration and the llms.txt index. */
+const siteUrl = 'https://maihongphong1902.github.io/Hydra-Harness/'
+
 const siteIdentity = {
   title: 'Hydra harness',
-  description: 'An open-source, plugin-based agent harness',
+  description: 'Open-source agent workspace for Web UI, desktop, CLI, browser tools, durable sessions, and Cordis plugins.',
 }
 
 /**
@@ -155,6 +157,7 @@ const siteIdentity = {
 const wordmark = readFileSync(resolve(import.meta.dirname, '../public/wordmark.svg'), 'utf8')
   .trim()
   .replace('<svg ', '<svg class="hydra-wordmark" ')
+  .replace('href="hydra.png"', `href="${base}hydra.png"`)
   .replace('href="hydra-hover.webp"', `href="${base}hydra-hover.webp"`)
 
 /**
@@ -169,6 +172,13 @@ const wordmark = readFileSync(resolve(import.meta.dirname, '../public/wordmark.s
  * stay behind a query only Firefox answers.
  */
 const siteStyle = `
+:root {
+  --hydra-azure: #009afc;
+  --hydra-blue: #0060e0;
+  --hydra-navy: #00123f;
+  --hydra-ice: #c7e8ff;
+  --hydra-white: #fdfdfd;
+}
 .hydra-lockup { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
 .hydra-wordmark { display: block; height: 22px; width: auto; color: var(--vp-c-text-1); }
 @media (hover: hover) {
@@ -186,6 +196,167 @@ const siteStyle = `
   line-height: 18px;
   white-space: nowrap;
   color: var(--vp-c-brand-1);
+}
+
+.VPPage {
+  max-width: 1152px;
+  margin: 0 auto;
+  padding: 16px 24px 72px;
+  color: var(--vp-c-text-1);
+}
+.VPPage h2 {
+  margin: 48px 0 16px;
+  padding-top: 24px;
+  border-top: 1px solid var(--vp-c-divider);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.VPPage h3 {
+  margin: 32px 0 12px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.VPPage p, .VPPage ul, .VPPage ol {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--vp-c-text-1);
+}
+.VPPage p { margin: 16px 0; }
+.VPPage ul, .VPPage ol { padding-left: 24px; margin: 16px 0; }
+.VPPage li { margin: 6px 0; }
+.VPPage table {
+  width: 100%;
+  margin: 24px 0;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+.VPPage th, .VPPage td {
+  padding: 10px 14px;
+  border: 1px solid var(--vp-c-divider);
+  text-align: left;
+}
+.VPPage th {
+  background-color: var(--vp-c-bg-soft);
+  font-weight: 600;
+}
+.VPPage a {
+  color: var(--vp-c-brand-1);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.VPPage a.hydra-home-button,
+.VPPage a.hydra-feature-card {
+  text-decoration: none;
+}
+@media (max-width: 768px) {
+  .VPPage { padding: 12px 16px 48px; }
+  .VPPage table { display: block; overflow-x: auto; }
+}
+
+.hydra-home-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: 24px;
+  overflow: hidden;
+  margin: 8px 0 44px;
+  padding: clamp(28px, 6vw, 56px);
+  border: 1px solid rgba(0, 154, 252, 0.45);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 84% 20%, rgba(0, 154, 252, 0.36), transparent 28%),
+    linear-gradient(135deg, #00123f 0%, #07335c 56%, #006ead 100%);
+  box-shadow: 0 20px 60px rgba(0, 18, 63, 0.22);
+  color: var(--hydra-white);
+}
+.hydra-home-hero::before {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(199, 232, 255, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(199, 232, 255, 0.08) 1px, transparent 1px);
+  background-size: 16px 16px;
+  content: '';
+  mask-image: linear-gradient(135deg, black, transparent 75%);
+  pointer-events: none;
+}
+.hydra-home-copy, .hydra-home-mark { position: relative; z-index: 1; }
+.hydra-home-eyebrow, .hydra-section-kicker {
+  margin: 0 0 10px;
+  color: var(--hydra-ice);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+.hydra-home-hero h1 {
+  max-width: 650px;
+  margin: 0;
+  color: var(--hydra-white);
+  font-size: clamp(2.2rem, 6vw, 4.6rem);
+  letter-spacing: -0.045em;
+  line-height: 1.02;
+}
+.hydra-home-lede {
+  max-width: 620px;
+  margin: 20px 0 0;
+  color: #d9efff;
+  font-size: 1.08rem;
+  line-height: 1.65;
+}
+.hydra-home-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+.hydra-home-button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid rgba(199, 232, 255, 0.55);
+  border-radius: 8px;
+  background: rgba(0, 18, 63, 0.34);
+  color: var(--hydra-white);
+  font-size: 0.86rem;
+  font-weight: 750;
+  text-decoration: none;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+.hydra-home-button:hover { border-color: var(--hydra-ice); background: rgba(0, 18, 63, 0.6); color: var(--hydra-white); transform: translateY(-2px); }
+.hydra-home-button-primary { border-color: #63c7ff; background: var(--hydra-azure); color: var(--hydra-navy); }
+.hydra-home-button-primary:hover { background: #52baff; color: var(--hydra-navy); }
+.hydra-home-install { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; margin: 24px 0 0; color: var(--hydra-ice); font-size: 0.82rem; }
+.hydra-home-install code { border: 1px solid rgba(199, 232, 255, 0.25); border-radius: 6px; background: rgba(0, 0, 0, 0.28); color: var(--hydra-white); }
+.hydra-home-mark { display: grid; place-items: center; min-height: 220px; background: url('${base}hydra.png') center / contain no-repeat; }
+.hydra-home-mark img { width: min(100%, 240px); height: auto; filter: drop-shadow(0 0 28px rgba(0, 154, 252, 0.7)); transition: transform 180ms steps(2); }
+.hydra-home-hero:hover .hydra-home-mark img { transform: translateY(-4px) scale(1.03); }
+.hydra-home-wiki { margin: 0 0 44px; }
+.hydra-section-heading { max-width: 700px; margin-bottom: 20px; }
+.hydra-section-heading h2 { margin: 0; color: var(--vp-c-text-1); font-size: clamp(1.7rem, 4vw, 2.5rem); letter-spacing: -0.03em; }
+.hydra-section-heading p:last-child { margin: 10px 0 0; color: var(--vp-c-text-2); }
+.hydra-feature-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.hydra-feature-card {
+  display: flex;
+  min-height: 170px;
+  flex-direction: column;
+  padding: 18px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 10px;
+  background: var(--vp-c-bg-soft);
+  text-decoration: none;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+.hydra-feature-card:hover { border-color: var(--hydra-azure); box-shadow: 0 10px 24px rgba(0, 96, 224, 0.12); transform: translateY(-2px); }
+.hydra-feature-number { color: var(--hydra-blue); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.1em; }
+.hydra-feature-card h3 { margin: 12px 0 6px; color: var(--vp-c-text-1); font-size: 1.12rem; }
+.hydra-feature-card p { margin: 0; color: var(--vp-c-text-2); font-size: 0.9rem; line-height: 1.55; }
+.hydra-feature-link { margin-top: auto; padding-top: 16px; color: var(--vp-c-brand-1); font-size: 0.8rem; font-weight: 750; }
+@media (max-width: 960px) { .hydra-feature-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 700px) {
+  .hydra-home-hero { grid-template-columns: 1fr; }
+  .hydra-home-mark { justify-items: start; min-height: 0; }
+  .hydra-home-mark img { width: 160px; }
+  .hydra-feature-grid { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hydra-home-button, .hydra-home-mark img, .hydra-feature-card { transition: none; }
+  .hydra-home-hero:hover .hydra-home-mark img, .hydra-home-button:hover, .hydra-feature-card:hover { transform: none; }
 }
 
 .VPSidebar::-webkit-scrollbar { width: 6px; }
@@ -238,9 +409,11 @@ function siteTitle(previewTag: string): string {
 
 export default withMermaid({
   title: siteIdentity.title,
+  titleTemplate: ':title | Open-source agent workspace',
   description: siteIdentity.description,
   lang: 'en-US',
   base,
+  sitemap: { hostname: siteUrl },
   /** Emit the raw-Markdown twin of every route plus llms.txt beside the rendered site. */
   buildEnd(siteConfig: SiteConfig) {
     emitRawMarkdownPages(siteConfig.outDir)
@@ -248,10 +421,47 @@ export default withMermaid({
   },
   head: [
     // VitePress leaves head hrefs untouched, so the base belongs here explicitly.
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: `${base}favicon.svg` }],
+    ['link', { rel: 'icon', type: 'image/png', href: `${base}hydra.png` }],
+    ['meta', { name: 'theme-color', content: '#00123f' }],
+    ['meta', { name: 'robots', content: 'index,follow' }],
     ['style', {}, siteStyle],
     ['script', {}, scrollbarScript],
   ],
+  transformHead({ page, title, description }) {
+    const home = page === '' || page === 'index' || page === 'index.md'
+    const route = home ? '' : page.replace(/\.md$/, '').replace(/\/index$/, '')
+    const canonical = new URL(route || '.', siteUrl).toString()
+    const pageTitle = home ? 'Hydra harness | Open-source agent workspace' : `${title} | ${siteIdentity.title}`
+    const image = new URL('hydra.png', siteUrl).toString()
+    const tags: HeadConfig[] = [
+      ['link', { rel: 'canonical', href: canonical }],
+      ['meta', { name: 'description', content: description || siteIdentity.description }],
+      ['meta', { property: 'og:type', content: 'website' }],
+      ['meta', { property: 'og:title', content: pageTitle }],
+      ['meta', { property: 'og:description', content: description || siteIdentity.description }],
+      ['meta', { property: 'og:url', content: canonical }],
+      ['meta', { property: 'og:image', content: image }],
+      ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+      ['meta', { name: 'twitter:title', content: pageTitle }],
+      ['meta', { name: 'twitter:description', content: description || siteIdentity.description }],
+      ['meta', { name: 'twitter:image', content: image }],
+    ]
+    if (home) {
+      tags.push(['script', { type: 'application/ld+json' }, JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareApplication',
+        name: 'Hydra harness',
+        applicationCategory: 'DeveloperApplication',
+        operatingSystem: 'Windows, macOS, Linux',
+        description: siteIdentity.description,
+        url: siteUrl,
+        image,
+        codeRepository: 'https://github.com/MaiHongPhong1902/Hydra-Harness',
+        license: 'https://opensource.org/licenses/MIT',
+      })])
+    }
+    return tags
+  },
   cleanUrls: true,
   srcDir: '.generated',
   cacheDir: '.cache',

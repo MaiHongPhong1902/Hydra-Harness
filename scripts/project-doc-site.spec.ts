@@ -251,9 +251,9 @@ describe('docsPages routes', () => {
     for (const page of homes) {
       const source = readFileSync(resolve(repositoryRoot, page.source), 'utf8')
       const projected = projectedPageContent(source, page)
-      expect(projected).toContain('layout: false')
+      expect(projected).toContain('layout: page')
       expect(projected).not.toContain('http-equiv: refresh')
-      expect(projected).toContain('# Hydra harness')
+      expect(projected).toContain('<h1 id="hydra-home-title">Build with agents that can act.</h1>')
       expect(projected).toContain('## What Hydra can do')
     }
   })
@@ -553,7 +553,7 @@ describe('raw Markdown projection of the published manifest', () => {
   it('emits the home page with its body instead of the frontmatter stub', () => {
     const home = readFileSync(join(mirror, 'index.md'), 'utf8')
     expect(home.startsWith('---')).toBe(false)
-    expect(home).toContain('# Hydra harness')
+    expect(home).toContain('class="hydra-home-hero"')
   })
 
   it('resolves every relative link inside the emitted tree', { timeout: 60_000 }, () => {
