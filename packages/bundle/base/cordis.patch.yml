@@ -197,6 +197,29 @@
       name: '@hydra/harness-subprocess-local'
       pluginType: core
 
+    # Semantic navigation is available to coding presets when a local language
+    # server command is configured. Keep the generic provider dormant by default
+    # so a machine without a server does not fail Host startup; setting
+    # HYDRA_LSP_COMMAND enables the TypeScript-compatible stdio route.
+    - id: lsp
+      name: '@hydra/harness-lsp'
+      pluginType: core
+
+    - id: lsp-stdio
+      name: '@hydra/harness-lsp-stdio'
+      pluginType: core
+      disabled: !!js process.env.HYDRA_LSP_COMMAND === undefined
+      config:
+        servers:
+          typescript:
+            command: !!js process.env.HYDRA_LSP_COMMAND ?? 'typescript-language-server'
+            args: ['--stdio']
+            extensionToLanguage:
+              .ts: typescript
+              .tsx: typescriptreact
+              .js: javascript
+              .jsx: javascriptreact
+
     # Every shipped CLI mode starts with the same file-effect boundary.
     # The environment remains an explicit deployment override; otherwise fresh
     # sessions pin workspace-write + ask through the permission service below.

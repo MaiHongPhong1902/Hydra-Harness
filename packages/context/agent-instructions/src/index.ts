@@ -68,6 +68,7 @@ function sameContextPayload(left: UserMessage, right: UserMessage): boolean {
 }
 
 const FILE_TOUCH_TOOL_NAMES = new Set(['read', 'write', 'edit'])
+const SHELL_TOOL_NAMES = new Set(['bash', 'pwsh'])
 
 function filePathFromExecution(exec: ToolExecution): string | undefined {
   if (!FILE_TOUCH_TOOL_NAMES.has(exec.name)) return undefined
@@ -75,6 +76,17 @@ function filePathFromExecution(exec: ToolExecution): string | undefined {
   if (!('file_path' in exec.arguments) || typeof exec.arguments.file_path !== 'string') return undefined
   const filePath = exec.arguments.file_path.trim()
   return filePath.length > 0 ? filePath : undefined
+}
+
+function changedPathsFromResult(exec: ToolExecution, result: ToolExecutionResult): string[] {
+  if (!SHELL_TOOL_NAMES.has(exec.name) || result.isError) return []
+  if (typeof exec.arguments !== 'object' || exec.arguments === null
+    || ('run_in_background' in exec.arguments && exec.arguments.run_in_background === true)) return []
+  if (typeof result.meta !== 'object' || result.meta === null || Array.isArray(result.meta)) return []
+  const paths = (result.meta as { changed_paths?: unknown }).changed_paths
+  if (!Array.isArray(paths)) return []
+  return paths.filter((path): path is string => typeof path === 'string' && path.trim().length > 0)
+    .map(path => path.trim())
 }
 
 export function apply(ctx: Context, config: Config): void {
@@ -353,6 +365,9 @@ export function apply(ctx: Context, config: Config): void {
     if (!result.isError && exec.agent !== undefined && !exec.signal.aborted) {
       const ownPath = filePathFromExecution(exec)
       if (ownPath !== undefined) touches.push({ agent: exec.agent, path: ownPath })
+      for (const path of changedPathsFromResult(exec, result)) {
+        touches.push({ agent: exec.agent, path })
+      }
     }
     if (exec.parent !== undefined) {
       if (touches.length > 0) {

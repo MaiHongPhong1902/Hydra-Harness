@@ -787,7 +787,7 @@ describe('background execution through the job runtime', () => {
     const { ctx } = await setup({ enableRunInBackground: false })
     const schema = ctx.tools.schemas().find(s => s.name === 'pwsh')!
     expect(Object.keys(schema.parameters.properties as Record<string, unknown>))
-      .toEqual(['command', 'description', 'timeoutMs', 'workdir'])
+      .toEqual(['command', 'description', 'timeoutMs', 'workdir', 'changed_paths'])
     expect(schema.description).toContain('Background execution is not available')
     expect(schema.description).not.toContain('run_in_background')
 
@@ -815,6 +815,19 @@ describe('background execution through the job runtime', () => {
 })
 
 describe('UI presentation', () => {
+  it('projects declared foreground changed paths for workspace instruction refresh', async () => {
+    const { ctx } = await setup()
+    const output = ctx.tools.get('pwsh')!.output
+    expect(output.presentationMeta?.(
+      { command: 'Set-Content src/a.ts', description: 'write file', changed_paths: [' src/a.ts '] },
+      { kind: 'foreground' },
+    )).toEqual({ changed_paths: ['src/a.ts'] })
+    expect(output.presentationMeta?.(
+      { command: 'Set-Content src/a.ts', description: 'write file', changed_paths: ['src/a.ts'], run_in_background: true },
+      { kind: 'background', jobId: 'job-1' },
+    )).toEqual({})
+  })
+
   it('a real execute presents a completed foreground run as a terminal card with the parsed exit pill', async () => {
     const { ctx, bash } = await setup()
     bash.handler = () => runResult('hi\n')

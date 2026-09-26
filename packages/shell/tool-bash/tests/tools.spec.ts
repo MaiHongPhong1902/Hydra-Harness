@@ -552,7 +552,7 @@ describe('background execution through the job runtime', () => {
 
     const schema = ctx.tools.schemas().find(s => s.name === 'bash')!
     expect(Object.keys(schema.parameters.properties as Record<string, unknown>))
-      .toEqual(['command', 'description', 'timeoutMs', 'workdir'])
+      .toEqual(['command', 'description', 'timeoutMs', 'workdir', 'changed_paths'])
     expect(schema.description).toContain('Background execution is not available')
     expect(schema.description).not.toContain('run_in_background')
     // The registry-held definition agrees (schema and capability never disagree).
@@ -907,6 +907,19 @@ describe('renderResult', () => {
 })
 
 describe('tool-owned UI presentation (presentCall / presentResult)', () => {
+  it('projects declared foreground changed paths for workspace instruction refresh', async () => {
+    const ctx = await setup()
+    const output = ctx.tools.get('bash')!.output
+    expect(output.presentationMeta?.(
+      { command: 'touch src/a.ts', description: 'touch file', changed_paths: [' src/a.ts '] },
+      { kind: 'foreground' },
+    )).toEqual({ changed_paths: ['src/a.ts'] })
+    expect(output.presentationMeta?.(
+      { command: 'touch src/a.ts', description: 'touch file', changed_paths: ['src/a.ts'], run_in_background: true },
+      { kind: 'background', jobId: 'job-1' },
+    )).toEqual({})
+  })
+
   it('bash presentCall: a foreground run is a terminal card (command title, description, workdir → cwd absolute or relative)', async () => {
     const ctx = await setup()
     // No explicit workdir → a terminal card with no cwd (the UI bridge fills the

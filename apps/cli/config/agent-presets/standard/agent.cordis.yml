@@ -61,6 +61,10 @@
   config:
     sampleOverCapGlobResults: false
 
+- id: tool-lsp
+  name: '@hydra/harness-tool-lsp'
+  disabled: !!js process.env.HYDRA_LSP_COMMAND === undefined
+
 # ── background jobs ────────────────────────────────────────────────────────
 
 # Only the model-facing controls. The task REGISTRY stays on the host plane:

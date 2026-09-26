@@ -8,6 +8,8 @@ The row set and its rationale are documented inline in the patch file; the [gene
 
 The base bundle mounts DeepSeek, Serper, and Other search providers with [explicit Settings selection](../../web/web/README.md#product-search-settings) and public HTTP fetch. Standard and Code presets expose fetch; private origins require an explicit operator grant in the [HTTP provider](../../web/web-fetch-http/README.md). The optional [research policy](../../guard/research-policy/README.md) can impose deployment limits when configured explicitly.
 
+The base also mounts the LSP capability and stdio provider; coding presets expose its read-only tool only when `HYDRA_LSP_COMMAND` names a compatible language-server executable.
+
 ## Model Experience
 
 Indirectly, through the inserted rows: this bundle selects the shipped persona-less prompt base, tool set, and DeepSeek adapter that mode bundles specialize, and contributes no model-visible text of its own.

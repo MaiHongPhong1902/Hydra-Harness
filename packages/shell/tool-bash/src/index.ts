@@ -48,6 +48,7 @@ interface BashToolArgs {
   timeoutMs?: number
   workdir?: string
   run_in_background?: boolean
+  changed_paths?: string[]
   sandbox_permissions?: string
   justification?: string
 }
@@ -65,6 +66,9 @@ function validateBashArgs(args: BashToolArgs): void {
   // The escalation pairing (sandbox_permissions ⇔ justification, non-empty) is
   // the shared rule both enforcing families validate identically.
   validateEscalationArgs(args.sandbox_permissions, args.justification)
+  if (args.changed_paths?.some(path => typeof path !== 'string' || path.trim().length === 0)) {
+    throw new Error('invalid changed_paths: expected non-empty file paths')
+  }
 }
 
 function bashDescription(backgroundEnabled: boolean, escalationModes: readonly SandboxMode[]): string {
@@ -253,6 +257,7 @@ export function apply(ctx: Context, config: Config = {}): void {
       },
       timeoutMs: { type: 'number', description: 'Timeout in milliseconds. The executor applies its configured default and cap, and kills the command on expiry.' },
       workdir: { type: 'string', description: 'Working directory for this command. Defaults to the session workspace; a relative path is resolved against it.' },
+      changed_paths: { type: 'array', items: { type: 'string' }, description: 'Foreground files this command changed, declared explicitly for workspace instruction refresh.' },
       ...backgroundEnabled ? {
         run_in_background: { type: 'boolean' as const, description: 'Run in the background and return a job id immediately (collect with job_output, stop with job_kill). No timeout applies.' },
       } : {},
@@ -326,6 +331,12 @@ export function apply(ctx: Context, config: Config = {}): void {
           ? `started background job ${value.jobId}`
           : renderResult(value as { kind: 'foreground' } & ShellRunResult, escalationModes),
       }],
+      presentationMeta: (args, value) => {
+        const call = args as BashToolArgs
+        return value.kind === 'foreground' && call.run_in_background !== true && call.changed_paths !== undefined
+          ? { changed_paths: call.changed_paths.map(path => path.trim()) }
+          : {}
+      },
     },
     async execute(args: BashToolArgs, exec) {
       validateBashArgs(args)

@@ -199,6 +199,12 @@ importers:
       '@hydra/harness-launch-environment':
         specifier: workspace:^
         version: link:../../packages/util/launch-environment
+      '@hydra/harness-lsp':
+        specifier: workspace:^
+        version: link:../../packages/lsp/lsp
+      '@hydra/harness-lsp-stdio':
+        specifier: workspace:^
+        version: link:../../packages/lsp/lsp-stdio
       '@hydra/harness-mcp-client':
         specifier: workspace:^
         version: link:../../packages/mcp/mcp-client
@@ -271,6 +277,9 @@ importers:
       '@hydra/harness-tool-jobs':
         specifier: workspace:^
         version: link:../../packages/jobs/tool-jobs
+      '@hydra/harness-tool-lsp':
+        specifier: workspace:^
+        version: link:../../packages/lsp/tool-lsp
       '@hydra/harness-tool-pwsh':
         specifier: workspace:^
         version: link:../../packages/shell/tool-pwsh
@@ -1334,6 +1343,12 @@ importers:
       '@hydra/harness-llm-retry':
         specifier: workspace:^
         version: link:../../llm/llm-retry
+      '@hydra/harness-lsp':
+        specifier: workspace:^
+        version: link:../../lsp/lsp
+      '@hydra/harness-lsp-stdio':
+        specifier: workspace:^
+        version: link:../../lsp/lsp-stdio
       '@hydra/harness-mcp-client':
         specifier: workspace:^
         version: link:../../mcp/mcp-client
@@ -1451,6 +1466,9 @@ importers:
       '@hydra/harness-tool-jobs':
         specifier: workspace:^
         version: link:../../jobs/tool-jobs
+      '@hydra/harness-tool-lsp':
+        specifier: workspace:^
+        version: link:../../lsp/tool-lsp
       '@hydra/harness-tool-pwsh':
         specifier: workspace:^
         version: link:../../shell/tool-pwsh

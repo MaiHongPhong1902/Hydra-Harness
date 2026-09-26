@@ -114,9 +114,18 @@ async function bootWeb(
   // upward walk. The flat fallback the preset boot maintains is what makes
   // them resolvable — the same mechanism, not a test-only shim.
   const home = dirname(settingsFile)
+  // plugin-inventory validates the active include against the launcher's
+  // managed profile root. Keep this isolated fixture under its temporary home.
+  process.env.HYDRA_HOME = home
   healProfilesModuleFallback(INSTALL_ANCHOR, home)
   const profileDir = join(home, 'profiles', 'spec')
   await mkdir(profileDir, { recursive: true })
+  await writeFile(join(profileDir, 'package.json'), JSON.stringify({
+    name: 'hydra-profile-spec',
+    private: true,
+    dependencies: {},
+    hydra: { profile: { bundles: profileBundles ?? [] } },
+  }, null, 2) + '\n')
   // Product Bundles are installed into the Profile, not the hydra app. Model
   // pnpm's package link for only the selected products; their own production
   // dependencies resolve from the linked workspace packages, while shared
@@ -133,6 +142,7 @@ async function bootWeb(
   ]
   if (profileBundles !== undefined) {
     await writeFile(join(profileDir, 'package.json'), JSON.stringify({
+      name: 'hydra-profile-spec',
       private: true,
       dependencies: Object.fromEntries(profileBundles.map(name => [name, 'workspace:*'])),
       hydra: { profile: { bundles: profileBundles } },
@@ -149,6 +159,23 @@ async function bootWeb(
 
 const toolNames = (ctx: Context, agent?: Agent): string[] =>
   ctx.tools.schemas(agent).map(schema => schema.name).sort()
+
+const OPTIONAL_HOST_TOOLS = new Set([
+  'browser_back', 'browser_click', 'browser_click_at', 'browser_close', 'browser_close_tab',
+  'browser_console_messages', 'browser_drag', 'browser_drop', 'browser_file_upload', 'browser_fill',
+  'browser_fill_form', 'browser_find', 'browser_forward', 'browser_handle_dialog', 'browser_history_search',
+  'browser_hover', 'browser_navigate', 'browser_navigate_back', 'browser_network_request',
+  'browser_network_requests', 'browser_open_tab', 'browser_page_agent_run', 'browser_page_agent_status',
+  'browser_page_agent_stop', 'browser_press', 'browser_press_key', 'browser_resize', 'browser_screenshot',
+  'browser_scroll', 'browser_scroll_horizontally', 'browser_select_option', 'browser_select_text',
+  'browser_snapshot', 'browser_state', 'browser_switch_tab', 'browser_tabs', 'browser_take_screenshot',
+  'browser_type', 'browser_upload_file', 'browser_wait', 'browser_wait_for',
+  'obsidian_knowledge_read', 'obsidian_knowledge_recall', 'obsidian_knowledge_save_approved', 'web_fetch',
+])
+
+function coreToolNames(ctx: Context, agent?: Agent): string[] {
+  return toolNames(ctx, agent).filter(name => !OPTIONAL_HOST_TOOLS.has(name))
+}
 
 function toolParameterNames(ctx: Context, agent: Agent, toolName: string): string[] {
   const schema = ctx.tools.schemas(agent).find(tool => tool.name === toolName)
@@ -186,7 +213,7 @@ describe('the shipped Web composition', () => {
     // which preset composed it, so a two-tool benchmark surface would really
     // present three. A regression here means an agent-plane row came back to
     // the host composition.
-    expect(toolNames(ctx)).toEqual([])
+    expect(coreToolNames(ctx)).toEqual([])
   })
 
   it('keeps the token meter and its context-meter projections on the host plane', async () => {
@@ -238,9 +265,9 @@ describe('the shipped Web composition', () => {
       // layer mounts cleanly and simply contributes nothing. `glob`/`grep` are
       // excluded for the reason the TUI composition e2e excludes them — they
       // depend on ripgrep being present on the machine.
-      expect(toolNames(ctx, handle.agent).filter(name => name !== 'glob' && name !== 'grep')).toEqual([
-        'ask_user_question', 'bash', 'create_goal', 'edit', 'exit_plan_mode',
-        'get_goal', 'interrupt_agent', 'job_kill', 'job_list', 'job_output', 'list_agents', 'ralph', 'read', 'read_image', 'send_message', 'skill', 'skill_search',
+      expect(coreToolNames(ctx, handle.agent).filter(name => name !== 'glob' && name !== 'grep')).toEqual([
+        'ask_user_question', ...(process.platform === 'win32' ? [] : ['bash']), 'create_goal', 'edit', 'exit_plan_mode',
+        'get_goal', 'interrupt_agent', 'job_kill', 'job_list', 'job_output', 'list_agents', ...(process.platform === 'win32' ? ['pwsh'] : []), 'ralph', 'read', 'read_image', 'send_message', 'skill', 'skill_search',
         'subagent', 'subagent_fork', 'todo_write', 'update_goal', 'web_search',
         'workflow', 'write',
       ])
@@ -259,8 +286,12 @@ describe('the shipped Web composition', () => {
       expect(assembly.sections).toEqual([
         { name: 'deployment:persona', text: MINIMAL_PROMPT },
       ])
-      expect(assembly.tools.map(tool => tool.name)).toEqual(['bash', 'str_replace_editor'])
-      expect(assembly.tools.find(tool => tool.name === 'bash')?.description).toBe(MINIMAL_BASH_DESCRIPTION)
+      expect(assembly.tools.map(tool => tool.name).filter(name => !OPTIONAL_HOST_TOOLS.has(name))).toEqual(process.platform === 'win32'
+        ? ['pwsh', 'str_replace_editor']
+        : ['bash', 'str_replace_editor'])
+      const shellTool = assembly.tools.find(tool => tool.name === (process.platform === 'win32' ? 'pwsh' : 'bash'))
+      expect(shellTool).toBeDefined()
+      if (process.platform !== 'win32') expect(shellTool?.description).toBe(MINIMAL_BASH_DESCRIPTION)
       expect(JSON.stringify(assembly.tools.find(tool => tool.name === 'str_replace_editor')?.parameters))
         .toContain('Absolute path')
       expect(ctx.agentPresets.serviceFor(handle.agent, 'compaction')).toBeUndefined()
@@ -280,14 +311,16 @@ describe('the shipped Web composition', () => {
       setup: agentCtx => ctx.agentPresets.mount(agentCtx, 'minimal').then(() => undefined),
     })
     try {
-      expect(toolNames(ctx, minimal.agent)).toEqual(['bash', 'str_replace_editor'])
+      expect(coreToolNames(ctx, minimal.agent)).toEqual(process.platform === 'win32'
+        ? ['pwsh', 'str_replace_editor']
+        : ['bash', 'str_replace_editor'])
       expect(toolNames(ctx, full.agent).length).toBeGreaterThan(10)
 
       await minimal.dispose()
 
       // Tearing the minimal session down leaves the full one whole.
       expect(toolNames(ctx, full.agent).length).toBeGreaterThan(10)
-      expect(toolNames(ctx)).toEqual([])
+      expect(coreToolNames(ctx)).toEqual([])
     } finally {
       await full.dispose()
     }
@@ -306,7 +339,7 @@ describe('the shipped Web composition', () => {
         'cordis_define', 'cordis_run', 'cordis_stop', 'cordis_undefine',
       ]))
       // And it keeps the standard agent's own tools rather than replacing them.
-      expect(tools).toEqual(expect.arrayContaining(['bash', 'read', 'edit', 'skill']))
+      expect(tools).toEqual(expect.arrayContaining([process.platform === 'win32' ? 'pwsh' : 'bash', 'read', 'edit', 'skill']))
       expect(tools).not.toContain('str_replace_editor')
 
       // The preset's own authoring skill registers into ITS layer of the host
@@ -344,7 +377,7 @@ describe('the shipped Web composition', () => {
       // The presentation is this agent's alone: the deployment default is
       // native, and the session composed from `standard` still sees it.
       const nativeAssembly = await ctx.systemPrompt.assemble({ scope: native.agent })
-      expect(nativeAssembly.tools.map(tool => tool.name)).toContain('bash')
+      expect(nativeAssembly.tools.map(tool => tool.name)).toContain(process.platform === 'win32' ? 'pwsh' : 'bash')
       expect(nativeAssembly.tools.map(tool => tool.name)).not.toContain('run_code')
       expect(nativeAssembly.sections.some(section => section.name === 'tools:sdk')).toBe(false)
     } finally {
@@ -460,7 +493,9 @@ describe('the shipped Web composition', () => {
       // stays the preset's choice — minimal mounts no `tool-skill`, so its
       // tool table has no loader even though the global layer is readable.
       expect((await ctx.skills.list({ scope: handle.agent })).map(skill => skill.name)).toContain('hydra-badge')
-      expect(toolNames(ctx, handle.agent)).toEqual(['bash', 'str_replace_editor'])
+      expect(coreToolNames(ctx, handle.agent)).toEqual(process.platform === 'win32'
+        ? ['pwsh', 'str_replace_editor']
+        : ['bash', 'str_replace_editor'])
     } finally {
       await handle.dispose()
     }
@@ -709,7 +744,7 @@ describe('a delegated child', () => {
       expect(toolNames(ctx, child.agent)).toEqual(toolNames(ctx, parent.agent))
       // The shipped `standard` preset is the whole coding agent; an empty
       // child here is the defect, and equality alone would not catch it.
-      expect(toolNames(ctx, child.agent)).toContain('bash')
+      expect(toolNames(ctx, child.agent)).toContain(process.platform === 'win32' ? 'pwsh' : 'bash')
       expect(child.agent.session.header.agentPreset).toBe('standard')
     } finally {
       await child.dispose()
@@ -762,7 +797,7 @@ describe('a launcher that configures no writable root', () => {
       join(home, '.agent-presets', 'derived-mine', 'agent.cordis.yml'),
       '- id: tool-todo\n  name: \'@hydra/harness-tool-todo\'\n  config:\n    allowParallelInProgress: true\n',
     )
-    const settingsFile = join(await mkdtemp(join(tmpdir(), 'hydra-preset-derived-settings-')), 'settings.yaml')
+    const settingsFile = join(home, 'settings.yaml')
     await writeFile(settingsFile, '{}\n')
     // Only the shipped root, exactly what `composeProfile` supplies; the
     // writable one is the roster's own default rather than this patch's job.
@@ -850,7 +885,7 @@ describe('authoring a preset on the shipped composition', () => {
     expect(await authorCtx.agentPresets.read('my-agent')).toBe(await authorCtx.agentPresets.read('minimal'))
     // Owner-only, in an owner-only directory: a composition is executable
     // configuration on a machine that may have other users.
-    expect((await stat(preset.path)).mode & 0o777).toBe(0o600)
+    if (process.platform !== 'win32') expect((await stat(preset.path)).mode & 0o777).toBe(0o600)
     const handle = await authorCtx.agents.create({
       sessionId: SessionId('preset-authored'),
       setup: agentCtx => authorCtx.agentPresets.mount(agentCtx, 'my-agent').then(() => undefined),
@@ -858,7 +893,9 @@ describe('authoring a preset on the shipped composition', () => {
     try {
       // The same tools the shipped `minimal` composes, from a directory copied
       // through the service into a root outside the installed harness.
-      expect(toolNames(authorCtx, handle.agent)).toEqual(['bash', 'str_replace_editor'])
+      expect(coreToolNames(authorCtx, handle.agent)).toEqual(process.platform === 'win32'
+        ? ['pwsh', 'str_replace_editor']
+        : ['bash', 'str_replace_editor'])
     } finally {
       await handle.dispose()
     }
@@ -895,7 +932,9 @@ describe('the default preset as a user setting', () => {
       try {
         // `mount()` with no id resolves the effective default. Two tools, not
         // `standard`'s catalog: the setting decided the composition.
-        expect(toolNames(ctx, handle.agent)).toEqual(['bash', 'str_replace_editor'])
+        expect(coreToolNames(ctx, handle.agent)).toEqual(process.platform === 'win32'
+          ? ['pwsh', 'str_replace_editor']
+          : ['bash', 'str_replace_editor'])
       } finally {
         await handle.dispose()
       }

@@ -4178,6 +4178,35 @@ describe('dynamic nested workspace context injection', () => {
     }
   })
 
+  it('refreshes after a foreground shell declares changed paths', async () => {
+    const root = await tempRepo()
+    const home = await tempRepo()
+    const ctx = new Context()
+    try {
+      await ctx.plugin(RecordingFileSystem)
+      const fs = ctx.fs as RecordingFileSystem
+      fs.entries.set(join(root, '.git'), { type: 'directory' })
+      fs.entries.set(join(root, 'pkg/AGENTS.md'), { type: 'file', content: 'shell-visible package rule' })
+      const agent = stubAgent(root)
+      await ctx.plugin(workspaceContext, { hydraHome: home, maxBytes: 65536 })
+
+      ctx.emit('tools/result', stubToolExecution({
+        signal: testToolSignal,
+        callId: CallId('bash-changed-paths'),
+        name: 'bash',
+        arguments: { command: 'write file', changed_paths: ['pkg/generated.ts'] },
+        agent,
+      }), { content: [], isError: false, value: null, meta: { changed_paths: ['pkg/generated.ts'] } })
+
+      expect(blocksText((await syncedWorkspaceContext(ctx, agent)).content))
+        .toContain('shell-visible package rule')
+    } finally {
+      await ctx.fiber.dispose()
+      await rm(root, { recursive: true, force: true })
+      await rm(home, { recursive: true, force: true })
+    }
+  })
+
   it('ignores failed, aborted, agentless, and non-file final results', async () => {
     const ctx = new Context()
     try {
