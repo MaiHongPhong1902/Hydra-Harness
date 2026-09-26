@@ -565,7 +565,7 @@ describe('Documentation site publication', () => {
       run: 'pnpm run release:verify --family hydra',
     })
     // Complete history: the release scripts read tags.
-    expect(checkout).toMatchObject({ with: { 'fetch-depth': 0 } })
+    expect(checkout).toMatchObject({ with: { 'fetch-depth': 0, submodules: true } })
 
     // Projected source links stay on the public repository's default branch.
     expect(workflow.env.DOCS_REPOSITORY_REF).toBe('main')
