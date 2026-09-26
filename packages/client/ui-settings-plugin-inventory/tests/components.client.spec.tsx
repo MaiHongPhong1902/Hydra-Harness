@@ -4,7 +4,7 @@ import { createSnapshotStore } from '@hydra/harness-client-runtime/client'
 import { bindSnapshotSelector } from '@hydra/harness-client-test-runtime'
 import type { ImportedPluginSnapshot, PluginInventorySnapshot } from '@hydra/harness-api-remotes/client'
 import { PluginInventoryController } from '../src/client/inventory-controller.ts'
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ImportedPluginCapabilitiesTab, type ImportedPluginCapabilitiesTabProps } from '../src/client/ImportedPluginCapabilitiesTab.tsx'
 import {
@@ -22,6 +22,8 @@ const SNAPSHOT = {
   plugins: [{
     identity: 'toolkit@local' as never,
     name: 'Toolkit',
+    description: 'Tools for project maintenance.',
+    application: 'Use the toolkit skill to review a project.',
     version: '4.9.0',
     source: { kind: 'local' as const, source: 'C:\\plugins\\toolkit', sourceId: 'local' },
     pluginRoot: 'C:\\plugins\\toolkit',
@@ -49,6 +51,8 @@ const NATIVE_SNAPSHOT = {
     {
       entryId: 'settings' as never,
       moduleName: '@hydra/harness-settings',
+      description: 'Shared app preferences.',
+      application: 'Keep preferences consistent across sessions.',
       enabled: true,
       restartRequired: false,
       toggleable: false,
@@ -144,9 +148,34 @@ describe('PluginInventorySettingsTab', () => {
     vi.mocked(native.list).mockResolvedValue({ entries })
     render(<PluginInventorySettingsTab {...({ active: true, t, nativePlugins: native, query: '' } as PluginInventorySettingsTabProps)} />)
     await screen.findByText('group')
+    const groupRow = screen.getByText('group').closest('[role="button"]')!
+    expect(groupRow.querySelector('[data-status="unmounted"]')).not.toBeNull()
+    fireEvent.click(groupRow)
+    const groupDetails = screen.getByRole('dialog', { name: 'group' })
+    expect(groupDetails.getAttribute('aria-modal')).toBe('true')
     expect(screen.getByText(en.mixedEnabled)).not.toBeNull()
-    expect(screen.getByText(`${en.cordis}: ${en.unobserved}`)).not.toBeNull()
+    expect(within(groupDetails).getByText(en.cordis)).not.toBeNull()
+    expect(within(groupDetails).getByText(en.unobserved)).not.toBeNull()
     expect(screen.getByText('related')).not.toBeNull()
+  })
+
+  it('filters compact rows and opens the selected plugin dialog', async () => {
+    const native = nativeControls()
+    vi.mocked(native.list).mockResolvedValue({ entries: [
+      { ...NATIVE_SNAPSHOT.entries[0], pluginType: 'normal', moduleName: '@hydra/harness-browser-electron' },
+      { ...NATIVE_SNAPSHOT.entries[1], pluginType: 'core', moduleName: '@hydra/harness-settings' },
+    ] })
+    render(<PluginInventorySettingsTab {...({ active: true, t, nativePlugins: native, query: '' } as PluginInventorySettingsTabProps)} />)
+    await screen.findByText('browser-electron')
+    fireEvent.change(screen.getAllByRole('combobox')[0]!, { target: { value: 'core' } })
+    expect(screen.queryByText('browser-electron')).toBeNull()
+    fireEvent.click(screen.getByText('settings').closest('[role="button"]')!)
+    const details = await screen.findByRole('dialog', { name: 'settings' })
+    expect(details.getAttribute('aria-modal')).toBe('true')
+    expect(within(details).getByRole('row', { name: 'Description Shared app preferences.' })).toBeTruthy()
+    expect(within(details).getByRole('row', { name: 'Usage Keep preferences consistent across sessions.' })).toBeTruthy()
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(screen.queryByRole('dialog', { name: 'settings' })).toBeNull()
   })
 
   it('shows an empty native catalog and explains an unavailable inventory', async () => {
@@ -201,6 +230,7 @@ describe('PluginInventorySettingsTab', () => {
     fireEvent.click(screen.getByRole('button', { name: en.saveAll }))
     await waitFor(() => { expect(native.setEnabled).toHaveBeenCalledWith('browser', true) })
     rerender(<PluginInventorySettingsTab {...({ active: true, t, nativePlugins: native, query: 'settings' } as PluginInventorySettingsTabProps)} />)
+    fireEvent.click((await screen.findByText('settings')).closest('[role="button"]')!)
     await screen.findByText(en.requiredPlugin)
     expect(screen.queryByRole('switch', { name: `${en.disablePlugin} settings` })).toBeNull()
     expect(native.setEnabled).toHaveBeenCalledOnce()
@@ -208,7 +238,7 @@ describe('PluginInventorySettingsTab', () => {
     expect(screen.queryByRole('heading', { name: en.importedPlugins })).toBeNull()
   })
 
-  it('shows the core restart and preset new-session notices', async () => {
+  it('shows the core restart and preset session-scope notices', async () => {
     const core = {
       entryId: 'typert-loader' as never,
       moduleName: '@hydra/harness-typert-loader',
@@ -238,15 +268,25 @@ describe('PluginInventorySettingsTab', () => {
     }
     render(<PluginInventorySettingsTab {...({ active: true, t, nativePlugins: native, query: '' } as PluginInventorySettingsTabProps)} />)
 
-    expect(await screen.findByText(`${en.preset}: standard`)).toBeTruthy()
+    const presetRow = (await screen.findByText('tool-subagent')).closest('[role="button"]')!
+    expect(within(presetRow as HTMLElement).getByText(en.sessionScoped)).toBeTruthy()
+    expect(within(presetRow as HTMLElement).queryByText(en.unobserved)).toBeNull()
+    fireEvent.click(presetRow)
+    expect(await screen.findByText('standard')).toBeTruthy()
+    const details = screen.getByRole('dialog', { name: 'tool-subagent' })
+    expect(within(details).getByRole('row', { name: `${en.cordis} ${en.sessionScoped}` })).toBeTruthy()
+    expect(within(details).getByText(en.presetRuntimeHint)).toBeTruthy()
     expect(screen.getByText(en.newSessionsOnly)).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: en.closeDetails }))
     fireEvent.click(screen.getByRole('switch', { name: `${en.disablePlugin} typert-loader` }))
     expect(native.setEnabled).not.toHaveBeenCalled()
     fireEvent.click(screen.getByRole('button', { name: en.saveAll }))
     await waitFor(() => { expect(native.setEnabled).toHaveBeenCalledWith('typert-loader', false) })
+    fireEvent.click(screen.getByText('typert-loader').closest('[role="button"]')!)
     expect(await screen.findByText(en.restartRequired)).toBeTruthy()
-    expect(screen.getByText('typert-loader').closest('[data-restart-required]')?.getAttribute('data-restart-required')).toBe('true')
-    expect(screen.getByRole('status').textContent).toBe(en.restartFooter)
+    expect(document.querySelector('[data-plugin-entry="typert-loader"]')?.getAttribute('data-restart-required')).toBe('true')
+    expect(screen.getByRole('status').textContent).toContain(en.restartFooter)
+    expect(screen.getByRole('status').textContent).toContain(en.restartCount)
   })
 
   it('groups repeated modules without merging their switches', async () => {
@@ -281,6 +321,7 @@ describe('PluginInventorySettingsTab', () => {
     await screen.findByRole('switch', { name: `${en.disablePlugin} tool-subagent (standard: tool-subagent)` })
     expect(container.querySelectorAll('[data-plugin-module="@hydra/harness-tool-subagent"]')).toHaveLength(1)
     expect(container.querySelectorAll('[data-plugin-entry]')).toHaveLength(2)
+    expect(container.querySelectorAll('[data-plugin-entry] [data-status="session-scoped"]')).toHaveLength(2)
     expect(container.querySelector('[data-plugin-count]')?.getAttribute('data-plugin-count')).toBe('1')
     fireEvent.click(screen.getByRole('switch', { name: `${en.enablePlugin} tool-subagent (standard: tool-subagent-fork)` }))
     fireEvent.click(screen.getByRole('button', { name: en.saveAll }))
@@ -294,7 +335,14 @@ describe('PluginInventorySettingsTab', () => {
     const imported = importedControls()
     render(<PluginInventorySettingsTab {...({ active: true, t, nativePlugins: native, importedPlugins: imported, query: '' } as PluginInventorySettingsTabProps)} />)
 
-    expect(await screen.findByText('Toolkit')).toBeTruthy()
+    const toolkit = await screen.findByText('Toolkit')
+    fireEvent.click(toolkit.closest('[role="button"]')!)
+    const details = await screen.findByRole('dialog', { name: 'Toolkit' })
+    expect(details.querySelector('table')).not.toBeNull()
+    expect(within(details).getByText(SNAPSHOT.plugins[0].description)).toBeTruthy()
+    expect(within(details).getByText(SNAPSHOT.plugins[0].application)).toBeTruthy()
+    expect(within(details).queryByRole('button', { name: en.importedPluginRemove })).toBeNull()
+    fireEvent.click(within(details).getByRole('button', { name: en.closeDetails }))
     fireEvent.click(screen.getByRole('switch', { name: `${en.importedPluginEnable} Toolkit` }))
     expect(imported.enable).not.toHaveBeenCalled()
     fireEvent.click(screen.getByRole('button', { name: en.saveAll }))

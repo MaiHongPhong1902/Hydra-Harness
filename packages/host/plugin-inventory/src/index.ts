@@ -2,6 +2,7 @@
 
 import { execFile } from 'node:child_process'
 import { lstat, mkdtemp, readFile, realpath, rm, stat } from 'node:fs/promises'
+import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { basename, dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -41,6 +42,10 @@ export type * from './types.ts'
 
 declare module '@hydra/cordis-plugin-loader' {
   interface EntryOptions {
+    /** Optional composition-specific summary, overriding the package description. */
+    description?: string
+    /** Optional composition-specific usage guidance, overriding package metadata. */
+    application?: string
     /** Core plugins change only on restart; omitted means normal. */
     pluginType?: 'core' | 'normal'
     /** Entries that implement one feature and share one Settings switch. */
@@ -85,6 +90,47 @@ const GITHUB_SHORTHAND_PATTERN = /^([A-Za-z0-9][A-Za-z0-9._-]*)\/([A-Za-z0-9][A-
 const MarketplaceDocumentSchema = zod.object({
   plugins: zod.array(zod.record(zod.string(), zod.unknown())).max(500),
 }).loose()
+
+const PluginMetadataSchema = zod.object({
+  description: zod.string().trim().min(1).optional(),
+  application: zod.string().trim().min(1).optional(),
+})
+
+const PluginPackageSchema = zod.object({
+  description: PluginMetadataSchema.shape.description,
+  hydra: zod.object({
+    plugin: zod.object({ application: zod.string().trim().min(1).optional() }).optional(),
+  }).optional(),
+})
+
+/** Read presentation metadata without importing or activating the plugin. */
+async function pluginMetadata(moduleName: string, baseUrl: string | undefined, options: unknown = {}): Promise<Pick<PluginInventoryEntry, 'description' | 'application'>> {
+  const overrides = PluginMetadataSchema.parse(options)
+  const metadata = {
+    ...overrides.description === undefined ? {} : { description: overrides.description },
+    ...overrides.application === undefined ? {} : { application: overrides.application },
+  }
+  if (baseUrl === undefined || moduleName.startsWith('.') || moduleName.startsWith('/')
+    || moduleName.includes(':') || moduleName.includes('\\')) return metadata
+  const packageName = moduleName.split('/').slice(0, moduleName.startsWith('@') ? 2 : 1).join('/')
+  let path: string
+  try {
+    path = createRequire(baseUrl).resolve(`${packageName}/package.json`)
+  } catch (error) {
+    // Disabled packages may be absent; third-party packages may hide their manifest.
+    if (error instanceof Error && 'code' in error
+      && (error.code === 'MODULE_NOT_FOUND' || error.code === 'ERR_PACKAGE_PATH_NOT_EXPORTED')) return metadata
+    throw error
+  }
+  const result = PluginPackageSchema.safeParse(JSON.parse(await readFile(path, 'utf8')) as unknown)
+  if (!result.success) throw new Error(`pluginInventory: invalid plugin metadata in ${path}`, { cause: result.error })
+  const { description, hydra } = result.data
+  return {
+    ...description === undefined ? {} : { description },
+    ...hydra?.plugin?.application === undefined ? {} : { application: hydra.plugin.application },
+    ...metadata,
+  }
+}
 
 type MarketplaceDocument = zod.infer<typeof MarketplaceDocumentSchema>
 
@@ -341,6 +387,8 @@ interface AgentPresetPluginControls {
     presetId: string
     moduleName: string
     enabled: boolean
+    description?: string
+    application?: string
   }[]>
   setPluginEnabled(entryId: string, enabled: boolean): Promise<void>
 }
@@ -611,10 +659,9 @@ export class PluginInventoryGateway extends TypertRemoteService {
    * so a second Host cache would only add another lifecycle truth to synchronize.
    * @returns Current Host entries followed by preset-owned leaf entries.
    */
-  private hostEntries(): PluginInventoryEntry[] {
-    const entries: PluginInventoryEntry[] = []
+  private async hostEntries(): Promise<PluginInventoryEntry[]> {
     const rootInclude = this.rootInclude()
-    for (const group of this.inventoryGroups(rootInclude)) {
+    return Promise.all(this.inventoryGroups(rootInclude).map(async (group) => {
       const entry = group[0] as Entry
       const members = group.filter(candidate => this.isToggleable(candidate, rootInclude))
       const controlled = members.length > 0 ? members : group
@@ -627,9 +674,10 @@ export class PluginInventoryGateway extends TypertRemoteService {
         ? this.moduleEntries(entry.options.name).find(candidate => !candidate.disabled && candidate.fiber !== undefined)
         : undefined
       const fiber = active?.fiber
-      entries.push({
+      return {
         entryId: pluginEntryId(entry.id),
         moduleName: entry.options.name,
+        ...await pluginMetadata(entry.options.name, entry.parent.tree.ctx.baseUrl, entry.options),
         pluginType: group.some(candidate => this.isRestartOnly(candidate)) ? 'core' : 'normal',
         initialEnabled: initialStates.every(Boolean) ? true : initialStates.some(Boolean) ? null : false,
         changedSinceStart: controlled.some((candidate, index) => this.desiredEnabled(candidate) !== initialStates[index]),
@@ -640,17 +688,17 @@ export class PluginInventoryGateway extends TypertRemoteService {
         restartRequired,
         toggleable: this.isToggleable(entry, rootInclude),
         fiberPhase: fiber === undefined ? null : FIBER_PHASE[fiber.state],
-      })
-    }
-    return entries
+      }
+    }))
   }
 
   private async presetEntries(): Promise<PluginInventoryEntry[]> {
     const presets = this.agentPresets()
     if (presets === undefined) return []
-    return (await presets.listPluginEntries()).map(entry => ({
+    return Promise.all((await presets.listPluginEntries()).map(async entry => ({
       entryId: pluginEntryId(entry.entryId),
       moduleName: entry.moduleName,
+      ...await pluginMetadata(entry.moduleName, this.ctx.baseUrl, entry),
       enabled: entry.enabled,
       presetId: entry.presetId,
       newSessionsOnly: true,
@@ -658,7 +706,7 @@ export class PluginInventoryGateway extends TypertRemoteService {
       restartRequired: false,
       toggleable: true,
       fiberPhase: null,
-    }))
+    })))
   }
 
   /**
@@ -667,7 +715,7 @@ export class PluginInventoryGateway extends TypertRemoteService {
    */
   @Remote('list')
   async list(): Promise<PluginInventorySnapshot> {
-    const entries = [...this.hostEntries(), ...(await this.presetEntries())]
+    const entries = [...await this.hostEntries(), ...await this.presetEntries()]
     for (const entry of entries) {
       if (!this.initialEnabled.has(entry.entryId)) this.initialEnabled.set(entry.entryId, entry.enabled)
     }

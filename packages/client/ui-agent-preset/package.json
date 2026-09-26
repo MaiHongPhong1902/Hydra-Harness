@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Select the preset for a session and edit the composition used by future sessions."
+    },
     "client": {
       "inject": [
         "@hydra/harness-client-connection",

@@ -30,6 +30,9 @@
     "./package.json": "./package.json"
   },
   "hydra": {
+    "plugin": {
+      "application": "Inspect installed plugins, read their usage guidance, and save enablement changes."
+    },
     "client": {
       "inject": [
         "@hydra/harness-api-remotes",

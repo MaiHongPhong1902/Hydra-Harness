@@ -32,8 +32,8 @@
   - heading "Built-in" [level=3]
   - list:
     - listitem:
-      - 'button "In use: Standard mode" [disabled] [pressed]':
-        - text: Standard mode Built-in In use Full coding agent with file editing, shell, file and web search, skills, planning, goals, subagents, and workflows.
+      - 'button "Default: Standard mode" [disabled] [pressed]':
+        - text: Standard mode Built-in Default Full coding agent with file editing, shell, file and web search, skills, planning, goals, subagents, and workflows.
         - code: standard
       - 'button "View: Standard mode"':
         - img

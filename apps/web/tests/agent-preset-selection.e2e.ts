@@ -30,6 +30,7 @@ const SNAPSHOT_DIR = fileURLToPath(new URL('./snapshots/agent-preset-selection',
 const HERO_EXPECTED = join(SNAPSHOT_DIR, 'hero.expected.md')
 const MENU_EXPECTED = join(SNAPSHOT_DIR, 'menu.expected.md')
 const HEADER_EXPECTED = join(SNAPSHOT_DIR, 'header.expected.md')
+const PRESET_PLUGIN_DETAILS_EXPECTED = join(SNAPSHOT_DIR, 'preset-plugin-details.expected.md')
 /** The shipped roster, beside the composition that names it. */
 const SHIPPED_PRESETS = fileURLToPath(new URL('../../cli/config/agent-presets', import.meta.url))
 const MODE = webSnapshotMode()
@@ -268,6 +269,29 @@ describe('web e2e: agent-preset selection', () => {
     expect(onStandard.some(option => option.startsWith('plan'))).toBe(true)
     await composer.fill('')
   }, 90_000)
+
+  it('labels preset plugins by session scope in the host inventory', async () => {
+    onTestFailed(() => saveFailureShot(page, 'web-e2e-agent-preset-plugin-scope'))
+    await page.getByRole('button', { name: 'Settings', exact: true }).click()
+    const settings = page.getByRole('dialog', { name: 'Settings' })
+    await settings.getByRole('button', { name: 'Plugins', exact: true }).click()
+    await settings.getByRole('tab', { name: 'Plugins', exact: true }).click()
+
+    const inventory = settings.getByRole('tabpanel', { name: 'Plugins', exact: true })
+    const row = inventory.locator('[data-plugin-entry="agent-preset:standard:agent-instructions"]')
+    await row.waitFor({ timeout: 10_000 })
+    expect(await row.getByText('Session-scoped', { exact: true }).count()).toBe(1)
+    expect(await row.getByText('Not mounted', { exact: true }).count()).toBe(0)
+
+    await row.locator('[role="button"]').click()
+    const details = page.getByRole('dialog', { name: 'agent-instructions', exact: true })
+    await details.getByText('This list does not show whether a session has loaded this preset.', { exact: true }).waitFor()
+    await compareOrRefreshGolden(PRESET_PLUGIN_DETAILS_EXPECTED,
+      await captureStableAria(page, '[role="dialog"][aria-label="agent-instructions"]', scaffold.workspaceCwd), MODE)
+    await details.getByRole('button', { name: 'Close plugin details', exact: true }).click()
+    await page.keyboard.press('Escape')
+    await expect.poll(() => page.getByRole('dialog', { name: 'Settings' }).count(), { timeout: 5_000 }).toBe(0)
+  })
 
   it('labels a resumed session with the preset it was created under', async () => {
     onTestFailed(() => saveFailureShot(page, 'web-e2e-agent-preset-header'))

@@ -63,6 +63,32 @@ async function harness(): Promise<{
 }
 
 describe('PluginInventoryGateway', () => {
+  it('projects plugin descriptions and usage from Host and preset metadata', async () => {
+    const h = await profile([{ id: 'native', name: 'cordis:active', disabled: true,
+      description: 'Fixture description', application: 'Use the fixture.' }])
+    h.ctx.provide('agentPresets', {
+      listPluginEntries: async () => [{ entryId: 'agent-preset:standard:fixture', presetId: 'standard',
+        moduleName: 'cordis:active', enabled: false, description: 'Preset description', application: 'Use the preset.' }],
+      setPluginEnabled: async () => {},
+    })
+    const details = (await h.inventory.list()).entries
+    expect(details.find(entry => entry.moduleName === 'cordis:active' && entry.presetId === undefined)).toMatchObject({ description: 'Fixture description', application: 'Use the fixture.' })
+    expect(details.find(entry => entry.presetId !== undefined)).toMatchObject({ description: 'Preset description', application: 'Use the preset.' })
+  })
+
+  it('reads plugin presentation metadata from its package manifest', async () => {
+    const h = await profile([{ id: 'package', name: '@fixture/metadata', disabled: true }])
+    const packageDir = join(h.directory, 'node_modules', '@fixture', 'metadata')
+    await mkdir(packageDir, { recursive: true })
+    await writeFile(join(packageDir, 'package.json'), JSON.stringify({
+      name: '@fixture/metadata',
+      description: 'Fixture package description',
+      hydra: { plugin: { application: 'Use the fixture package.' } },
+    }))
+    expect((await h.inventory.list()).entries.find(entry => entry.moduleName === '@fixture/metadata'))
+      .toMatchObject({ description: 'Fixture package description', application: 'Use the fixture package.' })
+  })
+
   it.each([1, 2])('reports %s failures while applying changed plugin settings', async (count) => {
     const h = await profile([{ id: 'one', name: 'cordis:active' }, { id: 'two', name: 'cordis:second' }])
     await h.gatewayFiber.dispose()

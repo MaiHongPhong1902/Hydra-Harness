@@ -26,6 +26,10 @@ export interface PluginInventoryEntry {
   readonly entryId: PluginEntryId
   /** Exact module specifier imported by the Loader entry. */
   readonly moduleName: string
+  /** Package-authored summary from package.json description. */
+  readonly description?: string
+  /** Package-authored usage guidance from package.json hydra.plugin.application. */
+  readonly application?: string
   /** Core entries are saved for the next app start; omitted means normal. */
   readonly pluginType?: 'core' | 'normal'
   /** Modules with the same declared function, controlled by this entry. */

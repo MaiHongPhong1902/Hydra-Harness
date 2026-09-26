@@ -53,7 +53,7 @@ export const en: Record<AgentPresetSettingsKey, string> = {
   presetIdPlaceholder: 'my-agent',
   displayName: 'Name',
   displayNamePlaceholder: 'Shown in the picker; defaults to the identifier',
-  inUse: 'In use',
+  inUse: 'Default',
   builtInGroup: 'Built-in',
   customGroup: 'Custom',
   noDescription: 'No description.',

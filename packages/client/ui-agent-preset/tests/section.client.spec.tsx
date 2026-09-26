@@ -97,7 +97,7 @@ describe('the preset list', () => {
     expect(within(mine).getByText(en.noDescription)).toBeTruthy()
   })
 
-  it('marks trust and the one in use, and offers no "set default" on it', () => {
+  it('marks trust and the default, and offers no "set default" on it', () => {
     renderSection()
 
     const standard = rowFor('standard')
@@ -131,15 +131,15 @@ describe('the preset list', () => {
     expect(screen.getByText(new RegExp('Creator mode'))).toBeTruthy()
   })
 
-  it('picks a preset by clicking its card, and the one in use is inert', () => {
+  it('picks a preset by clicking its card, and the default is inert', () => {
     const actions = renderSection()
 
     const inUse = within(rowFor('standard')).getByRole('button', { name: `${en.inUse}: ${en.presetStandardName}` })
     expect(inUse).toHaveProperty('disabled', true)
     fireEvent.click(inUse)
 
-    // Clicking the card IS the choice; the preset already in use cannot be
-    // re-picked, so the click reaches nothing.
+    // Clicking the card IS the choice; the default preset cannot be re-picked,
+    // so the click reaches nothing.
     expect(actions.makeDefault).not.toHaveBeenCalled()
   })
 

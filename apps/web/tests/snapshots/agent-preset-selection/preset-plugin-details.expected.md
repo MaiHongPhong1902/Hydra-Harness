@@ -1,0 +1,21 @@
+- dialog "agent-instructions":
+  - heading "agent-instructions" [level=2]
+  - button "Close plugin details":
+    - img
+  - paragraph: "@hydra/harness-agent-instructions"
+  - table:
+    - rowgroup:
+      - row "Description Workspace context loader for AGENTS.md/CLAUDE.md instruction files":
+        - rowheader "Description"
+        - cell "Workspace context loader for AGENTS.md/CLAUDE.md instruction files"
+      - row "Usage Apply project instructions from AGENTS.md or CLAUDE.md when working in a workspace.":
+        - rowheader "Usage"
+        - cell "Apply project instructions from AGENTS.md or CLAUDE.md when working in a workspace."
+      - row "Scope standard":
+        - rowheader "Scope"
+        - cell "standard"
+      - row "Cordis status Session-scoped":
+        - rowheader "Cordis status"
+        - cell "Session-scoped"
+  - paragraph: This list does not show whether a session has loaded this preset.
+  - paragraph: This change will apply to new sessions.
