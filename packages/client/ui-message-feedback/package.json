@@ -1,7 +1,7 @@
 {
   "name": "@hydra1902/harness-client-ui-message-feedback",
   "description": "Per-message feedback controls contributed to the assistant-message action strip, backed by the messageFeedback Host Remote",
-  "version": "0.1.1-rc.1",
+  "version": "0.1.1-rc.2",
   "publishConfig": {
     "access": "public"
   },

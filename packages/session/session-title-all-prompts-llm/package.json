@@ -1,7 +1,7 @@
 {
   "name": "@hydra1902/harness-session-title-all-prompts-llm",
   "description": "All-user-messages LLM provider plugin for Hydra harness session titles",
-  "version": "0.1.1-rc.1",
+  "version": "0.1.1-rc.2",
   "publishConfig": {
     "access": "public"
   },
