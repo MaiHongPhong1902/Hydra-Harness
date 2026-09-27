@@ -938,14 +938,14 @@ describe('ChatView', () => {
       }] }) })
       expect(view.getByRole('status').textContent).toBe('Thinking...')
 
-      random.mockReturnValue(0.99)
+      random.mockReturnValue(0.999999)
       act(() => { vi.advanceTimersByTime(4_000) })
-      expect(view.getByRole('status').textContent).toBe('Making progress...')
+      expect(view.getByRole('status').textContent).toBe('Zigzagging...')
 
-      random.mockReturnValue(0.5)
+      random.mockReturnValue(0)
       act(() => { h.set({ running: false }) })
       act(() => { h.set({ running: true }) })
-      expect(view.getByRole('status').textContent).toBe('Connecting the dots...')
+      expect(view.getByRole('status').textContent).toBe('Thinking...')
     } finally {
       random.mockRestore()
       vi.useRealTimers()

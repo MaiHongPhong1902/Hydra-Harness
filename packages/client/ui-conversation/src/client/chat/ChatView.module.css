@@ -85,7 +85,7 @@
 
 .turnStatusMessage {
   display: inline-block;
-  animation: hydra-turn-status-message-in 420ms var(--ds-ease-out) both;
+  animation: hydra-turn-status-message-in 420ms var(--ds-ease-in-out) both;
   transform-origin: left center;
 }
 

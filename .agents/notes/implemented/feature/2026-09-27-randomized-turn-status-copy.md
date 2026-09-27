@@ -8,7 +8,7 @@ Every running agent turn displayed the same `Deep diving...` label, so the activ
 
 ## Decision
 
-`TurnStatus` selects one phrase from `TURN_STATUS_MESSAGES` with `Math.random()` when the running status mounts, then selects a different phrase every 3.2 seconds while the turn remains active. `ChatView` keys the status by the logged turn start so a new turn resets the rotation, while rerenders and the elapsed-time clock do not. Each phrase enters with a short fade-and-rise transition; reduced-motion preferences disable the visual animations. The web ARIA normalizer replaces the supported phrases with `{{turn-status}}`, keeping replay goldens deterministic without hiding the presence of the running indicator.
+`TurnStatus` selects one phrase from `TURN_STATUS_MESSAGES` with `Math.random()` when the running status mounts, then selects a different phrase every 3.2 seconds while the turn remains active. `ChatView` keys the status by the logged turn start so a new turn resets the rotation, while rerenders and the elapsed-time clock do not. Each phrase enters with a short fade-and-rise transition; reduced-motion preferences disable the visual animations. The web ARIA normalizer replaces the running status copy with `{{turn-status}}`, keeping replay goldens deterministic without hiding the presence of the running indicator.
 
 ## Alternatives considered
 
@@ -20,7 +20,7 @@ Every running agent turn displayed the same `Deep diving...` label, so the activ
 
 ## Consequences
 
-The running indicator now has varied Claude-like progress copy, but the phrase is intentionally not a claim about the exact tool or model operation in progress. Adding a phrase requires adding it to the ARIA normalizer's allowlist so replay snapshots remain stable.
+The running indicator now has varied Claude-like progress copy, but the phrase is intentionally not a claim about the exact tool or model operation in progress. Replay snapshots normalize the running status copy while retaining the status row itself.
 
 ## Testing
 

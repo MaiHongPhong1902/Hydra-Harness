@@ -1,7 +1,7 @@
 /** Published hydra web + pnpm dev:web → browser HMR, with no page reload. */
 
 import { existsSync, globSync } from 'node:fs'
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { chromium } from 'playwright'
@@ -82,6 +82,10 @@ it('hot-reloads a real client-plugin source edit without refreshing the page', a
   const clientBundlePaths = globSync('packages/*/*/lib/client.js{,.map}', { cwd: REPO_ROOT })
     .map(path => join(REPO_ROOT, path))
   const originalClientBundles = await Promise.all(clientBundlePaths.map(async path => [path, await readFile(path)] as const))
+  const webDistPath = join(REPO_ROOT, 'apps/web/dist')
+  const webDistBackupPath = join(world, 'original-web-dist')
+  const webDistExisted = existsSync(webDistPath)
+  if (webDistExisted) await cp(webDistPath, webDistBackupPath, { recursive: true })
   const originalSource = await readFile(sourcePath)
   const oldText = 'Good to see you'
   const sourceNeedle = "'hero.headline': 'Good to see you'"
@@ -134,11 +138,15 @@ it('hot-reloads a real client-plugin source edit without refreshing the page', a
   } finally {
     await writeFile(sourcePath, originalSource).catch((error: unknown) => failures.push(error))
     if (watcher !== undefined) await stopTree(watcher).catch((error: unknown) => failures.push(error))
+    if (host !== undefined) await stopTree(host).catch((error: unknown) => failures.push(error))
+    await browser?.close().catch((error: unknown) => failures.push(error))
     await Promise.all(originalClientBundles.map(async ([path, content]) => {
       await writeFile(path, content).catch((error: unknown) => failures.push(error))
     }))
-    if (host !== undefined) await stopTree(host).catch((error: unknown) => failures.push(error))
-    await browser?.close().catch((error: unknown) => failures.push(error))
+    await rm(webDistPath, { recursive: true, force: true }).catch((error: unknown) => failures.push(error))
+    if (webDistExisted) {
+      await cp(webDistBackupPath, webDistPath, { recursive: true }).catch((error: unknown) => failures.push(error))
+    }
     await subprocessFiber?.dispose().catch((error: unknown) => failures.push(error))
     await rm(world, { recursive: true, force: true }).catch((error: unknown) => failures.push(error))
   }
