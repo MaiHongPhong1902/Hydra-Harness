@@ -213,6 +213,11 @@ export interface DesktopTerminalApi {
    * @returns Running state; rejects an unavailable workspace or a different owner for a live terminal.
    */
   start(terminalId: DesktopTerminalId, size: { cols: number; rows: number }, workspaceId?: WorkspaceId): Promise<{ running: boolean }>
+  /**
+   * Stop the terminal and wait for its process to exit.
+   * @param terminalId - Independent terminal instance.
+   * @returns Resolves for an exited or absent terminal; rejects when termination fails.
+   */
   stop(terminalId: DesktopTerminalId): Promise<void>
   write(terminalId: DesktopTerminalId, data: string): void
   resize(terminalId: DesktopTerminalId, size: { cols: number; rows: number }): void
@@ -252,6 +257,7 @@ type RightPanelTab = {
   label: string
 } & ({
   kind: 'terminal'
+  number: number
   terminalId: DesktopTerminalId
   workspaceId: WorkspaceId | undefined
 } | {
@@ -383,7 +389,7 @@ export function DesktopBrowserPanel(props: {
   const terminalNumber = useRef(terminalGroup === undefined ? 1 : 2)
   const [{ tabs, activeId }, setPanel] = useState<{ tabs: RightPanelTab[]; activeId: string }>(() => {
     const first: RightPanelTab = terminalGroup === undefined ? INITIAL_TAB : {
-      id: 'terminal', kind: 'terminal', label: 'Terminal',
+      id: 'terminal', kind: 'terminal', label: 'Terminal', number: 1,
       terminalId: `bottom-${terminalGroup}-1`, workspaceId: props.workspaceId,
     }
     return { tabs: [first], activeId: first.id }
@@ -448,17 +454,23 @@ export function DesktopBrowserPanel(props: {
       return
     }
     if (kind === 'terminal') {
-      const number = terminalNumber.current++
-      const tab: RightPanelTab = {
-        id: number === 1 ? 'terminal' : `terminal:${number}`,
-        kind,
-        label: number === 1 ? 'Terminal' : `Terminal ${number}`,
-        terminalId: terminalGroup === undefined
-          ? number === 1 ? 'right' : `right-${number}`
-          : `bottom-${terminalGroup}-${number}`,
-        workspaceId: props.workspaceId,
-      }
-      setPanel(current => ({ tabs: [...current.tabs, tab], activeId: tab.id }))
+      const ordinal = terminalNumber.current++
+      setPanel((current) => {
+        const usedNumbers = new Set(current.tabs.flatMap(tab => tab.kind === 'terminal' ? [tab.number] : []))
+        let number = 1
+        while (usedNumbers.has(number)) number += 1
+        const tab: RightPanelTab = {
+          id: ordinal === 1 ? 'terminal' : `terminal:${ordinal}`,
+          kind,
+          number,
+          label: number === 1 ? 'Terminal' : `Terminal ${number}`,
+          terminalId: terminalGroup === undefined
+            ? ordinal === 1 ? 'right' : `right-${ordinal}`
+            : `bottom-${terminalGroup}-${ordinal}`,
+          workspaceId: props.workspaceId,
+        }
+        return { tabs: [...current.tabs, tab], activeId: tab.id }
+      })
       return
     }
     setPanel(current => ({
@@ -482,6 +494,23 @@ export function DesktopBrowserPanel(props: {
     target?.focus()
   }, [activeId, tabs])
 
+  const removeTab = (id: string) => {
+    selectionRevision.current += 1
+    const focused = document.activeElement
+    focusTabAfterClose.current = focused !== null && panelRef.current?.contains(focused) === true
+      && (focused.closest('[data-panel-tab]')?.getAttribute('data-panel-tab') === id
+        || focused.closest('[role="tabpanel"]')?.id === `hydra-${panelKey}-panel-surface-${id}`)
+    setPanel((current) => {
+      const index = current.tabs.findIndex(tab => tab.id === id)
+      if (index === -1) return current
+      const remaining = current.tabs.filter(tab => tab.id !== id)
+      return {
+        tabs: remaining,
+        activeId: current.activeId === id ? remaining[Math.min(index, remaining.length - 1)]?.id ?? '' : current.activeId,
+      }
+    })
+  }
+
   const closeTab = async (id: string) => {
     if (id === 'files' && filesSaving) return
     if (id === 'files' && filesDirty && !window.confirm('Discard unsaved file changes?')) return
@@ -502,19 +531,7 @@ export function DesktopBrowserPanel(props: {
         setClosingTerminals(new Set(terminalClosePending.current))
       }
     }
-    selectionRevision.current += 1
-    const focused = document.activeElement
-    focusTabAfterClose.current = focused !== null && panelRef.current?.contains(focused) === true
-      && focused.closest('[data-panel-tab]')?.getAttribute('data-panel-tab') === id
-    setPanel((current) => {
-      const index = current.tabs.findIndex(tab => tab.id === id)
-      if (index === -1) return current
-      const remaining = current.tabs.filter(tab => tab.id !== id)
-      return {
-        tabs: remaining,
-        activeId: current.activeId === id ? remaining[Math.min(index, remaining.length - 1)]?.id ?? '' : current.activeId,
-      }
-    })
+    removeTab(id)
   }
 
   // The native browser closes its own panel when the user closes its last tab.
@@ -690,6 +707,7 @@ export function DesktopBrowserPanel(props: {
               terminalLabel={tab.label.replace('Terminal', terminalGroup === undefined ? 'Right terminal' : 'Bottom terminal')}
               sessionTitle={props.sessionTitle}
               onNewTerminal={() => { selectPanel('terminal') }}
+              onEmpty={() => { removeTab(tab.id) }}
               embedded
             />}
             {tab.kind === 'review' && props.terminalGroup === undefined && props.renderReview()}

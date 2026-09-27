@@ -28,9 +28,13 @@ We redesigned DesktopTerminalPanel and extended desktop preload and IPC bridges:
    - A collapsible right-side drawer lists running terminal processes strictly scoped to Hydra sessions (never external system processes).
    - Terminals are grouped under Conversations -> Session Title (e.g., active session title or current conversation).
    - Each process row displays the process name, a split button, and a kill/terminate button.
+   - Killing a pane waits for the native stop result. Success removes the pane and closes an empty tab; failure preserves it and exposes a retryable error. Native stop rejects if the PTY has not exited after termination attempts.
+   - Terminal labels use the smallest unused number in their tab group. Internal tab and PTY ordinals stay monotonic so delayed cleanup cannot target a replacement terminal.
    - The sidebar can be shown or hidden via a header toggle button.
 
 ## Alternatives considered
+
+**Reuse PTY IDs with tab numbers**: Delayed stop operations can reach a newly created terminal with the same ID. Only display numbers are reused.
 
 **Separate bottom tab implementation**: Reusing the right panel tab host keeps keyboard navigation, focus transfer, close failures, and PTY preservation consistent across placements.
 
@@ -53,4 +57,4 @@ Terminal sessions can now be split into multiple side-by-side panes, each runnin
 - Smoke tests in apps/desktop/main.cjs:
   - Verified valid multi-segment split terminal ID (`right-4-2`) is accepted and starts.
   - Verified invalid split terminal ID (`right-4-0`) is rejected.
-- Full suite tests in packages/client/ui-layout/tests/ pass cleanly (124 tests across 9 test files).
+- Focused panel specs cover delayed and failed stops, empty-tab removal, and display-number reuse with fresh PTY IDs. The assembled Electron smoke records replacement numbering and trash closure in the terminal workspace snapshot.

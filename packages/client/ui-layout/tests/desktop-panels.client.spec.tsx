@@ -98,7 +98,7 @@ describe('DesktopTerminalPanel', () => {
     }
     window.hydraDesktop = { browser: { setBounds: vi.fn() }, terminal: api }
 
-    const view = render(<DesktopTerminalPanel onNewTerminal={() => {}} open terminalId="right" embedded />)
+    const view = render(<DesktopTerminalPanel onEmpty={() => {}} onNewTerminal={() => {}} open terminalId="right" embedded />)
     await waitFor(() => { expect(api.start).toHaveBeenCalledOnce() })
     expect(view.getAllByText('Starting…')).toHaveLength(2)
     expect((view.getByRole('button', { name: 'Starting…' }) as HTMLButtonElement).disabled).toBe(true)
@@ -125,8 +125,8 @@ describe('DesktopTerminalPanel', () => {
     document.body.style.setProperty('--dsw-alias-label-primary', '#111111')
     const view = render(
       <>
-        <DesktopTerminalPanel onNewTerminal={() => {}} open terminalId="bottom" />
-        <DesktopTerminalPanel onNewTerminal={() => {}} open terminalId="right" embedded />
+        <DesktopTerminalPanel onEmpty={() => {}} onNewTerminal={() => {}} open terminalId="bottom" />
+        <DesktopTerminalPanel onEmpty={() => {}} onNewTerminal={() => {}} open terminalId="right" embedded />
       </>,
     )
     await waitFor(() => { expect(api.start).toHaveBeenCalledTimes(2) })
@@ -164,7 +164,7 @@ describe('DesktopTerminalPanel', () => {
     }
     window.hydraDesktop = { browser: { setBounds: vi.fn() }, terminal: api }
 
-    const view = render(<DesktopTerminalPanel onNewTerminal={() => {}} open terminalId="bottom" sessionTitle="Sửa Lỗi Kỹ Thuật" />)
+    const view = render(<DesktopTerminalPanel onEmpty={() => {}} onNewTerminal={() => {}} open terminalId="bottom" sessionTitle="Sửa Lỗi Kỹ Thuật" />)
     await waitFor(() => { expect(api.start).toHaveBeenCalledOnce() })
 
     // Header controls
@@ -205,7 +205,7 @@ describe('DesktopTerminalPanel', () => {
         open
         terminalId="right"
         sessionTitle="Sửa Lỗi Kỹ Thuật"
-        onNewTerminal={onNewTerminal}
+        onEmpty={() => {}} onNewTerminal={onNewTerminal}
       />,
     )
     await waitFor(() => { expect(api.start).toHaveBeenCalledOnce() })
@@ -226,7 +226,7 @@ describe('DesktopTerminalPanel', () => {
     }
     window.hydraDesktop = { browser: { setBounds: vi.fn() }, terminal: api }
 
-    const view = render(<DesktopTerminalPanel onNewTerminal={() => {}} open terminalId="bottom" sessionTitle="Sửa Lỗi Kỹ Thuật" />)
+    const view = render(<DesktopTerminalPanel onEmpty={() => {}} onNewTerminal={() => {}} open terminalId="bottom" sessionTitle="Sửa Lỗi Kỹ Thuật" />)
     await waitFor(() => { expect(api.start).toHaveBeenCalledTimes(1) })
 
     // Initial pane in sidebar
@@ -248,7 +248,38 @@ describe('DesktopTerminalPanel', () => {
 
     expect(api.stop).toHaveBeenCalledWith('bottom-1-2')
     // After kill, only 1 pane remains
-    expect(view.getAllByRole('button', { name: 'Split Terminal' })).toHaveLength(1)
+    await waitFor(() => { expect(view.getAllByRole('button', { name: 'Split Terminal' })).toHaveLength(1) })
+    expect(api.start).toHaveBeenCalledTimes(2)
+  })
+
+  it('keeps the last pane until stopping succeeds and allows retry after failure', async () => {
+    stubObservers()
+    const pending = Promise.withResolvers<undefined>()
+    const stop = vi.fn(() => pending.promise)
+    const onEmpty = vi.fn()
+    window.hydraDesktop = {
+      browser: { setBounds: vi.fn() },
+      terminal: {
+        start: vi.fn(async () => ({ running: true })), stop,
+        write: vi.fn(), resize: vi.fn(), onEvent: vi.fn(() => () => {}),
+      },
+    }
+    const view = render(<DesktopTerminalPanel open onNewTerminal={() => {}} onEmpty={onEmpty} />)
+    await waitFor(() => { expect(view.getByText('Running')).toBeTruthy() })
+    fireEvent.click(view.getByRole('button', { name: /Kill/ }))
+    expect((view.getByRole('button', { name: /Kill/ }) as HTMLButtonElement).disabled).toBe(true)
+    expect(view.queryByText('Exited (0)')).toBeNull()
+    expect(onEmpty).not.toHaveBeenCalled()
+    await act(async () => { pending.reject(new Error('stop failed')) })
+    expect(view.getByRole('alert').textContent).toContain('stop failed')
+    expect(view.getByRole('button', { name: /Kill/ })).toBeTruthy()
+    expect(onEmpty).not.toHaveBeenCalled()
+
+    stop.mockResolvedValueOnce(undefined)
+    fireEvent.click(view.getByRole('button', { name: /Kill/ }))
+    await waitFor(() => { expect(onEmpty).toHaveBeenCalledOnce() })
+    expect(view.queryByRole('button', { name: /Kill/ })).toBeNull()
+    expect(view.queryByRole('alert')).toBeNull()
   })
 
   it('supports splitting in embedded tab terminal with monotonic sub-pane IDs and unmount cleanup', async () => {
@@ -262,7 +293,7 @@ describe('DesktopTerminalPanel', () => {
     }
     window.hydraDesktop = { browser: { setBounds: vi.fn() }, terminal: api }
 
-    const view = render(<DesktopTerminalPanel onNewTerminal={() => {}} open terminalId="right-4" embedded />)
+    const view = render(<DesktopTerminalPanel onEmpty={() => {}} onNewTerminal={() => {}} open terminalId="right-4" embedded />)
     await waitFor(() => { expect(api.start).toHaveBeenCalledWith('right-4', expect.any(Object), undefined) })
 
     const splitBtn = view.getByRole('button', { name: 'Split Terminal' })
@@ -278,6 +309,7 @@ describe('DesktopTerminalPanel', () => {
     expect(killBtns).toHaveLength(3)
     fireEvent.click(killBtns[1]!)
     expect(api.stop).toHaveBeenCalledWith('right-4-2')
+    await waitFor(() => { expect(view.getAllByRole('button', { name: /Kill/ })).toHaveLength(2) })
 
     // Split again should generate next monotonic ID right-4-4 without colliding with right-4-3
     const remainingSplitBtns = view.getAllByRole('button', { name: 'Split Terminal' })
@@ -301,7 +333,7 @@ describe('DesktopTerminalPanel', () => {
     }
     window.hydraDesktop = { browser: { setBounds: vi.fn() }, terminal: api }
 
-    const view = render(<DesktopTerminalPanel onNewTerminal={() => {}} open terminalId="right" embedded />)
+    const view = render(<DesktopTerminalPanel onEmpty={() => {}} onNewTerminal={() => {}} open terminalId="right" embedded />)
     await waitFor(() => { expect(api.start).toHaveBeenCalledWith('right', expect.any(Object), undefined) })
 
     const splitBtn = view.getByRole('button', { name: 'Split Terminal' })
@@ -329,7 +361,7 @@ describe('DesktopTerminalPanel', () => {
       <DesktopTerminalPanel
         open
         terminalId="bottom"
-        onNewTerminal={() => {}}
+        onEmpty={() => {}} onNewTerminal={() => {}}
         sessionTitle="Sửa Lỗi Kỹ Thuật"
         onQuote={onQuote}
       />,

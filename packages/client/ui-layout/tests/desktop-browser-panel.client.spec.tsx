@@ -69,6 +69,49 @@ afterEach(() => {
 })
 
 describe('DesktopBrowserPanel', () => {
+  it('closes bottom tabs with the trash button and reuses the smallest free label with a fresh PTY id', async () => {
+    stubPanelObservers()
+    const start = vi.fn<DesktopTerminalApi['start']>(async () => ({ running: true }))
+    const stop = vi.fn(async () => {})
+    window.hydraDesktop = {
+      browser: { setBounds: vi.fn() },
+      terminal: { start, stop, write: vi.fn(), resize: vi.fn(), onEvent: () => () => {} },
+    }
+    const view = render(<DesktopBrowserPanel open terminalGroup={1} onOpen={() => {}} />)
+    await waitFor(() => { expect(start).toHaveBeenCalledWith('bottom-1-1', expect.any(Object), undefined) })
+    fireEvent.click(view.getByRole('button', { name: 'New Terminal' }))
+    fireEvent.click(view.getByRole('button', { name: 'New Terminal' }))
+    expect(view.getByRole('tab', { name: 'Terminal 3' })).toBeTruthy()
+
+    fireEvent.click(view.getByRole('button', { name: 'Close Terminal 2' }))
+    await waitFor(() => { expect(view.queryByRole('tab', { name: 'Terminal 2' })).toBeNull() })
+    fireEvent.click(view.getByRole('button', { name: 'New Terminal' }))
+    await waitFor(() => { expect(start).toHaveBeenCalledWith('bottom-1-4', expect.any(Object), undefined) })
+    expect(view.getByRole('tab', { name: 'Terminal 2' }).getAttribute('aria-selected')).toBe('true')
+    expect(view.getByRole('tab', { name: 'Terminal 3' })).toBeTruthy()
+
+    fireEvent.click(view.getByRole('button', { name: /Kill/ }))
+    await waitFor(() => { expect(view.queryByRole('tab', { name: 'Terminal 2' })).toBeNull() })
+    expect(stop).toHaveBeenCalledWith('bottom-1-4')
+    expect(stop).not.toHaveBeenCalledWith('bottom-1-1')
+    fireEvent.click(view.getByRole('button', { name: 'Close Terminal 3' }))
+    await waitFor(() => { expect(view.queryByRole('tab', { name: 'Terminal 3' })).toBeNull() })
+    fireEvent.click(view.getByRole('button', { name: 'Split Terminal' }))
+    await waitFor(() => { expect(start).toHaveBeenCalledWith('bottom-1-1-2', expect.any(Object), undefined) })
+    fireEvent.click(view.getAllByRole('button', { name: /Kill/ })[0]!)
+    await waitFor(() => { expect(view.getAllByRole('button', { name: /Kill/ })).toHaveLength(1) })
+    expect(view.getByRole('tab', { name: 'Terminal' })).toBeTruthy()
+    fireEvent.click(view.getByRole('button', { name: /Kill/ }))
+    await waitFor(() => { expect(view.queryByRole('tab')).toBeNull() })
+    expect(stop).toHaveBeenCalledWith('bottom-1-1')
+    expect(stop).toHaveBeenCalledWith('bottom-1-1-2')
+
+    fireEvent.click(view.getByRole('button', { name: 'Terminal' }))
+    await waitFor(() => { expect(start).toHaveBeenCalledWith('bottom-1-5', expect.any(Object), undefined) })
+    expect(view.getByRole('tab', { name: 'Terminal' })).toBeTruthy()
+    expect(view.queryByRole('tab', { name: 'Terminal 5' })).toBeNull()
+  })
+
   it('starts each terminal in its creation workspace, including splits after switching workspaces', async () => {
     stubPanelObservers()
     const start = vi.fn<DesktopTerminalApi['start']>(async () => ({ running: true }))

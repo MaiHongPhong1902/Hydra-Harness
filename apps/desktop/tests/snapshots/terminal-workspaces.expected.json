@@ -20,6 +20,16 @@
     "cwd": "."
   },
   {
+    "terminal": "bottom-1-3",
+    "label": "Terminal 2"
+  },
+  {
+    "action": "trash-close",
+    "tabs": [
+      "Terminal"
+    ]
+  },
+  {
     "terminal": "right-4-2",
     "cwd": "."
   },

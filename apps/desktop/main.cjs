@@ -365,11 +365,15 @@ async function stopTerminal(id) {
   } else {
     try { instance.kill() } catch {}
   }
-  await Promise.race([exited.promise, delay(2_000)])
-  wait.dispose()
-  if (terminals.get(id)?.instance === instance) {
-    try { instance.kill() } catch {}
-    releaseTerminal(id, instance)
+  try {
+    await Promise.race([exited.promise, delay(2_000)])
+    if (terminals.get(id)?.instance === instance) {
+      instance.kill()
+      await Promise.race([exited.promise, delay(2_000)])
+      if (terminals.get(id)?.instance === instance) throw new Error(`Terminal ${id} did not exit`)
+    }
+  } finally {
+    wait.dispose()
   }
 }
 
@@ -1244,6 +1248,21 @@ async function smoke() {
   if (terminals.get('bottom-1-1')?.instance !== firstBottom || terminals.get('right')?.instance !== firstTerminal) {
     throw new Error('closing the bottom tab affected another terminal')
   }
+  await selectControl('New Terminal', bottomPanel)
+  await waitForTerminal('bottom-1-3', 'replacement bottom tab startup', () => true)
+  await waitForRenderer('bottom tab reuses number 2', `document.querySelector(${JSON.stringify(bottomPanel)})
+    .querySelector('[role="tab"][aria-selected="true"]')?.textContent.trim() === 'Terminal 2'`)
+  workspaceTranscript.push({ terminal: 'bottom-1-3', label: 'Terminal 2' })
+  await mainWindow.webContents.executeJavaScript(`document.querySelector(${JSON.stringify(bottomPanel)})
+    .querySelector('[role="tabpanel"]:not([hidden]) button[aria-label^="Kill "]').click()`)
+  await waitForRenderer('trash closes the terminal tab and process', `!document.querySelector(${JSON.stringify(bottomPanel)})
+    .querySelector('[aria-label="Close Terminal 2"]') && window.hydraDesktop.terminal.list().then(items =>
+      !items.some(item => item.id === 'bottom-1-3'))`)
+  if (terminals.get('bottom-1-1')?.instance !== firstBottom || terminals.get('right')?.instance !== firstTerminal) {
+    throw new Error('trash affected another terminal')
+  }
+  workspaceTranscript.push({ action: 'trash-close', tabs: await mainWindow.webContents.executeJavaScript(`
+    [...document.querySelectorAll(${JSON.stringify(`${bottomPanel} [role="tab"]`)})].map(tab => tab.textContent.trim())`) })
   const rejectedTerminalId = await mainWindow.webContents.executeJavaScript(`window.hydraDesktop.terminal.start('right-0', { cols: 80, rows: 24 }).then(() => false, () => true)`)
   if (!rejectedTerminalId) throw new Error('invalid Terminal id was accepted')
   const rejectedSplitTerminalId = await mainWindow.webContents.executeJavaScript(`window.hydraDesktop.terminal.start('right-4-0', { cols: 80, rows: 24 }).then(() => false, () => true)`)

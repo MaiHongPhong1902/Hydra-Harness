@@ -276,6 +276,7 @@ export function DesktopTerminalPanel({
   embedded = false,
   onQuote,
   onNewTerminal,
+  onEmpty,
 }: {
   open: boolean
   terminalId?: DesktopTerminalId
@@ -285,6 +286,8 @@ export function DesktopTerminalPanel({
   embedded?: boolean
   onQuote?: (text: string) => void
   onNewTerminal: () => void
+  /** Remove the tab after its last pane stops successfully. */
+  onEmpty: () => void
 }) {
   const isRight = !terminalId.startsWith('bottom')
   const api = window.hydraDesktop?.terminal
@@ -301,6 +304,9 @@ export function DesktopTerminalPanel({
   const [showSidebar, setShowSidebar] = useState(true)
   const [conversationsExpanded, setConversationsExpanded] = useState(true)
   const [quotePopover, setQuotePopover] = useState<QuoteSelectionData | null>(null)
+  const [stoppingPane, setStoppingPane] = useState<DesktopTerminalId>()
+  const stopping = stoppingPane !== undefined
+  const [stopError, setStopError] = useState<string>()
 
   const splitCounterRef = useRef(1)
   const panesRef = useRef(panes)
@@ -339,17 +345,24 @@ export function DesktopTerminalPanel({
     void sourceId
   }
 
-  const handleKill = (id: DesktopTerminalId) => {
-    void api?.stop(id)
-    if (panes.length > 1) {
-      setPanes(prev => prev.filter(p => p.id !== id))
-      if (activePaneId === id) {
-        const remaining = panes.filter(p => p.id !== id)
-        if (remaining[0] !== undefined) setActivePaneId(remaining[0].id)
-      }
-    } else {
-      handleStatusChange(id, { status: 'exited', exitCode: 0 })
+  const handleKill = async (id: DesktopTerminalId) => {
+    if (api === undefined || stopping) return
+    setStoppingPane(id)
+    setStopError(undefined)
+    try {
+      await api.stop(id)
+    } catch (reason: unknown) {
+      setStopError(`Could not close terminal: ${String(reason)}`)
+      return
+    } finally {
+      setStoppingPane(undefined)
     }
+    const remaining = panesRef.current.filter(pane => pane.id !== id)
+    panesRef.current = remaining
+    setPanes(remaining)
+    const nextPane = remaining[0]
+    if (nextPane === undefined) onEmpty()
+    else setActivePaneId(current => current === id ? nextPane.id : current)
   }
 
   const handleTriggerQuote = useCallback((text: string, processName: string) => {
@@ -432,7 +445,7 @@ export function DesktopTerminalPanel({
             <button
               type="button"
               className={css.restart}
-              disabled={activeStatus === 'starting'}
+              disabled={activeStatus === 'starting' || stopping}
               onClick={() => { handleRestart(activePaneId) }}
             >
               {activeStatus === 'starting' ? 'Starting…' : 'Restart'}
@@ -474,7 +487,7 @@ export function DesktopTerminalPanel({
               <SingleTerminalPane
                 id={pane.id}
                 workspaceId={workspaceId}
-                open={open}
+                open={open && stoppingPane !== pane.id}
                 name={pane.name}
                 active={pane.id === activePaneId}
                 onFocus={() => { setActivePaneId(pane.id) }}
@@ -553,6 +566,7 @@ export function DesktopTerminalPanel({
                             className={css.actionButton}
                             title="Split Terminal"
                             aria-label="Split Terminal"
+                            disabled={stopping}
                             onClick={(e) => {
                               e.stopPropagation()
                               handleSplit(pane.id)
@@ -565,9 +579,10 @@ export function DesktopTerminalPanel({
                             className={css.actionButton}
                             title={`Kill ${pane.name}`}
                             aria-label={`Kill ${pane.name}`}
+                            disabled={api === undefined || stopping}
                             onClick={(e) => {
                               e.stopPropagation()
-                              handleKill(pane.id)
+                              void handleKill(pane.id)
                             }}
                           >
                             <IconTrashOutline16 size={13} />
@@ -588,6 +603,9 @@ export function DesktopTerminalPanel({
       )}
       {activeError !== undefined && (
         <div className={css.message} role="alert">{activeError}</div>
+      )}
+      {stopError !== undefined && (
+        <div className={css.message} role="alert">{stopError}</div>
       )}
     </section>
   )
