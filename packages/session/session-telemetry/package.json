@@ -1,7 +1,7 @@
 {
   "name": "@hydra1902/harness-session-telemetry",
   "description": "SessionTelemetryBackend seam for the Hydra harness: session-event capture, projection, redaction, and handoff to a reporting backend",
-  "version": "0.1.1-rc.2",
+  "version": "0.1.1-rc.3",
   "publishConfig": {
     "access": "public"
   },
