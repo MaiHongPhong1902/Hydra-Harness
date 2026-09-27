@@ -1367,7 +1367,7 @@ describe('ModelsSection', () => {
     expect(failure).toBeUndefined()
     expect(mutate.mock.calls[0]?.[0]).toEqual({
       ns: WELCOME_NOTICE_SETTINGS_NAMESPACE,
-      ops: [{ op: 'unset', path: [OFFICIAL_DEEPSEEK_DECLINED_FIELD] }],
+      ops: [{ op: 'set', path: [OFFICIAL_DEEPSEEK_DECLINED_FIELD], value: false }],
     })
   })
 
@@ -1430,7 +1430,7 @@ describe('ModelsSection', () => {
     })
     expect(scripted.mutate.mock.calls.find(call => call[0]?.ns === WELCOME_NOTICE_SETTINGS_NAMESPACE)?.[0]).toEqual({
       ns: WELCOME_NOTICE_SETTINGS_NAMESPACE,
-      ops: [{ op: 'unset', path: [OFFICIAL_DEEPSEEK_DECLINED_FIELD] }],
+      ops: [{ op: 'set', path: [OFFICIAL_DEEPSEEK_DECLINED_FIELD], value: false }],
     })
     expect((await screen.findByRole('status')).textContent).toBe(deepSeekCopy(en.savedProvider))
   })

@@ -109,24 +109,21 @@ it('discovers dormant routes without enabling them and rejects unknown providers
   })).rejects.toThrow('cancel discovery')
   await ctx.llm.discoverModels('llm-account-auth', { provider: 'antigravity' })
   for (const [flow] of flows.mock.calls) {
-    const usage = flow.accounts?.usage
-    if (usage === undefined) continue
-    await expect(usage('missing' as never)).rejects.toMatchObject({ code: 'ACCOUNT_GONE' })
+    if (flow.accounts?.usage === undefined) continue
+    await expect(flow.accounts.usage('missing' as never)).rejects.toMatchObject({ code: 'ACCOUNT_GONE' })
   }
 })
 
 it('passes a configured account-usage timeout to the reader', async () => {
   const defaultFixture = await fixture({ providers: { chatgpt: {} } })
   const defaultFlow = defaultFixture.flows.mock.calls[0]?.[0]
-  const defaultUsage = defaultFlow?.accounts?.usage
-  if (defaultUsage === undefined) throw new Error('account usage flow was not registered')
-  await expect(defaultUsage('missing' as never)).rejects.toMatchObject({ code: 'ACCOUNT_GONE' })
+  if (defaultFlow?.accounts?.usage === undefined) throw new Error('account usage flow was not registered')
+  await expect(defaultFlow.accounts.usage('missing' as never)).rejects.toMatchObject({ code: 'ACCOUNT_GONE' })
 
   const { flows } = await fixture({ providers: { chatgpt: {} }, usageTimeoutMs: 1 })
   const flow = flows.mock.calls[0]?.[0]
-  const usage = flow?.accounts?.usage
-  if (usage === undefined) throw new Error('account usage flow was not registered')
-  await expect(usage('missing' as never)).rejects.toMatchObject({ code: 'ACCOUNT_GONE' })
+  if (flow?.accounts?.usage === undefined) throw new Error('account usage flow was not registered')
+  await expect(flow.accounts.usage('missing' as never)).rejects.toMatchObject({ code: 'ACCOUNT_GONE' })
 })
 
 it('retries rejected lazy loads without evicting a newer credential snapshot', async () => {

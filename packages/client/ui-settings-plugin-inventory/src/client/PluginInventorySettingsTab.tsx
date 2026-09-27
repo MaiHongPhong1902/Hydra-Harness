@@ -202,6 +202,7 @@ function NativePluginCatalog({
       return [...grouped.values()].sort((left, right) => {
         const a = left[0]
         const b = right[0]
+        /* v8 ignore if -- grouped values are created only from non-empty matching entries. */
         if (a === undefined || b === undefined) return 0
         if (sortOrder === 'status') {
           const status = runtimeStatus(a).localeCompare(runtimeStatus(b))

@@ -1,0 +1,10 @@
+- dialog "Delete selected sessions (2)":
+  - heading "Delete selected sessions (2)" [level=2]
+  - button "Close":
+    - img
+  - paragraph: Permanently delete these 2 sessions and their session logs? This cannot be undone. Workspace files will be kept.
+  - list:
+    - listitem: Orphan beta
+    - listitem: Orphan alpha
+  - button "Cancel"
+  - button "Delete selected sessions (2)"

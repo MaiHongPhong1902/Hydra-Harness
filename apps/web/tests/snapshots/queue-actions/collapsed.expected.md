@@ -20,7 +20,7 @@
   - img
   - text: Context injection @hydra/harness-system-prompt
 - paragraph: partial
-- status: Deep diving...
+- status: {{turn-status}}
 - button "2 queued messages"
 - textbox "Cmd/Ctrl+Enter steers all queued messages"
 - button "Commands":

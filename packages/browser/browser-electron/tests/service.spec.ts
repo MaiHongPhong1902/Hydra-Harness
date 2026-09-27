@@ -238,10 +238,18 @@ describe('BrowserSessionService', () => {
     const owner = stubAgent(ctx, 'screenshot')
     await ctx.browsers.perform(owner, { method: 'get_browser_state' })
     for (const value of [null, [], { ...screenshot('bad'), mediaType: 'image/jpeg' },
-      { ...screenshot('bad'), capturedAt: 'invalid' }]) {
+      { ...screenshot('bad'), capturedAt: 'invalid' }, { ...screenshot('bad'), clip: null },
+      { ...screenshot('bad'), clip: [] }, { ...screenshot('bad'), clip: { x: 1, y: 2, width: 3 } }]) {
       spawned[0]!.responses.set('browser_screenshot', value)
       await expect(ctx.browsers.takeScreenshot(owner)).rejects.toThrow('invalid screenshot')
     }
+    const clipped = { ...screenshot('bad'), mode: 'clip', clip: { x: 1, y: 2, width: 3, height: 4 } }
+    spawned[0]!.responses.set('browser_screenshot', clipped)
+    await expect(ctx.browsers.takeScreenshot(owner)).resolves.toMatchObject({ clip: clipped.clip, mode: 'clip' })
+    const signal = new AbortController().signal
+    await expect(ctx.browsers.takeScreenshot(owner, { callId: CallId('legacy'), signal })).resolves.toMatchObject({ mode: 'clip' })
+    await expect(ctx.browsers.takeScreenshot(owner, { fullPage: true }, { callId: CallId('options'), signal }))
+      .resolves.toMatchObject({ mode: 'clip' })
     await dispose()
   })
 

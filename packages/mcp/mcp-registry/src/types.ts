@@ -29,7 +29,7 @@ export interface McpServerView {
   readonly args?: readonly string[]
   /** Working directory of a stdio record; absent when the record leaves it empty. */
   readonly cwd?: string
-  /** Endpoint of a `streamable-http` record; absent for a stdio one. */
+  /** Endpoint of a `streamable-http` record without URL userinfo; absent for stdio. */
   readonly url?: string
   /** Declared child-environment names, values withheld. */
   readonly envNames: readonly string[]

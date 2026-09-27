@@ -602,6 +602,19 @@ describe('browser tool calls', () => {
       },
     })
     expect(JSON.stringify(result)).not.toContain(PNG_1X1.toString('base64'))
+
+    expect((await call('browser_screenshot', { full_page: true })).isError).toBe(false)
+    expect(children[0]?.requests.at(-1)).toEqual({ method: 'browser_screenshot', args: { fullPage: true } })
+    expect((await call('browser_screenshot', { clip: { x: 1, y: 2, width: 3, height: 4 } })).isError).toBe(false)
+    expect(children[0]?.requests.at(-1)).toEqual({ method: 'browser_screenshot', args: {
+      fullPage: false, clip: { x: 1, y: 2, width: 3, height: 4 },
+    } })
+    for (const clip of [
+      { x: 0, y: 0, width: 0, height: 1 }, { x: 0, y: -1, width: 1, height: 1 },
+      { x: 0, y: 0, width: 1, height: 0 }, { x: -1, y: 0, width: 1, height: 1 },
+      { x: 0, y: 0, width: 10_001, height: 1 }, { x: 0, y: 0, width: 1, height: 10_001 },
+    ]) expect((await call('browser_screenshot', { clip })).isError).toBe(true)
+    expect((await call('browser_screenshot', { full_page: true, clip: { x: 0, y: 0, width: 1, height: 1 } })).isError).toBe(true)
   })
 
   it('refuses a screenshot before capture when the current model is text-only', async () => {

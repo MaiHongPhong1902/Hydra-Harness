@@ -22,6 +22,12 @@ function mount(deleteSession = vi.fn<(id: SessionId) => Promise<void>>().mockRes
 }
 
 describe('DeleteSessionDialog', () => {
+  it('renders a bulk dialog with no targets without inventing a title', () => {
+    const onClose = vi.fn()
+    render(<DeleteSessionDialog targets={[]} deleteSession={vi.fn(async () => {})} onClose={onClose} t={t} />)
+    expect(screen.getByRole('dialog').textContent).toContain('Delete session')
+  })
+
   it.each(['Cancel', 'Close'])('dismisses with %s without deleting', (name) => {
     const { deleteSession, onClose } = mount()
     expect(screen.getByRole('dialog').textContent).toContain(target.title)

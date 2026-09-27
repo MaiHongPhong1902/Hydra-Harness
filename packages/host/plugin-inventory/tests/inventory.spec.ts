@@ -89,6 +89,58 @@ describe('PluginInventoryGateway', () => {
       .toMatchObject({ description: 'Fixture package description', application: 'Use the fixture package.' })
   })
 
+  it('uses unscoped package metadata and tolerates an absent disabled manifest', async () => {
+    const h = await profile([
+      { id: 'plain', name: 'plain-metadata', disabled: true },
+      { id: 'missing', name: 'missing-metadata', disabled: true },
+    ])
+    const packageDir = join(h.directory, 'node_modules', 'plain-metadata')
+    await mkdir(packageDir, { recursive: true })
+    await writeFile(join(packageDir, 'package.json'), JSON.stringify({
+      name: 'plain-metadata', description: 'Unscoped package description',
+    }))
+    const entries = (await h.inventory.list()).entries
+    expect(entries.find(entry => entry.moduleName === 'plain-metadata'))
+      .toMatchObject({ description: 'Unscoped package description' })
+    expect(entries.find(entry => entry.moduleName === 'missing-metadata'))
+      .not.toHaveProperty('description')
+  })
+
+  it('tolerates package manifests hidden by exports and rejects invalid manifests', async () => {
+    const h = await profile([
+      { id: 'hidden', name: 'hidden-metadata', disabled: true },
+      { id: 'invalid', name: 'invalid-package', disabled: true },
+    ])
+    const hiddenDir = join(h.directory, 'node_modules', 'hidden-metadata')
+    await mkdir(hiddenDir, { recursive: true })
+    await writeFile(join(hiddenDir, 'package.json'), JSON.stringify({
+      name: 'hidden-metadata', exports: { '.': './index.js' },
+    }))
+    const invalidDir = join(h.directory, 'node_modules', 'invalid-package')
+    await mkdir(invalidDir, { recursive: true })
+    await writeFile(join(invalidDir, 'package.json'), '{')
+    await expect(h.inventory.list()).rejects.toMatchObject({ code: 'ERR_INVALID_PACKAGE_CONFIG' })
+  })
+
+  it('uses application metadata when a package has no description', async () => {
+    const h = await profile([{ id: 'application', name: 'application-metadata', disabled: true }])
+    const packageDir = join(h.directory, 'node_modules', 'application-metadata')
+    await mkdir(packageDir, { recursive: true })
+    await writeFile(join(packageDir, 'package.json'), JSON.stringify({
+      name: 'application-metadata', hydra: { plugin: { application: 'Use this fixture.' } },
+    }))
+    expect((await h.inventory.list()).entries.find(entry => entry.moduleName === 'application-metadata'))
+      .toMatchObject({ application: 'Use this fixture.' })
+  })
+
+  it('rejects malformed package metadata instead of exposing partial presentation data', async () => {
+    const h = await profile([{ id: 'invalid', name: 'invalid-metadata', disabled: true }])
+    const packageDir = join(h.directory, 'node_modules', 'invalid-metadata')
+    await mkdir(packageDir, { recursive: true })
+    await writeFile(join(packageDir, 'package.json'), JSON.stringify({ name: 'invalid-metadata', description: 42 }))
+    await expect(h.inventory.list()).rejects.toThrow('invalid plugin metadata')
+  })
+
   it.each([1, 2])('reports %s failures while applying changed plugin settings', async (count) => {
     const h = await profile([{ id: 'one', name: 'cordis:active' }, { id: 'two', name: 'cordis:second' }])
     await h.gatewayFiber.dispose()

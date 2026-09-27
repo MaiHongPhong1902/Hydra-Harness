@@ -210,10 +210,22 @@ describe('MarketplaceSettingsTab', () => {
     // The source reached the Host; the row is already listed behind the dialog.
     expect(screen.getByText(`${SOURCE} @ main`)).toBeTruthy()
 
-    // Retrying imports again rather than adding a record the Host already holds.
+    // Editing source options must persist the new request before retrying the import.
+    fireEvent.change(within(dialog).getByRole('textbox', { name: en.marketplaceGitRef }), {
+      target: { value: 'dev' },
+    })
+    fireEvent.change(within(dialog).getByRole('textbox', { name: en.marketplaceSparsePaths }), {
+      target: { value: 'plugins/alternate' },
+    })
     fireEvent.click(within(dialog).getByRole('button', { name: en.marketplaceSave }))
     await waitFor(() => { expect(importedPlugins.import).toHaveBeenCalledTimes(2) })
-    expect(addMarketplace).toHaveBeenCalledTimes(1)
+    expect(addMarketplace).toHaveBeenCalledTimes(2)
+    expect(addMarketplace).toHaveBeenLastCalledWith({
+      source: SOURCE,
+      gitRef: 'dev',
+      sparsePaths: ['plugins/alternate'],
+    })
+    expect(importedPlugins.import).toHaveBeenLastCalledWith({ source: SOURCE, ref: 'dev', plugin: 'example-plugin' })
   })
 
   it('adds the source alone when no plugin is named', async () => {

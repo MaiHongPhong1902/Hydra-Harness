@@ -20,9 +20,13 @@ describe('ui-settings-general host', () => {
     await ctx.plugin(MemorySettings).await()
     const fiber = ctx.plugin({ apply })
     await fiber.await()
-    expect(ctx.settings.describe().map(row => row.ns)).toContain(
-      settingsNamespace(ONBOARDING_SETTINGS_NAMESPACE),
+    const onboarding = ctx.settings.describe().find(
+      row => row.ns === settingsNamespace(ONBOARDING_SETTINGS_NAMESPACE),
     )
+    expect(onboarding).toMatchObject({
+      base: { deepseekOfficialDeclined: true },
+      value: { deepseekOfficialDeclined: true },
+    })
     await fiber.dispose()
     expect(ctx.settings.describe().map(row => row.ns)).not.toContain(
       settingsNamespace(ONBOARDING_SETTINGS_NAMESPACE),

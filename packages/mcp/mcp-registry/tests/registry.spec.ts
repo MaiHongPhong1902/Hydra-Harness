@@ -214,6 +214,29 @@ describe('stored records', () => {
     }])
   })
 
+  it('redacts credentials from a legacy HTTP URL projection', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'hydra-mcp-registry-redacted-'))
+    directories.push(root)
+    const settingsPath = join(root, 'settings.yaml')
+    await writeFile(settingsPath, [
+      'mcp-servers:',
+      '  servers:',
+      '    - name: legacy',
+      '      transport: streamable-http',
+      '      url: https://user:password@mcp.example.test/v1',
+      '      enabled: false',
+      '',
+    ].join('\\n'))
+
+    const ctx = await mount(settingsPath)
+
+    expect(ctx.mcpServers.list().servers[0]).toMatchObject({
+      name: 'legacy',
+      url: 'https://mcp.example.test/v1',
+      status: 'stopped',
+    })
+  })
+
   it('replaces one record wholesale but keeps the credential-shaped maps it cannot restate', async () => {
     const { registry } = await harness()
     await registry.define(STDIO)
@@ -262,6 +285,8 @@ describe('stored records', () => {
       .rejects.toThrow('requires a command')
     await expect(registry.define({ mode: 'create', name: 'remote', transport: 'streamable-http', url: 'ftp://mcp.example.test' }))
       .rejects.toThrow('must use HTTP or HTTPS')
+    await expect(registry.define({ mode: 'create', name: 'remote', transport: 'streamable-http', url: 'https://user:password@mcp.example.test/v1' }))
+      .rejects.toThrow('must not include username or password')
     await expect(registry.define({ mode: 'create', name: 'remote', transport: 'streamable-http', url: 'not-a-url' }))
       .rejects.toThrow('url is not absolute')
     await expect(registry.define({ mode: 'create', name: 'remote', transport: 'streamable-http' }))

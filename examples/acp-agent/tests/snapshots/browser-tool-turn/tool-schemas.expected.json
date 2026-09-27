@@ -91,6 +91,41 @@
       }
     },
     {
+      "name": "browser_click_at",
+      "description": "Click CSS-pixel coordinates in the selected browser viewport using a screenshot as the visual reference.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          },
+          "button": {
+            "type": "string",
+            "enum": [
+              "left",
+              "middle",
+              "right"
+            ]
+          },
+          "click_count": {
+            "type": "integer",
+            "description": "1 through 3; defaults to 1."
+          },
+          "tab_id": {
+            "type": "integer",
+            "description": "Controlled tab id from a browser result. Omit to use the tab selected when this call starts."
+          }
+        },
+        "required": [
+          "x",
+          "y"
+        ]
+      }
+    },
+    {
       "name": "browser_close",
       "description": "Close this agent's controlled browser and release its tabs. A later browser call opens a fresh controller.",
       "parameters": {
@@ -634,13 +669,41 @@
     },
     {
       "name": "browser_screenshot",
-      "description": "Capture the selected controlled HTTP(S) viewport. A filename saves PNG evidence without image input; otherwise imageResponses selects image delivery. Switch tabs before capture.",
+      "description": "Capture the selected controlled HTTP(S) page. Use full_page for the complete document or clip for a CSS-pixel rectangle.",
       "parameters": {
         "type": "object",
         "properties": {
           "filename": {
             "type": "string",
             "description": "Plain filename for a private output artifact; returns its absolute path instead of the data."
+          },
+          "full_page": {
+            "type": "boolean",
+            "description": "Capture the complete document instead of the visible viewport."
+          },
+          "clip": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "x": {
+                "type": "integer"
+              },
+              "y": {
+                "type": "integer"
+              },
+              "width": {
+                "type": "integer"
+              },
+              "height": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "x",
+              "y",
+              "width",
+              "height"
+            ]
           }
         }
       }
@@ -867,13 +930,41 @@
     },
     {
       "name": "browser_take_screenshot",
-      "description": "Capture the selected controlled HTTP(S) viewport. A filename saves PNG evidence without image input; otherwise imageResponses selects image delivery. Switch tabs before capture.",
+      "description": "Capture the selected controlled HTTP(S) page. Use full_page for the complete document or clip for a CSS-pixel rectangle.",
       "parameters": {
         "type": "object",
         "properties": {
           "filename": {
             "type": "string",
             "description": "Plain filename for a private output artifact; returns its absolute path instead of the data."
+          },
+          "full_page": {
+            "type": "boolean",
+            "description": "Capture the complete document instead of the visible viewport."
+          },
+          "clip": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "x": {
+                "type": "integer"
+              },
+              "y": {
+                "type": "integer"
+              },
+              "width": {
+                "type": "integer"
+              },
+              "height": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "x",
+              "y",
+              "width",
+              "height"
+            ]
           }
         }
       }

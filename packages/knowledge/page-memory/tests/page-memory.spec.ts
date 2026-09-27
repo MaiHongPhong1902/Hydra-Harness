@@ -283,6 +283,14 @@ describe('verified page-memory integration', () => {
     expect(text).not.toContain('#view')
   })
 
+  it('redacts an invalid page URL in model-visible recall', async () => {
+    const h = await harness()
+    h.page().url = 'not-a-url'
+    const result = await h.call('page_memory_get', { task: workflow.task })
+    expect(result.isError).toBe(true)
+    expect(result.content).toEqual([{ type: 'text', text: 'Error: page-memory: URL is invalid' }])
+  })
+
   it.each(['url', 'settled', 'final-page', 'action'] as const)('rejects changed %s during workflow verification', async (kind) => {
     const h = await harness()
     await h.call('page_memory_get', { task: workflow.task })

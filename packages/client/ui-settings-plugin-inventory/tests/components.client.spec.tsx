@@ -150,6 +150,9 @@ describe('PluginInventorySettingsTab', () => {
     await screen.findByText('group')
     const groupRow = screen.getByText('group').closest('[role="button"]')!
     expect(groupRow.querySelector('[data-status="unmounted"]')).not.toBeNull()
+    fireEvent.keyDown(groupRow, { key: 'ArrowDown' })
+    expect(screen.queryByRole('dialog')).toBeNull()
+    fireEvent.keyDown(groupRow, { key: ' ' })
     fireEvent.click(groupRow)
     const groupDetails = screen.getByRole('dialog', { name: 'group' })
     expect(groupDetails.getAttribute('aria-modal')).toBe('true')
@@ -287,6 +290,95 @@ describe('PluginInventorySettingsTab', () => {
     expect(document.querySelector('[data-plugin-entry="typert-loader"]')?.getAttribute('data-restart-required')).toBe('true')
     expect(screen.getByRole('status').textContent).toContain(en.restartFooter)
     expect(screen.getByRole('status').textContent).toContain(en.restartCount)
+  })
+
+  it('covers native runtime states, filters, sorting, and keyboard details', async () => {
+    const entries: PluginInventorySnapshot['entries'] = [
+      { ...NATIVE_SNAPSHOT.entries[0], entryId: 'failed' as never, moduleName: '@hydra/harness-failed', pluginType: 'normal', enabled: true, fiberPhase: 'failed' },
+      { ...NATIVE_SNAPSHOT.entries[0], entryId: 'failed-two' as never, moduleName: '@hydra/harness-failed-two', pluginType: 'normal', enabled: true, fiberPhase: 'failed' },
+      { ...NATIVE_SNAPSHOT.entries[0], entryId: 'loading' as never, moduleName: '@hydra/harness-loading', pluginType: 'normal', enabled: true, fiberPhase: 'loading' },
+      { ...NATIVE_SNAPSHOT.entries[0], entryId: 'stopped' as never, moduleName: '@hydra/harness-stopped', pluginType: 'normal', enabled: false, fiberPhase: null },
+      { ...NATIVE_SNAPSHOT.entries[0], entryId: 'core-restart' as never, moduleName: '@hydra/harness-core-restart', pluginType: 'core', enabled: true, restartRequired: true, fiberPhase: 'active' },
+      { ...NATIVE_SNAPSHOT.entries[0], entryId: 'preset-filter' as never, moduleName: '@hydra/harness-preset-filter', enabled: true, presetId: 'standard', fiberPhase: null },
+    ]
+    const native: NativePluginControls = {
+      list: vi.fn(async () => ({ entries })),
+      setEnabled: vi.fn(async () => ({ snapshot: { entries }, restartRequired: false })),
+    }
+    const drafts = createSnapshotStore({ saving: false, error: null, revision: 0,
+      dirtyNative: ['failed'], dirtyImported: [], changedNative: ['failed'], changedImported: [] })
+    render(<InventoryTab {...({
+      active: true,
+      t,
+      nativePlugins: native,
+      importedPlugins: importedControls(),
+      query: '',
+      usePluginDrafts: bindSnapshotSelector(drafts),
+      savePlugins: vi.fn(async () => {}),
+      discardPluginChanges: vi.fn(),
+    } as PluginInventorySettingsTabProps)} />)
+
+    await screen.findByText('failed')
+    const [typeFilter, statusFilter, sortOrder] = screen.getAllByRole('combobox')
+    fireEvent.change(sortOrder!, { target: { value: 'status' } })
+    fireEvent.change(typeFilter!, { target: { value: 'extension' } })
+    fireEvent.change(statusFilter!, { target: { value: 'enabled' } })
+    const failedRow = screen.getByText('failed').closest('[role="button"]')!
+    fireEvent.keyDown(failedRow, { key: 'Enter' })
+    const details = await screen.findByRole('dialog', { name: 'failed' })
+    expect(within(details).getByText(en.unsaved)).toBeTruthy()
+    expect(within(details).getByText(en.changedSinceStart)).toBeTruthy()
+    fireEvent.click(within(details).getByRole('button', { name: en.closeDetails }))
+
+    fireEvent.change(statusFilter!, { target: { value: 'disabled' } })
+    expect(await screen.findByText('stopped')).toBeTruthy()
+    fireEvent.change(statusFilter!, { target: { value: 'all' } })
+    fireEvent.change(typeFilter!, { target: { value: 'preset' } })
+    expect(await screen.findByText('preset-filter')).toBeTruthy()
+    fireEvent.change(typeFilter!, { target: { value: 'core' } })
+    fireEvent.change(statusFilter!, { target: { value: 'restart' } })
+    expect(await screen.findByText('core-restart')).toBeTruthy()
+    expect(screen.queryByRole('heading', { name: en.importedPlugins })).toBeNull()
+  })
+
+  it('covers imported filters, keyboard details, missing metadata, and draft notices', async () => {
+    const imported = importedControls()
+    const { description: _description, application: _application, ...missingMetadata } = SNAPSHOT.plugins[0]
+    vi.mocked(imported.list).mockResolvedValue({ plugins: [
+      { ...missingMetadata, enabled: true },
+      { ...SNAPSHOT.plugins[0], identity: 'disabled@local' as never, name: 'Disabled', enabled: false },
+      { ...SNAPSHOT.plugins[0], identity: 'enabled-two@local' as never, name: 'Enabled two', enabled: true },
+    ] })
+    const drafts = createSnapshotStore({ saving: false, error: null, revision: 0,
+      dirtyNative: [], dirtyImported: ['toolkit@local'], changedNative: [], changedImported: ['toolkit@local'] })
+    render(<InventoryTab {...({
+      active: true,
+      t,
+      nativePlugins: nativeControls(),
+      importedPlugins: imported,
+      query: '',
+      usePluginDrafts: bindSnapshotSelector(drafts),
+      savePlugins: vi.fn(async () => {}),
+      discardPluginChanges: vi.fn(),
+    } as PluginInventorySettingsTabProps)} />)
+
+    const toolkit = await screen.findByText('Toolkit')
+    fireEvent.keyDown(toolkit.closest('[role="button"]')!, { key: 'ArrowDown' })
+    expect(screen.queryByRole('dialog')).toBeNull()
+    fireEvent.keyDown(toolkit.closest('[role="button"]')!, { key: ' ' })
+    const details = await screen.findByRole('dialog', { name: 'Toolkit' })
+    expect(within(details).getAllByText(en.metadataMissing)).toHaveLength(2)
+    expect(within(details).getByText(en.unsaved)).toBeTruthy()
+    expect(within(details).getByText(en.changedSinceStart)).toBeTruthy()
+    fireEvent.click(within(details).getByRole('button', { name: en.closeDetails }))
+
+    const [, statusFilter, sortOrder] = screen.getAllByRole('combobox')
+    fireEvent.change(statusFilter!, { target: { value: 'disabled' } })
+    await waitFor(() => { expect(document.querySelector('[data-imported-plugin="disabled@local"]')).not.toBeNull() })
+    fireEvent.change(statusFilter!, { target: { value: 'all' } })
+    fireEvent.change(sortOrder!, { target: { value: 'status' } })
+    fireEvent.change(statusFilter!, { target: { value: 'restart' } })
+    expect(screen.queryByRole('heading', { name: en.importedPlugins })).toBeNull()
   })
 
   it('groups repeated modules without merging their switches', async () => {
@@ -488,6 +580,7 @@ describe('ImportedPluginCapabilitiesTab', () => {
     const view = render(<ImportedPluginCapabilitiesTab {...props} />)
     fireEvent.click(await screen.findByRole('button', { name: en.importedPluginTrust }))
     await waitFor(() => { expect(list).toHaveBeenCalledTimes(2) })
+    expect(screen.getByRole('alert').textContent).toBe(en.importedPluginMutationError)
     list.mockResolvedValue({ plugins: [] })
     view.rerender(<ImportedPluginCapabilitiesTab {...props} active={false} />)
     view.rerender(<ImportedPluginCapabilitiesTab {...props} active />)

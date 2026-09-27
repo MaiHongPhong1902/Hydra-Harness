@@ -373,6 +373,7 @@ function applyScreenshotTool(ctx: Context, timeoutMs: number, outputDir: string,
       args: { filename?: string; full_page?: boolean; clip?: { x: number; y: number; width: number; height: number } },
       exec,
     ): Promise<BrowserScreenshotValue> {
+      /* v8 ignore next -- schemastery rejects non-boolean values before execution. */
       if (args.full_page !== undefined && typeof args.full_page !== 'boolean') throw new Error('full_page must be a boolean')
       if (args.clip !== undefined && (args.full_page === true
         || ![args.clip.x, args.clip.y, args.clip.width, args.clip.height].every(Number.isSafeInteger)

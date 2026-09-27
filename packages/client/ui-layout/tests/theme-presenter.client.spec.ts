@@ -109,7 +109,7 @@ describe('ThemePresenter', () => {
         status: '#25272b',
       },
     })
-    expect(setChromeTheme).toHaveBeenCalledWith({ color: '#101114', symbolColor: '#f5f6f7' })
+    expect(setChromeTheme).toHaveBeenCalledWith({ color: 'rgba(0,0,0,0)', symbolColor: '#f5f6f7' })
   })
 
   it('refreshes the desktop browser theme on scheme switches', () => {

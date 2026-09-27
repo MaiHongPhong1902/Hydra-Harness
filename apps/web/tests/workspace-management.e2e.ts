@@ -5,7 +5,8 @@
 // trip over the real wire (workspace.rename RPC + durable registry), the
 // duplicate-name pre-check, the
 // flat "In one list" view with its persisted group-by preference, the session
-// hover card and row action menu, and the session archive round trip (row
+// hover card and row action menu, the Ungrouped orphan-chat deletion flow,
+// and the session archive round trip (row
 // menu → workspace.archiveSession RPC → durable global set → row hidden
 // across reload). Zero model calls: workspace.create/rename/archiveSession
 // are host RPCs with no model involvement, and the one session row the
@@ -30,6 +31,8 @@ const SNAPSHOT_DIR = fileURLToPath(new URL('./snapshots/workspace-management', i
 const SEED = fileURLToPath(new URL('./snapshots/seeded-history/seed.jsonl', import.meta.url))
 const MODE = webSnapshotMode()
 const BROWSER_EXPECTED = join(SNAPSHOT_DIR, 'directory-browser.expected.md')
+const UNGROUPED_MENU_EXPECTED = join(SNAPSHOT_DIR, 'ungrouped-menu.expected.md')
+const UNGROUPED_DELETE_EXPECTED = join(SNAPSHOT_DIR, 'ungrouped-delete-dialog.expected.md')
 const SEED_ID = 'workspace-management-web-e2e'
 // Both waits exceed ui-primitives' 200ms POINTER_GRACE_MS. Keep them above
 // that value if the shared setting changes.
@@ -620,8 +623,117 @@ describe('web e2e: workspace management (create / rename / flat view / hover aff
 
   it.skipIf(MODE === 'record')('issued zero model calls and stayed clean', async () => {
     expect(tripwire.warnings).toEqual([])
-    // The directory-browser aria golden is this spec's one owned artifact;
-    // the seed it reuses is owned (and inventory-guarded) by seeded-history.
-    await assertFixtureInventory(SNAPSHOT_DIR, ['.gitkeep', 'directory-browser.expected.md'])
+    // Browser aria goldens are this spec's owned artifacts; the seed it reuses
+    // is owned (and inventory-guarded) by seeded-history.
+    await assertFixtureInventory(SNAPSHOT_DIR, [
+      '.gitkeep', 'directory-browser.expected.md', 'ungrouped-delete-dialog.expected.md', 'ungrouped-menu.expected.md',
+    ])
   })
+})
+
+describe('web e2e: Ungrouped orphan-chat actions', () => {
+  let scaffold: WebScaffold
+  let browser: Browser
+  let page: Page
+  let tripwire: ReturnType<typeof watchConsole>
+  let workspace: ReturnType<WebScaffold['ctx']['workspaceRegistry']['list']>[number]
+
+  const ORPHAN_A = 'workspace-management-orphan-alpha'
+  const ORPHAN_B = 'workspace-management-orphan-beta'
+  const ASSIGNED = 'workspace-management-assigned'
+  const ARCHIVED = 'workspace-management-archived'
+  const ORPHAN_A_TITLE = 'Orphan alpha'
+  const ORPHAN_B_TITLE = 'Orphan beta'
+  const ASSIGNED_TITLE = 'Assigned session'
+  const ARCHIVED_TITLE = 'Archived session'
+  const SHOTS = fileURLToPath(new URL('../../../.artifacts/workspace-management-ungrouped', import.meta.url))
+
+  /** Replace only the fixture's generated title so each seeded row is addressable. */
+  function titledSeed(fixture: string, title: string): string {
+    return fixture.replaceAll('Use the read tool twice', title)
+  }
+
+  beforeAll(async () => {
+    scaffold = await launchWebScaffold({})
+    const fixture = await readFile(SEED, 'utf8')
+    await seedSession(scaffold, titledSeed(fixture, ORPHAN_A_TITLE), ORPHAN_A)
+    await seedSession(scaffold, titledSeed(fixture, ORPHAN_B_TITLE), ORPHAN_B)
+    await seedSession(scaffold, titledSeed(fixture, ASSIGNED_TITLE), ASSIGNED)
+    await seedSession(scaffold, titledSeed(fixture, ARCHIVED_TITLE), ARCHIVED)
+    workspace = await scaffold.ctx.workspaceRegistry.create(scaffold.workspaceCwd)
+    await workspace.attachSession(SessionId(ASSIGNED))
+    await scaffold.ctx.workspaceRegistry.archiveSession(SessionId(ARCHIVED))
+
+    browser = await chromium.launch()
+    page = await newEnglishPage(browser)
+    tripwire = watchConsole(page)
+    await page.goto(scaffold.baseUrl, { waitUntil: 'load' })
+    await page.waitForSelector('[class*="frame"]', { timeout: 30_000 })
+    await mkdir(SHOTS, { recursive: true })
+  }, 120_000)
+
+  afterAll(async () => {
+    await browser?.close()
+    await scaffold?.close()
+  })
+
+  it('deletes only nonblank orphan chats from Ungrouped', async () => {
+    onTestFailed(() => saveFailureShot(page, 'web-e2e-ws-ungrouped-delete'))
+
+    const ungroupedRow = page.getByText('Ungrouped', { exact: true }).locator('..').locator('..')
+    await ungroupedRow.waitFor({ timeout: 15_000 })
+    const trigger = ungroupedRow.getByRole('button', { name: 'Ungrouped actions', exact: true })
+    await expect.poll(async () => {
+      await ungroupedRow.hover()
+      return await trigger.isVisible()
+    }, { timeout: 10_000 }).toBe(true)
+    await expect.poll(() => trigger.isEnabled(), { timeout: 15_000 }).toBe(true)
+    await trigger.click()
+
+    const menu = page.getByRole('menu').last()
+    await menu.waitFor({ timeout: 10_000 })
+    expect(await menu.getByRole('menuitem', { name: 'Delete orphan chats', exact: true }).count()).toBe(1)
+    expect(await menu.getByRole('menuitem', { name: 'Rename', exact: true }).count()).toBe(0)
+    const menuSnapshot = await captureStableAria(page, '[role="menu"]', scaffold.workspaceCwd)
+    await compareOrRefreshGolden(UNGROUPED_MENU_EXPECTED, menuSnapshot, MODE)
+    await page.screenshot({ path: join(SHOTS, 'ungrouped-menu-light.png'), animations: 'disabled' })
+    await page.evaluate(() => { document.body.setAttribute('data-ds-dark-theme', '') })
+    await page.screenshot({ path: join(SHOTS, 'ungrouped-menu-dark.png'), animations: 'disabled' })
+    await page.setViewportSize({ width: 800, height: 800 })
+    await page.screenshot({ path: join(SHOTS, 'ungrouped-menu-narrow.png'), animations: 'disabled' })
+    await page.setViewportSize({ width: 1680, height: 1000 })
+    await page.evaluate(() => { document.body.removeAttribute('data-ds-dark-theme') })
+
+    await menu.getByRole('menuitem', { name: 'Delete orphan chats', exact: true }).click()
+    const dialog = page.getByRole('dialog', { name: 'Delete selected sessions (2)', exact: true })
+    await dialog.waitFor({ timeout: 10_000 })
+    expect(await dialog.getByText(ORPHAN_A_TITLE, { exact: true }).count()).toBe(1)
+    expect(await dialog.getByText(ORPHAN_B_TITLE, { exact: true }).count()).toBe(1)
+    const deleteSnapshot = await captureStableAria(page, '[role="dialog"]', scaffold.workspaceCwd)
+    await compareOrRefreshGolden(UNGROUPED_DELETE_EXPECTED, deleteSnapshot, MODE)
+
+    await dialog.getByRole('button', { name: 'Cancel', exact: true }).click()
+    await expect.poll(() => dialog.count(), { timeout: 10_000 }).toBe(0)
+    await ungroupedRow.click()
+    expect(await page.getByText(ORPHAN_A_TITLE, { exact: true }).count()).toBe(1)
+    expect(await page.getByText(ORPHAN_B_TITLE, { exact: true }).count()).toBe(1)
+
+    await trigger.click()
+    await page.getByRole('menu').last().getByRole('menuitem', { name: 'Delete orphan chats', exact: true }).click()
+    const confirm = page.getByRole('dialog', { name: 'Delete selected sessions (2)', exact: true })
+    await confirm.getByRole('button', { name: 'Delete selected sessions (2)', exact: true }).click()
+    await expect.poll(() => confirm.count(), { timeout: 15_000 }).toBe(0)
+    await expect.poll(async () => {
+      const ids = (await scaffold.ctx.sessionPersistence.list()).map(header => header.id)
+      return ids.includes(SessionId(ORPHAN_A)) || ids.includes(SessionId(ORPHAN_B))
+    }, { timeout: 15_000 }).toBe(false)
+    await expect.poll(() => page.getByText(ORPHAN_A_TITLE, { exact: true }).count(), { timeout: 15_000 }).toBe(0)
+    await expect.poll(() => page.getByText(ORPHAN_B_TITLE, { exact: true }).count(), { timeout: 15_000 }).toBe(0)
+
+    expect((await scaffold.ctx.sessionPersistence.list()).map(header => header.id))
+      .toEqual(expect.arrayContaining([SessionId(ASSIGNED), SessionId(ARCHIVED)]))
+    expect(workspace.sessionIds).toContain(SessionId(ASSIGNED))
+    expect([...scaffold.ctx.workspaceRegistry.archivedSessionIds]).toContain(SessionId(ARCHIVED))
+    expect(tripwire.pageErrors).toEqual([])
+  }, 90_000)
 })

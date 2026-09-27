@@ -1,8 +1,8 @@
-- textbox "This model is unavailable — select one to continue" [disabled]: Keep this draft until I select a model
-- button "Commands" [disabled]:
+- textbox "Describe what you want to build": Keep this draft until I select a model
+- button "Commands":
   - img
-- 'button "Access mode, current: Edit" [disabled]': Edit
+- 'button "Access mode, current: Edit"': Edit
 - button "Select model":
   - text: Select model
   - img
-- button "Send message" [disabled]
+- button "Send message"

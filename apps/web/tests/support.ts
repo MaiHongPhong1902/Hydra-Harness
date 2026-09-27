@@ -72,9 +72,10 @@ export async function connectFreshWorkspace(page: Page, root: string, name = 'wo
   await pathInput.fill(join(root, name))
   await pathInput.press('Enter')
   await dialog.getByRole('button', { name: 'Open', exact: true }).click()
-  // The pick connected the workspace: the blank session's live composer
-  // replaces the locked placeholder and enables.
-  await page.locator('textarea:enabled[placeholder="Describe what you want to build"]')
+  // The pick connected the workspace: the blank session's live composer card
+  // replaces the locked placeholder. A fresh Web profile may omit its textarea
+  // until the user chooses a model.
+  await page.locator('[data-composer-card]')
     .waitFor({ timeout: 15_000 })
 }
 

@@ -32,6 +32,7 @@ const CHROME_DISPATCH_ACTIONS = new Set([
 ])
 const TITLEBAR_OVERLAY_SUPPORTED = process.platform === 'win32' || process.platform === 'linux'
 const TITLEBAR_HEIGHT = 36
+const TITLEBAR_OVERLAY_TRANSPARENT = 'rgba(0,0,0,0)'
 
 app.setName('Hydra harness')
 app.setPath('userData', join(process.env.HYDRA_HOME || join(app.getPath('home'), '.hydra'), 'desktop-electron'))
@@ -137,7 +138,7 @@ function createWindow() {
     autoHideMenuBar: true,
     ...(TITLEBAR_OVERLAY_SUPPORTED ? {
       titleBarStyle: 'hidden',
-      titleBarOverlay: { color: '#1b2026', symbolColor: '#c7ccd4', height: TITLEBAR_HEIGHT },
+      titleBarOverlay: { color: TITLEBAR_OVERLAY_TRANSPARENT, symbolColor: '#c7ccd4', height: TITLEBAR_HEIGHT },
     } : {}),
     backgroundColor: '#111315',
     title: 'Hydra harness',
@@ -694,7 +695,7 @@ function installRendererIpc() {
   ipcMain.on('hydra-desktop:chrome-theme', (event, value) => {
     if (shuttingDown !== undefined || !validSender(event) || !TITLEBAR_OVERLAY_SUPPORTED) return
     if (value === null) {
-      mainWindow.setTitleBarOverlay({ color: '#1b2026', symbolColor: '#c7ccd4', height: TITLEBAR_HEIGHT })
+      mainWindow.setTitleBarOverlay({ color: TITLEBAR_OVERLAY_TRANSPARENT, symbolColor: '#c7ccd4', height: TITLEBAR_HEIGHT })
       return
     }
     if (typeof value !== 'object' || value === null) return

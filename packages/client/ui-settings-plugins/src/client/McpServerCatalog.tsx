@@ -101,8 +101,8 @@ function parseAssignments(text: string): Record<string, string> | 'invalid' | un
   return entries
 }
 
-/** Which field's assignment lines a save refused, when one did. */
-type AssignmentFailure = 'env' | 'headers'
+/** Which field's value a save refused, when one did. */
+type AssignmentFailure = 'env' | 'headers' | 'url'
 
 /** Build the definition request one draft describes, or name the field that blocked it. */
 function toRequest(draft: Draft): McpServerDefinitionRequest | AssignmentFailure {
@@ -127,7 +127,15 @@ function toRequest(draft: Draft): McpServerDefinitionRequest | AssignmentFailure
       cwd: draft.cwd.trim(),
     }
   }
-  return { ...shared, transport: 'streamable-http', url: draft.url.trim() }
+  const url = draft.url.trim()
+  try {
+    const parsed = new URL(url)
+    if (parsed.username !== '' || parsed.password !== '') return 'url'
+  } catch {
+    // The Host owns full URL validation; the browser only blocks a secret that
+    // must never be embedded in an endpoint or sent through a normal field.
+  }
+  return { ...shared, transport: 'streamable-http', url }
 }
 
 /** Whether the draft carries enough for its transport to be submitted. */
@@ -201,7 +209,7 @@ export function McpServerCatalog({ active = true, controls, query, t }: {
       return
     }
     const definition = toRequest(draft)
-    if (definition === 'env' || definition === 'headers') {
+    if (definition === 'env' || definition === 'headers' || definition === 'url') {
       setFailure(definition)
       return
     }
@@ -417,6 +425,7 @@ export function McpServerCatalog({ active = true, controls, query, t }: {
             )}
             {failure === 'env' ? <p className={css.saveFailed} role="alert">{t('userMcpEnvInvalid')}</p> : null}
             {failure === 'headers' ? <p className={css.saveFailed} role="alert">{t('userMcpHeadersInvalid')}</p> : null}
+            {failure === 'url' ? <p className={css.saveFailed} role="alert">{t('userMcpUrlInvalid')}</p> : null}
             {failure === 'save' ? <p className={css.saveFailed} role="alert">{t('userMcpSaveError')}</p> : null}
             {failure === 'name' ? <p className={css.saveFailed} role="alert">{t('userMcpNameTaken')}</p> : null}
           </form>

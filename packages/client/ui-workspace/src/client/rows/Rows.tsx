@@ -104,17 +104,24 @@ function rowHalf(e: { clientY: number; currentTarget: HTMLElement }): 'before' |
  * @param props.group - derived group node.
  * @param props.onToggle - expand/collapse the group.
  * @param props.onCreate - start a frontend Session inside this Workspace.
+ * @param props.actions - rename and delete a Workspace registration.
+ * @param props.onDeleteUngrouped - request deletion of the bucket's non-blank conversations.
+ * @param props.ungroupedDeleteDisabled - membership is loading or the bucket has no deletable conversations.
  * @param props.drag - optional workspace-row drag wiring.
  * @param props.home - host account home for POSIX hover-path abbreviation.
  * @param props.t - the browser root's locale seat.
  * @returns the row element.
  */
-export function ProjectRowItem({ group, onToggle, onCreate, actions, drag, home, t }: {
+export function ProjectRowItem({ group, onToggle, onCreate, actions, onDeleteUngrouped, ungroupedDeleteDisabled, drag, home, t }: {
   group: GroupNode
   onToggle: () => void
   onCreate: () => void
-  /** Real-Workspace actions; absent for the ungrouped bucket (no menu shown). */
+  /** Real-Workspace actions; Ungrouped uses `onDeleteUngrouped` instead. */
   actions?: { rename: () => void; delete: () => void } | undefined
+  /** Request deletion of non-blank, unarchived chats outside every Workspace. */
+  onDeleteUngrouped?: (() => void) | undefined
+  /** Disable deletion until membership loads or when no deletable conversations remain. */
+  ungroupedDeleteDisabled?: boolean | undefined
   /** Present only for real Workspace rows in the grouped view. */
   drag?: WorkspaceRowDragProps | undefined
   /** Host account home; POSIX home-rooted hover paths display as `~`. */
@@ -126,16 +133,27 @@ export function ProjectRowItem({ group, onToggle, onCreate, actions, drag, home,
   const label = row.workspaceId === undefined ? t('group.ungrouped') : row.label
   const active = group.expanded && group.containsCurrent
   const [menuOpen, setMenuOpen] = useState(false)
-  const workspaceMenuItems = [
-    { id: 'rename', label: t('rename'), icon: <IconEditOutline16 /> },
-    { id: 'delete', label: t('delete.workspace'), icon: <IconTrashOutline16 />, danger: true },
-  ]
+  const workspaceMenuItems = row.workspaceId === undefined
+    ? [{
+      id: 'delete-ungrouped', label: t('delete.ungrouped'), icon: <IconTrashOutline16 />, danger: true,
+      disabled: ungroupedDeleteDisabled === true,
+    }]
+    : [
+      { id: 'rename', label: t('rename'), icon: <IconEditOutline16 /> },
+      { id: 'delete', label: t('delete.workspace'), icon: <IconTrashOutline16 />, danger: true },
+    ]
   const ownRow = (
     <div
       className={clsx(css.projectRow, menuOpen && css.menuOpen)}
       role="treeitem"
       aria-expanded={row.expanded}
+      tabIndex={0}
       onClick={onToggle}
+      onKeyDown={(e) => {
+        if (e.target !== e.currentTarget || (e.key !== 'Enter' && e.key !== ' ')) return
+        e.preventDefault()
+        onToggle()
+      }}
       draggable={drag !== undefined}
       onDragStart={drag === undefined
         ? undefined
@@ -156,17 +174,20 @@ export function ProjectRowItem({ group, onToggle, onCreate, actions, drag, home,
         <span className={css.title}>{label}</span>
       </span>
       <span className={css.rowActions}>
-        {actions !== undefined && (
+        {(actions !== undefined || onDeleteUngrouped !== undefined) && (
           <Menu
             open={menuOpen}
             onClose={() => { setMenuOpen(false) }}
             items={workspaceMenuItems}
             onSelect={(id) => {
               setMenuOpen(false)
+              if (id === 'delete-ungrouped') {
+                if (ungroupedDeleteDisabled !== true) onDeleteUngrouped?.()
+                return
+              }
               // Unknown ids leave before the dispatch: a future menu row must
               // not inherit the destructive branch as an else fallback.
-              /* v8 ignore next -- workspaceMenuItems carries exactly these two rows today. */
-              if (id !== 'rename' && id !== 'delete') return
+              if (actions === undefined || (id !== 'rename' && id !== 'delete')) return
               if (id === 'rename') actions.rename()
               else actions.delete()
             }}
@@ -175,8 +196,13 @@ export function ProjectRowItem({ group, onToggle, onCreate, actions, drag, home,
             anchor={(
               <button
                 type="button"
+                data-hydra-control="action"
                 className={css.iconButton}
-                aria-label={t('actions.workspace.aria', { name: label })}
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
+                aria-label={row.workspaceId === undefined
+                  ? t('actions.ungrouped.aria')
+                  : t('actions.workspace.aria', { name: label })}
                 onClick={(e) => { e.stopPropagation(); setMenuOpen(v => !v) }}
               >
                 <IconEllipsisOutline16 />

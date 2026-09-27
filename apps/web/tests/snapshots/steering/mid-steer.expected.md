@@ -28,7 +28,7 @@
   - img
   - img
   - text: Ask question waiting
-- status: Deep diving...
+- status: {{turn-status}}
 - text: "Interjection: include the word BANANA in your final reply."
 - button "Copy":
   - img

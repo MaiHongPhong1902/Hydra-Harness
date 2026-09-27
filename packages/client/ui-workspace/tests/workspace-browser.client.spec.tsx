@@ -410,18 +410,134 @@ describe('WorkspaceBrowser', () => {
     expect(startSession).toHaveBeenCalledWith(wid('alpha'))
   })
 
-  it('auto-expands the Ungrouped bucket for a loose current session; its header has no menu and its ＋ is inert', () => {
+  it('auto-expands Ungrouped, offers orphan-chat deletion, and keeps its ＋ inert', async () => {
     const startSession = vi.fn()
+    const deleteSession = vi.fn(async () => {})
     mount({
       useSessions: hook(sessionState([summary('loose', 1)], { current: sid('loose') })),
       useWorkspaces: hook(workspaceState([workspace('alpha', [])])),
       startSession,
+      deleteSession,
     })
     // The loose session's group is UNGROUPED_KEY: expanded by the effect.
     expect(screen.getByText('loose')).toBeTruthy()
-    expect(screen.queryByRole('button', { name: 'Workspace actions for Ungrouped' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Ungrouped actions' }))
+    expect(screen.queryByRole('menuitem', { name: 'Rename' })).toBeNull()
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Delete orphan chats' }))
+    expect(screen.getByRole('dialog', { name: 'Delete session' })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Delete session' }))
+    await waitFor(() => { expect(deleteSession).toHaveBeenCalledWith(sid('loose')) })
     fireEvent.click(screen.getByRole('button', { name: 'New session in Ungrouped' }))
     expect(startSession).not.toHaveBeenCalled()
+  })
+
+  it('deletes every eligible orphan even when the Ungrouped bucket shows only five rows', async () => {
+    const orphanIds = ['orphan-1', 'orphan-2', 'orphan-3', 'orphan-4', 'orphan-5', 'orphan-6']
+    const currentBlank = summary('current-blank', 100, { blank: true })
+    const staleBlank = summary('stale-blank', 99, { blank: true })
+    const owned = summary('owned', 98)
+    const archived = summary('archived', 97)
+    const subagent = summary('child', 96, { origin: 'subagent', parentId: sid('orphan-1') })
+    const sessions = [
+      ...orphanIds.map((id, index) => summary(id, 90 - index)),
+      currentBlank, staleBlank, owned, archived, subagent,
+    ]
+    const deleteSession = vi.fn<(id: SessionId) => Promise<void>>(async () => {})
+    mount({
+      useSessions: hook(sessionState(sessions, { current: currentBlank.id })),
+      useWorkspaces: hook(workspaceState([workspace('alpha', ['owned'])], [archived.id])),
+      deleteSession,
+    })
+
+    // The group is open because it contains the current blank row, but its
+    // overflow stays collapsed; the hidden sixth orphan must still be a target.
+    expect(screen.getByRole('button', { name: 'Show 2 more sessions' })).toBeTruthy()
+    expect(screen.getByText('orphan-1')).toBeTruthy()
+    expect(screen.queryByText('orphan-6')).toBeNull()
+    expect(screen.queryByText('owned')).toBeNull()
+    expect(screen.queryByText('archived')).toBeNull()
+    expect(screen.queryByText('child')).toBeNull()
+    expect(screen.getByText('New Session')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ungrouped actions' }))
+    expect(screen.queryByRole('menuitem', { name: 'Rename' })).toBeNull()
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Delete orphan chats' }))
+    const dialog = screen.getByRole('dialog', { name: 'Delete selected sessions (6)' })
+    expect(dialog.querySelectorAll('li')).toHaveLength(orphanIds.length)
+    expect(dialog.textContent).not.toContain('current-blank')
+    expect(dialog.textContent).not.toContain('stale-blank')
+    expect(dialog.textContent).not.toContain('owned')
+    expect(dialog.textContent).not.toContain('archived')
+    expect(dialog.textContent).not.toContain('child')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Delete selected sessions (6)' }))
+    await waitFor(() => { expect(deleteSession).toHaveBeenCalledTimes(orphanIds.length) })
+    expect(deleteSession.mock.calls.map(([id]) => id)).toEqual([
+      sid('orphan-1'), sid('orphan-2'), sid('orphan-3'), sid('orphan-4'), sid('orphan-5'), sid('orphan-6'),
+    ])
+  })
+
+  it('keeps partial orphan deletion retryable and lets Cancel close the existing dialog', async () => {
+    const first = summary('first', 2)
+    const second = summary('second', 1)
+    const deleteSession = vi.fn<(id: SessionId) => Promise<void>>()
+      .mockRejectedValueOnce(new Error('storage unavailable'))
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(undefined)
+    mount({
+      useSessions: hook(sessionState([first, second], { current: first.id })),
+      useWorkspaces: hook(workspaceState([])),
+      deleteSession,
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ungrouped actions' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Delete orphan chats' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Delete selected sessions (2)' }))
+    await waitFor(() => { expect(screen.getByRole('alert').textContent).toBe('first: storage unavailable') })
+    expect(screen.getByRole('dialog', { name: 'Delete selected sessions (1)' })).toBeTruthy()
+    expect(deleteSession).toHaveBeenCalledTimes(2)
+
+    // Retry only the failed target; success closes the dialog.
+    fireEvent.click(screen.getByRole('button', { name: 'Delete selected sessions (1)' }))
+    await waitFor(() => { expect(screen.queryByRole('dialog')).toBeNull() })
+    expect(deleteSession).toHaveBeenCalledTimes(3)
+    expect(deleteSession.mock.calls[2]?.[0]).toBe(sid('first'))
+
+    // A fresh gesture can be cancelled without dispatching another deletion.
+    fireEvent.click(screen.getByRole('button', { name: 'Ungrouped actions' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Delete orphan chats' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(deleteSession).toHaveBeenCalledTimes(3)
+  })
+
+  it('disables orphan deletion when Ungrouped contains only the current blank row', () => {
+    const deleteSession = vi.fn<(id: SessionId) => Promise<void>>(async () => {})
+    mount({
+      useSessions: hook(sessionState([summary('blank', 1, { blank: true })], { current: sid('blank') })),
+      useWorkspaces: hook(workspaceState([])),
+      deleteSession,
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Ungrouped actions' }))
+    const item = screen.getByRole('menuitem', { name: 'Delete orphan chats' }) as HTMLButtonElement
+    expect(item.disabled).toBe(true)
+    fireEvent.click(item)
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(deleteSession).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ['session list', { useSessions: hook(sessionState([summary('loose', 1)], { current: sid('loose'), phase: 'pending' as const })) }],
+    ['Workspace', { useWorkspaces: hook({ ...workspaceState([]), phase: 'pending' as const, state: 'loading' as const, baselinesReady: false }) }],
+  ] as const)('disables orphan deletion while the %s baseline is pending', (_label, overrides) => {
+    mount({
+      useSessions: hook(sessionState([summary('loose', 1)], { current: sid('loose') })),
+      useWorkspaces: hook(workspaceState([])),
+      ...overrides,
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Ungrouped actions' }))
+    const item = screen.getByRole('menuitem', { name: 'Delete orphan chats' }) as HTMLButtonElement
+    expect(item.disabled).toBe(true)
   })
 
   it('keeps an already-expanded group when the selection moves within it', () => {

@@ -18,6 +18,15 @@
     persona: >-
       You are a coding agent powered by the {{model}} model. Your working directory is {{cwd}}.
 
+# A new Web installation waits for the user to choose a provider and model.
+# The base keeps DeepSeek as the headless/default-profile fallback; this
+# surface starts with an unroutable selection so the composer cannot send
+# implicitly.
+- id: agent-default-model
+  config:
+    provider: __unselected__
+    model: __unselected__
+
 # TODO: Re-enable shared HMR for Web after its reload lifecycle is tested.
 - id: hmr
   disabled: true

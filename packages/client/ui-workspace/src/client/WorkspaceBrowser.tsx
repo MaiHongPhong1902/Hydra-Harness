@@ -39,6 +39,8 @@ const SEARCH_QUERY_MAX_CODE_UNITS = 500
 /** Session rows visible per Workspace before the local overflow control. */
 const COLLAPSED_SESSION_LIMIT = 5
 
+type SessionDeleteTarget = { id: SessionId; title: string }
+
 /** Keep controlled input and RPC payload inside the session.search wire contract. */
 function sanitizeSearchQuery(value: string): string {
   const withoutNul = value.replaceAll('\0', '')
@@ -222,6 +224,8 @@ type SessionTreeProps = Pick<
   /** Host account home for POSIX hover-path abbreviation. */
   home?: string | undefined
   workspaces: readonly WorkspaceView[]
+  /** Workspace and Session list baselines have loaded. */
+  workspacesReady: boolean
   /** Explicit persisted zero-or-five-session state by Workspace group. */
   groupExpansion: Readonly<Record<string, boolean>>
   /** Persist one Workspace group's zero-or-five-session state. */
@@ -246,14 +250,17 @@ type SessionTreeProps = Pick<
   onSessionArchive: (sessionId: SessionNode['id']) => void
   /** Open permanent session deletion confirmation. */
   onSessionDelete: (sessionId: SessionNode['id'], title: string) => void
+  /** Confirm deletion of all non-blank Ungrouped conversations, including collapsed rows. */
+  onUngroupedDelete: (targets: readonly SessionDeleteTarget[]) => void
   /** Session order behavior: fixed after edits, or additionally promoted by user activity. */
   orderBy: SessionOrderBy
 }
 
 /** The scrolling session tree; unmounting drops the sessions subscription and expand-all state. */
 function SessionTree({
-  useSessions, startSession, open, forkSession, workspaces, archivedSessionIds,
+  useSessions, startSession, open, forkSession, workspaces, workspacesReady, archivedSessionIds,
   onRenameRequest, onDeleteRequest, onSessionRename, onSessionArchive, onSessionDelete,
+  onUngroupedDelete,
   insertWorkspaceBefore, insertSessionBefore, orderBy,
   groupExpansion, setGroupExpanded,
   sessionOrderByAccount, sessionUpdatedAtByAccount, syncSessionOrderAccount, setSessionOrder, home, t,
@@ -332,6 +339,17 @@ function SessionTree({
     }),
     [list, orderedWorkspaces, archivedSessionIds, expandedGroups, sessionOrderByAccount],
   )
+  const ungroupedDeleteTargets = useMemo<SessionDeleteTarget[]>(() => {
+    const ungrouped = deriveGroups(list, orderedWorkspaces, archivedSessionIds, {
+      expandedGroups: [UNGROUPED_KEY],
+      ...(sessionOrderByAccount[UNGROUPED_KEY] === undefined
+        ? {}
+        : { ungroupedOrder: sessionOrderByAccount[UNGROUPED_KEY] }),
+    }).find(group => group.workspaceId === undefined)
+    return ungrouped?.sessions
+      .filter(session => !session.blank)
+      .map(session => ({ id: session.id, title: session.title })) ?? []
+  }, [archivedSessionIds, list, orderedWorkspaces, sessionOrderByAccount])
   const now = Date.now()
   const commitSessionDrag = (activeDrag: DragState, over: NonNullable<DragState['over']>): void => {
     if (sessionDropCommitted.current) return
@@ -469,6 +487,10 @@ function SessionTree({
                     startSession(group.workspaceId)
                   }
                 }}
+                onDeleteUngrouped={group.workspaceId === undefined
+                  ? () => { onUngroupedDelete(ungroupedDeleteTargets) }
+                  : undefined}
+                ungroupedDeleteDisabled={!workspacesReady || list.phase !== 'ready' || ungroupedDeleteTargets.length === 0}
                 drag={workspaceDragProps}
                 actions={group.workspaceId === undefined
                   ? undefined
@@ -775,6 +797,7 @@ export function WorkspaceBrowser({
   const home = useHostDescription(description => description?.home)
   const workspaces = useWorkspaces(state => state.items)
   const workspacePhase = useWorkspaces(state => state.phase)
+  const workspacesReady = useWorkspaces(state => state.baselinesReady)
   const archivedSessionIds = useWorkspaces(state => state.archivedSessionIds)
   // Live occupancy of this surface's directory-flow hole (the same source the
   // flow reads): a composition without a picking affordance can add nothing.
@@ -969,8 +992,8 @@ export function WorkspaceBrowser({
     setSessionRenameError(null)
   }
 
-  const [sessionDeleteTarget, setSessionDeleteTarget] = useState<{ id: SessionId; title: string } | null>(null)
-  const onSessionDelete = (id: SessionId, title: string) => { setSessionDeleteTarget({ id, title }) }
+  const [sessionDeleteTargets, setSessionDeleteTargets] = useState<readonly SessionDeleteTarget[] | null>(null)
+  const onSessionDelete = (id: SessionId, title: string) => { setSessionDeleteTargets([{ id, title }]) }
 
   // Archive is dialog-free: not destructive (the log and the accounting slot
   // remain), so the menu action commits directly; the row disappears when the
@@ -1184,8 +1207,10 @@ export function WorkspaceBrowser({
                 useSessions={useSessions}
                 onSessionRename={onSessionRename}
                 onSessionArchive={onSessionArchive} onSessionDelete={onSessionDelete}
+                onUngroupedDelete={setSessionDeleteTargets}
                 forkSession={forkSession}
                 workspaces={workspaces}
+                workspacesReady={workspacesReady}
                 groupExpansion={groupExpansion}
                 setGroupExpanded={actions.setGroupExpanded}
                 sessionOrderByAccount={sessionOrderByAccount}
@@ -1213,11 +1238,11 @@ export function WorkspaceBrowser({
             ))}
       </div>
 
-      {sessionDeleteTarget === null ? null : (
+      {sessionDeleteTargets === null ? null : (
         <DeleteSessionDialog
-          targets={[sessionDeleteTarget]}
+          targets={sessionDeleteTargets}
           deleteSession={deleteSession}
-          onClose={() => { setSessionDeleteTarget(null) }}
+          onClose={() => { setSessionDeleteTargets(null) }}
           t={t}
         />
       )}

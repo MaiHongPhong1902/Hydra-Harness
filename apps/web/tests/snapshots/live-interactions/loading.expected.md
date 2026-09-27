@@ -20,7 +20,7 @@
   - img
   - text: Context injection @hydra/harness-system-prompt
 - paragraph: partial
-- status: Deep diving...
+- status: {{turn-status}}
 - textbox "Message the agent"
 - button "Commands":
   - img

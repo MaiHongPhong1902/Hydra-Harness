@@ -55,6 +55,7 @@ export function ImportedPluginCapabilitiesTab(
     | { readonly status: 'ready'; readonly snapshot: { readonly sessionId?: string; readonly skills: readonly SkillEntry[] } }
   >(nativeSkills === undefined ? { status: 'unavailable' } : { status: 'loading' })
   const [mutating, setMutating] = useState<string>()
+  const [mutationFailed, setMutationFailed] = useState(false)
   const currentSession = nativeSkills?.currentSession ?? EMPTY_CURRENT_SESSION
   const currentSessionId = useSyncExternalStore(
     listener => currentSession.subscribe(listener),
@@ -90,9 +91,10 @@ export function ImportedPluginCapabilitiesTab(
 
   const mutate = (identity: string, action: (value: string) => Promise<ImportedPluginSnapshot>): void => {
     setMutating(identity)
+    setMutationFailed(false)
     void action(identity).then(
-      (snapshot) => { setState({ status: 'ready', snapshot }) },
-      () => { setRequest(value => value + 1) },
+      (snapshot) => { setMutationFailed(false); setState({ status: 'ready', snapshot }) },
+      () => { setMutationFailed(true); setRequest(value => value + 1) },
     ).finally(() => { setMutating(undefined) })
   }
 
@@ -130,6 +132,7 @@ export function ImportedPluginCapabilitiesTab(
       {title === undefined ? null : (
         <div className={css.catalogHeading}><h3>{title}</h3>{state.status === 'ready' ? <span>{total}</span> : null}</div>
       )}
+      {mutationFailed ? <p className={css.failure} role="alert">{t('importedPluginMutationError')}</p> : null}
       {state.status === 'loading' ? <p className={css.status}>{t('loading')}</p> : null}
       {state.status === 'error' ? <div className={css.failure}><p role="alert">{t('importedPluginLoadError')}</p><button type="button" onClick={() => { setRequest(value => value + 1) }}>{t('retry')}</button></div> : null}
       {state.status === 'ready' && rows.length === 0 ? <p className={css.status}>{capability === 'skills' ? t('importedPluginNoSkills') : t('importedPluginNoHooks')}</p> : null}

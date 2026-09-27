@@ -759,7 +759,9 @@ export class ImportedPluginRuntime extends Service {
     this.startup.set(identity, states)
     const pending: Promise<void>[] = []
     for (const server of loaded.mcp) {
-      if (entry.mcp[server.name]?.enabled === false) continue
+      // Imported MCP servers are opt-in: enabling the bundle must not start a
+      // local command or remote connection before the user reviews it.
+      if (entry.mcp[server.name]?.enabled !== true) continue
       states.set(server.name, 'starting')
       const fiber = this.owner.plugin({
         name: `imported-mcp:${identity}:${server.name}`,
@@ -828,7 +830,7 @@ export class ImportedPluginRuntime extends Service {
       skills: loaded.skills.map(skill => skill.rawName),
       mcpServers: loaded.mcp.map(server => ({
         name: server.name,
-        enabled: entry.mcp[server.name]?.enabled ?? true,
+        enabled: entry.mcp[server.name]?.enabled === true,
         startupState: started?.get(server.name) ?? 'not-started',
         authenticationState: server.config.transport === 'stdio' ? 'not-applicable' : 'unknown',
         defaultToolsApprovalMode: entry.mcp[server.name]?.defaultToolsApprovalMode ?? 'ask',
@@ -1770,7 +1772,8 @@ function initializeMcpState(
   definitions: readonly McpDefinition[], old: Record<string, StoredMcpState> | undefined,
 ): Record<string, StoredMcpState> {
   return Object.fromEntries(definitions.map(({ name }) => [name, old?.[name] ?? {
-    enabled: true, defaultToolsApprovalMode: 'ask', toolApproval: {},
+    // New MCP components require an explicit user enablement decision.
+    enabled: false, defaultToolsApprovalMode: 'ask', toolApproval: {},
   }]))
 }
 

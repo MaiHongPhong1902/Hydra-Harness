@@ -116,6 +116,22 @@ describe('LocalMemoryStore', () => {
     }
   })
 
+  it('rejects a write that would exceed the durable document limit', async () => {
+    const home = await mkdtemp(join(tmpdir(), 'hydra-memory-document-limit-'))
+    const path = join(home, 'memories', 'memories.json')
+    try {
+      await mkdir(join(home, 'memories'))
+      await writeFile(path, JSON.stringify({ version: 1, entries: Array.from({ length: 17 }, (_, index) => ({
+        id: String(index), text: 'a'.repeat(1_800), createdAt: index, updatedAt: index,
+      })) }))
+      await expect(new LocalMemoryStore(home).add('b'.repeat(2_000)))
+        .rejects.toThrow('memory document exceeds 32768 bytes')
+      expect(await new LocalMemoryStore(home).list()).toHaveLength(17)
+    } finally {
+      await rm(home, { recursive: true, force: true })
+    }
+  })
+
   it('redacts common token and private-key formats before persistence', () => {
     const value = personalization.redactMemorySecrets([
       'Bearer abcdefghijklmnop',

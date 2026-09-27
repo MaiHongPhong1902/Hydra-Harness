@@ -115,7 +115,7 @@ describe('PluginStore', () => {
       await writeFile(registryPath, JSON.stringify(registry))
       expect(await plugins.info(identity)).toMatchObject({
         agentMetadata: { displayName: 'Portable' }, appMappings: ['browser'],
-        mcpServers: [{ enabled: true, defaultToolsApprovalMode: 'ask', toolApproval: {}, authenticationState: 'unknown' }],
+        mcpServers: [{ enabled: false, defaultToolsApprovalMode: 'ask', toolApproval: {}, authenticationState: 'unknown' }],
       })
       expect((await pluginCommand(ctx, 'info portable-plugin')).text).toContain('MCP: remote=not-started')
       registry.plugins[identity]!.mcp = { remote: { enabled: false, defaultToolsApprovalMode: 'ask', toolApproval: {} } }
@@ -1377,7 +1377,9 @@ describe('PluginStore', () => {
     })
     const { plugins } = await runtime(home)
     const identity = (await plugins.import(source)).plugins[0]!.identity
-    await plugins.enable(identity)
+    const enabled = await plugins.enable(identity)
+    expect(enabled.plugins[0]?.mcpServers[0]?.startupState).toBe('not-started')
+    await plugins.setMcpServerEnabled(identity, 'unavailable', true)
     await vi.waitFor(async () => {
       expect((await plugins.info(identity)).mcpServers[0]?.startupState).toBe('failed')
     })
@@ -1394,6 +1396,8 @@ describe('PluginStore', () => {
     try {
       const identity = (await plugins.import(source)).plugins[0]!.identity
       const enabled = await plugins.enable(identity)
+      expect(enabled.plugins[0]?.mcpServers[0]?.startupState).toBe('not-started')
+      await plugins.setMcpServerEnabled(identity, 'local', true)
       await vi.waitFor(async () => {
         expect((await plugins.info(identity)).mcpServers[0]?.startupState).toBe('started')
       }, { timeout: 10_000 })
@@ -1410,7 +1414,7 @@ describe('PluginStore', () => {
         expect(denied.isError).toBe(true)
         expect(denied.content).toEqual([{ type: 'text', text: `Error: MCP tool ${raw} is disabled by its plugin policy` }])
       }
-      expect(enabled.plugins[0]?.mcpServers[0]?.startupState).toBe('started')
+      expect((await plugins.info(identity)).mcpServers[0]?.startupState).toBe('started')
       await plugins.setMcpServerEnabled(identity, 'local', false)
       expect(ctx.tools.schemas()).toEqual([])
       await plugins.setMcpServerEnabled(identity, 'local', true)

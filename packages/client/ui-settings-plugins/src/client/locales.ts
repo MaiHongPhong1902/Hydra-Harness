@@ -27,7 +27,7 @@ export type PluginsSettingsLocaleKey =
   | 'userMcpMutationError' | 'userMcpSaveError' | 'userMcpEdit' | 'userMcpRemove' | 'userMcpSave'
   | 'userMcpCancel' | 'userMcpClose' | 'userMcpName' | 'userMcpTransport' | 'userMcpTransportStdio'
   | 'userMcpTransportHttp' | 'userMcpCommand' | 'userMcpArgs' | 'userMcpCwd' | 'userMcpEnv'
-  | 'userMcpEnvHint' | 'userMcpEnvInvalid' | 'userMcpEnvStored' | 'userMcpUrl' | 'userMcpHeaders'
+  | 'userMcpEnvHint' | 'userMcpEnvInvalid' | 'userMcpEnvStored' | 'userMcpUrl' | 'userMcpUrlInvalid' | 'userMcpHeaders'
   | 'userMcpHeadersHint' | 'userMcpHeadersInvalid' | 'userMcpHeadersStored' | 'userMcpTools'
   | 'userMcpStarted' | 'userMcpStarting' | 'userMcpFailed' | 'userMcpInvalid'
   | 'userHooksDescription' | 'userHooksTrust' | 'userHooksAdd' | 'userHooksAddTitle'
@@ -158,6 +158,7 @@ export const en: Record<PluginsSettingsLocaleKey, string> = {
   userMcpEnvInvalid: 'Each line needs a NAME=value pair.',
   userMcpEnvStored: 'Environment',
   userMcpUrl: 'Endpoint URL',
+  userMcpUrlInvalid: 'Do not put a username or password in the URL. Store authentication in headers or a secret reference.',
   userMcpHeaders: 'Headers, one Name=value per line',
   userMcpHeadersHint: 'Values are never shown again. Leave blank to keep what is saved.',
   userMcpHeadersInvalid: 'Each line needs a Name=value pair.',

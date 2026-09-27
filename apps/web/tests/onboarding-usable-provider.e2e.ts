@@ -57,7 +57,7 @@ describe.skipIf(MODE === 'record')('web e2e: another usable provider ends first-
     await pick.waitFor({ timeout: 10_000 })
     await pick.selectOption('minimax-cn')
     expect(await settings.getByRole('textbox', { name: 'API key', exact: true }).count()).toBe(1)
-    await settings.getByRole('button', { name: 'Edit DeepSeek (deepseek-official)' }).waitFor({ timeout: 10_000 })
+    expect(await settings.getByRole('button', { name: 'Edit DeepSeek (deepseek-official)' }).count()).toBe(0)
     const dismissed = await captureStableAria(page, '[role="dialog"]', scaffold.workspaceCwd)
     await compareOrRefreshGolden(DISMISSED_EXPECTED, dismissed, MODE)
 
@@ -90,12 +90,12 @@ describe.skipIf(MODE === 'record')('web e2e: another usable provider ends first-
     expect(await page.locator('#root').evaluate(root => (root as HTMLElement).inert)).toBe(false)
     expect(await page.getByRole('dialog', { name: 'Settings', exact: true }).count()).toBe(0)
 
-    // The Models page agrees: DeepSeek stays a row rather than reopening its
-    // setup card over a user who already has somewhere to send a request.
+    // The Models page keeps the unselected shipped route hidden after another
+    // provider is configured; it does not reopen a DeepSeek setup card.
     await page.getByRole('button', { name: 'Settings', exact: true }).click()
     await settings.waitFor({ timeout: 10_000 })
     await settings.getByRole('button', { name: 'Models' }).click()
-    await settings.getByRole('button', { name: 'Edit DeepSeek (deepseek-official)' }).waitFor({ timeout: 10_000 })
+    expect(await settings.getByRole('button', { name: 'Edit DeepSeek (deepseek-official)' }).count()).toBe(0)
     expect(await settings.getByRole('textbox', { name: 'API key', exact: true }).count()).toBe(0)
 
     expect((await page.content()).includes('sk-e2e-minimax')).toBe(false)
@@ -104,6 +104,15 @@ describe.skipIf(MODE === 'record')('web e2e: another usable provider ends first-
 
   it('removes DeepSeek from the live model picker on Delete and restores it on Add provider', async () => {
     onTestFailed(() => saveFailureShot(page, 'web-e2e-deepseek-hidden-catalog'))
+    await page.keyboard.press('Escape')
+    await page.getByRole('button', { name: 'Settings', exact: true }).click()
+    const setup = page.getByRole('dialog', { name: 'Settings', exact: true })
+    await setup.getByRole('button', { name: 'Models', exact: true }).click()
+    await setup.getByRole('button', { name: 'Add provider', exact: true }).click()
+    await setup.getByLabel('Provider', { exact: true }).selectOption('deepseek-official')
+    await setup.getByRole('textbox', { name: 'API key', exact: true }).fill('sk-e2e-deepseek')
+    await setup.getByRole('button', { name: 'Apply', exact: true }).click()
+    await setup.getByRole('button', { name: 'Edit DeepSeek (deepseek-official)' }).waitFor({ timeout: 10_000 })
     await page.keyboard.press('Escape')
     await connectFreshWorkspace(page, scaffold.workspaceCwd, 'hidden-catalog')
     const trigger = page.getByRole('button', { name: /^Select model/ })

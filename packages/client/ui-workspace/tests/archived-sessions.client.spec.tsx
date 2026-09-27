@@ -168,4 +168,46 @@ describe('ArchivedSessionsSection', () => {
     await waitFor(() => { expect(deleteSession).toHaveBeenCalledTimes(2) })
     expect(deleteSession.mock.calls.map(([id]) => id)).toEqual([sid('s-two'), sid('s-one')])
   })
+
+  it('clears and prunes selected rows when the archive changes', () => {
+    const props = {
+      useSessions: hook(sessions()),
+      useWorkspaces: hook(workspaceState([sid('s-one'), sid('s-two')])),
+      restoreSession: vi.fn<(id: SessionId) => Promise<void>>().mockResolvedValue(undefined),
+      deleteSession: vi.fn<(id: SessionId) => Promise<void>>().mockResolvedValue(undefined),
+      t,
+    } as unknown as ArchivedSessionsSectionProps
+    const view = render(<ArchivedSessionsSection {...props} />)
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Select session First chat' }))
+    fireEvent.click(screen.getByRole('button', { name: t('archive.clearSelection') }))
+    expect(screen.getByRole('status').textContent).toBe('0 selected')
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Select session First chat' }))
+    view.rerender(<ArchivedSessionsSection {...props} useWorkspaces={hook(workspaceState([sid('s-two')]))} />)
+    expect(screen.getByRole('status').textContent).toBe('0 selected')
+  })
+
+  it('removes a row from selection when its checkbox is unchecked', () => {
+    mount([sid('s-one')])
+    const checkbox = screen.getByRole('checkbox', { name: 'Select session First chat' })
+    fireEvent.click(checkbox)
+    fireEvent.click(checkbox)
+    expect(screen.getByRole('status').textContent).toBe('0 selected')
+    const all = screen.getByRole('checkbox', { name: 'Select all' })
+    fireEvent.click(all)
+    fireEvent.click(all)
+    expect(screen.getByRole('status').textContent).toBe('0 selected')
+  })
+
+  it('retains failed bulk restores for retry and names the failed session', async () => {
+    const restoreSession = vi.fn<(id: SessionId) => Promise<void>>()
+      .mockRejectedValueOnce(new Error('unavailable')).mockResolvedValue(undefined)
+    mount(undefined, restoreSession)
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Select all' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Restore selected' }))
+    expect((await screen.findByRole('alert')).textContent).toBe('Could not restore session (Second chat): unavailable')
+    expect(screen.getByRole('status').textContent).toBe('1 selected')
+    fireEvent.click(screen.getByRole('button', { name: 'Restore selected' }))
+    await waitFor(() => { expect(screen.getByRole('status').textContent).toBe('0 selected') })
+    expect(restoreSession.mock.calls.map(([id]) => id)).toEqual([sid('s-two'), sid('s-one'), sid('s-two')])
+  })
 })

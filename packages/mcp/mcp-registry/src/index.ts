@@ -40,6 +40,20 @@ const MAX_SERVERS = 50
 const MAX_ARGS = 64
 const MAX_VALUE_LENGTH = 4_096
 
+/** Remove URL userinfo before an endpoint crosses the Host/browser projection. */
+function redactUrlUserinfo(value: string): string {
+  try {
+    const parsed = new URL(value)
+    parsed.username = ''
+    parsed.password = ''
+    return parsed.toString()
+  } catch {
+    // A malformed hand-edited value can still contain credentials. Do not echo
+    // the userinfo even when the URL parser cannot produce a structured view.
+    return value.replace(/^([a-z][a-z\d+.-]*:\/\/)[^/?#@]*@/iu, '$1')
+  }
+}
+
 /** One stored record, as the settings document holds it. */
 interface StoredServer {
   name: string
@@ -104,6 +118,9 @@ function assertMountable(record: StoredServer, label: string): void {
     }
     if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
       throw new Error(`${label}: server ${record.name} url must use HTTP or HTTPS`)
+    }
+    if (parsed.username !== '' || parsed.password !== '') {
+      throw new Error(`${label}: server ${record.name} url must not include username or password`)
     }
   }
   for (const [field, entries] of [['env', record.env], ['headers', record.headers]] as const) {
@@ -403,7 +420,7 @@ export class McpServerRegistry extends Service {
       ...detail === undefined || status === 'stopped' ? {} : { detail },
       ...record.transport === 'stdio' ? { command: record.command, args: [...record.args] } : {},
       ...record.transport === 'stdio' && record.cwd !== '' ? { cwd: record.cwd } : {},
-      ...record.transport === 'streamable-http' ? { url: record.url } : {},
+      ...record.transport === 'streamable-http' ? { url: redactUrlUserinfo(record.url) } : {},
       envNames: Object.keys(record.env).sort(),
       headerNames: Object.keys(record.headers).sort(),
       toolCallTimeoutMs: record.toolCallTimeoutMs,

@@ -13,7 +13,8 @@ description: Open-source agent workspace for Web UI, desktop, CLI, browser tools
       <a class="hydra-home-button hydra-home-button-primary" href="https://maihongphong1902.github.io/Hydra-Harness/guide/quickstart">Open the guide</a>
       <a class="hydra-home-button" href="https://github.com/MaiHongPhong1902/Hydra-Harness">View on GitHub</a>
     </div>
-    <p class="hydra-home-install"><span>Try it now</span><code>npx @hydra/harness web</code></p>
+    <p class="hydra-home-install"><span>Web UI</span><code>npx @hydra/harness web</code></p>
+    <p class="hydra-home-install"><span>Desktop from source</span><code>pnpm run desktop</code></p>
   </div>
   <div class="hydra-home-mark">
     <img src="https://maihongphong1902.github.io/Hydra-Harness/hydra.png" width="256" height="256" alt="Hydra three-headed dragon logo" />
@@ -70,7 +71,7 @@ Hydra is an open-source agent workspace for running useful AI work across the We
 
 Give an agent a workspace, a model, and the permissions it needs. Hydra keeps the session, tools, approvals, and extensions in one plugin-based runtime.
 
-[Start with the Web UI](./guide/index.md) · [Configure a model](./guide/providers.md) · [Read the architecture](https://github.com/MaiHongPhong1902/Hydra-Harness/blob/main/docs/architecture.md)
+[Start with the Web UI](./guide/index.md) · [Use the desktop app](./guide/desktop.md) · [Configure a model](./guide/providers.md) · [Read the architecture](https://github.com/MaiHongPhong1902/Hydra-Harness/blob/main/docs/architecture.md)
 
 ## Run Hydra
 
@@ -91,6 +92,14 @@ pnpm install
 pnpm run build
 pnpm hydra web
 ```
+
+To open the desktop app after building, run:
+
+```sh
+pnpm run desktop
+```
+
+The [desktop guide](./guide/desktop.md) explains the source-only developer-preview setup.
 
 For one headless task, run:
 
@@ -153,6 +162,7 @@ Every product feature is a plugin. Add or replace model providers, tools, servic
 | You want to… | Start here |
 | --- | --- |
 | Run an agent in a browser | [Web UI quickstart](./guide/index.md) |
+| Run the Electron desktop app | [Desktop guide](./guide/desktop.md) |
 | Connect DeepSeek or another endpoint | [Model providers](./guide/providers.md) |
 | Run a task from CI or a terminal | [CLI reference](https://github.com/MaiHongPhong1902/Hydra-Harness/blob/main/apps/cli/README.md) |
 | Automate Hydra from Python | [Python SDK](./guide/python-sdk.md) |

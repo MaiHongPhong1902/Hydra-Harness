@@ -32,12 +32,7 @@
   - region "API keys":
     - heading "API keys" [level=3]
     - paragraph: Configure provider API keys and optional fallback keys.
-    - list:
-      - listitem:
-        - text: DeepSeek
-        - img "API key missing"
-        - button "Edit DeepSeek (deepseek-official)": Edit
-        - button "Delete DeepSeek (deepseek-official)": Delete
+    - list
     - button "Add provider":
       - img
       - text: Add provider

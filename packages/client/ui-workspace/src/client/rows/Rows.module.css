@@ -232,6 +232,7 @@
 }
 
 .projectRow:hover .rowActions,
+.projectRow:focus-within .rowActions,
 .sessionRow:hover .rowActions,
 .projectRow.menuOpen .rowActions,
 .sessionRow.menuOpen .rowActions {

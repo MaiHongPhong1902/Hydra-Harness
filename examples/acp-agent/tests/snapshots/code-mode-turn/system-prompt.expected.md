@@ -52,8 +52,6 @@ interface ToolArgsMap {
     workdir?: string;
     /** Foreground files this command changed, declared explicitly for workspace instruction refresh. */
     changed_paths?: string[];
-    /** Foreground files this command changed, declared explicitly for workspace instruction refresh. */
-    changed_paths?: string[];
     /** Run in the background and return a job id immediately (collect with job_output, stop with job_kill). No timeout applies. */
     run_in_background?: boolean;
     /** The wider sandbox mode this command needs. Only valid as a one-shot retry of a command the sandbox just denied; requires justification and user approval. */

@@ -1,0 +1,4 @@
+- menu:
+  - menuitem "Delete orphan chats":
+    - img
+    - text: Delete orphan chats

@@ -917,7 +917,39 @@ describe('ChatView', () => {
     const view = render(<h.ChatView {...h.props} />)
     expect(view.getByTestId('tool-seat-r1')).toBeTruthy()
     expect(h.toolOwners[0]?.block).toMatchObject({ callId: 'r1', argsRaw: '{"command":"cmd-r1"}' })
-    expect(view.getByRole('status').textContent).toBe('Deep diving...')
+    expect(view.getByRole('status').textContent).toMatch(/\.\.\.$/)
+  })
+
+  it('rotates progress phrases over time and keeps the current phrase during rerenders', () => {
+    vi.useFakeTimers()
+    const random = vi.spyOn(Math, 'random').mockReturnValue(0)
+    try {
+      const h = makeHarness({ running: true })
+      const view = render(<h.ChatView {...h.props} />)
+      expect(view.getByRole('status').textContent).toBe('Thinking...')
+
+      act(() => { h.set({ queue: [{
+        id: 'steering-occurrence' as never,
+        messageId: 'steering-message' as never,
+        placement: 'steering',
+        content: [{ type: 'text', text: 'also' }],
+        preview: 'also',
+        text: 'also',
+      }] }) })
+      expect(view.getByRole('status').textContent).toBe('Thinking...')
+
+      random.mockReturnValue(0.99)
+      act(() => { vi.advanceTimersByTime(4_000) })
+      expect(view.getByRole('status').textContent).toBe('Making progress...')
+
+      random.mockReturnValue(0.5)
+      act(() => { h.set({ running: false }) })
+      act(() => { h.set({ running: true }) })
+      expect(view.getByRole('status').textContent).toBe('Connecting the dots...')
+    } finally {
+      random.mockRestore()
+      vi.useRealTimers()
+    }
   })
 
   it('keeps the Tool renderer mounted when a running call settles into log order', () => {
@@ -977,7 +1009,7 @@ describe('ChatView', () => {
     const view = render(<h.ChatView {...h.props} />)
     // Freshly mounted (as after a reload) yet already past the 15s gate.
     const status = view.getByRole('status')
-    expect(status.textContent).toMatch(/^Deep diving\.\.\.2m 0\ds$/)
+    expect(status.textContent).toMatch(/\.\.\.2m 0\ds$/)
     expect(status.querySelector('[aria-hidden="true"]')).not.toBeNull()
     act(() => {
       h.set({ queue: [{
@@ -989,7 +1021,7 @@ describe('ChatView', () => {
         text: 'also',
       }] })
     })
-    expect(status.textContent).toMatch(/^Deep diving\.\.\.2m 0\ds$/)
+    expect(status.textContent).toMatch(/\.\.\.2m 0\ds$/)
   })
 
   it('hands each ordered root call to the keyed business-node slot', () => {

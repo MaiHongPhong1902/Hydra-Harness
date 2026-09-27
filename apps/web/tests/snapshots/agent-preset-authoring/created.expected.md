@@ -88,7 +88,7 @@
         - text: Delete
       - paragraph:
         - text: "Preset files:"
-        - code: {{presetRoot}}\my-agent
+        - code: {{presetRoot}}/my-agent
   - button "Draft a custom preset with Creator mode":
     - img
     - text: Draft a custom preset with Creator mode

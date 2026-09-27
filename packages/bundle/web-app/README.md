@@ -6,6 +6,8 @@ The Hydra harness browser application bundle. [`cordis.patch.yml`](cordis.patch.
 
 Web uses the shared bounded normal default of five eligible retries after the initial request. The `deepseek-official` route and settings-added pi-ai routes use that default when they omit `retryPolicy`; explicit provider policies still win. Web adds no retry-specific composition override, so the same omission behavior applies to non-Web profiles.
 
+Fresh Web installations start with no implicit provider or model selection. The Models page keeps the shipped DeepSeek route hidden until the user adds it, while the headless base profile retains its DeepSeek fallback.
+
 ## Model Experience
 
 ### Harness-source and Web-surface context

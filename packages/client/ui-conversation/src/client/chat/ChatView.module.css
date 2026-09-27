@@ -83,6 +83,12 @@
   animation: hydra-turn-status-pulse 1.6s var(--ds-ease-in-out) infinite alternate;
 }
 
+.turnStatusMessage {
+  display: inline-block;
+  animation: hydra-turn-status-message-in 420ms var(--ds-ease-out) both;
+  transform-origin: left center;
+}
+
 .turnStatusClock {
   margin-left: 8px;
   font: var(--dsw-font-xs-13);
@@ -98,8 +104,20 @@
   }
 }
 
+@keyframes hydra-turn-status-message-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .turnStatus {
+  .turnStatus,
+  .turnStatusMessage {
     animation: none;
   }
 }

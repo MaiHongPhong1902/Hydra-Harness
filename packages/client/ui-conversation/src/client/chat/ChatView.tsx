@@ -24,6 +24,25 @@ import { formatRunDuration } from './message-chrome.ts'
 import css from './ChatView.module.css'
 
 const FOLLOW_THRESHOLD = 24
+const TURN_STATUS_ROTATION_MS = 3_200
+
+const TURN_STATUS_MESSAGES = [
+  'Thinking...',
+  'Analyzing...',
+  'Exploring...',
+  'Reasoning...',
+  'Working through it...',
+  'Connecting the dots...',
+  'Putting it together...',
+  'Checking the details...',
+  'Crafting a response...',
+  'Making progress...',
+] as const
+
+function randomTurnStatusIndex(previousIndex?: number): number {
+  const index = Math.floor(Math.random() * TURN_STATUS_MESSAGES.length)
+  return index === previousIndex ? (index + 1) % TURN_STATUS_MESSAGES.length : index
+}
 
 type FlowEntry =
   | { readonly kind: 'node'; readonly nodeKey: string }
@@ -172,6 +191,7 @@ function TurnStatus({ startTime, t }: {
   t: ChatViewSlotProps['t']
 }) {
   const [mountedAt] = useState(() => Date.now())
+  const [statusIndex, setStatusIndex] = useState(() => randomTurnStatusIndex())
   // Anchored to turn/start so a mid-turn reload keeps the real
   // elapsed time and the final footer's Ran-for label matches this clock.
   const anchor = startTime ?? mountedAt
@@ -184,12 +204,20 @@ function TurnStatus({ startTime, t }: {
     const id = setInterval(tick, 1000)
     return () => { clearInterval(id) }
   }, [anchor])
+  useEffect(() => {
+    const id = setInterval(() => {
+      setStatusIndex(current => randomTurnStatusIndex(current))
+    }, TURN_STATUS_ROTATION_MS)
+    return () => { clearInterval(id) }
+  }, [])
   // Short turns keep the plain label; the clock only appears once the turn
   // has clearly been running for a while.
   const showClock = elapsedMs >= 15_000
   return (
     <div className={css.turnStatus} role="status" aria-live="polite">
-      Deep diving...
+      <span key={statusIndex} className={css.turnStatusMessage}>
+        {TURN_STATUS_MESSAGES[statusIndex]}
+      </span>
       {showClock && (
         <span className={css.turnStatusClock} aria-hidden>
           {formatRunDuration(elapsedMs, t)}
@@ -525,7 +553,13 @@ export function ChatView({
               double-render the same wait. */}
           {/* Turn-level loading signal: rides the whole running turn (first-token
               wait, tool execution, streaming) so it never flickers per step. */}
-          {running && <TurnStatus startTime={runningTurnStart} t={t} />}
+          {running && (
+            <TurnStatus
+              key={runningTurnStart ?? 'running'}
+              startTime={runningTurnStart}
+              t={t}
+            />
+          )}
           {pendingSteering.map(item => (
             <PendingSteeringBubble
               key={item.id}

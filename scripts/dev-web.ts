@@ -113,6 +113,12 @@ export async function watchClientPlugins(
   const bundles = await build({
     cwd: root,
     workspace: [...pluginDirs],
+    // Node 22.19's native config loader can return an invalid hook result
+    // while tsdown's import-without-cache hook is active; tsx avoids that
+    // loader composition while retaining TypeScript config support.
+    configLoader: process.versions.node.startsWith('22.') && process.env.HYDRA_DEV_WEB_NATIVE !== '1'
+      ? 'tsx'
+      : 'auto',
     watch: true,
     hooks: {
       'build:done': ({ options }) => {
@@ -175,6 +181,27 @@ interface StageHandle {
 const invokedPath = process.argv[1]
 const isMain = invokedPath !== undefined && import.meta.url === pathToFileURL(resolve(invokedPath)).href
 if (isMain) {
+  const args = process.argv.slice(2)
+  // The package script enters through tsx. Node 22's native TypeScript loader
+  // works for the workspace configs in a plain Node child, while its
+  // import-without-cache hook conflicts with the parent tsx loader.
+  if (process.versions.node.startsWith('22.') && process.env.HYDRA_DEV_WEB_NATIVE !== '1') {
+    const child = execa(process.execPath, [
+      '--experimental-strip-types',
+      fileURLToPath(import.meta.url),
+      ...args,
+    ], {
+      cwd: repoRoot,
+      stdio: 'inherit',
+      env: { ...process.env, HYDRA_DEV_WEB_NATIVE: '1' },
+      reject: false,
+    })
+    process.once('SIGINT', () => { child.kill('SIGINT') })
+    process.once('SIGTERM', () => { child.kill('SIGTERM') })
+    const result = await child
+    process.exit(result.exitCode ?? 1)
+  }
+
   const pluginDirs = discoverPluginDirs()
   const libraryDirs = discoverLibraryDirs()
   if (pluginDirs.length === 0) {
@@ -186,7 +213,6 @@ if (isMain) {
     process.exit(1)
   }
 
-  const args = process.argv.slice(2)
   const pollArg = args.find(a => a === '--poll' || a.startsWith('--poll='))
   if (args.some(a => a !== pollArg)) {
     console.error('dev-web: usage: tsx scripts/dev-web.ts [--poll[=ms]]')

@@ -360,13 +360,42 @@ describe('workspace browser rows', () => {
     }
   })
 
-  it('ungrouped bucket renders no workspace menu', () => {
+  it('ungrouped bucket exposes only the orphan-chat delete action', () => {
+    const onDeleteUngrouped = vi.fn()
     const group: GroupNode = {
       key: '', workspaceId: undefined, cwd: undefined, createdAt: undefined, label: 'Ungrouped',
       sessionCount: 0, expanded: false, containsCurrent: false, sessions: [],
     }
-    render(<ProjectRowItem group={group} onToggle={vi.fn()} onCreate={vi.fn()} t={t} />)
-    expect(screen.queryByRole('button', { name: /Workspace actions/ })).toBeNull()
+    render(<ProjectRowItem
+      group={group} onToggle={vi.fn()} onCreate={vi.fn()}
+      onDeleteUngrouped={onDeleteUngrouped} t={t}
+    />)
+    fireEvent.click(screen.getByRole('button', { name: 'Ungrouped actions' }))
+    expect(screen.queryByRole('menuitem', { name: 'Rename' })).toBeNull()
+    expect(screen.getByRole('menuitem', { name: 'Delete orphan chats' }).className).toMatch(/danger/)
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Delete orphan chats' }))
+    expect(onDeleteUngrouped).toHaveBeenCalledOnce()
+  })
+
+  it('keeps the Ungrouped delete action disabled when no deletable chat exists', () => {
+    const onDeleteUngrouped = vi.fn()
+    const onToggle = vi.fn()
+    const group: GroupNode = {
+      key: '', workspaceId: undefined, cwd: undefined, createdAt: undefined, label: 'Ungrouped',
+      sessionCount: 1, expanded: true, containsCurrent: true, sessions: [],
+    }
+    render(<ProjectRowItem
+      group={group} onToggle={onToggle} onCreate={vi.fn()}
+      onDeleteUngrouped={onDeleteUngrouped} ungroupedDeleteDisabled t={t}
+    />)
+    const row = screen.getByRole('treeitem')
+    fireEvent.keyDown(row, { key: 'Enter' })
+    expect(onToggle).toHaveBeenCalledOnce()
+    fireEvent.click(screen.getByRole('button', { name: 'Ungrouped actions' }))
+    const item = screen.getByRole('menuitem', { name: 'Delete orphan chats' }) as HTMLButtonElement
+    expect(item.disabled).toBe(true)
+    fireEvent.click(item)
+    expect(onDeleteUngrouped).not.toHaveBeenCalled()
   })
 
   it('blank New Session rows carry no menu, no time label, and no hover-card time', () => {

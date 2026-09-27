@@ -13,6 +13,7 @@ import type { DesktopBrowserTheme } from './DesktopBrowserPanel.tsx'
 
 /** Body attribute selecting the dark base palette in the token stylesheets. */
 export const DARK_ATTRIBUTE = 'data-ds-dark-theme'
+const TRANSPARENT_TITLEBAR_COLOR = 'rgba(0,0,0,0)'
 
 /** Applies theme snapshots to the document; one instance per plugin fiber. */
 export class ThemePresenter {
@@ -68,7 +69,7 @@ export class ThemePresenter {
     }
     window.hydraDesktop?.browser.setTheme?.(browserTheme)
     window.hydraDesktop?.chrome?.setTheme?.({
-      color: browserTheme.colors.shell,
+      color: TRANSPARENT_TITLEBAR_COLOR,
       symbolColor: browserTheme.colors.text,
     })
     this.themeColorMeta.content = getComputedStyle(body).backgroundColor

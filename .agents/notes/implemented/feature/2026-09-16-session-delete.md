@@ -16,6 +16,8 @@ After physical removal, `SessionPersistence` emits the serial `session-persisten
 
 The sidebar and Archived sessions surface share one confirmation dialog. The dialog states that deletion is permanent, prevents duplicate submission, and keeps a failure open for retry. A successful response follows the normal removal path, so all affected rows and retained Workspace/archive references disappear together.
 
+The Ungrouped header offers only **Delete orphan chats**, without Rename. Its confirmation includes every non-blank, unarchived conversation without Workspace membership, including collapsed rows. The action stays disabled until Workspace and Session baselines load; provisional New Session rows and archived conversations are excluded. It reuses the shared sequential bulk deletion dialog, retaining failed targets for retry.
+
 ## Alternatives considered
 
 **Keep Archive as the only destructive-looking action** — Archive deliberately preserves the log and accounting slot, so it cannot satisfy removal of retained data. Renaming the action would only hide the missing capability.

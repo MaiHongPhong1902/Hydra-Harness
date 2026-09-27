@@ -153,6 +153,7 @@ function displayUrl(url: string): string {
     const parsed = new URL(url)
     return `${parsed.origin}${parsed.pathname}`
   } catch {
+    /* v8 ignore next -- pageKey validates every page URL before model-visible rendering. */
     return '[redacted URL]'
   }
 }

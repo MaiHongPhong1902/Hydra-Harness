@@ -13,6 +13,11 @@ import type { SubprocessHandle, SubprocessSpawnSpec } from '@hydra/harness-subpr
 import { readClientBuildRecord } from '../../../scripts/client-build-environment.ts'
 import { REPO_ROOT } from './support.ts'
 
+function pnpmArgv(args: readonly string[]): string[] {
+  if (process.platform !== 'win32') return ['pnpm', ...args]
+  return [process.env.ComSpec ?? 'cmd.exe', '/d', '/s', '/c', 'pnpm.cmd', ...args]
+}
+
 function spawnSpec(argv: readonly string[], cwd: string, env?: Record<string, string>): SubprocessSpawnSpec {
   return {
     argv,
@@ -93,7 +98,7 @@ it('hot-reloads a real client-plugin source edit without refreshing the page', a
   try {
     subprocessFiber = await subprocessCtx.plugin(LocalSubprocessRuntime)
     watcher = subprocessCtx.subprocess.spawn(spawnSpec(
-      ['pnpm', 'run', 'dev:web'],
+      pnpmArgv(['run', 'dev:web']),
       REPO_ROOT,
       { ...clientBuildEnvironment },
     ))

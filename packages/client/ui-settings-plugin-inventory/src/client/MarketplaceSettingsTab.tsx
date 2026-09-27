@@ -59,6 +59,13 @@ function isMissingMarketplaceCatalog(error: unknown): boolean {
     && /\bmarketplace\.json\b/iu.test(error.message)
 }
 
+function sameMarketplaceRequest(left: AddPluginMarketplaceRequest, right: AddPluginMarketplaceRequest): boolean {
+  return left.source === right.source
+    && left.gitRef === right.gitRef
+    && left.sparsePaths.length === right.sparsePaths.length
+    && left.sparsePaths.every((path, index) => path === right.sparsePaths[index])
+}
+
 /** Add and inspect configured marketplace sources. */
 export function MarketplaceSettingsTab({
   active,
@@ -80,11 +87,11 @@ export function MarketplaceSettingsTab({
   const [pluginName, setPluginName] = useState('')
   const [adding, setAdding] = useState(false)
   /**
-   * The source this dialog already persisted, when a later import failed. It
-   * keeps a retry from re-adding a record the Host stores, and it is what the
-   * import notice reports as saved.
+   * The complete source request this dialog already persisted, when a later
+   * import failed. Retrying the same request avoids re-adding a record, while
+   * editing ref or sparse paths deliberately invalidates that shortcut.
    */
-  const [savedSource, setSavedSource] = useState<string>()
+  const [savedRequest, setSavedRequest] = useState<AddPluginMarketplaceRequest>()
   const [removing, setRemoving] = useState<string>()
   const [toggling, setToggling] = useState<string>()
   const [mutationFailure, setMutationFailure] = useState<MutationFailure>()
@@ -111,16 +118,17 @@ export function MarketplaceSettingsTab({
     setGitRef('')
     setSparsePaths('')
     setPluginName('')
-    setSavedSource(undefined)
+    setSavedRequest(undefined)
     setMutationFailure(undefined)
   }
 
   /**
    * Add the source, then import the named plugin when one was named. The two
    * are separate steps because the first one is what a marketplace record is:
-   * the source stays saved when the import fails, and `savedSource` records
-   * that, so retrying imports again rather than re-adding a source the Host
-   * already stores. Leaving the plugin name blank adds the source alone.
+   * the source stays saved when the import fails, and `savedRequest` records
+   * the complete persisted source options, so retrying the same request imports
+   * again rather than re-adding a source the Host already stores. Leaving the
+   * plugin name blank adds the source alone.
    */
   const add = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault()
@@ -140,9 +148,9 @@ export function MarketplaceSettingsTab({
     setAdding(true)
     setMutationFailure(undefined)
     const saveSource = async (): Promise<void> => {
-      if (savedSource === normalizedSource) return
+      if (savedRequest !== undefined && sameMarketplaceRequest(savedRequest, request)) return
       setState({ status: 'ready', snapshot: await addMarketplace(request) })
-      setSavedSource(normalizedSource)
+      setSavedRequest(request)
     }
     void saveSource().then(
       async () => {

@@ -148,8 +148,10 @@ export async function removeProviderProfile(
 
 /**
  * Clear the official-DeepSeek hide flag so the shipped route can return to
- * the configured list. Always reloads the join so a failed write still
- * reflects the durable section.
+ * the configured list. The composition base opts out by default, so an
+ * explicit `false` is required instead of an unset that restores the base
+ * value. Always reloads the join so a failed write still reflects the durable
+ * section.
  * @param api - settings wire face.
  * @param controller - the page store to refresh.
  * @returns the failure message, or undefined once the write and reload landed.
@@ -162,7 +164,7 @@ export async function revealOfficialDeepSeek(
   try {
     const response = await api.settings.mutate({
       ns: WELCOME_NOTICE_SETTINGS_NAMESPACE,
-      ops: [{ op: 'unset', path: [OFFICIAL_DEEPSEEK_DECLINED_FIELD] }],
+      ops: [{ op: 'set', path: [OFFICIAL_DEEPSEEK_DECLINED_FIELD], value: false }],
     })
     if (!response.result.ok) failure = response.result.error.message
   } catch (error) {

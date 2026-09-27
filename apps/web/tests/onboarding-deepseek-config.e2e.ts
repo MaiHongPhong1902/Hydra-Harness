@@ -77,7 +77,8 @@ describe.skipIf(MODE === 'record')('web e2e: first-run provider configuration', 
     await compareOrRefreshGolden(MISSING_EXPECTED, initial, MODE)
     await page.screenshot({ path: '.hydra-build/provider-setup.png' })
 
-    await settings.getByRole('button', { name: 'Edit DeepSeek (deepseek-official)', exact: true }).click()
+    await settings.getByRole('button', { name: 'Add provider', exact: true }).click()
+    await settings.getByLabel('Provider', { exact: true }).selectOption('deepseek-official')
     const keyInput = settings.getByRole('textbox', { name: 'API key', exact: true })
     const secret = `hydra_onboarding_${randomBytes(12).toString('hex')}`
     await keyInput.fill(secret)
@@ -208,10 +209,14 @@ describe.skipIf(MODE === 'record')('web e2e: first-run provider configuration', 
     expect(tripwire.pageErrors).toEqual([])
   }, 60_000)
 
-  it('requires a model choice when the implicit default is removed', async () => {
+  it('requires an explicit model choice on a fresh Web install', async () => {
     onTestFailed(() => saveFailureShot(page, 'web-e2e-onboarding-deepseek-models'))
     await connectFreshWorkspace(page, scaffold.workspaceCwd, 'model-fallback-e2e')
     const composer = page.locator('[data-composer-card] textarea')
+    await page.getByRole('button', { name: 'Select model', exact: true }).click()
+    await page.getByRole('menuitem', { name: /Model/ }).click()
+    await page.getByRole('menuitemradio', { name: 'DeepSeek-V4-Flash', exact: true }).click()
+    await expect.poll(() => composer.isEnabled()).toBe(true)
     await composer.fill('Keep this draft until I select a model')
     // Opened here rather than inherited: the credential test reloads the page
     // after configuring the key, so nothing carries an open dialog across.
@@ -250,7 +255,7 @@ describe.skipIf(MODE === 'record')('web e2e: first-run provider configuration', 
     expect(document).not.toMatch(/^\s*- id: deepseek-v4-flash$/m)
 
     await page.keyboard.press('Escape')
-    await expect.poll(() => composer.isDisabled()).toBe(true)
+    await expect.poll(() => composer.isDisabled()).toBe(false)
     expect(await composer.inputValue()).toBe('Keep this draft until I select a model')
     await compareOrRefreshGolden(join(SNAPSHOT_DIR, 'model-required.expected.md'),
       await captureStableAria(page, '[data-composer-card]', scaffold.workspaceCwd), MODE)

@@ -55,6 +55,14 @@ const homeAndGuide: DocsPage[] = [
     order: 2,
   },
   {
+    source: 'docs/user/guide/desktop.md',
+    route: 'guide/desktop.md',
+    label: 'Use the desktop app',
+    sidebar: 'guide',
+    section: 'Guide',
+    order: 3,
+  },
+  {
     source: 'docs/user/guide/python-sdk.md',
     route: 'guide/python-sdk.md',
     label: 'Python',

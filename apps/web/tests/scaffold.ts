@@ -573,6 +573,11 @@ export async function launchWebScaffold(options: LaunchOptions = {}): Promise<We
         op: 'set', path: [WELCOME_NOTICE_ACK_FIELD], value: WELCOME_NOTICE_VERSION,
       }])
     }
+    if (options.deepSeekMissingCredential !== true) {
+      await ctx.settings.mutate(settingsNamespace(WELCOME_NOTICE_SETTINGS_NAMESPACE), [{
+        op: 'set', path: ['deepseekOfficialDeclined'], value: false,
+      }])
+    }
     const boundPort = ctx.get('webServer')?.port
     if (boundPort === undefined) {
       throw new Error('web e2e scaffold: webServer service missing after settled boot')
@@ -921,6 +926,12 @@ function normalizeAria(snapshot: string, workspaceCwd: string): string {
       duration => duration.startsWith('~') ? duration : '{{duration}}',
     )
     .replace(/\b\d[\d,]*(?:\.\d+)? ms\b/g, '{{duration}}')
+    // The running-turn copy is intentionally selected per execution; keep replay
+    // goldens focused on the presence of the activity status, not its random choice.
+    .replace(
+      /(- status: )[^\r\n]*\.\.\.(?=\{\{duration\}\}|[\r\n]|$)/g,
+      '$1{{turn-status}}',
+    )
     .replace(/\d+(?:\.\d+)?(?= tok\/s(?!\w))/g, '{{throughput}}')
     // Seeded compaction prices realized file paths, whose length differs
     // between local worktrees and CI scratch directories.

@@ -22,6 +22,7 @@ The agent can read and edit workspace files, run commands, delegate work, and ma
 
 ## Continue
 
+- [Use the desktop app](./desktop.md)
 - [Configure models](./providers.md)
 - [Use the Python SDK](./python-sdk.md)
 - [Use other CLI modes](../../../apps/cli/README.md)

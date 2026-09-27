@@ -32,14 +32,10 @@
   - region "API keys":
     - heading "API keys" [level=3]
     - paragraph: Configure provider API keys and optional fallback keys.
-    - list:
-      - listitem:
-        - text: DeepSeek
-        - img "API key missing"
-        - button "Edit DeepSeek (deepseek-official)": Edit
-        - button "Delete DeepSeek (deepseek-official)": Delete
+    - list
     - text: Provider
     - combobox "Provider":
+      - option "DeepSeek"
       - option "amazon-bedrock"
       - option "ant-ling"
       - option "anthropic"
