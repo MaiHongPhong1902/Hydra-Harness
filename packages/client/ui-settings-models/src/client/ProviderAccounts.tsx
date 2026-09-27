@@ -10,6 +10,133 @@ import styles from './ModelsSection.module.css'
 
 type AuthorizationApi = IApiClient['authorization']
 
+type UsageProvider = 'codex' | 'google' | 'other'
+
+function usageProvider(flowKey: string): UsageProvider {
+  if (flowKey.endsWith('/chatgpt')) return 'codex'
+  if (flowKey.endsWith('/antigravity')) return 'google'
+  return 'other'
+}
+
+function remainingPercent(usedPercent: number): number {
+  return Math.round(Math.max(0, Math.min(100, 100 - usedPercent)))
+}
+
+function resetLabel(resetsAt: number | undefined, t: ProviderAccountsProps['t']): string | undefined {
+  return resetsAt === undefined ? undefined
+    : t('accountUsageResetAt').replace('{time}', new Date(resetsAt * 1000).toLocaleString())
+}
+
+function windowTitle(
+  limit: AuthorizationUsageView['limits'][number], provider: UsageProvider,
+  t: ProviderAccountsProps['t'],
+): string {
+  const window = limit.window?.toLocaleLowerCase().replace(/[ _-]+/gu, '')
+  const duration = limit.windowMinutes === 300 || /^(?:5h|fivehours?)$/u.test(window ?? '')
+    ? t('accountUsage5HourLimit')
+    : limit.windowMinutes === 10_080 || /^(?:weekly|week|7d|sevendays?)$/u.test(window ?? '')
+      ? t('accountUsageWeeklyLimit') : undefined
+  if (duration === undefined) return limit.name
+  const genericCodexName = /^(codex|5h|weekly)$/iu.test(limit.name)
+  if (provider === 'codex') return genericCodexName ? duration : `${limit.name} · ${duration}`
+  return limit.group !== undefined || genericCodexName ? duration : `${limit.name} · ${duration}`
+}
+
+function googleGroup(limit: AuthorizationUsageView['limits'][number], t: ProviderAccountsProps['t']): string {
+  const value = `${limit.group ?? ''} ${limit.name}`.toLocaleLowerCase()
+  if (value.includes('gemini')) return t('accountUsageGeminiModels')
+  if (value.includes('claude') || value.includes('gpt')) return t('accountUsageClaudeGptModels')
+  return t('accountUsageOtherModels')
+}
+
+function UsageLimit({
+  limit, provider, t,
+}: {
+  limit: AuthorizationUsageView['limits'][number]
+  provider: UsageProvider
+  t: ProviderAccountsProps['t']
+}): ReactNode {
+  const remaining = remainingPercent(limit.usedPercent)
+  const title = windowTitle(limit, provider, t)
+  const reset = resetLabel(limit.resetsAt, t)
+  const remainingAmount = limit.remainingAmount === undefined ? undefined
+    : t('accountUsageRemainingAmount').replace('{amount}', limit.remainingAmount.toLocaleString())
+  return (
+    <div className={`${styles['usageLimit']}${limit.disabled === true ? ` ${styles['usageLimitDisabled']}` : ''}`}
+      title={limit.description}>
+      <div className={styles['usageLimitHeader']}>
+        <div className={styles['usageLimitIdentity']}>
+          <span className={styles['usageLimitTitle']}>{title}</span>
+          {reset === undefined ? null : <small>{reset}</small>}
+          {remainingAmount === undefined ? null : <small>{remainingAmount}</small>}
+        </div>
+        <strong>{limit.disabled === true ? t('accountUsageDisabled')
+          : t('accountUsageRemaining').replace('{percent}', String(remaining))}</strong>
+      </div>
+      {limit.disabled === true ? null : <div className={styles['usageBar']} role="progressbar" aria-label={title}
+        aria-valuemin={0} aria-valuemax={100} aria-valuenow={remaining}>
+        <span style={{ width: `${remaining}%` }} />
+      </div>}
+    </div>
+  )
+}
+
+function UsageCredits({ value, t }: {
+  value: AuthorizationUsageView['credits']
+  t: ProviderAccountsProps['t']
+}): ReactNode {
+  if (value === undefined || value.length === 0) return null
+  return (
+    <section className={styles['usageGroup']} aria-label={t('accountUsageCreditsTitle')}>
+      <h4>{t('accountUsageCreditsTitle')}</h4>
+      {value.map((credit) => {
+        const name = credit.creditType ?? credit.tier
+        const amount = credit.creditAmount === undefined ? t('accountUsageUnavailable')
+          : t('accountUsageCreditsAvailable').replace('{name}', name)
+            .replace('{amount}', credit.creditAmount.toLocaleString())
+        return <div key={credit.tier} className={styles['usageCredit']}>
+          <span>{amount}</span>
+          {credit.minimumCreditAmountForUsage === undefined ? null
+            : <small>{t('accountUsageCreditsMinimum').replace('{amount}', credit.minimumCreditAmountForUsage.toLocaleString())}</small>}
+        </div>
+      })}
+    </section>
+  )
+}
+
+function UsageReport({
+  value, provider, t,
+}: {
+  value: AuthorizationUsageView
+  provider: UsageProvider
+  t: ProviderAccountsProps['t']
+}): ReactNode {
+  const groups = provider === 'google'
+    ? [...new Map(value.limits.map(limit => [googleGroup(limit, t), [] as AuthorizationUsageView['limits']])).entries()]
+      .map(([title]) => ({ title, limits: value.limits.filter(limit => googleGroup(limit, t) === title) }))
+    : [{ title: t('accountUsageQuota'), limits: value.limits }]
+  return (
+    <div className={styles['usageReport']} aria-label={t('accountUsageTitle')}>
+      {provider === 'codex'
+        ? <div className={styles['usageSummary']}>
+          <span className={styles['usageBank']}>{value.bankedResetCount === undefined
+            ? t('accountBankedResetsUnavailable')
+            : t('accountBankedResets').replace('{count}', String(value.bankedResetCount))}</span>
+        </div>
+        : null}
+      {provider === 'google' ? <UsageCredits value={value.credits} t={t} /> : null}
+      {groups.map(group => (
+        <section key={group.title} className={styles['usageGroup']} aria-label={group.title}>
+          {provider === 'google' ? <h4>{group.title}</h4> : null}
+          {group.limits.map((limit, index) => <UsageLimit key={`${limit.name}-${limit.windowMinutes ?? 'model'}-${index}`}
+            limit={limit} provider={provider} t={t} />)}
+        </section>
+      ))}
+      {value.limits.length === 0 ? <p className={styles['usageEmpty']}>{t('accountUsageNoLimits')}</p> : null}
+    </div>
+  )
+}
+
 /** Props for the provider's independently persisted account pool. */
 interface ProviderAccountsProps {
   /** Provider-owned authorization flow key. */
@@ -22,23 +149,6 @@ interface ProviderAccountsProps {
   disabled: boolean
   /** Disable the enclosing Apply action while a login is running. */
   onBusy: (busy: boolean) => void
-}
-
-function usageText(value: AuthorizationUsageView | undefined, t: ProviderAccountsProps['t']): string {
-  if (value === undefined) return ''
-  const limits = value.limits.map((limit) => {
-    const window = limit.windowMinutes === 300 ? t('accountUsageWindow5h')
-      : limit.windowMinutes === 10_080 ? t('accountUsageWindowWeekly') : limit.name
-    const name = limit.name === 'Codex' ? window : limit.name === window ? window : `${limit.name} ${window}`
-    const reset = limit.resetsAt === undefined ? ''
-      : ` (${t('accountResetAt').replace('{time}', new Date(limit.resetsAt * 1000).toLocaleString())})`
-    const percent = t('accountUsagePercent')
-      .replace('{name}', name).replace('{percent}', String(Math.round(limit.usedPercent)))
-    return ` · ${percent}${reset}`
-  }).join('')
-  const banked = value.bankedResetCount === undefined ? ` · ${t('accountBankedResetsUnavailable')}`
-    : ` · ${t('accountBankedResets').replace('{count}', String(value.bankedResetCount))}`
-  return `${value.planType ?? 'Account'}${limits}${banked}`
 }
 
 /**
@@ -84,6 +194,7 @@ export function ProviderAccounts({ flowKey, api, t, disabled, onBusy }: Provider
 
   const requestUsage = useCallback((accountId: string): void => {
     const token = lifetime.current
+    /* v8 ignore if -- account effects and refresh buttons request usage only while mounted. */
     if (token === undefined) return
     const sequence = (usageSequence.current.get(accountId) ?? 0) + 1
     usageSequence.current.set(accountId, sequence)
@@ -119,6 +230,7 @@ export function ProviderAccounts({ flowKey, api, t, disabled, onBusy }: Provider
       for (const account of accounts) {
         usageControllers.current.get(account.id)?.abort()
         usageControllers.current.delete(account.id)
+        /* v8 ignore next -- every mounted account schedules usage before cleanup. */
         usageSequence.current.set(account.id, (usageSequence.current.get(account.id) ?? 0) + 1)
       }
     }
@@ -206,35 +318,45 @@ export function ProviderAccounts({ flowKey, api, t, disabled, onBusy }: Provider
     hydraDesktop?: { openExternal?: (url: string) => Promise<void> }
   }).hydraDesktop?.openExternal
   const unavailable = entry === undefined || !entry.methods.some(method => method.id === 'oauth')
+  const provider = usageProvider(flowKey)
   return (
     <div className={styles['field']}>
       <span className={styles['fieldLabel']}>{t('accounts')}</span>
       <p className={styles['advancedHint']}>{t('accountsHint')}</p>
       <ul className={styles['accountList']} aria-label={t('accounts')}>
-        {entry?.accounts.map(account => (
-          <li key={account.id} className={styles['accountRow']}>
-            <div className={styles['accountIdentity']}>
-              <span>{account.label}</span>
-              {usage[account.id] === undefined
-                ? <small>{usageFailure[account.id] ? t('accountUsageUnavailable') : t('accountUsageLoading')}</small>
-                : <small>{usageText(usage[account.id], t)}</small>}
-            </div>
-            <button type="button" className={styles['secondaryButton']} disabled={disabled || busy || running}
-              aria-label={t('accountUsageRefresh').replace('{account}', account.label)}
-              onClick={() => { requestUsage(account.id) }}>↻</button>
-            <button type="button" className={styles['secondaryButton']} disabled={disabled || busy || running}
-              aria-label={t('accountSignOutLabel').replace('{account}', account.label)}
-              onClick={() => { void act(async () => {
-                const response = await api.logout({ key: flowKey, accountId: account.id })
-                if (!response.result.ok) throw new Error(response.result.error.message)
-                const listed = await api.list({})
-                if (!listed.result.ok) throw new Error(listed.result.error.message)
-                if (lifetime.current !== undefined) setEntry(listed.result.value.entries.find(candidate => candidate.key === flowKey))
-              }) }}>
-              {t('accountSignOut')}
-            </button>
-          </li>
-        ))}
+        {entry?.accounts.map((account) => {
+          const accountUsage = usage[account.id]
+          return (
+            <li key={account.id} className={styles['accountRow']}>
+              <div className={styles['accountHeader']}>
+                <div className={styles['accountIdentity']}>
+                  <span>{account.label}</span>
+                  {accountUsage?.planType === undefined ? null
+                    : <span className={styles['accountPlan']}>{accountUsage.planType}</span>}
+                </div>
+                <div className={styles['accountControls']}>
+                  <button type="button" className={styles['secondaryButton']} disabled={disabled || busy || running}
+                    aria-label={t('accountUsageRefresh').replace('{account}', account.label)}
+                    onClick={() => { requestUsage(account.id) }}>↻</button>
+                  <button type="button" className={styles['secondaryButton']} disabled={disabled || busy || running}
+                    aria-label={t('accountSignOutLabel').replace('{account}', account.label)}
+                    onClick={() => { void act(async () => {
+                      const response = await api.logout({ key: flowKey, accountId: account.id })
+                      if (!response.result.ok) throw new Error(response.result.error.message)
+                      const listed = await api.list({})
+                      if (!listed.result.ok) throw new Error(listed.result.error.message)
+                      if (lifetime.current !== undefined) setEntry(listed.result.value.entries.find(candidate => candidate.key === flowKey))
+                    }) }}>
+                    {t('accountSignOut')}
+                  </button>
+                </div>
+              </div>
+              {accountUsage === undefined
+                ? <small className={styles['usageStatus']}>{usageFailure[account.id] ? t('accountUsageUnavailable') : t('accountUsageLoading')}</small>
+                : <UsageReport value={accountUsage} provider={provider} t={t} />}
+            </li>
+          )
+        })}
       </ul>
       {entry?.accounts.length === 0 ? <p className={styles['advancedHint']}>{t('accountsEmpty')}</p> : null}
       <div className={styles['accountActions']}>

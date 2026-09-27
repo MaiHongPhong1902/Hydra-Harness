@@ -380,6 +380,7 @@ describe('unary round trip (handler ⇄ client, no network)', () => {
       .toMatchObject({ payload: { value: '[redacted]' } })
     expect((await c.authorization.cancel({ attemptId })).result.ok).toBe(true)
     expect((await c.authorization.logout({ key, accountId: 'primary' })).result.ok).toBe(true)
+    expect((await c.authorization.usage({ key, accountId: 'primary' })).result).toEqual({ ok: true, value: {} })
     expect((await c.webSearch.providers({})).result).toEqual({ ok: true, value: { providers: [] } })
     expect((await c.webSearch.testConnection({ provider: 'tavily' })).result)
       .toEqual({ ok: true, value: { connected: true, provider: 'tavily', resultCount: 1 } })

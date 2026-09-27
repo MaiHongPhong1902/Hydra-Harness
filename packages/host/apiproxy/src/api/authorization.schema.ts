@@ -31,14 +31,26 @@ const accountSchema = z.object({
 
 const usageWindowSchema = z.object({
   name: z.string().min(1).max(256),
+  group: z.string().min(1).max(128).optional(),
+  window: z.string().min(1).max(128).optional(),
+  description: z.string().min(1).max(1024).optional(),
   windowMinutes: z.number().int().positive().optional(),
   usedPercent: z.number().min(0).max(100),
+  remainingAmount: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER).optional(),
+  disabled: z.boolean().optional(),
   resetsAt: z.number().int().min(0).max(8_640_000_000_000).optional(),
+})
+const usageCreditsSchema = z.object({
+  tier: z.enum(['current', 'paid', 'g1']),
+  creditType: z.string().min(1).max(128).optional(),
+  creditAmount: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER).optional(),
+  minimumCreditAmountForUsage: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER).optional(),
 })
 const usageSchema = z.object({
   planType: z.string().max(128).optional(),
   limits: z.array(usageWindowSchema).max(256),
   bankedResetCount: z.number().int().min(0).optional(),
+  credits: z.array(usageCreditsSchema).max(3).optional(),
   fetchedAt: z.number().nonnegative(),
 }) satisfies z.ZodType<Wire<AuthorizationUsageView>>
 

@@ -28,6 +28,8 @@ Use the **Account sign-in** section's **Add sign-in provider** action, then choo
 
 Account credentials are stored by the Host. The browser receives account names and transient login instructions, never access or refresh tokens. Requests rotate through the provider's accounts and try another account after a failed request, before visible output begins. The [account-auth adapter](../../llm/llm-account-auth/README.md) owns initialization, refresh, and request behavior. An account-backed route with no connected accounts remains unavailable for onboarding readiness.
 
+Each connected account renders the provider report as compact quota cards. Codex shows its five-hour and weekly windows, reset times, and banked reset count; Google Antigravity groups provider-reported model buckets under Gemini, Claude/GPT, or other models, including reset times, remaining counts, disabled states, and credit balances when supplied. Missing provider fields stay unavailable instead of becoming inferred quotas.
+
 ## Model Experience
 
 None, as the section renders a browser configuration UI; nothing here reaches a model request.

@@ -16,7 +16,29 @@ import { createAccountPool, emptyAuthContext, parseAccountPool } from '../src/ac
 import { readAccountUsage } from '../src/usage.ts'
 import type { StreamChunk } from '@hydra/harness-llm'
 
-afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals() })
+const usageMocks = vi.hoisted(() => ({ chatgptRefresh: vi.fn(), antigravityRefresh: vi.fn(), oauthAvailable: true }))
+vi.mock('@earendil-works/pi-ai/providers/openai-codex', async (load) => {
+  const original = await load<typeof import('@earendil-works/pi-ai/providers/openai-codex')>()
+  return {
+    ...original,
+    openaiCodexProvider: () => {
+      const provider = original.openaiCodexProvider()
+      return { ...provider, auth: { ...provider.auth,
+        oauth: !usageMocks.oauthAvailable ? undefined : { ...provider.auth.oauth, refresh: usageMocks.chatgptRefresh } } }
+    },
+  }
+})
+vi.mock('../src/antigravity-oauth.ts', async load => ({
+  ...await load<typeof import('../src/antigravity-oauth.ts')>(), refreshAntigravity: usageMocks.antigravityRefresh,
+}))
+
+afterEach(() => {
+  vi.restoreAllMocks()
+  vi.unstubAllGlobals()
+  usageMocks.chatgptRefresh.mockReset()
+  usageMocks.antigravityRefresh.mockReset()
+  usageMocks.oauthAvailable = true
+})
 
 class MemoryCredentials extends CredentialProvider {
   private readonly records = new Map<CredentialKey, CredentialRecord>()
@@ -320,6 +342,146 @@ describe('account pools', () => {
     }
   })
 
+  it('covers optional ChatGPT usage windows and malformed provider responses', async () => {
+    const { ctx, pool } = await fixture()
+    try {
+      const account = await pool.add('ChatGPT', {
+        type: 'oauth', access: 'access', refresh: 'refresh', expires: Date.now() + 60_000,
+        accountId: 'account-optional',
+      })
+      const fetch = vi.fn<typeof globalThis.fetch>(async (input) => {
+        const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
+        if (url.endsWith('/usage')) return Response.json({ rate_limit: { primary_window: { used_percent: 1 } },
+          code_review_rate_limit: { primary_window: { used_percent: 2, limit_window_seconds: 60 } },
+          additional_rate_limits: [
+            { limit_name: 'Tools', rate_limit: { primary_window: { used_percent: 3 } } },
+            { metered_feature: 'Search', rate_limit: { primary_window: { used_percent: 4 } } },
+          ], rate_limit_reset_credits: { credits: ['one'] } })
+        return Response.json({})
+      })
+      vi.stubGlobal('fetch', fetch)
+      const usage = await readAccountUsage(pool, account.id, 'chatgpt', {}, 5_000)
+      expect(usage.limits.map(limit => limit.name)).toEqual(['Codex', 'Code review', 'Tools', 'Search'])
+      expect(usage.bankedResetCount).toBe(1)
+      await expect(readAccountUsage(pool, account.id, 'chatgpt', {}, 5_000)).resolves.toBeDefined()
+
+      fetch.mockResolvedValue(Response.json({ plan_type: 'plus', additional_rate_limits: {} }))
+      await expect(readAccountUsage(pool, account.id, 'chatgpt', {}, 5_000)).rejects.toMatchObject({ code: 'MALFORMED_RESPONSE' })
+      fetch.mockResolvedValue(Response.json({ plan_type: 'plus', rate_limit: { primary_window: { used_percent: 101 } } }))
+      await expect(readAccountUsage(pool, account.id, 'chatgpt', {}, 5_000)).rejects.toMatchObject({ code: 'MALFORMED_RESPONSE' })
+      fetch.mockResolvedValue(Response.json({ plan_type: 'plus', rate_limit: { primary_window: { used_percent: 0 } }, additional_rate_limits: [{ rate_limit: {} }] }))
+      await expect(readAccountUsage(pool, account.id, 'chatgpt', {}, 5_000)).rejects.toMatchObject({ code: 'MALFORMED_RESPONSE' })
+      fetch.mockResolvedValue(Response.json({ nope: true }))
+      await expect(readAccountUsage(pool, account.id, 'chatgpt', {}, 5_000)).rejects.toMatchObject({ code: 'MALFORMED_RESPONSE' })
+      fetch.mockResolvedValue(new Response('bad', { status: 503 }))
+      await expect(readAccountUsage(pool, account.id, 'chatgpt', {}, 5_000)).rejects.toMatchObject({ code: 'USAGE_UNAVAILABLE' })
+    } finally { await ctx.fiber.dispose() }
+  })
+
+  it('maps usage transport failures and preserves caller cancellation', async () => {
+    const { ctx, pool } = await fixture()
+    try {
+      const account = await pool.add('ChatGPT', {
+        type: 'oauth', access: 'access', refresh: 'refresh', expires: Date.now() + 60_000,
+        accountId: 'account-transport',
+      })
+      vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline') }))
+      await expect(readAccountUsage(pool, account.id, 'chatgpt', {}, 5_000))
+        .rejects.toMatchObject({ code: 'USAGE_UNAVAILABLE' })
+
+      const controller = new AbortController()
+      const cancelled = new Error('cancelled')
+      vi.stubGlobal('fetch', vi.fn(async () => {
+        controller.abort()
+        throw cancelled
+      }))
+      await expect(readAccountUsage(pool, account.id, 'chatgpt', {}, 5_000, controller.signal)).rejects.toBe(cancelled)
+    } finally { await ctx.fiber.dispose() }
+  })
+
+  it('refreshes expired ChatGPT and Antigravity grants before reading usage', async () => {
+    const { ctx, pool } = await fixture()
+    try {
+      usageMocks.chatgptRefresh.mockResolvedValue({ type: 'oauth', access: 'fresh-chatgpt', refresh: 'refresh', expires: Date.now() + 60_000, accountId: 'refresh-chatgpt' })
+      const chatgpt = await pool.add('ChatGPT', { type: 'oauth', access: 'old', refresh: 'refresh', expires: 1, accountId: 'refresh-chatgpt' })
+      vi.stubGlobal('fetch', vi.fn(async () => Response.json({ plan_type: 'plus', rate_limit: { primary_window: { used_percent: 0 } } })))
+      await expect(readAccountUsage(pool, chatgpt.id, 'chatgpt', {}, 5_000)).resolves.toMatchObject({ planType: 'plus' })
+      expect(usageMocks.chatgptRefresh).toHaveBeenCalledOnce()
+    } finally { await ctx.fiber.dispose() }
+
+    const antigravityFixture = await fixture('antigravity')
+    try {
+      usageMocks.antigravityRefresh.mockResolvedValue({ access: 'fresh-antigravity', expires: Date.now() + 60_000 })
+      const antigravity = await antigravityFixture.pool.add('Antigravity', { type: 'oauth', access: 'old', refresh: 'refresh', expires: 1, projectId: 'project-refresh' })
+      vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL) => {
+        const url = input instanceof Request ? input.url : input instanceof URL ? input.href : input
+        return url.includes('fetchAvailableModels')
+          ? Response.json({ models: { gemini: { quotaInfo: { remainingFraction: 1 } } } })
+          : Response.json({ currentTier: { id: 'free' } })
+      }))
+      await expect(readAccountUsage(antigravityFixture.pool, antigravity.id, 'antigravity', { endpoint: 'https://fixture.test' }, 5_000))
+        .resolves.toMatchObject({ planType: 'free' })
+      expect(usageMocks.antigravityRefresh).toHaveBeenCalledOnce()
+    } finally { await antigravityFixture.ctx.fiber.dispose() }
+  })
+
+  it('rejects malformed and oversized ChatGPT quota responses', async () => {
+    const { ctx, pool } = await fixture()
+    try {
+      const account = await pool.add('ChatGPT', { type: 'oauth', access: 'access', refresh: 'refresh', expires: Date.now() + 60_000, accountId: 'validation' })
+      const window = { used_percent: 0 }
+      for (const body of [
+        [], { rate_limit: [] }, { rate_limit: { primary_window: [] } },
+        { rate_limit: { primary_window: { ...window, reset_at: 'invalid' } } },
+        { rate_limit: { primary_window: { ...window, limit_window_seconds: 0 } } },
+        { rate_limit: {}, additional_rate_limits: [null] },
+        { rate_limit: {}, rate_limit_reset_credits: { available_count: 0 }, additional_rate_limits: Array.from({ length: 257 }, () => ({ limit_name: 'Quota', rate_limit: { primary_window: window } })) },
+      ]) {
+        vi.stubGlobal('fetch', vi.fn(async () => Response.json(body)))
+        await expect(readAccountUsage(pool, account.id, 'chatgpt', {}, 5_000)).rejects.toMatchObject({ code: 'MALFORMED_RESPONSE' })
+      }
+    } finally { await ctx.fiber.dispose() }
+  })
+
+  it('retains Antigravity quota when tier discovery fails and validates model data', async () => {
+    const { ctx, pool } = await fixture('antigravity')
+    try {
+      const account = await pool.add('Antigravity', { type: 'oauth', access: 'access', refresh: 'refresh', expires: Date.now() + 60_000, projectId: 'project' })
+      vi.stubGlobal('fetch', vi.fn(async input => String(input).endsWith(':fetchAvailableModels')
+        ? Response.json({ models: { gemini: { quotaInfo: { remainingFraction: 1 } } } })
+        : new Response(null, { status: 503 })))
+      await expect(readAccountUsage(pool, account.id, 'antigravity', {}, 5_000, new AbortController().signal))
+        .resolves.toMatchObject({ limits: [{ name: 'gemini', usedPercent: 0 }] })
+      const invalidModels = [
+        null,
+        { '': { quotaInfo: { remainingFraction: 1 } } },
+        Object.fromEntries(Array.from({ length: 257 }, (_, i) => [String(i), { quotaInfo: { remainingFraction: 1 } }])),
+      ]
+      for (const models of invalidModels) {
+        vi.stubGlobal('fetch', vi.fn(async input => String(input).endsWith(':retrieveUserQuotaSummary')
+          ? new Response(null, { status: 503 }) : Response.json({ models })))
+        await expect(readAccountUsage(pool, account.id, 'antigravity', {}, 5_000)).rejects.toMatchObject({ code: 'MALFORMED_RESPONSE' })
+      }
+    } finally { await ctx.fiber.dispose() }
+  })
+
+  it('rejects disconnected grants and missing provider identities before fetching usage', async () => {
+    for (const provider of ['chatgpt', 'antigravity'] as const) {
+      const { ctx, pool } = await fixture(provider)
+      try {
+        const apiKey = await pool.add('API key', { type: 'api_key', key: 'secret' })
+        await expect(readAccountUsage(pool, apiKey.id, provider, {}, 5_000)).rejects.toMatchObject({ code: 'MISSING_CREDENTIAL' })
+        const account = await pool.add('Missing identity', { type: 'oauth', access: 'access', refresh: 'refresh', expires: Date.now() + 60_000 })
+        await expect(readAccountUsage(pool, account.id, provider, {}, 5_000)).rejects.toMatchObject({ code: 'INVALID_CREDENTIAL' })
+        const expired = await pool.add('Expired', { type: 'oauth', access: 'expired', refresh: 'refresh', expires: 1 })
+        usageMocks.oauthAvailable = false
+        await expect(readAccountUsage(pool, expired.id, provider, {}, 5_000)).rejects.toMatchObject({ code: 'INVALID_CREDENTIAL' })
+        vi.spyOn(pool.credentials, 'modify').mockResolvedValue(undefined)
+        await expect(readAccountUsage(pool, account.id, provider, {}, 5_000)).rejects.toMatchObject({ code: 'MISSING_CREDENTIAL' })
+      } finally { await ctx.fiber.dispose() }
+    }
+  })
+
   it('reads Antigravity quota and tier through the configured endpoint', async () => {
     const { ctx, pool } = await fixture('antigravity')
     const server = createServer((request, response) => {
@@ -327,6 +489,17 @@ describe('account pools', () => {
       request.on('data', chunk => chunks.push(Buffer.from(String(chunk))))
       request.on('end', () => {
         const body = Buffer.concat(chunks).toString()
+        if (request.url === '/v1internal:retrieveUserQuotaSummary') {
+          expect(request.method).toBe('POST')
+          expect(request.headers.authorization).toBe('Bearer access')
+          expect(JSON.parse(body)).toEqual({ project: 'project-1' })
+          response.setHeader('content-type', 'application/json')
+          response.end(JSON.stringify({ groups: [{ displayName: 'Gemini Models', description: 'Gemini pool', buckets: [{
+            bucketId: 'gemini-weekly', displayName: 'Weekly Limit Remaining', description: 'Weekly quota', window: 'WEEKLY',
+            remainingFraction: 0.75, remainingAmount: '42', disabled: false, resetTime: '2026-09-27T00:00:00Z',
+          }] }] }))
+          return
+        }
         if (request.url === '/v1internal:fetchAvailableModels') {
           expect(request.method).toBe('POST')
           expect(request.headers.authorization).toBe('Bearer access')
@@ -343,7 +516,11 @@ describe('account pools', () => {
         expect(request.headers.authorization).toBe('Bearer access')
         expect(JSON.parse(body)).toMatchObject({ cloudaicompanionProject: 'project-1' })
         response.setHeader('content-type', 'application/json')
-        response.end(JSON.stringify({ paidTier: { name: 'Pro' } }))
+        response.end(JSON.stringify({ paidTier: {
+          name: 'Pro', availableCredits: {
+            creditType: 'GOOGLE_ONE_AI', creditAmount: '42', minimumCreditAmountForUsage: '1',
+          },
+        } }))
       })
     })
     await new Promise<void>((resolve, reject) => {
@@ -362,8 +539,11 @@ describe('account pools', () => {
       }, 5_000)
       expect(usage.planType).toBe('Pro')
       expect(usage.limits).toEqual([{
-        name: 'Gemini', usedPercent: 25, resetsAt: Math.floor(Date.parse('2026-09-27T00:00:00Z') / 1000),
+        name: 'Weekly Limit Remaining', group: 'Gemini Models', window: 'WEEKLY', description: 'Weekly quota',
+        windowMinutes: 10_080, usedPercent: 25, remainingAmount: 42, disabled: false,
+        resetsAt: Math.floor(Date.parse('2026-09-27T00:00:00Z') / 1000),
       }])
+      expect(usage.credits).toEqual([{ tier: 'paid', creditType: 'GOOGLE_ONE_AI', creditAmount: 42, minimumCreditAmountForUsage: 1 }])
     } finally {
       await new Promise<void>((resolve, reject) => server.close((error) => {
         if (error === undefined) resolve()
@@ -379,6 +559,11 @@ describe('account pools', () => {
       const server = createServer((request, response) => {
         request.resume()
         request.on('end', () => {
+          if (request.url?.endsWith(':retrieveUserQuotaSummary')) {
+            response.statusCode = 503
+            response.end()
+            return
+          }
           response.setHeader('content-type', 'application/json')
           response.end(JSON.stringify(request.url?.endsWith(':fetchAvailableModels')
             ? { models } : {}))
@@ -410,6 +595,139 @@ describe('account pools', () => {
     expect(unavailable.limits).toEqual([])
     expect(unavailable.planType).toBeUndefined()
     await expect(read({ gemini: { quotaInfo: { remainingFraction: 2 } } })).rejects.toMatchObject({ code: 'MALFORMED_RESPONSE' })
+  })
+
+  it('covers Antigravity quota fields, fallback buckets, and credit variants', async () => {
+    const { ctx, pool } = await fixture('antigravity')
+    try {
+      const account = await pool.add('Antigravity', {
+        type: 'oauth', access: 'access', refresh: 'refresh', expires: Date.now() + 60_000,
+        projectId: 'project-fields',
+      })
+      let loadBody: unknown = {
+        currentTier: { availableCredits: { creditAmount: '5' } },
+        paidTier: { availableCredits: { minimumCreditAmountForUsage: '2' } },
+        g1Tier: { availableCredits: { creditType: 'G1' } },
+      }
+      vi.stubGlobal('fetch', vi.fn(async (input) => {
+        const url = String(input)
+        if (url.endsWith(':retrieveUserQuotaSummary')) return Response.json({ groups: [
+          { displayName: '', buckets: [
+            { bucketId: 'five-hour', remainingFraction: 0, window: 'five hours' },
+            { bucketId: 'unknown-window', remainingFraction: 0.5, window: 'mystery', description: '', remainingAmount: 0 },
+            { bucketId: 'null-fields', remainingFraction: 0.25, window: null, description: null },
+            { bucketId: 'ignored' },
+          ] },
+          { displayName: 'no-buckets' },
+        ] })
+        if (url.endsWith(':loadCodeAssist')) return Response.json(loadBody)
+        return Response.json({})
+      }))
+      const usage = await readAccountUsage(pool, account.id, 'antigravity', {}, 5_000)
+      expect(usage.limits.map(limit => [limit.name, limit.windowMinutes, limit.window, limit.remainingAmount])).toEqual([
+        ['five-hour', 300, 'five hours', undefined],
+        ['unknown-window', undefined, 'mystery', 0],
+        ['null-fields', undefined, undefined, undefined],
+      ])
+      expect(usage.credits).toEqual([
+        { tier: 'current', creditAmount: 5 },
+        { tier: 'paid', minimumCreditAmountForUsage: 2 },
+        { tier: 'g1', creditType: 'G1' },
+      ])
+
+      loadBody = { currentTier: { availableCredits: {} } }
+      const emptyCredits = await readAccountUsage(pool, account.id, 'antigravity', {}, 5_000)
+      expect(emptyCredits.credits).toBeUndefined()
+      loadBody = { currentTier: { availableCredits: { creditType: null, creditAmount: '0' } } }
+      await expect(readAccountUsage(pool, account.id, 'antigravity', {}, 5_000)).resolves.toMatchObject({
+        credits: [{ tier: 'current', creditAmount: 0 }],
+      })
+
+      vi.stubGlobal('fetch', vi.fn(async input => String(input).endsWith(':retrieveUserQuotaSummary')
+        ? Response.json({ groups: [], buckets: [{ bucketId: 'fallback', remainingFraction: 0.5 }, { bucketId: 'ignored' }] })
+        : Response.json({})))
+      const fallback = await readAccountUsage(pool, account.id, 'antigravity', {}, 5_000)
+      expect(fallback.limits).toEqual([{ name: 'fallback', usedPercent: 50 }])
+    } finally { await ctx.fiber.dispose() }
+  })
+
+  it('rejects malformed Antigravity summaries, buckets, and oversized lists', async () => {
+    const { ctx, pool } = await fixture('antigravity')
+    try {
+      const account = await pool.add('Antigravity', {
+        type: 'oauth', access: 'access', refresh: 'refresh', expires: Date.now() + 60_000,
+        projectId: 'project-invalid',
+      })
+      const validBucket = { bucketId: 'valid', remainingFraction: 0.5 }
+      const invalidBodies: unknown[] = [
+        { groups: {} }, { buckets: {} }, { groups: [null] }, { groups: [{ buckets: {} }] },
+        { groups: [{ buckets: [null] }] },
+        { groups: [{ buckets: [{ ...validBucket, remainingFraction: 2 }] }] },
+        { groups: [{ buckets: [{ remainingFraction: 0 }] }] },
+        { groups: [{ buckets: [{ ...validBucket, window: 1 }] }] },
+        { groups: [{ buckets: [{ ...validBucket, description: 1 }] }] },
+        { groups: [{ buckets: [{ ...validBucket, remainingAmount: null }] }] },
+        { groups: [{ buckets: [{ ...validBucket, remainingAmount: 'bad' }] }] },
+        { groups: [{ buckets: [{ ...validBucket, disabled: 1 }] }] },
+        { groups: [{ buckets: [{ ...validBucket, resetTime: 'invalid' }] }] },
+      ]
+      for (const body of invalidBodies) {
+        vi.stubGlobal('fetch', vi.fn(async input => String(input).endsWith(':retrieveUserQuotaSummary')
+          ? Response.json(body) : Response.json({})))
+        await expect(readAccountUsage(pool, account.id, 'antigravity', {}, 5_000))
+          .rejects.toMatchObject({ code: 'MALFORMED_RESPONSE' })
+      }
+      vi.stubGlobal('fetch', vi.fn(async input => String(input).endsWith(':retrieveUserQuotaSummary')
+        ? Response.json({ groups: Array.from({ length: 257 }, () => ({ buckets: [validBucket] })) })
+        : Response.json({})))
+      await expect(readAccountUsage(pool, account.id, 'antigravity', {}, 5_000))
+        .rejects.toMatchObject({ code: 'MALFORMED_RESPONSE' })
+      vi.stubGlobal('fetch', vi.fn(async input => String(input).endsWith(':retrieveUserQuotaSummary')
+        ? Response.json({ groups: [], buckets: Array.from({ length: 257 }, () => validBucket) })
+        : Response.json({})))
+      await expect(readAccountUsage(pool, account.id, 'antigravity', {}, 5_000))
+        .rejects.toMatchObject({ code: 'MALFORMED_RESPONSE' })
+    } finally { await ctx.fiber.dispose() }
+  })
+
+  it('covers model quota resets, optional credit failures, and non-usage errors', async () => {
+    const { ctx, pool } = await fixture('antigravity')
+    try {
+      const account = await pool.add('Antigravity', {
+        type: 'oauth', access: 'access', refresh: 'refresh', expires: Date.now() + 60_000,
+        projectId: 'project-models',
+      })
+      let loadBody: unknown = { currentTier: { id: 'Free' } }
+      vi.stubGlobal('fetch', vi.fn(async (input) => {
+        const url = String(input)
+        if (url.endsWith(':retrieveUserQuotaSummary')) return new Response(null, { status: 503 })
+        if (url.endsWith(':fetchAvailableModels')) return Response.json({ models: {
+          named: { displayName: 'Named', quotaInfo: { remainingFraction: 0.25, resetTime: '2026-09-27T00:00:00Z' } },
+          internal: { isInternal: true, quotaInfo: { remainingFraction: 0.1 } },
+          missing: {},
+        } })
+        return Response.json(loadBody)
+      }))
+      const usage = await readAccountUsage(pool, account.id, 'antigravity', {}, 5_000)
+      expect(usage.planType).toBe('Free')
+      expect(usage.limits).toEqual([{
+        name: 'Named', usedPercent: 75, resetsAt: Math.floor(Date.parse('2026-09-27T00:00:00Z') / 1000),
+      }])
+
+      for (const credits of [
+        { creditType: 1 }, { creditAmount: 'bad' }, { minimumCreditAmountForUsage: 'bad' },
+        { creditAmount: null }, { minimumCreditAmountForUsage: null }, [],
+      ]) {
+        loadBody = { currentTier: { availableCredits: credits } }
+        const optional = await readAccountUsage(pool, account.id, 'antigravity', {}, 5_000)
+        expect(optional.limits).toHaveLength(1)
+        expect(optional.credits).toBeUndefined()
+      }
+
+      vi.stubGlobal('fetch', vi.fn(async () => Response.json({ groups: {} })))
+      await expect(readAccountUsage(pool, account.id, 'antigravity', {}, 5_000))
+        .rejects.toMatchObject({ code: 'MALFORMED_RESPONSE' })
+    } finally { await ctx.fiber.dispose() }
   })
 
   it('hashes oversized combined token identities without collapsing users', async () => {

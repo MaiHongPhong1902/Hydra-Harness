@@ -18,3 +18,5 @@ The Host owns a value-free `authorization.usage` RPC. Each registered account fl
 ## Consequences
 
 Usage is an explicit per-account refresh, so a provider outage does not block account listing or sign-out. Provider response formats can change; malformed quota fields fail closed to an unavailable report rather than inventing a limit, while an unavailable optional banked-reset endpoint leaves the other usage fields intact.
+
+The Account sign-in editor renders one compact quota-card layout for every account. Codex cards show provider-reported five-hour and weekly windows plus banked resets; Antigravity cards group provider-reported quota-summary buckets by Gemini, Claude/GPT, and other model families, with remaining counts, disabled states, and credit balances when supplied. The browser does not manufacture shared windows, credit balances, or overage settings when Antigravity omits them.

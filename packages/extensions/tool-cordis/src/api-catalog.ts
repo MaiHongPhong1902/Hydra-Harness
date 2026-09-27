@@ -3506,11 +3506,15 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'AuthorizationUsage',
-    declaration: 'export interface AuthorizationUsage {\n    planType?: string;\n    limits: AuthorizationUsageWindow[];\n    bankedResetCount?: number;\n    fetchedAt: number;\n}',
+    declaration: 'export interface AuthorizationUsage {\n    planType?: string;\n    limits: AuthorizationUsageWindow[];\n    bankedResetCount?: number;\n    credits?: AuthorizationUsageCredits[];\n    fetchedAt: number;\n}',
+  },
+  {
+    name: 'AuthorizationUsageCredits',
+    declaration: 'export interface AuthorizationUsageCredits {\n    tier: \'current\' | \'paid\' | \'g1\';\n    creditType?: string;\n    creditAmount?: number;\n    minimumCreditAmountForUsage?: number;\n}',
   },
   {
     name: 'AuthorizationUsageWindow',
-    declaration: 'export interface AuthorizationUsageWindow {\n    name: string;\n    windowMinutes?: number;\n    usedPercent: number;\n    resetsAt?: number;\n}',
+    declaration: 'export interface AuthorizationUsageWindow {\n    name: string;\n    group?: string;\n    window?: string;\n    description?: string;\n    windowMinutes?: number;\n    usedPercent: number;\n    remainingAmount?: number;\n    disabled?: boolean;\n    resetsAt?: number;\n}',
   },
   {
     name: 'BackendRegistry',

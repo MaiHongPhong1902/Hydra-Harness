@@ -322,6 +322,9 @@
   margin: 0;
   padding: 0;
   list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .accountRow,
@@ -333,9 +336,28 @@
 }
 
 .accountRow {
-  justify-content: space-between;
-  padding: 6px 0;
+  align-items: stretch;
+  flex-direction: column;
+  padding: 14px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: var(--dsw-radius-panel);
+  background: var(--dsw-alias-bg-module-platform);
   overflow-wrap: anywhere;
+}
+
+.accountHeader,
+.accountControls,
+.usageSummary,
+.usageLimitHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.accountHeader,
+.usageSummary,
+.usageLimitHeader {
+  justify-content: space-between;
 }
 
 .accountIdentity {
@@ -346,10 +368,118 @@
   gap: 2px;
 }
 
-.accountRow small {
+.accountPlan,
+.usageBank {
+  width: fit-content;
+  padding: 2px 7px;
+  border: 1px solid var(--dsw-alias-border-l3);
+  border-radius: 999px;
+  color: var(--dsw-alias-label-secondary);
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.usageReport {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.usageGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.usageGroup h4 {
+  margin: 0 0 2px;
+  color: var(--dsw-alias-label-secondary);
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+}
+
+.usageLimit {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: var(--dsw-radius-control);
+  background: var(--dsw-alias-bg-base);
+}
+
+.usageLimitDisabled {
+  opacity: 0.62;
+}
+
+.usageLimitIdentity {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.usageLimitTitle {
+  color: var(--dsw-alias-label-primary);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.usageLimit small,
+.usageCredit small,
+.usageStatus,
+.usageEmpty {
   display: block;
   margin: 0;
   color: var(--dsw-alias-label-tertiary);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.usageCredit {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 10px 12px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: var(--dsw-radius-control);
+  background: var(--dsw-alias-bg-base);
+  color: var(--dsw-alias-label-primary);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.usageLimitHeader strong {
+  flex: none;
+  color: var(--dsw-alias-label-primary);
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+}
+
+.usageBar {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--dsw-alias-border-l2);
+}
+
+.usageBar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--dsw-alias-state-success-primary);
+  transition: width var(--ds-transition-duration-fast) var(--ds-ease-in-out);
+}
+
+.usageBank {
+  color: var(--dsw-alias-label-secondary);
+}
+
+.usageEmpty {
+  padding: 8px 0 0;
 }
 
 .addBlock {

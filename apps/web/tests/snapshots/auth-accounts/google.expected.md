@@ -1,0 +1,94 @@
+- dialog "Settings":
+  - navigation:
+    - text: Settings
+    - button "General":
+      - img
+      - text: General
+    - button "Personalization":
+      - img
+      - text: Personalization
+    - button "Models":
+      - img
+      - text: Models
+    - button "Web Search":
+      - img
+      - text: Web Search
+    - button "Usage"
+    - button "Plugins":
+      - img
+      - text: Plugins
+    - button "Agent presets":
+      - img
+      - text: Agent presets
+    - button "Archived sessions":
+      - img
+      - text: Archived sessions
+  - button "Open configuration file"
+  - button "Close":
+    - img
+    - text: Close
+  - heading "Models" [level=2]
+  - paragraph: Sign in with your accounts or enter API keys to use models from these providers.
+  - region "API keys":
+    - heading "API keys" [level=3]
+    - paragraph: Configure provider API keys and optional fallback keys.
+    - list:
+      - listitem:
+        - text: minimax-cn
+        - img "API key configured"
+        - button "Edit minimax-cn": Edit
+        - button "Delete minimax-cn": Delete
+    - button "Add provider":
+      - img
+      - text: Add provider
+    - button "Add a custom provider":
+      - img
+      - text: Add a custom provider
+  - region "Account sign-in":
+    - heading "Account sign-in" [level=3]
+    - paragraph: Connect ChatGPT or Google Antigravity accounts independently of your API keys.
+    - list:
+      - listitem:
+        - text: ChatGPT
+        - img "Account connected"
+        - button "Edit ChatGPT (chatgpt)": Edit
+        - button "Delete ChatGPT (chatgpt)": Delete
+    - text: Provider
+    - combobox "Provider":
+      - option "ChatGPT"
+      - option "Google Antigravity" [selected]
+    - text: Accounts
+    - paragraph: Requests rotate between accounts. Another account is tried when a request fails or reaches its quota.
+    - list "Accounts":
+      - listitem:
+        - text: google@example.test Google AI Pro
+        - button "Refresh usage for google@example.test": ↻
+        - button "Sign out google@example.test": Sign out
+        - region "Model credits":
+          - heading "Model credits" [level=4]
+          - text: "GOOGLE_ONE_AI: 1,200 credits Credit use starts at 100"
+        - region "Gemini models":
+          - heading "Gemini models" [level=4]
+          - text: Weekly usage limit Resets 1/15/2027, {{clock}} 820 remaining
+          - strong: 82% left
+          - progressbar "Weekly usage limit"
+          - text: 5 hour usage limit Resets 1/16/2027, {{clock}} 680 remaining
+          - strong: 68% left
+          - progressbar "5 hour usage limit"
+        - region "Claude and GPT models":
+          - heading "Claude and GPT models" [level=4]
+          - text: Weekly usage limit Resets 1/17/2027, {{clock}} 600 remaining
+          - strong: 60% left
+          - progressbar "Weekly usage limit"
+          - text: 5 hour usage limit Resets 1/17/2027, {{clock}} 880 remaining
+          - strong: 88% left
+          - progressbar "5 hour usage limit"
+    - button "Add account"
+    - status:
+      - paragraph: Continue signing in to Google Antigravity in your browser.
+      - link "Open sign-in page":
+        - /url: https://auth.example.test/antigravity
+      - paragraph: Account connected. Apply to make this provider available in the model selector.
+    - group: Customized settings
+    - button "Cancel"
+    - button "Apply"

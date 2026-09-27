@@ -78,6 +78,31 @@ describe('AuthorizationService registry', () => {
     await expect(ctx.authorization.removeAccount(KEY, ACCOUNT)).rejects.toMatchObject({ code: 'NO_ACCOUNTS' })
   })
 
+  it('validates usage ownership before delegating to the account provider', async () => {
+    const ctx = await harness()
+    const usage = vi.fn(async (_id: typeof ACCOUNT, signal?: AbortSignal) => {
+      signal?.throwIfAborted()
+      return { limits: [], fetchedAt: 1 }
+    })
+    ctx.authorization.registerFlow({ ...committingFlow(ctx), accounts: {
+      list: async () => [{ id: ACCOUNT, label: 'Account One' }], remove: async () => {}, usage,
+    } })
+    const signal = new AbortController().signal
+    await expect(ctx.authorization.getUsage(KEY, ACCOUNT, signal)).resolves.toEqual({ limits: [], fetchedAt: 1 })
+    expect(usage).toHaveBeenCalledWith(ACCOUNT, signal)
+    await expect(ctx.authorization.getUsage(KEY, authorizationAccountId('missing'))).rejects.toMatchObject({ code: 'NO_ACCOUNT' })
+    const noUsageKey = credentialKey('llm-pi-ai', 'no-usage')
+    ctx.authorization.registerFlow({ ...committingFlow(ctx, noUsageKey), accounts: {
+      list: async () => [{ id: ACCOUNT, label: 'Account One' }], remove: async () => {},
+    } })
+    await expect(ctx.authorization.getUsage(noUsageKey, ACCOUNT)).resolves.toBeUndefined()
+    await expect(ctx.authorization.getUsage(OTHER, ACCOUNT)).rejects.toMatchObject({ code: 'NO_FLOW' })
+    ctx.authorization.registerFlow(committingFlow(ctx, OTHER))
+    await expect(ctx.authorization.getUsage(OTHER, ACCOUNT)).rejects.toMatchObject({ code: 'NO_ACCOUNT' })
+    const aborted = AbortSignal.abort()
+    await expect(ctx.authorization.getUsage(KEY, ACCOUNT, aborted)).rejects.toThrow()
+  })
+
   it('preserves account-store failures and rejects removal during login', async () => {
     const ctx = await harness()
     const remove = vi.fn(async () => {})

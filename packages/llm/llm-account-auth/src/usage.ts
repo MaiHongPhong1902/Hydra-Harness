@@ -1,6 +1,8 @@
 /** Account-scoped provider quota reports; credentials and raw responses stay in the Host. */
 import type { Credential } from '@earendil-works/pi-ai'
-import type { AuthorizationAccountId, AuthorizationUsage, AuthorizationUsageWindow } from '@hydra/harness-authorization'
+import type {
+  AuthorizationAccountId, AuthorizationUsage, AuthorizationUsageCredits, AuthorizationUsageWindow,
+} from '@hydra/harness-authorization'
 import { LlmError } from '@hydra/harness-llm'
 import type { AccountPool } from './accounts.ts'
 import type { AccountProvider, AccountProviderProfile } from './config.ts'
@@ -19,6 +21,10 @@ function label(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim().slice(0, 128) : undefined
 }
 
+function descriptionText(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim().slice(0, 1024) : undefined
+}
+
 function malformed(): never {
   throw new LlmError('Provider returned invalid usage data', 'MALFORMED_RESPONSE')
 }
@@ -26,6 +32,12 @@ function malformed(): never {
 function percentage(value: unknown): number {
   if (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || value > 100) return malformed()
   return value
+}
+
+function integer(value: unknown): number | undefined {
+  const parsed = typeof value === 'string' && /^\d+$/u.test(value) ? Number(value) : value
+  if (typeof parsed !== 'number' || !Number.isSafeInteger(parsed) || parsed < 0) return undefined
+  return parsed
 }
 
 function timestamp(value: unknown): number | undefined {
@@ -36,7 +48,13 @@ function timestamp(value: unknown): number | undefined {
 }
 
 async function requestJson(url: string, init: RequestInit): Promise<Record<string, unknown>> {
-  const response = await fetch(url, { ...init, redirect: 'error' })
+  let response: Response
+  try {
+    response = await fetch(url, { ...init, redirect: 'error' })
+  } catch (error) {
+    if (init.signal?.aborted) throw error
+    throw new LlmError('Provider usage request failed', 'USAGE_UNAVAILABLE', { cause: error })
+  }
   if (!response.ok) {
     await response.body?.cancel()
     throw new LlmError(`Provider usage request failed with HTTP ${response.status}`, 'USAGE_UNAVAILABLE')
@@ -104,6 +122,120 @@ async function chatGptUsage(credential: OAuthCredential, signal: AbortSignal): P
   }
 }
 
+function antigravityWindowMinutes(value: string | undefined): number | undefined {
+  if (value === undefined) return undefined
+  const normalized = value.toLocaleLowerCase().replace(/[ _-]+/gu, '')
+  if (/^(?:5h|5hours?|fivehours?)$/u.test(normalized)) return 300
+  if (/^(?:weekly|week|7d|sevendays?)$/u.test(normalized)) return 10_080
+  return undefined
+}
+
+function antigravityBucket(value: unknown, group: string | undefined): AuthorizationUsageWindow | undefined {
+  const bucket = object(value) ?? malformed()
+  if (bucket.remainingFraction === undefined) return undefined
+  if (typeof bucket.remainingFraction !== 'number'
+    || !Number.isFinite(bucket.remainingFraction) || bucket.remainingFraction < 0 || bucket.remainingFraction > 1) {
+    return malformed()
+  }
+  const name = label(bucket.displayName) ?? label(bucket.bucketId)
+  if (name === undefined) return malformed()
+  const window = bucket.window
+  if (window !== undefined && window !== null && typeof window !== 'string') return malformed()
+  const description = bucket.description
+  if (description !== undefined && description !== null && typeof description !== 'string') return malformed()
+  const remainingAmount = bucket.remainingAmount
+  if (remainingAmount === null || (remainingAmount !== undefined && integer(remainingAmount) === undefined)) return malformed()
+  const disabled = bucket.disabled
+  if (disabled !== undefined && typeof disabled !== 'boolean') return malformed()
+  const windowLabel = label(window)
+  const minutes = antigravityWindowMinutes(windowLabel)
+  const descriptionLabel = descriptionText(description)
+  const amount = remainingAmount === undefined ? undefined : integer(remainingAmount)
+  const resetsAt = timestamp(bucket.resetTime)
+  return {
+    name, usedPercent: percentage((1 - bucket.remainingFraction) * 100),
+    ...(group === undefined ? {} : { group }),
+    ...(windowLabel === undefined ? {} : { window: windowLabel }),
+    ...(minutes === undefined ? {} : { windowMinutes: minutes }),
+    ...(descriptionLabel === undefined ? {} : { description: descriptionLabel }),
+    ...(amount === undefined ? {} : { remainingAmount: amount }),
+    ...(disabled === undefined ? {} : { disabled }),
+    ...(resetsAt === undefined ? {} : { resetsAt }),
+  }
+}
+
+function antigravitySummaryWindows(raw: Record<string, unknown>): AuthorizationUsageWindow[] {
+  const rawGroups = raw.groups
+  if (rawGroups !== undefined && !Array.isArray(rawGroups)) return malformed()
+  const rawBuckets = raw.buckets
+  if (rawBuckets !== undefined && !Array.isArray(rawBuckets)) return malformed()
+  const groups = rawGroups ?? []
+  const limits = groups.flatMap((value): AuthorizationUsageWindow[] => {
+    const group = object(value) ?? malformed()
+    const groupName = label(group.displayName)
+    const buckets = group.buckets
+    if (buckets !== undefined && !Array.isArray(buckets)) return malformed()
+    return (buckets ?? []).flatMap((bucket) => {
+      const parsed = antigravityBucket(bucket, groupName)
+      return parsed === undefined ? [] : [parsed]
+    })
+  })
+  if (limits.length > 256) return malformed()
+  if (limits.length > 0 || groups.length > 0) return limits
+  const fallback = (rawBuckets ?? []).flatMap((bucket) => {
+    const parsed = antigravityBucket(bucket, undefined)
+    return parsed === undefined ? [] : [parsed]
+  })
+  if (fallback.length > 256) return malformed()
+  return fallback
+}
+
+function antigravityModelWindows(raw: Record<string, unknown>): AuthorizationUsageWindow[] {
+  const models = object(raw.models) ?? malformed()
+  const limits = Object.entries(models).flatMap(([id, value]): AuthorizationUsageWindow[] => {
+    const model = object(value)
+    const quota = object(model?.quotaInfo)
+    if (model?.isInternal === true || quota?.remainingFraction === undefined) return []
+    const remaining = quota.remainingFraction
+    if (typeof remaining !== 'number' || remaining < 0 || remaining > 1) return malformed()
+    const name = label(model?.displayName) ?? label(id)
+    if (name === undefined) return malformed()
+    const resetsAt = timestamp(quota.resetTime)
+    return [{ name, usedPercent: percentage((1 - remaining) * 100),
+      ...(resetsAt === undefined ? {} : { resetsAt }),
+    }]
+  })
+  if (limits.length > 256) return malformed()
+  return limits
+}
+
+function antigravityCredits(account: Record<string, unknown>): AuthorizationUsageCredits[] {
+  const tiers = [
+    ['current', account.currentTier], ['paid', account.paidTier], ['g1', account.g1Tier],
+  ] as const
+  return tiers.flatMap(([tier, value]) => {
+    const row = object(value)
+    const source = row?.availableCredits
+    if (source === undefined || source === null) return []
+    const credits = object(source) ?? malformed()
+    const creditType = credits.creditType
+    if (creditType !== undefined && creditType !== null && label(creditType) === undefined) return malformed()
+    const creditAmount = credits.creditAmount
+    const minimum = credits.minimumCreditAmountForUsage
+    if (creditAmount === null || minimum === null
+      || (creditAmount !== undefined && integer(creditAmount) === undefined)
+      || (minimum !== undefined && integer(minimum) === undefined)) return malformed()
+    const amount = creditAmount === undefined ? undefined : integer(creditAmount)
+    const minimumAmount = minimum === undefined ? undefined : integer(minimum)
+    if (creditType === undefined && amount === undefined && minimumAmount === undefined) return []
+    const creditTypeLabel = label(creditType)
+    return [{ tier, ...(creditTypeLabel === undefined ? {} : { creditType: creditTypeLabel }),
+      ...(amount === undefined ? {} : { creditAmount: amount }),
+      ...(minimumAmount === undefined ? {} : { minimumCreditAmountForUsage: minimumAmount }),
+    }]
+  })
+}
+
 async function antigravityUsage(
   credential: OAuthCredential, profile: AccountProviderProfile, signal: AbortSignal,
 ): Promise<AuthorizationUsage> {
@@ -114,20 +246,17 @@ async function antigravityUsage(
     authorization: `Bearer ${credential.access}`, accept: 'application/json',
     'content-type': 'application/json', 'user-agent': ANTIGRAVITY_USER_AGENT,
   } }
-  const raw = await requestJson(`${base}:fetchAvailableModels`, { ...init, body: JSON.stringify({ project }) })
-  const models = object(raw.models) ?? malformed()
-  const limits = Object.entries(models).flatMap(([id, value]): AuthorizationUsageWindow[] => {
-    const model = object(value)
-    const quota = object(model?.quotaInfo)
-    if (model?.isInternal === true || quota?.remainingFraction === undefined) return []
-    const remaining = quota.remainingFraction
-    if (typeof remaining !== 'number' || remaining < 0 || remaining > 1) return malformed()
-    const resetsAt = timestamp(quota.resetTime)
-    return [{ name: label(model?.displayName) ?? id.slice(0, 128), usedPercent: percentage((1 - remaining) * 100),
-      ...(resetsAt === undefined ? {} : { resetsAt }),
-    }]
-  })
+  let limits: AuthorizationUsageWindow[]
+  try {
+    const summary = await requestJson(`${base}:retrieveUserQuotaSummary`, { ...init, body: JSON.stringify({ project }) })
+    limits = antigravitySummaryWindows(summary)
+  } catch (error) {
+    if (!(error instanceof LlmError) || error.code !== 'USAGE_UNAVAILABLE') throw error
+    const models = await requestJson(`${base}:fetchAvailableModels`, { ...init, body: JSON.stringify({ project }) })
+    limits = antigravityModelWindows(models)
+  }
   let planType: string | undefined
+  let credits: AuthorizationUsageCredits[] | undefined
   try {
     const account = await requestJson(`${base}:loadCodeAssist`, { ...init,
       body: JSON.stringify({ cloudaicompanionProject: project,
@@ -135,12 +264,15 @@ async function antigravityUsage(
     })
     const tier = object(account.paidTier) ?? object(account.currentTier)
     planType = label(tier?.name) ?? label(tier?.id)
+    const balances = antigravityCredits(account)
+    if (balances.length > 0) credits = balances
   } catch {
-    // Tier discovery is optional; it must not erase model quota measurements.
+    // Tier and credit discovery is optional; it must not erase quota measurements.
     signal.throwIfAborted()
   }
-  if (limits.length > 256) return malformed()
-  return { limits, fetchedAt: Date.now() / 1000, ...(planType === undefined ? {} : { planType }) }
+  return { limits, fetchedAt: Date.now() / 1000,
+    ...(planType === undefined ? {} : { planType }), ...(credits === undefined ? {} : { credits }),
+  }
 }
 
 /**

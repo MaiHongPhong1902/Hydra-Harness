@@ -63,7 +63,43 @@ function entriesFromRecord(record: unknown): AccountEntry[] {
   })
 }
 
-function accountStore(ctx: Context, key: ReturnType<typeof credentialKey>): AuthorizationAccounts {
+function usageFor(provider: (typeof ACCOUNT_AUTH_PROVIDERS)[number], accountId: string): AuthorizationUsage {
+  if (provider.provider === 'chatgpt') {
+    const bob = accountId === 'chatgpt-2'
+    return {
+      planType: bob ? 'Codex Pro' : 'Codex Plus',
+      limits: [
+        { name: 'Codex', windowMinutes: 300, usedPercent: bob ? 75 : 25,
+          resetsAt: bob ? 1_800_100_000 : 1_800_000_000 },
+        { name: 'Codex', windowMinutes: 10_080, usedPercent: bob ? 12 : 55,
+          resetsAt: bob ? 1_801_000_000 : 1_800_500_000 },
+      ],
+      bankedResetCount: bob ? 0 : 2,
+      fetchedAt: 1_800_000_000,
+    }
+  }
+  return {
+    planType: 'Google AI Pro',
+    limits: [
+      { name: 'Gemini 3.1 Flash', group: 'Gemini models', window: 'weekly', windowMinutes: 10_080,
+        usedPercent: 18, remainingAmount: 820, resetsAt: 1_800_000_000 },
+      { name: 'Gemini 3.1 Pro', group: 'Gemini models', window: '5 hours', windowMinutes: 300,
+        usedPercent: 32, remainingAmount: 680, resetsAt: 1_800_060_000 },
+      { name: 'Claude 3.7 Sonnet', group: 'Claude and GPT models', window: 'weekly', windowMinutes: 10_080,
+        usedPercent: 40, remainingAmount: 600, resetsAt: 1_800_120_000 },
+      { name: 'GPT-4.1', group: 'Claude and GPT models', window: '5 hours', windowMinutes: 300,
+        usedPercent: 12, remainingAmount: 880, resetsAt: 1_800_180_000 },
+    ],
+    credits: [{ tier: 'g1', creditType: 'GOOGLE_ONE_AI', creditAmount: 1200, minimumCreditAmountForUsage: 100 }],
+    fetchedAt: 1_800_000_000,
+  }
+}
+
+function accountStore(
+  ctx: Context,
+  key: ReturnType<typeof credentialKey>,
+  provider: (typeof ACCOUNT_AUTH_PROVIDERS)[number],
+): AuthorizationAccounts {
   return {
     async list(): Promise<readonly AccountEntry[]> {
       return entriesFromRecord(await ctx.credentials.readRecord(key))
@@ -74,13 +110,9 @@ function accountStore(ctx: Context, key: ReturnType<typeof credentialKey>): Auth
         return { kind: 'grant', payload: { accounts } }
       })
     },
-    async usage(): Promise<AuthorizationUsage> {
-      return {
-        planType: 'fixture',
-        limits: [{ name: '5h', windowMinutes: 300, usedPercent: 25, resetsAt: 1_800_000_000 }],
-        bankedResetCount: 1,
-        fetchedAt: 1_800_000_000,
-      }
+    async usage(id, signal): Promise<AuthorizationUsage> {
+      signal?.throwIfAborted()
+      return usageFor(provider, String(id))
     },
   }
 }
@@ -122,7 +154,7 @@ function flowFor(ctx: Context, provider: (typeof ACCOUNT_AUTH_PROVIDERS)[number]
     key,
     label: provider.displayName,
     methods: [{ id: 'oauth', label: `Sign in with ${provider.displayName}` }],
-    accounts: accountStore(ctx, key),
+    accounts: accountStore(ctx, key, provider),
     async run(session) {
       // The browser sees a normal provider notice and a safe HTTPS link, but
       // the test never leaves the local process to perform OAuth.

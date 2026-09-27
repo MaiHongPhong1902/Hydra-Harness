@@ -24,6 +24,7 @@ import { connectFreshWorkspace, saveFailureShot } from './support.ts'
 
 const SNAPSHOT_DIR = fileURLToPath(new URL('./snapshots/auth-accounts', import.meta.url))
 const CONNECTED_EXPECTED = join(SNAPSHOT_DIR, 'connected.expected.md')
+const GOOGLE_EXPECTED = join(SNAPSHOT_DIR, 'google.expected.md')
 const ACCOUNT_AUTH_OVERLAY = fileURLToPath(new URL('./auth-accounts.overlay.yml', import.meta.url))
 const ACCOUNT_AUTH_FIXTURE = new URL('./account-auth-fixture.ts', import.meta.url).href
 const MODE = webSnapshotMode()
@@ -63,8 +64,13 @@ async function addAccount(dialog: Locator, providerName: string, label: string):
   await dialog.getByText('Account connected. Apply to make this provider available in the model selector.', { exact: true })
     .waitFor({ timeout: 10_000 })
   await expect.poll(() => dialog.getByText(label, { exact: true }).count(), { timeout: 10_000 }).toBe(1)
+}
+
+async function expectUsage(dialog: Locator, label: string, values: readonly string[]): Promise<void> {
   const row = dialog.getByRole('listitem').filter({ hasText: label })
-  await expect.poll(() => row.locator('small').filter({ hasText: 'fixture' }).count(), { timeout: 10_000 }).toBeGreaterThan(0)
+  for (const value of values) {
+    await expect.poll(() => row.getByText(value, { exact: true }).count(), { timeout: 10_000 }).toBeGreaterThan(0)
+  }
 }
 
 async function applyEditor(dialog: Locator, buttonName: string): Promise<void> {
@@ -118,10 +124,16 @@ describe('web e2e: account-backed ChatGPT and Antigravity login', () => {
     expect(await empty.isVisible()).toBe(true)
 
     await addAccount(dialog, 'ChatGPT', 'alice@example.test')
+    await expectUsage(dialog, 'alice@example.test', [
+      'Codex Plus', '5 hour usage limit', '75% left', 'Weekly usage limit', '45% left', 'Banked resets: 2',
+    ])
     await applyEditor(dialog, 'Edit ChatGPT (chatgpt)')
 
     await openEditor(dialog, 'Edit ChatGPT (chatgpt)')
     await addAccount(dialog, 'ChatGPT', 'bob@example.test')
+    await expectUsage(dialog, 'bob@example.test', [
+      'Codex Pro', '5 hour usage limit', '25% left', 'Weekly usage limit', '88% left', 'Banked resets: 0',
+    ])
     // This capture proves the UI holds both identities before either one is removed.
     await compareOrRefreshGolden(
       CONNECTED_EXPECTED,
@@ -135,6 +147,15 @@ describe('web e2e: account-backed ChatGPT and Antigravity login', () => {
 
     await openAddEditor(dialog, 'antigravity')
     await addAccount(dialog, 'Google Antigravity', 'google@example.test')
+    await expectUsage(dialog, 'google@example.test', [
+      'Google AI Pro', 'Gemini models', 'Claude and GPT models', 'Weekly usage limit', '5 hour usage limit',
+      '82% left', '68% left', '60% left', '88% left', '820 remaining', 'GOOGLE_ONE_AI: 1,200 credits',
+    ])
+    await compareOrRefreshGolden(
+      GOOGLE_EXPECTED,
+      await captureStableAria(page, '[role="dialog"]', scaffold.workspaceCwd),
+      MODE,
+    )
     await applyEditor(dialog, 'Edit Google Antigravity (antigravity)')
 
     // The entry point stays usable after both provider profiles exist so the
@@ -197,6 +218,6 @@ describe('web e2e: account-backed ChatGPT and Antigravity login', () => {
   }, 90_000)
 
   it.skipIf(MODE === 'record')('keeps the fixture inventory closed', async () => {
-    await assertFixtureInventory(SNAPSHOT_DIR, ['connected.expected.md'])
+    await assertFixtureInventory(SNAPSHOT_DIR, ['connected.expected.md', 'google.expected.md'])
   })
 })

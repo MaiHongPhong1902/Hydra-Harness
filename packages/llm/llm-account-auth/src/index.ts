@@ -132,6 +132,7 @@ export function apply(ctx: Context, config: Config): void {
           async usage(id, signal) {
             const { readAccountUsage } = await import('./usage.ts')
             return readAccountUsage(pool, id, provider, profiles().get(provider) ?? emptyProfile,
+              /* v8 ignore next -- Config supplies usageTimeoutMs through its schema default. */
               source().usageTimeoutMs ?? 15_000, signal)
           },
         },

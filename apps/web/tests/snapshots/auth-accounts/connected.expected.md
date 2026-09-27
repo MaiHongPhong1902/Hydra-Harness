@@ -57,13 +57,29 @@
         - paragraph: Requests rotate between accounts. Another account is tried when a request fails or reaches its quota.
         - list "Accounts":
           - listitem:
-            - text: "alice@example.test fixture · 5h 25% used (resets 1/15/2027, {{clock}}) · Banked resets: 1"
+            - text: alice@example.test Codex Plus
             - button "Refresh usage for alice@example.test": ↻
             - button "Sign out alice@example.test": Sign out
+            - text: "Banked resets: 2"
+            - region "Provider quota":
+              - text: 5 hour usage limit Resets 1/15/2027, {{clock}}
+              - strong: 75% left
+              - progressbar "5 hour usage limit"
+              - text: Weekly usage limit Resets 1/21/2027, {{clock}}
+              - strong: 45% left
+              - progressbar "Weekly usage limit"
           - listitem:
-            - text: "bob@example.test fixture · 5h 25% used (resets 1/15/2027, {{clock}}) · Banked resets: 1"
+            - text: bob@example.test Codex Pro
             - button "Refresh usage for bob@example.test": ↻
             - button "Sign out bob@example.test": Sign out
+            - text: "Banked resets: 0"
+            - region "Provider quota":
+              - text: 5 hour usage limit Resets 1/16/2027, {{clock}}
+              - strong: 25% left
+              - progressbar "5 hour usage limit"
+              - text: Weekly usage limit Resets 1/27/2027, {{clock}}
+              - strong: 88% left
+              - progressbar "Weekly usage limit"
         - button "Add account"
         - status:
           - paragraph: Continue signing in to ChatGPT in your browser.

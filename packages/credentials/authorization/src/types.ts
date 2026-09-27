@@ -77,12 +77,34 @@ export interface AuthorizationAccount {
 export interface AuthorizationUsageWindow {
   /** Provider feature or model whose allowance this measures. */
   name: string
+  /** Provider grouping for this allowance when the provider supplies one. */
+  group?: string
+  /** Provider's raw window label when it supplies one. */
+  window?: string
+  /** Provider description for this allowance when it supplies one. */
+  description?: string
   /** Provider window duration in minutes when supplied. */
   windowMinutes?: number
   /** Percentage consumed in this window. */
   usedPercent: number
+  /** Remaining request or token count when the provider supplies one. */
+  remainingAmount?: number
+  /** Whether the provider marks this allowance as disabled. */
+  disabled?: boolean
   /** Unix timestamp at which this window resets. */
   resetsAt?: number
+}
+
+/** One provider-reported AI credit balance attached to a subscription tier. */
+export interface AuthorizationUsageCredits {
+  /** Tier that owns this balance in the provider response. */
+  tier: 'current' | 'paid' | 'g1'
+  /** Provider credit enum when supplied. */
+  creditType?: string
+  /** Remaining credit amount. */
+  creditAmount?: number
+  /** Minimum amount required before credit usage is allowed. */
+  minimumCreditAmountForUsage?: number
 }
 
 /** Provider-reported usage for one connected account. */
@@ -93,6 +115,8 @@ export interface AuthorizationUsage {
   limits: AuthorizationUsageWindow[]
   /** Number of banked resets currently available. */
   bankedResetCount?: number
+  /** Provider-reported credit balances; absent when the provider omits them. */
+  credits?: AuthorizationUsageCredits[]
   /** Unix timestamp in seconds when this report was fetched successfully. */
   fetchedAt: number
 }

@@ -40,7 +40,7 @@ export type {
   AuthorizationAccount, AuthorizationAccountId, AuthorizationAccounts, AuthorizationEntry,
   AuthorizationMethod, AuthorizationNotice, AuthorizationOutcome, AuthorizationPrompt,
   AuthorizationPromptOption, AuthorizationSettlement, AuthorizationStatus, AuthorizationUsage,
-  AuthorizationUsageWindow,
+  AuthorizationUsageCredits, AuthorizationUsageWindow,
 } from './types.ts'
 
 declare module '@hydra/cordis' {

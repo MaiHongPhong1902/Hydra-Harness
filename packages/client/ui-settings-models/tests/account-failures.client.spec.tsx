@@ -46,6 +46,60 @@ it.each(['missing', 'business', 'transport'])('reports an unavailable authorizat
   expect(screen.getByRole<HTMLButtonElement>('button', { name: en.accountAdd }).disabled).toBe(true)
 })
 
+it('reports a provider usage rejection without hiding the account', async () => {
+  const api = apiFixture()
+  api.usage.mockRejectedValueOnce(new Error('quota unavailable'))
+  mount(api)
+  await screen.findByText('Alice')
+  expect(await screen.findByText(en.accountUsageUnavailable)).toBeTruthy()
+  expect(screen.getByText('Alice')).toBeTruthy()
+})
+
+it('handles a provider usage error result and aborts an in-flight usage read on unmount', async () => {
+  const api = apiFixture()
+  api.usage.mockResolvedValueOnce(failure)
+  const view = mount(api)
+  await screen.findByText('Alice')
+  expect(await screen.findByText(en.accountUsageUnavailable)).toBeTruthy()
+  const pending = Promise.withResolvers<Awaited<ReturnType<AuthorizationApi['usage']>>>()
+  api.usage.mockReturnValue(pending.promise)
+  fireEvent.click(screen.getByRole('button', { name: en.accountUsageRefresh.replace('{account}', 'Alice') }))
+  const signal = api.usage.mock.lastCall?.[1]
+  view.unmount()
+  expect(signal?.aborted).toBe(true)
+  await act(async () => { pending.resolve(ok({})) })
+})
+
+it('starts usage after a list refresh adds an account without a prior sequence', async () => {
+  const api = apiFixture()
+  api.list.mockResolvedValueOnce(ok({ entries })).mockResolvedValueOnce(ok({ entries: [{ ...entries[0]!, accounts: [...entries[0]!.accounts, { id: 'b', label: 'Bob' }] }] }))
+  const view = mount(api)
+  await screen.findByText('Alice')
+  api.usage.mockResolvedValue(ok({ usage: { planType: 'plus', limits: [], bankedResetCount: 0, fetchedAt: 1 } }))
+  fireEvent.click(screen.getByRole('button', { name: 'Sign out Alice' }))
+  await waitFor(() => { expect(screen.getByText('Bob')).toBeTruthy() })
+  view.unmount()
+})
+
+it.each([false, true])('discards a replaced usage request and preserves the latest quota (reject: %s)', async (reject) => {
+  const api = apiFixture()
+  const first = Promise.withResolvers<Awaited<ReturnType<AuthorizationApi['usage']>>>()
+  const second = Promise.withResolvers<Awaited<ReturnType<AuthorizationApi['usage']>>>()
+  api.usage.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise)
+  mount(api)
+  await screen.findByText('Alice')
+  fireEvent.click(screen.getByRole('button', { name: en.accountUsageRefresh.replace('{account}', 'Alice') }))
+  expect(api.usage.mock.calls[0]?.[1]?.aborted).toBe(true)
+  await act(async () => {
+    if (reject) first.reject(new Error('stale request'))
+    else first.resolve(ok({}))
+    second.resolve(ok({ usage: { planType: 'plus', limits: [], bankedResetCount: 0, fetchedAt: 1 } }))
+  })
+  expect(screen.getByText('plus')).toBeTruthy()
+  expect(screen.getByText('Banked resets: 0')).toBeTruthy()
+  expect(screen.queryByText(en.accountUsageUnavailable)).toBeNull()
+})
+
 it.each([false, true])('ignores the initial account listing after unmount (reject: %s)', async (reject) => {
   const api = apiFixture()
   const pending = Promise.withResolvers<Awaited<ReturnType<AuthorizationApi['list']>>>()

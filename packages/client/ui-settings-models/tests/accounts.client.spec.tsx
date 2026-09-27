@@ -97,11 +97,89 @@ it('shows provider-reported windows and banked resets per account', async () => 
     usage,
   }
   render(<ProviderAccounts flowKey={flowKey} api={api as unknown as IApiClient['authorization']} t={t} disabled={false} onBusy={vi.fn()} />)
-  await screen.findByText(/5h 25% used/)
-  expect(screen.getByText(/weekly 50% used/)).toBeDefined()
+  await screen.findByText('5 hour usage limit')
+  expect(screen.getByText('75% left')).toBeDefined()
+  expect(screen.getByText('Weekly usage limit')).toBeDefined()
+  expect(screen.getByText('50% left')).toBeDefined()
   expect(screen.getByText(/Banked resets: 2/)).toBeDefined()
   fireEvent.click(screen.getByRole('button', { name: en.accountUsageRefresh.replace('{account}', 'alice@example.test') }))
   await waitFor(() => { expect(usage).toHaveBeenCalledTimes(2) })
+})
+
+it('renders an unnamed plan, an unwindowed limit, and unavailable banked resets', async () => {
+  const api = {
+    list: async () => ok({ entries: [{ key: flowKey, label: 'ChatGPT', methods: [{ id: 'oauth', label: 'Sign in' }],
+      inFlight: false, accounts: [{ id: 'alice', label: 'alice@example.test' }] }] }),
+    usage: async () => ok({ usage: { limits: [{ name: 'Messages', usedPercent: 12.4 }, { name: 'Search', windowMinutes: 300, usedPercent: 5 }], fetchedAt: 1 } }),
+  }
+  render(<ProviderAccounts flowKey={flowKey} api={api as unknown as IApiClient['authorization']} t={t} disabled={false} onBusy={vi.fn()} />)
+  await screen.findByText('Messages')
+  expect(screen.getByText('Messages')).toBeTruthy()
+  expect(screen.getByText('88% left')).toBeTruthy()
+  expect(screen.getByText('Search · 5 hour usage limit')).toBeTruthy()
+  expect(screen.getByText('95% left')).toBeTruthy()
+  expect(screen.getByText(en.accountBankedResetsUnavailable)).toBeTruthy()
+})
+
+it('groups Google model quota into the shared usage cards', async () => {
+  const googleKey = 'llm-account-auth/antigravity'
+  const api = {
+    list: async () => ok({ entries: [{ key: googleKey, label: 'Google Antigravity', methods: [{ id: 'oauth', label: 'Sign in' }],
+      inFlight: false, accounts: [{ id: 'google', label: 'google@example.test' }] }] }),
+    usage: async () => ok({ usage: { planType: 'Google AI Pro', limits: [
+      { name: 'Gemini 3.1 Flash', group: 'Gemini models', window: 'weekly', windowMinutes: 10_080,
+        usedPercent: 18, remainingAmount: 820, resetsAt: 1_800_000_000 },
+      { name: 'Claude Opus', group: 'Claude and GPT models', window: '5 hours', windowMinutes: 300,
+        usedPercent: 40, resetsAt: 1_800_000_000 },
+      { name: 'Search', window: '5h', windowMinutes: 300, usedPercent: 20 },
+      { name: 'Other model', usedPercent: 60 },
+      { name: 'Disabled model', group: 'Other models', usedPercent: 0, disabled: true },
+    ], credits: [
+      { tier: 'g1', creditType: 'GOOGLE_ONE_AI', creditAmount: 1200, minimumCreditAmountForUsage: 100 },
+      { tier: 'free', creditAmount: 4 },
+      { tier: 'bonus' },
+    ], fetchedAt: 1 } }),
+  }
+  render(<ProviderAccounts flowKey={googleKey} api={api as unknown as IApiClient['authorization']} t={t} disabled={false} onBusy={vi.fn()} />)
+  expect(await screen.findByText(en.accountUsageGeminiModels)).toBeTruthy()
+  expect(screen.getByText(en.accountUsageClaudeGptModels)).toBeTruthy()
+  expect(screen.getByText(en.accountUsageOtherModels)).toBeTruthy()
+  expect(screen.getByText('82% left')).toBeTruthy()
+  expect(screen.getByText('60% left')).toBeTruthy()
+  expect(screen.getByText('Search · 5 hour usage limit')).toBeTruthy()
+  expect(screen.getByText('Weekly usage limit')).toBeTruthy()
+  expect(screen.getByText('820 remaining')).toBeTruthy()
+  expect(screen.getByText('GOOGLE_ONE_AI: 1,200 credits')).toBeTruthy()
+  expect(screen.getByText('free: 4 credits')).toBeTruthy()
+  expect(screen.getByText(en.accountUsageUnavailable)).toBeTruthy()
+  expect(screen.getByText('Credit use starts at 100')).toBeTruthy()
+  expect(screen.getByText('Disabled')).toBeTruthy()
+  expect(screen.getAllByRole('progressbar')).toHaveLength(4)
+  expect(screen.queryByText(/Banked resets/)).toBeNull()
+})
+
+it('renders an empty Google credits section without a placeholder', async () => {
+  const googleKey = 'llm-account-auth/antigravity'
+  const api = {
+    list: async () => ok({ entries: [{ key: googleKey, label: 'Google Antigravity', methods: [{ id: 'oauth', label: 'Sign in' }],
+      inFlight: false, accounts: [{ id: 'google', label: 'google@example.test' }] }] }),
+    usage: async () => ok({ usage: { limits: [{ name: 'Gemini', usedPercent: 0 }], credits: [], fetchedAt: 1 } }),
+  }
+  render(<ProviderAccounts flowKey={googleKey} api={api as unknown as IApiClient['authorization']} t={t} disabled={false} onBusy={vi.fn()} />)
+  await screen.findByText('Gemini')
+  expect(screen.queryByRole('heading', { name: en.accountUsageCreditsTitle })).toBeNull()
+})
+
+it('keeps unknown providers on the generic usage presentation', async () => {
+  const futureKey = 'llm-account-auth/future'
+  const api = {
+    list: async () => ok({ entries: [{ key: futureKey, label: 'Future', methods: [{ id: 'oauth', label: 'Sign in' }],
+      inFlight: false, accounts: [{ id: 'future', label: 'future@example.test' }] }] }),
+    usage: async () => ok({ usage: { planType: 'Future plan', limits: [{ name: 'Messages', usedPercent: 10 }], fetchedAt: 1 } }),
+  }
+  render(<ProviderAccounts flowKey={futureKey} api={api as unknown as IApiClient['authorization']} t={t} disabled={false} onBusy={vi.fn()} />)
+  expect(await screen.findByText('Messages')).toBeTruthy()
+  expect(screen.getByText('90% left')).toBeTruthy()
 })
 
 it('requires a connected account for an active account-backed provider', () => {
